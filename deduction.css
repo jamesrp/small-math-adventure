@@ -1,0 +1,53 @@
+.deduction-puzzle { max-width: 680px; margin: 0 auto; }
+.deduction-puzzle p { line-height: 1.55; }
+.deduction-puzzle fieldset { border: 0; padding: 0; min-width: 0; }
+.deduction-puzzle legend { font-weight: 700; margin-bottom: 12px; }
+.deduction-form-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin: 20px 0 12px; }
+.deduction-form-controls label { display: flex; flex-direction: column; gap: 7px; }
+.deduction-puzzle button, .deduction-puzzle select, .deduction-puzzle summary { min-height: 44px; }
+.deduction-puzzle select { min-width: 100px; max-width: 100%; padding: 10px 12px; border: 1px solid #aab9ab; border-radius: 10px; background: #fffef8; color: #213d32; font: inherit; }
+.deduction-note { font-size: .9rem; color: #536159; }
+.deduction-feedback { margin: 16px 0; padding: 12px 16px; border-radius: 12px; background: #edf1e5; }
+.latin-grid { display: grid; grid-template-columns: repeat(var(--latin-order), minmax(44px, 1fr)); gap: 5px; max-width: 440px; }
+.latin-cell, .latin-given { min-width: 44px; min-height: 60px; aspect-ratio: 1; position: relative; border-radius: 8px; }
+.latin-given { display: grid; place-items: center; background: #284f40; color: #fff; font-size: 1.65rem; font-weight: 750; }
+.latin-cell { cursor: pointer; }
+.latin-cell input { position: absolute; inset: 0; opacity: 0; margin: 0; width: 100%; height: 100%; cursor: pointer; }
+.latin-cell-face { display: flex; height: 100%; flex-direction: column; align-items: center; justify-content: center; border: 2px solid #bbc8b7; border-radius: 8px; background: #fffef8; pointer-events: none; }
+.latin-cell-face strong { font-size: 1.65rem; }
+.latin-cell-face small { font-size: .8rem; font-weight: 650; word-spacing: 3px; color: #495c51; text-align: center; }
+.latin-cell input:checked + .latin-cell-face { border-color: #35644b; box-shadow: inset 0 0 0 2px #35644b; background: #e7efd9; }
+.latin-cell input:focus-visible + .latin-cell-face { outline: 3px solid #151c89; outline-offset: 3px; }
+.latin-conflict { outline: 3px dashed #a33c24; outline-offset: -4px; }
+.latin-conflict .latin-cell-face { background: #ffeddf; }
+.code-transcript, .nim-bundles table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; }
+.code-transcript caption, .nim-bundles caption { text-align: left; font-weight: 700; margin-bottom: 12px; }
+.code-transcript th, .code-transcript td, .nim-bundles th, .nim-bundles td { padding: 12px 6px; text-align: center; border-bottom: 1px solid #ccd3c1; }
+.code-transcript th:first-child { text-align: left; }
+.code-word { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 5px; }
+.code-bit, .code-lantern { display: inline-grid; place-items: center; border: 1px solid #62756b; width: 30px; height: 34px; border-radius: 7px; font-weight: 750; }
+.code-choices button { width: 52px; height: 60px; font-size: 1.45rem; padding: 0; }
+.code-bit-0, .code-choices button[data-bit="0"] { background: #e6f0ee; color: #203e36; }
+.code-bit-1, .code-choices button[data-bit="1"] { background: #315645; color: #fff; }
+.code-choices button[data-bit="blank"] { background: #fffef8; color: #526e5b; }
+.code-mismatch { background: #ffeddf; }
+.code-choices { margin-top: 24px; }
+.nim-piles { display: flex; gap: 12px; margin: 24px 0; }
+.nim-pile { flex: 1; min-width: 0; padding: 16px 10px; border-radius: 14px; background: #f3eddc; text-align: center; }
+.nim-pile h3 { margin: 0 0 12px; font-size: 1rem; }
+.nim-pile strong { font-size: .9rem; }
+.nim-pebbles { min-height: 100px; display: flex; justify-content: center; align-content: center; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+.nim-pebbles span { color: #426550; font-size: 30px; line-height: 1; }
+.nim-bundles { margin: 20px 0; }
+.nim-bundles summary { cursor: pointer; font-weight: 700; display: list-item; align-content: center; }
+@media (max-width: 460px) {
+  .latin-grid { gap: 4px; }
+  .latin-cell, .latin-given { min-height: 48px; }
+  .latin-cell-face strong, .latin-given { font-size: 1.3rem; }
+  .latin-cell-face small { word-spacing: 0; font-size: .68rem; }
+  .code-transcript th, .code-transcript td { padding: 9px 3px; font-size: .85rem; }
+  .code-transcript .code-word { gap: 3px; flex-wrap: nowrap; }
+  .code-bit { width: 22px; height: 30px; }
+  .nim-piles { gap: 7px; }
+  .nim-pile { padding: 12px 6px; }
+}
