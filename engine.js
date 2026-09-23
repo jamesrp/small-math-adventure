@@ -1,13 +1,17 @@
 import {isExpansion, mechanicFor} from './expansion.js';
-// Pure, deterministic puzzle rules. No DOM, storage, randomness, or scoring.
+// Puzzle rules without DOM or storage. Random choices accept an injectable source.
 export const CONTENT_VERSION = 1;
 export const BANDS = { k1: { label: 'K–1', name: 'Little discoveries' }, '23': { label: '2–3', name: 'Pattern seekers' }, '45': { label: '4–5', name: 'Big thinkers' } };
 export const clone = value => JSON.parse(JSON.stringify(value));
 export function adjacent(a, b, cols) {
   return Number.isInteger(a) && Number.isInteger(b) && Math.abs(a % cols - b % cols) + Math.abs(Math.floor(a / cols) - Math.floor(b / cols)) === 1;
 }
-export function freshAttempt(puzzle) {
-  return { revision: puzzle.revision || 1, board: isExpansion(puzzle) ? mechanicFor(puzzle).fresh(puzzle) : puzzle.mechanic === 'tile' ? [] : [...puzzle.start], history: [], moves: 0, hintLevel: 0, helpUsed: false, completed: false, lastPlayed: Date.now() };
+export function freshAttempt(puzzle, random = Math.random) {
+  return { revision: puzzle.revision || 1, board: isExpansion(puzzle) ? mechanicFor(puzzle).fresh(puzzle, random) : puzzle.mechanic === 'tile' ? [] : [...puzzle.start], history: [], moves: 0, hintLevel: 0, helpUsed: false, completed: false, lastPlayed: Date.now() };
+}
+export function resumeAttempt(puzzle, attempt, random = Math.random) {
+  if (!attempt) return freshAttempt(puzzle, random);
+  return isSolved(puzzle, attempt.board) ? restart(puzzle, attempt, random) : attempt;
 }
 export function validBoard(puzzle, board) {
   if (isExpansion(puzzle)) { try { return mechanicFor(puzzle).valid(puzzle, board) === true; } catch { return false; } }
@@ -84,10 +88,10 @@ export function nextHint(puzzle, attempt) {
   if (!path) return { type: 'deadend', text: 'One patch has no partner. Try lifting a tile, or undo to a place where the garden can still be covered.' };
   return { type: 'move', pair: path[0], remaining: path.length };
 }
-export function move(puzzle, attempt, pair) {
+export function move(puzzle, attempt, pair, random = Math.random) {
   if (isExpansion(puzzle)) {
     if (!validBoard(puzzle, attempt.board)) return null;
-    const board = mechanicFor(puzzle).move(puzzle, attempt.board, pair);
+    const board = mechanicFor(puzzle).move(puzzle, attempt.board, pair, random);
     return board && validBoard(puzzle, board) ? commitBoard(puzzle, attempt, board) : null;
   }
   if (!validBoard(puzzle, attempt.board) || !Array.isArray(pair) || pair.length !== 2 || !pair.every(Number.isInteger)) return null;
@@ -114,8 +118,8 @@ export function undo(attempt) {
   const previous = attempt.history.at(-1);
   return { ...attempt, board: clone(previous.board), moves: previous.moves, history: attempt.history.slice(0,-1), lastPlayed: Date.now() };
 }
-export function restart(puzzle, attempt) {
-  return { ...freshAttempt(puzzle), completed: attempt.completed, helpUsed: attempt.helpUsed };
+export function restart(puzzle, attempt, random = Math.random) {
+  return { ...freshAttempt(puzzle, random), completed: attempt.completed, helpUsed: attempt.helpUsed };
 }
 export function undoToSolvable(puzzle, attempt) {
   let next = attempt;

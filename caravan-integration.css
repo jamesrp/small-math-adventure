@@ -1,8 +1,3 @@
-/* A remembered discovery keeps its saved board intact, even after a free-play reset. */
-.known-discovery{padding:18px 22px;background:#fff2c8;border:1px solid #dacb9a;border-radius:16px;line-height:1.6;margin:20px 0}
-.previous-discovery .board-panel,.previous-discovery .puzzle-intro,.previous-discovery .feedback{display:none}
-.previous-discovery .play-layout{grid-template-columns:minmax(0,1fr);max-width:720px;margin:24px auto}
-.previous-discovery .play-sidebar{display:block}
 .caravan-puzzle .board-panel button:focus-visible{outline:3px solid #b75736;outline-offset:4px}
 .caravan-puzzle .garden-cell:focus-visible{z-index:3}
 .caravan-account .profile-nav{min-width:44px;justify-content:center}
@@ -29,6 +24,7 @@
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .caravan-puzzle .play-layout{grid-template-columns:minmax(0,1fr);max-width:880px;margin:18px auto}
 .caravan-puzzle .play-heading{justify-content:flex-end;max-width:880px;margin:0 auto}
+.solved-indicator{margin-right:auto;color:var(--sage,#48634e);font-size:.85rem;font-weight:700;white-space:nowrap}
 .caravan-puzzle .puzzle-goal{font-family:inherit;font-size:1rem;line-height:1.5;font-weight:500;letter-spacing:0;margin:0 0 20px}
 .play-help>button{flex-shrink:0;min-width:44px;min-height:44px}
 .play-help{display:flex;gap:10px;align-items:center}

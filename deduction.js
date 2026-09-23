@@ -1,4 +1,4 @@
-import { esc, actionButton, selectField, submitButton } from './expansion-controls.js';
+import { esc, actionButton } from './expansion-controls.js';
 
 // Week 5 entry-clue Latin squares, Week 6 exact-position binary feedback,
 // and Week 8 normal-play Nim. Source lineage lives in docs/puzzle-expansion/deduction.md.
@@ -7,8 +7,6 @@ const integer = value => typeof value === 'number' && Number.isSafeInteger(value
 const index = value => typeof value === 'string' && /^(0|[1-9]\d*)$/.test(value) ? Number(value) : value;
 const clone = value => JSON.parse(JSON.stringify(value));
 const numbers = n => Array.from({ length: n }, (_, i) => i + 1);
-const quietSelect = (name, label, options, value) => selectField(name, '', options, value).replace('<select ', `<select aria-label="${esc(label)}" `);
-const hidden = (name, value) => `<input type="hidden" name="${esc(name)}" value="${esc(value)}">`;
 
 function latinValid(p, board) {
   const n = p.parameters.order, givens = p.parameters.givens.flat();
@@ -59,12 +57,10 @@ const latin = {
   move(p, board, action) {
     if (!latinValid(p, board) || !object(action) || action.type !== 'set') return null;
     const cell = index(action.cell), value = index(action.value), n = p.parameters.order, mode = action.mode || 'ink';
-    if (!integer(cell) || cell < 0 || cell >= n * n || p.parameters.givens.flat()[cell] || !integer(value) || value < 0 || value > n || !['ink', 'pencil'].includes(mode)) return null;
+    if (!integer(cell) || cell < 0 || cell >= n * n || p.parameters.givens.flat()[cell] || !integer(value) || value < 0 || value > n || mode !== 'ink') return null;
     const next = clone(board);
-    if (mode === 'pencil') {
-      if (board.cells[cell]) return null;
-      next.notes[cell] = value === 0 ? [] : board.notes[cell].includes(value) ? board.notes[cell].filter(v => v !== value) : [...board.notes[cell], value].sort((a, b) => a - b);
-    } else { next.cells[cell] = value; next.notes[cell] = []; }
+    // Keep the notes field readable for older saves; new moves only mark cells.
+    next.cells[cell] = value; next.notes[cell] = [];
     return JSON.stringify(next) === JSON.stringify(board) ? null : next;
   },
   hint(p, board) {
@@ -88,18 +84,19 @@ const latin = {
     return { type: 'move', action: { type: 'set', cell, value: answer[cell], mode: 'ink' }, remaining: empty.length,
       text: `Try ${answer[cell]} in row ${Math.floor(cell / n) + 1}, column ${cell % n + 1}. ${reason}` };
   },
-  render(p, attempt) {
+  render(p, attempt, context = {}) {
     const board = attempt.board, n = p.parameters.order, givens = p.parameters.givens.flat(), conflicts = latinConflicts(n, board.cells);
     const first = board.cells.findIndex((value, cell) => !value && !givens[cell]);
-    const selected = first < 0 ? givens.findIndex(value => !value) : first;
+    const selected = integer(context.selected) && !givens[context.selected] ? context.selected : first < 0 ? givens.findIndex(value => !value) : first;
+    const solved = this.solved(p, board);
     return `<div class="deduction-puzzle latin-puzzle">
-      <form data-puzzle-form>${hidden('type', 'set')}<fieldset class="latin-picker"><legend class="sr-only">Choose a square</legend><div class="latin-grid" style="--latin-order:${n}">${board.cells.map((value, cell) => {
-        const name = `Row ${Math.floor(cell / n) + 1}, column ${cell % n + 1}`, note = board.notes[cell].join(' '), label = `${name}: ${value || 'empty'}${note ? `; pencil marks ${note}` : ''}${conflicts.has(cell) ? '; repeated symbol' : ''}`;
-        return givens[cell] ? `<div class="latin-given${conflicts.has(cell) ? ' latin-conflict' : ''}" role="img" aria-label="${esc(label)}; fixed clue">${value}</div>` : `<label class="latin-cell${conflicts.has(cell) ? ' latin-conflict' : ''}"><input type="radio" name="cell" value="${cell}" aria-label="${esc(label)}" ${cell === selected ? 'checked' : ''} required><span class="latin-cell-face"><strong>${value || ''}</strong><small>${esc(note)}</small></span></label>`;
-      }).join('')}</div></fieldset><div class="deduction-form-controls">${quietSelect('value', 'Symbol', [{ value: 0, label: 'Clear' }, ...numbers(n)], 1)}${quietSelect('mode', 'Write or pencil', [{ value: 'ink', label: 'Write' }, { value: 'pencil', label: 'Pencil' }], 'ink')}${submitButton('Apply')}</div></form>
-      <p class="deduction-feedback" role="status">${conflicts.size ? 'A symbol repeats: check the outlined squares.' : ''}</p></div>`;
+      <div class="latin-grid" role="group" aria-label="Choose a square" style="--latin-order:${n}">${board.cells.map((value, cell) => {
+        const label = `Row ${Math.floor(cell / n) + 1}, column ${cell % n + 1}: ${value || 'empty'}${conflicts.has(cell) ? '; repeated symbol' : ''}`;
+        return givens[cell] ? `<div class="latin-given${conflicts.has(cell) ? ' latin-conflict' : ''}" role="img" aria-label="${esc(label)}; fixed clue">${value}</div>` : `<button type="button" class="latin-cell${conflicts.has(cell) ? ' latin-conflict' : ''}" data-action="latin-cell" data-cell="${cell}" data-focus="latin-cell-${cell}" aria-label="${esc(label)}" aria-pressed="${cell === selected}" ${solved ? 'disabled' : ''}>${value || ''}</button>`;
+      }).join('')}</div><div class="latin-keypad" role="group" aria-label="Mark row ${Math.floor(selected / n) + 1}, column ${selected % n + 1}">${[...numbers(n), 0].map(value => actionButton(value || 'Clear', { type: 'set', cell: selected, value }, `aria-label="${value ? `Mark ${value}` : 'Clear square'}" ${solved || board.cells[selected] === value ? 'disabled' : ''}`)).join('')}</div>
+      ${conflicts.size ? '<p class="deduction-feedback" role="status">A symbol repeats: check the outlined squares.</p>' : ''}</div>`;
   },
-  demo: 'Choose an empty square, then write a symbol. Each symbol belongs once in every row and column. Pencil marks let you keep several possibilities; Undo reverses any trial.'
+  demo: 'Tap a square, then a number to mark it. You can also type a number; Delete or Backspace clears the selected square. Each symbol belongs once in every row and column. Dark squares are fixed.'
 };
 
 const exactMatches = (bits, guess) => bits.reduce((total, bit, i) => total + (String(bit) === guess[i] ? 1 : 0), 0);
@@ -148,46 +145,70 @@ const code = {
 };
 
 const nimSum = piles => piles.reduce((sum, pile) => sum ^ pile, 0);
-function nimChoice(p, choice) {
-  return object(choice) && integer(choice.pile) && choice.pile >= 1 && choice.pile <= p.parameters.piles.length && integer(choice.remove) && choice.remove >= 1 && choice.remove <= p.parameters.piles[choice.pile - 1];
+function nimChoice(piles, choice) {
+  return object(choice) && integer(choice.pile) && choice.pile >= 1 && choice.pile <= piles.length && integer(choice.remove) && choice.remove >= 1 && choice.remove <= piles[choice.pile - 1];
 }
-function afterChoice(p, choice) { return p.parameters.piles.map((size, i) => size - (i === choice.pile - 1 ? choice.remove : 0)); }
+function afterChoice(piles, choice) { return piles.map((size, i) => size - (i === choice.pile - 1 ? choice.remove : 0)); }
 function winningMove(piles) {
   const sum = nimSum(piles);
   for (let i = 0; i < piles.length; i++) { const target = piles[i] ^ sum; if (target < piles[i]) return { pile: i + 1, remove: piles[i] - target }; }
   return null;
 }
+const legalNimMoves = piles => piles.flatMap((size, i) => numbers(size).map(remove => ({ pile: i + 1, remove })));
+const nimWinner = board => board.piles.some(Boolean) ? null : board.turns.at(-1)?.player;
+// Strictly recognize the former first-move format before migrating a saved attempt.
+export function legacyNimBoard(p, board) {
+  return object(board) && Object.keys(board).length === 1 && Object.hasOwn(board, 'choice') && (board.choice === null || nimChoice(p.parameters.piles, board.choice));
+}
+function nimValid(p, board) {
+  if (!object(board) || !Array.isArray(board.piles) || board.piles.length !== p.parameters.piles.length || !Array.isArray(board.turns) || board.turns.length > p.parameters.piles.reduce((a, b) => a + b, 0)) return false;
+  let piles = [...p.parameters.piles];
+  for (const [i, turn] of board.turns.entries()) {
+    if (!nimChoice(piles, turn) || turn.player !== (i % 2 ? 'opponent' : 'you')) return false;
+    piles = afterChoice(piles, turn);
+  }
+  return board.piles.every((size, i) => integer(size) && size === piles[i]) && (board.turns.length % 2 === 0 || !piles.some(Boolean));
+}
 const nim = {
-  fresh: () => ({ choice: null }),
-  valid: (p, board) => object(board) && (board.choice === null || nimChoice(p, board.choice)),
-  solved(p, board) { return this.valid(p, board) && board.choice !== null && nimSum(afterChoice(p, board.choice)) === 0; },
-  move(p, board, action) {
-    if (!this.valid(p, board) || !object(action) || action.type !== 'choose') return null;
+  fresh: p => ({ piles: [...p.parameters.piles], turns: [] }),
+  valid: nimValid,
+  solved: (p, board) => nimValid(p, board) && nimWinner(board) === 'you',
+  // Commit the player's turn and reply together: saves and Undo always land
+  // at a player's turn. Inject randomness so strategy tests can cover each reply.
+  move(p, board, action, random = Math.random) {
+    if (!nimValid(p, board) || nimWinner(board) || !object(action) || action.type !== 'choose') return null;
     const choice = { pile: index(action.pile), remove: index(action.remove) };
-    if (!nimChoice(p, choice) || board.choice && board.choice.pile === choice.pile && board.choice.remove === choice.remove) return null;
-    return { choice };
+    if (!nimChoice(board.piles, choice)) return null;
+    let piles = afterChoice(board.piles, choice);
+    const turns = [...board.turns, { player: 'you', ...choice }];
+    if (piles.some(Boolean)) {
+      const options = legalNimMoves(piles), reply = winningMove(piles) || options[Math.floor(random() * options.length)];
+      piles = afterChoice(piles, reply);
+      turns.push({ player: 'opponent', ...reply });
+    }
+    return { piles, turns };
   },
   hint(p, board) {
-    if (!this.valid(p, board)) return { type: 'deadend', text: 'This choice cannot be read. Restart the piles.' };
+    if (!nimValid(p, board)) return { type: 'deadend', text: 'Restart to restore the piles.' };
     if (this.solved(p, board)) return { type: 'done' };
-    const choice = winningMove(p.parameters.piles);
-    if (!choice) return { type: 'deadend', text: 'This starting position has no winning first move against best play.' };
-    return { type: 'move', action: { type: 'choose', ...choice }, remaining: 1,
-      text: `${board.choice ? 'Try again from the starting piles. ' : ''}Remove ${choice.remove} from pile ${choice.pile}, leaving ${afterChoice(p, choice).join(', ')}. Each 4, 2, and 1 bundle then occurs an even number of times.` };
+    if (nimWinner(board)) return { type: 'deadend', text: 'The opponent took the last pebble. Undo or restart to try again.' };
+    const best = winningMove(board.piles), choice = best || legalNimMoves(board.piles)[0];
+    return { type: 'move', action: { type: 'choose', ...choice },
+      text: best ? `Take ${choice.remove} from pile ${choice.pile}, leaving ${afterChoice(board.piles, choice).join(', ')}. Keep returning the opponent to a balanced position.` : `There is no forced win from these piles. Try taking ${choice.remove} from pile ${choice.pile}, or undo your last turn.` };
   },
   render(p, attempt) {
-    const board = attempt.board, piles = p.parameters.piles, after = board.choice ? afterChoice(p, board.choice) : null, win = this.solved(p, board), reply = after && !win ? winningMove(after) : null;
+    const board = attempt.board, winner = nimWinner(board), reply = board.turns.at(-1);
+    const status = winner === 'you' ? '' : winner === 'opponent' ? 'Opponent wins.' : 'Your turn';
     return `<div class="deduction-puzzle nim-puzzle">
-      <div class="nim-piles" aria-label="Starting piles">${piles.map((size, i) => `<section class="nim-pile" aria-label="Pile ${i + 1}, ${size} pebbles"><h3>Pile ${i + 1}</h3><div class="nim-pebbles" aria-hidden="true">${Array.from({ length: size }, () => '<span>●</span>').join('')}</div><strong aria-label="${size} pebbles">${size}</strong></section>`).join('')}</div>
-      <form data-puzzle-form>${hidden('type', 'choose')}<div class="deduction-form-controls">${selectField('pile', 'Pile', piles.map((size, i) => ({ value: i + 1, label: `Pile ${i + 1} (${size})` })), board.choice?.pile || 1)}${selectField('remove', 'Take', numbers(Math.max(...piles)), board.choice?.remove || 1)}${submitButton('Try')}</div></form>
-      <div class="deduction-feedback" role="status">${after && !win ? `<p>You took ${board.choice.remove} from pile ${board.choice.pile}, leaving <strong>${after.join(', ')}</strong>.</p>${win ? '' : `<p>The other player can take ${reply.remove} from pile ${reply.pile}, leaving ${after.map((size, i) => size - (i === reply.pile - 1 ? reply.remove : 0)).join(', ')}. Try a different first move.</p>`}` : ''}</div>
+      <div class="nim-status" role="status" tabindex="-1" data-focus="nim-status">${reply?.player === 'opponent' ? `<span>Opponent took ${reply.remove} from pile ${reply.pile}.</span> ` : ''}<strong>${status}</strong></div>
+      <div class="nim-piles" aria-label="Remaining piles">${board.piles.map((size, i) => `<section class="nim-pile" aria-label="Pile ${i + 1}, ${size} pebbles"><h3>Pile ${i + 1}</h3><div class="nim-pebbles" aria-hidden="true">${Array.from({ length: size }, () => '<span>●</span>').join('')}</div><strong aria-label="${size} pebbles">${size}</strong><div class="nim-take" role="group" aria-label="Take from pile ${i + 1}"><span>Take</span>${numbers(p.parameters.piles[i]).map(remove => actionButton(String(remove), { type: 'choose', pile: i + 1, remove }, `aria-label="Take ${remove} from pile ${i + 1}" ${winner || remove > size ? 'disabled' : ''}`)).join('')}</div></section>`).join('')}</div>
       </div>`;
   },
   help(p, attempt) {
-    const piles = p.parameters.piles, after = attempt.board.choice ? afterChoice(p, attempt.board.choice) : null;
-    return `<div class="deduction-puzzle"><details class="nim-bundles"><summary>Explore 4, 2, and 1 bundles</summary><p>Each pile can use a bundle size at most once. A balanced position has an even count in every column.</p><table><caption>${after ? 'Piles after your move' : 'Starting piles'} as bundles</caption><thead><tr><th scope="col">Pile</th>${[4, 2, 1].map(size => `<th scope="col">${size}-bundle</th>`).join('')}</tr></thead><tbody>${(after || piles).map((size, i) => `<tr><th scope="row">${i + 1}: ${size}</th>${[4, 2, 1].map(bundle => `<td>${size & bundle ? '1' : '0'}</td>`).join('')}</tr>`).join('')}</tbody></table></details></div>`;
+    const piles = attempt.board.piles;
+    return `<div class="deduction-puzzle"><details class="nim-bundles"><summary>Explore 4, 2, and 1 bundles</summary><p>Each pile can use a bundle size at most once. A balanced position has an even count in every column.</p><table><caption>Remaining piles as bundles</caption><thead><tr><th scope="col">Pile</th>${[4, 2, 1].map(size => `<th scope="col">${size}-bundle</th>`).join('')}</tr></thead><tbody>${piles.map((size, i) => `<tr><th scope="row">${i + 1}: ${size}</th>${[4, 2, 1].map(bundle => `<td>${size & bundle ? '1' : '0'}</td>`).join('')}</tr>`).join('')}</tbody></table></details></div>`;
   },
-  demo: 'From piles 1 and 2, take one pebble from the second pile. Your opponent receives two piles of 1. Whichever pile they take, you take the last pebble from the other pile.'
+  demo: 'Take any positive number from one pile. The opponent replies automatically. Take the last pebble to win. Undo takes back your move and the opponent’s reply.'
 };
 
 export const deductionMechanics = { latin, code, nim };

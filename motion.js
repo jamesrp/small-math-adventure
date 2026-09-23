@@ -1,4 +1,4 @@
-import { esc, actionButton, selectField, submitButton } from './expansion-controls.js';
+import { esc, selectField, submitButton } from './expansion-controls.js';
 
 // Adapted from the locally consulted weeks 02, 04, and 09 worksheets and
 // redesign notes. Instance-level provenance lives in the expansion catalog.
@@ -68,17 +68,16 @@ function lanternPicture(p, on, title, goal = false, disabled = false) {
     const [x1, y1] = positions[vertices.indexOf(a)], [x2, y2] = positions[vertices.indexOf(b)];
     return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
   }).join('');
-  // Spatial tapping has the same operation as the native wire buttons below.
-  // Those buttons supply keyboard controls and explicit endpoint names.
-  const wireHits = goal || disabled ? '' : edges.map(([a, b], edge) => {
+  // The wires themselves are the tap and keyboard targets.
+  const wireHits = goal ? '' : edges.map(([a, b], edge) => {
     const [x1, y1] = positions[vertices.indexOf(a)], [x2, y2] = positions[vertices.indexOf(b)];
-    return `<line class="wire-hit" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" data-action="expansion-move" data-move="${esc(JSON.stringify({ edge }))}" aria-hidden="true"/>`;
+    return `<line class="wire-hit" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" role="button" tabindex="${disabled ? -1 : 0}" aria-label="Press wire ${esc(a)} to ${esc(b)}; flip both lanterns" aria-disabled="${disabled}" ${disabled ? '' : 'data-action="expansion-move"'} data-move="${esc(JSON.stringify({ edge }))}" data-focus="wire-${edge}"/>`;
   }).join('');
   const lamps = vertices.map((vertex, i) => {
     const [x, y] = positions[i], bright = on.includes(vertex);
     return `<g class="lantern ${bright ? 'lit' : ''}"><circle cx="${x}" cy="${y}" r="21"/><text x="${x}" y="${y + 6}">${esc(vertex)}</text>${bright ? `<path class="lamp-rays" d="M${x - 27} ${y}h-5 M${x + 27} ${y}h5 M${x} ${y - 27}v-5 M${x} ${y + 27}v5"/>` : ''}</g>`;
   }).join('');
-  return `<figure class="lantern-picture ${goal ? 'goal-picture' : ''}"><figcaption>${esc(title)}</figcaption><svg viewBox="0 0 360 280" role="img" aria-label="${esc(title)}. Bright: ${esc(on.join(', ') || 'none')}. All other lanterns dark."><g class="lantern-wires">${lines}${wireHits}</g>${lamps}</svg></figure>`;
+  return `<figure class="lantern-picture ${goal ? 'goal-picture' : ''}"><figcaption>${esc(title)}</figcaption><svg viewBox="0 0 360 280" role="${goal ? 'img' : 'group'}" aria-label="${esc(title)}. Bright: ${esc(on.join(', ') || 'none')}. All other lanterns dark."><g class="lantern-wires">${lines}${wireHits}</g>${lamps}</svg></figure>`;
 }
 
 const toggle = {
@@ -103,9 +102,9 @@ const toggle = {
   render(p, attempt) {
     const board = attempt.board, budget = p.parameters.press_budget;
     const full = budget != null && board.presses.length >= budget;
-    return `<div class="motion-board toggle-board"><div class="lantern-comparison">${lanternPicture(p, board.on, 'Your lanterns', false, full)}${lanternPicture(p, p.parameters.target_on, 'Goal card', true)}</div><div class="motion-controls" role="group" aria-label="Press a wire">${p.parameters.edges.map((edge, index) => actionButton(`${esc(edge.join(' ↔ '))}`, { edge: index }, `aria-label="Press wire ${esc(edge.join(' to '))}; flip both lanterns" ${full ? 'disabled' : ''}`)).join('')}</div>${budget == null ? '' : `<p class="motion-status">${plural(budget - board.presses.length, 'press')} left</p>`}</div>`;
+    return `<div class="motion-board toggle-board">${budget == null ? '' : `<p class="motion-status" role="status">${plural(budget - board.presses.length, 'press')} remaining</p>`}<div class="lantern-comparison">${lanternPicture(p, board.on, 'Your lanterns', false, full)}${lanternPicture(p, p.parameters.target_on, 'Goal card', true)}</div></div>`;
   },
-  demo: 'Tap any wire button: both named lanterns change together. Compare every lantern with the goal card. Undo restores the previous picture and press budget.'
+  demo: 'Tap a wire: both lanterns at its ends change together. With a keyboard, Tab to a wire and press Enter or Space. Undo restores the previous picture and press budget.'
 };
 
 function clockPeriod(parameters) {

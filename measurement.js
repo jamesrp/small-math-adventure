@@ -185,10 +185,16 @@ function candidates(p, board) {
   return weighingModel(p.parameters).hypotheses.filter(hypothesis => board.observations.every(record => outcome(hypothesis, record.left, record.right) === record.result));
 }
 
+// Boards saved before randomized attempts used the authored example secret.
+// Storage upgrades those boards and their undo history without changing evidence.
+export const weighingSecret = (p, board) => Object.hasOwn(board, 'secret') ? board.secret : p.parameters.fixed_secret;
+
 function validWeigh(p, board) {
   const parameters = p.parameters;
   if (!object(board) || typeof board.notebook !== 'boolean' || !validPans(parameters, board.left, board.right) || !Array.isArray(board.observations) || board.observations.length > parameters.weighing_budget) return false;
-  if (!board.observations.every(record => object(record) && validPans(parameters, record.left, record.right, true) && ['L', '=', 'R'].includes(record.result) && outcome(parameters.fixed_secret, record.left, record.right) === record.result)) return false;
+  const secret = weighingSecret(p, board);
+  if (!Array.isArray(secret) || secret.length !== 2 || !weighingModel(parameters).hypotheses.some(hypothesis => same(hypothesis, secret))) return false;
+  if (!board.observations.every(record => object(record) && validPans(parameters, record.left, record.right, true) && ['L', '=', 'R'].includes(record.result) && outcome(secret, record.left, record.right) === record.result)) return false;
   return board.answer === null || (object(board.answer) && parameters.coins.includes(board.answer.coin) && (board.answer.deviation === 1 || (parameters.odd_kind !== 'heavy' && board.answer.deviation === -1)));
 }
 
@@ -211,7 +217,10 @@ function balanceFeedback(p, board) {
 }
 
 const weigh = {
-  fresh: () => ({left:[], right:[], observations:[], answer:null, notebook:false}),
+  fresh(p, random = Math.random) {
+    const hypotheses = weighingModel(p.parameters).hypotheses;
+    return {secret:[...hypotheses[Math.floor(random() * hypotheses.length)]], left:[], right:[], observations:[], answer:null, notebook:false};
+  },
   valid: validWeigh,
   solved: solvedWeigh,
   move(p, board, action) {
@@ -229,7 +238,7 @@ const weigh = {
     if (action.type === 'weigh') {
       const left = action.left ?? board.left, right = action.right ?? board.right;
       if (board.observations.length >= p.parameters.weighing_budget || !validPans(p.parameters, left, right, true)) return null;
-      const record = {left:[...left], right:[...right], result:outcome(p.parameters.fixed_secret, left, right)};
+      const record = {left:[...left], right:[...right], result:outcome(weighingSecret(p, board), left, right)};
       return {...board, left:[...left], right:[...right], observations:[...board.observations, record], answer:null};
     }
     if (action.type === 'answer') {

@@ -9344,7 +9344,7 @@
       },
       "hint": "First finish the top row. Then the leftmost empty cell in row 2 allows 2 or 4. Try one lightly and check what it forces.",
       "insight": "Locally legal placements can fail only after consequences travel through several rows.",
-      "prerequisites": "Five symbols; pencil marks or reversible trials; tolerate a delayed contradiction.",
+      "prerequisites": "Five symbols; reversible trials; tolerate a delayed contradiction.",
       "difficulty_reasoning": "Cell/hidden singles make four placements and then stop with thirteen blanks. At that point row 2, column 1 allows 2 or 4; 4 has no completion. This is a structural step beyond the preceding board.",
       "verification_claims": {
         "cell_single_steps_before_stall": 1,
@@ -9963,7 +9963,7 @@
     {
       "id": "nim-01",
       "title": "Leave the pair",
-      "prompt": "Make a winning first move from piles of 1 and 2.",
+      "prompt": "Win a game starting with piles of 1 and 2.",
       "parameters": {
         "piles": [
           1,
@@ -9971,7 +9971,7 @@
         ],
         "pile_numbering": "left to right, starting at 1",
         "normal_play": true,
-        "task": "find_a_winning_first_move",
+        "task": "win_game",
         "allowed_removal": "any positive amount from exactly one nonempty pile"
       },
       "solution": {
@@ -10009,12 +10009,12 @@
       "familyTitle": "Pebble Duel",
       "number": 1,
       "revision": 1,
-      "instruction": "Make a winning first move from piles of 1 and 2.",
+      "instruction": "Win a game starting with piles of 1 and 2.",
       "idea": "The smallest equal-pile position lets you answer either move with the last counter.",
       "rules": [
-        "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. For each puzzle, choose one first move that gives you a strategy to win against every reply. No written strategy or proof is requested."
+        "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. The app takes a winning move whenever one exists, otherwise a random legal move."
       ],
-      "controls": "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. For each puzzle, choose one first move that gives you a strategy to win against every reply. No written strategy or proof is requested.",
+      "controls": "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. The app takes a winning move whenever one exists, otherwise a random legal move.",
       "hints": [
         "Leave the other player two piles of 1.",
         "Look at what your latest move changed. You can undo and try another choice.",
@@ -10041,7 +10041,7 @@
     {
       "id": "nim-02",
       "title": "Build a mirror",
-      "prompt": "Make a winning first move from piles of 2 and 5.",
+      "prompt": "Win a game starting with piles of 2 and 5.",
       "parameters": {
         "piles": [
           2,
@@ -10049,7 +10049,7 @@
         ],
         "pile_numbering": "left to right, starting at 1",
         "normal_play": true,
-        "task": "find_a_winning_first_move",
+        "task": "win_game",
         "allowed_removal": "any positive amount from exactly one nonempty pile"
       },
       "solution": {
@@ -10087,12 +10087,12 @@
       "familyTitle": "Pebble Duel",
       "number": 2,
       "revision": 1,
-      "instruction": "Make a winning first move from piles of 2 and 5.",
+      "instruction": "Win a game starting with piles of 2 and 5.",
       "idea": "Equal piles let a player copy the opponent in the other pile until both are empty.",
       "rules": [
-        "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. For each puzzle, choose one first move that gives you a strategy to win against every reply. No written strategy or proof is requested."
+        "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. The app takes a winning move whenever one exists, otherwise a random legal move."
       ],
-      "controls": "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. For each puzzle, choose one first move that gives you a strategy to win against every reply. No written strategy or proof is requested.",
+      "controls": "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. The app takes a winning move whenever one exists, otherwise a random legal move.",
       "hints": [
         "Can you make the two piles match in one move?",
         "Look at what your latest move changed. You can undo and try another choice.",
@@ -10119,7 +10119,7 @@
     {
       "id": "nim-03",
       "title": "Three piles break the old rule",
-      "prompt": "Make a winning first move from piles of 1, 1, and 2.",
+      "prompt": "Win a game starting with piles of 1, 1, and 2.",
       "parameters": {
         "piles": [
           1,
@@ -10128,7 +10128,7 @@
         ],
         "pile_numbering": "left to right, starting at 1",
         "normal_play": true,
-        "task": "find_a_winning_first_move",
+        "task": "win_game",
         "allowed_removal": "any positive amount from exactly one nonempty pile"
       },
       "solution": {
@@ -10163,18 +10163,18 @@
         "winning_move_count": 1
       },
       "provenance": "Authored one-move app adaptation of the standard Nim rule. Source-start lineage is explicit below; no worksheet prose is copied.",
-      "source_start": "(1,1,2) appears in Week 8 grades 4–5 Task 2; here adapted to a checked first-move puzzle.",
+      "source_start": "(1,1,2) appears in Week 8 grades 4–5 Task 2; here adapted to a full game with checked winning openings.",
       "band": "all",
       "mechanic": "nim",
       "familyTitle": "Pebble Duel",
       "number": 3,
       "revision": 1,
-      "instruction": "Make a winning first move from piles of 1, 1, and 2.",
+      "instruction": "Win a game starting with piles of 1, 1, and 2.",
       "idea": "Two equal piles cancel as game components, but an unmatched third pile matters. An even total alone is not a losing-position test.",
       "rules": [
-        "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. For each puzzle, choose one first move that gives you a strategy to win against every reply. No written strategy or proof is requested."
+        "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. The app takes a winning move whenever one exists, otherwise a random legal move."
       ],
-      "controls": "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. For each puzzle, choose one first move that gives you a strategy to win against every reply. No written strategy or proof is requested.",
+      "controls": "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. The app takes a winning move whenever one exists, otherwise a random legal move.",
       "hints": [
         "The two matching piles do not protect the player who receives this position. Can you remove the extra pile?",
         "Look at what your latest move changed. You can undo and try another choice.",
@@ -10201,7 +10201,7 @@
     {
       "id": "nim-04",
       "title": "No equal piles needed",
-      "prompt": "Make a winning first move from piles of 1, 2, and 4.",
+      "prompt": "Win a game starting with piles of 1, 2, and 4.",
       "parameters": {
         "piles": [
           1,
@@ -10210,7 +10210,7 @@
         ],
         "pile_numbering": "left to right, starting at 1",
         "normal_play": true,
-        "task": "find_a_winning_first_move",
+        "task": "win_game",
         "allowed_removal": "any positive amount from exactly one nonempty pile"
       },
       "solution": {
@@ -10245,18 +10245,18 @@
         "winning_move_count": 1
       },
       "provenance": "Authored one-move app adaptation of the standard Nim rule. Source-start lineage is explicit below; no worksheet prose is copied.",
-      "source_start": "(1,2,4) appears in Week 8 grades 4–5 Tasks 1 and 4; here adapted to a checked first-move puzzle.",
+      "source_start": "(1,2,4) appears in Week 8 grades 4–5 Tasks 1 and 4; here adapted to a full game with checked winning openings.",
       "band": "all",
       "mechanic": "nim",
       "familyTitle": "Pebble Duel",
       "number": 4,
       "revision": 1,
-      "instruction": "Make a winning first move from piles of 1, 2, and 4.",
+      "instruction": "Win a game starting with piles of 1, 2, and 4.",
       "idea": "A losing three-pile state need not contain equal piles. The 1/2 bundle pattern of 1,2,3 balances.",
       "rules": [
-        "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. For each puzzle, choose one first move that gives you a strategy to win against every reply. No written strategy or proof is requested."
+        "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. The app takes a winning move whenever one exists, otherwise a random legal move."
       ],
-      "controls": "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. For each puzzle, choose one first move that gives you a strategy to win against every reply. No written strategy or proof is requested.",
+      "controls": "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. The app takes a winning move whenever one exists, otherwise a random legal move.",
       "hints": [
         "Try leaving 1, 2, and 3. Whatever changes next, you can leave two equal piles and an empty pile.",
         "Look at what your latest move changed. You can undo and try another choice.",
@@ -10283,7 +10283,7 @@
     {
       "id": "nim-05",
       "title": "Repair one binary column",
-      "prompt": "Make a winning first move from piles of 3, 4, and 5.",
+      "prompt": "Win a game starting with piles of 3, 4, and 5.",
       "parameters": {
         "piles": [
           3,
@@ -10292,7 +10292,7 @@
         ],
         "pile_numbering": "left to right, starting at 1",
         "normal_play": true,
-        "task": "find_a_winning_first_move",
+        "task": "win_game",
         "allowed_removal": "any positive amount from exactly one nonempty pile"
       },
       "solution": {
@@ -10327,18 +10327,18 @@
         "winning_move_count": 1
       },
       "provenance": "Authored one-move app adaptation of the standard Nim rule. Source-start lineage is explicit below; no worksheet prose is copied.",
-      "source_start": "(3,4,5) appears in Week 8 grades 4–5 Tasks 5 and 6; here adapted to a checked first-move puzzle.",
+      "source_start": "(3,4,5) appears in Week 8 grades 4–5 Tasks 5 and 6; here adapted to a full game with checked winning openings.",
       "band": "all",
       "mechanic": "nim",
       "familyTitle": "Pebble Duel",
       "number": 5,
       "revision": 1,
-      "instruction": "Make a winning first move from piles of 3, 4, and 5.",
+      "instruction": "Win a game starting with piles of 3, 4, and 5.",
       "idea": "Every binary column must contain an even number of bundles, not merely the total number of counters.",
       "rules": [
-        "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. For each puzzle, choose one first move that gives you a strategy to win against every reply. No written strategy or proof is requested."
+        "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. The app takes a winning move whenever one exists, otherwise a random legal move."
       ],
-      "controls": "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. For each puzzle, choose one first move that gives you a strategy to win against every reply. No written strategy or proof is requested.",
+      "controls": "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. The app takes a winning move whenever one exists, otherwise a random legal move.",
       "hints": [
         "Show each pile using bundles 4, 2, and 1. Which bundle appears an odd number of times?",
         "Look at what your latest move changed. You can undo and try another choice.",
@@ -10365,7 +10365,7 @@
     {
       "id": "nim-06",
       "title": "One move, several ways",
-      "prompt": "Make any winning first move from piles of 4, 5, and 6.",
+      "prompt": "Win a game starting with piles of 4, 5, and 6.",
       "parameters": {
         "piles": [
           4,
@@ -10374,7 +10374,7 @@
         ],
         "pile_numbering": "left to right, starting at 1",
         "normal_play": true,
-        "task": "find_a_winning_first_move",
+        "task": "win_game",
         "allowed_removal": "any positive amount from exactly one nonempty pile"
       },
       "solution": {
@@ -10432,12 +10432,12 @@
       "familyTitle": "Pebble Duel",
       "number": 6,
       "revision": 1,
-      "instruction": "Make any winning first move from piles of 4, 5, and 6.",
+      "instruction": "Win a game starting with piles of 4, 5, and 6.",
       "idea": "Binary balancing can require lower bits to turn on as a pile shrinks. Different piles can provide different valid balancing moves.",
       "rules": [
-        "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. For each puzzle, choose one first move that gives you a strategy to win against every reply. No written strategy or proof is requested."
+        "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. The app takes a winning move whenever one exists, otherwise a random legal move."
       ],
-      "controls": "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. For each puzzle, choose one first move that gives you a strategy to win against every reply. No written strategy or proof is requested.",
+      "controls": "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. The app takes a winning move whenever one exists, otherwise a random legal move.",
       "hints": [
         "One legal option changes 4 to 3. Removing one counter trades a 4-bundle for 2+1; inspect all the columns again.",
         "Look at what your latest move changed. You can undo and try another choice.",
@@ -12086,7 +12086,7 @@
       "id": "nim",
       "title": "Pebble Duel",
       "rules": [
-        "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. For each puzzle, choose one first move that gives you a strategy to win against every reply. No written strategy or proof is requested."
+        "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. The app takes a winning move whenever one exists, otherwise a random legal move."
       ],
       "mathematics": "Normal-play impartial games and backward induction lead from equal two-pile positions to Nim sum zero. Binary column parity is addition over the field with two elements; this is Bouton’s classical solved game and an entry to Sprague–Grundy theory.",
       "prerequisites": "Count and remove 1 or 2; understand alternating turns.",

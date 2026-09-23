@@ -1,13 +1,13 @@
 import {isExpansion,mechanicFor,playInstructions} from './expansion.js';
 import {puzzleObjective} from './puzzle-copy.js';
-import { BANDS,freshAttempt,isSolved,nextHint,move,removeTile,undo,restart,undoToSolvable } from './engine.js';
+import { BANDS,freshAttempt,resumeAttempt,isSolved,nextHint,move,removeTile,undo,restart,undoToSolvable } from './engine.js';
 import { SAVE_KEY,BACKUP_KEY,emptyStore,loadStore,persistStore,parseBackup,importProfiles } from './storage.js';
 import { esc,bandOptions,playView,parentView,catalogHTML,notesHTML } from './ui.js';
 import { COMPANIONS, getProgress, getEncounter, startJourney, chooseRoute, beginEncounter, completeEncounter } from './caravan.js';
 import { caravanHeader, caravanProfiles, caravanMap, journalView, companionBody, libraryView } from './caravan-ui.js';
 const app=document.querySelector('#app');
 let pack,puzzles,state,warning='',selected=null,highlighted=null,message='',checker=false,pwaMessage='Preparing offline play…',currentDialog;
-let sessionCompleted=new Set();
+let sessionCompleted=new Set(),activePlay=null;
 let storage;
 try{storage=window.localStorage;}catch{storage={getItem(){throw Error();},setItem(){throw Error();},removeItem(){throw Error();}};}
 const uid=()=>globalThis.crypto?.randomUUID?.()||`explorer-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -27,12 +27,17 @@ function put(p,a){profile().attempts[p.id]=a;save();}
 function go(hash){selected=null;highlighted=null;message='';if(location.hash===`#${hash}`)render();else location.hash=hash;}
 function render(){
   const focus=document.activeElement?.dataset?.focus,focusedPair=document.activeElement?.dataset?.pair,view=route()[0],pr=profile(),p=puzzle();
+  const playKey=view==='play'&&pr&&p?`${pr.id}/${location.hash}`:null;
+  if(playKey!==activePlay){
+    activePlay=playKey;
+    if(playKey){pr.attempts[p.id]=resumeAttempt(p,pr.attempts[p.id]);save();}
+  }
   const encounter=activeEncounter();
   const content=view==='parents'?parentView(state,pr,pack,pwaMessage):!pr||view==='profiles'?caravanProfiles(state,puzzles):view==='journal'?journalView(pr,puzzles):view==='library'?libraryView(pr,puzzles):view==='play'&&p?playView(p,attempt(p),{pack,profile:pr,encounter,selected,highlighted,message,checker,sessionCount:sessionCompleted.size}):caravanMap(pr,puzzles);
   document.body.dataset.view=view||'map';
   document.body.classList.toggle('on-encounter',Boolean(encounter));
   app.innerHTML=caravanHeader(pr,view==='library'||(view==='play'&&!encounter)?'library':view==='journal'?'journal':'journey')+(warning?`<div class="error-banner" role="status">${esc(warning)}</div>`:'')+`<main class="shell" id="main">${content}</main>`;
-  if(focus){const target=(focusedPair?app.querySelector(`[data-pair="${CSS.escape(focusedPair)}"]`):app.querySelector(`[data-focus="${CSS.escape(focus)}"]`))||app.querySelector('#completion-heading');target?.focus({preventScroll:true});}
+  if(focus){let target=(focusedPair?app.querySelector(`[data-pair="${CSS.escape(focusedPair)}"]`):app.querySelector(`[data-focus="${CSS.escape(focus)}"]`));if(!target||target.disabled)target=app.querySelector('.latin-cell[aria-pressed="true"]:not(:disabled)')||app.querySelector('.nim-status')||app.querySelector('#completion-heading');target?.focus({preventScroll:true});}
   wireForms();
 }
 function wireForms(){
@@ -73,7 +78,16 @@ function openEncounter(id){
   if(!profile().attempts[next.puzzle.id])profile().attempts[next.puzzle.id]=freshAttempt(next.puzzle);
   save();go(`play/${next.puzzle.id}/${next.encounter.id}`);
 }
-function applyPair(p,pair){const a=attempt(p),encounter=activeEncounter(),next=move(p,a,pair);selected=null;highlighted=null;if(!next){message=isExpansion(p)?'That move is not allowed. Check How to play.':p.mechanic==='tile'?'Choose two empty patches that share a side.':'Choose a listed pair.';render();return;}message='';if(isSolved(p,next.board)&&!a.completed)sessionCompleted.add(p.id);profile().attempts[p.id]=next;if(encounter&&isSolved(p,next.board))completeEncounter(profile(),p.id,encounter.id,puzzles);save();render();if(isSolved(p,next.board))document.querySelector('#completion-heading')?.focus();}
+function applyPair(p,pair){const a=attempt(p),encounter=activeEncounter(),next=move(p,a,pair);selected=p.mechanic==='latin'?Number(pair.cell):null;highlighted=null;if(!next){message=isExpansion(p)?'That move is not allowed. Check How to play.':p.mechanic==='tile'?'Choose two empty patches that share a side.':'Choose a listed pair.';render();return;}message='';if(isSolved(p,next.board)&&!a.completed)sessionCompleted.add(p.id);profile().attempts[p.id]=next;if(encounter&&isSolved(p,next.board))completeEncounter(profile(),p.id,encounter.id,puzzles);save();render();if(isSolved(p,next.board))document.querySelector('#completion-heading')?.focus({preventScroll:true});}
+document.addEventListener('keydown',event=>{
+  const wire=event.target.closest('.wire-hit');
+  if(wire&&['Enter',' '].includes(event.key)){event.preventDefault();if(wire.getAttribute('aria-disabled')!=='true')wire.dispatchEvent(new MouseEvent('click',{bubbles:true}));return;}
+  if(!event.target.closest('.latin-puzzle')||event.ctrlKey||event.metaKey||event.altKey)return;
+  const p=puzzle(),cell=document.querySelector('.latin-cell[aria-pressed="true"]');
+  if(!p||!cell||isSolved(p,attempt(p).board))return;
+  const value=['Backspace','Delete','0'].includes(event.key)?0:/^[1-9]$/.test(event.key)?Number(event.key):null;
+  if(value!==null&&value<=p.parameters.order){event.preventDefault();if(attempt(p).board.cells[Number(cell.dataset.cell)]!==value)applyPair(p,{type:'set',cell:Number(cell.dataset.cell),value});}
+});
 document.addEventListener('click',event=>{
   if(event.target.closest('.skip-link')){event.preventDefault();const main=document.querySelector('#main');main?.setAttribute('tabindex','-1');main?.focus();return;}
   const control=event.target.closest('[data-action]');if(!control)return;const action=control.dataset.action,p=puzzle(),a=p&&profile()?attempt(p):null;
@@ -101,10 +115,11 @@ document.addEventListener('click',event=>{
   else if(action==='change-band')dialog('Puzzle level',`<p>For future encounters.</p><div class="grade-options">${bandOptions(profile().band)}</div>`,[{label:'Cancel'},{label:'Apply',run:d=>{profile().band=d.querySelector('input[name=band]:checked').value;save();render();}}]);
   else if(action==='tile-cell'&&p?.mechanic==='tile'){const cell=Number(control.dataset.cell);if(a.board.some(pair=>pair.includes(cell))){put(p,removeTile(p,a,cell));selected=null;highlighted=null;message='';render();}else if(selected===cell){selected=null;render();}else if(selected===null){selected=cell;message='';render();}else applyPair(p,[selected,cell]);}
   else if(action==='cup'&&p?.mechanic==='swap'){const cell=Number(control.dataset.cell);if(selected===cell){selected=null;render();}else if(selected===null){selected=cell;message='';render();}else applyPair(p,[selected,cell]);}
+  else if(action==='latin-cell'&&p?.mechanic==='latin'){selected=Number(control.dataset.cell);message='';render();}
   else if(action==='expansion-move'&&p&&a){try{applyPair(p,JSON.parse(control.dataset.move));}catch{message='Choose a move using the controls above.';render();}}
   else if(action==='swap-pair'&&p?.mechanic==='swap')applyPair(p,control.dataset.pair.split(',').map(Number));
   else if(action==='undo'&&a){put(p,undo(a));selected=null;highlighted=null;message='';render();}
-  else if((action==='restart'||action==='replay')&&a){const reset=()=>{const encounter=activeEncounter();put(p,restart(p,a));selected=null;highlighted=null;message='';if(action==='replay'&&encounter)go(`play/${p.id}`);else render();};if(action==='replay')reset();else dialog('Start this puzzle again?','<p>This clears the current board. Completed discoveries stay saved.</p>',[{label:'Cancel'},{label:'Start again',run:reset}]);}
+  else if((action==='restart'||action==='replay')&&a){const encounter=activeEncounter();put(p,restart(p,a));selected=null;highlighted=null;message='';if(action==='replay'&&encounter)go(`play/${p.id}`);else render();}
   else if(action==='hint'&&a){const next={...a,hintLevel:Math.min(a.hintLevel+1,3),helpUsed:true};put(p,next);const h=nextHint(p,next);highlighted=next.hintLevel>=2&&h.type==='move'?h.pair:null;message='';render();}
   else if(action==='apply-hint'&&a){const h=nextHint(p,a);if(h.type==='move')applyPair(p,h.action||h.pair);}
   else if(action==='rescue'&&a){put(p,undoToSolvable(p,a));selected=null;highlighted=null;message='';render();}
@@ -118,7 +133,7 @@ document.addEventListener('click',event=>{
   else if(action==='print')window.print();
 });
 window.addEventListener('hashchange',()=>{selected=null;highlighted=null;message='';window.speechSynthesis?.cancel();render();window.scrollTo(0,0);const heading=document.querySelector('#completion-heading')||document.querySelector('#main h1');heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});if(route()[0]==='play'&&profile()?.sound&&puzzle())speak(puzzle());});
-window.addEventListener('storage',event=>{if(event.key===SAVE_KEY||event.key===null){const loaded=loadStore(storage,puzzles);state=loaded.store;warning=loaded.warning;selected=null;highlighted=null;render();}});
+window.addEventListener('storage',event=>{if(event.key===SAVE_KEY||event.key===null){const loaded=loadStore(storage,puzzles);state=loaded.store;warning=loaded.warning;selected=null;highlighted=null;activePlay=null;render();}});
 function setOfflineMessage(text){pwaMessage=text;const node=document.querySelector('#offline-status');if(node)node.textContent=text;}
 async function setupOffline(){
   if(!window.isSecureContext||!('serviceWorker'in navigator)){setOfflineMessage('Offline install needs HTTPS');return;}

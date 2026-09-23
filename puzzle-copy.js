@@ -37,7 +37,7 @@ export function puzzleObjective(puzzle) {
     case 'code':
       return 'Find a code that fits every recorded match count.';
     case 'nim':
-      return 'Choose a first move that wins against best play.';
+      return 'Take the last pebble to win.';
     case 'jug':
       if (p.target_state) {
         const amounts = p.target_state.map((amount, index) =>

@@ -1,4 +1,4 @@
-const CACHE='small-math-adventure-shell-23f8dc0f44dae4ef';
+const CACHE='small-math-adventure-shell-7ebf0b7c59ba17ca';
 const ASSETS=["./","./caravan-art.js","./caravan-integration.css","./caravan-ui.js","./caravan.css","./caravan.js","./deduction.css","./deduction.js","./engine.js","./expansion-controls.js","./expansion.css","./expansion.js","./icons/apple-touch-icon.png","./icons/icon-192.png","./icons/icon-512.png","./icons/lantern.svg","./index.html","./main.js","./manifest.webmanifest","./measurement.css","./measurement.js","./motion.css","./motion.js","./networks.css","./networks.js","./play.css","./puzzle-copy.js","./puzzles.json","./storage.js","./style.css","./ui.js"];
 self.addEventListener('install',event=>event.waitUntil((async()=>{
   const cache=await caches.open(CACHE);

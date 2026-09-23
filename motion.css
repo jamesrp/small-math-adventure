@@ -30,6 +30,9 @@
 .lantern-wires line { stroke:#7690a6; stroke-width:5; }
 .lantern-wires .wire-hit { stroke:transparent; stroke-width:44; vector-effect:non-scaling-stroke; cursor:pointer; }
 .lantern-wires .wire-hit:hover { stroke:rgba(26,101,137,.1); }
+.lantern-wires .wire-hit:focus-visible { stroke:rgba(26,101,137,.35); outline:none; }
+.lantern-wires .wire-hit[aria-disabled="true"] { pointer-events:none; }
+.toggle-board > .motion-status { margin:0; padding:0; }
 .lantern circle { fill:#e5eaf1; stroke:#142b48; stroke-width:2; stroke-dasharray:4 3; }
 .lantern.lit circle { fill:#ffd653; stroke:#886313; stroke-dasharray:none; stroke-width:3; }
 .lantern text { font-size:19px; font-weight:800; text-anchor:middle; }
