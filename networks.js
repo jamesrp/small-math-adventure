@@ -82,6 +82,7 @@ function hintColor(p,b){
 const marks=['●','▲','■','◆'];
 function positions(p){
   const q=p.parameters,ring=(names,r=39,phase=-Math.PI/2)=>Object.fromEntries(names.map((v,i)=>[v,[50+r*Math.cos(phase+i*2*Math.PI/names.length),50+r*Math.sin(phase+i*2*Math.PI/names.length)]]));
+  if(q.positions)return q.positions;
   if(p.mechanic==='color'){
     if(p.id==='color-01')return Object.fromEntries(q.vertices.map((v,i)=>[v,[10+20*i,50]]));
     if(q.vertices.includes('H'))return {...ring(q.vertices.filter(v=>v!=='H')),H:[50,50]};

@@ -1,7 +1,8 @@
 import { BANDS, CONTENT_VERSION, freshAttempt, validBoard, isSolved, clone } from './engine.js';
 import { legacyNimBoard } from './deduction.js';
 import { weighingSecret } from './measurement.js';
-import { validateJourney } from './caravan.js';
+import { validateJourney, freshJourney, withCampaignPuzzles, resolvePuzzle } from './caravan.js';
+import { validateJourney as validateCaravanJourney } from './caravan-legacy.js';
 export const SAVE_KEY = 'small-math-adventure:saves:v1';
 export const BACKUP_KEY = 'small-math-adventure:previous:v1';
 export const emptyStore = () => ({ schemaVersion: 1, contentVersion: CONTENT_VERSION, activeProfileId: null, profiles: [] });
@@ -22,13 +23,27 @@ function restoredAttempt(p, a) {
 }
 export function validateStore(value, puzzles) {
   if (!value || value.schemaVersion !== 1 || value.contentVersion !== CONTENT_VERSION || !Array.isArray(value.profiles) || value.profiles.length > 30) throw new Error('This backup has an unsupported version or too many explorers.');
-  const byId = new Map(puzzles.map(p => [p.id,p]));
+  const allPuzzles = withCampaignPuzzles(puzzles);
+  const byId = new Map(allPuzzles.map(p => [p.id,p]));
+  const journeys = new Map();
   const ids = new Set();
   for (const profile of value.profiles) {
-    if (!profile || typeof profile.id !== 'string' || profile.id.length > 100 || !profile.id || ids.has(profile.id) || typeof profile.name !== 'string' || !profile.name.trim() || profile.name.length > 24 || !Object.hasOwn(BANDS,profile.band) || !Number.isInteger(profile.avatar) || profile.avatar < 0 || profile.avatar > 5 || typeof profile.sound !== 'boolean' || !profile.attempts || Array.isArray(profile.attempts) || typeof profile.attempts !== 'object' || Object.keys(profile.attempts).length > puzzles.length) throw new Error('An explorer in this backup is not valid.');
+    if (!profile || typeof profile.id !== 'string' || profile.id.length > 100 || !profile.id || ids.has(profile.id) || typeof profile.name !== 'string' || !profile.name.trim() || profile.name.length > 24 || !Object.hasOwn(BANDS,profile.band) || !Number.isInteger(profile.avatar) || profile.avatar < 0 || profile.avatar > 5 || typeof profile.sound !== 'boolean' || !profile.attempts || Array.isArray(profile.attempts) || typeof profile.attempts !== 'object' || Object.keys(profile.attempts).length > allPuzzles.length) throw new Error('An explorer in this backup is not valid.');
     ids.add(profile.id);
+    let journey, caravanJourney;
+    if (Object.hasOwn(profile,'caravanJourney')) caravanJourney=validateCaravanJourney(profile.caravanJourney,profile,puzzles);
+    if (Object.hasOwn(profile,'journey')) {
+      if (profile.journey?.version===1) {
+        if (caravanJourney) throw new Error('This backup has two earlier journeys.');
+        caravanJourney=validateCaravanJourney(profile.journey,profile,puzzles);
+        journey=freshJourney();
+      } else journey=validateJourney(profile.journey,profile,puzzles);
+    }
+    journeys.set(profile.id,{...(journey?{journey}:{}),...(caravanJourney?{caravanJourney}:{})});
+    const effectiveProfile={...profile,journey};
     for (const [id,a] of Object.entries(profile.attempts)) {
-      const p = byId.get(id);
+      const base = byId.get(id), p = resolvePuzzle(base,effectiveProfile);
+      if (base?.campaignOnly && !Object.values(journey?.bindings||{}).includes(id)) throw new Error('A rescue puzzle has not been reached.');
       if (!p || !a || a.revision !== (p.revision || 1) || !readableBoard(p,a.board) || !Array.isArray(a.history) || a.history.length > 120 || !Number.isSafeInteger(a.moves) || a.moves < 0 || !Number.isInteger(a.hintLevel) || a.hintLevel < 0 || a.hintLevel > 3 || typeof a.helpUsed !== 'boolean' || typeof a.completed !== 'boolean' || !Number.isFinite(a.lastPlayed) || a.lastPlayed < 0 || (isSolved(p,a.board) && !a.completed)) throw new Error(`Saved puzzle ${id} does not match this puzzle pack.`);
       if (a.history.length > Math.min(a.moves,120)) throw new Error(`Undo history for ${id} is not valid.`);
       for (const [i,h] of a.history.entries()) if (!h || !(p.mechanic==='nim'&&legacyNimBoard(p,a.board)?legacyNimBoard(p,h.board):validBoard(p,h.board)) || h.moves !== a.moves-a.history.length+i) throw new Error(`Undo history for ${id} is not valid.`);
@@ -37,7 +52,7 @@ export function validateStore(value, puzzles) {
   }
   if (value.activeProfileId !== null && !ids.has(value.activeProfileId)) throw new Error('The selected explorer is missing.');
   // Copy only documented fields; never merge arbitrary imported object keys.
-  return { schemaVersion: 1, contentVersion: CONTENT_VERSION, activeProfileId: value.activeProfileId, profiles: value.profiles.map(p => ({ id:p.id,name:p.name,band:p.band,avatar:p.avatar,sound:p.sound,attempts:Object.fromEntries(Object.entries(p.attempts).map(([id,a]) => [id,restoredAttempt(byId.get(id),a)])),...(Object.hasOwn(p,'journey') ? {journey:validateJourney(p.journey,p,puzzles)} : {}) })) };
+  return { schemaVersion: 1, contentVersion: CONTENT_VERSION, activeProfileId: value.activeProfileId, profiles: value.profiles.map(p => ({ id:p.id,name:p.name,band:p.band,avatar:p.avatar,sound:p.sound,attempts:Object.fromEntries(Object.entries(p.attempts).map(([id,a]) => [id,restoredAttempt(byId.get(id),a)])),...journeys.get(p.id) })) };
 }
 export function loadStore(storage, puzzles) {
   let primary;

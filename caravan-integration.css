@@ -59,3 +59,36 @@
   .encounter-banner>button{grid-column:2;margin:0;padding:4px 0;justify-self:start}
 }
 @media print{.caravan-puzzle,.known-discovery{display:none}}
+/* Rescue campaign: the current obstacle stays visible alongside its controls. */
+.rescue-route .route-stops{grid-template-columns:repeat(3,minmax(0,1fr));max-width:760px;margin:0 auto}
+.rescue-route .route-stop:nth-of-type(even){padding-top:0}
+.rescue-route .route-stop::before{display:none}
+.encounter-scene{max-width:880px;margin:0 auto 12px;overflow:hidden;border-radius:13px;background:#f8f3e7;border:1px solid #d4ccb7}
+.encounter-scene>img{display:block;width:100%;height:auto;aspect-ratio:2;object-fit:contain;background:#203c49}
+.story-caption{display:flex;align-items:center;gap:20px;padding:17px 22px;color:#354d43}
+.story-caption p{margin:0;flex:1;font-size:1rem;line-height:1.65}
+.story-caption .story-listen{flex-shrink:0;font-size:.85rem;min-height:44px}
+.scene-solved{box-shadow:0 0 0 2px #c9af73}
+.equipment-needed{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 20px;margin:0 auto 18px;max-width:620px;border:1px solid #c9af73;border-radius:12px;background:#f5ecd4}
+.equipment-needed p{margin:0}.equipment-needed button{white-space:normal}
+.equipment-bag{display:flex;justify-content:flex-end;margin:12px 0 -12px}
+.equipment-item{display:flex;align-items:center;gap:12px;background:#eee7d2;border:1px solid #ccbc92;padding:5px 14px;font-size:.88rem}
+.equipment-item svg{width:44px;height:44px}
+.pump-earned{display:flex;gap:10px;align-items:center;justify-content:center;margin:12px 0}
+.pump-earned svg{width:75px;height:65px}.pump-earned strong{font-size:1rem}
+.migration-note{margin-top:16px;color:#566851;font-size:.88rem}
+.earlier-journey{margin-top:24px;border-top:1px solid #cbd0bf;padding-top:16px}
+.earlier-journey summary{padding:12px 0;cursor:pointer}
+.finale-dispatch .secondary{margin-top:24px}
+@media(max-width:710px){.equipment-needed{align-items:stretch;flex-direction:column;gap:12px;padding:16px}.encounter-scene{margin-bottom:8px}.rescue-route .stop-marker{width:62px;height:62px;min-height:62px}.rescue-route .route-stop h2{font-size:.95rem}.equipment-bag{margin-bottom:0}.caravan-puzzle .board-panel{padding:18px}}
+.story-aftermath{max-width:880px;margin:0 auto}
+.story-aftermath .encounter-scene{margin-bottom:22px}
+.story-aftermath .completion-card{max-width:100%;padding:26px}
+.story-aftermath .completion-card>p{max-width:64ch;margin:0 auto;line-height:1.75}
+@media(max-width:710px){.story-aftermath .completion-card{padding:20px}.story-aftermath .encounter-scene{margin-bottom:16px}}
+/* Preserve the full authored composition at every viewport. */
+.hero-picture{min-height:0;justify-content:center;background:#203c49}
+.hero-picture>.rescue-landscape{position:static;display:block;inset:auto;width:100%;height:auto;max-width:100%;aspect-ratio:2;object-fit:contain}
+.welcome-art{border-radius:13px}
+.welcome-art .rescue-landscape{display:block;width:100%;height:auto;aspect-ratio:2;object-fit:contain}
+@media(max-width:710px){.story-caption{padding:14px 16px;gap:8px;align-items:flex-start;flex-direction:column}.story-caption .story-listen{align-self:flex-end;margin-top:-3px}.hero-picture{aspect-ratio:2}}

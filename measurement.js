@@ -90,6 +90,7 @@ const jug = {
   hint(p, board) {
     if (!validJug(p, board)) return {type:'deadend', text:'Start again to restore these jugs.'};
     if (jugGoal(p.parameters, board.amounts)) return {type:'done'};
+    if (p.missingAbility) return {type:'equipment', text:p.equipmentHint};
     const graph = jugGraph(p.parameters), queue = [{amounts:board.amounts, first:null, distance:0}], seen = new Set([board.amounts.join(',')]);
     for (let index = 0; index < queue.length; index++) {
       const state = queue[index];

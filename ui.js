@@ -1,5 +1,6 @@
 import { visiblePuzzleObjective } from './puzzle-copy.js';
 import { encounterCompletion } from './caravan-ui.js';
+import { encounterScene } from './rescue-art.js';
 import {isExpansion,mechanicFor,playInstructions} from './expansion.js';
 import { BANDS, freshAttempt, isSolved, nextHint } from './engine.js';
 export const symbols=['●','▲','■','★','◆','✚'], avatars=['✦','☀','❋','◆','☾','✿'];
@@ -19,7 +20,7 @@ function puzzleView(p,a,ctx){
   ctx={...ctx,highlighted:a.hintLevel>=2&&hint.type==='move'?hint.pair:null};
   const feedback=ctx.message||(!solved&&hint.type==='deadend'&&!a.hintLevel?(expansion?hint.text:'This leaves an unfillable gap. Undo or lift a tile.'):'');
   return `<div class="play-heading">
-    ${a.completed&&!solved?'<span class="solved-indicator">✓ Solved</span>':''}<div class="play-help">${ctx.encounter?btn('Story','show-story','quiet'):''}${btn('How to play','demo','quiet')}${btn('<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M11 4 6 8H3v8h3l5 4V4Z"/><path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></svg>','speak','quiet small','aria-label="Read instructions aloud"')}</div>
+    ${a.completed&&!solved?'<span class="solved-indicator">✓ Solved</span>':''}<div class="play-help">${btn('How to play','demo','quiet')}${btn('<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M11 4 6 8H3v8h3l5 4V4Z"/><path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></svg>','speak','quiet small','aria-label="Read instructions aloud"')}</div>
   </div>
   <div class="play-layout ${expansion?'expansion-layout':''} ${solved?'is-complete':''}">
     <section class="board-panel ${expansion?'expansion-board':''} ${esc(p.mechanic)}" aria-label="Puzzle play area">
@@ -27,7 +28,7 @@ function puzzleView(p,a,ctx){
       ${expansion?mechanicFor(p).render(p,a,ctx):p.mechanic==='tile'?tileBoard(p,a,ctx):swapBoard(p,a,ctx)}
       ${p.mechanic==='tile'?`<div class="board-bottom"><label class="checker-toggle"><input type="checkbox" id="checker" ${ctx.checker?'checked':''}> Checker colors</label></div>`:''}
     </section>
-    <aside class="play-sidebar">${solved?completionCard(p,a,ctx):`<div class="tool-grid">${btn('↶ Undo','undo','secondary',a.history.length?'':'disabled')}${btn('Restart','restart','secondary')}${btn('Hint','hint','hint-button')}</div>${a.hintLevel?(expansion?expansionHintCard(a,hint,p):hintCard(p,a,hint)):''}`}</aside>
+    <aside class="play-sidebar">${p.missingAbility?`<div class="equipment-needed"><p>The lift needs Bea’s pump.</p>${btn('Find the workshop →','find-workshop','primary')}</div>`:''}${solved?completionCard(p,a,ctx):`<div class="tool-grid">${btn('↶ Undo','undo','secondary',a.history.length?'':'disabled')}${btn('Restart','restart','secondary')}${btn('Hint','hint','hint-button')}</div>${a.hintLevel?(expansion?expansionHintCard(a,hint,p):hintCard(p,a,hint)):''}`}</aside>
   </div><div class="feedback ${hint.type==='deadend'&&!solved?'deadend':''}" role="status" aria-live="polite">${esc(feedback)}</div>`;
 }
 function expansionHintCard(a,hint,p){
@@ -71,5 +72,6 @@ function expansionMap(pr,puzzles){
 }
 // Campaign scenes wrap the original validators and controls without changing their rules.
 export function playView(p,a,ctx){
- return `<div data-puzzle-id="${esc(p.id)}" class="caravan-puzzle" aria-label="${esc(p.familyTitle||(p.mechanic==='tile'?'Tile garden':'Cup swaps'))}">${puzzleView(p,a,ctx)}</div>`;
+ const story=ctx.encounter?.effect,solved=isSolved(p,a.board);
+ return `<div data-puzzle-id="${esc(p.id)}" class="caravan-puzzle ${story&&solved?'story-aftermath':''}" aria-label="${esc(p.familyTitle||(p.mechanic==='tile'?'Tile garden':'Cup swaps'))}">${story?encounterScene(ctx.encounter,ctx.profile,p,a):''}${story&&solved?encounterCompletion(ctx.encounter,ctx.profile,ctx.pack.puzzles):puzzleView(p,a,ctx)}</div>`;
 }

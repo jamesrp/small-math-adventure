@@ -3,7 +3,7 @@ import {puzzleObjective} from './puzzle-copy.js';
 import { BANDS,freshAttempt,resumeAttempt,isSolved,nextHint,move,removeTile,undo,restart,undoToSolvable } from './engine.js';
 import { SAVE_KEY,BACKUP_KEY,emptyStore,loadStore,persistStore,parseBackup,importProfiles } from './storage.js';
 import { esc,bandOptions,playView,parentView,catalogHTML,notesHTML } from './ui.js';
-import { COMPANIONS, getProgress, getEncounter, startJourney, chooseRoute, beginEncounter, completeEncounter } from './caravan.js';
+import { COMPANIONS, getProgress, getEncounter, startJourney, chooseRoute, beginEncounter, completeEncounter, withCampaignPuzzles, resolvePuzzle, canVisitEncounter } from './caravan.js';
 import { caravanHeader, caravanProfiles, caravanMap, journalView, companionBody, libraryView } from './caravan-ui.js';
 const app=document.querySelector('#app');
 let pack,puzzles,state,warning='',selected=null,highlighted=null,message='',checker=false,pwaMessage='Preparing offline play…',currentDialog;
@@ -13,14 +13,18 @@ try{storage=window.localStorage;}catch{storage={getItem(){throw Error();},setIte
 const uid=()=>globalThis.crypto?.randomUUID?.()||`explorer-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 const profile=()=>state.profiles.find(p=>p.id===state.activeProfileId);
 const route=()=>location.hash.slice(1).split('/');
-const puzzle=()=>puzzles.find(p=>p.id===route()[1]);
+const puzzle=()=>{
+  const p=puzzles.find(p=>p.id===route()[1]),pr=profile();
+  if(!pr||!p)return null;
+  if(p.campaignOnly&&(!canVisitEncounter(pr,route()[2])||pr.journey.bindings[route()[2]]!==p.id))return null;
+  return resolvePuzzle(p,pr);
+};
 const attempt=p=>profile().attempts[p.id]||freshAttempt(p);
 // The encounter lives in the URL as well as the save. Free play never advances a story.
 function activeEncounter(){
   const pr=profile(),p=puzzle(),id=route()[2];
   if(!pr?.journey||!p||!id||pr.journey.bindings[id]!==p.id)return null;
-  const progress=getProgress(pr,puzzles);
-  return pr.journey.completed.includes(id)||progress.encounter?.id===id?getEncounter(id,pr.journey):null;
+  return canVisitEncounter(pr,id)?getEncounter(id,pr.journey):null;
 }
 function save(){warning=persistStore(storage,state,puzzles);}
 function put(p,a){profile().attempts[p.id]=a;save();}
@@ -70,7 +74,7 @@ function narrate(text){
   voice.onerror=event=>{if(!['interrupted','canceled'].includes(event.error))dialog('Read the story together',`<p>${esc(text)}</p>`);};
   window.speechSynthesis.speak(voice);
 }
-function openPuzzle(id){const p=puzzles.find(p=>p.id===id);if(!p||!profile())return;if(!profile().attempts[id])profile().attempts[id]=freshAttempt(p);save();go(`play/${id}`);}
+function openPuzzle(id){const p=puzzles.find(p=>p.id===id);if(!p||p.campaignOnly||!profile())return;if(!profile().attempts[id])profile().attempts[id]=freshAttempt(p);save();go(`play/${id}`);}
 function openEncounter(id){
   if(!profile())return;
   const next=beginEncounter(profile(),puzzles,id);
@@ -78,7 +82,7 @@ function openEncounter(id){
   if(!profile().attempts[next.puzzle.id])profile().attempts[next.puzzle.id]=freshAttempt(next.puzzle);
   save();go(`play/${next.puzzle.id}/${next.encounter.id}`);
 }
-function applyPair(p,pair){const a=attempt(p),encounter=activeEncounter(),next=move(p,a,pair);selected=p.mechanic==='latin'?Number(pair.cell):null;highlighted=null;if(!next){message=isExpansion(p)?'That move is not allowed. Check How to play.':p.mechanic==='tile'?'Choose two empty patches that share a side.':'Choose a listed pair.';render();return;}message='';if(isSolved(p,next.board)&&!a.completed)sessionCompleted.add(p.id);profile().attempts[p.id]=next;if(encounter&&isSolved(p,next.board))completeEncounter(profile(),p.id,encounter.id,puzzles);save();render();if(isSolved(p,next.board))document.querySelector('#completion-heading')?.focus({preventScroll:true});}
+function applyPair(p,pair){const a=attempt(p),encounter=activeEncounter(),next=move(p,a,pair);selected=p.mechanic==='latin'?Number(pair.cell):null;highlighted=null;if(!next){message=isExpansion(p)?'That move is not allowed. Check How to play.':p.mechanic==='tile'?'Choose two empty patches that share a side.':'Choose a listed pair.';render();return;}message='';if(isSolved(p,next.board)&&!a.completed)sessionCompleted.add(p.id);profile().attempts[p.id]=next;if(encounter&&isSolved(p,next.board))completeEncounter(profile(),p.id,encounter.id,puzzles);save();render();if(isSolved(p,next.board)){if(encounter)window.scrollTo(0,0);document.querySelector('#completion-heading')?.focus({preventScroll:true});}}
 document.addEventListener('keydown',event=>{
   const wire=event.target.closest('.wire-hit');
   if(wire&&['Enter',' '].includes(event.key)){event.preventDefault();if(wire.getAttribute('aria-disabled')!=='true')wire.dispatchEvent(new MouseEvent('click',{bubbles:true}));return;}
@@ -100,9 +104,10 @@ document.addEventListener('click',event=>{
   else if(action==='continue-journey'&&profile()){if(!profile().journey?.started)startJourney(profile());openEncounter();}
   else if(action==='open-encounter'&&profile())openEncounter(control.dataset.id);
   else if(action==='choose-route'&&profile()){if(chooseRoute(profile(),control.dataset.route)){save();go('map');}}
+  else if(action==='find-workshop'&&profile())openEncounter();
   else if(action==='finish-encounter'&&profile()){const encounter=activeEncounter();if(encounter)completeEncounter(profile(),p.id,encounter.id,puzzles);save();go('map');}
+  else if(action==='pump-info'&&profile())dialog('Bea’s pump','<p>Fill adds water up to a jug’s capacity. Empty removes all its water. Carry the pump to the tower lift and the escape counterweight.</p>');
   else if(action==='companion'&&profile()){const companion=COMPANIONS.find(c=>c.id===control.dataset.id);if(companion)dialog(companion.name,companionBody(companion.id,profile(),puzzles));}
-  else if(action==='show-story'&&profile()){const e=activeEncounter();if(e)dialog('Story',`<p>${esc(e.intro)}</p><button class="text-button" data-action="hear-story" data-text="${esc(e.intro)}">Listen</button>`);}
   else if(action==='hear-story'&&profile()){
     const encounter=activeEncounter(),progress=getProgress(profile(),puzzles);
     const text=control.dataset.text||(encounter?`${encounter.title}. ${encounter.intro}`:`${progress.chapter.title}. ${progress.chapter.description}`);
@@ -119,7 +124,7 @@ document.addEventListener('click',event=>{
   else if(action==='expansion-move'&&p&&a){try{applyPair(p,JSON.parse(control.dataset.move));}catch{message='Choose a move using the controls above.';render();}}
   else if(action==='swap-pair'&&p?.mechanic==='swap')applyPair(p,control.dataset.pair.split(',').map(Number));
   else if(action==='undo'&&a){put(p,undo(a));selected=null;highlighted=null;message='';render();}
-  else if((action==='restart'||action==='replay')&&a){const encounter=activeEncounter();put(p,restart(p,a));selected=null;highlighted=null;message='';if(action==='replay'&&encounter)go(`play/${p.id}`);else render();}
+  else if((action==='restart'||action==='replay')&&a){const encounter=activeEncounter();put(p,restart(p,a));selected=null;highlighted=null;message='';if(action==='replay'&&encounter&&!p.campaignOnly)go(`play/${p.id}`);else render();}
   else if(action==='hint'&&a){const next={...a,hintLevel:Math.min(a.hintLevel+1,3),helpUsed:true};put(p,next);const h=nextHint(p,next);highlighted=next.hintLevel>=2&&h.type==='move'?h.pair:null;message='';render();}
   else if(action==='apply-hint'&&a){const h=nextHint(p,a);if(h.type==='move')applyPair(p,h.action||h.pair);}
   else if(action==='rescue'&&a){put(p,undoToSolvable(p,a));selected=null;highlighted=null;message='';render();}
@@ -139,5 +144,5 @@ async function setupOffline(){
   if(!window.isSecureContext||!('serviceWorker'in navigator)){setOfflineMessage('Offline install needs HTTPS');return;}
   try{const registration=await navigator.serviceWorker.register('./sw.js',{scope:'./'});await navigator.serviceWorker.ready;if(registration.waiting)setOfflineMessage('Update ready · close every app tab and reopen');const worker=registration.active;if(worker){const channel=new MessageChannel();channel.port1.onmessage=e=>setOfflineMessage(registration.waiting?'Update ready · close every app tab and reopen':e.data?.ready?'Ready for offline play':'Offline copy is still preparing');worker.postMessage({type:'CHECK_READY'},[channel.port2]);}registration.addEventListener('updatefound',()=>{const worker=registration.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)setOfflineMessage('Update ready · close every app tab and reopen');});});}catch{setOfflineMessage('Offline setup unavailable · online play works');}
 }
-function registerTools(){const context=document.modelContext;if(!context?.registerTool)return;const lifecycle=new AbortController();for(const tool of [{name:'read_adventure_progress',description:'Read the active explorer’s trail and completed puzzle IDs without changing saves.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,untrustedContentHint:true},execute(input){if(!input||Object.keys(input).length)throw Error('Expected an empty object.');const pr=profile();return pr?{name:pr.name,band:pr.band,completed:Object.entries(pr.attempts).filter(([,a])=>a.completed).map(([id])=>id)}:{profile:null};}},{name:'open_adventure_puzzle',description:'Open an authored puzzle for the active explorer, creating or resuming its saved attempt without solving it.',inputSchema:{type:'object',properties:{puzzleId:{type:'string'}},required:['puzzleId'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},async execute(input){if(!input||Object.keys(input).length!==1||typeof input.puzzleId!=='string'||!puzzles.some(p=>p.id===input.puzzleId)||!profile())throw Error('Choose an existing puzzle and active explorer.');openPuzzle(input.puzzleId);await new Promise(resolve=>setTimeout(resolve,0));return {puzzleId:input.puzzleId,status:'opened'};}}]){try{Promise.resolve(context.registerTool(tool,{signal:lifecycle.signal})).catch(()=>{});}catch{}}window.addEventListener('pagehide',()=>lifecycle.abort(),{once:true});}
-try{const response=await fetch('./puzzles.json');if(!response.ok)throw Error('Puzzle pack unavailable');pack=await response.json();puzzles=pack.puzzles;const loaded=loadStore(storage,puzzles);state=loaded.store;warning=loaded.warning;render();setupOffline();registerTools();}catch(error){app.innerHTML='<main class="shell"><section class="panel"><h1>The island couldn’t load.</h1><p class="spaced">Connect to the internet for the first visit, then try again. Your saved progress has not been changed.</p><button class="primary" onclick="location.reload()">Try again</button></section></main>';console.error(error);}
+function registerTools(){const context=document.modelContext;if(!context?.registerTool)return;const lifecycle=new AbortController();for(const tool of [{name:'read_adventure_progress',description:'Read the active explorer’s trail and completed puzzle IDs without changing saves.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,untrustedContentHint:true},execute(input){if(!input||Object.keys(input).length)throw Error('Expected an empty object.');const pr=profile();return pr?{name:pr.name,band:pr.band,completed:Object.entries(pr.attempts).filter(([,a])=>a.completed).map(([id])=>id)}:{profile:null};}},{name:'open_adventure_puzzle',description:'Open an authored puzzle for the active explorer, creating or resuming its saved attempt without solving it.',inputSchema:{type:'object',properties:{puzzleId:{type:'string'}},required:['puzzleId'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},async execute(input){if(!input||Object.keys(input).length!==1||typeof input.puzzleId!=='string'||!puzzles.some(p=>p.id===input.puzzleId&&!p.campaignOnly)||!profile())throw Error('Choose an existing puzzle and active explorer.');openPuzzle(input.puzzleId);await new Promise(resolve=>setTimeout(resolve,0));return {puzzleId:input.puzzleId,status:'opened'};}}]){try{Promise.resolve(context.registerTool(tool,{signal:lifecycle.signal})).catch(()=>{});}catch{}}window.addEventListener('pagehide',()=>lifecycle.abort(),{once:true});}
+try{const response=await fetch('./puzzles.json');if(!response.ok)throw Error('Puzzle pack unavailable');pack=await response.json();puzzles=withCampaignPuzzles(pack.puzzles);const loaded=loadStore(storage,puzzles);state=loaded.store;warning=loaded.warning;render();setupOffline();registerTools();}catch(error){app.innerHTML='<main class="shell"><section class="panel"><h1>The island couldn’t load.</h1><p class="spaced">Connect to the internet for the first visit, then try again. Your saved progress has not been changed.</p><button class="primary" onclick="location.reload()">Try again</button></section></main>';console.error(error);}

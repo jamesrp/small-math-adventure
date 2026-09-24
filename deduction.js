@@ -206,7 +206,9 @@ const nim = {
   },
   help(p, attempt) {
     const piles = attempt.board.piles;
-    return `<div class="deduction-puzzle"><details class="nim-bundles"><summary>Explore 4, 2, and 1 bundles</summary><p>Each pile can use a bundle size at most once. A balanced position has an even count in every column.</p><table><caption>Remaining piles as bundles</caption><thead><tr><th scope="col">Pile</th>${[4, 2, 1].map(size => `<th scope="col">${size}-bundle</th>`).join('')}</tr></thead><tbody>${piles.map((size, i) => `<tr><th scope="row">${i + 1}: ${size}</th>${[4, 2, 1].map(bundle => `<td>${size & bundle ? '1' : '0'}</td>`).join('')}</tr>`).join('')}</tbody></table></details></div>`;
+    const largest = Math.max(...p.parameters.piles), bundles = [];
+    for (let size = 2 ** Math.max(2, Math.floor(Math.log2(largest))); size >= 1; size /= 2) bundles.push(size);
+    return `<div class="deduction-puzzle"><details class="nim-bundles"><summary>Explore ${bundles.slice(0,-1).join(', ')}, and 1 bundles</summary><p>Each pile can use a bundle size at most once. A balanced position has an even count in every column.</p><table><caption>Remaining piles as bundles</caption><thead><tr><th scope="col">Pile</th>${bundles.map(size => `<th scope="col">${size}-bundle</th>`).join('')}</tr></thead><tbody>${piles.map((size, i) => `<tr><th scope="row">${i + 1}: ${size}</th>${bundles.map(bundle => `<td>${size & bundle ? '1' : '0'}</td>`).join('')}</tr>`).join('')}</tbody></table></details></div>`;
   },
   demo: 'Take any positive number from one pile. The opponent replies automatically. Take the last pebble to win. Undo takes back your move and the opponent’s reply.'
 };

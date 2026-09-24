@@ -2,7 +2,7 @@
   "id": "./",
   "name": "The Last Lantern Caravan",
   "short_name": "Lantern Caravan",
-  "description": "Six unlikely friends. One living lantern. An island journey through mathematics and logic.",
+  "description": "Sneak into the Clockwork Citadel, rescue Fern, and escape with the lantern tree.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

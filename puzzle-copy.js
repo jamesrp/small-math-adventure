@@ -16,7 +16,7 @@ export function puzzleObjective(puzzle) {
       }
       return p.clocks.length === 1
         ? 'Find the first bell that lands the marker on its star.'
-        : 'Find the first bell that lands both markers on their stars.';
+        : 'Find the first bell that lands every marker on its star.';
     case 'billiard':
       return p.mode === 'predict'
         ? 'Predict the first corner and the wall bounces before it.'

@@ -35,21 +35,33 @@ function solvedToggle(p, board) {
   return validToggle(p, board) && board.on.length === p.parameters.target_on.length && p.parameters.target_on.every(vertex => board.on.includes(vertex));
 }
 
+const toggleDistances = new Map();
 function toggleRoute(p, board) {
   const { vertices, edges, target_on } = p.parameters;
   const mask = on => on.reduce((bits, vertex) => bits | 1 << vertices.indexOf(vertex), 0);
   const target = mask(target_on), start = mask(board.on);
   const moves = edges.map(edge => mask(edge));
-  const queue = [{ state: start, path: [] }], visited = new Set([start]);
-  for (let i = 0; i < queue.length; i++) {
-    const { state, path } = queue[i];
-    if (state === target) return path;
-    for (let edge = 0; edge < moves.length; edge++) {
-      const next = state ^ moves[edge];
-      if (!visited.has(next)) { visited.add(next); queue.push({ state: next, path: [...path, edge] }); }
+  // Pair flips are reversible: one search from the goal serves every later
+  // hint and dead-end check on this board, including larger grids.
+  const key = JSON.stringify([vertices, edges, target_on]);
+  if (!toggleDistances.has(key)) {
+    const distances = new Map([[target, 0]]), queue = [target];
+    for (let i = 0; i < queue.length; i++) {
+      for (const edge of moves) {
+        const next = queue[i] ^ edge;
+        if (!distances.has(next)) { distances.set(next, distances.get(queue[i]) + 1); queue.push(next); }
+      }
     }
+    toggleDistances.set(key, distances);
   }
-  return null;
+  const distances = toggleDistances.get(key), path = [];
+  if (!distances.has(start)) return null;
+  let state = start;
+  while (state !== target) {
+    const edge = moves.findIndex(move => distances.get(state ^ move) === distances.get(state) - 1);
+    path.push(edge); state ^= moves[edge];
+  }
+  return path;
 }
 
 function togglePositions(parameters) {
@@ -57,7 +69,7 @@ function togglePositions(parameters) {
   if (topology === 'complete_binary_tree_depth_2') return [[180, 35], [95, 120], [265, 120], [45, 220], [135, 220], [225, 220], [315, 220]];
   if (topology === 'rectangular_grid') return vertices.map(vertex => {
     const row = rows.findIndex(line => line.includes(vertex));
-    return [45 + rows[row].indexOf(vertex) * 90, 75 + row * 140];
+    return [45 + rows[row].indexOf(vertex) * 270 / (rows[row].length - 1), 45 + row * 190 / (rows.length - 1)];
   });
   return vertices.map((_, i) => [180 + Math.sin(i * 2 * Math.PI / vertices.length) * 112, 142 - Math.cos(i * 2 * Math.PI / vertices.length) * 112]);
 }
@@ -167,7 +179,7 @@ const clock = {
     }
     const activations = firstClockHit(params);
     if (activations === null) return { type: 'deadend', text: 'These stars do not meet on the same bell.' };
-    return { type: 'move', action: { activations }, text: `${params.clocks.length > 1 ? 'Both stars first line up' : 'The marker first lands on its star'} after ${plural(activations, 'bell')}. The starting position is bell zero; count each landing after it.` };
+    return { type: 'move', action: { activations }, text: `${params.clocks.length > 1 ? 'All markers first reach their stars together' : 'The marker first lands on its star'} after ${plural(activations, 'bell')}. The starting position is bell zero; count each landing after it.` };
   },
   render(p, attempt) {
     const params = p.parameters, prediction = attempt.board.prediction, gear = params.mode === 'choose_jump';
@@ -192,7 +204,7 @@ const clock = {
     const table = prediction === null ? '' : `<details class="motion-route"><summary>See every landing${count > routeLimit ? ` (first ${routeLimit} bells)` : ''}</summary><div class="motion-table-wrap"><table><caption>One bell moves every marker</caption><thead><tr><th scope="col">Bell</th>${clocks.map((_, i) => `<th scope="col">Clock ${i + 1}</th>`).join('')}</tr></thead><tbody>${range(0, routeLimit).map(t => `<tr><th scope="row">${t}${t === 0 ? ' · start' : ''}</th>${clocks.map(clock => `<td>${(clock.start + clock.jump * t) % clock.positions}${(clock.start + clock.jump * t) % clock.positions === clock.target ? ' ★' : ''}</td>`).join('')}</tr>`).join('')}</tbody></table></div></details>`;
     return `<div class="motion-board">${table}</div>`;
   },
-  demo: 'Choose a positive bell count before ringing. Starting places are bell zero. A star only counts when the marker lands there. With two clocks, each bell moves both markers.'
+  demo: 'Choose a positive bell count before ringing. Starting places are bell zero. A star only counts when the marker lands there. Each bell moves every marker.'
 };
 
 const fraction = (numerator, denominator = 1) => {
