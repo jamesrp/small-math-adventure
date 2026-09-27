@@ -1,0 +1,28 @@
+.family-adventures {margin-top:3rem;}
+.family-adventures h2 {font-size:clamp(1.6rem,3vw,2.3rem);margin:.4rem 0;}
+.family-adventures .muted {max-width:65ch;}
+.family-list {display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.5rem;align-items:start;}
+.family-section {min-width:0;padding:1.1rem;}
+.family-section summary {min-height:44px;display:flex;gap:.8rem;align-items:center;cursor:pointer;}
+.family-section summary::before {content:'▸';}
+.family-section[open] summary::before {content:'▾';}
+.family-section summary strong {flex:1;}
+.family-section summary span:last-child {white-space:nowrap;}
+.family-section .puzzle-grid {margin-top:1rem;grid-template-columns:repeat(2,minmax(0,1fr));}
+.readiness {margin-top:1rem;font-size:.95rem;max-width:75ch;}
+.readiness summary {cursor:pointer;}
+.readiness ul {padding-left:1.5rem;line-height:1.6;}
+.expansion-board {min-width:0;overflow-wrap:anywhere;}
+.expansion-board form {display:flex;flex-wrap:wrap;gap:.8rem;align-items:end;margin:1rem 0;}
+.expansion-board label,.expansion-field {display:flex;flex-direction:column;gap:.4rem;min-width:0;}
+.expansion-board input:not([type=radio]):not([type=checkbox]),.expansion-board select {font:inherit;min-height:44px;max-width:100%;border:1px solid #9aabc0;border-radius:10px;background:#fffdf8;color:#173752;padding:.5rem;}
+.expansion-board button {min-height:44px;min-width:44px;}
+.expansion-board button:focus-visible,.expansion-board select:focus-visible,.family-section summary:focus-visible {outline:3px solid #bf591f;outline-offset:3px;}
+.expansion-board details {margin:.8rem 0;}
+.expansion-board details summary {min-height:44px;display:flex;align-items:center;cursor:pointer;}
+.expansion-board details ul {padding-left:1.5rem;}
+.expansion-board table {max-width:100%;}
+.expansion-board p {line-height:1.55;}
+.expansion-board .board-top {gap:.5rem;}
+@media(max-width:760px){.family-list{grid-template-columns:1fr;}.expansion-board{padding:1rem;}.expansion-board form{gap:.6rem;}.expansion-board form>label{max-width:100%;}}
+@media(prefers-reduced-motion:reduce){.expansion-board *{animation:none!important;transition:none!important;}}

@@ -1,0 +1,44 @@
+[
+  {
+    "title": "Two pairs and a crossing",
+    "code": "01110",
+    "probes": ["00000", "11000", "00110", "10100"],
+    "hint": "Compare each test with 00000. Which changed pair must contain two 1s?",
+    "insight": "Pair totals overlap through a crossing comparison; after resolving the pairs, the total fixes the last bit."
+  },
+  {
+    "title": "Overlapping triples",
+    "code": "10010",
+    "probes": ["00000", "11100", "10011", "01010"],
+    "hint": "The first test counts all the 1s. Compare how the two three-position changes divide those 1s.",
+    "insight": "Overlapping triples and a pair must describe the same hidden bits; no single-position probe is supplied."
+  },
+  {
+    "title": "One shared position",
+    "code": "011110",
+    "probes": ["000000", "110000", "101000", "100100", "100010"],
+    "hint": "Every changed pair contains one 0 and one 1. Try the shared first position both ways, then check the total.",
+    "insight": "Four equal-score relations couple five positions. A case split at their common position and the baseline count select the unique word."
+  },
+  {
+    "title": "Connect the two halves",
+    "code": "100111",
+    "probes": ["000000", "110000", "001100", "101010", "010001"],
+    "hint": "First find what each two-position test says about its pair. Then use the three-position test to connect them.",
+    "insight": "Locally consistent pair assignments can disagree with a cross-group total. Every recorded test is necessary for this unique code."
+  },
+  {
+    "title": "Four tests for six bits",
+    "code": "010100",
+    "probes": ["000000", "111000", "100110", "010101"],
+    "hint": "There are only two 1s. Work out how many belong in each of the three overlapping groups.",
+    "insight": "A sparse transcript can uniquely specify six bits. Convert match changes into group counts, then reconcile the overlaps."
+  },
+  {
+    "title": "No pairwise shortcut",
+    "code": "010110",
+    "probes": ["000000", "110100", "101010", "100011"],
+    "hint": "Try the shared first bit as 0 and as 1. Each choice constrains three different groups; check all three and the total.",
+    "insight": "Three overlapping triple counts leave plausible partial assignments. Only a globally consistent case survives; omitting any test leaves at least four codes."
+  }
+]

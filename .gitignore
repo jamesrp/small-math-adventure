@@ -1,0 +1,11 @@
+.DS_Store
+.sites-runtime/
+node_modules/
+test-results/
+
+# Source game discs and locally extracted third-party research assets.
+*.iso
+*.ISO
+research/zoombinis/local/
+research/zoombinis/.venv/
+__pycache__/

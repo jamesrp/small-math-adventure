@@ -1,0 +1,43 @@
+// Optional integration suite. Supply PLAYWRIGHT_MODULE if Playwright is not installed locally.
+import assert from 'node:assert/strict';
+import {waitForOffline} from './browser-offline.mjs';
+import {readFile,mkdir,writeFile}from'node:fs/promises';
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
+const browser=await chromium.launch({headless:true,...(process.env.BROWSER_EXECUTABLE?{executablePath:process.env.BROWSER_EXECUTABLE}:{} )});
+const context=await browser.newContext({viewport:{width:1024,height:768},hasTouch:true,acceptDownloads:true});
+const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+const base=process.env.TEST_URL||'http://127.0.0.1:4187';
+const {puzzles}=JSON.parse(await readFile(new URL('../dist/puzzles.json',import.meta.url),'utf8'));
+const key='small-math-adventure:saves:v1';
+const state=()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)),key);
+const goto=async id=>{await page.goto(`${base}/#play/${id}`);await page.locator('.board-panel').waitFor();};
+const fit=async()=>assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'No horizontal page overflow');
+const parents=async()=>{await page.getByRole('button',{name:'Grown-ups',exact:true}).click();await page.getByRole('button',{name:'I’m a grown-up',exact:true}).click();await page.locator('.parent-layout').waitFor();};
+try{
+ await mkdir(new URL('../test-results/',import.meta.url),{recursive:true});
+ await page.goto(base);await page.locator('#nickname').fill('Maya');await page.locator('[name=band][value="45"]').check();await page.locator('#profile-form button[type=submit]').click();await page.locator('[data-action=library]').first().click();await page.locator('.caravan-library').waitFor();
+ await waitForOffline(page);await fit();
+ await page.screenshot({path:new URL('../test-results/map-ipad.png',import.meta.url).pathname,fullPage:true});
+ const p=puzzles.find(p=>p.id==='tile-45-12');await goto(p.id);for(const c of p.solution[0])await page.locator(`[data-action=tile-cell][data-cell="${c}"]`).click();
+ await page.getByRole('button',{name:'Hint',exact:true}).click();await page.getByRole('button',{name:'Hint',exact:true}).click();assert.equal(await page.locator('.garden-cell.hinted').count(),2);
+ const before=await state();await page.reload();await page.locator('.garden-cell.hinted').first().waitFor();assert.deepEqual((await state()).profiles[0].attempts[p.id],before.profiles[0].attempts[p.id]);
+ await page.screenshot({path:new URL('../test-results/garden-ipad.png',import.meta.url).pathname,fullPage:true});await fit();
+ await context.setOffline(true);await page.reload();await page.locator('.garden-cell.hinted').first().waitFor();await goto('swap-45-12');assert.equal(await page.locator('.cup-button').count(),6);await fit();
+ await page.screenshot({path:new URL('../test-results/cups-ipad.png',import.meta.url).pathname,fullPage:true});
+ await goto('swap-k1-01');await page.locator('[data-action=swap-pair]').first().click();await page.getByRole('heading',{name:'Solved',exact:true}).waitFor();assert.equal(await page.evaluate(()=>document.activeElement.id),'completion-heading');
+ await page.getByRole('button',{name:'Replay',exact:true}).click();assert.equal((await state()).profiles[0].attempts['swap-k1-01'].completed,true);assert.equal((await state()).profiles[0].attempts['swap-k1-01'].moves,0);
+ await context.setOffline(false);await parents();
+ const downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:'Export saves',exact:true}).click();const download=await downloadPromise,backup=JSON.parse(await readFile(await download.path(),'utf8'));assert.equal(backup.profiles[0].name,'Maya');
+ const beforeImport=await state();await page.locator('#import-file').setInputFiles({name:'bad.json',mimeType:'application/json',buffer:Buffer.from('{broken')});await page.getByText('That backup could not be opened',{exact:true}).waitFor();assert.deepEqual(await state(),beforeImport);await page.getByRole('button',{name:'Done',exact:true}).click();
+ await page.locator('#import-file').setInputFiles({name:'saves.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(backup))});await page.getByText('Saves restored',{exact:true}).waitFor();assert.equal((await state()).profiles.length,2);assert.notEqual((await state()).profiles[0].id,(await state()).profiles[1].id);await page.getByRole('button',{name:'Done',exact:true}).click();
+ await page.getByRole('button',{name:'New explorer',exact:true}).click();await page.locator('details').filter({has:page.locator('#profile-form')}).locator('summary').first().click();await page.locator('#nickname').fill('Nina');await page.locator('#profile-form button[type=submit]').click();await page.locator('[data-action=library]').first().click();await page.locator('.caravan-library').waitFor();assert.equal((await state()).profiles.length,3);await goto('swap-k1-01');assert.equal((await state()).profiles[2].attempts['swap-k1-01'],undefined);
+ await page.locator('[data-action=swap-pair]').click();assert.equal((await state()).profiles[2].attempts['swap-k1-01'].completed,true);assert.equal((await state()).profiles[0].attempts['swap-k1-01'].moves,0);
+ await page.setViewportSize({width:390,height:844});await goto('tile-45-12');await fit();await page.screenshot({path:new URL('../test-results/garden-phone.png',import.meta.url).pathname,fullPage:true});await goto('swap-45-12');await fit();await page.screenshot({path:new URL('../test-results/cups-phone.png',import.meta.url).pathname,fullPage:true});
+ const minTarget=await page.locator('.cup-button').evaluateAll(nodes=>Math.min(...nodes.map(n=>n.getBoundingClientRect().width)));assert.ok(minTarget>=44,`cup touch targets ${minTarget}`);
+ await page.getByRole('button',{name:'Hint',exact:true}).focus();await page.keyboard.press('Enter');assert.equal(await page.evaluate(()=>document.activeElement.dataset.action),'hint');
+ await page.setViewportSize({width:768,height:1024});await fit();await parents();await fit();await page.locator('#catalog-band').selectOption('45');assert.equal(await page.locator('.puzzle-notes').count(),24);
+ await page.evaluate(()=>localStorage.setItem('unrelated-app','keep'));await page.getByRole('button',{name:'Clear all local data',exact:true}).click();await page.getByRole('button',{name:'Clear adventure data',exact:true}).click();await page.locator('#nickname').waitFor();assert.equal(await page.evaluate(()=>localStorage.getItem('unrelated-app')),'keep');assert.equal(await page.evaluate(key=>localStorage.getItem(key),key),null);
+ assert.deepEqual(errors,[]);const nativeWebMCP=await page.evaluate(()=>Boolean(document.modelContext?.registerTool));
+ console.log(JSON.stringify({browser:'Chromium',checks:['profile creation/separation','current-state hints after reload','offline reload and unopened puzzle','completion and replay','export/import and corrupt-backup rejection','keyboard focus','iPad/phone viewport fit','clear only app saves'],nativeWebMCP,errors},null,2));
+ await writeFile(new URL('../test-results/browser-report.json',import.meta.url),JSON.stringify({passed:true,nativeWebMCP,errors},null,2));
+}finally{await browser.close();}

@@ -1,0 +1,2552 @@
+{
+  "schema_version": 1,
+  "authorship": "Authored app adaptations of the local math-circle mathematical themes, not worksheet excerpts. Latin boards and code score histories are newly generated; the code-05/code-06 probe set and several Nim starting positions explicitly reuse source constructions.",
+  "families": [
+    {
+      "id": "latin",
+      "title": "Symbol Orchard: complete a Latin square",
+      "rules": "Fill each empty cell with one of the displayed symbols. Every row and every column must contain each symbol exactly once. Keep given cells fixed. No boxes, diagonals, visibility counts, or extra rules. Symbols 1–n may be displayed as distinct fruit shapes; their arithmetic values do not matter.",
+      "mathematics": "Latin squares, partial Latin-square completion, quasigroup multiplication tables, and determining sets. The same uniform row/column condition defines the entire object; fixed entries reveal part of that object. Later puzzles expose the gap between local consistency and global completion.",
+      "sources": [
+        {
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-05/week-05-k-1.tex",
+          "section": "Task 5, A tiny city",
+          "use": "Entry-level pure row/column object."
+        },
+        {
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-05/week-05-extra-grades-6-7.tex",
+          "section": "RuleBox; Tasks 1–3, Small swaps force a lower bound",
+          "use": "Entry-clue model and Latin trades; the app drops proof tasks."
+        },
+        {
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-05/week-05-facilitator.tex",
+          "section": "Extra: a lower bound with an escape move; Where the mathematics goes",
+          "use": "Entry-clue determining sets, Latin trades, and research connection."
+        },
+        {
+          "path": "/Users/jamespfeiffer/math-circle/plans/week-05-redesign.md",
+          "section": "The mathematical work; Checked mathematics and boundaries; Sources and lineage",
+          "use": "Distinguishes entry clues from visibility clues; cites undergraduate Latin squares and critical-set research."
+        }
+      ],
+      "acceptance": "Accept every complete Latin square agreeing with the givens. These six particular instances are each verified unique. Never compare solely to the stored canonical board.",
+      "priority": "Medium: familiar interaction, unusually clean mathematical object; final two are deliberate challenge puzzles.",
+      "risks": [
+        "Do not add Sudoku boxes or skyscraper perimeter rules. They change the object and dilute this design.",
+        "All three final boards have order five. Their progression is measured by deduction structure, not by increasing board size. Grade labels should follow playtesting.",
+        "The final two require tentative choices or deductions beyond singles. Provide reversible placements and row/column conflict highlighting; do not silently fill forced cells."
+      ],
+      "instances": [
+        {
+          "id": "latin-01",
+          "title": "One of each",
+          "prompt": "Fill the orchard. Put 1 and 2 exactly once in every row and column.",
+          "parameters": {
+            "order": 2,
+            "givens": [
+              [
+                1,
+                0
+              ],
+              [
+                0,
+                0
+              ]
+            ],
+            "blank": 0,
+            "coordinates": "Rows top to bottom and columns left to right, both numbered from 1."
+          },
+          "solution": {
+            "canonical_grid": [
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                1
+              ]
+            ],
+            "completion_count": 1
+          },
+          "hint": "Look at the top row. Which symbol is missing?",
+          "insight": "One local choice propagates through the shared row and column.",
+          "prerequisites": "Match two symbols; follow a row and a column. No arithmetic or independent reading.",
+          "difficulty_reasoning": "A brief rules tutorial; three fills. Skip after demonstrated mastery.",
+          "verification_claims": {
+            "cell_single_steps_before_stall": 3,
+            "all_single_steps_before_stall": 3,
+            "all_singles_stall_unsolved": false
+          },
+          "provenance": "Authored app instance; mathematical rule and lineage adapted from the listed local sources.",
+          "difficulty_level": "easy"
+        },
+        {
+          "id": "latin-02",
+          "title": "The crossing clue",
+          "prompt": "Complete the board with 1, 2, and 3 once in each row and column.",
+          "parameters": {
+            "order": 3,
+            "givens": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                3,
+                0
+              ],
+              [
+                0,
+                0,
+                2
+              ]
+            ],
+            "blank": 0,
+            "coordinates": "Rows top to bottom and columns left to right, both numbered from 1."
+          },
+          "solution": {
+            "canonical_grid": [
+              [
+                1,
+                2,
+                3
+              ],
+              [
+                2,
+                3,
+                1
+              ],
+              [
+                3,
+                1,
+                2
+              ]
+            ],
+            "completion_count": 1
+          },
+          "hint": "The top-middle square shares a row with 1 and a column with 3.",
+          "insight": "A cell is controlled by the intersection of its row and column, not just by one line.",
+          "prerequisites": "Distinguish three symbols and keep two lines in mind.",
+          "difficulty_reasoning": "Every line initially has two blanks, so merely finishing a nearly full line is insufficient; intersect row and column candidates.",
+          "verification_claims": {
+            "cell_single_steps_before_stall": 6,
+            "all_single_steps_before_stall": 6,
+            "all_singles_stall_unsolved": false
+          },
+          "provenance": "Authored app instance; mathematical rule and lineage adapted from the listed local sources.",
+          "difficulty_level": "easy"
+        },
+        {
+          "id": "latin-03",
+          "title": "The empty row",
+          "prompt": "Complete the board with 1–4 once in every row and column.",
+          "parameters": {
+            "order": 4,
+            "givens": [
+              [
+                1,
+                2,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                4,
+                1
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                2,
+                0
+              ]
+            ],
+            "blank": 0,
+            "coordinates": "Rows top to bottom and columns left to right, both numbered from 1."
+          },
+          "solution": {
+            "canonical_grid": [
+              [
+                1,
+                2,
+                3,
+                4
+              ],
+              [
+                2,
+                3,
+                4,
+                1
+              ],
+              [
+                3,
+                4,
+                1,
+                2
+              ],
+              [
+                4,
+                1,
+                2,
+                3
+              ]
+            ],
+            "completion_count": 1
+          },
+          "hint": "Finish the top row, then check the second row before trying to fill the empty third row.",
+          "insight": "Information can travel across a board through a chain of row/column exclusions.",
+          "prerequisites": "Track four symbols; make and revise placements.",
+          "difficulty_reasoning": "Eleven blanks, including an entire empty row. This is still a forced-chain bridge, not a claim of deep difficulty.",
+          "verification_claims": {
+            "cell_single_steps_before_stall": 11,
+            "all_single_steps_before_stall": 11,
+            "all_singles_stall_unsolved": false
+          },
+          "provenance": "Authored app instance; mathematical rule and lineage adapted from the listed local sources.",
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "latin-04",
+          "title": "Find a home for 2",
+          "prompt": "Complete the board with 1–5 once in every row and column.",
+          "parameters": {
+            "order": 5,
+            "givens": [
+              [
+                0,
+                0,
+                3,
+                4,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0,
+                2
+              ],
+              [
+                4,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                1,
+                4,
+                0,
+                0,
+                0
+              ]
+            ],
+            "blank": 0,
+            "coordinates": "Rows top to bottom and columns left to right, both numbered from 1."
+          },
+          "solution": {
+            "canonical_grid": [
+              [
+                2,
+                5,
+                3,
+                4,
+                1
+              ],
+              [
+                5,
+                3,
+                2,
+                1,
+                4
+              ],
+              [
+                3,
+                1,
+                4,
+                5,
+                2
+              ],
+              [
+                4,
+                2,
+                1,
+                3,
+                5
+              ],
+              [
+                1,
+                4,
+                5,
+                2,
+                3
+              ]
+            ],
+            "completion_count": 1
+          },
+          "hint": "Do not start by asking what fits a cell. Ask where the 2 can go in the top row.",
+          "insight": "A symbol can have only one possible home in a row even when every empty cell allows several symbols.",
+          "prerequisites": "Five symbols; compare possible homes across a full row.",
+          "difficulty_reasoning": "There is no cell with just one candidate initially. A hidden single (top-left 2), followed by another hidden single, starts a forced chain.",
+          "verification_claims": {
+            "cell_single_steps_before_stall": 0,
+            "all_single_steps_before_stall": 17,
+            "all_singles_stall_unsolved": false
+          },
+          "provenance": "Authored app instance; mathematical rule and lineage adapted from the listed local sources.",
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "latin-05",
+          "title": "A choice in the middle",
+          "prompt": "Complete the board with 1–5 once in every row and column. You can undo any trial.",
+          "parameters": {
+            "order": 5,
+            "givens": [
+              [
+                0,
+                4,
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                5,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                2,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                3,
+                5
+              ],
+              [
+                1,
+                0,
+                0,
+                5,
+                0
+              ]
+            ],
+            "blank": 0,
+            "coordinates": "Rows top to bottom and columns left to right, both numbered from 1."
+          },
+          "solution": {
+            "canonical_grid": [
+              [
+                3,
+                4,
+                5,
+                2,
+                1
+              ],
+              [
+                2,
+                5,
+                3,
+                1,
+                4
+              ],
+              [
+                5,
+                1,
+                2,
+                4,
+                3
+              ],
+              [
+                4,
+                2,
+                1,
+                3,
+                5
+              ],
+              [
+                1,
+                3,
+                4,
+                5,
+                2
+              ]
+            ],
+            "completion_count": 1
+          },
+          "hint": "First finish the top row. Then the leftmost empty cell in row 2 allows 2 or 4. Try one lightly and check what it forces.",
+          "insight": "Locally legal placements can fail only after consequences travel through several rows.",
+          "prerequisites": "Five symbols; reversible trials; tolerate a delayed contradiction.",
+          "difficulty_reasoning": "Cell/hidden singles make four placements and then stop with thirteen blanks. At that point row 2, column 1 allows 2 or 4; 4 has no completion. This is a structural step beyond the preceding board.",
+          "verification_claims": {
+            "cell_single_steps_before_stall": 1,
+            "all_single_steps_before_stall": 4,
+            "all_singles_stall_unsolved": true,
+            "rejected_candidate": [
+              2,
+              1,
+              4
+            ]
+          },
+          "provenance": "Authored app instance; mathematical rule and lineage adapted from the listed local sources.",
+          "difficulty_level": "hard"
+        },
+        {
+          "id": "latin-06",
+          "title": "No obvious first move",
+          "prompt": "Complete the board with 1–5 once in every row and column. Use trial marks if they help.",
+          "parameters": {
+            "order": 5,
+            "givens": [
+              [
+                0,
+                3,
+                0,
+                0,
+                4
+              ],
+              [
+                2,
+                4,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                0,
+                0,
+                3,
+                0
+              ],
+              [
+                0,
+                0,
+                5,
+                0,
+                0
+              ]
+            ],
+            "blank": 0,
+            "coordinates": "Rows top to bottom and columns left to right, both numbered from 1."
+          },
+          "solution": {
+            "canonical_grid": [
+              [
+                5,
+                3,
+                2,
+                1,
+                4
+              ],
+              [
+                2,
+                4,
+                1,
+                5,
+                3
+              ],
+              [
+                4,
+                5,
+                3,
+                2,
+                1
+              ],
+              [
+                1,
+                2,
+                4,
+                3,
+                5
+              ],
+              [
+                3,
+                1,
+                5,
+                4,
+                2
+              ]
+            ],
+            "completion_count": 1
+          },
+          "hint": "The top-left cell can hold 1 or 5. A trial 1 is locally legal but cannot lead to a complete board. Track its consequences and keep an undo point.",
+          "insight": "Uniqueness need not reveal itself through a forced first cell; global completion is a richer question than local legality.",
+          "prerequisites": "Five symbols; organize a small case split and recover from a failed attempt.",
+          "difficulty_reasoning": "Same 5×5 size as the previous two. Neither cell singles nor row/column hidden singles can even start. The unique completion requires a stronger deduction or branching; top-left 1 is a verified dead branch.",
+          "verification_claims": {
+            "cell_single_steps_before_stall": 0,
+            "all_single_steps_before_stall": 0,
+            "all_singles_stall_unsolved": true,
+            "rejected_candidate": [
+              1,
+              1,
+              1
+            ]
+          },
+          "provenance": "Authored app instance; mathematical rule and lineage adapted from the listed local sources.",
+          "difficulty_level": "hard"
+        },
+        {
+          "id": "latin-07",
+          "title": "Rebuild an empty row",
+          "parameters": {
+            "order": 4,
+            "givens": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                4
+              ],
+              [
+                2,
+                4,
+                0,
+                0
+              ],
+              [
+                3,
+                0,
+                0,
+                1
+              ]
+            ],
+            "blank": 0,
+            "coordinates": "Rows and columns numbered from 1."
+          },
+          "solution": {
+            "canonical_grid": [
+              [
+                4,
+                1,
+                3,
+                2
+              ],
+              [
+                1,
+                3,
+                2,
+                4
+              ],
+              [
+                2,
+                4,
+                1,
+                3
+              ],
+              [
+                3,
+                2,
+                4,
+                1
+              ]
+            ],
+            "completion_count": 1
+          },
+          "hint": "When no cell is forced, ask where a missing symbol can go in one row or column.",
+          "insight": "A sparse row can still be determined by exclusions from crossing columns; revisit rows after each deduction.",
+          "prerequisites": "Use 4 symbols; compare exclusions across rows and columns.",
+          "difficulty_level": "medium",
+          "difficulty_reasoning": "11 cell singles and 11 combined singles before stopping; singles finish the board.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Complete the board with 1–4 once in every row and column.",
+          "verification_claims": {
+            "cell_single_steps_before_stall": 11,
+            "all_single_steps_before_stall": 11,
+            "all_singles_stall_unsolved": false
+          }
+        },
+        {
+          "id": "latin-08",
+          "title": "Find a symbol’s only home",
+          "parameters": {
+            "order": 5,
+            "givens": [
+              [
+                5,
+                0,
+                0,
+                0,
+                1
+              ],
+              [
+                3,
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                4,
+                0,
+                3,
+                0
+              ]
+            ],
+            "blank": 0,
+            "coordinates": "Rows and columns numbered from 1."
+          },
+          "solution": {
+            "canonical_grid": [
+              [
+                5,
+                3,
+                4,
+                2,
+                1
+              ],
+              [
+                3,
+                1,
+                2,
+                5,
+                4
+              ],
+              [
+                4,
+                2,
+                3,
+                1,
+                5
+              ],
+              [
+                2,
+                5,
+                1,
+                4,
+                3
+              ],
+              [
+                1,
+                4,
+                5,
+                3,
+                2
+              ]
+            ],
+            "completion_count": 1
+          },
+          "hint": "When no cell is forced, ask where a missing symbol can go in one row or column.",
+          "insight": "A sparse row can still be determined by exclusions from crossing columns; revisit rows after each deduction.",
+          "prerequisites": "Use 5 symbols; compare exclusions across rows and columns.",
+          "difficulty_level": "medium",
+          "difficulty_reasoning": "3 cell singles and 18 combined singles before stopping; singles finish the board.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Complete the board with 1–5 once in every row and column.",
+          "verification_claims": {
+            "cell_single_steps_before_stall": 3,
+            "all_single_steps_before_stall": 18,
+            "all_singles_stall_unsolved": false
+          }
+        },
+        {
+          "id": "latin-09",
+          "title": "A small board with no singles",
+          "parameters": {
+            "order": 5,
+            "givens": [
+              [
+                4,
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0,
+                2
+              ],
+              [
+                0,
+                3,
+                0,
+                5,
+                0
+              ],
+              [
+                0,
+                0,
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                4,
+                3,
+                0,
+                0
+              ]
+            ],
+            "blank": 0,
+            "coordinates": "Rows and columns numbered from 1."
+          },
+          "solution": {
+            "canonical_grid": [
+              [
+                4,
+                5,
+                2,
+                1,
+                3
+              ],
+              [
+                3,
+                1,
+                5,
+                4,
+                2
+              ],
+              [
+                2,
+                3,
+                4,
+                5,
+                1
+              ],
+              [
+                5,
+                2,
+                1,
+                3,
+                4
+              ],
+              [
+                1,
+                4,
+                3,
+                2,
+                5
+              ]
+            ],
+            "completion_count": 1
+          },
+          "hint": "After the forced entries, try the possibilities in row 1, column 2. Keep an undo point.",
+          "insight": "Local row and column checks leave plausible choices that cannot extend to a full square; follow consequences before committing.",
+          "prerequisites": "Use 5 symbols; follow a small case split and undo failed trials.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "0 cell singles and 0 combined singles before stopping; the unique completion still needs a stronger deduction or trial.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Complete the board with 1–5 once in every row and column.",
+          "verification_claims": {
+            "cell_single_steps_before_stall": 0,
+            "all_single_steps_before_stall": 0,
+            "all_singles_stall_unsolved": true,
+            "rejected_candidate": [
+              1,
+              2,
+              1
+            ]
+          }
+        },
+        {
+          "id": "latin-10",
+          "title": "Forced moves run out",
+          "parameters": {
+            "order": 6,
+            "givens": [
+              [
+                0,
+                0,
+                0,
+                0,
+                0,
+                5
+              ],
+              [
+                3,
+                0,
+                0,
+                4,
+                0,
+                0
+              ],
+              [
+                6,
+                5,
+                0,
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                1,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                2,
+                0,
+                6,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                2,
+                4,
+                0
+              ]
+            ],
+            "blank": 0,
+            "coordinates": "Rows and columns numbered from 1."
+          },
+          "solution": {
+            "canonical_grid": [
+              [
+                1,
+                4,
+                3,
+                6,
+                2,
+                5
+              ],
+              [
+                3,
+                2,
+                5,
+                4,
+                6,
+                1
+              ],
+              [
+                6,
+                5,
+                4,
+                3,
+                1,
+                2
+              ],
+              [
+                4,
+                1,
+                2,
+                5,
+                3,
+                6
+              ],
+              [
+                2,
+                3,
+                6,
+                1,
+                5,
+                4
+              ],
+              [
+                5,
+                6,
+                1,
+                2,
+                4,
+                3
+              ]
+            ],
+            "completion_count": 1
+          },
+          "hint": "After the forced entries, try the possibilities in row 1, column 1. Keep an undo point.",
+          "insight": "Local row and column checks leave plausible choices that cannot extend to a full square; follow consequences before committing.",
+          "prerequisites": "Use 6 symbols; follow a small case split and undo failed trials.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "3 cell singles and 3 combined singles before stopping; the unique completion still needs a stronger deduction or trial.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Complete the board with 1–6 once in every row and column.",
+          "verification_claims": {
+            "cell_single_steps_before_stall": 3,
+            "all_single_steps_before_stall": 3,
+            "all_singles_stall_unsolved": true,
+            "rejected_candidate": [
+              1,
+              1,
+              4
+            ]
+          }
+        },
+        {
+          "id": "latin-11",
+          "title": "Six symbols, no first single",
+          "parameters": {
+            "order": 6,
+            "givens": [
+              [
+                0,
+                4,
+                0,
+                0,
+                3,
+                0
+              ],
+              [
+                0,
+                0,
+                2,
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                5,
+                0,
+                2,
+                3
+              ],
+              [
+                0,
+                0,
+                0,
+                1,
+                0,
+                5
+              ],
+              [
+                6,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                3,
+                4,
+                2,
+                0,
+                0
+              ]
+            ],
+            "blank": 0,
+            "coordinates": "Rows and columns numbered from 1."
+          },
+          "solution": {
+            "canonical_grid": [
+              [
+                1,
+                4,
+                6,
+                5,
+                3,
+                2
+              ],
+              [
+                3,
+                5,
+                2,
+                4,
+                1,
+                6
+              ],
+              [
+                4,
+                1,
+                5,
+                6,
+                2,
+                3
+              ],
+              [
+                2,
+                6,
+                3,
+                1,
+                4,
+                5
+              ],
+              [
+                6,
+                2,
+                1,
+                3,
+                5,
+                4
+              ],
+              [
+                5,
+                3,
+                4,
+                2,
+                6,
+                1
+              ]
+            ],
+            "completion_count": 1
+          },
+          "hint": "After the forced entries, try the possibilities in row 1, column 1. Keep an undo point.",
+          "insight": "Local row and column checks leave plausible choices that cannot extend to a full square; follow consequences before committing.",
+          "prerequisites": "Use 6 symbols; follow a small case split and undo failed trials.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "0 cell singles and 0 combined singles before stopping; the unique completion still needs a stronger deduction or trial.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Complete the board with 1–6 once in every row and column.",
+          "verification_claims": {
+            "cell_single_steps_before_stall": 0,
+            "all_single_steps_before_stall": 0,
+            "all_singles_stall_unsolved": true,
+            "rejected_candidate": [
+              1,
+              1,
+              2
+            ]
+          }
+        },
+        {
+          "id": "latin-12",
+          "title": "A different pattern of trades",
+          "parameters": {
+            "order": 6,
+            "givens": [
+              [
+                0,
+                0,
+                0,
+                5,
+                3,
+                0
+              ],
+              [
+                0,
+                0,
+                4,
+                3,
+                6,
+                0
+              ],
+              [
+                5,
+                0,
+                6,
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                4,
+                5,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0,
+                0,
+                2
+              ],
+              [
+                6,
+                1,
+                0,
+                0,
+                0,
+                0
+              ]
+            ],
+            "blank": 0,
+            "coordinates": "Rows and columns numbered from 1."
+          },
+          "solution": {
+            "canonical_grid": [
+              [
+                1,
+                6,
+                2,
+                5,
+                3,
+                4
+              ],
+              [
+                2,
+                5,
+                4,
+                3,
+                6,
+                1
+              ],
+              [
+                5,
+                2,
+                6,
+                1,
+                4,
+                3
+              ],
+              [
+                3,
+                4,
+                5,
+                2,
+                1,
+                6
+              ],
+              [
+                4,
+                3,
+                1,
+                6,
+                5,
+                2
+              ],
+              [
+                6,
+                1,
+                3,
+                4,
+                2,
+                5
+              ]
+            ],
+            "completion_count": 1
+          },
+          "hint": "After the forced entries, try the possibilities in row 1, column 1. Keep an undo point.",
+          "insight": "Local row and column checks leave plausible choices that cannot extend to a full square; follow consequences before committing.",
+          "prerequisites": "Use 6 symbols; follow a small case split and undo failed trials.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "0 cell singles and 0 combined singles before stopping; the unique completion still needs a stronger deduction or trial.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Complete the board with 1–6 once in every row and column.",
+          "verification_claims": {
+            "cell_single_steps_before_stall": 0,
+            "all_single_steps_before_stall": 0,
+            "all_singles_stall_unsolved": true,
+            "rejected_candidate": [
+              1,
+              1,
+              2
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "code",
+      "title": "Signal Lanterns: decode a binary word",
+      "rules": "Each position is 0 or 1 (display as two labeled shapes/colors); repetitions are allowed. A recorded test earns one match for each symbol in the correct position. Only the total is shown: no indication of which positions match and no right-symbol/wrong-position score. All tests are visible from the start. Set the secret code that fits every test, then submit; there is no query budget or proof requirement.",
+      "mathematics": "A secret is a vertex of a binary hypercube. Its match score is length minus Hamming distance to a test vertex. Decoding intersects distance shells. Instances 05 and 06 use a resolving set for all 32 five-bit words. Later transcripts need only identify their authored secret uniquely; they do not claim to resolve every possible word.",
+      "sources": [
+        {
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-06/week-06-k-1.tex",
+          "section": "RuleBox; Tasks 2–4",
+          "use": "Binary repetition and exact-position feedback."
+        },
+        {
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-06/week-06-grades-2-3.tex",
+          "section": "Tasks 2–3, Change exactly one place; Three tests, then name the secret",
+          "use": "Difference-of-scores decoding."
+        },
+        {
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-06/week-06-extra-grades-6-7.tex",
+          "section": "Tasks 1–3, Five places, only four tests",
+          "use": "Five-bit landmarks 00000,00011,00101,01001; new score histories here."
+        },
+        {
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-06/week-06-facilitator.tex",
+          "section": "Extra: decode and prove; Undergraduate and research connections",
+          "use": "Pair-sum decoding and local citation to Cáceres et al., Sections 2 and 6."
+        },
+        {
+          "path": "/Users/jamespfeiffer/math-circle/plans/week-06-redesign.md",
+          "section": "Checked mathematics and boundaries; Sources and lineage",
+          "use": "Identifying versus submitting; exact-position feedback distinguished from commercial Mastermind."
+        }
+      ],
+      "acceptance": "Accept a submitted word exactly when every transcript score matches it. Exhaustive enumeration verifies one answer for each instance. Show all transcript rows continuously; scoring guesses is not an additional puzzle action.",
+      "priority": "High: compact new interaction, broad range of reasoning within a tiny state space.",
+      "risks": [
+        "Repeated symbols are essential. An implicit no-repeat rule would invalidate the entire family.",
+        "Do not use commercial Mastermind white pegs or add arithmetic/color side constraints.",
+        "Avoid late examples containing score 0 or score n: either identifies the whole binary code immediately. Only the opening tutorial uses this shortcut.",
+        "The five-bit probe set comes from the Week 6 source construction; these particular secrets and score histories are authored adaptations."
+      ],
+      "instances": [
+        {
+          "id": "code-01",
+          "title": "Opposite lanterns",
+          "prompt": "The old test got no positions right. Set the two lanterns.",
+          "parameters": {
+            "length": 2,
+            "alphabet": [
+              "0",
+              "1"
+            ],
+            "repetitions_allowed": true,
+            "feedback": "total_exact_position_matches_only",
+            "transcript": [
+              {
+                "guess": "10",
+                "matches": 0
+              }
+            ]
+          },
+          "solution": {
+            "code": "01",
+            "consistent_code_count": 1
+          },
+          "hint": "A score of zero means every position must change.",
+          "insight": "In a binary alphabet, the antipodal vertex is uniquely determined.",
+          "prerequisites": "Match positions and distinguish two symbols; count zero.",
+          "difficulty_reasoning": "One clear tutorial inference introduces the exact-position rule; no search.",
+          "verification_claims": {
+            "no_giveaway_score": false,
+            "probes_resolve_every_code": false
+          },
+          "provenance": "Authored app instance; mathematical rule and lineage adapted from the listed local sources.",
+          "difficulty_level": "easy"
+        },
+        {
+          "id": "code-02",
+          "title": "One change tells you something",
+          "prompt": "Set the three lanterns so all three recorded tests have the shown scores.",
+          "parameters": {
+            "length": 3,
+            "alphabet": [
+              "0",
+              "1"
+            ],
+            "repetitions_allowed": true,
+            "feedback": "total_exact_position_matches_only",
+            "transcript": [
+              {
+                "guess": "000",
+                "matches": 1
+              },
+              {
+                "guess": "100",
+                "matches": 2
+              },
+              {
+                "guess": "010",
+                "matches": 2
+              }
+            ]
+          },
+          "solution": {
+            "code": "110",
+            "consistent_code_count": 1
+          },
+          "hint": "Compare 100 with 000. Only the first place changed; the score went up.",
+          "insight": "A single-coordinate flip changes the score by plus or minus one, revealing that bit. The baseline score determines the last bit.",
+          "prerequisites": "Count matches to 3; compare scores that differ by one.",
+          "difficulty_reasoning": "No zero or perfect score. Two local comparisons plus the total recover all three positions.",
+          "verification_claims": {
+            "no_giveaway_score": true,
+            "probes_resolve_every_code": false
+          },
+          "provenance": "Authored app instance; mathematical rule and lineage adapted from the listed local sources.",
+          "difficulty_level": "easy"
+        },
+        {
+          "id": "code-03",
+          "title": "The last place is hidden",
+          "prompt": "Find the four-symbol code that fits all four tests.",
+          "parameters": {
+            "length": 4,
+            "alphabet": [
+              "0",
+              "1"
+            ],
+            "repetitions_allowed": true,
+            "feedback": "total_exact_position_matches_only",
+            "transcript": [
+              {
+                "guess": "0000",
+                "matches": 2
+              },
+              {
+                "guess": "1000",
+                "matches": 3
+              },
+              {
+                "guess": "0100",
+                "matches": 1
+              },
+              {
+                "guess": "0010",
+                "matches": 3
+              }
+            ]
+          },
+          "solution": {
+            "code": "1010",
+            "consistent_code_count": 1
+          },
+          "hint": "Compare each of the last three tests with 0000, then use the first score for the untested fourth place.",
+          "insight": "A baseline and coordinate differences reconstruct a vector without testing every coordinate separately.",
+          "prerequisites": "Count to 4; keep a baseline and three comparisons visible.",
+          "difficulty_reasoning": "Transfer the preceding baseline method to four positions and one additional comparison. Inferring the untested last coordinate reinforces code-02; this is a bridge in tracking load, not a new conceptual advance.",
+          "verification_claims": {
+            "no_giveaway_score": true,
+            "probes_resolve_every_code": false
+          },
+          "provenance": "Authored app instance; mathematical rule and lineage adapted from the listed local sources.",
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "code-04",
+          "title": "Tests that overlap",
+          "prompt": "Find the four-symbol code. Some recorded tests changed more than one place at once.",
+          "parameters": {
+            "length": 4,
+            "alphabet": [
+              "0",
+              "1"
+            ],
+            "repetitions_allowed": true,
+            "feedback": "total_exact_position_matches_only",
+            "transcript": [
+              {
+                "guess": "0000",
+                "matches": 2
+              },
+              {
+                "guess": "1100",
+                "matches": 2
+              },
+              {
+                "guess": "1010",
+                "matches": 2
+              },
+              {
+                "guess": "1110",
+                "matches": 3
+              }
+            ]
+          },
+          "solution": {
+            "code": "0110",
+            "consistent_code_count": 1
+          },
+          "hint": "Compare 1110 with 1100 to find position 3; compare 1110 with 1010 to find position 2. Then reuse the total.",
+          "insight": "Overlapping measurements can be subtracted so their shared coordinates cancel.",
+          "prerequisites": "Count to 4; compare two non-baseline tests and reuse information.",
+          "difficulty_reasoning": "Same length as the previous puzzle; direct baseline flips are replaced by overlapping measurements. No giveaway score and a unique answer.",
+          "verification_claims": {
+            "no_giveaway_score": true,
+            "probes_resolve_every_code": false
+          },
+          "provenance": "Authored app instance; mathematical rule and lineage adapted from the listed local sources.",
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "code-05",
+          "title": "Five places, four echoes",
+          "prompt": "Set all five lanterns using the four recorded tests.",
+          "parameters": {
+            "length": 5,
+            "alphabet": [
+              "0",
+              "1"
+            ],
+            "repetitions_allowed": true,
+            "feedback": "total_exact_position_matches_only",
+            "transcript": [
+              {
+                "guess": "00000",
+                "matches": 2
+              },
+              {
+                "guess": "00011",
+                "matches": 2
+              },
+              {
+                "guess": "00101",
+                "matches": 4
+              },
+              {
+                "guess": "01001",
+                "matches": 2
+              }
+            ]
+          },
+          "solution": {
+            "code": "10101",
+            "consistent_code_count": 1
+          },
+          "hint": "The first test has 2 matches and 00101 has 4. Flipping those two positions gained two matches: both positions must be 1.",
+          "insight": "A two-coordinate score difference determines how many 1s lie in that pair. Overlap recovers the shared bit.",
+          "prerequisites": "Count to 5; compare score changes of 0 or 2 and follow overlapping pairs.",
+          "difficulty_reasoning": "Fewer tests than positions; a pair with sum two anchors the deductions. The supplied probe set resolves every five-bit word.",
+          "verification_claims": {
+            "no_giveaway_score": true,
+            "probes_resolve_every_code": true
+          },
+          "provenance": "Authored app instance; mathematical rule and lineage adapted from the listed local sources.",
+          "difficulty_level": "hard"
+        },
+        {
+          "id": "code-06",
+          "title": "Every echo sounds the same",
+          "prompt": "All four recorded tests have the same score. Find the five-symbol code.",
+          "parameters": {
+            "length": 5,
+            "alphabet": [
+              "0",
+              "1"
+            ],
+            "repetitions_allowed": true,
+            "feedback": "total_exact_position_matches_only",
+            "transcript": [
+              {
+                "guess": "00000",
+                "matches": 3
+              },
+              {
+                "guess": "00011",
+                "matches": 3
+              },
+              {
+                "guess": "00101",
+                "matches": 3
+              },
+              {
+                "guess": "01001",
+                "matches": 3
+              }
+            ]
+          },
+          "solution": {
+            "code": "10001",
+            "consistent_code_count": 1
+          },
+          "hint": "Each changed pair has one 0 and one 1. Try the last position as 0 and as 1; which case agrees with the first test?",
+          "insight": "The three pair relations allow two patterns for positions 2–5; position 1 remains free, leaving four complete candidate words. The baseline count of two 1s selects the right pattern and fixes position 1.",
+          "prerequisites": "Count to 5; hold two possibilities for one shared bit and compare total counts.",
+          "difficulty_reasoning": "Same probes and size as the previous puzzle, but no pair is directly fixed. The all-equal scores force a genuine two-case inference; only 10001 fits.",
+          "verification_claims": {
+            "no_giveaway_score": true,
+            "probes_resolve_every_code": true
+          },
+          "provenance": "Authored app instance; mathematical rule and lineage adapted from the listed local sources.",
+          "difficulty_level": "hard"
+        },
+        {
+          "id": "code-07",
+          "title": "Two pairs and a crossing",
+          "parameters": {
+            "length": 5,
+            "alphabet": [
+              "0",
+              "1"
+            ],
+            "repetitions_allowed": true,
+            "feedback": "total_exact_position_matches_only",
+            "transcript": [
+              {
+                "guess": "00000",
+                "matches": 2
+              },
+              {
+                "guess": "11000",
+                "matches": 2
+              },
+              {
+                "guess": "00110",
+                "matches": 4
+              },
+              {
+                "guess": "10100",
+                "matches": 2
+              }
+            ]
+          },
+          "solution": {
+            "code": "01110",
+            "consistent_code_count": 1
+          },
+          "hint": "Compare each test with 00000. Which changed pair must contain two 1s?",
+          "insight": "Pair totals overlap through a crossing comparison; after resolving the pairs, the total fixes the last bit.",
+          "prerequisites": "Count matches to 5; combine overlapping groups of positions.",
+          "difficulty_level": "medium",
+          "difficulty_reasoning": "Pair totals overlap through a crossing comparison; after resolving the pairs, the total fixes the last bit.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Find the 5-symbol code that fits every recorded test.",
+          "verification_claims": {
+            "no_giveaway_score": true,
+            "probes_resolve_every_code": false,
+            "irredundant_for_this_code": true
+          }
+        },
+        {
+          "id": "code-08",
+          "title": "Overlapping triples",
+          "parameters": {
+            "length": 5,
+            "alphabet": [
+              "0",
+              "1"
+            ],
+            "repetitions_allowed": true,
+            "feedback": "total_exact_position_matches_only",
+            "transcript": [
+              {
+                "guess": "00000",
+                "matches": 3
+              },
+              {
+                "guess": "11100",
+                "matches": 2
+              },
+              {
+                "guess": "10011",
+                "matches": 4
+              },
+              {
+                "guess": "01010",
+                "matches": 3
+              }
+            ]
+          },
+          "solution": {
+            "code": "10010",
+            "consistent_code_count": 1
+          },
+          "hint": "The first test counts all the 1s. Compare how the two three-position changes divide those 1s.",
+          "insight": "Overlapping triples and a pair must describe the same hidden bits; no single-position probe is supplied.",
+          "prerequisites": "Count matches to 5; combine overlapping groups of positions.",
+          "difficulty_level": "medium",
+          "difficulty_reasoning": "Overlapping triples and a pair must describe the same hidden bits; no single-position probe is supplied.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Find the 5-symbol code that fits every recorded test.",
+          "verification_claims": {
+            "no_giveaway_score": true,
+            "probes_resolve_every_code": false,
+            "irredundant_for_this_code": true
+          }
+        },
+        {
+          "id": "code-09",
+          "title": "One shared position",
+          "parameters": {
+            "length": 6,
+            "alphabet": [
+              "0",
+              "1"
+            ],
+            "repetitions_allowed": true,
+            "feedback": "total_exact_position_matches_only",
+            "transcript": [
+              {
+                "guess": "000000",
+                "matches": 2
+              },
+              {
+                "guess": "110000",
+                "matches": 2
+              },
+              {
+                "guess": "101000",
+                "matches": 2
+              },
+              {
+                "guess": "100100",
+                "matches": 2
+              },
+              {
+                "guess": "100010",
+                "matches": 2
+              }
+            ]
+          },
+          "solution": {
+            "code": "011110",
+            "consistent_code_count": 1
+          },
+          "hint": "Every changed pair contains one 0 and one 1. Try the shared first position both ways, then check the total.",
+          "insight": "Four equal-score relations couple five positions. A case split at their common position and the baseline count select the unique word.",
+          "prerequisites": "Count matches to 6; combine overlapping groups of positions.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Four equal-score relations couple five positions. A case split at their common position and the baseline count select the unique word.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Find the 6-symbol code that fits every recorded test.",
+          "verification_claims": {
+            "no_giveaway_score": true,
+            "probes_resolve_every_code": true,
+            "irredundant_for_this_code": true
+          }
+        },
+        {
+          "id": "code-10",
+          "title": "Connect the two halves",
+          "parameters": {
+            "length": 6,
+            "alphabet": [
+              "0",
+              "1"
+            ],
+            "repetitions_allowed": true,
+            "feedback": "total_exact_position_matches_only",
+            "transcript": [
+              {
+                "guess": "000000",
+                "matches": 2
+              },
+              {
+                "guess": "110000",
+                "matches": 2
+              },
+              {
+                "guess": "001100",
+                "matches": 2
+              },
+              {
+                "guess": "101010",
+                "matches": 3
+              },
+              {
+                "guess": "010001",
+                "matches": 2
+              }
+            ]
+          },
+          "solution": {
+            "code": "100111",
+            "consistent_code_count": 1
+          },
+          "hint": "First find what each two-position test says about its pair. Then use the three-position test to connect them.",
+          "insight": "Locally consistent pair assignments can disagree with a cross-group total. Every recorded test is necessary for this unique code.",
+          "prerequisites": "Count matches to 6; combine overlapping groups of positions.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Locally consistent pair assignments can disagree with a cross-group total. Every recorded test is necessary for this unique code.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Find the 6-symbol code that fits every recorded test.",
+          "verification_claims": {
+            "no_giveaway_score": true,
+            "probes_resolve_every_code": false,
+            "irredundant_for_this_code": true
+          }
+        },
+        {
+          "id": "code-11",
+          "title": "Four tests for six bits",
+          "parameters": {
+            "length": 6,
+            "alphabet": [
+              "0",
+              "1"
+            ],
+            "repetitions_allowed": true,
+            "feedback": "total_exact_position_matches_only",
+            "transcript": [
+              {
+                "guess": "000000",
+                "matches": 4
+              },
+              {
+                "guess": "111000",
+                "matches": 3
+              },
+              {
+                "guess": "100110",
+                "matches": 3
+              },
+              {
+                "guess": "010101",
+                "matches": 5
+              }
+            ]
+          },
+          "solution": {
+            "code": "010100",
+            "consistent_code_count": 1
+          },
+          "hint": "There are only two 1s. Work out how many belong in each of the three overlapping groups.",
+          "insight": "A sparse transcript can uniquely specify six bits. Convert match changes into group counts, then reconcile the overlaps.",
+          "prerequisites": "Count matches to 6; combine overlapping groups of positions.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "A sparse transcript can uniquely specify six bits. Convert match changes into group counts, then reconcile the overlaps.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Find the 6-symbol code that fits every recorded test.",
+          "verification_claims": {
+            "no_giveaway_score": true,
+            "probes_resolve_every_code": false,
+            "irredundant_for_this_code": true
+          }
+        },
+        {
+          "id": "code-12",
+          "title": "No pairwise shortcut",
+          "parameters": {
+            "length": 6,
+            "alphabet": [
+              "0",
+              "1"
+            ],
+            "repetitions_allowed": true,
+            "feedback": "total_exact_position_matches_only",
+            "transcript": [
+              {
+                "guess": "000000",
+                "matches": 3
+              },
+              {
+                "guess": "110100",
+                "matches": 4
+              },
+              {
+                "guess": "101010",
+                "matches": 2
+              },
+              {
+                "guess": "100011",
+                "matches": 2
+              }
+            ]
+          },
+          "solution": {
+            "code": "010110",
+            "consistent_code_count": 1
+          },
+          "hint": "Try the shared first bit as 0 and as 1. Each choice constrains three different groups; check all three and the total.",
+          "insight": "Three overlapping triple counts leave plausible partial assignments. Only a globally consistent case survives; omitting any test leaves at least four codes.",
+          "prerequisites": "Count matches to 6; combine overlapping groups of positions.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Three overlapping triple counts leave plausible partial assignments. Only a globally consistent case survives; omitting any test leaves at least four codes.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Find the 6-symbol code that fits every recorded test.",
+          "verification_claims": {
+            "no_giveaway_score": true,
+            "probes_resolve_every_code": false,
+            "irredundant_for_this_code": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "nim",
+      "title": "Pebble Duel: play to the last pebble",
+      "rules": "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. The app takes a winning move whenever one exists, otherwise a random legal move.",
+      "mathematics": "Normal-play impartial games and backward induction lead from equal two-pile positions to Nim sum zero. Binary column parity is addition over the field with two elements; this is Bouton’s classical solved game and an entry to Sprague–Grundy theory.",
+      "sources": [
+        {
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-k-1.tex",
+          "section": "Tasks 2–5, Can you leave a little trap? and A trap that grows",
+          "use": "Pedagogical precursor: a winning move must work against every reply. The constrained subtraction rule is not carried into this family."
+        },
+        {
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-facilitator.tex",
+          "section": "Middle: backward reasoning; Extra: smallest-missing labels",
+          "use": "Recursive W/L definition and why combined games need richer labels."
+        },
+        {
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-k-1.tex",
+          "section": "Task 4, Two little piles",
+          "use": "Natural unrestricted removal rule and mirror play."
+        },
+        {
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-2-3.tex",
+          "section": "Tasks 3–5, The board is two piles",
+          "use": "Equality strategy and third-pile counterexamples."
+        },
+        {
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-4-5.tex",
+          "section": "Tasks 2–6, Compare two kinds of balance; Balance the binary columns",
+          "use": "Transition from total/equality heuristics to binary bundles."
+        },
+        {
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-facilitator.tex",
+          "section": "The binary invariant; Why the test is sufficient, for any number of piles",
+          "use": "Winning algorithm and primary historical Bouton citation."
+        },
+        {
+          "path": "/Users/jamespfeiffer/math-circle/plans/week-08-redesign.md",
+          "section": "Verified mathematical backbone",
+          "use": "Exact normal-play rules and complete two-obligation reasoning."
+        }
+      ],
+      "acceptance": "Play the entire game. Complete only when the player takes the last pebble. After each player move, the opponent returns a zero-XOR position whenever possible, otherwise chooses uniformly among all legal moves. Undo restores the position before the player move and opponent reply.",
+      "priority": "High: very simple physical action and mathematical depth; requires an honest opponent/checker.",
+      "risks": [
+        "Specify normal play consistently: taking the last wins. Misère changes the answer.",
+        "Never restrict allowed removal amounts to an authored random subset. Every amount from 1 through the selected pile size is legal in every instance.",
+        "A zero-XOR start has no winning first move, so none of these six starts has zero XOR.",
+        "Display binary bundles only as an optional visual aid. Actual play still removes ordinary counters; a move must decrease exactly one pile.",
+        "There may be multiple winning first moves. Store and accept all; especially the final instance has three."
+      ],
+      "instances": [
+        {
+          "id": "nim-01",
+          "title": "Leave the pair",
+          "prompt": "Win a game starting with piles of 1 and 2.",
+          "parameters": {
+            "piles": [
+              1,
+              2
+            ],
+            "pile_numbering": "left to right, starting at 1",
+            "normal_play": true,
+            "task": "win_game",
+            "allowed_removal": "any positive amount from exactly one nonempty pile"
+          },
+          "solution": {
+            "canonical_move": {
+              "pile": 2,
+              "remove": 1,
+              "after": [
+                1,
+                1
+              ]
+            },
+            "all_winning_moves": [
+              {
+                "pile": 2,
+                "remove": 1,
+                "after": [
+                  1,
+                  1
+                ]
+              }
+            ],
+            "nim_sum": 3
+          },
+          "hint": "Leave the other player two piles of 1.",
+          "insight": "The smallest equal-pile position lets you answer either move with the last counter.",
+          "prerequisites": "Count and remove 1 or 2; understand alternating turns.",
+          "difficulty_reasoning": "A three-counter endgame with an immediate reply; first rules example.",
+          "verification_claims": {
+            "independently_verified_by": "backward recursion over all legal moves",
+            "winning_move_count": 1
+          },
+          "provenance": "Authored one-move app adaptation of the standard Nim rule. Source-start lineage is explicit below; no worksheet prose is copied.",
+          "difficulty_level": "easy"
+        },
+        {
+          "id": "nim-02",
+          "title": "Build a mirror",
+          "prompt": "Win a game starting with piles of 2 and 5.",
+          "parameters": {
+            "piles": [
+              2,
+              5
+            ],
+            "pile_numbering": "left to right, starting at 1",
+            "normal_play": true,
+            "task": "win_game",
+            "allowed_removal": "any positive amount from exactly one nonempty pile"
+          },
+          "solution": {
+            "canonical_move": {
+              "pile": 2,
+              "remove": 3,
+              "after": [
+                2,
+                2
+              ]
+            },
+            "all_winning_moves": [
+              {
+                "pile": 2,
+                "remove": 3,
+                "after": [
+                  2,
+                  2
+                ]
+              }
+            ],
+            "nim_sum": 7
+          },
+          "hint": "Can you make the two piles match in one move?",
+          "insight": "Equal piles let a player copy the opponent in the other pile until both are empty.",
+          "prerequisites": "Compare pile sizes to 5; remove several counters from one pile.",
+          "difficulty_reasoning": "Winning requires preserving a pattern across possible replies, not just taking the largest number.",
+          "verification_claims": {
+            "independently_verified_by": "backward recursion over all legal moves",
+            "winning_move_count": 1
+          },
+          "provenance": "Authored one-move app adaptation of the standard Nim rule. Source-start lineage is explicit below; no worksheet prose is copied.",
+          "difficulty_level": "easy"
+        },
+        {
+          "id": "nim-03",
+          "title": "Three piles break the old rule",
+          "prompt": "Win a game starting with piles of 1, 1, and 2.",
+          "parameters": {
+            "piles": [
+              1,
+              1,
+              2
+            ],
+            "pile_numbering": "left to right, starting at 1",
+            "normal_play": true,
+            "task": "win_game",
+            "allowed_removal": "any positive amount from exactly one nonempty pile"
+          },
+          "solution": {
+            "canonical_move": {
+              "pile": 3,
+              "remove": 2,
+              "after": [
+                1,
+                1,
+                0
+              ]
+            },
+            "all_winning_moves": [
+              {
+                "pile": 3,
+                "remove": 2,
+                "after": [
+                  1,
+                  1,
+                  0
+                ]
+              }
+            ],
+            "nim_sum": 2
+          },
+          "hint": "The two matching piles do not protect the player who receives this position. Can you remove the extra pile?",
+          "insight": "Two equal piles cancel as game components, but an unmatched third pile matters. An even total alone is not a losing-position test.",
+          "prerequisites": "Three piles; count to 2; remove a whole pile.",
+          "difficulty_reasoning": "Numbers shrink while the reasoning changes: a third component invalidates the earlier two-pile equality shortcut.",
+          "verification_claims": {
+            "independently_verified_by": "backward recursion over all legal moves",
+            "winning_move_count": 1
+          },
+          "provenance": "Authored one-move app adaptation of the standard Nim rule. Source-start lineage is explicit below; no worksheet prose is copied.",
+          "source_start": "(1,1,2) appears in Week 8 grades 4–5 Task 2; here adapted to a full game with checked winning openings.",
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "nim-04",
+          "title": "No equal piles needed",
+          "prompt": "Win a game starting with piles of 1, 2, and 4.",
+          "parameters": {
+            "piles": [
+              1,
+              2,
+              4
+            ],
+            "pile_numbering": "left to right, starting at 1",
+            "normal_play": true,
+            "task": "win_game",
+            "allowed_removal": "any positive amount from exactly one nonempty pile"
+          },
+          "solution": {
+            "canonical_move": {
+              "pile": 3,
+              "remove": 1,
+              "after": [
+                1,
+                2,
+                3
+              ]
+            },
+            "all_winning_moves": [
+              {
+                "pile": 3,
+                "remove": 1,
+                "after": [
+                  1,
+                  2,
+                  3
+                ]
+              }
+            ],
+            "nim_sum": 7
+          },
+          "hint": "Try leaving 1, 2, and 3. Whatever changes next, you can leave two equal piles and an empty pile.",
+          "insight": "A losing three-pile state need not contain equal piles. The 1/2 bundle pattern of 1,2,3 balances.",
+          "prerequisites": "Count to 4; consider several legal replies or use optional 1/2/4 bundle icons.",
+          "difficulty_reasoning": "Moves from the candidate result have six different replies to consider. This breaks the naive equality picture without large piles.",
+          "verification_claims": {
+            "independently_verified_by": "backward recursion over all legal moves",
+            "winning_move_count": 1
+          },
+          "provenance": "Authored one-move app adaptation of the standard Nim rule. Source-start lineage is explicit below; no worksheet prose is copied.",
+          "source_start": "(1,2,4) appears in Week 8 grades 4–5 Tasks 1 and 4; here adapted to a full game with checked winning openings.",
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "nim-05",
+          "title": "Repair one binary column",
+          "prompt": "Win a game starting with piles of 3, 4, and 5.",
+          "parameters": {
+            "piles": [
+              3,
+              4,
+              5
+            ],
+            "pile_numbering": "left to right, starting at 1",
+            "normal_play": true,
+            "task": "win_game",
+            "allowed_removal": "any positive amount from exactly one nonempty pile"
+          },
+          "solution": {
+            "canonical_move": {
+              "pile": 1,
+              "remove": 2,
+              "after": [
+                1,
+                4,
+                5
+              ]
+            },
+            "all_winning_moves": [
+              {
+                "pile": 1,
+                "remove": 2,
+                "after": [
+                  1,
+                  4,
+                  5
+                ]
+              }
+            ],
+            "nim_sum": 2
+          },
+          "hint": "Show each pile using bundles 4, 2, and 1. Which bundle appears an odd number of times?",
+          "insight": "Every binary column must contain an even number of bundles, not merely the total number of counters.",
+          "prerequisites": "Count to 5; use optional 4/2/1 bundles and odd/even; no binary notation prerequisite.",
+          "difficulty_reasoning": "The winning move changes the smallest pile, so a largest-pile heuristic fails. This is the first nontrivial use of the binary display.",
+          "verification_claims": {
+            "independently_verified_by": "backward recursion over all legal moves",
+            "winning_move_count": 1
+          },
+          "provenance": "Authored one-move app adaptation of the standard Nim rule. Source-start lineage is explicit below; no worksheet prose is copied.",
+          "source_start": "(3,4,5) appears in Week 8 grades 4–5 Tasks 5 and 6; here adapted to a full game with checked winning openings.",
+          "difficulty_level": "hard"
+        },
+        {
+          "id": "nim-06",
+          "title": "One move, several ways",
+          "prompt": "Win a game starting with piles of 4, 5, and 6.",
+          "parameters": {
+            "piles": [
+              4,
+              5,
+              6
+            ],
+            "pile_numbering": "left to right, starting at 1",
+            "normal_play": true,
+            "task": "win_game",
+            "allowed_removal": "any positive amount from exactly one nonempty pile"
+          },
+          "solution": {
+            "canonical_move": {
+              "pile": 1,
+              "remove": 1,
+              "after": [
+                3,
+                5,
+                6
+              ]
+            },
+            "all_winning_moves": [
+              {
+                "pile": 1,
+                "remove": 1,
+                "after": [
+                  3,
+                  5,
+                  6
+                ]
+              },
+              {
+                "pile": 2,
+                "remove": 3,
+                "after": [
+                  4,
+                  2,
+                  6
+                ]
+              },
+              {
+                "pile": 3,
+                "remove": 5,
+                "after": [
+                  4,
+                  5,
+                  1
+                ]
+              }
+            ],
+            "nim_sum": 7
+          },
+          "hint": "One legal option changes 4 to 3. Removing one counter trades a 4-bundle for 2+1; inspect all the columns again.",
+          "insight": "Binary balancing can require lower bits to turn on as a pile shrinks. Different piles can provide different valid balancing moves.",
+          "prerequisites": "Count to 6; re-express a smaller pile in 4/2/1 bundles; tolerate multiple right answers.",
+          "difficulty_reasoning": "Three winning moves remove different amounts from different piles. The advance is rebundling and multiple strategies, not a larger collection of rules.",
+          "verification_claims": {
+            "independently_verified_by": "backward recursion over all legal moves",
+            "winning_move_count": 3
+          },
+          "provenance": "Authored one-move app adaptation of the standard Nim rule. Source-start lineage is explicit below; no worksheet prose is copied.",
+          "difficulty_level": "hard"
+        },
+        {
+          "id": "nim-07",
+          "title": "Cancel the matching pair",
+          "parameters": {
+            "piles": [
+              2,
+              2,
+              3,
+              5
+            ],
+            "pile_numbering": "left to right, starting at 1",
+            "normal_play": true,
+            "task": "win_game",
+            "allowed_removal": "any positive amount from exactly one nonempty pile"
+          },
+          "solution": {
+            "canonical_move": {
+              "pile": 4,
+              "remove": 2,
+              "after": [
+                2,
+                2,
+                3,
+                3
+              ]
+            },
+            "all_winning_moves": [
+              {
+                "pile": 4,
+                "remove": 2,
+                "after": [
+                  2,
+                  2,
+                  3,
+                  3
+                ]
+              }
+            ],
+            "nim_sum": 6
+          },
+          "hint": "The two piles of 2 cancel. Balance the other two piles.",
+          "insight": "Equal game components cancel even when other piles remain.",
+          "prerequisites": "Compare piles and use 8/4/2/1 bundles; continue a strategy through a full game.",
+          "difficulty_level": "medium",
+          "difficulty_reasoning": "Equal game components cancel even when other piles remain.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Win the game by taking the last pebble.",
+          "verification_claims": {
+            "winning_move_count": 1,
+            "independently_verified_by": "backward recursion over all legal moves"
+          }
+        },
+        {
+          "id": "nim-08",
+          "title": "A balanced group plus one",
+          "parameters": {
+            "piles": [
+              1,
+              3,
+              5,
+              7,
+              2
+            ],
+            "pile_numbering": "left to right, starting at 1",
+            "normal_play": true,
+            "task": "win_game",
+            "allowed_removal": "any positive amount from exactly one nonempty pile"
+          },
+          "solution": {
+            "canonical_move": {
+              "pile": 2,
+              "remove": 2,
+              "after": [
+                1,
+                1,
+                5,
+                7,
+                2
+              ]
+            },
+            "all_winning_moves": [
+              {
+                "pile": 2,
+                "remove": 2,
+                "after": [
+                  1,
+                  1,
+                  5,
+                  7,
+                  2
+                ]
+              },
+              {
+                "pile": 4,
+                "remove": 2,
+                "after": [
+                  1,
+                  3,
+                  5,
+                  5,
+                  2
+                ]
+              },
+              {
+                "pile": 5,
+                "remove": 2,
+                "after": [
+                  1,
+                  3,
+                  5,
+                  7,
+                  0
+                ]
+              }
+            ],
+            "nim_sum": 2
+          },
+          "hint": "Check the 1,3,5,7 group in bundles. What remains outside that balanced group?",
+          "insight": "A whole collection can cancel even when no two piles match.",
+          "prerequisites": "Compare piles and use 8/4/2/1 bundles; continue a strategy through a full game.",
+          "difficulty_level": "medium",
+          "difficulty_reasoning": "A whole collection can cancel even when no two piles match.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Win the game by taking the last pebble.",
+          "verification_claims": {
+            "winning_move_count": 3,
+            "independently_verified_by": "backward recursion over all legal moves"
+          }
+        },
+        {
+          "id": "nim-09",
+          "title": "Remove a whole component",
+          "parameters": {
+            "piles": [
+              3,
+              5,
+              6,
+              7
+            ],
+            "pile_numbering": "left to right, starting at 1",
+            "normal_play": true,
+            "task": "win_game",
+            "allowed_removal": "any positive amount from exactly one nonempty pile"
+          },
+          "solution": {
+            "canonical_move": {
+              "pile": 2,
+              "remove": 3,
+              "after": [
+                3,
+                2,
+                6,
+                7
+              ]
+            },
+            "all_winning_moves": [
+              {
+                "pile": 2,
+                "remove": 3,
+                "after": [
+                  3,
+                  2,
+                  6,
+                  7
+                ]
+              },
+              {
+                "pile": 3,
+                "remove": 5,
+                "after": [
+                  3,
+                  5,
+                  1,
+                  7
+                ]
+              },
+              {
+                "pile": 4,
+                "remove": 7,
+                "after": [
+                  3,
+                  5,
+                  6,
+                  0
+                ]
+              }
+            ],
+            "nim_sum": 7
+          },
+          "hint": "Look at the first three piles as 4,2,1 bundles. Can one whole pile be removed to leave every column even?",
+          "insight": "A winning move can remove an entire pile while leaving three unequal piles.",
+          "prerequisites": "Compare piles and use 8/4/2/1 bundles; continue a strategy through a full game.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "A winning move can remove an entire pile while leaving three unequal piles.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Win the game by taking the last pebble.",
+          "verification_claims": {
+            "winning_move_count": 3,
+            "independently_verified_by": "backward recursion over all legal moves"
+          }
+        },
+        {
+          "id": "nim-10",
+          "title": "Break the eight bundle",
+          "parameters": {
+            "piles": [
+              2,
+              4,
+              7,
+              8
+            ],
+            "pile_numbering": "left to right, starting at 1",
+            "normal_play": true,
+            "task": "win_game",
+            "allowed_removal": "any positive amount from exactly one nonempty pile"
+          },
+          "solution": {
+            "canonical_move": {
+              "pile": 4,
+              "remove": 7,
+              "after": [
+                2,
+                4,
+                7,
+                1
+              ]
+            },
+            "all_winning_moves": [
+              {
+                "pile": 4,
+                "remove": 7,
+                "after": [
+                  2,
+                  4,
+                  7,
+                  1
+                ]
+              }
+            ],
+            "nim_sum": 9
+          },
+          "hint": "Try reducing 8 to 1, then compare the 8,4,2,1 columns.",
+          "insight": "Shrinking a pile across a power of two can switch several smaller binary columns on.",
+          "prerequisites": "Compare piles and use 8/4/2/1 bundles; continue a strategy through a full game.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Shrinking a pile across a power of two can switch several smaller binary columns on.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Win the game by taking the last pebble.",
+          "verification_claims": {
+            "winning_move_count": 1,
+            "independently_verified_by": "backward recursion over all legal moves"
+          }
+        },
+        {
+          "id": "nim-11",
+          "title": "Five piles, several repairs",
+          "parameters": {
+            "piles": [
+              1,
+              4,
+              6,
+              9,
+              11
+            ],
+            "pile_numbering": "left to right, starting at 1",
+            "normal_play": true,
+            "task": "win_game",
+            "allowed_removal": "any positive amount from exactly one nonempty pile"
+          },
+          "solution": {
+            "canonical_move": {
+              "pile": 1,
+              "remove": 1,
+              "after": [
+                0,
+                4,
+                6,
+                9,
+                11
+              ]
+            },
+            "all_winning_moves": [
+              {
+                "pile": 1,
+                "remove": 1,
+                "after": [
+                  0,
+                  4,
+                  6,
+                  9,
+                  11
+                ]
+              },
+              {
+                "pile": 4,
+                "remove": 1,
+                "after": [
+                  1,
+                  4,
+                  6,
+                  8,
+                  11
+                ]
+              },
+              {
+                "pile": 5,
+                "remove": 1,
+                "after": [
+                  1,
+                  4,
+                  6,
+                  9,
+                  10
+                ]
+              }
+            ],
+            "nim_sum": 1
+          },
+          "hint": "Inspect the 1-bundle column first. Several piles can repair the imbalance.",
+          "insight": "More than one winning opening may exist; every opponent reply must still be balanced again.",
+          "prerequisites": "Compare piles and use 8/4/2/1 bundles; continue a strategy through a full game.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "More than one winning opening may exist; every opponent reply must still be balanced again.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Win the game by taking the last pebble.",
+          "verification_claims": {
+            "winning_move_count": 3,
+            "independently_verified_by": "backward recursion over all legal moves"
+          }
+        },
+        {
+          "id": "nim-12",
+          "title": "Rebundle across five piles",
+          "parameters": {
+            "piles": [
+              3,
+              5,
+              8,
+              10,
+              12
+            ],
+            "pile_numbering": "left to right, starting at 1",
+            "normal_play": true,
+            "task": "win_game",
+            "allowed_removal": "any positive amount from exactly one nonempty pile"
+          },
+          "solution": {
+            "canonical_move": {
+              "pile": 3,
+              "remove": 8,
+              "after": [
+                3,
+                5,
+                0,
+                10,
+                12
+              ]
+            },
+            "all_winning_moves": [
+              {
+                "pile": 3,
+                "remove": 8,
+                "after": [
+                  3,
+                  5,
+                  0,
+                  10,
+                  12
+                ]
+              },
+              {
+                "pile": 4,
+                "remove": 8,
+                "after": [
+                  3,
+                  5,
+                  8,
+                  2,
+                  12
+                ]
+              },
+              {
+                "pile": 5,
+                "remove": 8,
+                "after": [
+                  3,
+                  5,
+                  8,
+                  10,
+                  4
+                ]
+              }
+            ],
+            "nim_sum": 8
+          },
+          "hint": "Find the highest unbalanced bundle column. Which pile can lose that bundle and repair the smaller columns too?",
+          "insight": "Choosing among multiple reductions requires coordinating all binary columns across five components.",
+          "prerequisites": "Compare piles and use 8/4/2/1 bundles; continue a strategy through a full game.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Choosing among multiple reductions requires coordinating all binary columns across five components.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Win the game by taking the last pebble.",
+          "verification_claims": {
+            "winning_move_count": 3,
+            "independently_verified_by": "backward recursion over all legal moves"
+          }
+        }
+      ]
+    }
+  ]
+}

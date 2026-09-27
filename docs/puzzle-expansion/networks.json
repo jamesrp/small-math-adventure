@@ -1,0 +1,2693 @@
+{
+  "schema_version": 1,
+  "status": "proposed content, not wired into the app",
+  "edge_format": "Each edge is [vertex_a, vertex_b, positive_length]; coloring edges use length1 only for a common format. All edges undirected.",
+  "families": [
+    {
+      "id": "route",
+      "title": "Bridge Courier",
+      "rules": "Move along drawn roads without teleporting. Dots are junctions; crossings without dots are not junctions. Revisit dots freely. When the goal says exactly once, use each road once. For a distance target, cover every road, return to the marked depot, and meet the target; repeats are allowed. All roads are undirected. Every unlabelled road has length 1.",
+      "mathematics": "Euler trails, degree parity, cycle splicing, bridges, and the undirected route-inspection (Chinese postman) problem. The change from exact-once to shortest delivery explicitly introduces necessary repetition. Pairing odd vertices explains the optimization; no proof answer is required.",
+      "sources": [
+        {
+          "path": "/Users/jamespfeiffer/math-circle/plans/week-10-redesign.md",
+          "section": "Entry points and mathematical work; Verified mathematical backbone",
+          "use": "Euler-trail and route-inspection progression, adapted to app completion tasks."
+        },
+        {
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-10/week-10-facilitator.tex",
+          "section": "One-walk maps: checks and proof; Delivery routes and optimality",
+          "use": "Dead ends, cycle splicing, odd-vertex pairing; new maps or new parameters below."
+        },
+        {
+          "url": "https://www.cs.cornell.edu/courses/cs2800/2017sp/lectures/lec36-graphs2.html",
+          "section": "Eulerian paths",
+          "use": "Undergraduate Euler criterion and cycle-splicing construction."
+        }
+      ],
+      "authoring_policy": "Use named constructions and deliberate structural contrasts. Tutorial 1 can be skipped. Choose endpoints, bridges, or weights to reveal one intended decision; do not hide randomly forbidden roads. Accept every route meeting the goal.",
+      "instances": [
+        {
+          "id": "route-01",
+          "title": "The little side road",
+          "prompt": "Choose where to start. Walk every road exactly once. You may visit a dot again.",
+          "parameters": {
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E"
+            ],
+            "edges": [
+              [
+                "A",
+                "B",
+                1
+              ],
+              [
+                "B",
+                "C",
+                1
+              ],
+              [
+                "C",
+                "D",
+                1
+              ],
+              [
+                "D",
+                "A",
+                1
+              ],
+              [
+                "A",
+                "E",
+                1
+              ]
+            ],
+            "mode": "each_edge_once",
+            "start": null,
+            "closed": false,
+            "construction": "Square A–B–C–D–A with one leaf E joined to A.",
+            "target_cost": 5
+          },
+          "solution": {
+            "route": [
+              "A",
+              "D",
+              "C",
+              "B",
+              "A",
+              "E"
+            ],
+            "cost": 5,
+            "odd_vertices": [
+              "A",
+              "E"
+            ]
+          },
+          "hint": "Try starting at the end of the little side road.",
+          "insight": "A dead end must be an endpoint of the whole walk; the repeated visit to A is legal.",
+          "prerequisites": "No reading with narration; track five used edges.",
+          "difficulty": "Entry/tutorial; the decision is choosing a viable start, not counting a large map. Let a confident child skip it.",
+          "author_certificate": "Five roads; exactly A and E have odd degree. A complete trail therefore has endpoints A and E. Witness uses every road once.",
+          "difficulty_level": "easy"
+        },
+        {
+          "id": "route-02",
+          "title": "Do the small loop before home",
+          "prompt": "Start at B. Walk every road exactly once and finish back at B.",
+          "parameters": {
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F"
+            ],
+            "edges": [
+              [
+                "A",
+                "B",
+                1
+              ],
+              [
+                "B",
+                "C",
+                1
+              ],
+              [
+                "C",
+                "D",
+                1
+              ],
+              [
+                "D",
+                "A",
+                1
+              ],
+              [
+                "A",
+                "E",
+                1
+              ],
+              [
+                "E",
+                "F",
+                1
+              ],
+              [
+                "F",
+                "A",
+                1
+              ]
+            ],
+            "mode": "each_edge_once",
+            "start": "B",
+            "closed": true,
+            "construction": "A square A–B–C–D–A and a triangle A–E–F–A share just A.",
+            "target_cost": 7
+          },
+          "solution": {
+            "route": [
+              "B",
+              "C",
+              "D",
+              "A",
+              "F",
+              "E",
+              "A",
+              "B"
+            ],
+            "cost": 7,
+            "odd_vertices": []
+          },
+          "hint": "When you reach A, take the triangle detour before using your last road home.",
+          "insight": "Splice a complete loop into a larger route; returning home too early can strand unused roads.",
+          "prerequisites": "Track seven used edges; no arithmetic or graph terms required.",
+          "difficulty": "Early planning; one real choice at the shared junction can end the walk too soon. This is a loop-splicing lesson, not an enlarged path.",
+          "author_certificate": "Seven roads; all degrees even. For example B–C–D–A–E–F–A–B covers all seven exactly once.",
+          "difficulty_level": "easy"
+        },
+        {
+          "id": "route-03",
+          "title": "Cross the connecting bridge at the right time",
+          "prompt": "Start at C. Walk every road exactly once. You may finish at a different dot.",
+          "parameters": {
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F"
+            ],
+            "edges": [
+              [
+                "A",
+                "B",
+                1
+              ],
+              [
+                "B",
+                "C",
+                1
+              ],
+              [
+                "C",
+                "A",
+                1
+              ],
+              [
+                "C",
+                "D",
+                1
+              ],
+              [
+                "D",
+                "E",
+                1
+              ],
+              [
+                "E",
+                "F",
+                1
+              ],
+              [
+                "F",
+                "D",
+                1
+              ]
+            ],
+            "mode": "each_edge_once",
+            "start": "C",
+            "closed": false,
+            "construction": "Two triangles A–B–C–A and D–E–F–D, joined only by C–D.",
+            "target_cost": 7
+          },
+          "solution": {
+            "route": [
+              "C",
+              "B",
+              "A",
+              "C",
+              "D",
+              "F",
+              "E",
+              "D"
+            ],
+            "cost": 7,
+            "odd_vertices": [
+              "C",
+              "D"
+            ]
+          },
+          "hint": "If you cross C–D now, can you ever return to unfinished roads on the left?",
+          "insight": "A bridge separates two regions: finish the departing side before the unique crossing.",
+          "prerequisites": "Track seven edges; plan which region to finish first.",
+          "difficulty": "Planning; the tempting first move C→D loses immediately despite looking locally legal. Same edge count as instance 2, different insight.",
+          "author_certificate": "Seven roads; odd vertices C,D force endpoints. The bridge can be crossed only once, after servicing the left triangle and before servicing the right.",
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "route-04",
+          "title": "Three corridors, one depot",
+          "prompt": "Start at S. Travel every road at least once and return to S in 8 steps. Roads can be repeated.",
+          "parameters": {
+            "vertices": [
+              "S",
+              "T",
+              "A",
+              "B",
+              "C"
+            ],
+            "edges": [
+              [
+                "S",
+                "A",
+                1
+              ],
+              [
+                "A",
+                "T",
+                1
+              ],
+              [
+                "S",
+                "B",
+                1
+              ],
+              [
+                "B",
+                "T",
+                1
+              ],
+              [
+                "S",
+                "C",
+                1
+              ],
+              [
+                "C",
+                "T",
+                1
+              ]
+            ],
+            "mode": "shortest_closed_cover",
+            "start": "S",
+            "closed": true,
+            "construction": "Three internally disjoint length-two paths S–A–T, S–B–T, S–C–T (a subdivided three-edge theta graph).",
+            "target_cost": 8
+          },
+          "solution": {
+            "route": [
+              "S",
+              "C",
+              "T",
+              "C",
+              "S",
+              "B",
+              "T",
+              "A",
+              "S"
+            ],
+            "cost": 8,
+            "odd_vertices": [
+              "S",
+              "T"
+            ],
+            "base_cost": 6,
+            "extra_cost": 2
+          },
+          "hint": "You will have used three corridors to reach the far end. Which corridor will get you home?",
+          "insight": "Repetition is now allowed because the destination is a shortest closed delivery tour, not an Euler trail. One entire corridor must be repeated.",
+          "prerequisites": "Count to 8; distinguish used-once from used-again roads.",
+          "difficulty": "Optimization entry; identify a necessary return trip instead of searching for an impossible six-step closed route.",
+          "author_certificate": "Base length 6. S,T are odd. Extra traversals must connect them; their distance is 2, so minimum cost 8. Duplicating any one corridor attains it.",
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "route-05",
+          "title": "Ladder delivery",
+          "prompt": "Start at A. Cover every road and return to A in 12 steps. Every road costs 1 step.",
+          "parameters": {
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "a",
+              "b",
+              "c",
+              "d"
+            ],
+            "edges": [
+              [
+                "A",
+                "B",
+                1
+              ],
+              [
+                "B",
+                "C",
+                1
+              ],
+              [
+                "C",
+                "D",
+                1
+              ],
+              [
+                "a",
+                "b",
+                1
+              ],
+              [
+                "b",
+                "c",
+                1
+              ],
+              [
+                "c",
+                "d",
+                1
+              ],
+              [
+                "A",
+                "a",
+                1
+              ],
+              [
+                "B",
+                "b",
+                1
+              ],
+              [
+                "C",
+                "c",
+                1
+              ],
+              [
+                "D",
+                "d",
+                1
+              ]
+            ],
+            "mode": "shortest_closed_cover",
+            "start": "A",
+            "closed": true,
+            "construction": "The ordinary ladder graph with top rail A–B–C–D, bottom rail a–b–c–d, and four aligned rungs.",
+            "target_cost": 12
+          },
+          "solution": {
+            "route": [
+              "A",
+              "a",
+              "b",
+              "B",
+              "b",
+              "c",
+              "C",
+              "c",
+              "d",
+              "D",
+              "C",
+              "B",
+              "A"
+            ],
+            "cost": 12,
+            "odd_vertices": [
+              "B",
+              "C",
+              "b",
+              "c"
+            ],
+            "base_cost": 10,
+            "extra_cost": 2
+          },
+          "hint": "The four middle junctions each have three roads. Try repeating the two middle rungs.",
+          "insight": "Repair odd degrees in pairs; two well-chosen repeats beat treating every road as an out-and-back errand.",
+          "prerequisites": "Count to 12; coordinate four junctions and undo route choices.",
+          "difficulty": "Intermediate optimization; either pair the middle junctions vertically or horizontally. Both natural optimal plans are accepted.",
+          "author_certificate": "Base length 10; B,C,b,c are odd. One extra edge changes degree parity at two ends, so at least two repeats are necessary. Repeating B–b and C–c attains 12.",
+          "difficulty_level": "hard"
+        },
+        {
+          "id": "route-06",
+          "title": "Choose the roads to repeat",
+          "prompt": "Start at A. Cover every road and return to A with total distance 22. Each traversal costs the number written on its road, including repeats.",
+          "parameters": {
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "edges": [
+              [
+                "A",
+                "B",
+                1
+              ],
+              [
+                "A",
+                "C",
+                2
+              ],
+              [
+                "A",
+                "D",
+                3
+              ],
+              [
+                "B",
+                "C",
+                3
+              ],
+              [
+                "B",
+                "D",
+                2
+              ],
+              [
+                "C",
+                "D",
+                7
+              ]
+            ],
+            "mode": "shortest_closed_cover",
+            "start": "A",
+            "closed": true,
+            "construction": "Complete graph on four junctions: every pair has a road. Road lengths AB=1, AC=2, AD=3, BC=3, BD=2, CD=7. Draw D inside triangle ABC so every junction is unambiguous.",
+            "target_cost": 22
+          },
+          "solution": {
+            "route": [
+              "A",
+              "C",
+              "A",
+              "B",
+              "D",
+              "B",
+              "C",
+              "D",
+              "A"
+            ],
+            "cost": 22,
+            "odd_vertices": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "base_cost": 18,
+            "extra_cost": 4,
+            "pairing_costs": [
+              {
+                "pairs": [
+                  [
+                    "A",
+                    "B"
+                  ],
+                  [
+                    "C",
+                    "D"
+                  ]
+                ],
+                "cost": 6
+              },
+              {
+                "pairs": [
+                  [
+                    "A",
+                    "C"
+                  ],
+                  [
+                    "B",
+                    "D"
+                  ]
+                ],
+                "cost": 4
+              },
+              {
+                "pairs": [
+                  [
+                    "A",
+                    "D"
+                  ],
+                  [
+                    "B",
+                    "C"
+                  ]
+                ],
+                "cost": 6
+              }
+            ]
+          },
+          "hint": "Plan both extra connections before committing to repeating the cheapest road. Long roads still need one delivery.",
+          "insight": "Pairing odd junctions is a global choice. Selecting AB as a repeated connection leaves an expensive extra connection between C and D. Starting the route along AB can still be optimal; the choice here is which roads to repeat. Shortest extra connections may use multiple roads.",
+          "prerequisites": "Add small positive lengths up to 22; compare complete plans.",
+          "difficulty": "Stretch; six roads suffice to create a genuine optimization trap. The weights distinguish choosing both extra connections together from selecting the cheapest extra connection first, with no legal-road exclusions.",
+          "author_certificate": "Base cost 18. All four junctions are odd. Shortest pairing costs AB + CD = 1 + 5 = 6, AC + BD = 2 + 2 = 4, AD + BC = 3 + 3 = 6. Minimum augmentation 4 yields 22; repeating AC and BD attains it. Selecting AB as an extra connection leaves C and D paired at shortest distance 5, hence augmentation 6. This concerns extra traversals, not the order in which the required roads are first visited.",
+          "difficulty_level": "hard"
+        },
+        {
+          "id": "route-07",
+          "title": "Choose the house endpoints",
+          "parameters": {
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E"
+            ],
+            "edges": [
+              [
+                "A",
+                "B",
+                1
+              ],
+              [
+                "B",
+                "C",
+                1
+              ],
+              [
+                "C",
+                "D",
+                1
+              ],
+              [
+                "D",
+                "A",
+                1
+              ],
+              [
+                "D",
+                "E",
+                1
+              ],
+              [
+                "E",
+                "C",
+                1
+              ]
+            ],
+            "positions": {
+              "A": [
+                12,
+                82
+              ],
+              "B": [
+                88,
+                82
+              ],
+              "C": [
+                88,
+                42
+              ],
+              "D": [
+                12,
+                42
+              ],
+              "E": [
+                50,
+                10
+              ]
+            },
+            "mode": "each_edge_once",
+            "start": null,
+            "closed": false,
+            "construction": "A square with a triangular roof.",
+            "target_cost": 6
+          },
+          "solution": {
+            "route": [
+              "C",
+              "E",
+              "D",
+              "C",
+              "B",
+              "A",
+              "D"
+            ],
+            "cost": 6,
+            "base_cost": 6,
+            "extra_cost": 0,
+            "odd_vertices": [
+              "C",
+              "D"
+            ]
+          },
+          "hint": "Only two junctions have an odd number of roads. Start at one of them.",
+          "insight": "An Euler trail can revisit junctions while using each road once; the endpoints are forced by degree parity.",
+          "prerequisites": "Track connections and revise a plan; line crossings are not junctions.",
+          "difficulty_level": "medium",
+          "difficulty_reasoning": "An Euler trail can revisit junctions while using each road once; the endpoints are forced by degree parity.",
+          "provenance": "App adaptation of the house graph and Euler-trail task in Week 10 middle/facilitator sources. The graph is borrowed; app interaction and hint are newly written.",
+          "prompt": "Walk every road exactly once."
+        },
+        {
+          "id": "route-08",
+          "title": "Three loops to splice",
+          "parameters": {
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G"
+            ],
+            "edges": [
+              [
+                "A",
+                "B",
+                1
+              ],
+              [
+                "B",
+                "C",
+                1
+              ],
+              [
+                "C",
+                "A",
+                1
+              ],
+              [
+                "C",
+                "D",
+                1
+              ],
+              [
+                "D",
+                "E",
+                1
+              ],
+              [
+                "E",
+                "C",
+                1
+              ],
+              [
+                "E",
+                "F",
+                1
+              ],
+              [
+                "F",
+                "G",
+                1
+              ],
+              [
+                "G",
+                "E",
+                1
+              ]
+            ],
+            "positions": {
+              "A": [
+                10,
+                20
+              ],
+              "B": [
+                10,
+                80
+              ],
+              "C": [
+                35,
+                50
+              ],
+              "D": [
+                50,
+                12
+              ],
+              "E": [
+                65,
+                50
+              ],
+              "F": [
+                90,
+                20
+              ],
+              "G": [
+                90,
+                80
+              ]
+            },
+            "mode": "each_edge_once",
+            "start": "A",
+            "closed": true,
+            "construction": "Three triangles in a chain, sharing one vertex at a time.",
+            "target_cost": 9
+          },
+          "solution": {
+            "route": [
+              "A",
+              "C",
+              "E",
+              "G",
+              "F",
+              "E",
+              "D",
+              "C",
+              "B",
+              "A"
+            ],
+            "cost": 9,
+            "base_cost": 9,
+            "extra_cost": 0,
+            "odd_vertices": []
+          },
+          "hint": "At C and E, visit the next loop before closing the one that brought you there.",
+          "insight": "Returning home early can strand a whole loop; splice all three cycles into one closed walk.",
+          "prerequisites": "Track connections and revise a plan; line crossings are not junctions.",
+          "difficulty_level": "medium",
+          "difficulty_reasoning": "Returning home early can strand a whole loop; splice all three cycles into one closed walk.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Walk every road exactly once."
+        },
+        {
+          "id": "route-09",
+          "title": "Repair six odd junctions",
+          "parameters": {
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F"
+            ],
+            "edges": [
+              [
+                "A",
+                "B",
+                1
+              ],
+              [
+                "B",
+                "C",
+                1
+              ],
+              [
+                "C",
+                "A",
+                1
+              ],
+              [
+                "D",
+                "E",
+                1
+              ],
+              [
+                "E",
+                "F",
+                1
+              ],
+              [
+                "F",
+                "D",
+                1
+              ],
+              [
+                "A",
+                "D",
+                1
+              ],
+              [
+                "B",
+                "E",
+                1
+              ],
+              [
+                "C",
+                "F",
+                1
+              ]
+            ],
+            "positions": {
+              "A": [
+                50,
+                10
+              ],
+              "B": [
+                10,
+                85
+              ],
+              "C": [
+                90,
+                85
+              ],
+              "D": [
+                50,
+                40
+              ],
+              "E": [
+                32,
+                66
+              ],
+              "F": [
+                68,
+                66
+              ]
+            },
+            "mode": "shortest_closed_cover",
+            "start": "A",
+            "closed": true,
+            "construction": "Triangular prism with unit roads.",
+            "target_cost": 12
+          },
+          "solution": {
+            "route": [
+              "A",
+              "D",
+              "F",
+              "C",
+              "F",
+              "E",
+              "B",
+              "E",
+              "D",
+              "A",
+              "C",
+              "B",
+              "A"
+            ],
+            "cost": 12,
+            "base_cost": 9,
+            "extra_cost": 3,
+            "odd_vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F"
+            ]
+          },
+          "hint": "All six junctions need one extra arrival or departure. Plan three repeated roads that touch each junction once.",
+          "insight": "Six odd vertices require at least three extra crossings; a matching attains the bound on this prism.",
+          "prerequisites": "Track connections and revise a plan; line crossings are not junctions.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Six odd vertices require at least three extra crossings; a matching attains the bound on this prism.",
+          "provenance": "App adaptation of the six-odd-vertex triangular-prism construction in Week 10 upper/facilitator sources. The graph and three-repeat bound are borrowed; the concrete interactive route task is new to the app.",
+          "prompt": "Cover every road and return to A with total distance 12."
+        },
+        {
+          "id": "route-10",
+          "title": "Pair through the grid",
+          "parameters": {
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G",
+              "H",
+              "I"
+            ],
+            "edges": [
+              [
+                "A",
+                "B",
+                1
+              ],
+              [
+                "B",
+                "C",
+                1
+              ],
+              [
+                "D",
+                "E",
+                1
+              ],
+              [
+                "E",
+                "F",
+                1
+              ],
+              [
+                "G",
+                "H",
+                1
+              ],
+              [
+                "H",
+                "I",
+                1
+              ],
+              [
+                "A",
+                "D",
+                1
+              ],
+              [
+                "B",
+                "E",
+                1
+              ],
+              [
+                "C",
+                "F",
+                1
+              ],
+              [
+                "D",
+                "G",
+                1
+              ],
+              [
+                "E",
+                "H",
+                1
+              ],
+              [
+                "F",
+                "I",
+                1
+              ]
+            ],
+            "positions": {
+              "A": [
+                12,
+                12
+              ],
+              "B": [
+                50,
+                12
+              ],
+              "C": [
+                88,
+                12
+              ],
+              "D": [
+                12,
+                50
+              ],
+              "E": [
+                50,
+                50
+              ],
+              "F": [
+                88,
+                50
+              ],
+              "G": [
+                12,
+                88
+              ],
+              "H": [
+                50,
+                88
+              ],
+              "I": [
+                88,
+                88
+              ]
+            },
+            "mode": "shortest_closed_cover",
+            "start": "A",
+            "closed": true,
+            "construction": "Complete 3 by 3 nearest-neighbor square grid.",
+            "target_cost": 16
+          },
+          "solution": {
+            "route": [
+              "A",
+              "D",
+              "G",
+              "H",
+              "I",
+              "F",
+              "I",
+              "H",
+              "E",
+              "D",
+              "E",
+              "B",
+              "E",
+              "F",
+              "C",
+              "B",
+              "A"
+            ],
+            "cost": 16,
+            "base_cost": 12,
+            "extra_cost": 4,
+            "odd_vertices": [
+              "B",
+              "D",
+              "F",
+              "H"
+            ]
+          },
+          "hint": "The four side-middle junctions have odd degree. Compare the two-road paths that can pair them.",
+          "insight": "Repeated connections can be paths through even junctions, not just roads between odd junctions.",
+          "prerequisites": "Track connections and revise a plan; line crossings are not junctions.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Repeated connections can be paths through even junctions, not just roads between odd junctions.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Cover every road and return to A with total distance 16."
+        },
+        {
+          "id": "route-11",
+          "title": "The shorter detour",
+          "parameters": {
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "edges": [
+              [
+                "A",
+                "B",
+                7
+              ],
+              [
+                "A",
+                "C",
+                1
+              ],
+              [
+                "C",
+                "B",
+                2
+              ],
+              [
+                "A",
+                "D",
+                2
+              ],
+              [
+                "D",
+                "B",
+                2
+              ]
+            ],
+            "positions": {
+              "A": [
+                12,
+                50
+              ],
+              "B": [
+                88,
+                50
+              ],
+              "C": [
+                50,
+                12
+              ],
+              "D": [
+                50,
+                88
+              ]
+            },
+            "mode": "shortest_closed_cover",
+            "start": "A",
+            "closed": true,
+            "construction": "A theta graph with three differently weighted A–B paths.",
+            "target_cost": 17
+          },
+          "solution": {
+            "route": [
+              "A",
+              "C",
+              "A",
+              "D",
+              "B",
+              "C",
+              "B",
+              "A"
+            ],
+            "cost": 17,
+            "base_cost": 14,
+            "extra_cost": 3,
+            "odd_vertices": [
+              "A",
+              "B"
+            ]
+          },
+          "hint": "You must cross the long direct road once. For the extra trip between A and B, compare whole paths.",
+          "insight": "The shortest parity repair can use two roads even when a direct road exists. Required coverage and cheapest repeats are different choices.",
+          "prerequisites": "Track connections and revise a plan; line crossings are not junctions.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "The shortest parity repair can use two roads even when a direct road exists. Required coverage and cheapest repeats are different choices.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Cover every road and return to A with total distance 17."
+        },
+        {
+          "id": "route-12",
+          "title": "Pair all six economically",
+          "parameters": {
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F"
+            ],
+            "edges": [
+              [
+                "A",
+                "B",
+                1
+              ],
+              [
+                "B",
+                "C",
+                3
+              ],
+              [
+                "C",
+                "A",
+                3
+              ],
+              [
+                "D",
+                "E",
+                3
+              ],
+              [
+                "E",
+                "F",
+                3
+              ],
+              [
+                "F",
+                "D",
+                1
+              ],
+              [
+                "A",
+                "D",
+                2
+              ],
+              [
+                "B",
+                "E",
+                4
+              ],
+              [
+                "C",
+                "F",
+                2
+              ]
+            ],
+            "positions": {
+              "A": [
+                50,
+                10
+              ],
+              "B": [
+                10,
+                85
+              ],
+              "C": [
+                90,
+                85
+              ],
+              "D": [
+                50,
+                40
+              ],
+              "E": [
+                32,
+                66
+              ],
+              "F": [
+                68,
+                66
+              ]
+            },
+            "mode": "shortest_closed_cover",
+            "start": "A",
+            "closed": true,
+            "construction": "Weighted triangular prism; no roads removed.",
+            "target_cost": 28
+          },
+          "solution": {
+            "route": [
+              "A",
+              "B",
+              "A",
+              "D",
+              "F",
+              "C",
+              "F",
+              "E",
+              "D",
+              "E",
+              "B",
+              "C",
+              "A"
+            ],
+            "cost": 28,
+            "base_cost": 22,
+            "extra_cost": 6,
+            "odd_vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F"
+            ]
+          },
+          "hint": "Compare complete pairings of all six odd junctions; the cheapest single road does not choose the other two pairs for you.",
+          "insight": "Weighted six-vertex matching combines parity with shortest-path costs; an optimal augmentation must be planned globally.",
+          "prerequisites": "Track connections and revise a plan; line crossings are not junctions.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Weighted six-vertex matching combines parity with shortest-path costs; an optimal augmentation must be planned globally.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Cover every road and return to A with total distance 28."
+        }
+      ]
+    },
+    {
+      "id": "color",
+      "title": "Neighbor Lanterns",
+      "rules": "Color every dot with the supplied palette. The endpoints of every drawn link must have different colors. Recolor freely; no fixed clues, color quotas, or one-off restrictions. A crossing without a dot is not a junction. Color dots, not links.",
+      "mathematics": "Proper vertex coloring and chromatic number; bipartition, odd-cycle closure, wheels, graph powers, and the Petersen graph. The supplied palette is minimal, checked exhaustively. The player only has to produce a coloring, never a proof of minimality.",
+      "sources": [
+        {
+          "path": "/Users/jamespfeiffer/math-circle/plans/grades-2-3-year-a.md",
+          "section": "Summer Week 15 Map coloring; Entry points item 15 Maps",
+          "use": "Local source proposes neighbor coloring and smallest sufficient palette; its cited JRMF PDF was not independently read for this catalog."
+        },
+        {
+          "url": "https://www.cs.cornell.edu/courses/cs2800/2017sp/lectures/lec37-coloring.html",
+          "section": "Graph coloring",
+          "use": "Definition of proper vertex coloring and applications."
+        },
+        {
+          "url": "https://opentext.uleth.ca/Combinatorics/sect_colouring-Vertices.html",
+          "section": "Definitions 14.3.2–3; Examples 14.3.6–7 and 14.3.13",
+          "use": "Chromatic number, bipartite and odd-cycle examples, and the Petersen graph; our witnesses independently verified."
+        }
+      ],
+      "authoring_policy": "One optional path tutorial, then changes in structure rather than larger checkerboards. The six instances are a sequence of reusable ideas, not a promise that each will take longer than the preceding one. Test completion and recoloring behavior with children.",
+      "instances": [
+        {
+          "id": "color-01",
+          "title": "A line of lanterns",
+          "prompt": "Color all five lanterns with the two colors. Linked lanterns must differ.",
+          "parameters": {
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E"
+            ],
+            "edges": [
+              [
+                "A",
+                "B",
+                1
+              ],
+              [
+                "B",
+                "C",
+                1
+              ],
+              [
+                "C",
+                "D",
+                1
+              ],
+              [
+                "D",
+                "E",
+                1
+              ]
+            ],
+            "palette_size": 2,
+            "construction": "Path A–B–C–D–E."
+          },
+          "solution": {
+            "colors": {
+              "A": 2,
+              "B": 1,
+              "C": 2,
+              "D": 1,
+              "E": 2
+            },
+            "minimum_colors": 2
+          },
+          "hint": "Try alternating the two colors.",
+          "insight": "Two-coloring propagates along a path. This teaches the interaction, not the main difficulty.",
+          "prerequisites": "Distinguish two colors or shape patterns; no reading or counting.",
+          "difficulty": "Optional tutorial, deliberately easy. Do not fill a grade trail with resized copies of it.",
+          "author_certificate": "Any edge forces two colors; alternating is a witness.",
+          "difficulty_level": "easy"
+        },
+        {
+          "id": "color-02",
+          "title": "Closing the necklace",
+          "prompt": "Color the five-lantern ring using these three colors. Linked lanterns must differ.",
+          "parameters": {
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E"
+            ],
+            "edges": [
+              [
+                "A",
+                "B",
+                1
+              ],
+              [
+                "B",
+                "C",
+                1
+              ],
+              [
+                "C",
+                "D",
+                1
+              ],
+              [
+                "D",
+                "E",
+                1
+              ],
+              [
+                "E",
+                "A",
+                1
+              ]
+            ],
+            "palette_size": 3,
+            "construction": "Cycle A–B–C–D–E–A."
+          },
+          "solution": {
+            "colors": {
+              "A": 1,
+              "B": 2,
+              "C": 1,
+              "D": 2,
+              "E": 3
+            },
+            "minimum_colors": 3
+          },
+          "hint": "Remember that the last lantern is also linked to the first.",
+          "insight": "An odd loop breaks perfect alternation; reserve a third color for the closure.",
+          "prerequisites": "Notice the closing edge; willing to recolor.",
+          "difficulty": "Early; introduces a global closure decision after the tutorial. Three colors allow several answers, all accepted.",
+          "author_certificate": "With only two colors, alternating around five edges returns the wrong color to the start. Three colors suffice.",
+          "difficulty_level": "easy"
+        },
+        {
+          "id": "color-03",
+          "title": "The hub needs a color",
+          "prompt": "Color the square and its center using three colors. Each spoke and rim link joins different colors.",
+          "parameters": {
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "H"
+            ],
+            "edges": [
+              [
+                "A",
+                "B",
+                1
+              ],
+              [
+                "B",
+                "C",
+                1
+              ],
+              [
+                "C",
+                "D",
+                1
+              ],
+              [
+                "D",
+                "A",
+                1
+              ],
+              [
+                "A",
+                "H",
+                1
+              ],
+              [
+                "B",
+                "H",
+                1
+              ],
+              [
+                "C",
+                "H",
+                1
+              ],
+              [
+                "D",
+                "H",
+                1
+              ]
+            ],
+            "palette_size": 3,
+            "construction": "Wheel with rim A–B–C–D–A and hub H linked to every rim vertex; rim size 4."
+          },
+          "solution": {
+            "colors": {
+              "A": 2,
+              "B": 3,
+              "C": 2,
+              "D": 3,
+              "H": 1
+            },
+            "minimum_colors": 3
+          },
+          "hint": "Set a color aside for the center, then color the rim.",
+          "insight": "The hub must avoid every rim color, so the rim has to share colors strategically.",
+          "prerequisites": "Coordinate the four rim dots with the center.",
+          "difficulty": "Early planning; freely using all three colors on the rim can block the center. Coloring the center first turns the remaining rim into a two-color task.",
+          "author_certificate": "A hub and two adjacent rim vertices form a triangle, forcing 3. Alternating the even rim with colors 1 and 2 leaves 3 for H.",
+          "author_checks": {
+            "unextendable_partial_coloring": {
+              "A": 1,
+              "B": 2,
+              "C": 1,
+              "D": 3
+            },
+            "explanation": "The rim uses all three colors, leaving none for H.",
+            "scope": "Design evidence only; these are not fixed clues in the playable instance."
+          },
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "color-04",
+          "title": "One more corner changes the wheel",
+          "prompt": "Color the pentagon and its center using four colors. Each spoke and rim link joins different colors.",
+          "parameters": {
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "H"
+            ],
+            "edges": [
+              [
+                "A",
+                "B",
+                1
+              ],
+              [
+                "B",
+                "C",
+                1
+              ],
+              [
+                "C",
+                "D",
+                1
+              ],
+              [
+                "D",
+                "E",
+                1
+              ],
+              [
+                "E",
+                "A",
+                1
+              ],
+              [
+                "A",
+                "H",
+                1
+              ],
+              [
+                "B",
+                "H",
+                1
+              ],
+              [
+                "C",
+                "H",
+                1
+              ],
+              [
+                "D",
+                "H",
+                1
+              ],
+              [
+                "E",
+                "H",
+                1
+              ]
+            ],
+            "palette_size": 4,
+            "construction": "Wheel with rim A–B–C–D–E–A and hub H linked to every rim vertex; rim size 5."
+          },
+          "solution": {
+            "colors": {
+              "A": 2,
+              "B": 3,
+              "C": 2,
+              "D": 3,
+              "E": 4,
+              "H": 1
+            },
+            "minimum_colors": 4
+          },
+          "hint": "First solve the five-lantern rim. The center touches every rim lantern.",
+          "insight": "Combine two earlier ideas: the odd rim needs three colors, and the hub needs another.",
+          "prerequisites": "Recall odd-ring closure; coordinate center and rim.",
+          "difficulty": "Structural contrast, not a size ramp: one added rim vertex changes the necessary palette from 3 to 4. Still short; advance quickly if solved immediately.",
+          "author_certificate": "The odd rim needs 3 colors. Its universal hub cannot use any rim color, forcing 4. An odd-cycle coloring plus a new hub color attains 4.",
+          "author_checks": {
+            "unextendable_partial_coloring": {
+              "A": 1,
+              "B": 2,
+              "C": 1,
+              "D": 3,
+              "E": 4
+            },
+            "explanation": "The rim uses all four colors, leaving none for H.",
+            "scope": "Design evidence only; these are not fixed clues in the playable instance."
+          },
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "color-05",
+          "title": "Two neighbors each way",
+          "prompt": "Color the eight-lantern ring with four colors. Every drawn link must join different colors. Links reach the next lantern and the one after it in each direction.",
+          "parameters": {
+            "vertices": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "edges": [
+              [
+                "1",
+                "2",
+                1
+              ],
+              [
+                "1",
+                "3",
+                1
+              ],
+              [
+                "2",
+                "3",
+                1
+              ],
+              [
+                "2",
+                "4",
+                1
+              ],
+              [
+                "3",
+                "4",
+                1
+              ],
+              [
+                "3",
+                "5",
+                1
+              ],
+              [
+                "4",
+                "5",
+                1
+              ],
+              [
+                "4",
+                "6",
+                1
+              ],
+              [
+                "5",
+                "6",
+                1
+              ],
+              [
+                "5",
+                "7",
+                1
+              ],
+              [
+                "6",
+                "7",
+                1
+              ],
+              [
+                "6",
+                "8",
+                1
+              ],
+              [
+                "7",
+                "8",
+                1
+              ],
+              [
+                "7",
+                "1",
+                1
+              ],
+              [
+                "8",
+                "1",
+                1
+              ],
+              [
+                "8",
+                "2",
+                1
+              ]
+            ],
+            "palette_size": 4,
+            "construction": "Square of the 8-cycle: labels 1…8 clockwise; link labels whose circular distance is 1 or 2. No other links."
+          },
+          "solution": {
+            "colors": {
+              "1": 1,
+              "2": 2,
+              "3": 3,
+              "4": 1,
+              "5": 4,
+              "6": 2,
+              "7": 3,
+              "8": 4
+            },
+            "minimum_colors": 4
+          },
+          "hint": "Any three consecutive lanterns need three different colors. Watch what happens when your pattern meets itself around the ring.",
+          "insight": "A local three-color pattern can fail globally. Uniform longer-range adjacency creates the challenge, rather than arbitrary forbidden pairs.",
+          "prerequisites": "Trace next-nearest links and coordinate a whole ring; no arithmetic required if links are drawn.",
+          "difficulty": "Intermediate/stretch; decisions interact two positions ahead and across the closing seam. A repeated block of four colors works; many other valid colorings are allowed.",
+          "author_certificate": "Every three consecutive vertices form a triangle. With only 3 colors, each next color is forced to repeat the color three positions earlier. That period cannot close on length 8. Pattern 1,2,3,4,1,2,3,4 is valid, so the minimum is 4.",
+          "author_checks": {
+            "unextendable_partial_coloring": {
+              "1": 1,
+              "2": 2,
+              "3": 3,
+              "4": 1,
+              "5": 2
+            },
+            "explanation": "This legal five-dot prefix has no completion with four colors; later links across the seam force a recoloring.",
+            "scope": "Design evidence only; these are not fixed clues in the playable instance."
+          },
+          "difficulty_level": "hard"
+        },
+        {
+          "id": "color-06",
+          "title": "Pentagon and star",
+          "prompt": "Color all ten lanterns with three colors. Every link joins different colors. Line crossings have no lantern and do not add connections.",
+          "parameters": {
+            "vertices": [
+              "o0",
+              "o1",
+              "o2",
+              "o3",
+              "o4",
+              "i0",
+              "i1",
+              "i2",
+              "i3",
+              "i4"
+            ],
+            "edges": [
+              [
+                "o0",
+                "o1",
+                1
+              ],
+              [
+                "o1",
+                "o2",
+                1
+              ],
+              [
+                "o2",
+                "o3",
+                1
+              ],
+              [
+                "o3",
+                "o4",
+                1
+              ],
+              [
+                "o4",
+                "o0",
+                1
+              ],
+              [
+                "i0",
+                "i2",
+                1
+              ],
+              [
+                "i1",
+                "i3",
+                1
+              ],
+              [
+                "i2",
+                "i4",
+                1
+              ],
+              [
+                "i3",
+                "i0",
+                1
+              ],
+              [
+                "i4",
+                "i1",
+                1
+              ],
+              [
+                "o0",
+                "i0",
+                1
+              ],
+              [
+                "o1",
+                "i1",
+                1
+              ],
+              [
+                "o2",
+                "i2",
+                1
+              ],
+              [
+                "o3",
+                "i3",
+                1
+              ],
+              [
+                "o4",
+                "i4",
+                1
+              ]
+            ],
+            "palette_size": 3,
+            "construction": "Petersen graph: outer pentagon o0–o1–o2–o3–o4–o0; inner star links i0–i2–i4–i1–i3–i0; five matching spokes oj–ij."
+          },
+          "solution": {
+            "colors": {
+              "o0": 1,
+              "o1": 2,
+              "o2": 1,
+              "o3": 2,
+              "o4": 3,
+              "i0": 2,
+              "i1": 1,
+              "i2": 3,
+              "i3": 3,
+              "i4": 2
+            },
+            "minimum_colors": 3
+          },
+          "hint": "The inside is also a five-lantern loop, just drawn as a star. Color both loops while watching their five spokes.",
+          "insight": "Two odd loops can share three colors, but their colorings must agree with all matching spokes. This is a compact graph with interacting global choices.",
+          "prerequisites": "Track connections through a crossing drawing; revise several colors when necessary.",
+          "difficulty": "Stretch; ten vertices give coupled cycles and real backtracking without a large board or extra rule types. The drawing must make non-junction crossings clear.",
+          "author_certificate": "The outer 5-cycle rules out 2 colors. The stored 3-color assignment checks every one of 15 links, hence the minimum is 3. It is vertex coloring; the separate Petersen edge-coloring problem is not being claimed here.",
+          "author_checks": {
+            "unextendable_partial_coloring": {
+              "o0": 1,
+              "o1": 2,
+              "o2": 1,
+              "o3": 2,
+              "o4": 3,
+              "i0": 3,
+              "i1": 1
+            },
+            "explanation": "The outer ring and two inner colors are locally legal, but no choice for the remaining inner dots can satisfy all links with three colors.",
+            "scope": "Design evidence only; these are not fixed clues in the playable instance."
+          },
+          "difficulty_level": "hard"
+        },
+        {
+          "id": "color-07",
+          "title": "Two squares, one coloring",
+          "parameters": {
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G",
+              "H"
+            ],
+            "edges": [
+              [
+                "A",
+                "B",
+                1
+              ],
+              [
+                "B",
+                "C",
+                1
+              ],
+              [
+                "C",
+                "D",
+                1
+              ],
+              [
+                "D",
+                "A",
+                1
+              ],
+              [
+                "E",
+                "F",
+                1
+              ],
+              [
+                "F",
+                "G",
+                1
+              ],
+              [
+                "G",
+                "H",
+                1
+              ],
+              [
+                "H",
+                "E",
+                1
+              ],
+              [
+                "A",
+                "E",
+                1
+              ],
+              [
+                "B",
+                "F",
+                1
+              ],
+              [
+                "C",
+                "G",
+                1
+              ],
+              [
+                "D",
+                "H",
+                1
+              ]
+            ],
+            "positions": {
+              "A": [
+                10,
+                10
+              ],
+              "B": [
+                90,
+                10
+              ],
+              "C": [
+                90,
+                90
+              ],
+              "D": [
+                10,
+                90
+              ],
+              "E": [
+                32,
+                32
+              ],
+              "F": [
+                68,
+                32
+              ],
+              "G": [
+                68,
+                68
+              ],
+              "H": [
+                32,
+                68
+              ]
+            },
+            "construction": "Cube graph: two 4-cycles joined by matching spokes.",
+            "palette_size": 2
+          },
+          "solution": {
+            "colors": {
+              "A": 1,
+              "B": 2,
+              "C": 1,
+              "D": 2,
+              "E": 2,
+              "F": 1,
+              "G": 2,
+              "H": 1
+            },
+            "minimum_colors": 2
+          },
+          "hint": "Alternate around each square, then check the four joining links.",
+          "insight": "Two even cycles must use compatible phases across their matching links.",
+          "prerequisites": "Track connections and revise a plan; line crossings are not junctions.",
+          "difficulty_level": "medium",
+          "difficulty_reasoning": "Two even cycles must use compatible phases across their matching links.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Color every lantern using 2 colors so linked pairs differ."
+        },
+        {
+          "id": "color-08",
+          "title": "Join two triangles",
+          "parameters": {
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F"
+            ],
+            "edges": [
+              [
+                "A",
+                "B",
+                1
+              ],
+              [
+                "B",
+                "C",
+                1
+              ],
+              [
+                "C",
+                "A",
+                1
+              ],
+              [
+                "D",
+                "E",
+                1
+              ],
+              [
+                "E",
+                "F",
+                1
+              ],
+              [
+                "F",
+                "D",
+                1
+              ],
+              [
+                "A",
+                "D",
+                1
+              ],
+              [
+                "B",
+                "E",
+                1
+              ],
+              [
+                "C",
+                "F",
+                1
+              ]
+            ],
+            "positions": {
+              "A": [
+                50,
+                10
+              ],
+              "B": [
+                10,
+                85
+              ],
+              "C": [
+                90,
+                85
+              ],
+              "D": [
+                50,
+                40
+              ],
+              "E": [
+                32,
+                66
+              ],
+              "F": [
+                68,
+                66
+              ]
+            },
+            "construction": "Triangular prism.",
+            "palette_size": 3
+          },
+          "solution": {
+            "colors": {
+              "A": 1,
+              "B": 2,
+              "C": 3,
+              "D": 2,
+              "F": 1,
+              "E": 3
+            },
+            "minimum_colors": 3
+          },
+          "hint": "Each triangle uses all three colors. Rotate the second triangle’s colors to avoid matching across a spoke.",
+          "insight": "Color names may be permuted on one component, but the connecting links constrain that permutation.",
+          "prerequisites": "Track connections and revise a plan; line crossings are not junctions.",
+          "difficulty_level": "medium",
+          "difficulty_reasoning": "Color names may be permuted on one component, but the connecting links constrain that permutation.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Color every lantern using 3 colors so linked pairs differ."
+        },
+        {
+          "id": "color-09",
+          "title": "Three pairs share colors",
+          "parameters": {
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F"
+            ],
+            "edges": [
+              [
+                "A",
+                "C",
+                1
+              ],
+              [
+                "A",
+                "D",
+                1
+              ],
+              [
+                "A",
+                "E",
+                1
+              ],
+              [
+                "A",
+                "F",
+                1
+              ],
+              [
+                "B",
+                "C",
+                1
+              ],
+              [
+                "B",
+                "D",
+                1
+              ],
+              [
+                "B",
+                "E",
+                1
+              ],
+              [
+                "B",
+                "F",
+                1
+              ],
+              [
+                "C",
+                "E",
+                1
+              ],
+              [
+                "C",
+                "F",
+                1
+              ],
+              [
+                "D",
+                "E",
+                1
+              ],
+              [
+                "D",
+                "F",
+                1
+              ]
+            ],
+            "positions": {
+              "A": [
+                50.0,
+                11.0
+              ],
+              "C": [
+                83.77,
+                30.5
+              ],
+              "E": [
+                83.77,
+                69.5
+              ],
+              "B": [
+                50.0,
+                89.0
+              ],
+              "D": [
+                16.23,
+                69.5
+              ],
+              "F": [
+                16.23,
+                30.5
+              ]
+            },
+            "construction": "Complete tripartite graph K2,2,2 (octahedral graph).",
+            "palette_size": 3
+          },
+          "solution": {
+            "colors": {
+              "A": 1,
+              "C": 2,
+              "E": 3,
+              "B": 1,
+              "D": 2,
+              "F": 3
+            },
+            "minimum_colors": 3
+          },
+          "hint": "Which pairs have no link? Can those pairs share the three colors?",
+          "insight": "With three colors on the octahedral graph, each nonadjacent opposite pair must share a color.",
+          "prerequisites": "Track connections and revise a plan; line crossings are not junctions.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "With three colors on the octahedral graph, each nonadjacent opposite pair must share a color.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Color every lantern using 3 colors so linked pairs differ."
+        },
+        {
+          "id": "color-10",
+          "title": "Close a crowded ring",
+          "parameters": {
+            "vertices": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7"
+            ],
+            "edges": [
+              [
+                "1",
+                "2",
+                1
+              ],
+              [
+                "1",
+                "3",
+                1
+              ],
+              [
+                "1",
+                "6",
+                1
+              ],
+              [
+                "1",
+                "7",
+                1
+              ],
+              [
+                "2",
+                "3",
+                1
+              ],
+              [
+                "2",
+                "4",
+                1
+              ],
+              [
+                "2",
+                "7",
+                1
+              ],
+              [
+                "3",
+                "4",
+                1
+              ],
+              [
+                "3",
+                "5",
+                1
+              ],
+              [
+                "4",
+                "5",
+                1
+              ],
+              [
+                "4",
+                "6",
+                1
+              ],
+              [
+                "5",
+                "6",
+                1
+              ],
+              [
+                "5",
+                "7",
+                1
+              ],
+              [
+                "6",
+                "7",
+                1
+              ]
+            ],
+            "positions": {
+              "1": [
+                50.0,
+                11.0
+              ],
+              "2": [
+                80.49,
+                25.68
+              ],
+              "3": [
+                88.02,
+                58.68
+              ],
+              "4": [
+                66.92,
+                85.14
+              ],
+              "5": [
+                33.08,
+                85.14
+              ],
+              "6": [
+                11.98,
+                58.68
+              ],
+              "7": [
+                19.51,
+                25.68
+              ]
+            },
+            "construction": "Square of the 7-cycle: circular distances 1 and 2 are linked.",
+            "palette_size": 4
+          },
+          "solution": {
+            "colors": {
+              "1": 1,
+              "2": 2,
+              "3": 3,
+              "4": 1,
+              "5": 2,
+              "6": 3,
+              "7": 4
+            },
+            "minimum_colors": 4
+          },
+          "hint": "Every three consecutive dots need three different colors. Save room for the links that cross the closing seam.",
+          "insight": "A three-color repeating pattern clashes when wrapped around seven positions; a fourth color must be placed to satisfy both seam links.",
+          "prerequisites": "Track connections and revise a plan; line crossings are not junctions.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "A three-color repeating pattern clashes when wrapped around seven positions; a fourth color must be placed to satisfy both seam links.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Color every lantern using 4 colors so linked pairs differ."
+        },
+        {
+          "id": "color-11",
+          "title": "Neighbors may share",
+          "parameters": {
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G"
+            ],
+            "edges": [
+              [
+                "A",
+                "C",
+                1
+              ],
+              [
+                "A",
+                "D",
+                1
+              ],
+              [
+                "A",
+                "E",
+                1
+              ],
+              [
+                "A",
+                "F",
+                1
+              ],
+              [
+                "B",
+                "D",
+                1
+              ],
+              [
+                "B",
+                "E",
+                1
+              ],
+              [
+                "B",
+                "F",
+                1
+              ],
+              [
+                "B",
+                "G",
+                1
+              ],
+              [
+                "C",
+                "E",
+                1
+              ],
+              [
+                "C",
+                "F",
+                1
+              ],
+              [
+                "C",
+                "G",
+                1
+              ],
+              [
+                "D",
+                "F",
+                1
+              ],
+              [
+                "D",
+                "G",
+                1
+              ],
+              [
+                "E",
+                "G",
+                1
+              ]
+            ],
+            "positions": {
+              "A": [
+                50.0,
+                11.0
+              ],
+              "B": [
+                80.49,
+                25.68
+              ],
+              "C": [
+                88.02,
+                58.68
+              ],
+              "D": [
+                66.92,
+                85.14
+              ],
+              "E": [
+                33.08,
+                85.14
+              ],
+              "F": [
+                11.98,
+                58.68
+              ],
+              "G": [
+                19.51,
+                25.68
+              ]
+            },
+            "construction": "Complement of the 7-cycle: all pairs except ring neighbors are linked.",
+            "palette_size": 4
+          },
+          "solution": {
+            "colors": {
+              "A": 1,
+              "C": 2,
+              "E": 3,
+              "F": 3,
+              "D": 2,
+              "B": 1,
+              "G": 4
+            },
+            "minimum_colors": 4
+          },
+          "hint": "Only neighboring positions on the ring are unlinked. Pair those positions when sharing a color.",
+          "insight": "Independent sets are small and must be chosen together. Coloring the complement of an odd cycle becomes a covering by neighboring pairs and a singleton.",
+          "prerequisites": "Track connections and revise a plan; line crossings are not junctions.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Independent sets are small and must be chosen together. Coloring the complement of an odd cycle becomes a covering by neighboring pairs and a singleton.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Color every lantern using 4 colors so linked pairs differ."
+        },
+        {
+          "id": "color-12",
+          "title": "A fourth color without a triangle",
+          "parameters": {
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "a",
+              "b",
+              "c",
+              "d",
+              "e",
+              "X"
+            ],
+            "edges": [
+              [
+                "A",
+                "B",
+                1
+              ],
+              [
+                "B",
+                "C",
+                1
+              ],
+              [
+                "C",
+                "D",
+                1
+              ],
+              [
+                "D",
+                "E",
+                1
+              ],
+              [
+                "E",
+                "A",
+                1
+              ],
+              [
+                "A",
+                "b",
+                1
+              ],
+              [
+                "B",
+                "a",
+                1
+              ],
+              [
+                "B",
+                "c",
+                1
+              ],
+              [
+                "C",
+                "b",
+                1
+              ],
+              [
+                "C",
+                "d",
+                1
+              ],
+              [
+                "D",
+                "c",
+                1
+              ],
+              [
+                "D",
+                "e",
+                1
+              ],
+              [
+                "E",
+                "d",
+                1
+              ],
+              [
+                "E",
+                "a",
+                1
+              ],
+              [
+                "A",
+                "e",
+                1
+              ],
+              [
+                "a",
+                "X",
+                1
+              ],
+              [
+                "b",
+                "X",
+                1
+              ],
+              [
+                "c",
+                "X",
+                1
+              ],
+              [
+                "d",
+                "X",
+                1
+              ],
+              [
+                "e",
+                "X",
+                1
+              ]
+            ],
+            "positions": {
+              "A": [
+                50.0,
+                8.0
+              ],
+              "B": [
+                89.94,
+                37.02
+              ],
+              "C": [
+                74.69,
+                83.98
+              ],
+              "D": [
+                25.31,
+                83.98
+              ],
+              "E": [
+                10.06,
+                37.02
+              ],
+              "a": [
+                50.0,
+                27.0
+              ],
+              "b": [
+                71.87,
+                42.89
+              ],
+              "c": [
+                63.52,
+                68.61
+              ],
+              "d": [
+                36.48,
+                68.61
+              ],
+              "e": [
+                28.13,
+                42.89
+              ],
+              "X": [
+                50,
+                50
+              ]
+            },
+            "construction": "Mycielski construction on the 5-cycle: uppercase cycle, independent lowercase neighbor copies, and X adjacent to all copies.",
+            "palette_size": 4
+          },
+          "solution": {
+            "colors": {
+              "X": 1,
+              "a": 2,
+              "B": 1,
+              "A": 2,
+              "b": 3,
+              "C": 2,
+              "d": 3,
+              "E": 1,
+              "D": 3,
+              "e": 4,
+              "c": 2
+            },
+            "minimum_colors": 4
+          },
+          "hint": "The center links to every lowercase dot. Try sharing its color with selected uppercase dots, then coordinate both rings.",
+          "insight": "Copying each cycle vertex’s neighbors and adding a common neighbor forces a fourth color even though there is no triangle. The complete graph is small enough to check by search.",
+          "prerequisites": "Track connections and revise a plan; line crossings are not junctions.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Copying each cycle vertex’s neighbors and adding a common neighbor forces a fourth color even though there is no triangle. The complete graph is small enough to check by search.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Color every lantern using 4 colors so linked pairs differ."
+        }
+      ]
+    }
+  ]
+}

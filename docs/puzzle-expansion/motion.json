@@ -1,0 +1,2987 @@
+{
+  "families": [
+    {
+      "id": "toggle",
+      "title": "Lantern Wires",
+      "child_prompt": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "mathematics": "Binary graph incidence: solve Ax = initial XOR target over F₂. A path changes only its endpoints; cycles change nothing. Every reachable target on a tree has a unique reduced edge set, while cycles create alternative solutions. Minimizing presses is the minimum-cardinality T-join problem for the mismatch vertices. This is a direct small case of combinatorial optimization, not a claim to teach its general algorithm.",
+      "prerequisites": "Entry: distinguish bright/dark and follow a two-object change. Later: compare start and target, plan paths and cancellations, and count a budget up to six. Difficulty is relative within the family, not a grade ceiling.",
+      "natural_variation": "Use a whole cycle, a complete binary tree, or every nearest-neighbor edge of a rectangular grid. Vary target patterns to expose endpoint cancellation, complements around a cycle, forced leaf decisions, and pairing choices.",
+      "guardrail": "Do not make arbitrary switch subsets or special lamp exceptions. The graph comes from a named geometry; every edge uses the same rule. Do not call a target challenging just because it has more lamps. A budget should expose a specific alternative that fails, not conceal an unmotivated numerical restriction.",
+      "depth_assessment": "Strong candidate. The entry pair is intentionally brief. Later wins require repairing a mismatch set, choosing a shorter cycle solution, or avoiding a locally attractive pairing. Rings alone have limited replay depth once their two complementary solutions are understood; trees and full grids are deliberate structural changes.",
+      "sources": [
+        {
+          "id": "T-K",
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-02/week-02-k-1.tex",
+          "section": "K–1 / 1, Tasks 1–2, “Two at a time”",
+          "contribution": "The uniform endpoint flip and the four-cycle adjacent/opposite targets."
+        },
+        {
+          "id": "T-M",
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-02/week-02-grades-2-3.tex",
+          "section": "Grades 2–3 / 2, Task 4, “Make two far-apart lamps”",
+          "contribution": "A path flips only its endpoints."
+        },
+        {
+          "id": "T-U",
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-02/week-02-grades-4-5.tex",
+          "section": "Grades 4–5 / 2, Tasks 3–4, and / 3, Task 7",
+          "contribution": "Two complementary reduced solutions on a ring, plus equal-length alternatives."
+        },
+        {
+          "id": "T-F",
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-02/week-02-facilitator.tex",
+          "section": "Facilitator / 3, “Undergraduate interpretation”; / 4, “Extra: why a tree has one solution” and “Research connection and its boundary”",
+          "contribution": "Binary incidence, tree forced edges, and T-joins."
+        },
+        {
+          "id": "T-R",
+          "path": "/Users/jamespfeiffer/math-circle/plans/week-02-redesign.md",
+          "section": "“The mathematical destination”; “Sources and boundaries”; “Verification and future progression”",
+          "contribution": "Undergraduate/research lineage and natural progression from rings to trees/networks."
+        }
+      ],
+      "instances": [
+        {
+          "id": "toggle-01",
+          "title": "Two neighbors",
+          "prompt": "On 4 lanterns in a ring, numbered clockwise: All lanterns start dark. Make only 1, 2 bright.",
+          "parameters": {
+            "topology": "cycle",
+            "vertices": [
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "edges": [
+              [
+                "1",
+                "2"
+              ],
+              [
+                "2",
+                "3"
+              ],
+              [
+                "3",
+                "4"
+              ],
+              [
+                "4",
+                "1"
+              ]
+            ],
+            "initial_on": [],
+            "target_on": [
+              "1",
+              "2"
+            ],
+            "press_budget": null
+          },
+          "solution": {
+            "presses": [
+              [
+                "1",
+                "2"
+              ]
+            ],
+            "minimum_presses": 1
+          },
+          "hint": "Find the wire that touches both goal lanterns.",
+          "insight": "One edge is one simultaneous two-state change.",
+          "difficulty_step": "A one-move tutorial; immediately skip it once the rule is clear.",
+          "prerequisites": "Match two states; count to two.",
+          "source_refs": [
+            "T-K"
+          ],
+          "provenance": "Direct source target, reworded for an app.",
+          "difficulty_level": "easy"
+        },
+        {
+          "id": "toggle-02",
+          "title": "Across the ring",
+          "prompt": "On 4 lanterns in a ring, numbered clockwise: All lanterns start dark. Make only 1, 3 bright.",
+          "parameters": {
+            "topology": "cycle",
+            "vertices": [
+              "1",
+              "2",
+              "3",
+              "4"
+            ],
+            "edges": [
+              [
+                "1",
+                "2"
+              ],
+              [
+                "2",
+                "3"
+              ],
+              [
+                "3",
+                "4"
+              ],
+              [
+                "4",
+                "1"
+              ]
+            ],
+            "initial_on": [],
+            "target_on": [
+              "1",
+              "3"
+            ],
+            "press_budget": null
+          },
+          "solution": {
+            "presses": [
+              [
+                "1",
+                "2"
+              ],
+              [
+                "2",
+                "3"
+              ]
+            ],
+            "minimum_presses": 2
+          },
+          "hint": "Try a path from 1 to 3; watch what happens to the lamp in the middle.",
+          "insight": "Two flips at the intermediate vertex cancel.",
+          "difficulty_step": "The shortest solution temporarily lights a lamp that must finish dark.",
+          "prerequisites": "Match two states; count to two.",
+          "source_refs": [
+            "T-K",
+            "T-M"
+          ],
+          "provenance": "Direct source target, reworded for an app.",
+          "difficulty_level": "easy"
+        },
+        {
+          "id": "toggle-03",
+          "title": "Repair the picture",
+          "prompt": "On 5 lanterns in a ring, numbered clockwise: Only 1, 2 start bright. Make only 2, 3, 4, 5 bright. Use at most 2 wire presses.",
+          "parameters": {
+            "topology": "cycle",
+            "vertices": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5"
+            ],
+            "edges": [
+              [
+                "1",
+                "2"
+              ],
+              [
+                "2",
+                "3"
+              ],
+              [
+                "3",
+                "4"
+              ],
+              [
+                "4",
+                "5"
+              ],
+              [
+                "5",
+                "1"
+              ]
+            ],
+            "initial_on": [
+              "1",
+              "2"
+            ],
+            "target_on": [
+              "2",
+              "3",
+              "4",
+              "5"
+            ],
+            "press_budget": 2
+          },
+          "solution": {
+            "presses": [
+              [
+                "3",
+                "4"
+              ],
+              [
+                "5",
+                "1"
+              ]
+            ],
+            "minimum_presses": 2
+          },
+          "hint": "Which lamps differ between the starting picture and the goal?",
+          "insight": "The relevant target is the symmetric difference of start and goal; already-correct lamps need no net change.",
+          "difficulty_step": "The starting picture is nonempty. A child must reason about ON-to-OFF as well as OFF-to-ON; counting desired bright lamps is insufficient.",
+          "prerequisites": "Match two states; plan a replay of at most 2 moves.",
+          "source_refs": [
+            "T-F",
+            "T-R"
+          ],
+          "provenance": "New initial/target pair built from the source binary-incidence model.",
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "toggle-04",
+          "title": "Take the other way",
+          "prompt": "On 7 lanterns in a ring, numbered clockwise: All lanterns start dark. Make only 1, 3, 5, 7 bright. Use at most 3 wire presses.",
+          "parameters": {
+            "topology": "cycle",
+            "vertices": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7"
+            ],
+            "edges": [
+              [
+                "1",
+                "2"
+              ],
+              [
+                "2",
+                "3"
+              ],
+              [
+                "3",
+                "4"
+              ],
+              [
+                "4",
+                "5"
+              ],
+              [
+                "5",
+                "6"
+              ],
+              [
+                "6",
+                "7"
+              ],
+              [
+                "7",
+                "1"
+              ]
+            ],
+            "initial_on": [],
+            "target_on": [
+              "1",
+              "3",
+              "5",
+              "7"
+            ],
+            "press_budget": 3
+          },
+          "solution": {
+            "presses": [
+              [
+                "3",
+                "4"
+              ],
+              [
+                "4",
+                "5"
+              ],
+              [
+                "7",
+                "1"
+              ]
+            ],
+            "minimum_presses": 3
+          },
+          "hint": "The wire from 7 back to 1 is as real as every other wire.",
+          "insight": "The two reduced solutions on a cycle are complements. Pairing 1 with 3 and 5 with 7 takes four presses; pairing 7 with 1 and 3 with 5 takes three.",
+          "difficulty_step": "A tempting four-press solution fails the required budget; the win comes from changing the pairing around the ring, not from the extra two lamps.",
+          "prerequisites": "Match two states; plan a replay of at most 3 moves.",
+          "source_refs": [
+            "T-U",
+            "T-F"
+          ],
+          "provenance": "New ring target and mandatory budget; source supplies the complementary-cycle method.",
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "toggle-05",
+          "title": "Branches can cancel",
+          "prompt": "On a family tree: R above A/B, A above C/D, B above E/F: All lanterns start dark. Make only R, C, D, E bright. Use at most 4 wire presses.",
+          "parameters": {
+            "topology": "complete_binary_tree_depth_2",
+            "vertices": [
+              "R",
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F"
+            ],
+            "edges": [
+              [
+                "R",
+                "A"
+              ],
+              [
+                "R",
+                "B"
+              ],
+              [
+                "A",
+                "C"
+              ],
+              [
+                "A",
+                "D"
+              ],
+              [
+                "B",
+                "E"
+              ],
+              [
+                "B",
+                "F"
+              ]
+            ],
+            "initial_on": [],
+            "target_on": [
+              "R",
+              "C",
+              "D",
+              "E"
+            ],
+            "press_budget": 4
+          },
+          "solution": {
+            "presses": [
+              [
+                "A",
+                "C"
+              ],
+              [
+                "A",
+                "D"
+              ],
+              [
+                "B",
+                "E"
+              ],
+              [
+                "R",
+                "B"
+              ]
+            ],
+            "minimum_presses": 4
+          },
+          "hint": "Start at a bottom lantern: it has only one wire that could change it.",
+          "insight": "Leaf requirements force moves upward. The two C/D paths cancel at A; the R–A wire is not needed.",
+          "difficulty_step": "The topology changes from a loop with a global alternative to a tree with forced local choices. R must be lit without disturbing the already-balanced A branch.",
+          "prerequisites": "Match two states; plan a replay of at most 4 moves.",
+          "source_refs": [
+            "T-F"
+          ],
+          "provenance": "New complete-binary-tree instance applying the source tree rule.",
+          "difficulty_level": "hard"
+        },
+        {
+          "id": "toggle-06",
+          "title": "A tempting pair",
+          "prompt": "On two straight rows A–B–C–D and E–F–G–H, with four vertical wires: All lanterns start dark. Make only A, B, C, H bright. Use at most 3 wire presses.",
+          "parameters": {
+            "topology": "rectangular_grid",
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G",
+              "H"
+            ],
+            "edges": [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "B",
+                "C"
+              ],
+              [
+                "C",
+                "D"
+              ],
+              [
+                "E",
+                "F"
+              ],
+              [
+                "F",
+                "G"
+              ],
+              [
+                "G",
+                "H"
+              ],
+              [
+                "A",
+                "E"
+              ],
+              [
+                "B",
+                "F"
+              ],
+              [
+                "C",
+                "G"
+              ],
+              [
+                "D",
+                "H"
+              ]
+            ],
+            "initial_on": [],
+            "target_on": [
+              "A",
+              "B",
+              "C",
+              "H"
+            ],
+            "press_budget": 3,
+            "rows": [
+              [
+                "A",
+                "B",
+                "C",
+                "D"
+              ],
+              [
+                "E",
+                "F",
+                "G",
+                "H"
+              ]
+            ]
+          },
+          "solution": {
+            "presses": [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "C",
+                "D"
+              ],
+              [
+                "D",
+                "H"
+              ]
+            ],
+            "minimum_presses": 3
+          },
+          "hint": "If you pair B with C first, how far apart are the two bright goals left over?",
+          "insight": "Pairing nearby targets greedily can be wrong: B–C leaves A/H four edges apart, totaling five. A–B leaves C/H two edges apart, totaling three. Full rectangular grids supply overlapping cycles naturally.",
+          "difficulty_step": "The board grows by one vertex from the tree, but the budget gets smaller. The difficulty is the pairing decision and temporary lamp cancellation.",
+          "prerequisites": "Match two states; plan a replay of at most 3 moves.",
+          "source_refs": [
+            "T-M",
+            "T-F",
+            "T-R"
+          ],
+          "provenance": "New 2×4 grid target; no edges removed from the nearest-neighbor grid.",
+          "difficulty_level": "hard"
+        },
+        {
+          "id": "toggle-07",
+          "title": "Repair only the differences",
+          "parameters": {
+            "topology": "cycle",
+            "vertices": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6"
+            ],
+            "initial_on": [
+              "1",
+              "2"
+            ],
+            "target_on": [
+              "2",
+              "3",
+              "4",
+              "5"
+            ],
+            "edges": [
+              [
+                "1",
+                "2"
+              ],
+              [
+                "2",
+                "3"
+              ],
+              [
+                "3",
+                "4"
+              ],
+              [
+                "4",
+                "5"
+              ],
+              [
+                "5",
+                "6"
+              ],
+              [
+                "6",
+                "1"
+              ]
+            ],
+            "press_budget": 3
+          },
+          "solution": {
+            "presses": [
+              [
+                "1",
+                "2"
+              ],
+              [
+                "2",
+                "3"
+              ],
+              [
+                "4",
+                "5"
+              ]
+            ],
+            "minimum_presses": 3
+          },
+          "hint": "Lantern 2 is already right. Compare which lamps differ before choosing wires.",
+          "insight": "Solve the symmetric difference between the two pictures; a lamp already lit may need to stay lit.",
+          "prerequisites": "Compare two lamp patterns; plan cancellations within a fixed budget.",
+          "difficulty_level": "medium",
+          "difficulty_reasoning": "Solve the symmetric difference between the two pictures; a lamp already lit may need to stay lit.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Match the goal card in at most 3 wire presses."
+        },
+        {
+          "id": "toggle-08",
+          "title": "Work from the leaves",
+          "parameters": {
+            "topology": "complete_binary_tree_depth_2",
+            "vertices": [
+              "R",
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F"
+            ],
+            "initial_on": [
+              "C",
+              "D",
+              "E",
+              "F"
+            ],
+            "target_on": [
+              "A",
+              "B"
+            ],
+            "edges": [
+              [
+                "R",
+                "A"
+              ],
+              [
+                "R",
+                "B"
+              ],
+              [
+                "A",
+                "C"
+              ],
+              [
+                "A",
+                "D"
+              ],
+              [
+                "B",
+                "E"
+              ],
+              [
+                "B",
+                "F"
+              ]
+            ],
+            "press_budget": 6
+          },
+          "solution": {
+            "presses": [
+              [
+                "R",
+                "A"
+              ],
+              [
+                "R",
+                "B"
+              ],
+              [
+                "A",
+                "C"
+              ],
+              [
+                "A",
+                "D"
+              ],
+              [
+                "B",
+                "E"
+              ],
+              [
+                "B",
+                "F"
+              ]
+            ],
+            "minimum_presses": 6
+          },
+          "hint": "Every leaf has just one wire. Decide those four wires before the two root wires.",
+          "insight": "Leaf requirements force wire choices. Their combined parity then decides the parent edges.",
+          "prerequisites": "Compare two lamp patterns; plan cancellations within a fixed budget.",
+          "difficulty_level": "medium",
+          "difficulty_reasoning": "Leaf requirements force wire choices. Their combined parity then decides the parent edges.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Match the goal card in at most 6 wire presses."
+        },
+        {
+          "id": "toggle-09",
+          "title": "Pair across the square",
+          "parameters": {
+            "topology": "rectangular_grid",
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G",
+              "H",
+              "I"
+            ],
+            "initial_on": [],
+            "target_on": [
+              "A",
+              "C",
+              "G",
+              "I"
+            ],
+            "rows": [
+              [
+                "A",
+                "B",
+                "C"
+              ],
+              [
+                "D",
+                "E",
+                "F"
+              ],
+              [
+                "G",
+                "H",
+                "I"
+              ]
+            ],
+            "edges": [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "B",
+                "C"
+              ],
+              [
+                "D",
+                "E"
+              ],
+              [
+                "E",
+                "F"
+              ],
+              [
+                "G",
+                "H"
+              ],
+              [
+                "H",
+                "I"
+              ],
+              [
+                "A",
+                "D"
+              ],
+              [
+                "B",
+                "E"
+              ],
+              [
+                "C",
+                "F"
+              ],
+              [
+                "D",
+                "G"
+              ],
+              [
+                "E",
+                "H"
+              ],
+              [
+                "F",
+                "I"
+              ]
+            ],
+            "press_budget": 4
+          },
+          "solution": {
+            "presses": [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "B",
+                "C"
+              ],
+              [
+                "G",
+                "H"
+              ],
+              [
+                "H",
+                "I"
+              ]
+            ],
+            "minimum_presses": 4
+          },
+          "hint": "Connect the corner goals in pairs. Any middle lamps used along a path must change twice.",
+          "insight": "Different shortest pairings give valid answers; sending every path through the center wastes presses.",
+          "prerequisites": "Compare two lamp patterns; plan cancellations within a fixed budget.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Different shortest pairings give valid answers; sending every path through the center wastes presses.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Match the goal card in at most 4 wire presses."
+        },
+        {
+          "id": "toggle-10",
+          "title": "Cancel through the center",
+          "parameters": {
+            "topology": "rectangular_grid",
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G",
+              "H",
+              "I"
+            ],
+            "initial_on": [
+              "B",
+              "D",
+              "F",
+              "H"
+            ],
+            "target_on": [
+              "A",
+              "I"
+            ],
+            "rows": [
+              [
+                "A",
+                "B",
+                "C"
+              ],
+              [
+                "D",
+                "E",
+                "F"
+              ],
+              [
+                "G",
+                "H",
+                "I"
+              ]
+            ],
+            "edges": [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "B",
+                "C"
+              ],
+              [
+                "D",
+                "E"
+              ],
+              [
+                "E",
+                "F"
+              ],
+              [
+                "G",
+                "H"
+              ],
+              [
+                "H",
+                "I"
+              ],
+              [
+                "A",
+                "D"
+              ],
+              [
+                "B",
+                "E"
+              ],
+              [
+                "C",
+                "F"
+              ],
+              [
+                "D",
+                "G"
+              ],
+              [
+                "E",
+                "H"
+              ],
+              [
+                "F",
+                "I"
+              ]
+            ],
+            "press_budget": 4
+          },
+          "solution": {
+            "presses": [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "D",
+                "E"
+              ],
+              [
+                "E",
+                "F"
+              ],
+              [
+                "H",
+                "I"
+              ]
+            ],
+            "minimum_presses": 4
+          },
+          "hint": "Mark the six lamps that differ. Decide which can be paired without leaving a long final connection.",
+          "insight": "Both extinguishing and lighting count as odd endpoints. Overlapping routes cancel at intermediate lamps.",
+          "prerequisites": "Compare two lamp patterns; plan cancellations within a fixed budget.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Both extinguishing and lighting count as odd endpoints. Overlapping routes cancel at intermediate lamps.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Match the goal card in at most 4 wire presses."
+        },
+        {
+          "id": "toggle-11",
+          "title": "Plan all three pairs",
+          "parameters": {
+            "topology": "rectangular_grid",
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G",
+              "H",
+              "I",
+              "J",
+              "K",
+              "L"
+            ],
+            "initial_on": [],
+            "target_on": [
+              "A",
+              "B",
+              "D",
+              "I",
+              "J",
+              "L"
+            ],
+            "rows": [
+              [
+                "A",
+                "B",
+                "C",
+                "D"
+              ],
+              [
+                "E",
+                "F",
+                "G",
+                "H"
+              ],
+              [
+                "I",
+                "J",
+                "K",
+                "L"
+              ]
+            ],
+            "edges": [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "B",
+                "C"
+              ],
+              [
+                "C",
+                "D"
+              ],
+              [
+                "E",
+                "F"
+              ],
+              [
+                "F",
+                "G"
+              ],
+              [
+                "G",
+                "H"
+              ],
+              [
+                "I",
+                "J"
+              ],
+              [
+                "J",
+                "K"
+              ],
+              [
+                "K",
+                "L"
+              ],
+              [
+                "A",
+                "E"
+              ],
+              [
+                "B",
+                "F"
+              ],
+              [
+                "C",
+                "G"
+              ],
+              [
+                "D",
+                "H"
+              ],
+              [
+                "E",
+                "I"
+              ],
+              [
+                "F",
+                "J"
+              ],
+              [
+                "G",
+                "K"
+              ],
+              [
+                "H",
+                "L"
+              ]
+            ],
+            "press_budget": 4
+          },
+          "solution": {
+            "presses": [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "I",
+                "J"
+              ],
+              [
+                "D",
+                "H"
+              ],
+              [
+                "H",
+                "L"
+              ]
+            ],
+            "minimum_presses": 4
+          },
+          "hint": "Pairing two neighbors is safe only if the four remaining goals can still fit the budget.",
+          "insight": "Six required endpoints turn a local pairing choice into a comparison of complete plans.",
+          "prerequisites": "Compare two lamp patterns; plan cancellations within a fixed budget.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Six required endpoints turn a local pairing choice into a comparison of complete plans.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Match the goal card in at most 4 wire presses."
+        },
+        {
+          "id": "toggle-12",
+          "title": "Change the whole pattern",
+          "parameters": {
+            "topology": "rectangular_grid",
+            "vertices": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G",
+              "H",
+              "I",
+              "J",
+              "K",
+              "L"
+            ],
+            "initial_on": [
+              "B",
+              "C",
+              "E",
+              "H"
+            ],
+            "target_on": [
+              "A",
+              "F",
+              "I",
+              "K"
+            ],
+            "rows": [
+              [
+                "A",
+                "B",
+                "C",
+                "D"
+              ],
+              [
+                "E",
+                "F",
+                "G",
+                "H"
+              ],
+              [
+                "I",
+                "J",
+                "K",
+                "L"
+              ]
+            ],
+            "edges": [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "B",
+                "C"
+              ],
+              [
+                "C",
+                "D"
+              ],
+              [
+                "E",
+                "F"
+              ],
+              [
+                "F",
+                "G"
+              ],
+              [
+                "G",
+                "H"
+              ],
+              [
+                "I",
+                "J"
+              ],
+              [
+                "J",
+                "K"
+              ],
+              [
+                "K",
+                "L"
+              ],
+              [
+                "A",
+                "E"
+              ],
+              [
+                "B",
+                "F"
+              ],
+              [
+                "C",
+                "G"
+              ],
+              [
+                "D",
+                "H"
+              ],
+              [
+                "E",
+                "I"
+              ],
+              [
+                "F",
+                "J"
+              ],
+              [
+                "G",
+                "K"
+              ],
+              [
+                "H",
+                "L"
+              ]
+            ],
+            "press_budget": 6
+          },
+          "solution": {
+            "presses": [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "B",
+                "C"
+              ],
+              [
+                "G",
+                "H"
+              ],
+              [
+                "B",
+                "F"
+              ],
+              [
+                "E",
+                "I"
+              ],
+              [
+                "G",
+                "K"
+              ]
+            ],
+            "minimum_presses": 6
+          },
+          "hint": "Compare start and goal first, then look for disjoint short paths between the differing lamps.",
+          "insight": "Several paths must cooperate; a shortest solution depends on the difference pattern, not on the goal alone.",
+          "prerequisites": "Compare two lamp patterns; plan cancellations within a fixed budget.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Several paths must cooperate; a shortest solution depends on the difference pattern, not on the goal alone.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Match the goal card in at most 6 wire presses."
+        }
+      ]
+    },
+    {
+      "id": "clock",
+      "title": "Clockwork Gates",
+      "child_prompt": "Every bell makes the marker jump the same number of spaces clockwise. Set how many bells to ring so it first lands on the star. Later, one bell moves both clocks together.",
+      "rules": [
+        "Positions are labeled 0 through n−1 clockwise; jumping k adds k and wraps around.",
+        "A jump counts landing positions, not positions passed over.",
+        "In count mode, choose a positive activation count before running the animation. The accepted answer is the first positive count at which every target is met together.",
+        "In gear mode, choose one fixed jump for the entire run; success is the specified first positive return time.",
+        "Reset and revised predictions are unlimited. No timing skill, written argument, or hidden feedback is needed."
+      ],
+      "mathematics": "Translation in a finite cyclic group: x ↦ x+k mod n. One orbit has period n/gcd(n,k), but every shift is reversible whether or not that orbit visits the whole ring. The final linked-clock instances are an authored extension to simultaneous congruences in a product of cyclic groups; the shared activation counter is one orbit in that product.",
+      "prerequisites": "Entry: follow clockwise landings and count to four. Later: coordinate two or three repeating sequences, starting phases, and counts up to twenty-two. Multiplication, gcd, and congruence notation are optional strategies.",
+      "natural_variation": "Change ring size, a single uniform jump, starting phase, desired period, or couple two ordinary rings to the same bell. Select cases with a reason: wrapping, a proper orbit, two different generators of the same subgroup, or synchronization.",
+      "guardrail": "Do not assign per-position jump exceptions, arbitrary missing landing sites, or a random menu of allowed jumps. Gear mode exposes the full stated integer interval. Synchronization changes the mathematical object to a product of two cycles; it does not add unrelated clues.",
+      "depth_assessment": "Moderate candidate and a shorter content runway than Lantern Wires. Repeatedly tapping until arrival is shallow, so later completion requires a prediction of the first successful count, or a gear chosen for a specified orbit period. Keep the display concrete and allow replay. Once the child knows the orbit/CRT strategy, new numbers alone are practice, not new difficulty.",
+      "sources": [
+        {
+          "id": "C-K",
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-04/week-04-k-1.tex",
+          "section": "K–1 / 1, Tasks 1–2; / 2, Tasks 3–5",
+          "contribution": "Concrete clockwise hops, skipped landings, and undo."
+        },
+        {
+          "id": "C-M",
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-04/week-04-grades-2-3.tex",
+          "section": "Grades 2–3 / 2, Tasks 3–5, “A code that skips places”",
+          "contribution": "Compare +2 and +3 on a ten-position ring; split into disjoint loops."
+        },
+        {
+          "id": "C-U",
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-04/week-04-grades-4-5.tex",
+          "section": "Grades 4–5 / 2, Task 3; / 3, Tasks 5–7",
+          "contribution": "Return times, divisibility, and the distinction between reversibility and a full orbit."
+        },
+        {
+          "id": "C-F",
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-04/week-04-facilitator.tex",
+          "section": "Facilitator / 2, “Upper: key and complete classification”; / 3, “Upper: inverse and composition”",
+          "contribution": "The twelve-shift period table and cyclic-group interpretation."
+        },
+        {
+          "id": "C-R",
+          "path": "/Users/jamespfeiffer/math-circle/plans/week-04-redesign.md",
+          "section": "“Mathematical destination”; “Checked results and proofs”; “Sources, research boundary, and history”",
+          "contribution": "Order n/gcd(n,k), including the local citation to Judson Ch. 4 §4.1, Theorem 4.13. Linked clocks are our extension, not a worksheet claim."
+        }
+      ],
+      "instances": [
+        {
+          "id": "clock-01",
+          "title": "Three spaces to the star",
+          "prompt": "4 places, jump 1, start 0, star at 3. Choose the first positive number of bells that lands the marker on the star.",
+          "parameters": {
+            "mode": "choose_first_activation_count",
+            "clocks": [
+              {
+                "positions": 4,
+                "jump": 1,
+                "start": 0,
+                "target": 3
+              }
+            ]
+          },
+          "solution": {
+            "activations": 3,
+            "joint_route": [
+              [
+                0
+              ],
+              [
+                1
+              ],
+              [
+                2
+              ],
+              [
+                3
+              ]
+            ],
+            "joint_period": 4
+          },
+          "hint": "Count the spaces moved; the starting place is not the first jump.",
+          "insight": "A cyclic shift is uniform and wraps at the end of the ring.",
+          "difficulty_step": "A short rule tutorial, not intended as a sustained challenge.",
+          "prerequisites": "Count/track landings to 4.",
+          "source_refs": [
+            "C-K"
+          ],
+          "provenance": "New star target using the source four-ring.",
+          "difficulty_level": "easy"
+        },
+        {
+          "id": "clock-02",
+          "title": "Skip without stopping",
+          "prompt": "6 places, jump 2, start 0, star at 4. Choose the first positive number of bells that lands the marker on the star.",
+          "parameters": {
+            "mode": "choose_first_activation_count",
+            "clocks": [
+              {
+                "positions": 6,
+                "jump": 2,
+                "start": 0,
+                "target": 4
+              }
+            ]
+          },
+          "solution": {
+            "activations": 2,
+            "joint_route": [
+              [
+                0
+              ],
+              [
+                2
+              ],
+              [
+                4
+              ]
+            ],
+            "joint_period": 3
+          },
+          "hint": "Only where the marker lands counts.",
+          "insight": "A +2 orbit stays on alternate positions, but it can still reach the target in its own orbit.",
+          "difficulty_step": "The marker crosses a place without landing there. The child must separate jump distance from number of activations.",
+          "prerequisites": "Count/track landings to 6.",
+          "source_refs": [
+            "C-K",
+            "C-M"
+          ],
+          "provenance": "New target on the six-position extension.",
+          "difficulty_level": "easy"
+        },
+        {
+          "id": "clock-03",
+          "title": "Past zero",
+          "prompt": "10 places, jump 3, start 8, star at 0. Choose the first positive number of bells that lands the marker on the star.",
+          "parameters": {
+            "mode": "choose_first_activation_count",
+            "clocks": [
+              {
+                "positions": 10,
+                "jump": 3,
+                "start": 8,
+                "target": 0
+              }
+            ]
+          },
+          "solution": {
+            "activations": 4,
+            "joint_route": [
+              [
+                8
+              ],
+              [
+                1
+              ],
+              [
+                4
+              ],
+              [
+                7
+              ],
+              [
+                0
+              ]
+            ],
+            "joint_period": 10
+          },
+          "hint": "Your first landing wraps around from 8. Where is it?",
+          "insight": "A target can require several wraps or an indirect-looking route; the state is a residue, not an ordinary increasing number.",
+          "difficulty_step": "The route 8→1→4→7→0 defeats ordinary subtraction and requires maintaining one uniform jump through a wrap.",
+          "prerequisites": "Count/track landings to 10.",
+          "source_refs": [
+            "C-M"
+          ],
+          "provenance": "New start/target pair using the source +3 ten-ring.",
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "clock-04",
+          "title": "Build a four-beat loop",
+          "prompt": "On a 12-place clock starting at 0, choose a jump from 1 through 11. Keep that SAME jump. Make the marker return to 0 for the first time after exactly four bells.",
+          "parameters": {
+            "mode": "choose_jump",
+            "positions": 12,
+            "start": 0,
+            "jump_min": 1,
+            "jump_max": 11,
+            "required_first_return": 4
+          },
+          "solution": {
+            "jump": 3,
+            "orbit": [
+              0,
+              3,
+              6,
+              9,
+              0
+            ],
+            "all_valid_jumps": [
+              3,
+              9
+            ]
+          },
+          "hint": "Four jumps must make whole laps, but no earlier number of jumps may do so.",
+          "insight": "Jump size and period differ. +3 and +9 generate the same four-position subgroup in opposite orders; +6 returns too soon.",
+          "difficulty_step": "The child designs an orbit instead of following a given rule. A candidate satisfying the four-bell endpoint still fails if it returns earlier.",
+          "prerequisites": "Track up to four landings on a twelve-place ring; compare first return with later returns.",
+          "source_refs": [
+            "C-U",
+            "C-F"
+          ],
+          "provenance": "New inverse-design prompt using the source exact period table.",
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "clock-05",
+          "title": "Two clocks, one bell",
+          "prompt": "6 places, jump 1, start 0, star at 2; 8 places, jump 1, start 0, star at 4. Each bell moves both clocks. Choose the first positive number of bells that lands both markers on their stars together.",
+          "parameters": {
+            "mode": "choose_first_activation_count",
+            "clocks": [
+              {
+                "positions": 6,
+                "jump": 1,
+                "start": 0,
+                "target": 2
+              },
+              {
+                "positions": 8,
+                "jump": 1,
+                "start": 0,
+                "target": 4
+              }
+            ]
+          },
+          "solution": {
+            "activations": 20,
+            "joint_route": [
+              [
+                0,
+                0
+              ],
+              [
+                1,
+                1
+              ],
+              [
+                2,
+                2
+              ],
+              [
+                3,
+                3
+              ],
+              [
+                4,
+                4
+              ],
+              [
+                5,
+                5
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                1,
+                7
+              ],
+              [
+                2,
+                0
+              ],
+              [
+                3,
+                1
+              ],
+              [
+                4,
+                2
+              ],
+              [
+                5,
+                3
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                1,
+                5
+              ],
+              [
+                2,
+                6
+              ],
+              [
+                3,
+                7
+              ],
+              [
+                4,
+                0
+              ],
+              [
+                5,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                1,
+                3
+              ],
+              [
+                2,
+                4
+              ]
+            ],
+            "joint_period": 24
+          },
+          "hint": "List the bell counts when the six-place clock is on its star; then check those on the other clock.",
+          "insight": "Simultaneous congruences: t≡2 mod 6 and t≡4 mod 8. Matching one clock is insufficient; the first common match is 20, within a joint period of 24.",
+          "difficulty_step": "One uniform action now acts on a product of two rings. The difficulty is synchronization; no individual jump is difficult.",
+          "prerequisites": "Count/track landings to 20.",
+          "source_refs": [
+            "C-U",
+            "C-F",
+            "C-R"
+          ],
+          "provenance": "New linked-clock adaptation. The source covers single rings and commuting rotations, not this simultaneous-target instance.",
+          "difficulty_level": "hard"
+        },
+        {
+          "id": "clock-06",
+          "title": "Different gears",
+          "prompt": "8 places, jump 3, start 1, star at 4; 6 places, jump 2, start 0, star at 4. Each bell moves both clocks. Choose the first positive number of bells that lands both markers on their stars together.",
+          "parameters": {
+            "mode": "choose_first_activation_count",
+            "clocks": [
+              {
+                "positions": 8,
+                "jump": 3,
+                "start": 1,
+                "target": 4
+              },
+              {
+                "positions": 6,
+                "jump": 2,
+                "start": 0,
+                "target": 4
+              }
+            ]
+          },
+          "solution": {
+            "activations": 17,
+            "joint_route": [
+              [
+                1,
+                0
+              ],
+              [
+                4,
+                2
+              ],
+              [
+                7,
+                4
+              ],
+              [
+                2,
+                0
+              ],
+              [
+                5,
+                2
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                3,
+                0
+              ],
+              [
+                6,
+                2
+              ],
+              [
+                1,
+                4
+              ],
+              [
+                4,
+                0
+              ],
+              [
+                7,
+                2
+              ],
+              [
+                2,
+                4
+              ],
+              [
+                5,
+                0
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                3,
+                4
+              ],
+              [
+                6,
+                0
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                4,
+                4
+              ]
+            ],
+            "joint_period": 24
+          },
+          "hint": "The eight-place clock hits its star after 1 bell, then after 9. When is its next chance?",
+          "insight": "The first clock requires t≡1 mod 8. The second has a three-step orbit and requires t≡2 mod 3. Their first shared match is 17.",
+          "difficulty_step": "Different speeds and a nonzero starting phase matter. The answer is smaller than the previous instance, but the child must coordinate orbit periods rather than raw ring sizes.",
+          "prerequisites": "Count/track landings to 17.",
+          "source_refs": [
+            "C-U",
+            "C-F",
+            "C-R"
+          ],
+          "provenance": "New product-of-cycles instance, authored from the source translation model.",
+          "difficulty_level": "hard"
+        },
+        {
+          "id": "clock-07",
+          "title": "A five-landing orbit",
+          "parameters": {
+            "mode": "choose_jump",
+            "positions": 10,
+            "start": 0,
+            "jump_min": 1,
+            "jump_max": 9,
+            "required_first_return": 5
+          },
+          "solution": {
+            "jump": 2,
+            "all_valid_jumps": [
+              2,
+              4,
+              6,
+              8
+            ],
+            "orbit": [
+              0,
+              2,
+              4,
+              6,
+              8,
+              0
+            ]
+          },
+          "hint": "Five landings on ten places means visiting half the ring. More than one jump can work.",
+          "insight": "Different generators can have the same order. A return after five bells must be the first return.",
+          "prerequisites": "Track repeating landings and their starting phases.",
+          "difficulty_level": "medium",
+          "difficulty_reasoning": "Different generators can have the same order. A return after five bells must be the first return.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Choose a fixed jump whose first return takes 5 bells."
+        },
+        {
+          "id": "clock-08",
+          "title": "The star just behind",
+          "parameters": {
+            "mode": "choose_first_activation_count",
+            "clocks": [
+              {
+                "positions": 12,
+                "jump": 5,
+                "start": 9,
+                "target": 4
+              }
+            ]
+          },
+          "solution": {
+            "activations": 11,
+            "joint_route": [
+              [
+                9
+              ],
+              [
+                2
+              ],
+              [
+                7
+              ],
+              [
+                0
+              ],
+              [
+                5
+              ],
+              [
+                10
+              ],
+              [
+                3
+              ],
+              [
+                8
+              ],
+              [
+                1
+              ],
+              [
+                6
+              ],
+              [
+                11
+              ],
+              [
+                4
+              ]
+            ],
+            "joint_period": 12
+          },
+          "hint": "Find a jump that undoes +5 on this ring. How does that help reach a star five places behind?",
+          "insight": "A nearby star can occur late in the orbit; spatial distance and number of activations differ.",
+          "prerequisites": "Track repeating landings and their starting phases.",
+          "difficulty_level": "medium",
+          "difficulty_reasoning": "A nearby star can occur late in the orbit; spatial distance and number of activations differ.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Find the first positive bell count that lands every marker on its star."
+        },
+        {
+          "id": "clock-09",
+          "title": "Reduced gears",
+          "parameters": {
+            "mode": "choose_first_activation_count",
+            "clocks": [
+              {
+                "positions": 12,
+                "jump": 4,
+                "start": 1,
+                "target": 9
+              },
+              {
+                "positions": 8,
+                "jump": 2,
+                "start": 1,
+                "target": 3
+              }
+            ]
+          },
+          "solution": {
+            "activations": 5,
+            "joint_route": [
+              [
+                1,
+                1
+              ],
+              [
+                5,
+                3
+              ],
+              [
+                9,
+                5
+              ],
+              [
+                1,
+                7
+              ],
+              [
+                5,
+                1
+              ],
+              [
+                9,
+                3
+              ]
+            ],
+            "joint_period": 12
+          },
+          "hint": "List the bells that reach each star, using periods three and four.",
+          "insight": "Shared factors shorten the orbits. Synchronize orbit periods rather than the printed ring sizes.",
+          "prerequisites": "Track repeating landings and their starting phases.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Shared factors shorten the orbits. Synchronize orbit periods rather than the printed ring sizes.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Find the first positive bell count that lands every marker on its star."
+        },
+        {
+          "id": "clock-10",
+          "title": "Meet after different laps",
+          "parameters": {
+            "mode": "choose_first_activation_count",
+            "clocks": [
+              {
+                "positions": 10,
+                "jump": 4,
+                "start": 2,
+                "target": 0
+              },
+              {
+                "positions": 12,
+                "jump": 3,
+                "start": 1,
+                "target": 10
+              }
+            ]
+          },
+          "solution": {
+            "activations": 7,
+            "joint_route": [
+              [
+                2,
+                1
+              ],
+              [
+                6,
+                4
+              ],
+              [
+                0,
+                7
+              ],
+              [
+                4,
+                10
+              ],
+              [
+                8,
+                1
+              ],
+              [
+                2,
+                4
+              ],
+              [
+                6,
+                7
+              ],
+              [
+                0,
+                10
+              ]
+            ],
+            "joint_period": 20
+          },
+          "hint": "One star is reached on bells 2, 7, 12; compare that list with the other clock.",
+          "insight": "Neither marker starts on its star. Two phase conditions must hold at the same positive time.",
+          "prerequisites": "Track repeating landings and their starting phases.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Neither marker starts on its star. Two phase conditions must hold at the same positive time.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Find the first positive bell count that lands every marker on its star."
+        },
+        {
+          "id": "clock-11",
+          "title": "Three clocks together",
+          "parameters": {
+            "mode": "choose_first_activation_count",
+            "clocks": [
+              {
+                "positions": 6,
+                "jump": 2,
+                "start": 1,
+                "target": 3
+              },
+              {
+                "positions": 8,
+                "jump": 2,
+                "start": 0,
+                "target": 4
+              },
+              {
+                "positions": 5,
+                "jump": 1,
+                "start": 4,
+                "target": 1
+              }
+            ]
+          },
+          "solution": {
+            "activations": 22,
+            "joint_route": [
+              [
+                1,
+                0,
+                4
+              ],
+              [
+                3,
+                2,
+                0
+              ],
+              [
+                5,
+                4,
+                1
+              ],
+              [
+                1,
+                6,
+                2
+              ],
+              [
+                3,
+                0,
+                3
+              ],
+              [
+                5,
+                2,
+                4
+              ],
+              [
+                1,
+                4,
+                0
+              ],
+              [
+                3,
+                6,
+                1
+              ],
+              [
+                5,
+                0,
+                2
+              ],
+              [
+                1,
+                2,
+                3
+              ],
+              [
+                3,
+                4,
+                4
+              ],
+              [
+                5,
+                6,
+                0
+              ],
+              [
+                1,
+                0,
+                1
+              ],
+              [
+                3,
+                2,
+                2
+              ],
+              [
+                5,
+                4,
+                3
+              ],
+              [
+                1,
+                6,
+                4
+              ],
+              [
+                3,
+                0,
+                0
+              ],
+              [
+                5,
+                2,
+                1
+              ],
+              [
+                1,
+                4,
+                2
+              ],
+              [
+                3,
+                6,
+                3
+              ],
+              [
+                5,
+                0,
+                4
+              ],
+              [
+                1,
+                2,
+                0
+              ],
+              [
+                3,
+                4,
+                1
+              ]
+            ],
+            "joint_period": 60
+          },
+          "hint": "Match the first two clocks, then test those meeting bells on the third.",
+          "insight": "A pairwise meeting need not solve three clocks. Filter one repeating set of meetings by the third orbit.",
+          "prerequisites": "Track repeating landings and their starting phases.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "A pairwise meeting need not solve three clocks. Filter one repeating set of meetings by the third orbit.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Find the first positive bell count that lands every marker on its star."
+        },
+        {
+          "id": "clock-12",
+          "title": "Three different gears",
+          "parameters": {
+            "mode": "choose_first_activation_count",
+            "clocks": [
+              {
+                "positions": 12,
+                "jump": 8,
+                "start": 1,
+                "target": 9
+              },
+              {
+                "positions": 10,
+                "jump": 6,
+                "start": 3,
+                "target": 7
+              },
+              {
+                "positions": 8,
+                "jump": 6,
+                "start": 1,
+                "target": 3
+              }
+            ]
+          },
+          "solution": {
+            "activations": 19,
+            "joint_route": [
+              [
+                1,
+                3,
+                1
+              ],
+              [
+                9,
+                9,
+                7
+              ],
+              [
+                5,
+                5,
+                5
+              ],
+              [
+                1,
+                1,
+                3
+              ],
+              [
+                9,
+                7,
+                1
+              ],
+              [
+                5,
+                3,
+                7
+              ],
+              [
+                1,
+                9,
+                5
+              ],
+              [
+                9,
+                5,
+                3
+              ],
+              [
+                5,
+                1,
+                1
+              ],
+              [
+                1,
+                7,
+                7
+              ],
+              [
+                9,
+                3,
+                5
+              ],
+              [
+                5,
+                9,
+                3
+              ],
+              [
+                1,
+                5,
+                1
+              ],
+              [
+                9,
+                1,
+                7
+              ],
+              [
+                5,
+                7,
+                5
+              ],
+              [
+                1,
+                3,
+                3
+              ],
+              [
+                9,
+                9,
+                1
+              ],
+              [
+                5,
+                5,
+                7
+              ],
+              [
+                1,
+                1,
+                5
+              ],
+              [
+                9,
+                7,
+                3
+              ]
+            ],
+            "joint_period": 60
+          },
+          "hint": "The three orbit lengths are 3, 5, and 4. Each star has a different phase within its orbit.",
+          "insight": "Three non-unit jumps require reducing each orbit and coordinating its phase; ring-size LCM alone gives the wrong first hit.",
+          "prerequisites": "Track repeating landings and their starting phases.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Three non-unit jumps require reducing each orbit and coordinating its phase; ring-size LCM alone gives the wrong first hit.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Find the first positive bell count that lands every marker on its star."
+        }
+      ]
+    },
+    {
+      "id": "billiard",
+      "title": "Mirror Couriers",
+      "child_prompt": "Send the light from the bottom-left corner. It goes straight and bounces like a mirror at each wall. Which corner will it reach first? Later, shape the room or aim the light to deliver the message.",
+      "rules": [
+        "Start exactly at the bottom-left corner (0,0), initially moving right and up.",
+        "A vertical wall reverses the horizontal direction; a horizontal wall reverses the vertical direction. Crossing an old part of the path has no effect.",
+        "Stop at the FIRST corner reached after launch. A corner collision is terminal, not a bounce.",
+        "Count only non-corner wall reflections. Predictions are submitted before the path animation.",
+        "A direction is specified by positive integer rise/run: move run units right per rise units up before reflection. The controls show this as an aim arrow; it is not necessary to read fraction notation.",
+        "Design modes accept every permitted setting satisfying the exact corner and reflection count; reset and replay are unlimited."
+      ],
+      "mathematics": "Unfold a rectangle into mirror copies: the reflected trajectory becomes a straight ray through a rectangular lattice. For slope 1 and reduced dimensions w=ga,h=gb, the first corner has horizontal side right iff b is odd and vertical side top iff a is odd, after a+b−2 bounces. Rational directions reduce to the same lattice problem after scaling the axes. This is the elementary unfolding construction used in billiard dynamics and the torus model, without claiming ergodicity or density results.",
+      "prerequisites": "Entry: follow a diagonal and distinguish a wall from a corner; no independent reading required. Later: count grid dimensions, compare repeated wall intervals, distinguish first arrival from a later one. Aiming levels require interpreting a rise/run arrow; fraction notation and gcd are optional strategies. The final level suits children comfortable coordinating two ratios, often 4–5 or beyond.",
+      "natural_variation": "Use whole rectangles with all four sides reflective, vary aspect ratio or rational launch direction, and alternate forward prediction with inverse design. Offer an unfolding overlay after an attempt so the same mathematical object acquires a useful representation.",
+      "guardrail": "No internal obstacle mazes, one-off mirror exceptions, colored locks, or arbitrary absent walls. Avoid implying that a bigger table is automatically harder. Keep the first-corner stop rule exact, and never confuse physical slope with normalized-square slope.",
+      "depth_assessment": "Moderate candidate with a visual/number-theoretic strength. Tracing alone is a short-lived interaction. Later instances make inverse design the required win, and the last requires accounting for rectangle shape when selecting a direction. Once the reduced-ratio method is mastered, new rectangles alone are repetition.",
+      "sources": [
+        {
+          "id": "B-K",
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-09/week-09-k-1.tex",
+          "section": "K–1 page 1, Tasks 1–2; page 2, Task 4, “Open the wall”",
+          "contribution": "Tall-table reflection and mirror-copy folding."
+        },
+        {
+          "id": "B-M",
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-09/week-09-grades-2-3.tex",
+          "section": "Grades 2–3 page 1, Tasks 1–2; page 2, Tasks 3–5",
+          "contribution": "2×3 route, shared wall multiples, and inverse table design."
+        },
+        {
+          "id": "B-U",
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-09/week-09-grades-4-5.tex",
+          "section": "Grades 4–5 page 2, Tasks 3–6; page 3, Tasks 7–8",
+          "contribution": "Reduced parity instead of raw even/odd side lengths; bounce count; inverse design."
+        },
+        {
+          "id": "B-F",
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-09/week-09-facilitator.tex",
+          "section": "Facilitator / 2, “Upper theorem with all hypotheses”; / 3, “Extra page: rational and irrational directions” and “Keep the conventions straight”; / 4, “Mathematical direction and primary sources”",
+          "contribution": "Exact corner/bounce rules and physical versus normalized slope; local research lineage to Masur–Tabachnikov §§1.3–1.5."
+        },
+        {
+          "id": "B-R",
+          "path": "/Users/jamespfeiffer/math-circle/plans/week-09-redesign.md",
+          "section": "“Verified mathematical backbone”; “Sources and boundary between class and research”; “Returning children and future branches”",
+          "contribution": "Source boundary, existing Lowell rectangle work, and why unfolding/inverse design matter."
+        }
+      ],
+      "instances": [
+        {
+          "id": "billiard-01",
+          "title": "Up the tall room",
+          "prompt": "Room width 2, height 4. Launch diagonally up-right (rise 1, run 1). Choose the first corner and the number of wall bounces before it.",
+          "parameters": {
+            "mode": "predict",
+            "width": 2,
+            "height": 4,
+            "rise": 1,
+            "run": 1
+          },
+          "solution": {
+            "corner": "top-left",
+            "bounces": 1,
+            "path": [
+              [
+                "0",
+                "0"
+              ],
+              [
+                "2",
+                "2"
+              ],
+              [
+                "0",
+                "4"
+              ]
+            ]
+          },
+          "hint": "At the right wall, the light can still travel upward. Only its left/right direction changes.",
+          "insight": "A wall reverses one component of direction; it does not turn the light back along its incoming path.",
+          "difficulty_step": "A one-bounce tutorial with a concrete visual decision.",
+          "prerequisites": "Follow grid directions; count wall contacts.",
+          "source_refs": [
+            "B-K"
+          ],
+          "provenance": "Direct source rectangle with a concise prediction interface.",
+          "difficulty_level": "easy"
+        },
+        {
+          "id": "billiard-02",
+          "title": "A crossing is not a wall",
+          "prompt": "Room width 2, height 3. Launch diagonally up-right (rise 1, run 1). Choose the first corner and the number of wall bounces before it.",
+          "parameters": {
+            "mode": "predict",
+            "width": 2,
+            "height": 3,
+            "rise": 1,
+            "run": 1
+          },
+          "solution": {
+            "corner": "bottom-right",
+            "bounces": 3,
+            "path": [
+              [
+                "0",
+                "0"
+              ],
+              [
+                "2",
+                "2"
+              ],
+              [
+                "1",
+                "3"
+              ],
+              [
+                "0",
+                "2"
+              ],
+              [
+                "2",
+                "0"
+              ]
+            ]
+          },
+          "hint": "Imagine another copy of the room across the next wall, and keep going straight into it.",
+          "insight": "Unfolding turns several reflections into a straight path; old path crossings do not create collisions.",
+          "difficulty_step": "The route has three bounces and crosses itself. A local “turn at every intersection” rule fails.",
+          "prerequisites": "Follow grid directions; count wall contacts.",
+          "source_refs": [
+            "B-M"
+          ],
+          "provenance": "Direct source rectangle; no worksheet proof is required.",
+          "difficulty_level": "easy"
+        },
+        {
+          "id": "billiard-03",
+          "title": "Both sides are even",
+          "prompt": "Room width 6, height 10. Launch diagonally up-right (rise 1, run 1). Choose the first corner and the number of wall bounces before it.",
+          "parameters": {
+            "mode": "predict",
+            "width": 6,
+            "height": 10,
+            "rise": 1,
+            "run": 1
+          },
+          "solution": {
+            "corner": "top-right",
+            "bounces": 6,
+            "path": [
+              [
+                "0",
+                "0"
+              ],
+              [
+                "6",
+                "6"
+              ],
+              [
+                "2",
+                "10"
+              ],
+              [
+                "0",
+                "8"
+              ],
+              [
+                "6",
+                "2"
+              ],
+              [
+                "4",
+                "0"
+              ],
+              [
+                "0",
+                "4"
+              ],
+              [
+                "6",
+                "10"
+              ]
+            ]
+          },
+          "hint": "A 6-by-10 room has the same shape as a 3-by-5 room. Shrink the picture before following it.",
+          "insight": "Raw side parity is misleading. Dividing out the common scale exposes a 3:5 shape, which reaches the top-right after six bounces.",
+          "difficulty_step": "A deliberately selected parity trap introduces scale invariance; this is not merely a larger tracing task.",
+          "prerequisites": "Follow grid directions; count wall contacts.",
+          "source_refs": [
+            "B-U",
+            "B-F"
+          ],
+          "provenance": "Direct source upper-table rectangle, adapted to a required corner/bounce prediction.",
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "billiard-04",
+          "title": "Build the delivery room",
+          "prompt": "The room is 6 squares tall. Set its width from 1 through 12. Launch diagonally up-right. Make the first corner top-right, after exactly 2 bounces.",
+          "parameters": {
+            "mode": "choose_width",
+            "height": 6,
+            "width_min": 1,
+            "width_max": 12,
+            "rise": 1,
+            "run": 1,
+            "target_corner": "top-right",
+            "target_bounces": 2
+          },
+          "solution": {
+            "width": 2,
+            "all_valid_widths": [
+              2
+            ],
+            "corner": "top-right",
+            "bounces": 2,
+            "path": [
+              [
+                "0",
+                "0"
+              ],
+              [
+                "2",
+                "2"
+              ],
+              [
+                "0",
+                "4"
+              ],
+              [
+                "2",
+                "6"
+              ]
+            ]
+          },
+          "hint": "Two bounces mean three straight pieces. Try a room that stacks three copies of its width up its height.",
+          "insight": "Inverse design: the reduced shape must be 1:3 or 3:1. Height 6 and the full width interval leave width 2.",
+          "difficulty_step": "The player must construct a room for a desired trajectory, rather than predict a supplied room.",
+          "prerequisites": "Follow grid directions; coordinate a geometric control with a first-corner target.",
+          "source_refs": [
+            "B-M",
+            "B-U",
+            "B-F"
+          ],
+          "provenance": "New bounded inverse-design instance; source explicitly proposes top-right after at least one bounce.",
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "billiard-05",
+          "title": "Aim across a square",
+          "prompt": "Room width 1, height 1. Set the launch arrow's rise and run, each from 1 through 4. Make the first corner bottom-right, after exactly 3 bounces.",
+          "parameters": {
+            "mode": "choose_direction",
+            "width": 1,
+            "height": 1,
+            "component_min": 1,
+            "component_max": 4,
+            "target_corner": "bottom-right",
+            "target_bounces": 3
+          },
+          "solution": {
+            "rise": 2,
+            "run": 3,
+            "all_valid_directions": [
+              [
+                2,
+                3
+              ],
+              [
+                4,
+                1
+              ]
+            ],
+            "corner": "bottom-right",
+            "bounces": 3,
+            "path": [
+              [
+                "0",
+                "0"
+              ],
+              [
+                "1",
+                "2/3"
+              ],
+              [
+                "1/2",
+                "1"
+              ],
+              [
+                "0",
+                "2/3"
+              ],
+              [
+                "1",
+                "0"
+              ]
+            ]
+          },
+          "hint": "In mirrored square rooms, aim for a corner three room-widths right and two room-heights up.",
+          "insight": "In a square, coprime rise/run p/q reaches the first lattice corner (q,p). Odd run and even rise give bottom-right; p+q−2 counts the bounces. Both 2/3 and 4/1 are valid here.",
+          "difficulty_step": "The room stays tiny. Choosing a direction replaces changing size, and the exact bounce target rejects many directions that reach the correct corner.",
+          "prerequisites": "Follow grid directions; coordinate a geometric control with a first-corner target.",
+          "source_refs": [
+            "B-F"
+          ],
+          "provenance": "New inverse form of the source rational-slope example, with the full 1–4 control range. Both successful directions are accepted.",
+          "difficulty_level": "hard"
+        },
+        {
+          "id": "billiard-06",
+          "title": "The room changes the aim",
+          "prompt": "Room width 3, height 2. Set the launch arrow's rise and run, each from 1 through 10. Make the first corner top-right, after exactly 4 bounces.",
+          "parameters": {
+            "mode": "choose_direction",
+            "width": 3,
+            "height": 2,
+            "component_min": 1,
+            "component_max": 10,
+            "target_corner": "top-right",
+            "target_bounces": 4
+          },
+          "solution": {
+            "rise": 10,
+            "run": 3,
+            "all_valid_directions": [
+              [
+                10,
+                3
+              ]
+            ],
+            "corner": "top-right",
+            "bounces": 4,
+            "path": [
+              [
+                "0",
+                "0"
+              ],
+              [
+                "3/5",
+                "2"
+              ],
+              [
+                "6/5",
+                "0"
+              ],
+              [
+                "9/5",
+                "2"
+              ],
+              [
+                "12/5",
+                "0"
+              ],
+              [
+                "3",
+                "2"
+              ]
+            ]
+          },
+          "hint": "Open five copies of the room upward. Their far top-right corner is 3 squares right and 10 squares up.",
+          "insight": "The physical slope differs from the unit-square slope. Rise/run 10/3 in a 3×2 room is five room-heights per room-width, reaching top-right after four horizontal-wall bounces.",
+          "difficulty_step": "A square-based answer such as rise 5, run 1 is no longer right. The required solve must combine room aspect ratio with launch direction; no larger board or extra obstacle is added.",
+          "prerequisites": "Follow grid directions; coordinate a geometric control with a first-corner target.",
+          "source_refs": [
+            "B-F",
+            "B-U"
+          ],
+          "provenance": "New rectangular rational-direction inverse instance applying the source explicit normalized-slope warning.",
+          "difficulty_level": "hard"
+        },
+        {
+          "id": "billiard-07",
+          "title": "A steeper launch",
+          "parameters": {
+            "mode": "predict",
+            "width": 4,
+            "height": 3,
+            "rise": 2,
+            "run": 1
+          },
+          "solution": {
+            "corner": "bottom-right",
+            "bounces": 9,
+            "path": [
+              [
+                "0",
+                "0"
+              ],
+              [
+                "3/2",
+                "3"
+              ],
+              [
+                "3",
+                "0"
+              ],
+              [
+                "4",
+                "2"
+              ],
+              [
+                "7/2",
+                "3"
+              ],
+              [
+                "2",
+                "0"
+              ],
+              [
+                "1/2",
+                "3"
+              ],
+              [
+                "0",
+                "2"
+              ],
+              [
+                "1",
+                "0"
+              ],
+              [
+                "5/2",
+                "3"
+              ],
+              [
+                "4",
+                "0"
+              ]
+            ]
+          },
+          "hint": "In reflected rooms, the ray rises two units for every unit right. Find its first intersection of both wall grids.",
+          "insight": "Non-unit slope changes the first simultaneous wall crossing; reducing room width and height alone is insufficient.",
+          "prerequisites": "Use reflected copies, room counts, and the direction arrow.",
+          "difficulty_level": "medium",
+          "difficulty_reasoning": "Non-unit slope changes the first simultaneous wall crossing; reducing room width and height alone is insufficient.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Predict the first corner and bounce count."
+        },
+        {
+          "id": "billiard-08",
+          "title": "Design the opposite side",
+          "parameters": {
+            "mode": "choose_width",
+            "height": 6,
+            "width_min": 1,
+            "width_max": 12,
+            "rise": 1,
+            "run": 1,
+            "target_corner": "bottom-right",
+            "target_bounces": 3
+          },
+          "solution": {
+            "width": 4,
+            "all_valid_widths": [
+              4
+            ],
+            "corner": "bottom-right",
+            "bounces": 3,
+            "path": [
+              [
+                "0",
+                "0"
+              ],
+              [
+                "4",
+                "4"
+              ],
+              [
+                "2",
+                "6"
+              ],
+              [
+                "0",
+                "4"
+              ],
+              [
+                "4",
+                "0"
+              ]
+            ]
+          },
+          "hint": "Three bounces means five whole room crossings in all. Bottom-right needs an odd horizontal count and an even vertical count.",
+          "insight": "The corner and bounce count together determine reduced room proportions.",
+          "prerequisites": "Use reflected copies, room counts, and the direction arrow.",
+          "difficulty_level": "medium",
+          "difficulty_reasoning": "The corner and bounce count together determine reduced room proportions.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Reach bottom-right first after exactly 3 bounces."
+        },
+        {
+          "id": "billiard-09",
+          "title": "Several correct arrows",
+          "parameters": {
+            "mode": "choose_direction",
+            "width": 2,
+            "height": 3,
+            "component_min": 1,
+            "component_max": 10,
+            "target_corner": "top-right",
+            "target_bounces": 6
+          },
+          "solution": {
+            "rise": 5,
+            "run": 2,
+            "all_valid_directions": [
+              [
+                5,
+                2
+              ],
+              [
+                9,
+                10
+              ],
+              [
+                10,
+                4
+              ]
+            ],
+            "corner": "top-right",
+            "bounces": 6,
+            "path": [
+              [
+                "0",
+                "0"
+              ],
+              [
+                "6/5",
+                "3"
+              ],
+              [
+                "2",
+                "1"
+              ],
+              [
+                "8/5",
+                "0"
+              ],
+              [
+                "2/5",
+                "3"
+              ],
+              [
+                "0",
+                "2"
+              ],
+              [
+                "4/5",
+                "0"
+              ],
+              [
+                "2",
+                "3"
+              ]
+            ]
+          },
+          "hint": "Look for coprime odd room counts adding to eight, then convert rooms into actual units.",
+          "insight": "Different reduced slopes can satisfy the same corner and bounce target; every bounded valid direction is accepted.",
+          "prerequisites": "Use reflected copies, room counts, and the direction arrow.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Different reduced slopes can satisfy the same corner and bounce target; every bounded valid direction is accepted.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Reach top-right first after exactly 6 bounces."
+        },
+        {
+          "id": "billiard-10",
+          "title": "Change the room, keep the arrow",
+          "parameters": {
+            "mode": "choose_width",
+            "height": 8,
+            "width_min": 1,
+            "width_max": 12,
+            "rise": 3,
+            "run": 2,
+            "target_corner": "top-left",
+            "target_bounces": 5
+          },
+          "solution": {
+            "width": 4,
+            "all_valid_widths": [
+              4
+            ],
+            "corner": "top-left",
+            "bounces": 5,
+            "path": [
+              [
+                "0",
+                "0"
+              ],
+              [
+                "4",
+                "6"
+              ],
+              [
+                "8/3",
+                "8"
+              ],
+              [
+                "0",
+                "4"
+              ],
+              [
+                "8/3",
+                "0"
+              ],
+              [
+                "4",
+                "2"
+              ],
+              [
+                "0",
+                "8"
+              ]
+            ]
+          },
+          "hint": "Top-left needs an even number of widths and an odd number of heights; their sum must be seven.",
+          "insight": "Inverse room design must combine fixed slope, reduced crossing counts, parity, and the first-corner condition.",
+          "prerequisites": "Use reflected copies, room counts, and the direction arrow.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Inverse room design must combine fixed slope, reduced crossing counts, parity, and the first-corner condition.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Reach top-left first after exactly 5 bounces."
+        },
+        {
+          "id": "billiard-11",
+          "title": "Reject an early corner",
+          "parameters": {
+            "mode": "choose_direction",
+            "width": 4,
+            "height": 3,
+            "component_min": 1,
+            "component_max": 12,
+            "target_corner": "top-right",
+            "target_bounces": 8
+          },
+          "solution": {
+            "rise": 1,
+            "run": 12,
+            "all_valid_directions": [
+              [
+                1,
+                12
+              ],
+              [
+                7,
+                4
+              ]
+            ],
+            "corner": "top-right",
+            "bounces": 8,
+            "path": [
+              [
+                "0",
+                "0"
+              ],
+              [
+                "4",
+                "1/3"
+              ],
+              [
+                "0",
+                "2/3"
+              ],
+              [
+                "4",
+                "1"
+              ],
+              [
+                "0",
+                "4/3"
+              ],
+              [
+                "4",
+                "5/3"
+              ],
+              [
+                "0",
+                "2"
+              ],
+              [
+                "4",
+                "7/3"
+              ],
+              [
+                "0",
+                "8/3"
+              ],
+              [
+                "4",
+                "3"
+              ]
+            ]
+          },
+          "hint": "Five widths and five heights share a factor and reach a corner too early. Try another pair adding to ten.",
+          "insight": "Unreduced crossing counts can fit the endpoint but fail the first-corner requirement.",
+          "prerequisites": "Use reflected copies, room counts, and the direction arrow.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Unreduced crossing counts can fit the endpoint but fail the first-corner requirement.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Reach top-right first after exactly 8 bounces."
+        },
+        {
+          "id": "billiard-12",
+          "title": "Nine bounces, one aim",
+          "parameters": {
+            "mode": "choose_direction",
+            "width": 3,
+            "height": 4,
+            "component_min": 1,
+            "component_max": 12,
+            "target_corner": "bottom-right",
+            "target_bounces": 9
+          },
+          "solution": {
+            "rise": 8,
+            "run": 5,
+            "all_valid_directions": [
+              [
+                8,
+                5
+              ]
+            ],
+            "corner": "bottom-right",
+            "bounces": 9,
+            "path": [
+              [
+                "0",
+                "0"
+              ],
+              [
+                "5/2",
+                "4"
+              ],
+              [
+                "3",
+                "16/5"
+              ],
+              [
+                "1",
+                "0"
+              ],
+              [
+                "0",
+                "8/5"
+              ],
+              [
+                "3/2",
+                "4"
+              ],
+              [
+                "3",
+                "8/5"
+              ],
+              [
+                "2",
+                "0"
+              ],
+              [
+                "0",
+                "16/5"
+              ],
+              [
+                "1/2",
+                "4"
+              ],
+              [
+                "3",
+                "0"
+              ]
+            ]
+          },
+          "hint": "Try five widths and six heights. Convert those distances to an arrow, then reduce it.",
+          "insight": "A bounded inverse problem joins parity, coprimality and aspect ratio; guessing the same slope as a unit square fails.",
+          "prerequisites": "Use reflected copies, room counts, and the direction arrow.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "A bounded inverse problem joins parity, coprimality and aspect ratio; guessing the same slope as a unit square fails.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Reach bottom-right first after exactly 9 bounces."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,2771 @@
+{
+  "families": [
+    {
+      "id": "jug",
+      "title": "Spring-water jugs",
+      "rules": "A fill goes to capacity; emptying removes all water; a pour continues until the source is empty or the destination is full. No stopping partway. Fill and Empty controls are available only when a spring and drain are provided. Otherwise the supply is sealed: pour only and keep every drop. All goal-reaching paths count; minima are optional replay targets.",
+      "mathematics": "Integer state graphs, conserved quantities, gcd and integer linear combinations; Bézout reachability with a source/drain. The closed three-jug variant adds total-volume conservation; do not transfer the two-jug sufficiency theorem without checking.",
+      "sources": [
+        {
+          "path": "/Users/jamespfeiffer/math-circle/plans/week-04-redesign.md",
+          "section": "Mathematical destination; Checked results and proofs",
+          "use": "Conceptual link only; these are newly authored jug tasks, not worksheet exercises."
+        },
+        {
+          "url": "https://web.mit.edu/neboat/Public/6.042/numbertheory1.pdf",
+          "section": "Sections 3.1 and 4.1–4.3",
+          "use": "Direct undergraduate model: fill, empty, maximal pour; gcd invariant and constructive reachability."
+        }
+      ],
+      "instances": [
+        {
+          "id": "jug-01",
+          "title": "Make one unit",
+          "prompt": "Use the 3- and 2-unit jugs to leave exactly 1 unit in either jug.",
+          "parameters": {
+            "capacities": [
+              3,
+              2
+            ],
+            "start": [
+              0,
+              0
+            ],
+            "source_and_drain": true,
+            "target_amount": 1
+          },
+          "solution": {
+            "moves": [
+              [
+                "fill",
+                0
+              ],
+              [
+                "pour",
+                0,
+                1
+              ]
+            ],
+            "states": [
+              [
+                0,
+                0
+              ],
+              [
+                3,
+                0
+              ],
+              [
+                1,
+                2
+              ]
+            ],
+            "minimum_moves": 2
+          },
+          "hint": "Fill the large jug, then use the smaller jug as a measuring gap.",
+          "insight": "A capacity difference produces a new amount.",
+          "readiness": "Entry: count to 3; recognize full and empty.",
+          "difficulty_level": "easy"
+        },
+        {
+          "id": "jug-02",
+          "title": "Save the overflow",
+          "prompt": "Use the 5- and 3-unit jugs to leave exactly 1 unit in either jug.",
+          "parameters": {
+            "capacities": [
+              5,
+              3
+            ],
+            "start": [
+              0,
+              0
+            ],
+            "source_and_drain": true,
+            "target_amount": 1
+          },
+          "solution": {
+            "moves": [
+              [
+                "fill",
+                1
+              ],
+              [
+                "pour",
+                1,
+                0
+              ],
+              [
+                "fill",
+                1
+              ],
+              [
+                "pour",
+                1,
+                0
+              ]
+            ],
+            "states": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                3
+              ],
+              [
+                3,
+                0
+              ],
+              [
+                3,
+                3
+              ],
+              [
+                5,
+                1
+              ]
+            ],
+            "minimum_moves": 4
+          },
+          "hint": "The second small jugful will not all fit. Keep what remains.",
+          "insight": "Two small fills can leave a remainder; a partial receiving jug is useful.",
+          "readiness": "Explore: count to 5 and remember an intermediate amount.",
+          "difficulty_level": "easy"
+        },
+        {
+          "id": "jug-03",
+          "title": "Measure what is missing",
+          "prompt": "Use the 5- and 3-unit jugs to leave exactly 4 units in either jug.",
+          "parameters": {
+            "capacities": [
+              5,
+              3
+            ],
+            "start": [
+              0,
+              0
+            ],
+            "source_and_drain": true,
+            "target_amount": 4
+          },
+          "solution": {
+            "moves": [
+              [
+                "fill",
+                0
+              ],
+              [
+                "pour",
+                0,
+                1
+              ],
+              [
+                "empty",
+                1
+              ],
+              [
+                "pour",
+                0,
+                1
+              ],
+              [
+                "fill",
+                0
+              ],
+              [
+                "pour",
+                0,
+                1
+              ]
+            ],
+            "states": [
+              [
+                0,
+                0
+              ],
+              [
+                5,
+                0
+              ],
+              [
+                2,
+                3
+              ],
+              [
+                2,
+                0
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                5,
+                2
+              ],
+              [
+                4,
+                3
+              ]
+            ],
+            "minimum_moves": 6
+          },
+          "hint": "Save two units in the small jug. How much room is left there?",
+          "insight": "Use the receiving jug’s free space as a measure; filling the largest jug first is useful.",
+          "readiness": "Explore: same equipment, different target; reverse the earlier plan.",
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "jug-04",
+          "title": "Carry a remainder twice",
+          "prompt": "Use the 7- and 4-unit jugs to leave exactly 2 units in either jug.",
+          "parameters": {
+            "capacities": [
+              7,
+              4
+            ],
+            "start": [
+              0,
+              0
+            ],
+            "source_and_drain": true,
+            "target_amount": 2
+          },
+          "solution": {
+            "moves": [
+              [
+                "fill",
+                0
+              ],
+              [
+                "pour",
+                0,
+                1
+              ],
+              [
+                "empty",
+                1
+              ],
+              [
+                "pour",
+                0,
+                1
+              ],
+              [
+                "fill",
+                0
+              ],
+              [
+                "pour",
+                0,
+                1
+              ],
+              [
+                "empty",
+                1
+              ],
+              [
+                "pour",
+                0,
+                1
+              ]
+            ],
+            "states": [
+              [
+                0,
+                0
+              ],
+              [
+                7,
+                0
+              ],
+              [
+                3,
+                4
+              ],
+              [
+                3,
+                0
+              ],
+              [
+                0,
+                3
+              ],
+              [
+                7,
+                3
+              ],
+              [
+                6,
+                4
+              ],
+              [
+                6,
+                0
+              ],
+              [
+                2,
+                4
+              ]
+            ],
+            "minimum_moves": 8
+          },
+          "hint": "After making three units, use the small jug’s one empty space.",
+          "insight": "Iterated remainder transfer; progress is not monotone in a jug’s displayed amount.",
+          "readiness": "Stretch: track intermediate states through two fill-and-transfer rounds.",
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "jug-05",
+          "title": "Share the spring water",
+          "prompt": "All 8 units start in jug A. Share them so A and B each hold 4 and C is empty. Keep every drop.",
+          "parameters": {
+            "capacities": [
+              8,
+              5,
+              3
+            ],
+            "start": [
+              8,
+              0,
+              0
+            ],
+            "source_and_drain": false,
+            "target_state": [
+              4,
+              4,
+              0
+            ]
+          },
+          "solution": {
+            "moves": [
+              [
+                "pour",
+                0,
+                1
+              ],
+              [
+                "pour",
+                1,
+                2
+              ],
+              [
+                "pour",
+                2,
+                0
+              ],
+              [
+                "pour",
+                1,
+                2
+              ],
+              [
+                "pour",
+                0,
+                1
+              ],
+              [
+                "pour",
+                1,
+                2
+              ],
+              [
+                "pour",
+                2,
+                0
+              ]
+            ],
+            "states": [
+              [
+                8,
+                0,
+                0
+              ],
+              [
+                3,
+                5,
+                0
+              ],
+              [
+                3,
+                2,
+                3
+              ],
+              [
+                6,
+                2,
+                0
+              ],
+              [
+                6,
+                0,
+                2
+              ],
+              [
+                1,
+                5,
+                2
+              ],
+              [
+                1,
+                4,
+                3
+              ],
+              [
+                4,
+                4,
+                0
+              ]
+            ],
+            "minimum_moves": 7
+          },
+          "hint": "Keep every drop. The smallest jug can return water to the big one.",
+          "insight": "Conservation changes the state graph: emptied water must be stored elsewhere.",
+          "readiness": "Stretch: three containers; no tap or drain, but no new arithmetic.",
+          "difficulty_level": "hard"
+        },
+        {
+          "id": "jug-06",
+          "title": "A small amount is a useful tool",
+          "prompt": "All 10 units start in jug A. Share them so A and B each hold 5 and C is empty. Keep every drop.",
+          "parameters": {
+            "capacities": [
+              10,
+              7,
+              3
+            ],
+            "start": [
+              10,
+              0,
+              0
+            ],
+            "source_and_drain": false,
+            "target_state": [
+              5,
+              5,
+              0
+            ]
+          },
+          "solution": {
+            "moves": [
+              [
+                "pour",
+                0,
+                1
+              ],
+              [
+                "pour",
+                1,
+                2
+              ],
+              [
+                "pour",
+                2,
+                0
+              ],
+              [
+                "pour",
+                1,
+                2
+              ],
+              [
+                "pour",
+                2,
+                0
+              ],
+              [
+                "pour",
+                1,
+                2
+              ],
+              [
+                "pour",
+                0,
+                1
+              ],
+              [
+                "pour",
+                1,
+                2
+              ],
+              [
+                "pour",
+                2,
+                0
+              ]
+            ],
+            "states": [
+              [
+                10,
+                0,
+                0
+              ],
+              [
+                3,
+                7,
+                0
+              ],
+              [
+                3,
+                4,
+                3
+              ],
+              [
+                6,
+                4,
+                0
+              ],
+              [
+                6,
+                1,
+                3
+              ],
+              [
+                9,
+                1,
+                0
+              ],
+              [
+                9,
+                0,
+                1
+              ],
+              [
+                2,
+                7,
+                1
+              ],
+              [
+                2,
+                5,
+                3
+              ],
+              [
+                5,
+                5,
+                0
+              ]
+            ],
+            "minimum_moves": 9
+          },
+          "hint": "Try to save one unit in the small jug before filling the middle jug.",
+          "insight": "A one-unit buffer lets a later pour remove only two; reuse space, not just water.",
+          "readiness": "Stretch: coordinate storage and free capacity; a longer consolidation problem, not a new theorem.",
+          "difficulty_level": "hard"
+        },
+        {
+          "id": "jug-07",
+          "title": "Measure in twos",
+          "parameters": {
+            "capacities": [
+              6,
+              4
+            ],
+            "start": [
+              0,
+              0
+            ],
+            "source_and_drain": true,
+            "target_amount": 2
+          },
+          "solution": {
+            "moves": [
+              [
+                "fill",
+                0
+              ],
+              [
+                "pour",
+                0,
+                1
+              ]
+            ],
+            "states": [
+              [
+                0,
+                0
+              ],
+              [
+                6,
+                0
+              ],
+              [
+                2,
+                4
+              ]
+            ],
+            "minimum_moves": 2
+          },
+          "hint": "Fill A and pour into B. Think of every quantity in two-unit bundles.",
+          "insight": "A common factor restricts reachable amounts; a two-unit target remains reachable.",
+          "prerequisites": "Track amounts and free space; pours stop only at an empty source or full destination.",
+          "difficulty_level": "medium",
+          "difficulty_reasoning": "A common factor restricts reachable amounts; a two-unit target remains reachable.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Leave exactly 2 units in either jug."
+        },
+        {
+          "id": "jug-08",
+          "title": "Save the smaller remainder",
+          "parameters": {
+            "capacities": [
+              4,
+              3
+            ],
+            "start": [
+              0,
+              0
+            ],
+            "source_and_drain": true,
+            "target_amount": 2
+          },
+          "solution": {
+            "moves": [
+              [
+                "fill",
+                1
+              ],
+              [
+                "pour",
+                1,
+                0
+              ],
+              [
+                "fill",
+                1
+              ],
+              [
+                "pour",
+                1,
+                0
+              ]
+            ],
+            "states": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                3
+              ],
+              [
+                3,
+                0
+              ],
+              [
+                3,
+                3
+              ],
+              [
+                4,
+                2
+              ]
+            ],
+            "minimum_moves": 4
+          },
+          "hint": "Fill the smaller jug twice, saving the overflow from the second fill.",
+          "insight": "The receiving jug’s free space determines the remainder; starting with the largest jug is not always shortest.",
+          "prerequisites": "Track amounts and free space; pours stop only at an empty source or full destination.",
+          "difficulty_level": "medium",
+          "difficulty_reasoning": "The receiving jug’s free space determines the remainder; starting with the largest jug is not always shortest.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Leave exactly 2 units in either jug."
+        },
+        {
+          "id": "jug-09",
+          "title": "Leave three different amounts",
+          "parameters": {
+            "capacities": [
+              9,
+              5,
+              4
+            ],
+            "start": [
+              9,
+              0,
+              0
+            ],
+            "source_and_drain": false,
+            "target_state": [
+              3,
+              2,
+              4
+            ]
+          },
+          "solution": {
+            "moves": [
+              [
+                "pour",
+                0,
+                1
+              ],
+              [
+                "pour",
+                1,
+                2
+              ],
+              [
+                "pour",
+                2,
+                0
+              ],
+              [
+                "pour",
+                1,
+                2
+              ],
+              [
+                "pour",
+                0,
+                1
+              ],
+              [
+                "pour",
+                1,
+                2
+              ]
+            ],
+            "states": [
+              [
+                9,
+                0,
+                0
+              ],
+              [
+                4,
+                5,
+                0
+              ],
+              [
+                4,
+                1,
+                4
+              ],
+              [
+                8,
+                1,
+                0
+              ],
+              [
+                8,
+                0,
+                1
+              ],
+              [
+                3,
+                5,
+                1
+              ],
+              [
+                3,
+                2,
+                4
+              ]
+            ],
+            "minimum_moves": 6
+          },
+          "hint": "First save two units in B, then fill C without disturbing that amount.",
+          "insight": "An exact distribution makes the location of each remainder matter, not just producing a target somewhere.",
+          "prerequisites": "Track amounts and free space; pours stop only at an empty source or full destination.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "An exact distribution makes the location of each remainder matter, not just producing a target somewhere.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Keep every drop and reach the displayed distribution."
+        },
+        {
+          "id": "jug-10",
+          "title": "Start with the storage full",
+          "parameters": {
+            "capacities": [
+              10,
+              6,
+              4
+            ],
+            "start": [
+              0,
+              6,
+              4
+            ],
+            "source_and_drain": false,
+            "target_state": [
+              2,
+              4,
+              4
+            ]
+          },
+          "solution": {
+            "moves": [
+              [
+                "pour",
+                1,
+                0
+              ],
+              [
+                "pour",
+                2,
+                1
+              ],
+              [
+                "pour",
+                0,
+                2
+              ]
+            ],
+            "states": [
+              [
+                0,
+                6,
+                4
+              ],
+              [
+                6,
+                0,
+                4
+              ],
+              [
+                6,
+                4,
+                0
+              ],
+              [
+                2,
+                4,
+                4
+              ]
+            ],
+            "minimum_moves": 3
+          },
+          "hint": "A starts empty. Use it to free measuring space before restoring the requested amounts.",
+          "insight": "Empty storage is a resource; a sealed process can begin from a split supply rather than a full reservoir.",
+          "prerequisites": "Track amounts and free space; pours stop only at an empty source or full destination.",
+          "difficulty_level": "medium",
+          "difficulty_reasoning": "Empty storage is a resource; a sealed process can begin from a split supply rather than a full reservoir.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Keep every drop and reach the displayed distribution."
+        },
+        {
+          "id": "jug-11",
+          "title": "Overlapping capacities",
+          "parameters": {
+            "capacities": [
+              12,
+              8,
+              5
+            ],
+            "start": [
+              12,
+              0,
+              0
+            ],
+            "source_and_drain": false,
+            "target_state": [
+              6,
+              6,
+              0
+            ]
+          },
+          "solution": {
+            "moves": [
+              [
+                "pour",
+                0,
+                1
+              ],
+              [
+                "pour",
+                1,
+                2
+              ],
+              [
+                "pour",
+                2,
+                0
+              ],
+              [
+                "pour",
+                1,
+                2
+              ],
+              [
+                "pour",
+                0,
+                1
+              ],
+              [
+                "pour",
+                1,
+                2
+              ],
+              [
+                "pour",
+                2,
+                0
+              ]
+            ],
+            "states": [
+              [
+                12,
+                0,
+                0
+              ],
+              [
+                4,
+                8,
+                0
+              ],
+              [
+                4,
+                3,
+                5
+              ],
+              [
+                9,
+                3,
+                0
+              ],
+              [
+                9,
+                0,
+                3
+              ],
+              [
+                1,
+                8,
+                3
+              ],
+              [
+                1,
+                6,
+                5
+              ],
+              [
+                6,
+                6,
+                0
+              ]
+            ],
+            "minimum_moves": 7
+          },
+          "hint": "Try transferring between the two smaller jugs before refilling either one completely.",
+          "insight": "The smaller capacities exceed the supply together; reserve space deliberately to build and transfer a useful remainder.",
+          "prerequisites": "Track amounts and free space; pours stop only at an empty source or full destination.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "The smaller capacities exceed the supply together; reserve space deliberately to build and transfer a useful remainder.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Keep every drop and reach the displayed distribution."
+        },
+        {
+          "id": "jug-12",
+          "title": "A one-unit measuring gap",
+          "parameters": {
+            "capacities": [
+              12,
+              7,
+              5
+            ],
+            "start": [
+              12,
+              0,
+              0
+            ],
+            "source_and_drain": false,
+            "target_state": [
+              6,
+              6,
+              0
+            ]
+          },
+          "solution": {
+            "moves": [
+              [
+                "pour",
+                0,
+                1
+              ],
+              [
+                "pour",
+                1,
+                2
+              ],
+              [
+                "pour",
+                2,
+                0
+              ],
+              [
+                "pour",
+                1,
+                2
+              ],
+              [
+                "pour",
+                0,
+                1
+              ],
+              [
+                "pour",
+                1,
+                2
+              ],
+              [
+                "pour",
+                2,
+                0
+              ],
+              [
+                "pour",
+                1,
+                2
+              ],
+              [
+                "pour",
+                0,
+                1
+              ],
+              [
+                "pour",
+                1,
+                2
+              ],
+              [
+                "pour",
+                2,
+                0
+              ]
+            ],
+            "states": [
+              [
+                12,
+                0,
+                0
+              ],
+              [
+                5,
+                7,
+                0
+              ],
+              [
+                5,
+                2,
+                5
+              ],
+              [
+                10,
+                2,
+                0
+              ],
+              [
+                10,
+                0,
+                2
+              ],
+              [
+                3,
+                7,
+                2
+              ],
+              [
+                3,
+                4,
+                5
+              ],
+              [
+                8,
+                4,
+                0
+              ],
+              [
+                8,
+                0,
+                4
+              ],
+              [
+                1,
+                7,
+                4
+              ],
+              [
+                1,
+                6,
+                5
+              ],
+              [
+                6,
+                6,
+                0
+              ]
+            ],
+            "minimum_moves": 11
+          },
+          "hint": "Try to leave one unit in C. Its four empty spaces can turn a full B into three, then help build six.",
+          "insight": "Several remainders must be stored and reused to split an odd-capacity pair into two equal shares.",
+          "prerequisites": "Track amounts and free space; pours stop only at an empty source or full destination.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Several remainders must be stored and reused to split an odd-capacity pair into two equal shares.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Keep every drop and reach the displayed distribution."
+        }
+      ]
+    },
+    {
+      "id": "weigh",
+      "title": "Odd-pebble balance",
+      "rules": "Exactly one suspect pebble differs; all other pebbles have the same weight. Compare disjoint equal-size groups. A weighing reports left heavier, right heavier, or balance. The budget counts actual weighings. Declare only when the evidence uniquely identifies the pebble and, when required, whether it is heavy or light. A pebble marked Normal is a known genuine reference.",
+      "mathematics": "Ternary decision trees, worst-case experimental design, information bounds, and signed hypotheses. A strategy must work on every consistent hidden state, not merely guess the chosen secret.",
+      "sources": [
+        {
+          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-06/week-06-facilitator.tex",
+          "section": "K–1: elimination becomes a decision tree; A difficult answer that stays consistent",
+          "use": "Adapt the experiment-and-update structure to a different physical mathematical model."
+        },
+        {
+          "path": "/Users/jamespfeiffer/math-circle/external-resources/nytimes/Daniel Finkel and the Balance Problem - The New York Times.pdf",
+          "section": "The Balance Problem, page 1; solutions, pages 2–3",
+          "use": "Supplementary local inspiration for balance experiments and known/unknown coin status; its two-bag problem is not copied."
+        },
+        {
+          "url": "https://faculty.washington.edu/moishe/supplements/ch-10/ExtraExamples_10_2.pdf",
+          "section": "Section 10.2 extra examples: counterfeit coins and decision trees",
+          "use": "Undergraduate decision-tree connection."
+        },
+        {
+          "url": "https://arxiv.org/abs/1005.1391",
+          "section": "Abstract",
+          "use": "Further reading: classical counterfeit-coin problem and generalization. No general optimality formula imported."
+        }
+      ],
+      "instances": [
+        {
+          "id": "weigh-01",
+          "title": "The pebble off the scale",
+          "prompt": "One of these 3 pebbles is heavier than the others. Find it using at most 1 weighing.",
+          "parameters": {
+            "coins": [
+              "A",
+              "B",
+              "C"
+            ],
+            "odd_kind": "heavy",
+            "known_genuine": [],
+            "weighing_budget": 1,
+            "fixed_secret": [
+              "C",
+              1
+            ]
+          },
+          "solution": {
+            "strategy": {
+              "left": [
+                "A"
+              ],
+              "right": [
+                "B"
+              ],
+              "branches": {
+                "L": {
+                  "coin": "A",
+                  "deviation": 1
+                },
+                "=": {
+                  "coin": "C",
+                  "deviation": 1
+                },
+                "R": {
+                  "coin": "B",
+                  "deviation": 1
+                }
+              }
+            },
+            "worst_case_weighings": 1
+          },
+          "hint": "Try one pebble on each pan. A balance is information too.",
+          "insight": "Three possible outcomes distinguish three locations in one weighing.",
+          "readiness": "Entry: distinguish a tilt from balance.",
+          "difficulty_level": "easy"
+        },
+        {
+          "id": "weigh-02",
+          "title": "Keep an unweighed group",
+          "prompt": "One of these 4 pebbles is heavier than the others. Find it using at most 2 weighings.",
+          "parameters": {
+            "coins": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "odd_kind": "heavy",
+            "known_genuine": [],
+            "weighing_budget": 2,
+            "fixed_secret": [
+              "D",
+              1
+            ]
+          },
+          "solution": {
+            "strategy": {
+              "left": [
+                "A"
+              ],
+              "right": [
+                "B"
+              ],
+              "branches": {
+                "L": {
+                  "coin": "A",
+                  "deviation": 1
+                },
+                "=": {
+                  "left": [
+                    "A"
+                  ],
+                  "right": [
+                    "C"
+                  ],
+                  "branches": {
+                    "=": {
+                      "coin": "D",
+                      "deviation": 1
+                    },
+                    "R": {
+                      "coin": "C",
+                      "deviation": 1
+                    }
+                  }
+                },
+                "R": {
+                  "coin": "B",
+                  "deviation": 1
+                }
+              }
+            },
+            "worst_case_weighings": 2
+          },
+          "hint": "You can learn something without putting every pebble on the scale.",
+          "insight": "A first question need not identify the pebble immediately; preserve a solvable follow-up.",
+          "readiness": "Explore: track candidate groups.",
+          "difficulty_level": "easy"
+        },
+        {
+          "id": "weigh-03",
+          "title": "Three groups, two questions",
+          "prompt": "One of these 9 pebbles is heavier than the others. Find it using at most 2 weighings.",
+          "parameters": {
+            "coins": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G",
+              "H",
+              "J"
+            ],
+            "odd_kind": "heavy",
+            "known_genuine": [],
+            "weighing_budget": 2,
+            "fixed_secret": [
+              "H",
+              1
+            ]
+          },
+          "solution": {
+            "strategy": {
+              "left": [
+                "A",
+                "B",
+                "C"
+              ],
+              "right": [
+                "D",
+                "E",
+                "F"
+              ],
+              "branches": {
+                "L": {
+                  "left": [
+                    "A"
+                  ],
+                  "right": [
+                    "B"
+                  ],
+                  "branches": {
+                    "L": {
+                      "coin": "A",
+                      "deviation": 1
+                    },
+                    "=": {
+                      "coin": "C",
+                      "deviation": 1
+                    },
+                    "R": {
+                      "coin": "B",
+                      "deviation": 1
+                    }
+                  }
+                },
+                "=": {
+                  "left": [
+                    "G"
+                  ],
+                  "right": [
+                    "H"
+                  ],
+                  "branches": {
+                    "L": {
+                      "coin": "G",
+                      "deviation": 1
+                    },
+                    "=": {
+                      "coin": "J",
+                      "deviation": 1
+                    },
+                    "R": {
+                      "coin": "H",
+                      "deviation": 1
+                    }
+                  }
+                },
+                "R": {
+                  "left": [
+                    "D"
+                  ],
+                  "right": [
+                    "E"
+                  ],
+                  "branches": {
+                    "L": {
+                      "coin": "D",
+                      "deviation": 1
+                    },
+                    "=": {
+                      "coin": "F",
+                      "deviation": 1
+                    },
+                    "R": {
+                      "coin": "E",
+                      "deviation": 1
+                    }
+                  }
+                }
+              }
+            },
+            "worst_case_weighings": 2
+          },
+          "hint": "Compare three with three; keep three off the scale.",
+          "insight": "All three outcomes must leave at most three suspects to finish in one more weighing.",
+          "readiness": "Explore: track candidate groups.",
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "weigh-04",
+          "title": "Which way is it different?",
+          "prompt": "One of these 3 pebbles is heavier or lighter than the others. Find it and tell which way it differs using at most 2 weighings.",
+          "parameters": {
+            "coins": [
+              "A",
+              "B",
+              "C"
+            ],
+            "odd_kind": "heavy_or_light",
+            "known_genuine": [],
+            "weighing_budget": 2,
+            "fixed_secret": [
+              "B",
+              -1
+            ]
+          },
+          "solution": {
+            "strategy": {
+              "left": [
+                "A"
+              ],
+              "right": [
+                "B"
+              ],
+              "branches": {
+                "L": {
+                  "left": [
+                    "A"
+                  ],
+                  "right": [
+                    "C"
+                  ],
+                  "branches": {
+                    "L": {
+                      "coin": "A",
+                      "deviation": 1
+                    },
+                    "=": {
+                      "coin": "B",
+                      "deviation": -1
+                    }
+                  }
+                },
+                "=": {
+                  "left": [
+                    "A"
+                  ],
+                  "right": [
+                    "C"
+                  ],
+                  "branches": {
+                    "L": {
+                      "coin": "C",
+                      "deviation": -1
+                    },
+                    "R": {
+                      "coin": "C",
+                      "deviation": 1
+                    }
+                  }
+                },
+                "R": {
+                  "left": [
+                    "A"
+                  ],
+                  "right": [
+                    "C"
+                  ],
+                  "branches": {
+                    "=": {
+                      "coin": "B",
+                      "deviation": 1
+                    },
+                    "R": {
+                      "coin": "A",
+                      "deviation": -1
+                    }
+                  }
+                }
+              }
+            },
+            "worst_case_weighings": 2
+          },
+          "hint": "After a tilt, a pebble on the high side may be the light one.",
+          "insight": "Track signed hypotheses: A-heavy and B-light can produce the same tilt.",
+          "readiness": "Stretch: track both identity and heavy/light status; a visible notebook helps.",
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "weigh-05",
+          "title": "Use a trusted pebble",
+          "prompt": "One of these 4 pebbles is heavier or lighter than the others. Find it and tell which way it differs using at most 2 weighings. R is a known normal pebble.",
+          "parameters": {
+            "coins": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "odd_kind": "heavy_or_light",
+            "known_genuine": [
+              "R"
+            ],
+            "weighing_budget": 2,
+            "fixed_secret": [
+              "D",
+              -1
+            ]
+          },
+          "solution": {
+            "strategy": {
+              "left": [
+                "A",
+                "B"
+              ],
+              "right": [
+                "C",
+                "R"
+              ],
+              "branches": {
+                "L": {
+                  "left": [
+                    "A"
+                  ],
+                  "right": [
+                    "B"
+                  ],
+                  "branches": {
+                    "L": {
+                      "coin": "A",
+                      "deviation": 1
+                    },
+                    "=": {
+                      "coin": "C",
+                      "deviation": -1
+                    },
+                    "R": {
+                      "coin": "B",
+                      "deviation": 1
+                    }
+                  }
+                },
+                "=": {
+                  "left": [
+                    "A"
+                  ],
+                  "right": [
+                    "D"
+                  ],
+                  "branches": {
+                    "L": {
+                      "coin": "D",
+                      "deviation": -1
+                    },
+                    "R": {
+                      "coin": "D",
+                      "deviation": 1
+                    }
+                  }
+                },
+                "R": {
+                  "left": [
+                    "A"
+                  ],
+                  "right": [
+                    "B"
+                  ],
+                  "branches": {
+                    "L": {
+                      "coin": "B",
+                      "deviation": -1
+                    },
+                    "=": {
+                      "coin": "C",
+                      "deviation": 1
+                    },
+                    "R": {
+                      "coin": "A",
+                      "deviation": -1
+                    }
+                  }
+                }
+              }
+            },
+            "worst_case_weighings": 2
+          },
+          "hint": "R is normal. Use it to make a comparison that could not be made before.",
+          "insight": "A reference changes what experiments are possible; four unknowns now fit in two weighings.",
+          "readiness": "Stretch: track both identity and heavy/light status; a visible notebook helps.",
+          "difficulty_level": "hard"
+        },
+        {
+          "id": "weigh-06",
+          "title": "Learn which pebbles are trustworthy",
+          "prompt": "One of these 8 pebbles is heavier or lighter than the others. Find it and tell which way it differs using at most 3 weighings.",
+          "parameters": {
+            "coins": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G",
+              "H"
+            ],
+            "odd_kind": "heavy_or_light",
+            "known_genuine": [],
+            "weighing_budget": 3,
+            "fixed_secret": [
+              "E",
+              -1
+            ]
+          },
+          "solution": {
+            "strategy": {
+              "left": [
+                "A",
+                "B",
+                "C"
+              ],
+              "right": [
+                "D",
+                "E",
+                "F"
+              ],
+              "branches": {
+                "L": {
+                  "left": [
+                    "A",
+                    "D"
+                  ],
+                  "right": [
+                    "B",
+                    "E"
+                  ],
+                  "branches": {
+                    "L": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "B"
+                      ],
+                      "branches": {
+                        "L": {
+                          "coin": "A",
+                          "deviation": 1
+                        },
+                        "=": {
+                          "coin": "E",
+                          "deviation": -1
+                        }
+                      }
+                    },
+                    "=": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "C"
+                      ],
+                      "branches": {
+                        "=": {
+                          "coin": "F",
+                          "deviation": -1
+                        },
+                        "R": {
+                          "coin": "C",
+                          "deviation": 1
+                        }
+                      }
+                    },
+                    "R": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "B"
+                      ],
+                      "branches": {
+                        "=": {
+                          "coin": "D",
+                          "deviation": -1
+                        },
+                        "R": {
+                          "coin": "B",
+                          "deviation": 1
+                        }
+                      }
+                    }
+                  }
+                },
+                "=": {
+                  "left": [
+                    "A"
+                  ],
+                  "right": [
+                    "G"
+                  ],
+                  "branches": {
+                    "L": {
+                      "coin": "G",
+                      "deviation": -1
+                    },
+                    "=": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "H"
+                      ],
+                      "branches": {
+                        "L": {
+                          "coin": "H",
+                          "deviation": -1
+                        },
+                        "R": {
+                          "coin": "H",
+                          "deviation": 1
+                        }
+                      }
+                    },
+                    "R": {
+                      "coin": "G",
+                      "deviation": 1
+                    }
+                  }
+                },
+                "R": {
+                  "left": [
+                    "A",
+                    "D"
+                  ],
+                  "right": [
+                    "B",
+                    "E"
+                  ],
+                  "branches": {
+                    "L": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "B"
+                      ],
+                      "branches": {
+                        "L": {
+                          "coin": "B",
+                          "deviation": -1
+                        },
+                        "=": {
+                          "coin": "D",
+                          "deviation": 1
+                        }
+                      }
+                    },
+                    "=": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "C"
+                      ],
+                      "branches": {
+                        "L": {
+                          "coin": "C",
+                          "deviation": -1
+                        },
+                        "=": {
+                          "coin": "F",
+                          "deviation": 1
+                        }
+                      }
+                    },
+                    "R": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "B"
+                      ],
+                      "branches": {
+                        "=": {
+                          "coin": "E",
+                          "deviation": 1
+                        },
+                        "R": {
+                          "coin": "A",
+                          "deviation": -1
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "worst_case_weighings": 3
+          },
+          "hint": "Pebbles ruled out by the first weighing can become references.",
+          "insight": "Switch from locating a group to distinguishing heavy-on-one-side from light-on-the-other; reuse established normal pebbles.",
+          "readiness": "Stretch: track both identity and heavy/light status; a visible notebook helps.",
+          "difficulty_level": "hard"
+        },
+        {
+          "id": "weigh-07",
+          "title": "Split into three pairs",
+          "parameters": {
+            "coins": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F"
+            ],
+            "odd_kind": "heavy",
+            "known_genuine": [],
+            "weighing_budget": 2,
+            "fixed_secret": [
+              "F",
+              1
+            ]
+          },
+          "solution": {
+            "strategy": {
+              "left": [
+                "A",
+                "B"
+              ],
+              "right": [
+                "C",
+                "D"
+              ],
+              "branches": {
+                "L": {
+                  "left": [
+                    "A"
+                  ],
+                  "right": [
+                    "B"
+                  ],
+                  "branches": {
+                    "L": {
+                      "coin": "A",
+                      "deviation": 1
+                    },
+                    "R": {
+                      "coin": "B",
+                      "deviation": 1
+                    }
+                  }
+                },
+                "=": {
+                  "left": [
+                    "A"
+                  ],
+                  "right": [
+                    "E"
+                  ],
+                  "branches": {
+                    "=": {
+                      "coin": "F",
+                      "deviation": 1
+                    },
+                    "R": {
+                      "coin": "E",
+                      "deviation": 1
+                    }
+                  }
+                },
+                "R": {
+                  "left": [
+                    "A"
+                  ],
+                  "right": [
+                    "C"
+                  ],
+                  "branches": {
+                    "=": {
+                      "coin": "D",
+                      "deviation": 1
+                    },
+                    "R": {
+                      "coin": "C",
+                      "deviation": 1
+                    }
+                  }
+                }
+              }
+            },
+            "worst_case_weighings": 2
+          },
+          "hint": "Compare two pebbles against two, leaving a pair off the scale.",
+          "insight": "Each first outcome must leave no more than three candidates.",
+          "prerequisites": "Read balance outcomes; track which pebble and which direction of weight still fit.",
+          "difficulty_level": "medium",
+          "difficulty_reasoning": "Each first outcome must leave no more than three candidates.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Find the odd pebble in at most 2 weighings."
+        },
+        {
+          "id": "weigh-08",
+          "title": "Compare with a reference",
+          "parameters": {
+            "coins": [
+              "A",
+              "B",
+              "C"
+            ],
+            "odd_kind": "heavy_or_light",
+            "known_genuine": [
+              "R"
+            ],
+            "weighing_budget": 2,
+            "fixed_secret": [
+              "C",
+              -1
+            ]
+          },
+          "solution": {
+            "strategy": {
+              "left": [
+                "A"
+              ],
+              "right": [
+                "B"
+              ],
+              "branches": {
+                "L": {
+                  "left": [
+                    "A"
+                  ],
+                  "right": [
+                    "C"
+                  ],
+                  "branches": {
+                    "L": {
+                      "coin": "A",
+                      "deviation": 1
+                    },
+                    "=": {
+                      "coin": "B",
+                      "deviation": -1
+                    }
+                  }
+                },
+                "=": {
+                  "left": [
+                    "A"
+                  ],
+                  "right": [
+                    "C"
+                  ],
+                  "branches": {
+                    "L": {
+                      "coin": "C",
+                      "deviation": -1
+                    },
+                    "R": {
+                      "coin": "C",
+                      "deviation": 1
+                    }
+                  }
+                },
+                "R": {
+                  "left": [
+                    "A"
+                  ],
+                  "right": [
+                    "C"
+                  ],
+                  "branches": {
+                    "=": {
+                      "coin": "B",
+                      "deviation": 1
+                    },
+                    "R": {
+                      "coin": "A",
+                      "deviation": -1
+                    }
+                  }
+                }
+              }
+            },
+            "worst_case_weighings": 2
+          },
+          "hint": "A known normal pebble can separate heavy and light possibilities immediately.",
+          "insight": "References allow direct signed comparisons; preserve enough information to identify both the pebble and its sign.",
+          "prerequisites": "Read balance outcomes; track which pebble and which direction of weight still fit.",
+          "difficulty_level": "medium",
+          "difficulty_reasoning": "References allow direct signed comparisons; preserve enough information to identify both the pebble and its sign.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Find the odd pebble and whether it is heavy or light in at most 2 weighings."
+        },
+        {
+          "id": "weigh-09",
+          "title": "Build your own reference",
+          "parameters": {
+            "coins": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E"
+            ],
+            "odd_kind": "heavy_or_light",
+            "known_genuine": [],
+            "weighing_budget": 3,
+            "fixed_secret": [
+              "E",
+              -1
+            ]
+          },
+          "solution": {
+            "strategy": {
+              "left": [
+                "A",
+                "B"
+              ],
+              "right": [
+                "C",
+                "D"
+              ],
+              "branches": {
+                "L": {
+                  "left": [
+                    "A"
+                  ],
+                  "right": [
+                    "B"
+                  ],
+                  "branches": {
+                    "L": {
+                      "coin": "A",
+                      "deviation": 1
+                    },
+                    "=": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "C"
+                      ],
+                      "branches": {
+                        "L": {
+                          "coin": "C",
+                          "deviation": -1
+                        },
+                        "=": {
+                          "coin": "D",
+                          "deviation": -1
+                        }
+                      }
+                    },
+                    "R": {
+                      "coin": "B",
+                      "deviation": 1
+                    }
+                  }
+                },
+                "=": {
+                  "left": [
+                    "A"
+                  ],
+                  "right": [
+                    "E"
+                  ],
+                  "branches": {
+                    "L": {
+                      "coin": "E",
+                      "deviation": -1
+                    },
+                    "R": {
+                      "coin": "E",
+                      "deviation": 1
+                    }
+                  }
+                },
+                "R": {
+                  "left": [
+                    "A"
+                  ],
+                  "right": [
+                    "B"
+                  ],
+                  "branches": {
+                    "L": {
+                      "coin": "B",
+                      "deviation": -1
+                    },
+                    "=": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "C"
+                      ],
+                      "branches": {
+                        "=": {
+                          "coin": "D",
+                          "deviation": 1
+                        },
+                        "R": {
+                          "coin": "C",
+                          "deviation": 1
+                        }
+                      }
+                    },
+                    "R": {
+                      "coin": "A",
+                      "deviation": -1
+                    }
+                  }
+                }
+              }
+            },
+            "worst_case_weighings": 3
+          },
+          "hint": "Compare two against two. Pebbles eliminated by the outcome can be reused as normal references.",
+          "insight": "A tilt leaves heavy and light hypotheses on opposite pans; a balanced result creates trusted references.",
+          "prerequisites": "Read balance outcomes; track which pebble and which direction of weight still fit.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "A tilt leaves heavy and light hypotheses on opposite pans; a balanced result creates trusted references.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Find the odd pebble and whether it is heavy or light in at most 3 weighings."
+        },
+        {
+          "id": "weigh-10",
+          "title": "Move suspects between pans",
+          "parameters": {
+            "coins": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F"
+            ],
+            "odd_kind": "heavy_or_light",
+            "known_genuine": [],
+            "weighing_budget": 3,
+            "fixed_secret": [
+              "F",
+              -1
+            ]
+          },
+          "solution": {
+            "strategy": {
+              "left": [
+                "A",
+                "B"
+              ],
+              "right": [
+                "C",
+                "D"
+              ],
+              "branches": {
+                "L": {
+                  "left": [
+                    "A"
+                  ],
+                  "right": [
+                    "B"
+                  ],
+                  "branches": {
+                    "L": {
+                      "coin": "A",
+                      "deviation": 1
+                    },
+                    "=": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "C"
+                      ],
+                      "branches": {
+                        "L": {
+                          "coin": "C",
+                          "deviation": -1
+                        },
+                        "=": {
+                          "coin": "D",
+                          "deviation": -1
+                        }
+                      }
+                    },
+                    "R": {
+                      "coin": "B",
+                      "deviation": 1
+                    }
+                  }
+                },
+                "=": {
+                  "left": [
+                    "A"
+                  ],
+                  "right": [
+                    "E"
+                  ],
+                  "branches": {
+                    "L": {
+                      "coin": "E",
+                      "deviation": -1
+                    },
+                    "=": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "F"
+                      ],
+                      "branches": {
+                        "L": {
+                          "coin": "F",
+                          "deviation": -1
+                        },
+                        "R": {
+                          "coin": "F",
+                          "deviation": 1
+                        }
+                      }
+                    },
+                    "R": {
+                      "coin": "E",
+                      "deviation": 1
+                    }
+                  }
+                },
+                "R": {
+                  "left": [
+                    "A"
+                  ],
+                  "right": [
+                    "B"
+                  ],
+                  "branches": {
+                    "L": {
+                      "coin": "B",
+                      "deviation": -1
+                    },
+                    "=": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "C"
+                      ],
+                      "branches": {
+                        "=": {
+                          "coin": "D",
+                          "deviation": 1
+                        },
+                        "R": {
+                          "coin": "C",
+                          "deviation": 1
+                        }
+                      }
+                    },
+                    "R": {
+                      "coin": "A",
+                      "deviation": -1
+                    }
+                  }
+                }
+              }
+            },
+            "worst_case_weighings": 3
+          },
+          "hint": "After a tilt, moving a suspect to the other pan reverses the outcome predicted for that suspect.",
+          "insight": "Adaptive experiments distinguish signed hypotheses by switching some suspects and leaving others off.",
+          "prerequisites": "Read balance outcomes; track which pebble and which direction of weight still fit.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Adaptive experiments distinguish signed hypotheses by switching some suspects and leaving others off.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Find the odd pebble and whether it is heavy or light in at most 3 weighings."
+        },
+        {
+          "id": "weigh-11",
+          "title": "Use the trusted tenth pebble",
+          "parameters": {
+            "coins": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G",
+              "H",
+              "I"
+            ],
+            "odd_kind": "heavy_or_light",
+            "known_genuine": [
+              "R"
+            ],
+            "weighing_budget": 3,
+            "fixed_secret": [
+              "I",
+              -1
+            ]
+          },
+          "solution": {
+            "strategy": {
+              "left": [
+                "A",
+                "B",
+                "C"
+              ],
+              "right": [
+                "D",
+                "E",
+                "F"
+              ],
+              "branches": {
+                "L": {
+                  "left": [
+                    "A",
+                    "D"
+                  ],
+                  "right": [
+                    "B",
+                    "E"
+                  ],
+                  "branches": {
+                    "L": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "B"
+                      ],
+                      "branches": {
+                        "L": {
+                          "coin": "A",
+                          "deviation": 1
+                        },
+                        "=": {
+                          "coin": "E",
+                          "deviation": -1
+                        }
+                      }
+                    },
+                    "=": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "C"
+                      ],
+                      "branches": {
+                        "=": {
+                          "coin": "F",
+                          "deviation": -1
+                        },
+                        "R": {
+                          "coin": "C",
+                          "deviation": 1
+                        }
+                      }
+                    },
+                    "R": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "B"
+                      ],
+                      "branches": {
+                        "=": {
+                          "coin": "D",
+                          "deviation": -1
+                        },
+                        "R": {
+                          "coin": "B",
+                          "deviation": 1
+                        }
+                      }
+                    }
+                  }
+                },
+                "=": {
+                  "left": [
+                    "G"
+                  ],
+                  "right": [
+                    "H"
+                  ],
+                  "branches": {
+                    "L": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "G"
+                      ],
+                      "branches": {
+                        "=": {
+                          "coin": "H",
+                          "deviation": -1
+                        },
+                        "R": {
+                          "coin": "G",
+                          "deviation": 1
+                        }
+                      }
+                    },
+                    "=": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "I"
+                      ],
+                      "branches": {
+                        "L": {
+                          "coin": "I",
+                          "deviation": -1
+                        },
+                        "R": {
+                          "coin": "I",
+                          "deviation": 1
+                        }
+                      }
+                    },
+                    "R": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "G"
+                      ],
+                      "branches": {
+                        "L": {
+                          "coin": "G",
+                          "deviation": -1
+                        },
+                        "=": {
+                          "coin": "H",
+                          "deviation": 1
+                        }
+                      }
+                    }
+                  }
+                },
+                "R": {
+                  "left": [
+                    "A",
+                    "D"
+                  ],
+                  "right": [
+                    "B",
+                    "E"
+                  ],
+                  "branches": {
+                    "L": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "B"
+                      ],
+                      "branches": {
+                        "L": {
+                          "coin": "B",
+                          "deviation": -1
+                        },
+                        "=": {
+                          "coin": "D",
+                          "deviation": 1
+                        }
+                      }
+                    },
+                    "=": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "C"
+                      ],
+                      "branches": {
+                        "L": {
+                          "coin": "C",
+                          "deviation": -1
+                        },
+                        "=": {
+                          "coin": "F",
+                          "deviation": 1
+                        }
+                      }
+                    },
+                    "R": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "B"
+                      ],
+                      "branches": {
+                        "=": {
+                          "coin": "E",
+                          "deviation": 1
+                        },
+                        "R": {
+                          "coin": "A",
+                          "deviation": -1
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "worst_case_weighings": 3
+          },
+          "hint": "Keep every first-outcome group small enough to separate with two more weighings. R can balance an uneven suspect count.",
+          "insight": "A reference changes the available partitions of signed hypotheses; every branch must fit the remaining information budget.",
+          "prerequisites": "Read balance outcomes; track which pebble and which direction of weight still fit.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "A reference changes the available partitions of signed hypotheses; every branch must fit the remaining information budget.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Find the odd pebble and whether it is heavy or light in at most 3 weighings."
+        },
+        {
+          "id": "weigh-12",
+          "title": "Twelve pebbles, three questions",
+          "parameters": {
+            "coins": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F",
+              "G",
+              "H",
+              "I",
+              "J",
+              "K",
+              "L"
+            ],
+            "odd_kind": "heavy_or_light",
+            "known_genuine": [],
+            "weighing_budget": 3,
+            "fixed_secret": [
+              "L",
+              -1
+            ]
+          },
+          "solution": {
+            "strategy": {
+              "left": [
+                "A",
+                "B",
+                "C",
+                "D"
+              ],
+              "right": [
+                "E",
+                "F",
+                "G",
+                "H"
+              ],
+              "branches": {
+                "L": {
+                  "left": [
+                    "A",
+                    "B",
+                    "E"
+                  ],
+                  "right": [
+                    "C",
+                    "D",
+                    "F"
+                  ],
+                  "branches": {
+                    "L": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "B"
+                      ],
+                      "branches": {
+                        "L": {
+                          "coin": "A",
+                          "deviation": 1
+                        },
+                        "=": {
+                          "coin": "F",
+                          "deviation": -1
+                        },
+                        "R": {
+                          "coin": "B",
+                          "deviation": 1
+                        }
+                      }
+                    },
+                    "=": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "G"
+                      ],
+                      "branches": {
+                        "L": {
+                          "coin": "G",
+                          "deviation": -1
+                        },
+                        "=": {
+                          "coin": "H",
+                          "deviation": -1
+                        }
+                      }
+                    },
+                    "R": {
+                      "left": [
+                        "C"
+                      ],
+                      "right": [
+                        "D"
+                      ],
+                      "branches": {
+                        "L": {
+                          "coin": "C",
+                          "deviation": 1
+                        },
+                        "=": {
+                          "coin": "E",
+                          "deviation": -1
+                        },
+                        "R": {
+                          "coin": "D",
+                          "deviation": 1
+                        }
+                      }
+                    }
+                  }
+                },
+                "=": {
+                  "left": [
+                    "A",
+                    "I"
+                  ],
+                  "right": [
+                    "J",
+                    "K"
+                  ],
+                  "branches": {
+                    "L": {
+                      "left": [
+                        "J"
+                      ],
+                      "right": [
+                        "K"
+                      ],
+                      "branches": {
+                        "L": {
+                          "coin": "K",
+                          "deviation": -1
+                        },
+                        "=": {
+                          "coin": "I",
+                          "deviation": 1
+                        },
+                        "R": {
+                          "coin": "J",
+                          "deviation": -1
+                        }
+                      }
+                    },
+                    "=": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "L"
+                      ],
+                      "branches": {
+                        "L": {
+                          "coin": "L",
+                          "deviation": -1
+                        },
+                        "R": {
+                          "coin": "L",
+                          "deviation": 1
+                        }
+                      }
+                    },
+                    "R": {
+                      "left": [
+                        "J"
+                      ],
+                      "right": [
+                        "K"
+                      ],
+                      "branches": {
+                        "L": {
+                          "coin": "J",
+                          "deviation": 1
+                        },
+                        "=": {
+                          "coin": "I",
+                          "deviation": -1
+                        },
+                        "R": {
+                          "coin": "K",
+                          "deviation": 1
+                        }
+                      }
+                    }
+                  }
+                },
+                "R": {
+                  "left": [
+                    "A",
+                    "B",
+                    "E"
+                  ],
+                  "right": [
+                    "C",
+                    "D",
+                    "F"
+                  ],
+                  "branches": {
+                    "L": {
+                      "left": [
+                        "C"
+                      ],
+                      "right": [
+                        "D"
+                      ],
+                      "branches": {
+                        "L": {
+                          "coin": "D",
+                          "deviation": -1
+                        },
+                        "=": {
+                          "coin": "E",
+                          "deviation": 1
+                        },
+                        "R": {
+                          "coin": "C",
+                          "deviation": -1
+                        }
+                      }
+                    },
+                    "=": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "G"
+                      ],
+                      "branches": {
+                        "=": {
+                          "coin": "H",
+                          "deviation": 1
+                        },
+                        "R": {
+                          "coin": "G",
+                          "deviation": 1
+                        }
+                      }
+                    },
+                    "R": {
+                      "left": [
+                        "A"
+                      ],
+                      "right": [
+                        "B"
+                      ],
+                      "branches": {
+                        "L": {
+                          "coin": "B",
+                          "deviation": -1
+                        },
+                        "=": {
+                          "coin": "F",
+                          "deviation": 1
+                        },
+                        "R": {
+                          "coin": "A",
+                          "deviation": -1
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "worst_case_weighings": 3
+          },
+          "hint": "Start with four against four. After a tilt, compare a mixture of heavy-side and light-side suspects.",
+          "insight": "Twenty-four signed possibilities must be separated in three ternary experiments. A bad first partition leaves no guaranteed completion.",
+          "prerequisites": "Read balance outcomes; track which pebble and which direction of weight still fit.",
+          "difficulty_level": "hard",
+          "difficulty_reasoning": "Twenty-four signed possibilities must be separated in three ternary experiments. A bad first partition leaves no guaranteed completion.",
+          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
+          "prompt": "Find the odd pebble and whether it is heavy or light in at most 3 weighings."
+        }
+      ]
+    }
+  ]
+}

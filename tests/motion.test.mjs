@@ -1,0 +1,226 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { motionMechanics, simulateBilliard, firstClockHit } from '../dist/motion.js';
+
+const catalog = JSON.parse(readFileSync(new URL('../docs/puzzle-expansion/motion.json', import.meta.url)));
+const puzzles = catalog.families.flatMap(family => family.instances.map(instance => ({ ...instance, mechanic: family.id })));
+const puzzle = id => puzzles.find(p => p.id === id);
+const edgeIndex = (p, edge) => p.parameters.edges.findIndex(candidate => candidate.every(vertex => edge.includes(vertex)));
+const initial = p => motionMechanics[p.mechanic].fresh(p);
+function applyWitness(p) {
+  const handler = motionMechanics[p.mechanic], solution = p.solution;
+  if (p.mechanic === 'toggle') return solution.presses.reduce((board, edge) => handler.move(p, board, { edge: edgeIndex(p, edge) }), initial(p));
+  return handler.move(p, initial(p), solution);
+}
+
+for (const p of puzzles) test(`${p.id}: witness works, survives JSON, and hints solve from a fresh board`, () => {
+  const handler = motionMechanics[p.mechanic], fresh = initial(p);
+  assert.equal(handler.valid(p, fresh), true);
+  assert.equal(handler.solved(p, fresh), false);
+  const solved = applyWitness(p);
+  assert.equal(handler.valid(p, solved), true);
+  assert.equal(handler.solved(p, solved), true);
+  assert.deepEqual(handler.hint(p, solved), { type: 'done' });
+  assert.equal(handler.valid(p, JSON.parse(JSON.stringify(solved))), true);
+  let board = fresh;
+  for (let steps = 0; !handler.solved(p, board) && steps < 12; steps++) {
+    const hint = handler.hint(p, board);
+    assert.equal(hint.type, 'move');
+    assert.ok(hint.text.length > 10);
+    board = handler.move(p, board, hint.action);
+    assert.ok(board);
+  }
+  assert.equal(handler.solved(p, board), true);
+  const withoutWitness = { ...p, solution: {} };
+  assert.equal(handler.solved(withoutWitness, solved), true, 'completion computes the mathematical rule independently of witnesses');
+  assert.doesNotThrow(() => handler.render(p, { board: fresh }));
+  assert.doesNotThrow(() => handler.render(p, { board: solved }));
+});
+
+test('all motion families reject malformed saves and moves without throwing or mutation', () => {
+  const malformed = [null, undefined, false, 1, '', [], {}, { prediction: false }, { prediction: NaN }, { prediction: Infinity }, { prediction: -1 }, { prediction: [] }, { on: [], presses: null }];
+  for (const p of puzzles) {
+    const handler = motionMechanics[p.mechanic];
+    for (const board of malformed) {
+      assert.equal(handler.valid(p, board), false, `${p.id}: ${JSON.stringify(board)}`);
+      assert.equal(handler.solved(p, board), false);
+      assert.equal(handler.move(p, board, {}), null);
+    }
+    const board = initial(p), snapshot = JSON.stringify(board);
+    for (const action of [null, [], {}, true, { edge: -1 }, { edge: 1.3 }, { activations: '1e2' }, { activations: '' }, { activations: false }, { jump: 'NaN' }, { bounces: null }, { rise: 0, run: 0 }]) {
+      assert.equal(handler.move(p, board, action), null, p.id);
+    }
+    const hint = handler.hint(p, board);
+    handler.move(p, board, hint.action);
+    assert.equal(JSON.stringify(board), snapshot, 'move and hint are pure');
+  }
+});
+
+test('lantern moves flip only endpoints, cancel in pairs, and accept alternate cycle solutions', () => {
+  const p = puzzle('toggle-01'), handler = motionMechanics.toggle;
+  let board = handler.move(p, initial(p), { edge: '0' });
+  assert.deepEqual(board.on, ['1', '2']);
+  board = handler.move(p, board, { edge: 0 });
+  assert.deepEqual(board.on, []);
+  assert.deepEqual(board.presses, [0, 0]);
+  board = [1, 2, 3].reduce((state, edge) => handler.move(p, state, { edge }), initial(p));
+  assert.equal(handler.solved(p, board), true, 'the complementary three-edge solution is accepted');
+  const opposite = puzzle('toggle-02');
+  board = [3, 2].reduce((state, edge) => handler.move(opposite, state, { edge }), initial(opposite));
+  assert.equal(handler.solved(opposite, board), true);
+  assert.equal(handler.move(p, board, { edge: 999 }), null);
+});
+
+test('lantern budgets are derived from replay and cannot be bypassed by importing a target', () => {
+  for (const p of puzzles.filter(p => p.mechanic === 'toggle' && p.parameters.press_budget != null)) {
+    const handler = motionMechanics.toggle, solved = applyWitness(p);
+    assert.equal(handler.move(p, solved, { edge: 0 }), null);
+    assert.equal(handler.valid(p, { on: [...p.parameters.target_on], presses: [] }), false);
+    assert.equal(handler.valid(p, { ...solved, presses: [...solved.presses, 0, 0] }), false);
+    assert.equal(handler.valid(p, { ...solved, on: [...solved.on, solved.on[0]] }), false);
+    assert.equal(handler.valid(p, { ...solved, presses: ['0'] }), false);
+  }
+  const p = puzzle('toggle-06'), handler = motionMechanics.toggle;
+  const tempting = handler.move(p, initial(p), { edge: edgeIndex(p, ['B', 'C']) });
+  assert.equal(handler.hint(p, tempting).type, 'deadend', 'greedy middle pairing cannot meet the remaining budget');
+});
+
+test('lantern hints solve or explain every reachable budgeted state', () => {
+  for (const p of puzzles.filter(p => p.mechanic === 'toggle' && p.parameters.press_budget != null)) {
+    const handler = motionMechanics.toggle;
+    let states = [initial(p)];
+    for (let depth = 0; depth <= p.parameters.press_budget; depth++) {
+      const nextStates = new Map();
+      for (const board of states) {
+        const hint = handler.hint(p, board);
+        if (hint.type === 'move') {
+          let state = board;
+          for (let i = 0; i < hint.remaining; i++) state = handler.move(p, state, handler.hint(p, state).action);
+          assert.equal(handler.solved(p, state), true, p.id);
+        } else if (hint.type === 'done') assert.equal(handler.solved(p, board), true);
+        else assert.match(hint.text, /Undo|start again/);
+        for (let edge = 0; edge < p.parameters.edges.length; edge++) {
+          const next = handler.move(p, board, { edge });
+          if (next) nextStates.set(next.on.join(','), next);
+        }
+      }
+      states = [...nextStates.values()];
+    }
+  }
+});
+
+test('clock counts require the first positive simultaneous hit, including proper orbits and wraps', () => {
+  const handler = motionMechanics.clock;
+  for (const p of puzzles.filter(p => p.mechanic === 'clock' && p.parameters.mode !== 'choose_jump')) {
+    const first = firstClockHit(p.parameters);
+    assert.equal(first, p.solution.activations);
+    for (let count = 1; count <= p.solution.joint_period * 2; count++) {
+      const board = handler.move(p, initial(p), { activations: String(count) });
+      assert.equal(handler.solved(p, board), count === first);
+      if (count !== first) {
+        const hint = handler.hint(p, board);
+        assert.equal(handler.solved(p, handler.move(p, board, hint.action)), true);
+      }
+    }
+    assert.equal(handler.move(p, initial(p), { activations: 0 }), null);
+    assert.equal(handler.valid(p, { prediction: '3' }), false);
+  }
+  assert.equal(firstClockHit({ clocks: [{ positions: 6, jump: 2, start: 0, target: 1 }] }), null);
+  assert.equal(firstClockHit({ clocks: [{ positions: 6, jump: 2, start: 0, target: 0 }] }), 3, 'zero is not the first positive return');
+});
+
+test('clock gear mode accepts every valid gear and rejects early returns', () => {
+  const p = puzzle('clock-04'), handler = motionMechanics.clock, winners = [];
+  for (let jump = 1; jump <= 11; jump++) {
+    const board = handler.move(p, initial(p), { jump: String(jump) });
+    if (handler.solved(p, board)) winners.push(jump);
+  }
+  assert.deepEqual(winners, [3, 9]);
+  assert.equal(handler.solved(p, { prediction: 6 }), false, '+6 reaches zero at bell four but first returns at bell two');
+  assert.equal(handler.move(p, initial(p), { jump: 12 }), null);
+});
+
+test('exact billiard paths match all authored rational witnesses', () => {
+  for (const p of puzzles.filter(p => p.mechanic === 'billiard')) {
+    const width = p.solution.width ?? p.parameters.width, height = p.parameters.height;
+    const rise = p.solution.rise ?? p.parameters.rise, run = p.solution.run ?? p.parameters.run;
+    const result = simulateBilliard(width, height, rise, run);
+    assert.deepEqual(result.path, p.solution.path, p.id);
+    assert.equal(result.corner, p.solution.corner);
+    assert.equal(result.bounces, p.solution.bounces);
+    assert.equal(result.path.length, result.bounces + 2, 'launch and terminal corner are not wall bounces');
+  }
+});
+
+// Independent scaled-lattice unit-step reflection checks the unfolded event
+// solver. Scaling walls by rise*run makes every wall collision an integer tick.
+function stepBilliard(width, height, rise, run) {
+  const scale = rise * run, w = width * scale, h = height * scale;
+  let x = 0, y = 0, dx = run, dy = rise, bounces = 0;
+  for (let tick = 1; tick < 200000; tick++) {
+    x += dx; y += dy;
+    const vertical = x === 0 || x === w, horizontal = y === 0 || y === h;
+    if (vertical && horizontal) return { corner: `${y === h ? 'top' : 'bottom'}-${x === w ? 'right' : 'left'}`, bounces };
+    if (vertical) { dx = -dx; bounces++; }
+    if (horizontal) { dy = -dy; bounces++; }
+  }
+  assert.fail('lattice simulation did not reach a corner');
+}
+
+test('billiard arithmetic agrees with independent reflection for 576 room/direction combinations', () => {
+  for (let width = 1; width <= 6; width++) for (let height = 1; height <= 6; height++) for (let rise = 1; rise <= 4; rise++) for (let run = 1; run <= 4; run++) {
+    const exact = simulateBilliard(width, height, rise, run), stepped = stepBilliard(width, height, rise, run);
+    assert.equal(exact.corner, stepped.corner);
+    assert.equal(exact.bounces, stepped.bounces);
+    assert.notEqual(exact.corner, 'bottom-left');
+  }
+});
+
+test('billiard design validates all alternatives, whole intervals, and physical slope', () => {
+  const handler = motionMechanics.billiard;
+  for (const p of puzzles.filter(p => p.mechanic === 'billiard' && p.parameters.mode !== 'predict')) {
+    const params = p.parameters, winners = [];
+    if (params.mode === 'choose_width') {
+      for (let width = params.width_min; width <= params.width_max; width++) {
+        const board = handler.move(p, initial(p), { width: String(width) });
+        assert.ok(board);
+        if (handler.solved(p, board)) winners.push(width);
+      }
+      assert.deepEqual(winners, p.solution.all_valid_widths);
+      assert.equal(handler.move(p, initial(p), { width: params.width_max + 1 }), null);
+    } else {
+      for (let rise = params.component_min; rise <= params.component_max; rise++) for (let run = params.component_min; run <= params.component_max; run++) {
+        const board = handler.move(p, initial(p), { rise: String(rise), run: String(run) });
+        assert.ok(board);
+        if (handler.solved(p, board)) winners.push([rise, run]);
+      }
+      assert.deepEqual(winners, p.solution.all_valid_directions);
+      assert.equal(handler.move(p, initial(p), { rise: params.component_max + 1, run: 1 }), null);
+    }
+  }
+  const p = puzzle('billiard-06');
+  assert.equal(handler.solved(p, handler.move(p, initial(p), { rise: 5, run: 1 })), false, 'square-normalized direction is wrong for this rectangle');
+});
+
+test('billiard predictions conceal the path until submission and recover after wrong choices', () => {
+  const handler = motionMechanics.billiard;
+  for (const p of puzzles.filter(p => p.mechanic === 'billiard')) {
+    const fresh = initial(p), hidden = handler.render(p, { board: fresh });
+    assert.doesNotMatch(hidden, /class="courier-path"|class="unfolded-rooms"/);
+    assert.equal(handler.help(p, { board: fresh }), '');
+    const wrong = p.parameters.mode === 'predict' ? { corner: 'bottom-left', bounces: 0 } : p.parameters.mode === 'choose_width' ? { width: 1 } : { rise: 1, run: 1 };
+    const board = handler.move(p, fresh, wrong);
+    assert.equal(handler.solved(p, board), false);
+    const shown = handler.render(p, { board });
+    assert.match(shown, /class="courier-path"/);
+    assert.doesNotMatch(shown, /class="unfolded-rooms"/);
+    assert.match(handler.help(p, { board }), /class="unfolded-rooms"/);
+    const hint = handler.hint(p, board);
+    assert.equal(handler.solved(p, handler.move(p, board, hint.action)), true);
+  }
+  const p = puzzle('billiard-01');
+  assert.equal(handler.move(p, initial(p), { corner: 'top-left', bounces: -1 }), null);
+  assert.equal(handler.move(p, initial(p), { corner: '<script>', bounces: 1 }), null);
+  assert.equal(handler.move(p, initial(p), { corner: 'top-left', bounces: '1.5' }), null);
+});

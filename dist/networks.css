@@ -1,0 +1,23 @@
+.network-graph {position:relative; width:100%; max-width:520px; aspect-ratio:1.15; margin:1.2rem auto;}
+.network-graph svg {position:absolute;width:100%;height:100%;overflow:visible;inset:0;}
+.network-graph line {stroke:#8396ae;stroke-width:.65;}
+.network-graph line.road-used {stroke:#227768;stroke-width:1.2;stroke-dasharray:2 1;}
+.network-graph line.link-conflict {stroke:#ad3929;stroke-width:1.2;stroke-dasharray:2 1;}
+.network-graph text {font-size:4px;fill:#142b48;paint-order:stroke;stroke:#fffdf8;stroke-width:2px;stroke-linejoin:round;text-anchor:middle;}
+.network-graph button {position:absolute;transform:translate(-50%,-50%);min-width:44px;min-height:44px;padding:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;border-radius:50%;line-height:1.15;font-size:14px;border:2px solid #314b68;background:#fffdf8;}
+.network-graph button:disabled {opacity:.85;}
+.network-graph button[aria-current] {outline:4px solid #dd8845;}
+.network-graph button span {font-size:17px;}
+.network-graph.color-06 {aspect-ratio:1;}
+.network-graph [data-color="1"],.color-palette [data-color="1"] {background:#c4e5f6;color:#143b57;}
+.network-graph [data-color="2"],.color-palette [data-color="2"] {background:#fae5a7;color:#5b4204;}
+.network-graph [data-color="3"],.color-palette [data-color="3"] {background:#dfd0f3;color:#49326b;}
+.network-graph [data-color="4"],.color-palette [data-color="4"] {background:#f9ccc2;color:#6b3026;}
+.color-palette {display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;margin-top:1rem;}
+.color-palette button[aria-pressed="true"] {outline:3px solid #193b5f;outline-offset:2px;}
+.network-score,.route-history {text-align:center;margin:.7rem 0;overflow-wrap:anywhere;}
+.network-instruction {line-height:1.6;}
+/* The drawing is behind native controls and must never intercept their taps. */
+.network-graph svg {pointer-events:none;z-index:0;}
+.network-graph button {z-index:1;}
+.network-graph button:active:not(:disabled) {transform:translate(-50%,-50%);}
