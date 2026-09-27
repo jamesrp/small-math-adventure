@@ -14,3 +14,8 @@ fieldset{padding:0;border:0;margin:0;min-width:0}legend{padding:0}summary{cursor
 .wonder-prompt{padding:18px;border:1px solid #d6b968;background:#fff4ce;border-radius:16px;margin-top:18px}
 @media(min-width:761px) and (max-height:900px){.topbar{padding-top:16px;padding-bottom:16px}.shell{padding-top:8px}.puzzle-intro{margin:12px 0 18px}.puzzle-intro h1{font-size:2rem;margin:4px 0 8px}.puzzle-intro>p:last-child{font-size:1rem}.board-panel{padding:16px}.cup-board{margin:14px auto;max-width:520px}.allowed-pairs{margin:16px 0;padding-top:12px}.allowed-pairs>div{margin-top:8px}.board-bottom{padding-top:12px}.guide-card{padding:20px}.guide-symbol{display:none}.guide-card h2{font-size:1.15rem}.guide-card p{font-size:.95rem}.tile-board{width:min(100%,calc(var(--cols)*54px));margin:20px auto}.tool-grid{gap:10px;margin-top:16px}.wonder-prompt{margin-top:14px}}
 @media(max-width:760px){.play-sidebar>.wonder-prompt{grid-column:span 2}}
+/* L pieces paint exactly three grid cells, leaving the fourth corner untouched. */
+.garden-l-cell{pointer-events:none}.tile-controls{display:flex;align-items:center;justify-content:center;gap:12px}.l-swatch{display:grid;grid-template:repeat(2,22px)/repeat(2,22px);gap:2px}.l-swatch i{display:grid;place-items:center;background:#8cddae;border:1px solid #286854;border-radius:3px;font-style:normal}.garden-cell.tile-preview{background:#b6eacb;outline:3px solid #286854;outline-offset:-4px}.garden-cell.tile-preview.invalid{background:#ffe0cf;outline:3px dashed #9b4525}.tile-constraint{margin:12px 0 0;font-size:.95rem}
+
+/* Preserve the board coordinates even when an entire row contains holes. */
+.tile-board{grid-template-rows:repeat(var(--rows),1fr)}

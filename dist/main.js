@@ -1,3 +1,4 @@
+import { lPreview, tileInstructions } from './tile-controls.js';
 import {isExpansion,mechanicFor,playInstructions} from './expansion.js';
 import {puzzleObjective} from './puzzle-copy.js';
 import { BANDS,freshAttempt,resumeAttempt,isSolved,nextHint,move,removeTile,undo,restart,undoToSolvable } from './engine.js';
@@ -7,6 +8,7 @@ import { COMPANIONS, getProgress, getEncounter, startJourney, chooseRoute, begin
 import { caravanHeader, caravanProfiles, caravanMap, journalView, companionBody, libraryView } from './caravan-ui.js';
 const app=document.querySelector('#app');
 let pack,puzzles,state,warning='',selected=null,highlighted=null,message='',checker=false,pwaMessage='Preparing offline play…',currentDialog;
+let tileRotation=0;
 let sessionCompleted=new Set(),activePlay=null;
 let storage;
 try{storage=window.localStorage;}catch{storage={getItem(){throw Error();},setItem(){throw Error();},removeItem(){throw Error();}};}
@@ -33,15 +35,15 @@ function render(){
   const focus=document.activeElement?.dataset?.focus,focusedPair=document.activeElement?.dataset?.pair,view=route()[0],pr=profile(),p=puzzle();
   const playKey=view==='play'&&pr&&p?`${pr.id}/${location.hash}`:null;
   if(playKey!==activePlay){
-    activePlay=playKey;
+    activePlay=playKey;tileRotation=0;
     if(playKey){pr.attempts[p.id]=resumeAttempt(p,pr.attempts[p.id]);save();}
   }
   const encounter=activeEncounter();
-  const content=view==='parents'?parentView(state,pr,pack,pwaMessage):!pr||view==='profiles'?caravanProfiles(state,puzzles):view==='journal'?journalView(pr,puzzles):view==='library'?libraryView(pr,puzzles):view==='play'&&p?playView(p,attempt(p),{pack,profile:pr,encounter,selected,highlighted,message,checker,sessionCount:sessionCompleted.size}):caravanMap(pr,puzzles);
+  const content=view==='parents'?parentView(state,pr,pack,pwaMessage):!pr||view==='profiles'?caravanProfiles(state,puzzles):view==='journal'?journalView(pr,puzzles):view==='library'?libraryView(pr,puzzles):view==='play'&&p?playView(p,attempt(p),{pack,profile:pr,encounter,selected,highlighted,message,checker,tileRotation,sessionCount:sessionCompleted.size}):caravanMap(pr,puzzles);
   document.body.dataset.view=view||'map';
   document.body.classList.toggle('on-encounter',Boolean(encounter));
   app.innerHTML=caravanHeader(pr,view==='library'||(view==='play'&&!encounter)?'library':view==='journal'?'journal':'journey')+(warning?`<div class="error-banner" role="status">${esc(warning)}</div>`:'')+`<main class="shell" id="main">${content}</main>`;
-  if(focus){let target=(focusedPair?app.querySelector(`[data-pair="${CSS.escape(focusedPair)}"]`):app.querySelector(`[data-focus="${CSS.escape(focus)}"]`));if(!target||target.disabled)target=app.querySelector('.latin-cell[aria-pressed="true"]:not(:disabled)')||app.querySelector('.nim-status')||app.querySelector('#completion-heading');target?.focus({preventScroll:true});}
+  if(focus){let target=(focusedPair?app.querySelector(`[data-pair="${CSS.escape(focusedPair)}"]`):app.querySelector(`[data-focus="${CSS.escape(focus)}"]`));if(!target||target.disabled)target=app.querySelector('.latin-cell[aria-pressed="true"]:not(:disabled)')||app.querySelector('.nim-status')||app.querySelector('#completion-heading')||app.querySelector('.garden-cell');target?.focus({preventScroll:true});}
   wireForms();
 }
 function wireForms(){
@@ -58,7 +60,7 @@ function dialog(title,body,actions=[{label:'Done'}]){
   d.addEventListener('close',()=>{d.remove();if(currentDialog===d)currentDialog=null;if(previous?.isConnected)previous.focus();});d.showModal();return d;
 }
 function instructions(p){
-  return isExpansion(p)?playInstructions(p):p.mechanic==='tile'?'Tap two neighboring empty squares to place a domino. Tap a domino to remove it.':'Tap two cups to swap them. Only the listed pairs can swap.';
+  return isExpansion(p)?playInstructions(p):p.mechanic==='tile'?tileInstructions(p):'Tap two cups to swap them. Only the listed pairs can swap.';
 }
 function speak(p){
   if(!('speechSynthesis'in window)){message='Read-aloud unavailable. Open How to play.';render();return;}
@@ -82,7 +84,7 @@ function openEncounter(id){
   if(!profile().attempts[next.puzzle.id])profile().attempts[next.puzzle.id]=freshAttempt(next.puzzle);
   save();go(`play/${next.puzzle.id}/${next.encounter.id}`);
 }
-function applyPair(p,pair){const a=attempt(p),encounter=activeEncounter(),next=move(p,a,pair);selected=p.mechanic==='latin'?Number(pair.cell):null;highlighted=null;if(!next){message=isExpansion(p)?'That move is not allowed. Check How to play.':p.mechanic==='tile'?'Choose two empty patches that share a side.':'Choose a listed pair.';render();return;}message='';if(isSolved(p,next.board)&&!a.completed)sessionCompleted.add(p.id);profile().attempts[p.id]=next;if(encounter&&isSolved(p,next.board))completeEncounter(profile(),p.id,encounter.id,puzzles);save();render();if(isSolved(p,next.board)){if(encounter)window.scrollTo(0,0);document.querySelector('#completion-heading')?.focus({preventScroll:true});}}
+function applyPair(p,pair){const a=attempt(p),encounter=activeEncounter(),next=move(p,a,pair);selected=p.mechanic==='latin'?Number(pair.cell):null;highlighted=null;if(!next){message=isExpansion(p)?'That move is not allowed. Check How to play.':p.mechanic==='tile'?(p.tileShape==='l-tromino'?'Choose three empty patches forming an L.':'Choose two empty patches that share a side.'):'Choose a listed pair.';render();return;}message='';if(isSolved(p,next.board)&&!a.completed)sessionCompleted.add(p.id);profile().attempts[p.id]=next;if(encounter&&isSolved(p,next.board))completeEncounter(profile(),p.id,encounter.id,puzzles);save();render();if(isSolved(p,next.board)){if(encounter)window.scrollTo(0,0);document.querySelector('#completion-heading')?.focus({preventScroll:true});}}
 document.addEventListener('keydown',event=>{
   const wire=event.target.closest('.wire-hit');
   if(wire&&['Enter',' '].includes(event.key)){event.preventDefault();if(wire.getAttribute('aria-disabled')!=='true')wire.dispatchEvent(new MouseEvent('click',{bubbles:true}));return;}
@@ -118,7 +120,9 @@ document.addEventListener('click',event=>{
   else if(action==='open-puzzle')openPuzzle(control.dataset.id);
   else if(action==='parents-gate')dialog('Grown-ups','',[{label:'Back to play'},{label:'I’m a grown-up',run:()=>go('parents')}]);
   else if(action==='change-band')dialog('Puzzle level',`<p>For future encounters.</p><div class="grade-options">${bandOptions(profile().band)}</div>`,[{label:'Cancel'},{label:'Apply',run:d=>{profile().band=d.querySelector('input[name=band]:checked').value;save();render();}}]);
-  else if(action==='tile-cell'&&p?.mechanic==='tile'){const cell=Number(control.dataset.cell);if(a.board.some(pair=>pair.includes(cell))){put(p,removeTile(p,a,cell));selected=null;highlighted=null;message='';render();}else if(selected===cell){selected=null;render();}else if(selected===null){selected=cell;message='';render();}else applyPair(p,[selected,cell]);}
+  else if(action==='tile-cell'&&p?.mechanic==='tile'){const cell=Number(control.dataset.cell);if(a.board.some(pair=>pair.includes(cell))){put(p,removeTile(p,a,cell));selected=null;highlighted=null;message='';render();}else if(p.tileShape==='l-tromino'){selected=cell;message='';render();}else if(selected===cell){selected=null;render();}else if(selected===null){selected=cell;message='';render();}else applyPair(p,[selected,cell]);}
+  else if(action==='rotate-tile'&&p?.tileShape==='l-tromino'){tileRotation=(tileRotation+1)%4;message='';render();}
+  else if(action==='place-tile'&&p?.tileShape==='l-tromino'){const preview=lPreview(p,a.board,selected,tileRotation);if(preview.valid)applyPair(p,preview.cells);}
   else if(action==='cup'&&p?.mechanic==='swap'){const cell=Number(control.dataset.cell);if(selected===cell){selected=null;render();}else if(selected===null){selected=cell;message='';render();}else applyPair(p,[selected,cell]);}
   else if(action==='latin-cell'&&p?.mechanic==='latin'){selected=Number(control.dataset.cell);message='';render();}
   else if(action==='expansion-move'&&p&&a){try{applyPair(p,JSON.parse(control.dataset.move));}catch{message='Choose a move using the controls above.';render();}}
