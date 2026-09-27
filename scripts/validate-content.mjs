@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {withCampaignPuzzles} from '../dist/caravan.js';
-import { freshAttempt, move, isSolved, solveTiles, solveSwaps, nextHint, validBoard } from '../dist/engine.js';
+import { freshAttempt, move, isSolved, solveTiles, solveSwaps, nextHint, validBoard, tileSize } from '../dist/engine.js';
 export async function validateContent(){
   const pack=JSON.parse(await readFile(new URL('../dist/puzzles.json',import.meta.url),'utf8'));
   const {puzzles,sources}=pack;
@@ -32,7 +32,7 @@ export async function validateContent(){
     }
     if(p.mechanic==='tile'){
       assert.ok(Number.isInteger(p.cols)&&p.cols>=1&&p.cols<=6&&Number.isInteger(p.rows)&&p.rows>=1&&p.rows<=6);
-      assert.equal(new Set(p.cells).size,p.cells.length);assert.equal(p.cells.length%2,0);assert.ok(p.cells.length<=24);
+      assert.equal(new Set(p.cells).size,p.cells.length);assert.ok(tileSize(p), `${p.id}: unsupported tileShape`);assert.equal(p.cells.length%tileSize(p),0);assert.ok(p.cells.length<=24);
       assert.ok(p.cells.every(c=>Number.isInteger(c)&&c>=0&&c<p.cols*p.rows));assert.ok(solveTiles(p),p.id);
     }else{
       assert.ok(p.start.length>=2&&p.start.length<=6);assert.deepEqual([...p.start].sort((a,b)=>a-b),p.target);
