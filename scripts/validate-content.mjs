@@ -21,7 +21,8 @@ export async function validateContent(){
     assert.equal(list.length,12);assert.deepEqual(list.map(p=>p.number).sort((a,b)=>a-b),Array.from({length:12},(_,i)=>i+1));
   }
   for(const p of puzzles){
-    assert.equal(p.revision,1);for(const key of ['id','title','instruction','idea'])assert.ok(typeof p[key]==='string'&&p[key].trim(),`${p.id} ${key}`);
+    assert.equal(p.revision,/^tile-(k1|23|45)-(04|08|12)$/.test(p.id)?2:1);
+    if (/^tile-(k1|23|45)-(04|08|12)$/.test(p.id)) assert.equal(p.tileShape,'l-tromino');for(const key of ['id','title','instruction','idea'])assert.ok(typeof p[key]==='string'&&p[key].trim(),`${p.id} ${key}`);
     assert.equal(p.hints.length,3);p.hints.forEach(h=>assert.ok(typeof h==='string'&&h.trim()));
     for(const key of ['notice','prompt','explanation','extension','connection'])assert.ok(p.parent[key]?.trim(),`${p.id} parent.${key}`);
     assert.ok(p.parent.sourceIds.length);for(const id of p.parent.sourceIds)assert.ok(sources.some(s=>s.id===id),`${p.id} ${id}`);

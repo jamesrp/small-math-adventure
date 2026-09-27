@@ -1,0 +1,650 @@
+{
+  "tile-k1-04": {
+    "id": "tile-k1-04",
+    "band": "k1",
+    "mechanic": "tile",
+    "number": 4,
+    "cols": 3,
+    "rows": 2,
+    "cells": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "solution": [
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "title": "Around the bend",
+    "instruction": "Cover the path around the bend.",
+    "idea": "A tricky shape may have an easy starting place.",
+    "hints": [
+      "Find a square at a tip.",
+      "The bottom square can only reach upward.",
+      "Pair the left two squares up and down. Pair the two remaining top squares."
+    ],
+    "parent": {
+      "notice": "Watch for a switch between horizontal and vertical thinking.",
+      "prompt": "Which square helped you decide where to start?",
+      "explanation": "The bottom tip forces a vertical domino. The two remaining top squares then form a horizontal pair. This is the only complete tiling.",
+      "extension": "Turn a paper copy around. Does turning the whole board change its solution?",
+      "connection": "Local constraints can determine an entire matching.",
+      "sourceIds": [
+        "tile-mit-matching"
+      ]
+    },
+    "revision": 1
+  },
+  "tile-k1-08": {
+    "id": "tile-k1-08",
+    "band": "k1",
+    "mechanic": "tile",
+    "number": 8,
+    "cols": 4,
+    "rows": 2,
+    "cells": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      7
+    ],
+    "solution": [
+      [
+        1,
+        2
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        6,
+        7
+      ]
+    ],
+    "title": "The little boat",
+    "instruction": "Cover the boat, tip to tip.",
+    "idea": "A mirror can help us predict a matching move.",
+    "hints": [
+      "Look at the two bottom corners.",
+      "Each bottom corner has just one neighbor.",
+      "Pair the bottom-left two and bottom-right two. Finish the top pair."
+    ],
+    "parent": {
+      "notice": "Notice whether your child finds matching moves on the two sides.",
+      "prompt": "If this side needs a domino, what might the other side need?",
+      "explanation": "Both bottom corners force horizontal pairs. The two top squares then pair with each other. Reflection preserves this single tiling.",
+      "extension": "Fold a paper drawing along the middle. Do the dominoes match across the fold?",
+      "connection": "Symmetry can simplify a constraint problem.",
+      "sourceIds": [
+        "tile-mit-matching"
+      ]
+    },
+    "revision": 1
+  },
+  "tile-k1-12": {
+    "id": "tile-k1-12",
+    "band": "k1",
+    "mechanic": "tile",
+    "number": 12,
+    "cols": 4,
+    "rows": 3,
+    "cells": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      7,
+      9,
+      10
+    ],
+    "solution": [
+      [
+        1,
+        2
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        9,
+        10
+      ]
+    ],
+    "title": "The tiny crown",
+    "instruction": "Cover the whole crown.",
+    "idea": "Explain why your choices must work.",
+    "hints": [
+      "Find the two side tips.",
+      "Each side tip has only one partner.",
+      "Cover each side tip with its neighbor. Finish the top pair and the bottom pair."
+    ],
+    "parent": {
+      "notice": "Invite an explanation in pointing and gestures, not just words.",
+      "prompt": "Can you show why no other domino can cover this tip?",
+      "explanation": "The left and right tips force the two middle-row horizontal pairs. The top and bottom pairs are then forced. Listing these reasons proves the tiling is unique.",
+      "extension": "Ask your child to teach someone else which pair must come first.",
+      "connection": "A chain of unavoidable choices is a small proof.",
+      "sourceIds": [
+        "tile-mit-matching"
+      ]
+    },
+    "revision": 1
+  },
+  "tile-23-04": {
+    "id": "tile-23-04",
+    "band": "23",
+    "mechanic": "tile",
+    "number": 4,
+    "cols": 4,
+    "rows": 4,
+    "cells": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      6,
+      9,
+      10,
+      11,
+      13,
+      14,
+      15
+    ],
+    "solution": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        11,
+        15
+      ],
+      [
+        13,
+        14
+      ]
+    ],
+    "title": "The offset terraces",
+    "instruction": "Cover both terraces without gaps.",
+    "idea": "Choose a split that leaves solvable pieces.",
+    "hints": [
+      "Look at the top two rows as one terrace.",
+      "The bottom two rows form another terrace, shifted right.",
+      "Use three vertical dominoes in the top terrace and three in the bottom terrace."
+    ],
+    "parent": {
+      "notice": "The child can choose an imaginary boundary through a connected board.",
+      "prompt": "Which two small rectangles can you see?",
+      "explanation": "Splitting between rows two and three gives two 2 by 3 rectangles. Tiling those separately proves the whole board works. Some other solutions cross the split; our construction need not find every solution.",
+      "extension": "Find a solution that does cross the middle split, then compare it with the two-terrace method.",
+      "connection": "Decomposition proves existence without claiming uniqueness.",
+      "sourceIds": [
+        "tile-mit-mcs"
+      ]
+    },
+    "revision": 1
+  },
+  "tile-23-08": {
+    "id": "tile-23-08",
+    "band": "23",
+    "mechanic": "tile",
+    "number": 8,
+    "cols": 4,
+    "rows": 4,
+    "cells": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      13,
+      14
+    ],
+    "solution": [
+      [
+        1,
+        2
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        13,
+        14
+      ]
+    ],
+    "title": "The small diamond",
+    "instruction": "Cover the diamond garden.",
+    "idea": "The border shapes the choices inside.",
+    "hints": [
+      "Each row has an even number of squares.",
+      "Pair squares across to make a first solution.",
+      "Cover the top pair, both middle rows in pairs, and the bottom pair."
+    ],
+    "parent": {
+      "notice": "After one solution, ask where a small change is possible.",
+      "prompt": "Which two dominoes could turn together inside a square?",
+      "explanation": "This is an Aztec diamond of order two. Its twelve cells have eight tilings. The horizontal construction is one, and local 2 by 2 flips produce others.",
+      "extension": "Draw several solutions and mark which dominoes stay near the same boundary.",
+      "connection": "Larger Aztec diamonds reveal striking patterns in random tilings.",
+      "sourceIds": [
+        "tile-arctic",
+        "tile-spaces"
+      ]
+    },
+    "revision": 1
+  },
+  "tile-23-12": {
+    "id": "tile-23-12",
+    "band": "23",
+    "mechanic": "tile",
+    "number": 12,
+    "cols": 4,
+    "rows": 4,
+    "cells": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "solution": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        14,
+        15
+      ]
+    ],
+    "title": "The rearranging courtyard",
+    "instruction": "Cover the courtyard. Then try a new pattern.",
+    "idea": "Solutions themselves can form a network.",
+    "hints": [
+      "Start with a pattern you can repeat.",
+      "Two dominoes in a 2 by 2 square can turn together.",
+      "A first solution is two horizontal dominoes in each row."
+    ],
+    "parent": {
+      "notice": "Keep the puzzle goal simple; the rearrangement is an optional conversation.",
+      "prompt": "Can you make another solution by changing just two dominoes?",
+      "explanation": "There are 36 tilings of this 4 by 4 board. A local flip trades two parallel dominoes in a square for the other orientation. Recording tilings as dots and flips as links makes a new graph.",
+      "extension": "Draw three or four linked solutions. A theorem guarantees all tilings of a simply connected domino region are linked by such flips.",
+      "connection": "The move graph of tilings is a research object.",
+      "sourceIds": [
+        "tile-spaces"
+      ]
+    },
+    "revision": 1
+  },
+  "tile-45-04": {
+    "id": "tile-45-04",
+    "band": "45",
+    "mechanic": "tile",
+    "number": 4,
+    "cols": 6,
+    "rows": 5,
+    "cells": [
+      0,
+      1,
+      6,
+      7,
+      8,
+      9,
+      13,
+      14,
+      15,
+      16,
+      20,
+      21,
+      22,
+      23,
+      28,
+      29
+    ],
+    "solution": [
+      [
+        0,
+        1
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        22,
+        23
+      ],
+      [
+        28,
+        29
+      ]
+    ],
+    "title": "The sloping ridge",
+    "instruction": "Cover the ridge while protecting the narrow ends.",
+    "idea": "Global completion may force central choices.",
+    "hints": [
+      "The top row and bottom row each form a pair.",
+      "Look for more forced pairs after the ends are covered.",
+      "A complete construction puts dominoes across each row, working left to right."
+    ],
+    "parent": {
+      "notice": "This board has fewer solutions than its size may suggest.",
+      "prompt": "Which choices disappear after you cover the two narrow ends?",
+      "explanation": "Every row has even length, so horizontal pairing provides a tiling. Exhaustive enumeration finds only four tilings: the narrow border forces many choices that look flexible at first.",
+      "extension": "Try to find the small patches where changes are actually possible. Compare a large rectangle with the same area.",
+      "connection": "Boundary conditions can strongly restrict a tiling space.",
+      "sourceIds": [
+        "tile-spaces"
+      ]
+    },
+    "revision": 1
+  },
+  "tile-45-08": {
+    "id": "tile-45-08",
+    "band": "45",
+    "mechanic": "tile",
+    "number": 8,
+    "cols": 6,
+    "rows": 6,
+    "cells": [
+      2,
+      3,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      25,
+      26,
+      27,
+      28,
+      32,
+      33
+    ],
+    "solution": [
+      [
+        2,
+        3
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        22,
+        23
+      ],
+      [
+        25,
+        26
+      ],
+      [
+        27,
+        28
+      ],
+      [
+        32,
+        33
+      ]
+    ],
+    "title": "The Aztec garden",
+    "instruction": "Cover the diamond; notice choices near its border.",
+    "idea": "The shape of a region influences its typical tilings.",
+    "hints": [
+      "Every row contains an even number of cells.",
+      "Horizontal pairs give an easy first tiling.",
+      "Pair left to right in each row, starting with the two-cell top row."
+    ],
+    "parent": {
+      "notice": "This small board invites a question about large families, not a claim about statistics from one play.",
+      "prompt": "If we drew many different tilings, which patterns might keep appearing?",
+      "explanation": "This order-three Aztec diamond has 24 cells and 64 tilings, verified by enumeration. Every tiling uses twelve dominoes, but orientations and positions vary.",
+      "extension": "Sketch several tilings. Large uniformly random Aztec diamonds have a disordered central region approaching a circle and ordered outer regions. A hand-chosen sample here is not uniform and this tiny board is not the limiting theorem.",
+      "connection": "A small counting question leads to random tilings and limit shapes.",
+      "sourceIds": [
+        "tile-arctic"
+      ]
+    },
+    "revision": 1
+  },
+  "tile-45-12": {
+    "id": "tile-45-12",
+    "band": "45",
+    "mechanic": "tile",
+    "number": 12,
+    "cols": 6,
+    "rows": 4,
+    "cells": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ],
+    "solution": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        22,
+        23
+      ]
+    ],
+    "title": "A whole world of tilings",
+    "instruction": "Cover the courtyard, then explore a small change.",
+    "idea": "Ask about all solutions and the paths between them.",
+    "hints": [
+      "A repeated row pattern is a useful first solution.",
+      "Look for a full 2 by 2 patch covered by two dominoes.",
+      "Start with three horizontal dominoes in each row; a pair of neighboring rows contains places to flip."
+    ],
+    "parent": {
+      "notice": "Celebrate a new question after solving: how many, how connected, how typical?",
+      "prompt": "Could you reach every tiling by turning two dominoes at a time?",
+      "explanation": "This 4 by 6 rectangle has 281 tilings. A local flip exchanges the two tilings of a 2 by 2 patch. Because the board is simply connected, its tilings are connected by flips. A height function encodes the tiling as integer heights at grid vertices.",
+      "extension": "Draw a short path of flips. Advanced questions study shortest paths, efficient random sampling, and fluctuations of height functions on much larger boards; this MVP does not measure those quantities.",
+      "connection": "Thurston’s height viewpoint links local moves with global structure.",
+      "sourceIds": [
+        "tile-thurston",
+        "tile-spaces",
+        "tile-kenyon"
+      ]
+    },
+    "revision": 1
+  }
+}

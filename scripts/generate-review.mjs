@@ -5,10 +5,10 @@ for(const band of ['k1','23','45']){
  text+=`## Grades ${{k1:'K–1','23':'2–3','45':'4–5'}[band]}\n\n`;
  const list=puzzles.filter(p=>p.band===band).sort((a,b)=>a.number-b.number||(a.mechanic==='tile'?-1:1));
  for(const[i,p]of list.entries()){
-  text+=`### ${i+1}. ${p.title}\n\nID: \`${p.id}\` · ${p.mechanic==='tile'?'Domino garden':'Cup swaps'}\n\n**Child instruction:** ${p.instruction}\n\n**Idea:** ${p.idea}\n\n`;
+  text+=`### ${i+1}. ${p.title}\n\nID: \`${p.id}\` · ${p.mechanic==='tile'?(p.tileShape==='l-tromino'?'L-tromino garden':'Domino garden'):'Cup swaps'}\n\n**Child instruction:** ${p.instruction}\n\n**Idea:** ${p.idea}\n\n`;
   if(p.mechanic==='tile'){
    text+='```text\n'+Array.from({length:p.rows},(_,r)=>Array.from({length:p.cols},(_,c)=>p.cells.includes(r*p.cols+c)?'□':'·').join(' ')).join('\n')+'\n```\n\n';
-   text+=`Garden: ${p.cells.length} cells, ${p.cells.length/2} dominoes. A witness (row,column pairs): ${p.solution.map(pair=>pair.map(c=>`(${Math.floor(c/p.cols)+1},${c%p.cols+1})`).join('–')).join('; ')}.\n\n`;
+   text+=`Garden: ${p.cells.length} cells, ${p.cells.length/(p.tileShape==='l-tromino'?3:2)} ${p.tileShape==='l-tromino'?'L-trominoes':'dominoes'}. A witness (row,column coordinates grouped by piece): ${p.solution.map(pair=>pair.map(c=>`(${Math.floor(c/p.cols)+1},${c%p.cols+1})`).join('–')).join('; ')}.\n\n`;
   }else{text+=`Start: **${p.start.map(n=>String.fromCharCode(65+n)).join(' ')}** → home: **${p.target.map(n=>String.fromCharCode(65+n)).join(' ')}**.\n\nAllowed positions: ${p.edges.map(([a,b])=>`${a+1}↔${b+1}`).join(', ')}. Exact minimum: **${p.minimumMoves}**. One shortest route: ${p.solution.map(([a,b])=>`${a+1}↔${b+1}`).join(', ')}.\n\n`;}
   text+='**Starting-board hints**\n\n'+p.hints.map((h,i)=>`${i+1}. ${h}`).join('\n')+'\n\n';
   for(const[key,label]of [['notice','Notice'],['prompt','Ask together'],['explanation','Explanation'],['extension','Extension'],['connection','Mathematical connection']])text+=`**${label}:** ${p.parent[key]}\n\n`;

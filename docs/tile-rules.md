@@ -10,7 +10,7 @@ Content validation checks area divisibility by the selected tile size, solver fe
 
 The L play controls select an empty square as the elbow. Rotate turns clockwise about that square; Place submits all three preview cells through `move`. Invalid previews disable Place and explain the constraint. Native buttons support touch, pointer, Enter and Space. Each placed L paints only its three cells, with matching colors and tile numbers. Any occupied cell lifts the entire piece. Dominoes retain their two-tap placement.
 
-Help and read-aloud use the configured shape; solver hints highlight and describe every cell. The shipped puzzle pack is unchanged here; authoring grade-level L instances remains separate work.
+Help and read-aloud use the configured shape; solver hints highlight and describe every cell. The shipped pack now includes nine L-only replacements; see [authoring and migration notes](l-gardens.md).
 
 Verification: `npm test && npm run validate` passes. `scripts/tile-browser-smoke.mjs` adds an isolated synthetic L fixture via request interception and exercises rotations, touch/keyboard placement, removal, undo, restart, completion, hints, Help/read-aloud and an unchanged domino puzzle. Run with the same `PLAYWRIGHT_MODULE`, `BROWSER_EXECUTABLE` and `TEST_URL` options as the existing browser suites. Verified in disposable headless Chromium with a localhost-only server after scoped permission escalation for browser launch. All browser assertions passed; phone screenshots were inspected. The suite keeps screenshots in ignored `test-results/` and closes the browser.
 

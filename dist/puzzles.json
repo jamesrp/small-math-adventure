@@ -554,37 +554,42 @@
         0,
         1,
         2,
-        3
+        3,
+        4,
+        5
       ],
       "solution": [
         [
           0,
-          3
+          3,
+          4
         ],
         [
           1,
-          2
+          2,
+          5
         ]
       ],
-      "title": "Around the bend",
-      "instruction": "Cover the path around the bend.",
-      "idea": "A tricky shape may have an easy starting place.",
+      "title": "Interlocking elbows",
+      "instruction": "Cover every patch with L-trominoes.",
+      "idea": "Fit two L pieces together to make a rectangle.",
       "hints": [
-        "Find a square at a tip.",
-        "The bottom square can only reach upward.",
-        "Pair the left two squares up and down. Pair the two remaining top squares."
+        "Fit two L pieces together to make a rectangle.",
+        "Before placing an L, check which pieces can still reach the corners.",
+        "Use the highlighted L placement, then look for the next corner."
       ],
       "parent": {
-        "notice": "Watch for a switch between horizontal and vertical thinking.",
-        "prompt": "Which square helped you decide where to start?",
-        "explanation": "The bottom tip forces a vertical domino. The two remaining top squares then form a horizontal pair. This is the only complete tiling.",
-        "extension": "Turn a paper copy around. Does turning the whole board change its solution?",
-        "connection": "Local constraints can determine an entire matching.",
+        "notice": "Watch for planning around corners instead of filling a row greedily.",
+        "prompt": "Which empty region will remain after this L?",
+        "explanation": "Fit two L pieces together to make a rectangle. Every piece covers three corners of a 2-by-2 square; rotation is allowed. The required task is an exact cover, not a proof.",
+        "extension": "Try another cover, or explain why a tempting first placement leaves a gap.",
+        "connection": "Exact cover groups cells into triples. Deficient power-of-two squares also admit a divide-and-conquer construction; domino matching and flip theorems do not automatically apply to L tiles.",
         "sourceIds": [
-          "tile-mit-matching"
+          "tile-mit-mcs"
         ]
       },
-      "revision": 1
+      "revision": 2,
+      "tileShape": "l-tromino"
     },
     {
       "id": "tile-k1-05",
@@ -739,48 +744,63 @@
       "mechanic": "tile",
       "number": 8,
       "cols": 4,
-      "rows": 2,
+      "rows": 3,
       "cells": [
+        0,
         1,
         2,
+        3,
         4,
         5,
         6,
-        7
+        7,
+        8,
+        9,
+        10,
+        11
       ],
       "solution": [
         [
+          0,
           1,
-          2
-        ],
-        [
-          4,
           5
         ],
         [
-          6,
+          4,
+          8,
+          9
+        ],
+        [
+          2,
+          3,
           7
+        ],
+        [
+          6,
+          10,
+          11
         ]
       ],
-      "title": "The little boat",
-      "instruction": "Cover the boat, tip to tip.",
-      "idea": "A mirror can help us predict a matching move.",
+      "title": "Turning the strip",
+      "instruction": "Cover every patch with L-trominoes.",
+      "idea": "Split the garden into two 2-by-3 rectangles; interlock two L pieces in each.",
       "hints": [
-        "Look at the two bottom corners.",
-        "Each bottom corner has just one neighbor.",
-        "Pair the bottom-left two and bottom-right two. Finish the top pair."
+        "Split the garden into two 2-by-3 rectangles; interlock two L pieces in each.",
+        "Before placing an L, check which pieces can still reach the corners.",
+        "Use the highlighted L placement, then look for the next corner."
       ],
       "parent": {
-        "notice": "Notice whether your child finds matching moves on the two sides.",
-        "prompt": "If this side needs a domino, what might the other side need?",
-        "explanation": "Both bottom corners force horizontal pairs. The two top squares then pair with each other. Reflection preserves this single tiling.",
-        "extension": "Fold a paper drawing along the middle. Do the dominoes match across the fold?",
-        "connection": "Symmetry can simplify a constraint problem.",
+        "notice": "Watch for planning around corners instead of filling a row greedily.",
+        "prompt": "Which empty region will remain after this L?",
+        "explanation": "Split the garden into two 2-by-3 rectangles; interlock two L pieces in each. Every piece covers three corners of a 2-by-2 square; rotation is allowed. The required task is an exact cover, not a proof.",
+        "extension": "Try another cover, or explain why a tempting first placement leaves a gap.",
+        "connection": "Exact cover groups cells into triples. Deficient power-of-two squares also admit a divide-and-conquer construction; domino matching and flip theorems do not automatically apply to L tiles.",
         "sourceIds": [
-          "tile-mit-matching"
+          "tile-mit-mcs"
         ]
       },
-      "revision": 1
+      "revision": 2,
+      "tileShape": "l-tromino"
     },
     {
       "id": "tile-k1-09",
@@ -953,54 +973,71 @@
       "mechanic": "tile",
       "number": 12,
       "cols": 4,
-      "rows": 3,
+      "rows": 4,
       "cells": [
         1,
         2,
+        3,
         4,
         5,
         6,
         7,
+        8,
         9,
-        10
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
       ],
       "solution": [
         [
-          1,
-          2
+          2,
+          3,
+          7
         ],
         [
+          1,
           4,
           5
         ],
         [
           6,
-          7
-        ],
-        [
           9,
           10
+        ],
+        [
+          11,
+          14,
+          15
+        ],
+        [
+          8,
+          12,
+          13
         ]
       ],
-      "title": "The tiny crown",
-      "instruction": "Cover the whole crown.",
-      "idea": "Explain why your choices must work.",
+      "title": "The missing corner",
+      "instruction": "Cover every patch with L-trominoes.",
+      "idea": "Place an L on the three central squares outside the quadrant with the missing corner. Each 2-by-2 quadrant then needs one L.",
       "hints": [
-        "Find the two side tips.",
-        "Each side tip has only one partner.",
-        "Cover each side tip with its neighbor. Finish the top pair and the bottom pair."
+        "Place an L on the three central squares outside the quadrant with the missing corner. Each 2-by-2 quadrant then needs one L.",
+        "Before placing an L, check which pieces can still reach the corners.",
+        "Use the highlighted L placement, then look for the next corner."
       ],
       "parent": {
-        "notice": "Invite an explanation in pointing and gestures, not just words.",
-        "prompt": "Can you show why no other domino can cover this tip?",
-        "explanation": "The left and right tips force the two middle-row horizontal pairs. The top and bottom pairs are then forced. Listing these reasons proves the tiling is unique.",
-        "extension": "Ask your child to teach someone else which pair must come first.",
-        "connection": "A chain of unavoidable choices is a small proof.",
+        "notice": "Watch for planning around corners instead of filling a row greedily.",
+        "prompt": "Which empty region will remain after this L?",
+        "explanation": "Place an L on the three central squares outside the quadrant with the missing corner. Each 2-by-2 quadrant then needs one L. Every piece covers three corners of a 2-by-2 square; rotation is allowed. The required task is an exact cover, not a proof.",
+        "extension": "Try another cover, or explain why a tempting first placement leaves a gap.",
+        "connection": "Exact cover groups cells into triples. Deficient power-of-two squares also admit a divide-and-conquer construction; domino matching and flip theorems do not automatically apply to L tiles.",
         "sourceIds": [
-          "tile-mit-matching"
+          "tile-mit-mcs"
         ]
       },
-      "revision": 1
+      "revision": 2,
+      "tileShape": "l-tromino"
     },
     {
       "id": "tile-23-01",
@@ -1200,58 +1237,55 @@
         4,
         5,
         6,
+        7,
         9,
         10,
         11,
-        13,
         14,
         15
       ],
       "solution": [
         [
           0,
-          1
+          1,
+          4
         ],
         [
           2,
-          6
+          6,
+          7
         ],
         [
-          4,
-          5
-        ],
-        [
+          5,
           9,
           10
         ],
         [
           11,
+          14,
           15
-        ],
-        [
-          13,
-          14
         ]
       ],
-      "title": "The offset terraces",
-      "instruction": "Cover both terraces without gaps.",
-      "idea": "Choose a split that leaves solvable pieces.",
+      "title": "Stepped edges",
+      "instruction": "Cover every patch with L-trominoes.",
+      "idea": "Start at the top-left corner and the bottom-right corner; fit the middle pieces between them.",
       "hints": [
-        "Look at the top two rows as one terrace.",
-        "The bottom two rows form another terrace, shifted right.",
-        "Use three vertical dominoes in the top terrace and three in the bottom terrace."
+        "Start at the top-left corner and the bottom-right corner; fit the middle pieces between them.",
+        "Before placing an L, check which pieces can still reach the corners.",
+        "Use the highlighted L placement, then look for the next corner."
       ],
       "parent": {
-        "notice": "The child can choose an imaginary boundary through a connected board.",
-        "prompt": "Which two small rectangles can you see?",
-        "explanation": "Splitting between rows two and three gives two 2 by 3 rectangles. Tiling those separately proves the whole board works. Some other solutions cross the split; our construction need not find every solution.",
-        "extension": "Find a solution that does cross the middle split, then compare it with the two-terrace method.",
-        "connection": "Decomposition proves existence without claiming uniqueness.",
+        "notice": "Watch for planning around corners instead of filling a row greedily.",
+        "prompt": "Which empty region will remain after this L?",
+        "explanation": "Start at the top-left corner and the bottom-right corner; fit the middle pieces between them. Every piece covers three corners of a 2-by-2 square; rotation is allowed. The required task is an exact cover, not a proof.",
+        "extension": "Try another cover, or explain why a tempting first placement leaves a gap.",
+        "connection": "Exact cover groups cells into triples. Deficient power-of-two squares also admit a divide-and-conquer construction; domino matching and flip theorems do not automatically apply to L tiles.",
         "sourceIds": [
           "tile-mit-mcs"
         ]
       },
-      "revision": 1
+      "revision": 2,
+      "tileShape": "l-tromino"
     },
     {
       "id": "tile-23-05",
@@ -1456,65 +1490,69 @@
       "cols": 4,
       "rows": 4,
       "cells": [
+        0,
         1,
         2,
+        3,
         4,
-        5,
         6,
         7,
         8,
         9,
         10,
         11,
+        12,
         13,
-        14
+        14,
+        15
       ],
       "solution": [
         [
+          0,
           1,
-          2
+          4
         ],
         [
-          4,
-          5
-        ],
-        [
-          6,
+          2,
+          3,
           7
         ],
         [
+          6,
+          9,
+          10
+        ],
+        [
           8,
-          9
+          12,
+          13
         ],
         [
-          10,
-          11
-        ],
-        [
-          13,
-          14
+          11,
+          14,
+          15
         ]
       ],
-      "title": "The small diamond",
-      "instruction": "Cover the diamond garden.",
-      "idea": "The border shapes the choices inside.",
+      "title": "An inside gap",
+      "instruction": "Cover every patch with L-trominoes.",
+      "idea": "Find the 2-by-2 quadrant containing the gap. Put a central L in the other three quadrants, then fill each quadrant.",
       "hints": [
-        "Each row has an even number of squares.",
-        "Pair squares across to make a first solution.",
-        "Cover the top pair, both middle rows in pairs, and the bottom pair."
+        "Find the 2-by-2 quadrant containing the gap. Put a central L in the other three quadrants, then fill each quadrant.",
+        "Before placing an L, check which pieces can still reach the corners.",
+        "Use the highlighted L placement, then look for the next corner."
       ],
       "parent": {
-        "notice": "After one solution, ask where a small change is possible.",
-        "prompt": "Which two dominoes could turn together inside a square?",
-        "explanation": "This is an Aztec diamond of order two. Its twelve cells have eight tilings. The horizontal construction is one, and local 2 by 2 flips produce others.",
-        "extension": "Draw several solutions and mark which dominoes stay near the same boundary.",
-        "connection": "Larger Aztec diamonds reveal striking patterns in random tilings.",
+        "notice": "Watch for planning around corners instead of filling a row greedily.",
+        "prompt": "Which empty region will remain after this L?",
+        "explanation": "Find the 2-by-2 quadrant containing the gap. Put a central L in the other three quadrants, then fill each quadrant. Every piece covers three corners of a 2-by-2 square; rotation is allowed. The required task is an exact cover, not a proof.",
+        "extension": "Try another cover, or explain why a tempting first placement leaves a gap.",
+        "connection": "Exact cover groups cells into triples. Deficient power-of-two squares also admit a divide-and-conquer construction; domino matching and flip theorems do not automatically apply to L tiles.",
         "sourceIds": [
-          "tile-arctic",
-          "tile-spaces"
+          "tile-mit-mcs"
         ]
       },
-      "revision": 1
+      "revision": 2,
+      "tileShape": "l-tromino"
     },
     {
       "id": "tile-23-09",
@@ -1728,8 +1766,8 @@
       "band": "23",
       "mechanic": "tile",
       "number": 12,
-      "cols": 4,
-      "rows": 4,
+      "cols": 6,
+      "rows": 3,
       "cells": [
         0,
         1,
@@ -1746,61 +1784,62 @@
         12,
         13,
         14,
-        15
+        15,
+        16,
+        17
       ],
       "solution": [
         [
           0,
-          1
-        ],
-        [
-          2,
-          3
-        ],
-        [
-          4,
-          5
-        ],
-        [
-          6,
+          1,
           7
         ],
         [
-          8,
-          9
-        ],
-        [
-          10,
-          11
-        ],
-        [
+          6,
           12,
           13
         ],
         [
+          2,
+          3,
+          9
+        ],
+        [
+          8,
           14,
           15
+        ],
+        [
+          4,
+          5,
+          11
+        ],
+        [
+          10,
+          16,
+          17
         ]
       ],
-      "title": "The rearranging courtyard",
-      "instruction": "Cover the courtyard. Then try a new pattern.",
-      "idea": "Solutions themselves can form a network.",
+      "title": "Crosswise strips",
+      "instruction": "Cover every patch with L-trominoes.",
+      "idea": "Split the width into three strips of two columns. Each strip is a 2-by-3 rectangle filled by two interlocking L pieces.",
       "hints": [
-        "Start with a pattern you can repeat.",
-        "Two dominoes in a 2 by 2 square can turn together.",
-        "A first solution is two horizontal dominoes in each row."
+        "Split the width into three strips of two columns. Each strip is a 2-by-3 rectangle filled by two interlocking L pieces.",
+        "Before placing an L, check which pieces can still reach the corners.",
+        "Use the highlighted L placement, then look for the next corner."
       ],
       "parent": {
-        "notice": "Keep the puzzle goal simple; the rearrangement is an optional conversation.",
-        "prompt": "Can you make another solution by changing just two dominoes?",
-        "explanation": "There are 36 tilings of this 4 by 4 board. A local flip trades two parallel dominoes in a square for the other orientation. Recording tilings as dots and flips as links makes a new graph.",
-        "extension": "Draw three or four linked solutions. A theorem guarantees all tilings of a simply connected domino region are linked by such flips.",
-        "connection": "The move graph of tilings is a research object.",
+        "notice": "Watch for planning around corners instead of filling a row greedily.",
+        "prompt": "Which empty region will remain after this L?",
+        "explanation": "Split the width into three strips of two columns. Each strip is a 2-by-3 rectangle filled by two interlocking L pieces. Every piece covers three corners of a 2-by-2 square; rotation is allowed. The required task is an exact cover, not a proof.",
+        "extension": "Try another cover, or explain why a tempting first placement leaves a gap.",
+        "connection": "Exact cover groups cells into triples. Deficient power-of-two squares also admit a divide-and-conquer construction; domino matching and flip theorems do not automatically apply to L tiles.",
         "sourceIds": [
-          "tile-spaces"
+          "tile-mit-mcs"
         ]
       },
-      "revision": 1
+      "revision": 2,
+      "tileShape": "l-tromino"
     },
     {
       "id": "tile-45-01",
@@ -2038,79 +2077,72 @@
       "band": "45",
       "mechanic": "tile",
       "number": 4,
-      "cols": 6,
-      "rows": 5,
+      "cols": 4,
+      "rows": 4,
       "cells": [
         0,
         1,
+        2,
+        3,
+        4,
+        5,
         6,
         7,
         8,
         9,
+        11,
+        12,
         13,
         14,
-        15,
-        16,
-        20,
-        21,
-        22,
-        23,
-        28,
-        29
+        15
       ],
       "solution": [
         [
-          0,
-          1
+          11,
+          14,
+          15
         ],
         [
-          6,
+          0,
+          1,
+          4
+        ],
+        [
+          2,
+          3,
           7
         ],
         [
-          8,
+          5,
+          6,
           9
         ],
         [
-          13,
-          14
-        ],
-        [
-          15,
-          16
-        ],
-        [
-          20,
-          21
-        ],
-        [
-          22,
-          23
-        ],
-        [
-          28,
-          29
+          8,
+          12,
+          13
         ]
       ],
-      "title": "The sloping ridge",
-      "instruction": "Cover the ridge while protecting the narrow ends.",
-      "idea": "Global completion may force central choices.",
+      "title": "Off-center gap",
+      "instruction": "Cover every patch with L-trominoes.",
+      "idea": "Treat the four 2-by-2 quadrants as smaller missing-square puzzles. A central L supplies the three missing squares you need.",
       "hints": [
-        "The top row and bottom row each form a pair.",
-        "Look for more forced pairs after the ends are covered.",
-        "A complete construction puts dominoes across each row, working left to right."
+        "Treat the four 2-by-2 quadrants as smaller missing-square puzzles. A central L supplies the three missing squares you need.",
+        "Before placing an L, check which pieces can still reach the corners.",
+        "Use the highlighted L placement, then look for the next corner."
       ],
       "parent": {
-        "notice": "This board has fewer solutions than its size may suggest.",
-        "prompt": "Which choices disappear after you cover the two narrow ends?",
-        "explanation": "Every row has even length, so horizontal pairing provides a tiling. Exhaustive enumeration finds only four tilings: the narrow border forces many choices that look flexible at first.",
-        "extension": "Try to find the small patches where changes are actually possible. Compare a large rectangle with the same area.",
-        "connection": "Boundary conditions can strongly restrict a tiling space.",
+        "notice": "Watch for planning around corners instead of filling a row greedily.",
+        "prompt": "Which empty region will remain after this L?",
+        "explanation": "Treat the four 2-by-2 quadrants as smaller missing-square puzzles. A central L supplies the three missing squares you need. Every piece covers three corners of a 2-by-2 square; rotation is allowed. The required task is an exact cover, not a proof.",
+        "extension": "Try another cover, or explain why a tempting first placement leaves a gap.",
+        "connection": "Exact cover groups cells into triples. Deficient power-of-two squares also admit a divide-and-conquer construction; domino matching and flip theorems do not automatically apply to L tiles.",
         "sourceIds": [
-          "tile-spaces"
+          "tile-mit-mcs"
         ]
       },
-      "revision": 1
+      "revision": 2,
+      "tileShape": "l-tromino"
     },
     {
       "id": "tile-45-05",
@@ -2384,15 +2416,21 @@
       "band": "45",
       "mechanic": "tile",
       "number": 8,
-      "cols": 6,
-      "rows": 6,
+      "cols": 5,
+      "rows": 5,
       "cells": [
+        0,
+        1,
         2,
         3,
+        4,
+        5,
+        6,
         7,
         8,
         9,
         10,
+        11,
         12,
         13,
         14,
@@ -2404,83 +2442,70 @@
         20,
         21,
         22,
-        23,
-        25,
-        26,
-        27,
-        28,
-        32,
-        33
+        23
       ],
       "solution": [
         [
+          0,
+          5,
+          6
+        ],
+        [
+          1,
           2,
-          3
+          7
         ],
         [
-          7,
-          8
+          3,
+          4,
+          9
         ],
         [
-          9,
-          10
-        ],
-        [
+          8,
           12,
           13
         ],
         [
           14,
-          15
-        ],
-        [
-          16,
-          17
-        ],
-        [
           18,
           19
         ],
         [
-          20,
-          21
-        ],
-        [
+          17,
           22,
           23
         ],
         [
-          25,
-          26
+          10,
+          11,
+          16
         ],
         [
-          27,
-          28
-        ],
-        [
-          32,
-          33
+          15,
+          20,
+          21
         ]
       ],
-      "title": "The Aztec garden",
-      "instruction": "Cover the diamond; notice choices near its border.",
-      "idea": "The shape of a region influences its typical tilings.",
+      "title": "A square with a tail",
+      "instruction": "Cover every patch with L-trominoes.",
+      "idea": "Reserve two L pieces for the bottom row: one reaches up at the left edge, the other reaches up above its right end. Then work around the remaining boundary.",
       "hints": [
-        "Every row contains an even number of cells.",
-        "Horizontal pairs give an easy first tiling.",
-        "Pair left to right in each row, starting with the two-cell top row."
+        "Reserve two L pieces for the bottom row: one reaches up at the left edge, the other reaches up above its right end. Then work around the remaining boundary.",
+        "Before placing an L, check which pieces can still reach the corners.",
+        "Use the highlighted L placement, then look for the next corner."
       ],
       "parent": {
-        "notice": "This small board invites a question about large families, not a claim about statistics from one play.",
-        "prompt": "If we drew many different tilings, which patterns might keep appearing?",
-        "explanation": "This order-three Aztec diamond has 24 cells and 64 tilings, verified by enumeration. Every tiling uses twelve dominoes, but orientations and positions vary.",
-        "extension": "Sketch several tilings. Large uniformly random Aztec diamonds have a disordered central region approaching a circle and ordered outer regions. A hand-chosen sample here is not uniform and this tiny board is not the limiting theorem.",
-        "connection": "A small counting question leads to random tilings and limit shapes.",
+        "notice": "Watch for planning around corners instead of filling a row greedily.",
+        "prompt": "Which empty region will remain after this L?",
+        "explanation": "Reserve two L pieces for the bottom row: one reaches up at the left edge, the other reaches up above its right end. Then work around the remaining boundary. These reservations leave an 18-cell region with several corner choices. Check the next corner before committing; area divisible by three alone does not guarantee an L tiling.",
+        "extension": "Try another cover, or explain why a tempting first placement leaves a gap.",
+        "connection": "Exact cover groups cells into triples. Deficient power-of-two squares also admit a divide-and-conquer construction; domino matching and flip theorems do not automatically apply to L tiles.",
         "sourceIds": [
-          "tile-arctic"
+          "tile-mit-mcs"
         ]
       },
-      "revision": 1
+      "revision": 2,
+      "tileShape": "l-tromino"
     },
     {
       "id": "tile-45-09",
@@ -2779,74 +2804,65 @@
       "solution": [
         [
           0,
-          1
-        ],
-        [
-          2,
-          3
-        ],
-        [
-          4,
-          5
-        ],
-        [
           6,
           7
         ],
         [
-          8,
-          9
+          1,
+          2,
+          8
         ],
         [
-          10,
+          3,
+          9,
+          10
+        ],
+        [
+          4,
+          5,
           11
         ],
         [
           12,
-          13
-        ],
-        [
-          14,
-          15
-        ],
-        [
-          16,
-          17
-        ],
-        [
           18,
           19
         ],
         [
-          20,
-          21
+          13,
+          14,
+          20
         ],
         [
-          22,
+          15,
+          21,
+          22
+        ],
+        [
+          16,
+          17,
           23
         ]
       ],
-      "title": "A whole world of tilings",
-      "instruction": "Cover the courtyard, then explore a small change.",
-      "idea": "Ask about all solutions and the paths between them.",
+      "title": "Joining rectangles",
+      "instruction": "Cover every patch with L-trominoes.",
+      "idea": "Separate this into two 3-by-4 rectangles, then split each into two 3-by-2 blocks. Avoid sealing off a strip one square wide.",
       "hints": [
-        "A repeated row pattern is a useful first solution.",
-        "Look for a full 2 by 2 patch covered by two dominoes.",
-        "Start with three horizontal dominoes in each row; a pair of neighboring rows contains places to flip."
+        "Separate this into two 3-by-4 rectangles, then split each into two 3-by-2 blocks. Avoid sealing off a strip one square wide.",
+        "Before placing an L, check which pieces can still reach the corners.",
+        "Use the highlighted L placement, then look for the next corner."
       ],
       "parent": {
-        "notice": "Celebrate a new question after solving: how many, how connected, how typical?",
-        "prompt": "Could you reach every tiling by turning two dominoes at a time?",
-        "explanation": "This 4 by 6 rectangle has 281 tilings. A local flip exchanges the two tilings of a 2 by 2 patch. Because the board is simply connected, its tilings are connected by flips. A height function encodes the tiling as integer heights at grid vertices.",
-        "extension": "Draw a short path of flips. Advanced questions study shortest paths, efficient random sampling, and fluctuations of height functions on much larger boards; this MVP does not measure those quantities.",
-        "connection": "Thurston’s height viewpoint links local moves with global structure.",
+        "notice": "Watch for planning around corners instead of filling a row greedily.",
+        "prompt": "Which empty region will remain after this L?",
+        "explanation": "Separate this into two 3-by-4 rectangles, then split each into two 3-by-2 blocks. Avoid sealing off a strip one square wide. Every piece covers three corners of a 2-by-2 square; rotation is allowed. The required task is an exact cover, not a proof.",
+        "extension": "Try another cover, or explain why a tempting first placement leaves a gap.",
+        "connection": "Exact cover groups cells into triples. Deficient power-of-two squares also admit a divide-and-conquer construction; domino matching and flip theorems do not automatically apply to L tiles.",
         "sourceIds": [
-          "tile-thurston",
-          "tile-spaces",
-          "tile-kenyon"
+          "tile-mit-mcs"
         ]
       },
-      "revision": 1
+      "revision": 2,
+      "tileShape": "l-tromino"
     },
     {
       "id": "swap-k1-01",

@@ -16,7 +16,7 @@ ID: `tile-k1-01` · Domino garden
 □ □
 ```
 
-Garden: 2 cells, 1 dominoes. A witness (row,column pairs): (1,1)–(1,2).
+Garden: 2 cells, 1 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2).
 
 **Starting-board hints**
 
@@ -78,7 +78,7 @@ ID: `tile-k1-02` · Domino garden
 □ □ □ □
 ```
 
-Garden: 4 cells, 2 dominoes. A witness (row,column pairs): (1,1)–(1,2); (1,3)–(1,4).
+Garden: 4 cells, 2 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (1,3)–(1,4).
 
 **Starting-board hints**
 
@@ -141,7 +141,7 @@ ID: `tile-k1-03` · Domino garden
 □ □
 ```
 
-Garden: 4 cells, 2 dominoes. A witness (row,column pairs): (1,1)–(1,2); (2,1)–(2,2).
+Garden: 4 cells, 2 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (2,1)–(2,2).
 
 **Starting-board hints**
 
@@ -191,38 +191,38 @@ Allowed positions: 1↔2, 1↔3, 2↔3. Exact minimum: **2**. One shortest route
 
 **Sources:** [Thomas Judson, Abstract Algebra: Theory and Applications — Permutation Groups](https://math.libretexts.org/Bookshelves/Abstract_and_Geometric_Algebra/Abstract_Algebra%3A_Theory_and_Applications_%28Judson%29/05%3A_Permutation_Groups/5.01%3A_Definitions_and_Notation).
 
-### 7. Around the bend
+### 7. Interlocking elbows
 
-ID: `tile-k1-04` · Domino garden
+ID: `tile-k1-04` · L-tromino garden
 
-**Child instruction:** Cover the path around the bend.
+**Child instruction:** Cover every patch with L-trominoes.
 
-**Idea:** A tricky shape may have an easy starting place.
+**Idea:** Fit two L pieces together to make a rectangle.
 
 ```text
 □ □ □
-□ · ·
+□ □ □
 ```
 
-Garden: 4 cells, 2 dominoes. A witness (row,column pairs): (1,1)–(2,1); (1,2)–(1,3).
+Garden: 6 cells, 2 L-trominoes. A witness (row,column coordinates grouped by piece): (1,1)–(2,1)–(2,2); (1,2)–(1,3)–(2,3).
 
 **Starting-board hints**
 
-1. Find a square at a tip.
-2. The bottom square can only reach upward.
-3. Pair the left two squares up and down. Pair the two remaining top squares.
+1. Fit two L pieces together to make a rectangle.
+2. Before placing an L, check which pieces can still reach the corners.
+3. Use the highlighted L placement, then look for the next corner.
 
-**Notice:** Watch for a switch between horizontal and vertical thinking.
+**Notice:** Watch for planning around corners instead of filling a row greedily.
 
-**Ask together:** Which square helped you decide where to start?
+**Ask together:** Which empty region will remain after this L?
 
-**Explanation:** The bottom tip forces a vertical domino. The two remaining top squares then form a horizontal pair. This is the only complete tiling.
+**Explanation:** Fit two L pieces together to make a rectangle. Every piece covers three corners of a 2-by-2 square; rotation is allowed. The required task is an exact cover, not a proof.
 
-**Extension:** Turn a paper copy around. Does turning the whole board change its solution?
+**Extension:** Try another cover, or explain why a tempting first placement leaves a gap.
 
-**Mathematical connection:** Local constraints can determine an entire matching.
+**Mathematical connection:** Exact cover groups cells into triples. Deficient power-of-two squares also admit a divide-and-conquer construction; domino matching and flip theorems do not automatically apply to L tiles.
 
-**Sources:** [Albert R. Meyer — Bipartite Matching, MIT Mathematics for Computer Science](https://courses.csail.mit.edu/6.042/spring18/bipartite-matching.pdf).
+**Sources:** [Eric Lehman, F. Thomson Leighton and Albert R. Meyer — Mathematics for Computer Science (2015), induction and counting](https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-spring-2015/mit6_042js15_textbook.pdf).
 
 ### 8. Around the other way
 
@@ -268,7 +268,7 @@ ID: `tile-k1-05` · Domino garden
 · · □ □
 ```
 
-Garden: 6 cells, 3 dominoes. A witness (row,column pairs): (1,1)–(1,2); (2,2)–(2,3); (3,3)–(3,4).
+Garden: 6 cells, 3 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (2,2)–(2,3); (3,3)–(3,4).
 
 **Starting-board hints**
 
@@ -331,7 +331,7 @@ ID: `tile-k1-06` · Domino garden
 □ □ □
 ```
 
-Garden: 6 cells, 3 dominoes. A witness (row,column pairs): (1,1)–(1,2); (1,3)–(2,3); (2,1)–(2,2).
+Garden: 6 cells, 3 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (1,3)–(2,3); (2,1)–(2,2).
 
 **Starting-board hints**
 
@@ -394,7 +394,7 @@ ID: `tile-k1-07` · Domino garden
 □ □ □ □
 ```
 
-Garden: 6 cells, 3 dominoes. A witness (row,column pairs): (1,1)–(1,2); (2,1)–(2,2); (2,3)–(2,4).
+Garden: 6 cells, 3 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (2,1)–(2,2); (2,3)–(2,4).
 
 **Starting-board hints**
 
@@ -444,38 +444,39 @@ Allowed positions: 1↔2, 2↔3. Exact minimum: **2**. One shortest route: 1↔2
 
 **Sources:** [Robert Sedgewick and Kevin Wayne, Algorithms, 4th edition — Elementary Sorts](https://algs4.cs.princeton.edu/21elementary/).
 
-### 15. The little boat
+### 15. Turning the strip
 
-ID: `tile-k1-08` · Domino garden
+ID: `tile-k1-08` · L-tromino garden
 
-**Child instruction:** Cover the boat, tip to tip.
+**Child instruction:** Cover every patch with L-trominoes.
 
-**Idea:** A mirror can help us predict a matching move.
+**Idea:** Split the garden into two 2-by-3 rectangles; interlock two L pieces in each.
 
 ```text
-· □ □ ·
+□ □ □ □
+□ □ □ □
 □ □ □ □
 ```
 
-Garden: 6 cells, 3 dominoes. A witness (row,column pairs): (1,2)–(1,3); (2,1)–(2,2); (2,3)–(2,4).
+Garden: 12 cells, 4 L-trominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2)–(2,2); (2,1)–(3,1)–(3,2); (1,3)–(1,4)–(2,4); (2,3)–(3,3)–(3,4).
 
 **Starting-board hints**
 
-1. Look at the two bottom corners.
-2. Each bottom corner has just one neighbor.
-3. Pair the bottom-left two and bottom-right two. Finish the top pair.
+1. Split the garden into two 2-by-3 rectangles; interlock two L pieces in each.
+2. Before placing an L, check which pieces can still reach the corners.
+3. Use the highlighted L placement, then look for the next corner.
 
-**Notice:** Notice whether your child finds matching moves on the two sides.
+**Notice:** Watch for planning around corners instead of filling a row greedily.
 
-**Ask together:** If this side needs a domino, what might the other side need?
+**Ask together:** Which empty region will remain after this L?
 
-**Explanation:** Both bottom corners force horizontal pairs. The two top squares then pair with each other. Reflection preserves this single tiling.
+**Explanation:** Split the garden into two 2-by-3 rectangles; interlock two L pieces in each. Every piece covers three corners of a 2-by-2 square; rotation is allowed. The required task is an exact cover, not a proof.
 
-**Extension:** Fold a paper drawing along the middle. Do the dominoes match across the fold?
+**Extension:** Try another cover, or explain why a tempting first placement leaves a gap.
 
-**Mathematical connection:** Symmetry can simplify a constraint problem.
+**Mathematical connection:** Exact cover groups cells into triples. Deficient power-of-two squares also admit a divide-and-conquer construction; domino matching and flip theorems do not automatically apply to L tiles.
 
-**Sources:** [Albert R. Meyer — Bipartite Matching, MIT Mathematics for Computer Science](https://courses.csail.mit.edu/6.042/spring18/bipartite-matching.pdf).
+**Sources:** [Eric Lehman, F. Thomson Leighton and Albert R. Meyer — Mathematics for Computer Science (2015), induction and counting](https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-spring-2015/mit6_042js15_textbook.pdf).
 
 ### 16. Make room in the middle
 
@@ -520,7 +521,7 @@ ID: `tile-k1-09` · Domino garden
 □ □ □ □
 ```
 
-Garden: 8 cells, 4 dominoes. A witness (row,column pairs): (1,1)–(1,2); (1,3)–(1,4); (2,1)–(2,2); (2,3)–(2,4).
+Garden: 8 cells, 4 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (1,3)–(1,4); (2,1)–(2,2); (2,3)–(2,4).
 
 **Starting-board hints**
 
@@ -584,7 +585,7 @@ ID: `tile-k1-10` · Domino garden
 □ □ □
 ```
 
-Garden: 8 cells, 4 dominoes. A witness (row,column pairs): (1,1)–(1,2); (1,3)–(2,3); (2,1)–(3,1); (3,2)–(3,3).
+Garden: 8 cells, 4 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (1,3)–(2,3); (2,1)–(3,1); (3,2)–(3,3).
 
 **Starting-board hints**
 
@@ -648,7 +649,7 @@ ID: `tile-k1-11` · Domino garden
 · · □ □
 ```
 
-Garden: 8 cells, 4 dominoes. A witness (row,column pairs): (1,1)–(1,2); (2,1)–(2,2); (2,3)–(2,4); (3,3)–(3,4).
+Garden: 8 cells, 4 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (2,1)–(2,2); (2,3)–(2,4); (3,3)–(3,4).
 
 **Starting-board hints**
 
@@ -698,39 +699,40 @@ Allowed positions: 1↔2, 1↔4, 2↔3, 3↔4. Exact minimum: **1**. One shortes
 
 **Sources:** [Aichholzer et al. (2022), Hardness of Token Swapping on Trees](https://arxiv.org/abs/2103.06707).
 
-### 23. The tiny crown
+### 23. The missing corner
 
-ID: `tile-k1-12` · Domino garden
+ID: `tile-k1-12` · L-tromino garden
 
-**Child instruction:** Cover the whole crown.
+**Child instruction:** Cover every patch with L-trominoes.
 
-**Idea:** Explain why your choices must work.
+**Idea:** Place an L on the three central squares outside the quadrant with the missing corner. Each 2-by-2 quadrant then needs one L.
 
 ```text
-· □ □ ·
+· □ □ □
 □ □ □ □
-· □ □ ·
+□ □ □ □
+□ □ □ □
 ```
 
-Garden: 8 cells, 4 dominoes. A witness (row,column pairs): (1,2)–(1,3); (2,1)–(2,2); (2,3)–(2,4); (3,2)–(3,3).
+Garden: 15 cells, 5 L-trominoes. A witness (row,column coordinates grouped by piece): (1,3)–(1,4)–(2,4); (1,2)–(2,1)–(2,2); (2,3)–(3,2)–(3,3); (3,4)–(4,3)–(4,4); (3,1)–(4,1)–(4,2).
 
 **Starting-board hints**
 
-1. Find the two side tips.
-2. Each side tip has only one partner.
-3. Cover each side tip with its neighbor. Finish the top pair and the bottom pair.
+1. Place an L on the three central squares outside the quadrant with the missing corner. Each 2-by-2 quadrant then needs one L.
+2. Before placing an L, check which pieces can still reach the corners.
+3. Use the highlighted L placement, then look for the next corner.
 
-**Notice:** Invite an explanation in pointing and gestures, not just words.
+**Notice:** Watch for planning around corners instead of filling a row greedily.
 
-**Ask together:** Can you show why no other domino can cover this tip?
+**Ask together:** Which empty region will remain after this L?
 
-**Explanation:** The left and right tips force the two middle-row horizontal pairs. The top and bottom pairs are then forced. Listing these reasons proves the tiling is unique.
+**Explanation:** Place an L on the three central squares outside the quadrant with the missing corner. Each 2-by-2 quadrant then needs one L. Every piece covers three corners of a 2-by-2 square; rotation is allowed. The required task is an exact cover, not a proof.
 
-**Extension:** Ask your child to teach someone else which pair must come first.
+**Extension:** Try another cover, or explain why a tempting first placement leaves a gap.
 
-**Mathematical connection:** A chain of unavoidable choices is a small proof.
+**Mathematical connection:** Exact cover groups cells into triples. Deficient power-of-two squares also admit a divide-and-conquer construction; domino matching and flip theorems do not automatically apply to L tiles.
 
-**Sources:** [Albert R. Meyer — Bipartite Matching, MIT Mathematics for Computer Science](https://courses.csail.mit.edu/6.042/spring18/bipartite-matching.pdf).
+**Sources:** [Eric Lehman, F. Thomson Leighton and Albert R. Meyer — Mathematics for Computer Science (2015), induction and counting](https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-spring-2015/mit6_042js15_textbook.pdf).
 
 ### 24. The helping spot
 
@@ -777,7 +779,7 @@ ID: `tile-23-01` · Domino garden
 □ □ □ □ □
 ```
 
-Garden: 10 cells, 5 dominoes. A witness (row,column pairs): (1,1)–(1,2); (1,3)–(1,4); (1,5)–(2,5); (2,1)–(2,2); (2,3)–(2,4).
+Garden: 10 cells, 5 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (1,3)–(1,4); (1,5)–(2,5); (2,1)–(2,2); (2,3)–(2,4).
 
 **Starting-board hints**
 
@@ -841,7 +843,7 @@ ID: `tile-23-02` · Domino garden
 □ □ · ·
 ```
 
-Garden: 8 cells, 4 dominoes. A witness (row,column pairs): (1,1)–(1,2); (1,3)–(1,4); (2,1)–(2,2); (3,1)–(3,2).
+Garden: 8 cells, 4 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (1,3)–(1,4); (2,1)–(2,2); (3,1)–(3,2).
 
 **Starting-board hints**
 
@@ -905,7 +907,7 @@ ID: `tile-23-03` · Domino garden
 □ □ □ □
 ```
 
-Garden: 12 cells, 6 dominoes. A witness (row,column pairs): (1,1)–(1,2); (1,3)–(1,4); (2,1)–(2,2); (2,3)–(2,4); (3,1)–(3,2); (3,3)–(3,4).
+Garden: 12 cells, 6 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (1,3)–(1,4); (2,1)–(2,2); (2,3)–(2,4); (3,1)–(3,2); (3,3)–(3,4).
 
 **Starting-board hints**
 
@@ -955,38 +957,38 @@ Allowed positions: 1↔2, 1↔3, 1↔4, 2↔3, 2↔4, 3↔4. Exact minimum: **2*
 
 **Sources:** [Thomas Judson, Abstract Algebra: Theory and Applications — Permutation Groups](https://math.libretexts.org/Bookshelves/Abstract_and_Geometric_Algebra/Abstract_Algebra%3A_Theory_and_Applications_%28Judson%29/05%3A_Permutation_Groups/5.01%3A_Definitions_and_Notation).
 
-### 7. The offset terraces
+### 7. Stepped edges
 
-ID: `tile-23-04` · Domino garden
+ID: `tile-23-04` · L-tromino garden
 
-**Child instruction:** Cover both terraces without gaps.
+**Child instruction:** Cover every patch with L-trominoes.
 
-**Idea:** Choose a split that leaves solvable pieces.
+**Idea:** Start at the top-left corner and the bottom-right corner; fit the middle pieces between them.
 
 ```text
 □ □ □ ·
-□ □ □ ·
+□ □ □ □
 · □ □ □
-· □ □ □
+· · □ □
 ```
 
-Garden: 12 cells, 6 dominoes. A witness (row,column pairs): (1,1)–(1,2); (1,3)–(2,3); (2,1)–(2,2); (3,2)–(3,3); (3,4)–(4,4); (4,2)–(4,3).
+Garden: 12 cells, 4 L-trominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2)–(2,1); (1,3)–(2,3)–(2,4); (2,2)–(3,2)–(3,3); (3,4)–(4,3)–(4,4).
 
 **Starting-board hints**
 
-1. Look at the top two rows as one terrace.
-2. The bottom two rows form another terrace, shifted right.
-3. Use three vertical dominoes in the top terrace and three in the bottom terrace.
+1. Start at the top-left corner and the bottom-right corner; fit the middle pieces between them.
+2. Before placing an L, check which pieces can still reach the corners.
+3. Use the highlighted L placement, then look for the next corner.
 
-**Notice:** The child can choose an imaginary boundary through a connected board.
+**Notice:** Watch for planning around corners instead of filling a row greedily.
 
-**Ask together:** Which two small rectangles can you see?
+**Ask together:** Which empty region will remain after this L?
 
-**Explanation:** Splitting between rows two and three gives two 2 by 3 rectangles. Tiling those separately proves the whole board works. Some other solutions cross the split; our construction need not find every solution.
+**Explanation:** Start at the top-left corner and the bottom-right corner; fit the middle pieces between them. Every piece covers three corners of a 2-by-2 square; rotation is allowed. The required task is an exact cover, not a proof.
 
-**Extension:** Find a solution that does cross the middle split, then compare it with the two-terrace method.
+**Extension:** Try another cover, or explain why a tempting first placement leaves a gap.
 
-**Mathematical connection:** Decomposition proves existence without claiming uniqueness.
+**Mathematical connection:** Exact cover groups cells into triples. Deficient power-of-two squares also admit a divide-and-conquer construction; domino matching and flip theorems do not automatically apply to L tiles.
 
 **Sources:** [Eric Lehman, F. Thomson Leighton and Albert R. Meyer — Mathematics for Computer Science (2015), induction and counting](https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-spring-2015/mit6_042js15_textbook.pdf).
 
@@ -1034,7 +1036,7 @@ ID: `tile-23-05` · Domino garden
 · · · · □ □
 ```
 
-Garden: 12 cells, 6 dominoes. A witness (row,column pairs): (1,1)–(1,2); (1,5)–(1,6); (2,1)–(2,2); (2,3)–(2,4); (2,5)–(2,6); (3,5)–(3,6).
+Garden: 12 cells, 6 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (1,5)–(1,6); (2,1)–(2,2); (2,3)–(2,4); (2,5)–(2,6); (3,5)–(3,6).
 
 **Starting-board hints**
 
@@ -1098,7 +1100,7 @@ ID: `tile-23-06` · Domino garden
 □ □ □ ·
 ```
 
-Garden: 10 cells, 5 dominoes. A witness (row,column pairs): (1,2)–(1,3); (1,4)–(2,4); (2,1)–(2,2); (2,3)–(3,3); (3,1)–(3,2).
+Garden: 10 cells, 5 dominoes. A witness (row,column coordinates grouped by piece): (1,2)–(1,3); (1,4)–(2,4); (2,1)–(2,2); (2,3)–(3,3); (3,1)–(3,2).
 
 **Starting-board hints**
 
@@ -1162,7 +1164,7 @@ ID: `tile-23-07` · Domino garden
 · · · □ □ □
 ```
 
-Garden: 12 cells, 6 dominoes. A witness (row,column pairs): (1,1)–(1,2); (1,3)–(2,3); (1,5)–(1,6); (2,4)–(2,5); (2,6)–(3,6); (3,4)–(3,5).
+Garden: 12 cells, 6 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (1,3)–(2,3); (1,5)–(1,6); (2,4)–(2,5); (2,6)–(3,6); (3,4)–(3,5).
 
 **Starting-board hints**
 
@@ -1212,40 +1214,40 @@ Allowed positions: 1↔2, 2↔3, 3↔4, 4↔5. Exact minimum: **4**. One shortes
 
 **Sources:** [Robert Sedgewick and Kevin Wayne, Algorithms, 4th edition — Elementary Sorts](https://algs4.cs.princeton.edu/21elementary/).
 
-### 15. The small diamond
+### 15. An inside gap
 
-ID: `tile-23-08` · Domino garden
+ID: `tile-23-08` · L-tromino garden
 
-**Child instruction:** Cover the diamond garden.
+**Child instruction:** Cover every patch with L-trominoes.
 
-**Idea:** The border shapes the choices inside.
+**Idea:** Find the 2-by-2 quadrant containing the gap. Put a central L in the other three quadrants, then fill each quadrant.
 
 ```text
-· □ □ ·
+□ □ □ □
+□ · □ □
 □ □ □ □
 □ □ □ □
-· □ □ ·
 ```
 
-Garden: 12 cells, 6 dominoes. A witness (row,column pairs): (1,2)–(1,3); (2,1)–(2,2); (2,3)–(2,4); (3,1)–(3,2); (3,3)–(3,4); (4,2)–(4,3).
+Garden: 15 cells, 5 L-trominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2)–(2,1); (1,3)–(1,4)–(2,4); (2,3)–(3,2)–(3,3); (3,1)–(4,1)–(4,2); (3,4)–(4,3)–(4,4).
 
 **Starting-board hints**
 
-1. Each row has an even number of squares.
-2. Pair squares across to make a first solution.
-3. Cover the top pair, both middle rows in pairs, and the bottom pair.
+1. Find the 2-by-2 quadrant containing the gap. Put a central L in the other three quadrants, then fill each quadrant.
+2. Before placing an L, check which pieces can still reach the corners.
+3. Use the highlighted L placement, then look for the next corner.
 
-**Notice:** After one solution, ask where a small change is possible.
+**Notice:** Watch for planning around corners instead of filling a row greedily.
 
-**Ask together:** Which two dominoes could turn together inside a square?
+**Ask together:** Which empty region will remain after this L?
 
-**Explanation:** This is an Aztec diamond of order two. Its twelve cells have eight tilings. The horizontal construction is one, and local 2 by 2 flips produce others.
+**Explanation:** Find the 2-by-2 quadrant containing the gap. Put a central L in the other three quadrants, then fill each quadrant. Every piece covers three corners of a 2-by-2 square; rotation is allowed. The required task is an exact cover, not a proof.
 
-**Extension:** Draw several solutions and mark which dominoes stay near the same boundary.
+**Extension:** Try another cover, or explain why a tempting first placement leaves a gap.
 
-**Mathematical connection:** Larger Aztec diamonds reveal striking patterns in random tilings.
+**Mathematical connection:** Exact cover groups cells into triples. Deficient power-of-two squares also admit a divide-and-conquer construction; domino matching and flip theorems do not automatically apply to L tiles.
 
-**Sources:** [William Jockusch, James Propp and Peter Shor — Random Domino Tilings and the Arctic Circle Theorem](https://arxiv.org/abs/math/9801068); [Nicolau C. Saldanha and Carlos Tomei — An overview of domino and lozenge tilings (1998)](https://arxiv.org/abs/math/9801111).
+**Sources:** [Eric Lehman, F. Thomson Leighton and Albert R. Meyer — Mathematics for Computer Science (2015), induction and counting](https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-spring-2015/mit6_042js15_textbook.pdf).
 
 ### 16. Two travelers
 
@@ -1292,7 +1294,7 @@ ID: `tile-23-09` · Domino garden
 · □ □ · ·
 ```
 
-Garden: 14 cells, 7 dominoes. A witness (row,column pairs): (1,1)–(1,2); (1,3)–(1,4); (1,5)–(2,5); (2,1)–(2,2); (2,3)–(2,4); (3,2)–(3,3); (4,2)–(4,3).
+Garden: 14 cells, 7 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (1,3)–(1,4); (1,5)–(2,5); (2,1)–(2,2); (2,3)–(2,4); (3,2)–(3,3); (4,2)–(4,3).
 
 **Starting-board hints**
 
@@ -1357,7 +1359,7 @@ ID: `tile-23-10` · Domino garden
 □ □ □ □
 ```
 
-Garden: 12 cells, 6 dominoes. A witness (row,column pairs): (1,1)–(1,2); (1,3)–(1,4); (2,1)–(3,1); (2,4)–(3,4); (4,1)–(4,2); (4,3)–(4,4).
+Garden: 12 cells, 6 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (1,3)–(1,4); (2,1)–(3,1); (2,4)–(3,4); (4,1)–(4,2); (4,3)–(4,4).
 
 **Starting-board hints**
 
@@ -1422,7 +1424,7 @@ ID: `tile-23-11` · Domino garden
 · · · · □ □
 ```
 
-Garden: 12 cells, 6 dominoes. A witness (row,column pairs): (1,1)–(1,2); (2,1)–(2,2); (2,3)–(2,4); (3,3)–(3,4); (3,5)–(3,6); (4,5)–(4,6).
+Garden: 12 cells, 6 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (2,1)–(2,2); (2,3)–(2,4); (3,3)–(3,4); (3,5)–(3,6); (4,5)–(4,6).
 
 **Starting-board hints**
 
@@ -1472,40 +1474,39 @@ Allowed positions: 1↔2, 1↔3, 1↔4, 1↔5. Exact minimum: **6**. One shortes
 
 **Sources:** [Thomas Judson, Abstract Algebra: Theory and Applications — Permutation Groups](https://math.libretexts.org/Bookshelves/Abstract_and_Geometric_Algebra/Abstract_Algebra%3A_Theory_and_Applications_%28Judson%29/05%3A_Permutation_Groups/5.01%3A_Definitions_and_Notation); [Aichholzer et al. (2022), Hardness of Token Swapping on Trees](https://arxiv.org/abs/2103.06707).
 
-### 23. The rearranging courtyard
+### 23. Crosswise strips
 
-ID: `tile-23-12` · Domino garden
+ID: `tile-23-12` · L-tromino garden
 
-**Child instruction:** Cover the courtyard. Then try a new pattern.
+**Child instruction:** Cover every patch with L-trominoes.
 
-**Idea:** Solutions themselves can form a network.
+**Idea:** Split the width into three strips of two columns. Each strip is a 2-by-3 rectangle filled by two interlocking L pieces.
 
 ```text
-□ □ □ □
-□ □ □ □
-□ □ □ □
-□ □ □ □
+□ □ □ □ □ □
+□ □ □ □ □ □
+□ □ □ □ □ □
 ```
 
-Garden: 16 cells, 8 dominoes. A witness (row,column pairs): (1,1)–(1,2); (1,3)–(1,4); (2,1)–(2,2); (2,3)–(2,4); (3,1)–(3,2); (3,3)–(3,4); (4,1)–(4,2); (4,3)–(4,4).
+Garden: 18 cells, 6 L-trominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2)–(2,2); (2,1)–(3,1)–(3,2); (1,3)–(1,4)–(2,4); (2,3)–(3,3)–(3,4); (1,5)–(1,6)–(2,6); (2,5)–(3,5)–(3,6).
 
 **Starting-board hints**
 
-1. Start with a pattern you can repeat.
-2. Two dominoes in a 2 by 2 square can turn together.
-3. A first solution is two horizontal dominoes in each row.
+1. Split the width into three strips of two columns. Each strip is a 2-by-3 rectangle filled by two interlocking L pieces.
+2. Before placing an L, check which pieces can still reach the corners.
+3. Use the highlighted L placement, then look for the next corner.
 
-**Notice:** Keep the puzzle goal simple; the rearrangement is an optional conversation.
+**Notice:** Watch for planning around corners instead of filling a row greedily.
 
-**Ask together:** Can you make another solution by changing just two dominoes?
+**Ask together:** Which empty region will remain after this L?
 
-**Explanation:** There are 36 tilings of this 4 by 4 board. A local flip trades two parallel dominoes in a square for the other orientation. Recording tilings as dots and flips as links makes a new graph.
+**Explanation:** Split the width into three strips of two columns. Each strip is a 2-by-3 rectangle filled by two interlocking L pieces. Every piece covers three corners of a 2-by-2 square; rotation is allowed. The required task is an exact cover, not a proof.
 
-**Extension:** Draw three or four linked solutions. A theorem guarantees all tilings of a simply connected domino region are linked by such flips.
+**Extension:** Try another cover, or explain why a tempting first placement leaves a gap.
 
-**Mathematical connection:** The move graph of tilings is a research object.
+**Mathematical connection:** Exact cover groups cells into triples. Deficient power-of-two squares also admit a divide-and-conquer construction; domino matching and flip theorems do not automatically apply to L tiles.
 
-**Sources:** [Nicolau C. Saldanha and Carlos Tomei — An overview of domino and lozenge tilings (1998)](https://arxiv.org/abs/math/9801111).
+**Sources:** [Eric Lehman, F. Thomson Leighton and Albert R. Meyer — Mathematics for Computer Science (2015), induction and counting](https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-spring-2015/mit6_042js15_textbook.pdf).
 
 ### 24. Choose a way around
 
@@ -1552,7 +1553,7 @@ ID: `tile-45-01` · Domino garden
 □ □ □ □ □ □
 ```
 
-Garden: 12 cells, 6 dominoes. A witness (row,column pairs): (1,1)–(1,2); (1,3)–(1,4); (1,5)–(1,6); (2,1)–(2,2); (2,3)–(2,4); (2,5)–(2,6).
+Garden: 12 cells, 6 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (1,3)–(1,4); (1,5)–(1,6); (2,1)–(2,2); (2,3)–(2,4); (2,5)–(2,6).
 
 **Starting-board hints**
 
@@ -1617,7 +1618,7 @@ ID: `tile-45-02` · Domino garden
 □ □ □ □ · ·
 ```
 
-Garden: 16 cells, 8 dominoes. A witness (row,column pairs): (1,1)–(1,2); (1,3)–(1,4); (1,5)–(1,6); (2,1)–(2,2); (2,5)–(2,6); (3,1)–(3,2); (4,1)–(4,2); (4,3)–(4,4).
+Garden: 16 cells, 8 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (1,3)–(1,4); (1,5)–(1,6); (2,1)–(2,2); (2,5)–(2,6); (3,1)–(3,2); (4,1)–(4,2); (4,3)–(4,4).
 
 **Starting-board hints**
 
@@ -1681,7 +1682,7 @@ ID: `tile-45-03` · Domino garden
 □ □ □ □ □ □
 ```
 
-Garden: 18 cells, 9 dominoes. A witness (row,column pairs): (1,1)–(1,2); (1,3)–(1,4); (1,5)–(1,6); (2,1)–(2,2); (2,3)–(2,4); (2,5)–(2,6); (3,1)–(3,2); (3,3)–(3,4); (3,5)–(3,6).
+Garden: 18 cells, 9 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (1,3)–(1,4); (1,5)–(1,6); (2,1)–(2,2); (2,3)–(2,4); (2,5)–(2,6); (3,1)–(3,2); (3,3)–(3,4); (3,5)–(3,6).
 
 **Starting-board hints**
 
@@ -1731,41 +1732,40 @@ Allowed positions: 1↔2, 1↔3, 1↔4, 1↔5, 1↔6, 2↔3, 2↔4, 2↔5, 2↔6
 
 **Sources:** [Thomas Judson, Abstract Algebra: Theory and Applications — Permutation Groups](https://math.libretexts.org/Bookshelves/Abstract_and_Geometric_Algebra/Abstract_Algebra%3A_Theory_and_Applications_%28Judson%29/05%3A_Permutation_Groups/5.01%3A_Definitions_and_Notation).
 
-### 7. The sloping ridge
+### 7. Off-center gap
 
-ID: `tile-45-04` · Domino garden
+ID: `tile-45-04` · L-tromino garden
 
-**Child instruction:** Cover the ridge while protecting the narrow ends.
+**Child instruction:** Cover every patch with L-trominoes.
 
-**Idea:** Global completion may force central choices.
+**Idea:** Treat the four 2-by-2 quadrants as smaller missing-square puzzles. A central L supplies the three missing squares you need.
 
 ```text
-□ □ · · · ·
-□ □ □ □ · ·
-· □ □ □ □ ·
-· · □ □ □ □
-· · · · □ □
+□ □ □ □
+□ □ □ □
+□ □ · □
+□ □ □ □
 ```
 
-Garden: 16 cells, 8 dominoes. A witness (row,column pairs): (1,1)–(1,2); (2,1)–(2,2); (2,3)–(2,4); (3,2)–(3,3); (3,4)–(3,5); (4,3)–(4,4); (4,5)–(4,6); (5,5)–(5,6).
+Garden: 15 cells, 5 L-trominoes. A witness (row,column coordinates grouped by piece): (3,4)–(4,3)–(4,4); (1,1)–(1,2)–(2,1); (1,3)–(1,4)–(2,4); (2,2)–(2,3)–(3,2); (3,1)–(4,1)–(4,2).
 
 **Starting-board hints**
 
-1. The top row and bottom row each form a pair.
-2. Look for more forced pairs after the ends are covered.
-3. A complete construction puts dominoes across each row, working left to right.
+1. Treat the four 2-by-2 quadrants as smaller missing-square puzzles. A central L supplies the three missing squares you need.
+2. Before placing an L, check which pieces can still reach the corners.
+3. Use the highlighted L placement, then look for the next corner.
 
-**Notice:** This board has fewer solutions than its size may suggest.
+**Notice:** Watch for planning around corners instead of filling a row greedily.
 
-**Ask together:** Which choices disappear after you cover the two narrow ends?
+**Ask together:** Which empty region will remain after this L?
 
-**Explanation:** Every row has even length, so horizontal pairing provides a tiling. Exhaustive enumeration finds only four tilings: the narrow border forces many choices that look flexible at first.
+**Explanation:** Treat the four 2-by-2 quadrants as smaller missing-square puzzles. A central L supplies the three missing squares you need. Every piece covers three corners of a 2-by-2 square; rotation is allowed. The required task is an exact cover, not a proof.
 
-**Extension:** Try to find the small patches where changes are actually possible. Compare a large rectangle with the same area.
+**Extension:** Try another cover, or explain why a tempting first placement leaves a gap.
 
-**Mathematical connection:** Boundary conditions can strongly restrict a tiling space.
+**Mathematical connection:** Exact cover groups cells into triples. Deficient power-of-two squares also admit a divide-and-conquer construction; domino matching and flip theorems do not automatically apply to L tiles.
 
-**Sources:** [Nicolau C. Saldanha and Carlos Tomei — An overview of domino and lozenge tilings (1998)](https://arxiv.org/abs/math/9801111).
+**Sources:** [Eric Lehman, F. Thomson Leighton and Albert R. Meyer — Mathematics for Computer Science (2015), induction and counting](https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-spring-2015/mit6_042js15_textbook.pdf).
 
 ### 8. One loop, six cups
 
@@ -1813,7 +1813,7 @@ ID: `tile-45-05` · Domino garden
 · · · □ □ □
 ```
 
-Garden: 18 cells, 9 dominoes. A witness (row,column pairs): (1,1)–(1,2); (1,3)–(2,3); (2,1)–(2,2); (2,4)–(2,5); (2,6)–(3,6); (3,4)–(3,5); (4,4)–(4,5); (4,6)–(5,6); (5,4)–(5,5).
+Garden: 18 cells, 9 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (1,3)–(2,3); (2,1)–(2,2); (2,4)–(2,5); (2,6)–(3,6); (3,4)–(3,5); (4,4)–(4,5); (4,6)–(5,6); (5,4)–(5,5).
 
 **Starting-board hints**
 
@@ -1878,7 +1878,7 @@ ID: `tile-45-06` · Domino garden
 □ □ □ □ □ □
 ```
 
-Garden: 22 cells, 11 dominoes. A witness (row,column pairs): (1,2)–(1,3); (1,4)–(1,5); (2,1)–(2,2); (2,3)–(2,4); (2,5)–(2,6); (3,1)–(3,2); (3,3)–(3,4); (3,5)–(3,6); (4,1)–(4,2); (4,3)–(4,4); (4,5)–(4,6).
+Garden: 22 cells, 11 dominoes. A witness (row,column coordinates grouped by piece): (1,2)–(1,3); (1,4)–(1,5); (2,1)–(2,2); (2,3)–(2,4); (2,5)–(2,6); (3,1)–(3,2); (3,3)–(3,4); (3,5)–(3,6); (4,1)–(4,2); (4,3)–(4,4); (4,5)–(4,6).
 
 **Starting-board hints**
 
@@ -1944,7 +1944,7 @@ ID: `tile-45-07` · Domino garden
 · · · □ □ □
 ```
 
-Garden: 18 cells, 9 dominoes. A witness (row,column pairs): (1,1)–(1,2); (1,3)–(2,3); (2,1)–(2,2); (3,1)–(3,2); (3,3)–(3,4); (3,5)–(3,6); (4,4)–(4,5); (4,6)–(5,6); (5,4)–(5,5).
+Garden: 18 cells, 9 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (1,3)–(2,3); (2,1)–(2,2); (3,1)–(3,2); (3,3)–(3,4); (3,5)–(3,6); (4,4)–(4,5); (4,6)–(5,6); (5,4)–(5,5).
 
 **Starting-board hints**
 
@@ -1994,42 +1994,41 @@ Allowed positions: 1↔2, 2↔3, 3↔4, 4↔5, 5↔6. Exact minimum: **9**. One 
 
 **Sources:** [Robert Sedgewick and Kevin Wayne, Algorithms, 4th edition — Elementary Sorts](https://algs4.cs.princeton.edu/21elementary/).
 
-### 15. The Aztec garden
+### 15. A square with a tail
 
-ID: `tile-45-08` · Domino garden
+ID: `tile-45-08` · L-tromino garden
 
-**Child instruction:** Cover the diamond; notice choices near its border.
+**Child instruction:** Cover every patch with L-trominoes.
 
-**Idea:** The shape of a region influences its typical tilings.
+**Idea:** Reserve two L pieces for the bottom row: one reaches up at the left edge, the other reaches up above its right end. Then work around the remaining boundary.
 
 ```text
-· · □ □ · ·
-· □ □ □ □ ·
-□ □ □ □ □ □
-□ □ □ □ □ □
-· □ □ □ □ ·
-· · □ □ · ·
+□ □ □ □ □
+□ □ □ □ □
+□ □ □ □ □
+□ □ □ □ □
+□ □ □ □ ·
 ```
 
-Garden: 24 cells, 12 dominoes. A witness (row,column pairs): (1,3)–(1,4); (2,2)–(2,3); (2,4)–(2,5); (3,1)–(3,2); (3,3)–(3,4); (3,5)–(3,6); (4,1)–(4,2); (4,3)–(4,4); (4,5)–(4,6); (5,2)–(5,3); (5,4)–(5,5); (6,3)–(6,4).
+Garden: 24 cells, 8 L-trominoes. A witness (row,column coordinates grouped by piece): (1,1)–(2,1)–(2,2); (1,2)–(1,3)–(2,3); (1,4)–(1,5)–(2,5); (2,4)–(3,3)–(3,4); (3,5)–(4,4)–(4,5); (4,3)–(5,3)–(5,4); (3,1)–(3,2)–(4,2); (4,1)–(5,1)–(5,2).
 
 **Starting-board hints**
 
-1. Every row contains an even number of cells.
-2. Horizontal pairs give an easy first tiling.
-3. Pair left to right in each row, starting with the two-cell top row.
+1. Reserve two L pieces for the bottom row: one reaches up at the left edge, the other reaches up above its right end. Then work around the remaining boundary.
+2. Before placing an L, check which pieces can still reach the corners.
+3. Use the highlighted L placement, then look for the next corner.
 
-**Notice:** This small board invites a question about large families, not a claim about statistics from one play.
+**Notice:** Watch for planning around corners instead of filling a row greedily.
 
-**Ask together:** If we drew many different tilings, which patterns might keep appearing?
+**Ask together:** Which empty region will remain after this L?
 
-**Explanation:** This order-three Aztec diamond has 24 cells and 64 tilings, verified by enumeration. Every tiling uses twelve dominoes, but orientations and positions vary.
+**Explanation:** Reserve two L pieces for the bottom row: one reaches up at the left edge, the other reaches up above its right end. Then work around the remaining boundary. These reservations leave an 18-cell region with several corner choices. Check the next corner before committing; area divisible by three alone does not guarantee an L tiling.
 
-**Extension:** Sketch several tilings. Large uniformly random Aztec diamonds have a disordered central region approaching a circle and ordered outer regions. A hand-chosen sample here is not uniform and this tiny board is not the limiting theorem.
+**Extension:** Try another cover, or explain why a tempting first placement leaves a gap.
 
-**Mathematical connection:** A small counting question leads to random tilings and limit shapes.
+**Mathematical connection:** Exact cover groups cells into triples. Deficient power-of-two squares also admit a divide-and-conquer construction; domino matching and flip theorems do not automatically apply to L tiles.
 
-**Sources:** [William Jockusch, James Propp and Peter Shor — Random Domino Tilings and the Arctic Circle Theorem](https://arxiv.org/abs/math/9801068).
+**Sources:** [Eric Lehman, F. Thomson Leighton and Albert R. Meyer — Mathematics for Computer Science (2015), induction and counting](https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-spring-2015/mit6_042js15_textbook.pdf).
 
 ### 16. Does a shortcut help?
 
@@ -2076,7 +2075,7 @@ ID: `tile-45-09` · Domino garden
 □ □ □ □ □ □
 ```
 
-Garden: 22 cells, 11 dominoes. A witness (row,column pairs): (1,1)–(1,2); (1,3)–(1,4); (1,5)–(1,6); (2,1)–(2,2); (2,5)–(2,6); (3,1)–(3,2); (3,3)–(3,4); (3,5)–(3,6); (4,1)–(4,2); (4,3)–(4,4); (4,5)–(4,6).
+Garden: 22 cells, 11 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (1,3)–(1,4); (1,5)–(1,6); (2,1)–(2,2); (2,5)–(2,6); (3,1)–(3,2); (3,3)–(3,4); (3,5)–(3,6); (4,1)–(4,2); (4,3)–(4,4); (4,5)–(4,6).
 
 **Starting-board hints**
 
@@ -2142,7 +2141,7 @@ ID: `tile-45-10` · Domino garden
 □ □ □ □ □
 ```
 
-Garden: 16 cells, 8 dominoes. A witness (row,column pairs): (1,1)–(1,2); (1,3)–(1,4); (1,5)–(2,5); (2,1)–(3,1); (3,5)–(4,5); (4,1)–(5,1); (5,2)–(5,3); (5,4)–(5,5).
+Garden: 16 cells, 8 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (1,3)–(1,4); (1,5)–(2,5); (2,1)–(3,1); (3,5)–(4,5); (4,1)–(5,1); (5,2)–(5,3); (5,4)–(5,5).
 
 **Starting-board hints**
 
@@ -2208,7 +2207,7 @@ ID: `tile-45-11` · Domino garden
 · · · · □ □
 ```
 
-Garden: 18 cells, 9 dominoes. A witness (row,column pairs): (1,1)–(1,2); (2,1)–(2,2); (2,3)–(2,4); (3,1)–(3,2); (3,3)–(3,4); (3,5)–(3,6); (4,3)–(4,4); (4,5)–(4,6); (5,5)–(5,6).
+Garden: 18 cells, 9 dominoes. A witness (row,column coordinates grouped by piece): (1,1)–(1,2); (2,1)–(2,2); (2,3)–(2,4); (3,1)–(3,2); (3,3)–(3,4); (3,5)–(3,6); (4,3)–(4,4); (4,5)–(4,6); (5,5)–(5,6).
 
 **Starting-board hints**
 
@@ -2258,13 +2257,13 @@ Allowed positions: 1↔2, 1↔6, 2↔3, 3↔4, 4↔5, 5↔6. Exact minimum: **7*
 
 **Sources:** [Aichholzer et al. (2022), Hardness of Token Swapping on Trees](https://arxiv.org/abs/2103.06707); [Thomas Judson, Abstract Algebra: Theory and Applications — Permutation Groups](https://math.libretexts.org/Bookshelves/Abstract_and_Geometric_Algebra/Abstract_Algebra%3A_Theory_and_Applications_%28Judson%29/05%3A_Permutation_Groups/5.01%3A_Definitions_and_Notation).
 
-### 23. A whole world of tilings
+### 23. Joining rectangles
 
-ID: `tile-45-12` · Domino garden
+ID: `tile-45-12` · L-tromino garden
 
-**Child instruction:** Cover the courtyard, then explore a small change.
+**Child instruction:** Cover every patch with L-trominoes.
 
-**Idea:** Ask about all solutions and the paths between them.
+**Idea:** Separate this into two 3-by-4 rectangles, then split each into two 3-by-2 blocks. Avoid sealing off a strip one square wide.
 
 ```text
 □ □ □ □ □ □
@@ -2273,25 +2272,25 @@ ID: `tile-45-12` · Domino garden
 □ □ □ □ □ □
 ```
 
-Garden: 24 cells, 12 dominoes. A witness (row,column pairs): (1,1)–(1,2); (1,3)–(1,4); (1,5)–(1,6); (2,1)–(2,2); (2,3)–(2,4); (2,5)–(2,6); (3,1)–(3,2); (3,3)–(3,4); (3,5)–(3,6); (4,1)–(4,2); (4,3)–(4,4); (4,5)–(4,6).
+Garden: 24 cells, 8 L-trominoes. A witness (row,column coordinates grouped by piece): (1,1)–(2,1)–(2,2); (1,2)–(1,3)–(2,3); (1,4)–(2,4)–(2,5); (1,5)–(1,6)–(2,6); (3,1)–(4,1)–(4,2); (3,2)–(3,3)–(4,3); (3,4)–(4,4)–(4,5); (3,5)–(3,6)–(4,6).
 
 **Starting-board hints**
 
-1. A repeated row pattern is a useful first solution.
-2. Look for a full 2 by 2 patch covered by two dominoes.
-3. Start with three horizontal dominoes in each row; a pair of neighboring rows contains places to flip.
+1. Separate this into two 3-by-4 rectangles, then split each into two 3-by-2 blocks. Avoid sealing off a strip one square wide.
+2. Before placing an L, check which pieces can still reach the corners.
+3. Use the highlighted L placement, then look for the next corner.
 
-**Notice:** Celebrate a new question after solving: how many, how connected, how typical?
+**Notice:** Watch for planning around corners instead of filling a row greedily.
 
-**Ask together:** Could you reach every tiling by turning two dominoes at a time?
+**Ask together:** Which empty region will remain after this L?
 
-**Explanation:** This 4 by 6 rectangle has 281 tilings. A local flip exchanges the two tilings of a 2 by 2 patch. Because the board is simply connected, its tilings are connected by flips. A height function encodes the tiling as integer heights at grid vertices.
+**Explanation:** Separate this into two 3-by-4 rectangles, then split each into two 3-by-2 blocks. Avoid sealing off a strip one square wide. Every piece covers three corners of a 2-by-2 square; rotation is allowed. The required task is an exact cover, not a proof.
 
-**Extension:** Draw a short path of flips. Advanced questions study shortest paths, efficient random sampling, and fluctuations of height functions on much larger boards; this MVP does not measure those quantities.
+**Extension:** Try another cover, or explain why a tempting first placement leaves a gap.
 
-**Mathematical connection:** Thurston’s height viewpoint links local moves with global structure.
+**Mathematical connection:** Exact cover groups cells into triples. Deficient power-of-two squares also admit a divide-and-conquer construction; domino matching and flip theorems do not automatically apply to L tiles.
 
-**Sources:** [William P. Thurston — Conway’s Tiling Groups (1990)](https://doi.org/10.1080/00029890.1990.11995660); [Nicolau C. Saldanha and Carlos Tomei — An overview of domino and lozenge tilings (1998)](https://arxiv.org/abs/math/9801111); [Richard Kenyon — Dominos and the Gaussian free field (2000)](https://arxiv.org/abs/math-ph/0002027).
+**Sources:** [Eric Lehman, F. Thomson Leighton and Albert R. Meyer — Mathematics for Computer Science (2015), induction and counting](https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-spring-2015/mit6_042js15_textbook.pdf).
 
 ### 24. Map the possibilities
 
