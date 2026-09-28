@@ -3,7 +3,7 @@ export function puzzleObjective(puzzle) {
   const p = puzzle.parameters;
   switch (puzzle.mechanic) {
     case 'tile':
-      return 'Cover every square with dominoes.';
+      return puzzle.tileShape === 'l-tromino' ? 'Cover every square with L-trominoes.' : 'Cover every square with dominoes.';
     case 'swap':
       return 'Match the cups to the letters.';
     case 'toggle':
@@ -58,7 +58,7 @@ export function puzzleObjective(puzzle) {
 
 // Visible copy is only for information the board and its controls do not supply.
 export function visiblePuzzleObjective(puzzle) {
-  if (['swap', 'toggle', 'code'].includes(puzzle.mechanic)) return '';
+  if (['tile', 'swap', 'toggle', 'code'].includes(puzzle.mechanic)) return '';
   if (puzzle.mechanic === 'billiard' && puzzle.parameters.mode === 'predict') return '';
   if (puzzle.mechanic === 'weigh') {
     return puzzle.parameters.odd_kind === 'heavy' ? 'Find the heavy pebble.' : 'Find the odd pebble: heavy or light?';

@@ -6,9 +6,220 @@ import { validateJourney as validateCaravanJourney } from './caravan-legacy.js';
 export const SAVE_KEY = 'small-math-adventure:saves:v1';
 export const BACKUP_KEY = 'small-math-adventure:previous:v1';
 export const emptyStore = () => ({ schemaVersion: 1, contentVersion: CONTENT_VERSION, activeProfileId: null, profiles: [] });
+// Only these revision-1 definitions may migrate to the L-only revision 2.
+const legacyGardens = {
+  "tile-k1-04": {
+    "id": "tile-k1-04",
+    "mechanic": "tile",
+    "revision": 1,
+    "cols": 3,
+    "rows": 2,
+    "cells": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "tile-k1-08": {
+    "id": "tile-k1-08",
+    "mechanic": "tile",
+    "revision": 1,
+    "cols": 4,
+    "rows": 2,
+    "cells": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  "tile-k1-12": {
+    "id": "tile-k1-12",
+    "mechanic": "tile",
+    "revision": 1,
+    "cols": 4,
+    "rows": 3,
+    "cells": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      7,
+      9,
+      10
+    ]
+  },
+  "tile-23-04": {
+    "id": "tile-23-04",
+    "mechanic": "tile",
+    "revision": 1,
+    "cols": 4,
+    "rows": 4,
+    "cells": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      6,
+      9,
+      10,
+      11,
+      13,
+      14,
+      15
+    ]
+  },
+  "tile-23-08": {
+    "id": "tile-23-08",
+    "mechanic": "tile",
+    "revision": 1,
+    "cols": 4,
+    "rows": 4,
+    "cells": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      13,
+      14
+    ]
+  },
+  "tile-23-12": {
+    "id": "tile-23-12",
+    "mechanic": "tile",
+    "revision": 1,
+    "cols": 4,
+    "rows": 4,
+    "cells": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  },
+  "tile-45-04": {
+    "id": "tile-45-04",
+    "mechanic": "tile",
+    "revision": 1,
+    "cols": 6,
+    "rows": 5,
+    "cells": [
+      0,
+      1,
+      6,
+      7,
+      8,
+      9,
+      13,
+      14,
+      15,
+      16,
+      20,
+      21,
+      22,
+      23,
+      28,
+      29
+    ]
+  },
+  "tile-45-08": {
+    "id": "tile-45-08",
+    "mechanic": "tile",
+    "revision": 1,
+    "cols": 6,
+    "rows": 6,
+    "cells": [
+      2,
+      3,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      25,
+      26,
+      27,
+      28,
+      32,
+      33
+    ]
+  },
+  "tile-45-12": {
+    "id": "tile-45-12",
+    "mechanic": "tile",
+    "revision": 1,
+    "cols": 6,
+    "rows": 4,
+    "cells": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ]
+  }
+};
+const savedDefinition = (p, a) => p?.revision === 2 && p.tileShape === 'l-tromino' && a?.revision === 1 && Object.hasOwn(legacyGardens,p.id) ? legacyGardens[p.id] : p;
 const readableBoard = (p, board) => validBoard(p, board) || p.mechanic === 'nim' && legacyNimBoard(p, board);
 function restoredAttempt(p, a) {
   const saved = {revision:a.revision,board:clone(a.board),history:clone(a.history),moves:a.moves,hintLevel:a.hintLevel,helpUsed:a.helpUsed,completed:a.completed,lastPlayed:a.lastPlayed};
+  if (savedDefinition(p,a) !== p) {
+    const fresh = freshAttempt(p);
+    return {...saved,revision:p.revision,board:fresh.board,history:[],moves:0};
+  }
   // An old first-move answer is not an unfinished match. Start a new match,
   // preserving earned discoveries and assistance, after validating the old save.
   if (p.mechanic === 'nim' && legacyNimBoard(p, a.board)) {
@@ -42,7 +253,7 @@ export function validateStore(value, puzzles) {
     journeys.set(profile.id,{...(journey?{journey}:{}),...(caravanJourney?{caravanJourney}:{})});
     const effectiveProfile={...profile,journey};
     for (const [id,a] of Object.entries(profile.attempts)) {
-      const base = byId.get(id), p = resolvePuzzle(base,effectiveProfile);
+      const base = byId.get(id), current = resolvePuzzle(base,effectiveProfile), p = savedDefinition(current,a);
       if (base?.campaignOnly && !Object.values(journey?.bindings||{}).includes(id)) throw new Error('A rescue puzzle has not been reached.');
       if (!p || !a || a.revision !== (p.revision || 1) || !readableBoard(p,a.board) || !Array.isArray(a.history) || a.history.length > 120 || !Number.isSafeInteger(a.moves) || a.moves < 0 || !Number.isInteger(a.hintLevel) || a.hintLevel < 0 || a.hintLevel > 3 || typeof a.helpUsed !== 'boolean' || typeof a.completed !== 'boolean' || !Number.isFinite(a.lastPlayed) || a.lastPlayed < 0 || (isSolved(p,a.board) && !a.completed)) throw new Error(`Saved puzzle ${id} does not match this puzzle pack.`);
       if (a.history.length > Math.min(a.moves,120)) throw new Error(`Undo history for ${id} is not valid.`);
