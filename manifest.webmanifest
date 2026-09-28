@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "The Last Lantern Caravan",
+  "name": "The Lantern Caravan",
   "short_name": "Lantern Caravan",
-  "description": "Sneak into the Clockwork Citadel, rescue Fern, and escape with the lantern tree.",
+  "description": "Carry a living lantern tree along a dark island road with six friends.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
