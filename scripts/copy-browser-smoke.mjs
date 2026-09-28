@@ -29,7 +29,9 @@ async function assertEssentialConstraints(puzzle,goal){
  const p=puzzle.parameters,id=puzzle.id,board=page.locator('.board-panel'),text=normalize(await board.innerText());
  switch(puzzle.mechanic){
   case 'tile':
-   assert.match(goal,/cover every square.*dominoes/i,`${id}: coverage rule`);
+   assert.equal(goal,'',`${id}: the garden communicates its goal without a visible objective`);
+   assert.equal(await page.locator('.tile-piece-picture[role="img"]').getAttribute('aria-label'),puzzle.tileShape==='l-tromino'?'L-tromino, 3 squares':'Domino, 2 squares',`${id}: accessible piece picture`);
+   assert.equal(text.includes(`Drag across ${puzzle.tileShape==='l-tromino'?3:2} squares`),true,`${id}: empty-board gesture guidance`);
    assert.equal(await page.locator('.garden-cell').count(),puzzle.cells.length,`${id}: every playable square remains available`);
    break;
   case 'swap':

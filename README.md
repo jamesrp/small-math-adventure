@@ -23,7 +23,7 @@ Open [the local adventure](http://127.0.0.1:4187). `PORT=4174 npm start` chooses
 
 ## Included
 
-- Twelve tap-based mechanics, with generous targets, keyboard controls, symbols alongside colors, and reduced-motion support. No dragging is required.
+- Twelve mechanics with generous targets, keyboard controls, symbols alongside colors, and reduced-motion support. Tile Gardens support drag or tap placement.
 - An illustrated citadel, six recurring companions, two entry/escape routes, captioned story scenes, a journey journal, and a lasting rescue finale. The puzzle satchel keeps all 192 catalog puzzles immediately available; completion survives replay.
 - Eleven story encounters plus an explicitly blocked lift preview. Repairing Bea’s pump permanently adds Fill and Empty to the campaign jugs. Revisited encounters show a fresh puzzle; free play does not silently advance the story.
 - Separate nickname/avatar profiles, up to 30 local saves. Change grade trails without losing progress on another trail.
@@ -94,6 +94,8 @@ node scripts/expansion-browser-smoke.mjs
 It exercises direct controls for all ten new types, completes all 120 instances through current-state hints, checks saved progress after reload, verifies 44-pixel controls and phone/iPad layouts, and opens every family offline. Latin squares use a square-and-number keypad with reversible marks; balance puzzles draw a random odd pebble (and heavy/light sign where applicable) for each new attempt. The secret stays fixed through reload and Undo, and answers still require evidence identifying one possibility. Old balance saves retain their original secret and observations until a new attempt starts. Route and toggle budgets are part of completion; code, clock, and billiard submissions accept alternate valid answers. Pebble Duel plays full normal-play Nim games: the opponent uses a winning reply when possible and a random legal move otherwise. Completion requires taking the last pebble; Undo reverses a full round. Legacy first-move saves start a fresh match while preserving previously earned completion and assistance.
 
 The replay regression suite (`node scripts/reattempt-browser-smoke.mjs`) checks all 192 solved puzzles reopening on fresh boards, persistent completion, randomized balance restarts, secret stability through reload and Undo, and immediate restart. It uses the same browser environment variables.
+
+The Tile Garden browser checks (`node scripts/tile-browser-smoke.mjs` and `node scripts/shipped-gardens-browser-smoke.mjs`) exercise pointer, tap, keyboard, save, hint, and story encounter behavior, and complete all 36 shipped gardens through the UI. Their reports and screenshots go in ignored `test-results/`. Run them with a localhost-only server for isolated verification.
 
 To refresh the expansion from its checked authoring JSON, run `node scripts/import-expansion.mjs`, then `npm test` and `npm run build`. The checked JSON remains authoring data; `dist/puzzles.json` is the canonical runtime pack. The ten expansion families now have twelve instances each, grouped by Easy, Medium, and Hard. Difficulty is relative within a family and still needs family playtesting. See [the difficulty expansion](docs/puzzle-expansion/difficulty-expansion.md) for the new designs and reproduction instructions.
 
