@@ -31,7 +31,7 @@ The deficient 4×4 instances specialize the construction identified in the curri
 ## Verification
 
 - `npm test && npm run validate`: 170 tests pass; 192 catalog puzzles, three campaign puzzles, three bands and twelve mechanics validate. All nine L witnesses are replayed using their actual rules.
-- `scripts/shipped-gardens-browser-smoke.mjs`: passed in disposable headless Chrome against a temporary server bound to 127.0.0.1. Shipped `tile-k1-04`, `tile-23-08`, and `tile-45-12` each exercised rotation, touch and keyboard placement, Help, three-cell hint application and completion both by witness and by hints. Unchanged `tile-k1-03` completed with domino controls. No page errors or horizontal overflow. Phone screenshots in ignored `test-results/` were visually inspected.
+- Earlier browser evidence exercised the former rotation controls. Browser smoke scripts need updating for the draw and tap interaction before they can verify the current UI.
 - Browser launch and localhost binding required scoped automatic permission escalation. Browser closes in `finally`; the temporary server was stopped after verification. No personal browser profile was used.
 
 Run the browser check using the existing `PLAYWRIGHT_MODULE`, `BROWSER_EXECUTABLE`, and optional `TEST_URL` conventions. The earlier synthetic fixture suite remains separate coverage of all four orientations, removal, undo, restart and read-aloud.

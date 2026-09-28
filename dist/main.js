@@ -1,4 +1,4 @@
-import { lPreview, tileInstructions } from './tile-controls.js';
+import { extendTileStroke, startTileStroke, tapTileSelection, tileInstructions, tileReleaseAction, tileStrokeTarget } from './tile-controls.js';
 import {isExpansion,mechanicFor,playInstructions} from './expansion.js';
 import {puzzleObjective} from './puzzle-copy.js';
 import { BANDS,freshAttempt,resumeAttempt,isSolved,nextHint,move,removeTile,undo,restart,undoToSolvable } from './engine.js';
@@ -8,7 +8,7 @@ import { COMPANIONS, getProgress, getEncounter, startJourney, chooseRoute, begin
 import { caravanHeader, caravanProfiles, caravanMap, journalView, companionBody, libraryView } from './caravan-ui.js';
 const app=document.querySelector('#app');
 let pack,puzzles,state,warning='',selected=null,highlighted=null,message='',checker=false,pwaMessage='Preparing offline play…',currentDialog;
-let tileRotation=0;
+let tileSelection=[],tileGesture=null;
 let sessionCompleted=new Set(),activePlay=null;
 let storage;
 try{storage=window.localStorage;}catch{storage={getItem(){throw Error();},setItem(){throw Error();},removeItem(){throw Error();}};}
@@ -30,21 +30,84 @@ function activeEncounter(){
 }
 function save(){warning=persistStore(storage,state,puzzles);}
 function put(p,a){profile().attempts[p.id]=a;save();}
-function go(hash){selected=null;highlighted=null;message='';if(location.hash===`#${hash}`)render();else location.hash=hash;}
+function go(hash){selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';if(location.hash===`#${hash}`)render();else location.hash=hash;}
 function render(){
+  tileGesture=null;
   const focus=document.activeElement?.dataset?.focus,focusedPair=document.activeElement?.dataset?.pair,view=route()[0],pr=profile(),p=puzzle();
   const playKey=view==='play'&&pr&&p?`${pr.id}/${location.hash}`:null;
   if(playKey!==activePlay){
-    activePlay=playKey;tileRotation=0;
+    activePlay=playKey;tileSelection=[];
     if(playKey){pr.attempts[p.id]=resumeAttempt(p,pr.attempts[p.id]);save();}
   }
   const encounter=activeEncounter();
-  const content=view==='parents'?parentView(state,pr,pack,pwaMessage):!pr||view==='profiles'?caravanProfiles(state,puzzles):view==='journal'?journalView(pr,puzzles):view==='library'?libraryView(pr,puzzles):view==='play'&&p?playView(p,attempt(p),{pack,profile:pr,encounter,selected,highlighted,message,checker,tileRotation,sessionCount:sessionCompleted.size}):caravanMap(pr,puzzles);
+  const content=view==='parents'?parentView(state,pr,pack,pwaMessage):!pr||view==='profiles'?caravanProfiles(state,puzzles):view==='journal'?journalView(pr,puzzles):view==='library'?libraryView(pr,puzzles):view==='play'&&p?playView(p,attempt(p),{pack,profile:pr,encounter,selected,tileSelection,highlighted,message,checker,sessionCount:sessionCompleted.size}):caravanMap(pr,puzzles);
   document.body.dataset.view=view||'map';
   document.body.classList.toggle('on-encounter',Boolean(encounter));
   app.innerHTML=caravanHeader(pr,view==='library'||(view==='play'&&!encounter)?'library':view==='journal'?'journal':'journey')+(warning?`<div class="error-banner" role="status">${esc(warning)}</div>`:'')+`<main class="shell" id="main">${content}</main>`;
   if(focus){let target=(focusedPair?app.querySelector(`[data-pair="${CSS.escape(focusedPair)}"]`):app.querySelector(`[data-focus="${CSS.escape(focus)}"]`));if(!target||target.disabled)target=app.querySelector('.latin-cell[aria-pressed="true"]:not(:disabled)')||app.querySelector('.nim-status')||app.querySelector('#completion-heading')||app.querySelector('.garden-cell');target?.focus({preventScroll:true});}
   wireForms();
+  wireTileBoard();
+}
+function tapTile(p,cell){
+  const a=attempt(p);
+  if(a.board.some(piece=>piece.includes(cell))){put(p,removeTile(p,a,cell));tileSelection=[];highlighted=null;message='';render();return;}
+  const next=tapTileSelection(p,a.board,tileSelection,cell);
+  tileSelection=next.status==='complete'?[]:next.cells;
+  message='';
+  if(next.status==='complete')applyPair(p,next.cells);else render();
+}
+function wireTileBoard(){
+  const board=app.querySelector('.tile-board'),p=puzzle();
+  if(!board||p?.mechanic!=='tile')return;
+  const paint=()=>{
+    board.querySelectorAll('.garden-cell').forEach(node=>{
+      const cell=Number(node.dataset.cell),active=tileGesture?.stroke.cells.includes(cell);
+      const chosen=!tileGesture&&tileSelection.includes(cell);
+      node.classList.toggle('selected',chosen);
+      node.setAttribute('aria-pressed',String(chosen));
+      if(!node.classList.contains('planted')){
+        node.setAttribute('aria-label',`Row ${Math.floor(cell/p.cols)+1}, column ${cell%p.cols+1}${chosen?', selected':', empty patch'}`);
+        node.querySelector('span').textContent=chosen?'•':'';
+      }
+      node.classList.toggle('tile-preview',Boolean(active));
+      node.classList.toggle('invalid',Boolean(active&&tileGesture.stroke.status==='blocked'));
+      node.classList.toggle(`tile-color-${tileGesture?.color??0}`,Boolean(active&&tileGesture.stroke.status!=='blocked'));
+      if(!tileGesture)node.classList.remove(...Array.from({length:6},(_,i)=>`tile-color-${i}`));
+    });
+  };
+  const target=e=>tileStrokeTarget(board.getBoundingClientRect(),[...board.querySelectorAll('.garden-cell,.garden-hole')].map(node=>({cell:Number(node.dataset.cell),rect:node.getBoundingClientRect()})),e.clientX,e.clientY);
+  board.addEventListener('pointerdown',e=>{
+    if(tileGesture||!e.isPrimary||e.button!==0)return;
+    const cell=e.target.closest('.garden-cell');
+    if(!cell||!board.contains(cell)||cell.classList.contains('planted'))return;
+    e.preventDefault();
+    board.setPointerCapture(e.pointerId);
+    tileGesture={id:e.pointerId,board,stroke:startTileStroke(p,attempt(p).board,Number(cell.dataset.cell)),color:attempt(p).board.length%6,multi:false,departed:false};
+    paint();
+  });
+  board.addEventListener('pointermove',e=>{
+    if(!tileGesture||tileGesture.id!==e.pointerId)return;
+    const hit=target(e);
+    if(hit===-1)tileGesture.departed=true;
+    const before=tileGesture.stroke,after=extendTileStroke(p,attempt(p).board,before,hit);
+    if(after!==before){tileGesture.stroke=after;if(after.cells.length>1&&!tileGesture.multi){tileGesture.multi=true;tileSelection=[];}paint();}
+  });
+  const finish=(e,cancel)=>{
+    if(!tileGesture||tileGesture.id!==e.pointerId)return;
+    const gesture=tileGesture,hit=cancel?-1:target(e);
+    const start=board.querySelector(`.garden-cell[data-cell="${gesture.stroke.cells[0]}"]`);
+    const rect=start?.getBoundingClientRect();
+    const insideStart=rect&&e.clientX>=rect.left&&e.clientX<=rect.right&&e.clientY>=rect.top&&e.clientY<=rect.bottom;
+    const action=cancel?null:tileReleaseAction(gesture.stroke,gesture.multi,gesture.departed,hit,insideStart);
+    tileGesture=null;
+    if(board.hasPointerCapture(e.pointerId))board.releasePointerCapture(e.pointerId);
+    if(action?.type==='place')applyPair(p,action.cells);
+    else if(action?.type==='tap')tapTile(p,action.cell);
+    else paint();
+  };
+  board.addEventListener('pointerup',e=>finish(e,false));
+  board.addEventListener('pointercancel',e=>finish(e,true));
+  board.addEventListener('lostpointercapture',e=>finish(e,true));
 }
 function wireForms(){
   document.querySelectorAll('form[data-puzzle-form]').forEach(form=>form.addEventListener('submit',e=>{e.preventDefault();const p=puzzle();if(p&&profile())applyPair(p,Object.fromEntries(new FormData(e.currentTarget)));}));
@@ -84,7 +147,7 @@ function openEncounter(id){
   if(!profile().attempts[next.puzzle.id])profile().attempts[next.puzzle.id]=freshAttempt(next.puzzle);
   save();go(`play/${next.puzzle.id}/${next.encounter.id}`);
 }
-function applyPair(p,pair){const a=attempt(p),encounter=activeEncounter(),next=move(p,a,pair);selected=p.mechanic==='latin'?Number(pair.cell):null;highlighted=null;if(!next){message=isExpansion(p)?'That move is not allowed. Check How to play.':p.mechanic==='tile'?(p.tileShape==='l-tromino'?'Choose three empty patches forming an L.':'Choose two empty patches that share a side.'):'Choose a listed pair.';render();return;}message='';if(isSolved(p,next.board)&&!a.completed)sessionCompleted.add(p.id);profile().attempts[p.id]=next;if(encounter&&isSolved(p,next.board))completeEncounter(profile(),p.id,encounter.id,puzzles);save();render();if(isSolved(p,next.board)){if(encounter)window.scrollTo(0,0);document.querySelector('#completion-heading')?.focus({preventScroll:true});}}
+function applyPair(p,pair){const a=attempt(p),encounter=activeEncounter(),next=move(p,a,pair);selected=p.mechanic==='latin'?Number(pair.cell):null;tileSelection=[];highlighted=null;if(!next){message=isExpansion(p)?'That move is not allowed. Check How to play.':p.mechanic==='tile'?'':'Choose a listed pair.';render();return;}message='';if(isSolved(p,next.board)&&!a.completed)sessionCompleted.add(p.id);profile().attempts[p.id]=next;if(encounter&&isSolved(p,next.board))completeEncounter(profile(),p.id,encounter.id,puzzles);save();render();if(isSolved(p,next.board)){if(encounter)window.scrollTo(0,0);document.querySelector('#completion-heading')?.focus({preventScroll:true});}}
 document.addEventListener('keydown',event=>{
   const wire=event.target.closest('.wire-hit');
   if(wire&&['Enter',' '].includes(event.key)){event.preventDefault();if(wire.getAttribute('aria-disabled')!=='true')wire.dispatchEvent(new MouseEvent('click',{bubbles:true}));return;}
@@ -120,15 +183,15 @@ document.addEventListener('click',event=>{
   else if(action==='open-puzzle')openPuzzle(control.dataset.id);
   else if(action==='parents-gate')dialog('Grown-ups','',[{label:'Back to play'},{label:'I’m a grown-up',run:()=>go('parents')}]);
   else if(action==='change-band')dialog('Puzzle level',`<p>For future encounters.</p><div class="grade-options">${bandOptions(profile().band)}</div>`,[{label:'Cancel'},{label:'Apply',run:d=>{profile().band=d.querySelector('input[name=band]:checked').value;save();render();}}]);
-  else if(action==='tile-cell'&&p?.mechanic==='tile'){const cell=Number(control.dataset.cell);if(a.board.some(pair=>pair.includes(cell))){put(p,removeTile(p,a,cell));selected=null;highlighted=null;message='';render();}else if(p.tileShape==='l-tromino'){selected=cell;message='';render();}else if(selected===cell){selected=null;render();}else if(selected===null){selected=cell;message='';render();}else applyPair(p,[selected,cell]);}
-  else if(action==='rotate-tile'&&p?.tileShape==='l-tromino'){tileRotation=(tileRotation+1)%4;message='';render();}
-  else if(action==='place-tile'&&p?.tileShape==='l-tromino'){const preview=lPreview(p,a.board,selected,tileRotation);if(preview.valid)applyPair(p,preview.cells);}
+  else if(action==='tile-cell'&&p?.mechanic==='tile'){
+    if(control.classList.contains('garden-domino')||control.classList.contains('planted')||event.detail===0)tapTile(p,Number(control.dataset.cell));
+  }
   else if(action==='cup'&&p?.mechanic==='swap'){const cell=Number(control.dataset.cell);if(selected===cell){selected=null;render();}else if(selected===null){selected=cell;message='';render();}else applyPair(p,[selected,cell]);}
   else if(action==='latin-cell'&&p?.mechanic==='latin'){selected=Number(control.dataset.cell);message='';render();}
   else if(action==='expansion-move'&&p&&a){try{applyPair(p,JSON.parse(control.dataset.move));}catch{message='Choose a move using the controls above.';render();}}
   else if(action==='swap-pair'&&p?.mechanic==='swap')applyPair(p,control.dataset.pair.split(',').map(Number));
-  else if(action==='undo'&&a){put(p,undo(a));selected=null;highlighted=null;message='';render();}
-  else if((action==='restart'||action==='replay')&&a){const encounter=activeEncounter();put(p,restart(p,a));selected=null;highlighted=null;message='';if(action==='replay'&&encounter&&!p.campaignOnly)go(`play/${p.id}`);else render();}
+  else if(action==='undo'&&a){put(p,undo(a));selected=null;tileSelection=[];highlighted=null;message='';render();}
+  else if((action==='restart'||action==='replay')&&a){const encounter=activeEncounter();put(p,restart(p,a));selected=null;tileSelection=[];highlighted=null;message='';if(action==='replay'&&encounter&&!p.campaignOnly)go(`play/${p.id}`);else render();}
   else if(action==='hint'&&a){const next={...a,hintLevel:Math.min(a.hintLevel+1,3),helpUsed:true};put(p,next);const h=nextHint(p,next);highlighted=next.hintLevel>=2&&h.type==='move'?h.pair:null;message='';render();}
   else if(action==='apply-hint'&&a){const h=nextHint(p,a);if(h.type==='move')applyPair(p,h.action||h.pair);}
   else if(action==='rescue'&&a){put(p,undoToSolvable(p,a));selected=null;highlighted=null;message='';render();}
@@ -141,7 +204,7 @@ document.addEventListener('click',event=>{
   else if(action==='clear')dialog('Clear all adventure saves?','<p>This removes every explorer and their progress here, including the recovery copy. Other websites’ data is untouched. Export first if you want a backup.</p>',[{label:'Keep my saves'},{label:'Clear adventure data',danger:true,run:()=>{try{storage.removeItem(SAVE_KEY);storage.removeItem(BACKUP_KEY);state=emptyStore();warning='';sessionCompleted=new Set();go('profiles');}catch{warning='This browser did not allow data to be cleared.';render();}}}]);
   else if(action==='print')window.print();
 });
-window.addEventListener('hashchange',()=>{selected=null;highlighted=null;message='';window.speechSynthesis?.cancel();render();window.scrollTo(0,0);const heading=document.querySelector('#completion-heading')||document.querySelector('#main h1');heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});if(route()[0]==='play'&&profile()?.sound&&puzzle())speak(puzzle());});
+window.addEventListener('hashchange',()=>{selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';window.speechSynthesis?.cancel();render();window.scrollTo(0,0);const heading=document.querySelector('#completion-heading')||document.querySelector('#main h1');heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});if(route()[0]==='play'&&profile()?.sound&&puzzle())speak(puzzle());});
 window.addEventListener('storage',event=>{if(event.key===SAVE_KEY||event.key===null){const loaded=loadStore(storage,puzzles);state=loaded.store;warning=loaded.warning;selected=null;highlighted=null;activePlay=null;render();}});
 function setOfflineMessage(text){pwaMessage=text;const node=document.querySelector('#offline-status');if(node)node.textContent=text;}
 async function setupOffline(){
