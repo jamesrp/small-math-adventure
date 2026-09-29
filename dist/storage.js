@@ -3,6 +3,7 @@ import { legacyNimBoard } from './deduction.js';
 import { weighingSecret } from './measurement.js';
 import { validateJourney, freshJourney, withCampaignPuzzles, resolvePuzzle } from './caravan.js';
 import { validateJourney as validateCaravanJourney } from './caravan-legacy.js';
+import { validateJourney as validateRescueJourney, resolvePuzzle as resolveRescuePuzzle } from './caravan-rescue.js';
 export const SAVE_KEY = 'small-math-adventure:saves:v1';
 export const BACKUP_KEY = 'small-math-adventure:previous:v1';
 export const emptyStore = () => ({ schemaVersion: 1, contentVersion: CONTENT_VERSION, activeProfileId: null, profiles: [] });
@@ -241,20 +242,29 @@ export function validateStore(value, puzzles) {
   for (const profile of value.profiles) {
     if (!profile || typeof profile.id !== 'string' || profile.id.length > 100 || !profile.id || ids.has(profile.id) || typeof profile.name !== 'string' || !profile.name.trim() || profile.name.length > 24 || !Object.hasOwn(BANDS,profile.band) || !Number.isInteger(profile.avatar) || profile.avatar < 0 || profile.avatar > 5 || typeof profile.sound !== 'boolean' || !profile.attempts || Array.isArray(profile.attempts) || typeof profile.attempts !== 'object' || Object.keys(profile.attempts).length > allPuzzles.length) throw new Error('An explorer in this backup is not valid.');
     ids.add(profile.id);
-    let journey, caravanJourney;
+    let journey, caravanJourney, rescueJourney;
     if (Object.hasOwn(profile,'caravanJourney')) caravanJourney=validateCaravanJourney(profile.caravanJourney,profile,puzzles);
+    if (Object.hasOwn(profile,'rescueJourney')) rescueJourney=validateRescueJourney(profile.rescueJourney,profile,puzzles);
     if (Object.hasOwn(profile,'journey')) {
       if (profile.journey?.version===1) {
         if (caravanJourney) throw new Error('This backup has two earlier journeys.');
         caravanJourney=validateCaravanJourney(profile.journey,profile,puzzles);
         journey=freshJourney();
+      } else if (profile.journey?.version===2) {
+        if (rescueJourney) throw new Error('This backup has two earlier rescue journeys.');
+        rescueJourney=validateRescueJourney(profile.journey,profile,puzzles);
+        journey=freshJourney();
       } else journey=validateJourney(profile.journey,profile,puzzles);
     }
-    journeys.set(profile.id,{...(journey?{journey}:{}),...(caravanJourney?{caravanJourney}:{})});
+    journeys.set(profile.id,{...(journey?{journey}:{}),...(caravanJourney?{caravanJourney}:{}),...(rescueJourney?{rescueJourney}:{})});
     const effectiveProfile={...profile,journey};
     for (const [id,a] of Object.entries(profile.attempts)) {
-      const base = byId.get(id), current = resolvePuzzle(base,effectiveProfile), p = savedDefinition(current,a);
-      if (base?.campaignOnly && !Object.values(journey?.bindings||{}).includes(id)) throw new Error('A rescue puzzle has not been reached.');
+      const base = byId.get(id);
+      // Archived pump capability belongs to the original rescue, never the new road.
+      const archived=base?.campaignVersion===2;
+      const current = archived?resolveRescuePuzzle(base,{...profile,journey:rescueJourney}):resolvePuzzle(base,effectiveProfile);
+      const p = savedDefinition(current,a);
+      if (base?.campaignOnly && !Object.values((archived?rescueJourney:journey)?.bindings||{}).includes(id)) throw new Error('A campaign puzzle has not been reached.');
       if (!p || !a || a.revision !== (p.revision || 1) || !readableBoard(p,a.board) || !Array.isArray(a.history) || a.history.length > 120 || !Number.isSafeInteger(a.moves) || a.moves < 0 || !Number.isInteger(a.hintLevel) || a.hintLevel < 0 || a.hintLevel > 3 || typeof a.helpUsed !== 'boolean' || typeof a.completed !== 'boolean' || !Number.isFinite(a.lastPlayed) || a.lastPlayed < 0 || (isSolved(p,a.board) && !a.completed)) throw new Error(`Saved puzzle ${id} does not match this puzzle pack.`);
       if (a.history.length > Math.min(a.moves,120)) throw new Error(`Undo history for ${id} is not valid.`);
       for (const [i,h] of a.history.entries()) if (!h || !(p.mechanic==='nim'&&legacyNimBoard(p,a.board)?legacyNimBoard(p,h.board):validBoard(p,h.board)) || h.moves !== a.moves-a.history.length+i) throw new Error(`Undo history for ${id} is not valid.`);

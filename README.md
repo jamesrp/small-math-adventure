@@ -1,14 +1,14 @@
-# The Last Lantern Caravan
+# The Lantern Caravan
 
-Small math adventure’s story campaign.
+A mathematics and logic adventure along Lantern Road.
 
 Play the [published app](https://jamesrp.github.io/small-math-adventure/). The [GitHub Pages repository](https://github.com/jamesrp/small-math-adventure) contains the contents of `dist/` at its root and publishes from `main`. Run `npm run deploy` to test, build, and publish an update from this Mac.
 
-Sneak into the **Clockwork Citadel**, rescue Fern and the lantern tree, and get everyone out before the Keeper’s ship leaves. **Three acts and eleven encounters** connect each puzzle to a visible consequence. Enter through the water gate with Luma or over the rooftops with Bracken; your chosen ally provides the escape.
+Six friends carry their living lantern tree along a dark island road, lighting the places they visit. **Six stops and eighteen encounters** keep that purpose visible throughout: get the ferry moving, open the way through the reeds, cross the ridge, reopen the workshop, wake the lighthouse, and light the citadel. Each solved puzzle changes the scene; each finished stop adds another light to the road.
 
-**Bea’s pump changes the jug rules.** First encounter a lift that cannot be solved with pouring alone, find and repair the pump, learn Fill and Empty, then return to the same saved lift. Carry the pump onward to the escape counterweight. The campaign uses existing mechanics plus **three separate campaign jug instances**; all **192 catalog puzzles** remain freely available.
+Pip, Moss, Rook, Bea, Fern, and Tumble travel together. The puzzle and its local setting stay together on screen. Short, optional Story and character views hold the extra words. There are no route decisions, missing equipment, or timed deadlines. All twelve mechanics appear on the road, with separate campaign boards for each grade trail. All **192 catalog puzzles** remain freely available.
 
-Route choices, encounters, the earned pump and unfinished boards persist per explorer. Earlier caravan journeys move into Journal without changing puzzle progress. See [the campaign notes](docs/CARAVAN.md) for the story, mathematical witnesses and save behavior.
+Progress, unfinished boards, hints, and undo history persist per explorer. Earlier caravan and citadel rescue journeys move into Journal without changing their puzzle attempts. Free play cannot advance the road, and replay cannot remove a lit stop. See [the campaign notes](docs/CARAVAN.md) for the encounters and save behavior.
 
 ## Run locally
 
@@ -24,10 +24,10 @@ Open [the local adventure](http://127.0.0.1:4187). `PORT=4174 npm start` chooses
 ## Included
 
 - Twelve mechanics with generous targets, keyboard controls, symbols alongside colors, and reduced-motion support. Tile Gardens support drag or tap placement.
-- An illustrated citadel, six recurring companions, two entry/escape routes, captioned story scenes, a journey journal, and a lasting rescue finale. The puzzle satchel keeps all 192 catalog puzzles immediately available; completion survives replay.
-- Eleven story encounters plus an explicitly blocked lift preview. Repairing Bea’s pump permanently adds Fill and Empty to the campaign jugs. Revisited encounters show a fresh puzzle; free play does not silently advance the story.
+- Six illustrated stops, six recurring companions, a map that lights as you travel, and a journal for revisiting completed encounters. The puzzle satchel keeps all 192 catalog puzzles immediately available; completion survives replay.
+- Eighteen encounters using all twelve mechanics, with independent campaign saves. A solve advances the current encounter, and every third solve lights its stop. Revisited encounters retain their solved boards; Replay starts a fresh attempt without unlighting the road. Free play does not silently advance the story.
 - Separate nickname/avatar profiles, up to 30 local saves. Change grade trails without losing progress on another trail.
-- Automatic saves after moves, undo, hint requests, restarts, and completion. Unfinished boards, undo history, hints, and assistance resume together. Solved boards reopen as fresh attempts with a Solved indicator; earned completion stays saved. Restart is immediate.
+- Automatic saves after moves, undo, hint requests, restarts, and completion. Unfinished boards, undo history, hints, and assistance resume together. Solved library boards reopen as fresh attempts with a Solved indicator; road encounters retain their solved boards until Replay. Earned completion stays saved. Restart is immediate.
 - Three hint levels: a nudge, a solver-derived next move, and an invitation to apply that one move. Legal tiling dead ends offer an undo back to a solvable position. Hints never apply a fixed initial solution over incompatible pieces.
 - A parent area with every puzzle’s explanation, questions, extensions, sources, assistance summaries, six printable paper activities, and install instructions.
 - Export/import JSON backups. Import creates new profiles, preserving existing saves. Corrupted imports are rejected before mutation. A previous-good save supports recovery; storage failures produce visible warnings.
@@ -84,6 +84,12 @@ node scripts/browser-smoke.mjs
 
 It covers creation and isolation of profiles, hints after reload, offline reload and unopened puzzles, export/import, malformed backups, replay, keyboard focus, several phone/iPad viewport sizes, and clearing only app-owned saves. Screenshots and reports go in ignored `test-results/`.
 
+The navigation regression suite (`node scripts/navigation-browser-smoke.mjs`) uses the same environment variables. It checks Puzzles groups and scroll position through Back/Forward and reload, independent history entries, all-closed groups, Grown-ups filters and nested notes, Journal archives, and explorer isolation. Set `TEST_BROWSER=webkit` for WebKit or `TEST_PHONE=1` for a phone viewport.
+
+Presentation state lives in each browser-history entry, scoped to the active explorer, separately from puzzle saves. `dist/view-state.js` captures it before replacing the page and restores disclosures before scrolling. Give page disclosures and filters a stable `data-view-key` (use puzzle IDs for catalog entries); render filter-dependent content from the saved values. New history entries use the view's defaults. Ordinary rerenders preserve the current entry.
+
+
+The campaign suite (`node scripts/caravan-browser-smoke.mjs`) plays all eighteen encounters on all three grade trails through the real interface. It checks both earlier-story migrations, saved moves and hints after reload, undo, replay, independent free play, export/import, lit-stop progress, phone/tablet/desktop layouts, and completion offline. Screenshots and results go in ignored `test-results/road/`. It uses the same browser environment variables.
 
 The expansion suite uses the same environment variables:
 
@@ -114,11 +120,12 @@ Updates wait until existing app tabs close, avoiding replacement of a live board
 
 | File | Responsibility |
 |---|---|
-| `dist/caravan.js` | Rescue story, route choices, pump capability, campaign jug instances, bindings and validation |
-| `dist/caravan-legacy.js` | Earlier campaign validation and journal archive |
-| `dist/rescue-art.js` | Story illustration selection, alt text, and inline captions |
-| `dist/assets/story/` | Optimized story illustrations, also available offline |
-| `artwork/story/` | ImageGen prompts and original PNG artwork |
+| `dist/caravan.js` | Lantern Road encounters, independent campaign boards, progress, bindings and validation |
+| `dist/caravan-legacy.js`, `dist/caravan-rescue.js` | Earlier caravan/rescue validation and journal archives |
+| `dist/road-art.js` | Road and encounter illustration selection and accessible scene descriptions |
+| `dist/assets/road/` | Active road illustrations, also available offline |
+| `artwork/road/` | Lantern Road ImageGen prompts and original artwork |
+| `artwork/story/`, `dist/assets/story/` | Historical rescue illustrations and provenance |
 | `dist/caravan-ui.js`, `dist/caravan-art.js`, `dist/caravan.css` | Illustrated campaign, companions, journal, satchel, and visual design |
 | `dist/engine.js` | Shared moves, undo, completion, original tile/swap rules, and family dispatch |
 | `dist/{motion,networks,deduction,measurement}.js` | Ten new mechanics: pure validators/solvers and accessible board controls |
@@ -130,6 +137,6 @@ Updates wait until existing app tabs close, avoiding replacement of a live board
 | `dist/sw.js` | Atomic precache and versioned offline shell |
 | `scripts/release.mjs` | Validation and asset-derived offline cache version |
 
-No database, purchase system, child accounts, analytics, cloud sync, or data collection is implemented. The parent entry is an adult-oriented UI transition, not authentication. The prototype uses browser voices and a brief visual demonstration instead of recorded narration. It includes 18 generated storybook illustrations, original vector companion portraits and UI icons, responsive layouts, and reduced-motion support. Story narration uses the device’s browser voice; it is not recorded character dialogue.
+No database, purchase system, child accounts, analytics, cloud sync, or data collection is implemented. The parent entry is an adult-oriented UI transition, not authentication. The prototype uses browser voices and a brief visual demonstration instead of recorded narration. It includes generated storybook illustrations, original vector companion portraits and UI icons, responsive layouts, and reduced-motion support. Story narration uses the device’s browser voice; it is not recorded character dialogue.
 
 Desktop Chromium integration checks passed, including offline operation and phone/iPad viewport layouts. **Real iPad Safari installation, offline relaunch, and speech remain to be checked.** Initial family puzzle feedback is recorded above; broader difficulty calibration remains. Optional WebMCP tools are feature-detected. Both tools were validated in the supported in-app browser: read-back, opening a puzzle in the visible interface, and rejection of invalid inputs. GitHub Pages deployment was authorized on September 22, 2026.

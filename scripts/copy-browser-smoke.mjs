@@ -21,8 +21,9 @@ const captureSizes=async name=>{
 };
 async function assertMinimalChrome(label){
  assert.equal(await page.locator('footer,.footer,#offline-status').count(),0,`${label}: no routine save/offline footer`);
- assert.deepEqual((await page.locator('.caravan-nav button').allTextContents()).map(normalize),['Journey','Journal','Puzzles'],`${label}: concise navigation`);
- assert.equal(await page.locator('#main [data-action="map"],#main [data-action="library"],#main [data-action="journal"]').count(),0,`${label}: persistent navigation is not duplicated`);
+ assert.deepEqual((await page.locator('.caravan-nav button').allTextContents()).map(normalize),['Road','Puzzles'],`${label}: concise navigation`);
+ assert.equal(await page.locator('#main [data-action="map"],#main [data-action="library"]').count(),0,`${label}: persistent navigation is not duplicated`);
+ assert.equal(await page.locator('#main [data-action="journal"]').count(),label==='map'?1:0,`${label}: journal is available once on the road`);
  assert.doesNotMatch(await page.locator('#main').innerText(),/Free play|Ready for offline play|Saved on this device|\b\d+\s+(?:of|\/)\s*\d+\s+(?:explored|completed)|\b\d+ puzzles\b/i,`${label}: no promotional or progress counters`);
 }
 async function assertEssentialConstraints(puzzle,goal){
@@ -106,7 +107,7 @@ async function assertEssentialConstraints(puzzle,goal){
 }
 try{
  await mkdir(output,{recursive:true});
- await page.goto(base);await page.locator('#nickname').fill('Copy review');await page.locator('#profile-form button[type=submit]').click();await page.locator('.caravan-hero').waitFor();
+ await page.goto(base);await page.locator('#nickname').fill('Copy review');await page.locator('#profile-form button[type=submit]').click();await page.locator('.road-overview').waitFor();
  await assertMinimalChrome('map');
  assert.equal(await page.locator('.journey-opening,.scene-caption,.scene-label,.camp-memory,.caravan-promise,.satchel-invitation,.stop-label,.stop-number,.caravan-section-heading').count(),0,'map: decorative headings, captions, and recaps removed');
  await capture('map');await captureSizes('map');

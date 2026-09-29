@@ -1,12 +1,14 @@
+import { createViewState } from './view-state.js';
 import { extendTileStroke, startTileStroke, tapTileSelection, tileInstructions, tileReleaseAction, tileStrokeTarget } from './tile-controls.js';
 import {isExpansion,mechanicFor,playInstructions} from './expansion.js';
 import {puzzleObjective} from './puzzle-copy.js';
 import { BANDS,freshAttempt,resumeAttempt,isSolved,nextHint,move,removeTile,undo,restart,undoToSolvable } from './engine.js';
 import { SAVE_KEY,BACKUP_KEY,emptyStore,loadStore,persistStore,parseBackup,importProfiles } from './storage.js';
-import { esc,bandOptions,playView,parentView,catalogHTML,notesHTML } from './ui.js';
-import { COMPANIONS, getProgress, getEncounter, startJourney, chooseRoute, beginEncounter, completeEncounter, withCampaignPuzzles, resolvePuzzle, canVisitEncounter } from './caravan.js';
+import { esc,bandOptions,playView,parentView,notesHTML } from './ui.js';
+import { COMPANIONS, getProgress, getEncounter, startJourney, beginEncounter, completeEncounter, withCampaignPuzzles, resolvePuzzle, canVisitEncounter } from './caravan.js';
 import { caravanHeader, caravanProfiles, caravanMap, journalView, companionBody, libraryView } from './caravan-ui.js';
 const app=document.querySelector('#app');
+const viewState=createViewState(app);
 let pack,puzzles,state,warning='',selected=null,highlighted=null,message='',checker=false,pwaMessage='Preparing offline play…',currentDialog;
 let tileSelection=[],tileGesture=null;
 let sessionCompleted=new Set(),activePlay=null;
@@ -30,26 +32,37 @@ function activeEncounter(){
 }
 function save(){warning=persistStore(storage,state,puzzles);}
 function put(p,a){profile().attempts[p.id]=a;save();}
-function go(hash){selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';if(location.hash===`#${hash}`)render();else location.hash=hash;}
+function go(hash){viewState.save();selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';if(location.hash===`#${hash}`)render();else location.hash=hash;}
 function render(){
+  const savedView=viewState.beforeRender(`${state.activeProfileId||''}:${location.hash}`);
   tileGesture=null;
   const focus=document.activeElement?.dataset?.focus,focusedPair=document.activeElement?.dataset?.pair,view=route()[0],pr=profile(),p=puzzle();
   const playKey=view==='play'&&pr&&p?`${pr.id}/${location.hash}`:null;
   if(playKey!==activePlay){
     activePlay=playKey;tileSelection=[];
-    if(playKey){pr.attempts[p.id]=resumeAttempt(p,pr.attempts[p.id]);save();}
+    if(playKey){
+      // A solved road scene is a persistent consequence. Replay is explicit;
+      // refreshing between the solve and Next must not undo that scene.
+      pr.attempts[p.id]=p.campaignOnly?(pr.attempts[p.id]||freshAttempt(p)):resumeAttempt(p,pr.attempts[p.id]);save();
+    }
   }
   const encounter=activeEncounter();
-  const content=view==='parents'?parentView(state,pr,pack,pwaMessage):!pr||view==='profiles'?caravanProfiles(state,puzzles):view==='journal'?journalView(pr,puzzles):view==='library'?libraryView(pr,puzzles):view==='play'&&p?playView(p,attempt(p),{pack,profile:pr,encounter,selected,tileSelection,highlighted,message,checker,sessionCount:sessionCompleted.size}):caravanMap(pr,puzzles);
+  const content=view==='parents'?parentView(state,pr,pack,pwaMessage,savedView.values['catalog-band']):!pr||view==='profiles'?caravanProfiles(state,puzzles):view==='journal'?journalView(pr,puzzles):view==='library'?libraryView(pr,puzzles):view==='play'&&p?playView(p,attempt(p),{pack,profile:pr,encounter,selected,tileSelection,highlighted,message,checker,sessionCount:sessionCompleted.size}):caravanMap(pr,puzzles);
   document.body.dataset.view=view||'map';
   document.body.classList.toggle('on-encounter',Boolean(encounter));
   app.innerHTML=caravanHeader(pr,view==='library'||(view==='play'&&!encounter)?'library':view==='journal'?'journal':'journey')+(warning?`<div class="error-banner" role="status">${esc(warning)}</div>`:'')+`<main class="shell" id="main">${content}</main>`;
+  if(encounter&&isSolved(p,attempt(p).board)){
+    app.querySelectorAll('.board-panel button,.board-panel input,.board-panel select').forEach(control=>{control.disabled=true;});
+    app.querySelectorAll('.board-panel [role="button"]').forEach(control=>{control.setAttribute('aria-disabled','true');control.setAttribute('tabindex','-1');});
+  }
   if(focus){let target=(focusedPair?app.querySelector(`[data-pair="${CSS.escape(focusedPair)}"]`):app.querySelector(`[data-focus="${CSS.escape(focus)}"]`));if(!target||target.disabled)target=app.querySelector('.latin-cell[aria-pressed="true"]:not(:disabled)')||app.querySelector('.nim-status')||app.querySelector('#completion-heading')||app.querySelector('.garden-cell');target?.focus({preventScroll:true});}
   wireForms();
   wireTileBoard();
+  viewState.restore();
 }
 function tapTile(p,cell){
   const a=attempt(p);
+  if(activeEncounter()&&isSolved(p,a.board))return;
   if(a.board.some(piece=>piece.includes(cell))){put(p,removeTile(p,a,cell));tileSelection=[];highlighted=null;message='';render();return;}
   const next=tapTileSelection(p,a.board,tileSelection,cell);
   tileSelection=next.status==='complete'?[]:next.cells;
@@ -113,7 +126,7 @@ function wireForms(){
   document.querySelectorAll('form[data-puzzle-form]').forEach(form=>form.addEventListener('submit',e=>{e.preventDefault();const p=puzzle();if(p&&profile())applyPair(p,Object.fromEntries(new FormData(e.currentTarget)));}));
   document.querySelector('#profile-form')?.addEventListener('submit',e=>{e.preventDefault();const data=new FormData(e.currentTarget),name=String(data.get('name')).trim();if(!name){document.querySelector('#nickname').focus();return;}if(state.profiles.length>=30){dialog('All save slots are full','<p>There is room for 30 explorers. Export and remove an unused save in the grown-up area.</p>');return;}const pr={id:uid(),name,band:data.get('band'),avatar:Number(data.get('avatar')),sound:false,attempts:{}};state.profiles.push(pr);state.activeProfileId=pr.id;save();go('map');});
   document.querySelector('#checker')?.addEventListener('change',e=>{checker=e.target.checked;document.querySelector('.tile-board')?.classList.toggle('show-checker',checker);});
-  document.querySelector('#catalog-band')?.addEventListener('change',e=>document.querySelector('#catalog-list').innerHTML=catalogHTML(e.target.value,pack,profile()));
+  document.querySelector('#catalog-band')?.addEventListener('change',()=>render());
   document.querySelector('#sound-toggle')?.addEventListener('change',e=>{profile().sound=e.target.checked;save();render();});
   document.querySelector('#import-file')?.addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>5000000)throw Error('Choose a backup smaller than 5 MB.');const backup=parseBackup(await file.text(),puzzles),next=importProfiles(state,backup,uid);state=next;save();render();dialog('Saves restored',`<p>${backup.profiles.length} ${backup.profiles.length===1?'explorer was':'explorers were'} added. Existing explorers are unchanged.</p>`);}catch(error){dialog('That backup could not be opened',`<p>${esc(error.message)}</p><p>Your existing saves have not changed.</p>`);}});
 }
@@ -147,7 +160,7 @@ function openEncounter(id){
   if(!profile().attempts[next.puzzle.id])profile().attempts[next.puzzle.id]=freshAttempt(next.puzzle);
   save();go(`play/${next.puzzle.id}/${next.encounter.id}`);
 }
-function applyPair(p,pair){const a=attempt(p),encounter=activeEncounter(),next=move(p,a,pair);selected=p.mechanic==='latin'?Number(pair.cell):null;tileSelection=[];highlighted=null;if(!next){message=isExpansion(p)?'That move is not allowed. Check How to play.':p.mechanic==='tile'?'':'Choose a listed pair.';render();return;}message='';if(isSolved(p,next.board)&&!a.completed)sessionCompleted.add(p.id);profile().attempts[p.id]=next;if(encounter&&isSolved(p,next.board))completeEncounter(profile(),p.id,encounter.id,puzzles);save();render();if(isSolved(p,next.board)){if(encounter)window.scrollTo(0,0);document.querySelector('#completion-heading')?.focus({preventScroll:true});}}
+function applyPair(p,pair){const a=attempt(p),encounter=activeEncounter();if(encounter&&isSolved(p,a.board))return;const next=move(p,a,pair);selected=p.mechanic==='latin'?Number(pair.cell):null;tileSelection=[];highlighted=null;if(!next){message=isExpansion(p)?'That move is not allowed. Check How to play.':p.mechanic==='tile'?'':'Choose a listed pair.';render();return;}message='';if(isSolved(p,next.board)&&!a.completed)sessionCompleted.add(p.id);profile().attempts[p.id]=next;if(encounter&&isSolved(p,next.board))completeEncounter(profile(),p.id,encounter.id,puzzles);save();render();if(isSolved(p,next.board)){if(encounter)window.scrollTo(0,0);document.querySelector('#completion-heading')?.focus({preventScroll:true});}}
 document.addEventListener('keydown',event=>{
   const wire=event.target.closest('.wire-hit');
   if(wire&&['Enter',' '].includes(event.key)){event.preventDefault();if(wire.getAttribute('aria-disabled')!=='true')wire.dispatchEvent(new MouseEvent('click',{bubbles:true}));return;}
@@ -168,10 +181,20 @@ document.addEventListener('click',event=>{
   else if(action==='start-journey'&&profile()){startJourney(profile());openEncounter();}
   else if(action==='continue-journey'&&profile()){if(!profile().journey?.started)startJourney(profile());openEncounter();}
   else if(action==='open-encounter'&&profile())openEncounter(control.dataset.id);
-  else if(action==='choose-route'&&profile()){if(chooseRoute(profile(),control.dataset.route)){save();go('map');}}
-  else if(action==='find-workshop'&&profile())openEncounter();
-  else if(action==='finish-encounter'&&profile()){const encounter=activeEncounter();if(encounter)completeEncounter(profile(),p.id,encounter.id,puzzles);save();go('map');}
-  else if(action==='pump-info'&&profile())dialog('Bea’s pump','<p>Fill adds water up to a jug’s capacity. Empty removes all its water. Carry the pump to the tower lift and the escape counterweight.</p>');
+  else if(action==='finish-encounter'&&profile()){
+    const encounter=activeEncounter();
+    if(!encounter||!isSolved(p,a.board))return;
+    completeEncounter(profile(),p.id,encounter.id,puzzles);save();
+    const progress=getProgress(profile());
+    const latest=profile().journey.completed.at(-1)===encounter.id;
+    if(latest&&progress.encounter?.chapterIndex===encounter.chapterIndex)openEncounter();
+    else go('map');
+  }
+  else if(action==='show-story'&&profile()){
+    const encounter=activeEncounter(),progress=getProgress(profile());
+    const text=encounter?(isSolved(p,a.board)?encounter.success:encounter.intro):'Carry the lantern tree along the road. Light every stop.';
+    dialog(encounter?.title||'Lantern Road',`<p>${esc(text)}</p><button type="button" class="text-button" data-action="hear-story" data-text="${esc(text)}">Listen</button>`);
+  }
   else if(action==='companion'&&profile()){const companion=COMPANIONS.find(c=>c.id===control.dataset.id);if(companion)dialog(companion.name,companionBody(companion.id,profile(),puzzles));}
   else if(action==='hear-story'&&profile()){
     const encounter=activeEncounter(),progress=getProgress(profile(),puzzles);
@@ -204,7 +227,11 @@ document.addEventListener('click',event=>{
   else if(action==='clear')dialog('Clear all adventure saves?','<p>This removes every explorer and their progress here, including the recovery copy. Other websites’ data is untouched. Export first if you want a backup.</p>',[{label:'Keep my saves'},{label:'Clear adventure data',danger:true,run:()=>{try{storage.removeItem(SAVE_KEY);storage.removeItem(BACKUP_KEY);state=emptyStore();warning='';sessionCompleted=new Set();go('profiles');}catch{warning='This browser did not allow data to be cleared.';render();}}}]);
   else if(action==='print')window.print();
 });
-window.addEventListener('hashchange',()=>{selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';window.speechSynthesis?.cancel();render();window.scrollTo(0,0);const heading=document.querySelector('#completion-heading')||document.querySelector('#main h1');heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});if(route()[0]==='play'&&profile()?.sound&&puzzle())speak(puzzle());});
+function navigate(){if(!state||viewState.isCurrent())return;selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';window.speechSynthesis?.cancel();render();const heading=document.querySelector('#completion-heading')||document.querySelector('#main h1');heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});if(route()[0]==='play'&&profile()?.sound&&puzzle())speak(puzzle());}
+// Restore on popstate before native history scrolling; hashchange also covers
+// direct hash edits. A traversal can fire both, so render each entry only once.
+window.addEventListener('popstate',navigate);
+window.addEventListener('hashchange',navigate);
 window.addEventListener('storage',event=>{if(event.key===SAVE_KEY||event.key===null){const loaded=loadStore(storage,puzzles);state=loaded.store;warning=loaded.warning;selected=null;highlighted=null;activePlay=null;render();}});
 function setOfflineMessage(text){pwaMessage=text;const node=document.querySelector('#offline-status');if(node)node.textContent=text;}
 async function setupOffline(){

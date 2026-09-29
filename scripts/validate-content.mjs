@@ -48,12 +48,12 @@ export async function validateContent(){
   const campaign=withCampaignPuzzles(puzzles).filter(p=>p.campaignOnly);
   for(const p of campaign){
     let a=freshAttempt(p);
-    assert.equal(nextHint(p,a).remaining,p.solution.minimum_moves,`${p.id}: minimum`);
-    for(const [type,first,second] of p.solution.moves){
-      a=move(p,a,type==='pour'?{type,from:first,to:second}:{type,jug:first});
-      assert.ok(a,`${p.id}: legal witness`);
+    assert.ok(validBoard(p,a.board),`${p.id}: valid starting board`);
+    for(let i=0;!isSolved(p,a.board)&&i<200;i++){
+      const hint=nextHint(p,a);assert.equal(hint.type,'move',`${p.id}: ${hint.text}`);
+      a=move(p,a,hint.action||hint.pair);assert.ok(a,`${p.id}: legal hint`);
     }
-    assert.ok(isSolved(p,a.board),`${p.id}: solved witness`);
+    assert.ok(isSolved(p,a.board),`${p.id}: checked solution`);
   }
   return {puzzles:puzzles.length,campaignPuzzles:campaign.length,gradeBands:3,mechanics:12,sources:sources.length,verifiedWitnessMoves:moves};
 }

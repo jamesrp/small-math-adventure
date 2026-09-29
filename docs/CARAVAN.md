@@ -1,63 +1,81 @@
-# Rescue at the Clockwork Citadel
+# The Lantern Road
 
-The Last Lantern Caravan now follows a single rescue: the Keeper has taken the lantern tree, Fern has followed it into the tower, and his ship leaves at dawn. Eleven solved encounters span three acts. The clock advances through authored events, never elapsed time or mistakes. Both entry routes lead to the same rescue, but establish different allies and escapes.
+The old lantern road has gone dark. Six friends carry their living lantern tree along it, lighting the way again.
 
-## Story and consequences
+Fern, Moss, Bea, Pip, Tumble, and Rook stay together for the whole journey. Six recognizable places form one visible route: Sleepy Ferry → Reed Marsh → Windy Ridge → Old Workshop → Lighthouse → Clockwork Citadel. Completing the three tasks at a place lights it on the map. The final square completes the road.
 
-| Act | Encounter | Puzzle | Consequence |
+There are no route decisions, hidden equipment prerequisites, rescues, or return trips to remember. The map carries the goal and progress. The tree and friends remain the visual center. Every puzzle is a local task with a short consequence; Nim is honestly a game at a rest stop, rather than an unexplained lock operated by a game.
+
+## Story and interaction
+
+Tap the current place to enter its next puzzle. A solve has a visible consequence and returns attention to the map. Story and Journal hold optional context; there is no mandatory sequence of setup paragraphs and aftermath paragraphs. Each encounter has at most one context sentence and a short factual journal consequence. Rule explanations belong in How to play; precise budgets and other non-obvious constraints stay on the board where needed.
+
+| Place | First task | Second task | Task that lights the place |
 | --- | --- | --- | --- |
-| Find a way in | Before the gates close | Cup swaps | Meet Fern; the Keeper takes the tree and Fern follows it |
-| | Under the watchlights | Lantern wires | Redirect the sentries and reach the route choice |
-| | Ally entry | Mirrors for Luma; clockwork lookouts for Bracken | Enter via water or rooftops and arrange an escape |
-| Reach Fern | Tower lift preview | Pour-only 5/3 jugs, initially (5,0), target 4 | Discover the missing pump; the workshop becomes the next stop |
-| | Workshop door | Signal code | Open the workshop and find the broken pump |
-| | Bea’s pump | Odd-pebble balance | Repair the pump; permanently earn Fill and Empty |
-| | Try the pump | 3/2 jugs, target 1 | Learn the newly available operations |
-| | Tower lift | The same 5/3 board, now with the pump | Raise the lift to Fern’s landing |
-| | Fern’s signal | Signal code | Contact Fern and learn about the alarm |
-| | Both sides of the door | Clockwork gates | Coordinate with Fern, free her, and trigger lockdown |
-| Get everyone out | Decoy lights | Lantern wires | Send the sentries toward the empty loading bay |
-| | Escape counterweight | 7/4 jugs, target 2 | Open Luma’s water gate or lift Bracken’s cable basket |
+| Sleepy Ferry | Swap cargo into its cradles | Start the departure bell | Connect the landing lights |
+| Reed Marsh | Carry lanterns along the paths | Plant the lantern beds | Measure the garden water |
+| Windy Ridge | Find the faulty cable weight | Play Tumble’s pebble game | Color the ridge lanterns |
+| Old Workshop | Repair the floor with tiles | Open the supply cupboard | Match lanterns to their cradles |
+| Lighthouse | Direct the mirror-room light | Set the beacon gears | Connect the harbor lamps |
+| Clockwork Citadel | Carry lanterns along the streets | Balance the fountain lift | Color the square’s lanterns |
 
-The preview is not a completed encounter and does not award anything. It is an inspectable, genuinely impossible version of a later puzzle. Its explicit “The lift needs Bea’s pump” message and workshop action remain visible. Undo, Restart and Hint are available, but hints identify missing equipment instead of suggesting that another attempt can solve it. No puzzle mistake raises an alarm or harms a companion.
+All twelve existing mechanics appear. A solved puzzle changes its local place; finishing each third task lights that stop. The same six stops and story work at every grade entry point.
 
-Campaign scenes use 18 finished ImageGen illustrations with the original companions and a textured, paper-cut storybook style. Each encounter places its story setup in a caption directly beneath the image and above the puzzle, with a Listen control. A solved encounter switches to an aftermath screen with the next illustration and its consequence together: the pump works, the lift rises, Fern joins the party, and each route has its own escape. The illustrations depict story states; the puzzle boards display exact quantities and moves. Operational details remain behind How to play. Prompts and original PNGs are preserved in `artwork/story/`; optimized JPEGs in `dist/assets/story/` are included in the offline cache.
+## Grade entry points
 
-## Bea’s pump: exact model
+The road uses checked instances from the existing catalog, selected for a mathematical contrast rather than a universal puzzle-number scale. No catalog rules, IDs, or revisions have changed. The 54 campaign definitions are independent copies: eighteen encounters for each of K–1, grades 2–3, and grades 4–5.
 
-The lift has capacities `(5,3)`, starts at `(5,0)`, and succeeds when either jug holds exactly four. Before the pump, a pour must run until the source is empty or the destination is full. The complete reachable set is `{(5,0),(2,3)}`. Neither state contains four.
+K–1 begins with small cycles, two-pile Nim, direct reflections, small deduction boards, and water remainders. Its later lantern and coloring tasks introduce modest interacting constraints. Grades 2–3 use row/column propagation, bridge decisions, overlapping code clues, first-return gears, and temporary storage. Grades 4–5 use synchronized cycles, conserved water, signed weighing hypotheses, global color constraints, and optimal repeated-road choices. These are approximate entry points; counting, reading, planning, and familiarity with each interaction still vary within an age group.
 
-The pump adds two uniform operations for either jug: fill to capacity, or empty completely. A shortest solution from the authored start is:
+The workshop floor uses L-trominoes at all three entry points. The K–1 board asks for two interlocking pieces, grades 2–3 use a missing-square decomposition, and grades 4–5 require managing a less regular boundary. This preserves the family feedback that small domino boards had been too easy. New road difficulty and pacing still need family playtesting.
 
-`(5,0) → (2,3) → (2,0) → (0,2) → (5,2) → (4,3)`
+The exact source mapping is below. Numbers refer to the existing family instances; tile and swap use the column’s grade-specific catalog IDs.
 
-Those five moves are Pour A→B, Empty B, Pour A→B, Fill A, Pour A→B. A preview left at `(2,3)` resumes there, with its history, hint assistance and move count intact. The same saved board is valid under the expanded rules. Undoing a move never removes the earned pump.
+| Encounter | Mechanic | K–1 | 2–3 | 4–5 |
+| --- | --- | --- | --- | --- |
+| ferry-cargo | swap | 3 | 4 | 5 |
+| ferry-bell | clock | 1 | 3 | 5 |
+| ferry-lights | toggle | 2 | 3 | 5 |
+| marsh-paths | route | 1 | 3 | 5 |
+| marsh-garden | latin | 2 | 3 | 5 |
+| marsh-water | jug | 1 | 3 | 5 |
+| ridge-balance | weigh | 2 | 3 | 5 |
+| ridge-game | nim | 2 | 4 | 5 |
+| ridge-lanterns | color | 2 | 3 | 6 |
+| workshop-floor | tile | 4 | 8 | 8 |
+| workshop-lock | code | 2 | 4 | 5 |
+| workshop-cradles | swap | 8 | 10 | 9 |
+| lighthouse-mirrors | billiard | 2 | 4 | 5 |
+| lighthouse-turn | clock | 2 | 4 | 6 |
+| lighthouse-lamps | toggle | 3 | 8 | 6 |
+| citadel-streets | route | 2 | 8 | 11 |
+| citadel-water | jug | 2 | 8 | 6 |
+| citadel-lanterns | color | 3 | 8 | 10 |
 
-The pump trial and escape counterweight reuse the checked `jug-01` and `jug-04` mathematics, with independent campaign IDs. The lift adapts `jug-03` to a nonempty start and an explicit capability transition. All valid solutions count; shortest paths are verification facts, not a required move budget. The three campaign IDs are `rescue-pump-practice`, `rescue-tower-lift`, and `rescue-escape-ballast`. They are defined by `withCampaignPuzzles` in `dist/caravan.js`; the 192-instance public catalog stays unchanged.
+The original catalog retains its source records, mathematical qualifications, valid-solution checks, hints, and witnesses. Specific sources for these instances remain in `docs/puzzle-expansion/` and `dist/puzzles.json`; this change authors a new story arrangement, not new mathematical exercises. The 192 catalog instances remain directly available in Puzzles.
 
-Specific mathematical sources: `docs/puzzle-expansion/measurement.md` and its checked `measurement.json` supply the jug model and earlier witnesses. `/Users/jamespfeiffer/math-circle/plans/week-04-redesign.md` and `lowell-math-circle-year-2/source/week-04/week-04-k-1.tex` were consulted for the reachable-set contrast (the two-hop ring misses half the positions). The requested historical `worksheets/` directory is absent on this machine; the current TeX source was used instead. The jug capability transition is a new app design, not a borrowed worksheet exercise. The existing pack retains the underlying source records and mathematical qualifications.
+## Progress and saved data
 
-## Progress, validation and compatibility
+The optional `journey` is now version 3 and contains only `started`, ordered `completed` encounter IDs, and stable encounter-to-puzzle `bindings`.
 
-A new profile’s optional `journey` is version 2:
+Campaign puzzle IDs are `road-<encounter>-<band>`. Each definition records its `sourceId`, `campaignEncounter`, and `campaignVersion`. Campaign attempts never overwrite catalog attempts. Solving a library board cannot advance the road, and solving a road board does not mark its library source completed. An opened encounter keeps its selected band if the player changes grade; subsequent unopened encounters use the new band.
 
-- `started`, `route` (`reeds`, `ridge`, or null), `seenLift`;
-- ordered completed encounter IDs and stable encounter-to-puzzle bindings.
+Only the next encounter and already completed encounters are accessible. Completion requires the correct binding and a currently solved board. Historical completion alone cannot advance a restarted board. Replays retain completed road progress. Campaign-only URLs must be checked against the accessible encounter and its binding; they cannot open as ordinary library play.
 
-The pump is derived from a completed `pump-repair` encounter. There is no independently writable inventory flag. Completing ordinary library puzzles does not advance the campaign or earn the pump. Campaign completion requires a currently solved board, the correct binding, and the current encounter. Already completed encounters can be replayed without advancing or removing progress. An encounter that has been opened retains its selected difficulty when the grade trail changes.
+Jug operations come directly from each selected instance. K–1 and middle-grade water tasks have a source and drain immediately. The selected upper-grade tasks use a fixed conserved supply and pour-only operations. Neither case depends on an earned item or another encounter.
 
-The lift may be opened early after the ally encounter. Completing the pump trial is required before returning with the pump. Campaign-only puzzle URLs must identify an accessible, correctly bound encounter. Storage validates their board and undo history under the capabilities actually earned. An impossible preview is never treated as a solved catalog puzzle; forged fill/empty states before the pump, future bindings, skipped events, and unearned completions are rejected.
+Both earlier adventures remain readable archives:
 
-Older version-one journeys are validated by `dist/caravan-legacy.js`, retained as `caravanJourney`, and displayed under “Your earlier caravan journey” in Journal. The new rescue begins separately. Existing puzzle attempts, completion, assistance and history are copied unchanged during migration. A concise notice explains the new campaign on an existing explorer’s starting map. Export/import includes both journeys. Profiles without a journey remain valid. The previous campaign’s historical notes are in `docs/CARAVAN-LEGACY.md`.
+- Version 1 is validated with `dist/caravan-legacy.js` and stored as `caravanJourney`.
+- Version 2 is validated with the frozen `dist/caravan-rescue.js` and stored as `rescueJourney`.
+- A migrated profile starts a separate fresh version-3 road. Attempts retain their boards, histories, moves, assistance, and completion under the existing content-compatibility rules.
+- The three old `rescue-*` boards remain in the validation catalog. Their allowed operations are derived from the archived rescue’s earned pump, so pre-pump previews remain sealed and earned pump boards remain valid. They cannot be opened from the new road or library.
+- Export/import includes the new journey and both archives. Profiles with no journey remain valid. Imports are independent copies.
+
+Historical design notes are preserved in `docs/CARAVAN-LEGACY.md` and `docs/CARAVAN-RESCUE.md`.
 
 ## Verification
 
-`npm test` checks every route and grade combination using actual puzzle solves, sealed-lift impossibility, pump acquisition and persistence, preview state preservation, source witness lengths, branch payoffs, replay, corruption rejection, migration, backup independence, and the existing mathematics/storage suites.
+`npm test` covers actual solves through all 18 encounters in each grade, cumulative stop lighting, stable bindings after grade changes, completed-encounter replay, library isolation, future encounter rejection, invalid saves, and authored jug operations. Migration tests cover both earlier routes, completed and partial journeys, sealed lift previews, earned pump attempts, repeated save round-trips, and imported archive independence.
 
-`npm run build` validates the 192 catalog puzzles and all three campaign witnesses, then includes every new module in the versioned offline cache.
-
-`scripts/caravan-browser-smoke.mjs` uses isolated profiles to verify migration from an actual earlier campaign, both full 11-encounter routes, actual UI hints and controls, unavailable/available pump moves, saved lift state, reloads, phone/tablet fit, story effects, replay, 192-puzzle library access, exports and imports. The rooftop route finishes offline after the pump is earned. Screenshots and results are written to ignored `test-results/rescue/`.
-
-Real iPad Safari installation, voice and offline relaunch still need testing on a device. The dramatic pacing and new capability progression need family playtesting; the earlier puzzle difficulty feedback remains applicable.
-
-Current desktop verification: 143 unit tests pass; both routes complete all 22 encounters across the two browser runs with no browser errors; the rooftop route completes offline. The existing copy/accessibility regression suite passes all 192 catalog screens and their Help dialogs at phone/tablet sizes. The release build verifies the three additional campaign witnesses. Device testing and family pacing feedback remain separate from these automated checks.
+`npm run validate` checks all 192 catalog instances, 54 road instances, and three archived rescue instances with legal moves to a solved board. `scripts/caravan-browser-smoke.mjs` covers the journey and save migration through the browser. Device-specific Safari installation and family pacing remain separate from automated verification.

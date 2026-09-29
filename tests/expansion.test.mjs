@@ -19,7 +19,7 @@ test('difficulty groups expose every expanded puzzle once from every grade trail
    assert.ok(html.includes(`${p.familyTitle}, ${label}, puzzle ${p.number}`),p.id);
   }
   assert.match(html,/Hard, puzzle 12, completed/);
-  for(const label of ['Easy','Medium','Hard'])assert.equal(html.split(`<h3>${label}</h3>`).length-1,10);
+  for(const label of ['Easy','Medium','Hard'])assert.equal(html.split(`<h2>${label}</h2>`).length-1,10);
  }
 });
 test('every solved puzzle reopens fresh with completion retained; unfinished reattempts still resume',()=>{

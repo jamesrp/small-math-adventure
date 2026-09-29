@@ -1,0 +1,3428 @@
+{
+  "schemaVersion": 1,
+  "scope": "Current version-3 Lantern Road in the working checkout; preserved historical campaigns are excluded from production dialogue.",
+  "countMethod": "Character totals use JavaScript string length, exclude separators between clips, and include punctuation. Word totals split on whitespace. Instruction readings are deduplicated by exact full text after runtime objective/control expansion.",
+  "sourceFiles": [
+    {
+      "file": "dist/caravan.js",
+      "sha256": "d66f867f7f83532c04ce79daf237e5c45956480ea5f484e6a89a1799900b9329"
+    },
+    {
+      "file": "dist/caravan-legacy.js",
+      "sha256": "cad57b2e4198277cae4e870a4f85d0c8f5093494aa201b621b02c7ccb47e863d"
+    },
+    {
+      "file": "dist/caravan-ui.js",
+      "sha256": "31db6581375d929a69397514655311b374b9035cb1c493a459249415a6f97fcb"
+    },
+    {
+      "file": "dist/road-art.js",
+      "sha256": "ab492a5105608367754c211cd298435b3852b95e64cc6efdaac919df72859868"
+    },
+    {
+      "file": "dist/main.js",
+      "sha256": "be706ba81eaf93722cb2e9cee6c2366759062a3ea9ec99d1d82015d2c3f55814"
+    },
+    {
+      "file": "dist/puzzle-copy.js",
+      "sha256": "2bb543458e7fbbd696e4a606672656358b6ba757f709a6273fdbb04b0f701448"
+    },
+    {
+      "file": "dist/expansion.js",
+      "sha256": "210a54b5d9425d0b78ef00a3dbd0b7f09592ae1978b27558176ee2febfa9dfbe"
+    },
+    {
+      "file": "dist/tile-controls.js",
+      "sha256": "aa54b7476604020e880c18cec4d2ff2427d99c9bc8d7e4e6ab4146d979d05885"
+    },
+    {
+      "file": "dist/puzzles.json",
+      "sha256": "c5240aab44733d2c0d44d9ab8de2425e2f42b13f9bdfb9f08de62a3659ddc448"
+    }
+  ],
+  "summary": {
+    "recommendedFullCast": 7,
+    "roles": [
+      "narrator",
+      "pip",
+      "moss",
+      "rook",
+      "bea",
+      "fern",
+      "tumble"
+    ],
+    "currentCharacterDialogueClips": 0,
+    "story": {
+      "clips": 36,
+      "characters": 1429,
+      "words": 242
+    },
+    "instructions": {
+      "clips": 50,
+      "characters": 7934,
+      "words": 1505
+    },
+    "existingReadAloud": {
+      "clips": 86,
+      "characters": 9363,
+      "words": 1747
+    },
+    "catalogPuzzles": 192,
+    "roadPuzzleDefinitions": 54,
+    "uniqueRoadInstructionReadings": 31
+  },
+  "runtimeFacts": [
+    "All current speech paths use browser SpeechSynthesisUtterance with no explicit voice selection.",
+    "Story speaker metadata is not passed to narrate(). Every current intro and success is narration, without quoted character dialogue.",
+    "The current Story panel reads one intro or success; the three grade trails share the same story text.",
+    "The full objective and control text are read together. Fifty exact-text recordings cover the 192 catalog puzzles and all 54 current road definitions.",
+    "Companion biographies have no Listen control. Companion quotes remain legacy data and are neither displayed nor spoken by the current companion view.",
+    "Luma, Bracken, the speaking ferry, and the Keeper belong to preserved earlier-story material; none has a current spoken role."
+  ],
+  "castingOptions": {
+    "exactReplacement": {
+      "voices": 1,
+      "description": "One narrator replaces every current spoken line without changing the script."
+    },
+    "fullCharacterCast": {
+      "voices": 7,
+      "description": "One narrator plus six companions. Deliberately adapt or assign encounter intros as character lines; use narrator for consequences and rules. Tumble’s current self-reference needs attention before recording as dialogue."
+    }
+  },
+  "roles": [
+    {
+      "id": "pip",
+      "name": "Pip",
+      "kind": "moth",
+      "role": "Keeper of little lights",
+      "currentBiography": "A brave moth with a very large scarf. Definitely not afraid of the dark. Usually.",
+      "biographySource": {
+        "file": "dist/caravan-legacy.js",
+        "line": 4
+      },
+      "storyCounts": {
+        "clips": 4,
+        "characters": 141,
+        "words": 24
+      },
+      "encounters": [
+        "ferry-lights",
+        "lighthouse-mirrors"
+      ],
+      "optionalAuditionQuote": {
+        "text": "I am checking the dark. From over here.",
+        "source": {
+          "file": "dist/caravan-legacy.js",
+          "line": 4
+        },
+        "currentlyDisplayed": false,
+        "currentlySpoken": false
+      }
+    },
+    {
+      "id": "moss",
+      "name": "Moss",
+      "kind": "snail",
+      "role": "Camp cook",
+      "currentBiography": "Carries a kettle almost as big as his shell. Believes every difficult journey needs a proper tea break.",
+      "biographySource": {
+        "file": "dist/caravan-legacy.js",
+        "line": 5
+      },
+      "storyCounts": {
+        "clips": 6,
+        "characters": 213,
+        "words": 34
+      },
+      "encounters": [
+        "marsh-paths",
+        "workshop-cradles",
+        "citadel-streets"
+      ],
+      "optionalAuditionQuote": {
+        "text": "We have time for one small enormous cup.",
+        "source": {
+          "file": "dist/caravan-legacy.js",
+          "line": 5
+        },
+        "currentlyDisplayed": false,
+        "currentlySpoken": false
+      }
+    },
+    {
+      "id": "rook",
+      "name": "Rook",
+      "kind": "bird",
+      "role": "Navigator",
+      "currentBiography": "An old navigator with a pocket full of maps. Sometimes the mountains make more sense upside down.",
+      "biographySource": {
+        "file": "dist/caravan-legacy.js",
+        "line": 6
+      },
+      "storyCounts": {
+        "clips": 6,
+        "characters": 241,
+        "words": 40
+      },
+      "encounters": [
+        "ferry-bell",
+        "ridge-lanterns",
+        "lighthouse-lamps"
+      ],
+      "optionalAuditionQuote": {
+        "text": "Exactly where I expected us to be. More or less.",
+        "source": {
+          "file": "dist/caravan-legacy.js",
+          "line": 6
+        },
+        "currentlyDisplayed": false,
+        "currentlySpoken": false
+      }
+    },
+    {
+      "id": "bea",
+      "name": "Bea",
+      "kind": "beetle",
+      "role": "Builder and fixer",
+      "currentBiography": "Bea builds and repairs the road’s mechanisms. Her hat is full of useful screws.",
+      "biographySource": {
+        "file": "dist/caravan-ui.js",
+        "line": 51
+      },
+      "storyCounts": {
+        "clips": 10,
+        "characters": 412,
+        "words": 69
+      },
+      "encounters": [
+        "marsh-water",
+        "ridge-balance",
+        "workshop-lock",
+        "lighthouse-turn",
+        "citadel-water"
+      ],
+      "optionalAuditionQuote": {
+        "text": "That told us something. Let’s try the next idea.",
+        "source": {
+          "file": "dist/caravan-legacy.js",
+          "line": 7
+        },
+        "currentlyDisplayed": false,
+        "currentlySpoken": false
+      }
+    },
+    {
+      "id": "fern",
+      "name": "Fern",
+      "kind": "seedling",
+      "role": "Tree tender",
+      "currentBiography": "Fern tends the lantern tree. She carries seeds from each garden along the road.",
+      "biographySource": {
+        "file": "dist/caravan-ui.js",
+        "line": 51
+      },
+      "storyCounts": {
+        "clips": 6,
+        "characters": 261,
+        "words": 46
+      },
+      "encounters": [
+        "ferry-cargo",
+        "marsh-garden",
+        "citadel-lanterns"
+      ],
+      "optionalAuditionQuote": {
+        "text": "A little care can grow into a very big thing.",
+        "source": {
+          "file": "dist/caravan-legacy.js",
+          "line": 8
+        },
+        "currentlyDisplayed": false,
+        "currentlySpoken": false
+      }
+    },
+    {
+      "id": "tumble",
+      "name": "Tumble",
+      "kind": "puff",
+      "role": "Carrier of important things",
+      "currentBiography": "A round, cheerful creature carrying the blankets, the sandwiches, and one completely unnecessary spoon.",
+      "biographySource": {
+        "file": "dist/caravan-legacy.js",
+        "line": 9
+      },
+      "storyCounts": {
+        "clips": 4,
+        "characters": 161,
+        "words": 29
+      },
+      "encounters": [
+        "ridge-game",
+        "workshop-floor"
+      ],
+      "optionalAuditionQuote": {
+        "text": "I brought a spare. A spare what? We’ll find out.",
+        "source": {
+          "file": "dist/caravan-legacy.js",
+          "line": 9
+        },
+        "currentlyDisplayed": false,
+        "currentlySpoken": false
+      }
+    }
+  ],
+  "storyClips": [
+    {
+      "id": "story.ferry-cargo.intro",
+      "chapterId": "ferry",
+      "chapterTitle": "Sleepy Ferry",
+      "encounterId": "ferry-cargo",
+      "encounterTitle": "Cargo cradles",
+      "phase": "intro",
+      "speakerMetadata": "fern",
+      "text": "The tree travels in the ferry’s cargo cradles.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 13
+      }
+    },
+    {
+      "id": "story.ferry-cargo.success",
+      "chapterId": "ferry",
+      "chapterTitle": "Sleepy Ferry",
+      "encounterId": "ferry-cargo",
+      "encounterTitle": "Cargo cradles",
+      "phase": "success",
+      "speakerMetadata": "fern",
+      "text": "The tree is aboard.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 13
+      }
+    },
+    {
+      "id": "story.ferry-bell.intro",
+      "chapterId": "ferry",
+      "chapterTitle": "Sleepy Ferry",
+      "encounterId": "ferry-bell",
+      "encounterTitle": "Departure bell",
+      "phase": "intro",
+      "speakerMetadata": "rook",
+      "text": "The ferry’s departure bell is stopped.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 14
+      }
+    },
+    {
+      "id": "story.ferry-bell.success",
+      "chapterId": "ferry",
+      "chapterTitle": "Sleepy Ferry",
+      "encounterId": "ferry-bell",
+      "encounterTitle": "Departure bell",
+      "phase": "success",
+      "speakerMetadata": "rook",
+      "text": "The ferry crosses the water.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 14
+      }
+    },
+    {
+      "id": "story.ferry-lights.intro",
+      "chapterId": "ferry",
+      "chapterTitle": "Sleepy Ferry",
+      "encounterId": "ferry-lights",
+      "encounterTitle": "Landing lights",
+      "phase": "intro",
+      "speakerMetadata": "pip",
+      "text": "The landing’s lamps share their wires.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 15
+      }
+    },
+    {
+      "id": "story.ferry-lights.success",
+      "chapterId": "ferry",
+      "chapterTitle": "Sleepy Ferry",
+      "encounterId": "ferry-lights",
+      "encounterTitle": "Landing lights",
+      "phase": "success",
+      "speakerMetadata": "pip",
+      "text": "The ferry landing is lit.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 15
+      }
+    },
+    {
+      "id": "story.marsh-paths.intro",
+      "chapterId": "marsh",
+      "chapterTitle": "Reed Marsh",
+      "encounterId": "marsh-paths",
+      "encounterTitle": "Reed paths",
+      "phase": "intro",
+      "speakerMetadata": "moss",
+      "text": "Each marsh path needs a lantern.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 18
+      }
+    },
+    {
+      "id": "story.marsh-paths.success",
+      "chapterId": "marsh",
+      "chapterTitle": "Reed Marsh",
+      "encounterId": "marsh-paths",
+      "encounterTitle": "Reed paths",
+      "phase": "success",
+      "speakerMetadata": "moss",
+      "text": "Lanterns mark the reed paths.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 18
+      }
+    },
+    {
+      "id": "story.marsh-garden.intro",
+      "chapterId": "marsh",
+      "chapterTitle": "Reed Marsh",
+      "encounterId": "marsh-garden",
+      "encounterTitle": "Lantern beds",
+      "phase": "intro",
+      "speakerMetadata": "fern",
+      "text": "The marsh lanterns grow in rows of different seeds.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 19
+      }
+    },
+    {
+      "id": "story.marsh-garden.success",
+      "chapterId": "marsh",
+      "chapterTitle": "Reed Marsh",
+      "encounterId": "marsh-garden",
+      "encounterTitle": "Lantern beds",
+      "phase": "success",
+      "speakerMetadata": "fern",
+      "text": "The lantern beds are planted.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 19
+      }
+    },
+    {
+      "id": "story.marsh-water.intro",
+      "chapterId": "marsh",
+      "chapterTitle": "Reed Marsh",
+      "encounterId": "marsh-water",
+      "encounterTitle": "Garden water",
+      "phase": "intro",
+      "speakerMetadata": "bea",
+      "text": "The lantern beds need water from these measuring tanks.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 20
+      }
+    },
+    {
+      "id": "story.marsh-water.success",
+      "chapterId": "marsh",
+      "chapterTitle": "Reed Marsh",
+      "encounterId": "marsh-water",
+      "encounterTitle": "Garden water",
+      "phase": "success",
+      "speakerMetadata": "bea",
+      "text": "The marsh garden lights up.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 20
+      }
+    },
+    {
+      "id": "story.ridge-balance.intro",
+      "chapterId": "ridge",
+      "chapterTitle": "Windy Ridge",
+      "encounterId": "ridge-balance",
+      "encounterTitle": "Cable weights",
+      "phase": "intro",
+      "speakerMetadata": "bea",
+      "text": "One of the cable’s balancing stones has the wrong weight.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 23
+      }
+    },
+    {
+      "id": "story.ridge-balance.success",
+      "chapterId": "ridge",
+      "chapterTitle": "Windy Ridge",
+      "encounterId": "ridge-balance",
+      "encounterTitle": "Cable weights",
+      "phase": "success",
+      "speakerMetadata": "bea",
+      "text": "The cable carries everyone to the ridge.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 23
+      }
+    },
+    {
+      "id": "story.ridge-game.intro",
+      "chapterId": "ridge",
+      "chapterTitle": "Windy Ridge",
+      "encounterId": "ridge-game",
+      "encounterTitle": "A game with Tumble",
+      "phase": "intro",
+      "speakerMetadata": "tumble",
+      "text": "Tumble has a pebble game for the rest stop.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 24
+      }
+    },
+    {
+      "id": "story.ridge-game.success",
+      "chapterId": "ridge",
+      "chapterTitle": "Windy Ridge",
+      "encounterId": "ridge-game",
+      "encounterTitle": "A game with Tumble",
+      "phase": "success",
+      "speakerMetadata": "tumble",
+      "text": "The game is finished; the friends pack up.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 24
+      }
+    },
+    {
+      "id": "story.ridge-lanterns.intro",
+      "chapterId": "ridge",
+      "chapterTitle": "Windy Ridge",
+      "encounterId": "ridge-lanterns",
+      "encounterTitle": "Ridge lanterns",
+      "phase": "intro",
+      "speakerMetadata": "rook",
+      "text": "Linked ridge lanterns need different colors to tell the paths apart.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 25
+      }
+    },
+    {
+      "id": "story.ridge-lanterns.success",
+      "chapterId": "ridge",
+      "chapterTitle": "Windy Ridge",
+      "encounterId": "ridge-lanterns",
+      "encounterTitle": "Ridge lanterns",
+      "phase": "success",
+      "speakerMetadata": "rook",
+      "text": "The ridge lanterns are lit.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 25
+      }
+    },
+    {
+      "id": "story.workshop-floor.intro",
+      "chapterId": "workshop",
+      "chapterTitle": "Old Workshop",
+      "encounterId": "workshop-floor",
+      "encounterTitle": "Floor tiles",
+      "phase": "intro",
+      "speakerMetadata": "tumble",
+      "text": "The tree’s trolley needs a repaired workshop floor.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 28
+      }
+    },
+    {
+      "id": "story.workshop-floor.success",
+      "chapterId": "workshop",
+      "chapterTitle": "Old Workshop",
+      "encounterId": "workshop-floor",
+      "encounterTitle": "Floor tiles",
+      "phase": "success",
+      "speakerMetadata": "tumble",
+      "text": "The trolley rolls inside.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 28
+      }
+    },
+    {
+      "id": "story.workshop-lock.intro",
+      "chapterId": "workshop",
+      "chapterTitle": "Old Workshop",
+      "encounterId": "workshop-lock",
+      "encounterTitle": "Supply cupboard",
+      "phase": "intro",
+      "speakerMetadata": "bea",
+      "text": "The spare lanterns are in the locked cupboard.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 29
+      }
+    },
+    {
+      "id": "story.workshop-lock.success",
+      "chapterId": "workshop",
+      "chapterTitle": "Old Workshop",
+      "encounterId": "workshop-lock",
+      "encounterTitle": "Supply cupboard",
+      "phase": "success",
+      "speakerMetadata": "bea",
+      "text": "The supply cupboard opens.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 29
+      }
+    },
+    {
+      "id": "story.workshop-cradles.intro",
+      "chapterId": "workshop",
+      "chapterTitle": "Old Workshop",
+      "encounterId": "workshop-cradles",
+      "encounterTitle": "Lantern cradles",
+      "phase": "intro",
+      "speakerMetadata": "moss",
+      "text": "The workshop’s lanterns belong in their matching cradles.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 30
+      }
+    },
+    {
+      "id": "story.workshop-cradles.success",
+      "chapterId": "workshop",
+      "chapterTitle": "Old Workshop",
+      "encounterId": "workshop-cradles",
+      "encounterTitle": "Lantern cradles",
+      "phase": "success",
+      "speakerMetadata": "moss",
+      "text": "The workshop windows glow.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 30
+      }
+    },
+    {
+      "id": "story.lighthouse-mirrors.intro",
+      "chapterId": "lighthouse",
+      "chapterTitle": "Lighthouse",
+      "encounterId": "lighthouse-mirrors",
+      "encounterTitle": "Mirror room",
+      "phase": "intro",
+      "speakerMetadata": "pip",
+      "text": "The lighthouse sends light through a room of mirrors.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 33
+      }
+    },
+    {
+      "id": "story.lighthouse-mirrors.success",
+      "chapterId": "lighthouse",
+      "chapterTitle": "Lighthouse",
+      "encounterId": "lighthouse-mirrors",
+      "encounterTitle": "Mirror room",
+      "phase": "success",
+      "speakerMetadata": "pip",
+      "text": "Light reaches the beacon.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 33
+      }
+    },
+    {
+      "id": "story.lighthouse-turn.intro",
+      "chapterId": "lighthouse",
+      "chapterTitle": "Lighthouse",
+      "encounterId": "lighthouse-turn",
+      "encounterTitle": "Beacon gears",
+      "phase": "intro",
+      "speakerMetadata": "bea",
+      "text": "The beacon’s turning gear has stopped.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 34
+      }
+    },
+    {
+      "id": "story.lighthouse-turn.success",
+      "chapterId": "lighthouse",
+      "chapterTitle": "Lighthouse",
+      "encounterId": "lighthouse-turn",
+      "encounterTitle": "Beacon gears",
+      "phase": "success",
+      "speakerMetadata": "bea",
+      "text": "The beacon turns across the bay.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 34
+      }
+    },
+    {
+      "id": "story.lighthouse-lamps.intro",
+      "chapterId": "lighthouse",
+      "chapterTitle": "Lighthouse",
+      "encounterId": "lighthouse-lamps",
+      "encounterTitle": "Harbor lamps",
+      "phase": "intro",
+      "speakerMetadata": "rook",
+      "text": "The harbor lamps share the lighthouse’s wires.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 35
+      }
+    },
+    {
+      "id": "story.lighthouse-lamps.success",
+      "chapterId": "lighthouse",
+      "chapterTitle": "Lighthouse",
+      "encounterId": "lighthouse-lamps",
+      "encounterTitle": "Harbor lamps",
+      "phase": "success",
+      "speakerMetadata": "rook",
+      "text": "The lighthouse and harbor are lit.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 35
+      }
+    },
+    {
+      "id": "story.citadel-streets.intro",
+      "chapterId": "citadel",
+      "chapterTitle": "Clockwork Citadel",
+      "encounterId": "citadel-streets",
+      "encounterTitle": "Lantern rounds",
+      "phase": "intro",
+      "speakerMetadata": "moss",
+      "text": "Each citadel street needs a lantern.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 38
+      }
+    },
+    {
+      "id": "story.citadel-streets.success",
+      "chapterId": "citadel",
+      "chapterTitle": "Clockwork Citadel",
+      "encounterId": "citadel-streets",
+      "encounterTitle": "Lantern rounds",
+      "phase": "success",
+      "speakerMetadata": "moss",
+      "text": "Lanterns hang along every street.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 38
+      }
+    },
+    {
+      "id": "story.citadel-water.intro",
+      "chapterId": "citadel",
+      "chapterTitle": "Clockwork Citadel",
+      "encounterId": "citadel-water",
+      "encounterTitle": "Courtyard fountain",
+      "phase": "intro",
+      "speakerMetadata": "bea",
+      "text": "Water balances the courtyard fountain’s lift.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 39
+      }
+    },
+    {
+      "id": "story.citadel-water.success",
+      "chapterId": "citadel",
+      "chapterTitle": "Clockwork Citadel",
+      "encounterId": "citadel-water",
+      "encounterTitle": "Courtyard fountain",
+      "phase": "success",
+      "speakerMetadata": "bea",
+      "text": "The fountain carries the tree into the square.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 39
+      }
+    },
+    {
+      "id": "story.citadel-lanterns.intro",
+      "chapterId": "citadel",
+      "chapterTitle": "Clockwork Citadel",
+      "encounterId": "citadel-lanterns",
+      "encounterTitle": "Square lanterns",
+      "phase": "intro",
+      "speakerMetadata": "fern",
+      "text": "Linked square lanterns need different colors to mark the streets.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 40
+      }
+    },
+    {
+      "id": "story.citadel-lanterns.success",
+      "chapterId": "citadel",
+      "chapterTitle": "Clockwork Citadel",
+      "encounterId": "citadel-lanterns",
+      "encounterTitle": "Square lanterns",
+      "phase": "success",
+      "speakerMetadata": "fern",
+      "text": "The citadel is lit; the whole lantern road is open.",
+      "textForm": "third-person narration",
+      "source": {
+        "file": "dist/caravan.js",
+        "line": 40
+      }
+    }
+  ],
+  "instructionClips": [
+    {
+      "id": "instructions.001",
+      "voiceRole": "narrator",
+      "text": "Cover every square with dominoes. Drag across two neighboring empty squares, or tap them in either order. Tap a placed domino to lift it.",
+      "objective": "Cover every square with dominoes.",
+      "instructions": "Drag across two neighboring empty squares, or tap them in either order. Tap a placed domino to lift it.",
+      "mechanic": "tile",
+      "catalogPuzzleIds": [
+        "tile-k1-01",
+        "tile-k1-02",
+        "tile-k1-03",
+        "tile-k1-05",
+        "tile-k1-06",
+        "tile-k1-07",
+        "tile-k1-09",
+        "tile-k1-10",
+        "tile-k1-11",
+        "tile-23-01",
+        "tile-23-02",
+        "tile-23-03",
+        "tile-23-05",
+        "tile-23-06",
+        "tile-23-07",
+        "tile-23-09",
+        "tile-23-10",
+        "tile-23-11",
+        "tile-45-01",
+        "tile-45-02",
+        "tile-45-03",
+        "tile-45-05",
+        "tile-45-06",
+        "tile-45-07",
+        "tile-45-09",
+        "tile-45-10",
+        "tile-45-11"
+      ],
+      "roadPuzzleIds": [],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/tile-controls.js",
+          "line": 62
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/0",
+            "puzzleId": "tile-k1-01"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/1",
+            "puzzleId": "tile-k1-02"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/2",
+            "puzzleId": "tile-k1-03"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/4",
+            "puzzleId": "tile-k1-05"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/5",
+            "puzzleId": "tile-k1-06"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/6",
+            "puzzleId": "tile-k1-07"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/8",
+            "puzzleId": "tile-k1-09"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/9",
+            "puzzleId": "tile-k1-10"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/10",
+            "puzzleId": "tile-k1-11"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/12",
+            "puzzleId": "tile-23-01"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/13",
+            "puzzleId": "tile-23-02"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/14",
+            "puzzleId": "tile-23-03"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/16",
+            "puzzleId": "tile-23-05"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/17",
+            "puzzleId": "tile-23-06"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/18",
+            "puzzleId": "tile-23-07"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/20",
+            "puzzleId": "tile-23-09"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/21",
+            "puzzleId": "tile-23-10"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/22",
+            "puzzleId": "tile-23-11"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/24",
+            "puzzleId": "tile-45-01"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/25",
+            "puzzleId": "tile-45-02"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/26",
+            "puzzleId": "tile-45-03"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/28",
+            "puzzleId": "tile-45-05"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/29",
+            "puzzleId": "tile-45-06"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/30",
+            "puzzleId": "tile-45-07"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/32",
+            "puzzleId": "tile-45-09"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/33",
+            "puzzleId": "tile-45-10"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/34",
+            "puzzleId": "tile-45-11"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.002",
+      "voiceRole": "narrator",
+      "text": "Cover every square with L-trominoes. Drag across three empty squares forming an L, or tap those squares in any order. Tap a placed tile to lift it.",
+      "objective": "Cover every square with L-trominoes.",
+      "instructions": "Drag across three empty squares forming an L, or tap those squares in any order. Tap a placed tile to lift it.",
+      "mechanic": "tile",
+      "catalogPuzzleIds": [
+        "tile-k1-04",
+        "tile-k1-08",
+        "tile-k1-12",
+        "tile-23-04",
+        "tile-23-08",
+        "tile-23-12",
+        "tile-45-04",
+        "tile-45-08",
+        "tile-45-12"
+      ],
+      "roadPuzzleIds": [
+        "road-workshop-floor-k1",
+        "road-workshop-floor-23",
+        "road-workshop-floor-45"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/tile-controls.js",
+          "line": 62
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/3",
+            "puzzleId": "tile-k1-04"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/7",
+            "puzzleId": "tile-k1-08"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/11",
+            "puzzleId": "tile-k1-12"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/15",
+            "puzzleId": "tile-23-04"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/19",
+            "puzzleId": "tile-23-08"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/23",
+            "puzzleId": "tile-23-12"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/27",
+            "puzzleId": "tile-45-04"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/31",
+            "puzzleId": "tile-45-08"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/35",
+            "puzzleId": "tile-45-12"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.003",
+      "voiceRole": "narrator",
+      "text": "Match the cups to the letters. Tap two cups to swap them. Only the listed pairs can swap.",
+      "objective": "Match the cups to the letters.",
+      "instructions": "Tap two cups to swap them. Only the listed pairs can swap.",
+      "mechanic": "swap",
+      "catalogPuzzleIds": [
+        "swap-k1-01",
+        "swap-k1-02",
+        "swap-k1-03",
+        "swap-k1-04",
+        "swap-k1-05",
+        "swap-k1-06",
+        "swap-k1-07",
+        "swap-k1-08",
+        "swap-k1-09",
+        "swap-k1-10",
+        "swap-k1-11",
+        "swap-k1-12",
+        "swap-23-01",
+        "swap-23-02",
+        "swap-23-03",
+        "swap-23-04",
+        "swap-23-05",
+        "swap-23-06",
+        "swap-23-07",
+        "swap-23-08",
+        "swap-23-09",
+        "swap-23-10",
+        "swap-23-11",
+        "swap-23-12",
+        "swap-45-01",
+        "swap-45-02",
+        "swap-45-03",
+        "swap-45-04",
+        "swap-45-05",
+        "swap-45-06",
+        "swap-45-07",
+        "swap-45-08",
+        "swap-45-09",
+        "swap-45-10",
+        "swap-45-11",
+        "swap-45-12"
+      ],
+      "roadPuzzleIds": [
+        "road-ferry-cargo-k1",
+        "road-ferry-cargo-23",
+        "road-ferry-cargo-45",
+        "road-workshop-cradles-k1",
+        "road-workshop-cradles-23",
+        "road-workshop-cradles-45"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/main.js",
+          "line": 134
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/36",
+            "puzzleId": "swap-k1-01"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/37",
+            "puzzleId": "swap-k1-02"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/38",
+            "puzzleId": "swap-k1-03"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/39",
+            "puzzleId": "swap-k1-04"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/40",
+            "puzzleId": "swap-k1-05"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/41",
+            "puzzleId": "swap-k1-06"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/42",
+            "puzzleId": "swap-k1-07"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/43",
+            "puzzleId": "swap-k1-08"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/44",
+            "puzzleId": "swap-k1-09"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/45",
+            "puzzleId": "swap-k1-10"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/46",
+            "puzzleId": "swap-k1-11"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/47",
+            "puzzleId": "swap-k1-12"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/48",
+            "puzzleId": "swap-23-01"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/49",
+            "puzzleId": "swap-23-02"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/50",
+            "puzzleId": "swap-23-03"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/51",
+            "puzzleId": "swap-23-04"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/52",
+            "puzzleId": "swap-23-05"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/53",
+            "puzzleId": "swap-23-06"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/54",
+            "puzzleId": "swap-23-07"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/55",
+            "puzzleId": "swap-23-08"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/56",
+            "puzzleId": "swap-23-09"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/57",
+            "puzzleId": "swap-23-10"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/58",
+            "puzzleId": "swap-23-11"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/59",
+            "puzzleId": "swap-23-12"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/60",
+            "puzzleId": "swap-45-01"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/61",
+            "puzzleId": "swap-45-02"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/62",
+            "puzzleId": "swap-45-03"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/63",
+            "puzzleId": "swap-45-04"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/64",
+            "puzzleId": "swap-45-05"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/65",
+            "puzzleId": "swap-45-06"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/66",
+            "puzzleId": "swap-45-07"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/67",
+            "puzzleId": "swap-45-08"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/68",
+            "puzzleId": "swap-45-09"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/69",
+            "puzzleId": "swap-45-10"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/70",
+            "puzzleId": "swap-45-11"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/71",
+            "puzzleId": "swap-45-12"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.004",
+      "voiceRole": "narrator",
+      "text": "Match the goal card. Tap a wire to flip both lanterns at its ends. With a keyboard, Tab to a wire and press Enter or Space.",
+      "objective": "Match the goal card.",
+      "instructions": "Tap a wire to flip both lanterns at its ends. With a keyboard, Tab to a wire and press Enter or Space.",
+      "mechanic": "toggle",
+      "catalogPuzzleIds": [
+        "toggle-01",
+        "toggle-02"
+      ],
+      "roadPuzzleIds": [
+        "road-ferry-lights-k1"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/72",
+            "puzzleId": "toggle-01"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/73",
+            "puzzleId": "toggle-02"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.005",
+      "voiceRole": "narrator",
+      "text": "Match the goal card in at most 2 presses. Tap a wire to flip both lanterns at its ends. With a keyboard, Tab to a wire and press Enter or Space.",
+      "objective": "Match the goal card in at most 2 presses.",
+      "instructions": "Tap a wire to flip both lanterns at its ends. With a keyboard, Tab to a wire and press Enter or Space.",
+      "mechanic": "toggle",
+      "catalogPuzzleIds": [
+        "toggle-03"
+      ],
+      "roadPuzzleIds": [
+        "road-ferry-lights-23",
+        "road-lighthouse-lamps-k1"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/74",
+            "puzzleId": "toggle-03"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.006",
+      "voiceRole": "narrator",
+      "text": "Match the goal card in at most 3 presses. Tap a wire to flip both lanterns at its ends. With a keyboard, Tab to a wire and press Enter or Space.",
+      "objective": "Match the goal card in at most 3 presses.",
+      "instructions": "Tap a wire to flip both lanterns at its ends. With a keyboard, Tab to a wire and press Enter or Space.",
+      "mechanic": "toggle",
+      "catalogPuzzleIds": [
+        "toggle-04",
+        "toggle-06",
+        "toggle-07"
+      ],
+      "roadPuzzleIds": [
+        "road-lighthouse-lamps-45"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/75",
+            "puzzleId": "toggle-04"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/77",
+            "puzzleId": "toggle-06"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/78",
+            "puzzleId": "toggle-07"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.007",
+      "voiceRole": "narrator",
+      "text": "Match the goal card in at most 4 presses. Tap a wire to flip both lanterns at its ends. With a keyboard, Tab to a wire and press Enter or Space.",
+      "objective": "Match the goal card in at most 4 presses.",
+      "instructions": "Tap a wire to flip both lanterns at its ends. With a keyboard, Tab to a wire and press Enter or Space.",
+      "mechanic": "toggle",
+      "catalogPuzzleIds": [
+        "toggle-05",
+        "toggle-09",
+        "toggle-10",
+        "toggle-11"
+      ],
+      "roadPuzzleIds": [
+        "road-ferry-lights-45"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/76",
+            "puzzleId": "toggle-05"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/80",
+            "puzzleId": "toggle-09"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/81",
+            "puzzleId": "toggle-10"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/82",
+            "puzzleId": "toggle-11"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.008",
+      "voiceRole": "narrator",
+      "text": "Match the goal card in at most 6 presses. Tap a wire to flip both lanterns at its ends. With a keyboard, Tab to a wire and press Enter or Space.",
+      "objective": "Match the goal card in at most 6 presses.",
+      "instructions": "Tap a wire to flip both lanterns at its ends. With a keyboard, Tab to a wire and press Enter or Space.",
+      "mechanic": "toggle",
+      "catalogPuzzleIds": [
+        "toggle-08",
+        "toggle-12"
+      ],
+      "roadPuzzleIds": [
+        "road-lighthouse-lamps-23"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/79",
+            "puzzleId": "toggle-08"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/83",
+            "puzzleId": "toggle-12"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.009",
+      "voiceRole": "narrator",
+      "text": "Find the first bell that lands the marker on its star. Enter a bell count, then Ring. Each bell moves every marker. Bell zero is the starting position; passing over a star does not count.",
+      "objective": "Find the first bell that lands the marker on its star.",
+      "instructions": "Enter a bell count, then Ring. Each bell moves every marker. Bell zero is the starting position; passing over a star does not count.",
+      "mechanic": "clock",
+      "catalogPuzzleIds": [
+        "clock-01",
+        "clock-02",
+        "clock-03",
+        "clock-08"
+      ],
+      "roadPuzzleIds": [
+        "road-ferry-bell-k1",
+        "road-ferry-bell-23",
+        "road-lighthouse-turn-k1"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/84",
+            "puzzleId": "clock-01"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/85",
+            "puzzleId": "clock-02"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/86",
+            "puzzleId": "clock-03"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/91",
+            "puzzleId": "clock-08"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.010",
+      "voiceRole": "narrator",
+      "text": "Return to the star for the first time on bell 4. Choose a fixed jump, then Ring. Bell zero is the starting position; passing over a star does not count.",
+      "objective": "Return to the star for the first time on bell 4.",
+      "instructions": "Choose a fixed jump, then Ring. Bell zero is the starting position; passing over a star does not count.",
+      "mechanic": "clock",
+      "catalogPuzzleIds": [
+        "clock-04"
+      ],
+      "roadPuzzleIds": [
+        "road-lighthouse-turn-23"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/87",
+            "puzzleId": "clock-04"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.011",
+      "voiceRole": "narrator",
+      "text": "Find the first bell that lands every marker on its star. Enter a bell count, then Ring. Each bell moves every marker. Bell zero is the starting position; passing over a star does not count.",
+      "objective": "Find the first bell that lands every marker on its star.",
+      "instructions": "Enter a bell count, then Ring. Each bell moves every marker. Bell zero is the starting position; passing over a star does not count.",
+      "mechanic": "clock",
+      "catalogPuzzleIds": [
+        "clock-05",
+        "clock-06",
+        "clock-09",
+        "clock-10",
+        "clock-11",
+        "clock-12"
+      ],
+      "roadPuzzleIds": [
+        "road-ferry-bell-45",
+        "road-lighthouse-turn-45"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/88",
+            "puzzleId": "clock-05"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/89",
+            "puzzleId": "clock-06"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/92",
+            "puzzleId": "clock-09"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/93",
+            "puzzleId": "clock-10"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/94",
+            "puzzleId": "clock-11"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/95",
+            "puzzleId": "clock-12"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.012",
+      "voiceRole": "narrator",
+      "text": "Return to the star for the first time on bell 5. Choose a fixed jump, then Ring. Bell zero is the starting position; passing over a star does not count.",
+      "objective": "Return to the star for the first time on bell 5.",
+      "instructions": "Choose a fixed jump, then Ring. Bell zero is the starting position; passing over a star does not count.",
+      "mechanic": "clock",
+      "catalogPuzzleIds": [
+        "clock-07"
+      ],
+      "roadPuzzleIds": [],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/90",
+            "puzzleId": "clock-07"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.013",
+      "voiceRole": "narrator",
+      "text": "Predict the first corner and the wall bounces before it. Choose the corner and bounce count, then Launch. Walls reflect the light; the first corner stops it.",
+      "objective": "Predict the first corner and the wall bounces before it.",
+      "instructions": "Choose the corner and bounce count, then Launch. Walls reflect the light; the first corner stops it.",
+      "mechanic": "billiard",
+      "catalogPuzzleIds": [
+        "billiard-01",
+        "billiard-02",
+        "billiard-03",
+        "billiard-07"
+      ],
+      "roadPuzzleIds": [
+        "road-lighthouse-mirrors-k1"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/96",
+            "puzzleId": "billiard-01"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/97",
+            "puzzleId": "billiard-02"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/98",
+            "puzzleId": "billiard-03"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/102",
+            "puzzleId": "billiard-07"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.014",
+      "voiceRole": "narrator",
+      "text": "Reach the top right corner first, after exactly 2 bounces. Choose the room width, then Launch. Walls reflect the light; the first corner stops it.",
+      "objective": "Reach the top right corner first, after exactly 2 bounces.",
+      "instructions": "Choose the room width, then Launch. Walls reflect the light; the first corner stops it.",
+      "mechanic": "billiard",
+      "catalogPuzzleIds": [
+        "billiard-04"
+      ],
+      "roadPuzzleIds": [
+        "road-lighthouse-mirrors-23"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/99",
+            "puzzleId": "billiard-04"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.015",
+      "voiceRole": "narrator",
+      "text": "Reach the bottom right corner first, after exactly 3 bounces. Choose how far to aim up and right, then Launch. Walls reflect the light; the first corner stops it.",
+      "objective": "Reach the bottom right corner first, after exactly 3 bounces.",
+      "instructions": "Choose how far to aim up and right, then Launch. Walls reflect the light; the first corner stops it.",
+      "mechanic": "billiard",
+      "catalogPuzzleIds": [
+        "billiard-05"
+      ],
+      "roadPuzzleIds": [
+        "road-lighthouse-mirrors-45"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/100",
+            "puzzleId": "billiard-05"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.016",
+      "voiceRole": "narrator",
+      "text": "Reach the top right corner first, after exactly 4 bounces. Choose how far to aim up and right, then Launch. Walls reflect the light; the first corner stops it.",
+      "objective": "Reach the top right corner first, after exactly 4 bounces.",
+      "instructions": "Choose how far to aim up and right, then Launch. Walls reflect the light; the first corner stops it.",
+      "mechanic": "billiard",
+      "catalogPuzzleIds": [
+        "billiard-06"
+      ],
+      "roadPuzzleIds": [],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/101",
+            "puzzleId": "billiard-06"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.017",
+      "voiceRole": "narrator",
+      "text": "Reach the bottom right corner first, after exactly 3 bounces. Choose the room width, then Launch. Walls reflect the light; the first corner stops it.",
+      "objective": "Reach the bottom right corner first, after exactly 3 bounces.",
+      "instructions": "Choose the room width, then Launch. Walls reflect the light; the first corner stops it.",
+      "mechanic": "billiard",
+      "catalogPuzzleIds": [
+        "billiard-08"
+      ],
+      "roadPuzzleIds": [],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/103",
+            "puzzleId": "billiard-08"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.018",
+      "voiceRole": "narrator",
+      "text": "Reach the top right corner first, after exactly 6 bounces. Choose how far to aim up and right, then Launch. Walls reflect the light; the first corner stops it.",
+      "objective": "Reach the top right corner first, after exactly 6 bounces.",
+      "instructions": "Choose how far to aim up and right, then Launch. Walls reflect the light; the first corner stops it.",
+      "mechanic": "billiard",
+      "catalogPuzzleIds": [
+        "billiard-09"
+      ],
+      "roadPuzzleIds": [],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/104",
+            "puzzleId": "billiard-09"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.019",
+      "voiceRole": "narrator",
+      "text": "Reach the top left corner first, after exactly 5 bounces. Choose the room width, then Launch. Walls reflect the light; the first corner stops it.",
+      "objective": "Reach the top left corner first, after exactly 5 bounces.",
+      "instructions": "Choose the room width, then Launch. Walls reflect the light; the first corner stops it.",
+      "mechanic": "billiard",
+      "catalogPuzzleIds": [
+        "billiard-10"
+      ],
+      "roadPuzzleIds": [],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/105",
+            "puzzleId": "billiard-10"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.020",
+      "voiceRole": "narrator",
+      "text": "Reach the top right corner first, after exactly 8 bounces. Choose how far to aim up and right, then Launch. Walls reflect the light; the first corner stops it.",
+      "objective": "Reach the top right corner first, after exactly 8 bounces.",
+      "instructions": "Choose how far to aim up and right, then Launch. Walls reflect the light; the first corner stops it.",
+      "mechanic": "billiard",
+      "catalogPuzzleIds": [
+        "billiard-11"
+      ],
+      "roadPuzzleIds": [],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/106",
+            "puzzleId": "billiard-11"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.021",
+      "voiceRole": "narrator",
+      "text": "Reach the bottom right corner first, after exactly 9 bounces. Choose how far to aim up and right, then Launch. Walls reflect the light; the first corner stops it.",
+      "objective": "Reach the bottom right corner first, after exactly 9 bounces.",
+      "instructions": "Choose how far to aim up and right, then Launch. Walls reflect the light; the first corner stops it.",
+      "mechanic": "billiard",
+      "catalogPuzzleIds": [
+        "billiard-12"
+      ],
+      "roadPuzzleIds": [],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/107",
+            "puzzleId": "billiard-12"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.022",
+      "voiceRole": "narrator",
+      "text": "Walk every road exactly once. Tap a labeled junction to follow a road; crossings are not junctions. You may revisit junctions.",
+      "objective": "Walk every road exactly once.",
+      "instructions": "Tap a labeled junction to follow a road; crossings are not junctions. You may revisit junctions.",
+      "mechanic": "route",
+      "catalogPuzzleIds": [
+        "route-01",
+        "route-03",
+        "route-07"
+      ],
+      "roadPuzzleIds": [
+        "road-marsh-paths-k1",
+        "road-marsh-paths-23"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/108",
+            "puzzleId": "route-01"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/110",
+            "puzzleId": "route-03"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/114",
+            "puzzleId": "route-07"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.023",
+      "voiceRole": "narrator",
+      "text": "Walk every road once, returning to B. Tap a labeled junction to follow a road; crossings are not junctions. You may revisit junctions.",
+      "objective": "Walk every road once, returning to B.",
+      "instructions": "Tap a labeled junction to follow a road; crossings are not junctions. You may revisit junctions.",
+      "mechanic": "route",
+      "catalogPuzzleIds": [
+        "route-02"
+      ],
+      "roadPuzzleIds": [
+        "road-citadel-streets-k1"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/109",
+            "puzzleId": "route-02"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.024",
+      "voiceRole": "narrator",
+      "text": "Cover every road and return to S in exactly 8 steps. Tap a labeled junction to follow a road; crossings are not junctions. Repeated roads add to the distance.",
+      "objective": "Cover every road and return to S in exactly 8 steps.",
+      "instructions": "Tap a labeled junction to follow a road; crossings are not junctions. Repeated roads add to the distance.",
+      "mechanic": "route",
+      "catalogPuzzleIds": [
+        "route-04"
+      ],
+      "roadPuzzleIds": [],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/111",
+            "puzzleId": "route-04"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.025",
+      "voiceRole": "narrator",
+      "text": "Cover every road and return to A in exactly 12 steps. Tap a labeled junction to follow a road; crossings are not junctions. Repeated roads add to the distance.",
+      "objective": "Cover every road and return to A in exactly 12 steps.",
+      "instructions": "Tap a labeled junction to follow a road; crossings are not junctions. Repeated roads add to the distance.",
+      "mechanic": "route",
+      "catalogPuzzleIds": [
+        "route-05",
+        "route-09"
+      ],
+      "roadPuzzleIds": [
+        "road-marsh-paths-45"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/112",
+            "puzzleId": "route-05"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/116",
+            "puzzleId": "route-09"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.026",
+      "voiceRole": "narrator",
+      "text": "Cover every road and return to A with total distance 22. Tap a labeled junction to follow a road; crossings are not junctions. Repeated roads add to the distance.",
+      "objective": "Cover every road and return to A with total distance 22.",
+      "instructions": "Tap a labeled junction to follow a road; crossings are not junctions. Repeated roads add to the distance.",
+      "mechanic": "route",
+      "catalogPuzzleIds": [
+        "route-06"
+      ],
+      "roadPuzzleIds": [],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/113",
+            "puzzleId": "route-06"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.027",
+      "voiceRole": "narrator",
+      "text": "Walk every road once, returning to A. Tap a labeled junction to follow a road; crossings are not junctions. You may revisit junctions.",
+      "objective": "Walk every road once, returning to A.",
+      "instructions": "Tap a labeled junction to follow a road; crossings are not junctions. You may revisit junctions.",
+      "mechanic": "route",
+      "catalogPuzzleIds": [
+        "route-08"
+      ],
+      "roadPuzzleIds": [
+        "road-citadel-streets-23"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/115",
+            "puzzleId": "route-08"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.028",
+      "voiceRole": "narrator",
+      "text": "Cover every road and return to A in exactly 16 steps. Tap a labeled junction to follow a road; crossings are not junctions. Repeated roads add to the distance.",
+      "objective": "Cover every road and return to A in exactly 16 steps.",
+      "instructions": "Tap a labeled junction to follow a road; crossings are not junctions. Repeated roads add to the distance.",
+      "mechanic": "route",
+      "catalogPuzzleIds": [
+        "route-10"
+      ],
+      "roadPuzzleIds": [],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/117",
+            "puzzleId": "route-10"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.029",
+      "voiceRole": "narrator",
+      "text": "Cover every road and return to A with total distance 17. Tap a labeled junction to follow a road; crossings are not junctions. Repeated roads add to the distance.",
+      "objective": "Cover every road and return to A with total distance 17.",
+      "instructions": "Tap a labeled junction to follow a road; crossings are not junctions. Repeated roads add to the distance.",
+      "mechanic": "route",
+      "catalogPuzzleIds": [
+        "route-11"
+      ],
+      "roadPuzzleIds": [
+        "road-citadel-streets-45"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/118",
+            "puzzleId": "route-11"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.030",
+      "voiceRole": "narrator",
+      "text": "Cover every road and return to A with total distance 28. Tap a labeled junction to follow a road; crossings are not junctions. Repeated roads add to the distance.",
+      "objective": "Cover every road and return to A with total distance 28.",
+      "instructions": "Tap a labeled junction to follow a road; crossings are not junctions. Repeated roads add to the distance.",
+      "mechanic": "route",
+      "catalogPuzzleIds": [
+        "route-12"
+      ],
+      "roadPuzzleIds": [],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/119",
+            "puzzleId": "route-12"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.031",
+      "voiceRole": "narrator",
+      "text": "Color every lantern so linked pairs differ. Choose a color or shape, then tap a lantern. Crossings do not add links.",
+      "objective": "Color every lantern so linked pairs differ.",
+      "instructions": "Choose a color or shape, then tap a lantern. Crossings do not add links.",
+      "mechanic": "color",
+      "catalogPuzzleIds": [
+        "color-01",
+        "color-02",
+        "color-03",
+        "color-04",
+        "color-05",
+        "color-06",
+        "color-07",
+        "color-08",
+        "color-09",
+        "color-10",
+        "color-11",
+        "color-12"
+      ],
+      "roadPuzzleIds": [
+        "road-ridge-lanterns-k1",
+        "road-ridge-lanterns-23",
+        "road-ridge-lanterns-45",
+        "road-citadel-lanterns-k1",
+        "road-citadel-lanterns-23",
+        "road-citadel-lanterns-45"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/120",
+            "puzzleId": "color-01"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/121",
+            "puzzleId": "color-02"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/122",
+            "puzzleId": "color-03"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/123",
+            "puzzleId": "color-04"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/124",
+            "puzzleId": "color-05"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/125",
+            "puzzleId": "color-06"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/126",
+            "puzzleId": "color-07"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/127",
+            "puzzleId": "color-08"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/128",
+            "puzzleId": "color-09"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/129",
+            "puzzleId": "color-10"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/130",
+            "puzzleId": "color-11"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/131",
+            "puzzleId": "color-12"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.032",
+      "voiceRole": "narrator",
+      "text": "Use 1–2 once in every row and column. Tap a square, then a number to mark it. Dark squares are fixed. Clear erases the selected square. You can also type numbers or press Delete.",
+      "objective": "Use 1–2 once in every row and column.",
+      "instructions": "Tap a square, then a number to mark it. Dark squares are fixed. Clear erases the selected square. You can also type numbers or press Delete.",
+      "mechanic": "latin",
+      "catalogPuzzleIds": [
+        "latin-01"
+      ],
+      "roadPuzzleIds": [],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/132",
+            "puzzleId": "latin-01"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.033",
+      "voiceRole": "narrator",
+      "text": "Use 1–3 once in every row and column. Tap a square, then a number to mark it. Dark squares are fixed. Clear erases the selected square. You can also type numbers or press Delete.",
+      "objective": "Use 1–3 once in every row and column.",
+      "instructions": "Tap a square, then a number to mark it. Dark squares are fixed. Clear erases the selected square. You can also type numbers or press Delete.",
+      "mechanic": "latin",
+      "catalogPuzzleIds": [
+        "latin-02"
+      ],
+      "roadPuzzleIds": [
+        "road-marsh-garden-k1"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/133",
+            "puzzleId": "latin-02"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.034",
+      "voiceRole": "narrator",
+      "text": "Use 1–4 once in every row and column. Tap a square, then a number to mark it. Dark squares are fixed. Clear erases the selected square. You can also type numbers or press Delete.",
+      "objective": "Use 1–4 once in every row and column.",
+      "instructions": "Tap a square, then a number to mark it. Dark squares are fixed. Clear erases the selected square. You can also type numbers or press Delete.",
+      "mechanic": "latin",
+      "catalogPuzzleIds": [
+        "latin-03",
+        "latin-07"
+      ],
+      "roadPuzzleIds": [
+        "road-marsh-garden-23"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/134",
+            "puzzleId": "latin-03"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/138",
+            "puzzleId": "latin-07"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.035",
+      "voiceRole": "narrator",
+      "text": "Use 1–5 once in every row and column. Tap a square, then a number to mark it. Dark squares are fixed. Clear erases the selected square. You can also type numbers or press Delete.",
+      "objective": "Use 1–5 once in every row and column.",
+      "instructions": "Tap a square, then a number to mark it. Dark squares are fixed. Clear erases the selected square. You can also type numbers or press Delete.",
+      "mechanic": "latin",
+      "catalogPuzzleIds": [
+        "latin-04",
+        "latin-05",
+        "latin-06",
+        "latin-08",
+        "latin-09"
+      ],
+      "roadPuzzleIds": [
+        "road-marsh-garden-45"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/135",
+            "puzzleId": "latin-04"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/136",
+            "puzzleId": "latin-05"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/137",
+            "puzzleId": "latin-06"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/139",
+            "puzzleId": "latin-08"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/140",
+            "puzzleId": "latin-09"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.036",
+      "voiceRole": "narrator",
+      "text": "Use 1–6 once in every row and column. Tap a square, then a number to mark it. Dark squares are fixed. Clear erases the selected square. You can also type numbers or press Delete.",
+      "objective": "Use 1–6 once in every row and column.",
+      "instructions": "Tap a square, then a number to mark it. Dark squares are fixed. Clear erases the selected square. You can also type numbers or press Delete.",
+      "mechanic": "latin",
+      "catalogPuzzleIds": [
+        "latin-10",
+        "latin-11",
+        "latin-12"
+      ],
+      "roadPuzzleIds": [],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/141",
+            "puzzleId": "latin-10"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/142",
+            "puzzleId": "latin-11"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/143",
+            "puzzleId": "latin-12"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.037",
+      "voiceRole": "narrator",
+      "text": "Find a code that fits every recorded match count. Tap each lantern to set 0 or 1, then Check. A match is the same symbol in the same position.",
+      "objective": "Find a code that fits every recorded match count.",
+      "instructions": "Tap each lantern to set 0 or 1, then Check. A match is the same symbol in the same position.",
+      "mechanic": "code",
+      "catalogPuzzleIds": [
+        "code-01",
+        "code-02",
+        "code-03",
+        "code-04",
+        "code-05",
+        "code-06",
+        "code-07",
+        "code-08",
+        "code-09",
+        "code-10",
+        "code-11",
+        "code-12"
+      ],
+      "roadPuzzleIds": [
+        "road-workshop-lock-k1",
+        "road-workshop-lock-23",
+        "road-workshop-lock-45"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/144",
+            "puzzleId": "code-01"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/145",
+            "puzzleId": "code-02"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/146",
+            "puzzleId": "code-03"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/147",
+            "puzzleId": "code-04"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/148",
+            "puzzleId": "code-05"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/149",
+            "puzzleId": "code-06"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/150",
+            "puzzleId": "code-07"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/151",
+            "puzzleId": "code-08"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/152",
+            "puzzleId": "code-09"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/153",
+            "puzzleId": "code-10"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/154",
+            "puzzleId": "code-11"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/155",
+            "puzzleId": "code-12"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.038",
+      "voiceRole": "narrator",
+      "text": "Take the last pebble to win. Take any positive number from one pile. The opponent replies automatically. Take the last pebble to win. Undo takes back your move and the reply.",
+      "objective": "Take the last pebble to win.",
+      "instructions": "Take any positive number from one pile. The opponent replies automatically. Take the last pebble to win. Undo takes back your move and the reply.",
+      "mechanic": "nim",
+      "catalogPuzzleIds": [
+        "nim-01",
+        "nim-02",
+        "nim-03",
+        "nim-04",
+        "nim-05",
+        "nim-06",
+        "nim-07",
+        "nim-08",
+        "nim-09",
+        "nim-10",
+        "nim-11",
+        "nim-12"
+      ],
+      "roadPuzzleIds": [
+        "road-ridge-game-k1",
+        "road-ridge-game-23",
+        "road-ridge-game-45"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/156",
+            "puzzleId": "nim-01"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/157",
+            "puzzleId": "nim-02"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/158",
+            "puzzleId": "nim-03"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/159",
+            "puzzleId": "nim-04"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/160",
+            "puzzleId": "nim-05"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/161",
+            "puzzleId": "nim-06"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/162",
+            "puzzleId": "nim-07"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/163",
+            "puzzleId": "nim-08"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/164",
+            "puzzleId": "nim-09"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/165",
+            "puzzleId": "nim-10"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/166",
+            "puzzleId": "nim-11"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/167",
+            "puzzleId": "nim-12"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.039",
+      "voiceRole": "narrator",
+      "text": "Leave exactly 1 unit in either jug. Fill or empty a jug, or pour between jugs. A pour stops when its source is empty or its destination is full.",
+      "objective": "Leave exactly 1 unit in either jug.",
+      "instructions": "Fill or empty a jug, or pour between jugs. A pour stops when its source is empty or its destination is full.",
+      "mechanic": "jug",
+      "catalogPuzzleIds": [
+        "jug-01",
+        "jug-02"
+      ],
+      "roadPuzzleIds": [
+        "road-marsh-water-k1",
+        "road-citadel-water-k1"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/168",
+            "puzzleId": "jug-01"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/169",
+            "puzzleId": "jug-02"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.040",
+      "voiceRole": "narrator",
+      "text": "Leave exactly 4 units in either jug. Fill or empty a jug, or pour between jugs. A pour stops when its source is empty or its destination is full.",
+      "objective": "Leave exactly 4 units in either jug.",
+      "instructions": "Fill or empty a jug, or pour between jugs. A pour stops when its source is empty or its destination is full.",
+      "mechanic": "jug",
+      "catalogPuzzleIds": [
+        "jug-03"
+      ],
+      "roadPuzzleIds": [
+        "road-marsh-water-23"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/170",
+            "puzzleId": "jug-03"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.041",
+      "voiceRole": "narrator",
+      "text": "Leave exactly 2 units in either jug. Fill or empty a jug, or pour between jugs. A pour stops when its source is empty or its destination is full.",
+      "objective": "Leave exactly 2 units in either jug.",
+      "instructions": "Fill or empty a jug, or pour between jugs. A pour stops when its source is empty or its destination is full.",
+      "mechanic": "jug",
+      "catalogPuzzleIds": [
+        "jug-04",
+        "jug-07",
+        "jug-08"
+      ],
+      "roadPuzzleIds": [
+        "road-citadel-water-23"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/171",
+            "puzzleId": "jug-04"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/174",
+            "puzzleId": "jug-07"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/175",
+            "puzzleId": "jug-08"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.042",
+      "voiceRole": "narrator",
+      "text": "Leave 4 units in A, 4 units in B, and none in C. Pour between jugs; no water can be added or removed. A pour stops when its source is empty or its destination is full.",
+      "objective": "Leave 4 units in A, 4 units in B, and none in C.",
+      "instructions": "Pour between jugs; no water can be added or removed. A pour stops when its source is empty or its destination is full.",
+      "mechanic": "jug",
+      "catalogPuzzleIds": [
+        "jug-05"
+      ],
+      "roadPuzzleIds": [
+        "road-marsh-water-45"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/172",
+            "puzzleId": "jug-05"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.043",
+      "voiceRole": "narrator",
+      "text": "Leave 5 units in A, 5 units in B, and none in C. Pour between jugs; no water can be added or removed. A pour stops when its source is empty or its destination is full.",
+      "objective": "Leave 5 units in A, 5 units in B, and none in C.",
+      "instructions": "Pour between jugs; no water can be added or removed. A pour stops when its source is empty or its destination is full.",
+      "mechanic": "jug",
+      "catalogPuzzleIds": [
+        "jug-06"
+      ],
+      "roadPuzzleIds": [
+        "road-citadel-water-45"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/173",
+            "puzzleId": "jug-06"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.044",
+      "voiceRole": "narrator",
+      "text": "Leave 3 units in A, 2 units in B, and 4 units in C. Pour between jugs; no water can be added or removed. A pour stops when its source is empty or its destination is full.",
+      "objective": "Leave 3 units in A, 2 units in B, and 4 units in C.",
+      "instructions": "Pour between jugs; no water can be added or removed. A pour stops when its source is empty or its destination is full.",
+      "mechanic": "jug",
+      "catalogPuzzleIds": [
+        "jug-09"
+      ],
+      "roadPuzzleIds": [],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/176",
+            "puzzleId": "jug-09"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.045",
+      "voiceRole": "narrator",
+      "text": "Leave 2 units in A, 4 units in B, and 4 units in C. Pour between jugs; no water can be added or removed. A pour stops when its source is empty or its destination is full.",
+      "objective": "Leave 2 units in A, 4 units in B, and 4 units in C.",
+      "instructions": "Pour between jugs; no water can be added or removed. A pour stops when its source is empty or its destination is full.",
+      "mechanic": "jug",
+      "catalogPuzzleIds": [
+        "jug-10"
+      ],
+      "roadPuzzleIds": [],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/177",
+            "puzzleId": "jug-10"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.046",
+      "voiceRole": "narrator",
+      "text": "Leave 6 units in A, 6 units in B, and none in C. Pour between jugs; no water can be added or removed. A pour stops when its source is empty or its destination is full.",
+      "objective": "Leave 6 units in A, 6 units in B, and none in C.",
+      "instructions": "Pour between jugs; no water can be added or removed. A pour stops when its source is empty or its destination is full.",
+      "mechanic": "jug",
+      "catalogPuzzleIds": [
+        "jug-11",
+        "jug-12"
+      ],
+      "roadPuzzleIds": [],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/178",
+            "puzzleId": "jug-11"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/179",
+            "puzzleId": "jug-12"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.047",
+      "voiceRole": "narrator",
+      "text": "Find the heavy pebble in at most 1 weighing. Place pebbles Left, Off, or Right. Put equal numbers on both pans, then Weigh. An answer must be the only possibility left by the observations.",
+      "objective": "Find the heavy pebble in at most 1 weighing.",
+      "instructions": "Place pebbles Left, Off, or Right. Put equal numbers on both pans, then Weigh. An answer must be the only possibility left by the observations.",
+      "mechanic": "weigh",
+      "catalogPuzzleIds": [
+        "weigh-01"
+      ],
+      "roadPuzzleIds": [],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/180",
+            "puzzleId": "weigh-01"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.048",
+      "voiceRole": "narrator",
+      "text": "Find the heavy pebble in at most 2 weighings. Place pebbles Left, Off, or Right. Put equal numbers on both pans, then Weigh. An answer must be the only possibility left by the observations.",
+      "objective": "Find the heavy pebble in at most 2 weighings.",
+      "instructions": "Place pebbles Left, Off, or Right. Put equal numbers on both pans, then Weigh. An answer must be the only possibility left by the observations.",
+      "mechanic": "weigh",
+      "catalogPuzzleIds": [
+        "weigh-02",
+        "weigh-03",
+        "weigh-07"
+      ],
+      "roadPuzzleIds": [
+        "road-ridge-balance-k1",
+        "road-ridge-balance-23"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/181",
+            "puzzleId": "weigh-02"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/182",
+            "puzzleId": "weigh-03"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/186",
+            "puzzleId": "weigh-07"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.049",
+      "voiceRole": "narrator",
+      "text": "Identify the odd pebble and whether it’s heavy or light, using at most 2 weighings. Place pebbles Left, Off, or Right. Put equal numbers on both pans, then Weigh. An answer must be the only possibility left by the observations.",
+      "objective": "Identify the odd pebble and whether it’s heavy or light, using at most 2 weighings.",
+      "instructions": "Place pebbles Left, Off, or Right. Put equal numbers on both pans, then Weigh. An answer must be the only possibility left by the observations.",
+      "mechanic": "weigh",
+      "catalogPuzzleIds": [
+        "weigh-04",
+        "weigh-05",
+        "weigh-08"
+      ],
+      "roadPuzzleIds": [
+        "road-ridge-balance-45"
+      ],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/183",
+            "puzzleId": "weigh-04"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/184",
+            "puzzleId": "weigh-05"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/187",
+            "puzzleId": "weigh-08"
+          }
+        ]
+      }
+    },
+    {
+      "id": "instructions.050",
+      "voiceRole": "narrator",
+      "text": "Identify the odd pebble and whether it’s heavy or light, using at most 3 weighings. Place pebbles Left, Off, or Right. Put equal numbers on both pans, then Weigh. An answer must be the only possibility left by the observations.",
+      "objective": "Identify the odd pebble and whether it’s heavy or light, using at most 3 weighings.",
+      "instructions": "Place pebbles Left, Off, or Right. Put equal numbers on both pans, then Weigh. An answer must be the only possibility left by the observations.",
+      "mechanic": "weigh",
+      "catalogPuzzleIds": [
+        "weigh-06",
+        "weigh-09",
+        "weigh-10",
+        "weigh-11",
+        "weigh-12"
+      ],
+      "roadPuzzleIds": [],
+      "sources": {
+        "composition": {
+          "file": "dist/main.js",
+          "line": 137
+        },
+        "objective": {
+          "file": "dist/puzzle-copy.js",
+          "line": 2
+        },
+        "instructions": {
+          "file": "dist/expansion.js",
+          "line": 9
+        },
+        "instanceData": [
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/185",
+            "puzzleId": "weigh-06"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/188",
+            "puzzleId": "weigh-09"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/189",
+            "puzzleId": "weigh-10"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/190",
+            "puzzleId": "weigh-11"
+          },
+          {
+            "file": "dist/puzzles.json",
+            "jsonPointer": "/puzzles/191",
+            "puzzleId": "weigh-12"
+          }
+        ]
+      }
+    }
+  ],
+  "additionalUnvoicedCurrentText": {
+    "opening": {
+      "text": "Carry the lantern tree along the road. Light every stop.",
+      "source": {
+        "file": "dist/caravan-ui.js",
+        "line": 29
+      },
+      "note": "Visible opening. A show-story handler contains a Listen-capable fallback, but the current view does not render a show-story control. Not counted in 86 active recordings."
+    },
+    "finale": {
+      "text": "The lantern road is lit.",
+      "source": {
+        "file": "dist/caravan-ui.js",
+        "line": 29
+      },
+      "note": "Visible map finale; no Listen control. Not counted."
+    }
+  },
+  "historicalMaterialExcluded": [
+    "dist/caravan-legacy.js campaign text, except reused companion identity data",
+    "dist/caravan-rescue.js campaign text",
+    "Historical Journal archives, which currently have no Listen controls"
+  ]
+}
