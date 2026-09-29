@@ -39,6 +39,10 @@
 .lamp-rays { stroke:#886313; stroke-width:3; }
 .clock-pictures { display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; margin-top:1rem; }
 .clock-picture { flex:1 1 200px; max-width:330px; }
+.clock-choose .clock-picture svg { touch-action:none; user-select:none; -webkit-user-select:none; cursor:pointer; }
+.clock-choose .clock-picture svg:focus-visible { outline:3px solid #1e6dad; outline-offset:3px; border-radius:50%; }
+.clock-choose .clock-position,.clock-choose .clock-jump-head { pointer-events:none; }
+.clock-choose .clock-picture svg[aria-disabled="true"] { pointer-events:none; }
 .clock-ring { fill:none; stroke:#a6bdd0; stroke-width:4; }
 .clock-jump-arrow { fill:none; stroke:#b83d39; stroke-width:2.5; stroke-linecap:round; }
 .clock-jump-head { fill:#b83d39; }

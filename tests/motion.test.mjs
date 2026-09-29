@@ -2,8 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { motionMechanics, simulateBilliard, firstClockHit } from '../dist/motion.js';
-import { clockJumpArc } from '../dist/clock-geometry.js';
+import { clockJumpArc, clockJumpFromPlace, clockPlaceAtPoint, clockStepJump } from '../dist/clock-geometry.js';
 import { clockBellDelay, clockTrailStep, createClockTimeline } from '../dist/clock-playback.js';
+import { playInstructions } from '../dist/expansion.js';
 
 const catalog = JSON.parse(readFileSync(new URL('../docs/puzzle-expansion/motion.json', import.meta.url)));
 const puzzles = catalog.families.flatMap(family => family.instances.map(instance => ({ ...instance, mechanic: family.id })));
@@ -141,6 +142,48 @@ test('clock gear mode accepts every valid gear and rejects early returns', () =>
   assert.deepEqual(winners, [3, 9]);
   assert.equal(handler.solved(p, { prediction: 6 }), false, '+6 reaches zero at bell four but first returns at bell two');
   assert.equal(handler.move(p, initial(p), { jump: 12 }), null);
+});
+
+test('choose-jump ring maps taps and drags to allowed clockwise jumps', () => {
+  for (const id of ['clock-04', 'clock-07']) {
+    const p = puzzle(id), {positions,start,jump_min,jump_max} = p.parameters;
+    const place = id === 'clock-04' ? 9 : 6;
+    assert.equal(clockJumpFromPlace(positions,start,place,jump_min,jump_max),place);
+    assert.equal(clockJumpFromPlace(positions,start,start,jump_min,jump_max),null);
+    const angle=place*2*Math.PI/positions;
+    for (const radius of [77,92,110,128]) {
+      assert.equal(clockPlaceAtPoint(160+radius*Math.sin(angle),160-radius*Math.cos(angle),positions),place);
+    }
+    assert.equal(clockPlaceAtPoint(160,160,positions),null);
+  }
+  assert.equal(clockJumpFromPlace(12,9,2,1,11),5,'nonzero start wraps clockwise');
+  assert.equal(clockJumpFromPlace(12,9,8,2,6),null,'out-of-range landing is ignored');
+  assert.equal(clockJumpFromPlace(12,9,9,1,11),null,'start is never selectable');
+});
+
+test('choose-jump keyboard clamps and draft changes do not commit a prediction', () => {
+  assert.equal(clockStepJump(1,'ArrowLeft',1,9),1);
+  assert.equal(clockStepJump(9,'ArrowUp',1,9),9);
+  assert.equal(clockStepJump(5,'ArrowDown',1,9),4);
+  assert.equal(clockStepJump(5,'ArrowRight',1,9),6);
+  const p=puzzle('clock-07'),board=initial(p),timeline=createClockTimeline(()=>{});
+  timeline.enter('clock-07',p,null);
+  timeline.edit('6',false);
+  assert.equal(board.prediction,null);
+  assert.equal(timeline.presentation.draft,'6');
+  const draft=motionMechanics.clock.render(p,{board},{clockPresentation:timeline.presentation});
+  assert.match(draft,/role="slider" tabindex="0"/);
+  assert.match(draft,/aria-valuetext="Jump 6 clockwise from 0 to 6"/);
+  assert.match(draft,/name="jump" value="6"/);
+  assert.match(draft,/Jump 6/);
+  assert.doesNotMatch(draft,/clock-trail|Fixed jump|<select/);
+  const saved=motionMechanics.clock.move(p,board,{jump:6});
+  assert.deepEqual(saved,{prediction:6});
+  timeline.restore(p,saved.prediction);
+  assert.match(motionMechanics.clock.render(p,{board:saved},{clockPresentation:timeline.presentation}),/aria-valuetext="Jump 6 clockwise from 0 to 6"/);
+  assert.match(playInstructions(p),/Tap a place or drag the red arrow/);
+  assert.doesNotMatch(playInstructions(p),/click/i);
+  assert.match(playInstructions(puzzle('clock-08')),/red arrows trace each jump/);
 });
 
 test('clock reference arrows span the clockwise jump, including the long arc', () => {

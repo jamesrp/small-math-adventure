@@ -148,7 +148,7 @@ function solvedClock(p, board) {
     : firstClockHit(params) === board.prediction;
 }
 
-function clockPicture(clock, count, label, total) {
+function clockPicture(clock, count, label, total, control = null) {
   const point = (position, radius = 110) => [160 + radius * Math.sin(position * 2 * Math.PI / clock.positions), 160 - radius * Math.cos(position * 2 * Math.PI / clock.positions)];
   const current = (clock.start + clock.jump * (count % clock.positions)) % clock.positions;
   const arrow = clockJumpArc(clock.positions, clock.start, clock.jump);
@@ -162,7 +162,9 @@ function clockPicture(clock, count, label, total) {
     const step = clockTrailStep(clock.positions, clock.start, clock.jump, bell, total);
     return `<path class="clock-trail" d="${step.path}"/><polygon class="clock-trail-head" points="${step.head}"/>`;
   }).join('');
-  return `<figure class="clock-picture"><figcaption>${esc(label)}Jump ${clock.jump}</figcaption><svg viewBox="0 0 320 320" role="img" aria-label="${esc(label)}: ${clock.positions} places, jump ${clock.jump} clockwise from ${arrow.from} to ${arrow.to}, star ${clock.target}. Marker ${count ? 'at' : 'starts at'} ${current}."><circle class="clock-ring" cx="160" cy="160" r="110"/><path class="clock-jump-arrow" d="${arrow.path}"/><polygon class="clock-jump-head" points="${arrow.head}"/>${trail}${nodes}<circle class="clock-marker" cx="${x}" cy="${y}" r="23"/><text class="clock-center" x="160" y="157">${count}</text><text class="clock-center-label" x="160" y="179">${count === 1 ? 'bell' : 'bells'}</text></svg></figure>`;
+  const name = `${esc(label)}: ${clock.positions} places, jump ${clock.jump} clockwise from ${arrow.from} to ${arrow.to}, star ${clock.target}. Marker ${count ? 'at' : 'starts at'} ${current}.`;
+  const role = control ? `role="slider" tabindex="0" data-focus="clock-jump" aria-valuemin="${control.min}" aria-valuemax="${control.max}" aria-valuenow="${clock.jump}" aria-valuetext="Jump ${clock.jump} clockwise from ${arrow.from} to ${arrow.to}"` : 'role="img"';
+  return `<figure class="clock-picture"><figcaption>${esc(label)}<span class="clock-jump-caption">Jump ${clock.jump}</span></figcaption><svg viewBox="0 0 320 320" ${role} aria-label="${name}"><circle class="clock-ring" cx="160" cy="160" r="110"/><path class="clock-jump-arrow" d="${arrow.path}"/><polygon class="clock-jump-head" points="${arrow.head}"/>${trail}${nodes}<circle class="clock-marker" cx="${x}" cy="${y}" r="23"/><text class="clock-center" x="160" y="157">${count}</text><text class="clock-center-label" x="160" y="179">${count === 1 ? 'bell' : 'bells'}</text></svg></figure>`;
 }
 
 const clock = {
@@ -193,7 +195,7 @@ const clock = {
     const clocks = gear ? [{ positions: params.positions, start: params.start, target: params.start, jump: Number(presentation.jump ?? presentation.draft ?? prediction ?? params.jump_min) }] : params.clocks;
     const submittedCount = clockRunCount(p, prediction);
     const count = presentation.count ?? submittedCount;
-    const controls = gear ? selectField('jump', 'Fixed jump', range(params.jump_min, params.jump_max), presentation.draft ?? prediction ?? params.jump_min) : `<label class="motion-field">Bell count<input name="activations" data-focus="clock-answer" type="number" min="1" step="1" inputmode="numeric" value="${esc(presentation.draft ?? prediction ?? '')}" required></label>`;
+    const controls = gear ? `<input type="hidden" name="jump" value="${clocks[0].jump}">` : `<label class="motion-field">Bell count<input name="activations" data-focus="clock-answer" type="number" min="1" step="1" inputmode="numeric" value="${esc(presentation.draft ?? prediction ?? '')}" required></label>`;
     let feedback = '';
     if (prediction !== null) {
       const correct = solvedClock(p, attempt.board);
@@ -202,7 +204,7 @@ const clock = {
         .map(clock => (clock.start + clock.jump * (submittedCount % clock.positions)) % clock.positions);
       feedback = correct ? '' : `<div class="motion-result" role="status">${gear ? `Jump ${prediction} first returns on bell ${first}.` : `After ${plural(prediction, 'bell')}: ${endpoint.join(' and ')}. ${endpoint.every((position, i) => position === clocks[i].target) ? 'The markers reached their stars on an earlier bell.' : 'The markers must land on their stars together.'}`}</div>`;
     }
-    return `<div class="motion-board clock-board"><div class="clock-pictures">${clocks.map((item, i) => clockPicture(item, count, clocks.length>1?`Clock ${i + 1} · `:'', submittedCount)).join('')}</div><form data-puzzle-form class="motion-form">${controls}${submitButton('Ring')}</form>${feedback}</div>`;
+    return `<div class="motion-board clock-board${gear?' clock-choose':''}"><div class="clock-pictures">${clocks.map((item, i) => clockPicture(item, count, clocks.length>1?`Clock ${i + 1} · `:'', submittedCount, gear ? { min: params.jump_min, max: params.jump_max } : null)).join('')}</div><form data-puzzle-form class="motion-form">${controls}${submitButton('Ring')}</form>${feedback}</div>`;
   },
   help(p, attempt) {
     const params = p.parameters, prediction = attempt.board.prediction, gear = params.mode === 'choose_jump';

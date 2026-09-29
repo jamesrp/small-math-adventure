@@ -8,6 +8,7 @@ import { esc,bandOptions,playView,parentView,notesHTML } from './ui.js';
 import { COMPANIONS, getProgress, getEncounter, startJourney, beginEncounter, completeEncounter, withCampaignPuzzles, resolvePuzzle, canVisitEncounter } from './caravan.js';
 import { caravanHeader, caravanProfiles, caravanMap, journalView, companionBody, libraryView } from './caravan-ui.js';
 import { createClockTimeline } from './clock-playback.js';
+import { clockJumpArc, clockJumpFromPlace, clockPlaceAtPoint, clockStepJump } from './clock-geometry.js';
 const app=document.querySelector('#app');
 const viewState=createViewState(app);
 let pack,puzzles,state,warning='',selected=null,highlighted=null,message='',checker=false,pwaMessage='Preparing offline play…',currentDialog;
@@ -57,11 +58,12 @@ function render(){
   app.innerHTML=caravanHeader(pr,view==='library'||(view==='play'&&!encounter)?'library':view==='journal'?'journal':'journey')+(warning?`<div class="error-banner" role="status">${esc(warning)}</div>`:'')+`<main class="shell" id="main">${content}</main>`;
   if(encounter&&isSolved(p,attempt(p).board)){
     app.querySelectorAll('.board-panel button,.board-panel input,.board-panel select').forEach(control=>{control.disabled=true;});
-    app.querySelectorAll('.board-panel [role="button"]').forEach(control=>{control.setAttribute('aria-disabled','true');control.setAttribute('tabindex','-1');});
+    app.querySelectorAll('.board-panel [role="button"],.board-panel [role="slider"]').forEach(control=>{control.setAttribute('aria-disabled','true');control.setAttribute('tabindex','-1');});
   }
-  if(focus){let target=(focusedPair?app.querySelector(`[data-pair="${CSS.escape(focusedPair)}"]`):app.querySelector(`[data-focus="${CSS.escape(focus)}"]`));if(!target||target.disabled)target=app.querySelector('.latin-cell[aria-pressed="true"]:not(:disabled)')||app.querySelector('.nim-status')||app.querySelector('#completion-heading')||app.querySelector('.garden-cell');target?.focus({preventScroll:true});}
+  if(focus){let target=(focusedPair?app.querySelector(`[data-pair="${CSS.escape(focusedPair)}"]`):app.querySelector(`[data-focus="${CSS.escape(focus)}"]`));if(!target||target.disabled||target.getAttribute('aria-disabled')==='true')target=app.querySelector('.latin-cell[aria-pressed="true"]:not(:disabled)')||app.querySelector('.nim-status')||app.querySelector('#completion-heading')||app.querySelector('.garden-cell');target?.focus({preventScroll:true});}
   wireForms();
   wireTileBoard();
+  wireClockBoard();
   viewState.restore();
 }
 function tapTile(p,cell){
@@ -126,10 +128,56 @@ function wireTileBoard(){
   board.addEventListener('pointercancel',e=>finish(e,true));
   board.addEventListener('lostpointercapture',e=>finish(e,true));
 }
+function wireClockBoard(){
+  const svg=app.querySelector('.clock-choose svg[role="slider"]'),p=puzzle();
+  if(!svg||p?.mechanic!=='clock'||svg.getAttribute('aria-disabled')==='true')return;
+  const {positions,start,jump_min,jump_max}=p.parameters;
+  const board=svg.closest('.clock-board'),caption=board.querySelector('.clock-jump-caption');
+  const field=board.querySelector('input[name="jump"]'),arrow=svg.querySelector('.clock-jump-arrow'),head=svg.querySelector('.clock-jump-head');
+  const marker=svg.querySelector('.clock-marker'),count=svg.querySelector('.clock-center'),countLabel=svg.querySelector('.clock-center-label');
+  let jump=Number(field.value),gesture=null;
+  const paint=next=>{
+    if(next===null||next===jump&&clockTimeline.presentation.count===0)return;
+    jump=next;clockTimeline.edit(String(jump),false);
+    const arc=clockJumpArc(positions,start,jump),angle=start*2*Math.PI/positions;
+    arrow.setAttribute('d',arc.path);head.setAttribute('points',arc.head);
+    caption.textContent=`Jump ${jump}`;field.value=String(jump);
+    svg.setAttribute('aria-valuenow',String(jump));
+    svg.setAttribute('aria-valuetext',`Jump ${jump} clockwise from ${start} to ${arc.to}`);
+    svg.setAttribute('aria-label',`${positions} places, jump ${jump} clockwise from ${start} to ${arc.to}, star ${start}. Marker starts at ${start}.`);
+    svg.querySelectorAll('.clock-trail,.clock-trail-head').forEach(node=>node.remove());
+    marker.setAttribute('cx',String(160+110*Math.sin(angle)));
+    marker.setAttribute('cy',String(160-110*Math.cos(angle)));
+    count.textContent='0';countLabel.textContent='bells';
+  };
+  const target=e=>{
+    const rect=svg.getBoundingClientRect(),x=(e.clientX-rect.left)*320/rect.width,y=(e.clientY-rect.top)*320/rect.height;
+    const place=clockPlaceAtPoint(x,y,positions);
+    return place===null?null:clockJumpFromPlace(positions,start,place,jump_min,jump_max);
+  };
+  svg.addEventListener('pointerdown',e=>{
+    if(gesture!==null||!e.isPrimary||e.button!==0)return;
+    const next=target(e);if(next===null)return;
+    e.preventDefault();svg.setPointerCapture(e.pointerId);gesture=e.pointerId;paint(next);
+  });
+  svg.addEventListener('pointermove',e=>{if(gesture===e.pointerId)paint(target(e));});
+  const finish=e=>{
+    if(gesture!==e.pointerId)return;
+    if(e.type==='pointerup')paint(target(e));
+    gesture=null;
+    if(svg.hasPointerCapture(e.pointerId))svg.releasePointerCapture(e.pointerId);
+  };
+  svg.addEventListener('pointerup',finish);
+  svg.addEventListener('pointercancel',finish);
+  svg.addEventListener('lostpointercapture',finish);
+  svg.addEventListener('keydown',e=>{
+    if(!['ArrowRight','ArrowUp','ArrowLeft','ArrowDown'].includes(e.key))return;
+    e.preventDefault();paint(clockStepJump(jump,e.key,jump_min,jump_max));
+  });
+}
 function wireForms(){
   document.querySelectorAll('form[data-puzzle-form]').forEach(form=>form.addEventListener('submit',e=>{e.preventDefault();const p=puzzle();if(p&&profile())applyPair(p,Object.fromEntries(new FormData(e.currentTarget)),p.mechanic==='clock'?'ring':null);}));
   document.querySelector('.clock-board input[name="activations"]')?.addEventListener('input',e=>clockTimeline.edit(e.target.value));
-  document.querySelector('.clock-board select[name="jump"]')?.addEventListener('change',e=>clockTimeline.edit(e.target.value));
   document.querySelector('#profile-form')?.addEventListener('submit',e=>{e.preventDefault();const data=new FormData(e.currentTarget),name=String(data.get('name')).trim();if(!name){document.querySelector('#nickname').focus();return;}if(state.profiles.length>=30){dialog('All save slots are full','<p>There is room for 30 explorers. Export and remove an unused save in the grown-up area.</p>');return;}const pr={id:uid(),name,band:data.get('band'),avatar:Number(data.get('avatar')),sound:false,attempts:{}};state.profiles.push(pr);state.activeProfileId=pr.id;save();go('map');});
   document.querySelector('#checker')?.addEventListener('change',e=>{checker=e.target.checked;document.querySelector('.tile-board')?.classList.toggle('show-checker',checker);});
   document.querySelector('#catalog-band')?.addEventListener('change',()=>render());

@@ -17,9 +17,9 @@ export function createClockTimeline(onFrame, schedule = setTimeout, cancel = cle
       stop(); key = nextKey; draft = null;
       total = clockRunCount(p, prediction); count = total;
     },
-    edit(value) {
+    edit(value, notify = true) {
       if (value === draft && count === 0) return;
-      stop(); draft = value; count = 0; total = 0; frame();
+      stop(); draft = value; count = 0; total = 0; if (notify) frame();
     },
     restore(p, prediction) {
       stop(); draft = null; total = clockRunCount(p, prediction); count = total; frame();
