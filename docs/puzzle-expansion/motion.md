@@ -383,6 +383,33 @@ The clock renderer's red reference arrow follows one clockwise jump on an inner 
 
 ## Implementation-facing acceptance notes
 
+### Clock playback presentation (job 9)
+
+The saved clock board remains `{prediction}`. `dist/main.js` owns one transient
+timeline per active play entry, including the draft answer and visible bell.
+Ring explicitly restarts it even when the engine returns an unchanged attempt.
+Editing an answer cancels the run and returns to bell zero; navigation, save
+replacement, Undo and Restart also cancel its timer. Undo and retained resumed
+predictions draw their bounded completed trail immediately. Existing resume
+rules still reopen solved library puzzles fresh; retained campaign predictions
+remain visible. Apply hint commits through the ordinary move path and displays
+the resulting trail immediately.
+
+Each jump uses an inner circular lane selected by the number of *geometric*
+revolutions traveled so far. A jump crossing a revolution boundary includes a
+short radial join; a landing at the boundary joins to the next jump's lane.
+The red reference arrow stays in its own outer lane. Trail lanes range from
+radius 72 toward radius 39 in the 320-unit SVG, leaving the number circles,
+star, marker and centre bell count clear. The lane spacing shrinks for dense
+runs such as clock-12. Each landing has one arrowhead. This depicts a path
+around the drawn ring; the lanes are not distinct mathematical orbits.
+
+Playback waits 400 ms per bell, or 10 seconds divided by the bell count for
+longer runs. Reduced motion and counts above 48 show the result immediately.
+For counts above 48, the picture draws only the first 48 jumps, then shows the
+true final marker and bell count. The Help landing table retains its existing
+48-bell bound.
+
 - Lanterns: store ON sets separately from pressed-edge lists. Validate the final state and budget; do not demand the witness order. Presses commute, and repeated presses cancel. In a draft/rehearsal UI, a selected wire set may be edited freely before the final replay.
 - Clocks: render zero as the clearly marked home position and expose skipped positions during a jump. The final linked-clock tasks must move both markers on every activation. A prediction field followed by replay keeps these from becoming timing games or repeated tapping.
 - Billiards: the corner stops the animation. Never count the launch or endpoint as a bounce. Accept both directions in billiard-05. Unfolded copies are an optional representation/hint, not a required proof task.

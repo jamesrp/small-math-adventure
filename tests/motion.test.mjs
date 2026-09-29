@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { motionMechanics, simulateBilliard, firstClockHit } from '../dist/motion.js';
 import { clockJumpArc } from '../dist/clock-geometry.js';
+import { clockBellDelay, clockTrailStep, createClockTimeline } from '../dist/clock-playback.js';
 
 const catalog = JSON.parse(readFileSync(new URL('../docs/puzzle-expansion/motion.json', import.meta.url)));
 const puzzles = catalog.families.flatMap(family => family.instances.map(instance => ({ ...instance, mechanic: family.id })));
@@ -188,6 +189,77 @@ test('clock presentation context can show a transient count without changing the
   assert.match(html, /Marker starts at 9/);
   assert.doesNotMatch(html, /class="clock-moving"/);
   assert.deepEqual(board, { prediction: 11 });
+});
+
+test('clock trails advance by bell, split at geometric lap boundaries, and keep one head per landing', () => {
+  const p = puzzle('clock-08'), board = motionMechanics.clock.move(p, initial(p), { activations: 11 });
+  const start = motionMechanics.clock.render(p, { board }, { clockPresentation: { count: 0 } });
+  assert.doesNotMatch(start, /class="clock-trail"/);
+  assert.match(start, /Marker starts at 9/);
+  const middle = motionMechanics.clock.render(p, { board }, { clockPresentation: { count: 4 } });
+  assert.equal((middle.match(/class="clock-trail"/g) ?? []).length, 4);
+  assert.equal((middle.match(/class="clock-trail-head"/g) ?? []).length, 4);
+  assert.match(middle, /class="clock-center"[^>]*>4</);
+  assert.match(middle, /Marker at 5/);
+  assert.doesNotMatch(middle, /Marker at 4/);
+  const done = motionMechanics.clock.render(p, { board });
+  assert.equal((done.match(/class="clock-trail"/g) ?? []).length, 11);
+  assert.match(done, /Marker at 4/);
+  const crossing = clockTrailStep(12, 9, 5, 1, 11);
+  assert.equal(crossing.from, 9);
+  assert.equal(crossing.to, 2);
+  assert.match(crossing.path, / L .* A /);
+  assert.notEqual(clockTrailStep(12, 9, 5, 1, 11).path, clockTrailStep(12, 9, 5, 6, 11).path);
+  const two = puzzle('clock-05'), twoBoard = motionMechanics.clock.move(two, initial(two), { activations: 20 });
+  const twoHtml = motionMechanics.clock.render(two, { board: twoBoard }, { clockPresentation: { count: 3 } });
+  assert.equal((twoHtml.match(/class="clock-trail"/g) ?? []).length, 6);
+  assert.equal((twoHtml.match(/class="clock-center"[^>]*>3</g) ?? []).length, 2);
+  const dense = puzzle('clock-12'), denseBoard = motionMechanics.clock.move(dense, initial(dense), { activations: 19 });
+  const denseHtml = motionMechanics.clock.render(dense, { board: denseBoard });
+  assert.equal((denseHtml.match(/class="clock-trail"/g) ?? []).length, 57);
+});
+
+test('one clock timeline restarts, cancels, restores and caps long runs', () => {
+  const timers = new Map(), frames = [];
+  let serial = 0;
+  const timeline = createClockTimeline(() => frames.push(timeline.presentation.count), (fn, ms) => { timers.set(++serial, { fn, ms }); return serial; }, id => timers.delete(id));
+  const p = puzzle('clock-08');
+  timeline.enter('profile/clock-08', p, null);
+  timeline.ring(p, 11);
+  assert.deepEqual(frames, [0]);
+  assert.equal([...timers.values()][0].ms, 400);
+  const tick = () => { const [id, timer] = timers.entries().next().value; timers.delete(id); timer.fn(); };
+  tick(); tick();
+  assert.deepEqual(frames, [0, 1, 2]);
+  timeline.ring(p, 11);
+  assert.equal(frames.at(-1), 0, 'identical Ring restarts');
+  const stale = [...timers.values()][0].fn;
+  timeline.edit('12');
+  assert.equal(timeline.presentation.count, 0);
+  assert.equal(timers.size, 0);
+  stale();
+  assert.equal(timeline.presentation.count, 0, 'cancelled callback cannot advance another board');
+  timeline.edit('11');
+  assert.equal(timeline.presentation.count, 0, 'editing back does not revive the previous trail');
+  timeline.restore(p, 11);
+  assert.equal(timeline.presentation.count, 11);
+  timeline.enter('profile/clock-08', p, 11);
+  assert.equal(timeline.presentation.count, 11, 'ordinary render does not restart playback');
+  timeline.ring(p, 11, true);
+  assert.equal(timeline.presentation.count, 11, 'reduced motion draws the result at once');
+  assert.equal(timers.size, 0);
+  timeline.leave();
+  assert.equal(timeline.key, null);
+  assert.equal(timers.size, 0);
+  assert.equal(clockBellDelay(30), 10000 / 30);
+  timeline.enter('long', p, null);
+  timeline.ring(p, 49);
+  assert.equal(timeline.presentation.count, 49);
+  assert.equal(timers.size, 0);
+  const longBoard = motionMechanics.clock.move(p, initial(p), { activations: 49 });
+  const html = motionMechanics.clock.render(p, { board: longBoard });
+  assert.equal((html.match(/class="clock-trail"/g) ?? []).length, 48);
+  assert.match(html, /class="clock-center"[^>]*>49</);
 });
 
 test('exact billiard paths match all authored rational witnesses', () => {
