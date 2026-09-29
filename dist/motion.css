@@ -40,6 +40,8 @@
 .clock-pictures { display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; margin-top:1rem; }
 .clock-picture { flex:1 1 200px; max-width:330px; }
 .clock-ring { fill:none; stroke:#a6bdd0; stroke-width:4; }
+.clock-jump-arrow { fill:none; stroke:#b83d39; stroke-width:2.5; stroke-linecap:round; }
+.clock-jump-head { fill:#b83d39; }
 .clock-position circle { fill:#f4f7fa; stroke:#b7c8d5; stroke-width:2; }
 .clock-position text { text-anchor:middle; font-size:14px; font-weight:700; }
 .clock-target circle { fill:#ffe3a0; stroke:#9d7526; }

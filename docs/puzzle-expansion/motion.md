@@ -136,6 +136,8 @@ Machine-readable instances: [motion.json](/Users/jamespfeiffer/business/small-ma
 
 ## Clockwork Gates (`clock`)
 
+The clock renderer's red reference arrow follows one clockwise jump on an inner SVG lane. Its arc uses the full angular jump, including spans longer than half a ring. The arrowhead ends inside the numbered place, leaving a gap to the marker and number; stars sit outside the ring. Each clock computes its own geometry. `clock.render` accepts optional transient `clockPresentation` context with `jump`, `count`, and `animate` fields, separate from saved `{ prediction }`, for later controls and playback work.
+
 **Child-facing launch:** Every bell makes the marker jump the same number of spaces clockwise. Set how many bells to ring so it first lands on the star. Later, one bell moves both clocks together.
 
 **Prerequisites:** Entry: clockwise movement and counting to four, with icons/read-aloud. Middle: count to ten, track a wrap, distinguish landings from skipped positions. Final: track two repeated sequences and counts to twenty; multiplication, gcd, and CRT terminology are not required. These later tasks should be offered by readiness, not forced onto a K–1 trail.
@@ -423,4 +425,3 @@ These are implemented alongside 01–06. See [the difficulty expansion](difficul
 | `billiard-10` | Hard | Inverse room design must combine fixed slope, reduced crossing counts, parity, and the first-corner condition. |
 | `billiard-11` | Hard | Unreduced crossing counts can fit the endpoint but fail the first-corner requirement. |
 | `billiard-12` | Hard | A bounded inverse problem joins parity, coprimality and aspect ratio; guessing the same slope as a unit square fails. |
-

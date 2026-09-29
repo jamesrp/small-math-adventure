@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { motionMechanics, simulateBilliard, firstClockHit } from '../dist/motion.js';
+import { clockJumpArc } from '../dist/clock-geometry.js';
 
 const catalog = JSON.parse(readFileSync(new URL('../docs/puzzle-expansion/motion.json', import.meta.url)));
 const puzzles = catalog.families.flatMap(family => family.instances.map(instance => ({ ...instance, mechanic: family.id })));
@@ -139,6 +140,54 @@ test('clock gear mode accepts every valid gear and rejects early returns', () =>
   assert.deepEqual(winners, [3, 9]);
   assert.equal(handler.solved(p, { prediction: 6 }), false, '+6 reaches zero at bell four but first returns at bell two');
   assert.equal(handler.move(p, initial(p), { jump: 12 }), null);
+});
+
+test('clock reference arrows span the clockwise jump, including the long arc', () => {
+  const wrap = clockJumpArc(12, 9, 5);
+  assert.equal(wrap.from, 9);
+  assert.equal(wrap.to, 2);
+  assert.ok(Math.abs(wrap.span - 5 * Math.PI / 6) < 1e-12);
+  assert.match(wrap.path, / A 77 77 0 0 1 /);
+  const long = clockJumpArc(12, 1, 8);
+  assert.equal(long.to, 9);
+  assert.ok(Math.abs(long.span - 4 * Math.PI / 3) < 1e-12);
+  assert.match(long.path, / A 77 77 0 1 1 /);
+});
+
+test('every fresh clock has one independent reference arrow and no predicted path', () => {
+  const handler = motionMechanics.clock;
+  for (const p of puzzles.filter(p => p.mechanic === 'clock')) {
+    const html = handler.render(p, { board: initial(p) });
+    const clocks = p.parameters.mode === 'choose_jump'
+      ? [{ positions: p.parameters.positions, start: p.parameters.start, target: p.parameters.start, jump: p.parameters.jump_min }]
+      : p.parameters.clocks;
+    assert.equal((html.match(/class="clock-jump-arrow"/g) ?? []).length, clocks.length, p.id);
+    assert.equal((html.match(/class="clock-jump-head"/g) ?? []).length, clocks.length, p.id);
+    assert.equal((html.match(/<svg viewBox="0 0 320 320"/g) ?? []).length, clocks.length, p.id);
+    assert.doesNotMatch(html, /class="clock-moving"|clock-trail|clock-landing/, p.id);
+    assert.equal((html.match(/class="clock-center"[^>]*>0</g) ?? []).length, clocks.length, p.id);
+    for (const clock of clocks) {
+      const landing = (clock.start + clock.jump) % clock.positions;
+      const arc = clockJumpArc(clock.positions, clock.start, clock.jump);
+      assert.ok(html.includes(`<path class="clock-jump-arrow" d="${arc.path}"/>`), p.id);
+      assert.ok(html.includes(`<polygon class="clock-jump-head" points="${arc.head}"/>`), p.id);
+      assert.ok(html.includes(`Jump ${clock.jump}`), p.id);
+      assert.ok(html.includes(`${clock.positions} places, jump ${clock.jump} clockwise from ${clock.start} to ${landing}, star ${clock.target}. Marker starts at ${clock.start}.`), p.id);
+    }
+  }
+  const clock08 = handler.render(puzzle('clock-08'), { board: initial(puzzle('clock-08')) });
+  assert.match(clock08, /jump 5 clockwise from 9 to 2/);
+  const clock12 = handler.render(puzzle('clock-12'), { board: initial(puzzle('clock-12')) });
+  assert.match(clock12, /jump 8 clockwise from 1 to 9/);
+});
+
+test('clock presentation context can show a transient count without changing the saved prediction', () => {
+  const p = puzzle('clock-08'), board = motionMechanics.clock.move(p, initial(p), { activations: 11 });
+  const html = motionMechanics.clock.render(p, { board }, { clockPresentation: { count: 0, animate: false } });
+  assert.match(html, /class="clock-center"[^>]*>0</);
+  assert.match(html, /Marker starts at 9/);
+  assert.doesNotMatch(html, /class="clock-moving"/);
+  assert.deepEqual(board, { prediction: 11 });
 });
 
 test('exact billiard paths match all authored rational witnesses', () => {
