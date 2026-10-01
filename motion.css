@@ -39,13 +39,20 @@
 .lamp-rays { stroke:#886313; stroke-width:3; }
 .clock-pictures { display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; margin-top:1rem; }
 .clock-picture { flex:1 1 200px; max-width:330px; }
+.clock-choose .clock-picture svg { touch-action:none; user-select:none; -webkit-user-select:none; cursor:pointer; }
+.clock-choose .clock-picture svg:focus-visible { outline:3px solid #1e6dad; outline-offset:3px; border-radius:50%; }
+.clock-choose .clock-position,.clock-choose .clock-jump-head { pointer-events:none; }
+.clock-choose .clock-picture svg[aria-disabled="true"] { pointer-events:none; }
 .clock-ring { fill:none; stroke:#a6bdd0; stroke-width:4; }
+.clock-jump-arrow { fill:none; stroke:#b83d39; stroke-width:2.5; stroke-linecap:round; }
+.clock-jump-head { fill:#b83d39; }
+.clock-trail { fill:none; stroke:#bf4a42; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+.clock-trail-head { fill:#bf4a42; }
 .clock-position circle { fill:#f4f7fa; stroke:#b7c8d5; stroke-width:2; }
 .clock-position text { text-anchor:middle; font-size:14px; font-weight:700; }
 .clock-target circle { fill:#ffe3a0; stroke:#9d7526; }
 .clock-position .clock-star { fill:#876318; font-size:19px; }
 .clock-marker { fill:none; stroke:#155f76; stroke-width:5; }
-.clock-moving { fill:#155f76; opacity:.7; }
 .clock-center { text-anchor:middle; font-size:31px; font-weight:800; }
 .clock-center-label { text-anchor:middle; font-size:14px; }
 .courier-room { max-width:410px; margin:1rem auto!important; }
@@ -61,4 +68,4 @@
 .unfolded-path { stroke:#b15229; stroke-width:2.5; }
 @keyframes courier-flight { from { stroke-dashoffset:1; } to { stroke-dashoffset:0; } }
 @media (max-width:440px) { .lantern-comparison { grid-template-columns:1fr; gap:.8rem; } .lantern-picture svg { max-width:300px; margin:auto; } .lantern-picture.goal-picture svg { max-width:220px; } .motion-form { align-items:stretch; } .motion-form button { flex:1 1 100%; } }
-@media (prefers-reduced-motion:reduce) { .courier-path { animation:none; } .clock-moving { display:none; } }
+@media (prefers-reduced-motion:reduce) { .courier-path { animation:none; } }

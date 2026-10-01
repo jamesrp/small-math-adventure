@@ -10,7 +10,7 @@ export function playInstructions(p){
   const q=p.parameters;
   switch(p.mechanic){
     case 'toggle':return 'Tap a wire to flip both lanterns at its ends. With a keyboard, Tab to a wire and press Enter or Space.';
-    case 'clock':return (q.mode==='choose_jump'?'Choose a fixed jump, then Ring.':'Enter a bell count, then Ring. Each bell moves every marker.')+' Bell zero is the starting position; passing over a star does not count.';
+    case 'clock':return (q.mode==='choose_jump'?'Tap a place or drag the red arrow to choose a jump, then Ring.':'Enter a bell count, then Ring.')+' The red arrow shows one clockwise jump; after Ring, red arrows trace each jump. Bell zero is the starting position; passing over a star does not count.';
     case 'billiard':return (q.mode==='predict'?'Choose the corner and bounce count, then Launch.':q.mode==='choose_width'?'Choose the room width, then Launch.':'Choose how far to aim up and right, then Launch.')+' Walls reflect the light; the first corner stops it.';
     case 'route':return 'Tap a labeled junction to follow a road; crossings are not junctions. '+(q.mode==='each_edge_once'?'You may revisit junctions.':'Repeated roads add to the distance.');
     case 'latin':return 'Tap a square, then a number to mark it. Dark squares are fixed. Clear erases the selected square. You can also type numbers or press Delete.';

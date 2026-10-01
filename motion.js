@@ -1,4 +1,6 @@
 import { esc, selectField, submitButton } from './expansion-controls.js';
+import { clockJumpArc } from './clock-geometry.js';
+import { clockRunCount, clockTrailStep, CLOCK_TRAIL_LIMIT } from './clock-playback.js';
 
 // Adapted from the locally consulted weeks 02, 04, and 09 worksheets and
 // redesign notes. Instance-level provenance lives in the expansion catalog.
@@ -66,6 +68,8 @@ function toggleRoute(p, board) {
 
 function togglePositions(parameters) {
   const { topology, vertices, rows } = parameters;
+  // Authored worksheet coordinates use the same 360 × 280 SVG as the built-in layouts.
+  if (parameters.positions) return parameters.positions;
   if (topology === 'complete_binary_tree_depth_2') return [[180, 35], [95, 120], [265, 120], [45, 220], [135, 220], [225, 220], [315, 220]];
   if (topology === 'rectangular_grid') return vertices.map(vertex => {
     const row = rows.findIndex(line => line.includes(vertex));
@@ -146,17 +150,23 @@ function solvedClock(p, board) {
     : firstClockHit(params) === board.prediction;
 }
 
-function clockPicture(clock, count, label, animate) {
-  const point = position => [140 + 101 * Math.sin(position * 2 * Math.PI / clock.positions), 140 - 101 * Math.cos(position * 2 * Math.PI / clock.positions)];
+function clockPicture(clock, count, label, total, control = null) {
+  const point = (position, radius = 110) => [160 + radius * Math.sin(position * 2 * Math.PI / clock.positions), 160 - radius * Math.cos(position * 2 * Math.PI / clock.positions)];
   const current = (clock.start + clock.jump * (count % clock.positions)) % clock.positions;
+  const arrow = clockJumpArc(clock.positions, clock.start, clock.jump);
   const nodes = range(0, clock.positions - 1).map(position => {
     const [x, y] = point(position), target = clock.target === position;
-    return `<g class="clock-position ${target ? 'clock-target' : ''}"><circle cx="${x}" cy="${y}" r="18"/><text x="${x}" y="${y + 5}">${position}</text>${target ? `<text class="clock-star" x="${x}" y="${y - 24}">★</text>` : ''}</g>`;
+    const [starX, starY] = point(position, 138);
+    return `<g class="clock-position ${target ? 'clock-target' : ''}"><circle cx="${x}" cy="${y}" r="18"/><text x="${x}" y="${y + 5}">${position}</text>${target ? `<text class="clock-star" x="${starX}" y="${starY + 6}">★</text>` : ''}</g>`;
   }).join('');
-  const [x, y] = point(current), visibleCount = Math.min(count, 48);
-  const points = range(0, visibleCount).map(t => point((clock.start + clock.jump * t) % clock.positions));
-  const motion = animate && count <= 48 ? `<circle class="clock-moving" r="10" cx="${x}" cy="${y}"><animate attributeName="cx" values="${points.map(p => p[0]).join(';')}" dur="${Math.max(1, Math.min(5, count * .3))}s" calcMode="discrete" fill="freeze"/><animate attributeName="cy" values="${points.map(p => p[1]).join(';')}" dur="${Math.max(1, Math.min(5, count * .3))}s" calcMode="discrete" fill="freeze"/></circle>` : '';
-  return `<figure class="clock-picture"><figcaption>${esc(label)}Jump ${clock.jump}</figcaption><svg viewBox="0 0 280 280" role="img" aria-label="${esc(label)}: ${clock.positions} places, jump ${clock.jump}, start ${clock.start}, star ${clock.target}. Marker ${animate ? 'after prediction' : 'starts'} at ${current}."><circle class="clock-ring" cx="140" cy="140" r="101"/>${nodes}<circle class="clock-marker" cx="${x}" cy="${y}" r="23"/>${motion}<text class="clock-center" x="140" y="137">${count}</text><text class="clock-center-label" x="140" y="159">${count === 1 ? 'bell' : 'bells'}</text></svg></figure>`;
+  const [x, y] = point(current);
+  const trail = range(1, Math.min(count, CLOCK_TRAIL_LIMIT)).map(bell => {
+    const step = clockTrailStep(clock.positions, clock.start, clock.jump, bell, total);
+    return `<path class="clock-trail" d="${step.path}"/><polygon class="clock-trail-head" points="${step.head}"/>`;
+  }).join('');
+  const name = `${esc(label)}: ${clock.positions} places, jump ${clock.jump} clockwise from ${arrow.from} to ${arrow.to}, star ${clock.target}. Marker ${count ? 'at' : 'starts at'} ${current}.`;
+  const role = control ? `role="slider" tabindex="0" data-focus="clock-jump" aria-valuemin="${control.min}" aria-valuemax="${control.max}" aria-valuenow="${clock.jump}" aria-valuetext="Jump ${clock.jump} clockwise from ${arrow.from} to ${arrow.to}"` : 'role="img"';
+  return `<figure class="clock-picture"><figcaption>${esc(label)}<span class="clock-jump-caption">Jump ${clock.jump}</span></figcaption><svg viewBox="0 0 320 320" ${role} aria-label="${name}"><circle class="clock-ring" cx="160" cy="160" r="110"/><path class="clock-jump-arrow" d="${arrow.path}"/><polygon class="clock-jump-head" points="${arrow.head}"/>${trail}${nodes}<circle class="clock-marker" cx="${x}" cy="${y}" r="23"/><text class="clock-center" x="160" y="157">${count}</text><text class="clock-center-label" x="160" y="179">${count === 1 ? 'bell' : 'bells'}</text></svg></figure>`;
 }
 
 const clock = {
@@ -181,19 +191,22 @@ const clock = {
     if (activations === null) return { type: 'deadend', text: 'These stars do not meet on the same bell.' };
     return { type: 'move', action: { activations }, text: `${params.clocks.length > 1 ? 'All markers first reach their stars together' : 'The marker first lands on its star'} after ${plural(activations, 'bell')}. The starting position is bell zero; count each landing after it.` };
   },
-  render(p, attempt) {
+  render(p, attempt, ctx = {}) {
     const params = p.parameters, prediction = attempt.board.prediction, gear = params.mode === 'choose_jump';
-    const clocks = gear ? [{ positions: params.positions, start: params.start, target: params.start, jump: prediction ?? params.jump_min }] : params.clocks;
-    const count = prediction === null ? 0 : gear ? params.required_first_return : prediction;
-    const controls = gear ? selectField('jump', 'Fixed jump', range(params.jump_min, params.jump_max), prediction ?? params.jump_min) : `<label class="motion-field">Bell count<input name="activations" type="number" min="1" step="1" inputmode="numeric" value="${prediction ?? ''}"  required></label>`;
+    const presentation = ctx.clockPresentation ?? {};
+    const clocks = gear ? [{ positions: params.positions, start: params.start, target: params.start, jump: Number(presentation.jump ?? presentation.draft ?? prediction ?? params.jump_min) }] : params.clocks;
+    const submittedCount = clockRunCount(p, prediction);
+    const count = presentation.count ?? submittedCount;
+    const controls = gear ? `<input type="hidden" name="jump" value="${clocks[0].jump}">` : `<label class="motion-field">Bell count<input name="activations" data-focus="clock-answer" type="number" min="1" step="1" inputmode="numeric" value="${esc(presentation.draft ?? prediction ?? '')}" required></label>`;
     let feedback = '';
     if (prediction !== null) {
       const correct = solvedClock(p, attempt.board);
       const first = gear ? params.positions / gcd(params.positions, prediction) : firstClockHit(params);
-      const endpoint = clocks.map(clock => (clock.start + clock.jump * (count % clock.positions)) % clock.positions);
+      const endpoint = (gear ? [{ positions: params.positions, start: params.start, jump: prediction, target: params.start }] : params.clocks)
+        .map(clock => (clock.start + clock.jump * (submittedCount % clock.positions)) % clock.positions);
       feedback = correct ? '' : `<div class="motion-result" role="status">${gear ? `Jump ${prediction} first returns on bell ${first}.` : `After ${plural(prediction, 'bell')}: ${endpoint.join(' and ')}. ${endpoint.every((position, i) => position === clocks[i].target) ? 'The markers reached their stars on an earlier bell.' : 'The markers must land on their stars together.'}`}</div>`;
     }
-    return `<div class="motion-board clock-board"><div class="clock-pictures">${clocks.map((item, i) => clockPicture(item, count, clocks.length>1?`Clock ${i + 1} · `:'', prediction !== null)).join('')}</div><form data-puzzle-form class="motion-form">${controls}${submitButton('Ring')}</form>${feedback}</div>`;
+    return `<div class="motion-board clock-board${gear?' clock-choose':''}"><div class="clock-pictures">${clocks.map((item, i) => clockPicture(item, count, clocks.length>1?`Clock ${i + 1} · `:'', submittedCount, gear ? { min: params.jump_min, max: params.jump_max } : null)).join('')}</div><form data-puzzle-form class="motion-form">${controls}${submitButton('Ring')}</form>${feedback}</div>`;
   },
   help(p, attempt) {
     const params = p.parameters, prediction = attempt.board.prediction, gear = params.mode === 'choose_jump';
