@@ -136,7 +136,7 @@ try{
   await help.getByRole('button',{name:'Done',exact:true}).click();await page.locator('dialog').waitFor({state:'detached'});
  }
  await page.goto(`${base}/#library`);await page.locator('.caravan-library').waitFor();await assertMinimalChrome('library');
- assert.equal(await page.locator('[data-action=open-puzzle]').count(),puzzles.length,'library: all catalog puzzles remain selectable');
+ assert.equal(await page.locator('[data-action=open-puzzle]:not(.library-proofs *)').count(),puzzles.length,'library: all catalog puzzles remain selectable');
  assert.equal(await page.locator('.satchel-family').count(),12,'library: all twelve families remain accessible');
  assert.equal(await page.locator('#main h1:not(.sr-only),.library-heading,.library-note,.family-summary small,.satchel-family-content > p,.puzzle-card small').count(),0,'library: no redundant heading, family descriptions, or counters');
  for(const family of await page.locator('.satchel-family').all()){

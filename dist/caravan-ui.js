@@ -51,18 +51,24 @@ export function companionBody(id){
  const descriptions={fern:'Fern tends the lantern tree. She carries seeds from each garden along the road.',bea:'Bea builds and repairs the road’s mechanisms. Her hat is full of useful screws.'};
  return `<div class="companion-biography">${companionSvg(c.id)}<p>${esc(descriptions[id]||c.description)}</p></div>`;
 }
+// Proof puzzles (band "proofs") join their family's satchel as a Proofs group
+// above the grade or difficulty groups.
 export function libraryView(profile,puzzles){
  puzzles=puzzles.filter(p=>!p.campaignOnly);
- const families=[...new Set(puzzles.map(p=>p.mechanic))];
+ const familyOf=p=>p.libraryFamily||p.mechanic;
+ const families=[...new Set(puzzles.map(familyOf))];
  return `<h1 class="sr-only">Puzzles</h1><div class="caravan-library">${families.map(id=>{
-  const family=puzzles.filter(p=>p.mechanic===id),title=family[0].familyTitle||familyNames[id]||id;
-  const graded=family.some(p=>p.band!=='all'),labels={easy:'Easy',medium:'Medium',hard:'Hard'};
-  return `<details class="satchel-family" data-view-key="family-${esc(id)}" ${id==='toggle'?'open':''}><summary><span class="family-ink-symbol" aria-hidden="true">${familySymbols[id]||'✦'}</span><strong>${esc(title)}</strong><span class="family-expand" aria-hidden="true">+</span></summary><div class="satchel-family-content">${(graded?['k1','23','45']:['easy','medium','hard']).map(group=>{
-   const list=family.filter(p=>graded?p.band===group:p.difficulty_level===group).sort((a,b)=>a.number-b.number);
+  const family=puzzles.filter(p=>familyOf(p)===id),core=family.filter(p=>p.band!=='proofs'),title=(core[0]||family[0]).familyTitle||familyNames[id]||id;
+  const graded=core.some(p=>p.band!=='all'),labels={easy:'Easy',medium:'Medium',hard:'Hard',proofs:'Proofs'};
+  const groups=[...(family.some(p=>p.band==='proofs')?['proofs']:[]),...(graded?['k1','23','45']:['easy','medium','hard'])];
+  return `<details class="satchel-family" data-view-key="family-${esc(id)}" ${id==='toggle'?'open':''}><summary><span class="family-ink-symbol" aria-hidden="true">${familySymbols[id]||'✦'}</span><strong>${esc(title)}</strong><span class="family-expand" aria-hidden="true">+</span></summary><div class="satchel-family-content">${groups.map(group=>{
+   const proofs=group==='proofs';
+   const list=family.filter(p=>proofs?p.band==='proofs':p.band!=='proofs'&&(graded?p.band===group:p.difficulty_level===group)).sort((a,b)=>a.number-b.number);
    if(!list.length)return '';
-   return `<div class="library-band"><h2>${graded?`Grades ${BANDS[group].label}`:labels[group]}</h2><div class="puzzle-grid">${list.map(p=>{
+   const name=proofs?labels.proofs:graded?`Grades ${BANDS[group].label}`:labels[group];
+   return `<div class="library-band${proofs?' library-proofs':''}"><h2>${name}</h2><div class="puzzle-grid">${list.map(p=>{
     const a=profile.attempts[p.id];
-    return `<button type="button" class="puzzle-card ${a?.completed?'complete':''}" data-action="open-puzzle" data-id="${esc(p.id)}" aria-label="${esc(title)}, ${graded?`grades ${BANDS[group].label}`:labels[group]}, puzzle ${p.number}${a?.completed?', completed':a?', in progress':''}"><strong>${String(p.number).padStart(2,'0')}</strong>${a?.completed?'<span class="puzzle-check" aria-hidden="true">✓</span>':''}</button>`;
+    return `<button type="button" class="puzzle-card ${a?.completed?'complete':''}" data-action="open-puzzle" data-id="${esc(p.id)}" aria-label="${esc(title)}, ${proofs?'proofs':graded?`grades ${BANDS[group].label}`:labels[group]}, puzzle ${p.number}${a?.completed?', completed':a?', in progress':''}"><strong>${String(p.number).padStart(2,'0')}</strong>${a?.completed?'<span class="puzzle-check" aria-hidden="true">✓</span>':''}</button>`;
    }).join('')}</div></div>`;
   }).join('')}</div></details>`;
  }).join('')}</div>`;

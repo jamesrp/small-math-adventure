@@ -139,7 +139,9 @@ export function move(puzzle, attempt, pair, random = Math.random) {
 }
 function commitBoard(puzzle, attempt, board) {
   if (JSON.stringify(board) === JSON.stringify(attempt.board)) return attempt;
-  return { ...attempt, board, moves: attempt.moves + 1, history: [...attempt.history, { board: clone(attempt.board), moves: attempt.moves }].slice(-120), completed: attempt.completed || isSolved(puzzle, board), lastPlayed: Date.now() };
+  // Puzzles without Undo (Proofs one-check rounds and duels) keep no history.
+  const keep = !(isExpansion(puzzle) && mechanicFor(puzzle).noUndo?.(puzzle));
+  return { ...attempt, board, moves: attempt.moves + 1, history: keep ? [...attempt.history, { board: clone(attempt.board), moves: attempt.moves }].slice(-120) : [], completed: attempt.completed || isSolved(puzzle, board), lastPlayed: Date.now() };
 }
 export function removeTile(puzzle, attempt, cell) {
   if (puzzle.mechanic !== 'tile' || !attempt.board.some(pair => pair.includes(cell))) return null;

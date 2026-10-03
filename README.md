@@ -105,6 +105,8 @@ The Tile Garden browser checks (`node scripts/tile-browser-smoke.mjs` and `node 
 
 To refresh the expansion from its checked authoring JSON, run `node scripts/import-expansion.mjs`, then `npm test` and `npm run build`. The checked JSON remains authoring data; `dist/puzzles.json` is the canonical runtime pack. The ten expansion families now have twelve instances each, grouped by Easy, Medium, and Hard. Difficulty is relative within a family and still needs family playtesting. See [the difficulty expansion](docs/puzzle-expansion/difficulty-expansion.md) for the new designs and reproduction instructions.
 
+**Proofs (17 puzzles).** The satchel’s Tile gardens and Pebble Duel families open with a Proofs group above the grade groups. A solve can be a covering, a checked star or paint proof that a garden cannot be covered, two clean one-check rounds, or three wins in a row against perfect play. The pack is `dist/proofs.json`, built by `node scripts/build-proofs.mjs` and merged with `puzzles.json` at load. `npm test` and `npm run build` validate it; `node scripts/proofs-browser-smoke.mjs` plays every puzzle. See [Proofs](docs/proofs/README.md).
+
 ## Install on iPad
 
 1. Open the hosted HTTPS address in Safari.
@@ -133,6 +135,7 @@ Updates wait until existing app tabs close, avoiding replacement of a live board
 | `dist/main.js` | Interaction, persistence, navigation, PWA lifecycle |
 | `dist/ui.js` | Profile/map/play/parent views |
 | `dist/puzzles.json` | 192 fixed authored puzzles and 55 source records |
+| `dist/proofs.{js,css,json}` | Proofs: four mechanics, styles, and 17 puzzles with 4 sources |
 | `scripts/import-expansion.mjs` | Reproducible adapter from the 120 checked authoring instances into the shipped pack |
 | `dist/sw.js` | Atomic precache and versioned offline shell |
 | `scripts/release.mjs` | Validation and asset-derived offline cache version |

@@ -43,6 +43,7 @@ function render(){
   const playKey=view==='play'&&pr&&p?`${pr.id}/${location.hash}`:null;
   if(playKey!==activePlay){
     activePlay=playKey;tileSelection=[];
+    if(playKey&&isExpansion(p))mechanicFor(p).reset?.(p);
     if(playKey){
       // A solved road scene is a persistent consequence. Replay is explicit;
       // refreshing between the solve and Next must not undo that scene.
@@ -60,10 +61,11 @@ function render(){
     app.querySelectorAll('.board-panel button,.board-panel input,.board-panel select').forEach(control=>{control.disabled=true;});
     app.querySelectorAll('.board-panel [role="button"],.board-panel [role="slider"]').forEach(control=>{control.setAttribute('aria-disabled','true');control.setAttribute('tabindex','-1');});
   }
-  if(focus){let target=(focusedPair?app.querySelector(`[data-pair="${CSS.escape(focusedPair)}"]`):app.querySelector(`[data-focus="${CSS.escape(focus)}"]`));if(!target||target.disabled||target.getAttribute('aria-disabled')==='true')target=app.querySelector('.latin-cell[aria-pressed="true"]:not(:disabled)')||app.querySelector('.nim-status')||app.querySelector('#completion-heading')||app.querySelector('.garden-cell');target?.focus({preventScroll:true});}
+  if(focus){let target=(focusedPair?app.querySelector(`[data-pair="${CSS.escape(focusedPair)}"]`):app.querySelector(`[data-focus="${CSS.escape(focus)}"]`));if(!target||target.disabled||target.getAttribute('aria-disabled')==='true')target=app.querySelector('.latin-cell[aria-pressed="true"]:not(:disabled)')||app.querySelector('.nim-status')||app.querySelector('#completion-heading')||app.querySelector('.proof-puzzle [data-focus="proof-primary"]:not(:disabled)')||app.querySelector('.duel-status')||app.querySelector('.garden-cell');target?.focus({preventScroll:true});}
   wireForms();
   wireTileBoard();
   wireClockBoard();
+  wireMechanic();
   viewState.restore();
 }
 function tapTile(p,cell){
@@ -128,6 +130,8 @@ function wireTileBoard(){
   board.addEventListener('pointercancel',e=>finish(e,true));
   board.addEventListener('lostpointercapture',e=>finish(e,true));
 }
+// Proof mechanics attach their own pointer gestures after each render.
+function wireMechanic(){const p=puzzle(),root=app.querySelector('[data-mechanic-wire]');if(!root||!p||!profile()||!isExpansion(p))return;mechanicFor(p).wire?.(root,p,{apply:action=>applyPair(p,action),ui:payload=>{mechanicFor(p).ui?.(p,payload);render();},attempt:()=>attempt(p),tile:{extendTileStroke,startTileStroke,tapTileSelection,tileReleaseAction,tileStrokeTarget}});}
 function wireClockBoard(){
   const svg=app.querySelector('.clock-choose svg[role="slider"]'),p=puzzle();
   if(!svg||p?.mechanic!=='clock'||svg.getAttribute('aria-disabled')==='true')return;
@@ -265,16 +269,17 @@ document.addEventListener('click',event=>{
   }
   else if(action==='cup'&&p?.mechanic==='swap'){const cell=Number(control.dataset.cell);if(selected===cell){selected=null;render();}else if(selected===null){selected=cell;message='';render();}else applyPair(p,[selected,cell]);}
   else if(action==='latin-cell'&&p?.mechanic==='latin'){selected=Number(control.dataset.cell);message='';render();}
+  else if(action==='mechanic-ui'&&p&&a&&isExpansion(p)){try{mechanicFor(p).ui?.(p,JSON.parse(control.dataset.ui));}catch{}message='';render();}
   else if(action==='expansion-move'&&p&&a){try{applyPair(p,JSON.parse(control.dataset.move));}catch{message='Choose a move using the controls above.';render();}}
   else if(action==='swap-pair'&&p?.mechanic==='swap')applyPair(p,control.dataset.pair.split(',').map(Number));
-  else if(action==='undo'&&a){const next=undo(a);put(p,next);selected=null;tileSelection=[];highlighted=null;message='';if(p.mechanic==='clock')clockTimeline.restore(p,next.board.prediction);else render();}
-  else if((action==='restart'||action==='replay')&&a){const encounter=activeEncounter(),next=restart(p,a);put(p,next);selected=null;tileSelection=[];highlighted=null;message='';if(action==='replay'&&encounter&&!p.campaignOnly)go(`play/${p.id}`);else if(p.mechanic==='clock')clockTimeline.restore(p,next.board.prediction);else render();}
+  else if(action==='undo'&&a&&!(isExpansion(p)&&mechanicFor(p).noUndo?.(p))){const next=undo(a);put(p,next);selected=null;tileSelection=[];highlighted=null;message='';if(p.mechanic==='clock')clockTimeline.restore(p,next.board.prediction);else render();}
+  else if((action==='restart'||action==='replay')&&a){const encounter=activeEncounter(),next=restart(p,a);if(isExpansion(p))mechanicFor(p).reset?.(p);put(p,next);selected=null;tileSelection=[];highlighted=null;message='';if(action==='replay'&&encounter&&!p.campaignOnly)go(`play/${p.id}`);else if(p.mechanic==='clock')clockTimeline.restore(p,next.board.prediction);else render();}
   else if(action==='hint'&&a){const next={...a,hintLevel:Math.min(a.hintLevel+1,3),helpUsed:true};put(p,next);const h=nextHint(p,next);highlighted=next.hintLevel>=2&&h.type==='move'?h.pair:null;message='';render();}
   else if(action==='apply-hint'&&a){const h=nextHint(p,a);if(h.type==='move')applyPair(p,h.action||h.pair);}
-  else if(action==='rescue'&&a){put(p,undoToSolvable(p,a));selected=null;highlighted=null;message='';render();}
+  else if(action==='rescue'&&a&&!(isExpansion(p)&&mechanicFor(p).noUndo?.(p))){put(p,undoToSolvable(p,a));selected=null;highlighted=null;message='';render();}
   else if(action==='puzzle-notes'&&p)dialog(p.title,`<div class="note-body">${notesHTML(p,pack)}</div>`);
   else if(action==='speak'&&p)speak(p);
-  else if(action==='demo'&&p)dialog('How to play',`<p>${esc(puzzleObjective(p))}</p><p>${esc(instructions(p))}</p>${isExpansion(p)?`${mechanicFor(p).help?.(p,a)||''}<details><summary>Rules</summary><ul>${p.rules.map(r=>`<li>${esc(r)}</li>`).join('')}</ul></details>`:''}<details><summary>For grown-ups</summary>${notesHTML(p,pack)}</details>`);
+  else if(action==='demo'&&p)dialog('How to play',`<p>${esc(puzzleObjective(p))}</p><p>${esc(instructions(p))}</p>${isExpansion(p)?`${mechanicFor(p).help?.(p,a)||''}<details><summary>Rules</summary><ul>${p.rules.map(r=>`<li>${esc(r)}</li>`).join('')}</ul></details>`:''}${p.band==='proofs'?'':`<details><summary>For grown-ups</summary>${notesHTML(p,pack)}</details>`}`);
   else if(action==='export'){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`math-adventure-saves-${new Date().toISOString().slice(0,10)}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}
   else if(action==='import')document.querySelector('#import-file').click();
   else if(action==='delete-profile'){const target=state.profiles.find(pr=>pr.id===control.dataset.id);dialog(`Delete ${target.name}’s save?`,'<p>This removes this explorer’s progress here. Export a backup first if you want to keep it.</p>',[{label:'Keep save'},{label:'Delete this save',danger:true,run:()=>{state.profiles=state.profiles.filter(pr=>pr.id!==target.id);if(state.activeProfileId===target.id)state.activeProfileId=state.profiles[0]?.id||null;save();try{storage.removeItem(BACKUP_KEY);}catch{}render();}}]);}
@@ -293,4 +298,4 @@ async function setupOffline(){
   try{const registration=await navigator.serviceWorker.register('./sw.js',{scope:'./'});await navigator.serviceWorker.ready;if(registration.waiting)setOfflineMessage('Update ready · close every app tab and reopen');const worker=registration.active;if(worker){const channel=new MessageChannel();channel.port1.onmessage=e=>setOfflineMessage(registration.waiting?'Update ready · close every app tab and reopen':e.data?.ready?'Ready for offline play':'Offline copy is still preparing');worker.postMessage({type:'CHECK_READY'},[channel.port2]);}registration.addEventListener('updatefound',()=>{const worker=registration.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)setOfflineMessage('Update ready · close every app tab and reopen');});});}catch{setOfflineMessage('Offline setup unavailable · online play works');}
 }
 function registerTools(){const context=document.modelContext;if(!context?.registerTool)return;const lifecycle=new AbortController();for(const tool of [{name:'read_adventure_progress',description:'Read the active explorer’s trail and completed puzzle IDs without changing saves.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,untrustedContentHint:true},execute(input){if(!input||Object.keys(input).length)throw Error('Expected an empty object.');const pr=profile();return pr?{name:pr.name,band:pr.band,completed:Object.entries(pr.attempts).filter(([,a])=>a.completed).map(([id])=>id)}:{profile:null};}},{name:'open_adventure_puzzle',description:'Open an authored puzzle for the active explorer, creating or resuming its saved attempt without solving it.',inputSchema:{type:'object',properties:{puzzleId:{type:'string'}},required:['puzzleId'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},async execute(input){if(!input||Object.keys(input).length!==1||typeof input.puzzleId!=='string'||!puzzles.some(p=>p.id===input.puzzleId&&!p.campaignOnly)||!profile())throw Error('Choose an existing puzzle and active explorer.');openPuzzle(input.puzzleId);await new Promise(resolve=>setTimeout(resolve,0));return {puzzleId:input.puzzleId,status:'opened'};}}]){try{Promise.resolve(context.registerTool(tool,{signal:lifecycle.signal})).catch(()=>{});}catch{}}window.addEventListener('pagehide',()=>lifecycle.abort(),{once:true});}
-try{const response=await fetch('./puzzles.json');if(!response.ok)throw Error('Puzzle pack unavailable');pack=await response.json();puzzles=withCampaignPuzzles(pack.puzzles);const loaded=loadStore(storage,puzzles);state=loaded.store;warning=loaded.warning;render();setupOffline();registerTools();}catch(error){app.innerHTML='<main class="shell"><section class="panel"><h1>The island couldn’t load.</h1><p class="spaced">Connect to the internet for the first visit, then try again. Your saved progress has not been changed.</p><button class="primary" onclick="location.reload()">Try again</button></section></main>';console.error(error);}
+try{const response=await fetch('./puzzles.json');if(!response.ok)throw Error('Puzzle pack unavailable');pack=await response.json();const proofResponse=await fetch('./proofs.json');if(!proofResponse.ok)throw Error('Proof pack unavailable');const proofs=await proofResponse.json();pack={...pack,puzzles:[...pack.puzzles,...proofs.puzzles],sources:[...pack.sources,...proofs.sources]};puzzles=withCampaignPuzzles(pack.puzzles);const loaded=loadStore(storage,puzzles);state=loaded.store;warning=loaded.warning;render();setupOffline();registerTools();}catch(error){app.innerHTML='<main class="shell"><section class="panel"><h1>The island couldn’t load.</h1><p class="spaced">Connect to the internet for the first visit, then try again. Your saved progress has not been changed.</p><button class="primary" onclick="location.reload()">Try again</button></section></main>';console.error(error);}

@@ -141,7 +141,7 @@ try{
           const campaignBefore=structuredClone(await profile()),sourceId=all.find(p=>p.id===id).sourceId;
           assert.ok(sourceId,'campaign board records its catalog source');
           await ui.action('library').click();await page.locator('.caravan-library').waitFor();
-          assert.equal(await page.locator('[data-action=open-puzzle]').count(),192);
+          assert.equal(await page.locator('[data-action=open-puzzle]:not(.library-proofs *)').count(),192);
           await page.goto(`${base}/#play/${sourceId}`);await page.locator('.board-panel').waitFor();
           await revealHint();await solveUI(`${band}/source free play`);
           const afterLibrary=await profile();assert.deepEqual(afterLibrary.journey,campaignBefore.journey,'a source puzzle cannot advance a partly completed journey');
@@ -166,7 +166,7 @@ try{
     assert.equal(await page.locator('#completion-heading').count(),1);assert.deepEqual((await profile()).attempts[await liveId()],completedAttempts[await liveId()],'revisit retains the solved road board');
     await ui.action('replay').click();assert.equal(await page.locator('#completion-heading').count(),0);assert.equal((await profile()).attempts[await liveId()].moves,0);assert.deepEqual((await profile()).journey,completedJourney);
     await revealHint();await solveUI('replay');assert.deepEqual((await profile()).journey,completedJourney);await ui.action('finish-encounter').click();await verifyMap(18);
-    await ui.action('library').click();await page.locator('.caravan-library').waitFor();assert.equal(await page.locator('[data-action=open-puzzle]').count(),192);
+    await ui.action('library').click();await page.locator('.caravan-library').waitFor();assert.equal(await page.locator('[data-action=open-puzzle]:not(.library-proofs *)').count(),192);
     await page.goto(`${base}/#play/swap-k1-01`);await page.locator('.board-panel').waitFor();await page.locator('[data-action=swap-pair]').first().click();await page.locator('#completion-heading').waitFor();
     assert.deepEqual((await profile()).journey,completedJourney,'library solve cannot alter the campaign');
     for(const [id,attempt]of Object.entries(completedAttempts).slice(1))assert.deepEqual((await profile()).attempts[id],attempt,`${id}: free play leaves campaign attempts alone`);

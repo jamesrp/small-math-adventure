@@ -52,6 +52,8 @@ export function puzzleObjective(puzzle) {
         : `Identify the odd pebble and whether it’s heavy or light, using ${limit}.`;
     }
     default:
+      // Proof puzzles (dist/proofs.json) carry their own objective.
+      if (typeof puzzle.objective === 'string' && puzzle.objective.trim()) return puzzle.objective;
       throw new Error(`Missing objective for puzzle mechanic: ${puzzle.mechanic}`);
   }
 }
