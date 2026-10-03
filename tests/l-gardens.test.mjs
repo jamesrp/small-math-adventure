@@ -10,9 +10,10 @@ const {puzzles}=await read('../dist/puzzles.json');
 const originals=await read('./fixtures/gardens-v1.json');
 const baseline=await read('./fixtures/pack-before-l.json');
 const ids=['k1','23','45'].flatMap(b=>['04','08','12'].map(n=>`tile-${b}-${n}`));
-test('only the nine selected garden records change; pack order and counts remain fixed',()=>{
- assert.equal(puzzles.length,192);assert.deepEqual(puzzles.map(p=>p.id),baseline.map(p=>p.id));
- assert.deepEqual(puzzles.filter((p,i)=>createHash('sha256').update(JSON.stringify(p)).digest('hex')!==baseline[i].hash).map(p=>p.id),ids);
+test('the original pack retains its order and only the nine selected garden records change',()=>{
+ const original=puzzles.filter(p=>baseline.some(b=>b.id===p.id));
+ assert.equal(original.length,192);assert.deepEqual(original.map(p=>p.id),baseline.map(p=>p.id));
+ assert.deepEqual(original.filter((p,i)=>createHash('sha256').update(JSON.stringify(p)).digest('hex')!==baseline[i].hash).map(p=>p.id),ids);
  for(const band of ['k1','23','45']){const gardens=puzzles.filter(p=>p.band===band&&p.mechanic==='tile');assert.equal(gardens.length,12);assert.equal(gardens.filter(p=>p.tileShape==='l-tromino').length,3);}
 });
 for(const id of ids)test(`${id}: mandatory Ls, accepted witness, hints and consequential choices`,()=>{

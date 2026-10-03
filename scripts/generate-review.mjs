@@ -15,7 +15,7 @@ for(const band of ['k1','23','45']){
   text+='**Sources:** '+p.parent.sourceIds.map(id=>sources.find(s=>s.id===id)).map(s=>`[${s.title}](${s.url})`).join('; ')+'.\n\n';
  }
 }
-text+='## Ten expanded puzzle families\n\nEach twelve-puzzle collection is available from every grade trail, grouped by Easy, Medium, and Hard. See [the expansion specification](puzzle-expansion/README.md) for exact source lineage and mathematical checks. Difficulty labels are relative within each family and await family playtesting. All valid completions are accepted; witnesses are examples, not answer templates.\n\n';
+text+='## Ten expanded puzzle families\n\nEach puzzle collection is available from every grade trail, grouped by Easy, Medium, and Hard. See [the expansion specification](puzzle-expansion/README.md) for exact source lineage and mathematical checks. Difficulty labels are relative within each family and await family playtesting. All valid completions are accepted; witnesses are examples, not answer templates.\n\n';
 for(const mechanic of [...new Set(puzzles.filter(p=>p.band==='all').map(p=>p.mechanic))]){
  const list=puzzles.filter(p=>p.mechanic===mechanic).sort((a,b)=>a.number-b.number);
  text+=`### ${list[0].familyTitle}\n\n`;

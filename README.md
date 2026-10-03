@@ -6,7 +6,7 @@ Play the [published app](https://jamesrp.github.io/small-math-adventure/). The [
 
 Six friends carry their living lantern tree along a dark island road, lighting the places they visit. **Six stops and eighteen encounters** keep that purpose visible throughout: get the ferry moving, open the way through the reeds, cross the ridge, reopen the workshop, wake the lighthouse, and light the citadel. Each solved puzzle changes the scene; each finished stop adds another light to the road.
 
-Pip, Moss, Rook, Bea, Fern, and Tumble travel together. The puzzle and its local setting stay together on screen. Short, optional Story and character views hold the extra words. There are no route decisions, missing equipment, or timed deadlines. All twelve mechanics appear on the road, with separate campaign boards for each grade trail. All **192 catalog puzzles** remain freely available.
+Pip, Moss, Rook, Bea, Fern, and Tumble travel together. The puzzle and its local setting stay together on screen. Short, optional Story and character views hold the extra words. There are no route decisions, missing equipment, or timed deadlines. All twelve mechanics appear on the road, with separate campaign boards for each grade trail. All **222 catalog puzzles** remain freely available.
 
 Progress, unfinished boards, hints, and undo history persist per explorer. Earlier caravan and citadel rescue journeys move into Journal without changing their puzzle attempts. Free play cannot advance the road, and replay cannot remove a lit stop. See [the campaign notes](docs/CARAVAN.md) for the encounters and save behavior.
 
@@ -24,7 +24,7 @@ Open [the local adventure](http://127.0.0.1:4187). `PORT=4174 npm start` chooses
 ## Included
 
 - Twelve mechanics with generous targets, keyboard controls, symbols alongside colors, and reduced-motion support. Tile Gardens support drag or tap placement.
-- Six illustrated stops, six recurring companions, a map that lights as you travel, and a journal for revisiting completed encounters. The puzzle satchel keeps all 192 catalog puzzles immediately available; completion survives replay.
+- Six illustrated stops, six recurring companions, a map that lights as you travel, and a journal for revisiting completed encounters. The puzzle satchel keeps all 222 catalog puzzles immediately available; completion survives replay.
 - Eighteen encounters using all twelve mechanics, with independent campaign saves. A solve advances the current encounter, and every third solve lights its stop. Revisited encounters retain their solved boards; Replay starts a fresh attempt without unlighting the road. Free play does not silently advance the story.
 - Separate nickname/avatar profiles, up to 30 local saves. Change grade trails without losing progress on another trail.
 - Automatic saves after moves, undo, hint requests, restarts, and completion. Unfinished boards, undo history, hints, and assistance resume together. Solved library boards reopen as fresh attempts with a Solved indicator; road encounters retain their solved boards until Replay. Earned completion stays saved. Restart is immediate.
@@ -32,17 +32,19 @@ Open [the local adventure](http://127.0.0.1:4187). `PORT=4174 npm start` chooses
 - A parent area with every puzzle’s explanation, questions, extensions, sources, assistance summaries, six printable paper activities, and install instructions.
 - Export/import JSON backups. Import creates new profiles, preserving existing saves. Corrupted imports are rejected before mutation. A previous-good save supports recovery; storage failures produce visible warnings.
 - A small, confirmed clear-data action and per-profile deletion. Only this app’s save keys are removed.
-- Complete offline caching of the app, icons, and all 192 puzzles. No runtime fonts, libraries, analytics, or AI services. Browser read-aloud is optional; availability depends on installed voices.
+- Complete offline caching of the app, icons, and all 222 puzzles. No runtime fonts, libraries, analytics, or AI services. Browser read-aloud is optional; availability depends on installed voices.
+
+Thirty puzzles from the current Week 2 lamp catalogs are now in **Puzzles → Lantern Wires**, bringing that family to 42 puzzles. Rings, trees, stars, grids, islands, and a bridge retain their worksheet layouts; five added puzzles require a shortest solution. See the [source mapping and adaptation notes](docs/puzzle-expansion/lantern-worksheets.md). These additions await child playtesting.
 
 ## Review the mathematics
 
 The supplied Zoombinis discs are being analyzed separately in the [local research corpus](research/zoombinis/README.md), with reproducible asset decoders, puzzle/difficulty evidence, and source provenance. Original game material stays outside the app bundle.
 
-- [Puzzle expansion: ten more types and 120 checked instances](docs/puzzle-expansion/README.md) records the September 2026 expansion, six additional tiling trials, and family playtest feedback. All 120 new-family instances are implemented. The six separate tiling trials remain authoring proposals. [AGENTS.md](AGENTS.md) preserves the design brief.
+- [Puzzle expansion: ten more types and 150 checked instances](docs/puzzle-expansion/README.md) records the September 2026 expansion, six additional tiling trials, and family playtest feedback. All 150 new-family instances are implemented, including [30 Week 2 lantern worksheet adaptations](docs/puzzle-expansion/lantern-worksheets.md). The six separate tiling trials remain authoring proposals. [AGENTS.md](AGENTS.md) preserves the design brief.
 - [Research and design](docs/RESEARCH.md) explains the research → undergraduate mathematics → child activity bridge.
-- [All 192 puzzles](docs/PUZZLES.md) includes boards, rules, hints, parent notes, and canonical witnesses.
+- [All 222 puzzles](docs/PUZZLES.md) includes boards, rules, hints, parent notes, and canonical witnesses.
 - [Tiling research](docs/tiling-research.md) and [swap research](docs/swap-research.md) preserve detailed source findings and qualifications.
-- The app’s **Grown-ups → All 192 puzzle notes** section is the interactive review view.
+- The app’s **Grown-ups → All 222 puzzle notes** section is the interactive review view.
 - [Authored content](dist/puzzles.json) is the canonical shipped content. Editing this file changes the app; the review catalog can be regenerated with `node scripts/generate-review.mjs`.
 
 Every core board is solvable. All valid solutions are accepted. Shortest swap counts, alternative tilings, counting questions, and research extensions are invitations to investigate, not scoring requirements. Initial family playtesting found the sampled K–1 and 2–3 tile gardens too easy for a five-year-old; cup swaps worked better. The expansion proposal records the response. Grade bands remain authoring judgments requiring further calibration, not curriculum or assessment claims.
@@ -74,7 +76,7 @@ npm test
 npm run build
 ```
 
-`npm test` checks all 192 puzzles, including every new-family witness and current-state hint, exact swap distances, alternate solutions, illegal moves, current-board hints, dead ends, undo, save recovery, truncated history, and safe imports. `npm run build` validates content and **hashes all public assets into the service-worker cache version**. Run it after any change and before deploying the `dist/` directory. There is no transpiler or bundler; `dist/` contains the authored application source.
+`npm test` checks all 222 puzzles, including every new-family witness and current-state hint, exact swap distances, alternate solutions, illegal moves, current-board hints, dead ends, undo, save recovery, truncated history, and safe imports. `npm run build` validates content and **hashes all public assets into the service-worker cache version**. Run it after any change and before deploying the `dist/` directory. There is no transpiler or bundler; `dist/` contains the authored application source.
 
 The optional [browser smoke suite](scripts/browser-smoke.mjs) uses Playwright. Install Playwright in your test environment, or point `PLAYWRIGHT_MODULE` to its `index.mjs`. `BROWSER_EXECUTABLE` can select a browser binary. With the local server running:
 
@@ -97,13 +99,13 @@ The expansion suite uses the same environment variables:
 node scripts/expansion-browser-smoke.mjs
 ```
 
-It exercises direct controls for all ten new types, completes all 120 instances through current-state hints, checks saved progress after reload, verifies 44-pixel controls and phone/iPad layouts, and opens every family offline. Latin squares use a square-and-number keypad with reversible marks; balance puzzles draw a random odd pebble (and heavy/light sign where applicable) for each new attempt. The secret stays fixed through reload and Undo, and answers still require evidence identifying one possibility. Old balance saves retain their original secret and observations until a new attempt starts. Route and toggle budgets are part of completion; code, clock, and billiard submissions accept alternate valid answers. Pebble Duel plays full normal-play Nim games: the opponent uses a winning reply when possible and a random legal move otherwise. Completion requires taking the last pebble; Undo reverses a full round. Legacy first-move saves start a fresh match while preserving previously earned completion and assistance.
+It exercises direct controls for all ten new types, completes all 150 instances through current-state hints, checks saved progress after reload, verifies 44-pixel controls and phone/iPad layouts, and opens every family offline. Latin squares use a square-and-number keypad with reversible marks; balance puzzles draw a random odd pebble (and heavy/light sign where applicable) for each new attempt. The secret stays fixed through reload and Undo, and answers still require evidence identifying one possibility. Old balance saves retain their original secret and observations until a new attempt starts. Route and toggle budgets are part of completion; code, clock, and billiard submissions accept alternate valid answers. Pebble Duel plays full normal-play Nim games: the opponent uses a winning reply when possible and a random legal move otherwise. Completion requires taking the last pebble; Undo reverses a full round. Legacy first-move saves start a fresh match while preserving previously earned completion and assistance.
 
-The replay regression suite (`node scripts/reattempt-browser-smoke.mjs`) checks all 192 solved puzzles reopening on fresh boards, persistent completion, randomized balance restarts, secret stability through reload and Undo, and immediate restart. It uses the same browser environment variables.
+The replay regression suite (`node scripts/reattempt-browser-smoke.mjs`) checks all 222 solved puzzles reopening on fresh boards, persistent completion, randomized balance restarts, secret stability through reload and Undo, and immediate restart. It uses the same browser environment variables.
 
 The Tile Garden browser checks (`node scripts/tile-browser-smoke.mjs` and `node scripts/shipped-gardens-browser-smoke.mjs`) exercise pointer, tap, keyboard, save, hint, and story encounter behavior, and complete all 36 shipped gardens through the UI. Their reports and screenshots go in ignored `test-results/`. Run them with a localhost-only server for isolated verification.
 
-To refresh the expansion from its checked authoring JSON, run `node scripts/import-expansion.mjs`, then `npm test` and `npm run build`. The checked JSON remains authoring data; `dist/puzzles.json` is the canonical runtime pack. The ten expansion families now have twelve instances each, grouped by Easy, Medium, and Hard. Difficulty is relative within a family and still needs family playtesting. See [the difficulty expansion](docs/puzzle-expansion/difficulty-expansion.md) for the new designs and reproduction instructions.
+To refresh the expansion from its checked authoring JSON, run `node scripts/import-expansion.mjs`, then `npm test` and `npm run build`. The checked JSON remains authoring data; `dist/puzzles.json` is the canonical runtime pack. Lantern Wires has 42 instances; the other nine expansion families have twelve each, grouped by Easy, Medium, and Hard. Difficulty is relative within a family and still needs family playtesting. See [the difficulty expansion](docs/puzzle-expansion/difficulty-expansion.md) for the new designs and reproduction instructions.
 
 **Proofs (17 puzzles).** The satchel’s Tile gardens and Pebble Duel families open with a Proofs group above the grade groups. A solve can be a covering, a checked star or paint proof that a garden cannot be covered, two clean one-check rounds, or three wins in a row against perfect play. The pack is `dist/proofs.json`, built by `node scripts/build-proofs.mjs` and merged with `puzzles.json` at load. `npm test` and `npm run build` validate it; `node scripts/proofs-browser-smoke.mjs` plays every puzzle. See [Proofs](docs/proofs/README.md).
 
@@ -134,9 +136,9 @@ Updates wait until existing app tabs close, avoiding replacement of a live board
 | `dist/storage.js` | Save schema, validation, recovery, backup parsing |
 | `dist/main.js` | Interaction, persistence, navigation, PWA lifecycle |
 | `dist/ui.js` | Profile/map/play/parent views |
-| `dist/puzzles.json` | 192 fixed authored puzzles and 55 source records |
+| `dist/puzzles.json` | 222 fixed authored puzzles and 57 source records |
 | `dist/proofs.{js,css,json}` | Proofs: four mechanics, styles, and 17 puzzles with 4 sources |
-| `scripts/import-expansion.mjs` | Reproducible adapter from the 120 checked authoring instances into the shipped pack |
+| `scripts/import-expansion.mjs` | Reproducible adapter from the 150 checked authoring instances into the shipped pack |
 | `dist/sw.js` | Atomic precache and versioned offline shell |
 | `scripts/release.mjs` | Validation and asset-derived offline cache version |
 

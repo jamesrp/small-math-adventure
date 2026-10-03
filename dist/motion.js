@@ -68,6 +68,8 @@ function toggleRoute(p, board) {
 
 function togglePositions(parameters) {
   const { topology, vertices, rows } = parameters;
+  // Authored worksheet coordinates use the same 360 × 280 SVG as the built-in layouts.
+  if (parameters.positions) return parameters.positions;
   if (topology === 'complete_binary_tree_depth_2') return [[180, 35], [95, 120], [265, 120], [45, 220], [135, 220], [225, 220], [315, 220]];
   if (topology === 'rectangular_grid') return vertices.map(vertex => {
     const row = rows.findIndex(line => line.includes(vertex));

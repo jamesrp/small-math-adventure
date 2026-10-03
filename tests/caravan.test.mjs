@@ -141,7 +141,7 @@ test('road jug operations come from the instance, with no inherited pump gate',(
   }
   assert.equal(all.filter(p=>p.campaignVersion===3).length,54);
   assert.equal(all.filter(p=>p.campaignVersion===2).length,3);
-  assert.equal(all.filter(p=>!p.campaignOnly).length,192);
+  assert.equal(all.filter(p=>!p.campaignOnly).length,puzzles.length);
   assert.equal(withCampaignPuzzles(all),all);
 });
 

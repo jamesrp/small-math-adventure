@@ -1,5 +1,8 @@
 # Ten more puzzle types for the math adventure
 
+The [Week 2 worksheet additions](lantern-worksheets.md) add 30 Lantern Wires puzzles (42 total), bringing the expansion to 150 instances and the app to 222. The original expansion design history below remains useful; current content and verification include the additions.
+
+
 Prepared September 20, 2026, from the current ten-week math-circle worksheets, facilitator solutions, redesign notes, and selected supplementary references.
 
 **120 concrete problems: ten additional types with twelve instances each.** Every instance has explicit rules and starting data, a completion condition, a checked answer or strategy, a hint, and its mathematical idea. Six additional tiling trials address the existing Tile Garden feedback. All 120 new-family instances are now implemented in the live app, alongside the original 72 puzzles, for 192 puzzles across twelve mechanics. The six additional tiling trials below remain proposals.
@@ -71,16 +74,16 @@ From `/Users/jamespfeiffer/business/small-math-adventure/`, run:
 python3 docs/puzzle-expansion/verify_all.py
 ```
 
-The checks use only Python's standard library. They validate all **120 expansion instances plus 6 tiling probes**: witnesses, claimed minima, unique code/Latin answers, all winning Nim moves, complete bounded clock/billiard choices, and every weighing-strategy branch. Independent reviews used separate enumeration or formula checks for deduction, network, and tiling claims. Verification establishes mathematical correctness; it does not establish child engagement or grade placement.
+The checks use only Python's standard library. They validate all **150 expansion instances plus 6 tiling probes**: witnesses, claimed minima, unique code/Latin answers, all winning Nim moves, complete bounded clock/billiard choices, and every weighing-strategy branch. Independent reviews used separate enumeration or formula checks for deduction, network, and tiling claims. Verification establishes mathematical correctness; it does not establish child engagement or grade placement.
 
 | Files | Contents |
 |---|---|
-| [motion.md](motion.md) / [motion.json](motion.json) | 36 toggle, clock, and billiard instances. |
+| [motion.md](motion.md) / [motion.json](motion.json) | 66 toggle, clock, and billiard instances. |
 | [deduction.md](deduction.md) / [deduction.json](deduction.json) | 36 Latin, code, and Nim instances. |
 | [networks.md](networks.md) / [networks.json](networks.json) | 24 route and coloring instances, exact graphs, and cup notes. |
 | [measurement.md](measurement.md) / [measurement.json](measurement.json) | 24 jug and weighing instances, paths and complete adaptive strategies. |
 | [existing-types.md](existing-types.md) / [verify_tiling.py](verify_tiling.py) | Six tiling trials, counts, and existing cup topology review. |
 
-The JSON files retain their authoring schema. [The import adapter](../../scripts/import-expansion.mjs) maps all 120 instances into [the shipped runtime pack](../../dist/puzzles.json). Each type now has controls, a mathematical validator, current-state hints, undo, saved progress, and offline assets. [The browser suite](../../scripts/expansion-browser-smoke.mjs) checks direct controls, every instance, save/reload, mobile layouts, touch targets, and offline loading. Accept every valid solution; stored witnesses are explanations and verification artifacts, not answer templates to match literally.
+The JSON files retain their authoring schema. [The import adapter](../../scripts/import-expansion.mjs) maps all 150 instances into [the shipped runtime pack](../../dist/puzzles.json). Each type now has controls, a mathematical validator, current-state hints, undo, saved progress, and offline assets. [The browser suite](../../scripts/expansion-browser-smoke.mjs) checks direct controls, every instance, save/reload, mobile layouts, touch targets, and offline loading. Accept every valid solution; stored witnesses are explanations and verification artifacts, not answer templates to match literally.
 
-Implementation checks: `npm test`, `npm run build`, and `node scripts/expansion-browser-smoke.mjs` (with Playwright and a running local server). Existing version-one saves remain compatible because the expansion adds puzzle IDs without changing earlier rules or revisions. The app groups the twelve-puzzle collections by family and difficulty and lets players enter at any step from any grade trail.
+Implementation checks: `npm test`, `npm run build`, and `node scripts/expansion-browser-smoke.mjs` (with Playwright and a running local server). Existing version-one saves remain compatible because the expansion adds puzzle IDs without changing earlier rules or revisions. The app groups the collections by family and difficulty and lets players enter at any step from any grade trail.

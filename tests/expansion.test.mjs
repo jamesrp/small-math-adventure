@@ -12,7 +12,7 @@ test('difficulty groups expose every expanded puzzle once from every grade trail
  for(const band of ['k1','23','45']){
   const profile={...fixture().profiles[0],band,attempts:{'latin-12':{completed:true}}};
   const html=libraryView(profile,puzzles);
-  assert.equal((html.match(/data-action="open-puzzle"/g)||[]).length,192);
+  assert.equal((html.match(/data-action="open-puzzle"/g)||[]).length,puzzles.length);
   for(const p of expanded){
    assert.equal(html.split(`data-id="${p.id}"`).length-1,1,p.id);
    const label=p.difficulty_level[0].toUpperCase()+p.difficulty_level.slice(1);
@@ -41,7 +41,7 @@ test('every solved puzzle reopens fresh with completion retained; unfinished rea
   }
  }
 });
-test('all 120 expansion boards, undo histories, hints, and completion round-trip through real saves',()=>{
+test('all expansion boards, undo histories, hints, and completion round-trip through real saves',()=>{
  const store=fixture();
  for(const p of expanded){let a=freshAttempt(p);let steps=0;
   while(!isSolved(p,a.board)&&steps++<200){
@@ -64,7 +64,7 @@ test('every new board validator rejects corrupt data before import mutates anyth
 test('all family boards and notes render from real authored content with accessible controls',()=>{
  const store=fixture(),pr=store.profiles[0],map=mapView(pr,puzzles);
  for(const p of expanded){assert.ok(map.includes(`data-id="${p.id}"`));const html=playView(p,freshAttempt(p),{pack,selected:null,message:''});assert.ok(html.includes(p.familyTitle));assert.ok(html.includes('Puzzle play area'));assert.ok(!html.includes('undefined'),p.id);assert.ok(!html.includes('NaN'),p.id);assert.match(html,/<button/);}
- assert.equal((catalogHTML('all',pack,pr).match(/class="puzzle-notes"/g)||[]).length,120);
+ assert.equal((catalogHTML('all',pack,pr).match(/class="puzzle-notes"/g)||[]).length,expanded.length);
  assert.ok(parentView(store,pr,pack).includes('<h2>Puzzle notes</h2>'));
 });
 test('route dead-end rescue undoes only as far as an extendable position',()=>{

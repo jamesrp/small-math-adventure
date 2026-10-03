@@ -5,13 +5,14 @@ import { freshAttempt, move, isSolved, solveTiles, solveSwaps, nextHint, validBo
 export async function validateContent(){
   const pack=JSON.parse(await readFile(new URL('../dist/puzzles.json',import.meta.url),'utf8'));
   const {puzzles,sources}=pack;
-  assert.equal(puzzles.length,192);assert.equal(new Set(puzzles.map(p=>p.id)).size,192);
+  assert.equal(puzzles.length,222);assert.equal(new Set(puzzles.map(p=>p.id)).size,puzzles.length);
   assert.equal(pack.families.length,10);for(const f of pack.families){
     const list=puzzles.filter(p=>p.mechanic===f.id);
-    assert.equal(list.length,12);assert.deepEqual(list.map(p=>p.number),Array.from({length:12},(_,i)=>i+1));
+    const expected=f.id==='toggle'?42:12;
+    assert.equal(list.length,expected);assert.deepEqual(list.map(p=>p.number),Array.from({length:expected},(_,i)=>i+1));
     assert.ok(list.every(p=>p.band==='all'&&['easy','medium','hard'].includes(p.difficulty_level)));
     for(const level of ['easy','medium','hard'])assert.ok(list.some(p=>p.difficulty_level===level),`${f.id}: ${level}`);
-    assert.equal(new Set(list.map(p=>JSON.stringify(p.parameters))).size,12,`${f.id}: distinct starting data`);
+    assert.equal(new Set(list.map(p=>JSON.stringify(p.parameters))).size,expected,`${f.id}: distinct starting data`);
   }
   assert.equal(new Set(sources.map(s=>s.id)).size,sources.length);
   for(const source of sources){if(source.url)assert.match(source.url,/^https:\/\//);else assert.ok(source.path?.startsWith('/'));assert.ok(source.title);}

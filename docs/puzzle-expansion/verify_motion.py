@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check the 36 authored motion puzzles using only Python's standard library.
+"""Check the 66 authored motion puzzles using only Python's standard library.
 
 Toggle minima use BFS over lamp states, not the supplied move witnesses.
 Clock answers use direct finite-orbit simulation, not gcd/CRT formulas.
@@ -22,6 +22,12 @@ def edges_for(p):
         return ([[row[j], row[j+1]] for row in rows for j in range(len(row)-1)]
                 + [[rows[i][j], rows[i+1][j]] for i in range(len(rows)-1)
                    for j in range(len(rows[0]))])
+    if p['topology'] == 'worksheet_graph':
+        assert len(p['positions']) == len(p['vertices'])
+        assert all(len(xy) == 2 and all(isinstance(n, (int, float)) for n in xy) for xy in p['positions'])
+        assert len({frozenset(e) for e in p['edges']}) == len(p['edges'])
+        assert all(len(e) == len(set(e)) == 2 for e in p['edges'])
+        return p['edges']
     raise AssertionError('unrecognized topology')
 
 
@@ -164,7 +170,7 @@ def main():
     check = {'toggle': check_toggle, 'clock': check_clock, 'billiard': check_billiard}
     count = 0
     for family in data['families']:
-        assert len(family['instances']) == 12
+        assert len(family['instances']) == (42 if family['id'] == 'toggle' else 12)
         for instance in family['instances']:
             result = check[family['id']](instance)
             print(f"{instance['id']}: OK ({result})")

@@ -115,6 +115,22 @@
       "contribution": "Undergraduate/research lineage and natural progression from rings to trees/networks."
     },
     {
+      "id": "expansion-toggle-6",
+      "title": "Week 2 / Lamp lab / Compact puzzle catalog (F02-S-CAT-v2)",
+      "kind": "local curriculum",
+      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog.pdf",
+      "section": "Problems 1–7 and 9; exact problem/target in each adaptation note",
+      "contribution": "Exact graphs, starting states, and target pictures from the September 30 compact catalog. Problem 9 uses the bridge 2–5 from the shared data."
+    },
+    {
+      "id": "expansion-toggle-7",
+      "title": "Week 2 / Lamp lab / Upper puzzle catalog (F02-S-CAT-UP-v1)",
+      "kind": "local curriculum",
+      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog-upper.pdf",
+      "section": "Problems 1, 2, 3, 4, and 6; exact lettered case in each adaptation note",
+      "contribution": "Reachable path, ring, island, and tree targets; exact minima from Problem 4. All-solutions questions become individual target solves."
+    },
+    {
       "id": "expansion-clock-1",
       "title": "week-04-k-1.tex — K–1 / 1, Tasks 1–2; / 2, Tasks 3–5",
       "kind": "local curriculum",
@@ -7297,6 +7313,4385 @@
         ]
       },
       "sourceDocument": "docs/puzzle-expansion/motion.md"
+    },
+    {
+      "id": "toggle-13",
+      "title": "Four lanterns",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "4",
+            "1"
+          ]
+        ],
+        "positions": [
+          [
+            180,
+            35
+          ],
+          [
+            285,
+            140
+          ],
+          [
+            180,
+            245
+          ],
+          [
+            75,
+            140
+          ]
+        ],
+        "initial_on": [],
+        "target_on": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "3",
+            "4"
+          ]
+        ],
+        "minimum_presses": 2
+      },
+      "hint": "Try lighting disjoint neighboring pairs.",
+      "insight": "Disjoint edges can change four lamps in two presses.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. Disjoint edges can change four lamps in two presses.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-CAT"
+      ],
+      "provenance": "Week 2 compact catalog, Problem 1, target 3. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).",
+      "difficulty_level": "easy",
+      "worksheet": {
+        "catalog": "compact",
+        "problem": 1,
+        "case": 3,
+        "graph": "square"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "Disjoint edges can change four lamps in two presses.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "Disjoint edges can change four lamps in two presses. One shortest solution uses 2 presses: 1–2, 3–4. The app accepts every legal solution.",
+        "extension": "Try a different order of the same wires. Why does the final picture stay the same?",
+        "connection": "Explore paths and cancellations without a move limit. Disjoint edges can change four lamps in two presses.",
+        "sourceIds": [
+          "expansion-toggle-6"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 13,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "Disjoint edges can change four lamps in two presses.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Try lighting disjoint neighboring pairs.",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-14",
+      "title": "Six-lamp ring",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "5",
+            "6"
+          ],
+          [
+            "6",
+            "1"
+          ]
+        ],
+        "positions": [
+          [
+            180,
+            35
+          ],
+          [
+            270.93,
+            87.5
+          ],
+          [
+            270.93,
+            192.5
+          ],
+          [
+            180,
+            245
+          ],
+          [
+            89.07,
+            192.5
+          ],
+          [
+            89.07,
+            87.5
+          ]
+        ],
+        "initial_on": [
+          "1"
+        ],
+        "target_on": [
+          "3"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ]
+        ],
+        "minimum_presses": 2
+      },
+      "hint": "Follow a path between lamps that need to change. What happens to the lamps in between?",
+      "insight": "The interior of a pressed path changes twice, leaving only its endpoints changed.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. The interior of a pressed path changes twice, leaving only its endpoints changed.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-CAT"
+      ],
+      "provenance": "Week 2 compact catalog, Problem 2, target 1. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).",
+      "difficulty_level": "easy",
+      "worksheet": {
+        "catalog": "compact",
+        "problem": 2,
+        "case": 1,
+        "graph": "ring6"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "The interior of a pressed path changes twice, leaving only its endpoints changed.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "The interior of a pressed path changes twice, leaving only its endpoints changed. One shortest solution uses 2 presses: 1–2, 2–3. The app accepts every legal solution.",
+        "extension": "Try a different order of the same wires. Why does the final picture stay the same?",
+        "connection": "Explore paths and cancellations without a move limit. The interior of a pressed path changes twice, leaving only its endpoints changed.",
+        "sourceIds": [
+          "expansion-toggle-6"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 14,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "The interior of a pressed path changes twice, leaving only its endpoints changed.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Follow a path between lamps that need to change. What happens to the lamps in between?",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-15",
+      "title": "Six-lamp ring",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "5",
+            "6"
+          ],
+          [
+            "6",
+            "1"
+          ]
+        ],
+        "positions": [
+          [
+            180,
+            35
+          ],
+          [
+            270.93,
+            87.5
+          ],
+          [
+            270.93,
+            192.5
+          ],
+          [
+            180,
+            245
+          ],
+          [
+            89.07,
+            192.5
+          ],
+          [
+            89.07,
+            87.5
+          ]
+        ],
+        "initial_on": [
+          "1"
+        ],
+        "target_on": [
+          "4"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ]
+        ],
+        "minimum_presses": 3
+      },
+      "hint": "Follow a path between lamps that need to change. What happens to the lamps in between?",
+      "insight": "The interior of a pressed path changes twice, leaving only its endpoints changed.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. The interior of a pressed path changes twice, leaving only its endpoints changed.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-CAT"
+      ],
+      "provenance": "Week 2 compact catalog, Problem 2, target 2. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).",
+      "difficulty_level": "easy",
+      "worksheet": {
+        "catalog": "compact",
+        "problem": 2,
+        "case": 2,
+        "graph": "ring6"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "The interior of a pressed path changes twice, leaving only its endpoints changed.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "The interior of a pressed path changes twice, leaving only its endpoints changed. One shortest solution uses 3 presses: 1–2, 2–3, 3–4. The app accepts every legal solution.",
+        "extension": "Try a different order of the same wires. Why does the final picture stay the same?",
+        "connection": "Explore paths and cancellations without a move limit. The interior of a pressed path changes twice, leaving only its endpoints changed.",
+        "sourceIds": [
+          "expansion-toggle-6"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 15,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "The interior of a pressed path changes twice, leaving only its endpoints changed.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Follow a path between lamps that need to change. What happens to the lamps in between?",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-16",
+      "title": "Branching tree",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "3",
+            "6"
+          ],
+          [
+            "6",
+            "7"
+          ],
+          [
+            "6",
+            "8"
+          ]
+        ],
+        "positions": [
+          [
+            35,
+            67.5
+          ],
+          [
+            107.5,
+            67.5
+          ],
+          [
+            180,
+            67.5
+          ],
+          [
+            252.5,
+            67.5
+          ],
+          [
+            325,
+            67.5
+          ],
+          [
+            180,
+            140
+          ],
+          [
+            107.5,
+            212.5
+          ],
+          [
+            252.5,
+            212.5
+          ]
+        ],
+        "initial_on": [
+          "1"
+        ],
+        "target_on": [
+          "5"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "4",
+            "5"
+          ]
+        ],
+        "minimum_presses": 4
+      },
+      "hint": "Trace from the starting light toward the goal. At a fork, choose the branch that contains the goal.",
+      "insight": "A tree has a unique path between two lamps. Pressing that path changes only its endpoints.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. A tree has a unique path between two lamps. Pressing that path changes only its endpoints.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-CAT"
+      ],
+      "provenance": "Week 2 compact catalog, Problem 4, target 1. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).",
+      "difficulty_level": "easy",
+      "worksheet": {
+        "catalog": "compact",
+        "problem": 4,
+        "case": 1,
+        "graph": "tree8"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "A tree has a unique path between two lamps. Pressing that path changes only its endpoints.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "A tree has a unique path between two lamps. Pressing that path changes only its endpoints. One shortest solution uses 4 presses: 1–2, 2–3, 3–4, 4–5. The app accepts every legal solution.",
+        "extension": "Try a different order of the same wires. Why does the final picture stay the same?",
+        "connection": "Explore paths and cancellations without a move limit. A tree has a unique path between two lamps. Pressing that path changes only its endpoints.",
+        "sourceIds": [
+          "expansion-toggle-6"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 16,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "A tree has a unique path between two lamps. Pressing that path changes only its endpoints.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Trace from the starting light toward the goal. At a fork, choose the branch that contains the goal.",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-17",
+      "title": "Branching tree",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "3",
+            "6"
+          ],
+          [
+            "6",
+            "7"
+          ],
+          [
+            "6",
+            "8"
+          ]
+        ],
+        "positions": [
+          [
+            35,
+            67.5
+          ],
+          [
+            107.5,
+            67.5
+          ],
+          [
+            180,
+            67.5
+          ],
+          [
+            252.5,
+            67.5
+          ],
+          [
+            325,
+            67.5
+          ],
+          [
+            180,
+            140
+          ],
+          [
+            107.5,
+            212.5
+          ],
+          [
+            252.5,
+            212.5
+          ]
+        ],
+        "initial_on": [
+          "1"
+        ],
+        "target_on": [
+          "7"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "6"
+          ],
+          [
+            "6",
+            "7"
+          ]
+        ],
+        "minimum_presses": 4
+      },
+      "hint": "Trace from the starting light toward the goal. At a fork, choose the branch that contains the goal.",
+      "insight": "A tree has a unique path between two lamps. Pressing that path changes only its endpoints.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. A tree has a unique path between two lamps. Pressing that path changes only its endpoints.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-CAT"
+      ],
+      "provenance": "Week 2 compact catalog, Problem 4, target 2. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).",
+      "difficulty_level": "easy",
+      "worksheet": {
+        "catalog": "compact",
+        "problem": 4,
+        "case": 2,
+        "graph": "tree8"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "A tree has a unique path between two lamps. Pressing that path changes only its endpoints.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "A tree has a unique path between two lamps. Pressing that path changes only its endpoints. One shortest solution uses 4 presses: 1–2, 2–3, 3–6, 6–7. The app accepts every legal solution.",
+        "extension": "Try a different order of the same wires. Why does the final picture stay the same?",
+        "connection": "Explore paths and cancellations without a move limit. A tree has a unique path between two lamps. Pressing that path changes only its endpoints.",
+        "sourceIds": [
+          "expansion-toggle-6"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 17,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "A tree has a unique path between two lamps. Pressing that path changes only its endpoints.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Trace from the starting light toward the goal. At a fork, choose the branch that contains the goal.",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-18",
+      "title": "Branching tree",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "3",
+            "6"
+          ],
+          [
+            "6",
+            "7"
+          ],
+          [
+            "6",
+            "8"
+          ]
+        ],
+        "positions": [
+          [
+            35,
+            67.5
+          ],
+          [
+            107.5,
+            67.5
+          ],
+          [
+            180,
+            67.5
+          ],
+          [
+            252.5,
+            67.5
+          ],
+          [
+            325,
+            67.5
+          ],
+          [
+            180,
+            140
+          ],
+          [
+            107.5,
+            212.5
+          ],
+          [
+            252.5,
+            212.5
+          ]
+        ],
+        "initial_on": [
+          "1"
+        ],
+        "target_on": [
+          "8"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "6"
+          ],
+          [
+            "6",
+            "8"
+          ]
+        ],
+        "minimum_presses": 4
+      },
+      "hint": "Trace from the starting light toward the goal. At a fork, choose the branch that contains the goal.",
+      "insight": "A tree has a unique path between two lamps. Pressing that path changes only its endpoints.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. A tree has a unique path between two lamps. Pressing that path changes only its endpoints.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-CAT"
+      ],
+      "provenance": "Week 2 compact catalog, Problem 4, target 3. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).",
+      "difficulty_level": "easy",
+      "worksheet": {
+        "catalog": "compact",
+        "problem": 4,
+        "case": 3,
+        "graph": "tree8"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "A tree has a unique path between two lamps. Pressing that path changes only its endpoints.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "A tree has a unique path between two lamps. Pressing that path changes only its endpoints. One shortest solution uses 4 presses: 1–2, 2–3, 3–6, 6–8. The app accepts every legal solution.",
+        "extension": "Try a different order of the same wires. Why does the final picture stay the same?",
+        "connection": "Explore paths and cancellations without a move limit. A tree has a unique path between two lamps. Pressing that path changes only its endpoints.",
+        "sourceIds": [
+          "expansion-toggle-6"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 18,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "A tree has a unique path between two lamps. Pressing that path changes only its endpoints.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Trace from the starting light toward the goal. At a fork, choose the branch that contains the goal.",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-19",
+      "title": "Branching tree",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "3",
+            "6"
+          ],
+          [
+            "6",
+            "7"
+          ],
+          [
+            "6",
+            "8"
+          ]
+        ],
+        "positions": [
+          [
+            35,
+            67.5
+          ],
+          [
+            107.5,
+            67.5
+          ],
+          [
+            180,
+            67.5
+          ],
+          [
+            252.5,
+            67.5
+          ],
+          [
+            325,
+            67.5
+          ],
+          [
+            180,
+            140
+          ],
+          [
+            107.5,
+            212.5
+          ],
+          [
+            252.5,
+            212.5
+          ]
+        ],
+        "initial_on": [],
+        "target_on": [
+          "1",
+          "8"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "6"
+          ],
+          [
+            "6",
+            "8"
+          ]
+        ],
+        "minimum_presses": 4
+      },
+      "hint": "Trace from the starting light toward the goal. At a fork, choose the branch that contains the goal.",
+      "insight": "A tree has a unique path between two lamps. Pressing that path changes only its endpoints.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. A tree has a unique path between two lamps. Pressing that path changes only its endpoints.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-CAT"
+      ],
+      "provenance": "Week 2 compact catalog, Problem 5, target 1. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).",
+      "difficulty_level": "easy",
+      "worksheet": {
+        "catalog": "compact",
+        "problem": 5,
+        "case": 1,
+        "graph": "tree8"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "A tree has a unique path between two lamps. Pressing that path changes only its endpoints.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "A tree has a unique path between two lamps. Pressing that path changes only its endpoints. One shortest solution uses 4 presses: 1–2, 2–3, 3–6, 6–8. The app accepts every legal solution.",
+        "extension": "Try a different order of the same wires. Why does the final picture stay the same?",
+        "connection": "Explore paths and cancellations without a move limit. A tree has a unique path between two lamps. Pressing that path changes only its endpoints.",
+        "sourceIds": [
+          "expansion-toggle-6"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 19,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "A tree has a unique path between two lamps. Pressing that path changes only its endpoints.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Trace from the starting light toward the goal. At a fork, choose the branch that contains the goal.",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-20",
+      "title": "Six-lamp ring",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "5",
+            "6"
+          ],
+          [
+            "6",
+            "1"
+          ]
+        ],
+        "positions": [
+          [
+            180,
+            35
+          ],
+          [
+            270.93,
+            87.5
+          ],
+          [
+            270.93,
+            192.5
+          ],
+          [
+            180,
+            245
+          ],
+          [
+            89.07,
+            192.5
+          ],
+          [
+            89.07,
+            87.5
+          ]
+        ],
+        "initial_on": [],
+        "target_on": [
+          "1",
+          "2"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ]
+        ],
+        "minimum_presses": 1
+      },
+      "hint": "Follow a path between lamps that need to change. What happens to the lamps in between?",
+      "insight": "The interior of a pressed path changes twice, leaving only its endpoints changed.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. The interior of a pressed path changes twice, leaving only its endpoints changed.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-CAT"
+      ],
+      "provenance": "Week 2 compact catalog, Problem 6, target 1. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).",
+      "difficulty_level": "easy",
+      "worksheet": {
+        "catalog": "compact",
+        "problem": 6,
+        "case": 1,
+        "graph": "ring6"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "The interior of a pressed path changes twice, leaving only its endpoints changed.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "The interior of a pressed path changes twice, leaving only its endpoints changed. One shortest solution uses 1 presses: 1–2. The app accepts every legal solution.",
+        "extension": "Try a different order of the same wires. Why does the final picture stay the same?",
+        "connection": "Explore paths and cancellations without a move limit. The interior of a pressed path changes twice, leaving only its endpoints changed.",
+        "sourceIds": [
+          "expansion-toggle-6"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 20,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "The interior of a pressed path changes twice, leaving only its endpoints changed.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Follow a path between lamps that need to change. What happens to the lamps in between?",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-21",
+      "title": "Six-lamp ring",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "5",
+            "6"
+          ],
+          [
+            "6",
+            "1"
+          ]
+        ],
+        "positions": [
+          [
+            180,
+            35
+          ],
+          [
+            270.93,
+            87.5
+          ],
+          [
+            270.93,
+            192.5
+          ],
+          [
+            180,
+            245
+          ],
+          [
+            89.07,
+            192.5
+          ],
+          [
+            89.07,
+            87.5
+          ]
+        ],
+        "initial_on": [],
+        "target_on": [
+          "1",
+          "4"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ]
+        ],
+        "minimum_presses": 3
+      },
+      "hint": "Follow a path between lamps that need to change. What happens to the lamps in between?",
+      "insight": "The interior of a pressed path changes twice, leaving only its endpoints changed.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. The interior of a pressed path changes twice, leaving only its endpoints changed.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-CAT"
+      ],
+      "provenance": "Week 2 compact catalog, Problem 6, target 2. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).",
+      "difficulty_level": "medium",
+      "worksheet": {
+        "catalog": "compact",
+        "problem": 6,
+        "case": 2,
+        "graph": "ring6"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "The interior of a pressed path changes twice, leaving only its endpoints changed.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "The interior of a pressed path changes twice, leaving only its endpoints changed. One shortest solution uses 3 presses: 1–2, 2–3, 3–4. The app accepts every legal solution.",
+        "extension": "Try a different order of the same wires. Why does the final picture stay the same?",
+        "connection": "Explore paths and cancellations without a move limit. The interior of a pressed path changes twice, leaving only its endpoints changed.",
+        "sourceIds": [
+          "expansion-toggle-6"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 21,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "The interior of a pressed path changes twice, leaving only its endpoints changed.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Follow a path between lamps that need to change. What happens to the lamps in between?",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-22",
+      "title": "Six-lamp ring",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "5",
+            "6"
+          ],
+          [
+            "6",
+            "1"
+          ]
+        ],
+        "positions": [
+          [
+            180,
+            35
+          ],
+          [
+            270.93,
+            87.5
+          ],
+          [
+            270.93,
+            192.5
+          ],
+          [
+            180,
+            245
+          ],
+          [
+            89.07,
+            192.5
+          ],
+          [
+            89.07,
+            87.5
+          ]
+        ],
+        "initial_on": [],
+        "target_on": [
+          "1",
+          "2",
+          "4",
+          "5"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "4",
+            "5"
+          ]
+        ],
+        "minimum_presses": 2
+      },
+      "hint": "Follow a path between lamps that need to change. What happens to the lamps in between?",
+      "insight": "The interior of a pressed path changes twice, leaving only its endpoints changed.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. The interior of a pressed path changes twice, leaving only its endpoints changed.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-CAT"
+      ],
+      "provenance": "Week 2 compact catalog, Problem 6, target 3. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).",
+      "difficulty_level": "medium",
+      "worksheet": {
+        "catalog": "compact",
+        "problem": 6,
+        "case": 3,
+        "graph": "ring6"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "The interior of a pressed path changes twice, leaving only its endpoints changed.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "The interior of a pressed path changes twice, leaving only its endpoints changed. One shortest solution uses 2 presses: 1–2, 4–5. The app accepts every legal solution.",
+        "extension": "Try a different order of the same wires. Why does the final picture stay the same?",
+        "connection": "Explore paths and cancellations without a move limit. The interior of a pressed path changes twice, leaving only its endpoints changed.",
+        "sourceIds": [
+          "expansion-toggle-6"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 22,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "The interior of a pressed path changes twice, leaving only its endpoints changed.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Follow a path between lamps that need to change. What happens to the lamps in between?",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-23",
+      "title": "Six-lamp ring",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "5",
+            "6"
+          ],
+          [
+            "6",
+            "1"
+          ]
+        ],
+        "positions": [
+          [
+            180,
+            35
+          ],
+          [
+            270.93,
+            87.5
+          ],
+          [
+            270.93,
+            192.5
+          ],
+          [
+            180,
+            245
+          ],
+          [
+            89.07,
+            192.5
+          ],
+          [
+            89.07,
+            87.5
+          ]
+        ],
+        "initial_on": [],
+        "target_on": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "5",
+            "6"
+          ]
+        ],
+        "minimum_presses": 3
+      },
+      "hint": "Follow a path between lamps that need to change. What happens to the lamps in between?",
+      "insight": "The interior of a pressed path changes twice, leaving only its endpoints changed.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. The interior of a pressed path changes twice, leaving only its endpoints changed.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-CAT"
+      ],
+      "provenance": "Week 2 compact catalog, Problem 6, target 4. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).",
+      "difficulty_level": "medium",
+      "worksheet": {
+        "catalog": "compact",
+        "problem": 6,
+        "case": 4,
+        "graph": "ring6"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "The interior of a pressed path changes twice, leaving only its endpoints changed.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "The interior of a pressed path changes twice, leaving only its endpoints changed. One shortest solution uses 3 presses: 1–2, 3–4, 5–6. The app accepts every legal solution.",
+        "extension": "Try a different order of the same wires. Why does the final picture stay the same?",
+        "connection": "Explore paths and cancellations without a move limit. The interior of a pressed path changes twice, leaving only its endpoints changed.",
+        "sourceIds": [
+          "expansion-toggle-6"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 23,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "The interior of a pressed path changes twice, leaving only its endpoints changed.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Follow a path between lamps that need to change. What happens to the lamps in between?",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-24",
+      "title": "Nine-lamp grid",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "5",
+            "6"
+          ],
+          [
+            "7",
+            "8"
+          ],
+          [
+            "8",
+            "9"
+          ],
+          [
+            "1",
+            "4"
+          ],
+          [
+            "4",
+            "7"
+          ],
+          [
+            "2",
+            "5"
+          ],
+          [
+            "5",
+            "8"
+          ],
+          [
+            "3",
+            "6"
+          ],
+          [
+            "6",
+            "9"
+          ]
+        ],
+        "positions": [
+          [
+            75,
+            35
+          ],
+          [
+            180,
+            35
+          ],
+          [
+            285,
+            35
+          ],
+          [
+            75,
+            140
+          ],
+          [
+            180,
+            140
+          ],
+          [
+            285,
+            140
+          ],
+          [
+            75,
+            245
+          ],
+          [
+            180,
+            245
+          ],
+          [
+            285,
+            245
+          ]
+        ],
+        "initial_on": [],
+        "target_on": [
+          "1",
+          "5"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "5"
+          ]
+        ],
+        "minimum_presses": 2
+      },
+      "hint": "Pair up lamps that need to change, then try paths between each pair.",
+      "insight": "Different pairings can yield different edge sets. Repeated edges cancel in pairs.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. Different pairings can yield different edge sets. Repeated edges cancel in pairs.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-CAT"
+      ],
+      "provenance": "Week 2 compact catalog, Problem 7, target 1. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).",
+      "difficulty_level": "medium",
+      "worksheet": {
+        "catalog": "compact",
+        "problem": 7,
+        "case": 1,
+        "graph": "grid9"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "Different pairings can yield different edge sets. Repeated edges cancel in pairs.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "Different pairings can yield different edge sets. Repeated edges cancel in pairs. One shortest solution uses 2 presses: 1–2, 2–5. The app accepts every legal solution.",
+        "extension": "Try a different order of the same wires. Why does the final picture stay the same?",
+        "connection": "Explore paths and cancellations without a move limit. Different pairings can yield different edge sets. Repeated edges cancel in pairs.",
+        "sourceIds": [
+          "expansion-toggle-6"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 24,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "Different pairings can yield different edge sets. Repeated edges cancel in pairs.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Pair up lamps that need to change, then try paths between each pair.",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-25",
+      "title": "Nine-lamp grid",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "5",
+            "6"
+          ],
+          [
+            "7",
+            "8"
+          ],
+          [
+            "8",
+            "9"
+          ],
+          [
+            "1",
+            "4"
+          ],
+          [
+            "4",
+            "7"
+          ],
+          [
+            "2",
+            "5"
+          ],
+          [
+            "5",
+            "8"
+          ],
+          [
+            "3",
+            "6"
+          ],
+          [
+            "6",
+            "9"
+          ]
+        ],
+        "positions": [
+          [
+            75,
+            35
+          ],
+          [
+            180,
+            35
+          ],
+          [
+            285,
+            35
+          ],
+          [
+            75,
+            140
+          ],
+          [
+            180,
+            140
+          ],
+          [
+            285,
+            140
+          ],
+          [
+            75,
+            245
+          ],
+          [
+            180,
+            245
+          ],
+          [
+            285,
+            245
+          ]
+        ],
+        "initial_on": [],
+        "target_on": [
+          "2",
+          "8"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "2",
+            "5"
+          ],
+          [
+            "5",
+            "8"
+          ]
+        ],
+        "minimum_presses": 2
+      },
+      "hint": "Pair up lamps that need to change, then try paths between each pair.",
+      "insight": "Different pairings can yield different edge sets. Repeated edges cancel in pairs.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. Different pairings can yield different edge sets. Repeated edges cancel in pairs.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-CAT"
+      ],
+      "provenance": "Week 2 compact catalog, Problem 7, target 2. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).",
+      "difficulty_level": "medium",
+      "worksheet": {
+        "catalog": "compact",
+        "problem": 7,
+        "case": 2,
+        "graph": "grid9"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "Different pairings can yield different edge sets. Repeated edges cancel in pairs.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "Different pairings can yield different edge sets. Repeated edges cancel in pairs. One shortest solution uses 2 presses: 2–5, 5–8. The app accepts every legal solution.",
+        "extension": "Try a different order of the same wires. Why does the final picture stay the same?",
+        "connection": "Explore paths and cancellations without a move limit. Different pairings can yield different edge sets. Repeated edges cancel in pairs.",
+        "sourceIds": [
+          "expansion-toggle-6"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 25,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "Different pairings can yield different edge sets. Repeated edges cancel in pairs.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Pair up lamps that need to change, then try paths between each pair.",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-26",
+      "title": "Nine-lamp grid",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "5",
+            "6"
+          ],
+          [
+            "7",
+            "8"
+          ],
+          [
+            "8",
+            "9"
+          ],
+          [
+            "1",
+            "4"
+          ],
+          [
+            "4",
+            "7"
+          ],
+          [
+            "2",
+            "5"
+          ],
+          [
+            "5",
+            "8"
+          ],
+          [
+            "3",
+            "6"
+          ],
+          [
+            "6",
+            "9"
+          ]
+        ],
+        "positions": [
+          [
+            75,
+            35
+          ],
+          [
+            180,
+            35
+          ],
+          [
+            285,
+            35
+          ],
+          [
+            75,
+            140
+          ],
+          [
+            180,
+            140
+          ],
+          [
+            285,
+            140
+          ],
+          [
+            75,
+            245
+          ],
+          [
+            180,
+            245
+          ],
+          [
+            285,
+            245
+          ]
+        ],
+        "initial_on": [],
+        "target_on": [
+          "1",
+          "3",
+          "7",
+          "9"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "7",
+            "8"
+          ],
+          [
+            "8",
+            "9"
+          ]
+        ],
+        "minimum_presses": 4
+      },
+      "hint": "Pair up lamps that need to change, then try paths between each pair.",
+      "insight": "Different pairings can yield different edge sets. Repeated edges cancel in pairs.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. Different pairings can yield different edge sets. Repeated edges cancel in pairs.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-CAT"
+      ],
+      "provenance": "Week 2 compact catalog, Problem 7, target 3. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).",
+      "difficulty_level": "medium",
+      "worksheet": {
+        "catalog": "compact",
+        "problem": 7,
+        "case": 3,
+        "graph": "grid9"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "Different pairings can yield different edge sets. Repeated edges cancel in pairs.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "Different pairings can yield different edge sets. Repeated edges cancel in pairs. One shortest solution uses 4 presses: 1–2, 2–3, 7–8, 8–9. The app accepts every legal solution.",
+        "extension": "Try a different order of the same wires. Why does the final picture stay the same?",
+        "connection": "Explore paths and cancellations without a move limit. Different pairings can yield different edge sets. Repeated edges cancel in pairs.",
+        "sourceIds": [
+          "expansion-toggle-6"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 26,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "Different pairings can yield different edge sets. Repeated edges cancel in pairs.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Pair up lamps that need to change, then try paths between each pair.",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-27",
+      "title": "Nine-lamp grid",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "5",
+            "6"
+          ],
+          [
+            "7",
+            "8"
+          ],
+          [
+            "8",
+            "9"
+          ],
+          [
+            "1",
+            "4"
+          ],
+          [
+            "4",
+            "7"
+          ],
+          [
+            "2",
+            "5"
+          ],
+          [
+            "5",
+            "8"
+          ],
+          [
+            "3",
+            "6"
+          ],
+          [
+            "6",
+            "9"
+          ]
+        ],
+        "positions": [
+          [
+            75,
+            35
+          ],
+          [
+            180,
+            35
+          ],
+          [
+            285,
+            35
+          ],
+          [
+            75,
+            140
+          ],
+          [
+            180,
+            140
+          ],
+          [
+            285,
+            140
+          ],
+          [
+            75,
+            245
+          ],
+          [
+            180,
+            245
+          ],
+          [
+            285,
+            245
+          ]
+        ],
+        "initial_on": [],
+        "target_on": [
+          "1",
+          "3",
+          "4",
+          "6",
+          "7",
+          "9"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "4",
+            "7"
+          ],
+          [
+            "6",
+            "9"
+          ]
+        ],
+        "minimum_presses": 4
+      },
+      "hint": "Pair up lamps that need to change, then try paths between each pair.",
+      "insight": "Different pairings can yield different edge sets. Repeated edges cancel in pairs.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. Different pairings can yield different edge sets. Repeated edges cancel in pairs.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-CAT"
+      ],
+      "provenance": "Week 2 compact catalog, Problem 7, target 4. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).",
+      "difficulty_level": "medium",
+      "worksheet": {
+        "catalog": "compact",
+        "problem": 7,
+        "case": 4,
+        "graph": "grid9"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "Different pairings can yield different edge sets. Repeated edges cancel in pairs.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "Different pairings can yield different edge sets. Repeated edges cancel in pairs. One shortest solution uses 4 presses: 1–2, 2–3, 4–7, 6–9. The app accepts every legal solution.",
+        "extension": "Try a different order of the same wires. Why does the final picture stay the same?",
+        "connection": "Explore paths and cancellations without a move limit. Different pairings can yield different edge sets. Repeated edges cancel in pairs.",
+        "sourceIds": [
+          "expansion-toggle-6"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 27,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "Different pairings can yield different edge sets. Repeated edges cancel in pairs.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Pair up lamps that need to change, then try paths between each pair.",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-28",
+      "title": "Island bridge",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "4",
+            "1"
+          ],
+          [
+            "5",
+            "6"
+          ],
+          [
+            "6",
+            "7"
+          ],
+          [
+            "7",
+            "8"
+          ],
+          [
+            "8",
+            "5"
+          ],
+          [
+            "2",
+            "5"
+          ]
+        ],
+        "positions": [
+          [
+            35,
+            103.75
+          ],
+          [
+            107.5,
+            103.75
+          ],
+          [
+            107.5,
+            176.25
+          ],
+          [
+            35,
+            176.25
+          ],
+          [
+            252.5,
+            103.75
+          ],
+          [
+            325,
+            103.75
+          ],
+          [
+            325,
+            176.25
+          ],
+          [
+            252.5,
+            176.25
+          ]
+        ],
+        "initial_on": [
+          "1"
+        ],
+        "target_on": [
+          "5"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "5"
+          ]
+        ],
+        "minimum_presses": 2
+      },
+      "hint": "Find the wire that joins the two islands.",
+      "insight": "Adding a bridge joins the components and lets a path transfer the light between them.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. Adding a bridge joins the components and lets a path transfer the light between them.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-CAT"
+      ],
+      "provenance": "Week 2 compact catalog, Problem 9, target 1. The worksheet asks the child to draw a bridge. This fixed app instance uses bridge 2–5 from the checked shared data, then asks for the pictured target.",
+      "difficulty_level": "medium",
+      "worksheet": {
+        "catalog": "compact",
+        "problem": 9,
+        "case": 1,
+        "graph": "islands8"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "Adding a bridge joins the components and lets a path transfer the light between them.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "Adding a bridge joins the components and lets a path transfer the light between them. One shortest solution uses 2 presses: 1–2, 2–5. The app accepts every legal solution.",
+        "extension": "Try a different order of the same wires. Why does the final picture stay the same?",
+        "connection": "Explore paths and cancellations without a move limit. Adding a bridge joins the components and lets a path transfer the light between them.",
+        "sourceIds": [
+          "expansion-toggle-6"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 28,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "Adding a bridge joins the components and lets a path transfer the light between them.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Find the wire that joins the two islands.",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-29",
+      "title": "Five-lamp ring",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "5",
+            "1"
+          ]
+        ],
+        "positions": [
+          [
+            180,
+            35
+          ],
+          [
+            290.404,
+            115.213
+          ],
+          [
+            248.233,
+            245
+          ],
+          [
+            111.767,
+            245
+          ],
+          [
+            69.596,
+            115.213
+          ]
+        ],
+        "initial_on": [
+          "1"
+        ],
+        "target_on": [
+          "3"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ]
+        ],
+        "minimum_presses": 2
+      },
+      "hint": "Compare the two ways around the ring.",
+      "insight": "The two reduced edge sets on a ring are complements; the shorter one minimizes presses.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. The two reduced edge sets on a ring are complements; the shorter one minimizes presses.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-UP"
+      ],
+      "provenance": "Week 2 upper catalog, Problem 1, case B. Exact reachable worksheet case, adapted to an individual target solve.",
+      "difficulty_level": "medium",
+      "worksheet": {
+        "catalog": "upper",
+        "problem": 1,
+        "case": "B",
+        "graph": "ring5"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "The two reduced edge sets on a ring are complements; the shorter one minimizes presses.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "The two reduced edge sets on a ring are complements; the shorter one minimizes presses. One shortest solution uses 2 presses: 1–2, 2–3. The app accepts every legal solution.",
+        "extension": "Try a different order of the same wires. Why does the final picture stay the same?",
+        "connection": "Explore paths and cancellations without a move limit. The two reduced edge sets on a ring are complements; the shorter one minimizes presses.",
+        "sourceIds": [
+          "expansion-toggle-7"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 29,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "The two reduced edge sets on a ring are complements; the shorter one minimizes presses.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Compare the two ways around the ring.",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-30",
+      "title": "Bent path",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "5",
+            "6"
+          ]
+        ],
+        "positions": [
+          [
+            35,
+            67.5
+          ],
+          [
+            180,
+            67.5
+          ],
+          [
+            325,
+            67.5
+          ],
+          [
+            325,
+            212.5
+          ],
+          [
+            180,
+            212.5
+          ],
+          [
+            35,
+            212.5
+          ]
+        ],
+        "initial_on": [
+          "1",
+          "2"
+        ],
+        "target_on": [
+          "5",
+          "6"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "5",
+            "6"
+          ]
+        ],
+        "minimum_presses": 2
+      },
+      "hint": "Which end lamps need to change? Each has only one wire.",
+      "insight": "Removing a tree edge separates the board: that edge is forced exactly when one side has an odd number of changed lamps.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. Removing a tree edge separates the board: that edge is forced exactly when one side has an odd number of changed lamps.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-UP"
+      ],
+      "provenance": "Week 2 upper catalog, Problem 1, case F. Exact reachable worksheet case, adapted to an individual target solve.",
+      "difficulty_level": "medium",
+      "worksheet": {
+        "catalog": "upper",
+        "problem": 1,
+        "case": "F",
+        "graph": "path6"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "Removing a tree edge separates the board: that edge is forced exactly when one side has an odd number of changed lamps.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "Removing a tree edge separates the board: that edge is forced exactly when one side has an odd number of changed lamps. One shortest solution uses 2 presses: 1–2, 5–6. The app accepts every legal solution.",
+        "extension": "Try a different order of the same wires. Why does the final picture stay the same?",
+        "connection": "Explore paths and cancellations without a move limit. Removing a tree edge separates the board: that edge is forced exactly when one side has an odd number of changed lamps.",
+        "sourceIds": [
+          "expansion-toggle-7"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 30,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "Removing a tree edge separates the board: that edge is forced exactly when one side has an odd number of changed lamps.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Which end lamps need to change? Each has only one wire.",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-31",
+      "title": "Separate islands",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "1"
+          ],
+          [
+            "4",
+            "5"
+          ]
+        ],
+        "positions": [
+          [
+            35,
+            182.647
+          ],
+          [
+            86.176,
+            97.353
+          ],
+          [
+            137.353,
+            182.647
+          ],
+          [
+            222.647,
+            182.647
+          ],
+          [
+            325,
+            182.647
+          ]
+        ],
+        "initial_on": [
+          "1"
+        ],
+        "target_on": [
+          "3"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "3",
+            "1"
+          ]
+        ],
+        "minimum_presses": 1
+      },
+      "hint": "Which island contains both the starting light and the goal?",
+      "insight": "Each component preserves its own parity. Lamps in another component need not be touched.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. Each component preserves its own parity. Lamps in another component need not be touched.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-UP"
+      ],
+      "provenance": "Week 2 upper catalog, Problem 2, case A. Exact reachable worksheet case, adapted to an individual target solve.",
+      "difficulty_level": "medium",
+      "worksheet": {
+        "catalog": "upper",
+        "problem": 2,
+        "case": "A",
+        "graph": "triangle_pair"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "Each component preserves its own parity. Lamps in another component need not be touched.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "Each component preserves its own parity. Lamps in another component need not be touched. One shortest solution uses 1 presses: 3–1. The app accepts every legal solution.",
+        "extension": "Try a different order of the same wires. Why does the final picture stay the same?",
+        "connection": "Explore paths and cancellations without a move limit. Each component preserves its own parity. Lamps in another component need not be touched.",
+        "sourceIds": [
+          "expansion-toggle-7"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 31,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "Each component preserves its own parity. Lamps in another component need not be touched.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Which island contains both the starting light and the goal?",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-32",
+      "title": "Joined islands",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "1"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "3",
+            "4"
+          ]
+        ],
+        "positions": [
+          [
+            35,
+            182.647
+          ],
+          [
+            86.176,
+            97.353
+          ],
+          [
+            137.353,
+            182.647
+          ],
+          [
+            222.647,
+            182.647
+          ],
+          [
+            325,
+            182.647
+          ]
+        ],
+        "initial_on": [
+          "1"
+        ],
+        "target_on": [
+          "4"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "3",
+            "1"
+          ],
+          [
+            "3",
+            "4"
+          ]
+        ],
+        "minimum_presses": 2
+      },
+      "hint": "Find the path from the starting light across the bridge.",
+      "insight": "The bridge joins the two components. A path changes just its endpoints.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. The bridge joins the two components. A path changes just its endpoints.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-UP"
+      ],
+      "provenance": "Week 2 upper catalog, Problem 2, case C. Exact reachable worksheet case, adapted to an individual target solve.",
+      "difficulty_level": "medium",
+      "worksheet": {
+        "catalog": "upper",
+        "problem": 2,
+        "case": "C",
+        "graph": "triangle_bridge"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "The bridge joins the two components. A path changes just its endpoints.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "The bridge joins the two components. A path changes just its endpoints. One shortest solution uses 2 presses: 3–1, 3–4. The app accepts every legal solution.",
+        "extension": "Try a different order of the same wires. Why does the final picture stay the same?",
+        "connection": "Explore paths and cancellations without a move limit. The bridge joins the two components. A path changes just its endpoints.",
+        "sourceIds": [
+          "expansion-toggle-7"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 32,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "The bridge joins the two components. A path changes just its endpoints.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Find the path from the starting light across the bridge.",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-33",
+      "title": "Two square islands",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "4",
+            "1"
+          ],
+          [
+            "5",
+            "6"
+          ],
+          [
+            "6",
+            "7"
+          ],
+          [
+            "7",
+            "8"
+          ],
+          [
+            "8",
+            "5"
+          ]
+        ],
+        "positions": [
+          [
+            35,
+            91.667
+          ],
+          [
+            131.667,
+            91.667
+          ],
+          [
+            131.667,
+            188.333
+          ],
+          [
+            35,
+            188.333
+          ],
+          [
+            228.333,
+            91.667
+          ],
+          [
+            325,
+            91.667
+          ],
+          [
+            325,
+            188.333
+          ],
+          [
+            228.333,
+            188.333
+          ]
+        ],
+        "initial_on": [
+          "1",
+          "5"
+        ],
+        "target_on": [
+          "2",
+          "8"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "8",
+            "5"
+          ]
+        ],
+        "minimum_presses": 2
+      },
+      "hint": "Work on one island at a time.",
+      "insight": "Each connected component can be solved independently when its start and target have the same parity.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. Each connected component can be solved independently when its start and target have the same parity.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-UP"
+      ],
+      "provenance": "Week 2 upper catalog, Problem 2, case D. Exact reachable worksheet case, adapted to an individual target solve.",
+      "difficulty_level": "medium",
+      "worksheet": {
+        "catalog": "upper",
+        "problem": 2,
+        "case": "D",
+        "graph": "two_squares"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "Each connected component can be solved independently when its start and target have the same parity.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "Each connected component can be solved independently when its start and target have the same parity. One shortest solution uses 2 presses: 1–2, 8–5. The app accepts every legal solution.",
+        "extension": "Try a different order of the same wires. Why does the final picture stay the same?",
+        "connection": "Explore paths and cancellations without a move limit. Each connected component can be solved independently when its start and target have the same parity.",
+        "sourceIds": [
+          "expansion-toggle-7"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 33,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "Each connected component can be solved independently when its start and target have the same parity.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Work on one island at a time.",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-34",
+      "title": "Two branching islands",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "4",
+            "6"
+          ],
+          [
+            "4",
+            "7"
+          ]
+        ],
+        "positions": [
+          [
+            35,
+            97.353
+          ],
+          [
+            94.706,
+            182.647
+          ],
+          [
+            154.412,
+            97.353
+          ],
+          [
+            248.235,
+            140
+          ],
+          [
+            248.235,
+            63.235
+          ],
+          [
+            325,
+            140
+          ],
+          [
+            248.235,
+            216.765
+          ]
+        ],
+        "initial_on": [
+          "1",
+          "4"
+        ],
+        "target_on": [
+          "2",
+          "6"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "4",
+            "6"
+          ]
+        ],
+        "minimum_presses": 2
+      },
+      "hint": "Find the lamps that must change on each separate tree.",
+      "insight": "A reachable target has a unique reduced edge set on each tree, even when each tree starts with an odd number of lights.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. A reachable target has a unique reduced edge set on each tree, even when each tree starts with an odd number of lights.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-UP"
+      ],
+      "provenance": "Week 2 upper catalog, Problem 2, case F. Exact reachable worksheet case, adapted to an individual target solve.",
+      "difficulty_level": "medium",
+      "worksheet": {
+        "catalog": "upper",
+        "problem": 2,
+        "case": "F",
+        "graph": "two_trees"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "A reachable target has a unique reduced edge set on each tree, even when each tree starts with an odd number of lights.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "A reachable target has a unique reduced edge set on each tree, even when each tree starts with an odd number of lights. One shortest solution uses 2 presses: 1–2, 4–6. The app accepts every legal solution.",
+        "extension": "Try a different order of the same wires. Why does the final picture stay the same?",
+        "connection": "Explore paths and cancellations without a move limit. A reachable target has a unique reduced edge set on each tree, even when each tree starts with an odd number of lights.",
+        "sourceIds": [
+          "expansion-toggle-7"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 34,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "A reachable target has a unique reduced edge set on each tree, even when each tree starts with an odd number of lights.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Find the lamps that must change on each separate tree.",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-35",
+      "title": "Seven-lamp ring",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "5",
+            "6"
+          ],
+          [
+            "6",
+            "7"
+          ],
+          [
+            "7",
+            "1"
+          ]
+        ],
+        "positions": [
+          [
+            180,
+            35
+          ],
+          [
+            266.369,
+            76.593
+          ],
+          [
+            287.7,
+            170.052
+          ],
+          [
+            227.931,
+            245
+          ],
+          [
+            132.069,
+            245
+          ],
+          [
+            72.3,
+            170.052
+          ],
+          [
+            93.631,
+            76.593
+          ]
+        ],
+        "initial_on": [
+          "1",
+          "3"
+        ],
+        "target_on": [
+          "2",
+          "4"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "3",
+            "4"
+          ]
+        ],
+        "minimum_presses": 2
+      },
+      "hint": "Look at which lamps differ from the goal, including bright lamps that need to go dark.",
+      "insight": "Pairing the changed lamps along the ring gives complementary reduced solutions.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. Pairing the changed lamps along the ring gives complementary reduced solutions.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-UP"
+      ],
+      "provenance": "Week 2 upper catalog, Problem 3, case D. Exact graph, start, and target; the worksheet asks for every solution set. The app accepts any solution; comparing all reduced sets remains in the grown-up notes.",
+      "difficulty_level": "medium",
+      "worksheet": {
+        "catalog": "upper",
+        "problem": 3,
+        "case": "D",
+        "graph": "ring7"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "Pairing the changed lamps along the ring gives complementary reduced solutions.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "Pairing the changed lamps along the ring gives complementary reduced solutions. One shortest solution uses 2 presses: 1–2, 3–4. The app accepts every legal solution.",
+        "extension": "Find every solution set, pressing each chosen wire once. There are exactly two, complementary around the ring.",
+        "connection": "Explore paths and cancellations without a move limit. Pairing the changed lamps along the ring gives complementary reduced solutions.",
+        "sourceIds": [
+          "expansion-toggle-7"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 35,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "Pairing the changed lamps along the ring gives complementary reduced solutions.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Look at which lamps differ from the goal, including bright lamps that need to go dark.",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-36",
+      "title": "Eight-lamp ring",
+      "prompt": "Make the goal picture in 2 presses.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "5",
+            "6"
+          ],
+          [
+            "6",
+            "7"
+          ],
+          [
+            "7",
+            "8"
+          ],
+          [
+            "8",
+            "1"
+          ]
+        ],
+        "positions": [
+          [
+            180,
+            35
+          ],
+          [
+            254.246,
+            65.754
+          ],
+          [
+            285,
+            140
+          ],
+          [
+            254.246,
+            214.246
+          ],
+          [
+            180,
+            245
+          ],
+          [
+            105.754,
+            214.246
+          ],
+          [
+            75,
+            140
+          ],
+          [
+            105.754,
+            65.754
+          ]
+        ],
+        "initial_on": [],
+        "target_on": [
+          "1",
+          "2",
+          "5",
+          "6"
+        ],
+        "press_budget": 2
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "5",
+            "6"
+          ]
+        ],
+        "minimum_presses": 2
+      },
+      "hint": "Compare pairs that share a wire with lamps separated by dark neighbors.",
+      "insight": "The graph, not just the number of changed lamps, determines the shortest solution.",
+      "difficulty_step": "Planning a shortest solution is required. The graph, not just the number of changed lamps, determines the shortest solution.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths. Count a press budget up to six.",
+      "source_refs": [
+        "T-UP"
+      ],
+      "provenance": "Week 2 upper catalog, Problem 4, case A. Exact shortest-solution worksheet case; the proven minimum is enforced as the press budget.",
+      "difficulty_level": "hard",
+      "worksheet": {
+        "catalog": "upper",
+        "problem": 4,
+        "case": "A",
+        "graph": "ring8"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "The graph, not just the number of changed lamps, determines the shortest solution.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "The graph, not just the number of changed lamps, determines the shortest solution. One shortest solution uses 2 presses: 1–2, 5–6. The app accepts every legal solution within the displayed budget. Four changed lamps need at least two presses, and two disjoint wires attain it.",
+        "extension": "Explain why fewer presses cannot work.",
+        "connection": "Planning a shortest solution is required. The graph, not just the number of changed lamps, determines the shortest solution.",
+        "sourceIds": [
+          "expansion-toggle-7"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 36,
+      "revision": 1,
+      "instruction": "Make the goal picture in 2 presses.",
+      "idea": "The graph, not just the number of changed lamps, determines the shortest solution.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Compare pairs that share a wire with lamps separated by dark neighbors.",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-37",
+      "title": "Eight-lamp ring",
+      "prompt": "Make the goal picture in 4 presses.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "5",
+            "6"
+          ],
+          [
+            "6",
+            "7"
+          ],
+          [
+            "7",
+            "8"
+          ],
+          [
+            "8",
+            "1"
+          ]
+        ],
+        "positions": [
+          [
+            180,
+            35
+          ],
+          [
+            254.246,
+            65.754
+          ],
+          [
+            285,
+            140
+          ],
+          [
+            254.246,
+            214.246
+          ],
+          [
+            180,
+            245
+          ],
+          [
+            105.754,
+            214.246
+          ],
+          [
+            75,
+            140
+          ],
+          [
+            105.754,
+            65.754
+          ]
+        ],
+        "initial_on": [],
+        "target_on": [
+          "1",
+          "3",
+          "5",
+          "7"
+        ],
+        "press_budget": 4
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "5",
+            "6"
+          ],
+          [
+            "6",
+            "7"
+          ]
+        ],
+        "minimum_presses": 4
+      },
+      "hint": "Compare pairs that share a wire with lamps separated by dark neighbors.",
+      "insight": "The graph, not just the number of changed lamps, determines the shortest solution.",
+      "difficulty_step": "Planning a shortest solution is required. The graph, not just the number of changed lamps, determines the shortest solution.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths. Count a press budget up to six.",
+      "source_refs": [
+        "T-UP"
+      ],
+      "provenance": "Week 2 upper catalog, Problem 4, case B. Exact shortest-solution worksheet case; the proven minimum is enforced as the press budget.",
+      "difficulty_level": "hard",
+      "worksheet": {
+        "catalog": "upper",
+        "problem": 4,
+        "case": "B",
+        "graph": "ring8"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "The graph, not just the number of changed lamps, determines the shortest solution.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "The graph, not just the number of changed lamps, determines the shortest solution. One shortest solution uses 4 presses: 1–2, 2–3, 5–6, 6–7. The app accepts every legal solution within the displayed budget. The four target lamps have no wires between them. A press can change at most one of them, so at least four presses are needed.",
+        "extension": "Explain why fewer presses cannot work.",
+        "connection": "Planning a shortest solution is required. The graph, not just the number of changed lamps, determines the shortest solution.",
+        "sourceIds": [
+          "expansion-toggle-7"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 37,
+      "revision": 1,
+      "instruction": "Make the goal picture in 4 presses.",
+      "idea": "The graph, not just the number of changed lamps, determines the shortest solution.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Compare pairs that share a wire with lamps separated by dark neighbors.",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-38",
+      "title": "Six-lamp ring",
+      "prompt": "Make the goal picture in 3 presses.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "5",
+            "6"
+          ],
+          [
+            "6",
+            "1"
+          ]
+        ],
+        "positions": [
+          [
+            180,
+            35
+          ],
+          [
+            270.933,
+            87.5
+          ],
+          [
+            270.933,
+            192.5
+          ],
+          [
+            180,
+            245
+          ],
+          [
+            89.067,
+            192.5
+          ],
+          [
+            89.067,
+            87.5
+          ]
+        ],
+        "initial_on": [],
+        "target_on": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ],
+        "press_budget": 3
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "5",
+            "6"
+          ]
+        ],
+        "minimum_presses": 3
+      },
+      "hint": "Follow a path between lamps that need to change. What happens to the lamps in between?",
+      "insight": "The interior of a pressed path changes twice, leaving only its endpoints changed.",
+      "difficulty_step": "Planning a shortest solution is required. The interior of a pressed path changes twice, leaving only its endpoints changed.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths. Count a press budget up to six.",
+      "source_refs": [
+        "T-UP"
+      ],
+      "provenance": "Week 2 upper catalog, Problem 4, case C. Exact shortest-solution worksheet case; the proven minimum is enforced as the press budget.",
+      "difficulty_level": "hard",
+      "worksheet": {
+        "catalog": "upper",
+        "problem": 4,
+        "case": "C",
+        "graph": "ring6"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "The interior of a pressed path changes twice, leaving only its endpoints changed.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "The interior of a pressed path changes twice, leaving only its endpoints changed. One shortest solution uses 3 presses: 1–2, 3–4, 5–6. The app accepts every legal solution within the displayed budget. Six changed lamps need at least three presses; alternating wires attain it.",
+        "extension": "Explain why fewer presses cannot work.",
+        "connection": "Planning a shortest solution is required. The interior of a pressed path changes twice, leaving only its endpoints changed.",
+        "sourceIds": [
+          "expansion-toggle-7"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 38,
+      "revision": 1,
+      "instruction": "Make the goal picture in 3 presses.",
+      "idea": "The interior of a pressed path changes twice, leaving only its endpoints changed.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Follow a path between lamps that need to change. What happens to the lamps in between?",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-39",
+      "title": "Bent path",
+      "prompt": "Make the goal picture in 5 presses.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "5",
+            "6"
+          ]
+        ],
+        "positions": [
+          [
+            35,
+            67.5
+          ],
+          [
+            180,
+            67.5
+          ],
+          [
+            325,
+            67.5
+          ],
+          [
+            325,
+            212.5
+          ],
+          [
+            180,
+            212.5
+          ],
+          [
+            35,
+            212.5
+          ]
+        ],
+        "initial_on": [],
+        "target_on": [
+          "1",
+          "6"
+        ],
+        "press_budget": 5
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "3",
+            "4"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "5",
+            "6"
+          ]
+        ],
+        "minimum_presses": 5
+      },
+      "hint": "Which end lamps need to change? Each has only one wire.",
+      "insight": "Removing a tree edge separates the board: that edge is forced exactly when one side has an odd number of changed lamps.",
+      "difficulty_step": "Planning a shortest solution is required. Removing a tree edge separates the board: that edge is forced exactly when one side has an odd number of changed lamps.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths. Count a press budget up to six.",
+      "source_refs": [
+        "T-UP"
+      ],
+      "provenance": "Week 2 upper catalog, Problem 4, case D. Exact shortest-solution worksheet case; the proven minimum is enforced as the press budget.",
+      "difficulty_level": "hard",
+      "worksheet": {
+        "catalog": "upper",
+        "problem": 4,
+        "case": "D",
+        "graph": "path6"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "Removing a tree edge separates the board: that edge is forced exactly when one side has an odd number of changed lamps.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "Removing a tree edge separates the board: that edge is forced exactly when one side has an odd number of changed lamps. One shortest solution uses 5 presses: 1–2, 2–3, 3–4, 4–5, 5–6. The app accepts every legal solution within the displayed budget. Removing any wire separates the two changed endpoints. Every wire must therefore be pressed an odd number of times, so five presses are necessary.",
+        "extension": "Explain why fewer presses cannot work.",
+        "connection": "Planning a shortest solution is required. Removing a tree edge separates the board: that edge is forced exactly when one side has an odd number of changed lamps.",
+        "sourceIds": [
+          "expansion-toggle-7"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 39,
+      "revision": 1,
+      "instruction": "Make the goal picture in 5 presses.",
+      "idea": "Removing a tree edge separates the board: that edge is forced exactly when one side has an odd number of changed lamps.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Which end lamps need to change? Each has only one wire.",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-40",
+      "title": "Four-spoke star",
+      "prompt": "Make the goal picture in 4 presses.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "1",
+            "3"
+          ],
+          [
+            "1",
+            "4"
+          ],
+          [
+            "1",
+            "5"
+          ]
+        ],
+        "positions": [
+          [
+            180,
+            140
+          ],
+          [
+            180,
+            35
+          ],
+          [
+            285,
+            140
+          ],
+          [
+            180,
+            245
+          ],
+          [
+            75,
+            140
+          ]
+        ],
+        "initial_on": [],
+        "target_on": [
+          "2",
+          "3",
+          "4",
+          "5"
+        ],
+        "press_budget": 4
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "1",
+            "3"
+          ],
+          [
+            "1",
+            "4"
+          ],
+          [
+            "1",
+            "5"
+          ]
+        ],
+        "minimum_presses": 4
+      },
+      "hint": "Each outer lantern has just one wire.",
+      "insight": "Every leaf that must change forces its spoke. Four spokes change the center four times, leaving it unchanged.",
+      "difficulty_step": "Planning a shortest solution is required. Every leaf that must change forces its spoke. Four spokes change the center four times, leaving it unchanged.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths. Count a press budget up to six.",
+      "source_refs": [
+        "T-UP"
+      ],
+      "provenance": "Week 2 upper catalog, Problem 4, case E. Exact shortest-solution worksheet case; the proven minimum is enforced as the press budget.",
+      "difficulty_level": "hard",
+      "worksheet": {
+        "catalog": "upper",
+        "problem": 4,
+        "case": "E",
+        "graph": "star5"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "Every leaf that must change forces its spoke. Four spokes change the center four times, leaving it unchanged.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "Every leaf that must change forces its spoke. Four spokes change the center four times, leaving it unchanged. One shortest solution uses 4 presses: 1–2, 1–3, 1–4, 1–5. The app accepts every legal solution within the displayed budget. Each of the four leaves must change and has only one wire. All four spokes are forced.",
+        "extension": "Explain why fewer presses cannot work.",
+        "connection": "Planning a shortest solution is required. Every leaf that must change forces its spoke. Four spokes change the center four times, leaving it unchanged.",
+        "sourceIds": [
+          "expansion-toggle-7"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 40,
+      "revision": 1,
+      "instruction": "Make the goal picture in 4 presses.",
+      "idea": "Every leaf that must change forces its spoke. Four spokes change the center four times, leaving it unchanged.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Each outer lantern has just one wire.",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-41",
+      "title": "Two branch points",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "2",
+            "4"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "4",
+            "6"
+          ]
+        ],
+        "positions": [
+          [
+            35,
+            140
+          ],
+          [
+            131.667,
+            140
+          ],
+          [
+            131.667,
+            43.333
+          ],
+          [
+            228.333,
+            140
+          ],
+          [
+            228.333,
+            236.667
+          ],
+          [
+            325,
+            140
+          ]
+        ],
+        "initial_on": [],
+        "target_on": [
+          "1",
+          "3",
+          "5",
+          "6"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "2",
+            "3"
+          ],
+          [
+            "4",
+            "5"
+          ],
+          [
+            "4",
+            "6"
+          ]
+        ],
+        "minimum_presses": 4
+      },
+      "hint": "Start by looking at the leaves that must change.",
+      "insight": "Leaf constraints force a unique reduced edge set; the middle wire may not be needed.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. Leaf constraints force a unique reduced edge set; the middle wire may not be needed.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-UP"
+      ],
+      "provenance": "Week 2 upper catalog, Problem 6, case A. Exact graph, start, and target; the worksheet asks for every solution set. The app accepts any solution; comparing all reduced sets remains in the grown-up notes.",
+      "difficulty_level": "hard",
+      "worksheet": {
+        "catalog": "upper",
+        "problem": 6,
+        "case": "A",
+        "graph": "tree6"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "Leaf constraints force a unique reduced edge set; the middle wire may not be needed.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "Leaf constraints force a unique reduced edge set; the middle wire may not be needed. One shortest solution uses 4 presses: 1–2, 2–3, 4–5, 4–6. The app accepts every legal solution.",
+        "extension": "Find every solution set, pressing each chosen wire once. There is exactly one: leaf constraints force it. Reordering its wires does not create a different set.",
+        "connection": "Explore paths and cancellations without a move limit. Leaf constraints force a unique reduced edge set; the middle wire may not be needed.",
+        "sourceIds": [
+          "expansion-toggle-7"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 41,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "Leaf constraints force a unique reduced edge set; the middle wire may not be needed.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Start by looking at the leaves that must change.",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
+    },
+    {
+      "id": "toggle-42",
+      "title": "Six-spoke star",
+      "prompt": "Make the picture on the goal card.",
+      "parameters": {
+        "topology": "worksheet_graph",
+        "vertices": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7"
+        ],
+        "edges": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "1",
+            "3"
+          ],
+          [
+            "1",
+            "4"
+          ],
+          [
+            "1",
+            "5"
+          ],
+          [
+            "1",
+            "6"
+          ],
+          [
+            "1",
+            "7"
+          ]
+        ],
+        "positions": [
+          [
+            180,
+            140
+          ],
+          [
+            180,
+            35
+          ],
+          [
+            270.93,
+            87.5
+          ],
+          [
+            270.93,
+            192.5
+          ],
+          [
+            180,
+            245
+          ],
+          [
+            89.07,
+            192.5
+          ],
+          [
+            89.07,
+            87.5
+          ]
+        ],
+        "initial_on": [
+          "2",
+          "4"
+        ],
+        "target_on": [
+          "3",
+          "5",
+          "6",
+          "7"
+        ],
+        "press_budget": null
+      },
+      "solution": {
+        "presses": [
+          [
+            "1",
+            "2"
+          ],
+          [
+            "1",
+            "3"
+          ],
+          [
+            "1",
+            "4"
+          ],
+          [
+            "1",
+            "5"
+          ],
+          [
+            "1",
+            "6"
+          ],
+          [
+            "1",
+            "7"
+          ]
+        ],
+        "minimum_presses": 6
+      },
+      "hint": "Compare each outer lamp with its goal.",
+      "insight": "Every leaf differs from the target, so all six spokes are forced. The center changes six times and stays dark.",
+      "difficulty_step": "Explore paths and cancellations without a move limit. Every leaf differs from the target, so all six spokes are forced. The center changes six times and stays dark.",
+      "prerequisites": "Compare bright and dark lamps, follow a pair flip, and track paths.",
+      "source_refs": [
+        "T-UP"
+      ],
+      "provenance": "Week 2 upper catalog, Problem 6, case B. Exact graph, start, and target; the worksheet asks for every solution set. The app accepts any solution; comparing all reduced sets remains in the grown-up notes.",
+      "difficulty_level": "hard",
+      "worksheet": {
+        "catalog": "upper",
+        "problem": 6,
+        "case": "B",
+        "graph": "star7"
+      },
+      "sourceDocument": "docs/puzzle-expansion/lantern-worksheets.md",
+      "parent": {
+        "notice": "Every leaf differs from the target, so all six spokes are forced. The center changes six times and stays dark.",
+        "prompt": "Which lamps need to change, and which need to stay as they are?",
+        "explanation": "Every leaf differs from the target, so all six spokes are forced. The center changes six times and stays dark. One shortest solution uses 6 presses: 1–2, 1–3, 1–4, 1–5, 1–6, 1–7. The app accepts every legal solution.",
+        "extension": "Find every solution set, pressing each chosen wire once. There is exactly one: leaf constraints force it. Reordering its wires does not create a different set.",
+        "connection": "Explore paths and cancellations without a move limit. Every leaf differs from the target, so all six spokes are forced. The center changes six times and stays dark.",
+        "sourceIds": [
+          "expansion-toggle-7"
+        ]
+      },
+      "band": "all",
+      "mechanic": "toggle",
+      "familyTitle": "Lantern Wires",
+      "number": 42,
+      "revision": 1,
+      "instruction": "Make the picture on the goal card.",
+      "idea": "Every leaf differs from the target, so all six spokes are forced. The center changes six times and stays dark.",
+      "rules": [
+        "A board is a graph: lanterns are vertices and every drawn wire is a legal move.",
+        "Pressing a wire flips both endpoint states. It never moves a lantern.",
+        "The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.",
+        "When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.",
+        "Every successful replay within the budget is accepted; the supplied replay is only a witness."
+      ],
+      "controls": "Tap a wire to change BOTH lanterns at its ends: bright becomes dark and dark becomes bright. Make the picture on the goal card.",
+      "hints": [
+        "Compare each outer lamp with its goal.",
+        "Look at what your latest move changed. You can undo and try another choice.",
+        "Ask for one next move from this position."
+      ]
     },
     {
       "id": "clock-01",
@@ -20075,7 +24470,9 @@
         "expansion-toggle-2",
         "expansion-toggle-3",
         "expansion-toggle-4",
-        "expansion-toggle-5"
+        "expansion-toggle-5",
+        "expansion-toggle-6",
+        "expansion-toggle-7"
       ]
     },
     {

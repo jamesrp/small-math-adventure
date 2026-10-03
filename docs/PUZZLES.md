@@ -1,4 +1,4 @@
-# All 192 authored puzzles
+# All 222 authored puzzles
 
 Canonical shipped content: `dist/puzzles.json`. Coordinates and allowed swap positions below are one-based. All core boards are solvable; every legal completion is accepted. Hints here describe the initial board. In-app actionable hints are computed from the current board.
 
@@ -2324,7 +2324,7 @@ Allowed positions: 1↔2, 1↔6, 2↔3, 3↔4, 4↔5, 5↔6. Exact minimum: **5*
 
 ## Ten expanded puzzle families
 
-Each twelve-puzzle collection is available from every grade trail, grouped by Easy, Medium, and Hard. See [the expansion specification](puzzle-expansion/README.md) for exact source lineage and mathematical checks. Difficulty labels are relative within each family and await family playtesting. All valid completions are accepted; witnesses are examples, not answer templates.
+Each puzzle collection is available from every grade trail, grouped by Easy, Medium, and Hard. See [the expansion specification](puzzle-expansion/README.md) for exact source lineage and mathematical checks. Difficulty labels are relative within each family and await family playtesting. All valid completions are accepted; witnesses are examples, not answer templates.
 
 ### Lantern Wires
 
@@ -3784,6 +3784,3935 @@ ID: `toggle-12`
 **Adaptation:** New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.
 
 **Sources:** [week-02-k-1.tex — K–1 / 1, Tasks 1–2, “Two at a time”](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-02/week-02-k-1.tex); [week-02-grades-2-3.tex — Grades 2–3 / 2, Task 4, “Make two far-apart lamps”](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-02/week-02-grades-2-3.tex); [week-02-grades-4-5.tex — Grades 4–5 / 2, Tasks 3–4, and / 3, Task 7](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-02/week-02-grades-4-5.tex); [week-02-facilitator.tex — Facilitator / 3, “Undergraduate interpretation”; / 4, “Extra: why a tree has one solution” and “Research connection and its boundary”](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-02/week-02-facilitator.tex); [week-02-redesign.md — “The mathematical destination”; “Sources and boundaries”; “Verification and future progression”](/Users/jamespfeiffer/math-circle/plans/week-02-redesign.md).
+
+#### 13. Four lanterns
+
+ID: `toggle-13`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "4",
+      "1"
+    ]
+  ],
+  "positions": [
+    [
+      180,
+      35
+    ],
+    [
+      285,
+      140
+    ],
+    [
+      180,
+      245
+    ],
+    [
+      75,
+      140
+    ]
+  ],
+  "initial_on": [],
+  "target_on": [
+    "1",
+    "2",
+    "3",
+    "4"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Try lighting disjoint neighboring pairs.
+
+**Insight:** Disjoint edges can change four lamps in two presses.
+
+**Mathematics:** Disjoint edges can change four lamps in two presses. One shortest solution uses 2 presses: 1–2, 3–4. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "3",
+      "4"
+    ]
+  ],
+  "minimum_presses": 2
+}
+```
+
+**Adaptation:** Week 2 compact catalog, Problem 1, target 3. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).
+
+**Sources:** [Week 2 / Lamp lab / Compact puzzle catalog (F02-S-CAT-v2)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog.pdf).
+
+#### 14. Six-lamp ring
+
+ID: `toggle-14`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "5",
+      "6"
+    ],
+    [
+      "6",
+      "1"
+    ]
+  ],
+  "positions": [
+    [
+      180,
+      35
+    ],
+    [
+      270.93,
+      87.5
+    ],
+    [
+      270.93,
+      192.5
+    ],
+    [
+      180,
+      245
+    ],
+    [
+      89.07,
+      192.5
+    ],
+    [
+      89.07,
+      87.5
+    ]
+  ],
+  "initial_on": [
+    "1"
+  ],
+  "target_on": [
+    "3"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Follow a path between lamps that need to change. What happens to the lamps in between?
+
+**Insight:** The interior of a pressed path changes twice, leaving only its endpoints changed.
+
+**Mathematics:** The interior of a pressed path changes twice, leaving only its endpoints changed. One shortest solution uses 2 presses: 1–2, 2–3. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ]
+  ],
+  "minimum_presses": 2
+}
+```
+
+**Adaptation:** Week 2 compact catalog, Problem 2, target 1. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).
+
+**Sources:** [Week 2 / Lamp lab / Compact puzzle catalog (F02-S-CAT-v2)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog.pdf).
+
+#### 15. Six-lamp ring
+
+ID: `toggle-15`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "5",
+      "6"
+    ],
+    [
+      "6",
+      "1"
+    ]
+  ],
+  "positions": [
+    [
+      180,
+      35
+    ],
+    [
+      270.93,
+      87.5
+    ],
+    [
+      270.93,
+      192.5
+    ],
+    [
+      180,
+      245
+    ],
+    [
+      89.07,
+      192.5
+    ],
+    [
+      89.07,
+      87.5
+    ]
+  ],
+  "initial_on": [
+    "1"
+  ],
+  "target_on": [
+    "4"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Follow a path between lamps that need to change. What happens to the lamps in between?
+
+**Insight:** The interior of a pressed path changes twice, leaving only its endpoints changed.
+
+**Mathematics:** The interior of a pressed path changes twice, leaving only its endpoints changed. One shortest solution uses 3 presses: 1–2, 2–3, 3–4. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ]
+  ],
+  "minimum_presses": 3
+}
+```
+
+**Adaptation:** Week 2 compact catalog, Problem 2, target 2. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).
+
+**Sources:** [Week 2 / Lamp lab / Compact puzzle catalog (F02-S-CAT-v2)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog.pdf).
+
+#### 16. Branching tree
+
+ID: `toggle-16`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "3",
+      "6"
+    ],
+    [
+      "6",
+      "7"
+    ],
+    [
+      "6",
+      "8"
+    ]
+  ],
+  "positions": [
+    [
+      35,
+      67.5
+    ],
+    [
+      107.5,
+      67.5
+    ],
+    [
+      180,
+      67.5
+    ],
+    [
+      252.5,
+      67.5
+    ],
+    [
+      325,
+      67.5
+    ],
+    [
+      180,
+      140
+    ],
+    [
+      107.5,
+      212.5
+    ],
+    [
+      252.5,
+      212.5
+    ]
+  ],
+  "initial_on": [
+    "1"
+  ],
+  "target_on": [
+    "5"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Trace from the starting light toward the goal. At a fork, choose the branch that contains the goal.
+
+**Insight:** A tree has a unique path between two lamps. Pressing that path changes only its endpoints.
+
+**Mathematics:** A tree has a unique path between two lamps. Pressing that path changes only its endpoints. One shortest solution uses 4 presses: 1–2, 2–3, 3–4, 4–5. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "4",
+      "5"
+    ]
+  ],
+  "minimum_presses": 4
+}
+```
+
+**Adaptation:** Week 2 compact catalog, Problem 4, target 1. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).
+
+**Sources:** [Week 2 / Lamp lab / Compact puzzle catalog (F02-S-CAT-v2)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog.pdf).
+
+#### 17. Branching tree
+
+ID: `toggle-17`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "3",
+      "6"
+    ],
+    [
+      "6",
+      "7"
+    ],
+    [
+      "6",
+      "8"
+    ]
+  ],
+  "positions": [
+    [
+      35,
+      67.5
+    ],
+    [
+      107.5,
+      67.5
+    ],
+    [
+      180,
+      67.5
+    ],
+    [
+      252.5,
+      67.5
+    ],
+    [
+      325,
+      67.5
+    ],
+    [
+      180,
+      140
+    ],
+    [
+      107.5,
+      212.5
+    ],
+    [
+      252.5,
+      212.5
+    ]
+  ],
+  "initial_on": [
+    "1"
+  ],
+  "target_on": [
+    "7"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Trace from the starting light toward the goal. At a fork, choose the branch that contains the goal.
+
+**Insight:** A tree has a unique path between two lamps. Pressing that path changes only its endpoints.
+
+**Mathematics:** A tree has a unique path between two lamps. Pressing that path changes only its endpoints. One shortest solution uses 4 presses: 1–2, 2–3, 3–6, 6–7. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "6"
+    ],
+    [
+      "6",
+      "7"
+    ]
+  ],
+  "minimum_presses": 4
+}
+```
+
+**Adaptation:** Week 2 compact catalog, Problem 4, target 2. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).
+
+**Sources:** [Week 2 / Lamp lab / Compact puzzle catalog (F02-S-CAT-v2)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog.pdf).
+
+#### 18. Branching tree
+
+ID: `toggle-18`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "3",
+      "6"
+    ],
+    [
+      "6",
+      "7"
+    ],
+    [
+      "6",
+      "8"
+    ]
+  ],
+  "positions": [
+    [
+      35,
+      67.5
+    ],
+    [
+      107.5,
+      67.5
+    ],
+    [
+      180,
+      67.5
+    ],
+    [
+      252.5,
+      67.5
+    ],
+    [
+      325,
+      67.5
+    ],
+    [
+      180,
+      140
+    ],
+    [
+      107.5,
+      212.5
+    ],
+    [
+      252.5,
+      212.5
+    ]
+  ],
+  "initial_on": [
+    "1"
+  ],
+  "target_on": [
+    "8"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Trace from the starting light toward the goal. At a fork, choose the branch that contains the goal.
+
+**Insight:** A tree has a unique path between two lamps. Pressing that path changes only its endpoints.
+
+**Mathematics:** A tree has a unique path between two lamps. Pressing that path changes only its endpoints. One shortest solution uses 4 presses: 1–2, 2–3, 3–6, 6–8. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "6"
+    ],
+    [
+      "6",
+      "8"
+    ]
+  ],
+  "minimum_presses": 4
+}
+```
+
+**Adaptation:** Week 2 compact catalog, Problem 4, target 3. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).
+
+**Sources:** [Week 2 / Lamp lab / Compact puzzle catalog (F02-S-CAT-v2)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog.pdf).
+
+#### 19. Branching tree
+
+ID: `toggle-19`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "3",
+      "6"
+    ],
+    [
+      "6",
+      "7"
+    ],
+    [
+      "6",
+      "8"
+    ]
+  ],
+  "positions": [
+    [
+      35,
+      67.5
+    ],
+    [
+      107.5,
+      67.5
+    ],
+    [
+      180,
+      67.5
+    ],
+    [
+      252.5,
+      67.5
+    ],
+    [
+      325,
+      67.5
+    ],
+    [
+      180,
+      140
+    ],
+    [
+      107.5,
+      212.5
+    ],
+    [
+      252.5,
+      212.5
+    ]
+  ],
+  "initial_on": [],
+  "target_on": [
+    "1",
+    "8"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Trace from the starting light toward the goal. At a fork, choose the branch that contains the goal.
+
+**Insight:** A tree has a unique path between two lamps. Pressing that path changes only its endpoints.
+
+**Mathematics:** A tree has a unique path between two lamps. Pressing that path changes only its endpoints. One shortest solution uses 4 presses: 1–2, 2–3, 3–6, 6–8. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "6"
+    ],
+    [
+      "6",
+      "8"
+    ]
+  ],
+  "minimum_presses": 4
+}
+```
+
+**Adaptation:** Week 2 compact catalog, Problem 5, target 1. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).
+
+**Sources:** [Week 2 / Lamp lab / Compact puzzle catalog (F02-S-CAT-v2)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog.pdf).
+
+#### 20. Six-lamp ring
+
+ID: `toggle-20`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "5",
+      "6"
+    ],
+    [
+      "6",
+      "1"
+    ]
+  ],
+  "positions": [
+    [
+      180,
+      35
+    ],
+    [
+      270.93,
+      87.5
+    ],
+    [
+      270.93,
+      192.5
+    ],
+    [
+      180,
+      245
+    ],
+    [
+      89.07,
+      192.5
+    ],
+    [
+      89.07,
+      87.5
+    ]
+  ],
+  "initial_on": [],
+  "target_on": [
+    "1",
+    "2"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Follow a path between lamps that need to change. What happens to the lamps in between?
+
+**Insight:** The interior of a pressed path changes twice, leaving only its endpoints changed.
+
+**Mathematics:** The interior of a pressed path changes twice, leaving only its endpoints changed. One shortest solution uses 1 presses: 1–2. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ]
+  ],
+  "minimum_presses": 1
+}
+```
+
+**Adaptation:** Week 2 compact catalog, Problem 6, target 1. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).
+
+**Sources:** [Week 2 / Lamp lab / Compact puzzle catalog (F02-S-CAT-v2)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog.pdf).
+
+#### 21. Six-lamp ring
+
+ID: `toggle-21`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "5",
+      "6"
+    ],
+    [
+      "6",
+      "1"
+    ]
+  ],
+  "positions": [
+    [
+      180,
+      35
+    ],
+    [
+      270.93,
+      87.5
+    ],
+    [
+      270.93,
+      192.5
+    ],
+    [
+      180,
+      245
+    ],
+    [
+      89.07,
+      192.5
+    ],
+    [
+      89.07,
+      87.5
+    ]
+  ],
+  "initial_on": [],
+  "target_on": [
+    "1",
+    "4"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Follow a path between lamps that need to change. What happens to the lamps in between?
+
+**Insight:** The interior of a pressed path changes twice, leaving only its endpoints changed.
+
+**Mathematics:** The interior of a pressed path changes twice, leaving only its endpoints changed. One shortest solution uses 3 presses: 1–2, 2–3, 3–4. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ]
+  ],
+  "minimum_presses": 3
+}
+```
+
+**Adaptation:** Week 2 compact catalog, Problem 6, target 2. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).
+
+**Sources:** [Week 2 / Lamp lab / Compact puzzle catalog (F02-S-CAT-v2)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog.pdf).
+
+#### 22. Six-lamp ring
+
+ID: `toggle-22`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "5",
+      "6"
+    ],
+    [
+      "6",
+      "1"
+    ]
+  ],
+  "positions": [
+    [
+      180,
+      35
+    ],
+    [
+      270.93,
+      87.5
+    ],
+    [
+      270.93,
+      192.5
+    ],
+    [
+      180,
+      245
+    ],
+    [
+      89.07,
+      192.5
+    ],
+    [
+      89.07,
+      87.5
+    ]
+  ],
+  "initial_on": [],
+  "target_on": [
+    "1",
+    "2",
+    "4",
+    "5"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Follow a path between lamps that need to change. What happens to the lamps in between?
+
+**Insight:** The interior of a pressed path changes twice, leaving only its endpoints changed.
+
+**Mathematics:** The interior of a pressed path changes twice, leaving only its endpoints changed. One shortest solution uses 2 presses: 1–2, 4–5. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "4",
+      "5"
+    ]
+  ],
+  "minimum_presses": 2
+}
+```
+
+**Adaptation:** Week 2 compact catalog, Problem 6, target 3. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).
+
+**Sources:** [Week 2 / Lamp lab / Compact puzzle catalog (F02-S-CAT-v2)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog.pdf).
+
+#### 23. Six-lamp ring
+
+ID: `toggle-23`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "5",
+      "6"
+    ],
+    [
+      "6",
+      "1"
+    ]
+  ],
+  "positions": [
+    [
+      180,
+      35
+    ],
+    [
+      270.93,
+      87.5
+    ],
+    [
+      270.93,
+      192.5
+    ],
+    [
+      180,
+      245
+    ],
+    [
+      89.07,
+      192.5
+    ],
+    [
+      89.07,
+      87.5
+    ]
+  ],
+  "initial_on": [],
+  "target_on": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Follow a path between lamps that need to change. What happens to the lamps in between?
+
+**Insight:** The interior of a pressed path changes twice, leaving only its endpoints changed.
+
+**Mathematics:** The interior of a pressed path changes twice, leaving only its endpoints changed. One shortest solution uses 3 presses: 1–2, 3–4, 5–6. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "5",
+      "6"
+    ]
+  ],
+  "minimum_presses": 3
+}
+```
+
+**Adaptation:** Week 2 compact catalog, Problem 6, target 4. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).
+
+**Sources:** [Week 2 / Lamp lab / Compact puzzle catalog (F02-S-CAT-v2)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog.pdf).
+
+#### 24. Nine-lamp grid
+
+ID: `toggle-24`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "5",
+      "6"
+    ],
+    [
+      "7",
+      "8"
+    ],
+    [
+      "8",
+      "9"
+    ],
+    [
+      "1",
+      "4"
+    ],
+    [
+      "4",
+      "7"
+    ],
+    [
+      "2",
+      "5"
+    ],
+    [
+      "5",
+      "8"
+    ],
+    [
+      "3",
+      "6"
+    ],
+    [
+      "6",
+      "9"
+    ]
+  ],
+  "positions": [
+    [
+      75,
+      35
+    ],
+    [
+      180,
+      35
+    ],
+    [
+      285,
+      35
+    ],
+    [
+      75,
+      140
+    ],
+    [
+      180,
+      140
+    ],
+    [
+      285,
+      140
+    ],
+    [
+      75,
+      245
+    ],
+    [
+      180,
+      245
+    ],
+    [
+      285,
+      245
+    ]
+  ],
+  "initial_on": [],
+  "target_on": [
+    "1",
+    "5"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Pair up lamps that need to change, then try paths between each pair.
+
+**Insight:** Different pairings can yield different edge sets. Repeated edges cancel in pairs.
+
+**Mathematics:** Different pairings can yield different edge sets. Repeated edges cancel in pairs. One shortest solution uses 2 presses: 1–2, 2–5. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "5"
+    ]
+  ],
+  "minimum_presses": 2
+}
+```
+
+**Adaptation:** Week 2 compact catalog, Problem 7, target 1. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).
+
+**Sources:** [Week 2 / Lamp lab / Compact puzzle catalog (F02-S-CAT-v2)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog.pdf).
+
+#### 25. Nine-lamp grid
+
+ID: `toggle-25`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "5",
+      "6"
+    ],
+    [
+      "7",
+      "8"
+    ],
+    [
+      "8",
+      "9"
+    ],
+    [
+      "1",
+      "4"
+    ],
+    [
+      "4",
+      "7"
+    ],
+    [
+      "2",
+      "5"
+    ],
+    [
+      "5",
+      "8"
+    ],
+    [
+      "3",
+      "6"
+    ],
+    [
+      "6",
+      "9"
+    ]
+  ],
+  "positions": [
+    [
+      75,
+      35
+    ],
+    [
+      180,
+      35
+    ],
+    [
+      285,
+      35
+    ],
+    [
+      75,
+      140
+    ],
+    [
+      180,
+      140
+    ],
+    [
+      285,
+      140
+    ],
+    [
+      75,
+      245
+    ],
+    [
+      180,
+      245
+    ],
+    [
+      285,
+      245
+    ]
+  ],
+  "initial_on": [],
+  "target_on": [
+    "2",
+    "8"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Pair up lamps that need to change, then try paths between each pair.
+
+**Insight:** Different pairings can yield different edge sets. Repeated edges cancel in pairs.
+
+**Mathematics:** Different pairings can yield different edge sets. Repeated edges cancel in pairs. One shortest solution uses 2 presses: 2–5, 5–8. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "2",
+      "5"
+    ],
+    [
+      "5",
+      "8"
+    ]
+  ],
+  "minimum_presses": 2
+}
+```
+
+**Adaptation:** Week 2 compact catalog, Problem 7, target 2. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).
+
+**Sources:** [Week 2 / Lamp lab / Compact puzzle catalog (F02-S-CAT-v2)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog.pdf).
+
+#### 26. Nine-lamp grid
+
+ID: `toggle-26`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "5",
+      "6"
+    ],
+    [
+      "7",
+      "8"
+    ],
+    [
+      "8",
+      "9"
+    ],
+    [
+      "1",
+      "4"
+    ],
+    [
+      "4",
+      "7"
+    ],
+    [
+      "2",
+      "5"
+    ],
+    [
+      "5",
+      "8"
+    ],
+    [
+      "3",
+      "6"
+    ],
+    [
+      "6",
+      "9"
+    ]
+  ],
+  "positions": [
+    [
+      75,
+      35
+    ],
+    [
+      180,
+      35
+    ],
+    [
+      285,
+      35
+    ],
+    [
+      75,
+      140
+    ],
+    [
+      180,
+      140
+    ],
+    [
+      285,
+      140
+    ],
+    [
+      75,
+      245
+    ],
+    [
+      180,
+      245
+    ],
+    [
+      285,
+      245
+    ]
+  ],
+  "initial_on": [],
+  "target_on": [
+    "1",
+    "3",
+    "7",
+    "9"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Pair up lamps that need to change, then try paths between each pair.
+
+**Insight:** Different pairings can yield different edge sets. Repeated edges cancel in pairs.
+
+**Mathematics:** Different pairings can yield different edge sets. Repeated edges cancel in pairs. One shortest solution uses 4 presses: 1–2, 2–3, 7–8, 8–9. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "7",
+      "8"
+    ],
+    [
+      "8",
+      "9"
+    ]
+  ],
+  "minimum_presses": 4
+}
+```
+
+**Adaptation:** Week 2 compact catalog, Problem 7, target 3. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).
+
+**Sources:** [Week 2 / Lamp lab / Compact puzzle catalog (F02-S-CAT-v2)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog.pdf).
+
+#### 27. Nine-lamp grid
+
+ID: `toggle-27`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "5",
+      "6"
+    ],
+    [
+      "7",
+      "8"
+    ],
+    [
+      "8",
+      "9"
+    ],
+    [
+      "1",
+      "4"
+    ],
+    [
+      "4",
+      "7"
+    ],
+    [
+      "2",
+      "5"
+    ],
+    [
+      "5",
+      "8"
+    ],
+    [
+      "3",
+      "6"
+    ],
+    [
+      "6",
+      "9"
+    ]
+  ],
+  "positions": [
+    [
+      75,
+      35
+    ],
+    [
+      180,
+      35
+    ],
+    [
+      285,
+      35
+    ],
+    [
+      75,
+      140
+    ],
+    [
+      180,
+      140
+    ],
+    [
+      285,
+      140
+    ],
+    [
+      75,
+      245
+    ],
+    [
+      180,
+      245
+    ],
+    [
+      285,
+      245
+    ]
+  ],
+  "initial_on": [],
+  "target_on": [
+    "1",
+    "3",
+    "4",
+    "6",
+    "7",
+    "9"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Pair up lamps that need to change, then try paths between each pair.
+
+**Insight:** Different pairings can yield different edge sets. Repeated edges cancel in pairs.
+
+**Mathematics:** Different pairings can yield different edge sets. Repeated edges cancel in pairs. One shortest solution uses 4 presses: 1–2, 2–3, 4–7, 6–9. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "4",
+      "7"
+    ],
+    [
+      "6",
+      "9"
+    ]
+  ],
+  "minimum_presses": 4
+}
+```
+
+**Adaptation:** Week 2 compact catalog, Problem 7, target 4. Exact start, target, and graph from the compact catalog; no one-light constraint (matching that catalog).
+
+**Sources:** [Week 2 / Lamp lab / Compact puzzle catalog (F02-S-CAT-v2)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog.pdf).
+
+#### 28. Island bridge
+
+ID: `toggle-28`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "4",
+      "1"
+    ],
+    [
+      "5",
+      "6"
+    ],
+    [
+      "6",
+      "7"
+    ],
+    [
+      "7",
+      "8"
+    ],
+    [
+      "8",
+      "5"
+    ],
+    [
+      "2",
+      "5"
+    ]
+  ],
+  "positions": [
+    [
+      35,
+      103.75
+    ],
+    [
+      107.5,
+      103.75
+    ],
+    [
+      107.5,
+      176.25
+    ],
+    [
+      35,
+      176.25
+    ],
+    [
+      252.5,
+      103.75
+    ],
+    [
+      325,
+      103.75
+    ],
+    [
+      325,
+      176.25
+    ],
+    [
+      252.5,
+      176.25
+    ]
+  ],
+  "initial_on": [
+    "1"
+  ],
+  "target_on": [
+    "5"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Find the wire that joins the two islands.
+
+**Insight:** Adding a bridge joins the components and lets a path transfer the light between them.
+
+**Mathematics:** Adding a bridge joins the components and lets a path transfer the light between them. One shortest solution uses 2 presses: 1–2, 2–5. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "5"
+    ]
+  ],
+  "minimum_presses": 2
+}
+```
+
+**Adaptation:** Week 2 compact catalog, Problem 9, target 1. The worksheet asks the child to draw a bridge. This fixed app instance uses bridge 2–5 from the checked shared data, then asks for the pictured target.
+
+**Sources:** [Week 2 / Lamp lab / Compact puzzle catalog (F02-S-CAT-v2)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog.pdf).
+
+#### 29. Five-lamp ring
+
+ID: `toggle-29`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "5",
+      "1"
+    ]
+  ],
+  "positions": [
+    [
+      180,
+      35
+    ],
+    [
+      290.404,
+      115.213
+    ],
+    [
+      248.233,
+      245
+    ],
+    [
+      111.767,
+      245
+    ],
+    [
+      69.596,
+      115.213
+    ]
+  ],
+  "initial_on": [
+    "1"
+  ],
+  "target_on": [
+    "3"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Compare the two ways around the ring.
+
+**Insight:** The two reduced edge sets on a ring are complements; the shorter one minimizes presses.
+
+**Mathematics:** The two reduced edge sets on a ring are complements; the shorter one minimizes presses. One shortest solution uses 2 presses: 1–2, 2–3. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ]
+  ],
+  "minimum_presses": 2
+}
+```
+
+**Adaptation:** Week 2 upper catalog, Problem 1, case B. Exact reachable worksheet case, adapted to an individual target solve.
+
+**Sources:** [Week 2 / Lamp lab / Upper puzzle catalog (F02-S-CAT-UP-v1)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog-upper.pdf).
+
+#### 30. Bent path
+
+ID: `toggle-30`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "5",
+      "6"
+    ]
+  ],
+  "positions": [
+    [
+      35,
+      67.5
+    ],
+    [
+      180,
+      67.5
+    ],
+    [
+      325,
+      67.5
+    ],
+    [
+      325,
+      212.5
+    ],
+    [
+      180,
+      212.5
+    ],
+    [
+      35,
+      212.5
+    ]
+  ],
+  "initial_on": [
+    "1",
+    "2"
+  ],
+  "target_on": [
+    "5",
+    "6"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Which end lamps need to change? Each has only one wire.
+
+**Insight:** Removing a tree edge separates the board: that edge is forced exactly when one side has an odd number of changed lamps.
+
+**Mathematics:** Removing a tree edge separates the board: that edge is forced exactly when one side has an odd number of changed lamps. One shortest solution uses 2 presses: 1–2, 5–6. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "5",
+      "6"
+    ]
+  ],
+  "minimum_presses": 2
+}
+```
+
+**Adaptation:** Week 2 upper catalog, Problem 1, case F. Exact reachable worksheet case, adapted to an individual target solve.
+
+**Sources:** [Week 2 / Lamp lab / Upper puzzle catalog (F02-S-CAT-UP-v1)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog-upper.pdf).
+
+#### 31. Separate islands
+
+ID: `toggle-31`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "1"
+    ],
+    [
+      "4",
+      "5"
+    ]
+  ],
+  "positions": [
+    [
+      35,
+      182.647
+    ],
+    [
+      86.176,
+      97.353
+    ],
+    [
+      137.353,
+      182.647
+    ],
+    [
+      222.647,
+      182.647
+    ],
+    [
+      325,
+      182.647
+    ]
+  ],
+  "initial_on": [
+    "1"
+  ],
+  "target_on": [
+    "3"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Which island contains both the starting light and the goal?
+
+**Insight:** Each component preserves its own parity. Lamps in another component need not be touched.
+
+**Mathematics:** Each component preserves its own parity. Lamps in another component need not be touched. One shortest solution uses 1 presses: 3–1. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "3",
+      "1"
+    ]
+  ],
+  "minimum_presses": 1
+}
+```
+
+**Adaptation:** Week 2 upper catalog, Problem 2, case A. Exact reachable worksheet case, adapted to an individual target solve.
+
+**Sources:** [Week 2 / Lamp lab / Upper puzzle catalog (F02-S-CAT-UP-v1)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog-upper.pdf).
+
+#### 32. Joined islands
+
+ID: `toggle-32`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "1"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "3",
+      "4"
+    ]
+  ],
+  "positions": [
+    [
+      35,
+      182.647
+    ],
+    [
+      86.176,
+      97.353
+    ],
+    [
+      137.353,
+      182.647
+    ],
+    [
+      222.647,
+      182.647
+    ],
+    [
+      325,
+      182.647
+    ]
+  ],
+  "initial_on": [
+    "1"
+  ],
+  "target_on": [
+    "4"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Find the path from the starting light across the bridge.
+
+**Insight:** The bridge joins the two components. A path changes just its endpoints.
+
+**Mathematics:** The bridge joins the two components. A path changes just its endpoints. One shortest solution uses 2 presses: 3–1, 3–4. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "3",
+      "1"
+    ],
+    [
+      "3",
+      "4"
+    ]
+  ],
+  "minimum_presses": 2
+}
+```
+
+**Adaptation:** Week 2 upper catalog, Problem 2, case C. Exact reachable worksheet case, adapted to an individual target solve.
+
+**Sources:** [Week 2 / Lamp lab / Upper puzzle catalog (F02-S-CAT-UP-v1)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog-upper.pdf).
+
+#### 33. Two square islands
+
+ID: `toggle-33`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "4",
+      "1"
+    ],
+    [
+      "5",
+      "6"
+    ],
+    [
+      "6",
+      "7"
+    ],
+    [
+      "7",
+      "8"
+    ],
+    [
+      "8",
+      "5"
+    ]
+  ],
+  "positions": [
+    [
+      35,
+      91.667
+    ],
+    [
+      131.667,
+      91.667
+    ],
+    [
+      131.667,
+      188.333
+    ],
+    [
+      35,
+      188.333
+    ],
+    [
+      228.333,
+      91.667
+    ],
+    [
+      325,
+      91.667
+    ],
+    [
+      325,
+      188.333
+    ],
+    [
+      228.333,
+      188.333
+    ]
+  ],
+  "initial_on": [
+    "1",
+    "5"
+  ],
+  "target_on": [
+    "2",
+    "8"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Work on one island at a time.
+
+**Insight:** Each connected component can be solved independently when its start and target have the same parity.
+
+**Mathematics:** Each connected component can be solved independently when its start and target have the same parity. One shortest solution uses 2 presses: 1–2, 8–5. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "8",
+      "5"
+    ]
+  ],
+  "minimum_presses": 2
+}
+```
+
+**Adaptation:** Week 2 upper catalog, Problem 2, case D. Exact reachable worksheet case, adapted to an individual target solve.
+
+**Sources:** [Week 2 / Lamp lab / Upper puzzle catalog (F02-S-CAT-UP-v1)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog-upper.pdf).
+
+#### 34. Two branching islands
+
+ID: `toggle-34`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "4",
+      "6"
+    ],
+    [
+      "4",
+      "7"
+    ]
+  ],
+  "positions": [
+    [
+      35,
+      97.353
+    ],
+    [
+      94.706,
+      182.647
+    ],
+    [
+      154.412,
+      97.353
+    ],
+    [
+      248.235,
+      140
+    ],
+    [
+      248.235,
+      63.235
+    ],
+    [
+      325,
+      140
+    ],
+    [
+      248.235,
+      216.765
+    ]
+  ],
+  "initial_on": [
+    "1",
+    "4"
+  ],
+  "target_on": [
+    "2",
+    "6"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Find the lamps that must change on each separate tree.
+
+**Insight:** A reachable target has a unique reduced edge set on each tree, even when each tree starts with an odd number of lights.
+
+**Mathematics:** A reachable target has a unique reduced edge set on each tree, even when each tree starts with an odd number of lights. One shortest solution uses 2 presses: 1–2, 4–6. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "4",
+      "6"
+    ]
+  ],
+  "minimum_presses": 2
+}
+```
+
+**Adaptation:** Week 2 upper catalog, Problem 2, case F. Exact reachable worksheet case, adapted to an individual target solve.
+
+**Sources:** [Week 2 / Lamp lab / Upper puzzle catalog (F02-S-CAT-UP-v1)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog-upper.pdf).
+
+#### 35. Seven-lamp ring
+
+ID: `toggle-35`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "5",
+      "6"
+    ],
+    [
+      "6",
+      "7"
+    ],
+    [
+      "7",
+      "1"
+    ]
+  ],
+  "positions": [
+    [
+      180,
+      35
+    ],
+    [
+      266.369,
+      76.593
+    ],
+    [
+      287.7,
+      170.052
+    ],
+    [
+      227.931,
+      245
+    ],
+    [
+      132.069,
+      245
+    ],
+    [
+      72.3,
+      170.052
+    ],
+    [
+      93.631,
+      76.593
+    ]
+  ],
+  "initial_on": [
+    "1",
+    "3"
+  ],
+  "target_on": [
+    "2",
+    "4"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Look at which lamps differ from the goal, including bright lamps that need to go dark.
+
+**Insight:** Pairing the changed lamps along the ring gives complementary reduced solutions.
+
+**Mathematics:** Pairing the changed lamps along the ring gives complementary reduced solutions. One shortest solution uses 2 presses: 1–2, 3–4. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "3",
+      "4"
+    ]
+  ],
+  "minimum_presses": 2
+}
+```
+
+**Adaptation:** Week 2 upper catalog, Problem 3, case D. Exact graph, start, and target; the worksheet asks for every solution set. The app accepts any solution; comparing all reduced sets remains in the grown-up notes.
+
+**Sources:** [Week 2 / Lamp lab / Upper puzzle catalog (F02-S-CAT-UP-v1)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog-upper.pdf).
+
+#### 36. Eight-lamp ring
+
+ID: `toggle-36`
+
+**Task:** Make the goal picture in 2 presses.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths. Count a press budget up to six.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "5",
+      "6"
+    ],
+    [
+      "6",
+      "7"
+    ],
+    [
+      "7",
+      "8"
+    ],
+    [
+      "8",
+      "1"
+    ]
+  ],
+  "positions": [
+    [
+      180,
+      35
+    ],
+    [
+      254.246,
+      65.754
+    ],
+    [
+      285,
+      140
+    ],
+    [
+      254.246,
+      214.246
+    ],
+    [
+      180,
+      245
+    ],
+    [
+      105.754,
+      214.246
+    ],
+    [
+      75,
+      140
+    ],
+    [
+      105.754,
+      65.754
+    ]
+  ],
+  "initial_on": [],
+  "target_on": [
+    "1",
+    "2",
+    "5",
+    "6"
+  ],
+  "press_budget": 2
+}
+```
+
+**Hint:** Compare pairs that share a wire with lamps separated by dark neighbors.
+
+**Insight:** The graph, not just the number of changed lamps, determines the shortest solution.
+
+**Mathematics:** The graph, not just the number of changed lamps, determines the shortest solution. One shortest solution uses 2 presses: 1–2, 5–6. The app accepts every legal solution within the displayed budget. Four changed lamps need at least two presses, and two disjoint wires attain it.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "5",
+      "6"
+    ]
+  ],
+  "minimum_presses": 2
+}
+```
+
+**Adaptation:** Week 2 upper catalog, Problem 4, case A. Exact shortest-solution worksheet case; the proven minimum is enforced as the press budget.
+
+**Sources:** [Week 2 / Lamp lab / Upper puzzle catalog (F02-S-CAT-UP-v1)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog-upper.pdf).
+
+#### 37. Eight-lamp ring
+
+ID: `toggle-37`
+
+**Task:** Make the goal picture in 4 presses.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths. Count a press budget up to six.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "5",
+      "6"
+    ],
+    [
+      "6",
+      "7"
+    ],
+    [
+      "7",
+      "8"
+    ],
+    [
+      "8",
+      "1"
+    ]
+  ],
+  "positions": [
+    [
+      180,
+      35
+    ],
+    [
+      254.246,
+      65.754
+    ],
+    [
+      285,
+      140
+    ],
+    [
+      254.246,
+      214.246
+    ],
+    [
+      180,
+      245
+    ],
+    [
+      105.754,
+      214.246
+    ],
+    [
+      75,
+      140
+    ],
+    [
+      105.754,
+      65.754
+    ]
+  ],
+  "initial_on": [],
+  "target_on": [
+    "1",
+    "3",
+    "5",
+    "7"
+  ],
+  "press_budget": 4
+}
+```
+
+**Hint:** Compare pairs that share a wire with lamps separated by dark neighbors.
+
+**Insight:** The graph, not just the number of changed lamps, determines the shortest solution.
+
+**Mathematics:** The graph, not just the number of changed lamps, determines the shortest solution. One shortest solution uses 4 presses: 1–2, 2–3, 5–6, 6–7. The app accepts every legal solution within the displayed budget. The four target lamps have no wires between them. A press can change at most one of them, so at least four presses are needed.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "5",
+      "6"
+    ],
+    [
+      "6",
+      "7"
+    ]
+  ],
+  "minimum_presses": 4
+}
+```
+
+**Adaptation:** Week 2 upper catalog, Problem 4, case B. Exact shortest-solution worksheet case; the proven minimum is enforced as the press budget.
+
+**Sources:** [Week 2 / Lamp lab / Upper puzzle catalog (F02-S-CAT-UP-v1)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog-upper.pdf).
+
+#### 38. Six-lamp ring
+
+ID: `toggle-38`
+
+**Task:** Make the goal picture in 3 presses.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths. Count a press budget up to six.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "5",
+      "6"
+    ],
+    [
+      "6",
+      "1"
+    ]
+  ],
+  "positions": [
+    [
+      180,
+      35
+    ],
+    [
+      270.933,
+      87.5
+    ],
+    [
+      270.933,
+      192.5
+    ],
+    [
+      180,
+      245
+    ],
+    [
+      89.067,
+      192.5
+    ],
+    [
+      89.067,
+      87.5
+    ]
+  ],
+  "initial_on": [],
+  "target_on": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+  ],
+  "press_budget": 3
+}
+```
+
+**Hint:** Follow a path between lamps that need to change. What happens to the lamps in between?
+
+**Insight:** The interior of a pressed path changes twice, leaving only its endpoints changed.
+
+**Mathematics:** The interior of a pressed path changes twice, leaving only its endpoints changed. One shortest solution uses 3 presses: 1–2, 3–4, 5–6. The app accepts every legal solution within the displayed budget. Six changed lamps need at least three presses; alternating wires attain it.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "5",
+      "6"
+    ]
+  ],
+  "minimum_presses": 3
+}
+```
+
+**Adaptation:** Week 2 upper catalog, Problem 4, case C. Exact shortest-solution worksheet case; the proven minimum is enforced as the press budget.
+
+**Sources:** [Week 2 / Lamp lab / Upper puzzle catalog (F02-S-CAT-UP-v1)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog-upper.pdf).
+
+#### 39. Bent path
+
+ID: `toggle-39`
+
+**Task:** Make the goal picture in 5 presses.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths. Count a press budget up to six.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "5",
+      "6"
+    ]
+  ],
+  "positions": [
+    [
+      35,
+      67.5
+    ],
+    [
+      180,
+      67.5
+    ],
+    [
+      325,
+      67.5
+    ],
+    [
+      325,
+      212.5
+    ],
+    [
+      180,
+      212.5
+    ],
+    [
+      35,
+      212.5
+    ]
+  ],
+  "initial_on": [],
+  "target_on": [
+    "1",
+    "6"
+  ],
+  "press_budget": 5
+}
+```
+
+**Hint:** Which end lamps need to change? Each has only one wire.
+
+**Insight:** Removing a tree edge separates the board: that edge is forced exactly when one side has an odd number of changed lamps.
+
+**Mathematics:** Removing a tree edge separates the board: that edge is forced exactly when one side has an odd number of changed lamps. One shortest solution uses 5 presses: 1–2, 2–3, 3–4, 4–5, 5–6. The app accepts every legal solution within the displayed budget. Removing any wire separates the two changed endpoints. Every wire must therefore be pressed an odd number of times, so five presses are necessary.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "5",
+      "6"
+    ]
+  ],
+  "minimum_presses": 5
+}
+```
+
+**Adaptation:** Week 2 upper catalog, Problem 4, case D. Exact shortest-solution worksheet case; the proven minimum is enforced as the press budget.
+
+**Sources:** [Week 2 / Lamp lab / Upper puzzle catalog (F02-S-CAT-UP-v1)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog-upper.pdf).
+
+#### 40. Four-spoke star
+
+ID: `toggle-40`
+
+**Task:** Make the goal picture in 4 presses.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths. Count a press budget up to six.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "1",
+      "3"
+    ],
+    [
+      "1",
+      "4"
+    ],
+    [
+      "1",
+      "5"
+    ]
+  ],
+  "positions": [
+    [
+      180,
+      140
+    ],
+    [
+      180,
+      35
+    ],
+    [
+      285,
+      140
+    ],
+    [
+      180,
+      245
+    ],
+    [
+      75,
+      140
+    ]
+  ],
+  "initial_on": [],
+  "target_on": [
+    "2",
+    "3",
+    "4",
+    "5"
+  ],
+  "press_budget": 4
+}
+```
+
+**Hint:** Each outer lantern has just one wire.
+
+**Insight:** Every leaf that must change forces its spoke. Four spokes change the center four times, leaving it unchanged.
+
+**Mathematics:** Every leaf that must change forces its spoke. Four spokes change the center four times, leaving it unchanged. One shortest solution uses 4 presses: 1–2, 1–3, 1–4, 1–5. The app accepts every legal solution within the displayed budget. Each of the four leaves must change and has only one wire. All four spokes are forced.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "1",
+      "3"
+    ],
+    [
+      "1",
+      "4"
+    ],
+    [
+      "1",
+      "5"
+    ]
+  ],
+  "minimum_presses": 4
+}
+```
+
+**Adaptation:** Week 2 upper catalog, Problem 4, case E. Exact shortest-solution worksheet case; the proven minimum is enforced as the press budget.
+
+**Sources:** [Week 2 / Lamp lab / Upper puzzle catalog (F02-S-CAT-UP-v1)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog-upper.pdf).
+
+#### 41. Two branch points
+
+ID: `toggle-41`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "2",
+      "4"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "4",
+      "6"
+    ]
+  ],
+  "positions": [
+    [
+      35,
+      140
+    ],
+    [
+      131.667,
+      140
+    ],
+    [
+      131.667,
+      43.333
+    ],
+    [
+      228.333,
+      140
+    ],
+    [
+      228.333,
+      236.667
+    ],
+    [
+      325,
+      140
+    ]
+  ],
+  "initial_on": [],
+  "target_on": [
+    "1",
+    "3",
+    "5",
+    "6"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Start by looking at the leaves that must change.
+
+**Insight:** Leaf constraints force a unique reduced edge set; the middle wire may not be needed.
+
+**Mathematics:** Leaf constraints force a unique reduced edge set; the middle wire may not be needed. One shortest solution uses 4 presses: 1–2, 2–3, 4–5, 4–6. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "4",
+      "5"
+    ],
+    [
+      "4",
+      "6"
+    ]
+  ],
+  "minimum_presses": 4
+}
+```
+
+**Adaptation:** Week 2 upper catalog, Problem 6, case A. Exact graph, start, and target; the worksheet asks for every solution set. The app accepts any solution; comparing all reduced sets remains in the grown-up notes.
+
+**Sources:** [Week 2 / Lamp lab / Upper puzzle catalog (F02-S-CAT-UP-v1)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog-upper.pdf).
+
+#### 42. Six-spoke star
+
+ID: `toggle-42`
+
+**Task:** Make the picture on the goal card.
+
+**Readiness:** Compare bright and dark lamps, follow a pair flip, and track paths.
+
+**Rules:**
+
+- A board is a graph: lanterns are vertices and every drawn wire is a legal move.
+- Pressing a wire flips both endpoint states. It never moves a lantern.
+- The goal is the entire displayed ON/OFF pattern, including lamps required to stay OFF.
+- When a press budget is displayed, it is part of completion. Undo restores a press; every successful replay within the budget is accepted.
+- Every successful replay within the budget is accepted; the supplied replay is only a witness.
+
+**Starting data:**
+
+```json
+{
+  "topology": "worksheet_graph",
+  "vertices": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7"
+  ],
+  "edges": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "1",
+      "3"
+    ],
+    [
+      "1",
+      "4"
+    ],
+    [
+      "1",
+      "5"
+    ],
+    [
+      "1",
+      "6"
+    ],
+    [
+      "1",
+      "7"
+    ]
+  ],
+  "positions": [
+    [
+      180,
+      140
+    ],
+    [
+      180,
+      35
+    ],
+    [
+      270.93,
+      87.5
+    ],
+    [
+      270.93,
+      192.5
+    ],
+    [
+      180,
+      245
+    ],
+    [
+      89.07,
+      192.5
+    ],
+    [
+      89.07,
+      87.5
+    ]
+  ],
+  "initial_on": [
+    "2",
+    "4"
+  ],
+  "target_on": [
+    "3",
+    "5",
+    "6",
+    "7"
+  ],
+  "press_budget": null
+}
+```
+
+**Hint:** Compare each outer lamp with its goal.
+
+**Insight:** Every leaf differs from the target, so all six spokes are forced. The center changes six times and stays dark.
+
+**Mathematics:** Every leaf differs from the target, so all six spokes are forced. The center changes six times and stays dark. One shortest solution uses 6 presses: 1–2, 1–3, 1–4, 1–5, 1–6, 1–7. The app accepts every legal solution.
+
+**Checked witness:**
+
+```json
+{
+  "presses": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "1",
+      "3"
+    ],
+    [
+      "1",
+      "4"
+    ],
+    [
+      "1",
+      "5"
+    ],
+    [
+      "1",
+      "6"
+    ],
+    [
+      "1",
+      "7"
+    ]
+  ],
+  "minimum_presses": 6
+}
+```
+
+**Adaptation:** Week 2 upper catalog, Problem 6, case B. Exact graph, start, and target; the worksheet asks for every solution set. The app accepts any solution; comparing all reduced sets remains in the grown-up notes.
+
+**Sources:** [Week 2 / Lamp lab / Upper puzzle catalog (F02-S-CAT-UP-v1)](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog-upper.pdf).
 
 ### Clockwork Gates
 

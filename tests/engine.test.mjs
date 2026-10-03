@@ -4,7 +4,7 @@ import {readFile}from'node:fs/promises';
 import {validateContent}from'../scripts/validate-content.mjs';
 import {freshAttempt,move,removeTile,undo,restart,isSolved,solveTiles,solveSwaps,nextHint,adjacent,undoToSolvable,validBoard,tilePlacements,tileSize}from'../dist/engine.js';
 const {puzzles}=JSON.parse(await readFile(new URL('../dist/puzzles.json',import.meta.url),'utf8'));
-test('all 192 authored puzzles, source references, solution witnesses and exact swap minima',async()=>assert.equal((await validateContent()).puzzles,192));
+test('all 222 authored puzzles, source references, solution witnesses and exact swap minima',async()=>assert.equal((await validateContent()).puzzles,222));
 test('every witness move is reversible and completion survives replay',()=>{
  for(const p of puzzles.filter(p=>['tile','swap'].includes(p.mechanic))){let a=freshAttempt(p);for(const pair of p.solution){const next=move(p,a,pair);assert.deepEqual(undo(next).board,a.board);assert.equal(undo(next).moves,a.moves);a=next;}assert.equal(a.completed,true);const replay=restart(p,a);assert.equal(replay.completed,true);assert.equal(isSolved(p,replay.board),false);}
 });

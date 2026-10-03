@@ -18,14 +18,16 @@ export async function importExpansion(){
         pack.sources.push({id,title:s.title||`${s.path?.split('/').at(-1)||f.title} — ${s.section||'Source notes'}`,kind:s.path?'local curriculum':'mathematics',...(s.url?{url:s.url}:{}),...(s.path?{path:s.path}:{}),section:s.section||'',contribution:s.contribution||s.use||''});return id;
       });
       const rules=Array.isArray(f.rules)?f.rules:[f.rules];
+      // New worksheet sources must not silently change older instances' citations.
+      const defaultSources=f.default_source_refs?f.default_source_refs.map(id=>refs.get(id)):sourceIds;
       families.push({id:f.id,title:names[f.id],rules,mathematics:f.mathematics,prerequisites:f.prerequisites||f.instances[0].prerequisites||f.instances[0].readiness,sourceIds});
       for(const [i,p]of f.instances.entries())pack.puzzles.push({
         ...p,band:'all',mechanic:f.id,familyTitle:names[f.id],number:i+1,revision:1,
         instruction:p.prompt,idea:p.insight,rules,controls:f.child_prompt||rules[0],
         prerequisites:p.prerequisites||p.readiness||f.prerequisites,
         hints:[p.hint,'Look at what your latest move changed. You can undo and try another choice.','Ask for one next move from this position.'],
-        parent:{notice:p.insight,prompt:p.insight,explanation:f.mathematics,extension:f.natural_variation||p.difficulty||p.difficulty_step||p.insight,connection:p.difficulty_step||p.difficulty||p.difficulty_reasoning||p.insight,sourceIds:p.source_refs?p.source_refs.map(id=>refs.get(id)).filter(Boolean):sourceIds},
-        sourceDocument:`docs/puzzle-expansion/${file}.md`
+        parent:{notice:p.insight,prompt:p.insight,explanation:f.mathematics,extension:f.natural_variation||p.difficulty||p.difficulty_step||p.insight,connection:p.difficulty_step||p.difficulty||p.difficulty_reasoning||p.insight,...p.parent,sourceIds:p.source_refs?p.source_refs.map(id=>refs.get(id)).filter(Boolean):defaultSources},
+        sourceDocument:p.sourceDocument||`docs/puzzle-expansion/${file}.md`
       });
     }
   }
