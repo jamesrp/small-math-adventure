@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Proof Tools Lab</title>
+<style>
+/* Layout: one narrow workbench column. Room tabs on top; each room is one board panel,
+   a slim tool row, and a closed grown-up notes drawer. Palette and type follow the
+   Lantern Caravan app (paper, pine, ochre; Georgia display over Avenir body). */
+:root{
+  --paper:#f5f1e6; --card:#fffdf5; --ink:#294439; --muted:#66745c; --line:#d5d8c2;
+  --pine:#31533e; --on-pine:#fff8d9; --ochre:#b38840; --sun:#efc76e; --shade:#7f9f86; --paint-ink:#1f3329;
+  --face-top:#f3e4b3; --face-left:#aabf9a; --face-right:#5f7f62; --face-edge:#294439;
+  --good:#3c7a4a; --good-soft:#e2ecd6; --bad:#a9503a; --bad-soft:#f5e3d9;
+  --hole:#8e8a76; --cell:#edf0e2; --cell-line:#c9d4ba; --dom:#d2ac67; --dom-edge:#8c6a2e;
+  --chip:#eceddf;
+  --display:Georgia,'Times New Roman',serif;
+  --body:'Avenir Next',Avenir,'Segoe UI',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#1b221d; --card:#232c25; --ink:#e9e5d5; --muted:#a6b19a; --line:#3a463d;
+  --pine:#9cc7a3; --on-pine:#13201a; --ochre:#d8b26a; --sun:#d9b45a; --shade:#6f9a82; --paint-ink:#13201a;
+  --face-top:#d8c68d; --face-left:#7f9a72; --face-right:#46624c; --face-edge:#11180f;
+  --good:#86c993; --good-soft:#26372b; --bad:#e4927a; --bad-soft:#3d2a24;
+  --hole:#8d927f; --cell:#2c362f; --cell-line:#46523f; --dom:#b9914b; --dom-edge:#f0d08a;
+  --chip:#2b342d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#1b221d; --card:#232c25; --ink:#e9e5d5; --muted:#a6b19a; --line:#3a463d;
+  --pine:#9cc7a3; --on-pine:#13201a; --ochre:#d8b26a; --sun:#d9b45a; --shade:#6f9a82; --paint-ink:#13201a;
+  --face-top:#d8c68d; --face-left:#7f9a72; --face-right:#46624c; --face-edge:#11180f;
+  --good:#86c993; --good-soft:#26372b; --bad:#e4927a; --bad-soft:#3d2a24;
+  --hole:#8d927f; --cell:#2c362f; --cell-line:#46523f; --dom:#b9914b; --dom-edge:#f0d08a;
+  --chip:#2b342d; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:900px;margin:0 auto;padding-inline:16px;padding-block:20px 56px}
+h1{font-family:var(--display);font-weight:400;letter-spacing:-.02em;text-wrap:balance;margin:0;font-size:clamp(1.7rem,4vw,2.3rem)}
+.lede{color:var(--muted);margin:6px 0 18px;max-width:62ch}
+button{font:inherit;color:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:10px;min-height:44px;padding:8px 14px}
+button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--ochre);outline-offset:3px}
+svg [tabindex]:focus,svg [tabindex]:focus-visible{outline:none}
+.card-g:focus-visible .card-bg{stroke:var(--ochre);stroke-width:5;stroke-dasharray:7 4}
+.g-cell:focus-visible{stroke:var(--ochre);stroke-width:4}
+button:disabled{opacity:.45;cursor:default}
+.primary{background:var(--pine);color:var(--on-pine);border-color:var(--pine)}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}
+.tabs button{background:transparent;border-color:transparent;border-bottom:2px solid transparent;border-radius:0;padding:8px 4px;color:var(--muted)}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--pine)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 3px 0 var(--line)}
+.goal{font-size:1.05rem;margin:0}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row.center{justify-content:center}
+.msg{margin:12px 0 0;padding:10px 12px;border-radius:9px;background:var(--chip)}
+.msg:empty{display:none}
+.msg.good{background:var(--good-soft);color:var(--good)}
+.msg.bad{background:var(--bad-soft);color:var(--bad)}
+.counter{font-variant-numeric:tabular-nums;color:var(--muted)}
+.counter b{color:var(--ink)}
+.over{color:var(--bad)}
+details.notes{margin-top:14px;border-top:1px solid var(--line);padding-top:8px}
+details.notes summary{cursor:pointer;color:var(--muted);min-height:44px;display:flex;align-items:center}
+details.notes p,details.notes li{max-width:68ch;font-size:.95rem}
+details.notes ul{padding-left:1.1rem}
+svg{display:block;max-width:100%;height:auto;margin:0 auto}
+.card-g{cursor:pointer}
+.card-bg{fill:var(--card);stroke:var(--line);stroke-width:2}
+.card-bg.p1{fill:var(--sun)} .card-bg.p2{fill:var(--shade)}
+.card-bg.here{stroke:var(--ochre);stroke-width:5}
+.card-label{font-family:var(--display);font-size:20px;fill:var(--ink)}
+.painted .card-label{fill:var(--paint-ink)}
+.edge{stroke:var(--line);stroke-width:5;stroke-linecap:round}
+.edge.ok{stroke:var(--good)}
+.edge.bad{stroke:var(--bad);stroke-dasharray:4 8}
+.f-top{fill:var(--face-top)} .f-left{fill:var(--face-left)} .f-right{fill:var(--face-right)}
+.face{stroke:var(--face-edge);stroke-width:1.4;stroke-linejoin:round}
+.glyph{fill:var(--paint-ink);opacity:.75;pointer-events:none}
+.trail{font-family:var(--display);letter-spacing:.06em;color:var(--muted);overflow-wrap:anywhere}
+.alt{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center}
+.alt:empty{display:none}
+.dot{display:inline-grid;place-items:center;width:22px;height:22px;flex:none;border-radius:50%;border:2px solid var(--face-edge);color:var(--paint-ink);font-size:11px;line-height:1}
+.dot.c1{background:var(--sun)} .dot.c2{background:var(--shade)}
+.dot.c1::after{content:"●"} .dot.c2::after{content:"◆"}
+.dot.end{outline:3px solid var(--bad);outline-offset:2px}
+.swatch{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;vertical-align:-4px;border:1.5px solid var(--face-edge);color:var(--paint-ink);font-size:10px;line-height:1}
+.swatch.c1{background:var(--sun)} .swatch.c2{background:var(--shade)}
+.swatch.c1::after{content:"●"} .swatch.c2::after{content:"◆"}
+.tool[aria-pressed="true"]{background:var(--chip);border-color:var(--pine);box-shadow:inset 0 0 0 1px var(--pine)}
+.g-cell{fill:var(--cell);stroke:var(--cell-line);stroke-width:1.5;cursor:pointer}
+.g-cell.p1{fill:var(--sun)} .g-cell.p2{fill:var(--shade)}
+.g-cell.sel{fill:var(--good-soft);stroke:var(--good);stroke-width:3}
+.g-hole{fill:none;stroke:var(--hole);stroke-width:2;stroke-dasharray:4 4}
+.g-hatch{stroke:var(--hole);stroke-width:1.5;opacity:.7}
+.dom{fill:var(--dom);stroke:var(--dom-edge);stroke-width:2;pointer-events:none}
+.star{font-size:22px;fill:var(--ink);pointer-events:none;text-anchor:middle;dominant-baseline:central}
+.partner{fill:none;stroke:var(--ochre);stroke-width:3;stroke-dasharray:5 4;pointer-events:none}
+.touch{stroke:var(--bad);stroke-width:4;pointer-events:none}
+.nums{display:grid;grid-template-columns:repeat(6,minmax(44px,1fr));gap:8px;max-width:420px;margin:12px auto 0}
+.nums button[aria-pressed="true"]{background:var(--pine);color:var(--on-pine);border-color:var(--pine)}
+.nums button.miss{box-shadow:0 0 0 3px var(--bad)}
+.sort-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.sort-card{border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;align-items:center;background:var(--paper);min-width:0}
+.sort-card.right{border-color:var(--good);box-shadow:0 0 0 2px var(--good-soft)}
+.sort-card.wrong{border-color:var(--bad);box-shadow:0 0 0 2px var(--bad)}
+.sort-card .row{justify-content:center}
+.sort-card button{min-width:52px;padding:6px 10px}
+.sort-card button[aria-pressed="true"]{background:var(--pine);color:var(--on-pine);border-color:var(--pine)}
+.route-q{font-family:var(--display);font-size:1.25rem;letter-spacing:.04em;text-align:center}
+.mini-cap{font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums;text-align:center;min-height:1.3em;display:flex;gap:4px;align-items:center;justify-content:center;flex-wrap:wrap}
+.lvl-tabs{display:flex;gap:4px}
+.lvl-tabs button{min-width:44px;padding:6px 8px;font-variant-numeric:tabular-nums}
+.lvl-tabs button[aria-current="true"]{border-color:var(--pine);box-shadow:inset 0 0 0 1px var(--pine)}
+.lvl-tabs button.done{background:var(--good-soft);color:var(--good)}
+.pips{display:flex;gap:6px;align-items:center}
+.pip{width:14px;height:14px;border-radius:50%;border:2px solid var(--pine)}
+.pip.on{background:var(--pine)}
+.piles{display:flex;justify-content:center;gap:clamp(18px,7vw,56px);align-items:flex-end;min-height:350px;padding:8px 0}
+.pile{display:flex;flex-direction:column-reverse;gap:5px;align-items:center}
+.peb{width:44px;height:44px;min-height:44px;padding:0;border-radius:50%;background:var(--face-left);border:2px solid var(--face-edge)}
+.peb:disabled{opacity:1;cursor:default}
+.peb.hot{background:var(--bad-soft);border-color:var(--bad)}
+@media (prefers-reduced-motion: no-preference){.peb{transition:background .2s}.edge{transition:stroke .2s}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <h1>Proof tools</h1>
+  <p class="lede">Prototype for the Lantern Caravan: four ways a child playing alone can show an insight, each checked by the app without AI. Grown-up notes under each board say what is and is not verified.</p>
+
+  <div class="tabs" role="tablist" aria-label="Rooms">
+    <button role="tab" id="tab-flip" aria-selected="true" aria-controls="room-flip">Flips</button>
+    <button role="tab" id="tab-garden" aria-selected="false" aria-controls="room-garden" tabindex="-1">Gardens</button>
+    <button role="tab" id="tab-sort" aria-selected="false" aria-controls="room-sort" tabindex="-1">Sorting</button>
+    <button role="tab" id="tab-nim" aria-selected="false" aria-controls="room-nim" tabindex="-1">Duel</button>
+  </div>
+
+  <!-- ROOM 1: FLIP MAP -->
+  <section class="panel" id="room-flip" role="tabpanel" aria-labelledby="tab-flip">
+    <div class="head"><p class="goal" id="flip-goal"></p><span class="pips" id="flip-pips" aria-hidden="true"></span></div>
+    <svg id="flip-svg" viewBox="0 0 620 320" role="group" aria-label="Map of six tilings"></svg>
+    <div id="flip-walkbar" class="row" style="justify-content:space-between;margin-top:6px">
+      <span class="counter">Flips <b id="flip-count">0</b> · <span class="trail" id="flip-trail"></span></span>
+      <span class="row">
+        <button id="flip-restart">Restart</button>
+        <button id="flip-cant">Can’t be done</button>
+      </span>
+    </div>
+    <div class="row center" id="flip-paintbar" hidden style="margin-top:10px">
+      <button class="tool" id="brush-1" aria-pressed="true" aria-label="Gold paint"><span class="swatch c1"></span></button>
+      <button class="tool" id="brush-2" aria-pressed="false" aria-label="Green paint"><span class="swatch c2"></span></button>
+      <button class="tool" id="brush-0" aria-pressed="false">Erase</button>
+      <button class="primary" id="flip-check">Check proof</button>
+      <button id="flip-back">Keep flipping</button>
+    </div>
+    <div class="nums" id="flip-nums" hidden></div>
+    <div class="sort-grid" id="flip-routes" hidden style="margin-top:12px"></div>
+    <div class="row center" id="flip-checkbar" hidden style="margin-top:12px"><button class="primary" id="flip-check2" disabled>Check</button></div>
+    <div class="msg" id="flip-msg" role="status"></div>
+    <div class="alt" id="flip-alt" aria-hidden="true" style="margin-top:8px"></div>
+    <div class="row center" style="margin-top:10px"><button class="primary" id="flip-next" hidden>Next</button></div>
+    <details class="notes"><summary>Grown-up notes</summary>
+      <p>Week 1, grades 4–5, Problem 4: “Can you leave A and return to A in exactly three flips? Five flips? Any odd number of flips? Explain what you notice.” The six cards are the worksheet’s tilings of the 2–2–1 hexagon, in the same orientation and with the same letters. Each line joins two cards one flip apart.</p>
+      <ul>
+        <li><b>1. Walk.</b> A to A in exactly 4 flips. Teaches the move.</li>
+        <li><b>2. Prove.</b> A to A in exactly 5 flips cannot be walked. <i>Can’t be done</i> opens a paint tool with no instructions. <i>Check proof</i> accepts only a painting in which every line joins two colors and A’s color rules out an odd count. Failed checks name the broken condition, so the rule is learned from feedback. A valid painting proves the claim for every odd number at once.</li>
+        <li><b>3. Any odd number?</b> Tap every number of flips from 1 to 12 that can bring you from A back to A. This is the worksheet’s question as a classification, answered once.</li>
+        <li><b>4. Apply it.</b> Six route cards, each “from X to Y in exactly k,” sorted ✓ or ✗ in one try. Some are ruled out by the colors, some by distance (A to F in 2 has the right parity but is too short), and the rest are possible. This checks the step the painting alone does not: using the colors to decide. New cards are dealt until a round is all right.</li>
+        <li>Not verified: whether the child can say why a two-coloring rules out odd returns. After a proof, the dot strip shows that step: the color alternates with each flip and finishes on the wrong one.</li>
+        <li>Mathematical aside: in ribbon codes a flip swaps a neighboring L and R, and the number of cubes is the number of L-before-R pairs. So this parity is the parity of a permutation, the same invariant as Cup Swaps with neighboring cups.</li>
+      </ul>
+    </details>
+  </section>
+
+  <!-- ROOM 2: GARDEN PROOFS -->
+  <section class="panel" id="room-garden" role="tabpanel" aria-labelledby="tab-garden" hidden>
+    <div class="head">
+      <p class="goal">Cover the garden with dominoes, or prove it can’t be done.</p>
+      <span class="pips" id="garden-pips" aria-hidden="true"></span>
+    </div>
+    <svg id="garden-svg" viewBox="0 0 316 316" style="width:min(100%,380px)" role="group" aria-label="Garden board"></svg>
+    <div class="row center" id="garden-coverbar" style="margin-top:10px">
+      <button id="garden-clear">Clear</button>
+      <button id="garden-cant">Can’t be done</button>
+    </div>
+    <div id="garden-provebar" hidden style="margin-top:10px">
+      <div class="row center">
+        <button class="tool" id="gb-1" aria-pressed="true" aria-label="Gold paint"><span class="swatch c1"></span></button>
+        <button class="tool" id="gb-2" aria-pressed="false" aria-label="Green paint"><span class="swatch c2"></span></button>
+        <button class="tool" id="gb-s" aria-pressed="false" aria-label="Star">★</button>
+        <button class="tool" id="gb-0" aria-pressed="false">Erase</button>
+        <span class="counter" id="garden-tally"></span>
+      </div>
+      <div class="row center" style="margin-top:8px">
+        <button id="garden-wipe">Wipe</button>
+        <button class="primary" id="garden-check">Check proof</button>
+        <button id="garden-back">Back to covering</button>
+      </div>
+    </div>
+    <div class="msg" id="garden-msg" role="status"></div>
+    <div class="row center" style="margin-top:10px"><button class="primary" id="garden-next" hidden>Next garden</button></div>
+    <details class="notes"><summary>Grown-up notes</summary>
+      <p>Every garden ends with a checkable object: a covering when one exists, otherwise one of two refutations.</p>
+      <ul>
+        <li><b>Paint:</b> touching squares get different colors and the two counts differ. Each domino covers one square of each color, so no covering exists.</li>
+        <li><b>Stars:</b> starred squares may not touch. On <i>Check proof</i>, dashed rings mark every square next to a star. More stars than rings means some star has no partner left (Hall’s condition). Rings appear only on a check, so the child has to think about neighbors rather than watch a counter.</li>
+        <li>For dominoes on the square grid this system is complete. By Hall’s theorem every uncoverable garden has a star set that works; the coloring argument is the special case of starring one whole color. So uncoverable gardens do have a witness.</li>
+        <li>Garden 1 is the mutilated board. Garden 2 removes two corners of opposite color and can be covered (Gomory’s theorem), which catches “missing corners means impossible.” Garden 3 has equal colors, so paint cannot refute it; two squares share their only partner. Garden 4 has two interior holes of opposite color and can be covered.</li>
+        <li>Open question for playtesting: whether the star tool is usable without a demonstration. It needs a tutorial garden of its own before garden 3.</li>
+      </ul>
+    </details>
+  </section>
+
+  <!-- ROOM 3: SORTING -->
+  <section class="panel" id="room-sort" role="tabpanel" aria-labelledby="tab-sort" hidden>
+    <div class="head">
+      <p class="goal">Which gardens can be covered?</p>
+      <span class="row"><span class="pips" id="sort-pips" aria-label="Clean rounds in a row"></span><span class="lvl-tabs" id="sort-levels"></span></span>
+    </div>
+    <div class="sort-grid" id="sort-grid"></div>
+    <div class="row center" style="margin-top:12px">
+      <button class="primary" id="sort-check" disabled>Check</button>
+      <button class="primary" id="sort-new" hidden>New round</button>
+    </div>
+    <div class="msg" id="sort-msg" role="status"></div>
+    <details class="notes"><summary>Grown-up notes</summary>
+      <ul>
+        <li>Six fresh boards per round, from a named family and filtered for purpose. ✓ means coverable, ✗ means not. Thumbnails are uncolored on purpose; colored ones would turn the round into color matching.</li>
+        <li>One check per round. A miss reveals every board: a covering for each coverable one, a refutation for the rest, and the wrong answers outlined. A level is passed after two clean rounds in a row.</li>
+        <li>Each board’s answer is a coin flip, resampled only to guarantee the boards each round needs. A blind guesser passes one round about 1 time in 60 and a level about 1 time in 4,000. Allowing a second try with “N are wrong” feedback would raise the one-round figure to 7 in 64.</li>
+        <li>Each level is built against named wrong rules. Level 1 always includes two same-color holes (refutes “even number of holes ⇒ ✓”). Level 2 always includes two neighboring corners of opposite color, which can be covered (refutes “missing corners ⇒ ✗”); with two holes the color rule is exactly right (Gomory). Level 3 removes four and always includes both a stranded corner square and a color-unbalanced board with nothing stranded, so neither “colors balance ⇒ ✓” nor “stranded ⇒ ✗” survives. On 6×6 boards with four holes and balanced colors, a stranded corner is the only way to fail (540 of 23,409 boards), so random sampling alone would almost never show it.</li>
+      </ul>
+    </details>
+  </section>
+
+  <!-- ROOM 4: NIM -->
+  <section class="panel" id="room-nim" role="tabpanel" aria-labelledby="tab-nim" hidden>
+    <div class="head">
+      <p class="goal">Take the last pebble. Choose who starts.</p>
+      <span class="pips" id="nim-streak" aria-label="Wins in a row"></span>
+    </div>
+    <div class="piles" id="nim-piles"></div>
+    <div class="row center" id="nim-choose">
+      <button class="primary" id="nim-me">Me first</button>
+      <button id="nim-you">You first</button>
+    </div>
+    <div class="row center" id="nim-after" hidden>
+      <button id="nim-retry">Same start again</button>
+      <button class="primary" id="nim-new">New start</button>
+    </div>
+    <div class="msg" id="nim-msg" role="status"></div>
+    <details class="notes"><summary>Grown-up notes</summary>
+      <ul>
+        <li>Tap a pebble to take it and every pebble above it. The opponent plays perfectly. When losing, it picks the move that leaves the child the fewest winning replies.</li>
+        <li>Choosing who starts is the classification test, inside play: it is right only when the child can tell a losing position (Nim-sum 0) from a winning one.</li>
+        <li>Starts are drawn half from Nim-sum-0 positions. With three piles of 1–7, only 42 of 343 positions (12%) are of that kind, so under uniform sampling “Me first” would be right 88% of the time.</li>
+        <li>The streak counts only wins from a new start. <i>Same start again</i> is offered after a loss, for practice, and does not count. Three wins in a row from fresh starts is strong evidence of the strategy or an equivalent one.</li>
+      </ul>
+    </details>
+  </section>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const NS="http://www.w3.org/2000/svg";
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function h(tag,attrs,text){const e=document.createElement(tag);for(const k in attrs||{})e.setAttribute(k,attrs[k]);if(text!=null)e.textContent=text;return e;}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+function msg(id,t,k){const m=$(id);m.textContent=t;m.className="msg"+(k?" "+k:"");}
+// Keep keyboard focus across re-renders: elements carry data-k; refocus the same key afterwards.
+function keepFocus(fn){const a=document.activeElement;const key=a&&a.dataset?a.dataset.k:null;fn();
+  if(key){const e=document.querySelector('[data-k="'+key+'"]');if(e&&e!==document.activeElement)e.focus({preventScroll:true});}}
+function activate(node,fn){node.addEventListener("click",fn);node.addEventListener("keydown",ev=>{if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();fn();}});}
+function pips(id,n,on){const p=$(id);p.textContent="";for(let k=0;k<n;k++)p.appendChild(h("span",{class:"pip"+(k<on?" on":"")}));}
+
+/* ---------- tabs ---------- */
+const tabs=["flip","garden","sort","nim"];
+function showTab(t,focus){for(const x of tabs){const b=$("tab-"+x);b.setAttribute("aria-selected",x===t?"true":"false");b.tabIndex=x===t?0:-1;$("room-"+x).hidden=x!==t;}
+  if(focus)$("tab-"+t).focus();try{localStorage.setItem("proofTab",t);}catch(e){}}
+tabs.forEach((t,i)=>{const b=$("tab-"+t);b.addEventListener("click",()=>showTab(t));
+  b.addEventListener("keydown",ev=>{if(ev.key==="ArrowRight"||ev.key==="ArrowLeft"){ev.preventDefault();showTab(tabs[(i+(ev.key==="ArrowRight"?1:3))%4],true);}});});
+let startTab="flip";try{const s=localStorage.getItem("proofTab");if(tabs.includes(s))startTab=s;}catch(e){}
+const fromHash=()=>{const t=location.hash.slice(1);if(tabs.includes(t))showTab(t);};
+window.addEventListener("hashchange",fromHash);
+
+/* =================================================================
+   ROOM 1: FLIP MAP — tilings of the 2-2-1 hexagon (worksheet cards A–F)
+   ================================================================= */
+const F={
+  ideals:[[],[[0,0]],[[0,0],[1,0]],[[0,0],[0,1]],[[0,0],[0,1],[1,0]],[[0,0],[0,1],[1,0],[1,1]]], // C and D matched to the worksheet's drawings
+  labels:["A","B","C","D","E","F"],
+  edges:[[0,1],[1,2],[1,3],[2,4],[3,4],[4,5]],
+  wide:{box:"0 0 640 330",pos:[[62,165],[188,165],[320,72],[320,258],[452,165],[578,165]],max:"660px"},
+  tall:{box:"0 0 320 690",pos:[[160,66],[160,204],[78,345],[242,345],[160,486],[160,624]],max:"330px"},
+  pos:null,
+};
+const DIST=(()=>{const d=[...Array(6)].map(()=>Array(6).fill(Infinity));
+  for(let s=0;s<6;s++){d[s][s]=0;const q=[s];while(q.length){const x=q.shift();for(const [a,b] of F.edges){const y=a===x?b:b===x?a:-1;if(y>=0&&d[s][y]===Infinity){d[s][y]=d[s][x]+1;q.push(y);}}}}return d;})();
+const routePossible=(s,e,k)=>k>=DIST[s][e]&&(k-DIST[s][e])%2===0;
+function routeWitness(s,e,k){const path=[s];let cur=s;while(cur!==e){const nx=[0,1,2,3,4,5].find(y=>adj(cur,y)&&DIST[y][e]===DIST[cur][e]-1);path.push(nx);cur=nx;}
+  const back=path.length>1?path[path.length-2]:[0,1,2,3,4,5].find(y=>adj(e,y));
+  while(path.length-1<k){path.push(back);path.push(e);}return path;}
+const adj=(a,b)=>F.edges.some(([x,y])=>(x===a&&y===b)||(x===b&&y===a));
+const cubes=i=>F.ideals[i].length;
+const STAGES=["walk","prove","numbers","routes"];
+const fs={stage:0,cur:0,flips:0,trail:[0],mode:"walk",brush:1,paint:[0,0,0,0,0,0],done:false,proved:false,edgeState:{},nums:new Set(),numsDone:false,routes:[],rAns:[],rRevealed:false,rPassed:false};
+const CH=[{s:0,e:0,k:4},{s:0,e:0,k:5}];
+
+// Isometric cube stack, rotated so the short (length-1) edges are horizontal, as on the worksheet.
+function iso(x,y,z,s){const c=Math.cos(Math.PI/6);const X=(x-y)*c*s,Y=((x+y)/2-z)*s;return [-Y,X];}
+function quad(g,pts,cls,s,ox,oy){el("polygon",{points:pts.map(p=>{const q=iso(p[0],p[1],p[2],s);return (q[0]+ox).toFixed(2)+","+(q[1]+oy).toFixed(2);}).join(" "),class:"face "+cls},g);}
+function drawStack(g,ideal,cx,cy,s){
+  const ox=cx+0.5*s,oy=cy;
+  const has=(i,j)=>ideal.some(([a,b])=>a===i&&b===j);
+  for(let i=0;i<2;i++)for(let j=0;j<2;j++)if(!has(i,j))quad(g,[[i,j,0],[i+1,j,0],[i+1,j+1,0],[i,j+1,0]],"f-top",s,ox,oy);
+  for(let j=0;j<2;j++)quad(g,[[0,j,0],[0,j+1,0],[0,j+1,1],[0,j,1]],"f-right",s,ox,oy);
+  for(let i=0;i<2;i++)quad(g,[[i,0,0],[i+1,0,0],[i+1,0,1],[i,0,1]],"f-left",s,ox,oy);
+  for(const [i,j] of [[0,0],[0,1],[1,0],[1,1]]){if(!has(i,j))continue;
+    quad(g,[[i,j,1],[i+1,j,1],[i+1,j+1,1],[i,j+1,1]],"f-top",s,ox,oy);
+    quad(g,[[i,j+1,0],[i+1,j+1,0],[i+1,j+1,1],[i,j+1,1]],"f-left",s,ox,oy);
+    quad(g,[[i+1,j,0],[i+1,j+1,0],[i+1,j+1,1],[i+1,j,1]],"f-right",s,ox,oy);}
+}
+function glyph(g,kind,x,y,r){if(kind===1)el("circle",{cx:x,cy:y,r:r,class:"glyph"},g);
+  else if(kind===2)el("polygon",{points:[[x,y-r*1.3],[x+r*1.3,y],[x,y+r*1.3],[x-r*1.3,y]].map(p=>p.join(",")).join(" "),class:"glyph"},g);}
+const narrow=matchMedia("(max-width: 560px)");
+function flipLayout(){const L=narrow.matches?F.tall:F.wide;F.pos=L.pos;$("flip-svg").setAttribute("viewBox",L.box);$("flip-svg").style.maxWidth=L.max;}
+narrow.addEventListener("change",()=>{flipLayout();flipRender();});
+function flipRender(){keepFocus(()=>{
+  if(!F.pos)flipLayout();
+  const svg=$("flip-svg");svg.textContent="";
+  const stage=STAGES[fs.stage],c=CH[fs.stage];
+  F.edges.forEach(([a,b],k)=>el("line",{x1:F.pos[a][0],y1:F.pos[a][1],x2:F.pos[b][0],y2:F.pos[b][1],class:"edge "+(fs.edgeState[k]||"")},svg));
+  for(let i=0;i<6;i++){
+    const [x,y]=F.pos[i],p=fs.paint[i];
+    const label="Card "+F.labels[i]+", "+cubes(i)+(cubes(i)===1?" cube":" cubes")+(p?", painted "+(p===1?"gold":"green"):"")+(i===fs.cur&&c?", you are here":"");
+    const g=el("g",{class:"card-g"+(p?" painted":""),tabindex:"0",role:"button","aria-label":label,"data-k":"card-"+i},svg);
+    const cls=["card-bg"];if(p)cls.push("p"+p);if(c&&i===fs.cur&&fs.mode==="walk")cls.push("here");
+    el("rect",{x:x-54,y:y-62,width:108,height:124,rx:14,class:cls.join(" ")},g);
+    drawStack(g,F.ideals[i],x+4,y+4,25);
+    el("text",{x:x-44,y:y-38,class:"card-label"},g).textContent=F.labels[i];
+    if(p)glyph(g,p,x+40,y+48,5);
+    if(c&&i===c.e&&stage==="walk")el("text",{x:x+28,y:y-38,class:"card-label","font-size":"18"},g).textContent="⚑";
+    activate(g,()=>flipTap(i));
+  }
+  $("flip-count").textContent=fs.flips;$("flip-count").className=c&&fs.flips>c.k?"over":"";
+  $("flip-trail").textContent=fs.trail.map(i=>F.labels[i]).join(" → ");
+  pips("flip-pips",4,fs.stage+(fs.done?1:0));
+});}
+function flipStage(n){
+  fs.stage=n;fs.done=false;fs.edgeState={};msg("flip-msg","");$("flip-alt").textContent="";$("flip-next").hidden=true;
+  const st=STAGES[n];const c=CH[n];
+  $("flip-walkbar").hidden=!c;$("flip-cant").hidden=!c;$("flip-paintbar").hidden=true;
+  $("flip-nums").hidden=st!=="numbers";$("flip-routes").hidden=st!=="routes";$("flip-checkbar").hidden=!(st==="numbers"||st==="routes");
+  fs.mode="walk";
+  if(c){fs.cur=c.s;fs.flips=0;fs.trail=[c.s];$("flip-goal").textContent="From "+F.labels[c.s]+" back to "+F.labels[c.e]+" in exactly "+c.k+" flips.";}
+  else{fs.cur=-1;}
+  if(st==="numbers"){$("flip-goal").textContent="Which numbers of flips can take you from A back to A?";fs.nums=new Set();fs.numsDone=false;numsRender();}
+  if(st==="routes"){$("flip-goal").textContent="Which trips can be done?";dealRoutes();}
+  flipRender();
+}
+function flipMode(m){fs.mode=m;$("flip-paintbar").hidden=m!=="paint";$("flip-walkbar").hidden=m==="paint";fs.edgeState={};flipRender();}
+function setBrush(b){fs.brush=b;for(const k of [0,1,2])$("brush-"+k).setAttribute("aria-pressed",k===b?"true":"false");}
+function flipTap(i){
+  const c=CH[fs.stage];
+  if(fs.mode==="paint"){fs.paint[i]=fs.paint[i]===fs.brush?0:fs.brush;fs.edgeState={};msg("flip-msg","");$("flip-alt").textContent="";flipRender();return;}
+  if(!c||fs.done||!adj(fs.cur,i))return;
+  fs.cur=i;fs.flips++;fs.trail.push(i);flipRender();
+  if(fs.cur===c.e&&fs.flips===c.k)flipDone("Done.");
+}
+function flipDone(t){fs.done=true;msg("flip-msg",t,"good");$("flip-cant").hidden=true;$("flip-paintbar").hidden=true;if(fs.stage<STAGES.length-1)$("flip-next").hidden=false;flipRender();}
+function properPainting(){
+  if(fs.paint.some(p=>p===0))return "Paint every card.";
+  let bad=0;fs.edgeState={};
+  F.edges.forEach(([a,b],k)=>{const ok=fs.paint[a]!==fs.paint[b];fs.edgeState[k]=ok?"ok":"bad";if(!ok)bad++;});
+  return bad?(bad===1?"One flip keeps the same color.":bad+" flips keep the same color."):"";
+}
+function strip(box,startColor,k,endColor){
+  let col=startColor;for(let t=0;t<=k;t++){box.appendChild(h("span",{class:"dot c"+col+(t===k?" end":"")}));
+    if(t<k)box.appendChild(h("span",{style:"color:var(--muted)"},"›"));col=col===1?2:1;}
+  box.appendChild(h("span",{},"≠"));box.appendChild(h("span",{class:"dot c"+endColor}));}
+function flipCheck(){
+  const c=CH[fs.stage];$("flip-alt").textContent="";
+  const err=properPainting();flipRender();
+  if(err){msg("flip-msg",err,"bad");return;}
+  const same=fs.paint[c.s]===fs.paint[c.e];
+  if(!((same&&c.k%2===1)||(!same&&c.k%2===0))){msg("flip-msg","Not proved.","bad");return;}
+  strip($("flip-alt"),fs.paint[c.s],c.k,fs.paint[c.e]);
+  fs.proved=true;flipDone("Proved.");
+}
+function numsRender(){keepFocus(()=>{const box=$("flip-nums");box.textContent="";
+  for(let n=1;n<=12;n++){const b=h("button",{"aria-pressed":fs.nums.has(n)?"true":"false","data-k":"num-"+n},String(n));
+    if(fs.numsDone){b.disabled=true;if(fs.nums.has(n)!==(n%2===0))b.classList.add("miss");}
+    b.addEventListener("click",()=>{if(fs.numsDone)return;fs.nums.has(n)?fs.nums.delete(n):fs.nums.add(n);numsRender();});box.appendChild(b);}
+  $("flip-check2").disabled=fs.numsDone||fs.nums.size===0;});}
+function dealRoutes(){
+  // Six cards: at least one ruled out by colors, one too short for its parity, one possible.
+  const all=[];for(let s=0;s<6;s++)for(let e=0;e<6;e++)for(let k=1;k<=7;k++)all.push({s,e,k});
+  const kind=r=>routePossible(r.s,r.e,r.k)?"ok":((r.k-DIST[r.s][r.e])%2!==0?"parity":"short");
+  let set;do{const want=["parity","short","ok"].concat([0,1,2].map(()=>pick(["parity","ok","ok","short"])));
+    set=shuffle(want.map(w=>pick(all.filter(r=>kind(r)===w&&!(r.s===0&&r.e===0)))));}
+  while(new Set(set.map(r=>r.s+"-"+r.e+"-"+r.k)).size<6);
+  fs.routes=set.map(r=>Object.assign({kind:kind(r)},r));fs.rAns=fs.routes.map(()=>null);fs.rRevealed=false;routesRender();}
+function routesRender(){keepFocus(()=>{const g=$("flip-routes");g.textContent="";
+  fs.routes.forEach((r,i)=>{const card=h("div",{class:"sort-card"});
+    const ok=r.kind==="ok";if(fs.rRevealed)card.classList.add(fs.rAns[i]===ok?"right":"wrong");
+    card.appendChild(h("div",{class:"route-q","aria-label":"From "+F.labels[r.s]+" to "+F.labels[r.e]+" in exactly "+r.k+" flips"},F.labels[r.s]+" → "+F.labels[r.e]+" · "+r.k));
+    const cap=h("div",{class:"mini-cap"});
+    if(fs.rRevealed){if(ok)cap.textContent=routeWitness(r.s,r.e,r.k).map(x=>F.labels[x]).join("");
+      else if(r.kind==="short")cap.textContent="needs "+DIST[r.s][r.e];
+      else if(fs.paint.every(p=>p>0)){cap.appendChild(h("span",{class:"swatch c"+fs.paint[r.s]}));cap.appendChild(h("span",{},"·"+r.k+"·"));cap.appendChild(h("span",{class:"swatch c"+fs.paint[r.e]}));}
+      else cap.textContent="odd/even";}
+    card.appendChild(cap);
+    const row=h("div",{class:"row"});
+    for(const [lab,val] of [["✓",true],["✗",false]]){const b=h("button",{"aria-pressed":fs.rAns[i]===val?"true":"false","aria-label":(val?"Can be done":"Cannot be done")+", card "+(i+1),"data-k":"route-"+i+"-"+val},lab);
+      b.disabled=fs.rRevealed;b.addEventListener("click",()=>{fs.rAns[i]=val;routesRender();});row.appendChild(b);}
+    card.appendChild(row);g.appendChild(card);});
+  $("flip-check2").disabled=fs.rRevealed||fs.rAns.some(a=>a===null);});}
+$("flip-check2").addEventListener("click",()=>{
+  const st=STAGES[fs.stage];
+  if(st==="numbers"){fs.numsDone=true;const right=[...Array(12)].every((_,j)=>fs.nums.has(j+1)===((j+1)%2===0));numsRender();
+    if(right)flipDone("Right.");else{msg("flip-msg","The outlined ones were wrong.","bad");$("flip-next").hidden=false;}return;}
+  fs.rRevealed=true;const wrong=fs.routes.filter((r,i)=>fs.rAns[i]!==(r.kind==="ok")).length;routesRender();
+  if(!wrong){fs.rPassed=true;flipDone("All six right.");$("flip-checkbar").hidden=true;}
+  else{msg("flip-msg",wrong===1?"One is wrong.":wrong+" are wrong.","bad");$("flip-check2").disabled=true;
+    const again=h("button",{class:"primary"},"New cards");again.addEventListener("click",()=>{again.remove();msg("flip-msg","");dealRoutes();});$("flip-checkbar").appendChild(again);}
+});
+$("flip-restart").addEventListener("click",()=>{const c=CH[fs.stage];fs.cur=c.s;fs.flips=0;fs.trail=[c.s];fs.done=false;msg("flip-msg","");$("flip-alt").textContent="";$("flip-cant").hidden=false;flipRender();});
+$("flip-cant").addEventListener("click",()=>{msg("flip-msg","");flipMode("paint");});
+$("flip-back").addEventListener("click",()=>{msg("flip-msg","");flipMode("walk");});
+for(const k of [0,1,2])$("brush-"+k).addEventListener("click",()=>setBrush(k));
+$("flip-check").addEventListener("click",flipCheck);
+$("flip-next").addEventListener("click",()=>{const n=fs.stage+1;if(n<STAGES.length){flipStage(n);}});
+flipStage(0);
+
+/* =================================================================
+   Shared domino-board mathematics (6×6 grids)
+   ================================================================= */
+const N=6;
+const rc=i=>[Math.floor(i/N),i%N];
+const par=i=>(Math.floor(i/N)+i%N)%2;
+function nbrs(i,set){const [r,c]=rc(i),o=[];if(r>0&&set.has(i-N))o.push(i-N);if(r<N-1&&set.has(i+N))o.push(i+N);if(c>0&&set.has(i-1))o.push(i-1);if(c<N-1&&set.has(i+1))o.push(i+1);return o;}
+function matchSide(set,side){const X=[...set].filter(i=>par(i)===side),mY=new Map();
+  function aug(u,seen){for(const v of nbrs(u,set)){if(seen.has(v))continue;seen.add(v);if(!mY.has(v)||aug(mY.get(v),seen)){mY.set(v,u);return true;}}return false;}
+  for(const u of X)aug(u,new Set());return {X,mY};}
+function tilingOf(set){if(set.size%2)return null;const {mY}=matchSide(set,0);if(mY.size*2!==set.size)return null;return [...mY].map(([y,x])=>[x,y]);}
+function hallSet(set){let best=null;
+  for(const side of [0,1]){const {X,mY}=matchSide(set,side);const mX=new Map([...mY].map(([y,x])=>[x,y]));
+    for(const u of X){if(mX.has(u))continue;const S=new Set([u]),T=new Set(),q=[u];
+      while(q.length){const x=q.shift();for(const y of nbrs(x,set)){if(T.has(y))continue;T.add(y);const x2=mY.get(y);if(x2!==undefined&&!S.has(x2)){S.add(x2);q.push(x2);}}}
+      if(!best||S.size<best.S.size)best={S,T};}}
+  return best;}
+const fullSet=()=>new Set(Array.from({length:N*N},(_,i)=>i));
+function regionFromHoles(holes){const s=fullSet();for(const [r,c] of holes)s.delete(r*N+c);return s;}
+function drawHole(svg,x,y,cs){el("rect",{x:x+cs*.14,y:y+cs*.14,width:cs*.72,height:cs*.72,rx:cs*.16,class:"g-hole"},svg);
+  el("line",{x1:x+cs*.28,y1:y+cs*.72,x2:x+cs*.72,y2:y+cs*.28,class:"g-hatch"},svg);}
+
+/* =================================================================
+   ROOM 2: GARDEN PROOFS
+   ================================================================= */
+const GARDENS=[[[0,0],[5,5]],[[0,0],[0,5]],[[0,0],[0,2],[2,0],[2,1],[2,5],[3,0]],[[2,2],[3,4]]];
+const gs={idx:0,cells:null,doms:new Map(),sel:null,mode:"cover",brush:1,paint:new Map(),stars:new Set(),shown:false,touch:[],solved:[false,false,false,false],locked:false};
+const CS=50,PAD=8;
+function gLoad(i){Object.assign(gs,{idx:i,cells:regionFromHoles(GARDENS[i]),doms:new Map(),sel:null,paint:new Map(),stars:new Set(),shown:false,touch:[],locked:false});
+  gMode("cover");msg("garden-msg","");$("garden-next").hidden=true;gRender();}
+function gMode(m){gs.mode=m;$("garden-coverbar").hidden=m!=="cover"||gs.locked;$("garden-provebar").hidden=m!=="prove"||gs.locked;gs.sel=null;gRender();}
+function gBrush(b){gs.brush=b;for(const k of ["1","2","s","0"])$("gb-"+k).setAttribute("aria-pressed",String(k)===String(b)?"true":"false");gs.shown=false;gs.touch=[];gRender();}
+function partnersOf(stars){const T=new Set();for(const s of stars)for(const n of nbrs(s,gs.cells))if(!stars.has(n))T.add(n);return T;}
+function gRender(){keepFocus(()=>{
+  const svg=$("garden-svg");svg.textContent="";
+  pips("garden-pips",GARDENS.length,gs.solved.filter(Boolean).length);
+  const prove=gs.mode==="prove";
+  for(let i=0;i<N*N;i++){const [r,c]=rc(i);const x=PAD+c*CS,y=PAD+r*CS;
+    if(!gs.cells.has(i)){drawHole(svg,x,y,CS);continue;}
+    const p=prove?gs.paint.get(i):0;
+    const cls=["g-cell"];if(p)cls.push("p"+p);if(gs.sel===i)cls.push("sel");
+    const rct=el("rect",{x:x+1,y:y+1,width:CS-2,height:CS-2,rx:6,class:cls.join(" "),tabindex:"0",role:"button","data-k":"cell-"+i,
+      "aria-label":"Square row "+(r+1)+" column "+(c+1)+(p?(p===1?", gold":", green"):"")+(prove&&gs.stars.has(i)?", starred":"")},svg);
+    activate(rct,()=>gTap(i));
+    if(p)glyph(svg,p,x+CS-11,y+11,3.5);
+  }
+  if(!prove){const seen=new Set();for(const [a,b] of gs.doms){if(seen.has(a))continue;seen.add(a);seen.add(b);
+    const [r1,c1]=rc(a),[r2,c2]=rc(b);const r=Math.min(r1,r2),c=Math.min(c1,c2);
+    el("rect",{x:PAD+c*CS+5,y:PAD+r*CS+5,width:(c1!==c2?2:1)*CS-10,height:(r1!==r2?2:1)*CS-10,rx:12,class:"dom"},svg);}}
+  if(prove){
+    if(gs.shown)for(const t of partnersOf(gs.stars)){const [r,c]=rc(t);el("circle",{cx:PAD+c*CS+CS/2,cy:PAD+r*CS+CS/2,r:16,class:"partner"},svg);}
+    for(const s of gs.stars){const [r,c]=rc(s);el("text",{x:PAD+c*CS+CS/2,y:PAD+r*CS+CS/2+1,class:"star"},svg).textContent="★";}
+    for(const [a,b] of gs.touch){const [r1,c1]=rc(a),[r2,c2]=rc(b);el("line",{x1:PAD+c1*CS+CS/2,y1:PAD+r1*CS+CS/2,x2:PAD+c2*CS+CS/2,y2:PAD+r2*CS+CS/2,class:"touch"},svg);}
+  }
+  const tally=$("garden-tally");tally.textContent="";
+  if(prove){let a=0,b=0;for(const v of gs.paint.values()){if(v===1)a++;if(v===2)b++;}
+    const add=(cls,n)=>{tally.appendChild(h("span",{class:"swatch "+cls}));tally.appendChild(h("b",{}," "+n+" "));};
+    if(a||b){add("c1",a);add("c2",b);}
+    if(gs.stars.size){tally.appendChild(h("span",{},"★"));tally.appendChild(h("b",{}," "+gs.stars.size+" "));
+      if(gs.shown){tally.appendChild(h("span",{},"◌"));tally.appendChild(h("b",{}," "+partnersOf(gs.stars).size));}}}
+});}
+function gTap(i){
+  if(gs.locked)return;
+  if(gs.mode==="prove"){
+    if(gs.brush==="s"){gs.stars.has(i)?gs.stars.delete(i):gs.stars.add(i);}
+    else if(gs.brush===0){gs.paint.delete(i);gs.stars.delete(i);}
+    else{gs.paint.get(i)===gs.brush?gs.paint.delete(i):gs.paint.set(i,gs.brush);}
+    gs.shown=false;gs.touch=[];msg("garden-msg","");gRender();return;}
+  if(gs.doms.has(i)){const j=gs.doms.get(i);gs.doms.delete(i);gs.doms.delete(j);gs.sel=null;gRender();return;}
+  if(gs.sel===null||gs.sel===i){gs.sel=gs.sel===i?null:i;gRender();return;}
+  if(nbrs(gs.sel,gs.cells).includes(i)){gs.doms.set(gs.sel,i);gs.doms.set(i,gs.sel);gs.sel=null;gRender();
+    if(gs.doms.size===gs.cells.size)gSolved("Covered.");return;}
+  gs.sel=i;gRender();
+}
+function gSolved(t){gs.solved[gs.idx]=true;gs.locked=true;msg("garden-msg",t,"good");$("garden-coverbar").hidden=true;$("garden-provebar").hidden=true;
+  if(gs.idx<GARDENS.length-1)$("garden-next").hidden=false;gRender();}
+function gCheck(){
+  if(gs.stars.size===0){
+    if(gs.paint.size===0){msg("garden-msg","Paint or star some squares.","bad");return;}
+    for(const i of gs.cells)if(!gs.paint.get(i)){msg("garden-msg","Paint every square.","bad");return;}
+    for(const i of gs.cells)for(const j of nbrs(i,gs.cells))if(gs.paint.get(i)===gs.paint.get(j)){msg("garden-msg","Two touching squares match.","bad");return;}
+    let a=0;for(const i of gs.cells)if(gs.paint.get(i)===1)a++;
+    if(a*2===gs.cells.size){msg("garden-msg","Not proved.","bad");return;}
+    gSolved("Proved.");return;}
+  gs.touch=[];for(const s of gs.stars)for(const n of nbrs(s,gs.cells))if(gs.stars.has(n)&&s<n)gs.touch.push([s,n]);
+  if(gs.touch.length){gRender();msg("garden-msg","Two stars touch.","bad");return;}
+  gs.shown=true;gRender();
+  if(partnersOf(gs.stars).size>=gs.stars.size){msg("garden-msg","Not proved.","bad");return;}
+  gSolved("Proved.");
+}
+$("garden-clear").addEventListener("click",()=>{gs.doms=new Map();gs.sel=null;gRender();});
+$("garden-cant").addEventListener("click",()=>{gMode("prove");msg("garden-msg","");});
+$("garden-back").addEventListener("click",()=>{gMode("cover");msg("garden-msg","");});
+for(const k of ["1","2","s","0"])$("gb-"+k).addEventListener("click",()=>gBrush(k==="s"?"s":Number(k)));
+$("garden-wipe").addEventListener("click",()=>{gs.paint=new Map();gs.stars=new Set();gs.touch=[];gs.shown=false;msg("garden-msg","");gRender();});
+$("garden-check").addEventListener("click",gCheck);
+$("garden-next").addEventListener("click",()=>gLoad(gs.idx+1));
+gLoad(0);
+
+/* =================================================================
+   ROOM 3: SORTING ROUNDS
+   ================================================================= */
+const ss={level:0,boards:[],answers:[],revealed:false,clean:[0,0,0],passed:[false,false,false]};
+const corners=[0,N-1,N*(N-1),N*N-1];
+const sameColor=h2=>par(h2[0])===par(h2[1]);
+function hasStranded(set){for(const i of set)if(nbrs(i,set).length===0)return true;return false;}
+function classify(holes){const set=fullSet();for(const x of holes)set.delete(x);
+  const til=tilingOf(set);if(til)return {holes,set,ok:true,why:"tile",til};
+  if(set.size%2)return {holes,set,ok:false,why:"odd"};
+  let a=0;for(const i of set)if(par(i)===0)a++;
+  if(a*2!==set.size)return {holes,set,ok:false,why:"color",a,b:set.size-a,stranded:hasStranded(set)};
+  const hs=hallSet(set);return {holes,set,ok:false,why:"hall",S:hs.S,T:hs.T};}
+function sample(k,pred){for(let t=0;t<50000;t++){const b=classify(shuffle(Array.from({length:N*N},(_,i)=>i)).slice(0,k));if(pred(b))return b;}throw new Error("no board");}
+function coins(minYes,minNo){let L;do{L=Array.from({length:6},()=>Math.random()<.5);}while(L.filter(x=>x).length<minYes||L.filter(x=>!x).length<minNo);return L;}
+function makeRound(level){
+  // Answers are coin flips; the first few slots carry the boards each level needs against named wrong rules.
+  const out=[];
+  if(level===0){const L=coins(1,1);let needSame=true;
+    for(const ok of L){if(ok)out.push(sample(2,b=>!sameColor(b.holes)));
+      else{const same=needSame||Math.random()<.5;needSame=false;out.push(same?sample(2,b=>sameColor(b.holes)):sample(pick([1,3]),()=>true));}}}
+  else if(level===1){const L=coins(1,1);let needCorner=true;
+    for(const ok of L){if(ok&&needCorner){needCorner=false;const adjPairs=[[0,1],[0,2],[1,3],[2,3]].map(([a,b])=>[corners[a],corners[b]]);out.push(classify(pick(adjPairs)));}
+      else out.push(sample(2,b=>ok?!sameColor(b.holes):sameColor(b.holes)));}}
+  else{const L=coins(1,2);let need=["hall","color"];
+    for(const ok of L){if(ok)out.push(sample(4,b=>b.ok));
+      else{const w=need.length?need.shift():pick(["hall","color"]);out.push(sample(4,b=>w==="hall"?b.why==="hall":(b.why==="color"&&!b.stranded)));}}}
+  return shuffle(out);}
+function miniSVG(b,reveal){
+  const cs=20,p=4,svg=el("svg",{viewBox:"0 0 "+(N*cs+2*p)+" "+(N*cs+2*p),width:"128",role:"img","aria-label":"Garden with "+b.holes.length+(b.holes.length===1?" missing square":" missing squares")});
+  const colorize=reveal&&b.why==="color";
+  for(let i=0;i<N*N;i++){const [r,c]=rc(i),x=p+c*cs,y=p+r*cs;
+    if(!b.set.has(i)){drawHole(svg,x,y,cs);continue;}
+    el("rect",{x:x+.5,y:y+.5,width:cs-1,height:cs-1,rx:3,class:"g-cell"+(colorize?(par(i)?" p2":" p1"):""),style:"cursor:default"},svg);
+    if(colorize)glyph(svg,par(i)?2:1,x+cs/2,y+cs/2,2.4);}
+  if(reveal&&b.why==="tile")for(const [a,c2] of b.til){const [r1,c1]=rc(a),[r2,cc]=rc(c2);
+    el("rect",{x:p+Math.min(c1,cc)*cs+2.5,y:p+Math.min(r1,r2)*cs+2.5,width:(c1!==cc?2:1)*cs-5,height:(r1!==r2?2:1)*cs-5,rx:5,class:"dom"},svg);}
+  if(reveal&&b.why==="hall"){for(const t of b.T){const [r,c]=rc(t);el("circle",{cx:p+c*cs+cs/2,cy:p+r*cs+cs/2,r:7,class:"partner"},svg);}
+    for(const s of b.S){const [r,c]=rc(s);el("text",{x:p+c*cs+cs/2,y:p+r*cs+cs/2+1,class:"star","font-size":"14"},svg).textContent="★";}}
+  return svg;}
+function caption(b,box){if(b.why==="odd"){box.textContent=b.set.size+" squares";return;}
+  if(b.why==="color"){box.appendChild(h("span",{class:"swatch c1"}));box.appendChild(h("span",{},b.a+" ·"));box.appendChild(h("span",{class:"swatch c2"}));box.appendChild(h("span",{},String(b.b)));return;}
+  if(b.why==="hall")box.textContent="★ "+b.S.size+" · ◌ "+b.T.size;}
+function sNew(){ss.boards=makeRound(ss.level);ss.answers=ss.boards.map(()=>null);ss.revealed=false;$("sort-new").hidden=true;$("sort-check").hidden=false;msg("sort-msg","");sRender();}
+function sRender(){keepFocus(()=>{
+  const lv=$("sort-levels");lv.textContent="";
+  for(let k=0;k<3;k++){const b=h("button",{"aria-label":"Level "+(k+1)+(ss.passed[k]?", passed":""),"data-k":"lvl-"+k},String(k+1));
+    if(k===ss.level)b.setAttribute("aria-current","true");if(ss.passed[k])b.classList.add("done");
+    b.addEventListener("click",()=>{ss.level=k;sNew();});lv.appendChild(b);}
+  pips("sort-pips",2,ss.clean[ss.level]);
+  const g=$("sort-grid");g.textContent="";
+  ss.boards.forEach((b,i)=>{const card=h("div",{class:"sort-card"});
+    if(ss.revealed)card.classList.add(ss.answers[i]===b.ok?"right":"wrong");
+    card.appendChild(miniSVG(b,ss.revealed));
+    const cap=h("div",{class:"mini-cap"});if(ss.revealed)caption(b,cap);card.appendChild(cap);
+    const row=h("div",{class:"row"});
+    for(const [lab,val] of [["✓",true],["✗",false]]){const bt=h("button",{"aria-label":(val?"Can be covered":"Cannot be covered")+", garden "+(i+1),"aria-pressed":ss.answers[i]===val?"true":"false","data-k":"s-"+i+"-"+val},lab);
+      bt.disabled=ss.revealed;bt.addEventListener("click",()=>{ss.answers[i]=val;sRender();});row.appendChild(bt);}
+    card.appendChild(row);g.appendChild(card);});
+  $("sort-check").disabled=ss.answers.some(a=>a===null)||ss.revealed;});}
+$("sort-check").addEventListener("click",()=>{
+  const wrong=ss.boards.filter((b,i)=>ss.answers[i]!==b.ok).length;ss.revealed=true;$("sort-check").hidden=true;$("sort-new").hidden=false;
+  if(wrong===0){ss.clean[ss.level]++;if(ss.clean[ss.level]>=2){ss.passed[ss.level]=true;msg("sort-msg","Level passed.","good");}else msg("sort-msg","All six right.","good");}
+  else{ss.clean[ss.level]=0;msg("sort-msg",wrong===1?"One is wrong.":wrong+" are wrong.","bad");}
+  sRender();});
+$("sort-new").addEventListener("click",()=>{if(ss.passed[ss.level]&&ss.level<2&&ss.clean[ss.level]>=2){ss.level++;}sNew();});
+sNew();
+
+/* =================================================================
+   ROOM 4: PEBBLE DUEL — choose who starts against a perfect opponent
+   ================================================================= */
+const ns={start:[],piles:[],turn:null,over:true,streak:0,busy:false,fresh:true};
+const xr=p=>p.reduce((a,b)=>a^b,0);
+function newStart(){let p;const wantP=Math.random()<.5;do{p=[1,2,3].map(()=>1+Math.floor(Math.random()*7));}while((xr(p)===0)!==wantP);return p;}
+function movesOf(p){const m=[];p.forEach((n,i)=>{for(let k=0;k<n;k++)m.push([i,k]);});return m;}
+function after(p,[i,k]){const q=p.slice();q[i]=k;return q;}
+function oppMove(p){const ms=movesOf(p);const win=ms.filter(m=>xr(after(p,m))===0);if(win.length)return pick(win);
+  let best=null,bs=Infinity;for(const m of shuffle(ms)){const q=after(p,m);const score=movesOf(q).filter(r=>xr(after(q,r))===0).length*100-q.reduce((a,b)=>a+b,0);if(score<bs){bs=score;best=m;}}return best;}
+function nimRender(hot){keepFocus(()=>{
+  const box=$("nim-piles");box.textContent="";
+  ns.piles.forEach((n,i)=>{const pile=h("div",{class:"pile"});
+    for(let k=0;k<n;k++){const take=n-k;const b=h("button",{class:"peb"+(hot&&hot[0]===i&&k>=hot[1]?" hot":""),"data-k":"peb-"+i+"-"+k,
+        "aria-label":"Pile "+(i+1)+" of "+n+": take "+take+(take===1?" pebble":" pebbles")});
+      b.disabled=ns.over||ns.turn!=="me"||ns.busy;b.addEventListener("click",()=>myMove([i,k]));pile.appendChild(b);}
+    box.appendChild(pile);});
+  pips("nim-streak",3,ns.streak);});}
+function box_has_focus(){return $("nim-piles").contains(document.activeElement);}
+function nimSetup(p,fresh){ns.start=p.slice();ns.piles=p.slice();ns.over=true;ns.turn=null;ns.fresh=fresh;$("nim-choose").hidden=false;$("nim-after").hidden=true;msg("nim-msg","");nimRender();}
+function nimBegin(who){ns.over=false;$("nim-choose").hidden=true;ns.turn=who;nimRender();if(who==="opp")oppTurn();else{const f=document.querySelector("#nim-piles .peb");if(f)f.focus({preventScroll:true});}}
+function finish(iWon){ns.over=true;
+  if(iWon){if(ns.fresh)ns.streak=Math.min(3,ns.streak+1);msg("nim-msg",ns.streak===3?"Three wins in a row.":"You took the last pebble.","good");$("nim-retry").hidden=true;}
+  else{ns.streak=0;msg("nim-msg","I took the last pebble.","bad");$("nim-retry").hidden=false;}
+  $("nim-after").hidden=false;nimRender();$("nim-new").focus({preventScroll:true});}
+function myMove(m){if(ns.over||ns.turn!=="me"||ns.busy)return;ns.piles=after(ns.piles,m);
+  if(ns.piles.every(x=>x===0)){finish(true);return;}ns.turn="opp";nimRender();oppTurn();}
+function oppTurn(){ns.busy=true;const m=oppMove(ns.piles);nimRender(m);
+  const delay=matchMedia("(prefers-reduced-motion: reduce)").matches?250:800;
+  setTimeout(()=>{ns.piles=after(ns.piles,m);ns.busy=false;
+    if(ns.piles.every(x=>x===0)){finish(false);return;}ns.turn="me";nimRender();
+    const f=document.querySelector("#nim-piles .peb:not(:disabled)");if(f&&(document.activeElement===document.body||box_has_focus()))f.focus({preventScroll:true});},delay);}
+$("nim-me").addEventListener("click",()=>nimBegin("me"));
+$("nim-you").addEventListener("click",()=>nimBegin("opp"));
+$("nim-retry").addEventListener("click",()=>nimSetup(ns.start,false));
+$("nim-new").addEventListener("click",()=>{if(ns.streak===3)ns.streak=0;nimSetup(newStart(),true);});
+nimSetup(newStart(),true);
+
+showTab(startTab);fromHash();
+})();
+</script>
+
+</body>
+</html>
