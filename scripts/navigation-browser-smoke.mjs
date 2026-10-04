@@ -18,7 +18,7 @@ try{
   await page.locator('#nickname').fill('Navigation');
   await page.locator('#profile-form button[type=submit]').click();
   await page.locator('.caravan-nav [data-action=library]').click();
-  await family('Lantern Wires').locator('summary').click();
+  await family('Chip firing').locator('summary').click();
   await family('Clockwork Gates').locator('summary').click();
   await family('Cup swaps').locator('summary').click();
   const expected=await openFamilies();
@@ -30,7 +30,7 @@ try{
   await clock.click();
   await page.locator('[data-puzzle-id="clock-10"]').waitFor();
   await back('.caravan-library');
-  assert.deepEqual(await openFamilies(),expected,'Back restores every family, including closed Lantern Wires');
+  assert.deepEqual(await openFamilies(),expected,'Back restores every family, including closed Chip firing');
   assert.ok(Math.abs(await page.evaluate(()=>scrollY)-scroll)<3,'Back restores the library scroll position');
   await forward('[data-puzzle-id="clock-10"]');
   await back('.caravan-library');
@@ -106,7 +106,7 @@ try{
   checks.push('Journal archive disclosures');
 
   await page.locator('.caravan-nav [data-action=library]').click();
-  await family('Lantern Wires').locator('summary').click();
+  await family('Chip firing').locator('summary').click();
   await family('Clockwork Gates').locator('summary').click();
   await page.locator('[data-action=profiles]').click();
   await page.locator('.caravan-add-profile > summary').click();
@@ -119,11 +119,11 @@ try{
   await page.locator('.lr-overview').waitFor();
   await page.locator('.caravan-nav [data-action=library]').click();
   await page.locator('.caravan-library').waitFor();
-  assert.deepEqual(await openFamilies(),['Lantern Wires'],'another explorer starts with fresh presentation state');
+  assert.deepEqual(await openFamilies(),['Chip firing'],'another explorer starts with fresh presentation state');
   await page.evaluate(()=>history.go(-3));
   await page.waitForURL('**/#library');await settle();
   assert.equal(await page.locator('.profile-label').textContent(),'Second explorer');
-  assert.deepEqual(await openFamilies(),['Lantern Wires'],'old history cannot transfer presentation state across explorers');
+  assert.deepEqual(await openFamilies(),['Chip firing'],'old history cannot transfer presentation state across explorers');
   checks.push('New explorer disclosure and explorer isolation');
 
   assert.deepEqual(errors,[]);

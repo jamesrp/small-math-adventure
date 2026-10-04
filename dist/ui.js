@@ -30,7 +30,7 @@ function puzzleView(p,a,ctx){
       ${expansion?mechanicFor(p).render(p,a,ctx):p.mechanic==='tile'?tileBoard(p,a,ctx):ctx.encounter?.party?partyBoard(p,a,ctx):swapBoard(p,a,ctx)}
       ${p.mechanic==='tile'?`<div class="board-bottom"><label class="checker-toggle"><input type="checkbox" id="checker" ${ctx.checker?'checked':''}> Checker colors</label></div>`:''}
     </section>
-    ${solved&&ctx.encounter?'':`<aside class="play-sidebar">${solved?completionCard(p,a,ctx):`<div class="tool-grid">${btn('↶ Undo','undo','secondary',a.history.length&&!(expansion&&mechanicFor(p).noUndo?.(p))?'':'disabled')}${btn('Restart','restart','secondary')}${btn('Hint','hint','hint-button')}</div>${a.hintLevel?(expansion?expansionHintCard(a,hint,p):hintCard(p,a,hint,ctx)):''}`}</aside>`}
+    ${solved&&ctx.encounter?'':`<aside class="play-sidebar">${solved?completionCard(p,a,ctx):`<div class="tool-grid">${btn('↶ Undo','undo','secondary',a.history.length&&!(expansion&&mechanicFor(p).noUndo?.(p))?'':'disabled')}${btn('Restart','restart','secondary')}${expansion&&mechanicFor(p).noHint?.(p)?'':btn('Hint','hint','hint-button')}</div>${a.hintLevel?(expansion?expansionHintCard(a,hint,p):hintCard(p,a,hint,ctx)):''}`}</aside>`}
   </div><div class="feedback ${hint.type==='deadend'&&!solved?'deadend':''}" role="status" aria-live="polite">${esc(feedback)}</div>`;
 }
 function expansionHintCard(a,hint,p){

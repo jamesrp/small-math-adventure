@@ -60,6 +60,7 @@ export function puzzleObjective(puzzle) {
 
 // Visible copy is only for information the board and its controls do not supply.
 export function visiblePuzzleObjective(puzzle) {
+  if (puzzle.parameters?.mode === 'playground') return '';
   if (['tile', 'swap', 'toggle', 'code'].includes(puzzle.mechanic)) return '';
   if (puzzle.mechanic === 'billiard' && puzzle.parameters.mode === 'predict') return '';
   if (puzzle.mechanic === 'weigh') {

@@ -9,6 +9,7 @@ const page=await context.newPage(),errors=[];
 page.on('pageerror',e=>errors.push(e.message));
 const base=(process.env.TEST_URL||'http://127.0.0.1:4187').replace(/\/$/,'');
 const {puzzles}=JSON.parse(await readFile(new URL('../dist/puzzles.json',import.meta.url),'utf8'));
+const chips=JSON.parse(await readFile(new URL('../dist/chips.json',import.meta.url),'utf8')).puzzles;
 const output=new URL('../test-results/',import.meta.url);
 const screenshots=[],objectiveCounts={zero:0,one:0};
 const capture=async name=>{const filename=`copy-${name}.png`;await page.screenshot({path:new URL(filename,output).pathname,fullPage:true});screenshots.push(filename);};
@@ -136,13 +137,14 @@ try{
   await help.getByRole('button',{name:'Done',exact:true}).click();await page.locator('dialog').waitFor({state:'detached'});
  }
  await page.goto(`${base}/#library`);await page.locator('.caravan-library').waitFor();await assertMinimalChrome('library');
- assert.equal(await page.locator('[data-action=open-puzzle]:not(.library-proofs *)').count(),puzzles.length,'library: all catalog puzzles remain selectable');
- assert.equal(await page.locator('.satchel-family').count(),12,'library: all twelve families remain accessible');
+ assert.equal(await page.locator('[data-action=open-puzzle]:not(.library-proofs *)').count(),puzzles.length+chips.length,'library: all catalog puzzles and Chip firing remain selectable');
+ assert.equal(await page.locator('.satchel-family').count(),13,'library: all thirteen families remain accessible');
  assert.equal(await page.locator('#main h1:not(.sr-only),.library-heading,.library-note,.family-summary small,.satchel-family-content > p,.puzzle-card small').count(),0,'library: no redundant heading, family descriptions, or counters');
  for(const family of await page.locator('.satchel-family').all()){
   const wasOpen=await family.getAttribute('open')!==null;
   if(!wasOpen)await family.locator('summary').click();
-  for(const card of await family.locator('[data-action="open-puzzle"]').all())assert.match(normalize(await card.innerText()),/^\d{2}(?:\s*✓)?$/,'library: puzzle selection uses a number and completion mark only');
+  for(const play of await family.locator('.satchel-playground').all())assert.match(normalize(await play.innerText()),/^\S Playground$/,'library: a playground is labeled Playground');
+  for(const card of await family.locator('[data-action="open-puzzle"]:not(.satchel-playground)').all())assert.match(normalize(await card.innerText()),/^\d{2}(?:\s*✓)?$/,'library: puzzle selection uses a number and completion mark only');
   if(!wasOpen)await family.locator('summary').click();
  }
  await capture('library');await captureSizes('library');

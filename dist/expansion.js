@@ -3,7 +3,8 @@ import {networkMechanics} from './networks.js';
 import {deductionMechanics} from './deduction.js';
 import {measurementMechanics} from './measurement.js';
 import {proofMechanics} from './proofs.js';
-export const expansionMechanics={...motionMechanics,...networkMechanics,...deductionMechanics,...measurementMechanics,...proofMechanics};
+import {chipMechanics} from './chips.js';
+export const expansionMechanics={...motionMechanics,...networkMechanics,...deductionMechanics,...measurementMechanics,...proofMechanics,...chipMechanics};
 export const isExpansion=p=>Boolean(p&&Object.hasOwn(expansionMechanics,p.mechanic));
 export const mechanicFor=p=>expansionMechanics[p.mechanic];
 // Short, instance-aware control instructions for the child-facing guide.

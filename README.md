@@ -117,6 +117,8 @@ To refresh the expansion from its checked authoring JSON, run `node scripts/impo
 
 **Proofs (17 puzzles).** The satchel’s Tile gardens and Pebble Duel families open with a Proofs group above the grade groups. A solve can be a covering, a checked star or paint proof that a garden cannot be covered, two clean one-check rounds, or three wins in a row against perfect play. The pack is `dist/proofs.json`, built by `node scripts/build-proofs.mjs` and merged with `puzzles.json` at load. `npm test` and `npm run build` validate it; `node scripts/proofs-browser-smoke.mjs` plays every puzzle. See [Proofs](docs/proofs/README.md).
 
+**Chip firing (12 puzzles and a playground).** The first family in the satchel, from Week 11 of the math circle: fire circles that hold a chip per line, find every firing order, every finish or every start that finishes like a card, set off the biggest avalanche, and find a start that never stops. The playground has eight boards, including a 25 × 25 sandpile grid. The pack is `dist/chips.json`, built by `node scripts/build-chips.mjs` and merged at load; `npm test` and `npm run build` check every answer set against an independent simulator. It is not on the road yet and has not been played by children. See [Chip firing](docs/chips/README.md).
+
 ## Install on iPad
 
 1. Open the hosted HTTPS address in Safari.
@@ -147,6 +149,7 @@ Updates wait until existing app tabs close, avoiding replacement of a live board
 | `dist/ui.js` | Profile/map/play/parent views |
 | `dist/puzzles.json` | 222 fixed authored puzzles and 57 source records |
 | `dist/proofs.{js,css,json}` | Proofs: four mechanics, styles, and 17 puzzles with 4 sources |
+| `dist/chips.{js,css,json}` | Chip firing: the mechanic and playground, styles, and 12 puzzles plus the playground with 4 sources (`scripts/build-chips.mjs`, `scripts/validate-chips.mjs`) |
 | `scripts/import-expansion.mjs` | Reproducible adapter from the 150 checked authoring instances into the shipped pack |
 | `dist/sw.js` | Atomic precache and versioned offline shell |
 | `scripts/release.mjs` | Validation and asset-derived offline cache version |

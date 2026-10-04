@@ -7,7 +7,7 @@ import {media,slots} from './art.js';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const button=(label,action,cls='',extra='')=>`<button type="button" class="${cls}" data-action="${action}" data-focus="action-${action}" ${extra}>${label}</button>`;
 const symbols=['✦','☀','❋','◆','☾','✿'];
-const familySymbols={tile:'▰',swap:'⇄',toggle:'☀',clock:'◷',billiard:'↗',route:'♧',latin:'▦',code:'◐',nim:'●',color:'◆',jug:'♒',weigh:'⚖'};
+const familySymbols={chips:'◉',tile:'▰',swap:'⇄',toggle:'☀',clock:'◷',billiard:'↗',route:'♧',latin:'▦',code:'◐',nim:'●',color:'◆',jug:'♒',weigh:'⚖'};
 const familyNames={tile:'Tile gardens',swap:'Cup swaps'};
 const levelButton=profile=>button(`Grades ${esc(BANDS[profile.band]?.label)} <span aria-hidden="true">⌄</span>`,'change-band','trail-choice');
 
@@ -21,16 +21,18 @@ export function caravanProfiles(state){
  return `<section class="caravan-welcome"><div class="welcome-story" aria-hidden="true"><div class="welcome-art">${media(slots.map('wide'),mapArt('wide'),{key:'welcome-map',cls:'welcome-map'})}</div><div class="welcome-crew">${COMPANIONS.map(c=>companionSvg(c.id)).join('')}</div></div><div class="welcome-boarding"><h1>${state.profiles.length?'Choose an explorer':'New explorer'}</h1>${state.profiles.length?`<div class="caravan-saved-profiles">${state.profiles.map(pr=>`<button type="button" class="caravan-profile-card" data-action="choose-profile" data-id="${esc(pr.id)}"><span class="caravan-avatar" aria-hidden="true">${symbols[pr.avatar]||'✦'}</span><strong>${esc(pr.name)}</strong><span class="profile-arrow" aria-hidden="true">→</span></button>`).join('')}</div><details class="caravan-add-profile" data-view-key="new-explorer"><summary>New explorer</summary>${profileForm()}</details>`:profileForm()}</div></section>`;
 }
 // Proof puzzles (band "proofs") join their family's satchel as a Proofs group
-// above the grade or difficulty groups.
+// above the grade or difficulty groups. A family's playground (band
+// "playground") opens from a button above its groups. Chip firing, the newest
+// family, comes first and starts open.
 export function libraryView(profile,puzzles){
  puzzles=puzzles.filter(p=>!p.campaignOnly);
  const familyOf=p=>p.libraryFamily||p.mechanic;
- const families=[...new Set(puzzles.map(familyOf))];
+ const families=[...new Set(puzzles.map(familyOf))].sort((a,b)=>(b==='chips')-(a==='chips'));
  return `<h1 class="sr-only">Puzzles</h1><div class="caravan-library">${families.map(id=>{
-  const family=puzzles.filter(p=>familyOf(p)===id),core=family.filter(p=>p.band!=='proofs'),title=(core[0]||family[0]).familyTitle||familyNames[id]||id;
+  const all=puzzles.filter(p=>familyOf(p)===id),play=all.find(p=>p.band==='playground'),family=all.filter(p=>p!==play),core=family.filter(p=>p.band!=='proofs'),title=(core[0]||family[0]).familyTitle||familyNames[id]||id;
   const graded=core.some(p=>p.band!=='all'),labels={easy:'Easy',medium:'Medium',hard:'Hard',proofs:'Proofs'};
   const groups=[...(family.some(p=>p.band==='proofs')?['proofs']:[]),...(graded?['k1','23','45']:['easy','medium','hard'])];
-  return `<details class="satchel-family" data-view-key="family-${esc(id)}" ${id==='toggle'?'open':''}><summary><span class="family-ink-symbol" aria-hidden="true">${familySymbols[id]||'✦'}</span><strong>${esc(title)}</strong><span class="family-expand" aria-hidden="true">+</span></summary><div class="satchel-family-content">${groups.map(group=>{
+  return `<details class="satchel-family" data-view-key="family-${esc(id)}" ${id==='chips'?'open':''}><summary><span class="family-ink-symbol" aria-hidden="true">${familySymbols[id]||'✦'}</span><strong>${esc(title)}</strong><span class="family-expand" aria-hidden="true">+</span></summary><div class="satchel-family-content">${play?`<button type="button" class="satchel-playground ${profile.attempts[play.id]?'started':''}" data-action="open-puzzle" data-id="${esc(play.id)}"><span aria-hidden="true">${familySymbols[id]||'✦'}</span> Playground</button>`:''}${groups.map(group=>{
    const proofs=group==='proofs';
    const list=family.filter(p=>proofs?p.band==='proofs':p.band!=='proofs'&&(graded?p.band===group:p.difficulty_level===group)).sort((a,b)=>a.number-b.number);
    if(!list.length)return '';
