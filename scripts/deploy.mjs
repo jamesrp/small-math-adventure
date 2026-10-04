@@ -6,6 +6,7 @@ import {fileURLToPath} from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const remote = process.env.PAGES_REMOTE || 'git@github.com:jamesrp/small-math-adventure.git';
+const branch = 'gh-pages';
 const args = process.argv.slice(2);
 const dryRun = args[0] === '--dry-run';
 if (dryRun) args.shift();
@@ -31,7 +32,7 @@ try {
 
   // Keep Git metadata outside dist: the release builder precaches every file there.
   checkout = mkdtempSync(join(tmpdir(), 'small-math-adventure-deploy-'));
-  run('git', ['clone', '--quiet', '--single-branch', '--branch', 'main', remote, checkout]);
+  run('git', ['clone', '--quiet', '--single-branch', '--branch', branch, remote, checkout]);
   // This is a fresh deployment checkout. Remove obsolete app files while keeping
   // repository metadata and hosting configuration that do not belong to dist.
   run('rsync', ['-a', '--delete',
@@ -51,8 +52,8 @@ try {
   } else {
     run('git', ['commit', '-m', message], checkout);
     // A regular push rejects concurrent remote changes rather than overwriting them.
-    run('git', ['push', 'origin', 'HEAD:main'], checkout);
-    console.log(`Pushed to ${remote}. GitHub Pages will deploy the update.`);
+    run('git', ['push', 'origin', `HEAD:${branch}`], checkout);
+    console.log(`Pushed to ${remote} (${branch}). GitHub Pages will deploy the update.`);
   }
 } catch (error) {
   console.error(`Deployment stopped: ${error.message}`);

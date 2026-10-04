@@ -2,7 +2,7 @@
 
 A mathematics and logic adventure: race a rival caravan along the Lantern Road to the Lantern Fair.
 
-Play the [published app](https://jamesrp.github.io/small-math-adventure/). The [GitHub Pages repository](https://github.com/jamesrp/small-math-adventure) contains the contents of `dist/` at its root and publishes from `main`. Run `npm run deploy` to test, build, and publish an update from this Mac.
+Play the [published app](https://jamesrp.github.io/small-math-adventure/). The [GitHub repository](https://github.com/jamesrp/small-math-adventure) keeps the complete source on `main`; GitHub Pages publishes released files from `gh-pages` at its root. Source commits do not publish the app. `main` includes development work such as Lantern Road v4 that has not yet been deployed. Run `npm run deploy` only for an explicitly requested release.
 
 Six travelers (Pip, Moss, Rook, Bea, Fern and Tumble) haul their lantern tree along **seven stops and twenty-one road puzzles** to the Lantern Fair. At each stop a keeper sets the puzzles and talks a little: Snooze the ferry turtle, Mr. Hops the frog lamplighter, Billie the goat, Rattle the skeleton gardener, Sprocket the raccoon inventor and Wick the lighthouse owl. Plume, a show-off peacock, leads a rival caravan one stop ahead, leaves a score to beat, plays a pebble game at the ridge and waits at the fair for a rematch. Each puzzle earns up to three stars: solved, no hints, and beat or tied Plume. Chalk from the Spooky Hollow and a pump from the Old Workshop open two side puzzles you could only try before. Each grade trail is its own run of the road.
 
@@ -58,7 +58,7 @@ cd /Users/jamespfeiffer/business/small-math-adventure
 npm run deploy
 ```
 
-This runs the tests and release build, clones the current Pages branch into a temporary directory, synchronizes `dist/` including icons and removed assets, and commits and pushes any changes over SSH. GitHub Pages deploys the pushed commit. The repository README and hosting configuration are preserved. An unchanged build creates no commit. A concurrent remote update causes the push to fail safely; rerun the command to publish against the latest branch.
+This is a separate release step: it runs the tests and release build, clones `gh-pages` into a temporary directory, synchronizes `dist/` including icons and removed assets, and commits and pushes any changes to `gh-pages` over SSH. GitHub Pages deploys that commit. The deployment README and hosting configuration are preserved. An unchanged build creates no commit. A concurrent deployment update causes the push to fail safely; review the newer release before retrying.
 
 Preview the changes without committing or pushing, or supply a commit message:
 
@@ -67,7 +67,13 @@ npm run deploy -- --dry-run
 npm run deploy -- "Update puzzles"
 ```
 
-The existing SSH key must be available to Git. If it is locked, run `ssh-add --apple-use-keychain ~/.ssh/id_ed25519` in your own Terminal and enter its passphrase there. `ssh -T git@github.com` should identify you as `jamesrp` (GitHub returns exit status 1 even on success). The deployment script uses `git@github.com:jamesrp/small-math-adventure.git`; `PAGES_REMOTE` can override it for testing against a local bare repository.
+The existing SSH key must be available to Git. If it is locked, run `ssh-add --apple-use-keychain ~/.ssh/id_ed25519` in your own Terminal and enter its passphrase there. `ssh -T git@github.com` should identify you as `jamesrp` (GitHub returns exit status 1 even on success). The deployment script uses `git@github.com:jamesrp/small-math-adventure.git` and targets only `gh-pages`; `PAGES_REMOTE` can override the repository for testing against a local bare repository that has that branch.
+
+## Shared source and local resources
+
+GitHub `main` is the durable source of truth. Local and cloud coding sessions use their own checkouts or worktrees and follow [AGENTS.md](AGENTS.md) to integrate. Chat attachments and private resource downloads are inputs, not an automatic two-way sync with this repository.
+
+The optional [local resource manifest](LOCAL-RESOURCES.md) identifies the original game discs and their expected placement. App tests, validation, build, and ordinary development use the committed owned files and do not require the discs or extracted commercial assets. This project uses AI-assisted code and art; documented family playtests and remaining calibration limits are retained in the content notes.
 
 To validate and build without publishing:
 
