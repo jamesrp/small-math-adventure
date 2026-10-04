@@ -1,0 +1,455 @@
+{
+  "decodedSlots": 90,
+  "assets": [
+    {
+      "slot": "finale/fair",
+      "width": 1800,
+      "height": 780
+    },
+    {
+      "slot": "keeper/billie/happy",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/billie/idle",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/billie/oops",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/billie/talk",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/hops/happy",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/hops/idle",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/hops/oops",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/hops/talk",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/plume/happy",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/plume/idle",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/plume/oops",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/plume/talk",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/rattle/happy",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/rattle/idle",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/rattle/oops",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/rattle/talk",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/snooze/happy",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/snooze/idle",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/snooze/oops",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/snooze/talk",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/sprocket/happy",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/sprocket/idle",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/sprocket/oops",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/sprocket/talk",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/wick/happy",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/wick/idle",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/wick/oops",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "keeper/wick/talk",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "slot": "map/tall",
+      "width": 1200,
+      "height": 1800
+    },
+    {
+      "slot": "map/wagon-party",
+      "width": 240,
+      "height": 180
+    },
+    {
+      "slot": "map/wagon-plume",
+      "width": 240,
+      "height": 180
+    },
+    {
+      "slot": "map/wide",
+      "width": 2000,
+      "height": 840
+    },
+    {
+      "slot": "party/bea",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "slot": "party/fern",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "slot": "party/moss",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "slot": "party/pip",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "slot": "party/rook",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "slot": "party/tumble",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "slot": "scene/fair/0",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/fair/0-1",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/fair/1",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/fair/1-2",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/fair/2",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/fair/2-3",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/fair/3",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/ferry/0",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/ferry/0-1",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/ferry/1",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/ferry/1-2",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/ferry/2",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/ferry/2-3",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/ferry/3",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/hollow/0",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/hollow/0-1",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/hollow/1",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/hollow/1-2",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/hollow/2",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/hollow/2-3",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/hollow/3",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/lighthouse/0",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/lighthouse/0-1",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/lighthouse/1",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/lighthouse/1-2",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/lighthouse/2",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/lighthouse/2-3",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/lighthouse/3",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/marsh/0",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/marsh/0-1",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/marsh/1",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/marsh/1-2",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/marsh/2",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/marsh/2-3",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/marsh/3",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/ridge/0",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/ridge/0-1",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/ridge/1",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/ridge/1-2",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/ridge/2",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/ridge/2-3",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/ridge/3",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/workshop/0",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/workshop/0-1",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/workshop/1",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/workshop/1-2",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/workshop/2",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/workshop/2-3",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "scene/workshop/3",
+      "width": 1800,
+      "height": 690
+    },
+    {
+      "slot": "tool/chalk",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "slot": "tool/pump",
+      "width": 256,
+      "height": 256
+    }
+  ]
+}

@@ -1,0 +1,351 @@
+{
+  "passed": true,
+  "bands": [
+    "k1",
+    "23",
+    "45"
+  ],
+  "checks": [
+    "v1 story archived, attempts kept, reload",
+    "v2 story archived, attempts kept, reload",
+    "v3 story archived, attempts kept, reload",
+    "side puzzle locked before its tool",
+    "chalk earned at hollow-plots",
+    "pump earned at workshop-pump",
+    "illegal move gets a keeper reaction",
+    "both side puzzles finished after their tools",
+    "k1: all 21 encounters, finale, offline replay",
+    "side puzzle locked before its tool",
+    "chalk earned at hollow-plots",
+    "pump earned at workshop-pump",
+    "illegal move gets a keeper reaction",
+    "both side puzzles finished after their tools",
+    "23: all 21 encounters, finale, offline replay",
+    "side puzzle locked before its tool",
+    "chalk earned at hollow-plots",
+    "pump earned at workshop-pump",
+    "illegal move gets a keeper reaction",
+    "both side puzzles finished after their tools",
+    "45: all 21 encounters, finale, offline replay",
+    "manifest-driven art slots",
+    "video reaction plays once and hands over to the idle loop"
+  ],
+  "results": [
+    {
+      "band": "k1",
+      "id": "road4-ferry-seats-k1",
+      "stars": 2
+    },
+    {
+      "band": "k1",
+      "id": "road4-ferry-bell-k1",
+      "stars": 2
+    },
+    {
+      "band": "k1",
+      "id": "road4-ferry-lights-k1",
+      "stars": 2
+    },
+    {
+      "band": "k1",
+      "id": "road4-marsh-boardwalks-k1",
+      "stars": 1
+    },
+    {
+      "band": "k1",
+      "id": "road4-marsh-lilies-k1",
+      "stars": 2
+    },
+    {
+      "band": "k1",
+      "id": "road4-marsh-water-k1",
+      "stars": 2
+    },
+    {
+      "band": "k1",
+      "id": "road4-ridge-stones-k1",
+      "stars": 1
+    },
+    {
+      "band": "k1",
+      "id": "road4-ridge-duel-k1",
+      "stars": 1
+    },
+    {
+      "band": "k1",
+      "id": "road4-ridge-kites-k1",
+      "stars": 2
+    },
+    {
+      "band": "k1",
+      "id": "road4-hollow-pumpkins-k1",
+      "stars": 2
+    },
+    {
+      "band": "k1",
+      "id": "road4-hollow-crypt-k1",
+      "stars": 2
+    },
+    {
+      "band": "k1",
+      "id": "road4-hollow-plots-k1",
+      "stars": 1
+    },
+    {
+      "band": "k1",
+      "id": "road4-workshop-floor-k1",
+      "stars": 2
+    },
+    {
+      "band": "k1",
+      "id": "road4-workshop-pump-k1",
+      "stars": 2
+    },
+    {
+      "band": "k1",
+      "id": "road4-workshop-parts-k1",
+      "stars": 2
+    },
+    {
+      "band": "k1",
+      "id": "road4-lighthouse-mirrors-k1",
+      "stars": 2
+    },
+    {
+      "band": "k1",
+      "id": "road4-lighthouse-gears-k1",
+      "stars": 2
+    },
+    {
+      "band": "k1",
+      "id": "road4-lighthouse-lamps-k1",
+      "stars": 2
+    },
+    {
+      "band": "k1",
+      "id": "road4-fair-prizes-k1",
+      "stars": 1
+    },
+    {
+      "band": "k1",
+      "id": "road4-fair-stalls-k1",
+      "stars": 1
+    },
+    {
+      "band": "k1",
+      "id": "road4-fair-final-k1",
+      "stars": 1
+    },
+    {
+      "band": "23",
+      "id": "road4-ferry-seats-23",
+      "stars": 2
+    },
+    {
+      "band": "23",
+      "id": "road4-ferry-bell-23",
+      "stars": 2
+    },
+    {
+      "band": "23",
+      "id": "road4-ferry-lights-23",
+      "stars": 2
+    },
+    {
+      "band": "23",
+      "id": "road4-marsh-boardwalks-23",
+      "stars": 1
+    },
+    {
+      "band": "23",
+      "id": "road4-marsh-lilies-23",
+      "stars": 2
+    },
+    {
+      "band": "23",
+      "id": "road4-marsh-water-23",
+      "stars": 2
+    },
+    {
+      "band": "23",
+      "id": "road4-ridge-stones-23",
+      "stars": 1
+    },
+    {
+      "band": "23",
+      "id": "road4-ridge-duel-23",
+      "stars": 1
+    },
+    {
+      "band": "23",
+      "id": "road4-ridge-kites-23",
+      "stars": 2
+    },
+    {
+      "band": "23",
+      "id": "road4-hollow-pumpkins-23",
+      "stars": 2
+    },
+    {
+      "band": "23",
+      "id": "road4-hollow-crypt-23",
+      "stars": 2
+    },
+    {
+      "band": "23",
+      "id": "road4-hollow-plots-23",
+      "stars": 1
+    },
+    {
+      "band": "23",
+      "id": "road4-workshop-floor-23",
+      "stars": 2
+    },
+    {
+      "band": "23",
+      "id": "road4-workshop-pump-23",
+      "stars": 2
+    },
+    {
+      "band": "23",
+      "id": "road4-workshop-parts-23",
+      "stars": 2
+    },
+    {
+      "band": "23",
+      "id": "road4-lighthouse-mirrors-23",
+      "stars": 2
+    },
+    {
+      "band": "23",
+      "id": "road4-lighthouse-gears-23",
+      "stars": 2
+    },
+    {
+      "band": "23",
+      "id": "road4-lighthouse-lamps-23",
+      "stars": 2
+    },
+    {
+      "band": "23",
+      "id": "road4-fair-prizes-23",
+      "stars": 1
+    },
+    {
+      "band": "23",
+      "id": "road4-fair-stalls-23",
+      "stars": 1
+    },
+    {
+      "band": "23",
+      "id": "road4-fair-final-23",
+      "stars": 1
+    },
+    {
+      "band": "45",
+      "id": "road4-ferry-seats-45",
+      "stars": 2
+    },
+    {
+      "band": "45",
+      "id": "road4-ferry-bell-45",
+      "stars": 2
+    },
+    {
+      "band": "45",
+      "id": "road4-ferry-lights-45",
+      "stars": 2
+    },
+    {
+      "band": "45",
+      "id": "road4-marsh-boardwalks-45",
+      "stars": 1
+    },
+    {
+      "band": "45",
+      "id": "road4-marsh-lilies-45",
+      "stars": 2
+    },
+    {
+      "band": "45",
+      "id": "road4-marsh-water-45",
+      "stars": 2
+    },
+    {
+      "band": "45",
+      "id": "road4-ridge-stones-45",
+      "stars": 1
+    },
+    {
+      "band": "45",
+      "id": "road4-ridge-duel-45",
+      "stars": 1
+    },
+    {
+      "band": "45",
+      "id": "road4-ridge-kites-45",
+      "stars": 2
+    },
+    {
+      "band": "45",
+      "id": "road4-hollow-pumpkins-45",
+      "stars": 2
+    },
+    {
+      "band": "45",
+      "id": "road4-hollow-crypt-45",
+      "stars": 2
+    },
+    {
+      "band": "45",
+      "id": "road4-hollow-plots-45",
+      "stars": 1
+    },
+    {
+      "band": "45",
+      "id": "road4-workshop-floor-45",
+      "stars": 2
+    },
+    {
+      "band": "45",
+      "id": "road4-workshop-pump-45",
+      "stars": 2
+    },
+    {
+      "band": "45",
+      "id": "road4-workshop-parts-45",
+      "stars": 2
+    },
+    {
+      "band": "45",
+      "id": "road4-lighthouse-mirrors-45",
+      "stars": 2
+    },
+    {
+      "band": "45",
+      "id": "road4-lighthouse-gears-45",
+      "stars": 2
+    },
+    {
+      "band": "45",
+      "id": "road4-lighthouse-lamps-45",
+      "stars": 2
+    },
+    {
+      "band": "45",
+      "id": "road4-fair-prizes-45",
+      "stars": 1
+    },
+    {
+      "band": "45",
+      "id": "road4-fair-stalls-45",
+      "stars": 1
+    },
+    {
+      "band": "45",
+      "id": "road4-fair-final-45",
+      "stars": 1
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,457 @@
+{
+  "stillOnly": true,
+  "uniqueGameStills": 69,
+  "slots": 90,
+  "selected": {
+    "keeper/snooze/idle": {
+      "source_file": "artwork/road4/stills/keeper/snooze/idle.png",
+      "shipped_file": "keeper/snooze/idle.webp",
+      "derived_from": null
+    },
+    "keeper/hops/idle": {
+      "source_file": "artwork/road4/stills/keeper/hops/idle.png",
+      "shipped_file": "keeper/hops/idle.webp",
+      "derived_from": null
+    },
+    "keeper/billie/idle": {
+      "source_file": "artwork/road4/stills/keeper/billie/idle.png",
+      "shipped_file": "keeper/billie/idle.webp",
+      "derived_from": null
+    },
+    "keeper/rattle/idle": {
+      "source_file": "artwork/road4/stills/keeper/rattle/idle.png",
+      "shipped_file": "keeper/rattle/idle.webp",
+      "derived_from": null
+    },
+    "keeper/sprocket/idle": {
+      "source_file": "artwork/road4/stills/keeper/sprocket/idle.png",
+      "shipped_file": "keeper/sprocket/idle.webp",
+      "derived_from": null
+    },
+    "keeper/wick/idle": {
+      "source_file": "artwork/road4/stills/keeper/wick/idle.png",
+      "shipped_file": "keeper/wick/idle.webp",
+      "derived_from": null
+    },
+    "keeper/plume/idle": {
+      "source_file": "artwork/road4/stills/keeper/plume/idle.png",
+      "shipped_file": "keeper/plume/idle.webp",
+      "derived_from": null
+    },
+    "keeper/snooze/talk": {
+      "source_file": "artwork/road4/stills/keeper/snooze/talk.png",
+      "shipped_file": "keeper/snooze/talk.webp",
+      "derived_from": null
+    },
+    "keeper/hops/talk": {
+      "source_file": "artwork/road4/stills/keeper/hops/talk.png",
+      "shipped_file": "keeper/hops/talk.webp",
+      "derived_from": null
+    },
+    "keeper/billie/talk": {
+      "source_file": "artwork/road4/stills/keeper/billie/talk.png",
+      "shipped_file": "keeper/billie/talk.webp",
+      "derived_from": null
+    },
+    "keeper/rattle/talk": {
+      "source_file": "artwork/road4/stills/keeper/rattle/talk.png",
+      "shipped_file": "keeper/rattle/talk.webp",
+      "derived_from": null
+    },
+    "keeper/sprocket/talk": {
+      "source_file": "artwork/road4/stills/keeper/sprocket/talk.png",
+      "shipped_file": "keeper/sprocket/talk.webp",
+      "derived_from": null
+    },
+    "keeper/wick/talk": {
+      "source_file": "artwork/road4/stills/keeper/wick/talk.png",
+      "shipped_file": "keeper/wick/talk.webp",
+      "derived_from": null
+    },
+    "keeper/plume/talk": {
+      "source_file": "artwork/road4/stills/keeper/plume/talk.png",
+      "shipped_file": "keeper/plume/talk.webp",
+      "derived_from": null
+    },
+    "scene/ferry/0": {
+      "source_file": "artwork/road4/stills/scene/ferry/0.png",
+      "shipped_file": "scene/ferry/0.webp",
+      "derived_from": null
+    },
+    "scene/marsh/0": {
+      "source_file": "artwork/road4/stills/scene/marsh/0.png",
+      "shipped_file": "scene/marsh/0.webp",
+      "derived_from": null
+    },
+    "scene/ridge/0": {
+      "source_file": "artwork/road4/stills/scene/ridge/0.png",
+      "shipped_file": "scene/ridge/0.webp",
+      "derived_from": null
+    },
+    "scene/hollow/0": {
+      "source_file": "artwork/road4/stills/scene/hollow/0.png",
+      "shipped_file": "scene/hollow/0.webp",
+      "derived_from": null
+    },
+    "scene/workshop/0": {
+      "source_file": "artwork/road4/stills/scene/workshop/0.png",
+      "shipped_file": "scene/workshop/0.webp",
+      "derived_from": null
+    },
+    "scene/lighthouse/0": {
+      "source_file": "artwork/road4/stills/scene/lighthouse/0.png",
+      "shipped_file": "scene/lighthouse/0.webp",
+      "derived_from": null
+    },
+    "scene/fair/0": {
+      "source_file": "artwork/road4/stills/scene/fair/0-v2.png",
+      "shipped_file": "scene/fair/0.webp",
+      "derived_from": null
+    },
+    "scene/ferry/1": {
+      "source_file": "artwork/road4/stills/scene/ferry/1.png",
+      "shipped_file": "scene/ferry/1.webp",
+      "derived_from": null
+    },
+    "scene/ferry/2": {
+      "source_file": "artwork/road4/stills/scene/ferry/2.png",
+      "shipped_file": "scene/ferry/2.webp",
+      "derived_from": null
+    },
+    "scene/ferry/3": {
+      "source_file": "artwork/road4/stills/scene/ferry/3.png",
+      "shipped_file": "scene/ferry/3.webp",
+      "derived_from": null
+    },
+    "scene/marsh/1": {
+      "source_file": "artwork/road4/stills/scene/marsh/1.png",
+      "shipped_file": "scene/marsh/1.webp",
+      "derived_from": null
+    },
+    "scene/marsh/2": {
+      "source_file": "artwork/road4/stills/scene/marsh/2.png",
+      "shipped_file": "scene/marsh/2.webp",
+      "derived_from": null
+    },
+    "scene/marsh/3": {
+      "source_file": "artwork/road4/stills/scene/marsh/3.png",
+      "shipped_file": "scene/marsh/3.webp",
+      "derived_from": null
+    },
+    "scene/ridge/1": {
+      "source_file": "artwork/road4/stills/scene/ridge/1.png",
+      "shipped_file": "scene/ridge/1.webp",
+      "derived_from": null
+    },
+    "scene/ridge/2": {
+      "source_file": "artwork/road4/stills/scene/ridge/2.png",
+      "shipped_file": "scene/ridge/2.webp",
+      "derived_from": null
+    },
+    "scene/ridge/3": {
+      "source_file": "artwork/road4/stills/scene/ridge/3.png",
+      "shipped_file": "scene/ridge/3.webp",
+      "derived_from": null
+    },
+    "scene/hollow/1": {
+      "source_file": "artwork/road4/stills/scene/hollow/1.png",
+      "shipped_file": "scene/hollow/1.webp",
+      "derived_from": null
+    },
+    "scene/hollow/2": {
+      "source_file": "artwork/road4/stills/scene/hollow/2.png",
+      "shipped_file": "scene/hollow/2.webp",
+      "derived_from": null
+    },
+    "scene/hollow/3": {
+      "source_file": "artwork/road4/stills/scene/hollow/3-v2.png",
+      "shipped_file": "scene/hollow/3.webp",
+      "derived_from": null
+    },
+    "scene/workshop/1": {
+      "source_file": "artwork/road4/stills/scene/workshop/1.png",
+      "shipped_file": "scene/workshop/1.webp",
+      "derived_from": null
+    },
+    "scene/workshop/2": {
+      "source_file": "artwork/road4/stills/scene/workshop/2.png",
+      "shipped_file": "scene/workshop/2.webp",
+      "derived_from": null
+    },
+    "scene/workshop/3": {
+      "source_file": "artwork/road4/stills/scene/workshop/3-v2.png",
+      "shipped_file": "scene/workshop/3.webp",
+      "derived_from": null
+    },
+    "scene/lighthouse/1": {
+      "source_file": "artwork/road4/stills/scene/lighthouse/1.png",
+      "shipped_file": "scene/lighthouse/1.webp",
+      "derived_from": null
+    },
+    "scene/lighthouse/2": {
+      "source_file": "artwork/road4/stills/scene/lighthouse/2.png",
+      "shipped_file": "scene/lighthouse/2.webp",
+      "derived_from": null
+    },
+    "scene/lighthouse/3": {
+      "source_file": "artwork/road4/stills/scene/lighthouse/3.png",
+      "shipped_file": "scene/lighthouse/3.webp",
+      "derived_from": null
+    },
+    "scene/fair/1": {
+      "source_file": "artwork/road4/stills/scene/fair/1.png",
+      "shipped_file": "scene/fair/1.webp",
+      "derived_from": null
+    },
+    "scene/fair/2": {
+      "source_file": "artwork/road4/stills/scene/fair/2-v2.png",
+      "shipped_file": "scene/fair/2.webp",
+      "derived_from": null
+    },
+    "scene/fair/3": {
+      "source_file": "artwork/road4/stills/scene/fair/3-v2.png",
+      "shipped_file": "scene/fair/3.webp",
+      "derived_from": null
+    },
+    "map/wide": {
+      "source_file": "artwork/road4/stills/map/wide.png",
+      "shipped_file": "map/wide.webp",
+      "derived_from": null
+    },
+    "map/tall": {
+      "source_file": "artwork/road4/stills/map/tall.png",
+      "shipped_file": "map/tall.webp",
+      "derived_from": null
+    },
+    "party/pip": {
+      "source_file": "artwork/road4/stills/party/pip.png",
+      "shipped_file": "party/pip.webp",
+      "derived_from": null
+    },
+    "party/moss": {
+      "source_file": "artwork/road4/stills/party/moss.png",
+      "shipped_file": "party/moss.webp",
+      "derived_from": null
+    },
+    "party/rook": {
+      "source_file": "artwork/road4/stills/party/rook.png",
+      "shipped_file": "party/rook.webp",
+      "derived_from": null
+    },
+    "party/bea": {
+      "source_file": "artwork/road4/stills/party/bea.png",
+      "shipped_file": "party/bea.webp",
+      "derived_from": null
+    },
+    "party/fern": {
+      "source_file": "artwork/road4/stills/party/fern.png",
+      "shipped_file": "party/fern.webp",
+      "derived_from": null
+    },
+    "party/tumble": {
+      "source_file": "artwork/road4/stills/party/tumble.png",
+      "shipped_file": "party/tumble.webp",
+      "derived_from": null
+    },
+    "tool/chalk": {
+      "source_file": "artwork/road4/stills/tool/chalk.png",
+      "shipped_file": "tool/chalk.webp",
+      "derived_from": null
+    },
+    "tool/pump": {
+      "source_file": "artwork/road4/stills/tool/pump.png",
+      "shipped_file": "tool/pump.webp",
+      "derived_from": null
+    },
+    "map/wagon-party": {
+      "source_file": "artwork/road4/stills/map/wagon-party.png",
+      "shipped_file": "map/wagon-party.webp",
+      "derived_from": null
+    },
+    "map/wagon-plume": {
+      "source_file": "artwork/road4/stills/map/wagon-plume.png",
+      "shipped_file": "map/wagon-plume.webp",
+      "derived_from": null
+    },
+    "finale/fair": {
+      "source_file": "artwork/road4/stills/finale/fair.png",
+      "shipped_file": "finale/fair.webp",
+      "derived_from": null
+    },
+    "keeper/snooze/happy": {
+      "source_file": "artwork/road4/stills/keeper/snooze/happy.png",
+      "shipped_file": "keeper/snooze/happy.webp",
+      "derived_from": null
+    },
+    "keeper/hops/happy": {
+      "source_file": "artwork/road4/stills/keeper/hops/happy.png",
+      "shipped_file": "keeper/hops/happy.webp",
+      "derived_from": null
+    },
+    "keeper/billie/happy": {
+      "source_file": "artwork/road4/stills/keeper/billie/happy.png",
+      "shipped_file": "keeper/billie/happy.webp",
+      "derived_from": null
+    },
+    "keeper/rattle/happy": {
+      "source_file": "artwork/road4/stills/keeper/rattle/happy.png",
+      "shipped_file": "keeper/rattle/happy.webp",
+      "derived_from": null
+    },
+    "keeper/sprocket/happy": {
+      "source_file": "artwork/road4/stills/keeper/sprocket/happy.png",
+      "shipped_file": "keeper/sprocket/happy.webp",
+      "derived_from": null
+    },
+    "keeper/wick/happy": {
+      "source_file": "artwork/road4/stills/keeper/wick/happy.png",
+      "shipped_file": "keeper/wick/happy.webp",
+      "derived_from": null
+    },
+    "keeper/plume/happy": {
+      "source_file": "artwork/road4/stills/keeper/plume/happy.png",
+      "shipped_file": "keeper/plume/happy.webp",
+      "derived_from": null
+    },
+    "keeper/snooze/oops": {
+      "source_file": "artwork/road4/stills/keeper/snooze/oops.png",
+      "shipped_file": "keeper/snooze/oops.webp",
+      "derived_from": null
+    },
+    "keeper/hops/oops": {
+      "source_file": "artwork/road4/stills/keeper/hops/oops.png",
+      "shipped_file": "keeper/hops/oops.webp",
+      "derived_from": null
+    },
+    "keeper/billie/oops": {
+      "source_file": "artwork/road4/stills/keeper/billie/oops.png",
+      "shipped_file": "keeper/billie/oops.webp",
+      "derived_from": null
+    },
+    "keeper/rattle/oops": {
+      "source_file": "artwork/road4/stills/keeper/rattle/oops.png",
+      "shipped_file": "keeper/rattle/oops.webp",
+      "derived_from": null
+    },
+    "keeper/sprocket/oops": {
+      "source_file": "artwork/road4/stills/keeper/sprocket/oops.png",
+      "shipped_file": "keeper/sprocket/oops.webp",
+      "derived_from": null
+    },
+    "keeper/wick/oops": {
+      "source_file": "artwork/road4/stills/keeper/wick/oops.png",
+      "shipped_file": "keeper/wick/oops.webp",
+      "derived_from": null
+    },
+    "keeper/plume/oops": {
+      "source_file": "artwork/road4/stills/keeper/plume/oops.png",
+      "shipped_file": "keeper/plume/oops.webp",
+      "derived_from": null
+    },
+    "scene/ferry/0-1": {
+      "source_file": "artwork/road4/stills/scene/ferry/1.png",
+      "shipped_file": "scene/ferry/0-1.webp",
+      "derived_from": "scene/ferry/1"
+    },
+    "scene/ferry/1-2": {
+      "source_file": "artwork/road4/stills/scene/ferry/2.png",
+      "shipped_file": "scene/ferry/1-2.webp",
+      "derived_from": "scene/ferry/2"
+    },
+    "scene/ferry/2-3": {
+      "source_file": "artwork/road4/stills/scene/ferry/3.png",
+      "shipped_file": "scene/ferry/2-3.webp",
+      "derived_from": "scene/ferry/3"
+    },
+    "scene/marsh/0-1": {
+      "source_file": "artwork/road4/stills/scene/marsh/1.png",
+      "shipped_file": "scene/marsh/0-1.webp",
+      "derived_from": "scene/marsh/1"
+    },
+    "scene/marsh/1-2": {
+      "source_file": "artwork/road4/stills/scene/marsh/2.png",
+      "shipped_file": "scene/marsh/1-2.webp",
+      "derived_from": "scene/marsh/2"
+    },
+    "scene/marsh/2-3": {
+      "source_file": "artwork/road4/stills/scene/marsh/3.png",
+      "shipped_file": "scene/marsh/2-3.webp",
+      "derived_from": "scene/marsh/3"
+    },
+    "scene/ridge/0-1": {
+      "source_file": "artwork/road4/stills/scene/ridge/1.png",
+      "shipped_file": "scene/ridge/0-1.webp",
+      "derived_from": "scene/ridge/1"
+    },
+    "scene/ridge/1-2": {
+      "source_file": "artwork/road4/stills/scene/ridge/2.png",
+      "shipped_file": "scene/ridge/1-2.webp",
+      "derived_from": "scene/ridge/2"
+    },
+    "scene/ridge/2-3": {
+      "source_file": "artwork/road4/stills/scene/ridge/3.png",
+      "shipped_file": "scene/ridge/2-3.webp",
+      "derived_from": "scene/ridge/3"
+    },
+    "scene/hollow/0-1": {
+      "source_file": "artwork/road4/stills/scene/hollow/1.png",
+      "shipped_file": "scene/hollow/0-1.webp",
+      "derived_from": "scene/hollow/1"
+    },
+    "scene/hollow/1-2": {
+      "source_file": "artwork/road4/stills/scene/hollow/2.png",
+      "shipped_file": "scene/hollow/1-2.webp",
+      "derived_from": "scene/hollow/2"
+    },
+    "scene/hollow/2-3": {
+      "source_file": "artwork/road4/stills/scene/hollow/3-v2.png",
+      "shipped_file": "scene/hollow/2-3.webp",
+      "derived_from": "scene/hollow/3"
+    },
+    "scene/workshop/0-1": {
+      "source_file": "artwork/road4/stills/scene/workshop/1.png",
+      "shipped_file": "scene/workshop/0-1.webp",
+      "derived_from": "scene/workshop/1"
+    },
+    "scene/workshop/1-2": {
+      "source_file": "artwork/road4/stills/scene/workshop/2.png",
+      "shipped_file": "scene/workshop/1-2.webp",
+      "derived_from": "scene/workshop/2"
+    },
+    "scene/workshop/2-3": {
+      "source_file": "artwork/road4/stills/scene/workshop/3-v2.png",
+      "shipped_file": "scene/workshop/2-3.webp",
+      "derived_from": "scene/workshop/3"
+    },
+    "scene/lighthouse/0-1": {
+      "source_file": "artwork/road4/stills/scene/lighthouse/1.png",
+      "shipped_file": "scene/lighthouse/0-1.webp",
+      "derived_from": "scene/lighthouse/1"
+    },
+    "scene/lighthouse/1-2": {
+      "source_file": "artwork/road4/stills/scene/lighthouse/2.png",
+      "shipped_file": "scene/lighthouse/1-2.webp",
+      "derived_from": "scene/lighthouse/2"
+    },
+    "scene/lighthouse/2-3": {
+      "source_file": "artwork/road4/stills/scene/lighthouse/3.png",
+      "shipped_file": "scene/lighthouse/2-3.webp",
+      "derived_from": "scene/lighthouse/3"
+    },
+    "scene/fair/0-1": {
+      "source_file": "artwork/road4/stills/scene/fair/1.png",
+      "shipped_file": "scene/fair/0-1.webp",
+      "derived_from": "scene/fair/1"
+    },
+    "scene/fair/1-2": {
+      "source_file": "artwork/road4/stills/scene/fair/2-v2.png",
+      "shipped_file": "scene/fair/1-2.webp",
+      "derived_from": "scene/fair/2"
+    },
+    "scene/fair/2-3": {
+      "source_file": "artwork/road4/stills/scene/fair/3-v2.png",
+      "shipped_file": "scene/fair/2-3.webp",
+      "derived_from": "scene/fair/3"
+    }
+  }
+}

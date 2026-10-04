@@ -1,0 +1,87 @@
+{
+  "readySlots": 90,
+  "distinctStills": 69,
+  "shippedBytes": 8819360,
+  "alpha": [
+    {
+      "slot": "map/wagon-party",
+      "width": 240,
+      "height": 180,
+      "transparentPixels": 19278,
+      "opaquePixels": 1055,
+      "nontransparentEdgePixels": 0
+    },
+    {
+      "slot": "map/wagon-plume",
+      "width": 240,
+      "height": 180,
+      "transparentPixels": 21055,
+      "opaquePixels": 769,
+      "nontransparentEdgePixels": 0
+    },
+    {
+      "slot": "party/bea",
+      "width": 256,
+      "height": 256,
+      "transparentPixels": 36647,
+      "opaquePixels": 797,
+      "nontransparentEdgePixels": 0
+    },
+    {
+      "slot": "party/fern",
+      "width": 256,
+      "height": 256,
+      "transparentPixels": 39752,
+      "opaquePixels": 780,
+      "nontransparentEdgePixels": 0
+    },
+    {
+      "slot": "party/moss",
+      "width": 256,
+      "height": 256,
+      "transparentPixels": 29715,
+      "opaquePixels": 853,
+      "nontransparentEdgePixels": 0
+    },
+    {
+      "slot": "party/pip",
+      "width": 256,
+      "height": 256,
+      "transparentPixels": 33158,
+      "opaquePixels": 708,
+      "nontransparentEdgePixels": 0
+    },
+    {
+      "slot": "party/rook",
+      "width": 256,
+      "height": 256,
+      "transparentPixels": 40081,
+      "opaquePixels": 601,
+      "nontransparentEdgePixels": 0
+    },
+    {
+      "slot": "party/tumble",
+      "width": 256,
+      "height": 256,
+      "transparentPixels": 33525,
+      "opaquePixels": 696,
+      "nontransparentEdgePixels": 0
+    },
+    {
+      "slot": "tool/chalk",
+      "width": 256,
+      "height": 256,
+      "transparentPixels": 51359,
+      "opaquePixels": 309,
+      "nontransparentEdgePixels": 0
+    },
+    {
+      "slot": "tool/pump",
+      "width": 256,
+      "height": 256,
+      "transparentPixels": 47300,
+      "opaquePixels": 687,
+      "nontransparentEdgePixels": 0
+    }
+  ]
+}
