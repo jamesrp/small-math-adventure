@@ -6,7 +6,7 @@ A handoff for whoever makes the art (Codex with James’s ChatGPT image and vide
 
 - **Only add art.** Put files under `dist/art/`, records in `dist/art/manifest.json`, and sources and prompts under `artwork/road4/`. Do not change puzzle boards, game logic, lines or CSS. Claude owns the puzzle UI and the road code (`dist/road*.js`, `dist/boards.css`, `dist/road.css`). If a picture seems to need a code change, write it down in `artwork/road4/NOTES.md` instead.
 - **No text in pictures.** Names, numbers and labels are drawn by the game.
-- **Keep the stop layout.** The map’s stop buttons and the scene’s speech bubble sit on top of the art at fixed places (see “Safe areas”).
+- **Keep the stop layout.** The map’s stop buttons and the scene’s keeper portrait sit on top of the art at fixed places (see “Safe areas”).
 - **Kid-friendly spooky.** The hollow is Halloween-fun, never gory or frightening.
 - Original characters only: no likeness of existing franchises.
 
@@ -30,7 +30,7 @@ The version-3 scenes of the ferry, marsh, ridge, workshop and lighthouse are in 
 
 > Children’s game art in a bold, bright storybook-cartoon style. Clean, confident dark outlines (deep green-black #233e35), flat saturated color with soft cel shading, simple rounded shapes, chunky readable silhouettes, big expressive eyes and friendly faces. Playful and warm, readable at small sizes on an iPad. No text, letters, numbers, logos, user interface, borders or watermarks.
 
-Avoid: muted or dusk-washed palettes, gouache or paper-texture painting, photorealism, glossy 3D plastic, thin scratchy lines, and busy detail in the lower-left corner.
+Avoid: muted or dusk-washed palettes, gouache or paper-texture painting, photorealism, glossy 3D plastic, thin scratchy lines, and busy detail in the scene’s bottom-left corner.
 
 | Stop | Mood | Key colors |
 |---|---|---|
@@ -91,7 +91,7 @@ Stops are `ferry, marsh, ridge, hollow, workshop, lighthouse, fair`. Keepers are
 
 ### Safe areas
 
-- **Scenes**: on wide screens the keeper portrait and speech bubble cover roughly the **lower-left 55% × 45%**, and Plume’s card covers the **top-right 30% × 20%**. Put the action in the **upper middle and right**. The ground in the lower third can hold the travelers. On phones the scene is cropped to a strip about **600×150** from the middle, with the bottom third under the portrait, so keep the main subject in the middle band.
+- **Scenes**: the speech bubble sits under the picture, not on it. Only two things cover a scene: the keeper’s round portrait, which overlaps the **bottom-left corner** (about 10% × 15%), and Plume’s card in the **top-right corner** (about 30% × 18%). The travelers can stand anywhere along the bottom middle. On tablets in landscape the picture can lose a little top and bottom. On phones it is cropped to the **middle 80% of its width** and the portrait covers a little more of the bottom-left, so keep the main subject in the middle.
 - **Map**: each stop’s landmark sits under its red mark in `reference/map_wide.png` / `map_tall.png` (wide: Turtle Ferry 9%,70% · Glowworm Marsh 24%,38% · Windy Ridge 39%,66% · Spooky Hollow 53%,30% · Old Workshop 66%,70% · Stormy Lighthouse 80%,34% · The Lantern Fair 92%,64%). The stop name pill sits just below each point. A road links the stops in order. Leave the **top-right corner** of the wide map clear for the Continue button.
 - **Keepers**: head and shoulders centered, filling about 80% of the square, on a plain background in the keeper’s stop colors. The game crops it to a circle.
 

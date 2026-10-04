@@ -30,10 +30,10 @@ function stopButton(stop, i, progress, profile, layout) {
   const [x, y] = MAP_POINTS[layout][stop.id], trail = progress.trail;
   const stage = progress.stages[i], lit = stage === stop.encounters.length, current = i === progress.stopIndex && !progress.complete;
   const reached = trail.started && i <= progress.stopIndex, earned = stop.encounters.reduce((sum, e) => sum + (trail.stars[e.id] || 0), 0);
-  const won = medals(profile)[stop.id];
-  const action = !reached ? '' : current ? 'continue-journey' : 'stop-sheet';
+  const won = medals(profile)[stop.id], open = reached || current;
+  const action = !open ? '' : current ? (trail.started ? 'continue-journey' : 'start-journey') : 'stop-sheet';
   const label = `${stop.title}${lit ? ', lit' : current ? ', next' : reached ? '' : ', ahead'}${reached ? `, ${earned} stars` : ''}`;
-  return `<button type="button" class="lr-stop ${lit ? 'is-lit' : ''} ${current ? 'is-current' : ''} ${reached ? '' : 'is-ahead'}" style="--x:${x}%;--y:${y}%" data-action="${action || 'noop'}" data-id="${stop.id}" data-focus="stop-${layout}-${stop.id}" ${reached ? '' : 'disabled'} aria-label="${esc(label)}"><span class="lr-stop-name">${esc(stop.title)}</span>${reached ? `<span class="lr-stop-stars" aria-hidden="true">★ ${earned}</span>` : ''}${won.length ? `<span class="lr-medals" aria-hidden="true">${BAND_KEYS.map(b => `<i class="${won.includes(b) ? 'on' : ''} band-${b}"></i>`).join('')}</span>` : ''}</button>`;
+  return `<button type="button" class="lr-stop ${lit ? 'is-lit' : ''} ${current ? 'is-current' : ''} ${open ? '' : 'is-ahead'}" style="--x:${x}%;--y:${y}%" data-action="${action || 'noop'}" data-id="${stop.id}" data-focus="stop-${layout}-${stop.id}" ${open ? '' : 'disabled'} aria-label="${esc(label)}"><span class="lr-stop-name">${esc(stop.title)}</span>${reached ? `<span class="lr-stop-stars" aria-hidden="true">★ ${earned}</span>` : ''}${won.length ? `<span class="lr-medals" aria-hidden="true">${BAND_KEYS.map(b => `<i class="${won.includes(b) ? 'on' : ''} band-${b}"></i>`).join('')}</span>` : ''}</button>`;
 }
 function sideButton(side, progress, layout) {
   const [x, y] = MAP_POINTS[layout][side.stop], trail = progress.trail;

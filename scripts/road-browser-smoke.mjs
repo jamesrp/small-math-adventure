@@ -78,7 +78,8 @@ try {
 
   for (const band of bands) {
     const viewport = band === 'k1' ? { width: 390, height: 844 } : band === '23' ? { width: 1024, height: 768 } : { width: 1440, height: 1000 };
-    const context = await browser.newContext({ viewport, hasTouch: band !== '45' }), page = await context.newPage(), ui = wire(page);
+    // Phone and tablet run with reduced motion: a pressed map button must not jump out from under the finger.
+    const context = await browser.newContext({ viewport, hasTouch: band !== '45', reducedMotion: band === '45' ? 'no-preference' : 'reduce' }), page = await context.newPage(), ui = wire(page);
     const capture = async name => { await ui.fit(`${band}/${name}`); await page.screenshot({ path: new URL(`${band}-${name}.png`, output).pathname, fullPage: true, animations: 'disabled' }); };
     const hintThrice = async () => { for (let i = 0; i < 3; i++) await ui.action('hint').click(); };
     const solveUI = async (p, label) => {
@@ -99,7 +100,12 @@ try {
     await page.locator('.lr-overview').waitFor(); await capture('map-start'); await waitForOffline(page);
     for (let count = 0; count < MAIN.length; count++) {
       const e = MAIN[count];
-      await ui.action(count === 0 ? 'start-journey' : 'continue-journey').click().catch(() => {});
+      // From the map, tap the stop itself (the first matching control); Next already opened puzzles within a stop.
+      if (await page.locator('.lr-overview').count()) {
+        const stop = page.locator(`.lr-map-layer:visible .lr-stop[data-id="${e.stop}"]`);
+        assert.equal(await stop.getAttribute('data-action'), count === 0 ? 'start-journey' : 'continue-journey', `${band}: ${e.stop} is the stop to tap`);
+        await stop.click();
+      }
       await page.locator('.board-panel').waitFor();
       const id = await page.evaluate(() => location.hash.split('/')[1]);
       assert.equal(id, campaignId(e.id, band), `${band}: encounter ${count} is ${e.id}`);

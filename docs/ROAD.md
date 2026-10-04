@@ -57,7 +57,7 @@ Each grade trail (K–1, 2–3, 4–5) is its own run of the road with its own p
 ## Screens
 
 - **Map**: one picture of the road in two layouts, wide (1000:420) and tall for phones (600:900). It shows stop buttons with their stars and trail pips, the travelers’ wagon at the current stop, Plume’s wagon one stop ahead, side-puzzle badges with a lock until their tool, the tools earned and the star total. A finished stop opens a sheet listing its puzzles with stars and Replay.
-- **Road puzzle**: a scene banner shows the stop at its current stage (0–3 puzzles solved) with the keeper’s portrait and speech bubble. Listen reads the line aloud. Plume’s card shows where there is a score. The board is below. On a solve, a strip shows this play’s stars and what each was for, any tool earned, Next and Replay. Dark stops darken the page around a light board.
+- **Road puzzle**: a scene shows the stop at its current stage (0–3 puzzles solved). The keeper’s portrait overlaps its bottom edge, with the speech bubble beside it under the picture, so the art stays clear. Listen reads the line aloud. Plume’s card shows where there is a score. The board is below. On a solve, a strip shows this play’s stars and what each was for, any tool earned, Next and Replay. Dark stops darken the page around a light board.
 - **Finale**: the fair picture, the star total and which trails are finished.
 
 Every picture is an art slot with a drawn placeholder (`dist/road-placeholders.js`) until finished art is marked ready in `dist/art/manifest.json` (`dist/art.js`, `dist/art-slots.js`).
@@ -82,6 +82,7 @@ Earlier stories stay readable: a version-3 journey moves to `profile.roadJourney
 | `tests/road.test.mjs`, `tests/caravan.test.mjs` | Road logic and archives |
 | `scripts/road-browser-smoke.mjs` | Every encounter on every trail through the interface, side puzzles, finale, migrations, art slots |
 | `scripts/check-art.mjs`, `scripts/prepare-art.mjs`, `scripts/export-art-references.mjs` | Art checks, conversion and composition references |
+| `scripts/road-art-preview.mjs` | Screenshots of the map at four points along the road, every stop’s opening scene and the finale, on phone, tablet and desktop, for reviewing art by eye |
 
 ## Verification
 
