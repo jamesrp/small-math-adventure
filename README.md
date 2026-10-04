@@ -1,14 +1,14 @@
 # The Lantern Caravan
 
-A mathematics and logic adventure along Lantern Road.
+A mathematics and logic adventure: race a rival caravan along the Lantern Road to the Lantern Fair.
 
 Play the [published app](https://jamesrp.github.io/small-math-adventure/). The [GitHub Pages repository](https://github.com/jamesrp/small-math-adventure) contains the contents of `dist/` at its root and publishes from `main`. Run `npm run deploy` to test, build, and publish an update from this Mac.
 
-Six friends carry their living lantern tree along a dark island road, lighting the places they visit. **Six stops and eighteen encounters** keep that purpose visible throughout: get the ferry moving, open the way through the reeds, cross the ridge, reopen the workshop, wake the lighthouse, and light the citadel. Each solved puzzle changes the scene; each finished stop adds another light to the road.
+Six travelers (Pip, Moss, Rook, Bea, Fern and Tumble) haul their lantern tree along **seven stops and twenty-one road puzzles** to the Lantern Fair. At each stop a keeper sets the puzzles and talks a little: Snooze the ferry turtle, Mr. Hops the frog lamplighter, Billie the goat, Rattle the skeleton gardener, Sprocket the raccoon inventor and Wick the lighthouse owl. Plume, a show-off peacock, leads a rival caravan one stop ahead, leaves a score to beat, plays a pebble game at the ridge and waits at the fair for a rematch. Each puzzle earns up to three stars: solved, no hints, and beat or tied Plume. Chalk from the Spooky Hollow and a pump from the Old Workshop open two side puzzles you could only try before. Each grade trail is its own run of the road.
 
-Pip, Moss, Rook, Bea, Fern, and Tumble travel together. The puzzle and its local setting stay together on screen. Short, optional Story and character views hold the extra words. There are no route decisions, missing equipment, or timed deadlines. All twelve mechanics appear on the road, with separate campaign boards for each grade trail. All **222 catalog puzzles** remain freely available.
+All twelve mechanics appear on the road, plus a proof garden and the proof duel. All **222 catalog puzzles** remain freely available, and free play never moves the road. Earlier stories (the caravan, the citadel rescue and the six-stop lantern road) stay readable in the Journal. See [the road notes](docs/ROAD.md).
 
-Progress, unfinished boards, hints, and undo history persist per explorer. Earlier caravan and citadel rescue journeys move into Journal without changing their puzzle attempts. Free play cannot advance the road, and replay cannot remove a lit stop. See [the campaign notes](docs/CARAVAN.md) for the encounters and save behavior.
+**Art is in progress.** Every picture is a drawn placeholder until finished art is added through the manifest; [the art roadmap](docs/art/ROADMAP.md) is the brief.
 
 ## Run locally
 
@@ -24,8 +24,8 @@ Open [the local adventure](http://127.0.0.1:4187). `PORT=4174 npm start` chooses
 ## Included
 
 - Twelve mechanics with generous targets, keyboard controls, symbols alongside colors, and reduced-motion support. Tile Gardens support drag or tap placement.
-- Six illustrated stops, six recurring companions, a map that lights as you travel, and a journal for revisiting completed encounters. The puzzle satchel keeps all 222 catalog puzzles immediately available; completion survives replay.
-- Eighteen encounters using all twelve mechanics, with independent campaign saves. A solve advances the current encounter, and every third solve lights its stop. Revisited encounters retain their solved boards; Replay starts a fresh attempt without unlighting the road. Free play does not silently advance the story.
+- Seven stops with bright and dark moods, a keeper at each, Plume’s score cards, stars, two tools and two side puzzles, a map with both caravans, stop sheets for replays, and a fair finale. Road boards have their own saves; revisited encounters keep their solved boards and Replay starts a fresh attempt without losing stars. The puzzle satchel keeps all 222 catalog puzzles immediately available; completion survives replay.
+- Art slots: each picture can be a still or a video, recorded in `dist/art/manifest.json`, with drawn placeholders until then. Videos are cached the first time they play.
 - Separate nickname/avatar profiles, up to 30 local saves. Change grade trails without losing progress on another trail.
 - Automatic saves after moves, undo, hint requests, restarts, and completion. Unfinished boards, undo history, hints, and assistance resume together. Solved library boards reopen as fresh attempts with a Solved indicator; road encounters retain their solved boards until Replay. Earned completion stays saved. Restart is immediate.
 - Three hint levels: a nudge, a solver-derived next move, and an invitation to apply that one move. Legal tiling dead ends offer an undo back to a solvable position. Hints never apply a fixed initial solution over incompatible pieces.
@@ -91,7 +91,7 @@ The navigation regression suite (`node scripts/navigation-browser-smoke.mjs`) us
 Presentation state lives in each browser-history entry, scoped to the active explorer, separately from puzzle saves. `dist/view-state.js` captures it before replacing the page and restores disclosures before scrolling. Give page disclosures and filters a stable `data-view-key` (use puzzle IDs for catalog entries); render filter-dependent content from the saved values. New history entries use the view's defaults. Ordinary rerenders preserve the current entry.
 
 
-The campaign suite (`node scripts/caravan-browser-smoke.mjs`) plays all eighteen encounters on all three grade trails through the real interface. It checks both earlier-story migrations, saved moves and hints after reload, undo, replay, independent free play, export/import, lit-stop progress, phone/tablet/desktop layouts, and completion offline. Screenshots and results go in ignored `test-results/road/`. It uses the same browser environment variables.
+The road suite (`node scripts/road-browser-smoke.mjs`) plays all twenty-one encounters and both side puzzles on all three grade trails through the real interface (K–1 on a phone, 2–3 on a tablet, 4–5 on a desktop), with keeper lines and reactions, Plume’s cards, stars, tools, the finale, earlier-story archives, offline replay and manifest-driven art. `TEST_BANDS=k1` runs one trail. It checks both earlier-story migrations, saved moves and hints after reload, undo, replay, independent free play, export/import, lit-stop progress, phone/tablet/desktop layouts, and completion offline. Screenshots and results go in ignored `test-results/road/`. It uses the same browser environment variables.
 
 The expansion suite uses the same environment variables:
 
@@ -124,13 +124,14 @@ Updates wait until existing app tabs close, avoiding replacement of a live board
 
 | File | Responsibility |
 |---|---|
-| `dist/caravan.js` | Lantern Road encounters, independent campaign boards, progress, bindings and validation |
-| `dist/caravan-legacy.js`, `dist/caravan-rescue.js` | Earlier caravan/rescue validation and journal archives |
-| `dist/road-art.js` | Road and encounter illustration selection and accessible scene descriptions |
-| `dist/assets/road/` | Active road illustrations, also available offline |
-| `artwork/road/` | Lantern Road ImageGen prompts and original artwork |
+| `dist/road.js`, `dist/road-cast.js` | The Lantern Road: stops, encounters, keepers and lines, Plume’s scores, stars, tools, trails, campaign boards and validation |
+| `dist/road-ui.js`, `dist/road.css`, `dist/road-placeholders.js` | Map, scenes, solved strip, journal, finale and drawn placeholders |
+| `dist/art.js`, `dist/art-slots.js`, `dist/art/` | Art slots, their catalog and the manifest of finished art |
+| `dist/boards.css` | The shared look of every puzzle board |
+| `dist/caravan-road3.js`, `dist/caravan-legacy.js`, `dist/caravan-rescue.js` | Earlier stories, frozen for validation and journal archives |
+| `artwork/road4/` | Art references and, as art arrives, its sources and prompts; `artwork/road/` holds the previous road’s ImageGen originals |
 | `artwork/story/`, `dist/assets/story/` | Historical rescue illustrations and provenance |
-| `dist/caravan-ui.js`, `dist/caravan-art.js`, `dist/caravan.css` | Illustrated campaign, companions, journal, satchel, and visual design |
+| `dist/caravan-ui.js`, `dist/caravan-art.js`, `dist/caravan.css` | Header, explorers, puzzle satchel, the travelers’ vector drawings, and base styles |
 | `dist/engine.js` | Shared moves, undo, completion, original tile/swap rules, and family dispatch |
 | `dist/{motion,networks,deduction,measurement}.js` | Ten new mechanics: pure validators/solvers and accessible board controls |
 | `dist/storage.js` | Save schema, validation, recovery, backup parsing |

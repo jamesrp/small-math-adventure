@@ -1,3 +1,5 @@
+> Historical version-three road (September 2026), replaced by the version-4 road in [ROAD.md](ROAD.md) in October 2026. Saves from this road move to `profile.roadJourney` and stay readable in the Journal; its code is frozen in `dist/caravan-road3.js` (formerly `dist/caravan.js`).
+
 # The Lantern Road
 
 The old lantern road has gone dark. Six friends carry their living lantern tree along it, lighting the way again.

@@ -12,6 +12,8 @@ const expanded=puzzles.filter(p=>p.band==='all');
 const state=()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)),key);
 const goto=async id=>{await page.goto(`${base}/#play/${id}`);await page.locator('.expansion-board').waitFor();};
 const fit=async label=>assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`${label}: no page overflow`);
+// Nim pebbles: lift the pebble that leaves `remove` above it, then Take.
+const takeNim=async(id,pile,remove)=>{const size=(await state()).profiles[0].attempts[id].board.piles[pile-1];await page.locator(`.duel-pebble[data-ui='${JSON.stringify({pick:{pile,from:size-remove}})}']`).click();await clickMove({type:'choose',pile,remove});};
 const clickMove=async action=>{const button=page.locator('[data-action="expansion-move"]').filter({visible:true});const moves=await button.evaluateAll(nodes=>nodes.map(n=>n.dataset.move));const index=moves.indexOf(JSON.stringify(action));assert.ok(index>=0,`UI control ${JSON.stringify(action)}`);await button.nth(index).click();};
 try{
  await mkdir(new URL('../test-results/',import.meta.url),{recursive:true});
@@ -31,15 +33,15 @@ try{
  await page.keyboard.press('Backspace');assert.equal((await state()).profiles[0].attempts['latin-06'].board.cells[0],0);
  await page.getByRole('button',{name:'Mark 1',exact:true}).click();await page.getByRole('button',{name:'Clear square',exact:true}).click();assert.equal((await state()).profiles[0].attempts['latin-06'].board.cells[0],0);
  await goto('code-01');await clickMove({type:'toggle',position:0});await clickMove({type:'toggle',position:1});await clickMove({type:'toggle',position:1});await clickMove({type:'submit'});await page.locator('#completion-heading').waitFor();
- await goto('nim-01');await clickMove({type:'choose',pile:2,remove:1});assert.equal(await page.locator('#completion-heading').count(),0);const remaining=(await state()).profiles[0].attempts['nim-01'].board.piles;await clickMove({type:'choose',pile:remaining.findIndex(Boolean)+1,remove:1});await page.locator('#completion-heading').waitFor();
- await goto('nim-02');await clickMove({type:'choose',pile:2,remove:4});assert.deepEqual((await state()).profiles[0].attempts['nim-02'].board.piles,[1,1]);
- await clickMove({type:'choose',pile:1,remove:1});assert.equal(await page.locator('#completion-heading').count(),0);assert.match(await page.locator('.nim-status').innerText(),/Opponent wins/);
+ await goto('nim-01');await takeNim('nim-01',2,1);assert.equal(await page.locator('#completion-heading').count(),0);const remaining=(await state()).profiles[0].attempts['nim-01'].board.piles;await takeNim('nim-01',remaining.findIndex(Boolean)+1,1);await page.locator('#completion-heading').waitFor();
+ await goto('nim-02');await takeNim('nim-02',2,4);assert.deepEqual((await state()).profiles[0].attempts['nim-02'].board.piles,[1,1]);
+ await takeNim('nim-02',1,1);assert.equal(await page.locator('#completion-heading').count(),0);assert.match(await page.locator('.nim-status').innerText(),/Opponent took the last pebble/);
  await page.getByRole('button',{name:'↶ Undo',exact:true}).click();assert.deepEqual((await state()).profiles[0].attempts['nim-02'].board.piles,[1,1]);
  await page.reload();await page.locator('.nim-piles').waitFor();assert.deepEqual((await state()).profiles[0].attempts['nim-02'].board.piles,[1,1]);
  await page.getByRole('button',{name:'↶ Undo',exact:true}).click();assert.deepEqual((await state()).profiles[0].attempts['nim-02'].board.piles,[2,5]);
  await goto('color-01');for(const [i,vertex]of ['A','B','C','D','E'].entries()){const color=i%2+1;if(i)await clickMove({type:'palette',color});await clickMove({vertex});}await page.locator('#completion-heading').waitFor();
  await goto('jug-01');await clickMove({type:'fill',jug:0});await clickMove({type:'pour',from:0,to:1});await page.locator('#completion-heading').waitFor();
- await goto('weigh-01');await clickMove({type:'place',coin:'A',pan:'left'});await clickMove({type:'place',coin:'B',pan:'right'});await clickMove({type:'weigh'});const balanceResult=(await state()).profiles[0].attempts['weigh-01'].board.observations[0].result;await page.locator('[name=coin]').selectOption(balanceResult==='L'?'A':balanceResult==='R'?'B':'C');await page.locator('form[data-puzzle-form] button[type=submit]').click();await page.locator('#completion-heading').waitFor();
+ await goto('weigh-01');await clickMove({type:'place',coin:'A',pan:'left'});await clickMove({type:'place',coin:'B',pan:'right'});await clickMove({type:'weigh'});const balanceResult=(await state()).profiles[0].attempts['weigh-01'].board.observations[0].result;await page.locator(`input[name=coin][value="${balanceResult==='L'?'A':balanceResult==='R'?'B':'C'}"]`).check({force:true});await page.locator('form[data-puzzle-form] button[type=submit]').click();await page.locator('#completion-heading').waitFor();
  console.log('Direct controls passed for all ten families.');
  await goto('clock-01');assert.equal(await page.locator('#completion-heading').count(),0);await page.locator('.solved-indicator').waitFor();
  await page.setViewportSize({width:390,height:480});await page.locator('[name=activations]').fill('3');

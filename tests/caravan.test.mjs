@@ -2,11 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {freshAttempt,move,nextHint,isSolved,restart,validBoard} from '../dist/engine.js';
-import {COMPANIONS,CHAPTERS,ROUTES,freshJourney,getEncounter,getProgress,puzzleForEncounter,startJourney,chooseRoute,beginEncounter,completeEncounter,validateJourney,hasPump,withCampaignPuzzles,resolvePuzzle,canVisitEncounter} from '../dist/caravan.js';
+import {freshJourney,startJourney,beginEncounter,recordSolve,withCampaignPuzzles} from '../dist/road.js';
+import * as road3 from '../dist/caravan-road3.js';
 import * as legacy from '../dist/caravan-legacy.js';
 import * as rescue from '../dist/caravan-rescue.js';
 import {emptyStore,validateStore,parseBackup,importProfiles} from '../dist/storage.js';
 
+// Earlier stories (v1 caravan, v2 rescue, v3 lantern road) are archives: their
+// saves stay valid and readable while the current road starts fresh.
 const pack=JSON.parse(await readFile(new URL('../dist/puzzles.json',import.meta.url),'utf8'));
 const puzzles=pack.puzzles,all=withCampaignPuzzles(puzzles);
 const copy=value=>JSON.parse(JSON.stringify(value));
@@ -19,11 +22,17 @@ function solve(p,initial=freshAttempt(p)){
   }
   assert.ok(isSolved(p,a.board),p.id);return {...a,helpUsed:true,hintLevel:3};
 }
-function finishNext(pr,model={beginEncounter,completeEncounter}){
+function finishNext(pr,model){
   const opened=model.beginEncounter(pr,puzzles);assert.ok(opened);
   pr.attempts[opened.puzzle.id]=solve(opened.puzzle,pr.attempts[opened.puzzle.id]||freshAttempt(opened.puzzle));
   assert.equal(model.completeEncounter(pr,opened.puzzle.id,opened.encounter.id,puzzles),true);
   return opened;
+}
+// One step on the current road (catalog-only pack: the first stops have no proof puzzles).
+function roadStep(pr){
+  const opened=beginEncounter(pr,puzzles);assert.ok(opened);
+  pr.attempts[opened.puzzle.id]=solve(opened.puzzle,pr.attempts[opened.puzzle.id]||freshAttempt(opened.puzzle));
+  assert.equal(recordSolve(pr,opened.puzzle.id,opened.encounter.id,puzzles).first,true);
 }
 function oldRescue(count,route='reeds',preview=true){
   const pr=profile();rescue.startJourney(pr);
@@ -42,107 +51,39 @@ function oldRescue(count,route='reeds',preview=true){
   return pr;
 }
 
-test('one route lights six places, keeps the six friends together, and uses every mechanic',()=>{
-  assert.deepEqual(CHAPTERS.map(c=>c.id),['ferry','marsh','ridge','workshop','lighthouse','citadel']);
-  assert.equal(COMPANIONS.length,6);assert.deepEqual(ROUTES,[]);
-  const encounters=CHAPTERS.flatMap(c=>c.encounters);
-  assert.equal(encounters.length,18);assert.equal(new Set(encounters.map(e=>e.id)).size,18);
-  assert.equal(new Set(encounters.map(e=>e.mechanic)).size,12);
-  for(const c of CHAPTERS){
-    assert.equal(c.encounters.length,3);assert.equal(c.scene,c.id);
-    for(const e of c.encounters){
-      assert.ok(e.effect);assert.ok(COMPANIONS.some(friend=>friend.id===e.speaker));
-      assert.ok(e.intro.length<120);assert.ok(e.success.length<100);
-      assert.equal(getEncounter(e.id),e);
-      for(const band of ['k1','23','45'])assert.ok(Number.isInteger(e.selection[band]));
-    }
-  }
-  assert.equal(getEncounter('unknown'),null);assert.equal(chooseRoute(profile(),'ridge'),false);
-});
-
-test('all three grade journeys solve, light stops cumulatively, and round-trip every save',()=>{
-  for(const band of ['k1','23','45']){
-    const pr=profile(band),seen=new Set();startJourney(pr);
-    for(let count=0;count<18;count++){
-      const {puzzle,encounter}=finishNext(pr);
-      assert.ok(!seen.has(puzzle.id),`${band}: each encounter has an independent board`);seen.add(puzzle.id);
-      assert.equal(puzzle.band,band);assert.equal(puzzle.campaignVersion,3);
-      assert.equal(pr.attempts[puzzle.sourceId],undefined,'campaign completion does not overwrite library completion');
-      const progress=getProgress(pr);
-      assert.equal(progress.completedCount,count+1);
-      assert.deepEqual(progress.litStops,CHAPTERS.slice(0,Math.floor((count+1)/3)).map(c=>c.id));
-      assert.deepEqual(progress.party,COMPANIONS.map(c=>c.id));
-      assert.equal(progress.needsRoute,false);assert.equal(progress.needsLiftVisit,false);
-      assert.deepEqual(parseBackup(JSON.stringify(storeFor(pr)),puzzles),storeFor(pr));
-      assert.equal(completeEncounter(pr,puzzle.id,encounter.id,puzzles),false);
-    }
-    assert.equal(getProgress(pr).complete,true);assert.equal(getProgress(pr).encounter,null);
-    assert.equal(getProgress(pr).chapterCompleted,3);
-    const before=copy(pr.journey),replay=beginEncounter(pr,puzzles,'ferry-cargo');
-    assert.ok(replay);pr.attempts[replay.puzzle.id]=restart(replay.puzzle,pr.attempts[replay.puzzle.id]);
-    assert.equal(completeEncounter(pr,replay.puzzle.id,replay.encounter.id,puzzles),false);
-    assert.deepEqual(pr.journey,before);assert.doesNotThrow(()=>validateStore(storeFor(pr),puzzles));
-    pr.attempts[replay.puzzle.id]=solve(replay.puzzle,pr.attempts[replay.puzzle.id]);
-    assert.equal(completeEncounter(pr,replay.puzzle.id,replay.encounter.id,puzzles),false);
+test('v3 lantern road saves move into an archive with their boards intact',()=>{
+  for(const band of ['k1','23','45'])for(const count of [0,1,3,7,18]){
+    const pr=profile(band);road3.startJourney(pr);
+    for(let i=0;i<count;i++)finishNext(pr,road3);
+    if(count<18){const open=road3.beginEncounter(pr,puzzles);pr.attempts[open.puzzle.id]=freshAttempt(open.puzzle);}
+    const original=copy(pr),migrated=parseBackup(JSON.stringify(storeFor(pr)),puzzles).profiles[0];
+    assert.deepEqual(pr,original,'input is not mutated');assert.deepEqual(migrated.attempts,original.attempts);
+    assert.deepEqual(migrated.roadJourney,original.journey);assert.deepEqual(migrated.journey,freshJourney());
+    assert.deepEqual(validateStore(storeFor(migrated),puzzles),storeFor(migrated));
+    startJourney(migrated);roadStep(migrated);
+    assert.deepEqual(parseBackup(JSON.stringify(storeFor(migrated)),puzzles),storeFor(migrated));
+    for(const [id,attempt]of Object.entries(original.attempts))assert.deepEqual(migrated.attempts[id],attempt);
+    const imported=importProfiles(emptyStore(),storeFor(migrated),()=> 'new');
+    assert.deepEqual(imported.profiles[0].roadJourney,original.journey);
   }
 });
 
-test('grade changes preserve opened bindings while subsequent encounters use the new grade',()=>{
-  const pr=profile();startJourney(pr);const opened=beginEncounter(pr,puzzles);
-  pr.attempts[opened.puzzle.id]=freshAttempt(opened.puzzle);pr.band='45';
-  assert.equal(beginEncounter(pr,puzzles).puzzle.id,opened.puzzle.id);
-  assert.equal(puzzleForEncounter(opened.encounter,pr,puzzles).band,'k1');
-  finishNext(pr);const next=beginEncounter(pr,puzzles);assert.equal(next.puzzle.band,'45');
-  assert.deepEqual(parseBackup(JSON.stringify(storeFor(pr)),puzzles),storeFor(pr));
-});
-
-test('library attempts, sibling encounter saves, and archived puzzles cannot advance the road',()=>{
-  const pr=profile();startJourney(pr);const opened=beginEncounter(pr,puzzles),source=puzzles.find(p=>p.id===opened.puzzle.sourceId);
-  pr.attempts[source.id]=solve(source);
-  assert.equal(completeEncounter(pr,source.id,opened.encounter.id,puzzles),false);
-  assert.equal(pr.attempts[opened.puzzle.id],undefined);
-  assert.equal(beginEncounter(pr,puzzles,'citadel-lanterns'),null);
-  assert.equal(canVisitEncounter(pr,'tower-lift'),false);
-  assert.equal(beginEncounter(pr,puzzles,'tower-lift'),null);
-  assert.equal(getProgress(pr).completedCount,0);
-  const archived=all.find(p=>p.id==='rescue-tower-lift');
-  const forged=copy(pr);forged.attempts[archived.id]=solve(archived);
-  assert.throws(()=>validateStore(storeFor(forged),puzzles),/not been reached/);
+test('archived v3 boards stay sealed: no new progress, no unreached boards, no second archive',()=>{
+  const pr=profile();road3.startJourney(pr);finishNext(pr,road3);
+  const migrated=parseBackup(JSON.stringify(storeFor(pr)),puzzles).profiles[0];
   const future=all.find(p=>p.id==='road-citadel-lanterns-k1');
-  const futureSave=copy(pr);futureSave.attempts[future.id]=solve(future);
-  assert.throws(()=>validateStore(storeFor(futureSave),puzzles),/not been reached/);
-  assert.doesNotThrow(()=>validateStore(storeFor(pr),puzzles));
-});
-
-test('invalid ordering, forged bindings and incomplete boards are rejected',()=>{
-  const pr=profile();startJourney(pr);finishNext(pr);finishNext(pr);
-  for(const mutate of [
-    j=>{j.version=99;},j=>{j.started=false;},j=>{j.completed.reverse();},
-    j=>{j.completed.push('ferry-lights');},j=>{j.bindings['citadel-water']='road-citadel-water-k1';},
-    j=>{j.bindings['ferry-cargo']='swap-k1-03';},j=>{j.bindings['ferry-cargo']='road-workshop-cradles-k1';},
-    j=>{delete j.bindings['ferry-cargo'];},j=>{j.bindings.unknown='road-ferry-cargo-k1';}
-  ]){const broken=copy(pr);mutate(broken.journey);assert.throws(()=>validateStore(storeFor(broken),puzzles));}
-  const opened=beginEncounter(pr,puzzles);pr.attempts[opened.puzzle.id]=freshAttempt(opened.puzzle);
-  pr.attempts[opened.puzzle.id].completed=true;
-  assert.equal(completeEncounter(pr,opened.puzzle.id,opened.encounter.id,puzzles),false,'historical completion is insufficient after restarting');
-  assert.throws(()=>validateJourney(null,pr,puzzles));
-  const unstarted=profile();unstarted.journey=freshJourney();unstarted.journey.bindings['ferry-cargo']='road-ferry-cargo-k1';
-  assert.throws(()=>validateStore(storeFor(unstarted),puzzles));
-});
-
-test('road jug operations come from the instance, with no inherited pump gate',()=>{
-  for(const band of ['k1','23','45'])for(const id of ['marsh-water','citadel-water']){
-    const pr=profile(band),p=puzzleForEncounter(getEncounter(id),pr,puzzles);
-    assert.equal(resolvePuzzle(p,pr),p);assert.equal(p.requiresAbility,undefined);assert.equal(p.missingAbility,undefined);
-    const a=freshAttempt(p);assert.ok(validBoard(p,a.board));
-    if(p.parameters.source_and_drain)assert.ok(move(p,a,{type:'fill',jug:0}));
-    else assert.equal(move(p,a,{type:'fill',jug:0}),null);
-    assert.ok(solve(p).completed);assert.equal(hasPump(pr),false);
+  const forged=copy(migrated);forged.attempts[future.id]=solve(future);
+  assert.throws(()=>validateStore(storeFor(forged),puzzles),/not been reached/);
+  for(const mutate of [p=>{delete p.roadJourney;},p=>{p.roadJourney.completed.push('marsh-paths');},p=>{p.roadJourney.version=4;},p=>{p.journey=copy(p.roadJourney);}]){
+    const broken=copy(migrated);mutate(broken);assert.throws(()=>validateStore(storeFor(broken),puzzles));
   }
   assert.equal(all.filter(p=>p.campaignVersion===3).length,54);
   assert.equal(all.filter(p=>p.campaignVersion===2).length,3);
   assert.equal(all.filter(p=>!p.campaignOnly).length,puzzles.length);
   assert.equal(withCampaignPuzzles(all),all);
+  // Archived boards cannot be resolved into current road puzzles.
+  const archivedBoard=all.find(p=>p.id==='road-ferry-cargo-k1');
+  assert.equal(archivedBoard.campaignVersion,3);assert.ok(validBoard(archivedBoard,freshAttempt(archivedBoard).board));
 });
 
 test('v1 journeys migrate into an archive without changing their catalog attempts',()=>{
@@ -170,7 +111,7 @@ test('v2 saves retain all attempts, including sealed and earned-pump boards, thr
     assert.deepEqual(migrated.rescueJourney,original.journey);assert.deepEqual(migrated.journey,freshJourney());
     assert.deepEqual(validateStore(storeFor(migrated),puzzles),storeFor(migrated));
     assert.equal(rescue.hasPump({...migrated,journey:migrated.rescueJourney}),count>=5);
-    startJourney(migrated);finishNext(migrated);
+    startJourney(migrated);roadStep(migrated);
     assert.deepEqual(validateStore(storeFor(migrated),puzzles),storeFor(migrated));
     for(const [id,attempt]of Object.entries(original.attempts))assert.deepEqual(migrated.attempts[id],attempt);
     const imported=importProfiles(emptyStore(),storeFor(migrated),()=> 'new');
@@ -189,4 +130,14 @@ test('archived rescue capability and archive fields are validated independently 
   const both=copy(migrated),old=profile();legacy.startJourney(old);finishNext(old,legacy);
   both.caravanJourney=old.journey;Object.assign(both.attempts,old.attempts);
   assert.deepEqual(validateStore(storeFor(both),puzzles),storeFor(both));
+});
+
+test('an untouched v3 road is not archived; a touched one is',()=>{
+  const fresh=profile();fresh.journey=road3.freshJourney();
+  const migrated=parseBackup(JSON.stringify(storeFor(fresh)),puzzles).profiles[0];
+  assert.equal(Object.hasOwn(migrated,'roadJourney'),false);assert.deepEqual(migrated.journey,freshJourney());
+  const started=profile();road3.startJourney(started);
+  assert.equal(Object.hasOwn(parseBackup(JSON.stringify(storeFor(started)),puzzles).profiles[0],'roadJourney'),false);
+  const opened=profile();road3.startJourney(opened);const o=road3.beginEncounter(opened,puzzles);opened.attempts[o.puzzle.id]=freshAttempt(o.puzzle);
+  assert.deepEqual(parseBackup(JSON.stringify(storeFor(opened)),puzzles).profiles[0].roadJourney,opened.journey);
 });

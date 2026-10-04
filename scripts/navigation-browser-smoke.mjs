@@ -116,7 +116,7 @@ try{
   assert.ok(await page.locator('.caravan-add-profile').evaluate(node=>node.open),'New explorer disclosure survives navigation');
   await page.locator('#nickname').fill('Second explorer');
   await page.locator('#profile-form button[type=submit]').click();
-  await page.locator('.road-overview').waitFor();
+  await page.locator('.lr-overview').waitFor();
   await page.locator('.caravan-nav [data-action=library]').click();
   await page.locator('.caravan-library').waitFor();
   assert.deepEqual(await openFamilies(),['Lantern Wires'],'another explorer starts with fresh presentation state');

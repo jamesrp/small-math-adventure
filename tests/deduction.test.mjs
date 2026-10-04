@@ -49,7 +49,7 @@ test('all 36 deduction instances have valid fresh boards, legal current-state hi
       assert.deepEqual(JSON.parse(JSON.stringify(board)), board);
       const html = handler.render(p, { board });
       assert.match(html, /aria-label|<label/);
-      assert.match(html, /data-puzzle-form|data-action="expansion-move"/);
+      assert.match(html, /data-puzzle-form|data-action="expansion-move"|data-action="mechanic-ui"/);
       followHints(handler, p);
     }
   }
@@ -231,7 +231,8 @@ test('Nim plays from remaining piles, records a loss, rejects invalid saves and 
   assert.deepEqual(lost.piles, [0, 0]);
   assert.equal(nim.solved(p, lost), false);
   assert.equal(nim.hint(p, lost).type, 'deadend');
-  assert.match(nim.render(p, { board: lost }), /Opponent wins/);
+  assert.match(nim.render(p, { board: lost }), /Opponent took the last pebble/);
+  assert.match(nim.render(p, { board: lost }, { encounter: { speaker: 'plume' } }), /Plume took the last pebble/);
   assert.equal(nim.move(p, lost, { type: 'choose', pile: 1, remove: 1 }), null);
   const won = followHints(nim, p);
   assert.equal(nim.move(p, won, { type: 'choose', pile: 1, remove: 1 }), null);
@@ -259,4 +260,17 @@ test('shared undo restores marks, code submissions, and whole Nim rounds', () =>
   const recovered = undoToSolvable(p, dead);
   assert.deepEqual(recovered.board, latin.fresh(p));
   assert.equal(nextHint(p, recovered).type, 'move');
+});
+
+test('Nim pebbles lift from the top of a pile and Take makes exactly that move', () => {
+  const p = puzzle('nim-02'), board = nim.fresh(p);
+  assert.doesNotMatch(nim.render(p, { board }), /Take \d/);
+  nim.ui(p, { pick: { pile: 2, from: 1 } });
+  const html = nim.render(p, { board });
+  assert.match(html, /Take 4/); assert.match(html, /&quot;remove&quot;:4/); assert.match(html, /aria-pressed="true"/);
+  nim.ui(p, { pick: null }); assert.doesNotMatch(nim.render(p, { board }), /Take \d/);
+  nim.ui(p, { pick: { pile: 2, from: 1 } }); nim.reset(p); assert.doesNotMatch(nim.render(p, { board }), /Take \d/);
+  // A pick left over from a larger pile is dropped when the pile shrinks.
+  nim.ui(p, { pick: { pile: 1, from: 1 } });
+  assert.doesNotMatch(nim.render(p, { board: nim.move(p, board, { type: 'choose', pile: 1, remove: 1 }, () => 0) }), /Take \d/);
 });

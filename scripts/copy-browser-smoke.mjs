@@ -89,7 +89,7 @@ async function assertEssentialConstraints(puzzle,goal){
    break;
   case 'nim':
    assert.match(goal,/last pebble.*win/i,`${id}: full-game winning condition`);
-   assert.equal(await page.locator('.nim-pile').count(),p.piles.length,`${id}: starting piles retained`);
+   assert.equal(await page.locator('.nim-puzzle .duel-bowl').count(),p.piles.length,`${id}: starting piles retained`);
    assert.equal(await page.locator('.nim-bundles').count(),0,`${id}: optional bundle explanation stays in Help`);
    break;
   case 'jug':
@@ -107,7 +107,7 @@ async function assertEssentialConstraints(puzzle,goal){
 }
 try{
  await mkdir(output,{recursive:true});
- await page.goto(base);await page.locator('#nickname').fill('Copy review');await page.locator('#profile-form button[type=submit]').click();await page.locator('.road-overview').waitFor();
+ await page.goto(base);await page.locator('#nickname').fill('Copy review');await page.locator('#profile-form button[type=submit]').click();await page.locator('.lr-overview').waitFor();
  await assertMinimalChrome('map');
  assert.equal(await page.locator('.journey-opening,.scene-caption,.scene-label,.camp-memory,.caravan-promise,.satchel-invitation,.stop-label,.stop-number,.caravan-section-heading').count(),0,'map: decorative headings, captions, and recaps removed');
  await capture('map');await captureSizes('map');
@@ -146,7 +146,7 @@ try{
   if(!wasOpen)await family.locator('summary').click();
  }
  await capture('library');await captureSizes('library');
- await page.goto(`${base}/#journal`);await page.locator('.journal-pages').waitFor();await assertMinimalChrome('journal');
+ await page.goto(`${base}/#journal`);await page.locator('.lr-journal-view').waitFor();await assertMinimalChrome('journal');
  assert.equal(await page.locator('#main h1:not(.sr-only),.journal-heading,.journal-cover,.journal-next').count(),0,'journal: no duplicate heading or decorative cover');
  await capture('journal');await captureSizes('journal');
  assert.deepEqual(errors,[]);

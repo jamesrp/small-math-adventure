@@ -144,6 +144,7 @@ const code = {
   demo: 'A recorded test 10 with zero matches means the secret is 01: both positions must change. Set each lantern, then submit a code that fits all the tests.'
 };
 
+const nimPicks = new Map();
 const nimSum = piles => piles.reduce((sum, pile) => sum ^ pile, 0);
 function nimChoice(piles, choice) {
   return object(choice) && integer(choice.pile) && choice.pile >= 1 && choice.pile <= piles.length && integer(choice.remove) && choice.remove >= 1 && choice.remove <= piles[choice.pile - 1];
@@ -196,21 +197,38 @@ const nim = {
     return { type: 'move', action: { type: 'choose', ...choice },
       text: best ? `Take ${choice.remove} from pile ${choice.pile}, leaving ${afterChoice(board.piles, choice).join(', ')}. Keep returning the opponent to a balanced position.` : `There is no forced win from these piles. Try taking ${choice.remove} from pile ${choice.pile}, or undo your last turn.` };
   },
-  render(p, attempt) {
-    const board = attempt.board, winner = nimWinner(board), reply = board.turns.at(-1);
-    const status = winner === 'you' ? '' : winner === 'opponent' ? 'Opponent wins.' : 'Your turn';
-    return `<div class="deduction-puzzle nim-puzzle">
-      <div class="nim-status" role="status" tabindex="-1" data-focus="nim-status">${reply?.player === 'opponent' ? `<span>Opponent took ${reply.remove} from pile ${reply.pile}.</span> ` : ''}<strong>${status}</strong></div>
-      <div class="nim-piles" aria-label="Remaining piles">${board.piles.map((size, i) => `<section class="nim-pile" aria-label="Pile ${i + 1}, ${size} pebbles"><h3>Pile ${i + 1}</h3><div class="nim-pebbles" aria-hidden="true">${Array.from({ length: size }, () => '<span>●</span>').join('')}</div><strong aria-label="${size} pebbles">${size}</strong><div class="nim-take" role="group" aria-label="Take from pile ${i + 1}"><span>Take</span>${numbers(p.parameters.piles[i]).map(remove => actionButton(String(remove), { type: 'choose', pile: i + 1, remove }, `aria-label="Take ${remove} from pile ${i + 1}" ${winner || remove > size ? 'disabled' : ''}`)).join('')}</div></section>`).join('')}</div>
+  // Piles of pebbles, as in the proof duel: lift a pebble and everything above
+  // it, then Take. On the road the opponent is a named rival.
+  render(p, attempt, ctx = {}) {
+    const board = attempt.board, winner = nimWinner(board), reply = board.turns.at(-1), rival = ctx.encounter?.speaker === 'plume' ? 'Plume' : 'Opponent';
+    const yourTurn = !winner, pick = nimPicks.get(p.id);
+    if (pick && (!yourTurn || pick.pile > board.piles.length || pick.from >= board.piles[pick.pile - 1])) nimPicks.delete(p.id);
+    const lifted = nimPicks.get(p.id), take = lifted ? board.piles[lifted.pile - 1] - lifted.from : 0;
+    const status = winner === 'you' ? '' : winner === 'opponent' ? `${rival} took the last pebble.` : 'Your turn';
+    const piles = board.piles.map((size, i) => {
+      const before = reply?.player === 'opponent' && reply.pile === i + 1 ? reply.remove : 0;
+      const pebbles = Array.from({ length: size + before }, (_, k) => {
+        if (k >= size) return '<span class="duel-pebble gone" aria-hidden="true"></span>';
+        const count = size - k, up = lifted && lifted.pile === i + 1 && k >= lifted.from;
+        return `<button type="button" class="duel-pebble${up ? ' lift' : ''}" data-action="mechanic-ui" data-ui="${esc(JSON.stringify({ pick: { pile: i + 1, from: k } }))}" data-focus="nim-${i}-${k}" aria-label="Lift ${count} ${count === 1 ? 'pebble' : 'pebbles'} from pile ${i + 1}" aria-pressed="${Boolean(up)}" ${yourTurn ? '' : 'disabled'}></button>`;
+      }).join('');
+      return `<div class="duel-bowl" role="group" aria-label="Pile ${i + 1}, ${size} ${size === 1 ? 'pebble' : 'pebbles'}"><div class="duel-pile">${pebbles}</div><span class="duel-base" aria-hidden="true"></span><span class="nim-count" aria-hidden="true">${size}</span></div>`;
+    }).join('');
+    return `<div class="deduction-puzzle nim-puzzle proof-puzzle">
+      <div class="nim-status duel-status" role="status" tabindex="-1" data-focus="nim-status">${reply?.player === 'opponent' ? `<span>${rival} took ${reply.remove} from pile ${reply.pile}.</span> ` : ''}<strong>${status}</strong></div>
+      <div class="duel-piles nim-piles" aria-label="Remaining piles">${piles}</div>
+      <div class="proof-actions">${lifted ? `${actionButton(`Take ${take}`, { type: 'choose', pile: lifted.pile, remove: take }).replace('class="secondary expansion-action"', 'class="primary expansion-action"')}<button type="button" class="secondary" data-action="mechanic-ui" data-ui="${esc(JSON.stringify({ pick: null }))}">Cancel</button>` : ''}</div>
       </div>`;
   },
+  ui(p, payload) { if (payload && Object.hasOwn(payload, 'pick')) { if (payload.pick) nimPicks.set(p.id, payload.pick); else nimPicks.delete(p.id); } },
+  reset(p) { nimPicks.delete(p.id); },
   help(p, attempt) {
     const piles = attempt.board.piles;
     const largest = Math.max(...p.parameters.piles), bundles = [];
     for (let size = 2 ** Math.max(2, Math.floor(Math.log2(largest))); size >= 1; size /= 2) bundles.push(size);
     return `<div class="deduction-puzzle"><details class="nim-bundles"><summary>Explore ${bundles.slice(0,-1).join(', ')}, and 1 bundles</summary><p>Each pile can use a bundle size at most once. A balanced position has an even count in every column.</p><table><caption>Remaining piles as bundles</caption><thead><tr><th scope="col">Pile</th>${bundles.map(size => `<th scope="col">${size}-bundle</th>`).join('')}</tr></thead><tbody>${piles.map((size, i) => `<tr><th scope="row">${i + 1}: ${size}</th>${bundles.map(bundle => `<td>${size & bundle ? '1' : '0'}</td>`).join('')}</tr>`).join('')}</tbody></table></details></div>`;
   },
-  demo: 'Take any positive number from one pile. The opponent replies automatically. Take the last pebble to win. Undo takes back your move and the opponent’s reply.'
+  demo: 'Tap a pebble to lift it and every pebble above it, then Take. The opponent replies automatically. Take the last pebble to win. Undo takes back your move and the opponent’s reply.'
 };
 
 export const deductionMechanics = { latin, code, nim };

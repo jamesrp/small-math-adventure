@@ -1,7 +1,8 @@
 import { BANDS, CONTENT_VERSION, freshAttempt, validBoard, isSolved, clone } from './engine.js';
 import { legacyNimBoard } from './deduction.js';
 import { weighingSecret } from './measurement.js';
-import { validateJourney, freshJourney, withCampaignPuzzles, resolvePuzzle } from './caravan.js';
+import { validateJourney, freshJourney, withCampaignPuzzles, resolvePuzzle, campaignAttemptReachable } from './road.js';
+import { validateJourney as validateRoad3Journey } from './caravan-road3.js';
 import { validateJourney as validateCaravanJourney } from './caravan-legacy.js';
 import { validateJourney as validateRescueJourney, resolvePuzzle as resolveRescuePuzzle } from './caravan-rescue.js';
 export const SAVE_KEY = 'small-math-adventure:saves:v1';
@@ -242,21 +243,30 @@ export function validateStore(value, puzzles) {
   for (const profile of value.profiles) {
     if (!profile || typeof profile.id !== 'string' || profile.id.length > 100 || !profile.id || ids.has(profile.id) || typeof profile.name !== 'string' || !profile.name.trim() || profile.name.length > 24 || !Object.hasOwn(BANDS,profile.band) || !Number.isInteger(profile.avatar) || profile.avatar < 0 || profile.avatar > 5 || typeof profile.sound !== 'boolean' || !profile.attempts || Array.isArray(profile.attempts) || typeof profile.attempts !== 'object' || Object.keys(profile.attempts).length > allPuzzles.length) throw new Error('An explorer in this backup is not valid.');
     ids.add(profile.id);
-    let journey, caravanJourney, rescueJourney;
+    // Earlier stories stay readable as archives; the current road is version 4.
+    let journey, caravanJourney, rescueJourney, roadJourney;
     if (Object.hasOwn(profile,'caravanJourney')) caravanJourney=validateCaravanJourney(profile.caravanJourney,profile,puzzles);
     if (Object.hasOwn(profile,'rescueJourney')) rescueJourney=validateRescueJourney(profile.rescueJourney,profile,puzzles);
+    if (Object.hasOwn(profile,'roadJourney')) roadJourney=validateRoad3Journey(profile.roadJourney,profile,puzzles);
     if (Object.hasOwn(profile,'journey')) {
-      if (profile.journey?.version===1) {
+      const version=profile.journey?.version;
+      if (version===1) {
         if (caravanJourney) throw new Error('This backup has two earlier journeys.');
         caravanJourney=validateCaravanJourney(profile.journey,profile,puzzles);
         journey=freshJourney();
-      } else if (profile.journey?.version===2) {
+      } else if (version===2) {
         if (rescueJourney) throw new Error('This backup has two earlier rescue journeys.');
         rescueJourney=validateRescueJourney(profile.journey,profile,puzzles);
         journey=freshJourney();
+      } else if (version===3) {
+        if (roadJourney) throw new Error('This backup has two earlier road journeys.');
+        const old=validateRoad3Journey(profile.journey,profile,puzzles);
+        // A road that was never played (no finished or opened encounters) holds nothing to archive.
+        if (old.completed.length||Object.keys(old.bindings).length) roadJourney=old;
+        journey=freshJourney();
       } else journey=validateJourney(profile.journey,profile,puzzles);
     }
-    journeys.set(profile.id,{...(journey?{journey}:{}),...(caravanJourney?{caravanJourney}:{}),...(rescueJourney?{rescueJourney}:{})});
+    journeys.set(profile.id,{...(journey?{journey}:{}),...(caravanJourney?{caravanJourney}:{}),...(rescueJourney?{rescueJourney}:{}),...(roadJourney?{roadJourney}:{})});
     const effectiveProfile={...profile,journey};
     for (const [id,a] of Object.entries(profile.attempts)) {
       const base = byId.get(id);
@@ -264,7 +274,10 @@ export function validateStore(value, puzzles) {
       const archived=base?.campaignVersion===2;
       const current = archived?resolveRescuePuzzle(base,{...profile,journey:rescueJourney}):resolvePuzzle(base,effectiveProfile);
       const p = savedDefinition(current,a);
-      if (base?.campaignOnly && !Object.values((archived?rescueJourney:journey)?.bindings||{}).includes(id)) throw new Error('A campaign puzzle has not been reached.');
+      if (base?.campaignOnly) {
+        const reached = base.campaignVersion===4 ? campaignAttemptReachable(effectiveProfile,base) : Object.values((archived?rescueJourney:roadJourney)?.bindings||{}).includes(id);
+        if (!reached) throw new Error('A campaign puzzle has not been reached.');
+      }
       if (!p || !a || a.revision !== (p.revision || 1) || !readableBoard(p,a.board) || !Array.isArray(a.history) || a.history.length > 120 || !Number.isSafeInteger(a.moves) || a.moves < 0 || !Number.isInteger(a.hintLevel) || a.hintLevel < 0 || a.hintLevel > 3 || typeof a.helpUsed !== 'boolean' || typeof a.completed !== 'boolean' || !Number.isFinite(a.lastPlayed) || a.lastPlayed < 0 || (isSolved(p,a.board) && !a.completed)) throw new Error(`Saved puzzle ${id} does not match this puzzle pack.`);
       if (a.history.length > Math.min(a.moves,120)) throw new Error(`Undo history for ${id} is not valid.`);
       for (const [i,h] of a.history.entries()) if (!h || !(p.mechanic==='nim'&&legacyNimBoard(p,a.board)?legacyNimBoard(p,h.board):validBoard(p,h.board)) || h.moves !== a.moves-a.history.length+i) throw new Error(`Undo history for ${id} is not valid.`);

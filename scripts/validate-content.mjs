@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import {withCampaignPuzzles} from '../dist/caravan.js';
+import {withCampaignPuzzles} from '../dist/road.js';
 import { freshAttempt, move, isSolved, solveTiles, solveSwaps, nextHint, validBoard, tileSize } from '../dist/engine.js';
 export async function validateContent(){
   const pack=JSON.parse(await readFile(new URL('../dist/puzzles.json',import.meta.url),'utf8'));
@@ -46,7 +46,9 @@ export async function validateContent(){
     for(const pair of p.solution){a=move(p,a,pair);assert.ok(a,`${p.id} invalid witness`);moves++;}
     assert.ok(isSolved(p,a.board),`${p.id} witness incomplete`);
   }
-  const campaign=withCampaignPuzzles(puzzles).filter(p=>p.campaignOnly);
+  // Road copies of proof puzzles are checked with their sources by validate-proofs.mjs.
+  const proofPack=JSON.parse(await readFile(new URL('../dist/proofs.json',import.meta.url),'utf8'));
+  const campaign=withCampaignPuzzles([...puzzles,...proofPack.puzzles]).filter(p=>p.campaignOnly&&!p.proof);
   for(const p of campaign){
     let a=freshAttempt(p);
     assert.ok(validBoard(p,a.board),`${p.id}: valid starting board`);

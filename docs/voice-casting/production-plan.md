@@ -1,5 +1,7 @@
 # ElevenLabs production plan
 
+> Historical: this covers the version-3 story, which version 4 replaced (see `docs/ROAD.md`). `dist/caravan.js` is now `dist/caravan-road3.js`, and `dist/road-art.js` is gone. Version-4 voice lines and their IDs are listed by `node scripts/check-art.mjs --voices` and described in `docs/art/ROADMAP.md`.
+
 This plan covers the current version-3 Lantern Road in the working checkout. It is a migration proposal; playback and audio assets have not been changed. The exact existing text, source hashes, and puzzle-to-reading mapping are in [script-inventory.json](script-inventory.json), with a readable [script inventory](script-inventory.md).
 
 ## Scope and cast

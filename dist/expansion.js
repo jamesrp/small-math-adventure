@@ -16,7 +16,7 @@ export function playInstructions(p){
     case 'route':return 'Tap a labeled junction to follow a road; crossings are not junctions. '+(q.mode==='each_edge_once'?'You may revisit junctions.':'Repeated roads add to the distance.');
     case 'latin':return 'Tap a square, then a number to mark it. Dark squares are fixed. Clear erases the selected square. You can also type numbers or press Delete.';
     case 'code':return 'Tap each lantern to set 0 or 1, then Check. A match is the same symbol in the same position.';
-    case 'nim':return 'Take any positive number from one pile. The opponent replies automatically. Take the last pebble to win. Undo takes back your move and the reply.';
+    case 'nim':return 'Tap a pebble to lift it and every pebble above it, then Take. The opponent replies automatically. Take the last pebble to win. Undo takes back your move and the reply.';
     case 'color':return 'Choose a color or shape, then tap a lantern. Crossings do not add links.';
     case 'jug':return (q.source_and_drain?'Fill or empty a jug, or pour between jugs.':'Pour between jugs; no water can be added or removed.')+' A pour stops when its source is empty or its destination is full.';
     case 'weigh':return 'Place pebbles Left, Off, or Right. Put equal numbers on both pans, then Weigh. An answer must be the only possibility left by the observations.';

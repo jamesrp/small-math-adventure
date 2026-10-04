@@ -1,6 +1,7 @@
 // Synthetic garden fixture supplements the shipped-pack completion check.
 import assert from 'node:assert/strict';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
+import {freshAttempt,move,isSolved,nextHint} from '../dist/engine.js';
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 const browser=await chromium.launch({headless:true,...(process.env.BROWSER_EXECUTABLE?{executablePath:process.env.BROWSER_EXECUTABLE}:{})});
 const pack=JSON.parse(await readFile(new URL('../dist/puzzles.json',import.meta.url),'utf8'));
@@ -159,20 +160,23 @@ try{
   assert.equal((await attempt(puzzle.id)).board.length,1,`CDP touch stroke places ${puzzle.id}`);
  }
  cdpTouch='Chromium CDP L and domino strokes passed; real iPad check outstanding';
- // Test-only module response routes the first story encounter through Tile Garden.
- // The shipped caravan and puzzle pack remain untouched.
+ // The road's Old Workshop floor is an L-tromino garden: reach it with a saved
+ // trail, then cover it by taps and check the trail records the encounter.
+ const {startJourney,beginEncounter,recordSolve,campaignId}=await import('../dist/road.js');
+ const {mechanicFor}=await import('../dist/expansion.js');
+ const proofPack=JSON.parse(await readFile(new URL('../dist/proofs.json',import.meta.url),'utf8')),roadPuzzles=[...pack.puzzles,...proofPack.puzzles];
+ const traveler={id:'road',name:'Road garden',avatar:0,band:'k1',sound:false,attempts:{}};startJourney(traveler);
+ for(let i=0;i<12;i++){const o=beginEncounter(traveler,roadPuzzles);let a=freshAttempt(o.puzzle);for(let k=0;k<300&&!isSolved(o.puzzle,a.board);k++)a=move(o.puzzle,a,mechanicFor(o.puzzle)?.solve?mechanicFor(o.puzzle).solve(o.puzzle,a.board):(h=>h.action||h.pair)(nextHint(o.puzzle,a)));traveler.attempts[o.puzzle.id]=a;recordSolve(traveler,o.puzzle.id,o.encounter.id,roadPuzzles);}
  const storyContext=await browser.newContext({viewport:{width:768,height:1024},serviceWorkers:'block'});
- const caravanSource=await readFile(new URL('../dist/caravan.js',import.meta.url),'utf8');
- await storyContext.route('**/caravan.js',route=>route.fulfill({contentType:'text/javascript',body:caravanSource.replace("beat('tree-cradle','Before the gates close','swap'","beat('tree-cradle','Before the gates close','tile'")}));
+ await storyContext.addInitScript(value=>{if(!localStorage.getItem('small-math-adventure:saves:v1'))localStorage.setItem('small-math-adventure:saves:v1',value);},JSON.stringify({schemaVersion:1,contentVersion:1,activeProfileId:'road',profiles:[traveler]}));
  const story=await storyContext.newPage();story.on('pageerror',e=>errors.push(e.message));
- await story.goto(base);await story.locator('#nickname').fill('Story garden');await story.locator('#profile-form button[type=submit]').click();
- await story.locator('[data-action="start-journey"]').click();await story.locator('.garden-cell').first().waitFor();
- assert.match(story.url(),/#play\/tile-k1-03\/tree-cradle$/);
- const storyPuzzle=pack.puzzles.find(p=>p.id==='tile-k1-03');
+ await story.goto(base);await story.locator('[data-action="continue-journey"]:visible').first().click();await story.locator('.garden-cell').first().waitFor();
+ assert.match(story.url(),new RegExp(`#play/${campaignId('workshop-floor','k1')}/workshop-floor$`));
+ const storyPuzzle=pack.puzzles.find(p=>p.id==='tile-k1-04');
  for(const piece of storyPuzzle.solution)for(const n of piece)await story.locator(`.garden-cell[data-cell="${n}"]`).click();
- await story.locator('.story-aftermath').waitFor();
+ await story.locator('#completion-heading').waitFor();
  const journey=await story.evaluate(()=>JSON.parse(localStorage.getItem('small-math-adventure:saves:v1')).profiles[0].journey);
- assert.deepEqual(journey.completed,['tree-cradle']);await storyContext.close();
+ assert.ok(journey.trails.k1.completed.includes('workshop-floor'));await storyContext.close();
  assert.deepEqual(errors,[]);const report={passed:true,shapes:['L-tromino','domino'],errors,touch:cdpTouch};
  await writeFile(new URL('../test-results/tile-browser-report.json',import.meta.url),JSON.stringify(report,null,2));console.log(JSON.stringify(report));
 }finally{await browser.close();}

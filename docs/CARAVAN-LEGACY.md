@@ -1,4 +1,4 @@
-> Historical version-one campaign. The current rescue is documented in [CARAVAN.md](CARAVAN.md). Counts and validation results below describe the earlier release.
+> Historical version-one campaign. The current road is documented in [ROAD.md](ROAD.md). Counts and validation results below describe the earlier release.
 
 # The Last Lantern Caravan
 

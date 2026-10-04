@@ -41,7 +41,10 @@ try{
    assert.ok(next&&next!==p.id,'solved card offers the next library puzzle');
    await page.locator(`[data-action="open-puzzle"][data-id="${next}"]`).click();
    assert.equal(new URL(page.url()).hash,`#play/${next}`,'next puzzle opens');
-   await page.goto(`${base}/#play/${p.id}`);await page.getByRole('heading',{name:'Solved',exact:true}).waitFor();
+   // A solved library board reopens fresh; solve it again before the replay checks.
+   await page.goto(`${base}/#play/${p.id}`);await page.locator('.solved-indicator').waitFor();
+   for(const piece of p.solution)for(const n of piece)await cell(n).click();
+   await page.getByRole('heading',{name:'Solved',exact:true}).waitFor();
   }
   if(['tile-k1-04','tile-23-08','tile-45-12','tile-k1-03'].includes(p.id)){
    await page.screenshot({path:new URL(`../test-results/${p.id}.png`,import.meta.url).pathname,fullPage:true});

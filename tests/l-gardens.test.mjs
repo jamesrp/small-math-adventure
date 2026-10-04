@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {freshAttempt,move,solveTiles,tilePlacements,isSolved,nextHint} from '../dist/engine.js';
 import {emptyStore,validateStore,parseBackup,loadStore,importProfiles,SAVE_KEY} from '../dist/storage.js';
-import {freshJourney} from '../dist/caravan.js';
+import {freshJourney} from '../dist/road.js';
 const read = async path => JSON.parse(await readFile(new URL(path,import.meta.url),'utf8'));
 const {puzzles}=await read('../dist/puzzles.json');
 const originals=await read('./fixtures/gardens-v1.json');

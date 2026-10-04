@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from'node:assert/strict';import{readFile}from'node:fs/promises';
 import{freshAttempt,move,undo,restart}from'../dist/engine.js';
 import{emptyStore,validateStore,parseBackup,importProfiles,loadStore,persistStore,SAVE_KEY,BACKUP_KEY}from'../dist/storage.js';
-import{startJourney,beginEncounter,completeEncounter}from'../dist/caravan.js';
+import{startJourney,beginEncounter,recordSolve as completeEncounter}from'../dist/road.js';
 import{nextHint,isSolved}from'../dist/engine.js';
 const{puzzles}=JSON.parse(await readFile(new URL('../dist/puzzles.json',import.meta.url),'utf8'));
 const p=puzzles.find(p=>p.id==='swap-k1-01');
@@ -31,10 +31,10 @@ test('optional caravan journeys persist beside old puzzle attempts and corrupt j
  assert.equal(Object.hasOwn(loadStore(storage,puzzles).store.profiles[0],'journey'),false);
  startJourney(pr);const opened=beginEncounter(pr,puzzles);let a=freshAttempt(opened.puzzle);
  while(!isSolved(opened.puzzle,a.board)){const hint=nextHint(opened.puzzle,a);a=move(opened.puzzle,a,hint.action||hint.pair);}
- pr.attempts[opened.puzzle.id]=a;assert.equal(completeEncounter(pr,opened.puzzle.id,opened.encounter.id,puzzles),true);
+ pr.attempts[opened.puzzle.id]=a;assert.equal(completeEncounter(pr,opened.puzzle.id,opened.encounter.id,puzzles).first,true);
  assert.equal(persistStore(storage,s,puzzles),'');assert.deepEqual(loadStore(storage,puzzles).store,s);
  assert.equal(persistStore(storage,s,puzzles),'');
- const broken=JSON.parse(storage.getItem(SAVE_KEY));broken.profiles[0].journey.completed.push('tree-lights');storage.setItem(SAVE_KEY,JSON.stringify(broken));
+ const broken=JSON.parse(storage.getItem(SAVE_KEY));broken.profiles[0].journey.trails.k1.completed.push('tree-lights');storage.setItem(SAVE_KEY,JSON.stringify(broken));
  const restored=loadStore(storage,puzzles);assert.ok(restored.warning);assert.deepEqual(restored.store,s);
 });
 test('legacy Nim answers migrate to fresh matches without losing discoveries or accepting corrupt saves',()=>{

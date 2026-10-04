@@ -115,6 +115,8 @@ export function paintStatus(p, paint) {
 function gardenValid(p, board) {
   const { cols, rows } = p.parameters, region = regionOf(p), n = cols * rows;
   if (!object(board) || !['cover', 'prove'].includes(board.mode) || !Array.isArray(board.doms) || !Array.isArray(board.paint) || board.paint.length !== n || !Array.isArray(board.stars)) return false;
+  // A road garden tried before the chalk is earned has no proof mode.
+  if (p.parameters.proveLocked && board.mode === 'prove') return false;
   const used = new Set();
   for (const pair of board.doms) {
     if (!Array.isArray(pair) || pair.length !== 2 || !pair.every(cell => integer(cell) && region.has(cell) && !used.has(cell))) return false;
@@ -140,7 +142,7 @@ function gardenMove(p, board, action) {
   const covered = new Set(next.doms.flat());
   switch (action.type) {
     case 'mode':
-      if (!['cover', 'prove'].includes(action.mode)) return null;
+      if (!['cover', 'prove'].includes(action.mode) || (action.mode === 'prove' && p.parameters.proveLocked)) return null;
       next.mode = action.mode; return next;
     case 'place': {
       const cells = cellList(p, action.cells);
@@ -208,6 +210,7 @@ function gardenHint(p, board) {
     }
     return { type: 'move', action: { type: 'clear' }, text: 'Lift every domino and start again.' };
   }
+  if (p.parameters.proveLocked) return { type: 'equipment', text: p.equipmentHint || 'This garden needs a proof tool you have not found yet.' };
   if (board.mode !== 'prove') return { type: 'move', action: { type: 'mode', mode: 'prove' }, text: 'Look for squares that cannot all find a partner. Then switch to Prove it can’t.' };
   const refutation = p.parameters.refutation;
   if (refutation.kind === 'stars') {
@@ -244,7 +247,10 @@ function gardenRender(p, attempt, ctx = {}) {
     const first = Math.min(...pair), horizontal = Math.floor(pair[0] / cols) === Math.floor(pair[1] / cols);
     return `<span class="pg-domino tile-color-${i % 6}" style="grid-row:${Math.floor(first / cols) + 1} / span ${horizontal ? 1 : 2};grid-column:${first % cols + 1} / span ${horizontal ? 2 : 1}" aria-hidden="true"></span>`;
   }).join('');
-  const modeButton = (mode, icon, label) => actionButton(`<span aria-hidden="true">${icon}</span> ${label}`, { type: 'mode', mode }, `aria-pressed="${board.mode === mode}" ${solved ? 'disabled' : ''}`);
+  const locked = Boolean(p.parameters.proveLocked);
+  const modeButton = (mode, icon, label) => mode === 'prove' && locked
+    ? `<button type="button" class="proof-locked" disabled aria-label="Prove it can’t: needs chalk"><span aria-hidden="true">🔒</span> ${label}</button>`
+    : actionButton(`<span aria-hidden="true">${icon}</span> ${label}`, { type: 'mode', mode }, `aria-pressed="${board.mode === mode}" ${solved ? 'disabled' : ''}`);
   const tools = [
     ['star', '<span class="proof-tool-icon" aria-hidden="true">★</span> Star', 'Star'],
     [1, `${swatch(1)} Paint`, 'Paint gold'],

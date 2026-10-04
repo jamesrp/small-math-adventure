@@ -1,5 +1,7 @@
 # Current voice script inventory
 
+> Historical: this covers the version-3 story, which version 4 replaced (see `docs/ROAD.md`). `dist/caravan.js` is now `dist/caravan-road3.js`, and `dist/road-art.js` is gone. Version-4 voice lines and their IDs are listed by `node scripts/check-art.mjs --voices` and described in `docs/art/ROADMAP.md`.
+
 This is an extraction of the working version-3 Lantern Road, including existing uncommitted story changes. Source hashes and exact clip text are in [script-inventory.json](script-inventory.json). Runtime files were not changed.
 
 **Cast for a character production: 7 voices — narrator, Pip, Moss, Rook, Bea, Fern, Tumble.** The existing script itself only requires one narrator: its 36 story lines are third-person narration, and speaker metadata is not used by playback. Distinct character voices need an intentional dialogue/adaptation decision. In particular, Tumble’s intro currently says “Tumble has a pebble game for the rest stop.”

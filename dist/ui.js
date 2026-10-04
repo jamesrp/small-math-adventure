@@ -1,6 +1,8 @@
 import { visiblePuzzleObjective } from './puzzle-copy.js';
-import { encounterCompletion } from './caravan-ui.js';
-import { encounterScene } from './road-art.js';
+import { encounterScene, encounterDone } from './road-ui.js';
+import { PARTY_NAMES } from './road-cast.js';
+import { companionDrawing } from './caravan-art.js';
+import { media, slots } from './art.js';
 import {isExpansion,mechanicFor,playInstructions} from './expansion.js';
 import { BANDS, freshAttempt, isSolved, nextHint } from './engine.js';
 export const symbols=['●','▲','■','★','◆','✚'], avatars=['✦','☀','❋','◆','☾','✿'];
@@ -19,16 +21,16 @@ function puzzleView(p,a,ctx){
   const objective=visiblePuzzleObjective(p);
   ctx={...ctx,highlighted:a.hintLevel>=2&&hint.type==='move'?hint.pair:null};
   const feedback=ctx.message||(!solved&&hint.type==='deadend'&&!a.hintLevel?(expansion?hint.text:'This leaves an unfillable gap. Undo or lift a tile.'):'');
-  return `${solved&&ctx.encounter?`<div class="road-solve-actions">${encounterCompletion(ctx.encounter,ctx.profile,ctx.pack.puzzles)}</div>`:''}<div class="play-heading">
+  return `${solved&&ctx.encounter?encounterDone(ctx.encounter,ctx.profile,p,a,ctx.result):''}<div class="play-heading">
     ${a.completed&&!solved?'<span class="solved-indicator">✓ Solved</span>':''}<div class="play-help">${btn('How to play','demo','quiet')}${btn('<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M11 4 6 8H3v8h3l5 4V4Z"/><path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></svg>','speak','quiet small','aria-label="Read instructions aloud"')}</div>
   </div>
   <div class="play-layout ${expansion?'expansion-layout':''} ${solved?'is-complete':''}">
     <section class="board-panel ${expansion?'expansion-board':''} ${esc(p.mechanic)}" aria-label="Puzzle play area">
       ${objective?`<h1 class="puzzle-goal">${esc(objective)}</h1>`:`<h1 class="sr-only">${esc(p.familyTitle||(p.mechanic==='swap'?'Cup swaps':'Puzzle'))}</h1>`}
-      ${expansion?mechanicFor(p).render(p,a,ctx):p.mechanic==='tile'?tileBoard(p,a,ctx):swapBoard(p,a,ctx)}
+      ${expansion?mechanicFor(p).render(p,a,ctx):p.mechanic==='tile'?tileBoard(p,a,ctx):ctx.encounter?.party?partyBoard(p,a,ctx):swapBoard(p,a,ctx)}
       ${p.mechanic==='tile'?`<div class="board-bottom"><label class="checker-toggle"><input type="checkbox" id="checker" ${ctx.checker?'checked':''}> Checker colors</label></div>`:''}
     </section>
-    ${solved&&ctx.encounter?'':`<aside class="play-sidebar">${p.missingAbility?`<div class="equipment-needed"><p>The lift needs Bea’s pump.</p>${btn('Find the workshop →','find-workshop','primary')}</div>`:''}${solved?completionCard(p,a,ctx):`<div class="tool-grid">${btn('↶ Undo','undo','secondary',a.history.length&&!(expansion&&mechanicFor(p).noUndo?.(p))?'':'disabled')}${btn('Restart','restart','secondary')}${btn('Hint','hint','hint-button')}</div>${a.hintLevel?(expansion?expansionHintCard(a,hint,p):hintCard(p,a,hint)):''}`}</aside>`}
+    ${solved&&ctx.encounter?'':`<aside class="play-sidebar">${solved?completionCard(p,a,ctx):`<div class="tool-grid">${btn('↶ Undo','undo','secondary',a.history.length&&!(expansion&&mechanicFor(p).noUndo?.(p))?'':'disabled')}${btn('Restart','restart','secondary')}${btn('Hint','hint','hint-button')}</div>${a.hintLevel?(expansion?expansionHintCard(a,hint,p):hintCard(p,a,hint,ctx)):''}`}</aside>`}
   </div><div class="feedback ${hint.type==='deadend'&&!solved?'deadend':''}" role="status" aria-live="polite">${esc(feedback)}</div>`;
 }
 function expansionHintCard(a,hint,p){
@@ -57,9 +59,11 @@ function tileBoard(p,a,ctx){
   return `<div class="tile-piece-guide">${picture}${a.board.length?'':`<span>Drag across ${isL?3:2} squares</span>`}</div><div class="tile-board ${ctx.checker?'show-checker':''}" style="--cols:${p.cols};--rows:${p.rows}" role="group" aria-label="Garden with ${p.cells.length} patches">${cells}${dominoes}</div>`;
 }
 function swapBoard(p,a,ctx){return `<div class="cup-board" style="--cups:${p.start.length}" role="group" aria-label="Cups and their homes">${a.board.map((token,index)=>`<div class="cup-position"><span class="position-number">${index+1}</span><button class="cup-button cup-color-${token} ${ctx.selected===index?'selected':''} ${ctx.highlighted?.includes(index)?'hinted':''}" data-action="cup" data-cell="${index}" data-focus="cup-${index}" aria-label="Position ${index+1}: cup ${String.fromCharCode(65+token)}; home is ${String.fromCharCode(65+p.target[index])}" aria-pressed="${ctx.selected===index}"><svg viewBox="0 0 100 108" aria-hidden="true"><path d="M23 13h54l11 80q-38 16-76 0z" fill="currentColor" stroke="#142b48" stroke-width="3"/><path d="M26 14q24 9 48 0" fill="none" stroke="#142b48" stroke-width="3"/></svg><span class="cup-identity"><b>${String.fromCharCode(65+token)}</b><i aria-hidden="true">${symbols[token]}</i></span></button><div class="cup-home ${token===p.target[index]?'home-matched':''}"><span aria-hidden="true">${symbols[p.target[index]]}</span> ${String.fromCharCode(65+p.target[index])}${token===p.target[index]?' ✓':''}</div></div>`).join('')}</div><div class="allowed-pairs"><div>${p.edges.map(([a,b])=>btn(`${a+1} ↔ ${b+1}`,'swap-pair','pair-button',`data-pair="${a},${b}" aria-label="Swap positions ${a+1} and ${b+1}"`)).join('')}</div></div>`;}
-function hintCard(p,a,hint){return `<section class="hint-card" aria-label="Hint">${a.hintLevel===1?`<p>${esc(a.moves===0?p.hints[0]:p.mechanic==='tile'?'Look for an empty patch with only one possible tile placement. If there is none, try a patch near the edge.':'Look at the home labels. Where does one cup need to go, and which allowed swap helps it get there?')}</p>`:''}${hint.type==='deadend'?`<p>This cannot be completed. Undo to try another move.</p>${btn('Undo','rescue','secondary')}`:hint.type==='move'&&a.hintLevel>=2?`<p>${p.mechanic==='tile'?`The glowing patches at ${hint.pair.map(cell=>`row ${Math.floor(cell/p.cols)+1}, column ${cell%p.cols+1}`).join('; ')} can share a tile.`:`Try swapping positions ${hint.pair[0]+1} and ${hint.pair[1]+1}.`}</p>${a.hintLevel>=3?btn('Apply hint','apply-hint','secondary'):''}`:''}</section>`;}
+// On the road the six travelers are the cups: each finds the seat with their name.
+const PARTY_ORDER=['pip','moss','rook','bea','fern','tumble'];
+function partyBoard(p,a,ctx){const who=i=>PARTY_ORDER[i],name=i=>PARTY_NAMES[who(i)];return `<div class="cup-board party-board" style="--cups:${p.start.length}" role="group" aria-label="Travelers and their seats">${a.board.map((token,index)=>`<div class="cup-position"><span class="position-number">${index+1}</span><button class="cup-button party-seat ${ctx.selected===index?'selected':''} ${ctx.highlighted?.includes(index)?'hinted':''} ${token===p.target[index]?'seated':''}" data-action="cup" data-cell="${index}" data-focus="cup-${index}" aria-label="Seat ${index+1}: ${name(token)}; this is ${name(p.target[index])}’s seat" aria-pressed="${ctx.selected===index}">${media(slots.party(who(token)),`<svg viewBox="0 0 120 120" aria-hidden="true">${companionDrawing(who(token))}</svg>`,{key:`seat-${index}`})}</button><div class="cup-home seat-home ${token===p.target[index]?'home-matched':''}">${media(slots.party(who(p.target[index])),`<svg viewBox="0 0 120 120" aria-hidden="true">${companionDrawing(who(p.target[index]))}</svg>`,{key:`home-${index}`})}<span>${name(p.target[index])}${token===p.target[index]?' ✓':''}</span></div></div>`).join('')}</div><div class="allowed-pairs"><div>${p.edges.map(([a,b])=>btn(`${a+1} ↔ ${b+1}`,'swap-pair','pair-button',`data-pair="${a},${b}" aria-label="Swap seats ${a+1} and ${b+1}"`)).join('')}</div></div>`;}
+function hintCard(p,a,hint,ctx={}){const party=ctx.encounter?.party;return `<section class="hint-card" aria-label="Hint">${a.hintLevel===1?`<p>${esc(party?'Look at the names under each seat. Who needs to move, and which allowed swap helps?':a.moves===0?p.hints[0]:p.mechanic==='tile'?'Look for an empty patch with only one possible tile placement. If there is none, try a patch near the edge.':'Look at the home labels. Where does one cup need to go, and which allowed swap helps it get there?')}</p>`:''}${hint.type==='deadend'?`<p>This cannot be completed. Undo to try another move.</p>${btn('Undo','rescue','secondary')}`:hint.type==='move'&&a.hintLevel>=2?`<p>${p.mechanic==='tile'?`The glowing patches at ${hint.pair.map(cell=>`row ${Math.floor(cell/p.cols)+1}, column ${cell%p.cols+1}`).join('; ')} can share a tile.`:`Try swapping ${party?'seats':'positions'} ${hint.pair[0]+1} and ${hint.pair[1]+1}.`}</p>${a.hintLevel>=3?btn('Apply hint','apply-hint','secondary'):''}`:''}</section>`;}
 function completionCard(p,a,ctx){
-  if(ctx.encounter)return encounterCompletion(ctx.encounter,ctx.profile,ctx.pack.puzzles);
   const list=p.band==='proofs'?ctx.pack.puzzles.filter(q=>q.band==='proofs'&&q.libraryFamily===p.libraryFamily).sort((a,b)=>a.number-b.number):isExpansion(p)?ctx.pack.puzzles.filter(q=>q.mechanic===p.mechanic).sort((a,b)=>a.number-b.number):listFor(ctx.pack.puzzles,p.band);
   const next=list[list.findIndex(q=>q.id===p.id)+1];
   return `<section class="completion-card" aria-label="Puzzle completed"><h2 tabindex="-1" id="completion-heading">Solved</h2>${next?btn('Next puzzle →','open-puzzle','primary wide',`data-id="${next.id}"`):btn('Puzzles','library','primary wide')}${btn('Replay','replay','text-button')}</section>`;
@@ -77,6 +81,6 @@ function expansionMap(pr,puzzles){
 }
 // Campaign scenes wrap the original validators and controls without changing their rules.
 export function playView(p,a,ctx){
- const story=ctx.encounter?.effect,solved=isSolved(p,a.board);
- return `<div data-puzzle-id="${esc(p.id)}" class="caravan-puzzle ${story?'has-road-scene':''} ${story&&solved?'road-solved':''}" aria-label="${esc(p.familyTitle||(p.mechanic==='tile'?'Tile garden':'Cup swaps'))}">${story?encounterScene(ctx.encounter,ctx.profile,p,a):''}<div class="puzzle-workspace">${puzzleView(p,a,ctx)}</div></div>`;
+ const e=ctx.encounter?.stop&&ctx.profile?ctx.encounter:null,solved=isSolved(p,a.board);
+ return `<div data-puzzle-id="${esc(p.id)}" class="caravan-puzzle ${e?`lr-play mood-${esc(e.stop)}`:''} ${e&&solved?'lr-solved':''}" aria-label="${esc(p.familyTitle||(p.mechanic==='tile'?'Tile garden':'Cup swaps'))}">${e?encounterScene(e,ctx.profile,p,a,{reaction:ctx.reaction,changed:ctx.changed}):''}<div class="puzzle-workspace">${puzzleView(p,a,ctx)}</div></div>`;
 }

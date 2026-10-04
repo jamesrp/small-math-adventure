@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "note": "Art slots for the Lantern Road. Set status to \"ready\" only when every file listed for that slot exists. See docs/art/ROADMAP.md.",
+  "assets": {}
+}

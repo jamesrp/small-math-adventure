@@ -1,6 +1,6 @@
-// The Lantern Road: one visible route, six friends, six places to light.
-// Each encounter owns a checked catalog instance so campaign and library saves
-// never overwrite one another. The original catalog remains unchanged.
+// Archived version 3 of the Lantern Road (September 2026): six stops lit by
+// eighteen encounters. Frozen so earlier saves stay readable in the Journal;
+// the current road is dist/road.js. Do not change encounter IDs or selections.
 import {isSolved} from './engine.js';
 import {COMPANIONS} from './caravan-legacy.js';
 import {withCampaignPuzzles as withRescuePuzzles} from './caravan-rescue.js';
