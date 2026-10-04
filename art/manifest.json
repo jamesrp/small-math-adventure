@@ -1,0 +1,366 @@
+{
+  "version": 1,
+  "note": "Art slots for the Lantern Road. Set status to \"ready\" only when every file listed for that slot exists. See docs/art/ROADMAP.md.",
+  "assets": {
+    "finale/fair": {
+      "status": "ready",
+      "image": "finale/fair.webp"
+    },
+    "keeper/billie/happy": {
+      "status": "ready",
+      "image": "keeper/billie/happy.webp"
+    },
+    "keeper/billie/idle": {
+      "status": "ready",
+      "image": "keeper/billie/idle.webp"
+    },
+    "keeper/billie/oops": {
+      "status": "ready",
+      "image": "keeper/billie/oops.webp"
+    },
+    "keeper/billie/talk": {
+      "status": "ready",
+      "image": "keeper/billie/talk.webp"
+    },
+    "keeper/hops/happy": {
+      "status": "ready",
+      "image": "keeper/hops/happy.webp"
+    },
+    "keeper/hops/idle": {
+      "status": "ready",
+      "image": "keeper/hops/idle.webp"
+    },
+    "keeper/hops/oops": {
+      "status": "ready",
+      "image": "keeper/hops/oops.webp"
+    },
+    "keeper/hops/talk": {
+      "status": "ready",
+      "image": "keeper/hops/talk.webp"
+    },
+    "keeper/plume/happy": {
+      "status": "ready",
+      "image": "keeper/plume/happy.webp"
+    },
+    "keeper/plume/idle": {
+      "status": "ready",
+      "image": "keeper/plume/idle.webp"
+    },
+    "keeper/plume/oops": {
+      "status": "ready",
+      "image": "keeper/plume/oops.webp"
+    },
+    "keeper/plume/talk": {
+      "status": "ready",
+      "image": "keeper/plume/talk.webp"
+    },
+    "keeper/rattle/happy": {
+      "status": "ready",
+      "image": "keeper/rattle/happy.webp"
+    },
+    "keeper/rattle/idle": {
+      "status": "ready",
+      "image": "keeper/rattle/idle.webp"
+    },
+    "keeper/rattle/oops": {
+      "status": "ready",
+      "image": "keeper/rattle/oops.webp"
+    },
+    "keeper/rattle/talk": {
+      "status": "ready",
+      "image": "keeper/rattle/talk.webp"
+    },
+    "keeper/snooze/happy": {
+      "status": "ready",
+      "image": "keeper/snooze/happy.webp"
+    },
+    "keeper/snooze/idle": {
+      "status": "ready",
+      "image": "keeper/snooze/idle.webp"
+    },
+    "keeper/snooze/oops": {
+      "status": "ready",
+      "image": "keeper/snooze/oops.webp"
+    },
+    "keeper/snooze/talk": {
+      "status": "ready",
+      "image": "keeper/snooze/talk.webp"
+    },
+    "keeper/sprocket/happy": {
+      "status": "ready",
+      "image": "keeper/sprocket/happy.webp"
+    },
+    "keeper/sprocket/idle": {
+      "status": "ready",
+      "image": "keeper/sprocket/idle.webp"
+    },
+    "keeper/sprocket/oops": {
+      "status": "ready",
+      "image": "keeper/sprocket/oops.webp"
+    },
+    "keeper/sprocket/talk": {
+      "status": "ready",
+      "image": "keeper/sprocket/talk.webp"
+    },
+    "keeper/wick/happy": {
+      "status": "ready",
+      "image": "keeper/wick/happy.webp"
+    },
+    "keeper/wick/idle": {
+      "status": "ready",
+      "image": "keeper/wick/idle.webp"
+    },
+    "keeper/wick/oops": {
+      "status": "ready",
+      "image": "keeper/wick/oops.webp"
+    },
+    "keeper/wick/talk": {
+      "status": "ready",
+      "image": "keeper/wick/talk.webp"
+    },
+    "map/tall": {
+      "status": "ready",
+      "image": "map/tall.webp"
+    },
+    "map/wagon-party": {
+      "status": "ready",
+      "image": "map/wagon-party.webp"
+    },
+    "map/wagon-plume": {
+      "status": "ready",
+      "image": "map/wagon-plume.webp"
+    },
+    "map/wide": {
+      "status": "ready",
+      "image": "map/wide.webp"
+    },
+    "party/bea": {
+      "status": "ready",
+      "image": "party/bea.webp"
+    },
+    "party/fern": {
+      "status": "ready",
+      "image": "party/fern.webp"
+    },
+    "party/moss": {
+      "status": "ready",
+      "image": "party/moss.webp"
+    },
+    "party/pip": {
+      "status": "ready",
+      "image": "party/pip.webp"
+    },
+    "party/rook": {
+      "status": "ready",
+      "image": "party/rook.webp"
+    },
+    "party/tumble": {
+      "status": "ready",
+      "image": "party/tumble.webp"
+    },
+    "scene/fair/0": {
+      "status": "ready",
+      "image": "scene/fair/0.webp"
+    },
+    "scene/fair/0-1": {
+      "status": "ready",
+      "image": "scene/fair/0-1.webp"
+    },
+    "scene/fair/1": {
+      "status": "ready",
+      "image": "scene/fair/1.webp"
+    },
+    "scene/fair/1-2": {
+      "status": "ready",
+      "image": "scene/fair/1-2.webp"
+    },
+    "scene/fair/2": {
+      "status": "ready",
+      "image": "scene/fair/2.webp"
+    },
+    "scene/fair/2-3": {
+      "status": "ready",
+      "image": "scene/fair/2-3.webp"
+    },
+    "scene/fair/3": {
+      "status": "ready",
+      "image": "scene/fair/3.webp"
+    },
+    "scene/ferry/0": {
+      "status": "ready",
+      "image": "scene/ferry/0.webp"
+    },
+    "scene/ferry/0-1": {
+      "status": "ready",
+      "image": "scene/ferry/0-1.webp"
+    },
+    "scene/ferry/1": {
+      "status": "ready",
+      "image": "scene/ferry/1.webp"
+    },
+    "scene/ferry/1-2": {
+      "status": "ready",
+      "image": "scene/ferry/1-2.webp"
+    },
+    "scene/ferry/2": {
+      "status": "ready",
+      "image": "scene/ferry/2.webp"
+    },
+    "scene/ferry/2-3": {
+      "status": "ready",
+      "image": "scene/ferry/2-3.webp"
+    },
+    "scene/ferry/3": {
+      "status": "ready",
+      "image": "scene/ferry/3.webp"
+    },
+    "scene/hollow/0": {
+      "status": "ready",
+      "image": "scene/hollow/0.webp"
+    },
+    "scene/hollow/0-1": {
+      "status": "ready",
+      "image": "scene/hollow/0-1.webp"
+    },
+    "scene/hollow/1": {
+      "status": "ready",
+      "image": "scene/hollow/1.webp"
+    },
+    "scene/hollow/1-2": {
+      "status": "ready",
+      "image": "scene/hollow/1-2.webp"
+    },
+    "scene/hollow/2": {
+      "status": "ready",
+      "image": "scene/hollow/2.webp"
+    },
+    "scene/hollow/2-3": {
+      "status": "ready",
+      "image": "scene/hollow/2-3.webp"
+    },
+    "scene/hollow/3": {
+      "status": "ready",
+      "image": "scene/hollow/3.webp"
+    },
+    "scene/lighthouse/0": {
+      "status": "ready",
+      "image": "scene/lighthouse/0.webp"
+    },
+    "scene/lighthouse/0-1": {
+      "status": "ready",
+      "image": "scene/lighthouse/0-1.webp"
+    },
+    "scene/lighthouse/1": {
+      "status": "ready",
+      "image": "scene/lighthouse/1.webp"
+    },
+    "scene/lighthouse/1-2": {
+      "status": "ready",
+      "image": "scene/lighthouse/1-2.webp"
+    },
+    "scene/lighthouse/2": {
+      "status": "ready",
+      "image": "scene/lighthouse/2.webp"
+    },
+    "scene/lighthouse/2-3": {
+      "status": "ready",
+      "image": "scene/lighthouse/2-3.webp"
+    },
+    "scene/lighthouse/3": {
+      "status": "ready",
+      "image": "scene/lighthouse/3.webp"
+    },
+    "scene/marsh/0": {
+      "status": "ready",
+      "image": "scene/marsh/0.webp"
+    },
+    "scene/marsh/0-1": {
+      "status": "ready",
+      "image": "scene/marsh/0-1.webp"
+    },
+    "scene/marsh/1": {
+      "status": "ready",
+      "image": "scene/marsh/1.webp"
+    },
+    "scene/marsh/1-2": {
+      "status": "ready",
+      "image": "scene/marsh/1-2.webp"
+    },
+    "scene/marsh/2": {
+      "status": "ready",
+      "image": "scene/marsh/2.webp"
+    },
+    "scene/marsh/2-3": {
+      "status": "ready",
+      "image": "scene/marsh/2-3.webp"
+    },
+    "scene/marsh/3": {
+      "status": "ready",
+      "image": "scene/marsh/3.webp"
+    },
+    "scene/ridge/0": {
+      "status": "ready",
+      "image": "scene/ridge/0.webp"
+    },
+    "scene/ridge/0-1": {
+      "status": "ready",
+      "image": "scene/ridge/0-1.webp"
+    },
+    "scene/ridge/1": {
+      "status": "ready",
+      "image": "scene/ridge/1.webp"
+    },
+    "scene/ridge/1-2": {
+      "status": "ready",
+      "image": "scene/ridge/1-2.webp"
+    },
+    "scene/ridge/2": {
+      "status": "ready",
+      "image": "scene/ridge/2.webp"
+    },
+    "scene/ridge/2-3": {
+      "status": "ready",
+      "image": "scene/ridge/2-3.webp"
+    },
+    "scene/ridge/3": {
+      "status": "ready",
+      "image": "scene/ridge/3.webp"
+    },
+    "scene/workshop/0": {
+      "status": "ready",
+      "image": "scene/workshop/0.webp"
+    },
+    "scene/workshop/0-1": {
+      "status": "ready",
+      "image": "scene/workshop/0-1.webp"
+    },
+    "scene/workshop/1": {
+      "status": "ready",
+      "image": "scene/workshop/1.webp"
+    },
+    "scene/workshop/1-2": {
+      "status": "ready",
+      "image": "scene/workshop/1-2.webp"
+    },
+    "scene/workshop/2": {
+      "status": "ready",
+      "image": "scene/workshop/2.webp"
+    },
+    "scene/workshop/2-3": {
+      "status": "ready",
+      "image": "scene/workshop/2-3.webp"
+    },
+    "scene/workshop/3": {
+      "status": "ready",
+      "image": "scene/workshop/3.webp"
+    },
+    "tool/chalk": {
+      "status": "ready",
+      "image": "tool/chalk.webp"
+    },
+    "tool/pump": {
+      "status": "ready",
+      "image": "tool/pump.webp"
+    }
+  }
+}

@@ -52,12 +52,15 @@ export function puzzleObjective(puzzle) {
         : `Identify the odd pebble and whether it’s heavy or light, using ${limit}.`;
     }
     default:
+      // Proof puzzles (dist/proofs.json) carry their own objective.
+      if (typeof puzzle.objective === 'string' && puzzle.objective.trim()) return puzzle.objective;
       throw new Error(`Missing objective for puzzle mechanic: ${puzzle.mechanic}`);
   }
 }
 
 // Visible copy is only for information the board and its controls do not supply.
 export function visiblePuzzleObjective(puzzle) {
+  if (puzzle.parameters?.mode === 'playground') return '';
   if (['tile', 'swap', 'toggle', 'code'].includes(puzzle.mechanic)) return '';
   if (puzzle.mechanic === 'billiard' && puzzle.parameters.mode === 'predict') return '';
   if (puzzle.mechanic === 'weigh') {

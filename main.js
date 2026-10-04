@@ -4,9 +4,11 @@ import {isExpansion,mechanicFor,playInstructions} from './expansion.js';
 import {puzzleObjective} from './puzzle-copy.js';
 import { BANDS,freshAttempt,resumeAttempt,isSolved,nextHint,move,removeTile,undo,restart,undoToSolvable } from './engine.js';
 import { SAVE_KEY,BACKUP_KEY,emptyStore,loadStore,persistStore,parseBackup,importProfiles } from './storage.js';
-import { esc,bandOptions,playView,parentView,notesHTML } from './ui.js';
-import { COMPANIONS, getProgress, getEncounter, startJourney, beginEncounter, completeEncounter, withCampaignPuzzles, resolvePuzzle, canVisitEncounter } from './caravan.js';
-import { caravanHeader, caravanProfiles, caravanMap, journalView, companionBody, libraryView } from './caravan-ui.js';
+import { esc,playView,parentView,notesHTML } from './ui.js';
+import { getProgress, getEncounter, startJourney, beginEncounter, recordSolve, continueAfter, withCampaignPuzzles, resolvePuzzle, canVisitEncounter, stopOf, BAND_KEYS } from './road.js';
+import { caravanHeader, caravanProfiles, libraryView } from './caravan-ui.js';
+import { roadMapView, journalView, finaleView, stopSheet, trailOptions } from './road-ui.js';
+import { loadArt, keepMedia, asset, artUrl } from './art.js';
 import { createClockTimeline } from './clock-playback.js';
 import { clockJumpArc, clockJumpFromPlace, clockPlaceAtPoint, clockStepJump } from './clock-geometry.js';
 const app=document.querySelector('#app');
@@ -15,6 +17,9 @@ let pack,puzzles,state,warning='',selected=null,highlighted=null,message='',chec
 let tileSelection=[],tileGesture=null;
 const clockTimeline=createClockTimeline(()=>render());
 let sessionCompleted=new Set(),activePlay=null;
+// Road reactions last until the next move or page: what the keeper just said,
+// what the last solve earned, and whether the scene should play its change.
+let reaction=null,solveResult=null,oopsCount=0;
 let storage;
 try{storage=window.localStorage;}catch{storage={getItem(){throw Error();},setItem(){throw Error();},removeItem(){throw Error();}};}
 const uid=()=>globalThis.crypto?.randomUUID?.()||`explorer-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -23,19 +28,20 @@ const route=()=>location.hash.slice(1).split('/');
 const puzzle=()=>{
   const p=puzzles.find(p=>p.id===route()[1]),pr=profile();
   if(!pr||!p)return null;
-  if(p.campaignOnly&&(!canVisitEncounter(pr,route()[2])||pr.journey.bindings[route()[2]]!==p.id))return null;
+  // Only current-road boards open; archived campaign boards stay in saves only.
+  if(p.campaignOnly&&(p.campaignVersion!==4||p.campaignEncounter!==route()[2]||!canVisitEncounter(pr,route()[2],p.band)))return null;
   return resolvePuzzle(p,pr);
 };
 const attempt=p=>profile().attempts[p.id]||freshAttempt(p);
 // The encounter lives in the URL as well as the save. Free play never advances a story.
 function activeEncounter(){
   const pr=profile(),p=puzzle(),id=route()[2];
-  if(!pr?.journey||!p||!id||pr.journey.bindings[id]!==p.id)return null;
-  return canVisitEncounter(pr,id)?getEncounter(id,pr.journey):null;
+  if(!pr||!p||!id||p.campaignVersion!==4||p.campaignEncounter!==id)return null;
+  return canVisitEncounter(pr,id,p.band)?getEncounter(id):null;
 }
 function save(){warning=persistStore(storage,state,puzzles);}
 function put(p,a){profile().attempts[p.id]=a;save();}
-function go(hash){viewState.save();clockTimeline.leave();selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';if(location.hash===`#${hash}`)render();else location.hash=hash;}
+function go(hash){viewState.save();clockTimeline.leave();selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';reaction=null;solveResult=null;if(location.hash===`#${hash}`)render();else location.hash=hash;}
 function render(){
   const savedView=viewState.beforeRender(`${state.activeProfileId||''}:${location.hash}`);
   tileGesture=null;
@@ -43,6 +49,7 @@ function render(){
   const playKey=view==='play'&&pr&&p?`${pr.id}/${location.hash}`:null;
   if(playKey!==activePlay){
     activePlay=playKey;tileSelection=[];
+    if(playKey&&isExpansion(p))mechanicFor(p).reset?.(p);
     if(playKey){
       // A solved road scene is a persistent consequence. Replay is explicit;
       // refreshing between the solve and Next must not undo that scene.
@@ -52,18 +59,21 @@ function render(){
   if(playKey&&p.mechanic==='clock')clockTimeline.enter(playKey,p,attempt(p).board.prediction);
   else if(clockTimeline.key)clockTimeline.leave();
   const encounter=activeEncounter();
-  const content=view==='parents'?parentView(state,pr,pack,pwaMessage,savedView.values['catalog-band']):!pr||view==='profiles'?caravanProfiles(state,puzzles):view==='journal'?journalView(pr,puzzles):view==='library'?libraryView(pr,puzzles):view==='play'&&p?playView(p,attempt(p),{pack,profile:pr,encounter,selected,tileSelection,highlighted,message,checker,sessionCount:sessionCompleted.size,clockPresentation:p.mechanic==='clock'?clockTimeline.presentation:undefined}):caravanMap(pr,puzzles);
+  const here=location.hash,result=solveResult?.key===here?solveResult:null,said=reaction?.key===here?reaction:null;
+  const content=view==='parents'?parentView(state,pr,pack,pwaMessage,savedView.values['catalog-band']):!pr||view==='profiles'?caravanProfiles(state,puzzles):view==='journal'?journalView(pr,puzzles):view==='finale'&&getProgress(pr).complete?finaleView(pr):view==='library'?libraryView(pr,puzzles):view==='play'&&p?playView(p,attempt(p),{pack,profile:pr,encounter,selected,tileSelection,highlighted,message,checker,sessionCount:sessionCompleted.size,clockPresentation:p.mechanic==='clock'?clockTimeline.presentation:undefined,reaction:said,result,changed:Boolean(result?.first)}):roadMapView(pr);
   document.body.dataset.view=view||'map';
   document.body.classList.toggle('on-encounter',Boolean(encounter));
-  app.innerHTML=caravanHeader(pr,view==='library'||(view==='play'&&!encounter)?'library':view==='journal'?'journal':'journey')+(warning?`<div class="error-banner" role="status">${esc(warning)}</div>`:'')+`<main class="shell" id="main">${content}</main>`;
+  if(encounter)document.body.dataset.stop=encounter.stop;else delete document.body.dataset.stop;
+  keepMedia(app,()=>{app.innerHTML=caravanHeader(pr,view==='library'||(view==='play'&&!encounter)?'library':view==='journal'?'journal':'journey')+(warning?`<div class="error-banner" role="status">${esc(warning)}</div>`:'')+`<main class="shell" id="main">${content}</main>`;});
   if(encounter&&isSolved(p,attempt(p).board)){
     app.querySelectorAll('.board-panel button,.board-panel input,.board-panel select').forEach(control=>{control.disabled=true;});
     app.querySelectorAll('.board-panel [role="button"],.board-panel [role="slider"]').forEach(control=>{control.setAttribute('aria-disabled','true');control.setAttribute('tabindex','-1');});
   }
-  if(focus){let target=(focusedPair?app.querySelector(`[data-pair="${CSS.escape(focusedPair)}"]`):app.querySelector(`[data-focus="${CSS.escape(focus)}"]`));if(!target||target.disabled||target.getAttribute('aria-disabled')==='true')target=app.querySelector('.latin-cell[aria-pressed="true"]:not(:disabled)')||app.querySelector('.nim-status')||app.querySelector('#completion-heading')||app.querySelector('.garden-cell');target?.focus({preventScroll:true});}
+  if(focus){let target=(focusedPair?app.querySelector(`[data-pair="${CSS.escape(focusedPair)}"]`):app.querySelector(`[data-focus="${CSS.escape(focus)}"]`));if(!target||target.disabled||target.getAttribute('aria-disabled')==='true')target=app.querySelector('.latin-cell[aria-pressed="true"]:not(:disabled)')||app.querySelector('.nim-status')||app.querySelector('#completion-heading')||app.querySelector('.proof-puzzle [data-focus="proof-primary"]:not(:disabled)')||app.querySelector('.duel-status')||app.querySelector('.chip-node:not([aria-disabled]),.chip-again')||app.querySelector('.garden-cell');target?.focus({preventScroll:true});}
   wireForms();
   wireTileBoard();
   wireClockBoard();
+  wireMechanic();
   viewState.restore();
 }
 function tapTile(p,cell){
@@ -128,6 +138,8 @@ function wireTileBoard(){
   board.addEventListener('pointercancel',e=>finish(e,true));
   board.addEventListener('lostpointercapture',e=>finish(e,true));
 }
+// Proof mechanics attach their own pointer gestures after each render.
+function wireMechanic(){const p=puzzle(),root=app.querySelector('[data-mechanic-wire]');if(!root||!p||!profile()||!isExpansion(p))return;mechanicFor(p).wire?.(root,p,{apply:action=>applyPair(p,action),ui:payload=>{mechanicFor(p).ui?.(p,payload);render();},attempt:()=>attempt(p),tile:{extendTileStroke,startTileStroke,tapTileSelection,tileReleaseAction,tileStrokeTarget}});}
 function wireClockBoard(){
   const svg=app.querySelector('.clock-choose svg[role="slider"]'),p=puzzle();
   if(!svg||p?.mechanic!=='clock'||svg.getAttribute('aria-disabled')==='true')return;
@@ -178,7 +190,7 @@ function wireClockBoard(){
 function wireForms(){
   document.querySelectorAll('form[data-puzzle-form]').forEach(form=>form.addEventListener('submit',e=>{e.preventDefault();const p=puzzle();if(p&&profile())applyPair(p,Object.fromEntries(new FormData(e.currentTarget)),p.mechanic==='clock'?'ring':null);}));
   document.querySelector('.clock-board input[name="activations"]')?.addEventListener('input',e=>clockTimeline.edit(e.target.value));
-  document.querySelector('#profile-form')?.addEventListener('submit',e=>{e.preventDefault();const data=new FormData(e.currentTarget),name=String(data.get('name')).trim();if(!name){document.querySelector('#nickname').focus();return;}if(state.profiles.length>=30){dialog('All save slots are full','<p>There is room for 30 explorers. Export and remove an unused save in the grown-up area.</p>');return;}const pr={id:uid(),name,band:data.get('band'),avatar:Number(data.get('avatar')),sound:false,attempts:{}};state.profiles.push(pr);state.activeProfileId=pr.id;save();go('map');});
+  document.querySelector('#profile-form')?.addEventListener('submit',e=>{e.preventDefault();const data=new FormData(e.currentTarget),name=String(data.get('name')).trim();if(!name){document.querySelector('#nickname').focus();return;}if(state.profiles.length>=30){dialog('All save slots are full','<p>There is room for 30 explorers. Export and remove an unused save in the grown-up area.</p>');return;}const pr={id:uid(),name,band:data.get('band'),avatar:Number(data.get('avatar')),sound:false,attempts:{}};state.profiles.push(pr);state.activeProfileId=pr.id;save();go(['library','play'].includes(route()[0])?location.hash.slice(1):'map');});
   document.querySelector('#checker')?.addEventListener('change',e=>{checker=e.target.checked;document.querySelector('.tile-board')?.classList.toggle('show-checker',checker);});
   document.querySelector('#catalog-band')?.addEventListener('change',()=>render());
   document.querySelector('#sound-toggle')?.addEventListener('change',e=>{profile().sound=e.target.checked;save();render();});
@@ -199,11 +211,16 @@ function speak(p){
   utterance.onerror=event=>{if(['interrupted','canceled'].includes(event.error))return;message='Read-aloud unavailable. Open How to play.';render();};
   window.speechSynthesis.speak(utterance);
 }
-function narrate(text){
-  if(!('speechSynthesis' in window)){dialog('Read the story together',`<p>${esc(text)}</p>`);return;}
+// A recorded line plays when the art manifest has one; otherwise the browser voice reads it.
+let voiceClip=null;
+function narrate(text,voiceId){
+  window.speechSynthesis?.cancel();voiceClip?.pause();
+  const recorded=voiceId&&asset(voiceId)?.audio;
+  if(recorded){voiceClip=new Audio(artUrl(recorded));voiceClip.play().catch(()=>{voiceClip=null;narrate(text);});return;}
+  if(!('speechSynthesis' in window)){dialog('Read it together',`<p>${esc(text)}</p>`);return;}
   window.speechSynthesis.cancel();
   const voice=new SpeechSynthesisUtterance(text);voice.rate=.86;
-  voice.onerror=event=>{if(!['interrupted','canceled'].includes(event.error))dialog('Read the story together',`<p>${esc(text)}</p>`);};
+  voice.onerror=event=>{if(!['interrupted','canceled'].includes(event.error))dialog('Read it together',`<p>${esc(text)}</p>`);};
   window.speechSynthesis.speak(voice);
 }
 function openPuzzle(id){const p=puzzles.find(p=>p.id===id);if(!p||p.campaignOnly||!profile())return;if(!profile().attempts[id])profile().attempts[id]=freshAttempt(p);save();go(`play/${id}`);}
@@ -214,7 +231,7 @@ function openEncounter(id){
   if(!profile().attempts[next.puzzle.id])profile().attempts[next.puzzle.id]=freshAttempt(next.puzzle);
   save();go(`play/${next.puzzle.id}/${next.encounter.id}`);
 }
-function applyPair(p,pair,intent=null){const a=attempt(p),encounter=activeEncounter();if(encounter&&isSolved(p,a.board))return;const next=move(p,a,pair);selected=p.mechanic==='latin'?Number(pair.cell):null;tileSelection=[];highlighted=null;if(!next){message=isExpansion(p)?'That move is not allowed. Check How to play.':p.mechanic==='tile'?'':'Choose a listed pair.';render();return;}message='';if(isSolved(p,next.board)&&!a.completed)sessionCompleted.add(p.id);profile().attempts[p.id]=next;if(encounter&&isSolved(p,next.board))completeEncounter(profile(),p.id,encounter.id,puzzles);save();if(p.mechanic==='clock'){if(intent==='ring')clockTimeline.ring(p,next.board.prediction,window.matchMedia('(prefers-reduced-motion: reduce)').matches);else clockTimeline.restore(p,next.board.prediction);}else render();if(isSolved(p,next.board)){if(encounter)window.scrollTo(0,0);document.querySelector('#completion-heading')?.focus({preventScroll:true});}}
+function applyPair(p,pair,intent=null){const a=attempt(p),encounter=activeEncounter();if(encounter&&isSolved(p,a.board))return;const next=move(p,a,pair);selected=p.mechanic==='latin'?Number(pair.cell):null;tileSelection=[];highlighted=null;if(!next){message=isExpansion(p)?'That move is not allowed. Check How to play.':p.mechanic==='tile'?'':'Choose a listed pair.';if(encounter)reaction={key:location.hash,kind:'oops',n:oopsCount++};render();return;}message='';if(next!==a)reaction=null;if(isSolved(p,next.board)&&!a.completed)sessionCompleted.add(p.id);profile().attempts[p.id]=next;if(encounter&&isSolved(p,next.board)){const result=recordSolve(profile(),p.id,encounter.id,puzzles);solveResult=result?{...result,key:location.hash}:null;}save();if(p.mechanic==='clock'){if(intent==='ring')clockTimeline.ring(p,next.board.prediction,window.matchMedia('(prefers-reduced-motion: reduce)').matches);else clockTimeline.restore(p,next.board.prediction);}else render();if(isSolved(p,next.board)){if(encounter)window.scrollTo(0,0);document.querySelector('#completion-heading')?.focus({preventScroll:true});}}
 document.addEventListener('keydown',event=>{
   const wire=event.target.closest('.wire-hit');
   if(wire&&['Enter',' '].includes(event.key)){event.preventDefault();if(wire.getAttribute('aria-disabled')!=='true')wire.dispatchEvent(new MouseEvent('click',{bubbles:true}));return;}
@@ -232,56 +249,49 @@ document.addEventListener('click',event=>{
   else if(action==='map')go('map');
   else if(action==='library')go('library');
   else if(action==='journal')go('journal');
-  else if(action==='start-journey'&&profile()){startJourney(profile());openEncounter();}
-  else if(action==='continue-journey'&&profile()){if(!profile().journey?.started)startJourney(profile());openEncounter();}
-  else if(action==='open-encounter'&&profile())openEncounter(control.dataset.id);
+  else if((action==='start-journey'||action==='continue-journey')&&profile()){if(!getProgress(profile()).started)startJourney(profile());save();openEncounter();}
+  else if(action==='open-encounter'&&profile()){currentDialog?.close();openEncounter(control.dataset.id);}
   else if(action==='finish-encounter'&&profile()){
     const encounter=activeEncounter();
     if(!encounter||!isSolved(p,a.board))return;
-    completeEncounter(profile(),p.id,encounter.id,puzzles);save();
-    const progress=getProgress(profile());
-    const latest=profile().journey.completed.at(-1)===encounter.id;
-    if(latest&&progress.encounter?.chapterIndex===encounter.chapterIndex)openEncounter();
+    recordSolve(profile(),p.id,encounter.id,puzzles);save();
+    // Keep moving within a stop; a newly lit stop, a replay or a side puzzle returns to the map.
+    const next=continueAfter(profile(),encounter,p.band);
+    if(next&&p.band===profile().band)openEncounter(next.id);
     else go('map');
   }
-  else if(action==='show-story'&&profile()){
-    const encounter=activeEncounter(),progress=getProgress(profile());
-    const text=encounter?(isSolved(p,a.board)?encounter.success:encounter.intro):'Carry the lantern tree along the road. Light every stop.';
-    dialog(encounter?.title||'Lantern Road',`<p>${esc(text)}</p><button type="button" class="text-button" data-action="hear-story" data-text="${esc(text)}">Listen</button>`);
-  }
-  else if(action==='companion'&&profile()){const companion=COMPANIONS.find(c=>c.id===control.dataset.id);if(companion)dialog(companion.name,companionBody(companion.id,profile(),puzzles));}
-  else if(action==='hear-story'&&profile()){
-    const encounter=activeEncounter(),progress=getProgress(profile(),puzzles);
-    const text=control.dataset.text||(encounter?`${encounter.title}. ${encounter.intro}`:`${progress.chapter.title}. ${progress.chapter.description}`);
-    narrate(text);
-  }
+  else if(action==='stop-sheet'&&profile()){const stop=stopOf(control.dataset.id);if(stop)dialog(stop.title,stopSheet(stop.id,profile(),puzzles),[{label:'Done'}]);}
+  else if(action==='finale'&&profile())go('finale');
+  else if(action==='switch-band'&&profile()&&BAND_KEYS.includes(control.dataset.id)){profile().band=control.dataset.id;save();go('map');}
+  else if(action==='hear-story'&&profile()&&control.dataset.text)narrate(control.dataset.text,control.dataset.voice);
   else if(action==='families')document.querySelector('.family-adventures')?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
   else if(action==='choose-profile'){state.activeProfileId=control.dataset.id;sessionCompleted=new Set();save();go('map');}
   else if(action==='open-puzzle')openPuzzle(control.dataset.id);
   else if(action==='parents-gate')dialog('Grown-ups','',[{label:'Back to play'},{label:'I’m a grown-up',run:()=>go('parents')}]);
-  else if(action==='change-band')dialog('Puzzle level',`<p>For future encounters.</p><div class="grade-options">${bandOptions(profile().band)}</div>`,[{label:'Cancel'},{label:'Apply',run:d=>{profile().band=d.querySelector('input[name=band]:checked').value;save();render();}}]);
+  else if(action==='change-band')dialog('Puzzle level',`<div class="grade-options road-trails">${trailOptions(profile())}</div>`,[{label:'Cancel'},{label:'Apply',run:d=>{profile().band=d.querySelector('input[name=band]:checked').value;save();render();}}]);
   else if(action==='tile-cell'&&p?.mechanic==='tile'){
     if(control.classList.contains('garden-domino')||control.classList.contains('planted')||event.detail===0)tapTile(p,Number(control.dataset.cell));
   }
   else if(action==='cup'&&p?.mechanic==='swap'){const cell=Number(control.dataset.cell);if(selected===cell){selected=null;render();}else if(selected===null){selected=cell;message='';render();}else applyPair(p,[selected,cell]);}
   else if(action==='latin-cell'&&p?.mechanic==='latin'){selected=Number(control.dataset.cell);message='';render();}
+  else if(action==='mechanic-ui'&&p&&a&&isExpansion(p)){try{mechanicFor(p).ui?.(p,JSON.parse(control.dataset.ui));}catch{}message='';render();}
   else if(action==='expansion-move'&&p&&a){try{applyPair(p,JSON.parse(control.dataset.move));}catch{message='Choose a move using the controls above.';render();}}
   else if(action==='swap-pair'&&p?.mechanic==='swap')applyPair(p,control.dataset.pair.split(',').map(Number));
-  else if(action==='undo'&&a){const next=undo(a);put(p,next);selected=null;tileSelection=[];highlighted=null;message='';if(p.mechanic==='clock')clockTimeline.restore(p,next.board.prediction);else render();}
-  else if((action==='restart'||action==='replay')&&a){const encounter=activeEncounter(),next=restart(p,a);put(p,next);selected=null;tileSelection=[];highlighted=null;message='';if(action==='replay'&&encounter&&!p.campaignOnly)go(`play/${p.id}`);else if(p.mechanic==='clock')clockTimeline.restore(p,next.board.prediction);else render();}
-  else if(action==='hint'&&a){const next={...a,hintLevel:Math.min(a.hintLevel+1,3),helpUsed:true};put(p,next);const h=nextHint(p,next);highlighted=next.hintLevel>=2&&h.type==='move'?h.pair:null;message='';render();}
+  else if(action==='undo'&&a&&!(isExpansion(p)&&mechanicFor(p).noUndo?.(p))){let next=undo(a);if(isExpansion(p)&&mechanicFor(p).carry&&next!==a)next={...next,board:mechanicFor(p).carry(p,a.board,next.board)};put(p,next);selected=null;tileSelection=[];highlighted=null;message='';if(p.mechanic==='clock')clockTimeline.restore(p,next.board.prediction);else render();}
+  else if((action==='restart'||action==='replay')&&a){const encounter=activeEncounter(),next=restart(p,a);reaction=null;solveResult=null;if(isExpansion(p))mechanicFor(p).reset?.(p);put(p,next);selected=null;tileSelection=[];highlighted=null;message='';if(action==='replay'&&encounter&&!p.campaignOnly)go(`play/${p.id}`);else if(p.mechanic==='clock')clockTimeline.restore(p,next.board.prediction);else render();}
+  else if(action==='hint'&&a){const next={...a,hintLevel:Math.min(a.hintLevel+1,3),helpUsed:true};put(p,next);const h=nextHint(p,next);highlighted=next.hintLevel>=2&&h.type==='move'?h.pair:null;message='';if(activeEncounter())reaction={key:location.hash,kind:'hint',n:next.hintLevel};render();}
   else if(action==='apply-hint'&&a){const h=nextHint(p,a);if(h.type==='move')applyPair(p,h.action||h.pair);}
-  else if(action==='rescue'&&a){put(p,undoToSolvable(p,a));selected=null;highlighted=null;message='';render();}
+  else if(action==='rescue'&&a&&!(isExpansion(p)&&mechanicFor(p).noUndo?.(p))){put(p,undoToSolvable(p,a));selected=null;highlighted=null;message='';render();}
   else if(action==='puzzle-notes'&&p)dialog(p.title,`<div class="note-body">${notesHTML(p,pack)}</div>`);
   else if(action==='speak'&&p)speak(p);
-  else if(action==='demo'&&p)dialog('How to play',`<p>${esc(puzzleObjective(p))}</p><p>${esc(instructions(p))}</p>${isExpansion(p)?`${mechanicFor(p).help?.(p,a)||''}<details><summary>Rules</summary><ul>${p.rules.map(r=>`<li>${esc(r)}</li>`).join('')}</ul></details>`:''}<details><summary>For grown-ups</summary>${notesHTML(p,pack)}</details>`);
+  else if(action==='demo'&&p)dialog('How to play',`<p>${esc(puzzleObjective(p))}</p><p>${esc(instructions(p))}</p>${isExpansion(p)?`${mechanicFor(p).help?.(p,a)||''}<details><summary>Rules</summary><ul>${p.rules.map(r=>`<li>${esc(r)}</li>`).join('')}</ul></details>`:''}${p.band==='proofs'||p.proof?'':`<details><summary>For grown-ups</summary>${notesHTML(p,pack)}</details>`}`);
   else if(action==='export'){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`math-adventure-saves-${new Date().toISOString().slice(0,10)}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}
   else if(action==='import')document.querySelector('#import-file').click();
   else if(action==='delete-profile'){const target=state.profiles.find(pr=>pr.id===control.dataset.id);dialog(`Delete ${target.name}’s save?`,'<p>This removes this explorer’s progress here. Export a backup first if you want to keep it.</p>',[{label:'Keep save'},{label:'Delete this save',danger:true,run:()=>{state.profiles=state.profiles.filter(pr=>pr.id!==target.id);if(state.activeProfileId===target.id)state.activeProfileId=state.profiles[0]?.id||null;save();try{storage.removeItem(BACKUP_KEY);}catch{}render();}}]);}
   else if(action==='clear')dialog('Clear all adventure saves?','<p>This removes every explorer and their progress here, including the recovery copy. Other websites’ data is untouched. Export first if you want a backup.</p>',[{label:'Keep my saves'},{label:'Clear adventure data',danger:true,run:()=>{try{storage.removeItem(SAVE_KEY);storage.removeItem(BACKUP_KEY);state=emptyStore();warning='';sessionCompleted=new Set();go('profiles');}catch{warning='This browser did not allow data to be cleared.';render();}}}]);
   else if(action==='print')window.print();
 });
-function navigate(){if(!state||viewState.isCurrent())return;selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';window.speechSynthesis?.cancel();render();const heading=document.querySelector('#completion-heading')||document.querySelector('#main h1');heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});if(route()[0]==='play'&&profile()?.sound&&puzzle())speak(puzzle());}
+function navigate(){if(!state||viewState.isCurrent())return;selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';reaction=null;if(solveResult?.key!==location.hash)solveResult=null;window.speechSynthesis?.cancel();voiceClip?.pause();render();const heading=document.querySelector('#completion-heading')||document.querySelector('#main h1');heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});if(route()[0]==='play'&&profile()?.sound&&puzzle()){const line=document.querySelector('.lr-listen');if(line)narrate(line.dataset.text,line.dataset.voice);else speak(puzzle());}}
 // Restore on popstate before native history scrolling; hashchange also covers
 // direct hash edits. A traversal can fire both, so render each entry only once.
 window.addEventListener('popstate',navigate);
@@ -293,4 +303,4 @@ async function setupOffline(){
   try{const registration=await navigator.serviceWorker.register('./sw.js',{scope:'./'});await navigator.serviceWorker.ready;if(registration.waiting)setOfflineMessage('Update ready · close every app tab and reopen');const worker=registration.active;if(worker){const channel=new MessageChannel();channel.port1.onmessage=e=>setOfflineMessage(registration.waiting?'Update ready · close every app tab and reopen':e.data?.ready?'Ready for offline play':'Offline copy is still preparing');worker.postMessage({type:'CHECK_READY'},[channel.port2]);}registration.addEventListener('updatefound',()=>{const worker=registration.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)setOfflineMessage('Update ready · close every app tab and reopen');});});}catch{setOfflineMessage('Offline setup unavailable · online play works');}
 }
 function registerTools(){const context=document.modelContext;if(!context?.registerTool)return;const lifecycle=new AbortController();for(const tool of [{name:'read_adventure_progress',description:'Read the active explorer’s trail and completed puzzle IDs without changing saves.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,untrustedContentHint:true},execute(input){if(!input||Object.keys(input).length)throw Error('Expected an empty object.');const pr=profile();return pr?{name:pr.name,band:pr.band,completed:Object.entries(pr.attempts).filter(([,a])=>a.completed).map(([id])=>id)}:{profile:null};}},{name:'open_adventure_puzzle',description:'Open an authored puzzle for the active explorer, creating or resuming its saved attempt without solving it.',inputSchema:{type:'object',properties:{puzzleId:{type:'string'}},required:['puzzleId'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},async execute(input){if(!input||Object.keys(input).length!==1||typeof input.puzzleId!=='string'||!puzzles.some(p=>p.id===input.puzzleId&&!p.campaignOnly)||!profile())throw Error('Choose an existing puzzle and active explorer.');openPuzzle(input.puzzleId);await new Promise(resolve=>setTimeout(resolve,0));return {puzzleId:input.puzzleId,status:'opened'};}}]){try{Promise.resolve(context.registerTool(tool,{signal:lifecycle.signal})).catch(()=>{});}catch{}}window.addEventListener('pagehide',()=>lifecycle.abort(),{once:true});}
-try{const response=await fetch('./puzzles.json');if(!response.ok)throw Error('Puzzle pack unavailable');pack=await response.json();puzzles=withCampaignPuzzles(pack.puzzles);const loaded=loadStore(storage,puzzles);state=loaded.store;warning=loaded.warning;render();setupOffline();registerTools();}catch(error){app.innerHTML='<main class="shell"><section class="panel"><h1>The island couldn’t load.</h1><p class="spaced">Connect to the internet for the first visit, then try again. Your saved progress has not been changed.</p><button class="primary" onclick="location.reload()">Try again</button></section></main>';console.error(error);}
+try{const response=await fetch('./puzzles.json');if(!response.ok)throw Error('Puzzle pack unavailable');pack=await response.json();const proofResponse=await fetch('./proofs.json');if(!proofResponse.ok)throw Error('Proof pack unavailable');const proofs=await proofResponse.json();const chipResponse=await fetch('./chips.json');if(!chipResponse.ok)throw Error('Chip firing pack unavailable');const chips=await chipResponse.json();pack={...pack,puzzles:[...pack.puzzles,...proofs.puzzles,...chips.puzzles],sources:[...pack.sources,...proofs.sources,...chips.sources],families:[...(pack.families||[]),...chips.families]};puzzles=withCampaignPuzzles(pack.puzzles);await loadArt();const loaded=loadStore(storage,puzzles);state=loaded.store;warning=loaded.warning;render();setupOffline();registerTools();}catch(error){app.innerHTML='<main class="shell"><section class="panel"><h1>The island couldn’t load.</h1><p class="spaced">Connect to the internet for the first visit, then try again. Your saved progress has not been changed.</p><button class="primary" onclick="location.reload()">Try again</button></section></main>';console.error(error);}

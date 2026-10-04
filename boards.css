@@ -1,0 +1,145 @@
+/* One look for every puzzle board, taken from the proof puzzles: a paper card,
+   ink outlines, sun and leaf fills, pine for the chosen thing, ochre for
+   attention, Georgia for numbers that matter. Loaded last, so it overrides the
+   per-family sheets without changing their layouts or controls. */
+.board-panel{--b-ink:#294439;--b-muted:#5a6850;--b-line:#d0d6bd;--b-paper:#f5f1e6;--b-card:#fffdf5;--b-pine:#31533e;--b-on-pine:#fff8d9;--b-ochre:#b38840;--b-sun:#efc76e;--b-leaf:#86a68c;--b-sky:#9cc9de;--b-rose:#e7a28f;--b-good:#3c7a4a;--b-good-soft:#e2ecd6;--b-bad:#a9503a;--b-bad-soft:#f5e3d9;--b-chip:#eceddf;--b-display:Georgia,'Times New Roman',serif;color:var(--b-ink)}
+.caravan-puzzle .board-panel{background:var(--b-card);border:1px solid var(--b-line);border-radius:16px;box-shadow:0 3px 0 var(--b-line)}
+.caravan-puzzle .puzzle-goal{font-size:1.05rem;font-weight:500;color:var(--b-ink)}
+
+/* Shared controls: chips for moves, pine for the main action. */
+.board-panel .expansion-action,.board-panel .pair-button,.board-panel .latin-keypad button,.board-panel .proof-actions .secondary{background:var(--b-card);color:var(--b-ink);border:1px solid var(--b-line);border-radius:11px;box-shadow:0 2px 0 var(--b-line);font-weight:600}
+.board-panel .expansion-action[aria-pressed="true"]{background:#e9eddc;border-color:var(--b-pine);box-shadow:inset 0 0 0 1.5px var(--b-pine);color:var(--b-ink)}
+.board-panel .expansion-action:disabled,.board-panel .pair-button:disabled{opacity:.45;box-shadow:none}
+.board-panel .primary,.board-panel button[type="submit"]{background:var(--b-pine);color:var(--b-on-pine);border:0;border-radius:12px;box-shadow:0 3px 0 #1d3526;font-weight:700}
+.board-panel select,.board-panel input[type="number"]{border:1px solid var(--b-line);border-radius:11px;background:var(--b-card);color:var(--b-ink);min-height:46px;font:inherit}
+.board-panel label{color:var(--b-ink)}
+.caravan-puzzle .tool-grid button{background:var(--b-card,#fffdf5);border:1px solid #d0d6bd;border-radius:12px;box-shadow:0 2px 0 #d0d6bd;color:#294439}
+.caravan-puzzle .tool-grid .hint-button{background:#f6e7b9;border-color:#e3cf98;box-shadow:0 2px 0 #e3cf98}
+.caravan-puzzle .hint-card{background:#fbf4dc;border:1px solid #ead9a4;border-radius:14px;color:#294439}
+
+/* Cup swaps */
+.board-panel .cup-home{font-weight:600;color:var(--b-muted)}
+.board-panel .cup-home.home-matched{color:var(--b-good)}
+.board-panel .position-number{font-family:var(--b-display);color:var(--b-muted)}
+
+/* Lantern wires */
+.board-panel .lantern-picture{background:var(--b-paper);border:1.5px dashed var(--b-line);border-radius:16px}
+.board-panel .lantern-picture.goal-picture{background:#fbf4dc;border:1.5px solid #ead9a4}
+.board-panel .lantern-picture figcaption{font-family:var(--b-display);font-weight:400;font-size:1.02rem}
+.board-panel .lantern-wires line:not(.wire-hit){stroke:#8a9a80}
+.board-panel .lantern circle{fill:#f4f1e6;stroke:var(--b-ink);stroke-width:2;stroke-dasharray:3 3}
+.board-panel .lantern.lit circle{fill:var(--b-sun);stroke:var(--b-ink);stroke-width:2.6;stroke-dasharray:none}
+.board-panel .lantern text{fill:var(--b-ink);font-family:var(--b-display);font-weight:400}
+.board-panel .lamp-rays{stroke:var(--b-ochre)}
+.board-panel .motion-status{font-family:var(--b-display);font-weight:400;font-size:1.1rem}
+
+/* Clockwork */
+.board-panel .clock-ring{stroke:var(--b-line);stroke-width:5}
+.board-panel .clock-position circle{fill:var(--b-card);stroke:#b9c4a8}
+.board-panel .clock-position text{fill:var(--b-ink);font-family:var(--b-display);font-weight:400;font-size:15px}
+.board-panel .clock-target circle{fill:var(--b-sun);stroke:var(--b-ochre);stroke-width:2.5}
+.board-panel .clock-position .clock-star{fill:var(--b-ochre)}
+.board-panel .clock-marker{stroke:var(--b-pine);stroke-width:5}
+.board-panel :is(.clock-jump-arrow,.clock-trail){stroke:var(--b-bad)}
+.board-panel :is(.clock-jump-head,.clock-trail-head){fill:var(--b-bad)}
+.board-panel .clock-center{font-family:var(--b-display);font-weight:400;fill:var(--b-ink)}
+.board-panel .clock-picture figcaption{font-family:var(--b-display);font-weight:400}
+
+/* Mirror rooms */
+.board-panel .room-wall{stroke:var(--b-ink);stroke-width:3.5}
+.board-panel .room-grid line{stroke:#e2e4d4}
+.board-panel :is(.aim-line){stroke:var(--b-pine)}
+.board-panel :is(.aim-tip,.launch-dot){fill:var(--b-pine)}
+.board-panel :is(.courier-path,.unfolded-path){stroke:var(--b-ochre)}
+.board-panel .bounce-dot{fill:var(--b-ochre)}
+.board-panel .motion-result{background:var(--b-paper);border:1px solid var(--b-line)}
+
+/* Maps: routes and colors */
+.board-panel .network-graph line{stroke:#9aa88f}
+.board-panel .network-graph line.road-used{stroke:var(--b-pine)}
+.board-panel .network-graph line.link-conflict{stroke:var(--b-bad)}
+.board-panel .network-graph text{fill:var(--b-ink);font-family:var(--b-display)}
+.board-panel .network-graph button{background:var(--b-card);border:2px solid var(--b-ink);color:var(--b-ink);border-radius:50%;box-shadow:0 2px 0 rgba(41,68,57,.25);font-family:var(--b-display);font-weight:400}
+.board-panel .network-graph button[aria-current]{outline:4px solid var(--b-ochre)}
+.board-panel :is(.network-graph,.color-palette) [data-color="1"]{background:var(--b-sun);color:var(--b-ink)}
+.board-panel :is(.network-graph,.color-palette) [data-color="2"]{background:var(--b-leaf);color:var(--b-ink)}
+.board-panel :is(.network-graph,.color-palette) [data-color="3"]{background:var(--b-sky);color:var(--b-ink)}
+.board-panel :is(.network-graph,.color-palette) [data-color="4"]{background:var(--b-rose);color:var(--b-ink)}
+.board-panel .color-palette button{border:2px solid var(--b-ink);border-radius:12px;min-width:64px;font-weight:700}
+.board-panel .color-palette button[aria-pressed="true"]{outline:3px solid var(--b-ochre);outline-offset:2px}
+
+/* Symbol orchard (Latin squares) */
+.board-panel .latin-given{background:var(--b-pine);color:var(--b-on-pine);font-family:var(--b-display);font-weight:400;border-radius:10px}
+.board-panel .latin-cell{background:var(--b-card);border:2px solid var(--b-line);color:var(--b-ink);font-family:var(--b-display);font-weight:400;border-radius:10px;box-shadow:0 2px 0 #e4e6d4}
+.board-panel .latin-cell[aria-pressed="true"]{border-color:var(--b-ochre);box-shadow:0 0 0 3px #f1dca5;background:#fdf6e1}
+.board-panel .latin-conflict{outline-color:var(--b-bad)}
+.board-panel .latin-cell.latin-conflict{background:var(--b-bad-soft)}
+.board-panel .latin-keypad button{font-family:var(--b-display);font-weight:400;font-size:1.25rem}
+
+/* Signal codes */
+.board-panel .code-transcript th,.board-panel .code-transcript td{border-bottom:1px solid var(--b-line)}
+.board-panel .code-transcript td{font-family:var(--b-display);font-size:1.25rem}
+.board-panel .code-bit{border:1.5px solid var(--b-ink);border-radius:50%;width:30px;height:30px;font-family:var(--b-display);font-weight:400}
+.board-panel .code-bit-0,.board-panel .code-choices button[data-bit="0"]{background:#f4f1e6;color:var(--b-ink)}
+.board-panel .code-bit-1,.board-panel .code-choices button[data-bit="1"]{background:var(--b-sun);color:var(--b-ink)}
+.board-panel .code-choices button{border-radius:50%;width:56px;height:56px;border:2px solid var(--b-ink);font-family:var(--b-display);font-weight:400;box-shadow:0 2px 0 rgba(41,68,57,.25)}
+.board-panel .code-choices button[data-bit="blank"]{background:var(--b-card);border-style:dashed}
+.board-panel .code-mismatch{background:var(--b-bad-soft)}
+
+/* Pebble duel (Nim) uses the proof duel's piles */
+.board-panel .nim-puzzle{max-width:none}
+.board-panel .nim-status{text-align:center;font-family:var(--b-display);font-size:1.12rem;min-height:2.6em}
+.board-panel .nim-status strong{font-weight:400}
+.board-panel .nim-piles{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;gap:14px clamp(8px,4vw,40px);min-height:220px;margin:8px 0}
+.board-panel .nim-puzzle .duel-base{width:58px}
+.board-panel .nim-puzzle .duel-pile{gap:2px}
+.board-panel .nim-puzzle .duel-pebble{width:46px;min-width:46px;height:44px;min-height:44px;padding:0;border-radius:50%;background:var(--b-leaf);border:2px solid var(--b-ink);box-shadow:none}
+.board-panel .nim-puzzle .duel-pebble.lift{background:var(--b-sun);transform:translateY(-8px)}
+.board-panel .nim-puzzle .duel-pebble.gone{display:block;background:transparent;border:2px dashed #c9c3a8}
+.board-panel .nim-puzzle .duel-pebble:disabled{opacity:1}
+.board-panel .nim-count{font-family:var(--b-display);color:var(--b-muted);font-size:1rem}
+@media (max-width:460px){.board-panel .nim-puzzle .duel-pebble{width:44px;min-width:44px}.board-panel .nim-puzzle .duel-base{width:52px}.board-panel .nim-piles{gap:12px 8px}}
+
+/* Spring-water jugs */
+.board-panel .jug-station h3{font-family:var(--b-display);font-weight:400;font-size:1.3rem}
+.board-panel .jug-vessel{border:3px solid var(--b-ink);border-top:2px dashed var(--b-ink);border-radius:6px 6px 26px 26px;background:var(--b-card)}
+.board-panel .jug-water{background:linear-gradient(#8fd0e4,#5fb3cf);border-top:3px solid #3f8fae}
+.board-panel .jug-vessel>strong{font-family:var(--b-display);font-weight:400;color:var(--b-ink)}
+
+/* Odd-pebble balance */
+.board-panel .balance-art{display:block;width:min(100%,460px);height:auto;margin:6px auto 2px}
+.board-panel .balance-stand{stroke:var(--b-ink);stroke-width:5;stroke-linecap:round;fill:none}
+.board-panel .balance-beam{stroke:var(--b-ink);stroke-width:7;stroke-linecap:round}
+.board-panel .balance-pivot-dot{fill:var(--b-sun);stroke:var(--b-ink);stroke-width:2.5}
+.board-panel .balance-string{stroke:var(--b-muted);stroke-width:1.5;fill:none}
+.board-panel .balance-dish{fill:#e9e2c9;stroke:var(--b-ink);stroke-width:2.5}
+.board-panel .balance-stone ellipse{fill:#c9cbbd;stroke:var(--b-ink);stroke-width:2}
+.board-panel .balance-stone.is-normal ellipse{fill:var(--b-leaf)}
+.board-panel .balance-stone text{font-family:var(--b-display);font-size:12px;text-anchor:middle;fill:var(--b-ink)}
+.board-panel .balance-pebbles{grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:8px;margin:12px 0}
+.board-panel .balance-pebble{border:1px solid var(--b-line);border-radius:14px;background:var(--b-paper);padding:4px 6px 8px}
+.board-panel .balance-pebble.pebble-on-left,.board-panel .balance-pebble.pebble-on-right{background:#f6edd2;border-color:#e3cf98}
+.board-panel .balance-pebble legend{display:flex;align-items:center;gap:6px;padding:0 4px}
+.board-panel .pebble-token{display:inline-grid;place-items:center;width:34px;height:30px;border-radius:50%;background:#c9cbbd;border:2px solid var(--b-ink);font-family:var(--b-display);font-weight:400;font-size:1.05rem;color:var(--b-ink)}
+.board-panel .pebble-token.pebble-normal{background:var(--b-leaf)}
+.board-panel .pebble-normal-label{font-size:.8rem;color:var(--b-muted)}
+.board-panel .pebble-places{gap:3px}
+.board-panel .pebble-places button{min-width:0;padding:6px 2px;font-size:.95rem}
+.board-panel .pebble-place-name{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.board-panel .balance-controls{justify-content:center}
+.board-panel .balance-history{border:1px solid var(--b-line);background:var(--b-paper)}
+.board-panel .balance-history ol{margin:0;padding-left:1.2rem;display:grid;gap:4px}
+.board-panel .balance-history li{display:flex;justify-content:space-between;gap:10px}
+.board-panel #candidate-notebook li.ruled-out{opacity:.5}
+.board-panel .balance-answer{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:center;gap:10px 16px;margin-top:14px;padding-top:12px;border-top:1px solid var(--b-line)}
+.board-panel .balance-answer fieldset{border:0;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.board-panel .balance-answer legend{font-size:.85rem;color:var(--b-muted);margin-bottom:4px;width:100%}
+.board-panel .answer-coin,.board-panel .answer-choice{position:relative;cursor:pointer}
+.board-panel .answer-coin input,.board-panel .answer-choice input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.board-panel .answer-coin .pebble-token{width:44px;height:40px}
+.board-panel .answer-coin input:checked+.pebble-token{background:var(--b-sun);box-shadow:0 0 0 3px #f1dca5}
+.board-panel .answer-choice span{display:inline-grid;place-items:center;min-height:44px;padding:0 14px;border-radius:11px;border:1px solid var(--b-line);background:var(--b-card);font-weight:600}
+.board-panel .answer-choice input:checked+span{background:#e9eddc;box-shadow:inset 0 0 0 1.5px var(--b-pine)}
+.board-panel :is(.answer-coin,.answer-choice) input:focus-visible+*{outline:3px solid var(--b-ochre);outline-offset:2px}
+.board-panel .measurement-observation:empty{display:none}
+.board-panel .measurement-observation{background:var(--b-paper);border:1px solid var(--b-line)}

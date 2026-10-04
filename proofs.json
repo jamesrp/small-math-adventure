@@ -1,0 +1,1059 @@
+{
+  "proofsVersion": 1,
+  "title": "Proofs",
+  "sources": [
+    {
+      "id": "proof-mutilated",
+      "title": "Mutilated chessboard problem: the coloring argument, Gomory’s theorem and Hall’s theorem",
+      "kind": "mathematics",
+      "url": "https://en.wikipedia.org/wiki/Mutilated_chessboard_problem"
+    },
+    {
+      "id": "proof-gomory",
+      "title": "Gomory’s theorem (MathWorld)",
+      "kind": "mathematics",
+      "url": "https://mathworld.wolfram.com/GomorysTheorem.html"
+    },
+    {
+      "id": "proof-memo",
+      "title": "Insight and proof without AI (design memo for this app)",
+      "kind": "local design",
+      "path": "/Users/jamespfeiffer/business/small-math-adventure/docs/insight-without-ai.md",
+      "section": "Sections 2–5",
+      "contribution": "Why refutations count as solves; how the sorting rounds and duels are built."
+    },
+    {
+      "id": "proof-week1",
+      "title": "Week 1 Tiling Lab, grades 4–5",
+      "kind": "local curriculum",
+      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-01/week-01-grades-4-5.pdf",
+      "section": "Problems 2–4",
+      "contribution": "The six tilings A–F, the flip map, and the odd-return question."
+    }
+  ],
+  "puzzles": [
+    {
+      "id": "proof-garden-01",
+      "number": 1,
+      "title": "A lonely square",
+      "band": "proofs",
+      "libraryFamily": "tile",
+      "familyTitle": "Tile gardens",
+      "mechanic": "proofgarden",
+      "revision": 1,
+      "parameters": {
+        "cols": 4,
+        "rows": 4,
+        "cells": [
+          0,
+          2,
+          3,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          14
+        ],
+        "coverable": false,
+        "refutation": {
+          "kind": "stars",
+          "stars": [
+            0
+          ]
+        }
+      },
+      "objective": "Cover the garden, or prove it can’t be covered.",
+      "instruction": "Cover the garden, or prove it can’t be covered.",
+      "controls": "Cover: drag across two squares, or tap two neighbors. Prove it can’t: choose Star or Paint, then tap or drag across squares. The proof card ticks each condition.",
+      "rules": [
+        "Cover: a domino covers two squares that share a side. Cover every square, with no overlaps.",
+        "Prove it can’t, with stars: star squares that do not touch. Their partners are all squares next to a star. More stars than partners proves no covering exists.",
+        "Prove it can’t, with paint: paint every square so touching squares differ. Each domino covers one square of each color, so unequal counts prove no covering exists.",
+        "Every garden has a covering or a star proof, never both. Some also have a paint proof."
+      ],
+      "prerequisites": "Entry: pairs of neighboring squares. Proofs: counting to about 20 and comparing two counts. No reading beyond the tool names.",
+      "idea": "A square with no neighbors can never be covered: one star with no partners is a complete proof.",
+      "hints": [
+        "Is there a square that no domino can reach?",
+        "Switch to Prove it can’t and star a square that has no partner.",
+        "Ask for the next step."
+      ],
+      "parent": {
+        "notice": "Whether your child tries to cover first, and when they notice the corner square has nowhere to go.",
+        "prompt": "Which square can never be covered? How do you know for sure?",
+        "explanation": "The top-left square touches only missing squares, so no domino can include it. One star with zero partners is the smallest proof the app accepts. The whole garden has 6 squares of each color, but a paint proof still works: the lonely square touches nothing, so it may be painted to match either color, giving 5 and 7.",
+        "extension": "Make a garden where every square has a neighbor but there is still no covering.",
+        "connection": "A perfect matching needs every vertex to have a neighbor; this is the simplest failure of Hall’s condition.",
+        "sourceIds": [
+          "proof-mutilated",
+          "tile-mit-matching",
+          "proof-memo"
+        ]
+      },
+      "sourceDocument": "docs/proofs/README.md"
+    },
+    {
+      "id": "proof-garden-02",
+      "number": 2,
+      "title": "The H",
+      "band": "proofs",
+      "libraryFamily": "tile",
+      "familyTitle": "Tile gardens",
+      "mechanic": "proofgarden",
+      "revision": 1,
+      "parameters": {
+        "cols": 4,
+        "rows": 3,
+        "cells": [
+          0,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          11
+        ],
+        "coverable": false,
+        "refutation": {
+          "kind": "stars",
+          "stars": [
+            0,
+            8
+          ]
+        }
+      },
+      "objective": "Cover the garden, or prove it can’t be covered.",
+      "instruction": "Cover the garden, or prove it can’t be covered.",
+      "controls": "Cover: drag across two squares, or tap two neighbors. Prove it can’t: choose Star or Paint, then tap or drag across squares. The proof card ticks each condition.",
+      "rules": [
+        "Cover: a domino covers two squares that share a side. Cover every square, with no overlaps.",
+        "Prove it can’t, with stars: star squares that do not touch. Their partners are all squares next to a star. More stars than partners proves no covering exists.",
+        "Prove it can’t, with paint: paint every square so touching squares differ. Each domino covers one square of each color, so unequal counts prove no covering exists.",
+        "Every garden has a covering or a star proof, never both. Some also have a paint proof."
+      ],
+      "prerequisites": "Entry: pairs of neighboring squares. Proofs: counting to about 20 and comparing two counts. No reading beyond the tool names.",
+      "idea": "Two squares that share their only partner cannot both be covered: two stars, one partner.",
+      "hints": [
+        "The two left corners each have only one neighbor.",
+        "Star both left corners. How many partner squares do they have?",
+        "Ask for the next step."
+      ],
+      "parent": {
+        "notice": "Whether your child counts partners for a pair of squares rather than one square at a time.",
+        "prompt": "Why can’t the left corners both be covered?",
+        "explanation": "The two left corner squares both touch only the middle-left square. Two dominoes would need that one square twice. Two stars with one partner is a Hall violator; the right side has the same problem. The colors balance (4 and 4), so painting cannot help.",
+        "extension": "Remove one corner square. Now can the garden be covered?",
+        "connection": "Hall’s marriage theorem: a covering exists exactly when no set of same-colored squares, of either color, has fewer neighbors than members.",
+        "sourceIds": [
+          "proof-mutilated",
+          "tile-mit-matching",
+          "proof-memo"
+        ]
+      },
+      "sourceDocument": "docs/proofs/README.md"
+    },
+    {
+      "id": "proof-garden-03",
+      "number": 3,
+      "title": "Corners off",
+      "band": "proofs",
+      "libraryFamily": "tile",
+      "familyTitle": "Tile gardens",
+      "mechanic": "proofgarden",
+      "revision": 1,
+      "parameters": {
+        "cols": 4,
+        "rows": 4,
+        "cells": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14
+        ],
+        "coverable": false,
+        "refutation": {
+          "kind": "paint"
+        }
+      },
+      "objective": "Cover the garden, or prove it can’t be covered.",
+      "instruction": "Cover the garden, or prove it can’t be covered.",
+      "controls": "Cover: drag across two squares, or tap two neighbors. Prove it can’t: choose Star or Paint, then tap or drag across squares. The proof card ticks each condition.",
+      "rules": [
+        "Cover: a domino covers two squares that share a side. Cover every square, with no overlaps.",
+        "Prove it can’t, with stars: star squares that do not touch. Their partners are all squares next to a star. More stars than partners proves no covering exists.",
+        "Prove it can’t, with paint: paint every square so touching squares differ. Each domino covers one square of each color, so unequal counts prove no covering exists.",
+        "Every garden has a covering or a star proof, never both. Some also have a paint proof."
+      ],
+      "prerequisites": "Entry: pairs of neighboring squares. Proofs: counting to about 20 and comparing two counts. No reading beyond the tool names.",
+      "idea": "Each domino covers one square of each color, so a garden with unequal color counts cannot be covered.",
+      "hints": [
+        "Each domino covers two touching squares. What do touching squares on a checkerboard have in common?",
+        "Try painting like a checkerboard, then count each color.",
+        "Ask for the next step."
+      ],
+      "parent": {
+        "notice": "Whether your child counts both colors and connects “each domino covers one of each” to the counts.",
+        "prompt": "If 7 dominoes covered this garden, how many gold squares would they cover?",
+        "explanation": "Removing two opposite corners removes two squares of the same color, leaving 6 of one color and 8 of the other. Each domino covers one of each, so 7 dominoes would cover 7 of each. This is the mutilated chessboard argument on a 4×4 board. Finishing this proof unlocks the Checker tool for later gardens.",
+        "extension": "Remove two squares of different colors instead. Can you always cover what is left?",
+        "connection": "Coloring arguments are invariants: every move keeps the difference between the counts. The full 8×8 version is a classic test for automated reasoning.",
+        "sourceIds": [
+          "proof-mutilated",
+          "tile-mit-matching",
+          "proof-memo"
+        ]
+      },
+      "sourceDocument": "docs/proofs/README.md"
+    },
+    {
+      "id": "proof-garden-04",
+      "number": 4,
+      "title": "Two corners, side by side",
+      "band": "proofs",
+      "libraryFamily": "tile",
+      "familyTitle": "Tile gardens",
+      "mechanic": "proofgarden",
+      "revision": 1,
+      "parameters": {
+        "cols": 4,
+        "rows": 4,
+        "cells": [
+          1,
+          2,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "coverable": true
+      },
+      "objective": "Cover the garden, or prove it can’t be covered.",
+      "instruction": "Cover the garden, or prove it can’t be covered.",
+      "controls": "Cover: drag across two squares, or tap two neighbors. Prove it can’t: choose Star or Paint, then tap or drag across squares. The proof card ticks each condition.",
+      "rules": [
+        "Cover: a domino covers two squares that share a side. Cover every square, with no overlaps.",
+        "Prove it can’t, with stars: star squares that do not touch. Their partners are all squares next to a star. More stars than partners proves no covering exists.",
+        "Prove it can’t, with paint: paint every square so touching squares differ. Each domino covers one square of each color, so unequal counts prove no covering exists.",
+        "Every garden has a covering or a star proof, never both. Some also have a paint proof."
+      ],
+      "prerequisites": "Entry: pairs of neighboring squares. Proofs: counting to about 20 and comparing two counts. No reading beyond the tool names.",
+      "idea": "Missing corners are not the problem. Two missing squares of different colors leave a garden that can be covered.",
+      "hints": [
+        "Count the colors before you decide.",
+        "The colors balance here. Try covering from a corner.",
+        "Ask for the next domino."
+      ],
+      "parent": {
+        "notice": "Whether your child tries to prove it impossible because corners are missing, and what the proof card shows when they paint.",
+        "prompt": "This garden is missing two corners too. What is different?",
+        "explanation": "The two missing corners have different colors, so the counts balance (7 and 7) and a covering exists. Gomory’s theorem says that removing any two squares of opposite colors from a board like this always leaves a coverable garden.",
+        "extension": "Remove two squares of different colors from the middle of the board. Still coverable?",
+        "connection": "Gomory’s theorem uses a single loop through every square of the board.",
+        "sourceIds": [
+          "proof-mutilated",
+          "tile-mit-matching",
+          "proof-memo"
+        ]
+      },
+      "sourceDocument": "docs/proofs/README.md",
+      "solution": [
+        [
+          1,
+          2
+        ],
+        [
+          4,
+          8
+        ],
+        [
+          5,
+          9
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          10,
+          14
+        ],
+        [
+          11,
+          15
+        ],
+        [
+          12,
+          13
+        ]
+      ]
+    },
+    {
+      "id": "proof-garden-05",
+      "number": 5,
+      "title": "The big board",
+      "band": "proofs",
+      "libraryFamily": "tile",
+      "familyTitle": "Tile gardens",
+      "mechanic": "proofgarden",
+      "revision": 1,
+      "parameters": {
+        "cols": 6,
+        "rows": 6,
+        "cells": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34
+        ],
+        "checkerAfter": "proof-garden-03",
+        "coverable": false,
+        "refutation": {
+          "kind": "paint"
+        }
+      },
+      "objective": "Cover the garden, or prove it can’t be covered.",
+      "instruction": "Cover the garden, or prove it can’t be covered.",
+      "controls": "Cover: drag across two squares, or tap two neighbors. Prove it can’t: choose Star or Paint, then tap or drag across squares. The proof card ticks each condition.",
+      "rules": [
+        "Cover: a domino covers two squares that share a side. Cover every square, with no overlaps.",
+        "Prove it can’t, with stars: star squares that do not touch. Their partners are all squares next to a star. More stars than partners proves no covering exists.",
+        "Prove it can’t, with paint: paint every square so touching squares differ. Each domino covers one square of each color, so unequal counts prove no covering exists.",
+        "Every garden has a covering or a star proof, never both. Some also have a paint proof."
+      ],
+      "prerequisites": "Entry: pairs of neighboring squares. Proofs: counting to about 20 and comparing two counts. No reading beyond the tool names.",
+      "idea": "The same argument works on a bigger board: 16 squares of one color and 18 of the other.",
+      "hints": [
+        "Does the big board have the same problem as Corners off?",
+        "Paint it like a checkerboard. The Checker tool can do it in one tap if you have earned it.",
+        "Ask for the next step."
+      ],
+      "parent": {
+        "notice": "Whether your child reaches for the same proof as Corners off without trying to cover first.",
+        "prompt": "How many dominoes would it take, and how many of each color would they cover?",
+        "explanation": "Two opposite corners share a color, leaving 16 and 18. Seventeen dominoes would cover 17 of each. Painting by hand is optional here: after Corners off, the Checker tool paints the whole garden from one tap, because the child has already built the pattern.",
+        "extension": "On an 8×8 board, which pairs of removed squares leave a coverable board?",
+        "connection": "This is the classic mutilated chessboard problem in miniature.",
+        "sourceIds": [
+          "proof-mutilated",
+          "tile-mit-matching",
+          "proof-memo"
+        ]
+      },
+      "sourceDocument": "docs/proofs/README.md"
+    },
+    {
+      "id": "proof-garden-06",
+      "number": 6,
+      "title": "Shared partner",
+      "band": "proofs",
+      "libraryFamily": "tile",
+      "familyTitle": "Tile gardens",
+      "mechanic": "proofgarden",
+      "revision": 1,
+      "parameters": {
+        "cols": 6,
+        "rows": 6,
+        "cells": [
+          1,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          14,
+          15,
+          16,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35
+        ],
+        "checkerAfter": "proof-garden-03",
+        "coverable": false,
+        "refutation": {
+          "kind": "stars",
+          "stars": [
+            1,
+            6
+          ]
+        }
+      },
+      "objective": "Cover the garden, or prove it can’t be covered.",
+      "instruction": "Cover the garden, or prove it can’t be covered.",
+      "controls": "Cover: drag across two squares, or tap two neighbors. Prove it can’t: choose Star or Paint, then tap or drag across squares. The proof card ticks each condition.",
+      "rules": [
+        "Cover: a domino covers two squares that share a side. Cover every square, with no overlaps.",
+        "Prove it can’t, with stars: star squares that do not touch. Their partners are all squares next to a star. More stars than partners proves no covering exists.",
+        "Prove it can’t, with paint: paint every square so touching squares differ. Each domino covers one square of each color, so unequal counts prove no covering exists.",
+        "Every garden has a covering or a star proof, never both. Some also have a paint proof."
+      ],
+      "prerequisites": "Entry: pairs of neighboring squares. Proofs: counting to about 20 and comparing two counts. No reading beyond the tool names.",
+      "idea": "Equal colors are not enough: two squares that share their only partner block every covering.",
+      "hints": [
+        "The colors balance. Look near the top-left corner.",
+        "Two squares there touch only one square. Star them.",
+        "Ask for the next step."
+      ],
+      "parent": {
+        "notice": "Whether your child tries painting first, sees that the counts are equal, and then looks for a local problem.",
+        "prompt": "The colors balance. Why can’t it be covered anyway?",
+        "explanation": "Row 1, column 2 and row 2, column 1 each touch only row 2, column 2. Two stars with one partner proves no covering exists, even though the colors balance (15 and 15). Equal counts are necessary but not sufficient.",
+        "extension": "Change one missing square so the garden can be covered.",
+        "connection": "Hall’s theorem catches every obstruction; the coloring argument catches only the ones where whole colors are unbalanced.",
+        "sourceIds": [
+          "proof-mutilated",
+          "tile-mit-matching",
+          "proof-memo"
+        ]
+      },
+      "sourceDocument": "docs/proofs/README.md"
+    },
+    {
+      "id": "proof-garden-07",
+      "number": 7,
+      "title": "Two holes inside",
+      "band": "proofs",
+      "libraryFamily": "tile",
+      "familyTitle": "Tile gardens",
+      "mechanic": "proofgarden",
+      "revision": 1,
+      "parameters": {
+        "cols": 6,
+        "rows": 6,
+        "cells": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35
+        ],
+        "checkerAfter": "proof-garden-03",
+        "coverable": true
+      },
+      "objective": "Cover the garden, or prove it can’t be covered.",
+      "instruction": "Cover the garden, or prove it can’t be covered.",
+      "controls": "Cover: drag across two squares, or tap two neighbors. Prove it can’t: choose Star or Paint, then tap or drag across squares. The proof card ticks each condition.",
+      "rules": [
+        "Cover: a domino covers two squares that share a side. Cover every square, with no overlaps.",
+        "Prove it can’t, with stars: star squares that do not touch. Their partners are all squares next to a star. More stars than partners proves no covering exists.",
+        "Prove it can’t, with paint: paint every square so touching squares differ. Each domino covers one square of each color, so unequal counts prove no covering exists.",
+        "Every garden has a covering or a star proof, never both. Some also have a paint proof."
+      ],
+      "prerequisites": "Entry: pairs of neighboring squares. Proofs: counting to about 20 and comparing two counts. No reading beyond the tool names.",
+      "idea": "Two missing squares of different colors in the middle still leave a coverable garden.",
+      "hints": [
+        "Count the colors first.",
+        "They balance. Try covering around the holes.",
+        "Ask for the next domino."
+      ],
+      "parent": {
+        "notice": "Whether your child checks colors before deciding, and persists with a covering around the holes.",
+        "prompt": "How did you decide to try covering instead of proving?",
+        "explanation": "The missing squares have different colors, so the counts balance (17 and 17), and Gomory’s theorem guarantees a covering. There are many; the app accepts any.",
+        "extension": "Remove two more squares so the garden cannot be covered, while the colors still balance.",
+        "connection": "Counting coverings of boards like this leads to the theory of perfect matchings and random tilings.",
+        "sourceIds": [
+          "proof-mutilated",
+          "tile-mit-matching",
+          "proof-memo"
+        ]
+      },
+      "sourceDocument": "docs/proofs/README.md",
+      "solution": [
+        [
+          0,
+          6
+        ],
+        [
+          1,
+          7
+        ],
+        [
+          2,
+          8
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          5,
+          11
+        ],
+        [
+          9,
+          15
+        ],
+        [
+          10,
+          16
+        ],
+        [
+          12,
+          18
+        ],
+        [
+          13,
+          19
+        ],
+        [
+          17,
+          23
+        ],
+        [
+          20,
+          26
+        ],
+        [
+          21,
+          27
+        ],
+        [
+          24,
+          30
+        ],
+        [
+          25,
+          31
+        ],
+        [
+          28,
+          34
+        ],
+        [
+          29,
+          35
+        ],
+        [
+          32,
+          33
+        ]
+      ]
+    },
+    {
+      "id": "proof-flip-01",
+      "number": 8,
+      "title": "Four flips home",
+      "band": "proofs",
+      "libraryFamily": "tile",
+      "familyTitle": "Tile gardens",
+      "mechanic": "flipmap",
+      "revision": 1,
+      "parameters": {
+        "task": "route",
+        "s": 0,
+        "e": 0,
+        "k": 4
+      },
+      "objective": "From A back to A in exactly 4 flips.",
+      "instruction": "From A back to A in exactly 4 flips.",
+      "controls": "Tap a card joined to yours by a line. Each step is one flip.",
+      "rules": [
+        "The six cards are the tilings of a small hexagon by rhombi, drawn as stacks of cubes. A line joins two cards one flip apart; a flip adds or removes one cube.",
+        "Walk: each step to a joined card is one flip. Revisiting cards is allowed.",
+        "Prove it can’t: paint every card so every line joins two colors. Then each flip changes the color, so the colors of the start and finish decide whether an odd or an even number of flips can connect them."
+      ],
+      "prerequisites": "Following lines on a map and counting to 12. Odd and even. Grades 2–3 can start; the proof suits grades 4–5.",
+      "idea": "A flip moves along one line of the map. Some round trips are easy.",
+      "hints": [
+        "Walk to a neighbor and back.",
+        "A → B → A is two flips. Do it twice.",
+        "Ask for the next flip."
+      ],
+      "parent": {
+        "notice": "Whether your child plans a route or walks until the count works.",
+        "prompt": "Can you get back to A in a different number of flips?",
+        "explanation": "Going to B and back twice gives 4 flips, and so does A → B → C → B → A. Going around the square B–C–E–D takes 6, because A hangs off B. This puzzle teaches the move before the next one asks for 5.",
+        "extension": "Which numbers of flips can bring you back to A?",
+        "connection": "The map is a graph whose vertices are tilings; this is the flip graph from Week 1, Problem 2.",
+        "sourceIds": [
+          "proof-week1",
+          "tile-spaces",
+          "proof-memo"
+        ]
+      },
+      "sourceDocument": "docs/proofs/README.md"
+    },
+    {
+      "id": "proof-flip-02",
+      "number": 9,
+      "title": "Five flips home",
+      "band": "proofs",
+      "libraryFamily": "tile",
+      "familyTitle": "Tile gardens",
+      "mechanic": "flipmap",
+      "revision": 1,
+      "parameters": {
+        "task": "route",
+        "s": 0,
+        "e": 0,
+        "k": 5
+      },
+      "objective": "From A back to A in exactly 5 flips.",
+      "instruction": "From A back to A in exactly 5 flips.",
+      "controls": "Walk: tap a joined card. Prove it can’t: choose a paint color and tap cards. The proof card ticks each condition.",
+      "rules": [
+        "The six cards are the tilings of a small hexagon by rhombi, drawn as stacks of cubes. A line joins two cards one flip apart; a flip adds or removes one cube.",
+        "Walk: each step to a joined card is one flip. Revisiting cards is allowed.",
+        "Prove it can’t: paint every card so every line joins two colors. Then each flip changes the color, so the colors of the start and finish decide whether an odd or an even number of flips can connect them."
+      ],
+      "prerequisites": "Following lines on a map and counting to 12. Odd and even. Grades 2–3 can start; the proof suits grades 4–5.",
+      "idea": "If every flip changes the color, then any round trip uses an even number of flips. A two-coloring proves it for every odd number at once.",
+      "hints": [
+        "Try a few walks. What keeps going wrong?",
+        "Switch to Prove it can’t and paint the cards so every line joins two colors.",
+        "Ask for the next card to paint."
+      ],
+      "parent": {
+        "notice": "Whether your child stops trying walks and starts looking for a reason, and how they choose colors.",
+        "prompt": "Why can’t any walk with 5 flips end at A? Would 7 work?",
+        "explanation": "Painting A gold forces B green, C and D gold, E green, F gold. Every flip changes the color, so after an odd number of flips you are on the other color from A. The painting proves no odd round trip exists. On the cube pictures, a flip adds or removes one cube, so the colors are “even” and “odd” cube counts.",
+        "extension": "In ribbon codes, a flip swaps a neighboring L and R. Which other puzzle has the same parity?",
+        "connection": "A graph whose vertices can be two-colored with every edge joining two colors is bipartite; it has no odd cycles.",
+        "sourceIds": [
+          "proof-week1",
+          "tile-spaces",
+          "proof-memo"
+        ]
+      },
+      "sourceDocument": "docs/proofs/README.md"
+    },
+    {
+      "id": "proof-flip-03",
+      "number": 10,
+      "title": "Any odd number?",
+      "band": "proofs",
+      "libraryFamily": "tile",
+      "familyTitle": "Tile gardens",
+      "mechanic": "flipmap",
+      "revision": 1,
+      "parameters": {
+        "task": "numbers",
+        "s": 0,
+        "max": 12,
+        "rounds": 2
+      },
+      "objective": "Which numbers of flips can make this trip?",
+      "instruction": "Which numbers of flips can make this trip?",
+      "controls": "Tap every number that works, then Check. Two right in a row.",
+      "rules": [
+        "The six cards are the tilings of a small hexagon by rhombi, drawn as stacks of cubes. A line joins two cards one flip apart; a flip adds or removes one cube.",
+        "Walk: each step to a joined card is one flip. Revisiting cards is allowed.",
+        "Prove it can’t: paint every card so every line joins two colors. Then each flip changes the color, so the colors of the start and finish decide whether an odd or an even number of flips can connect them."
+      ],
+      "prerequisites": "Following lines on a map and counting to 12. Odd and even. Grades 2–3 can start; the proof suits grades 4–5.",
+      "idea": "The worksheet question “Any odd number?” as one decision about every number from 1 to 12, then the same decision for other trips.",
+      "hints": [
+        "Use what you painted in Five flips home.",
+        "Paint the map in your head. Does the trip start and end on the same color?",
+        "Count the shortest route too. Fewer flips than that never work."
+      ],
+      "parent": {
+        "notice": "Whether your child chooses every even number at once or tests numbers one by one, and whether the second question is decided from the colors and the shortest route.",
+        "prompt": "How do you know 11 will never work for A back to A?",
+        "explanation": "The first question is the worksheet’s: every even number from 2 to 12 brings you back to A, and no odd number does. Two right answers in a row complete the puzzle. After a check the map is painted and every possible number is marked, and the next question is always a different trip, so a revealed answer is never asked again. For a trip from X to Y, the possible numbers are the shortest distance and every second number after it.",
+        "extension": "If a new line joined A and C, which numbers would work?",
+        "connection": "Lengths of closed walks in a bipartite graph are always even.",
+        "sourceIds": [
+          "proof-week1",
+          "tile-spaces",
+          "proof-memo"
+        ]
+      },
+      "sourceDocument": "docs/proofs/README.md"
+    },
+    {
+      "id": "proof-flip-04",
+      "number": 11,
+      "title": "Which trips?",
+      "band": "proofs",
+      "libraryFamily": "tile",
+      "familyTitle": "Tile gardens",
+      "mechanic": "flipmap",
+      "revision": 1,
+      "parameters": {
+        "task": "trips",
+        "rounds": 2
+      },
+      "objective": "Which trips can be done?",
+      "instruction": "Which trips can be done?",
+      "controls": "Mark each trip ✓ or ✗, then Check. Two clean rounds in a row.",
+      "rules": [
+        "The six cards are the tilings of a small hexagon by rhombi, drawn as stacks of cubes. A line joins two cards one flip apart; a flip adds or removes one cube.",
+        "Walk: each step to a joined card is one flip. Revisiting cards is allowed.",
+        "Prove it can’t: paint every card so every line joins two colors. Then each flip changes the color, so the colors of the start and finish decide whether an odd or an even number of flips can connect them."
+      ],
+      "prerequisites": "Following lines on a map and counting to 12. Odd and even. Grades 2–3 can start; the proof suits grades 4–5.",
+      "idea": "Use the colors to decide, and remember the shortest distance: a trip can have the right parity and still be too short.",
+      "hints": [
+        "For each card, compare the colors of the start and finish with the number of flips.",
+        "Also check the shortest route. A to F takes at least 4 flips.",
+        "A trip needs the right parity and enough flips. Check both for every card."
+      ],
+      "parent": {
+        "notice": "Whether your child uses the colors for every card, and notices the trips that are too short.",
+        "prompt": "A to F in 2 has the right parity. Why can’t it be done?",
+        "explanation": "A trip from X to Y in exactly k flips is possible when k is at least the shortest distance and k minus that distance is even. Each round has at least one trip ruled out by colors, one ruled out by distance, and one possible trip. One check per round, and two clean rounds in a row complete the puzzle. A blind guesser passes a round at best 1 time in 40 and the puzzle 1 time in 1,600.",
+        "extension": "Make a trip card that is wrong for both reasons at once.",
+        "connection": "Distance and parity together decide walk lengths in a bipartite graph whose vertices have degree at least one.",
+        "sourceIds": [
+          "proof-week1",
+          "tile-spaces",
+          "proof-memo"
+        ]
+      },
+      "sourceDocument": "docs/proofs/README.md"
+    },
+    {
+      "id": "proof-sort-01",
+      "number": 12,
+      "title": "Sorting: holes and colors",
+      "band": "proofs",
+      "libraryFamily": "tile",
+      "familyTitle": "Tile gardens",
+      "mechanic": "sortgarden",
+      "revision": 1,
+      "parameters": {
+        "level": 1,
+        "rounds": 2
+      },
+      "objective": "Which gardens can be covered?",
+      "instruction": "Which gardens can be covered?",
+      "controls": "Mark each garden ✓ or ✗, then Check. Two clean rounds in a row.",
+      "rules": [
+        "Each garden is a 6×6 board with a few squares missing. ✓ means dominoes can cover it; ✗ means they cannot.",
+        "One check per round. A miss shows a covering for every ✓ garden and a proof for every ✗ garden. Finish two clean rounds in a row."
+      ],
+      "prerequisites": "Comparing two counts up to 18; seeing a square with no free neighbor. Best after the garden proofs.",
+      "idea": "Odd numbers of squares never work; two holes of the same color never work; two holes of different colors always work.",
+      "hints": [
+        "Each domino covers one square of each color. Count before you decide.",
+        "Look for a square that has no neighbor left.",
+        "Where the holes are decides nothing on its own. Count the colors, then look for a stranded square."
+      ],
+      "parent": {
+        "notice": "Whether your child counts colors on boards they cannot cover by trial.",
+        "prompt": "Which gardens did you decide without trying to cover them?",
+        "explanation": "Every round has at least one board with two missing squares of the same color, so the rule “an even number of missing squares means ✓” fails. Answers are coin flips, so counting ✓s gives nothing away. A blind guesser passes a round 1 time in 62 and the level 1 time in 3,844.",
+        "extension": "Can you make a board with two holes of different colors that cannot be covered?",
+        "connection": "Gomory’s theorem: on boards like these, two holes of different colors always leave a coverable board.",
+        "sourceIds": [
+          "proof-gomory",
+          "proof-mutilated",
+          "proof-memo"
+        ]
+      },
+      "sourceDocument": "docs/proofs/README.md"
+    },
+    {
+      "id": "proof-sort-02",
+      "number": 13,
+      "title": "Sorting: two holes",
+      "band": "proofs",
+      "libraryFamily": "tile",
+      "familyTitle": "Tile gardens",
+      "mechanic": "sortgarden",
+      "revision": 1,
+      "parameters": {
+        "level": 2,
+        "rounds": 2
+      },
+      "objective": "Which gardens can be covered?",
+      "instruction": "Which gardens can be covered?",
+      "controls": "Mark each garden ✓ or ✗, then Check. Two clean rounds in a row.",
+      "rules": [
+        "Each garden is a 6×6 board with a few squares missing. ✓ means dominoes can cover it; ✗ means they cannot.",
+        "One check per round. A miss shows a covering for every ✓ garden and a proof for every ✗ garden. Finish two clean rounds in a row."
+      ],
+      "prerequisites": "Comparing two counts up to 18; seeing a square with no free neighbor. Best after the garden proofs.",
+      "idea": "With exactly two holes, colors decide everything. Missing corners do not matter on their own.",
+      "hints": [
+        "Each domino covers one square of each color. Count before you decide.",
+        "Look for a square that has no neighbor left.",
+        "Where the holes are decides nothing on its own. Count the colors, then look for a stranded square."
+      ],
+      "parent": {
+        "notice": "Whether your child uses colors rather than where the holes are.",
+        "prompt": "Why can two missing corners sometimes be covered?",
+        "explanation": "Every round has two neighboring corners missing, which can be covered, so “missing corners means ✗” fails; about half the rounds also have two opposite corners missing, which cannot. With two holes, Gomory’s theorem makes the color rule exactly right.",
+        "extension": "What changes with three holes?",
+        "connection": "Gomory’s proof uses a Hamiltonian cycle on the board.",
+        "sourceIds": [
+          "proof-gomory",
+          "proof-mutilated",
+          "proof-memo"
+        ]
+      },
+      "sourceDocument": "docs/proofs/README.md"
+    },
+    {
+      "id": "proof-sort-03",
+      "number": 14,
+      "title": "Sorting: four holes",
+      "band": "proofs",
+      "libraryFamily": "tile",
+      "familyTitle": "Tile gardens",
+      "mechanic": "sortgarden",
+      "revision": 1,
+      "parameters": {
+        "level": 3,
+        "rounds": 2
+      },
+      "objective": "Which gardens can be covered?",
+      "instruction": "Which gardens can be covered?",
+      "controls": "Mark each garden ✓ or ✗, then Check. Two clean rounds in a row.",
+      "rules": [
+        "Each garden is a 6×6 board with a few squares missing. ✓ means dominoes can cover it; ✗ means they cannot.",
+        "One check per round. A miss shows a covering for every ✓ garden and a proof for every ✗ garden. Finish two clean rounds in a row."
+      ],
+      "prerequisites": "Comparing two counts up to 18; seeing a square with no free neighbor. Best after the garden proofs.",
+      "idea": "With four holes, balanced colors are not enough: a stranded corner square also blocks every covering.",
+      "hints": [
+        "Each domino covers one square of each color. Count before you decide.",
+        "Look for a square that has no neighbor left.",
+        "Where the holes are decides nothing on its own. Count the colors, then look for a stranded square."
+      ],
+      "parent": {
+        "notice": "Whether your child checks both colors and stranded squares.",
+        "prompt": "The colors balance on this board. What else can go wrong?",
+        "explanation": "On a 6×6 board with four holes and balanced colors, the only way to fail is a stranded corner square: 540 of the 23,409 balanced boards. Random sampling would almost never show one, so every round includes one, plus an unbalanced board with nothing stranded. A blind guesser passes a round 1 time in 56 and the level 1 time in 3,136.",
+        "extension": "With six holes, find a balanced board that fails without a stranded square.",
+        "connection": "Hall’s theorem: every uncoverable board has a set of squares with too few partners.",
+        "sourceIds": [
+          "proof-gomory",
+          "proof-mutilated",
+          "proof-memo"
+        ]
+      },
+      "sourceDocument": "docs/proofs/README.md"
+    },
+    {
+      "id": "proof-duel-01",
+      "number": 1,
+      "title": "Two piles: who starts?",
+      "band": "proofs",
+      "libraryFamily": "nim",
+      "familyTitle": "Pebble Duel",
+      "mechanic": "duel",
+      "revision": 1,
+      "parameters": {
+        "piles": 2,
+        "max": 9,
+        "streak": 3
+      },
+      "objective": "Win three games in a row.",
+      "instruction": "Win three games in a row.",
+      "controls": "Choose who starts. Tap a pebble to lift it and those above it, then Take. Whoever takes the last pebble wins.",
+      "rules": [
+        "Two players take turns. On a turn, take one or more pebbles from a single pile. Whoever takes the last pebble wins.",
+        "Before each game, choose who starts. The app then plays perfectly.",
+        "Win three games in a row. Only games from a new start count; Same start again is for practice."
+      ],
+      "prerequisites": "Comparing two piles up to 9; alternating turns.",
+      "idea": "With two piles, equal piles lose for the player to move: copy the other player.",
+      "hints": [
+        "Look at the two piles. Are they equal?",
+        "If the piles are equal, let me start. Then copy my move on the other pile.",
+        "If the piles are unequal, go first and make them equal."
+      ],
+      "parent": {
+        "notice": "Whether your child chooses who starts by looking at the piles, and then mirrors.",
+        "prompt": "When should you go first? What do you do after that?",
+        "explanation": "From unequal piles, the first player makes them equal and copies every move after that. From equal piles, the first player loses against a copier. Choosing who starts is the decision; winning three in a row from new starts shows it is not luck.",
+        "extension": "Does copying still work with three piles?",
+        "connection": "Mirror strategies are a first example of a winning strategy proved by an invariant.",
+        "sourceIds": [
+          "expansion-nim-4",
+          "expansion-nim-6",
+          "proof-memo"
+        ]
+      },
+      "sourceDocument": "docs/proofs/README.md"
+    },
+    {
+      "id": "proof-duel-02",
+      "number": 2,
+      "title": "Three piles: who starts?",
+      "band": "proofs",
+      "libraryFamily": "nim",
+      "familyTitle": "Pebble Duel",
+      "mechanic": "duel",
+      "revision": 1,
+      "parameters": {
+        "piles": 3,
+        "max": 7,
+        "streak": 3
+      },
+      "objective": "Win three games in a row.",
+      "instruction": "Win three games in a row.",
+      "controls": "Choose who starts. Tap a pebble to lift it and those above it, then Take. Whoever takes the last pebble wins.",
+      "rules": [
+        "Two players take turns. On a turn, take one or more pebbles from a single pile. Whoever takes the last pebble wins.",
+        "Before each game, choose who starts. The app then plays perfectly.",
+        "Win three games in a row. Only games from a new start count; Same start again is for practice."
+      ],
+      "prerequisites": "Pebble Duel easy and medium puzzles; bundles of 4, 2 and 1 help.",
+      "idea": "With three piles, a position is losing for the mover exactly when the bundles of 4, 2 and 1 come in pairs.",
+      "hints": [
+        "Split each pile into bundles of 4, 2 and 1.",
+        "If every bundle size appears an even number of times, let me start.",
+        "On your turn, take pebbles so every bundle size appears an even number of times again."
+      ],
+      "parent": {
+        "notice": "Whether your child decides who starts before moving, and how quickly.",
+        "prompt": "How can you tell from the piles who should start?",
+        "explanation": "A position loses for the player to move exactly when the Nim-sum is 0. Starts are drawn half from such positions; under uniform sampling only 12% would be, and “Me first” would nearly always be right.",
+        "extension": "Find a three-pile start where the second player wins and no pile is empty.",
+        "connection": "Bouton’s solution of Nim and the Sprague–Grundy theorem.",
+        "sourceIds": [
+          "expansion-nim-4",
+          "expansion-nim-6",
+          "proof-memo"
+        ]
+      },
+      "sourceDocument": "docs/proofs/README.md"
+    },
+    {
+      "id": "proof-duel-03",
+      "number": 3,
+      "title": "Four piles: who starts?",
+      "band": "proofs",
+      "libraryFamily": "nim",
+      "familyTitle": "Pebble Duel",
+      "mechanic": "duel",
+      "revision": 1,
+      "parameters": {
+        "piles": 4,
+        "max": 7,
+        "streak": 3
+      },
+      "objective": "Win three games in a row.",
+      "instruction": "Win three games in a row.",
+      "controls": "Choose who starts. Tap a pebble to lift it and those above it, then Take. Whoever takes the last pebble wins.",
+      "rules": [
+        "Two players take turns. On a turn, take one or more pebbles from a single pile. Whoever takes the last pebble wins.",
+        "Before each game, choose who starts. The app then plays perfectly.",
+        "Win three games in a row. Only games from a new start count; Same start again is for practice."
+      ],
+      "prerequisites": "Pebble Duel easy and medium puzzles; bundles of 4, 2 and 1 help.",
+      "idea": "The same bundle rule decides four piles.",
+      "hints": [
+        "Split each pile into bundles of 4, 2 and 1.",
+        "Count each bundle size across all four piles.",
+        "On your turn, take pebbles so every bundle size appears an even number of times again."
+      ],
+      "parent": {
+        "notice": "Whether your child uses the bundle rule, rather than pairing piles.",
+        "prompt": "Do two equal piles still cancel out?",
+        "explanation": "Equal piles cancel in the Nim-sum, so a four-pile game with two equal pairs is lost for the player to move. The general rule is the bundle (binary) count.",
+        "extension": "Play Northcott’s game; it is Nim in disguise.",
+        "connection": "Binary addition without carrying.",
+        "sourceIds": [
+          "expansion-nim-4",
+          "expansion-nim-6",
+          "proof-memo"
+        ]
+      },
+      "sourceDocument": "docs/proofs/README.md"
+    }
+  ]
+}
