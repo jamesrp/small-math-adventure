@@ -24,9 +24,9 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Wave 2: the visible side (Week 45), on the case engine | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | claimed; review card first |
 | Wave 2: nontransitive decks (Week 24), on the case engine | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | claimed; review card first |
 | Wave 2: optimal stopping (Week 60), on the case engine | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | claimed; review card first |
-| Wave 2: necklaces (Week 33) | Claude, Bead rings thread | `claude/wave2-bead-rings-q6ikal` | claimed; review card first |
-| Wave 2: distinguishing colourings (Week 34) | Claude, Bead rings thread | `claude/wave2-bead-rings-q6ikal` | claimed; review card first |
-| Wave 2: shared bead-ring board for Weeks 33 and 34 | Claude, Bead rings thread | `claude/wave2-bead-rings-q6ikal` | claimed; built with the Week 33 port |
+| Wave 2: necklaces (Week 33) | Claude, Bead rings thread | `claude/wave2-bead-rings-q6ikal` | done: [Bead rings](docs/beads/README.md), card keep |
+| Wave 2: distinguishing colourings (Week 34) | Claude, Bead rings thread | `claude/wave2-bead-rings-q6ikal` | done: Hidden turns group in [Bead rings](docs/beads/README.md), card keep |
+| Wave 2: shared bead-ring board for Weeks 33 and 34 | Claude, Bead rings thread | `claude/wave2-bead-rings-q6ikal` | done: [docs/bead-ring.md](docs/bead-ring.md) |
 | Wave 2: path reduction (Week 39), on the shared graph board | Claude, Path reduction and bracing frames thread | `claude/wave2-graph-39-52-g84api` | claimed; review card first |
 | Wave 2: bracing frames (Week 52), on the shared graph board | Claude, Path reduction and bracing frames thread | `claude/wave2-graph-39-52-g84api` | claimed; review card first |
 | Wave 2: lattice visibility (Week 31) as a group in Mirror Couriers | Claude, Lattice visibility thread | `claude/wave2-lattice-visibility-f3eowo` | claimed; review card first |
