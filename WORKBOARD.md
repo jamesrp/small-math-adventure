@@ -30,6 +30,8 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Wave 2: path reduction (Week 39), on the shared graph board | Claude, Path reduction and bracing frames thread | `claude/wave2-graph-39-52-g84api` | claimed; review card first |
 | Wave 2: bracing frames (Week 52), on the shared graph board | Claude, Path reduction and bracing frames thread | `claude/wave2-graph-39-52-g84api` | claimed; review card first |
 | Wave 2: lattice visibility (Week 31) as a group in Mirror Couriers | Claude, Lattice visibility thread | `claude/wave2-lattice-visibility-f3eowo` | claimed; review card first |
+| Wave 2: weighing with both pans (Week 30) as a group in the balance family | Claude, Balance and jugs groups thread | `claude/wave2-balance-jugs-ce8w14` | claimed; review card first |
+| Wave 2: lengths from two rods (Week 29) as a group in Water jugs | Claude, Balance and jugs groups thread | `claude/wave2-balance-jugs-ce8w14` | claimed; after Week 30, review card first |
 | Fix the broken caravan browser suite (pre-existing on main) | Claude, Caravan suite fix thread | `claude/fix-caravan-suite-78kbzm` | done (PR #10); the test was stale, the game was fine |
 | Safe preview links for testers (plan item 5) | | | open |
 | Keeper reaction clips, 14 (plan item 6; brief `docs/art/batches/01-keeper-reactions.md`) | | | open; Dot/Codex |
