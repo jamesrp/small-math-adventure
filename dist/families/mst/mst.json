@@ -1,0 +1,1409 @@
+{
+ "title": "Cheapest networks",
+ "version": 1,
+ "families": [
+  {
+   "id": "mst",
+   "title": "Cheapest networks",
+   "mathematics": "Places are joined by links with positive prices; a network buys links until every place is joined. The cheapest networks are the minimum spanning trees: they never contain a loop; a link that is the strict cheapest across some split of the places is in every one (cut property), and a link that is the strict dearest on some loop is in none (cycle property); a loop-free network is cheapest exactly when no single swap lowers its price, and from any network as many swaps as it lacks links reach a cheapest one (the exchange property). Distinct prices give a single cheapest network; ties multiply the choices.",
+   "rules": [
+    "Buy links until every place is joined to every other by bought links.",
+    "A network’s price is the total of its links’ prices.",
+    "Cheapest means no network that joins every place costs less."
+   ],
+   "sourceIds": [
+    "mst-kruskal",
+    "mst-graham-hell",
+    "mst-sedgewick",
+    "mst-week53"
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "id": "mst-kruskal",
+   "title": "Joseph B. Kruskal Jr. — On the shortest spanning subtree of a graph and the traveling salesman problem, Proceedings of the AMS 7 (1956), 48–50",
+   "url": "https://doi.org/10.1090/S0002-9939-1956-0078686-7",
+   "kind": "research"
+  },
+  {
+   "id": "mst-graham-hell",
+   "title": "R. L. Graham and Pavol Hell — On the history of the minimum spanning tree problem, Annals of the History of Computing 7 (1985), 43–57",
+   "url": "https://doi.org/10.1109/MAHC.1985.10011",
+   "kind": "research"
+  },
+  {
+   "id": "mst-sedgewick",
+   "title": "Robert Sedgewick and Kevin Wayne — Algorithms, §4.3 Minimum Spanning Trees (lecture slides and companion site)",
+   "url": "https://algs4.cs.princeton.edu/43mst/",
+   "kind": "undergraduate"
+  },
+  {
+   "id": "mst-week53",
+   "title": "Bellingham Math Circle — Week 53: Cheapest connected networks (worksheets and adult guide)",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-53",
+   "kind": "worksheet"
+  }
+ ],
+ "puzzles": [
+  {
+   "id": "mst-01",
+   "number": 1,
+   "title": "First network",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "mst",
+   "familyTitle": "Cheapest networks",
+   "revision": 1,
+   "parameters": {
+    "aspect": 1.4,
+    "nodes": {
+     "A": [
+      12,
+      15
+     ],
+     "B": [
+      88,
+      15
+     ],
+     "C": [
+      88,
+      85
+     ],
+     "D": [
+      12,
+      85
+     ]
+    },
+    "links": [
+     [
+      "A",
+      "B",
+      3
+     ],
+     [
+      "B",
+      "C",
+      2
+     ],
+     [
+      "C",
+      "D",
+      4
+     ],
+     [
+      "A",
+      "D",
+      3
+     ],
+     [
+      "A",
+      "C",
+      1
+     ]
+    ],
+    "mode": "cheapest",
+    "cheapest": 6
+   },
+   "objective": "Join every place for the lowest price.",
+   "visibleObjective": "Join every place for the lowest price.",
+   "instruction": "Join every place for the lowest price.",
+   "controls": "Tap a link to buy it, and tap it again to return it. Places light up as they are joined; a loop shows dashed. The coin shows what you have paid.",
+   "rules": [
+    "Buy links until every place is joined to every other by bought links.",
+    "A network’s price is the total of its links’ prices.",
+    "Cheapest means no network that joins every place costs less.",
+    "Press Cheapest when you think no network costs less. If one does, a cheaper swap or a link you can return appears."
+   ],
+   "idea": "A link between places that are already joined adds a loop and nothing else.",
+   "prerequisites": "Compare small numbers. The app adds the prices. A grown-up can read the buttons.",
+   "hints": [
+    "Buy links until every place lights up.",
+    "AB and AD both cost 3. Does each one join a new place?",
+    "Buy AC, BC and AD."
+   ],
+   "parent": {
+    "notice": "AB and AD cost the same, but only one of them joins a new place.",
+    "prompt": "Which link would you leave out, and why?",
+    "explanation": "Four places need at least three links. The cheapest network is AC 1, BC 2 and AD 3, costing 6, and it is the only one at that price. AB also costs 3, but once AC and BC are bought it closes the loop A, B, C and joins nothing new.",
+    "extension": "Change one price so that there are two cheapest networks.",
+    "connection": "A cheapest network that joins every place is a minimum spanning tree. With positive prices it never has a loop, because returning any loop link keeps every place joined and costs less.",
+    "sourceIds": [
+     "mst-kruskal",
+     "mst-graham-hell",
+     "mst-sedgewick",
+     "mst-week53"
+    ]
+   },
+   "provenance": "New, in the style of Week 53 Problems 1 and 3 (buy until connected; a loop is wasted money).",
+   "sourceDocument": "docs/mst/README.md"
+  },
+  {
+   "id": "mst-02",
+   "number": 2,
+   "title": "Three cheap links",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "mst",
+   "familyTitle": "Cheapest networks",
+   "revision": 1,
+   "parameters": {
+    "aspect": 1.45,
+    "nodes": {
+     "A": [
+      6,
+      40
+     ],
+     "B": [
+      50,
+      6
+     ],
+     "C": [
+      30,
+      80
+     ],
+     "D": [
+      82,
+      30
+     ],
+     "E": [
+      62,
+      92
+     ]
+    },
+    "links": [
+     [
+      "A",
+      "B",
+      1
+     ],
+     [
+      "B",
+      "C",
+      2
+     ],
+     [
+      "A",
+      "C",
+      2
+     ],
+     [
+      "B",
+      "D",
+      3
+     ],
+     [
+      "C",
+      "D",
+      4
+     ],
+     [
+      "D",
+      "E",
+      3
+     ],
+     [
+      "C",
+      "E",
+      5
+     ]
+    ],
+    "mode": "cheapest",
+    "cheapest": 9
+   },
+   "objective": "Join every place for the lowest price.",
+   "visibleObjective": "Join every place for the lowest price.",
+   "instruction": "Join every place for the lowest price.",
+   "controls": "Tap a link to buy it, and tap it again to return it. Places light up as they are joined; a loop shows dashed. The coin shows what you have paid.",
+   "rules": [
+    "Buy links until every place is joined to every other by bought links.",
+    "A network’s price is the total of its links’ prices.",
+    "Cheapest means no network that joins every place costs less.",
+    "Press Cheapest when you think no network costs less. If one does, a cheaper swap or a link you can return appears."
+   ],
+   "idea": "The three cheapest links make a loop and leave two places out.",
+   "prerequisites": "Compare small numbers. The app adds the prices. A grown-up can read the buttons.",
+   "hints": [
+    "Try the cheapest links first. What happens?",
+    "AB, BC and AC make a loop. One of them is not needed.",
+    "Buy AB, BC, BD and DE."
+   ],
+   "parent": {
+    "notice": "Buying the three cheapest links joins only A, B and C, and closes a loop.",
+    "prompt": "You bought the three cheapest links. Why isn’t that the start of the cheapest network?",
+    "explanation": "AB 1, BC 2 and AC 2 are the three cheapest links, but they form the loop A, B, C, so one of them is wasted. A cheapest network keeps AB and one of the two 2s, then adds BD 3 and DE 3, for 9 in all. There are two such networks: with BC or with AC.",
+    "extension": "Is there a network that uses CD? What is the cheapest one, and why does it cost more?",
+    "connection": "Kruskal’s rule: take links from the cheapest up, skipping any that would close a loop. It always ends with a cheapest network (Kruskal, 1956).",
+    "sourceIds": [
+     "mst-kruskal",
+     "mst-graham-hell",
+     "mst-sedgewick",
+     "mst-week53"
+    ]
+   },
+   "provenance": "Week 53 Problem 3 (the greedy trap), with a new map.",
+   "sourceDocument": "docs/mst/README.md"
+  },
+  {
+   "id": "mst-03",
+   "number": 3,
+   "title": "Two choices twice",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "mst",
+   "familyTitle": "Cheapest networks",
+   "revision": 1,
+   "parameters": {
+    "aspect": 1.4,
+    "nodes": {
+     "A": [
+      12,
+      15
+     ],
+     "B": [
+      88,
+      15
+     ],
+     "C": [
+      88,
+      85
+     ],
+     "D": [
+      12,
+      85
+     ]
+    },
+    "links": [
+     [
+      "A",
+      "B",
+      2
+     ],
+     [
+      "B",
+      "C",
+      2
+     ],
+     [
+      "C",
+      "D",
+      2
+     ],
+     [
+      "A",
+      "D",
+      2
+     ],
+     [
+      "A",
+      "C",
+      1
+     ]
+    ],
+    "mode": "every",
+    "cheapest": 5,
+    "answers": 4
+   },
+   "objective": "Find every cheapest network.",
+   "visibleObjective": "Find every cheapest network.",
+   "instruction": "Find every cheapest network.",
+   "controls": "Tap a link to buy it, and tap it again to return it. Press Cheapest to keep a network; it joins the row below. Undo keeps the networks you have found.",
+   "rules": [
+    "Buy links until every place is joined to every other by bought links.",
+    "A network’s price is the total of its links’ prices.",
+    "Cheapest means no network that joins every place costs less.",
+    "Press Cheapest to keep a network. Press That’s all when you think you have found every cheapest network."
+   ],
+   "idea": "B can join through A or through C, and so can D: two choices twice.",
+   "prerequisites": "Compare small numbers and keep a list of what has been found. A grown-up can read the buttons.",
+   "hints": [
+    "Find one cheapest network first. What does it cost?",
+    "Every cheapest network uses the 1. Then B and D each have two ways to join.",
+    "There are four: AC with AB or BC, and with AD or CD."
+   ],
+   "parent": {
+    "notice": "Every cheapest network uses the diagonal.",
+    "prompt": "How do you know you have found them all?",
+    "explanation": "AC costs 1, and every cheapest network uses it. Then B joins by AB or BC and D joins by AD or CD, each for 2. Two choices for B and two for D give 2 × 2 = 4 cheapest networks, each costing 5. A network without AC needs three 2s and costs 6.",
+    "extension": "If the diagonal cost 2 like the sides, how many networks would be cheapest? (All 8.)",
+    "connection": "When prices tie, the cheapest networks can be counted by multiplying independent choices.",
+    "sourceIds": [
+     "mst-kruskal",
+     "mst-graham-hell",
+     "mst-sedgewick",
+     "mst-week53"
+    ]
+   },
+   "provenance": "Week 53 Problems 2 and 4 (find every cheapest purchase), with a new map whose ties multiply.",
+   "sourceDocument": "docs/mst/README.md"
+  },
+  {
+   "id": "mst-04",
+   "number": 4,
+   "title": "Around the middle",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "mst",
+   "familyTitle": "Cheapest networks",
+   "revision": 1,
+   "parameters": {
+    "aspect": 1.8,
+    "nodes": {
+     "A": [
+      4,
+      50
+     ],
+     "B": [
+      32,
+      10
+     ],
+     "C": [
+      68,
+      10
+     ],
+     "D": [
+      96,
+      50
+     ],
+     "E": [
+      68,
+      90
+     ],
+     "F": [
+      32,
+      90
+     ]
+    },
+    "links": [
+     [
+      "A",
+      "B",
+      4
+     ],
+     [
+      "B",
+      "C",
+      2
+     ],
+     [
+      "C",
+      "D",
+      3
+     ],
+     [
+      "D",
+      "E",
+      4
+     ],
+     [
+      "E",
+      "F",
+      1
+     ],
+     [
+      "A",
+      "F",
+      5
+     ],
+     [
+      "B",
+      "F",
+      3
+     ],
+     [
+      "C",
+      "E",
+      2
+     ]
+    ],
+    "mode": "cheapest",
+    "cheapest": 12
+   },
+   "objective": "Join every place for the lowest price.",
+   "visibleObjective": "Join every place for the lowest price.",
+   "instruction": "Join every place for the lowest price.",
+   "controls": "Tap a link to buy it, and tap it again to return it. Places light up as they are joined; a loop shows dashed. The coin shows what you have paid.",
+   "rules": [
+    "Buy links until every place is joined to every other by bought links.",
+    "A network’s price is the total of its links’ prices.",
+    "Cheapest means no network that joins every place costs less.",
+    "Press Cheapest when you think no network costs less. If one does, a cheaper swap or a link you can return appears."
+   ],
+   "idea": "The four cheapest links go round a loop, so the dearest of them stays unbought.",
+   "prerequisites": "Compare small numbers. The app adds the prices. A grown-up can read the buttons.",
+   "hints": [
+    "Buy cheap links, but watch for a loop.",
+    "EF, BC, CE and BF go round the middle. Which one can you do without?",
+    "Buy EF, BC, CE, CD and AB."
+   ],
+   "parent": {
+    "notice": "The four cheapest links make a loop around the middle.",
+    "prompt": "Which link of the loop would you return?",
+    "explanation": "EF 1, BC 2, CE 2 and BF 3 form the loop B, C, E, F, so the cheapest network leaves out the dearest of them, BF. Then A joins by AB 4 (not AF 5) and D by CD 3 (not DE 4). The total is 12, and this is the only network at that price.",
+    "extension": "Which links could get cheaper without changing the cheapest network?",
+    "connection": "The cycle rule: a link that is the strict dearest on some loop is in no cheapest network.",
+    "sourceIds": [
+     "mst-kruskal",
+     "mst-graham-hell",
+     "mst-sedgewick",
+     "mst-week53"
+    ]
+   },
+   "provenance": "New; a larger version of Week 53 Problem 3.",
+   "sourceDocument": "docs/mst/README.md"
+  },
+  {
+   "id": "mst-05",
+   "number": 5,
+   "title": "Two new links",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "mst",
+   "familyTitle": "Cheapest networks",
+   "revision": 1,
+   "parameters": {
+    "aspect": 1.2,
+    "nodes": {
+     "A": [
+      50,
+      50
+     ],
+     "B": [
+      50,
+      6
+     ],
+     "C": [
+      92,
+      36
+     ],
+     "D": [
+      76,
+      92
+     ],
+     "E": [
+      24,
+      92
+     ],
+     "F": [
+      8,
+      36
+     ]
+    },
+    "links": [
+     [
+      "A",
+      "B",
+      6
+     ],
+     [
+      "A",
+      "C",
+      3
+     ],
+     [
+      "A",
+      "D",
+      3
+     ],
+     [
+      "A",
+      "E",
+      2
+     ],
+     [
+      "A",
+      "F",
+      6
+     ],
+     [
+      "B",
+      "C",
+      6
+     ],
+     [
+      "C",
+      "D",
+      2
+     ],
+     [
+      "D",
+      "E",
+      2
+     ],
+     [
+      "E",
+      "F",
+      5
+     ],
+     [
+      "B",
+      "F",
+      4
+     ]
+    ],
+    "mode": "swap",
+    "start": [
+     0,
+     5,
+     6,
+     8,
+     9
+    ],
+    "budget": 2,
+    "cheapest": 15
+   },
+   "objective": "Make the network cheapest, buying at most 2 new links.",
+   "visibleObjective": "Make the network cheapest, buying at most 2 new links.",
+   "instruction": "Make the network cheapest, buying at most 2 new links.",
+   "controls": "Tap a link to buy it, and tap it again to return it. The arrows show how many new links you may still buy.",
+   "rules": [
+    "Buy links until every place is joined to every other by bought links.",
+    "A network’s price is the total of its links’ prices.",
+    "Cheapest means no network that joins every place costs less.",
+    "The start network is already bought. Each link you buy that it didn’t have uses one swap; returning that link gives the swap back.",
+    "Press Cheapest when you think no network costs less."
+   ],
+   "idea": "A swap only helps if the new link belongs in the cheapest network.",
+   "prerequisites": "Compare small numbers and plan two or three steps ahead.",
+   "hints": [
+    "Find the cheapest network in your head first. Which of its links are missing?",
+    "The start needs AE and DE. Buy one and return the dearest link on its loop.",
+    "Buy AE and return AB; buy DE and return BC."
+   ],
+   "parent": {
+    "notice": "Most swaps that save money waste one of the two new links.",
+    "prompt": "Before you buy, which links of the cheapest network does the start already have?",
+    "explanation": "The cheapest network is AE, CD, DE, EF and BF, costing 15. It shares CD, EF and BF with the start, so exactly two new links are needed, AE and DE, and AB and BC must go. Buying AE makes the loop A, B, F, E; returning AB (6) saves 4. Buying DE makes the loop D, C, B, F, E; returning BC (6) saves 4. A swap such as buying AC and returning BC also saves money, but spends a new link the cheapest network doesn’t have. Of the 10 swaps that save money, only 2 make progress.",
+    "extension": "Does the order of the two swaps matter?",
+    "connection": "The exchange property of spanning trees: a network missing k links of a cheapest network can reach it in exactly k swaps, each buying one of those links and returning a link on the loop it makes.",
+    "sourceIds": [
+     "mst-kruskal",
+     "mst-graham-hell",
+     "mst-sedgewick",
+     "mst-week53"
+    ]
+   },
+   "provenance": "Week 53 Problems 5 and 8 (one-link swaps), turned into a fewest-swaps goal as the review card suggests. New map.",
+   "sourceDocument": "docs/mst/README.md"
+  },
+  {
+   "id": "mst-06",
+   "number": 6,
+   "title": "Two groups of ties",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "mst",
+   "familyTitle": "Cheapest networks",
+   "revision": 1,
+   "parameters": {
+    "aspect": 1.5,
+    "nodes": {
+     "A": [
+      8,
+      14
+     ],
+     "B": [
+      8,
+      86
+     ],
+     "C": [
+      36,
+      50
+     ],
+     "D": [
+      92,
+      30
+     ],
+     "E": [
+      64,
+      92
+     ]
+    },
+    "links": [
+     [
+      "A",
+      "B",
+      2
+     ],
+     [
+      "A",
+      "C",
+      2
+     ],
+     [
+      "B",
+      "C",
+      2
+     ],
+     [
+      "C",
+      "D",
+      1
+     ],
+     [
+      "C",
+      "E",
+      3
+     ],
+     [
+      "D",
+      "E",
+      3
+     ],
+     [
+      "B",
+      "E",
+      4
+     ]
+    ],
+    "mode": "every",
+    "cheapest": 8,
+    "answers": 6
+   },
+   "objective": "Find every cheapest network.",
+   "visibleObjective": "Find every cheapest network.",
+   "instruction": "Find every cheapest network.",
+   "controls": "Tap a link to buy it, and tap it again to return it. Press Cheapest to keep a network; it joins the row below. Undo keeps the networks you have found.",
+   "rules": [
+    "Buy links until every place is joined to every other by bought links.",
+    "A network’s price is the total of its links’ prices.",
+    "Cheapest means no network that joins every place costs less.",
+    "Press Cheapest to keep a network. Press That’s all when you think you have found every cheapest network."
+   ],
+   "idea": "Two separate choices: any two of the three 2s, and either 3.",
+   "prerequisites": "Compare small numbers and keep a list of what has been found. A grown-up can read the buttons.",
+   "hints": [
+    "Find one cheapest network. Which links could swap for others of the same price?",
+    "Any two of AB, AC, BC work. E joins by CE or DE.",
+    "Three ways for A, B, C times two ways for E: six networks."
+   ],
+   "parent": {
+    "notice": "The 2s around A, B and C can be swapped for one another, and so can the two 3s at E.",
+    "prompt": "Why can’t E join by BE?",
+    "explanation": "Every cheapest network uses CD 1. A, B and C are joined by three links of price 2 that form a loop, so any two of them work (3 ways). E joins by CE 3 or DE 3 (2 ways), never by BE 4. That gives 3 × 2 = 6 networks, each costing 8.",
+    "extension": "Which link could drop to price 3 and make 9 cheapest networks? (BE.)",
+    "connection": "Within one price level, the choices are the spanning trees of the places already joined by cheaper links, and independent levels multiply.",
+    "sourceIds": [
+     "mst-kruskal",
+     "mst-graham-hell",
+     "mst-sedgewick",
+     "mst-week53"
+    ]
+   },
+   "provenance": "Week 53 Problem 4 and the review card’s suggestion (CE = 2 makes the catalog 3 × 3), with a new map.",
+   "sourceDocument": "docs/mst/README.md"
+  },
+  {
+   "id": "mst-07",
+   "number": 7,
+   "title": "The middle rung",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "mst",
+   "familyTitle": "Cheapest networks",
+   "revision": 1,
+   "parameters": {
+    "aspect": 1.6,
+    "nodes": {
+     "A": [
+      10,
+      15
+     ],
+     "B": [
+      50,
+      15
+     ],
+     "C": [
+      90,
+      15
+     ],
+     "D": [
+      10,
+      85
+     ],
+     "E": [
+      50,
+      85
+     ],
+     "F": [
+      90,
+      85
+     ]
+    },
+    "links": [
+     [
+      "A",
+      "B",
+      2
+     ],
+     [
+      "B",
+      "C",
+      4
+     ],
+     [
+      "D",
+      "E",
+      5
+     ],
+     [
+      "E",
+      "F",
+      1
+     ],
+     [
+      "A",
+      "D",
+      6
+     ],
+     [
+      "B",
+      "E",
+      3
+     ],
+     [
+      "C",
+      "F",
+      5
+     ]
+    ],
+    "mode": "forced",
+    "target": 5,
+    "cheapest": 15
+   },
+   "objective": "Split the places so the dark link is the cheapest way across.",
+   "visibleObjective": "Split the places so the dark link is the cheapest way across.",
+   "instruction": "Split the places so the dark link is the cheapest way across.",
+   "controls": "Tap a place to put it on your side, and tap it again to take it off. The links that cross turn gold.",
+   "rules": [
+    "Tap places to put them on your side of a split.",
+    "A link crosses the split when one end is on each side.",
+    "Solved when the dark link is the cheapest link that crosses, and no other crossing link costs as little."
+   ],
+   "idea": "Every network must cross every split, and the cheapest crossing link belongs in every cheapest network.",
+   "prerequisites": "Compare small numbers. Understanding why the answer works is for older children with a grown-up.",
+   "hints": [
+    "Put some places on your side and watch which links turn gold.",
+    "Keep the cheap links AB and EF inside one side each.",
+    "Put E and F on your side."
+   ],
+   "parent": {
+    "notice": "BE is the cheapest link across the split between the top row and the bottom row.",
+    "prompt": "If a network didn’t use BE, how could you make it cheaper?",
+    "explanation": "With E and F on one side, three links cross: DE 5, BE 3 and CF 5. Every network that joins every place must cross the split. If a cheapest network left out BE, buying BE would make a loop that crosses the split twice, and returning the other crossing link would make it cheaper. So BE is in every cheapest network. Four different splits prove it.",
+    "extension": "Find a split that proves AB is in every cheapest network.",
+    "connection": "The cut property of minimum spanning trees.",
+    "sourceIds": [
+     "mst-kruskal",
+     "mst-graham-hell",
+     "mst-sedgewick",
+     "mst-week53"
+    ]
+   },
+   "provenance": "Week 53 Problem 6 (links in every cheapest purchase, by cuts). New map.",
+   "sourceDocument": "docs/mst/README.md"
+  },
+  {
+   "id": "mst-08",
+   "number": 8,
+   "title": "Cheap but never bought",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "mst",
+   "familyTitle": "Cheapest networks",
+   "revision": 1,
+   "parameters": {
+    "aspect": 1.2,
+    "nodes": {
+     "A": [
+      50,
+      50
+     ],
+     "B": [
+      50,
+      6
+     ],
+     "C": [
+      92,
+      36
+     ],
+     "D": [
+      76,
+      92
+     ],
+     "E": [
+      24,
+      92
+     ],
+     "F": [
+      8,
+      36
+     ]
+    },
+    "links": [
+     [
+      "A",
+      "B",
+      6
+     ],
+     [
+      "A",
+      "C",
+      2
+     ],
+     [
+      "A",
+      "D",
+      2
+     ],
+     [
+      "A",
+      "E",
+      4
+     ],
+     [
+      "A",
+      "F",
+      4
+     ],
+     [
+      "B",
+      "C",
+      5
+     ],
+     [
+      "C",
+      "D",
+      3
+     ],
+     [
+      "D",
+      "E",
+      4
+     ],
+     [
+      "E",
+      "F",
+      6
+     ],
+     [
+      "B",
+      "F",
+      6
+     ]
+    ],
+    "mode": "excluded",
+    "target": 6,
+    "cheapest": 17
+   },
+   "objective": "Make a loop in which the dark link costs the most.",
+   "visibleObjective": "Make a loop in which the dark link costs the most.",
+   "instruction": "Make a loop in which the dark link costs the most.",
+   "controls": "Tap a link to pick it, and tap it again to drop it.",
+   "rules": [
+    "Tap links to pick them.",
+    "Solved when the picked links make one loop through the dark link, and every other link in the loop costs less than it."
+   ],
+   "idea": "A cheap link is still never needed if it is the dearest on some loop.",
+   "prerequisites": "Compare small numbers and trace a loop around a map.",
+   "hints": [
+    "Look at the places at the two ends of the dark link.",
+    "Find a way from C to D that only uses cheaper links.",
+    "Pick AC, AD and CD."
+   ],
+   "parent": {
+    "notice": "Only two links cost less than CD, yet no cheapest network uses it.",
+    "prompt": "If a network used CD, which link could replace it?",
+    "explanation": "CD costs 3, and only AC and AD cost less. They make the loop A, C, D with it, where CD is the dearest. A network with CD could return CD and buy AC or AD, whichever crosses back, and cost less. So no cheapest network uses CD.",
+    "extension": "Which other links are in no cheapest network? Find a loop for each.",
+    "connection": "The cycle property of minimum spanning trees.",
+    "sourceIds": [
+     "mst-kruskal",
+     "mst-graham-hell",
+     "mst-sedgewick",
+     "mst-week53"
+    ]
+   },
+   "provenance": "Week 53 Problem 6 (links in no cheapest purchase, by loops). New map.",
+   "sourceDocument": "docs/mst/README.md"
+  },
+  {
+   "id": "mst-09",
+   "number": 9,
+   "title": "Three new links",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "mst",
+   "familyTitle": "Cheapest networks",
+   "revision": 1,
+   "parameters": {
+    "aspect": 1.45,
+    "scale": 0.85,
+    "nodes": {
+     "A": [
+      6,
+      50
+     ],
+     "B": [
+      30,
+      10
+     ],
+     "C": [
+      30,
+      90
+     ],
+     "D": [
+      55,
+      50
+     ],
+     "E": [
+      78,
+      10
+     ],
+     "F": [
+      78,
+      90
+     ],
+     "G": [
+      95,
+      50
+     ]
+    },
+    "links": [
+     [
+      "A",
+      "B",
+      4
+     ],
+     [
+      "A",
+      "C",
+      5
+     ],
+     [
+      "B",
+      "D",
+      2
+     ],
+     [
+      "C",
+      "D",
+      3
+     ],
+     [
+      "B",
+      "E",
+      1
+     ],
+     [
+      "D",
+      "E",
+      2
+     ],
+     [
+      "D",
+      "F",
+      1
+     ],
+     [
+      "C",
+      "F",
+      2
+     ],
+     [
+      "E",
+      "G",
+      4
+     ],
+     [
+      "F",
+      "G",
+      6
+     ],
+     [
+      "A",
+      "D",
+      6
+     ]
+    ],
+    "mode": "swap",
+    "start": [
+     0,
+     1,
+     5,
+     8,
+     9,
+     10
+    ],
+    "budget": 3,
+    "cheapest": 14
+   },
+   "objective": "Make the network cheapest, buying at most 3 new links.",
+   "visibleObjective": "Make the network cheapest, buying at most 3 new links.",
+   "instruction": "Make the network cheapest, buying at most 3 new links.",
+   "controls": "Tap a link to buy it, and tap it again to return it. The arrows show how many new links you may still buy.",
+   "rules": [
+    "Buy links until every place is joined to every other by bought links.",
+    "A network’s price is the total of its links’ prices.",
+    "Cheapest means no network that joins every place costs less.",
+    "The start network is already bought. Each link you buy that it didn’t have uses one swap; returning that link gives the swap back.",
+    "Press Cheapest when you think no network costs less."
+   ],
+   "idea": "When two cheapest networks tie, aim for the one closer to what you have.",
+   "prerequisites": "Compare small numbers and plan two or three steps ahead.",
+   "hints": [
+    "Find the cheapest networks in your head. Which is closest to the start?",
+    "BD and DE both cost 2. The start already has DE.",
+    "Buy BE, DF and CF; return AD, FG and AC."
+   ],
+   "parent": {
+    "notice": "There are two cheapest networks, and only one is within three swaps.",
+    "prompt": "BD and DE cost the same. Which one would you keep, and why?",
+    "explanation": "Two networks cost 14: AB, BE, DF, CF, EG with BD or with DE. The start already has DE, so the second needs only BE, DF and CF, three new links, and AC, FG and AD go. Aiming for the one with BD would need four. Buying BE makes the loop B, E, D, A; returning AD (6) saves 5. Then buying DF makes the loop D, F, G, E; returning FG (6) saves 5. Then buying CF makes the loop C, F, D, E, B, A; returning AC (5) saves 3.",
+    "extension": "Is there an order of the three swaps in which one of them saves nothing?",
+    "connection": "The exchange property again: the number of swaps needed is the number of links the start lacks from the nearest cheapest network.",
+    "sourceIds": [
+     "mst-kruskal",
+     "mst-graham-hell",
+     "mst-sedgewick",
+     "mst-week53"
+    ]
+   },
+   "provenance": "Week 53 Problem 8 (swaps toward the optimum) with ties, as a fewest-swaps goal. New map.",
+   "sourceDocument": "docs/mst/README.md"
+  },
+  {
+   "id": "mst-10",
+   "number": 10,
+   "title": "The hidden loop",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "mst",
+   "familyTitle": "Cheapest networks",
+   "revision": 1,
+   "parameters": {
+    "aspect": 1.1,
+    "nodes": {
+     "E": [
+      50,
+      6
+     ],
+     "A": [
+      15,
+      36
+     ],
+     "C": [
+      85,
+      36
+     ],
+     "B": [
+      15,
+      94
+     ],
+     "D": [
+      85,
+      94
+     ]
+    },
+    "links": [
+     [
+      "A",
+      "B",
+      1
+     ],
+     [
+      "C",
+      "D",
+      1
+     ],
+     [
+      "A",
+      "C",
+      2
+     ],
+     [
+      "B",
+      "D",
+      2
+     ],
+     [
+      "A",
+      "E",
+      2
+     ],
+     [
+      "C",
+      "E",
+      2
+     ]
+    ],
+    "mode": "every",
+    "cheapest": 6,
+    "answers": 5
+   },
+   "objective": "Find every cheapest network.",
+   "visibleObjective": "Find every cheapest network.",
+   "instruction": "Find every cheapest network.",
+   "controls": "Tap a link to buy it, and tap it again to return it. Press Cheapest to keep a network; it joins the row below. Undo keeps the networks you have found.",
+   "rules": [
+    "Buy links until every place is joined to every other by bought links.",
+    "A network’s price is the total of its links’ prices.",
+    "Cheapest means no network that joins every place costs less.",
+    "Press Cheapest to keep a network. Press That’s all when you think you have found every cheapest network."
+   ],
+   "idea": "Two of the four 2s, but one pair closes a loop with the two 1s.",
+   "prerequisites": "Compare small numbers and keep a list of what has been found. A grown-up can read the buttons.",
+   "hints": [
+    "Every cheapest network uses both 1s. How many 2s does it need?",
+    "Try each pair of 2s. Does any pair make a loop?",
+    "AC with BD makes the loop A, C, D, B. The other five pairs all work."
+   ],
+   "parent": {
+    "notice": "Four pairs look alike, a fifth uses the roof, and the sixth pair fails.",
+    "prompt": "You have five. How do you know there isn’t a sixth?",
+    "explanation": "Every cheapest network uses AB 1 and CD 1, then two of the four 2s, costing 6. Of the six pairs of 2s, only AC with BD fails: with AB and CD it closes the loop A, C, D, B and leaves E out. So there are exactly 5.",
+    "extension": "Imagine a link from B to E costing 2. How many cheapest networks would there be? (8.)",
+    "connection": "Joining the places linked by 1s into two groups, the 2s form a triangle with one doubled side, which has 5 spanning trees.",
+    "sourceIds": [
+     "mst-kruskal",
+     "mst-graham-hell",
+     "mst-sedgewick",
+     "mst-week53"
+    ]
+   },
+   "provenance": "New; extends Week 53 Problems 2 and 4 to ties that interact with cheaper links.",
+   "sourceDocument": "docs/mst/README.md"
+  },
+  {
+   "id": "mst-11",
+   "number": 11,
+   "title": "Worth its price",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "mst",
+   "familyTitle": "Cheapest networks",
+   "revision": 1,
+   "parameters": {
+    "aspect": 1.45,
+    "scale": 0.85,
+    "nodes": {
+     "A": [
+      6,
+      50
+     ],
+     "B": [
+      30,
+      10
+     ],
+     "C": [
+      30,
+      90
+     ],
+     "D": [
+      55,
+      50
+     ],
+     "E": [
+      78,
+      10
+     ],
+     "F": [
+      78,
+      90
+     ],
+     "G": [
+      95,
+      50
+     ]
+    },
+    "links": [
+     [
+      "A",
+      "B",
+      1
+     ],
+     [
+      "A",
+      "C",
+      3
+     ],
+     [
+      "B",
+      "D",
+      1
+     ],
+     [
+      "C",
+      "D",
+      3
+     ],
+     [
+      "B",
+      "E",
+      6
+     ],
+     [
+      "D",
+      "E",
+      5
+     ],
+     [
+      "D",
+      "F",
+      2
+     ],
+     [
+      "C",
+      "F",
+      1
+     ],
+     [
+      "E",
+      "G",
+      3
+     ],
+     [
+      "F",
+      "G",
+      4
+     ],
+     [
+      "A",
+      "D",
+      1
+     ]
+    ],
+    "mode": "forced",
+    "target": 9,
+    "cheapest": 12
+   },
+   "objective": "Split the places so the dark link is the cheapest way across.",
+   "visibleObjective": "Split the places so the dark link is the cheapest way across.",
+   "instruction": "Split the places so the dark link is the cheapest way across.",
+   "controls": "Tap a place to put it on your side, and tap it again to take it off. The links that cross turn gold.",
+   "rules": [
+    "Tap places to put them on your side of a split.",
+    "A link crosses the split when one end is on each side.",
+    "Solved when the dark link is the cheapest link that crosses, and no other crossing link costs as little."
+   ],
+   "idea": "A dear link is forced when every cheaper way across can be kept on one side.",
+   "prerequisites": "Compare small numbers. Understanding why the answer works is for older children with a grown-up.",
+   "hints": [
+    "Which places does FG reach? Group them with their cheap neighbours.",
+    "EG costs 3. Put E and G together.",
+    "Put E and G on your side."
+   ],
+   "parent": {
+    "notice": "Eight links cost less than FG, yet every cheapest network uses it.",
+    "prompt": "G already has EG at 3. Why does it need FG too?",
+    "explanation": "With E and G on one side, only BE 6, DE 5 and FG 4 cross, so FG is the cheapest way to join E and G to the rest. Every cheapest network uses it, even though eight links are cheaper. This is the only split that proves it.",
+    "extension": "Is EG in every cheapest network? Prove it with a split, or show a loop where it is the dearest.",
+    "connection": "The cut property: a forced link need not be cheap, only the cheapest across some split.",
+    "sourceIds": [
+     "mst-kruskal",
+     "mst-graham-hell",
+     "mst-sedgewick",
+     "mst-week53"
+    ]
+   },
+   "provenance": "Week 53 Problem 6 (CD is forced by price although it is not a bridge), made harder. New map.",
+   "sourceDocument": "docs/mst/README.md"
+  },
+  {
+   "id": "mst-12",
+   "number": 12,
+   "title": "Exactly four",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "mst",
+   "familyTitle": "Cheapest networks",
+   "revision": 1,
+   "parameters": {
+    "aspect": 1.15,
+    "nodes": {
+     "A": [
+      50,
+      62
+     ],
+     "B": [
+      50,
+      6
+     ],
+     "C": [
+      90,
+      94
+     ],
+     "D": [
+      10,
+      94
+     ]
+    },
+    "links": [
+     [
+      "A",
+      "B",
+      1
+     ],
+     [
+      "A",
+      "C",
+      1
+     ],
+     [
+      "A",
+      "D",
+      1
+     ],
+     [
+      "B",
+      "C",
+      1
+     ],
+     [
+      "C",
+      "D",
+      1
+     ],
+     [
+      "B",
+      "D",
+      1
+     ]
+    ],
+    "mode": "design",
+    "want": 4,
+    "cheapest": 3
+   },
+   "objective": "Set prices so exactly 4 networks are cheapest.",
+   "visibleObjective": "Set prices so exactly 4 networks are cheapest.",
+   "instruction": "Set prices so exactly 4 networks are cheapest.",
+   "controls": "Tap a link to change its price. Press Check to see whether exactly 4 networks are cheapest.",
+   "rules": [
+    "Tap a link to change its price: 1, 2, 3, 4, then 1 again.",
+    "Press Check when you think exactly 4 networks are cheapest. If not, every cheapest network for your prices is shown."
+   ],
+   "idea": "Ties make several cheapest networks; four equal links around a loop make exactly four.",
+   "prerequisites": "Compare prices and reason about ties; older children.",
+   "hints": [
+    "With every price 1, all 16 networks are cheapest. Make some links dearer.",
+    "Try a loop of four links at price 1, and the other two dearer.",
+    "For example: BC, AC, AD and BD at 1; AB and CD at 2."
+   ],
+   "parent": {
+    "notice": "Most price choices give one or two cheapest networks; exactly four is rare.",
+    "prompt": "Which prices are tied in your cheapest networks?",
+    "explanation": "Exactly four cheapest networks come from 144 of the 4096 ways to price the six links. One answer puts four links around a loop at the lowest price and the other two dearer: drop any one link of the loop. Another uses two separate two-way choices: AB 1, AC and BC 2, AD and BD 3, CD 4, so C joins two ways and D joins two ways.",
+    "extension": "Can you make exactly 5 cheapest networks? Exactly 7? (Five is possible; seven is not.)",
+    "connection": "Counting minimum spanning trees with ties, level by level: the counts that occur on four places are 1, 2, 3, 4, 5, 6, 8, 9 and 16.",
+    "sourceIds": [
+     "mst-kruskal",
+     "mst-graham-hell",
+     "mst-sedgewick",
+     "mst-week53"
+    ]
+   },
+   "provenance": "Week 53 Problem 7 (design prices), with the review card’s rarer target: exactly 4 cheapest (144 of 4096) instead of exactly one (1956 of 4096).",
+   "sourceDocument": "docs/mst/README.md"
+  }
+ ]
+}
