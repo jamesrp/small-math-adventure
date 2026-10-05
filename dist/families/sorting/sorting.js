@@ -254,9 +254,9 @@ let pending = null;
 
 // Board geometry: the start column, one column per slot, the finish column.
 const xStart = 7, xFinish = 93;
-const slotX = (k, s) => k === 1 ? 50 : 20 + s * (60 / (k - 1));
+const slotX = (k, s) => k === 1 ? 50 : 24 + s * (52 / (k - 1));
 const laneY = (n, i) => (i + 0.5) / n * 100;
-const tokenSize = (q, v) => q.cards === 'binary' ? (v ? 44 : 28) : 28 + (v - 1) * (16 / Math.max(1, q.lanes - 1));
+const tokenSize = (q, v) => q.cards === 'binary' ? (v ? 48 : 32) : 32 + (v - 1) * (16 / Math.max(1, q.lanes - 1));
 const cardStyle = (q, v, x, i) => `left:${x}%;top:${laneY(q.lanes, i)}%;--size:${tokenSize(q, v).toFixed(1)}px`;
 const face = (q, v) => q.cards === 'binary' ? '' : String(v);
 function board(p, b, opts) {
@@ -274,13 +274,14 @@ function board(p, b, opts) {
     if (!editable(s)) return '';
     const x = slotX(k, s);
     const remove = bar ? `<button type="button" class="sort-remove${hint?.type === 'bar' && hint.slot === s && hint.lanes === null ? ' hinted' : ''}" style="left:${x}%;top:${(laneY(n, bar[0]) + laneY(n, bar[1])) / 2}%;height:${(laneY(n, bar[1]) - laneY(n, bar[0]))}%" data-sort-move="${esc(JSON.stringify({type: 'bar', slot: s, lanes: null}))}" data-focus="sort-remove-${s}" aria-label="${esc(`Bar ${s + 1} joins lanes ${bar[0] + 1} and ${bar[1] + 1}. Take it away`)}"></button>` : '';
+    if (bar) return remove;
     const ends = Array.from({length: n}, (_, i) => {
       const chosen = pick?.slot === s && pick.lane === i;
       const allowed = !pick || pick.slot !== s ? true : chosen || pairOk(q, [Math.min(i, pick.lane), Math.max(i, pick.lane)]);
       const hinted = hint?.type === 'bar' && hint.slot === s && hint.lanes?.includes(i);
       return `<button type="button" class="sort-peg${chosen ? ' picked' : ''}${hinted ? ' hinted' : ''}" style="left:${x}%;top:${laneY(n, i)}%" data-sort-peg="${s},${i}" data-focus="sort-peg-${s}-${i}" aria-label="${esc(`Slot ${s + 1}, lane ${i + 1}${chosen ? ', chosen' : ''}`)}" ${allowed ? '' : 'aria-disabled="true"'}></button>`;
     }).join('');
-    return remove + ends;
+    return ends;
   }).join('') : '';
   const starts = b.start.map((v, i) => {
     const picked = pick?.card === i, hinted = (hint?.type === 'swap' && (hint.a === i || hint.b === i)) || (hint?.type === 'flip' && hint.lane === i);
@@ -299,14 +300,15 @@ function shelf(q, v, mode) {
   const items = v.tried.map(t => {
     const inPair = v.pair?.includes(t.key);
     const mark = `<span class="sort-mark ${t.run.sorted ? 'ok' : 'bad'}" aria-hidden="true">${t.run.sorted ? '✓' : '✗'}</span>`;
-    const label = `${describeStart(q, fromKey(t.key))}: ${t.run.sorted ? 'sorted' : 'wrong'}${mode === 'lights' ? `, lit ${t.run.lit.filter(Boolean).length ? t.run.lit.map((on, i) => on ? i + 1 : '').filter(Boolean).join(' and ') : 'none'}` : ''}`;
-    return `<li class="sort-tried${inPair ? ' pair' : ''}" aria-label="${esc(label)}">${mini(q, t.key)}${mode === 'lights' ? litMarks(t.run.lit) : mark}</li>`;
+    const label = `${describeStart(q, fromKey(t.key))}: ${mode === 'lights' ? `finishes ${describeStart(q, t.run.finish)}` : t.run.sorted ? 'sorted' : 'wrong'}${mode === 'lights' ? `, lit ${t.run.lit.filter(Boolean).length ? t.run.lit.map((on, i) => on ? i + 1 : '').filter(Boolean).join(' and ') : 'none'}` : ''}`;
+    const body = mode === 'lights' ? `<span class="sort-pairrow">${mini(q, t.key)}<span class="sort-arrow" aria-hidden="true">→</span>${mini(q, t.run.finish.join(''))}</span>${litMarks(t.run.lit)}` : `${mini(q, t.key)}${mark}`;
+    return `<li class="sort-tried${inPair ? ' pair' : ''}" aria-label="${esc(label)}">${body}</li>`;
   }).join('');
   return `<ol class="sort-shelf" aria-label="Starts tried">${items}</ol>`;
 }
 function grid(q, v) {
   if (!v.grid) return '';
-  return `<ol class="sort-grid" aria-label="Every start">${v.grid.map(g => `<li class="${g.sorted ? 'ok' : 'bad'}" aria-label="${esc(`${g.key.split('').join(', ')}: ${g.sorted ? 'sorted' : 'wrong'}`)}">${mini(q, g.key)}</li>`).join('')}</ol>`;
+  return `<ol class="sort-grid" aria-label="Every start">${v.grid.map((g, i) => `<li class="${g.sorted ? 'ok' : 'bad'}" style="--i:${i}" aria-label="${esc(`${g.key.split('').join(', ')}: ${g.sorted ? 'sorted' : 'wrong'}`)}">${mini(q, g.key)}</li>`).join('')}</ol>`;
 }
 const moveButton = (label, action, cls = '', extra = '') => `<button type="button" class="secondary sort-action ${cls}" data-sort-move="${esc(JSON.stringify(action))}" data-focus="sort-${action.type}" ${extra}>${label}</button>`;
 function renderPuzzle(p, a) {
@@ -319,9 +321,10 @@ function renderPuzzle(p, a) {
   const status = b.ran ? `${describeStart(q, b.start)} finishes ${describeStart(q, v.run.finish)}${v.run.sorted ? ', in order' : ', out of order'}.` : `Start: ${describeStart(q, b.start)}.`;
   return `<div class="sorting-puzzle mode-${q.mode} cards-${q.cards}" data-mechanic-wire="sorting">${body}${buttons}${missed}${q.mode === 'build' ? grid(q, v) : shelf(q, v, q.mode)}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
+const laneIcon = n => `<svg class="sort-lane-icon" viewBox="0 0 28 28" aria-hidden="true">${Array.from({length: n}, (_, i) => `<line x1="3" x2="25" y1="${(4 + i * 20 / Math.max(1, n - 1)).toFixed(1)}" y2="${(4 + i * 20 / Math.max(1, n - 1)).toFixed(1)}"/>`).join('')}</svg>`;
 function renderPlay(p, a) {
   const b = a.board, q = playQ(b), run = runMachine(b.bars, b.start), pick = ui(p).pick;
-  const pickLanes = `<div class="sort-tools" role="group" aria-label="Lanes">${PLAY_LANES.map(n => `<button type="button" class="secondary sort-tool" data-sort-move="${esc(JSON.stringify({type: 'lanes', lanes: n}))}" data-focus="sort-lanes-${n}" aria-pressed="${b.lanes === n}" aria-label="${n} lanes">${'≡'.repeat(1)}${n}</button>`).join('')}</div>`;
+  const pickLanes = `<div class="sort-tools" role="group" aria-label="Lanes">${PLAY_LANES.map(n => `<button type="button" class="secondary sort-tool" data-sort-move="${esc(JSON.stringify({type: 'lanes', lanes: n}))}" data-focus="sort-lanes-${n}" aria-pressed="${b.lanes === n}" aria-label="${n} lanes">${laneIcon(n)}</button>`).join('')}</div>`;
   const pickCards = `<div class="sort-tools" role="group" aria-label="Cards">${[['numbers', '1 2 3', 'Numbers'], ['binary', '<i class="b0"></i><i class="b1"></i>', 'Short and tall']].map(([cards, label, name]) => `<button type="button" class="secondary sort-tool sort-kind" data-sort-move="${esc(JSON.stringify({type: 'cards', cards}))}" data-focus="sort-cards-${cards}" aria-pressed="${b.cards === cards}" aria-label="${name}">${label}</button>`).join('')}</div>`;
   const body = board(p, b, {q, run, ran: b.ran, pick, hint: null, build: true, locked: 0});
   const pass = b.tested && !b.ran ? '<span class="sort-pass" role="img" aria-label="Sorts every start">✓</span>' : '';
@@ -336,6 +339,9 @@ const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-r
 function animate(root, q, bars, start) {
   const boardEl = root.querySelector('.sort-board'), layer = root.querySelector('.sort-fly'), finish = root.querySelector('.sort-finish');
   if (!boardEl || !layer) return;
+  layer.replaceChildren();
+  const token = String(Date.now() + Math.random());
+  boardEl.dataset.ride = token;
   const run = runMachine(bars, start), k = bars.length, n = q.lanes;
   const cards = start.map((v, i) => {
     const el = document.createElement('span');
@@ -346,13 +352,13 @@ function animate(root, q, bars, start) {
     return el;
   });
   const lanesOf = cards.map((_, i) => i), barEls = [...boardEl.querySelectorAll('.sort-bar')];
-  const shown = [...boardEl.querySelectorAll('.sort-bar')].map(el => el.classList.contains('lit'));
+  const shown = run.lit.filter((_, s) => bars[s]);
   barEls.forEach(el => el.classList.remove('lit'));
   finish?.classList.add('waiting');
   boardEl.classList.add('running');
   const step = 420;
   let t = 60;
-  const at = (fn, delay) => setTimeout(() => { if (root.isConnected) fn(); }, delay);
+  const at = (fn, delay) => setTimeout(() => { if (root.isConnected && boardEl.dataset.ride === token) fn(); }, delay);
   let barIndex = 0;
   for (let s = 0; s < k; s++) {
     const bar = bars[s], x = slotX(k, s);
@@ -434,6 +440,7 @@ function wire(root, p, api) {
   const last = pending;
   pending = null;
   if (!last || last.id !== p.id || attempt().moves !== last.moves + 1 || reduced()) return;
+  if (last.action.type === 'test') root.querySelector('.sort-grid')?.classList.add('pop');
   if (b().ran && ['run', 'test'].includes(last.action.type)) animate(root, q(), b().bars, b().start);
 }
 

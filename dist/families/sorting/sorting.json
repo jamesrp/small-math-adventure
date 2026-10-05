@@ -827,7 +827,7 @@
         "prompt": "How do the lights show that four bars can never be enough?",
         "explanation": "Four bars light up in at most 16 ways and there are 24 starts, so two starts would be moved alike and finish in different orders. Five bars give 32 patterns, and the machines that sort sort two pairs, compare the two winners and the two losers, and then compare the middle two.",
         "extension": "Five lanes need nine bars. Try it in the playground.",
-        "connection": "The fewest comparators that sort n inputs are known only for small n: 9 for five, and 25 for nine (Codish et al., 2014).",
+        "connection": "The fewest comparators that sort n inputs are known only for small n: nine for five, and 25 for nine, proved by computer search (Codish et al., 2014).",
         "sourceIds": [
           "sorting-week23",
           "sorting-knuth",

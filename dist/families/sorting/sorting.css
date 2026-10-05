@@ -13,10 +13,11 @@
 @keyframes sort-flash{0%{stroke-width:9px}}
 
 /* Cards: size grows with the value, so a sorted finish reads small to large. */
-.sort-card{position:absolute;transform:translate(-50%,-50%);width:var(--size);height:var(--size);min-width:0;min-height:0;padding:0;border-radius:50%;display:grid;place-items:center;background:var(--b-sun,#efc76e);border:2px solid #9a7631;color:var(--b-ink,#294439);font-family:var(--b-display,Georgia,serif);font-size:1.15rem;font-weight:400;line-height:1;box-shadow:0 2px 0 rgba(41,68,57,.2);z-index:2}
+.sort-board .sort-card,.sort-fly .sort-card{position:absolute;transform:translate(-50%,-50%);width:var(--size);height:var(--size);min-width:0;min-height:0;padding:0;border-radius:50%;display:grid;place-items:center;background:var(--b-sun,#efc76e);border:2px solid #9a7631;color:var(--b-ink,#294439);font-family:var(--b-display,Georgia,serif);font-size:1.15rem;font-weight:400;line-height:1;box-shadow:0 2px 0 rgba(41,68,57,.2);z-index:2}
 .cards-binary .sort-card.v0{background:var(--b-card,#fffdf5);border-color:var(--b-ink,#294439)}
 .cards-binary .sort-card.v1{background:var(--b-pine,#31533e);border-color:#1d3526}
-button.sort-card{cursor:pointer;touch-action:none}
+.sort-board button.sort-card{cursor:pointer;touch-action:none}
+.sort-board button.sort-card::after{content:"";position:absolute;inset:-6px;border-radius:50%}
 button.sort-card:hover{filter:brightness(1.04)}
 .sort-card.picked{box-shadow:0 0 0 4px var(--b-card,#fffdf5),0 0 0 7px var(--b-pine,#31533e)}
 .sort-card.hinted,.sort-peg.hinted,.sort-remove.hinted,.sort-action.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
@@ -29,12 +30,12 @@ button.sort-card:hover{filter:brightness(1.04)}
 .sort-board.running .sort-card.start{opacity:.35}
 
 /* Lane ends in an open slot: tap two to place a bar; tap a placed bar to take it away. */
-.sort-peg{position:absolute;transform:translate(-50%,-50%);width:26px;height:26px;min-width:0;min-height:0;padding:0;border-radius:50%;background:var(--b-card,#fffdf5);border:2px dashed #8a9a80;z-index:1;touch-action:none}
+.sort-board .sort-peg{position:absolute;transform:translate(-50%,-50%);width:26px;height:26px;min-width:0;min-height:0;padding:0;border-radius:50%;background:var(--b-card,#fffdf5);border:2px dashed #8a9a80;z-index:1;touch-action:none}
 .sort-peg::after{content:"";position:absolute;inset:-9px;border-radius:50%}
 .sort-peg:hover{border-style:solid;border-color:var(--b-ink,#294439)}
 .sort-peg.picked{background:var(--b-pine,#31533e);border:2px solid var(--b-pine,#31533e)}
 .sort-peg[aria-disabled="true"]{opacity:.3;cursor:default}
-.sort-remove{position:absolute;transform:translate(-50%,-50%);width:22px;min-width:0;min-height:0;padding:0;border:0;border-radius:11px;background:transparent;z-index:2;cursor:pointer}
+.sort-board .sort-remove{position:absolute;transform:translate(-50%,-50%);width:22px;min-width:0;min-height:0;padding:0;border:0;border-radius:11px;background:transparent;z-index:2;cursor:pointer}
 .sort-remove:hover,.sort-remove:focus-visible{background:rgba(169,80,58,.16)}
 
 .sort-actions{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.45rem}
@@ -50,13 +51,15 @@ button.sort-card:hover{filter:brightness(1.04)}
 .sort-grid li.ok{border-color:var(--b-good,#3c7a4a)}
 .sort-grid li.bad{border-color:var(--b-bad,#a9503a);background:var(--b-bad-soft,#f5e3d9)}
 .sort-tried.pair{border-color:var(--b-ochre,#b38840);box-shadow:inset 0 0 0 1.5px var(--b-ochre,#b38840)}
-@media (prefers-reduced-motion:no-preference){.sort-grid li{animation:sort-pop .3s ease-out both}.sort-grid li:nth-child(n){animation-delay:calc(var(--i,0) * 25ms)}}
+@media (prefers-reduced-motion:no-preference){.sort-grid.pop li{animation:sort-pop .3s ease-out both;animation-delay:calc(var(--i,0) * 25ms)}}
 @keyframes sort-pop{0%{opacity:0;transform:scale(.8)}}
 .sort-mini{display:flex;flex-direction:column;align-items:center;gap:1px;font-family:var(--b-display,Georgia,serif);font-size:.95rem;line-height:1.05}
 .sort-mini b{font-weight:400}
-.sort-mini i{display:block;width:16px;height:7px;border-radius:3px;border:1.5px solid var(--b-ink,#294439);background:var(--b-card,#fffdf5)}
-.sort-mini i.b0{width:9px}
-.sort-mini i.b1{width:16px;background:var(--b-pine,#31533e);border-color:#1d3526}
+.sort-mini{min-height:3.2em;justify-content:center}
+.sort-mini i{display:block;width:9px;height:9px;margin:1px 0;border-radius:50%;border:1.5px solid var(--b-ink,#294439);background:var(--b-card,#fffdf5)}
+.sort-mini i.b1{width:13px;height:13px;margin:0;background:var(--b-pine,#31533e);border-color:#1d3526}
+.sort-pairrow{display:flex;align-items:center;gap:4px}
+.sort-arrow{color:var(--b-muted,#5a6850);font-size:.85rem}
 .sort-mark{font-size:.95rem;line-height:1}
 .sort-mark.ok{color:var(--b-good,#3c7a4a)}
 .sort-mark.bad{color:var(--b-bad,#a9503a)}
@@ -67,6 +70,8 @@ button.sort-card:hover{filter:brightness(1.04)}
 /* Playground pickers */
 .sort-pickers{display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem}
 .sort-tools{display:flex;flex-wrap:wrap;justify-content:center;gap:.3rem}
+.sort-lane-icon{width:26px;height:26px}
+.sort-lane-icon line{stroke:var(--b-ink,#294439);stroke-width:2.2;stroke-linecap:round}
 .sort-kind i{display:inline-block;width:9px;height:9px;border-radius:50%;border:1.5px solid var(--b-ink,#294439);background:var(--b-card,#fffdf5)}
 .sort-kind i.b1{width:14px;height:14px;background:var(--b-pine,#31533e)}
 @media (max-width:420px){.sort-board{--gap:60px}.sort-card{font-size:1.05rem}}
