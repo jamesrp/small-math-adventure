@@ -81,11 +81,12 @@ Earlier stories stay readable: a version-3 journey moves to `profile.roadJourney
 | `dist/caravan-road3.js` | Frozen version 3, for archived saves |
 | `tests/road.test.mjs`, `tests/caravan.test.mjs` | Road logic and archives |
 | `scripts/road-browser-smoke.mjs` | Every encounter on every trail through the interface, side puzzles, finale, migrations, art slots |
+| `scripts/caravan-browser-smoke.mjs` | Saves around the road through the interface: Undo, reload, locked solved boards, free play beside the road, offline, Journal replay, backups with the earlier stories |
 | `scripts/check-art.mjs`, `scripts/prepare-art.mjs`, `scripts/export-art-references.mjs` | Art checks, conversion and composition references |
 | `scripts/road-art-preview.mjs` | Screenshots of the map at four points along the road, every stop’s opening scene and the finale, on phone, tablet and desktop, for reviewing art by eye |
 
 ## Verification
 
-`npm test` plays all three trails to the fair and checks stars, Plume’s scores against each instance’s optimum, side-puzzle locks, trail independence, forged saves and the archives. `npm run build` validates every non-proof road board by its hints. Proof boards are validated with their sources. `node scripts/road-browser-smoke.mjs` plays the road through the interface (K–1 on a phone, 2–3 on a tablet, 4–5 on a desktop).
+`npm test` plays all three trails to the fair and checks stars, Plume’s scores against each instance’s optimum, side-puzzle locks, trail independence, forged saves and the archives. `npm run build` validates every non-proof road board by its hints. Proof boards are validated with their sources. `node scripts/road-browser-smoke.mjs` plays the road through the interface (K–1 on a phone, 2–3 on a tablet, 4–5 on a desktop), and `node scripts/caravan-browser-smoke.mjs` checks its saves there.
 
 Not yet checked on an iPad, and no child has played it. Family playtesting should look at pacing, whether Plume’s scores feel fair, and whether the side puzzles are found.
