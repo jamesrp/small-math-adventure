@@ -1,0 +1,61 @@
+@import url('../../graph-board.css');
+/* Bracing frames: a hinged frame of ink bars and pins, braces in pine, windows
+   in pale glass, and the row-column graph beside the frame. After a push
+   (.pushed), the graph shows its links, and braces and dots are tinted by the
+   piece that turned together, or lit when there is one piece. */
+.bf-puzzle{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
+.bf-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .8rem;max-width:100%}
+.bf-buttons{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem}
+.bf-puzzle .bf-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.bf-puzzle .bf-button:not([disabled]){border-color:var(--b-pine,#31533e)}
+.bf-puzzle .bf-button[disabled]{opacity:.5;box-shadow:none}
+.bf-puzzle .bf-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.bf-beads{display:inline-flex;gap:4px}
+.bf-beads i{width:14px;height:14px;border-radius:3px;transform:rotate(45deg);border:2px solid var(--b-pine,#31533e);box-sizing:border-box}
+.bf-beads i.on{background:var(--b-pine,#31533e)}
+
+.bf-boards{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.4rem 1.2rem;width:100%}
+.bf-main{flex:1 1 300px;max-width:470px;display:flex;justify-content:center}
+.bf-frame{display:block;width:min(100%, calc(var(--bf-w) * 92px + 60px));height:auto;overflow:visible;user-select:none;-webkit-user-select:none}
+.bf-side{flex:0 1 230px;max-width:250px}
+.bf-side .gb-board{margin:0 auto}
+
+/* The frame. */
+.bf-cell{fill:transparent;stroke:none}
+.bf-cell[role="button"]{cursor:pointer;outline:none}
+.bf-cell[role="button"]:hover{fill:rgba(41,68,57,.06)}
+.bf-cell[role="button"]:focus-visible{fill:rgba(179,136,64,.18)}
+.bf-cell.window{fill:#dfeaf0;stroke:#b7c9d3;stroke-width:1px;vector-effect:non-scaling-stroke}
+.bf-cell.hinted{fill:rgba(179,136,64,.22)}
+.bf-cell.told{fill:rgba(169,80,58,.12)}
+.bf-bar line,.bf-bars line{stroke:#6b5a43;stroke-width:5px;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.bf-brace{stroke:var(--b-pine,#31533e);stroke-width:5px;stroke-linecap:round;vector-effect:non-scaling-stroke;pointer-events:none}
+.bf-brace.fixed{stroke:var(--b-ink,#294439);stroke-dasharray:none}
+.pushed .bf-brace.g0{stroke:#3f7a5f}
+.pushed .bf-brace.g1{stroke:#5a64a8}
+.pushed .bf-brace.g2{stroke:#a3587a}
+.pushed .bf-brace.g3{stroke:#9a7a33}
+.bf-brace.told{stroke:var(--b-bad,#a9503a);stroke-dasharray:6 5}
+.bf-pin{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:2px;vector-effect:non-scaling-stroke;pointer-events:none}
+.bf-bars,.bf-braces,.bf-pins{pointer-events:none}
+.bf-name{font-family:var(--b-display,Georgia,serif);font-size:4.4px;fill:#7d8c73;text-anchor:middle}
+@media (prefers-reduced-motion:no-preference){.bf-frame.bf-firm{animation:bf-firm .5s ease-in-out}}
+@keyframes bf-firm{20%{transform:translateX(1.5px)}40%{transform:translateX(-1.5px)}60%{transform:translateX(1px)}80%{transform:translateX(-.5px)}}
+
+/* The row-column graph. */
+.bf-graph .gb-node .gb-label{font-size:4.4px}
+.bf-graph .gb-edge{opacity:0}
+.pushed .bf-graph .gb-edge{opacity:1}
+@media (prefers-reduced-motion:no-preference){.bf-graph .gb-edge,.bf-graph .gb-dot,.bf-brace{transition:opacity .4s,fill .4s,stroke .4s}}
+.pushed .bf-graph .gb-node.g0 .gb-dot{fill:#dcebe3}
+.pushed .bf-graph .gb-node.g1 .gb-dot{fill:#e3e6f3}
+.pushed .bf-graph .gb-node.g2 .gb-dot{fill:#f2e1e8}
+.pushed .bf-graph .gb-node.g3 .gb-dot{fill:#efe7d4}
+.pushed .bf-graph .gb-node.lit .gb-dot{fill:var(--b-sun,#efc76e)}
+.pushed .bf-graph .gb-edge.lit .gb-line{stroke:var(--b-pine,#31533e)}
+.pushed .bf-graph .gb-edge.g0 .gb-line{stroke:#3f7a5f}
+.pushed .bf-graph .gb-edge.g1 .gb-line{stroke:#5a64a8}
+.pushed .bf-graph .gb-edge.g2 .gb-line{stroke:#a3587a}
+.pushed .bf-graph .gb-edge.g3 .gb-line{stroke:#9a7a33}
+
+.bf-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
