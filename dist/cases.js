@@ -12,15 +12,16 @@ import {esc} from './expansion-controls.js';
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 
 // Every case. Permutations come out in dictionary order of the items given.
+// Results are cached and shared: copy one before changing it.
 const cache = new Map();
 const remember = (name, make) => { if (!cache.has(name)) cache.set(name, make()); return cache.get(name); };
 export function permutations(items) {
-  return remember(`perm:${items.join('\u0001')}`, () => {
+  return remember(`perm:${JSON.stringify(items)}`, () => {
     if (!items.length) return [[]];
     return items.flatMap((item, i) => permutations([...items.slice(0, i), ...items.slice(i + 1)]).map(rest => [item, ...rest]));
   });
 }
-export const sequences = (alphabet, length) => remember(`seq:${alphabet.join('\u0001')}:${length}`, () => {
+export const sequences = (alphabet, length) => remember(`seq:${JSON.stringify(alphabet)}:${length}`, () => {
   let out = [[]];
   for (let i = 0; i < length; i++) out = out.flatMap(s => alphabet.map(a => [...s, a]));
   return out;
@@ -47,7 +48,7 @@ export const claimCases = (target, kept) => missingCases(target, kept).length ? 
 export function validShelf(b, target, limit = SHELF_LIMIT) {
   if (!object(b) || !Array.isArray(b.kept) || b.kept.length > limit || new Set(b.kept).size !== b.kept.length) return false;
   if (!b.kept.every(key => typeof key === 'string' && target.includes(key))) return false;
-  if (typeof b.claimed !== 'boolean' || typeof b.missed !== 'boolean' || (b.claimed && b.missed)) return false;
+  if (typeof b.claimed !== 'boolean' || typeof b.missed !== 'boolean' || (b.claimed && b.missed) || (b.missed && !b.kept.length)) return false;
   const left = missingCases(target, b.kept).length;
   return !(b.claimed && left) && !(b.missed && !left);
 }
@@ -96,7 +97,7 @@ export function binsHTML(kept, bins, bin, o) {
 export function hoopsHTML(kept, hoops, o) {
   if (!kept.length && !o.always) return '';
   const r = hoopCases(kept, hoops);
-  const part = (name, keys, label) => `<div class="case-hoop-part ${name}" aria-label="${esc(label)}">${list(keys, o)}</div>`;
+  const part = (name, keys, label) => `<div class="case-hoop-part ${name}" role="group" aria-label="${esc(label)}">${list(keys, o)}</div>`;
   return `<section class="case-hoops" aria-label="${esc(o.label || 'Kept')}"><div class="case-hoop-pair"><span class="case-hoop left" aria-hidden="true"></span><span class="case-hoop right" aria-hidden="true"></span><h3 class="case-hoop-label left">${hoops[0].label}</h3><h3 class="case-hoop-label right">${hoops[1].label}</h3>${part('left', r.left, hoops[0].say)}${part('both', r.both, `${hoops[0].say} and ${hoops[1].say}`)}${part('right', r.right, hoops[1].say)}</div>${r.outside.length ? part('outside', r.outside, 'Neither') : ''}</section>`;
 }
 // The full catalog, shown once a puzzle is solved: every case, in columns,
@@ -150,7 +151,12 @@ export function wireCups(root, {picked, pick, swap}) {
     else swap(first, h);
   });
   let from = null;
-  root.addEventListener('pointerdown', e => { const el = e.target.closest('[data-cup]'); from = usable(el) ? el : null; });
+  root.addEventListener('pointerdown', e => {
+    const el = e.target.closest('[data-cup]');
+    from = usable(el) ? el : null;
+    // A release anywhere ends the drag; the board's own pointerup runs first.
+    if (from) document.addEventListener('pointerup', () => { from = null; }, {once: true});
+  });
   root.addEventListener('pointerup', e => {
     const start = from;
     from = null;

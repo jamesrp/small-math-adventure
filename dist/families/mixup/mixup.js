@@ -165,6 +165,8 @@ function renderPuzzle(p, a) {
 }
 function renderPlay(p, a) {
   const b = a.board;
+  // Undo can take away the cup that was picked.
+  if (ui(p).pick >= b.cups) ui(p).pick = null;
   const pickers = `<div class="case-tools" role="group" aria-label="Cups">${PLAY_CUPS.map(n => button(String(n), {type: 'cups', cups: n}, 'case-tool', `aria-pressed="${b.cups === n}" aria-label="${n} cups"`)).join('')}</div>`;
   const board = cupsBoard(b.row, {picked: ui(p).pick});
   const actions = `<div class="case-actions">${button('Keep', {type: 'keep'}, '', b.kept.includes(b.row) ? 'disabled' : '')}${button('Shuffle', {type: 'shuffle'})}${button('Clear', {type: 'clear'}, '', b.kept.length ? '' : 'disabled')}</div>`;
@@ -179,7 +181,7 @@ function wire(root, p, api) {
   wireCases(root, row => { if (row !== api.attempt().board.row) apply({type: 'load', row}); });
   root.addEventListener('click', e => {
     const el = e.target.closest('[data-mixup-move]');
-    if (!el || !root.contains(el) || el.disabled) return;
+    if (!el || !root.contains(el) || el.disabled || el.getAttribute('aria-pressed') === 'true') return;
     try { apply(JSON.parse(el.dataset.mixupMove)); } catch { /* malformed control data is ignored */ }
   });
   // A row just kept arrives on the shelf; two cups just swapped settle.

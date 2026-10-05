@@ -26,7 +26,7 @@ export const family = {
 };
 
 const RULES = family.rules;
-const PINNED = 'A cup with a dot stays on its home.';
+const PINNED = 'A cup with a dot stays where it is.';
 const HOOPS = 'Each kept row goes in every hoop it belongs to. A row in both hoops sits where they overlap.';
 const BINS = 'The shelf sorts kept rows into columns.';
 const CONTROLS = 'Tap a cup, then another, to swap them, or drag one onto the other. Keep puts the row on the shelf; tap a kept row to set the cups that way again. Press That’s all when every row is on the shelf.';
@@ -153,9 +153,9 @@ const authored = [
       prompt: 'Why does every column hold the same number?',
       explanation: 'Fix the cup that stays home. The other three then form a row of three with none at home, which has two ways (puzzle 1). Renaming letters turns one column into another, so each holds two.',
       extension: 'Four cups have 9, 8, 6, 0 and 1 rows with 0, 1, 2, 3 and 4 at home, 24 in all. Why can’t exactly three be home?',
-      connection: 'Rows with exactly k cups home number C(n, k) · D(n − k), the rencontres numbers (OEIS A008290; Week 63 guide, Problem 6 notes).'
+      connection: 'Rows with exactly k cups home number C(n, k) · D(n − k), the rencontres numbers (OEIS A008290; the Week 63 guide lists them for five cards in its Problem 6 notes).'
     },
-    provenance: 'New. The Week 63 guide lists how many rows have each number of home matches (Problem 6 notes); this puzzle collects one such count.',
+    provenance: 'New. The Week 63 guide lists how many five-card rows have each number of home matches (Problem 6 notes); this puzzle collects one count of the four-cup version.',
     sourceIds: [...W, 'mixup-oeis-rencontres'],
     expect: 8
   },
@@ -173,7 +173,7 @@ const authored = [
       extension: 'With A, B and C away and D free there are 24 − 18 + 6 − 1 = 11 rows.',
       connection: 'Week 63 Problem 4, and puzzle 6 counts the other 10.'
     },
-    provenance: 'Week 63 Problem 4 (count the A–D rows with A and B away; repair 24 − 6 − 6).',
+    provenance: 'Week 63 Problem 4 (count the A–D rows with A and B away; repair 24 − 6 − 6). The split by C and D is new.',
     sourceIds: W,
     expect: 14
   },
@@ -188,7 +188,7 @@ const authored = [
       notice: 'A on home E: ECDBA, EDBCA. A elsewhere: nine rows, one for each row of puzzle 5.',
       prompt: 'Take EADBC. Take E out and put the cup from home E on home A. What row do you get?',
       explanation: 'CADB, a row of four with none at home. Every row with A elsewhere shrinks this way, and every row of puzzle 5 grows back one way: move its cup on home A to home E and stand E on home A. So that column matches the 9 rows of puzzle 5, and the A-on-E column matches the 2 rows of puzzle 1 (take A and E out). 2 + 9 = 11. E can stand on any of four homes, so five cups have 4 × 11 = 44 rows with none at home: D(5) = 4(D(4) + D(3)).',
-      extension: 'Use the same step to grow the 44 rows of five cups into the rows of six. How many are there?',
+      extension: 'Stand F on home A. The 44 rows of five cups grow into the rows with A elsewhere, and the 9 rows of four into the rows with A on home F. How many rows of six cups have none at home?',
       connection: 'The recurrence D(n) = (n − 1)(D(n − 1) + D(n − 2)), proved by reversible deletion (Week 63 Problems 8 and 9; Stanley, Chapter 2).'
     },
     provenance: 'Week 63 Problem 8 (keep E in home A; make every home-free A–E row in two families and give reversible constructions).',

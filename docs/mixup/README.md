@@ -29,11 +29,11 @@ Experiments come first: a child swaps cups and keeps rows. A complete list estab
 | 8 | A and B away, four cups | 4 | A and B away: 14 | By C and D: 9, 2, 2, 1 | P4 |
 | 9 | E stays on home A | 5, E fixed on A | None at home: 11 | A on E (2) / not (9) | P8 |
 
-Rows are written as the cups on homes A, B, C, … in order. The pairs 2–3 and 6–8 are complements: together they keep every row of three cups, and 10 + 14 = 24 for four. Puzzles 4 and 9 introduce the two families on a small case and then a large one, and puzzle 8's first column is puzzle 5's nine rows again. Each puzzle's `provenance` names its problems. All rows and splits are the worksheet's except puzzle 7, which collects one count from the guide's table of home matches.
+Rows are written as the cups on homes A, B, C, … in order. The pairs 2–3 and 6–8 are complements: together they keep every row of three cups, and 10 + 14 = 24 for four. Puzzles 4 and 9 introduce the two families on a small case and then a large one, and puzzle 8's first column is puzzle 5's nine rows again. Each puzzle's `provenance` names its problems. The rows are the worksheet's. Two groupings are new: puzzle 7 is the four-cup version of the guide's five-card table of home matches, and puzzle 8's columns by C and D split the worksheet's 14.
 
 ## How a puzzle plays
 
-- **Cups.** Tap a cup, then another, to swap them, or drag one cup onto another; Enter on two cups does the same. A home turns ochre while its own cup stands on it. A cup with a dark dot is fixed to its home and can't be picked.
+- **Cups.** Tap a cup, then another, to swap them, or drag one cup onto another; Enter on two cups does the same. A home turns ochre while its own cup stands on it. A cup with a dark dot is fixed where it stands and can't be picked.
 - **Keep** puts the row on the shelf. It is greyed out while the row on the cups is not one the puzzle asks for, or is already kept; the kept copy of the row on the cups has a green border. Tap a kept row to set the cups that way again, a quick start for the next row.
 - **The shelf** keeps rows in the order found, or sorts them as they arrive into two hoops (a row with both cups home sits where the hoops overlap) or into labelled columns. Nothing shows how many rows there are.
 - **That's all** is the claim. If a row is missing it says "There's another." and stays greyed until something new is kept. When every row is kept the puzzle is solved and every row of the puzzle's cups appears below in columns, the ones that count in green: the certificate.

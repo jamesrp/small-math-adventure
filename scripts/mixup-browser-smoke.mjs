@@ -35,6 +35,7 @@ async function drag(from, to) {
 }
 const swap = async (i, j) => { await tap(cup(i)); await tap(cup(j)); };
 const row = async id => (await board(id)).row;
+const refused = () => page.getByText('That move is not allowed').count();
 try {
   await mkdir(out, {recursive: true});
   await page.goto(base); await page.locator('#nickname').fill('Cups QA'); await page.locator('#profile-form button[type=submit]').click();
@@ -45,6 +46,14 @@ try {
   const P1 = 'mixup-01';
   await open(P1); await fit('three cups'); await shot('01-start');
   assert.equal(await button('Keep').isDisabled(), true, 'ABC can’t be kept');
+  if (!phone) {
+    // A mouse released off the board ends the drag: a later press outside
+    // released on a cup swaps nothing.
+    await page.mouse.move(...await center(cup(0))); await page.mouse.down();
+    await page.mouse.move(5, 5, {steps: 4}); await page.mouse.up();
+    await page.mouse.down(); await page.mouse.move(...await center(cup(1)), {steps: 4}); await page.mouse.up();
+    assert.equal(await row(P1), 'ABC', 'an abandoned drag swaps nothing');
+  }
   await tap(cup(0));
   assert.equal(await cup(0).getAttribute('aria-pressed'), 'true', 'the first tap picks a cup');
   await tap(cup(1));
@@ -127,6 +136,17 @@ try {
   await open('mixup-playground');
   await page.getByRole('button', {name: '5 cups'}).click();
   assert.equal(await cup(4).count(), 1);
+  await page.getByRole('button', {name: '5 cups'}).click();
+  assert.equal(await refused(), 0, 'tapping the chosen count again is quiet');
+  // Undo takes the fifth cup away while it is picked; the next tap picks afresh.
+  await tap(cup(4));
+  await page.locator('[data-action="undo"]').click();
+  assert.equal(await cup(4).count(), 0);
+  await tap(cup(0));
+  assert.equal(await cup(0).getAttribute('aria-pressed'), 'true', 'a stale pick is dropped');
+  assert.equal(await refused(), 0);
+  await tap(cup(0));
+  await page.getByRole('button', {name: '5 cups'}).click();
   await button('Keep').click(); await swap(0, 1); await button('Keep').click(); await swap(2, 3); await swap(3, 4); await button('Keep').click();
   await button('Shuffle').click();
   assert.equal((await board('mixup-playground')).kept.length, 3);

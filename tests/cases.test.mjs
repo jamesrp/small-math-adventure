@@ -10,6 +10,7 @@ const mini = key => `<b>${key}</b>`, say = key => `row ${key}`;
 test('every case: permutations in dictionary order, sequences, rows of cups', () => {
   assert.deepEqual(permutations([1, 2, 3]).map(p => p.join('')), ['123', '132', '213', '231', '312', '321']);
   assert.deepEqual(permutations([]), [[]]);
+  assert.equal(typeof permutations(['1', '2', '3'])[0][0], 'string', 'numbers and their strings are cached apart');
   assert.equal(sequences(['R', 'B'], 3).length, 8);
   assert.deepEqual(sequences(['R', 'B'], 2).map(s => s.join('')), ['RR', 'RB', 'BR', 'BB']);
   assert.equal(rowsOf(5).length, 120);
@@ -34,6 +35,7 @@ test('the shelf keeps a case once, only if it counts, and That’s all needs eve
   assert.equal(validShelf({kept: ['CAB'], claimed: false, missed: true}, target), true);
   assert.equal(validShelf({kept: ['CAB'], claimed: true, missed: false}, target), false, 'claimed with one missing');
   assert.equal(validShelf({kept: target, claimed: false, missed: true}, target), false, 'missed with none missing');
+  assert.equal(validShelf({kept: [], claimed: false, missed: true}, target), false, 'missed with nothing kept');
   assert.equal(validShelf({kept: ['ABC'], claimed: false, missed: false}, target), false, 'a case that does not count');
   assert.equal(validShelf({kept: ['CAB', 'CAB'], claimed: false, missed: false}, target), false, 'a repeat');
   assert.equal(nearestCase(['DCBA', 'BADC', 'ABDC'], 'ABCD'), 'ABDC');
@@ -58,7 +60,7 @@ test('drawing: a shelf of buttons that load, columns, two hoops and a catalog', 
   const bins = binsHTML(['BCA'], [{id: 'B', label: 'B'}, {id: 'C', label: 'C'}], key => key[0], {mini, say, always: true});
   assert.equal((bins.match(/class="case-bin"/g) || []).length, 2, 'empty bins keep their place');
   const hoops = hoopsHTML(['ABC', 'ACB', 'CBA'], [{label: 'A', say: 'A at home', has: k => k[0] === 'A'}, {label: 'B', say: 'B at home', has: k => k[1] === 'B'}], {mini, say});
-  assert.match(hoops, /case-hoop-part both" aria-label="A at home and B at home"><ol class="case-list"><li class="case-kept" aria-label="row ABC">/);
+  assert.match(hoops, /case-hoop-part both" role="group" aria-label="A at home and B at home"><ol class="case-list"><li class="case-kept" aria-label="row ABC">/);
   assert.doesNotMatch(hoops, /outside/, 'no outside part when every case is in a hoop');
   const cat = catalogHTML(['ABC', 'BCA', 'CAB'], [{id: 'A', label: 'A'}, {id: 'B', label: 'B'}, {id: 'C', label: 'C'}], k => k[0], {mini, say, mark: k => k === 'ABC' ? 'no' : 'yes'});
   assert.match(cat, /case-kept no/);

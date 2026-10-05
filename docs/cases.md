@@ -19,7 +19,7 @@ atHome('ACB');                   // ['A']: the cups standing on their own homes
 differences('ABCD', 'BACD');     // 2: places where two keys differ
 ```
 
-All of these are cached, so calling them in every render costs nothing.
+`permutations`, `sequences` and `rowsOf` are cached, so calling them in every render costs nothing. They return the cached arrays: copy before changing one.
 
 ## The shelf
 
