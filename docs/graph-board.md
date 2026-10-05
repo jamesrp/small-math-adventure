@@ -1,6 +1,6 @@
 # The shared graph board
 
-`dist/graph-board.js` and `dist/graph-board.css` draw a map of places joined by links or one-way arrows, make each place and link a control, and pass taps, keys and finger slides back to the family as moves. They never know a family's rules. Routes and roadblocks ([flow](flow/README.md), Week 13) and Cheapest networks ([mst](mst/README.md), Week 53) use it. The plan's other graph themes can build on the same board: path reduction (39), bracing frames (52) and scheduling as colouring (62). See [the plan](plan/README.md), Wave 2.
+`dist/graph-board.js` and `dist/graph-board.css` draw a map of places joined by links or one-way arrows, make each place and link a control, and pass taps, keys and finger slides back to the family as moves. They never know a family's rules. Routes and roadblocks ([flow](flow/README.md), Week 13), Cheapest networks ([mst](mst/README.md), Week 53), Road detours ([detours](detours/README.md), Week 39) and Bracing frames ([braces](braces/README.md), Week 52) use it. Scheduling as colouring (62) can build on the same board. See [the plan](plan/README.md), Wave 2.
 
 The module imports only `expansion-controls.js`, so a family module can import it without reaching back to `families.js`.
 
@@ -90,8 +90,8 @@ What exists now covers each theme's core move. The notes are proposals, not deci
 |---|---|---|---|
 | 13 | Route packing | Arrows; tap or slide along dots to draw routes; tap arrows to close them | Done (flow) |
 | 53 | Cheapest networks | Undirected links with `tag` prices; tap a link to buy or return it; `cls` tints places by group; `strokes` show bought links, loops and a cheaper swap; tapping places makes a split; `graphMini` draws found networks | Done ([mst](mst/README.md)) |
-| 39 | Path reduction | Lay steps by tapping links or sliding along dots; the step word shows beside the board; tap a back-and-forth pair to cancel it | Two rings drawn as one place with two loops would need self-loop edges, which the board rejects now. Drawing each ring as a cycle of dots needs no change |
-| 52 | Bracing frames | The hinged grid is not a node-link map, but its row-column graph is: rows and columns as dots, a brace as a link. The grid itself would be the family's own drawing in `under` | The board's part is the row-column graph shown beside the grid, lit when connected |
+| 39 | Path reduction | Each ring is a cycle of dots (two rings share H), so no self-loops are needed. Tap a dot or link next to the pawn, or slide, to step; `strokes` mark roads used one way or both; the trip row below the board is the family's own; tap a turning point there to cancel | Done ([detours](detours/README.md)) |
+| 52 | Bracing frames | The hinged grid is the family's own SVG; the board draws only the row-column graph beside it, not interactive, with `cls` tinting dots and links by piece. Links and tints show after a push | Done ([braces](braces/README.md)) |
 | 62 | Scheduling as colouring | Dots coloured by `cls`, tapped to cycle a slot; links between clashing neighbours marked with `bar` or a stroke | Wave 1 is adding it as a group in Neighbor Lanterns, which has its own board; moving onto this board is optional |
 
 Known limits, each addable without breaking existing maps: two arrows between the same pair of dots in opposite directions draw on top of each other (a per-edge `bend` would curve them); there are no self-loops; there is no dragging of dots, because no family needs to move a map and the plan rules out make-a-puzzle editors until that is decided.
