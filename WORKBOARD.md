@@ -6,10 +6,10 @@ One line per item. Claim an item by changing its line to your name, branch and s
 |---|---|---|---|
 | Work board and claim rule (plan item 1) | Claude, App family seam thread | `main` | done |
 | Family seam and `docs/ADDING-A-FAMILY.md` (plan item 2) | Claude, App family seam thread | `claude/family-seam-5igt4y` | done (PR #3) |
-| Wave 1: star drawing in Clockwork Gates (Week 4) | | | open; waits on the Week 4 review card |
-| Wave 1: move menus in Pebble Duel (Week 7) | | | open; waits on the Week 7 review card |
-| Wave 1: codebook design in Signal Lanterns (Week 18) | | | open; waits on the Week 18 review card |
-| Wave 1: first-fit order in Neighbor Lanterns (Week 62) | | | open; waits on the Week 62 review card |
+| Wave 1: star drawing in Clockwork Gates (Week 4) | Claude, New groups in four families thread | `claude/wave1-groups-uag4d4` | claimed; review card first |
+| Wave 1: move menus in Pebble Duel (Week 7) | Claude, New groups in four families thread | `claude/wave1-groups-uag4d4` | claimed; review card first |
+| Wave 1: codebook design in Signal Lanterns (Week 18) | Claude, New groups in four families thread | `claude/wave1-groups-uag4d4` | claimed; review card first |
+| Wave 1: first-fit order in Neighbor Lanterns (Week 62) | Claude, New groups in four families thread | `claude/wave1-groups-uag4d4` | claimed; review card first |
 | Wave 1: route packing with its cut (Week 13) | Claude, Route packing and cheapest networks thread | `claude/wave1-networks-kqynkj` | claimed; review card in progress |
 | Wave 1: sorting networks (Week 23) | Claude, Sorting networks thread | `claude/wave1-sorting-networks-srwvtc` | in progress; review card first |
 | Wave 1: hidden pictures from row and column counts (Week 25) | | | open; waits on the Week 25 review card |
