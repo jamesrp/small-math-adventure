@@ -1,10 +1,11 @@
 // Builds dist/families/menus/menus.json, the Pebble Duel menus group, from the
-// authoring list below. Each game puzzle's winning first takes and each
-// round's losing starts are computed here by search (dist/families/menus/menus.js)
+// authoring list below. Each game puzzle's winning first takes, each round's
+// losing starts, each track's squares to leave, each reply and the menus that
+// meet a design goal are computed here by search (dist/families/menus/menus.js)
 // and checked again by scripts/validate-menus.mjs.
 // Design notes and worksheet sources: docs/menus/README.md.
 import {writeFile} from 'node:fs/promises';
-import {moverWins, winningMoves, startPool} from '../dist/families/menus/menus.js';
+import {moverWins, winningMoves, startPool, toLeave, firstMoves, after, DESIGN_LAST} from '../dist/families/menus/menus.js';
 
 const WEEK7 = 'https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-07';
 export const sources = [
@@ -26,16 +27,22 @@ export const family = {
 
 const CONTROLS = {
   game: 'Tap a number under a pile to take that many pebbles. The opponent replies at once. Undo takes back your take and the reply.',
-  streak: 'Choose Me first or You first. Tap a number under a pile to take that many pebbles. After a game, New start draws new pebbles; Same start again is practice and does not count.'
+  streak: 'Choose Me first or You first. Tap a number under a pile to take that many pebbles. After a game, New start draws new pebbles; Same start again is practice and does not count.',
+  replies: 'Tap a number under the pile to take that many pebbles. The opponent replies at once. After a win, Next first take starts the next game; after a loss, Try again replays the same first take.',
+  track: 'Tap a square to colour it, and tap it again to clear it. Check says whether the colouring is right; if not, it explains the lowest square that is wrong, and you can play from that square against the opponent. Undo takes back one tap.',
+  design: 'Tap a take to allow it, and tap it again to remove it. Check works out the squares to leave for your takes and explains the lowest one that differs from the goal.'
 };
-const takeRule = (menu, piles) => `A turn takes ${menu.slice(0, -1).join(', ')}${menu.length > 2 ? ',' : ''} or ${menu.at(-1)} pebbles${piles > 1 ? ' from one pile' : ''}.`;
+const takeRule = (menu, piles) => `A turn takes ${menu.slice(0, -1).join(', ')} or ${menu.at(-1)} pebbles${piles > 1 ? ' from one pile' : ''}.`;
 function rules(q) {
-  const piles = q.mode === 'streak' ? q.piles : q.start.length;
+  if (q.mode === 'design') return ['Players take turns. A turn takes one of the allowed numbers of pebbles.', 'A player who cannot take loses.', 'You choose the allowed takes, from 1 to 9.'];
+  const piles = q.mode === 'streak' || q.mode === 'track' ? q.piles ?? 1 : q.start.length;
   const out = ['Players take turns.', takeRule(q.menu, piles)];
   if (q.misere) out.push('Whoever takes the last pebble loses.');
   else if (q.menu[0] > 1) out.push('A player who cannot move loses.');
   else out.push('Whoever takes the last pebble wins.');
+  if (q.mode === 'track') return [...out, q.piles === 2 ? 'The square in row a and column b stands for piles of a and b.' : 'Square N stands for a pile of N pebbles.'];
   out.push('The opponent never misses a winning move.');
+  if (q.mode === 'replies') out.push('You go second, and the opponent tries each first take in turn. Win every game.');
   if (q.mode === 'streak') out.push('Before each game, choose who starts. Win 3 games in a row; only games from a new start count.');
   return out;
 }
@@ -93,12 +100,29 @@ const authored = [
     provenance: 'Week 7 grades 4–5 Problem 1 (first or second, and how many to take) as a choose-who-starts round, as in the Proofs duels.'
   },
   {
-    number: 4, difficulty_level: 'medium', title: 'Take 1, 2 or 3',
+    number: 4, difficulty_level: 'easy', title: 'The track for 1 or 2',
+    parameters: {mode: 'track', menu: [1, 2], last: 20},
+    objective: 'Each turn takes 1 or 2 pebbles, and whoever takes the last pebble wins. The squares 0 to 20 stand for piles of that many pebbles. Colour every square you would like to leave for your opponent, then Check.',
+    visibleObjective: 'Colour every pile you would like to leave for your opponent.',
+    idea: 'With takes of 1 or 2 the squares to leave are the multiples of 3: from each, every take reaches an uncoloured square, and from every other square one take reaches a coloured one.',
+    prerequisites: 'Menus puzzles 1–3. Count to 20.',
+    hints: ['Start at 0. If you leave 0, your opponent cannot move.', 'If you leave 1 or 2, your opponent takes the rest. What about 3?', 'A square is one to leave when every take from it reaches a square that is not coloured.'],
+    parent: {
+      notice: 'Whether your child fills the track from 0 upward, deciding each square from the ones below it, or colours a guessed pattern.',
+      prompt: 'Why is 3 a good pile to leave, and 4 not?',
+      explanation: 'Work up from 0. Leaving 0 wins at once. Leaving 1 or 2 lets the opponent take the rest. Leaving 3 forces them to leave 2 or 1, which you finish. From 4 or 5 one take reaches 3, so they are not squares to leave; 6 is, and so on: the squares to leave are 0, 3, 6, …, 18. Check reports the lowest wrong square with its reason, in terms of the child’s own colouring.',
+      extension: 'Without colouring, is 100 a square to leave?',
+      connection: 'The P-positions of the subtraction game with takes 1 and 2: a position is P exactly when every move leads to an N-position (Ferguson, §1).'
+    },
+    provenance: 'Week 7 grades 4–5 Problem 2 (colour every square where you would like to leave the token, takes of 1 or 2, track to 20).'
+  },
+  {
+    number: 5, difficulty_level: 'medium', title: 'Take 1, 2 or 3',
     parameters: {mode: 'game', menu: [1, 2, 3], start: [10]},
     objective: 'Take the last pebble to win. Each turn takes 1, 2 or 3 pebbles.',
     visibleObjective: 'Take the last pebble.',
     idea: 'With 1, 2 or 3 on the menu, the piles to hand over are multiples of 4.',
-    prerequisites: 'Menus puzzles 1–3. Count to 10.',
+    prerequisites: 'Menus puzzles 1–4. Count to 10.',
     hints: ['What happens if you hand the opponent 4?', 'The piles to hand over are 4 and 8.', 'Take 2, leaving 8.'],
     parent: {
       notice: 'Whether your child tries the old rule (multiples of 3) first, and how they find the new one.',
@@ -110,12 +134,12 @@ const authored = [
     provenance: 'Week 7 grades 4–5 Problem 2 (take 1, 2 or 3) and K–1 Problem 6 (the token moves 1, 2 or 3). New instance.'
   },
   {
-    number: 5, difficulty_level: 'medium', title: 'Not the most',
+    number: 6, difficulty_level: 'medium', title: 'Not the most',
     parameters: {mode: 'game', menu: [1, 3, 4], start: [12]},
     objective: 'Take the last pebble to win. Each turn takes 1, 3 or 4 pebbles.',
     visibleObjective: 'Take the last pebble.',
     idea: 'Taking the most is not always best: from 12 the only winning take is 3.',
-    prerequisites: 'Menus puzzles 1–4. Count to 12.',
+    prerequisites: 'Menus puzzles 1–5. Count to 12.',
     hints: ['Find the small piles you would like to hand over. Is 2 one of them?', 'The piles to hand over are 2, 7 and 9.', 'Take 3, leaving 9.'],
     parent: {
       notice: 'Whether your child stops taking 4 every time, and starts checking what each take leaves.',
@@ -127,12 +151,12 @@ const authored = [
     provenance: 'Week 7 grades 2–3 Problems 1–5 and grades 4–5 Problems 3–5 (moves of 1, 3 or 4; Omar and Kai take the most). New instance.'
   },
   {
-    number: 6, difficulty_level: 'medium', title: 'Take 2 or 3',
+    number: 7, difficulty_level: 'medium', title: 'Take 2 or 3',
     parameters: {mode: 'game', menu: [2, 3], start: [9]},
     objective: 'Make the last move to win. Each turn takes 2 or 3 pebbles, and a player who cannot move loses.',
     visibleObjective: 'Make the last move.',
     idea: 'A single pebble cannot be taken, so handing over 1 wins.',
-    prerequisites: 'Menus puzzles 1–5.',
+    prerequisites: 'Menus puzzles 1–6.',
     hints: ['What can a player do with 1 pebble?', 'The piles to hand over are 0, 1, 5 and 6.', 'Take 3, leaving 6.'],
     parent: {
       notice: 'Whether your child sees that 1 pebble is as good as none to hand over.',
@@ -144,12 +168,46 @@ const authored = [
     provenance: 'Week 7 grades 4–5 Problem 7 (take 2 or 3) and the packet’s rule that a player who cannot move loses. New instance.'
   },
   {
-    number: 7, difficulty_level: 'medium', title: 'Who starts with 1, 3 or 4?',
+    number: 8, difficulty_level: 'medium', title: 'The track for 1, 3 or 4',
+    parameters: {mode: 'track', menu: [1, 3, 4], last: 24},
+    objective: 'Each turn takes 1, 3 or 4 pebbles, and whoever takes the last pebble wins. The squares 0 to 24 stand for piles. Colour every square you would like to leave for your opponent, then Check.',
+    visibleObjective: 'Colour every pile you would like to leave for your opponent.',
+    idea: 'With takes of 1, 3 or 4 the squares to leave are 0, 2, 7, 9, 14, 16, 21 and 23: the pair 0, 2 repeats every 7.',
+    prerequisites: 'Menus puzzles 4 and 6.',
+    hints: ['Start at 0 and work up, one square at a time.', 'From 2 the only take is 1, which leaves 1. Would you leave 1?', 'A square is one to leave when no take from it reaches a coloured square.'],
+    parent: {
+      notice: 'Whether your child notices the repeat after 7 and uses it to finish faster, and whether they check that it still holds.',
+      prompt: 'Where does the pattern start again? Why every 7?',
+      explanation: 'Working up from 0: 0 is to leave; 1 is not (take 1 to 0); 2 is (its only take leaves 1); 3, 4, 5 and 6 are not (they reach 0 or 2); 7 is (its takes leave 6, 4 or 3). Each square depends only on the four squares below it, and 7 to 10 look like 0 to 3, so the pattern repeats every 7: 0, 2, 7, 9, 14, 16, 21, 23.',
+      extension: 'Is 100 a square to leave with takes of 1, 3 or 4?',
+      connection: 'With a finite menu the outcomes repeat, because each square depends on a window of squares below it; for takes 1, 3 and 4 the period is 7 (Ferguson, §1; Winning Ways, ch. 4).'
+    },
+    provenance: 'Week 7 grades 2–3 Problem 2 (track to 20) and grades 4–5 Problem 4 (track to 30), on squares 0 to 24.'
+  },
+  {
+    number: 9, difficulty_level: 'medium', title: 'Every reply',
+    parameters: {mode: 'replies', menu: [1, 3, 4], start: [14]},
+    objective: 'Each turn takes 1, 3 or 4 pebbles, and whoever takes the last pebble wins. You go second from 14. The opponent tries each first take in turn: 1, then 3, then 4. Win all three games.',
+    visibleObjective: 'Go second from 14. Win against every first take.',
+    idea: 'Going second from 14 wins against every first take, because 14 is a square to leave: after 13, take 4 to leave 9; after 11, take 4 to leave 7; after 10, take 1 or 3 to leave 9 or 7.',
+    prerequisites: 'Menus puzzle 8.',
+    hints: ['Which squares would you like to leave? The track from puzzle 8 helps.', 'After each first take, look for a take that leaves 9 or 7.', 'Keep leaving squares from 0, 2, 7, 9, 14, 16.'],
+    parent: {
+      notice: 'Whether your child plans an answer for each first take, or plays each game from scratch.',
+      prompt: 'How do you know you will win against every first take before you play?',
+      explanation: 'After 13, take 4 to leave 9; after 11, take 4 to leave 7; after 10, take 1 or 3 to leave 9 or 7. From there keep leaving squares in 0, 2, 7, 9. Winning all three games checks every case, so it shows that the first player cannot win from 14. The opponent plays perfectly after its first take, so a wrong reply loses; Try again replays the same first take.',
+      extension: 'From 16, what is the answer to each first take?',
+      connection: 'A position is a P-position exactly when every move leads to an N-position; the three games check every move from 14 (Ferguson, §1).'
+    },
+    provenance: 'Week 7 grades 2–3 Problem 4 (Lena goes second from 9 and says she can win whatever her opponent does), from 14.'
+  },
+  {
+    number: 10, difficulty_level: 'medium', title: 'Who starts with 1, 3 or 4?',
     parameters: {mode: 'streak', menu: [1, 3, 4], piles: 1, range: [5, 20], streak: 3},
     objective: 'Choose who starts, then take the last pebble. Each turn takes 1, 3 or 4 pebbles. Win 3 games in a row from new starts.',
     visibleObjective: 'Win 3 games in a row.',
     idea: 'The piles to hand over are 7, 9, 14 and 16 (and 0 and 2 below them).',
-    prerequisites: 'Menus puzzle 5.',
+    prerequisites: 'Menus puzzles 6 and 8.',
     hints: ['Which small piles would you like to hand over?', 'The piles to hand over are 2, 7, 9, 14 and 16. Let the opponent start from one of them.', 'Otherwise go first and take 1, 3 or 4 to leave one of them.'],
     parent: {
       notice: 'Whether your child keeps a list of the piles to hand over, or works each one out again.',
@@ -161,7 +219,7 @@ const authored = [
     provenance: 'Week 7 grades 2–3 Problems 2–3 and grades 4–5 Problems 3–4 (colour the squares to leave) as a choose-who-starts round.'
   },
   {
-    number: 8, difficulty_level: 'hard', title: 'The last pebble loses',
+    number: 11, difficulty_level: 'hard', title: 'The last pebble loses',
     parameters: {mode: 'game', menu: [1, 2], start: [8], misere: true},
     objective: 'Make the opponent take the last pebble. Each turn takes 1 or 2 pebbles.',
     visibleObjective: 'Don’t take the last pebble.',
@@ -178,12 +236,12 @@ const authored = [
     provenance: 'Week 7 K–1 Problem 9 and the grades 4–5 last-counter-loses game. New instance.'
   },
   {
-    number: 9, difficulty_level: 'hard', title: 'Big piles',
+    number: 12, difficulty_level: 'hard', title: 'Big piles',
     parameters: {mode: 'streak', menu: [1, 3, 4], piles: 1, range: [21, 45], streak: 3},
     objective: 'Choose who starts, then take the last pebble. Each turn takes 1, 3 or 4 pebbles. Win 3 games in a row from new starts.',
     visibleObjective: 'Win 3 games in a row.',
     idea: 'The losing piles repeat every 7, so big piles need the pattern rather than a count down.',
-    prerequisites: 'Menus puzzle 7. Count by 7s, or count back carefully.',
+    prerequisites: 'Menus puzzles 8 and 10. Count by 7s, or count back carefully.',
     hints: ['The piles to hand over repeat. How far is it from 2 to 9, and from 9 to 16?', 'A pile is one to hand over when taking away 7s leaves 0 or 2.', 'Go first and take 1, 3 or 4 to leave such a pile; otherwise let the opponent start.'],
     parent: {
       notice: 'Whether your child counts back from the pile or uses the repeat.',
@@ -195,7 +253,41 @@ const authored = [
     provenance: 'Week 7 grades 2–3 Problem 6 and grades 4–5 Problem 6 (piles of 50 and 100), at a size where counting down is slow.'
   },
   {
-    number: 10, difficulty_level: 'hard', title: 'Two piles',
+    number: 13, difficulty_level: 'hard', title: 'The track for 2, 5 or 6',
+    parameters: {mode: 'track', menu: [2, 5, 6], last: 30},
+    objective: 'Each turn takes 2, 5 or 6 pebbles, and a player who cannot take loses. The squares 0 to 30 stand for piles. Colour every square you would like to leave for your opponent, then Check.',
+    visibleObjective: 'Colour every pile you would like to leave for your opponent.',
+    idea: 'A player on 0 or 1 cannot take, so both are squares to leave. The squares to leave are 0, 1, 4, 8, 11, 12, 15, 19, 22, 23, 26 and 30, and the pattern repeats every 11.',
+    prerequisites: 'Menus puzzles 7 and 8.',
+    hints: ['Start at 0. Which piles leave your opponent no take at all?', 'Nobody can take from a pile of 1, so 1 is a square to leave too.', 'Work up one square at a time: a square is one to leave when no take from it reaches a coloured square.'],
+    parent: {
+      notice: 'Whether your child counts 1 as a square to leave (no take is possible there), and whether they find where the pattern repeats.',
+      prompt: 'Where does the pattern start again? How long is the repeat?',
+      explanation: 'Working up from 0: 0 and 1 are to leave (no take); 2 and 3 are not (take 2); 4 is (it can only leave 2); 5, 6 and 7 are not (they reach 0, 4 or 1); 8 is (it leaves 6, 3 or 2); 9 and 10 are not; 11 and 12 are. From 0 to 30 the squares to leave are 0, 1, 4, 8, 11, 12, 15, 19, 22, 23, 26 and 30. Each square depends on the six below it, and 11 to 16 look like 0 to 5, so the pattern repeats every 11; no shorter repeat works.',
+      extension: 'Is 100 a square to leave with takes of 2, 5 or 6?',
+      connection: 'The outcomes of a subtraction game whose largest take is m repeat as soon as a window of m squares repeats; for takes 2, 5 and 6 the period is 11 from the start (Ferguson, §1; Winning Ways, ch. 4).'
+    },
+    provenance: 'Week 7 grades 4–5 Problem 14 (Kim says the coloured squares for 2, 5 or 6 end up repeating), as a track to 30.'
+  },
+  {
+    number: 14, difficulty_level: 'hard', title: 'Design the takes',
+    parameters: {mode: 'design', period: 5, choices: [1, 2, 3, 4, 5, 6, 7, 8, 9], last: 30},
+    objective: 'Choose which takes from 1 to 9 are allowed, so that the squares to leave for your opponent are exactly 0, 5, 10, 15 and so on. A player who cannot take loses. Then Check.',
+    visibleObjective: 'Choose the takes so that the squares to leave are exactly 0, 5, 10, 15, …',
+    idea: 'The squares to leave are exactly the multiples of 5 when the takes include 1, 2, 3 and 4 and not 5; any of 6 to 9 may be added.',
+    prerequisites: 'Menus puzzles 8 and 13.',
+    hints: ['Square 1 must not be one to leave. What does a player on 1 need?', 'Squares 1 to 4 each need a take that reaches 0. What must not be a take, so that 5 stays a square to leave?', 'Takes 1, 2, 3 and 4 work. Can you add any of 6 to 9?'],
+    parent: {
+      notice: 'Whether your child reasons from the small squares (1 to 4 must each reach 0) rather than trying takes at random, and whether they look for more than one answer.',
+      prompt: 'Why must 1, 2, 3 and 4 all be takes? Why can 7 be added?',
+      explanation: 'Squares 1 to 4 must not be squares to leave, and below 5 the only square to leave is 0, so each of 1, 2, 3 and 4 needs a take straight to 0. 5 must not be a take, or 5 could reach 0. With 1 to 4 allowed and no multiple of 5, every take from a multiple of 5 lands on a non-multiple, and from a non-multiple one of 1 to 4 reaches a multiple of 5. So the answers are 1, 2, 3 and 4 with any of 6, 7, 8 and 9: sixteen choices. Check works out the squares to leave up to 60, which settles every larger square for takes up to 9, and explains the lowest square that differs from the goal.',
+      extension: 'Choose takes so that the squares to leave are 0, 3, 6, 9 and so on. Which takes must be in, and which must stay out?',
+      connection: 'The P-positions of a subtraction game are exactly the multiples of k when the takes include 1 to k − 1 and no multiple of k; the argument above is the proof (Week 7 guide, Problem 9).'
+    },
+    provenance: 'Week 7 grades 4–5 Problem 9 (choose the moves so that the squares to leave are exactly 0, 5, 10, 15, …), with takes from 1 to 9.'
+  },
+  {
+    number: 15, difficulty_level: 'hard', title: 'Two piles',
     parameters: {mode: 'game', menu: [1, 2], start: [2, 7]},
     objective: 'Take the last pebble to win. Each turn takes 1 or 2 pebbles from one pile.',
     visibleObjective: 'Take the last pebble.',
@@ -212,12 +304,12 @@ const authored = [
     provenance: 'Week 7 K–1 Problem 8 and grades 2–3 Problem 7 (two piles; take from one). New instance.'
   },
   {
-    number: 11, difficulty_level: 'hard', title: 'Who starts with two piles?',
+    number: 16, difficulty_level: 'hard', title: 'Who starts with two piles?',
     parameters: {mode: 'streak', menu: [1, 2], piles: 2, range: [1, 9], streak: 3},
     objective: 'Choose who starts, then take the last pebble. Each turn takes 1 or 2 pebbles from one pile. Win 3 games in a row from new starts.',
     visibleObjective: 'Win 3 games in a row.',
     idea: 'Go second exactly when both piles leave the same remainder after taking away 3s.',
-    prerequisites: 'Menus puzzle 10.',
+    prerequisites: 'Menus puzzle 15.',
     hints: ['Take away 3s from each pile. What is left of each?', 'If both piles leave the same remainder, let the opponent start.', 'Otherwise go first and make the remainders match.'],
     parent: {
       notice: 'Whether your child compares remainders rather than piles.',
@@ -229,12 +321,29 @@ const authored = [
     provenance: 'Week 7 grades 2–3 Problem 7 (two piles) as a choose-who-starts round.'
   },
   {
-    number: 12, difficulty_level: 'hard', title: 'Two piles with 1, 3 or 4',
+    number: 17, difficulty_level: 'hard', title: 'The chart for two piles',
+    parameters: {mode: 'track', menu: [1, 2], piles: 2, last: 9},
+    objective: 'There are two piles. Each turn takes 1 or 2 pebbles from one pile, and whoever takes the last pebble wins. The square in row a and column b stands for piles of a and b. Colour every square you would like to leave for your opponent, then Check.',
+    visibleObjective: 'Colour every pair of piles you would like to leave for your opponent.',
+    idea: 'With takes of 1 or 2, two piles are a square to leave exactly when they have the same remainder after taking away 3s: 34 squares from 0 to 9, where the piles differ by 0, 3, 6 or 9.',
+    prerequisites: 'Menus puzzles 4, 15 and 16.',
+    hints: ['Start at the corner: (0, 0) is a square to leave. What about (1, 1)?', 'Equal piles are squares to leave: copy your opponent. Which unequal piles are too?', 'Look along a row: which squares off the diagonal play like equal piles?'],
+    parent: {
+      notice: 'Whether your child starts with equal piles (copying), then finds the squares off the diagonal, and whether they connect the pattern to the one-pile track for 1 or 2.',
+      prompt: 'Why is (2, 5) a square to leave, when the piles are not equal?',
+      explanation: 'Equal piles are squares to leave: whatever the opponent takes from one pile, take the same from the other. For takes of 1 or 2, three extra pebbles in a pile change nothing (whatever is taken from them, the other player takes the rest of the 3), so only the remainders after taking away 3s matter, and (2, 5) plays like (2, 2). The squares to leave are the 34 pairs whose piles differ by 0, 3, 6 or 9. A check explains the first wrong square, working outward from (0, 0).',
+      extension: 'Would you rather go first or second with piles of 20 and 11?',
+      connection: 'By the Sprague–Grundy theorem a pile of n has value n mod 3 for takes of 1 and 2, and two piles lose for the player to move exactly when their values are equal (Ferguson, §3).'
+    },
+    provenance: 'Week 7 grades 4–5 Problem 13 (in the two-pile game, colour every square of the chart where you would like to leave the two piles), the same 0–9 chart.'
+  },
+  {
+    number: 18, difficulty_level: 'hard', title: 'Two piles with 1, 3 or 4',
     parameters: {mode: 'game', menu: [1, 3, 4], start: [4, 10]},
     objective: 'Take the last pebble to win. Each turn takes 1, 3 or 4 pebbles from one pile.',
     visibleObjective: 'Take the last pebble.',
     idea: 'With 1, 3 or 4, piles play like 0, 1, 0, 1, 2, 3, 2, repeating every 7; two piles balance when those values match.',
-    prerequisites: 'Menus puzzles 5, 7 and 10.',
+    prerequisites: 'Menus puzzles 6, 10, 15 and 17.',
     hints: ['These piles cannot be made equal. Which different piles play alike?', 'With 1, 3 or 4, piles of 4 and 6 play alike, and so do 1, 3 and 10.', 'Take 4 from the pile of 10, leaving 4 and 6.'],
     parent: {
       notice: 'Whether your child looks for piles that play alike, after copying fails.',
@@ -248,19 +357,31 @@ const authored = [
 ];
 
 const describe = m => ({pile: m.pile, take: m.take});
+const range = (a, b) => Array.from({length: b - a + 1}, (_, i) => a + i);
+const subsets = list => list.reduce((all, x) => [...all, ...all.map(s => [...s, x])], [[]]).filter(s => s.length);
+function solve(q) {
+  if (q.mode === 'streak') return {losingStarts: startPool(q).filter(piles => !moverWins(q, piles)).map(piles => piles.join(',')), winningStarts: startPool(q).filter(piles => moverWins(q, piles)).length};
+  if (q.mode === 'track') return {toLeave: q.piles === 2 ? toLeave(q).map(id => `${Math.floor(id / (q.last + 1))},${id % (q.last + 1)}`) : toLeave(q)};
+  if (q.mode === 'design') {
+    const goal = range(0, DESIGN_LAST).filter(s => s % q.period === 0).join(',');
+    return {menus: subsets(q.choices).filter(menu => toLeave({menu, last: DESIGN_LAST}).join(',') === goal).map(menu => menu.join(','))};
+  }
+  if (q.mode === 'replies') return {replies: firstMoves(q).map(m => ({first: m.take, answers: winningMoves(q, after(q.start, m)).map(r => r.take)}))};
+  return {winningFirstTakes: winningMoves(q, q.start).map(describe)};
+}
 export const puzzles = authored.map(item => {
   const q = item.parameters;
-  const solution = q.mode === 'streak'
-    ? {losingStarts: startPool(q).filter(piles => !moverWins(q, piles)).map(piles => piles.join(',')), winningStarts: startPool(q).filter(piles => moverWins(q, piles)).length}
-    : {winningFirstTakes: winningMoves(q, q.start).map(describe)};
+  const solution = solve(q);
   if (q.mode === 'game' && !solution.winningFirstTakes.length) throw new Error(`menus-${item.number}: the first player cannot win`);
+  if (q.mode === 'replies' && moverWins(q, q.start)) throw new Error(`menus-${item.number}: the first player can win`);
+  if (q.mode === 'design' && !solution.menus.length) throw new Error(`menus-${item.number}: no menu works`);
   return {
     id: `menus-${String(item.number).padStart(2, '0')}`,
     number: item.number,
     title: item.title,
     band: 'all',
     difficulty_level: item.difficulty_level,
-    mechanic: 'menu',
+    mechanic: q.mode === 'track' || q.mode === 'design' ? 'menutrack' : 'menu',
     libraryFamily: 'nim',
     group: 'Menus',
     familyTitle: 'Pebble Duel',
