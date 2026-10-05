@@ -2,7 +2,7 @@
 // controls it marks for wireGraph. The families that use it test their rules.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {graphOf, graphBoard, edgeGeometry, pathThrough, validGraphSpec, NODE_R} from '../dist/graph-board.js';
+import {graphOf, graphBoard, graphMini, edgeGeometry, pathThrough, validGraphSpec, NODE_R} from '../dist/graph-board.js';
 
 const spec = {aspect: 2, nodes: {A: [10, 50], B: [90, 50], C: [50, 0]}, edges: [['A', 'B', 3], ['B', 'C']]};
 
@@ -57,4 +57,13 @@ test('a path is drawn through node centres', () => {
   const g = graphOf(spec);
   assert.equal(pathThrough(g, ['A'], 'x'), '');
   assert.equal(pathThrough(g, ['A', 'B', 'C'], 'leak'), '<polyline class="leak" points="10,25 90,25 50,0"/>');
+});
+
+test('a small picture of the map marks the links asked for and is never a control', () => {
+  const g = graphOf(spec), html = graphMini(g, {label: 'Network AB', edge: i => i === 0 ? 'on' : ''});
+  assert.match(html, /^<svg class="gb-mini/);
+  assert.match(html, /role="img" aria-label="Network AB"/);
+  assert.equal((html.match(/class="gb-mini-line on"/g) || []).length, 1);
+  assert.equal((html.match(/<circle/g) || []).length, 3);
+  assert.doesNotMatch(html, /role="button"|tabindex/);
 });

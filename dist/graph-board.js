@@ -75,6 +75,19 @@ export function graphBoard(g, opts = {}) {
   return `<svg class="gb-board${opts.slide ? ' gb-slide' : ''} ${opts.cls || ''}" viewBox="-2 -2 104 ${f(g.height + 4)}" role="group" aria-label="${esc(opts.label || 'Map')}" data-gb-board>${opts.under || ''}<g class="gb-edges">${links}</g>${opts.over || ''}<g class="gb-nodes">${nodes}</g></svg>`;
 }
 
+// A small picture of the map, for a row of answers already found: every link
+// thin, and the links that `opts.edge(i)` gives a class (such as `on`) drawn
+// over them. A picture, never a control.
+export function graphMini(g, opts = {}) {
+  const edge = opts.edge || (() => '');
+  const lines = g.edges.map(e => {
+    const [x1, y1] = g.pos[e.u], [x2, y2] = g.pos[e.v];
+    return `<line class="gb-mini-line ${edge(e.i) || ''}" x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}"/>`;
+  }).join('');
+  const dots = g.ids.map(id => `<circle class="gb-mini-dot" cx="${f(g.pos[id][0])}" cy="${f(g.pos[id][1])}" r="${f(NODE_R * .75 * g.k)}"/>`).join('');
+  return `<svg class="gb-mini ${opts.cls || ''}" viewBox="-6 -6 112 ${f(g.height + 12)}" role="img" aria-label="${esc(opts.label || 'Map')}">${lines}${dots}</svg>`;
+}
+
 // Taps, keys and drag strokes. `handlers.node(id)` and `handlers.edge(i)` turn
 // a tap into a move (or null for none); with `handlers.stroke`, a press on a
 // node followed by a slide across others sends node(id) for each node entered,
