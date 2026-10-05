@@ -237,8 +237,10 @@ export function cellAt(g, x, y, core = 1) {
 // the cells entered (through their middles only); `handlers.preview(cells)`
 // says 'ok' or 'blocked' for the stroke so far, and `handlers.stroke(cells)`
 // on release returns the move, if any. A stroke that never leaves its first
-// cell is a tap.
-let stroke = null;
+// cell is a tap. Taps are read from the pointer itself, because a browser
+// may drop the click after a touch; the click that follows is ignored, and a
+// click with no pointer before it (assistive technology) still works.
+let press = null, stroke = null, lastTap = -Infinity;
 const clientToBoard = (svg, x, y) => {
   const m = svg.getScreenCTM?.();
   if (!m) return null;
@@ -253,7 +255,7 @@ function paint(s) {
   const blocked = s.handlers.preview?.(s.cells) === 'blocked';
   for (const i of s.cells) s.svg.querySelector(`[data-tg-cell="${i}"]`)?.classList.add('in-stroke', ...(blocked ? ['blocked'] : []));
 }
-function strokeMove(e) {
+function pointerMove(e) {
   if (!stroke || e.pointerId !== stroke.pointer) return;
   const at = clientToBoard(stroke.svg, e.clientX, e.clientY);
   if (!at) return;
@@ -263,18 +265,27 @@ function strokeMove(e) {
   stroke.moved = true;
   paint(stroke);
 }
-function strokeEnd(e) {
-  if (!stroke || e.pointerId !== stroke.pointer) return;
-  const s = stroke;
-  s.done = true;
-  if (s.moved && e.type === 'pointerup') { const action = s.handlers.stroke(s.cells); s.cells = []; paint(s); if (action) s.apply(action); }
-  // The click that follows a stroke belongs to it, not to a tap.
-  setTimeout(() => { if (stroke === s) stroke = null; }, 0);
+function pointerEnd(e) {
+  const p = press?.pointer === e.pointerId ? press : null, s = stroke?.pointer === e.pointerId ? stroke : null;
+  if (p) press = null;
+  if (s) stroke = null;
+  if (e.type !== 'pointerup') { if (s) { s.cells = []; paint(s); } return; }
+  if (s?.moved) {
+    lastTap = performance.now();
+    const action = s.handlers.stroke(s.cells);
+    s.cells = []; paint(s);
+    if (action) s.apply(action);
+  } else if (p && Math.hypot(e.clientX - p.x, e.clientY - p.y) < 12) {
+    lastTap = performance.now();
+    const action = p.act();
+    if (action) p.apply(action);
+  }
 }
 let listening = false;
 export function wireTri(root, g, handlers, apply) {
   const svg = root.querySelector('[data-tg-board]');
   if (!svg) return;
+  const controls = '[data-tg-cell],[data-tg-piece],[data-tg-point]';
   const act = control => {
     if (control.dataset.tgPoint !== undefined) return handlers.point?.(Number(control.dataset.tgPoint));
     if (control.dataset.tgPiece !== undefined) return handlers.piece?.(control.dataset.tgPiece);
@@ -282,27 +293,31 @@ export function wireTri(root, g, handlers, apply) {
     return null;
   };
   svg.addEventListener('click', e => {
-    const control = e.target.closest('[data-tg-cell],[data-tg-piece],[data-tg-point]');
+    if (performance.now() - lastTap < 700) return;
+    const control = e.target.closest(controls);
     if (!control || !svg.contains(control)) return;
-    if (stroke?.moved) { stroke = null; return; }
-    stroke = null;
     const action = act(control);
     if (action) apply(action);
   });
   svg.addEventListener('keydown', e => {
     if (!['Enter', ' '].includes(e.key)) return;
-    const control = e.target.closest('[data-tg-cell],[data-tg-piece],[data-tg-point]');
+    const control = e.target.closest(controls);
     if (!control) return;
     e.preventDefault();
     const action = act(control);
     if (action) apply(action);
   });
-  if (!handlers.stroke) return;
-  if (!listening) { document.addEventListener('pointermove', strokeMove); document.addEventListener('pointerup', strokeEnd); document.addEventListener('pointercancel', strokeEnd); listening = true; }
+  if (!listening) {
+    document.addEventListener('pointermove', pointerMove);
+    for (const type of ['pointerup', 'pointercancel']) document.addEventListener(type, pointerEnd);
+    listening = true;
+  }
   svg.addEventListener('pointerdown', e => {
-    if (e.button > 0 || (stroke && !stroke.done)) return;
-    const control = e.target.closest('[data-tg-cell]');
-    if (!control) return;
-    stroke = {pointer: e.pointerId, svg, g, cells: [Number(control.dataset.tgCell)], moved: false, done: false, handlers, apply};
+    // A second finger is ignored; a new first press replaces any press whose release was lost.
+    if (e.button > 0 || !e.isPrimary) return;
+    const control = e.target.closest(controls);
+    if (!control || !svg.contains(control)) return;
+    press = {pointer: e.pointerId, x: e.clientX, y: e.clientY, act: () => act(control), apply};
+    if (handlers.stroke && control.dataset.tgCell !== undefined) stroke = {pointer: e.pointerId, svg, g, cells: [Number(control.dataset.tgCell)], moved: false, handlers, apply};
   });
 }

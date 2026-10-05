@@ -44,7 +44,7 @@ Every control is focusable and answers Enter and Space. Styles live in `tri-grid
 
 ## Wiring
 
-`wireTri(root, g, handlers, apply)` turns taps into moves: `handlers.cell(i)`, `handlers.piece(key)` and `handlers.point(k)` each return a move or null. With `handlers.stroke`, pressing on a cell and sliding through others collects the cells whose middles the finger crossed; `handlers.preview(cells)` says `'ok'` or `'blocked'` while sliding, and `handlers.stroke(cells)` returns the move on release. A slide that never leaves its first cell is a tap. `cellAt(g, x, y, core)` finds the cell under a drawing position.
+`wireTri(root, g, handlers, apply)` turns taps into moves: `handlers.cell(i)`, `handlers.piece(key)` and `handlers.point(k)` each return a move or null. With `handlers.stroke`, pressing on a cell and sliding through others collects the cells whose middles the finger crossed; `handlers.preview(cells)` says `'ok'` or `'blocked'` while sliding, and `handlers.stroke(cells)` returns the move on release. A slide that never leaves its first cell is a tap. Taps are read from the pointer's press and release rather than the click, because a phone browser can drop the click after a touch; the click that follows is ignored, and a click with no press before it (as assistive technology sends) still works. `cellAt(g, x, y, core)` finds the cell under a drawing position.
 
 ## Building on it
 

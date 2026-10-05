@@ -1,6 +1,7 @@
 // Plays Rhombus gardens through the real interface on the shared triangle
 // grid: a rhombus laid by sliding across two triangles, by two taps and by
-// keys; a slide that cannot make a piece; lifting; Undo; the Dots tool with
+// keys; a slide that cannot make a piece; lifting, also by a click with no
+// pointer (assistive technology); Undo; the Dots tool with
 // its dashed open place; flips against a budget; listing with That's all;
 // chevrons; and the playground. Same environment variables as the other
 // browser suites (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1
@@ -28,6 +29,8 @@ const fit = async label => assert.equal(await page.evaluate(() => document.docum
 const cell = i => page.locator(`[data-tg-cell="${i}"]`);
 const point = k => page.locator(`[data-tg-point="${k}"]`);
 const sameSet = (a, b) => assert.equal(tilingKey(a || []), tilingKey(b));
+// A touch tap's click can land a moment after the tap resolves, so checks that follow a tap retry briefly.
+async function eventually(check) { let last; for (let k = 0; k < 30; k++) { try { return await check(); } catch (e) { last = e; await page.waitForTimeout(100); } } throw last; }
 // The centre of a triangle on screen: the mean of its corners, through the svg's own transform.
 const centre = i => page.evaluate(i => {
   const el = document.querySelector(`[data-tg-cell="${i}"]`) || document.querySelector(`.tg-cell[data-cell="${i}"]`), m = el.ownerSVGElement.getScreenCTM();
@@ -69,20 +72,20 @@ try {
   const L = 'rhombus-01', gl = gridFor(L), [first, ...rest] = covers(gl)[0];
   await open(L); await fit('long hexagon');
   await slide(...first);
-  sameSet((await board(L)).pieces, [first]);
+  await eventually(async () => sameSet((await board(L)).pieces, [first]));
   await page.locator('[data-action="undo"]').click();
-  sameSet((await board(L)).pieces, []);
+  await eventually(async () => sameSet((await board(L)).pieces, []));
   await tap(first[0]);
-  assert.equal(await page.locator('.tg-cell.partner').count() + await page.locator('.tg-hit.partner').count() > 0, true, 'the partners of a tapped triangle glow');
+  await eventually(async () => assert.equal(await page.locator('.tg-cell.partner').count() + await page.locator('.tg-hit.partner').count() > 0, true, 'the partners of a tapped triangle glow'));
   await tap(first[1]);
-  sameSet((await board(L)).pieces, [first]);
+  await eventually(async () => sameSet((await board(L)).pieces, [first]));
   await page.locator(`[data-tg-piece="${first.join('.')}"]`).click();
-  sameSet((await board(L)).pieces, []);
+  await eventually(async () => sameSet((await board(L)).pieces, []));
   await cell(first[0]).focus(); await page.keyboard.press('Enter');
   await cell(first[1]).focus(); await page.keyboard.press(' ');
-  sameSet((await board(L)).pieces, [first]);
+  await eventually(async () => sameSet((await board(L)).pieces, [first]));
   const [a, b] = rest[0], c = gl.nbr[b].find(x => x !== a && !first.includes(x));
-  if (c !== undefined) { await slide(a, b, c); sameSet((await board(L)).pieces, [first]); }
+  if (c !== undefined) { await slide(a, b, c); await eventually(async () => sameSet((await board(L)).pieces, [first])); }
   await shot('long-hexagon-one');
   for (const piece of rest) await slide(...piece);
   await done();
@@ -92,11 +95,11 @@ try {
   const B = 'rhombus-06', gb = gridFor(B), middle = gb.cells.map((_, i) => i).filter(i => gb.nbr[i].length === 3);
   await open(B); await fit('bow tie');
   for (const piece of maxPacking(gb)) await slide(...piece);
-  assert.equal((await board(B)).pieces.length, 2);
+  await eventually(async () => assert.equal((await board(B)).pieces.length, 2));
   await page.locator('.rh-tool', {hasText: 'Dots'}).click();
-  assert.equal(await page.locator('.rh-tool[aria-pressed="true"]', {hasText: 'Dots'}).count(), 1);
+  await eventually(async () => assert.equal(await page.locator('.rh-tool[aria-pressed="true"]', {hasText: 'Dots'}).count(), 1));
   await tap(middle[0]);
-  assert.equal(await page.locator('.rh-open').count(), 1, 'a dashed rhombus shows a place with no dot');
+  await eventually(async () => assert.equal(await page.locator('.rh-open').count(), 1, 'a dashed rhombus shows a place with no dot'));
   await shot('bow-tie-dots');
   await tap(middle[1]);
   await done();
@@ -108,7 +111,7 @@ try {
   const route = flipRoute(gf, q.start, q.goal);
   assert.equal(await page.locator('[data-tg-cell]').count(), 0, 'flip puzzles have no triangle controls');
   await tapAt(await pointAt(point(route[0])));
-  assert.equal((await board(F)).flips, 1);
+  await eventually(async () => assert.equal((await board(F)).flips, 1));
   assert.match(await page.locator('.rh-counter').innerText(), /1\s*\/\s*4/);
   await shot('first-flips-one');
   for (const k of route.slice(1)) await tapAt(await pointAt(point(k)));
@@ -125,7 +128,7 @@ try {
     await page.locator('.rh-action', {hasText: 'Clear'}).click();
     for (const piece of t) await slide(...piece);
   }
-  assert.equal(await page.locator('.rh-shelf li').count(), 3);
+  await eventually(async () => assert.equal(await page.locator('.rh-shelf li').count(), 3));
   await shot('three-ways-shelf');
   await page.locator('.rh-action', {hasText: 'That’s all'}).click();
   await done();
@@ -145,13 +148,17 @@ try {
   const G = 'rhombus-playground';
   await open(G); await fit('playground');
   await page.locator('[data-focus="rh-size-2"]').click();
-  assert.equal((await board(G)).size, 2);
+  await eventually(async () => assert.equal((await board(G)).size, 2));
   const g2 = gridOf({outline: hexagon(2, 2, 2), turn: true});
-  sameSet((await board(G)).pieces, cornerTiling(g2, 2, 2, 2));
+  await eventually(async () => sameSet((await board(G)).pieces, cornerTiling(g2, 2, 2, 2)));
   await tapAt(await pointAt(page.locator('.rh-flip').first()));
-  assert.notEqual(tilingKey((await board(G)).pieces), tilingKey(cornerTiling(g2, 2, 2, 2)));
+  await eventually(async () => assert.notEqual(tilingKey((await board(G)).pieces), tilingKey(cornerTiling(g2, 2, 2, 2))));
   await page.locator('[data-focus="rh-size-2"]').click();
-  sameSet((await board(G)).pieces, cornerTiling(g2, 2, 2, 2));
+  await eventually(async () => sameSet((await board(G)).pieces, cornerTiling(g2, 2, 2, 2)));
+  // A click with no pointer before it, as assistive technology sends, still works.
+  await page.waitForTimeout(800);
+  await page.evaluate(() => document.querySelector('[data-tg-piece]').dispatchEvent(new MouseEvent('click', {bubbles: true})));
+  await eventually(async () => assert.equal((await board(G)).pieces.length, 11));
   await shot('playground');
   assert.deepEqual(errors, []);
   console.log(JSON.stringify({passed: true, phone, screenshots: 'test-results/rhombus/'}, null, 2));
