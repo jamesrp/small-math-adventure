@@ -1,10 +1,10 @@
 # Lantern Road art roadmap
 
-A handoff for whoever makes the art (Codex with James’s ChatGPT image and video tools). The game is finished without art: every picture is a drawn placeholder. Each finished file replaces exactly one placeholder, through the manifest, with no code changes.
+A handoff for whoever makes the art (Dot/Codex, with James’s ChatGPT image and video tools). The game is finished without art: every picture is a drawn placeholder. Each finished file replaces exactly one placeholder, through the manifest, with no code changes.
 
 ## Ground rules
 
-- **Only add art.** Put files under `dist/art/`, records in `dist/art/manifest.json`, and sources and prompts under `artwork/road4/`. Do not change puzzle boards, game logic, lines or CSS. Claude owns the puzzle UI and the road code (`dist/road*.js`, `dist/boards.css`, `dist/road.css`). If a picture seems to need a code change, write it down in `artwork/road4/NOTES.md` instead.
+- **Keep art batches to art.** Put files under `dist/art/`, records in `dist/art/manifest.json`, and sources and prompts under `artwork/road4/`. If a picture needs a code change, make it as a separate commit under the rules in `AGENTS.md`, which prefer Claude sessions for the puzzle UI and the road's screens. The keepers' and Plume's lines belong to the story; note wanted changes in `artwork/road4/NOTES.md`.
 - **No text in pictures.** Names, numbers and labels are drawn by the game.
 - **Keep the stop layout.** The map’s stop buttons and the scene’s keeper portrait sit on top of the art at fixed places (see “Safe areas”).
 - **Kid-friendly spooky.** The hollow is Halloween-fun, never gory or frightening.
