@@ -18,6 +18,12 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Wave 2: triangle-grid tiling (Week 1), on a triangle grid the encore and Week 16 can reuse | Claude, Week 1 triangle tiling thread | `claude/wave2-triangle-tiling-2dlym5` | claimed; card says keep |
 | Wave 2: derangements with the cups (Week 63) | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | done (PR #11); card says revise (no K–1 route on paper), port follows its App fit |
 | Wave 2: shared case-listing engine for Weeks 24, 42, 43, 44, 45, 60 and 63 | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | done (PR #11); Week 63 uses it, [docs/cases.md](docs/cases.md) lists what the others need |
+| Wave 2: fair shuffles (Week 43), on the case engine and the cups | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | claimed; review card first |
+| Wave 2: fair results from a bag (Week 42), on the case engine | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | claimed; review card first |
+| Wave 2: the bag that copies (Week 44), on the case engine | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | claimed; review card first |
+| Wave 2: the visible side (Week 45), on the case engine | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | claimed; review card first |
+| Wave 2: nontransitive decks (Week 24), on the case engine | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | claimed; review card first |
+| Wave 2: optimal stopping (Week 60), on the case engine | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | claimed; review card first |
 | Wave 2: necklaces (Week 33) | Claude, Bead rings thread | `claude/wave2-bead-rings-q6ikal` | claimed; review card first |
 | Wave 2: distinguishing colourings (Week 34) | Claude, Bead rings thread | `claude/wave2-bead-rings-q6ikal` | claimed; review card first |
 | Wave 2: shared bead-ring board for Weeks 33 and 34 | Claude, Bead rings thread | `claude/wave2-bead-rings-q6ikal` | claimed; built with the Week 33 port |
