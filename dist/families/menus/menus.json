@@ -517,7 +517,7 @@
     "prompt": "Which pile is the smallest one you want to hand over now?",
     "explanation": "When taking the last pebble loses, a player facing 1 must take it. Then 2 and 3 win (leave 1), 4 loses, and the losing piles are 1, 4, 7, 10 and so on, one more than the multiples of 3. From 8, take 1.",
     "extension": "With 1, 2 or 3 and the last pebble losing, which piles lose?",
-    "connection": "Misère play. For one-pile subtraction games it shifts the pattern; for sums of games it is much harder than normal play (Winning Ways, ch. 13).",
+    "connection": "Misère play. In a one-pile game with 1 on the menu, every losing pile moves up by exactly one; for sums of games misère is much harder than normal play (Winning Ways, ch. 13).",
     "sourceIds": [
      "menus-week07",
      "menus-ferguson",
