@@ -167,15 +167,15 @@ const authored = [
   {
     number: 8, difficulty_level: 'medium', title: 'Past fixing',
     parameters: {mode: 'break', target: 'unfixable', lanes: 4, cards: 'numbers', machine: [[1, 2], [3, 4], [1, 4], [2, 3]], start: [1, 2, 3, 4]},
-    objective: 'Find a start that one more bar can’t fix.',
-    idea: 'One bar swaps one pair, so a finish with two separate pairs out of order shows that no single extra bar repairs this machine.',
+    objective: 'Find a start that one more bar at the end can’t fix.',
+    idea: 'One bar swaps one pair, so a finish with two separate pairs out of order shows that no single bar added at the end repairs this machine.',
     prerequisites: 'Compare numbers up to 4. See which cards in a finish are out of order.',
     hints: ['Press Run on a few starts and look at the red cards in each finish.', 'One bar can swap only one pair. Look for a finish with two pairs out of order.', 'Try 2, 4, 1, 3.'],
     parent: {
       notice: 'Every start that can’t be fixed finishes 2, 1, 4, 3: the top pair and the bottom pair are both reversed.',
-      prompt: 'Why does this one start prove that no extra bar repairs the machine?',
-      explanation: 'A bar compares two lanes and swaps at most those two cards. A finish of 2, 1, 4, 3 needs the top pair and the bottom pair swapped, two separate swaps, so whichever bar is added, this start still comes out wrong. Eight of the 24 starts finish that way, so the machine cannot be repaired with one bar. The same four bars in another order can be: with the long bar and the middle bar first and the top and bottom pairs after, one more bar on the middle lanes sorts every start.',
-      extension: 'Put the same four bars in a different order so that one more bar sorts every start.',
+      prompt: 'Why does this one start prove that no bar added at the end repairs the machine?',
+      explanation: 'A bar compares two lanes and swaps at most those two cards. A finish of 2, 1, 4, 3 needs the top pair and the bottom pair swapped, two separate swaps, so whichever bar is added at the end, this start still comes out wrong. Eight of the 24 starts finish that way, so the machine cannot be repaired with one last bar. (A bar placed in front is a different question: 2, 4, 1, 3 with a first bar on the middle lanes becomes 2, 1, 4, 3, which the machine sorts. Even so, no single bar anywhere repairs this machine.) The same four bars in another order can be: with the long bar and the middle bar first and the top and bottom pairs after, one more bar at the end, on the middle lanes, sorts every start.',
+      extension: 'Put the same four bars in a different order so that one more bar at the end sorts every start.',
       connection: 'A certificate for a "can’t": one start that defeats every possible last bar (Week 23 guide, grades 2–3 Problem 3).'
     },
     provenance: 'Week 23 grades 2–3 Problem 3, the bottom machine (12, 34, 14, 23), which no single bar repairs; 2413 finishes 2143.',

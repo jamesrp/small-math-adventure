@@ -157,6 +157,27 @@ test('Undo takes back a move but keeps the starts tried; Restart clears them', (
   assert.deepEqual(restart(p, back).board.tried, []);
 });
 
+test('Undo after That’s all clears the note once the missing start comes back', () => {
+  const p = byId('sorting-02'), m = mechanicFor(p);
+  const takeBack = x => { const y = undo(x); return {...y, board: m.carry(p, x.board, y.board)}; };
+  const to = start => x => { while (x.board.start.join('') !== start) { const want = [...start].map(Number), i = x.board.start.findIndex((v, k) => v !== want[k]); x = play(p, x, [swap(i, x.board.start.indexOf(want[i]))]); } return x; };
+  let a = freshAttempt(p);
+  for (const s of ['132', '231', '312']) a = play(p, to(s)(a), [run]);
+  a = play(p, to('321')(a), [{type: 'claim'}]);
+  assert.ok(a.board.missed);
+  const back = takeBack(play(p, a, [run]));
+  assert.equal(back.board.missed, false, 'every wrong start is back in the list');
+  assert.equal(nextHint(p, back).action.type, 'claim');
+  assert.ok(isSolved(p, move(p, back, nextHint(p, back).action).board));
+  assert.equal(mechanicFor(p).valid(p, {...back.board, missed: true}), false, 'a note with nothing left to find is refused');
+});
+
+test('a build hint first takes away a wrong bar in a slot', () => {
+  const p = byId('sorting-03');
+  const a = play(p, freshAttempt(p), [bar(2, [0, 2]), {type: 'test'}]);
+  assert.deepEqual(nextHint(p, a).action, {type: 'bar', slot: 2, lanes: null});
+});
+
 test('saves round-trip through storage, and forged saves are refused', () => {
   const p = byId('sorting-11');
   let a = freshAttempt(p);
@@ -174,6 +195,8 @@ test('saves round-trip through storage, and forged saves are refused', () => {
   assert.deepEqual(resumeAttempt(p, a).board, freshAttempt(p).board);
   const forged = {...store, profiles: [profile({[p.id]: {...a, board: {...a.board, tried: ['0101']}}})]};
   assert.throws(() => validateStore(forged, puzzles), 'claimed without every wrong start');
+  const strings = {...store, profiles: [profile({'sorting-12': {...half, board: {...half.board, start: ['4', '3', '2', '1']}}})]};
+  assert.throws(() => validateStore(strings, puzzles), 'cards must be numbers');
 });
 
 test('the playground builds on two to five lanes, has no Hint, and never counts as solved', () => {

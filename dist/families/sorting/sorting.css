@@ -33,6 +33,11 @@ button.sort-card:hover{filter:brightness(1.04)}
 /* Lane ends in an open slot: tap two to place a bar; tap a placed bar to take it away. */
 .sort-board .sort-peg{position:absolute;transform:translate(-50%,-50%);width:26px;height:26px;min-width:0;min-height:0;padding:0;border-radius:50%;background:var(--b-card,#fffdf5);border:2px dashed #8a9a80;z-index:1;touch-action:none}
 .sort-peg::after{content:"";position:absolute;inset:-9px;border-radius:50%}
+/* Columns sit closer with more slots; keep each lane end's tap area inside its own column. */
+.sort-board[data-slots="6"] .sort-peg::after{inset:-9px -5px;border-radius:12px}
+.sort-board[data-slots="9"] .sort-peg{width:18px;height:18px}
+.sort-board[data-slots="9"] .sort-peg::after{inset:-12px -2px;border-radius:10px}
+.sort-board[data-slots="9"] .sort-remove{width:16px}
 .sort-peg:hover{border-style:solid;border-color:var(--b-ink,#294439)}
 .sort-peg.picked{background:var(--b-pine,#31533e);border:2px solid var(--b-pine,#31533e)}
 .sort-peg[aria-disabled="true"]{opacity:.3;cursor:default}

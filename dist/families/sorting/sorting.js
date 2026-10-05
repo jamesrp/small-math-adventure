@@ -72,7 +72,7 @@ export function pairsFor(q) {
   return out;
 }
 const sameBar = (a, b) => (a === null && b === null) || (Boolean(a) && Boolean(b) && a[0] === b[0] && a[1] === b[1]);
-const validStart = (q, start) => Array.isArray(start) && start.length === q.lanes && (q.cards === 'binary' ? start.every(v => v === 0 || v === 1) : key([...start].sort((a, b) => a - b)) === key(orders(q.lanes)[0]));
+const validStart = (q, start) => Array.isArray(start) && start.length === q.lanes && start.every(Number.isInteger) && (q.cards === 'binary' ? start.every(v => v === 0 || v === 1) : key([...start].sort((a, b) => a - b)) === key(orders(q.lanes)[0]));
 const validKey = (q, k) => typeof k === 'string' && starts(q.lanes, q.cards).some(s => key(s) === k);
 const fromKey = k => [...k].map(Number);
 
@@ -101,7 +101,8 @@ function validPuzzle(p, b) {
   if (b.ran && !b.tried.includes(key(b.start))) return false;
   if (q.mode !== 'build' && b.tested) return false;
   if (q.mode !== 'every' && (b.claimed || b.missed)) return false;
-  if (b.claimed && failures(b.bars, q.lanes, q.cards).some(s => !b.tried.includes(key(s)))) return false;
+  const left = q.mode === 'every' ? failures(b.bars, q.lanes, q.cards).filter(s => !b.tried.includes(key(s))).length : 0;
+  if ((b.claimed && left) || (b.missed && !left)) return false;
   return !(b.claimed && b.missed);
 }
 function solvedPuzzle(p, b) {
@@ -189,7 +190,7 @@ function hintPuzzle(p, b) {
     const s = witness.findIndex((bar, i) => !sameBar(bar, open[i]));
     if (s < 0) return {type: 'move', action: {type: 'test'}, text: 'Test it.'};
     const slot = s + locked(q), want = witness[s];
-    if (open[s] && !want) return {type: 'move', action: {type: 'bar', slot, lanes: null}, text: 'Take this bar away.'};
+    if (open[s]) return {type: 'move', action: {type: 'bar', slot, lanes: null}, text: 'Take this bar away.'};
     return {type: 'move', action: {type: 'bar', slot, lanes: want}, text: `Put a bar here joining the ${words[want[0]]} and ${words[want[1]]} lanes.`};
   }
   if (q.mode === 'every') {
@@ -263,7 +264,8 @@ let pending = null;
 
 // Board geometry: the start column, one column per slot, the finish column.
 const xStart = 7, xFinish = 93;
-const slotX = (k, s) => k === 1 ? 50 : 24 + s * (52 / (k - 1));
+// Nine columns (the five-lane playground) spread wider so their lane ends stay apart on a phone.
+const slotX = (k, s) => k === 1 ? 50 : k > 6 ? 18 + s * (64 / (k - 1)) : 24 + s * (52 / (k - 1));
 const laneY = (n, i) => (i + 0.5) / n * 100;
 const tokenSize = (q, v) => q.cards === 'binary' ? (v ? 48 : 32) : 32 + (v - 1) * (16 / Math.max(1, q.lanes - 1));
 const cardStyle = (q, v, x, i) => `left:${x}%;top:${laneY(q.lanes, i)}%;--size:${tokenSize(q, v).toFixed(1)}px`;
@@ -277,6 +279,7 @@ function board(p, b, opts) {
     return `<g class="sort-bar${lit ? ' lit' : ''}"><line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}"/><circle cx="${x}" cy="${y1}" r="1.6"/><circle cx="${x}" cy="${y2}" r="1.6"/></g>`;
   }).join('');
   const svg = `<svg class="sort-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lanes}${bars}</svg>`;
+  const said = `<p class="sr-only">Bars from left to right: ${b.bars.map(bar => bar ? `lanes ${bar[0] + 1} and ${bar[1] + 1}` : 'an open column').join('; ')}.</p>`;
   // Lane ends for placing bars in open slots; a placed open bar can be taken away.
   const editable = s => opts.build && s >= opts.locked;
   const pegs = opts.build ? b.bars.map((bar, s) => {
@@ -299,7 +302,7 @@ function board(p, b, opts) {
   }).join('');
   const out = (v, i) => run.finish[i - 1] > v || run.finish[i + 1] < v;
   const finish = opts.ran ? run.finish.map((v, i) => `<span class="sort-card finish v${v}${out(v, i) ? ' wrong' : ''}" style="${cardStyle(q, v, xFinish, i)}">${face(q, v)}</span>`).join('') : '';
-  return `<div class="sort-board${opts.ran ? (run.sorted ? ' is-sorted' : ' is-wrong') : ''}" style="--lanes:${n}" data-lanes="${n}" data-slots="${k}">${svg}${pegs}${starts}<div class="sort-finish">${finish}</div><div class="sort-fly" aria-hidden="true"></div></div>`;
+  return `<div class="sort-board${opts.ran ? (run.sorted ? ' is-sorted' : ' is-wrong') : ''}" style="--lanes:${n}" data-lanes="${n}" data-slots="${k}">${said}${svg}${pegs}${starts}<div class="sort-finish">${finish}</div><div class="sort-fly" aria-hidden="true"></div></div>`;
 }
 const mini = (q, k, extra = '') => `<span class="sort-mini">${[...k].map(c => q.cards === 'binary' ? `<i class="b${c}"></i>` : `<b>${c}</b>`).join('')}${extra}</span>`;
 const litMarks = lit => `<span class="sort-litmarks" aria-hidden="true">${lit.map(on => `<i class="${on ? 'on' : ''}"></i>`).join('')}</span>`;
@@ -422,7 +425,7 @@ function wire(root, p, api) {
     if (!control || !root.contains(control) || control.disabled || control.getAttribute('aria-disabled') === 'true') return;
     if (control.dataset.sortCard !== undefined) { cardTap(Number(control.dataset.sortCard)); return; }
     if (control.dataset.sortPeg !== undefined) { const [s, i] = control.dataset.sortPeg.split(',').map(Number); pegTap(s, i); return; }
-    if (control.dataset.replay) { animate(root, q(), b().bars, b().start); return; }
+    if (control.dataset.replay) { if (!reduced()) animate(root, q(), b().bars, b().start); return; }
     try { apply(JSON.parse(control.dataset.sortMove)); } catch { /* malformed control data is ignored */ }
   });
   // Dragging a card onto another swaps them; dragging between two lane ends in
@@ -472,7 +475,7 @@ export const sortingMechanics = {
     carry: (p, from, to) => {
       if (p.parameters.mode === 'playground' || !object(to) || p.parameters.mode === 'build') return to;
       const tried = [...to.tried, ...from.tried.filter(k => !to.tried.includes(k))];
-      return {...to, tried, ran: to.ran && tried.includes(key(to.start))};
+      return {...to, tried, ran: to.ran && tried.includes(key(to.start)), missed: to.missed && tried.length === to.tried.length};
     },
     noHint: p => p.parameters.mode === 'playground'
   }
