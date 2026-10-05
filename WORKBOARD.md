@@ -16,6 +16,8 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Wave 1: hidden pictures from row and column counts (Week 25) | Claude, Hidden pictures from counts thread | `claude/wave1-hidden-pictures-dc6h2k` | in progress; review card being written |
 | Wave 1: cheapest networks (Week 53) | Claude, Route packing and cheapest networks thread | `claude/wave1-networks-kqynkj` | review card done (revise); port in progress |
 | Wave 2: triangle-grid tiling (Week 1), on a triangle grid the encore and Week 16 can reuse | Claude, Week 1 triangle tiling thread | `claude/wave2-triangle-tiling-2dlym5` | claimed; card says keep |
+| Wave 2: derangements with the cups (Week 63) | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | claimed; review card first |
+| Wave 2: shared case-listing engine for Weeks 24, 42, 43, 44, 45, 60 and 63 | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | claimed; built with the Week 63 port |
 | Safe preview links for testers (plan item 5) | | | open |
 | Keeper reaction clips, 14 (plan item 6; brief `docs/art/batches/01-keeper-reactions.md`) | | | open; Dot/Codex |
 | Voice auditions for the six keepers and Plume (plan item 6; brief `docs/voice-casting/README.md`, stage 1) | | | open; Dot/Codex; stops for James's pick |
