@@ -33,7 +33,7 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Wave 2: path reduction (Week 39), on the shared graph board | Claude, Path reduction and bracing frames thread | `claude/wave2-graph-39-52-g84api` | done (PR #13) as Road detours; card says revise (K–1 Problem 7), port follows its App fit |
 | Wave 2: bracing frames (Week 52), on the shared graph board | Claude, Path reduction and bracing frames thread | `claude/wave2-graph-39-52-g84api` | done (PR #13) as Bracing frames; card says revise (worksheet fixes), port follows its App fit |
 | Wave 2: lattice visibility (Week 31) as a group in Mirror Couriers | Claude, Lattice visibility thread | `claude/wave2-lattice-visibility-f3eowo` | claimed; review card first |
-| Wave 2: weighing with both pans (Week 30) as a group in the balance family | Claude, Balance and jugs groups thread | `claude/wave2-balance-jugs-ce8w14` | claimed; review card first |
+| Wave 2: weighing with both pans (Week 30) as a group in the balance family | Claude, Balance and jugs groups thread | `claude/wave2-balance-jugs-ce8w14` | done: [Weight kits](docs/kits/README.md) in the Odd-pebble Balance, card keep |
 | Wave 2: lengths from two rods (Week 29) as a group in Water jugs | Claude, Balance and jugs groups thread | `claude/wave2-balance-jugs-ce8w14` | claimed; after Week 30, review card first |
 | Wave 2: shapes with set perimeters (Week 26) as a new family | Claude, Square grid perimeters thread | `claude/wave2-square-grid-3ahzlz` | claimed; review card first |
 | Shared square grid for Weeks 26, 48 and 54 | Claude, Square grid perimeters thread | `claude/wave2-square-grid-3ahzlz` | claimed; built with Week 26 |
