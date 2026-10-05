@@ -1,0 +1,839 @@
+{
+ "title": "Rainbow triangles",
+ "version": 1,
+ "families": [
+  {
+   "id": "rainbow",
+   "title": "Rainbow triangles",
+   "mathematics": "A big triangle is cut into little triangles that meet edge to edge. Its corners are R, B and Y; a dot on a side may use only that side’s two corner letters, and a dot inside may use any. Sperner’s lemma: however the dots are lettered, the number of rainbow triangles, with all three letters, is odd, so there is always at least one. Call an edge with R at one end and B at the other a door. A rainbow has exactly one door and every other little triangle has none or two. Along the bottom the letters start at R and end at B, so they change an odd number of times: the outside has an odd number of doors, and the other two sides have none. Counting doors triangle by triangle counts each inside door twice, so the rainbows are odd too. As walks: go in through an outside door and keep going through the next door; a triangle with two doors passes you on, so each walk ends outside or in a rainbow. Outside doors pair up by walks, an odd number can’t all pair, and so some walk from outside ends in a rainbow. That walk is also a way to find a rainbow while looking at few letters. The guarantee needs the side rule: let one bottom dot be Y and a board can have no rainbow at all.",
+   "rules": [
+    "The corners are R, B and Y. A dot on a side uses one of that side’s two corner letters; a dot inside may use any letter.",
+    "A rainbow is a little triangle with R, B and Y at its corners."
+   ],
+   "sourceIds": [
+    "rainbow-week16",
+    "rainbow-review",
+    "rainbow-su",
+    "rainbow-sperner",
+    "rainbow-funfacts",
+    "rainbow-scarf"
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "id": "rainbow-week16",
+   "title": "Bellingham Math Circle — Week 16: Three-color triangles, packets, facilitator guide and return visits",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-16",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "rainbow-review",
+   "title": "Bellingham Math Circle — Week 16 review card, with its math check",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-16.md",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "rainbow-su",
+   "title": "Francis Edward Su — Rental harmony: Sperner’s lemma in fair division, American Mathematical Monthly 106 (1999), 930–942",
+   "url": "https://doi.org/10.1080/00029890.1999.12005142",
+   "kind": "research"
+  },
+  {
+   "id": "rainbow-sperner",
+   "title": "Emanuel Sperner — Neuer Beweis für die Invarianz der Dimensionszahl und des Gebietes, Abhandlungen aus dem Mathematischen Seminar der Universität Hamburg 6 (1928), 265–272",
+   "url": "https://doi.org/10.1007/BF02940617",
+   "kind": "research"
+  },
+  {
+   "id": "rainbow-funfacts",
+   "title": "Francis Su et al. — Sperner’s Lemma, Math Fun Facts, Harvey Mudd College",
+   "url": "https://math.hmc.edu/funfacts/sperners-lemma/",
+   "kind": "web"
+  },
+  {
+   "id": "rainbow-scarf",
+   "title": "Herbert Scarf — The approximation of fixed points of a continuous mapping, SIAM Journal on Applied Mathematics 15 (1967), 1328–1343",
+   "url": "https://doi.org/10.1137/0115116",
+   "kind": "research"
+  }
+ ],
+ "puzzles": [
+  {
+   "id": "rainbow-playground",
+   "number": 0,
+   "title": "Rainbow playground",
+   "band": "playground",
+   "difficulty_level": "playground",
+   "mechanic": "rainbow",
+   "familyTitle": "Rainbow triangles",
+   "revision": 1,
+   "parameters": {
+    "mode": "playground"
+   },
+   "objective": "Letter the dots freely and watch the rainbows.",
+   "visibleObjective": "",
+   "instruction": "Letter the dots freely and watch the rainbows.",
+   "controls": "Tap a dot to change its letter: a dot on a side switches between its side’s two letters, and a dot inside goes R, B, Y in turn. Doors shows the sides with R at one end and B at the other. The small pictures choose a board: two to five rows, or the fan, where every triangle of the two-row board is cut into three.",
+   "rules": [
+    "The corners are R, B and Y. A dot on a side uses one of that side’s two corner letters; a dot inside may use any letter.",
+    "A rainbow is a little triangle with R, B and Y at its corners."
+   ],
+   "idea": "However you letter the dots, the number of rainbows stays odd.",
+   "prerequisites": "None.",
+   "hints": [
+    "Try to make no rainbows at all.",
+    "Turn on Doors and count the doors along the bottom.",
+    "Change one dot and watch how the rainbows change."
+   ],
+   "parent": {
+    "notice": "The number of rainbows jumps by two, or not at all, when a dot changes.",
+    "prompt": "Can you ever get an even number of rainbows?",
+    "explanation": "Never, on any of these boards (Sperner’s lemma). A dot touches the triangles round it; changing its letter can make or unmake rainbows only in pairs, because the doors along that dot’s edges change in pairs.",
+    "extension": "On the fan, each triangle of the two-row board is cut into three. Does the cutting change what is possible? (The count stays odd: the lemma holds for any cutting into triangles that meet edge to edge.)",
+    "connection": "The same counting proves Brouwer’s fixed point theorem in the plane and drives algorithms that find fair divisions of rent.",
+    "sourceIds": [
+     "rainbow-week16",
+     "rainbow-su"
+    ]
+   },
+   "provenance": "Week 16 shared launch (fill a board legally, change one counter) and the fan board of K–1 Problem 4.",
+   "sourceDocument": "docs/rainbow/README.md"
+  },
+  {
+   "id": "rainbow-01",
+   "number": 1,
+   "title": "Move the rainbow",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "rainbow",
+   "familyTitle": "Rainbow triangles",
+   "revision": 1,
+   "parameters": {
+    "mode": "only",
+    "board": {
+     "steps": 2
+    },
+    "start": "RRBRBY"
+   },
+   "objective": "Make each little triangle the only rainbow, one at a time.",
+   "visibleObjective": "Make each triangle the only rainbow.",
+   "instruction": "Make each little triangle the only rainbow, one at a time.",
+   "controls": "Tap a dot to change its letter: a dot on a side switches between its side’s two letters, and a dot inside goes R, B, Y in turn. Doors shows the sides with R at one end and B at the other. A star marks each triangle that has been the only rainbow.",
+   "rules": [
+    "The corners are R, B and Y. A dot on a side uses one of that side’s two corner letters; a dot inside may use any letter.",
+    "A rainbow is a little triangle with R, B and Y at its corners.",
+    "Solved when every little triangle has been the only rainbow on the board, one at a time."
+   ],
+   "idea": "A rainbow can be moved, but on this board there is always exactly one.",
+   "prerequisites": "Tell R, B and Y apart. No reading needed once a grown-up has shown the move.",
+   "hints": [
+    "Change a dot on a side and watch where the rainbow goes.",
+    "A rainbow needs R, B and Y. Which triangle could get all three?",
+    "To move it to the bottom left, give the middle of the bottom a B."
+   ],
+   "parent": {
+    "notice": "However the three side dots go, there is exactly one rainbow.",
+    "prompt": "Can you make the rainbow disappear?",
+    "explanation": "The board has eight letterings (each side dot has two choices) and every one has exactly one rainbow, in any of the four triangles. That is the smallest case of Sperner’s lemma: the number of rainbows is always odd.",
+    "extension": "On paper, letter a three-row board. Can you get two rainbows? Three?",
+    "connection": "Sperner’s lemma: with the side rule, a rainbow can move but never vanish.",
+    "sourceIds": [
+     "rainbow-week16"
+    ]
+   },
+   "provenance": "Week 16 K–1 Problem 1 (each of the four triangles can hold the only rainbow) and the shared launch (“Can you move an all-three triangle somewhere else?”).",
+   "sourceDocument": "docs/rainbow/README.md"
+  },
+  {
+   "id": "rainbow-02",
+   "number": 2,
+   "title": "Three rainbows",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "rainbow",
+   "familyTitle": "Rainbow triangles",
+   "revision": 1,
+   "parameters": {
+    "mode": "count",
+    "board": {
+     "steps": 3
+    },
+    "target": 3,
+    "start": "RRRBRRBRBY"
+   },
+   "objective": "Letter the dots so that exactly 3 little triangles are rainbows.",
+   "visibleObjective": "Make 3 rainbows.",
+   "instruction": "Letter the dots so that exactly 3 little triangles are rainbows.",
+   "controls": "Tap a dot to change its letter: a dot on a side switches between its side’s two letters, and a dot inside goes R, B, Y in turn. Doors shows the sides with R at one end and B at the other.",
+   "rules": [
+    "The corners are R, B and Y. A dot on a side uses one of that side’s two corner letters; a dot inside may use any letter.",
+    "A rainbow is a little triangle with R, B and Y at its corners.",
+    "Solved when exactly 3 little triangles are rainbows."
+   ],
+   "idea": "More rainbows come from more changes of letter along the bottom.",
+   "prerequisites": "Count to three.",
+   "hints": [
+    "Change one dot at a time and watch the count.",
+    "Try the dot in the middle of the board.",
+    "Make the middle dot Y."
+   ],
+   "parent": {
+    "notice": "Rainbows tend to appear and disappear two at a time.",
+    "prompt": "When you change one dot, how many rainbows come or go?",
+    "explanation": "Changing a dot affects only the triangles round it, and the count always stays odd: 1, 3 or 5 on this board. From the start, a Y in the middle makes three: bottom row R R R B, then R Y B, then R B, then Y.",
+    "extension": "Can you make exactly two? (No: puzzle 5 asks for every number that works.)",
+    "connection": "The count is odd for every lettering, so it can only move in steps of two.",
+    "sourceIds": [
+     "rainbow-week16"
+    ]
+   },
+   "provenance": "Week 16 grades 2–3 and 4–5 Problem 1 (the three-row board; the guide’s three-rainbow witness RRRB/RRY/RB/Y).",
+   "sourceDocument": "docs/rainbow/README.md"
+  },
+  {
+   "id": "rainbow-03",
+   "number": 3,
+   "title": "Through the doors",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "rainbow",
+   "familyTitle": "Rainbow triangles",
+   "revision": 1,
+   "parameters": {
+    "mode": "walk",
+    "board": {
+     "steps": 3
+    },
+    "start": "RBRBRRBRBY"
+   },
+   "objective": "Walk through every door.",
+   "visibleObjective": "",
+   "instruction": "Walk through every door.",
+   "controls": "Tap a glowing door to walk through it, or tap a glowing rainbow to start a walk inside it. A walk stops when it can’t go on.",
+   "rules": [
+    "The corners are R, B and Y. A dot on a side uses one of that side’s two corner letters; a dot inside may use any letter.",
+    "A rainbow is a little triangle with R, B and Y at its corners.",
+    "A door is a side of a little triangle with R at one end and B at the other.",
+    "A walk comes in through a door on the outside, or starts in a rainbow, and goes through one door at a time.",
+    "Solved when you have walked through every door."
+   ],
+   "idea": "A triangle with two doors lets a walk through; a rainbow has one door, so a walk stops there.",
+   "prerequisites": "None. Tracing a path with a finger helps.",
+   "hints": [
+    "Start at a door on the bottom.",
+    "Inside a triangle, go through its other door.",
+    "One walk comes back out at the bottom; the other ends in the rainbow."
+   ],
+   "parent": {
+    "notice": "Every walk from outside either comes back out or ends in a rainbow.",
+    "prompt": "Why can’t a walk stop in a triangle that isn’t a rainbow?",
+    "explanation": "A door is an R–B side. A triangle with R and B and no Y has exactly two doors, so a walk that comes in can always go on. A rainbow has exactly one door, so a walk ends there. This board has three doors on the bottom: two are joined by a walk, and the third leads to the rainbow.",
+    "extension": "Count the doors along the bottom of any board. Is it always odd?",
+    "connection": "The door walk is the proof of Sperner’s lemma: outside doors are odd in number, walks pair them two by two, so at least one walk must end in a rainbow.",
+    "sourceIds": [
+     "rainbow-week16",
+     "rainbow-su"
+    ]
+   },
+   "provenance": "Week 16 grades 2–3 Problem 2 (the printed filling RBRB/RRB/RB/Y, its nine doors and its two routes).",
+   "sourceDocument": "docs/rainbow/README.md"
+  },
+  {
+   "id": "rainbow-04",
+   "number": 4,
+   "title": "Five rainbows",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "rainbow",
+   "familyTitle": "Rainbow triangles",
+   "revision": 1,
+   "parameters": {
+    "mode": "count",
+    "board": {
+     "steps": 3
+    },
+    "target": 5,
+    "start": "RRRBRRBRBY"
+   },
+   "objective": "Letter the dots so that exactly 5 little triangles are rainbows.",
+   "visibleObjective": "Make 5 rainbows.",
+   "instruction": "Letter the dots so that exactly 5 little triangles are rainbows.",
+   "controls": "Tap a dot to change its letter: a dot on a side switches between its side’s two letters, and a dot inside goes R, B, Y in turn. Doors shows the sides with R at one end and B at the other.",
+   "rules": [
+    "The corners are R, B and Y. A dot on a side uses one of that side’s two corner letters; a dot inside may use any letter.",
+    "A rainbow is a little triangle with R, B and Y at its corners.",
+    "Solved when exactly 5 little triangles are rainbows."
+   ],
+   "idea": "Five is the most the three-row board allows.",
+   "prerequisites": "Count to five.",
+   "hints": [
+    "Make three first, then look for two more.",
+    "Make the middle dot Y, then change a dot on the bottom.",
+    "Try R B R B along the bottom with Y in the middle."
+   ],
+   "parent": {
+    "notice": "Five is the most, and only 12 of the 192 letterings reach it.",
+    "prompt": "Could all nine triangles be rainbows at once?",
+    "explanation": "One way to make five: R B R B, then R Y B, then R B, then Y. The guide proves that five is the most by splitting the nine triangles into groups whose rainbows can be counted separately: the total is always 1, 3 or 5.",
+    "extension": "The four-row board allows nine. Puzzle 8 asks for them.",
+    "connection": "An upper bound by cases: split the nine triangles into groups whose contributions can be counted separately.",
+    "sourceIds": [
+     "rainbow-week16"
+    ]
+   },
+   "provenance": "Week 16 K–1 Problem 3 and grades 2–3, 4–5 Problem 1 (the maximum 5; witness RBRB/RYB/RB/Y).",
+   "sourceDocument": "docs/rainbow/README.md"
+  },
+  {
+   "id": "rainbow-05",
+   "number": 5,
+   "title": "How many can there be?",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "rainbow",
+   "familyTitle": "Rainbow triangles",
+   "revision": 1,
+   "parameters": {
+    "mode": "counts",
+    "board": {
+     "steps": 3
+    },
+    "start": "RRRBRRBRBY"
+   },
+   "objective": "Find every number of rainbows you can make on this board, then press That’s all.",
+   "visibleObjective": "Find every number of rainbows you can make.",
+   "instruction": "Find every number of rainbows you can make on this board, then press That’s all.",
+   "controls": "Tap a dot to change its letter: a dot on a side switches between its side’s two letters, and a dot inside goes R, B, Y in turn. Doors shows the sides with R at one end and B at the other. Each number of rainbows you make joins the row below. Press That’s all when you have every number.",
+   "rules": [
+    "The corners are R, B and Y. A dot on a side uses one of that side’s two corner letters; a dot inside may use any letter.",
+    "A rainbow is a little triangle with R, B and Y at its corners.",
+    "Solved when you press That’s all with every number of rainbows the board allows."
+   ],
+   "idea": "Only odd numbers of rainbows are possible.",
+   "prerequisites": "Odd and even, or pairing objects.",
+   "hints": [
+    "Make as many rainbows as you can, then as few.",
+    "You have found 1, 3 and 5. Have you ever seen 2 or 4?",
+    "Every number you can make is odd."
+   ],
+   "parent": {
+    "notice": "Only 1, 3 and 5 ever appear.",
+    "prompt": "Why never 0, 2 or 4?",
+    "explanation": "The bottom row goes from R to B and its letters change an odd number of times, so the outside has an odd number of doors. Each rainbow has one door, each other triangle none or two, and inside doors are shared by two triangles, so the number of rainbows is odd too.",
+    "extension": "Does the same argument work on the four-row board? On the fan?",
+    "connection": "A parity invariant: the boundary fixes whether the count is odd or even, whatever happens inside.",
+    "sourceIds": [
+     "rainbow-week16",
+     "rainbow-su"
+    ]
+   },
+   "provenance": "Week 16 K–1 Problem 2 (no lettering has zero), grades 2–3 and 4–5 Problem 1 (counts 1, 3, 5 only) and grades 4–5 Problem 5 (the general parity proof).",
+   "sourceDocument": "docs/rainbow/README.md"
+  },
+  {
+   "id": "rainbow-06",
+   "number": 6,
+   "title": "The fan",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "rainbow",
+   "familyTitle": "Rainbow triangles",
+   "revision": 1,
+   "parameters": {
+    "mode": "count",
+    "board": {
+     "steps": 2,
+     "centres": [
+      0,
+      1,
+      2,
+      3
+     ]
+    },
+    "target": 7,
+    "start": "RRBRBYRRRR"
+   },
+   "objective": "Letter the dots so that exactly 7 little triangles are rainbows.",
+   "visibleObjective": "Make 7 rainbows.",
+   "instruction": "Letter the dots so that exactly 7 little triangles are rainbows.",
+   "controls": "Tap a dot to change its letter: a dot on a side switches between its side’s two letters, and a dot inside goes R, B, Y in turn. Doors shows the sides with R at one end and B at the other.",
+   "rules": [
+    "The corners are R, B and Y. A dot on a side uses one of that side’s two corner letters; a dot inside may use any letter.",
+    "A rainbow is a little triangle with R, B and Y at its corners.",
+    "Solved when exactly 7 little triangles are rainbows."
+   ],
+   "idea": "Cut into different triangles, the board still has an odd number of rainbows, and now up to seven.",
+   "prerequisites": "Count to seven.",
+   "hints": [
+    "Each part of the two-row board is cut into three round a middle dot. Look at one part at a time.",
+    "A part holds two rainbows when its corners use two letters and its middle dot has the third.",
+    "Make the bottom R R B and the sides Y and B, then give each middle dot the letter its part lacks."
+   ],
+   "parent": {
+    "notice": "Seven is the most, and only six letterings reach it.",
+    "prompt": "How many rainbows can one part of the board hold?",
+    "explanation": "Each of the four parts of the two-row board is cut into three triangles round a middle dot. A part whose corners use two letters holds two rainbows when its middle dot has the third letter, and none otherwise; a part with R, B and Y at its corners holds exactly one, whatever its middle dot; a part with one letter holds none. So the four parts hold at most 8, and since the count is always odd, at most 7.",
+    "extension": "Can you make an even number on the fan? (No: Sperner’s lemma holds for any cutting into triangles.)",
+    "connection": "Sperner’s lemma depends only on the side rule, not on the shapes of the triangles.",
+    "sourceIds": [
+     "rainbow-week16"
+    ]
+   },
+   "provenance": "Week 16 K–1 Problem 4 (the fan board, maximum 7); here every dot except the corners may change.",
+   "sourceDocument": "docs/rainbow/README.md"
+  },
+  {
+   "id": "rainbow-07",
+   "number": 7,
+   "title": "Sixteen places",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "rainbow",
+   "familyTitle": "Rainbow triangles",
+   "revision": 1,
+   "parameters": {
+    "mode": "only",
+    "board": {
+     "steps": 4
+    },
+    "start": "RRRRBRRRBRRBRBY"
+   },
+   "objective": "Make each little triangle the only rainbow, one at a time.",
+   "visibleObjective": "Make each triangle the only rainbow.",
+   "instruction": "Make each little triangle the only rainbow, one at a time.",
+   "controls": "Tap a dot to change its letter: a dot on a side switches between its side’s two letters, and a dot inside goes R, B, Y in turn. Doors shows the sides with R at one end and B at the other. A star marks each triangle that has been the only rainbow.",
+   "rules": [
+    "The corners are R, B and Y. A dot on a side uses one of that side’s two corner letters; a dot inside may use any letter.",
+    "A rainbow is a little triangle with R, B and Y at its corners.",
+    "Solved when every little triangle has been the only rainbow on the board, one at a time."
+   ],
+   "idea": "Every one of the sixteen triangles can be the only rainbow.",
+   "prerequisites": "Keep track of which triangles have stars. Patience: this is a long one.",
+   "hints": [
+    "Move the rainbow a little at a time.",
+    "Push the change from R to B along the bottom to the left or right.",
+    "A Y on the left side moves the rainbow down that side."
+   ],
+   "parent": {
+    "notice": "The rainbow can sit anywhere, even in a corner.",
+    "prompt": "When you move one dot, where can the rainbow go?",
+    "explanation": "Every one of the sixteen triangles can be the only rainbow; the guide lists a lettering for each. Of the 13,824 letterings, 2,920 have exactly one rainbow.",
+    "extension": "Can you make every triangle a rainbow at once? What is the most? (Nine: puzzle 8.)",
+    "connection": "The lemma promises a rainbow but says nothing about where: any triangle is possible.",
+    "sourceIds": [
+     "rainbow-week16"
+    ]
+   },
+   "provenance": "Week 16 K–1 Problem 5 (all sixteen locations, the guide’s table of row codes).",
+   "sourceDocument": "docs/rainbow/README.md"
+  },
+  {
+   "id": "rainbow-08",
+   "number": 8,
+   "title": "Nine rainbows",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "rainbow",
+   "familyTitle": "Rainbow triangles",
+   "revision": 1,
+   "parameters": {
+    "mode": "count",
+    "board": {
+     "steps": 4
+    },
+    "target": 9,
+    "start": "RRRRBRRRBRRBRBY"
+   },
+   "objective": "Letter the dots so that exactly 9 little triangles are rainbows.",
+   "visibleObjective": "Make 9 rainbows.",
+   "instruction": "Letter the dots so that exactly 9 little triangles are rainbows.",
+   "controls": "Tap a dot to change its letter: a dot on a side switches between its side’s two letters, and a dot inside goes R, B, Y in turn. Doors shows the sides with R at one end and B at the other.",
+   "rules": [
+    "The corners are R, B and Y. A dot on a side uses one of that side’s two corner letters; a dot inside may use any letter.",
+    "A rainbow is a little triangle with R, B and Y at its corners.",
+    "Solved when exactly 9 little triangles are rainbows."
+   ],
+   "idea": "Rainbows inside the board pair up by walks, so many rainbows need no extra doors on the outside.",
+   "prerequisites": "Count to nine.",
+   "hints": [
+    "Use all three letters on the dots inside the board.",
+    "The second row from the bottom can go Y B R Y.",
+    "One way: R R R R B, then Y B R Y, then R Y B, then R B, then Y."
+   ],
+   "parent": {
+    "notice": "Nine rainbows can sit above a bottom row with only one door.",
+    "prompt": "How many doors does the bottom of your nine have? Where do the other walks go?",
+    "explanation": "Only 24 of the 13,824 letterings reach nine. With R R R R B along the bottom there is a single outside door: its walk ends in one rainbow, and the other eight rainbows pair up by walks that never reach the outside.",
+    "extension": "What is the most on a five-row board?",
+    "connection": "Walks pair rainbows with rainbows inside the board; only the outside door left over is forced to find one.",
+    "sourceIds": [
+     "rainbow-week16"
+    ]
+   },
+   "provenance": "Week 16 four-row board (K–1 Problem 5); the guide’s distribution 1, 3, 5, 7, 9 in 2,920; 6,192; 3,840; 848; 24 letterings.",
+   "sourceDocument": "docs/rainbow/README.md"
+  },
+  {
+   "id": "rainbow-09",
+   "number": 9,
+   "title": "Doors inside",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "rainbow",
+   "familyTitle": "Rainbow triangles",
+   "revision": 1,
+   "parameters": {
+    "mode": "walk",
+    "board": {
+     "steps": 4
+    },
+    "start": "RRBRBYBRBRBBRBY"
+   },
+   "objective": "Walk through every door.",
+   "visibleObjective": "",
+   "instruction": "Walk through every door.",
+   "controls": "Tap a glowing door to walk through it, or tap a glowing rainbow to start a walk inside it. A walk stops when it can’t go on.",
+   "rules": [
+    "The corners are R, B and Y. A dot on a side uses one of that side’s two corner letters; a dot inside may use any letter.",
+    "A rainbow is a little triangle with R, B and Y at its corners.",
+    "A door is a side of a little triangle with R at one end and B at the other.",
+    "A walk comes in through a door on the outside, or starts in a rainbow, and goes through one door at a time.",
+    "Solved when you have walked through every door."
+   ],
+   "idea": "Walks join outside doors in pairs, and rainbows in pairs, and one walk joins the outside to a rainbow.",
+   "prerequisites": "Puzzle 3.",
+   "hints": [
+    "Walk in from each door on the bottom.",
+    "Some doors are never reached from outside. Where could a walk start instead?",
+    "Start in a rainbow that has no walk yet."
+   ],
+   "parent": {
+    "notice": "One walk never touches the outside: it joins two rainbows.",
+    "prompt": "Why must at least one walk from outside end in a rainbow?",
+    "explanation": "This board has three doors on the bottom and three rainbows. One walk joins two bottom doors, one joins a bottom door to a rainbow, and one joins the other two rainbows. Walks pair outside doors with outside doors and rainbows with rainbows; the odd outside door left over forces an odd number of rainbows.",
+    "extension": "Change one dot and walk again. Does the pairing still leave one walk from outside to a rainbow?",
+    "connection": "The path-following proof of Sperner’s lemma, the idea behind algorithms that compute fixed points (Scarf).",
+    "sourceIds": [
+     "rainbow-week16",
+     "rainbow-su",
+     "rainbow-scarf"
+    ]
+   },
+   "provenance": "Week 16 grades 4–5 Problem 2 (the printed filling RRBRB/YBRB/RBB/RB/Y, all fourteen doors and three routes).",
+   "sourceDocument": "docs/rainbow/README.md"
+  },
+  {
+   "id": "rainbow-10",
+   "number": 10,
+   "title": "Hidden letters",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "rainbow",
+   "familyTitle": "Rainbow triangles",
+   "revision": 1,
+   "parameters": {
+    "mode": "peek",
+    "board": {
+     "steps": 5
+    },
+    "hidden": [
+     "RRRBBBRYRBBRRBBYYBYYY",
+     "RRRRBBRRRRBRYRBRRYYYY",
+     "RRBBBBRBBYYRRYBRRYYYY"
+    ],
+    "budget": 9
+   },
+   "objective": "Find a rainbow, peeking at no more than 9 dots.",
+   "visibleObjective": "Find a rainbow.",
+   "instruction": "Find a rainbow, peeking at no more than 9 dots.",
+   "controls": "Tap a dot to peek at its letter. Start again hides the letters of a new board.",
+   "rules": [
+    "The corners are R, B and Y. A dot on a side uses one of that side’s two corner letters; a dot inside may use any letter.",
+    "A rainbow is a little triangle with R, B and Y at its corners.",
+    "Only the corners show at first. Each peek shows one dot’s letter.",
+    "Solved when a rainbow shows within 9 peeks."
+   ],
+   "idea": "Following doors finds a rainbow without looking at most of the board.",
+   "prerequisites": "Puzzle 3.",
+   "hints": [
+    "The bottom side runs from R to B. Somewhere an R sits next to a B.",
+    "Peek halfway between an R and a B on the bottom, and keep halving.",
+    "Go through the door you found: peek at the third dot of the triangle behind it, and keep going through doors."
+   ],
+   "parent": {
+    "notice": "A rainbow turns up after a few peeks along the bottom and a short walk.",
+    "prompt": "Why does halving the bottom always find a door?",
+    "explanation": "Between an R and a B on the bottom there must be a change of letter. Peeking halfway keeps an R on one side and a B on the other, so the gap halves each time. Through that door, each triangle shows one new dot; a triangle with two doors leads on, and the walk stops in a rainbow. On these boards the bottom has one door, so its walk cannot come back out.",
+    "extension": "If the walk did come back out through another bottom door, where would you look next?",
+    "connection": "Path following as a search: it is how computers find approximate fixed points and fair divisions (Scarf, Su).",
+    "sourceIds": [
+     "rainbow-week16",
+     "rainbow-su",
+     "rainbow-scarf"
+    ]
+   },
+   "provenance": "New for the app: the door walk of Week 16 grades 4–5 Problem 5 used as a search, with binary search along the bottom (grades 4–5 Problem 4: a row from R to B changes letter an odd number of times).",
+   "sourceDocument": "docs/rainbow/README.md"
+  },
+  {
+   "id": "rainbow-11",
+   "number": 11,
+   "title": "A walk that comes back",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "rainbow",
+   "familyTitle": "Rainbow triangles",
+   "revision": 1,
+   "parameters": {
+    "mode": "peek",
+    "board": {
+     "steps": 6
+    },
+    "hidden": [
+     "RRRRBRBRRYRRBYRYYBRYYBRYBYBY",
+     "RBRBBBBRRBYBBRBYYBYBBBYYYYYY",
+     "RRBRBBBRRBBBBRRBYYYYBBYBBYBY"
+    ],
+    "budget": 11
+   },
+   "objective": "Find a rainbow, peeking at no more than 11 dots.",
+   "visibleObjective": "Find a rainbow.",
+   "instruction": "Find a rainbow, peeking at no more than 11 dots.",
+   "controls": "Tap a dot to peek at its letter. Start again hides the letters of a new board.",
+   "rules": [
+    "The corners are R, B and Y. A dot on a side uses one of that side’s two corner letters; a dot inside may use any letter.",
+    "A rainbow is a little triangle with R, B and Y at its corners.",
+    "Only the corners show at first. Each peek shows one dot’s letter.",
+    "Solved when a rainbow shows within 11 peeks."
+   ],
+   "idea": "A walk from outside may come back out, but outside doors are odd, so one walk cannot.",
+   "prerequisites": "Puzzle 10.",
+   "hints": [
+    "Find an R next to a B on the bottom and walk in.",
+    "Your walk came back out. There is another R next to a B on the bottom.",
+    "Halve the stretch between the R where you came out and the next B."
+   ],
+   "parent": {
+    "notice": "The first walk comes back out; another door leads to the rainbow.",
+    "prompt": "After a walk comes back out, why is there still a door worth trying?",
+    "explanation": "These boards have three doors on the bottom and one rainbow. A walk in from outside that comes back out uses up two outside doors; the third must lead to a rainbow, because doors that are left over cannot pair.",
+    "extension": "On paper, letter a board whose bottom has five doors and which has one rainbow. How many walks come back out? (Two.)",
+    "connection": "Walks pair outside doors; an odd number cannot all pair (Sperner’s lemma as a search).",
+    "sourceIds": [
+     "rainbow-week16",
+     "rainbow-su"
+    ]
+   },
+   "provenance": "New for the app, after Week 16 grades 2–3 Problem 5 and grades 4–5 Problem 2 (an outside route can return outside).",
+   "sourceDocument": "docs/rainbow/README.md"
+  },
+  {
+   "id": "rainbow-s01",
+   "number": 1,
+   "title": "No rainbow",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "starred",
+   "libraryFamily": "rainbow",
+   "group": "Starred dots",
+   "familyTitle": "Rainbow triangles",
+   "revision": 1,
+   "parameters": {
+    "mode": "count",
+    "board": {
+     "steps": 2,
+     "free": [
+      1
+     ]
+    },
+    "target": 0,
+    "start": "RRBRBY"
+   },
+   "objective": "Letter the dots so that no little triangle is a rainbow.",
+   "visibleObjective": "Make no rainbows.",
+   "instruction": "Letter the dots so that no little triangle is a rainbow.",
+   "controls": "Tap a dot to change its letter: a dot on a side switches between its side’s two letters, and a dot inside goes R, B, Y in turn. Doors shows the sides with R at one end and B at the other.",
+   "rules": [
+    "The corners are R, B and Y. A dot on a side uses one of that side’s two corner letters; a dot inside may use any letter.",
+    "A rainbow is a little triangle with R, B and Y at its corners.",
+    "A starred dot may take any letter.",
+    "Solved when no little triangle is a rainbow."
+   ],
+   "idea": "Let the bottom use Y, and the rainbow can vanish.",
+   "prerequisites": "Move the rainbow (puzzle 1).",
+   "hints": [
+    "The starred dot may also be Y.",
+    "Make the starred dot Y.",
+    "With the starred dot Y, make one of the other two side dots Y as well."
+   ],
+   "parent": {
+    "notice": "With a Y on the bottom, the rainbow can disappear.",
+    "prompt": "In Move the rainbow it never could. What is different?",
+    "explanation": "With R, Y, B along the bottom, R and B never sit side by side, so the outside has no door. The door argument needed an odd number of doors on the outside; with none, the rainbows can be even, here none at all. Three of the twelve letterings have no rainbow.",
+    "extension": "Can you make two rainbows on this board? (Yes, in exactly one way: the next puzzle.)",
+    "connection": "A theorem is only as good as its hypotheses: drop the side rule and the guarantee fails.",
+    "sourceIds": [
+     "rainbow-week16"
+    ]
+   },
+   "provenance": "Week 16 K–1 Problem 6 (the bottom side may also use Y); on the two-row board the bottom has one dot.",
+   "sourceDocument": "docs/rainbow/README.md"
+  },
+  {
+   "id": "rainbow-s02",
+   "number": 2,
+   "title": "Two rainbows",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "starred",
+   "libraryFamily": "rainbow",
+   "group": "Starred dots",
+   "familyTitle": "Rainbow triangles",
+   "revision": 1,
+   "parameters": {
+    "mode": "count",
+    "board": {
+     "steps": 2,
+     "free": [
+      1
+     ]
+    },
+    "target": 2,
+    "start": "RRBRBY"
+   },
+   "objective": "Letter the dots so that exactly 2 little triangles are rainbows.",
+   "visibleObjective": "Make 2 rainbows.",
+   "instruction": "Letter the dots so that exactly 2 little triangles are rainbows.",
+   "controls": "Tap a dot to change its letter: a dot on a side switches between its side’s two letters, and a dot inside goes R, B, Y in turn. Doors shows the sides with R at one end and B at the other.",
+   "rules": [
+    "The corners are R, B and Y. A dot on a side uses one of that side’s two corner letters; a dot inside may use any letter.",
+    "A rainbow is a little triangle with R, B and Y at its corners.",
+    "A starred dot may take any letter.",
+    "Solved when exactly 2 little triangles are rainbows."
+   ],
+   "idea": "Without the side rule, an even number of rainbows is possible.",
+   "prerequisites": "No rainbow (Starred dots 1).",
+   "hints": [
+    "Keep the starred dot Y.",
+    "The two side dots above it decide the rest. Try each pair.",
+    "Make the left side dot R and the right side dot B."
+   ],
+   "parent": {
+    "notice": "Only one of the twelve letterings has two rainbows.",
+    "prompt": "Where are the doors now?",
+    "explanation": "R, Y, B along the bottom has no door. R on the left and B on the right make one door, inside the board, and the two rainbows are the triangles on either side of it: a walk from one rainbow goes through that door and ends in the other. Rainbows that pair up inside need no outside door, so without one the count can be even.",
+    "extension": "With a star on the three-row board, can you make four? (Yes, the next puzzle.)",
+    "connection": "Walks join rainbows in pairs; only an outside door left over forces an odd count.",
+    "sourceIds": [
+     "rainbow-week16"
+    ]
+   },
+   "provenance": "Week 16 grades 4–5 Problem 6 and the guide’s note that breaking the side rule allows even counts; new instance on the two-row board.",
+   "sourceDocument": "docs/rainbow/README.md"
+  },
+  {
+   "id": "rainbow-s03",
+   "number": 3,
+   "title": "How many now?",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "starred",
+   "libraryFamily": "rainbow",
+   "group": "Starred dots",
+   "familyTitle": "Rainbow triangles",
+   "revision": 1,
+   "parameters": {
+    "mode": "counts",
+    "board": {
+     "steps": 3,
+     "free": [
+      1
+     ]
+    },
+    "start": "RRRBRRBRBY"
+   },
+   "objective": "Find every number of rainbows you can make on this board, then press That’s all.",
+   "visibleObjective": "Find every number of rainbows you can make.",
+   "instruction": "Find every number of rainbows you can make on this board, then press That’s all.",
+   "controls": "Tap a dot to change its letter: a dot on a side switches between its side’s two letters, and a dot inside goes R, B, Y in turn. Doors shows the sides with R at one end and B at the other. Each number of rainbows you make joins the row below. Press That’s all when you have every number.",
+   "rules": [
+    "The corners are R, B and Y. A dot on a side uses one of that side’s two corner letters; a dot inside may use any letter.",
+    "A rainbow is a little triangle with R, B and Y at its corners.",
+    "A starred dot may take any letter.",
+    "Solved when you press That’s all with every number of rainbows the board allows."
+   ],
+   "idea": "Break the side rule, and every number from 0 to 5 appears.",
+   "prerequisites": "How many can there be? (puzzle 5).",
+   "hints": [
+    "Make the starred dot Y and look for an even number.",
+    "You have seen 1, 3 and 5 before. Look for 0, 2 and 4.",
+    "Four is the hardest to find. Keep the bottom R Y B B."
+   ],
+   "parent": {
+    "notice": "Now 0, 2 and 4 appear as well as 1, 3 and 5.",
+    "prompt": "Which part of the door argument breaks?",
+    "explanation": "The proof needs an odd number of doors on the outside, and that came from the bottom running from R to B with only R and B between. A Y on the bottom can separate the R’s from the B’s, leaving no outside door, and then the count can be even. On this board every number from 0 to 5 is possible; 16 of the 288 letterings have none and only 4 have four.",
+    "extension": "Puzzle 5 is the same board without the star. Which numbers did it allow?",
+    "connection": "A parity invariant needs its boundary condition: change the boundary and the parity is free.",
+    "sourceIds": [
+     "rainbow-week16"
+    ]
+   },
+   "provenance": "Week 16 grades 4–5 Problem 6 (one starred bottom dot may be Y), set against grades 2–3 and 4–5 Problem 1 (only 1, 3 and 5).",
+   "sourceDocument": "docs/rainbow/README.md"
+  },
+  {
+   "id": "rainbow-s04",
+   "number": 4,
+   "title": "A blue on the left",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "starred",
+   "libraryFamily": "rainbow",
+   "group": "Starred dots",
+   "familyTitle": "Rainbow triangles",
+   "revision": 1,
+   "parameters": {
+    "mode": "count",
+    "board": {
+     "steps": 3,
+     "free": [
+      4
+     ]
+    },
+    "target": 0,
+    "start": "RRRBRRBRBY"
+   },
+   "objective": "Letter the dots so that no little triangle is a rainbow.",
+   "visibleObjective": "Make no rainbows.",
+   "instruction": "Letter the dots so that no little triangle is a rainbow.",
+   "controls": "Tap a dot to change its letter: a dot on a side switches between its side’s two letters, and a dot inside goes R, B, Y in turn. Doors shows the sides with R at one end and B at the other.",
+   "rules": [
+    "The corners are R, B and Y. A dot on a side uses one of that side’s two corner letters; a dot inside may use any letter.",
+    "A rainbow is a little triangle with R, B and Y at its corners.",
+    "A starred dot may take any letter.",
+    "Solved when no little triangle is a rainbow."
+   ],
+   "idea": "The rule matters on every side, not only on the bottom.",
+   "prerequisites": "How many now? (Starred dots 3).",
+   "hints": [
+    "The starred dot is on the left side. Which letter is new for it?",
+    "Make the starred dot B, and turn on Doors.",
+    "One way: R R R B along the bottom, then B B B, then Y B, then Y."
+   ],
+   "parent": {
+    "notice": "A B on the left side puts a door on the outside that the rule never allowed.",
+    "prompt": "How many doors does the outside have now?",
+    "explanation": "Up the left side the letters now go R, B, Y: one door, which the side rule never allowed. With the odd number of doors along the bottom, the outside has an even number, and the rainbows can be zero. Every lettering with none has R, B, Y up the left side; with R, B, R, Y there are two new doors and the count stays odd.",
+    "extension": "Which dots, starred, could break the guarantee? (Any dot on a side: each can then take its side’s missing letter.)",
+    "connection": "Sperner’s lemma needs the boundary condition on all three sides.",
+    "sourceIds": [
+     "rainbow-week16"
+    ]
+   },
+   "provenance": "New for the app, after Week 16 grades 4–5 Problem 6: the starred dot moves to the left side.",
+   "sourceDocument": "docs/rainbow/README.md"
+  }
+ ]
+}

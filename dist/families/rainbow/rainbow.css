@@ -1,0 +1,61 @@
+@import url('../../tri-grid.css');
+/* Rainbow triangles: dots lettered R, B and Y on the shared palette (rose,
+   sky, sun), rainbow triangles shaded with all three, doors as dark bars
+   across R–B edges, walks as a trail through the doors, hidden dots, and
+   stars on the triangles already collected. */
+.rb-puzzle{display:flex;flex-direction:column;align-items:center;gap:.45rem;width:100%}
+.rb-stage{width:100%}
+
+/* Dots. Letters carry the meaning; colours only help. */
+.rb-board .rb-dot .tg-pip{stroke:var(--b-ink,#294439);stroke-width:1.6px;vector-effect:non-scaling-stroke}
+.rb-board .rb-R .tg-pip{fill:#e7a28f}
+.rb-board .rb-B .tg-pip{fill:#9cc9de}
+.rb-board .rb-Y .tg-pip{fill:#efc76e}
+.rb-board .rb-hidden .tg-pip{fill:#e4e4da;stroke-dasharray:3 2}
+.rb-board .rb-hidden .tg-letter{fill:var(--b-muted,#5a6850);font-weight:400}
+.rb-board .rb-dot.fixed .tg-pip{stroke-width:2.6px}
+.rb-board .rb-dot[role="button"]:hover .tg-reach{fill:rgba(41,68,57,.07)}
+.rb-board .tg-letter{font-family:var(--b-display,Georgia,serif);font-weight:700}
+@media (prefers-reduced-motion:no-preference){.rb-board .rb-dot .tg-pip{transition:fill .15s ease-out}}
+
+/* The starred dot that may also be Y. */
+.rb-board .rb-star-mark{fill:var(--b-ochre,#b38840);text-anchor:middle;pointer-events:none}
+
+/* Rainbow triangles and the ones already collected. */
+.rb-board .tg-cell.rb-rainbow{fill:url(#rb-glow)}
+.rb-board .tg-dot.rb-star{fill:var(--b-ochre,#b38840)}
+.rb-board.solved .tg-cell.rb-rainbow{stroke:var(--b-good,#3c7a4a);stroke-width:2.6px}
+
+/* Doors, walks and the walker. */
+/* A door is violet, between the rose of R and the sky of B, on a light
+   halo so the ones on the outside show against the outline. */
+.rb-board .rb-door{stroke:#6e4f9e;stroke-width:5px;vector-effect:non-scaling-stroke;stroke-linecap:round;pointer-events:none;paint-order:stroke}
+.rb-board .rb-door-halo{stroke:var(--b-card,#fffdf5);stroke-width:9px;vector-effect:non-scaling-stroke;stroke-linecap:round;pointer-events:none}
+.rb-board .rb-door.walked{stroke:#b9a3d8}
+.rb-board .rb-trail{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:2.4px;vector-effect:non-scaling-stroke;stroke-dasharray:5 4;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;opacity:.85}
+.rb-board .rb-trail.live{stroke:var(--b-bad,#a9503a);opacity:1}
+.rb-board .rb-walker{fill:var(--b-bad,#a9503a);stroke:var(--b-card,#fffdf5);stroke-width:1.5px;vector-effect:non-scaling-stroke;pointer-events:none}
+.rb-board .tm-edge-hit.rb-door-hit{stroke:rgba(179,136,64,.22)}
+.rb-board .tm-edge-hit.rb-door-hit:hover{stroke:rgba(179,136,64,.4)}
+.rb-board .tm-edge-hit.hinted{stroke:rgba(239,199,110,.75)}
+.rb-board .tg-hit:not(:hover):not(:focus-visible){fill:rgba(179,136,64,.1)}
+
+/* The counter, the doors switch, actions and the numbers found. */
+.rb-bar,.rb-actions,.rb-tools{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .9rem;max-width:100%}
+.rb-counter{margin:0;font-size:1.05rem;color:var(--b-ink,#294439)}
+.rb-counter strong{font-family:var(--b-display,Georgia,serif);font-size:1.5rem;font-weight:400}
+.rb-counter strong.over{color:var(--b-bad,#a9503a)}
+.rb-puzzle :is(.rb-action,.rb-toggle,.rb-tool){display:inline-flex;align-items:center;gap:.35rem;min-height:46px;padding:6px 12px;font-size:.92rem;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd);font-weight:600}
+.rb-puzzle :is(.rb-toggle,.rb-tool)[aria-pressed="true"]{background:#e9eddc;border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.rb-puzzle .rb-action:disabled{opacity:.45;box-shadow:none}
+.rb-puzzle .hinted.rb-action{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.rb-puzzle .rb-size{padding:5px 8px}
+.rb-puzzle .rb-size-icon{width:30px;height:30px;margin:0}
+.rb-puzzle .rb-size-icon .tm-line{stroke:#b9c2a5}
+.rb-note{margin:0;font-weight:600;color:var(--b-bad,#a9503a)}
+.rb-shelf{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;list-style:none;margin:0;padding:0}
+.rb-shelf:empty{display:none}
+.rb-shelf li{display:grid;place-items:center;min-width:40px;height:40px;padding:0 8px;border-radius:20px;background:linear-gradient(135deg,#f3c3b5,#f6df9c 50%,#bfdcea);border:1px solid #c99a4a;font-family:var(--b-display,Georgia,serif);font-size:1.25rem}
+.rb-shelf li.here{box-shadow:inset 0 0 0 2px var(--b-pine,#31533e)}
+@media (prefers-reduced-motion:no-preference){.rb-shelf li:last-child{animation:rb-in .3s ease-out}}
+@keyframes rb-in{from{opacity:.4;transform:scale(.85)}to{opacity:1;transform:none}}

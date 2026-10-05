@@ -40,15 +40,32 @@ triBoard(g, {
 });
 ```
 
-Every control is focusable and answers Enter and Space. Styles live in `tri-grid.css`; a family's stylesheet imports it and colours pieces with its own classes (`rh-face f0` and so on in Rhombus gardens).
+Every control is focusable and answers Enter and Space. Styles live in `tri-grid.css`; a family's stylesheet imports it and colours pieces with its own classes (`rh-face f0` and so on in Rhombus gardens). Every family that uses the grid imports it, so its base rules can load again after an earlier family's rules: scope each family rule under the family's root (`.rh-puzzle .rh-mini`), never a bare class that a base rule also styles.
 
 ## Wiring
 
 `wireTri(root, g, handlers, apply)` turns taps into moves: `handlers.cell(i)`, `handlers.piece(key)` and `handlers.point(k)` each return a move or null. With `handlers.stroke`, pressing on a cell and sliding through others collects the cells whose middles the finger crossed; `handlers.preview(cells)` says `'ok'` or `'blocked'` while sliding, and `handlers.stroke(cells)` returns the move on release. A slide that never leaves its first cell is a tap. Taps are read from the pointer's press and release rather than the click, because a phone browser can drop the click after a touch; the click that follows is ignored, and a click with no press before it (as assistive technology sends) still works. `cellAt(g, x, y, core)` finds the cell under a drawing position.
 
+## Boards of any triangles
+
+`dist/tri-mesh.js` draws boards whose triangles are not all the same: a big triangle cut into little ones of any shapes (Week 16's fan), or, next, a polygon cut by its diagonals (Week 14). A family gives points in triangle-edge units (y up) and triangles as triples of point numbers:
+
+```js
+import {meshOf, meshBoard} from '../../tri-mesh.js';
+import {wireTri} from '../../tri-grid.js';
+
+const m = meshOf({points: [[0, 0], [1, 0], [.5, .866], [.5, .289]], cells: [[0, 1, 3], [1, 2, 3], [2, 0, 3]]});
+meshBoard(m, {cell, point: k => ({cls, label, act, text}), edge: e => ({cls, label, act}), pipPx: 16});
+wireTri(root, m, {point: k => move, edge: e => move, cell: i => move}, apply);
+```
+
+- `meshOf` turns every triangle counterclockwise and finds the edges (`[a, b]` with a < b), the one or two triangles beside each edge, which edges are on the outside (`outer`), each triangle's edges opposite its corners in order (`cellEdges`), neighbours, the triangles round each point (`around`), drawing positions and the shortest edge. `validMeshSpec` refuses flat triangles, repeated or missing corners and edges with three triangles.
+- `meshBoard` draws inside edges as thin lines and the outline on top of them; `point(k)` may put a letter inside a point (`text`), and `edge(e)` makes an edge a control (`data-tg-edge`) with a wide invisible line to tap. `pipPx` keeps points about that radius on screen, so a small board shows its triangles rather than its dots; points shrink to fit the shortest edge either way. `pipRadius(m, opts)` gives that radius, for a mark that sits beside a point (Rainbow triangles' stars).
+- Taps come through tri-grid's `wireTri`, which also answers `handlers.edge(e)`; strokes are for lattice boards only.
+
 ## Building on it
 
 - **The Week 1 encore** (red trapezoids, the two-player placement game, fewest-piece fills). These belong in Rhombus gardens as new groups: `placements(g, 'trapezoid')` gives the places, `lozenge.js` exact covers work for any shape, and the game needs only a move that places a rhombus for each side.
-- **Week 16 (Sperner's lemma).** Colour grid points instead of laying pieces: draw every point with `point(k)` as a control, show colours with point classes, and mark finished triangles with `cell(i).cls`. `around` gives the cells round a point and `corners` the points of a cell, which is all the lemma's count needs.
-- **Week 14 (triangulations).** Not on this grid, but the same questions about flip maps. `flipDistances` in `families/rhombus/lozenge.js` shows the pattern: hold each state compactly, search the flip map once per start, and keep the distances.
+- **Week 16 (Sperner's lemma)** is [Rainbow triangles](rainbow/README.md). Its boards are meshes, so the fan (each triangle cut in three round a middle point) draws the same way as the plain boards; dots are points with letters, doors are edges, and walks start from outside edges.
+- **Week 14 (triangulations).** A polygon's corners are mesh points and its diagonals are edges, so tapping an edge can flip it. The flip-map questions are Week 1's: `flipDistances` in `families/rhombus/lozenge.js` shows the pattern (hold each state compactly, search the flip map once per start, keep the distances).
 - **Other boards.** The hexagon with sides a, b, c is `hexagon(a, b, c)` in `families/rhombus/rhombus.js`; copy it rather than import it, so a new family does not depend on another family's module.

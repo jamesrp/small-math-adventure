@@ -37,26 +37,26 @@
 .rh-puzzle .rh-tool[data-focus="rh-tool-dot"] b{background:var(--b-bad,#a9503a)}
 .rh-puzzle .rh-action:disabled{opacity:.45;box-shadow:none}
 .rh-puzzle .hinted:is(.rh-tool,.rh-action){outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
-.rh-tool-icon{width:22px;height:22px}
+.rh-puzzle .rh-tool-icon{width:22px;height:22px}
 .rh-icon-rhombus{fill:#aabf9a;stroke:var(--b-ink,#294439);stroke-width:1.6;stroke-linejoin:round}
 .rh-icon-tri{fill:#fbf8ec;stroke:var(--b-ink,#294439);stroke-width:1.6;stroke-linejoin:round}
 .rh-icon-dot{fill:var(--b-bad,#a9503a)}
 .rh-puzzle .rh-size{padding:5px 8px}
-.rh-size-icon{width:30px;height:30px;margin:0}
-.rh-size-icon .tg-cell{stroke:#b9c2a5}
+.rh-puzzle .rh-size-icon{width:30px;height:30px;margin:0}
+.rh-puzzle .rh-size-icon .tg-cell{stroke:#b9c2a5}
 .rh-note{margin:0;font-weight:600;color:var(--b-bad,#a9503a)}
 
 /* The empty board's piece and gesture. */
 .rh-prompt{display:flex;align-items:center;gap:.6rem;margin:0;color:var(--b-ink,#294439)}
-.rh-icon{width:44px;height:38px;margin:0}
+.rh-puzzle .rh-icon{width:44px;height:38px;margin:0}
 
 /* The goal and the flip count. */
 .rh-goalbar{display:flex;align-items:center;justify-content:center;gap:1rem}
 .rh-goal{position:relative;margin:0;width:92px;padding:6px;background:#fbf4dc;border:1.5px solid #ead9a4;border-radius:14px}
 .rh-goal figcaption{position:absolute;top:2px;right:6px;font-size:1rem}
-.rh-mini{display:block;width:100%;height:auto;margin:0}
-.rh-mini .tg-piece{stroke-width:1px}
-.rh-mini .tg-edge{stroke-width:1.5px}
+.rh-puzzle .rh-mini{display:block;width:100%;height:auto;margin:0}
+.rh-puzzle .rh-mini .tg-piece{stroke-width:1px}
+.rh-puzzle .rh-mini .tg-edge{stroke-width:1.5px}
 .rh-counter{margin:0;font-size:1.05rem;color:var(--b-ink,#294439)}
 .rh-counter strong{font-family:var(--b-display,Georgia,serif);font-size:1.5rem;font-weight:400}
 .rh-counter strong.over{color:var(--b-bad,#a9503a)}
