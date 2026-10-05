@@ -43,9 +43,10 @@ export function media(id, placeholder, { key = id, cls = '', alt = '', then = nu
     const handover = !loop && nextEntry ? `data-then-video="${escAttr(artUrl(nextEntry.video) || '')}" data-then-image="${escAttr(artUrl(nextEntry.image) || '')}"` : '';
     return `<div ${base} data-art-src="${escAttr(video)}${nonce === '' ? '' : `#${escAttr(nonce)}`}"><video src="${escAttr(video)}" ${image ? `poster="${escAttr(image)}"` : ''} autoplay muted playsinline ${loop ? 'loop' : ''} preload="auto" aria-hidden="true" ${handover}></video></div>`;
   }
-  // Reduced motion and image-only slots show a still. A one-shot clip's still
-  // is where it ends, which is the `then` slot when there is one.
-  const still = !loop && nextEntry?.image ? artUrl(nextEntry.image) : image || artUrl(nextEntry?.image);
+  // Reduced motion and image-only slots show the slot's own still (a keeper's
+  // happy or oops face, a scene change's finished stage), or the `then` slot's
+  // when it has none.
+  const still = image || artUrl(nextEntry?.image);
   return `<div ${base} data-art-src="${escAttr(still)}"><img src="${escAttr(still)}" alt="${escAttr(alt)}" decoding="async" ${alt ? '' : 'aria-hidden="true"'}></div>`;
 }
 
