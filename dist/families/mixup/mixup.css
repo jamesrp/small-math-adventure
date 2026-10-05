@@ -1,0 +1,5 @@
+@import url('../../cases.css');
+/* Mixed-up cups: the shared cups, shelf, bins and hoops, laid out in one
+   column under the board. */
+.mixup-puzzle,.mixup-play{display:flex;flex-direction:column;align-items:center;gap:.7rem;width:100%}
+.mixup-play .case-tools .case-action{font-family:var(--b-display,Georgia,serif);font-size:1.05rem}
