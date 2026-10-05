@@ -10,10 +10,10 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Wave 1: move menus in Pebble Duel (Week 7) | | | open; waits on the Week 7 review card |
 | Wave 1: codebook design in Signal Lanterns (Week 18) | | | open; waits on the Week 18 review card |
 | Wave 1: first-fit order in Neighbor Lanterns (Week 62) | | | open; waits on the Week 62 review card |
-| Wave 1: route packing with its cut (Week 13) | | | open; waits on the Week 13 review card |
+| Wave 1: route packing with its cut (Week 13) | Claude, Route packing and cheapest networks thread | `claude/wave1-networks-kqynkj` | claimed; review card in progress |
 | Wave 1: sorting networks (Week 23) | | | open; waits on the Week 23 review card |
 | Wave 1: hidden pictures from row and column counts (Week 25) | | | open; waits on the Week 25 review card |
-| Wave 1: cheapest networks (Week 53) | | | open; waits on the Week 53 review card |
+| Wave 1: cheapest networks (Week 53) | Claude, Route packing and cheapest networks thread | `claude/wave1-networks-kqynkj` | claimed; review card in progress |
 | Safe preview links for testers (plan item 5) | | | open |
 | Road 1 keeper `happy` and `oops` stills and videos (plan item 6) | | | open; Dot/Codex |
 | Voice-casting brief for six keepers and Plume (plan item 6) | | | open; Claude |
