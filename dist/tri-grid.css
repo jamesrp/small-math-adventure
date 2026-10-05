@@ -22,3 +22,12 @@
 /* A hinted triangle or point. */
 .tg-cell.hinted{fill:#f6e3b0;stroke:var(--b-ochre,#b38840);stroke-width:2.5px;stroke-dasharray:5 4}
 .tg-point.hinted .tg-reach{fill:rgba(239,199,110,.55);stroke:var(--b-ochre,#b38840);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}
+
+/* Boards of any triangles (tri-mesh.js): inner edges, edges that are
+   controls (a wide invisible line to tap), and letters inside points. */
+.tm-cell{fill:#fbf8ec}
+.tm-line{stroke:#c9cfb5;stroke-width:1.2px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.tm-edge-hit{stroke:transparent;stroke-width:22px;vector-effect:non-scaling-stroke;stroke-linecap:round;cursor:pointer;outline:none}
+.tm-edge-hit:hover{stroke:rgba(41,68,57,.08)}
+.tm-edge-hit:focus-visible{stroke:rgba(179,136,64,.4)}
+.tg-letter{text-anchor:middle;font-weight:700;fill:var(--b-ink,#294439);pointer-events:none;font-family:inherit}

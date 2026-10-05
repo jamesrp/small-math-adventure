@@ -231,8 +231,9 @@ export function cellAt(g, x, y, core = 1) {
   return i === undefined ? null : i;
 }
 
-// Taps, keys and strokes. `handlers.cell(i)`, `handlers.piece(key)` and
-// `handlers.point(k)` turn a tap into a move (or null). With
+// Taps, keys and strokes. `handlers.cell(i)`, `handlers.piece(key)`,
+// `handlers.point(k)` and `handlers.edge(e)` (on tri-mesh.js boards) turn a
+// tap into a move (or null). With
 // `handlers.stroke`, pressing on a cell and sliding across others collects
 // the cells entered (through their middles only); `handlers.preview(cells)`
 // says 'ok' or 'blocked' for the stroke so far, and `handlers.stroke(cells)`
@@ -285,9 +286,10 @@ let listening = false;
 export function wireTri(root, g, handlers, apply) {
   const svg = root.querySelector('[data-tg-board]');
   if (!svg) return;
-  const controls = '[data-tg-cell],[data-tg-piece],[data-tg-point]';
+  const controls = '[data-tg-cell],[data-tg-piece],[data-tg-point],[data-tg-edge]';
   const act = control => {
     if (control.dataset.tgPoint !== undefined) return handlers.point?.(Number(control.dataset.tgPoint));
+    if (control.dataset.tgEdge !== undefined) return handlers.edge?.(Number(control.dataset.tgEdge));
     if (control.dataset.tgPiece !== undefined) return handlers.piece?.(control.dataset.tgPiece);
     if (control.dataset.tgCell !== undefined) return handlers.cell?.(Number(control.dataset.tgCell));
     return null;
