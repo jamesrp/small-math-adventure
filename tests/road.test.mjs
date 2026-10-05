@@ -256,6 +256,18 @@ test('views render the road, scenes and journal without art, and use art once it
   setManifest(null);
 });
 
+test('a keeper reaction shows its own face as a still and settles on idle after its clip', () => {
+  const idle = { status: 'ready', image: 'keeper/wick/idle.webp' }, oops = { status: 'ready', image: 'keeper/wick/oops.webp' };
+  const react = () => media('keeper/wick/oops', 'P', { then: 'keeper/wick/idle', loop: false });
+  setManifest({ version: 1, assets: { 'keeper/wick/idle': idle, 'keeper/wick/oops': oops } });
+  assert.match(react(), /<img src=".\/art\/keeper\/wick\/oops.webp"/);
+  setManifest({ version: 1, assets: { 'keeper/wick/idle': idle, 'keeper/wick/oops': { ...oops, video: 'keeper/wick/oops.mp4' } } });
+  assert.match(react(), /<video src=".\/art\/keeper\/wick\/oops.mp4" poster=".\/art\/keeper\/wick\/oops.webp"[^>]*data-then-image=".\/art\/keeper\/wick\/idle.webp"/);
+  globalThis.matchMedia = () => ({ matches: true });
+  try { assert.match(react(), /<img src=".\/art\/keeper\/wick\/oops.webp"/); }
+  finally { delete globalThis.matchMedia; setManifest(null); }
+});
+
 test('every line has a voice ID the art manifest can fill, and every slot has a placeholder', async () => {
   const { voiceLines, artSlots } = await import('../dist/art-slots.js');
   const lines = voiceLines(), ids = new Set(lines.map(l => l.id));
