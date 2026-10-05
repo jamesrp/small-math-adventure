@@ -12,7 +12,7 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Wave 1: first-fit order in Neighbor Lanterns (Week 62) | Claude, New groups in four families thread | `claude/wave1-groups-uag4d4` | claimed; review card first |
 | Wave 1: route packing with its cut (Week 13) | Claude, Route packing and cheapest networks thread | `claude/wave1-networks-kqynkj` | claimed; review card in progress |
 | Wave 1: sorting networks (Week 23) | Claude, Sorting networks thread | `claude/wave1-sorting-networks-srwvtc` | in progress; review card first |
-| Wave 1: hidden pictures from row and column counts (Week 25) | | | open; waits on the Week 25 review card |
+| Wave 1: hidden pictures from row and column counts (Week 25) | Claude, Hidden pictures from counts thread | `claude/wave1-hidden-pictures-dc6h2k` | in progress; review card being written |
 | Wave 1: cheapest networks (Week 53) | Claude, Route packing and cheapest networks thread | `claude/wave1-networks-kqynkj` | claimed; review card in progress |
 | Safe preview links for testers (plan item 5) | | | open |
 | Road 1 keeper `happy` and `oops` stills and videos (plan item 6) | | | open; Dot/Codex |
