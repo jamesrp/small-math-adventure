@@ -71,10 +71,11 @@ To change a puzzle, edit `scripts/build-pictures.mjs`, then run `node scripts/bu
 ## Not yet done
 
 - **Children's play.** Nothing here has been tried by children. Things to watch:
-  1. Whether K–1 children read the circled counts as targets, and the green and ochre as "just right" and "too many", without a grown-up.
+  1. Whether K–1 children read the circled counts as targets, and the green and ochre as "just right" and "too many", without a grown-up. On the 5 × 5 (puzzle 9), whether children reason from full lines or wiggle counters until every count turns green, the review card's concern. If they wiggle, Hard match puzzles could hide the colors until a Check button.
   2. Whether the two-tap switch (pick, then partner) is found without help. Also whether rings make the switch puzzles clear, or whether children try to tap empty rings.
   3. Whether children press That’s all as a guess after each find, or search until they are sure. If they guess, a later revision could limit early claims.
 - **Story.** Hidden pictures is not on the Lantern Road and has no keeper lines.
 - **Grade levels.** The family is grade-free; it does not yet appear in a K–1, 2–3 or 4–5 trail.
+- **A certificate for "only one".** The review card suggests letting a child prove a picture is the only one by tapping full and empty lines in turn until every square is forced. Puzzle 6 asks for That’s all instead.
 - **Counts with no picture.** Gale and Ryser's existence condition (some counts have no picture at all) isn't a puzzle yet. A later puzzle could show impossible counts and ask the child to press "No picture".
 - **Most switches.** Grades 4–5 Problem 4 asks for the largest number of switches ever needed between two pictures with the same counts. A "far" puzzle (reach a picture 4 switches from the start on the 4 × 4 grid with two per line) would need a way to show distance without giving it away.
