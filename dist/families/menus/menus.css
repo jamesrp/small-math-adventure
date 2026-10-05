@@ -1,0 +1,29 @@
+/* Pebble Duel menus: piles filled in rows of five from the bottom, the take
+   menu as number buttons under each pile, and the duel's pebble look. Uses the
+   shared board palette from boards.css. */
+.menu-puzzle{display:flex;flex-direction:column;align-items:center;gap:.4rem;width:100%}
+.menu-roundbar{align-self:flex-end;display:flex}
+.menu-pips{display:inline-flex;gap:6px}.menu-pips span{width:14px;height:14px;border-radius:50%;border:2px solid var(--b-pine,#31533e)}.menu-pips span.on{background:var(--b-pine,#31533e)}
+.menu-status{text-align:center;font-family:var(--b-display,Georgia,serif);font-size:1.12rem;min-height:2.6em;margin:0}
+.menu-status strong{display:block;font-weight:400}
+.menu-piles{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;gap:16px clamp(18px,8vw,64px);min-height:200px;margin:4px 0 8px}
+.menu-bowl{display:flex;flex-direction:column;align-items:center;gap:6px}
+.menu-pile{box-sizing:content-box;display:flex;flex-wrap:wrap-reverse;justify-content:flex-start;align-content:flex-start;gap:4px;width:calc(5 * 38px + 4 * 4px);padding:8px 8px 10px;border-bottom:3px solid var(--b-line,#d0d6bd);border-radius:0 0 28px 28px}
+.menu-pebble{display:block;width:38px;height:34px;border-radius:50%;background:var(--b-leaf,#86a68c);border:2px solid var(--b-ink,#294439)}
+.menu-pebble.gone{background:transparent;border:2px dashed #c9c3a8}
+.menu-pile.tall .menu-pebble{width:30px;height:27px}
+.menu-pile.tall{width:calc(5 * 30px + 4 * 4px)}
+.menu-count{font-family:var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850);font-size:1.05rem}
+.menu-takes{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.board-panel .menu-take{width:48px;min-width:48px;height:48px;min-height:48px;padding:0;border-radius:50%;font-family:var(--b-display,Georgia,serif);font-size:1.25rem;font-weight:400}
+.menu-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:4px}
+/* Hovering or focusing a take lifts the pebbles it would remove. */
+.menu-bowl:has(.menu-take[data-n="1"]:not(:disabled):is(:hover,:focus-visible)) .menu-pebble[data-k="1"],
+.menu-bowl:has(.menu-take[data-n="2"]:not(:disabled):is(:hover,:focus-visible)) .menu-pebble:is([data-k="1"],[data-k="2"]),
+.menu-bowl:has(.menu-take[data-n="3"]:not(:disabled):is(:hover,:focus-visible)) .menu-pebble:is([data-k="1"],[data-k="2"],[data-k="3"]),
+.menu-bowl:has(.menu-take[data-n="4"]:not(:disabled):is(:hover,:focus-visible)) .menu-pebble:is([data-k="1"],[data-k="2"],[data-k="3"],[data-k="4"]),
+.menu-bowl:has(.menu-take[data-n="5"]:not(:disabled):is(:hover,:focus-visible)) .menu-pebble:is([data-k="1"],[data-k="2"],[data-k="3"],[data-k="4"],[data-k="5"]){background:var(--b-sun,#efc76e);border-color:var(--b-ochre,#b38840);transform:translateY(-4px)}
+/* In misère the last pebble left, bottom left, is the one nobody wants. */
+.menu-puzzle.misere .menu-pebble:first-child:not(.gone){background:var(--b-rose,#e7a28f)}
+@media (max-width:460px){.menu-piles{gap:14px 14px}.menu-pile{width:calc(5 * 32px + 4 * 3px);gap:3px;padding:6px 4px 8px}.menu-pebble{width:32px;height:29px}.menu-pile.tall{width:calc(5 * 26px + 4 * 3px)}.menu-pile.tall .menu-pebble{width:26px;height:24px}}
+@media (prefers-reduced-motion:no-preference){.menu-pebble{transition:transform .15s,background .15s}}

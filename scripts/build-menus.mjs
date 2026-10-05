@@ -1,0 +1,288 @@
+// Builds dist/families/menus/menus.json, the Pebble Duel menus group, from the
+// authoring list below. Each game puzzle's winning first takes and each
+// round's losing starts are computed here by search (dist/families/menus/menus.js)
+// and checked again by scripts/validate-menus.mjs.
+// Design notes and worksheet sources: docs/menus/README.md.
+import {writeFile} from 'node:fs/promises';
+import {moverWins, winningMoves, startPool} from '../dist/families/menus/menus.js';
+
+const WEEK7 = 'https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-07';
+export const sources = [
+  {id: 'menus-week07', title: 'Bellingham Math Circle — Week 7: Take-away games, packets, return visit and adult guides', url: WEEK7, kind: 'local curriculum'},
+  {id: 'menus-ferguson', title: 'Thomas S. Ferguson — Game Theory, Part I: Impartial Combinatorial Games, §1 (subtraction games) and §3 (Sprague–Grundy)', url: 'https://www.math.ucla.edu/~tom/Game_Theory/comb.pdf', kind: 'undergraduate'},
+  {id: 'menus-winning-ways', title: 'Elwyn Berlekamp, John Conway and Richard Guy — Winning Ways for Your Mathematical Plays, vol. 1, ch. 4 (subtraction games)', url: 'https://en.wikipedia.org/wiki/Winning_Ways_for_Your_Mathematical_Plays', kind: 'research'}
+];
+export const family = {
+  id: 'menus',
+  title: 'Pebble Duel menus',
+  mathematics: 'A menu of allowed takes turns Nim into a subtraction game. Working up from the end sorts every pile into wins and losses for the player to move; a pile loses exactly when every take leaves a winning pile. With a finite menu the pattern repeats (1 or 2: multiples of 3; 1, 3 or 4: 0 and 2 after taking away 7s), because each pile depends only on the few piles just below it. Two piles add as games: each pile acts like a Nim pile of its Grundy value, and the sum loses exactly when the values have Nim-sum 0.',
+  rules: [
+    'Players take turns. A turn takes one of the numbers shown from one pile.',
+    'A player with no legal take loses, so with 1 on the menu whoever takes the last pebble wins.',
+    'The opponent never misses a winning move.'
+  ],
+  sourceIds: sources.map(s => s.id)
+};
+
+const CONTROLS = {
+  game: 'Tap a number under a pile to take that many pebbles. The opponent replies at once. Undo takes back your take and the reply.',
+  streak: 'Choose Me first or You first. Tap a number under a pile to take that many pebbles. After a game, New start draws new pebbles; Same start again is practice and does not count.'
+};
+const takeRule = (menu, piles) => `A turn takes ${menu.slice(0, -1).join(', ')}${menu.length > 2 ? ',' : ''} or ${menu.at(-1)} pebbles${piles > 1 ? ' from one pile' : ''}.`;
+function rules(q) {
+  const piles = q.mode === 'streak' ? q.piles : q.start.length;
+  const out = ['Players take turns.', takeRule(q.menu, piles)];
+  if (q.misere) out.push('Whoever takes the last pebble loses.');
+  else if (q.menu[0] > 1) out.push('A player who cannot move loses.');
+  else out.push('Whoever takes the last pebble wins.');
+  out.push('The opponent never misses a winning move.');
+  if (q.mode === 'streak') out.push('Before each game, choose who starts. Win 3 games in a row; only games from a new start count.');
+  return out;
+}
+
+const authored = [
+  {
+    number: 1, difficulty_level: 'easy', title: 'Take 1 or 2',
+    parameters: {mode: 'game', menu: [1, 2], start: [7]},
+    objective: 'Take the last pebble to win. Each turn takes 1 or 2 pebbles.',
+    visibleObjective: 'Take the last pebble.',
+    idea: 'Hand the opponent 3, and whatever they take, you take the rest.',
+    prerequisites: 'Count to 7 and take turns. A grown-up can read the goal.',
+    hints: ['Think about the end first. What happens if the opponent hands you 1 or 2 pebbles?', 'If you hand over 3, the opponent must leave you 1 or 2.', 'Take 1, leaving 6. Then make each round take 3.'],
+    parent: {
+      notice: 'Whether your child starts thinking from the end of the game: 1 and 2 win at once, and 3 cannot.',
+      prompt: 'Which piles would you like to hand to the opponent?',
+      explanation: 'Work up from the end. A player facing 1 or 2 takes everything and wins; a player facing 3 must leave 1 or 2, so 3 loses. Then 4 and 5 win by leaving 3, and 6 loses. The losing piles are 0, 3, 6, 9 and so on: every take from a multiple of 3 leaves a non-multiple, and from a non-multiple one take reaches a multiple. From 7, take 1.',
+      extension: 'Would you rather go first or second with 9 pebbles?',
+      connection: 'Backward induction sorts every position of a finite game into wins and losses for the player to move: the N- and P-positions of combinatorial game theory (Ferguson, §1).'
+    },
+    provenance: 'Week 7 launch and K–1 Problems 1–3 (take 1 or 2; the grown-up’s secret 9, 6, 3). New instance.'
+  },
+  {
+    number: 2, difficulty_level: 'easy', title: 'Eleven pebbles',
+    parameters: {mode: 'game', menu: [1, 2], start: [11]},
+    objective: 'Take the last pebble to win. Each turn takes 1 or 2 pebbles.',
+    visibleObjective: 'Take the last pebble.',
+    idea: 'The same piles lose all the way up: leave 9.',
+    prerequisites: 'Menus puzzle 1. Count to 11.',
+    hints: ['Which pile did you hand over to win last time? Which bigger piles are like it?', 'Hand over 9, then answer 1 with 2 and 2 with 1.', 'Take 2, leaving 9.'],
+    parent: {
+      notice: 'Whether your child answers each take so that the round removes 3.',
+      prompt: 'After the opponent takes 1, how many do you take? And after 2?',
+      explanation: 'From 11, take 2 to leave 9. Every round after that removes exactly 3 (1 + 2 or 2 + 1), so the opponent faces 6, then 3, then has to leave you the last pebbles.',
+      extension: 'With 12 pebbles, would you go first?',
+      connection: 'A pairing strategy: each opponent move is answered so the pair of moves is constant, which keeps the opponent on losing piles.'
+    },
+    provenance: 'Week 7 K–1 Problem 2 (play the grown-up from 10) and grades 4–5 Problem 1 (piles from 7 to 16). New instance.'
+  },
+  {
+    number: 3, difficulty_level: 'easy', title: 'Who starts?',
+    parameters: {mode: 'streak', menu: [1, 2], piles: 1, range: [4, 15], streak: 3},
+    objective: 'Choose who starts, then take the last pebble. Each turn takes 1 or 2 pebbles. Win 3 games in a row from new starts.',
+    visibleObjective: 'Win 3 games in a row.',
+    idea: 'Let the opponent start exactly when the pile is a multiple of 3.',
+    prerequisites: 'Menus puzzles 1 and 2. Count to 15.',
+    hints: ['Is this a pile you would like to hand over, or one you would like to be handed?', 'If the pile is 6, 9, 12 or 15, let the opponent start.', 'Otherwise go first and leave a multiple of 3.'],
+    parent: {
+      notice: 'Whether your child decides who starts by looking at the pile, before playing.',
+      prompt: 'How can you tell from the pile who should start?',
+      explanation: 'Starts are drawn half from the losing piles, so always choosing Me first wins only by luck. The opponent never misses a winning move, so three wins in a row from new starts shows the rule is known, not guessed.',
+      extension: 'Why does the player who goes second win from a multiple of 3?',
+      connection: 'Choosing who starts is the classification into P- and N-positions; winning against perfect play is the strategy (Ferguson, §1).'
+    },
+    provenance: 'Week 7 grades 4–5 Problem 1 (first or second, and how many to take) as a choose-who-starts round, as in the Proofs duels.'
+  },
+  {
+    number: 4, difficulty_level: 'medium', title: 'Take 1, 2 or 3',
+    parameters: {mode: 'game', menu: [1, 2, 3], start: [10]},
+    objective: 'Take the last pebble to win. Each turn takes 1, 2 or 3 pebbles.',
+    visibleObjective: 'Take the last pebble.',
+    idea: 'With 1, 2 or 3 on the menu, the piles to hand over are multiples of 4.',
+    prerequisites: 'Menus puzzles 1–3. Count to 10.',
+    hints: ['What happens if you hand the opponent 4?', 'The piles to hand over are 4 and 8.', 'Take 2, leaving 8.'],
+    parent: {
+      notice: 'Whether your child tries the old rule (multiples of 3) first, and how they find the new one.',
+      prompt: 'Which pile is now the smallest one you want to hand over?',
+      explanation: 'With takes of 1 to k, the losing piles are the multiples of k + 1: every take from a multiple leaves a non-multiple, and the reply that brings the round to k + 1 restores it. Here k is 3, so hand over 8, then 4. From 10, take 2.',
+      extension: 'With takes of 1 to 5, which piles lose?',
+      connection: 'This is Bachet’s game, one of the oldest solved games (1612), and the simplest subtraction game.'
+    },
+    provenance: 'Week 7 grades 4–5 Problem 2 (take 1, 2 or 3) and K–1 Problem 6 (the token moves 1, 2 or 3). New instance.'
+  },
+  {
+    number: 5, difficulty_level: 'medium', title: 'Not the most',
+    parameters: {mode: 'game', menu: [1, 3, 4], start: [12]},
+    objective: 'Take the last pebble to win. Each turn takes 1, 3 or 4 pebbles.',
+    visibleObjective: 'Take the last pebble.',
+    idea: 'Taking the most is not always best: from 12 the only winning take is 3.',
+    prerequisites: 'Menus puzzles 1–4. Count to 12.',
+    hints: ['Find the small piles you would like to hand over. Is 2 one of them?', 'The piles to hand over are 2, 7 and 9.', 'Take 3, leaving 9.'],
+    parent: {
+      notice: 'Whether your child stops taking 4 every time, and starts checking what each take leaves.',
+      prompt: 'If you take 4, what can the opponent do?',
+      explanation: 'Work up: 0 loses; 1 wins; 2 loses (the only take leaves 1); 3, 4, 5 and 6 win (each can leave 0 or 2); 7 loses; 8 wins; 9 loses. The losing piles are 0, 2, 7, 9, 14, 16 and so on, repeating every 7. From 12 the takes leave 11, 9 or 8, and only 9 loses for the opponent.',
+      extension: 'Omar always takes as many as he can. From which piles does that throw away a win?',
+      connection: 'A subtraction game with menu 1, 3 or 4; its losing piles are worked out in Ferguson, §1, and Winning Ways, ch. 4.'
+    },
+    provenance: 'Week 7 grades 2–3 Problems 1–5 and grades 4–5 Problems 3–5 (moves of 1, 3 or 4; Omar and Kai take the most). New instance.'
+  },
+  {
+    number: 6, difficulty_level: 'medium', title: 'Take 2 or 3',
+    parameters: {mode: 'game', menu: [2, 3], start: [9]},
+    objective: 'Make the last move to win. Each turn takes 2 or 3 pebbles, and a player who cannot move loses.',
+    visibleObjective: 'Make the last move.',
+    idea: 'A single pebble cannot be taken, so handing over 1 wins.',
+    prerequisites: 'Menus puzzles 1–5.',
+    hints: ['What can a player do with 1 pebble?', 'The piles to hand over are 0, 1, 5 and 6.', 'Take 3, leaving 6.'],
+    parent: {
+      notice: 'Whether your child sees that 1 pebble is as good as none to hand over.',
+      prompt: 'Which piles leave the next player stuck?',
+      explanation: 'With takes of 2 and 3, piles of 0 and 1 leave the player to move stuck. Then 2, 3 and 4 win (each leaves 0 or 1), 5 and 6 lose, and the losing piles 0, 1, 5, 6, 10, 11 and so on repeat every 5. From 9, take 3.',
+      extension: 'Which piles lose with takes of 2 or 5?',
+      connection: 'Normal play: the player who cannot move loses. Taking the last pebble is the special case when 1 is on the menu.'
+    },
+    provenance: 'Week 7 grades 4–5 Problem 7 (take 2 or 3) and the packet’s rule that a player who cannot move loses. New instance.'
+  },
+  {
+    number: 7, difficulty_level: 'medium', title: 'Who starts with 1, 3 or 4?',
+    parameters: {mode: 'streak', menu: [1, 3, 4], piles: 1, range: [5, 20], streak: 3},
+    objective: 'Choose who starts, then take the last pebble. Each turn takes 1, 3 or 4 pebbles. Win 3 games in a row from new starts.',
+    visibleObjective: 'Win 3 games in a row.',
+    idea: 'The piles to hand over are 7, 9, 14 and 16 (and 0 and 2 below them).',
+    prerequisites: 'Menus puzzle 5.',
+    hints: ['Which small piles would you like to hand over?', 'The piles to hand over are 2, 7, 9, 14 and 16. Let the opponent start from one of them.', 'Otherwise go first and take 1, 3 or 4 to leave one of them.'],
+    parent: {
+      notice: 'Whether your child keeps a list of the piles to hand over, or works each one out again.',
+      prompt: 'Which piles are you hoping to be given?',
+      explanation: 'The losing piles for 1, 3 or 4 are 0, 2, 7, 9, 14 and 16 below 21. Starts are drawn half from them, and the opponent plays perfectly, so three wins in a row from new starts needs the list.',
+      extension: 'Do you see a pattern in 2, 7, 9, 14, 16? What comes next?',
+      connection: 'Choosing who starts is the P-position classification of the subtraction game (Ferguson, §1).'
+    },
+    provenance: 'Week 7 grades 2–3 Problems 2–3 and grades 4–5 Problems 3–4 (colour the squares to leave) as a choose-who-starts round.'
+  },
+  {
+    number: 8, difficulty_level: 'hard', title: 'The last pebble loses',
+    parameters: {mode: 'game', menu: [1, 2], start: [8], misere: true},
+    objective: 'Make the opponent take the last pebble. Each turn takes 1 or 2 pebbles.',
+    visibleObjective: 'Don’t take the last pebble.',
+    idea: 'When the last pebble loses, the piles to hand over move up by one: 1, 4, 7.',
+    prerequisites: 'Menus puzzles 1–3.',
+    hints: ['Who wants to be handed a single pebble?', 'The piles to hand over are 1, 4 and 7.', 'Take 1, leaving 7.'],
+    parent: {
+      notice: 'Whether your child adapts the old rule or starts again from the end.',
+      prompt: 'Which pile is the smallest one you want to hand over now?',
+      explanation: 'When taking the last pebble loses, a player facing 1 must take it. Then 2 and 3 win (leave 1), 4 loses, and the losing piles are 1, 4, 7, 10 and so on, one more than the multiples of 3. From 8, take 1.',
+      extension: 'With 1, 2 or 3 and the last pebble losing, which piles lose?',
+      connection: 'Misère play. For one-pile subtraction games it shifts the pattern; for sums of games it is much harder than normal play (Winning Ways, ch. 13).'
+    },
+    provenance: 'Week 7 K–1 Problem 9 and the grades 4–5 last-counter-loses game. New instance.'
+  },
+  {
+    number: 9, difficulty_level: 'hard', title: 'Big piles',
+    parameters: {mode: 'streak', menu: [1, 3, 4], piles: 1, range: [21, 45], streak: 3},
+    objective: 'Choose who starts, then take the last pebble. Each turn takes 1, 3 or 4 pebbles. Win 3 games in a row from new starts.',
+    visibleObjective: 'Win 3 games in a row.',
+    idea: 'The losing piles repeat every 7, so big piles need the pattern rather than a count down.',
+    prerequisites: 'Menus puzzle 7. Count by 7s, or count back carefully.',
+    hints: ['The piles to hand over repeat. How far is it from 2 to 9, and from 9 to 16?', 'A pile is one to hand over when taking away 7s leaves 0 or 2.', 'Go first and take 1, 3 or 4 to leave such a pile; otherwise let the opponent start.'],
+    parent: {
+      notice: 'Whether your child counts back from the pile or uses the repeat.',
+      prompt: 'Is 30 a pile you would like to hand over? How do you know without counting all the way down?',
+      explanation: 'Whether a pile wins depends only on the four piles just below it, since a take reaches at most 4 down. Piles 7, 8, 9 and 10 behave like 0, 1, 2 and 3, so from there the pattern repeats every 7. The same pigeonhole argument shows that every subtraction game with a finite menu is eventually periodic.',
+      extension: 'With a pile of 100, would you go first? How many would you take?',
+      connection: 'Periodicity of finite subtraction games: Winning Ways, ch. 4; Ferguson, §1.'
+    },
+    provenance: 'Week 7 grades 2–3 Problem 6 and grades 4–5 Problem 6 (piles of 50 and 100), at a size where counting down is slow.'
+  },
+  {
+    number: 10, difficulty_level: 'hard', title: 'Two piles',
+    parameters: {mode: 'game', menu: [1, 2], start: [2, 7]},
+    objective: 'Take the last pebble to win. Each turn takes 1 or 2 pebbles from one pile.',
+    visibleObjective: 'Take the last pebble.',
+    idea: 'Two unequal piles can balance: what matters is each pile’s remainder after taking away 3s.',
+    prerequisites: 'Menus puzzles 1–3. Copying a move on equal piles helps.',
+    hints: ['Copying works when the piles are equal. What could stand in for a pile of 7?', 'A pile of 7 plays like a pile of 1, and 5 like 2.', 'Take 2 from the pile of 7, leaving 2 and 5.'],
+    parent: {
+      notice: 'Whether your child tries to make the piles equal, and what they do when they cannot.',
+      prompt: 'Which pairs of piles would you like to hand over?',
+      explanation: 'Each pile plays like its remainder after taking away 3s: 7 like 1, 5 like 2. Two piles lose for the player to move exactly when the remainders match. From 2 and 7, take 2 from the 7 (leaving 2 and 5) or 1 from the 2 (leaving 1 and 7). Afterwards, answer a take from one pile in the other so the remainders match again, or finish a round of 3 in the same pile.',
+      extension: 'Does the remainder idea work with takes of 1, 3 or 4?',
+      connection: 'The Sprague–Grundy theorem: every impartial game position acts like a Nim pile of some size (its Grundy value), and a sum of games loses exactly when those sizes have Nim-sum 0 (Ferguson, §3).'
+    },
+    provenance: 'Week 7 K–1 Problem 8 and grades 2–3 Problem 7 (two piles; take from one). New instance.'
+  },
+  {
+    number: 11, difficulty_level: 'hard', title: 'Who starts with two piles?',
+    parameters: {mode: 'streak', menu: [1, 2], piles: 2, range: [1, 9], streak: 3},
+    objective: 'Choose who starts, then take the last pebble. Each turn takes 1 or 2 pebbles from one pile. Win 3 games in a row from new starts.',
+    visibleObjective: 'Win 3 games in a row.',
+    idea: 'Go second exactly when both piles leave the same remainder after taking away 3s.',
+    prerequisites: 'Menus puzzle 10.',
+    hints: ['Take away 3s from each pile. What is left of each?', 'If both piles leave the same remainder, let the opponent start.', 'Otherwise go first and make the remainders match.'],
+    parent: {
+      notice: 'Whether your child compares remainders rather than piles.',
+      prompt: 'Why do 4 and 7 behave like 1 and 1?',
+      explanation: 'Each pile plays like its remainder after taking away 3s, and two piles lose for the player to move when the remainders match. Starts are drawn half from such pairs, and the opponent plays perfectly.',
+      extension: 'With three piles, when should you go second?',
+      connection: 'Sums of games and Grundy values (Ferguson, §3). With three piles the remainders combine by Nim-sum, not by matching.'
+    },
+    provenance: 'Week 7 grades 2–3 Problem 7 (two piles) as a choose-who-starts round.'
+  },
+  {
+    number: 12, difficulty_level: 'hard', title: 'Two piles with 1, 3 or 4',
+    parameters: {mode: 'game', menu: [1, 3, 4], start: [4, 10]},
+    objective: 'Take the last pebble to win. Each turn takes 1, 3 or 4 pebbles from one pile.',
+    visibleObjective: 'Take the last pebble.',
+    idea: 'With 1, 3 or 4, piles play like 0, 1, 0, 1, 2, 3, 2, repeating every 7; two piles balance when those values match.',
+    prerequisites: 'Menus puzzles 5, 7 and 10.',
+    hints: ['These piles cannot be made equal. Which different piles play alike?', 'With 1, 3 or 4, piles of 4 and 6 play alike, and so do 1, 3 and 10.', 'Take 4 from the pile of 10, leaving 4 and 6.'],
+    parent: {
+      notice: 'Whether your child looks for piles that play alike, after copying fails.',
+      prompt: 'Why can’t you just copy the opponent here?',
+      explanation: 'For takes of 1, 3 or 4, the Grundy values of piles 0 to 6 are 0, 1, 0, 1, 2, 3, 2, repeating every 7. Pile 4 has value 2 and pile 10 has value 1. Taking 4 from the 10 leaves 6, value 2, to match; taking 1 or 3 from the 4 leaves 3 or 1, value 1, to match. After that, answer each take so the values match again.',
+      extension: 'Find two different piles under 15 that balance each other in three different ways.',
+      connection: 'The Sprague–Grundy theorem and the periodic Grundy sequence of the subtraction game 1, 3, 4 (Ferguson, §3).'
+    },
+    provenance: 'Week 7 grades 2–3 Problem 7 (two piles with moves of 1, 3 or 4), with piles that cannot be made equal. New instance.'
+  }
+];
+
+const describe = m => ({pile: m.pile, take: m.take});
+export const puzzles = authored.map(item => {
+  const q = item.parameters;
+  const solution = q.mode === 'streak'
+    ? {losingStarts: startPool(q).filter(piles => !moverWins(q, piles)).map(piles => piles.join(',')), winningStarts: startPool(q).filter(piles => moverWins(q, piles)).length}
+    : {winningFirstTakes: winningMoves(q, q.start).map(describe)};
+  if (q.mode === 'game' && !solution.winningFirstTakes.length) throw new Error(`menus-${item.number}: the first player cannot win`);
+  return {
+    id: `menus-${String(item.number).padStart(2, '0')}`,
+    number: item.number,
+    title: item.title,
+    band: 'all',
+    difficulty_level: item.difficulty_level,
+    mechanic: 'menu',
+    libraryFamily: 'nim',
+    group: 'Menus',
+    familyTitle: 'Pebble Duel',
+    revision: 1,
+    parameters: q,
+    objective: item.objective,
+    visibleObjective: item.visibleObjective,
+    instruction: item.objective,
+    controls: CONTROLS[q.mode],
+    rules: rules(q),
+    idea: item.idea,
+    prerequisites: item.prerequisites,
+    hints: item.hints,
+    parent: {...item.parent, sourceIds: ['menus-week07', 'menus-ferguson', ...(/Winning Ways/.test(item.parent.connection) ? ['menus-winning-ways'] : [])]},
+    solution,
+    provenance: item.provenance,
+    sourceDocument: 'docs/menus/README.md'
+  };
+});
+export const pack = {title: 'Pebble Duel menus', version: 1, families: [family], sources, puzzles};
+
+if (process.argv[1] === new URL(import.meta.url).pathname) {
+  await writeFile(new URL('../dist/families/menus/menus.json', import.meta.url), JSON.stringify(pack, null, 1) + '\n');
+  for (const p of puzzles) console.log(p.id, p.difficulty_level, JSON.stringify(p.parameters), JSON.stringify(p.solution).slice(0, 120));
+}
