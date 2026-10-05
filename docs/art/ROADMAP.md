@@ -178,8 +178,8 @@ Example keeper prompt:
 **Videos (image to video).** Start from the finished still as the first frame. Lock the camera (no pan or zoom), add no new objects and no text, and keep the motion small and characterful.
 
 - **Loops**: generate 6–8 s of ambient motion. `prepare-art.mjs loop` crossfades the ending into the start, so the loop does not jump.
-- **Change clips**: chain the stages so each change ends on the next stage. Make stage 0’s still. Generate the change video from it with the change described. Extract its last frame with `node scripts/prepare-art.mjs lastframe change.mp4 stage1.png`, clean it up if needed, and use that as stage 1’s still and the start of the next change. If a chain drifts off-model, regenerate the clip rather than editing the code.
-- **Keeper reactions** must end on the idle pose, so the hand-off back to the idle loop is invisible. Generate them from the idle still and say “returns to the starting pose at the end”.
+- **Change clips**: chain the stages so each change ends on the next stage. Make stage 0’s still. Generate the change video from it with the change described. Extract its last frame with `node scripts/prepare-art.mjs lastframe change.mp4 stage1.png`, clean it up if needed, and use that as stage 1’s still and the start of the next change. If a chain drifts off-model, regenerate the clip rather than editing the code. Every stage now has its finished still, so instead give the tool both stills, as [batch 2](batches/02-scene-motion.md) describes.
+- **Keeper reactions** start on the reaction still and end on the idle pose, so the reaction lands at once and the hand-off back to idle is invisible. [Batch 1](batches/01-keeper-reactions.md) has the details.
 
 Example video prompt:
 
@@ -196,15 +196,19 @@ Example video prompt:
 
 ## Order of work
 
-0. Reference sheets: the six travelers, six keepers and Plume.
-1. Keeper portraits: `idle` and `talk` stills for all seven. They are on screen in every puzzle, so this is the biggest win.
-2. Scenes: the four stage stills for each stop (28), chained as above.
-3. Map (wide and tall), wagons, tools, travelers, finale.
-4. Keeper reactions: `happy` and `oops` stills, then videos.
-5. Scene loops and change clips, then map and finale loops.
+Steps 0–4's stills were all made on October 3 (`artwork/road4/NOTES.md`): every one of the 90 slots has a finished still. What is left is motion, one batch at a time, each with its own brief:
+
+0. Reference sheets: the six travelers, six keepers and Plume. Done.
+1. Keeper portraits: `idle` and `talk` stills for all seven. Done.
+2. Scenes: the four stage stills for each stop (28). Done.
+3. Map (wide and tall), wagons, tools, travelers, finale. Done.
+4. Keeper reactions: `happy` and `oops` stills (done), then clips: [batch 1](batches/01-keeper-reactions.md).
+5. Scene loops and change clips, then map and finale loops: [batch 2](batches/02-scene-motion.md).
+
+Keeper `idle` and `talk` loops wait until Claude settles how `talk` behaves (batch 1 explains why). Region and family icons, the lantern tree, and scenes and keepers for a second road come later, each with a brief from Claude.
 
 After each batch: `node scripts/check-art.mjs`, `npm run build`, `npm test`, `node scripts/road-browser-smoke.mjs`, look in the app at phone and iPad sizes, and commit the art with its prompts in `artwork/road4/prompts.json` (prompt, tool, date, source file, slot).
 
-## Optional: voices
+## Voices
 
-`docs/voice-casting/` has a cast plan for ElevenLabs. Each speech line in the game has a stable ID: `<encounter>/open|win|locked` for encounter lines and `<character>/oops-1…3`, `<character>/hint` and `plume/beat-1…3|tie-1…2|lose-1…2|gloat-1…2` for reactions. Audio added to the manifest as `"voice/<line ID>": {"status": "ready", "audio": "voice/….mp3"}` plays when a child taps Listen, and the browser voice is the fallback.
+[docs/voice-casting/README.md](../voice-casting/README.md) is the brief for casting and recording the six keepers and Plume. Each speech line in the game has a stable ID: `<encounter>/open|win|locked` for encounter lines and `<character>/oops-1…3`, `<character>/hint` and `plume/beat-1…3|tie-1…2|lose-1…2|gloat-1…2` for reactions. Audio added to the manifest as `"voice/<line ID>": {"status": "ready", "audio": "voice/….mp3"}` plays when a child taps Listen, and the browser voice is the fallback.
