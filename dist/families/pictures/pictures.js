@@ -257,21 +257,23 @@ function hintPuzzle(p, b) {
   const q = p.parameters, [R, C] = q.size, cells = picture(p, b);
   if (q.mode === 'reach') {
     const route = switchRoute(R, C, cells, q.goal), left = q.budget - b.path.length;
-    if (!route || route.length > left) return {type: 'deadend', text: `The goal is ${plural(route.length, 'switch', 'switches')} away, but ${left ? `only ${left} ${left === 1 ? 'is' : 'are'}` : 'none are'} left. Undo a switch or start again.`};
+    if (!route) return {type: 'deadend', text: 'Start again to restore this picture.'};
+    if (route.length > left) return {type: 'deadend', text: `The rings are ${plural(route.length, 'switch', 'switches')} away, but ${left ? `only ${left} ${left === 1 ? 'is' : 'are'}` : 'none are'} left. Undo a switch or start again.`};
     const [i, j] = route[0];
     return {type: 'move', action: {type: 'switch', a: i, b: j}, cells: [i, j], text: `Switch the counters on ${cellName(C, i)} and ${cellName(C, j)}.`};
   }
   if (q.mode === 'every') {
     const open = answers(p).filter(key => !b.found.includes(key));
     if (!open.length) return {type: 'move', action: {type: 'done'}, text: 'Every picture with these counts is here.'};
-    return toggleHint(p, cells, open);
+    return toggleHint(p, cells, open) || {type: 'deadend', text: 'Start again to restore this picture.'};
   }
   if (q.mode === 'lonely') {
     const pair = sum(cells) === q.counters && switchesOf(R, C, cells)[0];
     const step = toggleHint(p, cells, answers(p));
+    if (!step) return {type: 'deadend', text: 'Start again to restore this picture.'};
     return pair ? {...step, text: `${cellName(C, pair[0])} and ${cellName(C, pair[1])} can switch, so another picture has these counts. ${step.text}`} : step;
   }
-  return toggleHint(p, cells, answers(p));
+  return toggleHint(p, cells, answers(p)) || {type: 'deadend', text: 'Start again to restore this picture.'};
 }
 
 // The playground: draw or switch on any grid from 3 × 3 to 6 × 6.
