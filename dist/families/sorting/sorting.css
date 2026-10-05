@@ -1,0 +1,83 @@
+/* Sorting machines: lanes, comparator bars and cards that ride through them.
+   Uses the shared board palette from boards.css (paper card, ink, sun cards,
+   pine for what is right, ochre for a bar that swapped, rust for a wrong finish). */
+.sorting-puzzle,.sorting-play{display:flex;flex-direction:column;align-items:center;gap:.7rem;width:100%}
+.sort-board{--gap:66px;position:relative;width:100%;max-width:480px;height:calc(var(--lanes) * var(--gap));margin:.5rem auto .2rem;touch-action:manipulation}
+.sort-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.sort-lane{stroke:#c9cfb5;stroke-width:3px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.sort-bar line{stroke:var(--b-ink,#294439);stroke-width:3.5px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.sort-bar circle{fill:var(--b-ink,#294439);stroke:none}
+.sort-bar.lit line{stroke:var(--b-ochre,#b38840);stroke-width:5px}
+.sort-bar.lit circle{fill:var(--b-ochre,#b38840)}
+@media (prefers-reduced-motion:no-preference){.sort-bar.flash line{animation:sort-flash .45s ease-out}}
+@keyframes sort-flash{0%{stroke-width:9px}}
+
+/* Cards: size grows with the value, so a sorted finish reads small to large. */
+.sort-board .sort-card,.sort-fly .sort-card{position:absolute;transform:translate(-50%,-50%);width:var(--size);height:var(--size);min-width:0;min-height:0;padding:0;border-radius:50%;display:grid;place-items:center;background:var(--b-sun,#efc76e);border:2px solid #9a7631;color:var(--b-ink,#294439);font-family:var(--b-display,Georgia,serif);font-size:1.15rem;font-weight:400;line-height:1;box-shadow:0 2px 0 rgba(41,68,57,.2);z-index:2}
+.cards-binary .sort-card.v0{background:var(--b-card,#fffdf5);border-color:var(--b-ink,#294439)}
+.cards-binary .sort-card.v1{background:var(--b-pine,#31533e);border-color:#1d3526}
+.sort-board button.sort-card{cursor:pointer;touch-action:none}
+.sort-board button.sort-card[aria-disabled="true"]{cursor:default;touch-action:auto}
+.sort-board button.sort-card::after{content:"";position:absolute;inset:-6px;border-radius:50%}
+button.sort-card:hover{filter:brightness(1.04)}
+.sort-card.picked{box-shadow:0 0 0 4px var(--b-card,#fffdf5),0 0 0 7px var(--b-pine,#31533e)}
+.sort-card.hinted,.sort-peg.hinted,.sort-remove.hinted,.sort-action.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+.sort-card.finish{z-index:1}
+.sort-card.finish.wrong{box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-bad,#a9503a)}
+.sort-board.is-sorted .sort-card.finish{box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-good,#3c7a4a)}
+.sort-finish.waiting{visibility:hidden}
+.sort-fly{position:absolute;inset:0;pointer-events:none;z-index:3}
+.sort-card.riding{transition:left .36s ease-in-out,top .36s ease-in-out}
+.sort-board.running .sort-card.start{opacity:.35}
+
+/* Lane ends in an open slot: tap two to place a bar; tap a placed bar to take it away. */
+.sort-board .sort-peg{position:absolute;transform:translate(-50%,-50%);width:26px;height:26px;min-width:0;min-height:0;padding:0;border-radius:50%;background:var(--b-card,#fffdf5);border:2px dashed #8a9a80;z-index:1;touch-action:none}
+.sort-peg::after{content:"";position:absolute;inset:-9px;border-radius:50%}
+/* Columns sit closer with more slots; keep each lane end's tap area inside its own column. */
+.sort-board[data-slots="6"] .sort-peg::after{inset:-9px -5px;border-radius:12px}
+.sort-board[data-slots="9"] .sort-peg{width:18px;height:18px}
+.sort-board[data-slots="9"] .sort-peg::after{inset:-12px -2px;border-radius:10px}
+.sort-board[data-slots="9"] .sort-remove{width:16px}
+.sort-peg:hover{border-style:solid;border-color:var(--b-ink,#294439)}
+.sort-peg.picked{background:var(--b-pine,#31533e);border:2px solid var(--b-pine,#31533e)}
+.sort-peg[aria-disabled="true"]{opacity:.3;cursor:default}
+.sort-board .sort-remove{position:absolute;transform:translate(-50%,-50%);width:22px;min-width:0;min-height:0;padding:0;border:0;border-radius:11px;background:transparent;z-index:2;cursor:pointer}
+.sort-remove:hover,.sort-remove:focus-visible{background:rgba(169,80,58,.16)}
+
+.sort-actions{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.45rem}
+.sorting-puzzle .sort-action,.sorting-play .sort-action,.sorting-play .sort-tool{display:inline-flex;align-items:center;gap:.4rem;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-line,#d0d6bd);border-radius:11px;box-shadow:0 2px 0 var(--b-line,#d0d6bd);font-weight:600;min-height:44px;padding:8px 14px}
+.sorting-puzzle .sort-action[disabled],.sorting-play .sort-action[disabled]{opacity:.45}
+.sorting-play .sort-tool[aria-pressed="true"]{background:#e9eddc;border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.sort-note{margin:0;font-weight:600;color:var(--b-bad,#a9503a)}
+.sort-pass{font-size:1.6rem;line-height:1;color:var(--b-good,#3c7a4a)}
+
+/* Starts tried, and the test of every start: small columns of cards. */
+.sort-shelf,.sort-grid{list-style:none;display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;width:100%;max-width:480px;margin:0;padding:0}
+.sort-tried,.sort-grid li{display:flex;flex-direction:column;align-items:center;gap:3px;padding:.3rem .35rem;border:1.5px solid var(--b-line,#d0d6bd);border-radius:10px;background:var(--b-card,#fffdf5)}
+.sort-grid li.ok{border-color:var(--b-good,#3c7a4a)}
+.sort-grid li.bad{border-color:var(--b-bad,#a9503a);background:var(--b-bad-soft,#f5e3d9)}
+.sort-tried.pair{border-color:var(--b-ochre,#b38840);box-shadow:inset 0 0 0 1.5px var(--b-ochre,#b38840)}
+@media (prefers-reduced-motion:no-preference){.sort-grid.pop li{animation:sort-pop .3s ease-out both;animation-delay:calc(var(--i,0) * 25ms)}}
+@keyframes sort-pop{0%{opacity:0;transform:scale(.8)}}
+.sort-mini{display:flex;flex-direction:column;align-items:center;gap:1px;font-family:var(--b-display,Georgia,serif);font-size:.95rem;line-height:1.05}
+.sort-mini b{font-weight:400}
+.sort-mini{min-height:3.2em;justify-content:center}
+.sort-mini i{display:block;width:9px;height:9px;margin:1px 0;border-radius:50%;border:1.5px solid var(--b-ink,#294439);background:var(--b-card,#fffdf5)}
+.sort-mini i.b1{width:13px;height:13px;margin:0;background:var(--b-pine,#31533e);border-color:#1d3526}
+.sort-pairrow{display:flex;align-items:center;gap:4px}
+.sort-arrow{color:var(--b-muted,#5a6850);font-size:.85rem}
+.sort-mark{font-size:.95rem;line-height:1}
+.sort-mark.ok{color:var(--b-good,#3c7a4a)}
+.sort-mark.bad{color:var(--b-bad,#a9503a)}
+.sort-litmarks{display:flex;gap:2px}
+.sort-litmarks i{display:block;width:7px;height:7px;border-radius:50%;border:1.5px solid #8a9a80}
+.sort-litmarks i.on{background:var(--b-ochre,#b38840);border-color:var(--b-ochre,#b38840)}
+
+/* Playground pickers */
+.sort-pickers{display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem}
+.sort-tools{display:flex;flex-wrap:wrap;justify-content:center;gap:.3rem}
+.sort-lane-icon{width:26px;height:26px}
+.sort-lane-icon line{stroke:var(--b-ink,#294439);stroke-width:2.2;stroke-linecap:round}
+.sort-kind i{display:inline-block;width:9px;height:9px;border-radius:50%;border:1.5px solid var(--b-ink,#294439);background:var(--b-card,#fffdf5)}
+.sort-kind i.b1{width:14px;height:14px;background:var(--b-pine,#31533e)}
+@media (max-width:420px){.sort-board{--gap:60px}.sort-card{font-size:1.05rem}}
