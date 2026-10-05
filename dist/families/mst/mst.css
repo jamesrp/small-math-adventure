@@ -1,0 +1,58 @@
+@import url('../../graph-board.css');
+/* Cheapest networks: bought links in pine, a loop dashed in ochre, places
+   tinted by the group they are joined to and sun once every place is
+   reached, price tags on every link. */
+.mst-puzzle{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
+.mst-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .8rem;max-width:100%}
+.mst-buttons{display:flex;flex-wrap:nowrap;gap:.4rem}
+.mst-puzzle .mst-button{min-height:46px;padding:6px 14px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.mst-puzzle .mst-button:not([disabled]){border-color:var(--b-pine,#31533e)}
+.mst-puzzle .mst-button[disabled]{opacity:.5;box-shadow:none}
+.mst-puzzle .mst-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.mst-pile{display:inline-flex;align-items:center;gap:.3rem;font-family:var(--b-display,Georgia,serif);font-size:1.35rem;color:var(--b-ink,#294439)}
+.mst-pile b{font-weight:400;min-width:1.6em}
+.mst-coin{width:24px;height:24px;fill:var(--b-sun,#efc76e);stroke:var(--b-ochre,#b38840);stroke-width:1.6}
+.mst-swaps{display:inline-flex;gap:3px}
+.mst-swap{width:26px;height:26px;fill:none;stroke:var(--b-pine,#31533e);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;background:#e9eddc;border-radius:7px}
+.mst-swap.used{stroke:#b9c2ae;background:transparent;outline:1.5px dashed #c9d0bb;outline-offset:-1.5px}
+
+/* Places. */
+.mst-map .gb-node .gb-label{font-size:4.8px}
+.mst-map .gb-node.g0 .gb-dot{fill:#dcebe3}
+.mst-map .gb-node.g1 .gb-dot{fill:#e3e6f3}
+.mst-map .gb-node.g2 .gb-dot{fill:#f2e1e8}
+.mst-map .gb-node.g3 .gb-dot{fill:#efe7d4}
+.mst-map .gb-node.lit .gb-dot{fill:var(--b-sun,#efc76e)}
+@media (prefers-reduced-motion:no-preference){.mst-map.all-reached .gb-node.lit .gb-dot{animation:mst-lit .45s ease-out}}
+@keyframes mst-lit{40%{fill:#f7dd9d}}
+
+/* Links: bought, on a loop, the marked link, and a wrong claim's answer. */
+.mst-map .gb-stroke.buy{stroke:var(--b-pine,#31533e);stroke-width:8px}
+.mst-map .gb-stroke.loop{stroke:var(--b-ochre,#b38840);stroke-width:4px;stroke-dasharray:5 6}
+.mst-map .gb-stroke.told-add{stroke:var(--b-sun,#efc76e);stroke-width:9px;stroke-dasharray:3 5;opacity:.95}
+.mst-map .gb-stroke.told-drop{stroke:var(--b-bad,#a9503a);stroke-width:4px;stroke-dasharray:7 5}
+.mst-map .gb-edge.told-drop .gb-tag rect{stroke:var(--b-bad,#a9503a);stroke-width:3px}
+.mst-map .gb-edge.told-add .gb-tag rect{stroke:var(--b-ochre,#b38840);stroke-width:3px}
+.mst-map .gb-edge.bought .gb-tag rect{stroke:var(--b-pine,#31533e);stroke-width:2px}
+.mst-map .gb-edge.target .gb-tag rect{fill:var(--b-ink,#294439);stroke:var(--b-ink,#294439)}
+.mst-map .gb-edge.target .gb-tag text{fill:var(--b-on-pine,#fff8d9)}
+.mst-map .gb-edge.target .gb-line{stroke:var(--b-ink,#294439);stroke-width:4px}
+.mst-map.mode-swap .gb-edge.start:not(.bought) .gb-line{stroke-dasharray:2 5}
+
+/* Splits: places on your side in pine, links that cross in ochre. */
+.mst-map .gb-node.side .gb-dot{fill:var(--b-pine,#31533e);stroke:var(--b-pine,#31533e)}
+.mst-map .gb-node.side .gb-label{fill:var(--b-on-pine,#fff8d9)}
+.mst-map .gb-edge.across .gb-line{stroke:var(--b-ochre,#b38840);stroke-width:6px}
+.mst-map .gb-edge.target.across .gb-line{stroke:var(--b-ink,#294439);stroke-width:7px}
+.mst-map .gb-edge.calm .gb-line{opacity:.45}
+.mst-map .gb-edge.calm .gb-tag{opacity:.6}
+
+/* Answers and found networks. */
+.mst-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+.mst-found{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:.45rem;width:100%;max-width:460px;margin:0;padding:0}
+.mst-found li{padding:.3rem;border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px;background:var(--b-card,#fffdf5)}
+.mst-found li.fresh{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.mst-found li.again{border-color:var(--b-ochre,#b38840);box-shadow:inset 0 0 0 2px var(--b-ochre,#b38840)}
+.mst-list{grid-template-columns:repeat(auto-fill,minmax(64px,1fr))}
+@media (prefers-reduced-motion:no-preference){.mst-found li.fresh,.mst-found li.again{animation:mst-pop .35s ease-out}}
+@keyframes mst-pop{from{transform:scale(.85)}}
