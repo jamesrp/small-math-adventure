@@ -30,7 +30,7 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Wave 2: necklaces (Week 33) | Claude, Bead rings thread | `claude/wave2-bead-rings-q6ikal` | done: [Bead rings](docs/beads/README.md), card keep |
 | Wave 2: distinguishing colourings (Week 34) | Claude, Bead rings thread | `claude/wave2-bead-rings-q6ikal` | done: Hidden turns group in [Bead rings](docs/beads/README.md), card keep |
 | Wave 2: shared bead-ring board for Weeks 33 and 34 | Claude, Bead rings thread | `claude/wave2-bead-rings-q6ikal` | done: [docs/bead-ring.md](docs/bead-ring.md) |
-| Wave 2: path reduction (Week 39), on the shared graph board | Claude, Path reduction and bracing frames thread | `claude/wave2-graph-39-52-g84api` | done (PR #13) as Road detours; card says keep |
+| Wave 2: path reduction (Week 39), on the shared graph board | Claude, Path reduction and bracing frames thread | `claude/wave2-graph-39-52-g84api` | done (PR #13) as Road detours; card says revise (K–1 Problem 7), port follows its App fit |
 | Wave 2: bracing frames (Week 52), on the shared graph board | Claude, Path reduction and bracing frames thread | `claude/wave2-graph-39-52-g84api` | done (PR #13) as Bracing frames; card says revise (worksheet fixes), port follows its App fit |
 | Wave 2: lattice visibility (Week 31) as a group in Mirror Couriers | Claude, Lattice visibility thread | `claude/wave2-lattice-visibility-f3eowo` | claimed; review card first |
 | Wave 2: weighing with both pans (Week 30) as a group in the balance family | Claude, Balance and jugs groups thread | `claude/wave2-balance-jugs-ce8w14` | claimed; review card first |
