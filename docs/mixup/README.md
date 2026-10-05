@@ -1,6 +1,6 @@
 # Mixed-up cups
 
-October 5, 2026. Nine puzzles and a playground built from Week 63 of the Bellingham math circle (cards away from home: overlap counting and derangements). They are in the puzzle satchel only, not on the Lantern Road. No child has played them; the Week 63 worksheets are unpiloted too. The theme's [review card](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-63.md) says VERDICT. The worksheet's cards become the cups children liked in Cup swaps, and the family is the first user of the [shared case engine](../cases.md), which the other listing themes (24, 42–45, 60) can build on.
+October 5, 2026. Nine puzzles and a playground built from Week 63 of the Bellingham math circle (cards away from home: overlap counting and derangements). They are in the puzzle satchel only, not on the Lantern Road. No child has played them; the Week 63 worksheets are unpiloted too. The theme's [review card](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-63.md) says revise, for a missing K–1 route on paper; it finds the mathematics, the problems and their order right and every answer correct. The worksheet's cards become the cups children liked in Cup swaps, and the family is the first user of the [shared case engine](../cases.md), which the other listing themes (24, 42–45, 60) can build on.
 
 ## The mathematics
 
