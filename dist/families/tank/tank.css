@@ -1,0 +1,51 @@
+/* Spring-water Jugs full jugs: a tall tank with a mark every unit, the
+   target line, water in layers (one per jugful, shaded by jug), the jugs with
+   Pour and take-back buttons, a row of levels that light when filled, and a
+   jug picker. Uses the board palette from boards.css. */
+.tank-puzzle{display:flex;flex-direction:column;align-items:stretch;gap:.5rem;width:100%}
+.tank-main{display:flex;justify-content:center;align-items:center;gap:10px}
+.tank-art{display:block;width:min(52%,210px);height:auto;flex:none}
+.tank-art .tank-wall{fill:none;stroke:var(--b-ink,#294439);stroke-width:3;stroke-linejoin:round}
+.tank-art .tank-tick{stroke:var(--b-muted,#5a6850);stroke-width:1}
+.tank-art .tank-tick.major{stroke:var(--b-ink,#294439);stroke-width:1.5}
+.tank-art .tank-scale{font-family:var(--b-display,Georgia,serif);font-size:11px;text-anchor:end;fill:var(--b-muted,#5a6850)}
+.tank-art .tank-layer rect{stroke:#2f6f8a;stroke-width:1.2}
+.tank-art .tank-layer.j0 rect{fill:#a9dbea}
+.tank-art .tank-layer.j1 rect{fill:#5fb3cf}
+.tank-art .tank-layer text{font-family:var(--b-display,Georgia,serif);font-size:13px;text-anchor:middle;fill:var(--b-ink,#294439)}
+.tank-art .tank-target line{stroke:var(--b-ochre,#b38840);stroke-width:2.5;stroke-dasharray:6 4}
+.tank-art .tank-target text{font-family:var(--b-display,Georgia,serif);font-size:15px;font-weight:700;fill:var(--b-ochre,#b38840)}
+.tank-art .tank-target.hit line{stroke:var(--b-good,#3c7a4a);stroke-dasharray:none}
+.tank-art .tank-target.hit text{fill:var(--b-good,#3c7a4a)}
+.tank-art .tank-level{font-family:var(--b-display,Georgia,serif);font-size:13px;text-anchor:middle;fill:var(--b-ink,#294439)}
+.tank-jugs{display:flex;flex-direction:column;gap:12px}
+.tank-station{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;gap:4px 8px;align-items:center;padding:6px 8px;border:1px solid var(--b-line,#d0d6bd);border-radius:14px;background:var(--b-paper,#f5f1e6)}
+.tank-station .tank-jug{grid-row:1/3}
+.tank-jug{position:relative;display:inline-grid;place-items:center;width:46px;height:56px}
+.tank-jug svg{position:absolute;inset:0;width:100%;height:100%}
+.tank-jug .tank-jug-body{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:2.2;stroke-linejoin:round}
+.tank-jug.j0 .tank-jug-water{fill:#a9dbea}
+.tank-jug.j1 .tank-jug-water{fill:#5fb3cf}
+.tank-jug b{position:relative;top:9px;font-family:var(--b-display,Georgia,serif);font-weight:400;font-size:1.15rem;color:var(--b-ink,#294439)}
+.board-panel .tank-puzzle .tank-pour{min-height:44px;padding:4px 14px}
+.board-panel .tank-puzzle .tank-back{min-height:38px;padding:2px 10px;font-size:1.2rem}
+.tank-targets{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px}
+.board-panel .tank-puzzle .tank-target{min-width:44px;min-height:44px;padding:0 8px;font-family:var(--b-display,Georgia,serif);font-size:1.1rem;font-weight:400}
+.tank-targets.many{gap:3px;max-width:340px;margin:0 auto}
+.board-panel .tank-puzzle .tank-targets.many .tank-target{width:36px;min-width:36px;min-height:36px;height:36px;padding:0;font-size:.92rem;border-radius:9px}
+.board-panel .tank-puzzle .tank-target[aria-pressed="true"]{outline:3px solid var(--b-ochre,#b38840);outline-offset:2px;background:var(--b-card,#fffdf5);box-shadow:none}
+.board-panel .tank-puzzle .tank-target.found{background:var(--b-pine,#31533e);border-color:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9)}
+.board-panel .tank-puzzle .tank-target.crossed{text-decoration:line-through;color:var(--b-muted,#5a6850)}
+.board-panel .tank-puzzle .tank-target:disabled{opacity:1}
+.board-panel .tank-puzzle .tank-target.crossed:disabled{opacity:.75}
+.tank-more{font-family:var(--b-display,Georgia,serif);font-size:1.3rem;color:var(--b-muted,#5a6850);padding:0 4px}
+.tank-picker{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;padding:6px 8px;border:1px dashed var(--b-line,#d0d6bd);border-radius:14px}
+.board-panel .tank-puzzle .tank-pick{min-width:44px;min-height:44px;padding:0 10px;font-family:var(--b-display,Georgia,serif);font-size:1.1rem;font-weight:400}
+.tank-tools{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:46px}
+.tank-ways{margin:0 auto;padding:8px 12px;list-style:none;border:1px solid var(--b-line,#d0d6bd);border-radius:12px;background:var(--b-paper,#f5f1e6);display:grid;gap:6px;max-width:100%}
+.tank-way{display:flex;flex-wrap:wrap;gap:2px}
+.tank-way i{display:inline-grid;place-items:center;width:calc(var(--n) * 9px);min-width:18px;height:22px;border:1.5px solid #2f6f8a;border-radius:3px;font-style:normal;font-family:var(--b-display,Georgia,serif);font-size:.8rem;color:var(--b-ink,#294439)}
+.tank-way i.j0{background:#a9dbea}
+.tank-way i.j1{background:#5fb3cf}
+.tank-note{text-align:center;margin:0;color:var(--b-bad,#a9503a)}
+.board-panel .tank-puzzle .hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
