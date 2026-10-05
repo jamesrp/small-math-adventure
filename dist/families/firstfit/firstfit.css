@@ -1,0 +1,37 @@
+/* Neighbor Lanterns first fit and why-not-fewer: lantern dots on a link
+   drawing, coloured with the family's four colours and marks, an order strip,
+   and the proof highlight. Uses the shared board palette from boards.css. */
+.firstfit-puzzle{display:flex;flex-direction:column;align-items:center;gap:.6rem;width:100%}
+.ff-graph{position:relative;width:min(100%,400px);aspect-ratio:1.25;margin:.2rem auto}
+.ff-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.ff-lines line{stroke:#9aa88f;stroke-width:.9;vector-effect:non-scaling-stroke;stroke-width:2.5px}
+.ff-lines line.ff-clash{stroke:var(--b-bad,#a9503a);stroke-dasharray:6 4;stroke-width:3.5px}
+.ff-lines line.ff-proof-line{stroke:var(--b-ochre,#b38840);stroke-width:5px}
+.board-panel .firstfit-puzzle .ff-dot{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;justify-content:center;width:50px;height:50px;min-width:0;min-height:0;padding:0;border-radius:50%;background:var(--b-card,#fffdf5);border:2.5px solid var(--b-ink,#294439);box-shadow:0 2px 0 rgba(41,68,57,.2);color:var(--b-ink,#294439);font-family:var(--b-display,Georgia,serif);font-weight:400;line-height:1;z-index:1}
+.board-panel .firstfit-puzzle .ff-dot:disabled{opacity:1;cursor:default}
+.ff-name{font-size:1rem}
+.ff-mark{font-size:.8rem;min-height:.8rem}
+.ff-step{position:absolute;right:-6px;top:-6px;min-width:18px;height:18px;padding:0 3px;border-radius:9px;background:var(--b-ink,#294439);color:#fff8d9;font-family:system-ui,sans-serif;font-size:.7rem;font-weight:700;line-height:18px}
+.board-panel .firstfit-puzzle .c1{background:var(--b-sun,#efc76e)}
+.board-panel .firstfit-puzzle .c2{background:var(--b-leaf,#86a68c)}
+.board-panel .firstfit-puzzle .c3{background:var(--b-sky,#9cc9de)}
+.board-panel .firstfit-puzzle .c4{background:var(--b-rose,#e7a28f)}
+.board-panel .firstfit-puzzle .c5{background:#c7b3e0}
+.board-panel .firstfit-puzzle .ff-dot.in-proof{box-shadow:0 0 0 5px var(--b-ochre,#b38840)}
+.board-panel .firstfit-puzzle .hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.ff-dot.shake{animation:ff-shake .35s}
+@keyframes ff-shake{0%,100%{transform:translate(-50%,-50%)}25%{transform:translate(calc(-50% - 5px),-50%)}75%{transform:translate(calc(-50% + 5px),-50%)}}
+@media (prefers-reduced-motion:no-preference){.ff-dot.placed{animation:ff-pop .3s ease-out}}
+@keyframes ff-pop{0%{transform:translate(-50%,-50%) scale(.8)}100%{transform:translate(-50%,-50%) scale(1)}}
+.ff-tally{display:flex;gap:6px;min-height:30px;margin:0}
+.ff-swatch{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;border:2px solid var(--b-ink,#294439);font-size:.85rem}
+.ff-order{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;min-height:30px;margin:0}
+.ff-chip{display:inline-grid;place-items:center;min-width:28px;height:28px;padding:0 4px;border-radius:7px;border:1.5px solid var(--b-ink,#294439);font-family:var(--b-display,Georgia,serif)}
+.ff-empty{color:var(--b-muted,#5a6850)}
+.ff-tools,.ff-palette{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.board-panel .firstfit-puzzle .ff-pick{min-width:58px;min-height:46px;font-weight:700}
+.board-panel .firstfit-puzzle .ff-pick[aria-pressed="true"]{border:3px solid var(--b-ink,#294439);box-shadow:0 0 0 3px var(--b-ochre,#b38840)}
+.ff-say{margin:0;max-width:30rem;text-align:center;line-height:1.4}
+.ff-say.good{color:var(--b-good,#3c7a4a);font-weight:600}
+.mode-fewest.proving .ff-graph{background:repeating-linear-gradient(135deg,transparent 0 14px,rgba(179,136,64,.06) 14px 28px);border-radius:14px}
+@media (max-width:460px){.board-panel .firstfit-puzzle .ff-dot{width:42px;height:42px}.ff-name{font-size:.9rem}}
