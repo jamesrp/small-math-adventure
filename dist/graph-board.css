@@ -1,0 +1,31 @@
+/* The shared graph board (graph-board.js), in the shared board palette of
+   boards.css: paper card, ink outlines, pine for the chosen thing, ochre for
+   attention, Georgia numerals. Families add their own classes on top, scoped
+   under their own root so these base rules never override them. */
+.gb-board{display:block;width:100%;max-width:480px;height:auto;margin:.4rem auto;overflow:visible;user-select:none;-webkit-user-select:none}
+.gb-board text{font-family:var(--b-display,Georgia,serif);text-anchor:middle;pointer-events:none}
+
+.gb-line{stroke:#9aa88f;stroke-width:3px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.gb-head{fill:#7d8c73}
+.gb-stroke{stroke-width:7px;vector-effect:non-scaling-stroke;stroke-linecap:round;fill:none}
+.gb-bar{stroke:var(--b-bad,#a9503a);stroke-width:7px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.gb-tag rect{fill:var(--b-card,#fffdf5);stroke:#9aa88f;stroke-width:1.5px;vector-effect:non-scaling-stroke}
+.gb-tag text{font-size:5.1px;fill:var(--b-ink,#294439)}
+.gb-hit{stroke:transparent;stroke-width:30px;vector-effect:non-scaling-stroke;stroke-linecap:round;cursor:pointer;outline:none}
+.gb-hit:hover{stroke:rgba(41,68,57,.07)}
+.gb-hit:focus-visible{stroke:rgba(179,136,64,.32)}
+
+.gb-node .gb-reach{fill:transparent}
+.gb-node .gb-dot{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:2.5px;vector-effect:non-scaling-stroke}
+.gb-node .gb-label{font-size:5.2px;fill:var(--b-ink,#294439)}
+.gb-node[role="button"]{cursor:pointer;outline:none}
+.gb-board.gb-slide{touch-action:none}
+.gb-node[role="button"]:hover .gb-dot{fill:#f6f0dc}
+.gb-node[role="button"]:focus-visible .gb-reach{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:3px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}
+.gb-badge circle{fill:var(--b-ink,#294439)}
+.gb-badge text{font-size:3.6px;fill:var(--b-on-pine,#fff8d9)}
+
+/* A hinted node or link. */
+.gb-node.hinted .gb-reach{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:3.5px;vector-effect:non-scaling-stroke;stroke-dasharray:5 4}
+.gb-edge.hinted .gb-line{stroke:var(--b-ochre,#b38840);stroke-width:6px;stroke-dasharray:7 5}
+.gb-edge.hinted .gb-tag rect{stroke:var(--b-ochre,#b38840);stroke-width:3px}
