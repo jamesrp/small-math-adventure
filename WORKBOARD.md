@@ -15,6 +15,10 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Wave 1: hidden pictures from row and column counts (Week 25) | Claude, Hidden pictures from counts thread | `claude/wave1-hidden-pictures-dc6h2k` | in progress; review card being written |
 | Wave 1: cheapest networks (Week 53) | Claude, Route packing and cheapest networks thread | `claude/wave1-networks-kqynkj` | claimed; review card in progress |
 | Safe preview links for testers (plan item 5) | | | open |
-| Road 1 keeper `happy` and `oops` stills and videos (plan item 6) | | | open; Dot/Codex |
-| Voice-casting brief for six keepers and Plume (plan item 6) | Claude, Codex lane thread | `claude/codex-lane-h6jaem` | in progress |
-| Dot/Codex briefs for the keeper reaction clips and scene motion, and a kickoff prompt (plan item 6) | Claude, Codex lane thread | `claude/codex-lane-h6jaem` | in progress |
+| Keeper reaction clips, 14 (plan item 6; brief `docs/art/batches/01-keeper-reactions.md`) | | | open; Dot/Codex |
+| Voice auditions for the six keepers and Plume (plan item 6; brief `docs/voice-casting/README.md`, stage 1) | | | open; Dot/Codex; stops for James's pick |
+| Voice recording, all 85 lines (same brief, stage 2) | | | waits for James's pick; Dot/Codex |
+| Scene loops and change clips, then map and finale loops (brief `docs/art/batches/02-scene-motion.md`) | | | open after the reaction clips; Dot/Codex |
+| How the keeper `talk` pose behaves, before any idle or talk loops | | | open; Claude |
+| Voice-casting brief for six keepers and Plume (plan item 6) | Claude, Codex lane thread | `claude/codex-lane-h6jaem` | done |
+| Dot/Codex briefs for the keeper reaction clips and scene motion, and a kickoff prompt (plan item 6); keeper reaction stills now show in the game | Claude, Codex lane thread | `claude/codex-lane-h6jaem` | done |

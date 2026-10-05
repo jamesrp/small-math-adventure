@@ -40,7 +40,7 @@ exe.dev has no lane.
 **Art, voice and video** go to Dot/Codex. Claude writes the brief and slot catalog for anything new; `check-art.mjs` and the road browser suite check every batch.
 
 - Next for Road 1: keeper `happy` and `oops` stills and videos, then scene loops and change clips, as the ROADMAP orders them.
-- The notes in `docs/voice-casting/` describe the old story, where the travelers spoke. In v4 the six keepers and Plume speak 85 lines. Claude rewrites the casting brief for seven voices; Dot/Codex auditions and records them.
+- The notes in `docs/voice-casting/` described the old story, where the travelers spoke. In v4 the six keepers and Plume speak 85 lines; the casting brief for those seven voices is now `docs/voice-casting/README.md`, and Dot/Codex auditions and records them.
 - Later: scenes and keepers for new stops, region and family icons, the lantern tree.
 
 ## Track B: all 63 themes in the app
