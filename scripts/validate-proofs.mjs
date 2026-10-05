@@ -183,4 +183,5 @@ export async function validateProofs() {
   }
   return { proofPuzzles: proofs.puzzles.length, sources: proofs.sources.length, checks };
 }
+export default validateProofs;
 if (process.argv[1] === new URL(import.meta.url).pathname) console.log(JSON.stringify(await validateProofs(), null, 2));

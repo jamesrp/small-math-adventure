@@ -3,7 +3,7 @@
 // its lines. The sink keeps every chip it receives and never fires. On a board
 // with a sink, every legal run stops, and every complete run from the same
 // start has the same finish and the same number of firings at each circle.
-import {esc} from './expansion-controls.js';
+import {esc} from '../../expansion-controls.js';
 
 // Positions are percentages of the board box; S is the sink.
 export const BOARDS = {
@@ -494,4 +494,14 @@ export const chipMechanics = {
     carry: (p, from, to) => p.parameters.mode === 'playground' || !object(to) ? to : {...to, found: [...from.found]},
     noHint: p => p.parameters.mode === 'playground'
   }
+};
+
+// The family seam entry (dist/families.js).
+export default {
+  id: 'chips',
+  family: {id: 'chips', symbol: '◉'},
+  mechanics: chipMechanics,
+  pack: new URL('./chips.json', import.meta.url).href,
+  css: new URL('./chips.css', import.meta.url).href,
+  focus: '.chip-node:not([aria-disabled]),.chip-again'
 };

@@ -7,13 +7,14 @@ import {libraryView} from '../dist/caravan-ui.js';
 import {playView, parentView} from '../dist/ui.js';
 import {puzzleObjective, visiblePuzzleObjective} from '../dist/puzzle-copy.js';
 import {mechanicFor} from '../dist/expansion.js';
-import {runOf, BOARDS, PLAYGROUND_BOARDS} from '../dist/chips.js';
+import {runOf, BOARDS, PLAYGROUND_BOARDS} from '../dist/families/chips/chips.js';
 import {validateChips} from '../scripts/validate-chips.mjs';
+import {loadPack} from '../scripts/packs.mjs';
 
 const read = async path => JSON.parse(await readFile(new URL(path, import.meta.url), 'utf8'));
-const main = await read('../dist/puzzles.json'), proofs = await read('../dist/proofs.json'), chips = await read('../dist/chips.json');
+const chips = await read('../dist/families/chips/chips.json');
 // The app merges the packs at load time (dist/main.js).
-const pack = {...main, puzzles: [...main.puzzles, ...proofs.puzzles, ...chips.puzzles], sources: [...main.sources, ...proofs.sources, ...chips.sources], families: [...main.families, ...chips.families]};
+const pack = await loadPack();
 const puzzles = pack.puzzles, byId = id => puzzles.find(p => p.id === id);
 const profile = (attempts = {}) => ({id: 'one', name: 'Explorer', avatar: 0, band: 'k1', sound: false, attempts});
 function memory() { const values = new Map(); return {getItem: k => values.get(k) || null, setItem: (k, v) => values.set(k, v), removeItem: k => values.delete(k)}; }
@@ -131,15 +132,14 @@ test('the playground has every board, no Hint button, and never counts as solved
   assert.ok(puzzleObjective(pg));
 });
 
-test('the satchel lists Chip firing first and open, with its playground and twelve puzzles', () => {
+// Where the family sits in the satchel, and whether it starts open, is the
+// seam's rule (tests/families.test.mjs).
+test('the satchel lists Chip firing with its playground and twelve puzzles', () => {
   const html = libraryView(profile({'chips-03': {completed: true}}), puzzles);
-  const first = html.indexOf('data-view-key="family-');
-  assert.equal(html.slice(first, first + 40).includes('family-chips'), true);
-  assert.match(html, /data-view-key="family-chips" open/);
+  assert.match(html, /data-view-key="family-chips"/);
   assert.match(html, /data-id="chips-playground"[^>]*>.*Playground/);
   for (let n = 1; n <= 12; n++) assert.ok(html.includes(`data-id="chips-${String(n).padStart(2, '0')}"`));
   assert.match(html, /Chip firing, Easy, puzzle 3, completed/);
-  assert.equal((html.match(/data-view-key="family-toggle" open/g) || []).length, 0);
 });
 
 test('every puzzle renders its board, goal and controls', () => {

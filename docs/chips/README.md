@@ -17,7 +17,7 @@ Experiments come first: a child fires, records the order, and looks at the finis
 
 ## Where they appear
 
-**Puzzles → Chip firing** is the first family in the satchel and starts open. A **Playground** button sits above Easy, Medium and Hard. The puzzles are grade-free (`band: "all"`) and use Easy/Medium/Hard like the other expansion families, so K–1 children can start at puzzle 1 and older children can go straight to Medium.
+**Puzzles → Chip firing** is a satchel family on the family seam ([Adding a family](../ADDING-A-FAMILY.md)): the newest such family comes first and starts open. A **Playground** button sits above Easy, Medium and Hard. The puzzles are grade-free (`band: "all"`) and use Easy/Medium/Hard like the other expansion families, so K–1 children can start at puzzle 1 and older children can go straight to Medium.
 
 | # | Puzzle | Board | What counts as a solve | Answers | Week 11 source |
 |---|---|---|---|---|---|
@@ -64,14 +64,14 @@ The playground has no goal, no Hint and never counts as solved.
 
 | File | Contents |
 |---|---|
-| `dist/chips.js` | Boards, firing, stabilizing, exhaustive answer sets, the `chips` mechanic (moves, hints, rendering, animation, keyboard and pointer wiring) and the playground, including the grid |
-| `dist/chips.css` | Styles, using the shared board palette |
-| `dist/chips.json` | The pack: 12 puzzles, the playground, 1 family and 4 sources, merged with `puzzles.json` and `proofs.json` in `main.js` |
-| `scripts/build-chips.mjs` | Authoring list; computes each puzzle’s answer count and writes `dist/chips.json` |
+| `dist/families/chips/chips.js` | Boards, firing, stabilizing, exhaustive answer sets, the `chips` mechanic (moves, hints, rendering, animation, keyboard and pointer wiring) and the playground, including the grid |
+| `dist/families/chips/chips.css` | Styles, using the shared board palette |
+| `dist/families/chips/chips.json` | The pack: 12 puzzles, the playground, 1 family and 4 sources, merged with `puzzles.json` and `proofs.json` at load through `dist/families.js` |
+| `scripts/build-chips.mjs` | Authoring list; computes each puzzle’s answer count and writes `dist/families/chips/chips.json` |
 | `scripts/validate-chips.mjs` | Recomputes every answer set with an independent simulator; checks one finish and one firing count per start, that puzzles 7 and 10 ask for the true maximum, that hints alone solve every puzzle, illegal moves, Undo keeping discoveries, forged saves, and every playground board (including the 1000-chip grid against a separate settle, conservation and symmetry); run by `npm run build` |
 | `tests/chips.test.mjs` | Firing orders, Again, placing, the avalanche, the loop, Undo, saves, the playground, the satchel and rendering |
 
-Two small hooks were added for this family and are available to any mechanic: `carry(p, from, to)` lets Undo keep part of the board, and `noHint(p)` hides the Hint button (`ui.js`). The pack is additive, like the proofs pack, so existing puzzles and their saves are unchanged.
+Two small hooks were added for this family and are available to any mechanic: `carry(p, from, to)` lets Undo keep part of the board, and `noHint(p)` hides the Hint button (`ui.js`). The pack is additive, like the proofs pack, so existing puzzles and their saves are unchanged. The family's one line in `dist/families.js` brings in its mechanic, pack, stylesheet, symbol and focus target; `tests/chips.test.mjs` and `node scripts/families-browser-smoke.mjs` (which solves all twelve puzzles through hints) check it.
 
 To change a puzzle, edit `scripts/build-chips.mjs`, then run `node scripts/build-chips.mjs`, `npm test` and `npm run build`.
 

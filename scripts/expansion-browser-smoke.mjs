@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import {waitForOffline} from './browser-offline.mjs';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
+import {loadPack} from './packs.mjs';
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 const browser=await chromium.launch({headless:true,...(process.env.BROWSER_EXECUTABLE?{executablePath:process.env.BROWSER_EXECUTABLE}:{})});
 const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true});
@@ -9,6 +10,7 @@ const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(
 const base=process.env.TEST_URL||'http://127.0.0.1:4187',key='small-math-adventure:saves:v1';
 const {puzzles}=JSON.parse(await readFile(new URL('../dist/puzzles.json',import.meta.url),'utf8'));
 const expanded=puzzles.filter(p=>p.band==='all');
+const satchelFamilies=new Set((await loadPack()).puzzles.map(p=>p.libraryFamily||p.mechanic)).size;
 const state=()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)),key);
 const goto=async id=>{await page.goto(`${base}/#play/${id}`);await page.locator('.expansion-board').waitFor();};
 const fit=async label=>assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`${label}: no page overflow`);
@@ -17,9 +19,9 @@ const takeNim=async(id,pile,remove)=>{const size=(await state()).profiles[0].att
 const clickMove=async action=>{const button=page.locator('[data-action="expansion-move"]').filter({visible:true});const moves=await button.evaluateAll(nodes=>nodes.map(n=>n.dataset.move));const index=moves.indexOf(JSON.stringify(action));assert.ok(index>=0,`UI control ${JSON.stringify(action)}`);await button.nth(index).click();};
 try{
  await mkdir(new URL('../test-results/',import.meta.url),{recursive:true});
- await page.goto(base);await page.locator('#nickname').fill('Expansion QA');await page.locator('#profile-form button[type=submit]').click();await page.locator('[data-action=library]').first().click();await page.locator('.caravan-library').waitFor();assert.equal(await page.locator('.satchel-family').count(),13);const familyIds=[...new Set(expanded.map(p=>p.mechanic))];assert.equal(familyIds.length,10);for(const id of familyIds){const family=page.locator('.satchel-family').filter({has:page.locator(`[data-id="${id}-01"]`)});assert.equal(await family.count(),1);assert.equal(await family.locator('.library-band:not(.library-proofs) [data-action=open-puzzle]').count(),expanded.filter(p=>p.mechanic===id).length);}await fit('satchel');
+ await page.goto(base);await page.locator('#nickname').fill('Expansion QA');await page.locator('#profile-form button[type=submit]').click();await page.locator('[data-action=library]').first().click();await page.locator('.caravan-library').waitFor();assert.equal(await page.locator('.satchel-family').count(),satchelFamilies);const familyIds=[...new Set(expanded.map(p=>p.mechanic))];assert.equal(familyIds.length,10);for(const id of familyIds){const family=page.locator('.satchel-family').filter({has:page.locator(`[data-id="${id}-01"]`)});assert.equal(await family.count(),1);assert.equal(await family.locator('.library-band:not(.library-proofs,.library-group) [data-action=open-puzzle]').count(),expanded.filter(p=>p.mechanic===id).length);}await fit('satchel');
  await waitForOffline(page);
- // Chip firing starts open; open Lantern Wires before choosing its first puzzle.
+ // The newest family starts open; open Lantern Wires before choosing its first puzzle.
  await page.locator('.satchel-family').filter({has:page.locator('[data-id="toggle-01"]')}).locator('summary').click();await page.locator('button[data-id=toggle-01]').click();await page.locator('.expansion-board').waitFor();
  // Exercise direct controls for all ten types before using the shared hint flow.
  await goto('toggle-01');assert.equal(await page.locator('.motion-controls').count(),0);await page.locator('.wire-hit').first().focus();await page.keyboard.press('Enter');await page.locator('#completion-heading').waitFor();

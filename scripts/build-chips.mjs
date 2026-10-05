@@ -1,10 +1,11 @@
-// Builds dist/chips.json, the Chip firing pack, from the authoring list below.
-// Answer counts are computed here by exhaustive search (dist/chips.js) and
-// checked again by scripts/validate-chips.mjs. Like the Proofs pack, it stays
-// separate from dist/puzzles.json so the expansion importer is unchanged.
+// Builds dist/families/chips/chips.json, the Chip firing pack, from the
+// authoring list below. Answer counts are computed here by exhaustive search
+// (dist/families/chips/chips.js) and checked again by scripts/validate-chips.mjs.
+// Like the Proofs pack, it stays separate from dist/puzzles.json so the
+// expansion importer is unchanged.
 // Design notes and worksheet sources: docs/chips/README.md.
 import {writeFile} from 'node:fs/promises';
-import {answers, boardInfo, stabilize} from '../dist/chips.js';
+import {answers, boardInfo, stabilize} from '../dist/families/chips/chips.js';
 
 const WEEK11 = 'https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-11';
 export const sources = [
@@ -273,7 +274,7 @@ const pg = {...playground, mechanic: 'chips', familyTitle: family.title, revisio
 
 const pack = {title: 'Chip firing', version: 1, families: [family], sources, puzzles: [pg, ...puzzles]};
 if (process.argv[1] === new URL(import.meta.url).pathname) {
-  await writeFile(new URL('../dist/chips.json', import.meta.url), JSON.stringify(pack, null, 1) + '\n');
+  await writeFile(new URL('../dist/families/chips/chips.json', import.meta.url), JSON.stringify(pack, null, 1) + '\n');
   for (const p of puzzles) {
     const q = p.parameters, g = boardInfo(q.board), list = [...answers(p).keys()];
     const finish = q.start ? stabilize(g, q.start).piles.join(',') : '';

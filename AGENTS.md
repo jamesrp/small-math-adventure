@@ -32,6 +32,7 @@
 
 ## Authoring and verification
 
+- Add a new family, or a new group inside an existing family, through the family seam: its own files plus one line in `dist/families.js`, following [docs/ADDING-A-FAMILY.md](docs/ADDING-A-FAMILY.md). Don't name a family in shared files.
 - Give each instance explicit starting data, legal moves, a concrete success condition, a solution witness, a useful hint, and the intended mathematical insight.
 - Accept every valid solution unless the task explicitly asks for an optimum or a particular outcome. Validate solvability and any uniqueness, optimality, or game-strategy claim; inspect alternatives and dead ends when relevant.
 - Prefer a progression of meaningful structural contrasts over a bag of random seeds. Random generation, if used, must stay inside a named mathematical family and be filtered for an authored purpose.
