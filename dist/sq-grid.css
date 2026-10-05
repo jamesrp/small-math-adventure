@@ -1,0 +1,27 @@
+/* The shared square grid (sq-grid.js), in the shared board palette of
+   boards.css: paper card, ink outlines, pine for the chosen thing, ochre for
+   attention. Families add their own classes on top, scoped under their own
+   root so these base rules never override them. */
+.sg-board{display:block;width:100%;max-width:440px;max-height:62vh;height:auto;margin:.4rem auto;overflow:visible;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+.sg-board.sg-stroking{touch-action:none}
+.sg-cell{fill:#fbf8ec;stroke:#d3d9c0;stroke-width:1px;vector-effect:non-scaling-stroke}
+.sg-rim{fill:none;stroke:var(--b-ink,#294439);stroke-width:2.2px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.sg-piece{fill:var(--b-sky,#9cc9de);fill-rule:evenodd;stroke:var(--b-ink,#294439);stroke-width:1.6px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.sg-edge{stroke:var(--b-ink,#294439);stroke-width:2.6px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.sg-dot{fill:var(--b-ink,#294439);pointer-events:none}
+.sg-hit{fill:transparent;cursor:pointer;outline:none}
+.sg-hit:hover{fill:rgba(41,68,57,.06)}
+.sg-hit:focus-visible{fill:rgba(179,136,64,.22);stroke:var(--b-ochre,#b38840);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}
+.sg-edge-hit{stroke:transparent;stroke-width:14px;vector-effect:non-scaling-stroke}
+.sg-edge-hit:focus-visible{stroke:rgba(179,136,64,.5)}
+.sg-hit.in-stroke{fill:rgba(49,83,62,.28)}
+.sg-hit.in-stroke.blocked{fill:rgba(169,80,58,.22)}
+.sg-point .sg-reach{fill:transparent}
+.sg-point .sg-pip{fill:var(--b-ink,#294439)}
+.sg-point[role="button"]{cursor:pointer;outline:none}
+.sg-point[role="button"]:focus-visible .sg-reach{stroke:var(--b-ochre,#b38840);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}
+
+/* A hinted square, edge or point. */
+.sg-cell.hinted{fill:#f6e3b0;stroke:var(--b-ochre,#b38840);stroke-width:2.5px;stroke-dasharray:5 4}
+.sg-edge.hinted{stroke:var(--b-ochre,#b38840);stroke-dasharray:5 4}
+.sg-point.hinted .sg-reach{fill:rgba(239,199,110,.55);stroke:var(--b-ochre,#b38840);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}

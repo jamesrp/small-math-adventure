@@ -1,0 +1,1014 @@
+{
+ "title": "Garden fences",
+ "version": 1,
+ "families": [
+  {
+   "id": "fences",
+   "title": "Garden fences",
+   "mathematics": "A garden is n square tiles joined along whole sides, and its fence is every tile side with no tile beside it, round holes too. Each shared side hides two tile sides, so the fence is 4n − 2s for s shared sides, and it is always even. A joined garden has at least n − 1 shared sides, so the fence is at most 2n + 2, reached exactly when no tiles close a loop (the tiles and their shared sides form a tree); a hole sealed at a corner closes no loop. A garden over r rows and c columns has a fence of at least 2(r + c) and at most rc tiles, so the shortest fence for n tiles is 2⌈2√n⌉ (Harary and Harborth) and a fence of 2s holds at most ⌊s/2⌋·⌈s/2⌉ tiles.",
+   "rules": [
+    "Tiles that share a whole side are joined. Touching at a corner is not enough.",
+    "A garden is all its tiles, joined in one piece.",
+    "The fence runs along every tile side with no tile beside it, round ponds and holes too."
+   ],
+   "sourceIds": [
+    "fences-week26",
+    "fences-review",
+    "fences-harary-harborth",
+    "fences-golomb",
+    "fences-oeis"
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "id": "fences-week26",
+   "title": "Bellingham Math Circle — Week 26: Same area, different boundaries (packets for K–1, grades 2–3 and 4–5, and the adult guide)",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-26",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "fences-review",
+   "title": "Bellingham Math Circle — Week 26 review card, with its math check",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-26.md",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "fences-harary-harborth",
+   "title": "Frank Harary and Heiko Harborth — Extremal animals, Journal of Combinatorics, Information & System Sciences 1 (1976), 1–8",
+   "url": "https://oeis.org/A027709",
+   "kind": "research"
+  },
+  {
+   "id": "fences-golomb",
+   "title": "Solomon W. Golomb — Polyominoes: Puzzles, Patterns, Problems, and Packings, second edition, Princeton University Press (1994)",
+   "url": "https://press.princeton.edu/books/paperback/9780691024448/polyominoes",
+   "kind": "book"
+  },
+  {
+   "id": "fences-oeis",
+   "title": "OEIS A000105 (free polyominoes with n cells) and A027709 (the least perimeter of n cells)",
+   "url": "https://oeis.org/A000105",
+   "kind": "reference"
+  }
+ ],
+ "puzzles": [
+  {
+   "id": "fences-playground",
+   "number": 0,
+   "title": "Garden fences playground",
+   "band": "playground",
+   "difficulty_level": "playground",
+   "mechanic": "fences",
+   "familyTitle": "Garden fences",
+   "revision": 1,
+   "parameters": {
+    "mode": "playground",
+    "size": 6
+   },
+   "objective": "Plant any garden and watch its fence.",
+   "instruction": "Plant any garden and watch its fence.",
+   "controls": "Tap a square to plant a tile, and tap a tile to lift it. Drag across empty squares to plant a row; drag a tile to carry it to another square. The squares above the plot change its size; Clear lifts every tile.",
+   "rules": [
+    "Tiles that share a whole side are joined. Touching at a corner is not enough.",
+    "A garden is all its tiles, joined in one piece.",
+    "The fence runs along every tile side with no tile beside it, round ponds and holes too."
+   ],
+   "idea": "Free planting on plots of 4, 6 or 8 squares a side, with the fence and the number of tiles counted.",
+   "prerequisites": "None. A grown-up can suggest a question from the puzzles.",
+   "hints": [
+    "Plant one tile, then another beside it. How did the fence change?",
+    "Where can a new tile go without making the fence longer?",
+    "Plant 12 tiles in a row, then in a block. Which fence is longer?"
+   ],
+   "parent": {
+    "notice": "A new tile changes the fence by 4 − 2k, where k is the number of tiles it touches: +2, 0, −2 or −4.",
+    "prompt": "Where can a tile go so the fence stays the same?",
+    "explanation": "A tile brings four sides. Each tile it touches hides one of its sides and one of the other tile’s, so touching one tile adds two to the fence, touching two adds nothing, touching three takes two away and filling a hole takes four away.",
+    "extension": "How many shared sides does a garden with 10 tiles and a fence of 14 have? (13, because 40 − 2 × 13 = 14.)",
+    "connection": "The fence is 4n − 2s: counting sides two ways, the same double counting as the handshake lemma.",
+    "sourceIds": [
+     "fences-week26"
+    ]
+   },
+   "provenance": "Week 26 materials: building with square tiles and counting the boundary with edge markers.",
+   "sourceDocument": "docs/fences/README.md"
+  },
+  {
+   "id": "fences-01",
+   "number": 1,
+   "title": "Four tiles",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "fences",
+   "familyTitle": "Garden fences",
+   "revision": 1,
+   "parameters": {
+    "mode": "every",
+    "cols": 4,
+    "rows": 4,
+    "tiles": 4,
+    "answers": [
+     "0,0 0,1 0,2 0,3",
+     "0,0 0,1 0,2 1,2",
+     "0,0 0,1 1,1 0,2",
+     "0,0 0,1 1,1 1,2",
+     "0,0 1,0 0,1 1,1"
+    ]
+   },
+   "objective": "Find every garden of 4 tiles.",
+   "visibleObjective": "Find every garden of 4 tiles.",
+   "instruction": "Find every garden of 4 tiles.",
+   "controls": "Tap a square to plant a tile, and tap a tile to lift it. Drag across empty squares to plant a row; drag a tile to carry it to another square. Clear lifts every tile. Press That’s all when you have every garden.",
+   "rules": [
+    "Tiles that share a whole side are joined. Touching at a corner is not enough.",
+    "A garden is all its tiles, joined in one piece.",
+    "The fence runs along every tile side with no tile beside it, round ponds and holes too.",
+    "A garden turned or flipped is the same garden. Each new one joins the row below the plot.",
+    "Solved when you press That’s all with every garden found."
+   ],
+   "idea": "Five shapes of four squares; turning or flipping one makes no new shape.",
+   "prerequisites": "None. Turning a shape in the head, or on the plot, helps.",
+   "hints": [
+    "Start with all four in a straight row.",
+    "Make a row of three, and put the last tile beside it in different places.",
+    "With no row of three, the tiles make a square or a zigzag."
+   ],
+   "parent": {
+    "notice": "There are five gardens. The square has a fence of 8; the other four have 10.",
+    "prompt": "How do you know there isn’t a sixth?",
+    "explanation": "Sort by the longest straight row. Four in a row is one garden. With a row of three, the last tile goes beside an end (the L) or beside the middle (the T). With no row of three, the tiles fill a 2-by-2 square or make a zigzag. Turned and flipped copies are the same garden.",
+    "extension": "Which gardens can take a fifth tile without the fence getting longer? (Any with a corner nook: the L, the T and the zigzag. The square and the straight row can’t.)",
+    "connection": "These are the five tetrominoes; with five tiles there are twelve pentominoes, and nobody has a formula for the count in general.",
+    "sourceIds": [
+     "fences-week26",
+     "fences-golomb",
+     "fences-oeis"
+    ]
+   },
+   "provenance": "Week 26 K–1 Problem 1 (make every different four-tile shape and count its boundary).",
+   "sourceDocument": "docs/fences/README.md"
+  },
+  {
+   "id": "fences-02",
+   "number": 2,
+   "title": "A fence of ten",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "fences",
+   "familyTitle": "Garden fences",
+   "revision": 1,
+   "parameters": {
+    "mode": "target",
+    "cols": 4,
+    "rows": 4,
+    "tiles": 5,
+    "fence": 10,
+    "witnesses": [
+     "0,0 0,1 1,1 0,2 1,2"
+    ]
+   },
+   "objective": "Plant all 5 tiles with a fence of 10.",
+   "visibleObjective": "Plant all 5 tiles with a fence of 10.",
+   "instruction": "Plant all 5 tiles with a fence of 10.",
+   "controls": "Tap a square to plant a tile, and tap a tile to lift it. Drag across empty squares to plant a row; drag a tile to carry it to another square.",
+   "rules": [
+    "Tiles that share a whole side are joined. Touching at a corner is not enough.",
+    "A garden is all its tiles, joined in one piece.",
+    "The fence runs along every tile side with no tile beside it, round ponds and holes too.",
+    "Solved when every tile is in one garden with exactly that fence."
+   ],
+   "idea": "Tiles packed into a block share more sides, which shortens the fence.",
+   "prerequisites": "Count to 12.",
+   "hints": [
+    "A straight row of five has a fence of 12. Make the tiles touch more.",
+    "Make a 2-by-2 square first.",
+    "Put the fifth tile beside the square."
+   ],
+   "parent": {
+    "notice": "Only one garden works, up to turning and flipping: a 2-by-2 square with one tile beside it.",
+    "prompt": "Why do all the other five-tile gardens have a fence of 12?",
+    "explanation": "Five tiles bring 20 sides and each shared side hides two, so a fence of 10 needs five shared sides. A joined garden of five has at least four; a fifth comes only from a closed loop, and the only loop five tiles can make is a 2-by-2 square.",
+    "extension": "Can five tiles have a fence of 8? (No: that needs six shared sides, and five tiles can close only one loop.)",
+    "connection": "Fence = 4n − 2s, the double count behind every puzzle in this family.",
+    "sourceIds": [
+     "fences-week26"
+    ]
+   },
+   "provenance": "Week 26 K–1 Problem 2 (shortest and longest boundaries with five tiles).",
+   "sourceDocument": "docs/fences/README.md"
+  },
+  {
+   "id": "fences-03",
+   "number": 3,
+   "title": "A small plot",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "fences",
+   "familyTitle": "Garden fences",
+   "revision": 1,
+   "parameters": {
+    "mode": "longest",
+    "cols": 3,
+    "rows": 3,
+    "tiles": 6,
+    "best": 14,
+    "witnesses": [
+     "0,0 0,1 1,1 2,1 0,2 2,2",
+     "0,0 0,1 2,1 0,2 1,2 2,2",
+     "0,0 1,0 1,1 2,1 0,2 1,2"
+    ]
+   },
+   "objective": "Plant all 6 tiles with the longest fence.",
+   "visibleObjective": "Plant all 6 tiles with the longest fence.",
+   "instruction": "Plant all 6 tiles with the longest fence.",
+   "controls": "Tap a square to plant a tile, and tap a tile to lift it. Drag across empty squares to plant a row; drag a tile to carry it to another square. Press Longest when you think no garden of these tiles has a longer fence.",
+   "rules": [
+    "Tiles that share a whole side are joined. Touching at a corner is not enough.",
+    "A garden is all its tiles, joined in one piece.",
+    "The fence runs along every tile side with no tile beside it, round ponds and holes too.",
+    "Solved when you press Longest on a garden with the longest fence its tiles can have on this plot. If a longer one exists, you’re told."
+   ],
+   "idea": "With no room for a straight row, the longest fence comes from never closing a square.",
+   "prerequisites": "Count to 14.",
+   "hints": [
+    "A 2-by-2 square of tiles makes the fence shorter.",
+    "Try to plant all six without making any 2-by-2 square.",
+    "Plant a whole row of three, then two tiles down one side and one more."
+   ],
+   "parent": {
+    "notice": "The longest fence is 14, the same as a straight row of six would have.",
+    "prompt": "Why can’t six tiles ever have a fence longer than 14?",
+    "explanation": "Six joined tiles share at least five sides, so the fence is at most 24 − 10 = 14. It is exactly 14 when no four tiles make a 2-by-2 square, and three gardens on this plot do that.",
+    "extension": "On this plot, what is the longest fence for seven tiles? (16: leave the middle square empty, and no 2-by-2 square is full.)",
+    "connection": "The fence is longest exactly when the tiles and their shared sides form a tree.",
+    "sourceIds": [
+     "fences-week26"
+    ]
+   },
+   "provenance": "Week 26 grades 4–5 Problem 2 (longest boundaries with none in a straight row), on a 3-by-3 plot instead.",
+   "sourceDocument": "docs/fences/README.md"
+  },
+  {
+   "id": "fences-04",
+   "number": 4,
+   "title": "Which fences?",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "fences",
+   "familyTitle": "Garden fences",
+   "revision": 1,
+   "parameters": {
+    "mode": "fences",
+    "cols": 5,
+    "rows": 5,
+    "tiles": 5,
+    "chips": [
+     8,
+     9,
+     10,
+     11,
+     12,
+     13
+    ],
+    "answers": [
+     10,
+     12
+    ],
+    "witnesses": [
+     "0,0 0,1 1,1 0,2 1,2",
+     "0,0 0,1 0,2 0,3 0,4"
+    ]
+   },
+   "objective": "Which of these fences can 5 tiles have?",
+   "visibleObjective": "Which of these fences can 5 tiles have?",
+   "instruction": "Which of these fences can 5 tiles have?",
+   "controls": "Tap a square to plant a tile, and tap a tile to lift it. Drag across empty squares to plant a row; drag a tile to carry it to another square. Clear lifts every tile. Press That’s all when you have made every length that can be made.",
+   "rules": [
+    "Tiles that share a whole side are joined. Touching at a corner is not enough.",
+    "A garden is all its tiles, joined in one piece.",
+    "The fence runs along every tile side with no tile beside it, round ponds and holes too.",
+    "Each fence length you make with all the tiles lights up.",
+    "Solved when you press That’s all with every length that can be made lit."
+   ],
+   "idea": "Every fence is even, and five tiles have a fence of 10 or 12.",
+   "prerequisites": "Count to 13. Odd and even numbers help but aren’t needed.",
+   "hints": [
+    "Plant all five in a row and look at the fence.",
+    "Pack the tiles tighter and look again.",
+    "A 2-by-2 square with one tile beside it."
+   ],
+   "parent": {
+    "notice": "Only 10 and 12 can be made.",
+    "prompt": "Why can’t you make 9, 11 or 13?",
+    "explanation": "Five tiles bring 20 sides, and every shared side hides two of them, so the fence is 20 take away an even number: always even. Five joined tiles share at least four sides (fence at most 12) and at most five (fence at least 10).",
+    "extension": "Which fences can six tiles have? (10, 12 and 14.)",
+    "connection": "Parity: fence = 4n − 2s is even for every garden, the invariant behind the whole family.",
+    "sourceIds": [
+     "fences-week26"
+    ]
+   },
+   "provenance": "Week 26 K–1 Problem 5 (which boundary lengths from 8 to 13 can five tiles make).",
+   "sourceDocument": "docs/fences/README.md"
+  },
+  {
+   "id": "fences-05",
+   "number": 5,
+   "title": "Every row, every column",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "fences",
+   "familyTitle": "Garden fences",
+   "revision": 1,
+   "parameters": {
+    "mode": "fewest",
+    "cols": 5,
+    "rows": 4,
+    "tiles": 12,
+    "span": true,
+    "best": 18,
+    "witnesses": [
+     "0,0 0,1 0,2 1,2 0,3 1,3 2,3 3,3 0,4 1,4 2,4 3,4",
+     "0,0 0,1 0,2 1,2 2,2 0,3 1,3 2,3 0,4 1,4 2,4 3,4",
+     "0,0 0,1 0,2 1,2 2,2 0,3 1,3 2,3 3,3 0,4 1,4 2,4",
+     "0,0 0,1 0,2 1,2 2,2 0,3 1,3 2,3 3,3 1,4 2,4 3,4",
+     "0,0 0,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 0,4 1,4 2,4",
+     "0,0 0,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 3,3 0,4 1,4",
+     "0,0 0,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 3,3 1,4 2,4",
+     "0,0 0,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 3,3 2,4 3,4",
+     "0,0 0,1 0,2 1,2 2,2 3,2 1,3 2,3 3,3 1,4 2,4 3,4",
+     "0,0 0,1 0,2 1,2 2,2 3,2 4,2 0,3 1,3 2,3 3,3 4,3",
+     "0,0 0,1 1,1 0,2 1,2 0,3 1,3 2,3 0,4 1,4 2,4 3,4",
+     "0,0 0,1 1,1 0,2 1,2 0,3 1,3 2,3 3,3 0,4 1,4 2,4",
+     "0,0 0,1 1,1 0,2 1,2 0,3 1,3 2,3 3,3 1,4 2,4 3,4",
+     "0,0 0,1 1,1 0,2 1,2 2,2 0,3 1,3 2,3 1,4 2,4 3,4",
+     "0,0 0,1 1,1 0,2 1,2 2,2 0,3 1,3 2,3 3,3 0,4 1,4",
+     "0,0 0,1 1,1 0,2 1,2 2,2 0,3 1,3 2,3 3,3 1,4 2,4",
+     "0,0 0,1 1,1 0,2 1,2 2,2 0,3 1,3 2,3 3,3 2,4 3,4",
+     "0,0 0,1 1,1 0,2 1,2 2,2 1,3 2,3 3,3 1,4 2,4 3,4",
+     "0,0 0,1 1,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 0,4 1,4",
+     "0,0 0,1 1,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 1,4 2,4",
+     "0,0 0,1 1,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 3,3 0,4",
+     "0,0 0,1 1,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 3,3 1,4",
+     "0,0 0,1 1,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 3,3 2,4",
+     "0,0 0,1 1,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 3,3 3,4",
+     "0,0 0,1 1,1 0,2 1,2 2,2 3,2 1,3 2,3 3,3 1,4 2,4",
+     "0,0 0,1 1,1 0,2 1,2 2,2 3,2 1,3 2,3 3,3 2,4 3,4",
+     "0,0 0,1 1,1 0,2 1,2 2,2 3,2 4,2 0,3 1,3 2,3 3,3",
+     "0,0 0,1 1,1 0,2 1,2 2,2 3,2 4,2 1,3 2,3 3,3 4,3",
+     "0,0 0,1 1,1 1,2 2,2 3,2 1,3 2,3 3,3 1,4 2,4 3,4",
+     "0,0 0,1 1,1 2,1 0,2 1,2 2,2 0,3 1,3 2,3 2,4 3,4",
+     "0,0 0,1 1,1 2,1 0,2 1,2 2,2 0,3 1,3 2,3 3,3 0,4",
+     "0,0 0,1 1,1 2,1 0,2 1,2 2,2 0,3 1,3 2,3 3,3 1,4",
+     "0,0 0,1 1,1 2,1 0,2 1,2 2,2 0,3 1,3 2,3 3,3 2,4",
+     "0,0 0,1 1,1 2,1 0,2 1,2 2,2 0,3 1,3 2,3 3,3 3,4",
+     "0,0 0,1 1,1 2,1 0,2 1,2 2,2 1,3 2,3 1,4 2,4 3,4",
+     "0,0 0,1 1,1 2,1 0,2 1,2 2,2 1,3 2,3 3,3 1,4 2,4",
+     "0,0 0,1 1,1 2,1 0,2 1,2 2,2 1,3 2,3 3,3 2,4 3,4",
+     "0,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 0,3 1,3 0,4 1,4",
+     "0,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 0,4",
+     "0,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 1,4",
+     "0,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 2,4",
+     "0,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 1,3 2,3 1,4 2,4",
+     "0,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 1,3 2,3 3,3 1,4",
+     "0,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 1,3 2,3 3,3 2,4",
+     "0,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 1,3 2,3 3,3 3,4",
+     "0,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 2,3 3,3 2,4 3,4",
+     "0,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 4,2 0,3 1,3 2,3",
+     "0,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 4,2 1,3 2,3 3,3",
+     "0,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 4,2 2,3 3,3 4,3",
+     "0,0 0,1 1,1 2,1 1,2 2,2 1,3 2,3 3,3 1,4 2,4 3,4",
+     "0,0 0,1 1,1 2,1 1,2 2,2 3,2 1,3 2,3 3,3 1,4 2,4",
+     "0,0 0,1 1,1 2,1 1,2 2,2 3,2 1,3 2,3 3,3 2,4 3,4",
+     "0,0 0,1 1,1 2,1 1,2 2,2 3,2 4,2 1,3 2,3 3,3 4,3",
+     "0,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 0,3 1,3 0,4 1,4",
+     "0,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 0,3 1,3 2,3 1,4",
+     "0,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 0,3 1,3 2,3 2,4",
+     "0,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 1,3 2,3 1,4 2,4",
+     "0,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 3,2 0,3 1,3 1,4",
+     "0,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 3,2 1,3 2,3 1,4",
+     "0,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 3,2 1,3 2,3 2,4",
+     "0,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 3,2 2,3 3,3 2,4",
+     "0,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 3,2 4,2 0,3 1,3",
+     "0,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 3,2 4,2 1,3 2,3",
+     "0,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 3,2 4,2 2,3 3,3",
+     "0,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 3,2 4,2 3,3 4,3",
+     "0,0 0,1 1,1 2,1 3,1 1,2 2,2 3,2 1,3 2,3 1,4 2,4",
+     "0,0 0,1 1,1 2,1 3,1 1,2 2,2 3,2 1,3 2,3 3,3 1,4",
+     "0,0 0,1 1,1 2,1 3,1 1,2 2,2 3,2 1,3 2,3 3,3 2,4",
+     "0,0 0,1 1,1 2,1 3,1 1,2 2,2 3,2 2,3 3,3 2,4 3,4",
+     "0,0 0,1 1,1 2,1 3,1 1,2 2,2 3,2 4,2 1,3 2,3 3,3",
+     "0,0 0,1 1,1 2,1 3,1 1,2 2,2 3,2 4,2 2,3 3,3 4,3",
+     "0,0 0,1 1,1 2,1 3,1 4,1 0,2 1,2 2,2 0,3 1,3 2,3",
+     "0,0 0,1 1,1 2,1 3,1 4,1 0,2 1,2 2,2 3,2 0,3 1,3",
+     "0,0 0,1 1,1 2,1 3,1 4,1 0,2 1,2 2,2 3,2 1,3 2,3",
+     "0,0 0,1 1,1 2,1 3,1 4,1 0,2 1,2 2,2 3,2 2,3 3,3",
+     "0,0 0,1 1,1 2,1 3,1 4,1 0,2 1,2 2,2 3,2 4,2 0,3",
+     "0,0 0,1 1,1 2,1 3,1 4,1 0,2 1,2 2,2 3,2 4,2 1,3",
+     "0,0 0,1 1,1 2,1 3,1 4,1 0,2 1,2 2,2 3,2 4,2 2,3",
+     "0,0 0,1 1,1 2,1 3,1 4,1 0,2 1,2 2,2 3,2 4,2 3,3",
+     "0,0 0,1 1,1 2,1 3,1 4,1 0,2 1,2 2,2 3,2 4,2 4,3",
+     "0,0 0,1 1,1 2,1 3,1 4,1 1,2 2,2 3,2 1,3 2,3 3,3",
+     "0,0 0,1 1,1 2,1 3,1 4,1 1,2 2,2 3,2 4,2 1,3 2,3",
+     "0,0 0,1 1,1 2,1 3,1 4,1 1,2 2,2 3,2 4,2 2,3 3,3",
+     "0,0 0,1 1,1 2,1 3,1 4,1 1,2 2,2 3,2 4,2 3,3 4,3",
+     "0,0 0,1 1,1 2,1 3,1 4,1 2,2 3,2 4,2 2,3 3,3 4,3",
+     "0,0 1,0 0,1 1,1 0,2 1,2 0,3 1,3 2,3 3,3 0,4 1,4",
+     "0,0 1,0 0,1 1,1 0,2 1,2 0,3 1,3 2,3 3,3 1,4 2,4",
+     "0,0 1,0 0,1 1,1 0,2 1,2 0,3 1,3 2,3 3,3 2,4 3,4",
+     "0,0 1,0 0,1 1,1 0,2 1,2 1,3 2,3 3,3 1,4 2,4 3,4",
+     "0,0 1,0 0,1 1,1 0,2 1,2 2,2 0,3 1,3 2,3 3,3 1,4",
+     "0,0 1,0 0,1 1,1 0,2 1,2 2,2 0,3 1,3 2,3 3,3 2,4",
+     "0,0 1,0 0,1 1,1 0,2 1,2 2,2 1,3 2,3 3,3 1,4 2,4",
+     "0,0 1,0 0,1 1,1 0,2 1,2 2,2 1,3 2,3 3,3 2,4 3,4",
+     "0,0 1,0 0,1 1,1 0,2 1,2 2,2 3,2 0,3 1,3 0,4 1,4",
+     "0,0 1,0 0,1 1,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 1,4",
+     "0,0 1,0 0,1 1,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 2,4",
+     "0,0 1,0 0,1 1,1 0,2 1,2 2,2 3,2 1,3 2,3 1,4 2,4",
+     "0,0 1,0 0,1 1,1 0,2 1,2 2,2 3,2 1,3 2,3 3,3 1,4",
+     "0,0 1,0 0,1 1,1 0,2 1,2 2,2 3,2 1,3 2,3 3,3 2,4",
+     "0,0 1,0 0,1 1,1 0,2 1,2 2,2 3,2 2,3 3,3 2,4 3,4",
+     "0,0 1,0 0,1 1,1 0,2 1,2 2,2 3,2 4,2 0,3 1,3 2,3",
+     "0,0 1,0 0,1 1,1 0,2 1,2 2,2 3,2 4,2 1,3 2,3 3,3",
+     "0,0 1,0 0,1 1,1 1,2 2,2 1,3 2,3 3,3 1,4 2,4 3,4",
+     "0,0 1,0 0,1 1,1 1,2 2,2 3,2 1,3 2,3 3,3 1,4 2,4",
+     "0,0 1,0 0,1 1,1 1,2 2,2 3,2 1,3 2,3 3,3 2,4 3,4",
+     "0,0 1,0 0,1 1,1 2,1 0,2 1,2 2,2 1,3 2,3 3,3 1,4",
+     "0,0 1,0 0,1 1,1 2,1 0,2 1,2 2,2 1,3 2,3 3,3 2,4",
+     "0,0 1,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 0,3 1,3 1,4",
+     "0,0 1,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 1,3 2,3 1,4",
+     "0,0 1,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 1,3 2,3 2,4",
+     "0,0 1,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 2,3 3,3 2,4",
+     "0,0 1,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 4,2 0,3 1,3",
+     "0,0 1,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 4,2 1,3 2,3",
+     "0,0 1,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 4,2 2,3 3,3",
+     "0,0 1,0 0,1 1,1 2,1 1,2 2,2 1,3 2,3 3,3 1,4 2,4",
+     "0,0 1,0 0,1 1,1 2,1 1,2 2,2 1,3 2,3 3,3 2,4 3,4",
+     "0,0 1,0 0,1 1,1 2,1 1,2 2,2 3,2 1,3 2,3 1,4 2,4",
+     "0,0 1,0 0,1 1,1 2,1 1,2 2,2 3,2 1,3 2,3 3,3 1,4",
+     "0,0 1,0 0,1 1,1 2,1 1,2 2,2 3,2 1,3 2,3 3,3 2,4",
+     "0,0 1,0 0,1 1,1 2,1 1,2 2,2 3,2 4,2 1,3 2,3 3,3",
+     "0,0 1,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 0,3 1,3 1,4",
+     "0,0 1,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 1,3 2,3 1,4",
+     "0,0 1,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 1,3 2,3 2,4",
+     "0,0 1,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 3,2 1,3 1,4",
+     "0,0 1,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 3,2 2,3 2,4",
+     "0,0 1,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 3,2 4,2 1,3",
+     "0,0 1,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 3,2 4,2 2,3",
+     "0,0 1,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 3,2 4,2 3,3",
+     "0,0 1,0 0,1 1,1 2,1 3,1 1,2 2,2 1,3 2,3 1,4 2,4",
+     "0,0 1,0 0,1 1,1 2,1 3,1 1,2 2,2 3,2 1,3 2,3 1,4",
+     "0,0 1,0 0,1 1,1 2,1 3,1 1,2 2,2 3,2 1,3 2,3 2,4",
+     "0,0 1,0 0,1 1,1 2,1 3,1 4,1 0,2 1,2 2,2 1,3 2,3",
+     "0,0 1,0 0,1 1,1 2,1 3,1 4,1 0,2 1,2 2,2 3,2 1,3",
+     "0,0 1,0 0,1 1,1 2,1 3,1 4,1 0,2 1,2 2,2 3,2 2,3",
+     "0,0 1,0 0,1 1,1 2,1 3,1 4,1 0,2 1,2 2,2 3,2 3,3",
+     "0,0 1,0 2,0 0,1 1,1 2,1 0,2 1,2 2,2 2,3 3,3 2,4",
+     "0,0 1,0 2,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 1,3 1,4",
+     "0,0 1,0 2,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 2,3 2,4",
+     "0,0 1,0 2,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 4,2 1,3",
+     "0,0 1,0 2,0 0,1 1,1 2,1 3,1 0,2 1,2 0,3 1,3 1,4",
+     "0,0 1,0 2,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 1,3 1,4",
+     "1,0 0,1 1,1 0,2 1,2 2,2 0,3 1,3 2,3 3,3 1,4 2,4",
+     "1,0 0,1 1,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 1,4 2,4",
+     "1,0 0,1 1,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 3,3 1,4",
+     "1,0 0,1 1,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 3,3 2,4",
+     "1,0 0,1 1,1 0,2 1,2 2,2 3,2 1,3 2,3 3,3 1,4 2,4",
+     "1,0 0,1 1,1 2,1 0,2 1,2 2,2 0,3 1,3 2,3 3,3 1,4",
+     "1,0 0,1 1,1 2,1 0,2 1,2 2,2 0,3 1,3 2,3 3,3 2,4",
+     "1,0 0,1 1,1 2,1 0,2 1,2 2,2 1,3 2,3 3,3 1,4 2,4",
+     "1,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 1,4",
+     "1,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 2,4",
+     "1,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 1,3 2,3 1,4 2,4",
+     "1,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 1,3 2,3 3,3 1,4",
+     "1,0 0,1 1,1 2,1 0,2 1,2 2,2 3,2 1,3 2,3 3,3 2,4",
+     "1,0 0,1 1,1 2,1 1,2 2,2 3,2 1,3 2,3 3,3 1,4 2,4",
+     "1,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 0,3 1,3 2,3 2,4",
+     "1,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 1,3 2,3 1,4 2,4",
+     "1,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 3,2 1,3 2,3 1,4",
+     "1,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 3,2 1,3 2,3 2,4",
+     "1,0 0,1 1,1 2,1 3,1 0,2 1,2 2,2 3,2 4,2 1,3 2,3",
+     "1,0 0,1 1,1 2,1 3,1 1,2 2,2 3,2 1,3 2,3 1,4 2,4",
+     "1,0 0,1 1,1 2,1 3,1 1,2 2,2 3,2 1,3 2,3 3,3 1,4",
+     "1,0 0,1 1,1 2,1 3,1 4,1 0,2 1,2 2,2 3,2 1,3 2,3",
+     "1,0 0,1 1,1 2,1 3,1 4,1 0,2 1,2 2,2 3,2 2,3 3,3",
+     "1,0 0,1 1,1 2,1 3,1 4,1 0,2 1,2 2,2 3,2 4,2 1,3",
+     "1,0 0,1 1,1 2,1 3,1 4,1 0,2 1,2 2,2 3,2 4,2 2,3",
+     "1,0 0,1 1,1 2,1 3,1 4,1 0,2 1,2 2,2 3,2 4,2 3,3",
+     "1,0 1,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 3,3 1,4 2,4",
+     "1,0 1,1 2,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 1,4 2,4",
+     "1,0 1,1 2,1 0,2 1,2 2,2 3,2 1,3 2,3 3,3 1,4 2,4",
+     "1,0 1,1 2,1 3,1 0,2 1,2 2,2 0,3 1,3 2,3 1,4 2,4",
+     "1,0 1,1 2,1 3,1 0,2 1,2 2,2 3,2 0,3 1,3 2,3 2,4",
+     "1,0 1,1 2,1 3,1 0,2 1,2 2,2 3,2 1,3 2,3 1,4 2,4",
+     "1,0 1,1 2,1 3,1 0,2 1,2 2,2 3,2 1,3 2,3 3,3 1,4",
+     "1,0 2,0 1,1 2,1 0,2 1,2 2,2 3,2 1,3 2,3 1,4 2,4"
+    ]
+   },
+   "objective": "Plant all 12 tiles with the shortest fence, reaching every row and every column.",
+   "visibleObjective": "Plant all 12 tiles with the shortest fence, reaching every row and every column.",
+   "instruction": "Plant all 12 tiles with the shortest fence, reaching every row and every column.",
+   "controls": "Tap a square to plant a tile, and tap a tile to lift it. Drag across empty squares to plant a row; drag a tile to carry it to another square. Press Shortest when you think no garden of these tiles has a shorter fence.",
+   "rules": [
+    "Tiles that share a whole side are joined. Touching at a corner is not enough.",
+    "A garden is all its tiles, joined in one piece.",
+    "The fence runs along every tile side with no tile beside it, round ponds and holes too.",
+    "The garden must reach every row and every column of the plot.",
+    "Solved when you press Shortest on the shortest fence a garden reaching every row and every column can have. If a shorter one exists, you’re told."
+   ],
+   "idea": "A garden that reaches every row and every column has at least two fence sides on each of them.",
+   "prerequisites": "Count to 20. Adding 4 and 5 for the reason why.",
+   "hints": [
+    "Count the fence sides along one row. Can a row with tiles have fewer than two?",
+    "A gap inside a row or a column adds two more sides.",
+    "Keep every row and every column in one unbroken run."
+   ],
+   "parent": {
+    "notice": "The shortest fence is 18, and many gardens reach it: exactly those with no gap inside any row or column.",
+    "prompt": "Why can’t the fence be 16?",
+    "explanation": "Each row with tiles has a fence side at its left end and one at its right end, and each column has one at its top and one at its bottom, so a garden that reaches 4 rows and 5 columns has a fence of at least 2 × (4 + 5) = 18. A gap inside a row or a column adds two more sides, so the fence is exactly 18 when there is none.",
+    "extension": "How few tiles can reach every row and every column of this plot? (8, in a staircase, also with a fence of 18.)",
+    "connection": "The same count bounds every garden’s fence from below, which is how the shortest fence for n tiles, 2⌈2√n⌉, is proved (Harary and Harborth, 1976).",
+    "sourceIds": [
+     "fences-week26",
+     "fences-harary-harborth"
+    ]
+   },
+   "provenance": "Week 26 grades 4–5 Problem 3 (twelve tiles reaching 4 rows and 5 columns: the least boundary).",
+   "sourceDocument": "docs/fences/README.md"
+  },
+  {
+   "id": "fences-06",
+   "number": 6,
+   "title": "Fourteen pieces of fence",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "fences",
+   "familyTitle": "Garden fences",
+   "revision": 1,
+   "parameters": {
+    "mode": "most",
+    "cols": 6,
+    "rows": 6,
+    "fence": 14,
+    "best": 12,
+    "witnesses": [
+     "0,0 1,0 2,0 0,1 1,1 2,1 0,2 1,2 2,2 0,3 1,3 2,3"
+    ]
+   },
+   "objective": "Plant as many tiles as you can with a fence of 14 or less.",
+   "visibleObjective": "Plant as many tiles as you can with a fence of 14 or less.",
+   "instruction": "Plant as many tiles as you can with a fence of 14 or less.",
+   "controls": "Tap a square to plant a tile, and tap a tile to lift it. Drag across empty squares to plant a row; drag a tile to carry it to another square. Press Most when you think no more tiles fit inside the fence.",
+   "rules": [
+    "Tiles that share a whole side are joined. Touching at a corner is not enough.",
+    "A garden is all its tiles, joined in one piece.",
+    "The fence runs along every tile side with no tile beside it, round ponds and holes too.",
+    "The fence may be shorter than the number given, never longer.",
+    "Solved when you press Most with as many tiles as any garden inside that fence can hold. If more fit, you’re told."
+   ],
+   "idea": "For a fixed fence, the squarest rectangle holds the most.",
+   "prerequisites": "Count to 14. Multiplying small numbers helps.",
+   "hints": [
+    "Find a tile that fits in a nook between two others: the fence stays the same.",
+    "Fill every nook. What shape is left?",
+    "A block of three rows of four."
+   ],
+   "parent": {
+    "notice": "Twelve tiles fit, in a 3-by-4 block, and no garden with a fence of 14 holds more.",
+    "prompt": "Why can’t thirteen tiles fit?",
+    "explanation": "A garden over r rows and c columns has a fence of at least 2(r + c), so a fence of 14 means r + c ≤ 7, and rc is largest when r and c are as close as they can be: 3 × 4 = 12. A tile in a nook touches two tiles and leaves the fence as it is, which is how a garden grows for free until it is a rectangle.",
+    "extension": "How many tiles fit inside a fence of 16? Of 18? (16 and 20.)",
+    "connection": "The discrete isoperimetric problem: among shapes with a given boundary, the squarest holds the most.",
+    "sourceIds": [
+     "fences-week26",
+     "fences-harary-harborth"
+    ]
+   },
+   "provenance": "Week 26 grades 4–5 Problem 4 (the greatest number of tiles for boundaries of 12, 14, 16 and 18).",
+   "sourceDocument": "docs/fences/README.md"
+  },
+  {
+   "id": "fences-07",
+   "number": 7,
+   "title": "Six with a fence of twelve",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "fences",
+   "familyTitle": "Garden fences",
+   "revision": 1,
+   "parameters": {
+    "mode": "every",
+    "cols": 5,
+    "rows": 5,
+    "tiles": 6,
+    "fence": 12,
+    "answers": [
+     "0,0 0,1 0,2 1,2 0,3 1,3",
+     "0,0 0,1 1,1 0,2 1,2 0,3",
+     "0,0 0,1 1,1 0,2 1,2 1,3",
+     "0,0 0,1 1,1 0,2 1,2 2,2",
+     "0,0 0,1 1,1 2,1 0,2 1,2",
+     "0,0 0,1 1,1 2,1 1,2 2,2",
+     "0,0 1,0 0,1 1,1 2,1 1,2"
+    ]
+   },
+   "objective": "Find every garden of 6 tiles with a fence of 12.",
+   "visibleObjective": "Find every garden of 6 tiles with a fence of 12.",
+   "instruction": "Find every garden of 6 tiles with a fence of 12.",
+   "controls": "Tap a square to plant a tile, and tap a tile to lift it. Drag across empty squares to plant a row; drag a tile to carry it to another square. Clear lifts every tile. Press That’s all when you have every garden.",
+   "rules": [
+    "Tiles that share a whole side are joined. Touching at a corner is not enough.",
+    "A garden is all its tiles, joined in one piece.",
+    "The fence runs along every tile side with no tile beside it, round ponds and holes too.",
+    "A garden turned or flipped is the same garden. Each new one joins the row below the plot.",
+    "Solved when you press That’s all with every garden found."
+   ],
+   "idea": "A fence of 12 means exactly one loop, so each garden has one 2-by-2 square.",
+   "prerequisites": "Count to 14. Remembering which gardens are already in the row helps.",
+   "hints": [
+    "Start with a 2-by-2 square and add two tiles.",
+    "Two tiles that make a second 2-by-2 square shorten the fence too much.",
+    "Put both tiles on one side of the square, or one on each of two sides."
+   ],
+   "parent": {
+    "notice": "There are seven, and each contains exactly one 2-by-2 square.",
+    "prompt": "Why does every one of them have a 2-by-2 square?",
+    "explanation": "Six tiles bring 24 sides, so a fence of 12 needs six shared sides: one more than a garden without loops. Six tiles can close only one loop, and on a square grid the smallest loop is a 2-by-2 square (a ring round a hole needs eight). So each garden is a 2-by-2 square with two tiles added, without making a 2-by-3 block.",
+    "extension": "How many six-tile gardens have a fence of 10? (One, the 2-by-3 block.)",
+    "connection": "Of the 35 hexominoes, 27 have the longest fence (14), seven have 12 and one has 10.",
+    "sourceIds": [
+     "fences-week26",
+     "fences-oeis"
+    ]
+   },
+   "provenance": "Week 26 grades 2–3 Problem 1 (find a different shape reaching each length).",
+   "sourceDocument": "docs/fences/README.md"
+  },
+  {
+   "id": "fences-08",
+   "number": 8,
+   "title": "Round the pond",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "fences",
+   "familyTitle": "Garden fences",
+   "revision": 1,
+   "parameters": {
+    "mode": "longest",
+    "cols": 5,
+    "rows": 5,
+    "tiles": 8,
+    "ponds": [
+     [
+      2,
+      2
+     ]
+    ],
+    "best": 18,
+    "witnesses": [
+     "0,0 0,1 1,1 0,2 2,2 0,3 1,3 2,3",
+     "0,0 0,1 1,1 2,1 0,2 2,2 0,3 1,3",
+     "0,0 0,1 1,1 2,1 0,2 2,2 1,3 2,3",
+     "0,0 1,0 0,1 2,1 0,2 1,2 2,2 1,3",
+     "0,0 1,0 0,1 2,1 3,1 0,2 1,2 2,2"
+    ]
+   },
+   "objective": "Plant all 8 tiles round the pond with the longest fence.",
+   "visibleObjective": "Plant all 8 tiles round the pond with the longest fence.",
+   "instruction": "Plant all 8 tiles round the pond with the longest fence.",
+   "controls": "Tap a square to plant a tile, and tap a tile to lift it. Drag across empty squares to plant a row; drag a tile to carry it to another square. Press Longest when you think no garden of these tiles has a longer fence.",
+   "rules": [
+    "Tiles that share a whole side are joined. Touching at a corner is not enough.",
+    "A garden is all its tiles, joined in one piece.",
+    "The fence runs along every tile side with no tile beside it, round ponds and holes too.",
+    "The pond must end up inside the garden, with fence all round it.",
+    "Solved when you press Longest on a garden with the longest fence its tiles can have on this plot. If a longer one exists, you’re told."
+   ],
+   "idea": "A garden can close round a hole without closing a loop of tiles.",
+   "prerequisites": "Count to 18.",
+   "hints": [
+    "A ring of all eight round the pond has a fence of 16.",
+    "Can tiles shut the pond in by touching only at a corner?",
+    "Leave one corner of the ring open and use that tile outside."
+   ],
+   "parent": {
+    "notice": "The longest fence is 18, and the full ring has only 16.",
+    "prompt": "Doesn’t a garden with a pond inside need a loop of tiles?",
+    "explanation": "Eight tiles have a fence of at most 2 × 8 + 2 = 18, reached when no tiles close a loop. The four tiles beside the pond must all be planted. Joined through three of the four corner squares, they close no loop, and the pond stays shut in because across the empty corner two tiles touch at a point. The eighth tile goes outside, touching one tile.",
+    "extension": "Seven tiles round the pond: how long is the fence? (16: there is only one way, a C with its open corner sealed.)",
+    "connection": "The fence is 2n + 2 exactly when the tiles form a tree, holes or not.",
+    "sourceIds": [
+     "fences-week26"
+    ]
+   },
+   "provenance": "Week 26 grades 4–5 Problem 2 (can a longest-boundary twelve-tile shape have a hole?) and the guide’s note that a corner contact can seal a hole.",
+   "sourceDocument": "docs/fences/README.md"
+  },
+  {
+   "id": "fences-09",
+   "number": 9,
+   "title": "Seven with a fence of twelve",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "fences",
+   "familyTitle": "Garden fences",
+   "revision": 1,
+   "parameters": {
+    "mode": "every",
+    "cols": 5,
+    "rows": 5,
+    "tiles": 7,
+    "fence": 12,
+    "answers": [
+     "0,0 0,1 1,1 0,2 1,2 0,3 1,3",
+     "0,0 0,1 1,1 2,1 0,2 1,2 2,2",
+     "0,0 1,0 0,1 1,1 2,1 0,2 1,2",
+     "0,0 1,0 0,1 1,1 2,1 1,2 2,2"
+    ]
+   },
+   "objective": "Find every garden of 7 tiles with a fence of 12.",
+   "visibleObjective": "Find every garden of 7 tiles with a fence of 12.",
+   "instruction": "Find every garden of 7 tiles with a fence of 12.",
+   "controls": "Tap a square to plant a tile, and tap a tile to lift it. Drag across empty squares to plant a row; drag a tile to carry it to another square. Clear lifts every tile. Press That’s all when you have every garden.",
+   "rules": [
+    "Tiles that share a whole side are joined. Touching at a corner is not enough.",
+    "A garden is all its tiles, joined in one piece.",
+    "The fence runs along every tile side with no tile beside it, round ponds and holes too.",
+    "A garden turned or flipped is the same garden. Each new one joins the row below the plot.",
+    "Solved when you press That’s all with every garden found."
+   ],
+   "idea": "The shortest gardens fill their rows and columns with no gaps.",
+   "prerequisites": "Count to 16. Remembering which gardens are already in the row helps.",
+   "hints": [
+    "Seven tiles fit in 2 rows of 4, or in 3 rows of 3.",
+    "Take tiles away only from the corners of the block.",
+    "In 3 rows of 3, take two tiles from the corners or one corner and its neighbour."
+   ],
+   "parent": {
+    "notice": "There are four: a 2-by-4 block with a corner missing, and three ways to take two tiles off a 3-by-3 square.",
+    "prompt": "Why doesn’t taking a tile from the middle of a side work?",
+    "explanation": "The fence is at least 2(r + c), so a fence of 12 needs r + c = 6: two rows of four or three of three. It equals 2(r + c) only when every row and every column is one unbroken run. Removing a tile from the middle of a side breaks a run (the fence gets two sides longer), so tiles come off corners: one from a 2-by-4, two from a 3-by-3 (two corners on one side, opposite corners, or a corner and the tile beside it).",
+    "extension": "Eight tiles with a fence of 12: how many gardens? (Two, the 2-by-4 block and the 3-by-3 square with a corner missing.)",
+    "connection": "Gardens whose rows and columns are unbroken runs are called orthogonally convex; their fence is exactly twice the rows plus the columns.",
+    "sourceIds": [
+     "fences-week26",
+     "fences-harary-harborth"
+    ]
+   },
+   "provenance": "Week 26 grades 4–5 Problem 1 (find two different shapes reaching the shortest boundary for 7 tiles) and Problem 3 (rows and columns).",
+   "sourceDocument": "docs/fences/README.md"
+  },
+  {
+   "id": "fences-10",
+   "number": 10,
+   "title": "Two moves",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "fences",
+   "familyTitle": "Garden fences",
+   "revision": 1,
+   "parameters": {
+    "mode": "fewest",
+    "cols": 5,
+    "rows": 5,
+    "tiles": 12,
+    "moves": 2,
+    "start": [
+     [
+      0,
+      1
+     ],
+     [
+      1,
+      1
+     ],
+     [
+      0,
+      2
+     ],
+     [
+      1,
+      2
+     ],
+     [
+      3,
+      2
+     ],
+     [
+      0,
+      3
+     ],
+     [
+      1,
+      3
+     ],
+     [
+      3,
+      3
+     ],
+     [
+      0,
+      4
+     ],
+     [
+      1,
+      4
+     ],
+     [
+      2,
+      4
+     ],
+     [
+      3,
+      4
+     ]
+    ],
+    "best": 14,
+    "goals": [
+     [
+      [
+       0,
+       2
+      ],
+      [
+       1,
+       2
+      ],
+      [
+       2,
+       2
+      ],
+      [
+       3,
+       2
+      ],
+      [
+       0,
+       3
+      ],
+      [
+       1,
+       3
+      ],
+      [
+       2,
+       3
+      ],
+      [
+       3,
+       3
+      ],
+      [
+       0,
+       4
+      ],
+      [
+       1,
+       4
+      ],
+      [
+       2,
+       4
+      ],
+      [
+       3,
+       4
+      ]
+     ]
+    ]
+   },
+   "objective": "Move two tiles to make the fence as short as you can.",
+   "visibleObjective": "Move two tiles to make the fence as short as you can.",
+   "instruction": "Move two tiles to make the fence as short as you can.",
+   "controls": "Drag a tile to carry it to another square, or tap a tile to lift it and tap an empty square to plant it. A tile carried back where it started gives its move back. Press Shortest when you think no two moves make a shorter fence.",
+   "rules": [
+    "Tiles that share a whole side are joined. Touching at a corner is not enough.",
+    "A garden is all its tiles, joined in one piece.",
+    "The fence runs along every tile side with no tile beside it, round ponds and holes too.",
+    "Move at most two tiles. A tile carried back where it started gives its move back.",
+    "Solved when you press Shortest on the shortest fence two moves can make. If a shorter one exists, you’re told."
+   ],
+   "idea": "The move that shortens the fence most is not always the start of the best two moves.",
+   "prerequisites": "Count to 20.",
+   "hints": [
+    "Which shape of twelve tiles has the shortest fence of all?",
+    "A 3-by-4 block has a fence of 14. Where could two moves make one?",
+    "Move the two tiles at the top into the gaps."
+   ],
+   "parent": {
+    "notice": "Two moves make a fence of 14: the two top tiles fill the gaps, giving a 3-by-4 block. The single move that shortens the fence most (a right-hand tile into a gap, fence 16) leaves no second move that reaches 14, and the best routes first leave the fence at 18 or make it 20.",
+    "prompt": "Which first move makes the fence shortest straight away? What can the second move do after it?",
+    "explanation": "Twelve tiles have a fence of at least 14, reached only by a 3-by-4 block, since a garden over r rows and c columns has a fence of at least 2(r + c) and holds at most rc tiles. The only block that two moves can make covers the bottom three rows and the first four columns: it is missing two squares, and the two top tiles are the only ones outside it.",
+    "extension": "With three moves, how short can the fence get? (Still 14: no garden of twelve tiles has less.)",
+    "connection": "Taking the best step each time is a greedy method; this garden shows how it can miss the best result two steps away.",
+    "sourceIds": [
+     "fences-week26"
+    ]
+   },
+   "provenance": "New for the app, extending Week 26 K–1 Problem 6 (one move to make the boundary shorter) to two moves.",
+   "sourceDocument": "docs/fences/README.md"
+  },
+  {
+   "id": "fences-11",
+   "number": 11,
+   "title": "Twelve in a square",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "fences",
+   "familyTitle": "Garden fences",
+   "revision": 1,
+   "parameters": {
+    "mode": "longest",
+    "cols": 4,
+    "rows": 4,
+    "tiles": 12,
+    "best": 26,
+    "witnesses": [
+     "0,0 1,0 2,0 0,1 2,1 3,1 0,2 1,2 3,2 0,3 2,3 3,3",
+     "0,0 1,0 2,0 3,0 0,1 2,1 0,2 2,2 3,2 0,3 1,3 3,3",
+     "0,0 1,0 2,0 3,0 0,1 2,1 0,2 3,2 0,3 1,3 2,3 3,3",
+     "0,0 1,0 2,0 3,0 0,1 2,1 1,2 2,2 3,2 0,3 1,3 3,3"
+    ]
+   },
+   "objective": "Plant all 12 tiles with the longest fence.",
+   "visibleObjective": "Plant all 12 tiles with the longest fence.",
+   "instruction": "Plant all 12 tiles with the longest fence.",
+   "controls": "Tap a square to plant a tile, and tap a tile to lift it. Drag across empty squares to plant a row; drag a tile to carry it to another square. Press Longest when you think no garden of these tiles has a longer fence.",
+   "rules": [
+    "Tiles that share a whole side are joined. Touching at a corner is not enough.",
+    "A garden is all its tiles, joined in one piece.",
+    "The fence runs along every tile side with no tile beside it, round ponds and holes too.",
+    "Solved when you press Longest on a garden with the longest fence its tiles can have on this plot. If a longer one exists, you’re told."
+   ],
+   "idea": "Four empty squares have to break every 2-by-2 square of the plot.",
+   "prerequisites": "Count to 26.",
+   "hints": [
+    "Every 2-by-2 square of tiles makes the fence shorter.",
+    "Each corner of the plot has its own 2-by-2 square, and they don’t overlap. Each needs an empty square.",
+    "Leave one empty square in each corner 2-by-2 block, then check every other 2-by-2 block has one too."
+   ],
+   "parent": {
+    "notice": "The longest fence is 26, as long as twelve tiles can ever have, and only four gardens reach it.",
+    "prompt": "How can twelve tiles on a 4-by-4 plot avoid every 2-by-2 square?",
+    "explanation": "A fence of 2 × 12 + 2 = 26 needs the tiles to close no loop, so no 2-by-2 square may be full. The four corner 2-by-2 squares don’t overlap, so each holds exactly one of the four empty squares; the empty squares must also break the five middle 2-by-2 squares and leave the garden in one piece.",
+    "extension": "Thirteen tiles leave only three empty squares. Puzzle 12 asks what happens.",
+    "connection": "The most squares of a grid that form a tree: the largest induced tree of the grid graph.",
+    "sourceIds": [
+     "fences-week26"
+    ]
+   },
+   "provenance": "Week 26 grades 4–5 Problem 2 (the longest boundary of a twelve-tile shape, none in a straight row; can it contain a 2-by-2 block?), on a 4-by-4 plot instead.",
+   "sourceDocument": "docs/fences/README.md"
+  },
+  {
+   "id": "fences-12",
+   "number": 12,
+   "title": "Thirteen in a square",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "fences",
+   "familyTitle": "Garden fences",
+   "revision": 1,
+   "parameters": {
+    "mode": "longest",
+    "cols": 4,
+    "rows": 4,
+    "tiles": 13,
+    "best": 26,
+    "witnesses": [
+     "0,0 1,0 2,0 3,0 0,1 1,1 3,1 0,2 2,2 0,3 1,3 2,3 3,3"
+    ]
+   },
+   "objective": "Plant all 13 tiles with the longest fence.",
+   "visibleObjective": "Plant all 13 tiles with the longest fence.",
+   "instruction": "Plant all 13 tiles with the longest fence.",
+   "controls": "Tap a square to plant a tile, and tap a tile to lift it. Drag across empty squares to plant a row; drag a tile to carry it to another square. Press Longest when you think no garden of these tiles has a longer fence.",
+   "rules": [
+    "Tiles that share a whole side are joined. Touching at a corner is not enough.",
+    "A garden is all its tiles, joined in one piece.",
+    "The fence runs along every tile side with no tile beside it, round ponds and holes too.",
+    "Solved when you press Longest on a garden with the longest fence its tiles can have on this plot. If a longer one exists, you’re told."
+   ],
+   "idea": "Three empty squares can’t break all four corner 2-by-2 squares, so a loop is forced.",
+   "prerequisites": "Count to 28. Puzzle 11 first.",
+   "hints": [
+    "Thirteen tiles leave three empty squares.",
+    "Each corner 2-by-2 square of the plot without an empty square closes a loop.",
+    "Start from a garden of Puzzle 11 and plant the thirteenth tile in a nook between two tiles."
+   ],
+   "parent": {
+    "notice": "The longest fence is 26, the same as for twelve tiles: the extra tile adds nothing.",
+    "prompt": "Why can’t thirteen tiles reach 2 × 13 + 2 = 28 here?",
+    "explanation": "Twenty-eight needs no loop at all, so every 2-by-2 square of the plot needs an empty square. The four corner 2-by-2 squares don’t overlap, and three empty squares can’t reach all four, so at least one loop closes and the fence is at most 26. A twelve-tile garden of Puzzle 11 with a tile added in a nook, touching two tiles, keeps its fence of 26.",
+    "extension": "What is the longest fence for fourteen tiles on this plot? (24.)",
+    "connection": "A pigeonhole argument: four disjoint corner squares, three empty squares.",
+    "sourceIds": [
+     "fences-week26"
+    ]
+   },
+   "provenance": "New for the app, extending Week 26 grades 4–5 Problem 2 (longest boundaries, 2-by-2 blocks and loops).",
+   "sourceDocument": "docs/fences/README.md"
+  }
+ ]
+}
