@@ -15,7 +15,7 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Wave 1: sorting networks (Week 23) | Claude, Sorting networks thread | `claude/wave1-sorting-networks-srwvtc` | done (PR #5); card says revise (printable kit for the worksheets) |
 | Wave 1: hidden pictures from row and column counts (Week 25) | Claude, Hidden pictures from counts thread | `claude/wave1-hidden-pictures-dc6h2k` | done (PR #7); card says revise for one guide sentence, port unaffected |
 | Wave 1: cheapest networks (Week 53) | Claude, Route packing and cheapest networks thread | `claude/wave1-networks-kqynkj` | done (PR #8); graphMini added to the shared board |
-| Wave 2: triangle-grid tiling (Week 1), on a triangle grid the encore and Week 16 can reuse | Claude, Week 1 triangle tiling thread | `claude/wave2-triangle-tiling-2dlym5` | claimed; card says keep |
+| Wave 2: triangle-grid tiling (Week 1), on a triangle grid the encore and Week 16 can reuse | Claude, Week 1 triangle tiling thread | `claude/wave2-triangle-tiling-2dlym5` | done (PR #12), Rhombus gardens; card says keep; shared grid `dist/tri-grid.js`, `docs/tri-grid.md` |
 | Wave 2: derangements with the cups (Week 63) | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | done (PR #11); card says revise (no K–1 route on paper), port follows its App fit |
 | Wave 2: shared case-listing engine for Weeks 24, 42, 43, 44, 45, 60 and 63 | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | done (PR #11); Week 63 uses it, [docs/cases.md](docs/cases.md) lists what the others need |
 | Wave 2: fair shuffles (Week 43), on the case engine and the cups | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | claimed; review card first |
