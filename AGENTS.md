@@ -44,6 +44,17 @@
 - Any agent may write code. Prefer Claude sessions for front-end work, especially the puzzle UI (board renderers, `dist/boards.css`) and the road's screens (`dist/road-ui.js`, `dist/road.css`). Any agent may write game logic, validators and other internals. Claude owns the story and progression, including the keepers' and Plume's lines. Keep board changes in that look: paper card, ink outlines, sun and leaf fills, pine for the chosen thing, ochre for attention, Georgia numerals.
 - Art arrives through art slots only: `docs/art/ROADMAP.md` is the brief, `dist/art-slots.js` the catalog, `dist/art/manifest.json` the switchboard and `scripts/check-art.mjs` the check. Art batches add files and manifest entries; a code change an art batch needs goes in its own commit. Art is bright and saturated, with dark stops mixed in (night marsh, Halloween hollow, stormy lighthouse, night fair).
 
+## Who does what
+
+| Who | Owns |
+|---|---|
+| Claude | Product owner of the app: story, progression and stars, and the brief for every art slot and voice line. The preferred author of front-end work, especially puzzle UI. |
+| Dot/Codex | Art, animation, video and voice: files under `dist/art/` and `artwork/`, manifest entries, prompts and provenance. |
+| Any agent | Game logic, validators, content packs and other internals; worksheet work; reviews of anything. |
+| James | Testing with children, and the final word on story, quality and releases. A deploy happens only when he asks. |
+
+- **Claim work on [WORKBOARD.md](WORKBOARD.md) first.** Change the item's line to your name, branch and state and push that change to `main` before starting. A rejected push means someone moved first: fetch, re-read the board and choose again. A claimed item's files belong to its owner until it merges. The plan is in `docs/plan/`.
+
 ## GitHub source and agent integration
 
 - The canonical source is `git@github.com:jamesrp/small-math-adventure.git`, integration branch `main`. Use the repository's actual branch name; the earlier conversation's “master” meant this integration role. `gh-pages` holds generated release files only.
