@@ -503,14 +503,15 @@
     {
       "id": "sorting-08",
       "number": 8,
-      "title": "Same lights, four lanes",
+      "title": "Past fixing",
       "band": "all",
       "difficulty_level": "medium",
       "mechanic": "sorting",
       "familyTitle": "Sorting machines",
       "revision": 1,
       "parameters": {
-        "mode": "lights",
+        "mode": "break",
+        "target": "unfixable",
         "lanes": 4,
         "cards": "numbers",
         "machine": [
@@ -524,11 +525,11 @@
           ],
           [
             1,
-            3
+            4
           ],
           [
             2,
-            4
+            3
           ]
         ],
         "start": [
@@ -538,34 +539,33 @@
           4
         ]
       },
-      "objective": "Find two starts that light the same bars.",
-      "instruction": "Find two starts that light the same bars.",
-      "controls": "Tap two cards on the left to swap them, or drag one onto another. Run sends them through the machine; a bar lights when its cards swap, and each start you run is kept below with its lights.",
+      "objective": "Find a start that one more bar can’t fix.",
+      "instruction": "Find a start that one more bar can’t fix.",
+      "controls": "Tap two cards on the left to swap them, or drag one onto another. Run sends them through the machine.",
       "rules": [
         "Cards ride from left to right along their lanes.",
         "At a bar, the two cards it joins compare: the smaller goes to the upper lane, the larger to the lower one.",
         "A machine sorts a start when the cards finish smallest at the top and largest at the bottom.",
         "The bars stay where they are for every start."
       ],
-      "idea": "Four bars light up in at most 16 ways, fewer than the 24 starts, so no four-bar machine sorts four cards.",
-      "prerequisites": "Compare numbers up to 4. Match a pattern of lit bars.",
+      "idea": "One bar swaps one pair, so a finish with two separate pairs out of order shows that no single extra bar repairs this machine.",
+      "prerequisites": "Compare numbers up to 4. See which cards in a finish are out of order.",
       "hints": [
-        "Run 1, 2, 3, 4, then swap the middle two and run again.",
-        "Swap the two middle cards of 1, 2, 3, 4 and compare the lights.",
-        "Try 1, 2, 3, 4 and 1, 3, 2, 4."
+        "Press Run on a few starts and look at the red cards in each finish.",
+        "One bar can swap only one pair. Look for a finish with two pairs out of order.",
+        "Try 2, 4, 1, 3."
       ],
       "parent": {
-        "notice": "The two starts that share lights finish in different orders.",
-        "prompt": "Could some other four-bar machine give all 24 starts different lights?",
-        "explanation": "Each of four bars swaps or not, so there are at most 16 patterns for 24 starts. Starts that share a pattern are moved alike and finish in different orders, so at most one of them is sorted. This holds for every four-bar machine, which is why four lanes need five bars.",
-        "extension": "With five bars there are 32 patterns. Build a five-bar sorter and check that its 24 starts all light differently.",
-        "connection": "Five comparators are optimal for four inputs: 2^4 < 4! ≤ 2^5 (Knuth, §5.3.4).",
+        "notice": "Every start that can’t be fixed finishes 2, 1, 4, 3: the top pair and the bottom pair are both reversed.",
+        "prompt": "Why does this one start prove that no extra bar repairs the machine?",
+        "explanation": "A bar compares two lanes and swaps at most those two cards. A finish of 2, 1, 4, 3 needs the top pair and the bottom pair swapped, two separate swaps, so whichever bar is added, this start still comes out wrong. Eight of the 24 starts finish that way, so the machine cannot be repaired with one bar. The same four bars in another order can be: with the long bar and the middle bar first and the top and bottom pairs after, one more bar on the middle lanes sorts every start.",
+        "extension": "Put the same four bars in a different order so that one more bar sorts every start.",
+        "connection": "A certificate for a \"can’t\": one start that defeats every possible last bar (Week 23 guide, grades 2–3 Problem 3).",
         "sourceIds": [
-          "sorting-week23",
-          "sorting-knuth"
+          "sorting-week23"
         ]
       },
-      "provenance": "Week 23 grades 4–5 Problems 6 and 7 (swap records and the four-lane minimum).",
+      "provenance": "Week 23 grades 2–3 Problem 3, the bottom machine (12, 34, 14, 23), which no single bar repairs; 2413 finishes 2143.",
       "sourceDocument": "docs/sorting/README.md"
     },
     {
@@ -639,7 +639,7 @@
           "sorting-liverpool"
         ]
       },
-      "provenance": "Week 23 grades 2–3 Problems 4 and 5 and grades 4–5 Problems 4 and 5 (0–1 starts as a complete test).",
+      "provenance": "Week 23 grades 4–5 Problem 5 (a sorter’s five bars in another order) and grades 2–3 Problems 4 and 5 (0–1 starts as a complete test). The machine is new: it fails on one 0–1 start, where the worksheet’s fails on two.",
       "sourceDocument": "docs/sorting/README.md"
     },
     {
@@ -825,8 +825,8 @@
       "parent": {
         "notice": "Each sorter finds the smallest and largest with four bars and fixes the middle with the fifth.",
         "prompt": "How do the lights show that four bars can never be enough?",
-        "explanation": "Four bars light up in at most 16 ways and there are 24 starts, so two starts would be moved alike and finish in different orders. Five bars give 32 patterns, and the machines that sort sort two pairs, compare the two winners and the two losers, and then compare the middle two.",
-        "extension": "Five lanes need nine bars. Try it in the playground.",
+        "explanation": "Four bars light up in at most 16 ways and there are 24 starts, so on any four-bar machine two starts light the same bars, are moved alike, and finish in different orders: one of them is wrong. Five bars give 32 patterns, and the machines that sort sort two pairs, compare the two winners and the two losers, and then compare the middle two.",
+        "extension": "Run 1, 2, 3, 4 and 1, 3, 2, 4 through a four-bar machine such as 12, 34, 13, 24. Do they light the same bars? Five lanes need nine bars; try it in the playground.",
         "connection": "The fewest comparators that sort n inputs are known only for small n: nine for five, and 25 for nine, proved by computer search (Codish et al., 2014).",
         "sourceIds": [
           "sorting-week23",

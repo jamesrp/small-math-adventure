@@ -5,7 +5,7 @@
 // in scripts/validate-sorting.mjs.
 // Design notes and worksheet sources: docs/sorting/README.md.
 import {writeFile} from 'node:fs/promises';
-import {failures, sortsAll, key} from '../dist/families/sorting/sorting.js';
+import {failures, sortsAll, key, breakers} from '../dist/families/sorting/sorting.js';
 
 const WEEK23 = 'https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-23';
 export const sources = [
@@ -165,21 +165,22 @@ const authored = [
     expect: {sorters: 16}
   },
   {
-    number: 8, difficulty_level: 'medium', title: 'Same lights, four lanes',
-    parameters: {mode: 'lights', lanes: 4, cards: 'numbers', machine: [[1, 2], [3, 4], [1, 3], [2, 4]], start: [1, 2, 3, 4]},
-    objective: 'Find two starts that light the same bars.',
-    idea: 'Four bars light up in at most 16 ways, fewer than the 24 starts, so no four-bar machine sorts four cards.',
-    prerequisites: 'Compare numbers up to 4. Match a pattern of lit bars.',
-    hints: ['Run 1, 2, 3, 4, then swap the middle two and run again.', 'Swap the two middle cards of 1, 2, 3, 4 and compare the lights.', 'Try 1, 2, 3, 4 and 1, 3, 2, 4.'],
+    number: 8, difficulty_level: 'medium', title: 'Past fixing',
+    parameters: {mode: 'break', target: 'unfixable', lanes: 4, cards: 'numbers', machine: [[1, 2], [3, 4], [1, 4], [2, 3]], start: [1, 2, 3, 4]},
+    objective: 'Find a start that one more bar can’t fix.',
+    idea: 'One bar swaps one pair, so a finish with two separate pairs out of order shows that no single extra bar repairs this machine.',
+    prerequisites: 'Compare numbers up to 4. See which cards in a finish are out of order.',
+    hints: ['Press Run on a few starts and look at the red cards in each finish.', 'One bar can swap only one pair. Look for a finish with two pairs out of order.', 'Try 2, 4, 1, 3.'],
     parent: {
-      notice: 'The two starts that share lights finish in different orders.',
-      prompt: 'Could some other four-bar machine give all 24 starts different lights?',
-      explanation: 'Each of four bars swaps or not, so there are at most 16 patterns for 24 starts. Starts that share a pattern are moved alike and finish in different orders, so at most one of them is sorted. This holds for every four-bar machine, which is why four lanes need five bars.',
-      extension: 'With five bars there are 32 patterns. Build a five-bar sorter and check that its 24 starts all light differently.',
-      connection: 'Five comparators are optimal for four inputs: 2^4 < 4! ≤ 2^5 (Knuth, §5.3.4).'
+      notice: 'Every start that can’t be fixed finishes 2, 1, 4, 3: the top pair and the bottom pair are both reversed.',
+      prompt: 'Why does this one start prove that no extra bar repairs the machine?',
+      explanation: 'A bar compares two lanes and swaps at most those two cards. A finish of 2, 1, 4, 3 needs the top pair and the bottom pair swapped, two separate swaps, so whichever bar is added, this start still comes out wrong. Eight of the 24 starts finish that way, so the machine cannot be repaired with one bar. The same four bars in another order can be: with the long bar and the middle bar first and the top and bottom pairs after, one more bar on the middle lanes sorts every start.',
+      extension: 'Put the same four bars in a different order so that one more bar sorts every start.',
+      connection: 'A certificate for a "can’t": one start that defeats every possible last bar (Week 23 guide, grades 2–3 Problem 3).'
     },
-    provenance: 'Week 23 grades 4–5 Problems 6 and 7 (swap records and the four-lane minimum).',
-    sourceIds: ['sorting-week23', 'sorting-knuth']
+    provenance: 'Week 23 grades 2–3 Problem 3, the bottom machine (12, 34, 14, 23), which no single bar repairs; 2413 finishes 2143.',
+    sourceIds: ['sorting-week23'],
+    expect: {repairs: [], unfixable: m(['2413', '2431', '3412', '3421', '4213', '4231', '4312', '4321'])}
   },
   {
     number: 9, difficulty_level: 'hard', title: 'Short and tall',
@@ -195,7 +196,7 @@ const authored = [
       extension: 'Move the middle bar to the end. Does the machine now sort every short-and-tall start?',
       connection: 'The 0–1 principle: a network sorts every input if and only if it sorts every input of 0s and 1s (Knuth, §5.3.4, Theorem Z).'
     },
-    provenance: 'Week 23 grades 2–3 Problems 4 and 5 and grades 4–5 Problems 4 and 5 (0–1 starts as a complete test).',
+    provenance: 'Week 23 grades 4–5 Problem 5 (a sorter’s five bars in another order) and grades 2–3 Problems 4 and 5 (0–1 starts as a complete test). The machine is new: it fails on one 0–1 start, where the worksheet’s fails on two.',
     sourceIds: ['sorting-week23', 'sorting-knuth', 'sorting-liverpool'],
     expect: {wrong: m(['1010'])}
   },
@@ -245,8 +246,8 @@ const authored = [
     parent: {
       notice: 'Each sorter finds the smallest and largest with four bars and fixes the middle with the fifth.',
       prompt: 'How do the lights show that four bars can never be enough?',
-      explanation: 'Four bars light up in at most 16 ways and there are 24 starts, so two starts would be moved alike and finish in different orders. Five bars give 32 patterns, and the machines that sort sort two pairs, compare the two winners and the two losers, and then compare the middle two.',
-      extension: 'Five lanes need nine bars. Try it in the playground.',
+      explanation: 'Four bars light up in at most 16 ways and there are 24 starts, so on any four-bar machine two starts light the same bars, are moved alike, and finish in different orders: one of them is wrong. Five bars give 32 patterns, and the machines that sort sort two pairs, compare the two winners and the two losers, and then compare the middle two.',
+      extension: 'Run 1, 2, 3, 4 and 1, 3, 2, 4 through a four-bar machine such as 12, 34, 13, 24. Do they light the same bars? Five lanes need nine bars; try it in the playground.',
       connection: 'The fewest comparators that sort n inputs are known only for small n: nine for five, and 25 for nine, proved by computer search (Codish et al., 2014).'
     },
     provenance: 'Week 23 grades 4–5 Problems 2 and 7 (build a four-lane sorter with as few bars as you can; show fewer cannot work).',
@@ -282,6 +283,7 @@ const puzzles = [playground, ...authored].map(({expect, sourceIds, parent, ...p}
     const got = failures(q.machine.map(([a, b]) => [a - 1, b - 1]), q.lanes, q.cards);
     if (!same(got.map(key).sort(), expect.wrong.map(key).sort())) throw Error(`${p.number}: wrong starts are ${got.map(key)}`);
   }
+  if (expect?.unfixable && !same(breakers(q).map(key).sort(), expect.unfixable.map(key).sort())) throw Error(`${p.number}: unfixable starts are ${breakers(q).map(key)}`);
   if (expect?.repairs) {
     const fixed = q.machine.map(([a, b]) => [a - 1, b - 1]), found = [];
     for (let i = 0; i < q.lanes; i++) for (let j = i + 1; j < q.lanes; j++) if (sortsAll([...fixed, [i, j]], q.lanes)) found.push([i + 1, j + 1]);

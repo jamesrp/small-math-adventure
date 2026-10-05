@@ -9,7 +9,7 @@ import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
 import {isExpansion, mechanicFor} from '../dist/expansion.js';
-import {failures, sortsAll} from '../dist/families/sorting/sorting.js';
+import {breakers, failures, sortsAll} from '../dist/families/sorting/sorting.js';
 import {loadPack} from './packs.mjs';
 
 // An independent simulator. A machine is a list of {top, bottom} lanes
@@ -42,6 +42,8 @@ const fromPack = machine => machine.map(([top, bottom]) => ({top, bottom}));
 const fromBoard = bars => bars.map(bar => bar && {top: bar[0] + 1, bottom: bar[1] + 1});
 const wrongStarts = (machine, n, cards) => inputs(n, cards).filter(s => !simulate(machine, s).sorted).map(s => s.join('')).sort();
 const sorts = (machine, n) => heap(n).every(s => simulate(machine, s).sorted);
+// A finish that no one extra bar puts in order.
+const pastFixing = finish => !allMachines(finish.length, 1).some(([bar]) => simulate([bar], finish).sorted);
 function allMachines(n, k, adjacent = false, withEmpty = false) {
   const bars = [];
   for (let top = 1; top <= n; top++) for (let bottom = top + 1; bottom <= n; bottom++) if (!adjacent || bottom === top + 1) bars.push({top, bottom});
@@ -107,9 +109,15 @@ export async function validateSorting() {
     const q = p.parameters, n = q.lanes, machine = fromPack(q.machine);
     // The facts each puzzle relies on.
     if (q.mode === 'break' || q.mode === 'every') {
-      const wrong = wrongStarts(machine, n, q.cards);
-      assert.ok(wrong.length, `${p.id}: the machine gets some start wrong`);
+      let wrong = wrongStarts(machine, n, q.cards);
       assert.deepEqual(failures(q.machine.map(([a, b]) => [a - 1, b - 1]), n, q.cards).map(s => s.join('')).sort(), wrong, `${p.id}: wrong starts`);
+      if (q.target === 'unfixable') {
+        wrong = wrong.filter(k => pastFixing(simulate(machine, k.split('').map(Number)).finish));
+        // One such start proves no single extra bar repairs the machine.
+        assert.ok(!allMachines(n, 1).some(([bar]) => sorts([...machine, bar], n)), `${p.id}: no one bar repairs it`);
+      }
+      assert.ok(wrong.length, `${p.id}: the machine gets some start wrong`);
+      assert.deepEqual(breakers(q).map(s => s.join('')).sort(), wrong, `${p.id}: the starts that count`);
       assert.ok(simulate(machine, q.start).sorted, `${p.id}: the first Run comes out in order, so the search is the child's`);
       answers[p.id] = wrong;
     }
@@ -140,7 +148,7 @@ export async function validateSorting() {
     assert.ok(isSolved(p, a.board), `${p.id}: hints reach a solve`);
     // The solve is real, by the independent simulator.
     const b = a.board;
-    if (q.mode === 'break') assert.ok(!simulate(machine, b.start).sorted, `${p.id}: solved on a wrong finish`);
+    if (q.mode === 'break') assert.ok(answers[p.id].includes(b.start.join('')) && !simulate(machine, b.start).sorted, `${p.id}: solved on a start that counts`);
     if (q.mode === 'every') assert.ok(answers[p.id].every(k => b.tried.includes(k)), `${p.id}: solved with every wrong start`);
     if (q.mode === 'lights') {
       const lit = b.tried.map(k => simulate(machine, k.split('').map(Number)).lit);

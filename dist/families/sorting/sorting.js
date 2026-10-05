@@ -46,6 +46,18 @@ export function runMachine(bars, start) {
   return {finish: values, lit, frames, sorted: inOrder(values)};
 }
 export const failures = (bars, n, cards = 'numbers') => starts(n, cards).filter(s => !runMachine(bars, s).sorted);
+// A finish that no single extra bar puts in order: at least two separate swaps are needed.
+export function oneBarFixes(finish) {
+  if (inOrder(finish)) return true;
+  for (let i = 0; i < finish.length; i++) for (let j = i + 1; j < finish.length; j++) if (runMachine([[i, j]], finish).sorted) return true;
+  return false;
+}
+// The starts a break puzzle accepts: wrong finishes, or (target 'unfixable')
+// finishes that one more bar could not put right.
+export const breakers = q => {
+  const bars = machineOf(q), wrong = failures(bars, q.lanes, q.cards);
+  return q.target === 'unfixable' ? wrong.filter(s => !oneBarFixes(runMachine(bars, s).finish)) : wrong;
+};
 export const sortsAll = (bars, n) => !failures(bars, n, 'binary').length;
 const pattern = run => run.lit.map(Number).join('');
 
@@ -76,7 +88,7 @@ export function viewOf(p, b) {
     const seen = new Map();
     for (const t of tried) { const lit = pattern(t.run); if (seen.has(lit) && !pair) pair = [seen.get(lit), t.key]; else seen.set(lit, t.key); }
   }
-  return {q, run, all, wrong, tried, pair, grid: q.mode === 'build' && b.tested ? orders(q.lanes).map(s => ({key: key(s), sorted: runMachine(b.bars, s).sorted})) : null};
+  return {q, run, all, wrong, tried, pair, grid: q.mode === 'build' && b.tested && sortsAll(b.bars, q.lanes) ? orders(q.lanes).map(s => ({key: key(s), sorted: runMachine(b.bars, s).sorted})) : null};
 }
 
 function freshPuzzle(p) {
@@ -98,7 +110,7 @@ function validPuzzle(p, b) {
 function solvedPuzzle(p, b) {
   if (!validPuzzle(p, b)) return false;
   const q = p.parameters;
-  if (q.mode === 'break') return b.ran && !runMachine(b.bars, b.start).sorted;
+  if (q.mode === 'break') return b.ran && (q.target === 'unfixable' ? !oneBarFixes(runMachine(b.bars, b.start).finish) : !runMachine(b.bars, b.start).sorted);
   if (q.mode === 'every') return b.claimed;
   if (q.mode === 'lights') return Boolean(viewOf(p, b).pair);
   return b.tested && sortsAll(b.bars, q.lanes);
@@ -197,7 +209,7 @@ function hintPuzzle(p, b) {
     const target = nearest(pool, b.start);
     return arrange(q, b, target, b.ran ? {type: 'note'} : runIt);
   }
-  const target = nearest(failures(b.bars, q.lanes, q.cards), b.start);
+  const target = nearest(breakers(q), b.start);
   return arrange(q, b, target, runIt);
 }
 

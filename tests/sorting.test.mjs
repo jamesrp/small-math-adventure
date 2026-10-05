@@ -95,18 +95,18 @@ test('same lights: two starts that light the same bars solve it, and finish diff
   assert.notDeepEqual(v.tried[0].run.finish, v.tried[1].run.finish);
 });
 
-test('building: Test runs every start, shows a wrong one, and solves only a sorter', () => {
+test('building: Test shows one wrong start, and every start only for a sorter', () => {
   const p = byId('sorting-04');
   let a = play(p, freshAttempt(p), [bar(0, [0, 1]), bar(1, [1, 2]), {type: 'test'}]);
   assert.equal(isSolved(p, a.board), false);
   assert.ok(a.board.ran, 'the wrong start is shown running');
   assert.equal(runMachine(a.board.bars, a.board.start).sorted, false);
-  const html = view(p, a);
-  assert.equal((html.match(/<li class="(ok|bad)"/g) || []).length, 6, 'all six starts in the test');
+  assert.doesNotMatch(view(p, a), /class="sort-grid/, 'a failed test lists no other starts');
   a = play(p, a, [bar(2, [0, 1])]);
   assert.equal(a.board.tested, false, 'a changed machine needs a new test');
   a = play(p, a, [{type: 'test'}]);
   assert.ok(isSolved(p, a.board));
+  assert.equal((view(p, a).match(/<li class="ok"/g) || []).length, 6, 'all six starts, each in order');
   assert.equal(move(p, a, bar(2, null)), null, 'no changes after a solve');
 });
 
@@ -120,6 +120,18 @@ test('placing bars: given bars stay, a bar can be taken away, and neighbor-only 
   assert.equal(move(near, freshAttempt(near), bar(0, [0, 2])), null);
   assert.ok(move(near, freshAttempt(near), bar(0, [2, 1])), 'either order of the two ends');
   assert.doesNotMatch(view(near, freshAttempt(near)), /aria-disabled="true"[^>]*data-sort-peg/, 'no peg is disabled before one is chosen');
+});
+
+test('past fixing: only a finish with two separate pairs out of order counts', () => {
+  const p = byId('sorting-08');
+  let a = play(p, freshAttempt(p), [swap(1, 3), swap(2, 3), run]);
+  assert.deepEqual(a.board.start, [1, 4, 2, 3]);
+  assert.deepEqual(viewOf(p, a.board).run.finish, [1, 2, 4, 3]);
+  assert.equal(isSolved(p, a.board), false, 'a wrong finish that one bar would fix does not count');
+  a = play(p, freshAttempt(p), [swap(0, 1), swap(1, 3), swap(2, 3), run]);
+  assert.deepEqual(a.board.start, [2, 4, 1, 3]);
+  assert.deepEqual(viewOf(p, a.board).run.finish, [2, 1, 4, 3]);
+  assert.ok(isSolved(p, a.board));
 });
 
 test('short and tall cards flip; numbers swap', () => {
