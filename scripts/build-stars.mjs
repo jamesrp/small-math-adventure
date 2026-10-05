@@ -28,6 +28,7 @@ const RULES = family.rules;
 const CONTROLS = {
   draw: 'Tap a dot to start. Then tap the dot the hop lands on, counting clockwise. When the line comes back to its start, tap a dot with no line to start again. A wrong dot shakes. Again clears the drawing; Undo takes back one tap.',
   starts: 'Tap a dot to start, then tap another dot: that first line sets the hop. Keep tapping where the hop lands, counting clockwise. When the line comes back, tap a dot with no line to start again. Again clears the drawing and the hop; Undo takes back one tap.',
+  decide: 'Tap a dot to start, then tap another dot: that first line sets the hop. Keep tapping where the hop lands, counting clockwise. When the line comes back, tap a dot with no line to start again. Again clears the drawing and the hop. After one finished drawing, “No hop makes …” becomes available; a wrong claim is refused.',
   rings: 'Choose a ring. Tap a dot to start, then tap the dot the hop lands on, counting clockwise. When the line comes back, tap a dot with no line to start again. Again clears the drawing; Undo takes back one tap.',
   match: 'Choose a ring. Tap a dot to start, then tap another dot: that first line sets the hop. Keep tapping where the hop lands. When the line comes back, tap a dot with no line to start again. Again clears the drawing and the hop.',
   every: 'Tap every number that belongs, then Check. You get one check; after a miss, Next brings a new question.'
@@ -86,37 +87,37 @@ const authored = [
   },
   {
     number: 4, difficulty_level: 'medium', title: 'Three pieces on twelve',
-    parameters: {mode: 'starts', dots: 12, starts: 3},
-    objective: 'Choose a hop by drawing the first line, then keep hopping until every dot has a line. Finish with exactly 3 pieces.',
-    visibleObjective: 'Make 3 pieces.',
-    idea: 'Three pieces on 12 dots needs a hop that 3 goes into but 6 and 4 don’t: 3 or 9.',
+    parameters: {mode: 'starts', dots: 12, starts: 3, decide: true},
+    objective: 'Choose a hop by drawing the first line, then keep hopping until every dot has a line. Finish with exactly 3 pieces, or say that no hop can.',
+    visibleObjective: 'Make 3 pieces, or say that no hop can.',
+    idea: 'Three pieces on 12 dots needs pieces of 4 dots, and hop 3 (or 9) makes three squares.',
     prerequisites: 'Stars puzzles 1–3.',
-    hints: ['Each piece has the same number of dots. How many dots would each of 3 pieces have?', 'Each piece needs 4 dots: a square.', 'Hop 3 makes three squares.'],
+    hints: ['Every piece has the same number of dots. How many dots would each of 3 pieces have?', 'A piece with 4 dots is a square. Which hop draws one?', 'Hop 3 makes three squares.'],
     parent: {
       notice: 'Whether your child reasons from the size of a piece (12 ÷ 3 = 4 dots) rather than trying every hop.',
       prompt: 'If there are 3 pieces, how many dots does each one have?',
-      explanation: 'All pieces are turned copies of the first, so 3 pieces on 12 dots have 4 dots each. Hop 3 lands on 0, 3, 6, 9: a square. Hop 9 draws the same squares backward. Hop 6 makes 6 pieces, and hops 2 and 4 make 2 and 4.',
+      explanation: 'All pieces are turned copies of the first, so 3 pieces on 12 dots have 4 dots each. Hop 3 lands on 0, 3, 6, 9: a square. Hop 9 draws the same squares backward. Hop 6 makes 6 pieces, and hops 2 and 4 make 2 and 4. The “no hop can” button is there for puzzle 5; here it is refused.',
       extension: 'On 12 dots, which numbers of pieces are possible?',
       connection: 'The pieces are cosets of a subgroup, so they all have the same size, and that size divides 12 (Lagrange’s theorem in its smallest form).'
     },
-    provenance: 'Week 4 grades 2–3 Problem 3 and grades 4–5 Problem 1 (12 dots, hops 1 to 6), turned around.'
+    provenance: 'Week 4 grades 2–3 Problem 7 (a hop that makes exactly 3 starts, on rings of 9, 16, 18 and 15 dots), on a new ring of 12, with the option to say that no hop can.'
   },
   {
-    number: 5, difficulty_level: 'medium', title: 'Two pieces on ten',
-    parameters: {mode: 'starts', dots: 10, starts: 2},
-    objective: 'Choose a hop by drawing the first line, then keep hopping until every dot has a line. Finish with exactly 2 pieces.',
-    visibleObjective: 'Make 2 pieces.',
-    idea: 'Every even hop except 10 makes 2 pieces on 10 dots: two pentagons or two five-pointed stars.',
-    prerequisites: 'Stars puzzles 1–4.',
-    hints: ['How many dots does each of 2 pieces have?', 'Each piece has 5 dots. Try an even hop.', 'Hop 4 makes two five-pointed stars.'],
+    number: 5, difficulty_level: 'medium', title: 'Three pieces on sixteen',
+    parameters: {mode: 'starts', dots: 16, starts: 3, decide: true},
+    objective: 'Choose a hop by drawing the first line, then keep hopping until every dot has a line. Finish with exactly 3 pieces, or say that no hop can.',
+    visibleObjective: 'Make 3 pieces, or say that no hop can.',
+    idea: 'No hop makes 3 pieces on 16 dots: the pieces all have the same number of dots, and 16 dots do not split into 3 equal piles.',
+    prerequisites: 'Stars puzzle 4.',
+    hints: ['How many dots would each of 3 pieces have?', 'Every piece has the same number of dots. Can 16 dots make 3 equal piles?', 'They can’t, so no hop makes 3 pieces. Finish one drawing, then say so.'],
     parent: {
-      notice: 'Whether your child notices that hops 2 and 4 both work but draw different pictures.',
-      prompt: 'Do all the even hops draw the same picture?',
-      explanation: 'Hops 2, 4, 6 and 8 share the factor 2 with 10 and no bigger one, so each makes 2 pieces of 5 dots. Hops 2 and 8 draw two pentagons; hops 4 and 6 draw two stars {5/2}.',
-      extension: 'On 10 dots, which hop makes 5 pieces?',
-      connection: 'gcd(10, k) = 2 for k = 2, 4, 6, 8. Each piece is {5/(k/2)}.'
+      notice: 'Whether your child tries every hop or stops once they see that the pieces must be equal.',
+      prompt: 'How do you know that no hop works, without trying them all?',
+      explanation: 'Every piece is a turned copy of the first, so the pieces have equal numbers of dots and split 16 into equal piles. 16 does not split into 3 equal piles (16 = 5 + 5 + 6 at best), so no hop makes 3 pieces. The hops from 1 to 15 make 1, 2, 4 or 8 pieces.',
+      extension: 'On 16 dots, which numbers of pieces can a hop make?',
+      connection: 'The number of pieces is gcd(16, k), a divisor of 16; 3 is not one. The equal piles are the cosets of a subgroup, all the same size.'
     },
-    provenance: 'Week 4 grades 2–3 Problem 2 (10 dots, hops 2 to 5), turned around.'
+    provenance: 'Week 4 grades 2–3 Problem 7 (“can’t” for 16 dots and 3 starts); the certificate is the review card’s: 3 pieces on 16 dots would need 3 equal piles.'
   },
   {
     number: 6, difficulty_level: 'medium', title: 'Hop 6, three pieces',
@@ -242,14 +243,17 @@ const authored = [
 export function answers(item) {
   const q = item.parameters;
   if (q.mode === 'draw') return {pieces: pieces(q.dots, q.hop).length};
-  if (q.mode === 'starts') return {hops: range(1, q.dots - 1).filter(k => pieces(q.dots, k).length === q.starts)};
+  if (q.mode === 'starts') {
+    const hops = range(1, q.dots - 1).filter(k => pieces(q.dots, k).length === q.starts);
+    return q.decide ? {hops, possible: hops.length > 0} : {hops};
+  }
   if (q.mode === 'rings') return {rings: q.choices.filter(n => pieces(n, q.hop).length === q.starts)};
   if (q.mode === 'match') return {pieces: pieces(q.target.dots, q.target.hop).length, hops: range(1, q.target.dots - 1).filter(k => (k - q.target.hop) % q.target.dots === 0 || (k + q.target.hop) % q.target.dots === 0)};
   return {rounds: q.rounds.map((_, i) => roundAnswer(q, i))};
 }
 export const puzzles = authored.map(item => {
   const solution = answers(item);
-  for (const list of [solution.hops, solution.rings]) if (list && !list.length) throw new Error(`stars-${item.number}: no answer`);
+  for (const list of [solution.hops, solution.rings]) if (list && !list.length && !item.parameters.decide) throw new Error(`stars-${item.number}: no answer`);
   return {
     id: `stars-${String(item.number).padStart(2, '0')}`,
     number: item.number,
@@ -265,7 +269,7 @@ export const puzzles = authored.map(item => {
     objective: item.objective,
     visibleObjective: item.visibleObjective ?? item.objective,
     instruction: item.objective,
-    controls: CONTROLS[item.parameters.mode],
+    controls: CONTROLS[item.parameters.decide ? 'decide' : item.parameters.mode],
     rules: item.parameters.mode === 'every' ? [...RULES, 'You get one check per question. After a miss, the answer is shown and Next brings a different question.'] : RULES,
     idea: item.idea,
     prerequisites: item.prerequisites,

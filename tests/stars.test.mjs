@@ -81,8 +81,8 @@ test('match: the same picture drawn forward or backward', () => {
   assert.match(html, /aria-label="Ring of 12 dots"/);
 });
 
-test('hints alone finish every drawing puzzle', () => {
-  for (const p of pack.puzzles.filter(p => p.parameters.mode !== 'every')) {
+test('hints alone finish every drawing puzzle that is not a claim', () => {
+  for (const p of pack.puzzles.filter(p => p.parameters.mode !== 'every' && !p.parameters.decide)) {
     let a = freshAttempt(p);
     for (let i = 0; i < 100 && !isSolved(p, a.board); i++) {
       const h = nextHint(p, a);
@@ -91,6 +91,27 @@ test('hints alone finish every drawing puzzle', () => {
     }
     assert.ok(isSolved(p, a.board), p.id);
   }
+});
+
+test('claims: "no hop makes 3" is refused on 12 dots and accepted on 16, after one finished drawing', () => {
+  const yes = byId('stars-04'), no = byId('stars-05');
+  assert.equal(nextHint(no, freshAttempt(no)).type, 'note');
+  assert.equal(move(no, freshAttempt(no), {type: 'claim'}), null, 'draw one first');
+  // Hop 4 on 16 dots: four squares.
+  let a = taps(no, freshAttempt(no), [0, 4, 8, 12, 0, 1, 5, 9, 13, 1, 2, 6, 10, 14, 2, 3, 7, 11, 15, 3]);
+  assert.equal(a.board.tried, 1);
+  assert.ok(!isSolved(no, a.board));
+  a = move(no, a, {type: 'claim'});
+  assert.ok(isSolved(no, a.board));
+  assert.match(mechanicFor(no).render(no, a), /Right: no hop makes 3 pieces on 16 dots/);
+  // Hop 6 on 12 dots makes 6 pieces; then the claim is refused, and hop 3 still solves.
+  let b = taps(yes, freshAttempt(yes), [0, 6, 0, 1, 7, 1, 2, 8, 2, 3, 9, 3, 4, 10, 4, 5, 11, 5]);
+  b = move(yes, b, {type: 'claim'});
+  assert.equal(b.board.wrong, true);
+  assert.match(mechanicFor(yes).render(yes, b), /Some hop does make 3 pieces/);
+  b = taps(yes, move(yes, b, {type: 'again'}), [0, 3, 6, 9, 0, 1, 4, 7, 10, 1, 2, 5, 8, 11, 2]);
+  assert.ok(isSolved(yes, b.board));
+  assert.equal(validBoard(yes, {taps: [], tried: 1, claimed: true, wrong: false}), false, 'a false claim cannot be saved');
 });
 
 test('one-check rounds: mark, Check once, then Next after a miss', () => {

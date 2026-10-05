@@ -2,8 +2,8 @@
 // content fields and sources; every puzzle's answers against gcd (the module
 // finds pieces by walking the ring instead); that hints alone finish every
 // drawing from a fresh board and from a wrong start; that every listed answer
-// finishes and every other hop or ring does not; the one-check rounds; illegal
-// taps and forged saves.
+// finishes and every other hop or ring does not; claims that no hop works;
+// the one-check rounds; illegal taps and forged saves.
 // Run: node scripts/validate-stars.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
@@ -31,7 +31,7 @@ export default async function validateStars() {
   assert.deepEqual(stars.puzzles.map(p => p.number), range(1, 12));
   for (const level of ['easy', 'medium', 'hard']) assert.ok(stars.puzzles.some(p => p.difficulty_level === level), `a ${level} puzzle`);
   for (const s of stars.sources) { assert.match(s.url, /^https:\/\//); assert.ok(s.title && s.kind); }
-  let drawings = 0, rounds = 0, hintTaps = 0;
+  let drawings = 0, rounds = 0, hintTaps = 0, claims = 0;
   for (const p of stars.puzzles) {
     const q = p.parameters, label = p.id;
     assert.equal(p.id, `stars-${String(p.number).padStart(2, '0')}`);
@@ -91,6 +91,13 @@ export default async function validateStars() {
     const n = q.dots ?? q.target?.dots;
     if (q.mode === 'draw') assert.equal(p.solution.pieces, gcd(q.dots, q.hop));
     if (q.mode === 'starts') assert.deepEqual(p.solution.hops, range(1, n - 1).filter(k => gcd(n, k) === q.starts), `${label}: hops`);
+    // A claim that no hop works: its certificate is that the pieces split n into equal piles.
+    const decide = q.decide === true, possible = !decide || n % q.starts === 0;
+    if (decide) {
+      assert.equal(q.mode, 'starts', `${label}: only starts puzzles decide`);
+      assert.equal(p.solution.possible, possible, `${label}: possible exactly when the starts divide the dots`);
+      assert.equal(p.solution.hops.length > 0, possible);
+    } else assert.equal(p.solution.possible, undefined);
     if (q.mode === 'rings') assert.deepEqual(p.solution.rings, q.choices.filter(m => gcd(m, q.hop) === q.starts), `${label}: rings`);
     if (q.mode === 'match') {
       assert.ok(q.choices.includes(n), `${label}: the target ring is offered`);
@@ -98,7 +105,7 @@ export default async function validateStars() {
       assert.deepEqual(p.solution.hops, range(1, n - 1).filter(k => k === q.target.hop || k === n - q.target.hop), `${label}: hops`);
       assert.ok(q.target.hop !== n / 2 && gcd(n, q.target.hop) < n / 2, `${label}: the goal picture is a star or polygon, not a set of lines`);
     }
-    for (const list of [p.solution.hops, p.solution.rings]) if (list) assert.ok(list.length, `${label}: an answer exists`);
+    if (possible) for (const list of [p.solution.hops, p.solution.rings]) if (list) assert.ok(list.length, `${label}: an answer exists`);
 
     // Every hop on every offered ring: it finishes exactly when it reaches the goal.
     const rings = q.mode === 'rings' || q.mode === 'match' ? q.choices : [n];
@@ -118,13 +125,30 @@ export default async function validateStars() {
         assert.equal(isSolved(p, a.board), goal, `${label}: ring ${m}, hop ${k} solves exactly when it reaches the goal`);
         if (goal) finishing++;
         else assert.equal(move(p, a, {type: 'tap', dot: 0}), null, `${label}: a finished drawing takes no more taps`);
+        if (decide && !goal) {
+          // After a finished drawing the claim is checked: refused (and shown) when a hop works.
+          assert.equal(a.board.tried, 1, `${label}: a finished drawing counts as tried`);
+          const claimed = move(p, a, {type: 'claim'});
+          assert.equal(isSolved(p, claimed.board), !possible, `${label}: the claim is right exactly when no hop works`);
+          if (possible) {
+            assert.equal(claimed.board.wrong, true);
+            assert.match(mechanicFor(p).render(p, claimed), /Some hop does make/);
+            assert.equal(move(p, claimed, {type: 'claim'}), null, `${label}: one refusal at a time`);
+            assert.equal(move(p, claimed, {type: 'again'}).board.wrong, false, `${label}: Again clears the refusal`);
+          } else assert.match(mechanicFor(p).render(p, claimed), /Right: no hop makes/);
+          claims++;
+        }
       }
     }
-    assert.ok(finishing >= 1, `${label}: some drawing solves`);
+    assert.equal(finishing >= 1, possible, `${label}: some drawing solves exactly when the goal is possible`);
+    if (decide) assert.equal(move(p, fresh, {type: 'claim'}), null, `${label}: a claim needs a finished drawing`);
+    else assert.equal(move(p, tapAll(p, fresh, q.mode === 'rings' || q.mode === 'match' ? [] : [0]) ?? fresh, {type: 'claim'}), null, `${label}: no claims`);
 
     // Hints alone finish from a fresh board, and from a wrong ring or hop.
-    const starts = [fresh];
-    if (q.mode === 'starts') starts.push(tapAll(p, fresh, [0, 1, 2]));
+    // Decide puzzles show the authored hints only.
+    if (decide) assert.equal(nextHint(p, fresh).type, 'note', `${label}: decide hints are notes`);
+    const starts = decide ? [] : [fresh];
+    if (q.mode === 'starts' && !decide) starts.push(tapAll(p, fresh, [0, 1, 2]));
     if (q.mode === 'rings') starts.push(tapAll(p, move(p, fresh, {type: 'ring', ring: q.choices.find(m => gcd(m, q.hop) !== q.starts)}), [0]));
     if (q.mode === 'match') starts.push(tapAll(p, move(p, fresh, {type: 'ring', ring: n}), [0, 1, 2]), move(p, fresh, {type: 'ring', ring: q.choices.find(m => m !== n)}));
     for (const start of starts) {
@@ -163,11 +187,19 @@ export default async function validateStars() {
     const closed = tapAll(p, ring, first.slice(0, first.findIndex((d, i) => i > 0 && d === first[0]) + 1));
     if (closed && !isSolved(p, closed.board)) assert.equal(move(p, closed, {type: 'tap', dot: first[1]}), null, `${label}: a new start needs a dot with no line`);
     assert.deepEqual(undo(one).board, ring.board, `${label}: Undo takes back a tap`);
-    for (const forged of [{...one.board, taps: [0, 0]}, {...one.board, taps: [m + 1]}, {...one.board, taps: 'x'}, {...one.board, taps: Array(201).fill(0)}, {...one.board, ring: 99}, {round: 0, marked: [], checked: false}]) {
+    const forgeries = [{...one.board, taps: [0, 0]}, {...one.board, taps: [m + 1]}, {...one.board, taps: 'x'}, {...one.board, taps: Array(201).fill(0)}, {...one.board, ring: 99}, {round: 0, marked: [], checked: false}];
+    if (decide) {
+      const blank = {taps: [], tried: 0, claimed: false, wrong: false};
+      assert.ok(validBoard(p, blank));
+      assert.equal(validBoard(p, {...blank, tried: 1, claimed: true}), !possible, `${label}: a claim is saved only when true`);
+      assert.equal(validBoard(p, {...blank, tried: 1, wrong: true}), possible, `${label}: a refusal is saved only when false`);
+      forgeries.push({...blank, claimed: true}, {...blank, wrong: true}, {...blank, tried: 1, claimed: true, wrong: true}, {...blank, taps: drawing(n, 1)}, {...blank, tried: -1}, {...blank, claimed: 'yes'}, {taps: []});
+    } else forgeries.push({...one.board, tried: 1, claimed: false, wrong: false});
+    for (const forged of forgeries) {
       assert.equal(validBoard(p, forged), false, `${label}: rejects a forged save ${JSON.stringify(forged).slice(0, 60)}`);
     }
   }
-  return {puzzles: stars.puzzles.length, drawings, rounds, hintTaps};
+  return {puzzles: stars.puzzles.length, drawings, rounds, hintTaps, claims};
 }
 const tapAll2 = (p, a, values) => values.reduce((x, value) => x && move(p, x, {type: 'mark', value}), a);
 
