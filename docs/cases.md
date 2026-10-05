@@ -1,6 +1,6 @@
 # The shared case engine
 
-`dist/cases.js` and `dist/cases.css` are for themes whose mathematics is listing every case of a small experiment and sorting the cases into groups. They keep a shelf of the cases a child has found, refuse repeats and cases that don't count, accept "That's all" only when nothing is missing, and draw the shelf, its groups and the full catalog. They also draw lettered cups on lettered homes or in numbered slots. They never know a family's rules. Mixed-up cups ([mixup](mixup/README.md), Week 63) and Ticket shuffles ([shuffles](shuffles/README.md), Week 43) use it. The plan's other listing themes can build on it: nontransitive decks (24), fair results from a bag (42), the bag that copies (44), the visible side (45) and optimal stopping (60). See [the plan](plan/README.md), Wave 2.
+`dist/cases.js` and `dist/cases.css` are for themes whose mathematics is listing every case of a small experiment and sorting the cases into groups. They keep a shelf of the cases a child has found, refuse repeats and cases that don't count, accept "That's all" only when nothing is missing, and draw the shelf, its groups and the full catalog. They also draw lettered cups on lettered homes or in numbered slots, and numbered counters in a bag. They never know a family's rules. Mixed-up cups ([mixup](mixup/README.md), Week 63), Ticket shuffles ([shuffles](shuffles/README.md), Week 43) and Fair bags ([bags](bags/README.md), Week 42) use it. The plan's other listing themes can build on it: nontransitive decks (24), the bag that copies (44), the visible side (45) and optimal stopping (60). See [the plan](plan/README.md), Wave 2.
 
 The module imports only `expansion-controls.js`, so a family module can import it without reaching back to `families.js`.
 
@@ -58,18 +58,22 @@ With `o.load`, kept cases are buttons carrying `data-case`; `wireCases(root, onC
 
 `cupsBoard(row, o)` draws one cup per home with the Cup swaps look (`.cup-board`, `.cup-button`, `.cup-color-N`): cup `X` in colour and symbol `X`, the home's letter and symbol under it, and an ochre home when its own cup stands on it. Options: `pinned` (homes whose cups never move, drawn with a dot and disabled), `picked`, `hinted` (homes to glow), `still` (every cup disabled, for a solved board), `slots` (homes numbered 1, 2, 3, … with no letter and no ochre, for cups in places rather than at home), `enabled` (the only homes whose cups can be used; the rest are disabled) and `inert` (cups drawn as pictures, not buttons). `cupMini(row)` is the small lettered row for shelves and catalogs, `sayRow` its spoken form and `swapRow(row, i, j)` a swap. `wireCups(root, {picked, pick, swap})` turns two taps, a drag from one cup onto another (mouse or finger) or Enter on two cups into `swap(i, j)`; tapping the picked cup again calls `pick(null)`. Disabled cups and inert pictures never move.
 
+## Counters
+
+Numbered discs drawn from a bag. `counterIds('RRB')` numbers a bag's colours in order (`R1`, `R2`, `B1`), `sayCounter('B2')` is "blue 2" and `counterMini(id, number)` the small disc for shelves and catalogs. `counterHTML(id, o)` draws one disc: a button when `o.button` (disabled when `o.still`, ringed when `o.hinted`) carrying `data-counter` and `data-at`, otherwise a picture; `o.number` and `o.name` replace its number and spoken name. `counterBagHTML(ids, o)` draws a bag of them: `o.sorted` puts them a colour at a time, `o.byId` keys their focus by id for a bag that grows, `o.number(id, i)` and `o.name(id, i)` renumber and rename them (Fair bags numbers a bag whose colours change by place), and `o.tag` labels one of two bags. `drawRowHTML(draws, n)` is the row of counters drawn so far, with an empty place for each draw to come. `wireCounters(root, (id, at) => …)` sends taps on counter buttons to the family. The colours are `COUNTER_COLOURS`.
+
 ## Styles
 
 A family's stylesheet starts with `@import url('../../cases.css');` and scopes its own rules under its own class. The base look follows `dist/boards.css`: paper cards, ink, pine for the case on the board, ochre for a cup at home and for hints, green for the cases that count in a catalog. Four groups sit two by two on a phone.
 
 ## What the other listing themes need from it
 
-What exists covers Weeks 63 and 43. The notes for the others are proposals, not decisions; each theme's review card in the worksheets repository (`plans/review/week-NN.md`) has the fuller App fit.
+What exists covers Weeks 63, 43 and 42. The notes for the others are proposals, not decisions; each theme's review card in the worksheets repository (`plans/review/week-NN.md`) has the fuller App fit.
 
 | Week | Theme | Engine use | Probably needs |
 |---|---|---|---|
 | 43 | Fair shuffles | Done: [Ticket shuffles](shuffles/README.md). Stories are `product` of the ticket cups, played on cups in numbered `slots` with `swapRow`; bins by the order each makes; the catalog certifies a rule | Nothing more |
-| 42 | Fair results from a bag | Ordered pairs of draws with `sequences`; bins are the rule's results (first wins, second wins, draw again); `evenGroups` is the fairness check | Bins the child fills: tap a case, then a bin. `bin(key)` can already read the child's choice from the board; only the tap on a bin is missing |
+| 42 | Fair results from a bag | Done: [Fair bags](bags/README.md). Marked pairs of numbered counters; a rule sends a whole colour pair to the square, circle or skip bin (never one marked pair, which would let any 8–8 split pass); the family checks fairness and the fewest skips | Nothing more |
 | 44 | The bag that copies | Histories of numbered counters (each draw returns the counter and adds the next-numbered copy); bins by the number of red draws, which fixes the final bag; `evenGroups` shows the bins come out even | Nothing for weights: marked histories are already equally likely, and weighted cases would give the answer away. A board that adds the copy |
 | 45 | The visible side | Cases are the six card faces (a ticket names one face); the clue keeps the faces showing its colour; bins by the hidden side show the 2/3 | Two-sided cards whose faces a child taps into or out of a cup |
 | 24 | Nontransitive decks | The 9 pairings of a card from each of two decks, drawn with `catalogHTML` as a live win grid (columns by one deck's card, `mark` by winner) | A deck-dealing board, the family's own |
@@ -77,4 +81,4 @@ What exists covers Weeks 63 and 43. The notes for the others are proposals, not 
 
 ## Tests
 
-`tests/cases.test.mjs` checks the listings, the shelf's honesty, groups and hoops, and what each drawing marks. Each family tests its own rules; `node scripts/families-browser-smoke.mjs` opens every puzzle and solves it through hints, and `node scripts/mixup-browser-smoke.mjs` and `node scripts/shuffles-browser-smoke.mjs` play the cups through taps, drags (`TEST_PHONE=1` for touch) and keys.
+`tests/cases.test.mjs` checks the listings, the shelf's honesty, groups and hoops, and what each drawing marks. Each family tests its own rules; `node scripts/families-browser-smoke.mjs` opens every puzzle and solves it through hints, `node scripts/mixup-browser-smoke.mjs` and `node scripts/shuffles-browser-smoke.mjs` play the cups through taps, drags (`TEST_PHONE=1` for touch) and keys, and `node scripts/bags-browser-smoke.mjs` the counters and rule rows.
