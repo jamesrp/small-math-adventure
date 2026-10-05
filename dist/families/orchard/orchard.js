@@ -1,7 +1,7 @@
 // Lattice visibility (worksheet Week 31, "Hidden orchard"), the Sight lines
-// group inside Mirror Couriers. Trees and lanterns stand on the points of a square grid,
-// and the courier at one point sends a straight beam to each lantern. The
-// beam stops at the first tree or lantern exactly on its line. Seen from
+// group inside Mirror Couriers. Trees and lanterns stand on the points of a
+// square grid, and the courier at one point sends a straight beam to each
+// lantern. The beam stops at the first tree or lantern exactly on its line. Seen from
 // (a, b) away, a lantern is hidden in a full orchard exactly when a and b
 // share a factor d > 1, and then d - 1 points sit on the line between.
 // Three moves: cut trees to light lanterns, plant trees to hide them, or move
