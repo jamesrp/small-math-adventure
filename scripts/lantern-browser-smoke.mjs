@@ -32,7 +32,7 @@ try{
   await page.locator('#profile-form button[type=submit]').click();
   await page.locator('[data-action=library]').first().click();await page.locator('.caravan-library').waitFor();
   const family=page.locator('.satchel-family').filter({has:page.locator('[data-id="toggle-01"]')});
-  assert.equal(await family.locator('[data-action=open-puzzle]').count(),42);
+  assert.equal(await family.locator('.library-band:not(.library-proofs,.library-group) [data-action=open-puzzle]').count(),42);
   for(const p of added)assert.equal(await family.locator(`[data-id="${p.id}"]`).count(),1);
   await waitForOffline(page);
   for(const p of added){

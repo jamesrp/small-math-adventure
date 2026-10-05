@@ -1004,3 +1004,14 @@ const duel = {
 };
 
 export const proofMechanics = { proofgarden: garden, flipmap, sortgarden, duel };
+
+// The family seam entry (dist/families.js). Proof puzzles join existing
+// families (Tile gardens and Pebble Duel) as a Proofs group, so the module
+// adds no satchel family of its own.
+export default {
+  id: 'proofs',
+  mechanics: proofMechanics,
+  pack: new URL('./proofs.json', import.meta.url).href,
+  css: new URL('./proofs.css', import.meta.url).href,
+  focus: '.proof-puzzle [data-focus="proof-primary"]:not(:disabled)'
+};

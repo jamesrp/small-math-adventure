@@ -1,13 +1,14 @@
-// Checks the Chip firing pack (dist/chips.json): content fields and sources,
-// every answer set against an independent brute-force simulator, the
-// order-independence facts the notes rely on, hint chains to completion,
+// Checks the Chip firing pack (dist/families/chips/chips.json): content fields
+// and sources, every answer set against an independent brute-force simulator,
+// the order-independence facts the notes rely on, hint chains to completion,
 // illegal moves, Undo keeping discoveries, and the playground boards.
 // Run: node scripts/validate-chips.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
 import {isExpansion, mechanicFor} from '../dist/expansion.js';
-import {BOARDS, PLAYGROUND_BOARDS, GRID, answers, settleGrid} from '../dist/chips.js';
+import {BOARDS, PLAYGROUND_BOARDS, GRID, answers, settleGrid} from '../dist/families/chips/chips.js';
+import {loadPack} from './packs.mjs';
 
 // An independent simulator: piles keyed by letter, edges read directly.
 function sim(boardName) {
@@ -92,8 +93,7 @@ function expected(p) {
 
 export async function validateChips() {
   const read = async path => JSON.parse(await readFile(new URL(path, import.meta.url), 'utf8'));
-  const main = await read('../dist/puzzles.json'), proofs = await read('../dist/proofs.json'), chips = await read('../dist/chips.json');
-  const all = [...main.puzzles, ...proofs.puzzles, ...chips.puzzles], sources = [...main.sources, ...proofs.sources, ...chips.sources];
+  const chips = await read('../dist/families/chips/chips.json'), {puzzles: all, sources} = await loadPack();
   assert.equal(new Set(all.map(p => p.id)).size, all.length, 'puzzle ids are unique across the packs');
   assert.equal(new Set(sources.map(s => s.id)).size, sources.length, 'source ids are unique across the packs');
   for (const s of chips.sources) { assert.match(s.url, /^https:\/\//); assert.ok(s.title && s.kind); }
@@ -174,4 +174,5 @@ export async function validateChips() {
   }
   return {chipPuzzles: core.length, playground: 1, sources: chips.sources.length, hintSteps: steps};
 }
+export default validateChips;
 if (process.argv[1] === new URL(import.meta.url).pathname) console.log(JSON.stringify(await validateChips(), null, 2));

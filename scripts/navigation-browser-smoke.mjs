@@ -1,13 +1,16 @@
 // Optional browser regression suite; uses the same environment variables as browser-smoke.mjs.
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
+import {loadPack,newFamilies} from './packs.mjs';
 const playwright=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 const browser=await playwright[process.env.TEST_BROWSER||'chromium'].launch({headless:true,...(process.env.BROWSER_EXECUTABLE?{executablePath:process.env.BROWSER_EXECUTABLE}:{})});
 const context=await browser.newContext({viewport:process.env.TEST_PHONE?{width:390,height:844}:{width:1024,height:768},serviceWorkers:'block'});
 const page=await context.newPage(),errors=[];
 page.on('pageerror',error=>errors.push(error.message));
 const base=process.env.TEST_URL||'http://127.0.0.1:4187';
-const family=name=>page.locator('.satchel-family').filter({has:page.locator('summary strong',{hasText:name})});
+// The newest family on the seam (dist/families.js) starts open.
+const newest=(await loadPack()).puzzles.find(p=>(p.libraryFamily||p.mechanic)===newFamilies()[0].id).familyTitle;
+const family=name=>page.locator('.satchel-family').filter({has:page.locator('summary strong').filter({hasText:new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}$`)})});
 const openFamilies=()=>page.locator('.satchel-family[open] summary strong').allTextContents();
 const settle=()=>page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
 const back=async selector=>{await page.goBack();await page.locator(selector).waitFor();await settle();};
@@ -18,7 +21,7 @@ try{
   await page.locator('#nickname').fill('Navigation');
   await page.locator('#profile-form button[type=submit]').click();
   await page.locator('.caravan-nav [data-action=library]').click();
-  await family('Chip firing').locator('summary').click();
+  await family(newest).locator('summary').click();
   await family('Clockwork Gates').locator('summary').click();
   await family('Cup swaps').locator('summary').click();
   const expected=await openFamilies();
@@ -30,7 +33,7 @@ try{
   await clock.click();
   await page.locator('[data-puzzle-id="clock-10"]').waitFor();
   await back('.caravan-library');
-  assert.deepEqual(await openFamilies(),expected,'Back restores every family, including closed Chip firing');
+  assert.deepEqual(await openFamilies(),expected,`Back restores every family, including closed ${newest}`);
   assert.ok(Math.abs(await page.evaluate(()=>scrollY)-scroll)<3,'Back restores the library scroll position');
   await forward('[data-puzzle-id="clock-10"]');
   await back('.caravan-library');
@@ -106,7 +109,7 @@ try{
   checks.push('Journal archive disclosures');
 
   await page.locator('.caravan-nav [data-action=library]').click();
-  await family('Chip firing').locator('summary').click();
+  await family(newest).locator('summary').click();
   await family('Clockwork Gates').locator('summary').click();
   await page.locator('[data-action=profiles]').click();
   await page.locator('.caravan-add-profile > summary').click();
@@ -119,11 +122,11 @@ try{
   await page.locator('.lr-overview').waitFor();
   await page.locator('.caravan-nav [data-action=library]').click();
   await page.locator('.caravan-library').waitFor();
-  assert.deepEqual(await openFamilies(),['Chip firing'],'another explorer starts with fresh presentation state');
+  assert.deepEqual(await openFamilies(),[newest],'another explorer starts with fresh presentation state');
   await page.evaluate(()=>history.go(-3));
   await page.waitForURL('**/#library');await settle();
   assert.equal(await page.locator('.profile-label').textContent(),'Second explorer');
-  assert.deepEqual(await openFamilies(),['Chip firing'],'old history cannot transfer presentation state across explorers');
+  assert.deepEqual(await openFamilies(),[newest],'old history cannot transfer presentation state across explorers');
   checks.push('New explorer disclosure and explorer isolation');
 
   assert.deepEqual(errors,[]);

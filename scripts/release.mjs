@@ -1,8 +1,8 @@
 import {readFile,writeFile,readdir}from'node:fs/promises';
+import{existsSync}from'node:fs';
 import{createHash}from'node:crypto';
 import{validateContent}from'./validate-content.mjs';
-import{validateProofs}from'./validate-proofs.mjs';
-import{validateChips}from'./validate-chips.mjs';
+import{FAMILIES}from'../dist/families.js';
 const root=new URL('../dist/',import.meta.url);
 const hash=createHash('sha256');
 async function files(dir){const entries=await readdir(new URL(dir,root),{withFileTypes:true});return (await Promise.all(entries.map(e=>e.isDirectory()?files(`${dir}${e.name}/`):`${dir}${e.name}`))).flat();}
@@ -17,4 +17,7 @@ for(const path of publicFiles){
 }
 const version=hash.digest('hex').slice(0,16),worker=await readFile(new URL('sw.js',root),'utf8');
 await writeFile(new URL('sw.js',root),worker.replace(/const CACHE='[^']+';/,`const CACHE='small-math-adventure-shell-${version}';`));
-console.log(JSON.stringify({...await validateContent(),proofs:await validateProofs(),chips:await validateChips(),offlineAssetVersion:version},null,2));
+// Every family module with a pack has a validator, scripts/validate-<id>.mjs, whose default export checks it.
+const families={};
+for(const {id} of FAMILIES.filter(m=>m.pack)){const url=new URL(`validate-${id}.mjs`,import.meta.url);if(!existsSync(url))throw Error(`Missing scripts/validate-${id}.mjs`);families[id]=await (await import(url)).default();}
+console.log(JSON.stringify({...await validateContent(),...families,offlineAssetVersion:version},null,2));

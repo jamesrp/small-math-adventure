@@ -115,9 +115,11 @@ The Tile Garden browser checks (`node scripts/tile-browser-smoke.mjs` and `node 
 
 To refresh the expansion from its checked authoring JSON, run `node scripts/import-expansion.mjs`, then `npm test` and `npm run build`. The checked JSON remains authoring data; `dist/puzzles.json` is the canonical runtime pack. Lantern Wires has 42 instances; the other nine expansion families have twelve each, grouped by Easy, Medium, and Hard. Difficulty is relative within a family and still needs family playtesting. See [the difficulty expansion](docs/puzzle-expansion/difficulty-expansion.md) for the new designs and reproduction instructions.
 
-**Proofs (17 puzzles).** The satchel’s Tile gardens and Pebble Duel families open with a Proofs group above the grade groups. A solve can be a covering, a checked star or paint proof that a garden cannot be covered, two clean one-check rounds, or three wins in a row against perfect play. The pack is `dist/proofs.json`, built by `node scripts/build-proofs.mjs` and merged with `puzzles.json` at load. `npm test` and `npm run build` validate it; `node scripts/proofs-browser-smoke.mjs` plays every puzzle. See [Proofs](docs/proofs/README.md).
+**New families** join through one line in `dist/families.js`, which lists every puzzle module added after the twelve base mechanics. The app loads each module's mechanics, pack and stylesheet from there, the satchel lists its family first, the build runs its validator, and `node scripts/families-browser-smoke.mjs` opens every one of its puzzles. [Adding a family](docs/ADDING-A-FAMILY.md) is the recipe.
 
-**Chip firing (12 puzzles and a playground).** The first family in the satchel, from Week 11 of the math circle: fire circles that hold a chip per line, find every firing order, every finish or every start that finishes like a card, set off the biggest avalanche, and find a start that never stops. The playground has eight boards, including a 25 × 25 sandpile grid. The pack is `dist/chips.json`, built by `node scripts/build-chips.mjs` and merged at load; `npm test` and `npm run build` check every answer set against an independent simulator. It is not on the road yet and has not been played by children. See [Chip firing](docs/chips/README.md).
+**Proofs (17 puzzles).** The satchel’s Tile gardens and Pebble Duel families open with a Proofs group above the grade groups. A solve can be a covering, a checked star or paint proof that a garden cannot be covered, two clean one-check rounds, or three wins in a row against perfect play. The pack is `dist/proofs.json`, built by `node scripts/build-proofs.mjs` and merged with `puzzles.json` at load through `dist/families.js`. `npm test` and `npm run build` validate it; `node scripts/proofs-browser-smoke.mjs` plays every puzzle. See [Proofs](docs/proofs/README.md).
+
+**Chip firing (12 puzzles and a playground).** A satchel family from Week 11 of the math circle: fire circles that hold a chip per line, find every firing order, every finish or every start that finishes like a card, set off the biggest avalanche, and find a start that never stops. The playground has eight boards, including a 25 × 25 sandpile grid. It lives in `dist/families/chips/`, and its pack is built by `node scripts/build-chips.mjs`; `npm test` and `npm run build` check every answer set against an independent simulator. It is not on the road yet and has not been played by children. See [Chip firing](docs/chips/README.md).
 
 ## Install on iPad
 
@@ -148,8 +150,9 @@ Updates wait until existing app tabs close, avoiding replacement of a live board
 | `dist/main.js` | Interaction, persistence, navigation, PWA lifecycle |
 | `dist/ui.js` | Profile/map/play/parent views |
 | `dist/puzzles.json` | 222 fixed authored puzzles and 57 source records |
+| `dist/families.js` | The family seam: every module added after the base pack, oldest first ([Adding a family](docs/ADDING-A-FAMILY.md)) |
 | `dist/proofs.{js,css,json}` | Proofs: four mechanics, styles, and 17 puzzles with 4 sources |
-| `dist/chips.{js,css,json}` | Chip firing: the mechanic and playground, styles, and 12 puzzles plus the playground with 4 sources (`scripts/build-chips.mjs`, `scripts/validate-chips.mjs`) |
+| `dist/families/chips/` | Chip firing: the mechanic and playground, styles, and 12 puzzles plus the playground with 4 sources (`scripts/build-chips.mjs`, `scripts/validate-chips.mjs`) |
 | `scripts/import-expansion.mjs` | Reproducible adapter from the 150 checked authoring instances into the shipped pack |
 | `dist/sw.js` | Atomic precache and versioned offline shell |
 | `scripts/release.mjs` | Validation and asset-derived offline cache version |

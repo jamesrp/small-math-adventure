@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import {puzzleObjective} from '../dist/puzzle-copy.js';
+import {loadPack} from './packs.mjs';
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 const browser=await chromium.launch({headless:true,...(process.env.BROWSER_EXECUTABLE?{executablePath:process.env.BROWSER_EXECUTABLE}:{})});
 const context=await browser.newContext({viewport:{width:1024,height:768},hasTouch:true});
@@ -9,7 +10,8 @@ const page=await context.newPage(),errors=[];
 page.on('pageerror',e=>errors.push(e.message));
 const base=(process.env.TEST_URL||'http://127.0.0.1:4187').replace(/\/$/,'');
 const {puzzles}=JSON.parse(await readFile(new URL('../dist/puzzles.json',import.meta.url),'utf8'));
-const chips=JSON.parse(await readFile(new URL('../dist/chips.json',import.meta.url),'utf8')).puzzles;
+// The satchel shows every pack on the family seam (dist/families.js) too.
+const satchel=(await loadPack()).puzzles,satchelFamilies=new Set(satchel.map(p=>p.libraryFamily||p.mechanic)).size;
 const output=new URL('../test-results/',import.meta.url);
 const screenshots=[],objectiveCounts={zero:0,one:0};
 const capture=async name=>{const filename=`copy-${name}.png`;await page.screenshot({path:new URL(filename,output).pathname,fullPage:true});screenshots.push(filename);};
@@ -137,8 +139,8 @@ try{
   await help.getByRole('button',{name:'Done',exact:true}).click();await page.locator('dialog').waitFor({state:'detached'});
  }
  await page.goto(`${base}/#library`);await page.locator('.caravan-library').waitFor();await assertMinimalChrome('library');
- assert.equal(await page.locator('[data-action=open-puzzle]:not(.library-proofs *)').count(),puzzles.length+chips.length,'library: all catalog puzzles and Chip firing remain selectable');
- assert.equal(await page.locator('.satchel-family').count(),13,'library: all thirteen families remain accessible');
+ assert.equal(await page.locator('[data-action=open-puzzle]:not(.library-proofs *)').count(),satchel.filter(p=>p.band!=='proofs').length,'library: every catalog and family puzzle remains selectable');
+ assert.equal(await page.locator('.satchel-family').count(),satchelFamilies,`library: all ${satchelFamilies} families remain accessible`);
  assert.equal(await page.locator('#main h1:not(.sr-only),.library-heading,.library-note,.family-summary small,.satchel-family-content > p,.puzzle-card small').count(),0,'library: no redundant heading, family descriptions, or counters');
  for(const family of await page.locator('.satchel-family').all()){
   const wasOpen=await family.getAttribute('open')!==null;
