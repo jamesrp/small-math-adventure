@@ -17,6 +17,7 @@
 .cards-binary .sort-card.v0{background:var(--b-card,#fffdf5);border-color:var(--b-ink,#294439)}
 .cards-binary .sort-card.v1{background:var(--b-pine,#31533e);border-color:#1d3526}
 .sort-board button.sort-card{cursor:pointer;touch-action:none}
+.sort-board button.sort-card[aria-disabled="true"]{cursor:default;touch-action:auto}
 .sort-board button.sort-card::after{content:"";position:absolute;inset:-6px;border-radius:50%}
 button.sort-card:hover{filter:brightness(1.04)}
 .sort-card.picked{box-shadow:0 0 0 4px var(--b-card,#fffdf5),0 0 0 7px var(--b-pine,#31533e)}

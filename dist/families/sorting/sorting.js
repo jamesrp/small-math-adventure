@@ -7,7 +7,6 @@
 // and k bars light up in at most 2^k ways, so 3 lanes need 3 bars and 4 lanes 5.
 import {esc} from '../../expansion-controls.js';
 
-export const MODES = ['break', 'every', 'lights', 'build'];
 export const PLAY_LANES = [2, 3, 4, 5];
 export const PLAY_SLOTS = {2: 2, 3: 4, 4: 6, 5: 9};
 const TRIED_LIMIT = 64;
@@ -80,15 +79,13 @@ const fromKey = k => [...k].map(Number);
 // What a run shows and what has been found, all derived from the board.
 export function viewOf(p, b) {
   const q = p.parameters, run = runMachine(b.bars, b.start);
-  const all = starts(q.lanes, q.cards);
-  const wrong = q.mode === 'every' ? failures(b.bars, q.lanes, q.cards).map(key) : [];
   const tried = b.tried.map(k => ({key: k, run: runMachine(b.bars, fromKey(k))}));
   let pair = null;
   if (q.mode === 'lights') {
     const seen = new Map();
     for (const t of tried) { const lit = pattern(t.run); if (seen.has(lit) && !pair) pair = [seen.get(lit), t.key]; else seen.set(lit, t.key); }
   }
-  return {q, run, all, wrong, tried, pair, grid: q.mode === 'build' && b.tested && sortsAll(b.bars, q.lanes) ? orders(q.lanes).map(s => ({key: key(s), sorted: runMachine(b.bars, s).sorted})) : null};
+  return {q, run, tried, pair, grid: q.mode === 'build' && b.tested && sortsAll(b.bars, q.lanes) ? orders(q.lanes).map(s => ({key: key(s), sorted: runMachine(b.bars, s).sorted})) : null};
 }
 
 function freshPuzzle(p) {
@@ -298,7 +295,7 @@ function board(p, b, opts) {
   const starts = b.start.map((v, i) => {
     const picked = pick?.card === i, hinted = (hint?.type === 'swap' && (hint.a === i || hint.b === i)) || (hint?.type === 'flip' && hint.lane === i);
     const label = q.cards === 'binary' ? (v ? 'tall' : 'short') : String(v);
-    return `<button type="button" class="sort-card start v${v}${picked ? ' picked' : ''}${hinted ? ' hinted' : ''}" style="${cardStyle(q, v, xStart, i)}" data-sort-card="${i}" data-focus="sort-card-${i}" aria-label="${esc(`Lane ${i + 1}: ${label}${picked ? ', chosen' : ''}`)}">${face(q, v)}</button>`;
+    return `<button type="button" class="sort-card start v${v}${picked ? ' picked' : ''}${hinted ? ' hinted' : ''}" style="${cardStyle(q, v, xStart, i)}" data-sort-card="${i}" data-focus="sort-card-${i}" aria-label="${esc(`Lane ${i + 1}: ${label}${picked ? ', chosen' : ''}`)}"${opts.still ? ' aria-disabled="true"' : ''}>${face(q, v)}</button>`;
   }).join('');
   const out = (v, i) => run.finish[i - 1] > v || run.finish[i + 1] < v;
   const finish = opts.ran ? run.finish.map((v, i) => `<span class="sort-card finish v${v}${out(v, i) ? ' wrong' : ''}" style="${cardStyle(q, v, xFinish, i)}">${face(q, v)}</span>`).join('') : '';
@@ -327,7 +324,7 @@ function renderPuzzle(p, a) {
   const b = a.board, q = p.parameters, v = viewOf(p, b), solved = solvedPuzzle(p, b);
   const hint = a.hintLevel >= 2 && !solved ? hintPuzzle(p, b) : null, h = hint?.action?.type;
   const pick = solved ? null : ui(p).pick;
-  const body = board(p, b, {q, run: v.run, ran: b.ran, pick, hint, build: q.mode === 'build' && !solved, locked: locked(q)});
+  const body = board(p, b, {q, run: v.run, ran: b.ran, pick, hint, build: q.mode === 'build' && !solved, locked: locked(q), still: solved});
   const buttons = solved ? '' : `<div class="sort-actions">${moveButton('▶ Run', {type: 'run'}, h === 'run' ? 'hinted' : '', b.ran ? 'data-replay="1"' : '')}${q.mode === 'build' ? moveButton('Test', {type: 'test'}, h === 'test' ? 'hinted' : '', b.tested ? 'disabled' : '') : ''}${q.mode === 'every' ? moveButton('That’s all', {type: 'claim'}, h === 'claim' ? 'hinted' : '', b.missed ? 'disabled' : '') : ''}</div>`;
   const missed = b.missed ? '<p class="sort-note" role="status">There’s another.</p>' : '';
   const status = b.ran ? `${describeStart(q, b.start)} finishes ${describeStart(q, v.run.finish)}${v.run.sorted ? ', in order' : ', out of order'}.` : `Start: ${describeStart(q, b.start)}.`;
@@ -438,7 +435,7 @@ function wire(root, p, api) {
   root.addEventListener('pointerup', e => {
     const start = from;
     from = null;
-    if (!start) return;
+    if (!start || start.getAttribute('aria-disabled') === 'true') return;
     const to = document.elementFromPoint?.(e.clientX, e.clientY)?.closest?.('[data-sort-card],[data-sort-peg]');
     if (!to || to === start || !root.contains(to)) return;
     if (start.dataset.sortCard !== undefined && to.dataset.sortCard !== undefined && q().cards !== 'binary') {
@@ -488,5 +485,5 @@ export default {
   mechanics: sortingMechanics,
   pack: new URL('./sorting.json', import.meta.url).href,
   css: new URL('./sorting.css', import.meta.url).href,
-  focus: '.sort-card.start,.sort-action:not([disabled])'
+  focus: '.sort-card.start:not([aria-disabled]),.sort-action:not([disabled])'
 };
