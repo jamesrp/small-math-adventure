@@ -40,7 +40,7 @@ triBoard(g, {
 });
 ```
 
-Every control is focusable and answers Enter and Space. Styles live in `tri-grid.css`; a family's stylesheet imports it and colours pieces with its own classes (`rh-face f0` and so on in Rhombus gardens).
+Every control is focusable and answers Enter and Space. Styles live in `tri-grid.css`; a family's stylesheet imports it and colours pieces with its own classes (`rh-face f0` and so on in Rhombus gardens). Every family that uses the grid imports it, so its base rules can load again after an earlier family's rules: scope each family rule under the family's root (`.rh-puzzle .rh-mini`), never a bare class that a base rule also styles.
 
 ## Wiring
 

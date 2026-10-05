@@ -50,8 +50,8 @@
 .rb-puzzle .rb-action:disabled{opacity:.45;box-shadow:none}
 .rb-puzzle .hinted.rb-action{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
 .rb-puzzle .rb-size{padding:5px 8px}
-.rb-size-icon{width:30px;height:30px;margin:0}
-.rb-size-icon .tm-line{stroke:#b9c2a5}
+.rb-puzzle .rb-size-icon{width:30px;height:30px;margin:0}
+.rb-puzzle .rb-size-icon .tm-line{stroke:#b9c2a5}
 .rb-note{margin:0;font-weight:600;color:var(--b-bad,#a9503a)}
 .rb-shelf{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;list-style:none;margin:0;padding:0}
 .rb-shelf:empty{display:none}
