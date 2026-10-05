@@ -1,6 +1,6 @@
 # Sorting machines
 
-October 5, 2026. Twelve puzzles and a playground built from Week 23 of the Bellingham math circle (sorting networks and fixed machines). They are in the puzzle satchel only, not on the Lantern Road. No child has played them; the Week 23 worksheets are unpiloted too. The theme's review card is in the worksheets repository at `plans/review/week-23.md`.
+October 5, 2026. Twelve puzzles and a playground built from Week 23 of the Bellingham math circle (sorting networks and fixed machines). They are in the puzzle satchel only, not on the Lantern Road. No child has played them; the Week 23 worksheets are unpiloted too. The theme's [review card](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-23.md) says revise: the worksheets need a printable mat, cards and bars. On screen the cards swap themselves at each bar, so the app enforces the rule that the paper version leaves to a partner.
 
 ## The mathematics
 
