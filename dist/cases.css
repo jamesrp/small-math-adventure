@@ -63,3 +63,22 @@ button.case-kept:hover{border-color:var(--b-ink,#294439)}
 /* Four groups sit two by two on a phone rather than three and one. */
 @media (max-width:480px){.case-bins[data-bins="4"],.case-catalog[data-bins="4"]{grid-template-columns:1fr 1fr}}
 @media (max-width:420px){.case-mini{font-size:.8rem}.case-hoop-pair{min-height:8rem}}
+
+/* Counters: red and blue discs with their number. */
+.case-counter{display:inline-grid;place-items:center;width:1.6em;height:1.6em;border-radius:50%;border:1.5px solid var(--b-ink,#294439);font-family:var(--b-display,Georgia,serif);font-style:normal;font-weight:700;font-size:1em;line-height:1;color:#fff;box-sizing:border-box}
+.case-counter.cR{background:#b9473a}
+.case-counter.cB{background:#3c74b4}
+.case-counter.empty{background:transparent;border-style:dashed;border-color:var(--b-line,#d0d6bd)}
+.board-panel button.case-counter{width:52px;height:52px;padding:0;font-size:1.3rem;cursor:pointer;box-shadow:0 3px 0 var(--b-line,#d0d6bd)}
+.board-panel button.case-counter[disabled]{cursor:default;opacity:.55;box-shadow:none}
+.board-panel button.case-counter.hinted,.case-counter.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+/* Small discs in shelves and bin labels stay round and white-numbered. */
+.case-mini .case-counter,.case-bin-label .case-counter{width:1.5em;height:1.5em;font-size:.85em;border:1px solid var(--b-ink,#294439);border-radius:50%;color:#fff}
+/* A bag of counters and the row of counters drawn from it. */
+.case-bag{display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:.7rem 1rem .8rem;border:2px solid var(--b-ink,#294439);border-radius:14px 14px 28px 28px;background:#efe3c8;box-shadow:inset 0 6px 0 rgba(41,68,57,.08)}
+.case-bag-counters{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem}
+.case-bag .case-counter{width:2.4rem;height:2.4rem;font-size:1.1rem}
+.case-bag-tag{font-size:.8rem;font-weight:700;color:var(--b-muted,#5a6850)}
+.case-draw{display:flex;align-items:center;gap:.5rem;font-size:1.5rem;min-height:2.6rem}
+.case-arrow{color:var(--b-muted,#5a6850);font-size:1.1rem}
+@media (max-width:420px){.board-panel .case-bag button.case-counter{width:46px;height:46px}}

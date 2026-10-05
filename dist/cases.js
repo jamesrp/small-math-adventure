@@ -181,3 +181,40 @@ export function wireCups(root, {picked, pick, swap}) {
     swap(Number(start.dataset.cup), Number(to.dataset.cup));
   });
 }
+
+// Counters: numbered discs drawn from a bag. 'R2' is red counter 2 and 'B1'
+// blue counter 1; `counterIds('RRB')` numbers a bag's colours in order: R1, R2, B1.
+export const COUNTER_COLOURS = {R: 'red', B: 'blue'};
+export const counterIds = colours => { const n = {}; return [...colours].map(c => `${c}${n[c] = (n[c] || 0) + 1}`); };
+export const sayCounter = id => `${COUNTER_COLOURS[id[0]]} ${id.slice(1)}`;
+// A small counter picture; `number` replaces the one in its id.
+export const counterMini = (id, number = id.slice(1)) => `<i class="case-counter c${id[0]}">${number}</i>`;
+// A counter on a board: a button when `o.button` (disabled when `o.still`),
+// otherwise a picture. `o.at` is its place in the bag, `o.name` its spoken
+// name; `o.number` replaces the number shown, as a bag whose colours change
+// numbers its counters by place.
+export function counterHTML(id, o = {}) {
+  const cls = `case-counter c${id[0]}${o.hinted ? ' hinted' : ''}`, name = esc(o.name || sayCounter(id)), text = o.number ?? id.slice(1);
+  return o.button
+    ? `<button type="button" class="${cls}" data-counter="${esc(id)}" data-at="${o.at ?? ''}" data-focus="counter-${o.at ?? esc(id)}" aria-label="${name}"${o.still ? ' disabled' : ''}>${text}</button>`
+    : `<i class="${cls}" role="img" aria-label="${name}">${text}</i>`;
+}
+// A tap on a counter button sends its id and place to the family.
+export function wireCounters(root, onCounter) {
+  root.addEventListener('click', e => {
+    const el = e.target.closest('button[data-counter]');
+    if (el && root.contains(el) && !el.disabled) onCounter(el.dataset.counter, Number(el.dataset.at));
+  });
+}
+// A bag of counters, a colour at a time when `o.sorted`. The counters are
+// buttons when `o.button`; `o.number(id, i)` and `o.name(id, i)` replace a
+// counter's number and spoken name; `o.byId` keys their focus by id rather
+// than by place, for a bag that grows. `o.tag` labels one of several bags.
+const colourRank = id => Object.keys(COUNTER_COLOURS).indexOf(id[0]);
+export function counterBagHTML(ids, o = {}) {
+  const shown = o.sorted ? [...ids].sort((x, y) => colourRank(x) - colourRank(y) || Number(x.slice(1)) - Number(y.slice(1))) : ids;
+  const counters = shown.map((id, i) => counterHTML(id, {button: o.button, still: o.still, number: o.number?.(id, i), hinted: o.hinted === id || (!o.byId && o.hinted === i), at: o.byId ? undefined : i, name: o.name?.(id, i)}));
+  return `<div class="case-bag${o.cls ? ` ${o.cls}` : ''}" role="group" aria-label="${esc(o.label || 'The bag')}">${o.tag ? `<span class="case-bag-tag">${o.tag}</span>` : ''}<div class="case-bag-counters">${counters.join('')}</div></div>`;
+}
+// The counters drawn so far, in order, with an empty place for each draw to come.
+export const drawRowHTML = (draws, n, label = 'Drawn') => `<div class="case-draw" role="group" aria-label="${esc(label)}">${Array.from({length: n}, (_, i) => draws[i] ? counterMini(draws[i]) : '<i class="case-counter empty" aria-hidden="true"></i>').join('<span class="case-arrow" aria-hidden="true">→</span>')}</div>`;
