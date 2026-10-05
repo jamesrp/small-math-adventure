@@ -29,3 +29,9 @@
 .gb-node.hinted .gb-reach{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:3.5px;vector-effect:non-scaling-stroke;stroke-dasharray:5 4}
 .gb-edge.hinted .gb-line{stroke:var(--b-ochre,#b38840);stroke-width:6px;stroke-dasharray:7 5}
 .gb-edge.hinted .gb-tag rect{stroke:var(--b-ochre,#b38840);stroke-width:3px}
+
+/* A small picture of the map (graphMini). */
+.gb-mini{display:block;width:100%;height:auto}
+.gb-mini-line{stroke:#c9d0bb;stroke-width:1.5px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.gb-mini-line.on{stroke:var(--b-pine,#31533e);stroke-width:4px}
+.gb-mini-dot{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:1.5px;vector-effect:non-scaling-stroke}
