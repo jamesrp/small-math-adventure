@@ -1,0 +1,46 @@
+/* Clockwork Gates stars: a ring of dots to draw on, one colour per piece, the
+   pieces counted in the middle, a goal picture and a ring picker. Uses the
+   shared board palette from boards.css. */
+.stars-puzzle{display:flex;flex-direction:column;align-items:center;gap:.6rem;width:100%}
+.star-ring{position:relative;width:min(100%,380px);aspect-ratio:1;margin:.2rem auto 0;--dot:40px}
+.star-ring.mid{--dot:36px}.star-ring.small{--dot:30px}
+.star-ring.empty{border:3px dashed var(--b-line,#d0d6bd);border-radius:50%;width:min(80%,300px)}
+.star-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.star-circle{fill:none;stroke:var(--b-line,#d0d6bd);stroke-width:.8}
+.star-line{stroke-width:1.5;stroke-linecap:round}
+.c0{stroke:#31533e;--c:#31533e}.c1{stroke:#b38840;--c:#b38840}.c2{stroke:#4f86a8;--c:#4f86a8}.c3{stroke:#b9604a;--c:#b9604a}.c4{stroke:#7a5a8c;--c:#7a5a8c}.c5{stroke:#6f9a52;--c:#6f9a52}
+.star-dot{position:absolute;transform:translate(-50%,-50%);width:var(--dot);height:var(--dot);min-width:0;min-height:0;padding:0;border-radius:50%;background:var(--b-card,#fffdf5);border:2.5px solid var(--b-ink,#294439);box-shadow:0 2px 0 rgba(41,68,57,.2);z-index:1}
+.star-dot.lined{background:#dfe6d2}
+.star-dot.pen{background:var(--b-sun,#efc76e);border-color:var(--b-ochre,#b38840);box-shadow:0 0 0 5px rgba(239,199,110,.5)}
+.star-dot.hinted,.star-again.hinted,.star-pick.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.star-dot:disabled{opacity:1;cursor:default}
+.star-dot.shake{animation:star-shake .35s}
+@keyframes star-shake{0%,100%{transform:translate(-50%,-50%)}25%{transform:translate(calc(-50% - 5px),-50%)}75%{transform:translate(calc(-50% + 5px),-50%)}}
+.star-count{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-wrap:wrap;justify-content:center;gap:5px;max-width:36%;pointer-events:none}
+.star-count i{display:block;width:16px;height:16px;border-radius:50%;background:var(--c);border:2px solid var(--c)}
+.star-count i.empty{background:transparent;border:2px dashed #a9b39a}
+.star-count i.extra{box-shadow:0 0 0 3px var(--b-bad-soft,#f5e3d9)}
+.star-count.missed i:not(.empty){box-shadow:0 0 0 3px var(--b-bad-soft,#f5e3d9)}
+.star-hop{font-family:var(--b-display,Georgia,serif);font-size:1.15rem;color:var(--b-ink,#294439)}
+.star-tools{display:flex;gap:10px;justify-content:center;min-height:46px}
+.star-picker{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+.board-panel .stars-puzzle .star-pick{min-width:44px;min-height:44px;padding:0 10px;font-family:var(--b-display,Georgia,serif);font-size:1.1rem;font-weight:400}
+.star-goal{margin:0;padding:8px;background:#fbf4dc;border:1px solid #ead9a4;border-radius:14px}
+.star-figure{display:block;width:120px;height:120px}
+.star-figure .star-line{stroke-width:2.2}
+/* One-check rounds: a numbered grid to mark, revealed after Check. */
+.star-ring.tiny{width:min(60%,200px)}
+.star-pip{fill:var(--b-ink,#294439)}
+.star-ring-n{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--b-display,Georgia,serif);font-size:1.6rem}
+.star-marks{display:grid;grid-template-columns:repeat(6,minmax(0,52px));gap:6px;justify-content:center}
+.board-panel .stars-puzzle .star-mark{min-width:0;min-height:44px;padding:0;font-family:var(--b-display,Georgia,serif);font-size:1.1rem;font-weight:400}
+.board-panel .stars-puzzle .star-mark[aria-pressed="true"],.board-panel .stars-puzzle .star-pick[aria-pressed="true"]{background:var(--b-pine,#31533e);border-color:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9);box-shadow:0 2px 0 rgba(41,68,57,.35)}
+.board-panel .stars-puzzle .star-mark:disabled{opacity:1}
+.board-panel .stars-puzzle .star-mark:disabled:not(.answer):not(.miss){opacity:.5}
+.board-panel .stars-puzzle .star-mark.answer{outline:3px solid var(--b-good,#3c7a4a);outline-offset:1px}
+.board-panel .stars-puzzle .star-mark.miss{background:var(--b-bad-soft,#f5e3d9);border-color:var(--b-bad,#a9503a);color:var(--b-bad,#a9503a)}
+.board-panel .stars-puzzle .star-mark.miss:not(.answer){text-decoration:line-through}
+.star-note{margin:0;text-align:center;color:var(--b-ink,#294439)}
+@media (max-width:460px){.star-ring{--dot:34px}.star-ring.mid{--dot:30px}.star-ring.small{--dot:26px}.star-marks{grid-template-columns:repeat(6,minmax(0,1fr));width:100%}}
+@media (prefers-reduced-motion:no-preference){.star-line.new{stroke-dasharray:120;stroke-dashoffset:120;animation:star-draw .35s ease-out forwards}}
+@keyframes star-draw{to{stroke-dashoffset:0}}
