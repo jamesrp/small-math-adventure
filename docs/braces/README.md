@@ -60,7 +60,7 @@ The worksheets are in [math-circle-worksheets, week 52](https://github.com/james
 | `dist/families/braces/braces.css` | Bars, pins, braces and their piece colours, windows, the shake, beads, buttons and the graph's tints; imports the shared graph board styles |
 | `dist/families/braces/braces.json` | The pack: a playground, 10 puzzles, 1 family and 3 sources, merged at load through `dist/families.js` |
 | `scripts/build-braces.mjs` | Authoring list and frames; checks every count and every cell that works, and writes `braces.json` |
-| `scripts/validate-braces.mjs` | Bolker and Crapo's theorem against exact rigidity-matrix rank on every design of frames up to 3 by 3; fewer than the fewest never holds; the design counts against Kirchhoff's matrix-tree theorem; loose designs by a separate search; every fewest design claimed through moves; wrong claims and their answers; hint chains; illegal moves and forged saves; run by `npm run build` |
+| `scripts/validate-braces.mjs` | Bolker and Crapo's theorem against exact rigidity-matrix rank on every design of frames up to 3 by 3; fewer than the fewest never holds; the design counts against Kirchhoff's matrix-tree theorem; loose designs by a separate search; a fewest design claimed through moves; wrong claims and their answers; hint chains; illegal moves and forged saves; run by `npm run build` |
 | `tests/braces.test.mjs` | Pieces, holding and spare braces, the push's geometry, claims and answers, one more, still wobbly, windows, hints, saves and rendering |
 
 To change a puzzle, edit `scripts/build-braces.mjs`, then run `node scripts/build-braces.mjs`, `npm test` and `npm run build`.
