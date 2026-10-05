@@ -8,9 +8,9 @@ import {answers, cellsOf, switchRoute, towardGoal} from '../dist/families/pictur
 
 const WEEK25 = 'https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-25';
 export const sources = [
-  {id: 'pictures-ryser', title: 'H. J. Ryser — Combinatorial properties of matrices of zeros and ones, Canadian Journal of Mathematics 9 (1957), 371–377', url: 'https://doi.org/10.4153/CJM-1957-044-3', kind: 'research'},
-  {id: 'pictures-gale', title: 'David Gale — A theorem on flows in networks, Pacific Journal of Mathematics 7 (1957), 1073–1082', url: 'https://doi.org/10.2140/pjm.1957.7.1073', kind: 'research'},
-  {id: 'pictures-brualdi', title: 'Richard A. Brualdi — Matrices of zeros and ones with fixed row and column sum vectors, Linear Algebra and its Applications 33 (1980), 159–231', url: 'https://doi.org/10.1016/0024-3795(80)90105-6', kind: 'research'},
+  {id: 'pictures-ryser', title: 'H. J. Ryser — Combinatorial properties of matrices of zeros and ones, Canadian Journal of Mathematics 9 (1957), 371–377', url: 'https://www.cambridge.org/core/journals/canadian-journal-of-mathematics/article/combinatorial-properties-of-matrices-of-zeros-and-ones/4BE766CCFDF1704C196AA182C0C5EC88', kind: 'research'},
+  {id: 'pictures-gale', title: 'David Gale — A theorem on flows in networks, Pacific Journal of Mathematics 7 (1957), 1073–1082', url: 'https://msp.org/pjm/1957/7-2/p04.xhtml', kind: 'research'},
+  {id: 'pictures-brualdi', title: 'Richard A. Brualdi — Combinatorial Matrix Classes (Cambridge University Press, 2006): the class of (0,1)-matrices with given row and column sums, and its interchange graph', url: 'https://resolve.cambridge.org/core/books/abs/combinatorial-matrix-classes/preface/6A4196B5279C4BCABBA1DA50D9E1D4B4', kind: 'research'},
   {id: 'pictures-week25', title: 'Bellingham Math Circle — Week 25: Row and column shadows, packets and adult guide', url: WEEK25, kind: 'local curriculum'}
 ];
 export const family = {
@@ -143,7 +143,7 @@ const authored = [
       prompt: 'Could one switch ever be enough here?',
       explanation: 'A switch changes exactly two columns, so four differing columns need at least two switches. Pairing a column that needs its counter moved up with one that needs it moved down gives a switch that fixes both: A1 with B3, then A2 with B4. On any two-row grid, the fewest switches between two pictures with the same counts is half the number of columns where they differ.',
       extension: 'On a 2 × 6 grid with three counters in each row, what is the most switches ever needed?',
-      connection: 'For two rows this is the whole story; on more rows the fewest switches is half the number of differing squares minus the number of cycles the differences split into (Brualdi, 1980).'
+      connection: 'For two rows this is the whole story; on more rows the fewest switches is half the number of differing squares minus the most cycles the differences can be split into (Brualdi).'
     },
     provenance: 'Week 25 grades 4–5 Problems 2 and 3 (switches between pictures on the 2 × 4 and 2 × 6 grids; the fewest switches between two pictures).'
   },
@@ -207,7 +207,7 @@ const authored = [
       prompt: 'How do you know 3 is the fewest?',
       explanation: 'The start and goal differ in twelve squares and every switch changes four, so at least three switches are needed. The route A2↔B3, B1↔D4, C2↔D3 uses three, each fixing four squares. A first switch that fixes fewer than four leaves too many differences for the switches remaining.',
       extension: 'With two counters in every row and column of a 4 × 4 grid there are 90 pictures. What is the most switches ever needed between two of them?',
-      connection: 'The squares that differ split into rectangles and longer alternating cycles; the fewest switches is half the number of differing squares minus the most cycles they can be split into (Brualdi, 1980). Here that is 6 − 3 = 3.'
+      connection: 'The squares that differ split into rectangles and longer alternating cycles; the fewest switches is half the number of differing squares minus the most cycles they can be split into (Brualdi). Here that is 6 − 3 = 3.'
     },
     provenance: 'New 4 × 4 instance; extends Week 25 grades 4–5 Problem 3 (a shortest route and why fewer switches cannot work) beyond two rows.'
   },
