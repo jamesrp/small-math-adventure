@@ -16,4 +16,5 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Wave 1: cheapest networks (Week 53) | Claude, Route packing and cheapest networks thread | `claude/wave1-networks-kqynkj` | claimed; review card in progress |
 | Safe preview links for testers (plan item 5) | | | open |
 | Road 1 keeper `happy` and `oops` stills and videos (plan item 6) | | | open; Dot/Codex |
-| Voice-casting brief for six keepers and Plume (plan item 6) | | | open; Claude |
+| Voice-casting brief for six keepers and Plume (plan item 6) | Claude, Codex lane thread | `claude/codex-lane-h6jaem` | in progress |
+| Dot/Codex briefs for the keeper reaction clips and scene motion, and a kickoff prompt (plan item 6) | Claude, Codex lane thread | `claude/codex-lane-h6jaem` | in progress |
