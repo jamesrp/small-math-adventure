@@ -26,6 +26,9 @@ export const sequences = (alphabet, length) => remember(`seq:${JSON.stringify(al
   for (let i = 0; i < length; i++) out = out.flatMap(s => alphabet.map(a => [...s, a]));
   return out;
 });
+// Every story of choices made in turn, one from each list: the lists may
+// differ from step to step, like the tickets left in a cup.
+export const product = lists => remember(`prod:${JSON.stringify(lists)}`, () => lists.reduce((out, list) => out.flatMap(s => list.map(x => [...s, x])), [[]]));
 // Rows of lettered cups: one letter per home, homes in order A, B, C, …
 export const LETTERS = 'ABCDEF';
 export const letters = n => LETTERS.slice(0, n);
@@ -73,12 +76,13 @@ export const evenGroups = groups => groups.length > 0 && groups.every(g => g.key
 // Drawing. `mini(key)` is the family's small picture of a case and `say(key)`
 // its spoken name. A kept case is a button when `load` is given (tapping it
 // sends that case back to the board); `current` marks the case on the board.
+// Every kept case carries `data-key`, for a family's arrival animation.
 function item(key, o) {
   const cls = `case-kept${key === o.current ? ' current' : ''}`;
   const name = esc(o.say(key) + (key === o.current ? ', on the board' : ''));
   return o.load
-    ? `<li><button type="button" class="${cls}" data-case="${esc(key)}" data-focus="case-${esc(key)}" aria-label="${name}">${o.mini(key)}</button></li>`
-    : `<li class="${cls}" aria-label="${name}">${o.mini(key)}</li>`;
+    ? `<li><button type="button" class="${cls}" data-case="${esc(key)}" data-key="${esc(key)}" data-focus="case-${esc(key)}" aria-label="${name}">${o.mini(key)}</button></li>`
+    : `<li class="${cls}" data-key="${esc(key)}" aria-label="${name}">${o.mini(key)}</li>`;
 }
 const list = (keys, o, cls = '') => `<ol class="case-list${cls}">${keys.map(key => item(key, o)).join('')}</ol>`;
 export function shelfHTML(kept, o) {
@@ -122,13 +126,22 @@ const colour = letter => LETTERS.indexOf(letter);
 const cupSVG = '<svg viewBox="0 0 100 108" aria-hidden="true"><path d="M23 13h54l11 80q-38 16-76 0z" fill="currentColor" stroke="#142b48" stroke-width="3"/><path d="M26 14q24 9 48 0" fill="none" stroke="#142b48" stroke-width="3"/></svg>';
 // The board. `o.pinned` lists homes whose cups never move; `o.picked` is the
 // home chosen first; `o.hinted` lists homes to glow; `o.still` disables every
-// cup (a solved board). A cup on its own home gets `at-home` on that home.
+// cup (a solved board). A cup on its own home gets `at-home` on that home,
+// unless `o.slots` numbers the homes 1, 2, 3, … as places with no letter.
+// `o.enabled`, when given, lists the only homes whose cups can be used. `o.inert`
+// draws cups that are pictures, not buttons, for a family that moves them some
+// other way.
 export function cupsBoard(row, o = {}) {
   const pinned = o.pinned || [], hinted = o.hinted || [];
   const spots = [...row].map((cup, h) => {
-    const home = LETTERS[h], pin = pinned.includes(home), still = o.still || pin, picked = o.picked === h, at = cup === home;
-    const label = `Home ${home}: cup ${cup}${at ? ', at home' : ''}${pin ? ', stays put' : ''}${picked ? ', chosen' : ''}`;
-    return `<div class="cup-position case-cup-spot"><button type="button" class="cup-button case-cup cup-color-${colour(cup)}${picked ? ' selected' : ''}${hinted.includes(h) ? ' hinted' : ''}${pin ? ' pinned' : ''}" data-cup="${h}" data-focus="cup-${h}" aria-label="${esc(label)}" aria-pressed="${picked}"${still ? ' aria-disabled="true"' : ''}>${cupSVG}<span class="cup-identity"><b>${cup}</b><i aria-hidden="true">${CUP_SYMBOLS[colour(cup)]}</i></span>${pin ? '<span class="case-pin" aria-hidden="true"></span>' : ''}</button><div class="cup-home case-home${at ? ' at-home' : ''}"><span aria-hidden="true">${CUP_SYMBOLS[h]}</span> ${home}</div></div>`;
+    const home = o.slots ? String(h + 1) : LETTERS[h], pin = pinned.includes(home), still = o.still || pin || (o.enabled && !o.enabled.includes(h)), picked = o.picked === h, at = !o.slots && cup === home;
+    const label = `${o.slots ? 'Slot' : 'Home'} ${home}: cup ${cup}${at ? ', at home' : ''}${pin ? ', stays put' : ''}${picked ? ', chosen' : ''}`;
+    const face = `${cupSVG}<span class="cup-identity"><b>${cup}</b><i aria-hidden="true">${CUP_SYMBOLS[colour(cup)]}</i></span>${pin ? '<span class="case-pin" aria-hidden="true"></span>' : ''}`;
+    const cls = `cup-button case-cup cup-color-${colour(cup)}${picked ? ' selected' : ''}${hinted.includes(h) ? ' hinted' : ''}${pin ? ' pinned' : ''}`;
+    const body = o.inert
+      ? `<span class="${cls}" data-cup="${h}" role="img" aria-label="${esc(label)}">${face}</span>`
+      : `<button type="button" class="${cls}" data-cup="${h}" data-focus="cup-${h}" aria-label="${esc(label)}" aria-pressed="${picked}"${still ? ' aria-disabled="true"' : ''}>${face}</button>`;
+    return `<div class="cup-position case-cup-spot">${body}<div class="cup-home case-home${at ? ' at-home' : ''}${o.slots ? ' case-slot' : ''}">${o.slots ? '' : `<span aria-hidden="true">${CUP_SYMBOLS[h]}</span> `}${home}</div></div>`;
   }).join('');
   return `<div class="cup-board case-cups" style="--cups:${row.length}" role="group" aria-label="${esc(o.label || 'Cups on their homes')}">${spots}</div>`;
 }
@@ -141,7 +154,8 @@ export const swapRow = (row, i, j) => { const r = [...row]; [r[i], r[j]] = [r[j]
 // Tap one cup and then another to swap them, or drag one onto another.
 // `swap(i, j)` returns the move (or null); `pick(h)` keeps the first choice.
 export function wireCups(root, {picked, pick, swap}) {
-  const usable = el => el && root.contains(el) && el.getAttribute('aria-disabled') !== 'true';
+  // Only cup buttons move: a disabled cup or an inert picture never does.
+  const usable = el => el && root.contains(el) && el.tagName === 'BUTTON' && el.getAttribute('aria-disabled') !== 'true';
   root.addEventListener('click', e => {
     const el = e.target.closest('[data-cup]');
     if (!usable(el)) return;

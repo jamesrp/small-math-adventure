@@ -8,6 +8,7 @@
 .case-cups{max-width:520px;margin:.6rem auto .4rem;touch-action:manipulation}
 .case-cups .case-cup{touch-action:none;cursor:pointer}
 .case-cups .case-cup[aria-disabled="true"]{cursor:default;touch-action:auto}
+.case-cups span.case-cup{display:block;cursor:default;touch-action:auto}
 .case-pin{position:absolute;left:50%;top:-4px;width:14px;height:14px;transform:translateX(-50%);border-radius:50%;background:var(--b-ink,#294439);box-shadow:0 0 0 2px var(--b-card,#fffdf5)}
 .case-home{font-family:var(--b-display,Georgia,serif);font-size:1.05rem}
 .board-panel .case-home.at-home{color:#7a5512;background:#f6ebcf;border-color:var(--b-ochre,#b38840);border-radius:7px 7px 0 0}

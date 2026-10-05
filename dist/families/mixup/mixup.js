@@ -218,5 +218,5 @@ export default {
   mechanics: mixupMechanics,
   pack: new URL('./mixup.json', import.meta.url).href,
   css: new URL('./mixup.css', import.meta.url).href,
-  focus: '.case-cup:not([aria-disabled]),.case-action:not([disabled])'
+  focus: 'button.case-cup:not([aria-disabled]),.case-action:not([disabled])'
 };
