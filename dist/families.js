@@ -6,7 +6,8 @@
 // app never starts; tests/family-imports.test.mjs names what is safe.
 const paths = [
   './proofs.js',
-  './families/chips/chips.js'
+  './families/chips/chips.js',
+  './families/flow/flow.js'
 ];
 
 export const FAMILIES = await Promise.all(paths.map(path => import(path).then(module => module.default)));
