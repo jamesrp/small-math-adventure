@@ -3,7 +3,7 @@
 // The families that use it test their own rules.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {permutations, sequences, rowsOf, isRow, atHome, differences, keepCase, missingCases, claimCases, validShelf, nearestCase, groupCases, hoopCases, evenGroups, shelfHTML, binsHTML, hoopsHTML, catalogHTML, cupsBoard, cupMini, swapRow} from '../dist/cases.js';
+import {permutations, sequences, product, rowsOf, isRow, atHome, differences, keepCase, missingCases, claimCases, validShelf, nearestCase, groupCases, hoopCases, evenGroups, shelfHTML, binsHTML, hoopsHTML, catalogHTML, cupsBoard, cupMini, swapRow} from '../dist/cases.js';
 
 const mini = key => `<b>${key}</b>`, say = key => `row ${key}`;
 
@@ -13,6 +13,9 @@ test('every case: permutations in dictionary order, sequences, rows of cups', ()
   assert.equal(typeof permutations(['1', '2', '3'])[0][0], 'string', 'numbers and their strings are cached apart');
   assert.equal(sequences(['R', 'B'], 3).length, 8);
   assert.deepEqual(sequences(['R', 'B'], 2).map(s => s.join('')), ['RR', 'RB', 'BR', 'BB']);
+  assert.deepEqual(product([[1, 2, 3], [2, 3]]).map(s => s.join('')), ['12', '13', '22', '23', '32', '33'], 'one from each list, in turn');
+  assert.deepEqual(product([]), [[]]);
+  assert.equal(product([[1, 2], [1, 2], [1, 2]]).length, 8);
   assert.equal(rowsOf(5).length, 120);
   assert.equal(rowsOf(4)[0], 'ABCD');
   assert.equal(isRow(3, 'CAB'), true);
@@ -57,10 +60,11 @@ test('drawing: a shelf of buttons that load, columns, two hoops and a catalog', 
   assert.match(shelf, /class="case-kept current"[^>]*data-case="CAB"[^>]*aria-label="row CAB, on the board"/);
   assert.equal(shelfHTML([], {mini, say}), '', 'an empty shelf draws nothing');
   assert.doesNotMatch(shelfHTML(['BCA'], {mini, say}), /data-case/, 'without load the cases are pictures');
+  assert.match(shelfHTML(['BCA'], {mini, say}), /<li class="case-kept" data-key="BCA"/, 'every kept case names its key for animations');
   const bins = binsHTML(['BCA'], [{id: 'B', label: 'B'}, {id: 'C', label: 'C'}], key => key[0], {mini, say, always: true});
   assert.equal((bins.match(/class="case-bin"/g) || []).length, 2, 'empty bins keep their place');
   const hoops = hoopsHTML(['ABC', 'ACB', 'CBA'], [{label: 'A', say: 'A at home', has: k => k[0] === 'A'}, {label: 'B', say: 'B at home', has: k => k[1] === 'B'}], {mini, say});
-  assert.match(hoops, /case-hoop-part both" role="group" aria-label="A at home and B at home"><ol class="case-list"><li class="case-kept" aria-label="row ABC">/);
+  assert.match(hoops, /case-hoop-part both" role="group" aria-label="A at home and B at home"><ol class="case-list"><li class="case-kept" data-key="ABC" aria-label="row ABC">/);
   assert.doesNotMatch(hoops, /outside/, 'no outside part when every case is in a hoop');
   const cat = catalogHTML(['ABC', 'BCA', 'CAB'], [{id: 'A', label: 'A'}, {id: 'B', label: 'B'}, {id: 'C', label: 'C'}], k => k[0], {mini, say, mark: k => k === 'ABC' ? 'no' : 'yes'});
   assert.match(cat, /case-kept no/);
@@ -78,4 +82,16 @@ test('cups: one button per home, a pinned cup stays, and a cup at home marks its
   assert.equal((html.match(/ hinted/g) || []).length, 2);
   assert.match(cupsBoard('ABC', {still: true}), /aria-disabled="true"[^]*aria-disabled="true"[^]*aria-disabled="true"/);
   assert.equal((cupMini('CAB').match(/<i class="cm/g) || []).length, 3);
+});
+
+test('cups in numbered slots: no home letters, only the enabled cups usable, or pictures only', () => {
+  const html = cupsBoard('ABC', {slots: true, picked: 0, enabled: [0, 2]});
+  assert.match(html, /data-cup="0"[^>]*aria-label="Slot 1: cup A, chosen" aria-pressed="true">/, 'a cup in its own slot is not "at home"');
+  assert.match(html, /data-cup="1"[^>]*aria-label="Slot 2: cup B"[^>]*aria-disabled="true"/);
+  assert.doesNotMatch(html, /data-cup="2"[^>]*aria-disabled/);
+  assert.doesNotMatch(html, /at-home/);
+  assert.equal((html.match(/case-home case-slot">\d<\/div>/g) || []).length, 3, 'slots are bare numbers');
+  const picture = cupsBoard('BAC', {slots: true, inert: true});
+  assert.doesNotMatch(picture, /<button/);
+  assert.equal((picture.match(/<span class="cup-button[^"]*" data-cup="\d" role="img" aria-label="Slot \d: cup [ABC]">/g) || []).length, 3);
 });

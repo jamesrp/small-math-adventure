@@ -1,0 +1,243 @@
+// Builds dist/families/shuffles/shuffles.json, the Ticket shuffles pack, from
+// the authoring list below. What each puzzle asks for is computed here from
+// dist/families/shuffles/shuffles.js and checked against the list, and again,
+// by a separate simulation, in scripts/validate-shuffles.mjs.
+// Design notes and worksheet sources: docs/shuffles/README.md.
+import {writeFile} from 'node:fs/promises';
+import {targetKeys, passingDesigns} from '../dist/families/shuffles/shuffles.js';
+
+const WEEK43 = 'https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-43';
+export const sources = [
+  {id: 'shuffles-week43', title: 'Bellingham Math Circle — Week 43: Shuffling picture cards, K–1, grades 2–3 and grades 4–5 packets, bonus pages and adult guide', url: WEEK43, kind: 'local curriculum'},
+  {id: 'shuffles-knuth', title: 'Donald E. Knuth — The Art of Computer Programming, Volume 2: Seminumerical Algorithms, 3rd ed. (1997), §3.4.2, Algorithm P (shuffling)', url: 'https://www-cs-faculty.stanford.edu/~knuth/taocp.html', kind: 'book'},
+  {id: 'shuffles-wikipedia', title: 'Wikipedia — Fisher–Yates shuffle (the naive swap-with-any-slot bias, and Sattolo’s cyclic variant)', url: 'https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle', kind: 'reference'}
+];
+export const family = {
+  id: 'shuffles',
+  title: 'Ticket shuffles',
+  mathematics: 'A shuffle rule draws one ticket at each step from that step’s cup and swaps the step’s slot with the slot on the ticket, so a rule whose cups hold s₁, s₂, … tickets has s₁ · s₂ · … equally likely stories, and it is fair when every order of the cups comes from the same number of stories. Swapping slot 1 with any slot, then slot 2 with itself or any later slot, and so on (Fisher and Yates) gives n! stories and each order exactly once: a target order names its own story, one slot at a time. Swapping every slot with any slot gives nⁿ stories, and since n! does not divide nⁿ for n ≥ 3 that rule can’t be fair; for three cups its 27 stories make the six orders 4, 5, 5, 5, 4 and 4 times. Forbidding a slot to swap with itself makes only the orders that move every cup round one loop.',
+  rules: [
+    'Cups stand in numbered slots.',
+    'At each step one ticket is drawn from that step’s cup, and the step’s slot swaps with the slot on the ticket. A ticket for the slot itself changes nothing.',
+    'The tickets drawn, in order, are the story.'
+  ],
+  sourceIds: sources.map(s => s.id)
+};
+
+const RULES = family.rules;
+const DRAW = 'Tap a ticket, or tap the cup in that ticket’s slot, to draw it; the lifted cup is the slot that swaps. Again puts the cups back.';
+const KEEP_STORY = 'Keep puts the story on the shelf; tap a kept story to play it again. Press That’s all when every one is there.';
+const KEEP_ROW = 'Keep puts the row on the shelf. Press That’s all when every one is there.';
+const W = ['shuffles-week43'];
+const range = (a, b) => Array.from({length: b - a + 1}, (_, i) => a + i);
+// Slot k swaps with any of slots k…n: Fisher and Yates.
+const later = n => range(1, n - 1).map(k => ({slot: k, tickets: range(k, n)}));
+// Every slot swaps with any slot.
+const any = n => range(1, n).map(k => ({slot: k, tickets: range(1, n)}));
+
+const authored = [
+  {
+    number: 1, difficulty_level: 'easy', title: 'Make C A B',
+    parameters: {mode: 'target', cups: 3, start: 'ABC', steps: later(3), target: 'CAB'},
+    objective: 'Make C A B.',
+    idea: 'C must come to slot 1, so slot 1 swaps with slot 3; then A must come to slot 2, and it is in slot 3.',
+    prerequisites: 'Recognize the letters A, B and C and the numbers 1 to 3. No reading once a grown-up has read the goal.',
+    hints: ['Which cup has to end up in slot 1? Where is it now?', 'Draw ticket 3 first: C comes to slot 1.', 'Now A is in slot 3. Draw ticket 3 again.'],
+    parent: {
+      notice: 'The only story is 3, 3: ABC becomes CBA, then CAB.',
+      prompt: 'Is there another story that makes C A B?',
+      explanation: 'Slot 1 is settled by the first ticket and never touched again, so the first ticket must fetch C from slot 3. Then slot 2 must fetch A from wherever it now stands, slot 3. Each choice is forced, so 3, 3 is the only story.',
+      extension: 'Pick any order of A, B and C. Read its story off the same way.',
+      connection: 'Week 43 K–1 Problem 3 and grades 2–3 Problem 3: choosing the tickets that make a row.'
+    },
+    provenance: 'Week 43 two-swap rule (K–1 p. 3, grades 2–3 p. 2, grades 4–5 p. 2): tickets 1, 2, 3 for slot 1, then tickets 2, 3 for slot 2.',
+    sourceIds: W,
+    expect: 1
+  },
+  {
+    number: 2, difficulty_level: 'easy', title: 'Every story',
+    parameters: {mode: 'stories', cups: 3, start: 'ABC', steps: later(3)},
+    objective: 'Keep every story.',
+    idea: 'Three tickets, then two: six stories, and the shelf shows each order of the cups made by exactly one.',
+    prerequisites: 'Recognize the letters A, B and C and the numbers 1 to 3.',
+    hints: ['Draw two tickets, then Keep the story.', 'Try every first ticket, and with each one every second ticket.', 'There are three first tickets and two second tickets.'],
+    parent: {
+      notice: 'Six stories, one in each column: 12 ABC, 13 ACB, 22 BAC, 23 BCA, 32 CBA, 33 CAB.',
+      prompt: 'Does any order of the cups come out more often than another?',
+      explanation: 'Each story is as likely as any other, since every ticket in a cup has the same chance. Six stories and six orders, one story per order, so every order has the same chance: one in six. The rule is fair.',
+      extension: 'Puzzle 3 starts from B A C. Does that change anything?',
+      connection: 'This is the Fisher–Yates shuffle for three cups (Knuth, Algorithm P). Week 43 grades 2–3 Problem 2, grades 4–5 Problem 2.'
+    },
+    provenance: 'Week 43 grades 2–3 Problem 2 and grades 4–5 Problem 2: find every two-ticket story and its final order.',
+    sourceIds: [...W, 'shuffles-knuth'],
+    expect: 6
+  },
+  {
+    number: 3, difficulty_level: 'medium', title: 'Start from B A C',
+    parameters: {mode: 'stories', cups: 3, start: 'BAC', steps: later(3)},
+    objective: 'Keep every story.',
+    idea: 'A new start moves the stories to new columns, but still one to each: the rule is fair from any start.',
+    prerequisites: 'Puzzle 2.',
+    hints: ['The stories are the same six as before. Where does each one end up now?', 'Keep each story as you make it.', 'Story 2, 2 makes A B C now.'],
+    parent: {
+      notice: 'One story per order again, but the stories have moved: 22 makes ABC and 12 makes BAC.',
+      prompt: 'Why can’t a new start make the rule unfair?',
+      explanation: 'Read the story off the target, as in puzzle 1: the first ticket names where the cup for slot 1 stands now, and the second names where the cup for slot 2 stands then. That works from any start, so every order still has exactly one story.',
+      extension: 'One fixed story can never make the same order from two different starts. Why not?',
+      connection: 'Week 43 grades 2–3 Problem 3 (start B A C) and grades 4–5 Problem 3 (start C B A).'
+    },
+    provenance: 'Week 43 grades 2–3 Problem 3: start with B A C and use the same two-swap rule.',
+    sourceIds: W,
+    expect: 6
+  },
+  {
+    number: 4, difficulty_level: 'medium', title: 'Ticket 1 is lost',
+    parameters: {mode: 'rows', cups: 3, start: 'ABC', steps: [{slot: 1, tickets: [2, 3]}, {slot: 2, tickets: [2, 3]}]},
+    objective: 'Keep every row these tickets can make.',
+    idea: 'Without ticket 1, A has to leave slot 1, so only the four rows without A first can happen.',
+    prerequisites: 'Puzzle 2 helps.',
+    hints: ['Draw two tickets, then Keep the row.', 'Can A stay in slot 1?', 'BAC, BCA, CBA and CAB.'],
+    parent: {
+      notice: 'Four rows: BAC, BCA, CAB and CBA. ABC and ACB can’t happen.',
+      prompt: 'Which rows are missing, and what do they have in common?',
+      explanation: 'The first swap must move a cup from slot 2 or 3 into slot 1, and slot 1 is never touched again, so A can’t end first. The other four rows each come from one story.',
+      extension: 'Lose ticket 3 from the first cup instead. Which rows can’t happen now?',
+      connection: 'Week 43 K–1 Problem 4: remove one ticket from the first set.'
+    },
+    provenance: 'Week 43 K–1 Problem 4: remove one ticket from the first set; which rows become impossible?',
+    sourceIds: W,
+    expect: 4
+  },
+  {
+    number: 5, difficulty_level: 'medium', title: 'Never itself',
+    parameters: {mode: 'rows', cups: 3, start: 'ABC', steps: [{slot: 1, tickets: [2, 3]}, {slot: 2, tickets: [3]}]},
+    objective: 'Keep every row these tickets can make.',
+    idea: 'With no slot allowed to swap with itself, only the two rows that move every cup one place round a loop come out.',
+    prerequisites: 'Puzzle 2 helps.',
+    hints: ['Draw two tickets, then Keep the row.', 'Two first tickets and one second ticket: how many stories?', 'BCA and CAB.'],
+    parent: {
+      notice: 'Only BCA and CAB. Every cup moves, and each moves one place round a loop.',
+      prompt: 'Is this a fair shuffle? Every row it makes is equally likely.',
+      explanation: 'Two stories make two rows, each half the time, but the other four rows never happen, so it doesn’t shuffle fairly. Each swap joins two loops into one, so the cups always end in a single loop of three.',
+      extension: 'With four cups, the same rule makes 3 · 2 · 1 = 6 rows: all the single loops of four.',
+      connection: 'Sattolo’s algorithm for a random cyclic order (Wikipedia, Fisher–Yates shuffle). Week 43 grades 4–5 Problem 5.'
+    },
+    provenance: 'Week 43 grades 4–5 Problem 5: swap slot 1 with slot 2 or 3, then swap slots 2 and 3.',
+    sourceIds: [...W, 'shuffles-wikipedia'],
+    expect: 2
+  },
+  {
+    number: 6, difficulty_level: 'hard', title: 'Any slot: A B C',
+    parameters: {mode: 'stories-for', cups: 3, start: 'ABC', steps: any(3), target: 'ABC'},
+    objective: 'Keep every story that ends A B C.',
+    idea: 'Every slot may swap with any slot: 27 stories. Four of them end where they started.',
+    prerequisites: 'Puzzle 2. Keep track of several three-ticket stories.',
+    hints: ['Draw three tickets. Keep the story if the cups end A B C.', 'Swapping and swapping back is one way.', 'Doing nothing is another: 1, 2, 3.'],
+    parent: {
+      notice: 'Four stories: 1 2 3 (nothing moves), 1 3 2, 2 1 3 and 3 2 1 (one swap, then the same swap back).',
+      prompt: 'Puzzle 7 asks the same for A C B. Which order do you think has more stories?',
+      explanation: 'The catalog after the solve shows all 27 stories by the order they make: 4, 5, 5, 5, 4 and 4. They can’t be equal, because 27 stories can’t be shared equally among 6 orders.',
+      extension: 'Which other orders have four stories?',
+      connection: 'The naive shuffle’s bias (Wikipedia, Fisher–Yates shuffle). Week 43 grades 2–3 Problems 5–6, grades 4–5 Problem 4.'
+    },
+    provenance: 'Week 43 grades 2–3 Problem 5: several different three-ticket stories that give the same final row.',
+    sourceIds: [...W, 'shuffles-wikipedia'],
+    expect: 4
+  },
+  {
+    number: 7, difficulty_level: 'hard', title: 'Any slot: A C B',
+    parameters: {mode: 'stories-for', cups: 3, start: 'ABC', steps: any(3), target: 'ACB'},
+    objective: 'Keep every story that ends A C B.',
+    idea: 'A C B has five stories, one more than A B C: the any-slot rule is not fair.',
+    prerequisites: 'Puzzle 6.',
+    hints: ['Draw three tickets. Keep the story if the cups end A C B.', 'Some stories start with ticket 1, some with 2 and some with 3.', 'With ticket 1 first: 1 2 2 and 1 3 3.'],
+    parent: {
+      notice: 'Five stories: 122, 133, 212, 231 and 311.',
+      prompt: 'Puzzle 6 found four stories for A B C. Is this rule fair?',
+      explanation: 'No. Every story is equally likely, so A C B comes out 5 times in 27 and A B C 4 times in 27. The catalog shows all six counts, 4, 5, 5, 5, 4, 4. Without listing anything: 27 is not a multiple of 6, so no rule with 27 equally likely stories can give six orders equal chances.',
+      extension: 'With four cups the any-slot rule has 4⁴ = 256 stories for 24 orders. Can it be fair?',
+      connection: 'Week 43 grades 2–3 Problem 6 and grades 4–5 Problem 4: 27 equally likely stories can’t make six equal piles.'
+    },
+    provenance: 'Week 43 grades 2–3 Problem 6 and grades 4–5 Problem 4: the 27-story rule cannot give six rows the same chance.',
+    sourceIds: [...W, 'shuffles-wikipedia'],
+    expect: 5
+  },
+  {
+    number: 8, difficulty_level: 'hard', title: 'Make B D A C',
+    parameters: {mode: 'target', cups: 4, start: 'ABCD', steps: later(4), target: 'BDAC'},
+    objective: 'Make B D A C.',
+    idea: 'Four cups need three steps, and each step fetches the cup its slot needs: one story per order, 4 · 3 · 2 = 24 in all.',
+    prerequisites: 'Puzzle 1.',
+    hints: ['Which cup goes in slot 1? Fetch it first.', 'Ticket 2 brings B to slot 1.', 'Then fetch D for slot 2 and A for slot 3.'],
+    parent: {
+      notice: 'The only story is 2, 4, 4: BACD, then BDCA, then BDAC.',
+      prompt: 'How many stories does this rule have? How many orders of four cups are there?',
+      explanation: 'Slot 1 must fetch B (ticket 2), slot 2 must fetch D (now in slot 4) and slot 3 must fetch A (now in slot 4). Each step is forced, so every order of four cups has exactly one story among the 4 · 3 · 2 = 24.',
+      extension: 'Write the story for D C B A without touching the cups.',
+      connection: 'Week 43 grades 4–5 Problem 6, and the Fisher–Yates shuffle for any number of cards (Knuth, Algorithm P).'
+    },
+    provenance: 'Week 43 grades 4–5 Problem 6: a four-card ticket-and-swap shuffle with one story per order.',
+    sourceIds: [...W, 'shuffles-knuth'],
+    expect: 1
+  },
+  {
+    number: 9, difficulty_level: 'hard', title: 'Design a fair shuffle',
+    parameters: {mode: 'design', cups: 4, start: 'ABCD', slots: [1, 2, 3]},
+    objective: 'Choose the tickets so every order comes from exactly one story.',
+    idea: 'The cups must hold 24 stories in all, so their sizes multiply to 4 · 3 · 2; then no two stories may meet.',
+    prerequisites: 'Puzzles 2 and 8.',
+    hints: ['Tap a ticket to take it out of a cup or put it back. Try it checks every story.', 'Four cups have 24 orders. How many stories do your ticket cups make?', 'The rule from puzzle 8 works: tickets 1–4, then 2–4, then 3 and 4.'],
+    parent: {
+      notice: 'Six choices pass, among them 1234 / 234 / 34 (puzzle 8’s rule) and 1234 / 24 / 234.',
+      prompt: 'Try it said two stories make the same order. Why can’t that rule be fixed by adding tickets?',
+      explanation: 'For every order to come from exactly one story there must be exactly 24 stories, so the cups hold 4, 3 and 2 tickets in some arrangement; and then every order must actually come out. Try it checks all the stories and, if the rule fails, shows two stories that meet or an order nothing makes. Adding a ticket can’t separate two stories that meet: both are still there, still making the same order.',
+      extension: 'Design a fair rule for five cups. How many stories does it have?',
+      connection: 'Week 43 grades 4–5 Problems 6 and 7: design four- and five-card ticket-and-swap shuffles with one story per order.'
+    },
+    provenance: 'Week 43 grades 4–5 Problem 6: design a four-card ticket-and-swap shuffle that gives every order the same chance, with exactly one story per order.',
+    sourceIds: [...W, 'shuffles-knuth'],
+    expect: 6
+  }
+];
+
+const playground = {
+  id: 'shuffles-playground', number: 0, title: 'Ticket shuffles playground', band: 'playground', difficulty_level: 'playground',
+  parameters: {mode: 'playground'},
+  objective: 'Draw tickets and keep any stories you like.',
+  controls: 'Choose three or four cups and a rule. Tap a ticket, or the cup in that ticket’s slot, to draw it; Draw finishes a story at random. Keep puts the story in the column for the order it makes; tap a kept story to play it again. Again puts the cups back and Clear empties the shelf.',
+  rules: RULES,
+  idea: 'Free play with three rules: itself or later (fair), any slot (27 stories with three cups) and never itself.',
+  prerequisites: 'None. Grown-ups can suggest a question from the puzzles.',
+  hints: ['Fill every column with Itself or later.', 'Which columns stay empty with Never itself?', 'With Any slot, which column fills up first?'],
+  parent: {
+    notice: 'With three cups, Itself or later puts exactly one story in each column, Any slot puts 4 or 5, and Never itself fills only the two columns where every cup has moved round one loop.',
+    prompt: 'Press Draw many times with Any slot. Does a short run show which orders are more likely?',
+    explanation: 'Random draws only suggest; a few dozen can easily come out uneven for a fair rule or even for an unfair one. Listing every story settles it: the columns hold the exact counts.',
+    extension: 'With four cups, Itself or later has 24 stories, one per order; Any slot has 256 for 24 orders.',
+    connection: 'Week 43 materials: three cards, a cup and tickets 1, 2, 3.'
+  },
+  provenance: 'Week 43 materials and launch: cards A, B, C, a three-slot strip and tickets 1, 2, 3 in a cup.',
+  sourceIds: [...W, 'shuffles-knuth']
+};
+
+const puzzles = [playground, ...authored].map(({expect, sourceIds, parent, ...p}) => {
+  const q = p.parameters;
+  const count = q.mode === 'design' ? passingDesigns(q).length : q.mode === 'playground' ? undefined : targetKeys(q).length;
+  if (expect !== undefined && count !== expect) throw Error(`${p.number}: ${count}, not ${expect}`);
+  const controls = q.mode === 'playground' ? p.controls : q.mode === 'target' ? DRAW : q.mode === 'design' ? 'Tap a ticket to put it in its step’s cup or take it out. Try it checks every story.' : `${DRAW} ${q.mode === 'rows' ? KEEP_ROW : KEEP_STORY}`;
+  return {
+    id: q.mode === 'playground' ? p.id : `shuffles-${String(p.number).padStart(2, '0')}`,
+    number: p.number, title: p.title, band: p.band || 'all', difficulty_level: p.difficulty_level,
+    mechanic: 'shuffles', familyTitle: family.title, revision: 1, parameters: q,
+    objective: p.objective, instruction: p.objective, controls, rules: p.rules || RULES,
+    idea: p.idea, prerequisites: p.prerequisites, hints: p.hints,
+    parent: {...parent, sourceIds}, provenance: p.provenance, sourceDocument: 'docs/shuffles/README.md'
+  };
+});
+
+export const pack = {title: family.title, version: 1, families: [family], sources, puzzles};
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  await writeFile(new URL('../dist/families/shuffles/shuffles.json', import.meta.url), `${JSON.stringify(pack, null, 2)}\n`);
+  console.log(`Wrote ${puzzles.length} puzzles.`);
+}

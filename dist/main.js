@@ -78,7 +78,8 @@ function render(){
   viewState.restore();
 }
 // Each family module names the control that takes focus when the focused one is gone.
-const familyFocus=()=>FAMILIES.reduce((found,m)=>found||(m.focus?app.querySelector(m.focus):null),null);
+// The open puzzle's own module goes first, so a selector another family shares can't win.
+const familyFocus=()=>{const mechanic=puzzle()?.mechanic,own=FAMILIES.filter(m=>m.mechanics&&Object.hasOwn(m.mechanics,mechanic));return [...own,...FAMILIES].reduce((found,m)=>found||(m.focus?app.querySelector(m.focus):null),null);};
 function tapTile(p,cell){
   const a=attempt(p);
   if(activeEncounter()&&isSolved(p,a.board))return;

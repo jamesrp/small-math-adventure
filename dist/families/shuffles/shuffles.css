@@ -1,0 +1,25 @@
+@import url('../../cases.css');
+/* Ticket shuffles: cups in numbered slots, a cup of tickets for each step,
+   and the shared shelf below. */
+.shuffle-puzzle,.shuffle-play{display:flex;flex-direction:column;align-items:center;gap:.7rem;width:100%}
+.shuffle-play .case-tools .case-action{font-size:.95rem}
+.shuffle-steps{display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem}
+.shuffle-step{display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:.4rem .6rem .55rem;border:1.5px solid var(--b-line,#d0d6bd);border-radius:14px;background:var(--b-paper,#f5f1e6);opacity:.6}
+.shuffle-step.now,.shuffle-step.done{opacity:1}
+.shuffle-step.now{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e);background:var(--b-card,#fffdf5)}
+.shuffle-step-label{font-size:.8rem;font-weight:600;color:var(--b-muted,#5a6850);white-space:nowrap}
+.shuffle-cup{display:flex;gap:.35rem}
+.board-panel .shuffle-ticket{min-width:44px;min-height:44px;padding:0 .2rem;border:1.5px dashed var(--b-ink,#294439);border-radius:8px;background:#fff8dc;color:var(--b-ink,#294439);font-family:var(--b-display,Georgia,serif);font-size:1.15rem;font-weight:700;cursor:pointer;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.board-panel .shuffle-ticket[disabled]{cursor:default;box-shadow:none}
+.board-panel .shuffle-ticket.drawn{background:var(--b-pine,#31533e);border-style:solid;color:#fffdf5}
+.board-panel .shuffle-step.done .shuffle-ticket:not(.drawn){opacity:.35}
+.board-panel .shuffle-ticket.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:2px}
+/* A story: the tickets drawn, as small paper tickets. */
+.shuffle-story i{background:#fff8dc;border-style:dashed;font-weight:700}
+@media (max-width:420px){.shuffle-step{padding:.35rem .4rem .45rem}.shuffle-step-label{font-size:.75rem}}
+/* A design: each ticket is in its step's cup (solid) or out of it (faded). */
+.board-panel .shuffle-step.design{opacity:1}
+.board-panel .shuffle-ticket.in{background:#fff8dc;border-style:solid}
+.board-panel .shuffle-ticket.out{background:transparent;opacity:.45}
+.shuffle-verdict{display:flex;flex-direction:column;align-items:center;gap:.3rem}
+.shuffle-pair{display:flex;align-items:center;gap:.5rem;margin:0}
