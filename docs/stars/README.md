@@ -1,6 +1,6 @@
 # Clockwork Gates stars
 
-October 5, 2026. Twelve puzzles built from Week 4 of the Bellingham math circle (star drawing on a ring of dots), added to Clockwork Gates as its **Stars** group. They are in the puzzle satchel only, not on the Lantern Road. None of this has been played by children in the app yet; the Week 4 worksheets have not been piloted either. The theme's review card is `plans/review/week-04.md` in the worksheets repository.
+October 5, 2026. Twelve puzzles built from Week 4 of the Bellingham math circle (star drawing on a ring of dots), added to Clockwork Gates as its **Stars** group. They are in the puzzle satchel only, not on the Lantern Road. None of this has been played by children in the app yet; the Week 4 worksheets have not been piloted either. The theme's review card is `plans/review/week-04.md` in the worksheets repository. Its App fit section shaped two puzzles: with only n − 1 hops a child can try them all, so puzzles 4 and 5 let the child say that no hop works, and puzzle 5 is the card's “can't”: 3 pieces on 16 dots would need 3 equal piles.
 
 Clockwork Gates is a candidate for rework in the horizontal plan. This port adds a group only and leaves the family itself alone.
 
@@ -13,7 +13,7 @@ Put n dots evenly around a ring. A **hop** of k draws a straight line from a dot
 - **Every hop makes one piece exactly when n is prime.** If n has a factor d with 1 < d < n, hop d comes back after n / d hops.
 - **Hop k and hop n − k draw the same picture,** in the other direction. A piece of hop k on n dots is the star polygon {m/j} with m = n / gcd(n, k) and j = k / gcd(n, k), so 10 dots with hop 4 draws two five-pointed stars {5/2}.
 
-What is checked in the app: that the child's drawing follows the hop, starts again only at a dot with no line, and finishes with the asked number of pieces or the asked picture; in the hard rounds, that the child marks exactly the hops or rings that make one piece. What is not checked: that the child can say why. The grown-up notes carry the explanations.
+What is checked in the app: that the child's drawing follows the hop, starts again only at a dot with no line, and finishes with the asked number of pieces or the asked picture; that a claim that no hop works is true (puzzle 5) and refused when false (puzzle 4); in the hard rounds, that the child marks exactly the hops or rings that make one piece. What is not checked: that the child can say why. The grown-up notes carry the explanations.
 
 ## Where they appear
 
@@ -24,8 +24,8 @@ What is checked in the app: that the child's drawing follows the hop, starts aga
 | 1 | Easy | Five dots, hop 2 | Draw | Finish the drawing | 1 piece | Whole-group launch |
 | 2 | Easy | Six dots, hop 2 | Draw | Finish the drawing | 2 pieces | K–1 Problem 3 |
 | 3 | Easy | Two pieces on eight | Choose a hop | 2 pieces | Hops 2, 6 | 2–3 Problem 1, turned around |
-| 4 | Medium | Three pieces on twelve | Choose a hop | 3 pieces | Hops 3, 9 | 2–3 Problem 3; 4–5 Problem 1 |
-| 5 | Medium | Two pieces on ten | Choose a hop | 2 pieces | Hops 2, 4, 6, 8 | 2–3 Problem 2 |
+| 4 | Medium | Three pieces on twelve | Choose a hop, or say none can | 3 pieces | Hops 3, 9 | 2–3 Problem 7, new ring |
+| 5 | Medium | Three pieces on sixteen | Choose a hop, or say none can | 3 pieces | None: 16 dots don't split into 3 equal piles | 2–3 Problem 7 (the card's “can't”) |
 | 6 | Medium | Hop 6, three pieces | Choose a ring (7–16) | 3 pieces | Rings 9, 15 | 2–3 Problem 7, new instance |
 | 7 | Medium | The eight-pointed star | Match a picture (rings 5–12) | {8/3} | 8 dots, hop 3 or 5 | 4–5 Problem 9, new instance |
 | 8 | Hard | Hop 8, four pieces | Choose a ring (9–20) | 4 pieces | Rings 12, 20 | 4–5 Problems 2–3, new instance |
@@ -34,13 +34,13 @@ What is checked in the app: that the child's drawing follows the hop, starts aga
 | 11 | Hard | Every one-piece hop | One-check rounds | Mark every one-piece hop on 30, 24, 36, 20 dots | φ(n) hops each | 4–5 Problems 3, 7 |
 | 12 | Hard | Rings where every hop is one piece | One-check rounds | Mark every such ring in 4–20, 10–30, 20–40 | The primes | 4–5 Problem 8 |
 
-The worksheets are in [math-circle-worksheets, week 4](https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-04). Every instance after puzzle 5 is new; each puzzle's `provenance` names the problems it draws on. The worksheet's code wheels (Caesar shifts) and times-table pictures are left to paper.
+The worksheets are in [math-circle-worksheets, week 4](https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-04). Puzzles 6 to 10 are new instances; each puzzle's `provenance` names the problems it draws on. The worksheet's code wheels (Caesar shifts) and times-table pictures are left to paper.
 
 ## How a puzzle plays
 
 - **The ring is the control.** Each dot is a button. The first tap puts the pen on a dot (it glows). Each later tap must be the dot the hop lands on, counting clockwise; any other dot shakes and nothing is drawn. When the line comes back to where this piece started, the pen lifts, and the next tap must be a dot with no line. Lines are coloured by piece, and the middle of the ring shows one coloured dot per piece so far (with empty slots for the asked number, when there is one).
 - **Draw** (puzzles 1, 2): the hop is given.
-- **Choose a hop** (3–5): the first line sets the hop for the whole drawing. Again clears the drawing and the hop.
+- **Choose a hop** (3–5): the first line sets the hop for the whole drawing. Again clears the drawing and the hop. In 4 and 5, after one finished drawing, a button says that no hop makes 3 pieces. It is checked: refused with “Some hop does make 3 pieces” on 12 dots, accepted on 16. Hints in these two show the authored hints only.
 - **Choose a ring** (6, 8): the hop is given; a row of numbers picks the ring. Choosing a ring clears the drawing.
 - **Match a picture** (7, 9, 10): a card shows a finished drawing. Choose a ring, then draw with any hop; the drawing must be the same picture, forward or backward.
 - **One-check rounds** (11, 12): tap every number that belongs, then Check. There is one check per question: a miss outlines the answer and Next brings a different question. A correct check solves the puzzle. Rounds have no Undo, and Hint shows the authored hints by level.
@@ -49,7 +49,7 @@ The worksheets are in [math-circle-worksheets, week 4](https://github.com/jamesr
 ## Rules that keep the record honest
 
 - Only the hop's dot, or a new start on a dot with no line after a piece closes, is accepted. Nothing is accepted after the drawing is finished.
-- Saves are replayed from the taps: the ring must be one offered, every tap must follow the rules, and there are at most 200 taps.
+- Saves are replayed from the taps: the ring must be one offered, every tap must follow the rules, and there are at most 200 taps. In puzzles 4 and 5 a save with a finished drawing must count it as tried, a claim is saved only when it is true, and a refusal only when the claim was false.
 - A round's save must name a real round and marks from its choices; a checked round needs at least one mark.
 
 ## Files
@@ -60,8 +60,8 @@ The worksheets are in [math-circle-worksheets, week 4](https://github.com/jamesr
 | `dist/families/stars/stars.css` | The ring of dot buttons, piece colours, the piece count, the picker, the goal card and the rounds' grid |
 | `dist/families/stars/stars.json` | The pack: 12 puzzles, the group's mathematics and 3 sources |
 | `scripts/build-stars.mjs` | Authoring list; computes each puzzle's answers by drawing and writes the pack |
-| `scripts/validate-stars.mjs` | Recomputes every answer from gcd and primes; draws every hop on every offered ring and checks it solves exactly when it should; checks that hints alone finish every drawing from a fresh board and from a wrong hop or ring, the rounds, illegal taps and forged saves; run by `npm run build` |
-| `tests/stars.test.mjs` | Pieces, drawing and starting again, the first line setting the hop, rings, matching, hints, rounds, saves, rendering and the satchel group |
+| `scripts/validate-stars.mjs` | Recomputes every answer from gcd and primes; draws every hop on every offered ring and checks it solves exactly when it should; checks that hints alone finish every drawing from a fresh board and from a wrong hop or ring, claims after every finished drawing, the rounds, illegal taps and forged saves; run by `npm run build` |
+| `tests/stars.test.mjs` | Pieces, drawing and starting again, the first line setting the hop, rings, matching, hints, claims, rounds, saves, rendering and the satchel group |
 
 The module adds no satchel family; its puzzles set `libraryFamily: "clock"` and `group: "Stars"`. To change a puzzle, edit `scripts/build-stars.mjs`, then run `node scripts/build-stars.mjs`, `npm test` and `npm run build`.
 

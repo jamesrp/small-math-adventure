@@ -4,6 +4,8 @@
 // again at a dot with no line until every dot has one. Each start draws one
 // piece. On n dots, hop k makes gcd(n, k) pieces of n / gcd(n, k) dots each,
 // so every hop draws a single piece exactly when n and k share no factor.
+// A "decide" puzzle asks for a number of pieces that may be impossible: the
+// child may claim that no hop makes it, after one finished drawing.
 import {esc, actionButton} from '../../expansion-controls.js';
 
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -61,6 +63,8 @@ export function replay(q, board) {
   return {n, hop, lines, starts, pen, touched, complete: pen === null && touched.size === n && lines.length > 0};
 }
 const sameChords = (n, a, b) => (a - b) % n === 0 || (a + b) % n === 0;
+const decides = q => q.mode === 'starts' && q.decide === true;
+export const startsPossible = q => Array.from({length: q.dots - 1}, (_, i) => i + 1).some(k => pieces(q.dots, k).length === q.starts);
 function goalMet(q, run) {
   if (!run?.complete) return false;
   if (q.mode === 'draw') return true;
@@ -80,19 +84,27 @@ function validBoard(p, b) {
   if (!Array.isArray(b.taps) || b.taps.length > TAP_LIMIT) return false;
   if (q.mode === 'rings' || q.mode === 'match') { if (!(b.ring === null || q.choices.includes(b.ring))) return false; }
   else if (Object.hasOwn(b, 'ring')) return false;
-  return Boolean(replay(q, b));
+  const run = replay(q, b);
+  if (!run) return false;
+  if (!decides(q)) return !['tried', 'claimed', 'wrong'].some(key => Object.hasOwn(b, key));
+  // Board: {taps, tried, claimed, wrong}. `tried` counts finished drawings;
+  // a claim is saved only when it is true, a refused one only when false.
+  if (!integer(b.tried) || b.tried < (run.complete ? 1 : 0) || b.tried > TAP_LIMIT || typeof b.claimed !== 'boolean' || typeof b.wrong !== 'boolean') return false;
+  if (b.claimed && (startsPossible(q) || b.tried < 1 || b.wrong)) return false;
+  return !b.wrong || (startsPossible(q) && b.tried >= 1);
 }
 function solvedBoard(p, b) {
   if (!validBoard(p, b)) return false;
   const q = p.parameters;
   if (q.mode === 'every') return b.checked && sameSet(b.marked, roundAnswer(q, b.round));
-  return goalMet(q, replay(q, b));
+  return (decides(q) && b.claimed) || goalMet(q, replay(q, b));
 }
 const sameSet = (a, b) => a.length === b.length && a.every(v => b.includes(v));
 
 function fresh(p) {
   const q = p.parameters;
   if (q.mode === 'every') return {round: 0, marked: [], checked: false};
+  if (decides(q)) return {taps: [], tried: 0, claimed: false, wrong: false};
   return q.mode === 'rings' || q.mode === 'match' ? {ring: null, taps: []} : {taps: []};
 }
 function move(p, b, action) {
@@ -108,15 +120,22 @@ function move(p, b, action) {
     if (action.type === 'next' && b.checked) return {round: (b.round + 1) % q.rounds.length, marked: [], checked: false};
     return null;
   }
-  if (action.type === 'again') return b.taps.length ? {...b, taps: []} : null;
+  const clear = decides(q) ? {wrong: false} : {};
+  if (action.type === 'again') return b.taps.length ? {...b, taps: [], ...clear} : null;
+  if (action.type === 'claim') {
+    if (!decides(q) || b.tried < 1 || b.wrong) return null;
+    return startsPossible(q) ? {...b, wrong: true} : {...b, claimed: true};
+  }
   if (action.type === 'ring') {
     const ring = index(action.ring);
     if (!(q.mode === 'rings' || q.mode === 'match') || !q.choices.includes(ring) || ring === b.ring) return null;
     return {ring, taps: []};
   }
   if (action.type === 'tap') {
-    const next = {...b, taps: [...b.taps, index(action.dot)]};
-    if (next.taps.length > TAP_LIMIT || !replay(q, next)) return null;
+    const next = {...b, taps: [...b.taps, index(action.dot)], ...clear};
+    const run = next.taps.length > TAP_LIMIT ? null : replay(q, next);
+    if (!run) return null;
+    if (decides(q) && run.complete) next.tried = b.tried + 1;
     return next;
   }
   return null;
@@ -133,6 +152,7 @@ function hint(p, b) {
   if (!validBoard(p, b)) return {type: 'deadend', text: 'Restart to clear the drawing.'};
   if (solvedBoard(p, b)) return {type: 'done'};
   if (q.mode === 'every') return b.checked ? {type: 'move', action: {type: 'next'}, text: 'Try the next one.'} : {type: 'note'};
+  if (decides(q)) return {type: 'note'};
   const run = replay(q, b);
   // Which ring and hop reach the goal.
   let ring = run.n, hop = run.hop;
@@ -195,8 +215,10 @@ function renderDrawing(p, a) {
   const given = fixedHop(q) !== null && run.n === null ? `<span class="star-hop">Hop ${q.hop}</span>` : '';
   const board = run.n === null ? `<div class="star-ring empty" aria-hidden="true"></div>${given}` : ringBoard(p, a, run, hinted);
   const again = b.taps?.length && !solved ? moveButton('<span aria-hidden="true">↺</span> Again', {type: 'again'}, `secondary star-again${shown?.action?.type === 'again' ? ' hinted' : ''}`) : '';
+  const claim = decides(q) && !solved ? moveButton(`No hop makes ${q.starts}`, {type: 'claim'}, 'secondary star-claim', b.tried && !b.wrong ? '' : 'disabled') : '';
+  const said = !decides(q) ? '' : b.claimed ? `Right: no hop makes ${plural(q.starts, 'piece')} on ${q.dots} dots.` : b.wrong ? `Some hop does make ${plural(q.starts, 'piece')}. Keep looking.` : '';
   const status = run.n === null ? 'Choose a ring.' : `${run.hop === null ? '' : `Hop ${run.hop}. `}${plural(run.starts.length, 'piece')}. ${run.touched.size} of ${run.n} dots have a line.${run.complete && !solved ? ' The drawing is finished but does not match the goal.' : ''}`;
-  return `<div class="stars-puzzle mode-${q.mode}" data-mechanic-wire="stars">${goal}${picker}${board}<div class="star-tools">${again}</div><p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="stars-puzzle mode-${q.mode}" data-mechanic-wire="stars">${goal}${picker}${board}<div class="star-tools">${again}${claim}</div>${said ? `<p class="star-note${b.claimed ? ' good' : ''}" role="status">${esc(said)}</p><p class="sr-only">${esc(status)}</p>` : `<p class="sr-only" role="status">${esc(status)}</p>`}</div>`;
 }
 function renderRound(p, a) {
   const q = p.parameters, b = a.board, answer = roundAnswer(q, b.round), solved = solvedBoard(p, b);
