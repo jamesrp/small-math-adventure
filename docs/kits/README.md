@@ -1,6 +1,6 @@
 # Odd-pebble Balance weight kits
 
-October 5, 2026. Twelve puzzles and a playground built from Week 30 of the Bellingham math circle (two-pan weight kits), added to the Odd-pebble Balance as its **Weight kits** group. They are in the puzzle satchel only, not on the Lantern Road. No child has played them in the app, and the Week 30 worksheets have not been piloted either. The theme's review card is `plans/review/week-30.md` in the worksheets repository.
+October 5, 2026. Twelve puzzles and a playground built from Week 30 of the Bellingham math circle (two-pan weight kits), added to the Odd-pebble Balance as its **Weight kits** group. They are in the puzzle satchel only, not on the Lantern Road. No child has played them in the app, and the Week 30 worksheets have not been piloted either. The theme's review card, `plans/review/week-30.md` in the worksheets repository, says keep, and confirms the App fit: a new mechanic in the balance's art, with the beam giving the check the paper cards lack. Two of its warnings shaped the puzzles: find-every puzzles end with That's all and show no count, and a design puzzle should not be answerable by guessing 1, 3, 9 by pattern, so puzzle 12 extends 1, 3, 8, where the times-three guess (24) fails and only 25 works.
 
 ## The mathematics
 
@@ -31,9 +31,9 @@ What is checked in the app: that every lit target really balances with the kit a
 | 9 | Hard | Five with one, three and nine | Every way | 1, 3, 9 | 5 | One way: 5 + 1 + 3 = 9 | 4–5 Problem 3; 2–3 Problem 4 |
 | 10 | Hard | Two, three and nine | Which balance | 2, 3, 9 | 10–14 | All but 13, though 14 balances | New, after 2–3 Problem 3 |
 | 11 | Hard | Twenty-two | Balance | 1, 3, 9, 27 | 22 | 22 + 9 = 27 + 3 + 1 | New, after 4–5 Problem 6 |
-| 12 | Hard | A fourth weight | Choose 14–40 | 1, 3, 9, ? | 14, 22, 31, 40 | 27 only | 2–3 Problem 6; 4–5 Problem 6 |
+| 12 | Hard | A fourth weight | Choose 13–40 | 1, 3, 8, ? | 13, 20, 30, 37 | 25 only, not the times-three guess 24 | 2–3 Problem 6 and 4–5 Problem 6, on 1, 3, 8 |
 
-The worksheets are in [math-circle-worksheets, week 30](https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-30). Each puzzle's `provenance` names the problems it draws on; puzzles 5, 10 and 11 are new instances. Left to paper: the bound for any three-weight kit (2–3 Problem 5, 4–5 Problem 4), the most targets any kit can balance with gaps allowed (4–5 Problem 5), and five weights (4–5 Problem 7). Those are counting arguments, which the grown-up notes give.
+The worksheets are in [math-circle-worksheets, week 30](https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-30). Each puzzle's `provenance` names the problems it draws on; puzzles 5, 10, 11 and 12 are new instances. Left to paper: the bound for any three-weight kit (2–3 Problem 5, 4–5 Problem 4), the most targets any kit can balance with gaps allowed (4–5 Problem 5), and five weights (4–5 Problem 7). Those are counting arguments, which the grown-up notes give.
 
 ## How a puzzle plays
 
@@ -43,7 +43,7 @@ The worksheets are in [math-circle-worksheets, week 30](https://github.com/james
 - **Balance** (1, 2, 11): light every target.
 - **Which balance** (3, 4, 8, 10): light every target the kit can balance, then press That's all. That's all is refused with "Another target balances" while a dark target could balance. After a solve, the targets that cannot balance are struck through.
 - **Every way** (6, 9): each different placement that balances the target joins a list of equations. That's all is refused with "There is another way" while one is missing.
-- **Choose** (5, 7, 12): tap weights at the top to make the kit (puzzle 12 uses − and + over 14 to 40), then light every target. A weight that leaves the kit leaves the pans, and the targets it balanced go dark.
+- **Choose** (5, 7, 12): tap weights at the top to make the kit (puzzle 12 uses − and + over 13 to 40), then light every target. A weight that leaves the kit leaves the pans, and the targets it balanced go dark.
 - **Playground:** choose up to four of 1, 2, 3, 4, 5, 8, 9, 10 and 27, and light any target from 1 to 40. It starts with 1 and 3.
 - **Hints** first choose a kit that works, then the target to light, then the placement nearest the pans, naming the heaviest misplaced weight first ("Put 27 on the other pan", "Put 9 beside the target"). At the second level the button is outlined; the third applies it.
 
@@ -69,6 +69,6 @@ The module adds no satchel family; its puzzles set `libraryFamily: "weigh"` and 
 ## Not yet done
 
 - **Children's play.** Nothing here has been tried by children. Things to watch: whether children think of putting a weight beside the target without the hint (puzzle 1 depends on it), whether the totals under the pans help or turn the puzzle into sums, and whether the 9-target rows in puzzles 7 and 8 feel long.
-- **The counting bound.** Why no three weights balance 14 targets is a counting argument (27 placements). A puzzle could let a child see the 27 placements laid out as mirror pairs; nothing like that is built.
+- **The counting bound.** Why no three weights balance 14 targets is a counting argument (27 placements). The card suggests a certificate for the two-weight case: a 3 × 3 grid of all nine placements, showing at most four positive targets. Nothing like that is built.
 - **A playground in the Odd-pebble Balance.** The family had no playground, so its Playground button now opens weight kits. If the odd-pebble puzzles get a playground of their own, the two will need separate buttons.
 - **Story.** Weight kits are not on the Lantern Road.

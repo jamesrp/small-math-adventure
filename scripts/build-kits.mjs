@@ -234,20 +234,20 @@ const authored = [
   },
   {
     number: 12, difficulty_level: 'hard', title: 'A fourth weight',
-    parameters: {mode: 'choose', fixed: [1, 3, 9], choices: range(14, 40), pick: 1, targets: [14, 22, 31, 40]},
-    objective: 'Add one weight to 1, 3 and 9 so that targets 14, 22, 31 and 40 all balance, and balance them.',
+    parameters: {mode: 'choose', fixed: [1, 3, 8], choices: range(13, 40), pick: 1, targets: [13, 20, 30, 37]},
+    objective: 'Add one weight to 1, 3 and 8 so that targets 13, 20, 30 and 37 all balance, and balance them.',
     visibleObjective: 'Choose a fourth weight that balances every target.',
-    idea: '1, 3 and 9 add or take away up to 13, so the new weight must be within 13 of both 14 and 40: only 27.',
-    prerequisites: 'Weight kits puzzles 7 and 11.',
-    hints: ['Use − and + to choose the new weight.', '1, 3 and 9 add or take away anything up to 13. Which weights are within 13 of 14 and of 40?', 'Choose 27: 14 = 27 − 13 and 40 = 27 + 13.'],
+    idea: '1, 3 and 8 make every amount up to 12, so the new weight must be within 12 of both 13 and 37: only 25.',
+    prerequisites: 'Weight kits puzzles 6, 7 and 11.',
+    hints: ['Use − and + to choose the new weight.', '1, 3 and 8 add or take away any amount up to 12. Which weights are within 12 of 13 and of 37?', 'Choose 25: 13 = 25 − 12 and 37 = 25 + 12.'],
     parent: {
-      notice: 'Whether your child reasons from the two end targets rather than trying weights one by one.',
-      prompt: 'With 26, which target fails? With 28?',
-      explanation: 'Every target from 14 up needs the new weight w on the other pan, and 1, 3 and 9 then shift it by any amount up to 13 either way. So w − 13 ≤ 14 and w + 13 ≥ 40, which forces w = 27. With 27, the kit 1, 3, 9, 27 balances every target from 1 to 40, each in exactly one way.',
-      extension: 'With five weights, how far can the run go?',
-      connection: 'Each new weight one more than twice the old reach gives runs of 1, 4, 13, 40, 121 = (3^m − 1)/2, and the 3^m placements of m weights show no kit can do better.'
+      notice: 'Whether your child reasons from the two end targets, or guesses 24 from a times-three pattern.',
+      prompt: 'With 24, which target fails? With 26?',
+      explanation: '1, 3 and 8 balance every amount from 1 to 12. Every target from 13 up needs the new weight w on the other pan, and 1, 3 and 8 then shift it by any amount up to 12 either way. So w − 12 ≤ 13 and w + 12 ≥ 37, which forces w = 25. A times-three guess, 24, reaches only 36. With 25 the kit balances every target from 1 to 37.',
+      extension: 'Which fourth weight would carry 1, 3 and 9 furthest?',
+      connection: 'If a kit balances every target to R, a new weight w continues the run without a gap exactly when w ≤ 2R + 1, and w = 2R + 1 carries it to 3R + 1. Starting from 1, 3, 9 that gives 27 and 40, Bachet’s weights; starting from 1, 3, 8 (R = 12) it gives 25 and 37.'
     },
-    provenance: 'Week 30 grades 2–3 Problem 6 and grades 4–5 Problem 6 (a fourth weight for 1, 3, 9), with four spot targets in place of the whole run to 40.'
+    provenance: 'Week 30 grades 2–3 Problem 6 and grades 4–5 Problem 6 (a fourth weight for 1, 3, 9), on the kit 1, 3, 8 so that a times-three pattern does not answer it (the review card warns that number entry invites guessing 1, 3, 9 by pattern), with four spot targets in place of the whole run.'
   }
 ];
 

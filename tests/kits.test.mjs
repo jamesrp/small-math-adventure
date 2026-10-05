@@ -121,6 +121,7 @@ test('hints name a weight, a target or That’s all, and finish every puzzle', (
   assert.equal(nextHint(which, w).action.type, 'done');
   const choose = byId('kits-07');
   assert.match(nextHint(choose, freshAttempt(choose)).text, /Try weight 9/);
+  assert.deepEqual(pickAnswers(byId('kits-12').parameters), [[25]], 'not the times-three guess, 24');
   const play = byId('kits-playground');
   assert.equal(nextHint(play, freshAttempt(play)).type, 'note');
   for (const q of pack.puzzles.filter(x => x.band !== 'playground')) {
