@@ -1,0 +1,282 @@
+// Builds dist/families/orchard/orchard.json, the Mirror Couriers sight
+// lines group, from the authoring list below. Each puzzle's answer (the
+// trees to cut, where trees can hide each lantern, or the spots that see
+// every lantern) is computed here on the grid (dist/families/orchard/orchard.js)
+// and checked again with gcd by scripts/validate-orchard.mjs. Design notes and
+// sources: docs/orchard/README.md.
+import {writeFile} from 'node:fs/promises';
+import {plan, sight} from '../dist/families/orchard/orchard.js';
+
+const WEEK31 = 'https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-31';
+export const sources = [
+  {id: 'orchard-week31', title: 'Bellingham Math Circle — Week 31: Hidden orchard, packets and adult guide', url: WEEK31, kind: 'local curriculum'},
+  {id: 'orchard-crisman', title: 'Karl-Dieter Crisman — Number Theory: In Context and Interactive, §24.6.1 “Random integer lattice points” (the line-of-sight picture and its common-divisor explanation)', url: 'https://math.gordon.edu/ntic/', kind: 'undergraduate'},
+  {id: 'orchard-euclid', title: 'Euclid’s orchard: the lattice points visible from the origin are those with coprime coordinates', url: 'https://en.wikipedia.org/wiki/Euclid%27s_orchard', kind: 'reference'}
+];
+export const family = {
+  id: 'orchard',
+  title: 'Mirror Couriers sight lines',
+  mathematics: 'From the origin, the grid point (a, b) is hidden exactly when a and b share a factor d > 1: then the points (k·a/d, k·b/d) for k = 1, …, d − 1 lie exactly on the segment, and they are the only grid points on it, so there are d − 1 of them. Conversely a point a fraction t of the way along, with t = r/s in lowest terms, forces s to divide both a and b. So a lantern can be hidden by planting exactly when gcd(a, b) > 1, needs gcd(a, b) − 1 cuts to be seen in a full orchard, and every grid point lies on exactly one line from the courier, through its first point (a, b)/gcd(a, b). Visibility depends only on the steps from the courier to the lantern. In a full orchard a courier who shares both parities with a lantern never sees it, because the halfway point is a grid point; so four lanterns of all four parity colours can never be seen together.',
+  rules: [
+    'The courier sends a straight beam toward every lantern.',
+    'A beam stops at the first tree or lantern exactly on its line. Passing close to a point does not stop it.',
+    'A lantern is lit when its beam reaches it.'
+  ],
+  sourceIds: sources.map(s => s.id)
+};
+
+const RULES = family.rules;
+const CONTROLS = {
+  chop: 'Tap a tree to cut it, and tap a cut tree to put it back. Each beam goes straight from the courier and stops at the first tree or lantern exactly on its line. The beads by the field show the cuts you have left.',
+  plant: 'Tap an empty point to plant a tree, and tap a tree to take it away. Each beam goes straight from the courier and stops at the first tree or lantern exactly on its line. The beads by the field show the trees you have left.',
+  stand: 'Tap a tree to move the courier there. Every other point has a tree or a lantern. Each beam goes straight from the courier and stops at the first tree or lantern exactly on its line.'
+};
+const CLAIMS = {
+  plant: 'After your first move, “Some can’t be hidden” becomes available. A wrong claim is refused.',
+  stand: 'After your first move, “No spot sees them all” becomes available. A wrong claim is refused.'
+};
+const row = y => Array.from({length: 7}, (_, x) => [x, y]);
+
+const authored = [
+  {
+    number: 1, difficulty_level: 'easy', title: 'One tree in the way',
+    parameters: {mode: 'chop', size: 4, lanterns: [[4, 2]], budget: 1},
+    objective: 'Cut 1 tree so the courier can see the lantern.',
+    idea: 'The beam to the lantern 4 across and 2 up stops at the tree 2 across and 1 up, exactly halfway.',
+    prerequisites: 'None. Nothing to read on the board.',
+    hints: ['Follow the beam from the courier. Where does it stop?', 'The tree where the beam stops is in the way. Cut it.', 'Cut the tree 2 across and 1 up.'],
+    parent: {
+      notice: 'Whether your child cuts the tree the beam stops at, or a tree that is only near the line.',
+      prompt: 'Why does that tree block the lantern when the trees beside it don’t?',
+      explanation: 'The lantern is 4 across and 2 up. Going half as far in the same direction lands on the point 2 across and 1 up, which lies exactly on the line, so its tree stops the beam. No other point lies on that line.',
+      extension: 'Which lanterns on this field would have nothing in the way at all?',
+      connection: '(4, 2) = 2 × (2, 1). The common factor 2 of 4 and 2 puts one point on the line.'
+    },
+    provenance: 'Week 31 whole-group launch: O = (0, 0), T = (4, 2) and the blocker B = (2, 1).'
+  },
+  {
+    number: 2, difficulty_level: 'easy', title: 'Three in the way',
+    parameters: {mode: 'chop', size: 4, lanterns: [[4, 4], [4, 3]], budget: 3},
+    objective: 'Light both lanterns with at most 3 cuts.',
+    idea: 'The lantern at (4, 4) has three trees on its line, evenly spaced; the lantern at (4, 3) has none.',
+    prerequisites: 'Sight lines puzzle 1.',
+    hints: ['One lantern is already lit. Which tree stops the other beam?', 'After you cut a tree, the beam goes on to the next tree on the same line.', 'Cut the three trees on the diagonal.'],
+    parent: {
+      notice: 'Whether your child expects another tree in the way after the first cut, or is surprised each time.',
+      prompt: 'Why does the corner lantern need three cuts, and its neighbour none?',
+      explanation: '4 and 4 share the factor 4, so the line from the courier passes through (1, 1), (2, 2) and (3, 3): four equal steps, with three points between. 4 and 3 share no factor, so the line to (4, 3) passes between all the points.',
+      extension: 'How many trees stand in front of a lantern at (6, 6)? At (6, 4)?',
+      connection: 'A lantern at (a, b) has gcd(a, b) − 1 points on its line, the multiples of (a, b) ÷ gcd(a, b).'
+    },
+    provenance: 'Week 31 K–1 Problem 2 and grades 2–3 Problem 2: the complete blocker list for (4, 4), beside a visible neighbour.'
+  },
+  {
+    number: 3, difficulty_level: 'easy', title: 'Hide the lantern',
+    parameters: {mode: 'plant', size: 4, lanterns: [[2, 4]], budget: 1},
+    objective: 'Plant 1 tree so the courier can’t see the lantern.',
+    idea: 'Only the point 1 across and 2 up lies exactly on the line to (2, 4).',
+    prerequisites: 'Sight lines puzzles 1 and 2.',
+    hints: ['Plant a tree, and watch the beam.', 'The tree must sit exactly on the beam, between the courier and the lantern.', 'Plant halfway to the lantern: 1 across and 2 up.'],
+    parent: {
+      notice: 'Whether your child plants on a point the beam passes through, or beside it.',
+      prompt: 'Why did that spot work when the ones next to it didn’t?',
+      explanation: 'The lantern is 2 across and 4 up. Half of that is 1 across and 2 up, a point exactly on the line. The beam passes between every other point.',
+      extension: 'Where could a tree hide a lantern at (4, 2)? At (3, 2)?',
+      connection: 'Hiding a grid point needs a grid point strictly between it and the courier: (2, 4) = 2 × (1, 2).'
+    },
+    provenance: 'Week 31 K–1 Problem 2 turned around: plant the blocker instead of finding it.'
+  },
+  {
+    number: 4, difficulty_level: 'easy', title: 'One tree, three lanterns',
+    parameters: {mode: 'plant', size: 4, lanterns: [[2, 2], [3, 3], [4, 4]], budget: 1},
+    objective: 'Hide all three lanterns with 1 tree.',
+    idea: 'A lantern blocks the beams behind it, so one tree in front of the nearest lantern hides the whole line.',
+    prerequisites: 'Sight lines puzzle 3.',
+    hints: ['Two lanterns are dark already. What hides them?', 'Hide the nearest lantern; the others stay behind it.', 'Plant at 1 across and 1 up.'],
+    parent: {
+      notice: 'Whether your child notices that the far lanterns are hidden by the near one.',
+      prompt: 'Why were two lanterns dark before you planted anything?',
+      explanation: 'All three lanterns sit on the diagonal. The lantern at (2, 2) stands on the line to (3, 3) and to (4, 4), so it blocks them. The only free point in front of it is (1, 1).',
+      extension: 'Could one tree hide lanterns at (2, 2) and (2, 4)?',
+      connection: 'Every point except the courier lies on exactly one line from the courier, the line through its first point (a, b) ÷ gcd(a, b).'
+    },
+    provenance: 'Week 31 K–1 Problem 5 (a first dot hides every dot on its ray), as a planting puzzle.'
+  },
+  {
+    number: 5, difficulty_level: 'medium', title: 'A row of lanterns',
+    parameters: {mode: 'chop', size: 6, lanterns: row(3), budget: 6},
+    objective: 'Light every lantern with at most 6 cuts.',
+    idea: 'In the row 3 up, the lanterns 0, 3 and 6 across are hidden, each behind 2 trees; the other four are already lit.',
+    prerequisites: 'Sight lines puzzles 1–4.',
+    hints: ['Which lanterns in the row are dark? Where are they?', 'Each dark lantern has two trees on its line, evenly spaced.', 'Cut the two trees on each dark lantern’s line.'],
+    parent: {
+      notice: 'Whether your child sees which lanterns are dark before cutting, and whether they expect two trees on each line.',
+      prompt: 'Which lanterns in the row were dark at the start, and why those?',
+      explanation: 'A lantern x across and 3 up is hidden when x and 3 share a factor, which happens for x = 0, 3 and 6. Each shares the factor 3, so two trees stand on its line, a third and two thirds of the way along. The other four lanterns have nothing on their lines.',
+      extension: 'In the row 4 up, which lanterns are hidden, and how many trees stand in front of each?',
+      connection: 'Visible exactly when gcd(x, 3) = 1; a hidden lantern has gcd(x, 3) − 1 = 2 blockers.'
+    },
+    provenance: 'Week 31 K–1 Problem 4 and grades 2–3 Problem 6 (rows of visible and hidden dots), with the blocker counts of K–1 and grades 2–3 Problem 3.'
+  },
+  {
+    number: 6, difficulty_level: 'medium', title: 'Hide all three',
+    parameters: {mode: 'plant', size: 6, lanterns: [[6, 4], [6, 3], [4, 6]], budget: 3, decide: true},
+    objective: 'Hide every lantern with at most 3 trees, or say that some lantern can’t be hidden.',
+    visibleObjective: 'Hide every lantern, or say that some can’t be hidden.',
+    idea: 'Each lantern has a point exactly on its line: (3, 2); (2, 1) or (4, 2); and (2, 3).',
+    prerequisites: 'Sight lines puzzles 3 and 4.',
+    hints: ['Hide one lantern at a time. Where does its beam pass exactly through a point?', 'Try halfway, or a third of the way: does that land on a point?', 'Plant at 3 across 2 up, 2 across 1 up, and 2 across 3 up.'],
+    parent: {
+      notice: 'Whether your child looks for a point on each beam, or plants near the lanterns.',
+      prompt: 'How did you find a spot on each line?',
+      explanation: '(6, 4), (6, 3) and (4, 6) share the factors 2, 3 and 2. Dividing by the factor gives a point on the line: (3, 2); (2, 1) or (4, 2); and (2, 3). So every lantern can be hidden, and the claim that one can’t is refused.',
+      extension: 'Which lanterns on this field could never be hidden?',
+      connection: 'A grid point strictly between exists exactly when gcd > 1.'
+    },
+    provenance: 'Week 31 grades 2–3 Problem 2 (the blockers of (6, 4) and (6, 3)) and grades 4–5 Problem 4 (a common divisor gives a blocker), as planting puzzles with the option to say no.'
+  },
+  {
+    number: 7, difficulty_level: 'medium', title: 'Hide all three again',
+    parameters: {mode: 'plant', size: 6, lanterns: [[6, 4], [5, 3], [4, 6]], budget: 3, decide: true},
+    objective: 'Hide every lantern with at most 3 trees, or say that some lantern can’t be hidden.',
+    visibleObjective: 'Hide every lantern, or say that some can’t be hidden.',
+    idea: 'The lantern at (5, 3) can’t be hidden: 5 and 3 share no factor, so its line passes between the points.',
+    prerequisites: 'Sight lines puzzle 6.',
+    hints: ['Hide the lanterns you can. Is one left over?', 'Look closely at the beam to the last lantern. Does it pass exactly through any point?', 'It passes between the points, so no tree can stop it. Say so.'],
+    parent: {
+      notice: 'Whether your child decides from the beam passing between points, or only after trying many spots.',
+      prompt: 'How do you know no tree could ever hide that lantern?',
+      explanation: 'A point exactly on the line, strictly between, would be some fraction t of the way, with 0 < t < 1, and t × 5 and t × 3 would both be whole numbers. Write t in lowest terms: its bottom number must divide both 5 and 3, so it is 1, and then t is not between 0 and 1. So no point lies on the line to (5, 3), and nothing can be planted there.',
+      extension: 'Which other lanterns on this field can never be hidden? What do their numbers have in common?',
+      connection: 'The converse of the criterion (Week 31 grades 4–5 Problem 4): every blocker certifies a common divisor greater than 1.'
+    },
+    provenance: 'Week 31 grades 2–3 Problem 2 ((5, 3) has no blocker) and grades 4–5 Problem 4, as the “can’t” twin of puzzle 6.'
+  },
+  {
+    number: 8, difficulty_level: 'medium', title: 'Step among the trees',
+    parameters: {mode: 'stand', size: 6, lanterns: [[4, 4], [6, 3]]},
+    objective: 'Move the courier to a spot where it can see both lanterns.',
+    idea: 'Whether a lantern is hidden depends on the steps from the courier to it, not on where the lantern is.',
+    prerequisites: 'Sight lines puzzles 1–5.',
+    hints: ['From the corner both lanterns are hidden. Try standing somewhere else.', 'Watch where each beam stops. Move so that neither beam passes exactly through a point.', 'Try 3 across and 1 up.'],
+    parent: {
+      notice: 'Whether your child moves at random or aims for a spot after seeing which beams stop.',
+      prompt: 'Why can you see a lantern from one spot and not from the next?',
+      explanation: 'What matters is how many steps across and up lead from the courier to the lantern. From (3, 1), the lantern at (4, 4) is 1 across and 3 up, and the one at (6, 3) is 3 across and 2 up; neither pair shares a factor, so both beams get through. Fifteen spots work.',
+      extension: 'From which spots in the bottom row can the courier see both lanterns?',
+      connection: 'Visibility from v depends only on t − v: the lantern is hidden exactly when the two step counts share a factor. This is the Week 31 guide’s extension of moving the viewer.'
+    },
+    provenance: 'Week 31 adult guide, optional extension (move O to (1, 1) and work with displacements), on a new instance.'
+  },
+  {
+    number: 9, difficulty_level: 'hard', title: 'Four lanterns, three cuts',
+    parameters: {mode: 'chop', size: 6, lanterns: [[6, 4], [6, 3], [4, 4], [2, 6], [6, 2], [5, 4]], light: 4, budget: 3},
+    objective: 'Light 4 lanterns with at most 3 cuts.',
+    idea: 'Count the trees on each line before cutting: three lanterns need one cut each, one is already lit, and the others need two or three.',
+    prerequisites: 'Sight lines puzzles 1, 2 and 5.',
+    hints: ['Some lanterns need more cuts than others. Count the trees on each beam first.', 'One lantern is already lit. Find three that need only one cut each.', 'Light the lanterns at (6, 4), (2, 6) and (6, 2).'],
+    parent: {
+      notice: 'Whether your child counts the trees on each line before cutting.',
+      prompt: 'How did you choose which lanterns to light?',
+      explanation: 'The trees in front of a lantern number one less than the biggest number dividing both of its coordinates: (5, 4) needs none, (6, 4), (2, 6) and (6, 2) need one each (they share 2), (6, 3) needs two (it shares 3) and (4, 4) needs three. The only way to reach 4 lanterns with 3 cuts is the lit one plus the three that need one cut.',
+      extension: 'With 5 cuts, which 5 lanterns could you light?',
+      connection: 'The cost of a lantern at (a, b) is gcd(a, b) − 1; the blockers of different lanterns never overlap unless one lantern hides another.'
+    },
+    provenance: 'Week 31 K–1 Problem 3 and grades 2–3 Problem 3 (targets with exactly one or two blockers), as a choice under a budget.'
+  },
+  {
+    number: 10, difficulty_level: 'hard', title: 'See all three',
+    parameters: {mode: 'stand', size: 6, lanterns: [[1, 2], [2, 1], [2, 2]]},
+    objective: 'Move the courier to a spot where it can see every lantern.',
+    idea: 'Only six spots see all three lanterns, and all of them have both coordinates odd.',
+    prerequisites: 'Sight lines puzzle 8.',
+    hints: ['Which lantern is hardest to see? From where is it hidden?', 'From a spot two steps away in both directions, the point halfway is in the way.', 'Try 3 across and 1 up.'],
+    parent: {
+      notice: 'Whether your child starts to avoid spots an even number of steps away from a lantern in both directions.',
+      prompt: 'Which spots never work, and why?',
+      explanation: 'If the steps from the courier to a lantern are both even, the halfway point is a grid point and blocks the beam. The lanterns (1, 2), (2, 1) and (2, 2) use three of the four even–odd patterns, so the courier must stand where both coordinates are odd. Of those, (1, 1), (3, 1), (1, 3), (3, 3), (5, 3) and (3, 5) also avoid steps sharing a 3 or 5 with a lantern.',
+      extension: 'Add a lantern at (1, 1). Can the courier still see all four?',
+      connection: 'Parity is the first obstruction: (a, b) with a ≡ b ≡ 0 (mod 2) is never visible. Other primes give further obstructions, which is why only six of the odd–odd spots work.'
+    },
+    provenance: 'New instance extending the Week 31 guide’s moving-viewer extension; the parity idea is the reviewer’s addition, not in the packet.'
+  },
+  {
+    number: 11, difficulty_level: 'hard', title: 'See all four',
+    parameters: {mode: 'stand', size: 6, lanterns: [[1, 1], [1, 3], [2, 2], [3, 2]], decide: true},
+    objective: 'Move the courier to a spot where it can see every lantern, or say that no spot can.',
+    visibleObjective: 'See every lantern, or say that no spot can.',
+    idea: 'The lanterns use three of the four even–odd patterns; five spots of the fourth pattern (even across, odd up) see all four.',
+    prerequisites: 'Sight lines puzzle 10.',
+    hints: ['Which spots are always blocked by the point halfway to a lantern?', 'Two of the lanterns have the same even–odd pattern. Which pattern is missing?', 'Stand where the across number is even and the up number is odd: try 2 across and 1 up.'],
+    parent: {
+      notice: 'Whether your child uses the even–odd pattern to narrow the search.',
+      prompt: 'Which kind of spot is never blocked by a halfway point?',
+      explanation: 'The lanterns (1, 1) and (1, 3) are odd–odd, (2, 2) is even–even and (3, 2) is odd–even. A spot sharing a lantern’s pattern is blocked by the halfway point, so the courier must stand on an even–odd point. Of those, (0, 1), (2, 1), (0, 3), (2, 3) and (4, 5) see all four lanterns, so the claim that none can is refused.',
+      extension: 'Move one lantern so that no spot at all can see every lantern.',
+      connection: 'The four classes of (x mod 2, y mod 2); a spot in a lantern’s class has an even–even step to it.'
+    },
+    provenance: 'New instance, the possible twin of puzzle 12.'
+  },
+  {
+    number: 12, difficulty_level: 'hard', title: 'See all four again',
+    parameters: {mode: 'stand', size: 6, lanterns: [[1, 1], [2, 3], [2, 2], [3, 2]], decide: true},
+    objective: 'Move the courier to a spot where it can see every lantern, or say that no spot can.',
+    visibleObjective: 'See every lantern, or say that no spot can.',
+    idea: 'The four lanterns use all four even–odd patterns, so wherever the courier stands, the point halfway to one lantern blocks it.',
+    prerequisites: 'Sight lines puzzle 11.',
+    hints: ['Compare with the last puzzle. Which even–odd patterns do these lanterns use?', 'Wherever the courier stands, one lantern has the same pattern. What is halfway to it?', 'Every spot has a halfway point in the way, so no spot can. Say so.'],
+    parent: {
+      notice: 'Whether your child can explain the “can’t” with the even–odd patterns rather than by having tried many spots.',
+      prompt: 'How do you know that no spot works, without trying them all?',
+      explanation: 'Colour every point by whether its across and up numbers are even or odd: four colours. The lanterns (2, 2), (3, 2), (2, 3) and (1, 1) have four different colours, so wherever the courier stands, one lantern has its colour. The steps to that lantern are both even, so the point halfway is a grid point, and it holds a tree or a lantern. So no spot sees all four.',
+      extension: 'Put lanterns on the nine points whose across and up numbers are each 0, 2 or 4. They all share one even–odd pattern, yet no spot sees all nine. Why? (Think about thirds instead of halves.)',
+      connection: 'A pigeonhole argument over the four classes mod 2. On this field the converse holds too: a computer check of every set of four lanterns in the middle 5 × 5 finds that no spot sees them all exactly when they use all four colours.'
+    },
+    provenance: 'New instance; the parity certificate is the reviewer’s addition, not in the Week 31 packet.'
+  }
+];
+
+export function answers(item) {
+  const q = item.parameters, pl = plan(q);
+  if (q.mode === 'chop') return {possible: pl.possible, lanterns: pl.lanterns, cut: pl.cut};
+  if (q.mode === 'plant') return {possible: pl.possible, trees: pl.trees};
+  return {possible: pl.possible, spots: pl.spots};
+}
+export const puzzles = authored.map(item => {
+  const q = item.parameters, solution = answers(item);
+  if (!q.decide && !solution.possible) throw new Error(`orchard-${item.number}: no answer`);
+  const start = q.mode === 'chop' ? {cut: []} : q.mode === 'plant' ? {trees: []} : {at: [0, 0]};
+  const lit = sight(q, start).filter(s => s.lit).length;
+  if (q.mode === 'plant' ? lit === 0 : lit >= (q.light ?? q.lanterns.length)) throw new Error(`orchard-${item.number}: solved at the start`);
+  return {
+    id: `orchard-${String(item.number).padStart(2, '0')}`,
+    number: item.number,
+    title: item.title,
+    band: 'all',
+    difficulty_level: item.difficulty_level,
+    mechanic: 'orchard',
+    libraryFamily: 'billiard',
+    group: 'Sight lines',
+    familyTitle: 'Mirror Couriers',
+    revision: 1,
+    parameters: q,
+    objective: item.objective,
+    visibleObjective: item.visibleObjective ?? item.objective,
+    instruction: item.objective,
+    controls: q.decide ? `${CONTROLS[q.mode]} ${CLAIMS[q.mode]}` : CONTROLS[q.mode],
+    rules: RULES,
+    idea: item.idea,
+    prerequisites: item.prerequisites,
+    hints: item.hints,
+    parent: {...item.parent, sourceIds: ['orchard-week31', 'orchard-crisman', 'orchard-euclid']},
+    solution,
+    provenance: item.provenance,
+    sourceDocument: 'docs/orchard/README.md'
+  };
+});
+export const pack = {title: 'Mirror Couriers sight lines', version: 1, families: [family], sources, puzzles};
+
+if (process.argv[1] === new URL(import.meta.url).pathname) {
+  await writeFile(new URL('../dist/families/orchard/orchard.json', import.meta.url), JSON.stringify(pack, null, 1) + '\n');
+  for (const p of puzzles) console.log(p.id, p.difficulty_level, JSON.stringify(p.parameters), JSON.stringify(p.solution));
+}
