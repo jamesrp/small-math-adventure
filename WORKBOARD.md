@@ -6,10 +6,10 @@ One line per item. Claim an item by changing its line to your name, branch and s
 |---|---|---|---|
 | Work board and claim rule (plan item 1) | Claude, App family seam thread | `main` | done |
 | Family seam and `docs/ADDING-A-FAMILY.md` (plan item 2) | Claude, App family seam thread | `claude/family-seam-5igt4y` | done (PR #3) |
-| Wave 1: star drawing in Clockwork Gates (Week 4) | Claude, New groups in four families thread | `claude/wave1-groups-uag4d4` | claimed; review card first |
-| Wave 1: move menus in Pebble Duel (Week 7) | Claude, New groups in four families thread | `claude/wave1-groups-uag4d4` | claimed; review card first |
-| Wave 1: codebook design in Signal Lanterns (Week 18) | Claude, New groups in four families thread | `claude/wave1-groups-uag4d4` | claimed; review card first |
-| Wave 1: first-fit order in Neighbor Lanterns (Week 62) | Claude, New groups in four families thread | `claude/wave1-groups-uag4d4` | claimed; review card first |
+| Wave 1: star drawing in Clockwork Gates (Week 4) | Claude, New groups in four families thread | `claude/wave1-groups-uag4d4` | done (PR #9); card says revise (a guide sentence), port follows its App fit |
+| Wave 1: move menus in Pebble Duel (Week 7) | Claude, New groups in four families thread | `claude/wave1-groups-uag4d4` | done (PR #9) |
+| Wave 1: codebook design in Signal Lanterns (Week 18) | Claude, New groups in four families thread | `claude/wave1-groups-uag4d4` | done (PR #9) |
+| Wave 1: first-fit order in Neighbor Lanterns (Week 62) | Claude, New groups in four families thread | `claude/wave1-groups-uag4d4` | done (PR #9) |
 | Wave 1: route packing with its cut (Week 13) | Claude, Route packing and cheapest networks thread | `claude/wave1-networks-kqynkj` | done (PR #6) |
 | Shared graph board for Weeks 13, 39, 52, 53 and 62 (`dist/graph-board.js`, `docs/graph-board.md`) | Claude, Route packing and cheapest networks thread | `claude/wave1-networks-kqynkj` | done (PR #6); Wave 2 graph themes build on it |
 | Wave 1: sorting networks (Week 23) | Claude, Sorting networks thread | `claude/wave1-sorting-networks-srwvtc` | done (PR #5); card says revise (printable kit for the worksheets) |
