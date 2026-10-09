@@ -48,7 +48,7 @@ Every control is focusable and answers Enter and Space. Styles live in `tri-grid
 
 ## Boards of any triangles
 
-`dist/tri-mesh.js` draws boards whose triangles are not all the same: a big triangle cut into little ones of any shapes (Week 16's fan), or, next, a polygon cut by its diagonals (Week 14). A family gives points in triangle-edge units (y up) and triangles as triples of point numbers:
+`dist/tri-mesh.js` draws boards whose triangles are not all the same: a big triangle cut into little ones of any shapes (Week 16's fan). A family gives points in triangle-edge units (y up) and triangles as triples of point numbers:
 
 ```js
 import {meshOf, meshBoard} from '../../tri-mesh.js';
@@ -65,7 +65,7 @@ wireTri(root, m, {point: k => move, edge: e => move, cell: i => move}, apply);
 
 ## Building on it
 
-- **The Week 1 encore** (red trapezoids, the two-player placement game, fewest-piece fills). These belong in Rhombus gardens as new groups: `placements(g, 'trapezoid')` gives the places, `lozenge.js` exact covers work for any shape, and the game needs only a move that places a rhombus for each side.
+- **The Week 1 encore** is three more groups in Rhombus gardens ([blocks](blocks/README.md)): the rhombus duel, fewest blocks and red trapezoids. They lay all four pattern blocks with `placements`, and use `lozenge.js` exact covers for trapezoid fillings.
 - **Week 16 (Sperner's lemma)** is [Rainbow triangles](rainbow/README.md). Its boards are meshes, so the fan (each triangle cut in three round a middle point) draws the same way as the plain boards; dots are points with letters, doors are edges, and walks start from outside edges.
-- **Week 14 (triangulations).** A polygon's corners are mesh points and its diagonals are edges, so tapping an edge can flip it. The flip-map questions are Week 1's: `flipDistances` in `families/rhombus/lozenge.js` shows the pattern (hold each state compactly, search the flip map once per start, keep the distances).
+- **Week 14 (triangulations)** is [Polygon cuts](cuts/README.md). It draws its polygon as its own SVG, since its lines change with every move, and uses only `wireTri` for taps on corners and lines.
 - **Other boards.** The hexagon with sides a, b, c is `hexagon(a, b, c)` in `families/rhombus/rhombus.js`; copy it rather than import it, so a new family does not depend on another family's module.
