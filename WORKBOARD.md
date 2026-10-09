@@ -25,9 +25,9 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Wave 2: fair results from a bag (Week 42), on the case engine | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | done (PR #17), Fair bags; card says keep, [docs/bags/README.md](docs/bags/README.md) |
 | Wave 2: the bag that copies (Week 44), on the case engine | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | done (PR #20), Copying bags; card says keep, [docs/copies/README.md](docs/copies/README.md) |
 | Wave 2: the visible side (Week 45), on the case engine | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | done (PR #21), Hidden sides; card says keep, [docs/sides/README.md](docs/sides/README.md) |
-| Wave 2: nontransitive decks (Week 24), on the case engine | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | in progress; card says keep |
-| Wave 2: optimal stopping (Week 60), on the case engine | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | claimed; card done (keep) |
-| Wave 2: shuffle machines that loop (Week 3), a group in Cup swaps | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | claimed; after Week 60 |
+| Wave 2: nontransitive decks (Week 24), on the case engine | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | done (PR #23), Three decks; card says keep, [docs/decks/README.md](docs/decks/README.md) |
+| Wave 2: optimal stopping (Week 60), on the case engine | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | in progress; card says keep |
+| Wave 2: shuffle machines that loop (Week 3), a group in Cup swaps | Claude, Mixed-up cups thread | `claude/wave2-equally-likely-x8ns4d` | claimed; card in progress, port after Week 60 |
 | Wave 2: necklaces (Week 33) | Claude, Bead rings thread | `claude/wave2-bead-rings-q6ikal` | done: [Bead rings](docs/beads/README.md), card keep |
 | Wave 2: distinguishing colourings (Week 34) | Claude, Bead rings thread | `claude/wave2-bead-rings-q6ikal` | done: Hidden turns group in [Bead rings](docs/beads/README.md), card keep |
 | Wave 2: shared bead-ring board for Weeks 33 and 34 | Claude, Bead rings thread | `claude/wave2-bead-rings-q6ikal` | done: [docs/bead-ring.md](docs/bead-ring.md) |
