@@ -40,7 +40,7 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Shared square grid for Weeks 26, 48 and 54 | Claude, Square grid perimeters thread | `claude/wave2-square-grid-3ahzlz` | done: [sq-grid](docs/sq-grid.md), used by Garden fences; Weeks 48 and 54 open |
 | Wave 2: code-breaking questions (Week 6) as a group in Signal Lanterns | Claude, Code-breaking questions thread | `claude/wave2-code-questions-l0nj1z` | done as Slippery secrets (13 puzzles, satchel only); [card](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-06.md) says revise (a guide key line), port follows its App fit |
 | Wave 2: making two boards agree (Week 46) | Claude, Boards agree and gentle hills thread | `claude/wave2-46-47-ytobpf` | done (Paint rows, satchel only); card says keep |
-| Wave 2: gentle step landscapes (Week 47) | Claude, Boards agree and gentle hills thread | `claude/wave2-46-47-ytobpf` | in progress; card says keep |
+| Wave 2: gentle step landscapes (Week 47) | Claude, Boards agree and gentle hills thread | `claude/wave2-46-47-ytobpf` | done (Gentle hills, satchel only); card says keep |
 | Fix the broken caravan browser suite (pre-existing on main) | Claude, Caravan suite fix thread | `claude/fix-caravan-suite-78kbzm` | done (PR #10); the test was stale, the game was fine |
 | Safe preview links for testers (plan item 5) | | | open |
 | Keeper reaction clips, 14 (plan item 6; brief `docs/art/batches/01-keeper-reactions.md`) | | | open; Dot/Codex |

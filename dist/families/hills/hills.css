@@ -1,0 +1,38 @@
+/* Gentle hills: towers of blocks on a level grid, clue and pinned towers in
+   pine, dashed cells for the heights a tower may still take, dotted rings for
+   a second landscape, a red bar for a
+   jump of more than one block, the pins left, and the landscapes found. */
+.hills-board{--hills-w:34px;--hills-c:28px;--hills-sun:var(--b-sun,#efc76e);--hills-ink:var(--b-ink,#294439);display:flex;flex-direction:column;align-items:center;gap:.8rem;width:100%}
+.hills-land{display:flex;align-items:flex-end;padding:.7rem .8rem .6rem .45rem;border-radius:16px;background:var(--b-paper,#f5f1e6);border:1.5px dashed var(--b-line,#d0d6bd);max-width:100%}
+.hills-land.solved{border:2px solid var(--b-good,#3c7a4a);background:var(--b-good-soft,#e2ecd6)}
+.hills-land.hills-wide{--hills-w:28px}
+.hills-axis{display:flex;flex-direction:column;gap:2px;margin-right:8px}
+.hills-axis span{display:flex;align-items:center;justify-content:flex-end;height:var(--hills-c);min-width:11px;font-family:var(--b-display,Georgia,serif);font-size:.8rem;color:var(--b-muted,#5a6850)}
+.hills-col{display:flex;flex-direction:column;gap:2px}
+.hills-col.copy{opacity:.35}
+.hills-gap{position:relative;width:6px;align-self:stretch}
+.hills-gap.steep i{position:absolute;left:1px;right:1px;bottom:calc(var(--lo) * (var(--hills-c) + 2px) + var(--hills-c) / 2);height:calc((var(--hi) - var(--lo)) * (var(--hills-c) + 2px));border-radius:3px;background:var(--b-bad,#a9503a)}
+.hills-board .hills-cell{position:relative;display:block;width:var(--hills-w);height:var(--hills-c);min-width:0;min-height:0;margin:0;padding:0;border:1.5px solid transparent;border-radius:6px;background:#ebe8da;box-shadow:none;font:inherit;color:inherit}
+.hills-board button.hills-cell:hover{filter:brightness(.96)}
+.hills-board .hills-cell.block,.hills-board .hills-cell.top{background:var(--hills-sun);border-color:var(--hills-ink)}
+.hills-board .hills-col.clue .hills-cell.block,.hills-board .hills-col.clue .hills-cell.top{background:var(--b-pine,#31533e);border-color:var(--hills-ink)}
+.hills-marker{position:absolute;inset:4px;margin:auto;width:calc(var(--hills-c) - 10px);height:calc(var(--hills-c) - 10px);border-radius:50%;background:var(--b-card,#fffdf5);border:2px solid var(--hills-ink)}
+.hills-col.clue .hills-marker{background:var(--hills-ink);border-color:var(--b-card,#fffdf5)}
+.hills-board .hills-cell.ghost{background:transparent;border:1.5px dashed var(--b-ochre,#b38840)}
+.hills-board .hills-cell.block.ghost{background:#f7e3b3;border:1.5px dashed var(--b-ochre,#b38840)}
+.hills-peek-marker{position:absolute;inset:0;margin:auto;width:calc(var(--hills-c) - 10px);height:calc(var(--hills-c) - 10px);border-radius:50%;border:3px dotted var(--b-ochre,#b38840)}
+.hills-board .hills-cell.apart{outline:3px solid var(--b-bad,#a9503a);outline-offset:2px}
+.hills-board .hills-cell.hills-pickable{outline:2px dashed var(--b-bad,#a9503a);outline-offset:1px}
+.hills-board .hills-cell.hills-pickable.picked{outline:3px solid var(--b-bad,#a9503a)}
+.hills-pins{display:flex;gap:.45rem;list-style:none;margin:0;padding:0}
+.hills-pins li{width:18px;height:18px;border-radius:50%;border:1.5px dashed var(--b-line,#d0d6bd)}
+.hills-pins li.used{background:var(--b-pine,#31533e);border:1.5px solid var(--hills-ink)}
+.hills-found{display:flex;flex-wrap:wrap;justify-content:center;gap:.45rem;max-width:26rem;list-style:none;margin:0;padding:0}
+.hills-found li{display:flex;padding:4px 5px;border-radius:7px;background:var(--b-card,#fffdf5);border:1px solid var(--b-line,#d0d6bd)}
+.hills-found rect{fill:var(--hills-sun);stroke:var(--hills-ink);stroke-width:.6}
+.hills-tools,.hills-settings,.hills-options{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem}
+.hills-settings{gap:.6rem 1.2rem}
+.hills-board .hills-cant[aria-pressed="true"]{border-color:var(--b-bad,#a9503a);box-shadow:inset 0 0 0 1.5px var(--b-bad,#a9503a)}
+.hills-note{color:var(--b-bad,#a9503a);font-weight:600}
+.hills-board .hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:2px}
+@media (max-width:420px){.hills-board{--hills-w:30px;--hills-c:26px}.hills-land{padding:.55rem .45rem .5rem .3rem}.hills-land.hills-wide{--hills-w:24px}.hills-gap{width:4px}.hills-axis{margin-right:5px}}
