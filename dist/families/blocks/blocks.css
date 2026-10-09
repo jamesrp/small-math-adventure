@@ -1,0 +1,69 @@
+@import url('../../tri-grid.css');
+/* The Week 1 encore groups in Rhombus gardens: pattern-block colours (green
+   triangle, blue rhombus, red trapezoid, yellow hexagon), the duel's two
+   players, the block tools and count, the two kinds of trapezoid, chosen
+   trapezoids, the shelf of fillings and the start card. Every rule is scoped
+   under .bk-puzzle so the shared grid's base rules never override it. */
+.bk-puzzle{display:flex;flex-direction:column;align-items:center;gap:.45rem;width:100%}
+.bk-stage{width:100%}
+.bk-puzzle .tg-piece.bk-triangle{fill:#9cc386}
+.bk-puzzle .tg-piece.bk-rhombus{fill:#86a8d2}
+.bk-puzzle .tg-piece.bk-trapezoid{fill:#dc8a72}
+.bk-puzzle .tg-piece.bk-trapezoid.down{fill:#b45a45}
+.bk-puzzle .tg-piece.bk-hexagon{fill:#efcd62}
+.bk-puzzle .tg-piece.bk-rhombus.app{fill:#d3e0f0}
+.bk-puzzle .tg-piece.bk-rhombus.app.last{stroke:var(--b-ochre,#b38840);stroke-width:3.2px}
+.bk-puzzle .tg-piece.chosen{stroke:var(--b-pine,#31533e);stroke-width:4px}
+.bk-puzzle .tg-piece.hinted{stroke:var(--b-ochre,#b38840);stroke-width:4px;stroke-dasharray:6 4}
+@media (prefers-reduced-motion:no-preference){.bk-board .tg-piece.fresh{animation:bk-in .22s ease-out}}
+@keyframes bk-in{from{opacity:.35}to{opacity:1}}
+
+/* Picking triangles one tap at a time; the triangles that can join them glow. */
+.bk-board .bk-pick{fill:var(--b-pine,#31533e);opacity:.38;pointer-events:none}
+.bk-board .tg-cell.partner{fill:#f7ecc6}
+@media (prefers-reduced-motion:no-preference){.bk-board .tg-cell.partner{animation:bk-glow 1.6s ease-in-out infinite}}
+@keyframes bk-glow{50%{fill:#efd998}}
+/* Where a hexagon fits, while the hexagon is chosen. */
+.bk-board .bk-spot .tg-pip{fill:#efcd62;stroke:var(--b-ink,#294439);stroke-width:1.5px;vector-effect:non-scaling-stroke}
+.bk-board .bk-spot:hover .tg-reach{fill:rgba(239,205,98,.3)}
+
+/* Status, tools, counts and actions. */
+.bk-status{margin:0;font-weight:600;color:var(--b-ink,#294439);text-align:center}
+.bk-tools,.bk-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;max-width:100%}
+.bk-puzzle .bk-tool,.bk-puzzle .bk-action{display:inline-flex;align-items:center;gap:.35rem;min-height:46px;padding:6px 10px;font-size:.92rem;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd);font-weight:600}
+.bk-puzzle .bk-action.primary{background:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9);border-color:var(--b-pine,#31533e)}
+.bk-puzzle .bk-tool[aria-pressed="true"]{background:#e9eddc;border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.bk-puzzle .bk-tool b,.bk-tally b{display:grid;place-items:center;min-width:28px;height:28px;padding:0 7px;border-radius:14px;background:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9);font-family:var(--b-display,Georgia,serif);font-weight:400;font-size:1.05rem}
+.bk-puzzle .bk-action:disabled{opacity:.45;box-shadow:none}
+.bk-puzzle .hinted:is(.bk-tool,.bk-action){outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.bk-puzzle .bk-icon{width:auto;height:26px;max-width:46px;margin:0}
+.bk-puzzle .bk-icon .tg-piece{stroke-width:1.3px}
+.bk-puzzle .bk-icon .tg-edge{stroke-width:1.3px}
+.bk-note{margin:0;font-weight:600;color:var(--b-bad,#a9503a)}
+.bk-counter{margin:0;font-size:1.05rem;color:var(--b-ink,#294439)}
+.bk-counter strong{font-family:var(--b-display,Georgia,serif);font-size:1.5rem;font-weight:400}
+.bk-counter strong.over{color:var(--b-bad,#a9503a)}
+
+/* The two kinds of trapezoid, counted. */
+.bk-tally{display:flex;gap:1rem;justify-content:center;margin:0}
+.bk-tally span{display:inline-flex;align-items:center;gap:.35rem}
+
+/* The start card, and the shelf of fillings found. */
+.bk-goalbar{display:flex;align-items:center;justify-content:center;gap:1rem}
+.bk-goal{position:relative;margin:0;width:92px;padding:6px;background:#fbf4dc;border:1.5px solid #ead9a4;border-radius:14px}
+.bk-goal figcaption{position:absolute;top:2px;right:6px;font-size:1rem}
+.bk-puzzle .bk-mini{display:block;width:100%;height:auto;margin:0}
+.bk-puzzle .bk-mini .tg-piece{stroke-width:1px}
+.bk-puzzle .bk-mini .tg-edge{stroke-width:1.5px}
+.bk-shelf{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;list-style:none;margin:.2rem 0 0;padding:0;max-width:440px}
+.bk-shelf li{width:58px;padding:4px;background:var(--b-card,#fffdf5);border:1px solid var(--b-line,#d0d6bd);border-radius:10px}
+.bk-shelf li.here{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+@media (prefers-reduced-motion:no-preference){.bk-shelf li:last-child{animation:bk-in .3s ease-out}}
+
+/* Four block tools fit one row on a phone. */
+@media (max-width:440px){
+  .bk-tools{gap:.3rem}
+  .bk-puzzle .bk-tool{gap:.25rem;padding:5px 6px}
+  .bk-puzzle .bk-tool .bk-icon{height:22px;max-width:36px}
+  .bk-puzzle .bk-tool b{min-width:22px;height:22px;padding:0 5px;font-size:.95rem}
+}

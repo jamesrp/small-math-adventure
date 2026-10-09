@@ -80,5 +80,5 @@ To change a puzzle, edit `scripts/build-rhombus.mjs`, then run `node scripts/bui
   - Whether the cube shading carries the flip puzzles: does a child see "add a cube", or flip at random until the budget runs out?
 - **Story.** Not on the Lantern Road; no keeper or companion lines.
 - **Grade levels.** Grade-free; not yet in a K–1, 2–3 or 4–5 trail.
-- **More of Week 1.** Fewest-gap packings with chevrons, the ribbon codes, and the encore's placement game and red trapezoids are not here. The grid is ready for them ([tri-grid.md](../tri-grid.md)).
+- **More of Week 1.** Fewest-gap packings with chevrons and the ribbon codes are not here. The encore's duel, fewest blocks and red trapezoids are three more groups of this family ([blocks](../blocks/README.md)).
 - **Paper only.** Written proofs that a list of fillings is complete, and the guide's "Turn your reason into a rule for any board", stay with grown-ups.
