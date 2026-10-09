@@ -1,0 +1,70 @@
+@import url('../../cases.css');
+/* Three decks: number cards with dots in three deck colours, a row per deck;
+   a win grid per comparison, each pair tinted in its winner's colour with the
+   winning card ringed. The shelf and catalogs are the case engine's. */
+.deck-puzzle,.deck-play{display:flex;flex-direction:column;align-items:center;gap:.8rem;width:100%}
+.deck-A{--deck:#8e5f1a;--deck-tint:rgba(142,95,26,.17)}
+.deck-B{--deck:#31533e;--deck-tint:rgba(49,83,62,.17)}
+.deck-C{--deck:#3b6797;--deck-tint:rgba(59,103,151,.17)}
+.deck-tag{display:inline-grid;place-items:center;flex:none;width:1.65em;height:1.65em;border-radius:50%;background:var(--deck);color:#fff;font-family:var(--b-display,Georgia,serif);font-weight:700;font-style:normal;line-height:1}
+.deck-decks{display:flex;flex-direction:column;align-items:flex-start;gap:.5rem}
+.deck-row{display:flex;align-items:center;gap:.6rem}
+.deck-row>.deck-tag{font-size:1.15rem}
+.deck-cards,.deck-menu{display:flex;flex-wrap:wrap;justify-content:center;gap:.45rem}
+/* A card: its numeral over its dots, in its deck's colour. */
+.deck-card{position:relative;display:inline-flex;flex-direction:column;align-items:center;justify-content:space-between;box-sizing:border-box;width:52px;height:68px;padding:5px 3px 6px;border:2px solid var(--deck);border-radius:9px;background:var(--b-card,#fffdf5);color:var(--deck);font-family:var(--b-display,Georgia,serif)}
+.deck-card b{font-size:1.4rem;line-height:1}
+/* Dots in rows of five, as on a ten frame. */
+.deck-dots{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;width:33px}
+.deck-dots i{flex:none}
+.deck-dots i{width:5px;height:5px;border-radius:50%;background:var(--deck)}
+.board-panel button.deck-card{min-width:0;min-height:0;padding:5px 3px 6px;cursor:pointer;box-shadow:0 3px 0 var(--b-line,#d0d6bd);touch-action:manipulation}
+/* A card that can't move now (one swap at a time, or a solved puzzle) keeps its look. */
+.board-panel button.deck-card[disabled]{cursor:default;box-shadow:none;opacity:1}
+.board-panel .deck-card.picked,.board-panel .deck-card[aria-pressed="true"]{background:var(--deck);color:#fff}
+.deck-card.picked .deck-dots i,.deck-card[aria-pressed="true"] .deck-dots i{background:#fff}
+.deck-card.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.deck-card.blank{border-style:dashed;color:var(--b-muted,#5a6850);justify-content:center}
+.deck-card.trial{border-style:dashed}
+.board-panel .deck-card.moved{background:#f6e7c4}
+/* Puzzle 5: the cards waiting for Swap back or Keep. */
+.board-panel button.deck-card.waiting[disabled]{opacity:.45}
+.deck-card .case-pin{top:-6px;left:auto;right:-6px;transform:none}
+@media (prefers-reduced-motion:no-preference){.deck-card.arrived{animation:case-settle .28s ease-out}}
+/* Win grids. */
+.deck-grids{display:flex;flex-wrap:wrap;justify-content:center;gap:.8rem 1.2rem}
+.deck-grid{margin:0;display:flex;flex-direction:column;align-items:center;gap:.35rem}
+.deck-grid figcaption,.deck-verdict,.deck-loop span{display:inline-flex;align-items:center;gap:.3rem;font-size:.9rem;font-weight:600;color:var(--b-muted,#5a6850)}
+.deck-verdict{margin:0;min-height:1.7em;color:var(--b-ink,#294439)}
+.deck-cells{display:grid;grid-template-columns:repeat(var(--cols,3),auto);gap:3px}
+.deck-cell{display:inline-flex;align-items:center;justify-content:center;gap:.25rem;box-sizing:border-box;min-width:3.3rem;height:2.2rem;padding:0 .25rem;border:1.5px solid var(--b-line,#d0d6bd);border-radius:8px;background:var(--b-card,#fffdf5);font-family:var(--b-display,Georgia,serif);font-weight:700}
+.deck-cell i{display:inline-grid;place-items:center;width:1.45em;height:1.45em;border-radius:50%;font-style:normal;color:var(--deck)}
+.deck-cell i.won{box-shadow:inset 0 0 0 2px var(--deck);background:var(--b-card,#fffdf5)}
+.deck-cell.win-A{background:#f1dfbf;border-color:#8e5f1a}
+.deck-cell.win-B{background:#d5e8d3;border-color:#31533e}
+.deck-cell.win-C{background:#d3e2f4;border-color:#3b6797}
+.deck-cell.empty{border-style:dashed;opacity:.6}
+.deck-cell.lost{outline:3px dashed var(--b-ochre,#b38840);outline-offset:1px}
+/* A pair not yet marked: its two cards are buttons. */
+.deck-cell.open{height:auto;padding:3px;gap:3px}
+.board-panel .deck-pair{min-width:44px;min-height:44px;padding:0;border:2px solid var(--deck);border-radius:8px;background:var(--b-card,#fffdf5);color:var(--deck);font-family:var(--b-display,Georgia,serif);font-weight:700;font-size:1.2rem;box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer}
+.board-panel .deck-pair.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:2px}
+.deck-grid.pairs .deck-cell{min-width:6rem;height:3.4rem}
+.deck-grid.pairs .deck-cell i{width:1.9em;height:1.9em;font-size:1.15rem}
+.deck-loop{display:flex;flex-wrap:wrap;justify-content:center;gap:.3rem 1rem;margin:0}
+.deck-loop span{color:var(--b-ink,#294439)}
+.deck-why,.deck-ask{margin:0;max-width:34rem;text-align:center;font-weight:600}
+/* Small decks for shelves and catalogs: a row per deck. */
+.deck-mini{display:inline-flex;flex-direction:column;gap:2px;font-family:var(--b-display,Georgia,serif);font-size:.85rem;line-height:1}
+.deck-mini-row{display:flex;gap:1px}
+.deck-mini i,.case-bin-label>i{display:inline-grid;place-items:center;width:1.3em;height:1.4em;border:1px solid var(--deck);border-radius:3px;color:var(--deck);font-style:normal;font-weight:700;background:var(--b-card,#fffdf5)}
+.deck-mini.deck-swap,.deck-mini.deck-round{flex-direction:row;align-items:center;gap:.2rem}
+.case-bin-label .deck-tag{font-size:.8rem}
+.case-catalog .deck-mini{font-size:.75rem}
+/* Catalog columns fill row by row, to stay short. */
+.deck-puzzle .case-catalog .case-bin .case-list{flex-direction:row;justify-content:center}
+/* The playground's rounds fill row by row, so equal piles stand equally tall. */
+.deck-play .case-bin .case-list{flex-direction:row;align-content:flex-start;max-width:13rem}
+.deck-play .case-tool{gap:.3rem}
+/* On a phone, two grids sit side by side. */
+@media (max-width:420px){.board-panel button.deck-card,.deck-card{width:46px;height:62px}.deck-grids{gap:.6rem .8rem}.deck-cell{min-width:2.6rem;height:1.9rem;padding:0 .15rem;gap:.1rem;font-size:.85rem}.deck-cell i{width:1.3em;height:1.3em}.deck-grid figcaption,.deck-verdict{font-size:.8rem}.deck-grid.pairs .deck-cell{min-width:5.6rem;font-size:1rem}}
