@@ -1,0 +1,47 @@
+@import url('../../cases.css');
+/* Hidden sides: three cards with their two numbered sides, which draw or go
+   in and out of the cup; stacks of whole cards; sides sorted by the colour
+   underneath. The shelf, bins and catalog are the case engine's. */
+.side-puzzle,.side-play{display:flex;flex-direction:column;align-items:center;gap:.8rem;width:100%}
+.side-cards{display:flex;flex-wrap:wrap;justify-content:center;gap:.9rem}
+.side-card{display:flex;gap:.3rem;padding:.4rem;border:2px solid var(--b-ink,#294439);border-radius:12px;background:var(--b-card,#fffdf5)}
+.side-card.drawn{box-shadow:0 0 0 3px var(--b-ochre,#b38840)}
+.side-face{display:inline-grid;place-items:center;box-sizing:border-box;width:1.5em;height:1.5em;border:1px solid var(--b-ink,#294439);border-radius:5px;font-family:var(--b-display,Georgia,serif);font-weight:700;font-size:.85em;line-height:1;color:#fff}
+.side-face.fR,.side-chip.fR{background:#b9473a}
+.side-face.fB,.side-chip.fB{background:#3c74b4}
+.board-panel .side-card .side-face{width:52px;height:64px;padding:0;font-size:1.3rem;border-width:1.5px;border-radius:8px}
+.board-panel button.side-face{cursor:pointer;box-shadow:0 3px 0 var(--b-line,#d0d6bd)}
+.board-panel button.side-face[disabled]{cursor:default;box-shadow:none}
+/* Out of the cup: an empty dashed outline in the side's colour, its number
+   still legible; in a draw, a side not in the cup can't be drawn. */
+.board-panel .side-face.out{background:var(--b-card,#fffdf5);border:2px dashed currentColor;box-shadow:none}
+.board-panel .side-face.out.fR{color:#a8392d}
+.board-panel .side-face.out.fB{color:#2f62a0}
+/* A drawn side is up; its other side is covered until the card is turned over. */
+.board-panel .side-face.up{outline:3px solid var(--b-ink,#294439);outline-offset:2px}
+.board-panel .side-face.under{background:#6f6b5c;color:#fff8d9;font-size:1.5rem}
+.board-panel .side-face.looked{outline:3px dashed var(--b-ink,#294439);outline-offset:2px}
+/* The cup: the numbers that can be drawn. */
+.side-cup{display:flex;align-items:center;gap:.5rem;padding:.3rem .8rem .3rem .5rem;border:1.5px solid var(--b-line,#d0d6bd);border-radius:999px;background:var(--b-card,#fffdf5)}
+.side-cup-icon{width:1.9rem;height:2rem;color:#d8c9a3}
+.side-cup .side-mini .side-face{width:1.45em;height:1.6em;font-size:.85em}
+.side-pile{display:inline-flex;align-items:center;gap:.15rem;margin:0 .25rem;font-family:var(--b-display,Georgia,serif);font-weight:700}
+.board-panel .side-face.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+/* Small chips for colours alone: bin labels, whole-card copies, the playground's piles. */
+.side-chip{display:inline-block;width:1.1em;height:1.4em;border:1px solid var(--b-ink,#294439);border-radius:4px;vertical-align:middle}
+.side-chip.under{opacity:.7;border-style:dashed}
+.side-under-word{margin-left:.35rem;font-size:.85rem;color:var(--b-muted,#5a6850)}
+.side-mini{gap:.15rem}
+.case-catalog .side-mini .side-face{width:1.2em;height:1.35em;font-size:.75em}
+.case-catalog .side-mini:has(.side-card){flex-wrap:wrap;justify-content:center;max-width:100%}
+.case-catalog .side-mini .side-card.mini{padding:.1rem;gap:1px}
+.case-catalog .side-mini .side-card.mini .side-chip{width:.75em;height:1em}
+.side-none{font-size:.85rem;color:var(--b-muted,#5a6850)}
+/* Whole cards: a stack per card with − and +. */
+.side-stacks{display:flex;flex-wrap:wrap;justify-content:center;gap:1rem}
+.side-stack{display:flex;flex-direction:column;align-items:center;gap:.4rem;min-width:7rem}
+.side-copies{display:flex;flex-wrap:wrap;justify-content:center;gap:.3rem;min-height:2.4rem;align-items:center}
+.side-card.mini{gap:.15rem;padding:.2rem;border-width:1.5px;border-radius:7px}
+/* Piles fill row by row, so equal piles stand equally tall. */
+.side-puzzle .case-bin .case-list,.side-play .case-bin .case-list{flex-direction:row;align-content:flex-start;max-width:11rem}
+@media (max-width:420px){.board-panel .side-card .side-face{width:44px;height:56px}.side-cards{gap:.5rem}.side-stack{min-width:5.5rem}}

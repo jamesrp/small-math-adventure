@@ -1,0 +1,270 @@
+// Builds dist/families/sides/sides.json, the Hidden sides pack, from the
+// authoring list below. What each puzzle asks for is computed here from
+// dist/families/sides/sides.js and checked against the list, and again, by a
+// separate enumeration, in scripts/validate-sides.mjs.
+// Design notes and worksheet sources: docs/sides/README.md.
+import {writeFile} from 'node:fs/promises';
+import {FACE, ALL_CUPS, tablesUpTo, meets, cardsMeet} from '../dist/families/sides/sides.js';
+
+const WEEK45 = 'https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-45';
+export const sources = [
+  {id: 'sides-week45', title: 'Bellingham Math Circle — Week 45: The visible side, K–1, grades 2–3 and grades 4–5 packets and adult guide', url: WEEK45, kind: 'local curriculum'},
+  {id: 'sides-wikipedia', title: 'Wikipedia — Bertrand’s box paradox (the three-card version)', url: 'https://en.wikipedia.org/wiki/Bertrand%27s_box_paradox', kind: 'reference'}
+];
+export const family = {
+  id: 'sides',
+  title: 'Hidden sides',
+  mathematics: 'Three cards are red on both sides, red and blue, and blue on both; their six sides are numbered, and a number drawn from a cup, each as likely as any other, picks the side that shows. Knowing only that red shows, the side is one of the red sides in the cup, each as likely as any other, so the colour underneath is red as often as those sides’ other sides are red. With every side in the cup, two of the three red sides hide red: red underneath comes 2 times in 3, not the 1 in 2 that counting the two red-showing cards suggests (Bertrand’s box). The answer depends on how the clue was made: a cup of sides 1 and 3 gives the same red clue, and then red and blue underneath tie. A red clue ties exactly when the cup holds side 3 and exactly one of sides 1 and 2, with any of sides 4 to 6 besides: 16 cups of 64. Whole cards never tie, since a red card brings two red sides hiding red and the mixed card one hiding blue, so the piles are 0 or 2 against 0 or 1; copies can, as one red card with two mixed cards.',
+  rules: [
+    'Three cards: one red on both sides, one red on one side and blue on the other, one blue on both sides. Their six sides are numbered 1 to 6.',
+    'A number is drawn from the cup, each number in the cup as likely as any other, and that side shows. The other side of its card is underneath.'
+  ],
+  sourceIds: sources.map(s => s.id)
+};
+
+const RULES_TEXT = family.rules;
+const W = ['sides-week45'];
+const DRAW = 'Tap a side in the cup to draw it: it shows, and the other side of its card is covered. Tap the ? to turn the card over, then put the side with the colour underneath. Press That’s all when every one is there.';
+const DESIGN = 'Tap a side to put it in the cup or take it out. Try it shows the red sides in the cup, sorted by the colour underneath.';
+// Whole cards have no numbers: every side on the table is in the cup.
+const CARDS_RULES = max => [
+  `Cards: ${max === 1 ? 'at most one' : `up to ${max}`} of each of three cards, one red on both sides, one red on one side and blue on the other, one blue on both sides.`,
+  'Every side of every card on the table is in the cup, each as likely as any other. The side drawn shows, and the other side of its card is underneath.'
+];
+
+const authored = [
+  {
+    number: 1, difficulty_level: 'easy', title: 'Red shows',
+    parameters: {mode: 'draw', cup: [1, 2, 3, 4, 5, 6], clue: 'R'},
+    objective: 'Sort every side that could show red by the colour underneath.',
+    idea: 'Three sides are red. Two of them have red underneath and one has blue, so a red side showing hides red 2 times in 3.',
+    prerequisites: 'Tell red from blue and read the numbers 1 to 6. No reading once a grown-up has read the goal.',
+    hints: ['Tap a red side.', 'Which sides are red?', 'Sides 1, 2 and 3 are red.'],
+    parent: {
+      notice: 'Sides 1, 2 and 3 can show red. Under 1 and 2 is red (they are the two sides of the red card); under 3 is blue. Two go with red underneath, one with blue.',
+      prompt: 'Red is showing. Is red or blue underneath the better guess? Why?',
+      explanation: 'Every number in the cup is as likely as any other, so each of the three red sides is as likely as the others to be the one showing. Two of them hide red, so red underneath comes 2 times in 3. Counting cards instead (the red card or the mixed card, “one each”) gives the wrong answer of 1 in 2: the red card has two ways to show red and the mixed card only one.',
+      extension: 'Play it: a grown-up secretly draws a number and shows only the colour of that side. Guess the colour underneath, then turn the card over.',
+      connection: 'Week 42’s pairs and Week 43’s tickets also count equally likely cases rather than outcomes.'
+    },
+    provenance: 'Week 45 K–1 Problems 1–2, grades 2–3 Problem 2 and grades 4–5 Problem 1: sort the six tickets by the colour underneath and compare, given a red clue.',
+    sourceIds: [...W, 'sides-wikipedia'],
+    expect: 3
+  },
+  {
+    number: 2, difficulty_level: 'easy', title: 'Blue shows',
+    parameters: {mode: 'draw', cup: [1, 2, 3, 4, 5, 6], clue: 'B'},
+    objective: 'Sort every side that could show blue by the colour underneath.',
+    idea: 'The mirror of puzzle 1: sides 4, 5 and 6 are blue, and two of them hide blue.',
+    prerequisites: 'Puzzle 1.',
+    hints: ['Tap a blue side.', 'Which sides are blue?', 'Sides 4, 5 and 6 are blue.'],
+    parent: {
+      notice: 'Sides 4, 5 and 6 can show blue. Under 5 and 6 is blue; under 4 is red.',
+      prompt: 'Does the better guess change when blue shows?',
+      explanation: 'The cards are the same with red and blue swapped, so a blue side hides blue 2 times in 3. In both puzzles the better guess is “the same colour as the one showing”.',
+      extension: 'Over many rounds with all six numbers, how often is the colour underneath the same as the one showing? (4 times in 6: sides 1, 2, 5 and 6.)',
+      connection: 'Week 45 grades 2–3 Problem 3.'
+    },
+    provenance: 'Week 45 grades 2–3 Problem 3 and grades 4–5 Problem 1: the same question with a blue clue.',
+    sourceIds: W,
+    expect: 3
+  },
+  {
+    number: 3, difficulty_level: 'easy', title: 'Only 1 and 3',
+    parameters: {mode: 'draw', cup: [1, 3], clue: 'R'},
+    objective: 'With only 1 and 3 in the cup, sort every side that could show red by the colour underneath.',
+    idea: 'The same clue, red showing, made a different way: now one red side hides red and one hides blue, a tie.',
+    prerequisites: 'Puzzle 1.',
+    hints: ['Only sides 1 and 3 can be drawn now.', 'Side 2 is not in the cup.', 'Sort side 1 and side 3.'],
+    parent: {
+      notice: 'Sides 1 and 3 both show red: one hides red, one hides blue. Red underneath and blue underneath tie.',
+      prompt: 'In puzzle 1 and here, all you see is red. Why are the chances different?',
+      explanation: 'What a clue tells you depends on how it was made. With all six numbers in the cup, red shows on three equally likely sides, two hiding red. With only 1 and 3, red shows on two equally likely sides, one hiding each colour, so red underneath is 1 in 2.',
+      extension: 'Add one more number to this cup: 2, 4, 5 or 6. Which additions change the answer, and how?',
+      connection: 'Week 45’s two-ticket chooser: K–1 Problem 4, grades 2–3 Problem 4, grades 4–5 Problem 4.'
+    },
+    provenance: 'Week 45 K–1 page 3, grades 2–3 Problem 4 and grades 4–5 Problem 4: the chooser that uses only tickets 1 and 3.',
+    sourceIds: W,
+    expect: 2
+  },
+  {
+    number: 4, difficulty_level: 'medium', title: 'Make a tie',
+    parameters: {mode: 'design', start: [1, 2, 3, 4, 5, 6], goal: 'tie'},
+    objective: 'Change the cup so that when red shows, red and blue underneath tie.',
+    idea: 'Taking side 1 or side 2 out leaves one red side hiding red and one hiding blue.',
+    prerequisites: 'Puzzles 1 and 3.',
+    hints: ['Try it first to see what red hides now.', 'Two red sides hide red and one hides blue.', 'Take side 1 or side 2 out of the cup.'],
+    parent: {
+      notice: 'Taking out side 1, or side 2, makes a tie with one change. Many other cups tie too (puzzle 7 finds them all).',
+      prompt: 'Why doesn’t taking out a blue side change anything?',
+      explanation: 'When red shows, only the red sides in the cup matter: blue sides never show red. A tie needs as many red sides hiding red (1, 2) as hiding blue (3), so side 3 and exactly one of 1 and 2.',
+      extension: 'Blue shows instead: which one side can you take out to make a tie? (Side 5 or side 6.)',
+      connection: 'Week 45 K–1 Problems 2–3.'
+    },
+    provenance: 'Week 45 K–1 Problem 2: find every one-ticket removal that makes a tie when red shows.',
+    sourceIds: W,
+    expect: 16
+  },
+  {
+    number: 5, difficulty_level: 'medium', title: 'Always blue underneath',
+    parameters: {mode: 'design', start: [1, 2, 3, 4, 5, 6], goal: 'blue'},
+    objective: 'Change the cup so that red can show, and when it does, blue is always underneath.',
+    idea: 'Only side 3 shows red with blue underneath, so the cup needs side 3 and neither 1 nor 2.',
+    prerequisites: 'Puzzle 4.',
+    hints: ['Which red side has blue underneath?', 'Sides 1 and 2 hide red.', 'Take sides 1 and 2 out of the cup.'],
+    parent: {
+      notice: 'Every cup with side 3 and without sides 1 and 2 works: 8 cups, since 4, 5 and 6 don’t matter.',
+      prompt: 'The worksheet asks for exactly three numbers. Which three-number cups work? (3 with two of 4, 5 and 6: three cups.)',
+      explanation: 'Red can show only on a red side in the cup; to hide blue every time, the only red side in the cup must be 3.',
+      extension: 'Can you make blue showing always hide red? (Only side 4 does it.)',
+      connection: 'Week 45 K–1 Problem 5.'
+    },
+    provenance: 'Week 45 K–1 Problem 5: choose three tickets so red sometimes shows and then always hides blue.',
+    sourceIds: W,
+    expect: 8
+  },
+  {
+    number: 6, difficulty_level: 'medium', title: 'Always red underneath',
+    parameters: {mode: 'design', start: [1, 2, 3, 4, 5, 6], goal: 'red'},
+    objective: 'Change the cup so that red can show, and when it does, red is always underneath.',
+    idea: 'Side 3 is the only red side hiding blue; take it out and keep side 1 or 2.',
+    prerequisites: 'Puzzle 5.',
+    hints: ['Which red side has blue underneath?', 'Side 3 hides blue.', 'Take side 3 out of the cup.'],
+    parent: {
+      notice: 'Taking out side 3 is enough. Taking out both sides of the red and blue card (3 and 4) is the worksheet’s whole-card answer.',
+      prompt: 'Which whole card could you take out to get the same result?',
+      explanation: 'A cup works when it holds side 1 or side 2 and not side 3; the blue sides don’t matter. That is 3 × 8 = 24 of the 64 cups. Taking out the red and blue card removes side 3.',
+      extension: 'Which whole card can you take out so that red showing always hides blue? (The red card, sides 1 and 2.)',
+      connection: 'Week 45 K–1 Problem 6 and grades 2–3 Problem 5: remove a card for a certain colour.'
+    },
+    provenance: 'Week 45 K–1 Problem 6 and grades 2–3 Problem 5: remove one card so that red showing always hides red.',
+    sourceIds: W,
+    expect: 24
+  },
+  {
+    number: 7, difficulty_level: 'hard', title: 'Every tie',
+    parameters: {mode: 'designs'},
+    objective: 'Keep every cup where, when red shows, red and blue underneath tie.',
+    idea: 'A cup ties when it holds side 3 and exactly one of sides 1 and 2, with any of sides 4, 5 and 6: 2 × 8 = 16 cups.',
+    prerequisites: 'Puzzle 4.',
+    hints: ['Change the cup, then press Keep.', 'Do sides 4, 5 and 6 matter when red shows?', 'Side 3 and one of 1 and 2; then any of 4, 5 and 6.'],
+    parent: {
+      notice: 'There are 16: sides 1 and 3, or 2 and 3, each with any choice of 4, 5 and 6 (8 choices). The catalog after the solve shows all 63 cups (the cup is never empty) by their red sides.',
+      prompt: 'How can you be sure there are no more?',
+      explanation: 'When red shows, only the red sides in the cup count. Red must be able to show, and a tie needs as many red-hiding sides (1 and 2) as blue-hiding sides (3 is the only one), so side 3 and exactly one of 1 and 2. The blue sides can be chosen freely: 2 × 2 × 2 = 8 ways for each, 16 in all.',
+      extension: 'How many cups make blue showing a tie? (Also 16, by swapping colours.) How many make both a tie? (4: sides 3 and 4, one of 1 and 2, and one of 5 and 6.)',
+      connection: 'Week 45 grades 4–5 Problem 6.'
+    },
+    provenance: 'Week 45 grades 4–5 Problem 6: find every subset of the six tickets that makes a red clue equally likely to hide either colour.',
+    sourceIds: W,
+    expect: 16
+  },
+  {
+    number: 8, difficulty_level: 'hard', title: 'Whole cards',
+    parameters: {mode: 'cards', goal: 'tie', max: 1, start: [1, 1, 1]},
+    rules: CARDS_RULES(1),
+    objective: 'Put cards on the table so that when red shows, red and blue underneath tie, or press Can’t.',
+    idea: 'With at most one of each card, the red sides hiding red come two at a time (the red card) and the one hiding blue one at a time (the mixed card): 0 or 2 against 0 or 1, never a tie. Can’t is right.',
+    prerequisites: 'Puzzle 7.',
+    hints: ['Try it with one of each card.', 'A red card brings two red sides that hide red. A red and blue card brings one that hides blue.', 'The red-underneath pile can only hold 0 or 2, the blue-underneath pile 0 or 1.'],
+    parent: {
+      notice: 'No table of whole cards ties, so Can’t is right. One of each gives 2 against 1; without the mixed card nothing hides blue; without the red card nothing hides red. After Can’t, the catalog shows all seven tables by their two piles.',
+      prompt: 'How can you be sure no table ties without trying all seven?',
+      explanation: 'Red sides hiding red come only from the red card, two at a time; a red side hiding blue comes only from the mixed card, one at a time. So the piles are 0 or 2 against 0 or 1: never equal, except 0 against 0, when red can’t show at all.',
+      extension: 'With copies of the cards allowed, could a table tie? (Puzzle 9.)',
+      connection: 'Week 45 grades 4–5 Problem 7: whole cards never make a red clue fair.'
+    },
+    provenance: 'Week 45 grades 4–5 Problem 7: can a choice of whole cards make a red clue equally likely to hide either colour? (No.)',
+    sourceIds: W,
+    expect: 0
+  },
+  {
+    number: 9, difficulty_level: 'hard', title: 'Copies for a tie',
+    parameters: {mode: 'cards', goal: 'tie', start: [2, 1, 1]},
+    rules: CARDS_RULES(3),
+    objective: 'Now up to three of each card. Put cards on the table so that when red shows, red and blue underneath tie, or press Can’t.',
+    idea: 'Each red card brings two red sides hiding red and each mixed card one hiding blue, so one red card ties with two mixed cards.',
+    prerequisites: 'Puzzle 8.',
+    hints: ['Try it, then look at the two piles.', 'A red card adds two to the red-underneath pile; a red and blue card adds one to the other pile.', 'One red card and two red and blue cards.'],
+    parent: {
+      notice: 'One red card with two mixed cards ties, 2 against 2; the blue cards don’t matter (4 tables). Can’t is refused here, unlike puzzle 8.',
+      prompt: 'Why does a tie need twice as many mixed cards as red cards?',
+      explanation: 'Red cards add red sides hiding red two at a time; mixed cards add red sides hiding blue one at a time. Equal piles need 2 × (red cards) = (mixed cards), and with three of each at most that is one red and two mixed.',
+      extension: 'Which tables make blue showing a tie? (One blue card with two mixed cards, and any number of red cards.)',
+      connection: 'Week 45 grades 4–5 Problem 7 and the review card’s copies of cards.'
+    },
+    provenance: 'The Week 45 review card’s extension to grades 4–5 Problem 7: with copies of whole cards, a red clue can tie.',
+    sourceIds: W,
+    expect: 4
+  },
+  {
+    number: 10, difficulty_level: 'hard', title: 'Three to one',
+    parameters: {mode: 'cards', goal: 'three', start: [1, 1, 1]},
+    rules: CARDS_RULES(3),
+    objective: 'Put cards on the table so that when red shows, red is underneath three times for every blue, or press Can’t.',
+    idea: 'Two red sides hiding red per red card, one hiding blue per mixed card: 2r = 3m, so three red cards with two mixed cards.',
+    prerequisites: 'Puzzle 9.',
+    hints: ['Try it, then compare the two piles.', 'Each red card adds two to the red pile.', 'Three red cards and two red and blue cards.'],
+    parent: {
+      notice: 'Three red cards and two mixed cards give 6 red sides hiding red and 2 hiding blue: 3 to 1. With at most three of each card, only three red and two mixed work, with any number of blue cards (4 tables).',
+      prompt: 'Why does it take three red cards, not one or two?',
+      explanation: 'The red pile grows by 2 for each red card and the blue pile by 1 for each mixed card. Three times as many in the red pile means 2 × (red cards) = 3 × (mixed cards), and the smallest answer is 3 and 2.',
+      extension: 'Can you make red underneath come 4 times for every blue? (Two red cards and one mixed card.)',
+      connection: 'The review card’s copies of cards: three red with two mixed hide red 3 times in 4.'
+    },
+    provenance: 'The Week 45 review card’s suggested problem: which copies of whole cards hide red three times in four.',
+    sourceIds: W,
+    expect: 4
+  }
+];
+
+const playground = {
+  id: 'sides-playground', number: 0, title: 'Hidden sides playground', band: 'playground', difficulty_level: 'playground',
+  parameters: {mode: 'playground'},
+  objective: 'Choose a cup and draw.',
+  controls: 'Tap a side to put it in the cup or take it out. Draw takes one random number from the cup and Draw 10 takes ten, up to sixty; each side drawn lands in its pile. Clear empties the piles.',
+  rules: RULES_TEXT,
+  idea: 'Free play: random draws from any cup, piled as red with red underneath, red with blue underneath, and blue.',
+  prerequisites: 'None. Grown-ups can suggest a cup from the puzzles.',
+  hints: ['Draw 10 a few times with every side in the cup.', 'Compare the two red piles.', 'Try a cup of only 1 and 3.'],
+  parent: {
+    notice: 'With every side in the cup, the red-under-red pile tends to grow about twice as fast as the red-under-blue pile; with only 1 and 3 they grow about evenly. Short runs wander a lot.',
+    prompt: 'Can a few draws tell the two cups apart?',
+    explanation: 'Random draws only suggest. The puzzles settle the chances exactly by counting equally likely sides.',
+    extension: 'Find a cup where the two red piles grow evenly but blue never shows.',
+    connection: 'Week 45 grades 4–5 Problem 5: whether six red-showing rounds can prove the chances differ.'
+  },
+  provenance: 'Week 45 materials: the three cards and a cup of numbered tickets.',
+  sourceIds: W
+};
+
+// What each puzzle asks for: the sides to keep, or the cups or tables that work.
+const answers = q => q.mode === 'draw' ? q.cup.filter(t => FACE[t] === q.clue)
+  : q.mode === 'design' ? ALL_CUPS.filter(c => c.length && meets(q.goal, c))
+  : q.mode === 'designs' ? ALL_CUPS.filter(c => meets('tie', c))
+  : q.mode === 'cards' ? tablesUpTo(q.max ?? 3).filter(c => cardsMeet(q.goal, c)) : undefined;
+
+const puzzles = [playground, ...authored].map(({expect, sourceIds, parent, ...p}) => {
+  const q = p.parameters, count = answers(q)?.length;
+  if (expect !== undefined && count !== expect) throw Error(`${p.number}: ${count}, not ${expect}`);
+  const controls = q.mode === 'playground' ? p.controls
+    : q.mode === 'draw' ? DRAW
+    : q.mode === 'design' ? DESIGN
+    : q.mode === 'designs' ? 'Tap a side to put it in the cup or take it out. Keep checks the cup: a cup that ties goes on the shelf, and one that doesn’t shows its red sides sorted by the colour underneath. Press That’s all when every one is there.'
+    : `Press + or − to add or take away a card, ${q.max === 1 ? 'one' : 'up to three'} of each. Try it shows the red sides on the table, sorted by the colour underneath. Can’t says no table works.`;
+  return {
+    id: q.mode === 'playground' ? p.id : `sides-${String(p.number).padStart(2, '0')}`,
+    number: p.number, title: p.title, band: p.band || 'all', difficulty_level: p.difficulty_level,
+    mechanic: 'sides', familyTitle: family.title, revision: 1, parameters: q,
+    objective: p.objective, instruction: p.objective, controls, rules: p.rules || RULES_TEXT,
+    idea: p.idea, prerequisites: p.prerequisites, hints: p.hints,
+    parent: {...parent, sourceIds}, provenance: p.provenance, sourceDocument: 'docs/sides/README.md'
+  };
+});
+
+export const pack = {title: family.title, version: 1, families: [family], sources, puzzles};
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  await writeFile(new URL('../dist/families/sides/sides.json', import.meta.url), `${JSON.stringify(pack, null, 2)}\n`);
+  console.log(`Wrote ${puzzles.length} puzzles.`);
+}
