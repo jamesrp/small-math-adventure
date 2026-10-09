@@ -30,7 +30,7 @@ export const sequences = (alphabet, length) => remember(`seq:${JSON.stringify(al
 // differ from step to step, like the tickets left in a cup.
 export const product = lists => remember(`prod:${JSON.stringify(lists)}`, () => lists.reduce((out, list) => out.flatMap(s => list.map(x => [...s, x])), [[]]));
 // Rows of lettered cups: one letter per home, homes in order A, B, C, …
-export const LETTERS = 'ABCDEF';
+export const LETTERS = 'ABCDEFG';
 export const letters = n => LETTERS.slice(0, n);
 export const rowsOf = n => remember(`rows:${n}`, () => permutations([...letters(n)]).map(p => p.join('')));
 export const isRow = (n, row) => typeof row === 'string' && row.length === n && [...row].sort().join('') === letters(n);
@@ -121,7 +121,7 @@ export function wireCases(root, onCase) {
 // Cups: one cup per home, homes lettered in order. Cup i is drawn in colour i
 // with symbol i, as in Cup swaps, so a cup on its own home matches the home's
 // mark. `row[h]` is the cup in home h.
-export const CUP_SYMBOLS = ['●', '▲', '■', '★', '◆', '✚'];
+export const CUP_SYMBOLS = ['●', '▲', '■', '★', '◆', '✚', '♥'];
 const colour = letter => LETTERS.indexOf(letter);
 const cupSVG = '<svg viewBox="0 0 100 108" aria-hidden="true"><path d="M23 13h54l11 80q-38 16-76 0z" fill="currentColor" stroke="#142b48" stroke-width="3"/><path d="M26 14q24 9 48 0" fill="none" stroke="#142b48" stroke-width="3"/></svg>';
 // The board. `o.pinned` lists homes whose cups never move; `o.picked` is the
