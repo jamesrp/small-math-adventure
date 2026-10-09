@@ -1,0 +1,59 @@
+@import url('../../cases.css');
+/* Shuffle machines: the cups on their homes, the machine's arrows, and the
+   lower row of cups one turn would bring to each home, all on one grid with no
+   gap so every arrow runs from the middle of a home to the middle of another. */
+.mach-puzzle,.mach-play{display:flex;flex-direction:column;align-items:center;gap:.7rem;width:100%}
+.mach-rows{width:min(100%,calc(var(--cups) * 78px));margin:.2rem auto 0}
+.mach-puzzle .mach-rows .cup-board,.mach-play .mach-rows .cup-board{gap:0;margin:0 auto;max-width:none}
+.mach-rows .cup-position{padding:0 6%}
+.mach-rows .cup-home{margin:4px 0 0;padding:3px 0}
+.mach-lower .cup-home{display:none}
+.mach-band{display:block;width:100%;height:auto;margin:2px 0}
+
+/* Arrows: ink until their loop has brought its cups home, then the loop's colour. */
+.mach-arrow line{stroke:#8b968c;stroke-width:5;stroke-linecap:round}
+.mach-arrow polygon{fill:#8b968c}
+.mach-arrow.loop line{stroke:var(--lc);stroke-width:7}
+.mach-arrow.loop polygon{fill:var(--lc)}
+.mach-arrow.loop-0,.mach-loop-0{--lc:#2f6fa3}
+.mach-arrow.loop-1,.mach-loop-1{--lc:#b5562c}
+.mach-arrow.loop-2,.mach-loop-2{--lc:#3d7f4b}
+.mach-arrow.loop-3,.mach-loop-3{--lc:#8a4b9e}
+.mach-arrow.loop-4,.mach-loop-4{--lc:#9a740f}
+.mach-arrow.loop-5,.mach-loop-5{--lc:#c03a6b}
+.mach-arrow.loop-6,.mach-loop-6{--lc:#2f7f84}
+@media (prefers-reduced-motion:no-preference){.mach-arrow.loop line,.mach-arrow.loop polygon{transition:stroke .3s,fill .3s}}
+
+/* The run: Turn, the turn counter, and Cups home. */
+.mach-run{gap:.7rem}
+.board-panel .case-action.mach-turn{background:var(--b-pine,#31533e);border-color:var(--b-pine,#31533e);color:#fffced;min-width:5.5rem}
+.board-panel .case-action.mach-turn:hover:not(:disabled){background:#426a4b}
+.mach-count{min-width:6.5em;text-align:center;font-size:.95rem;color:var(--b-muted,#5a6850)}
+.mach-count b{font-family:var(--b-display,Georgia,serif);font-size:1.35rem;color:var(--b-ink,#294439)}
+.mach-count.over{color:var(--b-good,#3c7a4a);font-weight:600}
+
+/* A machine in small: home letters, arrows, and the cups below. */
+.mach-mini{display:block;width:calc(var(--n) * 1.25em);height:auto;overflow:visible}
+.mach-mini text{font-family:var(--b-display,Georgia,serif);font-size:15px;text-anchor:middle;fill:#142b48}
+.mach-mini .mach-mini-home{fill:var(--b-muted,#5a6850);font-size:13px}
+.mach-mini .mach-arrow line{stroke-width:2.2}
+.mach-mini-cup rect{stroke:rgba(20,43,72,.5);stroke-width:1}
+.mach-mini-cup.mm0 rect{fill:#ffdc63}.mach-mini-cup.mm1 rect{fill:#81c6ff}.mach-mini-cup.mm2 rect{fill:#83dcb4}.mach-mini-cup.mm3 rect{fill:#e8b2e4}.mach-mini-cup.mm4 rect{fill:#ffb496}.mach-mini-cup.mm5 rect{fill:#b2b6f6}.mach-mini-cup.mm6 rect{fill:#cfe07a}
+.case-shelf .mach-mini{width:calc(var(--n) * 1.7em)}
+.mach-kept-turns{margin-left:.35rem;font-size:.8rem;white-space:nowrap}
+
+/* The fixed machines of an undo puzzle, in the order they turn. */
+.mach-chain{display:flex;flex-wrap:wrap;justify-content:center;gap:.8rem}
+.mach-fixed{margin:0;display:flex;align-items:center;gap:.5rem;padding:.35rem .7rem;border:1.5px solid var(--b-line,#d0d6bd);border-radius:11px;background:var(--b-card,#fffdf5)}
+.mach-fixed figcaption{font-family:var(--b-display,Georgia,serif);font-weight:700;font-size:1.2rem}
+.mach-fixed .mach-mini{width:calc(var(--n) * 2.4em)}
+.mach-fixed.turned{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.mach-fixed.turned figcaption::after{content:' ✓';color:var(--b-pine,#31533e)}
+
+/* A split in small: one bar per loop, as long as the loop. */
+.mach-split{display:inline-flex;flex-wrap:wrap;justify-content:center;gap:2px;max-width:100%}
+.mach-split i{font-style:normal;display:inline-grid;place-items:center;width:calc(var(--l) * .85em);min-width:1em;height:1.35em;border-radius:5px;background:var(--lc);color:#fff;font-size:.75rem;font-weight:700}
+.mach-puzzle .case-catalog .case-bin-label{white-space:normal;text-align:center;justify-content:center}
+.mach-why{margin:.2rem auto 0;max-width:32rem;text-align:center;color:var(--b-ink,#294439)}
+
+@media (max-width:480px){.mach-rows .cup-position{padding:0 3%}.mach-run{gap:.45rem}.mach-count{min-width:5.5em}}

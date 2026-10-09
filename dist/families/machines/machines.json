@@ -1,0 +1,627 @@
+{
+  "title": "Shuffle machines",
+  "version": 1,
+  "families": [
+    {
+      "id": "machines",
+      "title": "Cup swaps shuffle machines",
+      "mathematics": "A machine on n cups is a permutation: one arrow out of every home and one into every home, and one turn moves every cup along its arrow at once. Following the arrows from any home comes back to it, so the homes split into loops, and a loop of length L brings its cups home first after L turns. Every cup is home together first after the least common multiple of the loop lengths, so the turn counts n cups can make are the least common multiples of the ways to split n: 1 to 6 for five or six cups, and 1 to 7, 10 and 12 for seven, where 12 (4 + 3) is the most. No machine moves exactly one cup, since a cup that leaves its home needs another to take its place. A machine undoes itself exactly when its loops have length 1 or 2, so one that moves every cup pairs the cups up, which needs an even number of them. Reversing every arrow gives the one machine that undoes a machine, and undoing A then B means undoing B, then A. There are n! machines on n cups.",
+      "rules": [
+        "A machine has one arrow out of every home and one into every home. One turn moves every cup along its arrow at once.",
+        "The lower row shows where one turn sends the cups on top. Swapping two cups there swaps two arrowheads.",
+        "A run is over when every cup is back on its own home."
+      ],
+      "sourceIds": [
+        "machines-week03",
+        "machines-oeis-orders",
+        "machines-oeis-landau"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "machines-week03",
+      "title": "Bellingham Math Circle — Week 3: Shuffle machines, student packets and adult guide",
+      "url": "https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-03",
+      "kind": "local curriculum"
+    },
+    {
+      "id": "machines-oeis-orders",
+      "title": "OEIS A009490: Number of distinct orders of permutations of n objects",
+      "url": "https://oeis.org/A009490",
+      "kind": "reference"
+    },
+    {
+      "id": "machines-oeis-landau",
+      "title": "OEIS A000793: Landau’s function g(n), the largest order of a permutation of n elements",
+      "url": "https://oeis.org/A000793",
+      "kind": "reference"
+    }
+  ],
+  "puzzles": [
+    {
+      "id": "machines-playground",
+      "number": 0,
+      "title": "Shuffle machines playground",
+      "band": "playground",
+      "difficulty_level": "playground",
+      "mechanic": "machine",
+      "libraryFamily": "swap",
+      "familyTitle": "Cup swaps",
+      "revision": 1,
+      "parameters": {
+        "mode": "playground"
+      },
+      "objective": "Choose three to seven cups, make any machine, and run it.",
+      "instruction": "Choose three to seven cups, make any machine, and run it.",
+      "controls": "Choose how many cups. Tap two cups in the lower row, or drag one onto another, to swap where they land; their arrows swap too. Turn runs the machine once. A loop takes its colour the first time its cups are all home. Cups home starts the run again. Mix makes a machine at random; Straight arrows makes every cup stay.",
+      "rules": [
+        "A machine has one arrow out of every home and one into every home. One turn moves every cup along its arrow at once.",
+        "The lower row shows where one turn sends the cups on top. Swapping two cups there swaps two arrowheads.",
+        "A run is over when every cup is back on its own home."
+      ],
+      "idea": "Free play: build machines and watch their loops come home.",
+      "prerequisites": "None.",
+      "hints": [
+        "Make a machine and guess how many turns it takes before you run it.",
+        "Mix, then run. Which loop comes home first?",
+        "Find the slowest machine you can for each number of cups."
+      ],
+      "parent": {
+        "notice": "Which machines your child makes when nothing is asked: long loops, many swaps, or mixtures.",
+        "prompt": "Can you make a machine that takes a long time? Why is it slow?",
+        "explanation": "A machine is home when all its loops are, after the least common multiple of their lengths. Loops whose lengths share a factor come home together sooner: on six cups, 6 and 3 + 2 + 1 both take 6 turns, but 3 + 3 takes only 3.",
+        "extension": "A perfect shuffle of six cards splits them into halves and interleaves them, top card on top. Build it as a machine: A stays, B to C, C to E, D to B, E to D and F stays. How many turns? (4.)",
+        "connection": "Week 3 4–5 Problem 5 (perfect shuffles), and the playground’s turn counts against puzzles 10 and 11.",
+        "sourceIds": [
+          "machines-week03"
+        ]
+      },
+      "provenance": "Week 3 K–1 Problem 1: “Do turns until every block is back under its own picture, and make a tally mark for each turn.”, and 4–5 Problem 5’s perfect shuffles, which the review card leaves to a playground.",
+      "sourceDocument": "docs/machines/README.md"
+    },
+    {
+      "id": "machines-01",
+      "number": 1,
+      "title": "Turn a machine",
+      "band": "all",
+      "difficulty_level": "easy",
+      "group": "Shuffle machines",
+      "mechanic": "machine",
+      "libraryFamily": "swap",
+      "familyTitle": "Cup swaps",
+      "revision": 1,
+      "parameters": {
+        "mode": "run",
+        "cups": 5,
+        "machine": "CEABD"
+      },
+      "objective": "Turn the machine until every cup is back on its own home.",
+      "instruction": "Turn the machine until every cup is back on its own home.",
+      "controls": "Turn runs the machine once. A loop takes its colour the first time its cups are all home. Cups home starts the run again.",
+      "rules": [
+        "A machine has one arrow out of every home and one into every home. One turn moves every cup along its arrow at once.",
+        "The lower row shows where one turn sends the cups on top. Swapping two cups there swaps two arrowheads.",
+        "A run is over when every cup is back on its own home."
+      ],
+      "idea": "Cups A and C swap and are home every 2 turns; B, D and E go round a loop of 3. All five are home together first after 6 turns.",
+      "prerequisites": "Count to 6. Nothing to read but letters.",
+      "hints": [
+        "Press Turn and watch where each cup goes.",
+        "Watch cup A. After how many turns is it home?",
+        "A and C are home after 2 turns, and B, D and E after 3. Keep turning until both loops are home at once."
+      ],
+      "parent": {
+        "notice": "Whether your child notices that some cups come home before others, and leave again.",
+        "prompt": "Cup A is home after 2 turns. Why isn’t the machine done?",
+        "explanation": "The run is over only when every cup is home at once. A and C are home after 2, 4, 6, … turns; B, D and E after 3, 6, 9, …. The first number in both lists is 6.",
+        "extension": "Which turns bring A and C home while the others are away? (Turns 2 and 4.)",
+        "connection": "Week 3 K–1 Problems 1 to 3; the turn count is the least common multiple of the loop lengths.",
+        "sourceIds": [
+          "machines-week03"
+        ]
+      },
+      "provenance": "Week 3 K–1 Problem 3: “Do the same on these two machines.”, its five-slot machine (1→3, 2→4, 3→1, 4→5, 5→2), after Problem 1: “Do turns until every block is back under its own picture, and make a tally mark for each turn.”",
+      "sourceDocument": "docs/machines/README.md"
+    },
+    {
+      "id": "machines-02",
+      "number": 2,
+      "title": "Three turns",
+      "band": "all",
+      "difficulty_level": "easy",
+      "group": "Shuffle machines",
+      "mechanic": "machine",
+      "libraryFamily": "swap",
+      "familyTitle": "Cup swaps",
+      "revision": 1,
+      "parameters": {
+        "mode": "make",
+        "cups": 4,
+        "goal": {
+          "turns": 3
+        }
+      },
+      "objective": "Make a machine that brings every cup home in exactly 3 turns, or press Can’t if none can.",
+      "instruction": "Make a machine that brings every cup home in exactly 3 turns, or press Can’t if none can.",
+      "controls": "Tap two cups in the lower row, or drag one onto another, to swap where they land; their arrows swap too. Turn runs the machine once. A loop takes its colour the first time its cups are all home. Cups home starts the run again. Can’t says that no machine does it.",
+      "rules": [
+        "A machine has one arrow out of every home and one into every home. One turn moves every cup along its arrow at once.",
+        "The lower row shows where one turn sends the cups on top. Swapping two cups there swaps two arrowheads.",
+        "A run is over when every cup is back on its own home."
+      ],
+      "idea": "Three cups go round a loop and the fourth stays. Two swaps that share a cup make the loop.",
+      "prerequisites": "Puzzle 1.",
+      "hints": [
+        "Swap two cups in the lower row and press Turn. How many turns?",
+        "One swap makes two cups trade places: 2 turns. Try a second swap that uses one of the same cups.",
+        "Swap A and B in the lower row, then A and C, and turn."
+      ],
+      "parent": {
+        "notice": "Whether your child predicts or just tries. Building and running is the activity here.",
+        "prompt": "Which cups move in your machine, and which one stays?",
+        "explanation": "A machine that takes 3 turns needs a loop of three cups, and on four cups the last cup can only stay, since one cup can’t move on its own (puzzle 4). There are 8 such machines: 4 choices of the cup that stays, and 2 directions round.",
+        "extension": "Is there a 3-turn machine on four cups where every cup moves? (No: four cups loop as 4, 3 + 1, 2 + 2, 2 + 1 + 1 or 1 + 1 + 1 + 1, and only 3 + 1 takes 3 turns.)",
+        "connection": "Week 3 K–1 Problem 4.",
+        "sourceIds": [
+          "machines-week03"
+        ]
+      },
+      "provenance": "Week 3 K–1 Problem 4: “Draw arrows on each machine so the blocks get back under their pictures in the number of turns written beside it.”, the machine marked 3.",
+      "sourceDocument": "docs/machines/README.md"
+    },
+    {
+      "id": "machines-03",
+      "number": 3,
+      "title": "Four turns",
+      "band": "all",
+      "difficulty_level": "easy",
+      "group": "Shuffle machines",
+      "mechanic": "machine",
+      "libraryFamily": "swap",
+      "familyTitle": "Cup swaps",
+      "revision": 1,
+      "parameters": {
+        "mode": "make",
+        "cups": 4,
+        "goal": {
+          "turns": 4
+        }
+      },
+      "objective": "Make a machine that brings every cup home in exactly 4 turns, or press Can’t if none can.",
+      "instruction": "Make a machine that brings every cup home in exactly 4 turns, or press Can’t if none can.",
+      "controls": "Tap two cups in the lower row, or drag one onto another, to swap where they land; their arrows swap too. Turn runs the machine once. A loop takes its colour the first time its cups are all home. Cups home starts the run again. Can’t says that no machine does it.",
+      "rules": [
+        "A machine has one arrow out of every home and one into every home. One turn moves every cup along its arrow at once.",
+        "The lower row shows where one turn sends the cups on top. Swapping two cups there swaps two arrowheads.",
+        "A run is over when every cup is back on its own home."
+      ],
+      "idea": "All four cups go round one loop.",
+      "prerequisites": "Puzzle 2.",
+      "hints": [
+        "Make a 3-turn machine first. Which cup is left out?",
+        "Swap the cup that stays with one in the loop.",
+        "A loop through all four homes takes 4 turns."
+      ],
+      "parent": {
+        "notice": "Whether your child builds on puzzle 2 by bringing the fourth cup into the loop.",
+        "prompt": "Why don’t two swaps make 4 turns?",
+        "explanation": "Two separate swaps (A with B, C with D) bring every cup home after 2 turns. Four turns needs one loop through all four homes, and there are 6 of those: from A the loop can visit the other three homes in 3 × 2 × 1 orders.",
+        "extension": "Which numbers of turns can four cups make? (1, 2, 3 and 4.)",
+        "connection": "Week 3 K–1 Problem 4.",
+        "sourceIds": [
+          "machines-week03"
+        ]
+      },
+      "provenance": "Week 3 K–1 Problem 4: “Draw arrows on each machine so the blocks get back under their pictures in the number of turns written beside it.”, the machine marked 4.",
+      "sourceDocument": "docs/machines/README.md"
+    },
+    {
+      "id": "machines-04",
+      "number": 4,
+      "title": "Just one cup",
+      "band": "all",
+      "difficulty_level": "easy",
+      "group": "Shuffle machines",
+      "mechanic": "machine",
+      "libraryFamily": "swap",
+      "familyTitle": "Cup swaps",
+      "revision": 1,
+      "parameters": {
+        "mode": "make",
+        "cups": 4,
+        "goal": {
+          "moved": 1
+        }
+      },
+      "objective": "Make a machine that moves exactly one cup, or press Can’t if none can.",
+      "instruction": "Make a machine that moves exactly one cup, or press Can’t if none can.",
+      "controls": "Tap two cups in the lower row, or drag one onto another, to swap where they land; their arrows swap too. Turn runs the machine once. A loop takes its colour the first time its cups are all home. Cups home starts the run again. Can’t says that no machine does it.",
+      "rules": [
+        "A machine has one arrow out of every home and one into every home. One turn moves every cup along its arrow at once.",
+        "The lower row shows where one turn sends the cups on top. Swapping two cups there swaps two arrowheads.",
+        "A run is over when every cup is back on its own home."
+      ],
+      "idea": "No machine moves just one cup: a cup that leaves its home lands on another, and the cup there has to go somewhere too.",
+      "prerequisites": "Puzzle 1.",
+      "hints": [
+        "Try to make a machine where only A moves. Where does the cup it lands on go?",
+        "Every swap in the lower row moves two arrowheads.",
+        "A cup that leaves needs another cup to take its place. Press Can’t."
+      ],
+      "parent": {
+        "notice": "Whether your child tries several machines before deciding.",
+        "prompt": "When cup A leaves home, which cup lands on home A?",
+        "explanation": "One turn puts exactly one cup on every home. If A moves to another home, the cup that was there has to move too, and some cup has to land on A. So a machine moves no cups or at least two. After Can’t, the catalog shows every way four cups can loop, by how many cups move: nothing is under 1.",
+        "extension": "Can a machine move exactly two cups? Exactly three? (Yes: a swap, and a loop of three.)",
+        "connection": "Week 3 K–1 Problem 5.",
+        "sourceIds": [
+          "machines-week03"
+        ]
+      },
+      "provenance": "Week 3 K–1 Problem 5: “Can you draw a machine where only one block ends up in a different slot? Try each drawing with the blocks, and if it can’t be done, explain why.”",
+      "sourceDocument": "docs/machines/README.md"
+    },
+    {
+      "id": "machines-05",
+      "number": 5,
+      "title": "Six turns on five cups",
+      "band": "all",
+      "difficulty_level": "medium",
+      "group": "Shuffle machines",
+      "mechanic": "machine",
+      "libraryFamily": "swap",
+      "familyTitle": "Cup swaps",
+      "revision": 1,
+      "parameters": {
+        "mode": "make",
+        "cups": 5,
+        "goal": {
+          "turns": 6
+        }
+      },
+      "objective": "Make a machine on five cups that brings every cup home in exactly 6 turns, or press Can’t if none can.",
+      "instruction": "Make a machine on five cups that brings every cup home in exactly 6 turns, or press Can’t if none can.",
+      "controls": "Tap two cups in the lower row, or drag one onto another, to swap where they land; their arrows swap too. Turn runs the machine once. A loop takes its colour the first time its cups are all home. Cups home starts the run again. Can’t says that no machine does it.",
+      "rules": [
+        "A machine has one arrow out of every home and one into every home. One turn moves every cup along its arrow at once.",
+        "The lower row shows where one turn sends the cups on top. Swapping two cups there swaps two arrowheads.",
+        "A run is over when every cup is back on its own home."
+      ],
+      "idea": "A swap and a loop of three on the other cups: 2 and 3 first line up at 6.",
+      "prerequisites": "Puzzles 1 and 2.",
+      "hints": [
+        "Make a 2-turn part and a 3-turn part on different cups.",
+        "Swap two cups for the 2-turn part, and make the other three go round.",
+        "Swap A and B; then swap C and D, and C and E."
+      ],
+      "parent": {
+        "notice": "Whether your child reuses the machine from puzzle 1.",
+        "prompt": "Why does a swap with a loop of three take 6 turns, not 5?",
+        "explanation": "The swapped cups are home after 2, 4, 6, … turns and the loop after 3, 6, …, so all five first after 6. A single loop of five takes 5. Of the 120 machines on five cups, 20 take 6 turns: 10 ways to choose the loop’s three cups, and 2 directions round.",
+        "extension": "Which machines on five cups take 5 turns? 4? (One loop of five; a loop of four with one cup staying.)",
+        "connection": "Week 3 K–1 Problem 8; 2–3 Problem 3.",
+        "sourceIds": [
+          "machines-week03"
+        ]
+      },
+      "provenance": "Week 3 K–1 Problem 8: “Each partner draws a new machine with 5 slots that takes 6 turns, not the one in Problem 3.”",
+      "sourceDocument": "docs/machines/README.md"
+    },
+    {
+      "id": "machines-06",
+      "number": 6,
+      "title": "Undo a machine",
+      "band": "all",
+      "difficulty_level": "medium",
+      "group": "Shuffle machines",
+      "mechanic": "machine",
+      "libraryFamily": "swap",
+      "familyTitle": "Cup swaps",
+      "revision": 1,
+      "parameters": {
+        "mode": "undo",
+        "cups": 4,
+        "chain": [
+          "CDBA"
+        ]
+      },
+      "objective": "After machine A turns once, make your machine put every cup home in one more turn.",
+      "instruction": "After machine A turns once, make your machine put every cup home in one more turn.",
+      "controls": "Tap two cups in the lower row, or drag one onto another, to swap where they land; their arrows swap too. Turn runs the next machine in order, ending with yours. Cups home starts again from the beginning.",
+      "rules": [
+        "A machine has one arrow out of every home and one into every home. One turn moves every cup along its arrow at once.",
+        "The lower row shows where one turn sends the cups on top. Swapping two cups there swaps two arrowheads.",
+        "A run is over when every cup is back on its own home."
+      ],
+      "idea": "Each cup goes back along the arrow it came by: the machine that undoes A is A with every arrow reversed.",
+      "prerequisites": "Puzzle 1.",
+      "hints": [
+        "Turn A, then look at where each cup landed.",
+        "After A turns, the lower row shows where your machine sends each cup. Swap until every cup there is under its own home.",
+        "Reverse every arrow of A: A to C, B to D, C to B and D to A."
+      ],
+      "parent": {
+        "notice": "Whether your child turns A first and sorts the lower row, or works from A’s arrows.",
+        "prompt": "How do your arrows compare with A’s?",
+        "explanation": "One turn of A carries each cup along an arrow, so getting it back means going along the same arrow backwards. Reversing every arrow gives the only machine that works: A to C, B to D, C to B and D to A.",
+        "extension": "Machine A takes 4 turns. How many does your machine take? (4 as well: its loop is A’s loop the other way round.)",
+        "connection": "Week 3 K–1 Problem 6; 2–3 Problem 4.",
+        "sourceIds": [
+          "machines-week03"
+        ]
+      },
+      "provenance": "Week 3 K–1 Problem 6: “Put each block under its picture on the first machine and do one turn. Move the row of blocks to the second machine without changing its order. Draw arrows on the second machine so one more turn puts every block back under its own picture.”, its first machine (1→4, 2→3, 3→1, 4→2).",
+      "sourceDocument": "docs/machines/README.md"
+    },
+    {
+      "id": "machines-07",
+      "number": 7,
+      "title": "Every machine on three cups",
+      "band": "all",
+      "difficulty_level": "medium",
+      "group": "Shuffle machines",
+      "mechanic": "machine",
+      "libraryFamily": "swap",
+      "familyTitle": "Cup swaps",
+      "revision": 1,
+      "parameters": {
+        "mode": "every",
+        "cups": 3,
+        "rule": "any"
+      },
+      "objective": "Find every machine on three cups.",
+      "instruction": "Find every machine on three cups.",
+      "controls": "Tap two cups in the lower row, or drag one onto another, to swap where they land; their arrows swap too. Turn runs the machine once. A loop takes its colour the first time its cups are all home. Cups home starts the run again. Keep puts the machine on the shelf; tap a kept machine to put it back on the board. Press That’s all when every one is there.",
+      "rules": [
+        "A machine has one arrow out of every home and one into every home. One turn moves every cup along its arrow at once.",
+        "The lower row shows where one turn sends the cups on top. Swapping two cups there swaps two arrowheads.",
+        "A run is over when every cup is back on its own home."
+      ],
+      "idea": "Six machines: every cup stays; one of three swaps; or all three go round, one way or the other. 3 × 2 × 1 = 6.",
+      "prerequisites": "Puzzle 2.",
+      "hints": [
+        "Keep the machine where every cup stays, then try one swap.",
+        "When two cups swap, one stays. Each of the three cups can be the one.",
+        "Two machines move all three cups: one round each way."
+      ],
+      "parent": {
+        "notice": "Whether your child organises the search, by which cup stays, say, or tries at random.",
+        "prompt": "How do you know there are no more?",
+        "explanation": "The cup that lands on home A can come from any of 3 homes, the one on B from either of the 2 left, and the one on C from the last: 3 × 2 × 1 = 6. By turns: 1 machine takes 1 turn, 3 take 2 and 2 take 3. The catalog shows them in those columns.",
+        "extension": "How many machines are there on four cups? (4 × 3 × 2 × 1 = 24.)",
+        "connection": "Week 3 K–1 Problem 7.",
+        "sourceIds": [
+          "machines-week03"
+        ]
+      },
+      "provenance": "Week 3 K–1 Problem 7: “Draw all the different machines with 3 slots. How many are there?”",
+      "sourceDocument": "docs/machines/README.md"
+    },
+    {
+      "id": "machines-08",
+      "number": 8,
+      "title": "Undo itself",
+      "band": "all",
+      "difficulty_level": "medium",
+      "group": "Shuffle machines",
+      "mechanic": "machine",
+      "libraryFamily": "swap",
+      "familyTitle": "Cup swaps",
+      "revision": 1,
+      "parameters": {
+        "mode": "every",
+        "cups": 4,
+        "rule": "self"
+      },
+      "objective": "Find every machine on four cups that moves every cup and brings them all home in 2 turns.",
+      "instruction": "Find every machine on four cups that moves every cup and brings them all home in 2 turns.",
+      "controls": "Tap two cups in the lower row, or drag one onto another, to swap where they land; their arrows swap too. Turn runs the machine once. A loop takes its colour the first time its cups are all home. Cups home starts the run again. Once a run shows the machine moves every cup and is home in 2 turns, Keep puts it on the shelf; tap a kept machine to put it back on the board. Press That’s all when every one is there.",
+      "rules": [
+        "A machine has one arrow out of every home and one into every home. One turn moves every cup along its arrow at once.",
+        "The lower row shows where one turn sends the cups on top. Swapping two cups there swaps two arrowheads.",
+        "A run is over when every cup is back on its own home."
+      ],
+      "idea": "Two turns put every cup home exactly when every loop has 1 or 2 cups; moving every cup leaves only swaps, so the cups pair up. A’s partner can be B, C or D: three machines.",
+      "prerequisites": "Puzzles 2 and 7.",
+      "hints": [
+        "Swap two cups. What must the other two do?",
+        "Every cup has to move, so the other two swap as well.",
+        "A can pair with B, C or D."
+      ],
+      "parent": {
+        "notice": "Whether your child sees the machines as ways to pair up the cups.",
+        "prompt": "Why are there only 3?",
+        "explanation": "A machine is home after 2 turns when every loop has 1 or 2 cups. Moving every cup rules out loops of 1, so the cups pair up into swaps. A’s partner can be B, C or D, and the other two pair up: 3 machines. The catalog shows all ten machines home in 2 turns or fewer, by how many cups move.",
+        "extension": "How many machines on four cups are home in 2 turns or fewer? (10: one moves nothing, 6 swap one pair, 3 swap two.)",
+        "connection": "Week 3 2–3 Problem 5.",
+        "sourceIds": [
+          "machines-week03"
+        ]
+      },
+      "provenance": "Week 3 2–3 Problem 5: “A machine undoes itself if two turns of it put every block home. … How can you tell from its loops whether a machine undoes itself? Explain.”, with every block moving.",
+      "sourceDocument": "docs/machines/README.md"
+    },
+    {
+      "id": "machines-09",
+      "number": 9,
+      "title": "Undo itself on five cups",
+      "band": "all",
+      "difficulty_level": "hard",
+      "group": "Shuffle machines",
+      "mechanic": "machine",
+      "libraryFamily": "swap",
+      "familyTitle": "Cup swaps",
+      "revision": 1,
+      "parameters": {
+        "mode": "make",
+        "cups": 5,
+        "goal": {
+          "self": true
+        }
+      },
+      "objective": "Make a machine on five cups that moves every cup and brings them all home in 2 turns, or press Can’t if none can.",
+      "instruction": "Make a machine on five cups that moves every cup and brings them all home in 2 turns, or press Can’t if none can.",
+      "controls": "Tap two cups in the lower row, or drag one onto another, to swap where they land; their arrows swap too. Turn runs the machine once. A loop takes its colour the first time its cups are all home. Cups home starts the run again. Can’t says that no machine does it.",
+      "rules": [
+        "A machine has one arrow out of every home and one into every home. One turn moves every cup along its arrow at once.",
+        "The lower row shows where one turn sends the cups on top. Swapping two cups there swaps two arrowheads.",
+        "A run is over when every cup is back on its own home."
+      ],
+      "idea": "Home in 2 turns means loops of 1 or 2 cups, and moving every cup means swaps only. Five cups can’t pair up.",
+      "prerequisites": "Puzzle 8.",
+      "hints": [
+        "Try pairing up the cups as in puzzle 8.",
+        "After two swaps, one cup is left over. What can it do?",
+        "Swaps use cups two at a time, and five is odd. Press Can’t."
+      ],
+      "parent": {
+        "notice": "Whether your child connects the leftover cup with odd and even.",
+        "prompt": "What happens to the fifth cup?",
+        "explanation": "A loop of 3, 4 or 5 cups takes more than 2 turns, so the machine can only swap cups and leave cups where they are. Swaps use cups in pairs, so with five cups at least one stays. After Can’t, the catalog marks every way five cups can loop that is home in 2 turns or fewer: each has a loop of 1.",
+        "extension": "For which numbers of cups is there such a machine? (Even numbers.)",
+        "connection": "Week 3 2–3 Problem 5.",
+        "sourceIds": [
+          "machines-week03"
+        ]
+      },
+      "provenance": "Week 3 2–3 Problem 5: “Draw four different machines with 5 slots that undo themselves.”, asking for every block to move.",
+      "sourceDocument": "docs/machines/README.md"
+    },
+    {
+      "id": "machines-10",
+      "number": 10,
+      "title": "Every number of turns",
+      "band": "all",
+      "difficulty_level": "hard",
+      "group": "Shuffle machines",
+      "mechanic": "machine",
+      "libraryFamily": "swap",
+      "familyTitle": "Cup swaps",
+      "revision": 1,
+      "parameters": {
+        "mode": "counts",
+        "cups": 5,
+        "rule": "all"
+      },
+      "objective": "Find every number of turns a machine on five cups can take to bring every cup home.",
+      "instruction": "Find every number of turns a machine on five cups can take to bring every cup home.",
+      "controls": "Tap two cups in the lower row, or drag one onto another, to swap where they land; their arrows swap too. Turn runs the machine once. A loop takes its colour the first time its cups are all home. Cups home starts the run again. When every cup is home, Keep puts the machine on the shelf with its number of turns; tap a kept machine to put it back on the board.",
+      "rules": [
+        "A machine has one arrow out of every home and one into every home. One turn moves every cup along its arrow at once.",
+        "The lower row shows where one turn sends the cups on top. Swapping two cups there swaps two arrowheads.",
+        "A run is over when every cup is back on its own home."
+      ],
+      "idea": "The turn count is the least common multiple of the loop lengths. Five cups loop in 7 ways, giving 1, 2, 3, 4, 5 and 6 turns.",
+      "prerequisites": "Puzzles 2, 3 and 5.",
+      "hints": [
+        "Run a machine and keep it. Then change it to get a new number.",
+        "What loops can five cups make? Each way gives a number of turns.",
+        "A swap with a loop of three gives 6. Could anything give 7 or more?"
+      ],
+      "parent": {
+        "notice": "Whether your child starts reasoning about loops instead of trying.",
+        "prompt": "Why not 7 turns?",
+        "explanation": "The machine is home when every loop is: after a number of turns that every loop length divides. Five cups loop as 5, 4 + 1, 3 + 2, 3 + 1 + 1, 2 + 2 + 1, 2 + 1 + 1 + 1 or 1 + 1 + 1 + 1 + 1, taking 5, 4, 6, 3, 2, 2 and 1 turns. Nothing else is possible. The catalog shows each way under its number of turns.",
+        "extension": "Which numbers of turns can six cups make? (1 to 6 again: one loop of six and 3 + 2 + 1 both give 6, and 5 + 1 gives 5. Nothing gives more.)",
+        "connection": "Week 3 2–3 Problem 3; 4–5 Problem 3.",
+        "sourceIds": [
+          "machines-week03"
+        ]
+      },
+      "provenance": "Week 3 4–5 Problem 3: “Which numbers of turns can a machine with 5 slots take to bring all the blocks home? Draw a machine for each number you find, and explain why no other number is possible.”",
+      "sourceDocument": "docs/machines/README.md"
+    },
+    {
+      "id": "machines-11",
+      "number": 11,
+      "title": "The slowest machine",
+      "band": "all",
+      "difficulty_level": "hard",
+      "group": "Shuffle machines",
+      "mechanic": "machine",
+      "libraryFamily": "swap",
+      "familyTitle": "Cup swaps",
+      "revision": 1,
+      "parameters": {
+        "mode": "counts",
+        "cups": 7,
+        "rule": "most"
+      },
+      "objective": "Find the most turns a machine on seven cups can take to bring every cup home.",
+      "instruction": "Find the most turns a machine on seven cups can take to bring every cup home.",
+      "controls": "Tap two cups in the lower row, or drag one onto another, to swap where they land; their arrows swap too. Turn runs the machine once. A loop takes its colour the first time its cups are all home. Cups home starts the run again. When every cup is home, Keep puts the machine on the shelf with its number of turns; tap a kept machine to put it back on the board.",
+      "rules": [
+        "A machine has one arrow out of every home and one into every home. One turn moves every cup along its arrow at once.",
+        "The lower row shows where one turn sends the cups on top. Swapping two cups there swaps two arrowheads.",
+        "A run is over when every cup is back on its own home."
+      ],
+      "idea": "Loops of 4 and 3 take 12 turns, the most for seven cups: no way of splitting seven cups into loops has a larger least common multiple.",
+      "prerequisites": "Puzzle 10.",
+      "hints": [
+        "One loop of seven takes 7. Can splitting the cups do better?",
+        "A loop of five and a swap take 10.",
+        "Try a loop of four and a loop of three."
+      ],
+      "parent": {
+        "notice": "Whether your child sees that two loops can beat one big loop.",
+        "prompt": "Why is 12 the most?",
+        "explanation": "The turn count is the least common multiple of the loop lengths. Of the 15 ways seven cups can loop, 4 + 3 gives 12; the next are 5 + 2 with 10 and 7 with 7. The catalog lists all 15. Only 420 of the 5,040 machines take 12 turns.",
+        "extension": "What is the most for eight cups? (15, from 5 + 3.)",
+        "connection": "Week 3 2–3 Problem 8; 4–5 Problems 4 and 9.",
+        "sourceIds": [
+          "machines-week03"
+        ]
+      },
+      "provenance": "Week 3 2–3 Problem 8: “Draw a machine with 7 slots that takes more than 10 turns to bring all the blocks home. What is the most turns a machine with 7 slots can take? Explain.”",
+      "sourceDocument": "docs/machines/README.md"
+    },
+    {
+      "id": "machines-12",
+      "number": 12,
+      "title": "Undo two machines",
+      "band": "all",
+      "difficulty_level": "hard",
+      "group": "Shuffle machines",
+      "mechanic": "machine",
+      "libraryFamily": "swap",
+      "familyTitle": "Cup swaps",
+      "revision": 1,
+      "parameters": {
+        "mode": "undo",
+        "cups": 4,
+        "chain": [
+          "CABD",
+          "ACDB"
+        ]
+      },
+      "objective": "After machine A turns and then machine B, make your machine put every cup home in one more turn.",
+      "instruction": "After machine A turns and then machine B, make your machine put every cup home in one more turn.",
+      "controls": "Tap two cups in the lower row, or drag one onto another, to swap where they land; their arrows swap too. Turn runs the next machine in order, ending with yours. Cups home starts again from the beginning.",
+      "rules": [
+        "A machine has one arrow out of every home and one into every home. One turn moves every cup along its arrow at once.",
+        "The lower row shows where one turn sends the cups on top. Swapping two cups there swaps two arrowheads.",
+        "A run is over when every cup is back on its own home."
+      ],
+      "idea": "To undo A then B, undo B first, then A, like taking off shoes before socks. In one machine, it reverses every arrow of A then B.",
+      "prerequisites": "Puzzle 6.",
+      "hints": [
+        "Turn A, then B, and look at where each cup is.",
+        "Swap in the lower row until every cup there is under its own home.",
+        "Your machine: A to C, C to D, D to A, and B stays."
+      ],
+      "parent": {
+        "notice": "Whether your child sorts the lower row after A and B turn, or tries to reverse A’s and B’s arrows in their head.",
+        "prompt": "Does undoing A and then undoing B work?",
+        "explanation": "A then B sends A to D, D to C and C to A, and leaves B, so the machine that undoes it reverses that loop: A to C, C to D, D to A. It is the same as undoing B and then undoing A. Undoing A first and then B gives a different machine, which doesn’t work.",
+        "extension": "Is B then A the same machine as A then B? (No: B then A leaves C where it is.)",
+        "connection": "Week 3 4–5 Problem 7.",
+        "sourceIds": [
+          "machines-week03"
+        ]
+      },
+      "provenance": "Week 3 4–5 Problem 7: “For each pair of machines A and B below, draw A then B, and draw the machines that undo A, B and A then B.”, its first pair (A: 1→2, 2→3, 3→1; B: 2→4, 3→2, 4→3).",
+      "sourceDocument": "docs/machines/README.md"
+    }
+  ]
+}
