@@ -1,0 +1,73 @@
+@import url('../../sq-grid.css');
+/* Garden fences: soil squares, leaf-green tiles, a wooden fence with posts
+   along every tile side with no tile beside it, and a blue pond. The tray
+   above the plot holds the tiles still to plant; the chips and the row of
+   found gardens sit below it. */
+.gf-puzzle{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
+.gf-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem 1rem;max-width:100%}
+.gf-buttons{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem}
+.gf-puzzle .gf-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.gf-puzzle .gf-claim:not([disabled]){border-color:var(--b-pine,#31533e)}
+.gf-puzzle .gf-button[disabled]{opacity:.5;box-shadow:none}
+.gf-puzzle .gf-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+
+/* Counters: the tray of tiles still to plant, and the fence. */
+.gf-tray{display:inline-flex;flex-wrap:wrap;gap:4px;max-width:220px;justify-content:center}
+.gf-tray i{width:15px;height:15px;border-radius:3px;border:1.5px dashed #b9c2a5;box-sizing:border-box}
+.gf-tray i.on{background:#8fb07f;border:1.5px solid #4d6b47}
+@media (prefers-reduced-motion:no-preference){.gf-tray.nudge{animation:gf-nudge .35s ease-in-out}}
+@keyframes gf-nudge{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.gf-count{display:inline-flex;align-items:center;gap:.3rem;font-family:var(--b-display,Georgia,serif);font-size:1.35rem;color:var(--b-ink,#294439)}
+.gf-count b{font-weight:400;min-width:1.4em;text-align:center}
+.gf-count small{font-size:1rem;color:var(--b-muted,#5a6850)}
+.gf-fence.over b{color:var(--b-bad,#a9503a)}
+.gf-icon{width:26px;height:22px}
+.gf-icon-tile{fill:#8fb07f;stroke:#4d6b47;stroke-width:1.6}
+.gf-icon-rail{stroke:#9b7448;stroke-width:2.2;fill:none}
+.gf-icon-post{stroke:#6b4f2e;stroke-width:3;stroke-linecap:round;fill:none}
+
+/* The plot. */
+.gf-stage{width:100%;max-width:min(440px, calc(var(--gf-cols) * 76px + 30px))}
+.gf-board .sg-cell{fill:#f3ecd9;stroke:#dccfae}
+.gf-board .sg-cell.tile{fill:#8fb07f;stroke:#6f9562}
+.gf-board .sg-cell.pond{fill:#9cc9de;stroke:#86b6cc}
+.gf-board .sg-cell.tile.hinted{fill:#b9cf8e;stroke:var(--b-ochre,#b38840);stroke-width:3px;stroke-dasharray:5 4}
+.gf-board .sg-rim{stroke:#b9a77f;stroke-width:1.6px}
+.gf-board .sg-edge.fence{stroke:#9b7448;stroke-width:4.5px}
+.gf-board .sg-point.post .sg-pip{fill:#6b4f2e;r:1.35px}
+.gf-board .sg-point.post{pointer-events:none}
+.gf-board.solved .sg-edge.fence{stroke:#7a5530}
+@media (prefers-reduced-motion:no-preference){.gf-board .sg-cell.tile{transition:fill .15s}}
+
+/* The plot's sizes in the playground. */
+.gf-sizes{display:flex;gap:.4rem}
+.gf-puzzle .gf-size{min-height:46px;min-width:46px;padding:5px;background:var(--b-card,#fffdf5);border:1px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.gf-puzzle .gf-size[aria-pressed="true"]{background:#e9eddc;border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.gf-size-icon{width:30px;height:30px;display:block}
+.gf-size-icon rect{fill:#f3ecd9;stroke:#b9a77f;stroke-width:.6}
+
+/* A told answer or a rule that stops a claim. */
+.gf-note{margin:0;font-weight:600;color:var(--b-bad,#a9503a)}
+
+/* Fence lengths to make: lit when made, ringed when the plot shows it. */
+.gf-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;margin:0;padding:0;list-style:none}
+.gf-chips li{display:grid;place-items:center;min-width:44px;height:44px;padding:0 8px;border-radius:22px;border:1.5px dashed #b9a77f;font-family:var(--b-display,Georgia,serif);font-size:1.2rem;color:var(--b-muted,#5a6850);box-sizing:border-box}
+.gf-chips li.found{background:#e9dcc0;border:2px solid #9b7448;color:var(--b-ink,#294439)}
+.gf-chips li.here{box-shadow:0 0 0 3px var(--b-sun,#efc76e)}
+
+/* Gardens found. */
+.gf-shelf{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem;margin:0;padding:0;list-style:none;max-width:460px}
+.gf-shelf li{display:grid;place-items:center;width:64px;height:64px;padding:4px;background:#fbf4dc;border:1.5px solid #ead9a4;border-radius:12px;box-sizing:border-box}
+.gf-shelf li.here{border-color:var(--b-ochre,#b38840);box-shadow:0 0 0 3px var(--b-sun,#efc76e)}
+.gf-mini{display:block;width:100%;height:100%;max-height:none;margin:0}
+.gf-mini .sg-cell{stroke:#6f9562}
+.gf-mini .sg-cell.tile{fill:#8fb07f}
+.gf-mini .sg-rim{stroke:none}
+.gf-mini .sg-edge.fence{stroke:#9b7448;stroke-width:2px}
+
+/* Puzzles that start planted: moves left, and the squares tiles left. */
+.gf-moves{display:inline-flex;gap:5px}
+.gf-moves i{width:16px;height:16px;border-radius:50%;border:2px dashed #b9a77f;box-sizing:border-box}
+.gf-moves i.on{background:var(--b-sun,#efc76e);border:2px solid #9b7448}
+@media (prefers-reduced-motion:no-preference){.gf-moves.nudge{animation:gf-nudge .35s ease-in-out}}
+.gf-board .sg-cell.home{fill:#e7dcbf}
