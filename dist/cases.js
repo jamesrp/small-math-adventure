@@ -184,7 +184,7 @@ export function wireCups(root, {picked, pick, swap}) {
 
 // Counters: numbered discs drawn from a bag. 'R2' is red counter 2 and 'B1'
 // blue counter 1; `counterIds('RRB')` numbers a bag's colours in order: R1, R2, B1.
-export const COUNTER_COLOURS = {R: 'red', B: 'blue'};
+export const COUNTER_COLOURS = {R: 'red', B: 'blue', Y: 'yellow'};
 export const counterIds = colours => { const n = {}; return [...colours].map(c => `${c}${n[c] = (n[c] || 0) + 1}`); };
 export const sayCounter = id => `${COUNTER_COLOURS[id[0]]} ${id.slice(1)}`;
 // A small counter picture; `number` replaces the one in its id.
