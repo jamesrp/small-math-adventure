@@ -1,0 +1,351 @@
+// Builds dist/families/cuts/cuts.json, the Polygon cuts pack, from the
+// authoring list below. Every fact a puzzle relies on (how many ways it
+// asks for, the fewest flips to a card, the shortest odd way home, a tour
+// of every way) is computed here from dist/families/cuts/polygon.js and
+// checked against the authored claims; scripts/validate-cuts.mjs checks
+// them again by separate methods. Design notes and worksheet sources:
+// docs/cuts/README.md.
+import {writeFile} from 'node:fs/promises';
+import {polygonOf, fromKey, keyOf, fillings, completions, apexOf, flipMap, distancesTo, fanOf} from '../dist/families/cuts/polygon.js';
+
+const WEEK14 = 'https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-14';
+export const sources = [
+  {id: 'cuts-week14', title: 'Bellingham Math Circle — Week 14: Polygon triangulations and flips, packets and facilitator guide', url: WEEK14, kind: 'local curriculum'},
+  {id: 'cuts-review', title: 'Bellingham Math Circle — Week 14 review card, with its math check', url: 'https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-14.md', kind: 'local curriculum'},
+  {id: 'cuts-catalan', title: 'OEIS A000108 — Catalan numbers', url: 'https://oeis.org/A000108', kind: 'web'},
+  {id: 'cuts-associahedron', title: 'Associahedron — Wikipedia', url: 'https://en.wikipedia.org/wiki/Associahedron', kind: 'web'}
+];
+export const family = {
+  id: 'cuts',
+  title: 'Polygon cuts',
+  mathematics: 'Straight lines from corner to corner that do not cross cut a convex polygon with n corners into triangles. Every way uses exactly n − 3 lines and makes n − 2 triangles, and there are 2, 5, 14, 42 and 132 ways for 4 to 8 corners (the Catalan numbers): the triangle on one fixed side has a third corner, and it splits the rest into two smaller polygons. Two triangles that share a line make a four-sided piece; a flip swaps the line for the piece’s other diagonal. Every line can be flipped, so every way has exactly n − 3 neighbours, and the ways with their flips form a map (the associahedron). The pentagon’s map is a five-cycle, so you can come home after an odd number of flips, unlike the rhombus tilings of Rhombus gardens. A flip draws one new line, so if a target shares k of its lines with a start, at least n − 3 − k flips are needed. For a fan, all lines at one corner, that count is exact: there is always a flip that draws a new line at the fan’s corner. So any way can reach a fan, and through it any other way. For targets that are not fans the count can fall short. Finding the fewest flips between two ways in general is a famous open problem in computer science.',
+  rules: [
+    'Cut the shape into triangles with straight lines from corner to corner. Lines may not cross.',
+    'A flip takes out one line and draws the other diagonal of the four-sided piece around it.'
+  ],
+  sourceIds: sources.map(s => s.id)
+};
+
+const RULES = family.rules;
+const CONTROLS = {
+  every: 'Tap two corners to draw a line between them. Tap a line to erase it. A shape cut all the way into triangles joins the row below. Press That’s all when you have every way.',
+  tour: 'Tap a line to flip it. The row below shows each way you have visited.',
+  reach: 'Tap a line to flip it. The card shows the way to make.',
+  home: 'Tap a line to flip it. The card shows where you started.'
+};
+const MODE_RULES = {
+  every: q => [...(q.kept ? ['The thick line stays.'] : []), 'Solved when you press That’s all with every way found.'],
+  tour: () => ['You may not visit a way twice, except to come home at the end.', 'Solved when you have visited every way and flipped back to the start.'],
+  reach: q => [`Solved when the shape matches the card, within ${q.budget} flips.`],
+  home: () => ['Solved when the shape is back as it started after an odd number of flips.']
+};
+const OBJECTIVE = {
+  every: q => q.kept ? 'Find every way to cut the shape into triangles that keeps the thick line, then press That’s all.' : 'Find every way to cut the shape into triangles, then press That’s all.',
+  tour: () => 'Flip through every way of cutting the shape once, then flip back to the start.',
+  reach: q => `Flip until the shape matches the card, in no more than ${q.budget} flips.`,
+  home: () => 'Flip back to the start after an odd number of flips.'
+};
+const VISIBLE = {
+  every: q => q.kept ? 'Find every way that keeps the thick line.' : 'Find every way to cut it into triangles.',
+  tour: () => 'Visit every way once, then come home.',
+  reach: () => 'Flip to match the card.',
+  home: () => 'Come home after an odd number of flips.'
+};
+
+/* ------------------------------------------------------------------ *
+ * The puzzles
+ * ------------------------------------------------------------------ */
+const OCT_S = 'AC AD DF DG DH', OCT_T = 'AE BD BE EG EH';
+const playground = {
+  id: 'cuts-playground', number: 0, title: 'Cuts playground', band: 'playground', difficulty_level: 'playground',
+  parameters: {mode: 'playground'},
+  objective: 'Cut shapes into triangles and flip their lines freely.',
+  visibleObjective: '',
+  controls: 'Tap two corners to draw a line. Flip and Erase choose what tapping a line does. The small pictures choose the shape, from four corners to eight.',
+  rules: RULES,
+  idea: 'However you cut a shape into triangles, the number of lines and of triangles is always the same.',
+  prerequisites: 'None.',
+  hints: ['Cut the hexagon into triangles. How many lines did you need?', 'Flip a line. Does the number of triangles change?', 'Try a shape with more corners. How many lines now?'],
+  parent: {
+    notice: 'A hexagon always takes three lines and makes four triangles, however it is cut.',
+    prompt: 'Can you cut the same shape into a different number of triangles?',
+    explanation: 'Never. Each line cuts one piece into two, so k lines make k + 1 pieces; and the angles of the triangles add up to the angles of the polygon, (n − 2) × 180°, so there are n − 2 triangles and n − 3 lines. A flip keeps both numbers and changes one line.',
+    extension: 'Count the ways for the square, the pentagon and the hexagon (2, 5, 14). Can you guess the heptagon? (42.)',
+    connection: 'These counts are the Catalan numbers, which also count bracketings, mountain paths and binary trees.'
+  },
+  provenance: 'Week 14 grades 2–3 and 4–5 Problem 1 (two fillings of a polygon, the same number of triangles) and the shared launch (a flip on tracing paper).',
+  sourceIds: ['cuts-week14', 'cuts-catalan']
+};
+
+const authored = [
+  {
+    number: 1, difficulty_level: 'easy', title: 'Keep the line',
+    parameters: {mode: 'every', n: 5, kept: 'AC'},
+    idea: 'One line cuts off a triangle; what is left is a four-sided piece, and that has two ways.',
+    prerequisites: 'None. A grown-up shows how two taps draw a line.',
+    hints: ['Tap two corners to draw a line.', 'The thick line leaves a four-sided piece. Cut it in half.', 'A four-sided piece has two diagonals. Each one is a way.'],
+    parent: {
+      notice: 'With the thick line kept, there are only two ways.',
+      prompt: 'Why can’t you find a third?',
+      explanation: 'The line AC cuts off triangle ABC and leaves the four-sided piece ACDE. A four-sided piece is cut into triangles by one of its two diagonals, AD or CE, and no other line fits without crossing.',
+      extension: 'Keep a line in the hexagon instead. How many ways now? (Puzzle 4.)',
+      connection: 'Fixing one line splits the problem into smaller polygons, the idea behind counting every way.'
+    },
+    provenance: 'Week 14 K–1 Problem 4 (the pentagon with a printed line; two answers, the card’s math check item 1).',
+    sourceIds: ['cuts-week14', 'cuts-review'],
+    expect: {ways: 2}
+  },
+  {
+    number: 2, difficulty_level: 'easy', title: 'Five ways',
+    parameters: {mode: 'every', n: 5},
+    idea: 'A pentagon can be cut into triangles in exactly five ways.',
+    prerequisites: 'Keep the line (puzzle 1).',
+    hints: ['Every way uses two lines.', 'Two lines that meet at a corner make a fan. Try a fan at each corner.', 'Each of the five corners has one fan, and each fan is a different way.'],
+    parent: {
+      notice: 'Every way uses two lines from one corner, and each corner gives one way.',
+      prompt: 'How do you know there isn’t a sixth?',
+      explanation: 'A pentagon takes two lines, and in a pentagon two lines that don’t cross always meet at a corner. So every way is the fan at one of the five corners, and the five fans are all different.',
+      extension: 'How many ways does a hexagon have? (Fourteen: puzzle 8.)',
+      connection: 'The counts 2, 5, 14, 42 are the Catalan numbers.'
+    },
+    provenance: 'Week 14 K–1 Problem 2, grades 2–3 Problem 2 and grades 4–5 Problem 1 (every filling of the pentagon).',
+    sourceIds: ['cuts-week14', 'cuts-catalan'],
+    expect: {ways: 5, groups: [2, 1, 2]}
+  },
+  {
+    number: 3, difficulty_level: 'easy', title: 'Round the pentagon',
+    parameters: {mode: 'tour', n: 5, start: 'AC AD'},
+    idea: 'Flips join the pentagon’s five ways in a ring.',
+    prerequisites: 'Five ways (puzzle 2).',
+    hints: ['Tap a line to flip it.', 'Each way has two lines, so two flips to choose from. One goes back.', 'Keep going the same way round. Five flips bring you home.'],
+    parent: {
+      notice: 'Each way has two flips, and the five ways sit in a ring.',
+      prompt: 'How many flips did it take to come home?',
+      explanation: 'Each way has two lines, and each can be flipped, so each way has exactly two neighbours. Going round visits all five and comes home after five flips, an odd number. In Rhombus gardens every way home takes an even number of flips; here it doesn’t.',
+      extension: 'In the hexagon, can you visit all fourteen ways and come home? (Puzzle 11.)',
+      connection: 'A map of all the ways, joined by flips, is a shape called the associahedron; for the pentagon it is a five-sided ring.'
+    },
+    provenance: 'Week 14 K–1 Problem 6 (visit each of the other fillings once and return), grades 2–3 Problem 4 (the five-cycle) and grades 4–5 Problem 3 (an odd return).',
+    sourceIds: ['cuts-week14', 'cuts-associahedron'],
+    expect: {ways: 5, tours: 2}
+  },
+  {
+    number: 4, difficulty_level: 'medium', title: 'Keep the middle line',
+    parameters: {mode: 'every', n: 6, kept: 'AD'},
+    idea: 'The middle line leaves two four-sided pieces, each with two ways: two times two.',
+    prerequisites: 'Keep the line (puzzle 1).',
+    hints: ['Look at each side of the thick line separately.', 'Each side is a four-sided piece with two diagonals.', 'Choose a diagonal on the left and one on the right: two choices, then two more.'],
+    parent: {
+      notice: 'The two sides of the thick line can be cut independently.',
+      prompt: 'If you cut the left side one way, how many ways are left for the right?',
+      explanation: 'The line AD splits the hexagon into the four-sided pieces ABCD and ADEF. Each has two ways, and any choice on one side goes with any choice on the other, so there are 2 × 2 = 4.',
+      extension: 'Keep AC instead. How many ways? (Five: the line cuts off a triangle and leaves a pentagon.)',
+      connection: 'Counting by cases and multiplying independent choices, the way the Catalan numbers are built.'
+    },
+    provenance: 'Week 14 K–1 Problem 4 (the hexagon with a printed middle line, 2 × 2 completions).',
+    sourceIds: ['cuts-week14'],
+    expect: {ways: 4}
+  },
+  {
+    number: 5, difficulty_level: 'medium', title: 'Fan to fan',
+    parameters: {mode: 'reach', n: 6, start: 'BD BE BF', target: 'AC AD AE', budget: 3},
+    idea: 'A flip draws one new line, so three missing lines need at least three flips.',
+    prerequisites: 'Round the pentagon (puzzle 3).',
+    hints: ['Which lines of the card are missing?', 'Look for a flip that draws a line from A.', 'Flip BF first: it becomes AE.'],
+    parent: {
+      notice: 'Each flip can bring in one line of the card, and here every flip does.',
+      prompt: 'Could two flips ever be enough?',
+      explanation: 'The start and the card share no line, so all three card lines are missing. A flip draws one line, so at least three flips are needed, and BF → AE, BE → AD, BD → AC does it in three.',
+      extension: 'From any way, how many flips to the fan at A? (Three minus the lines already at A: the fan rule.)',
+      connection: 'A lower bound plus a route that meets it proves the fewest. For fans the bound is always met.'
+    },
+    provenance: 'Week 14 grades 2–3 Problem 6 and grades 4–5 Problem 4 (the B fan to the A fan in three flips; the guide’s route).',
+    sourceIds: ['cuts-week14'],
+    expect: {fewest: 3, missing: 3}
+  },
+  {
+    number: 6, difficulty_level: 'medium', title: 'An odd way home',
+    parameters: {mode: 'home', n: 6, start: 'AC AD AE'},
+    idea: 'The hexagon’s map hides pentagon rings, so odd ways home exist.',
+    prerequisites: 'Round the pentagon (puzzle 3).',
+    hints: ['Going out and straight back takes two flips: even.', 'Leave one line alone and flip only the other two.', 'Keep AE. The rest is a pentagon: go round it.'],
+    parent: {
+      notice: 'The shortest odd way home takes five flips.',
+      prompt: 'Why can’t three flips bring you home?',
+      explanation: 'Keep AE and flip only AC and AD: the other lines cut up the pentagon ABCDE, and going round its ring of five comes home in five flips. Three flips would need three ways each a flip from the other two, and no three ways in this map are like that.',
+      extension: 'Can you come home in seven flips? In six?',
+      connection: 'Every face of the associahedron is a four-ring or a five-ring; the five-rings make odd returns possible.'
+    },
+    provenance: 'New for the app, after Week 14 grades 2–3 Problem 5 (an odd return, there in the pentagon) and the guide’s fidelity warning against Week 1’s even returns.',
+    sourceIds: ['cuts-week14', 'cuts-associahedron'],
+    expect: {oddHome: 5}
+  },
+  {
+    number: 7, difficulty_level: 'hard', title: 'One more flip',
+    parameters: {mode: 'reach', n: 6, start: 'BF CE CF', target: 'AD AE BD', budget: 4},
+    idea: 'Counting missing lines gives a bound, but sometimes no flip can draw a line of the card.',
+    prerequisites: 'Fan to fan (puzzle 5).',
+    hints: ['Three lines of the card are missing. Try three flips first.', 'Look at what each first flip draws. Is it ever on the card?', 'Flip CE first, then CF, BF and DF.'],
+    parent: {
+      notice: 'No first flip draws a line of the card, so three flips are not enough.',
+      prompt: 'What does each first flip draw?',
+      explanation: 'The three first flips draw AC, BE or DF, and none is on the card. So the first flip is spent without bringing in a card line, and three more are needed: four in all. One route: CE → DF, CF → BD, BF → AD, DF → AE. Of the 182 ordered pairs of hexagon ways, 8 are like this.',
+      extension: 'For a fan card the count of missing lines is always exact. Why does a fan always have a flip that helps?',
+      connection: 'Counting missing lines is only a lower bound. Finding the fewest flips between two ways in general is a famous open problem.'
+    },
+    provenance: 'New for the app: one of the eight ordered hexagon pairs where the missing-line count falls one short (Week 14 review card, App fit pitfalls; guide p. 1’s “only a lower bound”).',
+    sourceIds: ['cuts-review', 'cuts-week14'],
+    expect: {fewest: 4, missing: 3}
+  },
+  {
+    number: 8, difficulty_level: 'hard', title: 'Fourteen ways',
+    parameters: {mode: 'every', n: 6},
+    idea: 'Sorting by the triangle on one side counts the hexagon’s ways: 5 + 2 + 2 + 5 = 14.',
+    prerequisites: 'Five ways (puzzle 2) and Keep the middle line (puzzle 4).',
+    hints: ['Every way has a triangle on the side from A to F.', 'That triangle’s third corner is B, C, D or E. Find every way for each.', 'With corner B or E the rest is a pentagon (five ways); with C or D, a triangle and a four-sided piece (two ways).'],
+    parent: {
+      notice: 'The row sorts the ways by the triangle on side AF: 5, 2, 2 and 5.',
+      prompt: 'How do you know none are missing?',
+      explanation: 'Every way has exactly one triangle on side AF, with third corner B, C, D or E. Corner B leaves the pentagon BCDEF (five ways), C leaves triangle ABC and the four-sided piece CDEF (two), D leaves ABCD and DEF (two), and E leaves the pentagon ABCDE (five): 14.',
+      extension: 'Do the same for the heptagon: 14 + 5 + 4 + 5 + 14 = 42.',
+      connection: 'The Catalan recursion: the ways of an n-gon add up products of smaller counts.'
+    },
+    provenance: 'Week 14 grades 2–3 Problem 7 (every filling of the hexagon) and the guide’s catalog by the triangle on AF.',
+    sourceIds: ['cuts-week14', 'cuts-catalan'],
+    expect: {ways: 14, groups: [5, 2, 2, 5]}
+  },
+  {
+    number: 9, difficulty_level: 'hard', title: 'Octagon to a fan',
+    parameters: {mode: 'reach', n: 8, start: OCT_S, target: 'AC AD AE AF AG', budget: 3},
+    idea: 'The fewest flips to a fan is the number of its lines still missing.',
+    prerequisites: 'Fan to fan (puzzle 5).',
+    hints: ['Two lines of the card are already there. Leave them.', 'Look for a flip that draws a new line from A.', 'Flip DH first: it becomes AG.'],
+    parent: {
+      notice: 'Each flip draws one more line from A, and three flips finish the fan.',
+      prompt: 'Is there always a flip that adds a line at A?',
+      explanation: 'The start has 2 of the fan’s 5 lines, so at least 3 flips are needed. While the fan is unfinished, some triangle at A has a third side that is a line, not a side of the octagon; flipping that line draws a new line from A. Here DH → AG, DG → AF and DF → AE finish the fan in 3. So the fewest flips to the fan at a corner is 5 minus the lines already there.',
+      extension: 'How many flips to the fan at E? (Five: no line of the start meets E.)',
+      connection: 'The fan rule gives a route between any two ways: go to a fan and back. It shows the map is connected, but not always by the shortest route.'
+    },
+    provenance: 'Week 14 grades 4–5 Problem 5 (the octagon start S = AC AD DF DG DH; fans at A and E need 3 and 5) and Problem 6 (the fan rule).',
+    sourceIds: ['cuts-week14'],
+    expect: {fewest: 3, missing: 3, fanAt: 0}
+  },
+  {
+    number: 10, difficulty_level: 'hard', title: 'Nothing in common',
+    parameters: {mode: 'reach', n: 8, start: OCT_S, target: OCT_T, budget: 5},
+    idea: 'A route through a fan joins any two ways, but the shortest route may avoid fans.',
+    prerequisites: 'Octagon to a fan (puzzle 9).',
+    hints: ['The card shares no line with the start, so each flip must draw one of its lines.', 'Find a first flip that draws a line on the card.', 'Flip AC first: it becomes BD.'],
+    parent: {
+      notice: 'Every one of the five flips brings in a line of the card.',
+      prompt: 'Could you go through the fan at A instead? How many flips would that take?',
+      explanation: 'The start and the card share no line, so at least five flips are needed, and AC → BD, DF → EG, DG → EH, DH → AE, AD → BE does it in five. Going through the fan at A takes 3 + 4 = 7: a route, but not the shortest.',
+      extension: 'Can every two ways of the octagon be joined by flips? (Yes: through any fan.)',
+      connection: 'For larger polygons the fewest flips can be far from the count of missing lines; the largest distance for n corners is 2n − 10 once n > 12 (Sleator, Tarjan and Thurston; Pournin).'
+    },
+    provenance: 'Week 14 grades 4–5 Problem 7 (S to T, the guide’s five-flip route and its upper-bound warning).',
+    sourceIds: ['cuts-week14', 'cuts-associahedron'],
+    expect: {fewest: 5, missing: 5, throughFan: 7}
+  },
+  {
+    number: 11, difficulty_level: 'hard', title: 'Every hexagon way once',
+    parameters: {mode: 'tour', n: 6, start: 'AC AD AE'},
+    idea: 'All fourteen ways of the hexagon can be visited in one ring of flips.',
+    prerequisites: 'Round the pentagon (puzzle 3) and An odd way home (puzzle 6).',
+    hints: ['Plan ahead: a way whose neighbours are all visited is a dead end.', 'Go most of the way round a pentagon ring first, keeping one line.', 'Keep AE for four flips round the pentagon, then flip AE.'],
+    parent: {
+      notice: 'Most routes get stuck. A few visit all fourteen and come home.',
+      prompt: 'When you got stuck, which way trapped you?',
+      explanation: 'The map has 14 ways, each with three flips. A ring through all of them and home takes 14 flips. From the fan at A there are 12 such rings (6, each in two directions); a random route that never repeats almost always gets stuck first.',
+      extension: 'Does every polygon have such a ring? (Yes, for five or more corners: Lucas, 1987.)',
+      connection: 'A ring through every point of a map is a Hamiltonian cycle; Lucas proved the associahedron always has one.'
+    },
+    provenance: 'New for the app, after Week 14 K–1 Problem 6 (visit every other filling once and return), there in the pentagon.',
+    sourceIds: ['cuts-week14', 'cuts-associahedron'],
+    expect: {ways: 14, tours: 12}
+  }
+];
+
+/* ------------------------------------------------------------------ *
+ * Checks of the authored claims
+ * ------------------------------------------------------------------ */
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+// Directed rings through every way from `start` and home.
+export function countTours(P, start) {
+  const map = flipMap(P), seen = new Set([start]);
+  let count = 0;
+  const go = (at, n) => {
+    if (n === map.size) { if (map.get(at).includes(start)) count++; return; }
+    for (const next of map.get(at)) if (!seen.has(next)) { seen.add(next); go(next, n + 1); seen.delete(next); }
+  };
+  go(start, 1);
+  return count;
+}
+// The fewest flips home that is odd, by search over (way, odd or even).
+export function shortestOddHome(P, start) {
+  const map = flipMap(P), dist = new Map([[`${start}|0`, 0]]), queue = [[start, 0]];
+  for (let i = 0; i < queue.length; i++) {
+    const [k, par] = queue[i], d = dist.get(`${k}|${par}`);
+    for (const next of map.get(k)) {
+      const id = `${next}|${1 - par}`;
+      if (!dist.has(id)) { dist.set(id, d + 1); queue.push([next, 1 - par]); }
+    }
+  }
+  return dist.get(`${start}|1`);
+}
+function check(p) {
+  const q = p.parameters, e = p.expect, P = polygonOf(q.n);
+  const fail = what => { throw new Error(`Puzzle ${p.number} (${p.title}): ${what}`); };
+  if (!P) fail('polygon');
+  if (q.mode === 'every') {
+    const kept = q.kept ? fromKey(P, q.kept) : [];
+    if (!kept) fail('kept line');
+    const ways = completions(P, kept);
+    if (ways.length !== e.ways) fail(`${ways.length} ways`);
+    if (e.groups) {
+      const groups = [...new Set(ways.map(ds => apexOf(P, ds)))].sort().map(g => ways.filter(ds => apexOf(P, ds) === g).length);
+      if (!same(groups, e.groups)) fail(`groups ${groups}`);
+    }
+    return;
+  }
+  const start = fromKey(P, q.start);
+  if (!start || start.length !== q.n - 3) fail('start is not a way');
+  if (q.mode === 'tour') {
+    if (flipMap(P).size !== e.ways) fail('ways');
+    if (countTours(P, q.start) !== e.tours) fail(`${countTours(P, q.start)} tours`);
+  }
+  if (q.mode === 'home' && shortestOddHome(P, q.start) !== e.oddHome) fail(`odd home ${shortestOddHome(P, q.start)}`);
+  if (q.mode === 'reach') {
+    const target = fromKey(P, q.target);
+    if (!target || target.length !== q.n - 3) fail('target is not a way');
+    const fewest = distancesTo(P, q.target).get(q.start), missing = target.filter(d => !start.includes(d)).length;
+    if (fewest !== e.fewest || q.budget !== fewest) fail(`fewest ${fewest}, budget ${q.budget}`);
+    if (missing !== e.missing) fail(`missing ${missing}`);
+    if (e.fanAt !== undefined && !same(fanOf(P, e.fanAt), target)) fail('target is not the fan');
+    if (e.throughFan !== undefined && distancesTo(P, keyOf(P, fanOf(P, 0))).get(q.start) + distancesTo(P, keyOf(P, fanOf(P, 0))).get(q.target) !== e.throughFan) fail('through the fan at A');
+  }
+}
+
+const puzzles = [playground, ...authored].map(p => {
+  if (p.number) check(p);
+  const {expect, sourceIds, parent, ...rest} = p, q = rest.parameters;
+  return {
+    id: q.mode === 'playground' ? rest.id : `cuts-${String(rest.number).padStart(2, '0')}`,
+    number: rest.number, title: rest.title, band: rest.band || 'all', difficulty_level: rest.difficulty_level,
+    mechanic: 'cuts', familyTitle: family.title, revision: 1, parameters: q,
+    objective: rest.objective || OBJECTIVE[q.mode](q), visibleObjective: rest.visibleObjective ?? VISIBLE[q.mode](q), instruction: rest.objective || OBJECTIVE[q.mode](q),
+    controls: rest.controls || CONTROLS[q.mode], rules: rest.rules || [...RULES, ...MODE_RULES[q.mode](q)],
+    idea: rest.idea, prerequisites: rest.prerequisites, hints: rest.hints,
+    parent: {...parent, sourceIds}, provenance: rest.provenance, sourceDocument: 'docs/cuts/README.md'
+  };
+});
+
+export const pack = {title: family.title, version: 1, families: [family], sources, puzzles};
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  await writeFile(new URL('../dist/families/cuts/cuts.json', import.meta.url), `${JSON.stringify(pack, null, 1)}\n`);
+  console.log(`Wrote ${puzzles.length} puzzles.`);
+  const P6 = polygonOf(6);
+  console.log('hexagon fillings', fillings(P6).length, 'tours from the A fan', countTours(P6, 'AC AD AE'));
+}
