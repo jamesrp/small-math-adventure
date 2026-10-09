@@ -1,6 +1,6 @@
 # The shared case engine
 
-`dist/cases.js` and `dist/cases.css` are for themes whose mathematics is listing every case of a small experiment and sorting the cases into groups. They keep a shelf of the cases a child has found, refuse repeats and cases that don't count, accept "That's all" only when nothing is missing, and draw the shelf, its groups and the full catalog. They also draw lettered cups on lettered homes or in numbered slots, and numbered counters in a bag. They never know a family's rules. Mixed-up cups ([mixup](mixup/README.md), Week 63), Ticket shuffles ([shuffles](shuffles/README.md), Week 43), Fair bags ([bags](bags/README.md), Week 42), Copying bags ([copies](copies/README.md), Week 44) and Hidden sides ([sides](sides/README.md), Week 45) use it. The plan's other listing themes can build on it: nontransitive decks (24) and optimal stopping (60). See [the plan](plan/README.md), Wave 2.
+`dist/cases.js` and `dist/cases.css` are for themes whose mathematics is listing every case of a small experiment and sorting the cases into groups. They keep a shelf of the cases a child has found, refuse repeats and cases that don't count, accept "That's all" only when nothing is missing, and draw the shelf, its groups and the full catalog. They also draw lettered cups on lettered homes or in numbered slots, and numbered counters in a bag. They never know a family's rules. Mixed-up cups ([mixup](mixup/README.md), Week 63), Ticket shuffles ([shuffles](shuffles/README.md), Week 43), Fair bags ([bags](bags/README.md), Week 42), Copying bags ([copies](copies/README.md), Week 44), Hidden sides ([sides](sides/README.md), Week 45) and Three decks ([decks](decks/README.md), Week 24) use it. The plan's other listing theme can build on it: optimal stopping (60). See [the plan](plan/README.md), Wave 2.
 
 The module imports only `expansion-controls.js`, so a family module can import it without reaching back to `families.js`.
 
@@ -68,7 +68,7 @@ A family's stylesheet starts with `@import url('../../cases.css');` and scopes i
 
 ## What the other listing themes need from it
 
-What exists covers Weeks 63, 43, 42, 44 and 45. The notes for the others are proposals, not decisions; each theme's review card in the worksheets repository (`plans/review/week-NN.md`) has the fuller App fit.
+What exists covers Weeks 63, 43, 42, 44, 45 and 24. The notes for the others are proposals, not decisions; each theme's review card in the worksheets repository (`plans/review/week-NN.md`) has the fuller App fit.
 
 | Week | Theme | Engine use | Probably needs |
 |---|---|---|---|
@@ -76,7 +76,7 @@ What exists covers Weeks 63, 43, 42, 44 and 45. The notes for the others are pro
 | 42 | Fair results from a bag | Done: [Fair bags](bags/README.md). Marked pairs of numbered counters; a rule sends a whole colour pair to the square, circle or skip bin (never one marked pair, which would let any 8–8 split pass); the family checks fairness and the fewest skips | Nothing more |
 | 44 | The bag that copies | Done: [Copying bags](copies/README.md). Histories of numbered counters on a bag that grows (`counterBagHTML` with `byId`; the family adds each copy); bins by the mix of colours or the colour order; the catalog shows all 24 three-draw histories by their reds. No weights: numbered histories are already equally likely | Nothing more |
 | 45 | The visible side | Done: [Hidden sides](sides/README.md). Cases are the six sides (a number in the cup names one); the child sorts red-showing sides into hides-red and hides-blue bins with `binsHTML`; Keep checks a cup with `keepCase`; the catalogs show the 63 cups by red sides and, for whole cards, the seven tables by their piles. The cards, the cup and the stacks of whole cards are the family's own | Nothing more |
-| 24 | Nontransitive decks | The 9 pairings of a card from each of two decks, drawn with `catalogHTML` as a live win grid (columns by one deck's card, `mark` by winner) | A deck-dealing board, the family's own |
+| 24 | Nontransitive decks | Done: [Three decks](decks/README.md). Cases are deals (keyed deck by deck), swaps and menu cards, kept with `keepCase` and `claimCases`; the catalogs show every swap, every menu card, every deal with 9, 8 and 7 pinned, every split and every cycle. The win grids, the deck rows and the two-tap card swaps are the family's own: a grid is a fixed 3 × 3 of pairs, not a catalog | Nothing more |
 | 60 | Optimal stopping | Offers are fresh draws, so they repeat: the complete cards are `sequences(tickets, n)`, unseen offers included; a rule scores the offer it takes on each card | No live total (it would let a child find the best rule by toggling), and the anti-guessing limits in [insight-without-ai.md](insight-without-ai.md): few rules, so a child must not be able to try them all |
 
 ## Tests
