@@ -16,7 +16,7 @@ Each wave is claimed on both work boards like any other item. The weeks a wave p
 4. **Wave 6, grids.** Week 15's nearest-site cells on a half-unit lattice, and the grid themes whose cards say port: 5, 32, 48 and 57.
 5. **Wave 7, sets and numbers.** 12, 19, 20, 22, 36, 49, 51, 54 and 55, whose cards say port, and 58 as its card decides.
 6. **Wave 8, symmetry, words and reflections.** 35, 37, Week 76's shrink tool, and Weeks 71 and 21 as groups in Mirror Couriers.
-7. **Wave 9, the rest.** Week 65's octagon floor, 73, 77 and 78, and the paper-and-continuous themes (28, 38, 50, 56, 59 and 61). Each gets a port with a real on-screen solve or a final reason not to.
+7. **Wave 9, the rest.** Week 65's octagon floor, 73, 77 and 78, and the paper-and-continuous themes (28, 38, 50, 56, 59 and 61). Each gets a port with a real on-screen solve or a final reason not to. The same wave makes the touch-ups the in-app families' own cards ask for (Weeks 8–11).
 
 ## Every week
 
@@ -35,7 +35,7 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 8 | Rook race and Nim | none | In the app | Pebble Duel and its duel proofs |
 | 9 | Bouncing paths | none | In the app | Mirror Couriers |
 | 10 | Bridges | none | In the app | Bridge Courier |
-| 11 | Chip firing with a sink | none | In the app | Chip firing (PR #1) |
+| 11 | Chip firing with a sink | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-11.md) | In the app | Chip firing (PR #1); its card adds the add-one cycle and capacity puzzles and drops answer slots, in Wave 9's touch-ups |
 | 12 | Catalan bijections | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-12.md) | Open, wave 7 | Strings tapped between dots with crossings refused, every pairing collected, conversions between pairings, paths and trees, and the fewest-swaps mountain |
 | 13 | Route packing | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-13.md) | In the app | Routes and roadblocks (PR #6) |
 | 14 | Triangulations and flips | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-14.md) | In the app | Polygon cuts (PR #19) |
