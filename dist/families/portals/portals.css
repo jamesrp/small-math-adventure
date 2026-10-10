@@ -1,0 +1,69 @@
+@import url('../../portal-board.css');
+/* Portal rooms: the room and its unrolled view side by side (stacked on a
+   phone, the unrolled view first), the arrow pad beside the room. The first
+   copy is shaded sun; the pawn is sun (and sky for the second pawn of a
+   trade); the start square has a pine ring; stars are sun. */
+.pt-puzzle{container-type:inline-size;display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
+.pt-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .9rem;max-width:100%}
+.pt-stage{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"plane plane" "room pad";gap:.6rem 1rem;align-items:center;justify-items:center;width:100%;max-width:520px}
+.pt-stage.single{grid-template-areas:"room pad"}
+.pt-stage.still{grid-template-areas:"plane plane" "room room"}
+.pt-stage.single.still{grid-template-areas:"room room"}
+.pt-stage.shrink{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"plane plane" "room word"}
+.pt-view{width:100%;min-width:0}
+.pt-room-view{grid-area:room;max-width:180px}
+.pt-plane-view{grid-area:plane;max-width:440px}
+.pt-pad{grid-area:pad}
+.pt-stage.single .pt-room-view,.pt-stage.single.still .pt-room-view{max-width:240px}
+.pt-stage.shrink .pt-room-view{max-width:120px}
+@container (min-width:600px){
+  .pt-stage{grid-template-columns:minmax(0,.75fr) minmax(0,1.35fr);grid-template-areas:"room plane" "pad plane";max-width:780px}
+  .pt-stage.still{grid-template-areas:"room plane"}
+  .pt-stage.single{grid-template-columns:auto auto;grid-template-areas:"room pad"}
+  .pt-stage.single.still{grid-template-columns:auto;grid-template-areas:"room"}
+  .pt-stage.shrink{grid-template-columns:minmax(0,.6fr) minmax(0,1.4fr);grid-template-areas:"room plane" "word plane"}
+  .pt-room-view{max-width:230px}
+  .pt-plane-view{max-width:460px}
+  .pt-stage.single .pt-room-view{max-width:260px}
+  .pt-stage.shrink .pt-room-view{max-width:180px}
+}
+
+/* Squares, rings, pawns, stars. */
+.pt-plane .pb-square.first{fill:#f7ebc6}
+.pt-puzzle .pb-point.found .pb-hit{fill:rgba(134,166,140,.2)}
+.pt-found{fill:none;stroke:var(--b-pine,#31533e);stroke-width:3.5px;vector-effect:non-scaling-stroke;pointer-events:none}
+.pt-ring{fill:none;stroke:var(--b-pine,#31533e);stroke-width:2.2px;stroke-dasharray:3 3;vector-effect:non-scaling-stroke;pointer-events:none}
+.pt-ring.p0{stroke:#b8902e}
+.pt-ring.p1{stroke:#4f8fae}
+.pt-ring.end{stroke:var(--b-ink,#294439);stroke-dasharray:none;stroke-width:2.6px}
+.pt-pawn{pointer-events:none}
+.pt-pawn circle{fill:var(--b-sun,#efc76e);stroke:var(--b-ink,#294439);stroke-width:2px;vector-effect:non-scaling-stroke}
+.pt-pawn.p1 circle{fill:var(--b-sky,#9cc9de)}
+.pt-star{fill:#fff6d8;stroke:var(--b-ochre,#b38840);stroke-width:1.8px;vector-effect:non-scaling-stroke;stroke-linejoin:round;pointer-events:none}
+.pt-star.got{fill:var(--b-sun,#efc76e);stroke:var(--b-ink,#294439)}
+.pt-puzzle .pb-trail.p0{stroke:rgba(196,152,52,.75)}
+.pt-puzzle .pb-trail.p1{stroke:rgba(79,143,174,.75)}
+.pt-puzzle .pb-trail-portal.p0{fill:rgba(196,152,52,.9)}
+.pt-puzzle .pb-trail-portal.p1{fill:rgba(79,143,174,.9)}
+.pt-gap{stroke:var(--b-ink,#294439);stroke-width:2px;stroke-dasharray:2 3;vector-effect:non-scaling-stroke;pointer-events:none}
+.pt-target{fill:none;stroke:var(--b-ink,#294439);stroke-width:2.2px;stroke-dasharray:6 5;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;opacity:.7;pointer-events:none}
+.pt-puzzle .pb-point.dark .pb-hit{fill:rgba(41,68,57,.18)}
+
+/* Beads, buttons and words. */
+.pt-beads{display:inline-flex;gap:5px;align-items:center}
+.pt-beads i{width:14px;height:14px;border-radius:50%;border:2px solid var(--b-pine,#31533e);box-sizing:border-box;background:var(--b-card,#fffdf5)}
+.pt-beads i.on{background:var(--b-pine,#31533e)}
+.pt-puzzle .pt-button{min-height:46px;padding:6px 14px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.pt-puzzle .pt-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+.pt-puzzle .pt-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+.pt-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+.pt-word{grid-area:word;display:flex;flex-wrap:wrap;justify-content:center;gap:2px 3px;font:400 1.35rem/1.2 var(--b-display,Georgia,serif);color:var(--b-ink,#294439);max-width:100%}
+.pt-word span{display:inline-block;min-width:1.1em;text-align:center;border-radius:6px}
+.pt-word span.hinted{background:#f6e3b0;outline:2px dashed var(--b-ochre,#b38840)}
+.pt-word .pt-empty{color:#8c9a82}
+
+/* The playground's rooms. */
+.pt-rooms{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
+.pt-puzzle .pt-pick{width:64px;min-height:64px;padding:5px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px}
+.pt-puzzle .pt-pick[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 2px var(--b-pine,#31533e)}
+.pt-mini .pb-label{display:none}
