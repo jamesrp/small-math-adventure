@@ -41,6 +41,10 @@ async function drag(from, to) {
   const touch = (type, [x, y]) => cdp.send('Input.dispatchTouchEvent', {type, touchPoints: type === 'touchEnd' ? [] : [{x, y}]});
   await touch('touchStart', a);
   for (let s = 1; s <= 8; s++) await touch('touchMove', [a[0] + (b[0] - a[0]) * s / 8, a[1] + (b[1] - a[1]) * s / 8]);
+  // Rest before lifting, as a finger placing a letter does. Lifted mid-flick,
+  // the emulated finger sometimes loses the next tap's click, even after a drag
+  // that changes nothing (likely Chrome stopping a fling with that tap).
+  await page.waitForTimeout(150);
   await touch('touchEnd', b);
 }
 try {
@@ -122,23 +126,32 @@ try {
   await open(E); await fit('every');
   assert.equal(await page.locator('.puzzle-goal').innerText(), 'Find every pairing that can stay.');
   assert.equal(await page.getByRole('button', {name: 'That’s all', exact: true}).isDisabled(), true);
+  await taps('A', 'Z');
+  assert.equal((await board(E)).pairing, 'ZYWX', 'taps pair; A’s old partner Y goes to B');
   await press('Stays');
   assert.equal((await board(E)).pending, true);
   assert.equal(await page.locator('.sm-board.held').count(), 1);
-  await page.locator('[data-action="undo"]').click();
-  assert.equal((await board(E)).pending, true, 'Undo does not lift the lock');
+  for (let i = 0; i < 2; i++) {
+    await page.locator('[data-action="undo"]').click();
+    assert.equal((await board(E)).pending, true, 'Undo does not lift the hold');
+    assert.equal((await board(E)).pairing, 'ZYWX', 'nor take back the move that made the pairing');
+  }
   assert.equal(await told(), 'Can’t stay. Tap a circle and a square that would both rather be together.');
-  await taps('A', 'Z');
-  assert.equal(await told(), 'A and Z say no. Tap a circle and a square that would both rather be together.');
+  await taps('C', 'X');
+  assert.equal(await told(), 'C and X say no. Tap a circle and a square that would both rather be together.');
   assert.equal((await board(E)).pending, true, 'still held');
+  await page.locator('[data-action="undo"]').click();
+  assert.equal((await board(E)).said, null, 'Undo takes back the wrong claim');
   await taps('A', 'W');
   assert.equal((await board(E)).pending, false, 'a blocking pair releases it');
   assert.equal(await page.locator('.sm-links .claim.yes').count(), 1);
   await shot('released');
   await taps('A', 'W');
-  assert.equal((await board(E)).pairing, 'WZYX', 'now taps pair; A’s old partner Y goes to C');
+  assert.equal((await board(E)).pairing, 'WYZX');
   await drag(letter('B'), letter('X'));
-  assert.equal((await board(E)).pairing, 'WXYZ', 'a drag pairs too');
+  assert.equal((await board(E)).pairing, 'WXZY', 'a drag pairs too');
+  await taps('C', 'Y');
+  assert.equal((await board(E)).pairing, 'WXYZ');
   await press('Stays');
   assert.deepEqual((await board(E)).kept, ['WXYZ']);
   assert.equal(await page.locator('.case-kept').count(), 1, 'kept on the shelf');

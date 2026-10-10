@@ -603,18 +603,18 @@ export const matchingMechanics = {
     },
     reset: p => { uiState.delete(p.id); },
     // Undo keeps the pairings already kept, while the strips are the same.
-    // A held pairing stays held: Undo then takes back only wrong claims, so
-    // Stays and Undo can't ask whether a pairing can stay for free.
+    // A held pairing stays held until a blocking pair is tapped: Undo then
+    // takes back only wrong claims, never the Stays or the move that made the
+    // pairing (the steps it passes are dropped), so Stays and Undo can't ask
+    // whether a pairing can stay for free. Restart still clears everything.
     carry(p, from, to) {
       const q = p.parameters;
       if (!['every', 'last', 'playground'].includes(q.mode) || !object(from) || !object(to)) return to;
-      if (q.mode === 'playground' && from.size !== to.size) return to;
-      const L1 = listsOf(p, from), L2 = listsOf(p, to);
-      if (!validLists(marketOf(p, to), L1) || !sameLists(marketOf(p, to), L1, L2)) return to;
-      let out = to;
-      if (Array.isArray(from.kept) && q.mode !== 'last') out = {...out, kept: [...from.kept], ...(q.mode === 'every' ? {claimed: false, missed: false} : {})};
-      if (from.pending === true && to.pending === false && from.pairing === to.pairing) out = {...out, pending: true, said: null};
-      return out;
+      const m = marketOf(p, from);
+      const same = Boolean(m) && (q.mode !== 'playground' || from.size === to.size) && validLists(m, listsOf(p, from)) && validLists(m, listsOf(p, to)) && sameLists(m, listsOf(p, from), listsOf(p, to));
+      if (from.pending === true) return to.pending === true && same && to.pairing === from.pairing ? to : {...from, said: null};
+      if (!same || !Array.isArray(from.kept) || q.mode === 'last') return to;
+      return {...to, kept: [...from.kept], ...(q.mode === 'every' ? {claimed: false, missed: false} : {})};
     },
     noHint: isPlay
   }

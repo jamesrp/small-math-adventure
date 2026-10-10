@@ -11,7 +11,7 @@
 // Run: node scripts/validate-matching.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import {freshAttempt, move, isSolved, nextHint, validBoard} from '../dist/engine.js';
+import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
 import {loadPack} from './packs.mjs';
 
@@ -97,6 +97,16 @@ const TABLE = {
 };
 
 const play = (p, a, action) => { const next = move(p, a, action); assert.ok(next && next !== a, `${p.id}: ${JSON.stringify(action)} is legal`); return next; };
+// Undo as the page does it: the engine's step back, then the mechanic's carry.
+const undoCarry = (p, a) => { const n = undo(a); return n === a ? a : {...n, board: mechanicFor(p).carry(p, a.board, n.board)}; };
+// Held after a pairing move and a wrong Stays: no number of Undos lets go of the pairing.
+function heldThroughUndo(p, a) {
+  const k = a.board.pairing;
+  for (let i = 0; i <= a.history.length + 1; i++) {
+    a = undoCarry(p, a);
+    assert.ok(a.board.pending === true && a.board.pairing === k && validBoard(p, a.board), `${p.id}: Undo ${i + 1} while held keeps ${k} held`);
+  }
+}
 const refuse = (p, a, action, why) => assert.equal(move(p, a, action), null, `${p.id}: refuses ${why}`);
 function hintsSolve(p, a, label) {
   let steps = 0;
@@ -333,6 +343,19 @@ function checkEvery(p, fresh, row, t, k) {
   const undone = mechanicFor(p).carry(p, held.board, fresh.board);
   assert.ok(undone.pending && undone.said === null && validBoard(p, undone), `${p.id}: Undo keeps the lock`);
   refuse(p, {...fresh, board: undone}, {type: 'pair', c: q.circles[0], s: k[1]}, 'pairing after Undo while held');
+  // Nor does Undo take back the move that made the pairing.
+  {
+    const moved = PERMS[q.circles.length].map(m => keyOf(t, m)).find(x => x !== k && !keys.includes(x) && swapsApart(x, k) === 1);
+    const i = [...k].findIndex((x, n) => x !== moved[n]);
+    const h2 = play(p, play(p, fresh, {type: 'pair', c: q.circles[i], s: moved[i]}), {type: 'stays'});
+    assert.equal(h2.board.pending, true, `${p.id}: ${moved} is held`);
+    heldThroughUndo(p, h2);
+    const w = oneSided(q, q.lists, moved);
+    if (w) {
+      const claimed = play(p, h2, {type: 'block', c: w[0], s: w[1]}), back = undoCarry(p, claimed);
+      assert.ok(back.board.said === null && back.board.pending, `${p.id}: Undo takes back a wrong claim`);
+    }
+  }
   const one = oneSided(q, q.lists, k), right = blockingPairs(t, fromKey(t, k))[0];
   const wrong = play(p, held, {type: 'block', c: one[0], s: one[1]});
   assert.equal(wrong.board.pending, true, `${p.id}: a one-sided wish keeps it held`);
@@ -424,6 +447,12 @@ function checkLast(p, fresh, row) {
   const undone = mechanicFor(p).carry(p, h.board, fresh.board);
   assert.ok(undone.pending && undone.said === null && validBoard(p, undone), `${p.id}: Undo keeps the lock`);
   refuse(p, {...fresh, board: undone}, {type: 'swap', owner: 'A', i: 0, j: 1}, 'a strip change after Undo while held');
+  // Strip changes and pairing moves, then a wrong Stays: Undo never lets go.
+  {
+    let a = fresh;
+    for (const action of [{type: 'swap', owner: 'B', i: 0, j: 1}, {type: 'pair', c: 'A', s: 'X'}, {type: 'pair', c: 'A', s: 'Z'}, {type: 'stays'}]) a = play(p, a, action);
+    heldThroughUndo(p, a);
+  }
   steps += hintsSolve(p, h, 'after a wrong Stays');
   refuse(p, fresh, {type: 'all'}, 'That’s all');
   refuse(p, fresh, {type: 'block', c: 'A', s: 'Y'}, 'a claim before Stays');
@@ -445,6 +474,9 @@ function checkPlayground(p, fresh) {
     let a = Number(n) === fresh.board.size ? fresh : play(p, fresh, {type: 'size', size: Number(n)});
     assert.equal(a.board.size, Number(n));
     const t = tables(m, m.lists), keys = stableKeys(t);
+    // A pairing that can't stay, reached by one move and held: Undo never lets go.
+    const bad = PERMS[m.circles.length].map(x => keyOf(t, x)).find(x => !keys.includes(x) && swapsApart(x, a.board.pairing) === 1);
+    if (bad) { const i = [...bad].findIndex((x, j) => x !== a.board.pairing[j]); heldThroughUndo(p, play(p, play(p, a, {type: 'pair', c: m.circles[i], s: bad[i]}), {type: 'stays'})); }
     for (const key of keys) { for (let i = 0; i < key.length; i++) if (a.board.pairing[i] !== key[i]) a = play(p, a, {type: 'pair', c: m.circles[i], s: key[i]}); a = play(p, a, {type: 'stays'}); }
     assert.deepEqual(a.board.kept, keys, `${p.id}: ${n} pairs keeps every one`);
     assert.ok(!isSolved(p, a.board), `${p.id}: never solved`);

@@ -21,6 +21,8 @@ const pair = (c, s) => ({type: 'pair', c, s});
 const block = (c, s) => ({type: 'block', c, s});
 const swap = (owner, i, j) => ({type: 'swap', owner, i, j});
 const view = (p, a, keep = false) => { if (!keep) mech.reset(p); return playView(p, a, {pack, selected: null, message: ''}); };
+// Undo as the page does it: the engine's step back, then the mechanic's carry.
+const undoCarry = (p, a) => { const n = undo(a); return n === a ? a : {...n, board: mech.carry(p, a.board, n.board)}; };
 const visible = html => html.replace(/<p class="sr-only"[\s\S]*?<\/p>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
 
 test('the pack: twelve puzzles over three levels and a playground, grade-free, with sources', () => {
@@ -126,6 +128,42 @@ test('find every: a wrong Stays holds the pairing until a blocking pair is tappe
   a = play(p, a, pair('A', 'W'), pair('B', 'X'));
   assert.equal(a.board.pairing, 'WXYZ');
   assert.equal(a.board.said, null);
+});
+
+test('held: Undo takes back only wrong claims, never the Stays or the move that made the pairing', () => {
+  const p = P(10);
+  let a = play(p, freshAttempt(p), pair('A', 'Z'), {type: 'stays'});
+  assert.equal(a.board.pairing, 'ZYWX');
+  assert.equal(a.board.pending, true);
+  for (let i = 0; i < 3; i++) {
+    a = undoCarry(p, a);
+    assert.equal(a.board.pairing, 'ZYWX', `Undo ${i + 1} keeps the pairing`);
+    assert.equal(a.board.pending, true, `Undo ${i + 1} keeps it held`);
+    assert.ok(validBoard(p, a.board));
+  }
+  assert.equal(a.history.length, 0, 'the steps Undo passed are dropped');
+  a = play(p, a, block('C', 'X'));
+  assert.equal(a.board.said, 'CX', 'C and X say no');
+  a = undoCarry(p, a);
+  assert.equal(a.board.said, null, 'Undo takes back the wrong claim');
+  assert.equal(a.board.pending, true);
+  refuse(p, a, pair('A', 'W'));
+  a = play(p, a, block('A', 'W'));
+  assert.equal(a.board.pending, false, 'only a blocking pair releases it');
+  // Undo after the release goes back to the hold, not past it.
+  const back = undoCarry(p, a);
+  assert.equal(back.board.pending, true);
+  assert.equal(back.board.pairing, 'ZYWX');
+  // Restart still clears everything.
+  assert.equal(freshAttempt(p).board.pending, false);
+  // The same in last choices, after two moves that lead back to the printed pairing.
+  const twelve = P(12);
+  let l = play(twelve, freshAttempt(twelve), pair('A', 'X'), pair('A', 'Z'), {type: 'stays'});
+  assert.equal(l.board.pending, true);
+  l = undoCarry(twelve, undoCarry(twelve, undoCarry(twelve, l)));
+  assert.equal(l.board.pending, true);
+  assert.equal(l.board.pairing, twelve.parameters.pairing);
+  refuse(twelve, l, swap('A', 0, 1));
 });
 
 test('find every: keeping, found already, There’s another, That’s all; Undo keeps the shelf', () => {
