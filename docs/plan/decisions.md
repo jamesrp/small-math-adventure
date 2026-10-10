@@ -83,7 +83,7 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 56 | Polyhedra and Euler | none | Open, wave 3 | Card first |
 | 57 | Lattice area | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-57.md) | Open, wave 6 | A geoboard that refuses crossing sides and lights outline and inside dots, with Pick-count impossibilities as the "can't" certificates |
 | 58 | Fair division | none | Open, wave 3 | Card first |
-| 59 | Constant-width shapes | none | Open, wave 3 | Card first |
+| 59 | Constant-width shapes | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-59.md) | Open, wave 9 | C becomes B: choose each arc's centre so the shape spins snug between rails, with a still rail as the certificate |
 | 60 | Optimal stopping | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-60.md) | In the app | Take it or pass (PR #24) |
 | 61 | Geometry on a sphere | none | Open, wave 3 | Card first |
 | 62 | Scheduling as colouring | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-62.md) | In the app | First fit in Neighbor Lanterns (PR #9) |
