@@ -4,6 +4,9 @@
    seam marks; crossings are ochre rings; the first copy is shaded sun. */
 .st-puzzle{container-type:inline-size;display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%;--st-red:#c46c55;--st-blue:#4f8fae;--st-green:#5f8a67}
 .st-top,.st-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .8rem;max-width:100%}
+/* Done and Back share the middle slot; That's all sits beside it. */
+.st-bar.st-slots{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);width:100%;max-width:420px}
+.st-bar.st-slots>:last-child{justify-self:start}
 .st-stage{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"lift" "room";gap:.6rem;justify-items:center;align-items:center;width:100%;max-width:560px}
 .st-view{width:100%;min-width:0}
 .st-lift-view{grid-area:lift}
@@ -11,6 +14,11 @@
 @container (min-width:600px){
   .st-stage{grid-template-columns:minmax(0,.42fr) minmax(0,1.58fr);grid-template-areas:"room lift";max-width:820px;gap:1.2rem}
   .st-room-view{max-width:230px}
+}
+/* On a phone the unrolled view is about 13 px a column: larger crossing rings and A. */
+@container (max-width:599px){
+  .st-lift .st-cross{r:.34px}
+  .st-lift .st-letter{font-size:.85px}
 }
 
 /* The boards. */

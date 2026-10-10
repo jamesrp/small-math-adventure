@@ -1,15 +1,16 @@
 // Strands (Week 75, twists on a cylinder) on the shared portal board: the
 // cylinder, crossings between rows, the fewest for two windings, tight
-// strands, the twist, untangling with Done and the copies blue must cross,
-// three windings for crossing targets with Can't and the middle strand,
-// hints, Undo keeping a refusal, forged saves, the playground and rendering.
+// strands, the twist, untangling with one claim (Done, the copies blue must
+// cross, That's all), three windings for crossing targets with Can't on an
+// attempt and the strand strictly in the middle, hints, Undo keeping a
+// refusal, forged saves, the playground and rendering.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
 import {playView} from '../dist/ui.js';
 import {mechanicFor} from '../dist/expansion.js';
-import {cylOf, routeOf, fewest, levelsBetween, crossCount, crossings, apart, barriers, layout, twistShift, pairCounts, met, designPossible, isMiddle, handleAt} from '../dist/families/strands/strands.js';
+import {cylOf, routeOf, fewest, levelsBetween, crossCount, crossings, apart, barriers, layout, twistShift, pairCounts, met, designPossible, isMiddle, ready, handleAt} from '../dist/families/strands/strands.js';
 import {loadPack} from '../scripts/packs.mjs';
 
 const strands = JSON.parse(await readFile(new URL('../dist/families/strands/strands.json', import.meta.url), 'utf8'));
@@ -19,6 +20,9 @@ const play = (p, a, ...actions) => actions.reduce((b, action) => { const next = 
 const view = (p, a) => playView(p, a, {pack, selected: null, message: ''});
 const undoKeep = (p, a) => { const back = undo(a); return {...back, board: mechanicFor(p).carry(p, a.board, back.board)}; };
 const solveByHints = (p, a) => { for (let i = 0; i < 80 && !isSolved(p, a.board); i++) a = play(p, a, nextHint(p, a).action); return a; };
+// Hints up to the claim: the board at the fewest, before Done.
+const toFewest = (p, a) => { while (nextHint(p, a).action.type !== 'done') a = play(p, a, nextHint(p, a).action); return a; };
+const ui = (p, payload) => mechanicFor(p).ui(p, payload);
 
 test('the cylinder: four columns round, eight rows up, A and B half way from the seam', () => {
   const q = byId('strands-04').parameters, C = cylOf(q);
@@ -62,64 +66,102 @@ test('tight strands meet each pair’s fewest with no three at a point; a twist 
   assert.equal(twistShift(C, 1, 0), 0, 'the bottom rim stays');
 });
 
-test('untangle: slide beads, a wrong Done is told, Done at the fewest, then tap the forced copies', () => {
+test('untangle: one claim, Done with the copies tapped, checked only when it is sent', () => {
   const p = byId('strands-04');
+  mechanicFor(p).reset(p);
   let a = freshAttempt(p);
   assert.equal(nextHint(p, a).type, 'move');
-  refuse(p, a, {type: 'bead', strand: 1, row: 1, x: 2}, 'a bead on red’s spot');
-  refuse(p, a, {type: 'pick', k: 1}, 'a pick before Done');
-  const told = play(p, a, {type: 'done'});
+  refuse(p, a, {type: 'bead', strand: 1, row: 2, x: 2}, 'a bead on red’s spot');
+  refuse(p, a, {type: 'pick', k: 1}, 'a pick on its own');
+  // Done only starts the claim: nothing is checked yet.
+  ui(p, {claim: JSON.stringify(a.board)});
+  let html = view(p, a);
+  assert.match(html, /Tap each red copy that blue must cross, then press That’s all\./);
+  assert.match(html, /data-st-copy="1"/);
+  assert.ok(!/data-st-bead="1,1"[^>]*role="button"/.test(html), 'beads rest during the claim');
+  ui(p, {pick: 1});
+  html = view(p, a);
+  assert.match(html, /data-st-copy="1"[^>]*aria-pressed="true"/);
+  assert.match(html, /data-move="\{&quot;type&quot;:&quot;done&quot;,&quot;copies&quot;:\[1\]\}"/, 'That’s all sends the copies tapped');
+  // Sent with crossings to spare, even with the right copy: refused, and Done waits for a move.
+  const told = play(p, a, {type: 'done', copies: [1]});
   assert.equal(told.board.told, 'fewer');
-  assert.match(view(p, told), /There is a way with fewer\./);
-  assert.match(view(p, told), /data-move="\{&quot;type&quot;:&quot;done&quot;\}"[^>]*disabled/, 'Done waits for a move');
+  assert.ok(!isSolved(p, told.board));
+  html = view(p, told);
+  assert.match(html, /There is a way with fewer\./);
+  assert.match(html, /data-focus="st-claim"[^>]*disabled/, 'Done waits for a move');
+  assert.ok(html.indexOf('st-told') < html.indexOf('st-stage'), 'the feedback line sits above the boards');
+  refuse(p, told, {type: 'done', copies: [1]}, 'a claim again with nothing moved');
   assert.equal(undoKeep(p, told).board.told, 'fewer', 'Undo keeps the refusal');
-  a = play(p, a, {type: 'bead', strand: 1, row: 4, x: 9});
-  assert.equal(a.board.told, null);
-  const claim = play(p, a, {type: 'done'});
-  assert.deepEqual(claim.board.claim, []);
-  assert.match(view(p, claim), /Tap each red copy that blue must cross\./);
-  assert.match(view(p, claim), /data-st-copy="1"/);
-  refuse(p, claim, {type: 'bead', strand: 1, row: 2, x: 4}, 'a bead during the claim');
-  const miss = play(p, claim, {type: 'pick', k: 2});
-  assert.equal(miss.board.told, 'miss');
-  assert.match(view(p, miss), /Blue needn’t cross that one\./);
-  assert.equal(undoKeep(p, miss).board.told, 'miss', 'Undo doesn’t escape a wrong pick');
-  const done = play(p, claim, {type: 'pick', k: 1});
+  // At the fewest, after several moves: the wrong copies, or none, are refused and kept.
+  a = toFewest(p, a);
+  assert.ok(a.moves >= 3, 'several moves from the start');
+  for (const [copies, why, text] of [[[2], 'copies', /Those aren’t the copies blue must cross\./], [[0, 1], 'copies', /Those aren’t/], [[], 'none', /Blue must cross some copy of red\./]]) {
+    const miss = play(p, a, {type: 'done', copies});
+    assert.equal(miss.board.told, why);
+    assert.match(view(p, miss), text);
+    refuse(p, miss, {type: 'done', copies: [1]}, 'a claim again with nothing moved');
+    assert.equal(undoKeep(p, miss).board.told, why, 'Undo doesn’t escape a wrong claim');
+  }
+  const done = play(p, a, {type: 'done', copies: [1]});
   assert.ok(isSolved(p, done.board));
+  assert.match(view(p, done), /st-strand red copy wall/);  mechanicFor(p).reset(p);
 });
 
-test('untangle with nothing forced: Done at no crossings solves at once', () => {
+test('untangle with nothing forced: Done with no copies solves', () => {
   const p = byId('strands-01');
   const a = play(p, freshAttempt(p), {type: 'bead', strand: 1, row: 3, x: 3}, {type: 'bead', strand: 1, row: 4, x: 3});
-  assert.ok(isSolved(p, play(p, a, {type: 'done'}).board));
+  assert.equal(play(p, a, {type: 'done', copies: [0]}).board.told, 'copies');
+  assert.ok(isSolved(p, play(p, a, {type: 'done', copies: []}).board));
 });
 
-test('design: ends pull tight; Can’t only after a move; the middle strand certifies 1, 1, 1', () => {
+test('design: ends pull tight; Can’t is one claim on an attempt, and only the strand strictly in the middle certifies 1, 1, 1', () => {
   const p = byId('strands-11'), q = p.parameters;
   assert.ok(designPossible(q) && met(q, [0, 2, 4]) && met(q, [-1, 1, 3]));
   let a = freshAttempt(p);
-  refuse(p, a, {type: 'cant'}, 'Can’t before a move');
+  refuse(p, a, {type: 'cant', strand: 1}, 'Can’t before a move');
   a = play(p, a, {type: 'end', strand: 1, w: 2});
-  const wrong = play(p, a, {type: 'cant'});
-  assert.equal(wrong.board.told, 'way');
-  refuse(p, wrong, {type: 'cant'}, 'Can’t twice');
-  assert.equal(undoKeep(p, wrong).board.told, 'way');
+  const two = play(p, a, {type: 'cant', strand: 1});
+  assert.equal(two.board.told, 'two', 'Can’t wants two pairs right with the ends apart');
+  assert.match(view(p, two), /First get two pairs right, with every end at a different B\./);
+  refuse(p, two, {type: 'cant', strand: 0}, 'Can’t twice');
+  assert.equal(undoKeep(p, two).board.told, 'two');
   assert.ok(isSolved(p, play(p, a, {type: 'end', strand: 2, w: 4}).board));
+  // Where there is a way, Can't on an attempt is told so.
+  const s6 = byId('strands-06');
+  const way = play(s6, play(s6, freshAttempt(s6), {type: 'end', strand: 0, w: 1}, {type: 'end', strand: 1, w: 2}, {type: 'end', strand: 2, w: -1}), {type: 'cant', strand: 0});
+  assert.equal(way.board.told, 'way');
 
-  const r = byId('strands-12');
-  assert.ok(!designPossible(r.parameters));
+  const r = byId('strands-12'), rq = r.parameters;
+  assert.ok(!designPossible(rq));
+  mechanicFor(r).reset(r);
+  // An end moved and back, or two ends level: no attempt, so no strand certifies.
+  const back = play(r, freshAttempt(r), {type: 'end', strand: 0, w: 1}, {type: 'end', strand: 0, w: 0});
+  const level = play(r, freshAttempt(r), {type: 'end', strand: 2, w: 2});
+  for (const b of [back, level]) for (const i of [0, 1, 2]) {
+    const after = play(r, b, {type: 'cant', strand: i});
+    assert.equal(after.board.told, 'two');
+    assert.ok(!isSolved(r, after.board), `Can’t at ${b.board.w} with strand ${i} doesn’t solve`);
+  }
+  assert.ok(!isMiddle([0, 0, 2], 1) && !isMiddle([0, 0, 0], 1), 'a strand level with an end isn’t in the middle');
   let b = play(r, freshAttempt(r), {type: 'end', strand: 1, w: 2}, {type: 'end', strand: 2, w: 4});
+  assert.ok(ready(rq, b.board.w));
   assert.equal(nextHint(r, b).action.type, 'cant');
-  assert.match(nextHint(r, b).text, /four copies apart or level.*Press Can’t\.$/);
-  b = play(r, b, {type: 'cant'});
-  refuse(r, b, {type: 'end', strand: 0, w: 1}, 'an end during the claim');
-  assert.ok(isMiddle(b.board.w, 1) && !isMiddle(b.board.w, 0));
-  const miss = play(r, b, {type: 'pick', strand: 0});
+  assert.match(nextHint(r, b).text, /^Blue’s end is between the others: two copies from red’s and two copies from green’s\. So red and green ends are four copies apart: they cross three times, never once\. Press Can’t and tap blue\.$/);
+  ui(r, {claim: JSON.stringify(b.board)});
+  assert.match(view(r, b), /Tap the strand whose end is in the middle\./);
+  assert.match(view(r, b), /data-move="\{&quot;type&quot;:&quot;cant&quot;,&quot;strand&quot;:1\}"/);
+  const miss = play(r, b, {type: 'cant', strand: 0});
   assert.equal(miss.board.told, 'miss');
-  assert.equal(undoKeep(r, miss).board.told, 'miss');
-  const done = play(r, b, {type: 'pick', strand: 1});
+  for (const i of [0, 1, 2]) refuse(r, miss, {type: 'cant', strand: i}, 'Can’t again with nothing moved');
+  assert.equal(undoKeep(r, miss).board.told, 'miss', 'Undo keeps a wrong strand refused');
+  refuse(r, b, {type: 'pick', strand: 1}, 'a pick on its own');
+  const done = play(r, b, {type: 'cant', strand: 1});
   assert.ok(isSolved(r, done.board));
-  assert.match(view(r, done), /st-gap outer/);
+  const html = view(r, done);
+  assert.equal((html.match(/st-gap inner/g) || []).length, 2, 'both inner gaps are drawn');
+  assert.match(html, /st-gap outer/);
+  assert.equal(validBoard(r, {w: [0, 0, 0], tried: true, told: null, mid: 1}), false, 'a forged middle without the attempt');
 });
 
 test('hints: the first is never a claim, each names its move, and the chain solves every puzzle', () => {
@@ -134,9 +176,12 @@ test('hints: the first is never a claim, each names its move, and the chain solv
 
 test('forged saves are rejected', () => {
   const p = byId('strands-07'), b = freshAttempt(p).board;
-  for (const board of [{...b, done: true}, {...b, claim: [1]}, {...b, s: [b.s[0], b.s[1].slice(2)]}, {...b, s: [b.s[0], b.s[1].map((x, r) => r ? x : 6)]}, {...b, told: 'way'}, {...b, extra: 0}]) assert.equal(validBoard(p, board), false, JSON.stringify(board));
+  for (const board of [{...b, done: true}, {...b, claim: [1]}, {...b, told: 'copies'}, {...b, s: [b.s[0], b.s[1].slice(2)]}, {...b, s: [b.s[0], b.s[1].map((x, r) => r ? x : b.s[0][0] + 4)]}, {...b, told: 'way'}, {...b, extra: 0}]) assert.equal(validBoard(p, board), false, JSON.stringify(board));
   const d = byId('strands-06'), c = freshAttempt(d).board;
-  for (const board of [{...c, claim: true, tried: true}, {...c, mid: 0}, {...c, w: [0, 1, 9]}, {...c, w: [0, 1, 2]}]) assert.equal(validBoard(d, board), false, JSON.stringify(board));
+  for (const board of [{...c, claim: true, tried: true}, {...c, mid: 0}, {...c, w: [0, 1, 9]}, {...c, w: [0, 1, 2]}, {...c, tried: true, told: 'miss'}, {...c, tried: true, told: 'way'}]) assert.equal(validBoard(d, board), false, JSON.stringify(board));
+  const r = byId('strands-12'), e = freshAttempt(r).board;
+  for (const board of [{...e, tried: true, mid: 1}, {...e, tried: true, w: [0, 0, 2], mid: 1}, {...e, tried: true, told: 'miss'}, {...e, tried: true, w: [0, 2, 4], mid: 0}, {...e, tried: true, w: [0, 2, 4], told: 'way'}]) assert.equal(validBoard(r, board), false, JSON.stringify(board));
+  assert.equal(validBoard(r, {...e, tried: true, w: [0, 2, 4], mid: 1}), true, 'the middle strand on an attempt');
 });
 
 test('the playground: twists keep the crossings, ends re-lay one strand, never solved and no Hint', () => {
@@ -156,6 +201,7 @@ test('the playground: twists keep the crossings, ends re-lay one strand, never s
 
 test('every puzzle renders both views with its controls; handles sit apart where ends meet', () => {
   for (const p of strands.puzzles) {
+    mechanicFor(p).reset(p);
     const html = view(p, freshAttempt(p));
     assert.match(html, /data-mechanic-wire="strands"/, p.id);
     assert.match(html, /pb-room/, p.id);

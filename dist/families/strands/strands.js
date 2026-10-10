@@ -11,12 +11,15 @@
 // worse: in the unrolled view the second strand starts on one side of every
 // copy of the first that lies between its two ends, and ends on the other.
 // Every solve is something to do with the strands: drag beads until the
-// crossings are fewest, press Done, and tap each copy of the red strand that
-// blue must cross (the certificate); or move the ends of three strands, which
-// pull tight, until each pair crosses as often as its number. The gap between
-// the outer two ends is the sum of the two inner gaps, so three pairs that
-// each cross once is impossible: press Can't and tap the strand whose end is
-// in the middle (the certificate).
+// crossings are fewest, then claim it in one go: press Done, tap each copy of
+// the red strand that blue must cross (the certificate) and press That's all;
+// or move the ends of three strands, which pull tight, until each pair
+// crosses as often as its number. The gap between the outer two ends is the
+// sum of the two inner gaps, so three pairs that each cross once is
+// impossible: with two pairs right and the three ends apart, press Can't and
+// tap the strand whose end is in the middle (the certificate). A claim is
+// checked only once its certificate is in, and a refused claim waits for a
+// move.
 import {esc} from '../../expansion-controls.js';
 import {surfaceOf, roomBoard, planeBoard, shoot, roomXY, wirePortal} from '../../portal-board.js';
 
@@ -149,8 +152,10 @@ export function layout(C, ws) {
 export const twistShift = (C, k, j) => Math.sign(k * j) * Math.floor(Math.abs(k * C.N * j / C.M) + .5);
 
 // --- Boards --------------------------------------------------------------------
-// untangle: {s: [red beads, blue beads], told: null | 'fewer' | 'miss', claim: null | [copies tapped], done}
-// design: {w: [three windings], tried, told: null | 'way' | 'miss', claim, mid: null | strand}
+// untangle: {s: [red beads, blue beads], told: null | 'fewer' | 'copies' | 'none', done}
+// design: {w: [three windings], tried, told: null | 'way' | 'two' | 'miss', mid: null | strand}
+// A claim being made (Done and the copies tapped so far, or Can't) is the
+// interface's, not the save's: it is checked whole, as one move.
 // playground: {s: [beads, beads], w: [windings]}
 const modeOf = p => p.parameters.mode;
 export const routesOf = (p, b) => {
@@ -165,38 +170,33 @@ export const untangleCount = (p, b) => { const C = cylOf(p.parameters), [r, u] =
 export const untangleFewest = q => fewest(q.w[0], q.w[1]);
 function validUntangle(p, b) {
   const q = p.parameters, C = cylOf(q);
-  if (!keysAre(b, ['s', 'told', 'claim', 'done']) || !Array.isArray(b.s) || b.s.length !== 2 || !b.s.every(s => beadsOk(C, s))) return false;
+  if (!keysAre(b, ['s', 'told', 'done']) || !Array.isArray(b.s) || b.s.length !== 2 || !b.s.every(s => beadsOk(C, s))) return false;
   if (!apart(C, routesOf(p, b)) || typeof b.done !== 'boolean') return false;
-  const count = untangleCount(p, b), least = untangleFewest(q), walls = barriers(...q.w);
-  const claimOk = c => Array.isArray(c) && c.every(int) && c.every((k, i) => walls.includes(k) && (i === 0 || c[i - 1] < k));
-  if (b.done) return count === least && b.told === null && (least === 0 ? sameList(b.claim, []) : sameList(b.claim, walls));
-  if (b.told === 'fewer') return count > least && b.claim === null;
-  if (b.told === 'miss') return count === least && least > 0 && b.claim === null;
-  if (b.told !== null) return false;
-  if (b.claim === null) return true;
-  return count === least && least > 0 && claimOk(b.claim) && b.claim.length < walls.length;
+  const count = untangleCount(p, b), least = untangleFewest(q);
+  if (b.done) return count === least && b.told === null;
+  if (b.told === 'fewer') return count > least;
+  if (b.told === 'copies') return count === least;
+  if (b.told === 'none') return count === least && least > 0;
+  return b.told === null;
 }
+// The claim: Done with the copies of red tapped, checked whole. Crossings
+// to spare, or copies that aren't exactly the forced ones, are refused, and
+// a refused claim waits for a bead to move.
+const copiesOk = c => Array.isArray(c) && c.length <= 12 && c.every(k => int(k) && Math.abs(k) <= 24) && new Set(c).size === c.length;
 function moveUntangle(p, b, action) {
   const q = p.parameters, C = cylOf(q);
   if (action.type === 'bead') {
     const {strand: i, row: j, x} = action;
-    if (b.claim !== null || ![0, 1].includes(i) || !int(j) || j < 1 || j >= C.M || !int(x) || x < C.lo || x > C.hi || b.s[i][j - 1] === x) return null;
+    if (![0, 1].includes(i) || !int(j) || j < 1 || j >= C.M || !int(x) || x < C.lo || x > C.hi || b.s[i][j - 1] === x) return null;
     const s = b.s.map((beads, k) => k === i ? beads.map((v, r) => r === j - 1 ? x : v) : [...beads]);
-    const next = {s, told: null, claim: null, done: false};
+    const next = {s, told: null, done: false};
     return apart(C, routesOf(p, next)) ? next : null;
   }
   if (action.type === 'done') {
-    if (b.claim !== null || b.told === 'fewer') return null;
-    const count = untangleCount(p, b), least = untangleFewest(q);
-    if (count > least) return {...b, told: 'fewer'};
-    return least === 0 ? {...b, told: null, claim: [], done: true} : {...b, told: null, claim: []};
-  }
-  if (action.type === 'pick') {
-    if (b.claim === null || !int(action.k) || b.claim.includes(action.k) || Math.abs(action.k) > 24) return null;
-    const walls = barriers(...q.w);
-    if (!walls.includes(action.k)) return {...b, claim: null, told: 'miss'};
-    const claim = [...b.claim, action.k].sort((x, y) => x - y);
-    return {...b, claim, done: claim.length === walls.length};
+    if (b.told !== null || !copiesOk(action.copies)) return null;
+    if (untangleCount(p, b) > untangleFewest(q)) return {...b, told: 'fewer'};
+    if (sameList([...action.copies].sort((x, y) => x - y), barriers(...q.w))) return {...b, done: true};
+    return {...b, told: action.copies.length ? 'copies' : 'none'};
   }
   return null;
 }
@@ -204,6 +204,7 @@ function moveUntangle(p, b, action) {
 // Design: three strands pulled tight; the solve is each pair's fewest crossings on its number.
 export const pairCounts = ws => PAIRS.map(([i, k]) => fewest(ws[i], ws[k]));
 export const met = (q, ws) => sameList(pairCounts(ws), q.targets);
+const twoMet = (q, ws) => pairCounts(ws).filter((c, i) => c === q.targets[i]).length >= 2;
 const windingsOf = q => { const out = []; for (let w = q.copies[0]; w <= q.copies[1]; w++) out.push(w); return out; };
 const triples = q => { const W = windingsOf(q), out = []; for (const a of W) for (const b of W) for (const c of W) out.push([a, b, c]); return out; };
 const possibleMemo = new Map();
@@ -212,35 +213,39 @@ export function designPossible(q) {
   if (!possibleMemo.has(key)) possibleMemo.set(key, triples(q).some(ws => met(q, ws)));
   return possibleMemo.get(key);
 }
-// A strand whose end lies between the other two (or level with one of them).
-export const isMiddle = (ws, i) => { const o = ws.filter((_, k) => k !== i); return Math.min(...o) <= ws[i] && ws[i] <= Math.max(...o); };
+// A strand whose end lies strictly between the other two.
+export const isMiddle = (ws, i) => { const o = ws.filter((_, k) => k !== i); return Math.min(...o) < ws[i] && ws[i] < Math.max(...o); };
+// The attempt a Can't stands on: two pairs on their numbers, with the three
+// ends at different Bs, so one end is plainly in the middle.
+export const ready = (q, ws) => twoMet(q, ws) && new Set(ws).size === 3;
 function validDesign(p, b) {
   const q = p.parameters;
-  if (!keysAre(b, ['w', 'tried', 'told', 'claim', 'mid']) || !Array.isArray(b.w) || b.w.length !== 3 || !b.w.every(w => int(w) && w >= q.copies[0] && w <= q.copies[1])) return false;
-  if (typeof b.tried !== 'boolean' || typeof b.claim !== 'boolean' || ![null, 'way', 'miss'].includes(b.told) || !(b.mid === null || [0, 1, 2].includes(b.mid))) return false;
-  if (!b.tried && (!sameList(b.w, q.start) || b.told !== null || b.claim || b.mid !== null)) return false;
-  const can = designPossible(q);
-  if (met(q, b.w)) return b.told === null && !b.claim && b.mid === null;
-  if (b.mid !== null) return !can && b.tried && !b.claim && b.told === null && isMiddle(b.w, b.mid);
-  if (b.claim) return !can && b.tried && b.told === null;
-  if (b.told === 'way') return can;
-  if (b.told === 'miss') return !can;
+  if (!keysAre(b, ['w', 'tried', 'told', 'mid']) || !Array.isArray(b.w) || b.w.length !== 3 || !b.w.every(w => int(w) && w >= q.copies[0] && w <= q.copies[1])) return false;
+  if (typeof b.tried !== 'boolean' || ![null, 'way', 'two', 'miss'].includes(b.told) || !(b.mid === null || [0, 1, 2].includes(b.mid))) return false;
+  if (!b.tried && (!sameList(b.w, q.start) || b.told !== null || b.mid !== null)) return false;
+  const can = designPossible(q), ok = ready(q, b.w);
+  if (met(q, b.w)) return b.told === null && b.mid === null;
+  if (b.mid !== null) return !can && ok && b.told === null && isMiddle(b.w, b.mid);
+  if (b.told === 'two') return !ok;
+  if (b.told === 'way') return can && ok;
+  if (b.told === 'miss') return !can && ok;
   return true;
 }
+// The claim: Can't with the strand tapped, checked whole. Without the
+// attempt it is refused first, then where there is a way, then a strand
+// that isn't in the middle; a refused claim waits for an end to move.
 function moveDesign(p, b, action) {
   const q = p.parameters;
   if (action.type === 'end') {
     const {strand: i, w} = action;
-    if (b.claim || ![0, 1, 2].includes(i) || !int(w) || w < q.copies[0] || w > q.copies[1] || b.w[i] === w) return null;
-    return {w: b.w.map((v, k) => k === i ? w : v), tried: true, told: null, claim: false, mid: null};
+    if (![0, 1, 2].includes(i) || !int(w) || w < q.copies[0] || w > q.copies[1] || b.w[i] === w) return null;
+    return {w: b.w.map((v, k) => k === i ? w : v), tried: true, told: null, mid: null};
   }
   if (action.type === 'cant') {
-    if (!b.tried || b.claim || b.told === 'way') return null;
-    return designPossible(q) ? {...b, told: 'way'} : {...b, told: null, claim: true};
-  }
-  if (action.type === 'pick') {
-    if (!b.claim || ![0, 1, 2].includes(action.strand)) return null;
-    return isMiddle(b.w, action.strand) ? {...b, claim: false, mid: action.strand} : {...b, claim: false, told: 'miss'};
+    if (!b.tried || b.told !== null || ![0, 1, 2].includes(action.strand)) return null;
+    if (!ready(q, b.w)) return {...b, told: 'two'};
+    if (designPossible(q)) return {...b, told: 'way'};
+    return isMiddle(b.w, action.strand) ? {...b, mid: action.strand} : {...b, told: 'miss'};
   }
   return null;
 }
@@ -289,8 +294,8 @@ function movePlay(p, b, action) {
 
 function fresh(p) {
   const q = p.parameters;
-  if (q.mode === 'untangle') return {s: q.start.map(s => [...s]), told: null, claim: null, done: false};
-  if (q.mode === 'design') return {w: [...q.start], tried: false, told: null, claim: false, mid: null};
+  if (q.mode === 'untangle') return {s: q.start.map(s => [...s]), told: null, done: false};
+  if (q.mode === 'design') return {w: [...q.start], tried: false, told: null, mid: null};
   return {s: q.start.s.map(s => [...s]), w: [...q.start.w]};
 }
 function valid(p, b) {
@@ -312,15 +317,16 @@ function move(p, b, action) {
   const next = m === 'untangle' ? moveUntangle(p, b, action) : m === 'design' ? moveDesign(p, b, action) : movePlay(p, b, action);
   return next && valid(p, next) ? next : null;
 }
-// Undo takes back moves, not a refusal: undoing to the same strands keeps it,
-// and keeps that the child has tried an end.
+// Undo takes back moves, not a refusal: undoing to the same strands keeps it
+// (so the claim still waits for a move), and keeps that the child has tried
+// an end.
 function carry(p, from, to) {
   if (!object(from) || !object(to)) return to;
   const m = modeOf(p);
-  if (m === 'untangle' && from.told && sameList(from.s, to.s)) return {...to, told: from.told, claim: null};
+  if (m === 'untangle' && from.told && sameList(from.s, to.s)) return {...to, told: from.told};
   if (m === 'design') {
     const tried = from.tried || to.tried;
-    if (from.told && sameList(from.w, to.w)) return {...to, tried, told: from.told, claim: false};
+    if (from.told && sameList(from.w, to.w)) return {...to, tried, told: from.told};
     return {...to, tried};
   }
   return to;
@@ -360,13 +366,22 @@ function untanglePlan(p, b) {
 }
 const ordinalBead = (strand, j) => `the ${ORDINALS[j]} ${COLOURS[strand]} bead from the bottom`;
 const beadText = (strand, j, from, to) => `Drag ${ordinalBead(strand, j)} ${word(Math.abs(to - from))} ${Math.abs(to - from) === 1 ? 'place' : 'places'} ${to > from ? 'right' : 'left'}.`;
+// The forced copies in words: "the copies that start one and two copies right of A".
+function copiesText(walls) {
+  const ws = walls.map(k => word(Math.abs(k))), list = ws.length < 3 ? ws.join(' and ') : `${ws.slice(0, -1).join(', ')} and ${ws.at(-1)}`;
+  const last = Math.abs(walls.at(-1)), dir = walls[0] > 0 ? 'right' : 'left';
+  return `the ${walls.length === 1 ? 'copy that starts' : 'copies that start'} ${list} ${last === 1 ? 'copy' : 'copies'} ${dir} of A`;
+}
 function untangleHint(p, b) {
-  const q = p.parameters, C = cylOf(q), [xr, xb] = routesOf(p, b), least = untangleFewest(q), count = untangleCount(p, b);
-  if (b.claim !== null) {
-    const k = barriers(...q.w).find(c => !b.claim.includes(c));
-    return {type: 'move', action: {type: 'pick', k}, text: `Tap the red copy that starts ${word(Math.abs(k))} ${Math.abs(k) === 1 ? 'copy' : 'copies'} ${k > 0 ? 'right' : 'left'} of A: blue starts on one side of it and ends on the other.`};
+  const q = p.parameters, C = cylOf(q), [xr, xb] = routesOf(p, b), least = untangleFewest(q), count = untangleCount(p, b), walls = barriers(...q.w);
+  if (count === least && b.told === null) return {type: 'move', action: {type: 'done', copies: walls}, text: walls.length ? `Every crossing left is with a copy of red that blue has to cross: ${copiesText(walls)}. Press Done, tap ${walls.length === 1 ? 'it' : 'them'}, then That’s all.` : 'No crossings are left. Press Done, then That’s all.'};
+  if (count === least) {
+    // A refused claim at the fewest waits for a move: a short step that keeps the fewest.
+    for (const d of [1, -1, 2, -2, 3, -3]) for (let j = 1; j < C.M; j++) for (const i of [1, 0]) {
+      const action = {type: 'bead', strand: i, row: j, x: b.s[i][j - 1] + d}, after = moveUntangle(p, b, action);
+      if (after && untangleCount(p, after) === least) return {type: 'move', action, text: beadText(i, j, b.s[i][j - 1], action.x)};
+    }
   }
-  if (count === least && b.told !== 'fewer') return {type: 'move', action: {type: 'done'}, text: least ? 'Every crossing left is with a copy of red that blue has to cross. Press Done.' : 'No crossings are left. Press Done.'};
   const plan = untanglePlan(p, b), options = [];
   for (let j = 1; j < C.M; j++) {
     const D = plan[j];
@@ -401,7 +416,6 @@ function nearest(q, ws, good) {
   }
   return best?.t || null;
 }
-const twoMet = (q, ws) => pairCounts(ws).filter((c, i) => c === q.targets[i]).length >= 2;
 function endHint(ws, target) {
   const i = target.findIndex((w, k) => w !== ws[k]), n = target[i] - ws[i];
   return {type: 'move', action: {type: 'end', strand: i, w: target[i]}, text: `Move the ${COLOURS[i]} end ${word(Math.abs(n))} ${Math.abs(n) === 1 ? 'copy' : 'copies'} ${n > 0 ? 'right' : 'left'}.`};
@@ -409,27 +423,16 @@ function endHint(ws, target) {
 function designHint(p, b) {
   const q = p.parameters;
   if (designPossible(q)) return endHint(b.w, nearest(q, b.w, t => met(q, t)));
-  if (b.claim) {
-    // The strand strictly between the others if there is one, else one level with an outer end.
-    const i = [0, 1, 2].find(k => isMiddle(b.w, k) && b.w.filter(w => w === b.w[k]).length === 1) ?? [0, 1, 2].find(k => isMiddle(b.w, k));
-    const level = [0, 1, 2].find(k => k !== i && b.w[k] === b.w[i]);
-    return {type: 'move', action: {type: 'pick', strand: i}, text: `Tap ${COLOURS[i]}: its end is between the other two${level === undefined ? '' : `, level with ${COLOURS[level]}’s`}.`};
-  }
-  // An attempt first: two pairs on their numbers, with the three ends apart
-  // if that can be, so that one end is plainly in the middle.
-  const apartEnds = t => new Set(t).size === 3, fits = t => twoMet(q, t) && (b.tried || !sameList(t, b.w));
-  const ready = twoMet(q, b.w) && (apartEnds(b.w) || !triples(q).some(t => twoMet(q, t) && apartEnds(t)));
-  if (!b.tried || !ready) return endHint(b.w, nearest(q, b.w, t => fits(t) && apartEnds(t)) || nearest(q, b.w, fits));
-  // The reason, then Can't: two pairs on their numbers fix two gaps between
-  // ends, and the third gap is their sum or difference.
-  const miss = PAIRS.findIndex((_, i) => pairCounts(b.w)[i] !== q.targets[i]), good = PAIRS.filter((_, i) => i !== miss);
-  const gap = ([i, k]) => Math.abs(b.w[i] - b.w[k]), [g1, g2] = good.map(gap), far = g1 + g2, near = Math.abs(g1 - g2);
-  const pair = ([i, k]) => `${COLOURS[i]} and ${COLOURS[k]}`, cap = t => t[0].toUpperCase() + t.slice(1);
-  const ends = g => g === 0 ? 'level' : `${word(g)} ${g === 1 ? 'copy' : 'copies'} apart`;
-  const cross = n => n === 0 ? 'not at all' : times(n);
-  const first = g1 === g2 ? `${cap(pair(good[0]))} ends are ${ends(g1)}, and so are ${pair(good[1])}.` : `${cap(pair(good[0]))} ends are ${ends(g1)}, and ${pair(good[1])} ends are ${ends(g2)}.`;
-  const text = `${first} So ${pair(PAIRS[miss])} ends are ${ends(far)} or ${ends(near)}: they cross ${cross(fewest(far, 0))} or ${cross(fewest(near, 0))}, never ${times(q.targets[miss])}. Press Can’t.`;
-  return {type: 'move', action: {type: 'cant'}, text};
+  // An attempt first: two pairs on their numbers with the three ends apart,
+  // and a different one after a refused claim, which waits for a move.
+  if (!b.tried || b.told !== null || !ready(q, b.w)) return endHint(b.w, nearest(q, b.w, t => ready(q, t) && !sameList(t, b.w)));
+  // The reason, then Can't with the middle strand: its two gaps add up to
+  // the outer gap.
+  const [lo, m, hi] = [0, 1, 2].sort((i, k) => b.w[i] - b.w[k]), g1 = b.w[m] - b.w[lo], g2 = b.w[hi] - b.w[m];
+  const outer = PAIRS.findIndex(([i, k]) => [i, k].includes(lo) && [i, k].includes(hi)), wrong = pairCounts(b.w)[outer] !== q.targets[outer];
+  const span = g => `${word(g)} ${g === 1 ? 'copy' : 'copies'}`, cross = n => n === 0 ? 'not at all' : times(n);
+  const text = `${cap1(COLOURS[m])}’s end is between the others: ${span(g1)} from ${COLOURS[lo]}’s and ${span(g2)} from ${COLOURS[hi]}’s. So ${COLOURS[lo]} and ${COLOURS[hi]} ends are ${span(g1 + g2)} apart: they cross ${cross(fewest(g1 + g2, 0))}${wrong ? `, never ${times(q.targets[outer])}` : ''}. Press Can’t and tap ${COLOURS[m]}.`;
+  return {type: 'move', action: {type: 'cant', strand: m}, text};
 }
 function hint(p, b) {
   const m = modeOf(p);
@@ -531,33 +534,41 @@ function render(p, a) {
   if (m === 'design') return renderDesign(p, b, done, shown?.action);
   return renderPlay(p, b);
 }
+// The feedback line sits between the bar and the boards, in sight on a phone.
 function frame(done, bar, lift, room, told, status) {
-  return `<div class="st-puzzle${done ? ' solved' : ''}" data-mechanic-wire="strands">${bar}<div class="st-stage"><div class="st-view st-lift-view">${lift}</div><div class="st-view st-room-view">${room}</div></div>${told ? `<p class="st-told">${told}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="st-puzzle${done ? ' solved' : ''}" data-mechanic-wire="strands">${bar}${told ? `<p class="st-told">${told}</p>` : ''}<div class="st-stage"><div class="st-view st-lift-view">${lift}</div><div class="st-view st-room-view">${room}</div></div><p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 const crossingWords = n => `${n} ${n === 1 ? 'crossing' : 'crossings'}`;
 
+// A claim being made: Done (or Can't) pressed on this very board, with no refusal waiting.
+const claimingNow = (p, b) => b.told === null && uiOf(p).claim === JSON.stringify(b) && !solved(p, b);
+const uiButton = (label, payload, focus, opts = {}) => `<button type="button" class="secondary st-button${opts.hinted ? ' hinted' : ''}" data-action="mechanic-ui" data-ui="${esc(JSON.stringify(payload))}" data-focus="${focus}"${opts.disabled ? ' disabled' : ''}>${label}</button>`;
 function renderUntangle(p, b, done, act) {
-  const q = p.parameters, C = cylOf(q), [xr, xb] = routesOf(p, b), cross = crossings(C, xr, xb);
-  const claiming = b.claim !== null && !done, moving = !done && !claiming, walls = barriers(...q.w);
-  const hintBead = act?.type === 'bead' ? act : null, target = hintBead ? {x: hintBead.x, row: hintBead.row} : null;
+  const q = p.parameters, C = cylOf(q), [xr, xb] = routesOf(p, b), cross = crossings(C, xr, xb), walls = barriers(...q.w);
+  const claiming = !done && claimingNow(p, b), moving = !done && !claiming, picks = done ? walls : claiming ? uiOf(p).picks : [];
+  const hintBead = moving && act?.type === 'bead' ? act : null, target = hintBead ? {x: hintBead.x, row: hintBead.row} : null, claimHint = act?.type === 'done' ? act : null;
   const room = roomView(p, C, [xr, xb], cross, {beads: true, act: moving, hinted: hintBead, target});
   // The unrolled view: every copy of red, blue from the first A, and where blue crosses the copies.
   let under = '', over = '', hits = '', top = '';
   const shown = copiesOf(C, xr);
-  for (const k of shown) if (k !== 0) under += liftStrand(xr, `st-strand red copy${(done || claiming) && b.claim.includes(k) ? ' wall' : ''}`, k * C.N);
-  over += liftStrand(xr, `st-strand red${(done || claiming) && b.claim.includes(0) ? ' wall' : ''}`) + liftStrand(xb, 'st-strand blue');
+  for (const k of shown) if (k !== 0) under += liftStrand(xr, `st-strand red copy${picks.includes(k) ? ' wall' : ''}`, k * C.N);
+  over += liftStrand(xr, `st-strand red${picks.includes(0) ? ' wall' : ''}`) + liftStrand(xb, 'st-strand blue');
   if (done && walls.length) over += `<circle class="st-end-ring" cx="${f(C.a)}" cy="0" r=".42"/><circle class="st-end-ring" cx="${f(xb[C.M])}" cy="${f(-C.M)}" r=".42"/>`;
   if (claiming) for (const k of shown) {
-    const picked = b.claim.includes(k);
-    hits += `<g class="st-copy-hit${picked ? ' picked' : ''}${act?.type === 'pick' && act.k === k ? ' hinted' : ''}" role="button" tabindex="0" data-st-copy="${k}" data-focus="st-copy-${k}" aria-label="${esc(copyName(k) + (picked ? ', tapped' : ''))}"${picked ? ' aria-pressed="true"' : ''}>${liftStrand(xr, 'st-copy-line', k * C.N)}</g>`;
+    const picked = picks.includes(k);
+    hits += `<g class="st-copy-hit${picked ? ' picked' : ''}${claimHint?.copies.includes(k) ? ' hinted' : ''}" role="button" tabindex="0" data-st-copy="${k}" data-focus="st-copy-${k}" aria-label="${esc(copyName(k))}" aria-pressed="${picked}">${liftStrand(xr, 'st-copy-line', k * C.N)}</g>`;
   }
   if (moving) [xr, xb].forEach((r, i) => { for (let j = 1; j < C.M; j++) top += bead('plane', `${r[j]},${j}`, [r[j], -j], i, j, {act: true, hinted: hintBead?.strand === i && hintBead.row === j}); });
   if (target) top = `<circle class="st-target" cx="${f(target.x)}" cy="${f(-target.row)}" r=".32"/>` + top;
   for (const c of cross) top += ring([c.x + c.k * C.N, -c.t]);
   const lift = liftView(p, C, {cls: claiming ? 'claiming' : '', slide: moving, under, over, clipTop: hits, top});
-  const bar = moving ? `<div class="st-bar">${button('Done', {type: 'done'}, {disabled: b.told === 'fewer', hinted: act?.type === 'done'})}</div>` : '';
-  const told = claiming ? 'Tap each red copy that blue must cross.' : b.told === 'fewer' ? 'There is a way with fewer.' : b.told === 'miss' ? 'Blue needn’t cross that one.' : '';
-  const status = `${crossingWords(cross.length)}. Red ends at the B ${copyWords(q.w[0])}, blue at the B ${copyWords(q.w[1])}.${told ? ` ${told}` : ''}`;
+  // Done starts the claim; That's all sends it with the copies tapped. Back
+  // takes Done's place, so a second tap on Done never sends a claim.
+  let bar = '';
+  if (moving) bar = `<div class="st-bar st-slots"><span></span>${uiButton('Done', {claim: JSON.stringify(b)}, 'st-claim', {disabled: b.told !== null, hinted: Boolean(claimHint)})}<span></span></div>`;
+  if (claiming) bar = `<div class="st-bar st-slots"><span></span>${uiButton('Back', {claim: null}, 'st-back')}${button('That’s all', {type: 'done', copies: [...picks].sort((x, y) => x - y)}, {hinted: Boolean(claimHint)})}</div>`;
+  const told = claiming ? 'Tap each red copy that blue must cross, then press That’s all.' : b.told === 'fewer' ? 'There is a way with fewer.' : b.told === 'copies' ? 'Those aren’t the copies blue must cross.' : b.told === 'none' ? 'Blue must cross some copy of red.' : '';
+  const status = `${crossingWords(cross.length)}. Red ends at the B ${copyWords(q.w[0])}, blue at the B ${copyWords(q.w[1])}.${claiming ? ` ${picks.length} ${picks.length === 1 ? 'copy' : 'copies'} tapped.` : ''}${told ? ` ${told}` : ''}`;
   return frame(done, bar, lift, room, told, status);
 }
 const copyWords = k => k === 0 ? 'above A' : `${word(Math.abs(k))} ${Math.abs(k) === 1 ? 'copy' : 'copies'} to the ${k > 0 ? 'right' : 'left'}`;
@@ -585,25 +596,27 @@ const band = (C, depth) => `<rect class="st-band" data-st-band="1" x="${C.k0 * C
 function endButtons(ws, opts) {
   const buttons = ws.map((_, i) => {
     const look = `st-end-button ${COLOURS[i]}${opts.hinted === i ? ' hinted' : ''}`;
-    if (opts.pick) return `<button type="button" class="${look}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'pick', strand: i}))}" data-focus="st-end-${i}" aria-label="${NAMES[i]} strand"><span class="st-disc"></span></button>`;
+    if (opts.pick) return `<button type="button" class="${look}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'cant', strand: i}))}" data-focus="st-end-${i}" aria-label="${NAMES[i]} strand"><span class="st-disc"></span></button>`;
     const on = opts.sel === i;
     return `<button type="button" class="${look}${on ? ' chosen' : ''}" data-action="mechanic-ui" data-ui="${esc(JSON.stringify({sel: on ? null : i}))}" data-st-end="${i}" data-focus="st-end-${i}" aria-pressed="${on}" aria-label="${NAMES[i]} end"><span class="st-disc"></span></button>`;
   }).join('');
   return `<div class="st-ends" role="group" aria-label="${opts.pick ? 'Strands' : 'Ends'}">${buttons}</div>`;
 }
+// The interface's own state: the end chosen, and a claim being made (the
+// board it was started on and the copies tapped so far).
 const uiState = new Map();
-const uiOf = p => { if (!uiState.has(p.id)) uiState.set(p.id, {sel: null}); return uiState.get(p.id); };
+const uiOf = p => { if (!uiState.has(p.id)) uiState.set(p.id, {sel: null, claim: null, picks: []}); return uiState.get(p.id); };
 
 function pairChip(q, ws, i) {
   const [x, y] = PAIRS[i], t = q.targets[i], ok = pairCounts(ws)[i] === t;
   return `<span class="st-pair${ok ? ' met' : ''}" role="img" aria-label="${esc(`${NAMES[x]} and ${COLOURS[y]} cross ${t === 0 ? 'not at all' : times(t)}${ok ? ': yes' : ''}`)}"><svg viewBox="0 0 24 24" aria-hidden="true"><line class="st-chip ${COLOURS[x]}" x1="4" y1="21" x2="20" y2="3"/><line class="st-chip ${COLOURS[y]}" x1="4" y1="3" x2="20" y2="21"/></svg><b>${t}</b></span>`;
 }
 function renderDesign(p, b, done, act) {
-  const q = p.parameters, C = cylOf(q), routes = layout(C, b.w), claiming = b.claim && !done, sel = claiming || done ? null : uiOf(p).sel;
+  const q = p.parameters, C = cylOf(q), routes = layout(C, b.w), claiming = !done && claimingNow(p, b), sel = claiming || done ? null : uiOf(p).sel;
   let cross = [];
   PAIRS.forEach(([i, k]) => { cross = cross.concat(crossings(C, routes[i], routes[k])); });
   const room = roomView(p, C, routes, cross, {});
-  const hinted = act?.type === 'end' || act?.type === 'pick' ? act.strand : null;
+  const hinted = act?.type === 'end' || (act?.type === 'cant' && claiming) ? act.strand : null;
   let over = '';
   // The unrolled view shows where the ends are; the crossings are rung in the room.
   routes.forEach((xs, i) => { over += liftStrand(xs, `st-strand ${COLOURS[i]}`); });
@@ -611,14 +624,16 @@ function renderDesign(p, b, done, act) {
   if (b.mid !== null) {
     // After a right Can't: the two inner gaps between ends, and the outer gap they add up to.
     const ends = b.w.map(w => C.a + w * C.N), o = [0, 1, 2].filter(i => i !== b.mid).map(i => ends[i]), lo = Math.min(...o), hi = Math.max(...o), m = ends[b.mid];
-    const arc = (x1, x2, h, cls) => x1 === x2 ? '' : `<path class="st-gap ${cls}" d="M${f(x1)},${f(-C.M - .15)} C${f(x1)},${f(-C.M - h)} ${f(x2)},${f(-C.M - h)} ${f(x2)},${f(-C.M - .15)}"/>`;
+    const arc = (x1, x2, h, cls) => `<path class="st-gap ${cls}" d="M${f(x1)},${f(-C.M - .15)} C${f(x1)},${f(-C.M - h)} ${f(x2)},${f(-C.M - h)} ${f(x2)},${f(-C.M - .15)}"/>`;
     marks = arc(lo, m, .9, 'inner') + arc(m, hi, .9, 'inner') + arc(lo, hi, 1.7, 'outer');
-    b.w.forEach((w, i) => { marks += `<circle class="st-end-dot ${COLOURS[i]}${i === b.mid ? ' middle' : ''}" cx="${f(ends[i] + (i - 1) * .25)}" cy="${f(-C.M)}" r=".22"/>`; });
+    b.w.forEach((w, i) => { marks += `<circle class="st-end-dot ${COLOURS[i]}${i === b.mid ? ' middle' : ''}" cx="${f(ends[i])}" cy="${f(-C.M)}" r=".22"/>`; });
   } else marks = endMarks(C, b.w, {sel, hinted, hintedB: act?.type === 'end' ? act.w : null});
   const lift = liftView(p, C, {cls: 'design', pad: 1.6, over: over + marks, top: done ? '' : band(C, 1.2)});
   let bar = `<div class="st-top"><div class="st-pairs">${PAIRS.map((_, i) => pairChip(q, b.w, i)).join('')}</div></div>`;
-  if (!done) bar += `<div class="st-bar">${endButtons(b.w, {pick: claiming, sel, hinted})}${claiming ? '' : button('Can’t', {type: 'cant'}, {disabled: !b.tried || b.told === 'way', hinted: act?.type === 'cant'})}</div>`;
-  const told = claiming ? 'Tap the strand whose end is in the middle.' : b.told === 'way' ? 'There is a way.' : b.told === 'miss' ? 'Its end isn’t between the other two.' : '';
+  // Can't starts the claim; tapping a strand sends it.
+  const cant = claiming ? uiButton('Back', {claim: null}, 'st-back') : uiButton('Can’t', {claim: JSON.stringify(b)}, 'st-claim', {disabled: !b.tried || b.told !== null, hinted: act?.type === 'cant'});
+  if (!done) bar += `<div class="st-bar">${endButtons(b.w, {pick: claiming, sel, hinted})}${cant}</div>`;
+  const told = claiming ? 'Tap the strand whose end is in the middle.' : b.told === 'way' ? 'There is a way.' : b.told === 'two' ? 'First get two pairs right, with every end at a different B.' : b.told === 'miss' ? 'Its end isn’t between the other two.' : '';
   const counts = pairCounts(b.w);
   const status = `Red ends at the B ${copyWords(b.w[0])}, blue ${copyWords(b.w[1])}, green ${copyWords(b.w[2])}. ${PAIRS.map(([i, k], n) => `${cap1(COLOURS[i])} and ${COLOURS[k]} cross ${counts[n] === 0 ? 'not at all' : times(counts[n])}`).join('; ')}.${told ? ` ${told}` : ''}`;
   return frame(done, bar, lift, room, told, status);
@@ -720,18 +735,18 @@ function wire(root, p, api) {
     if (!svg || !live()) return;
     const pt = svgPoint(svg, e);
     if (!pt) return;
-    if (m === 'untangle' && b.claim !== null) gesture = {kind: 'copy', pid: p.id, pointer: e.pointerId, x: e.clientX, y: e.clientY, pt};
-    else if (m !== 'untangle' && e.target.closest('[data-st-band]')) gesture = {kind: 'end', pid: p.id, pointer: e.pointerId, x: e.clientX, y: e.clientY, pt, end: m === 'design' && b.claim ? null : nearestEnd(p, b, pt, 1.2), moved: false};
+    if (m === 'untangle' && claimingNow(p, b)) gesture = {kind: 'copy', pid: p.id, pointer: e.pointerId, x: e.clientX, y: e.clientY, pt};
+    else if (m !== 'untangle' && e.target.closest('[data-st-band]')) gesture = {kind: 'end', pid: p.id, pointer: e.pointerId, x: e.clientX, y: e.clientY, pt, end: m === 'design' && claimingNow(p, b) ? null : nearestEnd(p, b, pt, 1.2), moved: false};
   });
   root.addEventListener('click', e => {
     const el = e.target.closest?.('[data-st-copy]');
     if (!el || !root.contains(el) || performance.now() - lastTap < 700 || !live()) return;
-    api.apply({type: 'pick', k: Number(el.dataset.stCopy)});
+    api.ui({pick: Number(el.dataset.stCopy)});
   });
   root.addEventListener('keydown', e => {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     const copy = e.target.closest?.('[data-st-copy]');
-    if (copy && ['Enter', ' '].includes(e.key)) { e.preventDefault(); if (live()) api.apply({type: 'pick', k: Number(copy.dataset.stCopy)}); return; }
+    if (copy && ['Enter', ' '].includes(e.key)) { e.preventDefault(); if (live()) api.ui({pick: Number(copy.dataset.stCopy)}); return; }
     // Up and down move between a strand's beads in the room.
     const beadEl = e.target.closest?.('[data-st-bead][role="button"]');
     if (beadEl && ['ArrowUp', 'ArrowDown'].includes(e.key)) {
@@ -768,12 +783,12 @@ function gestureEnd(e) {
   lastTap = performance.now();
   const {p, api} = current, b = api.attempt().board;
   if (solved(p, b)) return;
-  if (g.kind === 'copy') { const k = nearestCopy(p, b, g.pt); if (k !== null) api.apply({type: 'pick', k}); return; }
-  // A tap on the strip: in a claim, the nearest disc is the pick; otherwise
+  if (g.kind === 'copy') { const k = nearestCopy(p, b, g.pt); if (k !== null && claimingNow(p, b)) api.ui({pick: k}); return; }
+  // A tap on the strip: in a claim, the nearest disc is the strand; otherwise
   // a tap chooses the nearest disc, a tap on a disc chooses it instead (or
   // lets it go), and with a disc chosen a tap off the discs moves its end to
   // the nearest B.
-  if (modeOf(p) === 'design' && b.claim) { const i = nearestEnd(p, b, g.pt, 1.2); if (i !== null) api.apply({type: 'pick', strand: i}); return; }
+  if (modeOf(p) === 'design' && claimingNow(p, b)) { const i = nearestEnd(p, b, g.pt, 1.2); if (i !== null) api.apply({type: 'cant', strand: i}); return; }
   const state = uiOf(p), i = nearestEnd(p, b, g.pt, .5);
   if (state.sel === null || state.sel >= b.w.length) { if (g.end !== null) api.ui({sel: g.end}); return; }
   if (i !== null) { api.ui({sel: i === state.sel ? null : i}); return; }
@@ -783,8 +798,22 @@ function gestureEnd(e) {
 
 export const strandMechanics = {
   strands: {
-    fresh, valid, solved, move, hint, render, wire, carry,
-    ui(p, payload) { if (object(payload) && (payload.sel === null || [0, 1, 2].includes(payload.sel))) uiOf(p).sel = payload.sel; },
+    fresh, valid, solved, hint, render, wire, carry,
+    // A move applied ends any claim being made, so a board met again later
+    // never brings back a claim from before.
+    move(p, b, action) {
+      const next = move(p, b, action);
+      if (next) Object.assign(uiOf(p), {claim: null, picks: []});
+      return next;
+    },
+    ui(p, payload) {
+      if (!object(payload)) return;
+      const state = uiOf(p);
+      if (payload.sel === null || [0, 1, 2].includes(payload.sel)) state.sel = payload.sel;
+      // Done or Can't on a board (its save, as text), or Back; a tap on a copy marks or unmarks it.
+      if (payload.claim === null || typeof payload.claim === 'string') Object.assign(state, {claim: payload.claim, picks: [], sel: null});
+      if (int(payload.pick) && state.claim !== null) state.picks = state.picks.includes(payload.pick) ? state.picks.filter(k => k !== payload.pick) : [...state.picks, payload.pick];
+    },
     reset(p) { uiState.delete(p.id); },
     // The playground has no goal and no Hint.
     noHint: p => modeOf(p) === 'playground'

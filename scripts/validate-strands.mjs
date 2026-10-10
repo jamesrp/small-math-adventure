@@ -7,11 +7,15 @@
 // (red, blue) columns, and matches max(|a − b| − 1, 0) and a winding sweep;
 // the copies blue must cross are found by sides at the ends; design targets
 // are decided over all ends from gaps on a line, and three tight strands are
-// checked crossing by crossing with no three meeting. Hint chains are run
-// from fresh, after a wrong move, after a wrong Done, pick or Can't, with
-// Undo, and from random tangles; hint words are read back against their
-// moves; illegal moves and forged saves are refused; the playground's twists
-// keep every crossing. Run: node scripts/validate-strands.mjs
+// checked crossing by crossing with no three meeting. Starts are several bead
+// moves from the fewest (a search over rows counting beads moved). A claim
+// is checked whole: Done with the copies tapped, Can't with the strand
+// tapped, only on an attempt with two pairs right and the ends apart, the
+// strand strictly in the middle. Hint chains are run from fresh, after a
+// wrong move, after every kind of refused claim, with Undo, and from random
+// tangles; hint words are read back against their moves; illegal moves and
+// forged saves are refused; the playground's twists keep every crossing.
+// Run: node scripts/validate-strands.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
@@ -73,6 +77,30 @@ function fewestBySearch(K, wr, wb) {
   }
   return [...layer.values()][0];
 }
+// The fewest beads to move from a start to reach the fewest crossings: the
+// same search, scoring crossings first and then each bead off its start.
+function movesBySearch(K, wr, wb, red, blue) {
+  const xs = [], ys = [];
+  for (let x = K.lo; x <= K.hi; x++) for (let y = K.lo; y <= K.hi; y++) if (((y - x) % K.N + K.N) % K.N !== 0) { xs.push(x); ys.push(y); }
+  // Scores as crossings * 1000 + beads moved, in typed arrays (no garbage while hints are timed).
+  let px = Int32Array.of(K.a), py = Int32Array.of(K.a), pv = Float64Array.of(0);
+  for (let j = 1; j <= K.M; j++) {
+    const last = j === K.M, n = last ? 1 : xs.length, cx = new Int32Array(n), cy = new Int32Array(n), cv = new Float64Array(n);
+    for (let s = 0; s < n; s++) {
+      const x = last ? K.a + wr * K.N : xs[s], y = last ? K.a + wb * K.N : ys[s], v = y - x;
+      let best = Infinity;
+      for (let t = 0; t < pv.length; t++) {
+        const u = py[t] - px[t];
+        let band = 0;
+        for (let k = Math.floor(Math.min(u, v) / K.N); k <= Math.ceil(Math.max(u, v) / K.N); k++) if (Math.sign(u - k * K.N) * Math.sign(v - k * K.N) < 0) band++;
+        if (pv[t] + band * 1000 < best) best = pv[t] + band * 1000;
+      }
+      cx[s] = x; cy[s] = y; cv[s] = best + (last ? 0 : (x !== red[j - 1]) + (y !== blue[j - 1]));
+    }
+    px = cx; py = cy; pv = cv;
+  }
+  return {crossings: Math.floor(pv[0] / 1000), moves: pv[0] % 1000};
+}
 // The same over gaps alone (blue − red on each row), for a wider sweep.
 function fewestByGaps(N, M, d) {
   const G = [];
@@ -92,6 +120,10 @@ const forcedCopies = (wr, wb) => { const out = []; for (let k = -12; k <= 12; k+
 // Three ends on a line: a target t needs ends t + 1 apart (0 or 1 for t = 0).
 const gapOk = (t, g) => t === 0 ? g <= 1 : g === t + 1;
 const designOk = (targets, w) => [[0, 1], [1, 2], [0, 2]].every(([i, k], n) => gapOk(targets[n], Math.abs(w[i] - w[k])));
+// An attempt a Can't stands on: two pairs on their numbers, the three ends at different Bs.
+const attemptOk = (targets, w) => [[0, 1], [1, 2], [0, 2]].filter(([i, k], n) => gapOk(targets[n], Math.abs(w[i] - w[k]))).length >= 2 && new Set(w).size === 3;
+// The strand strictly between the other two, by sorting.
+const middleOf = w => [...[0, 1, 2]].sort((i, k) => w[i] - w[k])[1];
 
 // --- Reading hints back ----------------------------------------------------------
 const WORD = {one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12};
@@ -103,12 +135,11 @@ function readHint(text) {
   if (m) return {kind: 'bead', strand: COL[m[2]], row: ORD[m[1]], by: NUM[m[3]] * (m[4] === 'right' ? 1 : -1)};
   m = text.match(/^Move the (red|blue|green) end (\w+) cop(?:y|ies) (left|right)\.$/);
   if (m) return {kind: 'end', strand: COL[m[1]], by: NUM[m[2]] * (m[3] === 'right' ? 1 : -1)};
-  m = text.match(/^Tap the red copy that starts (\w+) cop(?:y|ies) (left|right) of A: blue starts on one side of it and ends on the other\.$/);
-  if (m) return {kind: 'copy', k: NUM[m[1]] * (m[2] === 'right' ? 1 : -1)};
-  m = text.match(/^Tap (red|blue|green): its end is between the other two(?:, level with (red|blue|green)’s)?\.$/);
-  if (m) return {kind: 'strand', strand: COL[m[1]]};
-  if (/^(No crossings are left|Every crossing left is with a copy of red that blue has to cross)\. Press Done\.$/.test(text)) return {kind: 'done'};
-  if (/\. Press Can’t\.$/.test(text) && text.length > 40) return {kind: 'cant'};
+  if (text === 'No crossings are left. Press Done, then That’s all.') return {kind: 'done', copies: []};
+  m = text.match(/^Every crossing left is with a copy of red that blue has to cross: the (?:copy that starts|copies that start) ([a-z, ]+?) cop(?:y|ies) (left|right) of A\. Press Done, tap (?:it|them), then That’s all\.$/);
+  if (m) return {kind: 'done', copies: m[1].split(/, | and /).map(w => NUM[w] * (m[2] === 'right' ? 1 : -1))};
+  m = text.match(/^(Red|Blue|Green)’s end is between the others: (\w+) cop(?:y|ies) from (red|blue|green)’s and (\w+) cop(?:y|ies) from (red|blue|green)’s\. So (red|blue|green) and (red|blue|green) ends are (\w+) cop(?:y|ies) apart: they cross [a-z ]+?(?:, never [a-z ]+)?\. Press Can’t and tap (red|blue|green)\.$/);
+  if (m) return {kind: 'cant', strand: COL[m[9]], middle: COL[m[1].toLowerCase()], gaps: [NUM[m[2]], NUM[m[4]], NUM[m[8]]], ends: [COL[m[3]], COL[m[5]]]};
   return null;
 }
 function hintMatches(p, board, h) {
@@ -117,9 +148,15 @@ function hintMatches(p, board, h) {
   const a = h.action;
   if (r.kind === 'bead') { assert.equal(a.type, 'bead'); assert.equal(a.strand, r.strand); assert.equal(a.row, r.row); assert.equal(a.x - board.s[a.strand][a.row - 1], r.by, `${p.id}: ${h.text}`); }
   else if (r.kind === 'end') { assert.equal(a.type, 'end'); assert.equal(a.strand, r.strand); assert.equal(a.w - board.w[a.strand], r.by, `${p.id}: ${h.text}`); }
-  else if (r.kind === 'copy') assert.deepEqual(a, {type: 'pick', k: r.k});
-  else if (r.kind === 'strand') assert.deepEqual(a, {type: 'pick', strand: r.strand});
-  else assert.equal(a.type, r.kind === 'done' ? 'done' : 'cant');
+  else if (r.kind === 'done') assert.deepEqual(a, {type: 'done', copies: r.copies}, `${p.id}: ${h.text}`);
+  else {
+    // Can't: the strand named is the one between the others, and the gaps in words are the board's.
+    const w = board.w;
+    assert.deepEqual(a, {type: 'cant', strand: r.strand});
+    assert.equal(r.middle, r.strand);
+    assert.equal(middleOf(w), r.strand, `${p.id}: ${h.text}`);
+    assert.deepEqual(r.gaps, [Math.abs(w[r.strand] - w[r.ends[0]]), Math.abs(w[r.strand] - w[r.ends[1]]), Math.abs(w[r.ends[0]] - w[r.ends[1]])], `${p.id}: ${h.text}`);
+  }
 }
 
 // --- Playing --------------------------------------------------------------------
@@ -127,12 +164,14 @@ const play = (p, a, action) => { const next = move(p, a, action); assert.ok(next
 const refuse = (p, a, action, why) => assert.equal(move(p, a, action), null, `${p.id}: refuses ${why}`);
 // The app's Undo: back one board, carrying a refusal the mechanic keeps.
 const undoKeep = (p, a) => { const back = undo(a); const carry = mechanicFor(p).carry; return carry ? {...back, board: carry(p, a.board, back.board)} : back; };
-let slowest = 0;
+let slowest = 0, slowestWall = 0;
 function hintsSolve(p, a, label) {
   let n = 0;
   for (; !isSolved(p, a.board) && n < 120; n++) {
-    const t0 = performance.now(), h = nextHint(p, a);
-    slowest = Math.max(slowest, performance.now() - t0);
+    // Timed in CPU, so other work on a busy machine doesn't count; wall time is reported too.
+    const t0 = performance.now(), c0 = process.cpuUsage(), h = nextHint(p, a), cpu = process.cpuUsage(c0);
+    slowest = Math.max(slowest, (cpu.user + cpu.system) / 1000);
+    slowestWall = Math.max(slowestWall, performance.now() - t0);
     assert.equal(h.type, 'move', `${p.id} ${label}: hints name a move (${h.text})`);
     assert.ok(h.text && h.text.length < 240, `${p.id} ${label}: a short hint`);
     hintMatches(p, a.board, h);
@@ -186,7 +225,7 @@ export async function validateStrands() {
     assert.ok(validBoard(p, fresh.board) && !isSolved(p, fresh.board), `${p.id}: starts valid and unsolved`);
     assert.equal(nextHint(p, fresh).type, 'move', `${p.id}: a first hint`);
     assert.ok(!/Press (Done|Can’t)/.test(nextHint(p, fresh).text), `${p.id}: the first move hint is an attempt`);
-    if (q.mode === 'untangle') { checkUntangle(p, fresh); counts.untangle++; }
+    if (q.mode === 'untangle') { checkUntangle(p, fresh); counts.untangle++; if (p.difficulty_level !== 'easy') assert.ok(p.solution.movesToFewest >= 3, `${p.id}: several moves from the fewest`); }
     else { checkDesign(p, fresh); counts.design++; }
     counts.hintSteps += hintsSolve(p, fresh, 'from fresh').n;
     // From random tangles and after a run of wrong moves.
@@ -201,8 +240,8 @@ export async function validateStrands() {
     checkForged(p, fresh, counts);
   }
   checkPlayground(pack.puzzles.find(p => p.band === 'playground'), counts);
-  assert.ok(slowest < 100, `every hint answers in well under 100 ms (slowest ${slowest.toFixed(1)} ms)`);
-  return {...counts, slowestHintMs: Number(slowest.toFixed(1))};
+  assert.ok(slowest < 50, `every hint answers in well under 100 ms (slowest ${slowest.toFixed(1)} ms of CPU)`);
+  return {...counts, slowestHintCpuMs: Number(slowest.toFixed(1)), slowestHintWallMs: Number(slowestWall.toFixed(1))};
 }
 
 // Bead moves to given positions: any bead that can go goes; when every
@@ -242,31 +281,33 @@ function checkUntangle(p, fresh) {
   // The static hint's bead move, read back, is legal and takes crossings away.
   const r = readHint(p.hints[2]);
   if (r?.kind === 'bead') { const after = play(p, fresh, {type: 'bead', strand: r.strand, row: r.row, x: fresh.board.s[r.strand][r.row - 1] + r.by}); assert.ok(countOf(p, after.board) < start, `${p.id}: the third hint helps`); }
-  // A wrong Done: told, Done is refused until a bead moves, and Undo keeps the refusal.
-  const wrong = play(p, fresh, {type: 'done'});
+  // Several moves from the fewest, found independently.
+  assert.deepEqual(movesBySearch(K, wr, wb, fresh.board.s[0], fresh.board.s[1]), {crossings: least, moves: p.solution.movesToFewest}, `${p.id}: moves to the fewest`);
+  const walls = forcedCopies(wr, wb);
+  // A claim with crossings to spare is refused, even with the right copies;
+  // it waits for a bead to move, and Undo keeps the refusal.
+  const wrong = play(p, fresh, {type: 'done', copies: walls});
   assert.equal(wrong.board.told, 'fewer');
   assert.ok(!isSolved(p, wrong.board));
-  refuse(p, wrong, {type: 'done'}, 'Done again with nothing moved');
-  const back = undoKeep(p, wrong);
-  assert.equal(back.board.told, 'fewer', `${p.id}: Undo doesn’t escape the refusal`);
-  hintsSolve(p, wrong, 'after a wrong Done');
-  // At the fewest: Done, a wrong copy, then the hints.
+  refuse(p, wrong, {type: 'done', copies: walls}, 'a claim again with nothing moved');
+  assert.equal(undoKeep(p, wrong).board.told, 'fewer', `${p.id}: Undo doesn’t escape the refusal`);
+  hintsSolve(p, wrong, 'after a claim with crossings to spare');
+  // At the fewest: claims with the wrong copies are refused, wait and are kept.
   const tight = a.board;
-  let at = play(p, a, {type: 'done'});
-  if (least === 0) { assert.ok(isSolved(p, at.board), `${p.id}: Done at no crossings solves`); return; }
-  assert.deepEqual(at.board.claim, []);
-  assert.ok(!isSolved(p, at.board));
-  refuse(p, at, {type: 'bead', strand: 1, row: 1, x: tight.s[1][0] + 1}, 'a bead move during the claim');
-  refuse(p, at, {type: 'done'}, 'Done during the claim');
-  for (const k of [0, wb - wr]) {
-    const miss = play(p, at, {type: 'pick', k});
-    assert.equal(miss.board.told, 'miss', `${p.id}: copy ${k} shares an end with blue`);
-    assert.equal(miss.board.claim, null);
-    assert.equal(undoKeep(p, miss).board.told, 'miss', `${p.id}: Undo keeps the refusal`);
-    hintsSolve(p, miss, `after tapping copy ${k}`);
+  const bad = [[0], [wb - wr], [...walls, 0], walls.slice(1), [-1, ...walls]].filter(c => JSON.stringify([...c].sort((x, y) => x - y)) !== JSON.stringify(walls));
+  if (least > 0) bad.push([]);
+  for (const copies of bad) {
+    const miss = play(p, a, {type: 'done', copies});
+    assert.equal(miss.board.told, copies.length ? 'copies' : 'none', `${p.id}: copies ${copies} refused`);
+    assert.ok(!isSolved(p, miss.board));
+    refuse(p, miss, {type: 'done', copies: walls}, 'a claim again with nothing moved');
+    assert.equal(undoKeep(p, miss).board.told, miss.board.told, `${p.id}: Undo keeps the refusal`);
   }
-  // The forced copies, in any order, solve; tapping one twice is refused.
-  for (const k of [...p.solution.barriers].reverse()) { if (at.board.claim?.length) refuse(p, at, {type: 'pick', k: at.board.claim[0]}, 'the same copy twice'); at = play(p, at, {type: 'pick', k}); }
+  hintsSolve(p, play(p, a, {type: 'done', copies: bad[0]}), 'after a claim with the wrong copies');
+  refuse(p, a, {type: 'done', copies: [1, 1]}, 'a copy twice');
+  refuse(p, a, {type: 'done'}, 'a claim without copies');
+  // The forced copies, in any order, are the certificate.
+  const at = play(p, a, {type: 'done', copies: [...walls].reverse()});
   assert.ok(isSolved(p, at.board), `${p.id}: the forced copies are the certificate`);
   refuse(p, at, {type: 'bead', strand: 0, row: 1, x: tight.s[0][0] + 1}, 'a move after the solve');
 }
@@ -289,43 +330,64 @@ function checkDesign(p, fresh) {
     }
     for (let u = 0; u < meets.length; u++) for (let v = u + 1; v < meets.length; v++) assert.ok(Math.abs(meets[u][0] - meets[v][0]) > 1e-9 || Math.abs(meets[u][1] - meets[v][1]) > 1e-9, `${p.id}: no three strands meet at ${a},${b},${c}`);
   }
-  refuse(p, fresh, {type: 'cant'}, 'Can’t before any end has moved');
-  refuse(p, fresh, {type: 'pick', strand: 0}, 'a pick before Can’t');
+  // Every attempt Can't stands on has exactly one strand strictly in the middle.
+  for (const w of W.flatMap(a => W.flatMap(b => W.map(c => [a, b, c]))).filter(w => attemptOk(q.targets, w))) assert.equal([0, 1, 2].filter(i => { const o = w.filter((_, k) => k !== i); return Math.min(...o) < w[i] && w[i] < Math.max(...o); }).length, 1);
+  for (const i of [0, 1, 2]) refuse(p, fresh, {type: 'cant', strand: i}, 'Can’t before any end has moved');
   refuse(p, fresh, {type: 'end', strand: 0, w: q.copies[1] + 1}, 'an end past the view');
   refuse(p, fresh, {type: 'end', strand: 3, w: 0}, 'a fourth strand');
   refuse(p, fresh, {type: 'end', strand: 0, w: fresh.board.w[0]}, 'an end that stays');
+  // Can't without the attempt: an end moved and back, and two ends level.
+  const back = play(p, play(p, fresh, {type: 'end', strand: 0, w: 1}), {type: 'end', strand: 0, w: 0});
+  const level = play(p, fresh, {type: 'end', strand: 2, w: 2});
+  for (const [a, label] of [[back, 'ends moved and back'], [level, 'two ends level']]) {
+    assert.ok(!attemptOk(q.targets, a.board.w));
+    for (const i of [0, 1, 2]) {
+      const two = play(p, a, {type: 'cant', strand: i});
+      assert.equal(two.board.told, 'two', `${p.id}: Can’t with ${label} wants the attempt`);
+      assert.ok(!isSolved(p, two.board), `${p.id}: Can’t with ${label} doesn’t solve`);
+      refuse(p, two, {type: 'cant', strand: (i + 1) % 3}, 'Can’t again with nothing moved');
+      assert.equal(undoKeep(p, two).board.told, 'two', `${p.id}: Undo keeps the refusal`);
+    }
+  }
+  hintsSolve(p, play(p, back, {type: 'cant', strand: 1}), 'after Can’t without the attempt');
+  // An attempt in the view that doesn't meet the targets (where there is a
+  // way, the view may hold none: then every attempt is a solve).
+  const attempt = W.flatMap(a => W.flatMap(b => W.map(c => [a, b, c]))).find(w => attemptOk(q.targets, w) && !designOk(q.targets, w));
+  assert.ok(attempt || !p.solution.cant, `${p.id}: an attempt to stand on`);
+  let at = fresh;
+  for (const [i, w] of (attempt || []).entries()) if (at.board.w[i] !== w) at = play(p, at, {type: 'end', strand: i, w});
   if (!p.solution.cant) {
     assert.ok(good.some(w => JSON.stringify(w) === JSON.stringify(p.solution.windings)), `${p.id}: the witness meets the targets`);
     let a = fresh;
     for (const [i, w] of p.solution.windings.entries()) if (a.board.w[i] !== w) a = play(p, a, {type: 'end', strand: i, w});
     assert.ok(isSolved(p, a.board), `${p.id}: the witness solves`);
-    // A wrong Can't: told, refused again, kept through Undo, and the hints still solve.
-    const tried = play(p, fresh, {type: 'end', strand: 0, w: fresh.board.w[0] + 1 <= q.copies[1] ? fresh.board.w[0] + 1 : fresh.board.w[0] - 1});
-    const wrong = isSolved(p, tried.board) ? null : play(p, tried, {type: 'cant'});
-    if (wrong) {
-      assert.equal(wrong.board.told, 'way');
-      refuse(p, wrong, {type: 'cant'}, 'Can’t twice');
-      assert.equal(undoKeep(p, wrong).board.told, 'way', `${p.id}: Undo keeps the refusal`);
-      hintsSolve(p, wrong, 'after a wrong Can’t');
-    }
+    if (!attempt) return;
+    // Can't on an attempt where there is a way: told, refused again, kept through Undo, and the hints still solve.
+    const wrong = play(p, at, {type: 'cant', strand: middleOf(attempt)});
+    assert.equal(wrong.board.told, 'way');
+    refuse(p, wrong, {type: 'cant', strand: 0}, 'Can’t twice');
+    assert.equal(undoKeep(p, wrong).board.told, 'way', `${p.id}: Undo keeps the refusal`);
+    hintsSolve(p, wrong, 'after a wrong Can’t');
     return;
   }
-  // Impossible: Can't after an attempt, then the middle strand.
-  const tried = play(p, fresh, {type: 'end', strand: 1, w: 2});
-  const claim = play(p, tried, {type: 'cant'});
-  assert.equal(claim.board.claim, true);
-  refuse(p, claim, {type: 'end', strand: 0, w: 1}, 'an end move during the claim');
-  const mid = [0, 1, 2].find(i => { const o = claim.board.w.filter((_, k) => k !== i); return Math.min(...o) <= claim.board.w[i] && claim.board.w[i] <= Math.max(...o); });
+  // Impossible: on the attempt, only the strand strictly in the middle certifies it.
+  const mid = middleOf(attempt);
   for (const i of [0, 1, 2]) {
-    const after = play(p, claim, {type: 'pick', strand: i});
-    const o = claim.board.w.filter((_, k) => k !== i), between = Math.min(...o) <= claim.board.w[i] && claim.board.w[i] <= Math.max(...o);
-    assert.equal(isSolved(p, after.board), between, `${p.id}: strand ${i} ${between ? 'is' : 'isn’t'} in the middle`);
-    if (!between) { assert.equal(after.board.told, 'miss'); assert.equal(undoKeep(p, after).board.told, 'miss', `${p.id}: Undo keeps the refusal`); hintsSolve(p, after, 'after a wrong pick'); }
+    const after = play(p, at, {type: 'cant', strand: i});
+    assert.equal(isSolved(p, after.board), i === mid, `${p.id}: strand ${i} ${i === mid ? 'is' : 'isn’t'} in the middle`);
+    if (i !== mid) {
+      assert.equal(after.board.told, 'miss');
+      for (const k of [0, 1, 2]) refuse(p, after, {type: 'cant', strand: k}, 'Can’t again with nothing moved');
+      assert.equal(undoKeep(p, after).board.told, 'miss', `${p.id}: Undo keeps the refusal`);
+      hintsSolve(p, after, 'after a wrong strand');
+    } else {
+      // The middle strand's two gaps add up to the outer gap, which isn't 2 when both are.
+      const o = [0, 1, 2].filter(k => k !== mid), w = after.board.w;
+      assert.equal(Math.abs(w[o[0]] - w[mid]) + Math.abs(w[o[1]] - w[mid]), Math.abs(w[o[0]] - w[o[1]]));
+      assert.ok(Math.abs(w[o[0]] - w[mid]) > 0 && Math.abs(w[o[1]] - w[mid]) > 0, `${p.id}: both inner gaps show`);
+      refuse(p, after, {type: 'end', strand: 0, w: w[0] + 1}, 'a move after the solve');
+    }
   }
-  assert.ok(mid !== undefined);
-  // The middle strand's two gaps add up to the outer gap, which isn't 2 when both are.
-  const w = claim.board.w, o = [0, 1, 2].filter(i => i !== mid);
-  assert.equal(Math.abs(w[o[0]] - w[mid]) + Math.abs(w[o[1]] - w[mid]), Math.abs(w[o[0]] - w[o[1]]));
 }
 
 function checkForged(p, fresh, counts) {
@@ -339,37 +401,42 @@ function checkForged(p, fresh, counts) {
       [{...b, s: [b.s[0], b.s[1].map((x, r) => r === 0 ? b.s[0][0] + K.N : x)]}, 'two beads on one spot'],
       [{...b, s: [b.s[0], b.s[1].map((x, r) => r === 0 ? K.hi + 1 : x)]}, 'a bead past the view'],
       [{...b, s: [b.s[0], b.s[1].map((x, r) => r === 0 ? x + .5 : x)]}, 'a bead between columns'],
-      [{...b, done: true, claim: p.solution.barriers}, 'done while tangled'],
-      [{...b, claim: []}, 'a claim while tangled'],
-      [{...b, told: 'miss'}, 'a miss while tangled'],
+      [{...b, done: true}, 'done while tangled'],
+      [{...b, claim: []}, 'an old claim key'],
+      [{...b, told: 'copies'}, 'wrong copies while tangled'],
+      [{...b, told: 'none'}, 'no copies while tangled'],
       [{...b, told: 'later'}, 'an unknown told'],
       [{...b, done: 'yes'}, 'done not a flag']
     );
     // At the fewest: forged claims.
     const tight = {...b, s: p.solution.witness};
     assert.ok(validBoard(p, tight), `${p.id}: the witness board is valid`);
-    forged.push([{...tight, told: 'fewer'}, 'fewer at the fewest']);
-    if (p.solution.fewest) forged.push([{...tight, claim: [0]}, 'a claim with a copy that isn’t forced'], [{...tight, done: true, claim: p.solution.barriers.slice(1)}, 'done with a copy missing'], [{...tight, claim: [...p.solution.barriers]}, 'a full claim not marked done']);
-    else forged.push([{...tight, claim: [1]}, 'a claim when nothing is forced']);
+    forged.push([{...tight, told: 'fewer'}, 'fewer at the fewest'], [{...tight, done: true, told: 'copies'}, 'done with a refusal']);
+    if (!p.solution.fewest) forged.push([{...tight, told: 'none'}, 'no copies when nothing is forced']);
   } else {
+    const W = [];
+    for (let w = q.copies[0]; w <= q.copies[1]; w++) W.push(w);
+    const attempt = W.flatMap(a => W.flatMap(c => W.map(d => [a, c, d]))).find(w => attemptOk(q.targets, w) && !designOk(q.targets, w));
     forged.push(
       [{...b, w: [0, 0]}, 'two ends'],
       [{...b, w: [0, 0, q.copies[1] + 1]}, 'an end past the view'],
       [{...b, tried: false, w: [0, 1, 2]}, 'moved ends not marked tried'],
-      [{...b, told: 'way', tried: true}, p.solution.cant ? 'There is a way when there isn’t' : 'a way with a stale told kept'],
+      [{...b, told: 'way', tried: true}, 'There is a way without the attempt'],
       [{...b, mid: 1}, 'a middle without Can’t'],
-      [{...b, claim: 'yes'}, 'a claim not a flag']
+      [{...b, tried: true, mid: 1}, 'a middle without the attempt'],
+      [{...b, tried: true, w: [0, 0, 2], mid: 1}, 'a middle level with an end'],
+      [{...b, claim: true}, 'an old claim key'],
+      [{...b, tried: true, told: 'miss'}, 'a wrong strand without the attempt']
     );
-    if (!p.solution.cant) forged.push([{...b, tried: true, claim: true}, 'Can’t accepted where there is a way']);
-    else forged.push([{...b, tried: true, told: 'miss', w: [0, 0, 0]}, 'a stale miss']);
+    if (attempt) forged.push([{...b, tried: true, w: attempt, told: 'two'}, 'wanting the attempt on one']);
+    if (!p.solution.cant && attempt) forged.push([{...b, tried: true, w: attempt, mid: middleOf(attempt)}, 'Can’t certified where there is a way'], [{...b, tried: true, w: attempt, told: 'miss'}, 'a wrong strand where there is a way']);
+    else if (p.solution.cant) forged.push([{...b, tried: true, w: attempt, told: 'way'}, 'There is a way when there isn’t'], ...[0, 1, 2].filter(i => i !== middleOf(attempt)).map(i => [{...b, tried: true, w: attempt, mid: i}, `strand ${i} as the middle`]));
   }
   for (const [board, why] of forged) {
-    if (why === 'a way with a stale told kept') continue;
-    if (why === 'a stale miss') continue;
     assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
     counts.forged++;
   }
-  for (const action of [null, {}, {type: 'fly'}, {type: 'bead', strand: 2, row: 1, x: 0}, {type: 'bead', strand: 0, row: 0, x: 1}, {type: 'bead', strand: 0, row: 99, x: 1}, {type: 'pick', k: 'x'}, {type: 'twist', k: 1}]) { refuse(p, fresh, action, JSON.stringify(action)); counts.illegal++; }
+  for (const action of [null, {}, {type: 'fly'}, {type: 'bead', strand: 2, row: 1, x: 0}, {type: 'bead', strand: 0, row: 0, x: 1}, {type: 'bead', strand: 0, row: 99, x: 1}, {type: 'pick', k: 1}, {type: 'done', copies: 'x'}, {type: 'cant'}, {type: 'twist', k: 1}]) { refuse(p, fresh, action, JSON.stringify(action)); counts.illegal++; }
 }
 
 function checkPlayground(p, counts) {
