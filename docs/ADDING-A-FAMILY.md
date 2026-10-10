@@ -72,6 +72,7 @@ These are optional:
 | `wire(root, p, api)` | Pointer and keyboard gestures on the element marked `data-mechanic-wire`; `api.apply(action)` makes a move, `api.ui(payload)` changes view state, `api.attempt()` reads the attempt and `api.tile` holds the tile-gesture helpers |
 | `ui(p, payload)` and `reset(p)` | View-only state such as the chosen tool, kept outside the save |
 | `carry(p, from, to)` | Lets Undo keep part of the board (Chip firing keeps its discoveries) |
+| `carryOnRestart(p, from, to)` | Lets Restart keep part of the board (Card machines keeps the rows Test has shown) |
 | `noUndo(p)`, `noHint(p)` | Hide Undo or Hint |
 | `help(p, attempt)` | Extra HTML for How to play |
 
