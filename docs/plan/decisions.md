@@ -10,13 +10,13 @@ Whoever changes a week's state changes its row here in the same push, and the co
 
 Each wave is claimed on both work boards like any other item. The weeks a wave ports are decided by their cards, so the later waves' lists are a starting point.
 
-1. **Wave 3, cards.** Write the card, with its port decision, for each open week of 1–63 that has none: 5, 12, 17, 19, 20, 21, 22, 27, 28, 32, 35, 36, 37, 38, 40, 41, 48, 49, 50, 51, 54, 55, 56, 57, 58, 59 and 61. Weeks 8–11 are in the app without a card; their cards follow for the review's sake and change no decision.
+1. **Wave 3, cards (done for every open week).** Write the card, with its port decision, for each open week of 1–63 that has none: 5, 12, 17, 19, 20, 21, 22, 27, 28, 32, 35, 36, 37, 38, 40, 41, 48, 49, 50, 51, 54, 55, 56, 57, 58, 59 and 61. Weeks 8–11 are in the app without a card; their cards follow for the review's sake and change no decision.
 2. **Wave 4, the portal board.** Week 41's pawn on a portal board with a live unrolled view, then Week 70's shields and Week 64's glued squares on it, and Week 75's strands on a wraparound strip with the same lift view.
 3. **Wave 5, roads and graphs.** Week 69 as a group in Meeting roads, Week 68 on an endless panning map, and the graph themes whose cards say port: 17, 27 and 40.
 4. **Wave 6, grids.** Week 15's nearest-site cells on a half-unit lattice, and the grid themes whose cards say port: 5, 32, 48 and 57.
-5. **Wave 7, sets and numbers.** 12, 19, 20, 22, 36, 49, 51, 54 and 55, whose cards say port, and 58 as its card decides.
+5. **Wave 7, sets and numbers.** 12, 19, 20, 22, 36, 49, 51, 54, 55 and 58.
 6. **Wave 8, symmetry, words and reflections.** 35, 37, Week 76's shrink tool, and Weeks 71 and 21 as groups in Mirror Couriers.
-7. **Wave 9, the rest.** Week 65's octagon floor, 73, 77 and 78, and the paper-and-continuous themes (28, 38, 50, 56, 59 and 61). Each gets a port with a real on-screen solve or a final reason not to. The same wave makes the touch-ups the in-app families' own cards ask for (Weeks 8–11).
+7. **Wave 9, the rest.** Week 65's octagon floor, 73, 77 and 78, and the paper-and-continuous themes, whose cards all say port: 28, 38, 50, 56, 59 and 61. Each gets a port with a real on-screen solve or a final reason not to. The same wave makes the touch-ups the in-app families' own cards ask for (Weeks 8–11).
 
 ## Every week
 
@@ -62,7 +62,7 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 35 | Frieze symmetry | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-35.md) | Open, wave 8 | One cell tiled endlessly: place the F's four forms and move a translucent copy to build borders with a move required or forbidden; one lit mismatch certifies "can't" |
 | 36 | Nine-tile SET | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-36.md) | Open, wave 7 | Nine tiles as the tutorial, then a 27-card layer where "reach 9" is a real solve, the avoidance game and three-colour puzzle |
 | 37 | Tetrahedron chirality | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-37.md) | Open, wave 8 | A flat view where a tap turns the model about a corner: turn to match, place letters, sort into groups |
-| 38 | Möbius band and cuts | none | Open, wave 3 | Card first |
+| 38 | Möbius band and cuts | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-38.md) | Open, wave 9 | C becomes B on the portal board with a reversing seam: light edges through seams, toggle seams, cut lanes, with parity as the certificate |
 | 39 | Path reduction | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-39.md) | In the app | Road detours (PR #13) |
 | 40 | Knot tricolouring | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-40.md) | Open, wave 5 | Tap an arc to cycle its colour with crossings checked live: colour a knot with more than one colour, find every colouring, claim "one colour only" where true |
 | 41 | Torus portals | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-41.md) | Open, wave 4 | Building now: the shared portal board and a Portal rooms family |
@@ -80,9 +80,9 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 53 | Cheapest networks | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-53.md) | In the app | Cheapest networks (PR #8) |
 | 54 | Partitions | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-54.md) | Open, wave 7 | A strip workbench: catalogs the child declares complete, and reach-or-refute targets |
 | 55 | Sumsets | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-55.md) | Open, wave 7 | Card trays with merging totals: fewest and most, find every B with "That's all" |
-| 56 | Polyhedra and Euler | none | Open, wave 3 | Card first |
+| 56 | Polyhedra and Euler | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-56.md) | Open, wave 9 | A corner builder (every ring that closes, with "That's all") and erasing edges to a tree on the graph engine; unfolding stays with paper solids |
 | 57 | Lattice area | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-57.md) | Open, wave 6 | A geoboard that refuses crossing sides and lights outline and inside dots, with Pick-count impossibilities as the "can't" certificates |
-| 58 | Fair division | none | Open, wave 3 | Card first |
+| 58 | Fair division | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-58.md) | Open, wave 7 | Trays without a live value table: every envy-free division with "That's all", the odd case then halving, favourites for four or five, a cut-and-choose duel |
 | 59 | Constant-width shapes | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-59.md) | Open, wave 9 | C becomes B: choose each arc's centre so the shape spins snug between rails, with a still rail as the certificate |
 | 60 | Optimal stopping | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-60.md) | In the app | Take it or pass (PR #24) |
 | 61 | Geometry on a sphere | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-61.md) | Open, wave 9 | A turnable globe with corners on a 15° grid: three right corners, triangles that hit a named fraction, a lune-pair playground |
