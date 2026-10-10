@@ -1,0 +1,74 @@
+/* Ways out: an endless map of dots and roads on paper, panned by dragging.
+   Blocks are ink counters; after Check each forever piece takes a colour
+   (sun, sky, rose, leaf, lilac, teal) and trapped pieces turn grey and dashed.
+   A right Can't draws an ochre box round the blocks and the pieces outside it,
+   with the grid's ring road in pine. The tree is drawn in the Poincaré disk. */
+.ends-puzzle{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
+.ends-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .8rem;max-width:100%}
+.ends-puzzle .ends-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.ends-puzzle .ends-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+.ends-puzzle .ends-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+
+/* Slots for the blocks: ink counters as they are used. */
+.ends-slots{display:inline-flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.ends-slots i{width:18px;height:18px;border-radius:50%;border:2px dashed #9aa88f;box-sizing:border-box}
+.ends-slots i.ends-used{border:3px solid #6f8a76;background:var(--b-ink,#294439)}
+
+/* The board. */
+.ends-stage{position:relative;width:100%;max-width:520px}
+.ends-stage.disk{max-width:440px}
+.ends-frame{width:100%;border:1.5px solid var(--b-line,#d0d6bd);border-radius:14px;background:var(--b-card,#fffdf5);overflow:hidden}
+.ends-stage.disk .ends-frame{border:0;border-radius:50%;background:none}
+.ends-board{display:block;width:100%;height:auto;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
+.ends-board.panning{cursor:grabbing}
+.ends-paper{fill:var(--b-card,#fffdf5)}
+.ends-rim{fill:var(--b-card,#fffdf5);stroke:#c9d0bb;stroke-width:2px;vector-effect:non-scaling-stroke}
+.ends-road{stroke:#9aa88f;stroke-width:3px;vector-effect:non-scaling-stroke;stroke-linecap:round;fill:none}
+.ends-road.ends-on{stroke-width:6px}
+.ends-road.trap{stroke:#a7a497;stroke-dasharray:4 4}
+.ends-dot{outline:none;stroke:none}
+.ends-dot[role="button"]{cursor:pointer}
+.ends-hit{fill:transparent;stroke:none}
+.ends-pip{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:2px;vector-effect:non-scaling-stroke}
+.ends-dot[role="button"]:hover .ends-pip{fill:#f1ead1}
+.ends-stone{fill:var(--b-ink,#294439);stroke:var(--b-ink,#294439);stroke-width:1.5px;vector-effect:non-scaling-stroke}
+.ends-stone-ring{fill:none;stroke:#6f8a76;stroke-width:2px;vector-effect:non-scaling-stroke}
+.ends-dot.trap .ends-pip{fill:#dedbd0;stroke:#7c7a70;stroke-dasharray:3 2.5}
+.ends-dot.cursor:focus-visible .ends-hit,.ends-dot:focus-visible .ends-hit{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:3px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}
+.ends-dot.hinted .ends-hit{fill:rgba(179,136,64,.12);stroke:var(--b-ochre,#b38840);stroke-width:3.5px;vector-effect:non-scaling-stroke;stroke-dasharray:5 4}
+.ends-tree .ends-dot.hinted:not([role]) .ends-pip{stroke:var(--b-ochre,#b38840);stroke-width:3px}
+
+/* Piece colours. */
+.ends-dot.ends-c0 .ends-pip{fill:var(--b-sun,#efc76e)}
+.ends-dot.ends-c1 .ends-pip{fill:var(--b-sky,#9cc9de)}
+.ends-dot.ends-c2 .ends-pip{fill:var(--b-rose,#e7a28f)}
+.ends-dot.ends-c3 .ends-pip{fill:var(--b-leaf,#86a68c)}
+.ends-dot.ends-c4 .ends-pip{fill:#c1aedb}
+.ends-dot.ends-c5 .ends-pip{fill:#86c2b8}
+.ends-road.ends-c0{stroke:var(--b-sun,#efc76e)}
+.ends-road.ends-c1{stroke:var(--b-sky,#9cc9de)}
+.ends-road.ends-c2{stroke:var(--b-rose,#e7a28f)}
+.ends-road.ends-c3{stroke:var(--b-leaf,#86a68c)}
+.ends-road.ends-c4{stroke:#c1aedb}
+.ends-road.ends-c5{stroke:#86c2b8}
+
+/* A right Can't: the box round every block, and the ring road outside it. */
+.ends-box{fill:rgba(179,136,64,.08);stroke:var(--b-ochre,#b38840);stroke-width:3px;vector-effect:non-scaling-stroke;stroke-dasharray:7 5}
+.ends-ring{fill:none;stroke:var(--b-pine,#31533e);stroke-width:9px;stroke-opacity:.35;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+
+/* Back to the start. */
+.ends-puzzle .ends-home{position:absolute;right:8px;top:8px;display:grid;place-items:center;width:44px;height:44px;min-height:0;padding:0;border-radius:50%;border:1px solid var(--b-line,#d0d6bd);background:rgba(255,253,245,.92);color:var(--b-ink,#294439);box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer}
+.ends-stage.disk .ends-home{right:0;top:0}
+.ends-home svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.ends-home:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
+
+/* Words that answer Check or Can't. */
+.ends-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+
+/* The playground's maps. */
+.ends-maps{display:flex;flex-wrap:wrap;gap:.45rem;justify-content:center;max-width:100%}
+.ends-puzzle .ends-pick{width:58px;min-height:52px;padding:4px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px}
+.ends-puzzle .ends-pick[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 2px var(--b-pine,#31533e)}
+.ends-icon{display:block;width:100%;height:auto}
+.ends-icon-road{fill:none;stroke:var(--b-ink,#294439);stroke-width:1.6px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.ends-icon-rim{fill:none;stroke:#c9d0bb;stroke-width:1.2px;vector-effect:non-scaling-stroke}
