@@ -2,7 +2,7 @@
 
 James asked on October 10, 2026 that every worksheet week end in one of two states: **in the app**, or **not porting**, with the reason written down. "Waiting" is a step in a wave, never an end state. A week reaches its decision through its review card in the worksheets repository ([plans/review](https://github.com/jamesrp/math-circle-worksheets/tree/main/plans/review)), and then a port when the card says port. A week that waits on a board or on another family gets that board or family built in a wave, or a reason why not.
 
-**Where things stand:** 79 weeks (1–78 and the Week 1 encore). 41 are in the app and 1 is ruled out, so 37 are open, every one planned into a wave.
+**Where things stand:** 79 weeks (1–78 and the Week 1 encore). 44 are in the app and 1 is ruled out, so 34 are open, every one planned into a wave.
 
 Whoever changes a week's state changes its row here in the same push, and the count above.
 
@@ -51,7 +51,7 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 24 | Nontransitive decks | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-24.md) | In the app | Three decks (PR #23) |
 | 25 | Hidden pictures | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-25.md) | In the app | Hidden pictures (PR #7) |
 | 26 | Polyomino perimeter | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-26.md) | In the app | Garden fences (PR #18) |
-| 27 | Stable matching | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-27.md) | Open, wave 5 | Tap to pair two rows of letters: find the blocker, find every stable pairing with "That's all", repair a strip, design lists; blockers flagged only on submit |
+| 27 | Stable matching | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-27.md) | In the app | Pairs that stay ([docs/matching/README.md](../matching/README.md)): find the blocker, find every stable pairing with "That's all", repair one strip or show two blocking pairs that share no letter, design strips |
 | 28 | Flat folding | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-28.md) | Open, wave 9 | C becomes B: tap rays to cycle mountain and valley, press Fold, and the app collapses the disk or shows the collision |
 | 29 | Two rod lengths | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-29.md) | In the app | Full jugs in Spring-water Jugs |
 | 30 | Balanced ternary weights | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-30.md) | In the app | Weight kits in the Odd-pebble Balance |
@@ -92,8 +92,8 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 65 | Hyperbolic octagon streets | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-65.md) | Open, wave 9 | Its own family on a recentring octagon floor: come home in exact moves, fence a block on a turn budget, and the impossible returns as "can't" goals |
 | 66 | Lamplighter streets | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-66.md) | In the app | Lamplighter in Lantern Wires (PR #27) |
 | 67 | Meeting on shortest roads | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-67.md) | In the app | Meeting roads (PR #31) |
-| 68 | How many ways out (ends) | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-68.md) | Open, wave 5 | Its own family on an endless panning map: block dots to trap pockets, split the ladder, make forever pieces on the tree; judged on submit |
-| 69 | Thin and fat road triangles | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-69.md) | Open, wave 5 | A gap-flood group in Meeting roads, which is now in the app |
+| 68 | How many ways out (ends) | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-68.md) | In the app | Ways out ([docs/ends/README.md](../ends/README.md)), on its own endless panning map: trap pockets, split the ladder, make forever pieces on the tree, and Can't after a Check |
+| 69 | Thin and fat road triangles | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-69.md) | In the app | Gaps, a group in Meeting roads ([docs/gapflood/README.md](../gapflood/README.md)): draw the three shortest routes, flood a dot, reach a gap, claim Best, or Can't with the tripod's centre |
 | 70 | Portal shields | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-70.md) | Open, wave 4 | Shields on the portal board |
 | 71 | Can you hear the room? | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-71.md) | Open, wave 8 | An aiming group in Mirror Couriers |
 | 72 | A robot that remembers area | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-72.md) | In the app | Memory robot (PR #28) |
