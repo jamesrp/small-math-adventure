@@ -594,8 +594,9 @@ const labelText = (text, [cx, cy], cls = '') => text === undefined || text === n
 
 // The portal room: the surface's squares where the spec lays them out, its
 // lattice, walls, and seams with matching marks. `opts.point(pt)` returns how
-// each lattice point looks: {cls, text, textCls, label, act}; `act` makes it a
-// control (aria-label `label`). `opts.under` and `opts.over` are SVG drawn
+// each lattice point looks: {cls, text, textCls, label, act, r}; `act` makes it
+// a control (aria-label `label`), and `false` leaves the point out altogether
+// (a big view where only a few points act and nothing slides). `opts.under` and `opts.over` are SVG drawn
 // below and above the points, `opts.top` above the controls, in drawing
 // coordinates (roomXY, roomSpots). `opts.slide` marks a view where a finger
 // slides from point to point; `opts.picture` draws a small picture with no
@@ -617,7 +618,9 @@ export function roomBoard(surface, opts = {}) {
   }
   for (const m of surface.marks) { const [x0, y0] = origin(m.s); marks += sideMark(surface, m, x0, y0, opts.markSize ?? .15, ''); }
   for (const id of surface.ids) for (const [i, j] of squarePoints(surface, id)) {
-    const pt = {s: id, i, j}, look = point(pt) || {}, at = `${id},${i},${j}`;
+    const pt = {s: id, i, j}, raw = point(pt), at = `${id},${i},${j}`;
+    if (raw === false) continue;
+    const look = raw || {};
     for (const xy of roomSpots(surface, pt)) {
       labels += labelText(look.text, labelXY(opts, xy), look.textCls);
       if (!opts.picture) hits += pointHit(surface, 'room', at, xy, look);
@@ -660,7 +663,9 @@ export function planeBoard(surface, opts = {}) {
     }
     if (opts.marks) for (const m of surface.marks.filter(m => m.s === s)) marks += sideMark(surface, m, x0, y0, opts.markSize ?? .12, 'faint');
     for (const [i, j] of squarePoints(surface, s)) {
-      const pt = {s, i, j, X, Y}, [u, v] = planeKey(surface, pt), look = point({...pt, u, v, copy}) || {}, xy = planeSpot(surface, pt);
+      const pt = {s, i, j, X, Y}, [u, v] = planeKey(surface, pt), raw = point({...pt, u, v, copy}), xy = planeSpot(surface, pt);
+      if (raw === false) continue;
+      const look = raw || {};
       labels += labelText(look.text, labelXY(opts, xy), look.textCls);
       hits += pointHit(surface, 'plane', `${u},${v}`, xy, look);
     }

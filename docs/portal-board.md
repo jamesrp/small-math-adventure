@@ -150,7 +150,7 @@ Both views return one `<svg class="pb-board">`. They use lattice units with y up
 ```js
 roomBoard(S, {
   cls, label,                 // extra classes and the accessible name
-  point: pt => ({cls, text, textCls, label, act, r}), // each lattice point; act makes it a button named label; r widens a cross's tap disc (default .42)
+  point: pt => ({cls, text, textCls, label, act, r}), // each lattice point; act makes it a button named label; r widens a cross's tap disc (default .42); false leaves the point out (no control, label or slide target)
   under, over, top,           // SVG drawn below the points, above them, and above the controls
   slide: true,                // a finger slides from point to point
   picture: true,              // a small picture with no controls (a room button)
