@@ -1,14 +1,17 @@
 // Plays Ways out through the real interface: taps that block and unblock
 // dots, drags that pan the endless map (and the tree in its disk), the
 // button back to the start, Check with its counts, Can't right (with the box,
-// the tails and the ring road drawn) and wrong, the block budget, Undo, the
+// the tails and the ring road drawn, only after a Check with a block) and
+// wrong, hints that try and Check before Can't, the block budget, Undo, the
 // keyboard (arrow keys along the roads, Enter to block), solves on the line,
 // the ladder, the grid and the tree, and the playground's maps. Same
 // environment variables as the other browser suites (PLAYWRIGHT_MODULE,
 // BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone with touch).
 // Screenshots go in test-results/ends/.
 import assert from 'node:assert/strict';
-import {mkdir} from 'node:fs/promises';
+import {mkdir, readFile} from 'node:fs/promises';
+const pack = JSON.parse(await readFile(new URL('../dist/families/ends/ends.json', import.meta.url), 'utf8'));
+const hintsOf = id => pack.puzzles.find(p => p.id === id).hints;
 const {chromium} = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const browser = await chromium.launch({headless: true, ...(process.env.BROWSER_EXECUTABLE ? {executablePath: process.env.BROWSER_EXECUTABLE} : {})});
 const phone = process.env.TEST_PHONE === '1';
@@ -104,13 +107,36 @@ try {
   await done();
   assert.equal(await told(), '2 forever pieces.');
 
-  // Puzzle 7: a wrong Can't.
+  // Puzzle 7: Can't waits for a Check with a block; a wrong Can't.
   await open('ends-07');
+  assert.equal(await button('Can’t').isDisabled(), true, 'Can’t is off at the start');
+  await taps('-1,0');
+  assert.equal(await button('Can’t').isDisabled(), true, 'and before a Check');
+  await button('Check').click();
+  assert.equal(await button('Can’t').isDisabled(), false, 'on after a Check with a block');
   await button('Can’t').click();
   assert.equal(await told(), 'It can be done.');
   assert.equal(await button('Can’t').isDisabled(), true, 'Can’t waits for a change');
-  await taps('-1,0');
+  await taps('1,0');
+  await button('Check').click();
   assert.equal(await button('Can’t').isDisabled(), false);
+
+  // Puzzle 4: the hints try a block and Check, with the authored reason, before Can't.
+  const H = hintsOf('ends-04'), card = () => page.locator('.hint-card').innerText();
+  await open('ends-04');
+  await button('Hint').click();
+  assert.equal(await card(), H[0], 'the first hint is the authored try');
+  await button('Hint').click();
+  assert.equal(await page.locator('.ends-dot.hinted[data-dot="0,0"]').count(), 1, 'the second level marks a dot to try');
+  await taps('0,0');
+  assert.equal(await card(), H[1], 'after a block: the reason, and Check');
+  assert.equal(await page.locator('.ends-check.hinted').count(), 1);
+  await button('Check').click();
+  assert.equal(await card(), H[2], 'after a Check: Can’t');
+  assert.equal(await page.locator('.ends-cant.hinted').count(), 1);
+  await button('Can’t').click();
+  await done();
+  assert.equal(await told(), 'Outside the box: 2 pieces.');
 
   // Puzzle 6: a right Can't on the ladder draws the box and the two tails.
   await open('ends-06');
@@ -158,6 +184,8 @@ try {
   await done();
   assert.equal(await told(), 'Outside the box: 1 piece.');
   assert.equal(await page.locator('.ends-ring').count(), 1, 'the ring road outside the box');
+  const frame = await page.locator('.ends-frame').boundingBox(), ring = await page.locator('.ends-ring').boundingBox();
+  assert.ok(ring.x >= frame.x && ring.y >= frame.y && ring.x + ring.width <= frame.x + frame.width && ring.y + ring.height <= frame.y + frame.height, 'the whole ring road is in view, round both ends of the wall');
   await shot('grid-cant');
 
   // Puzzle 8, the T: a solve at the junction.

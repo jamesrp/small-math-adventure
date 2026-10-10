@@ -9,12 +9,13 @@
 // blocks within three roads of the centre; witnesses played as moves; hint
 // chains from fresh, after wrong blocks, wrong Checks, wrong Can'ts and the
 // pitfalls named in the guide; illegal moves; forged saves; the playground.
+// Can't answers only after a Check with a block.
 // Run: node scripts/validate-ends.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {freshAttempt, move, isSolved, nextHint, validBoard} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
-import {counts as mechanicCounts, outsidePieces, boxOf} from '../dist/families/ends/ends.js';
+import {counts as mechanicCounts, outsidePieces, boxOf, piecesOf} from '../dist/families/ends/ends.js';
 import {loadPack} from './packs.mjs';
 
 // --- Flat maps, recounted ---------------------------------------------------------
@@ -188,6 +189,31 @@ export async function validateEnds() {
     }
   }
 
+  // The pieces the mechanic draws far from the blocks (it searches only the box
+  // and a ring round it, and joins a far dot to the tail it lies on) are the
+  // pieces union-find finds on one window holding the blocks and the far dots.
+  {
+    const random = seeded(4192);
+    for (const id of ['line', 'ladder', 'strip', 'grid', 'tee']) for (let t = 0; t < 25; t++) {
+      const m = maps[id], pool = dotsIn(m, [-3, 3, -3, 4]);
+      const blocks = [...new Set([...Array(1 + Math.floor(random() * 6))].map(() => pool[Math.floor(random() * pool.length)]))];
+      const far = {x: [6 + t % 5, 14 + t % 5], y: id === 'grid' ? [-6, 6] : id === 'tee' ? [0, 12] : [0, 2]};
+      if (id === 'tee' && t % 2) far.x = [-1, 2];
+      const {pieceOf} = piecesOf(m, blocks, far);
+      const W = windowOf(m, [[-6, -8], [22, 16]]), {find, join} = unionFind(W.dots.length), skip = new Set(blocks);
+      for (const [i, j] of W.roads) if (!skip.has(key(...W.dots[i])) && !skip.has(key(...W.dots[j]))) join(i, j);
+      const toRoot = new Map(), toPiece = new Map();
+      for (const [d, piece] of pieceOf) {
+        const r = find(W.index.get(d));
+        assert.equal(toRoot.get(piece) ?? r, r, `${id}: one drawn piece is one piece (${blocks.join(' ')}, ${d})`);
+        assert.equal(toPiece.get(r) ?? piece, piece, `${id}: one piece is drawn as one (${blocks.join(' ')}, ${d})`);
+        toRoot.set(piece, r); toPiece.set(r, piece);
+      }
+      for (let y = far.y[0]; y <= far.y[1]; y++) for (let x = far.x[0]; x <= far.x[1]; x++) if (on(m, x, y) && !skip.has(key(x, y))) assert.ok(pieceOf.has(key(x, y)), `${id}: every drawn dot has a piece`);
+      report.mechanicAgreements++;
+    }
+  }
+
   // Every placement behind the table, recounted, with the mechanic checked against it.
   for (const p of puzzles) {
     const row = TABLE[p.id], q = p.parameters;
@@ -227,6 +253,7 @@ export async function validateEnds() {
       assert.deepEqual(r.counts, {forever: 2, trapped: 1}, 'ladder: and splits it');
     }
     assert.deepEqual(flatCounts(ladder, ['0,0', '2,0', '0,1', '2,1']), {forever: 2, trapped: 1}, 'ladder: two rungs make three pieces, the middle one trapped');
+    assert.deepEqual(flatCounts(ladder, ['-1,0', '1,0', '0,1', '2,1']), {forever: 2, trapped: 2}, 'ladder: a zigzag of four traps two dots');
     assert.equal(Math.max(...[...placements(line, dotsIn(line, [-4, 4, 0, 0]), 4)].map(r => r.counts.trapped)), 3, 'line: four blocks trap at most three');
     assert.equal(endsOf({id: 'half', kind: 'flat', bands: [{x: [null, null], y: [null, 0]}], start: [0, 0]}), 1, 'a half-plane has one end');
     // Strip of three rows: three blocks are the fewest that split it.
@@ -339,8 +366,11 @@ function checkPuzzle(p, fresh, row, m) {
     // Patterns kept for hints all meet the goal.
     for (const pattern of q.patterns) assert.ok(meets(q.goal, recount(m, pattern)), `${p.id}: pattern ${pattern.join(' ')}`);
     if (tree) assert.equal(q.goal.forever, 2 * q.budget + 1, `${p.id}: the tree goal is 2m + 1`);
-    // A wrong Can't says it can be done, and waits for a change.
-    const wrong = play(p, fresh, {type: 'cant'});
+    // A wrong Can't (only after a Check with a block) says it can be done, and
+    // waits for a change.
+    const tried = play(p, play(p, fresh, {type: 'block', dot: firstTry(m)}), {type: 'check'});
+    assert.ok(!isSolved(p, tried.board));
+    const wrong = play(p, tried, {type: 'cant'});
     assert.equal(wrong.board.shown, 'can', `${p.id}: a wrong Can't`);
     assert.ok(!isSolved(p, wrong.board));
     refuse(p, wrong, {type: 'cant'}, 'Can’t twice');
@@ -350,12 +380,27 @@ function checkPuzzle(p, fresh, row, m) {
     assert.equal(ENDS[row.map], row.impossible, `${p.id}: ends`);
     assert.ok(q.goal.forever > row.impossible, `${p.id}: the goal asks for more than the ends`);
     assert.equal(p.solution.ends, row.impossible);
-    const a = play(p, fresh, {type: 'cant'});
+    // The hints try the trial blocks, Check with the authored reason, and only then Can't.
+    assert.ok(q.trial.length <= q.budget && q.trial.every(d => on(m, ...parse(d))), `${p.id}: the trial`);
+    assert.ok(!meets(q.goal, recount(m, q.trial)), `${p.id}: the trial falls short`);
+    let a = fresh;
+    const chain = [];
+    while (!isSolved(p, a.board) && chain.length < 20) { const h = nextHint(p, a); chain.push([h.action.type, h.action.dot, h.text]); a = play(p, a, h.action); }
+    assert.deepEqual(chain.map(c => c[0]), [...q.trial.map(() => 'block'), 'check', 'cant'], `${p.id}: a try, a Check, then Can't`);
+    assert.deepEqual(chain.slice(0, q.trial.length).map(c => c[1]), q.trial, `${p.id}: the trial blocks`);
+    assert.equal(chain[0][2], p.hints[0], `${p.id}: the first hint is the authored try`);
+    assert.equal(chain.at(-2)[2], p.hints[1], `${p.id}: the Check comes with the authored reason`);
+    assert.equal(chain.at(-1)[2], p.hints[2], `${p.id}: Can't comes with the authored answer`);
     assert.equal(a.board.shown, 'cant', `${p.id}: a right Can't`);
-    assert.ok(isSolved(p, a.board), `${p.id}: Can’t solves`);
-    // After blocks too: the certificate is the pieces outside the box round them.
-    const b = play(p, blockAll(p, fresh, ordered(m, flatNear(m).slice(0, 3))), {type: 'cant'});
-    assert.ok(isSolved(p, b.board), `${p.id}: Can’t after blocks`);
+    // Can't waits for a Check with a block, and answers after any blocks.
+    refuse(p, fresh, {type: 'cant'}, 'Can’t on an empty board');
+    refuse(p, play(p, fresh, {type: 'check'}), {type: 'cant'}, 'Can’t after a Check with nothing blocked');
+    const some = blockAll(p, fresh, ordered(m, flatNear(m).slice(0, 3)));
+    refuse(p, some, {type: 'cant'}, 'Can’t before a Check');
+    const h = nextHint(p, some);
+    assert.deepEqual([h.action.type, h.text], ['check', p.hints[1]], `${p.id}: after blocks elsewhere the hint is Check, with the reason`);
+    const b = play(p, play(p, some, {type: 'check'}), {type: 'cant'});
+    assert.ok(isSolved(p, b.board), `${p.id}: Can’t after blocks and a Check`);
   }
   // Check with nothing blocked is wrong everywhere, and waits for a change.
   const checked = play(p, fresh, {type: 'check'});
@@ -382,6 +427,8 @@ function checkPuzzle(p, fresh, row, m) {
   checkRefusals(p, fresh, possible, m);
   return steps;
 }
+// One block that solves no puzzle by itself.
+const firstTry = m => m.kind === 'tree' ? 'ab' : key(...m.start);
 const flatNear = m => { const [sx, sy] = m.start; return dotsIn(m, [sx - 4, sx + 4, sy - 3, sy + 3]); };
 
 function checkRefusals(p, fresh, possible, m) {
@@ -405,7 +452,8 @@ function checkRefusals(p, fresh, possible, m) {
   const forged = [
     [{...B, blocks: [good, good]}, 'a dot blocked twice'],
     [{...B, blocks: ordered(m, [...blocks, spare.find(d => !blocks.includes(d))])}, 'blocks past the budget'],
-    [{...B, shown: possible ? 'cant' : 'can'}, possible ? 'Can’t accepted when it can be done' : '“it can be done” when it can’t'],
+    [{...B, blocks: [good], shown: possible ? 'cant' : 'can'}, possible ? 'Can’t accepted when it can be done' : '“it can be done” when it can’t'],
+    [{...B, blocks: [], shown: possible ? 'can' : 'cant'}, 'a Can’t answer with nothing blocked'],
     [{...B, shown: 'yes'}, 'an unknown answer'],
     [{...B, extra: 1}, 'an unknown field'],
     [{blocks: []}, 'a missing field'],
@@ -414,6 +462,7 @@ function checkRefusals(p, fresh, possible, m) {
     [{...B, blocks: [off || 'zz']}, 'a dot off the map']
   ];
   assert.ok(validBoard(p, {...B, blocks: ordered(m, [good, next])}), `${p.id}: two blocks in order`);
+  assert.ok(validBoard(p, {...B, blocks: [good], shown: possible ? 'can' : 'cant'}), `${p.id}: a Can’t answer after a block`);
   forged.push([{...B, blocks: ordered(m, [good, next]).reverse()}, 'blocks out of order']);
   if (!tree) forged.push([{...B, blocks: ['-0,0']}, 'a malformed dot']);
   else forged.push([{...B, blocks: ['abb']}, 'a word that turns straight back']);

@@ -52,9 +52,10 @@
 .ends-road.ends-c4{stroke:#c1aedb}
 .ends-road.ends-c5{stroke:#86c2b8}
 
-/* A right Can't: the box round every block, and the ring road outside it. */
+/* A right Can't: the box round every block, and the ring road outside it,
+   drawn over the roads. */
 .ends-box{fill:rgba(179,136,64,.08);stroke:var(--b-ochre,#b38840);stroke-width:3px;vector-effect:non-scaling-stroke;stroke-dasharray:7 5}
-.ends-ring{fill:none;stroke:var(--b-pine,#31533e);stroke-width:9px;stroke-opacity:.35;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.ends-ring{fill:none;stroke:var(--b-pine,#31533e);stroke-width:5px;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round}
 
 /* Back to the start. */
 .ends-puzzle .ends-home{position:absolute;right:8px;top:8px;display:grid;place-items:center;width:44px;height:44px;min-height:0;padding:0;border-radius:50%;border:1px solid var(--b-line,#d0d6bd);background:rgba(255,253,245,.92);color:var(--b-ink,#294439);box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer}

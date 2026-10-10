@@ -11,7 +11,7 @@
     "Tap a dot to block it, and tap it again to take the block off. A blocked dot takes its roads with it.",
     "The open dots fall into pieces. A forever piece goes on forever; a trapped piece stops.",
     "Press Check to see the pieces. The counts must match the goal exactly.",
-    "Press Can’t if no blocks could ever reach the goal."
+    "After a Check, press Can’t if no blocks could ever reach the goal."
    ],
    "sourceIds": [
     "ends-week68",
@@ -541,13 +541,13 @@
    "objective": "Block at most 4 dots so that the open dots make exactly 2 trapped pieces.",
    "visibleObjective": "Trap exactly 2 pieces.",
    "instruction": "Block at most 4 dots so that the open dots make exactly 2 trapped pieces.",
-   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces, or Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
+   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces; after a Check, press Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
    "rules": [
     "The map goes on forever. Drag it to look around.",
     "Tap a dot to block it, and tap it again to take the block off. A blocked dot takes its roads with it.",
     "The open dots fall into pieces. A forever piece goes on forever; a trapped piece stops.",
     "Press Check to see the pieces. The counts must match the goal exactly.",
-    "Press Can’t if no blocks could ever reach the goal."
+    "After a Check, press Can’t if no blocks could ever reach the goal."
    ],
    "idea": "Blocks trap the pieces between them, but the two tails past the end blocks always go on forever.",
    "prerequisites": "Tell a piece that stops from one that keeps going. No reading; counting to four.",
@@ -647,13 +647,13 @@
    "objective": "Block at most 2 dots so that the open dots make exactly 2 forever pieces.",
    "visibleObjective": "Make 2 forever pieces.",
    "instruction": "Block at most 2 dots so that the open dots make exactly 2 forever pieces.",
-   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces, or Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
+   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces; after a Check, press Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
    "rules": [
     "The map goes on forever. Drag it to look around.",
     "Tap a dot to block it, and tap it again to take the block off. A blocked dot takes its roads with it.",
     "The open dots fall into pieces. A forever piece goes on forever; a trapped piece stops.",
     "Press Check to see the pieces. The counts must match the goal exactly.",
-    "Press Can’t if no blocks could ever reach the goal."
+    "After a Check, press Can’t if no blocks could ever reach the goal."
    ],
    "idea": "One block never splits the ladder, because the other rail goes round it; two blocks straight or slanting across it do.",
    "prerequisites": "Follow a route round a block along the other rail. No reading; counting to four.",
@@ -744,13 +744,13 @@
    "objective": "Block at most 4 dots so that the open dots make exactly 1 trapped piece.",
    "visibleObjective": "Trap a piece.",
    "instruction": "Block at most 4 dots so that the open dots make exactly 1 trapped piece.",
-   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces, or Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
+   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces; after a Check, press Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
    "rules": [
     "The map goes on forever. Drag it to look around.",
     "Tap a dot to block it, and tap it again to take the block off. A blocked dot takes its roads with it.",
     "The open dots fall into pieces. A forever piece goes on forever; a trapped piece stops.",
     "Press Check to see the pieces. The counts must match the goal exactly.",
-    "Press Can’t if no blocks could ever reach the goal."
+    "After a Check, press Can’t if no blocks could ever reach the goal."
    ],
    "idea": "On the grid a trapped piece needs every road out of it closed: four blocks round one dot.",
    "prerequisites": "See every road out of a dot. No reading; counting to six.",
@@ -833,18 +833,21 @@
     "goal": {
      "forever": 3
     },
-    "patterns": []
+    "patterns": [],
+    "trial": [
+     "0,0"
+    ]
    },
    "objective": "Block at most 4 dots so that the open dots make exactly 3 forever pieces.",
    "visibleObjective": "Make 3 forever pieces.",
    "instruction": "Block at most 4 dots so that the open dots make exactly 3 forever pieces.",
-   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces, or Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
+   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces; after a Check, press Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
    "rules": [
     "The map goes on forever. Drag it to look around.",
     "Tap a dot to block it, and tap it again to take the block off. A blocked dot takes its roads with it.",
     "The open dots fall into pieces. A forever piece goes on forever; a trapped piece stops.",
     "Press Check to see the pieces. The counts must match the goal exactly.",
-    "Press Can’t if no blocks could ever reach the goal."
+    "After a Check, press Can’t if no blocks could ever reach the goal."
    ],
    "idea": "However the blocks go, a line has only two tails, so never more than two forever pieces.",
    "prerequisites": "Decide that something can never happen, after a few tries. The reason (a box round the blocks) is a grown-up conversation.",
@@ -857,7 +860,7 @@
     "notice": "Whether your child keeps trying after a few Checks, or says why it can’t work.",
     "prompt": "Where would a third forever piece go?",
     "explanation": "All the blocks lie between the leftmost one and the rightmost one. Beyond them are two tails, each one piece that goes on forever. Every other piece lies between two blocks and stops. So there are always exactly two forever pieces, however many blocks. Pressing Can’t draws the box round the blocks and colours the two tails.",
-    "extension": "Can a line have just one forever piece? (No: one block already leaves two.)",
+    "extension": "Can a line have just one forever piece? (Only with no blocks; one block already leaves two.)",
     "connection": "The line has two ends: the most forever pieces finitely many blocks can make is the number of ends.",
     "sourceIds": [
      "ends-week68",
@@ -896,13 +899,13 @@
    "objective": "Block at most 3 dots so that the open dots make exactly 7 forever pieces.",
    "visibleObjective": "Make 7 forever pieces.",
    "instruction": "Block at most 3 dots so that the open dots make exactly 7 forever pieces.",
-   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces, or Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
+   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces; after a Check, press Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
    "rules": [
     "The map goes on forever. Drag it to look around.",
     "Tap a dot to block it, and tap it again to take the block off. A blocked dot takes its roads with it.",
     "The open dots fall into pieces. A forever piece goes on forever; a trapped piece stops.",
     "Press Check to see the pieces. The counts must match the goal exactly.",
-    "Press Can’t if no blocks could ever reach the goal."
+    "After a Check, press Can’t if no blocks could ever reach the goal."
    ],
    "idea": "Each block splits its piece into at most three, so three blocks make at most seven, and only when no two touch and nothing is trapped.",
    "prerequisites": "Count roads out of a dot and keep blocks apart. Counting to nine; the 2m + 1 count is for grown-ups.",
@@ -976,18 +979,22 @@
     "goal": {
      "forever": 3
     },
-    "patterns": []
+    "patterns": [],
+    "trial": [
+     "0,0",
+     "0,1"
+    ]
    },
    "objective": "Block at most 4 dots so that the open dots make exactly 3 forever pieces.",
    "visibleObjective": "Make 3 forever pieces.",
    "instruction": "Block at most 4 dots so that the open dots make exactly 3 forever pieces.",
-   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces, or Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
+   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces; after a Check, press Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
    "rules": [
     "The map goes on forever. Drag it to look around.",
     "Tap a dot to block it, and tap it again to take the block off. A blocked dot takes its roads with it.",
     "The open dots fall into pieces. A forever piece goes on forever; a trapped piece stops.",
     "Press Check to see the pieces. The counts must match the goal exactly.",
-    "Press Can’t if no blocks could ever reach the goal."
+    "After a Check, press Can’t if no blocks could ever reach the goal."
    ],
    "idea": "The ladder has two ends: past all the blocks lie only two tails.",
    "prerequisites": "Decide that something can never happen, after a few tries. The reason (a box round the blocks) is a grown-up conversation.",
@@ -1074,18 +1081,18 @@
    "objective": "Block at most 3 dots so that the open dots make exactly 2 forever pieces and exactly 1 trapped piece.",
    "visibleObjective": "Make 2 forever pieces and trap 1.",
    "instruction": "Block at most 3 dots so that the open dots make exactly 2 forever pieces and exactly 1 trapped piece.",
-   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces, or Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
+   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces; after a Check, press Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
    "rules": [
     "The map goes on forever. Drag it to look around.",
     "Tap a dot to block it, and tap it again to take the block off. A blocked dot takes its roads with it.",
     "The open dots fall into pieces. A forever piece goes on forever; a trapped piece stops.",
     "Press Check to see the pieces. The counts must match the goal exactly.",
-    "Press Can’t if no blocks could ever reach the goal."
+    "After a Check, press Can’t if no blocks could ever reach the goal."
    ],
    "idea": "Three blocks round one dot of a rail trap it and split the ladder at once.",
    "prerequisites": "Follow a route round a block along the other rail. No reading; counting to four.",
    "hints": [
-    "A dot on the ladder has three roads. Close them all.",
+    "Which dots do one ladder dot’s roads lead to?",
     "Block both neighbours of a dot on its rail, and the dot across the rung from it.",
     "Block a dot’s two rail neighbours and its rung partner."
    ],
@@ -1093,7 +1100,7 @@
     "notice": "Whether your child splits the ladder with a rung first and then has one block left, which can’t trap anything.",
     "prompt": "Which three dots do one dot’s roads lead to?",
     "explanation": "A ladder dot has three roads: two along its rail and one across its rung. Blocking those three traps it. The three blocks also split the ladder: the rung partner and each rail neighbour make a slanting pair, and no road crosses between their columns. So the ladder falls into a left tail, the trapped dot and a right tail. Three blocks can do it no other way.",
-    "extension": "Can three blocks trap two dots? (No: two joined dots have four dots round them, and two separate trapped dots need five blocks.)",
+    "extension": "Can three blocks trap two dots? (No: one trapped dot already takes all three blocks; two trapped pieces need four, as in a zigzag.)",
     "connection": "Trapping (a bounded component) and splitting (two unbounded ones) are different counts; this placement makes both.",
     "sourceIds": [
      "ends-week68",
@@ -1238,13 +1245,13 @@
    "objective": "Block at most 3 dots so that the open dots make exactly 3 forever pieces.",
    "visibleObjective": "Make 3 forever pieces.",
    "instruction": "Block at most 3 dots so that the open dots make exactly 3 forever pieces.",
-   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces, or Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
+   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces; after a Check, press Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
    "rules": [
     "The map goes on forever. Drag it to look around.",
     "Tap a dot to block it, and tap it again to take the block off. A blocked dot takes its roads with it.",
     "The open dots fall into pieces. A forever piece goes on forever; a trapped piece stops.",
     "Press Check to see the pieces. The counts must match the goal exactly.",
-    "Press Can’t if no blocks could ever reach the goal."
+    "After a Check, press Can’t if no blocks could ever reach the goal."
    ],
    "idea": "Three ladders meeting give three ends; cutting all three apart takes three blocks, at the junction.",
    "prerequisites": "Follow routes along three ladders and see where they meet.",
@@ -1374,18 +1381,18 @@
    "objective": "Block at most 4 dots so that the open dots make exactly 2 forever pieces and exactly 1 trapped piece.",
    "visibleObjective": "Make 2 forever pieces and trap 1.",
    "instruction": "Block at most 4 dots so that the open dots make exactly 2 forever pieces and exactly 1 trapped piece.",
-   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces, or Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
+   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces; after a Check, press Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
    "rules": [
     "The map goes on forever. Drag it to look around.",
     "Tap a dot to block it, and tap it again to take the block off. A blocked dot takes its roads with it.",
     "The open dots fall into pieces. A forever piece goes on forever; a trapped piece stops.",
     "Press Check to see the pieces. The counts must match the goal exactly.",
-    "Press Can’t if no blocks could ever reach the goal."
+    "After a Check, press Can’t if no blocks could ever reach the goal."
    ],
    "idea": "To split a strip of three rows, every row needs a block and the wall may step one column at a time; a trapped dot on the edge can be part of the wall.",
    "prerequisites": "Follow three rows at once and see a wall that steps.",
    "hints": [
-    "To split the strip, each row needs a block, and blocks in neighbouring rows can be at most one column apart.",
+    "Must a wall go straight down?",
     "A dot on the top or bottom row has only three roads. Trap one of those.",
     "Trap a dot on the top row with three blocks, then block a bottom-row dot below or beside the middle-row block."
    ],
@@ -1463,18 +1470,23 @@
     "goal": {
      "forever": 2
     },
-    "patterns": []
+    "patterns": [],
+    "trial": [
+     "0,0",
+     "1,0",
+     "-1,0"
+    ]
    },
    "objective": "Block at most 10 dots so that the open dots make exactly 2 forever pieces.",
    "visibleObjective": "Make 2 forever pieces.",
    "instruction": "Block at most 10 dots so that the open dots make exactly 2 forever pieces.",
-   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces, or Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
+   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces; after a Check, press Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
    "rules": [
     "The map goes on forever. Drag it to look around.",
     "Tap a dot to block it, and tap it again to take the block off. A blocked dot takes its roads with it.",
     "The open dots fall into pieces. A forever piece goes on forever; a trapped piece stops.",
     "Press Check to see the pieces. The counts must match the goal exactly.",
-    "Press Can’t if no blocks could ever reach the goal."
+    "After a Check, press Can’t if no blocks could ever reach the goal."
    ],
    "idea": "The grid has one end: outside a box round every block, a ring road joins everything.",
    "prerequisites": "Decide that something can never happen, after a few tries. The reason (a box round the blocks) is a grown-up conversation.",
@@ -1566,13 +1578,13 @@
    "objective": "Block at most 6 dots so that the open dots make exactly 2 trapped pieces.",
    "visibleObjective": "Trap 2 pieces.",
    "instruction": "Block at most 6 dots so that the open dots make exactly 2 trapped pieces.",
-   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces, or Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
+   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces; after a Check, press Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
    "rules": [
     "The map goes on forever. Drag it to look around.",
     "Tap a dot to block it, and tap it again to take the block off. A blocked dot takes its roads with it.",
     "The open dots fall into pieces. A forever piece goes on forever; a trapped piece stops.",
     "Press Check to see the pieces. The counts must match the goal exactly.",
-    "Press Can’t if no blocks could ever reach the goal."
+    "After a Check, press Can’t if no blocks could ever reach the goal."
    ],
    "idea": "Two trapped dots can share blocks: side by side they share one, corner to corner two.",
    "prerequisites": "See every road out of a dot. No reading; counting to six.",
@@ -1641,13 +1653,13 @@
    "objective": "Block at most 4 dots so that the open dots make exactly 9 forever pieces.",
    "visibleObjective": "Make 9 forever pieces.",
    "instruction": "Block at most 4 dots so that the open dots make exactly 9 forever pieces.",
-   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces, or Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
+   "controls": "Drag the map to look around; the round button goes back to the start. Tap a dot to block it, and again to take the block off. The slots show how many blocks you may use. Press Check to see the pieces; after a Check, press Can’t if the goal can never be reached. With a keyboard, Tab to the map, move along the roads with the arrow keys and press Enter or Space.",
    "rules": [
     "The map goes on forever. Drag it to look around.",
     "Tap a dot to block it, and tap it again to take the block off. A blocked dot takes its roads with it.",
     "The open dots fall into pieces. A forever piece goes on forever; a trapped piece stops.",
     "Press Check to see the pieces. The counts must match the goal exactly.",
-    "Press Can’t if no blocks could ever reach the goal."
+    "After a Check, press Can’t if no blocks could ever reach the goal."
    ],
    "idea": "Four blocks make nine forever pieces only when no two touch and nothing is trapped, not even a pair of dots.",
    "prerequisites": "Count roads out of a dot and keep blocks apart. Counting to nine; the 2m + 1 count is for grown-ups.",
@@ -1660,7 +1672,7 @@
     "notice": "Whether your child traps a pair of dots: four blocks, two round each end of one road.",
     "prompt": "Which pieces did the last block not split?",
     "explanation": "As in Seven ways out, m blocks make at most 2m + 1 pieces, so nine needs four blocks with no two touching and nothing trapped. Four blocks can trap a dot (three round it) or a pair of joined dots (two round each). The centre and one dot two roads out on each branch works. Blocking the centre and its three neighbours makes only six.",
-    "extension": "Make 13 forever pieces with six blocks. (You will need to drag the tree to reach dots three roads out.)",
+    "extension": "Make 13 forever pieces with six blocks. (Dots three roads out can be tapped once they are dragged toward the middle.)",
     "connection": "Infinitely many ends: the counts 3, 5, 7, 9, … grow without bound.",
     "sourceIds": [
      "ends-week68",

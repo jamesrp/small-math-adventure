@@ -65,7 +65,6 @@ export function boxOf(m, blocks, at = [0, 0]) {
   return {x: axis(0, 'x'), y: axis(1, 'y')};
 }
 const grow = (r, n = 1) => ({x: [r.x[0] - n, r.x[1] + n], y: [r.y[0] - n, r.y[1] + n]});
-const hull = (r, s) => s ? {x: [Math.min(r.x[0], s.x[0]), Math.max(r.x[1], s.x[1])], y: [Math.min(r.y[0], s.y[0]), Math.max(r.y[1], s.y[1])]} : r;
 const inside = (r, x, y) => x >= r.x[0] && x <= r.x[1] && y >= r.y[0] && y <= r.y[1];
 // Pieces of the dots in rectangle Q that `skip` leaves open, joined by roads in Q.
 function components(m, Q, skip) {
@@ -89,22 +88,38 @@ function components(m, Q, skip) {
   }
   return {pieces, pieceOf};
 }
-// The pieces left by the blocks, in a rectangle that holds the box round the
-// blocks with a ring of dots to spare (and `window`, for drawing). Outside the
-// box the map is only tails or the grid's outside, each in one piece and each
-// going on forever, and the ring holds a stretch of every one, so a piece is
-// forever exactly when it reaches outside the box.
+// A dot of `window` (a rectangle, for drawing) beyond the ring round the box
+// joins the piece of the ring dot it reaches by walking straight toward the
+// box: that walk stays outside the box and on the map, along its row on the
+// strips, down the T's stem, and round a corner of the ring on the grid.
+function joinWindow(m, Q, window, pieceOf) {
+  if (!window) return;
+  const clamp = (v, r) => Math.min(Math.max(v, r[0]), r[1]);
+  for (let y = window.y[0]; y <= window.y[1]; y++) for (let x = window.x[0]; x <= window.x[1]; x++) {
+    if (inside(Q, x, y) || !flatHas(m, x, y)) continue;
+    const ring = keyOf(clamp(x, Q.x), clamp(y, Q.y));
+    if (pieceOf.has(ring)) pieceOf.set(keyOf(x, y), pieceOf.get(ring));
+  }
+}
+// The pieces left by the blocks, found in the box round the blocks with a ring
+// of dots round it. Outside the box the map is only tails or the grid's
+// outside, each in one piece and each going on forever, and the ring holds a
+// stretch of every one, so a piece is forever exactly when it reaches outside
+// the box. Dots of `window` beyond the ring join the tail they lie on.
 export function flatPieces(m, blocks, window = null) {
-  const R = boxOf(m, blocks), Q = hull(grow(R), window), blocked = new Set(blocks);
+  const R = boxOf(m, blocks), Q = grow(R), blocked = new Set(blocks);
   const {pieces, pieceOf} = components(m, Q, d => blocked.has(d));
   for (const piece of pieces) piece.forever = piece.dots.some(d => { const [x, y] = xyOf(d); return !inside(R, x, y); });
+  joinWindow(m, Q, window, pieceOf);
   return {pieces, pieceOf, box: R};
 }
 // The pieces outside a box: the tails (or the grid's ring road) that every
 // forever piece must reach. Their number for the box round the junction alone
 // is the map's number of ends.
 export function outsidePieces(m, box, window = null) {
-  return components(m, hull(grow(box), window), (d, x, y) => inside(box, x, y));
+  const Q = grow(box), found = components(m, Q, (d, x, y) => inside(box, x, y));
+  joinWindow(m, Q, window, found.pieceOf);
+  return found;
 }
 export const flatEnds = m => outsidePieces(m, boxOf(m, [])).pieces.length;
 
@@ -191,6 +206,9 @@ export function impossible(q) {
 // `blocks` lists the blocked dots in reading order (the tree: by depth). `shown`
 // is null, 'pieces' after Check (kept until a change), 'can' after a Can't
 // that is wrong (the goal can be reached) and 'cant' after one that is right.
+// Can't answers only after a Check with at least one block, so its box is
+// drawn round blocks the child has just tried.
+const canCant = b => b.shown === 'pieces' && b.blocks.length > 0;
 const mapFor = (p, b) => p.parameters.mode === 'playground' ? p.parameters.maps[b.map] : p.parameters.map;
 const capOf = p => p.parameters.mode === 'playground' ? PLAY_CAP : p.parameters.budget;
 function fresh(p) {
@@ -206,8 +224,8 @@ function valid(p, b) {
   if (new Set(b.blocks).size !== b.blocks.length || sortDots(m, b.blocks).some((d, i) => d !== b.blocks[i])) return false;
   if (!SHOWN.includes(b.shown)) return false;
   if (play) return b.shown === null || b.shown === 'pieces';
-  if (b.shown === 'cant') return impossible(q);
-  if (b.shown === 'can') return !impossible(q);
+  if (b.shown === 'cant') return b.blocks.length > 0 && impossible(q);
+  if (b.shown === 'can') return b.blocks.length > 0 && !impossible(q);
   return true;
 }
 function solved(p, b) {
@@ -229,7 +247,7 @@ function move(p, b, action) {
   }
   // Check and Can't wait for a change before they answer again.
   if (action.type === 'check') return b.shown === 'pieces' ? null : {...b, shown: 'pieces'};
-  if (action.type === 'cant') return q.mode !== 'goal' || b.shown === 'can' ? null : {...b, shown: impossible(q) ? 'cant' : 'can'};
+  if (action.type === 'cant') return q.mode !== 'goal' || !canCant(b) ? null : {...b, shown: impossible(q) ? 'cant' : 'can'};
   if (action.type === 'map' && q.mode === 'playground') {
     return typeof action.map === 'string' && Object.hasOwn(q.maps, action.map) && action.map !== b.map ? {map: action.map, blocks: [], shown: null} : null;
   }
@@ -313,7 +331,17 @@ function treeStep(p, blocks) {
 function hint(p, b) {
   const q = p.parameters;
   if (q.mode !== 'goal' || !valid(p, b) || solved(p, b)) return {type: 'done'};
-  if (impossible(q)) return {type: 'move', action: {type: 'cant'}, text: 'Press Can’t.'};
+  // A goal no blocks can reach: first a try (the pack's `trial` blocks, unless
+  // the child has blocked elsewhere) and a Check with the authored reason, and
+  // only then Can't.
+  if (impossible(q)) {
+    const trial = q.trial || [startDot(q.map)], next = trial.find(d => !b.blocks.includes(d));
+    if (!b.blocks.length || (b.shown !== 'pieces' && next && b.blocks.length < q.budget && b.blocks.every(d => trial.includes(d)))) {
+      return {type: 'move', action: {type: 'block', dot: next}, text: !b.blocks.length ? p.hints[0] : q.map.kind === 'flat' ? `Block the dot ${flatWhere(q.map, next, b.blocks)}.` : 'Block the marked dot.'};
+    }
+    if (b.shown !== 'pieces') return {type: 'move', action: {type: 'check'}, text: p.hints[1]};
+    return {type: 'move', action: {type: 'cant'}, text: p.hints[2]};
+  }
   const step = q.map.kind === 'tree' ? treeStep(p, b.blocks) : flatStep(p, b.blocks);
   return step ? {type: 'move', ...step} : {type: 'move', action: {type: 'check'}, text: 'Press Check.'};
 }
@@ -393,22 +421,37 @@ function viewOf(p, b) {
   return all.maps[k];
 }
 const finite = (...n) => n.every(Number.isFinite);
-const validView = (m, v) => object(v) && (m.kind === 'tree' ? treeIsDot(v.focus) && object(v.frame) && Array.isArray(v.frame.a) && Array.isArray(v.frame.b) && finite(...v.frame.a, ...v.frame.b) : finite(v.cx, v.cy));
+const validView = (m, v) => object(v) && (m.kind === 'tree' ? treeIsDot(v.focus) && object(v.frame) && Array.isArray(v.frame.a) && Array.isArray(v.frame.b) && finite(...v.frame.a, ...v.frame.b) : finite(v.cx, v.cy) && (v.z === undefined || (finite(v.z) && v.z >= 1 && v.z <= 8)));
 export const startView = m => m.kind === 'tree' ? {focus: 'o', frame: IDENTITY} : {cx: m.view.cx, cy: m.view.cy};
 export const startDot = m => m.kind === 'tree' ? 'o' : keyOf(...m.start);
 // The visible part of a flat map, and the part drawn round it so a drag shows
-// dots before the board is redrawn.
-const shown = (m, v) => ({x: [v.cx - m.view.w / 2, v.cx + m.view.w / 2], y: [v.cy - m.view.h / 2, v.cy + m.view.h / 2]});
-const drawn = (m, v) => { const s = shown(m, v), mx = m.pan === 'xy' ? Math.ceil(m.view.w / 2) : m.view.w, my = m.pan === 'xy' ? Math.ceil(m.view.h / 2) : 1; return {x: [Math.floor(s.x[0] - mx), Math.ceil(s.x[1] + mx)], y: [Math.floor(s.y[0] - my), Math.ceil(s.y[1] + my)]}; };
+// dots before the board is redrawn. A view may be zoomed out (z > 1) to show a
+// certificate whole.
+const sizeOf = (m, v) => [m.view.w * (v.z || 1), m.view.h * (v.z || 1)];
+const shown = (m, v) => { const [w, h] = sizeOf(m, v); return {x: [v.cx - w / 2, v.cx + w / 2], y: [v.cy - h / 2, v.cy + h / 2]}; };
+const drawn = (m, v) => { const s = shown(m, v), [w, h] = sizeOf(m, v), mx = m.pan === 'xy' ? Math.ceil(w / 2) : w, my = m.pan === 'xy' ? Math.ceil(h / 2) : 1; return {x: [Math.floor(s.x[0] - mx), Math.ceil(s.x[1] + mx)], y: [Math.floor(s.y[0] - my), Math.ceil(s.y[1] + my)]}; };
 const seen = (m, v, d) => { const [x, y] = xyOf(d), s = shown(m, v); return x >= s.x[0] + 0.3 && x <= s.x[1] - 0.3 && y >= s.y[0] + 0.3 && y <= s.y[1] - 0.3; };
-const clampView = (m, v) => m.pan === 'xy' ? {cx: v.cx, cy: m.view.minY === undefined ? v.cy : Math.max(m.view.minY, v.cy)} : {cx: v.cx, cy: m.view.cy};
+// The T's view never rises above where it starts; the strips only slide across.
+function clampView(m, v) {
+  const z = v.z && v.z > 1 ? {z: v.z} : {};
+  if (m.pan !== 'xy') return {cx: v.cx, cy: m.view.cy, ...z};
+  const lowest = m.view.minY === undefined ? -Infinity : m.view.minY + m.view.h * ((v.z || 1) - 1) / 2;
+  return {cx: v.cx, cy: Math.max(lowest, v.cy), ...z};
+}
 // Pan a flat view just enough to show a dot.
 function showDot(m, v, d) {
   if (seen(m, v, d)) return v;
-  const [x, y] = xyOf(d), s = shown(m, v);
-  const cx = x < s.x[0] + 0.3 ? x - 0.7 + m.view.w / 2 : x > s.x[1] - 0.3 ? x + 0.7 - m.view.w / 2 : v.cx;
-  const cy = y < s.y[0] + 0.3 ? y - 0.7 + m.view.h / 2 : y > s.y[1] - 0.3 ? y + 0.7 - m.view.h / 2 : v.cy;
-  return clampView(m, {cx, cy});
+  const [x, y] = xyOf(d), s = shown(m, v), [w, h] = sizeOf(m, v);
+  const cx = x < s.x[0] + 0.3 ? x - 0.7 + w / 2 : x > s.x[1] - 0.3 ? x + 0.7 - w / 2 : v.cx;
+  const cy = y < s.y[0] + 0.3 ? y - 0.7 + h / 2 : y > s.y[1] - 0.3 ? y + 0.7 - h / 2 : v.cy;
+  return clampView(m, {...v, cx, cy});
+}
+// A view of a certificate: the box, the ring of dots round it and a little
+// paper, zoomed out only as far as that needs.
+function fitBox(m, B) {
+  const R = grow(B), w = R.x[1] - R.x[0] + 1.4, h = m.pan === 'xy' ? R.y[1] - R.y[0] + 1.4 : 0;
+  const z = Math.min(8, Math.max(1, w / m.view.w, h / m.view.h));
+  return clampView(m, {cx: (R.x[0] + R.x[1]) / 2, cy: m.pan === 'xy' ? (R.y[0] + R.y[1]) / 2 : m.view.cy, z});
 }
 // Bring a tree dot to the middle of the disk.
 function centreOn(view, d) {
@@ -466,8 +509,7 @@ function paint(p, b, view, extra) {
     }
   }
   if (cert && m.kind === 'flat') {
-    const v = view, at = [Math.round(v.cx), Math.round(v.cy)];
-    out.box = boxOf(m, b.blocks, at);
+    out.box = boxOf(m, b.blocks);
     const {pieces, pieceOf} = outsidePieces(m, out.box, extra);
     for (const [d, i] of pieceOf) { out.colour.set(d, i % PALETTE); out.piece.set(d, i); out.labels.set(d, `outside the box, piece ${i + 1}`); }
     out.outside = pieces.length;
@@ -497,7 +539,7 @@ function flatInner(p, b, view, ctx) {
       if (cls) roads += `<line class="${cls}" x1="${x}" y1="${y}" x2="${x + dx}" y2="${y + dy}"/>`;
     }
   }
-  let under = `<rect class="ends-paper" x="${R.x[0] - 1}" y="${R.y[0] - 1}" width="${R.x[1] - R.x[0] + 2}" height="${R.y[1] - R.y[0] + 2}"/>`;
+  let over = '', under = `<rect class="ends-paper" x="${R.x[0] - 1}" y="${R.y[0] - 1}" width="${R.x[1] - R.x[0] + 2}" height="${R.y[1] - R.y[0] + 2}"/>`;
   if (look.box) {
     const B = look.box;
     under += `<rect class="ends-box" x="${B.x[0] - 0.42}" y="${B.y[0] - 0.42}" width="${B.x[1] - B.x[0] + 0.84}" height="${B.y[1] - B.y[0] + 0.84}" rx="0.18"/>`;
@@ -507,7 +549,7 @@ function flatInner(p, b, view, ctx) {
     for (let y = B.y[0]; y <= B.y[1] + 1; y++) ring.push([B.x[1] + 1, y]);
     for (let x = B.x[1]; x >= B.x[0] - 1; x--) ring.push([x, B.y[1] + 1]);
     for (let y = B.y[1]; y >= B.y[0]; y--) ring.push([B.x[0] - 1, y]);
-    if (ring.every(([x, y]) => flatHas(m, x, y))) under += `<path class="ends-ring" d="M${ring.map(([x, y]) => `${x} ${y}`).join('L')}Z"/>`;
+    if (ring.every(([x, y]) => flatHas(m, x, y))) over = `<path class="ends-ring" d="M${ring.map(([x, y]) => `${x} ${y}`).join('L')}Z"/>`;
   }
   const hinted = ctx.hintDot, cursor = ctx.cursor;
   const nodes = dots.map(d => {
@@ -518,15 +560,16 @@ function flatInner(p, b, view, ctx) {
     const mark = isBlocked ? `<circle class="ends-stone" r="0.3"/><circle class="ends-stone-ring" r="0.19"/>` : `<circle class="ends-pip" r="0.16"/>`;
     return `<g class="${cls}" data-dot="${d}" transform="translate(${x} ${y})" ${role}><circle class="ends-hit" r="0.48"/>${mark}</g>`;
   }).join('');
-  return `${under}${roads}${nodes}`;
+  return `${under}${roads}${over}${nodes}`;
 }
 function flatSvg(p, b, view, ctx) {
   const m = mapFor(p, b), s = shown(m, view);
-  return `<svg class="ends-board ends-flat" viewBox="${f(s.x[0])} ${f(s.y[0])} ${m.view.w} ${m.view.h}" role="group" aria-label="${esc(m.name)}, going on forever. Drag to look around." data-ends-board>${flatInner(p, b, view, ctx)}</svg>`;
+  const [w, h] = sizeOf(m, view);
+  return `<svg class="ends-board ends-flat" viewBox="${f(s.x[0])} ${f(s.y[0])} ${f(w)} ${f(h)}" role="group" aria-label="${esc(m.name)}, going on forever. Drag to look around." data-ends-board>${flatInner(p, b, view, ctx)}</svg>`;
 }
 
 // Tree dots big enough to tap are controls; the rest are pictures.
-const TAP = 0.15;
+const TAP = 0.3;
 export const treeTargets = new Map();
 function treeInner(p, b, view, ctx) {
   const m = mapFor(p, b), blocked = new Set(b.blocks), {dots, roads} = diskLayout(view);
@@ -579,8 +622,13 @@ function render(p, a, ctx = {}) {
   const q = p.parameters, b = a.board, m = mapFor(p, b), done = solved(p, b), play = q.mode === 'playground';
   const state = viewOf(p, b), h = !play && a.hintLevel >= 2 && !done ? hint(p, b) : null, act = h?.action;
   const hintDot = act && (act.type === 'block' || act.type === 'unblock') ? act.dot : null;
-  // Keep the keyboard's dot and a marked dot in sight.
+  // Keep the keyboard's dot and a marked dot in sight; show a certificate whole,
+  // once, and go back to the usual size after it.
   if (m.kind === 'flat') {
+    const cert = b.shown === 'cant' ? b.blocks.join(' ') : null;
+    if (cert !== null && state.cert !== cert) state.view = fitBox(m, boxOf(m, b.blocks));
+    if (cert === null && state.view.z) state.view = clampView(m, {cx: state.view.cx, cy: state.view.cy});
+    state.cert = cert;
     if (hintDot) state.view = showDot(m, state.view, hintDot);
     if (!seen(m, state.view, state.cursor) || !isDot(m, state.cursor)) state.cursor = nearestShown(m, state.view);
   } else {
@@ -592,18 +640,18 @@ function render(p, a, ctx = {}) {
   const used = b.blocks.length, cap = capOf(p);
   const slots = play ? '' : `<span class="ends-slots" role="img" aria-label="${used} of ${cap} ${cap === 1 ? 'block' : 'blocks'} used">${Array.from({length: cap}, (_, k) => `<i class="${k < used ? 'ends-used' : ''}"></i>`).join('')}</span>`;
   const check = button('Check', {type: 'check'}, 'ends-check', b.shown !== 'pieces', act?.type === 'check');
-  const cant = play ? '' : button('Can’t', {type: 'cant'}, 'ends-cant', b.shown !== 'can', act?.type === 'cant');
+  const cant = play ? '' : button('Can’t', {type: 'cant'}, 'ends-cant', canCant(b), act?.type === 'cant');
   const maps = play ? `<div class="ends-maps" role="group" aria-label="Map">${Object.entries(q.maps).map(([id, mm]) => `<button type="button" class="secondary ends-pick" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'map', map: id}))}" data-focus="ends-map-${id}" aria-pressed="${b.map === id}" aria-label="${esc(mm.name)}">${mapIcon(mm)}</button>`).join('')}</div>` : '';
   const bar = done ? '' : `<div class="ends-bar">${slots}${check}${cant}</div>`;
   // Back to the start, once the map has been dragged away from it.
   const home = away(m, state.view) ? `<button type="button" class="ends-home" data-action="mechanic-ui" data-ui='{"home":true}' data-focus="ends-home" aria-label="Back to the start"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/></svg></button>` : '';
   const c = b.shown === 'pieces' ? counts(m, b.blocks) : null;
-  const ends = b.shown === 'cant' && m.kind === 'flat' ? outsidePieces(m, boxOf(m, b.blocks, [Math.round(state.view.cx), Math.round(state.view.cy)])).pieces.length : null;
+  const ends = b.shown === 'cant' && m.kind === 'flat' ? outsidePieces(m, boxOf(m, b.blocks)).pieces.length : null;
   const told = c ? `${c.forever} forever ${c.forever === 1 ? 'piece' : 'pieces'}${c.trapped ? `, ${c.trapped} trapped` : ''}.` : b.shown === 'can' ? 'It can be done.' : ends !== null ? `Outside the box: ${ends} ${ends === 1 ? 'piece' : 'pieces'}.` : '';
   const status = `${play ? `${used} blocked` : `${used} of ${cap} blocks used`}.${told ? ` ${told}` : ''}`;
   return `<div class="ends-puzzle${done ? ' solved' : ''}" data-mechanic-wire="ends">${maps}${bar}<div class="ends-stage${m.kind === 'tree' ? ' disk' : ''}"><div class="ends-frame">${board}</div>${home}</div>${told ? `<p class="ends-told">${esc(told)}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
-const away = (m, v) => m.kind === 'tree' ? v.focus !== 'o' || norm2(image(v.frame, [0, 0])) > 0.01 : Math.abs(v.cx - m.view.cx) > 0.5 || Math.abs(v.cy - m.view.cy) > 0.5;
+const away = (m, v) => m.kind === 'tree' ? v.focus !== 'o' || norm2(image(v.frame, [0, 0])) > 0.01 : Math.abs(v.cx - m.view.cx) > 0.5 || Math.abs(v.cy - m.view.cy) > 0.5 || (v.z || 1) > 1;
 function nearestShown(m, v) {
   const s = shown(m, v);
   let best = null, score = Infinity;
@@ -650,12 +698,12 @@ function pan(e) {
   if (!drag.moved) { drag.moved = true; try { drag.svg.setPointerCapture(e.pointerId); } catch { /* the pointer may already be gone */ } drag.svg.classList.add('panning'); }
   const {p, b, m, svg} = drag;
   if (m.kind === 'flat') {
-    const scale = m.view.w / svg.getBoundingClientRect().width;
-    drag.view = clampView(m, {cx: drag.start.cx - dx * scale, cy: drag.start.cy - (m.pan === 'xy' ? dy * scale : 0)});
+    const [w, h] = sizeOf(m, drag.start), scale = w / svg.getBoundingClientRect().width;
+    drag.view = clampView(m, {...drag.start, cx: drag.start.cx - dx * scale, cy: drag.start.cy - (m.pan === 'xy' ? dy * scale : 0)});
     const s = shown(m, drag.view);
-    svg.setAttribute('viewBox', `${f(s.x[0])} ${f(s.y[0])} ${m.view.w} ${m.view.h}`);
+    svg.setAttribute('viewBox', `${f(s.x[0])} ${f(s.y[0])} ${f(w)} ${f(h)}`);
     // Redraw round the new middle once the drag nears the edge of what was drawn.
-    if (Math.abs(drag.view.cx - drag.drawnAt.cx) > m.view.w * (m.pan === 'xy' ? 0.3 : 0.6) || Math.abs(drag.view.cy - drag.drawnAt.cy) > m.view.h * 0.3) {
+    if (Math.abs(drag.view.cx - drag.drawnAt.cx) > w * (m.pan === 'xy' ? 0.3 : 0.6) || Math.abs(drag.view.cy - drag.drawnAt.cy) > h * 0.3) {
       svg.innerHTML = flatInner(p, b, drag.view, {active: false});
       drag.drawnAt = drag.view;
     }

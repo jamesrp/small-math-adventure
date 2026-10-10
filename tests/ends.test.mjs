@@ -125,19 +125,25 @@ test('blocking: toggles, keeps reading order, refuses past the budget, and any c
   assert.equal(move(q, freshAttempt(q), {type: 'block', dot: '0,2'}), null, 'off the ladder');
 });
 
-test('Can’t: right on the line, ladder and grid, wrong elsewhere; a wrong one waits for a change', () => {
+test('Can’t: only after a Check with a block; right on the line, ladder and grid, wrong elsewhere; a wrong one waits for a change', () => {
   for (const id of ['ends-04', 'ends-06', 'ends-10']) {
-    const p = byId(id), a = play(p, freshAttempt(p), {type: 'cant'});
+    const p = byId(id), fresh = freshAttempt(p);
+    assert.equal(move(p, fresh, {type: 'cant'}), null, `${id}: not on an empty board`);
+    assert.equal(move(p, play(p, fresh, {type: 'check'}), {type: 'cant'}), null, `${id}: not after a Check with nothing blocked`);
+    const tried = play(p, fresh, ...block('0,0'));
+    assert.equal(move(p, tried, {type: 'cant'}), null, `${id}: not before a Check`);
+    const a = play(p, tried, {type: 'check'}, {type: 'cant'});
     assert.equal(a.board.shown, 'cant');
     assert.ok(isSolved(p, a.board), id);
   }
   const p = byId('ends-07');
-  let a = play(p, freshAttempt(p), {type: 'cant'});
+  let a = play(p, freshAttempt(p), ...block('0,0'), {type: 'check'}, {type: 'cant'});
   assert.equal(a.board.shown, 'can');
   assert.equal(move(p, a, {type: 'cant'}), null);
-  a = play(p, a, {type: 'block', dot: '0,0'});
+  a = play(p, a, {type: 'block', dot: '2,0'});
   assert.equal(a.board.shown, null);
-  assert.equal(play(p, a, {type: 'cant'}).board.shown, 'can', 'asked again after a change');
+  assert.equal(move(p, a, {type: 'cant'}), null, 'a change needs a new Check');
+  assert.equal(play(p, a, {type: 'check'}, {type: 'cant'}).board.shown, 'can', 'asked again after a Check');
 });
 
 test('hints: the start, then where to go from a block, take off a wrong block, Can’t when it can’t', () => {
@@ -145,7 +151,16 @@ test('hints: the start, then where to go from a block, take off a wrong block, C
   assert.deepEqual(first('ends-02').action, {type: 'block', dot: '0,0'});
   assert.equal(first('ends-08').action.dot, '0,1', 'the T starts at the junction');
   assert.deepEqual(first('ends-05'), {type: 'move', action: {type: 'block', dot: 'o'}, text: 'Block the centre dot.'});
-  assert.deepEqual(first('ends-10'), {type: 'move', action: {type: 'cant'}, text: 'Press Can’t.'});
+  // A goal no blocks reach: a try, a Check with the authored reason, then Can't.
+  const g = byId('ends-10');
+  assert.deepEqual(first('ends-10'), {type: 'move', action: {type: 'block', dot: '0,0'}, text: g.hints[0]});
+  let c = play(g, freshAttempt(g), ...block('0,0'));
+  assert.deepEqual(nextHint(g, c), {type: 'move', action: {type: 'block', dot: '1,0'}, text: 'Block the dot one step right of a block.'});
+  c = play(g, c, ...block('1,0', '-1,0'));
+  assert.deepEqual(nextHint(g, c), {type: 'move', action: {type: 'check'}, text: g.hints[1]});
+  c = play(g, c, {type: 'check'});
+  assert.deepEqual(nextHint(g, c), {type: 'move', action: {type: 'cant'}, text: g.hints[2]});
+  assert.deepEqual(nextHint(g, play(g, freshAttempt(g), ...block('4,4'))).action, {type: 'check'}, 'blocks elsewhere: Check, not Can’t');
   const p = byId('ends-02');
   let a = play(p, freshAttempt(p), ...block('0,0'));
   assert.deepEqual(nextHint(p, a), {type: 'move', action: {type: 'block', dot: '0,1'}, text: 'Block the dot one step down from a block.'});
@@ -206,20 +221,20 @@ test('rendering: the board, slots, Check and Can’t; the pieces after Check; th
   assert.equal((html.match(/<i class="ends-used">/g) || []).length, 2);
   // A right Can't on the grid: the box, the ring road, one piece outside.
   const g = byId('ends-10');
-  html = view(g, play(g, freshAttempt(g), ...block('0,0', '1,0', '2,0'), {type: 'cant'}));
+  html = view(g, play(g, freshAttempt(g), ...block('0,0', '1,0', '2,0'), {type: 'check'}, {type: 'cant'}));
   assert.match(html, /class="ends-box"/);
   assert.match(html, /class="ends-ring"/);
   assert.match(html, /Outside the box: 1 piece\./);
   assert.doesNotMatch(html, /ends-bar/, 'solved: no buttons');
   // On the ladder there is no ring road, and two pieces outside.
   const l = byId('ends-06');
-  html = view(l, play(l, freshAttempt(l), {type: 'cant'}));
+  html = view(l, play(l, freshAttempt(l), ...block('0,0'), {type: 'check'}, {type: 'cant'}));
   assert.match(html, /class="ends-box"/);
   assert.doesNotMatch(html, /class="ends-ring"/);
   assert.match(html, /Outside the box: 2 pieces\./);
   // A wrong Can't.
   const w = byId('ends-03');
-  assert.match(view(w, play(w, freshAttempt(w), {type: 'cant'})), /It can be done\./);
+  assert.match(view(w, play(w, freshAttempt(w), ...block('0,0'), {type: 'check'}, {type: 'cant'})), /It can be done\./);
   // The tree, with a trapped centre.
   const t = byId('ends-05');
   html = view(t, play(t, freshAttempt(t), ...block('a', 'b', 'c'), {type: 'check'}));
@@ -229,6 +244,25 @@ test('rendering: the board, slots, Check and Can’t; the pieces after Check; th
   // A marked dot at the second hint level.
   const h = view(byId('ends-02'), {...freshAttempt(byId('ends-02')), hintLevel: 2});
   assert.match(h, /class="ends-dot hinted[^"]*" data-dot="0,0"/);
+});
+
+test('Can’t waits for a Check with a block; the certificate fits its box, with the ring road over the roads; the tree’s controls', () => {
+  const g = byId('ends-10');
+  const disabled = html => /data-focus="ends-cant"\s+disabled/.test(html);
+  assert.ok(disabled(view(g, freshAttempt(g))), 'Can’t is off at the start');
+  let a = play(g, freshAttempt(g), ...block(...Array.from({length: 10}, (_, i) => `${i - 4},0`)));
+  assert.ok(disabled(view(g, a)), 'and after blocks, before a Check');
+  a = play(g, a, {type: 'check'});
+  assert.ok(!disabled(view(g, a)), 'on after a Check');
+  const html = view(g, play(g, a, {type: 'cant'}));
+  const [, x, y, w, h] = html.match(/ends-flat" viewBox="([-\d.]+) ([-\d.]+) ([\d.]+) ([\d.]+)"/).map(Number);
+  assert.ok(x <= -5.5 && x + w >= 6.5 && y <= -1.5 && y + h >= 1.5, `the box and its ring are in view (${x} ${y} ${w} ${h})`);
+  assert.ok(near(w / h, 1), 'the grid’s view keeps its shape');
+  assert.ok(html.lastIndexOf('class="ends-road') < html.indexOf('class="ends-ring"'), 'the ring road is drawn over the roads');
+  assert.match(html, /class="ends-home"/, 'and the round button goes back to the usual view');
+  const t = byId('ends-05');
+  const controls = [...view(t, freshAttempt(t)).matchAll(/data-dot="([a-co]+)"[^>]*role="button"/g)].map(m => m[1]).sort();
+  assert.deepEqual(controls, ['a', 'ab', 'ac', 'b', 'ba', 'bc', 'c', 'ca', 'cb', 'o'], 'the centre, its neighbours and the six dots two roads out');
 });
 
 test('panning is view state: the board moves, the home button appears and goes back', () => {
@@ -276,7 +310,7 @@ test('saves round-trip through storage, and forged saves are refused', () => {
   const {puzzles} = pack;
   const p = byId('ends-02'), a = play(p, freshAttempt(p), ...block('0,0', '1,1'), {type: 'check'});
   const t = byId('ends-12'), half = play(t, freshAttempt(t), ...block('o', 'ab'));
-  const n = byId('ends-10'), cant = play(n, freshAttempt(n), {type: 'cant'});
+  const n = byId('ends-10'), cant = play(n, freshAttempt(n), ...block('0,0'), {type: 'check'}, {type: 'cant'});
   const pg = byId('ends-playground'), toy = play(pg, freshAttempt(pg), {type: 'map', map: 'tee'}, ...block('0,1'));
   const store = {...emptyStore(), activeProfileId: 'one', profiles: [profile({[p.id]: a, [t.id]: half, [n.id]: cant, [pg.id]: toy})]};
   const storage = memory();
