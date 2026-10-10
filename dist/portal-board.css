@@ -1,0 +1,66 @@
+/* The shared portal board (portal-board.js), in the shared board palette of
+   boards.css: paper squares, ink outlines, pine for the chosen thing, ochre
+   for attention. Seams carry matching marks in sun, sky, rose and leaf, and
+   each seam line takes the colour of its marks; in the unrolled view the
+   outlines of copies are dashed in the same colours. Families add their own
+   classes on top, scoped under their own root. */
+.pb-board{display:block;width:100%;height:auto;overflow:visible;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+.pb-board.pb-slide{touch-action:none}
+.pb-square{fill:#fbf8ec;stroke:none}
+.pb-grid{stroke:#e2e6d2;stroke-width:1px;vector-effect:non-scaling-stroke}
+.pb-edge{stroke-linecap:round;vector-effect:non-scaling-stroke;pointer-events:none}
+.pb-edge.inner{stroke:#cfd6bf;stroke-width:1.2px}
+.pb-edge.wall{stroke:var(--b-ink,#294439);stroke-width:3.4px}
+.pb-edge.seam{stroke:#5b93ad;stroke-width:3.2px;stroke-dasharray:7 4}
+.pb-edge.copy{stroke:#8c9a82;stroke-width:1.8px;stroke-dasharray:5 4}
+/* A seam, and the outline between copies that crosses it, take the colour of its marks. */
+.pb-edge.sun{stroke:#c9962e}
+.pb-edge.sky{stroke:#4f8fae}
+.pb-edge.rose{stroke:#c46c55}
+.pb-edge.leaf{stroke:#5f8a67}
+.pb-edge.cut{stroke:var(--b-bad,#a9503a);stroke-width:2.6px}
+.pb-mark{stroke:var(--b-ink,#294439);stroke-width:1.4px;vector-effect:non-scaling-stroke;stroke-linejoin:round;pointer-events:none}
+.pb-mark.sun{fill:var(--b-sun,#efc76e)}
+.pb-mark.sky{fill:var(--b-sky,#9cc9de)}
+.pb-mark.rose{fill:var(--b-rose,#e7a28f)}
+.pb-mark.leaf{fill:var(--b-leaf,#86a68c)}
+.pb-mark.faint{opacity:.45;stroke-width:1px}
+.pb-label{font-family:var(--b-display,Georgia,serif);font-size:.42px;text-anchor:middle;fill:var(--b-ink,#294439);pointer-events:none}
+.pb-label.faint{fill:#7d8a72}
+.pb-hit{fill:transparent;stroke:none}
+.pb-point.act{cursor:pointer;outline:none}
+.pb-point.act .pb-hit{fill:rgba(134,166,140,.16)}
+.pb-point.act:hover .pb-hit{fill:rgba(134,166,140,.3)}
+.pb-point:focus-visible .pb-hit{fill:rgba(179,136,64,.18);stroke:var(--b-ochre,#b38840);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}
+.pb-point.hinted .pb-hit{fill:rgba(239,199,110,.5);stroke:var(--b-ochre,#b38840);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-dasharray:5 4}
+
+/* Trails: one line in the plane, broken at the seams in the room with a dot
+   where the trail leaves and comes back in. */
+.pb-trail{fill:none;stroke:rgba(49,83,62,.55);stroke-width:4px;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pb-trail-portal{fill:rgba(49,83,62,.7);pointer-events:none}
+
+/* A trip with its local moves. */
+.pb-trip{fill:none;stroke:var(--b-pine,#31533e);stroke-width:3.4px;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pb-trip-chevron{fill:none;stroke:var(--b-pine,#31533e);stroke-width:2px;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pb-vertex{outline:none}
+.pb-vertex[role="button"]{cursor:pointer}
+.pb-vertex-hit{fill:rgba(255,253,245,.01);stroke:none}
+.pb-vertex-dot{fill:var(--b-card,#fffdf5);stroke:var(--b-pine,#31533e);stroke-width:1.6px;vector-effect:non-scaling-stroke;pointer-events:none}
+.pb-vertex-tick{stroke:var(--b-pine,#31533e);stroke-width:1.4px;vector-effect:non-scaling-stroke;stroke-dasharray:2 2;pointer-events:none;opacity:0}
+.pb-vertex[role="button"] .pb-vertex-hit{fill:rgba(156,201,222,.35);stroke:#5b93ad;stroke-width:1.2px;vector-effect:non-scaling-stroke}
+.pb-vertex[role="button"].cancel .pb-vertex-hit{fill:rgba(231,162,143,.4);stroke:var(--b-bad,#a9503a)}
+.pb-vertex[role="button"] .pb-vertex-tick{opacity:1}
+.pb-vertex[role="button"]:hover .pb-vertex-hit{fill:rgba(156,201,222,.6)}
+.pb-vertex[role="button"].cancel:hover .pb-vertex-hit{fill:rgba(231,162,143,.65)}
+.pb-vertex:focus-visible .pb-vertex-hit,.pb-vertex.hinted .pb-vertex-hit{fill:rgba(239,199,110,.6);stroke:var(--b-ochre,#b38840);stroke-width:2.5px;stroke-dasharray:4 3}
+
+/* Arrow buttons in a cross. */
+.pb-pad{display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(3,48px);grid-template-areas:". u ." "l . r" ". d .";gap:3px;justify-content:center}
+.pb-pad .pb-arrow{display:grid;place-items:center;width:48px;height:48px;min-width:0;min-height:0;padding:0;border-radius:12px;border:1.5px solid var(--b-pine,#31533e);background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);font:400 1.45rem/1 var(--b-display,Georgia,serif);box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer;touch-action:manipulation}
+.pb-pad .pb-U{grid-area:u}
+.pb-pad .pb-L{grid-area:l}
+.pb-pad .pb-R{grid-area:r}
+.pb-pad .pb-D{grid-area:d}
+.pb-pad .pb-arrow[disabled]{opacity:.4;box-shadow:none;border-color:var(--b-line,#d0d6bd);cursor:default}
+.pb-pad .pb-arrow:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.pb-pad .pb-arrow.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px;background:#f6e3b0}
