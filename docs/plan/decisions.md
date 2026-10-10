@@ -13,7 +13,7 @@ Each wave is claimed on both work boards like any other item. The weeks a wave p
 1. **Wave 3, cards.** Write the card, with its port decision, for each open week of 1–63 that has none: 5, 12, 17, 19, 20, 21, 22, 27, 28, 32, 35, 36, 37, 38, 40, 41, 48, 49, 50, 51, 54, 55, 56, 57, 58, 59 and 61. Weeks 8–11 are in the app without a card; their cards follow for the review's sake and change no decision.
 2. **Wave 4, the portal board.** Week 41's pawn on a portal board with a live unrolled view, then Week 70's shields and Week 64's glued squares on it, and Week 75's strands on a wraparound strip with the same lift view.
 3. **Wave 5, roads and graphs.** Week 69 as a group in Meeting roads, Week 68 on an endless panning map, and the graph themes whose cards say port (40, 27 and 17 are the likely ones).
-4. **Wave 6, grids.** Week 15's nearest-site cells on a half-unit lattice, and the grid themes whose cards say port: 48, and likely 5, 32 and 57.
+4. **Wave 6, grids.** Week 15's nearest-site cells on a half-unit lattice, and the grid themes whose cards say port: 32 and 48, and likely 5 and 57.
 5. **Wave 7, sets and numbers.** 12, 19, 20, 22, 36, 49, 54 and 55, whose cards say port, and 51 and 58 as their cards decide.
 6. **Wave 8, symmetry, words and reflections.** 35, 37, Week 76's shrink tool, and Weeks 71 and 21 as groups in Mirror Couriers.
 7. **Wave 9, the rest.** Week 65's octagon floor, 73, 77 and 78, and the paper-and-continuous themes (28, 38, 50, 56, 59 and 61). Each gets a port with a real on-screen solve or a final reason not to.
@@ -56,7 +56,7 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 29 | Two rod lengths | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-29.md) | In the app | Full jugs in Spring-water Jugs |
 | 30 | Balanced ternary weights | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-30.md) | In the app | Weight kits in the Odd-pebble Balance |
 | 31 | Lattice visibility | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-31.md) | In the app | Sight lines in Mirror Couriers (PR #14) |
-| 32 | Euclid by squares | none | Open, wave 3 | Card first; the plan suggests folding it into the gcd families |
+| 32 | Euclid by squares | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-32.md) | Open, wave 6 | A square-piece group in Tile gardens: fewest squares, fill with 2s and 3s or show "can't", and size a rectangle for a target; not folded into the jugs, which lack the tiling |
 | 33 | Necklaces | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-33.md) | In the app | Bead rings |
 | 34 | Distinguishing colourings | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-34.md) | In the app | Hidden turns in Bead rings |
 | 35 | Frieze symmetry | none | Open, wave 3 | Card first |
