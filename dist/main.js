@@ -21,6 +21,8 @@ let sessionCompleted=new Set(),activePlay=null;
 // Road reactions last until the next move or page: what the keeper just said,
 // what the last solve earned, and whether the scene should play its change.
 let reaction=null,solveResult=null,oopsCount=0;
+// A solve whose strip is still held back (bells still ringing) takes focus when it appears.
+let focusDone=false;
 let storage;
 try{storage=window.localStorage;}catch{storage={getItem(){throw Error();},setItem(){throw Error();},removeItem(){throw Error();}};}
 const uid=()=>globalThis.crypto?.randomUUID?.()||`explorer-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -65,12 +67,23 @@ function render(){
   document.body.dataset.view=view||'map';
   document.body.classList.toggle('on-encounter',Boolean(encounter));
   if(encounter)document.body.dataset.stop=encounter.stop;else delete document.body.dataset.stop;
-  keepMedia(app,()=>{app.innerHTML=caravanHeader(pr,view==='library'||(view==='play'&&!encounter)?'library':view==='journal'?'journal':'journey')+(warning?`<div class="error-banner" role="status">${esc(warning)}</div>`:'')+`<main class="shell" id="main">${content}</main>`;});
+  keepMedia(app,()=>{
+    const kept=new Map([...app.querySelectorAll('[data-keep]')].map(node=>[node.dataset.keep,node]));
+    app.innerHTML=caravanHeader(pr,view==='library'||(view==='play'&&!encounter)?'library':view==='journal'?'journal':'journey')+(warning?`<div class="error-banner" role="status">${esc(warning)}</div>`:'')+`<main class="shell" id="main">${content}</main>`;
+    // An unchanged speech bubble or solved strip keeps its node, so its entrance
+    // animation plays once instead of on every frame of a re-render.
+    for(const node of [...app.querySelectorAll('[data-keep]')]){
+      if(!app.contains(node))continue;
+      const html=node.outerHTML,old=kept.get(node.dataset.keep);
+      if(old&&old.keepHtml===html)node.replaceWith(old);else node.keepHtml=html;
+    }
+  });
   if(encounter&&isSolved(p,attempt(p).board)){
     app.querySelectorAll('.board-panel button,.board-panel input,.board-panel select').forEach(control=>{control.disabled=true;});
     app.querySelectorAll('.board-panel [role="button"],.board-panel [role="slider"]').forEach(control=>{control.setAttribute('aria-disabled','true');control.setAttribute('tabindex','-1');});
   }
   if(focus){let target=(focusedPair?app.querySelector(`[data-pair="${CSS.escape(focusedPair)}"]`):app.querySelector(`[data-focus="${CSS.escape(focus)}"]`));if(!target||target.disabled||target.getAttribute('aria-disabled')==='true')target=app.querySelector('.latin-cell[aria-pressed="true"]:not(:disabled)')||app.querySelector('.nim-status')||app.querySelector('#completion-heading')||familyFocus()||app.querySelector('.duel-status')||app.querySelector('.garden-cell');target?.focus({preventScroll:true});}
+  if(focusDone){const heading=app.querySelector('#completion-heading');if(heading){focusDone=false;heading.focus({preventScroll:true});}}
   wireForms();
   wireTileBoard();
   wireClockBoard();
@@ -194,7 +207,7 @@ function wireClockBoard(){
 function wireForms(){
   document.querySelectorAll('form[data-puzzle-form]').forEach(form=>form.addEventListener('submit',e=>{e.preventDefault();const p=puzzle();if(p&&profile())applyPair(p,Object.fromEntries(new FormData(e.currentTarget)),p.mechanic==='clock'?'ring':null);}));
   document.querySelector('.clock-board input[name="activations"]')?.addEventListener('input',e=>clockTimeline.edit(e.target.value));
-  document.querySelector('#profile-form')?.addEventListener('submit',e=>{e.preventDefault();const data=new FormData(e.currentTarget),name=String(data.get('name')).trim();if(!name){document.querySelector('#nickname').focus();return;}if(state.profiles.length>=30){dialog('All save slots are full','<p>There is room for 30 explorers. Export and remove an unused save in the grown-up area.</p>');return;}const pr={id:uid(),name,band:data.get('band'),avatar:Number(data.get('avatar')),sound:false,attempts:{}};state.profiles.push(pr);state.activeProfileId=pr.id;save();go(['library','play'].includes(route()[0])?location.hash.slice(1):'map');});
+  document.querySelector('#profile-form')?.addEventListener('submit',e=>{e.preventDefault();const data=new FormData(e.currentTarget),name=String(data.get('name')).trim();if(!name){document.querySelector('#nickname').focus();return;}if(state.profiles.length>=30){dialog('All save slots are full','<p>There is room for 30 explorers. Export and remove an unused save in the grown-up area.</p>');return;}const pr={id:uid(),name,band:data.get('band'),avatar:0,sound:false,attempts:{}};state.profiles.push(pr);state.activeProfileId=pr.id;save();go(['library','play'].includes(route()[0])?location.hash.slice(1):'map');});
   document.querySelector('#checker')?.addEventListener('change',e=>{checker=e.target.checked;document.querySelector('.tile-board')?.classList.toggle('show-checker',checker);});
   document.querySelector('#catalog-band')?.addEventListener('change',()=>render());
   document.querySelector('#sound-toggle')?.addEventListener('change',e=>{profile().sound=e.target.checked;save();render();});
@@ -235,7 +248,7 @@ function openEncounter(id){
   if(!profile().attempts[next.puzzle.id])profile().attempts[next.puzzle.id]=freshAttempt(next.puzzle);
   save();go(`play/${next.puzzle.id}/${next.encounter.id}`);
 }
-function applyPair(p,pair,intent=null){const a=attempt(p),encounter=activeEncounter();if(encounter&&isSolved(p,a.board))return;const next=move(p,a,pair);selected=p.mechanic==='latin'?Number(pair.cell):null;tileSelection=[];highlighted=null;if(!next){message=isExpansion(p)?'That move is not allowed. Check How to play.':p.mechanic==='tile'?'':'Choose a listed pair.';if(encounter)reaction={key:location.hash,kind:'oops',n:oopsCount++};render();return;}message='';if(next!==a)reaction=null;if(isSolved(p,next.board)&&!a.completed)sessionCompleted.add(p.id);profile().attempts[p.id]=next;if(encounter&&isSolved(p,next.board)){const result=recordSolve(profile(),p.id,encounter.id,puzzles);solveResult=result?{...result,key:location.hash}:null;}save();if(p.mechanic==='clock'){if(intent==='ring')clockTimeline.ring(p,next.board.prediction,window.matchMedia('(prefers-reduced-motion: reduce)').matches);else clockTimeline.restore(p,next.board.prediction);}else render();if(isSolved(p,next.board)){if(encounter)window.scrollTo(0,0);document.querySelector('#completion-heading')?.focus({preventScroll:true});}}
+function applyPair(p,pair,intent=null){const a=attempt(p),encounter=activeEncounter();if(encounter&&isSolved(p,a.board))return;const next=move(p,a,pair);selected=p.mechanic==='latin'?Number(pair.cell):null;tileSelection=[];highlighted=null;if(!next){message=isExpansion(p)?'That move is not allowed. Check How to play.':p.mechanic==='tile'?'':'Choose a listed pair.';if(encounter)reaction={key:location.hash,kind:'oops',n:oopsCount++};render();return;}message='';if(next!==a)reaction=null;if(isSolved(p,next.board)&&!a.completed)sessionCompleted.add(p.id);profile().attempts[p.id]=next;if(encounter&&isSolved(p,next.board)){const result=recordSolve(profile(),p.id,encounter.id,puzzles);solveResult=result?{...result,key:location.hash}:null;}save();if(p.mechanic==='clock'){if(intent==='ring')clockTimeline.ring(p,next.board.prediction,window.matchMedia('(prefers-reduced-motion: reduce)').matches);else clockTimeline.restore(p,next.board.prediction);}else render();if(isSolved(p,next.board)){if(encounter)window.scrollTo(0,0);const heading=document.querySelector('#completion-heading');if(heading)heading.focus({preventScroll:true});else focusDone=true;}}
 document.addEventListener('keydown',event=>{
   const wire=event.target.closest('.wire-hit');
   if(wire&&['Enter',' '].includes(event.key)){event.preventDefault();if(wire.getAttribute('aria-disabled')!=='true')wire.dispatchEvent(new MouseEvent('click',{bubbles:true}));return;}

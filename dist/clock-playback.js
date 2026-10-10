@@ -10,7 +10,7 @@ export function createClockTimeline(onFrame, schedule = setTimeout, cancel = cle
   const frame = () => onFrame();
   return {
     get key() { return key; },
-    get presentation() { return { draft, count }; },
+    get presentation() { return { draft, count, total }; },
     leave() { stop(); key = null; draft = null; count = 0; total = 0; },
     enter(nextKey, p, prediction) {
       if (key === nextKey) return;

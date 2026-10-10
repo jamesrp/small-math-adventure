@@ -7,6 +7,7 @@
 // Campaign boards are copies of checked catalog instances. Their saves never
 // touch the library's saves, and solving in the library never moves the road.
 import { isSolved, freshAttempt, nextHint } from './engine.js';
+import { routeInfo, shortestCover } from './networks.js';
 import { withCampaignPuzzles as withRoad3Puzzles } from './caravan-road3.js';
 import { COMPANIONS } from './caravan-legacy.js';
 import { CAST, PARTY } from './road-cast.js';
@@ -21,10 +22,11 @@ const SLACK = { ferry: 2, marsh: 2, ridge: 1, hollow: 1, workshop: 1, lighthouse
 const PREDICTION_SLACK = { ferry: 2, marsh: 2, ridge: 1, hollow: 1, workshop: 1, lighthouse: 0, fair: 0 };
 
 // What Plume's number counts, by mechanic. Families without a natural count
-// (routes and weighings already fix their budget; games and proofs have no
-// count) have no score card.
+// (weighings already fix their budget; games and proofs have no count) have
+// no score card. Road routes count the distance walked: their copies allow
+// repeated roads, so the shortest walk that covers every road is the best.
 export const SCORE_UNITS = {
-  swap: ['swap', 'swaps'], toggle: ['press', 'presses'], jug: ['step', 'steps'], tile: ['move', 'moves'],
+  swap: ['swap', 'swaps'], toggle: ['press', 'presses'], jug: ['step', 'steps'], tile: ['move', 'moves'], route: ['step', 'steps'],
   latin: ['mark', 'marks'], color: ['color', 'colors'], clock: ['ring', 'rings'], billiard: ['launch', 'launches'], code: ['try', 'tries'],
 };
 const PREDICTION = new Set(['clock', 'billiard', 'code']);
@@ -247,6 +249,12 @@ export function withCampaignPuzzles(puzzles) {
     if (e.requires) copy.requiresTool = e.requires;
     // Checker in the side garden is earned by the painted proof at the Hollow.
     if (copy.parameters?.checkerAfter) copy.parameters = { ...copy.parameters, checkerAfter: campaignId('hollow-plots', band) };
+    // Routes on the road light every lamp by any walk; the shortest walk is
+    // Plume's target (an Euler trail where one exists, else the postman tour).
+    if (copy.mechanic === 'route') {
+      const best = shortestCover(source.parameters).cost;
+      copy.parameters = { ...source.parameters, mode: 'cover', target_cost: best, cost_cap: 3 * best };
+    }
     return [copy];
   }));
   const all = [...archived, ...extras];
@@ -290,6 +298,7 @@ export function scoreOf(p, attempt) {
   const truncated = attempt.history.length < attempt.moves;
   switch (p.mechanic) {
     case 'toggle': return attempt.board.presses.length;
+    case 'route': return routeInfo(p, attempt.board)?.cost ?? Infinity;
     case 'code': return truncated ? Infinity : line.filter(b => b.submitted).length;
     case 'color': return truncated ? Infinity : line.slice(1).filter((b, i) => b.colors.join() !== line[i].colors.join()).length;
     default: return attempt.moves;
@@ -307,6 +316,7 @@ export function optimumOf(p) {
     case 'latin': value = p.parameters.givens.flat().filter(x => !x).length; break;
     case 'color': value = p.parameters.vertices.length; break;
     case 'clock': case 'billiard': case 'code': value = 1; break;
+    case 'route': value = p.parameters.mode === 'cover' ? p.parameters.target_cost : null; break;
     case 'toggle': case 'jug': { const h = nextHint(p, freshAttempt(p)); value = h.type === 'move' ? h.remaining : null; break; }
   }
   optimumCache.set(key, value);

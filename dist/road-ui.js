@@ -4,8 +4,7 @@ import { BANDS, isSolved } from './engine.js';
 import { STOPS, SIDE, CAST, TOOLS, BAND_KEYS, getProgress, medals, trailFor, stopOf, rivalScore, rivalVerdict, maxStars, starsFor, SCORE_UNITS, campaignId, withCampaignPuzzles, resolvePuzzle, canVisitEncounter, continueAfter } from './road.js';
 import { pick } from './road-cast.js';
 import { media, slots, asset } from './art.js';
-import { keeperArt, sceneArt, mapArt, wagonArt, toolArt, finaleArt, MAP_POINTS } from './road-placeholders.js';
-import { companionSvg } from './caravan-art.js';
+import { keeperArt, sceneArt, mapArt, wagonArt, toolArt, finaleArt, MAP_POINTS, MAP_REGIONS, MAP_WAGON } from './road-placeholders.js';
 import * as legacy from './caravan-legacy.js';
 import * as rescue from './caravan-rescue.js';
 import * as road3 from './caravan-road3.js';
@@ -26,14 +25,19 @@ const keeperPortrait = (id, wanted, key = 'keeper', nonce = '') => {
 };
 
 // Map -------------------------------------------------------------------------
+// The map carries no place names: each stop is a tappable region over its
+// landmark. The next stop glows; stops already reached open their sheet.
+// Once the road is finished the fair glows and opens the finale.
 function stopButton(stop, i, progress, profile, layout) {
-  const [x, y] = MAP_POINTS[layout][stop.id], trail = progress.trail;
-  const stage = progress.stages[i], lit = stage === stop.encounters.length, current = i === progress.stopIndex && !progress.complete;
+  const [x, y, w, h] = MAP_REGIONS[layout][stop.id], trail = progress.trail;
+  const lit = progress.stages[i] === stop.encounters.length;
+  const current = progress.complete ? stop.id === STOPS.at(-1).id : i === progress.stopIndex;
   const reached = trail.started && i <= progress.stopIndex, earned = stop.encounters.reduce((sum, e) => sum + (trail.stars[e.id] || 0), 0);
   const won = medals(profile)[stop.id], open = reached || current;
-  const action = !open ? '' : current ? (trail.started ? 'continue-journey' : 'start-journey') : 'stop-sheet';
-  const label = `${stop.title}${lit ? ', lit' : current ? ', next' : reached ? '' : ', ahead'}${reached ? `, ${earned} stars` : ''}`;
-  return `<button type="button" class="lr-stop ${lit ? 'is-lit' : ''} ${current ? 'is-current' : ''} ${open ? '' : 'is-ahead'}" style="--x:${x}%;--y:${y}%" data-action="${action || 'noop'}" data-id="${stop.id}" data-focus="stop-${layout}-${stop.id}" ${open ? '' : 'disabled'} aria-label="${esc(label)}"><span class="lr-stop-name">${esc(stop.title)}</span>${reached ? `<span class="lr-stop-stars" aria-hidden="true">★ ${earned}</span>` : ''}${won.length ? `<span class="lr-medals" aria-hidden="true">${BAND_KEYS.map(b => `<i class="${won.includes(b) ? 'on' : ''} band-${b}"></i>`).join('')}</span>` : ''}</button>`;
+  const action = !open ? 'noop' : progress.complete && current ? 'finale' : current ? (trail.started ? 'continue-journey' : 'start-journey') : 'stop-sheet';
+  const label = `${stop.title}${progress.complete && current ? ', the fair is waiting' : lit ? ', lit' : current ? ', next' : reached ? '' : ', ahead'}${reached ? `, ${earned} stars` : ''}`;
+  const badge = earned || won.length ? `<span class="lr-stop-badge" aria-hidden="true">${earned ? `<span class="lr-stop-stars">★ ${earned}</span>` : ''}${won.length ? `<span class="lr-medals">${BAND_KEYS.map(b => `<i class="${won.includes(b) ? 'on' : ''} band-${b}"></i>`).join('')}</span>` : ''}</span>` : '';
+  return `<button type="button" class="lr-stop ${lit ? 'is-lit' : ''} ${current ? 'is-current' : ''} ${open ? '' : 'is-ahead'}" style="--x:${x}%;--y:${y}%;--w:${w}%;--h:${h}%" data-action="${action}" data-id="${stop.id}" data-focus="stop-${layout}-${stop.id}" ${open ? '' : 'disabled'} aria-label="${esc(label)}"><span class="lr-stop-glow" aria-hidden="true"></span>${badge}</button>`;
 }
 function sideButton(side, progress, layout) {
   const [x, y] = MAP_POINTS[layout][side.stop], trail = progress.trail;
@@ -41,24 +45,22 @@ function sideButton(side, progress, layout) {
   return `<button type="button" class="lr-side ${side.done ? 'is-done' : side.unlocked ? 'is-open' : 'is-locked'}" style="--x:${x}%;--y:${y}%" data-action="open-encounter" data-id="${side.id}" data-focus="side-${layout}-${side.id}" aria-label="${esc(side.title)}${side.done ? `, ${stars} stars` : side.unlocked ? '' : `, needs the ${TOOLS[side.requires].name.toLowerCase()}`}">${media(slots.tool(side.requires), toolArt(side.requires), { key: `side-${layout}-${side.id}`, cls: 'lr-side-icon' })}${side.done ? '<span aria-hidden="true">★</span>' : side.unlocked ? '' : '<span class="lr-lock" aria-hidden="true">🔒</span>'}</button>`;
 }
 function mapLayer(progress, profile, layout) {
-  const pts = MAP_POINTS[layout], here = progress.stop.id, plume = STOPS[progress.plumeAt].id;
-  const wagon = (who, stopId, extra = '') => { const [x, y] = pts[stopId]; return `<div class="lr-wagon lr-wagon-${who} ${extra}" style="--x:${x}%;--y:${y}%" aria-hidden="true">${media(slots.wagon(who), wagonArt(who), { key: `wagon-${layout}-${who}` })}</div>`; };
-  return `<div class="lr-map-layer lr-map-${layout}">${media(slots.map(layout), mapArt(layout, progress.litStops), { key: `map-${layout}`, cls: 'lr-map-art' })}${progress.started ? wagon('party', here, progress.complete ? 'at-finish' : '') : ''}${progress.complete ? '' : wagon('plume', plume, plume === here ? 'same-stop' : '')}${STOPS.map((s, i) => stopButton(s, i, progress, profile, layout)).join('')}${progress.sides.map(side => sideButton(side, progress, layout)).join('')}</div>`;
+  const here = progress.stop.id, plume = STOPS[progress.plumeAt].id;
+  const wagon = (who, stopId, extra = '') => { const [x, y] = MAP_WAGON[layout][stopId]; return `<div class="lr-wagon lr-wagon-${who} ${extra}" style="--x:${x}%;--y:${y}%" aria-hidden="true">${media(slots.wagon(who), wagonArt(who), { key: `wagon-${layout}-${who}` })}</div>`; };
+  return `<div class="lr-map-layer lr-map-${layout}">${media(slots.map(layout), mapArt(layout, progress.litStops), { key: `map-${layout}`, cls: 'lr-map-art' })}${STOPS.map((s, i) => stopButton(s, i, progress, profile, layout)).join('')}${progress.started ? wagon('party', here, progress.complete ? 'at-finish' : '') : ''}${progress.complete ? '' : wagon('plume', plume, plume === here ? 'same-stop' : '')}${progress.sides.map(side => sideButton(side, progress, layout)).join('')}</div>`;
 }
 export function roadMapView(profile) {
   const progress = getProgress(profile);
-  const cta = progress.complete
-    ? button(`The Lantern Fair <span aria-hidden="true">✦</span>`, 'finale', 'primary lr-cta')
-    : button(`${esc(progress.stop.title)} <span aria-hidden="true">→</span>`, progress.started ? 'continue-journey' : 'start-journey', 'primary lr-cta', `aria-label="${progress.started ? 'Continue at' : 'Start at'} ${esc(progress.stop.title)}"`);
   const tools = progress.tools.map(t => `<span class="lr-tool" role="img" aria-label="${esc(TOOLS[t].name)}">${media(slots.tool(t), toolArt(t), { key: `tool-${t}` })}</span>`).join('');
-  return `<section class="lr-overview"><h1 class="sr-only">The Lantern Road</h1><div class="lr-bar">${button(`Grades ${esc(BANDS[profile.band].label)} <span aria-hidden="true">⌄</span>`, 'change-band', 'trail-choice')}${progress.started ? `<span class="lr-total" role="img" aria-label="${progress.stars} stars">★ ${progress.stars}</span>` : ''}${tools ? `<span class="lr-tools">${tools}</span>` : ''}${button('Journal', 'journal', 'lr-journal')}</div><div class="lr-atlas">${mapLayer(progress, profile, 'wide')}${mapLayer(progress, profile, 'tall')}<div class="lr-next">${cta}</div></div><div class="lr-crew" aria-hidden="true">${['pip', 'moss', 'rook', 'bea', 'fern', 'tumble'].map(id => media(slots.party(id), companionSvg(id), { key: `crew-${id}`, cls: `lr-crew-${id}` })).join('')}</div></section>`;
+  const hud = progress.started ? `<div class="lr-hud"><span class="lr-total" role="img" aria-label="${progress.stars} stars">★ ${progress.stars}</span>${tools ? `<span class="lr-tools">${tools}</span>` : ''}</div>` : '';
+  return `<section class="lr-overview"><h1 class="sr-only">The Lantern Road</h1><div class="lr-atlas">${mapLayer(progress, profile, 'wide')}${mapLayer(progress, profile, 'tall')}${hud}</div></section>`;
 }
 
 // Scene above a road puzzle -----------------------------------------------------
 // What the speaker says now, with a stable voice ID for recorded audio
 // (art manifest key "voice/<id>"; see docs/art/ROADMAP.md).
-export function encounterLine(e, p, attempt, reaction) {
-  const cast = CAST[e.speaker], solved = isSolved(p, attempt.board);
+export function encounterLine(e, p, attempt, reaction, held = false) {
+  const cast = CAST[e.speaker], solved = isSolved(p, attempt.board) && !held;
   const board = attempt.board, gameLost = (e.mechanic === 'nim' || e.mechanic === 'duel') && Array.isArray(board?.piles) && !board.piles.some(Boolean) && board.turns?.at(-1)?.player === 'opponent';
   const from = (kind, list, seed) => { const i = Math.abs(seed) % list.length; return { text: list[i], voice: `${e.speaker}/${kind}-${i + 1}` }; };
   if (solved) return { text: e.lines.win, pose: 'happy', voice: `${e.id}/win` };
@@ -68,19 +70,19 @@ export function encounterLine(e, p, attempt, reaction) {
   if (e.side && p.missingAbility) return { text: e.lines.locked, pose: 'talk', voice: `${e.id}/locked` };
   return { text: e.lines.open, pose: attempt.moves ? 'idle' : 'talk', voice: `${e.id}/open` };
 }
-export function encounterScene(e, profile, p, attempt, { reaction = null, changed = false } = {}) {
+export function encounterScene(e, profile, p, attempt, { reaction = null, changed = false, held = false } = {}) {
   const stop = stopOf(e.stop), trail = trailFor(profile, p.band), cast = CAST[e.speaker];
-  const solved = isSolved(p, attempt.board), done = stop.encounters.filter(x => trail.completed.includes(x.id)).length;
+  const solved = isSolved(p, attempt.board) && !held, done = stop.encounters.filter(x => trail.completed.includes(x.id) && !(held && x.id === e.id)).length;
   // The scene shows the stop's state; a just-solved main puzzle plays the change.
   const stage = e.side ? done : Math.min(stop.encounters.length, Math.max(done, e.step + (solved ? 1 : 0)));
   const sceneSlot = changed && !e.side && stage > 0 && asset(slots.sceneChange(stop.id, stage)) ? slots.sceneChange(stop.id, stage) : slots.scene(stop.id, stage);
-  const said = encounterLine(e, p, attempt, reaction);
+  const said = encounterLine(e, p, attempt, reaction, held);
   const rival = rivalScore(e, p), unit = SCORE_UNITS[p.mechanic];
   const verdict = solved ? rivalVerdict(e, p, attempt) : null;
   const plumeCard = rival === null ? '' : `<div class="lr-rival ${verdict ? `is-${verdict.result}` : ''}" role="group" aria-label="Plume’s score: ${plural(rival, unit)}">${keeperPortrait('plume', verdict ? (verdict.result === 'lose' ? 'happy' : 'oops') : 'idle', 'rival')}<div><strong>${esc(plural(rival, unit))}</strong>${verdict ? `<span>${esc(pick(CAST.plume[verdict.result], verdict.mine + verdict.rival))}</span>` : ''}</div></div>`;
   return `<section class="lr-scene mood-${stop.id}" data-stop="${stop.id}" data-stage="${stage}" aria-label="${esc(stop.title)}">
     ${media(sceneSlot, sceneArt(stop.id, stage), { key: 'scene', cls: 'lr-scene-art', then: sceneSlot !== slots.scene(stop.id, stage) ? slots.scene(stop.id, stage) : null, loop: sceneSlot === slots.scene(stop.id, stage) })}
-    <div class="lr-keeper">${keeperPortrait(e.speaker, said.pose, 'keeper', reaction?.n ?? '')}<p class="lr-bubble" role="status" aria-live="polite"><span class="lr-speaker">${esc(cast.name)}</span> ${esc(said.text)} <button type="button" class="lr-listen" data-action="hear-story" data-text="${esc(said.text)}" data-voice="voice/${esc(said.voice)}" aria-label="Listen to ${esc(cast.name)}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M11 4 6 8H3v8h3l5 4V4Z"/><path d="M15 8a6 6 0 0 1 0 8"/></svg></button></p></div>
+    <div class="lr-keeper">${keeperPortrait(e.speaker, said.pose, 'keeper', reaction?.n ?? '')}<p class="lr-bubble" role="status" aria-live="polite" data-keep="bubble"><span class="lr-speaker">${esc(cast.name)}</span> ${esc(said.text)} <button type="button" class="lr-listen" data-action="hear-story" data-text="${esc(said.text)}" data-voice="voice/${esc(said.voice)}" aria-label="Listen to ${esc(cast.name)}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M11 4 6 8H3v8h3l5 4V4Z"/><path d="M15 8a6 6 0 0 1 0 8"/></svg></button></p></div>
     ${plumeCard}
   </section>`;
 }
@@ -98,7 +100,7 @@ export function encounterDone(e, profile, p, attempt, result) {
     ...(verdict ? [{ icon: keeperArt('plume', 'idle', CAST.plume.color), name: verdict.result === 'tie' ? 'Tied Plume' : 'Beat Plume', got: verdict.result !== 'lose' }] : []),
   ].map(r => `<li class="${r.got ? 'got' : ''}"><span class="lr-reason-icon" aria-hidden="true">${r.icon}</span>${esc(r.name)}</li>`).join('');
   const tool = result?.grants ? `<div class="lr-tool-earned">${media(slots.tool(result.grants), toolArt(result.grants), { key: 'earned-tool' })}<strong>${esc(TOOLS[result.grants].name)}</strong></div>` : '';
-  return `<section class="lr-done" aria-label="Puzzle completed"><h2 id="completion-heading" tabindex="-1">${starRow(now, max, 'big')}<span class="sr-only">Solved. ${now} of ${max} stars.</span></h2><ul class="lr-star-reasons">${reasons}</ul>${best > now ? `<p class="lr-best">Best ${starRow(best, max)}</p>` : ''}${tool}<div class="lr-done-actions">${button(`${nextLabel} <span aria-hidden="true">→</span>`, finale ? 'finale' : 'finish-encounter', 'primary lr-cta')}${button('Replay', 'replay', 'text-button')}</div></section>`;
+  return `<section class="lr-done" aria-label="Puzzle completed" data-keep="done"><h2 id="completion-heading" tabindex="-1">${starRow(now, max, 'big')}<span class="sr-only">Solved. ${now} of ${max} stars.</span></h2><ul class="lr-star-reasons">${reasons}</ul>${best > now ? `<p class="lr-best">Best ${starRow(best, max)}</p>` : ''}${tool}<div class="lr-done-actions">${button(`${nextLabel} <span aria-hidden="true">→</span>`, finale ? 'finale' : 'finish-encounter', 'primary lr-cta')}${button('Replay', 'replay', 'text-button')}</div></section>`;
 }
 
 // Stop sheet, journal, finale ---------------------------------------------------------
