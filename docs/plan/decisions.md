@@ -12,7 +12,7 @@ Each wave is claimed on both work boards like any other item. The weeks a wave p
 
 1. **Wave 3, cards.** Write the card, with its port decision, for each open week of 1–63 that has none: 5, 12, 17, 19, 20, 21, 22, 27, 28, 32, 35, 36, 37, 38, 40, 41, 48, 49, 50, 51, 54, 55, 56, 57, 58, 59 and 61. Weeks 8–11 are in the app without a card; their cards follow for the review's sake and change no decision.
 2. **Wave 4, the portal board.** Week 41's pawn on a portal board with a live unrolled view, then Week 70's shields and Week 64's glued squares on it, and Week 75's strands on a wraparound strip with the same lift view.
-3. **Wave 5, roads and graphs.** Week 69 as a group in Meeting roads, Week 68 on an endless panning map, and the graph themes whose cards say port: 17 and 27, and likely 40.
+3. **Wave 5, roads and graphs.** Week 69 as a group in Meeting roads, Week 68 on an endless panning map, and the graph themes whose cards say port: 17, 27 and 40.
 4. **Wave 6, grids.** Week 15's nearest-site cells on a half-unit lattice, and the grid themes whose cards say port: 32, 48 and 57, and likely 5.
 5. **Wave 7, sets and numbers.** 12, 19, 20, 22, 36, 49, 54 and 55, whose cards say port, and 51 and 58 as their cards decide.
 6. **Wave 8, symmetry, words and reflections.** 35, 37, Week 76's shrink tool, and Weeks 71 and 21 as groups in Mirror Couriers.
@@ -64,7 +64,7 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 37 | Tetrahedron chirality | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-37.md) | Open, wave 8 | A flat view where a tap turns the model about a corner: turn to match, place letters, sort into groups |
 | 38 | Möbius band and cuts | none | Open, wave 3 | Card first |
 | 39 | Path reduction | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-39.md) | In the app | Road detours (PR #13) |
-| 40 | Knot tricolouring | none | Open, wave 3 | Card first |
+| 40 | Knot tricolouring | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-40.md) | Open, wave 5 | Tap an arc to cycle its colour with crossings checked live: colour a knot with more than one colour, find every colouring, claim "one colour only" where true |
 | 41 | Torus portals | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-41.md) | Open, wave 4 | Building now: the shared portal board and a Portal rooms family |
 | 42 | Fair results from a bag | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-42.md) | In the app | Fair bags (PR #17) |
 | 43 | Fair shuffles | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-43.md) | In the app | Ticket shuffles (PR #15) |
