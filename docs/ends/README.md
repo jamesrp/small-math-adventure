@@ -1,0 +1,126 @@
+# Ways out
+
+October 10, 2026. Twelve puzzles and a playground built from Week 68 of the Bellingham math circle ("How many ways out"). They are in the puzzle satchel only, not on the Lantern Road. Nothing here has been played by children, and the Week 68 worksheet is an unpiloted prototype awaiting organizer review. The theme's [review card](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-68.md) says keep, and its App fit and Decision shaped this family. The maps go on forever and are panned by dragging. A blocked dot takes its roads with it. Pieces are judged when Check is pressed, never coloured while blocking. Whether a piece goes on forever comes from how the map continues, never from the edge of the screen. A right "Can't" draws its certificate. Each puzzle's `provenance` says which worksheet problem or card fix it comes from.
+
+## The mathematics
+
+A **map** is a graph: dots joined by roads, each dot with a few roads, going on forever. **Blocking** a finite set S of dots removes those dots and every road touching them. The open dots fall into **pieces** (the connected components of the map without S). On these maps a piece either has infinitely many dots and runs off forever (a **forever piece**) or has finitely many and stops (a **trapped piece**). The **number of ends** of a map is the most forever pieces that any finite S can leave. It belongs to the map alone, and maps with the same large-scale shape have the same number: it is a quasi-isometry invariant (Druţu and Kapovich, *Geometric Group Theory*, §9.1, Definition 9.3 and Exercise 9.4, printed pages 287–289, as the worksheet guide cites).
+
+- **A line, a ladder and a strip of three rows have two ends.** All the blocks fit in a box of columns. Left and right of the box are two **tails**, each one piece that runs on forever. A forever piece has dots outside the finite box, so it contains a tail. There are only two tails, so there are never more than two forever pieces, however many blocks are used. One block on the line, a rung on the ladder, or a column of three on the strip leaves exactly two (puzzles 1, 2, 4, 6, 7 and 9).
+- **The square grid has one end.** Draw a box round every block. The ring road just outside the box goes all the way round and has no block on it. Every dot outside the box reaches the ring by walking straight toward the box, so everything outside the box is one piece. Every forever piece reaches outside the box, so there is exactly one forever piece. A wall of any finite length is walked round at its ends (puzzles 3, 10 and 11).
+- **Three ladders joined in a T have three ends.** Outside a box round the junction and the blocks there are three tails: left, right and down (puzzle 8).
+- **The tree where every dot has three roads has infinitely many ends.** Blocking a dot splits its piece into at most three, so each block adds at most two pieces. Exactly, with m blocks and k roads joining two blocks, the pieces (forever and trapped together) number 2m + 1 − k. So m blocks make at most 2m + 1 forever pieces. They make exactly 2m + 1 when no two blocks touch and nothing is trapped. Three blocks make at most 7, four at most 9, and the counts grow without bound (puzzles 5 and 12). Blocking every dot within r roads of the centre leaves 3 · 2^r. This is the worksheet's Problem 7: ten blocks for 12 pieces, where ten spread-out blocks make 21.
+- **Splitting takes as many blocks as there are separate routes (Menger).** The fewest blocks that split the two ends of a ladder equal the most routes between them that share no dot. That is 2, the two rails. A split is a rung or a slanting pair, one rail at a column and the other at the next. On the strip of three rows it is 3: one block per row, with blocks in neighbouring rows at most one column apart. One block never splits the ladder, because the other rail goes round it (puzzles 2, 7 and 9).
+- **Trapping takes every neighbour.** A trapped piece has every dot next to it blocked. A grid dot has four neighbours. Two joined grid dots have six. Two dots with one dot between them share a neighbour (7 blocks), and two that touch at a corner share two (6). A ladder dot, or a dot on the edge of a strip, has three (puzzles 1, 3, 7, 9 and 11).
+
+**Limits.** "Forever" means infinitely many dots. A screen only shows a window, so the app never decides a piece by whether it touches the window's edge. It uses the box argument above: pieces are found in a box round the blocks (and the T's junction) with a ring of dots to spare, and a piece is forever exactly when it reaches outside that box. On the tree, a piece is forever exactly when it reaches a dot off the paths from the centre to the blocks. The validator recounts every claim another way. It uses union-find on large windows, where a piece is forever when it touches a window dot whose road leads out. On the tree it uses balls, where a piece is forever when it reaches the rim, and the 2m + 1 − k count.
+
+**Experiments, conjectures, explanations.** Check is the experiment: block, press, see the forever and trapped pieces coloured. The conjectures come from repeated Checks: "never more than two on the ladder", "never two on the grid", "each tree block adds two". The explanations are the tails, the box and its ring road, and "a block splits its piece into at most three". The app shows them as the certificate of a right Can't. Saying why stays a grown-up conversation in each puzzle's notes.
+
+**Levels by prerequisites.** Grade labels are approximate, and the puzzles are grade-free. The line and the grid fence (1, 3) need only telling a piece that stops from one that keeps going, and counting to four. The ladder (2, 6, 7) needs following a route round a block on the other rail. The tree (5, 12) needs counting roads and keeping blocks apart. The 2m + 1 count is for grown-ups. The Can't puzzles (4, 6, 10) ask a child to decide that something never happens. The card expects the worksheet's versions (Problems 4 and 6) to need adult talk, which it marks as a prediction. It rates the tails and box arguments a strong fit for grades 4–5, with an adult asking "where would a third one go?". The strip and the T (8, 9) ask for two jobs from one block.
+
+## Which boards carry which idea
+
+| Board | Idea | Puzzles |
+|---|---|---|
+| Line | Trapped between blocks, forever at both ends; two ends and never more | 1, 4 |
+| Ladder | One block never splits (the other rail goes round); a rung or a slanting pair does; still two ends; a dot surrounded on three sides is trapped and splits the ladder too | 2, 6, 7 |
+| Strip of three rows | Splitting needs a block in every row, and the wall may step; an edge dot has only three roads | 9 |
+| Grid | Trapping needs every neighbour; shared neighbours save blocks; one end, certified by the box and its ring road | 3, 10, 11 |
+| T of three ladders | Three ends from three ladders; blocks at the junction do two jobs | 8 |
+| Tree | Each block adds at most two pieces; spread out to reach 2m + 1; touching blocks and trapped dots lose pieces | 5, 12 |
+
+The line, ladder, grid and tree are the card's four contrasting maps. The strip and the T are the combinations. The strip is a wider ladder with the same two ends and a bigger split. The T joins three ladders, so its ends add up. Each puzzle has more than one way to place its blocks and a pitfall that Check exposes. On the line, blocks side by side trap nothing. On the ladder, a rung and then one spare block can't trap. On the T, cutting one ladder off far from the junction wastes blocks. On the tree, three blocks round the centre trap it.
+
+## Where they appear
+
+**Puzzles → Ways out** (symbol ∞) is a satchel family on the family seam ([Adding a family](../ADDING-A-FAMILY.md)), with a **Playground** button above Easy, Medium and Hard. The puzzles are grade-free (`band: "all"`). Coordinates are (x, y) with y counting down the screen; each map's start dot is in the middle of the opening view.
+
+| # | Level | Title | Map | Blocks | Goal (exactly) | An answer | Answers | Week 68 source |
+|---|---|---|---|---|---|---|---|---|
+| 1 | Easy | Two pockets | Line | 4 | 2 trapped | (−2,0), (0,0), (2,0) | 35 with three blocks, 60 with four, in nine dots | Problem 2 |
+| 2 | Easy | Split the ladder | Ladder | 2 | 2 forever | a rung, (0,0) and (0,1) | 19 in seven columns (7 rungs, 12 slanting) | Problem 3, with fix 1 (slanting splits) |
+| 3 | Easy | Fence a dot | Grid | 4 | 1 trapped | the four neighbours of (0,0) | 9 in a 5 × 5 window, all a dot's neighbours | Problem 5, left grid |
+| 4 | Easy | Three ways off a line? | Line | 4 | 3 forever | Can't: two tails | — | Problem 1, asked as a claim |
+| 5 | Medium | Seven ways out | Tree | 3 | 7 forever | the centre, ab and ba | no two touching, nothing trapped | App fit, fix 12, Problem 7's tree |
+| 6 | Medium | Three ways off a ladder? | Ladder | 4 | 3 forever | Can't: two tails | — | Problem 4 |
+| 7 | Medium | Split and trap | Ladder | 3 | 2 forever and 1 trapped | (−1,0), (1,0), (0,1) round (0,0) | 10 in seven columns, all a dot's three neighbours | New, after Problems 3 and 4 |
+| 8 | Medium | Where three ladders meet | T | 3 | 3 forever | (0,1) and (1,1) where the stem joins, and (−1,0) | 12, all at the junction | New, a combination board |
+| 9 | Hard | A wall that steps | Strip of three rows | 4 | 2 forever and 1 trapped | (−1,0), (0,1), (−1,2), (1,2): (0,2) trapped | 35 in seven columns | New, after Problems 3 and 5 |
+| 10 | Hard | Two ways off the grid? | Grid | 10 | 2 forever | Can't: the box and its ring road | — | Problem 6 |
+| 11 | Hard | Two pockets on the grid | Grid | 6 | 2 trapped | round (0,0) and (1,1), touching at a corner | 8 in a 5 × 5 window | New, after Problem 5 |
+| 12 | Hard | Nine ways out | Tree | 4 | 9 forever | the centre, ab, ba and ca | no two touching, nothing trapped | Fix 12, after Problem 7 |
+
+A goal counts the pieces exactly, and an unnamed count is free: "2 trapped" allows any number of forever pieces. The visible objective is one short line ("Trap exactly 2 pieces.", "Make 3 forever pieces.", "Make 2 forever pieces and trap 1."). The slots show the blocks allowed. The counts of answers are checked by exhaustive search in the windows named in `scripts/validate-ends.mjs`. The worksheets are in [math-circle-worksheets, week 68](https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-68).
+
+### The maps
+
+- **Line**: the dots (x, 0), roads between neighbours.
+- **Ladder**: rails y = 0 and y = 1, rungs joining (x, 0) to (x, 1).
+- **Strip of three rows**: y = 0, 1, 2, every road across and down; the start is (0, 1).
+- **Grid**: every (x, y), roads across and down. It pans both ways.
+- **T of three ladders**: the ladder across (y = 0, 1) and a ladder down from (0, 1) and (1, 1) (x = 0, 1, y ≥ 2). It pans both ways but not above the ladder across. The start is (0, 1), where the stem joins.
+- **Tree**: every dot has three roads, labelled a, b and c. A dot is named by the labels from the centre o, never the same twice in a row (ab is two roads out: a, then b). Branches never join again. It is drawn in the Poincaré disk: roads are arcs of length ln 3 meeting at 120°, and dots shrink toward the rim. Dragging moves the picture by a hyperbolic translation, so any dot can be brought to the middle and the tree looks the same from every dot.
+
+## How a puzzle plays
+
+- **Looking.** Drag the map to look along it, as far as you like. The line, ladder and strip slide sideways, and the grid and T both ways. A round button appears after a drag and goes back to the start. The map is redrawn round the view as it moves, so there is always more of it.
+- **Blocking.** Tap a dot to block it: a dark counter covers it, and its roads disappear. Tap again to take the block off. The slots above the map fill as blocks are used, and a block past the budget is refused. Undo takes back the last change. Nothing is coloured while blocking.
+- **Check.** Press Check to see the pieces. Each forever piece gets its own colour along its roads (sun, sky, rose, leaf, lilac, teal). Past six pieces the colours repeat, but pieces that meet at a block are given different colours wherever six are enough. Trapped dots turn grey with dashed roads. A line under the map says "2 forever pieces, 2 trapped.". If the counts match the goal, the puzzle is solved. Otherwise the colours stay until the next change, and Check waits for one.
+- **Can't.** Press Can't when no blocks could ever reach the goal. If that is right, the puzzle is solved and the certificate is drawn: an ochre dashed box round every block (and the T's junction), the pieces outside it coloured, and "Outside the box: 2 pieces." (the two tails) or "Outside the box: 1 piece.". On the grid the ring road just outside the box is drawn in pine. If it is wrong, "It can be done." appears, and Can't waits for a change.
+- **Copy.** The board and the slots show the task. The visible objective is the one short line in the table, and How to play gives the rules and controls. The rules never mention the box or the tails. They appear only as the certificate of a right Can't, as the card asks: no method on the page for the Can't questions.
+- **Hints.** Before any move, the first hint is the authored nudge. After that, on flat maps the hints aim at the answer nearest the current blocks, among the pack's answers moved along the map. They take off a block that is not in it ("Take a block off."), then name the next dot from a block in words ("Block the dot one step down from a block."), and end with "Press Check.". On the tree they take off one of two touching blocks ("Two blocks touch. Take one off.") or a block round a trapped piece. Otherwise they block the first dot out from the centre that keeps blocks apart and traps nothing ("Block a dot two roads from a block."), then Check. On a Can't puzzle the hint is "Press Can’t.". The second level marks the dot or button and pans to it, and the third offers Apply hint. Hints alone finish every puzzle from a fresh start, after wrong blocks, after a wrong Check and after a wrong Can't.
+- **Keyboard.** Tab reaches the map, where one dot holds the focus. Arrow keys move it along the roads, on the tree along the road pointing most nearly that way, and the map pans to follow. Enter or Space blocks or unblocks it. Check, Can't and the home button are ordinary buttons. A status line reads the blocks used and the answer.
+
+## The certificates
+
+A right Can't is a claim about every possible placement, so the app shows why it holds, not just that it does.
+
+- **Line, ladder, strip and T.** The box spans every row of the map (and the T's junction) and every column holding a block. Outside it the map falls into tails. Each tail is one piece running on forever, and the app colours each one and counts them: 2, or 3 on the T. Every forever piece must reach outside the finite box, and so must contain a whole tail. So there are never more forever pieces than tails.
+- **Grid.** The box round every block, and the ring road just outside it, drawn in pine. Everything outside the box is one coloured piece, so there is never more than one forever piece.
+- **Tree.** No tree goal is impossible (every goal is 2m + 1). The bound 2m + 1 is what makes "best" checkable: the validator confirms it for every placement of up to four blocks within three roads of the centre.
+
+The box is drawn round the blocks on the board at that moment, or round the middle of the view when nothing is blocked. The certificate is the same argument whichever blocks are there.
+
+## The playground
+
+The six maps, chosen with picture buttons: line, ladder, strip, grid, T and tree. Block up to 40 dots and press Check to see the pieces. A new map starts clear, and each keeps its own view. There is no goal, no Can't and no Hint, and it never counts as solved. A partner can set a number of forever pieces for the other to make, or to say why it can't be done. The card's closing question, which map gives the most forever pieces, is the playground's question.
+
+## Rules that keep the record honest
+
+- The save is the blocked dots, in reading order (by row, then across; on the tree by distance from the centre, then alphabetically), and what was last shown: nothing, the pieces, "it can be done" or the certificate. The playground also saves the map. The view (where the map is panned) and the keyboard's dot are not saved. Everything drawn is derived from the save.
+- Only legal moves are accepted: blocking an open dot on the map within the budget (40 in the playground), unblocking a blocked dot, Check not twice without a change, and Can't only in a puzzle and not again after "It can be done." without a change. Map changes are allowed only in the playground. Nothing is accepted after a solve.
+- Saved boards are checked. Every dot must be on the map and written the one way (`-0,0`, `01,0` and words with a letter twice in a row are refused), with no repeats, in reading order and within the budget. A certificate is accepted only where the goal really is impossible, and "it can be done" only where it is not. The playground never holds either.
+- Impossibility is decided from the map's ends, which the build checks with the mechanic and the validator recomputes. A flat goal is impossible when it asks for more forever pieces than the map has ends. A tree goal is impossible when it asks for more than 2m + 1.
+
+## Not built on the shared boards
+
+[graph-board.md](../graph-board.md) and [sq-grid.md](../sq-grid.md) draw finite maps that fit the screen, with fixed positions. Here the map must be endless and pannable, a blocked dot must take its roads with it, and the tree must be drawn in hyperbolic space so that every dot can come to the middle. So the map, its drawing, panning and taps are inside the family (`ends.js`), with no change to the shared boards.
+
+## Files
+
+| File | Contents |
+|---|---|
+| `dist/families/ends/ends.js` | Maps as bands of the grid and as words for the tree; pieces, ends, the box and outside pieces, impossibility; the `ends` mechanic (moves, hints, rendering, panning, taps and arrow keys); the Poincaré disk (Möbius maps, settling, layout, geodesic arcs); the playground |
+| `dist/families/ends/ends.css` | Paper, roads, dots, counters, piece colours, trapped grey, the box and ring road, slots, buttons, the home button and the playground's map pictures |
+| `dist/families/ends/ends.json` | The pack: a playground, 12 puzzles, 1 family and 3 sources |
+| `dist/families.js` | One line registering the module |
+| `scripts/build-ends.mjs` | Authoring list and maps; finds every answer of each flat puzzle in a window round the start (kept as shapes for hints), checks the counts in the table, the impossible goals, the tree witnesses and the bound for up to three blocks, and writes `ends.json` |
+| `scripts/validate-ends.mjs` | Every count by union-find on large windows (forever = touching a window dot whose road leads out) and on balls of the tree (forever = reaching the rim). It covers the ends of each map on growing windows, the box certificate for boxes up to 6 × 6 and the mechanic's agreement, and every placement behind the table (365,000 placements). It checks the guide's claims: 25 ladder splits in nine columns (16 slanting), one block never splits, three blocks trap only by a dot's three neighbours, the strip needs three in neighbouring columns, the grid's 4, 6 and 7, the T's twelve answers in a wider window, and the tree's 2m + 1 − k and its bound for every placement of up to four blocks within three roads. It plays the witnesses as moves and runs hint chains from fresh, after wrong Checks and Can'ts, after the pitfalls and after random blocks. It also checks illegal moves, forged saves, the playground and the content fields. `npm run build` and `tests/ends.test.mjs` run it |
+| `tests/ends.test.mjs` | Pieces and ends on every map, the box and outside pieces, the tree's words and counts, the disk (roads of length ln 3 at 120°, a step and back is no move, settling), blocking and the budget, Check and Can't, hints, arrow keys, rendering of pieces and certificates, panning and the home button, the playground, saves through storage |
+| `scripts/ends-browser-smoke.mjs` | The interface in a browser: taps, toggles, Check, drag and the home button, the budget, wrong and right Can't with the box and ring road, the keyboard on flat maps and the tree, the T, the tree's pitfall and solve, dragging the disk, the playground; `TEST_PHONE=1` for touch at 375 px |
+
+To change a puzzle, edit `scripts/build-ends.mjs`, then run `node scripts/build-ends.mjs`, `npm test` and `npm run build`.
+
+## Not yet done
+
+- **Children's play.** Nothing here has been tried by children, and the worksheet is unpiloted. Three things to watch first:
+  1. Whether children drag along a tail before saying it goes on forever, or judge by what the window shows. Also whether the colours after Check, which run off the edge of the screen, read as "this goes on forever".
+  2. Whether Can't is pressed as a guess after a Check or two. Also whether the box, the tails and the ring road read as a reason or as decoration. "It can be done." may also need a grown-up nearby to keep the child going.
+  3. On the tree, whether children find and tap dots away from the centre. The dots shrink toward the rim and must be dragged in, and dots too small to tap are pictures only. Also whether dragging the disk reads as moving along the map rather than zooming or spinning.
+- **The worksheet's other problems.** The two-player ladder game (Problem 3), the route from P to Q round the wall on the right grid (Problem 5) and Problem 8's growth question are not puzzles here. Problem 7's nested blocking is the extension to puzzle 5, and Problem 8 is a note for grown-ups.
+- **Long walls.** Puzzle 10 allows ten blocks, tapped one at a time. A child building a long wall to look for a way round may want more, or a quicker way to block a row. Dragging pans the map, so blocking by sliding a finger would need another gesture.
+- **K–1.** No K–1 trail. Puzzles 1 and 3, read aloud, are the nearest. The card's fix 7 asks the worksheet to name what the K–1 table does.
+- **Grade levels.** Grade-free; not yet in a K–1, 2–3 or 4–5 trail.
+- **Story.** Not on the Lantern Road; no keeper lines and no art.
+- **Devices.** Panning and taps are checked in Chromium at 375 px with touch and on desktop with a mouse and keys, not on real phones or tablets. On the tree, a tap goes to the nearest tappable dot within twice its drawn size. On a phone that gives dots two roads from the middle a target about 38 px across, smaller than the 44 px usually advised. Dots three roads out are pictures until dragged in.
