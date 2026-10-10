@@ -1,0 +1,40 @@
+/* Doubling elevators: levels as lines with a dot at every coordinate, each
+   level's step length at its left, ground coordinates below, the flag, the
+   trail (risers and arcs), rings on the places one move away, the pine car,
+   the move slots and an inverted-T of arrow buttons. */
+.elv-board{--elv-ink:var(--b-ink,#294439);display:flex;flex-direction:column;align-items:center;gap:.75rem;width:100%}
+.elv-field{display:flex;width:100%;max-width:min(100%,var(--elv-max,860px));box-sizing:border-box;padding:.35rem .9rem 0 .15rem;border-radius:16px;background:var(--b-paper,#f5f1e6);border:1.5px dashed var(--b-line,#d0d6bd)}
+.elv-field:focus-visible{outline:3px solid #ac7527;outline-offset:3px}
+.elv-field.solved{border:2px solid var(--b-good,#3c7a4a);background:var(--b-good-soft,#e2ecd6)}
+.elv-steps{position:relative;flex:none;width:26px}
+.elv-steps span{position:absolute;right:7px;transform:translateY(-50%);font-family:var(--b-display,Georgia,serif);font-size:.9rem;line-height:1;color:var(--b-muted,#5a6850)}
+.elv-svg{display:block;flex:1;min-width:0;overflow:visible;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.elv-level{stroke:var(--b-line,#d0d6bd);stroke-width:1.5}
+.elv-level.ground{stroke:#a9b49a;stroke-width:2.5}
+.elv-dot{fill:#9aa88f}
+.elv-coord{font-family:var(--b-display,Georgia,serif);font-size:12px;fill:var(--b-muted,#5a6850);text-anchor:middle}
+.elv-trail{fill:none;stroke:var(--b-pine,#31533e);stroke-width:3;stroke-linecap:round;opacity:.5}
+.elv-trail.last{opacity:.85}
+.elv-dest{fill:var(--b-card,#fffdf5);stroke:var(--elv-ink);stroke-width:1.6}
+.elv-dest.hinted{stroke:var(--b-ochre,#b38840);stroke-width:3;stroke-dasharray:3 2.5}
+.elv-flag-pole{stroke:var(--elv-ink);stroke-width:2;fill:none}
+.elv-flag-cloth{fill:var(--b-sun,#efc76e);stroke:var(--elv-ink);stroke-width:1.5;stroke-linejoin:round}
+.elv-flag-foot{fill:var(--elv-ink)}
+.elv-here{fill:none;stroke:none}
+.elv-car-body{fill:var(--b-pine,#31533e);stroke:var(--elv-ink);stroke-width:1.5}
+.elv-car-window{fill:var(--b-on-pine,#fff8d9)}
+.elv-slots{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;list-style:none;margin:0;padding:0;max-width:100%}
+.elv-played,.elv-slot{display:flex;align-items:center;justify-content:center;width:24px;height:28px;box-sizing:border-box;border-radius:7px}
+.elv-played{background:var(--b-card,#fffdf5);border:1px solid var(--b-line,#d0d6bd)}
+.elv-slot{border:1.5px dashed var(--b-line,#d0d6bd)}
+.elv-arrow{display:block;width:16px;height:16px;fill:none;stroke:var(--elv-ink);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.elv-arrow.to-D{transform:rotate(180deg)}
+.elv-arrow.to-L{transform:rotate(-90deg)}
+.elv-arrow.to-R{transform:rotate(90deg)}
+.elv-pad{display:grid;grid-template-columns:repeat(3,58px);grid-template-areas:". u ." "l d r";gap:.45rem}
+.elv-board .elv-move{display:flex;align-items:center;justify-content:center;min-width:0;min-height:48px;padding:0}
+.elv-move.to-U{grid-area:u}.elv-move.to-L{grid-area:l}.elv-move.to-D{grid-area:d}.elv-move.to-R{grid-area:r}
+.elv-move .elv-arrow{width:24px;height:24px}
+.elv-board .hinted.elv-move{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.elv-tools{display:flex;justify-content:center;gap:.5rem}
+@media (max-width:420px){.elv-slots{gap:3px}.elv-played,.elv-slot{width:21px;height:26px;border-radius:6px}.elv-field{padding:.3rem .55rem 0 0}.elv-steps{width:22px}.elv-steps span{right:5px;font-size:.82rem}.elv-pad{grid-template-columns:repeat(3,56px)}}
