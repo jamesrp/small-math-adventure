@@ -1,0 +1,121 @@
+/* Card machines: paper circles with ink outlines, a pine ✓ or an ink ×,
+   red R squares and blue B circles alike on arrows, chips, keys and rows, an
+   ochre glow on the arrows a row uses, numbered markers in sun, sky, rose and
+   leaf, and one bracketed ending per pair of rows. */
+.cm-puzzle{--cm-red:#c2452f;--cm-blue:#3b6797;--cm-red-soft:#f6ddd5;--cm-blue-soft:#dce6f1;display:flex;flex-direction:column;align-items:center;gap:.6rem;width:100%}
+.cm-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .7rem;max-width:100%}
+.cm-puzzle .cm-button{min-height:46px;padding:6px 18px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.cm-puzzle .cm-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+.cm-puzzle .hinted:is(button,.cm-row,.cm-end){outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.cm-task{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+.cm-told{margin:.2rem 0 0;font-family:var(--b-display,Georgia,serif);font-size:1rem;color:var(--b-ink,#294439);text-align:center}
+
+/* The machine. */
+.cm-machine{display:block;width:100%;max-width:420px;height:auto;margin:.2rem auto;overflow:visible;user-select:none;-webkit-user-select:none}
+.cm-machine.edit{touch-action:none}
+.cm-machine text{font-family:var(--b-display,Georgia,serif);text-anchor:middle;pointer-events:none}
+.cm-start{stroke:var(--b-ink,#294439);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.cm-start-head{fill:var(--b-ink,#294439)}
+.cm-arrow .cm-line{fill:none;stroke-width:3px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.cm-arrow.r .cm-line{stroke:var(--cm-red)}
+.cm-arrow.b .cm-line{stroke:var(--cm-blue)}
+.cm-arrow.r .cm-head{fill:var(--cm-red)}
+.cm-arrow.b .cm-head{fill:var(--cm-blue)}
+.cm-arrow.stub .cm-line{stroke-dasharray:3 4;opacity:.75}
+.cm-used{fill:none;stroke:rgba(179,136,64,.5);stroke-width:11px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.cm-circle .cm-ring{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:2.5px;vector-effect:non-scaling-stroke}
+.cm-circle.yes .cm-ring{fill:#eef4e6}
+.cm-circle .cm-num{font-size:3.6px;fill:var(--b-muted,#5a6850)}
+.cm-circle .cm-mark{font-size:10px;font-weight:700;fill:var(--b-ink,#294439)}
+.cm-circle.yes .cm-mark{fill:var(--b-good,#3c7a4a)}
+.cm-machine.edit .cm-circle{cursor:pointer;outline:none}
+.cm-machine.edit .cm-circle:hover .cm-ring{fill:#f6f0dc}
+.cm-machine.edit .cm-circle:focus-visible .cm-ring,.cm-circle.hinted .cm-ring{stroke:var(--b-ochre,#b38840);stroke-width:4px;stroke-dasharray:5 3}
+.cm-machine .cm-circle.target .cm-ring{stroke:var(--b-pine,#31533e);stroke-dasharray:4 3}
+.cm-machine .cm-circle.drop .cm-ring{stroke:var(--b-pine,#31533e);stroke-width:5px;stroke-dasharray:none;fill:var(--b-good-soft,#e2ecd6)}
+.cm-chip{outline:none}
+.cm-machine.edit .cm-chip{cursor:grab}
+.cm-chip .cm-hit{fill:transparent}
+.cm-chip .cm-chip-face{stroke:var(--b-card,#fffdf5);stroke-width:1.5px;vector-effect:non-scaling-stroke}
+.cm-chip.r .cm-chip-face{fill:var(--cm-red)}
+.cm-chip.b .cm-chip-face{fill:var(--cm-blue)}
+.cm-chip text{font-size:4.6px;font-weight:700;fill:#fff}
+.cm-chip.armed .cm-hit,.cm-chip:focus-visible .cm-hit{fill:none;stroke:var(--b-pine,#31533e);stroke-width:3px;vector-effect:non-scaling-stroke}
+.cm-chip:focus-visible:not(.armed) .cm-hit{stroke:var(--b-ochre,#b38840);stroke-dasharray:4 3}
+.cm-chip.hinted .cm-hit{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:3.5px;stroke-dasharray:5 3;vector-effect:non-scaling-stroke}
+.cm-machine.dragging .cm-chips{opacity:.6}
+.cm-rubber{stroke-width:3px;stroke-dasharray:5 4;vector-effect:non-scaling-stroke;stroke-linecap:round;pointer-events:none}
+.cm-rubber.r{stroke:var(--cm-red)}
+.cm-rubber.b{stroke:var(--cm-blue)}
+@media (prefers-reduced-motion:no-preference){.cm-chip.armed .cm-chip-face{animation:cm-lift .9s ease-in-out infinite alternate}}
+@keyframes cm-lift{to{transform:scale(1.18)}}
+
+/* Markers: a row's end on the machine. */
+.cm-marker circle{stroke:var(--b-ink,#294439);stroke-width:1.5px;vector-effect:non-scaling-stroke;fill:var(--b-card,#fffdf5)}
+.cm-marker text{font-size:3.8px;fill:var(--b-ink,#294439)}
+.cm-marker.trace circle{fill:var(--b-ochre,#b38840);stroke:var(--b-card,#fffdf5);stroke-width:2px}
+.cm-marker.stuck circle{fill:var(--b-card,#fffdf5);stroke:var(--b-ochre,#b38840);stroke-dasharray:2 2}
+.cm-marker:is(.d1,.l1) circle{fill:var(--b-sun,#efc76e)}
+.cm-marker:is(.d2,.l2) circle{fill:var(--b-sky,#9cc9de)}
+.cm-marker.d3 circle{fill:var(--b-rose,#e7a28f)}
+.cm-marker.d4 circle{fill:var(--b-leaf,#86a68c)}
+.cm-marker.sel circle{stroke:var(--b-pine,#31533e);stroke-width:3px}
+
+/* Cards and answers. */
+.cm-cards{display:inline-flex;gap:3px;flex-wrap:nowrap}
+.cm-c{display:inline-grid;place-items:center;width:22px;height:22px;font:700 .8rem/1 var(--b-display,Georgia,serif);font-style:normal;color:#fff;box-sizing:border-box}
+.cm-c.r{background:var(--cm-red);border-radius:4px}
+.cm-c.b{background:var(--cm-blue);border-radius:50%}
+.cm-none{font-family:var(--b-display,Georgia,serif);font-size:.9rem;color:var(--b-muted,#5a6850);white-space:nowrap}
+.cm-say{display:inline-grid;place-items:center;min-width:24px;height:24px;font:700 1.15rem/1 var(--b-display,Georgia,serif)}
+.cm-say.yes{color:var(--b-good,#3c7a4a)}
+.cm-say.no{color:var(--b-ink,#294439)}
+
+/* Rows Test has shown, newest first. */
+.cm-tests{display:flex;flex-direction:column;align-items:stretch;gap:.35rem;width:min(100%,320px)}
+.cm-puzzle .cm-test{display:flex;align-items:center;justify-content:space-between;gap:.6rem;min-height:44px;padding:6px 10px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px;color:var(--b-ink,#294439);font-weight:400}
+.cm-puzzle .cm-test.picked{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.cm-puzzle .cm-test.off .cm-say{background:#fbf2d6;border-radius:50%;box-shadow:0 0 0 2px var(--b-ochre,#b38840)}
+
+/* Keys for a row or an ending. */
+.cm-keys{display:flex;flex-wrap:wrap;justify-content:center;gap:.45rem;margin:.1rem 0 .2rem}
+.cm-puzzle .cm-key{display:grid;place-items:center;width:52px;min-height:46px;padding:0;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px;color:var(--b-ink,#294439);font:600 1.2rem/1 var(--b-display,Georgia,serif);box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.cm-puzzle .cm-key .cm-c{width:28px;height:28px;font-size:1rem}
+.cm-puzzle .cm-key[disabled]{box-shadow:none}
+.cm-puzzle .cm-cant{min-height:46px}
+
+/* Pairs: two rows, one bracketed ending after both, two answers. */
+.cm-pairs,.cm-rows{display:flex;flex-direction:column;align-items:center;gap:.45rem;width:100%}
+.cm-pair{width:min(100%,360px);padding:4px 8px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:14px;box-sizing:border-box}
+.cm-pair.sel{border-color:var(--b-pine,#31533e)}
+.cm-pair.split{background:#f1f6ea}
+.cm-pair-grid{display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;align-items:center;column-gap:6px;row-gap:4px}
+.cm-line{display:flex;align-items:center;gap:6px;min-height:24px;grid-column:1}
+.cm-line.l1{grid-row:1}.cm-line.l2{grid-row:2}
+.cm-dot{display:inline-grid;place-items:center;flex:none;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--b-ink,#294439);font:600 .7rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439);box-sizing:border-box}
+.cm-dot:is(.l1,.d1){background:var(--b-sun,#efc76e)}
+.cm-dot:is(.l2,.d2){background:var(--b-sky,#9cc9de)}
+.cm-dot.d3{background:var(--b-rose,#e7a28f)}
+.cm-dot.d4{background:var(--b-leaf,#86a68c)}
+.cm-puzzle .cm-end{grid-column:2;grid-row:1/3;display:flex;align-items:center;gap:5px;min-height:54px;min-width:0;padding:3px 8px 3px 10px;background:transparent;border:0;border-left:3px solid #9aa88f;border-radius:0 12px 12px 0;color:var(--b-ink,#294439);font-weight:400;justify-self:start;flex-wrap:wrap}
+.cm-pair.split .cm-end{border-left-color:var(--b-good,#3c7a4a)}
+.cm-puzzle button.cm-end.sel{background:#e9eddc;box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.cm-plus{font:600 1.1rem/1 var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850)}
+.cm-blank{display:inline-block;width:22px;height:22px;border:2px dashed #9aa88f;border-radius:5px;box-sizing:border-box}
+.cm-cant-mark{font-family:var(--b-display,Georgia,serif);font-size:1rem;color:var(--b-pine,#31533e);padding:2px 8px;border:1.5px solid var(--b-pine,#31533e);border-radius:10px}
+.cm-pair.cant{background:#f1f6ea}
+.cm-pair.cant .cm-end{border-left-color:var(--b-pine,#31533e)}
+.cm-answers{grid-column:3;grid-row:1/3;display:grid;grid-template-rows:auto auto;row-gap:4px}
+.cm-proof .cm-machine.mini{max-width:150px;margin:.2rem auto 0}
+
+/* The rows a child makes to show fewer circles are not enough. */
+.cm-prove{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
+.cm-puzzle .cm-row{display:flex;align-items:center;gap:8px;width:min(100%,300px);min-height:44px;padding:6px 10px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px;color:var(--b-ink,#294439);font-weight:400}
+.cm-puzzle .cm-row .cm-say{margin-left:auto}
+.cm-puzzle .cm-row.sel{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.cm-puzzle .cm-row[disabled]{opacity:1}
+
+/* The playground. */
+.cm-puzzle .cm-less,.cm-puzzle .cm-more{width:48px;padding:0;font-size:1.3rem}
+.cm-bench{display:flex;flex-direction:column;align-items:center;gap:.4rem;width:100%}
+.cm-bench .cm-row.bench{min-height:44px}
