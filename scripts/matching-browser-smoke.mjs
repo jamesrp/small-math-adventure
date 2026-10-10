@@ -1,9 +1,11 @@
 // Plays Pairs that stay through the real interface: a one-sided claim told
 // who says no, a right claim by taps and by a drag, Stays with its dotted
-// certificate, a wrong Stays held until a blocking pair is tapped, pairing by
-// taps, keeping, There's another, Undo keeping the shelf, That's all, one-strip
-// repairs by tapping and dragging strip places, Can't with its two blocking
-// pairs, designing strips, the first hint, and the playground's sizes. Same
+// certificate, a wrong Stays held until a blocking pair is tapped (Undo keeps
+// it held), pairing by taps, keeping, There's another, Undo keeping the shelf,
+// That's all, one-strip repairs by tapping and dragging strip places with the
+// changed strip marked, Can't and its reason (two blocking pairs with no letter
+// in common, tapped by the child), designing strips, the first hint, and the
+// playground's sizes. Same
 // environment variables as the other browser suites (PLAYWRIGHT_MODULE,
 // BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone with touch).
 // Screenshots go in test-results/matching/.
@@ -24,7 +26,7 @@ const done = () => page.locator('#completion-heading').waitFor({timeout: 5000});
 const fit = async label => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `${label}: no page overflow`);
 const letter = x => page.locator(`.sm-token[data-sm="${x}"]`);
 const place = (o, r) => page.locator(`.sm-cell[data-sm="${o}:${r}"]`);
-const told = () => page.locator('.sm-told').innerText();
+const told = async () => (await page.locator('.sm-told').allInnerTexts()).join(' ');
 const press = name => page.getByRole('button', {name, exact: true}).click();
 const center = async locator => { const b = await locator.boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
 const tap = async locator => { await locator.scrollIntoViewIfNeeded(); const [x, y] = await center(locator); if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); };
@@ -83,9 +85,14 @@ try {
   assert.equal(await told(), 'One strip can do it.');
   await taps('B:0', 'B:1');
   assert.deepEqual((await board(P3)).strip, {owner: 'B', order: 'XY'}, 'two taps on a strip swap them');
+  assert.equal(await page.locator('.sm-cell.changed').count(), 2, 'the changed strip is marked');
+  assert.equal(await place('B', 0).getAttribute('class').then(c => c.includes('changed')), true);
   await drag(place('A', 0), place('A', 1));
   assert.deepEqual((await board(P3)).strip, {owner: 'A', order: 'XY'}, 'a drag swaps, and B’s strip goes back');
   assert.equal(await place('B', 0).innerText(), 'Y');
+  assert.equal(await place('B', 0).getAttribute('class').then(c => c.includes('changed')), false, 'B’s mark goes back too');
+  assert.equal(await place('A', 0).getAttribute('class').then(c => c.includes('changed')), true);
+  await shot('changed');
   await press('Stays');
   await done();
 
@@ -95,11 +102,19 @@ try {
   await press('Stays');
   assert.equal(await told(), 'Can’t stay.');
   await press('Can’t');
+  assert.equal(await told(), 'Tap two pairs that would both switch and share no letter.');
+  assert.equal(await page.locator('#completion-heading').count(), 0, 'Can’t alone is no solve');
+  assert.equal(await page.locator('.sm-links .claim').count(), 0, 'no blocking pair is drawn for the child');
+  assert.equal(await page.getByRole('button', {name: 'Can’t', exact: true}).count(), 0);
+  assert.equal(await place('A', 0).count(), 0, 'the strips are fixed');
+  assert.equal(await page.locator('.sm-cell[aria-label="A’s choice 1: Y"]').count(), 1, 'the printed strips come back');
+  await taps('A', 'Y');
+  assert.equal(await page.locator('.sm-links .claim.yes').count(), 1);
+  await shot('cant-reason');
+  await drag(letter('X'), letter('B'));
   await done(); await fit('cant');
   assert.equal(await page.locator('.sm-why').innerText(), 'One strip can change only one of these.');
   assert.equal(await page.locator('.sm-links .claim.yes').count(), 2);
-  assert.equal(await place('A', 0).count(), 0, 'the strips are shown, not live');
-  assert.equal(await page.locator('.sm-cell[aria-label="A’s choice 1: Y"]').count(), 1, 'the printed strips, not the changed one');
   await shot('cant');
 
   // Puzzle 10: a wrong Stays holds the pairing; keeping; There's another; Undo; That's all.
@@ -110,8 +125,11 @@ try {
   await press('Stays');
   assert.equal((await board(E)).pending, true);
   assert.equal(await page.locator('.sm-board.held').count(), 1);
+  await page.locator('[data-action="undo"]').click();
+  assert.equal((await board(E)).pending, true, 'Undo does not lift the lock');
+  assert.equal(await told(), 'Can’t stay. Tap a circle and a square that would both rather be together.');
   await taps('A', 'Z');
-  assert.equal(await told(), 'A and Z say no.');
+  assert.equal(await told(), 'A and Z say no. Tap a circle and a square that would both rather be together.');
   assert.equal((await board(E)).pending, true, 'still held');
   await taps('A', 'W');
   assert.equal((await board(E)).pending, false, 'a blocking pair releases it');

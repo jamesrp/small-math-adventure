@@ -274,12 +274,12 @@
    "objective": "Change one strip so that the drawn pairing can stay, or press Can’t if no one strip can.",
    "visibleObjective": "Change one strip so this pairing can stay.",
    "instruction": "Change one strip so that the drawn pairing can stay, or press Can’t if no one strip can.",
-   "controls": "Tap two places on one strip, or drag one onto the other, to swap them. Press Stays when the pairing can stay, or Can’t. Tapping a circle and then a square asks whether they would both rather be together. Undo takes back the last move.",
+   "controls": "Tap two places on one strip, or drag one onto the other, to swap them. Press Stays when the pairing can stay, or Can’t. Tapping a circle and then a square asks whether they would both rather be together; after Can’t, it shows the reason. Undo takes back the last move.",
    "rules": [
     "Each letter has a strip ranking the letters on the other side, its first choice next to it.",
     "A circle and a square that are not together block the pairing when each would rather have the other than its own partner. One letter wanting to switch is not enough.",
     "A pairing can stay when no circle and square block it.",
-    "Only one strip may change at a time: changing a second strip puts the first one back. Can’t is right when no single strip can make the pairing stay."
+    "Only one strip may change at a time: changing a second strip puts the first one back. Can’t is right when no single strip can make the pairing stay; then tap two pairs that would both switch and share no letter."
    ],
    "idea": "To stop a blocking pair, change the wish of one of its two letters.",
    "prerequisites": "Recognise four letters and compare two places on a strip. No arithmetic; a grown-up can read How to play.",
@@ -337,12 +337,12 @@
    "objective": "Change one strip so that the drawn pairing can stay, or press Can’t if no one strip can.",
    "visibleObjective": "Change one strip so this pairing can stay.",
    "instruction": "Change one strip so that the drawn pairing can stay, or press Can’t if no one strip can.",
-   "controls": "Tap two places on one strip, or drag one onto the other, to swap them. Press Stays when the pairing can stay, or Can’t. Tapping a circle and then a square asks whether they would both rather be together. Undo takes back the last move.",
+   "controls": "Tap two places on one strip, or drag one onto the other, to swap them. Press Stays when the pairing can stay, or Can’t. Tapping a circle and then a square asks whether they would both rather be together; after Can’t, it shows the reason. Undo takes back the last move.",
    "rules": [
     "Each letter has a strip ranking the letters on the other side, its first choice next to it.",
     "A circle and a square that are not together block the pairing when each would rather have the other than its own partner. One letter wanting to switch is not enough.",
     "A pairing can stay when no circle and square block it.",
-    "Only one strip may change at a time: changing a second strip puts the first one back. Can’t is right when no single strip can make the pairing stay."
+    "Only one strip may change at a time: changing a second strip puts the first one back. Can’t is right when no single strip can make the pairing stay; then tap two pairs that would both switch and share no letter."
    ],
    "idea": "Two blocking pairs with no letter in common can’t both be stopped by changing one strip.",
    "prerequisites": "Recognise four letters and compare two places on a strip. No arithmetic; a grown-up can read How to play.",
@@ -469,7 +469,7 @@
     "Each letter has a strip ranking the letters on the other side, its first choice next to it.",
     "A circle and a square that are not together block the pairing when each would rather have the other than its own partner. One letter wanting to switch is not enough.",
     "A pairing can stay when no circle and square block it.",
-    "Stays keeps a pairing that can stay. If it can’t, tap a circle and a square that block it before changing the pairing. Press That’s all when no other pairing can stay; it says if there is another.",
+    "Stays keeps a pairing that can stay. If it can’t, tap a circle and a square that block it before changing the pairing; Undo doesn’t lift that. Press That’s all when no other pairing can stay; it says if there is another.",
     "Changing a strip clears the pairings kept for the old strips."
    ],
    "idea": "Both pairings stay exactly when the circles’ first choices differ and the squares’ first choices point the other way.",
@@ -531,12 +531,12 @@
    "objective": "Change one strip so that the drawn pairing can stay, or press Can’t if no one strip can.",
    "visibleObjective": "Change one strip so this pairing can stay.",
    "instruction": "Change one strip so that the drawn pairing can stay, or press Can’t if no one strip can.",
-   "controls": "Tap two places on one strip, or drag one onto the other, to swap them. Press Stays when the pairing can stay, or Can’t. Tapping a circle and then a square asks whether they would both rather be together. Undo takes back the last move.",
+   "controls": "Tap two places on one strip, or drag one onto the other, to swap them. Press Stays when the pairing can stay, or Can’t. Tapping a circle and then a square asks whether they would both rather be together; after Can’t, it shows the reason. Undo takes back the last move.",
    "rules": [
     "Each letter has a strip ranking the letters on the other side, its first choice next to it.",
     "A circle and a square that are not together block the pairing when each would rather have the other than its own partner. One letter wanting to switch is not enough.",
     "A pairing can stay when no circle and square block it.",
-    "Only one strip may change at a time: changing a second strip puts the first one back. Can’t is right when no single strip can make the pairing stay."
+    "Only one strip may change at a time: changing a second strip puts the first one back. Can’t is right when no single strip can make the pairing stay; then tap two pairs that would both switch and share no letter."
    ],
    "idea": "When every blocking pair shares a letter, that letter can put its partner first.",
    "prerequisites": "Keep three pairs in mind and check both letters of a pair against their strips.",
@@ -604,7 +604,7 @@
     "Each letter has a strip ranking the letters on the other side, its first choice next to it.",
     "A circle and a square that are not together block the pairing when each would rather have the other than its own partner. One letter wanting to switch is not enough.",
     "A pairing can stay when no circle and square block it.",
-    "Stays keeps a pairing that can stay. If it can’t, tap a circle and a square that block it before changing the pairing. Press That’s all when no other pairing can stay; it says if there is another."
+    "Stays keeps a pairing that can stay. If it can’t, tap a circle and a square that block it before changing the pairing; Undo doesn’t lift that. Press That’s all when no other pairing can stay; it says if there is another."
    ],
    "idea": "D and W rank each other first, so they stay together; the other six letters have three pairings that can stay.",
    "prerequisites": "Organise a search over many pairings, and notice letters that rank each other first.",
@@ -669,7 +669,7 @@
     "Each letter has a strip ranking the letters on the other side, its first choice next to it.",
     "A circle and a square that are not together block the pairing when each would rather have the other than its own partner. One letter wanting to switch is not enough.",
     "A pairing can stay when no circle and square block it.",
-    "Stays keeps a pairing that can stay. If it can’t, tap a circle and a square that block it before changing the pairing. Press That’s all when no other pairing can stay; it says if there is another."
+    "Stays keeps a pairing that can stay. If it can’t, tap a circle and a square that block it before changing the pairing; Undo doesn’t lift that. Press That’s all when no other pairing can stay; it says if there is another."
    ],
    "idea": "Peel off pairs that rank each other first: D and X, then B and Y; two circles and two squares are left.",
    "prerequisites": "Organise a search over many pairings, and notice letters that rank each other first.",
@@ -733,7 +733,7 @@
     "Each letter has a strip ranking the letters on the other side, its first choice next to it.",
     "A circle and a square that are not together block the pairing when each would rather have the other than its own partner. One letter wanting to switch is not enough.",
     "A pairing can stay when no circle and square block it.",
-    "Stays keeps a pairing that can stay. If it can’t, tap a circle and a square that block it before changing the pairing. Press That’s all when no other pairing can stay; it says if there is another."
+    "Stays keeps a pairing that can stay. If it can’t, tap a circle and a square that block it before changing the pairing; Undo doesn’t lift that. Press That’s all when no other pairing can stay; it says if there is another."
    ],
    "idea": "The strips split into two blocks, A and B with W and X, and C and D with Y and Z; a pairing that crosses them can’t stay, and each block stays two ways.",
    "prerequisites": "Organise a search over many pairings, and notice letters that rank each other first.",
@@ -799,7 +799,7 @@
     "Each letter has a strip ranking the letters on the other side, its first choice next to it.",
     "A circle and a square that are not together block the pairing when each would rather have the other than its own partner. One letter wanting to switch is not enough.",
     "A pairing can stay when no circle and square block it.",
-    "Stays keeps a pairing that can stay. If it can’t, tap a circle and a square that block it before changing the pairing. Press That’s all when no other pairing can stay; it says if there is another.",
+    "Stays keeps a pairing that can stay. If it can’t, tap a circle and a square that block it before changing the pairing; Undo doesn’t lift that. Press That’s all when no other pairing can stay; it says if there is another.",
     "Changing a strip clears the pairings kept for the old strips."
    ],
    "idea": "A pair that ranks each other first is forced; with it fixed, the other two pairs can be made to stay both ways.",
@@ -852,13 +852,13 @@
     "squares": "XYZ",
     "lists": {
      "A": "XYZ",
-     "B": "YZX",
+     "B": "XYZ",
      "C": "ZXY",
      "X": "ABC",
-     "Y": "BCA",
+     "Y": "ABC",
      "Z": "CAB"
     },
-    "pairing": "XYZ",
+    "pairing": "ZYX",
     "goal": 3
    },
    "objective": "Make a pairing that can stay in which three letters get their last choice, then press Stays.",
@@ -905,7 +905,7 @@
      "pairing": "XYZ"
     }
    },
-   "provenance": "Week 27 Grades 4–5 Problem 6."
+   "provenance": "Week 27 Grades 4–5 Problem 6, which starts from blank strips. The starting strips and pairing are new: A and X already have their last choices, in different pairs, so they block; it is five swaps of strips or partners from the nearest answer, the most for any start."
   }
  ]
 }

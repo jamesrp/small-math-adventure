@@ -31,6 +31,8 @@
 .sm-cell.want i{box-shadow:0 0 0 2px var(--b-card,#fffdf5),0 0 0 5px var(--b-ochre,#b38840)}
 .sm-cell.keep i{box-shadow:0 0 0 2px var(--b-card,#fffdf5),0 0 0 5px var(--b-pine,#31533e)}
 .sm-cell.no i{opacity:.45}
+/* The one strip changed in a repair puzzle. */
+.sm-cell.changed,.board-panel button.sm-cell.changed{background:#f3e6c4}
 .sm-cell.picked{box-shadow:inset 0 0 0 2px var(--b-pine,#31533e);background:#e9eddc}
 .board-panel button.sm-cell.picked{background:#e9eddc}
 .sm-cell.hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:1px}

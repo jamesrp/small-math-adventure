@@ -49,10 +49,7 @@ export const pairingsOf = q => permutations([...q.squares]).map(p => p.join(''))
 const stableCache = new Map();
 export function stableOf(q, L) {
   const id = JSON.stringify([q.circles, q.squares, ownersOf(q).map(o => L[o])]);
-  if (!stableCache.has(id)) {
-    if (stableCache.size > 4000) stableCache.clear();
-    stableCache.set(id, pairingsOf(q).filter(k => !blockersOf(q, L, k).length));
-  }
+  if (!stableCache.has(id)) stableCache.set(id, pairingsOf(q).filter(k => !blockersOf(q, L, k).length));
   return stableCache.get(id);
 }
 export const canStay = (q, L, k) => !blockersOf(q, L, k).length;
@@ -88,7 +85,7 @@ export function disjointBlockers(q, L, k) {
   return null;
 }
 
-// Every complete profile of a small market, for design hints: lists keyed by owner.
+// Every complete profile of a small market (the build counts design answers with it): lists keyed by owner.
 const profileCache = new Map();
 export function profilesOf(q) {
   const id = q.circles + q.squares;
@@ -110,21 +107,62 @@ export function swapsBetween(a, b) {
   }
   return a.length - cycles;
 }
-const listDistance = (q, L, M) => ownersOf(q).reduce((n, o) => n + swapsBetween(L[o], M[o]), 0);
 // The first swap that brings an order toward a target.
 export function swapToward(cur, tgt) {
   const i = [...cur].findIndex((x, k) => x !== tgt[k]);
   return i < 0 ? null : [i, cur.indexOf(tgt[i])];
 }
+// The nearest lists (fewest swaps in all) for which ok holds, by
+// breadth-first search over single swaps: every three-pair profile is within
+// two swaps of one with exactly two pairings that can stay, so the search is
+// a few hundred profiles, not all 46,656.
+export function nearestLists(q, L, ok) {
+  const owners = ownersOf(q), key = M => owners.map(o => M[o]).join(' ');
+  const seen = new Set([key(L)]);
+  let level = [L];
+  while (level.length) {
+    const hit = level.find(ok);
+    if (hit) return hit;
+    const next = [];
+    for (const M of level) for (const o of owners) for (let i = 0; i < M[o].length; i++) for (let j = i + 1; j < M[o].length; j++) {
+      const N = {...M, [o]: swapIn(M[o], i, j)}, id = key(N);
+      if (!seen.has(id)) { seen.add(id); next.push(N); }
+    }
+    level = next;
+  }
+  return null;
+}
+// Every letter with its last choice, when there are three or more pairs:
+// two last choices in different pairs on opposite sides block, so the last
+// choices are all on one side, and the other side must then all have first
+// choices. The targets are a pairing and a side; each letter is one swap
+// from its end or already there. The nearest target, counting swaps of
+// partners and of strips.
+export function lastTarget(q, L, k) {
+  let best = null;
+  for (const key of pairingsOf(q)) for (const last of ['squares', 'circles']) {
+    const first = last === 'squares' ? 'circles' : 'squares';
+    const ends = [...[...q[first]].map(x => [x, 0]), ...[...q[last]].map(x => [x, q.circles.length - 1])];
+    const moves = ends.filter(([x, at]) => L[x][at] !== partnerOf(q, key, x));
+    const cost = swapsBetween(k, key) + moves.length;
+    if (!best || cost < best.cost) best = {pairing: key, ends, moves, cost};
+  }
+  return best;
+}
 
 // --- Boards -------------------------------------------------------------------
 // check:  {said}                       the pairing is fixed; said is null, 'stays' or a claim 'AY'
 // every:  {pairing, kept, claimed, missed, pending, said}, with lists when the strips can change
-// repair: {strip, said}                strip is null or {owner, order}, the one strip changed
+// repair: {strip, said, proof}         strip is null or {owner, order}, the one strip changed;
+//         proof is null, or after a right Can't the blocking pairs tapped so far
 // last:   {lists, pairing, pending, said}
 // playground: {size, lists, pairing, kept, pending, said}
 // `pending` means Stays was refused: the pairing is held until a blocking
 // pair is tapped. `said` is then the last claim, kept while it is wrong.
+// A right Can't asks for its reason: two blocking pairs with no letter in
+// common, tapped on the printed strips.
+const apart = (x, y) => x[0] !== y[0] && x[1] !== y[1];
+const proven = proof => proof.some((x, i) => proof.slice(i + 1).some(y => apart(x, y)));
 const isPlay = p => p.parameters.mode === 'playground';
 export const marketOf = (p, b) => isPlay(p) ? p.parameters.markets[b.size] : p.parameters;
 export const listsOf = (p, b) => {
@@ -139,7 +177,7 @@ const claimOk = (q, k, said) => typeof said === 'string' && said.length === 2 &&
 function fresh(p) {
   const q = p.parameters;
   if (q.mode === 'check') return {said: null};
-  if (q.mode === 'repair') return {strip: null, said: null};
+  if (q.mode === 'repair') return {strip: null, said: null, proof: null};
   if (q.mode === 'last') return {lists: {...q.lists}, pairing: q.pairing, pending: false, said: null};
   if (q.mode === 'playground') { const size = q.start, m = q.markets[size]; return {size, lists: {...m.lists}, pairing: m.pairing, kept: [], pending: false, said: null}; }
   return {...(q.edit ? {lists: {...q.lists}} : {}), pairing: q.pairing, kept: [], claimed: false, missed: false, pending: false, said: null};
@@ -157,8 +195,14 @@ function valid(p, b) {
   const q0 = p.parameters;
   if (q0.mode === 'check') return keysAre(b, ['said']) && (b.said === null || b.said === 'stays' || claimOk(q0, q0.pairing, b.said));
   if (q0.mode === 'repair') {
-    if (!keysAre(b, ['strip', 'said'])) return false;
+    if (!keysAre(b, ['strip', 'said', 'proof'])) return false;
     if (b.strip !== null && !(keysAre(b.strip, ['owner', 'order']) && ownersOf(q0).includes(b.strip.owner) && isStrip(q0, b.strip.owner, b.strip.order) && b.strip.order !== q0.lists[b.strip.owner])) return false;
+    if (b.proof !== null) {
+      // Only after a right Can't, on the printed strips: blocking pairs, each once; a wrong claim is kept in said.
+      const ok = x => claimOk(q0, q0.pairing, x) && blocks(q0, q0.lists, q0.pairing, x[0], x[1]);
+      return Array.isArray(b.proof) && b.strip === null && !repairsOf(q0, q0.lists, q0.pairing).length && b.proof.every(ok) && new Set(b.proof).size === b.proof.length
+        && (b.said === null || (claimOk(q0, q0.pairing, b.said) && !ok(b.said)));
+    }
     return b.said === null || b.said === 'stays' || b.said === 'cant' || claimOk(q0, q0.pairing, b.said);
   }
   if (q0.mode === 'last') {
@@ -167,7 +211,7 @@ function valid(p, b) {
     return validHold(q0, b.lists, b.pairing, b);
   }
   if (q0.mode === 'playground') {
-    if (!keysAre(b, ['size', 'lists', 'pairing', 'kept', 'pending', 'said']) || !Object.hasOwn(q0.markets, String(b.size))) return false;
+    if (!keysAre(b, ['size', 'lists', 'pairing', 'kept', 'pending', 'said']) || !Number.isInteger(b.size) || !Object.hasOwn(q0.markets, String(b.size))) return false;
     const q = q0.markets[b.size];
     if (!validLists(q, b.lists) || !isPairing(q, b.pairing)) return false;
     const target = stableOf(q, b.lists);
@@ -182,7 +226,7 @@ function solved(p, b) {
   const q = p.parameters;
   if (q.mode === 'playground' || !valid(p, b)) return false;
   if (q.mode === 'check') return b.said === 'stays' ? canStay(q, q.lists, q.pairing) : Boolean(b.said) && blocks(q, q.lists, q.pairing, b.said[0], b.said[1]);
-  if (q.mode === 'repair') return b.said === 'stays' ? canStay(q, listsOf(p, b), q.pairing) : b.said === 'cant' && !repairsOf(q, q.lists, q.pairing).length;
+  if (q.mode === 'repair') return b.proof ? proven(b.proof) : b.said === 'stays' && canStay(q, listsOf(p, b), q.pairing);
   if (q.mode === 'last') return b.said === 'stays' && lastOnes(q, b.lists, b.pairing).length >= q.goal;
   return b.claimed && (q.count === undefined || b.kept.length === q.count);
 }
@@ -210,14 +254,24 @@ function move(p, b, action) {
     return null;
   }
   if (q0.mode === 'repair') {
-    if (action.type === 'stays' || action.type === 'cant') return b.said === action.type ? null : {...b, said: action.type};
+    if (b.proof) {
+      // The reason for Can't: blocking pairs on the printed strips, tapped one at a time.
+      if (action.type !== 'block' || !claim || !claimOk(q, k, claim) || b.said === claim || b.proof.includes(claim)) return null;
+      return blocks(q, q.lists, k, action.c, action.s) ? {...b, proof: [...b.proof, claim], said: null} : {...b, said: claim};
+    }
+    if (action.type === 'cant') {
+      if (b.said === 'cant') return null;
+      // Right: the printed strips come back and the reason is asked for. Wrong: one strip can do it.
+      return repairsOf(q, q.lists, k).length ? {...b, said: 'cant'} : {strip: null, said: null, proof: []};
+    }
+    if (action.type === 'stays') return b.said === 'stays' ? null : {...b, said: 'stays'};
     if (action.type === 'block') return claim && claimOk(q, k, claim) && b.said !== claim ? {...b, said: claim} : null;
     if (action.type === 'swap') {
       const o = action.owner;
       if (!ownersOf(q).includes(o) || !Number.isInteger(action.i) || !Number.isInteger(action.j) || action.i === action.j || [action.i, action.j].some(i => i < 0 || i >= L[o].length)) return null;
       // A change to another strip puts the first one back: one strip at a time.
       const order = swapIn(b.strip?.owner === o ? b.strip.order : q.lists[o], action.i, action.j);
-      return {strip: order === q.lists[o] ? null : {owner: o, order}, said: null};
+      return {strip: order === q.lists[o] ? null : {owner: o, order}, said: null, proof: null};
     }
     return null;
   }
@@ -273,15 +327,6 @@ function pairHint(q, k, target) {
   const c = [...q.circles].find((x, i) => k[i] !== target[i]);
   return {type: 'move', action: {type: 'pair', c, s: target[q.circles.indexOf(c)]}, text: `Pair ${c} with ${target[q.circles.indexOf(c)]}.`};
 }
-// Lists with exactly `count` pairings that can stay, nearest the child's.
-function listTarget(q, L, ok) {
-  let best = null, bestD = Infinity;
-  for (const M of profilesOf(q)) {
-    const d = listDistance(q, L, M);
-    if (d < bestD && ok(M)) { best = M; bestD = d; if (d === 0) break; }
-  }
-  return best;
-}
 function walkLists(q, L, M) {
   for (const o of ownersOf(q)) { const step = swapToward(L[o], M[o]); if (step) return swapHint(o, L[o], step); }
   return null;
@@ -291,7 +336,7 @@ function everyHint(p, b) {
   if (b.pending) return blockHint(q, L, k);
   let lists = L;
   if (q0.count !== undefined && stableOf(q, L).length !== q0.count) {
-    lists = listTarget(q, L, M => stableOf(q, M).length === q0.count);
+    lists = nearestLists(q, L, M => stableOf(q, M).length === q0.count);
     return walkLists(q, L, lists);
   }
   const left = stableOf(q, lists).filter(key => !b.kept.includes(key));
@@ -300,32 +345,24 @@ function everyHint(p, b) {
   if (target === k) return {type: 'move', action: {type: 'stays'}, text: 'Press Stays.'};
   return pairHint(q, k, target);
 }
-// Last choices: the nearest lists and pairing that can stay with `goal` last
-// choices, searching only lists nearer than the best found so far.
-export function lastTarget(q, L, k, goal) {
-  let best = null, bestD = Infinity;
-  for (const M of profilesOf(q)) {
-    const d = listDistance(q, L, M);
-    if (d >= bestD) continue;
-    for (const key of stableOf(q, M)) {
-      const e = d + pairDistance(k, key);
-      if (e < bestD && lastOnes(q, M, key).length >= goal) { best = {lists: M, pairing: key}; bestD = e; }
-    }
-  }
-  return best;
-}
 function lastHint(p, b) {
   const q = p.parameters, L = b.lists, k = b.pairing;
   if (b.pending) return blockHint(q, L, k);
   if (canStay(q, L, k) && lastOnes(q, L, k).length >= q.goal) return {type: 'move', action: {type: 'stays'}, text: 'Press Stays.'};
-  const t = lastTarget(q, L, k, q.goal);
-  return walkLists(q, L, t.lists) || pairHint(q, k, t.pairing);
+  // Strips first: bring each partner (in the target pairing) to its end.
+  const t = lastTarget(q, L, k);
+  if (t.moves.length) { const [x, at] = t.moves[0]; return swapHint(x, L[x], [at, L[x].indexOf(partnerOf(q, t.pairing, x))].sort((i, j) => i - j)); }
+  return pairHint(q, k, t.pairing);
 }
 function repairHint(p, b) {
   const q = p.parameters, k = q.pairing, all = repairsOf(q, q.lists, k);
   if (!all.length) {
     const [x, y] = disjointBlockers(q, q.lists, k);
-    return {type: 'move', action: {type: 'cant'}, text: `${pairWords(x)} would both switch, and so would ${pairWords(y)}. No strip has a letter of each. Press Can’t.`};
+    if (!b.proof) return {type: 'move', action: {type: 'cant'}, text: `${pairWords(x)} would both switch, and so would ${pairWords(y)}. No strip has a letter of each. Press Can’t.`};
+    // Then a blocking pair with no letter in common with one already tapped, or one of the two.
+    const left = blockersOf(q, q.lists, k).filter(c => !b.proof.includes(c));
+    const [c, sq] = left.find(c => b.proof.some(d => apart(c, d))) || [x, y].find(c => !b.proof.includes(c));
+    return {type: 'move', action: {type: 'block', c, s: sq}, text: `${c} would rather have ${sq}, and ${sq} would rather have ${c}.`};
   }
   const L = listsOf(p, b);
   if (canStay(q, L, k)) return {type: 'move', action: {type: 'stays'}, text: 'Press Stays.'};
@@ -335,7 +372,17 @@ function repairHint(p, b) {
   const t = nearest(pool, r => swapsBetween(L[r.owner], r.order) + (b.strip && b.strip.owner !== r.owner ? 1 : 0));
   return swapHint(t.owner, L[t.owner], swapToward(L[t.owner], t.order));
 }
+// The page asks for the next hint on every render; one board, one answer.
+const hintCache = new Map();
 function hint(p, b) {
+  const id = `${p.id} ${JSON.stringify(b)}`;
+  if (!hintCache.has(id)) {
+    if (hintCache.size > 400) hintCache.clear();
+    hintCache.set(id, freshHint(p, b));
+  }
+  return hintCache.get(id);
+}
+function freshHint(p, b) {
   const q = p.parameters;
   if (q.mode === 'playground' || !valid(p, b) || solved(p, b)) return {type: 'done'};
   if (q.mode === 'check') {
@@ -360,7 +407,7 @@ export function tokenMode(p, b) {
   if (q.mode === 'check' || q.mode === 'repair') return 'block';
   return b.pending ? 'block' : 'pair';
 }
-export const cellsLive = (p, b) => editable(p.parameters) && !solved(p, b) && !b.pending;
+export const cellsLive = (p, b) => editable(p.parameters) && !solved(p, b) && !b.pending && !b.proof;
 // The move for two taps, or null (a partner tapped as a claim, or the same side).
 export function tapAction(p, b, first, second) {
   const q = marketOf(p, b), k = pairingOf(p, b), mode = tokenMode(p, b);
@@ -405,14 +452,14 @@ function board(p, a, o) {
       : `<span class="${cls}" role="img" aria-label="${esc(label)}">${x}</span>`;
   };
   const cell = (owner, r) => {
-    const y = L[owner][r], id = `${owner}:${r}`, picked = pick === id, partner = partnerOf(q, k, owner) === y, mark = marks[owner]?.[y];
+    const y = L[owner][r], id = `${owner}:${r}`, picked = pick === id, partner = partnerOf(q, k, owner) === y, mark = marks[owner]?.[y], changed = o.changed === owner;
     const shape = isCircle(q, owner) ? 'sq' : 'ci';
-    const cls = `sm-cell${partner ? ' partner' : ''}${mark ? ` ${mark}` : ''}${picked ? ' picked' : ''}${hinted.cells?.includes(id) ? ' hinted' : ''}`;
-    const label = `${owner}’s choice ${r + 1}: ${y}${partner ? ', its partner' : ''}${picked ? ', chosen' : ''}`;
+    const cls = `sm-cell${partner ? ' partner' : ''}${changed ? ' changed' : ''}${mark ? ` ${mark}` : ''}${picked ? ' picked' : ''}${hinted.cells?.includes(id) ? ' hinted' : ''}`;
+    const label = `${owner}’s choice ${r + 1}: ${y}${partner ? ', its partner' : ''}${changed ? ', changed' : ''}${picked ? ', chosen' : ''}`;
     const face = `<i class="sm-${shape}">${y}</i>`;
     return cells
       ? `<button type="button" class="${cls}" data-sm="${id}" data-focus="sm-cell-${owner}-${r}" aria-label="${esc(label)}" aria-pressed="${picked}">${face}</button>`
-      : `<span class="${cls}" aria-label="${esc(label)}">${face}</span>`;
+      : `<span class="${cls}" role="img" aria-label="${esc(label)}">${face}</span>`;
   };
   const rows = [];
   // Circles' strips above them, first choice nearest; squares' strips below.
@@ -432,41 +479,44 @@ function render(p, a) {
   const h = a.hintLevel >= 2 && !done && !isPlay(p) ? hint(p, b) : null, act = h?.action;
   const hinted = {tokens: act && (act.type === 'pair' || act.type === 'block') ? [act.c, act.s] : [], cells: act?.type === 'swap' ? [`${act.owner}:${act.i}`, `${act.owner}:${act.j}`] : []};
   const marks = {}, lines = [];
-  let told = '', no = [], shownLists = L, cert = '';
+  const told = [];
+  let no = [], cert = '';
   const said = typeof b.said === 'string' && b.said.length === 2 ? b.said : null;
   const held = b.pending || q0.mode === 'check' || q0.mode === 'repair';
   if (said) {
     const [c, s] = said, ok = blocks(q, L, k, c, s);
     claimMarks(q, L, k, c, s, marks);
     lines.push([c, s, ok ? 'claim yes' : 'claim no']);
-    if (!ok) { no = saysNo(q, L, k, c, s); told = `${listWords(no)} ${no.length === 1 ? 'says' : 'say'} no.`; }
+    if (!ok) { no = saysNo(q, L, k, c, s); told.push(`${listWords(no)} ${no.length === 1 ? 'says' : 'say'} no.`); }
   }
-  const findIt = 'Can’t stay. Tap a circle and a square that would both rather be together.';
-  if (b.pending && !said) told = findIt;
+  // Held: what to do next stays in view after a wrong claim.
+  const tapPair = 'Tap a circle and a square that would both rather be together.';
+  if (b.pending) told.push(said ? tapPair : `Can’t stay. ${tapPair}`);
   if (q0.mode === 'check') {
     // The objective already says what to tap.
-    if (b.said === 'stays' && !done) told = 'Can’t stay.';
+    if (b.said === 'stays' && !done) told.push('Can’t stay.');
     // The certificate for Stays: every wish to switch, and who says no.
     if (b.said === 'stays' && done) for (const c of q.circles) for (const s of q.squares) if (partnerOf(q, k, c) !== s && (wants(q, L, k, c, s) || wants(q, L, k, s, c))) { claimMarks(q, L, k, c, s, marks); lines.push([c, s, 'wish']); }
   }
   if (q0.mode === 'repair') {
-    if (b.said === 'stays' && !done) told = 'Can’t stay.';
-    if (b.said === 'cant' && !done) told = 'One strip can do it.';
-    if (b.said === 'cant' && done) {
-      // The certificate: two blocking pairs on the printed strips with no letter in common.
-      shownLists = q.lists;
-      for (const [c, s] of disjointBlockers(q, q.lists, k)) { claimMarks(q, q.lists, k, c, s, marks); lines.push([c, s, 'claim yes']); }
-      cert = '<p class="sm-why">One strip can change only one of these.</p>';
+    if (b.said === 'stays' && !done) told.push('Can’t stay.');
+    if (b.said === 'cant') told.push('One strip can do it.');
+    if (b.proof) {
+      // The reason for Can't, tapped by the child on the printed strips.
+      for (const [c, s] of b.proof) { claimMarks(q, L, k, c, s, marks); lines.push([c, s, 'claim yes']); }
+      if (done) cert = '<p class="sm-why">One strip can change only one of these.</p>';
+      else told.push('Tap two pairs that would both switch and share no letter.');
     }
   }
   if (q0.mode === 'every' && !b.pending) {
-    if (b.missed) told = 'There’s another.';
-    else if (b.claimed && !done) told = `${b.kept.length === 1 ? 'Only one' : NUMBER[b.kept.length]} can stay.`;
+    if (b.missed) told.push('There’s another.');
+    else if (b.claimed && !done) told.push(`${b.kept.length === 1 ? 'Only one' : NUMBER[b.kept.length]} can stay.`);
   }
   const last = q0.mode === 'last' ? lastOnes(q, L, k) : null;
-  if (q0.mode === 'last' && b.said === 'stays' && !done) told = `${last.length === 1 ? 'One gets its' : `${NUMBER[last.length]} get their`} last choice.`;
-  const taps = Boolean(tokenMode(p, b)), cells = cellsLive(p, b) && !(q0.mode === 'repair' && done);
-  const grid = board(p, a, {q, lists: shownLists, pairing: k, state, hinted, marks, lines, no, taps, cells, held: held && !done, last: q0.mode === 'last' && (done || b.said === 'stays') ? last : null});
+  if (q0.mode === 'last' && b.said === 'stays' && !done) told.push(`${last.length === 1 ? 'One gets its' : `${NUMBER[last.length]} get their`} last choice.`);
+  const taps = Boolean(tokenMode(p, b)), cells = cellsLive(p, b);
+  const changed = q0.mode === 'repair' && !b.proof ? b.strip?.owner : null;
+  const grid = board(p, a, {q, lists: L, pairing: k, state, hinted, marks, lines, no, taps, cells, changed, held: held && !done, last: q0.mode === 'last' && (done || b.said === 'stays') ? last : null});
 
   // Claims.
   const hintOn = type => act?.type === type;
@@ -474,19 +524,19 @@ function render(p, a) {
   if (!done) {
     const parts = [];
     if (q0.mode === 'check') parts.push(button('Stays', {type: 'stays'}, b.said !== 'stays', hintOn('stays')));
-    if (q0.mode === 'repair') parts.push(button('Stays', {type: 'stays'}, b.said !== 'stays', hintOn('stays')), button('Can’t', {type: 'cant'}, b.said !== 'cant', hintOn('cant')));
+    if (q0.mode === 'repair' && !b.proof) parts.push(button('Stays', {type: 'stays'}, b.said !== 'stays', hintOn('stays')), button('Can’t', {type: 'cant'}, b.said !== 'cant', hintOn('cant')));
     if (q0.mode === 'last') parts.push(button('Stays', {type: 'stays'}, !b.pending && b.said !== 'stays', hintOn('stays')));
     if (q0.mode === 'every' || q0.mode === 'playground') {
       parts.push(button('Stays', {type: 'stays'}, !b.pending && !b.kept.includes(k) && !b.claimed, hintOn('stays')));
       if (q0.mode === 'every') parts.push(button('That’s all', {type: 'all'}, !b.pending && !b.missed && !b.claimed && b.kept.length > 0, hintOn('all')));
     }
-    bar = `<div class="sm-bar">${parts.join('')}</div>`;
+    bar = parts.length ? `<div class="sm-bar">${parts.join('')}</div>` : '';
   }
   let top = '';
   if (isPlay(p)) top = `<div class="sm-sizes" role="group" aria-label="Pairs">${Object.keys(q0.markets).map(n => `<button type="button" class="secondary sm-size" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'size', size: Number(n)}))}" data-focus="sm-size-${n}" aria-pressed="${b.size === Number(n)}" aria-label="${NUMBER[n]} pairs">${pairingMini(q0.markets[n], q0.markets[n].pairing)}</button>`).join('')}</div>`;
   const shelf = b.kept?.length ? shelfHTML(b.kept, {mini: key => pairingMini(q, key), say: key => sayPairing(q, key), current: b.kept.includes(k) ? k : null, label: 'Pairings that can stay'}) : '';
-  const note = told ? `<p class="sm-told">${esc(told)}</p>` : '';
-  const status = `${sayPairing(q, k)}.${told ? ` ${told}` : ''}${state.pick ? ` ${state.pick.replace(':', ' place ')} chosen.` : ''}`;
+  const note = told.map(line => `<p class="sm-told">${esc(line)}</p>`).join('');
+  const status = `${sayPairing(q, k)}.${told.length ? ` ${told.join(' ')}` : ''}${state.pick ? ` ${state.pick.replace(':', ' place ')} chosen.` : ''}`;
   return `<div class="sm-puzzle${done ? ' solved' : ''}" data-mechanic-wire="matching">${top}${grid}${note}${cert}${bar}${shelf}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 
@@ -553,13 +603,18 @@ export const matchingMechanics = {
     },
     reset: p => { uiState.delete(p.id); },
     // Undo keeps the pairings already kept, while the strips are the same.
+    // A held pairing stays held: Undo then takes back only wrong claims, so
+    // Stays and Undo can't ask whether a pairing can stay for free.
     carry(p, from, to) {
       const q = p.parameters;
-      if ((q.mode !== 'every' && q.mode !== 'playground') || !object(from) || !object(to) || !Array.isArray(from.kept)) return to;
+      if (!['every', 'last', 'playground'].includes(q.mode) || !object(from) || !object(to)) return to;
       if (q.mode === 'playground' && from.size !== to.size) return to;
       const L1 = listsOf(p, from), L2 = listsOf(p, to);
-      if (!sameLists(marketOf(p, to), L1, L2)) return to;
-      return {...to, kept: [...from.kept], ...(q.mode === 'every' ? {claimed: false, missed: false} : {})};
+      if (!validLists(marketOf(p, to), L1) || !sameLists(marketOf(p, to), L1, L2)) return to;
+      let out = to;
+      if (Array.isArray(from.kept) && q.mode !== 'last') out = {...out, kept: [...from.kept], ...(q.mode === 'every' ? {claimed: false, missed: false} : {})};
+      if (from.pending === true && to.pending === false && from.pairing === to.pairing) out = {...out, pending: true, said: null};
+      return out;
     },
     noHint: isPlay
   }

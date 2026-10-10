@@ -108,11 +108,18 @@ test('find every: a wrong Stays holds the pairing until a blocking pair is tappe
   refuse(p, a, pair('A', 'W'), 'no new pairing while it is held');
   refuse(p, a, {type: 'stays'});
   refuse(p, a, {type: 'all'});
+  // Undo can't ask whether a pairing stays for free: the lock survives it.
+  const back = mech.carry(p, a.board, undo(a).board);
+  assert.equal(back.pending, true);
+  assert.equal(back.said, null);
+  assert.ok(validBoard(p, back));
+  assert.equal(move(p, {...undo(a), board: back}, pair('A', 'W')), null, 'still held after Undo');
   const wrong = blockersOf(p.parameters, p.parameters.lists, 'YZWX');
   const one = p.parameters.circles.split('').flatMap(c => p.parameters.squares.split('').map(s => c + s)).find(x => partnerOf(p.parameters, 'YZWX', x[0]) !== x[1] && !wrong.includes(x));
   a = play(p, a, block(one[0], one[1]));
   assert.equal(a.board.pending, true, 'a claim that is not a blocking pair keeps it held');
-  assert.match(visible(view(p, a)), /says? no\./);
+  assert.match(visible(view(p, a)), /say no\. Tap a circle and a square that would both rather be together\./, 'what to do next stays in view');
+  assert.equal(mech.carry(p, a.board, undo(a).board).said, null, 'Undo takes back the wrong claim');
   a = play(p, a, block(wrong[0][0], wrong[0][1]));
   assert.equal(a.board.pending, false);
   assert.equal(tokenMode(p, a.board), 'pair');
@@ -165,47 +172,93 @@ test('design: changing a strip clears the shelf; That’s all says how many when
   assert.equal(profilesOf(q).filter(M => stableOf(q, M).length === 2).length, 2, 'two of sixteen');
 });
 
-test('repair: one strip at a time; Can’t is checked and shows two blocking pairs', () => {
+test('repair: one strip at a time, the changed strip marked; Stays is checked', () => {
   const p = P(3);
   let a = play(p, freshAttempt(p), {type: 'cant'});
   assert.equal(isSolved(p, a.board), false);
+  assert.equal(a.board.proof, null, 'a wrong Can’t asks for no reason');
   assert.match(visible(view(p, a)), /One strip can do it\./);
   a = play(p, a, swap('B', 0, 1));
   assert.deepEqual(a.board.strip, {owner: 'B', order: 'XY'});
+  assert.equal((view(p, a).match(/sm-cell[^"]* changed/g) || []).length, 2, 'B’s strip is marked');
   a = play(p, a, swap('A', 0, 1));
   assert.deepEqual(a.board.strip, {owner: 'A', order: 'XY'}, 'changing A’s strip puts B’s back');
   assert.equal(listsOf(p, a.board).B, 'YX');
+  const html = view(p, a);
+  assert.match(html, /A’s choice 1: X, its partner, changed/);
+  assert.doesNotMatch(html, /B’s choice \d: [XY][^"]*changed/, 'B’s mark goes with it');
   const back = play(p, a, swap('A', 0, 1));
   assert.equal(back.board.strip, null, 'swapping back leaves the printed strips');
   a = play(p, a, {type: 'stays'});
   assert.ok(isSolved(p, a.board));
+});
+
+test('Can’t: right only with its reason, two blocking pairs with no letter in common tapped by the child', () => {
   const cant = P(4);
   let c = play(cant, freshAttempt(cant), swap('A', 0, 1), {type: 'stays'});
   assert.equal(isSolved(cant, c.board), false);
   assert.match(visible(view(cant, c)), /Can’t stay\./);
   c = play(cant, c, {type: 'cant'});
+  assert.deepEqual(c.board, {strip: null, said: null, proof: []}, 'the printed strips come back');
+  assert.equal(isSolved(cant, c.board), false, 'one tap on Can’t is not enough');
+  let html = view(cant, c);
+  assert.match(visible(html), /Tap two pairs that would both switch and share no letter\./);
+  assert.doesNotMatch(html, /claim yes/, 'the app draws no blocking pair for the child');
+  assert.doesNotMatch(html, /data-focus="sm-(stays|cant)"/);
+  assert.equal(cellsLive(cant, c.board), false);
+  refuse(cant, c, swap('A', 0, 1));
+  refuse(cant, c, {type: 'cant'});
+  c = play(cant, c, block('A', 'Y'));
+  assert.deepEqual(c.board.proof, ['AY']);
+  refuse(cant, c, block('A', 'Y'), 'already tapped');
+  assert.equal(isSolved(cant, c.board), false);
+  c = play(cant, c, block('B', 'X'));
   assert.ok(isSolved(cant, c.board));
-  const html = view(cant, c);
+  html = view(cant, c);
   assert.match(visible(html), /One strip can change only one of these\./);
-  assert.equal((html.match(/claim yes/g) || []).length, 2, 'two dashed blocking pairs');
-  assert.match(html, /A’s choice 1: Y/, 'the printed strips are shown');
+  assert.equal((html.match(/claim yes/g) || []).length, 2, 'the two pairs the child tapped');
+  // Three pairs, where a tap can be wrong and two blocking pairs can share a letter:
+  // Grades 2–3 Problem 2's strips with A–X, B–Y, C–Z (blocked by BX, BZ, CX and CY).
+  const three = {...P(4), id: 'matching-test-cant', parameters: {...P(5).parameters, mode: 'repair', pairing: 'XYZ'}};
+  assert.deepEqual(blockersOf(three.parameters, three.parameters.lists, 'XYZ'), ['BX', 'BZ', 'CX', 'CY']);
+  let t = play(three, freshAttempt(three), {type: 'cant'}, block('A', 'Y'));
+  assert.equal(t.board.said, 'AY');
+  assert.match(visible(view(three, t)), /A says no\. Tap two pairs that would both switch and share no letter\./);
+  t = play(three, t, block('B', 'X'), block('B', 'Z'));
+  assert.deepEqual(t.board.proof, ['BX', 'BZ']);
+  assert.equal(isSolved(three, t.board), false, 'B is in both');
+  t = play(three, t, block('C', 'Y'));
+  assert.ok(isSolved(three, t.board));
+  // Hints reach the reason from Can't and after a wrong tap.
+  for (const start of [play(three, freshAttempt(three), {type: 'cant'}), play(three, freshAttempt(three), {type: 'cant'}, block('A', 'Y'), block('B', 'X'), block('B', 'Z'))]) {
+    let h = start;
+    for (let i = 0; i < 6 && !isSolved(three, h.board); i++) h = move(three, h, nextHint(three, h).action);
+    assert.ok(isSolved(three, h.board));
+  }
 });
 
-test('last choices: Stays is checked twice, for staying and for three last choices', () => {
+test('last choices: Stays is checked for staying and for three last choices; Undo keeps the lock', () => {
   const p = P(12), q = p.parameters;
+  assert.deepEqual(lastOnes(q, q.lists, q.pairing), ['A', 'X'], 'two last choices to start, in different pairs');
   let a = play(p, freshAttempt(p), {type: 'stays'});
+  assert.equal(a.board.pending, true, 'A and X block');
+  assert.equal(cellsLive(p, a.board), false, 'strips wait for the blocking pair');
+  refuse(p, a, swap('A', 0, 1));
+  const kept = mech.carry(p, a.board, undo(a).board);
+  assert.equal(kept.pending, true, 'Undo does not lift the lock');
+  assert.ok(validBoard(p, kept));
+  a = play(p, a, block('A', 'X'));
+  assert.equal(a.board.pending, false);
+  a = play(p, a, pair('A', 'X'), {type: 'stays'});
+  assert.equal(a.board.pairing, 'XYZ');
   assert.equal(isSolved(p, a.board), false);
   assert.match(visible(view(p, a)), /None get their last choice\./);
   // The guide's example: A: X, Y, Z; B: Y, X, Z; C: Z, X, Y; X: B, C, A; Y: A, C, B; Z: A, B, C.
-  a = play(p, a, swap('B', 1, 2), swap('X', 0, 1), swap('X', 1, 2), swap('Y', 0, 1), swap('Y', 1, 2), swap('Z', 0, 1), swap('Z', 1, 2));
-  assert.deepEqual(a.board.lists, {A: 'XYZ', B: 'YXZ', C: 'ZXY', X: 'BCA', Y: 'CAB', Z: 'ABC'});
+  a = play(p, a, swap('B', 0, 1), swap('X', 0, 1), swap('X', 1, 2), swap('Y', 1, 2), swap('Z', 0, 1), swap('Z', 1, 2));
+  assert.deepEqual(a.board.lists, {A: 'XYZ', B: 'YXZ', C: 'ZXY', X: 'BCA', Y: 'ACB', Z: 'ABC'});
   assert.deepEqual(lastOnes(q, a.board.lists, a.board.pairing), ['X', 'Y', 'Z']);
   a = play(p, a, {type: 'stays'});
   assert.ok(isSolved(p, a.board));
-  let held = play(p, freshAttempt(p), pair('A', 'Z'), {type: 'stays'});
-  assert.equal(held.board.pending, true);
-  assert.equal(cellsLive(p, held.board), false, 'strips wait for the blocking pair');
-  refuse(p, held, swap('A', 0, 1));
 });
 
 test('taps: a circle and a square pair or claim; partners and same-side taps do nothing', () => {
@@ -258,8 +311,17 @@ test('forged saves are refused', () => {
   const ok = (n, b) => validBoard(P(n), b);
   assert.equal(ok(1, {said: 'AX'}), false, 'a claim on partners');
   assert.equal(ok(1, {said: 'stays', extra: 1}), false);
-  assert.equal(ok(3, {strip: {owner: 'A', order: 'YX'}, said: null}), false, 'the printed strip is not a change');
-  assert.equal(ok(3, {strip: {owner: 'A', order: 'XX'}, said: null}), false);
+  assert.equal(ok(3, {strip: {owner: 'A', order: 'XY'}, said: null, proof: null}), true);
+  assert.equal(ok(3, {strip: {owner: 'A', order: 'XY'}, said: null}), false, 'no proof key');
+  assert.equal(ok(3, {strip: {owner: 'A', order: 'YX'}, said: null, proof: null}), false, 'the printed strip is not a change');
+  assert.equal(ok(3, {strip: {owner: 'A', order: 'XX'}, said: null, proof: null}), false);
+  assert.equal(ok(3, {strip: null, said: null, proof: []}), false, 'no reason to ask for when one strip can do it');
+  assert.equal(ok(4, {strip: null, said: null, proof: ['AY']}), true);
+  assert.equal(ok(4, {strip: null, said: null, proof: ['AY', 'AY']}), false, 'a pair tapped twice');
+  assert.equal(ok(4, {strip: null, said: null, proof: ['AX']}), false, 'partners are not a blocking pair');
+  assert.equal(ok(4, {strip: {owner: 'A', order: 'XY'}, said: null, proof: []}), false, 'the reason is on the printed strips');
+  assert.equal(ok(4, {strip: null, said: 'cant', proof: []}), false);
+  assert.equal(ok(4, {strip: null, said: 'BX', proof: ['AY']}), false, 'a right claim goes in the proof, not in said');
   const ten = freshAttempt(P(10)).board;
   assert.equal(ok(10, {...ten, kept: ['YZWX']}), false, 'a pairing that can’t stay on the shelf');
   assert.equal(ok(10, {...ten, kept: ['WXYZ', 'WXYZ']}), false);
@@ -268,9 +330,12 @@ test('forged saves are refused', () => {
   assert.equal(ok(10, {...ten, claimed: true, kept: ['WXYZ']}), false, 'That’s all with one missing');
   assert.equal(ok(10, {...ten, pairing: 'WXYW'}), false);
   assert.equal(ok(6, {...freshAttempt(P(6)).board, lists: {A: 'XY', B: 'XY', X: 'AB', Y: 'AA'}}), false);
-  assert.equal(ok(12, {...freshAttempt(P(12)).board, said: 'stays'}), true, 'a Stays that can stay is a save');
-  assert.equal(ok(12, {...freshAttempt(P(12)).board, pairing: 'ZYX', said: 'stays'}), false, 'Stays on a pairing that can’t');
-  assert.equal(isSolved(P(12), {...freshAttempt(P(12)).board, said: 'stays'}), false);
+  assert.equal(ok(12, {...freshAttempt(P(12)).board, pairing: 'XYZ', said: 'stays'}), true, 'a Stays that can stay is a save');
+  assert.equal(ok(12, {...freshAttempt(P(12)).board, said: 'stays'}), false, 'Stays on a pairing that can’t');
+  assert.equal(isSolved(P(12), {...freshAttempt(P(12)).board, pairing: 'XYZ', said: 'stays'}), false);
+  const g = freshAttempt(byId('matching-playground')).board;
+  assert.equal(validBoard(byId('matching-playground'), g), true);
+  assert.equal(validBoard(byId('matching-playground'), {...g, size: '3'}), false, 'a size is a number');
 });
 
 test('the playground: sizes, free strips, keeping; never solved and no hints', () => {

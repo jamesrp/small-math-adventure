@@ -5,7 +5,7 @@
 // Run: node scripts/build-matching.mjs
 import {writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import {blockersOf, stableOf, repairsOf, disjointBlockers, lastOnes, canStay, profilesOf} from '../dist/families/matching/matching.js';
+import {blockersOf, stableOf, repairsOf, disjointBlockers, lastOnes, lastTarget, canStay, profilesOf} from '../dist/families/matching/matching.js';
 
 // Strips as 'A:YX B:XY X:AB Y:AB', first choice first.
 const strips = s => Object.fromEntries(s.split(' ').map(t => t.split(':')));
@@ -18,16 +18,16 @@ const RULES = [
 ];
 const MORE = {
   check: 'Press Stays if the pairing can stay. If it can’t, tap a circle and a square that block it; if one of them would keep its partner, the board says so.',
-  every: 'Stays keeps a pairing that can stay. If it can’t, tap a circle and a square that block it before changing the pairing. Press That’s all when no other pairing can stay; it says if there is another.',
+  every: 'Stays keeps a pairing that can stay. If it can’t, tap a circle and a square that block it before changing the pairing; Undo doesn’t lift that. Press That’s all when no other pairing can stay; it says if there is another.',
   design: 'Changing a strip clears the pairings kept for the old strips.',
-  repair: 'Only one strip may change at a time: changing a second strip puts the first one back. Can’t is right when no single strip can make the pairing stay.',
+  repair: 'Only one strip may change at a time: changing a second strip puts the first one back. Can’t is right when no single strip can make the pairing stay; then tap two pairs that would both switch and share no letter.',
   last: 'A letter gets its last choice when its partner is at the far end of its strip.'
 };
 const CONTROLS = {
   check: 'Tap a circle and then a square, or drag one onto the other, to say they would both rather be together. Press Stays if no circle and square would. Undo takes back a claim.',
   every: 'Tap a circle and then a square, or drag one onto the other, to pair them; their old partners pair with each other. Press Stays to keep a pairing; if it can’t stay, tap a circle and a square that would both rather be together. Undo takes back the last move.',
   edit: 'Tap two places on one strip, or drag one onto the other, to swap them.',
-  repair: 'Tap two places on one strip, or drag one onto the other, to swap them. Press Stays when the pairing can stay, or Can’t. Tapping a circle and then a square asks whether they would both rather be together. Undo takes back the last move.',
+  repair: 'Tap two places on one strip, or drag one onto the other, to swap them. Press Stays when the pairing can stay, or Can’t. Tapping a circle and then a square asks whether they would both rather be together; after Can’t, it shows the reason. Undo takes back the last move.',
   last: 'Tap two places on one strip to swap them, and tap a circle and then a square to pair them. Press Stays when the pairing can stay and three letters get their last choice; if it can’t stay, tap a circle and a square that would both rather be together.'
 };
 const OBJECTIVE = {
@@ -110,11 +110,11 @@ const PUZZLES = [
     hints: ['Start from two pairs that stay both ways, as in puzzle 6.', 'Let C and Z rank each other first, so they stay together.', 'Then give A and B different first choices, and X and Y the opposite ones.'],
     parent: {notice: 'Whether your child builds from the two-pair pattern, and checks the other four pairings before pressing That’s all.', prompt: 'How do you know every other pairing fails?', explanation: 'One way, from the Week 27 guide: A: X, Y, Z; B: Y, X, Z; C: Z, X, Y; X: B, A, C; Y: A, B, C; Z: C, A, B. C and Z rank each other first, so they are together in every pairing that can stay, and any pairing that separates them is blocked by C and Z. With C and Z fixed, A and B with X and Y have opposite first choices, so A–X, B–Y and A–Y, B–X both stay. Of the 46,656 sets of three-place strips, 11,484 have exactly two pairings that can stay, 34,080 one and 1,092 three; none has more.', extension: 'Can you make three stay? (Yes, as with puzzle 8’s A, B, C, X, Y and Z; no set of three-place strips has four.)', connection: 'A market has one stable matching exactly when the circles’ best and the squares’ best agree; making two means making them differ.'},
     provenance: 'Week 27 Grades 2–3 Problem 5.'},
-  {number: 12, level: 'hard', title: 'Three last choices', mode: 'last', market: THREE, lists: 'A:XYZ B:YZX C:ZXY X:ABC Y:BCA Z:CAB', pairing: 'XYZ', goal: 3, check: {most: 3}, prereq: 'design',
+  {number: 12, level: 'hard', title: 'Three last choices', mode: 'last', market: THREE, lists: 'A:XYZ B:XYZ C:ZXY X:ABC Y:ABC Z:CAB', pairing: 'ZYX', goal: 3, check: {most: 3}, prereq: 'design',
     idea: 'A pairing can stay with three last choices when one side has all its first choices; four is impossible.',
     hints: ['If every circle has its first choice, can any circle want to switch?', 'Keep each circle with its first choice, and move it to the end of its square’s strip.', 'X, Y and Z each put their partner last.'],
     parent: {notice: 'Whether your child tries to make everyone unhappy, and finds that two unhappy letters in different pairs block.', prompt: 'Why can’t a circle and a square in different pairs both have their last choice?', explanation: 'Give every circle its first choice and put each circle last on its partner’s strip, for example A: X, Y, Z; B: Y, X, Z; C: Z, X, Y with A–X, B–Y, C–Z, and X: B, C, A; Y: A, C, B; Z: A, B, C. No circle wants to switch, so nothing blocks, and X, Y and Z all get their last choice. Four is impossible: four letters with their last choice include a circle and a square that are not partners, each would rather have anyone else, so they would block. The validator checks all 46,656 sets of strips: the most is three.', extension: 'With four pairs, what is the most? (Four: give one side its first choices and put each partner last.)', connection: 'Stability limits how unhappy both sides can be at once: with n pairs (n at least 2) at most n letters get their last choice.'},
-    provenance: 'Week 27 Grades 4–5 Problem 6.'}
+    provenance: 'Week 27 Grades 4–5 Problem 6, which starts from blank strips. The starting strips and pairing are new: A and X already have their last choices, in different pairs, so they block; it is five swaps of strips or partners from the nearest answer, the most for any start.'}
 ];
 
 const id = n => `matching-${String(n).padStart(2, '0')}`;
@@ -143,7 +143,9 @@ const out = PUZZLES.map(item => {
     if (item.goal === 'both') assert.equal(witness.length, 2, `${tag}: two of sixteen`);
     if (item.goal === 'two') assert.equal(witness.length, 11484, `${tag}: 11,484 of 46,656`);
   } else {
-    assert.equal(lastOnes(q, L, k).length, 0, `${tag}: no last choices to start`);
+    assert.deepEqual(lastOnes(q, L, k), ['A', 'X'], `${tag}: two last choices to start, and they block`);
+    assert.ok(blockersOf(q, L, k).includes('AX'), `${tag}: A and X block`);
+    assert.equal(lastTarget(q, L, k).cost, 5, `${tag}: five swaps from the nearest answer`);
     const example = {lists: strips('A:XYZ B:YXZ C:ZXY X:BCA Y:ACB Z:ABC'), pairing: 'XYZ'};
     assert.ok(canStay(q, example.lists, example.pairing) && lastOnes(q, example.lists, example.pairing).length === 3, `${tag}: the example works`);
     solution = {most: 3, example};

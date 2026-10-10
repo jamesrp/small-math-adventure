@@ -109,6 +109,13 @@ function hintsSolve(p, a, label) {
   assert.ok(isSolved(p, a.board), `${p.id} ${label}: hints reach a solve`);
   return steps;
 }
+// Swaps between two orders of the same letters: follow where each letter must go and count the loops.
+function swapsApart(a, b) {
+  const at = new Map([...b].map((x, i) => [x, i])), seen = new Array(a.length).fill(false);
+  let loops = 0;
+  for (let i = 0; i < a.length; i++) if (!seen[i]) { loops++; for (let j = i; !seen[j]; j = at.get(a[j])) seen[j] = true; }
+  return a.length - loops;
+}
 // A circle and a square, not together, that don't block: one says no.
 const oneSided = (q, L, k) => { const t = tables(q, L), b = blockingPairs(t, fromKey(t, k)); for (const c of q.circles) for (const s of q.squares) if (k[q.circles.indexOf(c)] !== s && !b.includes(c + s)) return [c, s]; return null; };
 
@@ -131,7 +138,9 @@ export async function validateMatching() {
   for (const p of puzzles.filter(p => p.parameters.mode === 'every' && !p.parameters.edit)) assert.equal(p.parameters.circles.length, 4, `${p.id}: four pairs`);
 
   // Theorems over every small market.
-  const census = {two: [0, 0, 0, 0], three: [0, 0, 0, 0, 0], mostLast: 0, repairCases: 0, daRuns: 0};
+  const census = {two: [0, 0, 0, 0], three: [0, 0, 0, 0, 0], mostLast: 0, repairCases: 0, daRuns: 0, nearestLast: Infinity};
+  // Puzzle 12's start: its distance, in swaps of strips and partners, to every pairing that stays with three last choices.
+  const twelve = pack.puzzles.find(p => p.id === 'matching-12').parameters;
   const m2 = {circles: 'AB', squares: 'XY'}, m3 = {circles: 'ABC', squares: 'XYZ'};
   for (const [q, counts] of [[m2, census.two], [m3, census.three]]) {
     for (const L of profiles(q)) {
@@ -152,6 +161,10 @@ export async function validateMatching() {
       for (const m of PERMS[t.C.length]) {
         const b = blockingPairs(t, m);
         if (!b.length) census.mostLast = Math.max(census.mostLast, q === m3 ? lastCount(t, m) : 0);
+        if (!b.length && q === m3 && lastCount(t, m) >= 3) {
+          const d = [...'ABCXYZ'].reduce((n, o) => n + swapsApart(twelve.lists[o], L[o]), 0) + swapsApart(twelve.pairing, keyOf(t, m));
+          census.nearestLast = Math.min(census.nearestLast, d);
+        }
         // One strip repairs m exactly when its blocking pairs share a letter.
         if (b.length && (q === m2 || census.repairCases < 60000)) {
           census.repairCases++;
@@ -163,6 +176,8 @@ export async function validateMatching() {
   assert.deepEqual(census.two, [0, 14, 2, 0], 'two pairs: 14 sets of strips with one pairing that can stay, 2 with both');
   assert.deepEqual(census.three, [0, 34080, 11484, 1092, 0], 'three pairs: 34,080 / 11,484 / 1,092');
   assert.equal(census.mostLast, 3, 'at most three last choices in a three-pair pairing that can stay');
+  assert.equal(census.nearestLast, 5, 'puzzle 12 starts five swaps from the nearest answer');
+  lastNearest = census.nearestLast;
 
   let hintSteps = 0;
   for (const p of pack.puzzles) {
@@ -235,11 +250,32 @@ function checkRepair(p, fresh, row, t, k) {
     }
     const wrong = play(p, fresh, {type: 'cant'});
     assert.ok(!isSolved(p, wrong.board), `${p.id}: a wrong Can’t is no solve`);
+    assert.equal(wrong.board.proof, null, `${p.id}: a wrong Can’t asks for no reason`);
     refuse(p, wrong, {type: 'cant'}, 'Can’t twice');
     steps += hintsSolve(p, wrong, 'after a wrong Can’t');
   } else {
     assert.deepEqual(row.cant.every(x => b.includes(x)) && row.cant[0][0] !== row.cant[1][0] && row.cant[0][1] !== row.cant[1][1], true, `${p.id}: the certificate is two blocking pairs with no letter in common`);
-    assert.ok(isSolved(p, play(p, fresh, {type: 'cant'}).board), `${p.id}: Can’t is a solve`);
+    // A right Can't is a solve only with its reason: the child taps two blocking pairs with no letter in common.
+    const asked = play(p, fresh, {type: 'cant'});
+    assert.ok(!isSolved(p, asked.board), `${p.id}: Can’t alone is no solve`);
+    assert.deepEqual(asked.board.proof, [], `${p.id}: Can’t asks for the reason`);
+    for (const action of [{type: 'stays'}, {type: 'cant'}, {type: 'swap', owner: q.circles[0], i: 0, j: 1}]) refuse(p, asked, action, `${action.type} while the reason is asked for`);
+    const all = [...q.circles].flatMap(c => [...q.squares].map(s => c + s)).filter(x => k[q.circles.indexOf(x[0])] !== x[1]);
+    for (const x of all) {
+      const one = play(p, asked, {type: 'block', c: x[0], s: x[1]});
+      if (!b.includes(x)) {
+        assert.equal(one.board.said, x, `${p.id}: ${x} is not a blocking pair`);
+        assert.deepEqual(one.board.proof, [], `${p.id}: a wrong tap adds nothing`);
+        steps += hintsSolve(p, one, `after tapping ${x} for the reason`);
+        continue;
+      }
+      assert.deepEqual(one.board.proof, [x]);
+      assert.ok(!isSolved(p, one.board), `${p.id}: one blocking pair is not the reason`);
+      refuse(p, one, {type: 'block', c: x[0], s: x[1]}, 'a pair tapped twice');
+      for (const y of b.filter(y => y !== x)) assert.equal(isSolved(p, play(p, one, {type: 'block', c: y[0], s: y[1]}).board), x[0] !== y[0] && x[1] !== y[1], `${p.id}: ${x} then ${y}`);
+      steps += hintsSolve(p, one, `after tapping ${x}`);
+    }
+    steps += hintsSolve(p, asked, 'after Can’t');
   }
   // A strip change that doesn't repair, a Stays on it, a second strip that puts the first back.
   const owners = [...q.circles, ...q.squares];
@@ -260,7 +296,8 @@ function checkRepair(p, fresh, row, t, k) {
   if (one) assert.ok(!isSolved(p, play(p, fresh, {type: 'block', c: one[0], s: one[1]}).board), `${p.id}: a claim is no solve`);
   for (const [action, why] of [[{type: 'swap', owner: 'Q', i: 0, j: 1}, 'an unknown strip'], [{type: 'swap', owner: 'A', i: 0, j: 0}, 'a place with itself'], [{type: 'swap', owner: 'A', i: 0, j: 9}, 'a place off the strip'], [{type: 'pair', c: 'A', s: k[1]}, 'pairing a fixed pairing'], [{type: 'all'}, 'That’s all']]) refuse(p, fresh, action, why);
   const o = owners[0];
-  for (const [board, why] of [[{strip: {owner: o, order: q.lists[o]}, said: null}, 'a strip unchanged'], [{strip: {owner: o, order: 'QQ'}, said: null}, 'a strip of unknown letters'], [{strip: {owner: 'Q', order: q.lists[o]}, said: null}, 'an unknown owner'], [{strip: null, said: 'maybe'}, 'an unknown claim'], [{strip: null}, 'a missing field']]) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
+  for (const [board, why] of [[{strip: {owner: o, order: q.lists[o]}, said: null, proof: null}, 'a strip unchanged'], [{strip: {owner: o, order: 'QQ'}, said: null, proof: null}, 'a strip of unknown letters'], [{strip: {owner: 'Q', order: q.lists[o]}, said: null, proof: null}, 'an unknown owner'], [{strip: null, said: 'maybe', proof: null}, 'an unknown claim'], [{strip: null, said: null}, 'a missing field'],
+    [{strip: null, said: null, proof: repairs.length ? [] : [b[0], b[0]]}, repairs.length ? 'a reason asked for when one strip can do it' : 'a pair tapped twice'], [{strip: null, said: null, proof: [k[0] && q.circles[0] + k[0]]}, 'partners as a blocking pair'], [{strip: null, said: 'cant', proof: []}, 'Can’t while its reason is asked for']]) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
   return steps;
 }
 
@@ -292,6 +329,10 @@ function checkEvery(p, fresh, row, t, k) {
   refuse(p, held, {type: 'pair', c: q.circles[0], s: k[1]}, 'pairing while held');
   refuse(p, held, {type: 'all'}, 'That’s all while held');
   refuse(p, held, {type: 'stays'}, 'Stays while held');
+  // Undo keeps it held, so Stays and Undo can't ask about a pairing for free.
+  const undone = mechanicFor(p).carry(p, held.board, fresh.board);
+  assert.ok(undone.pending && undone.said === null && validBoard(p, undone), `${p.id}: Undo keeps the lock`);
+  refuse(p, {...fresh, board: undone}, {type: 'pair', c: q.circles[0], s: k[1]}, 'pairing after Undo while held');
   const one = oneSided(q, q.lists, k), right = blockingPairs(t, fromKey(t, k))[0];
   const wrong = play(p, held, {type: 'block', c: one[0], s: one[1]});
   assert.equal(wrong.board.pending, true, `${p.id}: a one-sided wish keeps it held`);
@@ -356,6 +397,7 @@ function checkDesign(p, fresh, row) {
   return steps;
 }
 
+let lastNearest = null;
 function checkLast(p, fresh, row) {
   const q = p.parameters, ex = p.solution.example, t = tables(q, ex.lists), m = fromKey(t, ex.pairing);
   assert.equal(blockingPairs(t, m).length, 0, `${p.id}: the example can stay`);
@@ -366,17 +408,22 @@ function checkLast(p, fresh, row) {
   for (let i = 0; i < 3; i++) if (a.board.pairing[i] !== ex.pairing[i]) a = play(p, a, {type: 'pair', c: q.circles[i], s: ex.pairing[i]});
   assert.ok(isSolved(p, play(p, a, {type: 'stays'}).board), `${p.id}: the example solves`);
   let steps = 0;
-  // Stays on the start: it can stay, with no last choices: no solve.
-  const short = play(p, fresh, {type: 'stays'});
+  // Hints from the start take the fewest swaps: five, then Stays.
+  assert.equal(hintsSolve(p, fresh, 'from the start'), lastNearest + 1, `${p.id}: hints take the shortest way`);
+  // Stays on the one pairing of the starting strips that can stay: too few last choices, no solve.
+  const t0 = tables(q, q.lists), [good] = stableKeys(t0);
+  let short = fresh;
+  for (let i = 0; i < 3; i++) if (short.board.pairing[i] !== good[i]) short = play(p, short, {type: 'pair', c: q.circles[i], s: good[i]});
+  short = play(p, short, {type: 'stays'});
   assert.ok(!isSolved(p, short.board) && short.board.said === 'stays', `${p.id}: a pairing that stays with too few last choices`);
   refuse(p, short, {type: 'stays'}, 'Stays twice');
   steps += hintsSolve(p, short, 'after too few last choices');
-  // A pairing that can't stay is held until a blocking pair is tapped.
-  const t0 = tables(q, q.lists), bad = PERMS[3].find(x => blockingPairs(t0, x).length);
-  let h = fresh;
-  for (let i = 0; i < 3; i++) if (h.board.pairing[i] !== keyOf(t0, bad)[i]) h = play(p, h, {type: 'pair', c: q.circles[i], s: keyOf(t0, bad)[i]});
-  h = play(p, h, {type: 'stays'});
+  // The start can't stay: Stays holds it until a blocking pair is tapped, and Undo keeps it held.
+  const h = play(p, fresh, {type: 'stays'});
   assert.equal(h.board.pending, true, `${p.id}: a wrong Stays holds`);
+  const undone = mechanicFor(p).carry(p, h.board, fresh.board);
+  assert.ok(undone.pending && undone.said === null && validBoard(p, undone), `${p.id}: Undo keeps the lock`);
+  refuse(p, {...fresh, board: undone}, {type: 'swap', owner: 'A', i: 0, j: 1}, 'a strip change after Undo while held');
   steps += hintsSolve(p, h, 'after a wrong Stays');
   refuse(p, fresh, {type: 'all'}, 'That’s all');
   refuse(p, fresh, {type: 'block', c: 'A', s: 'Y'}, 'a claim before Stays');
@@ -407,7 +454,7 @@ function checkPlayground(p, fresh) {
   }
   refuse(p, fresh, {type: 'size', size: 7}, 'an unknown size');
   refuse(p, fresh, {type: 'size', size: fresh.board.size}, 'the same size');
-  for (const [board, why] of [[{...fresh.board, size: 7}, 'an unknown size'], [{...fresh.board, kept: ['ZZZ']}, 'a kept pairing that isn’t one'], [{...fresh.board, claimed: false}, 'an unknown field']]) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
+  for (const [board, why] of [[{...fresh.board, size: 7}, 'an unknown size'], [{...fresh.board, size: String(fresh.board.size)}, 'a size as text'], [{...fresh.board, kept: ['ZZZ']}, 'a kept pairing that isn’t one'], [{...fresh.board, claimed: false}, 'an unknown field']]) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
 }
 export default validateMatching;
 if (process.argv[1] === new URL(import.meta.url).pathname) console.log(JSON.stringify(await validateMatching(), null, 2));
