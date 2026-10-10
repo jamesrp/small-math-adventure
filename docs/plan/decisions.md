@@ -2,7 +2,7 @@
 
 James asked on October 10, 2026 that every worksheet week end in one of two states: **in the app**, or **not porting**, with the reason written down. "Waiting" is a step in a wave, never an end state. A week reaches its decision through its review card in the worksheets repository ([plans/review](https://github.com/jamesrp/math-circle-worksheets/tree/main/plans/review)), and then a port when the card says port. A week that waits on a board or on another family gets that board or family built in a wave, or a reason why not.
 
-**Where things stand:** 79 weeks (1–78 and the Week 1 encore). 40 are in the app and 0 are ruled out, so 39 are open.
+**Where things stand:** 79 weeks (1–78 and the Week 1 encore). 40 are in the app and 1 is ruled out, so 38 are open, every one planned into a wave.
 
 Whoever changes a week's state changes its row here in the same push, and the count above.
 
@@ -16,7 +16,7 @@ Each wave is claimed on both work boards like any other item. The weeks a wave p
 4. **Wave 6, grids.** Week 15's nearest-site cells on a half-unit lattice, and the grid themes whose cards say port: 5, 32, 48 and 57.
 5. **Wave 7, sets and numbers.** 12, 19, 20, 22, 36, 49, 51, 54, 55 and 58.
 6. **Wave 8, symmetry, words and reflections.** 35, 37, Week 76's shrink tool, and Weeks 71 and 21 as groups in Mirror Couriers.
-7. **Wave 9, the rest.** Week 65's octagon floor, 73, 77 and 78, and the paper-and-continuous themes, whose cards all say port: 28, 38, 50, 56, 59 and 61. Each gets a port with a real on-screen solve or a final reason not to. The same wave makes the touch-ups the in-app families' own cards ask for (Weeks 8–11).
+7. **Wave 9, the rest.** Week 65's octagon floor, 77 as a loop group in Lantern Wires, 78, and the paper-and-continuous themes, whose cards all say port: 28, 38, 50, 56, 59 and 61. Each gets a port with a real on-screen solve or a final reason not to. The same wave makes the touch-ups the in-app families' own cards ask for (Weeks 8–11).
 
 ## Every week
 
@@ -89,7 +89,7 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 62 | Scheduling as colouring | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-62.md) | In the app | First fit in Neighbor Lanterns (PR #9) |
 | 63 | Derangements | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-63.md) | In the app | Mixed-up cups (PR #11) |
 | 64 | Straight paths on strange surfaces | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-64.md) | Open, wave 4 | Glue three or four squares for a target return time, on the portal board |
-| 65 | Hyperbolic octagon streets | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-65.md) | Open, wave 9 | Needs a recentring octagon floor; decide whether that large board earns its keep |
+| 65 | Hyperbolic octagon streets | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-65.md) | Open, wave 9 | Its own family on a recentring octagon floor: come home in exact moves, fence a block on a turn budget, and the impossible returns as "can't" goals |
 | 66 | Lamplighter streets | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-66.md) | In the app | Lamplighter in Lantern Wires (PR #27) |
 | 67 | Meeting on shortest roads | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-67.md) | In the app | Meeting roads (PR #31) |
 | 68 | How many ways out (ends) | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-68.md) | Open, wave 5 | Block dots on an endless panning map; the card worries only the tree gives many puzzles |
@@ -97,12 +97,12 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 70 | Portal shields | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-70.md) | Open, wave 4 | Shields on the portal board |
 | 71 | Can you hear the room? | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-71.md) | Open, wave 8 | An aiming group in Mirror Couriers |
 | 72 | A robot that remembers area | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-72.md) | In the app | Memory robot (PR #28) |
-| 73 | The gentlest stretch | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-73.md) | Open, wave 9 | The card finds few puzzles for a large mechanic; decide |
+| 73 | The gentlest stretch | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-73.md) | Not porting | Every sheet reduces to one formula with the same certificate, so the solve repeats after a puzzle or two, and dragging under a stretch check invites sliding to a minimum; the pin test and ruler stay on paper |
 | 74 | Doubling elevators | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-74.md) | In the app | Doubling elevators (PR #29) |
 | 75 | Twists on a cylinder | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-75.md) | Open, wave 4 | Strands on a wraparound strip with the lift view; a revise verdict doesn't hold up a port |
 | 76 | Substitution strips | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-76.md) | Open, wave 8 | Catch the impostor with a Shrink tool and an exact factor check |
-| 77 | Persistent holes | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-77.md) | Open, wave 9 | The card finds the on-screen loop test thin; decide on a schedule group in Lantern Wires |
-| 78 | Three-armed lines (tropical lines) | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-78.md) | Open, wave 9 | Live feedback turns it into sliding; decide on the checked-on-submit "can't" version |
+| 77 | Persistent holes | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-77.md) | Open, wave 9 | A loop group in Lantern Wires: tap filled triangles to darken a lit loop, or certify "can't" with an edge only unfilled tiles touch; schedules on Hard |
+| 78 | Three-armed lines (tropical lines) | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-78.md) | Open, wave 9 | Placement checked on submit: one line through the targets, aligned targets as a ray, "can't" for three targets with fan certificates |
 
 ## Not yet in the library
 
