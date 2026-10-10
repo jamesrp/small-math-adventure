@@ -1,0 +1,264 @@
+// Builds dist/families/lamplighter/lamplighter.json, the Lamplighter group in
+// Lantern Wires, from the authoring list below. Each puzzle's budget is the
+// fewest moves, computed here with the module's own breadth-first search
+// (dist/families/lamplighter/lamplighter.js); the authored witness word is
+// replayed and must be that short. scripts/validate-lamplighter.mjs checks
+// every budget again by formula and by trying every order of the lanterns.
+// Design notes and sources: docs/lamplighter/README.md.
+import {writeFile} from 'node:fs/promises';
+import {boardOf, fewest, replay, goalOf, sameState, startOf, shortestWord} from '../dist/families/lamplighter/lamplighter.js';
+
+const WEEK66 = 'https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-66';
+export const sources = [
+  {id: 'lamplighter-week66', title: 'Bellingham Math Circle — Week 66: Lamplighter streets, student packet (Grades 3–5) and adult guide', url: WEEK66, kind: 'local curriculum'},
+  {id: 'lamplighter-dead-ends', title: 'S. Cleary and J. Taback, Dead end words in lamplighter groups and other wreath products, Quarterly Journal of Mathematics 56 (2005): §3.1 (the lamplighter group and its word length) and §4.1 (dead ends)', url: 'https://arxiv.org/abs/math/0309344', kind: 'research'},
+  {id: 'lamplighter-ggt', title: 'C. Druţu and M. Kapovich, Geometric Group Theory (AMS, 2018), Exercise 7.82: word length in wreath products', url: 'https://www.math.ucdavis.edu/~kapovich/EPR/ggt.pdf', kind: 'reference'}
+];
+
+export const family = {
+  id: 'lamplighter',
+  title: 'Lantern Wires lamplighter',
+  mathematics: 'A lamplighter stands at one lantern of a street, a ring or a grid. One move walks to a neighbouring lantern or lights or puts out the lantern underfoot, so a state is a place and a set of lit lanterns. To turn lit set S into T and walk from p to q, every lantern in the difference D = S △ T needs an odd number of flips, so at least one, and the lamplighter must stand at each of them; extra flips never shorten the walk. So the fewest moves is |D| plus the shortest walk from p that visits every lantern of D and ends at q. On a street, with a and b the ends of D, that walk is min(|p − a| + (b − a) + |b − q|, |p − b| + (b − a) + |a − q|): the only choice is which end to visit first, and the end you finish near should come last. On a ring the walk either goes round, leaving out one gap, or turns back; on a grid it is a short tour with distances counted along the streets. This is the word length of the lamplighter group Z₂ ≀ Z with the generators "step" and "flip" (Z₂ ≀ Z₈ on the ring, Z₂ ≀ Z² on the grid). Its famous oddity is dead ends: from the dark street with the lamplighter home at 0, lanterns −1, 0 and 1 lit takes 7 moves, yet every single move from there gives a street that takes 6. On the street, a state is a dead end exactly when the lamplighter is home, lantern 0 is lit and lit lanterns lie on both sides (Cleary and Taback, 2005). Unlike Lantern Wires, where a press flips the two lanterns joined by a wire and order never matters, here a lantern changes only where the lamplighter stands, so the walking is the cost and the order is everything.',
+  rules: [
+    'One move is one step to a neighbouring lantern, or lighting or putting out the lantern the lamplighter stands at.',
+    'The outlines under the board show how many moves you may make. Each move fills one.',
+    'You are done when every lantern is lit or dark as on the goal card and the lamplighter stands where the goal card shows.'
+  ],
+  sourceIds: sources.map(s => s.id)
+};
+
+const RING = 'The lanterns stand in a ring, so the lamplighter can walk either way round.';
+const GRID = 'The lamplighter walks along the lines: up, down, left or right.';
+const rulesFor = q => [family.rules[0], ...(q.geometry === 'ring' ? [RING] : q.geometry === 'grid' ? [GRID] : []), ...family.rules.slice(1)];
+const KEYS = {
+  street: 'the left and right arrow keys walk',
+  ring: 'the left arrow key walks anticlockwise and the right arrow key clockwise',
+  grid: 'the arrow keys walk'
+};
+const controlsFor = q => `Tap the lantern next to the lamplighter to walk there. Tap the lantern the lamplighter stands at to light it or put it out. With a keyboard, ${KEYS[q.geometry]}, and Enter or Space taps the lantern in focus. Undo takes back a move.`;
+const OBJECTIVE = 'Make your lanterns match the goal card and finish where its lamplighter stands, using the moves shown.';
+const street = (start, goal) => ({geometry: 'street', min: -4, max: 4, start, goal});
+const ring = (start, goal) => ({geometry: 'ring', size: 8, start, goal});
+const grid = (rows, cols, start, goal) => ({geometry: 'grid', rows, cols, start, goal});
+const DARK = {at: 0, lit: []};
+
+const authored = [
+  {
+    number: 1, difficulty_level: 'easy', title: 'One lantern', budget: 2, witness: 'RF',
+    parameters: street(DARK, {at: 1, lit: [1]}),
+    idea: 'Two kinds of move: walk to a lantern, then light it.',
+    prerequisites: 'None to start. The numbers on the street are names for the lanterns; no arithmetic is needed.',
+    hints: ['The lamplighter can light only the lantern underfoot.', 'Walk to lantern 1 first.', 'Walk right, then light that lantern.'],
+    parent: {
+      notice: 'Whether your child taps lantern 1 expecting it to light, and sees that the lamplighter must walk there first.',
+      prompt: 'Why does this take two moves and not one?',
+      explanation: 'A move either walks one lantern along or lights or puts out the lantern the lamplighter stands at. Lantern 1 must be lit, so the lamplighter must stand there: one walk and one light. Two moves, in that order.',
+      extension: 'How many moves would it take to light lantern 3 and stand there? (4: three walks and one light.)',
+      connection: 'Every lit lantern costs one light, and the walking is the rest: the first step towards the Week 66 rule.'
+    },
+    provenance: 'Week 66 Problem 1, target A (walker at 1, lamp 1 on): “Start with every lamp off and the walker at 0. Reach each target in as few moves as you can.”'
+  },
+  {
+    number: 2, difficulty_level: 'easy', title: 'Both sides', budget: 5, witness: 'LFRRF',
+    parameters: street(DARK, {at: 1, lit: [-1, 1]}),
+    idea: 'Visit the lantern you will not finish at first: left to −1, then right to 1 is 3 walks; right first is 5.',
+    prerequisites: 'One lantern.',
+    hints: ['Which lantern should you visit first?', 'The lamplighter finishes at 1. Light −1 on the way.', 'Walk left and light, then walk right twice and light.'],
+    parent: {
+      notice: 'Whether your child goes right to 1 first, lights it, and then has to come back.',
+      prompt: 'Which lantern did you light first? Would the other order fit in five moves?',
+      explanation: 'Two lanterns to light, so two lights. The lamplighter must reach −1 and 1 and end at 1. Going to −1 first is 1 walk left and 2 walks right: 3 walks. Going to 1 first is 1 right, 2 left and 2 back right: 5 walks. So 2 + 3 = 5 moves.',
+      extension: 'What if the lamplighter had to finish at −1? (5 again: now go to 1 first.)',
+      connection: 'Week 66 Problem 1, target B (LFRRF: 3 walks and 2 lights).'
+    },
+    provenance: 'Week 66 Problem 1, target B (walker at 1, lamps −1 and 1 on).'
+  },
+  {
+    number: 3, difficulty_level: 'easy', title: 'Out and back', budget: 6, witness: 'RRFLLF',
+    parameters: street(DARK, {at: 0, lit: [0, 2]}),
+    idea: 'Lantern 2 is a trip out and back home, 4 walks; lantern 0 can be lit before leaving or after coming back.',
+    prerequisites: 'One lantern.',
+    hints: ['Where must the lamplighter finish?', 'Lantern 2 is a trip there and back.', 'Light lantern 0, walk right twice and light, then walk back home.'],
+    parent: {
+      notice: 'Whether your child sees that lantern 0 can be lit first or last.',
+      prompt: 'Could you light lantern 0 at a different time?',
+      explanation: 'Two lights, and the walk from 0 out to 2 and back is 4 walks whatever you do. 2 + 4 = 6 moves. Lighting lantern 0 before leaving and after coming back are both shortest.',
+      extension: 'With lanterns −2, 0 and 2 lit and the lamplighter home, how many moves? (11: puzzle 5.)',
+      connection: 'Week 66 Problem 1, target C (FRRFLL: 4 walks and 2 lights).'
+    },
+    provenance: 'Week 66 Problem 1, target C (walker at 0, lamps 0 and 2 on).'
+  },
+  {
+    number: 4, difficulty_level: 'medium', title: 'Ending at 2', budget: 9, witness: 'LLFRRFRRF',
+    parameters: street(DARK, {at: 2, lit: [-2, 0, 2]}),
+    idea: 'Finish at the end you visit last: −2 first, then right across to 2. 6 walks and 3 lights.',
+    prerequisites: 'Both sides.',
+    hints: ['Where does the lamplighter finish? Go to the other end first.', 'Start by walking left.', 'Walk left twice and light, then walk right, lighting 0 and 2 as you reach them.'],
+    parent: {
+      notice: 'Whether your child heads for 2, the finish, first, and runs out of moves.',
+      prompt: 'Which end did you go to first, and why?',
+      explanation: 'Three lights. The lamplighter must reach −2 and 2 and end at 2. Visiting −2 first: 2 walks left, then 4 right, 6 walks. Visiting 2 first: 2 right, 4 left and 4 back, 10 walks. So 3 + 6 = 9 moves.',
+      extension: 'How many moves if the lamplighter finished at −2? (9 again, going right first.)',
+      connection: 'Week 66 Problem 2, target C (9 moves): the same lanterns as puzzle 5, a different finish.'
+    },
+    provenance: 'Week 66 Problem 2, target C (walker at 2, lamps −2, 0 and 2 on): “These targets have the same lamps on, but the walker ends in different places. Find the fewest moves to each target.”'
+  },
+  {
+    number: 5, difficulty_level: 'medium', title: 'Ending at home', budget: 11, witness: 'LLFRRRRFLLF',
+    parameters: street(DARK, {at: 0, lit: [-2, 0, 2]}),
+    idea: 'The same lanterns as puzzle 4, but finishing at home costs 2 more walks: the end matters.',
+    prerequisites: 'Ending at 2.',
+    hints: ['Compare with the last puzzle: only the finishing spot changed.', 'From whichever end you reach last, you must walk back home.', 'Walk left twice and light, walk right four and light, then walk back two. Light lantern 0 as you pass it.'],
+    parent: {
+      notice: 'Whether your child expects 9 moves again, since the lit lanterns are the same as in puzzle 4.',
+      prompt: 'The lit lanterns are the same as last time. Where do the two extra moves come from?',
+      explanation: 'Three lights again. Now the walk must reach −2 and 2 and come back to 0: 2 out, 4 across and 2 back, 8 walks, whichever end comes first. 3 + 8 = 11. This street is also a dead end, like puzzle 6: walking left, walking right or putting out lantern 0 each gives a street that takes only 10 moves from dark.',
+      extension: 'Does every move from this street make it quicker to reach from dark? (Yes: all three give 10.)',
+      connection: 'Week 66 Problem 2, target B (11 moves). The Week 66 review card points out that it is a dead end too.'
+    },
+    provenance: 'Week 66 Problem 2, target B (walker at 0, lamps −2, 0 and 2 on).'
+  },
+  {
+    number: 6, difficulty_level: 'medium', title: 'Three in a row', budget: 7, witness: 'LFRRFLF',
+    parameters: street(DARK, {at: 0, lit: [-1, 0, 1]}),
+    idea: '3 lights and 4 walks. It is a dead end: every move from this street gives one that is quicker to reach from dark.',
+    prerequisites: 'Out and back.',
+    hints: ['Every lit lantern needs the lamplighter to stand at it.', 'Go one way, come back past home, and return.', 'Walk left and light, walk right twice and light, walk back and light.'],
+    parent: {
+      notice: 'From here, whichever move your child makes, the street gets easier to put back to dark.',
+      prompt: 'This street took 7 moves from dark. Can one more move make a street that takes 8?',
+      explanation: 'Three lights, and the lamplighter must reach −1 and 1 and come home: 4 walks, so 7 moves and no fewer. Now make one more move: walk left, walk right or put out lantern 0. Each gives a street that takes only 6 moves from dark (walking left, for instance, leaves the lamplighter at −1, which a 6-move word reaches: light 0, right, light, left twice, light). A longer move word can describe an easier street. In the lamplighter group this street is a dead end.',
+      extension: 'Can you find another street where every move makes it easier to put back? (The lamplighter at home, lantern 0 lit, and lit lanterns on both sides, like puzzle 5. On the street these are exactly the dead ends.)',
+      connection: 'Week 66 Problems 3 to 5. A dead end is a word that no single move lengthens; Cleary and Taback (2005) describe the dead ends of lamplighter groups.'
+    },
+    provenance: 'Week 66 Problem 3 (walker at 0, lamps −1, 0 and 1 on: “Reach this target in the fewest moves.”), with Problems 4 and 5 (one more move from it, and whether a move can always make a target harder) in the grown-up notes.'
+  },
+  {
+    number: 7, difficulty_level: 'medium', title: 'Right side first', budget: 12, witness: 'RRFLFLLLLFRR',
+    parameters: street(DARK, {at: -1, lit: [-3, 1, 2]}),
+    idea: 'The lamplighter finishes at −1, nearer the left end, so the right side comes first: 9 walks; left first takes 11.',
+    prerequisites: 'Ending at 2.',
+    hints: ['The lamplighter finishes at −1. Which end of the street should come first?', 'Go right first.', 'Walk right twice and light, light 1 on the way back, walk on to −3 and light, then walk back to −1.'],
+    parent: {
+      notice: 'Whether your child goes left first, because −3 is farthest and the finish is on the left too.',
+      prompt: 'Which end did you light last? Why does that save moves?',
+      explanation: 'Three lights. The walk must reach 2 and −3 and end at −1. Right first: 2 right, 5 left, 2 back right, 9 walks. Left first: 3 left, 5 right, 3 back left, 11 walks. So 3 + 9 = 12. Visit last the end you finish near.',
+      extension: 'Where could the lamplighter finish so that both orders take the same number of moves? (At home, 0: both take 13.)',
+      connection: 'Week 66 Problem 2 and the guide’s general rule: the shortest walk visits one end, then the other, and the choice depends on where it ends.'
+    },
+    provenance: 'New for the app: a target with lamps on both sides and a finish between them, where the order of the two ends matters, after Week 66 Problem 2 and the guide’s general rule.'
+  },
+  {
+    number: 8, difficulty_level: 'hard', title: 'Some already lit', budget: 13, witness: 'RRFLFLLFLLLFR',
+    parameters: street({at: 1, lit: [-3, -1, 2]}, {at: -2, lit: [-1, 0, 3]}),
+    idea: 'Only lanterns that differ from the goal need a flip (−3, 0, 2 and 3); then 3 first, across to −3, and back to −2.',
+    prerequisites: 'Right side first.',
+    hints: ['Which lanterns already look right?', 'Four lanterns need changing: −3, 0, 2 and 3.', 'Walk right to 2 and 3, then left all the way to −3, then one step back.'],
+    parent: {
+      notice: 'Whether your child puts out lantern −1, which is lit now and on the goal card, and has to light it again.',
+      prompt: 'Which lanterns did you never need to touch?',
+      explanation: 'Lantern −1 is lit now and on the goal card, and the others outside −3, 0, 2 and 3 are dark on both, so they need no flip. Those four need one each. The walk from 1 must reach 3 and −3 and end at −2: 2 right, 6 left, 1 right, 9 walks. Going left first takes 4 + 6 + 5 = 15. So 4 + 9 = 13.',
+      extension: 'Start from the goal card and get back to this street. How many moves? (13: every move can be undone by a move.)',
+      connection: 'The fewest moves between any two streets is the number of lanterns that differ plus the walk. In the lamplighter group this is the distance between any two elements, not only from the dark street.'
+    },
+    provenance: 'New for the app: a start that is not the dark street, after the Week 66 guide’s rule (one flip for each lamp that must change, plus the walk).'
+  },
+  {
+    number: 9, difficulty_level: 'hard', title: 'Round the long way', budget: 12, witness: 'LFLLFLFLLLFR',
+    parameters: ring(DARK, {at: 2, lit: [1, 4, 5, 7]}),
+    idea: 'On a ring, carrying on round past the empty lantern beats turning back: 8 walks and 4 lights.',
+    prerequisites: 'Right side first.',
+    hints: ['On a ring you can walk either way round.', 'Which part of the ring never needs walking?', 'Walk anticlockwise, lighting as you pass, until you are one past the finish, then step back.'],
+    parent: {
+      notice: 'Whether your child turns back after the last lit lantern on one side instead of carrying on round.',
+      prompt: 'Which stretch of the ring did you never walk along?',
+      explanation: 'Four lights. The lamplighter starts at the top and must reach the four goal lanterns and finish two places clockwise. Walking anticlockwise right round to the lantern just past the finish and stepping back is 8 walks; so is one step clockwise and then all the way round anticlockwise. Every route that turns back over lanterns already passed takes at least 10. 4 + 8 = 12.',
+      extension: 'With the same lanterns, how many moves to finish at the top? (12: once round.)',
+      connection: 'New for the app: the lamplighter on a ring of 8 lanterns, the group Z₂ ≀ Z₈. A walk on a ring leaves out at most one stretch, going round one way or the other.'
+    },
+    provenance: 'New for the app: the Week 66 street closed into a ring of 8, contrasting with the street puzzles, where the walk can never go round.'
+  },
+  {
+    number: 10, difficulty_level: 'hard', title: 'Once round', budget: 11, witness: 'LLFLLLFLLFL',
+    parameters: ring(DARK, {at: 0, lit: [1, 3, 6]}),
+    idea: 'Going once round the whole ring, 8 walks, beats going out and back, 10 walks.',
+    prerequisites: 'Round the long way.',
+    hints: ['You must come back to the top. Which way round is shorter?', 'Going once all the way round brings you home.', 'Walk all the way round, either way, lighting the three lanterns as you pass.'],
+    parent: {
+      notice: 'Whether your child goes out to one side and back, then to the other, instead of all the way round.',
+      prompt: 'How many steps does once round take? How many does going out and back take?',
+      explanation: 'Three lights. To light the three lanterns and come home, the lamplighter can go once round, 8 walks, or go out and back, leaving out the widest empty stretch, which here is only 3 steps long: at least 2 × 5 = 10 walks. 3 + 8 = 11, either way round.',
+      extension: 'Which lanterns would make going out and back shorter than going round? (When an empty stretch of 5 or more steps, between home and the lit lanterns, can be left out.)',
+      connection: 'New for the app. A walk round the ring that comes home either goes once round or turns back; on the street it can only turn back.'
+    },
+    provenance: 'New for the app: on the ring, the contrast with Week 66 Problem 1 target C, where coming home means walking back.'
+  },
+  {
+    number: 11, difficulty_level: 'hard', title: 'Four corners', budget: 14, witness: 'ULFRRFDDFLLFUR',
+    parameters: grid(3, 3, {at: [1, 1], lit: []}, {at: [1, 1], lit: [[0, 0], [0, 2], [2, 0], [2, 2]]}),
+    idea: 'A tour: out to a corner, round the edge to each of the others, and back to the middle: 10 walks and 4 lights.',
+    prerequisites: 'Once round.',
+    hints: ['Visit the corners in an order that goes round the edge.', 'Each corner is two steps from the next one round the edge.', 'Go to a corner and light it, go round the edge lighting each corner, then back to the middle.'],
+    parent: {
+      notice: 'Whether your child crosses from one corner to the opposite one.',
+      prompt: 'Which corner did you visit after the first? Does the order matter?',
+      explanation: 'Four lights. The middle is 2 steps from each corner, neighbouring corners are 2 apart round the edge and opposite corners 4 apart. Out to a corner, round the other three and back is 2 + 2 + 2 + 2 + 2 = 10 walks; crossing to an opposite corner adds 2. 4 + 10 = 14.',
+      extension: 'If the lamplighter could finish at any corner, how many moves? (12.)',
+      connection: 'New for the app: the lamplighter on a grid, Z₂ ≀ Z². The walk is now a small travelling-salesman tour, with distances counted in steps along the streets.'
+    },
+    provenance: 'New for the app: the Week 66 street becomes a 3 by 3 grid, where the walk is a tour rather than a choice of which end comes first.'
+  },
+  {
+    number: 12, difficulty_level: 'hard', title: 'Plan the tour', budget: 13, witness: 'DRFUUFRRFDDFU',
+    parameters: grid(3, 4, {at: [1, 0], lit: []}, {at: [1, 3], lit: [[0, 1], [2, 1], [0, 3], [2, 3]]}),
+    idea: 'Light the two lanterns nearer the start in one sweep, then the two by the finish in another, so the last one lit is beside the finish.',
+    prerequisites: 'Four corners.',
+    hints: ['Which two lanterns should come last?', 'Light the two lanterns nearer the start first, in one sweep from top to bottom or bottom to top.', 'Go down and right and light; up two and light; right two and light; down two and light; up one.'],
+    parent: {
+      notice: 'Whether your child lights the lanterns by the finish in the middle of the tour and has to come back.',
+      prompt: 'Why are the last two lanterns lit right beside the finish?',
+      explanation: 'Four lights. The walk must cross 3 columns to the finish, and in each lit column climb from top to bottom or bottom to top, 2 steps, starting and ending in the middle row, 1 step at each end: at least 3 + 2 + 2 + 1 + 1 = 9 walks, and the sweep tour has exactly 9. 4 + 9 = 13.',
+      extension: 'How many moves to light the same four and finish back where the lamplighter started? (14: once round the edge.)',
+      connection: 'New for the app. On a grid the shortest walk through the lanterns is a travelling-salesman path, with no simple formula in general; small boards can be checked by trying every order.'
+    },
+    provenance: 'New for the app: a 3 by 4 grid where the finish decides the order, after Week 66 Problem 2 (the walker’s finish changes the fewest moves).'
+  }
+];
+
+const common = {band: 'all', group: 'Lamplighter', mechanic: 'lamplighter', libraryFamily: 'toggle', familyTitle: 'Lantern Wires', revision: 1, sourceDocument: 'docs/lamplighter/README.md'};
+// Research sources for the notes that name them: dead ends, and the
+// lamplighter group's word length.
+const sourcesFor = text => ['lamplighter-week66', ...(/dead end/.test(text) ? ['lamplighter-dead-ends'] : []), ...(/lamplighter group|Z₂ ≀/.test(text) ? ['lamplighter-ggt'] : [])];
+export const puzzles = authored.map(item => {
+  const q = item.parameters, g = boardOf(q), best = fewest(q);
+  if (best !== item.budget) throw Error(`puzzle ${item.number}: the fewest moves is ${best}, not ${item.budget}`);
+  const end = replay(q, item.witness);
+  if (!end || !sameState(end, goalOf(q)) || item.witness.length !== best) throw Error(`puzzle ${item.number}: the witness ${item.witness} is not a shortest word`);
+  const flips = [...item.witness].filter(c => c === 'F').length, start = startOf(q), goal = goalOf(q);
+  if (flips !== Array.from({length: g.n}, (_, k) => (start.lit ^ goal.lit) >> k & 1).reduce((a, b) => a + b, 0)) throw Error(`puzzle ${item.number}: one flip per lantern that differs`);
+  return {
+    id: `lamplighter-${String(item.number).padStart(2, '0')}`,
+    number: item.number,
+    title: item.title,
+    difficulty_level: item.difficulty_level,
+    ...common,
+    parameters: {...q, budget: best},
+    objective: OBJECTIVE,
+    visibleObjective: '',
+    instruction: OBJECTIVE,
+    controls: controlsFor(q),
+    rules: rulesFor(q),
+    idea: item.idea,
+    prerequisites: item.prerequisites,
+    hints: item.hints,
+    parent: {...item.parent, sourceIds: sourcesFor(Object.values(item.parent).join(' '))},
+    solution: {word: item.witness, fewest: best, flips, walks: best - flips},
+    provenance: item.provenance
+  };
+});
+export const pack = {title: 'Lantern Wires lamplighter', version: 1, families: [family], sources, puzzles};
+
+if (process.argv[1] === new URL(import.meta.url).pathname) {
+  await writeFile(new URL('../dist/families/lamplighter/lamplighter.json', import.meta.url), JSON.stringify(pack, null, 1) + '\n');
+  for (const p of puzzles) console.log(p.id, p.difficulty_level, p.parameters.geometry, p.solution.fewest, p.solution.word, 'search:', shortestWord(p.parameters, startOf(p.parameters)));
+}
