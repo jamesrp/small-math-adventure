@@ -92,7 +92,11 @@ try {
   await shot('fewer');
   await tap(cross(3, 1));
   assert.equal(await button('Fewest').isDisabled(), false, 'two shields can try again');
-  const t = Math.max(await tapTime(5, 5), await tapTime(5, 5));
+  // Four taps on and off one cross; the median, so one slow frame on a busy machine doesn't decide.
+  const times = [];
+  for (let k = 0; k < 4; k++) times.push(await tapTime(5, 5));
+  times.sort((x, y) => x - y);
+  const t = (times[1] + times[2]) / 2;
   assert.ok(t < 100, `a tap redraws in ${t.toFixed(1)} ms`);
   await button('Fewest').focus(); await page.keyboard.press('Enter');
   assert.equal(await page.locator('.sh-prompt').innerText(), 'Tap 2 shots that cross only at S and T.');

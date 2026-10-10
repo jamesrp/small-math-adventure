@@ -238,11 +238,19 @@ test('the window holds every shot drawn; copies to tap sit inside it', () => {
   assert.equal(targetWords(EDGE, [-4, 8]), 'the T on the bottom edge of the copy 1 left, 1 up');
 });
 
-test('the portal board widens a cross’s tap disc when asked, and keeps .42 otherwise', () => {
+test('the portal board widens a cross’s tap disc when asked, keeps .42 otherwise, and leaves out a point whose look is false', () => {
   const S = surfaceOf(ROOM);
   const plain = roomBoard(S, {point: () => ({act: true, label: 'x'})});
   assert.match(plain, /<circle class="pb-hit" cx="1" cy="-1" r="0.42"\/>/);
   const wide = planeBoard(S, {window: [0, 0, 0, 0], point: pt => pt.u === 4 && pt.v === 4 ? {act: true, r: 2.3, label: 'T'} : {}});
   assert.match(wide, /data-pb-point="4,4" data-pb-view="plane" role="button"[^>]*><circle class="pb-hit" cx="4" cy="-4" r="2.3"\/>/);
   assert.match(roomBoard(S, {point: () => ({r: -1})}), /r="0.42"/, 'a bad radius is ignored');
+  // false leaves a point out; {} and null keep it as a quiet point.
+  assert.equal((wide.match(/data-pb-point=/g) || []).length, 64, 'every point the copy owns');
+  const sparse = planeBoard(S, {window: [0, 0, 0, 0], point: pt => pt.u === 4 && pt.v === 4 ? {act: true, label: 'T'} : false});
+  assert.equal((sparse.match(/data-pb-point=/g) || []).length, 1);
+  assert.equal((roomBoard(S, {point: pt => pt.i === 1 && pt.j === 1 ? null : false}).match(/data-pb-point=/g) || []).length, 1);
+  // The shields views leave out every plane point but the copies to tap.
+  const p = byId('shields-01'), html = view(p, freshAttempt(p));
+  assert.equal((html.slice(html.indexOf('pb-plane')).match(/data-pb-point=/g) || []).length, 0, 'nothing to tap in the unrolled view before a claim');
 });

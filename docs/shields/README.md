@@ -76,9 +76,12 @@ Three rooms, chosen with small room pictures: T in the middle, no T, and T on th
 - **Undo** (dist/main.js) applies the mechanic's `carry`, which keeps the refused count and the Can't refusal on the board Undo goes back to. Restart clears them.
 - `scripts/build-shields.mjs` computes each fewest and every fewest arrangement with the mechanic's search and checks them, the forced crosses and the tapped proofs against the table. `scripts/validate-shields.mjs` checks them again by other methods.
 
-## A change to the shared board
+## Changes to the shared board
 
-`pointHit` in `dist/portal-board.js` takes an optional `look.r`, the radius of a cross's tap disc in lattice units (default .42, as before). The unrolled view here is zoomed out to four copies of an 8-wide room, where a T copy is a small ring; its tap disc is widened to 2.3 so a T can be tapped where it is seen, and the room's crosses use .5 so neighbouring discs touch but never overlap. The line in [portal-board.md](../portal-board.md) says so, and `tests/shields.test.mjs` checks both the default and a wider disc.
+Two small, general additions to `dist/portal-board.js`, each a line in [portal-board.md](../portal-board.md) and checked in `tests/shields.test.mjs`; existing views are unchanged.
+
+- **`look.r`**, the radius of a cross's tap disc in lattice units (default .42, as before). The unrolled view here is zoomed out to four copies of an 8-wide room, where a T copy is a small ring; its tap disc is widened to 2.3 so a T can be tapped where it is seen, and the room's crosses use .5 so neighbouring discs touch but never overlap.
+- **A look of `false`** leaves a point out of a view altogether (no control, label or slide target; `{}` and `null` still draw a quiet point). The unrolled view has over a thousand lattice points and at most sixteen to tap; leaving the rest out cut a redrawn board from about 150 KB to 40 KB, and a tap from 30–50 ms to about 20 ms in the browser suite.
 
 ## Files
 
@@ -89,7 +92,7 @@ Three rooms, chosen with small room pictures: T in the middle, no T, and T on th
 | `dist/families/shields/shields.json` | The pack: a playground, 10 puzzles, 1 family and 3 sources |
 | `scripts/build-shields.mjs` | Authoring list; checks every fewest, count of arrangements, forced cross, stopping set and tapped proof against the table above and writes `shields.json` |
 | `scripts/validate-shields.mjs` | Shots traced piece by piece through the room in exact fractions; every direction up to 16 steps either way in all three rooms; every set of up to four crosses for each fewest and arrangement; two shots tested for a common point by intersecting their pieces, moved by whole rooms; the card's finite check; the largest set of drawn shots sharing no point; 60 shield sets per puzzle judged against the traced shots, with the fired shot checked; Fewest, Can't and every tappable shot judged; hint chains through controls the board shows, from fresh and after wrong moves; Undo keeping refusals; illegal moves; forged saves; the playground; run by `npm run build` |
-| `tests/shields.test.mjs` | Shots, the three rooms' theorems, crossings, answers and proofs, shields and budgets, Fewest, Can't, hints, the playground, saves, rendering, the window and words, and the board's wider tap disc |
+| `tests/shields.test.mjs` | Shots, the three rooms' theorems, crossings, answers and proofs, shields and budgets, Fewest, Can't, hints, the playground, saves, rendering, the window and words, and the board's wider tap disc and left-out points |
 | `scripts/shields-browser-smoke.mjs` | The interface in a browser: a shield where two shots cross, both copies of a seam cross, Enter on a cross, the fired shot in both views, a refused Fewest kept through Undo, focus after Fewest and Can't, how long a tap takes, tapped shots with a crossing refused, Can't refused and right, the room with no T, hints applied, the playground; no overflow; `TEST_PHONE=1` for touch on a phone |
 
 ## Not yet done

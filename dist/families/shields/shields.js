@@ -474,12 +474,12 @@ function render(p, a) {
   const hintPick = act?.type === 'pick' ? crossKey(act.at) : null;
   const planeLook = pt => {
     const k = `${pt.u},${pt.v}`, isGoal = md(pt.u) === goal[0] && md(pt.v) === goal[1] && (pt.u || pt.v);
-    if (!isGoal) return {};
-    const tap = play ? aimable.has(k) : pickables.has(k);
+    // Only copies to tap are controls; every other point is left out, which
+    // keeps a tap's redraw small.
+    if (!isGoal || !(play ? aimable.has(k) : pickables.has(k))) return false;
     const aimed = play && b.aims.some(x => crossKey(x) === k);
-    const [X, Y] = [Math.floor((pt.u - goal[0]) / N), Math.floor((pt.v - goal[1]) / N)];
     const words = targetWords(q, [pt.u, pt.v]);
-    return tap ? {act: true, r: 2.3, label: `${words.charAt(0).toUpperCase()}${words.slice(1)}${picked.has(k) || aimed ? ', chosen' : ''}`, cls: ['pick', picked.get(k) || '', aimed ? 'aimed' : '', hintPick === k ? 'hinted' : ''].filter(Boolean).join(' ')} : {cls: X === 0 && Y === 0 ? 'first' : ''};
+    return {act: true, r: 2.3, label: `${words.charAt(0).toUpperCase()}${words.slice(1)}${picked.has(k) || aimed ? ', chosen' : ''}`, cls: ['pick', picked.get(k) || '', aimed ? 'aimed' : '', hintPick === k ? 'hinted' : ''].filter(Boolean).join(' ')};
   };
   let pUnder = '', pOver = '';
   for (let X = X0; X <= X1 + 1; X++) for (let Y = Y0; Y <= Y1 + 1; Y++) {
