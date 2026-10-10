@@ -11,6 +11,10 @@
 // - every colouring is found by brute force with Fox's rule written as
 //   2 × top ≡ in + out (mod 3), and compared with the mechanic's answers and
 //   claims; every certificate is replayed one forced arc at a time;
+// - the claims are the child's certificates: on every partial colouring of
+//   every claim puzzle, the mechanic accepts One colour only or Can't exactly
+//   when an independent check finds a forced chain to a clash, and that never
+//   happens when the claim is false;
 // - the before and after pictures agree at their ends for every choice of
 //   inputs; witnesses are played as moves; hint chains solve from fresh,
 //   after every single wrong colour, after random wrong starts, after a wrong
@@ -234,6 +238,62 @@ function replay(q, start, shown, label) {
   assert.ok(fails, `${label}: the forced colours clash`);
 }
 
+// Whether a board is a certificate for the puzzle's claim, checked without the
+// mechanic. One colour only: some crossing is coloured all different and every
+// coloured arc follows from it, one at a time, each forced by a crossing whose
+// other two arcs already follow (2 × top ≡ in + out), and some crossing clashes.
+// Can't: every coloured arc follows from the dots (and given arcs) the same way,
+// and a crossing or a dot clashes.
+export function certifies(q, c) {
+  const arcsAt = x => [x.over, ...x.under];
+  const bad = x => arcsAt(x).every(a => c[a] !== null) && m3(2 * c[x.over] - c[x.under[0]] - c[x.under[1]]) !== 0;
+  const dotBad = e => c[e.arc] !== null && ((e.colour !== undefined && c[e.arc] !== e.colour) || (e.match !== undefined && c[q.ends[e.match].arc] !== null && c[q.ends[e.match].arc] !== c[e.arc]));
+  const clash = q.crossings.some(bad) || q.ends.some(dotBad);
+  if (!clash) return false;
+  // The value an arc must take at a crossing, from the other two.
+  const forcedAt = (x, a) => a === x.over ? m3(2 * (c[x.under[0]] + c[x.under[1]])) : m3(2 * c[x.over] - c[a === x.under[0] ? x.under[1] : x.under[0]]);
+  const follows = start => {
+    const got = new Set(start);
+    for (let grew = true; grew;) {
+      grew = false;
+      c.forEach((v, a) => {
+        if (v === null || got.has(a)) return;
+        const byCrossing = q.crossings.some(x => arcsAt(x).filter(b => b === a).length === 1 && arcsAt(x).every(b => b === a || got.has(b)) && forcedAt(x, a) === v);
+        const byDot = q.ends.some(e => e.arc === a && ((e.colour !== undefined && e.colour === v) || (e.match !== undefined && got.has(q.ends[e.match].arc) && c[q.ends[e.match].arc] === v)));
+        if (byCrossing || byDot) { got.add(a); grew = true; }
+      });
+    }
+    return c.every((v, a) => v === null || got.has(a));
+  };
+  if (q.claim === 'cant') return follows((q.locked || []).map((v, i) => v !== null ? i : -1).filter(i => i >= 0));
+  return q.crossings.some(x => arcsAt(x).every(a => c[a] !== null) && new Set(arcsAt(x).map(a => c[a])).size === 3 && follows(arcsAt(x)));
+}
+// Every partial colouring of a claim puzzle: the mechanic accepts the claim
+// exactly when it is a certificate, a certificate exists only for a true
+// claim, and (for One colour only) one exists from every crossing.
+function checkClaims(p, t) {
+  const q = p.parameters, n = q.arcs.length, seeds = new Set();
+  let boards = 0, accepted = 0;
+  for (let k = 0; k < 4 ** n; k++) {
+    const colours = Array.from({length: n}, (_, i) => { const v = Math.floor(k / 4 ** i) % 4; return v === 3 ? null : v; });
+    const a = {...freshAttempt(p), board: {colours, claim: null}};
+    if (isSolved(p, a.board)) continue;
+    boards++;
+    const next = move(p, a, {type: 'claim'}), cert = certifies(q, colours);
+    assert.ok(next, `${p.id}: a claim can be pressed on ${colours.join(',')}`);
+    assert.equal(next.board.claim === 'kept', cert, `${p.id}: the claim is ${cert ? 'accepted' : 'refused'} on ${colours.map(v => v ?? '-').join('')}`);
+    if (cert) {
+      assert.ok(t.claimTrue, `${p.id}: a certificate only when the claim is true`);
+      accepted++;
+      q.crossings.forEach((x, i) => { if (new Set([x.over, ...x.under].map(v => colours[v])).size === 3 && !colours.some(v => v === null)) seeds.add(i); });
+    }
+    // A refusal names only what is missing: the same three words whether the claim is true or not.
+    if (!cert) assert.ok(['No crossing is all different.', 'Ringed arcs aren’t forced.', 'No clash yet.'].some(w => mechanicFor(p).render(p, {...next, hintLevel: 0}).includes(w)), `${p.id}: a refusal says what is missing`);
+  }
+  if (t.claimTrue && t.claim === 'one') assert.equal(seeds.size, q.crossings.length, `${p.id}: a full certificate from every crossing`);
+  return {boards, accepted};
+}
+
 // --- The tables ------------------------------------------------------------------
 // The tangles' codes, written out by hand: a horizontal strand under an upright
 // one; the bend over the strand twice (signs opposite) and off it; the slide.
@@ -256,7 +316,7 @@ const TABLE = {
   'knots-04': {pictures: [{tangle: 'bend'}], mode: 'complete', claim: 'cant', colourings: 0, claimTrue: true},
   'knots-05': {pictures: [K('trefoil', 3)], mode: 'every', colourings: 9},
   'knots-06': {pictures: [K('figure8', 4)], mode: 'more', claim: 'one', colourings: 3, nonConstant: 0, claimTrue: true},
-  'knots-07': {pictures: [{tangle: 'bend'}, {tangle: 'bendOff'}], mode: 'complete', colourings: 1, pair: 'bend'},
+  'knots-07': {pictures: [{tangle: 'bend'}, {tangle: 'bendOff'}], mode: 'every', colourings: 9, pair: 'bend'},
   'knots-08': {pictures: [K('granny', 6)], mode: 'more', claim: 'one', colourings: 27, nonConstant: 24, claimTrue: false},
   'knots-09': {pictures: [K('cinquefoil', 5)], mode: 'more', claim: 'one', colourings: 3, nonConstant: 0, claimTrue: true},
   'knots-10': {pictures: [K('6_1', 6)], mode: 'more', claim: 'one', colourings: 9, nonConstant: 6, claimTrue: false},
@@ -286,7 +346,9 @@ function hintChain(p, a, why) {
     assert.equal(h.type, 'move', `${p.id}: a hint ${why} (step ${step + 1})`);
     assert.ok(typeof h.text === 'string' && h.text.trim(), `${p.id}: the hint has words ${why}`);
     if (h.action.type === 'paint') assert.ok(h.text.includes(p.parameters.arcs[h.action.arc].name), `${p.id}: the hint names its arc ${why}`);
+    if (h.action.type === 'claim') assert.ok(certifies(p.parameters, a.board.colours), `${p.id}: the hint presses the claim only on a certificate ${why}`);
     a = play(p, a, h.action);
+    if (h.action.type === 'claim') assert.ok(isSolved(p, a.board), `${p.id}: the hinted claim is accepted ${why}`);
   }
   assert.fail(`${p.id}: hints solve ${why}`);
 }
@@ -360,10 +422,11 @@ async function validateKnots() {
       }
     });
     if (t.claimTrue && t.claim === 'cant') replay(q, q.arcs.map(() => null), certificate(q).colours, `${label} from the dots`);
+    const claims = t.claim ? checkClaims(p, t) : null;
     // Before and after: for every choice of the inputs, each picture has one
     // colouring, and the two agree at every end.
     if (t.pair) checkPair(q, t.pair, label);
-    summary.checks[p.id] = {colourings: all.length, ...(t.claim ? {claim: t.claim, claimTrue: !!t.claimTrue} : {}), ...playChecks(p, all, t)};
+    summary.checks[p.id] = {colourings: all.length, ...(t.claim ? {claim: t.claim, claimTrue: !!t.claimTrue, boardsTried: claims.boards, certificates: claims.accepted} : {}), ...playChecks(p, all, t)};
   }
 
   // The playground.
@@ -415,18 +478,23 @@ function playChecks(p, all, t) {
   assert.equal(m.noHint(p), false, `${p.id}: has hints`);
   // The witness, played.
   let a = fresh;
-  if (p.solution.claim) a = play(p, a, {type: 'claim'});
+  if (p.solution.claim) {
+    // The chain, painted in the order it is forced, then the claim.
+    for (const i of p.solution.order) a = paintTo(p, a, q.arcs.map((_, k) => k === i ? p.solution.colouring[k] : a.board.colours[k]));
+    assert.ok(certifies(q, a.board.colours), `${p.id}: the witness chain is a certificate`);
+    a = play(p, a, {type: 'claim'});
+  }
   else if (p.solution.colourings) { for (const c of p.solution.colourings) a = paintTo(p, a, c); a = play(p, a, {type: 'all'}); }
   else a = paintTo(p, a, p.solution.colouring);
   assert.ok(isSolved(p, a.board), `${p.id}: the witness solves it`);
   if (p.solution.colourings) assert.deepEqual(p.solution.colourings.map(c => c.join('')), all, `${p.id}: the witness lists every colouring`);
-  if (p.solution.colouring) assert.ok(all.includes(p.solution.colouring.join('')), `${p.id}: the witness is a colouring`);
+  if (p.solution.colouring && !p.solution.claim) assert.ok(all.includes(p.solution.colouring.join('')), `${p.id}: the witness is a colouring`);
   refuse(p, a, {type: 'paint', arc: q.arcs.findIndex((_, i) => (q.locked || [])[i] == null), colour: 0}, 'a move after solving');
   // Hint chains: from fresh, after each single wrong colour, from random
   // starts, after a wrong claim and after a wrong That's all.
   let chains = 0, longest = hintChain(p, fresh, 'from fresh');
   chains++;
-  const target = p.solution.colouring || (all[0] && [...all[0]].map(Number));
+  const target = p.solution.claim ? null : p.solution.colouring || (all[0] && [...all[0]].map(Number));
   q.arcs.forEach((_, i) => {
     if (q.locked?.[i] != null) return;
     for (const c of [0, 1, 2]) {
@@ -443,12 +511,12 @@ function playChecks(p, all, t) {
     longest = Math.max(longest, hintChain(p, b, `from a random start ${r + 1}`));
     chains++;
   }
-  if (q.claim && !t.claimTrue) {
+  if (q.claim) {
     const b = play(p, fresh, {type: 'claim'});
-    assert.equal(b.board.claim, 'refused', `${p.id}: a wrong claim is refused`);
-    assert.ok(!isSolved(p, b.board), `${p.id}: a wrong claim does not solve`);
+    assert.equal(b.board.claim, 'refused', `${p.id}: a claim on a blank board is refused, true or not`);
+    assert.ok(!isSolved(p, b.board), `${p.id}: a refused claim does not solve`);
     refuse(p, b, {type: 'claim'}, 'a second claim');
-    hintChain(p, b, 'after a wrong claim');
+    hintChain(p, b, 'after a refused claim');
     chains++;
     // A colour change clears the refusal.
     const i = q.arcs.findIndex((_, k) => q.locked?.[k] == null);
@@ -507,7 +575,9 @@ function forged(p, fresh, all, t) {
   bad(null, 'no board');
   if (q.locked) { const i = q.locked.findIndex(c => c !== null); bad({...b, colours: b.colours.map((c, k) => k === i ? (c + 1) % 3 : c)}, 'a given arc changed'); }
   if (q.claim) {
-    bad({...b, claim: t.claimTrue ? 'refused' : 'kept'}, t.claimTrue ? 'a true claim marked refused' : 'a false claim marked kept');
+    bad({...b, claim: 'kept'}, 'a claim kept on a blank board');
+    if (t.claimTrue) bad({colours: [...p.solution.colouring], claim: 'refused'}, 'a certificate marked refused');
+    else bad({...b, colours: [...all[0]].map(Number).map((v, i) => i === free ? v : null), claim: 'kept'}, 'a false claim kept');
     bad({...b, claim: 'yes'}, 'an unknown claim');
     const {claim, ...rest} = b;
     bad(rest, 'a missing claim');

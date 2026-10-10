@@ -9,7 +9,7 @@
 // numbered and named, for checking the drawings by eye).
 import {writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import {completions, nonConstant, claimTrue, certificate, COLOURS} from '../dist/families/knots/knots.js';
+import {completions, nonConstant, claimTrue, chains, claimCheck, COLOURS} from '../dist/families/knots/knots.js';
 import {jonesOfCode, JONES, samePolynomial} from './validate-knots.mjs';
 
 // --- Curves -------------------------------------------------------------------
@@ -338,7 +338,7 @@ const BOARDS = {
   crossings: crossingGrid,
   bendYes: () => tangleBoard('bend', BEND_NAMES, [RED, RED, BLUE, BLUE]),
   bendNo: () => tangleBoard('bend', BEND_NAMES, [RED, BLUE, RED, RED]),
-  bendPair: () => pairBoard('bend', [BEND_NAMES.map(n => n.replace('the ', 'the first picture’s ')), ['the second picture’s straight arc', 'the second picture’s bend']], [[RED, 'match', BLUE, 'match'], [RED, 'match', BLUE, 'match']]),
+  bendPair: () => pairBoard('bend', [BEND_NAMES.map(n => n.replace('the ', 'the first picture’s ')), ['the second picture’s straight arc', 'the second picture’s bend']], [Array(4).fill('match'), Array(4).fill('match')]),
   slidePair: () => {
     const before = ['curved arc', 'top left arc', 'middle arc', 'bottom right arc', 'top right arc', 'bottom left arc'];
     const fixed = ['match', 'match', RED, YELLOW, BLUE, 'match'];
@@ -353,15 +353,15 @@ const RULES = {
   given: 'Arcs with a thick edge are given and stay as they are.',
   ends: 'An arc that ends at a filled dot must be the dot’s colour.',
   pair: 'A dot with a dashed edge takes its arc’s colour, and must match the dot in the same place in the other picture.',
-  one: 'If no colouring can use more than one colour, press One colour only. It is checked. If it is right, one crossing is coloured all different and the colours that forces are followed to a clash; tap another crossing to start there.',
-  cant: 'If the dots can’t all be matched, press Can’t. It is checked. If it is right, the colours the dots force are shown up to the clash.',
-  every: 'Each colouring found goes on the shelf below the knot. Press That’s all when you think none is left. It says if there is another.'
+  one: 'One colour only is a claim you prove on the board: colour one crossing all different, then colour each arc its crossings force, one at a time, until a crossing clashes. Every coloured arc must be forced. Then press One colour only. If the chain is not finished, the arcs it does not force are ringed, or it says what is missing.',
+  cant: 'Can’t is a claim you prove on the board: colour only arcs the dots force, and arcs their crossings force, until a crossing or a dot clashes. Then press Can’t. If the chain is not finished, the arcs it does not force are ringed, or it says what is missing.',
+  every: 'Each colouring found goes on the shelf below. Press That’s all when you think none is left. It says if there is another.'
 };
 const TAP = 'Tap an arc to change its colour: red, blue, yellow, then red again. Undo takes back the last change.';
 const CONTROLS = {
   plain: TAP,
-  one: `${TAP} Press One colour only when you are sure.`,
-  cant: `${TAP} Press Can’t when you are sure.`,
+  one: `${TAP} Press One colour only when a crossing coloured all different has led, arc by arc, to a clash.`,
+  cant: `${TAP} Press Can’t when the dots have led, arc by arc, to a clash.`,
   every: `${TAP} Press That’s all when you think you have them all.`,
   playground: 'Choose a knot. Tap an arc to change its colour: red, blue, yellow, then red again. Clear takes every colour off.'
 };
@@ -370,14 +370,16 @@ const OBJECTIVE = {
   more: ['Colour every arc so that each crossing is all one colour or all three colours, using more than one colour; or press One colour only if that can’t be done.', 'Use more than one colour.'],
   ends: ['Colour every arc so that each crossing works and each arc that ends at a dot is the dot’s colour; or press Can’t if that can’t be done.', 'Match the end dots.'],
   pair: ['Colour both pictures so that every crossing works, every arc ending at a filled dot is its colour, and the dots in the same place in the two pictures match.', 'Colour both pictures so their end dots match.'],
-  every: ['Find every colouring of this knot, the one-colour ones too, then press That’s all.', 'Find every colouring.']
+  every: ['Find every colouring of this knot, the one-colour ones too, then press That’s all.', 'Find every colouring.'],
+  pairEvery: ['Find every way to colour both pictures so that every crossing works and the dots in the same place in the two pictures match, then press That’s all.', 'Find every way to colour both pictures with matching dots.']
 };
 const PREREQUISITES = {
   crossings: 'Tell red, blue and yellow apart and see when three things are all the same or all different. No reading or arithmetic.',
   colour: 'Follow a cord through its crossings and see which arcs stop at each. No reading; a grown-up can read How to play.',
   ends: 'Follow a strand from a dot through its crossings. No reading.',
   every: 'Keep track of colourings already found and decide when none is left. No counting is asked.',
-  claim: 'Try colourings until sure that none uses two colours, then press the button; the checked clash shows why.',
+  cantChain: 'Follow a strand from a dot through its crossings, and colour only what the dots force before pressing Can’t. No reading.',
+  claim: 'Colour one crossing all different and follow the forced colours, arc by arc, to a clash: the chain is the proof, so it needs patience with a chain of four to six arcs rather than reading or arithmetic.',
   slide: 'Try a colour, follow what it forces through three crossings, and change it if it clashes.'
 };
 const sources = ['knots-week40', 'knots-card40', 'knots-bestvina', 'knots-kauffman', 'knots-knotinfo'];
@@ -401,11 +403,11 @@ const PUZZLES = [
     hints: ['Which arcs touch a dot?', 'The bend touches two blue dots, and the left arc a red dot. What does the first crossing need?', 'Bend blue, left arc red, middle arc yellow, right arc red.'],
     parent: {notice: 'Whether your child starts from the dots or taps arcs at random.', prompt: 'Which arcs can you colour without looking at any crossing?', explanation: 'The bend passes over both crossings, so it is one arc, and both its dots are blue: it is blue. The left arc is red from its dot. At the first crossing blue on top and red stopping force yellow for the middle arc; at the second, blue on top and yellow force red for the right arc, which matches its dot.', extension: 'If the right dot were blue, could it be done? (No: the right arc is forced red.)', connection: 'A tangle’s colourings decide which colours can occur at its ends.'},
     provenance: 'Week 40 K–1 Problem 6, case 1 (L red, P blue, S red, Q blue; the end dot R renamed S, review card fix 7).'},
-  {number: 4, level: 'easy', title: 'A dot that won’t match', mode: 'complete', claim: 'cant', board: 'bendNo', copy: 'ends', prereq: 'ends', rules: ['ends'],
+  {number: 4, level: 'easy', title: 'Other dots on the bend', mode: 'complete', claim: 'cant', board: 'bendNo', copy: 'ends', prereq: 'cantChain', rules: ['ends'],
     check: {colourings: 0, claim: true},
     idea: 'Colours forced from the dots can clash: then no colouring exists, and the forced chain is the proof.',
-    hints: ['Which arcs touch a dot?', 'The bend touches two red dots. Follow red along the strand from the left.', 'Red on top of red forces red, twice, but the right dot is blue. Press Can’t.'],
-    parent: {notice: 'Whether your child presses Can’t only after following the colours, and can say where the clash is.', prompt: 'Which arcs do the dots decide, and what do the crossings do with them?', explanation: 'The bend touches two red dots, so it is red, and the left arc is red. Red on top and red stopping force red for the middle arc, and again for the right arc. Its dot is blue, so no colouring meets all four dots.', extension: 'Which colour for the right dot would work? (Red.)', connection: 'An obstruction found by forcing: the end colours of a tangle are constrained by its crossings.'},
+    hints: ['Which arcs touch a dot?', 'The bend touches two red dots. Follow red along the strand from the left.', 'Colour the left arc and the bend red and the right arc blue, as their dots say. Then the middle arc must be red, and the second crossing clashes. Press Can’t.'],
+    parent: {notice: 'Whether your child follows the colours from the dots before pressing Can’t, and points to where they clash.', prompt: 'Which arcs do the dots decide, and what do the crossings do with them?', explanation: 'The bend touches two red dots, so it is red, and the left arc is red. Red on top and red stopping force red for the middle arc, and again for the right arc. Its dot is blue, so no colouring meets all four dots. Can’t is accepted only when every coloured arc is one the dots force and a crossing or dot clashes: the board itself is the proof.', extension: 'Which colour for the right dot would work? (Red.)', connection: 'An obstruction found by forcing: the end colours of a tangle are constrained by its crossings.'},
     provenance: 'Week 40 K–1 Problem 6, case 2 (L red, P red, S blue, Q red), which cannot be completed.'},
   {number: 5, level: 'medium', title: 'Every trefoil colouring', mode: 'every', board: 'trefoil', copy: 'every', prereq: 'every', rules: ['every'],
     check: {colourings: 9},
@@ -416,15 +418,15 @@ const PUZZLES = [
   {number: 6, level: 'medium', title: 'Figure-eight', mode: 'more', claim: 'one', board: 'figure8', copy: 'more', prereq: 'claim', rules: ['one'],
     check: {colourings: 3, nonConstant: 0, claim: true},
     idea: 'The figure-eight is knotted, yet no colouring uses two colours: three colours can certify a knot but cannot always find one.',
-    hints: ['Give two arcs at one crossing different colours, and follow what they force.', 'From any crossing coloured all different, the forced colours reach a clash.', 'No colouring uses two colours. Press One colour only.'],
-    parent: {notice: 'How many crossings your child starts from before pressing One colour only, and whether a failed try is enough to convince them.', prompt: 'If you colour two arcs at one crossing differently, what is forced next?', explanation: 'A colouring with two colours must change colour somewhere, and colour can only change at a crossing whose two stopping arcs differ; that crossing is then all different. Renaming the colours, its top arc can be red, the arc in blue and the arc out yellow. The other arcs are then forced, and they clash, from whichever crossing you start (tap a crossing on the solved board to see it). So only the three one-colour colourings exist. The figure-eight still cannot be untied: other invariants, such as its Jones polynomial, tell it from a plain loop. Equal colouring counts never show two loops are the same.', extension: 'For grown-ups: with five colours 0–4 and the rule 2 × top ≡ in + out (mod 5), the figure-eight has colourings with more than one colour; it can be coloured this way with n colours exactly when 5 divides n (Bestvina, §4 Problem 11).', connection: 'Its determinant is 5, not divisible by 3, so it has no three-colouring with two colours.'},
+    hints: ['Give two arcs at one crossing different colours, and follow what they force.', 'Colour each arc its crossings force, one at a time, until a crossing clashes.', 'Then press One colour only: the chain is the proof for that crossing, and the solved board shows the clash from every crossing.'],
+    parent: {notice: 'Whether your child builds the chain one forced arc at a time, and whether the row of clashes from every crossing on the solved board convinces them that no crossing works.', prompt: 'If you colour two arcs at one crossing differently, what is forced next?', explanation: 'A colouring with two colours must change colour somewhere, and colour can only change at a crossing whose two stopping arcs differ; that crossing is then all different. Renaming the colours, its top arc can be red, the arc in blue and the arc out yellow. The other arcs are then forced, and they clash, from whichever crossing you start: the child builds that chain on the board, and One colour only is accepted only then. One crossing’s clash rules out only the colourings that are all different there, so the solved board shows the chain from every crossing in a row of small pictures. Together they leave only the three one-colour colourings. The figure-eight still cannot be untied: other invariants, such as its Jones polynomial, tell it from a plain loop. Equal colouring counts never show two loops are the same.', extension: 'For grown-ups: with five colours 0–4 and the rule 2 × top ≡ in + out (mod 5), the figure-eight has colourings with more than one colour; it can be coloured this way with n colours exactly when 5 divides n (Bestvina, §4 Problem 11).', connection: 'Its determinant is 5, not divisible by 3, so it has no three-colouring with two colours.'},
     provenance: 'Week 40 grades 4–5 Problem 7, with the review card’s fix 2: draw the figure-eight and find its colourings. Drawn here as the pretzel knot P(2, 1, 1).'},
-  {number: 7, level: 'medium', title: 'Pull the bend off', mode: 'complete', board: 'bendPair', copy: 'pair', prereq: 'ends', rules: ['ends', 'pair'],
-    check: {colourings: 1},
-    idea: 'Pulling the bend off the strand (a second-type Reidemeister move) keeps the colours at the ends.',
-    hints: ['Start with the first picture: which arcs touch a filled dot?', 'In the second picture nothing crosses, so each arc is the colour of its filled dot.', 'First picture: bend blue, left arc red, middle arc yellow, right arc red. Second picture: straight arc red, bend blue.'],
-    parent: {notice: 'Whether your child colours each picture on its own and then compares, or carries colours across.', prompt: 'Where did the middle arc’s colour go when the bend was pulled off?', explanation: 'In the first picture the bend is blue from its dot and the left arc red, which forces yellow for the middle arc and red for the right arc. In the second picture nothing crosses: the straight arc is red from end to end, and the bend blue. The right-hand dots are red and blue in both pictures; the middle arc lives only inside the move.', extension: 'Choose other colours for the two filled dots in your head. Do the pictures always agree at the other dots? (Yes: in the first picture the right arc is always the left arc’s colour, since 2 × bend − (2 × bend − left) = left.)', connection: 'Each Reidemeister move changes a picture only inside a small disc and matches colourings on its two sides one for one with the same colours at the edge of the disc; that is why the number of colourings is a knot invariant (Bestvina §2–3).'},
-    provenance: 'Week 40 grades 2–3 and 4–5 Problem 5: before and after pictures with fixed end dots, here with L red and P blue (end dot R renamed S, review card fix 7).'},
+  {number: 7, level: 'medium', title: 'Pull the bend off', mode: 'every', board: 'bendPair', copy: 'pairEvery', prereq: 'every', rules: ['pair', 'every'],
+    check: {colourings: 9},
+    idea: 'Pulling the bend off the strand (a second-type Reidemeister move) matches the colourings of the two pictures one for one, with the same colours at the ends.',
+    hints: ['Choose colours for the first picture’s left arc and bend, then follow its crossings.', 'In the second picture nothing crosses, so copy the dots’ colours across.', 'Each choice of colours for the left arc and the bend gives one way. When every choice is on the shelf, press That’s all.'],
+    parent: {notice: 'Whether your child changes one dot at a time and watches the other dots follow, or starts each colouring from scratch.', prompt: 'When you change the left arc’s colour, what happens at the right-hand dot?', explanation: 'In the first picture the bend is one arc, so its two dots share a colour, and the strand leaves on the right in the colour it came in on the left: the middle arc is 2 × bend − left and the right arc 2 × bend − middle = left (mod 3). In the second picture nothing crosses. So each choice of colours for the left arc and the bend gives exactly one way to colour both pictures with matching dots, and every choice works: the move matches the colourings of the two pictures one for one, with the same colours at the ends.', extension: 'Is there a choice of colours for the two left-hand dots that works in one picture and not the other? (No: the right-hand dots come out the same in both.)', connection: 'Each Reidemeister move changes a picture only inside a small disc and matches colourings on its two sides one for one with the same colours at the edge of the disc; that is why the number of colourings is a knot invariant (Bestvina §2–3).'},
+    provenance: 'Week 40 grades 2–3 and 4–5 Problem 5: “Which colors at L and P allow both pictures to be colored with matching end-dot colors? Can the same choice have more than one completion?”, asked as finding every colouring of both pictures with matching dots.'},
   {number: 8, level: 'medium', title: 'Granny knot', mode: 'more', claim: 'one', board: 'granny', copy: 'more', prereq: 'colour', rules: ['one'],
     check: {colourings: 27, nonConstant: 24, claim: false},
     idea: 'Two trefoils joined: one half can use three colours while the other uses one, so the joined loop is knotted.',
@@ -434,25 +436,25 @@ const PUZZLES = [
   {number: 9, level: 'hard', title: 'Cinquefoil', mode: 'more', claim: 'one', board: 'cinquefoil', copy: 'more', prereq: 'claim', rules: ['one'],
     check: {colourings: 3, nonConstant: 0, claim: true},
     idea: 'Five lobes instead of three, and no colouring with two colours: from any crossing coloured all different, the forced colours run round to a clash.',
-    hints: ['Give two arcs at one crossing different colours, and follow what they force.', 'Each forced colour forces the next, round the knot, until two colours clash.', 'No colouring uses two colours. Press One colour only.'],
-    parent: {notice: 'Whether your child expects the trefoil’s pattern (every arc different) to work here.', prompt: 'Where did the colours go wrong, and does it happen from every crossing?', explanation: 'Any colouring with two colours has a crossing coloured all different; renaming colours, red on top, blue in, yellow out. From there each crossing in turn has two coloured arcs and forces the third, and the chain clashes (the solved board shows it from each crossing). So only the three one-colour colourings exist. The cinquefoil is still knotted; three colours just cannot show it.', extension: 'For grown-ups: with five colours and the rule 2 × top ≡ in + out (mod 5) the cinquefoil can use more than one colour.', connection: 'The (2, 5) torus knot 5₁. Its determinant is 5, not divisible by 3.'},
+    hints: ['Give two arcs at one crossing different colours, and follow what they force.', 'Each forced colour forces the next, round the knot, until a crossing clashes.', 'Then press One colour only: the solved board shows the clash from every crossing.'],
+    parent: {notice: 'Whether your child expects the trefoil’s pattern (every arc different) to work here.', prompt: 'Where did the colours go wrong, and does it happen from every crossing?', explanation: 'Any colouring with two colours has a crossing coloured all different; renaming colours, red on top, blue in, yellow out. From there each crossing in turn has two coloured arcs and forces the third, and the chain clashes; the child builds one such chain, and the solved board shows the chain from every crossing. So only the three one-colour colourings exist. The cinquefoil is still knotted; three colours just cannot show it.', extension: 'For grown-ups: with five colours and the rule 2 × top ≡ in + out (mod 5) the cinquefoil can use more than one colour.', connection: 'The (2, 5) torus knot 5₁. Its determinant is 5, not divisible by 3.'},
     provenance: 'New, named in the review card’s App fit (“claim ‘one colour only’ where that is true (figure-eight, 5₁, 5₂)”); a five-lobed relative of the worksheet’s trefoil.'},
   {number: 10, level: 'hard', title: 'Stevedore knot', mode: 'more', claim: 'one', board: '6_1', copy: 'more', prereq: 'colour', rules: ['one'],
     check: {colourings: 9, nonConstant: 6, claim: false},
     idea: 'One more twist than puzzle 11’s knot, and now three colours fit: whether a twist knot can be coloured depends on its number of twists.',
-    hints: ['Give the top arc and the middle arc different colours, and follow what the crossings force.', 'Each crossing with two coloured arcs decides its third arc; keep going round the knot.', 'Make the top arc red, the middle and lower short arcs blue, the long bottom and upper short arcs yellow, and the lower left arc red.'],
+    hints: ['Give two arcs at one crossing different colours, and follow what they force.', 'Try the top arc and the middle arc in different colours; each crossing with two coloured arcs decides its third arc.', 'Make the top arc red, the middle and lower short arcs blue, the long bottom and upper short arcs yellow, and the lower left arc red.'],
     parent: {notice: 'Whether your child, after the figure-eight, expects one colour only here too.', prompt: 'The figure-eight could only use one colour. What is different here?', explanation: 'Give the top and middle arcs different colours. Where the top arc passes over, the upper short arc is forced to the third colour; where the top and middle arcs both stop, the long bottom arc on top is forced to that third colour too. Two more crossings force the lower left arc to the top arc’s colour and the lower short arc to the middle arc’s, and every crossing then works. The twist knots P(n, 1, 1) can be coloured with more than one colour exactly when n leaves remainder 1 on division by 3.', extension: 'Is this knot the trefoil in disguise, since both use three colours? (No: they have different Jones polynomials. Colourings can show a knot is knotted, never that two knots are the same.)', connection: 'The knot 6₁, the pretzel knot P(4, 1, 1). Its determinant is 9, divisible by 3, and it has 9 colourings.'},
     provenance: 'New, named in the review card’s App fit (6₁): the twist knot with two more half twists than the figure-eight.'},
   {number: 11, level: 'hard', title: 'Three twists', mode: 'more', claim: 'one', board: '5_2', copy: 'more', prereq: 'claim', rules: ['one'],
     check: {colourings: 3, nonConstant: 0, claim: true},
     idea: 'Between the figure-eight and the stevedore knot, this twist knot has no colouring with two colours.',
-    hints: ['Give two arcs at one crossing different colours, and follow what they force.', 'From any crossing coloured all different, the forced colours reach a clash.', 'No colouring uses two colours. Press One colour only.'],
-    parent: {notice: 'Whether your child tries the stevedore knot’s pattern (pairs of arcs with the same colour) and sees it fail.', prompt: 'Which crossing did you start from, and where did the clash appear?', explanation: 'As for the figure-eight, a colouring with two colours has a crossing coloured all different; from each crossing the forced colours clash. So only the one-colour colourings exist, though the knot is knotted.', extension: 'Line up the figure-eight (two half twists), this knot (three) and the stevedore knot (four). Which twist knots can use three colours? (Those whose number of half twists leaves remainder 1 on division by 3: 1, 4, 7, …)', connection: 'The knot 5₂, the pretzel knot P(3, 1, 1). Its determinant is 7, not divisible by 3.'},
+    hints: ['Give two arcs at one crossing different colours, and follow what they force.', 'Colour each arc its crossings force, one at a time, until a crossing clashes.', 'Then press One colour only: the chain is the proof for that crossing, and the solved board shows the clash from every crossing.'],
+    parent: {notice: 'Whether your child tries the stevedore knot’s pattern (pairs of arcs with the same colour) and sees it fail.', prompt: 'Which crossing did you start from, and where did the clash appear?', explanation: 'As for the figure-eight, a colouring with two colours has a crossing coloured all different; from each crossing the forced colours clash (the child builds one chain, the solved board shows them all). So only the one-colour colourings exist, though the knot is knotted.', extension: 'Line up the figure-eight (two half twists), this knot (three) and the stevedore knot (four). Which twist knots can use three colours? (Those whose number of half twists leaves remainder 1 on division by 3: 1, 4, 7, …)', connection: 'The knot 5₂, the pretzel knot P(3, 1, 1). Its determinant is 7, not divisible by 3.'},
     provenance: 'New, named in the review card’s App fit (5₂), drawn as the pretzel knot P(3, 1, 1).'},
   {number: 12, level: 'hard', title: 'Slide across', mode: 'complete', board: 'slidePair', copy: 'pair', prereq: 'slide', rules: ['ends', 'pair'],
     check: {colourings: 1},
     idea: 'Sliding a strand across a crossing (the third Reidemeister move) leaves the colours at all six ends the same, though an arc inside changes.',
-    hints: ['Colour the arcs at the filled dots. No crossing then has two known arcs: try a colour for the curved arc.', 'A wrong colour for the curved arc reaches a clash within three crossings.', 'The curved arc is yellow in both pictures; then each crossing has two known arcs.'],
+    hints: ['In the first picture, colour the arcs at the filled dots: no crossing there then has two known arcs, so try a colour for the curved arc.', 'A wrong colour for the curved arc reaches a clash within three crossings.', 'The curved arc is yellow in both pictures; then each crossing has two known arcs.'],
     parent: {notice: 'Whether your child tries a colour for the curved arc and changes it after a clash, and compares the two pictures’ dots.', prompt: 'Which arc changed colour when the curved strand slid across, and which dots stayed the same?', explanation: 'In the first picture the three filled dots give no crossing two known arcs, so try the curved arc. Red or blue leads to a clash; yellow forces the middle arc blue and the bottom left arc red. In the second picture the top dots force the middle arc yellow at the crossing of the two straight strands, then the curved arc yellow and the bottom left arc red. The dashed dots agree: yellow, yellow and red in both. Only the middle arc changed.', extension: 'Choose any colours for the curved arc and the two top dots. Do the two pictures always end with the same colours at the bottom? (Yes, for all 27 choices; the validator checks them.)', connection: 'Reidemeister’s third move. Matching end colours on both sides of each move is the local fact behind the invariance of colourings (Bestvina §2–3; Kauffman).'},
     provenance: 'New, from the review card’s fix 1: before and after pictures with end dots for the three-strand slide (Type III).'}
 ];
@@ -471,11 +473,20 @@ function build() {
     if ('nonConstant' in item.check) assert.equal(nonConstant(q).length, item.check.nonConstant, `${name}: colourings with two or more colours`);
     if (item.claim) assert.equal(claimTrue(q), item.check.claim, `${name}: the claim`);
     let solution;
+    if (item.claim) {
+      // The child's certificate: from every crossing (or from the dots) the
+      // forced colours reach a clash with every arc coloured, and that board
+      // is accepted. When the claim is false no chain clashes.
+      const all = chains(q);
+      if (claimTrue(q)) {
+        const seeds = q.claim === 'one' ? q.crossings.map((_, i) => i) : [null];
+        for (const seed of seeds) assert.ok(all.some(c => c.seed === (seed ?? undefined)), `${name}: a full chain from ${seed === null ? 'the dots' : `crossing ${seed + 1}`}`);
+        for (const c of all) assert.ok(claimCheck(q, c.colours).ok, `${name}: every chain is accepted`);
+      } else assert.equal(all.length, 0, `${name}: no chain clashes`);
+    }
     if (item.claim && claimTrue(q)) {
-      // The certificate: forcing from every crossing (or from the dots) clashes.
-      const seeds = q.claim === 'one' ? q.crossings.map((_, i) => i) : [0];
-      for (const seed of seeds) assert.ok(certificate(q, seed).clash, `${name}: forcing from crossing ${seed + 1} clashes`);
-      solution = {claim: q.claim, clash: q.claim === 'one' ? 'from every crossing' : 'from the dots'};
+      const chain = chains(q)[0];
+      solution = {claim: q.claim, colouring: chain.colours, order: chain.order, words: describe(q, chain.colours), clash: q.claim === 'one' ? `from crossing ${chain.seed + 1}, and from every other crossing` : 'from the dots'};
     } else if (item.mode === 'every') solution = {colourings: all, done: true};
     else {
       const aim = item.mode === 'more' ? nonConstant(q)[0] : all[0];
@@ -543,5 +554,5 @@ else if (main) {
   const text = JSON.stringify(json, null, 1).replace(/\[[^[\]{}"]*\]/g, m => m.replace(/\s+/g, '')).replace(/\[(\s*\[[^[\]{}"]*\],?)+\s*\]/g, m => m.replace(/\s+/g, ''));
   assert.deepEqual(JSON.parse(text), json);
   await writeFile(new URL('../dist/families/knots/knots.json', import.meta.url), text + '\n');
-  for (const p of json.puzzles.slice(1)) console.log(`${p.id} ${p.difficulty_level} ${p.parameters.mode}${p.parameters.claim ? `/${p.parameters.claim}` : ''}: ${p.solution.claim ? `${p.solution.claim} (clash ${p.solution.clash})` : p.solution.colourings ? `${p.solution.colourings.length} colourings` : p.solution.words}`);
+  for (const p of json.puzzles.slice(1)) console.log(`${p.id} ${p.difficulty_level} ${p.parameters.mode}${p.parameters.claim ? `/${p.parameters.claim}` : ''}: ${p.solution.claim ? `${p.solution.claim}: ${p.solution.words} (clash ${p.solution.clash})` : p.solution.colourings ? `${p.solution.colourings.length} colourings` : p.solution.words}`);
 }

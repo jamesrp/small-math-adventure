@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
 import {playView} from '../dist/ui.js';
-import {knotsMechanics, works, nextColour, completions, nonConstant, claimTrue, certificate, crossingState, keyOf} from '../dist/families/knots/knots.js';
+import {knotsMechanics, works, nextColour, completions, nonConstant, claimTrue, certificate, chains, claimCheck, crossingState, keyOf} from '../dist/families/knots/knots.js';
 import {codeFromArcs, jonesOfCode, JONES, samePolynomial, bruteColourings} from '../scripts/validate-knots.mjs';
 import {diagram, drawings, placed, aspectOf} from '../scripts/build-knots.mjs';
 import {loadPack} from '../scripts/packs.mjs';
@@ -18,7 +18,7 @@ const byId = id => knots.puzzles.find(p => p.id === id);
 const play = (p, a, ...actions) => actions.reduce((b, action) => { const next = move(p, b, action); assert.ok(next, `${JSON.stringify(action)} is legal`); return next; }, a);
 const paint = (arc, colour) => ({type: 'paint', arc, colour});
 const paintAll = colours => colours.map((c, i) => paint(i, c));
-const view = (p, a) => { knotsMechanics.knots.reset(p); return playView(p, a, {pack, selected: null, message: ''}); };
+const view = (p, a) => playView(p, a, {pack, selected: null, message: ''});
 const visibleText = html => html.replace(/<p class="sr-only"[^]*?<\/p>/g, '').replace(/<[^>]+>/g, ' ');
 const arcsOf = (q, k) => q.arcs.map((a, index) => ({...a, index})).filter(a => a.pic === k);
 
@@ -78,47 +78,75 @@ test('complete: nine crossings; each has one answer, and a wrong one clashes', (
   assert.equal(move(p, freshAttempt(p), paint(q.crossings[0].over, 1)), null, 'a given arc stays as it is');
 });
 
-test('One colour only: refused on the trefoil, kept on the figure-eight with a clash from each crossing', () => {
-  const t = byId('knots-02');
-  let a = play(t, freshAttempt(t), {type: 'claim'});
-  assert.equal(a.board.claim, 'refused');
-  assert.match(visibleText(view(t, a)), /More than one colour works\./);
-  assert.equal(move(t, a, {type: 'claim'}), null, 'one claim until the colours change');
-  a = play(t, a, paint(0, 0));
-  assert.equal(a.board.claim, null, 'a colour change clears the refusal');
-  a = play(t, a, paint(1, 1), paint(2, 2));
-  assert.ok(isSolved(t, a.board), 'three colours solve it');
-
-  const f = byId('knots-06'), q = f.parameters;
-  let b = play(f, freshAttempt(f), paint(0, 0), paint(1, 1));
-  b = play(f, b, {type: 'claim'});
-  assert.ok(isSolved(f, b.board), 'a true claim solves it');
-  knotsMechanics.knots.reset(f);
-  let html = playView(f, b, {pack, selected: null, message: ''});
-  assert.match(html, /Two colours here force a clash\./);
-  assert.equal((html.match(/data-seed="/g) || []).length, q.crossings.length, 'each crossing can start the clash');
-  assert.match(html, /kn-cross clash/);
-  assert.match(html, /aria-pressed="true"/);
-  for (let i = 0; i < q.crossings.length; i++) assert.ok(certificate(q, i).clash, `the clash from crossing ${i + 1}`);
-  knotsMechanics.knots.ui(f, {seed: 2});
-  html = playView(f, b, {pack, selected: null, message: ''});
-  assert.match(html, /data-seed="2" role="button" tabindex="0" data-focus="kn-seed-2" aria-label="Start the clash at crossing 3" aria-pressed="true"/);
+test('One colour only is the child’s chain: refusals say what is missing, never whether the claim is true', () => {
+  const t = byId('knots-02'), f = byId('knots-06'), s = byId('knots-10'), q = f.parameters;
+  // On a blank board the trefoil (false claim) and the figure-eight (true) get the same words.
+  for (const p of [t, f]) {
+    const a = play(p, freshAttempt(p), {type: 'claim'});
+    assert.equal(a.board.claim, 'refused', `${p.id}: no chain yet`);
+    assert.match(visibleText(view(p, a)), /No crossing is all different\./);
+    assert.equal(move(p, a, {type: 'claim'}), null, 'one claim until the colours change');
+    assert.equal(play(p, a, paint(0, 0)).board.claim, null, 'a colour change clears the refusal');
+  }
+  // A crossing all different and nothing more: the same words for the figure-eight and the stevedore knot.
+  const seedOnly = p => { const x = p.parameters.crossings[0], c = certificate(p.parameters, 0).colours; return [x.over, ...x.under].map(i => paint(i, c[i])); };
+  for (const p of [f, s]) {
+    const a = play(p, play(p, freshAttempt(p), ...seedOnly(p)), {type: 'claim'});
+    assert.equal(a.board.claim, 'refused', `${p.id}: no clash yet`);
+    assert.match(visibleText(view(p, a)), /No clash yet\./);
+  }
+  // An arc that no chain from the all-different crossing forces is ringed, though the claim is true.
+  const c5 = byId('knots-09'), q5 = c5.parameters, x5 = q5.crossings[0], start5 = [x5.over, ...x5.under];
+  const [odd, wrong] = q5.arcs.flatMap((_, i) => start5.includes(i) ? [] : [0, 1, 2].map(v => [i, v]))
+    .find(([i, v]) => { const cols = q5.arcs.map(() => null); for (const m of seedOnly(c5)) cols[m.arc] = m.colour; cols[i] = v; return claimCheck(q5, cols).reason === 'loose'; });
+  let b = play(c5, freshAttempt(c5), ...seedOnly(c5), paint(odd, wrong), {type: 'claim'});
+  assert.equal(b.board.claim, 'refused');
+  assert.match(visibleText(view(c5, b)), /Ringed arcs aren’t forced\./);
+  assert.match(view(c5, b), new RegExp(`class="kn-arc loose" data-arc="${odd}"`));
+  const chain = certificate(q, 0);
+  // The chain built arc by arc, in the order it forces them, is accepted.
+  b = play(f, freshAttempt(f), ...chain.order.map(i => paint(i, chain.colours[i])), {type: 'claim'});
+  assert.equal(b.board.claim, 'kept');
+  assert.ok(isSolved(f, b.board), 'a certificate solves it');
+  const html = view(f, b);
+  assert.match(html, /kn-cross clash/, 'the clash stays on the board');
+  assert.match(html, /kn-cross ok seed/, 'the starting crossing is ringed');
   assert.doesNotMatch(html, /data-arc=/, 'no arc is a control once solved');
+  const row = html.match(/<ul class="kn-shelf kn-clashes" aria-label="A clash from each crossing">([^]*?)<\/ul>/);
+  assert.ok(row, 'a row of clashes');
+  assert.equal((row[1].match(/<li>/g) || []).length, q.crossings.length, 'one small picture for each crossing');
+  for (let i = 0; i < q.crossings.length; i++) {
+    assert.ok(certificate(q, i).clash, `the clash from crossing ${i + 1}`);
+    assert.match(row[1], new RegExp(`aria-label="From crossing ${i + 1} to a clash"`));
+  }
+  assert.doesNotMatch(visibleText(row[1]), /\w/, 'the row has no words');
+  // A false claim is never accepted, whatever is on the board.
+  for (const p of [t, s, byId('knots-08')]) assert.equal(chains(p.parameters).length, 0, `${p.id}: no chain ends in a clash`);
 });
 
-test('Can’t: the dots on the bend, possible and impossible', () => {
+test('Can’t is the chain from the dots, on the bend that can and the bend that can’t', () => {
   const yes = byId('knots-03'), no = byId('knots-04');
-  const a = play(yes, freshAttempt(yes), {type: 'claim'});
-  assert.equal(a.board.claim, 'refused');
-  assert.match(visibleText(view(yes, a)), /It can be done\./);
+  for (const p of [yes, no]) {
+    const a = play(p, freshAttempt(p), {type: 'claim'});
+    assert.equal(a.board.claim, 'refused', `${p.id}: nothing on the board yet`);
+    assert.match(visibleText(view(p, a)), /No clash yet\./);
+  }
   const solved = play(yes, freshAttempt(yes), ...paintAll(completions(yes.parameters)[0]));
   assert.ok(isSolved(yes, solved.board));
-  const b = play(no, freshAttempt(no), {type: 'claim'});
+  // An arc coloured against what the dots force is ringed, not accepted.
+  let b = play(no, freshAttempt(no), paint(0, 0), paint(1, 1), paint(2, 1), paint(3, 0), {type: 'claim'});
+  assert.equal(b.board.claim, 'refused');
+  assert.match(visibleText(view(no, b)), /Ringed arcs aren’t forced\./);
+  const [chain] = chains(no.parameters);
+  b = play(no, freshAttempt(no), ...chain.order.map(i => paint(i, chain.colours[i])), {type: 'claim'});
   assert.ok(isSolved(no, b.board));
   const html = view(no, b);
-  assert.match(html, /The end dots force a clash\./);
   assert.match(html, /kn-end clash|kn-cross clash/);
-  assert.equal((html.match(/data-seed=/g) || []).length, 0, 'the dots start this clash');
+  assert.doesNotMatch(html, /kn-clashes/, 'the dots start this chain, so there is no row');
+  // Following the crossings to red on the right arc clashes with its blue dot: also a chain.
+  b = play(no, freshAttempt(no), paint(0, 0), paint(3, 0), paint(1, 0), paint(2, 0), {type: 'claim'});
+  assert.equal(b.board.claim, 'kept');
+  assert.match(view(no, b), /kn-end clash/);
 });
 
 test('find every: kept when made, found already, there is another, That’s all; Undo keeps the shelf', () => {
@@ -146,18 +174,33 @@ test('find every: kept when made, found already, there is another, That’s all;
   assert.doesNotMatch(html, /\b\d+\s*(of|found|left)\b/i, 'no counter on the board');
 });
 
-test('before and after: matched dots clash until they agree', () => {
-  const p = byId('knots-07'), q = p.parameters, right = completions(q)[0];
+test('pull the bend off: every way to colour both pictures with matching dots', () => {
+  const p = byId('knots-07'), q = p.parameters, all = completions(q);
+  assert.equal(all.length, 9);
+  for (const c of all) assert.ok(q.ends.every(e => !Number.isInteger(e.match) || c[e.arc] === c[q.ends[e.match].arc]), 'matched dots agree');
   const second = q.ends.findIndex(e => e.pic === 1 && Number.isInteger(e.match));
   const partner = q.ends[q.ends[second].match];
-  let a = play(p, freshAttempt(p), paint(q.ends[second].arc, (right[partner.arc] + 1) % 3), paint(partner.arc, right[partner.arc]));
+  let a = play(p, freshAttempt(p), paint(q.ends[second].arc, 1), paint(partner.arc, 0));
   assert.match(view(p, a), /kn-end clash/);
-  a = play(p, a, ...paintAll(right).filter((m, i) => a.board.colours[i] !== m.colour));
+  for (const c of all) a = play(p, a, ...paintAll(c).filter((m, i) => a.board.colours[i] !== m.colour));
+  assert.equal(a.board.found.length, 9);
+  assert.match(view(p, a), /<ul class="kn-shelf wide" aria-label="Colourings found">/);
+  a = play(p, a, {type: 'all'});
   assert.ok(isSolved(p, a.board));
   const html = view(p, freshAttempt(p));
   assert.equal((html.match(/class="kn-board"/g) || []).length, 2, 'two pictures');
   assert.match(html, /kn-arrow/);
-  assert.match(html, /aria-label="the second picture’s bend, no colour\. Change colour"/);
+  assert.match(html, /aria-label="the second picture’s bend, no colour, ends at two dots matched with the other picture\. Change colour"/);
+});
+
+test('arcs say which end dots they reach', () => {
+  const html = view(byId('knots-03'), freshAttempt(byId('knots-03')));
+  assert.match(html, /aria-label="the bend, no colour, ends at two blue dots\. Change colour"/);
+  assert.match(html, /aria-label="the left arc, no colour, ends at a red dot\. Change colour"/);
+  assert.match(html, /aria-label="the middle arc, no colour\. Change colour"/);
+  const pair = view(byId('knots-12'), freshAttempt(byId('knots-12')));
+  assert.match(pair, /aria-label="the first picture’s curved arc, no colour, ends at two dots matched with the other picture\. Change colour"/);
+  assert.match(pair, /aria-label="the first picture’s top left arc, no colour, ends at a red dot\. Change colour"/);
 });
 
 test('hints: the first hint, then named arcs toward the nearest answer, and the claim when it is true', () => {
@@ -172,10 +215,32 @@ test('hints: the first hint, then named arcs toward the nearest answer, and the 
   const h = nextHint(t, a);
   assert.equal(h.action.type, 'paint');
   assert.match(h.text, /^Make the (top|bottom left|bottom right) arc (red|blue|yellow)\.$/);
-  assert.match(nextHint(byId('knots-06'), freshAttempt(byId('knots-06'))).text, /Press One colour only\./);
-  assert.match(nextHint(byId('knots-04'), freshAttempt(byId('knots-04'))).text, /Press Can’t\./);
+  // On a true claim, hints walk a chain arc by arc and say to press only once it is on the board.
+  for (const id of ['knots-04', 'knots-06', 'knots-09', 'knots-11']) {
+    const p = byId(id), q = p.parameters, press = q.claim === 'one' ? 'Press One colour only.' : 'Press Can’t.';
+    let a = freshAttempt(p), steps = 0;
+    while (!isSolved(p, a.board)) {
+      const h = nextHint(p, a);
+      if (h.action.type === 'claim') {
+        assert.equal(h.text, press);
+        assert.ok(claimCheck(q, a.board.colours).ok, `${id}: press only on a chain`);
+      } else {
+        assert.equal(h.action.type, 'paint', `${id}: colour an arc first`);
+        assert.match(h.text, /^Make the .+ (red|blue|yellow)\.$/);
+      }
+      a = play(p, a, h.action);
+      assert.ok(++steps <= q.arcs.length + 1, `${id}: the hints finish`);
+    }
+    assert.equal(a.board.claim, 'kept');
+  }
+  assert.equal(byId('knots-12').hints[0].startsWith('In the first picture,'), true);
   const marked = playView(t, {...a, hintLevel: 2}, {pack, selected: null, message: ''});
   assert.match(marked, /kn-arc[^"]*hinted/, 'level 2 marks the arc');
+});
+
+test('the tap target of an arc ends square at its crossing', async () => {
+  const css = await readFile(new URL('../dist/families/knots/knots.css', import.meta.url), 'utf8');
+  assert.match(css, /\.kn-arc \.kn-hit\{[^}]*stroke-linecap:butt/, 'a round cap would reach over the under gap into the next arc');
 });
 
 test('the playground: seven knots, Clear, never solved, no Hint', () => {
@@ -198,7 +263,12 @@ test('forged saves are rejected', () => {
   const t = byId('knots-02'), f = byId('knots-06'), e = byId('knots-05');
   const fresh = p => freshAttempt(p).board;
   assert.equal(validBoard(t, {...fresh(t), claim: 'kept'}), false, 'a false claim kept');
-  assert.equal(validBoard(f, {...fresh(f), claim: 'refused'}), false, 'a true claim refused');
+  assert.equal(validBoard(f, {...fresh(f), claim: 'kept'}), false, 'a true claim kept on a blank board');
+  const [chain] = chains(f.parameters);
+  assert.equal(validBoard(f, {colours: chain.colours, claim: 'refused'}), false, 'a chain refused');
+  assert.equal(validBoard(f, {colours: chain.colours, claim: 'kept'}), true, 'a chain kept');
+  assert.equal(validBoard(f, {...fresh(f), claim: 'refused'}), true, 'a blank board refused');
+  assert.equal(validBoard(byId('knots-07'), {...fresh(byId('knots-07')), found: ['000000', '012345']}), false, 'a found key that is no colouring');
   assert.equal(validBoard(e, {...fresh(e), done: true}), false, 'done with colourings missing');
   assert.equal(validBoard(e, {...fresh(e), found: ['012', '012']}), false, 'a colouring found twice');
   assert.equal(validBoard(t, {...fresh(t), colours: [0, 1]}), false, 'too few arcs');

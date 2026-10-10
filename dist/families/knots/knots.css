@@ -1,8 +1,10 @@
 /* Knot colours: cords drawn as ink-edged channels filled with red, blue or
    yellow (paper when uncoloured), a pine ring under a crossing whose three
    arcs work and a dashed brick ring under one that clashes, end dots in their
-   fixed colour, an ochre halo for a hinted arc and an ochre ring for the
-   crossing a clash starts from. */
+   fixed colour, an ochre halo for a hinted arc, a dashed brick halo for an arc
+   a refused claim's chain does not force, and an ochre ring for the crossing
+   a chain starts from. The tap band of an arc stops square at its ends, so a
+   tap on a crossing reaches the arc on top. */
 .kn-puzzle{display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%;
   --kn-red:#d1473a;--kn-blue:#3a6dc3;--kn-yellow:#f1c232;--kn-paper:#fffdf5;--kn-ink:var(--b-ink,#294439)}
 .kn-frame{width:100%;display:flex;justify-content:center}
@@ -16,13 +18,14 @@
 
 /* Cords. */
 .kn-arc path{fill:none;stroke-linecap:round;stroke-linejoin:round}
-.kn-arc .kn-hit{stroke:transparent;stroke-width:10px;pointer-events:stroke;cursor:pointer}
+.kn-arc .kn-hit{stroke:transparent;stroke-width:10px;stroke-linecap:butt;pointer-events:stroke;cursor:pointer}
 .kn-arc .kn-ink{stroke:var(--kn-ink);stroke-width:4.6px;pointer-events:none}
 .kn-arc .kn-fill{stroke-width:2.8px;pointer-events:none;transition:stroke .12s}
 .kn-arc .kn-halo{stroke:transparent;stroke-width:9px;pointer-events:none}
 .kn-arc:focus{outline:none}
 .kn-arc:focus-visible .kn-halo{stroke:var(--b-ochre,#b38840);stroke-opacity:.55}
 .kn-arc.hinted .kn-halo{stroke:var(--b-ochre,#b38840);stroke-opacity:.9;stroke-dasharray:2.2 2}
+.kn-arc.loose .kn-halo{stroke:var(--b-bad,#a9503a);stroke-opacity:.85;stroke-dasharray:2.4 1.8}
 .kn-arc.fixed .kn-ink{stroke-width:5.4px}
 :is(.kn-fill,.kn-mini-arc).k0{stroke:var(--kn-red)}
 :is(.kn-fill,.kn-mini-arc).k1{stroke:var(--kn-blue)}
@@ -33,12 +36,7 @@
 .kn-cross circle{fill:none;stroke:none}
 .kn-cross.ok circle{fill:var(--b-good-soft,#e2ecd6);stroke:var(--b-pine,#31533e);stroke-width:1.5px}
 .kn-cross.clash circle{fill:var(--b-bad-soft,#f5e3d9);stroke:var(--b-bad,#a9503a);stroke-width:1.6px;stroke-dasharray:2 1.4}
-.kn-cross[data-seed]{cursor:pointer}
-.kn-cross[data-seed] circle{pointer-events:all}
-.kn-cross[data-seed]:not(.ok):not(.clash) circle{fill:transparent;stroke:var(--b-line,#d0d6bd);stroke-width:1px}
 .kn-cross.seed circle{stroke:var(--b-ochre,#b38840);stroke-width:2.6px;stroke-dasharray:none}
-.kn-cross[data-seed]:focus{outline:none}
-.kn-cross[data-seed]:focus-visible circle{stroke:var(--b-ochre,#b38840);stroke-width:2.4px}
 .kn-end{pointer-events:none}
 .kn-end .kn-end-ring{fill:none;stroke:none}
 .kn-end.ok .kn-end-ring{stroke:var(--b-pine,#31533e);stroke-width:1.2px}
@@ -61,6 +59,8 @@
 .kn-shelf li.again{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
 @media (prefers-reduced-motion:no-preference){.kn-shelf li.again{animation:kn-pop .45s ease-out}}
 @keyframes kn-pop{from{transform:scale(1.12)}}
+.kn-shelf.wide li{width:118px}
+.kn-clashes li{width:86px}
 .kn-mini{display:block;width:100%;height:auto}
 .kn-mini-arc{fill:none;stroke-width:5px;stroke-linecap:round;stroke-linejoin:round}
 .kn-mini-arc.blank{stroke:var(--kn-ink)}

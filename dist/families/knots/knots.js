@@ -14,9 +14,12 @@
 //
 // A tap on an arc cycles its colour; each crossing shows whether it works once
 // its three arcs have colours. Solves: complete the colours, use more than one
-// colour or claim "one colour only" (checked, with a certificate), find every
-// colouring and press That's all, and match fixed end colours on a tangle or
-// claim Can't (checked, with the forced clash shown).
+// colour, find every colouring and press That's all, and match end colours on
+// a tangle. The claims are the child's own certificates: One colour only is
+// accepted when one crossing is coloured all different, every other coloured
+// arc is forced from it, and a crossing clashes; Can't when every coloured arc
+// is forced by the dots and a crossing or a dot clashes. A refusal says only
+// what is missing from the chain, never whether the claim is true.
 import {esc} from '../../expansion-controls.js';
 
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -74,35 +77,36 @@ function constraints(q) {
   return out;
 }
 export function propagate(q, start) {
-  const colours = [...start], cons = constraints(q);
+  const colours = [...start], cons = constraints(q), order = start.map((c, i) => c === null ? -1 : i).filter(i => i >= 0);
+  const set = (a, c) => { colours[a] = c; order.push(a); };
   for (let changed = true; changed;) {
     changed = false;
     for (const k of cons) {
       if (k.kind === 'end') {
         const a = k.arcs[0];
-        if (colours[a] === null) { colours[a] = k.fixed; changed = true; }
-        else if (colours[a] !== k.fixed) return {colours, clash: k};
+        if (colours[a] === null) { set(a, k.fixed); changed = true; }
+        else if (colours[a] !== k.fixed) return {colours, clash: k, order};
         continue;
       }
       if (k.kind === 'match') {
         const [a, b] = k.arcs;
-        if (colours[a] === null && colours[b] !== null) { colours[a] = colours[b]; changed = true; }
-        else if (colours[b] === null && colours[a] !== null) { colours[b] = colours[a]; changed = true; }
-        else if (colours[a] !== null && colours[a] !== colours[b]) return {colours, clash: k};
+        if (colours[a] === null && colours[b] !== null) { set(a, colours[b]); changed = true; }
+        else if (colours[b] === null && colours[a] !== null) { set(b, colours[a]); changed = true; }
+        else if (colours[a] !== null && colours[a] !== colours[b]) return {colours, clash: k, order};
         continue;
       }
       // A crossing: the slots add to 0 mod 3 (an arc in two slots counts twice).
       const unknown = [...new Set(k.arcs.filter(a => colours[a] === null))];
       const known = k.arcs.filter(a => colours[a] !== null).reduce((s, a) => s + colours[a], 0);
-      if (!unknown.length) { if (mod3(known)) return {colours, clash: k}; continue; }
+      if (!unknown.length) { if (mod3(known)) return {colours, clash: k, order}; continue; }
       if (unknown.length > 1) continue;
       const times = mod3(k.arcs.filter(a => a === unknown[0]).length);
-      if (!times) { if (mod3(known)) return {colours, clash: k}; continue; }
-      colours[unknown[0]] = mod3(-known * times); // 1 and 2 are their own inverses mod 3
+      if (!times) { if (mod3(known)) return {colours, clash: k, order}; continue; }
+      set(unknown[0], mod3(-known * times)); // 1 and 2 are their own inverses mod 3
       changed = true;
     }
   }
-  return {colours, clash: null};
+  return {colours, clash: null, order};
 }
 // Every way to finish the colours from a partial start (locked arcs kept),
 // by depth-first search with forcing, in the order of arcs and colours.
@@ -131,23 +135,80 @@ export function targets(q) {
 // "One colour only": no colouring uses two colours. "Can't": no completion.
 export const claimTrue = q => q.claim === 'one' ? nonConstant(q).length === 0 : q.claim === 'cant' ? completions(q).length === 0 : false;
 
-// The certificate for a kept claim. One colour only: for a chosen crossing,
-// colour it all different (over red, the arc in blue, the arc out yellow) and
-// follow the forced colours to a clash; a colouring with two colours has a
-// crossing like that somewhere, since the colour can only change at a crossing
-// where the two arcs that stop there differ. Can't: the colours forced by the
-// end dots and the given arcs, up to the clash.
-export function certificate(q, seed = 0) {
+// A chain of forced colours. One colour only: colour a crossing all different
+// (by default top red, in blue, out yellow; `perm` gives another order) and
+// follow the forced colours to a clash. A colouring with two colours has a
+// crossing like that somewhere, since colour changes only at a crossing whose
+// two stopping arcs differ, and every order of three colours keeps the rule,
+// so a clash from every crossing rules out every colouring with two colours.
+// Can't: the colours forced by the dots and the given arcs, up to the clash.
+export function certificate(q, seed = 0, perm = [0, 1, 2]) {
   if (q.claim === 'cant') return propagate(q, lockedOf(q));
   const x = q.crossings[seed], start = q.arcs.map(() => null);
-  [start[x.over], start[x.under[0]], start[x.under[1]]] = [0, 1, 2];
+  [start[x.over], start[x.under[0]], start[x.under[1]]] = perm;
   return propagate(q, start);
 }
+const PERMS = [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]];
+// The full boards a hint can aim at when the claim is true: every chain that
+// colours every arc and ends in a clash, with the order its arcs are forced.
+const chainCache = new Map();
+export function chains(q) {
+  const key = JSON.stringify([q.claim, q.arcs.length, q.crossings.map(x => slots(q, x)), q.ends]);
+  if (!chainCache.has(key)) {
+    const all = q.claim === 'cant' ? [certificate(q)] : q.crossings.flatMap((_, i) => PERMS.map(perm => ({...certificate(q, i, perm), seed: i})));
+    chainCache.set(key, all.filter(c => c.clash && c.colours.every(isColour)));
+  }
+  return chainCache.get(key);
+}
+const hasClash = (q, colours) => q.crossings.some(x => crossingState(q, colours, x) === 'clash') || q.ends.some(e => endState(q, colours, e) === 'clash');
+const allDifferent = (q, colours, x) => { const c = slots(q, x).map(a => colours[a]); return c.every(isColour) && new Set(c).size === 3; };
+// The arcs a chain reaches on this board: from the `known` arcs, an arc joins
+// when its colour is what a crossing's other arcs (all joined) force, or what
+// a fixed dot gives it, or what a matched dot's joined partner has.
+function reach(q, colours, known) {
+  const joined = [...known];
+  for (let changed = true; changed;) {
+    changed = false;
+    const join = a => { if (!joined[a]) { joined[a] = true; changed = true; } };
+    for (const x of q.crossings) {
+      const s = slots(q, x);
+      for (const a of new Set(s)) {
+        if (joined[a] || colours[a] === null) continue;
+        const others = s.filter(v => v !== a), times = mod3(s.length - others.length);
+        if (times && others.every(v => joined[v]) && mod3(-others.reduce((t, v) => t + colours[v], 0) * times) === colours[a]) join(a);
+      }
+    }
+    q.ends.forEach(e => {
+      if (joined[e.arc] || colours[e.arc] === null) return;
+      if (isColour(e.colour) && colours[e.arc] === e.colour) join(e.arc);
+      if (Number.isInteger(e.match) && joined[q.ends[e.match].arc] && colours[q.ends[e.match].arc] === colours[e.arc]) join(e.arc);
+    });
+  }
+  return joined;
+}
+// Whether the board is a certificate for the puzzle's claim, and if not, why:
+// 'seed' (no crossing coloured all different), 'loose' (coloured arcs the
+// chain does not force, listed) or 'clash' (no clash yet). For One colour only
+// the seed is the all-different crossing whose chain reaches the most arcs.
+export function claimCheck(q, colours) {
+  const loose = joined => colours.map((c, i) => c !== null && !joined[i] ? i : -1).filter(i => i >= 0);
+  let best;
+  if (q.claim === 'cant') best = {seed: null, loose: loose(reach(q, colours, lockedOf(q).map(c => c !== null)))};
+  else {
+    const seeds = q.crossings.map((x, i) => allDifferent(q, colours, x) ? i : -1).filter(i => i >= 0);
+    if (!seeds.length) return {ok: false, reason: 'seed', seed: null, loose: []};
+    best = seeds.map(i => { const known = q.arcs.map(() => false); for (const a of slots(q, q.crossings[i])) known[a] = true; return {seed: i, loose: loose(reach(q, colours, known))}; }).sort((a, b) => a.loose.length - b.loose.length)[0];
+  }
+  if (best.loose.length) return {ok: false, reason: 'loose', ...best};
+  return hasClash(q, colours) ? {ok: true, reason: null, ...best} : {ok: false, reason: 'clash', ...best};
+}
+const REFUSED = {seed: 'No crossing is all different.', loose: 'Ringed arcs aren’t forced.', clash: 'No clash yet.'};
 
 // --- Boards -------------------------------------------------------------------
 // complete: {colours[, claim]}   more: {colours, claim}
 // every: {colours, found, told, done}   playground: {knot, colours}
-// `claim` is null, 'kept' or 'refused' (shown until the next colour changes).
+// `claim` is null, 'kept' (the board is a certificate) or 'refused' (it is
+// not; shown with what is missing until the next colour changes).
 // `found` lists the colourings found as keys ("012"); `told` answers That's
 // all ({kind: 'more'}, kept until a new colouring) or a colouring found
 // already ({kind: 'again', key}, until the next colour changes).
@@ -182,9 +243,12 @@ function valid(p, b) {
   if (Object.keys(b).sort().join() !== keys) return false;
   if (!q0.claim) return true;
   if (![null, 'kept', 'refused'].includes(b.claim)) return false;
-  // A kept claim must be true, a refused one false.
-  return b.claim === null || (b.claim === 'kept') === claimTrue(q0);
+  // A kept claim stands on a certificate on the board; a refused one does not.
+  return b.claim === null || (b.claim === 'kept') === accepts(q0, b.colours);
 }
+// The claim is accepted only on a certificate (and a certificate exists only
+// when the claim is true; the validator checks every partial board).
+const accepts = (q, colours) => claimCheck(q, colours).ok && claimTrue(q);
 function solved(p, b) {
   const q = p.parameters;
   if (q.mode === 'playground' || !valid(p, b)) return false;
@@ -209,7 +273,7 @@ function move(p, b, action) {
     const key = keyOf(colours);
     return b.found.includes(key) ? {...b, colours, told: {kind: 'again', key}} : {...b, colours, found: [...b.found, key], told: null};
   }
-  if (action.type === 'claim' && q0.claim && b.claim === null) return {...b, claim: claimTrue(q0) ? 'kept' : 'refused'};
+  if (action.type === 'claim' && q0.claim && b.claim === null) return {...b, claim: accepts(q0, b.colours) ? 'kept' : 'refused'};
   if (action.type === 'all' && q0.mode === 'every' && b.told?.kind !== 'more') {
     return b.found.length === completions(q0).length ? {...b, told: null, done: true} : {...b, told: {kind: 'more'}};
   }
@@ -221,7 +285,10 @@ function move(p, b, action) {
 // --- Hints --------------------------------------------------------------------
 // Aim at the target colouring nearest the board (fewest arcs to change). Change
 // first an arc whose colour is forced by arcs already right: one at a crossing
-// whose other two arcs match the target, or at a fixed end dot.
+// whose other two arcs match the target, or at a fixed end dot. When the claim
+// is true, aim instead at the nearest chain (a crossing all different and its
+// forced arcs up to a clash, or the dots' forced arcs), arc by arc in the order
+// the chain forces them, and press the button once the clash is on the board.
 function forcedFirst(q, colours, aim, wrong) {
   const right = a => colours[a] === aim[a];
   const forced = wrong.find(a => q.crossings.some(x => { const s = slots(q, x); return s.includes(a) && s.filter(v => v !== a).every(right); }) || q.ends.some(e => e.arc === a && isColour(e.colour)));
@@ -232,10 +299,15 @@ export function nearest(q, colours, aims) {
   for (const t of aims) { const d = t.filter((c, i) => c !== colours[i]).length; if (d < bestD) { best = t; bestD = d; } }
   return best;
 }
+const nearestChain = (all, colours) => all.reduce((best, c) => { const d = c.colours.filter((v, i) => v !== colours[i]).length; return d < best.d ? {c, d} : best; }, {c: null, d: Infinity}).c;
 function hint(p, b) {
   const q = p.parameters;
   if (q.mode === 'playground' || !valid(p, b) || solved(p, b)) return {type: 'done'};
-  if (q.claim && claimTrue(q)) return {type: 'move', action: {type: 'claim'}, text: q.claim === 'one' ? 'Press One colour only.' : 'Press Can’t.'};
+  if (q.claim && claimTrue(q)) {
+    if (claimCheck(q, b.colours).ok) return {type: 'move', action: {type: 'claim'}, text: q.claim === 'one' ? 'Press One colour only.' : 'Press Can’t.'};
+    const chain = nearestChain(chains(q), b.colours), arc = chain.order.find(a => b.colours[a] !== chain.colours[a]);
+    return {type: 'move', action: {type: 'paint', arc, colour: chain.colours[arc]}, text: `Make ${q.arcs[arc].name} ${COLOURS[chain.colours[arc]]}.`, arc};
+  }
   let aims = targets(q);
   if (q.mode === 'every') aims = aims.filter(t => !b.found.includes(keyOf(t)));
   if (!aims.length) return {type: 'move', action: {type: 'all'}, text: 'Press That’s all.'};
@@ -245,35 +317,34 @@ function hint(p, b) {
   return {type: 'move', action: {type: 'paint', arc, colour: aim[arc]}, text: `Make ${q.arcs[arc].name} ${COLOURS[aim[arc]]}.`, arc};
 }
 
-// --- View state -----------------------------------------------------------------
-// The crossing whose certificate is shown after a kept One colour only.
-const uiState = new Map();
-const ui = p => { if (!uiState.has(p.id)) uiState.set(p.id, {seed: 0}); return uiState.get(p.id); };
-
 // --- Drawing ------------------------------------------------------------------
 const f = n => Number(n.toFixed(2));
 const pathOf = d => `M${d.map(([x, y]) => `${f(x)} ${f(y)}`).join('L')}`;
 const colourWord = c => c === null ? 'no colour' : COLOURS[c];
 const listWords = items => items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`;
 const heightOf = q => 100 / q.aspect;
+// What an arc's end dots ask, for its spoken name.
+function dotWords(q, i) {
+  const fixed = {}, matched = q.ends.filter(e => e.arc === i && Number.isInteger(e.match)).length;
+  for (const e of q.ends) if (e.arc === i && isColour(e.colour)) fixed[COLOURS[e.colour]] = (fixed[COLOURS[e.colour]] || 0) + 1;
+  const parts = Object.entries(fixed).map(([c, n]) => n > 1 ? `${n === 2 ? 'two' : n} ${c} dots` : `a ${c} dot`);
+  if (matched) parts.push(matched > 1 ? 'two dots matched with the other picture' : 'a dot matched with the other picture');
+  return parts.length ? `, ends at ${listWords(parts)}` : '';
+}
 // The board: rings under the crossings that have colours on all three arcs
-// (pine when they work, a dashed brick ring when they clash), the arcs as
-// ink-edged cords filled with their colour, and the end dots. A board with
-// frames (a before and an after picture) draws each picture in its own frame,
-// with an arrow between.
-function pictureSvg(q, colours, {act = true, hinted = null, label = 'Knot', seedButtons = false, seed = null} = {}, frame = [0, 0, 100, heightOf(q)], mine = () => true) {
+// (pine when they work, a dashed brick ring when they clash, ochre round the
+// crossing a kept chain starts from), the arcs as ink-edged cords filled with
+// their colour (a dashed brick halo round arcs a refused claim's chain does
+// not force), and the end dots. A board with frames (a before and an after
+// picture) draws each picture in its own frame, with an arrow between.
+function pictureSvg(q, colours, {act = true, hinted = null, label = 'Knot', seed = null, loose = []} = {}, frame = [0, 0, 100, heightOf(q)], mine = () => true) {
   const locked = lockedOf(q);
-  const rings = q.crossings.map((x, i) => {
-    if (!mine(x.pic)) return '';
-    const s = crossingState(q, colours, x);
-    const pick = seedButtons ? ` data-seed="${i}" role="button" tabindex="0" data-focus="kn-seed-${i}" aria-label="Start the clash at crossing ${i + 1}" aria-pressed="${seed === i}"` : '';
-    return `<g class="kn-cross ${s}${seed === i ? ' seed' : ''}"${pick}><circle cx="${f(x.at[0])}" cy="${f(x.at[1])}" r="6.4"/></g>`;
-  }).join('');
+  const rings = q.crossings.map((x, i) => mine(x.pic) ? `<g class="kn-cross ${crossingState(q, colours, x)}${seed === i ? ' seed' : ''}"><circle cx="${f(x.at[0])}" cy="${f(x.at[1])}" r="6.4"/></g>` : '').join('');
   const arcs = q.arcs.map((a, i) => {
     if (!mine(a.pic)) return '';
-    const c = colours[i], d = pathOf(a.d), fixed = locked[i] !== null, control = act && !fixed;
-    const attrs = control ? `data-arc="${i}" role="button" tabindex="0" data-focus="kn-arc-${i}" aria-label="${esc(`${a.name}, ${colourWord(c)}. Change colour`)}"` : `role="img" aria-label="${esc(`${a.name}, ${colourWord(c)}`)}"`;
-    return `<g class="kn-arc${fixed ? ' fixed' : ''}${hinted === i ? ' hinted' : ''}" ${attrs}>${control ? `<path class="kn-hit" d="${d}"/>` : ''}<path class="kn-halo" d="${d}"/><path class="kn-ink" d="${d}"/><path class="kn-fill ${c === null ? 'blank' : `k${c}`}" d="${d}"/></g>`;
+    const c = colours[i], d = pathOf(a.d), fixed = locked[i] !== null, control = act && !fixed, name = `${a.name}, ${colourWord(c)}${dotWords(q, i)}`;
+    const attrs = control ? `data-arc="${i}" role="button" tabindex="0" data-focus="kn-arc-${i}" aria-label="${esc(`${name}. Change colour`)}"` : `role="img" aria-label="${esc(name)}"`;
+    return `<g class="kn-arc${fixed ? ' fixed' : ''}${hinted === i ? ' hinted' : ''}${loose.includes(i) ? ' loose' : ''}" ${attrs}>${control ? `<path class="kn-hit" d="${d}"/>` : ''}<path class="kn-halo" d="${d}"/><path class="kn-ink" d="${d}"/><path class="kn-fill ${c === null ? 'blank' : `k${c}`}" d="${d}"/></g>`;
   }).join('');
   const dots = q.ends.map(e => {
     if (!mine(e.pic)) return '';
@@ -287,9 +358,23 @@ function boardSvg(q, colours, opts = {}) {
   const [first, second] = q.frames.map((frame, k) => pictureSvg(q, colours, {...opts, label: k ? 'Second picture' : 'First picture'}, frame, pic => pic === k));
   return `<div class="kn-pair">${first}<svg class="kn-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h17M14 6l6 6-6 6"/></svg>${second}</div>`;
 }
-function mini(q, colours, label) {
+// A small picture: the arcs in their colours, and rings where asked
+// ({crossing: class}). A pair is drawn with both pictures side by side.
+function mini(q, colours, label, rings = {}) {
+  const box = q.frames ? [0, 0, q.frames.at(-1)[0] + q.frames.at(-1)[2], q.frames[0][3]] : [0, 0, 100, heightOf(q)];
+  const marks = Object.entries(rings).map(([i, cls]) => { const x = q.crossings[i]; return `<g class="kn-cross ${cls}"><circle cx="${f(x.at[0])}" cy="${f(x.at[1])}" r="6.4"/></g>`; }).join('');
   const arcs = q.arcs.map((a, i) => `<path class="kn-mini-arc ${colours[i] === null ? 'blank' : `k${colours[i]}`}" d="${pathOf(a.d)}"/>`).join('');
-  return `<svg class="kn-mini" viewBox="0 0 100 ${f(heightOf(q))}" role="img" aria-label="${esc(label)}">${arcs}</svg>`;
+  return `<svg class="kn-mini" viewBox="${box.map(f).join(' ')}" role="img" aria-label="${esc(label)}">${marks}${arcs}</svg>`;
+}
+// After a kept One colour only: the chain from each crossing, all different
+// there (red on top, blue in, yellow out), with the clash it reaches.
+function clashRow(q) {
+  const items = q.crossings.map((_, i) => {
+    const c = certificate(q, i), rings = {[i]: 'ok seed'};
+    if (c.clash?.kind === 'crossing' && c.clash.i !== i) rings[c.clash.i] = 'clash';
+    return `<li>${mini(q, c.colours, `From crossing ${i + 1} to a clash`, rings)}</li>`;
+  }).join('');
+  return `<ul class="kn-shelf kn-clashes" aria-label="A clash from each crossing">${items}</ul>`;
 }
 const moveButton = (label, action, enabled, hinted) => `<button type="button" class="secondary kn-button${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="kn-${action.type}" ${enabled ? '' : 'disabled'}>${label}</button>`;
 function status(q, colours) {
@@ -306,16 +391,12 @@ function status(q, colours) {
 function render(p, a) {
   const q0 = p.parameters, b = a.board, q = shapeOf(p, b), done = solved(p, b);
   const hinted = a.hintLevel >= 2 && !done && q0.mode !== 'playground' ? hint(p, b) : null;
-  let board, top = '', below = '', told = '';
-  if (done && b.claim === 'kept') {
-    // The certificate: the forced colours up to their clash.
-    const seed = q0.claim === 'one' ? Math.min(ui(p).seed, q.crossings.length - 1) : null;
-    const cert = certificate(q, seed ?? 0);
-    board = boardSvg(q, cert.colours, {act: false, label: 'Knot with forced colours', seedButtons: q0.claim === 'one', seed});
-    told = q0.claim === 'one' ? 'Two colours here force a clash.' : 'The end dots force a clash.';
-  } else {
-    board = boardSvg(q, b.colours, {act: !done, hinted: hinted?.arc ?? null, label: q0.mode === 'playground' ? `${q.name}` : 'Knot'});
-  }
+  let top = '', below = '', told = '', shelf = '';
+  // A kept claim keeps the child's chain on the board, its first crossing
+  // ringed; a refused one rings the arcs the chain does not force.
+  const check = q0.claim && b.claim ? claimCheck(q0, b.colours) : null;
+  const board = boardSvg(q, b.colours, {act: !done, hinted: hinted?.arc ?? null, label: q0.mode === 'playground' ? `${q.name}` : 'Knot', seed: b.claim === 'kept' ? check.seed : null, loose: b.claim === 'refused' ? check.loose : []});
+  if (done && b.claim === 'kept' && q0.claim === 'one') shelf = clashRow(q);
   if (q0.mode === 'playground') {
     const picks = q0.knots.map((k, i) => `<button type="button" class="secondary kn-pick" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'knot', knot: i}))}" data-focus="kn-knot-${i}" aria-pressed="${b.knot === i}" aria-label="${esc(k.name)}">${mini(k, k.arcs.map(() => null), k.name)}</button>`).join('');
     top = `<div class="kn-picks" role="group" aria-label="Knots">${picks}</div>`;
@@ -326,16 +407,15 @@ function render(p, a) {
     if (q0.claim === 'cant') buttons.push(moveButton('Can’t', {type: 'claim'}, b.claim === null, hinted?.action?.type === 'claim'));
     if (q0.mode === 'every') buttons.push(moveButton('That’s all', {type: 'all'}, b.told?.kind !== 'more', hinted?.action?.type === 'all'));
     if (buttons.length) below = `<div class="kn-bar">${buttons.join('')}</div>`;
-    if (b.claim === 'refused') told = q0.claim === 'one' ? 'More than one colour works.' : 'It can be done.';
+    if (b.claim === 'refused') told = REFUSED[check.reason] || REFUSED.clash;
     if (b.told?.kind === 'more') told = 'There is another.';
     if (b.told?.kind === 'again') told = 'Found already.';
   }
-  let shelf = '';
   if (q0.mode === 'every' && b.found.length) {
-    shelf = `<ul class="kn-shelf" aria-label="Colourings found">${b.found.map(k => `<li class="${b.told?.kind === 'again' && b.told.key === k ? 'again' : ''}">${mini(q, fromKey(k), listWords(fromKey(k).map(c => COLOURS[c])))}</li>`).join('')}</ul>`;
+    shelf = `<ul class="kn-shelf${q.frames ? ' wide' : ''}" aria-label="Colourings found">${b.found.map(k => `<li class="${b.told?.kind === 'again' && b.told.key === k ? 'again' : ''}">${mini(q, fromKey(k), listWords(fromKey(k).map(c => COLOURS[c])))}</li>`).join('')}</ul>`;
   }
   const note = told ? `<p class="kn-told">${esc(told)}</p>` : '';
-  const say = done && b.claim === 'kept' ? told : `${status(q, b.colours)}${told ? ` ${told}` : ''}`;
+  const say = `${status(q, b.colours)}${told ? ` ${told}` : ''}`;
   return `<div class="kn-puzzle${done ? ' solved' : ''}" data-mechanic-wire="knots">${top}<div class="kn-frame">${board}</div>${note}${below}${shelf}<p class="sr-only" role="status">${esc(say)}</p></div>`;
 }
 
@@ -346,13 +426,11 @@ function wire(root, p, api) {
       const b = api.attempt().board, i = Number(arc.dataset.arc);
       return {type: 'paint', arc: i, colour: nextColour(b.colours[i])};
     }
-    const seed = target.closest('[data-seed]');
-    if (seed && root.contains(seed)) { api.ui({seed: Number(seed.dataset.seed)}); return null; }
     return null;
   };
   root.addEventListener('click', e => { const action = act(e.target); if (action) api.apply(action); });
   root.addEventListener('keydown', e => {
-    if (!['Enter', ' '].includes(e.key) || !e.target.closest?.('[data-arc],[data-seed]')) return;
+    if (!['Enter', ' '].includes(e.key) || !e.target.closest?.('[data-arc]')) return;
     e.preventDefault();
     const action = act(e.target);
     if (action) api.apply(action);
@@ -362,8 +440,6 @@ function wire(root, p, api) {
 export const knotsMechanics = {
   knots: {
     fresh, valid, solved, move, hint, render, wire,
-    ui(p, payload) { if (object(payload) && Number.isInteger(payload.seed) && payload.seed >= 0) ui(p).seed = payload.seed; },
-    reset: p => { uiState.delete(p.id); },
     // Undo keeps the colourings already found.
     carry(p, from, to) {
       if (p.parameters.mode !== 'every' || !object(from) || !object(to) || !Array.isArray(from.found)) return to;

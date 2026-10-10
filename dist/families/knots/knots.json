@@ -1043,11 +1043,11 @@
    "objective": "Colour every arc so that each crossing is all one colour or all three colours, using more than one colour; or press One colour only if that can’t be done.",
    "visibleObjective": "Use more than one colour.",
    "instruction": "Colour every arc so that each crossing is all one colour or all three colours, using more than one colour; or press One colour only if that can’t be done.",
-   "controls": "Tap an arc to change its colour: red, blue, yellow, then red again. Undo takes back the last change. Press One colour only when you are sure.",
+   "controls": "Tap an arc to change its colour: red, blue, yellow, then red again. Undo takes back the last change. Press One colour only when a crossing coloured all different has led, arc by arc, to a clash.",
    "rules": [
     "An arc runs from one gap in the cord to the next, passing over any crossings on the way. Each arc is one colour.",
     "At each crossing, the arc on top and the two arcs that stop there must be all one colour or all three colours. A solid ring shows a crossing that works; a dashed ring, one that clashes.",
-    "If no colouring can use more than one colour, press One colour only. It is checked. If it is right, one crossing is coloured all different and the colours that forces are followed to a clash; tap another crossing to start there."
+    "One colour only is a claim you prove on the board: colour one crossing all different, then colour each arc its crossings force, one at a time, until a crossing clashes. Every coloured arc must be forced. Then press One colour only. If the chain is not finished, the arcs it does not force are ringed, or it says what is missing."
    ],
    "idea": "Two different colours on the trefoil force the third onto the last arc; a plain loop can never be coloured with two colours, so this is a certificate that the trefoil is knotted.",
    "prerequisites": "Follow a cord through its crossings and see which arcs stop at each. No reading; a grown-up can read How to play.",
@@ -1174,12 +1174,12 @@
    "objective": "Colour every arc so that each crossing works and each arc that ends at a dot is the dot’s colour; or press Can’t if that can’t be done.",
    "visibleObjective": "Match the end dots.",
    "instruction": "Colour every arc so that each crossing works and each arc that ends at a dot is the dot’s colour; or press Can’t if that can’t be done.",
-   "controls": "Tap an arc to change its colour: red, blue, yellow, then red again. Undo takes back the last change. Press Can’t when you are sure.",
+   "controls": "Tap an arc to change its colour: red, blue, yellow, then red again. Undo takes back the last change. Press Can’t when the dots have led, arc by arc, to a clash.",
    "rules": [
     "An arc runs from one gap in the cord to the next, passing over any crossings on the way. Each arc is one colour.",
     "At each crossing, the arc on top and the two arcs that stop there must be all one colour or all three colours. A solid ring shows a crossing that works; a dashed ring, one that clashes.",
     "An arc that ends at a filled dot must be the dot’s colour.",
-    "If the dots can’t all be matched, press Can’t. It is checked. If it is right, the colours the dots force are shown up to the clash."
+    "Can’t is a claim you prove on the board: colour only arcs the dots force, and arcs their crossings force, until a crossing or a dot clashes. Then press Can’t. If the chain is not finished, the arcs it does not force are ringed, or it says what is missing."
    ],
    "idea": "End dots fix the arcs that touch them, and each crossing passes a colour along the strand: these dots can be met in exactly one way.",
    "prerequisites": "Follow a strand from a dot through its crossings. No reading.",
@@ -1211,7 +1211,7 @@
   {
    "id": "knots-04",
    "number": 4,
-   "title": "A dot that won’t match",
+   "title": "Other dots on the bend",
    "difficulty_level": "easy",
    "familyTitle": "Knot colours",
    "mechanic": "knots",
@@ -1306,24 +1306,24 @@
    "objective": "Colour every arc so that each crossing works and each arc that ends at a dot is the dot’s colour; or press Can’t if that can’t be done.",
    "visibleObjective": "Match the end dots.",
    "instruction": "Colour every arc so that each crossing works and each arc that ends at a dot is the dot’s colour; or press Can’t if that can’t be done.",
-   "controls": "Tap an arc to change its colour: red, blue, yellow, then red again. Undo takes back the last change. Press Can’t when you are sure.",
+   "controls": "Tap an arc to change its colour: red, blue, yellow, then red again. Undo takes back the last change. Press Can’t when the dots have led, arc by arc, to a clash.",
    "rules": [
     "An arc runs from one gap in the cord to the next, passing over any crossings on the way. Each arc is one colour.",
     "At each crossing, the arc on top and the two arcs that stop there must be all one colour or all three colours. A solid ring shows a crossing that works; a dashed ring, one that clashes.",
     "An arc that ends at a filled dot must be the dot’s colour.",
-    "If the dots can’t all be matched, press Can’t. It is checked. If it is right, the colours the dots force are shown up to the clash."
+    "Can’t is a claim you prove on the board: colour only arcs the dots force, and arcs their crossings force, until a crossing or a dot clashes. Then press Can’t. If the chain is not finished, the arcs it does not force are ringed, or it says what is missing."
    ],
    "idea": "Colours forced from the dots can clash: then no colouring exists, and the forced chain is the proof.",
-   "prerequisites": "Follow a strand from a dot through its crossings. No reading.",
+   "prerequisites": "Follow a strand from a dot through its crossings, and colour only what the dots force before pressing Can’t. No reading.",
    "hints": [
     "Which arcs touch a dot?",
     "The bend touches two red dots. Follow red along the strand from the left.",
-    "Red on top of red forces red, twice, but the right dot is blue. Press Can’t."
+    "Colour the left arc and the bend red and the right arc blue, as their dots say. Then the middle arc must be red, and the second crossing clashes. Press Can’t."
    ],
    "parent": {
-    "notice": "Whether your child presses Can’t only after following the colours, and can say where the clash is.",
+    "notice": "Whether your child follows the colours from the dots before pressing Can’t, and points to where they clash.",
     "prompt": "Which arcs do the dots decide, and what do the crossings do with them?",
-    "explanation": "The bend touches two red dots, so it is red, and the left arc is red. Red on top and red stopping force red for the middle arc, and again for the right arc. Its dot is blue, so no colouring meets all four dots.",
+    "explanation": "The bend touches two red dots, so it is red, and the left arc is red. Red on top and red stopping force red for the middle arc, and again for the right arc. Its dot is blue, so no colouring meets all four dots. Can’t is accepted only when every coloured arc is one the dots force and a crossing or dot clashes: the board itself is the proof.",
     "extension": "Which colour for the right dot would work? (Red.)",
     "connection": "An obstruction found by forcing: the end colours of a tangle are constrained by its crossings.",
     "sourceIds": [
@@ -1336,6 +1336,9 @@
    },
    "solution": {
     "claim": "cant",
+    "colouring": [0,0,1,0],
+    "order": [0,2,3,1],
+    "words": "the left arc red, the middle arc red, the right arc blue, the bend red",
     "clash": "from the dots"
    },
    "provenance": "Week 40 K–1 Problem 6, case 2 (L red, P red, S blue, Q red), which cannot be completed."
@@ -1413,7 +1416,7 @@
    "rules": [
     "An arc runs from one gap in the cord to the next, passing over any crossings on the way. Each arc is one colour.",
     "At each crossing, the arc on top and the two arcs that stop there must be all one colour or all three colours. A solid ring shows a crossing that works; a dashed ring, one that clashes.",
-    "Each colouring found goes on the shelf below the knot. Press That’s all when you think none is left. It says if there is another."
+    "Each colouring found goes on the shelf below. Press That’s all when you think none is left. It says if there is another."
    ],
    "idea": "The trefoil’s colourings are its three one-colour ones and the six with every arc different; That’s all is checked.",
    "prerequisites": "Keep track of colourings already found and decide when none is left. No counting is asked.",
@@ -1523,23 +1526,23 @@
    "objective": "Colour every arc so that each crossing is all one colour or all three colours, using more than one colour; or press One colour only if that can’t be done.",
    "visibleObjective": "Use more than one colour.",
    "instruction": "Colour every arc so that each crossing is all one colour or all three colours, using more than one colour; or press One colour only if that can’t be done.",
-   "controls": "Tap an arc to change its colour: red, blue, yellow, then red again. Undo takes back the last change. Press One colour only when you are sure.",
+   "controls": "Tap an arc to change its colour: red, blue, yellow, then red again. Undo takes back the last change. Press One colour only when a crossing coloured all different has led, arc by arc, to a clash.",
    "rules": [
     "An arc runs from one gap in the cord to the next, passing over any crossings on the way. Each arc is one colour.",
     "At each crossing, the arc on top and the two arcs that stop there must be all one colour or all three colours. A solid ring shows a crossing that works; a dashed ring, one that clashes.",
-    "If no colouring can use more than one colour, press One colour only. It is checked. If it is right, one crossing is coloured all different and the colours that forces are followed to a clash; tap another crossing to start there."
+    "One colour only is a claim you prove on the board: colour one crossing all different, then colour each arc its crossings force, one at a time, until a crossing clashes. Every coloured arc must be forced. Then press One colour only. If the chain is not finished, the arcs it does not force are ringed, or it says what is missing."
    ],
    "idea": "The figure-eight is knotted, yet no colouring uses two colours: three colours can certify a knot but cannot always find one.",
-   "prerequisites": "Try colourings until sure that none uses two colours, then press the button; the checked clash shows why.",
+   "prerequisites": "Colour one crossing all different and follow the forced colours, arc by arc, to a clash: the chain is the proof, so it needs patience with a chain of four to six arcs rather than reading or arithmetic.",
    "hints": [
     "Give two arcs at one crossing different colours, and follow what they force.",
-    "From any crossing coloured all different, the forced colours reach a clash.",
-    "No colouring uses two colours. Press One colour only."
+    "Colour each arc its crossings force, one at a time, until a crossing clashes.",
+    "Then press One colour only: the chain is the proof for that crossing, and the solved board shows the clash from every crossing."
    ],
    "parent": {
-    "notice": "How many crossings your child starts from before pressing One colour only, and whether a failed try is enough to convince them.",
+    "notice": "Whether your child builds the chain one forced arc at a time, and whether the row of clashes from every crossing on the solved board convinces them that no crossing works.",
     "prompt": "If you colour two arcs at one crossing differently, what is forced next?",
-    "explanation": "A colouring with two colours must change colour somewhere, and colour can only change at a crossing whose two stopping arcs differ; that crossing is then all different. Renaming the colours, its top arc can be red, the arc in blue and the arc out yellow. The other arcs are then forced, and they clash, from whichever crossing you start (tap a crossing on the solved board to see it). So only the three one-colour colourings exist. The figure-eight still cannot be untied: other invariants, such as its Jones polynomial, tell it from a plain loop. Equal colouring counts never show two loops are the same.",
+    "explanation": "A colouring with two colours must change colour somewhere, and colour can only change at a crossing whose two stopping arcs differ; that crossing is then all different. Renaming the colours, its top arc can be red, the arc in blue and the arc out yellow. The other arcs are then forced, and they clash, from whichever crossing you start: the child builds that chain on the board, and One colour only is accepted only then. One crossing’s clash rules out only the colourings that are all different there, so the solved board shows the chain from every crossing in a row of small pictures. Together they leave only the three one-colour colourings. The figure-eight still cannot be untied: other invariants, such as its Jones polynomial, tell it from a plain loop. Equal colouring counts never show two loops are the same.",
     "extension": "For grown-ups: with five colours 0–4 and the rule 2 × top ≡ in + out (mod 5), the figure-eight has colourings with more than one colour; it can be coloured this way with n colours exactly when 5 divides n (Bestvina, §4 Problem 11).",
     "connection": "Its determinant is 5, not divisible by 3, so it has no three-colouring with two colours.",
     "sourceIds": [
@@ -1552,7 +1555,10 @@
    },
    "solution": {
     "claim": "one",
-    "clash": "from every crossing"
+    "colouring": [0,2,1,2],
+    "order": [0,2,3,1],
+    "words": "the long bottom arc red, the lower left arc yellow, the middle arc blue, the top arc yellow",
+    "clash": "from crossing 1, and from every other crossing"
    },
    "provenance": "Week 40 grades 4–5 Problem 7, with the review card’s fix 2: draw the figure-eight and find its colourings. Drawn here as the pretzel knot P(2, 1, 1)."
   },
@@ -1567,7 +1573,7 @@
    "revision": 1,
    "sourceDocument": "docs/knots/README.md",
    "parameters": {
-    "mode": "complete",
+    "mode": "every",
     "aspect": 1.414,
     "arcs": [
      {
@@ -1620,7 +1626,7 @@
       "at": [8,41.92],
       "arc": 0,
       "pic": 0,
-      "colour": 0
+      "match": 4
      },
      {
       "at": [92,41.92],
@@ -1632,7 +1638,7 @@
       "at": [33.85,8],
       "arc": 3,
       "pic": 0,
-      "colour": 1
+      "match": 6
      },
      {
       "at": [66.15,8],
@@ -1644,7 +1650,7 @@
       "at": [128,41.92],
       "arc": 4,
       "pic": 1,
-      "colour": 0
+      "match": 0
      },
      {
       "at": [212,41.92],
@@ -1656,7 +1662,7 @@
       "at": [153.85,8],
       "arc": 5,
       "pic": 1,
-      "colour": 1
+      "match": 2
      },
      {
       "at": [186.15,8],
@@ -1701,28 +1707,28 @@
     ],
     "frames": [[0,0,100,70.72],[120,0,100,70.72]]
    },
-   "objective": "Colour both pictures so that every crossing works, every arc ending at a filled dot is its colour, and the dots in the same place in the two pictures match.",
-   "visibleObjective": "Colour both pictures so their end dots match.",
-   "instruction": "Colour both pictures so that every crossing works, every arc ending at a filled dot is its colour, and the dots in the same place in the two pictures match.",
-   "controls": "Tap an arc to change its colour: red, blue, yellow, then red again. Undo takes back the last change.",
+   "objective": "Find every way to colour both pictures so that every crossing works and the dots in the same place in the two pictures match, then press That’s all.",
+   "visibleObjective": "Find every way to colour both pictures with matching dots.",
+   "instruction": "Find every way to colour both pictures so that every crossing works and the dots in the same place in the two pictures match, then press That’s all.",
+   "controls": "Tap an arc to change its colour: red, blue, yellow, then red again. Undo takes back the last change. Press That’s all when you think you have them all.",
    "rules": [
     "An arc runs from one gap in the cord to the next, passing over any crossings on the way. Each arc is one colour.",
     "At each crossing, the arc on top and the two arcs that stop there must be all one colour or all three colours. A solid ring shows a crossing that works; a dashed ring, one that clashes.",
-    "An arc that ends at a filled dot must be the dot’s colour.",
-    "A dot with a dashed edge takes its arc’s colour, and must match the dot in the same place in the other picture."
+    "A dot with a dashed edge takes its arc’s colour, and must match the dot in the same place in the other picture.",
+    "Each colouring found goes on the shelf below. Press That’s all when you think none is left. It says if there is another."
    ],
-   "idea": "Pulling the bend off the strand (a second-type Reidemeister move) keeps the colours at the ends.",
-   "prerequisites": "Follow a strand from a dot through its crossings. No reading.",
+   "idea": "Pulling the bend off the strand (a second-type Reidemeister move) matches the colourings of the two pictures one for one, with the same colours at the ends.",
+   "prerequisites": "Keep track of colourings already found and decide when none is left. No counting is asked.",
    "hints": [
-    "Start with the first picture: which arcs touch a filled dot?",
-    "In the second picture nothing crosses, so each arc is the colour of its filled dot.",
-    "First picture: bend blue, left arc red, middle arc yellow, right arc red. Second picture: straight arc red, bend blue."
+    "Choose colours for the first picture’s left arc and bend, then follow its crossings.",
+    "In the second picture nothing crosses, so copy the dots’ colours across.",
+    "Each choice of colours for the left arc and the bend gives one way. When every choice is on the shelf, press That’s all."
    ],
    "parent": {
-    "notice": "Whether your child colours each picture on its own and then compares, or carries colours across.",
-    "prompt": "Where did the middle arc’s colour go when the bend was pulled off?",
-    "explanation": "In the first picture the bend is blue from its dot and the left arc red, which forces yellow for the middle arc and red for the right arc. In the second picture nothing crosses: the straight arc is red from end to end, and the bend blue. The right-hand dots are red and blue in both pictures; the middle arc lives only inside the move.",
-    "extension": "Choose other colours for the two filled dots in your head. Do the pictures always agree at the other dots? (Yes: in the first picture the right arc is always the left arc’s colour, since 2 × bend − (2 × bend − left) = left.)",
+    "notice": "Whether your child changes one dot at a time and watches the other dots follow, or starts each colouring from scratch.",
+    "prompt": "When you change the left arc’s colour, what happens at the right-hand dot?",
+    "explanation": "In the first picture the bend is one arc, so its two dots share a colour, and the strand leaves on the right in the colour it came in on the left: the middle arc is 2 × bend − left and the right arc 2 × bend − middle = left (mod 3). In the second picture nothing crosses. So each choice of colours for the left arc and the bend gives exactly one way to colour both pictures with matching dots, and every choice works: the move matches the colourings of the two pictures one for one, with the same colours at the ends.",
+    "extension": "Is there a choice of colours for the two left-hand dots that works in one picture and not the other? (No: the right-hand dots come out the same in both.)",
     "connection": "Each Reidemeister move changes a picture only inside a small disc and matches colourings on its two sides one for one with the same colours at the edge of the disc; that is why the number of colourings is a knot invariant (Bestvina §2–3).",
     "sourceIds": [
      "knots-week40",
@@ -1733,10 +1739,10 @@
     ]
    },
    "solution": {
-    "colouring": [0,2,0,1,0,1],
-    "words": "the first picture’s left arc red, the first picture’s middle arc yellow, the first picture’s right arc red, the first picture’s bend blue, the second picture’s straight arc red, the second picture’s bend blue"
+    "colourings": [[0,0,0,0,0,0],[0,1,0,2,0,2],[0,2,0,1,0,1],[1,0,1,2,1,2],[1,1,1,1,1,1],[1,2,1,0,1,0],[2,0,2,1,2,1],[2,1,2,0,2,0],[2,2,2,2,2,2]],
+    "done": true
    },
-   "provenance": "Week 40 grades 2–3 and 4–5 Problem 5: before and after pictures with fixed end dots, here with L red and P blue (end dot R renamed S, review card fix 7)."
+   "provenance": "Week 40 grades 2–3 and 4–5 Problem 5: “Which colors at L and P allow both pictures to be colored with matching end-dot colors? Can the same choice have more than one completion?”, asked as finding every colouring of both pictures with matching dots."
   },
   {
    "id": "knots-08",
@@ -1841,11 +1847,11 @@
    "objective": "Colour every arc so that each crossing is all one colour or all three colours, using more than one colour; or press One colour only if that can’t be done.",
    "visibleObjective": "Use more than one colour.",
    "instruction": "Colour every arc so that each crossing is all one colour or all three colours, using more than one colour; or press One colour only if that can’t be done.",
-   "controls": "Tap an arc to change its colour: red, blue, yellow, then red again. Undo takes back the last change. Press One colour only when you are sure.",
+   "controls": "Tap an arc to change its colour: red, blue, yellow, then red again. Undo takes back the last change. Press One colour only when a crossing coloured all different has led, arc by arc, to a clash.",
    "rules": [
     "An arc runs from one gap in the cord to the next, passing over any crossings on the way. Each arc is one colour.",
     "At each crossing, the arc on top and the two arcs that stop there must be all one colour or all three colours. A solid ring shows a crossing that works; a dashed ring, one that clashes.",
-    "If no colouring can use more than one colour, press One colour only. It is checked. If it is right, one crossing is coloured all different and the colours that forces are followed to a clash; tap another crossing to start there."
+    "One colour only is a claim you prove on the board: colour one crossing all different, then colour each arc its crossings force, one at a time, until a crossing clashes. Every coloured arc must be forced. Then press One colour only. If the chain is not finished, the arcs it does not force are ringed, or it says what is missing."
    ],
    "idea": "Two trefoils joined: one half can use three colours while the other uses one, so the joined loop is knotted.",
    "prerequisites": "Follow a cord through its crossings and see which arcs stop at each. No reading; a grown-up can read How to play.",
@@ -1966,23 +1972,23 @@
    "objective": "Colour every arc so that each crossing is all one colour or all three colours, using more than one colour; or press One colour only if that can’t be done.",
    "visibleObjective": "Use more than one colour.",
    "instruction": "Colour every arc so that each crossing is all one colour or all three colours, using more than one colour; or press One colour only if that can’t be done.",
-   "controls": "Tap an arc to change its colour: red, blue, yellow, then red again. Undo takes back the last change. Press One colour only when you are sure.",
+   "controls": "Tap an arc to change its colour: red, blue, yellow, then red again. Undo takes back the last change. Press One colour only when a crossing coloured all different has led, arc by arc, to a clash.",
    "rules": [
     "An arc runs from one gap in the cord to the next, passing over any crossings on the way. Each arc is one colour.",
     "At each crossing, the arc on top and the two arcs that stop there must be all one colour or all three colours. A solid ring shows a crossing that works; a dashed ring, one that clashes.",
-    "If no colouring can use more than one colour, press One colour only. It is checked. If it is right, one crossing is coloured all different and the colours that forces are followed to a clash; tap another crossing to start there."
+    "One colour only is a claim you prove on the board: colour one crossing all different, then colour each arc its crossings force, one at a time, until a crossing clashes. Every coloured arc must be forced. Then press One colour only. If the chain is not finished, the arcs it does not force are ringed, or it says what is missing."
    ],
    "idea": "Five lobes instead of three, and no colouring with two colours: from any crossing coloured all different, the forced colours run round to a clash.",
-   "prerequisites": "Try colourings until sure that none uses two colours, then press the button; the checked clash shows why.",
+   "prerequisites": "Colour one crossing all different and follow the forced colours, arc by arc, to a clash: the chain is the proof, so it needs patience with a chain of four to six arcs rather than reading or arithmetic.",
    "hints": [
     "Give two arcs at one crossing different colours, and follow what they force.",
-    "Each forced colour forces the next, round the knot, until two colours clash.",
-    "No colouring uses two colours. Press One colour only."
+    "Each forced colour forces the next, round the knot, until a crossing clashes.",
+    "Then press One colour only: the solved board shows the clash from every crossing."
    ],
    "parent": {
     "notice": "Whether your child expects the trefoil’s pattern (every arc different) to work here.",
     "prompt": "Where did the colours go wrong, and does it happen from every crossing?",
-    "explanation": "Any colouring with two colours has a crossing coloured all different; renaming colours, red on top, blue in, yellow out. From there each crossing in turn has two coloured arcs and forces the third, and the chain clashes (the solved board shows it from each crossing). So only the three one-colour colourings exist. The cinquefoil is still knotted; three colours just cannot show it.",
+    "explanation": "Any colouring with two colours has a crossing coloured all different; renaming colours, red on top, blue in, yellow out. From there each crossing in turn has two coloured arcs and forces the third, and the chain clashes; the child builds one such chain, and the solved board shows the chain from every crossing. So only the three one-colour colourings exist. The cinquefoil is still knotted; three colours just cannot show it.",
     "extension": "For grown-ups: with five colours and the rule 2 × top ≡ in + out (mod 5) the cinquefoil can use more than one colour.",
     "connection": "The (2, 5) torus knot 5₁. Its determinant is 5, not divisible by 3.",
     "sourceIds": [
@@ -1995,7 +2001,10 @@
    },
    "solution": {
     "claim": "one",
-    "clash": "from every crossing"
+    "colouring": [0,1,1,2,0],
+    "order": [0,2,3,1,4],
+    "words": "the bottom right arc red, the left arc blue, the right arc blue, the bottom left arc yellow, the top arc red",
+    "clash": "from crossing 1, and from every other crossing"
    },
    "provenance": "New, named in the review card’s App fit (“claim ‘one colour only’ where that is true (figure-eight, 5₁, 5₂)”); a five-lobed relative of the worksheet’s trefoil."
   },
@@ -2102,17 +2111,17 @@
    "objective": "Colour every arc so that each crossing is all one colour or all three colours, using more than one colour; or press One colour only if that can’t be done.",
    "visibleObjective": "Use more than one colour.",
    "instruction": "Colour every arc so that each crossing is all one colour or all three colours, using more than one colour; or press One colour only if that can’t be done.",
-   "controls": "Tap an arc to change its colour: red, blue, yellow, then red again. Undo takes back the last change. Press One colour only when you are sure.",
+   "controls": "Tap an arc to change its colour: red, blue, yellow, then red again. Undo takes back the last change. Press One colour only when a crossing coloured all different has led, arc by arc, to a clash.",
    "rules": [
     "An arc runs from one gap in the cord to the next, passing over any crossings on the way. Each arc is one colour.",
     "At each crossing, the arc on top and the two arcs that stop there must be all one colour or all three colours. A solid ring shows a crossing that works; a dashed ring, one that clashes.",
-    "If no colouring can use more than one colour, press One colour only. It is checked. If it is right, one crossing is coloured all different and the colours that forces are followed to a clash; tap another crossing to start there."
+    "One colour only is a claim you prove on the board: colour one crossing all different, then colour each arc its crossings force, one at a time, until a crossing clashes. Every coloured arc must be forced. Then press One colour only. If the chain is not finished, the arcs it does not force are ringed, or it says what is missing."
    ],
    "idea": "One more twist than puzzle 11’s knot, and now three colours fit: whether a twist knot can be coloured depends on its number of twists.",
    "prerequisites": "Follow a cord through its crossings and see which arcs stop at each. No reading; a grown-up can read How to play.",
    "hints": [
-    "Give the top arc and the middle arc different colours, and follow what the crossings force.",
-    "Each crossing with two coloured arcs decides its third arc; keep going round the knot.",
+    "Give two arcs at one crossing different colours, and follow what they force.",
+    "Try the top arc and the middle arc in different colours; each crossing with two coloured arcs decides its third arc.",
     "Make the top arc red, the middle and lower short arcs blue, the long bottom and upper short arcs yellow, and the lower left arc red."
    ],
    "parent": {
@@ -2227,23 +2236,23 @@
    "objective": "Colour every arc so that each crossing is all one colour or all three colours, using more than one colour; or press One colour only if that can’t be done.",
    "visibleObjective": "Use more than one colour.",
    "instruction": "Colour every arc so that each crossing is all one colour or all three colours, using more than one colour; or press One colour only if that can’t be done.",
-   "controls": "Tap an arc to change its colour: red, blue, yellow, then red again. Undo takes back the last change. Press One colour only when you are sure.",
+   "controls": "Tap an arc to change its colour: red, blue, yellow, then red again. Undo takes back the last change. Press One colour only when a crossing coloured all different has led, arc by arc, to a clash.",
    "rules": [
     "An arc runs from one gap in the cord to the next, passing over any crossings on the way. Each arc is one colour.",
     "At each crossing, the arc on top and the two arcs that stop there must be all one colour or all three colours. A solid ring shows a crossing that works; a dashed ring, one that clashes.",
-    "If no colouring can use more than one colour, press One colour only. It is checked. If it is right, one crossing is coloured all different and the colours that forces are followed to a clash; tap another crossing to start there."
+    "One colour only is a claim you prove on the board: colour one crossing all different, then colour each arc its crossings force, one at a time, until a crossing clashes. Every coloured arc must be forced. Then press One colour only. If the chain is not finished, the arcs it does not force are ringed, or it says what is missing."
    ],
    "idea": "Between the figure-eight and the stevedore knot, this twist knot has no colouring with two colours.",
-   "prerequisites": "Try colourings until sure that none uses two colours, then press the button; the checked clash shows why.",
+   "prerequisites": "Colour one crossing all different and follow the forced colours, arc by arc, to a clash: the chain is the proof, so it needs patience with a chain of four to six arcs rather than reading or arithmetic.",
    "hints": [
     "Give two arcs at one crossing different colours, and follow what they force.",
-    "From any crossing coloured all different, the forced colours reach a clash.",
-    "No colouring uses two colours. Press One colour only."
+    "Colour each arc its crossings force, one at a time, until a crossing clashes.",
+    "Then press One colour only: the chain is the proof for that crossing, and the solved board shows the clash from every crossing."
    ],
    "parent": {
     "notice": "Whether your child tries the stevedore knot’s pattern (pairs of arcs with the same colour) and sees it fail.",
     "prompt": "Which crossing did you start from, and where did the clash appear?",
-    "explanation": "As for the figure-eight, a colouring with two colours has a crossing coloured all different; from each crossing the forced colours clash. So only the one-colour colourings exist, though the knot is knotted.",
+    "explanation": "As for the figure-eight, a colouring with two colours has a crossing coloured all different; from each crossing the forced colours clash (the child builds one chain, the solved board shows them all). So only the one-colour colourings exist, though the knot is knotted.",
     "extension": "Line up the figure-eight (two half twists), this knot (three) and the stevedore knot (four). Which twist knots can use three colours? (Those whose number of half twists leaves remainder 1 on division by 3: 1, 4, 7, …)",
     "connection": "The knot 5₂, the pretzel knot P(3, 1, 1). Its determinant is 7, not divisible by 3.",
     "sourceIds": [
@@ -2256,7 +2265,10 @@
    },
    "solution": {
     "claim": "one",
-    "clash": "from every crossing"
+    "colouring": [0,1,2,2,0],
+    "order": [0,1,2,3,4],
+    "words": "the lower left arc red, the long bottom arc blue, the short left arc yellow, the middle arc yellow, the top arc red",
+    "clash": "from crossing 1, and from every other crossing"
    },
    "provenance": "New, named in the review card’s App fit (5₂), drawn as the pretzel knot P(3, 1, 1)."
   },
@@ -2504,7 +2516,7 @@
    "idea": "Sliding a strand across a crossing (the third Reidemeister move) leaves the colours at all six ends the same, though an arc inside changes.",
    "prerequisites": "Try a colour, follow what it forces through three crossings, and change it if it clashes.",
    "hints": [
-    "Colour the arcs at the filled dots. No crossing then has two known arcs: try a colour for the curved arc.",
+    "In the first picture, colour the arcs at the filled dots: no crossing there then has two known arcs, so try a colour for the curved arc.",
     "A wrong colour for the curved arc reaches a clash within three crossings.",
     "The curved arc is yellow in both pictures; then each crossing has two known arcs."
    ],
