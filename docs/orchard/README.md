@@ -1,6 +1,6 @@
 # Mirror Couriers sight lines
 
-October 5, 2026. Twelve puzzles built from Week 31 of the Bellingham math circle ("Hidden orchard", lattice points seen from a corner), added to Mirror Couriers as its **Sight lines** group. They are in the puzzle satchel only, not on the Lantern Road. None of this has been played by children in the app yet, and the Week 31 worksheets have not been piloted either.
+October 5, 2026. Twelve puzzles built from Week 31 of the Bellingham math circle ("Hidden orchard", lattice points seen from a corner), added to Mirror Couriers as its **Sight lines** group. They are in the puzzle satchel only, not on the Lantern Road. James's children have played it at home (October 10, below); the Week 31 worksheets have not been piloted.
 
 The theme's [review card](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-31.md) says **revise**: its one must is an example in the adult guide's optional extension, (4, 3), which does not change when the viewer moves to (1, 1). Nothing here uses that example. The card's App fit asks for tap-to-solve puzzles with exact beams drawn on points, and for a name other than "orchard", since Symbol Orchard is already a family; the group is called Sight lines, and the module keeps `orchard` only as its internal id.
 
@@ -65,9 +65,20 @@ Coordinates are (across, up) from the bottom-left point; the board shows no numb
 
 The module adds no satchel family; its puzzles set `libraryFamily: "billiard"` and `group: "Sight lines"`. To change a puzzle, edit `scripts/build-orchard.mjs`, then run `node scripts/build-orchard.mjs`, `npm test` and `npm run build`.
 
+## Children's play
+
+October 10, 2026: James's children at home, reported by James in the project thread. Observed:
+
+- The puzzles felt good.
+- Cutting and planting did not feel like the same move run in reverse.
+- James's kindergartner moved the courier at random. With an older child, James could reason with them about where to stand.
+
+Not yet reported: whether a beam passing close to a point looked blocked.
+
+Inferences, not observations: this is the first Mirror Couriers group built for tapping rather than predicting, so it fits the earlier finding that children enjoy acting on the object more than predicting it. The cut and plant puzzles are each solvable without the link between them, so nothing in play shows it; a puzzle that runs one board both ways (cut to light a lantern, then plant to hide it again) could make it visible if that link is wanted. Aiming the courier needs a reason, such as stepping off a shared factor or the even–odd pattern, which suits the Medium and Hard levels the move puzzles already sit at; random tapping still lands on one of puzzle 8's 15 spots (about a third of its 46 trees), so it can serve as a first route for the youngest.
+
 ## Not yet done
 
-- **Children's play.** Nothing here has been tried by children. Things to watch: whether children treat a beam that passes close to a point as blocked (the worksheet's thread-thickness worry; the app draws the line exactly, but small fields make near misses look close); whether "cut" and "plant" read clearly as the same picture run in reverse; and whether children move the courier at random or start to aim for spots after a few tries.
 - **A playground.** Free play with an orchard (plant, cut, move) would suit this group, but Mirror Couriers has no playground yet and a family has one; adding the orchard as the family's playground is a decision for the family as a whole.
 - **Bigger fields and counting.** The worksheet's catalog of visible dots (13 on the 5 × 5, 25 on the 7 × 7) and its infinite-row arguments are left to paper. The card suggests "find every visible tree" and "the visible trees that hide the most" (K–1 P1, P3 and P5); they need a "That's all" claim the app checks, not a counter.
 - **Two lookouts.** The bonus's spots hidden from two lookouts (P1–P2) suit a Hard tier, but with the lookouts next to each other almost no lantern can be hidden from both; they need wider spacing, worked out on paper first.
