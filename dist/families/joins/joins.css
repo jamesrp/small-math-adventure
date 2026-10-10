@@ -1,0 +1,46 @@
+/* Joining strips: strips of sun-coloured unit squares in ink outline, all
+   drawn to one scale so lengths compare; the chosen strip in pine with a
+   dashed cut line; a leaf-coloured goal in a dashed frame; small pictures
+   of kept collections on the shelf; ochre for what a refusal or hint
+   points at. */
+.jn-puzzle{display:flex;flex-direction:column;align-items:stretch;gap:.6rem;width:100%;max-width:min(560px,calc(var(--span) * 44px + 28px));margin:0 auto}
+.jn-bench,.jn-goal{display:flex;flex-direction:column;gap:6px;padding:8px 10px;border:2px solid transparent;border-radius:12px}
+.jn-goal{position:relative;gap:4px;padding-top:22px;border:2px dashed var(--b-leaf,#86a68c);background:#f1f5ea}
+.jn-tag{position:absolute;top:3px;left:10px;font:600 .78rem/1 var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850)}
+.jn-row{position:relative;height:32px}
+.jn-goal .jn-row{height:22px}
+.jn-puzzle .jn-strip{position:absolute;left:0;top:0;bottom:0;box-sizing:border-box;min-height:0;min-width:0;margin:0;padding:0;border:2px solid var(--b-ink,#294439);border-radius:4px;background-color:var(--b-sun,#efc76e);background-image:linear-gradient(to right,rgba(41,68,57,.6) 1.5px,transparent 1.5px);background-size:calc(100% / var(--l)) 100%;background-position:-1.5px 0;box-shadow:none;color:inherit;cursor:default}
+.jn-puzzle button.jn-strip{cursor:pointer}
+.jn-puzzle .jn-strip.goal{background-color:var(--b-leaf,#86a68c)}
+.jn-puzzle .jn-strip.chosen{box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-pine,#31533e)}
+.jn-puzzle .jn-strip.marked{background-color:var(--b-bad-soft,#f5e3d9);border-color:var(--b-ochre,#b38840)}
+.jn-puzzle .jn-strip.off{outline:4px solid var(--b-ochre,#b38840);outline-offset:2px}
+.jn-puzzle .jn-strip.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.jn-puzzle .jn-strip:focus-visible,.jn-puzzle .jn-cut:focus-visible,.jn-puzzle .jn-card:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:4px}
+.jn-mid{position:absolute;left:50%;top:-5px;bottom:-5px;border-left:3px dashed var(--b-pine,#31533e);transform:translateX(-1.5px);pointer-events:none}
+/* Cut lines on a chosen strip on the free bench, each a unit wide. */
+.jn-puzzle .jn-cut{position:absolute;top:-5px;bottom:-5px;min-height:0;min-width:0;margin:0;padding:0;border:0;background:transparent;box-shadow:none;cursor:pointer;z-index:1}
+.jn-puzzle .jn-cut::after{content:'';position:absolute;left:50%;top:0;bottom:0;border-left:3px dashed var(--b-pine,#31533e);transform:translateX(-1.5px)}
+.jn-puzzle .jn-cut:hover::after{border-left-style:solid}
+
+.jn-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .8rem}
+.jn-puzzle .jn-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.jn-puzzle .jn-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+.jn-puzzle :is(.jn-add,.jn-remove){min-width:52px;font:400 1.4rem/1 var(--b-display,Georgia,serif)}
+.jn-puzzle .jn-button.hinted,.jn-puzzle .jn-card.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+.jn-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+
+/* Small pictures: the shelf and the matching cards. */
+.jn-thumb-svg{display:block;max-width:100%;height:auto}
+.jn-thumb-svg rect{fill:var(--b-sun,#efc76e);stroke:var(--b-ink,#294439);stroke-width:1}
+.jn-thumb-svg line{stroke:rgba(41,68,57,.6);stroke-width:.6}
+.jn-shelf{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:6px}
+.jn-thumb{display:block;padding:4px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:8px}
+.jn-thumb.again{border-color:var(--b-ochre,#b38840);box-shadow:0 0 0 3px var(--b-ochre,#b38840)}
+.jn-cards{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px}
+.jn-puzzle .jn-card{display:inline-flex;align-items:center;gap:6px;min-height:46px;min-width:0;margin:0;padding:6px 8px;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1.5px solid var(--b-line,#d0d6bd);border-radius:10px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.jn-puzzle button.jn-card{cursor:pointer;border-color:var(--b-pine,#31533e)}
+.jn-puzzle .jn-card.loaded{opacity:1;box-shadow:inset 0 0 0 2px var(--b-pine,#31533e);background:#e9eddc}
+.jn-puzzle .jn-card.paired{background:var(--b-good-soft,#e2ecd6);border-color:var(--b-good,#3c7a4a)}
+.jn-card.paired .jn-thumb-svg:last-child rect{fill:var(--b-leaf,#86a68c)}
+.jn-arrow{font:400 1.1rem/1 var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850)}
