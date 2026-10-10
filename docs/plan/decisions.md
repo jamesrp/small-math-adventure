@@ -34,7 +34,7 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 7 | Take-away games | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-07.md) | In the app | Move menus in Pebble Duel (PR #9) |
 | 8 | Rook race and Nim | none | In the app | Pebble Duel and its duel proofs |
 | 9 | Bouncing paths | none | In the app | Mirror Couriers |
-| 10 | Bridges | none | In the app | Bridge Courier |
+| 10 | Bridges | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-10.md) | In the app | Bridge Courier; its card adds a where-can-it-start and add-a-bridge group, double bridges, and the dead-end message behind Hint, in Wave 9's touch-ups |
 | 11 | Chip firing with a sink | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-11.md) | In the app | Chip firing (PR #1); its card adds the add-one cycle and capacity puzzles and drops answer slots, in Wave 9's touch-ups |
 | 12 | Catalan bijections | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-12.md) | Open, wave 7 | Strings tapped between dots with crossings refused, every pairing collected, conversions between pairings, paths and trees, and the fewest-swaps mountain |
 | 13 | Route packing | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-13.md) | In the app | Routes and roadblocks (PR #6) |
