@@ -138,14 +138,14 @@
      10
     ]
    },
-   "objective": "Set the strips so the join ends outside 8 to 10, or press Can’t and set the shortest and the longest join.",
+   "objective": "Set the strips so the join ends outside 8 to 10, or press Can’t and pin the shortest and the longest join.",
    "visibleObjective": "Make the join end outside 8 to 10.",
-   "instruction": "Set the strips so the join ends outside 8 to 10, or press Can’t and set the shortest and the longest join.",
-   "controls": "Drag the end of a strip, or tap its row, to change its length. Arrow keys move a focused end. Press Can’t once you have tried a join, then set the shortest and the longest join.",
+   "instruction": "Set the strips so the join ends outside 8 to 10, or press Can’t and pin the shortest and the longest join.",
+   "controls": "Drag the end of a strip, or tap its row, to change its length. Arrow keys move a focused end. Press Can’t once you have tried a join, then set the strips and press Pin for the shortest join and for the longest.",
    "rules": [
     "Each strip’s end stays inside its gray band. Strips join end to end from 0, and the ruler shows where a join ends.",
     "The shaded window is the app’s claim: every join ends inside it.",
-    "Can’t says no join ends outside the window. After it, set the shortest and the longest join; a pin keeps each one."
+    "Can’t says no join ends outside the window. After it, pin the shortest and the longest join; the two pins are checked together."
    ],
    "idea": "One setting outside is enough to break a claim about every setting; the shortest join takes every strip at its shortest.",
    "prerequisites": "Reading a ruler to 13 and comparing lengths. No adding: the ruler shows where the join ends.",
@@ -214,14 +214,14 @@
      10
     ]
    },
-   "objective": "Set the strips so the join ends outside 8 to 10, or press Can’t and set the shortest and the longest join.",
+   "objective": "Set the strips so the join ends outside 8 to 10, or press Can’t and pin the shortest and the longest join.",
    "visibleObjective": "Make the join end outside 8 to 10.",
-   "instruction": "Set the strips so the join ends outside 8 to 10, or press Can’t and set the shortest and the longest join.",
-   "controls": "Drag the end of a strip, or tap its row, to change its length. Arrow keys move a focused end. Press Can’t once you have tried a join, then set the shortest and the longest join.",
+   "instruction": "Set the strips so the join ends outside 8 to 10, or press Can’t and pin the shortest and the longest join.",
+   "controls": "Drag the end of a strip, or tap its row, to change its length. Arrow keys move a focused end. Press Can’t once you have tried a join, then set the strips and press Pin for the shortest join and for the longest.",
    "rules": [
     "Each strip’s end stays inside its gray band. Strips join end to end from 0, and the ruler shows where a join ends.",
     "The shaded window is the app’s claim: every join ends inside it.",
-    "Can’t says no join ends outside the window. After it, set the shortest and the longest join; a pin keeps each one."
+    "Can’t says no join ends outside the window. After it, pin the shortest and the longest join; the two pins are checked together."
    ],
    "idea": "The other side of the window: the longest join takes every strip at its longest.",
    "prerequisites": "Reading a ruler to 13 and comparing lengths. No adding: the ruler shows where the join ends.",
@@ -263,7 +263,7 @@
   {
    "id": "ranges-03",
    "number": 3,
-   "title": "Take A away",
+   "title": "Two ends",
    "difficulty_level": "easy",
    "familyTitle": "Ruler strips",
    "mechanic": "ranges",
@@ -303,21 +303,21 @@
      ]
     ]
    },
-   "objective": "Make the biggest and the smallest gap.",
-   "visibleObjective": "Make the biggest and the smallest gap.",
-   "instruction": "Make the biggest and the smallest gap.",
-   "controls": "Drag the end of a strip, or tap its row, to change its length. Arrow keys move a focused end.",
+   "objective": "Pin the biggest and the smallest gap.",
+   "visibleObjective": "Pin the biggest and the smallest gap.",
+   "instruction": "Pin the biggest and the smallest gap.",
+   "controls": "Drag the end of a strip, or tap its row, to change its length. Arrow keys move a focused end. Press Pin for a setting with the biggest gap and for one with the smallest.",
    "rules": [
     "Each strip’s end stays inside its gray band. Strips join end to end from 0, and the ruler shows where a join ends.",
     "A letter drawn twice is one strip: both copies are always the same length.",
-    "The gap is between the ends of two rows. A bar below keeps the biggest gap you make and one keeps the smallest."
+    "The gap is between the ends of two rows. Pin a setting with the biggest gap and one with the smallest; the two pins are checked together."
    ],
    "idea": "Taking away the very same A leaves exactly B: the gap runs from 3 to 4, not the 1 to 6 that the two rows’ separate ranges suggest.",
    "prerequisites": "Reading a ruler and comparing two ends. No subtracting: the gap is drawn between the ends.",
    "hints": [
-    "Which strip changes the gap, and which doesn’t?",
+    "Move each strip in turn and watch the gap.",
     "Both rows start with the same A, so moving A moves both ends together.",
-    "Make B 4 long, then 3 long."
+    "Pin B at 4, then B at 3."
    ],
    "parent": {
     "notice": "Whether your child drags A, sees the gap stay put, and then turns to B.",
@@ -335,15 +335,17 @@
     "gaps": [
      {
       "smallest": 3,
-      "biggest": 4,
-      "smallestSetting": {
-       "A": 4,
-       "B": 3
-      },
-      "biggestSetting": {
-       "A": 4,
-       "B": 4
-      }
+      "biggest": 4
+     }
+    ],
+    "pins": [
+     {
+      "A": 4,
+      "B": 3
+     },
+     {
+      "A": 4,
+      "B": 4
      }
     ]
    },
@@ -387,26 +389,26 @@
      10
     ]
    },
-   "objective": "Set the strips so the join ends outside 8 to 10, or press Can’t and set the shortest and the longest join.",
+   "objective": "Set the strips so the join ends outside 8 to 10, or press Can’t and pin the shortest and the longest join.",
    "visibleObjective": "Make the join end outside 8 to 10.",
-   "instruction": "Set the strips so the join ends outside 8 to 10, or press Can’t and set the shortest and the longest join.",
-   "controls": "Drag the end of a strip, or tap its row, to change its length. Arrow keys move a focused end. Press Can’t once you have tried a join, then set the shortest and the longest join.",
+   "instruction": "Set the strips so the join ends outside 8 to 10, or press Can’t and pin the shortest and the longest join.",
+   "controls": "Drag the end of a strip, or tap its row, to change its length. Arrow keys move a focused end. Press Can’t once you have tried a join, then set the strips and press Pin for the shortest join and for the longest.",
    "rules": [
     "Each strip’s end stays inside its gray band. Strips join end to end from 0, and the ruler shows where a join ends.",
     "The shaded window is the app’s claim: every join ends inside it.",
-    "Can’t says no join ends outside the window. After it, set the shortest and the longest join; a pin keeps each one."
+    "Can’t says no join ends outside the window. After it, pin the shortest and the longest join; the two pins are checked together."
    ],
    "idea": "A claim nobody can break is shown by the two extreme settings: if the shortest and the longest join are inside, every join is.",
    "prerequisites": "Reading a ruler to 13 and comparing lengths. No adding: the ruler shows where the join ends.",
    "hints": [
     "Try the shortest join you can make, then the longest.",
     "With both strips shortest the join ends at 8, and with both longest at 10.",
-    "Make A 4 and B 4, press Can’t, then make A 5 and B 5."
+    "Make A 4 and B 4, press Can’t and Pin, then make A 5 and B 5 and Pin."
    ],
    "parent": {
     "notice": "Whether your child tries the extremes before pressing Can’t, or presses after one middling join.",
     "prompt": "How do you know no join gets out? You haven’t tried them all.",
-    "explanation": "Every join is at least the two shortest strips, 4 + 4 = 8, and at most the two longest, 5 + 5 = 10. Both are inside 8 to 10, so every join is. The two pinned joins are the whole argument.",
+    "explanation": "Every join is at least the two shortest strips, 4 + 4 = 8, and at most the two longest, 5 + 5 = 10. Both are inside 8 to 10, so every join is. The two pinned joins are the whole argument; a wrong pair of pins is refused.",
     "extension": "Make the window one unit narrower on either side. Which pinned join breaks it?",
     "connection": "An interval sum is attained at its endpoints: min (A + B) = min A + min B.",
     "sourceIds": [
@@ -417,14 +419,16 @@
    },
    "solution": {
     "cant": true,
-    "shortest": {
-     "A": 4,
-     "B": 4
-    },
-    "longest": {
-     "A": 5,
-     "B": 5
-    }
+    "pins": [
+     {
+      "A": 4,
+      "B": 4
+     },
+     {
+      "A": 5,
+      "B": 5
+     }
+    ]
    },
    "provenance": "Week 51 Grades 2–3 and 4–5 Problem 2 (and K–1 Problem 2): the pair C (4 to 5) with D (4 to 5), renamed A and B, the only pair that keeps both promises."
   },
@@ -463,22 +467,22 @@
      9
     ]
    },
-   "objective": "Make B’s band as wide as you can while every join ends from 7 to 9, then press Widest and set the shortest and the longest join.",
+   "objective": "Make B’s band as wide as you can while every join ends from 7 to 9, then press Widest and pin the shortest and the longest join.",
    "visibleObjective": "Make B’s band as wide as you can while every join ends from 7 to 9.",
-   "instruction": "Make B’s band as wide as you can while every join ends from 7 to 9, then press Widest and set the shortest and the longest join.",
-   "controls": "Drag an end of B’s band, or tap near it. Arrow keys move a focused end. Press Widest, then drag the strips’ ends to the shortest and the longest join.",
+   "instruction": "Make B’s band as wide as you can while every join ends from 7 to 9, then press Widest and pin the shortest and the longest join.",
+   "controls": "Drag an end of B’s band, or tap near it. Arrow keys move a focused end. Press Widest, then set the strips and press Pin for the shortest join and for the longest.",
    "rules": [
     "Each strip’s end stays inside its gray band. Strips join end to end from 0, and the ruler shows where a join ends.",
     "The shaded window is the app’s claim: every join ends inside it.",
     "If some join can end outside the window, the app sets the strips to show one.",
-    "Widest says the band can’t grow at either end. After it, set the shortest and the longest join; a pin keeps each one."
+    "Widest says the band can’t grow at either end. After it, pin the shortest and the longest join; the two pins are checked together."
    ],
    "idea": "Each end of the widest band is pinned by one setting: A at 3 forces B to reach 4, and A at 4 stops B past 5.",
    "prerequisites": "Reading a ruler and the break puzzles. The app does the attacking; the child decides how far each end of the band can go.",
    "hints": [
     "Watch the join the app makes. Which end of B’s band lets it out?",
     "With A at 3, B must reach 4; with A at 4, B can be at most 5.",
-    "Make B’s band 4 to 5, press Widest, then show 3 + 4 and 4 + 5."
+    "Make B’s band 4 to 5, press Widest, then pin 3 + 4 and 4 + 5."
    ],
    "parent": {
     "notice": "Whether your child shrinks the end that the app’s join escapes through, and then tries to grow each end again.",
@@ -497,14 +501,16 @@
      4,
      5
     ],
-    "shortest": {
-     "A": 3,
-     "B": 4
-    },
-    "longest": {
-     "A": 4,
-     "B": 5
-    },
+    "pins": [
+     {
+      "A": 3,
+      "B": 4
+     },
+     {
+      "A": 4,
+      "B": 5
+     }
+    ],
     "start": {
      "A": 4,
      "B": 6
@@ -568,22 +574,22 @@
      ]
     ]
    },
-   "objective": "Make the biggest and the smallest gap in each pair of rows.",
-   "visibleObjective": "Make the biggest and the smallest gap.",
-   "instruction": "Make the biggest and the smallest gap in each pair of rows.",
-   "controls": "Drag the end of a strip, or tap its row, to change its length. Arrow keys move a focused end.",
+   "objective": "Pin the biggest and the smallest gap in each pair of rows.",
+   "visibleObjective": "Pin the biggest and the smallest gap.",
+   "instruction": "Pin the biggest and the smallest gap in each pair of rows.",
+   "controls": "Drag the end of a strip, or tap its row, to change its length. Arrow keys move a focused end. Press Pin for a setting with the biggest gap and for one with the smallest.",
    "rules": [
     "Each strip’s end stays inside its gray band. Strips join end to end from 0, and the ruler shows where a join ends.",
     "A white piece is exactly as long as its number.",
     "A letter drawn twice is one strip: both copies are always the same length.",
-    "The gap is between the ends of two rows. A bar below keeps the biggest gap you make and one keeps the smallest."
+    "The gap is between the ends of two rows. Pin a setting with the biggest gap and one with the smallest; the two pins are checked together."
    ],
    "idea": "The same A on both rows cancels, so its gap is always 3; a separate B of the same band lets the gap run from 1 to 5, longest less shortest.",
    "prerequisites": "Reading a ruler and comparing two ends. No subtracting: the gap is drawn between the ends.",
    "hints": [
-    "Move A and watch both gaps. Which one changes?",
+    "Move A, then B, and watch both gaps.",
     "The top gap is always 3. The bottom gap is biggest with the longest A and the shortest B.",
-    "Make A 6 and B 4 for the biggest bottom gap, then A 4 and B 6 for the smallest."
+    "Pin A 6 with B 4 for the biggest bottom gap, then A 4 with B 6 for the smallest."
    ],
    "parent": {
     "notice": "Whether your child notices that the top gap never moves, and moves A and B opposite ways for the bottom one.",
@@ -601,27 +607,21 @@
     "gaps": [
      {
       "smallest": 3,
-      "biggest": 3,
-      "smallestSetting": {
-       "A": 4,
-       "B": 4
-      },
-      "biggestSetting": {
-       "A": 4,
-       "B": 4
-      }
+      "biggest": 3
      },
      {
       "smallest": 1,
-      "biggest": 5,
-      "smallestSetting": {
-       "A": 4,
-       "B": 6
-      },
-      "biggestSetting": {
-       "A": 6,
-       "B": 4
-      }
+      "biggest": 5
+     }
+    ],
+    "pins": [
+     {
+      "A": 4,
+      "B": 6
+     },
+     {
+      "A": 6,
+      "B": 4
      }
     ]
    },
@@ -667,22 +667,22 @@
      14
     ]
    },
-   "objective": "Make C’s band as wide as you can while every join ends from 9 to 14, then press Widest and set the shortest and the longest join.",
+   "objective": "Make C’s band as wide as you can while every join ends from 9 to 14, then press Widest and pin the shortest and the longest join.",
    "visibleObjective": "Make C’s band as wide as you can while every join ends from 9 to 14.",
-   "instruction": "Make C’s band as wide as you can while every join ends from 9 to 14, then press Widest and set the shortest and the longest join.",
-   "controls": "Drag an end of B’s band, or tap near it. Arrow keys move a focused end. Press Widest, then drag the strips’ ends to the shortest and the longest join.",
+   "instruction": "Make C’s band as wide as you can while every join ends from 9 to 14, then press Widest and pin the shortest and the longest join.",
+   "controls": "Drag an end of B’s band, or tap near it. Arrow keys move a focused end. Press Widest, then set the strips and press Pin for the shortest join and for the longest.",
    "rules": [
     "Each strip’s end stays inside its gray band. Strips join end to end from 0, and the ruler shows where a join ends.",
     "The shaded window is the app’s claim: every join ends inside it.",
     "If some join can end outside the window, the app sets the strips to show one.",
-    "Widest says the band can’t grow at either end. After it, set the shortest and the longest join; a pin keeps each one."
+    "Widest says the band can’t grow at either end. After it, pin the shortest and the longest join; the two pins are checked together."
    ],
    "idea": "Widths add: the window is 5 wide, A’s and B’s bands use 1 and 2, so C’s widest band is 2 wide, pinned by the shortest and the longest join.",
    "prerequisites": "Reading a ruler and the break puzzles. The app does the attacking; the child decides how far each end of the band can go.",
    "hints": [
     "Grow C’s band one end at a time, and watch for a join the app gets out.",
     "The shortest join is 2 + 3 + C’s left end; the longest is 3 + 5 + C’s right end.",
-    "Make C’s band 4 to 6, press Widest, then show 2 + 3 + 4 and 3 + 5 + 6."
+    "Make C’s band 4 to 6, press Widest, then pin 2 + 3 + 4 and 3 + 5 + 6."
    ],
    "parent": {
     "notice": "Whether your child grows each end until the app escapes and then steps back, rather than guessing a band.",
@@ -701,16 +701,18 @@
      4,
      6
     ],
-    "shortest": {
-     "A": 2,
-     "B": 3,
-     "C": 4
-    },
-    "longest": {
-     "A": 3,
-     "B": 5,
-     "C": 6
-    },
+    "pins": [
+     {
+      "A": 2,
+      "B": 3,
+      "C": 4
+     },
+     {
+      "A": 3,
+      "B": 5,
+      "C": 6
+     }
+    ],
     "start": {
      "A": 2,
      "B": 3,
@@ -772,14 +774,14 @@
      "sum": 12
     }
    },
-   "objective": "With A + B always 12, make the biggest and the smallest gap between the ends of A and B.",
-   "visibleObjective": "With A + B always 12, make the biggest and the smallest gap.",
-   "instruction": "With A + B always 12, make the biggest and the smallest gap between the ends of A and B.",
-   "controls": "Drag the end of a strip, or tap its row, to change its length. Arrow keys move a focused end.",
+   "objective": "With A + B always 12, pin the biggest and the smallest gap between the ends of A and B.",
+   "visibleObjective": "With A + B always 12, pin the biggest and the smallest gap.",
+   "instruction": "With A + B always 12, pin the biggest and the smallest gap between the ends of A and B.",
+   "controls": "Drag the end of a strip, or tap its row, to change its length. Arrow keys move a focused end. Press Pin for a setting with the biggest gap and for one with the smallest.",
    "rules": [
     "Each strip’s end stays inside its gray band. Strips join end to end from 0, and the ruler shows where a join ends.",
     "A letter drawn twice is one strip: both copies are always the same length.",
-    "The gap is between the ends of two rows. A bar below keeps the biggest gap you make and one keeps the smallest.",
+    "The gap is between the ends of two rows. Pin a setting with the biggest gap and one with the smallest; the two pins are checked together.",
     "A and B always add to 12: their row ends at the wall, and moving one end moves the other."
    ],
    "idea": "A total locked at 12 ties B to A, cuts A’s band to 7 to 9 (A = 10 would need B = 2), and makes the gap 2A − 12: from 2 to 6.",
@@ -787,7 +789,7 @@
    "hints": [
     "Drag A as far as it goes each way, and watch B.",
     "A stops at 9, because B can’t be shorter than 3. Then the gap is 9 − 3.",
-    "Make A 9 long for the biggest gap, then 7 long for the smallest."
+    "Pin A at 9 for the biggest gap, then at 7 for the smallest."
    ],
    "parent": {
     "notice": "Whether your child notices that A’s end stops before the end of its band, and why.",
@@ -805,15 +807,17 @@
     "gaps": [
      {
       "smallest": 2,
-      "biggest": 6,
-      "smallestSetting": {
-       "A": 7,
-       "B": 5
-      },
-      "biggestSetting": {
-       "A": 9,
-       "B": 3
-      }
+      "biggest": 6
+     }
+    ],
+    "pins": [
+     {
+      "A": 7,
+      "B": 5
+     },
+     {
+      "A": 9,
+      "B": 3
      }
     ]
    },

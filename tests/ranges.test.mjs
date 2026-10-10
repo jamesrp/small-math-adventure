@@ -1,5 +1,5 @@
 // Ruler strips: join and gap ranges, a locked total, breaking a claim, Can't
-// after a try with its two extreme joins, widening a band against the app's
+// after a try with its two extreme joins pinned and judged together, widening a band against the app's
 // attack, Widest and its pinning joins, gaps kept as they are made, Undo,
 // presses on contested controls, clamped drags, hints, saves and rendering.
 import test from 'node:test';
@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
 import {playView} from '../dist/ui.js';
-import {rangeMechanics, extremes, breakable, widest, attack, reach, nearestTarget, actionFor, settings} from '../dist/families/ranges/ranges.js';
+import {rangeMechanics, extremes, breakable, widest, attack, reach, nearestTarget, actionFor, settings, certificates} from '../dist/families/ranges/ranges.js';
 import {loadPack} from '../scripts/packs.mjs';
 
 const ranges = JSON.parse(await readFile(new URL('../dist/families/ranges/ranges.json', import.meta.url), 'utf8'));
@@ -57,16 +57,24 @@ test('Can’t: only after a try, refused for good when wrong, and certified by t
 
   const p = byId('ranges-04');
   let a = play(p, freshAttempt(p), set('B', 4));
-  assert.equal(a.board.kept[0].lo, null, 'nothing is kept before Can’t');
+  assert.equal(move(p, a, {type: 'pin'}), null, 'no pin before Can’t');
   a = play(p, a, {type: 'cant'});
   assert.equal(a.board.cant, 'yes');
-  assert.deepEqual(a.board.kept[0].lo, {A: 4, B: 4}, 'the shortest join, already set, is kept at Can’t');
-  assert.equal(isSolved(p, a.board), false);
-  assert.match(view(p, a), /Show the shortest and the longest join\./);
-  a = play(p, a, set('A', 5));
-  assert.equal(isSolved(p, a.board), false, '9 is neither extreme');
+  assert.equal(isSolved(p, a.board), false, 'Can’t alone is no solve');
+  assert.match(view(p, a), /Pin the shortest and the longest join\./);
+  assert.ok(!/class="rg-pin"/.test(view(p, a)), 'nothing is pinned for the child');
+  a = play(p, a, {type: 'pin'}, set('A', 5));
+  const refused = play(p, a, {type: 'pin'});
+  assert.equal(refused.board.told, 'longer', '8 and 9 are not the shortest and the longest');
+  assert.deepEqual(refused.board.pins, [], 'a refusal clears the pins');
+  assert.match(view(p, refused), /A join can be longer\./);
+  assert.equal(M.carry(p, refused.board, undo(refused).board).told, 'longer', 'Undo keeps the refusal while the strips stay put');
+  assert.equal(play(p, refused, set('B', 5)).board.told, null, 'a move clears it');
+  assert.equal(nextHint(p, play(p, freshAttempt(p), set('B', 4), set('A', 5), {type: 'cant'}, {type: 'pin'})).type, 'deadend', 'a pin that is neither extreme is a dead end');
   a = play(p, a, set('B', 5));
-  assert.ok(isSolved(p, a.board), 'the longest join, 10, completes the certificate');
+  assert.equal(isSolved(p, a.board), false, 'the longest join counts only when pinned');
+  a = play(p, a, {type: 'pin'});
+  assert.ok(isSolved(p, a.board), 'the shortest and the longest join, pinned together, certify it');
   assert.match(view(p, a), /Every join ends from 8 to 10\./);
 });
 
@@ -89,21 +97,22 @@ test('widening: the app attacks each band; Widest is checked; the strips move on
   a = play(p, freshAttempt(p), {type: 'card', strip: 'B', end: 'hi', value: 5}, {type: 'card', strip: 'B', end: 'lo', value: 4}, {type: 'widest'});
   assert.equal(a.board.claim, 'yes');
   assert.equal(move(p, a, {type: 'card', strip: 'B', end: 'lo', value: 3}), null, 'the band is fixed after Widest');
-  a = play(p, a, set('A', 4), set('B', 5));
+  a = play(p, a, {type: 'pin'}, set('A', 4), set('B', 5), {type: 'pin'});
   assert.ok(isSolved(p, a.board), '3 + 4 = 7 and 4 + 5 = 9 pin both ends');
 });
 
-test('gaps are kept as the child makes them; the same A keeps its gap; Undo keeps what was kept', () => {
+test('gaps: two pins judged together; the same A keeps its gap; a locked total moves both strips', () => {
   const p = byId('ranges-06');
-  let a = play(p, freshAttempt(p), set('A', 6));
-  assert.ok(a.board.kept[0].lo && a.board.kept[0].hi, 'the top gap, always 3, is both at once');
-  assert.equal(a.board.kept[1].hi, null, '6 + 4 − (5 + 1) = 4 is not the biggest');
-  a = play(p, a, set('B', 4));
-  assert.deepEqual(a.board.kept[1].hi, {A: 6, B: 4});
-  const back = undo(a);
-  assert.deepEqual(M.carry(p, a.board, back.board).kept[1].hi, {A: 6, B: 4}, 'Undo keeps a kept gap');
+  let a = play(p, freshAttempt(p), set('A', 6), set('B', 4), {type: 'pin'});
+  assert.equal(a.board.pins.length, 1);
+  const wrong = play(p, a, set('A', 5), {type: 'pin'});
+  assert.equal(wrong.board.told, 'smaller', 'the bottom gap can be smaller than 4');
+  assert.match(view(p, wrong), /A gap can be smaller\./);
   a = play(p, a, set('A', 4), set('B', 6));
-  assert.ok(isSolved(p, a.board));
+  assert.equal(isSolved(p, a.board), false);
+  a = play(p, a, {type: 'pin'});
+  assert.ok(isSolved(p, a.board), 'A 6 with B 4 and A 4 with B 6: the top gap is 3 both times, the bottom 5 and 1');
+  assert.equal(certificates(p.parameters, p.parameters.cards).length, 2, 'only those two settings, in either order');
 
   const p8 = byId('ranges-08');
   assert.equal(move(p8, freshAttempt(p8), set('A', 10)), null, 'A can’t be 10: B would be 2');
@@ -145,7 +154,8 @@ test('saves: forged boards are refused', () => {
   const p = byId('ranges-04'), b = freshAttempt(p).board;
   assert.equal(validBoard(p, {...b, len: {A: 6, B: 4}}), false);
   assert.equal(validBoard(p, {...b, cant: 'no', tried: true}), false, 'a refusal on a claim that holds');
-  assert.equal(validBoard(p, {...b, cant: 'yes', tried: true, kept: [{lo: {A: 5, B: 5}, hi: null}]}), false, 'the longest kept as the shortest');
+  assert.equal(validBoard(p, {...b, cant: 'yes', tried: true, pins: [{A: 5, B: 5}, {A: 5, B: 4}]}), false, 'two pins that are not the certificate');
+  assert.equal(validBoard(p, {...b, pins: [{A: 4, B: 4}]}), false, 'a pin before Can’t');
   const p5 = byId('ranges-05'), b5 = freshAttempt(p5).board;
   assert.equal(validBoard(p5, {...b5, len: {A: 3, B: 5}}), false, 'strips that are not the app’s attack');
   assert.equal(validBoard(p5, {...b5, card: [4, 9]}), false, 'a band past the ruler');
@@ -158,7 +168,7 @@ test('render: sliders with names, Can’t waits for a try, no objective where th
   assert.match(html, /role="slider" aria-label="A’s end" aria-valuemin="4" aria-valuemax="6" aria-valuenow="5"/);
   assert.match(html, /data-focus="rg-knob-B"/);
   assert.match(html, /<button[^>]*rg-button[^>]*disabled>Can’t<\/button>/, 'Can’t is off until a try');
-  assert.match(view(p, play(p, fresh, set('A', 4))), /<button[^>]*rg-button[^>]*data-focus="rg-cant" >Can’t<\/button>/);
+  assert.match(view(p, play(p, fresh, set('A', 4))), /<button[^>]*rg-button[^>]*data-focus="rg-knob-A" >Can’t<\/button>/);
   const html5 = view(byId('ranges-05'), freshAttempt(byId('ranges-05')));
   assert.match(html5, /aria-label="B’s band, left end"/);
   assert.ok(!/aria-label="A’s end"/.test(html5), 'no strip slider before Widest');

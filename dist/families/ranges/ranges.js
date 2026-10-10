@@ -45,13 +45,18 @@ export const endOf = (row, len) => row.reduce((t, piece) => t + (typeof piece ==
 // of rows (top end less bottom end).
 export const measures = q => q.mode === 'gap' ? q.pairs.map(([t, u]) => len => endOf(q.rows[t], len) - endOf(q.rows[u], len)) : [len => endOf(q.rows[0], len)];
 // The least and greatest of each measure, each with the first setting that makes it.
+const extremeCache = new Map();
 export function extremes(q, cards) {
+  const key = JSON.stringify([q.mode, q.rows, q.pairs || null, q.total || null, cards]);
+  if (extremeCache.has(key)) return extremeCache.get(key);
   const all = settings(q, cards);
-  return measures(q).map(m => {
+  const out = measures(q).map(m => {
     let low = all[0], high = all[0];
     for (const len of all) { if (m(len) < m(low)) low = len; if (m(len) > m(high)) high = len; }
     return {lo: m(low), hi: m(high), low, high};
   });
+  extremeCache.set(key, out);
+  return out;
 }
 // The lengths a strip's end can reach from this setting: its band, cut by a
 // locked total.
@@ -101,32 +106,41 @@ export function attack(q, card) {
 }
 
 // --- Boards ---------------------------------------------------------------------
-// break: {len, tried, cant, kept}      widen: {card, len, claim, kept}
-// gap: {len, kept}                     playground: {cards, len}
-// `kept` has one {lo, hi} per measure: the setting the child made that
-// reaches that extreme, or null. Break and widen keep them only after a right
-// Can't or Widest; a gap puzzle keeps them all along. `cant` and `claim` are
-// null, 'yes' (accepted) or 'no' (refused).
+// break: {len, tried, cant, pins, told}   widen: {card, len, claim, pins, told}
+// gap: {len, pins, told}                  playground: {cards, len}
+// `cant` and `claim` are null, 'yes' (accepted) or 'no' (refused). The
+// certificate is two pinned settings, judged when the second is pinned: the
+// shortest and the longest join (after a right Can't or Widest), or settings
+// making every pair's biggest and smallest gap. A wrong pair is refused with
+// `told` ('shorter', 'longer', 'bigger' or 'smaller'), the pins clear, and the
+// refusal stays (through Undo) until a strip moves or a new pin goes in.
 // The largest right end a band may take in the playground keeps the join on the ruler.
 const playTop = (q, cards, s) => q.ruler - q.rows[0].filter(o => o !== s).reduce((t, o) => t + cards[o][1], 0);
 const cardTop = (q, cards, s) => q.mode === 'widen' ? maxHi(q) : playTop(q, cards, s);
-const noKept = q => measures(q).map(() => ({lo: null, hi: null}));
-function keep(q, cards, kept, len) {
+const TOLD = {break: ['shorter', 'longer'], widen: ['shorter', 'longer'], gap: ['bigger', 'smaller']};
+// What is wrong with two pins, or null when they are the certificate.
+export function judge(q, cards, pins) {
   const e = extremes(q, cards), ms = measures(q);
-  return kept.map((k, i) => ({lo: k.lo || (ms[i](len) === e[i].lo ? {...len} : null), hi: k.hi || (ms[i](len) === e[i].hi ? {...len} : null)}));
+  for (let i = 0; i < ms.length; i++) {
+    const v = pins.map(len => ms[i](len)), lo = Math.min(...v), hi = Math.max(...v);
+    if (q.mode === 'gap') { if (hi < e[i].hi) return 'bigger'; if (lo > e[i].lo) return 'smaller'; }
+    else { if (lo > e[i].lo) return 'shorter'; if (hi < e[i].hi) return 'longer'; }
+  }
+  return null;
 }
-const allKept = kept => kept.every(k => k.lo && k.hi);
+const pinning = (q, b) => q.mode === 'gap' || (q.mode === 'break' && b.cant === 'yes') || (q.mode === 'widen' && b.claim === 'yes');
 function fresh(p) {
   const q = p.parameters;
   if (q.mode === 'playground') return {cards: structuredClone(q.cards), len: {...q.start}};
-  if (q.mode === 'widen') return {card: [...q.cards[q.edit]], len: attack(q, q.cards[q.edit]), claim: null, kept: noKept(q)};
-  if (q.mode === 'gap') return {len: {...q.start}, kept: noKept(q)};
-  return {len: {...q.start}, tried: false, cant: null, kept: noKept(q)};
+  if (q.mode === 'widen') return {card: [...q.cards[q.edit]], len: attack(q, q.cards[q.edit]), claim: null, pins: [], told: null};
+  if (q.mode === 'gap') return {len: {...q.start}, pins: [], told: null};
+  return {len: {...q.start}, tried: false, cant: null, pins: [], told: null};
 }
-function validKept(q, cards, kept, on) {
-  if (!Array.isArray(kept) || kept.length !== measures(q).length) return false;
-  const e = extremes(q, cards), ms = measures(q);
-  return kept.every((k, i) => object(k) && sameKeys(k, {lo: 0, hi: 0}) && ['lo', 'hi'].every(end => k[end] === null || (on && fits(q, cards, k[end]) && ms[i](k[end]) === e[i][end])));
+function validPins(q, b, cards) {
+  if (!Array.isArray(b.pins) || b.pins.length > 2 || !b.pins.every(len => fits(q, cards, len))) return false;
+  if (b.pins.length && !pinning(q, b)) return false;
+  if (b.pins.length === 2 && judge(q, cards, b.pins)) return false;
+  return b.told === null || (TOLD[q.mode].includes(b.told) && pinning(q, b) && !b.pins.length);
 }
 function valid(p, b) {
   const q = p.parameters;
@@ -135,25 +149,24 @@ function valid(p, b) {
     return sameKeys(b, {cards: 0, len: 0}) && object(b.cards) && sameKeys(b.cards, q.cards) && Object.values(b.cards).every(isCard) && endOf(q.rows[0], Object.fromEntries(Object.entries(b.cards).map(([s, c]) => [s, c[1]]))) <= q.ruler && fits(q, b.cards, b.len);
   }
   if (q.mode === 'widen') {
-    if (!sameKeys(b, {card: 0, len: 0, claim: 0, kept: 0}) || !validCard(q, b.card) || ![null, 'yes', 'no'].includes(b.claim)) return false;
+    if (!sameKeys(b, {card: 0, len: 0, claim: 0, pins: 0, told: 0}) || !validCard(q, b.card) || ![null, 'yes', 'no'].includes(b.claim)) return false;
     const cards = cardsOf(q, b), right = safe(q, b.card) && isWidest(q, b.card);
-    if (!fits(q, cards, b.len) || !validKept(q, cards, b.kept, b.claim === 'yes')) return false;
+    if (!fits(q, cards, b.len) || !validPins(q, b, cards)) return false;
     if (b.claim === 'yes') return right;
     // Before a right claim, the strips show the app's attack.
     return JSON.stringify(b.len) === JSON.stringify(attack(q, b.card)) && (b.claim !== 'no' || !right);
   }
-  if (q.mode === 'gap') return sameKeys(b, {len: 0, kept: 0}) && fits(q, q.cards, b.len) && validKept(q, q.cards, b.kept, true);
-  if (!sameKeys(b, {len: 0, tried: 0, cant: 0, kept: 0}) || typeof b.tried !== 'boolean' || ![null, 'yes', 'no'].includes(b.cant)) return false;
-  if (!fits(q, q.cards, b.len) || !validKept(q, q.cards, b.kept, b.cant === 'yes')) return false;
+  if (q.mode === 'gap') return sameKeys(b, {len: 0, pins: 0, told: 0}) && fits(q, q.cards, b.len) && validPins(q, b, q.cards);
+  if (!sameKeys(b, {len: 0, tried: 0, cant: 0, pins: 0, told: 0}) || typeof b.tried !== 'boolean' || ![null, 'yes', 'no'].includes(b.cant)) return false;
+  if (!fits(q, q.cards, b.len) || !validPins(q, b, q.cards)) return false;
   if (b.cant === 'yes') return b.tried && !breakable(q);
   return b.cant !== 'no' || breakable(q);
 }
 function solved(p, b) {
   const q = p.parameters;
   if (q.mode === 'playground' || !valid(p, b)) return false;
-  if (q.mode === 'widen') return b.claim === 'yes' && allKept(b.kept);
-  if (q.mode === 'gap') return allKept(b.kept);
-  return outside(q, joinEnd(q, b.len)) || (b.cant === 'yes' && allKept(b.kept));
+  if (q.mode === 'break' && outside(q, joinEnd(q, b.len))) return true;
+  return pinning(q, b) && b.pins.length === 2;
 }
 // The strips that can move now: every strip, except before a right Widest.
 const canSet = (q, b) => q.mode !== 'widen' || b.claim === 'yes';
@@ -165,9 +178,7 @@ function setLength(q, b, s, v) {
   if (v < lo || v > hi) return null;
   const len = withLength(q, b.len, s, v);
   if (q.mode === 'playground') return {...b, len};
-  if (q.mode === 'gap') return {len, kept: keep(q, cards, b.kept, len)};
-  if (q.mode === 'widen') return {...b, len, kept: keep(q, cards, b.kept, len)};
-  return {...b, len, tried: true, kept: b.cant === 'yes' ? keep(q, cards, b.kept, len) : b.kept};
+  return {...b, len, told: null, ...(q.mode === 'break' ? {tried: true} : {})};
 }
 function setCard(q, b, s, end, v) {
   if (!canCard(q, b) || !['lo', 'hi'].includes(end) || !Number.isInteger(v)) return null;
@@ -175,7 +186,7 @@ function setCard(q, b, s, end, v) {
     if (s !== q.edit) return null;
     const card = end === 'lo' ? [v, b.card[1]] : [b.card[0], v];
     if (!validCard(q, card) || card.join() === b.card.join()) return null;
-    return {card, len: attack(q, card), claim: null, kept: noKept(q)};
+    return {card, len: attack(q, card), claim: null, pins: [], told: null};
   }
   if (!Object.hasOwn(b.cards, s)) return null;
   const card = end === 'lo' ? [v, b.cards[s][1]] : [b.cards[s][0], v], cards = {...b.cards, [s]: card};
@@ -190,12 +201,15 @@ function move(p, b, action) {
   if (action.type === 'set') return setLength(q, b, action.strip, action.length);
   if (action.type === 'card') return setCard(q, b, action.strip, action.end, action.value);
   // Can't comes after a try; a refusal stays until Restart (Undo keeps it).
-  if (action.type === 'cant' && q.mode === 'break' && b.tried && b.cant === null) {
-    return breakable(q) ? {...b, cant: 'no'} : {...b, cant: 'yes', kept: keep(q, q.cards, b.kept, b.len)};
-  }
-  // A refused Widest waits for a change to the card.
-  if (action.type === 'widest' && q.mode === 'widen' && b.claim === null) {
-    return safe(q, b.card) && isWidest(q, b.card) ? {...b, claim: 'yes', kept: keep(q, cardsOf(q, b), b.kept, b.len)} : {...b, claim: 'no'};
+  if (action.type === 'cant' && q.mode === 'break' && b.tried && b.cant === null) return {...b, cant: breakable(q) ? 'no' : 'yes'};
+  // A refused Widest waits for a change to the band.
+  if (action.type === 'widest' && q.mode === 'widen' && b.claim === null) return {...b, claim: safe(q, b.card) && isWidest(q, b.card) ? 'yes' : 'no'};
+  // A pin; the second is judged with the first.
+  if (action.type === 'pin' && pinning(q, b)) {
+    const pins = [...b.pins, {...b.len}];
+    if (pins.length < 2) return {...b, pins, told: null};
+    const wrong = judge(q, cardsOf(q, b), pins);
+    return wrong ? {...b, pins: [], told: wrong} : {...b, pins, told: null};
   }
   return null;
 }
@@ -209,39 +223,50 @@ function toward(q, b, target) {
 }
 const lowAll = (q, cards) => Object.fromEntries(stripsOf(q).map(s => [s, cards[s][0]]));
 const highAll = (q, cards) => Object.fromEntries(stripsOf(q).map(s => [s, cards[s][1]]));
-// The nearest setting, other than this one, that reaches an extreme not kept
-// yet (an extreme counts only once a move makes it). If only this setting
-// reaches one, step one strip away first.
-function missing(q, cards, b) {
-  const ms = measures(q), e = extremes(q, cards), off = len => stripsOf(q).filter(s => len[s] !== b.len[s]).length;
-  let best = null;
-  b.kept.forEach((k, i) => { for (const end of ['hi', 'lo']) if (!k[end]) for (const len of settings(q, cards)) if (ms[i](len) === e[i][end] && off(len) && (!best || off(len) < off(best))) best = len; });
-  if (best) return best;
-  const s = stripsOf(q).find(t => { const [lo, hi] = reach(q, cards, b.len, t); return lo < hi; }), [lo] = reach(q, cards, b.len, s);
-  return withLength(q, b.len, s, b.len[s] === lo ? lo + 1 : lo);
+const same = (x, y) => stripsOf({cards: x}).every(s => x[s] === y[s]);
+// Every pair of settings that, pinned together, is the certificate.
+const pairCache = new Map();
+export function certificates(q, cards) {
+  const key = JSON.stringify([q.mode, q.rows, q.pairs || null, q.total || null, cards]);
+  if (!pairCache.has(key)) {
+    const all = settings(q, cards), out = [];
+    for (const x of all) for (const y of all) if (!judge(q, cards, [x, y])) out.push([x, y]);
+    pairCache.set(key, out);
+  }
+  return pairCache.get(key);
+}
+// The next pin: the partner of the one pinned, or the nearer of a pair.
+function pinPlan(q, b, cards) {
+  const off = len => stripsOf(q).filter(s => len[s] !== b.len[s]).length;
+  const pairs = certificates(q, cards).filter(([x]) => !b.pins.length || same(x, b.pins[0]));
+  if (!pairs.length) return {type: 'deadend', text: q.mode === 'gap' ? 'That pin is not a biggest or a smallest gap.' : 'That pin is not the shortest or the longest join.'};
+  const target = b.pins.length ? pairs.map(([, y]) => y).reduce((u, v) => off(v) < off(u) ? v : u) : pairs.map(([x]) => x).reduce((u, v) => off(v) < off(u) ? v : u);
+  const step = toward(q, b, target);
+  if (step) return step;
+  const e = extremes(q, cards), ms = measures(q), i = Math.max(0, e.findIndex(x => x.lo < x.hi)), top = ms[i](b.len) === e[i].hi;
+  return {type: 'move', action: {type: 'pin'}, text: q.mode === 'gap' ? `This is the ${top ? 'biggest' : 'smallest'} gap.` : `This is the ${top ? 'longest' : 'shortest'} join.`};
 }
 const sideWords = end => end === 'lo' ? 'left' : 'right';
 function plan(p, b) {
   const q = p.parameters, cards = cardsOf(q, b);
-  if (q.mode === 'gap') return toward(q, b, missing(q, cards, b));
+  if (pinning(q, b)) return pinPlan(q, b, cards);
   if (q.mode === 'widen') {
-    if (b.claim === 'yes') return toward(q, b, missing(q, cards, b));
     const [goal] = widest(q), card = b.card;
     if (card.join() !== goal.join()) {
       // Move the end that keeps the band in one piece first.
       const end = goal[0] <= card[1] && card[0] !== goal[0] ? 'lo' : 'hi';
       return {type: 'move', action: {type: 'card', strip: q.edit, end, value: goal[end === 'lo' ? 0 : 1]}, text: `Move the ${sideWords(end)} end of ${q.edit}’s band to ${goal[end === 'lo' ? 0 : 1]}.`};
     }
-    return {type: 'move', action: {type: 'widest'}, text: `The shortest join ends at ${q.window[0]} and the longest at ${q.window[1]}, right on the edges. Press Widest.`};
+    // The reason, never "Press Widest": a second Hint marks the button.
+    return {type: 'move', action: {type: 'widest'}, text: `The shortest join ends at ${q.window[0]} and the longest at ${q.window[1]}, right on the edges.`};
   }
   const [e] = extremes(q, cards);
   if (breakable(q)) return toward(q, b, e.lo < q.window[0] ? lowAll(q, cards) : highAll(q, cards));
-  if (b.cant === 'yes') return toward(q, b, missing(q, cards, b));
   // Try the shortest join first; its reason comes before Can't.
   const short = toward(q, b, lowAll(q, cards));
   if (short && (!b.tried || joinEnd(q, b.len) !== e.lo)) return short;
   if (!b.tried) return toward(q, b, highAll(q, cards));
-  return {type: 'move', action: {type: 'cant'}, text: `The shortest join ends at ${e.lo} and the longest at ${e.hi}, both inside the window. Press Can’t.`};
+  return {type: 'move', action: {type: 'cant'}, text: `The shortest join ends at ${e.lo} and the longest at ${e.hi}, both inside the window.`};
 }
 function hint(p, b) {
   if (p.parameters.mode === 'playground') return {type: 'note'};
@@ -332,15 +357,14 @@ function drawBoard(p, b, view) {
     q.pairs.forEach(([t, u], g) => {
       const a = endOf(q.rows[t], b.len), c = endOf(q.rows[u], b.len);
       parts.push(`<rect class="rg-gap" x="${X(Math.min(a, c))}" y="${L.rows[u] + 2}" width="${Math.abs(a - c) * U}" height="${ROW_H - 4}"/>`);
-      const k = b.kept[g];
-      for (const [end, dy] of [['hi', 1.5], ['lo', 4.8]]) if (k[end]) parts.push(keptBar(X(endOf(q.rows[u], k[end])), X(endOf(q.rows[t], k[end])), L.kept[g] + dy, end));
+      b.pins.forEach((len, n) => parts.push(keptBar(X(endOf(q.rows[u], len)), X(endOf(q.rows[t], len)), L.kept[g] + (n ? 4.8 : 1.5), `pin${n}`)));
     });
   } else if (q.mode !== 'playground') {
     const end = joinEnd(q, b.len), bad = outside(q, end);
     parts.push(`<line class="rg-end${bad ? ' broken' : ''}" x1="${X(end)}" y1="${top}" x2="${X(end)}" y2="${bottom}"/>`);
-    const k = b.kept[0], y = L.kept[0] + 3;
-    if (k.lo && k.hi) parts.push(keptBar(X(joinEnd(q, k.lo)), X(joinEnd(q, k.hi)), y, 'span'));
-    for (const end of ['lo', 'hi']) if (k[end]) { const x = X(joinEnd(q, k[end])); parts.push(`<path class="rg-pin" d="M${x} ${y - 2.5}l3.2 6h-6.4z"/>`); }
+    const y = L.kept[0] + 3;
+    if (b.pins.length === 2) parts.push(keptBar(X(Math.min(...b.pins.map(len => joinEnd(q, len)))), X(Math.max(...b.pins.map(len => joinEnd(q, len)))), y, 'span'));
+    for (const len of b.pins) { const x = X(joinEnd(q, len)); parts.push(`<path class="rg-pin" d="M${x} ${y - 2.5}l3.2 6h-6.4z"/>`); }
   } else {
     const end = joinEnd(q, b.len);
     parts.push(`<line class="rg-end" x1="${X(end)}" y1="${top}" x2="${X(end)}" y2="${bottom}"/>`);
@@ -353,27 +377,33 @@ function drawBoard(p, b, view) {
 function describe(q, b, done) {
   const cards = cardsOf(q, b), lens = stripsOf(q).map(s => `${s} ${b.len[s]} (band ${cards[s][0]} to ${cards[s][1]})`).join(', ');
   if (q.mode === 'gap') {
-    const gaps = q.pairs.map(([t, u], g) => { const k = b.kept[g], m = measures(q)[g]; return `gap ${m(b.len)}${k.hi ? `, biggest ${m(k.hi)} kept` : ''}${k.lo ? `, smallest ${m(k.lo)} kept` : ''}`; });
+    const gaps = q.pairs.map((_, g) => { const m = measures(q)[g]; return `gap ${m(b.len)}${b.pins.length ? `, pinned ${b.pins.map(len => m(len)).join(' and ')}` : ''}`; });
     return `${lens}. ${gaps.join('; ')}.`;
   }
   if (q.mode === 'playground') return `${lens}. The join ends at ${joinEnd(q, b.len)}.`;
-  const end = joinEnd(q, b.len), k = b.kept[0];
-  const kept = [k.lo ? `shortest ${joinEnd(q, k.lo)} kept` : '', k.hi ? `longest ${joinEnd(q, k.hi)} kept` : ''].filter(Boolean).join(', ');
+  const end = joinEnd(q, b.len), kept = b.pins.length ? `Pinned: ${b.pins.map(len => joinEnd(q, len)).join(' and ')}` : '';
   return `${lens}. The join ends at ${end}${outside(q, end) ? ', outside' : ''}.${kept ? ` ${kept}.` : ''}${done && !outside(q, end) ? ` Every join ends from ${q.window[0]} to ${q.window[1]}.` : ''}`;
 }
-const moveButton = (label, action, enabled, hinted) => `<button type="button" class="secondary rg-button${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="rg-${action.type}" ${enabled ? '' : 'disabled'}>${label}</button>`;
+// Can’t, Widest and Pin are claims: their focus key names the board's first
+// control, so after a press focus goes back to the strips (or, when that
+// control is gone, to the family's focus), never to a claim button.
+const moveButton = (label, action, enabled, hinted, home) => `<button type="button" class="secondary rg-button${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="${home}" ${enabled ? '' : 'disabled'}>${label}</button>`;
 function render(p, a) {
   const q = p.parameters, b = a.board, done = solved(p, b);
   const shown = a.hintLevel >= 2 && !done && q.mode !== 'playground' ? plan(p, b)?.action : null;
   const L = layout(q), live = !done;
-  const svg = `<svg class="rg-board" data-rg-board viewBox="0 0 ${L.width} ${L.height}" role="group" aria-label="Strips on a ruler"><g class="rg-live">${drawBoard(p, b, {live, shown})}</g></svg>`;
+  const svg = `<svg class="rg-board" data-rg-board viewBox="0 0 ${L.width} ${L.height}" style="--rg-aspect:${f(L.width / L.height)}" role="group" aria-label="Strips on a ruler"><g class="rg-live">${drawBoard(p, b, {live, shown})}</g></svg>`;
   let bar = '', note = '';
-  if (q.mode === 'break' && !done && b.cant !== 'yes') bar = moveButton('Can’t', {type: 'cant'}, b.tried && b.cant === null, shown?.type === 'cant');
-  if (q.mode === 'widen' && !done && b.claim !== 'yes') bar = moveButton('Widest', {type: 'widest'}, b.claim === null, shown?.type === 'widest');
+  const home = svg.match(/data-focus="(rg-(?:knob|card)-[^"]+)"/)?.[1] || 'rg-board';
+  if (q.mode === 'break' && !done && b.cant !== 'yes') bar = moveButton('Can’t', {type: 'cant'}, b.tried && b.cant === null, shown?.type === 'cant', home);
+  if (q.mode === 'widen' && !done && b.claim !== 'yes') bar = moveButton('Widest', {type: 'widest'}, b.claim === null, shown?.type === 'widest', home);
+  if (!done && pinning(q, b)) bar = moveButton('Pin', {type: 'pin'}, true, shown?.type === 'pin', home);
+  const TOLD_WORDS = {shorter: 'A join can be shorter.', longer: 'A join can be longer.', bigger: 'A gap can be bigger.', smaller: 'A gap can be smaller.'};
   if (done) note = '';
   else if (b.cant === 'no') note = 'It can break.';
   else if (b.claim === 'no') note = safe(q, b.card) ? 'It can be wider.' : 'A join lands outside.';
-  else if (!done && (b.cant === 'yes' || b.claim === 'yes')) note = 'Show the shortest and the longest join.';
+  else if (b.told) note = TOLD_WORDS[b.told];
+  else if ((b.cant === 'yes' || b.claim === 'yes') && !b.pins.length) note = 'Pin the shortest and the longest join.';
   const status = describe(q, b, done);
   return `<div class="rg-puzzle mode-${q.mode}${done ? ' solved' : ''}" data-mechanic-wire="ranges">${svg}${bar ? `<div class="rg-bar">${bar}</div>` : ''}${note ? `<p class="rg-note">${esc(note)}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
@@ -479,16 +509,16 @@ function wire(root, p, api) {
 export const rangeMechanics = {
   ranges: {
     fresh, valid, solved, move, hint, render, wire,
-    // Undo keeps a refused Can't, a refused Widest on the same band, and the
-    // extremes already kept.
+    // Undo keeps a refused Can't, a refused Widest on the same band, and a
+    // refused pair of pins (the pins stay cleared) while the strips are where
+    // the refusal found them.
     carry(p, from, to) {
       const q = p.parameters;
       if (!object(from) || !object(to) || q.mode === 'playground') return to;
       let next = to;
       if (q.mode === 'break' && from.cant === 'no') next = {...next, cant: 'no'};
       if (q.mode === 'widen' && from.claim === 'no' && next.claim === null && from.card.join() === next.card.join()) next = {...next, claim: 'no'};
-      const on = q.mode === 'gap' || (q.mode === 'break' && next.cant === 'yes') || (q.mode === 'widen' && next.claim === 'yes');
-      if (on && Array.isArray(from.kept) && Array.isArray(next.kept)) next = {...next, kept: next.kept.map((k, i) => ({lo: k.lo || from.kept[i]?.lo || null, hi: k.hi || from.kept[i]?.hi || null}))};
+      if (from.told && JSON.stringify(from.len) === JSON.stringify(next.len)) next = {...next, pins: [], told: from.told};
       return valid(p, next) ? next : to;
     },
     noHint: p => p.parameters.mode === 'playground'

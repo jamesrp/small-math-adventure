@@ -1,8 +1,9 @@
 // Plays Ruler strips through the real interface: dragging a strip's end, a
 // tap on its row, Undo across a drag, arrow keys and Home/End with focus kept
 // on the board, Can't off until a try, a wrong Can't kept through Undo, a
-// right Can't with its two extreme joins, widening a band by its handles
-// against the app's attack, Widest refused and accepted, gaps kept as bars,
+// right Can't with its two extreme joins pinned (a wrong pair refused, the
+// refusal kept through Undo), widening a band by its handles
+// against the app's attack, Widest refused and accepted, gaps pinned,
 // a locked total stopping a drag, contested presses where a band's ends meet
 // the strip's end in the playground, and no overflow. Same environment
 // variables as the other browser suites (PLAYWRIGHT_MODULE,
@@ -25,7 +26,9 @@ const done = () => page.locator('#completion-heading').waitFor({timeout: 5000});
 const fit = async label => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `${label}: no page overflow`);
 // The screen point of unit v in strip s's card row, at a height fraction of the row.
 const at = (s, v, frac = 0.5) => page.evaluate(([s, v, frac]) => {
-  const svg = document.querySelector('[data-rg-board]'), hit = svg.querySelector(`[data-rg-row="${s}"]`), m = svg.getScreenCTM(), pt = svg.createSVGPoint();
+  const svg = document.querySelector('[data-rg-board]'), hit = svg.querySelector(`[data-rg-row="${s}"]`);
+  hit.scrollIntoView({block: 'nearest'});
+  const m = svg.getScreenCTM(), pt = svg.createSVGPoint();
   pt.x = 7 + v * 10; pt.y = Number(hit.getAttribute('y')) + frac * Number(hit.getAttribute('height'));
   const r = pt.matrixTransform(m);
   return [r.x, r.y];
@@ -42,7 +45,9 @@ async function drag(s, from, to, frac = 0.5) {
   for (let k = 1; k <= 10; k++) await touch('touchMove', [a[0] + (b[0] - a[0]) * k / 10, a[1] + (b[1] - a[1]) * k / 10]);
   await touch('touchEnd', b);
 }
-const focused = () => page.evaluate(() => document.activeElement?.dataset?.focus || document.activeElement?.className?.baseVal || document.activeElement?.tagName);
+// The focused element's key, or BUTTON when a button has focus (claim buttons
+// carry the board's key so that focus returns to the board after a press).
+const focused = () => page.evaluate(() => { const el = document.activeElement; return el?.tagName === 'BUTTON' ? 'BUTTON' : el?.dataset?.focus || el?.className?.baseVal || el?.tagName; });
 const button = name => page.locator('.rg-button', {hasText: name});
 try {
   await mkdir(out, {recursive: true});
@@ -62,7 +67,7 @@ try {
   await button('Can’t').click();
   assert.equal((await board('ranges-01')).cant, 'no');
   assert.equal(await page.locator('.rg-note').innerText(), 'It can break.');
-  assert.notEqual(await focused(), 'rg-cant', 'focus leaves Can’t');
+  assert.match(await focused(), /rg-knob|rg-card/, 'focus leaves Can’t for the board');
   await page.locator('[data-action="undo"]').click();
   assert.equal(await button('Can’t').isDisabled(), true, 'Undo keeps the refusal');
   assert.equal((await board('ranges-01')).cant, 'no');
@@ -72,24 +77,38 @@ try {
 
   // Puzzle 4: keys, a right Can't, the two extreme joins.
   await open('ranges-04');
-  await page.locator('[data-focus="rg-knob-A"]').focus(); await page.keyboard.press('ArrowRight');
+  await page.locator('.rg-knob[data-focus="rg-knob-A"]').focus(); await page.keyboard.press('ArrowRight');
   assert.equal((await board('ranges-04')).len.A, 5, 'an arrow key moves a focused end');
   assert.equal(await focused(), 'rg-knob-A', 'focus stays on the end');
   await page.keyboard.press('Home');
-  await page.locator('[data-focus="rg-knob-B"]').focus(); await page.keyboard.press('Home');
+  await page.locator('.rg-knob[data-focus="rg-knob-B"]').focus(); await page.keyboard.press('Home');
   assert.deepEqual((await board('ranges-04')).len, {A: 4, B: 4});
   await button('Can’t').click();
-  assert.equal(await page.locator('.rg-note').innerText(), 'Show the shortest and the longest join.');
-  assert.equal(await page.locator('.rg-pin').count(), 1, 'the shortest join is pinned at the press');
-  assert.match(await focused(), /^rg-knob|rg-knob/, 'focus goes to the board, not Can’t');
-  await page.locator('[data-focus="rg-knob-A"]').focus(); await page.keyboard.press('End');
-  await page.locator('[data-focus="rg-knob-B"]').focus(); await page.keyboard.press('End');
+  assert.equal(await page.locator('.rg-note').innerText(), 'Pin the shortest and the longest join.');
+  assert.equal(await page.locator('.rg-pin').count(), 0, 'nothing is pinned or marked for the child');
+  assert.match(await focused(), /rg-knob/, 'focus goes to the board, not Can’t');
+  await button('Pin').click();
+  assert.equal(await page.locator('.rg-pin').count(), 1, 'the shortest join is pinned');
+  assert.match(await focused(), /rg-knob/, 'focus goes back to the strips after a pin');
+  await page.locator('.rg-knob[data-focus="rg-knob-A"]').focus(); await page.keyboard.press('End');
+  await button('Pin').click();
+  assert.equal(await page.locator('.rg-note').innerText(), 'A join can be longer.', 'a wrong pair of pins is refused');
+  assert.equal(await page.locator('.rg-pin').count(), 0, 'the refusal clears the pins');
+  await shot('04-refused');
+  await page.locator('[data-action="undo"]').click();
+  assert.equal(await page.locator('.rg-note').innerText(), 'A join can be longer.', 'Undo keeps the refusal');
+  assert.equal(await page.locator('.rg-pin').count(), 0, 'Undo brings no pin back');
+  await page.locator('.rg-knob[data-focus="rg-knob-A"]').focus(); await page.keyboard.press('Home');
+  await button('Pin').click();
+  await page.locator('.rg-knob[data-focus="rg-knob-A"]').focus(); await page.keyboard.press('End');
+  await page.locator('.rg-knob[data-focus="rg-knob-B"]').focus(); await page.keyboard.press('End');
+  await button('Pin').click();
   await done(); await shot('04-cant');
 
   // Puzzle 5: the band's handles, the app's attack, Widest refused and accepted.
   await open('ranges-05'); await fit('puzzle 5');
   assert.equal(await page.locator('.rg-end.broken').count(), 1, 'the app shows a join that escapes');
-  assert.equal(await page.locator('[data-focus="rg-knob-A"]').count(), 0, 'the strips are the app’s before Widest');
+  assert.equal(await page.locator('.rg-knob[data-focus="rg-knob-A"]').count(), 0, 'the strips are the app’s before Widest');
   await drag('B', 6, 5, 0.3);
   assert.deepEqual((await board('ranges-05')).card, [5, 5], 'a drag on the band’s right end');
   assert.equal(await page.locator('.rg-end.broken').count(), 0, 'nothing escapes 5 to 5');
@@ -100,31 +119,39 @@ try {
   assert.deepEqual((await board('ranges-05')).card, [4, 5], 'a tap left of the band moves its left end');
   await button('Widest').click();
   assert.equal((await board('ranges-05')).claim, 'yes');
-  await page.locator('[data-focus="rg-knob-A"]').waitFor();
+  await page.locator('.rg-knob[data-focus="rg-knob-A"]').waitFor();
   const b5 = await board('ranges-05'), other = b5.len.A === 3 ? {A: 4, B: 5} : {A: 3, B: 4};
+  await button('Pin').click();
   await tap('A', other.A); await tap('B', other.B);
+  await button('Pin').click();
   await done(); await shot('05-widest');
 
   // Puzzle 6: gaps kept as bars.
   await open('ranges-06');
-  await tap('A', 6);
-  assert.equal(await page.locator('.rg-kept').count(), 2, 'the top pair’s gap is kept at once');
-  await tap('B', 4);
-  assert.equal(await page.locator('.rg-kept').count(), 3);
+  await tap('A', 6); await tap('B', 4);
+  assert.equal(await page.locator('.rg-kept').count(), 0, 'no gap is marked before a pin');
+  await button('Pin').click();
+  assert.equal(await page.locator('.rg-kept').count(), 2, 'a pin keeps both pairs’ gaps');
+  await tap('A', 5); await button('Pin').click();
+  assert.equal(await page.locator('.rg-note').innerText(), 'A gap can be smaller.');
+  await tap('A', 6); await button('Pin').click();
   await tap('A', 4); await tap('B', 6);
+  await button('Pin').click();
   await done(); await shot('06-gaps');
 
   // Puzzle 8: a locked total stops A at 9.
   await open('ranges-08'); await fit('puzzle 8');
   await drag('A', 8, 12);
   assert.deepEqual((await board('ranges-08')).len, {A: 9, B: 3}, 'A stops at 9 and B moves with it');
+  await button('Pin').click();
   await tap('B', 5);
+  await button('Pin').click();
   await done(); await shot('08-total');
 
   // The playground: where a band's two ends meet, the press side picks; lower
   // in the row, the strip's end is nearer.
   await open('ranges-playground'); await fit('playground');
-  await page.locator('[data-focus="rg-card-A-hi"]').focus(); await page.keyboard.press('Home');
+  await page.locator('.rg-handle[data-focus="rg-card-A-hi"]').focus(); await page.keyboard.press('Home');
   assert.deepEqual((await board('ranges-playground')).cards.A, [2, 2], 'Home takes the right end down to the left end');
   assert.equal((await board('ranges-playground')).len.A, 2, 'the strip stays inside its band');
   await tap('A', 4, 0.15);

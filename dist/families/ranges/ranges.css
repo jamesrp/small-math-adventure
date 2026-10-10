@@ -4,7 +4,8 @@
    join line turning red when it lands outside; ochre gaps between two ends;
    pine pins and bars for the extremes kept; one ruler under everything. */
 .rg-puzzle{display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%}
-.rg-board{display:block;width:100%;max-width:620px;height:auto;touch-action:none;user-select:none;-webkit-user-select:none;overflow:visible}
+/* The board keeps to a little over half the screen's height, so its buttons stay in view. */
+.rg-board{display:block;width:100%;max-width:min(620px,calc(var(--rg-aspect,1) * 58vh));height:auto;touch-action:none;user-select:none;-webkit-user-select:none;overflow:visible}
 .rg-puzzle.solved .rg-board{background:var(--b-good-soft,#e2ecd6);border-radius:10px}
 .rg-grid{stroke:var(--b-line,#d0d6bd);stroke-width:.35}
 .rg-ruler{stroke:var(--b-ink,#294439);stroke-width:.8}
@@ -40,4 +41,3 @@
 .rg-puzzle .rg-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
 .rg-puzzle .rg-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
 .rg-note{margin:0;font-weight:600;color:var(--b-ink,#294439);text-align:center}
-@media (max-width:560px){.rg-board{max-width:100%}}
