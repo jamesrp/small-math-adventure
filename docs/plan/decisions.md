@@ -10,7 +10,7 @@ Whoever changes a week's state changes its row here in the same push, and the co
 
 Each wave is claimed on both work boards like any other item. The weeks a wave ports are decided by their cards, so the later waves' lists are a starting point.
 
-1. **Wave 3, cards (done for every open week).** Write the card, with its port decision, for each open week of 1–63 that has none: 5, 12, 17, 19, 20, 21, 22, 27, 28, 32, 35, 36, 37, 38, 40, 41, 48, 49, 50, 51, 54, 55, 56, 57, 58, 59 and 61. Weeks 8–11 are in the app without a card; their cards follow for the review's sake and change no decision.
+1. **Wave 3, cards (done for every open week).** Write the card, with its port decision, for each open week of 1–63 that has none: 5, 12, 17, 19, 20, 21, 22, 27, 28, 32, 35, 36, 37, 38, 40, 41, 48, 49, 50, 51, 54, 55, 56, 57, 58, 59 and 61. Weeks 8–11, already in the app, now have cards too; each keeps its family and adds touch-ups to Wave 9.
 2. **Wave 4, the portal board.** Week 41's pawn on a portal board with a live unrolled view, then Week 70's shields and Week 64's glued squares on it, and Week 75's strands on a wraparound strip with the same lift view.
 3. **Wave 5, roads and graphs.** Week 69 as a group in Meeting roads, Week 68 on an endless panning map, and the graph themes whose cards say port: 17, 27 and 40.
 4. **Wave 6, grids.** Week 15's nearest-site cells on a half-unit lattice, and the grid themes whose cards say port: 5, 32, 48 and 57.
@@ -33,7 +33,7 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 6 | Code breaking | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-06.md) | In the app | Slippery secrets in Signal Lanterns |
 | 7 | Take-away games | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-07.md) | In the app | Move menus in Pebble Duel (PR #9) |
 | 8 | Rook race and Nim | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-08.md) | In the app | Pebble Duel and its duel proofs; its card adds a rook-and-queen board group and a find-every-second-player-start group on the duel engine, folds the bundle rule away until after Duel 1, and retitles puzzles by their start, in Wave 9's touch-ups |
-| 9 | Bouncing paths | none | In the app | Mirror Couriers |
+| 9 | Bouncing paths | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-09.md) | In the app | Mirror Couriers; its card reworks it toward clicking to solve (drag the room's corner with impossible targets, every one-bounce room, send it home, tap the first crossing in the unfolded sheet), in Wave 9's touch-ups |
 | 10 | Bridges | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-10.md) | In the app | Bridge Courier; its card adds a where-can-it-start and add-a-bridge group, double bridges, and the dead-end message behind Hint, in Wave 9's touch-ups |
 | 11 | Chip firing with a sink | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-11.md) | In the app | Chip firing (PR #1); its card adds the add-one cycle and capacity puzzles and drops answer slots, in Wave 9's touch-ups |
 | 12 | Catalan bijections | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-12.md) | Open, wave 7 | Strings tapped between dots with crossings refused, every pairing collected, conversions between pairings, paths and trees, and the fewest-swaps mountain |
