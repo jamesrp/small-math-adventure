@@ -1,10 +1,12 @@
 // Plays Area traps through the real interface: splits by tapping squares and
-// by Enter, a join by its dot, Undo, a split that gains nothing, Best refused
-// and kept refused across Undo, then accepted with its savings drawn; painting
-// by taps and a finger stroke, Can't closed until the painting fits, a wrong
-// bound refused, the right bound accepted with its signs; a possible target
-// refused for good; sliding the grid by a drag, by arrow buttons and by arrow
-// keys; and the playground's shapes and Clear. Same environment variables as
+// by Enter, a join by its dot, Undo, a split that gains nothing, taps near a
+// join dot going where they are seen to land, Best refused and kept refused
+// across Undo, then accepted with its savings drawn; painting by taps and a
+// finger stroke, Can't closed until the painting fits, refused with a pause
+// on a painting that is not the closest, accepted on the closest with its
+// signs; the same pause on a target that can be met; sliding the grid by a
+// drag, by arrow buttons and by arrow keys; and the playground's shapes and
+// Clear. Same environment variables as
 // the other browser suites (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL,
 // TEST_PHONE=1 for a phone with touch). Screenshots go in
 // test-results/covers/.
@@ -24,7 +26,8 @@ const open = async id => { await page.goto(`${base}/#play/${id}`); await page.lo
 const done = () => page.locator('#completion-heading').waitFor({timeout: 5000});
 const fit = async label => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `${label}: no page overflow`);
 const center = async locator => { const b = await locator.boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
-const tap = async locator => { const [x, y] = await center(locator); if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); };
+const tapAt = async (x, y) => { if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); };
+const tap = async locator => tapAt(...await center(locator));
 const piece = k => page.locator(`.cv-board [data-sg-piece="${k}"]`);
 const cell = i => page.locator(`.cv-board [data-sg-cell="${i}"]`);
 const button = name => page.getByRole('button', {name, exact: true});
@@ -80,9 +83,24 @@ try {
   await open(P);
   await tap(piece('4,0'));
   assert.equal(await page.locator('.cv-num.cov').innerText(), '5', 'the first split gains nothing');
+  // The join dot's reach is drawn. A tap 10 px from its centre, on the
+  // bottom-right quarter, lands on the drawn dot and joins; a tap just past
+  // the drawn edge splits the quarter.
+  const reach = page.locator('.cv-board .cv-join .sg-reach'), rb = await reach.boundingBox();
+  const dot = [rb.x + rb.width / 2, rb.y + rb.height / 2], r = rb.width / 2, diag = Math.SQRT1_2;
+  assert.ok(!/^(none|transparent|rgba\(0, 0, 0, 0\))$/.test(await reach.evaluate(e => getComputedStyle(e).fill)), 'the reach is drawn');
+  assert.ok(r > 10, `the drawn dot reaches past 10 px (${r.toFixed(1)} px)`);
+  await tapAt(dot[0] + 10 * diag, dot[1] + 10 * diag);
+  assert.deepEqual((await board(P)).splits, [], 'a tap on the drawn dot joins');
+  await tap(piece('4,0'));
+  await tapAt(dot[0] + (r + 4) * diag, dot[1] + (r + 4) * diag);
+  assert.deepEqual((await board(P)).splits, ['1,0,0', '3,1,1'], 'a tap just past the drawn dot splits the quarter');
+  await page.locator('[data-action="undo"]').click();
+  assert.deepEqual((await board(P)).splits, ['1,0,0']);
   await tap(piece('4,0'));
   assert.deepEqual((await board(P)).splits, ['1,0,0', '2,0,1'], 'a tap on a quarter splits the quarter');
-  assert.equal(await page.locator('.cv-num.cov').innerText(), '4 13⁄16', 'three blank sixteenths come off the cover');
+  assert.equal(await page.locator('.cv-num.cov').evaluate(e => e.textContent), '41316', 'three blank sixteenths come off the cover');
+  assert.equal(await page.locator('.cv-num.cov .cv-frac').count(), 1, 'the sixteenths are stacked');
   await shot('plus-quarters');
 
   // Puzzle 6: Best refused, kept refused across Undo, then accepted.
@@ -104,7 +122,7 @@ try {
   assert.equal(await page.locator('.cv-ring').count(), 2, 'the two splits are ringed');
   await shot('best-solved');
 
-  // Puzzle 7: paint to fit, a wrong bound, then the right one.
+  // Puzzle 7: paint to fit, Can't too early, then on the closest painting.
   const C = 'covers-07';
   await open(C); await fit('paint');
   assert.equal(await page.locator('.puzzle-goal').innerText(), 'Match the colours with area exactly 6.');
@@ -114,30 +132,28 @@ try {
   assert.deepEqual((await board(C)).painted, [24, 25, 26, 27], 'a stroke paints the squares it crosses');
   for (const i of [30, 31, 32, 33, 14, 15, 20, 21, 2, 12, 16]) await tap(cell(i));
   assert.equal(await button('Can’t').isDisabled(), false, 'the painting fits');
+  assert.equal(await page.locator('.cv-pick').count(), 0, 'no numbers to tap');
   await shot('paint-fits');
   await button('Can’t').click();
-  assert.equal(await page.locator('.cv-pick').count(), 2, 'the bound numbers become buttons');
-  await shot('paint-pick');
-  await page.locator('.cv-pick.in').click();
-  assert.equal(await told(), 'Not that one.');
+  assert.equal(await told(), 'Get closer first.');
   assert.equal(await button('Can’t').isDisabled(), true, 'paused until the painting changes');
   assert.equal(await onBoard(), true, 'focus goes to the board, not Can’t');
+  await shot('paint-closer');
   await page.locator('[data-action="undo"]').click();
-  assert.equal((await board(C)).wrong, 'inside', 'Undo keeps the pause');
-  await tap(cell(3));
+  assert.equal((await board(C)).paused, true, 'Undo keeps the pause');
+  for (const i of [3, 8, 13, 18, 17, 22]) await tap(cell(i));
+  assert.equal(await page.locator('.cv-told').count(), 0, 'a stroke lifts the pause');
   await button('Can’t').click();
-  await page.locator('.cv-pick.cov').click();
   await done(); await fit('paint solved');
-  assert.equal(await page.locator('.cv-sign').count(), 8, 'a minus on each clear small square of a yellow square');
+  assert.equal(await page.locator('.cv-sign').count(), 3, 'a minus on the clear small square of each yellow square');
   await shot('paint-solved');
 
-  // Puzzle 3: Can't on a target that can be met is refused for good.
+  // Puzzle 3: Can't on a target that can be met gets the same pause.
   const E = 'covers-03';
   await open(E);
   for (const i of [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 4]) await tap(cell(i));
   await button('Can’t').click();
-  await page.locator('.cv-pick.cov').click();
-  assert.equal(await told(), 'It can be done.');
+  assert.equal(await told(), 'Get closer first.');
   assert.equal(await button('Can’t').isDisabled(), true);
   await tap(cell(1));
   await done();

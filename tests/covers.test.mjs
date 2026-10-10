@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
 import {playView} from '../dist/ui.js';
-import {coversMechanics, squareStatus, exact, shapeArea, boundsOf, plansOf, leafAt, fits, stopper, slideBounds, fmt, words, nodeWords, gainsOf} from '../dist/families/covers/covers.js';
+import {coversMechanics, squareStatus, exact, shapeArea, boundsOf, plansOf, leafAt, fits, stopper, cantHolds, slideBounds, fmt, words, nodeWords, gainsOf, ruler} from '../dist/families/covers/covers.js';
 import {loadPack} from '../scripts/packs.mjs';
 
 const covers = JSON.parse(await readFile(new URL('../dist/families/covers/covers.json', import.meta.url), 'utf8'));
@@ -43,6 +43,7 @@ test('squares are coloured exactly; an edge or a corner touch is not a cover', (
   assert.equal(fmt(0.375), '⅜');
   assert.equal(fmt(2.125), '2⅛');
   assert.equal(fmt(3), '3');
+  assert.match(ruler({inside: 0.375, cover: 4.8125, top: 9}), /4<span class="cv-frac"><span>13<\/span><span>16<\/span><\/span>/, 'sixteenths are stacked on the bar');
   assert.equal(words(4.375), '4 and 3 eighths');
   assert.equal(nodeWords('2,1,1'), 'the bottom-left quarter of the square in row 1, column 2');
 });
@@ -103,56 +104,60 @@ test('Best: refused until the plan is best, and the refusal survives Undo', () =
   assert.deepEqual([...gainsOf(g.parameters).values()].sort(), [0.25, 0.25, 0.25, 0.25, 0.75, 0.75, 0.75, 0.75, 1, 1, 1, 1], 'for the gap the middles win');
 });
 
-test('paint: Can’t waits for a painting that fits; the bound is the certificate; Undo keeps the claim', () => {
+test('paint: Can’t holds only on the closest painting, which is the certificate; elsewhere the same pause', () => {
   const p = byId('covers-07'), q = p.parameters;
   const fresh = freshAttempt(p);
-  assert.equal(move(p, fresh, {type: 'cant', bound: 'cover'}), null, 'nothing painted yet');
+  assert.equal(move(p, fresh, {type: 'cant'}), null, 'nothing painted yet');
   assert.match(view(p, fresh), /data-focus="cv-cant"[^>]*disabled/);
   assert.notEqual(nextHint(p, fresh).action.type, 'cant', 'the first hint paints');
-  // One small square in each yellow square, the green ones full.
+  // One small square in each yellow square, the green ones full: it fits,
+  // but it is not as close to 6 as the colours allow.
   const fit = paintAll(p, fresh, [2, 12, 14, 15, 16, 20, 21, 24, 25, 26, 27, 30, 31, 32, 33]);
   assert.ok(fits(q, fit.board.painted));
   assert.equal(stopper(q), 'cover');
-  M.ui(p, {pick: fit.board.painted.join()});
-  const picking = view(p, fit);
-  assert.match(picking, /cv-pick in before/);
-  assert.match(picking, /data-focus="cv-pick-cover"/);
-  const wrong = play(p, fit, {type: 'cant', bound: 'inside'});
-  assert.equal(isSolved(p, wrong.board), false);
-  assert.match(view(p, wrong), /Not that one\./);
-  assert.equal(move(p, wrong, {type: 'cant', bound: 'cover'}), null, 'paused until the painting changes');
-  assert.equal(undoOnce(p, wrong).board.wrong, 'inside', 'Undo does not lift the pause');
-  M.ui(p, {pick: fit.board.painted.join()}); view(p, wrong);
-  assert.doesNotMatch(view(p, fit), /cv-pick/, 'a closed choice is forgotten');
-  assert.match(nextHint(p, wrong).text, /Then Can’t works again\./);
-  const changed = play(p, wrong, {type: 'paint', squares: [3], on: true});
-  assert.equal(changed.board.wrong, null);
-  const right = play(p, changed, {type: 'cant', bound: 'cover'});
+  assert.equal(cantHolds(q, fit.board.painted), false);
+  assert.doesNotMatch(view(p, fit), /cv-pick/, 'no numbers to tap');
+  assert.equal(move(p, fit, {type: 'cant', bound: 'cover'}), null, 'no bound is asked for');
+  const early = play(p, fit, {type: 'cant'});
+  assert.deepEqual(early.board, {...fit.board, paused: true});
+  assert.match(view(p, early), /Get closer first\./);
+  assert.match(view(p, early), /data-focus="cv-cant"[^>]*disabled/, 'paused until the painting changes');
+  assert.equal(move(p, early, {type: 'cant'}), null);
+  assert.equal(undoOnce(p, early).board.paused, true, 'Undo of the claim keeps the pause');
+  assert.equal(undoOnce(p, undoOnce(p, early)).board.paused, false, 'Undo of a stroke changes the painting, which lifts it');
+  assert.doesNotMatch(nextHint(p, early).text, /Can’t/, 'the hint paints toward the closest painting first');
+  assert.match(nextHint(p, early).text, /A yellow square can have three painted and stay yellow\.$/);
+  // The closest painting: three small squares in every yellow square.
+  const close = paintAll(p, freshAttempt(p), p.solution.painted);
+  assert.equal(p.solution.area, 5.25);
+  assert.ok(cantHolds(q, close.board.painted));
+  assert.equal(nextHint(p, close).text, 'Every yellow square holds all the paint it can, and the area is still under 6. Press Can’t.');
+  const right = play(p, close, {type: 'cant'});
   assert.ok(isSolved(p, right.board));
-  const html = view(p, right);
-  assert.equal((html.match(/class="cv-sign"[^>]*>−</g) || []).length, 8, 'a minus on each clear small square of a yellow square');
-  M.reset(p);
+  assert.equal((view(p, right).match(/class="cv-sign"[^>]*>−</g) || []).length, 3, 'a minus on the clear small square of each yellow square');
+  // The pause after a refused claim is lifted by any stroke.
+  assert.equal(play(p, early, {type: 'paint', squares: [3], on: true}).board.paused, false);
 });
 
-test('paint: a target that can be met refuses Can’t for good; the right painting solves', () => {
+test('paint: on a target that can be met Can’t gets the same pause, and the right painting solves', () => {
   const p = byId('covers-03');
   let a = paintAll(p, freshAttempt(p), [0, 2, 4, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]);
   assert.ok(isSolved(p, a.board), 'one small square in each yellow square: 3¾');
   a = paintAll(p, freshAttempt(p), [0, 1, 2, 4, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]);
   assert.equal(isSolved(p, a.board), false, '4 is not less than 4');
-  const claimed = play(p, a, {type: 'cant', bound: 'inside'});
-  assert.equal(claimed.board.refused, true);
-  assert.match(view(p, claimed), /It can be done\./);
-  assert.equal(undoOnce(p, claimed).board.refused, true, 'Undo keeps the refusal');
-  assert.equal(undoOnce(p, undoOnce(p, claimed)).board.refused, true);
+  const claimed = play(p, a, {type: 'cant'});
+  assert.deepEqual(claimed.board, {...a.board, paused: true}, 'the same answer as an impossible target that is not yet close');
+  assert.match(view(p, claimed), /Get closer first\./);
+  assert.doesNotMatch(view(p, claimed), /can be done/i, 'nothing says whether the target can be met');
   assert.ok(isSolved(p, play(p, claimed, {type: 'paint', squares: [1], on: false}).board), 'the claim does not block the painting');
   // A big square painted full turns green, and its frame says it is off.
   const full = paintAll(p, freshAttempt(p), [0, 1, 6, 7]);
   assert.match(view(p, full), /cv-big part off/);
-  const e = byId('covers-12'), fit = paintAll(e, freshAttempt(e), [2, 4, 16, 18, 19, 20, 21, 22, 26, 27, 28, 29, 34, 35, 36, 37, 42, 43, 44, 45]);
-  const right = play(e, fit, {type: 'cant', bound: 'inside'});
+  const e = byId('covers-12'), fit = paintAll(e, freshAttempt(e), e.solution.painted);
+  assert.equal(e.solution.area, 5);
+  const right = play(e, fit, {type: 'cant'});
   assert.ok(isSolved(e, right.board));
-  assert.equal((view(e, right).match(/class="cv-sign"[^>]*>\+</g) || []).length, 4, 'a plus on each painted small square of a yellow square');
+  assert.equal((view(e, right).match(/class="cv-sign"[^>]*>\+</g) || []).length, 4, 'a plus on the painted small square of each yellow square');
 });
 
 test('slides: arrows wrap round a square, a drag lands anywhere, and a step can make things worse', () => {
@@ -187,8 +192,8 @@ test('hints: a wasted split is joined, paint hints fit the colours first, slides
   let a = freshAttempt(e), texts = [];
   for (let i = 0; i < 40 && !isSolved(e, a.board); i++) { const h = nextHint(e, a); texts.push(h.text); a = move(e, a, h.action); }
   assert.ok(isSolved(e, a.board));
-  assert.match(texts.at(-1), /^The green squares make 4, and each yellow square adds some paint, so the area is over 4\. Press Can’t and tap 4\.$/);
-  assert.ok(texts.slice(0, -1).every(t => /^Paint /.test(t)), 'the painting comes first');
+  assert.equal(texts.at(-1), 'Every yellow square is down to one painted small square, and the area is still over 4. Press Can’t.');
+  assert.ok(texts.slice(0, -1).every(t => /^(Paint|Clear) /.test(t) && !/Can’t/.test(t)), 'the painting comes first');
   const s = byId('covers-08');
   assert.match(nextHint(s, freshAttempt(s)).text, /^Slide the grid one step (left|up)\.$/);
 });
@@ -229,8 +234,10 @@ test('forged saves are rejected', () => {
   assert.ok(validBoard(b, {...bf, refused: 12}));
   const c = byId('covers-12'), cf = freshAttempt(c).board;
   assert.equal(validBoard(c, {...cf, done: true}), false, 'Can’t on a painting that does not fit');
-  assert.equal(validBoard(c, {...cf, refused: true}), false, 'a refusal when the target cannot be met');
-  assert.equal(validBoard(c, {...cf, wrong: 'inside'}), false, 'the right bound marked wrong');
+  assert.equal(validBoard(c, {...cf, paused: true}), false, 'a pause on a painting that does not fit');
+  assert.equal(validBoard(c, {...cf, paused: true, painted: c.solution.painted}), false, 'a pause on the closest painting');
+  assert.ok(validBoard(c, {...cf, done: true, painted: c.solution.painted}));
+  assert.equal(validBoard(c, {...cf, refused: false, wrong: null}), false, 'the old fields');
   const t = byId('covers-02');
   assert.equal(validBoard(t, {at: [0, 4]}), false);
   assert.equal(validBoard(t, {at: [0, 0], done: true}), false);
@@ -238,7 +245,6 @@ test('forged saves are rejected', () => {
 
 test('every puzzle renders its board, bar and one short objective at most', () => {
   for (const p of covers.puzzles) {
-    M.reset(p);
     const a = freshAttempt(p), html = view(p, a), mode = p.parameters.mode;
     assert.match(html, /cv-puzzle/, p.id);
     assert.match(html, /cv-ruler/, p.id);

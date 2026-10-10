@@ -14,9 +14,9 @@
 //   it removes at most its own square's uncertainty; a split can gain nothing
 //   and still open children that do.
 // - paint: paint small squares so each big square is whole, partial or
-//   outside as marked and the area meets a target, or claim Can't and tap the
-//   bound that stops it. With w whole and p partial squares the area is
-//   strictly between w and w + p.
+//   outside as marked and the area meets a target, or claim Can't from the
+//   painting that comes as close to the target as the marks allow. With w
+//   whole and p partial squares the area is strictly between w and w + p.
 // - slide: slide a grid over a fixed shape to reach target bounds. Moving the
 //   grid is not refining it, so a move can make the bounds worse.
 // Squares are classified exactly: the shape is clipped against each square
@@ -246,6 +246,17 @@ export function stopper(q) {
   if (t.op === '>') return t.value >= c ? 'cover' : null;
   return t.value <= w ? 'inside' : t.value >= c ? 'cover' : null;
 }
+// The painting that comes as close to an impossible target as the marks
+// allow: every partial square painted all but one small square (when the
+// cover stops the target) or just one (when the inside does). Can't is a
+// claim about that painting, and it is the certificate.
+export const extremeCount = stop => stop === 'cover' ? K * K - 1 : 1;
+export function cantHolds(q, painted) {
+  const stop = stopper(q);
+  if (!stop || !fits(q, painted)) return false;
+  const set = new Set(painted), want = extremeCount(stop);
+  return patternOf(q).every((m, b) => m !== 'part' || squaresOf(q, b).filter(i => set.has(i)).length === want);
+}
 // A painting that keeps the marks and meets the target, as the number of
 // small squares in each partial big square (1 to K² − 1), nearest to the
 // counts painted now. Null when there is none at this grid.
@@ -318,14 +329,14 @@ export function slideRoutes(q) {
  * Boards
  * ------------------------------------------------------------------ */
 // split (reach): {splits}; split (best): {splits, refused, done};
-// paint: {painted, refused, wrong, done}; slide: {at};
+// paint: {painted, paused, done}; slide: {at};
 // playground: {shape, splits}.
 export const playShape = (q, b) => ({...q.shapes[b.shape], goal: {kind: 'free'}});
 const splitParams = (p, b) => p.parameters.mode === 'playground' ? playShape(p.parameters, b) : p.parameters;
 function fresh(p) {
   const q = p.parameters;
   if (q.mode === 'playground') return {shape: Object.keys(q.shapes)[0], splits: []};
-  if (q.mode === 'paint') return {painted: [], refused: false, wrong: null, done: false};
+  if (q.mode === 'paint') return {painted: [], paused: false, done: false};
   if (q.mode === 'slide') return {at: [...q.start]};
   return q.goal.kind === 'best' ? {splits: [], refused: null, done: false} : {splits: []};
 }
@@ -337,12 +348,12 @@ function valid(p, b) {
   if (q.mode === 'playground') return keysAre(b, ['shape', 'splits']) && typeof b.shape === 'string' && Object.hasOwn(q.shapes, b.shape) && validSplits(playShape(q, b), b.splits);
   if (q.mode === 'slide') return keysAre(b, ['at']) && Array.isArray(b.at) && b.at.length === 2 && b.at.every(v => integer(v) && v >= 0 && v < q.steps);
   if (q.mode === 'paint') {
-    if (!keysAre(b, ['painted', 'refused', 'wrong', 'done']) || typeof b.refused !== 'boolean' || typeof b.done !== 'boolean') return false;
+    if (!keysAre(b, ['painted', 'paused', 'done']) || typeof b.paused !== 'boolean' || typeof b.done !== 'boolean') return false;
     if (!sortedSquares(b.painted, q.cols * q.rows * K * K)) return false;
-    const stop = stopper(q);
-    if (b.refused && stop) return false;
-    if (b.wrong !== null && (!['inside', 'cover'].includes(b.wrong) || !stop || b.wrong === stop)) return false;
-    if (b.done && (!stop || b.wrong !== null || !fits(q, b.painted))) return false;
+    // Can't is kept only on the closest painting; a refused Can't pauses a
+    // painting that fits, is not the closest and does not meet the target.
+    if (b.done && (b.paused || !cantHolds(q, b.painted))) return false;
+    if (b.paused && (!fits(q, b.painted) || cantHolds(q, b.painted) || meets(q.target, paintArea(b.painted)))) return false;
     return true;
   }
   if (q.goal.kind === 'best') {
@@ -400,16 +411,16 @@ function move(p, b, action) {
       for (const i of list) action.on ? set.add(i) : set.delete(i);
       const painted = [...set].sort((x, y) => x - y);
       if (painted.join() === b.painted.join()) return null;
-      // A new stroke lifts the pause after a wrong bound; a refusal stays.
-      return {...b, painted, wrong: null};
+      // A new stroke lifts the pause after a refused Can't.
+      return {...b, painted, paused: false};
     }
     if (action.type === 'cant') {
-      // Can't is a claim about a painting that fits the marks, so it waits
-      // for one.
-      if (!['inside', 'cover'].includes(action.bound) || b.refused || b.wrong !== null || !fits(q0, b.painted)) return null;
-      const stop = stopper(q0);
-      if (!stop) return {...b, refused: true};
-      return action.bound === stop ? {...b, done: true} : {...b, wrong: action.bound};
+      // Can't is a claim about the child's own painting, so it waits for one
+      // that fits the marks. It holds only on the painting as close to the
+      // target as the marks allow; any other gets the same refusal on every
+      // puzzle, which says nothing about whether the target can be met.
+      if (!keysAre(action, ['type']) || b.paused || !fits(q0, b.painted)) return null;
+      return cantHolds(q0, b.painted) ? {...b, done: true} : {...b, paused: true};
     }
     return null;
   }
@@ -465,8 +476,8 @@ export function squareWords(q, i) {
 }
 // Hints lead to a painting that fits the marks first. For a target that can
 // be met they then move the partial squares toward the nearest painting that
-// meets it; for one that can't, they give the reason and then mark Can't and
-// the bound, so Can't is never the first thing a hint asks for.
+// meets it; for one that can't, they move them toward the closest painting,
+// saying why it is the closest, and only then name Can't.
 const toggle = (q, i, on, extra = '') => ({type: 'move', action: {type: 'paint', squares: [i], on}, text: `${on ? 'Paint' : 'Clear'} ${squareWords(q, i)}.${extra}`, square: i});
 function paintHint(p, b) {
   const q = p.parameters, stop = stopper(q), marks = patternOf(q), set = new Set(b.painted), full = K * K;
@@ -478,15 +489,17 @@ function paintHint(p, b) {
     if (mark === 'part' && on.length === full) return toggle(q, on.at(-1), false);
   }
   if (stop) {
-    const {inside, cover} = patternBounds(q);
-    if (b.wrong !== null) {
-      const big = marks.findIndex(m => m === 'part'), sq = squaresOf(q, big), on = sq.filter(i => set.has(i));
-      return on.length < full - 1 ? toggle(q, sq.find(i => !set.has(i)), true, ' Then Can’t works again.') : toggle(q, on.at(-1), false, ' Then Can’t works again.');
+    const {inside, cover} = patternBounds(q), want = extremeCount(stop);
+    for (const [big, mark] of marks.entries()) {
+      if (mark !== 'part') continue;
+      const sq = squaresOf(q, big), on = sq.filter(i => set.has(i));
+      if (on.length < want) return toggle(q, sq.find(i => !set.has(i)), true, ' A yellow square can have three painted and stay yellow.');
+      if (on.length > want) return toggle(q, on.at(-1), false, ' A yellow square needs only one painted to stay yellow.');
     }
     const why = stop === 'cover'
-      ? `Each yellow square keeps a clear small square, so the area stays under ${fmt(cover)}.`
-      : `The green squares make ${fmt(inside)}, and each yellow square adds some paint, so the area is over ${fmt(inside)}.`;
-    return {type: 'move', action: {type: 'cant', bound: stop}, text: `${why} Press Can’t and tap ${fmt(stop === 'inside' ? inside : cover)}.`};
+      ? `Every yellow square holds all the paint it can, and the area is still under ${fmt(cover)}.`
+      : `Every yellow square is down to one painted small square, and the area is still over ${fmt(inside)}.`;
+    return {type: 'move', action: {type: 'cant'}, text: `${why} Press Can’t.`};
   }
   const plan = paintPlan(q, b.painted);
   for (const [big, want] of plan) {
@@ -517,16 +530,18 @@ const f = n => Number(n.toFixed(3));
 const STATUS_WORDS = {whole: 'green, all in the shape', part: 'yellow, partly in the shape', out: 'blank'};
 const shapePath = (shape, scale) => `M${shape.map(([x, y]) => `${f(x * scale)},${f(y * scale)}`).join('L')}Z`;
 const pct = (v, top) => `${f(Math.max(0, Math.min(100, v / top * 100)))}%`;
+// A number on the bar: a whole and a fraction, the fraction stacked when it
+// has no glyph of its own (sixteenths).
+const barNumber = v => {
+  const text = fmt(v), m = text.match(/^(?:(\d+) )?(\d+)⁄(\d+)$/);
+  return m ? `${m[1] || ''}<span class="cv-frac"><span>${m[2]}</span><span>${m[3]}</span></span>` : text;
+};
 // The bar: the inside in green from 0, the partial squares in yellow after
-// it, the cover where the yellow ends. `goal` draws a target over it, `pin`
-// marks a painted area, and `pick` turns the two bound numbers into buttons.
-export function ruler({inside, cover, top, goal = null, pin = null, pick = null, hinted = null}) {
-  const gap = cover - inside, label = (v, cls, side, bound) => {
-    const text = fmt(v), name = `${bound === 'inside' ? 'Inside' : 'Cover'} ${words(v)}`;
-    if (pick) return `<button type="button" class="cv-num cv-pick ${cls} ${side}${hinted === bound ? ' hinted' : ''}" style="left:${pct(v, top)}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'cant', bound}))}" data-focus="cv-pick-${bound}" aria-label="${esc(name)}">${text}</button>`;
-    return `<span class="cv-num ${cls} ${side}" style="left:${pct(v, top)}" aria-hidden="true">${text}</span>`;
-  };
-  const nums = gap > 0 ? label(inside, 'in', 'before', 'inside') + label(cover, 'cov', 'after', 'cover') : label(inside, 'in', 'mid', 'inside');
+// it, the cover where the yellow ends. `goal` draws a target over it and
+// `pin` marks a painted area.
+export function ruler({inside, cover, top, goal = null, pin = null}) {
+  const gap = cover - inside, label = (v, cls, side) => `<span class="cv-num ${cls} ${side}" style="left:${pct(v, top)}" aria-hidden="true">${barNumber(v)}</span>`;
+  const nums = gap > 0 ? label(inside, 'in', 'before') + label(cover, 'cov', 'after') : label(inside, 'in', 'mid');
   let over = '';
   if (goal?.gap !== undefined) over += `<i class="cv-bracket" style="left:${pct(inside, top)};width:${pct(goal.gap, top)}"></i>`;
   if (goal?.cover !== undefined) over += `<i class="cv-notch" style="left:${pct(goal.cover, top)}"></i>`;
@@ -535,7 +550,7 @@ export function ruler({inside, cover, top, goal = null, pin = null, pick = null,
   if (goal?.op === '>') over += `<i class="cv-zone open-left" style="left:${pct(goal.value, top)};width:${pct(top - goal.value, top)}"></i>`;
   if (goal?.op === '=') over += `<i class="cv-notch" style="left:${pct(goal.value, top)}"></i>`;
   const needle = pin === null ? '' : `<i class="cv-needle" style="left:${pct(pin, top)}"></i><span class="cv-tag" style="left:${pct(pin, top)}" aria-hidden="true">${fmt(pin)}</span>`;
-  return `<div class="cv-ruler${pin === null ? '' : ' with-pin'}${pick ? ' picking' : ''}" style="--top:${top}"><div class="cv-track" aria-hidden="true"><i class="cv-in" style="width:${pct(inside, top)}"></i><i class="cv-part" style="left:${pct(inside, top)};width:${pct(gap, top)}"></i>${over}${needle}</div><div class="cv-nums">${nums}</div></div>`;
+  return `<div class="cv-ruler${pin === null ? '' : ' with-pin'}" style="--top:${top}"><div class="cv-track" aria-hidden="true"><i class="cv-in" style="width:${pct(inside, top)}"></i><i class="cv-part" style="left:${pct(inside, top)};width:${pct(gap, top)}"></i>${over}${needle}</div><div class="cv-nums">${nums}</div></div>`;
 }
 const slots = (used, budget, hinted) => `<span class="cv-slots${hinted ? ' hinted' : ''}" role="img" aria-label="${used} of ${budget} ${budget === 1 ? 'split' : 'splits'} used">${Array.from({length: budget}, (_, k) => `<i class="${k < used ? 'on' : ''}"></i>`).join('')}</span>`;
 const claimButton = (label, action, enabled, hinted, cls = '') => `<button type="button" class="secondary cv-button ${cls}${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="cv-${action.type}" ${enabled ? '' : 'disabled'}>${label}</button>`;
@@ -638,25 +653,16 @@ function paintBoard(q, b, opts = {}) {
   });
 }
 const TARGET_WORDS = {'<': 'less than', '>': 'more than', '=': 'exactly'};
-// Can't turns the bar's two bound numbers into buttons. The choice belongs to
-// one painting: any change of the painting closes it.
-const pickState = new Map();
-const picking = (p, b) => pickState.get(p.id) === b.painted.join();
 function renderPaint(p, a) {
   const q = p.parameters, b = a.board, done = solved(p, b), pb = patternBounds(q), area = paintArea(b.painted);
   const h = a.hintLevel >= 2 && !done ? hint(p, b) : null, act = h?.action;
-  const open = !done && !b.refused && b.wrong === null && fits(q, b.painted);
-  // A choice that closes (a bound tapped, a pause, a solve) is forgotten, so
-  // repainting the same squares does not reopen the numbers.
-  if (!open) pickState.delete(p.id);
-  const pick = open && picking(p, b);
+  const open = !done && !b.paused && fits(q, b.painted);
   const argue = b.done ? stopper(q) : null;
   const board = paintBoard(q, b, {active: !done, hinted: act?.type === 'paint' ? act.squares[0] : null, done, argue});
-  const cant = done ? '' : `<div class="cv-bar"><button type="button" class="secondary cv-button cv-claim${act?.type === 'cant' && !pick ? ' hinted' : ''}" data-action="mechanic-ui" data-ui="${esc(JSON.stringify({pick: pick ? null : b.painted.join()}))}" data-focus="cv-cant" aria-pressed="${pick}" ${open ? '' : 'disabled'}>Can’t</button></div>`;
-  const told = b.refused ? 'It can be done.' : b.wrong !== null ? 'Not that one.' : '';
-  const goal = {op: q.target.op, value: q.target.value};
-  const bar = ruler({...pb, top: q.cols * q.rows, goal, pin: area, pick: pick ? true : null, hinted: pick && act?.type === 'cant' ? act.bound : null});
-  const words2 = `Area ${words(area)}. Inside ${words(pb.inside)}, cover ${words(pb.cover)}. Target: ${TARGET_WORDS[q.target.op]} ${words(q.target.value)}.${told ? ` ${told}` : ''}${pick ? ' Tap a number on the bar.' : ''}`;
+  const cant = done ? '' : `<div class="cv-bar">${claimButton('Can’t', {type: 'cant'}, open, act?.type === 'cant', 'cv-claim')}</div>`;
+  const told = b.paused ? 'Get closer first.' : '';
+  const bar = ruler({...pb, top: q.cols * q.rows, goal: {op: q.target.op, value: q.target.value}, pin: area});
+  const words2 = `Area ${words(area)}. Inside ${words(pb.inside)}, cover ${words(pb.cover)}. Target: ${TARGET_WORDS[q.target.op]} ${words(q.target.value)}.${told ? ` ${told}` : ''}`;
   return `<div class="cv-puzzle${done ? ' solved' : ''}" data-mechanic-wire="covers">${cant}<div class="cv-stage">${board}</div>${bar}${said(told)}${status(words2)}</div>`;
 }
 
@@ -768,14 +774,12 @@ const help = p => {
 export const coversMechanics = {
   covers: {
     fresh, valid, solved, move, hint, render, wire, help,
-    ui(p, payload) { if (object(payload) && (payload.pick === null || typeof payload.pick === 'string')) pickState.set(p.id, payload.pick); },
-    reset: p => { pickState.delete(p.id); },
-    // Undo takes back moves, not a claim: a refused Best keeps its value, a
-    // refused Can't stays refused, and a wrong bound stays until a new stroke.
+    // Undo takes back moves, not a claim: a refused Best keeps its value, and
+    // a refused Can't keeps its pause while the painting is the same.
     carry(p, from, to) {
       const q = p.parameters;
       if (!object(from) || !object(to)) return to;
-      if (q.mode === 'paint') return {...to, refused: from.refused || to.refused, wrong: from.wrong};
+      if (q.mode === 'paint') return {...to, paused: to.paused || (from.paused === true && from.painted?.join() === to.painted.join())};
       if (q.mode === 'split' && q.goal.kind === 'best') return {...to, refused: from.refused, done: false};
       return to;
     },

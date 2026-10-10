@@ -32,6 +32,11 @@
 .cv-split .sg-piece.cv-leaf.part{fill:var(--cv-part)}
 .cv-split .sg-piece.cv-leaf.out{fill:var(--cv-out)}
 .cv-split .sg-point.cv-join .sg-pip{fill:var(--b-ink,#294439);stroke:var(--b-card,#fffdf5);stroke-width:1.2px;vector-effect:non-scaling-stroke}
+/* The join dot's whole reach is drawn, so a tap that lands on it is seen to
+   land on the dot, not on the quarter under it. */
+.cv-split .sg-point.cv-join .sg-reach{fill:rgba(255,253,245,.72);stroke:var(--b-ink,#294439);stroke-width:1.3px;vector-effect:non-scaling-stroke}
+.cv-split .sg-point.cv-join:focus-visible .sg-reach{stroke:var(--b-ochre,#b38840);stroke-width:2.5px;stroke-dasharray:4 3}
+.cv-split .sg-point.cv-join.hinted .sg-reach{fill:rgba(239,199,110,.75);stroke:var(--b-ochre,#b38840);stroke-width:2.5px;stroke-dasharray:4 3}
 .cv-split.d1 .sg-point.cv-join .sg-reach{r:4.4px}
 .cv-split.d1 .sg-point.cv-join .sg-pip{r:1.7px}
 .cv-split.d2 .sg-point.cv-join .sg-reach{r:5.5px}
@@ -96,11 +101,9 @@
 .cv-num.before{transform:translateX(-100%);padding-right:3px}
 .cv-num.after{padding-left:3px}
 .cv-num.mid{transform:translateX(-50%)}
-.cv-ruler.picking .cv-nums{height:54px}
-.cv-puzzle .cv-pick{top:4px;min-height:44px;min-width:44px;padding:4px 10px;background:var(--b-card,#fffdf5);border:2px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer}
-.cv-puzzle .cv-pick.before{transform:translateX(calc(-100% - 3px));padding-right:10px}
-.cv-puzzle .cv-pick.after{transform:translateX(3px)}
-.cv-puzzle .cv-pick.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+/* A fraction with no glyph of its own (sixteenths), stacked. */
+.cv-frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin-left:2px;font-size:.62em;line-height:1.05}
+.cv-frac span:first-child{border-bottom:1.2px solid currentColor;padding:0 1px}
 
 /* The colour key in How to play. */
 .cv-key{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem .5rem}

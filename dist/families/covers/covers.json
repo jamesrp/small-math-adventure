@@ -452,14 +452,14 @@
      "value": 4
     }
    },
-   "objective": "Paint small squares so every big square matches its colour and the area is less than 4, or press Can’t and tap the number that stops it.",
+   "objective": "Paint small squares so every big square matches its colour and the area is less than 4, or paint as close as the colours allow and press Can’t.",
    "visibleObjective": "Match the colours with area less than 4.",
-   "instruction": "Paint small squares so every big square matches its colour and the area is less than 4, or press Can’t and tap the number that stops it.",
-   "controls": "Tap a small square to paint it or clear it, or slide across several. Press Can’t, then tap a number on the bar. Undo takes back the last move.",
+   "instruction": "Paint small squares so every big square matches its colour and the area is less than 4, or paint as close as the colours allow and press Can’t.",
+   "controls": "Tap a small square to paint it or clear it, or slide across several. Press Can’t when your painting shows the target cannot be met. Undo takes back the last move.",
    "rules": [
     "Each small square has area ¼. The painted small squares are the shape.",
     "Each big square must end as its colour says: green all painted, yellow partly painted, blank none painted.",
-    "Can’t works once your painting matches the colours. Press it when no painting that matches can meet the target, then tap the number on the bar that stops it."
+    "If no painting that matches the colours can meet the target, show it: paint as close to the target as the colours allow, then press Can’t."
    ],
    "idea": "The colours bound the area strictly: more than the green squares, less than the green and yellow ones.",
    "prerequisites": "Count small squares as quarters and compare an area with a target. A grown-up can read the target.",
@@ -886,27 +886,27 @@
      "value": 6
     }
    },
-   "objective": "Paint small squares so every big square matches its colour and the area is exactly 6, or press Can’t and tap the number that stops it.",
+   "objective": "Paint small squares so every big square matches its colour and the area is exactly 6, or paint as close as the colours allow and press Can’t.",
    "visibleObjective": "Match the colours with area exactly 6.",
-   "instruction": "Paint small squares so every big square matches its colour and the area is exactly 6, or press Can’t and tap the number that stops it.",
-   "controls": "Tap a small square to paint it or clear it, or slide across several. Press Can’t, then tap a number on the bar. Undo takes back the last move.",
+   "instruction": "Paint small squares so every big square matches its colour and the area is exactly 6, or paint as close as the colours allow and press Can’t.",
+   "controls": "Tap a small square to paint it or clear it, or slide across several. Press Can’t when your painting shows the target cannot be met. Undo takes back the last move.",
    "rules": [
     "Each small square has area ¼. The painted small squares are the shape.",
     "Each big square must end as its colour says: green all painted, yellow partly painted, blank none painted.",
-    "Can’t works once your painting matches the colours. Press it when no painting that matches can meet the target, then tap the number on the bar that stops it."
+    "If no painting that matches the colours can meet the target, show it: paint as close to the target as the colours allow, then press Can’t."
    ],
    "idea": "With partial squares, the area is always less than the cover.",
    "prerequisites": "Count small squares as quarters and compare an area with a target. A grown-up can read the target.",
    "hints": [
     "Match the colours first, then look at the area on the bar.",
     "What happens to a yellow square when you paint all of it?",
-    "Each yellow square keeps a clear small square, so the area stays under 6. Press Can’t and tap 6."
+    "Paint each yellow square as full as it can be and stay yellow. The area is still under 6, so press Can’t."
    ],
    "parent": {
     "notice": "Whether your child paints a yellow square fully, sees its mark go wrong, and works out why 6 never comes.",
     "prompt": "What happens to a yellow square when you paint all of it?",
-    "explanation": "The green squares make 3. Each yellow square must keep at least one clear small square, so it adds less than 1; three of them add less than 3. The area is less than 6, at most 5¼ with these small squares. Exactly 6 would need every yellow square fully painted, and then they would be green. After a right Can’t, a minus marks each clear small square of a yellow square in the child’s own painting.",
-    "extension": "What is the largest area that fits these colours? (5¼ here; with smaller squares, as close to 6 as you like.)",
+    "explanation": "The green squares make 3. Each yellow square must keep at least one clear small square, so it adds less than 1; three of them add less than 3. The area is less than 6, at most 5¼ with these small squares. Exactly 6 would need every yellow square fully painted, and then they would be green. Can’t holds only on that fullest painting, three small squares in every yellow square; any other painting gets “Get closer first.” After it, a minus marks the clear small square left in each yellow square.",
+    "extension": "With smaller squares, could the area reach 6? (No: however fine the paint, each yellow square leaves some of itself clear. It can come as close to 6 as you like.)",
     "connection": "The cover is a strict upper bound whenever some square is partial: a partial square holds some of the shape and misses some.",
     "sourceIds": [
      "covers-week48",
@@ -916,7 +916,31 @@
    },
    "solution": {
     "cant": "cover",
-    "bound": 6
+    "bound": 6,
+    "painted": [
+     2,
+     3,
+     8,
+     12,
+     13,
+     14,
+     15,
+     16,
+     17,
+     18,
+     20,
+     21,
+     22,
+     24,
+     25,
+     26,
+     27,
+     30,
+     31,
+     32,
+     33
+    ],
+    "area": 5.25
    },
    "provenance": "Week 48, K–1 Problem 6 (keep the whole and partial squares and make the larger shape bigger) and Grades 2–3 Problem 6 (could the area be greater than 8? decide what the markings guarantee), asked of 3 whole and 3 partial squares."
   },
@@ -1281,14 +1305,14 @@
      "value": 7
     }
    },
-   "objective": "Paint small squares so every big square matches its colour and the area is exactly 7, or press Can’t and tap the number that stops it.",
+   "objective": "Paint small squares so every big square matches its colour and the area is exactly 7, or paint as close as the colours allow and press Can’t.",
    "visibleObjective": "Match the colours with area exactly 7.",
-   "instruction": "Paint small squares so every big square matches its colour and the area is exactly 7, or press Can’t and tap the number that stops it.",
-   "controls": "Tap a small square to paint it or clear it, or slide across several. Press Can’t, then tap a number on the bar. Undo takes back the last move.",
+   "instruction": "Paint small squares so every big square matches its colour and the area is exactly 7, or paint as close as the colours allow and press Can’t.",
+   "controls": "Tap a small square to paint it or clear it, or slide across several. Press Can’t when your painting shows the target cannot be met. Undo takes back the last move.",
    "rules": [
     "Each small square has area ¼. The painted small squares are the shape.",
     "Each big square must end as its colour says: green all painted, yellow partly painted, blank none painted.",
-    "Can’t works once your painting matches the colours. Press it when no painting that matches can meet the target, then tap the number on the bar that stops it."
+    "If no painting that matches the colours can meet the target, show it: paint as close to the target as the colours allow, then press Can’t."
    ],
    "idea": "Each partial square adds more than nothing and less than a whole: here as much as it can, ¾ each.",
    "prerequisites": "Count small squares as quarters and compare an area with a target. A grown-up can read the target.",
@@ -1368,27 +1392,27 @@
      "value": 4
     }
    },
-   "objective": "Paint small squares so every big square matches its colour and the area is exactly 4, or press Can’t and tap the number that stops it.",
+   "objective": "Paint small squares so every big square matches its colour and the area is exactly 4, or paint as close as the colours allow and press Can’t.",
    "visibleObjective": "Match the colours with area exactly 4.",
-   "instruction": "Paint small squares so every big square matches its colour and the area is exactly 4, or press Can’t and tap the number that stops it.",
-   "controls": "Tap a small square to paint it or clear it, or slide across several. Press Can’t, then tap a number on the bar. Undo takes back the last move.",
+   "instruction": "Paint small squares so every big square matches its colour and the area is exactly 4, or paint as close as the colours allow and press Can’t.",
+   "controls": "Tap a small square to paint it or clear it, or slide across several. Press Can’t when your painting shows the target cannot be met. Undo takes back the last move.",
    "rules": [
     "Each small square has area ¼. The painted small squares are the shape.",
     "Each big square must end as its colour says: green all painted, yellow partly painted, blank none painted.",
-    "Can’t works once your painting matches the colours. Press it when no painting that matches can meet the target, then tap the number on the bar that stops it."
+    "If no painting that matches the colours can meet the target, show it: paint as close to the target as the colours allow, then press Can’t."
    ],
    "idea": "With partial squares, the area is always more than the inside.",
    "prerequisites": "Count small squares as quarters and compare an area with a target. A grown-up can read the target.",
    "hints": [
     "Match the colours first, then look at the area on the bar.",
     "To stay yellow, a square needs at least one painted small square.",
-    "The green squares make 4 and each yellow square adds some more, so the area is over 4. Press Can’t and tap 4."
+    "Clear each yellow square down to one painted small square. The area is still over 4, so press Can’t."
    ],
    "parent": {
     "notice": "Whether your child clears the yellow squares to bring the area down, and sees them turn blank.",
     "prompt": "How small can a yellow square’s paint be?",
-    "explanation": "The four green squares make 4, and each yellow square needs at least one painted small square, so the area is more than 4: at least 5 with these small squares. Exactly 4 would leave the yellow squares clear, and then they would be blank. After a right Can’t, a plus marks each painted small square of a yellow square in the child’s own painting.",
-    "extension": "What is the smallest area that fits these colours? (5 here; with smaller squares, as close to 4 as you like.)",
+    "explanation": "The four green squares make 4, and each yellow square needs at least one painted small square, so the area is more than 4: at least 5 with these small squares. Exactly 4 would leave the yellow squares clear, and then they would be blank. Can’t holds only on that emptiest painting, one small square in every yellow square; any other painting gets “Get closer first.” After it, a plus marks the painted small square in each yellow square.",
+    "extension": "With smaller squares, could the area come down to 4? (No: each yellow square holds some paint, however little. It can come as close to 4 as you like.)",
     "connection": "The inside is a strict lower bound whenever some square is partial.",
     "sourceIds": [
      "covers-week48",
@@ -1398,7 +1422,30 @@
    },
    "solution": {
     "cant": "inside",
-    "bound": 4
+    "bound": 4,
+    "painted": [
+     2,
+     4,
+     16,
+     18,
+     19,
+     20,
+     21,
+     22,
+     26,
+     27,
+     28,
+     29,
+     34,
+     35,
+     36,
+     37,
+     42,
+     43,
+     44,
+     45
+    ],
+    "area": 5
    },
    "provenance": "Week 48, Grades 2–3 Problem 6: could the area be smaller than 4 big squares? Decide what the square markings guarantee."
   }

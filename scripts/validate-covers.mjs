@@ -7,8 +7,10 @@
 // largest); every painting count for the paint targets; every grid position
 // and the fewest slides for the slide puzzles, with a first step that makes
 // things worse; pieces too thin to see; witnesses played as moves; hint
-// chains from fresh, after a wasted move and after wrong claims; Can't only
-// after a painting that fits; illegal moves; forged saves; the playground.
+// chains from fresh, after a wasted move and after refused claims; Can't
+// tried on every painting that fits, holding only on the closest painting to
+// an impossible target and refused alike everywhere else; illegal moves;
+// forged saves; the playground.
 // Run: node scripts/validate-covers.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
@@ -184,7 +186,7 @@ export async function validateCovers() {
   for (const level of ['easy', 'medium', 'hard']) assert.ok(puzzles.some(p => p.difficulty_level === level), `a ${level} puzzle`);
   for (const mode of ['split', 'paint', 'slide']) assert.ok(puzzles.some(p => p.parameters.mode === mode), `a ${mode} puzzle`);
 
-  const stats = {plansSearched: 0, squaresChecked: 0, thinnestPx: Infinity, hintSteps: 0};
+  const stats = {plansSearched: 0, squaresChecked: 0, thinnestPx: Infinity, hintSteps: 0, cantTried: 0};
   for (const p of pack.puzzles) {
     assert.equal(p.mechanic, 'covers');
     assert.ok(p.id.startsWith('covers-'));
@@ -205,10 +207,10 @@ export async function validateCovers() {
     assert.equal(q.mode, row.mode, `${p.id}: kind`);
     assert.ok(!new RegExp(`\\b${String(row.answer).replace('.', '\\.')}\\b`).test(p.title), `${p.id}: the title does not name the answer`);
     if (q.mode === 'split') stats.hintSteps += checkSplit(p, fresh, row, stats);
-    else if (q.mode === 'paint') stats.hintSteps += checkPaint(p, fresh, row);
+    else if (q.mode === 'paint') stats.hintSteps += checkPaint(p, fresh, row, stats);
     else stats.hintSteps += checkSlide(p, fresh, row, stats);
   }
-  return {coversPuzzles: puzzles.length, plansSearched: stats.plansSearched, partialSquaresCheckedForSlivers: stats.squaresChecked, thinnestPiecePx: Number(stats.thinnestPx.toFixed(1)), hintSteps: stats.hintSteps};
+  return {coversPuzzles: puzzles.length, plansSearched: stats.plansSearched, partialSquaresCheckedForSlivers: stats.squaresChecked, thinnestPiecePx: Number(stats.thinnestPx.toFixed(1)), cantTriedOnFittingPaintings: stats.cantTried, hintSteps: stats.hintSteps};
 }
 
 function sliversOk(label, q, stats) {
@@ -319,7 +321,7 @@ function checkSplit(p, fresh, row, stats) {
   return steps;
 }
 
-function checkPaint(p, fresh, row) {
+function checkPaint(p, fresh, row, stats) {
   const q = p.parameters, K = 2, w = q.cols * K;
   const marks = q.pattern.flatMap(r => [...r]), W = marks.filter(m => m === 'W').length, P = marks.filter(m => m === 'P').length;
   assert.deepEqual([W, W + P], row.bounds, `${p.id}: the marks’ bounds`);
@@ -339,33 +341,54 @@ function checkPaint(p, fresh, row) {
   let steps = 0;
   const fitting = (counts = marks.filter(m => m === 'P').map(() => 1)) => { let k = 0; return marks.flatMap((m, big) => m === 'W' ? smalls(big) : m === 'P' ? smalls(big).slice(0, counts[k++]) : []).sort((x, y) => x - y); };
   const paintAll = (a, list) => list.reduce((b, i) => play(p, b, {type: 'paint', squares: [i], on: true}), a);
+  // Can't on every painting that fits, by the small squares painted in each
+  // partial square. It holds only on the painting as close to an impossible
+  // target as the marks allow (every partial square at 3, or every one at 1);
+  // on every other painting, and on every painting of a possible target that
+  // does not already solve it, it gets the same pause, so the answer says
+  // nothing about whether the target can be met.
+  const sum = c => W + c.reduce((t, n) => t + n, 0) / (K * K);
+  const closest = row.answer === 'cover' ? vectors.filter(c => c.every(n => n === K * K - 1)) : row.answer === 'inside' ? vectors.filter(c => c.every(n => n === 1)) : [];
+  let tried = 0;
+  for (const c of vectors) {
+    const a = paintAll(fresh, fitting(c));
+    if (isSolved(p, a.board)) { assert.ok(meets(sum(c)), `${p.id}: only a painting that meets the target solves by itself`); continue; }
+    refuse(p, a, {type: 'cant', bound: 'cover'}, 'Can’t that names a bound (none is asked for)');
+    const claimed = play(p, a, {type: 'cant'});
+    tried++;
+    if (closest.includes(c)) { assert.ok(isSolved(p, claimed.board), `${p.id}: Can’t holds on the closest painting`); continue; }
+    assert.deepEqual(claimed.board, {...a.board, paused: true}, `${p.id}: Can’t on ${c} is paused, nothing else`);
+    refuse(p, claimed, {type: 'cant'}, 'Can’t again before the painting changes');
+    assert.equal(validBoard(p, claimed.board), true);
+  }
+  stats.cantTried += tried;
   if (row.answer === 'possible') {
     assert.deepEqual(hits, row.counts, `${p.id}: the paintings that meet the target`);
+    assert.equal(closest.length, 0);
     assert.ok(fitsAll(p.solution.painted) && meets(p.solution.painted.length / (K * K)), `${p.id}: the witness fits and meets the target`);
     const a = paintAll(fresh, p.solution.painted);
     assert.ok(isSolved(p, a.board), `${p.id}: the witness solves`);
-    // A painting that fits but misses: Can't is refused for good.
-    const miss = vectors.find(c => !meets(W + c.reduce((s, n) => s + n, 0) / (K * K)));
-    const near = paintAll(fresh, fitting(miss));
-    assert.ok(!isSolved(p, near.board));
-    const claimed = play(p, near, {type: 'cant', bound: 'cover'});
-    assert.equal(claimed.board.refused, true, `${p.id}: Can’t is refused when a painting can meet the target`);
-    refuse(p, claimed, {type: 'cant', bound: 'inside'}, 'Can’t again after a refusal');
-    steps += hintsSolve(p, claimed, 'after a refused Can’t');
+    const miss = vectors.find(c => !meets(sum(c)));
+    const near = play(p, paintAll(fresh, fitting(miss)), {type: 'cant'});
+    steps += hintsSolve(p, near, 'after a refused Can’t');
   } else {
     assert.equal(hits.length, 0, `${p.id}: no painting meets the target`);
+    assert.equal(closest.length, 1, `${p.id}: one closest painting`);
     const bound = row.answer === 'inside' ? W : W + P;
     assert.equal(q.target.value, bound, `${p.id}: the target sits on the ${row.answer}`);
-    assert.deepEqual(p.solution, {cant: row.answer, bound}, `${p.id}: the solution names the bound`);
-    refuse(p, fresh, {type: 'cant', bound: row.answer}, 'Can’t before a painting that fits');
-    assert.notEqual(nextHint(p, fresh).action.type, 'cant', `${p.id}: the first hint is not Can’t`);
-    const fit = paintAll(fresh, fitting());
-    const wrong = play(p, fit, {type: 'cant', bound: row.answer === 'inside' ? 'cover' : 'inside'});
-    assert.equal(isSolved(p, wrong.board), false, `${p.id}: the wrong bound is refused`);
-    refuse(p, wrong, {type: 'cant', bound: row.answer}, 'Can’t again before the painting changes');
-    steps += hintsSolve(p, wrong, 'after the wrong bound');
-    const right = play(p, fit, {type: 'cant', bound: row.answer});
-    assert.ok(isSolved(p, right.board), `${p.id}: Can’t with the right bound solves`);
+    assert.deepEqual(p.solution, {cant: row.answer, bound, painted: fitting(closest[0]), area: sum(closest[0])}, `${p.id}: the solution is the closest painting`);
+    refuse(p, fresh, {type: 'cant'}, 'Can’t before a painting that fits');
+    // The hints reach the closest painting before they name Can't.
+    let a = fresh, named = 0;
+    for (let k = 0; k < 100 && !isSolved(p, a.board); k++) {
+      const h = nextHint(p, a);
+      if (h.action.type === 'cant') { named++; assert.ok(fitsAll(a.board.painted) && a.board.painted.join() === fitting(closest[0]).join(), `${p.id}: Can’t is named only on the closest painting`); assert.match(h.text, /still (under|over) .* Press Can’t\.$/); }
+      else assert.doesNotMatch(h.text, /Can’t/, `${p.id}: a painting hint does not name Can’t`);
+      a = play(p, a, h.action);
+    }
+    assert.equal(named, 1, `${p.id}: Can’t is named once, last`);
+    const off = vectors.find(c => !closest.includes(c));
+    steps += hintsSolve(p, play(p, paintAll(fresh, fitting(off)), {type: 'cant'}), 'after a refused Can’t');
   }
   steps += hintsSolve(p, fresh, 'from fresh');
   // A wasted stroke across the blank squares: the hints clear it and finish.
@@ -374,12 +397,14 @@ function checkPaint(p, fresh, row) {
   steps += hintsSolve(p, messy, 'after painting blank squares');
   // Illegal moves.
   const n = q.cols * q.rows * K * K;
-  for (const [action, why] of [[null, 'nothing'], [{type: 'paint', squares: [], on: true}, 'an empty stroke'], [{type: 'paint', squares: [n], on: true}, 'a square off the board'], [{type: 'paint', squares: [0, 0], on: true}, 'a square twice'], [{type: 'paint', squares: [0], on: 'yes'}, 'paint that is not on or off'], [{type: 'paint', squares: [0], on: false}, 'clearing a clear square'], [{type: 'cant', bound: 'middle'}, 'an unknown bound'], [{type: 'split', node: '0,0,0'}, 'a split'], [{type: 'fly'}, 'an unknown move']]) refuse(p, fresh, action, why);
+  for (const [action, why] of [[null, 'nothing'], [{type: 'paint', squares: [], on: true}, 'an empty stroke'], [{type: 'paint', squares: [n], on: true}, 'a square off the board'], [{type: 'paint', squares: [0, 0], on: true}, 'a square twice'], [{type: 'paint', squares: [0], on: 'yes'}, 'paint that is not on or off'], [{type: 'paint', squares: [0], on: false}, 'clearing a clear square'], [{type: 'split', node: '0,0,0'}, 'a split'], [{type: 'fly'}, 'an unknown move']]) refuse(p, fresh, action, why);
   // Forged saves.
   const B = fresh.board;
-  const forged = [[{...B, painted: [n]}, 'a square off the board'], [{...B, painted: [2, 1]}, 'squares out of order'], [{...B, refused: 'no'}, 'a refusal that is not true or false'], [{...B, done: true}, 'Can’t kept on a painting that does not fit'], [{...B, extra: 1}, 'an unknown field'], [{painted: []}, 'missing fields']];
-  if (row.answer === 'possible') forged.push([{...B, refused: false, done: true, painted: fitting()}, 'Can’t kept when the target can be met'], [{...B, wrong: 'cover'}, 'a wrong bound when Can’t is wrong anyway']);
-  else forged.push([{...B, refused: true}, 'a refusal when the target cannot be met'], [{...B, wrong: row.answer}, 'the right bound marked wrong'], [{...B, done: true, painted: fitting(), wrong: row.answer === 'inside' ? 'cover' : 'inside'}, 'done with a wrong bound']);
+  const forged = [[{...B, painted: [n]}, 'a square off the board'], [{...B, painted: [2, 1]}, 'squares out of order'], [{...B, paused: 'no'}, 'a pause that is not true or false'], [{...B, done: true}, 'Can’t kept on a painting that does not fit'], [{...B, paused: true}, 'a pause on a painting that does not fit'], [{...B, extra: 1}, 'an unknown field'], [{painted: []}, 'missing fields'], [{...B, refused: false, wrong: null}, 'the old fields']];
+  const other = vectors.find(c => !closest.includes(c) && !meets(sum(c)));
+  forged.push([{...B, done: true, painted: fitting(other)}, 'Can’t kept on a painting that is not the closest']);
+  if (row.answer === 'possible') forged.push([{...B, paused: true, painted: p.solution.painted}, 'a pause on a painting that meets the target']);
+  else forged.push([{...B, paused: true, painted: fitting(closest[0])}, 'a pause on the closest painting'], [{...B, paused: true, done: true, painted: fitting(closest[0])}, 'done and paused']);
   for (const [board, why] of forged) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
   return steps;
 }

@@ -5,7 +5,7 @@
 // dist/families/covers/covers.json. Run: node scripts/build-covers.mjs
 import {writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import {boundsOf, plansOf, treeOf, childrenOf, shapeArea, stopper, patternBounds, paintPlan, squaresOf, patternOf, slideBounds, slideRoutes, fmt, K} from '../dist/families/covers/covers.js';
+import {boundsOf, plansOf, treeOf, childrenOf, shapeArea, stopper, patternBounds, paintPlan, squaresOf, patternOf, slideBounds, slideRoutes, fmt, K, extremeCount, cantHolds} from '../dist/families/covers/covers.js';
 
 // Shapes, x across and y down, in big-square units.
 const SHAPES = {
@@ -29,14 +29,14 @@ const RULES = {
   paint: [
     'Each small square has area ¼. The painted small squares are the shape.',
     'Each big square must end as its colour says: green all painted, yellow partly painted, blank none painted.',
-    'Can’t works once your painting matches the colours. Press it when no painting that matches can meet the target, then tap the number on the bar that stops it.'
+    'If no painting that matches the colours can meet the target, show it: paint as close to the target as the colours allow, then press Can’t.'
   ],
   slide: [COLOURS, BOUNDS, 'The shape stays still. The grid slides a quarter of a square at a time.']
 };
 const CONTROLS = {
   split: 'Tap a square to split it. Tap the dot in a split square to join its quarters again. The slots show how many splits you may use. Undo takes back the last move.',
   best: 'Tap a square to split it. Tap the dot in a split square to join its quarters again. The slots show how many splits you may use. Press Best when you are sure. Undo takes back the last move.',
-  paint: 'Tap a small square to paint it or clear it, or slide across several. Press Can’t, then tap a number on the bar. Undo takes back the last move.',
+  paint: 'Tap a small square to paint it or clear it, or slide across several. Press Can’t when your painting shows the target cannot be met. Undo takes back the last move.',
   slide: 'Drag the grid, or use the arrow buttons or arrow keys, to slide it. Undo takes back the last move.',
   playground: 'Choose a shape. Tap a square to split it and tap the dot in a split square to join it again. Clear joins every square.'
 };
@@ -89,10 +89,10 @@ const PUZZLES = [
     parent: {notice: 'Whether your child compares splits by what they take off the cover, or splits the squares with the most shape in them.', prompt: 'Which squares are mostly empty?', explanation: 'A split takes ¼ off the cover for each quarter that turns blank. A corner square holds only a small tip of the hexagon, so three of its quarters turn blank: ¾ off. A middle square of the top or bottom row loses its empty half: ½ off. A side square loses nothing. So two splits take at most ¾ + ¾ off: cover 14½, from any two corners. After a right Best, each yellow square shows what its split takes off.', extension: 'Puzzle 9 asks for the smallest gap with three splits. Do the same squares win? (No: the middles of the top and bottom rows do.)', connection: 'Each split can take off at most its own square’s share, so the best plan picks the squares with the most to lose.'},
     provenance: 'Week 48, K–1 Problem 2 (split two big tiles to remove the most small tiles from the cover), with a hexagon in place of the worksheet’s trapezoid, whose bottom corners hold slivers too thin to see (review card fix 13). The bounds are the worksheet’s: 4 and 16, then a cover of 14½.'},
   {level: 'medium', title: 'Exactly six', kind: 'paint', pattern: ['OPO', 'PWP', 'WWO'], target: {op: '=', value: 6},
-    check: {stop: 'cover', bounds: [3, 6]},
+    check: {stop: 'cover', bounds: [3, 6], area: 5.25},
     idea: 'With partial squares, the area is always less than the cover.',
-    hints: ['Match the colours first, then look at the area on the bar.', 'What happens to a yellow square when you paint all of it?', 'Each yellow square keeps a clear small square, so the area stays under 6. Press Can’t and tap 6.'],
-    parent: {notice: 'Whether your child paints a yellow square fully, sees its mark go wrong, and works out why 6 never comes.', prompt: 'What happens to a yellow square when you paint all of it?', explanation: 'The green squares make 3. Each yellow square must keep at least one clear small square, so it adds less than 1; three of them add less than 3. The area is less than 6, at most 5¼ with these small squares. Exactly 6 would need every yellow square fully painted, and then they would be green. After a right Can’t, a minus marks each clear small square of a yellow square in the child’s own painting.', extension: 'What is the largest area that fits these colours? (5¼ here; with smaller squares, as close to 6 as you like.)', connection: 'The cover is a strict upper bound whenever some square is partial: a partial square holds some of the shape and misses some.'},
+    hints: ['Match the colours first, then look at the area on the bar.', 'What happens to a yellow square when you paint all of it?', 'Paint each yellow square as full as it can be and stay yellow. The area is still under 6, so press Can’t.'],
+    parent: {notice: 'Whether your child paints a yellow square fully, sees its mark go wrong, and works out why 6 never comes.', prompt: 'What happens to a yellow square when you paint all of it?', explanation: 'The green squares make 3. Each yellow square must keep at least one clear small square, so it adds less than 1; three of them add less than 3. The area is less than 6, at most 5¼ with these small squares. Exactly 6 would need every yellow square fully painted, and then they would be green. Can’t holds only on that fullest painting, three small squares in every yellow square; any other painting gets “Get closer first.” After it, a minus marks the clear small square left in each yellow square.', extension: 'With smaller squares, could the area reach 6? (No: however fine the paint, each yellow square leaves some of itself clear. It can come as close to 6 as you like.)', connection: 'The cover is a strict upper bound whenever some square is partial: a partial square holds some of the shape and misses some.'},
     provenance: 'Week 48, K–1 Problem 6 (keep the whole and partial squares and make the larger shape bigger) and Grades 2–3 Problem 6 (could the area be greater than 8? decide what the markings guarantee), asked of 3 whole and 3 partial squares.'},
   {level: 'medium', title: 'The diamond', kind: 'slide', slide: 'diamond', start: [3, 3], goal: {inside: 5}, visible: 'Make the inside 5.',
     check: {start: [4, 12], end: [[1, 1]], ends: [5, 13], route: 4, worse: 'inside'},
@@ -119,10 +119,10 @@ const PUZZLES = [
     parent: {notice: 'Whether your child decides 7 is too close to the cover of 8.', prompt: 'How much can a yellow square add and stay yellow?', explanation: 'The four green squares make 4. Each yellow square can add up to ¾ while keeping a clear small square, and four of them add up to 3: exactly 7, with three small squares painted in every yellow square. One fewer anywhere gives 6¾.', extension: 'Is 7½ possible with these colours? (Not with these small squares, which come in quarters; with smaller ones, yes: anything between 4 and 8.)', connection: 'Every area strictly between the inside and the cover is possible: the bounds are the only constraint the marks make.'},
     provenance: 'Week 48, Grades 2–3 Problem 5: a shape with exactly 4 whole and 4 partly gray squares and an area greater than 7, asked here as exactly 7.'},
   {level: 'hard', title: 'Exactly four', kind: 'paint', pattern: ['OPPO', 'PWWP', 'OWWO'], target: {op: '=', value: 4},
-    check: {stop: 'inside', bounds: [4, 8]},
+    check: {stop: 'inside', bounds: [4, 8], area: 5},
     idea: 'With partial squares, the area is always more than the inside.',
-    hints: ['Match the colours first, then look at the area on the bar.', 'To stay yellow, a square needs at least one painted small square.', 'The green squares make 4 and each yellow square adds some more, so the area is over 4. Press Can’t and tap 4.'],
-    parent: {notice: 'Whether your child clears the yellow squares to bring the area down, and sees them turn blank.', prompt: 'How small can a yellow square’s paint be?', explanation: 'The four green squares make 4, and each yellow square needs at least one painted small square, so the area is more than 4: at least 5 with these small squares. Exactly 4 would leave the yellow squares clear, and then they would be blank. After a right Can’t, a plus marks each painted small square of a yellow square in the child’s own painting.', extension: 'What is the smallest area that fits these colours? (5 here; with smaller squares, as close to 4 as you like.)', connection: 'The inside is a strict lower bound whenever some square is partial.'},
+    hints: ['Match the colours first, then look at the area on the bar.', 'To stay yellow, a square needs at least one painted small square.', 'Clear each yellow square down to one painted small square. The area is still over 4, so press Can’t.'],
+    parent: {notice: 'Whether your child clears the yellow squares to bring the area down, and sees them turn blank.', prompt: 'How small can a yellow square’s paint be?', explanation: 'The four green squares make 4, and each yellow square needs at least one painted small square, so the area is more than 4: at least 5 with these small squares. Exactly 4 would leave the yellow squares clear, and then they would be blank. Can’t holds only on that emptiest painting, one small square in every yellow square; any other painting gets “Get closer first.” After it, a plus marks the painted small square in each yellow square.', extension: 'With smaller squares, could the area come down to 4? (No: each yellow square holds some paint, however little. It can come as close to 4 as you like.)', connection: 'The inside is a strict lower bound whenever some square is partial.'},
     provenance: 'Week 48, Grades 2–3 Problem 6: could the area be smaller than 4 big squares? Decide what the square markings guarantee.'}
 ];
 
@@ -171,7 +171,12 @@ const out = PUZZLES.map((item, k) => {
     assert.equal(stop, item.check.stop, `${pid}: possible or which bound stops it`);
     if (stop) {
       assert.ok(item.target.value === (stop === 'inside' ? pb.inside : pb.cover), `${pid}: an impossible target sits on a bound, so no grid resolution misleads`);
-      solution = {cant: stop, bound: stop === 'inside' ? pb.inside : pb.cover};
+      // The certificate: the painting as close to the target as the marks
+      // allow, on which Can't holds.
+      const painted = patternOf(q).flatMap((m, big) => m === 'whole' ? squaresOf(q, big) : m === 'part' ? squaresOf(q, big).slice(0, extremeCount(stop)) : []).sort((x, y) => x - y);
+      assert.ok(cantHolds(q, painted), `${pid}: Can’t holds on the closest painting`);
+      eq(painted.length / (K * K), item.check.area, `${pid}: the closest painting’s area`);
+      solution = {cant: stop, bound: stop === 'inside' ? pb.inside : pb.cover, painted, area: painted.length / (K * K)};
     } else {
       const plan = paintPlan(q, []), marks = patternOf(q), painted = [];
       marks.forEach((m, big) => { const sq = squaresOf(q, big); if (m === 'whole') painted.push(...sq); if (m === 'part') painted.push(...sq.slice(0, plan.get(big))); });
@@ -179,7 +184,7 @@ const out = PUZZLES.map((item, k) => {
       eq(painted.length / (K * K), item.check.area, `${pid}: the witness’s area`);
       solution = {painted, area: painted.length / (K * K)};
     }
-    objective = `Paint small squares so every big square matches its colour and the area is ${TARGET[item.target.op]} ${fmt(item.target.value)}, or press Can’t and tap the number that stops it.`;
+    objective = `Paint small squares so every big square matches its colour and the area is ${TARGET[item.target.op]} ${fmt(item.target.value)}, or paint as close as the colours allow and press Can’t.`;
     visible = `Match the colours with area ${TARGET[item.target.op]} ${fmt(item.target.value)}.`;
   } else {
     const s = SLIDES[item.slide];
