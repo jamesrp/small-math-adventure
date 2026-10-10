@@ -23,7 +23,9 @@ All 28 stage stills are finished and stay as they are. Each change slot's still 
 
 ## Making them
 
-Do one stop at a time, its four loops and three changes together so they match. Start with Turtle Ferry, which every child sees, and look at it in the game before moving on. Then the map loops (`map/wide`, `map/tall`: the landmarks under the stop buttons must not move) and `finale/fair`.
+Do one stop at a time, its four loops and three changes together so they match. Start with Glowworm Marsh and look at it in the game before moving on.
+
+Since October 10 the Turtle Ferry's three puzzles and the marsh boardwalks are played inside a stage ([batch 3](03-stage-boards.md)) instead of under their scene. So the game no longer shows `scene/ferry/0`–`2`, the ferry's three changes, `scene/marsh/0` or `scene/marsh/0-1`; `scene/ferry/3` still shows above Snooze's bath, the side puzzle. Leave those for last, or skip them. Then the map loops (`map/wide`, `map/tall`: the landmarks under the stop buttons must not move) and `finale/fair`.
 
 `node scripts/prepare-art.mjs loop|once <clip> <slot>`, then record each clip in `artwork/road4/prompts.json` with its first and end frames. Originals stay out of the repository, as in batch 1.
 

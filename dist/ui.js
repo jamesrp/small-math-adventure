@@ -1,5 +1,6 @@
 import { visiblePuzzleObjective } from './puzzle-copy.js';
 import { encounterScene, encounterDone } from './road-ui.js';
+import { stageKind, stageBoard, stageControls } from './road-stage.js';
 import { PARTY_NAMES } from './road-cast.js';
 import { companionDrawing } from './caravan-art.js';
 import { media, slots } from './art.js';
@@ -25,9 +26,9 @@ function puzzleView(p,a,ctx){
     ${a.completed&&!solved?'<span class="solved-indicator">✓ Solved</span>':''}<div class="play-help">${btn('How to play','demo','quiet')}${btn('<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M11 4 6 8H3v8h3l5 4V4Z"/><path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></svg>','speak','quiet small','aria-label="Read instructions aloud"')}</div>
   </div>
   <div class="play-layout ${expansion?'expansion-layout':''} ${solved?'is-complete':''}">
-    <section class="board-panel ${expansion?'expansion-board':''} ${esc(p.mechanic)}" aria-label="Puzzle play area">
+    <section class="board-panel ${expansion?'expansion-board':''} ${ctx.stage?'stage-controls':''} ${esc(p.mechanic)}" aria-label="${ctx.stage?'Puzzle controls':'Puzzle play area'}">
       ${objective?`<h1 class="puzzle-goal">${esc(objective)}</h1>`:`<h1 class="sr-only">${esc(p.familyTitle||(p.mechanic==='swap'?'Cup swaps':'Puzzle'))}</h1>`}
-      ${expansion?mechanicFor(p).render(p,a,ctx):p.mechanic==='tile'?tileBoard(p,a,ctx):ctx.encounter?.party?partyBoard(p,a,ctx):swapBoard(p,a,ctx)}
+      ${ctx.stage?stageControls(ctx.stage,p,a,ctx):expansion?mechanicFor(p).render(p,a,ctx):p.mechanic==='tile'?tileBoard(p,a,ctx):ctx.encounter?.party?partyBoard(p,a,ctx):swapBoard(p,a,ctx)}
       ${p.mechanic==='tile'?`<div class="board-bottom"><label class="checker-toggle"><input type="checkbox" id="checker" ${ctx.checker?'checked':''}> Checker colors</label></div>`:''}
     </section>
     ${solved&&ctx.encounter?'':`<aside class="play-sidebar">${solved?completionCard(p,a,ctx):`<div class="tool-grid">${btn('↶ Undo','undo','secondary',a.history.length&&!(expansion&&mechanicFor(p).noUndo?.(p))?'':'disabled')}${btn('Restart','restart','secondary')}${expansion&&mechanicFor(p).noHint?.(p)?'':btn('Hint','hint','hint-button')}</div>${a.hintLevel?(expansion?expansionHintCard(a,hint,p):hintCard(p,a,hint,ctx)):''}`}</aside>`}
@@ -81,8 +82,10 @@ function expansionMap(pr,puzzles){
 }
 // Campaign scenes wrap the original validators and controls without changing their rules.
 // A solving ring holds the keeper's win line and the stars until its last bell.
+// Staged road puzzles (dist/road-stage.js) are played in the scene's picture.
 export function playView(p,a,ctx){
  const e=ctx.encounter?.stop&&ctx.profile?ctx.encounter:null,solved=isSolved(p,a.board),presentation=ctx.clockPresentation;
- ctx={...ctx,ringing:Boolean(presentation&&presentation.count<presentation.total)};
- return `<div data-puzzle-id="${esc(p.id)}" class="caravan-puzzle ${e?`lr-play mood-${esc(e.stop)}`:''} ${e&&solved&&!ctx.ringing?'lr-solved':''}" aria-label="${esc(p.familyTitle||(p.mechanic==='tile'?'Tile garden':'Cup swaps'))}">${e?encounterScene(e,ctx.profile,p,a,{reaction:ctx.reaction,changed:ctx.changed,held:ctx.ringing}):''}<div class="puzzle-workspace">${puzzleView(p,a,ctx)}</div></div>`;
+ ctx={...ctx,ringing:Boolean(presentation&&presentation.count<presentation.total),stage:e?stageKind(e,p):null};
+ const board=ctx.stage?sceneStage=>stageBoard(ctx.stage,p,a,{...ctx,sceneStage}):null;
+ return `<div data-puzzle-id="${esc(p.id)}" class="caravan-puzzle ${e?`lr-play mood-${esc(e.stop)}`:''} ${ctx.stage?'is-staged':''} ${e&&solved&&!ctx.ringing?'lr-solved':''}" aria-label="${esc(p.familyTitle||(p.mechanic==='tile'?'Tile garden':'Cup swaps'))}">${e?encounterScene(e,ctx.profile,p,a,{reaction:ctx.reaction,changed:ctx.changed,held:ctx.ringing,board}):''}<div class="puzzle-workspace">${puzzleView(p,a,ctx)}</div></div>`;
 }

@@ -27,7 +27,7 @@ try{
  await goto('toggle-01');assert.equal(await page.locator('.motion-controls').count(),0);await page.locator('.wire-hit').first().focus();await page.keyboard.press('Enter');await page.locator('#completion-heading').waitFor();
  await page.getByRole('button',{name:'Replay',exact:true}).click();await clickMove({edge:0});await page.locator('#completion-heading').waitFor();
  await page.getByRole('button',{name:'Replay',exact:true}).click();await page.locator('.wire-hit').first().focus();await page.keyboard.press('Space');await page.locator('#completion-heading').waitFor();
- await goto('clock-01');await page.locator('[name=activations]').fill('3');await page.locator('form[data-puzzle-form] button[type=submit]').click();await page.locator('#completion-heading').waitFor();
+ await goto('clock-01');assert.equal(await page.locator('input[type=number][name=activations]').count(),0,'the bell count is tapped, not typed');await page.locator('.bell-number',{hasText:/^3$/}).click();assert.equal(await page.locator('[name=activations][value="3"]').isChecked(),true);await page.locator('form[data-puzzle-form] button[type=submit]').click();await page.locator('#completion-heading').waitFor();
  await goto('billiard-01');assert.equal(await page.locator('.billiard-path').count(),0);await page.locator('[name=corner]').selectOption('top-left');await page.locator('[name=bounces]').fill('1');await page.locator('form[data-puzzle-form] button[type=submit]').click();await page.locator('#completion-heading').waitFor();
  await goto('route-01');for(const vertex of ['E','A','B','C','D','A'])await clickMove({vertex});await page.locator('#completion-heading').waitFor();
  await goto('latin-01');for(const [cell,value]of [[1,2],[2,2],[3,1]]){await page.locator(`.latin-cell[data-cell="${cell}"]`).click();await page.getByRole('button',{name:`Mark ${value}`,exact:true}).click();}await page.locator('#completion-heading').waitFor();
@@ -47,7 +47,7 @@ try{
  await goto('weigh-01');await clickMove({type:'place',coin:'A',pan:'left'});await clickMove({type:'place',coin:'B',pan:'right'});await clickMove({type:'weigh'});const balanceResult=(await state()).profiles[0].attempts['weigh-01'].board.observations[0].result;await page.locator(`input[name=coin][value="${balanceResult==='L'?'A':balanceResult==='R'?'B':'C'}"]`).check({force:true});await page.locator('form[data-puzzle-form] button[type=submit]').click();await page.locator('#completion-heading').waitFor();
  console.log('Direct controls passed for all ten families.');
  await goto('clock-01');assert.equal(await page.locator('#completion-heading').count(),0);await page.locator('.solved-indicator').waitFor();
- await page.setViewportSize({width:390,height:480});await page.locator('[name=activations]').fill('3');
+ await page.setViewportSize({width:390,height:480});await page.locator('[name=activations][value="3"]').check();
  const scroll=await page.evaluate(async()=>{window.scrollTo(0,100);const before=scrollY;document.querySelector('form[data-puzzle-form]').requestSubmit();await new Promise(requestAnimationFrame);return {before,after:scrollY,focused:document.activeElement.id};});
  assert.equal(scroll.after,scroll.before,'animated completion keeps the viewport in place');assert.equal(scroll.focused,'completion-heading');
  await page.setViewportSize({width:390,height:844});

@@ -18,7 +18,7 @@ A handoff for whoever makes the art (Dot/Codex, with James’s ChatGPT image and
 4. Run `node scripts/check-art.mjs` (shape, size, codec, duration), `npm run build` (offline cache list), `npm test` and `node scripts/road-browser-smoke.mjs`.
 5. Look at it in the app (`npm start`, open `http://127.0.0.1:4187`), on a phone-sized window and on the iPad.
 
-`node scripts/check-art.mjs --list` prints all 90 slots with their sizes. `artwork/road4/reference/` has a PNG of every placeholder at the slot’s shape. Use those as composition guides (what is where, what changes between stages), not as style references.
+`node scripts/check-art.mjs --list` prints all 95 slots with their sizes. `artwork/road4/reference/` has a PNG of every placeholder at the slot’s shape. Use those as composition guides (what is where, what changes between stages), not as style references.
 
 The version-3 scenes of the ferry, marsh, ridge, workshop and lighthouse are in `artwork/road/v3/`. They can be a starting point for those places, but they use a dusky, muted palette. The new look below is brighter.
 
@@ -84,15 +84,20 @@ Files go in `dist/art/` at the slot’s path: `scene/ferry/0` becomes `dist/art/
 | Keepers | `keeper/<id>/idle`, `talk` | 512×512 | loop 3–6 s |
 | Keeper reactions | `keeper/<id>/happy`, `oops` | 512×512 | one-shot 1.5–3 s that ends on the idle pose |
 | Finale | `finale/fair` | 1800×780 | loop 8–10 s |
+| Stages | `stage/ferry/asleep`, `stage/ferry/awake`, `stage/marsh/night` | 1600×900 | optional loop, nothing moving where pieces go |
+| Stage pieces | `stage/ferry/bell`, `stage/marsh/hops` | 256×256, transparent | — |
 
 Stops are `ferry, marsh, ridge, hollow, workshop, lighthouse, fair`. Keepers are `snooze, hops, billie, rattle, sprocket, wick, plume`.
 
 **How the game uses them.** The scene shows the stop’s stage: the number of its three puzzles solved on this trail. Solving a puzzle plays the change clip, which then hands over to the next stage’s loop. The keeper portrait loops `idle` or `talk`. After a mistake it plays `oops`, and on a solve it plays `happy`, then returns to idle. Plume’s small card uses Plume’s poses: `happy` when Plume wins, `oops` when you beat or tie him. Reduced-motion settings show stills only.
 
+A **stage** replaces the scene for the four puzzles played inside the picture: the Turtle Ferry's seats, bell and lamps, and the marsh boardwalks. The game draws the puzzle's pieces (seats, travelers, bell wheels, lamps, boardwalks, Hops) on the stage at fixed spots, so a stage is the place and nothing else. Snooze's bath and Glowworm Marsh's lilies keep their scenes. [Batch 3](batches/03-stage-boards.md) has the layout.
+
 ### Safe areas
 
 - **Scenes**: the speech bubble sits under the picture, not on it. Only two things cover a scene: the keeper’s round portrait, which overlaps the **bottom-left corner** (about 10% × 15%), and Plume’s card in the **top-right corner** (about 30% × 18%). The travelers can stand anywhere along the bottom middle. On tablets in landscape the picture can lose a little top and bottom. On phones it is cropped to the **middle 80% of its width** and the portrait covers a little more of the bottom-left, so keep the main subject in the middle.
-- **Map**: each stop’s landmark sits under its red mark in `reference/map_wide.png` / `map_tall.png` (wide: Turtle Ferry 9%,70% · Glowworm Marsh 24%,38% · Windy Ridge 39%,66% · Spooky Hollow 53%,30% · Old Workshop 66%,70% · Stormy Lighthouse 80%,34% · The Lantern Fair 92%,64%). The stop name pill sits just below each point. A road links the stops in order. Leave the **top-right corner** of the wide map clear for the Continue button.
+- **Map**: each stop’s landmark sits under its red mark in `reference/map_wide.png` / `map_tall.png` (wide: Turtle Ferry 9%,70% · Glowworm Marsh 24%,38% · Windy Ridge 39%,66% · Spooky Hollow 53%,30% · Old Workshop 66%,70% · Stormy Lighthouse 80%,34% · The Lantern Fair 92%,64%). The map shows no place names: each stop is a tappable region around its landmark (`MAP_REGIONS` in `dist/road-placeholders.js`), and the next stop's region glows. A road links the stops in order, and the travelers' wagon waits on it at `MAP_WAGON`. The star total and the tools sit in the **top-right corner** of the wide map.
+- **Stages**: the red outlines in `reference/stage_ferry_asleep.png` and `stage_marsh_night.png` mark where the game draws pieces; keep them plain. Plume's card covers the **top-left** corner, the keeper's portrait the bottom-left. Phones show x 200–1400 of the 1600, and the bell puzzle shows the bow, x 700–1600.
 - **Keepers**: head and shoulders centered, filling about 80% of the square, on a plain background in the keeper’s stop colors. The game crops it to a circle.
 
 ### Stop briefs
@@ -196,7 +201,7 @@ Example video prompt:
 
 ## Order of work
 
-Steps 0–4's stills were all made on October 3 (`artwork/road4/NOTES.md`): every one of the 90 slots has a finished still. What is left is motion, one batch at a time, each with its own brief:
+Steps 0–4's stills were all made on October 3 (`artwork/road4/NOTES.md`): every one of the 90 slots then in the catalog has a finished still. What is left is motion, one batch at a time, each with its own brief:
 
 0. Reference sheets: the six travelers, six keepers and Plume. Done.
 1. Keeper portraits: `idle` and `talk` stills for all seven. Done.
@@ -204,6 +209,7 @@ Steps 0–4's stills were all made on October 3 (`artwork/road4/NOTES.md`): ever
 3. Map (wide and tall), wagons, tools, travelers, finale. Done.
 4. Keeper reactions: `happy` and `oops` stills (done), then clips: [batch 1](batches/01-keeper-reactions.md).
 5. Scene loops and change clips, then map and finale loops: [batch 2](batches/02-scene-motion.md).
+6. Stages for the ferry and the marsh, where four puzzles are now played in the picture: [batch 3](batches/03-stage-boards.md). Five new slots, placeholders until then.
 
 Keeper `idle` and `talk` loops wait until Claude settles how `talk` behaves (batch 1 explains why). Region and family icons, the lantern tree, and scenes and keepers for a second road come later, each with a brief from Claude.
 

@@ -70,7 +70,8 @@ export function encounterLine(e, p, attempt, reaction, held = false) {
   if (e.side && p.missingAbility) return { text: e.lines.locked, pose: 'talk', voice: `${e.id}/locked` };
   return { text: e.lines.open, pose: attempt.moves ? 'idle' : 'talk', voice: `${e.id}/open` };
 }
-export function encounterScene(e, profile, p, attempt, { reaction = null, changed = false, held = false } = {}) {
+// `board` draws a staged puzzle (dist/road-stage.js) in place of the scene picture.
+export function encounterScene(e, profile, p, attempt, { reaction = null, changed = false, held = false, board = null } = {}) {
   const stop = stopOf(e.stop), trail = trailFor(profile, p.band), cast = CAST[e.speaker];
   const solved = isSolved(p, attempt.board) && !held, done = stop.encounters.filter(x => trail.completed.includes(x.id) && !(held && x.id === e.id)).length;
   // The scene shows the stop's state; a just-solved main puzzle plays the change.
@@ -80,8 +81,8 @@ export function encounterScene(e, profile, p, attempt, { reaction = null, change
   const rival = rivalScore(e, p), unit = SCORE_UNITS[p.mechanic];
   const verdict = solved ? rivalVerdict(e, p, attempt) : null;
   const plumeCard = rival === null ? '' : `<div class="lr-rival ${verdict ? `is-${verdict.result}` : ''}" role="group" aria-label="Plume’s score: ${plural(rival, unit)}">${keeperPortrait('plume', verdict ? (verdict.result === 'lose' ? 'happy' : 'oops') : 'idle', 'rival')}<div><strong>${esc(plural(rival, unit))}</strong>${verdict ? `<span>${esc(pick(CAST.plume[verdict.result], verdict.mine + verdict.rival))}</span>` : ''}</div></div>`;
-  return `<section class="lr-scene mood-${stop.id}" data-stop="${stop.id}" data-stage="${stage}" aria-label="${esc(stop.title)}">
-    ${media(sceneSlot, sceneArt(stop.id, stage), { key: 'scene', cls: 'lr-scene-art', then: sceneSlot !== slots.scene(stop.id, stage) ? slots.scene(stop.id, stage) : null, loop: sceneSlot === slots.scene(stop.id, stage) })}
+  return `<section class="lr-scene mood-${stop.id} ${board ? 'is-staged' : ''}" data-stop="${stop.id}" data-stage="${stage}" aria-label="${esc(stop.title)}">
+    ${board ? board(stage) : media(sceneSlot, sceneArt(stop.id, stage), { key: 'scene', cls: 'lr-scene-art', then: sceneSlot !== slots.scene(stop.id, stage) ? slots.scene(stop.id, stage) : null, loop: sceneSlot === slots.scene(stop.id, stage) })}
     <div class="lr-keeper">${keeperPortrait(e.speaker, said.pose, 'keeper', reaction?.n ?? '')}<p class="lr-bubble" role="status" aria-live="polite" data-keep="bubble"><span class="lr-speaker">${esc(cast.name)}</span> ${esc(said.text)} <button type="button" class="lr-listen" data-action="hear-story" data-text="${esc(said.text)}" data-voice="voice/${esc(said.voice)}" aria-label="Listen to ${esc(cast.name)}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M11 4 6 8H3v8h3l5 4V4Z"/><path d="M15 8a6 6 0 0 1 0 8"/></svg></button></p></div>
     ${plumeCard}
   </section>`;

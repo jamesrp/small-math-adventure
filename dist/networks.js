@@ -113,7 +113,9 @@ function hintColor(p,b){
   return {type:'move',action:{vertex:p.parameters.vertices[i],color:0},text:`Clear ${p.parameters.vertices[i]} to open up another possibility. Some earlier colors need to change.`};
 }
 const marks=['●','▲','■','◆'];
-function positions(p){
+// Where each junction or lantern sits, in percent of the board (the marsh stage
+// in dist/road-stage.js maps the same layout onto its picture).
+export function networkPositions(p){
   const q=p.parameters,ring=(names,r=39,phase=-Math.PI/2)=>Object.fromEntries(names.map((v,i)=>[v,[50+r*Math.cos(phase+i*2*Math.PI/names.length),50+r*Math.sin(phase+i*2*Math.PI/names.length)]]));
   if(q.positions)return q.positions;
   if(p.mechanic==='color'){
@@ -132,7 +134,7 @@ function positions(p){
   };return layouts[p.sourceId||p.id]||ring(q.vertices);
 }
 function graph(p,b){
-  const q=p.parameters,xy=positions(p),info=p.mechanic==='route'?routeInfo(p,b):null;
+  const q=p.parameters,xy=networkPositions(p),info=p.mechanic==='route'?routeInfo(p,b):null;
   const lines=q.edges.map(([u,v,w],i)=>{const [x,y]=xy[u],[a,z]=xy[v],used=info?.uses[i]||0,conflict=p.mechanic==='color'&&b.colors[q.vertices.indexOf(u)]&&b.colors[q.vertices.indexOf(u)]===b.colors[q.vertices.indexOf(v)];return `<line x1="${x}" y1="${y}" x2="${a}" y2="${z}" class="${used?'road-used':''} ${conflict?'link-conflict':''}"/>${info?`<text x="${(x+a)/2}" y="${(y+z)/2-2}">${w}${used?` · ✓${used>1?used:''}`:''}</text>`:''}`;}).join('');
   const dots=q.vertices.map((v,i)=>{const [x,y]=xy[v],color=b.colors?.[i]||0,current=info?.current===v;const allowed=!info||!info.current||q.edges.some(([u,w],e)=>(u===info.current&&w===v||w===info.current&&u===v)&&(q.mode!=='each_edge_once'||!info.uses[e])&&info.cost+q.edges[e][2]<=capOf(q));
     return actionButton(`${esc(v)}${p.mechanic==='color'?`<span aria-hidden="true">${color?marks[color-1]:'○'}</span>`:current?'<span aria-hidden="true">✦</span>':''}`,{vertex:v},`style="left:${x}%;top:${y}%" aria-label="${esc(info?`${current?'Current junction. ':''}${info.current?`Travel to ${v}`:`Start at ${v}`}`:`Lantern ${v}, ${color?`color ${color}, ${marks[color-1]}`:'uncolored'}. Apply selected color ${b.selectedColor}`)}" ${!allowed||info&&solvedRoute(p,b)?'disabled':''} data-node="${esc(v)}" data-color="${color}" ${current?'aria-current="location"':''}`);

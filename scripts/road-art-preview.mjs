@@ -48,7 +48,7 @@ async function shoot(profile, size, name, go) {
   await page.screenshot({ path: new URL(`${name}-${size}.png`, out).pathname, fullPage: !!go });
   await context.close();
 }
-const cont = page => page.locator('.lr-next [data-action]:visible').first().click().then(() => page.locator('.lr-scene').waitFor());
+const cont = page => page.locator('.lr-map-layer:visible .lr-stop.is-current').click().then(() => page.locator('.lr-scene').waitFor());
 try {
   const firstOf = STOPS.map(s => MAIN.findIndex(e => e.stop === s.id));
   if (want.has('map')) for (const n of [0, 4, 11, 21]) for (const size of Object.keys(sizes)) await shoot(profileAt(n), size, `map-${String(n).padStart(2, '0')}`);

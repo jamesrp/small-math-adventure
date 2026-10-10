@@ -24,9 +24,9 @@ const captureSizes=async name=>{
 };
 async function assertMinimalChrome(label){
  assert.equal(await page.locator('footer,.footer,#offline-status').count(),0,`${label}: no routine save/offline footer`);
- assert.deepEqual((await page.locator('.caravan-nav button').allTextContents()).map(normalize),['Road','Puzzles'],`${label}: concise navigation`);
+ assert.deepEqual((await page.locator('.caravan-nav button').allTextContents()).map(normalize),['Road','Puzzles','Journal'],`${label}: concise navigation`);
  assert.equal(await page.locator('#main [data-action="map"],#main [data-action="library"]').count(),0,`${label}: persistent navigation is not duplicated`);
- assert.equal(await page.locator('#main [data-action="journal"]').count(),label==='map'?1:0,`${label}: journal is available once on the road`);
+ assert.equal(await page.locator('#main [data-action="journal"]').count(),0,`${label}: the journal is a tab, not a button in the page`);
  assert.doesNotMatch(await page.locator('#main').innerText(),/Free play|Ready for offline play|Saved on this device|\b\d+\s+(?:of|\/)\s*\d+\s+(?:explored|completed)|\b\d+ puzzles\b/i,`${label}: no promotional or progress counters`);
 }
 async function assertEssentialConstraints(puzzle,goal){

@@ -14,7 +14,7 @@ const plural = (n, word) => `${n} ${word}${n === 1 ? '' : word === 'press' ? 'es
 const corners = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 const cornerName = value => value.replace('-', ' ');
 
-function toggleState(p, presses) {
+export function toggleState(p, presses) {
   const { vertices, edges, initial_on } = p.parameters;
   const on = new Set(initial_on);
   for (const index of presses) for (const vertex of edges[index]) {
@@ -123,7 +123,7 @@ const toggle = {
   demo: 'Tap a wire: both lanterns at its ends change together. With a keyboard, Tab to a wire and press Enter or Space. Undo restores the previous picture and press budget.'
 };
 
-function clockPeriod(parameters) {
+export function clockPeriod(parameters) {
   return parameters.clocks.reduce((period, clock) => lcm(period, clock.positions / gcd(clock.positions, clock.jump)), 1);
 }
 
@@ -150,23 +150,52 @@ function solvedClock(p, board) {
     : firstClockHit(params) === board.prediction;
 }
 
-function clockPicture(clock, count, label, total, control = null) {
+// The drawing inside one clock: its places, the jump arrow, the trail of bells
+// rung so far and the marker. Shared by the board below and the ferry's bell
+// wheels on the Lantern Road (dist/road-stage.js).
+// `big` draws larger places and numbers, for a wheel drawn small.
+export function clockFace(clock, count, total, { big = false } = {}) {
   const point = (position, radius = 110) => [160 + radius * Math.sin(position * 2 * Math.PI / clock.positions), 160 - radius * Math.cos(position * 2 * Math.PI / clock.positions)];
-  const current = (clock.start + clock.jump * (count % clock.positions)) % clock.positions;
+  const current = clockPlace(clock, count);
   const arrow = clockJumpArc(clock.positions, clock.start, clock.jump);
   const nodes = range(0, clock.positions - 1).map(position => {
     const [x, y] = point(position), target = clock.target === position;
     const [starX, starY] = point(position, 138);
-    return `<g class="clock-position ${target ? 'clock-target' : ''}"><circle cx="${x}" cy="${y}" r="18"/><text x="${x}" y="${y + 5}">${position}</text>${target ? `<text class="clock-star" x="${starX}" y="${starY + 6}">★</text>` : ''}</g>`;
+    return `<g class="clock-position ${target ? 'clock-target' : ''}"><circle cx="${x}" cy="${y}" r="${big ? 25 : 18}"/><text x="${x}" y="${y + (big ? 9 : 5)}">${position}</text>${target ? `<text class="clock-star" x="${starX}" y="${starY + 6}">★</text>` : ''}</g>`;
   }).join('');
   const [x, y] = point(current);
   const trail = range(1, Math.min(count, CLOCK_TRAIL_LIMIT)).map(bell => {
     const step = clockTrailStep(clock.positions, clock.start, clock.jump, bell, total);
     return `<path class="clock-trail" d="${step.path}"/><polygon class="clock-trail-head" points="${step.head}"/>`;
   }).join('');
+  return `<circle class="clock-ring" cx="160" cy="160" r="110"/><path class="clock-jump-arrow" d="${arrow.path}"/><polygon class="clock-jump-head" points="${arrow.head}"/>${trail}${nodes}<circle class="clock-marker" cx="${x}" cy="${y}" r="${big ? 30 : 23}"/><text class="clock-center" x="160" y="157">${count}</text><text class="clock-center-label" x="160" y="179">${count === 1 ? 'bell' : 'bells'}</text>`;
+}
+export const clockPlace = (clock, count) => (clock.start + clock.jump * (count % clock.positions)) % clock.positions;
+
+function clockPicture(clock, count, label, total, control = null) {
+  const arrow = clockJumpArc(clock.positions, clock.start, clock.jump), current = clockPlace(clock, count);
   const name = `${esc(label)}: ${clock.positions} places, jump ${clock.jump} clockwise from ${arrow.from} to ${arrow.to}, star ${clock.target}. Marker ${count ? 'at' : 'starts at'} ${current}.`;
   const role = control ? `role="slider" tabindex="0" data-focus="clock-jump" aria-valuemin="${control.min}" aria-valuemax="${control.max}" aria-valuenow="${clock.jump}" aria-valuetext="Jump ${clock.jump} clockwise from ${arrow.from} to ${arrow.to}"` : 'role="img"';
-  return `<figure class="clock-picture"><figcaption>${esc(label)}<span class="clock-jump-caption">Jump ${clock.jump}</span></figcaption><svg viewBox="0 0 320 320" ${role} aria-label="${name}"><circle class="clock-ring" cx="160" cy="160" r="110"/><path class="clock-jump-arrow" d="${arrow.path}"/><polygon class="clock-jump-head" points="${arrow.head}"/>${trail}${nodes}<circle class="clock-marker" cx="${x}" cy="${y}" r="23"/><text class="clock-center" x="160" y="157">${count}</text><text class="clock-center-label" x="160" y="179">${count === 1 ? 'bell' : 'bells'}</text></svg></figure>`;
+  return `<figure class="clock-picture"><figcaption>${esc(label)}<span class="clock-jump-caption">Jump ${clock.jump}</span></figcaption><svg viewBox="0 0 320 320" ${role} aria-label="${name}">${clockFace(clock, count, total)}</svg></figure>`;
+}
+
+// Count puzzles take their answer from a chart of numbers instead of a typed
+// one: tap a number, then ring. Numbers already rung stay marked. The chart
+// runs to a whole row past the first time every marker is back at its start,
+// so it always holds the answer without pointing at it.
+export function bellChart(p, attempt, presentation = {}) {
+  const chosen = Number(presentation.draft ?? attempt.board.prediction ?? 0);
+  const length = Math.max(10, Math.ceil(clockPeriod(p.parameters) / 10) * 10);
+  const tried = new Set([...(attempt.history || []).map(h => h.board.prediction), attempt.board.prediction].filter(n => n != null));
+  return `<fieldset class="bell-chart"><legend class="sr-only">Bell count</legend>${range(1, length).map(n => `<label class="bell-number ${tried.has(n) ? 'is-tried' : ''}"><input type="radio" name="activations" value="${n}" data-focus="bell-${n}" ${n === chosen ? 'checked' : ''} required><span>${n}</span>${tried.has(n) ? `<span class="sr-only"> (rung)</span>` : ''}</label>`).join('')}</fieldset>`;
+}
+// What a wrong ring showed, or '' for none or a solve.
+export function clockFeedback(p, attempt) {
+  const params = p.parameters, prediction = attempt.board.prediction, gear = params.mode === 'choose_jump';
+  if (prediction === null || solvedClock(p, attempt.board)) return '';
+  if (gear) return `Jump ${prediction} first returns on bell ${params.positions / gcd(params.positions, prediction)}.`;
+  const endpoint = params.clocks.map(clock => clockPlace(clock, prediction));
+  return `After ${plural(prediction, 'bell')}: ${endpoint.join(' and ')}. ${endpoint.every((position, i) => position === params.clocks[i].target) ? 'The markers reached their stars on an earlier bell.' : 'The markers must land on their stars together.'}`;
 }
 
 const clock = {
@@ -197,16 +226,9 @@ const clock = {
     const clocks = gear ? [{ positions: params.positions, start: params.start, target: params.start, jump: Number(presentation.jump ?? presentation.draft ?? prediction ?? params.jump_min) }] : params.clocks;
     const submittedCount = clockRunCount(p, prediction);
     const count = presentation.count ?? submittedCount;
-    const controls = gear ? `<input type="hidden" name="jump" value="${clocks[0].jump}">` : `<label class="motion-field">Bell count<input name="activations" data-focus="clock-answer" type="number" min="1" step="1" inputmode="numeric" value="${esc(presentation.draft ?? prediction ?? '')}" required></label>`;
-    let feedback = '';
-    if (prediction !== null) {
-      const correct = solvedClock(p, attempt.board);
-      const first = gear ? params.positions / gcd(params.positions, prediction) : firstClockHit(params);
-      const endpoint = (gear ? [{ positions: params.positions, start: params.start, jump: prediction, target: params.start }] : params.clocks)
-        .map(clock => (clock.start + clock.jump * (submittedCount % clock.positions)) % clock.positions);
-      feedback = correct ? '' : `<div class="motion-result" role="status">${gear ? `Jump ${prediction} first returns on bell ${first}.` : `After ${plural(prediction, 'bell')}: ${endpoint.join(' and ')}. ${endpoint.every((position, i) => position === clocks[i].target) ? 'The markers reached their stars on an earlier bell.' : 'The markers must land on their stars together.'}`}</div>`;
-    }
-    return `<div class="motion-board clock-board${gear?' clock-choose':''}"><div class="clock-pictures">${clocks.map((item, i) => clockPicture(item, count, clocks.length>1?`Clock ${i + 1} · `:'', submittedCount, gear ? { min: params.jump_min, max: params.jump_max } : null)).join('')}</div><form data-puzzle-form class="motion-form">${controls}${submitButton('Ring')}</form>${feedback}</div>`;
+    const controls = gear ? `<input type="hidden" name="jump" value="${clocks[0].jump}">` : bellChart(p, attempt, presentation);
+    const feedback = clockFeedback(p, attempt);
+    return `<div class="motion-board clock-board${gear?' clock-choose':''}"><div class="clock-pictures">${clocks.map((item, i) => clockPicture(item, count, clocks.length>1?`Clock ${i + 1} · `:'', submittedCount, gear ? { min: params.jump_min, max: params.jump_max } : null)).join('')}</div><form data-puzzle-form class="motion-form" id="bell-form">${controls}${submitButton('Ring')}</form>${feedback ? `<div class="motion-result" role="status">${feedback}</div>` : ''}</div>`;
   },
   help(p, attempt) {
     const params = p.parameters, prediction = attempt.board.prediction, gear = params.mode === 'choose_jump';
@@ -217,7 +239,7 @@ const clock = {
     const table = prediction === null ? '' : `<details class="motion-route"><summary>See every landing${count > routeLimit ? ` (first ${routeLimit} bells)` : ''}</summary><div class="motion-table-wrap"><table><caption>One bell moves every marker</caption><thead><tr><th scope="col">Bell</th>${clocks.map((_, i) => `<th scope="col">Clock ${i + 1}</th>`).join('')}</tr></thead><tbody>${range(0, routeLimit).map(t => `<tr><th scope="row">${t}${t === 0 ? ' · start' : ''}</th>${clocks.map(clock => `<td>${(clock.start + clock.jump * t) % clock.positions}${(clock.start + clock.jump * t) % clock.positions === clock.target ? ' ★' : ''}</td>`).join('')}</tr>`).join('')}</tbody></table></div></details>`;
     return `<div class="motion-board">${table}</div>`;
   },
-  demo: 'Choose a positive bell count before ringing. Starting places are bell zero. A star only counts when the marker lands there. Each bell moves every marker.'
+  demo: 'Tap a bell count, then ring. Starting places are bell zero. A star only counts when the marker lands there. Each bell moves every marker.'
 };
 
 const fraction = (numerator, denominator = 1) => {

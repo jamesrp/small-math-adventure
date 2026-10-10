@@ -88,4 +88,5 @@ export const slots = {
   tool: id => `tool/${id}`,
   finale: () => 'finale/fair',
   party: id => `party/${id}`,
+  stage: (stop, part) => `stage/${stop}/${part}`,
 };

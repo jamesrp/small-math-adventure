@@ -67,6 +67,7 @@ function render(){
   document.body.dataset.view=view||'map';
   document.body.classList.toggle('on-encounter',Boolean(encounter));
   if(encounter)document.body.dataset.stop=encounter.stop;else delete document.body.dataset.stop;
+  const flips=new Map([...app.querySelectorAll('[data-flip]')].map(node=>[node.dataset.flip,node.getBoundingClientRect()]));
   keepMedia(app,()=>{
     const kept=new Map([...app.querySelectorAll('[data-keep]')].map(node=>[node.dataset.keep,node]));
     app.innerHTML=caravanHeader(pr,view==='library'||(view==='play'&&!encounter)?'library':view==='journal'?'journal':'journey')+(warning?`<div class="error-banner" role="status">${esc(warning)}</div>`:'')+`<main class="shell" id="main">${content}</main>`;
@@ -78,17 +79,29 @@ function render(){
       if(old&&old.keepHtml===html)node.replaceWith(old);else node.keepHtml=html;
     }
   });
+  glide(flips);
   if(encounter&&isSolved(p,attempt(p).board)){
-    app.querySelectorAll('.board-panel button,.board-panel input,.board-panel select').forEach(control=>{control.disabled=true;});
-    app.querySelectorAll('.board-panel [role="button"],.board-panel [role="slider"]').forEach(control=>{control.setAttribute('aria-disabled','true');control.setAttribute('tabindex','-1');});
+    app.querySelectorAll(':is(.board-panel,.lr-stage) :is(button,input,select)').forEach(control=>{control.disabled=true;});
+    app.querySelectorAll(':is(.board-panel,.lr-stage) :is([role="button"],[role="slider"])').forEach(control=>{control.setAttribute('aria-disabled','true');control.setAttribute('tabindex','-1');});
   }
-  if(focus){let target=(focusedPair?app.querySelector(`[data-pair="${CSS.escape(focusedPair)}"]`):app.querySelector(`[data-focus="${CSS.escape(focus)}"]`));if(!target||target.disabled||target.getAttribute('aria-disabled')==='true')target=app.querySelector('.latin-cell[aria-pressed="true"]:not(:disabled)')||app.querySelector('.nim-status')||app.querySelector('#completion-heading')||familyFocus()||app.querySelector('.duel-status')||app.querySelector('.garden-cell');target?.focus({preventScroll:true});}
+  if(focus){let target=(focusedPair?app.querySelector(`[data-pair="${CSS.escape(focusedPair)}"]`):app.querySelector(`[data-focus="${CSS.escape(focus)}"]`));if(!target||target.disabled||target.getAttribute('aria-disabled')==='true')target=app.querySelector('.latin-cell[aria-pressed="true"]:not(:disabled)')||app.querySelector('.nim-status')||app.querySelector('#completion-heading')||app.querySelector('.lr-stage :is(button,[role="button"]):not(:disabled):not([aria-disabled="true"])')||familyFocus()||app.querySelector('.duel-status')||app.querySelector('.garden-cell');target?.focus({preventScroll:true});}
   if(focusDone){const heading=app.querySelector('#completion-heading');if(heading){focusDone=false;heading.focus({preventScroll:true});}}
   wireForms();
   wireTileBoard();
   wireClockBoard();
   wireMechanic();
   viewState.restore();
+}
+// A piece that changed place (a traveler swapping seats, Hops walking a
+// boardwalk) moves there from where it was instead of jumping.
+function glide(before){
+  if(!before.size||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  for(const node of app.querySelectorAll('[data-flip]')){
+    const old=before.get(node.dataset.flip);if(!old)continue;
+    const now=node.getBoundingClientRect(),dx=old.left-now.left,dy=old.top-now.top,far=Math.hypot(dx,dy);
+    if(far<2)continue;
+    node.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:`translate(${dx/2}px,${dy/2-Math.min(48,far/4)}px)`,offset:.5},{transform:'none'}],{duration:Math.min(720,320+far*.8),easing:'ease-in-out'});
+  }
 }
 // Each family module names the control that takes focus when the focused one is gone.
 // The open puzzle's own module goes first, so a selector another family shares can't win.
@@ -206,7 +219,7 @@ function wireClockBoard(){
 }
 function wireForms(){
   document.querySelectorAll('form[data-puzzle-form]').forEach(form=>form.addEventListener('submit',e=>{e.preventDefault();const p=puzzle();if(p&&profile())applyPair(p,Object.fromEntries(new FormData(e.currentTarget)),p.mechanic==='clock'?'ring':null);}));
-  document.querySelector('.clock-board input[name="activations"]')?.addEventListener('input',e=>clockTimeline.edit(e.target.value));
+  document.querySelectorAll('input[name="activations"]').forEach(input=>input.addEventListener('change',e=>clockTimeline.edit(e.target.value)));
   document.querySelector('#profile-form')?.addEventListener('submit',e=>{e.preventDefault();const data=new FormData(e.currentTarget),name=String(data.get('name')).trim();if(!name){document.querySelector('#nickname').focus();return;}if(state.profiles.length>=30){dialog('All save slots are full','<p>There is room for 30 explorers. Export and remove an unused save in the grown-up area.</p>');return;}const pr={id:uid(),name,band:data.get('band'),avatar:0,sound:false,attempts:{}};state.profiles.push(pr);state.activeProfileId=pr.id;save();go(['library','play'].includes(route()[0])?location.hash.slice(1):'map');});
   document.querySelector('#checker')?.addEventListener('change',e=>{checker=e.target.checked;document.querySelector('.tile-board')?.classList.toggle('show-checker',checker);});
   document.querySelector('#catalog-band')?.addEventListener('change',()=>render());

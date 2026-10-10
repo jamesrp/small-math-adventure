@@ -1,3 +1,3 @@
 # Placeholder references
 
-One PNG per art slot, rendered from the drawn placeholders by `scripts/export-art-references.mjs`. Use them as composition guides (what is where, what changes between stages), not as style references. File names replace “/” in the slot ID with “_”. The map guides mark each stop button’s position in red; keep each stop’s landmark under its mark.
+One PNG per art slot, rendered from the drawn placeholders by `scripts/export-art-references.mjs`. Use them as composition guides (what is where, what changes between stages), not as style references. File names replace “/” in the slot ID with “_”. The map guides mark each stop button’s position in red; keep each stop’s landmark under its mark. The stage guides outline in red where the game draws its puzzle pieces, what the phone views show (dashed) and the corners Plume’s card and the keeper portrait cover; keep those areas plain (docs/art/batches/03-stage-boards.md).

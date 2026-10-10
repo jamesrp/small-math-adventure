@@ -247,13 +247,62 @@ test('views render the road, scenes and journal without art, and use art once it
   assert.match(roadMapView(pr), /data-placeholder="true"/);
   const { puzzle, encounter } = beginEncounter(pr, puzzles), a = freshAttempt(puzzle);
   const html = playView(puzzle, a, { pack: fullPack, profile: pr, encounter, selected: null, message: '' });
-  assert.match(html, /data-art="scene\/ferry\/1"/); assert.match(html, /data-art="keeper\/snooze\/talk"/);
+  // The wake-up bell is played in its picture; the lily pads keep a scene above their board.
+  assert.match(html, /data-art="stage\/ferry\/asleep"/); assert.match(html, /data-art="keeper\/snooze\/talk"/);
   assert.match(html, new RegExp(encounter.lines.open.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/’/g, '&#39;|’')));
+  finish(pr); finish(pr); finish(pr);
+  const lilies = beginEncounter(pr, puzzles);
+  assert.equal(lilies.encounter.id, 'marsh-lilies');
+  assert.match(playView(lilies.puzzle, freshAttempt(lilies.puzzle), { pack: fullPack, profile: pr, encounter: lilies.encounter, selected: null, message: '' }), /data-art="scene\/marsh\/1"/);
   assert.match(journalView(pr, puzzles), /Turtle Ferry/);
   setManifest({ version: 1, assets: { 'scene/ferry/1': { status: 'ready', image: 'scenes/ferry-1.webp', video: 'scenes/ferry-1.mp4' }, 'keeper/snooze/idle': { status: 'todo', image: 'x.webp' } } });
   assert.ok(asset('scene/ferry/1')); assert.equal(asset('keeper/snooze/idle'), null);
   assert.match(media('scene/ferry/1', 'P'), /<video src=".\/art\/scenes\/ferry-1.mp4" poster=".\/art\/scenes\/ferry-1.webp"/);
   setManifest(null);
+});
+
+test('the ferry and marsh puzzles are played in their picture, with the rest of their controls below', async () => {
+  const { stageKind } = await import('../dist/road-stage.js');
+  const staged = { 'ferry-seats': 'seats', 'ferry-bell': 'bell', 'ferry-lights': 'lights', 'marsh-boardwalks': 'boardwalks' };
+  for (const band of BAND_KEYS) {
+    const pr = profile(band); startJourney(pr);
+    for (const id of Object.keys(staged)) {
+      const { puzzle: p, encounter: e } = beginEncounter(pr, puzzles), a = freshAttempt(p);
+      assert.equal(e.id, id);
+      assert.equal(stageKind(e, p), staged[id], `${band} ${id}`);
+      const html = playView(p, a, { pack: fullPack, profile: pr, encounter: e, selected: null, message: '' });
+      assert.match(html, /class="lr-stage /); assert.doesNotMatch(html, /lr-scene-art/, `${band} ${id}: no scene above`);
+      const count = re => (html.match(re) || []).length;
+      if (id === 'ferry-seats') {
+        // Each traveler is a button in its seat; the swap pairs sit below.
+        assert.equal(count(/class="stage-piece stage-traveler [^"]*" [^>]*data-action="cup"/g), p.start.length);
+        assert.equal(count(/data-action="swap-pair"/g), p.edges.length);
+        assert.equal(count(/class="stage-piece stage-traveler is-still is-standing"/g), 6 - p.start.length);
+      }
+      if (id === 'ferry-bell') {
+        // Everyone sits where the seats puzzle left them; the bell rings the chart's number.
+        assert.equal(count(/class="stage-piece stage-traveler is-still"/g) + count(/is-standing/g), 6);
+        assert.equal(count(/class="stage-wheel"/g), p.parameters.clocks.length);
+        assert.match(html, /<button type="submit" form="bell-form" class="stage-piece stage-bell/);
+        assert.match(html, /<form data-puzzle-form [^>]*id="bell-form">/);
+        assert.doesNotMatch(html, /type="number"/);
+        assert.ok(count(/name="activations"/g) >= 10);
+      }
+      if (id === 'ferry-lights') {
+        assert.equal(count(/class="wire-hit stage-rope-hit/g), p.parameters.edges.length);
+        assert.equal(count(/class="stage-lamp /g), 2 * p.parameters.vertices.length, 'picture and goal card');
+        assert.match(html, /class="stage-goal"/);
+      }
+      if (id === 'marsh-boardwalks') {
+        assert.equal(count(/class="stage-piece stage-junction/g), p.parameters.vertices.length);
+        assert.equal(count(/class="stage-walk /g), p.parameters.edges.length);
+        assert.match(html, /class="stage-piece stage-hops"/);
+      }
+      pr.attempts[p.id] = solve(p, a); recordSolve(pr, p.id, e.id, puzzles);
+    }
+    const next = beginEncounter(pr, puzzles);
+    assert.equal(stageKind(next.encounter, next.puzzle), null, 'the lily pads keep their own board');
+  }
 });
 
 test('a keeper reaction shows its own face as a still and settles on idle after its clip', () => {
@@ -278,7 +327,7 @@ test('every line has a voice ID the art manifest can fill, and every slot has a 
     for (const reaction of [null, { kind: 'oops', n: 0 }, { kind: 'oops', n: 2 }, { kind: 'hint' }]) assert.ok(ids.has(encounterLine(e, p, a, reaction).voice), `${e.id}: ${JSON.stringify(reaction)}`);
   }
   const slots = artSlots();
-  assert.equal(slots.length, 90); assert.equal(new Set(slots.map(s => s.id)).size, 90);
+  assert.equal(slots.length, 95); assert.equal(new Set(slots.map(s => s.id)).size, 95);
   for (const s of slots) assert.ok(s.w > 0 && s.h > 0 && s.about, s.id);
 });
 
