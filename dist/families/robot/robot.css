@@ -1,0 +1,67 @@
+@import url('../../sq-grid.css');
+/* Memory robot: the streets of a square grid with the wall drawn bold at
+   column 0, squares shaded sun yellow (+) or Paint rows blue (−) with a
+   Georgia numeral where a square counts twice or more, the walk as an ink
+   trail, the pine robot, the flag, the memory and the goal above, and one
+   box per move below. */
+.mr-puzzle{--mr-blue:#5f8fb4;display:flex;flex-direction:column;align-items:center;gap:.7rem;width:100%}
+.mr-table{display:flex;flex-direction:column;align-items:center;gap:.2rem;width:100%;max-width:470px;padding:.6rem .4rem .2rem;border-radius:16px;background:var(--b-paper,#f5f1e6);border:1.5px dashed var(--b-line,#d0d6bd);box-sizing:border-box}
+.mr-puzzle.solved .mr-table{border:2px solid var(--b-good,#3c7a4a);background:var(--b-good-soft,#e2ecd6)}
+.mr-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.6rem 1rem}
+.mr-readout{display:inline-flex;align-items:center;gap:.45rem;min-height:48px;padding:.15rem .8rem .15rem .6rem;border-radius:14px;font-family:var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
+.mr-readout b{font-weight:400;font-size:2.1rem;line-height:1;min-width:1.2ch;text-align:center;font-variant-numeric:lining-nums tabular-nums}
+.mr-memory{background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd)}
+.mr-goal{background:#fbf4dc;border:1.5px solid #ead9a4}
+.mr-icon{display:block;width:28px;height:32px;overflow:visible}
+.mr-goal .mr-icon{width:24px}
+
+/* The board. */
+.mr-puzzle .sg-board.mr-board{max-width:420px;max-height:62vh;margin:.2rem auto 0}
+.mr-board .sg-cell{fill:#fbf8ec;stroke:#c9d0b5}
+.mr-board .sg-cell.mr-pos{fill:var(--b-sun,#efc76e);fill-opacity:.5}
+.mr-board .sg-cell.mr-pos.deep{fill-opacity:1}
+.mr-board .sg-cell.mr-neg{fill:var(--mr-blue,#5f8fb4);fill-opacity:.38}
+.mr-board .sg-cell.mr-neg.deep{fill-opacity:.8}
+.mr-num{font-family:var(--b-display,Georgia,serif);font-size:4.6px;text-anchor:middle;dominant-baseline:central;fill:var(--b-ink,#294439);pointer-events:none}
+.mr-col{font-family:var(--b-display,Georgia,serif);font-size:3.6px;text-anchor:middle;dominant-baseline:central;fill:var(--b-muted,#5a6850)}
+.mr-col.wall{fill:var(--b-ink,#294439);font-weight:700}
+.mr-wall{stroke:var(--b-ink,#294439);stroke-width:4.5px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.mr-trail-case{fill:none;stroke:var(--b-card,#fffdf5);stroke-width:8px;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
+.mr-trail{fill:none;stroke:var(--b-ink,#294439);stroke-width:3.2px;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round}
+.mr-start{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:2px;vector-effect:non-scaling-stroke}
+.mr-pole{stroke:var(--b-ink,#294439);stroke-width:2.2px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.mr-cloth{fill:var(--b-rose,#e7a28f);stroke:var(--b-ink,#294439);stroke-width:1.5px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.mr-body{fill:var(--b-pine,#31533e);stroke:var(--b-ink,#294439);stroke-width:1.5px;vector-effect:non-scaling-stroke}
+.mr-eye,.mr-antenna-tip{fill:var(--b-on-pine,#fff8d9)}
+.mr-antenna-tip{stroke:var(--b-pine,#31533e);stroke-width:1.2px;vector-effect:non-scaling-stroke}
+.mr-antenna{stroke:var(--b-pine,#31533e);stroke-width:2px;vector-effect:non-scaling-stroke}
+.mr-mouth{stroke:var(--b-on-pine,#fff8d9);stroke-width:1.6px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.mr-icon .mr-body{stroke-width:1px}
+@media (prefers-reduced-motion:no-preference){.mr-glide[style]{animation:mr-glide .22s ease-out}}
+@keyframes mr-glide{from{transform:translate(var(--mr-dx),var(--mr-dy))}to{transform:none}}
+
+/* The corners next to the robot: a soft pine pip, an ochre ring when hinted. */
+.mr-step{cursor:pointer;outline:none}
+.mr-reach{fill:transparent}
+.mr-pip{fill:var(--b-pine,#31533e);fill-opacity:.45}
+.mr-step:hover .mr-reach{fill:rgba(49,83,62,.1)}
+.mr-step:focus-visible .mr-reach{fill:rgba(179,136,64,.22);stroke:var(--b-ochre,#b38840);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}
+.mr-step.hinted .mr-reach{fill:rgba(239,199,110,.55);stroke:var(--b-ochre,#b38840);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}
+.mr-step.hinted .mr-pip{fill:var(--b-ochre,#b38840);fill-opacity:1}
+
+/* One box per move, filling with arrows. */
+.mr-slots{--mr-box:38px;display:flex;flex-wrap:wrap;justify-content:center;gap:6px;list-style:none;margin:0;padding:0;max-width:calc(var(--mr-row,8) * (var(--mr-box) + 6px))}
+.mr-played,.mr-slot{display:flex;align-items:center;justify-content:center;width:var(--mr-box);height:var(--mr-box);border-radius:9px;box-sizing:border-box}
+.mr-played{background:var(--b-card,#fffdf5);border:1px solid var(--b-line,#d0d6bd)}
+.mr-slot{border:1.5px dashed var(--b-line,#d0d6bd)}
+.mr-arrow{width:24px;height:24px}
+.mr-arrow path{fill:none;stroke:var(--b-ink,#294439);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.mr-tools{display:flex;justify-content:center;gap:.5rem}
+.mr-puzzle .mr-clear{min-height:46px;padding:6px 18px}
+
+/* How to play: one worked step. */
+.mr-help{display:flex;align-items:center;justify-content:center;gap:.6rem;margin:.6rem 0}
+.mr-help .sg-board.mr-mini{width:190px;max-width:60%;margin:0}
+.mr-help .mr-readout{min-height:40px}
+.mr-help .mr-readout b{font-size:1.6rem}
+@media (max-width:420px){.mr-table{padding:.45rem .1rem .1rem}.mr-readout b{font-size:1.8rem}.mr-slots{--mr-box:34px}.mr-arrow{width:21px;height:21px}}
