@@ -577,12 +577,14 @@ function squarePoints(surface, s) {
 }
 // A point's control: a cell's square or a disc round a cross. Every point of
 // a view carries data-pb-point so a finger slide can find it; only acting
-// points are focusable buttons.
+// points are focusable buttons. `look.r` widens a cross's disc (lattice
+// units, default .42) for a few far-apart targets in a zoomed-out view.
 function pointHit(surface, view, at, [cx, cy], look) {
   const ctrl = look.act ? ` role="button" tabindex="0" aria-label="${esc(look.label || 'Point')}" data-focus="pb-${view}-${esc(at)}"` : '';
+  const r = Number.isFinite(look.r) && look.r > 0 ? look.r : .42;
   const shape = surface.lattice === 'cells'
     ? `<rect class="pb-hit" x="${f(cx - .5)}" y="${f(cy - .5)}" width="1" height="1"/>`
-    : `<circle class="pb-hit" cx="${f(cx)}" cy="${f(cy)}" r=".42"/>`;
+    : `<circle class="pb-hit" cx="${f(cx)}" cy="${f(cy)}" r="${f(r)}"/>`;
   return `<g class="${['pb-point', look.cls, look.act ? 'act' : ''].filter(Boolean).join(' ')}" data-pb-point="${esc(at)}" data-pb-view="${view}"${ctrl}>${shape}</g>`;
 }
 // `opts.labelAt` moves every label off its point by [dx, dy] lattice units
