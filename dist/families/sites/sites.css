@@ -1,0 +1,90 @@
+/* Nearest dots: graph paper in a frame, fixed dots in sun, sky and rose with
+   their letters, new dots in ink, regions tinted in their dot's colour after
+   Check with ink edges (the places two dots share) and small rings where three
+   or more share a place, a dashed target, and pine and ochre for right and
+   wrong. Drawn in half-steps, so strokes do not scale. */
+.st-puzzle{display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%}
+.st-board{display:block;width:100%;max-width:440px;height:auto;aspect-ratio:1;touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer;border-radius:12px;background:var(--b-card,#fffdf5)}
+.st-board:focus{outline:none}
+.st-board:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:4px}
+.st-puzzle.solved .st-board,.st-puzzle.claiming .st-board{cursor:default}
+.st-board *{vector-effect:non-scaling-stroke}
+
+/* Paper, grid and frame. */
+.st-margin{fill:rgba(41,68,57,.07)}
+.st-grid{stroke:#d9ddc8;stroke-width:1px}
+.st-grid.half{stroke:#ecede0;stroke-width:1px}
+.st-frame{fill:none;stroke:var(--b-ink,#294439);stroke-width:1.6px}
+
+/* The target: what the focus dot's region should be. */
+.st-target{fill:rgba(239,199,110,.32)}
+.st-target-edge{stroke:var(--b-ink,#294439);stroke-width:2.4px;stroke-dasharray:7 5;stroke-linecap:round}
+
+/* Regions, edges and ties (shown after Check, and always in the playground). */
+.st-fill{stroke:none;opacity:.62}
+.st-fill.c-sun{fill:var(--b-sun,#efc76e)}
+.st-fill.c-sky{fill:var(--b-sky,#9cc9de)}
+.st-fill.c-rose{fill:var(--b-rose,#e7a28f)}
+.st-fill.c-leaf{fill:var(--b-leaf,#86a68c)}
+.st-fill.c-lilac{fill:#c9b6e4}
+.st-fill.c-sand{fill:#e3cf9f}
+.st-fill.c-plain{fill:#dcdccb}
+.st-edge{stroke:var(--b-ink,#294439);stroke-width:2px;stroke-linecap:round}
+.st-edge.bad{stroke:var(--b-ochre,#b38840);stroke-width:5px}
+.st-outline{stroke-width:4.5px;stroke-linecap:round;fill:none}
+.st-outline.good{stroke:var(--b-pine,#31533e)}
+.st-outline.off{stroke:var(--b-ink,#294439);stroke-width:3px}
+.st-tie{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:1.6px}
+.st-tie.four{stroke:var(--b-pine,#31533e);stroke-width:3px}
+.st-tie.bad{stroke:var(--b-ochre,#b38840);stroke-width:3.5px}
+.st-puzzle.dragging .st-cells{visibility:hidden}
+.st-puzzle.playground.dragging .st-cells{visibility:visible}
+
+/* Dots: fixed ones in their colour with a letter, new ones in ink. */
+.st-site circle{stroke:var(--b-ink,#294439);stroke-width:2px}
+.st-site.c-sun circle{fill:var(--b-sun,#efc76e)}
+.st-site.c-sky circle{fill:var(--b-sky,#9cc9de)}
+.st-site.c-rose circle{fill:var(--b-rose,#e7a28f)}
+.st-site.c-leaf circle{fill:var(--b-leaf,#86a68c)}
+.st-site.c-lilac circle{fill:#c9b6e4}
+.st-site.c-sand circle{fill:#e3cf9f}
+.st-dot circle{fill:var(--b-ink,#294439);stroke:var(--b-card,#fffdf5);stroke-width:1.5px}
+.st-name{font:400 .95px/1 var(--b-display,Georgia,serif);fill:var(--b-ink,#294439);paint-order:stroke;stroke:var(--b-card,#fffdf5);stroke-width:3px;stroke-linejoin:round;pointer-events:none}
+.st-name.mark{font-style:italic}
+.st-sites g.held circle{stroke:var(--b-pine,#31533e);stroke-width:4px}
+.st-cross{stroke:var(--b-ink,#294439);stroke-width:2.2px;stroke-linecap:round;fill:none}
+.st-ring{fill:none;stroke-width:3px}
+.st-ring.good{stroke:var(--b-pine,#31533e)}
+.st-ring.bad{stroke:var(--b-ochre,#b38840);stroke-dasharray:4 3}
+
+/* Can't: the places to tap, and the segment tapped. */
+.st-pick{cursor:pointer}
+.st-pick-ring{fill:rgba(255,253,245,.01);stroke:var(--b-pine,#31533e);stroke-width:2px;stroke-dasharray:3 3}
+.st-pick.picked .st-pick-ring{stroke-width:4px;stroke-dasharray:none;fill:rgba(49,83,62,.12)}
+.st-pick:focus{outline:none}
+.st-pick:focus-visible .st-pick-ring{stroke:var(--b-ochre,#b38840);stroke-width:4px}
+.st-cert{stroke-width:4px;stroke-linecap:round}
+.st-cert.good{stroke:var(--b-pine,#31533e)}
+.st-cert.bad{stroke:var(--b-ochre,#b38840);stroke-dasharray:6 5}
+
+/* The argument after a right Fewest: each side's whole line, and its dot joined to the region's dot. */
+.st-arg-line{stroke:var(--b-pine,#31533e);stroke-width:1.6px;stroke-dasharray:3 4;opacity:.8}
+.st-arg-join{stroke:var(--b-pine,#31533e);stroke-width:1.6px;stroke-dasharray:2 3}
+
+/* Hints, the keyboard cursor and the mouse's spot. */
+.st-hint{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:3.5px;stroke-dasharray:5 3;pointer-events:none}
+.st-cursor{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:3px;pointer-events:none}
+.st-hover{fill:rgba(41,68,57,.12);stroke:var(--b-ink,#294439);stroke-width:1px;stroke-dasharray:2 2;pointer-events:none}
+
+/* The bar: slots for new dots, Check, Can't, Fewest. */
+.st-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .8rem;max-width:100%}
+.st-slots{display:inline-flex;gap:6px;align-items:center}
+.st-slots i{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;border:2px dashed #9aa88f;box-sizing:border-box;font:normal 400 .8rem/1 var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850)}
+.st-slots i.used{border:0;background:var(--b-line,#d0d6bd);color:transparent}
+@media (prefers-reduced-motion:no-preference){.st-slots.full{animation:st-nudge .4s ease-out}}
+@keyframes st-nudge{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.st-puzzle .st-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.st-puzzle .st-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+.st-puzzle .st-cant[aria-pressed="true"]{background:#e9eddc;box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.st-puzzle .st-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+.st-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}

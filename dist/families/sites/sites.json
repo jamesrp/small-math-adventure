@@ -1,0 +1,1496 @@
+{
+ "title": "Nearest dots",
+ "version": 1,
+ "families": [
+  {
+   "id": "sites",
+   "title": "Nearest dots",
+   "mathematics": "Every place belongs to the dot nearest to it, and a place just as near to several dots belongs to all of them; a dot’s region is its closed set of places. Two dots split the plane along their perpendicular bisector, and a region is the intersection of one half-plane per other dot: convex, containing its dot, possibly unbounded. Edges are two-way ties and corners are three-way or more, with four dots on a circle sharing its centre. Adding a dot only shrinks the others’ regions. Dots sit on a half-unit grid, so every edge is exact and the app checks each one with whole-number arithmetic. The puzzles run the theorems backwards: to give a dot a region with given straight sides and no dents, put a new dot at its mirror image across each side; a closed region needs at least three sides, and two parallel ones need two more; and since a region has no dents, a place on the segment between two places a dot must keep can never be taken from it, while a place off every such segment can be cut off by one dot. These are Voronoi diagrams, the subject of a first lecture in computational geometry.",
+   "rules": [
+    "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
+    "A dot’s region is all of its places. The map goes on past the frame.",
+    "New dots go where grid lines cross, inside the frame. The regions stay hidden until you press Check."
+   ],
+   "sourceIds": [
+    "sites-week15",
+    "sites-card15",
+    "sites-mount"
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "id": "sites-week15",
+   "title": "Bellingham Math Circle — Week 15: Nearest-site regions (K–1, grades 2–3 and grades 4–5 packets and adult guide)",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-15",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "sites-card15",
+   "title": "Week 15 review card and math check (keep; App fit: drag dots on a half-unit lattice to make target cells)",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-15.md",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "sites-mount",
+   "title": "David M. Mount — CMSC 754 Computational Geometry, Lecture 10: Voronoi Diagrams and Fortune’s Algorithm (Fall 2021), pp. 1–3: definition, half-planes, convexity and empty circles",
+   "url": "https://www.cs.umd.edu/class/fall2021/cmsc754/Lects/lect10-vor.pdf",
+   "kind": "lecture notes"
+  }
+ ],
+ "puzzles": [
+  {
+   "id": "sites-playground",
+   "number": 0,
+   "title": "Nearest dots playground",
+   "difficulty_level": "playground",
+   "familyTitle": "Nearest dots",
+   "mechanic": "sites",
+   "band": "playground",
+   "revision": 1,
+   "sourceDocument": "docs/sites/README.md",
+   "parameters": {
+    "mode": "playground",
+    "frame": 6,
+    "view": 7,
+    "start": [
+     [
+      -3,
+      -2
+     ],
+     [
+      3,
+      2
+     ]
+    ]
+   },
+   "objective": "Put down, move and take away dots, and watch every dot’s region change.",
+   "visibleObjective": "",
+   "instruction": "Put down, move and take away dots, and watch every dot’s region change.",
+   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away; the regions change as you go. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away.",
+   "rules": [
+    "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
+    "A dot’s region is all of its places. The map goes on past the frame.",
+    "Edges are places two dots share; a small ring marks a place three or more share, and a bigger one four or more."
+   ],
+   "idea": "Free play with up to ten dots: the edge between two dots, a third dot erasing part of it, ties of three and four, and regions shrinking when a dot is added.",
+   "prerequisites": "None. A grown-up can suggest what to try.",
+   "hints": [
+    "Put a third dot between A and B. What happens to their edge?",
+    "Put four dots at the corners of a square. Which place belongs to all four?",
+    "Add a dot in the middle of the square. Do the others gain or lose places?"
+   ],
+   "parent": {
+    "notice": "Whether your child predicts where an edge will go before dropping a dot, and notices that a new dot only ever takes places from the others.",
+    "prompt": "Can adding a dot ever give an old dot more places?",
+    "explanation": "No. A place belongs to an old dot when no dot is nearer; adding a dot adds one more comparison, which can only take places away (Week 15 grades 4–5 Problem 5). Two dots split the map along the line halfway between them; a third can erase part of that line where it is nearer than both (grades 2–3 Problem 2); four dots on a circle share its centre (grades 2–3 Problem 4).",
+    "extension": "Make a dot whose region is closed in on every side. How few other dots can do it?",
+    "connection": "This is the Voronoi diagram of the dots; the edges and the rings are its edges and vertices.",
+    "sourceIds": [
+     "sites-week15",
+     "sites-card15",
+     "sites-mount"
+    ]
+   },
+   "provenance": "Week 15 throughout: the organizer’s home trial drew two dots, A and B, then added a third to compete with them (review card, Classroom evidence)."
+  },
+  {
+   "id": "sites-01",
+   "number": 1,
+   "title": "Halfway",
+   "difficulty_level": "easy",
+   "familyTitle": "Nearest dots",
+   "mechanic": "sites",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/sites/README.md",
+   "parameters": {
+    "mode": "make",
+    "frame": 6,
+    "view": 7,
+    "sites": [
+     [
+      -4,
+      0
+     ]
+    ],
+    "names": [
+     "A"
+    ],
+    "focus": 0,
+    "budget": 1,
+    "target": [
+     {
+      "a": 1,
+      "b": 0,
+      "c": -2
+     }
+    ]
+   },
+   "objective": "Put new dots in the frame so that A’s whole region is exactly the shaded part. Press Check to see the regions.",
+   "visibleObjective": "Make A’s region exactly the shaded part.",
+   "instruction": "Put new dots in the frame so that A’s whole region is exactly the shaded part. Press Check to see the regions.",
+   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
+   "rules": [
+    "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
+    "A dot’s region is all of its places. The map goes on past the frame.",
+    "New dots go where grid lines cross, inside the frame. The regions stay hidden until you press Check.",
+    "A’s region must be exactly the shaded part everywhere, not just inside the frame."
+   ],
+   "idea": "The edge between two dots is halfway between them.",
+   "prerequisites": "Compare distances by eye. No reading; a grown-up can read the goal.",
+   "hints": [
+    "Try a dot anywhere, then press Check. Where does A’s region stop?",
+    "A’s region stops halfway between A and the new dot.",
+    "Put the dot 2 squares right of A."
+   ],
+   "parent": {
+    "notice": "Whether your child first puts the dot right on the edge of the shaded part. Check then shows the edge halfway between A and that dot, too far left.",
+    "prompt": "Where does A’s region stop, compared with A and the new dot?",
+    "explanation": "A place belongs to A when it is at least as near to A as to the new dot. The places just as near to both are the perpendicular bisector: the line halfway between them, at right angles to the segment joining them. For A’s region to stop at the shaded edge, one square right of A, the new dot must be one more square past it: 2 squares right of A, at the middle of the board.",
+    "extension": "Where would the dot go to give A everything left of the middle of the board? (4 squares right of A, so that halfway is the middle.)",
+    "connection": "Two sites split the plane along their perpendicular bisector: the simplest Voronoi diagram.",
+    "sourceIds": [
+     "sites-week15",
+     "sites-card15",
+     "sites-mount"
+    ]
+   },
+   "solution": {
+    "dots": [
+     [
+      0,
+      0
+     ]
+    ]
+   },
+   "provenance": "New, a one-dot warm-up for Week 15 K–1 Problem 8 and grades 2–3 Problem 8: the edge is halfway between A and the dot."
+  },
+  {
+   "id": "sites-02",
+   "number": 2,
+   "title": "A strip",
+   "difficulty_level": "easy",
+   "familyTitle": "Nearest dots",
+   "mechanic": "sites",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/sites/README.md",
+   "parameters": {
+    "mode": "make",
+    "frame": 6,
+    "view": 7,
+    "sites": [
+     [
+      0,
+      0
+     ]
+    ],
+    "names": [
+     "A"
+    ],
+    "focus": 0,
+    "budget": 2,
+    "target": [
+     {
+      "a": -1,
+      "b": 0,
+      "c": 2
+     },
+     {
+      "a": 1,
+      "b": 0,
+      "c": 2
+     }
+    ]
+   },
+   "objective": "Put new dots in the frame so that A’s whole region is exactly the shaded part. Press Check to see the regions.",
+   "visibleObjective": "Make A’s region exactly the shaded part.",
+   "instruction": "Put new dots in the frame so that A’s whole region is exactly the shaded part. Press Check to see the regions.",
+   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
+   "rules": [
+    "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
+    "A dot’s region is all of its places. The map goes on past the frame.",
+    "New dots go where grid lines cross, inside the frame. The regions stay hidden until you press Check.",
+    "A’s region must be exactly the shaded part everywhere, not just inside the frame."
+   ],
+   "idea": "Each edge of a region comes from one other dot, as far past the edge as the region’s dot is before it.",
+   "prerequisites": "Compare distances by eye. No reading; a grown-up can read the goal.",
+   "hints": [
+    "Each edge of the shaded part needs a dot of its own.",
+    "Each new dot sits as far past its edge as A is before it.",
+    "Put dots 2 squares left and 2 squares right of A."
+   ],
+   "parent": {
+    "notice": "Whether your child places one dot, checks, and uses where that edge landed to place the other.",
+    "prompt": "Why can’t the dots go at the top and bottom of the strip?",
+    "explanation": "The strip’s two edges are 1 square left and right of A. Each must be the line halfway between A and a new dot, so the dots are A’s mirror images across the edges: 2 squares left and 2 squares right of A. Dots anywhere else would make a different edge, so this is the only answer. A’s region is then the whole strip, running on past the frame at the top and bottom.",
+    "extension": "Make a narrower strip in your head: where would the dots go for a strip half as wide? (1 square left and right of A.)",
+    "connection": "The region of a dot between two others on a line is a strip between two parallel bisectors (Week 15 K–1 Problem 3).",
+    "sourceIds": [
+     "sites-week15",
+     "sites-card15",
+     "sites-mount"
+    ]
+   },
+   "solution": {
+    "dots": [
+     [
+      -2,
+      0
+     ],
+     [
+      2,
+      0
+     ]
+    ]
+   },
+   "provenance": "Week 15 K–1 Problem 8: A at the centre, the shaded strip −1 ≤ x ≤ 1, and two new dots B and C."
+  },
+  {
+   "id": "sites-03",
+   "number": 3,
+   "title": "A corner",
+   "difficulty_level": "easy",
+   "familyTitle": "Nearest dots",
+   "mechanic": "sites",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/sites/README.md",
+   "parameters": {
+    "mode": "make",
+    "frame": 6,
+    "view": 7,
+    "sites": [
+     [
+      0,
+      0
+     ]
+    ],
+    "names": [
+     "A"
+    ],
+    "focus": 0,
+    "budget": 2,
+    "target": [
+     {
+      "a": 1,
+      "b": 0,
+      "c": 2
+     },
+     {
+      "a": 0,
+      "b": 1,
+      "c": 2
+     }
+    ]
+   },
+   "objective": "Put new dots in the frame so that A’s whole region is exactly the shaded part. Press Check to see the regions.",
+   "visibleObjective": "Make A’s region exactly the shaded part.",
+   "instruction": "Put new dots in the frame so that A’s whole region is exactly the shaded part. Press Check to see the regions.",
+   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
+   "rules": [
+    "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
+    "A dot’s region is all of its places. The map goes on past the frame.",
+    "New dots go where grid lines cross, inside the frame. The regions stay hidden until you press Check.",
+    "A’s region must be exactly the shaded part everywhere, not just inside the frame."
+   ],
+   "idea": "Only real edges need dots; the frame does not stop a region.",
+   "prerequisites": "Compare distances by eye. No reading; a grown-up can read the goal.",
+   "hints": [
+    "Which edges of the shaded part are real edges, and which are only the frame?",
+    "Only the right edge and the top edge need dots.",
+    "Put dots 2 squares right of A and 2 squares above A."
+   ],
+   "parent": {
+    "notice": "Whether your child tries to put dots beyond the left and bottom of the frame. Those edges are only the frame: A’s region goes on past them.",
+    "prompt": "Which sides of the shaded part need a dot, and which don’t?",
+    "explanation": "The shaded part has two real edges, 1 square right of A and 1 square above A; on the left and at the bottom it runs off past the frame. Each real edge is the halfway line between A and a new dot, so the dots go 2 squares right of A and 2 squares above A, the only answer. The new dots’ regions then meet A’s at the corner, a place all three share, and split along the slanted line between them.",
+    "extension": "Why doesn’t A get a closed square here? (Nothing is to its left or below it, so its region goes on forever that way.)",
+    "connection": "A region bounded by two half-planes is a wedge; it is unbounded unless further sites close it.",
+    "sourceIds": [
+     "sites-week15",
+     "sites-card15",
+     "sites-mount"
+    ]
+   },
+   "solution": {
+    "dots": [
+     [
+      0,
+      2
+     ],
+     [
+      2,
+      0
+     ]
+    ]
+   },
+   "provenance": "Week 15 grades 2–3 Problem 8: A at the centre and the corner region x ≤ 1, y ≤ 1."
+  },
+  {
+   "id": "sites-04",
+   "number": 4,
+   "title": "A slanted edge",
+   "difficulty_level": "medium",
+   "familyTitle": "Nearest dots",
+   "mechanic": "sites",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/sites/README.md",
+   "parameters": {
+    "mode": "make",
+    "frame": 6,
+    "view": 7,
+    "sites": [
+     [
+      -3,
+      -2
+     ]
+    ],
+    "names": [
+     "A"
+    ],
+    "focus": 0,
+    "budget": 1,
+    "target": [
+     {
+      "a": 3,
+      "b": 2,
+      "c": 0
+     }
+    ]
+   },
+   "objective": "Put new dots in the frame so that A’s whole region is exactly the shaded part. Press Check to see the regions.",
+   "visibleObjective": "Make A’s region exactly the shaded part.",
+   "instruction": "Put new dots in the frame so that A’s whole region is exactly the shaded part. Press Check to see the regions.",
+   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
+   "rules": [
+    "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
+    "A dot’s region is all of its places. The map goes on past the frame.",
+    "New dots go where grid lines cross, inside the frame. The regions stay hidden until you press Check.",
+    "A’s region must be exactly the shaded part everywhere, not just inside the frame."
+   ],
+   "idea": "A dot’s mirror image across a slanted line makes that line the edge.",
+   "prerequisites": "Picture a mirror image across a slanted line. No reading; a grown-up can read the goal.",
+   "hints": [
+    "Try a dot and press Check. How does the edge sit against the line from A to your dot?",
+    "The edge crosses the line from A to the new dot at right angles, halfway: the dot is A’s mirror image across the edge.",
+    "Put the dot 3 squares right and 2 squares up from A."
+   ],
+   "parent": {
+    "notice": "Whether your child moves the dot straight across (right only) first. The edge then comes out upright, not slanted: the edge is always at right angles to the line between the two dots.",
+    "prompt": "How must the line from A to the new dot sit against the slanted edge?",
+    "explanation": "The edge between A and the new dot is their perpendicular bisector, so the segment from A to the dot crosses the edge at right angles, at its middle. The slanted edge passes through the centre of the board, and A is 1½ squares left and 1 square below it there; the mirror image is 1½ squares right and 1 square above the centre, 3 right and 2 up from A. It is the only answer.",
+    "extension": "Fold a paper along the edge to check: does A land on the new dot?",
+    "connection": "Week 15 K–1 Problem 2 and grades 4–5 Problem 1 draw this very line, 3x + 2y = 0, from the two dots; here it is the target.",
+    "sourceIds": [
+     "sites-week15",
+     "sites-card15",
+     "sites-mount"
+    ]
+   },
+   "solution": {
+    "dots": [
+     [
+      1.5,
+      1
+     ]
+    ]
+   },
+   "provenance": "Week 15 K–1 Problem 2 and grades 4–5 Problem 1 (A at (−1.5, −1), B at (1.5, 1), boundary 3x + 2y = 0), asked backwards: A is given and the dividing line is the target."
+  },
+  {
+   "id": "sites-05",
+   "number": 5,
+   "title": "Four at once",
+   "difficulty_level": "medium",
+   "familyTitle": "Nearest dots",
+   "mechanic": "sites",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/sites/README.md",
+   "parameters": {
+    "mode": "four",
+    "frame": 6,
+    "view": 7,
+    "sites": [
+     [
+      -4,
+      0
+     ],
+     [
+      4,
+      0
+     ],
+     [
+      0,
+      4
+     ]
+    ],
+    "names": [
+     "A",
+     "B",
+     "C"
+    ],
+    "focus": 0,
+    "budget": 1,
+    "dot": "D",
+    "from": 2
+   },
+   "objective": "Put D in the frame so that one place belongs to four dots at once: A, B, C and D are all nearest to it. Press Check to see the regions.",
+   "visibleObjective": "Make one place belong to four dots.",
+   "instruction": "Put D in the frame so that one place belongs to four dots at once: A, B, C and D are all nearest to it. Press Check to see the regions.",
+   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
+   "rules": [
+    "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
+    "A dot’s region is all of its places. The map goes on past the frame.",
+    "New dots go where grid lines cross, inside the frame. The regions stay hidden until you press Check.",
+    "Where three or more regions meet, a small ring marks the place they share."
+   ],
+   "idea": "Four dots on one circle share its centre: a place can belong to four dots.",
+   "prerequisites": "Compare distances by eye. A grown-up can read the goal.",
+   "hints": [
+    "Check once with D anywhere. Where do A, B and C meet?",
+    "A, B and C meet at a place 2 squares from each of them. D must be just as far from it.",
+    "Put D 4 squares below C."
+   ],
+   "parent": {
+    "notice": "Whether your child uses a first Check to find where A, B and C meet, then places D by distance from that place.",
+    "prompt": "How far is the place where A, B and C meet from each of them?",
+    "explanation": "A, B and C are each 2 squares from the middle of the board, so the middle belongs to all three. D shares it when D is also 2 squares from it and no dot is nearer: D must be on the circle through A, B and C, centred in the middle. The only free grid point on that circle is 2 squares below the middle, opposite C. Then the middle belongs to A, B, C and D.",
+    "extension": "Can five dots share one place? (Yes, if all five lie on one circle round it with no dot inside.)",
+    "connection": "A place shared by k sites is the centre of an empty circle through them; four cocircular sites give a vertex of degree four, which algorithms often assume away (the guide’s note on Mount’s lecture).",
+    "sourceIds": [
+     "sites-week15",
+     "sites-card15",
+     "sites-mount"
+    ]
+   },
+   "solution": {
+    "answers": [
+     [
+      0,
+      -2
+     ]
+    ]
+   },
+   "provenance": "Week 15 grades 2–3 Problem 7’s failing placement, D at (0, −2), with the four-way meeting of K–1 Problem 5 and grades 2–3 Problem 4, on the dots of grades 2–3 Problem 2."
+  },
+  {
+   "id": "sites-06",
+   "number": 6,
+   "title": "Two but not three",
+   "difficulty_level": "medium",
+   "familyTitle": "Nearest dots",
+   "mechanic": "sites",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/sites/README.md",
+   "parameters": {
+    "mode": "touch",
+    "frame": 6,
+    "view": 7,
+    "sites": [
+     [
+      -4,
+      0
+     ],
+     [
+      4,
+      0
+     ],
+     [
+      0,
+      4
+     ]
+    ],
+    "names": [
+     "A",
+     "B",
+     "C"
+    ],
+    "focus": 0,
+    "budget": 1,
+    "dot": "D",
+    "touch": [
+     0,
+     1
+    ],
+    "avoid": [
+     2
+    ],
+    "from": 2,
+    "aim": [
+     0,
+     -5
+    ]
+   },
+   "objective": "Put D in the frame so that D’s region shares at least one place with A’s region and one with B’s, and no place with C’s. Press Check to see the regions.",
+   "visibleObjective": "Make D’s region touch A’s and B’s, but not C’s.",
+   "instruction": "Put D in the frame so that D’s region shares at least one place with A’s region and one with B’s, and no place with C’s. Press Check to see the regions.",
+   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
+   "rules": [
+    "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
+    "A dot’s region is all of its places. The map goes on past the frame.",
+    "New dots go where grid lines cross, inside the frame. The regions stay hidden until you press Check.",
+    "Two regions touch when they share a place, even a single point."
+   ],
+   "idea": "A region touches another when they share even one place; a four-way tie counts.",
+   "prerequisites": "Picture which regions lie next to a dot. A grown-up can read the goal.",
+   "hints": [
+    "Where would D’s region be? Which regions would be next to it?",
+    "If D is as far from the middle as A, B and C, all four share the middle. Go a little farther.",
+    "Put D 4½ squares below C."
+   ],
+   "parent": {
+    "notice": "A child who has just solved puzzle 5 may put D 4 squares below C. Then D’s region shares the middle with C’s at a single point, which counts as touching.",
+    "prompt": "Do D’s region and C’s region share any place, even one point?",
+    "explanation": "Regions touch when some place belongs to both. With D straight below the middle at distance 2, the middle is a four-way tie and D touches C there. Farther down, the middle belongs only to A, B and C, and D’s region shares a slanted edge with A’s and one with B’s and stays away from C’s. On the middle line, D works 2½ or 3 squares below the middle; across the frame, 56 grid points work, including some just below A or B.",
+    "extension": "Put D so that its region touches only C’s. (Above C, for example.)",
+    "connection": "Which regions share an edge is the Delaunay triangulation of the sites: a graph that this puzzle adds one vertex to.",
+    "sourceIds": [
+     "sites-week15",
+     "sites-card15",
+     "sites-mount"
+    ]
+   },
+   "solution": {
+    "answers": [
+     [
+      -2.5,
+      -0.5
+     ],
+     [
+      -2,
+      -0.5
+     ],
+     [
+      2,
+      -0.5
+     ],
+     [
+      2.5,
+      -0.5
+     ],
+     [
+      -3,
+      -1
+     ],
+     [
+      -2.5,
+      -1
+     ],
+     [
+      -2,
+      -1
+     ],
+     [
+      2,
+      -1
+     ],
+     [
+      2.5,
+      -1
+     ],
+     [
+      3,
+      -1
+     ],
+     [
+      -3,
+      -1.5
+     ],
+     [
+      -2.5,
+      -1.5
+     ],
+     [
+      -2,
+      -1.5
+     ],
+     [
+      -1.5,
+      -1.5
+     ],
+     [
+      1.5,
+      -1.5
+     ],
+     [
+      2,
+      -1.5
+     ],
+     [
+      2.5,
+      -1.5
+     ],
+     [
+      3,
+      -1.5
+     ],
+     [
+      -3,
+      -2
+     ],
+     [
+      -2.5,
+      -2
+     ],
+     [
+      -2,
+      -2
+     ],
+     [
+      -1.5,
+      -2
+     ],
+     [
+      -1,
+      -2
+     ],
+     [
+      -0.5,
+      -2
+     ],
+     [
+      0.5,
+      -2
+     ],
+     [
+      1,
+      -2
+     ],
+     [
+      1.5,
+      -2
+     ],
+     [
+      2,
+      -2
+     ],
+     [
+      2.5,
+      -2
+     ],
+     [
+      3,
+      -2
+     ],
+     [
+      -3,
+      -2.5
+     ],
+     [
+      -2.5,
+      -2.5
+     ],
+     [
+      -2,
+      -2.5
+     ],
+     [
+      -1.5,
+      -2.5
+     ],
+     [
+      -1,
+      -2.5
+     ],
+     [
+      -0.5,
+      -2.5
+     ],
+     [
+      0,
+      -2.5
+     ],
+     [
+      0.5,
+      -2.5
+     ],
+     [
+      1,
+      -2.5
+     ],
+     [
+      1.5,
+      -2.5
+     ],
+     [
+      2,
+      -2.5
+     ],
+     [
+      2.5,
+      -2.5
+     ],
+     [
+      3,
+      -2.5
+     ],
+     [
+      -3,
+      -3
+     ],
+     [
+      -2.5,
+      -3
+     ],
+     [
+      -2,
+      -3
+     ],
+     [
+      -1.5,
+      -3
+     ],
+     [
+      -1,
+      -3
+     ],
+     [
+      -0.5,
+      -3
+     ],
+     [
+      0,
+      -3
+     ],
+     [
+      0.5,
+      -3
+     ],
+     [
+      1,
+      -3
+     ],
+     [
+      1.5,
+      -3
+     ],
+     [
+      2,
+      -3
+     ],
+     [
+      2.5,
+      -3
+     ],
+     [
+      3,
+      -3
+     ]
+    ]
+   },
+   "provenance": "Week 15 grades 2–3 Problem 7: put D so its region shares places with A’s and B’s but none with C’s."
+  },
+  {
+   "id": "sites-07",
+   "number": 7,
+   "title": "Take S",
+   "difficulty_level": "medium",
+   "familyTitle": "Nearest dots",
+   "mechanic": "sites",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/sites/README.md",
+   "parameters": {
+    "mode": "take",
+    "frame": 6,
+    "view": 7,
+    "sites": [
+     [
+      0,
+      4
+     ]
+    ],
+    "names": [
+     "A"
+    ],
+    "focus": 0,
+    "budget": 2,
+    "keep": [
+     {
+      "name": "P",
+      "at": [
+       -4,
+       0
+      ]
+     },
+     {
+      "name": "Q",
+      "at": [
+       4,
+       0
+      ]
+     }
+    ],
+    "take": {
+     "name": "S",
+     "at": [
+      0,
+      -4
+     ]
+    },
+    "aim": [
+     0,
+     -5
+    ]
+   },
+   "objective": "Put new dots so that S stops belonging to A while P and Q still belong to A, and press Check. If it can’t be done, press Can’t after a Check and tap two places that show why.",
+   "visibleObjective": "Take S from A, but keep P and Q with A.",
+   "instruction": "Put new dots so that S stops belonging to A while P and Q still belong to A, and press Check. If it can’t be done, press Can’t after a Check and tap two places that show why.",
+   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change. After a Check, press Can’t, then tap two places.",
+   "rules": [
+    "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
+    "A dot’s region is all of its places. The map goes on past the frame.",
+    "New dots go where grid lines cross, inside the frame. The regions stay hidden until you press Check.",
+    "If it can’t be done, press Can’t after a Check and tap two places A must keep (A’s own dot counts), with S on the straight line between them."
+   ],
+   "idea": "A new dot takes the places near it but must not come nearer to P and Q than A is.",
+   "prerequisites": "Compare a few distances. A grown-up can read the goal.",
+   "hints": [
+    "Put a dot near S, then look at P and Q.",
+    "A dot right on S takes S, and P and Q tie between A and it, which still counts as A’s.",
+    "Put a dot half a square below S."
+   ],
+   "parent": {
+    "notice": "Whether your child puts a dot between S and the middle first; it takes P and Q too.",
+    "prompt": "How near may the new dot come to P before P stops being A’s?",
+    "explanation": "P is about 2.8 squares from A. A new dot takes P only if it comes nearer to P than that, and takes S if it is nearer to S than A is (4 squares). A dot half a square below S makes the edge with A a line a quarter square below the middle, so S is the new dot’s and P and Q are A’s. A dot right on S makes the edge pass through P and Q, which then tie and stay A’s. Seventeen grid points in the frame work for one dot.",
+    "extension": "Can a dot above A take S? (No: S would still be nearer to A.)",
+    "connection": "Puzzle 10 asks the same with R in the middle, where it can’t be done.",
+    "sourceIds": [
+     "sites-week15",
+     "sites-card15",
+     "sites-mount"
+    ]
+   },
+   "solution": {
+    "answers": [
+     [
+      0,
+      -2
+     ],
+     [
+      -0.5,
+      -2.5
+     ],
+     [
+      0,
+      -2.5
+     ],
+     [
+      0.5,
+      -2.5
+     ],
+     [
+      -3,
+      -3
+     ],
+     [
+      -2.5,
+      -3
+     ],
+     [
+      -2,
+      -3
+     ],
+     [
+      -1.5,
+      -3
+     ],
+     [
+      -1,
+      -3
+     ],
+     [
+      -0.5,
+      -3
+     ],
+     [
+      0,
+      -3
+     ],
+     [
+      0.5,
+      -3
+     ],
+     [
+      1,
+      -3
+     ],
+     [
+      1.5,
+      -3
+     ],
+     [
+      2,
+      -3
+     ],
+     [
+      2.5,
+      -3
+     ],
+     [
+      3,
+      -3
+     ]
+    ]
+   },
+   "provenance": "Week 15 grades 4–5 Problem 8, the point S: A at (0, 2), P and Q at (∓2, 0), S at (0, −2)."
+  },
+  {
+   "id": "sites-08",
+   "number": 8,
+   "title": "Close A in",
+   "difficulty_level": "medium",
+   "familyTitle": "Nearest dots",
+   "mechanic": "sites",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/sites/README.md",
+   "parameters": {
+    "mode": "fit",
+    "frame": 6,
+    "view": 7,
+    "sites": [
+     [
+      0,
+      0
+     ]
+    ],
+    "names": [
+     "A"
+    ],
+    "focus": 0,
+    "budget": 4,
+    "witnesses": [
+     [
+      [
+       0,
+       4
+      ],
+      [
+       4,
+       -2
+      ],
+      [
+       -4,
+       -2
+      ]
+     ],
+     [
+      [
+       0,
+       -4
+      ],
+      [
+       4,
+       2
+      ],
+      [
+       -4,
+       2
+      ]
+     ],
+     [
+      [
+       4,
+       0
+      ],
+      [
+       -2,
+       4
+      ],
+      [
+       -2,
+       -4
+      ]
+     ],
+     [
+      [
+       -4,
+       0
+      ],
+      [
+       2,
+       4
+      ],
+      [
+       2,
+       -4
+      ]
+     ],
+     [
+      [
+       0,
+       4
+      ],
+      [
+       4,
+       -4
+      ],
+      [
+       -4,
+       -4
+      ]
+     ]
+    ],
+    "fewest": 3
+   },
+   "objective": "Put new dots so that A’s whole region fits inside the frame, with as few dots as possible. Press Check, and then Fewest when no fewer dots could do it.",
+   "visibleObjective": "Fit A’s whole region in the frame, with the fewest dots.",
+   "instruction": "Put new dots so that A’s whole region fits inside the frame, with as few dots as possible. Press Check, and then Fewest when no fewer dots could do it.",
+   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change. Press Fewest once the region fits.",
+   "rules": [
+    "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
+    "A dot’s region is all of its places. The map goes on past the frame.",
+    "New dots go where grid lines cross, inside the frame. The regions stay hidden until you press Check.",
+    "When the region fits, press Fewest if no fewer dots could do it. If fewer can, it says so."
+   ],
+   "idea": "A closed region needs at least three sides, and each side needs its own dot.",
+   "prerequisites": "Count sides of a shape. A grown-up can read the goal.",
+   "hints": [
+    "Close A’s region in first, with any number of dots.",
+    "Each side of A’s region comes from one new dot. How few sides can a closed shape have?",
+    "Three dots around A close it: 2 squares above A, and 2 right and 1 down, and 2 left and 1 down from A."
+   ],
+   "parent": {
+    "notice": "Whether your child starts with four dots in a square around A, and after “Fewer dots can.” takes one away and finds the region open on one side.",
+    "prompt": "With two dots, which way does A’s region still run off?",
+    "explanation": "Each side of A’s region is the halfway line between A and one other dot, so a region with k sides needs k dots. A closed region needs at least three sides: two lines leave a strip, a wedge or a half-plane, which runs off forever. So three dots are needed, and three around A, not all on one side of it, close it; the ones in hint 3 give the triangle of grades 4–5 Problem 3. The app checked every placement of two dots on the grid: none fits.",
+    "extension": "Can three dots all on one side of A close it? (No: A’s region then runs off on the other side.)",
+    "connection": "A bounded intersection of half-planes needs at least three of them, whose inward directions surround the origin; the guide’s lower bound says each straight edge of a whole cell needs a different competitor.",
+    "sourceIds": [
+     "sites-week15",
+     "sites-card15",
+     "sites-mount"
+    ]
+   },
+   "solution": {
+    "fewest": 3,
+    "dots": [
+     [
+      -2,
+      -1
+     ],
+     [
+      0,
+      2
+     ],
+     [
+      2,
+      -1
+     ]
+    ]
+   },
+   "provenance": "New, from the Week 15 guide’s lower bound for minimum-site tasks (each straight edge of a whole cell needs a different competitor) and grades 4–5 Problem 3’s triangular cell."
+  },
+  {
+   "id": "sites-09",
+   "number": 9,
+   "title": "A triangle",
+   "difficulty_level": "hard",
+   "familyTitle": "Nearest dots",
+   "mechanic": "sites",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/sites/README.md",
+   "parameters": {
+    "mode": "make",
+    "frame": 6,
+    "view": 7,
+    "sites": [
+     [
+      0,
+      0
+     ]
+    ],
+    "names": [
+     "A"
+    ],
+    "focus": 0,
+    "budget": 3,
+    "target": [
+     {
+      "a": 0,
+      "b": -1,
+      "c": 2
+     },
+     {
+      "a": 1,
+      "b": 1,
+      "c": 4
+     },
+     {
+      "a": -1,
+      "b": 1,
+      "c": 4
+     }
+    ]
+   },
+   "objective": "Put new dots in the frame so that A’s whole region is exactly the shaded part. Press Check to see the regions.",
+   "visibleObjective": "Make A’s region exactly the shaded part.",
+   "instruction": "Put new dots in the frame so that A’s whole region is exactly the shaded part. Press Check to see the regions.",
+   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.",
+   "rules": [
+    "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
+    "A dot’s region is all of its places. The map goes on past the frame.",
+    "New dots go where grid lines cross, inside the frame. The regions stay hidden until you press Check.",
+    "A’s region must be exactly the shaded part everywhere, not just inside the frame."
+   ],
+   "idea": "Reflecting the dot across each side makes a triangle round it into its region.",
+   "prerequisites": "Picture mirror images across slanted lines.",
+   "hints": [
+    "Do one side at a time. Which dot makes the bottom side?",
+    "Each new dot is A’s mirror image across one side.",
+    "Put dots 2 squares below A, and 2 right and 2 up, and 2 left and 2 up from A."
+   ],
+   "parent": {
+    "notice": "Whether your child gets the bottom side first and then mirrors A across the slanted sides, or tries the corners of the triangle.",
+    "prompt": "Why aren’t the new dots at the corners of the triangle?",
+    "explanation": "Each side must be the halfway line between A and a new dot, so each dot is A’s mirror image across one side: 2 squares below A for the bottom (y = −1), and 2 right and 2 up, and 2 left and 2 up, for the slanted sides (x + y = 2 and y − x = 2). Three sides need three dots, and each is forced, so this is the only answer. A’s whole region is then the triangle with corners 3 left and 1 down, 3 right and 1 down, and 2 up from A.",
+    "extension": "Can the same trick give A any shape? (Any shape with straight sides and no dents that holds A inside, and no other dots in the way.)",
+    "connection": "The inverse construction: a convex polygon is the Voronoi cell of a point inside it when its sites are that point’s reflections in the sides (with no other sites present).",
+    "sourceIds": [
+     "sites-week15",
+     "sites-card15",
+     "sites-mount"
+    ]
+   },
+   "solution": {
+    "dots": [
+     [
+      -2,
+      2
+     ],
+     [
+      0,
+      -2
+     ],
+     [
+      2,
+      2
+     ]
+    ]
+   },
+   "provenance": "Week 15 grades 4–5 Problem 7 (build the prescribed triangle), with a triangle whose reflections lie on the half-unit lattice: the worksheet’s triangle (−2, −1), (2, −1), (0, 2) needs dots at (±24/13, 16/13)."
+  },
+  {
+   "id": "sites-10",
+   "number": 10,
+   "title": "Take R",
+   "difficulty_level": "hard",
+   "familyTitle": "Nearest dots",
+   "mechanic": "sites",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/sites/README.md",
+   "parameters": {
+    "mode": "take",
+    "frame": 6,
+    "view": 7,
+    "sites": [
+     [
+      0,
+      4
+     ]
+    ],
+    "names": [
+     "A"
+    ],
+    "focus": 0,
+    "budget": 2,
+    "keep": [
+     {
+      "name": "P",
+      "at": [
+       -4,
+       0
+      ]
+     },
+     {
+      "name": "Q",
+      "at": [
+       4,
+       0
+      ]
+     }
+    ],
+    "take": {
+     "name": "R",
+     "at": [
+      0,
+      0
+     ]
+    }
+   },
+   "objective": "Put new dots so that R stops belonging to A while P and Q still belong to A, and press Check. If it can’t be done, press Can’t after a Check and tap two places that show why.",
+   "visibleObjective": "Take R from A, but keep P and Q with A.",
+   "instruction": "Put new dots so that R stops belonging to A while P and Q still belong to A, and press Check. If it can’t be done, press Can’t after a Check and tap two places that show why.",
+   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change. After a Check, press Can’t, then tap two places.",
+   "rules": [
+    "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
+    "A dot’s region is all of its places. The map goes on past the frame.",
+    "New dots go where grid lines cross, inside the frame. The regions stay hidden until you press Check.",
+    "If it can’t be done, press Can’t after a Check and tap two places A must keep (A’s own dot counts), with R on the straight line between them."
+   ],
+   "idea": "A region has no dents: holding P and Q, it holds everything between them.",
+   "prerequisites": "See that a region has no dents. A grown-up can read the goal.",
+   "hints": [
+    "Try to take R with a dot. What happens to P or Q?",
+    "A’s region never has a dent: if it holds two places, it holds the straight line between them.",
+    "Put a dot on R and press Check. Then press Can’t and tap P and Q."
+   ],
+   "parent": {
+    "notice": "Whether your child tries several dots before suspecting it can’t be done, and then looks for why.",
+    "prompt": "If P and Q are A’s, what about the places on the line between them?",
+    "explanation": "Each region is the overlap of half-planes, one for each other dot, and a half-plane that holds two places holds the whole segment between them. So a region has no dents: if P and Q are A’s, every place between them is A’s, and R is the middle of P and Q. No dots, however many or wherever, can take R while keeping P and Q. The segment from P to Q through R is the certificate.",
+    "extension": "Puzzle 7’s S is outside the triangle with corners A, P and Q. Is that why it can be taken? (Yes: a line can separate S from the triangle, and a dot at A’s mirror image across that line takes S. A place inside the triangle could never be taken, since A’s region would hold the whole triangle.)",
+    "connection": "Voronoi cells are convex. The same argument shows a cell holds the convex hull of any of its points.",
+    "sourceIds": [
+     "sites-week15",
+     "sites-card15",
+     "sites-mount"
+    ]
+   },
+   "solution": {
+    "try": [
+     [
+      0,
+      0
+     ]
+    ],
+    "cant": [
+     "P",
+     "Q"
+    ]
+   },
+   "provenance": "Week 15 grades 4–5 Problem 8, the point R: A at (0, 2), P and Q at (∓2, 0), R at (0, 0)."
+  },
+  {
+   "id": "sites-11",
+   "number": 11,
+   "title": "Keep P, take R",
+   "difficulty_level": "hard",
+   "familyTitle": "Nearest dots",
+   "mechanic": "sites",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/sites/README.md",
+   "parameters": {
+    "mode": "take",
+    "frame": 6,
+    "view": 7,
+    "sites": [
+     [
+      -4,
+      4
+     ]
+    ],
+    "names": [
+     "A"
+    ],
+    "focus": 0,
+    "budget": 2,
+    "keep": [
+     {
+      "name": "P",
+      "at": [
+       4,
+       -4
+      ]
+     }
+    ],
+    "take": {
+     "name": "R",
+     "at": [
+      2,
+      2
+     ]
+    },
+    "aim": [
+     -2,
+     6
+    ]
+   },
+   "objective": "Put new dots so that R stops belonging to A while P still belongs to A, and press Check. If it can’t be done, press Can’t after a Check and tap two places that show why.",
+   "visibleObjective": "Take R from A, but keep P with A.",
+   "instruction": "Put new dots so that R stops belonging to A while P still belongs to A, and press Check. If it can’t be done, press Can’t after a Check and tap two places that show why.",
+   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change. After a Check, press Can’t, then tap two places.",
+   "rules": [
+    "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
+    "A dot’s region is all of its places. The map goes on past the frame.",
+    "New dots go where grid lines cross, inside the frame. The regions stay hidden until you press Check.",
+    "If it can’t be done, press Can’t after a Check and tap two places A must keep (A’s own dot counts), with R on the straight line between them."
+   ],
+   "idea": "A place off the line from A to P can be taken: reflect A across a line that separates them.",
+   "prerequisites": "Picture a mirror image across a line. A grown-up can read the goal.",
+   "hints": [
+    "A dot near R takes P too. Where could a dot be nearer to R than A is, but not nearer to P?",
+    "Picture a line between R and the line from A to P. The new dot is A’s mirror image across it.",
+    "Put a dot 1 square right and 1 square up from A."
+   ],
+   "parent": {
+    "notice": "Whether your child keeps putting dots near R (each takes P too), and whether pressing Can’t and tapping A and P (“Misses R.”) sends them looking for another way.",
+    "prompt": "Is R on the line from A to P? Then could a line separate them?",
+    "explanation": "R is off the segment from A to P, so a line can run between them, parallel to that segment and between it and R. Put a dot at A’s mirror image across such a line: that line is then the edge, A and P are on A’s side, and R is on the new dot’s. Two such lines put the dot on the grid inside the frame: 1 right and 1 up from A, or ½ right and ½ up. Those are the only two grid points that work; lines nearer R put the dot outside the frame.",
+    "extension": "If R were on the line from A to P, could it be taken? (No: A’s region holds A and P and so the whole segment.)",
+    "connection": "A point outside a convex set can be separated from it by a line (the separating hyperplane theorem); reflecting the site across that line realizes the separation as a Voronoi edge.",
+    "sourceIds": [
+     "sites-week15",
+     "sites-card15",
+     "sites-mount"
+    ]
+   },
+   "solution": {
+    "answers": [
+     [
+      -1,
+      3
+     ],
+     [
+      -1.5,
+      2.5
+     ]
+    ]
+   },
+   "provenance": "New, the review card’s App fit task “take a point while keeping others”, with R off the segment from A to P so that it can be taken, by a dot behind A."
+  },
+  {
+   "id": "sites-12",
+   "number": 12,
+   "title": "Close B in",
+   "difficulty_level": "hard",
+   "familyTitle": "Nearest dots",
+   "mechanic": "sites",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/sites/README.md",
+   "parameters": {
+    "mode": "fit",
+    "frame": 6,
+    "view": 7,
+    "sites": [
+     [
+      -4,
+      0
+     ],
+     [
+      0,
+      0
+     ],
+     [
+      4,
+      0
+     ]
+    ],
+    "names": [
+     "A",
+     "B",
+     "C"
+    ],
+    "focus": 1,
+    "budget": 4,
+    "witnesses": [
+     [
+      [
+       0,
+       -4
+      ],
+      [
+       0,
+       4
+      ]
+     ],
+     [
+      [
+       0,
+       -6
+      ],
+      [
+       0,
+       6
+      ]
+     ],
+     [
+      [
+       0,
+       -5
+      ],
+      [
+       0,
+       4
+      ]
+     ],
+     [
+      [
+       2,
+       4
+      ],
+      [
+       -2,
+       -4
+      ]
+     ],
+     [
+      [
+       -2,
+       4
+      ],
+      [
+       2,
+       -4
+      ]
+     ]
+    ],
+    "fewest": 2
+   },
+   "objective": "Put new dots so that B’s whole region fits inside the frame, with as few dots as possible. Press Check, and then Fewest when no fewer dots could do it.",
+   "visibleObjective": "Fit B’s whole region in the frame, with the fewest dots.",
+   "instruction": "Put new dots so that B’s whole region fits inside the frame, with as few dots as possible. Press Check, and then Fewest when no fewer dots could do it.",
+   "controls": "Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change. Press Fewest once the region fits.",
+   "rules": [
+    "Every place belongs to the dot nearest to it, measured straight to the middle of each dot. A place just as near to two or more dots belongs to all of them.",
+    "A dot’s region is all of its places. The map goes on past the frame.",
+    "New dots go where grid lines cross, inside the frame. The regions stay hidden until you press Check.",
+    "When the region fits, press Fewest if no fewer dots could do it. If fewer can, it says so."
+   ],
+   "idea": "Two parallel sides need two more dots to close a region.",
+   "prerequisites": "Picture a region running off past the frame.",
+   "hints": [
+    "Try a few dots and press Check. Which way does B’s region still run off?",
+    "A and C give B two sides that never meet: one new side can close the top or the bottom, not both.",
+    "Put dots 2 squares above B and 2 squares below B."
+   ],
+   "parent": {
+    "notice": "A child who has done puzzle 8 may think one dot is enough here, since A and C already give two sides. Watch for the moment one dot leaves the region open at the other end.",
+    "prompt": "With one new dot, which way does B’s region still run off?",
+    "explanation": "A and C give B the strip between two upright lines, 1 square either side of B. A new dot adds one half-plane. If the dot is above B, the strip still runs off downward; below, upward; level with B, the strip only narrows. So one dot never closes B’s region, wherever it goes (the app also checked every grid point), and two can: 2 squares above and below B give the square of side 2 around B.",
+    "extension": "Find two dots that close B’s region into a shape that is not a square. (For example, 1 right and 2 up, and 1 left and 2 down from B.)",
+    "connection": "The two parallel bisectors leave two opposite unbounded directions; closing a region needs half-planes whose inward normals surround the origin, and one more normal can’t do it.",
+    "sourceIds": [
+     "sites-week15",
+     "sites-card15",
+     "sites-mount"
+    ]
+   },
+   "solution": {
+    "fewest": 2,
+    "dots": [
+     [
+      0,
+      -2
+     ],
+     [
+      0,
+      2
+     ]
+    ]
+   },
+   "provenance": "Week 15 grades 4–5 Problem 6: A, B and C at (−2, 0), (0, 0) and (2, 0); the fewest new dots so that B’s entire region fits inside the frame."
+  }
+ ]
+}
