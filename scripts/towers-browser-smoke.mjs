@@ -118,6 +118,7 @@ try {
   assert.equal(await page.locator('.tw-side').count(), 1, 'the side view');
   assert.equal(await page.locator('.tw-city .latin-cell.seen').count(), 2, 'row 2 (2 3 1) from the right: the 1 and the 3');
   assert.equal(await page.locator('.tw-city .latin-cell.hidden').count(), 1, 'the 2 is hidden');
+  assert.equal(await page.locator('.tw-side.from-end > :last-child').evaluate(e => e.classList.contains('tw-eye')), true, 'the eye on the right, the side looked from');
   await shot('city-look');
   await cityTo(C3, [2, 3, 1, 3, 1, 2, 1, 2, 3]);
   await done();
@@ -130,7 +131,7 @@ try {
   await button('No city').click();
   assert.equal(await page.locator('.tw-slot.pickable').count(), 12, 'every edge place is a target');
   await tap(slot(S(3, 'left', 1)));
-  assert.equal(await page.locator('.tw-note').innerText(), 'The tallest can stand here.');
+  assert.equal(await page.locator('.tw-note').innerText(), 'No edge number rules this square out.');
   assert.equal(await page.locator('.latin-cell.could').count(), 1);
   assert.equal(await focusIsClaim(), false, 'focus is not left on No city');
   await button('No city').click();

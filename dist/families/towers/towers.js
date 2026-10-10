@@ -482,10 +482,14 @@ const fill = (v, n) => v ? `<i class="tw-fill" style="--f:${(v / n).toFixed(3)}"
 function miniHtml(n, cells, {clues = null, mark = new Set(), label = 'City'} = {}) {
   return gridHtml(n, k => `<span class="tw-mc${mark.has(k) ? ' marked' : ''}">${cells[k] || ''}</span>`, s => `<span class="tw-ms">${clues?.[s] || ''}</span>`, 'tw-mini', label);
 }
-// The side view along a full line, from its edge place.
+// The side view along a full line, from its edge place. The strip runs in the
+// grid's reading order (a row left to right, a column top to bottom), with the
+// eye at the end being looked from.
 function sideView(n, cells, s) {
-  const hs = lineOf(n, s).map(k => cells[k]), mask = seenMask(hs);
-  return `<div class="tw-side" role="img" aria-label="${esc(`Looking ${slotWords(n, s)}: ${hs.join(', ')}; ${mask.filter(Boolean).length} seen`)}">${EYE}${hs.map((h, d) => `<span class="tw-tower small ${mask[d] ? 'seen' : 'hidden'}"><span class="tw-stack">${blocks(h)}</span></span>`).join('')}</div>`;
+  const hs = lineOf(n, s).map(k => cells[k]), mask = seenMask(hs), fromEnd = ['right', 'bottom'].includes(sideOf(n, s));
+  const towers = hs.map((h, d) => `<span class="tw-tower small ${mask[d] ? 'seen' : 'hidden'}"><span class="tw-stack">${blocks(h)}</span></span>`);
+  const strip = fromEnd ? `${towers.reverse().join('')}${EYE}` : `${EYE}${towers.join('')}`;
+  return `<div class="tw-side${fromEnd ? ' from-end' : ''}" role="img" aria-label="${esc(`Looking ${slotWords(n, s)}: ${hs.join(', ')}; ${mask.filter(Boolean).length} seen`)}">${strip}</div>`;
 }
 const full = (n, cells, s) => lineOf(n, s).every(k => cells[k]);
 // Edge numbers that a finished city does not show.
@@ -526,7 +530,7 @@ function renderCity(p, a) {
   const cell = k => {
     const v = cells[k], d = lookLine.indexOf(k);
     const cls = `tw-cell${v ? '' : ' empty'}${rep.has(k) ? ' latin-conflict' : ''}${d >= 0 ? (lookMask[d] ? ' seen' : ' hidden') : ''}${ruled.has(k) ? ' ruled' : ''}${k === could ? ' could' : ''}${k === hintCell ? ' hinted' : ''}`;
-    const label = `${capital(cellWords(n, k))}: ${v || 'empty'}${rep.has(k) ? '; repeated height' : ''}${ruled.has(k) ? '; the tallest can’t stand here' : ''}${k === could ? '; the tallest can stand here' : ''}`;
+    const label = `${capital(cellWords(n, k))}: ${v || 'empty'}${rep.has(k) ? '; repeated height' : ''}${ruled.has(k) ? '; the tallest can’t stand here' : ''}${k === could ? '; no edge number rules out the tallest here' : ''}`;
     if (!editable) return `<div class="latin-cell ${cls} tw-static" role="img" aria-label="${esc(label)}">${fill(v, n)}</div>`;
     return `<button type="button" class="latin-cell ${cls}" ${uiAttrs({sel: k}, `tw-cell-${k}`)} data-cell="${k}" aria-pressed="${k === sel}" aria-label="${esc(label)}">${fill(v, n)}</button>`;
   };
@@ -545,7 +549,7 @@ function renderCity(p, a) {
   let tools = '', note = '', extra = '';
   if (q.mode === 'city' && !done) {
     tools = `<button type="button" class="secondary tw-no${shown?.type === 'none' && !picking ? ' hinted' : ''}" ${uiAttrs({pick: !picking}, 'tw-no')} aria-pressed="${picking}" ${b.refused || !b.tried ? 'disabled' : ''}>No city</button>`;
-    note = b.refused ? 'A city fits.' : could !== null ? 'The tallest can stand here.' : '';
+    note = b.refused ? 'A city fits.' : could !== null ? 'No edge number rules this square out.' : '';
   }
   if (q.mode === 'every') {
     if (!b.all) tools = `<button type="button" class="secondary tw-all${shown?.type === 'all' ? ' hinted' : ''}" ${moveAttrs({type: 'all'}, 'tw-all')} ${b.told ? 'disabled' : ''}>That’s all</button>`;

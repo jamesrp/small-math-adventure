@@ -115,11 +115,17 @@ test('cities: heights on the Orchard board, a ring on numbers a full city does n
   html = view(p, wrong, true);
   assert.match(html, /tw-side/, 'the side view');
   assert.match(html, /Looking above column 3: 3, 1, 2; 1 seen/);
+  assert.match(html, /<div class="tw-side" [^>]*><svg class="tw-eye"/, 'looking down: the eye first');
+  M.ui(p, {look: slotOf(3, 'right', 1)});
+  html = view(p, wrong, true);
+  assert.match(html, /<div class="tw-side from-end" [^>]*aria-label="Looking right of row 2: 1, 3, 2; 2 seen">(<span class="tw-tower small \w+"><span class="tw-stack">(<i><\/i>)+<\/span><\/span>){3}<svg class="tw-eye"/, 'looking from the right: the eye on the right');
+  const order = [...html.match(/<div class="tw-side from-end"[^]*?<\/div>/)[0].matchAll(/<span class="tw-stack">((?:<i><\/i>)+)/g)].map(m => m[1].length / 7);
+  assert.deepEqual(order, [2, 3, 1], 'the strip reads like the grid row, left to right');
   const right = fill(p, fresh, '231312123');
   assert.ok(isSolved(p, right.board));
 });
 
-test('No city: waits for a height, then the line whose tallest has no place; a miss shows where it can stand', () => {
+test('No city: waits for a height, then the line whose tallest has no place; a miss rings a square no edge number rules out', () => {
   const p = byId(6), fresh = freshAttempt(p);
   assert.match(view(p, fresh), /tw-no"[^>]*disabled>No city/);
   for (let s = 0; s < 12; s++) assert.equal(move(p, fresh, {type: 'none', slot: s}), null, 'nothing before an attempt');
@@ -130,7 +136,7 @@ test('No city: waits for a height, then the line whose tallest has no place; a m
   const missed = play(p, tried, {type: 'none', slot: slotOf(3, 'left', 1)});
   assert.equal(missed.board.missed, slotOf(3, 'left', 1));
   html = view(p, missed);
-  assert.match(html, /The tallest can stand here\./);
+  assert.match(html, /No edge number rules this square out\./);
   assert.match(html, /tw-cell[^"]* could/);
   const done = play(p, missed, {type: 'none', slot: slotOf(3, 'left', 0)});
   assert.ok(isSolved(p, done.board));
