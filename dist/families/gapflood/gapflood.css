@@ -1,0 +1,77 @@
+@import url('../../graph-board.css');
+/* Meeting roads gaps: homes with their letters, three routes in their own
+   colours (side by side where they share a road), the chosen route's end
+   ringed, a flood of sun light spreading step by step from a tapped dot to
+   the pine-ringed dots where it meets another route, and the certificates:
+   a glowing tripod, ringed ladder columns, and the homes' light covering the
+   map. */
+.gf-puzzle{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%;--gf-AB:#b0567a;--gf-BC:#3f6fb0;--gf-CA:#2f7d6d}
+.gf-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .9rem;max-width:100%}
+.gf-chips{display:flex;gap:.45rem}
+.gf-puzzle .gf-chip{display:grid;place-items:center;width:54px;height:46px;min-height:0;padding:0 0 3px;border-radius:14px;border:2px solid var(--b-ink,#294439);border-bottom-width:7px;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);font:400 1.15rem/1 var(--b-display,Georgia,serif);box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer}
+.gf-puzzle .gf-chip.tAB{border-bottom-color:var(--gf-AB)}
+.gf-puzzle .gf-chip.tBC{border-bottom-color:var(--gf-BC)}
+.gf-puzzle .gf-chip.tCA{border-bottom-color:var(--gf-CA)}
+.gf-puzzle .gf-chip[aria-pressed="true"]{border-color:var(--b-pine,#31533e);border-bottom-color:inherit;box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-pine,#31533e);background:#eef3e3}
+.gf-puzzle .gf-chip.tAB[aria-pressed="true"]{border-bottom-color:var(--gf-AB)}
+.gf-puzzle .gf-chip.tBC[aria-pressed="true"]{border-bottom-color:var(--gf-BC)}
+.gf-puzzle .gf-chip.tCA[aria-pressed="true"]{border-bottom-color:var(--gf-CA)}
+.gf-puzzle .gf-chip:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:6px}
+.gf-puzzle .gf-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.gf-puzzle .gf-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+.gf-puzzle :is(.gf-button,.gf-chip).hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+
+/* The map. */
+.gf-map{max-width:440px}
+.gf-map.small{max-width:330px}
+.gf-map.ladder{max-width:600px}
+.gf-map .gb-node .gb-dot{stroke-width:2px}
+.gf-map .gb-node.home .gb-dot{stroke-width:4.5px}
+.gf-map .gb-node.home .gb-label{font-size:6px;fill:var(--b-ink,#294439)}
+.gf-map .gb-node.can-go:not(.home) .gb-dot{fill:var(--b-good-soft,#e2ecd6);stroke:var(--b-pine,#31533e)}
+.gf-map .gb-node.pen .gb-reach{fill:none;stroke-width:4px;vector-effect:non-scaling-stroke}
+.gf-map .gb-node.pen.tAB .gb-reach{stroke:var(--gf-AB)}
+.gf-map .gb-node.pen.tBC .gb-reach{stroke:var(--gf-BC)}
+.gf-map .gb-node.pen.tCA .gb-reach{stroke:var(--gf-CA)}
+
+/* Routes, side by side where they share a road. */
+.gf-trail{stroke-width:5px;vector-effect:non-scaling-stroke;stroke-linecap:round;pointer-events:none}
+.gf-trail.tAB{stroke:var(--gf-AB)}
+.gf-trail.tBC{stroke:var(--gf-BC);stroke-dasharray:11 4}
+.gf-trail.tCA{stroke:var(--gf-CA);stroke-dasharray:3 4}
+
+/* The flood: sun light on the dots nearer than the gap and along the roads it
+   spread by, step after step; pine rings where it meets another route. */
+.gf-flood{stroke:rgba(239,199,110,.75);stroke-width:17px;vector-effect:non-scaling-stroke;stroke-linecap:round;pointer-events:none}
+.gf-map .gb-node.lit .gb-dot{fill:#f8dd9c}
+.gf-map .gb-node.source .gb-dot{fill:var(--b-sun,#efc76e);stroke:var(--b-ink,#294439);stroke-width:3px}
+.gf-map .gb-node.meet .gb-reach,.gf-map .gb-node.centre .gb-reach{fill:none;stroke:var(--b-pine,#31533e);stroke-width:4px;vector-effect:non-scaling-stroke}
+.gf-map .gb-node.far .gb-reach{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:4px;vector-effect:non-scaling-stroke}
+.gf-map .gb-badge circle{r:4.2px}
+.gf-map .gb-badge text{font-size:5.6px;font-weight:700;transform:translateY(.55px)}
+.gf-map .gb-node.lit:not(.home) .gb-label{font-size:5px;fill:var(--b-ink,#294439)}
+@media (prefers-reduced-motion:no-preference){
+  .gf-flood{animation:gf-shine .45s ease-out both}
+  .gf-map .gb-node.lit .gb-dot{animation:gf-light .45s ease-out both}
+  .gf-map .d1:is(line),.gf-map .gb-node.d1 .gb-dot{animation-delay:.16s}
+  .gf-map .d2:is(line),.gf-map .gb-node.d2 .gb-dot{animation-delay:.32s}
+  .gf-map .d3:is(line),.gf-map .gb-node.d3 .gb-dot{animation-delay:.48s}
+  .gf-map .d4:is(line),.gf-map .gb-node.d4 .gb-dot{animation-delay:.64s}
+  .gf-map .d5:is(line),.gf-map .gb-node.d5 .gb-dot{animation-delay:.8s}
+  .gf-map .d6:is(line),.gf-map .gb-node.d6 .gb-dot{animation-delay:.96s}
+  .gf-map .d7:is(line),.gf-map .gb-node.d7 .gb-dot{animation-delay:1.12s}
+}
+@keyframes gf-shine{from{opacity:0}}
+@keyframes gf-light{from{fill:var(--b-card,#fffdf5)}}
+
+/* Certificates: the tripod's roads glow; a ladder's columns are ringed once
+   in the colour of each route that crosses them; for Best, every dot shows
+   its steps to the nearest home and the farthest are ringed in ochre. */
+.gf-glow{stroke:rgba(239,199,110,.7);stroke-width:19px;vector-effect:non-scaling-stroke;stroke-linecap:round;pointer-events:none}
+.gf-column{fill:none;stroke-width:3px;vector-effect:non-scaling-stroke;pointer-events:none}
+.gf-column.tAB{stroke:var(--gf-AB)}
+.gf-column.tBC{stroke:var(--gf-BC)}
+.gf-column.tCA{stroke:var(--gf-CA)}
+
+/* Words that answer a Can't or a Best, or name a certificate. */
+.gf-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
