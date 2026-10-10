@@ -1,0 +1,262 @@
+// Authoring list for Geoboard (worksheet Week 57, area from dots). Checks
+// every witness with the mechanic's own counts, enumerates every triangle and
+// four-sided band on each puzzle's board to count the shapes that meet its
+// goal (or that none does), enumerates every cut of the cut puzzles, and
+// writes dist/families/geoboard/geoboard.json. Run: node scripts/build-geoboard.mjs
+import {writeFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import {problemOf, recordOf, matches, cornerCount, dotOf, xyOf, forcedOf, hiddenOf, countable, cutProblem, pieceRecords} from '../dist/families/geoboard/geoboard.js';
+
+const sources = ['geoboard-week57', 'geoboard-card57', 'geoboard-bay', 'geoboard-nrich'];
+const familyTitle = 'Geoboard';
+
+// Every band with three or four real corners on a w × h board, with its record.
+const shapeCache = new Map();
+export function smallShapes(w, h) {
+  const key = `${w}x${h}`;
+  if (shapeCache.has(key)) return shapeCache.get(key);
+  const s = {w, h}, n = w * h, out = [];
+  const take = loop => {
+    if (problemOf(s, [loop], [], false)) return;
+    if (cornerCount(loop.map(d => xyOf(s, d))) !== loop.length) return;
+    out.push({loop, corners: loop.length, rec: recordOf(s, [loop])});
+  };
+  for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) for (let c = b + 1; c < n; c++) {
+    take([a, b, c]);
+    for (let d = c + 1; d < n; d++) { take([a, b, c, d]); take([a, b, d, c]); take([a, c, b, d]); }
+  }
+  shapeCache.set(key, out);
+  return out;
+}
+const census = (w, h, goal) => {
+  const hits = smallShapes(w, h).filter(x => matches(goal, x.rec));
+  return {triangles: hits.filter(x => x.corners === 3).length, quads: hits.filter(x => x.corners === 4).length, areas: [...new Set(hits.map(x => x.rec.area))]};
+};
+const witnessRecord = (w, h, loops) => {
+  const s = {w, h}, dots = loops.map(l => l.map(p => dotOf(s, p)));
+  assert.equal(problemOf(s, dots, [], loops.length > 1), null, `witness ${JSON.stringify(loops)} is a legal band on ${w}×${h}`);
+  return recordOf(s, dots);
+};
+const fmt = v => Number.isInteger(v) ? String(v) : `${Math.floor(v) || ''}½`;
+
+const RULES = {
+  band: 'The band is one closed outline. Its sides may not cross or touch, except two sides in a row at their shared corner.',
+  dots: 'Outline dots (rings) are all the dots on the band, corners included. Inside dots (boxes) are strictly inside it. One square of dots has area 1.',
+  pick: 'Pick’s rule: area = inside dots + half the outline dots − 1.',
+  cant: 'If no band can match the goal, try a band first. Then press Can’t, set the number Pick’s rule would need in the goal’s empty box, and press Can’t again.',
+  pair: 'Make a triangle and a four-sided shape that both match the goal. A peg the band passes straight is not a corner.',
+  every: 'Each new pair of inside and outline counts with the goal’s area is kept below the board. Press That’s all when you think no other pair is left.',
+  holes: 'A hole is a second band inside the first, closed the same way. Holes may not touch the outline or each other. Dots on a hole’s band are outline dots; dots inside a hole are not inside dots.',
+  cut: 'A cut is a straight line between two outline dots of the shape. It may touch the outline only at its ends. A new cut replaces the old one.'
+};
+const CONTROLS = {
+  band: 'Tap a dot to start the band and tap more dots to stretch it; tap its first corner to close it. Tap the last corner to take it back. With the band closed, tap a corner and then another dot, or drag the corner, to move it. Clear takes the band off. Undo takes back the last move. Arrow keys move between dots.',
+  holes: 'With the outline closed, tap an inside dot to start a hole.',
+  cant: 'Can’t works once a band is closed on the board. Press it to open the goal’s empty box, set a number with − and +, and press Can’t again to claim.',
+  every: 'Press That’s all when you think no other pair of counts is left.',
+  cut: 'Tap an outline dot, then another, to cut between them. Tap the first dot again to let go. Undo takes back the last cut. Arrow keys move between dots.',
+  playground: 'Choose a board. Tap a dot to start a band, tap more dots to stretch it and tap its first corner to close it. Tap an inside dot to start a hole. Tap or drag a corner to move it.'
+};
+const PREREQUISITES = {
+  count: 'Count dots to about 12 and tell a dot on the band from a dot inside it. No reading; a grown-up can read How to play.',
+  area: 'Count squares and half squares for area, and count dots to about 12.',
+  cut: 'Count dots and squares; see that a cut splits a shape into two pieces.',
+  pick: 'Use Pick’s rule as printed in How to play: halve a number, add and subtract. A grown-up can help with the arithmetic.',
+  cant: 'Use Pick’s rule to find the number a goal would need, including halves, and decide whether any band can have it.',
+  every: 'Keep the counts already found in mind, use Pick’s rule, and decide when no pair is left.',
+  holes: 'Count dots to about 24, make a band inside a band, and use Pick’s rule with a correction.'
+};
+
+// Witnesses are lists of loops of [x, y] (x across, y up from the bottom left).
+const W = (...loops) => loops;
+const PUZZLES = [
+  {number: 1, level: 'easy', title: 'A first band', mode: 'target', w: 4, h: 4, goal: {inside: 1, outline: 4}, prereq: 'count',
+    witnesses: [W([[0, 0], [2, 0], [1, 2]]), W([[1, 0], [2, 1], [1, 2], [0, 1]])], census: {triangles: 48, quads: 168, areas: [2]},
+    idea: 'A side that runs slantwise can pass no dots between its ends, so one inside dot can have far fewer than 8 outline dots.',
+    hints: ['The 2-by-2 square has 1 inside dot and 8 outline dots. Which outline dots could the band miss?', 'A side that goes 1 across and 1 up passes no dots between its ends.', 'Make a diamond: four corners round one dot, each 1 across and 1 up or down from the next.'],
+    parent: {notice: 'Whether your child starts with a square along the rows of dots and then looks for a way to drop outline dots.', prompt: 'Why does the 2-by-2 square have so many outline dots?', explanation: 'A side from one dot to another passes as many dots between its ends as the largest number that divides both its steps across and its steps up, minus 1. Each side of the 2-by-2 square goes 2 across and 0 up and passes one dot, so the square has 8 outline dots. A diamond whose sides each go 1 across and 1 up passes no dots between corners: its 4 corners are its only outline dots, and the dot in the middle is inside. Its area is 2, half the square. On this board 48 triangles and 168 four-sided bands have 1 inside dot and 4 outline dots, and every one has area 2.', extension: 'Can you make 1 inside dot and 3 outline dots? (Yes, a triangle such as 0 across 0 up, 2 across 1 up, 1 across 2 up, with area 1½.)', connection: 'Pick’s theorem says a lattice polygon’s area is I + B/2 − 1, so the counts 1 and 4 fix the area at 2 whatever the shape.'},
+    provenance: 'Week 57, Grades 3–5, Problem 2 (mark the inside and outline dots and make a record), turned round: the record is the goal and the child makes the shape.'},
+  {number: 2, level: 'easy', title: 'Two shapes', mode: 'pair', w: 5, h: 5, goal: {inside: 2, outline: 6}, prereq: 'count',
+    witnesses: [{slot: 0, shapes: [W([[0, 0], [4, 0], [1, 2]]), W([[0, 0], [4, 0], [3, 2]])]}, {slot: 1, shapes: [W([[0, 0], [2, 0], [3, 2], [1, 2]]), W([[0, 0], [2, 0], [4, 2], [0, 1]])]}], census: {triangles: 28, quads: 696, areas: [4]},
+    idea: 'Two different shapes with the same inside and outline counts have the same area.',
+    hints: ['Start the triangle with a long side along the bottom row.', 'A bottom side of 4 steps has 5 dots on it. Where can the top corner go so the slanted sides pass no dots?', 'Triangle: bottom corners 4 steps apart, top corner 1 across and 2 up from the left one. Four-sided: a slanted strip 2 steps wide and 2 rows tall.'],
+    parent: {notice: 'Whether your child compares the area of the two shapes once both are made.', prompt: 'The two shapes look different. What is the same about them?', explanation: 'On this 5-by-5 board 28 triangles and 696 four-sided bands have 2 inside dots and 6 outline dots (780 if a peg the band passes straight counts as a corner, as the worksheet’s math check counts them), and every one has area 4. That is Pick’s theorem: area = 2 + 6 ÷ 2 − 1 = 4. Checking one area with a cut or a second copy, as the worksheet asks, is a good conversation: the triangle with corners 0 across 0 up, 4 across 0 up and 1 across 2 up is half of a 4-by-2 rectangle.', extension: 'Can two shapes with the same area have different counts? (Yes: compare a 2-by-2 square, 1 inside and 8 outline, with a triangle of area 4 with 3 inside and 4 outline.)', connection: 'The inside and outline counts determine the area of a lattice polygon (Pick’s theorem); the shape does not matter.'},
+    provenance: 'Week 57, Grades 3–5, Problem 3: “Make a triangle and a four-sided shape, each with I = 2 and B = 6.”'},
+  {number: 3, level: 'easy', title: 'Six squares', mode: 'target', w: 5, h: 5, goal: {area: 6, inside: 4}, prereq: 'area',
+    witnesses: [W([[0, 0], [2, 0], [3, 3], [1, 3]]), W([[0, 0], [4, 0], [2, 3]])], census: {triangles: 28, quads: 284, areas: [6]},
+    idea: 'Shapes with the same area can hold different numbers of inside dots: slanting the sides trades outline dots for inside dots.',
+    hints: ['A 2-by-3 rectangle has area 6. How many inside dots does it have?', 'Lean the rectangle over into a slanted shape with the same base and the same height: the area stays 6.', 'Try a bottom side of 2 steps and a top side of 2 steps three rows up, moved 1 to the right.'],
+    parent: {notice: 'Whether your child keeps the area at 6 while changing the shape: the record shows the area as the band changes.', prompt: 'The rectangle and the slanted shape both have area 6. Where did the extra inside dots come from?', explanation: 'A 2-by-3 rectangle has 2 inside dots and 10 outline dots. Leaning it into the parallelogram with corners 0 across 0 up, 2 across 0 up, 3 across 3 up and 1 across 3 up keeps base 2 and height 3, so the area stays 6, but its slanted sides pass no dots: 6 outline dots, and 4 inside. On this board 28 triangles and 284 four-sided bands have area 6 and 4 inside dots, and every one has 6 outline dots.', extension: 'Keep the area 6 and make 5 inside dots. (Possible: puzzle 5.)', connection: 'For a fixed area, Pick’s theorem ties the counts together: each extra inside dot costs two outline dots.'},
+    provenance: 'Week 57, Grades 3–5, Problem 1, right shape (the slanted shape of area 6), turned into a goal.'},
+  {number: 4, level: 'easy', title: 'Cut the rectangle', mode: 'cut', w: 5, h: 3, shape: [[0, 0], [4, 0], [4, 2], [0, 2]], piece: {area: 4, outline: 10}, prereq: 'cut',
+    witnesses: [{cut: [[0, 1], [4, 1]], text: 'Cut along the middle row of dots, from the left side to the right side.'}],
+    idea: 'Dots on a cut that were inside the whole shape become outline dots of both pieces.',
+    hints: ['Each piece needs area 4: half the rectangle.', 'Watch the dots the cut passes through. Were they inside or on the outline before the cut?', 'Cut along the middle row of dots, from the left side to the right side.'],
+    parent: {notice: 'Whether your child cuts straight down the middle first, and what changes in the record when the cut turns.', prompt: 'Which dots changed colour when you cut? Why are they counted in both pieces?', explanation: 'The 4-by-2 rectangle has 3 inside dots, all on its middle row, and 12 outline dots. Every straight cut through its middle splits the area 4 and 4. A cut down the middle passes one inside dot, which joins both outlines: 8 outline dots per piece. The cut along the middle row passes all three inside dots, so each 4-by-1 piece has 0 inside and 10 outline dots. It is the only one of the 40 possible cuts that matches. The seam’s middle dots move from inside to the outline of both pieces, and its ends stay on the outline, so inside + half outline − 1 adds up: 3 + 6 − 1 = 8 = 4 + 4.', extension: 'Which cut gives two pieces with 1 inside dot each? (Any cut through the middle dot from a dot on the bottom to one on the top, five in all, each with area 4.)', connection: 'This is the seam lemma at the heart of the proof of Pick’s theorem: I + B/2 − 1 adds when two lattice polygons are joined along a full side.'},
+    provenance: 'Week 57, Grades 3–5, Problem 6, left shape (a 4-by-2 rectangle cut by a seam), with the seam the child’s to choose.'},
+  {number: 5, level: 'medium', title: 'Four outline dots', mode: 'target', w: 5, h: 5, goal: {area: 6, outline: 4}, cant: true, prereq: 'pick',
+    witnesses: [W([[0, 0], [0, 1], [1, 3], [4, 1]]), W([[0, 0], [1, 0], [4, 1], [1, 3]])], census: {triangles: 0, quads: 324, areas: [6]},
+    idea: 'With only its corners on the band, a shape needs many inside dots: here 5, a long thin four-sided band.',
+    hints: ['Start with a band whose sides pass no dots between its corners. How big can you make it?', 'Pick’s rule: area 6 with 4 outline dots needs 6 − 2 + 1 = 5 inside dots.', 'Try corners at 0 across 0 up, 0 across 1 up, 1 across 3 up and 4 across 1 up.'],
+    parent: {notice: 'Whether your child uses Pick’s rule to find the number of inside dots needed, or adjusts the band until the record matches.', prompt: 'How many inside dots must the shape have, and how do you know?', explanation: 'Pick’s rule gives inside dots = 6 − 4 ÷ 2 + 1 = 5, a whole number, so nothing rules it out, and Can’t is refused. On this 5-by-5 board no triangle works, but 324 four-sided bands do, such as corners 0 across 0 up, 0 across 1 up, 1 across 3 up and 4 across 1 up.', extension: 'On a bigger board, find a triangle with area 6 and 4 outline dots. (Corners 0 across 0 up, 2 across 0 up, 1 across 6 up.)', connection: 'Pick’s theorem as a design tool: two counts fix the third, and the board decides which shapes can carry them.'},
+    provenance: 'Week 57 review card, App fit: “area 6 with 4 outline dots, such as (0,0), (0,1), (1,3), (4,1)”, from Problem 5’s records.'},
+  {number: 6, level: 'medium', title: 'Every count', mode: 'every', w: 7, h: 7, goal: {area: 6}, prereq: 'every',
+    records: [[0, 14], [1, 12], [2, 10], [3, 8], [4, 6], [5, 4]],
+    witnesses: [
+      {record: [0, 14], shapes: [W([[0, 0], [6, 0], [6, 1], [0, 1]])]},
+      {record: [1, 12], shapes: [W([[0, 0], [4, 0], [4, 1], [2, 1], [2, 2], [0, 2]])]},
+      {record: [2, 10], shapes: [W([[0, 0], [3, 0], [3, 2], [0, 2]])]},
+      {record: [3, 8], shapes: [W([[0, 0], [3, 0], [0, 4]])]},
+      {record: [4, 6], shapes: [W([[0, 0], [2, 0], [3, 3], [1, 3]])]},
+      {record: [5, 4], shapes: [W([[0, 0], [2, 0], [1, 6]]), W([[0, 0], [0, 1], [1, 3], [4, 1]])]}
+    ],
+    idea: 'For area 6 each extra inside dot costs two outline dots, from 0 inside and 14 outline to 5 inside and 4 outline; one more would leave only 2.',
+    hints: ['Start with a rectangle of area 6. Then make one with a different number of inside dots.', 'Pick’s rule: each extra inside dot costs two outline dots. Which pairs are still missing?', 'Inside dots 0, 1, 2, 3, 4 and 5 all work. 6 inside dots would need only 2 outline dots.'],
+    parent: {notice: 'Whether your child looks for the pattern in the counts found, and uses it to decide when none is left.', prompt: 'How do you know no other pair of counts is possible?', explanation: 'Pick’s rule with area 6 says inside + half outline = 7, so outline = 14 − 2 × inside. A band has at least 3 outline dots, so inside is at most 5: the pairs are (0, 14), (1, 12), (2, 10), (3, 8), (4, 6) and (5, 4). All six fit on this 7-by-7 board; the builder finds each among its triangles and four-sided bands. The next pair, 6 inside and 2 outline, is impossible.', extension: 'How many pairs are there for area 3? (Three: inside 0, 1 and 2 with outline 8, 6 and 4. For a whole-number area A there are A pairs.)', connection: 'Pick’s theorem turns a geometry question into counting solutions of I + B/2 = A + 1 with B ≥ 3.'},
+    provenance: 'Week 57, Grades 3–5, Problem 5: “Make shapes of area 6 with as many different (I, B) records as you can,” on its 6-by-6-square board.'},
+  {number: 7, level: 'medium', title: 'Cut the slant', mode: 'cut', w: 6, h: 4, shape: [[0, 0], [2, 0], [5, 3], [3, 3]], piece: {area: 3, inside: 0}, prereq: 'cut',
+    witnesses: [{cut: [[1, 0], [4, 3]], text: 'Cut from the middle dot of the bottom side to the middle dot of the top side.'}],
+    idea: 'For pieces with no inside dots, the cut must pass through every inside dot of the whole.',
+    hints: ['Each piece needs area 3: half the shape.', 'An inside dot of the whole that is not on the cut stays an inside dot of one piece.', 'Cut through both inside dots, from the bottom side to the top side.'],
+    parent: {notice: 'Whether your child tries cuts that halve the area first, and then looks at which dots stay inside.', prompt: 'Why must the cut go through both inside dots?', explanation: 'The slanted shape has area 6, 2 inside dots and 10 outline dots. Five of its 27 possible cuts split the area 3 and 3, but four of those leave one inside dot in each piece. Only the cut from the middle of the bottom side to the middle of the top side passes both inside dots; they move to the outline of both pieces, and each piece has 0 inside and 8 outline dots.', extension: 'Which cuts give two pieces with 1 inside dot each? (The four other halving cuts, such as corner to opposite corner.)', connection: 'The seam lemma again: a seam’s middle dots leave the inside count of the whole and join the outline of both pieces.'},
+    provenance: 'New, after Week 57, Grades 3–5, Problem 6 (seams that change dots from inside to outline): a slanted shape whose only matching cut runs through both inside dots.'},
+  {number: 8, level: 'medium', title: 'Six inside', mode: 'target', w: 7, h: 7, goal: {area: 6, inside: 6}, cant: true, prereq: 'cant',
+    witnesses: [], census: {triangles: 0, quads: 0, areas: []},
+    attempt: {text: 'Try a band of area 6 with as many inside dots as you can.', shapes: [W([[0, 0], [0, 1], [1, 3], [4, 1]])]},
+    idea: 'Area 6 with 6 inside dots would need 2 outline dots, and every band has at least 3.',
+    hints: ['Make shapes of area 6 with as many inside dots as you can. How many outline dots do they have?', 'Pick’s rule: area 6 with 6 inside dots leaves 6 − 6 + 1 = 1 for half the outline dots.', 'That is 2 outline dots, and every band has at least 3. With a band on the board, press Can’t, set 2 in the outline box, and press Can’t again.'],
+    parent: {notice: 'Whether your child tries shapes first, and when the most inside dots they reach (5) suggests a reason.', prompt: 'Why can’t the band have only 2 outline dots?', explanation: 'Pick’s rule gives outline dots = 2 × (6 − 6 + 1) = 2. Every band has at least 3 corners, and every corner is an outline dot, so no band works. The builder checks every triangle and four-sided band on the 7-by-7 board and finds none; Pick’s theorem covers every other shape.', extension: 'What is the most inside dots a band of area 6 can have? (5, with 4 outline dots: puzzle 5.)', connection: 'Pick’s theorem gives an obstruction you can count: a certificate of impossibility.'},
+    provenance: 'Week 57 review card, App fit: the “can’t” certificate “area 6 with I = 6 (B would be 2)”.'},
+  {number: 9, level: 'hard', title: 'Three outline dots', mode: 'target', w: 6, h: 6, goal: {inside: 6, outline: 3}, cant: true, prereq: 'cant',
+    witnesses: [W([[0, 0], [4, 1], [3, 4]]), W([[0, 0], [4, 3], [1, 4]])], census: {triangles: 88, quads: 0, areas: [6.5]},
+    idea: 'An area of 6½ is fine: a triangle whose sides pass no dots can have it.',
+    hints: ['Only a triangle can have just 3 outline dots. Make a few and look at their areas.', 'Pick’s rule: 6 inside dots and 3 outline dots give area 6 + 1½ − 1 = 6½. Can a triangle have that area?', 'Try corners at 0 across 0 up, 4 across 1 up and 3 across 4 up.'],
+    parent: {notice: 'Whether your child expects a half to mean impossible. Here the half is in the area, which can be a half; in puzzle 10 it is in a count of dots, which can’t.', prompt: 'Is 6½ an area a band can have?', explanation: 'Pick’s rule gives area = 6 + 3 ÷ 2 − 1 = 6½. Any triangle has an area that is a whole number or a half, so this is no obstruction, and Can’t is refused. A triangle with 3 outline dots has sides that pass no dots; on this 6-by-6 board 88 such triangles have 6 inside dots, such as corners 0 across 0 up, 4 across 1 up and 3 across 4 up.', extension: 'Can a band have 3 outline dots and area 5? (No: puzzle 10.)', connection: 'Lattice triangles with no lattice points on their sides but the corners can have any number of inside points (Pick’s theorem gives area I + ½).'},
+    provenance: 'New, the possible partner of the Week 57 review card’s “area 5 with B = 3” certificate: a half in the area is allowed.'},
+  {number: 10, level: 'hard', title: 'Area five', mode: 'target', w: 6, h: 6, goal: {area: 5, outline: 3}, cant: true, prereq: 'cant',
+    witnesses: [], census: {triangles: 0, quads: 0, areas: []},
+    attempt: {text: 'Try a triangle with 3 outline dots and an area near 5.', shapes: [W([[0, 0], [4, 1], [1, 3]])]},
+    idea: 'Area 5 with 3 outline dots would need 4½ inside dots, and dots come whole.',
+    hints: ['Make some triangles whose sides pass no dots, and look at their areas.', 'Pick’s rule: area 5 with 3 outline dots needs 5 − 1½ + 1 = 4½ inside dots.', 'No band has half a dot inside. With a band on the board, press Can’t, set 4½ in the inside box, and press Can’t again.'],
+    parent: {notice: 'Whether your child notices that every triangle with 3 outline dots has an area ending in a half.', prompt: 'What areas can a band with 3 outline dots have?', explanation: 'Pick’s rule gives inside dots = 5 − 3 ÷ 2 + 1 = 4½, not a whole number, so no band works. Equivalently, a band with 3 outline dots has area I + ½, never a whole number. The builder checks every triangle and four-sided band on this 6-by-6 board and finds none.', extension: 'Which areas can a band with 4 outline dots have? (Whole numbers 1, 2, 3, …, since area = I + 1.)', connection: 'Parity obstruction: B odd forces a half-integer area.'},
+    provenance: 'Week 57 review card, App fit: the “can’t” certificate “area 5 with B = 3 (I would be 4.5)”.'},
+  {number: 11, level: 'hard', title: 'Area twelve', mode: 'target', w: 6, h: 6, goal: {area: 12, inside: 0, outline: 24}, holes: true, prereq: 'holes',
+    witnesses: [W([[0, 0], [4, 0], [4, 4], [0, 4]], [[1, 1], [3, 1], [3, 3], [1, 3]]), W([[0, 0], [5, 0], [5, 3], [0, 3]], [[1, 1], [4, 1], [4, 2], [1, 2]]), W([[0, 0], [3, 0], [3, 5], [0, 5]], [[1, 1], [2, 1], [2, 4], [1, 4]])], holeCount: 1,
+    idea: 'One band with these counts would have area 11; each hole adds 1 to Pick’s rule.',
+    hints: ['With no inside dots, every dot of the shape must lie on a band.', 'One band with 24 outline dots and none inside has area 11, one short. A hole adds 1.', 'Make a 4-by-4 square, then a 2-by-2 hole in its middle.'],
+    parent: {notice: 'Whether your child tries a single band first and sees the area come out one short.', prompt: 'What does the hole do to the area, to the inside dots and to the outline dots?', explanation: 'With h holes, area = inside + half outline − 1 + h. Here 12 = 0 + 12 − 1 + h, so h = 1. A 4-by-4 square with a 2-by-2 hole in its middle has area 16 − 4 = 12; its 9 middle dots are 8 on the hole’s band and 1 inside the hole, so 0 inside dots and 16 + 8 = 24 outline dots.', extension: 'Make another shape with one hole and check the rule on it.', connection: 'Pick’s theorem for regions with holes; the correction h is the number of holes (an Euler characteristic).'},
+    provenance: 'Week 57, Grades 3–5, Problem 9: the square with a square hole (area 12, I = 0, B = 24), turned into a goal.'},
+  {number: 12, level: 'hard', title: 'Area thirteen', mode: 'target', w: 6, h: 6, goal: {area: 13, inside: 0, outline: 24}, holes: true, prereq: 'holes',
+    witnesses: [W([[0, 0], [5, 0], [5, 3], [0, 3]], [[1, 1], [2, 1], [2, 2], [1, 2]], [[3, 1], [4, 1], [4, 2], [3, 2]]), W([[0, 0], [3, 0], [3, 5], [0, 5]], [[1, 1], [2, 1], [2, 2], [1, 2]], [[1, 3], [2, 3], [2, 4], [1, 4]])], holeCount: 2,
+    idea: 'Two holes add 2: one band with these counts would have area 11.',
+    hints: ['With no inside dots, every dot of the shape must lie on a band.', 'One band with 24 outline dots and none inside has area 11, two short. Each hole adds 1.', 'Make a 5-by-3 rectangle with two 1-by-1 holes in its middle row of squares.'],
+    parent: {notice: 'Whether your child carries the rule from puzzle 11 to two holes.', prompt: 'What would three holes do?', explanation: 'Area = inside + half outline − 1 + holes gives 13 = 0 + 12 − 1 + h, so h = 2. A 5-by-3 rectangle (area 15, 16 outline dots, 8 middle dots) with two 1-by-1 holes whose bands pass all 8 middle dots has area 13, 0 inside dots and 16 + 4 + 4 = 24 outline dots.', extension: 'Find a rule for any number of holes and test it on three. (Area = I + B/2 − 1 + h.)', connection: 'For a connected region with h holes, Pick’s formula gains h: the region’s Euler characteristic is 1 − h.'},
+    provenance: 'Week 57, Grades 3–5, Problem 10: “Make a connected shape with two holes … find a dot-count rule for any number of holes.”'}
+];
+
+const id = n => `geoboard-${String(n).padStart(2, '0')}`;
+const out = PUZZLES.map(item => {
+  const tag = id(item.number), {w, h} = item, s = {w, h};
+  let q, solution, objective, visible = '', rules = [RULES.band, RULES.dots], controls = CONTROLS.band;
+  if (item.mode === 'cut') {
+    q = {mode: 'cut', w, h, shape: item.shape, piece: item.piece, witnesses: item.witnesses};
+    const n = w * h, cuts = [];
+    for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) if (!cutProblem(q, a, b)) cuts.push([a, b]);
+    const hits = cuts.filter(c => pieceRecords(q, c).every(r => matches(item.piece, r)));
+    const want = item.witnesses[0].cut.map(p => dotOf(s, p)).sort((x, y) => x - y);
+    assert.deepEqual(hits, [want], `${tag}: the only matching cut is the witness`);
+    const whole = recordOf(s, [item.shape.map(p => dotOf(s, p))]);
+    solution = {cut: item.witnesses[0].cut, pieces: pieceRecords(q, want), whole, cuts: cuts.length};
+    objective = `Cut the shape in two with one straight cut so that each piece has ${Object.entries(item.piece).map(([k, v]) => k === 'area' ? `area ${fmt(v)}` : `${v} ${k} dots`).join(' and ')}.`;
+    visible = 'Cut the shape so each piece matches the goal.';
+    rules = [RULES.dots, RULES.cut];
+    controls = CONTROLS.cut;
+    console.log(`${tag} cut: ${cuts.length} cuts, one matches ${JSON.stringify(item.witnesses[0].cut)}`);
+  } else if (item.mode === 'every') {
+    q = {mode: 'every', w, h, goal: item.goal, records: item.records, witnesses: item.witnesses};
+    const seen = new Set(smallShapes(w, h).filter(x => x.rec.area === item.goal.area).map(x => `${x.rec.inside},${x.rec.outline}`));
+    assert.deepEqual([...seen].sort(), item.records.map(r => r.join()).sort(), `${tag}: the records on the board`);
+    for (const wt of item.witnesses) for (const shape of wt.shapes) { const r = witnessRecord(w, h, shape); assert.deepEqual([r.area, r.inside, r.outline], [item.goal.area, ...wt.record], `${tag}: witness for ${wt.record}`); }
+    assert.deepEqual(item.witnesses.map(x => x.record.join()), item.records.map(r => r.join()), `${tag}: a witness per record`);
+    assert.ok(!countable('outline', 2 * (item.goal.area - item.records.length + 1)), `${tag}: the next record has fewer than 3 outline dots`);
+    solution = {records: item.records, witnesses: item.witnesses.map(x => ({record: x.record, shape: x.shapes[0]})), next: [item.records.length, 2 * (item.goal.area - item.records.length + 1)]};
+    objective = `Make bands of area ${item.goal.area} with every possible pair of inside and outline counts, then press That’s all.`;
+    visible = `Find every pair of dot counts with area ${item.goal.area}.`;
+    rules = [...rules, RULES.pick, RULES.every];
+    controls = `${CONTROLS.band} ${CONTROLS.every}`;
+    console.log(`${tag} every: records ${item.records.map(r => `(${r})`).join(' ')}`);
+  } else {
+    q = {mode: item.mode, w, h, goal: item.goal, ...(item.cant ? {cant: true} : {}), ...(item.holes ? {holes: true} : {}), witnesses: item.witnesses, ...(item.attempt ? {attempt: item.attempt} : {})};
+    for (const sh of item.attempt?.shapes || []) witnessRecord(w, h, sh);
+    const shapes = item.mode === 'pair' ? item.witnesses.flatMap(x => x.shapes.map(sh => ({sh, slot: x.slot}))) : item.witnesses.map(sh => ({sh}));
+    for (const {sh, slot} of shapes) {
+      const r = witnessRecord(w, h, sh);
+      assert.ok(matches(item.goal, r), `${tag}: witness ${JSON.stringify(sh)} matches the goal`);
+      if (slot !== undefined) assert.equal(cornerCount(sh[0]) - 3, slot, `${tag}: witness corners`);
+      if (item.holes) assert.equal(r.holes, item.holeCount, `${tag}: witness holes`);
+    }
+    if (item.holes) {
+      const {area: A, inside: I, outline: B} = item.goal;
+      assert.equal(A - (I + B / 2 - 1), item.holeCount, `${tag}: Pick’s rule needs ${item.holeCount} holes`);
+      const c = census(w, h, item.goal);
+      assert.equal(c.triangles + c.quads, 0, `${tag}: no triangle or four-sided band without holes`);
+      solution = {witness: item.witnesses[0], holes: item.holeCount};
+      objective = `Make a shape with area ${fmt(A)}, ${I} inside dots and ${B} outline dots.`;
+      rules = [...rules, RULES.holes];
+      controls = `${CONTROLS.band} ${CONTROLS.holes}`;
+      console.log(`${tag} holes: ${item.holeCount}`);
+    } else {
+      const c = census(w, h, item.goal);
+      assert.deepEqual(c, item.census, `${tag}: triangles and four-sided bands that meet the goal`);
+      const k = hiddenOf(item.goal), v = forcedOf(item.goal), possible = countable(k, v);
+      assert.equal(possible, item.witnesses.length > 0, `${tag}: Pick’s rule and the witnesses agree`);
+      if (!possible) assert.ok(item.cant && item.attempt, `${tag}: an impossible goal offers Can’t and an attempt for its hints`);
+      const words = Object.entries(item.goal).map(([key, val]) => key === 'area' ? `area ${fmt(val)}` : `${val} ${key} dot${val === 1 ? '' : 's'}`).join(' and ');
+      if (item.mode === 'pair') {
+        solution = {triangle: item.witnesses[0].shapes[0], fourSided: item.witnesses[1].shapes[0], census: c};
+        objective = `Make a triangle and a four-sided shape, each with ${words}.`;
+        rules = [...rules, RULES.pair];
+      } else {
+        solution = possible ? {witness: item.witnesses[0], census: c} : {cant: {[k]: v}, census: c};
+        objective = `Make a band with ${words}${item.cant ? ', or press Can’t if no band can have them' : ''}.`;
+        if (item.cant) { rules = [...rules, RULES.pick, RULES.cant]; controls = `${CONTROLS.band} ${CONTROLS.cant}`; }
+      }
+      console.log(`${tag} ${item.mode}: ${possible ? `${c.triangles} triangles, ${c.quads} four-sided` : `can’t: ${k} would be ${v}`}`);
+    }
+  }
+  return {
+    id: tag, number: item.number, title: item.title, difficulty_level: item.level, familyTitle, mechanic: 'geoboard', band: 'all', revision: 1, sourceDocument: 'docs/geoboard/README.md',
+    parameters: q, objective, visibleObjective: visible, instruction: objective, controls, rules,
+    idea: item.idea, prerequisites: PREREQUISITES[item.prereq], hints: item.hints,
+    parent: {...item.parent, sourceIds: sources}, solution, provenance: item.provenance
+  };
+});
+
+const playground = {
+  id: 'geoboard-playground', number: 0, title: 'Geoboard playground', difficulty_level: 'playground', familyTitle, mechanic: 'geoboard', band: 'playground', revision: 1, sourceDocument: 'docs/geoboard/README.md',
+  parameters: {mode: 'playground', size: 7},
+  objective: 'Stretch bands on a board of dots, with holes if you like, and watch the area, inside dots and outline dots.', visibleObjective: '',
+  instruction: 'Stretch bands on a board of dots, with holes if you like, and watch the area, inside dots and outline dots.',
+  controls: CONTROLS.playground,
+  rules: [RULES.band, RULES.dots, RULES.holes],
+  idea: 'Free play: make shapes, predict a count before the band closes, and set puzzles for someone else.',
+  prerequisites: 'None. A grown-up or a partner can set a goal such as “area 4 with 4 outline dots”.',
+  hints: ['Make a shape, then move one corner and watch the counts change.', 'Make two shapes with the same inside and outline counts. Is the area the same?', 'Add a hole to a shape. What happens to the area and the counts?'],
+  parent: {notice: 'Whether your child starts predicting a count before the band closes.', prompt: 'Can you make two different shapes with the same area and the same counts?', explanation: 'Every band here obeys Pick’s rule, area = inside + half outline − 1, with 1 added for each hole. The playground is for testing it on any shape, including ones that might defeat it, as Week 57 Problem 4 asks.', extension: 'Set a goal of two counts for someone else and check that it can be done.', connection: 'Pick’s theorem (1899) for simple lattice polygons, and its correction for holes.', sourceIds: sources},
+  provenance: 'Week 57, Grades 3–5, Problem 4 (“Draw a new shape that could defeat your rule”) and the blank boards of Problems 5, 7 and 10.'
+};
+
+const json = {
+  title: familyTitle,
+  version: 1,
+  families: [{id: 'geoboard', title: familyTitle, mathematics: 'A band stretched round pegs of a square lattice makes a lattice polygon: one closed outline whose sides never cross or touch, except two sides in a row at their corner. Its outline dots B are all lattice points on the band, corners included, and its inside dots I are the lattice points strictly inside. Pick’s theorem: area = I + B/2 − 1. The proof rests on the seam lemma: cutting a polygon along a segment with k lattice points moves its k − 2 middle points from inside to the outline of both pieces, so I + B/2 − 1 adds; rectangles and right triangles then give every triangle, and ears give every polygon. With h holes (separate bands strictly inside) the formula gains h. Any two of area, I and B fix the third, so a goal of two is impossible exactly when the third is no count: B < 3, or I not a whole number. Shapes with the same counts have the same area, the counts for one area run in steps of one inside dot for two outline dots, and a cut’s seam dots change from inside to outline.', rules: [RULES.band, RULES.dots], sourceIds: sources}],
+  sources: [
+    {id: 'geoboard-week57', title: 'Bellingham Math Circle — Week 57: Area from dots (student packet and adult guide)', url: 'https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-57', kind: 'local curriculum'},
+    {id: 'geoboard-card57', title: 'Week 57 review card and math check (App fit and Decision: a geoboard, matching counts, area-6 records, seams, holes and Pick-count impossibilities)', url: 'https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-57.md', kind: 'local curriculum'},
+    {id: 'geoboard-bay', title: 'Laura Givental, Maria Nemirovskaya and Ilya Zakharevich — Math Circle by the Bay, American Mathematical Society (2018), Problems 5.30–5.34, printed pages 129–134', url: 'https://bookstore.ams.org/mcl-22', kind: 'book'},
+    {id: 'geoboard-nrich', title: 'NRICH — Pick’s Theorem, and Proof of Pick’s Theorem', url: 'https://nrich.maths.org/problems/picks-theorem', kind: 'web'}
+  ],
+  puzzles: [playground, ...out]
+};
+await writeFile(new URL('../dist/families/geoboard/geoboard.json', import.meta.url), JSON.stringify(json, null, 1) + '\n');
+console.log(`wrote ${out.length} puzzles and a playground`);
