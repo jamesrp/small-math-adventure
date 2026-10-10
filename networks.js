@@ -7,17 +7,56 @@ export function routeInfo(p, board) {
   for(let i=1;i<board.path.length;i++){const edge=edgeIndex(q,board.path[i-1],board.path[i]);if(edge<0)return null;uses[edge]++;cost+=q.edges[edge][2];}
   return {uses,cost,current:board.path.at(-1),mask:uses.reduce((m,n,i)=>n?m|(1<<i):m,0)};
 }
+// Mode 'cover' (the Lantern Road's copies): roads may repeat and any walk that
+// covers them all counts, up to cost_cap; the distance is the score to beat.
+// The other modes fix the distance at target_cost.
+const capOf=q=>q.mode==='cover'?q.cost_cap:q.target_cost;
 function validRoute(p,b){
   const q=p.parameters;
-  if(!object(b)||!Array.isArray(b.path)||b.path.length>q.target_cost+1||!b.path.every(v=>q.vertices.includes(v)))return false;
+  if(!object(b)||!Array.isArray(b.path)||b.path.length>capOf(q)+1||!b.path.every(v=>q.vertices.includes(v)))return false;
   if(q.start && b.path[0]!==q.start)return false;
   const info=routeInfo(p,b);
-  return !!info&&info.cost<=q.target_cost&&(q.mode!=='each_edge_once'||info.uses.every(n=>n<=1));
+  return !!info&&info.cost<=capOf(q)&&(q.mode!=='each_edge_once'||info.uses.every(n=>n<=1));
 }
-function solvedRoute(p,b){if(!validRoute(p,b))return false;const q=p.parameters,i=routeInfo(p,b);return i.uses.every(n=>n>0)&&i.cost===q.target_cost&&(!q.closed||i.current===b.path[0]);}
+function solvedRoute(p,b){if(!validRoute(p,b))return false;const q=p.parameters,i=routeInfo(p,b);return i.uses.every(n=>n>0)&&(q.mode==='cover'||i.cost===q.target_cost)&&(!q.closed||i.current===b.path[0]);}
+// A binary heap of [distance, ...] entries, smallest distance first.
+function heap(){
+  const a=[];
+  return {get size(){return a.length;},
+    push(x){a.push(x);for(let i=a.length-1;i>0;){const j=(i-1)>>1;if(a[j][0]<=a[i][0])break;[a[i],a[j]]=[a[j],a[i]];i=j;}},
+    pop(){const top=a[0],last=a.pop();if(a.length){a[0]=last;for(let i=0;;){const l=2*i+1,r=l+1;let k=i;if(l<a.length&&a[l][0]<a[k][0])k=l;if(r<a.length&&a[r][0]<a[k][0])k=r;if(k===i)break;[a[i],a[k]]=[a[k],a[i]];i=k;}}return top;}};
+}
+// The shortest way to finish covering every road from a walk so far (Dijkstra
+// over junction × roads covered). Returns the junctions still to visit (with the
+// starting junction first when the walk is empty) and the total distance.
+export function shortestCover(q,path=[]){
+  const full=(1<<q.edges.length)-1,starts=path.length?[path]:(q.start?[[q.start]]:q.vertices.map(v=>[v]));
+  let best=null;
+  for(const prefix of starts){
+    const info=routeInfo({parameters:q},{path:prefix});if(!info)continue;
+    const home=prefix[0],key=(v,m)=>`${v}|${m}`,dist=new Map([[key(info.current,info.mask),0]]),back=new Map(),queue=heap();queue.push([0,info.current,info.mask]);
+    let goal=null;
+    while(queue.size){
+      const [d,v,m]=queue.pop();
+      if(d>dist.get(key(v,m)))continue;
+      if(m===full&&(!q.closed||v===home)){goal=[d,v,m];break;}
+      for(const [i,[a,b,w]]of q.edges.entries()){
+        if(a!==v&&b!==v)continue;
+        const u=a===v?b:a,n=m|(1<<i),nd=d+w;
+        if(nd<(dist.get(key(u,n))??Infinity)){dist.set(key(u,n),nd);back.set(key(u,n),[v,m]);queue.push([nd,u,n]);}
+      }
+    }
+    if(!goal)continue;
+    const steps=[];for(let at=[goal[1],goal[2]];back.has(key(...at));at=back.get(key(...at)))steps.unshift(at[0]);
+    const cost=info.cost+goal[0];
+    if(!best||cost<best.cost)best={cost,rest:path.length?steps:[home,...steps]};
+  }
+  return best;
+}
 export function solveRoute(p,board){
   if(!validRoute(p,board))return null;
   const q=p.parameters,info=routeInfo(p,board),full=(1<<q.edges.length)-1;
+  if(q.mode==='cover'){const best=shortestCover(q,board.path);return best&&best.cost<=q.cost_cap?best.rest:null;}
   const starts=board.path.length?[info.current]:q.vertices;
   for(const start of starts){
     const failed=new Set(),home=board.path[0]||start;
@@ -80,11 +119,13 @@ function hintColor(p,b){
   return {type:'move',action:{vertex:p.parameters.vertices[i],color:0},text:`Clear ${p.parameters.vertices[i]} to open up another possibility. Some earlier colors need to change.`};
 }
 const marks=['●','▲','■','◆'];
-function positions(p){
+// Where each junction or lantern sits, in percent of the board (the marsh stage
+// in dist/road-stage.js maps the same layout onto its picture).
+export function networkPositions(p){
   const q=p.parameters,ring=(names,r=39,phase=-Math.PI/2)=>Object.fromEntries(names.map((v,i)=>[v,[50+r*Math.cos(phase+i*2*Math.PI/names.length),50+r*Math.sin(phase+i*2*Math.PI/names.length)]]));
   if(q.positions)return q.positions;
   if(p.mechanic==='color'){
-    if(p.id==='color-01')return Object.fromEntries(q.vertices.map((v,i)=>[v,[10+20*i,50]]));
+    if((p.sourceId||p.id)==='color-01')return Object.fromEntries(q.vertices.map((v,i)=>[v,[10+20*i,50]]));
     if(q.vertices.includes('H'))return {...ring(q.vertices.filter(v=>v!=='H')),H:[50,50]};
     if(q.vertices.includes('o0'))return {...ring(q.vertices.slice(0,5),42),...ring(q.vertices.slice(5),22)};
     return ring(q.vertices);
@@ -96,15 +137,15 @@ function positions(p){
     'route-04':{S:[12,50],T:[88,50],A:[50,15],B:[50,50],C:[50,85]},
     'route-05':{A:[10,25],B:[37,25],C:[63,25],D:[90,25],a:[10,75],b:[37,75],c:[63,75],d:[90,75]},
     'route-06':{A:[50,10],B:[10,85],C:[90,85],D:[50,57]}
-  };return layouts[p.id]||ring(q.vertices);
+  };return layouts[p.sourceId||p.id]||ring(q.vertices);
 }
 function graph(p,b){
-  const q=p.parameters,xy=positions(p),info=p.mechanic==='route'?routeInfo(p,b):null;
+  const q=p.parameters,xy=networkPositions(p),info=p.mechanic==='route'?routeInfo(p,b):null;
   const lines=q.edges.map(([u,v,w],i)=>{const [x,y]=xy[u],[a,z]=xy[v],used=info?.uses[i]||0,conflict=p.mechanic==='color'&&b.colors[q.vertices.indexOf(u)]&&b.colors[q.vertices.indexOf(u)]===b.colors[q.vertices.indexOf(v)];return `<line x1="${x}" y1="${y}" x2="${a}" y2="${z}" class="${used?'road-used':''} ${conflict?'link-conflict':''}"/>${info?`<text x="${(x+a)/2}" y="${(y+z)/2-2}">${w}${used?` · ✓${used>1?used:''}`:''}</text>`:''}`;}).join('');
-  const dots=q.vertices.map((v,i)=>{const [x,y]=xy[v],color=b.colors?.[i]||0,current=info?.current===v;const allowed=!info||!info.current||q.edges.some(([u,w],e)=>(u===info.current&&w===v||w===info.current&&u===v)&&(q.mode!=='each_edge_once'||!info.uses[e])&&info.cost+q.edges[e][2]<=q.target_cost);
+  const dots=q.vertices.map((v,i)=>{const [x,y]=xy[v],color=b.colors?.[i]||0,current=info?.current===v;const allowed=!info||!info.current||q.edges.some(([u,w],e)=>(u===info.current&&w===v||w===info.current&&u===v)&&(q.mode!=='each_edge_once'||!info.uses[e])&&info.cost+q.edges[e][2]<=capOf(q));
     return actionButton(`${esc(v)}${p.mechanic==='color'?`<span aria-hidden="true">${color?marks[color-1]:'○'}</span>`:current?'<span aria-hidden="true">✦</span>':''}`,{vertex:v},`style="left:${x}%;top:${y}%" aria-label="${esc(info?`${current?'Current junction. ':''}${info.current?`Travel to ${v}`:`Start at ${v}`}`:`Lantern ${v}, ${color?`color ${color}, ${marks[color-1]}`:'uncolored'}. Apply selected color ${b.selectedColor}`)}" ${!allowed||info&&solvedRoute(p,b)?'disabled':''} data-node="${esc(v)}" data-color="${color}" ${current?'aria-current="location"':''}`);
   }).join('');
-  return `<div class="network-graph ${p.id}" role="group" aria-label="${p.mechanic==='route'?'Road map':'Linked lanterns'}"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${dots}</div>`;
+  return `<div class="network-graph ${p.sourceId||p.id}" role="group" aria-label="${p.mechanic==='route'?'Road map':'Linked lanterns'}"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${dots}</div>`;
 }
 function renderRoute(p,a){
   const b=a.board,q=p.parameters,info=routeInfo(p,b);

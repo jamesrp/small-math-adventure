@@ -77,6 +77,17 @@ export const MAP_POINTS = {
   wide: { ferry: [9, 70], marsh: [24, 38], ridge: [39, 66], hollow: [53, 30], workshop: [66, 70], lighthouse: [80, 34], fair: [92, 64] },
   tall: { ferry: [28, 84], marsh: [70, 72], ridge: [30, 59], hollow: [70, 46], workshop: [28, 33], lighthouse: [72, 20], fair: [34, 7] },
 };
+// The tappable region around each landmark (centre x, centre y, width, height,
+// in percent of the map) and where the travelers' wagon waits on the road
+// there. Measured on the finished map art; the placeholder map shares them.
+export const MAP_REGIONS = {
+  wide: { ferry: [12, 74, 21, 30], marsh: [22, 30, 23, 26], ridge: [37, 56, 20, 28], hollow: [52, 26, 22, 30], workshop: [64, 63, 18, 28], lighthouse: [78, 22, 16, 34], fair: [89, 71, 22, 34] },
+  tall: { ferry: [32, 86, 52, 16], marsh: [75, 70, 42, 17], ridge: [27, 52, 40, 19], hollow: [72, 44, 46, 18], workshop: [27, 28, 40, 17], lighthouse: [75, 18, 42, 21], fair: [35, 9, 54, 15] },
+};
+export const MAP_WAGON = {
+  wide: { ferry: [6, 82], marsh: [17, 46], ridge: [41, 74], hollow: [48, 42], workshop: [57, 79], lighthouse: [73, 46], fair: [82, 83] },
+  tall: { ferry: [13, 88], marsh: [60, 77], ridge: [36, 64], hollow: [52, 50], workshop: [45, 37], lighthouse: [63, 29], fair: [46, 16] },
+};
 const mapIcons = {
   ferry: '<path d="M-26 6q2-24 26-26 24 2 26 26z" fill="#6aa86a" ' + line + '/><circle cx="30" cy="0" r="9" fill="#9cc77f" ' + line + '/><path d="M-40 12q40 10 80 0" stroke="#3bb5c8" stroke-width="6" fill="none"/>',
   marsh: '<ellipse cy="8" rx="34" ry="10" fill="#1e4b45"/><path d="M-20 8q-4-26 2-36m14 36q6-20 2-34m16 34q-2-22 6-30" stroke="#3d7a52" stroke-width="4" fill="none"/><circle cx="-8" cy="-22" r="3" fill="#c6ff6b"/><circle cx="14" cy="-30" r="3" fill="#c6ff6b"/>',

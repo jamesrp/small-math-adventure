@@ -22,6 +22,7 @@ export function puzzleObjective(puzzle) {
         ? 'Predict the first corner and the wall bounces before it.'
         : `Reach the ${p.target_corner.replace('-', ' ')} corner first, after exactly ${p.target_bounces} bounces.`;
     case 'route':
+      if (p.mode === 'cover') return p.closed ? `Walk every road and come back to ${p.start}.` : 'Walk every road.';
       if (p.mode === 'each_edge_once') {
         return p.closed
           ? `Walk every road once, returning to ${p.start}.`

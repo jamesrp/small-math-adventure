@@ -1,0 +1,3053 @@
+{
+ "title": "Meeting roads",
+ "version": 1,
+ "families": [
+  {
+   "id": "meeting",
+   "title": "Meeting roads",
+   "mathematics": "Three homes A, B and C sit on dots of a road map, and every road is one step. A meeting dot lies on a shortest route between each two homes: d(A, M) + d(M, B) = d(A, B), and the same for A, C and for B, C. It may be a home. Three walkers, one from each home, meet at a dot; any two walks joined there make a route between their homes, and the dot is a meeting dot exactly when all three joined routes can be shortest. On a full grid there is exactly one, the middle column with the middle row of the homes (proved one coordinate at a time); on a tree exactly one, the centre of the tripod of paths; on the cube of three-digit labels exactly one, the majority digit in each place. Other maps can have none (a triangle, a ring of eight) or two (two crossroads joined to every home), and closing one road can leave none. These are medians in median graphs. The dot with the least total travel is a different test: on the triangle every dot has it and none is a meeting dot.",
+   "rules": [
+    "Each road is one step. A shortest route between two dots takes the fewest steps.",
+    "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
+    "The dot works when all three of those routes are shortest: it is a meeting dot. It may be a home, and then that walker stays at home.",
+    "If one of the routes is too long, a dashed line shows a shorter route between those two homes."
+   ],
+   "sourceIds": [
+    "meeting-week67",
+    "meeting-card67",
+    "meeting-ggt"
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "id": "meeting-week67",
+   "title": "Bellingham Math Circle — Week 67: Meeting on shortest roads (student packet and adult guide)",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-67",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "meeting-card67",
+   "title": "Week 67 review card and math check (meeting dots on grids, a tree, a triangle, a square and the cube; fixes 3 and 7; App fit)",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-67.md",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "meeting-ggt",
+   "title": "Cornelia Druţu and Michael Kapovich — Geometric Group Theory, American Mathematical Society (2018), Definitions 6.1–6.3 (intervals and medians) and Examples 6.19 (grids, trees and other median graphs), printed pages 177–180",
+   "url": "https://www.math.ucdavis.edu/~kapovich/EPR/ggt.pdf",
+   "kind": "research"
+  }
+ ],
+ "puzzles": [
+  {
+   "id": "meeting-playground",
+   "number": 0,
+   "title": "Meeting roads playground",
+   "difficulty_level": "playground",
+   "familyTitle": "Meeting roads",
+   "mechanic": "meeting",
+   "band": "playground",
+   "revision": 1,
+   "sourceDocument": "docs/meeting/README.md",
+   "parameters": {
+    "mode": "playground",
+    "maps": {
+     "grid": {
+      "name": "Grid",
+      "aspect": 1,
+      "nodes": {
+       "10": [
+        29.5,
+        91
+       ],
+       "11": [
+        29.5,
+        70.5
+       ],
+       "12": [
+        29.5,
+        50
+       ],
+       "13": [
+        29.5,
+        29.5
+       ],
+       "14": [
+        29.5,
+        9
+       ],
+       "20": [
+        50,
+        91
+       ],
+       "21": [
+        50,
+        70.5
+       ],
+       "22": [
+        50,
+        50
+       ],
+       "23": [
+        50,
+        29.5
+       ],
+       "24": [
+        50,
+        9
+       ],
+       "30": [
+        70.5,
+        91
+       ],
+       "31": [
+        70.5,
+        70.5
+       ],
+       "32": [
+        70.5,
+        50
+       ],
+       "33": [
+        70.5,
+        29.5
+       ],
+       "34": [
+        70.5,
+        9
+       ],
+       "40": [
+        91,
+        91
+       ],
+       "41": [
+        91,
+        70.5
+       ],
+       "42": [
+        91,
+        50
+       ],
+       "43": [
+        91,
+        29.5
+       ],
+       "44": [
+        91,
+        9
+       ],
+       "00": [
+        9,
+        91
+       ],
+       "01": [
+        9,
+        70.5
+       ],
+       "02": [
+        9,
+        50
+       ],
+       "03": [
+        9,
+        29.5
+       ],
+       "04": [
+        9,
+        9
+       ]
+      },
+      "roads": [
+       [
+        "10",
+        "20"
+       ],
+       [
+        "10",
+        "11"
+       ],
+       [
+        "11",
+        "21"
+       ],
+       [
+        "11",
+        "12"
+       ],
+       [
+        "12",
+        "22"
+       ],
+       [
+        "12",
+        "13"
+       ],
+       [
+        "13",
+        "23"
+       ],
+       [
+        "13",
+        "14"
+       ],
+       [
+        "14",
+        "24"
+       ],
+       [
+        "20",
+        "30"
+       ],
+       [
+        "20",
+        "21"
+       ],
+       [
+        "21",
+        "31"
+       ],
+       [
+        "21",
+        "22"
+       ],
+       [
+        "22",
+        "32"
+       ],
+       [
+        "22",
+        "23"
+       ],
+       [
+        "23",
+        "33"
+       ],
+       [
+        "23",
+        "24"
+       ],
+       [
+        "24",
+        "34"
+       ],
+       [
+        "30",
+        "40"
+       ],
+       [
+        "30",
+        "31"
+       ],
+       [
+        "31",
+        "41"
+       ],
+       [
+        "31",
+        "32"
+       ],
+       [
+        "32",
+        "42"
+       ],
+       [
+        "32",
+        "33"
+       ],
+       [
+        "33",
+        "43"
+       ],
+       [
+        "33",
+        "34"
+       ],
+       [
+        "34",
+        "44"
+       ],
+       [
+        "40",
+        "41"
+       ],
+       [
+        "41",
+        "42"
+       ],
+       [
+        "42",
+        "43"
+       ],
+       [
+        "43",
+        "44"
+       ],
+       [
+        "00",
+        "10"
+       ],
+       [
+        "00",
+        "01"
+       ],
+       [
+        "01",
+        "11"
+       ],
+       [
+        "01",
+        "02"
+       ],
+       [
+        "02",
+        "12"
+       ],
+       [
+        "02",
+        "03"
+       ],
+       [
+        "03",
+        "13"
+       ],
+       [
+        "03",
+        "04"
+       ],
+       [
+        "04",
+        "14"
+       ]
+      ],
+      "names": {
+       "10": "1 across, 0 up",
+       "11": "1 across, 1 up",
+       "12": "1 across, 2 up",
+       "13": "1 across, 3 up",
+       "14": "1 across, 4 up",
+       "20": "2 across, 0 up",
+       "21": "2 across, 1 up",
+       "22": "2 across, 2 up",
+       "23": "2 across, 3 up",
+       "24": "2 across, 4 up",
+       "30": "3 across, 0 up",
+       "31": "3 across, 1 up",
+       "32": "3 across, 2 up",
+       "33": "3 across, 3 up",
+       "34": "3 across, 4 up",
+       "40": "4 across, 0 up",
+       "41": "4 across, 1 up",
+       "42": "4 across, 2 up",
+       "43": "4 across, 3 up",
+       "44": "4 across, 4 up",
+       "00": "0 across, 0 up",
+       "01": "0 across, 1 up",
+       "02": "0 across, 2 up",
+       "03": "0 across, 3 up",
+       "04": "0 across, 4 up"
+      },
+      "kind": "grid",
+      "homes": {
+       "A": "10",
+       "B": "42",
+       "C": "04"
+      }
+     },
+     "tree": {
+      "name": "Tree",
+      "aspect": 1.26,
+      "nodes": {
+       "a": [
+        9,
+        62.89
+       ],
+       "u": [
+        29.5,
+        62.89
+       ],
+       "v": [
+        50,
+        62.89
+       ],
+       "w": [
+        70.5,
+        62.89
+       ],
+       "b": [
+        91,
+        37.11
+       ],
+       "t": [
+        50,
+        37.11
+       ],
+       "c": [
+        50,
+        11.32
+       ],
+       "s": [
+        70.5,
+        88.68
+       ],
+       "r": [
+        91,
+        88.68
+       ],
+       "q": [
+        9,
+        37.11
+       ]
+      },
+      "roads": [
+       [
+        "a",
+        "u"
+       ],
+       [
+        "u",
+        "v"
+       ],
+       [
+        "v",
+        "w"
+       ],
+       [
+        "w",
+        "b"
+       ],
+       [
+        "v",
+        "t"
+       ],
+       [
+        "t",
+        "c"
+       ],
+       [
+        "w",
+        "s"
+       ],
+       [
+        "s",
+        "r"
+       ],
+       [
+        "u",
+        "q"
+       ]
+      ],
+      "names": {
+       "a": "0 across, 1 up",
+       "u": "1 across, 1 up",
+       "v": "2 across, 1 up",
+       "w": "3 across, 1 up",
+       "b": "4 across, 2 up",
+       "t": "2 across, 2 up",
+       "c": "2 across, 3 up",
+       "s": "3 across, 0 up",
+       "r": "4 across, 0 up",
+       "q": "0 across, 2 up"
+      },
+      "kind": "tree",
+      "homes": {
+       "A": "a",
+       "B": "b",
+       "C": "c"
+      }
+     },
+     "cube": {
+      "name": "Cube",
+      "aspect": 1.02,
+      "nodes": {
+       "100": [
+        67.14,
+        89.81
+       ],
+       "101": [
+        90,
+        68.45
+       ],
+       "110": [
+        67.14,
+        31.55
+       ],
+       "111": [
+        90,
+        10.19
+       ],
+       "000": [
+        10,
+        89.81
+       ],
+       "010": [
+        10,
+        31.55
+       ],
+       "001": [
+        32.86,
+        68.45
+       ],
+       "011": [
+        32.86,
+        10.19
+       ]
+      },
+      "roads": [
+       [
+        "100",
+        "101"
+       ],
+       [
+        "100",
+        "110"
+       ],
+       [
+        "101",
+        "111"
+       ],
+       [
+        "110",
+        "111"
+       ],
+       [
+        "000",
+        "100"
+       ],
+       [
+        "000",
+        "010"
+       ],
+       [
+        "000",
+        "001"
+       ],
+       [
+        "010",
+        "110"
+       ],
+       [
+        "010",
+        "011"
+       ],
+       [
+        "001",
+        "101"
+       ],
+       [
+        "001",
+        "011"
+       ],
+       [
+        "011",
+        "111"
+       ]
+      ],
+      "labels": {
+       "100": "100",
+       "101": "101",
+       "110": "110",
+       "111": "111",
+       "000": "000",
+       "010": "010",
+       "001": "001",
+       "011": "011"
+      },
+      "names": {
+       "100": "100",
+       "101": "101",
+       "110": "110",
+       "111": "111",
+       "000": "000",
+       "010": "010",
+       "001": "001",
+       "011": "011"
+      },
+      "scale": 1.15,
+      "kind": "cube",
+      "homes": {
+       "A": "000",
+       "B": "011",
+       "C": "101"
+      }
+     }
+    }
+   },
+   "objective": "Walk the three walkers on any map to find meeting dots, and move the homes to set a new puzzle.",
+   "visibleObjective": "",
+   "instruction": "Walk the three walkers on any map to find meeting dots, and move the homes to set a new puzzle.",
+   "controls": "Choose a map. Tap A, B or C to choose a walker, then tap or slide to walk it. Press Homes, then tap a home and another dot to move it there; press Homes again to walk.",
+   "rules": [
+    "Each road is one step. A shortest route between two dots takes the fewest steps.",
+    "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
+    "The dot works when all three of those routes are shortest: it is a meeting dot. It may be a home, and then that walker stays at home.",
+    "If one of the routes is too long, a dashed line shows a shorter route between those two homes.",
+    "Each meeting dot found gets a ring, and the walkers go home."
+   ],
+   "idea": "Free play on a grid, a tree and the cube: place three homes and find where they meet.",
+   "prerequisites": "None. A grown-up or a partner can set the homes as a challenge.",
+   "hints": [
+    "Put the homes somewhere new, then find the meeting dot.",
+    "On the grid, look at the middle column and the middle row of the three homes.",
+    "On the cube, take the digit most homes have in each place."
+   ],
+   "parent": {
+    "notice": "Whether your child can set homes for someone else and say the meeting dot before the walkers get there.",
+    "prompt": "Can you place the homes on the grid so that no dot works, or so that two do?",
+    "explanation": "On the full grid, the tree and the cube, every three different homes have exactly one meeting dot, so neither is possible here. Puzzles 9 to 12 show maps where it happens.",
+    "extension": "Set homes on the tree whose meeting dot is one of the homes.",
+    "connection": "Grids, trees and cubes are median graphs: every three vertices have exactly one median.",
+    "sourceIds": [
+     "meeting-week67",
+     "meeting-card67",
+     "meeting-ggt"
+    ]
+   },
+   "provenance": "Week 67 Problem 2: “Put A, B, and C at three different dots. Challenge your partner to find every meeting dot that works.”"
+  },
+  {
+   "id": "meeting-01",
+   "number": 1,
+   "title": "First meeting",
+   "difficulty_level": "easy",
+   "familyTitle": "Meeting roads",
+   "mechanic": "meeting",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/meeting/README.md",
+   "parameters": {
+    "mode": "meet",
+    "aspect": 1,
+    "nodes": {
+     "10": [
+      50,
+      88
+     ],
+     "11": [
+      50,
+      50
+     ],
+     "12": [
+      50,
+      12
+     ],
+     "20": [
+      88,
+      88
+     ],
+     "21": [
+      88,
+      50
+     ],
+     "22": [
+      88,
+      12
+     ],
+     "00": [
+      12,
+      88
+     ],
+     "01": [
+      12,
+      50
+     ],
+     "02": [
+      12,
+      12
+     ]
+    },
+    "roads": [
+     [
+      "10",
+      "20"
+     ],
+     [
+      "10",
+      "11"
+     ],
+     [
+      "11",
+      "21"
+     ],
+     [
+      "11",
+      "12"
+     ],
+     [
+      "12",
+      "22"
+     ],
+     [
+      "20",
+      "21"
+     ],
+     [
+      "21",
+      "22"
+     ],
+     [
+      "00",
+      "10"
+     ],
+     [
+      "00",
+      "01"
+     ],
+     [
+      "01",
+      "11"
+     ],
+     [
+      "01",
+      "02"
+     ],
+     [
+      "02",
+      "12"
+     ]
+    ],
+    "names": {
+     "10": "1 across, 0 up",
+     "11": "1 across, 1 up",
+     "12": "1 across, 2 up",
+     "20": "2 across, 0 up",
+     "21": "2 across, 1 up",
+     "22": "2 across, 2 up",
+     "00": "0 across, 0 up",
+     "01": "0 across, 1 up",
+     "02": "0 across, 2 up"
+    },
+    "kind": "grid",
+    "small": true,
+    "homes": {
+     "A": "00",
+     "B": "20",
+     "C": "12"
+    }
+   },
+   "objective": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
+   "visibleObjective": "",
+   "instruction": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
+   "controls": "Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
+   "rules": [
+    "Each road is one step. A shortest route between two dots takes the fewest steps.",
+    "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
+    "The dot works when all three of those routes are shortest: it is a meeting dot. It may be a home, and then that walker stays at home.",
+    "If one of the routes is too long, a dashed line shows a shorter route between those two homes."
+   ],
+   "idea": "The meeting dot is where the homes’ shortest routes can overlap, not the middle of the board.",
+   "prerequisites": "Count steps along roads and see when a route turns back. No reading; a grown-up can read How to play.",
+   "hints": [
+    "Where would A and B meet on their way to each other?",
+    "A and B are two steps apart along the bottom. C has to come down to them.",
+    "Move A one step right, B one step left and C two steps down."
+   ],
+   "parent": {
+    "notice": "Whether your child walks all three to the middle of the board first. The middle is two steps up and back for A and B, which is too long.",
+    "prompt": "Why can’t the meeting dot be in the middle of the board?",
+    "explanation": "A and B are 2 steps apart, and their only shortest route is along the bottom, so the meeting dot is on the bottom row. C is 3 steps from each of them, and the bottom dot right below C is on a shortest route from C to both. The walks are one step for A, one for B and two for C; joined in pairs they take 2, 3 and 3 steps, the fewest possible.",
+    "extension": "In the playground, put C in a top corner of a small square of the grid. Where do they meet now? (At A’s or B’s home: that walker stays put.)",
+    "connection": "A meeting dot is a median of the three homes: a point on a shortest path between each two of them.",
+    "sourceIds": [
+     "meeting-week67",
+     "meeting-card67",
+     "meeting-ggt"
+    ]
+   },
+   "solution": {
+    "answers": [
+     "10"
+    ],
+    "walks": [
+     {
+      "A": [
+       "00",
+       "10"
+      ],
+      "B": [
+       "20",
+       "10"
+      ],
+      "C": [
+       "12",
+       "11",
+       "10"
+      ]
+     }
+    ]
+   },
+   "provenance": "New, a 3×3 warm-up before Week 67 Problem 1: every walk is short and the answer is not the middle of the board."
+  },
+  {
+   "id": "meeting-02",
+   "number": 2,
+   "title": "Middle and middle",
+   "difficulty_level": "easy",
+   "familyTitle": "Meeting roads",
+   "mechanic": "meeting",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/meeting/README.md",
+   "parameters": {
+    "mode": "meet",
+    "aspect": 1,
+    "nodes": {
+     "10": [
+      29.5,
+      91
+     ],
+     "11": [
+      29.5,
+      70.5
+     ],
+     "12": [
+      29.5,
+      50
+     ],
+     "13": [
+      29.5,
+      29.5
+     ],
+     "14": [
+      29.5,
+      9
+     ],
+     "20": [
+      50,
+      91
+     ],
+     "21": [
+      50,
+      70.5
+     ],
+     "22": [
+      50,
+      50
+     ],
+     "23": [
+      50,
+      29.5
+     ],
+     "24": [
+      50,
+      9
+     ],
+     "30": [
+      70.5,
+      91
+     ],
+     "31": [
+      70.5,
+      70.5
+     ],
+     "32": [
+      70.5,
+      50
+     ],
+     "33": [
+      70.5,
+      29.5
+     ],
+     "34": [
+      70.5,
+      9
+     ],
+     "40": [
+      91,
+      91
+     ],
+     "41": [
+      91,
+      70.5
+     ],
+     "42": [
+      91,
+      50
+     ],
+     "43": [
+      91,
+      29.5
+     ],
+     "44": [
+      91,
+      9
+     ],
+     "00": [
+      9,
+      91
+     ],
+     "01": [
+      9,
+      70.5
+     ],
+     "02": [
+      9,
+      50
+     ],
+     "03": [
+      9,
+      29.5
+     ],
+     "04": [
+      9,
+      9
+     ]
+    },
+    "roads": [
+     [
+      "10",
+      "20"
+     ],
+     [
+      "10",
+      "11"
+     ],
+     [
+      "11",
+      "21"
+     ],
+     [
+      "11",
+      "12"
+     ],
+     [
+      "12",
+      "22"
+     ],
+     [
+      "12",
+      "13"
+     ],
+     [
+      "13",
+      "23"
+     ],
+     [
+      "13",
+      "14"
+     ],
+     [
+      "14",
+      "24"
+     ],
+     [
+      "20",
+      "30"
+     ],
+     [
+      "20",
+      "21"
+     ],
+     [
+      "21",
+      "31"
+     ],
+     [
+      "21",
+      "22"
+     ],
+     [
+      "22",
+      "32"
+     ],
+     [
+      "22",
+      "23"
+     ],
+     [
+      "23",
+      "33"
+     ],
+     [
+      "23",
+      "24"
+     ],
+     [
+      "24",
+      "34"
+     ],
+     [
+      "30",
+      "40"
+     ],
+     [
+      "30",
+      "31"
+     ],
+     [
+      "31",
+      "41"
+     ],
+     [
+      "31",
+      "32"
+     ],
+     [
+      "32",
+      "42"
+     ],
+     [
+      "32",
+      "33"
+     ],
+     [
+      "33",
+      "43"
+     ],
+     [
+      "33",
+      "34"
+     ],
+     [
+      "34",
+      "44"
+     ],
+     [
+      "40",
+      "41"
+     ],
+     [
+      "41",
+      "42"
+     ],
+     [
+      "42",
+      "43"
+     ],
+     [
+      "43",
+      "44"
+     ],
+     [
+      "00",
+      "10"
+     ],
+     [
+      "00",
+      "01"
+     ],
+     [
+      "01",
+      "11"
+     ],
+     [
+      "01",
+      "02"
+     ],
+     [
+      "02",
+      "12"
+     ],
+     [
+      "02",
+      "03"
+     ],
+     [
+      "03",
+      "13"
+     ],
+     [
+      "03",
+      "04"
+     ],
+     [
+      "04",
+      "14"
+     ]
+    ],
+    "names": {
+     "10": "1 across, 0 up",
+     "11": "1 across, 1 up",
+     "12": "1 across, 2 up",
+     "13": "1 across, 3 up",
+     "14": "1 across, 4 up",
+     "20": "2 across, 0 up",
+     "21": "2 across, 1 up",
+     "22": "2 across, 2 up",
+     "23": "2 across, 3 up",
+     "24": "2 across, 4 up",
+     "30": "3 across, 0 up",
+     "31": "3 across, 1 up",
+     "32": "3 across, 2 up",
+     "33": "3 across, 3 up",
+     "34": "3 across, 4 up",
+     "40": "4 across, 0 up",
+     "41": "4 across, 1 up",
+     "42": "4 across, 2 up",
+     "43": "4 across, 3 up",
+     "44": "4 across, 4 up",
+     "00": "0 across, 0 up",
+     "01": "0 across, 1 up",
+     "02": "0 across, 2 up",
+     "03": "0 across, 3 up",
+     "04": "0 across, 4 up"
+    },
+    "kind": "grid",
+    "homes": {
+     "A": "00",
+     "B": "41",
+     "C": "14"
+    }
+   },
+   "objective": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
+   "visibleObjective": "",
+   "instruction": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
+   "controls": "Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
+   "rules": [
+    "Each road is one step. A shortest route between two dots takes the fewest steps.",
+    "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
+    "The dot works when all three of those routes are shortest: it is a meeting dot. It may be a home, and then that walker stays at home.",
+    "If one of the routes is too long, a dashed line shows a shorter route between those two homes."
+   ],
+   "idea": "On a full grid the meeting dot is in the middle of the homes’ three columns and the middle of their three rows.",
+   "prerequisites": "Count steps along roads and see when a route turns back. No reading; a grown-up can read How to play.",
+   "hints": [
+    "Where would the walkers meet if there were only A and B?",
+    "A shortest route from A to B only goes right and up. Which of those dots is also on a shortest route to C?",
+    "The meeting dot is one step right and one step up from A."
+   ],
+   "parent": {
+    "notice": "Whether your child plans a meeting place before walking, or walks first and adjusts.",
+    "prompt": "When a dot fails: why does this dot work for A and B but not for C?",
+    "explanation": "On a full grid the steps between two dots are the steps across plus the steps up. A dot is on a shortest route between two homes exactly when its column is between theirs and its row is between theirs. The homes’ columns are 0, 4 and 1, and only the middle one, 1, is between each two of them; their rows are 0, 1 and 4, with middle 1. So the dot one right and one up from A is the only meeting dot. Joined in pairs, the walks take 2 + 3, 2 + 3 and 3 + 3 steps: 5, 5 and 6, the distances between the homes.",
+    "extension": "Move one home in the playground. Can you say where the meeting dot goes before the walkers get there?",
+    "connection": "The grid is a product of two paths, and its medians are taken one coordinate at a time (Druţu and Kapovich, Examples 6.19).",
+    "sourceIds": [
+     "meeting-week67",
+     "meeting-card67",
+     "meeting-ggt"
+    ]
+   },
+   "solution": {
+    "answers": [
+     "11"
+    ],
+    "walks": [
+     {
+      "A": [
+       "00",
+       "10",
+       "11"
+      ],
+      "B": [
+       "41",
+       "31",
+       "21",
+       "11"
+      ],
+      "C": [
+       "14",
+       "13",
+       "12",
+       "11"
+      ]
+     }
+    ]
+   },
+   "provenance": "Week 67 Problem 1, left board."
+  },
+  {
+   "id": "meeting-03",
+   "number": 3,
+   "title": "The tree",
+   "difficulty_level": "easy",
+   "familyTitle": "Meeting roads",
+   "mechanic": "meeting",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/meeting/README.md",
+   "parameters": {
+    "mode": "meet",
+    "aspect": 1.26,
+    "nodes": {
+     "a": [
+      9,
+      62.89
+     ],
+     "u": [
+      29.5,
+      62.89
+     ],
+     "v": [
+      50,
+      62.89
+     ],
+     "w": [
+      70.5,
+      62.89
+     ],
+     "b": [
+      91,
+      37.11
+     ],
+     "t": [
+      50,
+      37.11
+     ],
+     "c": [
+      50,
+      11.32
+     ],
+     "s": [
+      70.5,
+      88.68
+     ],
+     "r": [
+      91,
+      88.68
+     ],
+     "q": [
+      9,
+      37.11
+     ]
+    },
+    "roads": [
+     [
+      "a",
+      "u"
+     ],
+     [
+      "u",
+      "v"
+     ],
+     [
+      "v",
+      "w"
+     ],
+     [
+      "w",
+      "b"
+     ],
+     [
+      "v",
+      "t"
+     ],
+     [
+      "t",
+      "c"
+     ],
+     [
+      "w",
+      "s"
+     ],
+     [
+      "s",
+      "r"
+     ],
+     [
+      "u",
+      "q"
+     ]
+    ],
+    "names": {
+     "a": "0 across, 1 up",
+     "u": "1 across, 1 up",
+     "v": "2 across, 1 up",
+     "w": "3 across, 1 up",
+     "b": "4 across, 2 up",
+     "t": "2 across, 2 up",
+     "c": "2 across, 3 up",
+     "s": "3 across, 0 up",
+     "r": "4 across, 0 up",
+     "q": "0 across, 2 up"
+    },
+    "kind": "tree",
+    "homes": {
+     "A": "a",
+     "B": "b",
+     "C": "c"
+    }
+   },
+   "objective": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
+   "visibleObjective": "",
+   "instruction": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
+   "controls": "Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
+   "rules": [
+    "Each road is one step. A shortest route between two dots takes the fewest steps.",
+    "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
+    "The dot works when all three of those routes are shortest: it is a meeting dot. It may be a home, and then that walker stays at home.",
+    "If one of the routes is too long, a dashed line shows a shorter route between those two homes."
+   ],
+   "idea": "On a tree the three paths between the homes share exactly one dot, where they branch.",
+   "prerequisites": "Count steps along a few roads. No reading or arithmetic beyond counting to four.",
+   "hints": [
+    "Follow the only path from A to B. Where does C’s path join it?",
+    "A walk into a side branch has to come back out, so a shortest walk never uses one.",
+    "Each walker takes two steps, to the dot where C’s branch meets the long path."
+   ],
+   "parent": {
+    "notice": "Whether your child walks into a side branch. Those branches are decoys: a walk into one must come back.",
+    "prompt": "Is there any other way from A to B? What does that mean for the meeting dot?",
+    "explanation": "In a tree there is exactly one path between two dots, since two different paths would make a loop. So the meeting dot must be on all three paths, A to B, A to C and B to C. Together they make a tripod: three legs joined at one dot, here the junction below C, two steps from each home. Each pair of homes is four steps apart, and two walks of two steps make four.",
+    "extension": "In the playground, put the three homes along one path of the tree. Where is the meeting dot? (At the middle home: one leg of the tripod has no steps.)",
+    "connection": "Every tree is a median graph, and the median of three vertices is the centre of their tripod.",
+    "sourceIds": [
+     "meeting-week67",
+     "meeting-card67",
+     "meeting-ggt"
+    ]
+   },
+   "solution": {
+    "answers": [
+     "v"
+    ],
+    "walks": [
+     {
+      "A": [
+       "a",
+       "u",
+       "v"
+      ],
+      "B": [
+       "b",
+       "w",
+       "v"
+      ],
+      "C": [
+       "c",
+       "t",
+       "v"
+      ]
+     }
+    ]
+   },
+   "provenance": "Week 67 Problem 3, the tree, with its two decoy branches."
+  },
+  {
+   "id": "meeting-04",
+   "number": 4,
+   "title": "Stay at home",
+   "difficulty_level": "easy",
+   "familyTitle": "Meeting roads",
+   "mechanic": "meeting",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/meeting/README.md",
+   "parameters": {
+    "mode": "meet",
+    "aspect": 1,
+    "nodes": {
+     "a": [
+      16,
+      84
+     ],
+     "b": [
+      84,
+      84
+     ],
+     "c": [
+      84,
+      16
+     ],
+     "d": [
+      16,
+      16
+     ]
+    },
+    "roads": [
+     [
+      "a",
+      "b"
+     ],
+     [
+      "b",
+      "c"
+     ],
+     [
+      "c",
+      "d"
+     ],
+     [
+      "d",
+      "a"
+     ]
+    ],
+    "names": {
+     "a": "bottom left",
+     "b": "bottom right",
+     "c": "top right",
+     "d": "top left"
+    },
+    "kind": "square",
+    "small": true,
+    "homes": {
+     "A": "a",
+     "B": "b",
+     "C": "c"
+    }
+   },
+   "objective": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
+   "visibleObjective": "",
+   "instruction": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
+   "controls": "Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
+   "rules": [
+    "Each road is one step. A shortest route between two dots takes the fewest steps.",
+    "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
+    "The dot works when all three of those routes are shortest: it is a meeting dot. It may be a home, and then that walker stays at home.",
+    "If one of the routes is too long, a dashed line shows a shorter route between those two homes."
+   ],
+   "idea": "The meeting dot can be a home; that walker stays where it is.",
+   "prerequisites": "Count steps along a few roads. No reading or arithmetic beyond counting to four.",
+   "hints": [
+    "Could a walker stay at home?",
+    "A and C are two steps apart, through B or through the empty corner.",
+    "Walk A one step to B and C one step down to B. B stays at home."
+   ],
+   "parent": {
+    "notice": "Whether your child tries the empty corner. It is on a shortest route from A to C, but three steps out of the way for A to B and for B to C.",
+    "prompt": "Why doesn’t the empty corner work?",
+    "explanation": "A and C are two steps apart, through B or through the empty corner. A to B and B to C are single roads, and the empty corner is not on either. B is on all three: A to B takes 1 step, B to C 1 step, and A to C through B 2 steps. B’s walker stays at home.",
+    "extension": "Put three homes on three corners of the square some other way. Which corner works? (Always the one next to the other two.)",
+    "connection": "A square of four roads is a median graph (a 2 × 2 grid); the median of three of its corners is the middle one.",
+    "sourceIds": [
+     "meeting-week67",
+     "meeting-card67",
+     "meeting-ggt"
+    ]
+   },
+   "solution": {
+    "answers": [
+     "b"
+    ],
+    "walks": [
+     {
+      "A": [
+       "a",
+       "b"
+      ],
+      "B": [
+       "b"
+      ],
+      "C": [
+       "c",
+       "b"
+      ]
+     }
+    ]
+   },
+   "provenance": "Week 67 Problem 3, the square."
+  },
+  {
+   "id": "meeting-05",
+   "number": 5,
+   "title": "On the edge",
+   "difficulty_level": "medium",
+   "familyTitle": "Meeting roads",
+   "mechanic": "meeting",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/meeting/README.md",
+   "parameters": {
+    "mode": "meet",
+    "aspect": 1,
+    "nodes": {
+     "10": [
+      29.5,
+      91
+     ],
+     "11": [
+      29.5,
+      70.5
+     ],
+     "12": [
+      29.5,
+      50
+     ],
+     "13": [
+      29.5,
+      29.5
+     ],
+     "14": [
+      29.5,
+      9
+     ],
+     "20": [
+      50,
+      91
+     ],
+     "21": [
+      50,
+      70.5
+     ],
+     "22": [
+      50,
+      50
+     ],
+     "23": [
+      50,
+      29.5
+     ],
+     "24": [
+      50,
+      9
+     ],
+     "30": [
+      70.5,
+      91
+     ],
+     "31": [
+      70.5,
+      70.5
+     ],
+     "32": [
+      70.5,
+      50
+     ],
+     "33": [
+      70.5,
+      29.5
+     ],
+     "34": [
+      70.5,
+      9
+     ],
+     "40": [
+      91,
+      91
+     ],
+     "41": [
+      91,
+      70.5
+     ],
+     "42": [
+      91,
+      50
+     ],
+     "43": [
+      91,
+      29.5
+     ],
+     "44": [
+      91,
+      9
+     ],
+     "00": [
+      9,
+      91
+     ],
+     "01": [
+      9,
+      70.5
+     ],
+     "02": [
+      9,
+      50
+     ],
+     "03": [
+      9,
+      29.5
+     ],
+     "04": [
+      9,
+      9
+     ]
+    },
+    "roads": [
+     [
+      "10",
+      "20"
+     ],
+     [
+      "10",
+      "11"
+     ],
+     [
+      "11",
+      "21"
+     ],
+     [
+      "11",
+      "12"
+     ],
+     [
+      "12",
+      "22"
+     ],
+     [
+      "12",
+      "13"
+     ],
+     [
+      "13",
+      "23"
+     ],
+     [
+      "13",
+      "14"
+     ],
+     [
+      "14",
+      "24"
+     ],
+     [
+      "20",
+      "30"
+     ],
+     [
+      "20",
+      "21"
+     ],
+     [
+      "21",
+      "31"
+     ],
+     [
+      "21",
+      "22"
+     ],
+     [
+      "22",
+      "32"
+     ],
+     [
+      "22",
+      "23"
+     ],
+     [
+      "23",
+      "33"
+     ],
+     [
+      "23",
+      "24"
+     ],
+     [
+      "24",
+      "34"
+     ],
+     [
+      "30",
+      "40"
+     ],
+     [
+      "30",
+      "31"
+     ],
+     [
+      "31",
+      "41"
+     ],
+     [
+      "31",
+      "32"
+     ],
+     [
+      "32",
+      "42"
+     ],
+     [
+      "32",
+      "33"
+     ],
+     [
+      "33",
+      "43"
+     ],
+     [
+      "33",
+      "34"
+     ],
+     [
+      "34",
+      "44"
+     ],
+     [
+      "40",
+      "41"
+     ],
+     [
+      "41",
+      "42"
+     ],
+     [
+      "42",
+      "43"
+     ],
+     [
+      "43",
+      "44"
+     ],
+     [
+      "00",
+      "10"
+     ],
+     [
+      "00",
+      "01"
+     ],
+     [
+      "01",
+      "11"
+     ],
+     [
+      "01",
+      "02"
+     ],
+     [
+      "02",
+      "12"
+     ],
+     [
+      "02",
+      "03"
+     ],
+     [
+      "03",
+      "13"
+     ],
+     [
+      "03",
+      "04"
+     ],
+     [
+      "04",
+      "14"
+     ]
+    ],
+    "names": {
+     "10": "1 across, 0 up",
+     "11": "1 across, 1 up",
+     "12": "1 across, 2 up",
+     "13": "1 across, 3 up",
+     "14": "1 across, 4 up",
+     "20": "2 across, 0 up",
+     "21": "2 across, 1 up",
+     "22": "2 across, 2 up",
+     "23": "2 across, 3 up",
+     "24": "2 across, 4 up",
+     "30": "3 across, 0 up",
+     "31": "3 across, 1 up",
+     "32": "3 across, 2 up",
+     "33": "3 across, 3 up",
+     "34": "3 across, 4 up",
+     "40": "4 across, 0 up",
+     "41": "4 across, 1 up",
+     "42": "4 across, 2 up",
+     "43": "4 across, 3 up",
+     "44": "4 across, 4 up",
+     "00": "0 across, 0 up",
+     "01": "0 across, 1 up",
+     "02": "0 across, 2 up",
+     "03": "0 across, 3 up",
+     "04": "0 across, 4 up"
+    },
+    "kind": "grid",
+    "homes": {
+     "A": "03",
+     "B": "40",
+     "C": "44"
+    }
+   },
+   "objective": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
+   "visibleObjective": "",
+   "instruction": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
+   "controls": "Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
+   "rules": [
+    "Each road is one step. A shortest route between two dots takes the fewest steps.",
+    "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
+    "The dot works when all three of those routes are shortest: it is a meeting dot. It may be a home, and then that walker stays at home.",
+    "If one of the routes is too long, a dashed line shows a shorter route between those two homes."
+   ],
+   "idea": "The middle-column, middle-row rule still works when the meeting dot is on the edge.",
+   "prerequisites": "Count steps along roads and see when a route turns back. No reading; a grown-up can read How to play.",
+   "hints": [
+    "Which column is in the middle of the homes’ columns? Which row is in the middle of their rows?",
+    "B and C are both in the right-hand column, so that is the middle column.",
+    "The meeting dot is on the right edge, in A’s row."
+   ],
+   "parent": {
+    "notice": "Whether your child looks for a dot in the middle of the board first.",
+    "prompt": "Why must the meeting dot be in the right-hand column?",
+    "explanation": "B and C are both in the right-hand column, so every shortest route between them stays in that column, and the meeting dot is there. Its row must be between each two of the homes’ rows, 3, 0 and 4: only the middle one, 3. So the dot on the right edge in A’s row is the only meeting dot. Joined in pairs the walks take 4 + 3 = 7, 4 + 1 = 5 and 3 + 1 = 4 steps, the distances between the homes.",
+    "extension": "If A moved one row down, where would they meet? (On the right edge, one row lower.)",
+    "connection": "Coordinate medians in a product of paths, as in puzzle 2.",
+    "sourceIds": [
+     "meeting-week67",
+     "meeting-card67",
+     "meeting-ggt"
+    ]
+   },
+   "solution": {
+    "answers": [
+     "43"
+    ],
+    "walks": [
+     {
+      "A": [
+       "03",
+       "13",
+       "23",
+       "33",
+       "43"
+      ],
+      "B": [
+       "40",
+       "41",
+       "42",
+       "43"
+      ],
+      "C": [
+       "44",
+       "43"
+      ]
+     }
+    ]
+   },
+   "provenance": "Week 67 Problem 1, right board."
+  },
+  {
+   "id": "meeting-06",
+   "number": 6,
+   "title": "Cube labels",
+   "difficulty_level": "medium",
+   "familyTitle": "Meeting roads",
+   "mechanic": "meeting",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/meeting/README.md",
+   "parameters": {
+    "mode": "meet",
+    "aspect": 1.02,
+    "nodes": {
+     "100": [
+      67.14,
+      89.81
+     ],
+     "101": [
+      90,
+      68.45
+     ],
+     "110": [
+      67.14,
+      31.55
+     ],
+     "111": [
+      90,
+      10.19
+     ],
+     "000": [
+      10,
+      89.81
+     ],
+     "010": [
+      10,
+      31.55
+     ],
+     "001": [
+      32.86,
+      68.45
+     ],
+     "011": [
+      32.86,
+      10.19
+     ]
+    },
+    "roads": [
+     [
+      "100",
+      "101"
+     ],
+     [
+      "100",
+      "110"
+     ],
+     [
+      "101",
+      "111"
+     ],
+     [
+      "110",
+      "111"
+     ],
+     [
+      "000",
+      "100"
+     ],
+     [
+      "000",
+      "010"
+     ],
+     [
+      "000",
+      "001"
+     ],
+     [
+      "010",
+      "110"
+     ],
+     [
+      "010",
+      "011"
+     ],
+     [
+      "001",
+      "101"
+     ],
+     [
+      "001",
+      "011"
+     ],
+     [
+      "011",
+      "111"
+     ]
+    ],
+    "labels": {
+     "100": "100",
+     "101": "101",
+     "110": "110",
+     "111": "111",
+     "000": "000",
+     "010": "010",
+     "001": "001",
+     "011": "011"
+    },
+    "names": {
+     "100": "100",
+     "101": "101",
+     "110": "110",
+     "111": "111",
+     "000": "000",
+     "010": "010",
+     "001": "001",
+     "011": "011"
+    },
+    "scale": 1.15,
+    "kind": "cube",
+    "homes": {
+     "A": "000",
+     "B": "110",
+     "C": "101"
+    }
+   },
+   "objective": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
+   "visibleObjective": "",
+   "instruction": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
+   "controls": "Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
+   "rules": [
+    "Each road is one step. A shortest route between two dots takes the fewest steps.",
+    "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
+    "The dot works when all three of those routes are shortest: it is a meeting dot. It may be a home, and then that walker stays at home.",
+    "If one of the routes is too long, a dashed line shows a shorter route between those two homes."
+   ],
+   "idea": "On the cube the meeting label has, in each place, the digit that most homes have there.",
+   "prerequisites": "Read labels of three 0s and 1s and see which digit a road changes.",
+   "hints": [
+    "Each road changes one digit. In how many places do 000 and 110 differ?",
+    "Each pair of homes is two steps apart. Look for a label one step from each.",
+    "Each walker takes one step, to 100."
+   ],
+   "parent": {
+    "notice": "Whether your child compares labels digit by digit, or tries dots one at a time.",
+    "prompt": "Two homes have a 1 in the first place. Could the meeting label have a 0 there?",
+    "explanation": "A road changes one digit, so the steps between two labels are the places where they differ. A shortest route between two homes never changes a digit where they agree, so wherever two homes agree, the meeting label agrees with them. In each place at least two of the three homes agree, and the meeting label takes that majority digit: 1, 0 and 0, so 100. It is one step from each home, and each pair of homes is two steps apart.",
+    "extension": "Choose three labels in the playground and say the meeting label before walking.",
+    "connection": "The cube is the 2 × 2 × 2 grid, and the majority of three digits is their middle value, so this is the grid’s rule again. In every hypercube the median of three vertices is their bitwise majority.",
+    "sourceIds": [
+     "meeting-week67",
+     "meeting-card67",
+     "meeting-ggt"
+    ]
+   },
+   "solution": {
+    "answers": [
+     "100"
+    ],
+    "walks": [
+     {
+      "A": [
+       "000",
+       "100"
+      ],
+      "B": [
+       "110",
+       "100"
+      ],
+      "C": [
+       "101",
+       "100"
+      ]
+     }
+    ]
+   },
+   "provenance": "Week 67 Problem 4, left map."
+  },
+  {
+   "id": "meeting-07",
+   "number": 7,
+   "title": "Not next to all three",
+   "difficulty_level": "medium",
+   "familyTitle": "Meeting roads",
+   "mechanic": "meeting",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/meeting/README.md",
+   "parameters": {
+    "mode": "meet",
+    "aspect": 1.02,
+    "nodes": {
+     "100": [
+      67.14,
+      89.81
+     ],
+     "101": [
+      90,
+      68.45
+     ],
+     "110": [
+      67.14,
+      31.55
+     ],
+     "111": [
+      90,
+      10.19
+     ],
+     "000": [
+      10,
+      89.81
+     ],
+     "010": [
+      10,
+      31.55
+     ],
+     "001": [
+      32.86,
+      68.45
+     ],
+     "011": [
+      32.86,
+      10.19
+     ]
+    },
+    "roads": [
+     [
+      "100",
+      "101"
+     ],
+     [
+      "100",
+      "110"
+     ],
+     [
+      "101",
+      "111"
+     ],
+     [
+      "110",
+      "111"
+     ],
+     [
+      "000",
+      "100"
+     ],
+     [
+      "000",
+      "010"
+     ],
+     [
+      "000",
+      "001"
+     ],
+     [
+      "010",
+      "110"
+     ],
+     [
+      "010",
+      "011"
+     ],
+     [
+      "001",
+      "101"
+     ],
+     [
+      "001",
+      "011"
+     ],
+     [
+      "011",
+      "111"
+     ]
+    ],
+    "labels": {
+     "100": "100",
+     "101": "101",
+     "110": "110",
+     "111": "111",
+     "000": "000",
+     "010": "010",
+     "001": "001",
+     "011": "011"
+    },
+    "names": {
+     "100": "100",
+     "101": "101",
+     "110": "110",
+     "111": "111",
+     "000": "000",
+     "010": "010",
+     "001": "001",
+     "011": "011"
+    },
+    "scale": 1.15,
+    "kind": "cube",
+    "homes": {
+     "A": "000",
+     "B": "001",
+     "C": "111"
+    }
+   },
+   "objective": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
+   "visibleObjective": "",
+   "instruction": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
+   "controls": "Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
+   "rules": [
+    "Each road is one step. A shortest route between two dots takes the fewest steps.",
+    "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
+    "The dot works when all three of those routes are shortest: it is a meeting dot. It may be a home, and then that walker stays at home.",
+    "If one of the routes is too long, a dashed line shows a shorter route between those two homes."
+   ],
+   "idea": "“The label next to all three homes” is not the rule; the majority digit in each place is.",
+   "prerequisites": "Read labels of three 0s and 1s and see which digit a road changes.",
+   "hints": [
+    "Look at each digit place on its own.",
+    "In the first two places most homes have 0. In the last place most have 1.",
+    "The meeting label is 001, B’s home: B stays, A takes one step and C takes two."
+   ],
+   "parent": {
+    "notice": "A child who solved puzzle 6 may look for a label next to all three homes. There is none here: 111 is three steps from 000.",
+    "prompt": "Which label is next to both 000 and 111? (None: they differ in every place.)",
+    "explanation": "The majority digits are 0, 0 and 1, so the meeting label is 001, B’s home. A walks one step, 000 to 001; C walks two, 111 to 011 to 001 or through 101. Joined in pairs: A to B 1 step, A to C 1 + 2 = 3, B to C 0 + 2 = 2, each the fewest possible.",
+    "extension": "Can the meeting label ever be two steps from every home? (No: in each place at most one home differs from the majority, so the three homes differ from it in at most three places altogether.)",
+    "connection": "The bitwise majority is the median in every hypercube.",
+    "sourceIds": [
+     "meeting-week67",
+     "meeting-card67",
+     "meeting-ggt"
+    ]
+   },
+   "solution": {
+    "answers": [
+     "001"
+    ],
+    "walks": [
+     {
+      "A": [
+       "000",
+       "001"
+      ],
+      "B": [
+       "001"
+      ],
+      "C": [
+       "111",
+       "101",
+       "001"
+      ]
+     }
+    ]
+   },
+   "provenance": "New, from the Week 67 review card’s fix 3: Problem 4’s homes are each next to its answer, so this triple, whose meeting label is not next to 111, breaks the idea “the dot next to all three”."
+  },
+  {
+   "id": "meeting-08",
+   "number": 8,
+   "title": "Is there a second?",
+   "difficulty_level": "medium",
+   "familyTitle": "Meeting roads",
+   "mechanic": "meeting",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/meeting/README.md",
+   "parameters": {
+    "mode": "every",
+    "aspect": 1,
+    "nodes": {
+     "10": [
+      29.5,
+      91
+     ],
+     "11": [
+      29.5,
+      70.5
+     ],
+     "12": [
+      29.5,
+      50
+     ],
+     "13": [
+      29.5,
+      29.5
+     ],
+     "14": [
+      29.5,
+      9
+     ],
+     "20": [
+      50,
+      91
+     ],
+     "21": [
+      50,
+      70.5
+     ],
+     "22": [
+      50,
+      50
+     ],
+     "23": [
+      50,
+      29.5
+     ],
+     "24": [
+      50,
+      9
+     ],
+     "30": [
+      70.5,
+      91
+     ],
+     "31": [
+      70.5,
+      70.5
+     ],
+     "32": [
+      70.5,
+      50
+     ],
+     "33": [
+      70.5,
+      29.5
+     ],
+     "34": [
+      70.5,
+      9
+     ],
+     "40": [
+      91,
+      91
+     ],
+     "41": [
+      91,
+      70.5
+     ],
+     "42": [
+      91,
+      50
+     ],
+     "43": [
+      91,
+      29.5
+     ],
+     "44": [
+      91,
+      9
+     ],
+     "00": [
+      9,
+      91
+     ],
+     "01": [
+      9,
+      70.5
+     ],
+     "02": [
+      9,
+      50
+     ],
+     "03": [
+      9,
+      29.5
+     ],
+     "04": [
+      9,
+      9
+     ]
+    },
+    "roads": [
+     [
+      "10",
+      "20"
+     ],
+     [
+      "10",
+      "11"
+     ],
+     [
+      "11",
+      "21"
+     ],
+     [
+      "11",
+      "12"
+     ],
+     [
+      "12",
+      "22"
+     ],
+     [
+      "12",
+      "13"
+     ],
+     [
+      "13",
+      "23"
+     ],
+     [
+      "13",
+      "14"
+     ],
+     [
+      "14",
+      "24"
+     ],
+     [
+      "20",
+      "30"
+     ],
+     [
+      "20",
+      "21"
+     ],
+     [
+      "21",
+      "31"
+     ],
+     [
+      "21",
+      "22"
+     ],
+     [
+      "22",
+      "32"
+     ],
+     [
+      "22",
+      "23"
+     ],
+     [
+      "23",
+      "33"
+     ],
+     [
+      "23",
+      "24"
+     ],
+     [
+      "24",
+      "34"
+     ],
+     [
+      "30",
+      "40"
+     ],
+     [
+      "30",
+      "31"
+     ],
+     [
+      "31",
+      "41"
+     ],
+     [
+      "31",
+      "32"
+     ],
+     [
+      "32",
+      "42"
+     ],
+     [
+      "32",
+      "33"
+     ],
+     [
+      "33",
+      "43"
+     ],
+     [
+      "33",
+      "34"
+     ],
+     [
+      "34",
+      "44"
+     ],
+     [
+      "40",
+      "41"
+     ],
+     [
+      "41",
+      "42"
+     ],
+     [
+      "42",
+      "43"
+     ],
+     [
+      "43",
+      "44"
+     ],
+     [
+      "00",
+      "10"
+     ],
+     [
+      "00",
+      "01"
+     ],
+     [
+      "01",
+      "11"
+     ],
+     [
+      "01",
+      "02"
+     ],
+     [
+      "02",
+      "12"
+     ],
+     [
+      "02",
+      "03"
+     ],
+     [
+      "03",
+      "13"
+     ],
+     [
+      "03",
+      "04"
+     ],
+     [
+      "04",
+      "14"
+     ]
+    ],
+    "names": {
+     "10": "1 across, 0 up",
+     "11": "1 across, 1 up",
+     "12": "1 across, 2 up",
+     "13": "1 across, 3 up",
+     "14": "1 across, 4 up",
+     "20": "2 across, 0 up",
+     "21": "2 across, 1 up",
+     "22": "2 across, 2 up",
+     "23": "2 across, 3 up",
+     "24": "2 across, 4 up",
+     "30": "3 across, 0 up",
+     "31": "3 across, 1 up",
+     "32": "3 across, 2 up",
+     "33": "3 across, 3 up",
+     "34": "3 across, 4 up",
+     "40": "4 across, 0 up",
+     "41": "4 across, 1 up",
+     "42": "4 across, 2 up",
+     "43": "4 across, 3 up",
+     "44": "4 across, 4 up",
+     "00": "0 across, 0 up",
+     "01": "0 across, 1 up",
+     "02": "0 across, 2 up",
+     "03": "0 across, 3 up",
+     "04": "0 across, 4 up"
+    },
+    "kind": "grid",
+    "homes": {
+     "A": "04",
+     "B": "30",
+     "C": "43"
+    }
+   },
+   "objective": "Find every meeting dot: every dot where the three walkers can stand so that any two walks together make a shortest route between their homes. Press That’s all when none is left.",
+   "visibleObjective": "Find every meeting dot.",
+   "instruction": "Find every meeting dot: every dot where the three walkers can stand so that any two walks together make a shortest route between their homes. Press That’s all when none is left.",
+   "controls": "Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
+   "rules": [
+    "Each road is one step. A shortest route between two dots takes the fewest steps.",
+    "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
+    "The dot works when all three of those routes are shortest: it is a meeting dot. It may be a home, and then that walker stays at home.",
+    "If one of the routes is too long, a dashed line shows a shorter route between those two homes.",
+    "Each meeting dot found gets a ring, and the walkers go home. Press That’s all when you think none is left. It says if there is another."
+   ],
+   "idea": "On a full grid there is never a second meeting dot.",
+   "prerequisites": "Keep the meeting dots already found in mind, and decide when none is left.",
+   "hints": [
+    "Is there a second one?",
+    "Try a dot next to the one you found. Which two homes does it fail?",
+    "Only one dot works. Find it, then press That’s all."
+   ],
+   "parent": {
+    "notice": "After the first meeting dot, whether your child tests the dots around it or trusts the rule.",
+    "prompt": "How do you know there isn’t another?",
+    "explanation": "The meeting dot’s column must be between each two of the homes’ columns, 0, 3 and 4: only column 3 is. Its row must be between each two of 4, 0 and 3: only row 3. So one dot works. The validator checks all 2,300 ways to put three homes on different dots of this grid, and each has exactly one meeting dot.",
+    "extension": "Can you place three homes on the full grid so that two dots work? (No: the column and the row are each forced, as above.)",
+    "connection": "Medians in median graphs are unique; on the grid that is the uniqueness of the middle of three numbers.",
+    "sourceIds": [
+     "meeting-week67",
+     "meeting-card67",
+     "meeting-ggt"
+    ]
+   },
+   "solution": {
+    "answers": [
+     "33"
+    ],
+    "walks": [
+     {
+      "A": [
+       "04",
+       "03",
+       "13",
+       "23",
+       "33"
+      ],
+      "B": [
+       "30",
+       "31",
+       "32",
+       "33"
+      ],
+      "C": [
+       "43",
+       "33"
+      ]
+     }
+    ]
+   },
+   "provenance": "Week 67 Problem 2’s question “Can you make more than one work?”, asked of one placement."
+  },
+  {
+   "id": "meeting-09",
+   "number": 9,
+   "title": "Two crossroads",
+   "difficulty_level": "hard",
+   "familyTitle": "Meeting roads",
+   "mechanic": "meeting",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/meeting/README.md",
+   "parameters": {
+    "mode": "every",
+    "aspect": 1.4,
+    "nodes": {
+     "x": [
+      12,
+      50
+     ],
+     "a": [
+      50,
+      16.78
+     ],
+     "b": [
+      50,
+      50
+     ],
+     "c": [
+      50,
+      83.22
+     ],
+     "y": [
+      88,
+      50
+     ]
+    },
+    "roads": [
+     [
+      "x",
+      "a"
+     ],
+     [
+      "x",
+      "b"
+     ],
+     [
+      "x",
+      "c"
+     ],
+     [
+      "y",
+      "a"
+     ],
+     [
+      "y",
+      "b"
+     ],
+     [
+      "y",
+      "c"
+     ]
+    ],
+    "names": {
+     "x": "left crossroads",
+     "y": "right crossroads",
+     "a": "top middle",
+     "b": "middle",
+     "c": "bottom middle"
+    },
+    "kind": "crossroads",
+    "small": true,
+    "homes": {
+     "A": "a",
+     "B": "b",
+     "C": "c"
+    }
+   },
+   "objective": "Find every meeting dot: every dot where the three walkers can stand so that any two walks together make a shortest route between their homes. Press That’s all when none is left.",
+   "visibleObjective": "Find every meeting dot.",
+   "instruction": "Find every meeting dot: every dot where the three walkers can stand so that any two walks together make a shortest route between their homes. Press That’s all when none is left.",
+   "controls": "Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
+   "rules": [
+    "Each road is one step. A shortest route between two dots takes the fewest steps.",
+    "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
+    "The dot works when all three of those routes are shortest: it is a meeting dot. It may be a home, and then that walker stays at home.",
+    "If one of the routes is too long, a dashed line shows a shorter route between those two homes.",
+    "Each meeting dot found gets a ring, and the walkers go home. Press That’s all when you think none is left. It says if there is another."
+   ],
+   "idea": "On other maps there can be more than one meeting dot.",
+   "prerequisites": "Keep the meeting dots already found in mind, and decide when none is left.",
+   "hints": [
+    "Each home is two steps from each other home. Where can two such steps meet?",
+    "Each crossroads is one road from every home.",
+    "Walk all three to one crossroads, then all three to the other, then press That’s all."
+   ],
+   "parent": {
+    "notice": "After finding one crossroads, whether your child expects it to be the only one, as on the grid.",
+    "prompt": "Why does the grid have one meeting dot and this map two?",
+    "explanation": "Every pair of homes is two steps apart, through either crossroads. Each crossroads is one step from all three homes, so it is on a shortest route for every pair: both work. No home works, since a route from one home through another to the third takes four steps. On a grid the shortest routes of the three pairs share only one dot; here they can share either crossroads.",
+    "extension": "If the road from A to the left crossroads were closed, how many meeting dots would be left? (One: the right crossroads.)",
+    "connection": "This map, the complete bipartite graph K(2, 3), is not a median graph: its three homes have two medians.",
+    "sourceIds": [
+     "meeting-week67",
+     "meeting-card67",
+     "meeting-ggt"
+    ]
+   },
+   "solution": {
+    "answers": [
+     "x",
+     "y"
+    ],
+    "walks": [
+     {
+      "A": [
+       "a",
+       "x"
+      ],
+      "B": [
+       "b",
+       "x"
+      ],
+      "C": [
+       "c",
+       "x"
+      ]
+     },
+     {
+      "A": [
+       "a",
+       "y"
+      ],
+      "B": [
+       "b",
+       "y"
+      ],
+      "C": [
+       "c",
+       "y"
+      ]
+     }
+    ]
+   },
+   "provenance": "New, from the Week 67 review card’s fix 7: two crossroads each joined to A, B and C."
+  },
+  {
+   "id": "meeting-10",
+   "number": 10,
+   "title": "The triangle",
+   "difficulty_level": "hard",
+   "familyTitle": "Meeting roads",
+   "mechanic": "meeting",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/meeting/README.md",
+   "parameters": {
+    "mode": "every",
+    "aspect": 1.11,
+    "nodes": {
+     "a": [
+      14,
+      84.51
+     ],
+     "b": [
+      86,
+      84.51
+     ],
+     "c": [
+      50,
+      15.49
+     ]
+    },
+    "roads": [
+     [
+      "a",
+      "b"
+     ],
+     [
+      "b",
+      "c"
+     ],
+     [
+      "c",
+      "a"
+     ]
+    ],
+    "names": {
+     "a": "bottom left",
+     "b": "bottom right",
+     "c": "top"
+    },
+    "kind": "triangle",
+    "small": true,
+    "homes": {
+     "A": "a",
+     "B": "b",
+     "C": "c"
+    }
+   },
+   "objective": "Find every meeting dot: every dot where the three walkers can stand so that any two walks together make a shortest route between their homes. Press That’s all when none is left.",
+   "visibleObjective": "Find every meeting dot.",
+   "instruction": "Find every meeting dot: every dot where the three walkers can stand so that any two walks together make a shortest route between their homes. Press That’s all when none is left.",
+   "controls": "Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
+   "rules": [
+    "Each road is one step. A shortest route between two dots takes the fewest steps.",
+    "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
+    "The dot works when all three of those routes are shortest: it is a meeting dot. It may be a home, and then that walker stays at home.",
+    "If one of the routes is too long, a dashed line shows a shorter route between those two homes.",
+    "Each meeting dot found gets a ring, and the walkers go home. Press That’s all when you think none is left. It says if there is another."
+   ],
+   "idea": "On a triangle no dot works: each home is off the road between the other two.",
+   "prerequisites": "Keep the meeting dots already found in mind, and decide when none is left.",
+   "hints": [
+    "Try each dot in turn: which pair is not on a shortest road through it?",
+    "Every pair of homes is one road apart. A route through the third dot takes two.",
+    "No dot works. Press That’s all."
+   ],
+   "parent": {
+    "notice": "Whether your child tries all three dots before pressing That’s all.",
+    "prompt": "Every dot here is a home. Why doesn’t any home work?",
+    "explanation": "Each pair of homes is joined by one road, its only shortest route. A meeting dot must be on all three roads, and no dot is: A is not on the road from B to C, and so on. Every dot has the same total travel from the homes, two steps, so choosing the least total travel would pick every dot; it is a different test, and here it gives no meeting dot.",
+    "extension": "Imagine a fourth dot in the middle joined to all three corners. Does it work? (No: a route through it takes two steps, and each pair is one step apart.)",
+    "connection": "A triangle is not a median graph, and outside median graphs a median can fail to exist.",
+    "sourceIds": [
+     "meeting-week67",
+     "meeting-card67",
+     "meeting-ggt"
+    ]
+   },
+   "solution": {
+    "answers": [],
+    "walks": []
+   },
+   "provenance": "Week 67 Problem 3, the triangle."
+  },
+  {
+   "id": "meeting-11",
+   "number": 11,
+   "title": "A ring with a hole",
+   "difficulty_level": "hard",
+   "familyTitle": "Meeting roads",
+   "mechanic": "meeting",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/meeting/README.md",
+   "parameters": {
+    "mode": "every",
+    "aspect": 1,
+    "nodes": {
+     "10": [
+      50,
+      88
+     ],
+     "12": [
+      50,
+      12
+     ],
+     "20": [
+      88,
+      88
+     ],
+     "21": [
+      88,
+      50
+     ],
+     "22": [
+      88,
+      12
+     ],
+     "00": [
+      12,
+      88
+     ],
+     "01": [
+      12,
+      50
+     ],
+     "02": [
+      12,
+      12
+     ]
+    },
+    "roads": [
+     [
+      "10",
+      "20"
+     ],
+     [
+      "12",
+      "22"
+     ],
+     [
+      "20",
+      "21"
+     ],
+     [
+      "21",
+      "22"
+     ],
+     [
+      "00",
+      "10"
+     ],
+     [
+      "00",
+      "01"
+     ],
+     [
+      "01",
+      "02"
+     ],
+     [
+      "02",
+      "12"
+     ]
+    ],
+    "names": {
+     "10": "1 across, 0 up",
+     "12": "1 across, 2 up",
+     "20": "2 across, 0 up",
+     "21": "2 across, 1 up",
+     "22": "2 across, 2 up",
+     "00": "0 across, 0 up",
+     "01": "0 across, 1 up",
+     "02": "0 across, 2 up"
+    },
+    "kind": "ring",
+    "small": true,
+    "homes": {
+     "A": "00",
+     "B": "02",
+     "C": "21"
+    }
+   },
+   "objective": "Find every meeting dot: every dot where the three walkers can stand so that any two walks together make a shortest route between their homes. Press That’s all when none is left.",
+   "visibleObjective": "Find every meeting dot.",
+   "instruction": "Find every meeting dot: every dot where the three walkers can stand so that any two walks together make a shortest route between their homes. Press That’s all when none is left.",
+   "controls": "Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
+   "rules": [
+    "Each road is one step. A shortest route between two dots takes the fewest steps.",
+    "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
+    "The dot works when all three of those routes are shortest: it is a meeting dot. It may be a home, and then that walker stays at home.",
+    "If one of the routes is too long, a dashed line shows a shorter route between those two homes.",
+    "Each meeting dot found gets a ring, and the walkers go home. Press That’s all when you think none is left. It says if there is another."
+   ],
+   "idea": "A grid with a hole in it can have no meeting dot at all.",
+   "prerequisites": "Keep the meeting dots already found in mind, and decide when none is left.",
+   "hints": [
+    "The middle of the grid is missing. Does the middle-column, middle-row rule still work?",
+    "A and B are two steps apart up the left side, so the meeting dot would have to be on that side.",
+    "No dot works. Press That’s all."
+   ],
+   "parent": {
+    "notice": "Whether your child tries the full grid’s rule, and notices that the road it needs is gone.",
+    "prompt": "Which dot does the full grid’s rule point to, and which pair does it fail here?",
+    "explanation": "A and B are two steps apart, and their only shortest route goes up the left side through the dot between them, so a meeting dot would be A, B or that dot. C is three steps from A and from B, round the bottom or the top. The dot between A and B is four steps from C either way round, so A to C through it takes 1 + 4 = 5 steps, not 3. A fails B and C (2 + 3 = 5, not 3), and B fails A and C the same way. No dot works. On the full 3 × 3 grid the dot between A and B would work, because C could walk straight across the middle.",
+    "extension": "Move C to another dot of the ring in the playground of your head: can you find homes where a dot works? (Yes: with C in the bottom right corner, A’s home works.)",
+    "connection": "A ring of eight roads is not a median graph; only the ring of four is.",
+    "sourceIds": [
+     "meeting-week67",
+     "meeting-card67",
+     "meeting-ggt"
+    ]
+   },
+   "solution": {
+    "answers": [],
+    "walks": []
+   },
+   "provenance": "Week 67 Problem 2’s question “Can you place the homes so that no meeting dot works?”, impossible on the full grid, moved to the grid with its centre taken out (the review card’s math check)."
+  },
+  {
+   "id": "meeting-12",
+   "number": 12,
+   "title": "Close a road",
+   "difficulty_level": "hard",
+   "familyTitle": "Meeting roads",
+   "mechanic": "meeting",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/meeting/README.md",
+   "parameters": {
+    "mode": "close",
+    "aspect": 1,
+    "nodes": {
+     "10": [
+      50,
+      88
+     ],
+     "11": [
+      50,
+      50
+     ],
+     "12": [
+      50,
+      12
+     ],
+     "20": [
+      88,
+      88
+     ],
+     "21": [
+      88,
+      50
+     ],
+     "22": [
+      88,
+      12
+     ],
+     "00": [
+      12,
+      88
+     ],
+     "01": [
+      12,
+      50
+     ],
+     "02": [
+      12,
+      12
+     ]
+    },
+    "roads": [
+     [
+      "10",
+      "20"
+     ],
+     [
+      "10",
+      "11"
+     ],
+     [
+      "11",
+      "21"
+     ],
+     [
+      "11",
+      "12"
+     ],
+     [
+      "12",
+      "22"
+     ],
+     [
+      "20",
+      "21"
+     ],
+     [
+      "21",
+      "22"
+     ],
+     [
+      "00",
+      "10"
+     ],
+     [
+      "00",
+      "01"
+     ],
+     [
+      "01",
+      "11"
+     ],
+     [
+      "01",
+      "02"
+     ],
+     [
+      "02",
+      "12"
+     ]
+    ],
+    "names": {
+     "10": "1 across, 0 up",
+     "11": "1 across, 1 up",
+     "12": "1 across, 2 up",
+     "20": "2 across, 0 up",
+     "21": "2 across, 1 up",
+     "22": "2 across, 2 up",
+     "00": "0 across, 0 up",
+     "01": "0 across, 1 up",
+     "02": "0 across, 2 up"
+    },
+    "kind": "grid",
+    "small": true,
+    "homes": {
+     "A": "00",
+     "B": "02",
+     "C": "11"
+    },
+    "budget": 1
+   },
+   "objective": "Close one road so that no dot is a meeting dot for A, B and C.",
+   "visibleObjective": "Close one road so no dot works.",
+   "instruction": "Close one road so that no dot is a meeting dot for A, B and C.",
+   "controls": "Tap a road to close it, and tap it again to open it. The slot shows how many roads may be closed. Press No dot works when you are sure. Undo takes back the last change.",
+   "rules": [
+    "Each road is one step. A meeting dot for A, B and C is on a shortest route between each two of them. It may be a home.",
+    "Tap a road to close it and again to open it. The map must stay in one piece.",
+    "Press No dot works when you think no dot is a meeting dot. If one still is, it appears with a shortest walk to it from each home."
+   ],
+   "idea": "Taking away one road can leave no meeting dot.",
+   "prerequisites": "Think ahead about how closing one road changes the shortest routes. A grown-up can read the goal.",
+   "hints": [
+    "Which road do the walkers to the meeting dot need?",
+    "Before any road is closed, the meeting dot is the one between A and B, and C reaches it along one road.",
+    "Close the road from C going left, then press No dot works."
+   ],
+   "parent": {
+    "notice": "Whether your child presses No dot works first, to see the meeting dot, and then closes a road its walks use.",
+    "prompt": "Why does closing a road far from the meeting dot change nothing?",
+    "explanation": "A and B are two steps apart, and their only shortest route goes up the left side, so a meeting dot must be A, B or the dot between them. With every road open, the dot between them works: C reaches it in one step. Close that road and C needs three steps to it, so A to C through it takes 4 steps instead of 2. A and B fail too (B to C through A takes 4, not 2). So no dot works. Every other single road leaves a meeting dot; the validator checks all twelve.",
+    "extension": "Which other road could you close? (None on its own: with these homes, only the road from C going left works.)",
+    "connection": "Deleting one edge from a median graph (here the 3 × 3 grid) can destroy its medians.",
+    "sourceIds": [
+     "meeting-week67",
+     "meeting-card67",
+     "meeting-ggt"
+    ]
+   },
+   "solution": {
+    "close": [
+     [
+      "01",
+      "11"
+     ]
+    ],
+    "before": [
+     "01"
+    ]
+   },
+   "provenance": "New, the Week 67 review card’s App fit: “cut a road so no dot works”."
+  }
+ ]
+}

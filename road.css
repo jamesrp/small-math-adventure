@@ -13,7 +13,7 @@ body{font-family:var(--rd-body)}
 .sr-only{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 /* Moods: the page around a road puzzle takes the stop's light. */
-body[data-stop]{transition:background-color .4s}
+body[data-stop]{transition:background-color .4s;min-height:100vh;min-height:100svh}
 body[data-stop="ferry"]{background:linear-gradient(#e8f6ff,#fff6e0 420px,#f6f0df)}
 body[data-stop="ridge"]{background:linear-gradient(#dff2ff,#f1f8ec 420px,#f3f1e4)}
 body[data-stop="workshop"]{background:linear-gradient(#f4e2c8,#f6ead6 420px,#f3eadb)}
@@ -72,6 +72,140 @@ body:is([data-stop="marsh"],[data-stop="hollow"],[data-stop="lighthouse"],[data-
   .lr-rival .lr-portrait{width:38px;height:38px}
 }
 
+/* Stages: road puzzles played in their picture (dist/road-stage.js) -----------
+   The backdrop and the drawn layers share one 1600 × 900 space and pieces sit
+   at (--x, --y) in it. Phones show the middle 1200 (x 200–1400). The page
+   narrows on short screens so the picture and its controls fit together. */
+.lr-play.is-staged{max-width:min(1000px,max(560px,calc((100svh - 330px) * 16 / 9)))}
+/* The seats' pair buttons and the bell's number chart are taller than one row,
+   so their pictures are a little smaller. */
+.lr-play.staged-seats{max-width:min(1000px,max(560px,calc((100svh - 380px) * 16 / 9)))}
+.lr-play.staged-bell{max-width:min(1000px,max(560px,calc((100svh - 440px) * 16 / 9)))}
+.lr-stage{--x0:0;--vw:1600;position:relative;width:100%;aspect-ratio:16/9;border-radius:22px;overflow:hidden;background:#2a8fc2;box-shadow:0 4px 0 rgba(0,0,0,.12),0 12px 30px -18px rgba(0,0,0,.45);isolation:isolate;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.lr-stage.stage-marsh{background:#0e2a33}
+.stage-world{position:absolute;top:0;bottom:0;left:calc(var(--x0) / var(--vw) * -100%);width:calc(1600 / var(--vw) * 100%)}
+.stage-world>*{position:absolute;inset:0;width:100%;height:100%}
+.stage-world>.stage-backdrop>:is(img,video,svg){object-fit:fill}
+.stage-layer{z-index:1;pointer-events:none;overflow:hidden}
+.stage-pieces{z-index:2;pointer-events:none}
+.stage-front{z-index:3}
+.stage-piece{position:absolute;left:calc(var(--x) / 16 * 1%);top:calc(var(--y) / 9 * 1%);width:calc(var(--s) / 16 * 1%);aspect-ratio:1;min-height:0;margin:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;color:inherit;pointer-events:auto}
+.stage-piece:is(div,span){pointer-events:none}
+.stage-piece .art-slot>:is(img,svg){object-fit:contain}
+.stage-piece:focus-visible{outline:3px solid #fff8d9;outline-offset:2px;border-radius:18px}
+@media (max-width:620px){.lr-stage{--x0:200;--vw:1200;aspect-ratio:4/3;border-radius:18px}.lr-stage.kind-bell{--x0:700;--vw:900;aspect-ratio:1}.stage-wagon{display:none}}
+
+/* Travelers stand on their spot; the one picked first glows underfoot. */
+.stage-wagon{aspect-ratio:4/3;translate:-50% -100%;pointer-events:none}
+.stage-wagon :is(img,svg,video){display:block;width:100%;height:100%;object-fit:contain}
+.stage-traveler{translate:-50% -100%;cursor:pointer;transition:translate .15s,filter .15s}
+.stage-traveler::before{content:"";position:absolute;left:10%;right:10%;bottom:-7%;height:22%;border-radius:50%;z-index:-1;opacity:0;transition:opacity .15s}
+.stage-traveler.is-selected{translate:-50% -105%}
+.stage-traveler.is-selected::before{opacity:1;background:radial-gradient(closest-side,#fffbe0,#f2c84b 55%,rgba(242,200,75,0))}
+.stage-traveler.is-hinted::before{opacity:1;background:radial-gradient(closest-side,#effbe6,#86c46f 55%,rgba(134,196,111,0))}
+button.stage-traveler:hover{filter:drop-shadow(0 0 5px #fffdf0) drop-shadow(0 0 2px #fffdf0)}
+button.stage-traveler:disabled{cursor:default;filter:none}
+.stage-tag{translate:-50% -50%;border-radius:50%;background:#fffdf5;border:3px solid #fffdf5;box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.stage-tag .art-slot{border-radius:50%;overflow:hidden;opacity:.55;filter:grayscale(.35)}
+.stage-tag.is-matched{border-color:var(--rd-good);box-shadow:0 0 0 2px #fffdf5,0 3px 0 rgba(0,0,0,.25)}
+.stage-tag.is-matched .art-slot{opacity:1;filter:none}
+.stage-tag b{position:absolute;left:-18%;top:-18%;z-index:1;width:48%;aspect-ratio:1;display:grid;place-items:center;border-radius:50%;background:var(--rd-pine);color:#fff8d9;font-size:clamp(.62rem,1.5vw,.95rem);line-height:1}
+
+/* The bell rings on its own tap, or the Ring button's; each bell swings it. */
+.stage-bell{translate:-50% -50%;cursor:pointer}
+.stage-bell .art-slot{transform-origin:50% 6%}
+body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shadow(0 0 8px #fff3b0) drop-shadow(0 0 3px #fff3b0)}
+@media (prefers-reduced-motion:no-preference){.stage-bell.is-ringing .art-slot{animation:rd-ring .32s ease-in-out}}
+@keyframes rd-ring{25%{rotate:16deg}75%{rotate:-13deg}}
+.stage-wheel-rim{fill:#fbf3df;stroke:#8a5a33;stroke-width:8}
+.lr-stage .clock-position text{font-size:27px}
+.lr-stage .clock-position .clock-star{font-size:26px}
+.lr-stage .clock-center{font-size:40px}
+.lr-stage .clock-center-label{font-size:17px}
+
+/* Lamps and the ropes that flip them. */
+.stage-rope-under{fill:none;stroke:#5e3b1f;stroke-width:17;stroke-linecap:round}
+.stage-rope{fill:none;stroke:#f3e2b0;stroke-width:9;stroke-linecap:round;stroke-dasharray:14 6}
+.stage-rope-hit{fill:none;stroke:transparent;stroke-width:64;stroke-linecap:round;cursor:pointer;pointer-events:stroke}
+.stage-rope-hit:hover{stroke:rgba(255,248,214,.35)}
+.stage-rope-hit:focus-visible{stroke:rgba(255,248,214,.6);outline:none}
+.stage-rope-hit.is-hinted{stroke:rgba(134,196,111,.55)}
+.stage-rope-hit[aria-disabled="true"]{pointer-events:none}
+.stage-lamp-cap{fill:#3a2a1c}
+.stage-lamp-glass{fill:#33424d;stroke:#1d2830;stroke-width:4}
+.stage-lamp.is-lit .stage-lamp-glass{fill:#ffd653;stroke:#9a6b10}
+.stage-lamp-label{font:700 26px var(--rd-body);text-anchor:middle;fill:#e9eef2}
+.stage-lamp.is-lit .stage-lamp-label{fill:#5a3d00}
+.stage-glow{fill:url(#stage-glow)}
+@media (prefers-reduced-motion:no-preference){.stage-glow{animation:rd-glow 2.6s ease-in-out infinite}}
+@keyframes rd-glow{50%{opacity:.7}}
+
+/* Marsh boardwalks: walked ones turn warm and light their lamp. */
+.stage-walk-side{fill:#2c1f12}
+.stage-walk-top{fill:#5e4630;stroke:#20160c;stroke-width:3}
+.stage-walk-planks{fill:none;stroke:#3d2c1c;stroke-width:3}
+.stage-walk.is-walked .stage-walk-top{fill:#c9945a;stroke:#5e3b1f}
+.stage-walk.is-walked .stage-walk-planks{stroke:#9c6a3e}
+.stage-marsh-lamp .stage-lamp-glass{fill:#2c3a40;stroke:#11191d}
+.stage-marsh-lamp.is-lit .stage-lamp-glass{fill:#ffe27a;stroke:#9a6b10}
+.stage-pad-label{font:700 30px var(--rd-body);fill:#f3efe0;text-anchor:middle;paint-order:stroke;stroke:#0e2a33;stroke-width:6}
+.stage-junction{translate:-50% -50%;aspect-ratio:150/92;border-radius:50%;cursor:pointer}
+.stage-junction:disabled{cursor:default}
+.stage-junction.can-go:not(.is-here){box-shadow:0 0 0 3px rgba(255,240,170,.8),0 0 18px 6px rgba(255,214,90,.45)}
+.stage-junction.can-go:not(.is-here):hover{box-shadow:0 0 0 4px #fff3c4,0 0 26px 10px rgba(255,214,90,.7)}
+.stage-junction.is-hinted{box-shadow:0 0 0 4px #b9e6a0,0 0 22px 8px rgba(134,196,111,.7)!important}
+.stage-junction:focus-visible{outline:3px solid #fff8d9;outline-offset:4px;border-radius:50%}
+@media (prefers-reduced-motion:no-preference){.stage-junction.can-go:not(.is-here):not(:hover){animation:rd-call 2.2s ease-in-out infinite}}
+@keyframes rd-call{50%{box-shadow:0 0 0 3px rgba(255,240,170,.55),0 0 10px 3px rgba(255,214,90,.25)}}
+.stage-hops{translate:-50% -100%;z-index:1}
+.stage-token{position:absolute;left:16%;bottom:0;width:68%;aspect-ratio:1;border-radius:50%;overflow:hidden;border:4px solid #fffdf5;box-shadow:0 5px 0 rgba(0,0,0,.35)}
+.stage-token .art-slot>img{object-fit:cover}
+
+/* The controls under a stage: one row beside Undo, Restart and Hint. */
+.lr-play.is-staged .play-layout{grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px 16px}
+.lr-play.is-staged .board-panel{padding:12px 16px;border-radius:16px}
+.lr-play.is-staged .puzzle-goal{margin:0 0 10px;font-size:.98rem}
+.lr-play.is-staged .play-sidebar .tool-grid{flex-wrap:nowrap}
+.lr-play.is-staged .allowed-pairs{margin:0;padding:0;border:0}
+.lr-play.is-staged .allowed-pairs>div{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.lr-play.is-staged .lr-scene.is-staged .lr-keeper{margin-top:-46px}
+/* Plume's card sits in the stage's top-left corner, which pieces keep clear;
+   on phones that corner is too large a share of the crop, so it moves below. */
+.lr-scene.is-staged .lr-rival{right:auto;left:12px;pointer-events:none}
+@media (max-width:620px){.lr-scene.is-staged .lr-rival{position:static;align-self:flex-end;margin:10px 8px 0}}
+/* A solved stage locks its pieces without fading them. */
+.lr-stage .stage-piece:disabled{opacity:1}
+.lr-play.is-staged .pair-button{min-height:40px;min-width:0;padding:6px 8px;font-size:.9rem}
+@media (min-width:621px){.lr-play.is-staged .puzzle-workspace{position:relative}.lr-play.is-staged .play-heading{position:absolute;right:0;top:-58px;margin:0}.lr-play.is-staged .lr-bubble{max-width:min(52ch,calc(100% - 270px))}}
+@media (max-width:760px){.lr-play.is-staged .play-layout{grid-template-columns:1fr}.lr-play.is-staged .play-sidebar{display:block}}
+.stage-count{margin:0;display:flex;align-items:baseline;justify-content:center;gap:6px 16px;flex-wrap:wrap;color:var(--rd-ink);font-size:1rem}
+.stage-count strong{font-family:var(--rd-display);font-size:1.6rem;font-weight:400}
+.stage-count span{color:var(--rd-muted)}
+.stage-goal-row{display:flex;align-items:center;justify-content:center;gap:12px 24px;flex-wrap:wrap}
+.stage-goal{margin:0;display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:14px;background:#fbf4dc;border:1px solid #ead9a4}
+.stage-goal figcaption{font-family:var(--rd-display);font-size:1.05rem;color:var(--rd-ink)}
+.stage-goal svg{display:block;width:clamp(120px,22vw,190px);height:auto;max-height:110px}
+.stage-goal-lines line{stroke:#9c7a4f;stroke-width:8;stroke-linecap:round}
+
+/* Bell chart: tap a number, then ring. Numbers already rung stay marked. */
+.bell-chart{flex:1 1 100%;display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:6px;max-width:560px;margin:0 auto}
+.motion-form .bell-number{position:relative;display:block;flex:none;max-width:none;font-weight:700}
+.motion-form .bell-number input{position:absolute;inset:0;width:100%;height:100%;min-height:0;margin:0;padding:0;border:0;opacity:0;cursor:pointer}
+.bell-number>span:first-of-type{display:grid;place-items:center;min-height:40px;border-radius:10px;background:#fffdf5;border:1.5px solid var(--rd-line);color:var(--rd-ink);font-size:1rem;font-variant-numeric:tabular-nums}
+.bell-number input:checked+span{background:var(--rd-sun);border-color:var(--rd-ochre);box-shadow:0 0 0 3px #f1dca5}
+.bell-number input:focus-visible+span{outline:3px solid #ac7527;outline-offset:2px}
+.bell-number.is-tried>span:first-of-type{background:#ebe7d6;color:#8b8a78;text-decoration:line-through}
+.bell-number.is-tried input:checked+span{background:#f6dfa0;color:var(--rd-ink)}
+.stage-bell-form{margin:0;flex-wrap:nowrap;align-items:center}
+.stage-bell-form .bell-chart{flex:1 1 auto;margin:0}
+.stage-bell-form>button{flex:none;min-width:96px}
+.lr-play.is-staged .bell-number>span:first-of-type{min-height:36px}
+@media (max-width:620px){.stage-bell-form{flex-wrap:wrap}.stage-bell-form>button{flex:1 1 100%}}
+/* Beside the pair buttons and the bell chart, Undo, Restart and Hint stack so
+   the controls keep their width. */
+@media (min-width:761px){:is(.lr-play.staged-seats,.lr-play.staged-bell) .play-sidebar .tool-grid{flex-direction:column;align-items:stretch;gap:8px}:is(.lr-play.staged-seats,.lr-play.staged-bell) .play-sidebar .tool-grid button{min-height:0;height:40px;padding-block:0}}
+.lr-play.is-staged .motion-result{margin:10px auto 0;padding:8px 12px;max-width:560px;text-align:center}
+
 /* Solved strip ------------------------------------------------------------------ */
 .lr-done{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 20px;background:var(--rd-card);border:1px solid var(--rd-line);border-radius:18px;padding:14px 18px;box-shadow:0 3px 0 var(--rd-line);color:var(--rd-ink)}
 .lr-done h2{margin:0;line-height:1}
@@ -92,48 +226,62 @@ body:is([data-stop="marsh"],[data-stop="hollow"],[data-stop="lighthouse"],[data-
 .lr-done-actions{display:flex;align-items:center;gap:10px}
 .lr-cta{min-height:52px;padding:12px 22px;border-radius:14px;font-weight:700;font-size:1.05rem;background:var(--rd-pine);color:#fff8d9;border:0;box-shadow:0 3px 0 #1d3526}
 
-/* Map ---------------------------------------------------------------------------- */
+/* Map ----------------------------------------------------------------------------
+   No names on the map: each stop is a region over its landmark. The next stop
+   glows and brightens under the pointer; reached stops show a faint ring on
+   hover. The star total and tools sit in the corner the art keeps clear. */
 .lr-overview{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
-.lr-bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
-.lr-bar .lr-journal{margin-left:auto}
-.lr-bar .lr-journal,.lr-bar .trail-choice{background:var(--rd-card);color:var(--rd-ink);border:1px solid var(--rd-line);border-radius:12px;box-shadow:0 2px 0 var(--rd-line);min-height:44px;padding:8px 14px;font-weight:600}
-.lr-total{font-family:var(--rd-display);font-size:1.3rem;color:#a8740a;padding:4px 12px;border-radius:999px;background:#fbf1d3;border:1px solid #ecd79c}
+.lr-total{font-family:var(--rd-display);font-size:1.3rem;color:#a8740a;padding:4px 12px;border-radius:999px;background:#fbf1d3;border:1px solid #ecd79c;line-height:1.2}
 .lr-tools{display:flex;gap:6px}
 .lr-tool{display:inline-block;width:40px;height:40px;border-radius:12px;background:var(--rd-card);border:1px solid var(--rd-line);padding:3px}
 .lr-atlas{position:relative;border-radius:24px;overflow:hidden;box-shadow:0 4px 0 rgba(0,0,0,.1),0 18px 40px -26px rgba(0,0,0,.5);background:#cfeec0}
+.lr-hud{position:absolute;top:12px;right:12px;z-index:5;display:flex;align-items:center;gap:8px;pointer-events:none}
+.lr-hud .lr-total{box-shadow:0 3px 0 rgba(0,0,0,.16)}
 .lr-map-layer{position:relative}
 .lr-map-wide{aspect-ratio:1000/420}
 .lr-map-tall{aspect-ratio:600/900;display:none}
 .lr-map-art{position:absolute;inset:0}
 .lr-map-art>svg,.lr-map-art>img,.lr-map-art>video{object-fit:fill}
 @media (max-width:699px){.lr-map-wide{display:none}.lr-map-tall{display:block}}
-.lr-stop{position:absolute;left:var(--x);top:var(--y);translate:-50% 28px;z-index:3;min-height:44px;padding:6px 12px;border-radius:999px;border:2px solid #fff8;background:rgba(255,253,245,.92);color:var(--rd-ink);font-family:var(--rd-display);font-size:.98rem;font-weight:400;box-shadow:0 3px 0 rgba(0,0,0,.18);display:flex;flex-direction:column;align-items:center;gap:0;line-height:1.15;white-space:nowrap}
-.lr-stop.is-current{background:var(--rd-pine);color:#fff8d9;border-color:#fff8d9}
-.lr-stop.is-lit{background:#fff4c9;border-color:var(--rd-star)}
-.lr-stop.is-ahead{background:rgba(255,253,245,.94);color:var(--rd-muted);box-shadow:0 2px 0 rgba(0,0,0,.14)}
-.lr-stop:disabled{opacity:1;cursor:default}
-.lr-stop-stars{font-family:var(--rd-body);font-size:.75rem;font-weight:700;color:#a8740a}
-.lr-stop.is-current .lr-stop-stars{color:var(--rd-sun)}
-.lr-medals{display:flex;gap:3px;margin-top:2px}
+.lr-stop{position:absolute;left:var(--x);top:var(--y);width:var(--w);height:var(--h);translate:-50% -50%;z-index:3;min-height:0;padding:0;margin:0;border:0;border-radius:50%;background:transparent;box-shadow:none;color:var(--rd-ink)}
+.lr-stop:disabled{opacity:1;pointer-events:none}
+.lr-stop:focus-visible{outline:none}
+.lr-stop-glow{position:absolute;inset:0;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .2s,box-shadow .2s,background .2s}
+.lr-stop.is-current .lr-stop-glow{opacity:1;background:radial-gradient(closest-side,rgba(255,240,170,.34),rgba(255,226,110,.14) 72%,rgba(255,226,110,0));box-shadow:0 0 0 3px rgba(255,248,214,.95),0 0 0 5px rgba(179,136,64,.45),0 0 16px 6px rgba(255,208,70,.8)}
+.lr-stop.is-current:is(:hover,:focus-visible) .lr-stop-glow{background:radial-gradient(closest-side,rgba(255,244,190,.5),rgba(255,226,110,.24) 72%,rgba(255,226,110,0));box-shadow:0 0 0 5px #fff6cc,0 0 34px 14px rgba(255,204,60,.95)}
+.lr-stop:not(.is-current):is(:hover,:focus-visible) .lr-stop-glow{opacity:1;box-shadow:0 0 0 3px rgba(255,253,245,.92),0 0 12px 3px rgba(255,253,245,.55)}
+@media (prefers-reduced-motion:no-preference){.lr-stop.is-current:not(:hover):not(:focus-visible) .lr-stop-glow{animation:rd-beckon 2.4s ease-in-out infinite}}
+@keyframes rd-beckon{50%{box-shadow:0 0 0 3px rgba(255,248,214,.85),0 0 0 5px rgba(179,136,64,.3),0 0 28px 11px rgba(255,208,70,.95)}}
+.lr-stop-badge{position:absolute;left:50%;bottom:2%;translate:-50% 0;display:flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;background:rgba(255,253,245,.92);box-shadow:0 2px 0 rgba(0,0,0,.16);pointer-events:none;white-space:nowrap}
+.lr-stop-stars{font-size:.78rem;font-weight:700;color:#a8740a;line-height:1.3}
+.lr-medals{display:flex;gap:3px}
 .lr-medals i{width:8px;height:8px;border-radius:50%;background:#0002}
 .lr-medals i.on.band-k1{background:#d58b4f}.lr-medals i.on.band-23{background:#a9b4bf}.lr-medals i.on.band-45{background:#e3b23c}
-.lr-side{position:absolute;left:var(--x);top:var(--y);translate:42px -64px;z-index:3;width:52px;height:52px;min-height:52px;padding:4px;border-radius:16px;border:2px solid #fff;background:rgba(255,253,245,.95);box-shadow:0 3px 0 rgba(0,0,0,.2)}
+.lr-side{position:absolute;left:var(--x);top:var(--y);translate:42px -64px;z-index:4;width:52px;height:52px;min-height:52px;padding:4px;border-radius:16px;border:2px solid #fff;background:rgba(255,253,245,.95);box-shadow:0 3px 0 rgba(0,0,0,.2)}
 .lr-side .art-slot{width:100%;height:100%}
 .lr-side>span{position:absolute;right:-6px;bottom:-6px;font-size:.9rem;background:var(--rd-card);border-radius:999px;padding:0 4px;line-height:1.4}
 .lr-side.is-done>span{color:#a8740a}
 .lr-side.is-open{box-shadow:0 0 0 3px var(--rd-star),0 3px 0 rgba(0,0,0,.2)}
-.lr-wagon{position:absolute;left:var(--x);top:var(--y);z-index:2;width:96px;height:72px;translate:-104% -66%;pointer-events:none}
+/* The wagons wait on the road at their stop, small enough to leave the landmark clear. */
+.lr-wagon{position:absolute;left:var(--x);top:var(--y);z-index:4;width:clamp(56px,8.6%,104px);aspect-ratio:4/3;translate:-50% -62%;pointer-events:none}
 .lr-wagon .art-slot{filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 2px #fff) drop-shadow(0 3px 3px rgba(0,0,0,.4))}
 .lr-wagon .art-slot>img{object-fit:contain}
-.lr-wagon-plume{translate:10% -78%}
-.lr-wagon-plume.same-stop{translate:16% -28%}
+.lr-wagon-plume{translate:24% -78%}
+.lr-wagon-plume.same-stop{translate:70% -40%}
 @media (prefers-reduced-motion:no-preference){.lr-wagon{transition:left .8s,top .8s}.lr-wagon-party .art-slot{animation:rd-roll 2.4s ease-in-out infinite}}
 @keyframes rd-roll{50%{transform:translateY(-3px) rotate(-1deg)}}
-@media (max-width:699px){.lr-wagon{width:68px;height:51px}.lr-stop{font-size:.88rem;padding:5px 10px}}
-.lr-next{position:absolute;right:16px;top:16px;z-index:4}
-@media (max-width:699px){.lr-next{position:static;padding:12px;display:flex;justify-content:center;background:rgba(255,253,245,.9)}}
-.lr-crew{display:flex;justify-content:center;gap:4px}
-.lr-crew .art-slot{width:64px;height:64px}
+.lr-map-tall .lr-wagon{width:clamp(52px,13%,78px)}
+@media (max-width:699px){.lr-hud{top:8px;right:8px}.lr-total{font-size:1.1rem}.lr-tool{width:34px;height:34px}}
+
+/* Header: the explorer's name and puzzle level sit together. */
+.caravan-account{gap:8px}
+.caravan-account .profile-nav{gap:0;padding:6px 8px;font-weight:650}
+.caravan-account .trail-choice{gap:6px;min-height:40px;padding:6px 12px;border-radius:999px;background:var(--rd-card);border:1px solid var(--rd-line);box-shadow:none;color:var(--rd-ink);font-size:.86rem;font-weight:600;white-space:nowrap}
+body:is([data-stop="marsh"],[data-stop="hollow"],[data-stop="lighthouse"],[data-stop="fair"]) .caravan-account .trail-choice{background:transparent;border-color:#f3efe066}
+@media (max-width:700px){.caravan-account .profile-label{display:inline-block;max-width:10ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}.trail-word{display:none}.caravan-nav{gap:28px}}
+.welcome-crew .welcome-traveler{width:15%;height:auto;aspect-ratio:1}
+.welcome-crew .welcome-traveler>img{object-fit:contain}
+.welcome-crew .welcome-traveler>svg{object-fit:contain}
 
 /* Stop sheets and journal --------------------------------------------------------- */
 .lr-rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}

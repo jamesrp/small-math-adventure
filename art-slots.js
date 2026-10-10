@@ -16,6 +16,7 @@ const SHAPES = {
   icon: { w: 256, h: 256, video: null, transparent: true },
   traveler: { w: 256, h: 256, video: null, transparent: true },
   finale: { w: 1800, h: 780, video: 'loop' },
+  stage: { w: 1600, h: 900, video: 'loop' },
 };
 const slot = (id, shape, about) => ({ id, shape, ...SHAPES[shape], about });
 
@@ -30,6 +31,13 @@ export function artSlots() {
     slot('finale/fair', 'finale', 'Everyone at the Lantern Fair: travelers, keepers and Plume, fireworks.'),
     ...['chalk', 'pump'].map(id => slot(`tool/${id}`, 'icon', id === 'chalk' ? 'A stick of white chalk (Rattle’s gift).' : 'Sprocket’s little portable pump with a hose and crank.')),
     ...PARTY.map(id => slot(`party/${id}`, 'traveler', `Traveler ${id}, standing, full body, facing the viewer.`)),
+    // Stages: the pictures the ferry and marsh puzzles are played in. The game
+    // draws the pieces over them; docs/art/batches/03-stage-boards.md has the layout.
+    slot('stage/ferry/asleep', 'stage', 'Turtle Ferry from above and in front: Snooze asleep, an empty round deck, the bow frame with an empty board.'),
+    slot('stage/ferry/awake', 'stage', 'The same picture with Snooze awake.'),
+    slot('stage/ferry/bell', 'icon', 'The brass bell that hangs from the bow frame.'),
+    slot('stage/marsh/night', 'stage', 'Glowworm Marsh at night from above and in front: open dark water, reeds at the edges, a mossy bank at the bottom middle, no boardwalks.'),
+    slot('stage/marsh/hops', 'traveler', 'Hops walking, full body, with his lamp-lighting pole.'),
   ];
   for (const stop of STOPS) {
     for (let stage = 0; stage <= stop.encounters.length; stage++) list.push(slot(`scene/${stop.id}/${stage}`, 'scene', `${stop.title} after ${stage} of ${stop.encounters.length} puzzles.`));
