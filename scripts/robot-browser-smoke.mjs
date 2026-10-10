@@ -48,7 +48,7 @@ try {
   await page.goto(base); await page.locator('#nickname').fill('Robot QA'); await page.locator('#profile-form button[type=submit]').click();
   await page.locator('[data-action=library]').first().click(); await page.locator('.caravan-library').waitFor();
   const family = page.locator('.satchel-family[data-view-key="family-robot"]');
-  assert.equal(await family.getAttribute('open'), '', 'the newest family starts open');
+  // Which family is newest (and starts open) is checked by families-browser-smoke.mjs.
   assert.equal(await family.locator('.family-ink-symbol').innerText(), '⟲');
   assert.equal(await family.locator('[data-id="robot-playground"]').count(), 1);
   assert.equal(await family.locator('[data-id^="robot-"]').count(), 13);
