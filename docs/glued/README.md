@@ -1,0 +1,98 @@
+# Glued squares
+
+October 10, 2026. Eleven puzzles and a playground built from Week 64 of the Bellingham math circle (straight paths on strange surfaces), the grades 4–5 part on the three-square L (Problems 6–9) and the corner groups of Problems 4–5. They are in the puzzle satchel only, not on the Lantern Road. Nothing here has been played by children, and the Week 64 worksheet is unpiloted.
+
+The family runs on the shared [portal board](../portal-board.md), like [Portal rooms](../portals/README.md). Its squares are lettered A, B, C and D, as on the worksheet's L: A at the bottom left, B to its right, C above A (and D above B). Puzzles 8 and 10 are new; each puzzle's `provenance` says where it comes from.
+
+## The mathematics
+
+A few unit squares, each with its right side glued to the left side of one square (maybe itself) and its top glued to the bottom of one square, by sliding, never turning, make a **square-tiled surface**. A gluing is two permutations of the squares, r (where right leads) and u (where up leads); a side glued to nothing is a wall, and then r or u is a partial permutation (still one-to-one).
+
+1. **A block permutes the squares.** A straight trip in a whole-number direction (p right, q up) keeps its heading through every glued side. Call p squares right and q up one **block**. After a block the trip is at the same spot of some square, because each crossing keeps its place along the side. From a spot that meets no corner, the sides one block crosses come in a fixed order, its **cutting sequence**, the same from every square: right is r; up is u; one right and one up from (½, ¼) is r then u; two right and one up from (¼, ½) is r, u, r (at 3/8, 1/2 and 7/8 of the block). So a block moves the trip from square s to P(s), where P is r and u composed in that order. P is one-to-one, because r and u are.
+2. **No first return takes more than n blocks on n squares** (Problem 9). Before it comes home, a trip lands on each dot at most once: if it landed on one dot twice, the blocks before were one-to-one too, so the repeat goes back to the start, and the trip was already home. So a trip from A is home after at most n blocks (the length of A's cycle in P), or it stops at a wall. On three squares every first return k = 1, 2, 3 happens (a third of the 36 full gluings each, for one right and one up); four is impossible. The certificate for Can't is the dots: n dots for k > n beads.
+3. **Several trips at once.** Starts in one cycle of P share a return time; starts in different cycles need not (Problem 8: on the L, A's trip two right and one up is home after one block, and B's and C's after two, exactly twice as long). Trips in different directions read different words in r and u, and together they can pin down the gluing: from A, right home in 2, up home in 2 and one right and one up home in 3 forces the L or its mirror (2 of the 36 full gluings).
+4. **Corners.** Across a glued right side, a square's two right corners meet the left corners of the square there; across a top, its top corners meet the bottom corners of the square above. Going round a point counterclockwise crosses one glued side per corner, so following matches walks round the point. On a closed surface each point has 4k corners round it, k full turns: k = 1 is a flat point, k > 1 a **cone point**. With V points, n squares and 2n sides, V − n = 2 − 2g gives the genus g, and the extra turns add up to 2g − 2. Two squares in a ring have two flat points (a torus). The L's twelve corners are one point of three full turns (1080°, genus 2, one 6π cone point). Four squares in a row with two tops crossed have two points of two turns each (genus 2 again, two 4π cone points).
+5. **The playground.** Trips from the centre of any small cell (a quarter of a square each way) in eight directions, including Problem 9's (1, 2), (2, 3), (3, 1) and (3, 2): every one closes within n blocks or meets a corner.
+
+**Experiments, conjectures, explanations.** The experiments are gluing sides and watching the trips, and joining corners. The conjectures come from them: a trip can't take more blocks than there are squares; a trip home in one block means its square crosses into itself; the L's corners all meet. The explanations are the dots certificate on screen and the grown-up notes: the block permutation, the one-to-one argument, and the Euler count. The app checks every Can't and That's all, and draws the reason once the claim is right.
+
+**Grade bands.** The puzzles are grade-free. Puzzles 1–3 need following a straight line through a side and counting to three (grades 2–3 with a grown-up reading the goal). Puzzles 4–7 are the 4–5 packet's L (Problems 6–9), with the corner groups of Problems 4–5. Puzzles 8–11 go past the worksheet: four squares, three trips at once, two cone points.
+
+## Where they appear
+
+**Puzzles → Glued squares** (symbol ⊞) is a satchel family on the family seam ([Adding a family](../ADDING-A-FAMILY.md)), with a **Playground** button above Easy, Medium and Hard.
+
+| # | Level | Kind | Squares | Goal | Answer | Week 64 source |
+|---|---|---|---|---|---|---|
+| 1 | Easy | Glue (right sides) | 3 | A's trip right home after exactly 3 blocks | A→B→C→A or A→C→B→A (2 of 6) | 4–5 Problem 6 |
+| 2 | Easy | Glue (right sides) | 3 | A's trip right home after 1 block, B's after 2 | A to itself, B and C to each other (1 of 6) | 4–5 Problem 8, with trips right |
+| 3 | Easy | Corners | 2 in a ring | Join corners that meet, then That's all | Two points of four corners | 3–5 Problem 4 |
+| 4 | Medium | Glue | 3 | A's trip one right and one up home after exactly 3 blocks | The L, among 12 of 36 | 4–5 Problem 7 |
+| 5 | Medium | Glue | 3 | Two right and one up: A's home after 1 block, B's after 2 | The L, among 6 of 36 | 4–5 Problem 8 |
+| 6 | Medium | Corners | The L | Join corners that meet, then That's all | One point of twelve corners (three turns) | 3–5 Problems 4–5, on the L |
+| 7 | Medium | Glue | 3 | A's trip one right and one up home after exactly 4 blocks | Can't: three dots for four beads | 4–5 Problem 9 |
+| 8 | Hard | Glue | 4 | A's trip two right and one up home after exactly 4 blocks | 144 of 576, such as right A↔B, C↔D and up A→B→C→D→A | New: Problem 8's direction on four squares |
+| 9 | Hard | Glue | 3 | From A: right home in 2, up home in 2, one right and one up home in 3 | The L or its mirror (2 of 36) | 4–5 Problems 6–7 together |
+| 10 | Hard | Corners | 4 in a row, two tops crossed | Join corners that meet, then That's all | Two points of eight corners (two turns each) | New |
+| 11 | Hard | Glue | 4 | A's trip one right and one up home after exactly 5 blocks | Can't: four dots for five beads | 4–5 Problem 9 |
+
+The worksheets are in [math-circle-worksheets, week 64](https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-64), and the review card is [plans/review/week-64.md](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-64.md). The adult guide cites Wright, *From Rational Billiards to Dynamics on Moduli Spaces* (S1), the surface-dynamics documentation on square-tiled surfaces (S2), and Forni–Matheus, pp. 17–18 and Figure 4 (S3).
+
+## How a puzzle plays
+
+- **The board (glue puzzles).** The squares are drawn apart, so no side looks glued until the child glues it. Each has a small dot at the same spot (half across and a quarter up, or a quarter across and half up for two right and one up). A side glued to nothing is a thick ink wall; a glued pair is dashed in one colour with matching marks outside both sides. Each mark belongs to its side for the whole puzzle (`stableMarks`), so gluing one side never changes another side's mark.
+- **Gluing.** Tap a side, then the side to glue it to: a right side with a left side, a top with a bottom. The chosen side is outlined in pine and the sides it can go to are tinted. A side glued again leaves its old partner, which becomes a wall. The sides are triangles from each square's centre, so a tap goes to the nearest side. Tab with Enter or Space works on every side; each has a name ("A, right side, glued to B's left side"). Puzzles 1 and 2 glue right sides only. Undo takes back a gluing.
+- **The trips.** Each goal trip starts from a ringed dot with an arrowhead. The app draws it in the squares (broken at each glued side) and beside them, unrolled: the squares it crosses laid along one straight line, with a dot where each block ends and a ring round the dot where it comes home. A trip stops at a wall (a red ring). Above each unrolled trip a row of beads is the goal: one bead per block, filled as the trip's blocks pass, ringed where the trip comes home, rose for a block past the goal. The arrow icon draws its direction over a grid of dots, so "two right and one up" can be counted.
+- **Can't.** Every glue puzzle has Can't. It stays off until something is glued, and after a refusal until a new gluing. Pressing it opens the dots: every dot becomes a control with a dashed ring, and the sides wait. Tapping every dot makes the claim; pressing Can't again closes the dots. A wrong claim gets "There is a way.", and Can't stays off through Undo until a gluing changes. A right claim (puzzles 7 and 11) solves the puzzle and the beads show the argument: the first beads take the dots' letters, one dot each, the start's dot last and ringed as home, and the bead left over has no dot.
+- **Why the child taps every dot.** Problem 9's bound has one part that can be pointed at: the places a block can end, one dot per square. The rest of the argument (no dot twice before home) is about every gluing at once and can't be tapped. So the child supplies the dots, by tapping each one, and the app, once the claim is right, draws the matching of beads to dots that finishes the proof. A child who claims by guessing still has to count the dots against the beads to finish the claim.
+- **Corner puzzles.** The squares are drawn glued where they touch, with marks on the other glued sides. Each corner holds a quarter disc. Tap a corner, then a corner that meets it across a glued side: their groups join, and the second corner stays chosen, so the child can keep going round a point. A group of two or more takes a colour when it forms (sun, sky, rose, leaf, lilac, sand, teal, peach in the order the child makes them); nothing is coloured until the child joins it. A tap on a corner that doesn't meet the chosen one just chooses it. **That's all** is accepted when no two corners in different groups meet; otherwise "Some corners still meet.", and That's all stays off through Undo until a new join. After a right That's all, each point's corners are laid round it in order, a quarter turn each, one ring per full turn: a flat point is one ring, the L's point three rings.
+- **Copy.** Each puzzle shows one sentence: "Get the trip home in exactly 3 blocks.", "Get A's trip home in 1 block and B's in 2.", "Get A's trips home in 2, 2 and 3 blocks." or "Join corners that meet, then press That's all." The gluing rules, blocks and controls are in How to play. Refusals are "There is a way." and "Some corners still meet." Nothing counts gluings, joins or groups.
+- **Hints.** Before any move the first hint is the authored nudge. After that, hints name the next gluing ("Glue A's right side to B's left side."), heading for the working gluing that needs the fewest changes and taking sides in the order the trip crosses them, or the next join round a point ("Join A's lower-left corner to B's lower-right corner."). On a Can't puzzle the hints first build a trip that lands on every dot, then say "The trip has been to every dot, and it can't land on a dot twice before it gets home. Press Can't and tap every dot."; on a corner puzzle, "Every corner meets only corners in its own group. Press That's all." Level two marks the sides, corners, dots or button on the board, and level three offers Apply hint. Hints alone finish every puzzle: from a fresh start, after a wrong gluing, and after a wrong Can't or That's all, before and after Undo. Searches are memoised; a hint takes a few milliseconds.
+- **What the app avoids.** It asks no "where will it go?" predictions: the child glues and the app draws. It never colours corner groups by itself, and shows no counts of points, groups or gluings.
+
+## The playground
+
+Four surfaces, chosen with small pictures: the L, two squares in a ring, four squares with two tops crossed, and one square glued to itself. Each square has four small cells each way. Tap a cell to start, and one of eight arrows: right, up, one right and one up, two right and one up, one right and two up, three right and one up, three right and two up, two right and three up. The trip is drawn in the squares, with a dot at the start's spot in every square, and unrolled beside them, home or stopped at a corner (a cross). There is no goal and no Hint, and the playground never counts as solved. These are Problems 1–2's trips from many starts and Problem 9's directions.
+
+## Rules that keep the record honest
+
+- The save is the gluing (`right`, `up`), the refusal (`told`) and the claim (`claimed`) for glue puzzles; the joins in order (`links`), the refusal and `done` for corner puzzles; the surface, start and arrow for the playground. Everything shown, including trips, beads, groups, colours and rosettes, is derived from it. The chosen side or corner and the open dots are view state, outside the save.
+- Only legal moves are accepted: gluing a side of a kind the puzzle glues, to a different partner; Can't after a gluing, with every dot, not while refused; joining two corners that meet across a glued side and are in different groups; That's all not while refused; nothing after a solve.
+- Saved boards are checked: gluings one-to-one on the puzzle's squares, with fixed kinds as given; a kept Can't only where no gluing works and only after a gluing; "There is a way." only where one does; every join a match between different groups at its turn; done only with every meeting pair in one group; "Some corners still meet." only while two do.
+- `scripts/build-glued.mjs` computes the answers with the mechanic's searches. `scripts/validate-glued.mjs` checks them again by other methods.
+
+## Changes to the shared board
+
+Two small, general options in `dist/portal-board.js`, documented in [portal-board.md](../portal-board.md) and tested in `tests/glued.test.mjs`:
+
+- `stableMarks` on a surface spec: a seam mark's shape and colour come from its first square and side, not from the order of the runs, so a family that lets the child glue and unglue sides doesn't reshuffle the other marks.
+- `spread: false` for `develop` and `planeBoard`: place the anchors only. With a straight trip's pieces as anchors this is the strip of squares the trip crosses, the unrolled trip.
+
+Without the options both behave exactly as before.
+
+## Files
+
+| File | Contents |
+|---|---|
+| `dist/families/glued/glued.js` | Trips by block, the gluing search and the bound, corner matches and chains, the child's groups, the `glued` mechanic (moves, hints, rendering, taps and keys), the playground |
+| `dist/families/glued/glued.css` | The squares, trips, beads, side and corner controls, dots, rosettes, the playground's pickers; imports the portal board styles |
+| `dist/families/glued/glued.json` | The pack: a playground, 11 puzzles, 1 family and 5 sources |
+| `scripts/build-glued.mjs` | Authoring list; checks every answer and witness against the table above and writes `glued.json` |
+| `scripts/validate-glued.mjs` | An independent trip by cutting sequence with exact fractions; every gluing enumerated, partial ones included, against the table, the bound and the mechanic; corner points by union and the Euler count; the L's facts from Problems 7–9; witnesses as moves; hint chains from fresh, after wrong gluings, wrong Can'ts and That's alls, and Undo; illegal moves; forged saves; all 1,280 playground trips against the drawn ones; run by `npm run build` |
+| `tests/glued.test.mjs` | The two board options, trips and block words, the fast search against drawn trips, gluing, Can't and its dots, corners and colours, That's all and rosettes, hints, the playground, saves, rendering |
+| `scripts/glued-browser-smoke.mjs` | The interface in a browser: taps on sides (one beside the line between two sides' targets), Enter on sides, focus after a gluing, a wrong Can't refused through Undo, a right Can't with its beads, corners joined beside a corner two squares share, a wrong That's all refused through Undo, rosettes, hints to a finish, the playground; `TEST_PHONE=1` for touch on a phone |
+
+To change a puzzle, edit `scripts/build-glued.mjs`, then run `node scripts/build-glued.mjs`, `npm test` and `npm run build`.
+
+## Not yet done
+
+- **Children's play.** Nothing here has been tried by children, and the worksheet is unpiloted. Three things to watch first:
+  - whether children find the sides as things to tap (they are not tinted until one is chosen), and whether gluing by two taps, with a side leaving its old partner, makes sense without a grown-up;
+  - whether the unrolled strip and the beads help children see where a trip goes and how many blocks it took, or whether they watch only the squares;
+  - whether Can't is pressed because the beads outnumber the dots, or as a guess after failing, and whether tapping every dot reads as "these are all the places it can land".
+- **More corner variety.** All three corner surfaces are fully glued. A surface with walls, or a hexagon-like contrast (the card's fix 5), is not here.
+- **The octagon.** Problems 1–3 and 5 (the glued octagon's two trip families, the constant outer length, the 1080° point by stacking sectors) are not ported: the board is made of squares. The playground gives straight trips on square surfaces instead.
+- **Trips that need a corner.** The app stops a trip at every square corner, flat ones included, as the worksheet does; it never continues through a flat corner.
+- **Story.** Not on the Lantern Road; no keeper lines.
+- **Grade levels.** Grade-free; not yet in a K–1, 2–3 or 4–5 trail.
+- **Rehearsal.** Checked by tests, the validator and browser suites at phone and desktop widths only; not tried on a real phone or tablet.
