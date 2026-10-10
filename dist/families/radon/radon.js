@@ -294,7 +294,8 @@ function move(p, b, action) {
 const nearest = (list, p) => [...list].sort((u, v) => ((u[0] - p[0]) ** 2 + (u[1] - p[1]) ** 2) - ((v[0] - p[0]) ** 2 + (v[1] - p[1]) ** 2))[0];
 function everyHint(q, b) {
   const letters = lettersOf(q), answers = answersOf(q), now = splitOfColours(letters, b.groups);
-  if (!answers.length && b.tried) return {type: 'move', action: {type: 'all'}, text: 'No dot is on the band of the other two, so no split meets. Press That’s all.'};
+  // The reason, not the claim: the second level marks That's all.
+  if (!answers.length && b.tried) return {type: 'move', action: {type: 'all'}, text: 'No dot is on the segment of the other two, so no split meets.'};
   const aims = answers.length ? answers.filter(k => !b.found.includes(k)) : [splitList(letters)[0]];
   if (!aims.length) return {type: 'move', action: {type: 'all'}, text: 'Press That’s all.'};
   if (aims.includes(now) && b.told === null) return {type: 'move', action: {type: 'meet'}, text: 'Press Meet.'};

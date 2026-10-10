@@ -95,6 +95,7 @@ test('three dots: no split meets, That’s all after a try', () => {
   a = play(p, a, {type: 'meet'});
   assert.equal(a.board.told, 'apart');
   assert.match(nextHint(p, a).text, /no split meets/, 'the reason comes before That’s all');
+  assert.doesNotMatch(nextHint(p, a).text, /That’s all/, 'the first level gives the reason, not the claim');
   a = play(p, a, {type: 'all'});
   assert.ok(isSolved(p, a.board));
   const html = view(p, a);

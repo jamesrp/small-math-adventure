@@ -164,6 +164,8 @@ try {
   await button('Apply hint').click();
   assert.equal((await board(T)).told, 'apart', 'the hints try a split first');
   assert.match(await page.locator('.hint-card').innerText(), /no split meets/);
+  assert.doesNotMatch(await page.locator('.hint-card p').innerText(), /That’s all/, 'the hint gives the reason, not the claim');
+  assert.match(await button('That’s all').getAttribute('class'), /hinted/, 'the button is marked instead');
   await button('Apply hint').click();
   await done();
 
