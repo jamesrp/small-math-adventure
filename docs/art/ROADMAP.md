@@ -120,7 +120,7 @@ Loops: glowworms drifting, reeds swaying, ripples.
 
 **Windy Ridge: bright windy day.** Green mountains with snowcaps, a cable car on a line, wind streaks, a flat picnic rock where Plume’s wagon is parked.
 0. The cable car is wobbling at the bottom; Plume’s wagon waits.
-1. The cable car is balanced and halfway up. *Change: a stone is swapped and the car rises.*
+1. The cable car is balanced and halfway up. *Change: a stone is swapped and the car rises.* (Story, October 10: the travelers' wagon is the car's cargo. The finished stills predate that; when these scenes are next redrawn, show the wagon riding up with the car.)
 2. Plume’s wagon rattles away in a huff (dust trail); pebbles are left on the rock. *Change: Plume stomps off and drives away.*
 3. Bright kites fly with long tails. *Change: the travelers launch the kites.*
 Loops: wind in the grass and Billie’s scarf, kites tugging, clouds moving.

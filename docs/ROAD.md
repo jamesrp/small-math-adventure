@@ -7,6 +7,7 @@ Design decisions, October 2026 (James and Claude):
 - Characters live inside the puzzles. Keepers and Plume speak one short line when a puzzle opens and react to what the player does: a mistake, a hint, a solve. They never restate rules. Those stay on the board and in How to play.
 - The six travelers are a fixed party. They are the pieces in the ferry's seating puzzle and otherwise appear in the scenes, busy at each stop. They do not speak.
 - There is no losing. The tension comes from Plume's scores and from stars. Keepers never join the caravan.
+- The travelers' wagon goes the whole way. It rides across on Snooze's shell, at the stern behind the deck, and goes up Windy Ridge as the cable car's cargo, which is what Billie's stones balance (decided October 10).
 - Art is bright and saturated, with dark stops mixed in (night marsh, Halloween hollow, stormy lighthouse, night fair) the way Bloons TD varies its maps. Art is made separately; see [art/ROADMAP.md](art/ROADMAP.md).
 
 ## Stops

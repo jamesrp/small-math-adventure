@@ -21,6 +21,7 @@ The game draws every piece that changes during play, so a backdrop is the place 
 - **The deck,** an ellipse centered at (650, 548), 940 wide and 416 tall, flat and seen from above at about 30°. The game puts four to six seats on it in two staggered rows (feet at y 470 and 645), the travelers in them, and for the lamp puzzle either lamp posts around its rim or a lamp tree above its back half (up to y 40).
 - **The bow frame:** two posts at x 1078–1108 and 1384–1414, a beam across the top at y 24–60, and an empty hook under the beam's middle at (1245, 60). The game hangs `stage/ferry/bell` there and mounts one or two round bell wheels, 270 across, between the posts from y 250 to 780. Keep that space plain: sky, water or the turtle behind it, nothing busy.
 - **The bow platform** under the frame (x 1040–1410, y 560–790), where travelers without a seat stand.
+- **The stern,** the shell's left end above the jetty (x 15–235, y 470–640). The caravan's wagon rides there: the game places the `map/wagon-party` sticker with its wheels at (125, 640), about 220 wide. Keep that part of the shell plain.
 
 Snooze's head sits to the right of the frame (x 1380–1600, y 480–700). Her face is the only difference between asleep and awake. The jetty, where the caravan waits on the map, comes in from the bottom-left corner.
 
@@ -38,7 +39,7 @@ Snooze's head sits to the right of the frame (x 1380–1600, y 480–700). Her f
 ## Not in this batch
 
 - The seats, lamps, boardwalks and bell wheels stay drawn by the game. If finished stickers for them would look better next to the new backdrops, say so in `artwork/road4/NOTES.md` and Claude will write slots for them.
-- **The caravan's wagon on the ferry.** James asked how the wagon crosses on the turtle, and how it later rides the Windy Ridge gondola. That is a story choice waiting on him, so leave the wagon out of both backdrops for now.
+- **The caravan's wagon.** The game draws it on the stern from the existing sticker (James chose on October 10: it rides on Snooze's shell). Don't paint it into the backdrops.
 - The old ferry scenes stay as they are. They now show only above Snooze's bath, the side puzzle.
 
 ## Making them

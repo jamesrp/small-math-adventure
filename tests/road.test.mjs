@@ -272,6 +272,7 @@ test('the ferry and marsh puzzles are played in their picture, with the rest of 
       assert.equal(stageKind(e, p), staged[id], `${band} ${id}`);
       const html = playView(p, a, { pack: fullPack, profile: pr, encounter: e, selected: null, message: '' });
       assert.match(html, /class="lr-stage /); assert.doesNotMatch(html, /lr-scene-art/, `${band} ${id}: no scene above`);
+      assert.equal(/class="stage-piece stage-wagon"/.test(html), id !== 'marsh-boardwalks', `${band} ${id}: the wagon rides on the ferry`);
       const count = re => (html.match(re) || []).length;
       if (id === 'ferry-seats') {
         // Each traveler is a button in its seat; the swap pairs sit below.

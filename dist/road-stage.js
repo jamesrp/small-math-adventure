@@ -14,6 +14,7 @@ import { PARTY, PARTY_NAMES, CAST } from './road-cast.js';
 import { media, slots, asset } from './art.js';
 import { companionDrawing } from './caravan-art.js';
 import { ferryStage, marshStage, bellArt, hopsArt } from './stage-placeholders.js';
+import { wagonArt } from './road-placeholders.js';
 import { clockFace, clockPlace, bellChart, clockFeedback } from './motion.js';
 import { routeInfo, networkPositions } from './networks.js';
 
@@ -74,6 +75,11 @@ function homeSeats(p, ctx) {
   const id = getEncounter('ferry-seats')?.selection[p.band], seats = ctx.pack?.puzzles.find(q => q.id === id);
   return seatsFit(seats) ? seats.target.map(t => PARTY[t]) : PARTY.slice(0, 6);
 }
+
+// The caravan's wagon rides on Snooze's shell at the stern, beside the jetty it
+// rolled off (decided with James, October 10). It goes up Windy Ridge as cable-car cargo.
+const WAGON = { x: 125, y: 640, size: 220 };
+const wagonPiece = () => `<div class="stage-piece stage-wagon" style="${at(WAGON.x, WAGON.y, WAGON.size)}" aria-hidden="true">${media(slots.wagon('party'), wagonArt('party'), { key: 'stage-wagon' })}</div>`;
 
 // The bell hangs from the bow frame; the bell wheels sit on the frame's board.
 const BELL = { x: 1245, y: 135, size: 150 };
@@ -187,7 +193,7 @@ export function stageBoard(kind, p, a, ctx = {}) {
       : { seated: homes, homes, p });
     const presentation = ctx.clockPresentation;
     back = party.back + (kind === 'bell' ? bellWheels(p, a, ctx) : '');
-    pieces = party.pieces + bellPiece(Boolean(presentation && presentation.count < presentation.total), kind === 'bell');
+    pieces = wagonPiece() + party.pieces + bellPiece(Boolean(presentation && presentation.count < presentation.total), kind === 'bell');
     if (kind === 'lights') { const layers = lightsLayers(p, a, hint); back += layers.back; front = layers.front; }
   }
   const glow = '<defs><radialGradient id="stage-glow"><stop offset="0" stop-color="#fff2a8" stop-opacity=".9"/><stop offset=".45" stop-color="#ffd653" stop-opacity=".45"/><stop offset="1" stop-color="#ffd653" stop-opacity="0"/></radialGradient></defs>';
