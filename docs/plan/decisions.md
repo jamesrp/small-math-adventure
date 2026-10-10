@@ -2,7 +2,7 @@
 
 James asked on October 10, 2026 that every worksheet week end in one of two states: **in the app**, or **not porting**, with the reason written down. "Waiting" is a step in a wave, never an end state. A week reaches its decision through its review card in the worksheets repository ([plans/review](https://github.com/jamesrp/math-circle-worksheets/tree/main/plans/review)), and then a port when the card says port. A week that waits on a board or on another family gets that board or family built in a wave, or a reason why not.
 
-**Where things stand:** 79 weeks (1–78 and the Week 1 encore). 40 are in the app and 1 is ruled out, so 38 are open, every one planned into a wave.
+**Where things stand:** 79 weeks (1–78 and the Week 1 encore). 41 are in the app and 1 is ruled out, so 37 are open, every one planned into a wave.
 
 Whoever changes a week's state changes its row here in the same push, and the count above.
 
@@ -65,7 +65,7 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 38 | Möbius band and cuts | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-38.md) | Open, wave 9 | C becomes B on the portal board with a reversing seam: light edges through seams, toggle seams, cut lanes, with parity as the certificate |
 | 39 | Path reduction | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-39.md) | In the app | Road detours (PR #13) |
 | 40 | Knot tricolouring | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-40.md) | Open, wave 5 | Tap an arc to cycle its colour with crossings checked live: colour a knot with more than one colour, find every colouring, claim "one colour only" where true |
-| 41 | Torus portals | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-41.md) | Open, wave 4 | Building now: the shared portal board and a Portal rooms family |
+| 41 | Torus portals | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-41.md) | In the app | Portal rooms, the first family on the shared portal board ([docs/portal-board.md](../portal-board.md)) that Weeks 64, 70 and 75 build on |
 | 42 | Fair results from a bag | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-42.md) | In the app | Fair bags (PR #17) |
 | 43 | Fair shuffles | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-43.md) | In the app | Ticket shuffles (PR #15) |
 | 44 | The bag that copies | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-44.md) | In the app | Copying bags (PR #20) |
