@@ -32,7 +32,7 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 5 | Tower cities | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-05.md) | Open, wave 6 | Visibility clues as their own group in Symbol Orchard, reusing its board; this reverses September's "leave them out", so it is with James |
 | 6 | Code breaking | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-06.md) | In the app | Slippery secrets in Signal Lanterns |
 | 7 | Take-away games | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-07.md) | In the app | Move menus in Pebble Duel (PR #9) |
-| 8 | Rook race and Nim | none | In the app | Pebble Duel and its duel proofs |
+| 8 | Rook race and Nim | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-08.md) | In the app | Pebble Duel and its duel proofs; its card adds a rook-and-queen board group and a find-every-second-player-start group on the duel engine, folds the bundle rule away until after Duel 1, and retitles puzzles by their start, in Wave 9's touch-ups |
 | 9 | Bouncing paths | none | In the app | Mirror Couriers |
 | 10 | Bridges | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-10.md) | In the app | Bridge Courier; its card adds a where-can-it-start and add-a-bridge group, double bridges, and the dead-end message behind Hint, in Wave 9's touch-ups |
 | 11 | Chip firing with a sink | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-11.md) | In the app | Chip firing (PR #1); its card adds the add-one cycle and capacity puzzles and drops answer slots, in Wave 9's touch-ups |
