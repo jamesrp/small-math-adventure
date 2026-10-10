@@ -13,9 +13,9 @@ Each wave is claimed on both work boards like any other item. The weeks a wave p
 1. **Wave 3, cards.** Write the card, with its port decision, for each open week of 1–63 that has none: 5, 12, 17, 19, 20, 21, 22, 27, 28, 32, 35, 36, 37, 38, 40, 41, 48, 49, 50, 51, 54, 55, 56, 57, 58, 59 and 61. Weeks 8–11 are in the app without a card; their cards follow for the review's sake and change no decision.
 2. **Wave 4, the portal board.** Week 41's pawn on a portal board with a live unrolled view, then Week 70's shields and Week 64's glued squares on it, and Week 75's strands on a wraparound strip with the same lift view.
 3. **Wave 5, roads and graphs.** Week 69 as a group in Meeting roads, Week 68 on an endless panning map, and the graph themes whose cards say port (40, 27 and 17 are the likely ones).
-4. **Wave 6, grids.** Week 15's nearest-site cells on a half-unit lattice, and the grid themes whose cards say port (5, 32, 48, 54 and 57 are the likely ones).
-5. **Wave 7, sets and numbers.** 12, 19, 20, 22, 36, 49, 51, 55 and 58, as their cards decide.
-6. **Wave 8, symmetry, words and reflections.** 35, 37, Week 76's shrink tool, Week 71 as an aiming group in Mirror Couriers, and 21.
+4. **Wave 6, grids.** Week 15's nearest-site cells on a half-unit lattice, and the grid themes whose cards say port: 48, and likely 5, 32 and 57.
+5. **Wave 7, sets and numbers.** 12, 19, 20, 22, 36, 49, 54 and 55, whose cards say port, and 51 and 58 as their cards decide.
+6. **Wave 8, symmetry, words and reflections.** 35, 37, Week 76's shrink tool, and Weeks 71 and 21 as groups in Mirror Couriers.
 7. **Wave 9, the rest.** Week 65's octagon floor, 73, 77 and 78, and the paper-and-continuous themes (28, 38, 50, 56, 59 and 61). Each gets a port with a real on-screen solve or a final reason not to.
 
 ## Every week
@@ -36,17 +36,17 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 9 | Bouncing paths | none | In the app | Mirror Couriers |
 | 10 | Bridges | none | In the app | Bridge Courier |
 | 11 | Chip firing with a sink | none | In the app | Chip firing (PR #1) |
-| 12 | Catalan bijections | none | Open, wave 3 | Card first |
+| 12 | Catalan bijections | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-12.md) | Open, wave 7 | Strings tapped between dots with crossings refused, every pairing collected, conversions between pairings, paths and trees, and the fewest-swaps mountain |
 | 13 | Route packing | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-13.md) | In the app | Routes and roadblocks (PR #6) |
 | 14 | Triangulations and flips | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-14.md) | In the app | Polygon cuts (PR #19) |
 | 15 | Nearest-site regions | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-15.md) | Open, wave 6 | The card moves it from C to B: drag dots on a half-unit lattice to make target cells |
 | 16 | Three-colour triangles (Sperner) | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-16.md) | In the app | Rainbow triangles (PR #16) |
-| 17 | Machine memory | none | Open, wave 3 | Card first |
+| 17 | Machine memory | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-17.md) | Open, wave 5 | Drag one R and one B arrow from each circle; "can't with fewer" certified by the child's own histories |
 | 18 | Error-correcting codebooks | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-18.md) | In the app | Codebooks in Signal Lanterns (PR #9) |
-| 19 | Subset antichains | none | Open, wave 3 | Card first |
-| 20 | Averaging | none | Open, wave 3 | Card first |
-| 21 | Shortest reflected paths | none | Open, wave 3 | Card first |
-| 22 | Radon partitions | none | Open, wave 3 | Card first |
+| 19 | Subset antichains | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-19.md) | Open, wave 7 | Choose cards with nesting pairs linked; "best" certified by dragging every card into nested rows |
+| 20 | Averaging | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-20.md) | Open, wave 7 | Inverse and design goals for averaging circles, with no animated relaxation as the solve |
+| 21 | Shortest reflected paths | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-21.md) | Open, wave 8 | A group in Mirror Couriers: tap the contact and claim "shortest", with the fold as the certificate |
+| 22 | Radon partitions | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-22.md) | Open, wave 7 | A short set on a lattice: find every working split, place D for a named number of splits, tap every place C can go |
 | 23 | Sorting networks | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-23.md) | In the app | Sorting machines (PR #5) |
 | 24 | Nontransitive decks | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-24.md) | In the app | Three decks (PR #23) |
 | 25 | Hidden pictures | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-25.md) | In the app | Hidden pictures (PR #7) |
@@ -60,26 +60,26 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 33 | Necklaces | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-33.md) | In the app | Bead rings |
 | 34 | Distinguishing colourings | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-34.md) | In the app | Hidden turns in Bead rings |
 | 35 | Frieze symmetry | none | Open, wave 3 | Card first |
-| 36 | Nine-tile SET | none | Open, wave 3 | Card first |
-| 37 | Tetrahedron chirality | none | Open, wave 3 | Card first |
+| 36 | Nine-tile SET | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-36.md) | Open, wave 7 | Nine tiles as the tutorial, then a 27-card layer where "reach 9" is a real solve, the avoidance game and three-colour puzzle |
+| 37 | Tetrahedron chirality | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-37.md) | Open, wave 8 | A flat view where a tap turns the model about a corner: turn to match, place letters, sort into groups |
 | 38 | Möbius band and cuts | none | Open, wave 3 | Card first |
 | 39 | Path reduction | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-39.md) | In the app | Road detours (PR #13) |
 | 40 | Knot tricolouring | none | Open, wave 3 | Card first |
-| 41 | Torus portals | none | Open, wave 3 | Card first, then the portal board in wave 4 |
+| 41 | Torus portals | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-41.md) | Open, wave 4 | Building now: the shared portal board and a Portal rooms family |
 | 42 | Fair results from a bag | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-42.md) | In the app | Fair bags (PR #17) |
 | 43 | Fair shuffles | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-43.md) | In the app | Ticket shuffles (PR #15) |
 | 44 | The bag that copies | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-44.md) | In the app | Copying bags (PR #20) |
 | 45 | The visible side | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-45.md) | In the app | Hidden sides (PR #21) |
 | 46 | Two boards forget their starts | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-46.md) | In the app | Paint rows |
 | 47 | Gentle step landscapes | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-47.md) | In the app | Gentle hills |
-| 48 | Inside and outside covers | none | Open, wave 3 | Card first |
-| 49 | Four towers and differences | none | Open, wave 3 | Card first |
+| 48 | Inside and outside covers | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-48.md) | Open, wave 6 | Split cells to a target gap within a budget, paint to match a pattern and area, slide a grid over a shape |
+| 49 | Four towers and differences | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-49.md) | Open, wave 7 | Reverse goals only: build a predecessor ring, grow a run backward, find a ring that never reaches zero |
 | 50 | Staircases and lengths | none | Open, wave 3 | Card first |
 | 51 | Honest measurement ranges | none | Open, wave 3 | Card first |
 | 52 | Bracing frames | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-52.md) | In the app | Bracing frames (PR #13) |
 | 53 | Cheapest networks | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-53.md) | In the app | Cheapest networks (PR #8) |
-| 54 | Partitions | none | Open, wave 3 | Card first |
-| 55 | Sumsets | none | Open, wave 3 | Card first |
+| 54 | Partitions | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-54.md) | Open, wave 7 | A strip workbench: catalogs the child declares complete, and reach-or-refute targets |
+| 55 | Sumsets | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-55.md) | Open, wave 7 | Card trays with merging totals: fewest and most, find every B with "That's all" |
 | 56 | Polyhedra and Euler | none | Open, wave 3 | Card first |
 | 57 | Lattice area | none | Open, wave 3 | Card first |
 | 58 | Fair division | none | Open, wave 3 | Card first |
