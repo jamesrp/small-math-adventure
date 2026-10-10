@@ -45,7 +45,8 @@ const paths = [
   './families/gapflood/gapflood.js',
   './families/matching/matching.js',
   './families/ends/ends.js',
-  './families/towers/towers.js'
+  './families/towers/towers.js',
+  './families/knots/knots.js'
 ];
 
 export const FAMILIES = await Promise.all(paths.map(path => import(path).then(module => module.default)));

@@ -1,0 +1,104 @@
+# Knot colours
+
+October 10, 2026. Twelve puzzles and a playground built from Week 40 of the Bellingham math circle (loop colour certificates). They are in the puzzle satchel only, not on the Lantern Road. Nothing here has been played by children, and the Week 40 worksheet is unpiloted. The theme's [review card](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-40.md) says keep, and its Decision shaped this family: a tap lights a whole arc and cycles its colour, each crossing shows whether it works, and the solves are completing crossings, colouring a knot with more than one colour, finding every colouring with a checked That's all, claiming One colour only where that is true, and matching fixed end colours on a tangle. No puzzle asks for a number, nothing shows a count, and nothing suggests that equal counts mean the same knot.
+
+## The mathematics
+
+A knot diagram is a closed cord drawn with crossings; at each crossing one strand passes over and the other is broken by a gap. The diagram falls into **arcs**: an arc runs from one gap to the next, passing over any crossings on the way. A **colouring** gives each arc red, blue or yellow so that at every crossing the arc on top and the two arcs that stop there are all one colour or all three colours. With the colours as 0, 1 and 2 the rule is
+
+top + in + out ≡ 0 (mod 3), equivalently 2 · top ≡ in + out (mod 3),
+
+symmetric in the three arcs, so any two arcs at a crossing decide the third (puzzle 1). An arc that passes over the same crossing it stops at counts twice.
+
+- **Invariance.** Each Reidemeister move (a curl, pulling a bend off a strand, sliding a strand across a crossing) changes a picture only inside a small disc, and matches the colourings on its two sides one for one, with the same colours on the strands leaving the disc (puzzles 7 and 12, checked for every choice of inputs). Every way of moving a loop without cutting it is a sequence of these moves, so the number of colourings is a knot invariant. It is always 3 times a power of 3.
+- **The certificate.** A plain circle has one arc, so only its three one-colour colourings, and so has every picture of an unknotted loop. A colouring that uses two or more colours therefore **proves** the loop is knotted. Colour can change only at a crossing whose two stopping arcs differ, and then that crossing is all different: on the trefoil, two different colours force all three, one per arc (puzzles 2 and 5: 9 colourings). The granny knot (two trefoils joined; 27) and the stevedore knot 6₁ (9) can be coloured with more than one colour too (puzzles 8 and 10).
+- **One colour only.** The figure-eight 4₁, the cinquefoil 5₁ and the three-twist knot 5₂ have only their three one-colour colourings (puzzles 6, 9 and 11), and they are still knotted. The proof the app shows: a colouring with two colours has some crossing all different; renaming colours (every permutation of three colours keeps the rule), its top arc is red, the arc in blue and the arc out yellow; the colours that forces run on to a clash. It clashes from **every** crossing of these three knots, and the forcing never stalls, so no colouring with two colours exists. Their determinants are 5, 5 and 7, not divisible by 3; the stevedore knot's is 9 and the trefoil's 3. The twist knots P(n, 1, 1) can be coloured with more than one colour exactly when n leaves remainder 1 on division by 3.
+- **The limit.** One colour only does not mean unknotted, and equal counts never show two loops are the same: the plain loop and the figure-eight both have 3, the trefoil and the stevedore knot both 9. Three colours can certify a knot; they cannot always find one.
+- **Tangles.** With open ends marked by dots, the crossings decide which end colours can occur. On the worksheet's bend (one strand under a U twice), the bend is one arc and the strand comes out the colour it went in, so the dots work exactly when the strand's two ends match and the bend's two ends match (puzzles 3 and 4).
+
+Experiments come first: tap arcs and watch the rings. The conjectures (two colours force the third; the trefoil has a three-colour colouring and the figure-eight does not; a move keeps the end colours) come from colouring. The explanations (the count is invariant, the certificate one way only) are grown-up conversations in each puzzle's notes; the worksheet's proof (guide p. 6) stays on paper.
+
+**Sources.** The rule and the one-way certificate are Fox's three-colourings, as in Mladen Bestvina's handout *Knots* (Summer Math Program, 2007), §§1–4, which the worksheet guide cites; §4 Problem 11 (PDF p. 8) gives the figure-eight n-colourable exactly when 5 divides n. Louis H. Kauffman, *Knots*, "The Three Colored Trefoil" and "The Quandle and the Determinant of a Knot", gives the operation 2b − a. Jones polynomials and PD codes are from [KnotInfo](https://knotinfo.math.indiana.edu/).
+
+## Where they appear
+
+**Puzzles → Knot colours** is a satchel family on the family seam ([Adding a family](../ADDING-A-FAMILY.md)), with a **Playground** button above Easy, Medium and Hard. The puzzles are grade-free (`band: "all"`). Arc names below are the ones hints and screen readers use.
+
+| # | Level | Kind | Picture | Answer | Week 40 source |
+|---|---|---|---|---|---|
+| 1 | Easy | Complete | Nine single crossings, left and upright arcs given | Each right arc is decided; the nine make a Latin square | K–1 Problem 5 |
+| 2 | Easy | More than one colour | Trefoil (the worksheet's curve) | Every arc different, e.g. top red, bottom left blue, bottom right yellow; One colour only is refused | Problem 2 |
+| 3 | Easy | End dots | Bend: L red, P blue, S red, Q blue | Bend blue, left red, middle yellow, right red (the only one); Can't is refused | K–1 Problem 6, case 1 |
+| 4 | Easy | End dots | Bend: L red, P red, S blue, Q red | Can't: the dots force red to the right arc, against a blue dot | K–1 Problem 6, case 2 |
+| 5 | Medium | Find every | Trefoil | 9: three one-colour and six with every arc different, then That's all | Problem 2 |
+| 6 | Medium | More than one colour | Figure-eight 4₁ (pretzel P(2, 1, 1)) | One colour only (true) | 4–5 Problem 7; card fix 2 |
+| 7 | Medium | End dots, two pictures | The bend, then the bend pulled off; L red, P blue | First: bend blue, left red, middle yellow, right red. Second: straight arc red, bend blue | 2–3 and 4–5 Problem 5 |
+| 8 | Medium | More than one colour | Granny knot | e.g. left half and the joining arcs red, top right yellow, bottom right blue; One colour only is refused | New (App fit); bonus Problem 3's joined loops |
+| 9 | Hard | More than one colour | Cinquefoil 5₁ | One colour only (true) | New (App fit) |
+| 10 | Hard | More than one colour | Stevedore knot 6₁ (pretzel P(4, 1, 1)) | e.g. top red, middle and lower short blue, long bottom and upper short yellow, lower left red; One colour only is refused | New (App fit) |
+| 11 | Hard | More than one colour | Three-twist knot 5₂ (pretzel P(3, 1, 1)) | One colour only (true) | New (App fit) |
+| 12 | Hard | End dots, two pictures | A strand slid across a crossing (Reidemeister III); top dots red, blue, bottom right yellow | Curved arc yellow in both; middle arc blue, then yellow; bottom left red in both | New; card fix 1 |
+
+The worksheets are in [math-circle-worksheets, week 40](https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-40). The bend's end dots keep the worksheet's letters only here: L and S are the strand's left and right ends, P and Q the bend's (the worksheet's R is renamed S, review card fix 7). The worksheet uses red, blue and green; the app uses yellow for the third colour, which is easier to tell from red for children with red–green colour blindness.
+
+### The pictures and their codes
+
+Each picture is drawn by `scripts/build-knots.mjs` from a smooth curve: the worksheet guide's trefoil (sin t + 2 sin 2t, cos t − 2 cos 2t); the cinquefoil ((2.6 + cos 5t) sin 2t, −(2.6 + cos 5t) cos 2t); the pretzel knots P(a, 1, 1) as a column of a half twists and two single crossings, joined by caps; the granny knot as two copies of the trefoil of the same hand, each opened at one lobe and joined by two bridges; the tangles from lines and a cubic U. The builder finds the crossings, chooses which strand goes over (all crossings of one sign for the torus knots and the granny knot, alternating for the pretzels, by hand for the tangles), cuts the under strand at each crossing, and records the **exact crossing code**: a signed Gauss code per picture.
+
+| Picture | Code (over +, under −, by first appearance) | Signs |
+|---|---|---|
+| Trefoil | 1 −2 3 −1 2 −3 | − − − |
+| Figure-eight | 1 −2 3 −4 2 −1 4 −3 | − − + + |
+| Cinquefoil | 1 −2 3 −4 5 −1 2 −3 4 −5 | + + + + + |
+| Three-twist knot | 1 −2 3 −1 4 −5 2 −3 5 −4 | + + + + + |
+| Stevedore knot | 1 −2 3 −4 2 −1 5 −6 4 −3 6 −5 | + + − − + + |
+| Granny knot | 1 −2 3 −1 2 −4 5 −6 4 −5 6 −3 | all − |
+| Bend | strand −1 −2; bend 1 2 | + − |
+| Slide, before | curved 1 2; X −1 −3; Y −2 3 | − − + |
+| Slide, after | curved 1 2; X −3 −2; Y 3 −1 | − − + |
+
+The validator rebuilds every code from the drawn arcs alone and checks each knot's Jones polynomial against KnotInfo's, so a flipped crossing (which, on the trefoil, gives a plain loop) cannot pass. Mirror images are allowed: the colourings of a knot and its mirror are the same.
+
+## How a puzzle plays
+
+- **The board.** Arcs are cords with an ink edge, paper inside until coloured; the gaps at underpasses show where each arc stops. A tap anywhere on an arc colours the whole arc and each further tap cycles red, blue, yellow, red. Given arcs (puzzle 1) have a thicker edge and do not respond. Once a crossing's three arcs have colours, a solid pine ring under it shows it works and a dashed brick ring that it clashes. End dots are filled with their fixed colour; a matched dot (puzzles 7 and 12) has a dashed edge and shows its arc's colour, with a dashed ring while it differs from the dot in the same place in the other picture. Taps on a dot reach its arc. Tab and Enter or Space work on every arc.
+- **Two pictures** (7 and 12) sit side by side with an arrow between, each on its own card, or one above the other on a narrow screen. Hints and screen readers call them the first and second picture.
+- **More than one colour** (2, 6, 8 to 11). Solved by any colouring with two or more colours. **One colour only** is checked: if a colouring with two colours exists, "More than one colour works." stays until a colour changes, and the button waits until then. If it is right, the puzzle is solved and the board shows the certificate: the first crossing coloured all different (red on top, blue in, yellow out) with an ochre ring, the colours that forces, and the dashed ring where they clash, under "Two colours here force a clash." Tapping another crossing starts the clash there.
+- **End dots** (3, 4, 7, 12). Solved when every crossing works and every dot matches. **Can't** (3 and 4) is checked the same way; when it is right, the board shows the colours the dots force up to the clash, under "The end dots force a clash."
+- **Find every** (5). A colouring is kept the moment it is made and goes on a shelf of small pictures under the knot; making one again gives "Found already." and rings it on the shelf. **That's all** says "There is another." while one is missing, and then waits until a colouring is made; once every colouring is found it solves the puzzle. There are no empty slots and no count. Undo keeps the shelf.
+- **Copy.** Each puzzle shows one short objective: "Make every crossing all one colour or all different." (1), "Use more than one colour." (2, 6, 8 to 11), "Match the end dots." (3, 4), "Colour both pictures so their end dots match." (7, 12) and "Find every colouring." (5). How to play holds the rules: arcs, the crossing rule and its rings, given arcs, dots, the buttons and how they are checked.
+- **Hints.** Before any move, the first hint is the authored nudge. Then hints aim at the colouring nearest the board (in Find every, the nearest not yet found), naming one arc and its colour ("Make the bottom left arc blue."), choosing first an arc whose colour is already forced by two right arcs at a crossing or by a dot; "Press One colour only.", "Press Can't." or "Press That's all." when that is the move. The second level marks the arc or button on the board, and the third offers Apply hint. Hints alone finish every puzzle from a fresh start, after any single wrong colour, from random wrong starts, after a refused claim and after a wrong That's all.
+
+## The playground
+
+Seven knots, chosen with small picture buttons: the plain loop, the trefoil, the figure-eight, the cinquefoil, the three-twist knot, the stevedore knot and the granny knot. Tap arcs as in the puzzles; **Clear** takes every colour off. There is no goal and no Hint, and it never counts as solved. It stands in for Problem 4's tray of cords: which loops can use more than one colour?
+
+## Rules that keep the record honest
+
+- The save is the colour of each arc (or none), with the answer to the claim; in Find every, the colourings found, the answer to That's all and the done flag; in the playground, the knot chosen. Every ring, dot state and certificate is derived from it.
+- Only legal moves are accepted: a colour change on a free arc, one claim until a colour changes, That's all only in Find every and not twice without a colouring made in between, knot changes and Clear only in the playground, and nothing after a solve.
+- Saved boards are checked: one colour or none per arc, given arcs unchanged, a kept claim only when it is true and a refused one only when it is false, colourings found only real ones and each once, a colouring on the board already on the shelf, "There is another." only while one is missing, "Found already." only for the colouring on the board, done only with every colouring found.
+- The answers, witnesses and certificates are computed by `scripts/build-knots.mjs` with the mechanic's forcing search and checked again by `scripts/validate-knots.mjs` by other methods.
+
+## Files
+
+| File | Contents |
+|---|---|
+| `dist/families/knots/knots.js` | The crossing rule, forcing, every completion, claims and certificates, the `knots` mechanic (moves, hints, rendering, taps and keys) and the playground |
+| `dist/families/knots/knots.css` | Cords, rings, dots, the before-and-after pair, buttons, the shelf and the playground's knot buttons |
+| `dist/families/knots/knots.json` | The pack: a playground, 12 puzzles, 1 family and 5 sources |
+| `scripts/build-knots.mjs` | The drawings, crossings, arcs and codes; the authoring list; checks every count, claim, witness and certificate and each knot's Jones polynomial, and writes `knots.json` (`--preview <file.html>` draws every board with its arcs numbered and named) |
+| `scripts/validate-knots.mjs` | Codes rebuilt from the drawn arcs (gap pairing, the arc over each gap, signs from directions) and compared with the stored codes, crossings and dots; no arcs touching; Jones polynomials by the Kauffman bracket against the table, and the table against KnotInfo's PD codes; the tangles' codes against a hand-written table; colourings by brute force with 2 · top ≡ in + out; every certificate replayed one forced arc at a time, and every colour order at each seed crossing ruled out; the bend and the slide checked for every choice of inputs; witnesses as moves; hint chains; illegal moves; forged saves; the playground; run by `npm run build` |
+| `tests/knots.test.mjs` | The rule, colourings and claims, codes rebuilt and a flipped crossing caught, completing, both claims with their certificates, Find every and Undo, matched dots, hints, the playground, saves and rendering |
+| `scripts/knots-browser-smoke.mjs` | The interface in a browser: taps and Enter on arcs, rings, the nine crossings, One colour only refused and kept with its clash moved by a tap, Can't, Find every with Found already, There is another, Undo and That's all, the two pictures, a hint chain applied to the end, and the playground; `TEST_PHONE=1` for touch on a 375-pixel phone |
+
+To change a puzzle, edit `scripts/build-knots.mjs`, then run `node scripts/build-knots.mjs`, `node scripts/validate-knots.mjs`, `npm test` and `npm run build`.
+
+## Not yet done
+
+- **Children's play.** Nothing here has been tried by children, and the worksheet is unpiloted (its cord pretest is undone). Three things to watch: whether children see where an arc starts and stops (a tap colours the whole arc across its overpasses) and can hit the short arcs in the twist columns of puzzles 6, 10 and 11 on a phone; whether the rings teach the crossing rule without the grown-up, or children cycle colours until the ring turns pine without noticing that two arcs decide the third; and whether One colour only and Can't are pressed as guesses (a wrong press costs nothing but a sentence), and whether the certificate's clash is looked at or skipped. Listen for "one colour only, so it isn't knotted": the figure-eight puzzles are there to break it.
+- **The curl.** The review card's fix 1 asks for before-and-after pictures of a curl (Reidemeister I) as well as the slide; only the bend (II) and the slide (III) are here.
+- **Paper only.** Problem 4's tray of cords, the bonus's crossing machine and two-strand closures (links), counting the colourings of joined loops, and the five-colour extension stay on paper or in grown-up notes.
+- **One Find every.** Only the trefoil is a Find every puzzle. The stevedore knot also has 9 colourings; a second Find every with the same count was left out so that no pair of puzzles invites "same count, same knot".
+- **Story.** Not on the Lantern Road; no keeper lines.
+- **Grade levels.** Grade-free; not yet in a K–1, 2–3 or 4–5 trail. Puzzle 1 and the bends need no reading; the knots need a grown-up to read How to play once.
