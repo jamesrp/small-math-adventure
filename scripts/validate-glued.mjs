@@ -95,16 +95,16 @@ function cornerPoints(q) {
 // longest first return. Corner puzzles: the sizes of the points.
 const TABLE = {
   'glued-01': {mode: 'glue', works: 2, of: 6},
-  'glued-02': {mode: 'glue', works: 1, of: 6},
+  'glued-02': {mode: 'glue', works: 1, of: 6, way: true},
   'glued-03': {mode: 'corners', points: [4, 4]},
   'glued-04': {mode: 'glue', works: 12, of: 36},
-  'glued-05': {mode: 'glue', works: 6, of: 36},
+  'glued-05': {mode: 'glue', works: 6, of: 36, way: true},
   'glued-06': {mode: 'corners', points: [12]},
-  'glued-07': {mode: 'glue', works: 0, of: 36, cant: true},
+  'glued-07': {mode: 'glue', works: 0, of: 36, cant: true, longestWays: 12},
   'glued-08': {mode: 'glue', works: 144, of: 576},
-  'glued-09': {mode: 'glue', works: 2, of: 36},
+  'glued-09': {mode: 'glue', works: 2, of: 36, way: true},
   'glued-10': {mode: 'corners', points: [8, 8]},
-  'glued-11': {mode: 'glue', works: 0, of: 576, cant: true}
+  'glued-11': {mode: 'glue', works: 0, of: 576, cant: true, longestWays: 144}
 };
 // The worksheet's L: right sides A↔B with C to itself, tops A↔C with B to itself.
 const L = {right: {A: 'B', B: 'A', C: 'C'}, up: {A: 'C', B: 'B', C: 'A'}};
@@ -122,9 +122,11 @@ function hintsSolve(p, a, label) {
     assert.ok(typeof h.text === 'string' && h.text.length > 8, `${p.id} ${label}: hint words`);
     if (h.action.type === 'cant') {
       assert.ok(/every dot/.test(h.text) && /twice/.test(h.text), `${p.id} ${label}: the reason comes with Can’t`);
-      // The claim is hinted only once the longest trip is built.
-      const n = Object.keys(p.parameters.squares).length;
-      assert.equal(simTrip(a.board, p.parameters.trips[0].from, spotOf(p.parameters), p.parameters.trips[0].dir, n + 1).home, n, `${p.id} ${label}: Can’t after the longest trip`);
+      // The claim is hinted only once the longest trip is built, with its
+      // landings in order.
+      const n = Object.keys(p.parameters.squares).length, t = simTrip(a.board, p.parameters.trips[0].from, spotOf(p.parameters), p.parameters.trips[0].dir, n + 1);
+      assert.equal(t.home, n, `${p.id} ${label}: Can’t after the longest trip`);
+      assert.deepEqual(h.action.dots, t.squares, `${p.id} ${label}: the dots in the order the trip lands`);
       sawReason = true;
     }
     a = play(p, a, h.action);
@@ -177,14 +179,37 @@ function checkGlue(p, fresh, row) {
     let longest = 0;
     for (const right of fullOptions('right')) for (const up of fullOptions('up')) longest = Math.max(longest, simTrip({right, up}, q.trips[0].from, spot, q.trips[0].dir, n + 1).home || 0);
     assert.equal(longest, n, `${p.id}: the longest first return is ${n}`);
-    // The claim needs an attempt and every dot; then it is right.
+    // The claim needs an attempt, then the first trip on the child's own
+    // board landing on every dot and coming home, its dots tapped in the
+    // order it lands on them. Anything less gets the refusal every puzzle
+    // gives ('taps'), and Can't stays open.
     refused(p, fresh, {type: 'cant', dots: list}, 'Can’t before any gluing');
-    const tried = play(p, fresh, {type: 'glue', side: 'right', from: list[0], to: list[1]});
+    const g0 = q.trips[0], tried = play(p, fresh, {type: 'glue', side: 'right', from: list[0], to: list[1]});
     refused(p, tried, {type: 'cant', dots: list.slice(1)}, 'Can’t without every dot');
     refused(p, tried, {type: 'cant', dots: [...list, list[0]]}, 'Can’t with a dot twice');
-    const claimed = play(p, tried, {type: 'cant', dots: [...list].reverse()});
-    assert.ok(isSolved(p, claimed.board) && claimed.board.claimed, `${p.id}: Can’t is right`);
-    refused(p, claimed, {type: 'glue', side: 'up', from: list[0], to: list[0]}, 'no move after the claim');
+    refused(p, tried, {type: 'cant', dots: [list[0], ...list.slice(0, -1)]}, 'Can’t with a dot twice and one missing');
+    const bare = play(p, tried, {type: 'cant', dots: [...list].reverse()});
+    assert.equal(bare.board.told, 'taps', `${p.id}: Can’t without the longest trip is refused`);
+    assert.ok(!isSolved(p, bare.board) && !bare.board.claimed);
+    // Every longest trip, partial gluings included: its landings in order
+    // claim; any other order is refused and leaves Can't open.
+    let certificates = 0;
+    for (const right of options('right')) for (const up of options('up')) {
+      const t = simTrip({right, up}, g0.from, spot, g0.dir, n + 1);
+      if (t.home !== n) continue;
+      certificates++;
+      const a = {...tried, board: {...tried.board, right, up, told: null}};
+      const swapped = [t.squares[1], t.squares[0], ...t.squares.slice(2)];
+      const wrongOrder = play(p, a, {type: 'cant', dots: swapped});
+      assert.equal(wrongOrder.board.told, 'taps', `${p.id}: the landings out of order are refused`);
+      const claimed = play(p, wrongOrder, {type: 'cant', dots: t.squares});
+      assert.ok(isSolved(p, claimed.board) && claimed.board.claimed, `${p.id}: Can’t with the trip’s landings is right`);
+      if (certificates === 1) {
+        refused(p, claimed, {type: 'glue', side: 'up', from: list[0], to: list[0]}, 'no move after the claim');
+        assert.equal(validBoard(p, {...tried.board, claimed: true}), false, `${p.id}: a claim without the longest trip is forged`);
+      }
+    }
+    assert.ok(certificates >= row.longestWays, `${p.id}: every longest trip certifies`);
   } else {
     // The pack's witness and the found one, played side by side as moves.
     for (const w of [p.solution.gluing, witness]) {
@@ -192,21 +217,42 @@ function checkGlue(p, fresh, row) {
       for (const kind of q.sides) for (const s of list) if (w[kind][s] !== null && a.board[kind][s] !== w[kind][s]) a = play(p, a, {type: 'glue', side: kind, from: s, to: w[kind][s]});
       assert.ok(isSolved(p, a.board), `${p.id}: the gluing ${JSON.stringify(w)} solves`);
     }
-    // A wrong Can't: refused, and still refused after Undo, until a new gluing.
-    const tried = play(p, fresh, {type: 'glue', side: q.sides[0], from: list[0], to: list[0]});
-    const wrong = play(p, tried, {type: 'cant', dots: list});
-    assert.equal(wrong.board.told, 'way', `${p.id}: a wrong Can’t is refused`);
-    assert.ok(!isSolved(p, wrong.board));
-    refused(p, wrong, {type: 'cant', dots: list}, 'no second Can’t while refused');
-    const back = undoCarry(p, wrong);
-    assert.equal(back.board.told, 'way', `${p.id}: Undo keeps the refusal`);
-    refused(p, back, {type: 'cant', dots: list}, 'no Can’t after Undo either');
-    const again = undoCarry(p, back);
-    assert.equal(again.board.told, 'way', `${p.id}: back to the start, still refused`);
-    const fresh2 = play(p, again, {type: 'glue', side: q.sides[0], from: list[1], to: list[2]});
-    assert.equal(fresh2.board.told, null, `${p.id}: a new gluing lifts it`);
-    hintsSolve(p, wrong, 'after a wrong Can’t');
-    hintsSolve(p, back, 'after Undo of a wrong Can’t');
+    // Can't without the longest trip: the same refusal as on a puzzle that
+    // can't be done, and Can't stays open.
+    const g0 = q.trips[0], tried = play(p, fresh, {type: 'glue', side: q.sides[0], from: list[0], to: list[0]});
+    const bare = play(p, tried, {type: 'cant', dots: list});
+    assert.equal(bare.board.told, 'taps', `${p.id}: Can’t without the longest trip is refused as on every puzzle`);
+    assert.ok(!isSolved(p, bare.board));
+    hintsSolve(p, bare, 'after a bare Can’t');
+    // A whole certificate, the first trip's landings in order, on a gluing
+    // that doesn't meet the goal: "There is a way.", kept through Undo until
+    // a new gluing. A longest trip that meets the goal has already solved it.
+    let way = null;
+    for (const right of fullOptions('right')) for (const up of fullOptions('up')) {
+      const t = simTrip({right, up}, g0.from, spot, g0.dir, n + 1);
+      if (t.home !== n) continue;
+      if (meets({right, up})) continue;
+      way ||= {right, up, dots: t.squares};
+    }
+    assert.equal(Boolean(way), Boolean(row.way), `${p.id}: a longest trip that misses the goal ${row.way ? 'exists' : 'doesn’t exist'}`);
+    if (way) {
+      let a = fresh;
+      for (const kind of q.sides) for (const s of list) if (a.board[kind][s] !== way[kind][s]) a = play(p, a, {type: 'glue', side: kind, from: s, to: way[kind][s]});
+      const wrong = play(p, a, {type: 'cant', dots: way.dots});
+      assert.equal(wrong.board.told, 'way', `${p.id}: a whole certificate on a puzzle that can be done`);
+      assert.ok(!isSolved(p, wrong.board));
+      refused(p, wrong, {type: 'cant', dots: way.dots}, 'no second Can’t while refused');
+      const back = undoCarry(p, wrong);
+      assert.equal(back.board.told, 'way', `${p.id}: Undo keeps the refusal`);
+      refused(p, back, {type: 'cant', dots: way.dots}, 'no Can’t after Undo either');
+      let start = back;
+      while (start.history.length) start = undoCarry(p, start);
+      assert.equal(start.board.told, 'way', `${p.id}: back to the start, still refused`);
+      const fresh2 = play(p, start, {type: 'glue', side: q.sides[0], from: list[1], to: list[2]});
+      assert.equal(fresh2.board.told, null, `${p.id}: a new gluing lifts it`);
+      hintsSolve(p, wrong, 'after a wrong Can’t');
+      hintsSolve(p, back, 'after Undo of a wrong Can’t');
+    }
   }
   if (p.id === 'glued-09') {
     // The three trips force the L or its mirror.
@@ -243,6 +289,7 @@ function checkGlue(p, fresh, row) {
     {...b, told: 'yes'},
     {...b, claimed: 'yes'},
     {...b, claimed: true},
+    {...b, told: 'taps', claimed: true},
     {...b, ...(row.cant ? {told: 'way'} : {right: {...b.right, A: 'A'}, claimed: true})}
   ];
   forged.forEach((f, i) => assert.equal(validBoard(p, f), false, `${p.id}: forged save ${i} refused`));

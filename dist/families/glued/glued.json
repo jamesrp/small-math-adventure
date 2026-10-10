@@ -302,14 +302,14 @@
    "objective": "Glue right sides to left sides so that the trip from A comes home after exactly 3 blocks.",
    "visibleObjective": "Get the trip home in exactly 3 blocks.",
    "instruction": "Glue right sides to left sides so that the trip from A comes home after exactly 3 blocks.",
-   "controls": "Tap a side, then the side to glue it to: a right side with a left side, a top with a bottom. Gluing a side again takes it from its old partner. Tab and Enter work too. Undo takes back a gluing. Can’t shows the dots: tap every dot to claim.",
+   "controls": "Tap a side, then the side to glue it to: a right side with a left side. Gluing a side again takes it from its old partner. Tab and Enter work too. Undo takes back a gluing. Can’t shows the dots: tap them in the order the trip lands on them to claim. Tap a ringed dot to take it back.",
    "rules": [
     "Each square’s right side can be glued to the left side of one square, maybe its own, and each top to the bottom of one square. A square slides into place; nothing turns.",
     "A trip goes straight from its dot the way its arrow points. At a glued side it comes in through the side glued there, at the same place along it, and keeps going. At a side glued to nothing it stops.",
     "A block is one arrow’s length. After each block the trip is on the same spot of some square, where that square’s dot is. The trip is home when it lands on its own dot. The beads count the blocks.",
     "Beside the squares, each trip is drawn unrolled: one straight line across copies of the squares it passes through.",
     "Only right sides and left sides glue here.",
-    "Press Can’t if no gluing can do it, then tap every dot."
+    "If no gluing can do it, make the first trip land on every dot and come home, then press Can’t and tap the dots in the order it lands on them."
    ],
    "idea": "A trip to the right goes from square to square by the right gluing, so it is home after three blocks only if it lands on both other dots first.",
    "prerequisites": "Follow a line through a glued side and count blocks up to three or four. A grown-up can read How to play.",
@@ -433,14 +433,14 @@
    "objective": "Glue right sides to left sides so that the trip from A comes home after exactly 1 block and the trip from B after exactly 2.",
    "visibleObjective": "Get A’s trip home in 1 block and B’s in 2.",
    "instruction": "Glue right sides to left sides so that the trip from A comes home after exactly 1 block and the trip from B after exactly 2.",
-   "controls": "Tap a side, then the side to glue it to: a right side with a left side, a top with a bottom. Gluing a side again takes it from its old partner. Tab and Enter work too. Undo takes back a gluing. Can’t shows the dots: tap every dot to claim.",
+   "controls": "Tap a side, then the side to glue it to: a right side with a left side. Gluing a side again takes it from its old partner. Tab and Enter work too. Undo takes back a gluing. Can’t shows the dots: tap them in the order the trip lands on them to claim. Tap a ringed dot to take it back.",
    "rules": [
     "Each square’s right side can be glued to the left side of one square, maybe its own, and each top to the bottom of one square. A square slides into place; nothing turns.",
     "A trip goes straight from its dot the way its arrow points. At a glued side it comes in through the side glued there, at the same place along it, and keeps going. At a side glued to nothing it stops.",
     "A block is one arrow’s length. After each block the trip is on the same spot of some square, where that square’s dot is. The trip is home when it lands on its own dot. The beads count the blocks.",
     "Beside the squares, each trip is drawn unrolled: one straight line across copies of the squares it passes through.",
     "Only right sides and left sides glue here.",
-    "Press Can’t if no gluing can do it, then tap every dot."
+    "If no gluing can do it, make the first trip land on every dot and come home, then press Can’t and tap the dots in the order it lands on them."
    ],
    "idea": "A trip home after one block comes straight back into its own square, so the other two squares have to trade.",
    "prerequisites": "Watch two or three trips at once and change one gluing at a time.",
@@ -645,13 +645,13 @@
    "objective": "Glue sides so that the trip from A, one right and one up each block, comes home after exactly 3 blocks.",
    "visibleObjective": "Get the trip home in exactly 3 blocks.",
    "instruction": "Glue sides so that the trip from A, one right and one up each block, comes home after exactly 3 blocks.",
-   "controls": "Tap a side, then the side to glue it to: a right side with a left side, a top with a bottom. Gluing a side again takes it from its old partner. Tab and Enter work too. Undo takes back a gluing. Can’t shows the dots: tap every dot to claim.",
+   "controls": "Tap a side, then the side to glue it to: a right side with a left side, a top with a bottom. Gluing a side again takes it from its old partner. Tab and Enter work too. Undo takes back a gluing. Can’t shows the dots: tap them in the order the trip lands on them to claim. Tap a ringed dot to take it back.",
    "rules": [
     "Each square’s right side can be glued to the left side of one square, maybe its own, and each top to the bottom of one square. A square slides into place; nothing turns.",
     "A trip goes straight from its dot the way its arrow points. At a glued side it comes in through the side glued there, at the same place along it, and keeps going. At a side glued to nothing it stops.",
     "A block is one arrow’s length. After each block the trip is on the same spot of some square, where that square’s dot is. The trip is home when it lands on its own dot. The beads count the blocks.",
     "Beside the squares, each trip is drawn unrolled: one straight line across copies of the squares it passes through.",
-    "Press Can’t if no gluing can do it, then tap every dot."
+    "If no gluing can do it, make the first trip land on every dot and come home, then press Can’t and tap the dots in the order it lands on them."
    ],
    "idea": "Each block crosses a right side and then a top, so it moves the trip by the right gluing and then the up gluing; the trip still has to land on every dot before it is home.",
    "prerequisites": "Follow a line through a glued side and count blocks up to three or four. A grown-up can read How to play.",
@@ -776,13 +776,13 @@
    "objective": "Glue sides so that the trips two right and one up each block come home after exactly 1 block from A and exactly 2 blocks from B.",
    "visibleObjective": "Get A’s trip home in 1 block and B’s in 2.",
    "instruction": "Glue sides so that the trips two right and one up each block come home after exactly 1 block from A and exactly 2 blocks from B.",
-   "controls": "Tap a side, then the side to glue it to: a right side with a left side, a top with a bottom. Gluing a side again takes it from its old partner. Tab and Enter work too. Undo takes back a gluing. Can’t shows the dots: tap every dot to claim.",
+   "controls": "Tap a side, then the side to glue it to: a right side with a left side, a top with a bottom. Gluing a side again takes it from its old partner. Tab and Enter work too. Undo takes back a gluing. Can’t shows the dots: tap them in the order the trip lands on them to claim. Tap a ringed dot to take it back.",
    "rules": [
     "Each square’s right side can be glued to the left side of one square, maybe its own, and each top to the bottom of one square. A square slides into place; nothing turns.",
     "A trip goes straight from its dot the way its arrow points. At a glued side it comes in through the side glued there, at the same place along it, and keeps going. At a side glued to nothing it stops.",
     "A block is one arrow’s length. After each block the trip is on the same spot of some square, where that square’s dot is. The trip is home when it lands on its own dot. The beads count the blocks.",
     "Beside the squares, each trip is drawn unrolled: one straight line across copies of the squares it passes through.",
-    "Press Can’t if no gluing can do it, then tap every dot."
+    "If no gluing can do it, make the first trip land on every dot and come home, then press Can’t and tap the dots in the order it lands on them."
    ],
    "idea": "A block two right and one up crosses a right side, a top and a right side again; one start can come straight home while two others trade.",
    "prerequisites": "Watch two or three trips at once and change one gluing at a time.",
@@ -994,25 +994,25 @@
    "objective": "Glue sides so that the trip from A, one right and one up each block, comes home after exactly 4 blocks.",
    "visibleObjective": "Get the trip home in exactly 4 blocks.",
    "instruction": "Glue sides so that the trip from A, one right and one up each block, comes home after exactly 4 blocks.",
-   "controls": "Tap a side, then the side to glue it to: a right side with a left side, a top with a bottom. Gluing a side again takes it from its old partner. Tab and Enter work too. Undo takes back a gluing. Can’t shows the dots: tap every dot to claim.",
+   "controls": "Tap a side, then the side to glue it to: a right side with a left side, a top with a bottom. Gluing a side again takes it from its old partner. Tab and Enter work too. Undo takes back a gluing. Can’t shows the dots: tap them in the order the trip lands on them to claim. Tap a ringed dot to take it back.",
    "rules": [
     "Each square’s right side can be glued to the left side of one square, maybe its own, and each top to the bottom of one square. A square slides into place; nothing turns.",
     "A trip goes straight from its dot the way its arrow points. At a glued side it comes in through the side glued there, at the same place along it, and keeps going. At a side glued to nothing it stops.",
     "A block is one arrow’s length. After each block the trip is on the same spot of some square, where that square’s dot is. The trip is home when it lands on its own dot. The beads count the blocks.",
     "Beside the squares, each trip is drawn unrolled: one straight line across copies of the squares it passes through.",
-    "Press Can’t if no gluing can do it, then tap every dot."
+    "If no gluing can do it, make the first trip land on every dot and come home, then press Can’t and tap the dots in the order it lands on them."
    ],
    "idea": "Until it is home a trip lands on a different dot each block, and there are only three dots, so on three squares every trip that comes home does so within three blocks.",
    "prerequisites": "Glue sides to make long trips, as in puzzle 4, and count dots and blocks up to five.",
    "hints": [
     "How many blocks can you make the trip take?",
     "Each block ends on a dot. Can the trip land on the same dot twice before it is home?",
-    "Three dots, each landed on at most once: the trip is home by the third block. Press Can’t and tap every dot."
+    "Three dots, each landed on at most once: the trip is home by the third block. Make a three-block trip, then press Can’t and tap the dots in the order it lands on them."
    ],
    "parent": {
     "notice": "Whether your child builds a three-block trip first (as in puzzle 4) and then tries to stretch it, and whether they say why it won’t stretch.",
     "prompt": "Could the trip land on B’s dot twice before it gets home?",
-    "explanation": "Each block ends on a dot, and only one square’s block leads into each square, because each side is glued to one side. So if the trip landed on some dot twice before coming home, the blocks before those two landings would have started on one dot too, an earlier repeat, and so on back to the start: the dot would be A’s, and the trip would already be home. So before it is home the trip lands on each of the other two dots at most once, and it is home after at most three blocks. Exactly four is impossible. The dots are the certificate: three dots, four beads.",
+    "explanation": "Each block ends on a dot, and only one square’s block leads into each square, because each side is glued to one side. So if the trip landed on some dot twice before coming home, the blocks before those two landings would have started on one dot too, an earlier repeat, and so on back to the start: the dot would be A’s, and the trip would already be home. So before it is home the trip lands on each of the other two dots at most once, and it is home after at most three blocks. Exactly four is impossible. The certificate is your child’s own three-block trip: tapping its landings in order fills three beads with the three dots, and the fourth bead has no dot left.",
     "extension": "On four squares, what is the longest first return? (Four blocks: puzzle 8.)",
     "connection": "Week 64 Problem 9: a whole-number direction that misses the corners permutes the n squares, so every trip closes within n blocks. The cycle through A has length at most n.",
     "sourceIds": [
@@ -1025,7 +1025,7 @@
    },
    "solution": {
     "cant": true,
-    "certificate": "dots",
+    "certificate": "trip",
     "dots": 3,
     "beads": 4,
     "longest": {
@@ -1042,7 +1042,12 @@
       }
      },
      "home": 3,
-     "ways": 12
+     "ways": 12,
+     "landings": [
+      "C",
+      "B",
+      "A"
+     ]
     }
    },
    "provenance": "Week 64 grades 4–5 Problem 9 (must every whole-number direction close or reach a corner? the permutation bound, three blocks on three squares), as a goal that can’t be met."
@@ -1119,13 +1124,13 @@
    "objective": "Glue sides so that the trip from A, two right and one up each block, comes home after exactly 4 blocks.",
    "visibleObjective": "Get the trip home in exactly 4 blocks.",
    "instruction": "Glue sides so that the trip from A, two right and one up each block, comes home after exactly 4 blocks.",
-   "controls": "Tap a side, then the side to glue it to: a right side with a left side, a top with a bottom. Gluing a side again takes it from its old partner. Tab and Enter work too. Undo takes back a gluing. Can’t shows the dots: tap every dot to claim.",
+   "controls": "Tap a side, then the side to glue it to: a right side with a left side, a top with a bottom. Gluing a side again takes it from its old partner. Tab and Enter work too. Undo takes back a gluing. Can’t shows the dots: tap them in the order the trip lands on them to claim. Tap a ringed dot to take it back.",
    "rules": [
     "Each square’s right side can be glued to the left side of one square, maybe its own, and each top to the bottom of one square. A square slides into place; nothing turns.",
     "A trip goes straight from its dot the way its arrow points. At a glued side it comes in through the side glued there, at the same place along it, and keeps going. At a side glued to nothing it stops.",
     "A block is one arrow’s length. After each block the trip is on the same spot of some square, where that square’s dot is. The trip is home when it lands on its own dot. The beads count the blocks.",
     "Beside the squares, each trip is drawn unrolled: one straight line across copies of the squares it passes through.",
-    "Press Can’t if no gluing can do it, then tap every dot."
+    "If no gluing can do it, make the first trip land on every dot and come home, then press Can’t and tap the dots in the order it lands on them."
    ],
    "idea": "With three sides crossed each block, the gluing has to send the trip through all four squares before it comes home: the longest first return there is on four squares.",
    "prerequisites": "Follow a line through a glued side and count blocks up to three or four. A grown-up can read How to play.",
@@ -1261,13 +1266,13 @@
    "objective": "Glue sides so that from A the trip right comes home after exactly 2 blocks, the trip up after exactly 2, and the trip one right and one up after exactly 3.",
    "visibleObjective": "Get A’s trips home in 2, 2 and 3 blocks.",
    "instruction": "Glue sides so that from A the trip right comes home after exactly 2 blocks, the trip up after exactly 2, and the trip one right and one up after exactly 3.",
-   "controls": "Tap a side, then the side to glue it to: a right side with a left side, a top with a bottom. Gluing a side again takes it from its old partner. Tab and Enter work too. Undo takes back a gluing. Can’t shows the dots: tap every dot to claim.",
+   "controls": "Tap a side, then the side to glue it to: a right side with a left side, a top with a bottom. Gluing a side again takes it from its old partner. Tab and Enter work too. Undo takes back a gluing. Can’t shows the dots: tap them in the order the trip lands on them to claim. Tap a ringed dot to take it back.",
    "rules": [
     "Each square’s right side can be glued to the left side of one square, maybe its own, and each top to the bottom of one square. A square slides into place; nothing turns.",
     "A trip goes straight from its dot the way its arrow points. At a glued side it comes in through the side glued there, at the same place along it, and keeps going. At a side glued to nothing it stops.",
     "A block is one arrow’s length. After each block the trip is on the same spot of some square, where that square’s dot is. The trip is home when it lands on its own dot. The beads count the blocks.",
     "Beside the squares, each trip is drawn unrolled: one straight line across copies of the squares it passes through.",
-    "Press Can’t if no gluing can do it, then tap every dot."
+    "If no gluing can do it, make the first trip land on every dot and come home, then press Can’t and tap the dots in the order it lands on them."
    ],
    "idea": "The trips right and up each pair A with another square; the slanted trip, right then up, lands on all three dots only when those two partners are different: the three-square L.",
    "prerequisites": "Watch two or three trips at once and change one gluing at a time.",
@@ -1505,20 +1510,20 @@
    "objective": "Glue sides so that the trip from A, one right and one up each block, comes home after exactly 5 blocks.",
    "visibleObjective": "Get the trip home in exactly 5 blocks.",
    "instruction": "Glue sides so that the trip from A, one right and one up each block, comes home after exactly 5 blocks.",
-   "controls": "Tap a side, then the side to glue it to: a right side with a left side, a top with a bottom. Gluing a side again takes it from its old partner. Tab and Enter work too. Undo takes back a gluing. Can’t shows the dots: tap every dot to claim.",
+   "controls": "Tap a side, then the side to glue it to: a right side with a left side, a top with a bottom. Gluing a side again takes it from its old partner. Tab and Enter work too. Undo takes back a gluing. Can’t shows the dots: tap them in the order the trip lands on them to claim. Tap a ringed dot to take it back.",
    "rules": [
     "Each square’s right side can be glued to the left side of one square, maybe its own, and each top to the bottom of one square. A square slides into place; nothing turns.",
     "A trip goes straight from its dot the way its arrow points. At a glued side it comes in through the side glued there, at the same place along it, and keeps going. At a side glued to nothing it stops.",
     "A block is one arrow’s length. After each block the trip is on the same spot of some square, where that square’s dot is. The trip is home when it lands on its own dot. The beads count the blocks.",
     "Beside the squares, each trip is drawn unrolled: one straight line across copies of the squares it passes through.",
-    "Press Can’t if no gluing can do it, then tap every dot."
+    "If no gluing can do it, make the first trip land on every dot and come home, then press Can’t and tap the dots in the order it lands on them."
    ],
    "idea": "On four squares a trip lands on each of the other three dots at most once before it is home, so it is home within four blocks.",
    "prerequisites": "Glue sides to make long trips, as in puzzle 4, and count dots and blocks up to five.",
    "hints": [
     "How many blocks can you make the trip take on four squares?",
     "Each block ends on a dot, and the trip can’t land on a dot twice before it is home.",
-    "Four dots: the trip is home by the fourth block. Press Can’t and tap every dot."
+    "Four dots: the trip is home by the fourth block. Make a four-block trip, then press Can’t and tap the dots in the order it lands on them."
    ],
    "parent": {
     "notice": "Whether your child builds a four-block trip and recognises puzzle 7’s reason, or tries many gluings.",
@@ -1536,7 +1541,7 @@
    },
    "solution": {
     "cant": true,
-    "certificate": "dots",
+    "certificate": "trip",
     "dots": 4,
     "beads": 5,
     "longest": {
@@ -1555,7 +1560,13 @@
       }
      },
      "home": 4,
-     "ways": 144
+     "ways": 144,
+     "landings": [
+      "D",
+      "B",
+      "C",
+      "A"
+     ]
     }
    },
    "provenance": "Week 64 grades 4–5 Problem 9 (the bound: no first return takes more than n blocks on n squares), on four squares."

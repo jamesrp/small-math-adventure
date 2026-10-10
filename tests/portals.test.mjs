@@ -175,6 +175,27 @@ test('unrolling: the torus fills the plane with copies, the L meets itself along
   assert.equal(cyl.at(0, 3), undefined, 'nothing above the cylinder’s top');
 });
 
+test('stable marks (Week 64) keep each glued side’s look while other sides change', () => {
+  const squares = {A: [0, 0], B: [2, 0], C: [0, 2]};
+  const one = surfaceOf({squares, right: {A: 'B', B: null, C: null}, up: {A: null, B: null, C: null}, stableMarks: true});
+  const two = surfaceOf({squares, right: {A: 'B', B: 'C', C: null}, up: {A: 'C', B: null, C: null}, stableMarks: true});
+  const look = (S, s, side) => S.marks.find(m => m.s === s && m.side === side);
+  assert.deepEqual([look(one, 'A', 'right').shape, look(one, 'A', 'right').colour], [look(two, 'A', 'right').shape, look(two, 'A', 'right').colour]);
+  assert.equal(look(two, 'B', 'left').shape, look(two, 'A', 'right').shape, 'partners share a mark');
+  // Without the option the first run takes the first look, as before.
+  const plain = surfaceOf({squares, right: {A: null, B: 'C', C: null}, up: {A: null, B: null, C: null}});
+  assert.equal(plain.marks[0].k, 0);
+});
+
+test('develop with spread false (Week 64) places only the anchors: an unrolled strip', () => {
+  const S = surfaceOf({squares: {A: [0, 0], B: [1, 0], C: [0, 1]}, right: {A: 'B', B: 'A', C: 'C'}, up: {A: 'C', B: 'B', C: 'A'}});
+  const anchors = [{s: 'A', X: 0, Y: 0}, {s: 'B', X: 1, Y: 0}];
+  assert.equal(develop(S, anchors, [-3, -3, 3, 3], {spread: false}).placed.size, 2);
+  assert.ok(develop(S, anchors, [-3, -3, 3, 3]).placed.size > 2, 'spreading is still the default');
+  const svg = planeBoard(S, {anchors, spread: false, show: [[0, 0], [2, 1]], min: 1, margin: 0});
+  assert.equal((svg.match(/class="pb-square/g) || []).length, 2);
+});
+
 test('the plane window holds what it is shown, grows to a minimum, and follows the focus past a maximum', () => {
   assert.deepEqual(planeWindow(torus, {show: [[1, 1]], min: 7}), [-2, -2, 4, 4]);
   const w = planeWindow(torus, {show: [[1, 1], [4, 4]], min: 7});

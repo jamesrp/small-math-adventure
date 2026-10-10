@@ -39,7 +39,7 @@ const RULES = {
     'Beside the squares, each trip is drawn unrolled: one straight line across copies of the squares it passes through.'
   ],
   right: 'Only right sides and left sides glue here.',
-  cant: 'Press Can’t if no gluing can do it, then tap every dot.',
+  cant: 'If no gluing can do it, make the first trip land on every dot and come home, then press Can’t and tap the dots in the order it lands on them.',
   corners: [
     'Two corners meet when a glued side runs between them. Across a right side, a square’s two right corners meet the two left corners of the square glued there; across a top, its two top corners meet that square’s bottom corners. Matching marks show which sides are glued.',
     'Corners that meet, and the corners that meet those, are all one point of the surface.',
@@ -47,8 +47,8 @@ const RULES = {
   ]
 };
 const CONTROLS = {
-  glue: 'Tap a side, then the side to glue it to: a right side with a left side, a top with a bottom. Gluing a side again takes it from its old partner. Tab and Enter work too. Undo takes back a gluing.',
-  cant: ' Can’t shows the dots: tap every dot to claim.',
+  glue: sides => `Tap a side, then the side to glue it to: a right side with a left side${sides.includes('up') ? ', a top with a bottom' : ''}. Gluing a side again takes it from its old partner. Tab and Enter work too. Undo takes back a gluing.`,
+  cant: ' Can’t shows the dots: tap them in the order the trip lands on them to claim. Tap a ringed dot to take it back.',
   corners: 'Tap a corner, then a corner that meets it, to join their groups. The second corner stays chosen, so you can keep going round a point. Tab and Enter work too. Undo takes back a join.',
   playground: 'Choose a surface and an arrow, then tap a small square to start from. The trip is drawn in the squares and unrolled beside them.'
 };
@@ -107,8 +107,8 @@ const PUZZLES = [
   {number: 7, level: 'medium', title: 'Four blocks', q: {...glue(3, ['right', 'up'], [['A', [1, 1], 4]], 'low'), cant: true}, check: {works: 0, of: 36, longest: 3, longestWays: 12}, kind: 'cant',
     objective: 'Glue sides so that the trip from A, one right and one up each block, comes home after exactly 4 blocks.', visible: 'Get the trip home in exactly 4 blocks.',
     idea: 'Until it is home a trip lands on a different dot each block, and there are only three dots, so on three squares every trip that comes home does so within three blocks.',
-    hints: ['How many blocks can you make the trip take?', 'Each block ends on a dot. Can the trip land on the same dot twice before it is home?', 'Three dots, each landed on at most once: the trip is home by the third block. Press Can’t and tap every dot.'],
-    parent: {notice: 'Whether your child builds a three-block trip first (as in puzzle 4) and then tries to stretch it, and whether they say why it won’t stretch.', prompt: 'Could the trip land on B’s dot twice before it gets home?', explanation: 'Each block ends on a dot, and only one square’s block leads into each square, because each side is glued to one side. So if the trip landed on some dot twice before coming home, the blocks before those two landings would have started on one dot too, an earlier repeat, and so on back to the start: the dot would be A’s, and the trip would already be home. So before it is home the trip lands on each of the other two dots at most once, and it is home after at most three blocks. Exactly four is impossible. The dots are the certificate: three dots, four beads.', extension: 'On four squares, what is the longest first return? (Four blocks: puzzle 8.)', connection: 'Week 64 Problem 9: a whole-number direction that misses the corners permutes the n squares, so every trip closes within n blocks. The cycle through A has length at most n.'},
+    hints: ['How many blocks can you make the trip take?', 'Each block ends on a dot. Can the trip land on the same dot twice before it is home?', 'Three dots, each landed on at most once: the trip is home by the third block. Make a three-block trip, then press Can’t and tap the dots in the order it lands on them.'],
+    parent: {notice: 'Whether your child builds a three-block trip first (as in puzzle 4) and then tries to stretch it, and whether they say why it won’t stretch.', prompt: 'Could the trip land on B’s dot twice before it gets home?', explanation: 'Each block ends on a dot, and only one square’s block leads into each square, because each side is glued to one side. So if the trip landed on some dot twice before coming home, the blocks before those two landings would have started on one dot too, an earlier repeat, and so on back to the start: the dot would be A’s, and the trip would already be home. So before it is home the trip lands on each of the other two dots at most once, and it is home after at most three blocks. Exactly four is impossible. The certificate is your child’s own three-block trip: tapping its landings in order fills three beads with the three dots, and the fourth bead has no dot left.', extension: 'On four squares, what is the longest first return? (Four blocks: puzzle 8.)', connection: 'Week 64 Problem 9: a whole-number direction that misses the corners permutes the n squares, so every trip closes within n blocks. The cycle through A has length at most n.'},
     provenance: 'Week 64 grades 4–5 Problem 9 (must every whole-number direction close or reach a corner? the permutation bound, three blocks on three squares), as a goal that can’t be met.'},
   {number: 8, level: 'hard', title: 'Long arrow', q: glue(4, ['right', 'up'], [['A', [2, 1], 4]], 'left'), check: {works: 144, of: 576}, kind: 'glue',
     objective: 'Glue sides so that the trip from A, two right and one up each block, comes home after exactly 4 blocks.', visible: 'Get the trip home in exactly 4 blocks.',
@@ -132,7 +132,7 @@ const PUZZLES = [
   {number: 11, level: 'hard', title: 'Five blocks', q: {...glue(4, ['right', 'up'], [['A', [1, 1], 5]], 'low'), cant: true}, check: {works: 0, of: 576, longest: 4, longestWays: 144}, kind: 'cant',
     objective: 'Glue sides so that the trip from A, one right and one up each block, comes home after exactly 5 blocks.', visible: 'Get the trip home in exactly 5 blocks.',
     idea: 'On four squares a trip lands on each of the other three dots at most once before it is home, so it is home within four blocks.',
-    hints: ['How many blocks can you make the trip take on four squares?', 'Each block ends on a dot, and the trip can’t land on a dot twice before it is home.', 'Four dots: the trip is home by the fourth block. Press Can’t and tap every dot.'],
+    hints: ['How many blocks can you make the trip take on four squares?', 'Each block ends on a dot, and the trip can’t land on a dot twice before it is home.', 'Four dots: the trip is home by the fourth block. Make a four-block trip, then press Can’t and tap the dots in the order it lands on them.'],
     parent: {notice: 'Whether your child builds a four-block trip and recognises puzzle 7’s reason, or tries many gluings.', prompt: 'How many dots are there? How many beads?', explanation: 'As in puzzle 7: each block ends on a dot, only one square’s block leads into each square, so the trip never lands on a dot twice before it is home. With four dots it is home after at most four blocks, so exactly five is impossible. 144 of the 576 full gluings give the longest trip, four blocks.', extension: 'What is the longest first return on n squares? (n blocks, when the block map is one n-cycle.)', connection: 'Week 64 Problem 9’s bound: a permutation of n things has cycles of length at most n.'},
     provenance: 'Week 64 grades 4–5 Problem 9 (the bound: no first return takes more than n blocks on n squares), on four squares.'}
 ];
@@ -149,7 +149,7 @@ const out = PUZZLES.map(item => {
     assert.equal(sols.length, item.check.works, `${id(item.number)}: gluings that work`);
     assert.equal(fullCount(q), item.check.of, `${id(item.number)}: full gluings`);
     rules = [...RULES.glue, ...(q.sides.includes('up') ? [] : [RULES.right]), RULES.cant];
-    controls = CONTROLS.glue + CONTROLS.cant;
+    controls = CONTROLS.glue(q.sides) + CONTROLS.cant;
     if (item.check.works) {
       const wit = item.witness || sols[0], w = {right: wit.right, up: wit.up || q.start.up};
       const trips = goalTrips(q, w);
@@ -161,9 +161,9 @@ const out = PUZZLES.map(item => {
       assert.equal(n, item.check.longest, `${id(item.number)}: the bound is the number of squares`);
       assert.ok(q.trips[0].blocks > n, `${id(item.number)}: the goal is past the bound`);
       assert.equal(long.length, item.check.longestWays, `${id(item.number)}: longest trips`);
-      const w = {right: long[0].right, up: long[0].up};
-      assert.equal(goalTrips(q, w)[0].home, n);
-      solution = {cant: true, certificate: 'dots', dots: n, beads: q.trips[0].blocks, longest: {gluing: w, home: n, ways: long.length}};
+      const w = {right: long[0].right, up: long[0].up}, t = goalTrips(q, w)[0];
+      assert.equal(t.home, n);
+      solution = {cant: true, certificate: 'trip', dots: n, beads: q.trips[0].blocks, longest: {gluing: w, home: n, ways: long.length, landings: t.blocks.map(b => b.s)}};
     }
   } else {
     const S = fixedSurface(q), sizes = cornerClasses(S).map(c => c.corners.length).sort((a, b) => a - b);

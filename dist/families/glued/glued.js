@@ -219,7 +219,8 @@ function linksOk(S, links) {
 }
 
 // --- Boards ---------------------------------------------------------------------
-// glue:       {right, up, told, claimed}  told 'way' after a wrong Can't
+// glue:       {right, up, told, claimed}  told 'taps' after Can't without the
+//             trip's landings in order, 'way' after them on a puzzle that can be done
 // corners:    {links, told, done}         told 'more' after a wrong That's all
 // playground: {surface, start, dir}
 const keysAre = (b, keys) => object(b) && Object.keys(b).sort().join() === [...keys].sort().join();
@@ -235,8 +236,8 @@ function valid(p, b) {
   const q = p.parameters;
   if (q.mode === 'glue') {
     if (!keysAre(b, ['right', 'up', 'told', 'claimed']) || !validGlue(q, b.right, 'right') || !validGlue(q, b.up, 'up')) return false;
-    if (typeof b.claimed !== 'boolean' || (b.told !== null && b.told !== 'way') || (b.claimed && b.told !== null)) return false;
-    if (b.claimed) return !gluePossible(q) && attempted(q, b);
+    if (typeof b.claimed !== 'boolean' || ![null, 'taps', 'way'].includes(b.told) || (b.claimed && b.told !== null)) return false;
+    if (b.claimed) return !gluePossible(q) && attempted(q, b) && fullTrip(q, b);
     return b.told !== 'way' || gluePossible(q);
   }
   if (q.mode === 'corners') {
@@ -258,9 +259,17 @@ function solved(p, b) {
   if (q.mode === 'corners') return b.done;
   return b.claimed || goalsMet(q, b);
 }
-// Can't is open once the child has glued something, and not again after a
-// refusal until a gluing changes.
+// Can't is open once the child has glued something, and not again after
+// "There is a way." until a gluing changes.
 const cantOpen = (q, b) => attempted(q, b) && b.told !== 'way';
+// The certificate behind Can't is the child's own trip: the first goal trip
+// lands on every dot and comes home after one block per square, and the dots
+// are tapped in the order it lands on them. Anything less gets the same
+// refusal on every puzzle; only a whole certificate is checked against the
+// puzzle, so a refusal never tells which puzzles can be done.
+const landings = t => t.blocks.map(x => x.s);
+const fullTrip = (q, b) => goalTrips(q, b)[0].home === ids(q).length;
+const certified = (q, b, dots) => fullTrip(q, b) && landings(goalTrips(q, b)[0]).join() === dots.join();
 
 function move(p, b, action) {
   const q = p.parameters;
@@ -272,8 +281,10 @@ function move(p, b, action) {
       return {...glueSides(b, side, from, to), told: null};
     }
     if (action.type === 'cant') {
-      if (!cantOpen(q, b) || !Array.isArray(action.dots) || [...action.dots].sort().join() !== [...ids(q)].sort().join()) return null;
-      return gluePossible(q) ? {...b, told: 'way'} : {...b, claimed: true};
+      const list = ids(q), dots = action.dots;
+      if (!cantOpen(q, b) || !Array.isArray(dots) || dots.length !== list.length || !dots.every(s => list.includes(s)) || new Set(dots).size !== dots.length) return null;
+      if (!certified(q, b, dots)) return {...b, told: 'taps'};
+      return gluePossible(q) ? {...b, told: 'way'} : {...b, told: null, claimed: true};
     }
     return null;
   }
@@ -334,7 +345,8 @@ function glueHint(q, b) {
   }
   // No gluing works: build the longest trip first, then claim with the reason.
   const n = ids(q).length;
-  if (goalTrips(q, b)[0].home === n && cantOpen(q, b)) return {type: 'move', action: {type: 'cant', dots: [...ids(q)]}, text: 'The trip has been to every dot, and it can’t land on a dot twice before it gets home. Press Can’t and tap every dot.'};
+  const t = goalTrips(q, b)[0];
+  if (t.home === n && cantOpen(q, b)) return {type: 'move', action: {type: 'cant', dots: landings(t)}, text: `The trip has landed on every dot, and it can’t land on a dot twice before it gets home. Press Can’t and tap the dots in the order it lands: ${landings(t).join(', ')}.`};
   const need = towards(longestOf(q), b);
   return {type: 'move', action: {type: 'glue', side: need.kind, from: need.from, to: need.to}, text: glueWords(need)};
 }
@@ -477,34 +489,42 @@ function renderGlue(p, a) {
     if (isChosen || hintSides.includes(k)) { const [, p1, p2] = tri; over += `<line class="gl-side-line${isChosen ? ' chosen' : ' hinted'}" x1="${f(p1[0])}" y1="${f(p1[1])}" x2="${f(p2[0])}" y2="${f(p2[1])}"/>`; }
     if (!done && !claiming) top += `<g class="pb-point act gl-side-hit" data-pb-point="side,${s},${side}" data-pb-view="room" role="button" tabindex="0" aria-pressed="${Boolean(isChosen)}" aria-label="${esc(`${s}, ${SIDE_WORDS[side]}, ${partnerWords(b, s, side)}`)}" data-focus="gl-side-${s}-${side}"><path class="pb-hit" d="${pathOf(tri)}"/></g>`;
   }
-  // Can't: every dot is a control; the ones tapped are ringed.
+  // Can't: every dot is a control; the ones tapped are ringed, and a hint
+  // rings the next dot the trip lands on.
+  const next = shown?.type === 'cant' && v.picked.every((s, i) => shown.dots[i] === s) ? shown.dots[v.picked.length] : null;
   if (claiming || (done && b.claimed)) for (const s of list) {
     const [x, y] = roomXY(S, s, Q(q.spot[0]), Q(q.spot[1])), picked = done || v.picked.includes(s);
-    over += `<circle class="gl-ring${picked ? ' picked' : ''}${shown?.type === 'cant' && !picked ? ' hinted' : ''}" cx="${f(x)}" cy="${f(y)}" r=".2"/>`;
+    over += `<circle class="gl-ring${picked ? ' picked' : ''}${claiming && s === next ? ' hinted' : ''}" cx="${f(x)}" cy="${f(y)}" r=".2"/>`;
     if (claiming) top += `<g class="pb-point act gl-dot-hit" data-pb-point="dot,${s}" data-pb-view="room" role="button" tabindex="0" aria-pressed="${picked}" aria-label="${esc(`Dot in ${s}`)}" data-focus="gl-dot-${s}"><circle class="pb-hit" cx="${f(x)}" cy="${f(y)}" r=".3"/></g>`;
   }
   const room = roomBoard(S, {cls: 'gl-room', label: 'Squares', pad: .42, point: () => ({}), under, over, top});
   // Each trip: its start and arrow, beads for the blocks, and the unrolled strip.
   const cards = q.trips.map((g, k) => {
-    const t = trips[k], beads = beadRow(g, t, list, done && b.claimed);
+    // The first trip's beads take the letters of the dots tapped after Can't,
+    // and after a right Can't the letters of the dots the trip landed on.
+    const t = trips[k], letters = k ? null : done && b.claimed ? landings(t) : claiming ? v.picked : null;
+    const beads = beadRow(g, t, letters, done && b.claimed);
     const label = `Trip from ${g.from}, ${dirWords(g.dir)}: ${t.home ? `home after ${t.home} ${t.home === 1 ? 'block' : 'blocks'}` : t.stop === 'wall' ? `stops at a side glued to nothing after ${t.blocks.length} ${t.blocks.length === 1 ? 'block' : 'blocks'}` : t.stop === 'corner' ? 'stops at a corner' : 'not home'}. Goal: home after exactly ${g.blocks}.`;
     return `<div class="gl-trip"><div class="gl-head"><span class="gl-from t${k}">${g.from}</span>${arrowIcon(g.dir, 22)}${beads}</div>${strip(S, p, k, dotOf(q, g.from), g.dir, t, {label, letterAt: letterSpot([g.dir], q.spot)})}<p class="sr-only">${esc(label)}</p></div>`;
   }).join('');
   const open = cantOpen(q, b), hintCant = shown?.type === 'cant' && !claiming;
   const bar = done ? '' : `<div class="gl-bar"><button type="button" class="secondary gl-button gl-cant${hintCant ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="gl-cant" aria-pressed="${claiming}" ${open ? '' : 'disabled'}>Can’t</button></div>`;
-  const told = b.told === 'way' ? 'There is a way.' : '';
+  const told = b.told === 'way' ? 'There is a way.' : b.told === 'taps' ? 'The taps must follow the trip to every dot and home.' : '';
   const status = `${trips.map((t, k) => `${q.trips[k].from}: ${t.home ? `home after ${t.home}` : 'not home'}`).join('. ')}.${told ? ` ${told}` : ''}`;
   return `<div class="gl-puzzle mode-glue${done ? ' solved' : ''}${claiming ? ' claiming' : ''}" data-mechanic-wire="glued">${bar}<div class="gl-stage${q.trips.length > 1 ? ' two' : ''}"><div class="gl-room-view">${room}</div><div class="gl-trips">${cards}</div></div>${told ? `<p class="gl-told">${told}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 // Beads: one per block of the goal, filled as the trip's blocks pass, the
-// last ringed when the trip is home on it; extra blocks are rose. After a
-// right Can't, the first beads each take a square's letter, one dot each,
-// and the beads left over have no dot.
-function beadRow(g, t, list, certificate) {
-  const beads = [], n = list.length;
-  if (certificate) {
-    const order = [...list.filter(s => s !== g.from), g.from];
-    for (let i = 0; i < g.blocks; i++) beads.push(i < n ? `<i class="on lettered${i === n - 1 ? ' home' : ''}">${order[i]}</i>` : '<i class="none"></i>');
+// last ringed when the trip is home on it; extra blocks are rose. While the
+// dots are tapped after Can't, the beads take their letters in the order
+// tapped. After a right Can't they show the trip's landings, home last, and
+// the beads left over have no dot.
+function beadRow(g, t, letters, certificate) {
+  const beads = [];
+  if (letters) {
+    const total = Math.max(g.blocks, letters.length);
+    for (let i = 0; i < total; i++) beads.push(i < letters.length
+      ? `<i class="on lettered${certificate && i === letters.length - 1 ? ' home' : ''}${i >= g.blocks ? ' extra' : ''}">${letters[i]}</i>`
+      : `<i${certificate ? ' class="none"' : ''}></i>`);
   } else {
     const done = t.blocks.length, total = Math.max(g.blocks, done);
     for (let i = 0; i < total; i++) beads.push(`<i class="${[i < done ? 'on' : '', t.home === i + 1 ? 'home' : '', i >= g.blocks ? 'extra' : ''].filter(Boolean).join(' ')}"></i>`);
@@ -609,8 +629,9 @@ function wire(root, p, api) {
         return null;
       }
       if (q.mode === 'glue' && kind === 'dot' && v.claiming) {
-        const [s] = rest, picked = v.picked.includes(s) ? v.picked.filter(x => x !== s) : [...v.picked, s];
-        if ([...picked].sort().join() === [...ids(q)].sort().join()) { v.claiming = false; v.picked = []; return {type: 'cant', dots: picked}; }
+        // Tapping a ringed dot takes it back, with the dots tapped after it.
+        const [s] = rest, at = v.picked.indexOf(s), picked = at >= 0 ? v.picked.slice(0, at) : [...v.picked, s];
+        if (picked.length === ids(q).length) { v.claiming = false; v.picked = []; return {type: 'cant', dots: picked}; }
         api.ui({picked});
         return null;
       }
@@ -628,7 +649,7 @@ function wire(root, p, api) {
 }
 
 // Can't is a view switch (mechanic-ui): it opens the dots, and the claim is
-// the move made when the last dot is tapped.
+// the move made when the last dot is tapped, with the dots in the order tapped.
 export const gluedMechanics = {
   glued: {
     fresh, valid, solved, move, hint, render, wire,

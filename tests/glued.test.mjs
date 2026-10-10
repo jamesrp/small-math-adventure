@@ -1,6 +1,5 @@
-// Glued squares (Week 64): the two board options it added (stable seam marks,
-// an unrolled strip with no spreading), straight trips and block words, the
-// gluings that work and the bound, gluing and Can't with the dots, corner
+// Glued squares (Week 64): straight trips and block words, the gluings that
+// work and the bound, gluing and Can't with the trip's landings, corner
 // groups in the child's own colours and That's all, Undo keeping a refusal,
 // hints, the playground, forged saves and rendering.
 import test from 'node:test';
@@ -8,7 +7,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
 import {playView} from '../dist/ui.js';
-import {surfaceOf, develop, planeBoard, cornerClasses} from '../dist/portal-board.js';
+import {surfaceOf, cornerClasses} from '../dist/portal-board.js';
 import G, {tripOf, dotOf, gluedSurface, goalTrips, solutionsOf, longestOf, fullGluingsOf, cornerCycles, cornerMatches, groupsOf, fixedSurface, allCorners, playS, playStart, GROUP_COLOURS} from '../dist/families/glued/glued.js';
 import {loadPack} from '../scripts/packs.mjs';
 
@@ -25,27 +24,6 @@ const glueAll = (p, a, w) => {
 // Undo as the app does it, with the mechanic's carry.
 const undoCarry = (p, a) => { const next = undo(a); return {...next, board: M.carry(p, a.board, next.board)}; };
 const L = {right: {A: 'B', B: 'A', C: 'C'}, up: {A: 'C', B: 'B', C: 'A'}};
-
-test('board: stable marks keep each glued side’s look while other sides change', () => {
-  const squares = {A: [0, 0], B: [2, 0], C: [0, 2]};
-  const one = surfaceOf({squares, right: {A: 'B', B: null, C: null}, up: {A: null, B: null, C: null}, stableMarks: true});
-  const two = surfaceOf({squares, right: {A: 'B', B: 'C', C: null}, up: {A: 'C', B: null, C: null}, stableMarks: true});
-  const look = (S, s, side) => S.marks.find(m => m.s === s && m.side === side);
-  assert.deepEqual([look(one, 'A', 'right').shape, look(one, 'A', 'right').colour], [look(two, 'A', 'right').shape, look(two, 'A', 'right').colour]);
-  assert.equal(look(two, 'B', 'left').shape, look(two, 'A', 'right').shape, 'partners share a mark');
-  // Without the option the first run takes the first look, as before.
-  const plain = surfaceOf({squares, right: {A: null, B: 'C', C: null}, up: {A: null, B: null, C: null}});
-  assert.equal(plain.marks[0].k, 0);
-});
-
-test('board: spread false places only the anchors (an unrolled strip)', () => {
-  const S = surfaceOf({squares: {A: [0, 0], B: [1, 0], C: [0, 1]}, ...L});
-  const anchors = [{s: 'A', X: 0, Y: 0}, {s: 'B', X: 1, Y: 0}];
-  assert.equal(develop(S, anchors, [-3, -3, 3, 3], {spread: false}).placed.size, 2);
-  assert.ok(develop(S, anchors, [-3, -3, 3, 3]).placed.size > 2, 'spreading is still the default');
-  const svg = planeBoard(S, {anchors, spread: false, show: [[0, 0], [2, 1]], min: 1, margin: 0});
-  assert.equal((svg.match(/class="pb-square/g) || []).length, 2);
-});
 
 test('trips: a block lands on the same spot of some square; walls and corners stop it', () => {
   const p = byId('glued-04'), q = p.parameters;
@@ -92,30 +70,47 @@ test('gluing: a side glued again leaves its old partner; only the puzzle’s sid
   assert.equal(move(p, a, {type: 'glue', side: 'right', from: 'A', to: 'A'}), null, 'nothing moves after a solve');
 });
 
-test('Can’t: only after a gluing, with every dot; a wrong one is refused through Undo', () => {
+test('Can’t: only after a gluing; the trip’s landings in order; refusals', () => {
   const p = byId('glued-07'), dots = ['A', 'B', 'C'];
   let a = freshAttempt(p);
   assert.equal(move(p, a, {type: 'cant', dots}), null, 'not before an attempt');
-  a = play(p, a, {type: 'glue', side: 'right', from: 'A', to: 'B'});
+  // The reviewer's repro: C's top glued to B's bottom stops A's trip at once.
+  a = play(p, a, {type: 'glue', side: 'up', from: 'C', to: 'B'});
   assert.equal(move(p, a, {type: 'cant', dots: ['A', 'B']}), null, 'every dot');
-  const right = play(p, a, {type: 'cant', dots: ['C', 'A', 'B']});
-  assert.ok(isSolved(p, right.board) && right.board.claimed);
-  // After the claim the beads show three dots for four blocks.
+  assert.equal(move(p, a, {type: 'cant', dots: ['A', 'A', 'B']}), null, 'no dot twice');
+  const bare = play(p, a, {type: 'cant', dots: ['C', 'A', 'B']});
+  assert.equal(bare.board.told, 'taps', 'no trip to every dot: refused');
+  assert.equal(isSolved(p, bare.board), false);
+  const refusal = 'The taps must follow the trip to every dot and home.';
+  assert.ok(view(p, bare).includes(refusal));
+  assert.doesNotMatch(view(p, bare), /data-focus="gl-cant"[^>]*disabled/, 'Can’t stays open');
+  // Right sides to themselves, tops A→C→B→A: the trip lands on C, B, A.
+  a = glueAll(p, bare, {right: {A: 'A', B: 'B', C: 'C'}, up: {A: 'C', B: 'A', C: 'B'}});
+  assert.deepEqual(goalTrips(p.parameters, a.board)[0].blocks.map(b => b.s), ['C', 'B', 'A']);
+  const order = play(p, a, {type: 'cant', dots: ['B', 'C', 'A']});
+  assert.equal(order.board.told, 'taps', 'the landings out of order: refused');
+  const right = play(p, order, {type: 'cant', dots: ['C', 'B', 'A']});
+  assert.ok(isSolved(p, right.board) && right.board.claimed && right.board.told === null);
+  // The beads take the trip's landings, home last, then a bead with no dot.
   const html = view(p, right);
-  assert.equal((html.match(/class="on lettered/g) || []).length, 3);
-  assert.match(html, /<i class="on lettered home">A<\/i><i class="none">/, "the start’s dot last, then no dot");
-  assert.equal((html.match(/class="none"/g) || []).length, 1);
+  assert.match(html, /<i class="on lettered">C<\/i><i class="on lettered">B<\/i><i class="on lettered home">A<\/i><i class="none"><\/i>/);
 
+  // A puzzle that can be done gives the same refusal without the longest trip,
+  // and "There is a way." after a whole certificate, kept through Undo.
   const q = byId('glued-04');
-  let b = play(q, freshAttempt(q), {type: 'glue', side: 'up', from: 'A', to: 'B'});
-  const wrong = play(q, b, {type: 'cant', dots: ['A', 'B', 'C']});
+  const qBare = play(q, play(q, freshAttempt(q), {type: 'glue', side: 'up', from: 'A', to: 'B'}), {type: 'cant', dots: ['A', 'B', 'C']});
+  assert.equal(qBare.board.told, 'taps');
+  assert.ok(view(q, qBare).includes(refusal), 'the same words on every puzzle');
+  const r = byId('glued-02');
+  let b = glueAll(r, freshAttempt(r), {right: {A: 'B', B: 'C', C: 'A'}});
+  const wrong = play(r, b, {type: 'cant', dots: ['B', 'C', 'A']});
   assert.equal(wrong.board.told, 'way');
-  assert.match(view(q, wrong), /There is a way\./);
-  assert.match(view(q, wrong), /data-focus="gl-cant"[^>]*disabled/, 'Can’t is shut');
-  const back = undoCarry(q, wrong);
+  assert.match(view(r, wrong), /There is a way\./);
+  assert.match(view(r, wrong), /data-focus="gl-cant"[^>]*disabled/, 'Can’t is shut');
+  const back = undoCarry(r, wrong);
   assert.equal(back.board.told, 'way', 'Undo keeps the refusal');
-  assert.equal(move(q, back, {type: 'cant', dots: ['A', 'B', 'C']}), null);
-  const again = play(q, back, {type: 'glue', side: 'right', from: 'A', to: 'B'});
+  assert.equal(move(r, back, {type: 'cant', dots: ['B', 'C', 'A']}), null);
+  const again = play(r, back, {type: 'glue', side: 'right', from: 'A', to: 'A'});
   assert.equal(again.board.told, null, 'a new gluing lifts it');
 });
 
@@ -128,9 +123,10 @@ test('the Can’t view: the dots become controls, tapped dots are ringed', () =>
   let html = view(p, a);
   assert.equal((html.match(/gl-dot-hit/g) || []).length, 3);
   assert.doesNotMatch(html, /gl-side-hit/, 'sides wait while the dots are open');
-  M.ui(p, {picked: ['B']});
+  M.ui(p, {picked: ['B', 'C']});
   html = view(p, a);
-  assert.equal((html.match(/gl-ring picked/g) || []).length, 1);
+  assert.equal((html.match(/gl-ring picked/g) || []).length, 2);
+  assert.match(html, /<span class="gl-beads" aria-hidden="true"><i class="on lettered">B<\/i><i class="on lettered">C<\/i><i><\/i><i><\/i><\/span>/, 'the beads take the taps in order');
   // A new gluing closes the dots.
   a = play(p, a, {type: 'glue', side: 'up', from: 'B', to: 'C'});
   assert.doesNotMatch(view(p, a), /gl-dot-hit/);
@@ -186,7 +182,10 @@ test('hints: from every puzzle’s start they reach a solve, quickly, and never 
     while (!isSolved(p, a.board)) {
       const t0 = performance.now(), h = nextHint(p, a);
       assert.ok(performance.now() - t0 < 100, `${p.id}: a hint in under 100 ms`);
-      if (h.action.type === 'cant') assert.match(h.text, /twice/, `${p.id}: the reason before Can’t`);
+      if (h.action.type === 'cant') {
+        assert.match(h.text, /twice/, `${p.id}: the reason before Can’t`);
+        assert.deepEqual(h.action.dots, goalTrips(p.parameters, a.board)[0].blocks.map(b => b.s), `${p.id}: the dots in the order the trip lands`);
+      }
       a = play(p, a, h.action);
       assert.ok(++steps < 40, p.id);
     }
@@ -218,7 +217,9 @@ test('forged saves are rejected', () => {
   const c = byId('glued-07'), cb = freshAttempt(c).board;
   assert.equal(validBoard(c, {...cb, told: 'way'}), false, 'no refusal on a puzzle that can’t be done');
   assert.equal(validBoard(c, {...cb, claimed: true}), false, 'no claim without a gluing');
-  assert.equal(validBoard(c, {...cb, right: {...cb.right, A: 'B'}, claimed: true}), true, 'a claim after a gluing');
+  assert.equal(validBoard(c, {...cb, right: {...cb.right, A: 'B'}, claimed: true}), false, 'no claim without the longest trip');
+  assert.equal(validBoard(c, {...cb, right: {A: 'A', B: 'B', C: 'C'}, up: {A: 'C', B: 'A', C: 'B'}, claimed: true}), true, 'a claim on the longest trip');
+  assert.equal(validBoard(c, {...cb, right: {...cb.right, A: 'B'}, told: 'taps'}), true, 'the refusal every puzzle gives');
   const k = byId('glued-03'), kb = freshAttempt(k).board;
   assert.equal(validBoard(k, {...kb, done: true}), false);
   assert.equal(validBoard(k, {...kb, links: [['A:00', 'A:11']]}), false);

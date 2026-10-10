@@ -1,8 +1,9 @@
 // Plays Glued squares through the real interface: taps on sides to glue them
 // (including a tap near where two sides' targets meet), a gluing that solves,
-// Undo, Enter on sides, where focus goes after a move, a wrong Can't with its
-// dots, refused through Undo until a new gluing, a right Can't with the beads'
-// certificate, corners joined by taps (including taps beside a corner shared
+// Undo, Enter on sides, where focus goes after a move, Can't without the
+// longest trip (the refusal every puzzle gives), the trip's landings tapped
+// out of order and then in order, the beads lettered from the trip, "There is
+// a way." kept through Undo until a new gluing, corners joined by taps (including taps beside a corner shared
 // by two squares), a wrong That's all refused through Undo, the rosettes,
 // hints applied to a finish, and the playground's surfaces, arrows and
 // starts; no page overflow. Same environment variables as the other browser
@@ -77,8 +78,8 @@ try {
   await undo();
   assert.deepEqual((await board(P1)).right, {A: 'B', B: null, C: null});
 
-  // Puzzle 4: Enter on sides; a wrong Can't, refused through Undo; hints finish.
-  const P4 = 'glued-04';
+  // Puzzle 4: Enter on sides; Can't without the longest trip; hints finish.
+  const P4 = 'glued-04', refusal = 'The taps must follow the trip to every dot and home.';
   await open(P4); await fit('puzzle 4');
   await side('A', 'up').focus(); await page.keyboard.press('Enter');
   await side('C', 'down').focus(); await page.keyboard.press('Enter');
@@ -91,30 +92,59 @@ try {
   await shot('04-dots');
   for (const s of ['B', 'A']) await tap(dot(s));
   assert.equal((await board(P4)).told, null, 'no claim until every dot');
-  await tap(dot('C'));
-  assert.equal(await told().innerText(), 'There is a way.');
-  assert.ok(await cant().isDisabled(), 'Can’t is shut after a refusal');
+  // A ringed dot taps back off.
+  await tap(dot('A'));
+  assert.equal(await dot('A').getAttribute('aria-pressed'), 'false', 'a ringed dot taps back off');
+  for (const s of ['A', 'C']) await tap(dot(s));
+  assert.equal(await told().innerText(), refusal);
+  assert.ok(!await cant().isDisabled(), 'Can’t stays open after this refusal');
   assert.doesNotMatch((await focused()).text, /Can’t/, 'focus is not on Can’t');
   await shot('04-refused');
+  await glue(['A', 'right'], ['B', 'left']);
+  assert.equal(await told().count(), 0, 'a new gluing clears it');
+  await hintsFinish(); await shot('04-solved');
+
+  // Puzzle 2: the trip lands on every dot, tapped in order, but the puzzle can
+  // be done: "There is a way.", kept through Undo until a new gluing.
+  const P2 = 'glued-02';
+  await open(P2); await fit('puzzle 2');
+  await glue(['A', 'right'], ['B', 'left']); await glue(['B', 'right'], ['C', 'left']); await glue(['C', 'right'], ['A', 'left']);
+  await tap(cant());
+  for (const s of ['B', 'C', 'A']) await tap(dot(s));
+  assert.equal(await told().innerText(), 'There is a way.');
+  assert.ok(await cant().isDisabled(), 'Can’t is shut after "There is a way."');
   await undo();
   assert.equal(await told().innerText(), 'There is a way.', 'Undo keeps the refusal');
   assert.ok(await cant().isDisabled());
-  await glue(['A', 'right'], ['B', 'left']);
+  await glue(['A', 'right'], ['A', 'left']);
   assert.equal(await told().count(), 0, 'a new gluing lifts it');
   assert.ok(!await cant().isDisabled());
-  await hintsFinish(); await shot('04-solved');
 
-  // Puzzle 7: Can't is right; the dots and beads show why.
+  // Puzzle 7: the reviewer's repro is refused; the longest trip's landings,
+  // tapped in order, claim; the beads show them.
   const P7 = 'glued-07';
   await open(P7); await fit('puzzle 7');
   assert.ok(await cant().isDisabled(), 'no Can’t before an attempt');
-  await glue(['A', 'right'], ['B', 'left']);
+  await glue(['C', 'up'], ['B', 'down']);
   await tap(cant());
   for (const s of ['C', 'A', 'B']) await tap(dot(s));
+  assert.equal(await told().innerText(), refusal, 'a trip that stops at once is no certificate');
+  for (const s of ['A', 'B', 'C']) await glue([s, 'right'], [s, 'left']);
+  await glue(['A', 'up'], ['C', 'down']); await glue(['B', 'up'], ['A', 'down']);
+  assert.deepEqual((await board(P7)).up, {A: 'C', B: 'A', C: 'B'});
+  await tap(cant());
+  for (const s of ['B', 'C']) await tap(dot(s));
+  assert.deepEqual(await page.locator('.gl-beads').first().locator('i.lettered').allInnerTexts(), ['B', 'C'], 'the beads take the taps in order');
+  await tap(dot('A'));
+  assert.equal(await told().innerText(), refusal, 'out of order');
+  await tap(cant());
+  for (const s of ['C', 'B', 'A']) await tap(dot(s));
   await done();
   assert.ok((await board(P7)).claimed);
-  assert.equal(await page.locator('.gl-beads i.lettered').count(), 3, 'three dots for the first beads');
-  assert.equal(await page.locator('.gl-beads i.none').count(), 1, 'and a bead with no dot');
+  const beads = page.locator('.gl-beads').first();
+  assert.deepEqual(await beads.locator('i.lettered').allInnerTexts(), ['C', 'B', 'A'], 'the beads read the trip’s landings');
+  assert.equal(await beads.locator('i.home').innerText(), 'A');
+  assert.equal(await beads.locator('i.none').count(), 1, 'and a bead with no dot');
   await shot('07-claimed');
   // From the start again, the hints build the longest trip and then claim.
   await page.locator('[data-action="replay"]').click();
