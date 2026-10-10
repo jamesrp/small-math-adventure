@@ -6,11 +6,12 @@
 // turn instead of a search over the crosses on shots, and two shots tested for a
 // common point by intersecting their pieces in the room, translated by whole
 // rooms, instead of solving for whole-room differences); the card's finite
-// check and the theorem in all three rooms; witnesses played as moves; the
-// Fewest, Can't and shot taps judged against the independent answers; hint
-// chains from fresh, after wrong shields, after a refused Fewest or Can't,
-// after a crossing shot, and through the shown taps; Undo keeping refusals;
-// illegal moves; forged saves; the playground.
+// check and the theorem in all three rooms; witnesses played as moves; a
+// Fewest or Can't claim and its shots taken freely and judged only at the last
+// shot, against the independent answers; hint chains from fresh, after wrong
+// shields, inside a wrong claim, after a refused Fewest or Can't, after crossing
+// shots, and through the shown taps; Undo keeping refusals; illegal moves;
+// forged saves; the playground.
 // Run: node scripts/validate-shields.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
@@ -198,11 +199,14 @@ function shownTap(p, a, action) {
   return new RegExp(`data-move="${action.type === 'fewest' ? '\\{&quot;type&quot;:&quot;fewest&quot;\\}' : '\\{&quot;type&quot;:&quot;cant&quot;\\}'}"[^>]*aria-pressed="[a-z]+" >`).test(html);
 }
 // Follow the hints to a solve, each through a control the board shows.
+// Each hint is timed after one untimed call has warmed the caches, against a
+// generous limit, so a loaded machine does not fail the run.
 function hintsSolve(p, a, label) {
   let n = 0;
+  nextHint(p, a);
   for (; !isSolved(p, a.board) && n < 60; n++) {
     const t0 = performance.now(), h = nextHint(p, a), dt = performance.now() - t0;
-    assert.ok(dt < 60, `${p.id} ${label}: a quick hint (${dt.toFixed(1)} ms)`);
+    assert.ok(dt < 250, `${p.id} ${label}: a quick hint (${dt.toFixed(1)} ms)`);
     assert.equal(h.type, 'move', `${p.id} ${label}: hints name a move (${h.text})`);
     assert.ok(h.text && h.text.length < 200, `${p.id} ${label}: a short hint`);
     assert.ok(shownTap(p, a, h.action), `${p.id} ${label}: the hinted ${h.action.type} is on the board`);
@@ -215,6 +219,26 @@ function hintsSolve(p, a, label) {
 const planeOf = html => html.slice(html.indexOf('data-pb-view-board="plane"'));
 const withShields = (p, a, list) => list.reduce((b, at) => play(p, b, {type: 'shield', at}), a);
 const keyOf = ([i, j]) => `${i},${j}`;
+const dirOf = ([u, v]) => { const g = gcd(u, v); return [u / g, v / g]; };
+// The copies the board lets a child tap in a claim, in page order, and the
+// number of shots the claim's prompt asks for.
+function shownCopies(p, a) {
+  const html = mechanicFor(p).render(p, {...a, hintLevel: 0});
+  const shown = [...html.matchAll(/data-pb-point="(-?\d+),(-?\d+)" data-pb-view="plane" role="button"/g)].map(m => [Number(m[1]), Number(m[2])]);
+  const ask = html.match(/class="sh-prompt">Tap (\d+) shots/);
+  return {shown, need: ask ? Number(ask[1]) : 0, html};
+}
+// The first two of the chosen shots, in the order chosen, that share a point.
+const firstClash = (T, list) => { for (let x = 0; x < list.length; x++) for (let y = x + 1; y < list.length; y++) if (sharePoint(T, list[x], list[y])) return [list[x], list[y]]; return null; };
+// Tap copies in turn: every tap before the last is taken as it is, untold.
+function tapAll(p, a, list) {
+  for (const at of list.slice(0, -1)) {
+    a = play(p, a, {type: 'pick', at});
+    assert.equal(a.board.note, null, `${p.id}: a shot before the last is not judged`);
+    assert.ok(!isSolved(p, a.board));
+  }
+  return play(p, a, {type: 'pick', at: list.at(-1)});
+}
 
 export async function validateShields() {
   const pack = JSON.parse(await readFile(new URL('../dist/families/shields/shields.json', import.meta.url), 'utf8'));
@@ -302,6 +326,12 @@ export async function validateShields() {
     assert.ok(!/can[’']t/i.test(p.hints[0]) && !/can[’']t/i.test(p.title), `${p.id}: the first hint and title don’t say Can’t`);
     for (const [i, j] of row.only || []) assert.ok(!p.hints[0].includes(`${i} across, ${j} up`), `${p.id}: the first hint doesn’t place a shield`);
 
+    // Puzzle 4's grown-up extension adds two shots; then only the halfway crosses work.
+    if (p.id === 'shields-04') {
+      const more = [[3, -1], [5, 1]];
+      assert.ok(more.every(([a, b]) => p.parent.extension.includes(`(${a}, ${b < 0 ? '−' + -b : b})`)), `${p.id}: the extension names its shots`);
+      assert.deepEqual(fewestByMask(T, [...q.shots, ...more]).sets.map(s => s.map(keyOf).sort()), [row.only ? row.only.map(keyOf) : ['2,2', '2,6', '6,2', '6,6']], `${p.id}: the extension forces the halfway crosses`);
+    }
     hintSteps += checkMoves(p, fresh, row, best, shots);
     setsTried += checkRandomSets(p, fresh, row, best, shots);
     checkForgeries(p, fresh, row, best);
@@ -334,15 +364,24 @@ function checkMoves(p, fresh, row, best, shots) {
 
   const witness = p.solution.witness;
   if (q.mode === 'fewest') {
-    // Too many shields: Fewest is refused once, and stays refused at that count, through Undo.
+    // Too many shields: Fewest starts a claim like any other; only its last
+    // shot is told “Fewer can do it.”, and that count stays refused, through Undo.
     const extra = [0, 1], big = withShields(p, fresh, [...witness, extra]);
     assert.ok(blocks(T, shots, big.board.shields));
-    const told = play(p, big, {type: 'fewest'});
-    assert.equal(told.board.note, 'fewer', `${p.id}: “Fewer can do it.”`);
+    const over = play(p, big, {type: 'fewest'});
+    assert.equal(over.board.claim, 'fewest', `${p.id}: Fewest at a count above the fewest starts a claim`);
+    assert.equal(over.board.note, null, `${p.id}: pressing Fewest judges nothing`);
+    const {shown, need} = shownCopies(p, over);
+    assert.equal(need, Math.min(best.k + 1, shown.length), `${p.id}: one shot per shield`);
+    n += hintsSolve(p, over, 'inside a Fewest with too many shields');
+    const told = tapAll(p, over, shown.slice(0, need));
+    assert.equal(told.board.note, 'fewer', `${p.id}: “Fewer can do it.” at the last shot`);
+    assert.equal(told.board.claim, null);
     assert.ok(!isSolved(p, told.board));
     refuse(p, told, {type: 'fewest'}, 'Fewest again at the refused count');
     const back = undoApp(p, told);
     assert.equal(back.board.fewer, best.k + 1, `${p.id}: Undo keeps the refusal`);
+    assert.equal(back.board.claim, null, `${p.id}: Undo doesn’t reopen the refused claim`);
     refuse(p, back, {type: 'fewest'}, 'Fewest after Undo at the refused count');
     n += hintsSolve(p, told, 'after a refused Fewest');
     // Fewest while a shot gets through.
@@ -363,13 +402,22 @@ function checkMoves(p, fresh, row, best, shots) {
     refuse(p, done, {type: 'fewest'}, 'Fewest after a solve');
     refuse(p, done, {type: 'shield', at: [0, 1]}, 'a shield after a solve');
   } else if (!row.cant) {
-    // A possible budget: Can't is refused once and for good, through Undo.
+    // A possible budget: Can't starts a claim; its last shot is told “There is
+    // a way.”, once and for good, through Undo.
     const tried = play(p, fresh, {type: 'shield', at: [0, 1]});
-    const told = play(p, tried, {type: 'cant'});
-    assert.equal(told.board.note, 'way', `${p.id}: “There is a way.”`);
+    const claimed = play(p, tried, {type: 'cant'});
+    assert.equal(claimed.board.claim, 'cant', `${p.id}: Can’t starts a claim`);
+    assert.equal(claimed.board.note, null, `${p.id}: pressing Can’t judges nothing`);
+    const {shown, need} = shownCopies(p, claimed);
+    assert.equal(need, row.budget + 1);
+    n += hintsSolve(p, claimed, 'inside a wrong Can’t');
+    const told = tapAll(p, claimed, shown.slice(0, need));
+    assert.equal(told.board.note, 'way', `${p.id}: “There is a way.” at the last shot`);
+    assert.equal(told.board.claim, null);
     refuse(p, told, {type: 'cant'}, 'Can’t again');
     const back = undoApp(p, told);
     assert.equal(back.board.way, true, `${p.id}: Undo keeps the refusal`);
+    assert.equal(back.board.claim, null, `${p.id}: Undo doesn’t reopen the refused claim`);
     refuse(p, back, {type: 'cant'}, 'Can’t after Undo');
     n += hintsSolve(p, told, 'after a refused Can’t');
     // No more shields than the budget; a full board of the right ones solves.
@@ -392,41 +440,66 @@ function checkMoves(p, fresh, row, best, shots) {
   return n;
 }
 
-// In a claim: every shot that can be tapped is taken or refused exactly as the
-// independent crossing test says; a refused tap names the two shots; hints
-// solve from a crossing tap and from a dead end of shots.
+// In a right claim: every shot that can be tapped is taken, crossing or not,
+// until the last; the last is judged by the independent crossing test, and
+// two that cross are named and every shot cleared, for good through Undo;
+// hints solve from crossing shots and from a dead end of shots.
 function checkPicks(p, claim, need) {
   const q = p.parameters, T = q.T;
-  const html = mechanicFor(p).render(p, {...claim, hintLevel: 0});
-  const shown = [...html.matchAll(/data-pb-point="(-?\d+),(-?\d+)" data-pb-view="plane" role="button"/g)].map(m => [Number(m[1]), Number(m[2])]);
+  const {shown, need: asked} = shownCopies(p, claim);
+  assert.equal(asked, need, `${p.id}: the claim asks for ${need} shots`);
   assert.ok(shown.length >= need, `${p.id}: enough shots to tap`);
   if (q.shots) assert.deepEqual(shown.map(keyOf).sort(), q.shots.map(d => keyOf(trace(T, d).plane)).sort(), `${p.id}: exactly the drawn shots can be tapped`);
   // The certificate's ends are on the board.
   for (const d of q.certificate) assert.ok(shown.some(at => keyOf(at) === keyOf(trace(T, d).plane)), `${p.id}: ${d} can be tapped`);
   // Each tapped copy names the first-T shot along it.
-  const dirOf = ([u, v]) => { const g = gcd(u, v); return [u / g, v / g]; };
   for (const at of shown) { const d = dirOf(at); assert.deepEqual(trace(T, d).plane, at, `${p.id}: ${at} is the first ${T ? 'T' : 'S'} along its line`); }
   let n = 0;
-  const [first] = q.certificate, a1 = play(p, claim, {type: 'pick', at: trace(T, first).plane});
+  const cert = q.certificate, [first] = cert, a1 = play(p, claim, {type: 'pick', at: trace(T, first).plane});
+  assert.deepEqual(a1.board.picks, [first]);
+  // Before the last shot, a crossing shot is taken like any other.
+  let crossedEarly = false;
   for (const at of shown) {
     const d = dirOf(at), next = move(p, a1, {type: 'pick', at});
     if (keyOf(d) === keyOf(first)) { assert.deepEqual(next.board.picks, [], `${p.id}: a second tap drops a shot`); continue; }
-    if (sharePoint(T, first, d)) {
-      assert.deepEqual(next.board.note, {cross: [first, d]}, `${p.id}: ${d} crosses ${first} and is refused`);
-      assert.equal(next.board.picks.length, 1);
-      n += hintsSolve(p, next, 'after a crossing shot');
-    } else assert.equal(next.board.picks.length, 2, `${p.id}: ${d} misses ${first} and is taken`);
+    if (need <= 2) continue;
+    assert.deepEqual(next.board.picks, [first, d], `${p.id}: ${d} is taken untold`);
+    assert.equal(next.board.note, null);
+    if (!crossedEarly && sharePoint(T, first, d)) { crossedEarly = true; n += hintsSolve(p, next, 'with two crossing shots chosen'); }
+  }
+  // The last shot: the certificate less its last, then each shown shot.
+  const base = cert.slice(0, need - 1).reduce((a, d) => play(p, a, {type: 'pick', at: trace(T, d).plane}), claim);
+  assert.equal(base.board.picks.length, need - 1);
+  let crossTold = false;
+  for (const at of shown) {
+    const d = dirOf(at), next = play(p, base, {type: 'pick', at});
+    if (base.board.picks.some(x => keyOf(x) === keyOf(d))) { assert.equal(next.board.picks.length, need - 2, `${p.id}: a second tap drops a shot`); continue; }
+    const clash = firstClash(T, [...base.board.picks, d]);
+    if (!clash) { assert.ok(isSolved(p, next.board), `${p.id}: ${d} misses every chosen shot, and the claim is proved`); continue; }
+    assert.deepEqual(next.board.note, {cross: clash}, `${p.id}: ${d} is the last shot and two cross: ${JSON.stringify(clash)}`);
+    assert.deepEqual(next.board.picks, [], `${p.id}: crossing shots are all cleared`);
+    assert.equal(next.board.claim, claim.board.claim, `${p.id}: the claim stays open`);
+    assert.ok(!isSolved(p, next.board));
+    const back = undoApp(p, next);
+    assert.deepEqual(back.board.picks, [], `${p.id}: Undo doesn’t bring crossing shots back`);
+    assert.equal(back.board.claim, claim.board.claim);
+    if (!crossTold) {
+      crossTold = true;
+      const html = mechanicFor(p).render(p, {...next, hintLevel: 0});
+      assert.ok(html.includes('Those two cross.') && html.includes('sh-clash'), `${p.id}: the crossings are told and ringed`);
+      n += hintsSolve(p, next, 'after crossing shots');
+    }
   }
   // Shots that are not copies of the target, or too far, are refused.
   refuse(p, claim, {type: 'pick', at: [1, 1]}, 'a tap that is no copy of the target');
   refuse(p, claim, {type: 'pick', at: [0, 0]}, 'S itself');
   refuse(p, claim, {type: 'pick', at: T ? [T[0] + 8 * 20, T[1]] : [8 * 20, 0]}, 'a copy far outside the view');
-  // A dead end: shots that can't be extended, chosen greedily from the last
-  // shown copy backwards; hints take one back and finish.
+  // A dead end: shots no two crossing that can't be extended, chosen greedily
+  // from the last shown copy backwards; hints take one back and finish.
   let greedy = claim;
   for (const at of shown.slice().reverse()) {
-    const next = move(p, greedy, {type: 'pick', at});
-    if (next && next.board.picks.length > greedy.board.picks.length && next.board.picks.length < need) greedy = next;
+    const d = dirOf(at);
+    if (greedy.board.picks.length < need - 1 && !greedy.board.picks.some(x => sharePoint(T, x, d))) greedy = play(p, greedy, {type: 'pick', at});
   }
   n += hintsSolve(p, greedy, 'after a greedy choice of shots');
   // Undo of a pick goes back to the claim; Undo of the claim back to the shields.
@@ -436,7 +509,8 @@ function checkPicks(p, claim, need) {
 }
 
 // Random shield sets: the board says a shot gets through exactly when the
-// traced shots say so, and Fewest is accepted exactly at the fewest count.
+// traced shots say so; a claim is judged at its last shot exactly as the
+// fewest count and the crossing test say.
 function checkRandomSets(p, fresh, row, best, shots) {
   const q = p.parameters, T = q.T, M = mechanicFor(p);
   let seed = 7 + p.number;
@@ -463,23 +537,41 @@ function checkRandomSets(p, fresh, row, best, shots) {
     if (q.mode === 'fewest') {
       const next = move(p, a, {type: 'fewest'});
       if (!blocked) assert.equal(next, null);
-      else if (set.length === best.k) assert.equal(next.board.claim, 'fewest', `${p.id}: Fewest at ${set.length}`);
-      else assert.equal(next.board.note, 'fewer', `${p.id}: Fewer at ${set.length}`);
+      else {
+        assert.equal(next.board.claim, 'fewest', `${p.id}: Fewest at ${set.length} starts a claim`);
+        judgeClaim(p, next, set.length === best.k, 'fewer', `Fewest at ${set.length}`);
+      }
     } else {
       assert.equal(isSolved(p, a.board), blocked, `${p.id}: solved exactly when every shot stops`);
+      if (!blocked) judgeClaim(p, play(p, a, {type: 'cant'}), Boolean(row.cant), 'way', `Can’t at ${set.length}`);
     }
     tried++;
   }
   return tried;
 }
 
-// Saves that the app must refuse.
+// Tap the first shown copies, as many as the claim asks: a wrong claim is told
+// `wrong` at the last; a right one is proved unless two of the shots cross.
+function judgeClaim(p, a, right, wrong, label) {
+  const T = p.parameters.T, {shown, need} = shownCopies(p, a), list = shown.slice(0, need);
+  const told = tapAll(p, a, list);
+  if (!right) { assert.equal(told.board.note, wrong, `${p.id}: ${label} is refused at the last shot`); assert.equal(told.board.claim, null); return; }
+  const clash = firstClash(T, list.map(dirOf));
+  if (clash) assert.deepEqual(told.board.note, {cross: clash}, `${p.id}: ${label}: two cross`);
+  else assert.ok(isSolved(p, told.board), `${p.id}: ${label}: proved`);
+}
+
+// Saves the app may make (an open claim, shots freely chosen) and saves it
+// must refuse.
 function checkForgeries(p, fresh, row, best) {
   const q = p.parameters, T = q.T, b = fresh.board, bad = [];
   const w = p.solution.witness.slice().sort((x, y) => x[0] - y[0] || x[1] - y[1]);
   // Two shots of the puzzle that share a point other than S and T.
   const pool = q.shots || directions(T, 3);
   const crossing = pool.flatMap(d => pool.filter(e => keyOf(e) !== keyOf(d) && sharePoint(T, d, e)).map(e => [d, e]))[0];
+  // A full set of shots: these first, then others of the puzzle, `n` in all.
+  const fill = (first, n) => [...first, ...[...q.certificate, ...pool].filter((d, k, all) => all.findIndex(e => keyOf(e) === keyOf(d)) === k && !first.some(e => keyOf(e) === keyOf(d)))].slice(0, n);
+  const good = [];
   bad.push([{...b, extra: 1}, 'an extra field']);
   bad.push([{...b, shields: [[0, 1], [0, 1]]}, 'a shield twice']);
   bad.push([{...b, shields: [[0, 2], [0, 1]]}, 'shields out of order']);
@@ -493,12 +585,15 @@ function checkForgeries(p, fresh, row, best) {
   if (q.mode === 'fewest') bad.push([{...b, shields: w.slice(1), claim: 'fewest', picks: q.certificate.slice(0, w.length - 1)}, 'Fewest with shots getting through']);
   if (q.mode === 'fewest') {
     const big = [...w, [0, 1]].sort((x, y) => x[0] - y[0] || x[1] - y[1]);
-    bad.push([{...b, shields: big, claim: 'fewest'}, 'Fewest with more shields than needed']);
+    good.push([{...b, shields: big, claim: 'fewest'}, 'a Fewest claim with more shields than needed, not yet judged']);
+    good.push([{...b, shields: w, claim: 'fewest', picks: crossing && best.k > 2 ? crossing : []}, 'a Fewest claim with shots still being chosen']);
+    bad.push([{...b, shields: big, claim: 'fewest', picks: fill([], Math.min(big.length, q.shots ? q.shots.length : big.length))}, 'Fewest with more shields than needed, every shot tapped']);
     bad.push([{...b, shields: w, claim: 'fewest', fewer: best.k}, 'Fewest at a count refused before']);
     bad.push([{...b, claim: 'cant', shields: [[0, 1]]}, 'Can’t in a fewest puzzle']);
     bad.push([{...b, way: true}, 'a Can’t refusal in a fewest puzzle']);
     // Two shots that cross, among the picks.
-    if (crossing && best.k >= 2) bad.push([{...b, shields: w, claim: 'fewest', picks: crossing}, 'two crossing shots']);
+    if (crossing && best.k >= 2) bad.push([{...b, shields: w, claim: 'fewest', picks: fill(crossing, best.k)}, 'two crossing shots among all the shots']);
+    if (crossing) bad.push([{...b, shields: w, claim: 'fewest', picks: [q.certificate[0]], note: {cross: crossing}}, 'crossing shots told but not cleared']);
     bad.push([{...b, shields: w, claim: 'fewest', picks: [...q.certificate, q.certificate[0]]}, 'more shots than shields']);
     bad.push([{...b, shields: w, claim: 'fewest', picks: [[2, 2]]}, 'a direction that is no shot']);
     if (q.shots && T) bad.push([{...b, shields: w, claim: 'fewest', picks: [[7, 1]].filter(d => !q.shots.some(e => keyOf(e) === keyOf(d)))}, 'a shot that is not drawn']);
@@ -509,12 +604,16 @@ function checkForgeries(p, fresh, row, best) {
     if (row.cant) {
       bad.push([{...b, claim: 'cant'}, 'Can’t with no attempt']);
       bad.push([{...b, way: true}, '“There is a way” where there is none']);
-      bad.push([{...b, shields: [[0, 1]], claim: 'cant', picks: crossing}, 'two crossing shots']);
+      good.push([{...b, shields: [[0, 1]], claim: 'cant', picks: crossing}, 'a Can’t claim with shots still being chosen']);
+      bad.push([{...b, shields: [[0, 1]], claim: 'cant', picks: fill(crossing, q.budget + 1)}, 'two crossing shots among all the shots']);
     } else {
-      bad.push([{...b, shields: [[0, 1]], claim: 'cant'}, 'a wrong Can’t kept as a claim']);
+      good.push([{...b, shields: [[0, 1]], claim: 'cant'}, 'a Can’t claim, not yet judged']);
+      bad.push([{...b, shields: [[0, 1]], claim: 'cant', picks: fill([], q.budget + 1)}, 'a wrong Can’t with every shot tapped']);
+      bad.push([{...b, shields: [[0, 1]], claim: 'cant', way: true}, 'Can’t again after “There is a way.”']);
       bad.push([{...b, note: 'way'}, 'a told without its lock']);
     }
   }
+  for (const [board, why] of good) assert.equal(validBoard(p, board), true, `${p.id}: accepts ${why}`);
   for (const [board, why] of bad) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
 }
 

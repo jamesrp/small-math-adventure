@@ -103,7 +103,7 @@
    "idea": "Aiming at a far copy of T shows the first T the shot reaches, and how one shield in the room appears in every copy.",
    "prerequisites": "None. A grown-up or a partner can choose the copies to aim at.",
    "hints": [
-    "Aim at a T two copies up and two copies right. Where does the shot stop?",
+    "Aim at the T one copy right and one up. Where does the shot stop?",
     "Put a shield on a shot in the room. Where else does it stop shots?",
     "In the room without T, aim at the S one copy right."
    ],
@@ -181,7 +181,7 @@
    "objective": "Stop every drawn shot from S with as few shields as you can, then press Fewest and tap that many shots that cross only at S and T.",
    "visibleObjective": "Stop every shot with as few shields as you can.",
    "instruction": "Stop every drawn shot from S with as few shields as you can, then press Fewest and tap that many shots that cross only at S and T.",
-   "controls": "Tap a cross in the room to put a shield there, and tap it again to take it off. After pressing Fewest or Can’t, tap the end of a shot (a T, or an S in a room without T) in the unrolled view to choose it, and tap it again to drop it. Tab with Enter or Space works too. Undo takes back a move.",
+   "controls": "Tap a cross in the room to put a shield there, and tap it again to take it off. After pressing Fewest or Can’t, tap the end of a shot (a T, or an S in a room without T) in the unrolled view to choose it, and tap it again to drop it; the claim is checked when the last one is tapped. Tab with Enter or Space works too. Undo takes back a move.",
    "rules": [
     "The room’s right edge is glued to its left edge, and its top to its bottom. All four corners are the same S.",
     "A shot goes straight from S. At an edge it comes back in through the matching edge, at the same height or the same place along, and keeps its direction.",
@@ -189,7 +189,7 @@
     "A shot stops at the first T it reaches.",
     "A shield sits on one cross of the room, never on S or T. It stops a shot only if the shot passes exactly through that cross, and it is on that cross in every copy.",
     "Only the shots drawn count.",
-    "When no shot gets through, press Fewest. Then tap the ends of as many shots as you have shields, in the unrolled view, no two crossing except at S and T: one shield could never stop two of them. Press Fewest again to go back to the shields."
+    "When no shot gets through, press Fewest and tap the ends of as many shots as you have shields, in the unrolled view, no two crossing except at S and T: one shield could never stop two of them. The claim is checked when the last shot is tapped. Press Fewest again to go back to the shields."
    ],
    "idea": "Two shots that cross can share one shield; two that cross only at S and T can’t.",
    "prerequisites": "Follow a straight line across an edge of the room and back in at the other side. Counting to four; no reading beyond the one-line goal.",
@@ -308,7 +308,7 @@
    "objective": "Stop every drawn shot from S with as few shields as you can, then press Fewest and tap that many shots that cross only at S and T.",
    "visibleObjective": "Stop every shot with as few shields as you can.",
    "instruction": "Stop every drawn shot from S with as few shields as you can, then press Fewest and tap that many shots that cross only at S and T.",
-   "controls": "Tap a cross in the room to put a shield there, and tap it again to take it off. After pressing Fewest or Can’t, tap the end of a shot (a T, or an S in a room without T) in the unrolled view to choose it, and tap it again to drop it. Tab with Enter or Space works too. Undo takes back a move.",
+   "controls": "Tap a cross in the room to put a shield there, and tap it again to take it off. After pressing Fewest or Can’t, tap the end of a shot (a T, or an S in a room without T) in the unrolled view to choose it, and tap it again to drop it; the claim is checked when the last one is tapped. Tab with Enter or Space works too. Undo takes back a move.",
    "rules": [
     "The room’s right edge is glued to its left edge, and its top to its bottom. All four corners are the same S.",
     "A shot goes straight from S. At an edge it comes back in through the matching edge, at the same height or the same place along, and keeps its direction.",
@@ -316,7 +316,7 @@
     "A shot stops at the first T it reaches.",
     "A shield sits on one cross of the room, never on S or T. It stops a shot only if the shot passes exactly through that cross, and it is on that cross in every copy.",
     "Only the shots drawn count.",
-    "When no shot gets through, press Fewest. Then tap the ends of as many shots as you have shields, in the unrolled view, no two crossing except at S and T: one shield could never stop two of them. Press Fewest again to go back to the shields."
+    "When no shot gets through, press Fewest and tap the ends of as many shots as you have shields, in the unrolled view, no two crossing except at S and T: one shield could never stop two of them. The claim is checked when the last shot is tapped. Press Fewest again to go back to the shields."
    ],
    "idea": "The four shots from the corners to the centre cross only at S and T, so each needs its own shield.",
    "prerequisites": "Follow a straight line across an edge of the room and back in at the other side. Counting to four; no reading beyond the one-line goal.",
@@ -443,7 +443,7 @@
    "objective": "Stop every drawn shot from S with as few shields as you can, then press Fewest and tap that many shots that cross only at S and T.",
    "visibleObjective": "Stop every shot with as few shields as you can.",
    "instruction": "Stop every drawn shot from S with as few shields as you can, then press Fewest and tap that many shots that cross only at S and T.",
-   "controls": "Tap a cross in the room to put a shield there, and tap it again to take it off. After pressing Fewest or Can’t, tap the end of a shot (a T, or an S in a room without T) in the unrolled view to choose it, and tap it again to drop it. Tab with Enter or Space works too. Undo takes back a move.",
+   "controls": "Tap a cross in the room to put a shield there, and tap it again to take it off. After pressing Fewest or Can’t, tap the end of a shot (a T, or an S in a room without T) in the unrolled view to choose it, and tap it again to drop it; the claim is checked when the last one is tapped. Tab with Enter or Space works too. Undo takes back a move.",
    "rules": [
     "The room’s right edge is glued to its left edge, and its top to its bottom. All four corners are the same S.",
     "A shot goes straight from S. At an edge it comes back in through the matching edge, at the same height or the same place along, and keeps its direction.",
@@ -451,7 +451,7 @@
     "A shot stops at the first T it reaches.",
     "A shield sits on one cross of the room, never on S or T. It stops a shot only if the shot passes exactly through that cross, and it is on that cross in every copy.",
     "Only the shots drawn count.",
-    "When no shot gets through, press Fewest. Then tap the ends of as many shots as you have shields, in the unrolled view, no two crossing except at S and T: one shield could never stop two of them. Press Fewest again to go back to the shields."
+    "When no shot gets through, press Fewest and tap the ends of as many shots as you have shields, in the unrolled view, no two crossing except at S and T: one shield could never stop two of them. The claim is checked when the last shot is tapped. Press Fewest again to go back to the shields."
    ],
    "idea": "Shots that cross the room’s edges can meet away from S and T, so fewer shields than shots can do.",
    "prerequisites": "Follow a straight line across an edge of the room and back in at the other side. Counting to four; no reading beyond the one-line goal.",
@@ -578,7 +578,7 @@
    "objective": "Stop every drawn shot from S with as few shields as you can, then press Fewest and tap that many shots that cross only at S and T.",
    "visibleObjective": "Stop every shot with as few shields as you can.",
    "instruction": "Stop every drawn shot from S with as few shields as you can, then press Fewest and tap that many shots that cross only at S and T.",
-   "controls": "Tap a cross in the room to put a shield there, and tap it again to take it off. After pressing Fewest or Can’t, tap the end of a shot (a T, or an S in a room without T) in the unrolled view to choose it, and tap it again to drop it. Tab with Enter or Space works too. Undo takes back a move.",
+   "controls": "Tap a cross in the room to put a shield there, and tap it again to take it off. After pressing Fewest or Can’t, tap the end of a shot (a T, or an S in a room without T) in the unrolled view to choose it, and tap it again to drop it; the claim is checked when the last one is tapped. Tab with Enter or Space works too. Undo takes back a move.",
    "rules": [
     "The room’s right edge is glued to its left edge, and its top to its bottom. All four corners are the same S.",
     "A shot goes straight from S. At an edge it comes back in through the matching edge, at the same height or the same place along, and keeps its direction.",
@@ -586,7 +586,7 @@
     "A shot stops at the first T it reaches.",
     "A shield sits on one cross of the room, never on S or T. It stops a shot only if the shot passes exactly through that cross, and it is on that cross in every copy.",
     "Only the shots drawn count.",
-    "When no shot gets through, press Fewest. Then tap the ends of as many shots as you have shields, in the unrolled view, no two crossing except at S and T: one shield could never stop two of them. Press Fewest again to go back to the shields."
+    "When no shot gets through, press Fewest and tap the ends of as many shots as you have shields, in the unrolled view, no two crossing except at S and T: one shield could never stop two of them. The claim is checked when the last shot is tapped. Press Fewest again to go back to the shields."
    ],
    "idea": "Four shields are still enough, but now the two steep shots decide where two of them go.",
    "prerequisites": "Follow a straight line across an edge of the room and back in at the other side. Counting to four; no reading beyond the one-line goal.",
@@ -599,7 +599,7 @@
     "notice": "Whether your child keeps four shields and moves them along the corner shots, rather than adding a fifth.",
     "prompt": "Where does the steep shot cross a corner shot?",
     "explanation": "The four corner shots still need four shields, one on each. The steep shot towards the T one copy up meets the corner shots only at (2, 6), halfway along the corner shot down and to the right, and the other steep shot only at (6, 2). So those two shields are forced, and the other two can go anywhere on their shots: nine arrangements. Pressing Fewest and tapping the four corner shots shows four are needed.",
-    "extension": "Add the steep shots down and to the left as well. Are the four halfway crosses forced now? (Yes, on the whole map; see puzzle 6.)",
+    "extension": "Add the shots to the T one copy right and one down, and two copies right, along (3, −1) and (5, 1) (the review card’s (6, −2) and (10, 2)). Are all four shields forced now? (Yes: the four halfway crosses are the only four that work.)",
     "connection": "The review card found that a few more shots force the four halfway points, the arrangement that stops every shot.",
     "sourceIds": [
      "shields-week70",
@@ -717,7 +717,7 @@
    "objective": "Stop every drawn shot from S with as few shields as you can, then press Fewest and tap that many shots that cross only at S and T.",
    "visibleObjective": "Stop every shot with as few shields as you can.",
    "instruction": "Stop every drawn shot from S with as few shields as you can, then press Fewest and tap that many shots that cross only at S and T.",
-   "controls": "Tap a cross in the room to put a shield there, and tap it again to take it off. After pressing Fewest or Can’t, tap the end of a shot (a T, or an S in a room without T) in the unrolled view to choose it, and tap it again to drop it. Tab with Enter or Space works too. Undo takes back a move.",
+   "controls": "Tap a cross in the room to put a shield there, and tap it again to take it off. After pressing Fewest or Can’t, tap the end of a shot (a T, or an S in a room without T) in the unrolled view to choose it, and tap it again to drop it; the claim is checked when the last one is tapped. Tab with Enter or Space works too. Undo takes back a move.",
    "rules": [
     "The room’s right edge is glued to its left edge, and its top to its bottom. All four corners are the same S.",
     "A shot goes straight from S. At an edge it comes back in through the matching edge, at the same height or the same place along, and keeps its direction.",
@@ -725,7 +725,7 @@
     "A shot stops at the first T it reaches.",
     "A shield sits on one cross of the room, never on S or T. It stops a shot only if the shot passes exactly through that cross, and it is on that cross in every copy.",
     "Only the shots drawn count.",
-    "When no shot gets through, press Fewest. Then tap the ends of as many shots as you have shields, in the unrolled view, no two crossing except at S and T: one shield could never stop two of them. Press Fewest again to go back to the shields."
+    "When no shot gets through, press Fewest and tap the ends of as many shots as you have shields, in the unrolled view, no two crossing except at S and T: one shield could never stop two of them. The claim is checked when the last shot is tapped. Press Fewest again to go back to the shields."
    ],
    "idea": "A long shot crosses the room’s edges three times; still only its crosses matter.",
    "prerequisites": "Follow a straight line across an edge of the room and back in at the other side. Counting to four; no reading beyond the one-line goal.",
@@ -736,9 +736,9 @@
    ],
    "parent": {
     "notice": "Whether your child follows the long shot through three edges without losing it, and uses the unrolled view to check.",
-    "prompt": "The worksheet aimed one shot at the T two copies up and right. Where did it stop?",
+    "prompt": "The worksheet aimed one shot at the T one copy up and one copy right. Where did it stop?",
     "explanation": "These are Problem 2’s four aimed shots. The one aimed at (6, 6) on the worksheet stops at the first T it reaches, the one in the shaded copy, so it is the corner shot. The long shot crosses right, top, right before its T and passes (5, 3), (2, 6) and (7, 1). The steep shots share (1, 3) and (3, 1); none of the corner shot’s crosses is on another shot, and none of the long shot’s is on the corner shot. Three shields are enough in 21 ways, and the corner shot, the long shot and the shot one copy right cross only at S and T, so three are needed.",
-    "extension": "Aim a shot at the T three copies right and two up in the playground. Where does it stop?",
+    "extension": "In the playground, aim at the T two copies left and two down. Where does it stop? (At the T one copy left and one down, the first T on its line.)",
     "connection": "A shot stops at its first target: the line to (2 + 4m, 2 + 4n) on the worksheet first reaches T at (2u, 2v) with u, v odd.",
     "sourceIds": [
      "shields-week70",
@@ -835,7 +835,7 @@
    "objective": "Stop every shot from S to T with 4 shields, or press Can’t and tap 5 shots that cross only at S and T.",
    "visibleObjective": "Stop every shot with 4 shields.",
    "instruction": "Stop every shot from S to T with 4 shields, or press Can’t and tap 5 shots that cross only at S and T.",
-   "controls": "Tap a cross in the room to put a shield there, and tap it again to take it off. After pressing Fewest or Can’t, tap the end of a shot (a T, or an S in a room without T) in the unrolled view to choose it, and tap it again to drop it. Tab with Enter or Space works too. Undo takes back a move.",
+   "controls": "Tap a cross in the room to put a shield there, and tap it again to take it off. After pressing Fewest or Can’t, tap the end of a shot (a T, or an S in a room without T) in the unrolled view to choose it, and tap it again to drop it; the claim is checked when the last one is tapped. Tab with Enter or Space works too. Undo takes back a move.",
    "rules": [
     "The room’s right edge is glued to its left edge, and its top to its bottom. All four corners are the same S.",
     "A shot goes straight from S. At an edge it comes back in through the matching edge, at the same height or the same place along, and keeps its direction.",
@@ -843,7 +843,7 @@
     "A shot stops at the first T it reaches.",
     "A shield sits on one cross of the room, never on S or T. It stops a shot only if the shot passes exactly through that cross, and it is on that cross in every copy.",
     "Every straight shot counts. After each change the app fires a shot that still gets through, if there is one.",
-    "Use at most 4 shields. If no 4 can do it, press Can’t, then tap the ends of 5 shots in the unrolled view, no two crossing except at S and T."
+    "Use at most 4 shields. If no 4 can do it, press Can’t and tap the ends of 5 shots in the unrolled view, no two crossing except at S and T. The claim is checked when the last shot is tapped."
    ],
    "idea": "Four shields halfway between S and T stop every straight shot, however long.",
    "prerequisites": "Watching a shot cross the room’s edges, and keeping track of a few shields at once. The worksheet is for grades 4–5.",
@@ -964,7 +964,7 @@
    "objective": "Stop every shot from S to T with 3 shields, or press Can’t and tap 4 shots that cross only at S and T.",
    "visibleObjective": "Stop every shot with 3 shields.",
    "instruction": "Stop every shot from S to T with 3 shields, or press Can’t and tap 4 shots that cross only at S and T.",
-   "controls": "Tap a cross in the room to put a shield there, and tap it again to take it off. After pressing Fewest or Can’t, tap the end of a shot (a T, or an S in a room without T) in the unrolled view to choose it, and tap it again to drop it. Tab with Enter or Space works too. Undo takes back a move.",
+   "controls": "Tap a cross in the room to put a shield there, and tap it again to take it off. After pressing Fewest or Can’t, tap the end of a shot (a T, or an S in a room without T) in the unrolled view to choose it, and tap it again to drop it; the claim is checked when the last one is tapped. Tab with Enter or Space works too. Undo takes back a move.",
    "rules": [
     "The room’s right edge is glued to its left edge, and its top to its bottom. All four corners are the same S.",
     "A shot goes straight from S. At an edge it comes back in through the matching edge, at the same height or the same place along, and keeps its direction.",
@@ -972,7 +972,7 @@
     "A shot stops at the first T it reaches.",
     "A shield sits on one cross of the room, never on S or T. It stops a shot only if the shot passes exactly through that cross, and it is on that cross in every copy.",
     "Every straight shot counts. After each change the app fires a shot that still gets through, if there is one.",
-    "Use at most 3 shields. If no 3 can do it, press Can’t, then tap the ends of 4 shots in the unrolled view, no two crossing except at S and T."
+    "Use at most 3 shields. If no 3 can do it, press Can’t and tap the ends of 4 shots in the unrolled view, no two crossing except at S and T. The claim is checked when the last shot is tapped."
    ],
    "idea": "Three shields can never stop every shot: four shots that cross only at S and T need four.",
    "prerequisites": "Seeing that two shots cross only at S and T, so no single shield stops both. The worksheet is for grades 4–5.",
@@ -985,7 +985,7 @@
     "notice": "Whether your child tries several arrangements before pressing Can’t, and whether they find the four corner shots as the reason or need the hint.",
     "prompt": "Which four shots could never share a shield?",
     "explanation": "The four corner shots go from S to the four Ts round it in the unrolled view. In the room they are the four half-diagonals, and they meet only at S and T. A shield is one point, so it stops at most one of them, and three shields leave one corner shot open. Tapping those four after Can’t is the whole proof; with puzzle 6, four is exactly the fewest.",
-    "extension": "Is there another set of four shots that cross only at S and T? (Yes: swap one corner shot for a steep one that misses the other three, such as the shot to the T one copy left and one down along (−3, −1).)",
+    "extension": "Is there another set of four shots that cross only at S and T? (Yes: swap one corner shot for a steep one that misses the other three, such as the shot to the T two copies left and one down, along (−3, −1), in place of the corner shot down and to the right.)",
     "connection": "Week 70 Problem 4: matching upper and lower bounds, as in the blocking-cardinality computation of Lelièvre, Monteil and Weiss.",
     "sourceIds": [
      "shields-week70",
@@ -1098,7 +1098,7 @@
    "objective": "Stop every drawn shot from S with as few shields as you can, then press Fewest and tap that many shots that cross only at S.",
    "visibleObjective": "Stop every shot with as few shields as you can.",
    "instruction": "Stop every drawn shot from S with as few shields as you can, then press Fewest and tap that many shots that cross only at S.",
-   "controls": "Tap a cross in the room to put a shield there, and tap it again to take it off. After pressing Fewest or Can’t, tap the end of a shot (a T, or an S in a room without T) in the unrolled view to choose it, and tap it again to drop it. Tab with Enter or Space works too. Undo takes back a move.",
+   "controls": "Tap a cross in the room to put a shield there, and tap it again to take it off. After pressing Fewest or Can’t, tap the end of a shot (a T, or an S in a room without T) in the unrolled view to choose it, and tap it again to drop it; the claim is checked when the last one is tapped. Tab with Enter or Space works too. Undo takes back a move.",
    "rules": [
     "The room’s right edge is glued to its left edge, and its top to its bottom. All four corners are the same S.",
     "A shot goes straight from S. At an edge it comes back in through the matching edge, at the same height or the same place along, and keeps its direction.",
@@ -1106,7 +1106,7 @@
     "This room has no T: a shot stops when it comes back to S.",
     "A shield sits on one cross of the room, never on S or T. It stops a shot only if the shot passes exactly through that cross, and it is on that cross in every copy.",
     "Only the shots drawn count.",
-    "When no shot gets through, press Fewest. Then tap the ends of as many shots as you have shields, in the unrolled view, no two crossing except at S: one shield could never stop two of them. Press Fewest again to go back to the shields."
+    "When no shot gets through, press Fewest and tap the ends of as many shots as you have shields, in the unrolled view, no two crossing except at S: one shield could never stop two of them. The claim is checked when the last shot is tapped. Press Fewest again to go back to the shields."
    ],
    "idea": "Without a T, shots come back to S after a whole room, and their halfway points line up.",
    "prerequisites": "Follow a straight line across an edge of the room and back in at the other side. Counting to four; no reading beyond the one-line goal.",
@@ -1200,7 +1200,7 @@
    "objective": "Stop every shot from S with as few shields as you can, then press Fewest and tap that many shots that cross only at S.",
    "visibleObjective": "Stop every shot with as few shields as you can.",
    "instruction": "Stop every shot from S with as few shields as you can, then press Fewest and tap that many shots that cross only at S.",
-   "controls": "Tap a cross in the room to put a shield there, and tap it again to take it off. After pressing Fewest or Can’t, tap the end of a shot (a T, or an S in a room without T) in the unrolled view to choose it, and tap it again to drop it. Tab with Enter or Space works too. Undo takes back a move.",
+   "controls": "Tap a cross in the room to put a shield there, and tap it again to take it off. After pressing Fewest or Can’t, tap the end of a shot (a T, or an S in a room without T) in the unrolled view to choose it, and tap it again to drop it; the claim is checked when the last one is tapped. Tab with Enter or Space works too. Undo takes back a move.",
    "rules": [
     "The room’s right edge is glued to its left edge, and its top to its bottom. All four corners are the same S.",
     "A shot goes straight from S. At an edge it comes back in through the matching edge, at the same height or the same place along, and keeps its direction.",
@@ -1208,7 +1208,7 @@
     "This room has no T: a shot stops when it comes back to S.",
     "A shield sits on one cross of the room, never on S or T. It stops a shot only if the shot passes exactly through that cross, and it is on that cross in every copy.",
     "Every straight shot counts. After each change the app fires a shot that still gets through, if there is one.",
-    "When no shot gets through, press Fewest. Then tap the ends of as many shots as you have shields, in the unrolled view, no two crossing except at S: one shield could never stop two of them. Press Fewest again to go back to the shields."
+    "When no shot gets through, press Fewest and tap the ends of as many shots as you have shields, in the unrolled view, no two crossing except at S: one shield could never stop two of them. The claim is checked when the last shot is tapped. Press Fewest again to go back to the shields."
    ],
    "idea": "Every shot back to S is stopped by three shields halfway, and three shots that cross only at S show three are needed.",
    "prerequisites": "Watching a shot cross the room’s edges, and keeping track of a few shields at once. The worksheet is for grades 4–5.",
@@ -1317,7 +1317,7 @@
    "objective": "Stop every shot from S with as few shields as you can, then press Fewest and tap that many shots that cross only at S and T.",
    "visibleObjective": "Stop every shot with as few shields as you can.",
    "instruction": "Stop every shot from S with as few shields as you can, then press Fewest and tap that many shots that cross only at S and T.",
-   "controls": "Tap a cross in the room to put a shield there, and tap it again to take it off. After pressing Fewest or Can’t, tap the end of a shot (a T, or an S in a room without T) in the unrolled view to choose it, and tap it again to drop it. Tab with Enter or Space works too. Undo takes back a move.",
+   "controls": "Tap a cross in the room to put a shield there, and tap it again to take it off. After pressing Fewest or Can’t, tap the end of a shot (a T, or an S in a room without T) in the unrolled view to choose it, and tap it again to drop it; the claim is checked when the last one is tapped. Tab with Enter or Space works too. Undo takes back a move.",
    "rules": [
     "The room’s right edge is glued to its left edge, and its top to its bottom. All four corners are the same S.",
     "A shot goes straight from S. At an edge it comes back in through the matching edge, at the same height or the same place along, and keeps its direction.",
@@ -1325,7 +1325,7 @@
     "A shot stops at the first T it reaches.",
     "A shield sits on one cross of the room, never on S or T. It stops a shot only if the shot passes exactly through that cross, and it is on that cross in every copy.",
     "Every straight shot counts. After each change the app fires a shot that still gets through, if there is one.",
-    "When no shot gets through, press Fewest. Then tap the ends of as many shots as you have shields, in the unrolled view, no two crossing except at S and T: one shield could never stop two of them. Press Fewest again to go back to the shields."
+    "When no shot gets through, press Fewest and tap the ends of as many shots as you have shields, in the unrolled view, no two crossing except at S and T: one shield could never stop two of them. The claim is checked when the last shot is tapped. Press Fewest again to go back to the shields."
    ],
    "idea": "With T moved to the middle of an edge, four shields halfway still stop every shot, and four shots still cross only at S and T.",
    "prerequisites": "Watching a shot cross the room’s edges, and keeping track of a few shields at once. The worksheet is for grades 4–5.",

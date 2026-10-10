@@ -1,11 +1,12 @@
 // Plays Portal shields through the real interface on the shared portal board:
 // shields by tapping crosses in the room, including a cross where two shots
 // cross and both copies of a cross on a seam; Enter on a cross; the shot the
-// app fires drawn in both views; Fewest refused with too many shields and
-// still refused after Undo; Fewest, then shots tapped as T copies in the
-// unrolled view, a crossing shot refused with its crossings marked, and the
-// solve; Can't only after a try, refused for good where there is a way, and
-// right with three shields, with the four corner shots tapped; the room with
+// app fires drawn in both views; a claim judged only at its last shot: Fewest
+// with too many shields told so then, and still refused after Undo; Fewest,
+// then shots tapped as T copies in the unrolled view, two crossing shots
+// cleared with their crossings marked, and the solve; Can't only after a try,
+// refused for good at its last shot where there is a way, and right with three
+// shields, with the four corner shots tapped; the room with
 // no T and its seam crosses; hints marked on the board and applied; where
 // focus goes after a claim; how long a tap takes; the playground's rooms and
 // aimed shots; no page overflow. Same environment variables as the other
@@ -30,6 +31,7 @@ const cross = (i, j, n = 0) => page.locator(`.sh-room [data-pb-point="o,${i},${j
 const copy = (u, v) => page.locator(`.sh-plane [data-pb-point="${u},${v}"]`);
 const button = name => page.getByRole('button', {name, exact: true});
 const told = () => page.locator('.sh-told').innerText();
+const untold = async () => (await page.locator('.sh-told').count()) === 0;
 const status = () => page.locator('.sh-puzzle [role="status"]').innerText();
 const center = async locator => { const b = await locator.boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
 // Taps land where the child sees the target, through real hit-testing: the
@@ -81,14 +83,21 @@ try {
   assert.deepEqual((await board(A)).shields, [[1, 1], [1, 3]], 'Enter on a cross');
   assert.equal(await focusOnBoard(), true, 'focus stays on the board');
   assert.match(await status(), /No shot gets through\./);
-  // Too many: Fewest is refused once, and Undo doesn't bring it back.
+  // Too many: pressing Fewest judges nothing; the last of three shots is told
+  // “Fewer can do it.”, once, and Undo doesn't bring the claim back.
   await tap(cross(3, 1));
   await button('Fewest').click();
+  assert.equal(await untold(), true, 'pressing Fewest says nothing yet');
+  assert.equal(await page.locator('.sh-prompt').innerText(), 'Tap 3 shots that cross only at S and T.');
+  await tap(copy(4, 12)); await tap(copy(12, 4));
+  assert.equal(await untold(), true, 'two crossing shots before the last are not judged');
+  await tap(copy(4, 4));
   assert.equal(await told(), 'Fewer can do it.');
   assert.equal(await button('Fewest').isDisabled(), true, 'refused at three');
   assert.equal(await focusOnBoard(), true, 'focus goes to the board, not a disabled button');
   await undo();
   assert.equal(await button('Fewest').isDisabled(), true, 'still refused at three after Undo');
+  assert.equal(await page.locator('.sh-prompt').count(), 0, 'Undo doesn’t reopen the claim');
   await shot('fewer');
   await tap(cross(3, 1));
   assert.equal(await button('Fewest').isDisabled(), false, 'two shields can try again');
@@ -107,8 +116,10 @@ try {
   await tap(copy(12, 4));
   assert.equal(await told(), 'Those two cross.');
   assert.equal(await page.locator('.sh-plane .sh-clash').count(), 4, 'both crossings marked on both lines');
-  assert.deepEqual((await board(A)).picks, [[1, 3]], 'the crossing shot is not taken');
+  assert.deepEqual((await board(A)).picks, [], 'crossing shots are cleared');
+  assert.equal(await focusOnBoard(), true, 'focus stays on the board');
   await shot('crossing');
+  await tap(copy(4, 12));
   await tap(copy(4, 4));
   await done(); await fit('solved');
   await shot('solved');
@@ -139,7 +150,13 @@ try {
   await open(B);
   await tap(cross(1, 1));
   await button('Can’t').click();
+  assert.equal(await untold(), true, 'pressing Can’t says nothing yet');
+  assert.equal(await page.locator('.sh-prompt').innerText(), 'Tap 5 shots that cross only at S and T.');
+  for (const [u, v] of [[4, 4], [-4, 4], [4, -4], [-4, -4]]) await tap(copy(u, v));
+  assert.equal(await untold(), true);
+  await tap(copy(4, 12));
   assert.equal(await told(), 'There is a way.');
+  assert.equal(await focusOnBoard(), true, 'focus goes to the board, not Can’t');
   assert.equal(await button('Can’t').isDisabled(), true);
   await undo();
   assert.equal(await button('Can’t').isDisabled(), true, 'Undo keeps the refusal');
@@ -156,8 +173,11 @@ try {
   await button('Fewest').click();
   assert.equal(await page.locator('.sh-prompt').innerText(), 'Tap 3 shots that cross only at S.');
   await tap(copy(8, 8)); await tap(copy(-8, -8));
+  assert.equal(await untold(), true, 'not judged before the last shot');
+  await tap(copy(8, 0));
   assert.equal(await told(), 'Those two cross.', 'a shot and its way back overlap');
-  await tap(copy(8, 0)); await tap(copy(0, 8));
+  assert.deepEqual((await board(D)).picks, []);
+  await tap(copy(8, 8)); await tap(copy(8, 0)); await tap(copy(0, 8));
   await done();
   await shot('back-to-s');
 

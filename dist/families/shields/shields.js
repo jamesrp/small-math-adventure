@@ -167,21 +167,31 @@ export function meet(q, d1, d2) {
 // ones, or all) with as few shields as can be, then press Fewest and tap as
 // many shots as shields, no two crossing. Budget: stop every shot with at most
 // `budget` shields, or press Can't and tap budget + 1 shots, no two crossing.
+// A claim is one act, judged only when its last shot is tapped (as Hills
+// judges a Can't pair): pressing Fewest or Can't just starts it, and shots
+// are chosen and dropped freely until then.
 // Playground: {mode: 'playground', room, rooms: {id: {name, T}}}.
 //
 // The save: {shields, claim, picks, note, fewer, way}. `shields` are crosses
 // [i, j] in order. `claim` is null, 'fewest' or 'cant'; `picks` the shots
-// tapped since (directions). `note` is null, 'fewer' (Fewest refused: fewer
-// shields can do it), 'way' (Can't refused) or {cross: [d1, d2]} (a tapped
-// shot d2 crosses the picked d1, so it was not taken). `fewer` is the fewest
-// shields Fewest was refused at, and `way` that Can't was refused: Undo keeps
-// both, so a claim can't be taken back and asked again.
+// tapped since (directions). `note` is null, 'fewer' (the Fewest claim was
+// refused: fewer shields can do it), 'way' (the Can't claim was refused) or
+// {cross: [d1, d2]} (two of the shots tapped cross, so they were all cleared).
+// `fewer` is the shield count Fewest was refused at, and `way` that Can't was
+// refused: Undo keeps both, so a claim can't be taken back and asked again.
 // Playground save: {room, shields, aims}.
 export const playQ = (q, b) => ({...q.rooms[b.room], room: q.room, mode: 'playground'});
 const isCross = (q, c) => Array.isArray(c) && c.length === 2 && c.every(x => integer(x) && x >= 0 && x < N) && !(c[0] === 0 && c[1] === 0) && !(q.T && same(c, q.T));
 const sortedCrosses = (q, list) => Array.isArray(list) && list.every(c => isCross(q, c)) && list.every((c, k) => k === 0 || crossOrder(crossKey(list[k - 1]), crossKey(c)) < 0);
 export const possible = q => q.mode !== 'budget' || fewestOf(q) <= q.budget;
-export const needOf = (q, b) => b.claim === 'fewest' ? b.shields.length : q.budget + 1;
+// How many shots a claim takes: one per shield for Fewest (or every shot there
+// is to tap, if there are more shields than that), one more than the budget
+// for Can't.
+export const pickCount = q => q.shots ? q.shots.length : allNear(q).length;
+export const needOf = (q, b) => b.claim === 'fewest' ? Math.min(b.shields.length, pickCount(q)) : q.budget + 1;
+const crossingPair = (q, picks) => { for (let x = 0; x < picks.length; x++) for (let y = x + 1; y < picks.length; y++) if (meet(q, picks[x], picks[y])) return [picks[x], picks[y]]; return null; };
+// Whether a claim is right: the count, then the shots.
+const claimRight = (q, b) => b.claim === 'fewest' ? b.shields.length === fewestOf(q) : !possible(q);
 export const pickable = (q, d) => primitive(d) && (q.shots ? q.shots.some(s => same(s, d)) : isShot(q, d) && endOf(q, d).every(x => Math.abs(x) <= SHOT_LIMIT));
 const keysAre = (b, keys) => object(b) && Object.keys(b).sort().join() === [...keys].sort().join();
 const BOARD = ['shields', 'claim', 'picks', 'note', 'fewer', 'way'];
@@ -209,25 +219,27 @@ function valid(p, b) {
   // A claim and the shots tapped since.
   if (![null, 'fewest', 'cant'].includes(b.claim) || !Array.isArray(b.picks)) return false;
   if (b.claim === null && b.picks.length) return false;
-  if (b.claim === 'fewest' && !(q.mode === 'fewest' && blocked && b.shields.length === min && (b.fewer === null || b.shields.length < b.fewer))) return false;
-  if (b.claim === 'cant' && !(q.mode === 'budget' && !possible(q) && b.shields.length >= 1)) return false;
+  if (b.claim === 'fewest' && !(q.mode === 'fewest' && blocked && b.shields.length >= 1 && (b.fewer === null || b.shields.length < b.fewer))) return false;
+  if (b.claim === 'cant' && !(q.mode === 'budget' && b.shields.length >= 1 && !b.way)) return false;
   if (b.claim) {
+    // Fewer shots than the claim takes, freely chosen; all of them only as a right claim.
     if (b.picks.length > needOf(q, b) || !b.picks.every(d => pickable(q, d))) return false;
-    for (let x = 0; x < b.picks.length; x++) for (let y = x + 1; y < b.picks.length; y++) if (same(b.picks[x], b.picks[y]) || meet(q, b.picks[x], b.picks[y])) return false;
+    if (b.picks.some((d, k) => b.picks.findIndex(x => same(x, d)) !== k)) return false;
+    if (b.picks.length === needOf(q, b) && !(claimRight(q, b) && !crossingPair(q, b.picks))) return false;
   }
   // The note says what the last claim or tap was told.
   const n = b.note;
   if (n === null) return true;
   if (n === 'fewer') return q.mode === 'fewest' && b.claim === null && blocked && b.fewer !== null && b.fewer <= b.shields.length;
   if (n === 'way') return q.mode === 'budget' && b.claim === null && b.way;
-  if (!keysAre(n, ['cross']) || !Array.isArray(n.cross) || n.cross.length !== 2 || !b.claim) return false;
+  if (!keysAre(n, ['cross']) || !Array.isArray(n.cross) || n.cross.length !== 2 || !b.claim || b.picks.length) return false;
   const [d1, d2] = n.cross;
-  return pickable(q, d1) && pickable(q, d2) && b.picks.some(d => same(d, d1)) && !b.picks.some(d => same(d, d2)) && meet(q, d1, d2);
+  return pickable(q, d1) && pickable(q, d2) && !same(d1, d2) && meet(q, d1, d2);
 }
 function solved(p, b) {
   const q = p.parameters;
   if (q.mode === 'playground' || !valid(p, b)) return false;
-  if (b.claim) return b.picks.length === needOf(q, b);
+  if (b.claim) return b.picks.length === needOf(q, b);  // valid only when right
   return q.mode === 'budget' && !escaping(q, b.shields).length;
 }
 
@@ -244,25 +256,32 @@ function move(p, b, action) {
     const shields = has ? b.shields.filter(c => crossKey(c) !== key) : [...b.shields, [...action.at]].sort((x, y) => crossOrder(crossKey(x), crossKey(y)));
     return {...b, shields, note: null};
   }
+  // Fewest and Can't start a claim (and, pressed again, leave it); nothing is
+  // judged until the last shot is tapped.
   if (action.type === 'fewest' && q.mode === 'fewest') {
     if (b.claim === 'fewest') return {...b, claim: null, picks: [], note: null};
     if (b.claim || !b.shields.length || escaping(q, b.shields).length || (b.fewer !== null && b.shields.length >= b.fewer)) return null;
-    return b.shields.length > fewestOf(q) ? {...b, note: 'fewer', fewer: b.shields.length} : {...b, claim: 'fewest', picks: [], note: null};
+    return {...b, claim: 'fewest', picks: [], note: null};
   }
   if (action.type === 'cant' && q.mode === 'budget') {
     if (b.claim === 'cant') return {...b, claim: null, picks: [], note: null};
     // Can't comes after an attempt: at least one shield on the board.
     if (b.claim || b.way || !b.shields.length) return null;
-    return possible(q) ? {...b, note: 'way', way: true} : {...b, claim: 'cant', picks: [], note: null};
+    return {...b, claim: 'cant', picks: [], note: null};
   }
   if (action.type === 'pick') {
     // The copy tapped must be where its shot stops: the first T (or S) on its line.
     const d = b.claim ? shotAt(q, action.at) : null;
     if (!d || !pickable(q, d) || !same(endOf(q, d), action.at)) return null;
     if (b.picks.some(x => same(x, d))) return {...b, picks: b.picks.filter(x => !same(x, d)), note: null};
-    const clash = b.picks.find(x => meet(q, x, d));
-    if (clash) return {...b, note: {cross: [clash, d]}};
-    return {...b, picks: [...b.picks, d], note: null};
+    const picks = [...b.picks, d];
+    if (picks.length < needOf(q, b)) return {...b, picks, note: null};
+    // The last shot: judge the claim. A wrong count closes it and locks;
+    // shots that cross are cleared, with the crossings shown.
+    if (b.claim === 'fewest' && !claimRight(q, b)) return {...b, claim: null, picks: [], note: 'fewer', fewer: b.shields.length};
+    if (b.claim === 'cant' && !claimRight(q, b)) return {...b, claim: null, picks: [], note: 'way', way: true};
+    const clash = crossingPair(q, picks);
+    return clash ? {...b, picks: [], note: {cross: clash}} : {...b, picks, note: null};
   }
   return null;
 }
@@ -281,11 +300,15 @@ function movePlay(q, b, action) {
   }
   return null;
 }
-// Undo takes back shields and taps, never a refusal.
+// Undo takes back shields and taps, never a refusal: the locks stay, shots
+// cleared for crossing stay cleared, and a claim a refusal closed stays closed.
 function carry(p, from, to) {
   if (p.parameters.mode === 'playground' || !object(to) || !object(from)) return to;
-  const kept = {...to, fewer: from.fewer, way: from.way};
-  return valid(p, kept) ? kept : to;
+  let kept = {...to, fewer: from.fewer, way: from.way};
+  if (object(from.note) && kept.claim) kept = {...kept, picks: []};
+  if (valid(p, kept)) return kept;
+  const closed = {...kept, claim: null, picks: [], note: null};
+  return valid(p, closed) ? closed : to;
 }
 
 // --- Words ------------------------------------------------------------------------
@@ -350,9 +373,12 @@ function hint(p, b) {
   const q = p.parameters;
   if (q.mode === 'playground' || !valid(p, b) || solved(p, b)) return {type: 'done'};
   if (b.claim) {
-    const more = extendPicks(q, b.picks, needOf(q, b));
+    // A claim that can't be right: go back to the shields.
+    if (!claimRight(q, b)) return {type: 'move', action: {type: b.claim}, text: `Press ${b.claim === 'fewest' ? 'Fewest' : 'Can’t'} again to go back to the shields.`};
+    const clash = crossingPair(q, b.picks);
+    const more = clash ? null : extendPicks(q, b.picks, needOf(q, b));
     if (more) return pick(q, more[0], `Tap ${targetWords(q, endOf(q, more[0]))}.`);
-    const drop = b.picks.at(-1);
+    const drop = clash ? clash[1] : b.picks.at(-1);
     return pick(q, drop, `Tap ${targetWords(q, endOf(q, drop))} again to drop that shot.`);
   }
   const shieldMove = (c, on) => ({type: 'move', action: {type: 'shield', at: c}, text: on ? `Put a shield at ${crossWords(c)}.` : `Take off the shield at ${crossWords(c)}.`});
@@ -425,7 +451,7 @@ function render(p, a) {
   } else if (claim || done) {
     if (q.shots) for (const d of q.shots) shots.push({d, length: lengthOf(q, d), cls: 'faint'});
     b.picks.forEach((d, k) => shots.push({d, length: lengthOf(q, d), cls: `picked ${PICK[k]}`}));
-    if (b.note?.cross) shots.push({d: b.note.cross[1], length: lengthOf(q, b.note.cross[1]), cls: 'refused'});
+    if (b.note?.cross) for (const d of b.note.cross) shots.push({d, length: lengthOf(q, d), cls: 'refused'});
   } else {
     escapes = escaping(q, b.shields);
     if (q.shots) for (const d of q.shots) {
@@ -503,7 +529,7 @@ function render(p, a) {
     bar = `<div class="sh-rooms" role="group" aria-label="Room">${Object.entries(q0.rooms).map(([id, r]) => `<button type="button" class="secondary sh-pick" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'room', room: id}))}" data-focus="sh-room-${id}" aria-pressed="${b.room === id}" aria-label="${esc(r.name)}">${miniRoom(r)}</button>`).join('')}</div>`;
   } else if (live) {
     const kind = q.mode === 'fewest' ? 'fewest' : 'cant', on = claim === kind;
-    const enabled = on || (q.mode === 'fewest' ? b.shields.length > 0 && !escapes.length && (b.fewer === null || b.shields.length < b.fewer) : b.shields.length > 0 && !b.way);
+    const enabled = on || (q.mode === 'fewest' ? b.shields.length > 0 && !escaping(q, b.shields).length && (b.fewer === null || b.shields.length < b.fewer) : b.shields.length > 0 && !b.way);
     bar = `<div class="sh-bar"><button type="button" class="secondary sh-button${act?.type === kind ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: kind}))}" data-focus="sh-${kind}${on ? '-on' : ''}" aria-pressed="${on}" ${enabled ? '' : 'disabled'}>${kind === 'fewest' ? 'Fewest' : 'Can’t'}</button></div>`;
   }
   const need = claim ? needOf(q, b) : 0;

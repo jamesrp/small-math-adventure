@@ -1,6 +1,6 @@
 // Portal shields (Week 70): shots and where they stop, the halfway theorem in
 // three rooms, fewest shields, shots that cross, Fewest and Can't with the
-// shots tapped as their proof, refusals that survive Undo, hints, the
+// shots tapped as their proof, judged at the last shot, refusals that survive Undo, hints, the
 // playground, forged saves, rendering, and the portal board's wider tap disc.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -95,22 +95,31 @@ test('shields toggle on crosses, never on S or T, and never past a budget', () =
   assert.ok(move(b, full, {type: 'shield', at: [1, 1]}), 'taking one off is fine');
 });
 
-test('Fewest: refused while a shot gets through, refused with too many, then the shots that prove it', () => {
+test('Fewest: refused while a shot gets through; a claim is judged only at its last shot', () => {
   const p = byId('shields-01'), a = freshAttempt(p);
   assert.equal(move(p, a, {type: 'fewest'}), null, 'nothing to claim yet');
   const open = play(p, a, ...put([1, 1]));
   assert.equal(move(p, open, {type: 'fewest'}), null, 'the steep shots get through');
-  // Three shields stop all three shots, but two can.
+  // Three shields stop all three shots, but two can. Pressing Fewest says nothing yet.
   const three = play(p, open, ...put([1, 3], [3, 1]));
-  const told = play(p, three, {type: 'fewest'});
+  const over = play(p, three, {type: 'fewest'});
+  assert.equal(over.board.claim, 'fewest');
+  assert.equal(over.board.note, null, 'pressing Fewest is not judged');
+  assert.match(view(p, over), /Tap 3 shots that cross only at S and T\./);
+  const two1 = play(p, over, ...tap(p, [1, 3], [3, 1]));
+  assert.equal(two1.board.note, null, 'crossing shots before the last are not judged');
+  const told = play(p, two1, ...tap(p, [1, 1]));
   assert.equal(told.board.note, 'fewer');
+  assert.equal(told.board.claim, null);
   assert.equal(move(p, told, {type: 'fewest'}), null, 'one refusal at three');
   assert.match(view(p, told), /Fewer can do it\./);
-  // Undo takes back the refusal's move, never the refusal.
+  // Undo takes back the last shot, never the refusal, and the claim stays closed.
   const back = undoApp(p, told);
   assert.equal(back.board.fewer, 3);
+  assert.equal(back.board.claim, null);
   assert.equal(move(p, back, {type: 'fewest'}), null, 'still refused at three after Undo');
-  // Two shields: Fewest, then two shots sharing only S and T.
+  // Two shields: Fewest, then two shots sharing only S and T. Two that cross
+  // are named, both crossings ringed, and the shots cleared, through Undo too.
   const two = play(p, back, ...put([3, 1]));
   const claim = play(p, two, {type: 'fewest'});
   assert.equal(claim.board.claim, 'fewest');
@@ -119,10 +128,11 @@ test('Fewest: refused while a shot gets through, refused with too many, then the
   const first = play(p, claim, ...tap(p, [1, 3]));
   const clash = play(p, first, ...tap(p, [3, 1]));
   assert.deepEqual(clash.board.note, {cross: [[1, 3], [3, 1]]});
-  assert.deepEqual(clash.board.picks, [[1, 3]]);
+  assert.deepEqual(clash.board.picks, []);
   assert.match(view(p, clash), /Those two cross\./);
   assert.match(view(p, clash), /sh-clash/);
-  const done = play(p, clash, ...tap(p, [1, 1]));
+  assert.deepEqual(undoApp(p, clash).board.picks, [], 'Undo doesn’t bring crossing shots back');
+  const done = play(p, clash, ...tap(p, [1, 3], [1, 1]));
   assert.ok(isSolved(p, done.board));
   assert.match(view(p, done), /sh-ring k1/);
   // Fewest again before finishing goes back to the shields.
@@ -132,7 +142,7 @@ test('Fewest: refused while a shot gets through, refused with too many, then the
   assert.equal(move(p, claim, {type: 'pick', at: endOf(p.parameters, [-1, -1])}), null, 'not drawn here');
 });
 
-test('Can’t: only after a try; right with three, refused for good with four', () => {
+test('Can’t: only after a try; right with three, refused for good with four, at the last shot', () => {
   const four = byId('shields-06'), three = byId('shields-07');
   assert.equal(move(three, freshAttempt(three), {type: 'cant'}), null, 'a try first');
   assert.equal(nextHint(three, freshAttempt(three)).action.type, 'shield', 'the first hint is a try');
@@ -144,13 +154,18 @@ test('Can’t: only after a try; right with three, refused for good with four', 
   assert.match(view(three, claim), /Tap 4 shots that cross only at S and T\./);
   const done = play(three, claim, ...tap(three, [1, 1], [-1, 1], [1, -1], [-1, -1]));
   assert.ok(isSolved(three, done.board));
-  // With four shields there is a way, and Undo doesn't bring Can't back.
+  // With four shields there is a way: Can't is told so at its last shot, and Undo doesn't bring it back.
   const t4 = play(four, freshAttempt(four), ...put([1, 1]));
-  const told = play(four, t4, {type: 'cant'});
+  const claim4 = play(four, t4, {type: 'cant'});
+  assert.equal(claim4.board.note, null, 'pressing Can’t is not judged');
+  assert.match(view(four, claim4), /Tap 5 shots that cross only at S and T\./);
+  const told = play(four, claim4, ...tap(four, [1, 1], [-1, 1], [1, -1], [-1, -1], [1, 3]));
   assert.equal(told.board.note, 'way');
+  assert.equal(told.board.claim, null);
   assert.match(view(four, told), /There is a way\./);
   const back = undoApp(four, told);
   assert.equal(back.board.way, true);
+  assert.equal(back.board.claim, null);
   assert.equal(move(four, back, {type: 'cant'}), null);
   assert.ok(isSolved(four, play(four, freshAttempt(four), ...put([2, 2], [2, 6], [6, 2], [6, 6])).board));
 });
@@ -189,16 +204,19 @@ test('the playground: three rooms, shots aimed at far copies stop at the first t
   assert.ok(!isSolved(p, many.board));
 });
 
-test('forged saves are rejected', () => {
+test('forged saves are rejected; an open claim is not judged', () => {
   const p = byId('shields-01'), b = freshAttempt(p).board;
+  assert.ok(validBoard(p, {...b, shields: [[1, 1], [1, 3], [3, 1]], claim: 'fewest', picks: [[1, 3], [3, 1]]}), 'too many shields, two crossing shots, not yet judged');
   for (const board of [
     {...b, extra: 1}, {...b, shields: [[1, 1], [1, 1]]}, {...b, shields: [[3, 1], [1, 1]]}, {...b, shields: [[4, 4]]}, {...b, shields: [[0, 0]]},
-    {...b, claim: 'fewest'}, {...b, shields: [[1, 1], [1, 3], [3, 1]], claim: 'fewest'}, {...b, shields: [[1, 1], [1, 3]], claim: 'fewest', picks: [[1, 3], [3, 1]]},
+    {...b, claim: 'fewest'}, {...b, shields: [[1, 1], [1, 3], [3, 1]], claim: 'fewest', picks: [[1, 1], [1, 3], [3, 1]]}, {...b, shields: [[1, 1], [1, 3]], claim: 'fewest', picks: [[1, 3], [3, 1]]},
+    {...b, shields: [[1, 1], [1, 3]], claim: 'fewest', picks: [[1, 3]], note: {cross: [[1, 3], [3, 1]]}},
     {...b, shields: [[1, 1], [1, 3]], claim: 'fewest', picks: [[1, 1], [1, 3], [3, 1]]}, {...b, picks: [[1, 1]]}, {...b, note: 'fewer'}, {...b, fewer: 2}, {...b, way: true},
     {...b, claim: 'cant', shields: [[1, 1]]}, {...b, shields: [[1, 1], [1, 3]], claim: 'fewest', picks: [[-1, -1]]}
   ]) assert.equal(validBoard(p, board), false, JSON.stringify(board));
   const t = byId('shields-07'), tb = freshAttempt(t).board;
-  for (const board of [{...tb, shields: [[1, 1], [1, 3], [3, 1], [3, 3]]}, {...tb, claim: 'cant'}, {...tb, way: true}]) assert.equal(validBoard(t, board), false, JSON.stringify(board));
+  assert.ok(validBoard(t, {...tb, shields: [[2, 2]], claim: 'cant', picks: [[1, 3], [3, 1]]}), 'crossing shots while choosing');
+  for (const board of [{...tb, shields: [[1, 1], [1, 3], [3, 1], [3, 3]]}, {...tb, claim: 'cant'}, {...tb, way: true}, {...tb, shields: [[2, 2]], claim: 'cant', picks: [[1, 1], [1, 3], [3, 1], [-1, -1]]}]) assert.equal(validBoard(t, board), false, JSON.stringify(board));
   const g = byId('shields-playground'), gb = freshAttempt(g).board;
   for (const board of [{...gb, room: 'moon'}, {...gb, aims: [[1, 1]]}, {...gb, claim: 'fewest'}]) assert.equal(validBoard(g, board), false, JSON.stringify(board));
 });
