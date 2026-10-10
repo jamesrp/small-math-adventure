@@ -23,14 +23,15 @@ const S = surfaceOf({
   right: {A: 'B', B: 'C', C: 'A', /* … */},             // the square across each square's right side (null or missing: a wall)
   up: {A: 'F', D: 'A', /* … */},                        // the square across its top side
   n: 1,                                                 // lattice steps along a square's side (default 1)
-  lattice: 'cells'                                      // 'cells' (centres of the n × n small cells, the default) or 'crosses'
+  lattice: 'cells',                                     // 'cells' (centres of the n × n small cells, the default) or 'crosses'
+  stableMarks: true                                     // optional: each mark follows its side, not the order of the runs
 });
 ```
 
 - The only gluing is by translation. A square's left and down neighbours follow from `right` and `up`, so a square is never turned over or rotated. `validSurfaceSpec(spec)` checks the shape of a spec: no two squares drawn in one place, and no two squares glued to the same side of a third.
 - `surfaceOf` caches the 64 most recently used specs, so calling it in every render costs little, and a family that edits gluings (Week 64) doesn't keep every surface it has made. The result is `{spec, ids, at, right, up, left, down, glue, n, lattice, box, edges, marks, corners, abelian}`.
 - `edges` lists each side of each square as `inner` (glued to the square drawn beside it), `wall` (glued to nothing) or `seam` (glued to a square drawn somewhere else).
-- `marks` pairs each run of seam edges with its partner run. A run is consecutive seam edges along one drawn line whose partners lie along one drawn line in the same order. Each pair of runs gets one shape and colour. The shape is drawn halfway along both runs (`along`, in square widths), and every seam edge of the pair takes the colour (`edge.colour`), so matching marks show the translation. There are six shapes and four colours.
+- `marks` pairs each run of seam edges with its partner run. A run is consecutive seam edges along one drawn line whose partners lie along one drawn line in the same order. Each pair of runs gets one shape and colour. The shape is drawn halfway along both runs (`along`, in square widths), and every seam edge of the pair takes the colour (`edge.colour`), so matching marks show the translation. There are six shapes and four colours. By default the runs take the looks in order; with `stableMarks` a run's look comes from its first square and side, so when a family lets the child glue and unglue sides (Week 64) the other marks never change.
 - `abelian` is true when going right then up always reaches the same square as going up then right. The torus and the cylinder have this property; Week 64's glued squares do not.
 - `corners` holds the corner classes; see [Corners](#corners).
 - `roomFromRows(rows, {wrapX, wrapY})` builds a spec from rows of square names, top row first. `wrapX` glues each row's right end to its left end and `wrapY` the top row to the bottom row; `false` leaves a wall. Families import it from the board, never from each other.
@@ -113,7 +114,7 @@ lift(S, {s: 'H', i: 0, j: 0}, stepsOf('RRRUUU'))
 
 `copies` lists the copies the trip visits, in order. `endCopy` is the copy it finishes in. `blocked` is the index of the first step that runs into a wall; the lift stops there.
 
-**How a surface that isn't a torus unrolls.** The lift never consults a fixed tiling. Each step moves from the current square to the square glued on that side, and `X` or `Y` changes by one whenever a step crosses a side. So on Week 64's L, the lift builds the plane square by square along the trip. The same plane position can hold different squares on different trips, or on one trip; the lift is still exact. The unrolled view fills its window by `develop`: it places the anchors it is given in order (a trip's lift, say), then spreads across glued edges, nearest first. On a torus or a cylinder this gives the one periodic tiling. On the L, two spreads can meet with different squares. The first square placed wins, and the edge between them is a **cut**, drawn like a seam in rose. For a cylinder, `develop` stops at the walls, so the view is a strip.
+**How a surface that isn't a torus unrolls.** The lift never consults a fixed tiling. Each step moves from the current square to the square glued on that side, and `X` or `Y` changes by one whenever a step crosses a side. So on Week 64's L, the lift builds the plane square by square along the trip. The same plane position can hold different squares on different trips, or on one trip; the lift is still exact. The unrolled view fills its window by `develop`: it places the anchors it is given in order (a trip's lift, say), then spreads across glued edges, nearest first. On a torus or a cylinder this gives the one periodic tiling. On the L, two spreads can meet with different squares. The first square placed wins, and the edge between them is a **cut**, drawn like a seam in rose. For a cylinder, `develop` stops at the walls, so the view is a strip. `develop(S, anchors, box, {spread: false})` (and `planeBoard`'s `spread: false`) places the anchors and nothing else: a straight shot's pieces give the squares it crosses, laid along one ruler line, with no cuts (Week 64's unrolled trips).
 
 What the unrolled view draws faithfully:
 
@@ -160,6 +161,7 @@ planeBoard(S, {
   cls, label, key,            // key names the view, so a slide can hold its window
   show: [[u, v], …], focus: [u, v], margin, min, max, // what the window must hold (planeWindow)
   anchors: [{s, X, Y}, …],    // squares to place first (a trip's lift), default the room at copy (0, 0)
+  spread: false,              // place the anchors only, not their neighbours: the strip of squares a shot crosses
   point: pt => ({…}),         // pt also has u, v (its plane key) and copy
   square: (s, X, Y, copy) => 'class', // shade a copy
   under, over, top, marks: true, markSize, slide, // marks: repeat the seam marks faintly on every copy

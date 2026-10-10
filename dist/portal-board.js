@@ -219,7 +219,12 @@ function seamMarks(s) {
     }
   }
   const marks = [];
-  runs.forEach((run, k) => {
+  // With `stableMarks` a run's look follows its first side (the square and
+  // which side), not its place among the runs, so a family that lets the
+  // child glue and unglue sides (Week 64) never sees the other marks change.
+  const slot = run => s.ids.indexOf(run.squares[0]) + (run.side === 'up' ? s.ids.length : 0);
+  runs.forEach((run, index) => {
+    const k = s.spec.stableMarks ? slot(run) : index;
     const look = {k, shape: MARK_SHAPES[k % MARK_SHAPES.length], colour: MARK_COLOURS[k % MARK_COLOURS.length]}, along = run.squares.length / 2;
     marks.push({...look, s: run.squares[0], side: run.side, along}, {...look, s: run.partners[0], side: BACK[run.side], along});
     for (const e of s.edges) {
@@ -424,8 +429,10 @@ export const stepPieces = (surface, pt, dir) => shoot(surface, pt, dir, {length:
 // first. On a torus or a cylinder this is the one periodic tiling. On a
 // surface whose corners don't all close up (Week 64's glued squares), two
 // spreads can meet with different squares; the first placed wins, and the
-// edge between them is a cut (the `cut` list), drawn like a seam.
-export function develop(surface, anchors, box) {
+// edge between them is a cut (the `cut` list), drawn like a seam. With
+// `spread: false` only the anchors are placed: the strip of squares a
+// straight shot crosses, like copies traced along one ruler line.
+export function develop(surface, anchors, box, {spread = true} = {}) {
   const [X0, Y0, X1, Y1] = box, placed = new Map(), queue = [];
   const inside = (X, Y) => X >= X0 && X <= X1 && Y >= Y0 && Y <= Y1;
   for (const {s, X, Y} of anchors) {
@@ -433,7 +440,7 @@ export function develop(surface, anchors, box) {
     if (!inside(X, Y) || placed.has(key)) continue;
     placed.set(key, s); queue.push([X, Y]);
   }
-  for (let k = 0; k < queue.length; k++) {
+  for (let k = 0; spread && k < queue.length; k++) {
     const [X, Y] = queue[k], s = placed.get(`${X},${Y}`);
     for (const [side, [dx, dy]] of Object.entries(SIDES)) {
       const t = surface.glue[side][s], key = `${X + dx},${Y + dy}`;
@@ -621,7 +628,8 @@ export function roomBoard(surface, opts = {}) {
 }
 
 // The unrolled view: the plane window (planeWindow), filled by `develop` from
-// `opts.anchors` (default: the room itself at copy [0, 0]). Copies of the
+// `opts.anchors` (default: the room itself at copy [0, 0]; `opts.spread`
+// false places the anchors alone). Copies of the
 // room are outlined, each outline in the colour of the seam it crosses
 // (opts.marks true also repeats the marks faintly on every copy); cuts and
 // walls are drawn. `opts.point(pt)` returns how
@@ -634,7 +642,7 @@ export function planeBoard(surface, opts = {}) {
   const window = opts.window || planeWindow(surface, opts);
   const [X0, Y0, X1, Y1] = window;
   const anchors = opts.anchors || surface.ids.map(s => ({s, X: surface.at[s][0], Y: surface.at[s][1]}));
-  const dev = develop(surface, anchors, window);
+  const dev = develop(surface, anchors, window, {spread: opts.spread !== false});
   let squares = '', grid = '', lines = '', marks = '', labels = '', hits = '';
   for (const [key, s] of dev.placed) {
     const [X, Y] = key.split(',').map(Number), x0 = X * n, y0 = -Y * n, copy = copyOf(surface, s, X, Y);
