@@ -336,6 +336,7 @@ export async function validateGeoboard() {
         const refusedOther = play(p, tried, {type: 'cant', value: forced + 1});
         assert.ok(!isSolved(p, refusedOther.board), `${p.id}: another number is refused`);
         hintSteps += followHints(p, refusedRight) + followHints(p, refusedOther);
+        refuse(p, tried, {type: 'count'}, 'the Pick’s-count hint move on a possible goal');
         assert.equal(validBoard(p, {...tried.board, claimed: forced}), false, `${p.id}: rejects a claim on a possible goal`);
       }
       counts[p.id] = census;
@@ -353,10 +354,31 @@ export async function validateGeoboard() {
       const right = play(p, wrong, {type: 'cant', value: forced});
       assert.ok(isSolved(p, right.board), `${p.id}: Can’t with Pick’s number solves`);
       for (const value of [-1, 41, .25, '2', null]) refuse(p, tried, {type: 'cant', value}, `Can’t with ${value}`);
-      // The hint chain makes an attempt before it marks Can't.
+      // The hint chain builds the attempt until the band matches the goal in
+      // attempt.match, then gives Pick's count alone (its move fills the goal's
+      // empty box and leaves the board), and only then the reason with Can't.
+      assert.equal(record(q.attempt.shapes[0])[q.attempt.match], q.goal[q.attempt.match], `${p.id}: the attempt matches the goal’s ${q.attempt.match}`);
+      const mech = mechanicFor(p);
+      mech.reset(p);
       const first = nextHint(p, fresh);
-      assert.notEqual(first.action.type, 'cant', `${p.id}: the first hint is an attempt, not Can’t`);
-      hintSteps += followHints(p, fresh) + followHints(p, wrong) + followHints(p, open);
+      assert.ok(!['cant', 'count'].includes(first.action.type), `${p.id}: the first hint is an attempt, not Can’t`);
+      const other = bands.find(x => x.rec[q.attempt.match] !== q.goal[q.attempt.match]);
+      const elsewhere = play(p, fresh, ...draw(q, [other.loop]));
+      assert.ok(['dot', 'corner', 'clear'].includes(nextHint(p, elsewhere).action.type), `${p.id}: a band that is not yet relevant gets a band move`);
+      refuse(p, elsewhere, {type: 'count'}, 'Pick’s count before the band is relevant');
+      for (const band of bands.filter(x => x.rec[q.attempt.match] === q.goal[q.attempt.match]).slice(0, 3).map(x => play(p, fresh, ...draw(q, [x.loop]))).concat([tried])) {
+        mech.reset(p);
+        const count = nextHint(p, band);
+        assert.deepEqual(count.action, {type: 'count'}, `${p.id}: Pick’s count after a relevant band`);
+        assert.ok(!/Can’t|at least|whole/.test(count.text) && count.text.includes('Pick’s rule needs'), `${p.id}: the count hint gives the count alone: ${count.text}`);
+        assert.equal(move(p, band, count.action), band, `${p.id}: the count move leaves the board`);
+        const last = nextHint(p, band);
+        assert.deepEqual(last.action, {type: 'cant', value: forced}, `${p.id}: then Can’t`);
+        assert.match(last.text, /Press Can’t\.$/, `${p.id}: the last hint names Can’t`);
+        assert.ok(isSolved(p, move(p, band, last.action).board), `${p.id}: and solves`);
+      }
+      mech.reset(p);
+      hintSteps += followHints(p, fresh) + followHints(p, wrong) + followHints(p, open) + followHints(p, elsewhere);
       for (const [board, why] of [[{...fresh.board, claimed: forced}, 'a claim with no band tried'], [{...tried.board, claimed: forced + .5}, 'a claim of the wrong number'], [{...tried.board, claimed: forced, refused: forced + .5}, 'a claim and a refusal together'], [{...tried.board, refused: forced}, 'Pick’s number refused']]) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
       counts[p.id] = {cant: {[hidden]: forced}};
     }

@@ -81,7 +81,7 @@ test('a band: start, stretch, take back, close, move a corner, clear; refusals c
   assert.equal(move(p, slanted, {type: 'clear'}), null, 'no move after the solve');
 });
 
-test('taps: a corner is picked up and put down, a refused tap names its clash, hole puzzles start holes on inside dots', () => {
+test('taps: a corner is picked up and put down, a stale hold is ignored, a refused tap names its clash, hole puzzles start holes on inside dots', () => {
   const p = byId('geoboard-11'), q = p.parameters, d = pt => dotOf(q, pt);
   const a = play(p, freshAttempt(p), ...draw(q, [[0, 0], [4, 0], [4, 4], [0, 4]]));
   const view0 = {held: null, pick: null, cant: false, value: null};
@@ -90,7 +90,17 @@ test('taps: a corner is picked up and put down, a refused tap names its clash, h
   assert.deepEqual(tapAction(q, a.board, {...view0, held: [0, 2]}, d([5, 5])), {move: {type: 'corner', loop: 0, index: 2, to: d([5, 5])}});
   assert.deepEqual(tapAction(q, a.board, view0, d([1, 1])), {move: {type: 'dot', at: d([1, 1])}}, 'an inside dot starts a hole');
   assert.equal(tapAction(q, a.board, view0, d([2, 0])), null, 'a side dot does nothing');
+  // A hold whose corner is gone (Undo took the band back, or a band is open) is ignored.
+  const stale = {...view0, held: [0, 2]}, back = undo(a);
+  assert.deepEqual(tapAction(q, back.board, stale, d([2, 2])), {move: {type: 'dot', at: d([2, 2])}}, 'a stale hold is ignored while a band is open');
+  assert.deepEqual(tapAction(q, freshAttempt(p).board, stale, d([2, 2])), {move: {type: 'dot', at: d([2, 2])}}, 'and on an empty board');
+  mech.reset(p);
+  mech.ui(p, {held: [0, 2]});
+  assert.match(view(p, a, true), /A corner is picked up\./);
+  mech.carry(p, a.board, back.board);
+  assert.doesNotMatch(view(p, back, true), /A corner is picked up\.|class="geo-held"/, 'Undo lets go of a held corner');
   const started = play(p, a, {type: 'dot', at: d([1, 1])});
+  assert.match(view(p, started), /Area 16, 9 inside dots, 16 outline dots\. Hole with 1 corner\./, 'the outline keeps its counts while a hole is stretched');
   const t = tapAction(q, started.board, view0, d([0, 1]));
   assert.equal(t.refuse.why, 'clash', 'a hole side to the outline is refused');
   assert.deepEqual(t.refuse.at, [0, 1]);
@@ -120,7 +130,8 @@ test('Can’t: only after a band is tried; set Pick’s number; a wrong number g
   assert.equal(wrong.board.refused, 3);
   assert.ok(!isSolved(p, wrong.board));
   html = view(p, wrong);
-  assert.match(html, /class="geo-note"><span class="geo-eq"[^>]*aria-label="6 \+ 3 ÷ 2 − 1 = 6½"/, 'the refusal shows Pick’s rule with that number');
+  assert.match(html, /<p class="geo-note">3 outline dots don’t fit Pick’s rule\.<\/p>/, 'one short refusal');
+  assert.doesNotMatch(html, /class="geo-eq|class="geo-proof/, 'with no rule worked out and no reason');
   assert.equal(move(p, wrong, {type: 'cant', value: 3}), null, 'the same number again');
   const back = undo(wrong);
   assert.equal(mech.carry(p, wrong.board, back.board).refused, 3, 'Undo keeps the refusal');
@@ -133,6 +144,13 @@ test('Can’t: only after a band is tried; set Pick’s number; a wrong number g
   const t5 = play(possible, freshAttempt(possible), ...draw(pq, [[0, 0], [3, 0], [3, 2], [0, 2]]), {type: 'cant', value: 5});
   assert.ok(!isSolved(possible, t5.board));
   assert.match(view(possible, t5), /<p class="geo-note">It can be done\.<\/p>/, 'a possible goal’s Can’t is refused');
+  // Puzzle 9 (area hidden, 6½ possible): a wrong area is refused in the child's own number, never Pick's.
+  const p9 = byId('geoboard-09'), t9 = play(p9, freshAttempt(p9), ...draw(p9.parameters, [[0, 0], [3, 0], [0, 3]]));
+  const w9 = play(p9, t9, {type: 'cant', value: 7});
+  html = view(p9, w9);
+  assert.match(html, /<p class="geo-note">Area 7 doesn’t fit Pick’s rule\.<\/p>/);
+  assert.doesNotMatch(html, /6½|class="geo-eq/, 'Pick’s area is not given away');
+  assert.match(view(p9, play(p9, t9, {type: 'cant', value: 6.5})), /<p class="geo-note">It can be done\.<\/p>/);
   assert.equal(move(byId('geoboard-03'), play(byId('geoboard-03'), freshAttempt(byId('geoboard-03')), ...draw(byId('geoboard-03').parameters, [[0, 0], [3, 0], [0, 3]])), {type: 'cant', value: 0}), null, 'no Can’t where it is not offered');
 });
 
@@ -192,30 +210,68 @@ test('cuts: ends on the outline, clear of it between; seam dots move from inside
   assert.equal((view(p, a).match(/geo-ring changed/g) || []).length, 3);
 });
 
-test('hints: alone they solve every puzzle; impossible goals make an attempt before Can’t; fast and memoised', () => {
+test('hints: alone they solve every puzzle; impossible goals build an attempt, then give Pick’s count, then Can’t; memoised', () => {
   for (const p of json.puzzles.filter(p => p.band !== 'playground')) {
+    mech.reset(p);
     let a = freshAttempt(p), steps = 0;
     const first = nextHint(p, a);
-    assert.notEqual(first.action?.type, 'cant', `${p.id}: “Press Can’t” is never the first hint`);
+    assert.ok(!['cant', 'count'].includes(first.action?.type), `${p.id}: “Press Can’t” is never the first hint`);
     while (!isSolved(p, a.board)) {
-      const t = performance.now(), h = nextHint(p, a);
-      assert.ok(performance.now() - t < 100, `${p.id}: a hint in under 100 ms`);
+      const h = nextHint(p, a);
       assert.equal(h.type, 'move');
       a = move(p, a, h.action);
       assert.ok(a && ++steps < 200, `${p.id}: hint ${steps} is legal`);
     }
   }
   const p = byId('geoboard-10'), q = p.parameters;
+  // Right after a closed band that is not yet relevant (here 4 outline dots), the hints keep building.
+  mech.reset(p);
+  const square = play(p, freshAttempt(p), ...draw(q, [[0, 0], [1, 0], [1, 1], [0, 1]]));
+  assert.ok(['dot', 'corner', 'clear'].includes(nextHint(p, square).action.type), 'a band move, not the certificate');
+  assert.match(nextHint(p, square).text, /^Try a triangle with 3 outline dots and an area near 5\. /);
+  // With 3 outline dots: Pick's count alone; applying it fills the goal's empty box.
   const tried = play(p, freshAttempt(p), ...draw(q, [[0, 0], [4, 1], [1, 3]]));
   const h = nextHint(p, tried);
-  assert.deepEqual(h.action, {type: 'cant', value: 4.5});
-  assert.match(h.text, /^Pick’s rule would need 4½ inside dots, and inside dots come whole\. Press Can’t/, 'the reason comes before the claim');
+  assert.deepEqual(h.action, {type: 'count'});
+  assert.equal(h.text, 'With area 5 and 3 outline dots, Pick’s rule needs 4½ inside dots: 4½ + 3 ÷ 2 − 1 = 5.');
   assert.equal(nextHint(p, tried), h, 'memoised');
-  const level2 = view(p, {...tried, hintLevel: 2});
-  assert.match(level2, /geo-cant hinted/, 'level 2 marks Can’t');
+  assert.doesNotMatch(view(p, {...tried, hintLevel: 2}), /geo-cant hinted/, 'the count marks no button');
+  assert.equal(move(p, tried, h.action), tried, 'applying it leaves the board');
+  assert.match(view(p, tried, true), /<b aria-live="polite">4½</, 'and fills the goal’s empty box');
+  // Only then the reason with Can't.
+  const last = nextHint(p, tried);
+  assert.deepEqual(last.action, {type: 'cant', value: 4.5});
+  assert.equal(last.text, 'Inside dots come in whole numbers. Press Can’t.');
+  assert.match(view(p, {...tried, hintLevel: 2}, true), /geo-cant hinted/, 'level 2 marks Can’t');
+  mech.reset(p);
+  mech.ui(p, {cant: true});
+  assert.equal(nextHint(p, tried).text, 'Inside dots come in whole numbers. Set 4½, then press Can’t.', 'Can’t opened by the child');
+  mech.reset(p);
+  assert.equal(move(byId('geoboard-05'), play(byId('geoboard-05'), freshAttempt(byId('geoboard-05')), ...draw(byId('geoboard-05').parameters, [[0, 0], [3, 0], [3, 2], [0, 2]])), {type: 'count'}), null, 'no count move on a possible goal');
   const p1 = byId('geoboard-01');
   assert.match(view(p1, {...freshAttempt(p1), hintLevel: 2}), /sg-point hinted/, 'level 2 marks the dot');
   for (const p of json.puzzles) for (const text of [p.title, p.hints[0]]) assert.doesNotMatch(text, /hole|Can’t/i, `${p.id}: the title and first hint give nothing away`);
+});
+
+test('hints are fast: a hint not yet memoised, fastest of three, after the first hint has warmed the witness placements', () => {
+  for (const p of json.puzzles.filter(p => p.band !== 'playground')) {
+    mech.reset(p);
+    let a = freshAttempt(p), steps = 0;
+    nextHint(p, a);
+    while (!isSolved(p, a.board)) {
+      let best = Infinity;
+      // A copy with another id misses the memo, so each run computes the hint again.
+      for (let run = 0; run < 3; run++) {
+        const copy = {...p, id: `${p.id}~${steps}~${run}`}, t = performance.now();
+        nextHint(copy, a);
+        best = Math.min(best, performance.now() - t);
+      }
+      assert.ok(best < 100, `${p.id}: hint ${steps} took ${best.toFixed(1)} ms`);
+      a = move(p, a, nextHint(p, a).action);
+      assert.ok(a && ++steps < 200);
+    }
+    mech.reset(p);
+  }
 });
 
 test('rendering: the board shows the task, goal and record; focus never lands on Can’t or That’s all', () => {

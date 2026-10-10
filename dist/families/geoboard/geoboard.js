@@ -443,20 +443,34 @@ function buildHint(q, b, witnesses) {
   return {type: 'move', action: {type: 'clear'}, text: 'Clear the bands and start again.', button: 'clear'};
 }
 const fmt = v => { const whole = Math.floor(v), half = v - whole ? '½' : ''; return whole || !half ? `${whole}${half}` : half; };
-const NOUN = {area: 'area', inside: 'inside dots', outline: 'outline dots'};
-const LACK = {area: 'every band has some area.', inside: 'inside dots come whole.', outline: 'every band has at least 3.'};
+const NOUN = {area: 'area', inside: 'inside dot', outline: 'outline dot'};
+// "area 6", "2 outline dots", "1 inside dot".
+const amount = (k, v) => k === 'area' ? `area ${fmt(v)}` : `${fmt(v)} ${NOUN[k]}${v === 1 ? '' : 's'}`;
+const REASON = {outline: 'Every band has at least 3 outline dots.', inside: 'Inside dots come in whole numbers.', area: 'Every band has some area.'};
+// An impossible goal (Pick's number is no count of dots).
+const impossible = q => q.mode === 'target' && Boolean(q.cant) && !countable(hiddenOf(q.goal), forcedOf(q.goal));
+// The band an impossible goal's hints build towards: closed, and matching the
+// goal in the quantity its attempt names (area 6 in puzzle 8, 3 outline dots in 10).
+const relevant = (q, b) => { const rec = closedRecord(sizeOf(q, b), b); return Boolean(rec && q.attempt && rec[q.attempt.match] === q.goal[q.attempt.match]); };
+// Pick's count for the goal, without the reason or Can't.
+function countText(goal, k, v) {
+  const val = {...goal, [k]: v}, given = QUANTITIES.filter(x => x !== k).map(x => amount(x, goal[x])).join(' and ');
+  return `With ${given}, Pick’s rule needs ${amount(k, v)}: ${fmt(val.inside)} + ${fmt(val.outline)} ÷ 2 − 1 = ${fmt(val.area)}.`;
+}
 function plan(p, b) {
   const q = p.parameters, s = sizeOf(q, b);
   if (q.mode === 'cut') {
     const w = q.witnesses[0], [a, c] = w.cut.map(pt => dotOf(s, pt));
     return {type: 'move', action: {type: 'cut', a: Math.min(a, c), b: Math.max(a, c)}, text: w.text, dots: [a, c]};
   }
-  if (q.mode === 'target' && q.cant && !countable(hiddenOf(q.goal), forcedOf(q.goal))) {
-    // An impossible goal: first an attempt on the board, then the reason
-    // with the claim.
-    const k = hiddenOf(q.goal), v = forcedOf(q.goal);
-    if (!closedRecord(s, b)) { const step = buildHint(q, b, q.attempt.shapes); return {...step, text: `${q.attempt.text} ${step.text}`}; }
-    return {type: 'move', action: {type: 'cant', value: v}, text: `Pick’s rule would need ${k === 'area' ? `area ${fmt(v)}` : `${fmt(v)} ${NOUN[k]}`}, and ${LACK[k]} Press Can’t, set ${fmt(v)}, then press Can’t again.`, button: 'cant'};
+  if (impossible(q)) {
+    // An impossible goal: build the authored attempt until the band is
+    // relevant, then Pick's count alone (applying it fills the goal's empty
+    // box), and only then the reason with Can't.
+    const k = hiddenOf(q.goal), v = forcedOf(q.goal), view = ui(p);
+    if (!relevant(q, b)) { const step = buildHint(q, b, q.attempt.shapes); return {...step, text: `${q.attempt.text} ${step.text}`}; }
+    if (!view.cant) return {type: 'move', action: {type: 'count'}, text: countText(q.goal, k, v)};
+    return {type: 'move', action: {type: 'cant', value: v}, text: `${REASON[k]} ${view.value === v ? 'Press Can’t.' : `Set ${fmt(v)}, then press Can’t.`}`, button: 'cant'};
   }
   if (q.mode === 'every') {
     const have = new Set(foundRecords(s, b.found).map(recordKey)), left = q.witnesses.filter(w => !have.has(w.record.join()));
@@ -470,7 +484,8 @@ const hintMemo = new Map();
 function hint(p, b) {
   const q = p.parameters;
   if (q.mode === 'playground' || !valid(p, b) || solved(p, b)) return {type: 'done'};
-  const key = `${p.id}|${JSON.stringify(b)}`;
+  // An impossible goal's last two hints depend on whether Can't is open.
+  const view = ui(p), key = `${p.id}|${JSON.stringify(b)}${impossible(q) ? `|${view.cant}|${view.value}` : ''}`;
   if (!hintMemo.has(key)) { if (hintMemo.size > 400) hintMemo.clear(); hintMemo.set(key, plan(p, b)); }
   return hintMemo.get(key);
 }
@@ -494,9 +509,12 @@ export function tapAction(q, b, view, d) {
     return problem ? {refuse: {...problem, sides: [[xyOf(s, view.pick), xyOf(s, d)]]}} : {move: {type: 'cut', a: Math.min(view.pick, d), b: Math.max(view.pick, d)}};
   }
   const tryMove = action => { const next = bandMove(q, b, action); return !next ? null : next.problem ? {refuse: next.problem, action} : {move: action}; };
-  if (view.held) {
-    const [k, i] = view.held;
-    if (b.loops[k]?.[i] === d) return {ui: {held: null}};
+  // A hold counts only while its corner is still there (Undo or a hint may
+  // have taken the band away).
+  const held = view.held && !b.open.length && b.loops[view.held[0]]?.[view.held[1]] !== undefined ? view.held : null;
+  if (held) {
+    const [k, i] = held;
+    if (b.loops[k][i] === d) return {ui: {held: null}};
     return tryMove({type: 'corner', loop: k, index: i, to: d});
   }
   if (b.open.length) return tryMove({type: 'dot', at: d});
@@ -576,20 +594,20 @@ const button = (label, action, focus, opts = {}) => {
   const data = action.ui ? `data-action="mechanic-ui" data-ui='${esc(JSON.stringify(action.ui))}'` : `data-action="expansion-move" data-move="${esc(JSON.stringify(action))}"`;
   return `<button type="button" class="secondary geo-button ${opts.cls || ''}${opts.hinted ? ' hinted' : ''}" ${data} data-focus="${focus}"${opts.pressed !== undefined ? ` aria-pressed="${opts.pressed}"` : ''}${opts.label ? ` aria-label="${esc(opts.label)}"` : ''} ${opts.disabled ? 'disabled' : ''}>${label}</button>`;
 };
-// Pick's rule with the numbers in: the argument shown for a claim.
+// Pick's rule with the numbers in: the argument shown after a right claim,
+// the claimed number outlined.
 function equation(goal, k, v) {
-  const val = {...goal, [k]: v}, I = k === 'area' ? goal.inside : val.inside, B = val.outline, A = I + B / 2 - 1;
-  const n = (q, x, cls = '') => `<span class="geo-eq-n ${cls}">${ICONS[q]}${fmt(x)}</span>`;
-  const right = k === 'area' ? n('area', A, A === v ? '' : 'off') : n('area', A, A === goal.area ? '' : 'off');
-  return `<span class="geo-eq" role="img" aria-label="${fmt(I)} + ${fmt(B)} ÷ 2 − 1 = ${fmt(A)}">${n('inside', I, k === 'inside' ? 'claim' : '')} + ${n('outline', B, k === 'outline' ? 'claim' : '')} ÷ 2 − 1 = ${right}</span>`;
+  const val = {...goal, [k]: v}, n = x => `<span class="geo-eq-n${x === k ? ' claim' : ''}">${ICONS[x]}${fmt(val[x])}</span>`;
+  return `<span class="geo-eq" role="img" aria-label="${fmt(val.inside)} + ${fmt(val.outline)} ÷ 2 − 1 = ${fmt(val.area)}">${n('inside')} + ${n('outline')} ÷ 2 − 1 = ${n('area')}</span>`;
 }
-const REASON = {outline: 'Every band has at least 3 outline dots.', inside: 'Inside dots come in whole numbers.', area: 'Every band has some area.'};
-
+// One short refusal for a wrong claim: no rule worked out, no right number.
+const refusalText = (goal, k, v) => v === forcedOf(goal) ? 'It can be done.' : `${amount(k, v).replace(/^a/, 'A')} ${k === 'area' || v === 1 ? 'doesn’t' : 'don’t'} fit Pick’s rule.`;
 function renderBands(p, a) {
   const q = p.parameters, b = a.board, s = sizeOf(q, b), done = solved(p, b), view = ui(p), play = q.mode === 'playground';
   const h = !play && !done && a.hintLevel >= 2 ? hint(p, b) : null;
-  const rec = closedRecord(s, b), dots = rec ? dotsOf(s, b.loops) : null;
-  const heldDot = view.held ? b.loops[view.held[0]]?.[view.held[1]] : undefined;
+  // While a hole is being stretched the closed bands keep their counts.
+  const rec = closedRecord(s, b), shown = rec || (b.loops.length ? recordOf(s, b.loops) : null), dots = shown ? dotsOf(s, b.loops) : null;
+  const heldDot = view.held && !b.open.length ? b.loops[view.held[0]]?.[view.held[1]] : undefined;
   const corners = new Set(b.open.length ? [] : b.loops.flat());
   const act = done ? null : d => {
     const t = tapAction(q, b, view, d);
@@ -605,7 +623,7 @@ function renderBands(p, a) {
     label: `Geoboard, ${s.w} by ${s.h} dots`
   });
   const cols = [...QUANTITIES, ...(holesOn(q) && (q.mode === 'playground' || q.goal.area !== undefined && hiddenOf(q.goal) === undefined) ? ['holes'] : [])];
-  const goal = q.goal || null, live = rec ? {...rec} : null;
+  const goal = q.goal || null, live = shown ? {...shown} : null;
   // Can't: the quantity the goal leaves out becomes a stepper.
   const k = goal && q.cant ? hiddenOf(goal) : null;
   const stepping = k && view.cant && !done && rec;
@@ -628,7 +646,7 @@ function renderBands(p, a) {
   const sizes = play ? `<div class="geo-sizes" role="group" aria-label="Board">${PLAY_SIZES.map(n => button(`${n}`, {type: 'size', size: n}, `geo-size-${n}`, {cls: 'geo-size', pressed: b.size === n, label: `${n} by ${n} dots`})).join('')}</div>` : '';
   // Notes: a refused claim, the argument after a right one, That's all.
   let note = '';
-  if (q.mode === 'target' && b.refused !== null) note = b.refused === forcedOf(goal) ? '<p class="geo-note">It can be done.</p>' : `<p class="geo-note">${equation(goal, k, b.refused)}</p>`;
+  if (q.mode === 'target' && b.refused !== null) note = `<p class="geo-note">${refusalText(goal, k, b.refused)}</p>`;
   if (q.mode === 'target' && b.claimed !== null) note = `<p class="geo-proof">${equation(goal, k, b.claimed)}<span>${REASON[k]}</span></p>`;
   if (q.mode === 'every' && b.told === 'more') note = '<p class="geo-note">There is another.</p>';
   let shelf = '';
@@ -643,8 +661,8 @@ function renderBands(p, a) {
     const after = done ? chip({inside: nextI, outline: nextB}, '<svg class="geo-mini geo-slot" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4L16 16M16 4L4 16"/></svg>', 'struck') : '';
     shelf = `<ol class="geo-shelf geo-records" aria-label="Counts found: ${recs.map(r => `${r.inside} inside and ${r.outline} outline`).join('; ')}${done ? `; not ${nextI} inside and ${nextB} outline` : ''}">${recs.map((r, i) => chip(r, mini(s, b.found[i], `${r.inside} inside, ${r.outline} outline`))).join('')}${after}</ol>${done ? `<p class="geo-proof"><span>${REASON.outline}</span></p>` : ''}`;
   }
-  const refusal = q.mode === 'target' && b.refused !== null ? (b.refused === forcedOf(goal) ? 'It can be done.' : `${fmt(b.refused)} does not fit Pick’s rule.`) : '';
-  const status = [refusal, rec ? `Area ${fmt(rec.area)}, ${words(rec.inside, 'inside dot')}, ${words(rec.outline, 'outline dot')}${rec.holes ? `, ${words(rec.holes, 'hole')}` : ''}.` : b.open.length ? `Band with ${words(b.open.length, 'corner')}.` : 'No band.', view.held ? 'A corner is picked up.' : '', b.told === 'more' ? 'There is another.' : ''].filter(Boolean).join(' ');
+  const refusal = q.mode === 'target' && b.refused !== null ? refusalText(goal, k, b.refused) : '';
+  const status = [refusal, shown ? `Area ${fmt(shown.area)}, ${words(shown.inside, 'inside dot')}, ${words(shown.outline, 'outline dot')}${shown.holes ? `, ${words(shown.holes, 'hole')}` : ''}.` : '', b.open.length ? `${b.loops.length ? 'Hole' : 'Band'} with ${words(b.open.length, 'corner')}.` : shown ? '' : 'No band.', heldDot !== undefined ? 'A corner is picked up.' : '', b.told === 'more' ? 'There is another.' : ''].filter(Boolean).join(' ');
   return `<div class="geo-puzzle mode-${q.mode}${done ? ' solved' : ''}" data-mechanic-wire="geoboard">${sizes}<div class="geo-top">${table}<span class="geo-buttons">${btns.join('')}</span></div><div class="geo-stage" style="--geo-w:${s.w}">${svg}</div>${note}${shelf}<p class="sr-only geo-status" role="status">${esc(status)}</p></div>`;
 }
 
@@ -738,11 +756,28 @@ function wire(root, p, api) {
       if (el) { e.preventDefault(); el.focus(); return; }
     }
   });
+  const toBoard = e => { const m = svg.getScreenCTM?.(); if (!m) return null; const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const r = pt.matrixTransform(m.inverse()); return [r.x / UNIT, s.h - 1 - r.y / UNIT]; };
+  const nearest = ([x, y], reach = .45) => { const rx = Math.round(x), ry = Math.round(y); return rx >= 0 && ry >= 0 && rx < s.w && ry < s.h && Math.hypot(x - rx, y - ry) < reach ? dotOf(s, [rx, ry]) : null; };
+  // A tap between dots goes to the nearest dot (within half a square), if
+  // that dot does something; a tap on a dot is the shared grid's.
+  let gap = null;
+  svg.addEventListener('pointerdown', e => {
+    gap = e.button > 0 || !e.isPrimary || e.target.closest('[data-sg-point]') ? null : {pointer: e.pointerId, x: e.clientX, y: e.clientY};
+  });
+  svg.addEventListener('pointerup', e => {
+    const press = gap;
+    gap = null;
+    if (!press || e.pointerId !== press.pointer || Math.hypot(e.clientX - press.x, e.clientY - press.y) >= 12) return;
+    const pos = toBoard(e), d = pos ? nearest(pos, .5) : null;
+    if (d === null) return;
+    const [x, y] = xyOf(s, d);
+    if (!svg.querySelector(`[data-sg-point="${g.pointIndex.get(`${x},${s.h - 1 - y}`)}"][role="button"]`)) return;
+    const action = run(d);
+    if (action) api.apply(action);
+  });
   if (q.mode === 'cut') return;
   // Dragging a corner of a closed band to another dot moves it there.
   let drag = null;
-  const toBoard = e => { const m = svg.getScreenCTM?.(); if (!m) return null; const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const r = pt.matrixTransform(m.inverse()); return [r.x / UNIT, s.h - 1 - r.y / UNIT]; };
-  const nearest = ([x, y]) => { const rx = Math.round(x), ry = Math.round(y); return rx >= 0 && ry >= 0 && rx < s.w && ry < s.h && Math.hypot(x - rx, y - ry) < .45 ? dotOf(s, [rx, ry]) : null; };
   svg.addEventListener('pointerdown', e => {
     const el = e.target.closest('[data-sg-point]'), b = board();
     if (!el || e.button > 0 || !e.isPrimary || b.open.length || solved(p, b)) return;
@@ -783,6 +818,14 @@ export const geoboardMechanics = {
   geoboard: {
     fresh, valid, solved, hint, render, wire,
     move(p, b, action) {
+      // Applying the Pick's-count hint of an impossible goal fills the goal's
+      // empty box with that number; the board stays as it is.
+      if (object(action) && action.type === 'count') {
+        const q = p.parameters;
+        if (!impossible(q) || !valid(p, b) || solved(p, b) || !relevant(q, b)) return null;
+        Object.assign(ui(p), {held: null, pick: null, cant: true, value: forcedOf(q.goal)});
+        return b;
+      }
       const next = move(p, b, action);
       if (next) calm(p);
       return next;
@@ -800,6 +843,8 @@ export const geoboardMechanics = {
     // found stay, a refused Can't stays refused, and That's all keeps waiting.
     carry(p, from, to) {
       const q = p.parameters;
+      // A corner held, a cut begun or Can't open belongs to the board undone.
+      calm(p);
       if (!object(from) || !object(to)) return to;
       if (q.mode === 'pair' && Array.isArray(from.found)) return {...to, found: from.found.map((l, k) => l || to.found[k])};
       if (q.mode === 'every' && Array.isArray(from.found)) return {...to, found: from.found, told: from.told};

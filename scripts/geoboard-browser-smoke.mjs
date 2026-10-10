@@ -1,11 +1,13 @@
 // Plays Geoboard through the real interface on the shared square grid:
 // stretching a band by taps, a refused side that touches the band (it flashes
 // and nothing changes), taking back a corner, closing, picking up a corner
-// and moving it, a corner drag, Undo, Enter and arrow keys, a solve; Can't
-// waiting for a band, the stepper, a wrong claim kept by Undo and a right
-// claim with its argument; That's all refused with no count shown; a cut with
-// its seam dots and a refused cut; a hole; hints; the playground's sizes; and
-// no page overflow. Same environment variables as the other browser suites
+// and moving it, a picked-up corner let go by Undo, a corner drag, a tap
+// between dots going to the nearest dot, Enter and arrow keys, a solve; Can't
+// waiting for a band, the stepper, a wrong claim with one short refusal kept
+// by Undo and a right claim with its argument; That's all refused with no
+// count shown; a cut with its seam dots and a refused cut; a hole; hints,
+// including an impossible goal's attempt, Pick's count and Can't; the
+// playground's sizes; and no page overflow. Same environment variables as the other browser suites
 // (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone
 // with touch). Screenshots go in test-results/geoboard/.
 import assert from 'node:assert/strict';
@@ -31,14 +33,18 @@ const taps = async (...pts) => { for (const pt of pts) await tap(pt); };
 const band = async (...pts) => taps(...pts, pts[0]);
 const button = name => page.locator('.geo-puzzle button', {hasText: name});
 let cdp = null;
+// The screen position of a place on the board (x across, y up), dot or not.
+const screenAt = pt => page.evaluate(([x, y]) => {
+  const svg = document.querySelector('.geo-board'), m = svg.getScreenCTM(), vb = svg.viewBox.baseVal, rows = Math.round((vb.height + vb.y * 2) / 10);
+  const p = svg.createSVGPoint(); p.x = x * 10; p.y = (rows - y) * 10;
+  const r = p.matrixTransform(m); return [r.x, r.y];
+}, pt);
+// A tap at a place on the board that need not be a dot.
+const tapAt = async pt => { await page.locator('.geo-board').scrollIntoViewIfNeeded(); const [x, y] = await screenAt(pt); if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); };
 async function drag(from, to) {
   await page.locator('.geo-board').scrollIntoViewIfNeeded();
   // The target need not be a control, so it is found by its place on the board.
-  const target = await page.evaluate(([x, y]) => {
-    const svg = document.querySelector('.geo-board'), m = svg.getScreenCTM(), vb = svg.viewBox.baseVal, rows = Math.round((vb.height + vb.y * 2) / 10);
-    const pt = svg.createSVGPoint(); pt.x = x * 10; pt.y = (rows - y) * 10;
-    const r = pt.matrixTransform(m); return [r.x, r.y];
-  }, to);
+  const target = await screenAt(to);
   const points = [await center(dot(from)), target];
   assert.ok(points.every(([, y]) => y > 0 && y < page.viewportSize().height), 'the drag is on screen');
   if (!phone) {
@@ -86,11 +92,27 @@ try {
   assert.deepEqual((await board(P1)).loops[0][0], D(w1, [1, 0]), 'and moved');
   await page.locator('[data-action="undo"]').click();
   assert.deepEqual((await board(P1)).loops[0][0], D(w1, [0, 0]), 'Undo puts it back');
+  // A corner picked up, then Undo (which reopens the band): the next tap still works.
+  await tap([0, 0]);
+  assert.equal(await page.locator('.geo-board .geo-held').count(), 1, 'a corner is picked up again');
+  await page.locator('[data-action="undo"]').click();
+  b = await board(P1);
+  assert.deepEqual([b.loops.length, b.open.length], [0, 4], 'Undo reopens the band');
+  assert.equal(await page.locator('.geo-board .geo-held').count(), 0, 'and lets go of the corner');
+  await tap([0, 0]);
+  assert.deepEqual([(await board(P1)).loops.length, (await board(P1)).open.length], [1, 0], 'a tap after Undo closes the band');
   await drag([2, 2], [3, 3]);
   assert.ok((await board(P1)).loops[0].includes(D(w1, [3, 3])), 'a corner drags to another dot');
   await page.locator('[data-action="undo"]').click();
   await button('Clear').click();
   assert.deepEqual((await board(P1)).loops, [], 'Clear');
+  // A tap between dots goes to the nearest dot; one in the middle of a square does nothing.
+  await tapAt([2.5, 2.5]);
+  assert.deepEqual((await board(P1)).open, [], 'a tap in the middle of a square does nothing');
+  await tapAt([2.3, 2.7]);
+  assert.deepEqual((await board(P1)).open, [D(w1, [2, 3])], 'a tap near a dot goes to it');
+  await tap([2, 3]);
+  assert.deepEqual((await board(P1)).open, [], 'and is taken back');
   await dot([1, 0]).focus(); await page.keyboard.press('Enter');
   assert.deepEqual((await board(P1)).open, [D(w1, [1, 0])], 'Enter taps a dot');
   assert.ok(await activeIsSafe(), 'focus stays on the board');
@@ -111,10 +133,12 @@ try {
   assert.ok(await page.evaluate(() => document.activeElement?.getAttribute('aria-label') === 'More'), 'opening Can’t moves focus to +');
   for (let i = 0; i < 7; i++) await page.getByRole('button', {name: 'More'}).click();
   assert.equal(await page.locator('.geo-step b').textContent(), '3');
+  assert.ok(await page.evaluate(() => getComputedStyle(document.querySelector('.geo-step b')).color === getComputedStyle(document.querySelector('.geo-record')).color), 'the number set is in plain ink');
   await shot('cant-stepper');
   await button('Can’t').click();
   assert.equal((await board(P8)).refused, 3, 'a wrong number is refused');
-  assert.match(await page.locator('.geo-note').getAttribute('class'), /geo-note/);
+  assert.equal(await page.locator('.geo-note').textContent(), '3 outline dots don’t fit Pick’s rule.', 'with one short refusal');
+  assert.equal(await page.locator('.geo-eq').count(), 0, 'and no rule worked out');
   assert.ok(await activeIsSafe(), 'focus after a claim is not on Can’t');
   await page.locator('[data-action="undo"]').click();
   b = await board(P8);
@@ -166,6 +190,22 @@ try {
   assert.equal(await page.locator('.geo-board .sg-point.hinted').count(), 1, 'a hinted dot');
   await page.getByRole('button', {name: 'Apply hint'}).click();
   assert.equal((await board(P3)).open.length, 1, 'Apply hint starts the band');
+
+  // An impossible goal: after the attempt, Pick's count alone, then Can't.
+  const P10 = 'geoboard-10';
+  await open(P10);
+  await band([0, 0], [4, 1], [1, 3]);
+  for (let i = 0; i < 3; i++) await page.getByRole('button', {name: 'Hint', exact: true}).click();
+  assert.equal(await page.locator('.hint-card p').textContent(), 'With area 5 and 3 outline dots, Pick’s rule needs 4½ inside dots: 4½ + 3 ÷ 2 − 1 = 5.');
+  assert.equal(await page.locator('.geo-cant.hinted').count(), 0, 'the count marks no button');
+  await page.getByRole('button', {name: 'Apply hint'}).click();
+  assert.equal(await page.locator('.geo-step b').textContent(), '4½', 'applying it fills the goal’s empty box');
+  assert.equal(await page.locator('.hint-card p').textContent(), 'Inside dots come in whole numbers. Press Can’t.');
+  assert.equal(await page.locator('.geo-cant.hinted').count(), 1, 'Can’t is marked');
+  assert.ok(await activeIsSafe(), 'focus is not on Can’t');
+  await page.getByRole('button', {name: 'Apply hint'}).click();
+  await done();
+  assert.match(await page.locator('.geo-proof').textContent(), /Inside dots come in whole numbers\./);
 
   // The playground: sizes, no Hint.
   await open('geoboard-playground'); await fit('playground');

@@ -24,7 +24,7 @@
 .geo-record td.geo-cell.match{background:var(--b-good-soft,#e2ecd6);border-color:var(--b-good,#3c7a4a);color:var(--b-good,#3c7a4a);font-weight:600}
 .geo-record td.geo-cell.geo-hidden{color:var(--b-muted,#5a6850);padding:2px}
 .geo-step{display:inline-flex;align-items:center;gap:.3rem}
-.geo-step b{min-width:1.8rem;font-weight:600;color:var(--b-bad,#a9503a)}
+.geo-step b{min-width:1.8rem;font-weight:600;color:var(--b-ink,#294439)}
 .geo-puzzle .geo-step .geo-button{min-width:40px;min-height:40px;padding:0 8px;font-size:1.15rem}
 .geo-icon{display:inline-block;width:22px;height:22px;vertical-align:middle;overflow:visible}
 .geo-icon-wide{width:32px}
@@ -68,14 +68,13 @@
 @keyframes geo-fade{0%,70%{opacity:1}to{opacity:0}}
 @media (prefers-reduced-motion:reduce){.geo-board .geo-refuse{animation:none}}
 
-/* Notes: a refused claim, the argument for a right one. */
+/* Notes: a refused claim (one short line), the argument after a right one. */
 .geo-note,.geo-proof{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.3rem .7rem;margin:0;font-weight:600;text-align:center}
 .geo-note{color:var(--b-bad,#a9503a)}
 .geo-proof{color:var(--b-good,#3c7a4a)}
 .geo-eq{display:inline-flex;flex-wrap:wrap;align-items:center;gap:.3rem;font-family:var(--b-display,Georgia,serif);font-size:1.1rem;color:var(--b-ink,#294439)}
 .geo-eq-n{display:inline-flex;align-items:center;gap:.15rem;padding:1px 6px;border-radius:7px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd)}
 .geo-eq-n.claim{border-color:var(--b-ink,#294439)}
-.geo-eq-n.off{border-color:var(--b-bad,#a9503a);color:var(--b-bad,#a9503a)}
 
 /* The shelf: shapes made, or the records found. */
 .geo-shelf{display:flex;flex-wrap:wrap;justify-content:center;gap:.45rem;max-width:30rem;list-style:none;margin:0;padding:0}

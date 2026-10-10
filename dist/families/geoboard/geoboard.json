@@ -324,7 +324,7 @@
    "parent": {
     "notice": "Whether your child compares the area of the two shapes once both are made.",
     "prompt": "The two shapes look different. What is the same about them?",
-    "explanation": "On this 5-by-5 board 28 triangles and 696 four-sided bands have 2 inside dots and 6 outline dots (780 if a peg the band passes straight counts as a corner, as the worksheet’s math check counts them), and every one has area 4. That is Pick’s theorem: area = 2 + 6 ÷ 2 − 1 = 4. Checking one area with a cut or a second copy, as the worksheet asks, is a good conversation: the triangle with corners 0 across 0 up, 4 across 0 up and 1 across 2 up is half of a 4-by-2 rectangle.",
+    "explanation": "On this 5-by-5 board 28 triangles and 696 four-sided bands have 2 inside dots and 6 outline dots (780 if a peg the band passes straight counts as a corner), and every one has area 4. That is Pick’s theorem: area = 2 + 6 ÷ 2 − 1 = 4. Checking one area with a cut or a second copy, as the worksheet asks, is a good conversation: the triangle with corners 0 across 0 up, 4 across 0 up and 1 across 2 up is half of a 4-by-2 rectangle.",
     "extension": "Can two shapes with the same area have different counts? (Yes: compare a 2-by-2 square, 1 inside and 8 outline, with a triangle of area 4 with 3 inside and 4 outline.)",
     "connection": "The inside and outline counts determine the area of a lattice polygon (Pick’s theorem); the shape does not matter.",
     "sourceIds": [
@@ -1328,6 +1328,7 @@
     "witnesses": [],
     "attempt": {
      "text": "Try a band of area 6 with as many inside dots as you can.",
+     "match": "area",
      "shapes": [
       [
        [
@@ -1527,6 +1528,7 @@
     "witnesses": [],
     "attempt": {
      "text": "Try a triangle with 3 outline dots and an area near 5.",
+     "match": "outline",
      "shapes": [
       [
        [
