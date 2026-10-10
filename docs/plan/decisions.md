@@ -52,7 +52,7 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 25 | Hidden pictures | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-25.md) | In the app | Hidden pictures (PR #7) |
 | 26 | Polyomino perimeter | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-26.md) | In the app | Garden fences (PR #18) |
 | 27 | Stable matching | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-27.md) | Open, wave 5 | Tap to pair two rows of letters: find the blocker, find every stable pairing with "That's all", repair a strip, design lists; blockers flagged only on submit |
-| 28 | Flat folding | none | Open, wave 3 | Card first |
+| 28 | Flat folding | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-28.md) | Open, wave 9 | C becomes B: tap rays to cycle mountain and valley, press Fold, and the app collapses the disk or shows the collision |
 | 29 | Two rod lengths | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-29.md) | In the app | Full jugs in Spring-water Jugs |
 | 30 | Balanced ternary weights | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-30.md) | In the app | Weight kits in the Odd-pebble Balance |
 | 31 | Lattice visibility | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-31.md) | In the app | Sight lines in Mirror Couriers (PR #14) |
