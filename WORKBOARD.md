@@ -43,6 +43,7 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Wave 2: gentle step landscapes (Week 47) | Claude, Boards agree and gentle hills thread | `claude/wave2-46-47-ytobpf` | done (Gentle hills, satchel only); card says keep |
 | Wave 3: ports from Weeks 64–78 (the worksheet types added since Wave 2), each after its review card; the card records port or skip | Claude, New worksheet types thread | `claude/new-worksheets-review-round-qz5gm4` | in progress: review cards first |
 | Fix the broken caravan browser suite (pre-existing on main) | Claude, Caravan suite fix thread | `claude/fix-caravan-suite-78kbzm` | done (PR #10); the test was stale, the game was fine |
+| Lantern Road playtest fixes from James's October 10 desktop notes: profiles, map and header, the ferry and marsh puzzles in their pictures, Plume's route score, the solve-animation loop | Claude, Lantern Road playtest fixes thread | `claude/lantern-road-playtest-fixes-ks4x6n` | in progress |
 | Safe preview links for testers (plan item 5) | | | open |
 | Keeper reaction clips, 14 (plan item 6; brief `docs/art/batches/01-keeper-reactions.md`) | | | open; Dot/Codex |
 | Voice auditions for the six keepers and Plume (plan item 6; brief `docs/voice-casting/README.md`, stage 1) | | | open; Dot/Codex; stops for James's pick |
