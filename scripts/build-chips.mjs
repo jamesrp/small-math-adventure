@@ -95,7 +95,7 @@ const authored = [
     parent: {
       notice: 'B never goes first: it starts with one chip and has two lines.',
       prompt: 'After A fires, which circles can fire? Why?',
-      explanation: 'A and C each start at their threshold of 2. B starts with 1 and needs a chip from A or C before it can fire. Every complete run fires each circle exactly once and ends with one chip on each circle; three chips reach the sink.',
+      explanation: 'A and C each start at their threshold of 2. B starts with 1 and needs a chip from A or C before it can fire. Every complete run fires each circle exactly once and ends with one chip on each circle; two chips reach the sink.',
       extension: 'Start from A 0, B 4, C 0. How many times does B fire?',
       connection: 'Which orders are legal is a question about the run, not the finish; the finish and the firing counts never change (Holroyd et al., §2).'
     },
