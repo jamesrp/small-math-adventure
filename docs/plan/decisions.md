@@ -14,7 +14,7 @@ Each wave is claimed on both work boards like any other item. The weeks a wave p
 2. **Wave 4, the portal board.** Week 41's pawn on a portal board with a live unrolled view, then Week 70's shields and Week 64's glued squares on it, and Week 75's strands on a wraparound strip with the same lift view.
 3. **Wave 5, roads and graphs.** Week 69 as a group in Meeting roads, Week 68 on an endless panning map, and the graph themes whose cards say port: 17, 27 and 40.
 4. **Wave 6, grids.** Week 15's nearest-site cells on a half-unit lattice, and the grid themes whose cards say port: 5, 32, 48 and 57.
-5. **Wave 7, sets and numbers.** 12, 19, 20, 22, 36, 49, 54 and 55, whose cards say port, and 51 and 58 as their cards decide.
+5. **Wave 7, sets and numbers.** 12, 19, 20, 22, 36, 49, 51, 54 and 55, whose cards say port, and 58 as its card decides.
 6. **Wave 8, symmetry, words and reflections.** 35, 37, Week 76's shrink tool, and Weeks 71 and 21 as groups in Mirror Couriers.
 7. **Wave 9, the rest.** Week 65's octagon floor, 73, 77 and 78, and the paper-and-continuous themes (28, 38, 50, 56, 59 and 61). Each gets a port with a real on-screen solve or a final reason not to.
 
@@ -75,7 +75,7 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 48 | Inside and outside covers | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-48.md) | Open, wave 6 | Split cells to a target gap within a budget, paint to match a pattern and area, slide a grid over a shape |
 | 49 | Four towers and differences | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-49.md) | Open, wave 7 | Reverse goals only: build a predecessor ring, grow a run backward, find a ring that never reaches zero |
 | 50 | Staircases and lengths | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-50.md) | Open, wave 9 | A short group on Memory robot's board: a corridor path within a turn budget, shaded windows certifying "fewest", and exact-length detours |
-| 51 | Honest measurement ranges | none | Open, wave 3 | Card first |
+| 51 | Honest measurement ranges | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-51.md) | Open, wave 7 | A short group on a strips-on-a-ruler board: break the app's claim or declare "Can't break it", widen a card, one A that moves as one |
 | 52 | Bracing frames | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-52.md) | In the app | Bracing frames (PR #13) |
 | 53 | Cheapest networks | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-53.md) | In the app | Cheapest networks (PR #8) |
 | 54 | Partitions | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-54.md) | Open, wave 7 | A strip workbench: catalogs the child declares complete, and reach-or-refute targets |
@@ -85,7 +85,7 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 58 | Fair division | none | Open, wave 3 | Card first |
 | 59 | Constant-width shapes | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-59.md) | Open, wave 9 | C becomes B: choose each arc's centre so the shape spins snug between rails, with a still rail as the certificate |
 | 60 | Optimal stopping | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-60.md) | In the app | Take it or pass (PR #24) |
-| 61 | Geometry on a sphere | none | Open, wave 3 | Card first |
+| 61 | Geometry on a sphere | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-61.md) | Open, wave 9 | A turnable globe with corners on a 15° grid: three right corners, triangles that hit a named fraction, a lune-pair playground |
 | 62 | Scheduling as colouring | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-62.md) | In the app | First fit in Neighbor Lanterns (PR #9) |
 | 63 | Derangements | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-63.md) | In the app | Mixed-up cups (PR #11) |
 | 64 | Straight paths on strange surfaces | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-64.md) | Open, wave 4 | Glue three or four squares for a target return time, on the portal board |
