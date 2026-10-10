@@ -13,7 +13,7 @@ Each wave is claimed on both work boards like any other item. The weeks a wave p
 1. **Wave 3, cards.** Write the card, with its port decision, for each open week of 1–63 that has none: 5, 12, 17, 19, 20, 21, 22, 27, 28, 32, 35, 36, 37, 38, 40, 41, 48, 49, 50, 51, 54, 55, 56, 57, 58, 59 and 61. Weeks 8–11 are in the app without a card; their cards follow for the review's sake and change no decision.
 2. **Wave 4, the portal board.** Week 41's pawn on a portal board with a live unrolled view, then Week 70's shields and Week 64's glued squares on it, and Week 75's strands on a wraparound strip with the same lift view.
 3. **Wave 5, roads and graphs.** Week 69 as a group in Meeting roads, Week 68 on an endless panning map, and the graph themes whose cards say port: 17, 27 and 40.
-4. **Wave 6, grids.** Week 15's nearest-site cells on a half-unit lattice, and the grid themes whose cards say port: 32, 48 and 57, and likely 5.
+4. **Wave 6, grids.** Week 15's nearest-site cells on a half-unit lattice, and the grid themes whose cards say port: 5, 32, 48 and 57.
 5. **Wave 7, sets and numbers.** 12, 19, 20, 22, 36, 49, 54 and 55, whose cards say port, and 51 and 58 as their cards decide.
 6. **Wave 8, symmetry, words and reflections.** 35, 37, Week 76's shrink tool, and Weeks 71 and 21 as groups in Mirror Couriers.
 7. **Wave 9, the rest.** Week 65's octagon floor, 73, 77 and 78, and the paper-and-continuous themes (28, 38, 50, 56, 59 and 61). Each gets a port with a real on-screen solve or a final reason not to.
@@ -29,7 +29,7 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 2 | Switches and lamps | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-02.md) | In the app | Lantern Wires |
 | 3 | Shuffle machines | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-03.md) | In the app | Shuffle machines in Cup swaps (PR #25) |
 | 4 | Stars and code wheels | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-04.md) | In the app | Star drawing in Clockwork Gates (PR #9) |
-| 5 | Tower cities | none | Open, wave 3 | Symbol Orchard has the Latin squares; the card decides whether visibility clues become their own group, an open question from the plan |
+| 5 | Tower cities | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-05.md) | Open, wave 6 | Visibility clues as their own group in Symbol Orchard, reusing its board; this reverses September's "leave them out", so it is with James |
 | 6 | Code breaking | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-06.md) | In the app | Slippery secrets in Signal Lanterns |
 | 7 | Take-away games | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-07.md) | In the app | Move menus in Pebble Duel (PR #9) |
 | 8 | Rook race and Nim | none | In the app | Pebble Duel and its duel proofs |
