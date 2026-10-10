@@ -2,7 +2,7 @@
 
 James asked on October 10, 2026 that every worksheet week end in one of two states: **in the app**, or **not porting**, with the reason written down. "Waiting" is a step in a wave, never an end state. A week reaches its decision through its review card in the worksheets repository ([plans/review](https://github.com/jamesrp/math-circle-worksheets/tree/main/plans/review)), and then a port when the card says port. A week that waits on a board or on another family gets that board or family built in a wave, or a reason why not.
 
-**Where things stand:** 79 weeks (1–78 and the Week 1 encore). 44 are in the app and 1 is ruled out, so 34 are open, every one planned into a wave.
+**Where things stand:** 79 weeks (1–78 and the Week 1 encore). 47 are in the app and 1 is ruled out, so 31 are open, every one planned into a wave.
 
 Whoever changes a week's state changes its row here in the same push, and the count above.
 
@@ -12,7 +12,7 @@ Each wave is claimed on both work boards like any other item. The weeks a wave p
 
 1. **Wave 3, cards (done for every open week).** Write the card, with its port decision, for each open week of 1–63 that has none: 5, 12, 17, 19, 20, 21, 22, 27, 28, 32, 35, 36, 37, 38, 40, 41, 48, 49, 50, 51, 54, 55, 56, 57, 58, 59 and 61. Weeks 8–11, already in the app, now have cards too; each keeps its family and adds touch-ups to Wave 9.
 2. **Wave 4, the portal board.** Week 41's pawn on a portal board with a live unrolled view, then Week 70's shields and Week 64's glued squares on it, and Week 75's strands on a wraparound strip with the same lift view.
-3. **Wave 5, roads and graphs.** Week 69 as a group in Meeting roads, Week 68 on an endless panning map, and the graph themes whose cards say port: 17, 27 and 40.
+3. **Wave 5, roads and graphs (done).** Week 69 as a group in Meeting roads, Week 68 on an endless panning map, and the graph themes whose cards say port: 17, 27 and 40.
 4. **Wave 6, grids.** Week 15's nearest-site cells on a half-unit lattice, and the grid themes whose cards say port: 5, 32, 48 and 57.
 5. **Wave 7, sets and numbers.** 12, 19, 20, 22, 36, 49, 51, 54, 55 and 58.
 6. **Wave 8, symmetry, words and reflections.** 35, 37, Week 76's shrink tool, and Weeks 71 and 21 as groups in Mirror Couriers.
@@ -29,7 +29,7 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 2 | Switches and lamps | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-02.md) | In the app | Lantern Wires |
 | 3 | Shuffle machines | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-03.md) | In the app | Shuffle machines in Cup swaps (PR #25) |
 | 4 | Stars and code wheels | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-04.md) | In the app | Star drawing in Clockwork Gates (PR #9) |
-| 5 | Tower cities | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-05.md) | Open, wave 6 | Visibility clues as their own group in Symbol Orchard, reusing its board; James chose this on October 10, reversing September's "leave them out" |
+| 5 | Tower cities | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-05.md) | In the app | Towers, a group in Symbol Orchard ([docs/towers/README.md](../towers/README.md)), as James chose on October 10, reversing September's "leave them out": rows for a card or a checked "No row", one-city puzzles and "No city", every city then one more number with That's all, making a puzzle, twin cities |
 | 6 | Code breaking | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-06.md) | In the app | Slippery secrets in Signal Lanterns |
 | 7 | Take-away games | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-07.md) | In the app | Move menus in Pebble Duel (PR #9) |
 | 8 | Rook race and Nim | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-08.md) | In the app | Pebble Duel and its duel proofs; its card adds a rook-and-queen board group and a find-every-second-player-start group on the duel engine, folds the bundle rule away until after Duel 1, and retitles puzzles by their start, in Wave 9's touch-ups |
@@ -41,7 +41,7 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 14 | Triangulations and flips | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-14.md) | In the app | Polygon cuts (PR #19) |
 | 15 | Nearest-site regions | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-15.md) | Open, wave 6 | The card moves it from C to B: drag dots on a half-unit lattice to make target cells |
 | 16 | Three-colour triangles (Sperner) | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-16.md) | In the app | Rainbow triangles (PR #16) |
-| 17 | Machine memory | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-17.md) | Open, wave 5 | Drag one R and one B arrow from each circle; "can't with fewer" certified by the child's own histories |
+| 17 | Machine memory | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-17.md) | In the app | Card machines ([docs/cardmachines/README.md](../cardmachines/README.md)): drag one R and one B arrow from each circle; Test shows a shortest wrong row; "can't with fewer" certified by the child's own rows and shared endings; Can't by pointing at the circle where both rows stop |
 | 18 | Error-correcting codebooks | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-18.md) | In the app | Codebooks in Signal Lanterns (PR #9) |
 | 19 | Subset antichains | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-19.md) | Open, wave 7 | Choose cards with nesting pairs linked; "best" certified by dragging every card into nested rows |
 | 20 | Averaging | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-20.md) | Open, wave 7 | Inverse and design goals for averaging circles, with no animated relaxation as the solve |
@@ -64,7 +64,7 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 37 | Tetrahedron chirality | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-37.md) | Open, wave 8 | A flat view where a tap turns the model about a corner: turn to match, place letters, sort into groups |
 | 38 | Möbius band and cuts | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-38.md) | Open, wave 9 | C becomes B on the portal board with a reversing seam: light edges through seams, toggle seams, cut lanes, with parity as the certificate |
 | 39 | Path reduction | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-39.md) | In the app | Road detours (PR #13) |
-| 40 | Knot tricolouring | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-40.md) | Open, wave 5 | Tap an arc to cycle its colour with crossings checked live: colour a knot with more than one colour, find every colouring, claim "one colour only" where true |
+| 40 | Knot tricolouring | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-40.md) | In the app | Knot colours ([docs/knots/README.md](../knots/README.md)): tap an arc to cycle its colour with crossings checked live; colour with more than one colour, find every colouring with That's all, claim One colour only on the child's own chain to a clash, match end colours on a tangle |
 | 41 | Torus portals | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-41.md) | In the app | Portal rooms, the first family on the shared portal board ([docs/portal-board.md](../portal-board.md)) that Weeks 64, 70 and 75 build on |
 | 42 | Fair results from a bag | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-42.md) | In the app | Fair bags (PR #17) |
 | 43 | Fair shuffles | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-43.md) | In the app | Ticket shuffles (PR #15) |
