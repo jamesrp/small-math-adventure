@@ -1,0 +1,113 @@
+/* Fair shares: taste cards (a person, then each colour with its dots and
+   number), trays on paper, red (rose) and blue (sky) cards with Georgia
+   labels, pine for the lifted thing, ochre for attention, favourites rows with
+   small shapes and a slot, and the cut-and-choose strip with its knife. */
+.sh-puzzle{--sh-red:#e08f7a;--sh-blue:#8fbfd6;display:flex;flex-direction:column;align-items:center;gap:.6rem;width:100%;max-width:560px;margin:0 auto}
+.sh-puzzle .sh-bar{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem .7rem}
+.sh-puzzle .sh-button{min-height:46px;padding:6px 16px;font-weight:650;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.sh-puzzle .sh-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+.sh-puzzle .sh-button[aria-pressed="true"]{background:#e9eddc;box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.sh-puzzle .hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.sh-told{font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+.sh-goal{font-size:1rem;font-weight:500;color:var(--b-ink,#294439);text-align:center}
+
+/* Taste cards. */
+.sh-taste{display:flex;align-items:center;justify-content:center;gap:6px;padding:4px 8px;border-radius:12px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-ink,#294439)}
+.sh-tok{display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 6px;border-radius:15px;background:var(--b-sun,#efc76e);border:2px solid var(--b-ink,#294439);font:400 1.05rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
+.sh-tok.small{min-width:22px;height:22px;font-size:.8rem;border-width:1.5px}
+.sh-tok.you{background:var(--b-leaf,#86a68c)}
+.sh-tok:empty{visibility:hidden}
+.sh-like{display:inline-flex;align-items:center;gap:4px;padding:3px 6px;border-radius:8px;border:1.5px solid var(--b-ink,#294439)}
+.sh-like.red{background:var(--sh-red)}
+.sh-like.blue{background:var(--sh-blue)}
+.sh-like.face-down{min-width:38px;justify-content:center;background:repeating-linear-gradient(45deg,#e8e3d1 0 4px,#f5f1e6 4px 8px);font:400 1rem/1 var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850)}
+.sh-dots{display:inline-grid;grid-template-columns:repeat(3,6px);gap:2px}
+.sh-dots b{width:6px;height:6px;border-radius:50%;background:var(--b-ink,#294439)}
+.sh-n{font:400 1.05rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
+
+/* Two people: two sides, each a taste card over a tray, and the table. */
+.sh-sides{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.sh-side{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+.sh-puzzle .sh-tray,.sh-puzzle .sh-table{display:flex;flex-wrap:wrap;align-content:flex-start;justify-content:center;gap:6px;width:100%;min-height:128px;margin:0;padding:8px;border-radius:14px;background:var(--b-paper,#f5f1e6);border:1.5px dashed var(--b-line,#d0d6bd);box-shadow:none;color:inherit;font:inherit;font-weight:400}
+.sh-puzzle .sh-table{min-height:76px;background:transparent}
+.sh-puzzle .sh-table.empty{min-height:0;padding:0;border:0}
+.sh-puzzle .drop{border-color:var(--b-pine,#31533e);border-style:solid;background:#eef1e1;cursor:pointer}
+.sh-puzzle .sh-over{border-color:var(--b-ochre,#b38840)!important;border-style:solid;background:#fbf4dc}
+.sh-empty{display:block}
+.sh-view{display:inline-flex;align-items:center;gap:5px;font:400 1.15rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
+
+/* Cards. */
+.sh-puzzle .sh-card{position:relative;display:inline-grid;place-items:center;align-content:center;width:44px;height:58px;min-height:0;margin:0;padding:0;border-radius:8px;border:2px solid var(--b-ink,#294439);box-shadow:0 2px 0 rgba(41,68,57,.35);font:400 1.05rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439);touch-action:none;user-select:none;-webkit-user-select:none}
+.sh-puzzle .sh-card.red{background:var(--sh-red)}
+.sh-puzzle .sh-card.blue{background:var(--sh-blue)}
+.sh-puzzle .sh-card.half{width:30px}
+.sh-puzzle .sh-card .sh-half{font-size:1.15rem}
+.sh-puzzle .sh-card small{font-size:.62rem}
+.sh-puzzle .sh-card.picked,.sh-puzzle .sh-item.picked{box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-pine,#31533e)}
+.sh-puzzle .sh-card.dragging,.sh-puzzle .sh-item.dragging{pointer-events:none;z-index:5;opacity:.9}
+.sh-puzzle .sh-card.paired::after{content:'';position:absolute;bottom:-9px;left:50%;width:14px;height:6px;margin-left:-7px;border-radius:3px;background:var(--b-pine,#31533e)}
+.sh-puzzle .sh-card.odd{box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-ochre,#b38840)}
+.sh-puzzle .sh-card.cuttable::before{content:'';position:absolute;top:3px;bottom:3px;left:50%;border-left:2px dashed var(--b-ink,#294439)}
+.sh-puzzle .sh-card.cuttable{cursor:crosshair}
+
+/* What has been found, and the catalog that shows nothing is missing. */
+.sh-found{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:0;padding:0;list-style:none}
+.sh-found li{display:flex;gap:3px;padding:4px;border-radius:8px;border:1.5px solid var(--b-pine,#31533e);background:var(--b-good-soft,#e2ecd6)}
+.sh-mini{display:flex;gap:2px;min-width:14px;padding:2px;border-radius:4px;background:var(--b-card,#fffdf5)}
+.sh-mini i,.sh-pips i{display:inline-grid;place-items:center;width:13px;height:17px;border-radius:3px;border:1px solid var(--b-ink,#294439);font:normal 400 .62rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
+.sh-mini i.red,.sh-pips i.red{background:var(--sh-red)}
+.sh-mini i.blue,.sh-pips i.blue{background:var(--sh-blue)}
+.sh-pips i.none{border-style:dashed;background:transparent}
+.sh-catalog{border-collapse:separate;border-spacing:4px}
+.sh-catalog td{padding:4px 6px;border-radius:8px;border:1.5px solid var(--b-line,#d0d6bd);background:var(--b-paper,#f5f1e6);text-align:center;vertical-align:middle;opacity:.55}
+.sh-catalog td.fair{opacity:1;border-color:var(--b-pine,#31533e);background:var(--b-good-soft,#e2ecd6)}
+.sh-catalog .sh-pips{display:inline-flex;gap:2px}
+.sh-catalog b{display:block;margin-top:2px;font:400 .95rem/1 var(--b-display,Georgia,serif);color:var(--b-pine,#31533e)}
+
+/* Favourites: the shapes not given, then one row per person. */
+.sh-shape{width:30px;height:30px;stroke:var(--b-ink,#294439);stroke-width:1.6;stroke-linejoin:round}
+.sh-shape.s-circle{fill:var(--b-sun,#efc76e)}
+.sh-shape.s-triangle{fill:var(--b-leaf,#86a68c)}
+.sh-shape.s-square{fill:var(--b-sky,#9cc9de)}
+.sh-shape.s-diamond{fill:var(--b-rose,#e7a28f)}
+.sh-shape.s-star{fill:#d9b25f}
+.sh-puzzle .sh-pile{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;width:100%;min-height:62px;margin:0;padding:8px;border-radius:14px;background:transparent;border:1.5px dashed var(--b-line,#d0d6bd);box-shadow:none;color:inherit;font:inherit;font-weight:400}
+.sh-puzzle .sh-pile.empty{min-height:0;padding:0;border:0}
+.sh-puzzle .sh-item{display:inline-grid;place-items:center;width:46px;height:46px;min-height:0;margin:0;padding:0;border-radius:10px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);box-shadow:0 2px 0 var(--b-line,#d0d6bd);touch-action:none;user-select:none;-webkit-user-select:none}
+.sh-puzzle .sh-item.ringed{box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-ochre,#b38840)}
+.sh-puzzle .sh-item.happy{border-color:var(--b-pine,#31533e);background:var(--b-good-soft,#e2ecd6)}
+.sh-folk{display:flex;flex-direction:column;gap:6px;width:100%;margin:0;padding:0;list-style:none}
+.sh-puzzle .sh-person{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;width:100%;min-height:62px;margin:0;padding:6px 10px;border-radius:14px;background:var(--b-paper,#f5f1e6);border:1.5px solid var(--b-line,#d0d6bd);box-shadow:none;color:inherit;font:inherit;font-weight:400;text-align:left}
+.sh-puzzle .sh-person.grouped{border-color:var(--b-ochre,#b38840);box-shadow:inset 0 0 0 2px var(--b-ochre,#b38840);background:#fbf4dc}
+.sh-favs{display:flex;flex-wrap:wrap;gap:4px}
+.sh-favs .sh-shape{width:24px;height:24px}
+.sh-slot{display:grid;place-items:center;width:54px;height:54px;border-radius:12px;border:1.5px solid transparent}
+.sh-slot.empty{border:1.5px dashed #9aa88f;background:var(--b-card,#fffdf5)}
+
+/* Cut and choose: the taste cards, then the strip of squares. */
+.sh-tastes{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.sh-strip{position:relative;display:grid;grid-template-columns:repeat(var(--n),1fr);width:100%;height:64px;margin:6px 0;border:2px solid var(--b-ink,#294439);border-radius:6px;overflow:visible;touch-action:none;cursor:col-resize;user-select:none;-webkit-user-select:none}
+.sh-cell{display:block;border-right:1px solid rgba(41,68,57,.35)}
+.sh-cell:last-of-type{border-right:0}
+.sh-cell.red{background:var(--sh-red)}
+.sh-cell.blue{background:var(--sh-blue)}
+.sh-puzzle .sh-gap{position:absolute;top:-6px;bottom:-6px;width:20px;min-height:0;margin:0 0 0 -10px;padding:0;border:0;border-radius:4px;background:transparent;box-shadow:none;pointer-events:none}
+.sh-puzzle .sh-gap:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:0}
+.sh-puzzle .sh-gap.hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:0}
+.sh-knife{position:absolute;top:-12px;bottom:-12px;width:4px;margin-left:-2px;border-radius:2px;background:var(--b-ink,#294439);pointer-events:none}
+.sh-knife::before{content:'';position:absolute;top:-2px;left:50%;margin-left:-7px;border:7px solid transparent;border-top:9px solid var(--b-ink,#294439)}
+.sh-pieces,.sh-under{display:flex;gap:14px;width:100%}
+.sh-puzzle .sh-piece{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;height:64px;min-height:0;margin:0;padding:0;border:2px solid var(--b-ink,#294439);border-radius:6px;background:none;box-shadow:none;overflow:hidden}
+.sh-puzzle .sh-piece.mine{box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-pine,#31533e)}
+.sh-puzzle button.sh-piece{cursor:pointer}
+.sh-under-piece{display:flex;align-items:center;justify-content:center;gap:6px;min-width:0}
+.sh-worth{font:400 1.25rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
+.sh-star{font-size:1.4rem;line-height:1;color:var(--b-ochre,#b38840)}
+.sh-round{display:flex;flex-direction:column;gap:6px;width:100%}
+.sh-round.done{opacity:.8}
+.sh-round + .sh-round{margin-top:6px;padding-top:10px;border-top:1.5px dashed var(--b-line,#d0d6bd)}
+@media (max-width:420px){.sh-puzzle .sh-card{width:40px;height:54px}.sh-puzzle .sh-card.half{width:28px}.sh-pieces,.sh-under{gap:8px}}
+.sh-under.flush{gap:0}
+.sh-under.flush .sh-under-piece + .sh-under-piece{border-left:2px solid var(--b-ink,#294439)}
+.sh-knife.cut{background:var(--b-bad,#a9503a)}
+.sh-knife.cut::before{border-top-color:var(--b-bad,#a9503a)}

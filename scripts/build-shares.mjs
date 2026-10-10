@@ -1,0 +1,173 @@
+// Authoring list for Fair shares (worksheet Week 58, fair division with
+// different values). Computes every answer with the mechanic's own functions,
+// checks them against the table in docs/shares/README.md, and writes
+// dist/families/shares/shares.json. Run: node scripts/build-shares.mjs
+import {writeFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import {fairKeys, matchings, shortestGroup, likedBy, equalCuts, theyTake, theirCut, stripWorth, goodsNow, envious, pairingLeft} from '../dist/families/shares/shares.js';
+
+const AB = [{id: 'A', likes: {red: 3, blue: 1}}, {id: 'B', likes: {red: 1, blue: 3}}];
+const cards = list => list.split(' ').map(id => ({id, colour: id[0] === 'R' ? 'red' : 'blue'}));
+const folk = list => list.split(' ').map((likes, k) => ({id: 'ABCDE'[k], likes: likes.split(',')}));
+const shapes = list => list.split(' ').map(id => ({id}));
+
+const RULES = {
+  two: [
+    'Each person counts a tray with their own card: every red card is worth their red number, every blue card their blue number.',
+    'Nobody would swap when each person counts their own tray worth at least as much as the other tray. A tie is fine.',
+    'Every card goes to somebody.'
+  ],
+  every: 'Press Fair to keep a way nobody would swap. Giving different cards counts as a different way. Press That’s all when none is left; it says if there is another.',
+  halve: 'Press Can’t when no way with whole cards works, then pair the cards up, one from each tray. After that, Cut cuts one card in half; each half is worth half as much.',
+  favourites: [
+    'Everyone gets one shape. Each person likes the shapes on their card best.',
+    'With one shape each, nobody would swap exactly when everyone holds a favourite.',
+    'If that is impossible, press Can’t, tap the people who show why, and press Check.'
+  ],
+  duel: [
+    'Each square is worth your red or blue number to you, and B’s numbers to B.',
+    'You cut the strip in two. B takes the piece worth more to B, and you get the other.',
+    'A star means you were sure of half, whatever B likes.',
+    'Then B cuts so the two pieces are worth the same to B, and you take one.'
+  ]
+};
+const CONTROLS = {
+  one: 'Drag a card into a tray, or tap a card and then a tray. Arrow keys move a card to the left or right tray, and down to the table. Press Fair when nobody would swap. Undo takes back the last move.',
+  every: 'Drag a card into a tray, or tap a card and then a tray. Arrow keys move a card to the left or right tray, and down to the table. Press Fair to keep a way nobody would swap, and That’s all when none is left. Undo takes back the last move; ways found stay found.',
+  halve: 'Drag a card into a tray, or tap a card and then a tray. Press Fair when nobody would swap. Press Can’t, then pair the cards: tap a card, then a card in the other tray. Then press Cut and tap a card to cut it in half.',
+  favourites: 'Drag a shape to a person, or tap a shape and then a person. Each person holds one shape; giving them another swaps the two. To show it can’t be done, press Can’t, tap the people, then press Check.',
+  duel: 'Tap or slide along the strip to place the knife, then press Cut. When B has cut, tap the piece you take.'
+};
+const OBJECTIVE = {
+  one: 'Give out all the cards so that nobody would swap trays.',
+  every: 'Find every way to give out all the cards so that nobody would swap trays, then press That’s all.',
+  halve: 'Give out all the cards so that nobody would swap trays. If whole cards can’t do it, show why, then cut a card in half.',
+  favourites: 'Give everyone one of their favourite shapes, or show that it can’t be done.',
+  duel: 'Cut the strip so you get half whatever piece B takes. Then B cuts, and you take a piece.'
+};
+const VISIBLE = {one: 'Share the cards so nobody would swap.', every: 'Find every way nobody would swap.', halve: 'Share the cards so nobody would swap.', favourites: 'Give everyone a favourite.', duel: ''};
+const PREREQUISITES = {
+  two: 'Add up to 10 by counting dots or numerals, and keep one person’s card in mind while counting both trays.',
+  every: 'Add up to 10, and keep track of the ways found so far; organizing them (by how many reds A gets) is part of the puzzle.',
+  halve: 'Count to three and know that two halves make one. No reading beyond the card labels.',
+  favourites: 'No arithmetic: match people to shapes. Reading is limited to the letters A to E.',
+  duel: 'Multiply small numbers or count in steps (3, 6, 9, 12), and add up to 24.'
+};
+const sources = ['shares-week58', 'shares-card58', 'shares-procaccia'];
+
+const PUZZLES = [
+  {number: 1, level: 'easy', title: 'Four cards', mode: 'one', people: AB, goods: cards('R1 R2 R3 B1'), check: {fair: 4},
+    idea: 'Different tastes let both people be content at once: each can count their own tray worth at least as much as the other.',
+    hints: ['Give out all four cards. Would A rather have B’s tray? Would B rather have A’s?', 'A counts every red as 3. B counts the blue as 3.', 'Give A all three reds and B the blue: A has 9 against 1, and B has 3 against 3, a tie.'],
+    parent: {notice: 'Whether your child counts each tray with the same person’s card, rather than A’s card for A’s tray and B’s card for B’s.', prompt: 'Would A swap? Count both trays with A’s card. Would B swap? Count both with B’s card.', explanation: 'A counts the cards 3, 3, 3, 1 (10 in all) and B counts them 1, 1, 1, 3 (6 in all). All the reds to A and the blue to B gives A 9 against 1 and B 3 against 3: a tie, so B would not swap either. Two reds to A and one red with the blue to B also works, three ways, since A gets 6 against 4 and B 4 against 2. Every other division leaves somebody wanting the other tray. Envy-free is about each person’s own comparison; A’s 9 and B’s 3 are never compared.', extension: 'Find every way (puzzle 4).', connection: 'This is an envy-free allocation of indivisible goods with additive valuations.'},
+    provenance: 'Week 58 Problem 1 (student page 1, Grades 2–5): cards R1, R2, R3 and B1 with preference cards A (red 3, blue 1) and B (red 1, blue 3), “Find divisions where both people would keep their tray instead of trading.”'},
+  {number: 2, level: 'easy', title: 'Three reds', mode: 'halve', people: [{id: 'U', likes: {red: 1, blue: 1}}, {id: 'V', likes: {red: 1, blue: 1}}], goods: cards('R1 R2 R3'), check: {fair: 0, halved: 4},
+    idea: 'When two people have the same taste, nobody envies only if the trays are worth the same; three equal whole cards can’t do that, and one cut fixes it.',
+    hints: ['Give out all three cards. Would anybody swap?', 'U and V count every card as 1, so a fair share needs as many cards each.', 'Pair two cards up: the third is left over. Cut it in half, and give each person one card and one half.'],
+    parent: {notice: 'Whether your child tries both two-and-one splits before deciding, and whether pairing the cards (one for you, one for me) explains the leftover.', prompt: 'Why does the person with one card always want to swap?', explanation: 'U and V both count every card as 1, so each counts the two trays the same way. Nobody envies only when the trays are worth the same to both, which with equal cards means the same number of cards. Pairing the cards one for U, one for V leaves one card over, so the counts can’t match: whoever has fewer envies. Cutting the leftover card in half gives each person one and a half, and then neither envies.', extension: 'With four red cards, whole cards work. With five? (Any odd number fails, and one cut always fixes it.)', connection: 'Envy-free allocations of indivisible goods need not exist; dividing one good restores them here.'},
+    provenance: 'Week 58 Problem 5 (student page 5, Grades 2–5): U and V each value every red card at 1; three cards, then R3’s paper copy, which may be cut.'},
+  {number: 3, level: 'easy', title: 'Four favourites', mode: 'favourites', people: folk('circle,triangle circle triangle,square square,diamond'), items: shapes('circle triangle square diamond'), check: {matchings: 1},
+    idea: 'With one item each, nobody envies exactly when everyone holds a favourite; a person with one favourite settles who gets what.',
+    hints: ['Who likes only one shape?', 'B only likes the circle, so A needs the triangle.', 'B gets the circle, A the triangle, C the square and D the diamond.'],
+    parent: {notice: 'Whether your child starts with the person who has only one favourite, or gives A a shape first and then has to change it.', prompt: 'Why can’t A have the circle?', explanation: 'With one shape each, a person who doesn’t hold a favourite would rather have the shape somebody else holds, and a person who holds a favourite envies nobody. So the goal is everyone holding a favourite. B likes only the circle, so B gets it; A then needs the triangle, C the square and D the diamond. That is the only way.', extension: 'Which person, if they liked one more shape, would make a second way possible?', connection: 'A perfect matching in a bipartite graph of people and their favourite items.'},
+    provenance: 'Week 58 Problem 6 (student page 6, Grades 3–5) with four people and one item each, as the review card’s App fit asks; new instance.'},
+  {number: 4, level: 'medium', title: 'Every way with four cards', mode: 'every', people: AB, goods: cards('R1 R2 R3 B1'), check: {fair: 4},
+    idea: 'Finding every envy-free division calls for a system, and sorting the divisions by how many reds A gets shows that none is missing.',
+    hints: ['How many reds could A get? Try each number.', 'A must get at least two reds, and the blue must go to B.', 'All three reds to A, or any two of them: four ways.'],
+    parent: {notice: 'Whether your child organizes the search (by how many reds A gets) or moves cards at random, and whether they count R1, R2 and R3 as different.', prompt: 'How do you know there isn’t another?', explanation: 'A counts reds 3 and the blue 1, out of 10. If A gets the blue, B has at most 3 reds, worth 3 to B against 4 or more for A’s tray, so B envies. So B gets the blue. If A gets one red or none, A has 3 or less against 7 or more. With two reds A has 6 against 4, and B has 4 against 2: three ways, one for each red left out. With all three, A has 9 against 1 and B 3 against 3, a tie. Four ways, out of 16.', extension: 'Swap the taste cards. How many ways now?', connection: 'Envy-freeness for two people with additive values equals proportionality: each gets at least half by their own count.'},
+    provenance: 'Week 58 Problem 1 (student page 1), asked as “find every”; the review card’s App fit: 4 successes, certified by the catalog sorted by A’s red count.'},
+  {number: 5, level: 'medium', title: 'Every way with two of each', mode: 'every', people: AB, goods: cards('R1 R2 B1 B2'), check: {fair: 5},
+    idea: 'Ties count: four of the five envy-free divisions leave both people exactly level.',
+    hints: ['Try a red and a blue each. Would anybody swap?', 'A red and a blue is worth 4 to each person, the same as the other tray. Which red goes with which blue?', 'Both reds to A and both blues to B, and the four ways to give each person one red and one blue.'],
+    parent: {notice: 'Whether your child counts “R1 and B1 for A, R2 and B2 for B” and its swap as two ways, and whether ties feel like a fair share.', prompt: 'Is a tie fair? Would A swap 4 for 4?', explanation: 'Each person counts the four cards 3, 3, 1, 1, so 8 in all and 4 is half. Both reds to A gives A 6 against 2 and B 6 against 2. One red and one blue each gives 4 against 4 for both, a tie, which counts as no swap: 2 reds × 2 blues = 4 ways. Both blues to A gives A 2 against 6. Any three cards to one person leaves the other with 1 or 3 against 7 or 5. So 5 ways of 16.', extension: 'Which of these give each person at least half of everything by their own count? (All five: for two people that is the same test.)', connection: 'For two people, envy-free and proportional coincide; ties are where the inequalities are equalities.'},
+    provenance: 'Week 58 Problem 2 (student page 2): R1, R2, B1 and B2 with the same preference cards, “Find every … division that is envy-free for both people. … Different card labels count as different cards”; five answers.'},
+  {number: 6, level: 'medium', title: 'Four people, four shapes', mode: 'favourites', people: folk('circle,triangle triangle triangle,circle square,diamond,circle'), items: shapes('circle triangle square diamond'), check: {matchings: 0, short: ['A', 'B', 'C']},
+    idea: 'Sometimes nobody can be made content: three people who only like two shapes between them can’t all hold a favourite.',
+    hints: ['Try to give everyone a favourite. Who keeps missing out?', 'Look at A, B and C together. Which shapes do they like?', 'A, B and C only like the circle and the triangle: 3 people, 2 shapes.'],
+    parent: {notice: 'Whether your child moves shapes around for a while before looking at a group of people together, and whether D taking the circle looks like the problem.', prompt: 'If D gave up the circle, would that help?', explanation: 'A, B and C like only the circle and the triangle between them. Two shapes can go to at most two of those three people, so one of them never holds a favourite, whoever gets what. Three people with two favourite shapes between them is the reason; no arrangement of the shapes can beat it.', extension: 'Change one person’s card so that everyone can have a favourite.', connection: 'Hall’s marriage theorem: everyone can be matched exactly when every group of k people likes at least k items together.'},
+    provenance: 'Week 58 Problem 6 with four people, where the review card’s App fit asks for “can’t” certified by k people whose favourites are fewer than k items; new instance.'},
+  {number: 7, level: 'medium', title: 'Cut and choose', mode: 'duel', strip: 'RRRRRRBBBBBB', you: {red: 3, blue: 1}, them: {red: 1, blue: 3}, check: {cut: 4, theirs: 8, take: 'left'},
+    idea: 'If the cutter cuts into two pieces equal by their own values, they get half whatever the chooser likes, and the chooser gets at least half too.',
+    hints: ['How much is the whole strip worth to you? Where would each piece be worth half of that?', 'The strip is worth 24 to you: 6 reds of 3 and 6 blues of 1.', 'Cut after 4 squares: 4 reds are worth 12, and so are 2 reds and 6 blues.'],
+    parent: {notice: 'Whether your child cuts at the colour join (6 squares), which is 18 against 6 for them, and what happens when B takes the 18.', prompt: 'Does it matter what B likes when you cut?', explanation: 'The strip is worth 6 × 3 + 6 × 1 = 24 to you, so each piece should be worth 12. Four reds are 12, and two reds and six blues are 6 + 6 = 12. Whichever piece B takes, you keep 12, half. B counts red 1 and blue 3, so B takes the right piece, worth 20 of 24 to B: both get more than half by their own counts, because their tastes differ. When B cuts, B cuts after 8 squares (6 + 6 = 12 each for B), and you take the left piece, worth 20 to you.', extension: 'Where would you cut if you counted red 2 and blue 2?', connection: 'Cut and choose is envy-free and proportional for two people on a divisible good (a cake).'},
+    provenance: 'Week 58 Problem 3 (student page 3, Grades 2–5): the 300 mm strip, red then blue, A’s values red 3, blue 1 per panel and B’s red 1, blue 3; cuts at 100 mm and 200 mm, here 4 and 8 of 12 squares.'},
+  {number: 8, level: 'hard', title: 'Five people, five shapes', mode: 'favourites', people: folk('square,diamond circle,triangle diamond,star triangle,square square,circle'), items: shapes('circle triangle square diamond star'), check: {matchings: 2},
+    idea: 'Three people who like exactly three shapes between them must get those three, which decides everyone else.',
+    hints: ['Try to give everyone a favourite. If one person is left out, who took their shape?', 'B, D and E only like the circle, the triangle and the square, so those three shapes must go to them.', 'A gets the diamond and C the star. B, D and E share the circle, the triangle and the square.'],
+    parent: {notice: 'Whether your child gives A the square (A’s first shape) and then can’t finish, and whether they find the group of three that needs the circle, the triangle and the square.', prompt: 'Who can have the square without leaving someone else stuck?', explanation: 'B, D and E like only the circle, the triangle and the square between them: three people, three shapes, so those shapes must go to them. Then A gets the diamond and C the star, the only shape C has left. B, D and E can share their three shapes two ways (B circle, D triangle, E square; or B triangle, D square, E circle). If A takes the square instead, B, D and E have two shapes for three people.', extension: 'Is there a third way? (No: the validator lists both.)', connection: 'A tight group (exactly as many shapes as people) is where Hall’s condition is an equality; matchings must use it fully.'},
+    provenance: 'Week 58 Problem 6 with five people, as the review card’s App fit asks; new instance.'},
+  {number: 9, level: 'hard', title: 'Five people again', mode: 'favourites', people: folk('circle,triangle square,diamond circle,star triangle,circle star,triangle'), items: shapes('circle triangle square diamond star'), check: {matchings: 0, short: ['A', 'C', 'D', 'E']},
+    idea: 'The reason can take four people: A, C, D and E like only three shapes between them.',
+    hints: ['Try to give everyone a favourite. Who could take the square or the diamond?', 'Only B likes the square or the diamond. What do the other four like?', 'A, C, D and E only like the circle, the triangle and the star: 4 people, 3 shapes.'],
+    parent: {notice: 'Whether your child looks for two people with the same single favourite (there are none) and then widens the search to bigger groups.', prompt: 'Who likes the square or the diamond?', explanation: 'Only B likes the square or the diamond, and B can hold just one shape. The other four, A, C, D and E, like only the circle, the triangle and the star: four people, three shapes, so one of them misses out however the shapes go. No smaller group is short (every pair likes at least two shapes, every three at least three), so the reason needs all four.', extension: 'Change one shape on one card so that everyone can have a favourite.', connection: 'Hall’s theorem; the smallest violating group here has four people. König’s theorem finds such a group from any largest matching.'},
+    provenance: 'Week 58 Problem 6 with five people and a can’t, as the review card’s App fit asks; new instance.'},
+  {number: 10, level: 'hard', title: 'Not at the join', mode: 'duel', strip: 'RRRBBBBBBBBR', you: {red: 3, blue: 1}, them: {red: 2, blue: 1}, check: {cut: 4, theirs: 5, take: 'left'},
+    idea: 'An equal cut by your own values is not at a colour join or the middle; cutting anywhere else can lose half when the chooser’s taste is like yours.',
+    hints: ['Add up the whole strip with your card first.', 'The strip is worth 20 to you, so each piece should be worth 10. The first three reds are 9.', 'Cut after 4 squares: three reds and a blue are 10, and seven blues and a red are 10.'],
+    parent: {notice: 'Whether your child cuts at a colour join (after 3 or 11 squares) and sees B take the bigger piece, since B also likes red more.', prompt: 'You can’t see B’s card when you cut. Why doesn’t that matter if your cut is equal for you?', explanation: 'The strip is worth 4 × 3 + 8 × 1 = 20 to you, so each piece should be worth 10: three reds and one blue (9 + 1), leaving seven blues and the last red (7 + 3). A cut after 3 squares gives 9 and 11; B counts red 2 and blue 1, sees 6 and 10 and takes the 11 piece, leaving you 9. When B cuts, B cuts after 5 squares (6 + 2 = 8 of B’s 16), and you take the left piece, worth 11 to you against 9.', extension: 'Is there a strip and a taste where two different cuts are both equal for you? (Yes, if some squares are worth 0 to you.)', connection: 'Week 58 Problem 4: cut and choose needs an exact cut by value, not by length or colour.'},
+    provenance: 'Week 58 Problem 4 (student page 4, Grades 3–5), the cut at the colour join that fails, here on a new strip whose equal cut is at no join; new instance.'}
+];
+
+const id = n => `shares-${String(n).padStart(2, '0')}`;
+const out = PUZZLES.map(item => {
+  let q, solution;
+  if (item.mode === 'favourites') {
+    q = {mode: 'favourites', people: item.people, items: item.items};
+    assert.equal(q.people.length, q.items.length, `${id(item.number)}: one shape each`);
+    const ms = matchings(q);
+    assert.equal(ms.length, item.check.matchings, `${id(item.number)}: ways`);
+    if (ms.length) solution = {ways: ms.map(m => Object.fromEntries(m.map((it, k) => [it, q.people[k].id])))};
+    else {
+      assert.deepEqual(shortestGroup(q), item.check.short, `${id(item.number)}: the smallest short group`);
+      solution = {cant: item.check.short, liked: likedBy(q, item.check.short)};
+    }
+  } else if (item.mode === 'duel') {
+    q = {mode: 'duel', strip: item.strip, you: item.you, them: item.them};
+    assert.deepEqual(equalCuts(q.strip, q.you), [item.check.cut], `${id(item.number)}: one equal cut for you`);
+    assert.equal(theirCut(q), item.check.theirs, `${id(item.number)}: B's cut`);
+    assert.deepEqual(equalCuts(q.strip, q.them), [item.check.theirs], `${id(item.number)}: one equal cut for B`);
+    const l = stripWorth(q.strip, q.you, 0, item.check.theirs), r = stripWorth(q.strip, q.you, item.check.theirs, q.strip.length);
+    assert.equal(l > r ? 'left' : 'right', item.check.take, `${id(item.number)}: the piece to take`);
+    assert.notEqual(l, r, `${id(item.number)}: B's pieces differ for you`);
+    solution = {cut: item.check.cut, theyTake: theyTake(q, item.check.cut), theirCut: item.check.theirs, take: item.check.take};
+  } else {
+    q = {mode: item.mode, people: item.people, goods: item.goods};
+    const fair = fairKeys(q);
+    assert.equal(fair.length, item.check.fair, `${id(item.number)}: fair whole divisions`);
+    if (item.mode === 'halve') {
+      assert.ok(q.people.every(p => JSON.stringify(p.likes) === JSON.stringify(q.people[0].likes)), `${id(item.number)}: one taste`);
+      assert.ok(q.goods.every(g => g.colour === q.goods[0].colour), `${id(item.number)}: equal cards`);
+      assert.deepEqual(pairingLeft(q, [['R1', 'R2']]), ['R3'], `${id(item.number)}: one left over`);
+      const halved = fairKeys(q, 'R3');
+      assert.equal(halved.length, item.check.halved, `${id(item.number)}: fair divisions with R3 cut`);
+      solution = {wholeFair: 0, pairs: [['R1', 'R2']], cut: 'R3', fair: halved};
+    } else {
+      const goods = goodsNow(q);
+      solution = {fair: fair.map(k => Object.fromEntries(goods.map((g, i) => [g.id, k[i]])))};
+      for (const k of fair) assert.equal(envious(q, goods, Object.fromEntries(goods.map((g, i) => [g.id, k[i]]))), null);
+    }
+  }
+  return {
+    id: id(item.number), number: item.number, title: item.title, difficulty_level: item.level, familyTitle: 'Fair shares', mechanic: 'shares', band: 'all', revision: 1, sourceDocument: 'docs/shares/README.md',
+    parameters: q,
+    objective: OBJECTIVE[item.mode], visibleObjective: VISIBLE[item.mode], instruction: OBJECTIVE[item.mode],
+    controls: CONTROLS[item.mode],
+    rules: item.mode === 'favourites' ? RULES.favourites : item.mode === 'duel' ? RULES.duel : [...RULES.two, ...(item.mode === 'every' ? [RULES.every] : item.mode === 'halve' ? [RULES.halve] : [])],
+    idea: item.idea, prerequisites: PREREQUISITES[item.mode === 'one' ? 'two' : item.mode], hints: item.hints,
+    parent: {...item.parent, sourceIds: sources}, solution, provenance: item.provenance
+  };
+});
+
+const json = {
+  title: 'Fair shares',
+  version: 1,
+  families: [{id: 'shares', title: 'Fair shares', mathematics: 'People share things they value differently; each person adds up their own values. A division is envy-free when each person counts their own share worth at least as much as each other share (a tie is fine), and proportional when each gets at least 1/n of the total by their own count. Envy-free implies proportional; for two people they coincide. Different tastes let both people get more than half by their own counts. With identical tastes and whole items an envy-free division can fail to exist (three equal cards), and cutting one item restores it. With one item each, envy-free means everyone holds a favourite, a perfect matching; by Hall’s theorem it fails exactly when some k people have fewer than k favourite items between them. Cut and choose on a divisible strip gives each of two people at least half by their own values when the cutter cuts equal by theirs, whatever the chooser likes.', rules: RULES.two, sourceIds: sources}],
+  sources: [
+    {id: 'shares-week58', title: 'Bellingham Math Circle — Week 58: Fair division with different values (student packet, materials and adult guide)', url: 'https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-58', kind: 'local curriculum'},
+    {id: 'shares-card58', title: 'Week 58 review card, its second run and math check (App fit and Decision: trays, find every, the odd case, favourites, cut and choose)', url: 'https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-58.md', kind: 'local curriculum'},
+    {id: 'shares-procaccia', title: 'Ariel D. Procaccia — Cake Cutting Algorithms, in Handbook of Computational Social Choice (Cambridge University Press, 2016), chapter 13: envy-freeness, proportionality and cut and choose', url: 'https://procaccia.info/wp-content/uploads/2020/03/cakechapter.pdf', kind: 'research'}
+  ],
+  puzzles: out
+};
+await writeFile(new URL('../dist/families/shares/shares.json', import.meta.url), JSON.stringify(json, null, 1) + '\n');
+console.log(out.map(p => `${p.id} ${p.difficulty_level} ${p.parameters.mode} ${JSON.stringify(p.solution).slice(0, 110)}`).join('\n'));
