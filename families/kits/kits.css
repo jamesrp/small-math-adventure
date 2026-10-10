@@ -1,0 +1,37 @@
+/* Odd-pebble Balance weight kits: the shared balance drawing with a target
+   block and numbered weights, a row of targets that light when balanced, a
+   kit picker, and the Left / Off / Right tray. Uses the board palette from
+   boards.css. */
+.kits-puzzle{display:flex;flex-direction:column;align-items:stretch;gap:.5rem;width:100%}
+.kit-scale .kit-weight-art path{fill:#d9b56a;stroke:var(--b-ink,#294439);stroke-width:2;stroke-linejoin:round}
+.kit-scale .kit-weight-art circle{fill:none;stroke:var(--b-ink,#294439);stroke-width:2}
+.kit-scale .kit-weight-art text,.kit-scale .kit-target-art text{font-family:var(--b-display,Georgia,serif);font-size:13px;text-anchor:middle;fill:var(--b-ink,#294439)}
+.kit-scale .kit-target-art rect{fill:var(--b-sky,#9cc9de);stroke:var(--b-ink,#294439);stroke-width:2.2}
+.kit-scale .kit-target-art text{font-size:14px;font-weight:700}
+.kit-scale .kit-total{font-family:var(--b-display,Georgia,serif);font-size:17px;text-anchor:middle;fill:var(--b-ink,#294439)}
+.kit-scale .kit-equals{font-size:22px;fill:var(--b-good,#3c7a4a)}
+.kit-targets{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+.board-panel .kits-puzzle .kit-target{min-width:44px;min-height:44px;padding:0 8px;font-family:var(--b-display,Georgia,serif);font-size:1.1rem;font-weight:400}
+.kit-targets.many{gap:3px;max-width:340px;margin:0 auto}
+.board-panel .kits-puzzle .kit-targets.many .kit-target{width:36px;min-width:36px;min-height:36px;height:36px;padding:0;font-size:.92rem;border-radius:9px}
+.board-panel .kits-puzzle .kit-target[aria-pressed="true"]{outline:3px solid var(--b-ochre,#b38840);outline-offset:2px;background:var(--b-card,#fffdf5);box-shadow:none}
+.board-panel .kits-puzzle .kit-target.found{background:var(--b-pine,#31533e);border-color:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9)}
+.board-panel .kits-puzzle .kit-target.crossed{text-decoration:line-through;color:var(--b-muted,#5a6850);opacity:.75}
+.board-panel .kits-puzzle .kit-target:disabled{opacity:1}
+.board-panel .kits-puzzle .kit-target.crossed:disabled{opacity:.75}
+.kit-token{position:relative;display:inline-grid;place-items:center;width:44px;height:32px;flex:none}
+.kit-token svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.kit-token path{fill:#d9b56a;stroke:var(--b-ink,#294439);stroke-width:2;stroke-linejoin:round}
+.kit-token b{position:relative;top:2px;font-family:var(--b-display,Georgia,serif);font-weight:400;font-size:1.05rem;color:var(--b-ink,#294439)}
+.kit-token.empty path{fill:var(--b-card,#fffdf5);stroke-dasharray:4 3}
+.kit-token.empty b{color:var(--b-muted,#5a6850)}
+.kit-picker{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;padding:6px 8px;border:1px dashed var(--b-line,#d0d6bd);border-radius:14px}
+.board-panel .kits-puzzle .kit-pick{min-width:52px;min-height:46px;padding:4px 8px}
+.board-panel .kits-puzzle .kit-step{min-width:46px;min-height:46px;font-size:1.4rem;padding:0}
+.kit-stepper .kit-token{width:56px;height:40px}
+.kit-stepper .kit-token b{font-size:1.25rem}
+.board-panel .kits-puzzle .kit-tray{margin:6px 0;grid-template-columns:repeat(auto-fit,minmax(132px,176px));justify-content:center}
+.kit-tools{display:flex;gap:10px;justify-content:center;min-height:46px}
+.kit-ways{margin:0 auto;padding:8px 14px 8px 2rem;border:1px solid var(--b-line,#d0d6bd);border-radius:12px;background:var(--b-paper,#f5f1e6);font-family:var(--b-display,Georgia,serif);font-size:1.05rem;display:grid;gap:4px}
+.kit-note{text-align:center;margin:0;color:var(--b-bad,#a9503a)}
+.board-panel .kits-puzzle .hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}

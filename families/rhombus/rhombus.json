@@ -1,0 +1,1430 @@
+{
+ "title": "Rhombus gardens",
+ "version": 1,
+ "families": [
+  {
+   "id": "rhombus",
+   "title": "Rhombus gardens",
+   "mathematics": "Boards are cut from the grid of triangles that pattern blocks fit. Two triangles that share a side always point opposite ways, so a rhombus covers one up and one down triangle and a set of rhombi is a matching between them. The most rhombi equals the fewest dots that every place a rhombus could go must cover (König’s theorem), so a packing and a set of dots of the same size prove each other best. Shaded by direction, a rhombus filling of a hexagon is a pile of cubes in a box; a flip turns the three rhombi round a point and adds or takes away one cube, so flips connect every filling and the fewest flips between two is the number of cubes in one pile and not the other (Thurston). The fillings of the hexagon with sides a, b, c are the piles in an a × b × c box, counted by MacMahon’s formula.",
+   "rules": [
+    "A rhombus covers two triangles that share a side.",
+    "Pieces stay inside the board and never overlap."
+   ],
+   "sourceIds": [
+    "rhombus-week01",
+    "rhombus-review",
+    "rhombus-thurston",
+    "rhombus-saldanha-tomei",
+    "rhombus-david-tomei",
+    "rhombus-lovasz-plummer",
+    "rhombus-stanley"
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "id": "rhombus-week01",
+   "title": "Bellingham Math Circle — Week 1: Tiling lab (pattern blocks), packets, facilitator guide and extensions",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-01",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "rhombus-review",
+   "title": "Bellingham Math Circle — Week 1 review card (keep), with its math check",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-01.md",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "rhombus-thurston",
+   "title": "William P. Thurston — Conway’s tiling groups, American Mathematical Monthly 97 (1990), 757–773",
+   "url": "https://doi.org/10.1080/00029890.1990.11995660",
+   "kind": "research"
+  },
+  {
+   "id": "rhombus-saldanha-tomei",
+   "title": "Nicolau C. Saldanha and Carlos Tomei — An overview of domino and lozenge tilings (1995)",
+   "url": "https://arxiv.org/abs/math/9801111",
+   "kind": "research"
+  },
+  {
+   "id": "rhombus-david-tomei",
+   "title": "Guy David and Carlos Tomei — The problem of the calissons, American Mathematical Monthly 96 (1989), 429–431",
+   "url": "https://doi.org/10.1080/00029890.1989.11972212",
+   "kind": "research"
+  },
+  {
+   "id": "rhombus-lovasz-plummer",
+   "title": "László Lovász and Michael D. Plummer — Matching Theory, §1.1 (König’s minimax theorem), AMS Chelsea (2009)",
+   "url": "https://bookstore.ams.org/chel-367",
+   "kind": "book"
+  },
+  {
+   "id": "rhombus-stanley",
+   "title": "Richard P. Stanley — Enumerative Combinatorics, Volume 2, §7.20 (MacMahon’s formula for plane partitions in a box), Cambridge (1999)",
+   "url": "https://math.mit.edu/~rstan/ec/",
+   "kind": "book"
+  }
+ ],
+ "puzzles": [
+  {
+   "id": "rhombus-playground",
+   "number": 0,
+   "title": "Rhombus garden playground",
+   "band": "playground",
+   "difficulty_level": "playground",
+   "mechanic": "rhombus",
+   "familyTitle": "Rhombus gardens",
+   "revision": 1,
+   "parameters": {
+    "mode": "playground"
+   },
+   "objective": "Pile cubes in a corner by flipping rhombi, or lay rhombi on a hexagon.",
+   "instruction": "Pile cubes in a corner by flipping rhombi, or lay rhombi on a hexagon.",
+   "controls": "Pick a hexagon. Tap a white dot to flip the three rhombi round it. Each flip adds or takes away a cube. Drag across two triangles that share a side to lay a rhombus, or tap them one after the other. Tap a rhombus to lift it. Tap the chosen hexagon again to empty the box.",
+   "rules": [
+    "A rhombus covers two triangles that share a side.",
+    "Pieces stay inside the board and never overlap.",
+    "A flip turns three rhombi that make a small hexagon round a point into the hexagon’s other filling."
+   ],
+   "idea": "Free play on hexagons with sides 2, 3 and 4.",
+   "prerequisites": "None. Grown-ups can suggest a question from the puzzles.",
+   "hints": [
+    "Tap the white dot in the corner and watch a cube appear.",
+    "Build a staircase of cubes.",
+    "Fill the box, then empty it one cube at a time."
+   ],
+   "parent": {
+    "notice": "Every flip adds or removes one cube, and the shading makes the rhombi look like cubes in a corner.",
+    "prompt": "How many flips does it take to fill the biggest box?",
+    "explanation": "Each hexagon here is the picture of a box: sides 2, 3 or 4 cubes. Filling it takes 8, 27 or 64 flips, one per cube. The biggest box has 232,848 different piles, each a different way to fill the hexagon with rhombi.",
+    "extension": "Lift a few rhombi and lay them back a different way. Is the result always a pile of cubes?",
+    "connection": "The calisson problem: in every filling of a regular hexagon, each of the three directions of rhombus appears equally often, because a pile seen from three sides shows the same area each way (David and Tomei).",
+    "sourceIds": [
+     "rhombus-week01",
+     "rhombus-david-tomei",
+     "rhombus-stanley"
+    ]
+   },
+   "provenance": "Week 1 materials: blue rhombi on a large hexagon, and the encore’s cube stacks, for free play.",
+   "sourceDocument": "docs/rhombus/README.md"
+  },
+  {
+   "id": "rhombus-01",
+   "number": 1,
+   "title": "Long hexagon",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "rhombus",
+   "familyTitle": "Rhombus gardens",
+   "revision": 1,
+   "parameters": {
+    "mode": "fill",
+    "board": {
+     "outline": [
+      [
+       0,
+       0
+      ],
+      [
+       2,
+       0
+      ],
+      [
+       2,
+       1
+      ],
+      [
+       1,
+       2
+      ],
+      [
+       -1,
+       2
+      ],
+      [
+       -1,
+       1
+      ]
+     ]
+    }
+   },
+   "objective": "Fill the board with rhombi.",
+   "visibleObjective": "",
+   "instruction": "Fill the board with rhombi.",
+   "controls": "Drag across two triangles that share a side to lay a rhombus, or tap them one after the other. Tap a rhombus to lift it.",
+   "rules": [
+    "A rhombus covers two triangles that share a side.",
+    "Pieces stay inside the board and never overlap.",
+    "Solved when every triangle is covered."
+   ],
+   "idea": "A rhombus always covers one triangle pointing up and one pointing down.",
+   "prerequisites": "None. No reading needed once a grown-up has shown the move.",
+   "hints": [
+    "Start at one of the pointed ends.",
+    "Each rhombus covers one triangle pointing up and one pointing down.",
+    "Fill one end, then the other."
+   ],
+   "parent": {
+    "notice": "Every rhombus covers one triangle pointing up and one pointing down.",
+    "prompt": "How many triangles point up? How many point down?",
+    "explanation": "Two triangles that share a side always point opposite ways, so each rhombus covers one of each. The long hexagon has five of each and five rhombi fill it, in three different ways.",
+    "extension": "Find a different way to fill it. Puzzle 3 asks for all of them.",
+    "connection": "A rhombus filling is a perfect matching between the up and the down triangles: the bipartite graph behind every puzzle in this family.",
+    "sourceIds": [
+     "rhombus-week01"
+    ]
+   },
+   "provenance": "Week 1 K–1 Problem 4 (fill the long hexagon with small blue rhombi).",
+   "sourceDocument": "docs/rhombus/README.md"
+  },
+  {
+   "id": "rhombus-02",
+   "number": 2,
+   "title": "The mountain",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "rhombus",
+   "familyTitle": "Rhombus gardens",
+   "revision": 1,
+   "parameters": {
+    "mode": "pack",
+    "board": {
+     "outline": [
+      [
+       0,
+       0
+      ],
+      [
+       3,
+       0
+      ],
+      [
+       0,
+       3
+      ]
+     ]
+    }
+   },
+   "objective": "Fill the board with rhombi. If it can’t be filled, fit as many as you can and prove it: put down as many dots as rhombi, so that every place a rhombus could go covers a dot.",
+   "visibleObjective": "Fill it, or match rhombi and dots so no rhombus fits without a dot.",
+   "instruction": "Fill the board with rhombi. If it can’t be filled, fit as many as you can and prove it: put down as many dots as rhombi, so that every place a rhombus could go covers a dot.",
+   "controls": "Rhombi: Drag across two triangles that share a side to lay a rhombus, or tap them one after the other. Tap a rhombus to lift it. Dots: tap a triangle to put a dot on it, and tap it again to take the dot off. While you place dots, a dashed rhombus shows a place that covers no dot.",
+   "rules": [
+    "A rhombus covers two triangles that share a side.",
+    "Pieces stay inside the board and never overlap.",
+    "A dot marks a triangle. Dots are checked on their own: they don’t stop you laying a rhombus.",
+    "Solved when the board is full, or when there are as many dots as rhombi and every place a rhombus could go covers a dot."
+   ],
+   "idea": "Every rhombus needs a triangle pointing down, and the mountain has only three.",
+   "prerequisites": "Count to six. Tell a triangle pointing up from one pointing down.",
+   "hints": [
+    "Fit as many rhombi as you can.",
+    "Each rhombus covers one triangle pointing down. How many point down?",
+    "Put a dot on every triangle that points down."
+   ],
+   "parent": {
+    "notice": "However the rhombi go, three triangles stay empty.",
+    "prompt": "Why can’t a fourth rhombus fit?",
+    "explanation": "Every rhombus covers exactly one triangle pointing down, and the mountain has three, so at most three rhombi fit and three of the six up triangles stay empty. Dots on the three down triangles are that argument in a form the app can check: every place a rhombus could go covers a dot, and no two rhombi share one.",
+    "extension": "On paper, a triangle with four edges on each side has ten up and six down triangles. How many stay empty? (Four; with five on a side, five.)",
+    "connection": "The simplest case of König’s theorem: when one kind of triangle is scarce, dots on all of that kind prove the most.",
+    "sourceIds": [
+     "rhombus-week01",
+     "rhombus-lovasz-plummer"
+    ]
+   },
+   "provenance": "Week 1 grades 2–3 Problem 1, Board A, and Problem 2 (triangles with 2 to 5 edges on a side leave that many triangles empty); the K–1 mountain outline.",
+   "sourceDocument": "docs/rhombus/README.md"
+  },
+  {
+   "id": "rhombus-03",
+   "number": 3,
+   "title": "Three ways",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "rhombus",
+   "familyTitle": "Rhombus gardens",
+   "revision": 1,
+   "parameters": {
+    "mode": "every",
+    "board": {
+     "outline": [
+      [
+       0,
+       0
+      ],
+      [
+       2,
+       0
+      ],
+      [
+       2,
+       1
+      ],
+      [
+       1,
+       2
+      ],
+      [
+       -1,
+       2
+      ],
+      [
+       -1,
+       1
+      ]
+     ]
+    }
+   },
+   "objective": "Find every way to fill the board with rhombi, then press That’s all.",
+   "visibleObjective": "Find every way to fill it.",
+   "instruction": "Find every way to fill the board with rhombi, then press That’s all.",
+   "controls": "Drag across two triangles that share a side to lay a rhombus, or tap them one after the other. Tap a rhombus to lift it. Each way you fill the board joins the row below. Clear lifts every rhombus. Press That’s all when you have every way.",
+   "rules": [
+    "A rhombus covers two triangles that share a side.",
+    "Pieces stay inside the board and never overlap.",
+    "Two ways are different when any rhombus lies in a different place. The board never turns.",
+    "Solved when you press That’s all with every way found."
+   ],
+   "idea": "Sorting the ways by one choice shows when the list is complete.",
+   "prerequisites": "None. Remembering which ways are already in the row helps.",
+   "hints": [
+    "Fill it, then press Clear and fill it a different way.",
+    "Look at the two triangles at the left point. Do they share a rhombus?",
+    "If they share one there is one way; if not, there are two."
+   ],
+   "parent": {
+    "notice": "There are exactly three ways.",
+    "prompt": "How do you know there isn’t a fourth?",
+    "explanation": "The two triangles at the left point either share a rhombus or they don’t. If they do, the rest of the board can be filled only one way; if they don’t, each joins its other neighbour and the rest can be filled two ways. One plus two is three.",
+    "extension": "Shade each rhombus by which way it leans. Do the three ways look like 0, 1 and 2 cubes?",
+    "connection": "The long hexagon is the hexagon with sides 2, 1, 1; its fillings are piles of cubes in a 2 × 1 × 1 box, so there are three (MacMahon’s formula).",
+    "sourceIds": [
+     "rhombus-review",
+     "rhombus-week01",
+     "rhombus-stanley"
+    ]
+   },
+   "provenance": "Week 1 review card, fix 1: “Fill the long hexagon using only small blue rhombi. Find every way.” (there are 3).",
+   "sourceDocument": "docs/rhombus/README.md"
+  },
+  {
+   "id": "rhombus-04",
+   "number": 4,
+   "title": "The star",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "rhombus",
+   "familyTitle": "Rhombus gardens",
+   "revision": 1,
+   "parameters": {
+    "mode": "fill",
+    "board": {
+     "outline": [
+      [
+       1,
+       0
+      ],
+      [
+       1,
+       1
+      ],
+      [
+       0,
+       1
+      ],
+      [
+       -1,
+       2
+      ],
+      [
+       -1,
+       1
+      ],
+      [
+       -2,
+       1
+      ],
+      [
+       -1,
+       0
+      ],
+      [
+       -1,
+       -1
+      ],
+      [
+       0,
+       -1
+      ],
+      [
+       1,
+       -2
+      ],
+      [
+       1,
+       -1
+      ],
+      [
+       2,
+       -1
+      ]
+     ]
+    }
+   },
+   "objective": "Fill the board with rhombi.",
+   "visibleObjective": "",
+   "instruction": "Fill the board with rhombi.",
+   "controls": "Drag across two triangles that share a side to lay a rhombus, or tap them one after the other. Tap a rhombus to lift it.",
+   "rules": [
+    "A rhombus covers two triangles that share a side.",
+    "Pieces stay inside the board and never overlap.",
+    "Solved when every triangle is covered."
+   ],
+   "idea": "A triangle with only one neighbour has only one way to be covered.",
+   "prerequisites": "None.",
+   "hints": [
+    "Look at the six points of the star.",
+    "Each point touches only one other triangle.",
+    "Cover every point with the triangle it touches."
+   ],
+   "parent": {
+    "notice": "Half of the first moves lead to a dead end; there is only one way to fill the star.",
+    "prompt": "Which triangle can the tip of a point share a rhombus with?",
+    "explanation": "Each of the six points touches only one other triangle, so its rhombus is forced, and the six forced rhombi fill the star exactly. A rhombus that joins two triangles of the middle hexagon leaves some point with no partner.",
+    "extension": "With purple chevrons the star can be filled two ways. Can you find them with real pattern blocks?",
+    "connection": "Forced moves: a vertex of degree one must be matched to its only neighbour. Matching algorithms start the same way.",
+    "sourceIds": [
+     "rhombus-week01"
+    ]
+   },
+   "provenance": "Week 1 K–1 star outline (K–1 Problem 3 fills it with chevrons; here with blue rhombi).",
+   "sourceDocument": "docs/rhombus/README.md"
+  },
+  {
+   "id": "rhombus-05",
+   "number": 5,
+   "title": "The sailboat",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "rhombus",
+   "familyTitle": "Rhombus gardens",
+   "revision": 1,
+   "parameters": {
+    "mode": "pack",
+    "board": {
+     "outline": [
+      [
+       0,
+       0
+      ],
+      [
+       3,
+       0
+      ],
+      [
+       3,
+       1
+      ],
+      [
+       2,
+       1
+      ],
+      [
+       0,
+       3
+      ],
+      [
+       0,
+       1
+      ],
+      [
+       -1,
+       1
+      ]
+     ]
+    }
+   },
+   "objective": "Fill the board with rhombi. If it can’t be filled, fit as many as you can and prove it: put down as many dots as rhombi, so that every place a rhombus could go covers a dot.",
+   "visibleObjective": "Fill it, or match rhombi and dots so no rhombus fits without a dot.",
+   "instruction": "Fill the board with rhombi. If it can’t be filled, fit as many as you can and prove it: put down as many dots as rhombi, so that every place a rhombus could go covers a dot.",
+   "controls": "Rhombi: Drag across two triangles that share a side to lay a rhombus, or tap them one after the other. Tap a rhombus to lift it. Dots: tap a triangle to put a dot on it, and tap it again to take the dot off. While you place dots, a dashed rhombus shows a place that covers no dot.",
+   "rules": [
+    "A rhombus covers two triangles that share a side.",
+    "Pieces stay inside the board and never overlap.",
+    "A dot marks a triangle. Dots are checked on their own: they don’t stop you laying a rhombus.",
+    "Solved when the board is full, or when there are as many dots as rhombi and every place a rhombus could go covers a dot."
+   ],
+   "idea": "Being stuck is not the same as having the most.",
+   "prerequisites": "Count to six; compare two small counts.",
+   "hints": [
+    "Fit as many rhombi as you can. Can you fill it?",
+    "Count the triangles pointing up and pointing down.",
+    "Five triangles point down, so five dots on them prove that five rhombi are the most."
+   ],
+   "parent": {
+    "notice": "Many ways of laying rhombi get stuck at three or four; five is the most.",
+    "prompt": "When you are stuck at four, is a down triangle still empty?",
+    "explanation": "The sailboat has six up and five down triangles. Every rhombus covers one down triangle, so five is the most, and dots on the five down triangles prove it. Of the 20 ways to lay rhombi until none fits, 15 stop at three or four; reaching five can mean lifting a rhombus to make room.",
+    "extension": "Find a way to get stuck with only three rhombi.",
+    "connection": "A maximal matching need not be maximum; a path that alternates between empty and covered places shows how to gain one (Berge’s theorem).",
+    "sourceIds": [
+     "rhombus-week01",
+     "rhombus-lovasz-plummer"
+    ]
+   },
+   "provenance": "Week 1 K–1 sailboat outline, posed as grades 2–3 Problem 1 poses Board C (one more up triangle than down).",
+   "sourceDocument": "docs/rhombus/README.md"
+  },
+  {
+   "id": "rhombus-06",
+   "number": 6,
+   "title": "The bow tie",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "rhombus",
+   "familyTitle": "Rhombus gardens",
+   "revision": 1,
+   "parameters": {
+    "mode": "pack",
+    "board": {
+     "cells": [
+      [
+       0,
+       0,
+       0
+      ],
+      [
+       0,
+       0,
+       1
+      ],
+      [
+       1,
+       0,
+       0
+      ],
+      [
+       0,
+       1,
+       0
+      ],
+      [
+       -1,
+       1,
+       1
+      ],
+      [
+       0,
+       1,
+       1
+      ]
+     ]
+    }
+   },
+   "objective": "Fill the board with rhombi. If it can’t be filled, fit as many as you can and prove it: put down as many dots as rhombi, so that every place a rhombus could go covers a dot.",
+   "visibleObjective": "Fill it, or match rhombi and dots so no rhombus fits without a dot.",
+   "instruction": "Fill the board with rhombi. If it can’t be filled, fit as many as you can and prove it: put down as many dots as rhombi, so that every place a rhombus could go covers a dot.",
+   "controls": "Rhombi: Drag across two triangles that share a side to lay a rhombus, or tap them one after the other. Tap a rhombus to lift it. Dots: tap a triangle to put a dot on it, and tap it again to take the dot off. While you place dots, a dashed rhombus shows a place that covers no dot.",
+   "rules": [
+    "A rhombus covers two triangles that share a side.",
+    "Pieces stay inside the board and never overlap.",
+    "A dot marks a triangle. Dots are checked on their own: they don’t stop you laying a rhombus.",
+    "Solved when the board is full, or when there are as many dots as rhombi and every place a rhombus could go covers a dot."
+   ],
+   "idea": "Equal numbers of up and down triangles do not guarantee a filling.",
+   "prerequisites": "Count to three.",
+   "hints": [
+    "Three triangles point up and three point down. Can you fill it?",
+    "The two bottom corners both need the same triangle.",
+    "Put a dot on each of the two triangles in the middle."
+   ],
+   "parent": {
+    "notice": "Equal numbers of up and down triangles, and still two stay empty.",
+    "prompt": "Which triangle do both bottom corners need?",
+    "explanation": "The two bottom corners each touch only the middle triangle of the bottom, so at most one of them is covered; the two top corners each touch only the middle triangle of the top. Dots on those two middle triangles prove it: every place a rhombus could go covers one of them, so two rhombi are the most.",
+    "extension": "Add one triangle so that the board can be filled.",
+    "connection": "Hall’s condition fails: two corners share a single partner. Equal counts are necessary for a filling but not enough.",
+    "sourceIds": [
+     "rhombus-week01",
+     "rhombus-lovasz-plummer"
+    ]
+   },
+   "provenance": "Week 1 facilitator guide, reserve “Equal up/down counts can still fail” (the six-cell bottleneck).",
+   "sourceDocument": "docs/rhombus/README.md"
+  },
+  {
+   "id": "rhombus-07",
+   "number": 7,
+   "title": "Six fillings",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "rhombus",
+   "familyTitle": "Rhombus gardens",
+   "revision": 1,
+   "parameters": {
+    "mode": "every",
+    "board": {
+     "outline": [
+      [
+       0,
+       0
+      ],
+      [
+       1,
+       0
+      ],
+      [
+       1,
+       2
+      ],
+      [
+       -1,
+       4
+      ],
+      [
+       -2,
+       4
+      ],
+      [
+       -2,
+       2
+      ]
+     ],
+     "turn": true
+    }
+   },
+   "objective": "Find every way to fill the board with rhombi, then press That’s all.",
+   "visibleObjective": "Find every way to fill it.",
+   "instruction": "Find every way to fill the board with rhombi, then press That’s all.",
+   "controls": "Drag across two triangles that share a side to lay a rhombus, or tap them one after the other. Tap a rhombus to lift it. Each way you fill the board joins the row below. Clear lifts every rhombus. Press That’s all when you have every way.",
+   "rules": [
+    "A rhombus covers two triangles that share a side.",
+    "Pieces stay inside the board and never overlap.",
+    "Two ways are different when any rhombus lies in a different place. The board never turns.",
+    "Solved when you press That’s all with every way found."
+   ],
+   "idea": "Seen as cubes, each filling is a pile in a small box, and the piles can be listed by size.",
+   "prerequisites": "Keep track of a growing list. Counting to six.",
+   "hints": [
+    "Fill it, then press Clear and find another.",
+    "Look at the shading: each filling looks like cubes in the corner of a box.",
+    "The box holds up to four cubes. How many ways are there with none, one, two, three and four?"
+   ],
+   "parent": {
+    "notice": "There are exactly six fillings.",
+    "prompt": "How can you be sure there isn’t a seventh?",
+    "explanation": "Shaded by direction, each filling looks like cubes in the corner of a box two cubes wide, two deep and one high. A cube sits on a floor square only if the squares behind it are full, so the piles have 0, 1, 2, 3 or 4 cubes, with two ways to place two: 1 + 1 + 2 + 1 + 1 = 6. The worksheet counts the same six with ribbons: each filling’s ribbon is a word of two L’s and two R’s.",
+    "extension": "How many fillings has the hexagon with all sides 2? (Twenty: puzzle 11.)",
+    "connection": "The hexagon with sides a, b, c has as many fillings as there are piles in an a × b × c box (MacMahon). Proofs 8 and 9 use the same six fillings as cards A to F.",
+    "sourceIds": [
+     "rhombus-week01",
+     "rhombus-david-tomei",
+     "rhombus-stanley"
+    ]
+   },
+   "provenance": "Week 1 grades 4–5 Problem 1 (find every tiling of the hexagon with sides 1, 2, 2; the six cards A–F).",
+   "sourceDocument": "docs/rhombus/README.md"
+  },
+  {
+   "id": "rhombus-08",
+   "number": 8,
+   "title": "First flips",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "rhombus",
+   "familyTitle": "Rhombus gardens",
+   "revision": 1,
+   "parameters": {
+    "mode": "flip",
+    "board": {
+     "outline": [
+      [
+       0,
+       0
+      ],
+      [
+       2,
+       0
+      ],
+      [
+       2,
+       2
+      ],
+      [
+       0,
+       4
+      ],
+      [
+       -2,
+       4
+      ],
+      [
+       -2,
+       2
+      ]
+     ],
+     "turn": true
+    },
+    "start": [
+     [
+      0,
+      3
+     ],
+     [
+      7,
+      11
+     ],
+     [
+      2,
+      6
+     ],
+     [
+      10,
+      14
+     ],
+     [
+      20,
+      21
+     ],
+     [
+      15,
+      16
+     ],
+     [
+      22,
+      23
+     ],
+     [
+      18,
+      19
+     ],
+     [
+      5,
+      9
+     ],
+     [
+      13,
+      17
+     ],
+     [
+      1,
+      4
+     ],
+     [
+      8,
+      12
+     ]
+    ],
+    "goal": [
+     [
+      2,
+      6
+     ],
+     [
+      22,
+      23
+     ],
+     [
+      5,
+      9
+     ],
+     [
+      0,
+      1
+     ],
+     [
+      4,
+      8
+     ],
+     [
+      3,
+      7
+     ],
+     [
+      12,
+      13
+     ],
+     [
+      17,
+      21
+     ],
+     [
+      16,
+      20
+     ],
+     [
+      10,
+      11
+     ],
+     [
+      15,
+      19
+     ],
+     [
+      14,
+      18
+     ]
+    ],
+    "budget": 4
+   },
+   "objective": "Flip rhombi until the board matches ⚑, in at most 4 flips.",
+   "visibleObjective": "Make ⚑ in 4 flips.",
+   "instruction": "Flip rhombi until the board matches ⚑, in at most 4 flips.",
+   "controls": "Tap a white dot to flip the three rhombi round it. Start again goes back to the first picture.",
+   "rules": [
+    "A rhombus covers two triangles that share a side.",
+    "Pieces stay inside the board and never overlap.",
+    "A flip turns three rhombi that make a small hexagon round a point into the hexagon’s other filling.",
+    "Solved when your tiling matches ⚑ within the flips allowed."
+   ],
+   "idea": "A flip adds or takes away exactly one cube.",
+   "prerequisites": "Count to four. Seeing the rhombi as cubes helps but is not needed.",
+   "hints": [
+    "Tap a white dot and watch the three rhombi round it turn.",
+    "Each flip adds a cube or takes one away.",
+    "Build the ⚑ pile one cube at a time, starting in the corner."
+   ],
+   "parent": {
+    "notice": "A flip adds one cube or takes one away.",
+    "prompt": "How many cubes are in the ⚑ picture?",
+    "explanation": "The ⚑ picture is four cubes in the corner of the box, and each flip adds or removes exactly one cube, so four flips is the fewest. Any order works that adds those four cubes, each resting on the floor or on a cube already there.",
+    "extension": "What is the most flips any picture of this box can need from the empty corner? (Eight: the full box.)",
+    "connection": "Thurston’s height function: a flip changes the height at one grid point by one cube, so the fewest flips between two fillings is the number of cubes in one pile and not the other.",
+    "sourceIds": [
+     "rhombus-week01",
+     "rhombus-thurston",
+     "rhombus-saldanha-tomei"
+    ]
+   },
+   "provenance": "Week 1 grades 4–5 Problems 2 and 3 (the flip, and the shortest route between two cards), on the hexagon with all sides 2 from the facilitator guide’s scaling reserve.",
+   "sourceDocument": "docs/rhombus/README.md"
+  },
+  {
+   "id": "rhombus-09",
+   "number": 9,
+   "title": "The hourglass",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "rhombus",
+   "familyTitle": "Rhombus gardens",
+   "revision": 1,
+   "parameters": {
+    "mode": "pack",
+    "board": {
+     "cells": [
+      [
+       0,
+       0,
+       0
+      ],
+      [
+       0,
+       0,
+       1
+      ],
+      [
+       1,
+       0,
+       0
+      ],
+      [
+       1,
+       0,
+       1
+      ],
+      [
+       2,
+       0,
+       0
+      ],
+      [
+       0,
+       1,
+       0
+      ],
+      [
+       0,
+       1,
+       1
+      ],
+      [
+       1,
+       1,
+       0
+      ],
+      [
+       0,
+       2,
+       0
+      ],
+      [
+       1,
+       -3,
+       1
+      ],
+      [
+       0,
+       -2,
+       1
+      ],
+      [
+       1,
+       -2,
+       0
+      ],
+      [
+       1,
+       -2,
+       1
+      ],
+      [
+       -1,
+       -1,
+       1
+      ],
+      [
+       0,
+       -1,
+       0
+      ],
+      [
+       0,
+       -1,
+       1
+      ],
+      [
+       1,
+       -1,
+       0
+      ],
+      [
+       1,
+       -1,
+       1
+      ]
+     ]
+    }
+   },
+   "objective": "Fill the board with rhombi. If it can’t be filled, fit as many as you can and prove it: put down as many dots as rhombi, so that every place a rhombus could go covers a dot.",
+   "visibleObjective": "Fill it, or match rhombi and dots so no rhombus fits without a dot.",
+   "instruction": "Fill the board with rhombi. If it can’t be filled, fit as many as you can and prove it: put down as many dots as rhombi, so that every place a rhombus could go covers a dot.",
+   "controls": "Rhombi: Drag across two triangles that share a side to lay a rhombus, or tap them one after the other. Tap a rhombus to lift it. Dots: tap a triangle to put a dot on it, and tap it again to take the dot off. While you place dots, a dashed rhombus shows a place that covers no dot.",
+   "rules": [
+    "A rhombus covers two triangles that share a side.",
+    "Pieces stay inside the board and never overlap.",
+    "A dot marks a triangle. Dots are checked on their own: they don’t stop you laying a rhombus.",
+    "Solved when the board is full, or when there are as many dots as rhombi and every place a rhombus could go covers a dot."
+   ],
+   "idea": "Count the scarce kind of triangle in each part, and the rhombi that can cross between them.",
+   "prerequisites": "Count to nine; keep two counts in mind at once.",
+   "hints": [
+    "Nine triangles point up and nine point down. Can you fill it?",
+    "In the top part every rhombus needs a triangle pointing down; in the bottom part, one pointing up.",
+    "Put dots on the top part’s down triangles, the bottom part’s up triangles, and the two top-part triangles that touch the bottom part."
+   ],
+   "parent": {
+    "notice": "Most ways of laying rhombi get stuck at six or seven; eight is the most.",
+    "prompt": "How many rhombi can cross from the top triangle into the bottom one?",
+    "explanation": "The top triangle has six up and three down triangles, the bottom one three up and six down. A rhombus inside the top needs one of its three downs, a rhombus inside the bottom needs one of its three ups, and only two rhombi can cross the seam, each through one of two triangles. So at most 3 + 3 + 2 = 8 rhombi fit and two triangles stay empty; the eight dots make the argument checkable. Only 9 of the 356 ways to lay rhombi until none fits reach eight.",
+    "extension": "On paper, slide the bottom triangle so that three rhombi can cross the seam. Can the board be filled then?",
+    "connection": "König’s theorem: the most rhombi equals the fewest dots, the matching form of max-flow min-cut. Routes and roadblocks plays the same count on arrows.",
+    "sourceIds": [
+     "rhombus-week01",
+     "rhombus-lovasz-plummer"
+    ]
+   },
+   "provenance": "New: an hourglass of two triangles with three edges on a side, found by exhaustive search for a board with equal up and down counts whose proof needs both kinds of dot. It extends the facilitator guide’s bottleneck reserve.",
+   "sourceDocument": "docs/rhombus/README.md"
+  },
+  {
+   "id": "rhombus-10",
+   "number": 10,
+   "title": "Purple pinwheel",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "rhombus",
+   "familyTitle": "Rhombus gardens",
+   "revision": 1,
+   "parameters": {
+    "mode": "fill",
+    "piece": "chevron",
+    "board": {
+     "outline": [
+      [
+       0,
+       0
+      ],
+      [
+       2,
+       0
+      ],
+      [
+       2,
+       2
+      ],
+      [
+       0,
+       4
+      ],
+      [
+       -2,
+       4
+      ],
+      [
+       -2,
+       2
+      ]
+     ]
+    }
+   },
+   "objective": "Fill the board with chevrons.",
+   "visibleObjective": "",
+   "instruction": "Fill the board with chevrons.",
+   "controls": "Drag across four triangles in the shape of a chevron, or tap them one at a time. Tap a chevron to lift it. Chevrons can face any way.",
+   "rules": [
+    "Pieces stay inside the board and never overlap.",
+    "A chevron covers four triangles in a bent row, like the purple pattern block. It can face any way.",
+    "Solved when every triangle is covered."
+   ],
+   "idea": "A bent piece fits only where its bend has room; the hexagon fills only as a pinwheel.",
+   "prerequisites": "Turning a shape in your head. No counting needed.",
+   "hints": [
+    "Every corner of the hexagon needs a chevron.",
+    "Look at the middle point: the chevrons can turn round it.",
+    "Each chevron reaches from the middle out to the edge, all bent the same way."
+   ],
+   "parent": {
+    "notice": "There are only two ways, mirror images of each other, and most first chevrons lead nowhere.",
+    "prompt": "Where can a chevron go so that the corner beside it can still be filled?",
+    "explanation": "Six chevrons fill the hexagon only as a pinwheel round the centre, turning one way or the other. Of the 42 places a first chevron can go, 30 cannot be part of a filling.",
+    "extension": "A chevron is two rhombi joined. How many of the twenty rhombus fillings of this hexagon can be paired up into chevrons? (Just one, the pile of four cubes, and it pairs up both ways: the two pinwheels split into the same rhombi.)",
+    "connection": "Purples never do better than blues, because each chevron splits into two rhombi (Week 1 grades 2–3 Problem 3). For bent pieces there is no short proof that a board can’t be filled in general, unlike rhombi, where dots always work.",
+    "sourceIds": [
+     "rhombus-week01"
+    ]
+   },
+   "provenance": "Week 1 grades 2–3 Problem 3 (blue rhombi against purple chevrons) and K–1 Problem 3 (chevron-only fills), on the hexagon with all sides 2.",
+   "sourceDocument": "docs/rhombus/README.md"
+  },
+  {
+   "id": "rhombus-11",
+   "number": 11,
+   "title": "Twenty piles",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "rhombus",
+   "familyTitle": "Rhombus gardens",
+   "revision": 1,
+   "parameters": {
+    "mode": "every",
+    "board": {
+     "outline": [
+      [
+       0,
+       0
+      ],
+      [
+       2,
+       0
+      ],
+      [
+       2,
+       2
+      ],
+      [
+       0,
+       4
+      ],
+      [
+       -2,
+       4
+      ],
+      [
+       -2,
+       2
+      ]
+     ],
+     "turn": true
+    },
+    "flips": true,
+    "start": [
+     [
+      0,
+      3
+     ],
+     [
+      7,
+      11
+     ],
+     [
+      2,
+      6
+     ],
+     [
+      10,
+      14
+     ],
+     [
+      20,
+      21
+     ],
+     [
+      15,
+      16
+     ],
+     [
+      22,
+      23
+     ],
+     [
+      18,
+      19
+     ],
+     [
+      5,
+      9
+     ],
+     [
+      13,
+      17
+     ],
+     [
+      1,
+      4
+     ],
+     [
+      8,
+      12
+     ]
+    ]
+   },
+   "objective": "Find every way to fill the board with rhombi, then press That’s all.",
+   "visibleObjective": "Find every way to fill it.",
+   "instruction": "Find every way to fill the board with rhombi, then press That’s all.",
+   "controls": "Tap a white dot to flip the three rhombi round it. Drag across two triangles that share a side to lay a rhombus, or tap them one after the other. Tap a rhombus to lift it. Each way you fill the board joins the row below. Press That’s all when you have every way.",
+   "rules": [
+    "A rhombus covers two triangles that share a side.",
+    "Pieces stay inside the board and never overlap.",
+    "A flip turns three rhombi that make a small hexagon round a point into the hexagon’s other filling.",
+    "Two ways are different when any rhombus lies in a different place. The board never turns.",
+    "Solved when you press That’s all with every way found."
+   ],
+   "idea": "Flips reach every filling, and piles of cubes can be listed by size.",
+   "prerequisites": "Keep track of a long list; counting to twenty. Seeing the rhombi as cubes.",
+   "hints": [
+    "Tap a white dot to flip. Every new filling joins the row below.",
+    "Each filling is a pile of cubes in a box two cubes on every side.",
+    "Sort the piles by how many cubes they have, from 0 to 8."
+   ],
+   "parent": {
+    "notice": "There are exactly twenty fillings, and flips reach all of them.",
+    "prompt": "How many piles have four cubes?",
+    "explanation": "Each filling is a pile of cubes in a 2 × 2 × 2 box with nothing floating: a cube needs the floor or a cube under it, and full squares behind and beside it. Piles with 0 to 8 cubes number 1, 1, 3, 3, 4, 3, 3, 1, 1, twenty in all; the list is symmetric because the missing cubes of a pile form a pile too. Taking cubes away one at a time leads from any pile back to the empty box, so flips connect them all.",
+    "extension": "Count by columns instead: each of the four columns holds 0, 1 or 2 cubes, never more than the columns behind it.",
+    "connection": "Piles in an a × b × c box are plane partitions, counted by MacMahon’s product formula: 20 for 2 × 2 × 2 and 980 for 3 × 3 × 3. Flips connect the rhombus fillings of any board without holes (Thurston).",
+    "sourceIds": [
+     "rhombus-week01",
+     "rhombus-thurston",
+     "rhombus-stanley"
+    ]
+   },
+   "provenance": "Week 1 facilitator guide, “Scaling and random moves” reserve (the doubled hexagon has twenty tilings); Week 1 encore grades 4–5 (rhombus tilings as cube stacks, a flip adds or removes one cube). The extension packet’s twenty-tiling map is of a different hexagon (sides 1, 3, 3).",
+   "sourceDocument": "docs/rhombus/README.md"
+  },
+  {
+   "id": "rhombus-12",
+   "number": 12,
+   "title": "Turn the wall",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "rhombus",
+   "familyTitle": "Rhombus gardens",
+   "revision": 1,
+   "parameters": {
+    "mode": "flip",
+    "board": {
+     "outline": [
+      [
+       0,
+       0
+      ],
+      [
+       3,
+       0
+      ],
+      [
+       3,
+       3
+      ],
+      [
+       0,
+       6
+      ],
+      [
+       -3,
+       6
+      ],
+      [
+       -3,
+       3
+      ]
+     ],
+     "turn": true
+    },
+    "start": [
+     [
+      0,
+      3
+     ],
+     [
+      2,
+      7
+     ],
+     [
+      13,
+      19
+     ],
+     [
+      25,
+      31
+     ],
+     [
+      6,
+      12
+     ],
+     [
+      18,
+      24
+     ],
+     [
+      30,
+      36
+     ],
+     [
+      50,
+      51
+     ],
+     [
+      44,
+      45
+     ],
+     [
+      52,
+      53
+     ],
+     [
+      37,
+      38
+     ],
+     [
+      48,
+      49
+     ],
+     [
+      42,
+      43
+     ],
+     [
+      11,
+      17
+     ],
+     [
+      5,
+      10
+     ],
+     [
+      1,
+      4
+     ],
+     [
+      26,
+      32
+     ],
+     [
+      8,
+      9
+     ],
+     [
+      14,
+      20
+     ],
+     [
+      33,
+      39
+     ],
+     [
+      15,
+      16
+     ],
+     [
+      21,
+      27
+     ],
+     [
+      41,
+      47
+     ],
+     [
+      40,
+      46
+     ],
+     [
+      22,
+      23
+     ],
+     [
+      29,
+      35
+     ],
+     [
+      28,
+      34
+     ]
+    ],
+    "goal": [
+     [
+      0,
+      3
+     ],
+     [
+      2,
+      7
+     ],
+     [
+      6,
+      12
+     ],
+     [
+      46,
+      47
+     ],
+     [
+      39,
+      40
+     ],
+     [
+      50,
+      51
+     ],
+     [
+      44,
+      45
+     ],
+     [
+      52,
+      53
+     ],
+     [
+      48,
+      49
+     ],
+     [
+      11,
+      17
+     ],
+     [
+      23,
+      29
+     ],
+     [
+      35,
+      41
+     ],
+     [
+      5,
+      10
+     ],
+     [
+      16,
+      22
+     ],
+     [
+      28,
+      34
+     ],
+     [
+      1,
+      4
+     ],
+     [
+      27,
+      33
+     ],
+     [
+      8,
+      9
+     ],
+     [
+      15,
+      21
+     ],
+     [
+      32,
+      38
+     ],
+     [
+      13,
+      14
+     ],
+     [
+      20,
+      26
+     ],
+     [
+      37,
+      43
+     ],
+     [
+      36,
+      42
+     ],
+     [
+      18,
+      19
+     ],
+     [
+      25,
+      31
+     ],
+     [
+      24,
+      30
+     ]
+    ],
+    "budget": 8
+   },
+   "objective": "Flip rhombi until the board matches ⚑, in at most 8 flips.",
+   "visibleObjective": "Make ⚑ in 8 flips.",
+   "instruction": "Flip rhombi until the board matches ⚑, in at most 8 flips.",
+   "controls": "Tap a white dot to flip the three rhombi round it. Start again goes back to the first picture.",
+   "rules": [
+    "A rhombus covers two triangles that share a side.",
+    "Pieces stay inside the board and never overlap.",
+    "A flip turns three rhombi that make a small hexagon round a point into the hexagon’s other filling.",
+    "Solved when your tiling matches ⚑ within the flips allowed."
+   ],
+   "idea": "The fewest flips is the number of cubes in one pile and not the other.",
+   "prerequisites": "Compare two pictures cube by cube; count to eight.",
+   "hints": [
+    "Compare the two pictures: which cubes are in both?",
+    "Take away only cubes that ⚑ doesn’t have, and add only cubes it does.",
+    "Four cubes go and four come."
+   ],
+   "parent": {
+    "notice": "Two cubes stay put; four go and four come.",
+    "prompt": "Which cubes are in both pictures?",
+    "explanation": "Each flip adds or removes one cube, so the fewest flips is the number of cubes in one pile and not the other: four to take away and four to add, eight in all. A flip that adds a cube ⚑ lacks, or removes one ⚑ keeps, must be undone later and costs two more.",
+    "extension": "Which two piles in this box are farthest apart? (The empty box and the full one, 27 flips.)",
+    "connection": "For rhombus fillings of a board without holes, the fewest flips between two fillings is the total difference of their height functions, counted in cubes (Thurston; Saldanha and Tomei).",
+    "sourceIds": [
+     "rhombus-week01",
+     "rhombus-thurston",
+     "rhombus-saldanha-tomei"
+    ]
+   },
+   "provenance": "New, extending Week 1 grades 4–5 Problem 3 (the shortest route) to the hexagon with all sides 3, in the cube-pile reading of the Week 1 encore.",
+   "sourceDocument": "docs/rhombus/README.md"
+  }
+ ]
+}

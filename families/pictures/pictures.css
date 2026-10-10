@@ -1,0 +1,82 @@
+/* Hidden pictures: a grid of squares with counters, circled counts for each
+   row and column, and small cards for goals and pictures found. Uses the shared
+   board palette from boards.css (paper card, ink outlines, pine for counters,
+   leaf for a matched count, ochre for attention, Georgia numerals). */
+.pictures-puzzle,.pictures-play{display:flex;flex-direction:column;align-items:center;gap:.8rem;width:100%}
+.pic-compare{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:1rem 1.4rem;width:100%}
+
+.pic-grid{--cell:68px;display:grid;grid-template-columns:1.5rem repeat(var(--cols),minmax(0,var(--cell))) 2.9rem;align-items:center;justify-content:center;width:100%;max-width:calc(var(--cols) * var(--cell) + 4.4rem);margin:.3rem auto}
+.pic-label{font-family:var(--b-display,Georgia,serif);font-size:.95rem;color:var(--b-muted,#5a6850);text-align:center;line-height:1.6}
+.pic-label.row{padding-right:.35rem}
+.pic-cell{position:relative;display:grid;place-items:center;aspect-ratio:1;min-height:0;min-width:0;padding:0;margin:0;border:0;border-right:2px solid var(--b-ink,#294439);border-bottom:2px solid var(--b-ink,#294439);border-radius:0;background:var(--b-card,#fffdf5);box-shadow:none;cursor:pointer;color:inherit}
+.pic-cell.r0{border-top:2px solid var(--b-ink,#294439)}
+.pic-cell.c0{border-left:2px solid var(--b-ink,#294439)}
+.pic-cell:not([aria-disabled]):hover{background:#f6f0dc}
+.pic-cell[aria-disabled="true"]{cursor:default}
+.pic-cell:focus-visible{outline:3px solid var(--b-ochre,#b38840);outline-offset:-5px;z-index:1}
+.pic-counter{display:none;width:62%;aspect-ratio:1;border-radius:50%;background:var(--b-pine,#31533e);box-shadow:inset 0 -3px 0 rgba(0,0,0,.18),0 1px 0 rgba(41,68,57,.25)}
+.pic-cell.on .pic-counter{display:block}
+
+/* Counts: the number to match, circled. Green when matched, ochre when over. */
+.pic-count{display:grid;place-items:center;width:2.15rem;height:2.15rem;margin:.25rem auto;border-radius:50%;border:2px solid var(--b-ink,#294439);background:var(--b-card,#fffdf5);font-family:var(--b-display,Georgia,serif);font-size:1.15rem;line-height:1;color:var(--b-ink,#294439)}
+.pic-count.exact{background:var(--b-good-soft,#e2ecd6);border-color:var(--b-good,#3c7a4a);color:var(--b-good,#3c7a4a)}
+.pic-count.over{background:var(--b-bad-soft,#f5e3d9);border-color:var(--b-ochre,#b38840);color:var(--b-bad,#a9503a)}
+.pic-count.live{border-style:dashed;border-color:var(--b-muted,#5a6850)}
+.pic-grid.fixed .pic-count{border-color:var(--b-line,#d0d6bd);color:var(--b-muted,#5a6850)}
+
+/* Rings: where the goal picture has its counters. */
+.pic-cell.goal::before{content:"";position:absolute;width:80%;aspect-ratio:1;border-radius:50%;border:3px dashed var(--b-ochre,#b38840);pointer-events:none}
+.pic-cell.goal.home::before{border-style:solid;border-color:var(--b-good,#3c7a4a)}
+
+/* Switches: the picked counter, its partners, and a switch to show. */
+.pic-cell.picked .pic-counter{box-shadow:0 0 0 4px var(--b-card,#fffdf5),0 0 0 7px var(--b-pine,#31533e)}
+.pic-cell.partner{background:#fbf2d6}
+.pic-cell.partner .pic-counter{box-shadow:0 0 0 4px rgba(239,199,110,.75)}
+.pic-cell.idle .pic-counter{opacity:.7}
+@media (prefers-reduced-motion:no-preference){.pic-cell.partner .pic-counter{animation:pic-glow 1.5s ease-in-out infinite}}
+@keyframes pic-glow{50%{box-shadow:0 0 0 7px rgba(239,199,110,.4)}}
+.pic-cell.twin::after{content:"";position:absolute;inset:5px;border:3px dashed var(--b-ochre,#b38840);border-radius:8px;pointer-events:none}
+.pic-cell.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:-6px;z-index:1}
+.pictures-puzzle .hinted.pic-done{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+
+/* Cards: the goal, the starting picture, and the pictures found. */
+.pic-card{position:relative;margin:0;padding:.55rem;border-radius:14px;background:var(--b-paper,#f5f1e6);border:1.5px dashed var(--b-line,#d0d6bd)}
+.pic-card.goal{background:#fbf4dc;border:1.5px solid #ead9a4}
+.pic-card .pic-mini{width:calc(var(--cols) * 24px);max-width:132px}
+.pic-not{position:absolute;right:-.7rem;top:-.7rem;display:grid;place-items:center;width:1.7rem;height:1.7rem;border-radius:50%;background:var(--b-ochre,#b38840);color:var(--b-card,#fffdf5);font-size:1.1rem;font-weight:700;line-height:1}
+.pic-mini{display:block;height:auto}
+.pic-mini line{stroke:var(--b-ink,#294439);stroke-width:.9}
+.pic-mini circle{fill:var(--b-pine,#31533e)}
+.pic-found{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem;list-style:none;margin:0;padding:0;max-width:100%}
+.pic-found li{padding:.35rem;border-radius:10px;background:var(--b-paper,#f5f1e6);border:1.5px solid var(--b-line,#d0d6bd)}
+.pic-found .pic-mini{width:calc(var(--cols) * 15px)}
+.pic-found li.fresh{border-color:var(--b-good,#3c7a4a);background:var(--b-good-soft,#e2ecd6)}
+.pic-found li.again{border-color:var(--b-ochre,#b38840);background:#fbf2d6}
+@media (prefers-reduced-motion:no-preference){.pic-found li.fresh,.pic-found li.again{animation:pic-pop .35s ease-out}}
+@keyframes pic-pop{0%{transform:scale(.8)}70%{transform:scale(1.06)}100%{transform:scale(1)}}
+
+.pic-tools{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem}
+.pic-tools .pic-counter{display:inline-block;width:.9rem;vertical-align:-.1rem}
+.pic-switch-icon{font-size:1.05rem;line-height:1}
+.pic-early{margin:0;font-weight:600;color:var(--b-bad,#a9503a)}
+.pic-tray{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;padding:.45rem .8rem;border:1.5px dashed var(--b-line,#d0d6bd);border-radius:14px;background:var(--b-paper,#f5f1e6)}
+.pic-tray .pic-counter{display:block;width:18px}
+.pic-budget{display:flex;gap:8px;justify-content:center}
+.pic-budget i{width:18px;height:18px;border-radius:50%;border:2px solid var(--b-pine,#31533e)}
+.pic-budget i.left{background:var(--b-sun,#efc76e)}
+.pic-budget i.used{background:transparent;border-color:var(--b-line,#d0d6bd)}
+
+/* Playground */
+.pic-sizes{display:flex;gap:.45rem;justify-content:center}
+.pic-size{width:46px;height:46px;min-height:0;padding:6px;border-radius:11px;border:1px solid var(--b-line,#d0d6bd);background:var(--b-card,#fffdf5);box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.pic-size svg{width:100%;height:100%;fill:var(--b-muted,#5a6850)}
+.pic-size[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.pic-size[aria-pressed="true"] svg{fill:var(--b-pine,#31533e)}
+.pic-tool[aria-pressed="true"]{background:#e9eddc;border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.pic-twins{display:flex;align-items:center;gap:.55rem;font-family:var(--b-display,Georgia,serif);font-size:1.5rem;color:var(--b-ink,#294439)}
+.pic-stack{position:relative;width:28px;height:28px}
+.pic-stack i{position:absolute;width:20px;height:20px;border:2px solid var(--b-ink,#294439);border-radius:4px;background:var(--b-card,#fffdf5)}
+.pic-stack i:first-child{left:0;top:0}
+.pic-stack i:last-child{left:7px;top:7px;background:var(--b-paper,#f5f1e6)}
+
+@media (max-width:520px){.pic-grid{--cell:56px;grid-template-columns:1.2rem repeat(var(--cols),minmax(0,var(--cell))) 2.5rem}.pic-count{width:1.9rem;height:1.9rem;font-size:1.05rem}.pic-card .pic-mini{width:calc(var(--cols) * 18px)}}

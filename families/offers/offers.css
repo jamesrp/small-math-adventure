@@ -1,0 +1,78 @@
+@import url('../../cases.css');
+/* Take it or pass: tickets as small numbered cards; a card of offers is a
+   strip of tickets, the one taken lit, the ones passed plain and the ones
+   never seen faded. Rows of cards by first offer, each with its Take/Pass
+   switch; towers compare taking with passing once a puzzle is solved. The
+   shelf, bins and catalogs are the case engine's. */
+.off-puzzle,.off-play{display:flex;flex-direction:column;align-items:center;gap:.8rem;width:100%}
+.off-say{font-size:.85rem;font-weight:600;color:var(--b-muted,#5a6850)}
+.off-t{display:inline-grid;place-items:center;box-sizing:border-box;min-width:1.55em;height:1.7em;padding:0 .15em;border:1.5px solid #b9a77a;border-radius:4px;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);font-family:var(--b-display,Georgia,serif);font-style:normal;font-weight:700;line-height:1}
+.off-t.taken{border-color:#8e5f1a;background:#f3c969;color:#3d2a08;box-shadow:0 0 0 1.5px #8e5f1a}
+.off-t.passed{color:var(--b-muted,#5a6850)}
+.off-t.unseen{border-style:dashed;opacity:.38}
+.off-t.pin{background:#e9eddc}
+.off-t.chosen{border-color:#8e5f1a;border-width:2px}
+.off-t.blank{border-style:dashed;color:var(--b-muted,#5a6850)}
+.off-bag{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.35rem;margin:0;font-size:1.15rem}
+.off-bag .off-say{font-size:.9rem}
+/* The board: a row per first offer; with three offers, a line per second offer inside it. */
+.off-board{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:.7rem}
+.off-board.n2{flex-direction:column;align-items:stretch}
+.off-row{display:flex;flex-direction:column;gap:.35rem;padding:.45rem .55rem;border:1px solid var(--b-line,#d0d6bd);border-radius:10px;background:rgba(255,253,245,.6)}
+.off-board.n2 .off-row{flex-direction:row;flex-wrap:wrap;align-items:center;gap:.6rem}
+.off-head,.off-line{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem}
+.off-line{padding-left:.4rem;border-left:2px solid var(--b-line,#d0d6bd)}
+.off-line.shut{opacity:.45}
+.off-cards{display:flex;flex-wrap:wrap;gap:.3rem}
+.off-card{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--b-line,#d0d6bd);border-radius:6px;background:var(--b-card,#fffdf5)}
+.off-card .off-t{min-width:1.35em;height:1.5em;font-size:.95rem}
+.board-panel button.off-card{min-width:0;min-height:44px;padding:5px;cursor:pointer;box-shadow:0 2px 0 var(--b-line,#d0d6bd);touch-action:manipulation}
+.board-panel button.off-card.kept{background:#dfeedd;border-color:var(--b-pine,#31533e)}
+.board-panel button.off-card[disabled]{cursor:default;box-shadow:none;opacity:1}
+.board-panel button.off-card.refused{border-color:var(--b-bad,#a9503a)}
+.board-panel button.off-card.hinted,.board-panel .off-switch.hinted,.board-panel .off-pick.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+/* A switch: Take is filled, Pass is plain. */
+.board-panel .off-switch{min-width:4.2rem;min-height:44px;padding:4px 10px;border:2px solid #8e5f1a;border-radius:999px;background:var(--b-card,#fffdf5);color:#6b4510;font-weight:700;cursor:pointer;touch-action:manipulation}
+.board-panel .off-switch.take{background:#f3c969;color:#3d2a08}
+.board-panel .off-switch[disabled]{cursor:default;opacity:.5}
+/* Plans A and B, and the two-score cards after puzzle 5. */
+.off-plans{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem 1.2rem}
+.off-fixed{margin:0;max-width:22rem}
+.off-fixed b{display:inline-grid;place-items:center;width:1.5em;height:1.5em;margin-right:.25rem;border-radius:50%;background:#8e5f1a;color:#fff}
+.off-fixed+.off-fixed b{background:var(--b-pine,#31533e)}
+.off-card.two{flex-direction:column}
+.off-take{display:inline-flex;gap:2px}
+.off-t.taken.b{background:#bcd7c0;border-color:var(--b-pine,#31533e);box-shadow:0 0 0 1.5px var(--b-pine,#31533e);color:#173022}
+.off-card.two.yes{border-color:var(--b-pine,#31533e);box-shadow:0 0 0 1.5px var(--b-pine,#31533e)}
+/* Tickets to try in the bag. */
+.off-menu{display:flex;flex-wrap:wrap;justify-content:center;gap:.35rem;max-width:34rem}
+.board-panel .off-pick{min-width:44px;min-height:44px;font-size:1.05rem;cursor:pointer;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.board-panel .off-pick[aria-pressed="true"]{border-color:#8e5f1a;background:#f3c969}
+.board-panel .off-pick[disabled]{cursor:default;box-shadow:none}
+/* Shelves and catalogs. */
+.off-mini{display:inline-flex;flex-direction:column;align-items:flex-start;gap:2px}
+.off-mini-row{display:inline-flex;align-items:center;gap:2px}
+.off-mini-row b{font-size:.75rem;color:var(--b-muted,#5a6850)}
+.off-mini>.off-t,.off-mini .off-t{min-width:1.3em;height:1.4em;font-size:.85rem}
+.case-list .off-card{padding:2px}
+/* Catalog columns named by what happens first and second: long names wrap. */
+.off-puzzle .case-catalog .case-bin-label{white-space:normal;text-align:center;justify-content:center}
+/* Towers: one block per card, as tall as its score. */
+.off-proof{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;gap:1rem 1.6rem}
+.off-towers{display:flex;flex-direction:column;align-items:center;gap:.3rem;margin:0}
+.off-towers figcaption{display:flex;align-items:center;gap:.3rem;font-weight:600;font-size:.9rem}
+.off-pair{display:flex;align-items:flex-end;gap:.7rem}
+.off-tower{display:flex;flex-direction:column;align-items:center;gap:.15rem;font-size:.8rem;color:var(--b-muted,#5a6850)}
+.off-tower b{color:var(--b-ink,#294439);font-size:.95rem}
+.off-stack{display:flex;flex-direction:column-reverse;width:26px}
+.off-stack i{display:block;height:calc(var(--v) * var(--u));min-height:1px;border:1px solid #8e5f1a;border-bottom-width:0;background:#f3c969}
+.off-stack i:first-child{border-bottom-width:1px}
+.off-tower.best .off-stack i{background:#e6a92f}
+.off-tower.best>span:last-child{font-weight:700;color:var(--b-ink,#294439)}
+/* The playground. */
+.off-table{display:flex;align-items:center;gap:1rem;min-height:3.2rem}
+.off-counters{display:inline-flex;gap:4px}
+.off-counters i{width:14px;height:14px;border-radius:50%;background:var(--b-pine,#31533e)}
+.off-round{display:inline-flex;align-items:center;gap:.35rem;font-size:1.5rem}
+.off-t.current{min-width:2em;height:2.2em;border-width:2.5px;border-color:#8e5f1a}
+@media (max-width:420px){.off-board{gap:.5rem}.off-row{padding:.35rem .4rem}.off-card .off-t{min-width:1.2em;height:1.4em;font-size:.85rem}.board-panel .off-switch{min-width:3.6rem;padding:3px 8px}}

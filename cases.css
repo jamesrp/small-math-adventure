@@ -1,0 +1,88 @@
+/* The shared case engine (cases.js): cups on homes, the shelf of kept cases,
+   bins, two hoops and the full catalog. Uses the shared board palette from
+   boards.css: paper card, ink, pine for the chosen thing, ochre for attention.
+   A family's sheet imports this one and scopes its own rules. */
+
+/* Cups. The cup look itself (.cup-board, .cup-button, .cup-color-N) is the
+   one Cup swaps uses; these rules add homes, pins and the settle. */
+.case-cups{max-width:520px;margin:.6rem auto .4rem;touch-action:manipulation}
+.case-cups .case-cup{touch-action:none;cursor:pointer}
+.case-cups .case-cup[aria-disabled="true"]{cursor:default;touch-action:auto}
+.case-cups span.case-cup{display:block;cursor:default;touch-action:auto}
+.case-pin{position:absolute;left:50%;top:-4px;width:14px;height:14px;transform:translateX(-50%);border-radius:50%;background:var(--b-ink,#294439);box-shadow:0 0 0 2px var(--b-card,#fffdf5)}
+.case-home{font-family:var(--b-display,Georgia,serif);font-size:1.05rem}
+.board-panel .case-home.at-home{color:#7a5512;background:#f6ebcf;border-color:var(--b-ochre,#b38840);border-radius:7px 7px 0 0}
+.case-cup.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:2px}
+@media (prefers-reduced-motion:no-preference){.case-cup.arrived{animation:case-settle .28s ease-out}}
+@keyframes case-settle{0%{transform:translateY(-10px)}}
+
+/* Actions under the board. */
+.case-actions,.case-tools{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.45rem}
+.board-panel .case-action{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-line,#d0d6bd);border-radius:11px;box-shadow:0 2px 0 var(--b-line,#d0d6bd);font-weight:600;min-height:44px;min-width:44px;padding:8px 14px}
+.board-panel .case-action[disabled]{opacity:.45;box-shadow:none}
+.board-panel .case-action.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+.board-panel .case-tool[aria-pressed="true"]{background:#e9eddc;border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.case-note{margin:0;font-weight:600;color:var(--b-bad,#a9503a)}
+
+/* A small row of cups: one lettered tile per home. */
+.case-mini{display:inline-flex;gap:1px;font-family:var(--b-display,Georgia,serif);font-size:.9rem;line-height:1}
+.case-mini i,.case-bin-label i,.case-hoop-label i{font-style:normal;display:inline-grid;place-items:center;width:1.25em;height:1.4em;border:1px solid rgba(20,43,72,.45);border-radius:3px;color:#142b48}
+.cm0{background:#ffdc63}.cm1{background:#81c6ff}.cm2{background:#83dcb4}.cm3{background:#e8b2e4}.cm4{background:#ffb496}.cm5{background:#b2b6f6}.cm6{background:#cfe07a}
+/* Cup swaps colours six cups; a seventh (Shuffle machines) takes lime. */
+.cup-color-6{color:#cfe07a}
+
+/* The shelf and its groups. */
+.case-shelf,.case-bins,.case-hoops,.case-catalog{width:100%;max-width:560px;margin:.4rem auto 0}
+.case-list{list-style:none;display:flex;flex-wrap:wrap;justify-content:center;gap:.35rem;margin:0;padding:0}
+.case-kept{display:inline-flex;align-items:center;justify-content:center;padding:.3rem .35rem;border:1.5px solid var(--b-line,#d0d6bd);border-radius:9px;background:var(--b-card,#fffdf5);min-height:0;min-width:0;box-shadow:none}
+button.case-kept{cursor:pointer;min-height:40px}
+button.case-kept:hover{border-color:var(--b-ink,#294439)}
+.case-kept.current{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+@media (prefers-reduced-motion:no-preference){.case-kept.fresh{animation:case-pop .3s ease-out}}
+@keyframes case-pop{0%{opacity:0;transform:scale(.7)}}
+.case-bins,.case-catalog{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,92px),1fr));gap:.5rem;align-items:start}
+.case-bin{display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:.4rem .3rem .5rem;border:1.5px dashed var(--b-line,#d0d6bd);border-radius:12px;min-height:5.2rem}
+.case-bin .case-list{flex-direction:column;align-items:center}
+.case-bin-label,.case-hoop-label{margin:0;font-size:.85rem;font-weight:600;color:var(--b-muted,#5a6850);display:inline-flex;align-items:center;gap:.25rem;white-space:nowrap}
+
+/* Two hoops: left only, both, right only. */
+.case-hoop-pair{position:relative;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto 1fr;column-gap:.2rem;padding:0 .2rem .9rem;min-height:9rem}
+.case-hoop{position:absolute;top:1.9rem;bottom:0;width:66%;border:2.5px solid var(--b-ink,#294439);border-radius:999px;pointer-events:none}
+.case-hoop.left{left:0;background:rgba(239,199,110,.13)}
+.case-hoop.right{right:0;background:rgba(156,201,222,.15)}
+.case-hoop-label{grid-row:1;justify-self:center;padding-bottom:.4rem}
+.case-hoop-label.left{grid-column:1}.case-hoop-label.right{grid-column:3}
+.case-hoop-part{grid-row:2;display:flex;align-items:center;justify-content:center;padding:1rem .15rem .2rem;position:relative}
+.case-hoop-part.left{grid-column:1}.case-hoop-part.both{grid-column:2}.case-hoop-part.right{grid-column:3}
+.case-hoop-part .case-list{flex-direction:column;align-items:center}
+.case-hoop-part.outside{padding-top:.6rem}
+
+/* The full catalog after a solve: the cases that count stand out. */
+.case-catalog .case-bin{border-style:solid;background:var(--b-paper,#f5f1e6)}
+.case-catalog .case-kept.no{opacity:.35;border-style:dashed}
+.case-catalog .case-kept.yes{border-color:var(--b-good,#3c7a4a)}
+@media (prefers-reduced-motion:no-preference){.case-catalog .case-kept{animation:case-pop .3s ease-out both;animation-delay:calc(var(--i,0) * 30ms)}}
+/* Four groups sit two by two on a phone rather than three and one. */
+@media (max-width:480px){.case-bins[data-bins="4"],.case-catalog[data-bins="4"]{grid-template-columns:1fr 1fr}}
+@media (max-width:420px){.case-mini{font-size:.8rem}.case-hoop-pair{min-height:8rem}}
+
+/* Counters: red and blue discs with their number. */
+.case-counter{display:inline-grid;place-items:center;width:1.6em;height:1.6em;border-radius:50%;border:1.5px solid var(--b-ink,#294439);font-family:var(--b-display,Georgia,serif);font-style:normal;font-weight:700;font-size:1em;line-height:1;color:#fff;box-sizing:border-box}
+.case-counter.cR{background:#b9473a}
+.case-counter.cB{background:#3c74b4}
+.case-counter.cY{background:#e3b23c;color:#3b2a05}
+.case-counter.empty{background:transparent;border-style:dashed;border-color:var(--b-line,#d0d6bd)}
+.board-panel button.case-counter{width:52px;height:52px;padding:0;font-size:1.3rem;cursor:pointer;box-shadow:0 3px 0 var(--b-line,#d0d6bd)}
+.board-panel button.case-counter[disabled]{cursor:default;opacity:.55;box-shadow:none}
+.board-panel button.case-counter.hinted,.case-counter.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+/* Small discs in shelves and bin labels stay round and white-numbered. */
+.case-mini .case-counter,.case-bin-label .case-counter{width:1.5em;height:1.5em;font-size:.85em;border:1px solid var(--b-ink,#294439);border-radius:50%;color:#fff}
+.case-mini .case-counter.cY,.case-bin-label .case-counter.cY{color:#3b2a05}
+/* A bag of counters and the row of counters drawn from it. */
+.case-bag{display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:.7rem 1rem .8rem;border:2px solid var(--b-ink,#294439);border-radius:14px 14px 28px 28px;background:#efe3c8;box-shadow:inset 0 6px 0 rgba(41,68,57,.08)}
+.case-bag-counters{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem}
+.case-bag .case-counter{width:2.4rem;height:2.4rem;font-size:1.1rem}
+.case-bag-tag{font-size:.8rem;font-weight:700;color:var(--b-muted,#5a6850)}
+.case-draw{display:flex;align-items:center;gap:.5rem;font-size:1.5rem;min-height:2.6rem}
+.case-arrow{color:var(--b-muted,#5a6850);font-size:1.1rem}
+@media (max-width:420px){.board-panel .case-bag button.case-counter{width:46px;height:46px}}

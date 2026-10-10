@@ -1,0 +1,37 @@
+/* Mirror Couriers hidden orchard: a square field of points with the beams
+   from the courier drawn over them, trees as leaf circles, lanterns as
+   rounded squares (paper when dark, sun when lit), a row of beads for the cuts or trees left. Uses the
+   shared board palette from boards.css. */
+.orchard-puzzle{display:flex;flex-direction:column;align-items:center;gap:.6rem;width:100%}
+.orchard-field{position:relative;width:min(100%,calc(var(--n) * 54px),420px);aspect-ratio:1;margin:.2rem auto 0;background:var(--b-paper,#f5f1e6);border:1.5px solid var(--b-line,#d0d6bd);border-radius:14px}
+.orchard-beams{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
+.orchard-beam{stroke:var(--b-ochre,#b38840);stroke-width:.55;stroke-linecap:round}
+.orchard-beam.lit{stroke-width:.75}
+.orchard-thread{stroke:var(--b-ink,#294439);stroke-width:.35;stroke-dasharray:1.2 1.4;opacity:.5}
+/* Each point is a whole cell to tap; the mark inside it is small, so a beam
+   that misses a point is seen to pass beside it. The nearest miss on these
+   fields is 0.156 of a cell (a beam 5 across and 4 up), so marks stay under
+   a radius of 0.13 cells, beam included. */
+.orchard-pt{position:absolute;transform:translate(-50%,-50%);width:calc(100% / var(--n));aspect-ratio:1;min-width:0;min-height:0;padding:0;margin:0;border:0;border-radius:50%;background:transparent;box-shadow:none;z-index:1}
+button.orchard-pt{cursor:pointer}
+.orchard-pt::before{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;box-sizing:border-box}
+.orchard-pt.tree::before{width:26%;height:26%;background:var(--b-leaf,#86a68c);border:2px solid var(--b-ink,#294439)}
+.orchard-pt.cut::before{width:16%;height:16%;background:#e9dcbc;border:2px solid var(--b-ochre,#b38840)}
+.orchard-pt.empty::before{width:9%;height:9%;background:#b9c4a8}
+.orchard-pt.empty:hover::before,.orchard-pt.empty:focus-visible::before{width:26%;height:26%;background:transparent;border:2px dashed var(--b-leaf,#86a68c)}
+.orchard-pt.lantern::before{width:30%;height:30%;border-radius:22%;background:var(--b-card,#fffdf5);border:2.5px solid var(--b-ink,#294439)}
+.orchard-pt.lantern.lit::before{background:var(--b-sun,#efc76e);box-shadow:0 0 0 4px rgba(239,199,110,.5)}
+.orchard-pt.courier::before{width:30%;height:30%;background:var(--b-pine,#31533e);border:2.5px solid var(--b-sun,#efc76e);box-shadow:0 0 0 2px var(--b-pine,#31533e)}
+.orchard-pt:focus-visible{outline:3px solid var(--b-pine,#31533e);outline-offset:-6px}
+.orchard-pt.hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:-4px}
+.orchard-pt:disabled{cursor:default;opacity:1}
+.orchard-pt.shake{animation:orchard-shake .35s}
+@keyframes orchard-shake{0%,100%{transform:translate(-50%,-50%)}25%{transform:translate(calc(-50% - 4px),-50%)}75%{transform:translate(calc(-50% + 4px),-50%)}}
+.orchard-budget{display:flex;gap:6px;justify-content:center;min-height:16px}
+.orchard-budget i{display:block;width:15px;height:15px;border-radius:50%;border:2px dashed #a9b39a}
+.orchard-budget.chop i.left{background:#e9dcbc;border:2px solid var(--b-ochre,#b38840)}
+.orchard-budget.plant i.left{background:var(--b-leaf,#86a68c);border:2px solid var(--b-ink,#294439)}
+.orchard-tools{display:flex;gap:10px;justify-content:center;min-height:46px}
+.orchard-note{margin:0;text-align:center;color:var(--b-ink,#294439)}
+.orchard-note.good{color:var(--b-good,#3c7a4a);font-weight:600}
+@media (prefers-reduced-motion:reduce){.orchard-pt.shake{animation:none}}

@@ -1,0 +1,22 @@
+@import url('../../cases.css');
+/* Copying bags: the bag that grows, the draws so far, the shelf of histories
+   and the playground's columns of runs. The bag and the draws are the case
+   engine's. */
+.copy-puzzle,.copy-play{display:flex;flex-direction:column;align-items:center;gap:.8rem;width:100%}
+.copy-bag{min-width:9rem}
+@media (prefers-reduced-motion:no-preference){.copy-bag .case-counter.fresh{animation:copy-arrive .45s ease-out both}}
+@keyframes copy-arrive{from{transform:translateY(-14px) scale(.6);opacity:0}to{transform:none;opacity:1}}
+.copy-discs .case-counter{width:1.1em;height:1.1em}
+.copy-puzzle .case-shelf .case-list,.copy-puzzle .case-bin .case-list{flex-direction:row;align-content:flex-start;max-width:13rem;margin-inline:auto}
+.copy-goal{display:inline-flex;align-items:center;gap:.45rem;padding:.3rem .7rem;border:2px dashed var(--b-line,#d0d6bd);border-radius:999px}
+.copy-goal-flag{font-size:1.1rem;color:var(--b-ink,#294439)}
+.copy-goal .copy-discs .case-counter{width:1.35em;height:1.35em}
+.copy-reds{font-family:var(--b-display,Georgia,serif);font-size:.95rem;color:var(--b-ink,#294439)}
+.copy-rules{flex-wrap:wrap;justify-content:center}
+.board-panel .copy-rules .case-tool.on{background:var(--b-pine,#31533e);border-color:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9)}
+.copy-runs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.4rem;width:100%;max-width:28rem}
+.copy-run-column{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:.3rem;padding:.4rem .2rem;border:1.5px dashed var(--b-line,#d0d6bd);border-radius:12px;min-height:7rem}
+.copy-dots{display:flex;flex-wrap:wrap-reverse;justify-content:center;align-content:flex-start;gap:2px;max-width:4.6rem}
+.copy-dot{display:block;width:.55rem;height:.55rem;border-radius:50%;background:var(--b-ink,#294439)}
+.copy-run-column .copy-discs{flex-wrap:wrap;justify-content:center;max-width:3rem}
+@media (max-width:420px){.copy-run-column .copy-discs .case-counter{width:.9em;height:.9em}}

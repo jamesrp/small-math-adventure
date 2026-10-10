@@ -1,0 +1,1775 @@
+{
+ "title": "Neighbor Lanterns first fit",
+ "version": 1,
+ "families": [
+  {
+   "id": "firstfit",
+   "title": "Neighbor Lanterns first fit and why not fewer",
+   "mathematics": "Colouring linked lanterns differently is scheduling with conflicts. A colouring with k colours shows k are enough; a set of lanterns that all link to each other (a clique of size r) shows r are needed, and a ring of odd length shows 3 are needed, because two colours must alternate around a ring. Two colours work exactly when there is no odd ring. The first-fit rule (each lantern, in a chosen order, takes the first colour none of its coloured neighbours has) always gives a proper colouring with at most one more colour than the most links at any lantern, but the order matters: a path of four can be made to use 3 colours, a tree of eight 4, and the crown graph on 2k lanterns k colours, although 2 suffice. The most colours any order uses is the Grundy number.",
+   "rules": [
+    "Linked lanterns must have different colours.",
+    "A crossing of two links without a lantern is not a junction."
+   ],
+   "sourceIds": [
+    "firstfit-week62",
+    "firstfit-grundy",
+    "firstfit-konig"
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "id": "firstfit-week62",
+   "title": "Bellingham Math Circle — Week 62: Conflict networks, student packet and adult guide",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-62",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "firstfit-grundy",
+   "title": "C. A. Christen and S. M. Selkow — Some perfect coloring properties of graphs, J. Combinatorial Theory B 27 (1979): the Grundy number (most colours first fit can use)",
+   "url": "https://doi.org/10.1016/0095-8956(79)90067-4",
+   "kind": "research"
+  },
+  {
+   "id": "firstfit-konig",
+   "title": "Bipartite graphs: two colours exactly when there is no odd cycle (Kőnig, 1936)",
+   "url": "https://en.wikipedia.org/wiki/Bipartite_graph#Characterization",
+   "kind": "undergraduate"
+  }
+ ],
+ "puzzles": [
+  {
+   "id": "firstfit-01",
+   "number": 1,
+   "title": "Four in a row",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "firstfit",
+   "libraryFamily": "color",
+   "group": "First fit",
+   "familyTitle": "Neighbor Lanterns",
+   "revision": 1,
+   "parameters": {
+    "vertices": [
+     "A",
+     "B",
+     "C",
+     "D"
+    ],
+    "edges": [
+     [
+      "A",
+      "B",
+      1
+     ],
+     [
+      "B",
+      "C",
+      1
+     ],
+     [
+      "C",
+      "D",
+      1
+     ]
+    ],
+    "positions": {
+     "A": [
+      10,
+      50
+     ],
+     "B": [
+      36.67,
+      50
+     ],
+     "C": [
+      63.33,
+      50
+     ],
+     "D": [
+      90,
+      50
+     ]
+    },
+    "goal": "target",
+    "target": 3
+   },
+   "objective": "Tap the four lanterns in an order that makes the rule use 3 colours, although 2 are enough.",
+   "visibleObjective": "Make the rule use 3 colours.",
+   "instruction": "Tap the four lanterns in an order that makes the rule use 3 colours, although 2 are enough.",
+   "controls": "Tap the lanterns one at a time, in any order. Each takes the first colour none of its lit neighbours has, and a small number shows when you tapped it. Again clears the order; Undo takes back one tap.",
+   "rules": [
+    "Linked lanterns must have different colours.",
+    "A crossing of two links without a lantern is not a junction.",
+    "Each lantern you tap takes the first colour that none of its lit neighbours has. A lit lantern keeps its colour."
+   ],
+   "idea": "Light both ends first: then a middle lantern sees colour 1 on one side, and the last one sees 1 and 2.",
+   "prerequisites": "Neighbor Lanterns puzzle 1 (two colours on a line).",
+   "hints": [
+    "Tap in order A, B, C, D. How many colours? Now try another order.",
+    "For a third colour, a lantern must see colours 1 and 2 already lit next to it.",
+    "Light A and D first."
+   ],
+   "parent": {
+    "notice": "Whether your child plans which lantern should see colours 1 and 2, or taps at random.",
+    "prompt": "Which lantern got colour 3? What did it see when you tapped it?",
+    "explanation": "A and D take colour 1. B sees 1, so takes 2. C sees 2 (from B) and 1 (from D), so takes 3. Two colours are enough for a line, so the rule wasted one.",
+    "extension": "Which orders use only 2 colours?",
+    "connection": "First fit can use more colours than needed; the most it can use on a graph is its Grundy number. The path of four is the smallest tree where it reaches 3.",
+    "sourceIds": [
+     "firstfit-week62",
+     "firstfit-grundy"
+    ]
+   },
+   "solution": {
+    "fewest": 2,
+    "most": 3,
+    "reachable": true,
+    "order": [
+     "A",
+     "B",
+     "D",
+     "C"
+    ]
+   },
+   "provenance": "Week 62 Problem 7 (a four-card path: orders for as few and as many slots).",
+   "sourceDocument": "docs/firstfit/README.md"
+  },
+  {
+   "id": "firstfit-02",
+   "number": 2,
+   "title": "Close the square",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "firstfit",
+   "libraryFamily": "color",
+   "group": "First fit",
+   "familyTitle": "Neighbor Lanterns",
+   "revision": 1,
+   "parameters": {
+    "vertices": [
+     "A",
+     "B",
+     "C",
+     "D"
+    ],
+    "edges": [
+     [
+      "A",
+      "B",
+      1
+     ],
+     [
+      "B",
+      "C",
+      1
+     ],
+     [
+      "C",
+      "D",
+      1
+     ],
+     [
+      "D",
+      "A",
+      1
+     ]
+    ],
+    "positions": {
+     "A": [
+      25,
+      15
+     ],
+     "B": [
+      75,
+      15
+     ],
+     "C": [
+      75,
+      85
+     ],
+     "D": [
+      25,
+      85
+     ]
+    },
+    "goal": "decide",
+    "target": 3
+   },
+   "objective": "Can any order make the rule use 3 colours on this square? Find one, or say no order does.",
+   "visibleObjective": "Use 3 colours, or say no order can.",
+   "instruction": "Can any order make the rule use 3 colours on this square? Find one, or say no order does.",
+   "controls": "Tap the lanterns one at a time. Each takes the first colour none of its lit neighbours has. After finishing one order, you may say no order uses that many colours. Again clears the order.",
+   "rules": [
+    "Linked lanterns must have different colours.",
+    "A crossing of two links without a lantern is not a junction.",
+    "Each lantern you tap takes the first colour that none of its lit neighbours has. A lit lantern keeps its colour."
+   ],
+   "idea": "No order can: every lantern links to two lanterns on opposite corners, and opposite corners always get the same colour.",
+   "prerequisites": "First fit puzzle 1.",
+   "hints": [
+    "Try the order that worked on the line: two lanterns that are not linked, then the others.",
+    "Which lanterns does each lantern link to?",
+    "A lantern needs to see colours 1 and 2 to take 3. Can its two neighbours ever differ?"
+   ],
+   "parent": {
+    "notice": "Whether your child compares this with puzzle 1: one more link, yet fewer colours possible.",
+    "prompt": "Why can’t a lantern here ever see colours 1 and 2 at once?",
+    "explanation": "For A to take colour 3, B and D would need colours 1 and 2. Say D has 2: then C had colour 1 when D was lit. But B is linked to C, so B cannot have taken 1 after C, and if B took 1 first, C could not take 1. The same holds for every lantern, so no order uses 3.",
+    "extension": "Add one diagonal. Can an order use 3 colours now? Does it need 3?",
+    "connection": "Adding a link can lower the Grundy number: the 4-cycle has Grundy number 2, the path of four has 3.",
+    "sourceIds": [
+     "firstfit-week62",
+     "firstfit-grundy"
+    ]
+   },
+   "solution": {
+    "fewest": 2,
+    "most": 2,
+    "reachable": false
+   },
+   "provenance": "New: Week 62 Problem 7’s path with its ends joined.",
+   "sourceDocument": "docs/firstfit/README.md"
+  },
+  {
+   "id": "firstfit-03",
+   "number": 3,
+   "title": "Six in a ring",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "firstfit",
+   "libraryFamily": "color",
+   "group": "First fit",
+   "familyTitle": "Neighbor Lanterns",
+   "revision": 1,
+   "parameters": {
+    "vertices": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F"
+    ],
+    "edges": [
+     [
+      "A",
+      "B",
+      1
+     ],
+     [
+      "B",
+      "C",
+      1
+     ],
+     [
+      "C",
+      "D",
+      1
+     ],
+     [
+      "D",
+      "E",
+      1
+     ],
+     [
+      "E",
+      "F",
+      1
+     ],
+     [
+      "F",
+      "A",
+      1
+     ]
+    ],
+    "positions": {
+     "A": [
+      50,
+      10
+     ],
+     "B": [
+      81.18,
+      30
+     ],
+     "C": [
+      81.18,
+      70
+     ],
+     "D": [
+      50,
+      90
+     ],
+     "E": [
+      18.82,
+      70
+     ],
+     "F": [
+      18.82,
+      30
+     ]
+    },
+    "goal": "target",
+    "target": 3
+   },
+   "objective": "Tap the six lanterns in an order that makes the rule use 3 colours, although 2 are enough.",
+   "visibleObjective": "Make the rule use 3 colours.",
+   "instruction": "Tap the six lanterns in an order that makes the rule use 3 colours, although 2 are enough.",
+   "controls": "Tap the lanterns one at a time, in any order. Each takes the first colour none of its lit neighbours has, and a small number shows when you tapped it. Again clears the order; Undo takes back one tap.",
+   "rules": [
+    "Linked lanterns must have different colours.",
+    "A crossing of two links without a lantern is not a junction.",
+    "Each lantern you tap takes the first colour that none of its lit neighbours has. A lit lantern keeps its colour."
+   ],
+   "idea": "Make one lantern’s two neighbours get colours 1 and 2 before you tap it.",
+   "prerequisites": "First fit puzzles 1 and 2.",
+   "hints": [
+    "Pick the lantern that will get colour 3. What must its two neighbours have?",
+    "One neighbour needs colour 2, so that neighbour must see a 1 first.",
+    "Try A, D, B, then C."
+   ],
+   "parent": {
+    "notice": "Whether your child works backward from the lantern that should get 3.",
+    "prompt": "Why does a ring of six allow 3 when the square did not?",
+    "explanation": "A and D take 1 (not linked). B sees A, takes 2. C sees B (2) and D (1), takes 3. On the square the two neighbours of a lantern are each other’s opposite corners; on a ring of six, C’s neighbours B and D are not forced to match.",
+    "extension": "Can any order use 4 colours on this ring?",
+    "connection": "Every lantern has 2 links, so first fit never needs more than 3 colours.",
+    "sourceIds": [
+     "firstfit-week62",
+     "firstfit-grundy"
+    ]
+   },
+   "solution": {
+    "fewest": 2,
+    "most": 3,
+    "reachable": true,
+    "order": [
+     "A",
+     "B",
+     "D",
+     "C",
+     "E",
+     "F"
+    ]
+   },
+   "provenance": "New: Week 62 Problem 7, on a ring of six.",
+   "sourceDocument": "docs/firstfit/README.md"
+  },
+  {
+   "id": "firstfit-04",
+   "number": 4,
+   "title": "A branching tree",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "firstfit",
+   "libraryFamily": "color",
+   "group": "First fit",
+   "familyTitle": "Neighbor Lanterns",
+   "revision": 1,
+   "parameters": {
+    "vertices": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H",
+     "I",
+     "J"
+    ],
+    "edges": [
+     [
+      "A",
+      "B",
+      1
+     ],
+     [
+      "A",
+      "C",
+      1
+     ],
+     [
+      "A",
+      "D",
+      1
+     ],
+     [
+      "C",
+      "E",
+      1
+     ],
+     [
+      "C",
+      "F",
+      1
+     ],
+     [
+      "D",
+      "G",
+      1
+     ],
+     [
+      "D",
+      "H",
+      1
+     ],
+     [
+      "H",
+      "I",
+      1
+     ],
+     [
+      "E",
+      "J",
+      1
+     ]
+    ],
+    "positions": {
+     "A": [
+      50,
+      10
+     ],
+     "B": [
+      10,
+      38
+     ],
+     "C": [
+      35,
+      38
+     ],
+     "D": [
+      78,
+      38
+     ],
+     "E": [
+      24,
+      64
+     ],
+     "F": [
+      46,
+      64
+     ],
+     "G": [
+      66,
+      64
+     ],
+     "H": [
+      90,
+      64
+     ],
+     "I": [
+      90,
+      90
+     ],
+     "J": [
+      24,
+      90
+     ]
+    },
+    "goal": "target",
+    "target": 4
+   },
+   "objective": "Tap the ten lanterns in an order that makes the rule use 4 colours, although 2 are enough.",
+   "visibleObjective": "Make the rule use 4 colours.",
+   "instruction": "Tap the ten lanterns in an order that makes the rule use 4 colours, although 2 are enough.",
+   "controls": "Tap the lanterns one at a time, in any order. Each takes the first colour none of its lit neighbours has, and a small number shows when you tapped it. Again clears the order; Undo takes back one tap.",
+   "rules": [
+    "Linked lanterns must have different colours.",
+    "A crossing of two links without a lantern is not a junction.",
+    "Each lantern you tap takes the first colour that none of its lit neighbours has. A lit lantern keeps its colour."
+   ],
+   "idea": "Build up: a lantern that sees 1 and 2 takes 3; a lantern that sees 1, 2 and 3 takes 4. Only A has three neighbours that can be made to see 1, 2 and 3.",
+   "prerequisites": "First fit puzzles 1 and 3.",
+   "hints": [
+    "Which lantern could take colour 4? It needs three lit neighbours with colours 1, 2 and 3.",
+    "Give B colour 1, then make C take 2 and D take 3 before you tap A.",
+    "For D to take 3, it needs neighbours with 1 and 2 first: G and H, after H has seen I."
+   ],
+   "parent": {
+    "notice": "Whether your child plans several steps back from colour 4.",
+    "prompt": "Could any order use 5 colours here?",
+    "explanation": "A needs neighbours with 1, 2 and 3. B (a leaf) takes 1. C takes 2 if one of its children has 1 first (F). D takes 3 if its neighbours G and H have 1 and 2 first: G takes 1, and H takes 2 after I takes 1. Then A takes 4. Only a small share of the orders do this, so tapping at random rarely works.",
+    "extension": "Remove lantern J. Can you still reach 4?",
+    "connection": "The smallest tree with Grundy number 4 has 8 lanterns (a binomial tree); this one adds two leaves.",
+    "sourceIds": [
+     "firstfit-week62",
+     "firstfit-grundy"
+    ]
+   },
+   "solution": {
+    "fewest": 2,
+    "most": 4,
+    "reachable": true,
+    "order": [
+     "B",
+     "E",
+     "C",
+     "A",
+     "F",
+     "G",
+     "I",
+     "H",
+     "D",
+     "J"
+    ]
+   },
+   "provenance": "Week 62 Problem 8 (a tree where first fit can use four slots), new tree.",
+   "sourceDocument": "docs/firstfit/README.md"
+  },
+  {
+   "id": "firstfit-05",
+   "number": 5,
+   "title": "Could any order use five?",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "firstfit",
+   "libraryFamily": "color",
+   "group": "First fit",
+   "familyTitle": "Neighbor Lanterns",
+   "revision": 1,
+   "parameters": {
+    "vertices": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H",
+     "I",
+     "J"
+    ],
+    "edges": [
+     [
+      "A",
+      "B",
+      1
+     ],
+     [
+      "A",
+      "C",
+      1
+     ],
+     [
+      "A",
+      "D",
+      1
+     ],
+     [
+      "C",
+      "E",
+      1
+     ],
+     [
+      "C",
+      "F",
+      1
+     ],
+     [
+      "D",
+      "G",
+      1
+     ],
+     [
+      "D",
+      "H",
+      1
+     ],
+     [
+      "H",
+      "I",
+      1
+     ],
+     [
+      "E",
+      "J",
+      1
+     ]
+    ],
+    "positions": {
+     "A": [
+      50,
+      10
+     ],
+     "B": [
+      10,
+      38
+     ],
+     "C": [
+      35,
+      38
+     ],
+     "D": [
+      78,
+      38
+     ],
+     "E": [
+      24,
+      64
+     ],
+     "F": [
+      46,
+      64
+     ],
+     "G": [
+      66,
+      64
+     ],
+     "H": [
+      90,
+      64
+     ],
+     "I": [
+      90,
+      90
+     ],
+     "J": [
+      24,
+      90
+     ]
+    },
+    "goal": "decide",
+    "target": 5
+   },
+   "objective": "Can any order make the rule use 5 colours on this tree? Find one, or say no order does.",
+   "visibleObjective": "Use 5 colours, or say no order can.",
+   "instruction": "Can any order make the rule use 5 colours on this tree? Find one, or say no order does.",
+   "controls": "Tap the lanterns one at a time. Each takes the first colour none of its lit neighbours has. After finishing one order, you may say no order uses that many colours. Again clears the order.",
+   "rules": [
+    "Linked lanterns must have different colours.",
+    "A crossing of two links without a lantern is not a junction.",
+    "Each lantern you tap takes the first colour that none of its lit neighbours has. A lit lantern keeps its colour."
+   ],
+   "idea": "No: no lantern has more than three links, so a lantern always finds a free colour among 1 to 4.",
+   "prerequisites": "First fit puzzle 4.",
+   "hints": [
+    "To take colour 5, what would a lantern need to see?",
+    "Count the links at each lantern.",
+    "A lantern with three links can see at most three colours."
+   ],
+   "parent": {
+    "notice": "Whether your child reasons from the number of links instead of trying orders.",
+    "prompt": "What would a lantern need around it to take colour 5?",
+    "explanation": "A lantern takes colour 5 only if its lit neighbours already show 1, 2, 3 and 4, so it needs at least four links. Every lantern here has at most three, so no order uses 5.",
+    "extension": "Add one leaf to A. Can an order use 5 now?",
+    "connection": "First fit uses at most Δ + 1 colours, where Δ is the most links at a lantern.",
+    "sourceIds": [
+     "firstfit-week62",
+     "firstfit-grundy"
+    ]
+   },
+   "solution": {
+    "fewest": 2,
+    "most": 4,
+    "reachable": false
+   },
+   "provenance": "Week 62 Problem 8 (“Could any order use five? Explain.”).",
+   "sourceDocument": "docs/firstfit/README.md"
+  },
+  {
+   "id": "firstfit-06",
+   "number": 6,
+   "title": "Two rows of four",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "firstfit",
+   "libraryFamily": "color",
+   "group": "First fit",
+   "familyTitle": "Neighbor Lanterns",
+   "revision": 1,
+   "parameters": {
+    "vertices": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "a",
+     "b",
+     "c",
+     "d"
+    ],
+    "edges": [
+     [
+      "A",
+      "b",
+      1
+     ],
+     [
+      "A",
+      "c",
+      1
+     ],
+     [
+      "A",
+      "d",
+      1
+     ],
+     [
+      "B",
+      "a",
+      1
+     ],
+     [
+      "B",
+      "c",
+      1
+     ],
+     [
+      "B",
+      "d",
+      1
+     ],
+     [
+      "C",
+      "a",
+      1
+     ],
+     [
+      "C",
+      "b",
+      1
+     ],
+     [
+      "C",
+      "d",
+      1
+     ],
+     [
+      "D",
+      "a",
+      1
+     ],
+     [
+      "D",
+      "b",
+      1
+     ],
+     [
+      "D",
+      "c",
+      1
+     ]
+    ],
+    "positions": {
+     "A": [
+      10,
+      18
+     ],
+     "B": [
+      36.67,
+      18
+     ],
+     "C": [
+      63.33,
+      18
+     ],
+     "D": [
+      90,
+      18
+     ],
+     "a": [
+      10,
+      82
+     ],
+     "b": [
+      36.67,
+      82
+     ],
+     "c": [
+      63.33,
+      82
+     ],
+     "d": [
+      90,
+      82
+     ]
+    },
+    "goal": "decide",
+    "target": 4
+   },
+   "objective": "Each lantern links to every lantern in the other row except its partner below or above it. Can an order make the rule use 4 colours? Find one, or say no order does.",
+   "visibleObjective": "Use 4 colours, or say no order can.",
+   "instruction": "Each lantern links to every lantern in the other row except its partner below or above it. Can an order make the rule use 4 colours? Find one, or say no order does.",
+   "controls": "Tap the lanterns one at a time. Each takes the first colour none of its lit neighbours has. After finishing one order, you may say no order uses that many colours. Again clears the order.",
+   "rules": [
+    "Linked lanterns must have different colours.",
+    "A crossing of two links without a lantern is not a junction.",
+    "Each lantern you tap takes the first colour that none of its lit neighbours has. A lit lantern keeps its colour."
+   ],
+   "idea": "Yes: tap partners in pairs. Each pair is not linked, so both take the same colour, and each new pair sees all earlier colours.",
+   "prerequisites": "First fit puzzles 1–4.",
+   "hints": [
+    "Two colours are enough: top row one colour, bottom row the other. Now try to waste colours.",
+    "A and a are not linked. Tap them first.",
+    "Tap A, a, then B, b, then C, c, then D, d."
+   ],
+   "parent": {
+    "notice": "Whether your child finds the pairing after a few tries.",
+    "prompt": "Why do A and a get the same colour?",
+    "explanation": "A and a are not linked, so both take 1. B links to a (1), so takes 2; b links to A (1), so takes 2. C sees 1 and 2 in the other row, so takes 3, and so does c. D and d take 4. Every two partners share a colour, and each pair sees all earlier pairs.",
+    "extension": "With five pairs, how many colours can the rule use?",
+    "connection": "The crown graph on 2k lanterns has two colours but Grundy number k: first fit can be arbitrarily bad.",
+    "sourceIds": [
+     "firstfit-week62",
+     "firstfit-grundy"
+    ]
+   },
+   "solution": {
+    "fewest": 2,
+    "most": 4,
+    "reachable": true,
+    "order": [
+     "A",
+     "a",
+     "B",
+     "b",
+     "C",
+     "D",
+     "c",
+     "d"
+    ]
+   },
+   "provenance": "New: the crown graph suggested by the Week 62 review card.",
+   "sourceDocument": "docs/firstfit/README.md"
+  },
+  {
+   "id": "firstfit-07",
+   "number": 7,
+   "title": "Two rows of five",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "firstfit",
+   "libraryFamily": "color",
+   "group": "First fit",
+   "familyTitle": "Neighbor Lanterns",
+   "revision": 1,
+   "parameters": {
+    "vertices": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "a",
+     "b",
+     "c",
+     "d",
+     "e"
+    ],
+    "edges": [
+     [
+      "A",
+      "b",
+      1
+     ],
+     [
+      "A",
+      "c",
+      1
+     ],
+     [
+      "A",
+      "d",
+      1
+     ],
+     [
+      "A",
+      "e",
+      1
+     ],
+     [
+      "B",
+      "a",
+      1
+     ],
+     [
+      "B",
+      "c",
+      1
+     ],
+     [
+      "B",
+      "d",
+      1
+     ],
+     [
+      "B",
+      "e",
+      1
+     ],
+     [
+      "C",
+      "a",
+      1
+     ],
+     [
+      "C",
+      "b",
+      1
+     ],
+     [
+      "C",
+      "d",
+      1
+     ],
+     [
+      "C",
+      "e",
+      1
+     ],
+     [
+      "D",
+      "a",
+      1
+     ],
+     [
+      "D",
+      "b",
+      1
+     ],
+     [
+      "D",
+      "c",
+      1
+     ],
+     [
+      "D",
+      "e",
+      1
+     ],
+     [
+      "E",
+      "a",
+      1
+     ],
+     [
+      "E",
+      "b",
+      1
+     ],
+     [
+      "E",
+      "c",
+      1
+     ],
+     [
+      "E",
+      "d",
+      1
+     ]
+    ],
+    "positions": {
+     "A": [
+      10,
+      18
+     ],
+     "B": [
+      30,
+      18
+     ],
+     "C": [
+      50,
+      18
+     ],
+     "D": [
+      70,
+      18
+     ],
+     "E": [
+      90,
+      18
+     ],
+     "a": [
+      10,
+      82
+     ],
+     "b": [
+      30,
+      82
+     ],
+     "c": [
+      50,
+      82
+     ],
+     "d": [
+      70,
+      82
+     ],
+     "e": [
+      90,
+      82
+     ]
+    },
+    "goal": "target",
+    "target": 5
+   },
+   "objective": "Each lantern links to every lantern in the other row except its partner. Tap the ten lanterns in an order that makes the rule use 5 colours.",
+   "visibleObjective": "Make the rule use 5 colours.",
+   "instruction": "Each lantern links to every lantern in the other row except its partner. Tap the ten lanterns in an order that makes the rule use 5 colours.",
+   "controls": "Tap the lanterns one at a time, in any order. Each takes the first colour none of its lit neighbours has, and a small number shows when you tapped it. Again clears the order; Undo takes back one tap.",
+   "rules": [
+    "Linked lanterns must have different colours.",
+    "A crossing of two links without a lantern is not a junction.",
+    "Each lantern you tap takes the first colour that none of its lit neighbours has. A lit lantern keeps its colour."
+   ],
+   "idea": "Tap partners in pairs: each pair takes the next new colour.",
+   "prerequisites": "First fit puzzle 6.",
+   "hints": [
+    "Which two lanterns are not linked?",
+    "Tap a lantern and its partner one after the other.",
+    "A, a, B, b, C, c, D, d, E, e."
+   ],
+   "parent": {
+    "notice": "Whether your child carries the pairing over from puzzle 6.",
+    "prompt": "How many colours would ten pairs use?",
+    "explanation": "Each partner pair takes one new colour, so five pairs use 5, although two colours (one per row) are enough.",
+    "extension": "Is there an order that uses exactly 3?",
+    "connection": "The crown graph: chromatic number 2, Grundy number k.",
+    "sourceIds": [
+     "firstfit-week62",
+     "firstfit-grundy"
+    ]
+   },
+   "solution": {
+    "fewest": 2,
+    "most": 5,
+    "reachable": true,
+    "order": [
+     "A",
+     "a",
+     "B",
+     "b",
+     "C",
+     "c",
+     "D",
+     "E",
+     "d",
+     "e"
+    ]
+   },
+   "provenance": "New: the crown graph at the next size.",
+   "sourceDocument": "docs/firstfit/README.md"
+  },
+  {
+   "id": "fewest-01",
+   "number": 1,
+   "title": "A triangle and a tail",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "fewest",
+   "libraryFamily": "color",
+   "group": "Why not fewer",
+   "familyTitle": "Neighbor Lanterns",
+   "revision": 1,
+   "parameters": {
+    "vertices": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E"
+    ],
+    "edges": [
+     [
+      "A",
+      "B",
+      1
+     ],
+     [
+      "B",
+      "C",
+      1
+     ],
+     [
+      "C",
+      "A",
+      1
+     ],
+     [
+      "C",
+      "D",
+      1
+     ],
+     [
+      "D",
+      "E",
+      1
+     ]
+    ],
+    "positions": {
+     "A": [
+      15,
+      20
+     ],
+     "B": [
+      15,
+      80
+     ],
+     "C": [
+      42,
+      50
+     ],
+     "D": [
+      66,
+      50
+     ],
+     "E": [
+      90,
+      50
+     ]
+    },
+    "palette": 4,
+    "proof": [
+     "A",
+     "B",
+     "C"
+    ]
+   },
+   "objective": "Colour every lantern with as few colours as you can. Then show why fewer cannot work: tap lanterns that all link to each other.",
+   "visibleObjective": "Use the fewest colours, then show why not fewer.",
+   "instruction": "Colour every lantern with as few colours as you can. Then show why fewer cannot work: tap lanterns that all link to each other.",
+   "controls": "Choose a colour, then tap lanterns to colour them (Clear removes a colour). When every lantern is lit with no clash, press Show why not fewer, tap lanterns for your proof, and Check.",
+   "rules": [
+    "Linked lanterns must have different colours.",
+    "A crossing of two links without a lantern is not a junction."
+   ],
+   "idea": "Three colours, because A, B and C all link to each other.",
+   "prerequisites": "Neighbor Lanterns puzzles 1–3.",
+   "hints": [
+    "Colour first. How few colours can you use?",
+    "A, B and C all link to each other.",
+    "Tap A, B and C for the proof."
+   ],
+   "parent": {
+    "notice": "Whether your child sees the proof as a separate step from the colouring.",
+    "prompt": "Your colouring shows 3 are enough. What shows 3 are needed?",
+    "explanation": "A, B and C are linked in pairs, so they need three different colours. Three colours are enough for the whole picture, so 3 is the fewest.",
+    "extension": "Which link could you remove so that 2 colours work?",
+    "connection": "A clique of size r needs r colours: ω ≤ χ.",
+    "sourceIds": [
+     "firstfit-week62",
+     "firstfit-konig"
+    ]
+   },
+   "solution": {
+    "fewest": 3,
+    "proof": [
+     "A",
+     "B",
+     "C"
+    ]
+   },
+   "provenance": "Week 62 Problem 2 (fewest slots and why fewer cannot work).",
+   "sourceDocument": "docs/firstfit/README.md"
+  },
+  {
+   "id": "fewest-02",
+   "number": 2,
+   "title": "The cube",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "fewest",
+   "libraryFamily": "color",
+   "group": "Why not fewer",
+   "familyTitle": "Neighbor Lanterns",
+   "revision": 1,
+   "parameters": {
+    "vertices": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H"
+    ],
+    "edges": [
+     [
+      "A",
+      "B",
+      1
+     ],
+     [
+      "B",
+      "C",
+      1
+     ],
+     [
+      "C",
+      "D",
+      1
+     ],
+     [
+      "D",
+      "A",
+      1
+     ],
+     [
+      "E",
+      "F",
+      1
+     ],
+     [
+      "F",
+      "G",
+      1
+     ],
+     [
+      "G",
+      "H",
+      1
+     ],
+     [
+      "H",
+      "E",
+      1
+     ],
+     [
+      "A",
+      "E",
+      1
+     ],
+     [
+      "B",
+      "F",
+      1
+     ],
+     [
+      "C",
+      "G",
+      1
+     ],
+     [
+      "D",
+      "H",
+      1
+     ]
+    ],
+    "positions": {
+     "A": [
+      10,
+      10
+     ],
+     "B": [
+      90,
+      10
+     ],
+     "C": [
+      90,
+      90
+     ],
+     "D": [
+      10,
+      90
+     ],
+     "E": [
+      32,
+      32
+     ],
+     "F": [
+      68,
+      32
+     ],
+     "G": [
+      68,
+      68
+     ],
+     "H": [
+      32,
+      68
+     ]
+    },
+    "palette": 4,
+    "proof": [
+     "A",
+     "B"
+    ]
+   },
+   "objective": "Colour every lantern with as few colours as you can. Then show why fewer cannot work.",
+   "visibleObjective": "Use the fewest colours, then show why not fewer.",
+   "instruction": "Colour every lantern with as few colours as you can. Then show why fewer cannot work.",
+   "controls": "Choose a colour, then tap lanterns to colour them (Clear removes a colour). When every lantern is lit with no clash, press Show why not fewer, tap lanterns for your proof, and Check.",
+   "rules": [
+    "Linked lanterns must have different colours.",
+    "A crossing of two links without a lantern is not a junction."
+   ],
+   "idea": "Two colours, alternating around every square; one link shows one colour is not enough.",
+   "prerequisites": "Why not fewer puzzle 1.",
+   "hints": [
+    "Many links do not always mean many colours. Try 2.",
+    "Alternate around the outside square, then match each inside lantern to the opposite colour of its outside partner.",
+    "For the proof, any two linked lanterns show one colour is not enough."
+   ],
+   "parent": {
+    "notice": "Whether your child expects lots of colours because of the many links.",
+    "prompt": "Why is one link enough for the proof?",
+    "explanation": "Colour A, C, F, H with one colour and B, D, E, G with the other: every link joins the two groups. Any link needs two colours, so 2 is the fewest.",
+    "extension": "Does the cube have a ring of odd length?",
+    "connection": "The cube is bipartite: two colours exactly when there is no odd cycle.",
+    "sourceIds": [
+     "firstfit-week62",
+     "firstfit-konig"
+    ]
+   },
+   "solution": {
+    "fewest": 2,
+    "proof": [
+     "A",
+     "B"
+    ]
+   },
+   "provenance": "Week 62 Problem 1 (networks that need few slots despite many lines), new network.",
+   "sourceDocument": "docs/firstfit/README.md"
+  },
+  {
+   "id": "fewest-03",
+   "number": 3,
+   "title": "A ring of five",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "fewest",
+   "libraryFamily": "color",
+   "group": "Why not fewer",
+   "familyTitle": "Neighbor Lanterns",
+   "revision": 1,
+   "parameters": {
+    "vertices": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G"
+    ],
+    "edges": [
+     [
+      "A",
+      "B",
+      1
+     ],
+     [
+      "B",
+      "C",
+      1
+     ],
+     [
+      "C",
+      "D",
+      1
+     ],
+     [
+      "D",
+      "E",
+      1
+     ],
+     [
+      "E",
+      "A",
+      1
+     ],
+     [
+      "A",
+      "F",
+      1
+     ],
+     [
+      "C",
+      "G",
+      1
+     ]
+    ],
+    "positions": {
+     "A": [
+      50,
+      22
+     ],
+     "B": [
+      78.53,
+      45.49
+     ],
+     "C": [
+      67.63,
+      83.51
+     ],
+     "D": [
+      32.37,
+      83.51
+     ],
+     "E": [
+      21.47,
+      45.49
+     ],
+     "F": [
+      20,
+      8
+     ],
+     "G": [
+      90,
+      90
+     ]
+    },
+    "palette": 4,
+    "proof": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E"
+    ]
+   },
+   "objective": "Colour every lantern with as few colours as you can. Then show why fewer cannot work. No three lanterns here all link to each other.",
+   "visibleObjective": "Use the fewest colours, then show why not fewer.",
+   "instruction": "Colour every lantern with as few colours as you can. Then show why fewer cannot work. No three lanterns here all link to each other.",
+   "controls": "Choose a colour, then tap lanterns to colour them (Clear removes a colour). When every lantern is lit with no clash, press Show why not fewer, tap lanterns for your proof, and Check.",
+   "rules": [
+    "Linked lanterns must have different colours.",
+    "A crossing of two links without a lantern is not a junction."
+   ],
+   "idea": "Three colours, and no triangle: the proof is the ring of five, tapped in order around it.",
+   "prerequisites": "Why not fewer puzzles 1 and 2.",
+   "hints": [
+    "Try two colours around the ring. What happens when you get back?",
+    "Two colours must alternate around a ring. Five lanterns cannot alternate.",
+    "Tap A, B, C, D, E in order for the proof."
+   ],
+   "parent": {
+    "notice": "Whether your child explains the failed alternation, not just that 2 did not work.",
+    "prompt": "Why can’t two colours go around a ring of five?",
+    "explanation": "Two colours must alternate around a ring, and after five steps the colour has switched an odd number of times, so the start would need both colours. Three colours are enough, so 3 is the fewest, though the largest group of linked-in-pairs lanterns has only 2.",
+    "extension": "Which rings can two colours go around?",
+    "connection": "An odd cycle needs 3 colours, so χ can exceed the clique number ω.",
+    "sourceIds": [
+     "firstfit-week62",
+     "firstfit-konig"
+    ]
+   },
+   "solution": {
+    "fewest": 3,
+    "proof": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E"
+    ]
+   },
+   "provenance": "Week 62 Problems 3 and 4 (the five-cycle with a leaf; a cycle that explains why two slots fail), new instance.",
+   "sourceDocument": "docs/firstfit/README.md"
+  },
+  {
+   "id": "fewest-04",
+   "number": 4,
+   "title": "A ring with a shortcut",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "fewest",
+   "libraryFamily": "color",
+   "group": "Why not fewer",
+   "familyTitle": "Neighbor Lanterns",
+   "revision": 1,
+   "parameters": {
+    "vertices": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G"
+    ],
+    "edges": [
+     [
+      "A",
+      "B",
+      1
+     ],
+     [
+      "B",
+      "C",
+      1
+     ],
+     [
+      "C",
+      "D",
+      1
+     ],
+     [
+      "D",
+      "E",
+      1
+     ],
+     [
+      "E",
+      "F",
+      1
+     ],
+     [
+      "F",
+      "G",
+      1
+     ],
+     [
+      "G",
+      "A",
+      1
+     ],
+     [
+      "A",
+      "D",
+      1
+     ]
+    ],
+    "positions": {
+     "A": [
+      50,
+      8
+     ],
+     "B": [
+      79.71,
+      23.81
+     ],
+     "C": [
+      87.05,
+      59.35
+     ],
+     "D": [
+      66.49,
+      87.84
+     ],
+     "E": [
+      33.51,
+      87.84
+     ],
+     "F": [
+      12.95,
+      59.35
+     ],
+     "G": [
+      20.29,
+      23.81
+     ]
+    },
+    "palette": 4,
+    "proof": [
+     "A",
+     "D",
+     "E",
+     "F",
+     "G"
+    ]
+   },
+   "objective": "Colour every lantern with as few colours as you can. Then show why fewer cannot work.",
+   "visibleObjective": "Use the fewest colours, then show why not fewer.",
+   "instruction": "Colour every lantern with as few colours as you can. Then show why fewer cannot work.",
+   "controls": "Choose a colour, then tap lanterns to colour them (Clear removes a colour). When every lantern is lit with no clash, press Show why not fewer, tap lanterns for your proof, and Check.",
+   "rules": [
+    "Linked lanterns must have different colours.",
+    "A crossing of two links without a lantern is not a junction."
+   ],
+   "idea": "Three colours. The whole ring of seven is odd, and so is the shortcut ring A, D, E, F, G.",
+   "prerequisites": "Why not fewer puzzle 3.",
+   "hints": [
+    "Is there a ring of odd length?",
+    "The shortcut A–D makes two smaller rings. Count each.",
+    "Tap A, D, E, F, G in order, or go around all seven."
+   ],
+   "parent": {
+    "notice": "Whether your child counts the lanterns on each ring the shortcut makes.",
+    "prompt": "The shortcut makes a ring of four and a ring of five. Which one proves 3 are needed?",
+    "explanation": "A–B–C–D–A has four lanterns, which two colours can alternate around. A–D–E–F–G–A has five, which they cannot. So 3 colours are needed, and 3 are enough.",
+    "extension": "Which one shortcut would make a triangle?",
+    "connection": "Two colours work exactly when every cycle is even.",
+    "sourceIds": [
+     "firstfit-week62",
+     "firstfit-konig"
+    ]
+   },
+   "solution": {
+    "fewest": 3,
+    "proof": [
+     "A",
+     "D",
+     "E",
+     "F",
+     "G"
+    ]
+   },
+   "provenance": "Week 62 Problems 4 and 5 (find a cycle that explains why two slots fail), new network.",
+   "sourceDocument": "docs/firstfit/README.md"
+  },
+  {
+   "id": "fewest-05",
+   "number": 5,
+   "title": "Hidden four",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "fewest",
+   "libraryFamily": "color",
+   "group": "Why not fewer",
+   "familyTitle": "Neighbor Lanterns",
+   "revision": 1,
+   "parameters": {
+    "vertices": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E",
+     "F",
+     "G",
+     "H"
+    ],
+    "edges": [
+     [
+      "A",
+      "B",
+      1
+     ],
+     [
+      "B",
+      "C",
+      1
+     ],
+     [
+      "C",
+      "D",
+      1
+     ],
+     [
+      "D",
+      "E",
+      1
+     ],
+     [
+      "E",
+      "F",
+      1
+     ],
+     [
+      "F",
+      "G",
+      1
+     ],
+     [
+      "G",
+      "H",
+      1
+     ],
+     [
+      "H",
+      "A",
+      1
+     ],
+     [
+      "A",
+      "D",
+      1
+     ],
+     [
+      "A",
+      "F",
+      1
+     ],
+     [
+      "D",
+      "F",
+      1
+     ],
+     [
+      "D",
+      "H",
+      1
+     ],
+     [
+      "F",
+      "H",
+      1
+     ]
+    ],
+    "positions": {
+     "A": [
+      64.54,
+      11.2
+     ],
+     "B": [
+      85.11,
+      33.93
+     ],
+     "C": [
+      85.11,
+      66.07
+     ],
+     "D": [
+      64.54,
+      88.8
+     ],
+     "E": [
+      35.46,
+      88.8
+     ],
+     "F": [
+      14.89,
+      66.07
+     ],
+     "G": [
+      14.89,
+      33.93
+     ],
+     "H": [
+      35.46,
+      11.2
+     ]
+    },
+    "palette": 5,
+    "proof": [
+     "A",
+     "D",
+     "F",
+     "H"
+    ]
+   },
+   "objective": "Colour every lantern with as few colours as you can. Then show why fewer cannot work.",
+   "visibleObjective": "Use the fewest colours, then show why not fewer.",
+   "instruction": "Colour every lantern with as few colours as you can. Then show why fewer cannot work.",
+   "controls": "Choose a colour, then tap lanterns to colour them (Clear removes a colour). When every lantern is lit with no clash, press Show why not fewer, tap lanterns for your proof, and Check.",
+   "rules": [
+    "Linked lanterns must have different colours.",
+    "A crossing of two links without a lantern is not a junction."
+   ],
+   "idea": "Four colours: A, D, F and H all link to each other.",
+   "prerequisites": "Why not fewer puzzles 1–3.",
+   "hints": [
+    "Look for lanterns with many links.",
+    "Four of the lanterns all link to each other.",
+    "Tap A, D, F and H."
+   ],
+   "parent": {
+    "notice": "Whether your child finds the four lanterns by checking every pair.",
+    "prompt": "How do you know A, D, F and H need four different colours?",
+    "explanation": "Every two of A, D, F and H are linked (six links), so they need four colours. The other lanterns can then fit in, so 4 is the fewest.",
+    "extension": "Remove one of the six links among A, D, F and H. How many colours now?",
+    "connection": "A clique of size 4 needs 4 colours.",
+    "sourceIds": [
+     "firstfit-week62",
+     "firstfit-konig"
+    ]
+   },
+   "solution": {
+    "fewest": 4,
+    "proof": [
+     "A",
+     "D",
+     "F",
+     "H"
+    ]
+   },
+   "provenance": "Week 62 Problem 3 (the largest group in which every pair conflicts), new network.",
+   "sourceDocument": "docs/firstfit/README.md"
+  }
+ ]
+}

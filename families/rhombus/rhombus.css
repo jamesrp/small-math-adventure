@@ -1,0 +1,68 @@
+@import url('../../tri-grid.css');
+/* Rhombus gardens: rhombi shaded by direction like the faces of a cube (the
+   colours of the flip-map proofs), purple chevrons, red dots that prove the
+   most, a dashed rhombus that shows a spot without a dot, flip points, the
+   goal card and the shelf of tilings found. */
+.rh-puzzle{display:flex;flex-direction:column;align-items:center;gap:.45rem;width:100%}
+.rh-stage{width:100%}
+.rh-puzzle .tg-piece.rh-face.f2{fill:#f3e4b3}
+.rh-puzzle .tg-piece.rh-face.f0{fill:#aabf9a}
+.rh-puzzle .tg-piece.rh-face.f1{fill:#5f7f62}
+.rh-puzzle .tg-piece.rh-chevron{fill:#c4b2da}
+.rh-puzzle .tg-piece.hinted{stroke:var(--b-ochre,#b38840);stroke-width:4px;stroke-dasharray:6 4}
+@media (prefers-reduced-motion:no-preference){.rh-board .tg-piece.fresh{animation:rh-in .22s ease-out}}
+@keyframes rh-in{from{opacity:.4}to{opacity:1}}
+
+/* Picking triangles one tap at a time; the triangles that can join them glow. */
+.rh-board .rh-pick{fill:var(--b-pine,#31533e);opacity:.38;pointer-events:none}
+.rh-board .tg-cell.partner{fill:#f7ecc6}
+@media (prefers-reduced-motion:no-preference){.rh-board .tg-cell.partner{animation:rh-glow 1.6s ease-in-out infinite}}
+@keyframes rh-glow{50%{fill:#efd998}}
+
+/* Dots, and a spot a rhombus could take without covering one. */
+.rh-board .tg-dot{fill:var(--b-bad,#a9503a);stroke:var(--b-card,#fffdf5);stroke-width:1.5px;vector-effect:non-scaling-stroke}
+.rh-board .tg-dot.hinted{stroke:var(--b-ochre,#b38840);stroke-width:4px}
+.rh-board .rh-open{fill:rgba(169,80,58,.1);stroke:var(--b-bad,#a9503a);stroke-width:2.6px;vector-effect:non-scaling-stroke;stroke-dasharray:5 4;stroke-linejoin:round;pointer-events:none}
+.rh-board.tool-dot .tg-pieces{opacity:.72}
+
+/* Flip points: a light pip on the rhombi. */
+.rh-board .rh-flip .tg-pip{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:1.5px;vector-effect:non-scaling-stroke}
+.rh-board .rh-flip:hover .tg-reach{fill:rgba(255,253,245,.45)}
+
+/* Tools and actions. */
+.rh-tools,.rh-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;max-width:100%}
+.rh-puzzle .rh-tool,.rh-puzzle .rh-action{display:inline-flex;align-items:center;gap:.35rem;min-height:46px;padding:6px 10px;font-size:.92rem;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd);font-weight:600}
+.rh-puzzle .rh-tool[aria-pressed="true"]{background:#e9eddc;border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.rh-puzzle .rh-tool b{display:grid;place-items:center;min-width:28px;height:28px;padding:0 7px;border-radius:14px;background:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9);font-family:var(--b-display,Georgia,serif);font-weight:400;font-size:1.05rem}
+.rh-puzzle .rh-tool[data-focus="rh-tool-dot"] b{background:var(--b-bad,#a9503a)}
+.rh-puzzle .rh-action:disabled{opacity:.45;box-shadow:none}
+.rh-puzzle .hinted:is(.rh-tool,.rh-action){outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.rh-puzzle .rh-tool-icon{width:22px;height:22px}
+.rh-icon-rhombus{fill:#aabf9a;stroke:var(--b-ink,#294439);stroke-width:1.6;stroke-linejoin:round}
+.rh-icon-tri{fill:#fbf8ec;stroke:var(--b-ink,#294439);stroke-width:1.6;stroke-linejoin:round}
+.rh-icon-dot{fill:var(--b-bad,#a9503a)}
+.rh-puzzle .rh-size{padding:5px 8px}
+.rh-puzzle .rh-size-icon{width:30px;height:30px;margin:0}
+.rh-puzzle .rh-size-icon .tg-cell{stroke:#b9c2a5}
+.rh-note{margin:0;font-weight:600;color:var(--b-bad,#a9503a)}
+
+/* The empty board's piece and gesture. */
+.rh-prompt{display:flex;align-items:center;gap:.6rem;margin:0;color:var(--b-ink,#294439)}
+.rh-puzzle .rh-icon{width:44px;height:38px;margin:0}
+
+/* The goal and the flip count. */
+.rh-goalbar{display:flex;align-items:center;justify-content:center;gap:1rem}
+.rh-goal{position:relative;margin:0;width:92px;padding:6px;background:#fbf4dc;border:1.5px solid #ead9a4;border-radius:14px}
+.rh-goal figcaption{position:absolute;top:2px;right:6px;font-size:1rem}
+.rh-puzzle .rh-mini{display:block;width:100%;height:auto;margin:0}
+.rh-puzzle .rh-mini .tg-piece{stroke-width:1px}
+.rh-puzzle .rh-mini .tg-edge{stroke-width:1.5px}
+.rh-counter{margin:0;font-size:1.05rem;color:var(--b-ink,#294439)}
+.rh-counter strong{font-family:var(--b-display,Georgia,serif);font-size:1.5rem;font-weight:400}
+.rh-counter strong.over{color:var(--b-bad,#a9503a)}
+
+/* Tilings found. */
+.rh-shelf{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;list-style:none;margin:.2rem 0 0;padding:0;max-width:440px}
+.rh-shelf li{width:58px;padding:4px;background:var(--b-card,#fffdf5);border:1px solid var(--b-line,#d0d6bd);border-radius:10px}
+.rh-shelf li.here{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+@media (prefers-reduced-motion:no-preference){.rh-shelf li:last-child{animation:rh-in .3s ease-out}}

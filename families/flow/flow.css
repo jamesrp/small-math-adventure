@@ -1,0 +1,55 @@
+@import url('../../graph-board.css');
+/* Routes and roadblocks: routes drawn in four colours with four dash
+   patterns, roadblocks as red bars, and a dashed leak that shows a way
+   through while roadblocks are being placed. */
+.flow-puzzle{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
+.flow-tools,.flow-order{display:flex;flex-wrap:nowrap;justify-content:center;gap:.4rem;max-width:100%}
+.flow-puzzle .flow-tool{display:inline-flex;align-items:center;gap:.35rem;min-height:46px;padding:6px 9px;font-size:.92rem;white-space:nowrap;flex:0 1 auto;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd);font-weight:600}
+.flow-puzzle .flow-tool[aria-pressed="true"]{background:#e9eddc;border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.flow-puzzle .flow-tool b{display:grid;place-items:center;min-width:28px;height:28px;padding:0 7px;border-radius:14px;background:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9);font-family:var(--b-display,Georgia,serif);font-weight:400;font-size:1.05rem}
+.flow-puzzle .flow-tool[data-focus="flow-tool-block"] b{background:var(--b-bad,#a9503a)}
+.flow-puzzle .flow-tool.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.flow-icon{width:22px;height:22px}
+.flow-icon-route{fill:none;stroke:#2f7d6d;stroke-width:3.2;stroke-linecap:round}
+.flow-icon-arrow{stroke:#9aa88f;stroke-width:2.5}
+.flow-icon-bar{stroke:var(--b-bad,#a9503a);stroke-width:4;stroke-linecap:round}
+
+/* Start and finish. */
+.flow-map .flow-start .gb-dot{fill:var(--b-pine,#31533e);stroke:var(--b-pine,#31533e)}
+.flow-map .flow-start .gb-label{fill:var(--b-on-pine,#fff8d9);font-size:4.6px}
+.flow-map .flow-finish .gb-dot{fill:var(--b-sun,#efc76e);stroke:var(--b-ink,#294439)}
+.flow-map .flow-finish .gb-label{font-size:5px}
+.flow-map .flow-finish.sealed .gb-dot{fill:var(--b-bad-soft,#f5e3d9);stroke:var(--b-bad,#a9503a);stroke-width:3.5px}
+.flow-map .flow-finish.sealed .gb-label{fill:var(--b-bad,#a9503a)}
+.flow-map .gb-node:not(.flow-start):not(.flow-finish) .gb-dot{stroke-width:2px}
+.flow-map .gb-node:not(.flow-start):not(.flow-finish) .gb-label{font-size:4.4px;fill:var(--b-muted,#5a6850)}
+
+/* The route being drawn and where it may go next. */
+.flow-map .gb-node.pen .gb-reach{fill:rgba(239,199,110,.45)}
+.flow-map .gb-node.can-go .gb-dot{stroke:var(--b-ochre,#b38840);stroke-width:3.5px}
+@media (prefers-reduced-motion:no-preference){.flow-map .gb-node.can-go .gb-reach{animation:flow-glow 1.6s ease-in-out infinite}}
+@keyframes flow-glow{50%{fill:rgba(239,199,110,.35)}}
+
+/* Routes: colour plus dash pattern, so they never depend on colour alone. */
+.flow-map .gb-edge.routed .gb-line{stroke:transparent}
+.flow-map .gb-stroke.r0{stroke:#2f7d6d}
+.flow-map .gb-stroke.r1{stroke:#3f6fb0;stroke-dasharray:14 6}
+.flow-map .gb-stroke.r2{stroke:#b0567a;stroke-dasharray:3 6}
+.flow-map .gb-stroke.r3{stroke:#b38840;stroke-dasharray:14 5 3 5}
+.flow-map .gb-edge.routed .gb-head{fill:var(--b-ink,#294439)}
+.flow-map .gb-edge.drawing .gb-stroke{opacity:.75}
+
+/* Roadblocks and the leak. */
+.flow-map .gb-edge.shut .gb-bar{stroke:var(--b-bad,#a9503a)}
+.flow-map.tool-block .gb-edge.shut:not(.routed) .gb-line{stroke-dasharray:3 4}
+.flow-leak-glow{fill:none;stroke:rgba(169,80,58,.2);stroke-width:13px;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.flow-leak{fill:none;stroke:var(--b-bad,#a9503a);stroke-width:3px;vector-effect:non-scaling-stroke;stroke-dasharray:2 6;stroke-linecap:round;stroke-linejoin:round;opacity:.85;pointer-events:none}
+@media (prefers-reduced-motion:no-preference){.flow-leak{animation:flow-march 1.1s linear infinite}}
+@keyframes flow-march{to{stroke-dashoffset:-14}}
+
+/* The game: your roadblocks in pine, theirs in red. */
+.flow-map.flow-game .gb-edge.shut.mine .gb-bar{stroke:var(--b-pine,#31533e)}
+.flow-map.flow-game .gb-edge.shut.last .gb-bar{stroke-width:10px}
+.flow-result{display:flex;flex-direction:column;align-items:center;gap:.4rem}
+.flow-result p{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.1rem}
+.flow-result .lost{color:var(--b-bad,#a9503a)}

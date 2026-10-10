@@ -1,0 +1,1269 @@
+{
+ "title": "Pebble Duel menus",
+ "version": 1,
+ "families": [
+  {
+   "id": "menus",
+   "title": "Pebble Duel menus",
+   "mathematics": "A menu of allowed takes turns Nim into a subtraction game. Working up from the end sorts every pile into wins and losses for the player to move; a pile loses exactly when every take leaves a winning pile. With a finite menu the pattern repeats (1 or 2: multiples of 3; 1, 3 or 4: 0 and 2 after taking away 7s), because each pile depends only on the few piles just below it. Two piles add as games: each pile acts like a Nim pile of its Grundy value, and the sum loses exactly when the values have Nim-sum 0.",
+   "rules": [
+    "Players take turns. A turn takes one of the numbers shown from one pile.",
+    "A player with no legal take loses, so with 1 on the menu whoever takes the last pebble wins.",
+    "The opponent never misses a winning move."
+   ],
+   "sourceIds": [
+    "menus-week07",
+    "menus-ferguson",
+    "menus-winning-ways"
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "id": "menus-week07",
+   "title": "Bellingham Math Circle — Week 7: Take-away games, packets, return visit and adult guides",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-07",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "menus-ferguson",
+   "title": "Thomas S. Ferguson — Game Theory, Part I: Impartial Combinatorial Games, §1 (subtraction games) and §3 (Sprague–Grundy)",
+   "url": "https://www.math.ucla.edu/~tom/Game_Theory/comb.pdf",
+   "kind": "undergraduate"
+  },
+  {
+   "id": "menus-winning-ways",
+   "title": "Elwyn Berlekamp, John Conway and Richard Guy — Winning Ways for Your Mathematical Plays, vol. 1, ch. 4 (subtraction games)",
+   "url": "https://en.wikipedia.org/wiki/Winning_Ways_for_Your_Mathematical_Plays",
+   "kind": "research"
+  }
+ ],
+ "puzzles": [
+  {
+   "id": "menus-01",
+   "number": 1,
+   "title": "Take 1 or 2",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "menu",
+   "libraryFamily": "nim",
+   "group": "Menus",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "game",
+    "menu": [
+     1,
+     2
+    ],
+    "start": [
+     7
+    ]
+   },
+   "objective": "Take the last pebble to win. Each turn takes 1 or 2 pebbles.",
+   "visibleObjective": "Take the last pebble.",
+   "instruction": "Take the last pebble to win. Each turn takes 1 or 2 pebbles.",
+   "controls": "Tap a number under a pile to take that many pebbles. The opponent replies at once. Undo takes back your take and the reply.",
+   "rules": [
+    "Players take turns.",
+    "A turn takes 1 or 2 pebbles.",
+    "Whoever takes the last pebble wins.",
+    "The opponent never misses a winning move."
+   ],
+   "idea": "Hand the opponent 3, and whatever they take, you take the rest.",
+   "prerequisites": "Count to 7 and take turns. A grown-up can read the goal.",
+   "hints": [
+    "Think about the end first. What happens if the opponent hands you 1 or 2 pebbles?",
+    "If you hand over 3, the opponent must leave you 1 or 2.",
+    "Take 1, leaving 6. Then make each round take 3."
+   ],
+   "parent": {
+    "notice": "Whether your child starts thinking from the end of the game: 1 and 2 win at once, and 3 cannot.",
+    "prompt": "Which piles would you like to hand to the opponent?",
+    "explanation": "Work up from the end. A player facing 1 or 2 takes everything and wins; a player facing 3 must leave 1 or 2, so 3 loses. Then 4 and 5 win by leaving 3, and 6 loses. The losing piles are 0, 3, 6, 9 and so on: every take from a multiple of 3 leaves a non-multiple, and from a non-multiple one take reaches a multiple. From 7, take 1.",
+    "extension": "Would you rather go first or second with 9 pebbles?",
+    "connection": "Backward induction sorts every position of a finite game into wins and losses for the player to move: the N- and P-positions of combinatorial game theory (Ferguson, §1).",
+    "sourceIds": [
+     "menus-week07",
+     "menus-ferguson"
+    ]
+   },
+   "solution": {
+    "winningFirstTakes": [
+     {
+      "pile": 1,
+      "take": 1
+     }
+    ]
+   },
+   "provenance": "Week 7 launch and K–1 Problems 1–3 (take 1 or 2; the grown-up’s secret 9, 6, 3). New instance.",
+   "sourceDocument": "docs/menus/README.md"
+  },
+  {
+   "id": "menus-02",
+   "number": 2,
+   "title": "Eleven pebbles",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "menu",
+   "libraryFamily": "nim",
+   "group": "Menus",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "game",
+    "menu": [
+     1,
+     2
+    ],
+    "start": [
+     11
+    ]
+   },
+   "objective": "Take the last pebble to win. Each turn takes 1 or 2 pebbles.",
+   "visibleObjective": "Take the last pebble.",
+   "instruction": "Take the last pebble to win. Each turn takes 1 or 2 pebbles.",
+   "controls": "Tap a number under a pile to take that many pebbles. The opponent replies at once. Undo takes back your take and the reply.",
+   "rules": [
+    "Players take turns.",
+    "A turn takes 1 or 2 pebbles.",
+    "Whoever takes the last pebble wins.",
+    "The opponent never misses a winning move."
+   ],
+   "idea": "The same piles lose all the way up: leave 9.",
+   "prerequisites": "Menus puzzle 1. Count to 11.",
+   "hints": [
+    "Which pile did you hand over to win last time? Which bigger piles are like it?",
+    "Hand over 9, then answer 1 with 2 and 2 with 1.",
+    "Take 2, leaving 9."
+   ],
+   "parent": {
+    "notice": "Whether your child answers each take so that the round removes 3.",
+    "prompt": "After the opponent takes 1, how many do you take? And after 2?",
+    "explanation": "From 11, take 2 to leave 9. Every round after that removes exactly 3 (1 + 2 or 2 + 1), so the opponent faces 6, then 3, then has to leave you the last pebbles.",
+    "extension": "With 12 pebbles, would you go first?",
+    "connection": "A pairing strategy: each opponent move is answered so the pair of moves is constant, which keeps the opponent on losing piles.",
+    "sourceIds": [
+     "menus-week07",
+     "menus-ferguson"
+    ]
+   },
+   "solution": {
+    "winningFirstTakes": [
+     {
+      "pile": 1,
+      "take": 2
+     }
+    ]
+   },
+   "provenance": "Week 7 K–1 Problem 2 (play the grown-up from 10) and grades 4–5 Problem 1 (piles from 7 to 16). New instance.",
+   "sourceDocument": "docs/menus/README.md"
+  },
+  {
+   "id": "menus-03",
+   "number": 3,
+   "title": "Who starts?",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "menu",
+   "libraryFamily": "nim",
+   "group": "Menus",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "streak",
+    "menu": [
+     1,
+     2
+    ],
+    "piles": 1,
+    "range": [
+     4,
+     15
+    ],
+    "streak": 3
+   },
+   "objective": "Choose who starts, then take the last pebble. Each turn takes 1 or 2 pebbles. Win 3 games in a row from new starts.",
+   "visibleObjective": "Win 3 games in a row.",
+   "instruction": "Choose who starts, then take the last pebble. Each turn takes 1 or 2 pebbles. Win 3 games in a row from new starts.",
+   "controls": "Choose Me first or You first. Tap a number under a pile to take that many pebbles. After a game, New start draws new pebbles; Same start again is practice and does not count.",
+   "rules": [
+    "Players take turns.",
+    "A turn takes 1 or 2 pebbles.",
+    "Whoever takes the last pebble wins.",
+    "The opponent never misses a winning move.",
+    "Before each game, choose who starts. Win 3 games in a row; only games from a new start count."
+   ],
+   "idea": "Let the opponent start exactly when the pile is a multiple of 3.",
+   "prerequisites": "Menus puzzles 1 and 2. Count to 15.",
+   "hints": [
+    "Is this a pile you would like to hand over, or one you would like to be handed?",
+    "If the pile is 6, 9, 12 or 15, let the opponent start.",
+    "Otherwise go first and leave a multiple of 3."
+   ],
+   "parent": {
+    "notice": "Whether your child decides who starts by looking at the pile, before playing.",
+    "prompt": "How can you tell from the pile who should start?",
+    "explanation": "Starts are drawn half from the losing piles, so always choosing Me first wins only by luck. The opponent never misses a winning move, so three wins in a row from new starts shows the rule is known, not guessed.",
+    "extension": "Why does the player who goes second win from a multiple of 3?",
+    "connection": "Choosing who starts is the classification into P- and N-positions; winning against perfect play is the strategy (Ferguson, §1).",
+    "sourceIds": [
+     "menus-week07",
+     "menus-ferguson"
+    ]
+   },
+   "solution": {
+    "losingStarts": [
+     "6",
+     "9",
+     "12",
+     "15"
+    ],
+    "winningStarts": 8
+   },
+   "provenance": "Week 7 grades 4–5 Problem 1 (first or second, and how many to take) as a choose-who-starts round, as in the Proofs duels.",
+   "sourceDocument": "docs/menus/README.md"
+  },
+  {
+   "id": "menus-04",
+   "number": 4,
+   "title": "The track for 1 or 2",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "menutrack",
+   "libraryFamily": "nim",
+   "group": "Menus",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "track",
+    "menu": [
+     1,
+     2
+    ],
+    "last": 20
+   },
+   "objective": "Each turn takes 1 or 2 pebbles, and whoever takes the last pebble wins. The squares 0 to 20 stand for piles of that many pebbles. Colour every square you would like to leave for your opponent, then Check.",
+   "visibleObjective": "Colour every pile you would like to leave for your opponent.",
+   "instruction": "Each turn takes 1 or 2 pebbles, and whoever takes the last pebble wins. The squares 0 to 20 stand for piles of that many pebbles. Colour every square you would like to leave for your opponent, then Check.",
+   "controls": "Tap a square to colour it, and tap it again to clear it. Check says whether the colouring is right; if not, it explains the lowest square that is wrong, and you can play from that square against the opponent. Undo takes back one tap.",
+   "rules": [
+    "Players take turns.",
+    "A turn takes 1 or 2 pebbles.",
+    "Whoever takes the last pebble wins.",
+    "Square N stands for a pile of N pebbles."
+   ],
+   "idea": "With takes of 1 or 2 the squares to leave are the multiples of 3: from each, every take reaches an uncoloured square, and from every other square one take reaches a coloured one.",
+   "prerequisites": "Menus puzzles 1–3. Count to 20.",
+   "hints": [
+    "Start at 0. If you leave 0, your opponent cannot move.",
+    "If you leave 1 or 2, your opponent takes the rest. What about 3?",
+    "A square is one to leave when every take from it reaches a square that is not coloured."
+   ],
+   "parent": {
+    "notice": "Whether your child fills the track from 0 upward, deciding each square from the ones below it, or colours a guessed pattern.",
+    "prompt": "Why is 3 a good pile to leave, and 4 not?",
+    "explanation": "Work up from 0. Leaving 0 wins at once. Leaving 1 or 2 lets the opponent take the rest. Leaving 3 forces them to leave 2 or 1, which you finish. From 4 or 5 one take reaches 3, so they are not squares to leave; 6 is, and so on: the squares to leave are 0, 3, 6, …, 18. Check reports the lowest wrong square with its reason, in terms of the child’s own colouring.",
+    "extension": "Without colouring, is 100 a square to leave?",
+    "connection": "The P-positions of the subtraction game with takes 1 and 2: a position is P exactly when every move leads to an N-position (Ferguson, §1).",
+    "sourceIds": [
+     "menus-week07",
+     "menus-ferguson"
+    ]
+   },
+   "solution": {
+    "toLeave": [
+     0,
+     3,
+     6,
+     9,
+     12,
+     15,
+     18
+    ]
+   },
+   "provenance": "Week 7 grades 4–5 Problem 2 (colour every square where you would like to leave the token, takes of 1 or 2, track to 20).",
+   "sourceDocument": "docs/menus/README.md"
+  },
+  {
+   "id": "menus-05",
+   "number": 5,
+   "title": "Take 1, 2 or 3",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "menu",
+   "libraryFamily": "nim",
+   "group": "Menus",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "game",
+    "menu": [
+     1,
+     2,
+     3
+    ],
+    "start": [
+     10
+    ]
+   },
+   "objective": "Take the last pebble to win. Each turn takes 1, 2 or 3 pebbles.",
+   "visibleObjective": "Take the last pebble.",
+   "instruction": "Take the last pebble to win. Each turn takes 1, 2 or 3 pebbles.",
+   "controls": "Tap a number under a pile to take that many pebbles. The opponent replies at once. Undo takes back your take and the reply.",
+   "rules": [
+    "Players take turns.",
+    "A turn takes 1, 2 or 3 pebbles.",
+    "Whoever takes the last pebble wins.",
+    "The opponent never misses a winning move."
+   ],
+   "idea": "With 1, 2 or 3 on the menu, the piles to hand over are multiples of 4.",
+   "prerequisites": "Menus puzzles 1–4. Count to 10.",
+   "hints": [
+    "What happens if you hand the opponent 4?",
+    "The piles to hand over are 4 and 8.",
+    "Take 2, leaving 8."
+   ],
+   "parent": {
+    "notice": "Whether your child tries the old rule (multiples of 3) first, and how they find the new one.",
+    "prompt": "Which pile is now the smallest one you want to hand over?",
+    "explanation": "With takes of 1 to k, the losing piles are the multiples of k + 1: every take from a multiple leaves a non-multiple, and the reply that brings the round to k + 1 restores it. Here k is 3, so hand over 8, then 4. From 10, take 2.",
+    "extension": "With takes of 1 to 5, which piles lose?",
+    "connection": "This is Bachet’s game, one of the oldest solved games (1612), and the simplest subtraction game.",
+    "sourceIds": [
+     "menus-week07",
+     "menus-ferguson"
+    ]
+   },
+   "solution": {
+    "winningFirstTakes": [
+     {
+      "pile": 1,
+      "take": 2
+     }
+    ]
+   },
+   "provenance": "Week 7 grades 4–5 Problem 2 (take 1, 2 or 3) and K–1 Problem 6 (the token moves 1, 2 or 3). New instance.",
+   "sourceDocument": "docs/menus/README.md"
+  },
+  {
+   "id": "menus-06",
+   "number": 6,
+   "title": "Not the most",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "menu",
+   "libraryFamily": "nim",
+   "group": "Menus",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "game",
+    "menu": [
+     1,
+     3,
+     4
+    ],
+    "start": [
+     12
+    ]
+   },
+   "objective": "Take the last pebble to win. Each turn takes 1, 3 or 4 pebbles.",
+   "visibleObjective": "Take the last pebble.",
+   "instruction": "Take the last pebble to win. Each turn takes 1, 3 or 4 pebbles.",
+   "controls": "Tap a number under a pile to take that many pebbles. The opponent replies at once. Undo takes back your take and the reply.",
+   "rules": [
+    "Players take turns.",
+    "A turn takes 1, 3 or 4 pebbles.",
+    "Whoever takes the last pebble wins.",
+    "The opponent never misses a winning move."
+   ],
+   "idea": "Taking the most is not always best: from 12 the only winning take is 3.",
+   "prerequisites": "Menus puzzles 1–5. Count to 12.",
+   "hints": [
+    "Find the small piles you would like to hand over. Is 2 one of them?",
+    "The piles to hand over are 2, 7 and 9.",
+    "Take 3, leaving 9."
+   ],
+   "parent": {
+    "notice": "Whether your child stops taking 4 every time, and starts checking what each take leaves.",
+    "prompt": "If you take 4, what can the opponent do?",
+    "explanation": "Work up: 0 loses; 1 wins; 2 loses (the only take leaves 1); 3, 4, 5 and 6 win (each can leave 0 or 2); 7 loses; 8 wins; 9 loses. The losing piles are 0, 2, 7, 9, 14, 16 and so on, repeating every 7. From 12 the takes leave 11, 9 or 8, and only 9 loses for the opponent.",
+    "extension": "Omar always takes as many as he can. From which piles does that throw away a win?",
+    "connection": "A subtraction game with menu 1, 3 or 4; its losing piles are worked out in Ferguson, §1, and Winning Ways, ch. 4.",
+    "sourceIds": [
+     "menus-week07",
+     "menus-ferguson",
+     "menus-winning-ways"
+    ]
+   },
+   "solution": {
+    "winningFirstTakes": [
+     {
+      "pile": 1,
+      "take": 3
+     }
+    ]
+   },
+   "provenance": "Week 7 grades 2–3 Problems 1–5 and grades 4–5 Problems 3–5 (moves of 1, 3 or 4; Omar and Kai take the most). New instance.",
+   "sourceDocument": "docs/menus/README.md"
+  },
+  {
+   "id": "menus-07",
+   "number": 7,
+   "title": "Take 2 or 3",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "menu",
+   "libraryFamily": "nim",
+   "group": "Menus",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "game",
+    "menu": [
+     2,
+     3
+    ],
+    "start": [
+     9
+    ]
+   },
+   "objective": "Make the last move to win. Each turn takes 2 or 3 pebbles, and a player who cannot move loses.",
+   "visibleObjective": "Make the last move.",
+   "instruction": "Make the last move to win. Each turn takes 2 or 3 pebbles, and a player who cannot move loses.",
+   "controls": "Tap a number under a pile to take that many pebbles. The opponent replies at once. Undo takes back your take and the reply.",
+   "rules": [
+    "Players take turns.",
+    "A turn takes 2 or 3 pebbles.",
+    "A player who cannot move loses.",
+    "The opponent never misses a winning move."
+   ],
+   "idea": "A single pebble cannot be taken, so handing over 1 wins.",
+   "prerequisites": "Menus puzzles 1–6.",
+   "hints": [
+    "What can a player do with 1 pebble?",
+    "The piles to hand over are 0, 1, 5 and 6.",
+    "Take 3, leaving 6."
+   ],
+   "parent": {
+    "notice": "Whether your child sees that 1 pebble is as good as none to hand over.",
+    "prompt": "Which piles leave the next player stuck?",
+    "explanation": "With takes of 2 and 3, piles of 0 and 1 leave the player to move stuck. Then 2, 3 and 4 win (each leaves 0 or 1), 5 and 6 lose, and the losing piles 0, 1, 5, 6, 10, 11 and so on repeat every 5. From 9, take 3.",
+    "extension": "Which piles lose with takes of 2 or 5?",
+    "connection": "Normal play: the player who cannot move loses. Taking the last pebble is the special case when 1 is on the menu.",
+    "sourceIds": [
+     "menus-week07",
+     "menus-ferguson"
+    ]
+   },
+   "solution": {
+    "winningFirstTakes": [
+     {
+      "pile": 1,
+      "take": 3
+     }
+    ]
+   },
+   "provenance": "Week 7 grades 4–5 Problem 7 (take 2 or 3) and the packet’s rule that a player who cannot move loses. New instance.",
+   "sourceDocument": "docs/menus/README.md"
+  },
+  {
+   "id": "menus-08",
+   "number": 8,
+   "title": "The track for 1, 3 or 4",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "menutrack",
+   "libraryFamily": "nim",
+   "group": "Menus",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "track",
+    "menu": [
+     1,
+     3,
+     4
+    ],
+    "last": 24
+   },
+   "objective": "Each turn takes 1, 3 or 4 pebbles, and whoever takes the last pebble wins. The squares 0 to 24 stand for piles. Colour every square you would like to leave for your opponent, then Check.",
+   "visibleObjective": "Colour every pile you would like to leave for your opponent.",
+   "instruction": "Each turn takes 1, 3 or 4 pebbles, and whoever takes the last pebble wins. The squares 0 to 24 stand for piles. Colour every square you would like to leave for your opponent, then Check.",
+   "controls": "Tap a square to colour it, and tap it again to clear it. Check says whether the colouring is right; if not, it explains the lowest square that is wrong, and you can play from that square against the opponent. Undo takes back one tap.",
+   "rules": [
+    "Players take turns.",
+    "A turn takes 1, 3 or 4 pebbles.",
+    "Whoever takes the last pebble wins.",
+    "Square N stands for a pile of N pebbles."
+   ],
+   "idea": "With takes of 1, 3 or 4 the squares to leave are 0, 2, 7, 9, 14, 16, 21 and 23: the pair 0, 2 repeats every 7.",
+   "prerequisites": "Menus puzzles 4 and 6.",
+   "hints": [
+    "Start at 0 and work up, one square at a time.",
+    "From 2 the only take is 1, which leaves 1. Would you leave 1?",
+    "A square is one to leave when no take from it reaches a coloured square."
+   ],
+   "parent": {
+    "notice": "Whether your child notices the repeat after 7 and uses it to finish faster, and whether they check that it still holds.",
+    "prompt": "Where does the pattern start again? Why every 7?",
+    "explanation": "Working up from 0: 0 is to leave; 1 is not (take 1 to 0); 2 is (its only take leaves 1); 3, 4, 5 and 6 are not (they reach 0 or 2); 7 is (its takes leave 6, 4 or 3). Each square depends only on the four squares below it, and 7 to 10 look like 0 to 3, so the pattern repeats every 7: 0, 2, 7, 9, 14, 16, 21, 23.",
+    "extension": "Is 100 a square to leave with takes of 1, 3 or 4?",
+    "connection": "With a finite menu the outcomes repeat, because each square depends on a window of squares below it; for takes 1, 3 and 4 the period is 7 (Ferguson, §1; Winning Ways, ch. 4).",
+    "sourceIds": [
+     "menus-week07",
+     "menus-ferguson",
+     "menus-winning-ways"
+    ]
+   },
+   "solution": {
+    "toLeave": [
+     0,
+     2,
+     7,
+     9,
+     14,
+     16,
+     21,
+     23
+    ]
+   },
+   "provenance": "Week 7 grades 2–3 Problem 2 (track to 20) and grades 4–5 Problem 4 (track to 30), on squares 0 to 24.",
+   "sourceDocument": "docs/menus/README.md"
+  },
+  {
+   "id": "menus-09",
+   "number": 9,
+   "title": "Every reply",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "menu",
+   "libraryFamily": "nim",
+   "group": "Menus",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "replies",
+    "menu": [
+     1,
+     3,
+     4
+    ],
+    "start": [
+     14
+    ]
+   },
+   "objective": "Each turn takes 1, 3 or 4 pebbles, and whoever takes the last pebble wins. You go second from 14. The opponent tries each first take in turn: 1, then 3, then 4. Win all three games.",
+   "visibleObjective": "Go second from 14. Win against every first take.",
+   "instruction": "Each turn takes 1, 3 or 4 pebbles, and whoever takes the last pebble wins. You go second from 14. The opponent tries each first take in turn: 1, then 3, then 4. Win all three games.",
+   "controls": "Tap a number under the pile to take that many pebbles. The opponent replies at once. After a win, Next first take starts the next game; after a loss, Try again replays the same first take.",
+   "rules": [
+    "Players take turns.",
+    "A turn takes 1, 3 or 4 pebbles.",
+    "Whoever takes the last pebble wins.",
+    "The opponent never misses a winning move.",
+    "You go second, and the opponent tries each first take in turn. Win every game."
+   ],
+   "idea": "Going second from 14 wins against every first take, because 14 is a square to leave: after 13, take 4 to leave 9; after 11, take 4 to leave 7; after 10, take 1 or 3 to leave 9 or 7.",
+   "prerequisites": "Menus puzzle 8.",
+   "hints": [
+    "Which squares would you like to leave? The track from puzzle 8 helps.",
+    "After each first take, look for a take that leaves 9 or 7.",
+    "Keep leaving squares from 0, 2, 7, 9, 14, 16."
+   ],
+   "parent": {
+    "notice": "Whether your child plans an answer for each first take, or plays each game from scratch.",
+    "prompt": "How do you know you will win against every first take before you play?",
+    "explanation": "After 13, take 4 to leave 9; after 11, take 4 to leave 7; after 10, take 1 or 3 to leave 9 or 7. From there keep leaving squares in 0, 2, 7, 9. Winning all three games checks every case, so it shows that the first player cannot win from 14. The opponent plays perfectly after its first take, so a wrong reply loses; Try again replays the same first take.",
+    "extension": "From 16, what is the answer to each first take?",
+    "connection": "A position is a P-position exactly when every move leads to an N-position; the three games check every move from 14 (Ferguson, §1).",
+    "sourceIds": [
+     "menus-week07",
+     "menus-ferguson"
+    ]
+   },
+   "solution": {
+    "replies": [
+     {
+      "first": 1,
+      "answers": [
+       4
+      ]
+     },
+     {
+      "first": 3,
+      "answers": [
+       4
+      ]
+     },
+     {
+      "first": 4,
+      "answers": [
+       1,
+       3
+      ]
+     }
+    ]
+   },
+   "provenance": "Week 7 grades 2–3 Problem 4 (Lena goes second from 9 and says she can win whatever her opponent does), from 14.",
+   "sourceDocument": "docs/menus/README.md"
+  },
+  {
+   "id": "menus-10",
+   "number": 10,
+   "title": "Who starts with 1, 3 or 4?",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "menu",
+   "libraryFamily": "nim",
+   "group": "Menus",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "streak",
+    "menu": [
+     1,
+     3,
+     4
+    ],
+    "piles": 1,
+    "range": [
+     5,
+     20
+    ],
+    "streak": 3
+   },
+   "objective": "Choose who starts, then take the last pebble. Each turn takes 1, 3 or 4 pebbles. Win 3 games in a row from new starts.",
+   "visibleObjective": "Win 3 games in a row.",
+   "instruction": "Choose who starts, then take the last pebble. Each turn takes 1, 3 or 4 pebbles. Win 3 games in a row from new starts.",
+   "controls": "Choose Me first or You first. Tap a number under a pile to take that many pebbles. After a game, New start draws new pebbles; Same start again is practice and does not count.",
+   "rules": [
+    "Players take turns.",
+    "A turn takes 1, 3 or 4 pebbles.",
+    "Whoever takes the last pebble wins.",
+    "The opponent never misses a winning move.",
+    "Before each game, choose who starts. Win 3 games in a row; only games from a new start count."
+   ],
+   "idea": "The piles to hand over are 7, 9, 14 and 16 (and 0 and 2 below them).",
+   "prerequisites": "Menus puzzles 6 and 8.",
+   "hints": [
+    "Which small piles would you like to hand over?",
+    "The piles to hand over are 2, 7, 9, 14 and 16. Let the opponent start from one of them.",
+    "Otherwise go first and take 1, 3 or 4 to leave one of them."
+   ],
+   "parent": {
+    "notice": "Whether your child keeps a list of the piles to hand over, or works each one out again.",
+    "prompt": "Which piles are you hoping to be given?",
+    "explanation": "The losing piles for 1, 3 or 4 are 0, 2, 7, 9, 14 and 16 below 21. Starts are drawn half from them, and the opponent plays perfectly, so three wins in a row from new starts needs the list.",
+    "extension": "Do you see a pattern in 2, 7, 9, 14, 16? What comes next?",
+    "connection": "Choosing who starts is the P-position classification of the subtraction game (Ferguson, §1).",
+    "sourceIds": [
+     "menus-week07",
+     "menus-ferguson"
+    ]
+   },
+   "solution": {
+    "losingStarts": [
+     "7",
+     "9",
+     "14",
+     "16"
+    ],
+    "winningStarts": 12
+   },
+   "provenance": "Week 7 grades 2–3 Problems 2–3 and grades 4–5 Problems 3–4 (colour the squares to leave) as a choose-who-starts round.",
+   "sourceDocument": "docs/menus/README.md"
+  },
+  {
+   "id": "menus-11",
+   "number": 11,
+   "title": "The last pebble loses",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "menu",
+   "libraryFamily": "nim",
+   "group": "Menus",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "game",
+    "menu": [
+     1,
+     2
+    ],
+    "start": [
+     8
+    ],
+    "misere": true
+   },
+   "objective": "Make the opponent take the last pebble. Each turn takes 1 or 2 pebbles.",
+   "visibleObjective": "Don’t take the last pebble.",
+   "instruction": "Make the opponent take the last pebble. Each turn takes 1 or 2 pebbles.",
+   "controls": "Tap a number under a pile to take that many pebbles. The opponent replies at once. Undo takes back your take and the reply.",
+   "rules": [
+    "Players take turns.",
+    "A turn takes 1 or 2 pebbles.",
+    "Whoever takes the last pebble loses.",
+    "The opponent never misses a winning move."
+   ],
+   "idea": "When the last pebble loses, the piles to hand over move up by one: 1, 4, 7.",
+   "prerequisites": "Menus puzzles 1–3.",
+   "hints": [
+    "Who wants to be handed a single pebble?",
+    "The piles to hand over are 1, 4 and 7.",
+    "Take 1, leaving 7."
+   ],
+   "parent": {
+    "notice": "Whether your child adapts the old rule or starts again from the end.",
+    "prompt": "Which pile is the smallest one you want to hand over now?",
+    "explanation": "When taking the last pebble loses, a player facing 1 must take it. Then 2 and 3 win (leave 1), 4 loses, and the losing piles are 1, 4, 7, 10 and so on, one more than the multiples of 3. From 8, take 1.",
+    "extension": "With 1, 2 or 3 and the last pebble losing, which piles lose?",
+    "connection": "Misère play. In a one-pile game with 1 on the menu, every losing pile moves up by exactly one; for sums of games misère is much harder than normal play (Winning Ways, ch. 13).",
+    "sourceIds": [
+     "menus-week07",
+     "menus-ferguson",
+     "menus-winning-ways"
+    ]
+   },
+   "solution": {
+    "winningFirstTakes": [
+     {
+      "pile": 1,
+      "take": 1
+     }
+    ]
+   },
+   "provenance": "Week 7 K–1 Problem 9 and the grades 4–5 last-counter-loses game. New instance.",
+   "sourceDocument": "docs/menus/README.md"
+  },
+  {
+   "id": "menus-12",
+   "number": 12,
+   "title": "Big piles",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "menu",
+   "libraryFamily": "nim",
+   "group": "Menus",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "streak",
+    "menu": [
+     1,
+     3,
+     4
+    ],
+    "piles": 1,
+    "range": [
+     21,
+     45
+    ],
+    "streak": 3
+   },
+   "objective": "Choose who starts, then take the last pebble. Each turn takes 1, 3 or 4 pebbles. Win 3 games in a row from new starts.",
+   "visibleObjective": "Win 3 games in a row.",
+   "instruction": "Choose who starts, then take the last pebble. Each turn takes 1, 3 or 4 pebbles. Win 3 games in a row from new starts.",
+   "controls": "Choose Me first or You first. Tap a number under a pile to take that many pebbles. After a game, New start draws new pebbles; Same start again is practice and does not count.",
+   "rules": [
+    "Players take turns.",
+    "A turn takes 1, 3 or 4 pebbles.",
+    "Whoever takes the last pebble wins.",
+    "The opponent never misses a winning move.",
+    "Before each game, choose who starts. Win 3 games in a row; only games from a new start count."
+   ],
+   "idea": "The losing piles repeat every 7, so big piles need the pattern rather than a count down.",
+   "prerequisites": "Menus puzzles 8 and 10. Count by 7s, or count back carefully.",
+   "hints": [
+    "The piles to hand over repeat. How far is it from 2 to 9, and from 9 to 16?",
+    "A pile is one to hand over when taking away 7s leaves 0 or 2.",
+    "Go first and take 1, 3 or 4 to leave such a pile; otherwise let the opponent start."
+   ],
+   "parent": {
+    "notice": "Whether your child counts back from the pile or uses the repeat.",
+    "prompt": "Is 30 a pile you would like to hand over? How do you know without counting all the way down?",
+    "explanation": "Whether a pile wins depends only on the four piles just below it, since a take reaches at most 4 down. Piles 7, 8, 9 and 10 behave like 0, 1, 2 and 3, so from there the pattern repeats every 7. The same pigeonhole argument shows that every subtraction game with a finite menu is eventually periodic.",
+    "extension": "With a pile of 100, would you go first? How many would you take?",
+    "connection": "Periodicity of finite subtraction games: Winning Ways, ch. 4; Ferguson, §1.",
+    "sourceIds": [
+     "menus-week07",
+     "menus-ferguson",
+     "menus-winning-ways"
+    ]
+   },
+   "solution": {
+    "losingStarts": [
+     "21",
+     "23",
+     "28",
+     "30",
+     "35",
+     "37",
+     "42",
+     "44"
+    ],
+    "winningStarts": 17
+   },
+   "provenance": "Week 7 grades 2–3 Problem 6 and grades 4–5 Problem 6 (piles of 50 and 100), at a size where counting down is slow.",
+   "sourceDocument": "docs/menus/README.md"
+  },
+  {
+   "id": "menus-13",
+   "number": 13,
+   "title": "The track for 2, 5 or 6",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "menutrack",
+   "libraryFamily": "nim",
+   "group": "Menus",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "track",
+    "menu": [
+     2,
+     5,
+     6
+    ],
+    "last": 30
+   },
+   "objective": "Each turn takes 2, 5 or 6 pebbles, and a player who cannot take loses. The squares 0 to 30 stand for piles. Colour every square you would like to leave for your opponent, then Check.",
+   "visibleObjective": "Colour every pile you would like to leave for your opponent.",
+   "instruction": "Each turn takes 2, 5 or 6 pebbles, and a player who cannot take loses. The squares 0 to 30 stand for piles. Colour every square you would like to leave for your opponent, then Check.",
+   "controls": "Tap a square to colour it, and tap it again to clear it. Check says whether the colouring is right; if not, it explains the lowest square that is wrong, and you can play from that square against the opponent. Undo takes back one tap.",
+   "rules": [
+    "Players take turns.",
+    "A turn takes 2, 5 or 6 pebbles.",
+    "A player who cannot move loses.",
+    "Square N stands for a pile of N pebbles."
+   ],
+   "idea": "A player on 0 or 1 cannot take, so both are squares to leave. The squares to leave are 0, 1, 4, 8, 11, 12, 15, 19, 22, 23, 26 and 30, and the pattern repeats every 11.",
+   "prerequisites": "Menus puzzles 7 and 8.",
+   "hints": [
+    "Start at 0. Which piles leave your opponent no take at all?",
+    "Nobody can take from a pile of 1, so 1 is a square to leave too.",
+    "Work up one square at a time: a square is one to leave when no take from it reaches a coloured square."
+   ],
+   "parent": {
+    "notice": "Whether your child counts 1 as a square to leave (no take is possible there), and whether they find where the pattern repeats.",
+    "prompt": "Where does the pattern start again? How long is the repeat?",
+    "explanation": "Working up from 0: 0 and 1 are to leave (no take); 2 and 3 are not (take 2); 4 is (it can only leave 2); 5, 6 and 7 are not (they reach 0, 4 or 1); 8 is (it leaves 6, 3 or 2); 9 and 10 are not; 11 and 12 are. From 0 to 30 the squares to leave are 0, 1, 4, 8, 11, 12, 15, 19, 22, 23, 26 and 30. Each square depends on the six below it, and 11 to 16 look like 0 to 5, so the pattern repeats every 11; no shorter repeat works.",
+    "extension": "Is 100 a square to leave with takes of 2, 5 or 6?",
+    "connection": "The outcomes of a subtraction game whose largest take is m repeat as soon as a window of m squares repeats; for takes 2, 5 and 6 the period is 11 from the start (Ferguson, §1; Winning Ways, ch. 4).",
+    "sourceIds": [
+     "menus-week07",
+     "menus-ferguson",
+     "menus-winning-ways"
+    ]
+   },
+   "solution": {
+    "toLeave": [
+     0,
+     1,
+     4,
+     8,
+     11,
+     12,
+     15,
+     19,
+     22,
+     23,
+     26,
+     30
+    ]
+   },
+   "provenance": "Week 7 grades 4–5 Problem 14 (Kim says the coloured squares for 2, 5 or 6 end up repeating), as a track to 30.",
+   "sourceDocument": "docs/menus/README.md"
+  },
+  {
+   "id": "menus-14",
+   "number": 14,
+   "title": "Design the takes",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "menutrack",
+   "libraryFamily": "nim",
+   "group": "Menus",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "design",
+    "period": 5,
+    "choices": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "last": 30
+   },
+   "objective": "Choose which takes from 1 to 9 are allowed, so that the squares to leave for your opponent are exactly 0, 5, 10, 15 and so on. A player who cannot take loses. Then Check.",
+   "visibleObjective": "Choose the takes so that the squares to leave are exactly 0, 5, 10, 15, …",
+   "instruction": "Choose which takes from 1 to 9 are allowed, so that the squares to leave for your opponent are exactly 0, 5, 10, 15 and so on. A player who cannot take loses. Then Check.",
+   "controls": "Tap a take to allow it, and tap it again to remove it. Check works out the squares to leave for your takes and explains the lowest one that differs from the goal.",
+   "rules": [
+    "Players take turns. A turn takes one of the allowed numbers of pebbles.",
+    "A player who cannot take loses.",
+    "You choose the allowed takes, from 1 to 9."
+   ],
+   "idea": "The squares to leave are exactly the multiples of 5 when the takes include 1, 2, 3 and 4 and not 5; any of 6 to 9 may be added.",
+   "prerequisites": "Menus puzzles 8 and 13.",
+   "hints": [
+    "Square 1 must not be one to leave. What does a player on 1 need?",
+    "Squares 1 to 4 each need a take that reaches 0. What must not be a take, so that 5 stays a square to leave?",
+    "Takes 1, 2, 3 and 4 work. Can you add any of 6 to 9?"
+   ],
+   "parent": {
+    "notice": "Whether your child reasons from the small squares (1 to 4 must each reach 0) rather than trying takes at random, and whether they look for more than one answer.",
+    "prompt": "Why must 1, 2, 3 and 4 all be takes? Why can 7 be added?",
+    "explanation": "Squares 1 to 4 must not be squares to leave, and below 5 the only square to leave is 0, so each of 1, 2, 3 and 4 needs a take straight to 0. 5 must not be a take, or 5 could reach 0. With 1 to 4 allowed and no multiple of 5, every take from a multiple of 5 lands on a non-multiple, and from a non-multiple one of 1 to 4 reaches a multiple of 5. So the answers are 1, 2, 3 and 4 with any of 6, 7, 8 and 9: sixteen choices. Check works out the squares to leave up to 60, which settles every larger square for takes up to 9, and explains the lowest square that differs from the goal.",
+    "extension": "Choose takes so that the squares to leave are 0, 3, 6, 9 and so on. Which takes must be in, and which must stay out?",
+    "connection": "The P-positions of a subtraction game are exactly the multiples of k when the takes include 1 to k − 1 and no multiple of k; the argument above is the proof (Week 7 guide, Problem 9).",
+    "sourceIds": [
+     "menus-week07",
+     "menus-ferguson"
+    ]
+   },
+   "solution": {
+    "menus": [
+     "1,2,3,4",
+     "1,2,3,4,6",
+     "1,2,3,4,7",
+     "1,2,3,4,6,7",
+     "1,2,3,4,8",
+     "1,2,3,4,6,8",
+     "1,2,3,4,7,8",
+     "1,2,3,4,6,7,8",
+     "1,2,3,4,9",
+     "1,2,3,4,6,9",
+     "1,2,3,4,7,9",
+     "1,2,3,4,6,7,9",
+     "1,2,3,4,8,9",
+     "1,2,3,4,6,8,9",
+     "1,2,3,4,7,8,9",
+     "1,2,3,4,6,7,8,9"
+    ]
+   },
+   "provenance": "Week 7 grades 4–5 Problem 9 (choose the moves so that the squares to leave are exactly 0, 5, 10, 15, …), with takes from 1 to 9.",
+   "sourceDocument": "docs/menus/README.md"
+  },
+  {
+   "id": "menus-15",
+   "number": 15,
+   "title": "Two piles",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "menu",
+   "libraryFamily": "nim",
+   "group": "Menus",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "game",
+    "menu": [
+     1,
+     2
+    ],
+    "start": [
+     2,
+     7
+    ]
+   },
+   "objective": "Take the last pebble to win. Each turn takes 1 or 2 pebbles from one pile.",
+   "visibleObjective": "Take the last pebble.",
+   "instruction": "Take the last pebble to win. Each turn takes 1 or 2 pebbles from one pile.",
+   "controls": "Tap a number under a pile to take that many pebbles. The opponent replies at once. Undo takes back your take and the reply.",
+   "rules": [
+    "Players take turns.",
+    "A turn takes 1 or 2 pebbles from one pile.",
+    "Whoever takes the last pebble wins.",
+    "The opponent never misses a winning move."
+   ],
+   "idea": "Two unequal piles can balance: what matters is each pile’s remainder after taking away 3s.",
+   "prerequisites": "Menus puzzles 1–3. Copying a move on equal piles helps.",
+   "hints": [
+    "Copying works when the piles are equal. What could stand in for a pile of 7?",
+    "A pile of 7 plays like a pile of 1, and 5 like 2.",
+    "Take 2 from the pile of 7, leaving 2 and 5."
+   ],
+   "parent": {
+    "notice": "Whether your child tries to make the piles equal, and what they do when they cannot.",
+    "prompt": "Which pairs of piles would you like to hand over?",
+    "explanation": "Each pile plays like its remainder after taking away 3s: 7 like 1, 5 like 2. Two piles lose for the player to move exactly when the remainders match. From 2 and 7, take 2 from the 7 (leaving 2 and 5) or 1 from the 2 (leaving 1 and 7). Afterwards, answer a take from one pile in the other so the remainders match again, or finish a round of 3 in the same pile.",
+    "extension": "Does the remainder idea work with takes of 1, 3 or 4?",
+    "connection": "The Sprague–Grundy theorem: every impartial game position acts like a Nim pile of some size (its Grundy value), and a sum of games loses exactly when those sizes have Nim-sum 0 (Ferguson, §3).",
+    "sourceIds": [
+     "menus-week07",
+     "menus-ferguson"
+    ]
+   },
+   "solution": {
+    "winningFirstTakes": [
+     {
+      "pile": 1,
+      "take": 1
+     },
+     {
+      "pile": 2,
+      "take": 2
+     }
+    ]
+   },
+   "provenance": "Week 7 K–1 Problem 8 and grades 2–3 Problem 7 (two piles; take from one). New instance.",
+   "sourceDocument": "docs/menus/README.md"
+  },
+  {
+   "id": "menus-16",
+   "number": 16,
+   "title": "Who starts with two piles?",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "menu",
+   "libraryFamily": "nim",
+   "group": "Menus",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "streak",
+    "menu": [
+     1,
+     2
+    ],
+    "piles": 2,
+    "range": [
+     1,
+     9
+    ],
+    "streak": 3
+   },
+   "objective": "Choose who starts, then take the last pebble. Each turn takes 1 or 2 pebbles from one pile. Win 3 games in a row from new starts.",
+   "visibleObjective": "Win 3 games in a row.",
+   "instruction": "Choose who starts, then take the last pebble. Each turn takes 1 or 2 pebbles from one pile. Win 3 games in a row from new starts.",
+   "controls": "Choose Me first or You first. Tap a number under a pile to take that many pebbles. After a game, New start draws new pebbles; Same start again is practice and does not count.",
+   "rules": [
+    "Players take turns.",
+    "A turn takes 1 or 2 pebbles from one pile.",
+    "Whoever takes the last pebble wins.",
+    "The opponent never misses a winning move.",
+    "Before each game, choose who starts. Win 3 games in a row; only games from a new start count."
+   ],
+   "idea": "Go second exactly when both piles leave the same remainder after taking away 3s.",
+   "prerequisites": "Menus puzzle 15.",
+   "hints": [
+    "Take away 3s from each pile. What is left of each?",
+    "If both piles leave the same remainder, let the opponent start.",
+    "Otherwise go first and make the remainders match."
+   ],
+   "parent": {
+    "notice": "Whether your child compares remainders rather than piles.",
+    "prompt": "Why do 4 and 7 behave like 1 and 1?",
+    "explanation": "Each pile plays like its remainder after taking away 3s, and two piles lose for the player to move when the remainders match. Starts are drawn half from such pairs, and the opponent plays perfectly.",
+    "extension": "With three piles, when should you go second?",
+    "connection": "Sums of games and Grundy values (Ferguson, §3). With three piles the remainders combine by Nim-sum, not by matching.",
+    "sourceIds": [
+     "menus-week07",
+     "menus-ferguson"
+    ]
+   },
+   "solution": {
+    "losingStarts": [
+     "1,1",
+     "1,4",
+     "1,7",
+     "2,2",
+     "2,5",
+     "2,8",
+     "3,3",
+     "3,6",
+     "3,9",
+     "4,1",
+     "4,4",
+     "4,7",
+     "5,2",
+     "5,5",
+     "5,8",
+     "6,3",
+     "6,6",
+     "6,9",
+     "7,1",
+     "7,4",
+     "7,7",
+     "8,2",
+     "8,5",
+     "8,8",
+     "9,3",
+     "9,6",
+     "9,9"
+    ],
+    "winningStarts": 54
+   },
+   "provenance": "Week 7 grades 2–3 Problem 7 (two piles) as a choose-who-starts round.",
+   "sourceDocument": "docs/menus/README.md"
+  },
+  {
+   "id": "menus-17",
+   "number": 17,
+   "title": "The chart for two piles",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "menutrack",
+   "libraryFamily": "nim",
+   "group": "Menus",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "track",
+    "menu": [
+     1,
+     2
+    ],
+    "piles": 2,
+    "last": 9
+   },
+   "objective": "There are two piles. Each turn takes 1 or 2 pebbles from one pile, and whoever takes the last pebble wins. The square in row a and column b stands for piles of a and b. Colour every square you would like to leave for your opponent, then Check.",
+   "visibleObjective": "Colour every pair of piles you would like to leave for your opponent.",
+   "instruction": "There are two piles. Each turn takes 1 or 2 pebbles from one pile, and whoever takes the last pebble wins. The square in row a and column b stands for piles of a and b. Colour every square you would like to leave for your opponent, then Check.",
+   "controls": "Tap a square to colour it, and tap it again to clear it. Check says whether the colouring is right; if not, it explains the lowest square that is wrong, and you can play from that square against the opponent. Undo takes back one tap.",
+   "rules": [
+    "Players take turns.",
+    "A turn takes 1 or 2 pebbles from one pile.",
+    "Whoever takes the last pebble wins.",
+    "The square in row a and column b stands for piles of a and b."
+   ],
+   "idea": "With takes of 1 or 2, two piles are a square to leave exactly when they have the same remainder after taking away 3s: 34 squares from 0 to 9, where the piles differ by 0, 3, 6 or 9.",
+   "prerequisites": "Menus puzzles 4, 15 and 16.",
+   "hints": [
+    "Start at the corner: (0, 0) is a square to leave. What about (1, 1)?",
+    "Equal piles are squares to leave: copy your opponent. Which unequal piles are too?",
+    "Look along a row: which squares off the diagonal play like equal piles?"
+   ],
+   "parent": {
+    "notice": "Whether your child starts with equal piles (copying), then finds the squares off the diagonal, and whether they connect the pattern to the one-pile track for 1 or 2.",
+    "prompt": "Why is (2, 5) a square to leave, when the piles are not equal?",
+    "explanation": "Equal piles are squares to leave: whatever the opponent takes from one pile, take the same from the other. For takes of 1 or 2, three extra pebbles in a pile change nothing (whatever is taken from them, the other player takes the rest of the 3), so only the remainders after taking away 3s matter, and (2, 5) plays like (2, 2). The squares to leave are the 34 pairs whose piles differ by 0, 3, 6 or 9. A check explains the first wrong square, working outward from (0, 0).",
+    "extension": "Would you rather go first or second with piles of 20 and 11?",
+    "connection": "By the Sprague–Grundy theorem a pile of n has value n mod 3 for takes of 1 and 2, and two piles lose for the player to move exactly when their values are equal (Ferguson, §3).",
+    "sourceIds": [
+     "menus-week07",
+     "menus-ferguson"
+    ]
+   },
+   "solution": {
+    "toLeave": [
+     "0,0",
+     "0,3",
+     "0,6",
+     "0,9",
+     "1,1",
+     "1,4",
+     "1,7",
+     "2,2",
+     "2,5",
+     "2,8",
+     "3,0",
+     "3,3",
+     "3,6",
+     "3,9",
+     "4,1",
+     "4,4",
+     "4,7",
+     "5,2",
+     "5,5",
+     "5,8",
+     "6,0",
+     "6,3",
+     "6,6",
+     "6,9",
+     "7,1",
+     "7,4",
+     "7,7",
+     "8,2",
+     "8,5",
+     "8,8",
+     "9,0",
+     "9,3",
+     "9,6",
+     "9,9"
+    ]
+   },
+   "provenance": "Week 7 grades 4–5 Problem 13 (in the two-pile game, colour every square of the chart where you would like to leave the two piles), the same 0–9 chart.",
+   "sourceDocument": "docs/menus/README.md"
+  },
+  {
+   "id": "menus-18",
+   "number": 18,
+   "title": "Two piles with 1, 3 or 4",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "menu",
+   "libraryFamily": "nim",
+   "group": "Menus",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "game",
+    "menu": [
+     1,
+     3,
+     4
+    ],
+    "start": [
+     4,
+     10
+    ]
+   },
+   "objective": "Take the last pebble to win. Each turn takes 1, 3 or 4 pebbles from one pile.",
+   "visibleObjective": "Take the last pebble.",
+   "instruction": "Take the last pebble to win. Each turn takes 1, 3 or 4 pebbles from one pile.",
+   "controls": "Tap a number under a pile to take that many pebbles. The opponent replies at once. Undo takes back your take and the reply.",
+   "rules": [
+    "Players take turns.",
+    "A turn takes 1, 3 or 4 pebbles from one pile.",
+    "Whoever takes the last pebble wins.",
+    "The opponent never misses a winning move."
+   ],
+   "idea": "With 1, 3 or 4, piles play like 0, 1, 0, 1, 2, 3, 2, repeating every 7; two piles balance when those values match.",
+   "prerequisites": "Menus puzzles 6, 10, 15 and 17.",
+   "hints": [
+    "These piles cannot be made equal. Which different piles play alike?",
+    "With 1, 3 or 4, piles of 4 and 6 play alike, and so do 1, 3 and 10.",
+    "Take 4 from the pile of 10, leaving 4 and 6."
+   ],
+   "parent": {
+    "notice": "Whether your child looks for piles that play alike, after copying fails.",
+    "prompt": "Why can’t you just copy the opponent here?",
+    "explanation": "For takes of 1, 3 or 4, the Grundy values of piles 0 to 6 are 0, 1, 0, 1, 2, 3, 2, repeating every 7. Pile 4 has value 2 and pile 10 has value 1. Taking 4 from the 10 leaves 6, value 2, to match; taking 1 or 3 from the 4 leaves 3 or 1, value 1, to match. After that, answer each take so the values match again.",
+    "extension": "Find two different piles under 15 that balance each other in three different ways.",
+    "connection": "The Sprague–Grundy theorem and the periodic Grundy sequence of the subtraction game 1, 3, 4 (Ferguson, §3).",
+    "sourceIds": [
+     "menus-week07",
+     "menus-ferguson"
+    ]
+   },
+   "solution": {
+    "winningFirstTakes": [
+     {
+      "pile": 1,
+      "take": 1
+     },
+     {
+      "pile": 1,
+      "take": 3
+     },
+     {
+      "pile": 2,
+      "take": 4
+     }
+    ]
+   },
+   "provenance": "Week 7 grades 2–3 Problem 7 (two piles with moves of 1, 3 or 4), with piles that cannot be made equal. New instance.",
+   "sourceDocument": "docs/menus/README.md"
+  }
+ ]
+}

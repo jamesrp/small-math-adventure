@@ -1,0 +1,65 @@
+/* Signal Lanterns codebooks: one row of lanterns per picture, the changer's
+   trick, and the catalogue of every row the receiver might see. Lanterns use
+   the Signal Lanterns look (cream when dark, sun when lit) from boards.css. */
+.codebook-puzzle{display:flex;flex-direction:column;align-items:center;gap:.75rem;width:100%}
+.cb-key{display:flex;flex-direction:column;gap:8px;padding:10px 12px;background:#fbf7ea;border:1px solid var(--b-line,#d0d6bd);border-radius:14px}
+.cb-key-row,.cb-send,.cb-trick-row{display:flex;align-items:center;gap:10px}
+.cb-row{display:inline-flex;gap:6px}
+.cb-shape{width:30px;height:30px;flex:none;stroke:var(--b-ink,#294439);stroke-width:1.6;stroke-linejoin:round}
+.cb-shape.inline{width:20px;height:20px;vertical-align:-4px}
+.s0{fill:#b9604a}.s1{fill:#4f86a8}.s2{fill:#6f9a52}.s3{fill:#efc76e}.s4{fill:#7a5a8c}.s5{fill:#b38840}.s6{fill:#e7a28f}.s7{fill:#31533e}
+.cb-lantern{display:inline-block;width:40px;height:40px;border-radius:50%;background:#f4f1e6;border:2px solid var(--b-ink,#294439);box-shadow:0 2px 0 rgba(41,68,57,.2);flex:none}
+.cb-lantern.on{background:var(--b-sun,#efc76e);box-shadow:0 0 0 4px rgba(239,199,110,.35),0 2px 0 rgba(41,68,57,.2)}
+.board-panel .codebook-puzzle button.cb-lantern{min-width:0;min-height:0;padding:0;cursor:pointer}
+.board-panel .codebook-puzzle button.cb-lantern:disabled{opacity:1;cursor:default}
+.cb-lantern.ringed{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.cb-tools{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.board-panel .codebook-puzzle .cb-claim{font-weight:600}
+.cb-lengths{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.board-panel .codebook-puzzle .cb-length{min-width:48px;min-height:44px;padding:0 10px;font-family:var(--b-display,Georgia,serif);font-size:1.15rem;font-weight:400}
+.board-panel .codebook-puzzle .cb-length[aria-pressed="true"]{background:var(--b-pine,#31533e);border-color:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9)}
+.board-panel .codebook-puzzle .cb-length.found{box-shadow:inset 0 -4px 0 var(--b-good,#3c7a4a)}
+.board-panel .codebook-puzzle .cb-length.claimed{text-decoration:line-through;text-decoration-thickness:2px}
+.board-panel .codebook-puzzle .hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.cb-say{margin:0;max-width:34rem;text-align:center;line-height:1.4}
+.cb-say.good{color:var(--b-good,#3c7a4a);font-weight:600}
+.cb-result{display:flex;flex-direction:column;align-items:center;gap:8px}
+.cb-trick{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:10px 12px;background:var(--b-bad-soft,#f5e3d9);border-radius:14px}
+.cb-result.good .cb-trick{background:#eef3e4}
+.cb-trick .cb-say{text-align:left;font-size:.95rem}
+.cb-trick .cb-lantern{width:28px;height:28px}
+.cb-trick .cb-shape{width:24px;height:24px}
+.cb-trick-how{font-size:.9rem;color:var(--b-muted,#5a6850)}
+.cb-seen{padding-left:2px}
+.cb-eye{width:24px;height:24px;flex:none;fill:none;stroke:var(--b-ink,#294439);stroke-width:2}
+.cb-eye circle{fill:var(--b-ink,#294439);stroke:none}
+.cb-send{padding:10px 12px;border:2px dashed var(--b-line,#d0d6bd);border-radius:14px}
+.cb-edit{margin:0 -6px;padding:4px 6px;border:2px dashed var(--b-line,#d0d6bd);border-radius:12px}
+.cb-pips{display:flex;gap:6px;margin:0}
+.cb-pips i{width:14px;height:14px;border-radius:50%;border:2px solid var(--b-pine,#31533e)}
+.cb-pips i.done{background:var(--b-pine,#31533e)}
+.cb-pips i.now{background:var(--b-sun,#efc76e)}
+/* The catalogue of received rows, shown after a check. */
+.cb-catalogue{width:100%;max-width:34rem}
+.cb-catalogue summary{cursor:pointer;font-weight:600;text-align:center}
+.codebook-puzzle .cb-cells{list-style:none;margin:8px 0 0;padding:0;padding-inline-start:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+.cb-cell{display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 2px;border:1px solid var(--b-line,#d0d6bd);border-radius:9px;background:var(--b-card,#fffdf5)}
+.cb-cell .cb-row{gap:2px}
+.cb-cell .cb-lantern{width:11px;height:11px;border-width:1.5px;box-shadow:none}
+.cb-cell .cb-lantern.on{box-shadow:none}
+.cb-cell.used{background:#f3f5ea}
+.cb-cell.clash{background:var(--b-bad-soft,#f5e3d9);border:2px solid var(--b-bad,#a9503a)}
+.cb-from{display:flex;gap:1px;min-height:16px;align-items:center}
+.cb-from .cb-shape{width:15px;height:15px;stroke-width:1.2}
+.cb-none{color:#a9b39a}
+/* Partners: the rows collected so far. */
+.codebook-puzzle .cb-list{list-style:none;margin:0;padding:0;padding-inline-start:0;display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.cb-found{display:flex;align-items:center;gap:4px;padding:6px 8px;border:1px solid var(--b-line,#d0d6bd);border-radius:12px;background:var(--b-card,#fffdf5)}
+.cb-found .cb-lantern{width:22px;height:22px;box-shadow:none}
+.cb-found.right{border:2px solid var(--b-good,#3c7a4a)}
+.cb-found.wrong{background:var(--b-bad-soft,#f5e3d9);border:2px solid var(--b-bad,#a9503a);text-decoration:line-through}
+.cb-found.wrong .cb-row{opacity:.6}
+.cb-found.missed{border:2px dashed var(--b-good,#3c7a4a)}
+.board-panel .codebook-puzzle .cb-remove{min-width:32px;min-height:32px;padding:0;font-size:1.2rem;line-height:1}
+@media (max-width:460px){.cb-lantern{width:34px;height:34px}.cb-row{gap:5px}.cb-key-row,.cb-send{gap:8px}.cb-shape{width:26px;height:26px}.cb-trick .cb-lantern{width:24px;height:24px}}
+@media (max-width:360px){.cb-lantern{width:30px;height:30px}.cb-row{gap:4px}}

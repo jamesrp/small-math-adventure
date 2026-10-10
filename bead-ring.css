@@ -1,0 +1,48 @@
+/* The shared bead ring (dist/bead-ring.js): beads on a string, a see-through
+   copy that turns and flips over them, ring cards and bead strips. Uses the
+   shared board palette from boards.css: pine, sun and sky beads, ink
+   outlines, ochre for attention. A family imports this file from its own
+   stylesheet. */
+.br-ring{--bead:18%;position:relative;width:min(100%,330px);aspect-ratio:1;margin:.4rem auto;perspective:900px}
+.br-string{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.br-string circle{fill:none;stroke:#8a9a80;stroke-width:2.2px;vector-effect:non-scaling-stroke}
+.br-string .br-arc{fill:none;stroke-width:6px;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.br-string .br-arc.clash{stroke:var(--b-bad,#a9503a);stroke-dasharray:6 5}
+.br-string .br-arc.lit{stroke:var(--b-ochre,#b38840)}
+.br-string .br-way{fill:none;stroke:var(--b-line,#d0d6bd);stroke-width:2.4px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.br-string .br-way-head{fill:var(--b-line,#d0d6bd)}
+
+/* Bead colours, everywhere a bead is drawn. */
+.br-c-A{--fill:var(--b-pine,#31533e);--edge:#1d3526}
+.br-c-B{--fill:var(--b-sun,#efc76e);--edge:#9a7631}
+.br-c-C{--fill:var(--b-sky,#9cc9de);--edge:#3f7690}
+.br-c-empty{--fill:var(--b-card,#fffdf5);--edge:#a3ad95}
+
+.br-bead{position:absolute;width:var(--bead);aspect-ratio:1;min-height:0;min-width:0;padding:0;margin:0;transform:translate(-50%,-50%);border-radius:50%;background:var(--fill);border:2.5px solid var(--edge);box-shadow:inset 0 -4px 0 rgba(0,0,0,.14),0 2px 0 rgba(41,68,57,.22);z-index:1;color:inherit}
+.br-bead.br-c-empty{border-style:dashed;box-shadow:none}
+button.br-bead{cursor:pointer}
+button.br-bead:active{transform:translate(-50%,-50%) scale(.95)}
+button.br-bead:focus-visible{outline:3px solid var(--b-ochre,#b38840);outline-offset:3px}
+.br-bead.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+
+/* The copy: a dot over every bead, carrying the colour that bead's copy has.
+   Where the dot and the bead agree, the bead's edge turns green once the
+   copy has landed; when every bead agrees, the whole ring glows. */
+.br-copy{position:absolute;inset:0;pointer-events:none;z-index:2;transform-origin:50% 50%}
+.br-copy i{position:absolute;width:calc(var(--bead) * .46);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:var(--fill);border:2px solid var(--b-card,#fffdf5);box-shadow:0 0 0 1.5px var(--b-ink,#294439)}
+.br-copy.home{opacity:0}
+.br-copy::before{content:"";position:absolute;inset:calc(50% - 37%);border-radius:50%;border:1.5px dashed rgba(41,68,57,.35)}
+.br-copy.home::before{display:none}
+.br-ring.settled .br-bead.match{border-color:var(--b-good,#3c7a4a);box-shadow:0 0 0 3px var(--b-good-soft,#e2ecd6),inset 0 -4px 0 rgba(0,0,0,.14)}
+.br-ring.settled.br-all::after{content:"";position:absolute;inset:4%;border-radius:50%;box-shadow:0 0 0 6px rgba(239,199,110,.55);pointer-events:none}
+@media (prefers-reduced-motion:no-preference){.br-ring.settled.br-all::after{animation:br-glow 1.4s ease-in-out 2}}
+@keyframes br-glow{50%{box-shadow:0 0 0 12px rgba(239,199,110,.25)}}
+
+/* Ring cards and strips. */
+.br-mini{display:block;width:64px;height:64px;overflow:visible}
+.br-mini-string{fill:none;stroke:#a3ad95;stroke-width:2.4}
+.br-mini-beads{transform-origin:50px 50px}
+.br-mini circle:not(.br-mini-string){fill:var(--fill);stroke:var(--edge);stroke-width:2.2}
+.br-mini .br-c-empty{stroke-dasharray:3 3}
+.br-strip{display:inline-flex;gap:3px;padding:4px 6px;border-radius:9px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd)}
+.br-strip i{display:block;width:16px;height:16px;border-radius:50%;background:var(--fill);border:2px solid var(--edge)}

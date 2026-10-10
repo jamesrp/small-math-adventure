@@ -1,0 +1,785 @@
+{
+  "title": "Three decks",
+  "version": 1,
+  "families": [
+    {
+      "id": "decks",
+      "title": "Three decks",
+      "mathematics": "Two decks of number cards play: a card is drawn from each, every card as likely as any other, so every pair of one card from each deck is as likely as any other, and the bigger number wins. A deck beats another when it wins more than half of the pairs. A = (2, 4, 9), B = (1, 6, 8) and C = (3, 5, 7) each win 5 of their 9 pairs against the next: A beats B, B beats C and C beats A, though every deck totals 15. “Beats” goes round in a circle, so no deck is best (nontransitive dice). Of the 1,680 ways to deal 1–9 into decks A, B and C, 15 make that cycle, and every one of them has a weakest win of exactly 5 of 9: two wins of 6 happen in one cycle only, and three never. Two decks of three never tie, since nine pairs can’t split evenly, and two-card decks never cycle, since the deck holding the smallest card wins at most half its pairs.",
+      "rules": [
+        "Two decks play: a card is drawn from each, every card in a deck as likely as any other, and the bigger number wins.",
+        "A deck beats another when it wins more than half of the pairs, one card from each deck. Each box of a grid is one pair, in the colour of the deck that wins it."
+      ],
+      "sourceIds": [
+        "decks-week24",
+        "decks-wikipedia"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "decks-week24",
+      "title": "Bellingham Math Circle — Week 24: Three random decks, K–1, grades 2–3 and grades 4–5 packets and adult guide",
+      "url": "https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-24",
+      "kind": "local curriculum"
+    },
+    {
+      "id": "decks-wikipedia",
+      "title": "Wikipedia — Nontransitive dice",
+      "url": "https://en.wikipedia.org/wiki/Nontransitive_dice",
+      "kind": "reference"
+    }
+  ],
+  "puzzles": [
+    {
+      "id": "decks-playground",
+      "number": 0,
+      "title": "Three decks playground",
+      "band": "playground",
+      "difficulty_level": "playground",
+      "mechanic": "decks",
+      "familyTitle": "Three decks",
+      "revision": 1,
+      "parameters": {
+        "mode": "playground",
+        "decks": [
+          [
+            2,
+            4,
+            9
+          ],
+          [
+            1,
+            6,
+            8
+          ],
+          [
+            3,
+            5,
+            7
+          ]
+        ]
+      },
+      "objective": "Choose two decks and draw rounds.",
+      "instruction": "Choose two decks and draw rounds.",
+      "controls": "Tap a card, then a card in another deck, to swap them. Choose which two decks play. Draw plays one round and Draw 10 plays ten, up to sixty: a card from each deck, and the bigger wins. Clear empties the piles; changing the decks or the match clears them too.",
+      "rules": [
+        "Two decks play: a card is drawn from each, every card in a deck as likely as any other, and the bigger number wins.",
+        "A deck beats another when it wins more than half of the pairs, one card from each deck. Each box of a grid is one pair, in the colour of the deck that wins it."
+      ],
+      "idea": "Free play: random rounds between two decks, piled by the winner, beside the grid of every pair.",
+      "prerequisites": "None. Grown-ups can suggest a match from the puzzles.",
+      "hints": [
+        "Draw 10 a few times with A against B.",
+        "Compare the two piles with the grid.",
+        "Try C against A."
+      ],
+      "parent": {
+        "notice": "With puzzle 1’s decks, the deck that beats the other wins about 5 rounds in 9, a small edge: after ten rounds the other deck is often level or ahead.",
+        "prompt": "Can six rounds prove which deck is better?",
+        "explanation": "No fixed number of rounds can make you sure: any run of results can come from either deck, only more or less often. The grid settles the chances exactly by counting equally likely pairs.",
+        "extension": "Play rock, paper, scissors with the decks: a friend chooses a deck first, then you choose one that beats it.",
+        "connection": "Week 24 K–1 Problem 4 and grades 2–3 Problem 2.",
+        "sourceIds": [
+          "decks-week24"
+        ]
+      },
+      "provenance": "Week 24 materials: three decks of number cards, drawn in rounds (K–1 Problem 4, grades 2–3 Problem 2).",
+      "sourceDocument": "docs/decks/README.md"
+    },
+    {
+      "id": "decks-01",
+      "number": 1,
+      "title": "A against B",
+      "band": "all",
+      "difficulty_level": "easy",
+      "mechanic": "decks",
+      "familyTitle": "Three decks",
+      "revision": 1,
+      "parameters": {
+        "mode": "pairs",
+        "decks": [
+          [
+            2,
+            4,
+            9
+          ],
+          [
+            1,
+            6,
+            8
+          ]
+        ]
+      },
+      "objective": "Find the bigger card in each pair. Which deck wins more pairs, A or B?",
+      "instruction": "Find the bigger card in each pair. Which deck wins more pairs, A or B?",
+      "controls": "Each box is a pair: a card from each deck. Tap the bigger card in every pair, then choose the deck that wins more pairs.",
+      "rules": [
+        "Two decks play: a card is drawn from each, every card in a deck as likely as any other, and the bigger number wins.",
+        "A deck beats another when it wins more than half of the pairs, one card from each deck. Each box of a grid is one pair, in the colour of the deck that wins it."
+      ],
+      "idea": "A wins 5 of the 9 pairs: its 9 beats every B card, and its 2 and 4 beat only the 1.",
+      "prerequisites": "Compare numbers up to 9 (the dots help). A grown-up reads the goal.",
+      "hints": [
+        "Look at one box at a time.",
+        "Which is bigger, 2 or 1?",
+        "A’s 9 wins all three of its pairs."
+      ],
+      "parent": {
+        "notice": "A wins 5 pairs (9 beats 1, 6 and 8; 2 and 4 beat 1) and B wins 4 (6 and 8 beat 2 and 4).",
+        "prompt": "If you drew from A and a friend drew from B many times, who would win more often?",
+        "explanation": "Every card in a deck is as likely as any other, so each of the 9 pairs is as likely as any other. A wins 5 of the 9, so A wins a little more than half the time, though a short game can go either way.",
+        "extension": "Play six rounds with real cards. Does A always win more rounds?",
+        "connection": "The playground draws rounds; Week 24 K–1 Problem 4 plays them with cards.",
+        "sourceIds": [
+          "decks-week24"
+        ]
+      },
+      "provenance": "Week 24 K–1 Problem 1 (“circle all nine winners… Which deck wins more pairs?”, with the nine pairs of A against B pictured) and grades 2–3 Problem 1 (“For each pair of decks, find which deck wins more of the possible card pairs”).",
+      "sourceDocument": "docs/decks/README.md"
+    },
+    {
+      "id": "decks-02",
+      "number": 2,
+      "title": "B against C",
+      "band": "all",
+      "difficulty_level": "easy",
+      "mechanic": "decks",
+      "familyTitle": "Three decks",
+      "revision": 1,
+      "parameters": {
+        "mode": "pairs",
+        "decks": [
+          [
+            1,
+            6,
+            8
+          ],
+          [
+            3,
+            5,
+            7
+          ]
+        ],
+        "names": [
+          "B",
+          "C"
+        ]
+      },
+      "objective": "Find the bigger card in each pair. Which deck wins more pairs, B or C?",
+      "instruction": "Find the bigger card in each pair. Which deck wins more pairs, B or C?",
+      "controls": "Each box is a pair: a card from each deck. Tap the bigger card in every pair, then choose the deck that wins more pairs.",
+      "rules": [
+        "Two decks play: a card is drawn from each, every card in a deck as likely as any other, and the bigger number wins.",
+        "A deck beats another when it wins more than half of the pairs, one card from each deck. Each box of a grid is one pair, in the colour of the deck that wins it."
+      ],
+      "idea": "B wins 5 of 9: its 8 beats every C card and its 6 beats 3 and 5, though its 1 loses all three pairs.",
+      "prerequisites": "Puzzle 1.",
+      "hints": [
+        "Look at one box at a time.",
+        "B’s 1 loses every pair.",
+        "B’s 8 wins all three of its pairs."
+      ],
+      "parent": {
+        "notice": "B wins 5 pairs (8 beats 3, 5 and 7; 6 beats 3 and 5) and C wins 4 (every C card beats 1, and 7 beats 6).",
+        "prompt": "A beats B, and B beats C. Which do you think wins, A or C?",
+        "explanation": "Most people expect A to beat C, since “A beats B beats C” sounds like an order. Puzzle 3 checks.",
+        "extension": "Add up each deck. Which total is biggest? (All three total 15.)",
+        "connection": "Puzzle 3.",
+        "sourceIds": [
+          "decks-week24"
+        ]
+      },
+      "provenance": "Week 24 K–1 Problem 2 (“Which deck wins more pairs?”, with the nine pairs of B against C pictured) and grades 2–3 Problem 1.",
+      "sourceDocument": "docs/decks/README.md"
+    },
+    {
+      "id": "decks-03",
+      "number": 3,
+      "title": "C against A",
+      "band": "all",
+      "difficulty_level": "easy",
+      "mechanic": "decks",
+      "familyTitle": "Three decks",
+      "revision": 1,
+      "parameters": {
+        "mode": "pairs",
+        "decks": [
+          [
+            3,
+            5,
+            7
+          ],
+          [
+            2,
+            4,
+            9
+          ]
+        ],
+        "names": [
+          "C",
+          "A"
+        ],
+        "loop": [
+          [
+            2,
+            4,
+            9
+          ],
+          [
+            1,
+            6,
+            8
+          ],
+          [
+            3,
+            5,
+            7
+          ]
+        ]
+      },
+      "objective": "Find the bigger card in each pair. Which deck wins more pairs, C or A? Then: does any of A, B and C beat both other decks?",
+      "instruction": "Find the bigger card in each pair. Which deck wins more pairs, C or A? Then: does any of A, B and C beat both other decks?",
+      "controls": "Each box is a pair: a card from each deck. Tap the bigger card in every pair, then choose the deck that wins more pairs. Then answer A, B, C or No.",
+      "rules": [
+        "Two decks play: a card is drawn from each, every card in a deck as likely as any other, and the bigger number wins.",
+        "A deck beats another when it wins more than half of the pairs, one card from each deck. Each box of a grid is one pair, in the colour of the deck that wins it."
+      ],
+      "idea": "C wins 5 of 9. So A beats B, B beats C and C beats A: no deck beats both others.",
+      "prerequisites": "Puzzles 1 and 2.",
+      "hints": [
+        "Look at one box at a time.",
+        "A’s 9 wins three pairs. How many do C’s cards win?",
+        "Which deck beats A? Which beats B, and which beats C?"
+      ],
+      "parent": {
+        "notice": "C wins 5 pairs: 3 beats 2, and 5 and 7 each beat 2 and 4. With puzzles 1 and 2, A beats B, B beats C and C beats A, which the screen then shows. Naming a deck as the best is answered with the deck that beats it (“C beats A.”); No solves the puzzle.",
+        "prompt": "Is there a best deck, one that beats both others?",
+        "explanation": "No. Each deck beats one deck and loses to the other, like rock, paper and scissors, even though every deck totals 15. Mathematicians call such decks nontransitive. Whoever chooses second can always pick a deck that beats the first.",
+        "extension": "Let a friend choose a deck first. Which deck do you take against each, to win more often?",
+        "connection": "Week 24 grades 4–5 Problem 1: “Do the three deck totals settle this question?”",
+        "sourceIds": [
+          "decks-week24",
+          "decks-wikipedia"
+        ]
+      },
+      "provenance": "Week 24 K–1 Problem 3 (“Does any of A, B, and C win more pairs than both other decks?”) and grades 2–3 Problem 1 (“Is there a deck that wins more pairs than both of the others?”).",
+      "sourceDocument": "docs/decks/README.md"
+    },
+    {
+      "id": "decks-04",
+      "number": 4,
+      "title": "Split four cards evenly",
+      "band": "all",
+      "difficulty_level": "easy",
+      "mechanic": "decks",
+      "familyTitle": "Three decks",
+      "revision": 1,
+      "parameters": {
+        "mode": "deal",
+        "decks": [
+          [
+            1,
+            2
+          ],
+          [
+            3,
+            4
+          ]
+        ],
+        "goal": "tie"
+      },
+      "objective": "Split cards 1 to 4 into two decks of two so that A and B win the same number of pairs, or press Can’t.",
+      "instruction": "Split cards 1 to 4 into two decks of two so that A and B win the same number of pairs, or press Can’t.",
+      "controls": "Tap a card, then a card in another deck, to swap them. The grids show who wins each pair. Can’t says no deal works.",
+      "rules": [
+        "Two decks play: a card is drawn from each, every card in a deck as likely as any other, and the bigger number wins.",
+        "A deck beats another when it wins more than half of the pairs, one card from each deck. Each box of a grid is one pair, in the colour of the deck that wins it."
+      ],
+      "idea": "A 1 4 against B 2 3, or the same decks the other way round: each deck wins 2 of the 4 pairs.",
+      "prerequisites": "Puzzle 1.",
+      "hints": [
+        "Swap cards and watch the grid.",
+        "B wins every pair now. Which card would help A most?",
+        "Swap 2 and 4."
+      ],
+      "parent": {
+        "notice": "Two of the six ways to split 1 to 4 into two decks of two tie: A 1 4 against B 2 3, and A 2 3 against B 1 4. One swap from the start does it.",
+        "prompt": "Why must the 1 and the 4 be in the same deck?",
+        "explanation": "Four pairs tie at 2 each. The 1 loses both of its pairs, so the other card in its deck must win both of its pairs: it must beat both cards of the other deck, and only the 4 can.",
+        "extension": "Can A win exactly 3 of the 4 pairs? (Yes, but only as A 2 4 against B 1 3.)",
+        "connection": "Puzzle 7 tries six cards, Week 24 K–1 Problem 7.",
+        "sourceIds": [
+          "decks-week24"
+        ]
+      },
+      "provenance": "A four-card companion to Week 24 K–1 Problem 7, so that the first Can’t has an answer; the review card asks for Can’t puzzles mixed with possible ones so that Can’t is no free guess.",
+      "sourceDocument": "docs/decks/README.md"
+    },
+    {
+      "id": "decks-05",
+      "number": 5,
+      "title": "Every swap",
+      "band": "all",
+      "difficulty_level": "medium",
+      "mechanic": "decks",
+      "familyTitle": "Three decks",
+      "revision": 1,
+      "parameters": {
+        "mode": "swaps",
+        "decks": [
+          [
+            2,
+            4,
+            9
+          ],
+          [
+            1,
+            6,
+            8
+          ]
+        ],
+        "goal": "beatBA"
+      },
+      "objective": "Swap one A card with one B card. Find every swap that makes B beat A.",
+      "instruction": "Swap one A card with one B card. Find every swap that makes B beat A.",
+      "controls": "Tap an A card and then a B card to swap them; Swap back undoes it. Keep checks the swap and swaps back. Press That’s all when every one is there.",
+      "rules": [
+        "Two decks play: a card is drawn from each, every card in a deck as likely as any other, and the bigger number wins.",
+        "A deck beats another when it wins more than half of the pairs, one card from each deck. Each box of a grid is one pair, in the colour of the deck that wins it."
+      ],
+      "idea": "Five of the nine swaps work: exactly the ones that give B the 9 or give A the 1.",
+      "prerequisites": "Puzzle 1.",
+      "hints": [
+        "Swap, look at the grid, then Keep or Swap back.",
+        "Which card would B most like to have?",
+        "Giving B the 9 works. Which card would A least like to get?"
+      ],
+      "parent": {
+        "notice": "The five swaps: 9 for 1, 9 for 6, 9 for 8, 2 for 1 and 4 for 1. Each moves the 9 to B or the 1 to A.",
+        "prompt": "Why does every swap of the 9 work?",
+        "explanation": "B starts with 4 of the 9 pairs. The 9 wins every pair it is in and the 1 loses every pair it is in. Given the 9, B wins its three pairs, and B still holds a 6 or an 8, which beats A’s 2 and 4: at least 5. Given the 1 for a 2 or a 4, A wins only its 9’s three pairs and at most one more, so B wins at least 5. The other four swaps give A a 6 or an 8 for its 2 or 4, so A only gets stronger. After the five swaps B wins 9, 6, 5, 5 and 6 pairs (9 for 1, 9 for 6, 9 for 8, 2 for 1, 4 for 1).",
+        "extension": "Is there a swap that makes A and B tie? (No: nine pairs can’t split evenly, as puzzle 7 shows.)",
+        "connection": "Week 24 K–1 Problem 6.",
+        "sourceIds": [
+          "decks-week24"
+        ]
+      },
+      "provenance": "Week 24 K–1 Problem 6: “Swap one A card with one B card. Find every swap that makes B win more card pairs than A.”",
+      "sourceDocument": "docs/decks/README.md"
+    },
+    {
+      "id": "decks-06",
+      "number": 6,
+      "title": "A missing card",
+      "band": "all",
+      "difficulty_level": "medium",
+      "mechanic": "decks",
+      "familyTitle": "Three decks",
+      "revision": 1,
+      "parameters": {
+        "mode": "menu",
+        "decks": [
+          [
+            2,
+            null,
+            9
+          ],
+          [
+            1,
+            6,
+            8
+          ],
+          [
+            3,
+            5,
+            7
+          ]
+        ],
+        "menu": [
+          0,
+          2,
+          4,
+          9,
+          10
+        ],
+        "goal": "cycle"
+      },
+      "objective": "Try 0, 2, 4, 9 and 10 in A’s empty place. Find every card that makes A beat B, B beat C and C beat A.",
+      "instruction": "Try 0, 2, 4, 9 and 10 in A’s empty place. Find every card that makes A beat B, B beat C and C beat A.",
+      "controls": "Tap a card to try it in the empty place; the grids show who wins each pair. Keep checks the card. Press That’s all when every one is there.",
+      "rules": [
+        "Two decks play: a card is drawn from each, every card in a deck as likely as any other, and the bigger number wins.",
+        "A deck beats another when it wins more than half of the pairs, one card from each deck. Each box of a grid is one pair, in the colour of the deck that wins it."
+      ],
+      "idea": "2 and 4 work. With 0, A no longer beats B; with 9 or 10, C no longer beats A.",
+      "prerequisites": "Puzzles 1–3.",
+      "hints": [
+        "B against C doesn’t change. Count the other two grids.",
+        "A must still beat B. Which cards are too small?",
+        "C must still beat A. Which cards are too big?"
+      ],
+      "parent": {
+        "notice": "With 2 or 4 the cycle holds. With 0, B beats A (A wins 4 pairs); with 9 or 10, A beats C (C wins 3). The grids show no verdict here: Keep checks a card and names the win it misses, and after That’s all every card shows in a column by the win it misses.",
+        "prompt": "Why can the card be neither too small nor too big?",
+        "explanation": "A’s 2 and 9 win 4 pairs against B, so the new card must beat B’s 1, which 0 doesn’t. C’s cards win 3 pairs against A’s 2 and none against the 9, so at least two C cards must beat the new card: it must be below 5, which 9 and 10 aren’t. 2 and 4 pass both tests.",
+        "extension": "With 2 in the empty place, A holds two 2s. Does it matter which 2 is drawn? (No: each card is its own equally likely draw, so the pairs are counted for both.)",
+        "connection": "Week 24 grades 2–3 Problem 4.",
+        "sourceIds": [
+          "decks-week24"
+        ]
+      },
+      "provenance": "Week 24 grades 2–3 Problem 4: “Choose 0, 2, 4, 9, or 10 for A’s empty card. Find every choice that makes A win more pairs than B, B more than C, and C more than A.”",
+      "sourceDocument": "docs/decks/README.md"
+    },
+    {
+      "id": "decks-07",
+      "number": 7,
+      "title": "Split six cards evenly",
+      "band": "all",
+      "difficulty_level": "medium",
+      "mechanic": "decks",
+      "familyTitle": "Three decks",
+      "revision": 1,
+      "parameters": {
+        "mode": "deal",
+        "decks": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            4,
+            5,
+            6
+          ]
+        ],
+        "goal": "tie",
+        "certificate": "splits"
+      },
+      "objective": "Split cards 1 to 6 into two decks of three so that A and B win the same number of pairs, or press Can’t.",
+      "instruction": "Split cards 1 to 6 into two decks of three so that A and B win the same number of pairs, or press Can’t.",
+      "controls": "Tap a card, then a card in another deck, to swap them. The grids show who wins each pair. Can’t says no deal works.",
+      "rules": [
+        "Two decks play: a card is drawn from each, every card in a deck as likely as any other, and the bigger number wins.",
+        "A deck beats another when it wins more than half of the pairs, one card from each deck. Each box of a grid is one pair, in the colour of the deck that wins it."
+      ],
+      "idea": "It can’t be done: every pair has a winner, and nine pairs can’t split evenly.",
+      "prerequisites": "Puzzle 4.",
+      "hints": [
+        "Swap cards and watch the grid.",
+        "How many pairs are there?",
+        "Can nine split into two equal halves?"
+      ],
+      "parent": {
+        "notice": "No split ties. Every one of the nine pairs has a winner, and nine is odd, so one deck always wins at least 5.",
+        "prompt": "How can you be sure without trying every split?",
+        "explanation": "The two decks share no number, so every pair has a winner. The nine pairs go to A or to B, and nine can’t be split into two equal parts. After Can’t, the catalog shows all ten splits with 1 in A: none ties.",
+        "extension": "Split 1 to 8 into two decks of four that tie. (One way: 1 4 6 7 against 2 3 5 8, 8 pairs each.)",
+        "connection": "Week 24 K–1 Problem 7.",
+        "sourceIds": [
+          "decks-week24"
+        ]
+      },
+      "provenance": "Week 24 K–1 Problem 7: “Put these six cards into two decks of three so both decks win the same number of pairs. Find a way, or show why it cannot be done.”",
+      "sourceDocument": "docs/decks/README.md"
+    },
+    {
+      "id": "decks-08",
+      "number": 8,
+      "title": "9, 8 and 7 stay put",
+      "band": "all",
+      "difficulty_level": "medium",
+      "mechanic": "decks",
+      "familyTitle": "Three decks",
+      "revision": 1,
+      "parameters": {
+        "mode": "deals",
+        "decks": [
+          [
+            1,
+            2,
+            9
+          ],
+          [
+            3,
+            4,
+            8
+          ],
+          [
+            5,
+            6,
+            7
+          ]
+        ],
+        "pins": [
+          [
+            9
+          ],
+          [
+            8
+          ],
+          [
+            7
+          ]
+        ],
+        "goal": "cycle"
+      },
+      "objective": "9 stays in A, 8 in B and 7 in C. Find every way to place 1 to 6 so that A beats B, B beats C and C beats A.",
+      "instruction": "9 stays in A, 8 in B and 7 in C. Find every way to place 1 to 6 so that A beats B, B beats C and C beats A.",
+      "controls": "Tap a card, then a card in another deck, to swap them; pinned cards stay put. Keep checks the decks. Press That’s all when every one is there.",
+      "rules": [
+        "Two decks play: a card is drawn from each, every card in a deck as likely as any other, and the bigger number wins.",
+        "A deck beats another when it wins more than half of the pairs, one card from each deck. Each box of a grid is one pair, in the colour of the deck that wins it."
+      ],
+      "idea": "Exactly three deals work: A 1 5 9, B 3 4 8, C 2 6 7; A 2 3 9, B 1 6 8, C 4 5 7; and puzzle 1’s decks.",
+      "prerequisites": "Puzzles 1–3.",
+      "hints": [
+        "Puzzle 1’s decks are one.",
+        "A’s 9 beats every B card. How many more pairs does A need?",
+        "Try 1 in B, then 1 in A."
+      ],
+      "parent": {
+        "notice": "The three deals: A 1 5 9, B 3 4 8, C 2 6 7; A 2 3 9, B 1 6 8, C 4 5 7; A 2 4 9, B 1 6 8, C 3 5 7. Of the 90 deals with 9, 8 and 7 in place, these are the only ones.",
+        "prompt": "How do you know you have found them all?",
+        "explanation": "A’s 9 beats every B card and A’s small cards lose to B’s 8, so A beats B when A’s two small cards win at least 2 of their 4 pairs against B’s two small cards. Likewise B beats C when B’s small cards win at least 2 of 4 against C’s, and C beats A when C’s small cards win at least 3 of 4 against A’s (C’s 7 beats both of A’s small cards). Going through A’s 15 choices of small cards, each with 6 choices for B, leaves exactly these three. After That’s all, the catalog shows all 90, in columns by A’s small cards.",
+        "extension": "With 9, 8 and 7 in place, can the cycle go the other way: B beating A, C beating B and A beating C? (No: none of the 90 deals does, though B beats A in 30 of them.)",
+        "connection": "Week 24 grades 2–3 Problem 3 and grades 4–5 Problem 2, with the guide’s certificate on page 9.",
+        "sourceIds": [
+          "decks-week24"
+        ]
+      },
+      "provenance": "Week 24 grades 2–3 Problem 3 (“Keep 9 in A, 8 in B, and 7 in C… Find two arrangements different from Problem 1”) and grades 4–5 Problem 2 (“Find every arrangement and explain why none are missing”).",
+      "sourceDocument": "docs/decks/README.md"
+    },
+    {
+      "id": "decks-09",
+      "number": 9,
+      "title": "Make a cycle",
+      "band": "all",
+      "difficulty_level": "hard",
+      "mechanic": "decks",
+      "familyTitle": "Three decks",
+      "revision": 1,
+      "parameters": {
+        "mode": "deal",
+        "decks": [
+          [
+            3,
+            6,
+            9
+          ],
+          [
+            2,
+            5,
+            8
+          ],
+          [
+            1,
+            4,
+            7
+          ]
+        ],
+        "goal": "cycle"
+      },
+      "objective": "Swap cards until A beats B, B beats C and C beats A, or press Can’t.",
+      "instruction": "Swap cards until A beats B, B beats C and C beats A, or press Can’t.",
+      "controls": "Tap a card, then a card in another deck, to swap them. The grids show who wins each pair. Can’t says no deal works.",
+      "rules": [
+        "Two decks play: a card is drawn from each, every card in a deck as likely as any other, and the bigger number wins.",
+        "A deck beats another when it wins more than half of the pairs, one card from each deck. Each box of a grid is one pair, in the colour of the deck that wins it."
+      ],
+      "idea": "15 of the 1,680 ways to deal 1 to 9 make this cycle. From A 3 6 9, B 2 5 8, C 1 4 7 the nearest take two swaps.",
+      "prerequisites": "Puzzles 1–3.",
+      "hints": [
+        "C loses to both decks now. Give C a bigger card.",
+        "Each deck needs some big and some small cards.",
+        "Swap 1 with 5."
+      ],
+      "parent": {
+        "notice": "Any of 15 deals works, among them puzzle 1’s decks. Two swaps are enough: 1 with 5, then 2 with 6, gives A 2 3 9, B 1 6 8, C 4 5 7 (one of puzzle 8’s answers). The two nearest cycles each have one big win, so this puzzle doesn’t give away puzzle 11.",
+        "prompt": "Why does every deck need a mix of big and small cards?",
+        "explanation": "A deck of only big cards beats both others, and a deck of only small cards loses to both. For each deck to beat one and lose to one, the cards must interleave. All 15 cycles have a weakest win of exactly 5 of 9 (puzzles 11 and 12).",
+        "extension": "Make the cycle go the other way: B beats A, C beats B and A beats C.",
+        "connection": "Week 24 grades 4–5 Problems 2 and 7.",
+        "sourceIds": [
+          "decks-week24",
+          "decks-wikipedia"
+        ]
+      },
+      "provenance": "The Week 24 review card’s app goal: deal 1–9 into three decks to make a cycle (15 of 1,680 deals); grades 4–5 Problem 2’s search without the pins. The start A 3 6 9, B 2 5 8, C 1 4 7 is A over B over C card by card.",
+      "sourceDocument": "docs/decks/README.md"
+    },
+    {
+      "id": "decks-10",
+      "number": 10,
+      "title": "Two-card decks",
+      "band": "all",
+      "difficulty_level": "hard",
+      "mechanic": "decks",
+      "familyTitle": "Three decks",
+      "revision": 1,
+      "parameters": {
+        "mode": "deal",
+        "decks": [
+          [
+            1,
+            2
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            5,
+            6
+          ]
+        ],
+        "goal": "cycle",
+        "certificate": "one"
+      },
+      "objective": "Use cards 1 to 6 to make three decks of two so that A beats B, B beats C and C beats A, or press Can’t.",
+      "instruction": "Use cards 1 to 6 to make three decks of two so that A beats B, B beats C and C beats A, or press Can’t.",
+      "controls": "Tap a card, then a card in another deck, to swap them. The grids show who wins each pair. Can’t says no deal works.",
+      "rules": [
+        "Two decks play: a card is drawn from each, every card in a deck as likely as any other, and the bigger number wins.",
+        "A deck beats another when it wins more than half of the pairs, one card from each deck. Each box of a grid is one pair, in the colour of the deck that wins it."
+      ],
+      "idea": "It can’t be done: the deck holding 1 wins at most half of its pairs against either deck, so it beats neither.",
+      "prerequisites": "Puzzle 9.",
+      "hints": [
+        "Swap cards and watch the grids.",
+        "Look at the deck with the 1.",
+        "Card 1 loses every pair. Can its deck win 3 of 4?"
+      ],
+      "parent": {
+        "notice": "No deal of two-card decks makes a cycle. Card 1 loses both its pairs in each grid, so its deck wins at most 2 of 4 and beats no deck; in a cycle every deck beats one.",
+        "prompt": "Which card makes it impossible?",
+        "explanation": "In a cycle every deck beats another. Two cards against two make 4 pairs, so beating takes 3. The deck holding 1 loses the two pairs its 1 is in, so it wins at most 2 of 4 against either deck. So there is no cycle: three cards a deck are the fewest that can make one.",
+        "extension": "Does the argument need the cards 1 to 6, or would any six different numbers do? (Any: the smallest card plays the part of the 1.)",
+        "connection": "Week 24 K–1 Problem 8, grades 2–3 Problem 7 and grades 4–5 Problem 6.",
+        "sourceIds": [
+          "decks-week24"
+        ]
+      },
+      "provenance": "Week 24 K–1 Problem 8 and grades 2–3 Problem 7 (“Use cards 1 to 6 once each to make three two-card decks… Find an arrangement, or explain why there is none”); grades 4–5 Problem 6 asks for the fewest cards.",
+      "sourceDocument": "docs/decks/README.md"
+    },
+    {
+      "id": "decks-11",
+      "number": 11,
+      "title": "Two big wins",
+      "band": "all",
+      "difficulty_level": "hard",
+      "mechanic": "decks",
+      "familyTitle": "Three decks",
+      "revision": 1,
+      "parameters": {
+        "mode": "deal",
+        "decks": [
+          [
+            2,
+            4,
+            9
+          ],
+          [
+            1,
+            6,
+            8
+          ],
+          [
+            3,
+            5,
+            7
+          ]
+        ],
+        "goal": "big2"
+      },
+      "objective": "Keep A beating B, B beating C and C beating A, and make two of the wins big: 6 of the 9 pairs or more. Or press Can’t.",
+      "instruction": "Keep A beating B, B beating C and C beating A, and make two of the wins big: 6 of the 9 pairs or more. Or press Can’t.",
+      "controls": "Tap a card, then a card in another deck, to swap them. The grids show who wins each pair. Can’t says no deal works.",
+      "rules": [
+        "Two decks play: a card is drawn from each, every card in a deck as likely as any other, and the bigger number wins.",
+        "A deck beats another when it wins more than half of the pairs, one card from each deck. Each box of a grid is one pair, in the colour of the deck that wins it."
+      ],
+      "idea": "Only one cycle has two big wins: A 2 3 9, B 1 7 8, C 4 5 6, with the decks turned round (three deals).",
+      "prerequisites": "Puzzle 9.",
+      "hints": [
+        "A big win fills 6 boxes of a grid or more.",
+        "Keep A’s 2 and 9.",
+        "Swap 4 with 3."
+      ],
+      "parent": {
+        "notice": "From puzzle 1’s decks, swap 4 with 3 and then 6 with 7: A 2 3 9, B 1 7 8, C 4 5 6. B beats C 6 to 3 and C beats A 6 to 3, but A beats B only 5 to 4.",
+        "prompt": "Can you make the third win big too?",
+        "explanation": "Among the 15 cycles of 1 to 9 this is the only one, up to which deck is called A, with two wins of 6 or more. Its third win is 5. Puzzle 12 asks for all three.",
+        "extension": "What is the most pairs the three winners can win in all? (17: 5, 6 and 6, in this cycle.)",
+        "connection": "The Week 24 review card’s strongest cycle; grades 4–5 Problem 7.",
+        "sourceIds": [
+          "decks-week24"
+        ]
+      },
+      "provenance": "The Week 24 review card’s suggested goal: two arrows at 6 of 9, unique up to rotation.",
+      "sourceDocument": "docs/decks/README.md"
+    },
+    {
+      "id": "decks-12",
+      "number": 12,
+      "title": "Three big wins",
+      "band": "all",
+      "difficulty_level": "hard",
+      "mechanic": "decks",
+      "familyTitle": "Three decks",
+      "revision": 1,
+      "parameters": {
+        "mode": "deal",
+        "decks": [
+          [
+            2,
+            4,
+            9
+          ],
+          [
+            1,
+            6,
+            8
+          ],
+          [
+            3,
+            5,
+            7
+          ]
+        ],
+        "goal": "big3",
+        "certificate": "cycles"
+      },
+      "objective": "Make A beat B, B beat C and C beat A with all three wins big: 6 of the 9 pairs or more. Or press Can’t.",
+      "instruction": "Make A beat B, B beat C and C beat A with all three wins big: 6 of the 9 pairs or more. Or press Can’t.",
+      "controls": "Tap a card, then a card in another deck, to swap them. The grids show who wins each pair. Can’t says no deal works.",
+      "rules": [
+        "Two decks play: a card is drawn from each, every card in a deck as likely as any other, and the bigger number wins.",
+        "A deck beats another when it wins more than half of the pairs, one card from each deck. Each box of a grid is one pair, in the colour of the deck that wins it."
+      ],
+      "idea": "It can’t be done: every one of the 15 cycles has a win of exactly 5.",
+      "prerequisites": "Puzzle 11.",
+      "hints": [
+        "Try to make every win big.",
+        "Look at the deck holding 9.",
+        "For a big win over the 9-deck, every card must beat its other two cards."
+      ],
+      "parent": {
+        "notice": "No cycle of 1 to 9 has three big wins. All 15 have a weakest win of exactly 5 of 9; after Can’t, the catalog shows them by their big wins.",
+        "prompt": "Why does the deck holding 9 make this hard?",
+        "explanation": "Turn the decks round so A holds the 9; call A’s other cards a and b, with b the bigger. No card beats 9, so for 6 wins over A every C card must beat a and b. Then B’s cards below b lose to all of C, and for 6 wins over C, B needs two cards above b. That leaves at most one B card for a and b to beat: A wins at most 3 + 2 = 5 pairs against B, not 6.",
+        "extension": "Does the argument need the cards 1 to 9, or only that every card is different? (Only that they are different.)",
+        "connection": "Week 24 grades 4–5 Problem 7.",
+        "sourceIds": [
+          "decks-week24"
+        ]
+      },
+      "provenance": "Week 24 grades 4–5 Problem 7: “Can A win at least six of its nine pairs against B, B at least six against C, and C at least six against A? Find an arrangement, or explain why it is impossible.”",
+      "sourceDocument": "docs/decks/README.md"
+    }
+  ]
+}

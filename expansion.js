@@ -2,9 +2,9 @@ import {motionMechanics} from './motion.js';
 import {networkMechanics} from './networks.js';
 import {deductionMechanics} from './deduction.js';
 import {measurementMechanics} from './measurement.js';
-import {proofMechanics} from './proofs.js';
-import {chipMechanics} from './chips.js';
-export const expansionMechanics={...motionMechanics,...networkMechanics,...deductionMechanics,...measurementMechanics,...proofMechanics,...chipMechanics};
+import {FAMILIES} from './families.js';
+// The ten base expansion mechanics, then every module on the family seam.
+export const expansionMechanics=Object.assign({...motionMechanics,...networkMechanics,...deductionMechanics,...measurementMechanics},...FAMILIES.map(m=>m.mechanics));
 export const isExpansion=p=>Boolean(p&&Object.hasOwn(expansionMechanics,p.mechanic));
 export const mechanicFor=p=>expansionMechanics[p.mechanic];
 // Short, instance-aware control instructions for the child-facing guide.
