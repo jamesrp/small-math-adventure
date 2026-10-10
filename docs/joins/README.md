@@ -84,7 +84,7 @@ To change a puzzle, edit `scripts/build-joins.mjs`, then run `node scripts/build
 
 - **Children's play.** Nothing here has been tried by children, and the worksheet is unpiloted. Three things to watch: whether children find "tap a chosen strip again to halve it" and the free bench's cut lines without help, or need How to play; whether, in the reach puzzles, children discover halving everything as a strategy, and whether the Can't certificate (halving both rows) reads as their own argument or as a chore after the claim; and whether the long catalogs (puzzles 9 and 10) are organized or done by trial until That's all accepts.
 - **Two benches.** Catalogs cut anywhere and join anything, while the other puzzles join only equal strips. The dashed lines show which bench is which, but the switch may confuse; a different look for the free bench may help.
-- **Tall boards.** A bench of many short strips (fourteen 1s in puzzle 11 when everything is halved) makes a tall column on a phone.
+- **Tall and narrow boards.** A bench of many short strips (fourteen 1s in puzzle 11 when everything is halved) makes a tall column on a phone, and the playground's scale of 16 leaves a strip of 1 about 18 px wide there.
 - **Story.** Not on the Lantern Road; no keeper lines.
 - **Grade levels and K–1.** Grade-free; not yet in a K–1, 2–3 or 4–5 trail. The card's K–1 should (an adult-supported route through Problems 1–3) is not built here.
 - **Paper only.** Problem 4's round trips are inside the reach puzzles and the matching only in passing; Problem 6's general order question, Problem 7's exchange exercises and Problem 9's proof stay on paper.
