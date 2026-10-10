@@ -1,0 +1,76 @@
+/* Card totals: two trays of number cards 0–9 (A in sun, B in sky), the strip
+   of totals 0–18 with one leaf token per total (stacked where pairs share
+   it, ringed in ochre when a finished route misses it), and the grid of
+   totals with the route in pine. */
+.ss-puzzle{display:flex;flex-direction:column;align-items:center;gap:.7rem;width:100%;--ss-a:var(--b-sun,#efc76e);--ss-b:var(--b-sky,#9cc9de)}
+
+/* Trays: a row of the ten cards, the chosen ones lit. */
+.ss-tray{display:grid;grid-template-columns:22px minmax(0,1fr);align-items:center;gap:6px;width:100%;max-width:520px}
+.ss-name{display:flex;flex-direction:column;align-items:center;gap:3px;font:400 1.25rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
+.ss-pips{display:flex;flex-direction:column;gap:2px}
+.ss-pips i{width:7px;height:7px;border-radius:50%;border:1.5px solid var(--b-muted,#5a6850)}
+.ss-pips i.on{background:var(--b-ink,#294439);border-color:var(--b-ink,#294439)}
+.ss-cards{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:3px}
+.ss-puzzle .ss-card{display:grid;place-items:center;min-width:0;height:44px;min-height:0;padding:0;border-radius:8px;border:1.5px solid var(--b-line,#d0d6bd);background:var(--b-card,#fffdf5);color:var(--b-muted,#5a6850);font:400 1.15rem/1 var(--b-display,Georgia,serif);box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.ss-puzzle .ss-card.on{border:2px solid var(--b-ink,#294439);color:var(--b-ink,#294439);box-shadow:0 2px 0 #b9b39a}
+.ss-puzzle .tA .ss-card.on{background:var(--ss-a)}
+.ss-puzzle .tB .ss-card.on{background:var(--ss-b)}
+.ss-puzzle .ss-card.blank{border-style:dashed;background:transparent;box-shadow:none}
+.ss-puzzle .ss-card[disabled]{opacity:.35;box-shadow:none}
+.ss-puzzle .ss-card.on[disabled]{opacity:1}
+.ss-puzzle .ss-card.hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:2px}
+
+/* Found B trays and That's all. */
+.ss-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .7rem}
+.ss-found{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.ss-pair{display:inline-flex;gap:2px;padding:3px;border-radius:9px;background:var(--b-good-soft,#e2ecd6);border:1.5px solid var(--b-pine,#31533e)}
+.ss-pair i{display:grid;place-items:center;width:24px;height:28px;border-radius:6px;background:var(--ss-b);border:1.5px solid var(--b-ink,#294439);font:normal 400 .95rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
+.ss-puzzle .ss-button{min-height:46px;padding:6px 14px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.ss-puzzle .ss-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+.ss-puzzle .ss-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+
+/* The strip of totals. */
+.ss-strip{display:grid;grid-template-columns:repeat(19,minmax(0,1fr));width:100%;max-width:640px;border:1.5px solid var(--b-line,#d0d6bd);border-radius:10px;background:var(--b-paper,#f5f1e6);overflow:hidden}
+.ss-cell{display:flex;flex-direction:column;align-items:center;min-width:0;border-left:1px solid var(--b-line,#d0d6bd)}
+.ss-cell:first-child{border-left:0}
+.ss-slot{display:grid;place-items:center;height:30px;width:100%}
+.ss-num{width:100%;text-align:center;padding:2px 0 3px;font:400 .82rem/1 var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850);border-top:1px solid var(--b-line,#d0d6bd);background:var(--b-card,#fffdf5)}
+.ss-cell.hit .ss-num{color:var(--b-ink,#294439);font-weight:700}
+.ss-token{display:block;width:min(18px,80%);aspect-ratio:1;border-radius:50%;background:var(--b-leaf,#86a68c);border:1.5px solid var(--b-ink,#294439);box-sizing:border-box}
+.ss-token.k2{box-shadow:0 -4px 0 -1px var(--b-leaf,#86a68c),0 -4px 0 0 var(--b-ink,#294439)}
+.ss-token.k3{box-shadow:0 -4px 0 -1px var(--b-leaf,#86a68c),0 -4px 0 0 var(--b-ink,#294439),0 -8px 0 -1px var(--b-leaf,#86a68c),0 -8px 0 0 var(--b-ink,#294439)}
+.ss-token.off{outline:3px solid var(--b-ochre,#b38840);outline-offset:1px}
+@media (prefers-reduced-motion:no-preference){.ss-token.drop{animation:ss-drop .35s ease-out}}
+@keyframes ss-drop{from{transform:translateY(-14px);opacity:0}}
+
+/* The grid of totals: A going up, B going across. */
+.ss-grid{display:grid;grid-template-columns:auto auto;grid-template-rows:auto auto;gap:4px 6px;--cell:clamp(40px,12vw,54px)}
+.ss-alabels{display:grid;grid-template-rows:repeat(var(--m),var(--cell))}
+.ss-blabels{display:grid;grid-template-columns:repeat(var(--n),var(--cell))}
+.ss-label{display:grid;place-items:center;font:400 1rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
+.ss-alabels .ss-label{width:30px;height:28px;align-self:center;border-radius:6px;background:var(--ss-a);border:1.5px solid var(--b-ink,#294439)}
+.ss-blabels .ss-label{height:28px;width:30px;justify-self:center;border-radius:6px;background:var(--ss-b);border:1.5px solid var(--b-ink,#294439)}
+.ss-dots{position:relative;width:calc(var(--n) * var(--cell));height:calc(var(--m) * var(--cell))}
+.ss-cells{position:relative;z-index:1;display:grid;grid-template-columns:repeat(var(--n),var(--cell));grid-template-rows:repeat(var(--m),var(--cell))}
+.ss-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.ss-lines line{stroke:var(--b-line,#d0d6bd);stroke-width:2px;vector-effect:non-scaling-stroke}
+.ss-lines polyline{fill:none;stroke:var(--b-pine,#31533e);stroke-width:7px;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.ss-puzzle .ss-dot{position:relative;z-index:3;display:grid;place-items:center;justify-self:center;align-self:center;width:calc(var(--cell) - 10px);height:calc(var(--cell) - 10px);min-height:0;padding:0;border-radius:50%;background:var(--b-card,#fffdf5);border:2px solid var(--b-ink,#294439);color:var(--b-ink,#294439);font:400 1.05rem/1 var(--b-display,Georgia,serif);box-shadow:none}
+.ss-puzzle .ss-dot.can-go{background:var(--b-good-soft,#e2ecd6);border-color:var(--b-pine,#31533e);box-shadow:0 0 0 3px var(--b-good-soft,#e2ecd6)}
+.ss-puzzle .ss-dot.on{background:var(--b-pine,#31533e);border-color:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9)}
+.ss-puzzle .ss-dot.repeat{background:#f3e3bf;border-color:var(--b-ochre,#b38840)}
+.ss-puzzle .ss-dot.off{border:3px solid var(--b-ochre,#b38840);background:#f3e3bf}
+.ss-puzzle .ss-dot.hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.ss-puzzle.solved .ss-dot.on{box-shadow:0 0 0 3px var(--b-good-soft,#e2ecd6)}
+
+/* Words that answer a finished route, That's all or a tray. */
+.ss-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+
+@media (max-width:480px){
+  .ss-puzzle{gap:.55rem}
+  .ss-tray{grid-template-columns:18px minmax(0,1fr);gap:4px}
+  .ss-cards{gap:2px}
+  .ss-puzzle .ss-card{font-size:1rem;border-radius:6px}
+  .ss-num{font-size:.68rem}
+  .ss-slot{height:24px}
+}
