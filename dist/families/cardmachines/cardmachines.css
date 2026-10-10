@@ -7,12 +7,17 @@
 .cm-puzzle .cm-button{min-height:46px;padding:6px 18px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
 .cm-puzzle .cm-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
 .cm-puzzle .hinted:is(button,.cm-row,.cm-end){outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
-.cm-task{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+/* The one objective line of a puzzle that builds its machine first, set like the page's own. */
+.cm-puzzle .cm-goal{align-self:stretch;margin:0 0 .3rem;font-family:inherit;font-size:1rem;font-weight:500;line-height:1.5;color:var(--b-ink,#294439);text-align:left}
+@media (max-width:440px){.cm-puzzle .cm-goal{font-size:.95rem}}
 .cm-told{margin:.2rem 0 0;font-family:var(--b-display,Georgia,serif);font-size:1rem;color:var(--b-ink,#294439);text-align:center}
 
 /* The machine. */
 .cm-machine{display:block;width:100%;max-width:420px;height:auto;margin:.2rem auto;overflow:visible;user-select:none;-webkit-user-select:none}
 .cm-machine.edit{touch-action:none}
+.cm-machine.locked{max-width:300px}
+.cm-machine.claim .cm-circle{cursor:pointer;outline:none}
+.cm-machine.claim .cm-circle:focus-visible .cm-ring{stroke:var(--b-ochre,#b38840);stroke-width:4px;stroke-dasharray:5 3}
 .cm-machine text{font-family:var(--b-display,Georgia,serif);text-anchor:middle;pointer-events:none}
 .cm-start{stroke:var(--b-ink,#294439);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-linecap:round}
 .cm-start-head{fill:var(--b-ink,#294439)}
@@ -102,11 +107,15 @@
 .cm-puzzle button.cm-end.sel{background:#e9eddc;box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
 .cm-plus{font:600 1.1rem/1 var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850)}
 .cm-blank{display:inline-block;width:22px;height:22px;border:2px dashed #9aa88f;border-radius:5px;box-sizing:border-box}
-.cm-cant-mark{font-family:var(--b-display,Georgia,serif);font-size:1rem;color:var(--b-pine,#31533e);padding:2px 8px;border:1.5px solid var(--b-pine,#31533e);border-radius:10px}
+.cm-cant-mark{display:inline-flex;align-items:center;gap:6px;font-family:var(--b-display,Georgia,serif);font-size:1rem;color:var(--b-pine,#31533e);padding:2px 4px 2px 8px;border:1.5px solid var(--b-pine,#31533e);border-radius:10px}
+.cm-at{display:inline-grid;place-items:center;width:22px;height:22px;border:2px solid var(--b-ink,#294439);border-radius:50%;background:var(--b-card,#fffdf5);font:600 .75rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439);box-sizing:border-box}
+.cm-puzzle .cm-cant.armed{background:var(--b-pine,#31533e);color:#fff}
 .cm-pair.cant{background:#f1f6ea}
 .cm-pair.cant .cm-end{border-left-color:var(--b-pine,#31533e)}
 .cm-answers{grid-column:3;grid-row:1/3;display:grid;grid-template-rows:auto auto;row-gap:4px}
-.cm-proof .cm-machine.mini{max-width:150px;margin:.2rem auto 0}
+/* Pairs under rows name them by their dots only, so the list stays near the machine. */
+.cm-pair.short .cm-line{min-height:22px}
+.cm-puzzle .cm-pair.short .cm-end{min-height:46px}
 
 /* The rows a child makes to show fewer circles are not enough. */
 .cm-prove{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}

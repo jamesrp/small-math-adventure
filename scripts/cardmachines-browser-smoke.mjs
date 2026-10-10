@@ -1,11 +1,14 @@
-// Plays Card machines through the real interface: arrows placed by dragging a
-// chip onto a circle, by tapping the chip and then the circle, and by Enter;
-// Escape puts a chip down; a tap switches a circle's mark; Test with its row
-// on a wrong machine and a solve on a right one; Hint up to Apply hint; pairs
-// split by the R and B keys, typed letters and Backspace, a refused Can't and
-// a right one with its machine; a machine that passes and then rows and
-// endings that show fewer circles are not enough; rows typed with the
-// keyboard; and the playground's −, +, Mix and bench row. Same environment
+// Plays Card machines through the real interface: one objective line on every
+// puzzle; arrows placed by dragging a chip onto a circle, by tapping the chip
+// and then the circle, and by Enter; Escape puts a chip down; a tap switches a
+// circle's mark; Test with its row on a wrong machine, waiting while the
+// machine still gets that row wrong, and a solve on a right one; Restart
+// keeping Test's rows; Hint up to Apply hint; pairs split by the R and B keys,
+// typed letters and Backspace; Can't cancelled by Escape, a wrong circle
+// refused and the right one accepted, on the drawn machine and on the child's
+// own once it passes; a machine that passes and then rows and endings that
+// show fewer circles are not enough; rows typed with the keyboard; and the
+// playground's −, +, Mix and bench row. Same environment
 // variables as the other browser suites (PLAYWRIGHT_MODULE,
 // BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone with touch).
 // Screenshots go in test-results/cardmachines/.
@@ -28,7 +31,8 @@ const chip = (s, card) => page.locator(`[data-chip="${s},${card}"]`);
 const circle = i => page.locator(`[data-circle="${i}"]`);
 const button = name => page.getByRole('button', {name, exact: true});
 const center = async locator => { const b = await locator.boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
-const tap = async locator => { const [x, y] = await center(locator); if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); };
+// Playwright's own tap and click wait for the target to be visible and still.
+const tap = locator => (phone ? locator.tap() : locator.click());
 // A drag is a mouse drag on a desktop and a touch drag on a phone.
 let cdp = null;
 async function drag(from, to) {
@@ -52,6 +56,9 @@ try {
   await page.goto(base); await page.locator('#nickname').fill('Machines QA'); await page.locator('#profile-form button[type=submit]').click();
   await page.locator('[data-action=library]').first().click(); await page.locator('.caravan-library').waitFor();
   assert.ok(await page.locator('.caravan-library').innerText().then(t => t.includes('Card machines')), 'the satchel lists Card machines');
+  // At most one objective line on each puzzle: the page's or the board's.
+  const goals = async () => await page.locator('.puzzle-goal').count() + await page.locator('.cm-goal').count();
+  for (let n = 0; n <= 11; n++) { await open(n ? `cardmachines-${String(n).padStart(2, '0')}` : 'cardmachines-playground'); assert.ok(await goals() <= 1, `puzzle ${n}: one objective line`); }
 
   // Puzzle 1: drag, tap-tap, Enter, Escape, marks, Test.
   const P = 'cardmachines-01';
@@ -80,11 +87,27 @@ try {
   assert.equal(await page.locator('.cm-marker.trace').count(), 1, 'the row’s end on the machine');
   assert.equal(await testButton().isDisabled(), true, 'one Test per machine');
   await shot('build-test');
+  await tap(circle(0));
+  assert.equal(await testButton().isDisabled(), true, 'Test waits while the machine still gets B wrong');
+  await tap(circle(0));
+  assert.equal(await testButton().isDisabled(), true, 'the tested machine again: Test still waits');
   await tap(circle(1));
   assert.deepEqual((await board(P)).marks, [false, true], 'a tap switches the mark');
   assert.equal(await page.locator('.cm-test.off').count(), 0, 'the new machine gets B right');
   await testButton().click();
   await done(); await fit('build solved');
+
+  // Puzzle 2: Restart keeps the rows Test showed.
+  const R = 'cardmachines-02';
+  await open(R);
+  await place([[0, 'R', 0], [0, 'B', 0], [1, 'R', 1], [1, 'B', 1]]);
+  await testButton().click();
+  assert.deepEqual((await board(R)).tests, ['R']);
+  await button('Restart').click();
+  assert.deepEqual((await board(R)).tests, ['R'], 'Restart keeps the rows Test showed');
+  assert.equal((await board(R)).presses, 1, 'and the count of presses');
+  assert.deepEqual((await board(R)).arrows, [[null, null], [null, null]], 'the arrows start again');
+  assert.equal(await page.locator('.cm-test').count(), 1);
 
   // Puzzle 5: Hint up to Apply hint, with the hinted chip marked on the board.
   const H = 'cardmachines-05';
@@ -94,35 +117,69 @@ try {
   await button('Hint').click(); await button('Apply hint').click();
   assert.deepEqual((await board(H)).arrows[0], [1, null], 'Apply hint places circle 1’s R arrow on circle 2');
 
-  // Puzzle 6: a refused Can't, keys and letters, a right Can't with its machine.
-  const S = 'cardmachines-06';
+  // Puzzle 4: Can't and Escape, a wrong circle, keys and letters, the right circle.
+  const S = 'cardmachines-04';
   await open(S); await fit('split');
   assert.equal(await page.locator('.cm-pair').count(), 4);
+  assert.equal(await page.locator('.cm-pair.split').count(), 1, 'no cards and R are split already');
   await button('Can’t').click();
-  assert.equal((await board(S)).refused[0], true);
+  assert.equal(await page.locator('svg.cm-machine.claim').count(), 1, 'Can’t makes the circles buttons');
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('svg.cm-machine.claim').count(), 0, 'Escape cancels');
+  await button('Can’t').click(); await tap(circle(1));
+  assert.equal((await board(S)).refused[1], true, 'R and R R can be split');
   assert.equal(await page.locator('.cm-told').innerText(), 'Keep looking.');
-  await page.locator('.cm-end').nth(0).click();
+  await page.locator('.cm-end').nth(1).click();
   await page.keyboard.press('b'); await page.keyboard.press('Backspace'); await page.keyboard.press('r');
-  assert.equal((await board(S)).ends[0], 'R', 'letters and Backspace type the ending');
-  assert.equal(await page.locator('.cm-pair.split').count(), 1, 'one ✓ and one ×');
-  await tap(page.locator('.cm-end').nth(1));
-  await button('Can’t').click();
-  assert.equal((await board(S)).cant[1], true);
-  assert.equal(await page.locator('.cm-proof svg').count(), 1, 'the rule’s machine with both rows on one circle');
+  assert.equal((await board(S)).ends[1], 'R', 'letters and Backspace type the ending');
+  assert.equal((await board(S)).refused[1], false, 'a new ending clears the refusal');
+  assert.equal(await page.locator('.cm-pair.split').count(), 2, 'one ✓ and one ×');
+  await tap(page.locator('.cm-end').nth(2));
+  await button('Can’t').click(); await tap(circle(0));
+  assert.equal((await board(S)).refused[2], true, 'R R and B don’t stop on circle 1');
+  await button('Can’t').click(); await tap(circle(2));
+  assert.equal((await board(S)).cant[2], true, 'both stop on circle 3');
+  assert.equal(await page.locator('.cm-cant-mark .cm-at').first().innerText(), '3', 'the circle is drawn with the claim');
+  assert.equal(await page.locator('.cm-machine').count(), 1, 'no second machine');
   await shot('split-cant');
-  await tap(page.locator('.cm-end').nth(2)); await button('Can’t').click();
-  await tap(page.locator('.cm-end').nth(3)); await button('Add R').click();
+  await tap(page.locator('.cm-end').nth(3)); await button('Can’t').click(); await tap(circle(0));
   await done(); await fit('split solved');
 
-  // Puzzle 10: a machine that passes, then rows and an ending.
-  const F = 'cardmachines-10';
+  // Puzzle 6: build the machine, then split pairs and name circles on it.
+  const T = 'cardmachines-06';
+  await open(T);
+  assert.equal(await page.locator('.cm-goal').innerText(), '✓ when the last two cards are red then blue.');
+  assert.equal(await goals(), 1, 'one objective line while building');
+  assert.equal(await page.locator('.cm-pair').count(), 0, 'the pairs wait for the machine');
+  await place([[0, 'R', 1], [0, 'B', 0], [1, 'R', 1], [1, 'B', 2], [2, 'R', 1], [2, 'B', 0]]);
+  await tap(circle(2));
+  await testButton().click();
+  assert.equal(await page.locator('.cm-goal').innerText(), 'Add the same cards to both rows to get one ✓ and one ×.');
+  assert.equal(await goals(), 1, 'one objective line once the machine passes');
+  assert.equal(await page.locator('.cm-pair').count(), 4);
+  assert.equal(await page.locator('[data-chip]').count(), 0, 'the machine is locked once it passes');
+  await fit('split after building');
+  await button('Add B').click();
+  assert.equal(await page.locator('.cm-pair.split').count(), 1, 'B splits no cards from R');
+  await tap(page.locator('.cm-end').nth(1)); await button('Can’t').click(); await tap(circle(1));
+  assert.equal((await board(T)).cant[1], true, 'R and B R both stop on circle 2 of this machine');
+  await shot('split-own');
+  await tap(page.locator('.cm-end').nth(2)); await button('Add B').click();
+  await tap(page.locator('.cm-end').nth(3)); await button('Can’t').click(); await tap(circle(0));
+  await done();
+
+  // Puzzle 9: a machine that passes, then rows and an ending.
+  const F = 'cardmachines-09';
   await open(F);
   assert.equal(await page.locator('.cm-rows').count(), 0, 'rows wait for the machine');
+  assert.equal(await page.locator('.cm-goal').innerText(), '✓ when two red cards have come next to each other.');
   await place([[0, 'R', 1], [0, 'B', 0], [1, 'R', 2], [1, 'B', 0], [2, 'R', 2], [2, 'B', 2]]);
   await tap(circle(2));
   await testButton().click();
-  assert.equal(await page.locator('.cm-task').innerText(), 'Show 2 circles are not enough.');
+  assert.equal(await page.locator('.cm-goal').innerText(), 'Show 2 circles are not enough for ✓ when two red cards have come next to each other.');
+  assert.equal(await goals(), 1, 'one objective line once the machine passes');
   assert.equal(await page.locator('[data-chip]').count(), 0, 'the machine is locked once it passes');
+  assert.equal(await page.locator('.cm-row').nth(0).getAttribute('aria-pressed'), 'true', 'row 1 is chosen first');
   await fit('prove');
   await page.locator('.cm-row').nth(1).click(); await button('Add R').click();
   await page.locator('.cm-row').nth(2).click(); await button('Add R').click(); await button('Add R').click();
@@ -134,8 +191,8 @@ try {
   await button('Add R').click();
   await done(); await fit('prove solved');
 
-  // Puzzle 12: rows and endings by keyboard.
-  const E = 'cardmachines-12';
+  // Puzzle 11: rows and endings by keyboard.
+  const E = 'cardmachines-11';
   await open(E); await fit('equal');
   assert.match(await page.locator('.puzzle-goal').innerText(), /^Show 3 circles are not enough/);
   const type = async (locator, keys) => { await locator.click(); for (const k of keys) await page.keyboard.press(k); };

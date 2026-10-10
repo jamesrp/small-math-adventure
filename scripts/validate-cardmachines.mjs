@@ -14,16 +14,21 @@
 //   the pigeonhole argument the child makes: two rows share a circle, and
 //   that pair's ending gives the machine one answer and the rule two.
 // - Test shows the first wrong row in order (shortest first, R before B), on
-//   every machine with 2 or 3 circles and a sample with 4.
+//   every machine with 2 or 3 circles and a sample with 4, and is ready only
+//   for a machine that gets every row already shown right. Undo and Restart
+//   keep the shown rows and the count of presses.
 // - Split answers: the shortest splitting ending in that order, or Can't with
-//   no ending up to 12 cards and the same reds left over after threes.
+//   no ending up to 12 cards and the same leftover (reds minus blues after
+//   threes, or how much of R B the row ends with). A Can't names the circle
+//   where both rows stop, on the drawn machine or on every right machine the
+//   child can build; every other circle is refused.
 // - Witnesses played as moves; hints alone solve from fresh, after a wrong
 //   arrow, a wrong mark, a wrong Test, a wrong Can't, wrong rows and random
 //   moves with Undo; illegal moves and forged saves rejected; the playground.
 // Run: node scripts/validate-cardmachines.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
+import {freshAttempt, move, isSolved, nextHint, validBoard, undo, restart} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
 import {machineSays} from '../dist/families/cardmachines/cardmachines.js';
 import {loadPack} from './packs.mjs';
@@ -35,10 +40,17 @@ const RULE = {
   seen: r => row => row.includes(r.word),
   ends: r => row => row.endsWith(r.word),
   mod: r => row => count(row, 'R') % r.m === 0,
+  diff: r => row => (count(row, 'R') - count(row, 'B')) % r.m === 0,
   even2: () => row => count(row, 'R') % 2 === 0 && count(row, 'B') % 2 === 0,
   equal: () => row => count(row, 'R') === count(row, 'B')
 };
 const ruleOf = q => RULE[q.rule.kind](q.rule);
+// What a split puzzle's rows keep through any shared ending: reds minus blues
+// after threes, or the longest start of the word that the row ends with.
+const LEFT = {
+  diff: r => row => (((count(row, 'R') - count(row, 'B')) % r.m) + r.m) % r.m,
+  ends: r => row => { let n = r.word.length; while (n > 0 && !row.endsWith(r.word.slice(0, n))) n--; return n; }
+};
 
 // Every row up to n cards, shortest first and R before B.
 const ROWS = [''];
@@ -75,15 +87,14 @@ const TABLE = {
   'cardmachines-01': {level: 'easy', mode: 'build', fewest: 2},
   'cardmachines-02': {level: 'easy', mode: 'build', fewest: 2},
   'cardmachines-03': {level: 'easy', mode: 'build', fewest: 2},
-  'cardmachines-04': {level: 'easy', mode: 'split', answers: ['', 'R', 'cant', 'cant']},
+  'cardmachines-04': {level: 'easy', mode: 'split', fewest: 3, answers: ['', 'R', 'cant', 'cant'], claims: [null, null, 2, 0]},
   'cardmachines-05': {level: 'medium', mode: 'build', fewest: 3},
-  'cardmachines-06': {level: 'medium', mode: 'split', answers: ['R', 'cant', 'cant', 'R']},
-  'cardmachines-07': {level: 'medium', mode: 'build', fewest: 3},
-  'cardmachines-08': {level: 'medium', mode: 'fewest', fewest: 3},
-  'cardmachines-09': {level: 'hard', mode: 'fewest', fewest: 4},
-  'cardmachines-10': {level: 'hard', mode: 'fewest', fewest: 3},
-  'cardmachines-11': {level: 'hard', mode: 'fewest', fewest: 4},
-  'cardmachines-12': {level: 'hard', mode: 'fewest', fewest: Infinity}
+  'cardmachines-06': {level: 'medium', mode: 'split', fewest: 3, answers: ['B', 'cant', 'B', 'cant']},
+  'cardmachines-07': {level: 'medium', mode: 'fewest', fewest: 3},
+  'cardmachines-08': {level: 'hard', mode: 'fewest', fewest: 4},
+  'cardmachines-09': {level: 'hard', mode: 'fewest', fewest: 3},
+  'cardmachines-10': {level: 'hard', mode: 'fewest', fewest: 4},
+  'cardmachines-11': {level: 'hard', mode: 'fewest', fewest: Infinity}
 };
 
 const play = (p, a, action) => { const next = move(p, a, action); assert.ok(next && next !== a, `${p.id}: ${JSON.stringify(action)} is legal`); return next; };
@@ -97,6 +108,13 @@ function undoLikeApp(p, a) {
   const carry = mechanicFor(p).carry;
   const board = carry ? carry(p, a.board, next.board) : next.board;
   assert.ok(validBoard(p, board), `${p.id}: Undo leaves a valid board`);
+  return {...next, board};
+}
+// Restart the way the app does: a fresh attempt, with what carryOnRestart keeps.
+function restartLikeApp(p, a) {
+  const next = restart(p, a), carry = mechanicFor(p).carryOnRestart;
+  const board = carry ? carry(p, a.board, next.board) : next.board;
+  assert.ok(validBoard(p, board), `${p.id}: Restart leaves a valid board`);
   return {...next, board};
 }
 function hintsSolve(p, a, label) {
@@ -135,7 +153,7 @@ export async function validateCardmachines() {
   assert.equal(new Set(puzzles.map(p => JSON.stringify(p.parameters))).size, puzzles.length, 'distinct starting data');
   for (const level of ['easy', 'medium', 'hard']) assert.ok(puzzles.some(p => p.difficulty_level === level), `a ${level} puzzle`);
 
-  const stats = {machinesRefuted: 0, rightMachinesFound: 0, certificateRefutations: 0, testsCompared: 0, hintSteps: 0};
+  const stats = {machinesRefuted: 0, rightMachinesFound: 0, certificateRefutations: 0, testsCompared: 0, testsWaiting: 0, claimsChecked: 0, hintSteps: 0};
   for (const p of pack.puzzles) {
     assert.equal(p.mechanic, 'cardmachine');
     assert.equal(p.libraryFamily, 'cardmachines', `${p.id}: in the Card machines family`);
@@ -143,6 +161,15 @@ export async function validateCardmachines() {
     for (const field of ['objective', 'controls', 'idea', 'prerequisites', 'provenance', 'familyTitle']) assert.ok(typeof p[field] === 'string' && p[field].length > 5, `${p.id}: ${field}`);
     assert.equal(typeof p.visibleObjective, 'string', `${p.id}: visibleObjective`);
     assert.ok(!/\.\s+\S/.test(p.visibleObjective), `${p.id}: the visible objective is at most one sentence`);
+    // A puzzle that builds its machine and then does more draws its own line,
+    // one at a time: the rule, then the next task.
+    const twoStage = ['split', 'fewest'].includes(p.parameters.mode) && p.parameters.circles > 0;
+    assert.equal(Array.isArray(p.boardLines), twoStage, `${p.id}: board lines exactly for a machine built first`);
+    if (twoStage) {
+      assert.equal(p.visibleObjective, '', `${p.id}: no second objective line beside the board's`);
+      assert.equal(p.boardLines.length, 2);
+      for (const line of p.boardLines) assert.ok(typeof line === 'string' && line.length > 10 && line.length < 150 && !/\.\s+\S/.test(line), `${p.id}: each board line is one sentence`);
+    }
     assert.ok(Array.isArray(p.rules) && p.rules.length && p.hints.length === 3, `${p.id}: rules and three hints`);
     for (const field of ['notice', 'prompt', 'explanation', 'extension', 'connection']) assert.ok(p.parent[field], `${p.id}: parent ${field}`);
     assert.ok(p.parent.sourceIds.every(id => pack.sources.some(s => s.id === id)), `${p.id}: sources`);
@@ -155,24 +182,26 @@ export async function validateCardmachines() {
     const row = TABLE[p.id], rule = ruleOf(q);
     assert.equal(q.mode, row.mode, `${p.id}: kind`);
     assert.equal(p.difficulty_level, row.level, `${p.id}: level`);
-    if (q.mode === 'split') { stats.hintSteps += checkSplit(p, fresh, row, rule); continue; }
-
-    // Fewer circles than the budget: every machine is wrong somewhere.
-    const budget = q.mode === 'build' ? q.circles : q.circles || q.rows;
+    // Fewer circles than the budget (or the drawn machine): every machine is
+    // wrong somewhere.
+    const built = q.mode === 'build' || q.circles > 0;
+    const budget = built ? q.circles : q.mode === 'split' ? q.machine.marks.length : q.rows;
     assert.equal(budget, Number.isFinite(row.fewest) ? row.fewest : 4, `${p.id}: the budget`);
     for (let k = 1; k < budget; k++) for (const m of machines(k)) { assert.ok(firstWrong(m, rule) !== undefined, `${p.id}: a ${k}-circle machine is wrong somewhere`); stats.machinesRefuted++; }
-    if (q.mode === 'build' || q.circles) {
+    let right = [];
+    if (built) {
       // Every machine with the budget: exactly (k − 1)! are right, the solution one of them.
-      const right = [];
-      for (const m of machines(budget)) if (firstWrong(m, rule) === undefined) right.push(JSON.stringify(m));
+      for (const m of machines(budget)) if (firstWrong(m, rule) === undefined) right.push(m);
       assert.equal(right.length, factorial(budget - 1), `${p.id}: the right ${budget}-circle machines are the renamings`);
-      assert.ok(right.includes(JSON.stringify(p.solution.machine)), `${p.id}: the solution machine is right`);
+      assert.ok(right.some(m => JSON.stringify(m) === JSON.stringify(p.solution.machine)), `${p.id}: the solution machine is right`);
       assert.equal(p.solution.fewest, budget);
       stats.rightMachinesFound += right.length;
       checkTest(p, fresh, rule, budget, stats);
+      stats.hintSteps += checkMachine(p, fresh, rule);
     }
-    if (q.mode === 'fewest') checkCertificate(p, rule, stats);
-    stats.hintSteps += checkPlay(p, fresh, rule);
+    if (q.mode === 'split') stats.hintSteps += checkSplit(p, fresh, row, rule, right, stats);
+    else if (q.mode === 'fewest') checkCertificate(p, rule, stats);
+    if (q.mode !== 'split') stats.hintSteps += checkPlay(p, fresh, rule);
   }
   // The rule with no machine at all: rows with 0, 1, …, 9 reds split two at a
   // time (i < j: add i blues), so no number of circles up to 9 is enough.
@@ -184,6 +213,7 @@ export async function validateCardmachines() {
 // Test shows the first wrong row in order, on every machine with 2 or 3
 // circles and 3,000 random ones with 4; a right machine adds no row.
 function checkTest(p, fresh, rule, k, stats) {
+  const shown = R15.find(r => rule(r));
   const list = k <= 3 ? machines(k) : (function* () { const random = seeded(17 + k); for (let n = 0; n < 3000; n++) yield randomMachine(k, random); })();
   for (const m of list) {
     const a = {...fresh, board: {...fresh.board, arrows: m.arrows, marks: m.marks}};
@@ -193,6 +223,10 @@ function checkTest(p, fresh, rule, k, stats) {
     assert.equal(b.board.presses, 1);
     assert.equal(b.board.checked, true);
     stats.testsCompared++;
+    // With a row already shown, Test waits until the machine gets it right.
+    const c = {...a, board: {...a.board, tests: [shown], presses: 1}};
+    assert.equal(move(p, c, {type: 'test'}) !== null, says(m, shown) === rule(shown), `${p.id}: Test of ${JSON.stringify(m)} waits for ${shown || 'no cards'}`);
+    stats.testsWaiting++;
   }
 }
 
@@ -214,68 +248,215 @@ function checkCertificate(p, rule, stats) {
   }
 }
 
-function checkSplit(p, fresh, row, rule) {
-  const q = p.parameters;
+// Split: answers, the circles a Can't names, witnesses on every machine the
+// pairs can be read on, refusals and forgeries. `right` lists every right
+// machine with the budget when the child builds the machine first.
+function checkSplit(p, fresh, row, rule, right, stats) {
+  const q = p.parameters, left = LEFT[q.rule.kind](q.rule);
   assert.equal(q.pairs.length, row.answers.length);
   // The answers: the first splitting ending in order, or none up to 12 cards.
   const answers = q.pairs.map(([x, y]) => { const e = R12.find(end => rule(x + end) !== rule(y + end)); return e === undefined ? 'cant' : e; });
   assert.deepEqual(answers, row.answers, `${p.id}: answers`);
   assert.deepEqual(p.solution.answers, row.answers, `${p.id}: the pack's answers`);
-  // Can't, by the invariant: an ending adds the same reds to both rows.
-  q.pairs.forEach(([x, y], i) => assert.equal(answers[i] === 'cant', count(x, 'R') % q.rule.m === count(y, 'R') % q.rule.m, `${p.id}: Can't exactly when the reds left over agree`));
+  // Can't exactly when the rows keep the same leftover.
+  q.pairs.forEach(([x, y], i) => assert.equal(answers[i] === 'cant', left(x) === left(y), `${p.id}: Can't exactly when the leftovers agree`));
   assert.equal(new Set(q.pairs.map(([x, y]) => [x, y].sort().join())).size, q.pairs.length, `${p.id}: distinct pairs`);
   assert.ok(answers.includes('cant') && answers.some(e => e !== 'cant'), `${p.id}: some pairs split and some can't`);
-  if (q.machine) {
-    assert.equal(firstWrong(q.machine, rule), undefined, `${p.id}: the drawn machine follows the rule`);
-    assert.equal(q.machine.marks.length, q.rule.m);
+  // The machines the pairs can be read on: the drawn one, or each right one.
+  const boards = q.machine ? [q.machine] : right;
+  if (q.machine) assert.equal(firstWrong(q.machine, rule), undefined, `${p.id}: the drawn machine follows the rule`);
+  assert.ok(boards.length >= 1);
+  // On each, both rows of a Can't pair stop together after every ending up
+  // to 6 cards, and the rows of every other pair stop apart.
+  for (const m of boards) q.pairs.forEach(([x, y], i) => {
+    if (answers[i] !== 'cant') { assert.notEqual(endOf(m, x), endOf(m, y), `${p.id}: split rows stop apart`); return; }
+    for (const e of rowsUpTo(6)) assert.equal(endOf(m, x + e), endOf(m, y + e), `${p.id}: pair ${i + 1} stays together after ${e}`);
+    stats.claimsChecked++;
+  });
+  const own = q.machine || p.solution.machine;
+  assert.deepEqual(p.solution.claims, q.pairs.map(([x], i) => (answers[i] === 'cant' ? endOf(own, x) : null)), `${p.id}: the pack's Can't circles`);
+  if (row.claims) assert.deepEqual(p.solution.claims, row.claims, `${p.id}: the table's Can't circles`);
+  // Reach the pairs: at once, or by building a machine and passing Test.
+  const ready = m => (q.machine ? fresh : play(p, buildBy(p, fresh, m), {type: 'test'}));
+  if (!q.machine) {
+    // Before the machine passes, the pairs wait.
+    for (const [action, why] of [[{type: 'key', target: 'end', index: 0, card: 'R'}, 'an ending before the machine passes'], [{type: 'cant', pair: answers.indexOf('cant'), circle: 0}, 'a Can’t before the machine passes']]) refuse(p, fresh, action, why);
+    assert.equal(nextHint(p, fresh).action.type === 'cant', false, `${p.id}: the first hints build the machine`);
   }
-  // The witness, played.
-  let a = fresh;
-  answers.forEach((e, i) => { a = e === 'cant' ? play(p, a, {type: 'cant', pair: i}) : typeInto(p, a, 'end', i, e); });
-  assert.ok(isSolved(p, a.board), `${p.id}: the witness solves`);
-  refuse(p, a, {type: 'key', target: 'end', index: 0, card: 'R'}, 'a move after a solve');
-  let steps = hintsSolve(p, fresh, 'from fresh');
-  // A wrong Can't is refused, stays until the ending changes, and the hints finish.
-  const sep = answers.findIndex(e => e !== 'cant' && e !== ''), cant = answers.indexOf('cant');
-  let b = play(p, fresh, {type: 'cant', pair: sep});
-  assert.equal(b.board.refused[sep], true, `${p.id}: a wrong Can't is refused`);
-  assert.equal(b.board.cant[sep], false);
-  refuse(p, b, {type: 'cant', pair: sep}, 'the same Can’t twice');
+  let steps = 0;
+  // The witness, played on every machine: each pair's ending or Can't with
+  // the circle where both rows stop on that machine.
+  for (const m of boards) {
+    let a = ready(m);
+    assert.ok(!isSolved(p, a.board), `${p.id}: the pairs are still to do`);
+    if (!q.machine) {
+      refuse(p, a, {type: 'arrow', from: 0, card: 'R', to: 0}, 'an arrow once the machine has passed');
+      refuse(p, a, {type: 'mark', circle: 0}, 'a mark once the machine has passed');
+      refuse(p, a, {type: 'test'}, 'Test once the machine has passed');
+    }
+    answers.forEach((e, i) => { a = e === 'cant' ? play(p, a, {type: 'cant', pair: i, circle: endOf(m, q.pairs[i][0])}) : typeInto(p, a, 'end', i, e); });
+    assert.ok(isSolved(p, a.board), `${p.id}: the witness solves on ${JSON.stringify(m)}`);
+    refuse(p, a, {type: 'key', target: 'end', index: 0, card: 'R'}, 'a move after a solve');
+  }
+  steps += hintsSolve(p, fresh, 'from fresh');
+  const m = boards[0], start = ready(m), k = m.marks.length;
+  const sep = answers.findIndex(e => e !== 'cant' && e !== ''), cant = answers.indexOf('cant'), [cx, cy] = q.pairs[cant];
+  // Can't on a pair some ending splits is refused on every circle.
+  for (let c = 0; c < k; c++) {
+    const b = play(p, start, {type: 'cant', pair: sep, circle: c});
+    assert.equal(b.board.refused[sep], true, `${p.id}: a Can’t on rows that split is refused`);
+    assert.equal(b.board.cant[sep], false);
+  }
+  // Can't on a pair that can't be split, naming a circle where the rows don't stop.
+  const at = endOf(m, cx);
+  for (let c = 0; c < k; c++) {
+    if (c === at) continue;
+    const b = play(p, start, {type: 'cant', pair: cant, circle: c});
+    assert.equal(b.board.refused[cant], true, `${p.id}: a Can’t naming circle ${c + 1} is refused`);
+    assert.equal(b.board.cant[cant], false);
+    assert.equal(move(p, b, {type: 'cant', pair: cant, circle: c}), b, `${p.id}: the same wrong Can’t again changes nothing`);
+    steps += hintsSolve(p, b, `after a Can’t naming circle ${c + 1}`);
+    const fixed = play(p, b, {type: 'cant', pair: cant, circle: at});
+    assert.equal(fixed.board.cant[cant], true, `${p.id}: then the right circle is accepted`);
+    assert.equal(fixed.board.refused[cant], false);
+  }
+  let b = play(p, start, {type: 'cant', pair: sep, circle: 0});
   steps += hintsSolve(p, b, 'after a wrong Can’t');
   const c = play(p, b, {type: 'key', target: 'end', index: sep, card: 'B'});
   assert.equal(c.board.refused[sep], false, `${p.id}: a new ending clears the refusal`);
-  const splitting = typeInto(p, fresh, 'end', sep, answers[sep]);
-  refuse(p, splitting, {type: 'cant', pair: sep}, 'Can’t on a pair its ending already splits');
-  // A right Can't clears the ending.
-  b = typeInto(p, fresh, 'end', cant, 'RB');
-  b = play(p, b, {type: 'cant', pair: cant});
+  const splitting = typeInto(p, start, 'end', sep, answers[sep]);
+  for (let n = 0; n < k; n++) refuse(p, splitting, {type: 'cant', pair: sep, circle: n}, 'Can’t on a pair its ending already splits');
+  // A right Can't with an ending typed names where both rows stop after it, and keeps the ending.
+  b = typeInto(p, start, 'end', cant, 'RB');
+  assert.equal(endOf(m, cx + 'RB'), endOf(m, cy + 'RB'));
+  if (endOf(m, cx + 'RB') !== at) assert.equal(play(p, b, {type: 'cant', pair: cant, circle: at}).board.refused[cant], true, `${p.id}: Can’t names the circle after the ending`);
+  b = play(p, b, {type: 'cant', pair: cant, circle: endOf(m, cx + 'RB')});
   assert.equal(b.board.cant[cant], true);
-  assert.equal(b.board.ends[cant], '', `${p.id}: a right Can’t clears the ending`);
+  assert.equal(b.board.ends[cant], 'RB', `${p.id}: a right Can’t keeps the ending`);
   refuse(p, b, {type: 'key', target: 'end', index: cant, card: 'R'}, 'an ending after Can’t');
-  refuse(p, b, {type: 'cant', pair: cant}, 'Can’t twice');
+  refuse(p, b, {type: 'cant', pair: cant, circle: endOf(m, cx + 'RB')}, 'Can’t twice');
   steps += hintsSolve(p, b, 'after a right Can’t with an ending typed');
   // Long wrong endings, then hints.
-  b = fresh;
+  b = start;
   for (let i = 0; i < q.pairs.length; i++) b = [...'BBRBRB'].reduce((x, card) => keep(p, x, {type: 'key', target: 'end', index: i, card}), b);
   if (!isSolved(p, b.board)) steps += hintsSolve(p, b, 'after long endings');
   // Illegal moves.
-  for (const [action, why] of [[null, 'nothing'], [{type: 'cant'}, 'Can’t for no pair'], [{type: 'cant', pair: q.pairs.length}, 'an unknown pair'], [{type: 'key', target: 'end', index: 0, card: 'G'}, 'a green card'], [{type: 'key', target: 'end', index: 0, card: 'back'}, 'taking back from an empty ending'], [{type: 'key', target: 'row', index: 0, card: 'R'}, 'a row'], [{type: 'arrow', from: 0, card: 'R', to: 1}, 'an arrow on the drawn machine'], [{type: 'mark', circle: 0}, 'a mark'], [{type: 'test'}, 'Test'], [{type: 'circles', n: 2}, 'circles'], [{type: 'fly'}, 'an unknown move']]) refuse(p, fresh, action, why);
-  const full = typeInto(p, fresh, 'end', cant, 'RRRRRR');
+  for (const [action, why] of [[null, 'nothing'], [{type: 'cant'}, 'Can’t for no pair'], [{type: 'cant', pair: cant}, 'Can’t naming no circle'], [{type: 'cant', pair: cant, circle: k}, 'Can’t naming a circle not there'], [{type: 'cant', pair: cant, circle: String(at)}, 'a circle named by a string'], [{type: 'cant', pair: q.pairs.length, circle: 0}, 'an unknown pair'], [{type: 'key', target: 'end', index: 0, card: 'G'}, 'a green card'], [{type: 'key', target: 'end', index: 0, card: 'back'}, 'taking back from an empty ending'], [{type: 'key', target: 'row', index: 0, card: 'R'}, 'a row'], [{type: 'arrow', from: 0, card: 'R', to: 1}, 'an arrow on the machine'], [{type: 'mark', circle: 0}, 'a mark'], [{type: 'test'}, 'Test'], [{type: 'circles', n: 2}, 'circles'], [{type: 'fly'}, 'an unknown move']]) refuse(p, start, action, why);
+  const full = typeInto(p, start, 'end', cant, 'RRRRRR');
   refuse(p, full, {type: 'key', target: 'end', index: cant, card: 'R'}, 'an ending past 6 cards');
   // Forged saves.
-  const B = fresh.board, n = q.pairs.length, set = (list, i, v) => list.map((x, j) => (j === i ? v : x));
+  const B = start.board, n = q.pairs.length, set = (list, i, v) => list.map((x, j) => (j === i ? v : x));
   for (const [board, why] of [
     [{...B, cant: set(B.cant, sep, true)}, 'Can’t on rows that split'],
-    [{...B, cant: set(B.cant, cant, true), ends: set(B.ends, cant, 'R')}, 'a Can’t with an ending'],
-    [{...B, refused: set(B.refused, cant, true)}, 'a refusal where no ending splits'],
     [{...B, refused: set(B.refused, sep, true), ends: set(B.ends, sep, answers[sep] || 'R')}, 'a refusal with a splitting ending'],
     [{...B, cant: set(B.cant, cant, true), refused: set(B.refused, cant, true)}, 'a pair both Can’t and refused'],
     [{...B, ends: set(B.ends, 0, 'RRRRRRR')}, 'an ending of 7 cards'],
     [{...B, ends: set(B.ends, 0, 'RG')}, 'a green card'],
     [{...B, ends: B.ends.slice(0, n - 1)}, 'a missing ending'],
+    [{...B, cant: B.cant.map(() => 'yes')}, 'a Can’t that is not true or false'],
     [{...B, extra: 1}, 'an unknown field'],
-    [{ends: B.ends, cant: B.cant}, 'a missing field']
+    [{ends: B.ends, cant: B.cant}, 'a missing field'],
+    ...(q.machine ? [] : [
+      [{...fresh.board, ends: set(fresh.board.ends, sep, 'B')}, 'an ending before the machine passes'],
+      [{...fresh.board, cant: set(fresh.board.cant, cant, true)}, 'a Can’t before the machine passes'],
+      [{...fresh.board, refused: set(fresh.board.refused, sep, true)}, 'a refusal before the machine passes'],
+      [{...B, checked: false, ends: set(B.ends, sep, 'B')}, 'an ending beside a machine that has not passed Test']
+    ])
   ]) rejects(p, board, why);
+  // Kept as valid: a refused claim on rows that can't be split, and a Can't with its ending.
+  assert.ok(validBoard(p, {...B, refused: set(B.refused, cant, true)}), `${p.id}: a refused circle on rows that can’t be split`);
+  assert.ok(validBoard(p, {...B, cant: set(B.cant, cant, true), ends: set(B.ends, cant, 'R')}), `${p.id}: a Can’t keeps its ending`);
+  return steps;
+}
+
+// The machine built first: hints after wrong arrows, marks and Tests; Test
+// waits for a machine that gets every shown row right; Undo and Restart keep
+// the shown rows; illegal machine moves; forgeries; random moves with Undo.
+function checkMachine(p, fresh, rule) {
+  const q = p.parameters, m = p.solution.machine, k = m.marks.length;
+  let steps = 0, a = fresh;
+  refuse(p, a, {type: 'test'}, 'Test before every arrow is placed');
+  a = buildBy(p, a, m);
+  assert.ok(!isSolved(p, a.board), `${p.id}: a right machine waits for Test`);
+  a = play(p, a, {type: 'test'});
+  assert.deepEqual(a.board.tests, [], `${p.id}: Test of a right machine shows no row`);
+  refuse(p, a, {type: 'test'}, 'Test twice');
+  assert.equal(isSolved(p, a.board), q.mode === 'build', `${p.id}: a passed machine solves a build puzzle only`);
+  // A wrong first arrow and a wrong mark.
+  const wrongTo = (m.arrows[0][0] + 1) % k;
+  let b = play(p, fresh, {type: 'arrow', from: 0, card: 'R', to: wrongTo});
+  steps += hintsSolve(p, b, 'after a wrong arrow');
+  b = buildBy(p, fresh, m);
+  b = play(p, b, {type: 'mark', circle: 0});
+  steps += hintsSolve(p, b, 'after a wrong mark');
+  // A wrong Test: every arrow looping and every circle ×. It shows the first
+  // row the rule gives ✓, and stays on the board through later changes.
+  const loops = {arrows: m.arrows.map((_, s) => [s, s]), marks: m.marks.map(() => false)};
+  b = buildBy(p, fresh, loops);
+  b = play(p, b, {type: 'test'});
+  const shown = R15.find(r => rule(r));
+  assert.deepEqual(b.board.tests, [shown], `${p.id}: Test shows the first row the rule gives ✓`);
+  refuse(p, b, {type: 'test'}, 'Test twice on one machine');
+  // Wiggling: a change and its reverse leave the same wrong machine, and Test waits.
+  const other = k - 1, wiggled = play(p, play(p, b, {type: 'mark', circle: other}), {type: 'mark', circle: other});
+  assert.equal(wiggled.board.checked, false);
+  refuse(p, wiggled, {type: 'test'}, 'Test of a machine that still gets a shown row wrong');
+  const c = play(p, b, {type: 'mark', circle: 0});
+  assert.equal(c.board.checked, false, `${p.id}: a change waits for a new Test`);
+  assert.deepEqual(c.board.tests, b.board.tests, `${p.id}: the rows Test showed stay`);
+  // Circle 1 now says ✓ and every arrow loops, so the machine says ✓ on the
+  // shown row as the rule does, and Test is ready again.
+  assert.ok(move(p, c, {type: 'test'}), `${p.id}: Test is ready once the shown row is right`);
+  const back = undoLikeApp(p, c);
+  assert.deepEqual(back.board.tests, b.board.tests);
+  const before = undoLikeApp(p, b);
+  assert.deepEqual(before.board.tests, [shown], `${p.id}: Undo of a Test keeps its row`);
+  assert.equal(before.board.presses, 1, `${p.id}: Undo keeps the count of presses`);
+  assert.equal(before.board.checked, false);
+  refuse(p, before, {type: 'test'}, 'Test of the same wrong machine after Undo');
+  steps += hintsSolve(p, before, 'after a wrong Test and Undo');
+  // Restart keeps the shown rows and the presses; the arrows start again.
+  const again = restartLikeApp(p, b);
+  assert.deepEqual(again.board.tests, [shown], `${p.id}: Restart keeps the rows Test showed`);
+  assert.equal(again.board.presses, 1, `${p.id}: Restart keeps the count of presses`);
+  assert.deepEqual(again.board.arrows, fresh.board.arrows, `${p.id}: Restart clears the arrows`);
+  refuse(p, buildBy(p, again, loops), {type: 'test'}, 'Test of the same wrong machine after Restart');
+  const passedAgain = play(p, buildBy(p, again, m), {type: 'test'});
+  assert.equal(passedAgain.board.presses, 2);
+  steps += hintsSolve(p, again, 'after Restart');
+  // Illegal machine moves.
+  for (const [action, why] of [[{type: 'arrow', from: 0, card: 'R', to: k}, 'an arrow to no circle'], [{type: 'arrow', from: k, card: 'R', to: 0}, 'an arrow from no circle'], [{type: 'arrow', from: 0, card: 'G', to: 0}, 'a green arrow'], [{type: 'arrow', from: '0', card: 'R', to: 0}, 'a circle named by a string'], [{type: 'mark', circle: -1}, 'a mark on no circle'], [{type: 'circles', n: k + 1}, 'a new circle'], [{type: 'mix'}, 'Mix'], [{type: 'cant', pair: 0, circle: 0}, 'Can’t'], [{type: 'key', target: 'row', index: 0, card: 'R'}, 'a row before the machine passes'], [{type: 'key', target: 'end', index: 0, card: 'R'}, 'an ending before the machine passes'], [{type: 'key', target: 'bench', card: 'R'}, 'the playground row'], [null, 'nothing'], [{type: 'fly'}, 'an unknown move']]) refuse(p, fresh, action, why);
+  // Forged saves.
+  const B = fresh.board, done = buildBy(p, fresh, m).board, wrong = buildBy(p, fresh, loops).board;
+  for (const [board, why] of [
+    [{...done, checked: true}, 'a passed Test with no press'],
+    [{...wrong, checked: true, presses: 1}, 'a Test of a wrong machine that showed nothing'],
+    [{...wrong, checked: true, presses: 1, tests: ['RRRRRBBB']}, 'a Test that showed a row other than the first wrong one'],
+    [{...B, checked: true, presses: 1}, 'a Test of a machine with arrows not placed'],
+    [{...B, tests: ['R', 'R'], presses: 2}, 'a row shown twice'],
+    [{...B, tests: ['R', 'B'], presses: 1}, 'more rows than presses'],
+    [{...B, tests: ['RG']}, 'a green card in a Test row'],
+    [{...B, tests: ['R'.repeat(25)], presses: 1}, 'a Test row of 25 cards'],
+    [{...B, presses: -1}, 'a negative count'],
+    [{...B, arrows: B.arrows.map((x, s) => (s ? x : [k, null]))}, 'an arrow to no circle'],
+    [{...B, arrows: B.arrows.slice(1), marks: B.marks.slice(1)}, 'a circle missing'],
+    [{...B, marks: B.marks.map(() => 'yes')}, 'a mark that is not ✓ or ×'],
+    [{...B, extra: 1}, 'an unknown field'],
+    ...(q.mode === 'fewest' ? [[{...B, rows: B.rows.map((r, i) => (i ? r : 'R'))}, 'a row before the machine passes']] : [])
+  ]) rejects(p, board, why);
+  // Random machine moves with Undo, then hints.
+  const random = seeded(7 + p.number);
+  for (let trial = 0; trial < 8; trial++) {
+    let d = fresh;
+    for (let n = 0; n < 30; n++) {
+      const r = random();
+      if (r < 0.12) { d = undoLikeApp(p, d); continue; }
+      const action = r < 0.7 ? {type: 'arrow', from: Math.floor(random() * k), card: random() < 0.5 ? 'R' : 'B', to: Math.floor(random() * k)} : r < 0.85 ? {type: 'mark', circle: Math.floor(random() * k)} : {type: 'test'};
+      const next = move(p, d, action);
+      if (next && !isSolved(p, next.board) && !(q.mode !== 'build' && next.board.checked && firstWrong(next.board, rule) === undefined)) d = next;
+    }
+    steps += hintsSolve(p, d, `after random moves ${trial + 1}`);
+  }
   return steps;
 }
 
@@ -284,20 +465,14 @@ function checkPlay(p, fresh, rule) {
   const q = p.parameters, machine = q.mode === 'build' || q.circles > 0;
   let steps = 0;
   let a = fresh;
-  if (machine) {
-    refuse(p, a, {type: 'test'}, 'Test before every arrow is placed');
-    a = buildBy(p, a, p.solution.machine);
-    assert.ok(!isSolved(p, a.board), `${p.id}: a right machine waits for Test`);
-    a = play(p, a, {type: 'test'});
-    assert.deepEqual(a.board.tests, [], `${p.id}: Test of a right machine shows no row`);
-    refuse(p, a, {type: 'test'}, 'Test twice');
-  }
+  if (machine) a = play(p, buildBy(p, a, p.solution.machine), {type: 'test'});
   if (q.mode === 'build') assert.ok(isSolved(p, a.board), `${p.id}: the witness solves`);
   else {
     assert.ok(!isSolved(p, a.board));
     if (machine) {
       refuse(p, a, {type: 'arrow', from: 0, card: 'R', to: 0}, 'an arrow once the machine has passed');
       refuse(p, a, {type: 'mark', circle: 0}, 'a mark once the machine has passed');
+      refuse(p, a, {type: 'test'}, 'Test once the machine has passed');
     }
     p.solution.rows.forEach((r, i) => { a = typeInto(p, a, 'row', i, r); });
     pairList(q.rows).forEach((_, n) => { a = typeInto(p, a, 'end', n, p.solution.ends[n]); });
@@ -306,53 +481,6 @@ function checkPlay(p, fresh, rule) {
   refuse(p, a, {type: 'key', target: 'row', index: 0, card: 'R'}, 'a move after a solve');
   steps += hintsSolve(p, fresh, 'from fresh');
 
-  if (machine) {
-    // A wrong first arrow and a wrong mark.
-    const m = p.solution.machine, wrongTo = (m.arrows[0][0] + 1) % m.marks.length;
-    let b = play(p, fresh, {type: 'arrow', from: 0, card: 'R', to: wrongTo});
-    steps += hintsSolve(p, b, 'after a wrong arrow');
-    b = buildBy(p, fresh, m);
-    b = play(p, b, {type: 'mark', circle: 0});
-    steps += hintsSolve(p, b, 'after a wrong mark');
-    // A wrong Test: every arrow looping and every circle ×. It shows the first
-    // row the rule gives ✓, and stays on the board through later changes.
-    b = buildBy(p, fresh, {arrows: m.arrows.map((_, s) => [s, s]), marks: m.marks.map(() => false)});
-    b = play(p, b, {type: 'test'});
-    const shown = R15.find(r => rule(r));
-    assert.deepEqual(b.board.tests, [shown], `${p.id}: Test shows the first row the rule gives ✓`);
-    refuse(p, b, {type: 'test'}, 'Test twice on one machine');
-    const c = play(p, b, {type: 'mark', circle: 0});
-    assert.equal(c.board.checked, false, `${p.id}: a change waits for a new Test`);
-    assert.deepEqual(c.board.tests, b.board.tests, `${p.id}: the rows Test showed stay`);
-    const back = undoLikeApp(p, c);
-    assert.deepEqual(back.board.tests, b.board.tests);
-    const before = undoLikeApp(p, b);
-    assert.deepEqual(before.board.tests, [shown], `${p.id}: Undo of a Test keeps its row`);
-    assert.equal(before.board.presses, 1, `${p.id}: Undo keeps the count of presses`);
-    assert.equal(before.board.checked, false);
-    steps += hintsSolve(p, before, 'after a wrong Test and Undo');
-    // Illegal machine moves.
-    const k = m.marks.length;
-    for (const [action, why] of [[{type: 'arrow', from: 0, card: 'R', to: k}, 'an arrow to no circle'], [{type: 'arrow', from: k, card: 'R', to: 0}, 'an arrow from no circle'], [{type: 'arrow', from: 0, card: 'G', to: 0}, 'a green arrow'], [{type: 'arrow', from: '0', card: 'R', to: 0}, 'a circle named by a string'], [{type: 'mark', circle: -1}, 'a mark on no circle'], [{type: 'circles', n: k + 1}, 'a new circle'], [{type: 'mix'}, 'Mix'], [{type: 'cant', pair: 0}, 'Can’t'], [{type: 'key', target: 'row', index: 0, card: 'R'}, 'a row before the machine passes'], [{type: 'key', target: 'end', index: 0, card: 'R'}, 'an ending before the machine passes'], [{type: 'key', target: 'bench', card: 'R'}, 'the playground row'], [null, 'nothing'], [{type: 'fly'}, 'an unknown move']]) refuse(p, fresh, action, why);
-    // Forged saves.
-    const B = fresh.board, done = buildBy(p, fresh, m).board, wrong = buildBy(p, fresh, {arrows: m.arrows.map((_, s) => [s, s]), marks: m.marks.map(() => false)}).board;
-    for (const [board, why] of [
-      [{...done, checked: true}, 'a passed Test with no press'],
-      [{...wrong, checked: true, presses: 1}, 'a Test of a wrong machine that showed nothing'],
-      [{...wrong, checked: true, presses: 1, tests: ['RRRRRBBB']}, 'a Test that showed a row other than the first wrong one'],
-      [{...B, checked: true, presses: 1}, 'a Test of a machine with arrows not placed'],
-      [{...B, tests: ['R', 'R'], presses: 2}, 'a row shown twice'],
-      [{...B, tests: ['R', 'B'], presses: 1}, 'more rows than presses'],
-      [{...B, tests: ['RG']}, 'a green card in a Test row'],
-      [{...B, tests: ['R'.repeat(25)], presses: 1}, 'a Test row of 25 cards'],
-      [{...B, presses: -1}, 'a negative count'],
-      [{...B, arrows: B.arrows.map((x, s) => (s ? x : [k, null]))}, 'an arrow to no circle'],
-      [{...B, arrows: B.arrows.slice(1), marks: B.marks.slice(1)}, 'a circle missing'],
-      [{...B, marks: B.marks.map(() => 'yes')}, 'a mark that is not ✓ or ×'],
-      [{...B, extra: 1}, 'an unknown field'],
-      ...(q.mode === 'fewest' ? [[{...B, rows: B.rows.map((r, i) => (i ? r : 'R'))}, 'a row before the machine passes']] : [])
-    ]) rejects(p, board, why);
-  }
   if (q.mode === 'fewest') {
     let b = machine ? play(p, buildBy(p, fresh, p.solution.machine), {type: 'test'}) : fresh;
     const start = b;
@@ -371,27 +499,12 @@ function checkPlay(p, fresh, rule) {
       }
       steps += hintsSolve(p, c, `after random rows ${trial + 1}`);
     }
-    for (const [action, why] of [[{type: 'key', target: 'row', index: q.rows, card: 'R'}, 'a row past the last'], [{type: 'key', target: 'end', index: pairList(q.rows).length, card: 'R'}, 'an ending past the last'], [{type: 'key', target: 'row', index: 0, card: 'back'}, 'taking back from an empty row'], [{type: 'key', target: 'pair', index: 0, card: 'R'}, 'an unknown target'], [{type: 'cant', pair: 0}, 'Can’t']]) refuse(p, start, action, why);
+    for (const [action, why] of [[{type: 'key', target: 'row', index: q.rows, card: 'R'}, 'a row past the last'], [{type: 'key', target: 'end', index: pairList(q.rows).length, card: 'R'}, 'an ending past the last'], [{type: 'key', target: 'row', index: 0, card: 'back'}, 'taking back from an empty row'], [{type: 'key', target: 'pair', index: 0, card: 'R'}, 'an unknown target'], [{type: 'cant', pair: 0, circle: 0}, 'Can’t']]) refuse(p, start, action, why);
     const full = typeInto(p, start, 'row', 0, 'RRRRRR');
     refuse(p, full, {type: 'key', target: 'row', index: 0, card: 'B'}, 'a row past 6 cards');
     rejects(p, {...start.board, rows: start.board.rows.map((r, i) => (i ? r : 'RRRRRRR'))}, 'a row of 7 cards');
     rejects(p, {...start.board, ends: start.board.ends.slice(1)}, 'a missing ending');
     rejects(p, {...start.board, rows: [...start.board.rows, '']}, 'an extra row');
-  }
-  if (machine) {
-    // Random machine moves with Undo, then hints.
-    const random = seeded(7 + p.number), k = p.solution.machine.marks.length;
-    for (let trial = 0; trial < 8; trial++) {
-      let c = fresh;
-      for (let n = 0; n < 30; n++) {
-        const r = random();
-        if (r < 0.12) { c = undoLikeApp(p, c); continue; }
-        const action = r < 0.7 ? {type: 'arrow', from: Math.floor(random() * k), card: random() < 0.5 ? 'R' : 'B', to: Math.floor(random() * k)} : r < 0.85 ? {type: 'mark', circle: Math.floor(random() * k)} : {type: 'test'};
-        const next = move(p, c, action);
-        if (next && !isSolved(p, next.board) && !(q.mode === 'fewest' && next.board.checked && firstWrong(next.board, rule) === undefined)) c = next;
-      }
-      steps += hintsSolve(p, c, `after random moves ${trial + 1}`);
-    }
   }
   return steps;
 }

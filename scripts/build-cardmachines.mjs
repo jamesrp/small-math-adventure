@@ -19,13 +19,13 @@ const MACHINE_RULES = [
   'A machine is circles joined by arrows. Each circle has one R arrow and one B arrow, and says ✓ or ×.',
   'The marker starts on circle 1, at the small arrow. Each card of a row moves it along that card’s arrow from the circle it is on, even an arrow that loops back. The circle where it stops gives the answer; with no cards, circle 1 answers.'
 ];
-const TEST_RULE = 'Test checks the machine against the rule on every row there is and shows one of the shortest rows it gets wrong. Each machine is tested once; change it to test again.';
+const TEST_RULE = 'Test checks the machine against the rule on every row there is and shows one of the shortest rows it gets wrong. Each machine is tested once, and Test waits until the machine gets every row it has shown right.';
 const SHARED_RULES = [
   'A shared ending is the same cards, in the same order, after both rows of a pair. No cards is an ending too.',
   'Two rows that leave the marker on the same circle get the same answer after any shared ending: each next card takes both along the same arrow.'
 ];
 const BUILD_CONTROLS = 'Drag the R or B on an arrow onto a circle to point the arrow there, or tap it and then tap the circle. Tap a circle to switch it between ✓ and ×. Press Test when every arrow is placed; tap a row Test showed to see where it ends.';
-const SPLIT_CONTROLS = 'Tap the ending of a pair, then add cards with R and B; ⌫ takes the last one back. The same cards go after both rows, and both answers show. Can’t says no ending can give one ✓ and one ×. Keys R, B and Backspace work too.';
+const SPLIT_CONTROLS = 'Tap the ending of a pair, then add cards with R and B; ⌫ takes the last one back. The same cards go after both rows, and both answers show. Press Can’t and then tap the circle where both rows stop to say no ending can give one ✓ and one ×; Escape or Can’t again cancels. Keys R, B and Backspace work too.';
 const PROVE_CONTROLS = 'Tap a row and add cards with R and B; ⌫ takes the last one back. Tap the ending of a pair to put the same cards after both of its rows. Keys R, B and Backspace work too.';
 
 // Each puzzle: [level, title, parameters, text]. Text fields are written out
@@ -78,20 +78,20 @@ add('easy', 'Pairs of reds', {mode: 'build', rule: {kind: 'mod', m: 2}, circles:
   },
   provenance: 'New as a building task. The machine is Week 17 K–1 Problem 1’s (circle 1 ✓ and circle 2 ×, R both ways, B loops).'
 });
-add('easy', 'Same cards after', {mode: 'split', rule: {kind: 'mod', m: 3}, pairs: [['', 'R'], ['R', 'RR'], ['RR', 'RBR'], ['B', 'RRR']], machine: {arrows: [[1, 0], [2, 1], [0, 2]], marks: [true, false, false]}}, {
-  objective: 'For each pair of rows, add the same cards in the same order after both so that the machine gives one ✓ and one ×, or press Can’t when no cards can do it. Adding no cards is allowed.',
+add('easy', 'Same cards after', {mode: 'split', rule: {kind: 'diff', m: 3}, pairs: [['', 'R'], ['R', 'RR'], ['RR', 'B'], ['RB', 'BR']], machine: {arrows: [[1, 2], [2, 0], [0, 1]], marks: [true, false, false]}}, {
+  objective: 'For each pair of rows, add the same cards in the same order after both so that the machine gives one ✓ and one ×. When no cards can do it, press Can’t and tap the circle where both rows stop. Adding no cards is allowed.',
   visibleObjective: 'Add the same cards to both rows to get one ✓ and one ×.',
-  idea: 'Two markers on the same circle move together for good: the next card takes both along the same arrow.',
+  idea: 'Two markers on the same circle move together for good: the next card takes both along the same arrow. The circle where they stand shows that no ending splits them.',
   prerequisites: 'Follow arrows with two markers at once. Puzzles 1 to 3 first help.',
-  hints: ['Look where each row leaves its marker. Are the two markers on the same circle?', 'No cards and R already give one ✓ and one ×. R and R R split with one more R.', 'R R and R B R both end on circle 3, and B and R R R both on circle 1: press Can’t for those two pairs.'],
+  hints: ['Look where each row leaves its marker. Are the two markers on the same circle?', 'No cards and R already give one ✓ and one ×. R and R R split with one more R.', 'R R and B both stop on circle 3, and R B and B R both on circle 1: press Can’t and tap that circle.'],
   parent: {
-    notice: 'Whether your child tries many endings on a pair whose markers stand together before seeing that they can never part.',
+    notice: 'Whether your child tries many endings on a pair whose markers stand together before seeing that they can never part, and whether they find the circle to tap from the two markers.',
     prompt: 'When two markers stand on the same circle, can one card send them to different circles?',
-    explanation: 'The machine counts reds in threes: circle 1 for 0, 3, 6 … reds, circle 2 for one left over, circle 3 for two. No cards and R end on circles 1 and 2, already ✓ and ×. R and R R end on circles 2 and 3, and one more R takes them to 3 and 1, × and ✓. R R and R B R both have two reds and end on circle 3; B and R R R both end on circle 1. The same next card moves both markers along the same arrow, so they stay together after any ending.',
-    extension: 'Find two rows with different numbers of reds that still can’t be split. (R and R R R R.)',
+    explanation: 'Each R moves the marker one circle on round the triangle and each B one circle back, so the machine says ✓ when the reds minus the blues make groups of three. No cards and R stop on circles 1 and 2, already ✓ and ×. R and R R stop on circles 2 and 3, and one more R takes them to 3 and 1, × and ✓. R R and B both stop on circle 3, and R B and B R both on circle 1. The same next card moves both markers along the same arrow, so they stay together after any ending; the circle they share is the proof.',
+    extension: 'Find a row of four cards that stops on circle 1. (R R B B, or R B R B, and others.)',
     connection: 'If two inputs reach the same state, no suffix separates them: the lemma behind the Myhill–Nerode theorem.'
   },
-  provenance: 'Week 17 K–1 Problem 6: the same machine (a red cycle of three circles, ✓ × ×, B loops) and the same four pairs. The board applies one ending to both rows, the review card’s fix 1.'
+  provenance: 'Week 17 K–1 Problem 6’s task (four pairs under a drawn machine, one split by adding nothing and two that can’t be split) with a new machine, R on and B back round a triangle, so that it is no other puzzle’s answer (the review’s suggestion). R B / B R is grades 2–3 Problem 4’s pair. The board applies one ending to both rows, the review card’s fix 1.'
 });
 add('medium', 'Groups of three', {mode: 'build', rule: {kind: 'mod', m: 3}, circles: 3}, {
   objective: 'Make a machine with 3 circles that says ✓ exactly when the red cards make groups of three with none left over. No red cards counts.',
@@ -103,51 +103,37 @@ add('medium', 'Groups of three', {mode: 'build', rule: {kind: 'mod', m: 3}, circ
     notice: 'Whether your child uses circles 2 and 3 for “one left over” and “two left over”, or keeps trying a two-circle idea.',
     prompt: 'Why can’t two circles do it? (Think of no cards, R and R R.)',
     explanation: 'Circle 1 means no reds left over, circle 2 one and circle 3 two. R moves on one circle and B stays, so after every card the marker shows the reds left over, and only circle 1 says ✓. Two circles are not enough: no cards and R differ with no ending, no cards and R R too, and R and R R after one more R. With two circles two of these rows would share a circle.',
-    extension: 'Groups of four take four circles (puzzle 9); groups of m take m.',
+    extension: 'Groups of four take four circles (puzzle 8); groups of m take m.',
     connection: 'The cyclic group of order 3 acting on three states. “The number of a’s is a multiple of m” needs exactly m states.'
   },
   provenance: 'Week 17 grades 2–3 Problem 5 (“Draw a machine that says YES exactly when its red cards can be put in groups of three with none left over.”) and grades 4–5 Problem 1’s machine.'
 });
-add('medium', 'Reds left over', {mode: 'split', rule: {kind: 'mod', m: 3}, pairs: [['R', 'BRR'], ['RB', 'BR'], ['BBB', 'RRR'], ['BRB', 'RBRB']]}, {
-  objective: 'The rule is ✓ when the red cards make groups of three with none left over. For each pair of rows, add the same cards in the same order after both to get one ✓ and one ×, or press Can’t when no cards can do it.',
-  visibleObjective: '✓ when the red cards make groups of three with none left over.',
-  idea: 'Only the reds left over matter. Rows that look different can be the same to the rule, and then no ending splits them.',
-  prerequisites: 'Count reds and make groups of three. Puzzles 4 and 5 first.',
-  hints: ['Count the reds left over after groups of three in each row.', 'R and B R R: add one R. B R B and R B R B: one more R too.', 'R B and B R have the same reds, and so do B B B and R R R (none left over). Press Can’t for both.'],
+add('medium', 'Red then blue', {mode: 'split', rule: {kind: 'ends', word: 'RB'}, circles: 3, pairs: [['', 'R'], ['R', 'BR'], ['B', 'RR'], ['', 'RBB']]}, {
+  objective: 'Make a machine with 3 circles that says ✓ exactly when the last two cards are red then blue; every other row gets ×. Then, for each pair of rows, add the same cards after both to get one ✓ and one ×, or press Can’t and tap the circle of your machine where both rows stop.',
+  visibleObjective: '',
+  boardLines: ['✓ when the last two cards are red then blue.', 'Add the same cards to both rows to get one ✓ and one ×.'],
+  idea: 'Two circles can both say × and still have to be different: no cards and R both get ×, but one B splits them. And rows that look different, like R and B R, can be the same to the machine.',
+  prerequisites: 'Puzzles 1, 4 and 5 first. Reading a two-card ending.',
+  hints: ['After R, one B gives ✓. After no cards, one B gives ×. Can those two rows share a circle?', 'Use one × circle for “nothing useful yet”, one × circle for “the last card is R” and the ✓ circle for “the last two are R B”. Every R goes to the “last card R” circle.', 'Circle 1 says ×: R to circle 2, B loops back. Circle 2 says ×: R loops back, B to circle 3. Circle 3 says ✓: R to circle 2, B to circle 1. Then B splits no cards from R, and B from R R.'],
   parent: {
-    notice: 'Whether your child tries many endings on B B B and R R R before noticing that both have no reds left over.',
-    prompt: 'Both rows say ✓ now. Could some ending ever make them disagree?',
-    explanation: 'An ending adds the same number of reds to both rows. Rows with the same reds left over after threes (R B and B R: one; B B B and R R R: none) stay alike for good. Rows with different numbers left over split: R has one and B R R two, so one more R makes B R R R three, ✓, and R R two, ×. After a right Can’t, the app shows the groups-of-three machine with both rows ending on one circle.',
-    extension: 'Find two rows that both say × and can’t be split, and two that both say × and can.',
-    connection: 'The Myhill–Nerode classes of “the number of a’s is a multiple of 3” are the three remainders.'
-  },
-  provenance: 'Week 17 grades 2–3 Problem 4 (R B / B R) and grades 4–5 Problem 2 (B B B / R R R). R / B R R and B R B / R B R B are new pairs with different remainders, so that two pairs split and two can’t.'
-});
-add('medium', 'Red then blue', {mode: 'build', rule: {kind: 'ends', word: 'RB'}, circles: 3}, {
-  objective: 'Make a machine with 3 circles that says ✓ exactly when the last two cards are red then blue. Every other row gets ×.',
-  visibleObjective: '✓ when the last two cards are red then blue.',
-  idea: 'Two circles can both say × and still have to be different: after no cards and after R the answers agree, but one B splits them.',
-  prerequisites: 'Puzzles 1 and 5 first. Reading a two-card ending.',
-  hints: ['After R, one B gives ✓. After no cards, one B gives ×. Can those two rows share a circle?', 'Use one × circle for “nothing useful yet”, one × circle for “the last card is R” and the ✓ circle for “the last two are R B”. Every R goes to the “last card R” circle.', 'Circle 1 says ×: R to circle 2, B loops back. Circle 2 says ×: R loops back, B to circle 3. Circle 3 says ✓: R to circle 2, B to circle 1.'],
-  parent: {
-    notice: 'Whether your child builds a machine that says ✓ once R B has ever come (Test then shows R B R) and whether they see why two × circles are needed.',
+    notice: 'Whether your child builds a machine that says ✓ once R B has ever come (Test then shows R B R), whether they see why two × circles are needed, and whether they read R and B R as alike from where the markers stop.',
     prompt: 'The marker is on the ✓ circle and a B comes. Where should it go? And after an R?',
-    explanation: 'The circles remember how much of R B the row ends with: nothing, R, or R B. Every R leads to “ends in R”. A B after R completes R B; a B anywhere else leaves nothing useful. Three are needed: no cards and R are split by B (×, ✓), and R B is split from both by no cards.',
+    explanation: 'The circles remember how much of R B the row ends with: nothing, R, or R B. Every R leads to “ends in R”. A B after R completes R B; a B anywhere else leaves nothing useful. Three are needed: no cards and R are split by B (×, ✓), and R B is split from both by no cards. In the pairs, B and R R also need a B (R R B ends in R B). R and B R both end in R, and no cards and R B B both end with nothing useful, so each of those pairs stops on one circle of any right machine and stays together.',
     extension: 'What about “the last two cards are red then red”? Or “R B has come somewhere”?',
-    connection: 'The pattern automaton of Knuth–Morris–Pratt string matching: its states are the longest beginning of the pattern that ends the input.'
+    connection: 'The pattern automaton of Knuth–Morris–Pratt string matching: its states, the longest beginning of the pattern that ends the input, are this rule’s Myhill–Nerode classes.'
   },
-  provenance: 'Week 17 grades 2–3 Problem 6 and grades 4–5 Problem 5 (“…says YES exactly when the last two cards are red followed by blue. Every other row must give NO.”).'
+  provenance: 'Week 17 grades 2–3 Problem 6 and grades 4–5 Problem 5 (“…says YES exactly when the last two cards are red followed by blue. Every other row must give NO.”). The four pairs are new, from the review: the splits need B, and the rows that can’t be split look unalike.'
 });
 add('medium', 'Not two circles', {mode: 'fewest', rule: {kind: 'ends', word: 'RB'}, circles: 0, rows: 3}, {
   objective: 'Show that 2 circles are not enough for ✓ when the last two cards are red then blue: make 3 rows, and for every two of them a shared ending that gives one ✓ and one ×.',
   visibleObjective: 'Show 2 circles are not enough for ✓ when the last two cards are red then blue.',
   idea: 'Three rows that can be split two at a time need three circles: two rows on one circle could never be split.',
-  prerequisites: 'Puzzles 4 and 7 first.',
-  hints: ['Which rows did your machine in puzzle 7 keep on different circles?', 'Try no cards, R and R B.', 'Row 1 no cards, row 2 R, row 3 R B. Rows 1 and 2: add B. The other pairs need no cards.'],
+  prerequisites: 'Puzzle 6 first.',
+  hints: ['Which rows did your machine in puzzle 6 keep on different circles?', 'Try no cards, R and R B.', 'Row 1 no cards, row 2 R, row 3 R B. Rows 1 and 2: add B. The other pairs need no cards.'],
   parent: {
     notice: 'Whether your child picks three rows that all say × and finds they can’t split them all, or uses the three kinds of ending: nothing, R, R B.',
     prompt: 'No cards and R both say ×. Why must a machine still keep them apart?',
-    explanation: 'With no cards and R, adding B gives × and ✓, so they can’t share a circle. R B says ✓ and the others ×, so it can’t share with either. Any two-circle machine puts two of the three rows on one circle, and then that pair’s ending gives them the same answer, so the machine is wrong on one of them. With puzzle 7’s machine, three is exactly the fewest.',
+    explanation: 'With no cards and R, adding B gives × and ✓, so they can’t share a circle. R B says ✓ and the others ×, so it can’t share with either. Any two-circle machine puts two of the three rows on one circle, and then that pair’s ending gives them the same answer, so the machine is wrong on one of them. With puzzle 6’s machine, three is exactly the fewest.',
     extension: 'Can you find four rows that split two at a time? (No: each row ends on one of the three circles of a right machine.)',
     connection: 'Pairwise distinguishable strings give a lower bound on the states of any automaton for a language: the easy direction of Myhill–Nerode.'
   },
@@ -155,9 +141,10 @@ add('medium', 'Not two circles', {mode: 'fewest', rule: {kind: 'ends', word: 'RB
 });
 add('hard', 'Groups of four', {mode: 'fewest', rule: {kind: 'mod', m: 4}, circles: 4, rows: 4}, {
   objective: 'Make a machine with 4 circles that says ✓ exactly when the red cards make groups of four with none left over, then show that 3 circles are not enough.',
-  visibleObjective: '✓ when the red cards make groups of four with none left over.',
+  visibleObjective: '',
+  boardLines: ['✓ when the red cards make groups of four with none left over.', 'Show 3 circles are not enough for ✓ when the red cards make groups of four with none left over.'],
   idea: 'A working machine and four rows that split two at a time together show that four circles is exactly the fewest.',
-  prerequisites: 'Puzzles 5 and 8 first.',
+  prerequisites: 'Puzzles 5 and 7 first.',
   hints: ['Build it like groups of three, with one more circle.', 'For the rows, try no cards, R, R R and R R R. To split two rows, add reds until one of them makes groups of four.', 'Rows: no cards, R, R R, R R R. Pairs with no cards need nothing; R and R R take R R; R and R R R, and R R and R R R, take R.'],
   parent: {
     notice: 'Whether your child builds the loop quickly after puzzle 5 and then picks rows by their reds left over.',
@@ -170,9 +157,10 @@ add('hard', 'Groups of four', {mode: 'fewest', rule: {kind: 'mod', m: 4}, circle
 });
 add('hard', 'Two reds together', {mode: 'fewest', rule: {kind: 'seen', word: 'RR'}, circles: 3, rows: 3}, {
   objective: 'Make a machine with 3 circles that says ✓ exactly when two red cards have come next to each other somewhere in the row, and still says ✓ after more cards; then show that 2 circles are not enough.',
-  visibleObjective: '✓ when two red cards have come next to each other.',
+  visibleObjective: '',
+  boardLines: ['✓ when two red cards have come next to each other.', 'Show 2 circles are not enough for ✓ when two red cards have come next to each other.'],
   idea: 'This machine needs a memory that resets (one red waiting, wiped by a blue) and one that never resets (two reds together have come).',
-  prerequisites: 'Puzzles 2 and 7 first.',
+  prerequisites: 'Puzzles 2 and 6 first.',
   hints: ['After R B, is anything useful waiting? After R?', 'Circle 1: no red waiting. Circle 2: one red waiting. Circle 3: two reds together have come, and it keeps the marker for good.', 'Circle 1 says ×: R to circle 2, B loops back. Circle 2 says ×: R to circle 3, B to circle 1. Circle 3 says ✓ and both its arrows loop. Rows: no cards, R, R R.'],
   parent: {
     notice: 'Whether your child’s first machine says ✓ for R B R (two reds, but not next to each other); Test will show that row.',
@@ -185,9 +173,10 @@ add('hard', 'Two reds together', {mode: 'fewest', rule: {kind: 'seen', word: 'RR
 });
 add('hard', 'Both in pairs', {mode: 'fewest', rule: {kind: 'even2'}, circles: 4, rows: 4}, {
   objective: 'Make a machine with 4 circles that says ✓ exactly when the red cards make pairs and the blue cards make pairs, with none left over (no cards counts); then show that 3 circles are not enough.',
-  visibleObjective: '✓ when the red cards and the blue cards both make pairs.',
+  visibleObjective: '',
+  boardLines: ['✓ when the red cards and the blue cards both make pairs.', 'Show 3 circles are not enough for ✓ when the red cards and the blue cards both make pairs.'],
   idea: 'Two memories, reds even or odd and blues even or odd, combine into four circles, one for each pair of answers.',
-  prerequisites: 'Puzzles 3 and 9 first.',
+  prerequisites: 'Puzzles 3 and 8 first.',
   hints: ['One question for reds and one for blues: each odd or even. How many ways can the two answers go?', 'Think of the circles as the corners of a square: R moves across, B moves up and down.', 'Circle 1 says ✓. R swaps circles 1 and 2 and circles 3 and 4; B swaps circles 1 and 4 and circles 2 and 3. Rows: no cards, R, B, R B.'],
   parent: {
     notice: 'Whether your child first builds a machine for one colour only, and how Test’s rows (B, R B and so on) lead to the second memory.',
@@ -202,13 +191,13 @@ add('hard', 'As many reds as blues', {mode: 'fewest', rule: {kind: 'equal'}, cir
   objective: 'Show that 3 circles are not enough for ✓ when there are as many red cards as blue cards: make 4 rows, and for every two of them a shared ending that gives one ✓ and one ×.',
   visibleObjective: 'Show 3 circles are not enough for ✓ when there are as many red cards as blue cards.',
   idea: 'Each extra red needs a circle of its own, so no number of circles is ever enough.',
-  prerequisites: 'Puzzles 8 and 9 first.',
+  prerequisites: 'Puzzles 7 and 8 first.',
   hints: ['What would a row with one more red than blue need to get ✓?', 'Try rows with no cards, R, R R and R R R. Blue cards can balance one row of a pair and not the other.', 'Rows: no cards, R, R R, R R R. A pair whose first row has some reds splits by adding that many B: nothing, B or B B.'],
   parent: {
     notice: 'Whether your child sees that more rows (R R R R and so on) would always work too, so no machine with a fixed number of circles can follow this rule.',
     prompt: 'Could 10 circles do it? Which rows would you pick then?',
     explanation: 'Take rows with 0, 1, 2 and 3 reds. For two with i < j reds, adding i blues balances the first (✓) and not the second (×). So the four rows need four circles. The same works with R repeated as often as you like, so no machine with a fixed number of circles says ✓ exactly for equal counts on rows of every length.',
-    extension: 'The rule “reds minus blues is a multiple of 3” looks alike. How many circles does it need? (Three.)',
+    extension: 'The rule “reds minus blues is a multiple of 3” looks alike. How many circles does it need? (Three: it is puzzle 4’s machine.)',
     connection: 'The strings with equally many a’s and b’s form the classic language no finite automaton recognizes: a, aa, aaa, … are pairwise distinguishable. A counter or a stack is extra memory.'
   },
   provenance: 'Week 17 return visit Problem 3 (“Could any machine with a fixed number of states work for rows of every length?”) and its guide’s argument: histories with 0 to m reds, then i blues.'
@@ -216,7 +205,7 @@ add('hard', 'As many reds as blues', {mode: 'fewest', rule: {kind: 'equal'}, cir
 
 const playground = {
   id: 'cardmachines-playground', number: 0, title: 'Card machines playground', difficulty_level: 'playground', familyTitle: 'Card machines', libraryFamily: 'cardmachines', mechanic: 'cardmachine', band: 'playground', revision: 1, sourceDocument: 'docs/cardmachines/README.md',
-  parameters: {mode: 'playground', machine: {arrows: [[1, 0], [0, 1]], marks: [true, false]}},
+  parameters: {mode: 'playground', machine: {arrows: [[1, 1], [0, 0]], marks: [true, false]}},
   objective: 'Build any machine with 1 to 5 circles and run rows of cards through it.',
   visibleObjective: '',
   instruction: 'Build any machine with 1 to 5 circles and run rows of cards through it.',
@@ -239,10 +228,9 @@ const playground = {
 // The table in docs/cardmachines/README.md.
 const TABLE = [
   {fewest: 2}, {fewest: 2}, {fewest: 2},
-  {answers: ['', 'R', 'cant', 'cant']},
+  {fewest: 3, answers: ['', 'R', 'cant', 'cant'], claims: [null, null, 2, 0]},
   {fewest: 3},
-  {answers: ['R', 'cant', 'cant', 'R']},
-  {fewest: 3},
+  {fewest: 3, answers: ['B', 'cant', 'B', 'cant'], claims: [null, 1, null, 0]},
   {fewest: 3, rows: ['', 'R', 'RB'], ends: ['B', '', '']},
   {fewest: 4, rows: ['', 'R', 'RR', 'RRR'], ends: ['', '', '', 'RR', 'R', 'R']},
   {fewest: 3, rows: ['', 'R', 'RR'], ends: ['R', '', '']},
@@ -262,8 +250,8 @@ function witnessRows(rule, n) {
 const puzzles = P.map((x, i) => {
   const q = x.parameters, want = TABLE[i], number = i + 1;
   const solution = {};
-  if (q.mode !== 'split') assert.equal(fewest(q.rule), want.fewest, `${x.title}: fewest circles`);
-  if (q.mode === 'build' || (q.mode === 'fewest' && q.circles)) { assert.equal(q.circles, fewest(q.rule), `${x.title}: the budget is the fewest`); solution.fewest = q.circles; solution.machine = renamings(q.rule)[0]; }
+  assert.equal(fewest(q.rule), want.fewest, `${x.title}: fewest circles`);
+  if (q.mode === 'build' || q.circles) { assert.equal(q.circles, fewest(q.rule), `${x.title}: the budget is the fewest`); solution.fewest = q.circles; solution.machine = renamings(q.rule)[0]; }
   if (q.mode === 'fewest') {
     assert.equal(q.rows, Number.isFinite(want.fewest) ? want.fewest : 4);
     const rows = witnessRows(q.rule, q.rows), ends = pairsOf(q.rows).map(([a, b]) => splitter(q.rule, rows[a], rows[b]));
@@ -272,22 +260,31 @@ const puzzles = P.map((x, i) => {
     Object.assign(solution, {rows, ends});
   }
   if (q.mode === 'split') {
+    // Each pair's shortest splitting ending, or Can't with the circle where
+    // both rows stop on the machine the pairs are read on (the drawn one, or
+    // the one the hints build).
     const answers = q.pairs.map(([a, b]) => (separable(q.rule, a, b) ? splitter(q.rule, a, b) : 'cant'));
     assert.deepEqual(answers, want.answers, `${x.title}: answers`);
+    assert.equal(Boolean(q.machine), !q.circles, `${x.title}: a drawn machine or one to build`);
     if (q.machine) assert.deepEqual(q.machine, ruleMachine(q.rule), `${x.title}: the drawn machine is the rule’s`);
-    solution.answers = answers;
+    const m = q.machine || solution.machine, stop = row => [...row].reduce((s, c) => m.arrows[s][c === 'R' ? 0 : 1], 0);
+    const claims = q.pairs.map(([a, b], i) => (answers[i] === 'cant' ? stop(a) : null));
+    q.pairs.forEach(([a, b], i) => { if (answers[i] === 'cant') assert.equal(stop(b), claims[i], `${x.title}: both rows of pair ${i + 1} stop together`); });
+    assert.deepEqual(claims, want.claims, `${x.title}: Can’t circles`);
+    Object.assign(solution, {answers, claims});
   }
-  const controls = q.mode === 'build' ? BUILD_CONTROLS : q.mode === 'split' ? SPLIT_CONTROLS : q.circles ? `${BUILD_CONTROLS} Once it passes, ${PROVE_CONTROLS[0].toLowerCase()}${PROVE_CONTROLS.slice(1)}` : PROVE_CONTROLS;
+  const later = (a, b) => `${a} Once it passes, ${b[0].toLowerCase()}${b.slice(1)}`;
+  const controls = q.mode === 'build' ? BUILD_CONTROLS : q.mode === 'split' ? (q.circles ? later(BUILD_CONTROLS, SPLIT_CONTROLS) : SPLIT_CONTROLS) : q.circles ? later(BUILD_CONTROLS, PROVE_CONTROLS) : PROVE_CONTROLS;
   const rules = [
     ...MACHINE_RULES,
     ...(q.mode === 'build' || q.circles ? [TEST_RULE] : []),
     ...(q.mode === 'build' ? [] : SHARED_RULES),
-    ...(q.mode === 'split' ? ['Can’t claims that no shared ending gives one ✓ and one ×. The app checks the claim; when it is right, it shows a machine for the rule with both rows ending on one circle.'] : []),
+    ...(q.mode === 'split' ? ['Can’t claims that no shared ending gives one ✓ and one ×: press it, then tap the circle where both rows stop.'] : []),
     ...(q.mode === 'fewest' ? [`When every two of the ${q.rows} rows have a shared ending that gives one ✓ and one ×, no two of them can share a circle, so ${q.rows - 1} ${q.rows === 2 ? 'circle is' : 'circles are'} not enough.`] : [])
   ];
   return {
     id: `cardmachines-${String(number).padStart(2, '0')}`, number, title: x.title, difficulty_level: x.level, familyTitle: 'Card machines', libraryFamily: 'cardmachines', mechanic: 'cardmachine', band: 'all', revision: 1, sourceDocument: 'docs/cardmachines/README.md',
-    parameters: q, objective: x.objective, visibleObjective: x.visibleObjective, instruction: x.objective, controls, rules,
+    parameters: q, objective: x.objective, visibleObjective: x.visibleObjective, ...(x.boardLines ? {boardLines: x.boardLines} : {}), instruction: x.objective, controls, rules,
     idea: x.idea, prerequisites: x.prerequisites, hints: x.hints, parent: {...x.parent, sourceIds: SOURCES}, solution, provenance: x.provenance
   };
 });

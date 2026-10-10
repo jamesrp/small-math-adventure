@@ -13,9 +13,10 @@
 //
 // Puzzles: build a machine for a rule with exactly the fewest circles (Test
 // compares it with the rule on every row and shows one shortest row it gets
-// wrong); split pairs of rows with one shared ending, or claim Can't; and show
-// that fewer circles are not enough with the child's own rows and an ending
-// for each pair. The app applies an ending to both rows of a pair at once.
+// wrong); split pairs of rows with one shared ending, or press Can't and tap
+// the circle where both rows stop, on a drawn machine or the child's own; and
+// show that fewer circles are not enough with the child's own rows and an
+// ending for each pair. The app applies an ending to both rows of a pair.
 import {esc} from '../../expansion-controls.js';
 
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -49,8 +50,9 @@ const machineOf = b => ({arrows: b.arrows, marks: b.marks});
 // --- Rules --------------------------------------------------------------------
 // Each rule is a step function on its own states. `last` (the last card),
 // `seen` (a word has appeared as neighbouring cards), `ends` (the row ends with
-// a word), `mod` (the reds make groups of m), `even2` (reds and blues both
-// even) have finitely many; `equal` (as many reds as blues) does not.
+// a word), `mod` (the reds make groups of m), `diff` (reds minus blues makes
+// groups of m), `even2` (reds and blues both even) have finitely many;
+// `equal` (as many reds as blues) does not.
 function prefixState(word, s, c, absorbing) {
   if (absorbing && s === word.length) return s;
   const seen = word.slice(0, s) + c;
@@ -62,6 +64,7 @@ const RAW = {
   seen: r => ({start: 0, step: (s, c) => prefixState(r.word, s, c, true), accept: s => s === r.word.length}),
   ends: r => ({start: 0, step: (s, c) => prefixState(r.word, s, c, false), accept: s => s === r.word.length}),
   mod: r => ({start: 0, step: (s, c) => (c === 'R' ? (s + 1) % r.m : s), accept: s => s === 0}),
+  diff: r => ({start: 0, step: (s, c) => (c === 'R' ? (s + 1) % r.m : (s + r.m - 1) % r.m), accept: s => s === 0}),
   even2: () => ({start: 0, step: (s, c) => s ^ (c === 'R' ? 1 : 2), accept: s => s === 0}),
   equal: () => ({start: 0, step: (s, c) => s + (c === 'R' ? 1 : -1), accept: s => s === 0, infinite: true})
 };
@@ -71,7 +74,7 @@ export function validRule(r) {
   switch (r.kind) {
     case 'last': return keys === 'card,kind' && CARDS.includes(r.card);
     case 'seen': case 'ends': return keys === 'kind,word' && /^[RB]{1,4}$/.test(r.word);
-    case 'mod': return keys === 'kind,m' && Number.isInteger(r.m) && r.m >= 1 && r.m <= MAX_CIRCLES;
+    case 'mod': case 'diff': return keys === 'kind,m' && Number.isInteger(r.m) && r.m >= 1 && r.m <= MAX_CIRCLES;
     default: return keys === 'kind';
   }
 }
@@ -162,23 +165,31 @@ export const correct = (m, rule) => complete(m) && counterexample(m, rule) === n
 
 // --- Boards -------------------------------------------------------------------
 // build:  {arrows, marks, checked, tests, presses}
-// split:  {ends, cant, refused}
+// split:  {ends, cant, refused}, with the machine fields as well when the
+//         child builds the machine first (circles > 0) instead of seeing it
 // fewest: {arrows, marks, checked, tests, presses, rows, ends}, or {rows, ends}
 //         when no machine is built first
 // playground: {arrows, marks, row}
 // `checked` says Test has looked at this machine; `tests` are the rows Test
-// has shown, oldest first, and `presses` counts Test presses (kept by Undo).
-const hasMachine = q => q.mode === 'build' || q.mode === 'playground' || (q.mode === 'fewest' && q.circles > 0);
+// has shown, oldest first, and `presses` counts Test presses (kept by Undo
+// and Restart).
+const hasMachine = q => q.mode === 'build' || q.mode === 'playground' || (['fewest', 'split'].includes(q.mode) && q.circles > 0);
 const blankMachine = k => ({arrows: Array.from({length: k}, () => [null, null]), marks: Array(k).fill(false)});
 const passed = (q, b) => b.checked && correct(machineOf(b), q.rule);
-// In a fewest puzzle with a machine, rows open once the machine has passed.
-const proving = (q, b) => q.mode === 'fewest' && (q.circles === 0 || passed(q, b));
+// Pairs and rows open at once, or once a machine built first has passed Test.
+const second = (q, b) => ['fewest', 'split'].includes(q.mode) && (!(q.circles > 0) || passed(q, b));
+// The machine a split puzzle's pairs are read on: drawn, or the child's own.
+const pairMachine = (q, b) => q.machine || machineOf(b);
+const set = (list, i, v) => list.map((x, j) => (j === i ? v : x));
+// Test is ready for a complete machine it has not looked at that gets every
+// row it has already shown right.
+export const testReady = (q, b) => !b.checked && complete(b) && b.tests.every(t => machineSays(machineOf(b), t) === ruleSays(q.rule, t));
 
 function fresh(p) {
   const q = p.parameters;
   if (q.mode === 'playground') return {arrows: q.machine.arrows.map(a => [...a]), marks: [...q.machine.marks], row: ''};
-  if (q.mode === 'split') return {ends: q.pairs.map(() => ''), cant: q.pairs.map(() => false), refused: q.pairs.map(() => false)};
   const machine = hasMachine(q) ? {...blankMachine(q.circles), checked: false, tests: [], presses: 0} : {};
+  if (q.mode === 'split') return {...machine, ends: q.pairs.map(() => ''), cant: q.pairs.map(() => false), refused: q.pairs.map(() => false)};
   return q.mode === 'build' ? machine : {...machine, rows: Array(q.rows).fill(''), ends: pairsOf(q.rows).map(() => '')};
 }
 function validTesting(q, b) {
@@ -190,6 +201,8 @@ function validTesting(q, b) {
   const wrong = counterexample(machineOf(b), q.rule);
   return wrong === null || b.tests.includes(wrong);
 }
+const machineKeys = 'arrows,checked,marks,presses,tests';
+const keysOf = list => list.join(',').split(',').filter(Boolean).sort().join();
 function valid(p, b) {
   const q = p.parameters;
   if (!object(b)) return false;
@@ -198,33 +211,37 @@ function valid(p, b) {
     const k = Array.isArray(b.marks) ? b.marks.length : 0;
     return keys === 'arrows,marks,row' && k >= 1 && k <= MAX_CIRCLES && validMachine(b, k) && complete(b) && isRow(b.row, 12);
   }
-  if (q.mode === 'split') {
-    const n = q.pairs.length;
-    if (keys !== 'cant,ends,refused' || ![b.ends, b.cant, b.refused].every(list => Array.isArray(list) && list.length === n)) return false;
-    return q.pairs.every(([x, y], i) => {
-      const e = b.ends[i], cant = b.cant[i], refused = b.refused[i];
-      if (!isRow(e) || typeof cant !== 'boolean' || typeof refused !== 'boolean' || (cant && refused)) return false;
-      // A right Can't clears the ending and holds only for rows that can't be
-      // split; a refused one stands until the ending changes.
-      if (cant) return e === '' && !separable(q.rule, x, y);
-      if (refused) return separable(q.rule, x, y) && !splits(q.rule, x, y, e);
-      return true;
-    });
-  }
-  const want = q.mode === 'build' ? 'arrows,checked,marks,presses,tests' : hasMachine(q) ? 'arrows,checked,ends,marks,presses,rows,tests' : 'ends,rows';
+  const own = hasMachine(q) ? machineKeys : '';
+  const want = keysOf([own, q.mode === 'split' ? 'cant,ends,refused' : q.mode === 'fewest' ? 'ends,rows' : '']);
   if (keys !== want || (hasMachine(q) && !validTesting(q, b))) return false;
   if (q.mode === 'build') return true;
+  if (q.mode === 'split') {
+    const n = q.pairs.length;
+    if (![b.ends, b.cant, b.refused].every(list => Array.isArray(list) && list.length === n)) return false;
+    const pairsOk = q.pairs.every(([x, y], i) => {
+      const e = b.ends[i], cant = b.cant[i], refused = b.refused[i];
+      if (!isRow(e) || typeof cant !== 'boolean' || typeof refused !== 'boolean' || (cant && refused)) return false;
+      // A kept Can't holds only for rows no ending splits; a refused claim
+      // stands until the ending changes, and never beside a splitting one.
+      if (cant) return !separable(q.rule, x, y);
+      if (refused) return !splits(q.rule, x, y, e);
+      return true;
+    });
+    // Pairs wait for a machine that has passed.
+    return pairsOk && (second(q, b) || [...b.ends.map(e => e !== ''), ...b.cant, ...b.refused].every(x => !x));
+  }
   if (!Array.isArray(b.rows) || b.rows.length !== q.rows || !b.rows.every(r => isRow(r))) return false;
   if (!Array.isArray(b.ends) || b.ends.length !== pairsOf(q.rows).length || !b.ends.every(e => isRow(e))) return false;
   // Rows wait for a machine that has passed.
-  return proving(q, b) || [...b.rows, ...b.ends].every(s => s === '');
+  return second(q, b) || [...b.rows, ...b.ends].every(s => s === '');
 }
 function solved(p, b) {
   const q = p.parameters;
   if (q.mode === 'playground' || !valid(p, b)) return false;
   if (q.mode === 'build') return passed(q, b);
+  if (!second(q, b)) return false;
   if (q.mode === 'split') return q.pairs.every(([x, y], i) => b.cant[i] || splits(q.rule, x, y, b.ends[i]));
-  return proving(q, b) && pairsOf(q.rows).every(([i, j], n) => splits(q.rule, b.rows[i], b.rows[j], b.ends[n]));
+  return pairsOf(q.rows).every(([i, j], n) => splits(q.rule, b.rows[i], b.rows[j], b.ends[n]));
 }
 
 // --- Moves --------------------------------------------------------------------
@@ -233,7 +250,8 @@ function solved(p, b) {
 // {type: 'test'}                   compare the machine with the rule
 // {type: 'key', target, index, card}  a card ('R', 'B') or 'back' for a row,
 //                                  an ending ('end') or the playground's row
-// {type: 'cant', pair}             no shared ending splits this pair
+// {type: 'cant', pair, circle}     no shared ending splits this pair: both
+//                                  rows, with the ending, stop on this circle
 // {type: 'circles', n}, {type: 'mix'}  the playground's circles
 function edit(b, list, index, card) {
   const s = b[list][index];
@@ -256,10 +274,9 @@ function machineMove(q, b, action, random) {
     return q.mode === 'playground' ? {...b, marks} : {...b, marks, checked: false};
   }
   if (action.type === 'test' && q.mode !== 'playground') {
-    if (b.checked || !complete(b)) return null;
+    if (!testReady(q, b)) return null;
     const wrong = counterexample(machineOf(b), q.rule);
-    const tests = wrong === null || b.tests.includes(wrong) ? b.tests : [...b.tests, wrong];
-    return {...b, checked: true, tests, presses: b.presses + 1};
+    return {...b, checked: true, tests: wrong === null ? b.tests : [...b.tests, wrong], presses: b.presses + 1};
   }
   if (q.mode === 'playground') {
     if (action.type === 'circles') {
@@ -280,40 +297,45 @@ function machineMove(q, b, action, random) {
   }
   return null;
 }
+function pairMove(p, q, b, action) {
+  const i = action.type === 'cant' ? action.pair : action.index;
+  if (!Number.isInteger(i) || i < 0 || i >= q.pairs.length || b.cant[i]) return null;
+  const [x, y] = q.pairs[i], e = b.ends[i];
+  let next;
+  if (action.type === 'key') {
+    const s = edit(b, 'ends', i, action.card);
+    if (s === null) return null;
+    next = {...b, ends: set(b.ends, i, s), refused: set(b.refused, i, false)};
+  } else {
+    // A Can't names the circle where both rows, with the ending, stop.
+    const m = pairMachine(q, b), c = action.circle;
+    if (splits(q.rule, x, y, e) || !Number.isInteger(c) || c < 0 || c >= m.marks.length) return null;
+    const shared = !separable(q.rule, x, y) && runMachine(m, x + e).at(-1) === c && runMachine(m, y + e).at(-1) === c;
+    next = shared ? {...b, cant: set(b.cant, i, true), refused: set(b.refused, i, false)} : {...b, refused: set(b.refused, i, true)};
+  }
+  const v = ui(p);
+  v.claim = null;
+  v.sel = next.cant[i] ? null : ['pair', i];
+  return next;
+}
 function move(p, b, action, random = Math.random) {
   const q = p.parameters;
   if (!valid(p, b) || solved(p, b) || !object(action)) return null;
-  let next = null;
-  if (q.mode === 'split') {
-    const i = action.index ?? action.pair;
-    if (!Number.isInteger(i) || i < 0 || i >= q.pairs.length || b.cant[i]) return null;
-    const [x, y] = q.pairs[i];
-    if (action.type === 'key' && action.target === 'end') {
-      const e = edit(b, 'ends', i, action.card);
-      if (e !== null) next = {...b, ends: b.ends.map((s, j) => (j === i ? e : s)), refused: b.refused.map((r, j) => (j === i ? false : r))};
-    } else if (action.type === 'cant' && !b.refused[i] && !splits(q.rule, x, y, b.ends[i])) {
-      next = separable(q.rule, x, y)
-        ? {...b, refused: b.refused.map((r, j) => (j === i ? true : r))}
-        : {...b, ends: b.ends.map((s, j) => (j === i ? '' : s)), cant: b.cant.map((c, j) => (j === i ? true : c))};
-    }
-    // After a right Can't the keys go to the next open pair.
-    if (next) ui(p).sel = next.cant[i] ? null : ['pair', i];
-    return next;
-  }
+  if (q.mode === 'split' && (action.type === 'cant' || (action.type === 'key' && action.target === 'end'))) return second(q, b) ? pairMove(p, q, b, action) : null;
   if (['arrow', 'mark', 'test', 'circles', 'mix'].includes(action.type) || action.target === 'bench') {
-    if (!hasMachine(q) || (q.mode === 'fewest' && proving(q, b))) return null;
-    next = machineMove(q, b, action, random);
+    if (!hasMachine(q) || second(q, b)) return null;
+    const next = machineMove(q, b, action, random);
     if (next && action.type === 'arrow') ui(p).arm = null;
     if (next && action.type === 'test') ui(p).pick = null;
     return next;
   }
-  if (q.mode === 'fewest' && action.type === 'key' && proving(q, b)) {
+  if (q.mode === 'fewest' && action.type === 'key' && second(q, b)) {
     const list = action.target === 'row' ? 'rows' : action.target === 'end' ? 'ends' : null, i = action.index;
     if (!list || !Number.isInteger(i) || i < 0 || i >= b[list].length) return null;
     const s = edit(b, list, i, action.card);
     if (s === null) return null;
     ui(p).sel = [list === 'rows' ? 'row' : 'pair', i];
-    return {...b, [list]: b[list].map((t, j) => (j === i ? s : t))};
+    return {...b, [list]: set(b[list], i, s)};
   }
   return null;
 }
@@ -390,7 +412,10 @@ function splitHint(q, b) {
     const [x, y] = q.pairs[i];
     if (b.cant[i] || splits(q.rule, x, y, b.ends[i])) continue;
     const said = `${rowWords(x)} and ${rowWords(y)}`;
-    if (!separable(q.rule, x, y)) return {type: 'move', action: {type: 'cant', pair: i}, text: `${said}: press Can’t.`, pair: i};
+    if (!separable(q.rule, x, y)) {
+      const c = runMachine(pairMachine(q, b), x + b.ends[i]).at(-1);
+      return {type: 'move', action: {type: 'cant', pair: i, circle: c}, text: `${said}: press Can’t and tap ${circleName(c)}.`, pair: i};
+    }
     const h = endHint(q.rule, x, y, b.ends[i], said);
     if (h) return {type: 'move', action: {type: 'key', target: 'end', index: i, card: h.card}, text: h.text, pair: i};
   }
@@ -419,17 +444,16 @@ function proveHint(q, b) {
 function hint(p, b) {
   const q = p.parameters;
   if (q.mode === 'playground' || !valid(p, b) || solved(p, b)) return {type: 'done'};
-  if (q.mode === 'split') return splitHint(q, b);
-  if (hasMachine(q) && !proving(q, b)) return buildHint(q, b);
-  return proveHint(q, b);
+  if (hasMachine(q) && !second(q, b)) return buildHint(q, b);
+  return q.mode === 'split' ? splitHint(q, b) : proveHint(q, b);
 }
 
 // --- View state ---------------------------------------------------------------
 // The chip being moved (`arm`), the Test row traced on the machine (`pick`,
-// null for the newest) and the row or ending the keys edit (`sel`) stay out
-// of the save.
+// null for the newest), the row or ending the keys edit (`sel`) and the pair
+// whose Can't waits for a circle (`claim`) stay out of the save.
 const uiState = new Map();
-function ui(p) { if (!uiState.has(p.id)) uiState.set(p.id, {arm: null, pick: null, sel: null}); return uiState.get(p.id); }
+function ui(p) { if (!uiState.has(p.id)) uiState.set(p.id, {arm: null, pick: null, sel: null, claim: null}); return uiState.get(p.id); }
 function selection(p, b) {
   const q = p.parameters, s = ui(p).sel;
   if (q.mode === 'split') {
@@ -438,7 +462,13 @@ function selection(p, b) {
     return ['pair', Math.max(open, 0)];
   }
   if (s && ((s[0] === 'row' && s[1] < q.rows) || (s[0] === 'pair' && s[1] < pairsOf(q.rows).length))) return s;
-  return ['row', Math.min(1, q.rows - 1)];
+  return ['row', 0];
+}
+// The pair whose Can't is waiting for a circle, if it still can be claimed.
+function claimOf(p, q, b) {
+  const c = ui(p).claim;
+  if (q.mode !== 'split' || !Number.isInteger(c) || c < 0 || c >= q.pairs.length || !second(q, b) || b.cant[c]) return null;
+  return splits(q.rule, ...q.pairs[c], b.ends[c]) ? null : c;
 }
 
 // --- Drawing the machine ------------------------------------------------------
@@ -514,10 +544,11 @@ function markerShapes(L, markers) {
     return `<g class="cm-marker ${m.cls}" transform="translate(${f(x)},${f(y)})"><circle r="3.3"/>${m.text ? `<text y="1.25">${esc(m.text)}</text>` : ''}</g>`;
   }).join('');
 }
-// The machine as one SVG. opts: {edit, arm, hinted, used (Set of "s,c"),
-// markers: [{circle, cls, text}], cls, label}.
+// The machine as one SVG. opts: {edit, arm, claim, hinted, used (Set of
+// "s,c"), markers: [{circle, cls, text}], cls, label}. With `claim` the
+// circles are buttons for naming where both rows of a pair stop.
 export function machineSVG(m, opts = {}) {
-  const k = m.marks.length, L = layout(k), edit = Boolean(opts.edit), arm = opts.arm, hinted = opts.hinted || {};
+  const k = m.marks.length, L = layout(k), edit = Boolean(opts.edit), claim = !edit && Boolean(opts.claim), arm = opts.arm, hinted = opts.hinted || {};
   const shapes = arrowShapes(L, m.arrows), used = opts.used || new Set();
   const start = (() => { const d = dirOf(L.out[0]), tip = add(L.at[0], d, L.r + 0.6), tail = add(L.at[0], d, L.r + 10); return `<path class="cm-start" d="M${pt(tail)}L${pt(add(tip, d, 3.4))}"/><polygon class="cm-start-head" points="${headAt(tip, [-d[0], -d[1]])}"/>`; })();
   const lines = shapes.map(sh => {
@@ -532,12 +563,13 @@ export function machineSVG(m, opts = {}) {
   }).join('');
   const circles = L.at.map((c, i) => {
     const target = arm ? `. Send ${arm.card} from ${circleName(arm.from)} here` : '. Tap to change';
-    const control = edit ? `role="button" tabindex="0" aria-label="${esc(`${circleName(i)}, ${markWord(m.marks[i])}${target}`)}" data-circle="${i}" data-focus="cm-circle-${i}"` : `role="img" aria-label="${esc(`${circleName(i)}, ${markWord(m.marks[i])}`)}"`;
-    const cls = [m.marks[i] ? 'yes' : 'no', arm ? 'target' : '', hinted.circle === i ? 'hinted' : ''].join(' ');
+    const said = `${circleName(i)}, ${markWord(m.marks[i])}`;
+    const control = edit || claim ? `role="button" tabindex="0" aria-label="${esc(`${said}${claim ? '. Both rows stop here' : target}`)}" data-circle="${i}" data-focus="cm-circle-${i}"` : `role="img" aria-label="${esc(said)}"`;
+    const cls = [m.marks[i] ? 'yes' : 'no', arm || claim ? 'target' : '', hinted.circle === i ? 'hinted' : ''].join(' ');
     return `<g class="cm-circle ${cls}" transform="translate(${pt(c)})" ${control}><circle class="cm-ring" r="${L.r}"/><text class="cm-num" y="${f(-L.r * 0.42)}">${i + 1}</text><text class="cm-mark" y="${f(L.r * 0.5)}">${markWord(m.marks[i])}</text></g>`;
   }).join('');
   const markers = markerShapes(L, opts.markers || []);
-  return `<svg class="cm-machine${edit ? ' edit' : ''} k${k} ${opts.cls || ''}" viewBox="-2 -2 104 ${f(L.h + 4)}" role="group" aria-label="${esc(opts.label || 'Machine')}" data-cm-machine>${start}<g class="cm-arrows">${lines}</g><g class="cm-circles">${circles}</g><g class="cm-chips">${chips}</g><g class="cm-markers" aria-hidden="true">${markers}</g></svg>`;
+  return `<svg class="cm-machine${edit ? ' edit' : claim ? ' claim' : ''} k${k} ${opts.cls || ''}" viewBox="-2 -2 104 ${f(L.h + 4)}" role="group" aria-label="${esc(opts.label || 'Machine')}" data-cm-machine>${start}<g class="cm-arrows">${lines}</g><g class="cm-circles">${circles}</g><g class="cm-chips">${chips}</g><g class="cm-markers" aria-hidden="true">${markers}</g></svg>`;
 }
 // The arrows a row uses on a machine, for drawing its trace.
 function usedBy(m, row) {
@@ -569,7 +601,7 @@ function testsHTML(q, b, m, pick) {
   return `<div class="cm-tests" role="group" aria-label="Rows Test showed">${items}</div>`;
 }
 function machineBlock(p, a, q, b, h) {
-  const m = machineOf(b), state = ui(p), locked = q.mode === 'fewest' && proving(q, b), done = solved(p, b);
+  const m = machineOf(b), state = ui(p), locked = second(q, b), done = solved(p, b);
   const editing = !done && !locked;
   const act = h?.action, hinted = {chip: act?.type === 'arrow' ? {from: act.from, card: act.card} : null, circle: act?.type === 'arrow' ? act.to : act?.type === 'mark' ? act.circle : null};
   let used = new Set(), markers = [];
@@ -585,9 +617,9 @@ function machineBlock(p, a, q, b, h) {
     const pick = b.tests.includes(state.pick) ? state.pick : b.tests.at(-1);
     if (pick !== undefined) { const t = usedBy(m, pick); used = t.used; markers = [{circle: t.end, cls: t.whole ? 'trace' : 'trace stuck'}]; }
   }
-  const svg = machineSVG(m, {edit: editing, arm: editing ? state.arm : null, hinted, used, markers, label: 'Machine'});
+  const svg = machineSVG(m, {edit: editing, arm: editing ? state.arm : null, hinted, used, markers, cls: locked ? 'locked' : '', label: 'Machine'});
   if (q.mode === 'playground') return svg;
-  const test = editing ? `<div class="cm-bar">${button('Test', {type: 'test'}, 'cm-test-button', complete(m) && !b.checked, act?.type === 'test', 'cm-test')}</div>` : '';
+  const test = editing ? `<div class="cm-bar">${button('Test', {type: 'test'}, 'cm-test-button', testReady(q, b), act?.type === 'test', 'cm-test')}</div>` : '';
   const pick = b.tests.includes(state.pick) ? state.pick : b.tests.at(-1);
   return `${svg}${test}${locked || done ? '' : testsHTML(q, b, m, pick)}`;
 }
@@ -595,32 +627,26 @@ function machineBlock(p, a, q, b, h) {
 // A pair: two rows, one bracketed ending after both, and the two answers.
 function pairHTML(p, q, b, n, x, y, opts) {
   const e = b.ends[n], sel = opts.sel, cant = opts.cant, split = !cant && splits(q.rule, x, y, e);
-  const label = `${opts.names[0]} and ${opts.names[1]}: ${cant ? 'can’t be split' : `ending ${rowWords(e)}${split ? ', split' : ''}`}`;
-  const end = cant ? '<span class="cm-cant-mark">can’t</span>' : `<span class="cm-plus" aria-hidden="true">+</span>${e ? cardsHTML(e) : '<span class="cm-blank" aria-hidden="true"></span>'}`;
+  const label = `${opts.names[0]} and ${opts.names[1]}: ${e ? `ending ${rowWords(e)}` : 'no ending'}${cant ? `, can’t be split, both stop on ${circleName(opts.at)}` : split ? ', split' : ''}`;
+  const ending = e ? cardsHTML(e) : cant ? '' : '<span class="cm-blank" aria-hidden="true"></span>';
+  const end = `${e || !cant ? '<span class="cm-plus" aria-hidden="true">+</span>' : ''}${ending}${cant ? `<span class="cm-cant-mark" aria-hidden="true">can’t <span class="cm-at">${opts.at + 1}</span></span>` : ''}`;
   const endButton = opts.locked ? `<span class="cm-end" role="img" aria-label="${esc(label)}">${end}</span>` : `<button type="button" class="cm-end${sel ? ' sel' : ''}${opts.hinted ? ' hinted' : ''}" ${uiData({sel: ['pair', n]})} data-focus="cm-pair-${n}" aria-pressed="${sel}" aria-label="${esc(label)}">${end}</button>`;
-  const lines = [x, y].map((r, k) => `<span class="cm-line l${k + 1}"><span class="cm-dot ${opts.dots[k]}" aria-hidden="true">${opts.marks[k]}</span>${cardsHTML(r)}</span>`).join('');
+  const lines = [x, y].map((r, k) => `<span class="cm-line l${k + 1}"><span class="cm-dot ${opts.dots[k]}" aria-hidden="true">${opts.marks[k]}</span>${opts.short ? '' : cardsHTML(r)}</span>`).join('');
   const answers = cant ? '' : [x, y].map(r => sayHTML(ruleSays(q.rule, r + e))).join('');
-  return `<div class="cm-pair${split ? ' split' : ''}${cant ? ' cant' : ''}${sel ? ' sel' : ''}"><div class="cm-pair-grid">${lines}${endButton}${answers ? `<span class="cm-answers">${answers}</span>` : ''}</div>${opts.after || ''}</div>`;
+  return `<div class="cm-pair${split ? ' split' : ''}${cant ? ' cant' : ''}${sel ? ' sel' : ''}${opts.short ? ' short' : ''}"><div class="cm-pair-grid">${lines}${endButton}${answers ? `<span class="cm-answers">${answers}</span>` : ''}</div>${opts.after || ''}</div>`;
 }
+// Pairs read on a machine: the drawn one, or the child's own once it passed.
+// Can't waits for a tap on the circle where both rows, with the ending, stop.
 function splitBlock(p, a, q, b, h) {
-  const done = solved(p, b), s = selection(p, b), act = h?.action;
-  const hintPair = h?.pair ?? null;
-  const machine = q.machine ? (() => {
-    const [x, y] = q.pairs[s[1]], e = b.ends[s[1]];
-    const markers = [x, y].map((r, k) => ({circle: runMachine(q.machine, r + e).at(-1), cls: `l${k + 1}`}));
-    return machineSVG(q.machine, {markers, label: 'Machine'});
-  })() : '';
+  const done = solved(p, b), s = selection(p, b), act = h?.action, hintPair = h?.pair ?? null, claim = done ? null : claimOf(p, q, b);
+  const m = pairMachine(q, b), [sx, sy] = q.pairs[s[1]], se = b.ends[s[1]];
+  const markers = [sx, sy].map((r, k) => ({circle: runMachine(m, r + se).at(-1), cls: `l${k + 1}`}));
+  const machine = machineSVG(m, {markers, claim: claim !== null, hinted: act?.type === 'cant' && claim === act.pair ? {circle: act.circle} : {}, cls: 'locked', label: 'Machine'});
   const items = q.pairs.map(([x, y], n) => {
-    const sel = !done && s[1] === n, cant = b.cant[n];
-    let after = '';
-    if (cant && !q.machine) {
-      // The certificate: on the rule's machine both rows end on one circle.
-      const m = ruleMachine(q.rule), end = runMachine(m, x).at(-1);
-      after = `<div class="cm-proof">${machineSVG(m, {markers: [{circle: end, cls: 'l1'}, {circle: runMachine(m, y).at(-1), cls: 'l2'}], cls: 'mini', label: `Both rows end on ${circleName(end)} of this machine`})}</div>`;
-    } else if (b.refused[n]) after = '<p class="cm-told">Keep looking.</p>';
-    const open = !b.refused[n] && !splits(q.rule, x, y, b.ends[n]);
-    const extra = `<button type="button" class="secondary cm-button cm-cant${act?.type === 'cant' && hintPair === n ? ' hinted' : ''}" ${moveData({type: 'cant', pair: n})} data-focus="cm-cant" ${open ? '' : 'disabled'}>Can’t</button>`;
-    const html = pairHTML(p, q, b, n, x, y, {sel, cant, names: [rowWords(x), rowWords(y)], dots: ['l1', 'l2'], marks: ['', ''], hinted: hintPair === n, locked: done || cant, after});
+    const sel = !done && s[1] === n, cant = b.cant[n], armed = claim === n;
+    const open = !splits(q.rule, x, y, b.ends[n]);
+    const extra = `<button type="button" class="secondary cm-button cm-cant${armed ? ' armed' : ''}${act?.type === 'cant' && hintPair === n && !armed ? ' hinted' : ''}" ${uiData({claim: armed ? null : n})} data-focus="cm-cant" aria-pressed="${armed}" ${open ? '' : 'disabled'}>Can’t</button>`;
+    const html = pairHTML(p, q, b, n, x, y, {sel, cant, at: cant ? runMachine(m, x + b.ends[n]).at(-1) : null, names: [rowWords(x), rowWords(y)], dots: ['l1', 'l2'], marks: ['', ''], hinted: hintPair === n && act?.type === 'key', locked: done || cant, after: b.refused[n] ? '<p class="cm-told">Keep looking.</p>' : ''});
     return html + (sel && !cant ? keys('end', n, b.ends[n], act?.type === 'key' && hintPair === n ? act.card : null, extra) : '');
   }).join('');
   return `${machine}<div class="cm-pairs">${items}</div>`;
@@ -632,15 +658,14 @@ function proveBlock(p, a, q, b, h) {
     const line = `<button type="button" class="cm-row${sel ? ' sel' : ''}${hint ? ' hinted' : ''}" ${uiData({sel: ['row', i]})} data-focus="cm-row-${i}" aria-pressed="${sel}" aria-label="${esc(`Row ${i + 1}: ${rowWords(r)}, ${markWord(ruleSays(q.rule, r))}`)}" ${done ? 'disabled' : ''}><span class="cm-dot d${i + 1}" aria-hidden="true">${i + 1}</span>${cardsHTML(r)}${sayHTML(ruleSays(q.rule, r))}</button>`;
     return line + (sel ? keys('row', i, r, act?.type === 'key' && hint ? act.card : null) : '');
   }).join('');
+  // Under a machine each pair names its rows by their dots (the rows are just
+  // above), so the pairs stay near the machine.
   const pairs = pairsOf(q.rows).map(([i, j], n) => {
     const sel = !done && s[0] === 'pair' && s[1] === n, hint = h?.pair === n;
-    const html = pairHTML(p, q, b, n, b.rows[i], b.rows[j], {sel, cant: false, names: [`Row ${i + 1}`, `row ${j + 1}`], dots: [`d${i + 1}`, `d${j + 1}`], marks: [i + 1, j + 1], hinted: hint, locked: done});
+    const html = pairHTML(p, q, b, n, b.rows[i], b.rows[j], {sel, cant: false, names: [`Row ${i + 1}`, `row ${j + 1}`], dots: [`d${i + 1}`, `d${j + 1}`], marks: [i + 1, j + 1], hinted: hint, locked: done, short: hasMachine(q)});
     return html + (sel ? keys('end', n, b.ends[n], act?.type === 'key' && hint ? act.card : null) : '');
   }).join('');
-  // With no machine first, the objective already says this; after a machine
-  // has passed it is the one new goal.
-  const fewer = q.rows - 1, task = q.circles > 0 ? `<p class="cm-task">Show ${fewer} ${fewer === 1 ? 'circle is' : 'circles are'} not enough.</p>` : '';
-  return `<div class="cm-prove">${task}<div class="cm-rows">${rows}</div><div class="cm-pairs">${pairs}</div></div>`;
+  return `<div class="cm-prove"><div class="cm-rows">${rows}</div><div class="cm-pairs">${pairs}</div></div>`;
 }
 function benchBlock(p, b) {
   const k = b.marks.length, says = machineSays(machineOf(b), b.row);
@@ -650,26 +675,33 @@ function benchBlock(p, b) {
   return sizes + bench;
 }
 
-function render(p, a, ctx = {}) {
+// A puzzle that builds its machine first carries its two objectives
+// (`boardLines`): the rule while building, then the next task. The pack's
+// visible objective is empty for it, so the board shows one line at a time.
+function boardLine(p, q, b) {
+  if (!Array.isArray(p.boardLines)) return '';
+  return `<p class="cm-goal">${esc(p.boardLines[second(q, b) ? 1 : 0])}</p>`;
+}
+function render(p, a) {
   const q = p.parameters, b = a.board, done = solved(p, b);
   const h = a.hintLevel >= 2 && !done && q.mode !== 'playground' ? hint(p, b) : null;
   let body = '', status = '';
   if (q.mode === 'playground') {
     body = machineBlock(p, a, q, b, null) + benchBlock(p, b);
     status = `${describeMachine(machineOf(b))} Row ${rowWords(b.row)}: ${markWord(machineSays(machineOf(b), b.row))}.`;
+  } else if (hasMachine(q) && !second(q, b)) {
+    body = machineBlock(p, a, q, b, h);
+    const m = machineOf(b), last = b.tests.at(-1);
+    status = done ? 'The machine passed Test.' : `${describeMachine(m)}${b.checked && last !== undefined ? ` Test: ${rowWords(last)} should be ${markWord(ruleSays(q.rule, last))}.` : ''}`;
   } else if (q.mode === 'split') {
     body = splitBlock(p, a, q, b, h);
-    status = q.pairs.map(([x, y], i) => `${rowWords(x)} and ${rowWords(y)}: ${b.cant[i] ? 'can’t be split' : `+ ${rowWords(b.ends[i])}, ${markWord(ruleSays(q.rule, x + b.ends[i]))} and ${markWord(ruleSays(q.rule, y + b.ends[i]))}`}${b.refused[i] ? '. Keep looking' : ''}`).join('. ') + '.';
+    const m = pairMachine(q, b), claim = claimOf(p, q, b);
+    status = q.pairs.map(([x, y], i) => `${rowWords(x)} and ${rowWords(y)}: ${b.cant[i] ? `can’t be split, both stop on ${circleName(runMachine(m, x + b.ends[i]).at(-1))}` : `+ ${rowWords(b.ends[i])}, ${markWord(ruleSays(q.rule, x + b.ends[i]))} and ${markWord(ruleSays(q.rule, y + b.ends[i]))}`}${b.refused[i] ? '. Keep looking' : ''}`).join('. ') + `.${claim !== null ? ' Tap the circle where both rows stop.' : ''}`;
   } else {
-    const building = hasMachine(q) && !proving(q, b);
-    body = (hasMachine(q) ? machineBlock(p, a, q, b, building ? h : null) : '') + (proving(q, b) ? proveBlock(p, a, q, b, h) : '');
-    if (hasMachine(q)) {
-      const m = machineOf(b), last = b.tests.at(-1);
-      status = building ? `${describeMachine(m)}${b.checked && last !== undefined && !passed(q, b) ? ` Test: ${rowWords(last)} should be ${markWord(ruleSays(q.rule, last))}.` : ''}` : 'The machine passed Test.';
-    }
-    if (proving(q, b)) status += ` ${b.rows.map((r, i) => `Row ${i + 1}: ${rowWords(r)}`).join('. ')}.`;
+    body = (hasMachine(q) ? machineBlock(p, a, q, b, null) : '') + proveBlock(p, a, q, b, h);
+    status = `${hasMachine(q) ? 'The machine passed Test. ' : ''}${b.rows.map((r, i) => `Row ${i + 1}: ${rowWords(r)}`).join('. ')}.`;
   }
-  return `<div class="cm-puzzle${done ? ' solved' : ''} ${q.mode}" data-mechanic-wire="cardmachines">${body}<p class="sr-only" role="status">${esc(status.trim())}</p></div>`;
+  return `<div class="cm-puzzle${done ? ' solved' : ''} ${q.mode}" data-mechanic-wire="cardmachines">${boardLine(p, q, b)}${body}<p class="sr-only" role="status">${esc(status.trim())}</p></div>`;
 }
 
 // --- Taps, drags and keys -----------------------------------------------------
@@ -715,17 +747,17 @@ function dragEnd(e) {
   if (to !== null) d.api.apply({type: 'arrow', from: d.from, card: d.card, to});
 }
 function wire(root, p, api) {
-  const svg = root.querySelector('svg.cm-machine.edit');
+  const svg = root.querySelector('svg.cm-machine.edit, svg.cm-machine.claim');
   const keyTarget = () => {
     const q = p.parameters, b = api.attempt().board;
     if (q.mode === 'playground') return {type: 'key', target: 'bench'};
-    if (q.mode === 'split') { const s = selection(p, b); return {type: 'key', target: 'end', index: s[1]}; }
-    if (q.mode === 'fewest' && proving(q, b)) { const s = selection(p, b); return {type: 'key', target: s[0] === 'row' ? 'row' : 'end', index: s[1]}; }
-    return null;
+    if (!second(q, b)) return null;
+    const s = selection(p, b);
+    return q.mode === 'split' ? {type: 'key', target: 'end', index: s[1]} : {type: 'key', target: s[0] === 'row' ? 'row' : 'end', index: s[1]};
   };
   root.addEventListener('keydown', e => {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
-    if (e.key === 'Escape' && ui(p).arm) { e.preventDefault(); api.ui({arm: null}); return; }
+    if (e.key === 'Escape' && (ui(p).arm || ui(p).claim !== null)) { e.preventDefault(); api.ui({arm: null, claim: null}); return; }
     if (e.target.closest('input,select,textarea,svg')) return;
     const card = /^[rR]$/.test(e.key) ? 'R' : /^[bB]$/.test(e.key) ? 'B' : e.key === 'Backspace' ? 'back' : null;
     const target = card && keyTarget();
@@ -736,8 +768,9 @@ function wire(root, p, api) {
   if (!svg) return;
   if (!listening) { document.addEventListener('pointermove', dragMove); document.addEventListener('pointerup', dragEnd); document.addEventListener('pointercancel', dragEnd); listening = true; }
   const tapCircle = i => {
-    const arm = ui(p).arm;
-    if (arm) api.apply({type: 'arrow', from: arm.from, card: arm.card, to: i});
+    const arm = ui(p).arm, claim = claimOf(p, p.parameters, api.attempt().board);
+    if (claim !== null) api.apply({type: 'cant', pair: claim, circle: i});
+    else if (arm) api.apply({type: 'arrow', from: arm.from, card: arm.card, to: i});
     else api.apply({type: 'mark', circle: i});
   };
   const tapChip = c => { const arm = ui(p).arm; api.ui({arm: arm && arm.from === c.from && arm.card === c.card ? null : c}); };
@@ -762,6 +795,10 @@ function wire(root, p, api) {
   });
 }
 
+function keepTests(p, from, to) {
+  if (!object(from) || !object(to) || !Array.isArray(from.tests) || !Array.isArray(to.tests)) return to;
+  return {...to, tests: [...from.tests], presses: Math.max(from.presses, to.presses)};
+}
 export const cardMechanics = {
   cardmachine: {
     fresh, valid, solved, move, hint, render, wire,
@@ -770,14 +807,14 @@ export const cardMechanics = {
       const s = ui(p);
       if ('arm' in payload) s.arm = object(payload.arm) && Number.isInteger(payload.arm.from) && CARDS.includes(payload.arm.card) ? {from: payload.arm.from, card: payload.arm.card} : null;
       if (typeof payload.pick === 'string') s.pick = payload.pick;
-      if (Array.isArray(payload.sel) && ['row', 'pair'].includes(payload.sel[0]) && Number.isInteger(payload.sel[1])) s.sel = [payload.sel[0], payload.sel[1]];
+      if (Array.isArray(payload.sel) && ['row', 'pair'].includes(payload.sel[0]) && Number.isInteger(payload.sel[1])) { s.sel = [payload.sel[0], payload.sel[1]]; s.claim = null; }
+      // Can't on a pair waits for a circle; pressing it again, or Escape, cancels.
+      if ('claim' in payload) { s.claim = Number.isInteger(payload.claim) ? payload.claim : null; if (s.claim !== null) { s.sel = ['pair', s.claim]; s.arm = null; } }
     },
     reset: p => { uiState.delete(p.id); },
-    // Undo keeps the rows Test has shown and the count of presses.
-    carry(p, from, to) {
-      if (!object(from) || !object(to) || !Array.isArray(from.tests) || !Array.isArray(to.tests)) return to;
-      return {...to, tests: [...from.tests], presses: Math.max(from.presses, to.presses)};
-    },
+    // Undo and Restart keep the rows Test has shown and the count of presses.
+    carry: keepTests,
+    carryOnRestart: keepTests,
     noHint: p => p.parameters.mode === 'playground'
   }
 };
