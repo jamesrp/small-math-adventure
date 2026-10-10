@@ -9,7 +9,7 @@ import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/
 import {playView} from '../dist/ui.js';
 import {libraryView} from '../dist/caravan-ui.js';
 import {cutsOf, lastOf, recipeOf, kindsOf, fewestCover, fewestOf, fillCover, certificateOk, certificateFor, pickProblem, maxThrees, packedThrees, rectangleOf, rectKey, squareToward, squaresOk} from '../dist/families/squares/squaremath.js';
-import {squareMechanics, gestureSquare, designTargets, fourKeys, stuckPicks, fitWords} from '../dist/families/squares/squares.js';
+import {squareMechanics, gestureSquare, designTargets, designLadder, fourKeys, stuckPicks, fitWords, pickLine} from '../dist/families/squares/squares.js';
 import {loadPack} from '../scripts/packs.mjs';
 
 const squares = JSON.parse(await readFile(new URL('../dist/families/squares/squares.json', import.meta.url), 'utf8'));
@@ -175,9 +175,9 @@ test('design: size a rectangle, Cut runs the rule; last 3, a recipe, five sizes'
   const k = byId('squares-12');
   assert.deepEqual(designTargets(k.parameters), [[8, 13], [13, 8]]);
   assert.ok(isSolved(k, play(k, freshAttempt(k), {type: 'size', w: 13, h: 8}, {type: 'cut'}).board));
-  // The hint keeps the child's turn of the rectangle.
+  // The hint keeps the child's turn of the rectangle, and starts low.
   const tall = play(k, freshAttempt(k), {type: 'size', w: 3, h: 10});
-  assert.deepEqual(nextHint(k, tall).action, {type: 'size', w: 8, h: 13});
+  assert.deepEqual(nextHint(k, tall).action, {type: 'size', w: 2, h: 3});
 });
 
 test('the playground cuts one square per press and is never solved', () => {
@@ -228,4 +228,55 @@ test('saves: forged boards are refused', () => {
   assert.equal(validBoard(d, {w: 4, h: 4, cut: false, found: [[4, 4]]}), false);
   assert.equal(validBoard(four, {sq: [], found: ['9x4']}), false);
   assert.equal(validBoard(four, {sq: [[0, 0, 3], [3, 0, 3], [6, 0, 3], [9, 0, 3]], found: []}), false);
+});
+
+test('design hints climb a ladder and never name the answer after a wrong move', () => {
+  assert.deepEqual(designLadder({goal: 'recipe', recipe: [2, 1, 2]}), [[2, 1, 2], [3, 2, 1], [8, 3, 2]]);
+  assert.deepEqual(designLadder({goal: 'recipe', recipe: [1, 1, 3]}).at(-1), [7, 4, 1]);
+  assert.deepEqual(designLadder({goal: 'kinds', kinds: 5}).map(([L, S]) => `${L}x${S}`), ['3x2', '5x3', '8x5', '13x8']);
+  const k = byId('squares-12');
+  let a = play(k, freshAttempt(k), {type: 'size', w: 7, h: 3}, {type: 'cut'});
+  assert.equal(nextHint(k, a).text, 'Start small: make it 3 by 2.');
+  a = play(k, freshAttempt(k), {type: 'size', w: 11, h: 7}, {type: 'cut'});
+  assert.equal(nextHint(k, a).text, 'Make it 8 by 5.', 'four sizes: the rung below the answer');
+  a = play(k, a, {type: 'size', w: 8, h: 5}, {type: 'cut'});
+  assert.equal(nextHint(k, a).text, 'Add an 8 by 8 square along the long side: make it 13 by 8.');
+  const r = byId('squares-09');
+  a = play(r, freshAttempt(r), {type: 'size', w: 5, h: 2}, {type: 'cut'});
+  assert.equal(nextHint(r, a).text, 'Start from the card’s end: make it 2 by 1.');
+  a = play(r, a, {type: 'size', w: 3, h: 2}, {type: 'cut'});
+  assert.equal(nextHint(r, a).text, 'Add two 3 by 3 squares along the long side: make it 8 by 3.');
+});
+
+test('the Can’t picker belongs to its board: Undo to an empty board closes it', () => {
+  const p = byId('squares-07'), fresh = freshAttempt(p), tried = play(p, fresh, place(0, 0, 3));
+  mech.reset(p);
+  view(p, tried, true);
+  mech.ui(p, {claiming: true});
+  mech.ui(p, {picks: {dir: 'row', at: [0]}, said: null});
+  assert.match(view(p, tried, true), /data-sq-line="row:3"/, 'the picker is open');
+  const back = undo(tried);
+  const html = view(p, back, true);
+  assert.doesNotMatch(html, /data-sq-line/, 'Undo to an empty board closes it');
+  assert.match(html, /data-sg-cell="0"/, 'the cells take taps again');
+  assert.doesNotMatch(view(p, tried, true), /data-sq-line/, 'and it stays closed');
+  // Squares off the board: no picker even if the view state says so.
+  mech.ui(p, {claiming: true});
+  assert.doesNotMatch(view(p, back, true), /data-sq-line/);
+});
+
+test('tabs: refusals in a word; the 3s that fit are drawn only where it can’t be filled', () => {
+  const fill = byId('squares-05').parameters, five = byId('squares-07').parameters;
+  assert.deepEqual(pickLine(fill, {dir: null, at: []}, 'row', 0), {said: '2s can fill that row.', fits: false});
+  assert.deepEqual(pickLine(fill, {dir: 'col', at: [0]}, 'col', 3), {picks: {dir: 'col', at: [0, 3]}, said: 'Two 3 by 3 squares fit.', fits: false}, '6 by 5 fills: no dashed 3s');
+  assert.deepEqual(pickLine(five, {dir: null, at: []}, 'row', 2), {picks: {dir: 'row', at: [2]}, said: 'One 3 by 3 square fits.', fits: true});
+  assert.deepEqual(pickLine(five, {dir: 'row', at: [0]}, 'row', 3), {claim: {dir: 'row', at: [0, 3]}});
+  assert.deepEqual(pickLine(five, {dir: 'row', at: [0, 3]}, 'row', 3), {picks: {dir: 'row', at: [0]}, said: null, fits: false}, 'a second tap drops it');
+});
+
+test('shelves show only what was kept', () => {
+  const p = byId('squares-01'), fresh = freshAttempt(p);
+  assert.doesNotMatch(view(p, fresh), /sq-shelf|sq-slot/);
+  const strip = play(p, fresh, place(0, 0, 3), place(3, 0, 3), place(6, 0, 3), place(9, 0, 3));
+  assert.equal((view(p, strip).match(/class="sq-slot/g) || []).length, 1);
 });

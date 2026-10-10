@@ -129,6 +129,20 @@ try {
   await open(C, 5); await fit('fill');
   assert.equal(await page.locator('.puzzle-goal').count(), 0, 'no objective');
   assert.ok(await page.locator('.sq-cant').isDisabled(), 'Can’t waits for a try');
+  // Can't, a line, then Undo to an empty board: the picker closes with it.
+  await square(0, 0, 2, 2);
+  await page.locator('.sq-cant').click();
+  await tapTab('row', 0);
+  await undoButton();
+  assert.deepEqual((await board(C)).sq, [], 'Undo lifts the square');
+  assert.equal(await page.locator('.sq-tab').count(), 0, 'the picker closes with it');
+  assert.ok(await page.locator('.sq-cant').isDisabled(), 'Can’t waits for a new try');
+  assert.equal(await page.locator('.feedback').first().innerText(), '', 'no refusal');
+  await tapCell(4, 4);
+  assert.equal(await page.locator('.sq-board .sg-cell.corner').count(), 1, 'cells take taps again');
+  await tapCell(4, 4);
+  assert.deepEqual((await board(C)).sq, [[3, 3, 2]], 'and place squares');
+  await undoButton();
   await square(0, 0, 2, 2);
   f = await focused();
   assert.notEqual(f.focus, 'sq-cant', 'focus after a move is never on Can’t');
@@ -166,7 +180,7 @@ try {
   assert.equal(await note(), '2s can fill that row.');
   await tapTab('col', 0); await tapTab('col', 3);
   assert.equal(await note(), 'Two 3 by 3 squares fit.');
-  assert.equal(await page.locator('.sq-ghost').count(), 2);
+  assert.equal(await page.locator('.sq-ghost').count(), 0, 'it can be filled, so the 3s are not drawn');
   await page.locator('.sq-cant').click();
   assert.equal(await page.locator('.sq-tab').count(), 0, 'Can’t again closes the tabs');
   await square(3, 0, 5, 2);
@@ -179,9 +193,10 @@ try {
   /* ----- Puzzle 1: four 3s, the shelf. */
   const Q = 'squares-01';
   await open(Q, 12); await fit('four');
+  assert.equal(await page.locator('.sq-shelf').count(), 0, 'no shelf before a rectangle is kept');
   for (const x of [0, 3, 6, 9]) await tapCell(x, 0);
   assert.deepEqual((await board(Q)).found, ['12x3']);
-  assert.equal(await page.locator('.sq-slot:not(.empty)').count(), 1, 'kept on the shelf');
+  assert.equal(await page.locator('.sq-slot').count(), 1, 'kept on the shelf, with no empty slots');
   assert.equal(await page.locator('.sq-last').count(), 1, 'the last square ringed');
   await shot('four-strip');
   await page.locator('.sq-board [data-sg-piece="9-0"]').click();
@@ -201,7 +216,7 @@ try {
   assert.equal(await page.locator('.sq-cuts').count(), 0, 'no cuts before Cut');
   await page.locator('.sq-cutbutton').click();
   assert.deepEqual((await board(D)).found, [[9, 6]]);
-  assert.equal(await page.locator('.sq-slot:not(.empty)').count(), 1);
+  assert.equal(await page.locator('.sq-slot').count(), 1);
   await shot('design-cut');
   await slide([8, 5], [11, 8]);
   assert.deepEqual([(await board(D)).w, (await board(D)).h], [12, 9], 'a slide moves the corner');

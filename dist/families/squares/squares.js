@@ -137,7 +137,7 @@ function move(p, b, action) {
       next = {...b, cut: true, found: kept ? [...b.found, [b.w, b.h]] : b.found};
     }
   } else if (q.mode === 'playground' && action.type === 'cut') { if (b.n < cutsOf(b.w, b.h).length) next = {...b, n: b.n + 1}; }
-  if (next) Object.assign(ui(p), {corner: null, claiming: false, picks: {dir: null, at: []}, said: null, fits: false});
+  if (next) Object.assign(ui(p), blankView());
   return next;
 }
 
@@ -200,8 +200,46 @@ export function designTargets(q) {
   }
   return out;
 }
+// The rungs a recipe or a run of sizes is built on, smallest first, each
+// [long, short, added]: the next rung adds `added` squares, as big as this
+// rung's long side, along that side. A recipe is built backwards from its
+// last squares (2, 1, 2: 2 by 1, 3 by 2, 8 by 3); five sizes come from adding
+// one square at a time (3 by 2, 5 by 3, 8 by 5, 13 by 8).
+export function designLadder(q) {
+  if (q.goal === 'recipe') {
+    const counts = [...q.recipe].reverse(), out = [[counts[0], 1, counts[0]]];
+    for (const c of counts.slice(1)) { const [L, S] = out.at(-1); out.push([c * L + S, L, c]); }
+    return out;
+  }
+  const out = [[3, 2, 1]];
+  while (out.length < q.kinds - 1) { const [L, S] = out.at(-1); out.push([L + S, L, 1]); }
+  return out;
+}
+// Recipe and five sizes: climb the ladder from the rung the child is on, or
+// from a rung below the last one, so a hint after a wrong move never names
+// the answer.
+function ladderHint(q, b) {
+  const rungs = designLadder(q), tall = b.w > 0 && b.h > b.w;
+  const turn = ([L, S]) => tall ? [S, L] : [L, S];
+  const on = b.w ? rungs.findIndex(([L, S]) => L === Math.max(b.w, b.h) && S === Math.min(b.w, b.h)) : -1;
+  if (on >= 0 && !b.cut) return {type: 'move', action: {type: 'cut'}, text: 'Press Cut.'};
+  let next, text;
+  if (on >= 0) {
+    next = rungs[on + 1];
+    const [L] = rungs[on], c = next[2], [w, h] = turn(next);
+    text = `Add ${c === 1 ? (/^(8|11|18)$/.test(String(L)) || String(L).startsWith('8') ? 'an' : 'a') : String(NUMBER[c] ?? c).toLowerCase()} ${by(L)} square${c === 1 ? '' : 's'} along the long side: make it ${w} by ${h}.`;
+  } else {
+    const level = q.goal === 'kinds' && b.w ? Math.min(Math.max(kindsOf(b.w, b.h) - 2, 0), rungs.length - 2) : 0;
+    next = rungs[level];
+    const [w, h] = turn(next);
+    text = level ? `Make it ${w} by ${h}.` : q.goal === 'recipe' ? `Start from the card’s end: make it ${w} by ${h}.` : `Start small: make it ${w} by ${h}.`;
+  }
+  const [w, h] = turn(next);
+  return {type: 'move', action: {type: 'size', w, h}, text};
+}
 function designHint(p, b) {
   const q = p.parameters, firsts = b.found.map(r => firstOf(...r));
+  if (q.goal !== 'last') return ladderHint(q, b);
   const options = designTargets(q).filter(([w, h]) => q.goal !== 'last' || !firsts.includes(firstOf(w, h)));
   const tall = b.h > b.w, score = ([w, h]) => (h > w) === tall ? Math.min(w, h) * 100 + w + h : 10000 + w + h;
   const [w, h] = [...options].sort((x, y) => score(x) - score(y))[0];
@@ -226,10 +264,20 @@ function hint(p, b) {
  * View state, outside the save: the corner chosen by a first tap, the Can't
  * picker and its refusal.
  * --------------------------------------------------------------------- */
+// The view state belongs to one board: when the board changes by anything
+// but a move (Undo, a save restored), it starts again, so the Can't picker
+// never outlives the squares it was opened on.
 const uiState = new Map();
-function ui(p) {
-  if (!uiState.has(p.id)) uiState.set(p.id, {corner: null, claiming: false, picks: {dir: null, at: []}, said: null, fits: false});
-  return uiState.get(p.id);
+const blankView = () => ({corner: null, claiming: false, picks: {dir: null, at: []}, said: null, fits: false, board: null});
+function ui(p, b) {
+  if (!uiState.has(p.id)) uiState.set(p.id, blankView());
+  const state = uiState.get(p.id);
+  if (b) {
+    const key = JSON.stringify(b);
+    if (state.board !== null && state.board !== key) Object.assign(state, blankView());
+    state.board = key;
+  }
+  return state;
 }
 const SAID = {
   even: {row: '2s can fill that row.', col: '2s can fill that column.'},
@@ -242,6 +290,20 @@ export const fitWords = n => `${NUMBER[n] ?? n} 3 by 3 ${n === 1 ? 'square fits'
 // The picked lines are too few and no other line can join them.
 export const stuckPicks = (cols, rows, picks) => picks.at.length > 0 && !certificateOk(cols, rows, picks) &&
   Array.from({length: lineCount(cols, rows, picks.dir)}, (_, k) => k).every(k => picks.at.includes(k) || pickProblem(cols, rows, picks, picks.dir, k));
+
+// A tap on a line's tab: drop it if picked; else refuse it in a word, or
+// pick it, and make the claim once the lines are a certificate. Too few lines
+// with none able to join: say how many 3s fit, and draw them only when the
+// rectangle can't be filled (where it can, they are half a filling).
+export function pickLine(q, picks, dir, at) {
+  if (picks.dir === dir && picks.at.includes(at)) return {picks: {dir: picks.at.length > 1 ? dir : null, at: picks.at.filter(j => j !== at)}, said: null, fits: false};
+  const problem = pickProblem(q.cols, q.rows, picks, dir, at);
+  if (problem) return {said: problem === 'even' ? SAID.even[dir] : SAID.cross, fits: false};
+  const next = {dir, at: [...picks.at, at].sort((x, y) => x - y)};
+  if (certificateOk(q.cols, q.rows, next)) return {claim: next};
+  const stuck = stuckPicks(q.cols, q.rows, next), fills = Boolean(fillCover(q.cols, q.rows, [], q.sizes));
+  return {picks: next, said: stuck ? fitWords(maxThrees(q.cols, q.rows)) : null, fits: stuck && !fills};
+}
 
 /* --------------------------------------------------------------------- *
  * Drawing
@@ -269,13 +331,15 @@ export function mini(w, h, label, cls = '') {
   const cuts = cutsOf(w, h), last = cuts.at(-1), k = 10, pad = 1.5;
   return `<svg class="sq-mini ${cls}" viewBox="${-pad} ${-pad} ${w * k + 2 * pad} ${h * k + 2 * pad}" role="img" aria-label="${esc(label)}">${cuts.map(([x, y, s]) => `<rect class="sq-mini-sq ${sizeClass(s)}" x="${x * k}" y="${y * k}" width="${s * k}" height="${s * k}"/>`).join('')}<rect class="sq-mini-last" x="${last[0] * k}" y="${last[1] * k}" width="${last[2] * k}" height="${last[2] * k}"/></svg>`;
 }
-const slotsHtml = (items, total, label) => `<ol class="sq-shelf" aria-label="${esc(label)}">${items.join('')}${Array.from({length: Math.max(0, total - items.length)}, () => '<li class="sq-slot empty" aria-hidden="true"></li>').join('')}</ol>`;
+// The rectangles kept, and nothing before the first.
+const shelfHtml = (items, label) => items.length ? `<ol class="sq-shelf" aria-label="${esc(label)}">${items.join('')}</ol>` : '';
 const squareIcon = (s, scale = 7) => `<svg class="sq-icon" viewBox="0 0 ${s * scale + 2} ${s * scale + 2}" style="width:${s * scale + 2}px" aria-hidden="true"><rect class="${sizeClass(s)}" x="1" y="1" width="${s * scale}" height="${s * scale}"/>${Array.from({length: s - 1}, (_, k) => `<path class="sq-icon-grid" d="M${1 + (k + 1) * scale} 1V${1 + s * scale}M1 ${1 + (k + 1) * scale}H${1 + s * scale}"/>`).join('')}</svg>`;
 const button = (label, action, cls, enabled, hinted, extra = '') => `<button type="button" class="secondary sq-button ${cls}${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="sq-${action.type}" ${enabled ? '' : 'disabled'} ${extra}>${label}</button>`;
 
 function renderPlacing(p, a) {
-  const q = p.parameters, b = a.board, done = solved(p, b), state = ui(p), g = gridOf({cols: q.cols, rows: q.rows});
-  const claiming = q.mode === 'fill' && !done && state.claiming, live = !done && !claiming;
+  const q = p.parameters, b = a.board, done = solved(p, b), state = ui(p, b), g = gridOf({cols: q.cols, rows: q.rows});
+  // Can't comes after a try: no squares, no picker.
+  const claiming = q.mode === 'fill' && !done && state.claiming && b.sq.length > 0, live = !done && !claiming;
   const h = a.hintLevel >= 2 && !done ? hint(p, b) : null, act = h?.action;
   const hintCells = new Set(act?.type === 'place' ? cellsOfSquare(q.cols, [act.x, act.y, act.s]) : []);
   const owner = new Map();
@@ -325,7 +389,7 @@ function renderPlacing(p, a) {
   if (buttons.length) bar += `<span class="sq-buttons">${buttons.join('')}</span>`;
   const note = q.mode === 'fewest' && !done && b.fewer !== null && full && b.sq.length >= b.fewer ? 'Fewer squares fit.' : claiming && state.said ? state.said : '';
   let below = '';
-  if (q.mode === 'four') below = slotsHtml(b.found.map(k => { const [w, h] = keyRect(k); return `<li class="sq-slot${rect && rectKey(rect[2], rect[3]) === k ? ' here' : ''}">${mini(w, h, `${w} by ${h}, last square ${lastOf(w, h)}`)}</li>`; }), q.need, 'Rectangles made');
+  if (q.mode === 'four') below = shelfHtml(b.found.map(k => { const [w, h] = keyRect(k); return `<li class="sq-slot${rect && rectKey(rect[2], rect[3]) === k ? ' here' : ''}">${mini(w, h, `${w} by ${h}, last square ${lastOf(w, h)}`)}</li>`; }), 'Rectangles made');
   const count = `${b.sq.length} ${b.sq.length === 1 ? 'square' : 'squares'}`;
   const fit = maxThrees(q.cols, q.rows), fitText = fit === 0 ? 'none fits' : fit === 1 ? 'only one fits' : `only ${String(NUMBER[fit] ?? fit).toLowerCase()} fit`;
   const status = done && b.claim ? `${lineWords(b.claim.dir, b.claim.at)} ${b.claim.at.length === 1 ? 'needs a' : 'each need their own'} 3 by 3 square; ${fitText}.` : `${count}${full ? ', full' : ''}.${rect ? ` A ${rect[2]} by ${rect[3]} rectangle; its last square is ${lastOf(rect[2], rect[3])}.` : ''}${note ? ` ${note}` : ''}${claiming ? ` Picked: ${picks.at.length ? lineWords(picks.dir, picks.at) : 'none'}.` : ''}`;
@@ -356,7 +420,7 @@ function renderSizing(p, a) {
   let below = '';
   if (q.goal === 'last') {
     const here = b.cut && keeps(q, b.w, b.h) ? firstOf(b.w, b.h) : null;
-    below = slotsHtml(b.found.map(([w, hh]) => `<li class="sq-slot${firstOf(w, hh) === here ? ' here' : ''}">${mini(w, hh, `${w} by ${hh}: first square ${firstOf(w, hh)}, last square ${lastOf(w, hh)}`)}</li>`), q.need, 'Rectangles kept');
+    below = shelfHtml(b.found.map(([w, hh]) => `<li class="sq-slot${firstOf(w, hh) === here ? ' here' : ''}">${mini(w, hh, `${w} by ${hh}: first square ${firstOf(w, hh)}, last square ${lastOf(w, hh)}`)}</li>`), 'Rectangles kept');
   }
   const sizes = shown ? cutsOf(b.w, b.h).slice(0, shown === Infinity ? undefined : shown).map(s => s[2]) : [];
   const status = b.w ? `${b.w} by ${b.h}.${sizes.length ? ` Cuts: ${sizes.join(', ')}.` : ''}` : 'No rectangle yet.';
@@ -383,8 +447,8 @@ function wire(root, p, api) {
     const placeMove = square => ({type: 'place', x: square[0], y: square[1], s: square[2]});
     wireSquare(root, g, {
       cell: i => {
-        const b = board(), state = ui(p);
-        if (state.claiming) return null;
+        const b = board(), state = ui(p, b);
+        if (state.claiming && b.sq.length) return null;
         if (q.mode === 'four') { const s = gestureSquare(q, xy(i), xy(i)); return freeFor(b, s, q) ? placeMove(s) : null; }
         if (state.corner === null) { api.ui({corner: i}); return null; }
         const s = gestureSquare(q, xy(state.corner), xy(i));
@@ -392,21 +456,16 @@ function wire(root, p, api) {
         api.ui({corner: state.corner === i ? null : i});
         return null;
       },
-      piece: key => { const [x, y] = key.split('-').map(Number); return ui(p).claiming ? null : {type: 'lift', x, y}; },
+      piece: key => { const [x, y] = key.split('-').map(Number), b = board(); return ui(p, b).claiming && b.sq.length ? null : {type: 'lift', x, y}; },
       preview: cells => { const b = board(), s = gestureSquare(q, xy(cells[0]), xy(cells.at(-1))); return {show: insideBoard(q.cols, q.rows, s) ? cellsOfSquare(q.cols, s) : cells, blocked: !freeFor(b, s, q)}; },
       stroke: cells => { const b = board(), s = gestureSquare(q, xy(cells[0]), xy(cells.at(-1))); return freeFor(b, s, q) ? placeMove(s) : null; }
     }, api.apply);
     // Can't: a tab picks or drops its line. A line that can't join is refused
     // in a word; enough lines make the claim.
     const pick = el => {
-      const [dir, k] = el.dataset.sqLine.split(':'), at = Number(k), state = ui(p), picks = state.picks;
-      if (picks.dir === dir && picks.at.includes(at)) { api.ui({picks: {dir: picks.at.length > 1 ? dir : null, at: picks.at.filter(j => j !== at)}, said: null, fits: false}); return; }
-      const problem = pickProblem(q.cols, q.rows, picks, dir, at);
-      if (problem) { api.ui({said: problem === 'even' ? SAID.even[dir] : SAID.cross, fits: false}); return; }
-      const next = {dir, at: [...picks.at, at].sort((x, y) => x - y)};
-      if (certificateOk(q.cols, q.rows, next)) { api.apply({type: 'cant', ...next}); return; }
-      const stuck = stuckPicks(q.cols, q.rows, next);
-      api.ui({picks: next, said: stuck ? fitWords(maxThrees(q.cols, q.rows)) : null, fits: stuck});
+      const [dir, k] = el.dataset.sqLine.split(':'), out = pickLine(q, ui(p, board()).picks, dir, Number(k));
+      if (out.claim) api.apply({type: 'cant', ...out.claim});
+      else api.ui(out);
     };
     root.querySelectorAll('[data-sq-line]').forEach(el => {
       el.addEventListener('click', () => pick(el));

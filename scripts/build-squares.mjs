@@ -81,7 +81,7 @@ const PUZZLES = [
   {n: 8, level: 'medium', mode: 'fewest', title: 'Seven by six', q: {cols: 7, rows: 6}, check: {fewest: 5, rule: 7},
     idea: 'The rule cuts a 6 and six 1s; five fit: a 4, two 3s and two 2s.',
     hints: ['Count the biggest-square way first.', 'Try a 4 by 4 in a corner.', '4 by 4 at the top left, two 3 by 3 squares down the right, two 2 by 2 squares under the 4.'],
-    parent: {notice: 'Whether your child looks for squares whose sides add up to 7 and to 6.', prompt: 'Which two squares fit across the top exactly?', explanation: 'The rule uses a 6 by 6 and six 1s: seven. Five fit: a 4 by 4 in a corner, two 3 by 3 squares in the strip 3 wide beside it, two 2 by 2 squares under the 4. Four can’t: the only ways to make 42 from four square numbers are 36 + 4 + 1 + 1, 25 + 9 + 4 + 4 and 16 + 16 + 9 + 1, and each has two squares whose sides add to more than 7, which can’t sit apart; three would be 25 + 16 + 1, with the same clash.', extension: 'Is there a rectangle where the rule uses twice as many as the fewest? (10 by 9: ten against six.)', connection: 'Two squares that don’t overlap sit side by side or one above the other, so their sides fit across or down.'},
+    parent: {notice: 'Whether your child looks for squares whose sides add up to 7 and to 6.', prompt: 'Which two squares fit across the top exactly?', explanation: 'The rule uses a 6 by 6 and six 1s: seven. Five fit: a 4 by 4 in a corner, two 3 by 3 squares in the strip 3 wide beside it, two 2 by 2 squares under the 4. Four can’t: the only ways to make 42 from four square numbers are 36 + 4 + 1 + 1, 25 + 9 + 4 + 4 and 16 + 16 + 9 + 1, and each has two squares whose sides add to more than 7, which can’t sit apart; three would be 25 + 16 + 1, with the same clash.', extension: 'Is there a rectangle where the rule uses twice as many as the fewest? (14 by 13: fourteen against seven.)', connection: 'Two squares that don’t overlap sit side by side or one above the other, so their sides fit across or down.'},
     provenance: 'New: another rectangle where the rule is not fewest, after Week 32 bonus Problems 1 and 2.'},
   {n: 9, level: 'hard', mode: 'design', title: 'Recipe 2, 1, 2', q: {goal: 'recipe', cols: 12, rows: 12, recipe: [2, 1, 2]}, check: {answers: ['8x3', '3x8']},
     objective: ['Make a rectangle, up to 12 by 12, that the biggest-square rule cuts into 2 equal squares, then 1 smaller square, then 2 smaller still. Press Cut to check.', 'Make a rectangle whose cuts follow the card.'],
@@ -159,8 +159,8 @@ const out = PUZZLES.map(item => {
 });
 
 // Every number the copy names, checked once more.
-assert.equal(fewestOf(10, 9), 6, '10 by 9: six');
-assert.equal(sizesOf(10, 9).length, 10, '10 by 9: the rule uses ten');
+assert.equal(fewestOf(14, 13), 7, '14 by 13: seven');
+assert.equal(sizesOf(14, 13).length, 14, '14 by 13: the rule uses fourteen, twice seven');
 assert.deepEqual(recipeOf(7, 4), [1, 1, 3], '7 by 4: recipe 1, 1, 3');
 assert.equal(kindsOf(21, 13), 6, '21 by 13: six sizes');
 assert.equal(designTargets({goal: 'kinds', kinds: 4, cols: 15, rows: 15}).filter(([w, h]) => w > h && kindsOf(w, h) === 4).length, 8, 'four sizes within 15: eight up to turning');

@@ -675,7 +675,7 @@
     "notice": "Whether your child looks for squares whose sides add up to 7 and to 6.",
     "prompt": "Which two squares fit across the top exactly?",
     "explanation": "The rule uses a 6 by 6 and six 1s: seven. Five fit: a 4 by 4 in a corner, two 3 by 3 squares in the strip 3 wide beside it, two 2 by 2 squares under the 4. Four can’t: the only ways to make 42 from four square numbers are 36 + 4 + 1 + 1, 25 + 9 + 4 + 4 and 16 + 16 + 9 + 1, and each has two squares whose sides add to more than 7, which can’t sit apart; three would be 25 + 16 + 1, with the same clash.",
-    "extension": "Is there a rectangle where the rule uses twice as many as the fewest? (10 by 9: ten against six.)",
+    "extension": "Is there a rectangle where the rule uses twice as many as the fewest? (14 by 13: fourteen against seven.)",
     "connection": "Two squares that don’t overlap sit side by side or one above the other, so their sides fit across or down.",
     "sourceIds": [
      "squares-week32",

@@ -14,7 +14,7 @@ import assert from 'node:assert/strict';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
 import {cutsOf, recipeOf, lastOf, kindsOf, certificateOk, certificateFor, maxThrees, fillCover, fewestCover} from '../dist/families/squares/squaremath.js';
-import {forgetHints} from '../dist/families/squares/squares.js';
+import {forgetHints, designLadder, pickLine} from '../dist/families/squares/squares.js';
 import {loadPack} from './packs.mjs';
 
 /* ----- Euclid by division: the quotients are the counts of equal squares. */
@@ -183,8 +183,8 @@ export async function validateSquares() {
     assert.equal(fewestCover(w, h, [], w * h).length, by, `${w} by ${h}: fewest squares agree`);
     fewestTable[`${w}x${h}`] = by;
   }
-  for (const [w, h, n] of [[13, 11, 6], [10, 9, 6], [13, 8, 6]]) assert.equal(fewestByColumns(w, h).count, n, `${w} by ${h}: fewest ${n}`);
-  assert.equal(euclid(10, 9).count, 10, '10 by 9: the rule uses ten');
+  for (const [w, h, n] of [[13, 11, 6], [14, 13, 7], [13, 8, 6]]) assert.equal(fewestByColumns(w, h).count, n, `${w} by ${h}: fewest ${n}`);
+  assert.equal(euclid(14, 13).count, 14, '14 by 13: the rule uses fourteen, twice the fewest');
   // The square-number sums the notes use to explain why fewer can't fit.
   const sums = (total, k, max) => { const out = []; const go = (left, n, top, acc) => { if (!n) { if (!left) out.push(acc.join('+')); return; } for (let s = top; s >= 1; s--) if (s * s <= left) go(left - s * s, n - 1, s, [...acc, s * s]); }; go(total, k, max, []); return out; };
   assert.deepEqual(sums(12, 3, 3), ['4+4+4'], '4 by 3: three squares only as 4 + 4 + 4');
@@ -322,6 +322,23 @@ function checkFill(p, fresh, row) {
     if (mine) accepted.push({dir, at});
   }
   refuse(p, fresh, {type: 'cant', ...(accepted[0] || {dir: 'row', at: [0]})}, 'Can’t on an empty board');
+  // Every tap on a tab from every set of lines that can be picked: a claim
+  // only for a certificate, and the 3s that fit drawn only where it can't be
+  // filled (where it can, they are half a filling).
+  const pickable = [];
+  for (const dir of ['row', 'col']) for (const at of subsets(dir === 'row' ? q.rows : q.cols)) {
+    const length = dir === 'row' ? q.cols : q.rows;
+    if (at.length && length % 2 && at.every(j => at.every(k => j === k || Math.abs(j - k) >= 3)) && !certificateOk(q.cols, q.rows, {dir, at})) pickable.push({dir, at});
+  }
+  let tapsTried = 0;
+  for (const picks of [{dir: null, at: []}, ...pickable]) for (const dir of ['row', 'col']) for (let k = 0; k < (dir === 'row' ? q.rows : q.cols); k++) {
+    const out = pickLine(q, picks, dir, k);
+    tapsTried++;
+    if (out.claim) assert.ok(certificateOk(q.cols, q.rows, out.claim), `${p.id}: a claim only for a certificate`);
+    if (out.fits) assert.ok(!row.fills, `${p.id}: the 3s that fit are drawn only where it can't be filled`);
+  }
+  assert.ok(tapsTried >= q.rows + q.cols, `${p.id}: every tab tried`);
+  if (row.fills) assert.ok(pickable.some(pk => pickLine(q, {dir: pk.dir, at: pk.at.slice(0, -1)}, pk.dir, pk.at.at(-1)).said?.endsWith('fit.')), `${p.id}: too few lines still get a word`);
   const first = nextHint(p, fresh);
   assert.equal(first.action.type, 'place', `${p.id}: the first hint is a square, not Can’t`);
   if (row.fills) {
@@ -447,6 +464,34 @@ function checkDesign(p, fresh, row) {
     const sized = play(p, fresh, {type: 'size', w, h});
     assert.ok(!isSolved(p, sized.board), `${p.id}: sizing alone is not a solve; Cut checks`);
     hintsSolve(p, near, 'after a wrong rectangle');
+    // The ladder the hints climb, checked by Euclid: a recipe built backwards
+    // from its last squares, or one more size on each rung.
+    const rungs = designLadder(q);
+    assert.ok(rungs.every(([L, S]) => L <= Math.max(q.cols, q.rows) && S <= Math.min(q.cols, q.rows)), `${p.id}: every rung fits the grid`);
+    rungs.forEach(([L, S], i) => {
+      if (q.goal === 'recipe') assert.deepEqual(euclid(L, S).quotients, q.recipe.slice(q.recipe.length - 1 - i), `${p.id}: rung ${L} by ${S} follows the end of the card`);
+      else assert.equal(euclid(L, S).kinds, i + 2, `${p.id}: rung ${L} by ${S} has ${i + 2} sizes`);
+    });
+    assert.ok(row.answer.includes(`${rungs.at(-1)[0]}x${rungs.at(-1)[1]}`), `${p.id}: the top rung is the answer`);
+    // From fresh the hints visit every rung, each then cut.
+    let a2 = fresh;
+    const visited = [];
+    for (let i = 0; i < 40 && !isSolved(p, a2.board); i++) { const h = nextHint(p, a2); if (h.action.type === 'size') visited.push(`${Math.max(h.action.w, h.action.h)}x${Math.min(h.action.w, h.action.h)}`); a2 = play(p, a2, h.action); }
+    assert.deepEqual(visited, rungs.map(([L, S]) => `${L}x${S}`), `${p.id}: hints climb the ladder`);
+    // After any other rectangle, cut or not, the first hint does not name the
+    // answer unless the child stands on the rung below it; hints still solve.
+    const below = rungs.at(-2), names = new RegExp(row.answer.map(k => k.replace('x', ' by ')).join('|'));
+    let wrongs = 0;
+    for (const [w, h] of sizes) {
+      if (row.answer.includes(`${w}x${h}`)) continue;
+      for (const cut of [false, true]) {
+        let b = play(p, fresh, {type: 'size', w, h});
+        if (cut) b = play(p, b, {type: 'cut'});
+        const first = nextHint(p, b);
+        if (!(cut && Math.max(w, h) === below[0] && Math.min(w, h) === below[1])) assert.doesNotMatch(first.text, names, `${p.id}: after ${w} by ${h}${cut ? ', cut' : ''}, the first hint does not name the answer (${first.text})`);
+        if (wrongs++ % 9 === 0) hintsSolve(p, b, `after ${w} by ${h}`);
+      }
+    }
     for (const [board, why] of [[{w, h, cut: true, found: [[w, h]]}, 'kept rectangles here'], [{w: 0, h: 0, cut: true, found: []}, 'a cut with no rectangle'], [{w: 3, h: 0, cut: false, found: []}, 'a rectangle of no height']]) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
   }
   refuse(p, fresh, {type: 'cut'}, 'Cut with no rectangle');
