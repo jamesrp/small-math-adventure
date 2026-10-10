@@ -74,7 +74,7 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 47 | Gentle step landscapes | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-47.md) | In the app | Gentle hills |
 | 48 | Inside and outside covers | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-48.md) | Open, wave 6 | Split cells to a target gap within a budget, paint to match a pattern and area, slide a grid over a shape |
 | 49 | Four towers and differences | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-49.md) | Open, wave 7 | Reverse goals only: build a predecessor ring, grow a run backward, find a ring that never reaches zero |
-| 50 | Staircases and lengths | none | Open, wave 3 | Card first |
+| 50 | Staircases and lengths | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-50.md) | Open, wave 9 | A short group on Memory robot's board: a corridor path within a turn budget, shaded windows certifying "fewest", and exact-length detours |
 | 51 | Honest measurement ranges | none | Open, wave 3 | Card first |
 | 52 | Bracing frames | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-52.md) | In the app | Bracing frames (PR #13) |
 | 53 | Cheapest networks | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-53.md) | In the app | Cheapest networks (PR #8) |
