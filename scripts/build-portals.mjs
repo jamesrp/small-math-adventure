@@ -6,7 +6,8 @@
 import {writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {surfaceOf, stepsOf} from '../dist/portal-board.js';
-import {roomFromRows as room, reachIn, canReach, exactPossible, tradePossible, tradeRoute, shrinkPossible, editReach, tripLift, copyIndex, checkerboard, legal} from '../dist/families/portals/portals.js';
+import {roomFromRows as room} from '../dist/portal-board.js';
+import {reachIn, canReach, exactPossible, tradePossible, tradeRoute, shrinkPossible, editReach, tripLift, copyIndex, checkerboard, legal} from '../dist/families/portals/portals.js';
 
 const THREE = ['ABC', 'DHE', 'FGI'], FOUR = ['ABCD', 'EFGH', 'IJKL', 'MNOP'];
 export const ROOMS = {
@@ -28,7 +29,7 @@ const RULES = {
   trade: 'Both pawns take every step. Trade places: the yellow pawn onto the blue ring and the blue pawn onto the yellow ring. Press Can’t if they never can.',
   shrink: 'Tap a corner of the trip to slide it across its square: its two steps swap. Tap the tip of a step that goes straight back to erase both steps.',
   nothing: 'Shrink the trip to nothing, staying at H. Press Can’t if it never can.',
-  turn: n => `Turn the trip into the dashed trip in ${n} slides or fewer.`
+  turn: 'Turn the trip into the dashed trip.'
 };
 const CONTROLS = {
   walk: 'Tap an arrow, or a square next to the pawn in either view, or slide the pawn from square to square. Arrow keys work too. Undo takes back a step.',
@@ -95,19 +96,19 @@ const PUZZLES = [
     hints: ['Push a corner of the loop inwards.', 'Slide the corners until a step right sits next to a step left, then erase them.', 'Nine slides and six erasures do it.'],
     parent: {notice: 'Whether your child pushes corners inward one square at a time, and spots a step that goes straight back once one appears.', prompt: 'Does any move change where the trip ends?', explanation: 'A slide swaps two neighbouring steps that turn a corner, moving the trip across one square; an erasure removes a step and its way back. Neither moves the ends. RRRUUULLLDDD goes round a block of nine squares and ends in the first copy. Sliding each of the three left steps past each of the three up steps (nine slides) gives RRRLLLUUUDDD, and then three right-left pairs and three up-down pairs erase, fifteen moves in all.', extension: 'Shrink it a different way: slide the up steps before the right steps first. Does it still take nine slides? (Yes: each slide crosses one of the nine squares inside the loop.)', connection: 'These moves are the homotopies of lattice paths with the squares filled in: a loop is null-homotopic on the torus exactly when its lift is a closed loop in the plane.'},
     provenance: 'Week 41 grades 4–5 Problem 4 (which trip can shrink all the way to staying at H: RRRUUULLLDDD).'},
-  {number: 9, level: 'hard', title: 'Half a room apart', mode: 'trade', room: 'torus4', pawns: ['F', 'P'], check: {possible: true, shortest: 4}, witness: 'RRDD', kind: 'trade',
+  {number: 9, level: 'hard', title: 'Trading in the big room', mode: 'trade', room: 'torus4', pawns: ['F', 'P'], check: {possible: true, shortest: 4}, witness: 'RRDD', kind: 'trade',
     objective: 'Give both pawns the same steps so that they trade places. Press Can’t if they never can.', visible: 'Trade places.',
     idea: 'In a room four wide and four tall, pawns half a room apart across and up can trade.',
     hints: ['Try to trade them across first, then up and down.', 'Two steps right swap their columns.', 'Two steps right and two steps down.'],
     parent: {notice: 'Whether your child expects “never”, after puzzle 4, and whether they see the trade happen one direction at a time.', prompt: 'Why does two steps right swap the columns here but not in puzzle 4?', explanation: 'The blue pawn starts two squares right of the yellow one and two squares down. Two steps right move the yellow pawn into the blue pawn’s column and the blue pawn two further right, which in a room four wide is back to the yellow pawn’s column. Two steps down do the same for the rows. So RRDD (in any order, or with steps left or up instead) trades them. In a room four wide, a trade across needs a net move v with v ≡ 2 and v ≡ −2: both hold for v = 2. In puzzle 4 the room is three wide and the pawns one apart, and v ≡ 1 and v ≡ −1 never agree.', extension: 'Put the pawns one square apart in this room. Can they trade? (No: one right is not one left in a room four wide.)', connection: 'Two points of Z/4 × Z/4 can be swapped by a translation exactly when their difference v has 2v ≡ 0: each part is 0 or 2.'},
     provenance: 'New, from the review card’s App fit (“possible at offset 2 on 4 wide”), with the pawns half a room apart in both directions.'},
-  {number: 10, level: 'hard', title: 'Up first', mode: 'shrink', room: 'torus3', home: 'H', trip: 'RRRUUU', target: 'UUURRR', budget: 9, check: {possible: true, slides: 9}, kind: 'shrink',
-    objective: 'Turn the trip into the dashed trip in 9 slides.', visible: 'Turn the trip into the dashed trip in 9 slides.',
-    idea: 'Each slide moves the trip across one square, so turning RRRUUU into UUURRR takes exactly the nine squares between them.',
-    hints: ['Which corner of the trip is next to the dashed trip?', 'Slide the corner where the steps turn from right to up.', 'Every slide must move the trip one square closer to the dashed trip.'],
-    parent: {notice: 'Whether your child slides a corner that moves the trip away from the dashed one, and notices that the beads are then too few.', prompt: 'How many squares lie between the trip and the dashed trip?', explanation: 'A slide swaps a step right and a step up next to each other, moving the trip across one square. Between RRRUUU and UUURRR lie nine squares, so at least nine slides are needed, and nine are enough if each moves the trip one square towards the dashed one: RRRUUU, RRURUU, RURRUU, URRRUU, URRURU, URURRU, UURRRU, UURRUR, UURURR, UUURRR is one way. Both trips end in the copy up and to the right; the start never moves.', extension: 'How many slides turn RRRUUU into RURURU? (Three: the squares between them.)', connection: 'For lattice paths, the fewest slides between two paths with the same ends is the area between them; these slides generate the homotopies, so the two trips are the same loop, ab = ba in Z × Z.'},
-    provenance: 'Week 41 grades 4–5 Problem 5 (change RRRUUU into UUURRR using the allowed moves); the nine-slide count is the guide’s.'},
-  {number: 11, level: 'hard', title: 'A lap that stays', mode: 'shrink', room: 'torus3', home: 'H', trip: 'RRRUUULLL', target: '', check: {possible: false, endCopy: [0, 1]}, kind: 'shrink',
+  {number: 10, level: 'hard', title: 'Up first', mode: 'shrink', room: 'torus3', home: 'H', trip: 'RRRUUU', target: 'UUURRR', check: {possible: true, slides: 9}, kind: 'shrink',
+    objective: 'Turn the trip into the dashed trip.', visible: 'Turn the trip into the dashed trip.',
+    idea: 'Each slide moves the trip across one square, so turning RRRUUU into UUURRR takes at least nine slides, one for each square between the two trips; nine is enough.',
+    hints: ['Which corner of the trip is next to the dashed trip?', 'Some slides move the trip towards the dashed trip and some move it away. Which corners move it towards?', 'Slide a corner where a step right is followed by a step up: each one moves the trip one square towards the dashed trip.'],
+    parent: {notice: 'Whether your child slides corners that move the trip away from the dashed one and back again, and whether they count their slides. Any route solves the puzzle; there is no limit.', prompt: 'How many slides did your way take? Can you do it in fewer? What is the fewest?', explanation: 'A slide swaps a step right and a step up next to each other, moving the trip across one square. Between RRRUUU and UUURRR lie nine squares, so at least nine slides are needed, and nine are enough if each moves the trip one square towards the dashed one: RRRUUU, RRURUU, RURRUU, URRRUU, URRURU, URURRU, UURRRU, UURRUR, UURURR, UUURRR is one way. The fewest is nine. The app doesn’t count slides, so count them together, perhaps on a replay. Both trips end in the copy up and to the right; the start never moves.', extension: 'How many slides turn RRRUUU into RURURU? (Three: the squares between them.)', connection: 'For lattice paths, the fewest slides between two paths with the same ends is the area between them; these slides generate the homotopies, so the two trips are the same loop, ab = ba in Z × Z.'},
+    provenance: 'Week 41 grades 4–5 Problem 5 (change RRRUUU into UUURRR using the allowed moves). The guide’s nine-slide fewest is a question for the grown-up notes, not a limit on screen.'},
+  {number: 11, level: 'hard', title: 'Right, up and left', mode: 'shrink', room: 'torus3', home: 'H', trip: 'RRRUUULLL', target: '', check: {possible: false, endCopy: [0, 1]}, kind: 'shrink',
     objective: 'Shrink the trip to nothing by sliding corners and erasing steps that go straight back. Press Can’t if it never can.', visible: 'Shrink the trip to nothing.',
     idea: 'No slide or erasure moves the copy where a trip ends, so a trip that ends in another copy can never shrink to nothing.',
     hints: ['Where does the trip end in the unrolled view?', 'Slides and erasures never move the end of the trip.', 'The trip ends on H in the copy above, not the first copy. Press Can’t.'],
@@ -116,7 +117,7 @@ const PUZZLES = [
   {number: 12, level: 'hard', title: 'Four wide, five steps', mode: 'walk', room: 'torus4', home: 'F', steps: 5, check: {homeTrips: 0, of: 1024}, kind: 'count',
     objective: 'Get back to F in exactly 5 steps. Press Can’t if no trip can.', visible: 'Get back to F in exactly 5 steps.',
     idea: 'In a room four wide and four tall, a checkerboard colouring survives the portals, so no trip with an odd number of steps comes home.',
-    hints: ['Colour the room like a checkerboard. Does a portal ever join two squares of the same colour?', 'Every step changes the colour, even through a portal.', 'After five steps the pawn is on the other colour from F. Press Can’t.'],
+    hints: ['Try some five-step trips. Which squares can the pawn reach in one step? In two? In three?', 'Colour the room like a checkerboard. Does a portal ever join two squares of the same colour?', 'Every step changes the colour, even through a portal, so after five steps the pawn is on the other colour from F. Press Can’t.'],
     parent: {notice: 'Whether your child tries laps, as in puzzle 6, and notices that a lap here is four steps.', prompt: 'In puzzle 6 a lap took three steps. How many does it take here?', explanation: 'Colour the room like a checkerboard. Because the room is four squares wide and tall, a portal joins a square of one colour to one of the other, just like an ordinary step. So every step changes the colour, and after an odd number of steps the pawn is never on F’s colour. None of the 1,024 five-step trips comes home. In the three-wide room the portals join squares of one colour, which is what lets a lap of three come home.', extension: 'Which numbers of steps can bring the pawn home here? (Every even number, and no odd one.)', connection: 'The 4 × 4 torus graph is bipartite, so it has no closed walks of odd length; the 3 × 3 torus has odd cycles (each row).'},
     provenance: 'New: the review card’s fix 10 (“no odd trip returns” on the plain board), moved to a portal room four wide, where it still holds.'}
 ];
@@ -154,12 +155,12 @@ const out = PUZZLES.map(item => {
     else solution = {cant: true, certificate: 'gap'};
     rules.push(RULES.trade); controls = CONTROLS.trade;
   } else {
-    Object.assign(q, {trip: item.trip, target: item.target, ...(item.budget ? {budget: item.budget} : {})});
+    Object.assign(q, {trip: item.trip, target: item.target});
     assert.equal(shrinkPossible(q), item.check.possible, `${id(item.number)}: shrink`);
     if (item.check.slides !== undefined) assert.equal(editReach(item.trip).get(item.target), item.check.slides, `${id(item.number)}: fewest slides`);
     if (item.check.endCopy) assert.deepEqual(copyIndex(S, tripLift(S, item.home, item.trip).end), item.check.endCopy);
     solution = item.check.possible ? {target: item.target, ...(item.check.slides !== undefined ? {slides: item.check.slides} : {moves: item.check.moves})} : {cant: true, certificate: 'end copy', endCopy: item.check.endCopy};
-    rules.push(RULES.shrink, item.target ? RULES.turn(item.budget) : RULES.nothing);
+    rules.push(RULES.shrink, item.target ? RULES.turn : RULES.nothing);
     controls = CONTROLS.shrink;
   }
   return {

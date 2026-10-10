@@ -27,6 +27,7 @@
 .pb-mark.faint{opacity:.45;stroke-width:1px}
 .pb-label{font-family:var(--b-display,Georgia,serif);font-size:.42px;text-anchor:middle;fill:var(--b-ink,#294439);pointer-events:none}
 .pb-label.faint{fill:#7d8a72}
+.pb-label.corner{font-size:.27px}
 .pb-hit{fill:transparent;stroke:none}
 .pb-point.act{cursor:pointer;outline:none}
 .pb-point.act .pb-hit{fill:rgba(134,166,140,.16)}

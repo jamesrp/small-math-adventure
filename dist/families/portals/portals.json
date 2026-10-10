@@ -1363,7 +1363,7 @@
   {
    "id": "portals-09",
    "number": 9,
-   "title": "Half a room apart",
+   "title": "Trading in the big room",
    "difficulty_level": "hard",
    "familyTitle": "Portal rooms",
    "mechanic": "portals",
@@ -1592,31 +1592,30 @@
     },
     "home": "H",
     "trip": "RRRUUU",
-    "target": "UUURRR",
-    "budget": 9
+    "target": "UUURRR"
    },
-   "objective": "Turn the trip into the dashed trip in 9 slides.",
-   "visibleObjective": "Turn the trip into the dashed trip in 9 slides.",
-   "instruction": "Turn the trip into the dashed trip in 9 slides.",
+   "objective": "Turn the trip into the dashed trip.",
+   "visibleObjective": "Turn the trip into the dashed trip.",
+   "instruction": "Turn the trip into the dashed trip.",
    "controls": "Tap a corner to slide it, or the tip of a step that goes straight back to erase it. Tab and Enter work too. Undo takes back a move.",
    "rules": [
     "The room’s right edge is glued to its left edge, and its top to its bottom. Matching marks show which edges meet.",
     "A step off one edge comes back in through the matching edge, in the same row or column.",
     "The unrolled view repeats the room in every direction, so a trip goes straight on into the next copy. The first copy is shaded.",
     "Tap a corner of the trip to slide it across its square: its two steps swap. Tap the tip of a step that goes straight back to erase both steps.",
-    "Turn the trip into the dashed trip in 9 slides or fewer."
+    "Turn the trip into the dashed trip."
    ],
-   "idea": "Each slide moves the trip across one square, so turning RRRUUU into UUURRR takes exactly the nine squares between them.",
+   "idea": "Each slide moves the trip across one square, so turning RRRUUU into UUURRR takes at least nine slides, one for each square between the two trips; nine is enough.",
    "prerequisites": "Read a trip as a row of arrows and see where two steps swap or cancel. Grades 4–5 in the worksheet; younger children can play it as pushing corners.",
    "hints": [
     "Which corner of the trip is next to the dashed trip?",
-    "Slide the corner where the steps turn from right to up.",
-    "Every slide must move the trip one square closer to the dashed trip."
+    "Some slides move the trip towards the dashed trip and some move it away. Which corners move it towards?",
+    "Slide a corner where a step right is followed by a step up: each one moves the trip one square towards the dashed trip."
    ],
    "parent": {
-    "notice": "Whether your child slides a corner that moves the trip away from the dashed one, and notices that the beads are then too few.",
-    "prompt": "How many squares lie between the trip and the dashed trip?",
-    "explanation": "A slide swaps a step right and a step up next to each other, moving the trip across one square. Between RRRUUU and UUURRR lie nine squares, so at least nine slides are needed, and nine are enough if each moves the trip one square towards the dashed one: RRRUUU, RRURUU, RURRUU, URRRUU, URRURU, URURRU, UURRRU, UURRUR, UURURR, UUURRR is one way. Both trips end in the copy up and to the right; the start never moves.",
+    "notice": "Whether your child slides corners that move the trip away from the dashed one and back again, and whether they count their slides. Any route solves the puzzle; there is no limit.",
+    "prompt": "How many slides did your way take? Can you do it in fewer? What is the fewest?",
+    "explanation": "A slide swaps a step right and a step up next to each other, moving the trip across one square. Between RRRUUU and UUURRR lie nine squares, so at least nine slides are needed, and nine are enough if each moves the trip one square towards the dashed one: RRRUUU, RRURUU, RURRUU, URRRUU, URRURU, URURRU, UURRRU, UURRUR, UURURR, UUURRR is one way. The fewest is nine. The app doesn’t count slides, so count them together, perhaps on a replay. Both trips end in the copy up and to the right; the start never moves.",
     "extension": "How many slides turn RRRUUU into RURURU? (Three: the squares between them.)",
     "connection": "For lattice paths, the fewest slides between two paths with the same ends is the area between them; these slides generate the homotopies, so the two trips are the same loop, ab = ba in Z × Z.",
     "sourceIds": [
@@ -1629,12 +1628,12 @@
     "target": "UUURRR",
     "slides": 9
    },
-   "provenance": "Week 41 grades 4–5 Problem 5 (change RRRUUU into UUURRR using the allowed moves); the nine-slide count is the guide’s."
+   "provenance": "Week 41 grades 4–5 Problem 5 (change RRRUUU into UUURRR using the allowed moves). The guide’s nine-slide fewest is a question for the grown-up notes, not a limit on screen."
   },
   {
    "id": "portals-11",
    "number": 11,
-   "title": "A lap that stays",
+   "title": "Right, up and left",
    "difficulty_level": "hard",
    "familyTitle": "Portal rooms",
    "mechanic": "portals",
@@ -1881,9 +1880,9 @@
    "idea": "In a room four wide and four tall, a checkerboard colouring survives the portals, so no trip with an odd number of steps comes home.",
    "prerequisites": "Count steps up to five and remember where the pawn started.",
    "hints": [
+    "Try some five-step trips. Which squares can the pawn reach in one step? In two? In three?",
     "Colour the room like a checkerboard. Does a portal ever join two squares of the same colour?",
-    "Every step changes the colour, even through a portal.",
-    "After five steps the pawn is on the other colour from F. Press Can’t."
+    "Every step changes the colour, even through a portal, so after five steps the pawn is on the other colour from F. Press Can’t."
    ],
    "parent": {
     "notice": "Whether your child tries laps, as in puzzle 6, and notices that a lap here is four steps.",

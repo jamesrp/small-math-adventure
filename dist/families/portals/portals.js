@@ -30,22 +30,9 @@ const isWord = (w, cap) => typeof w === 'string' && w.length <= cap && /^[RULD]*
 const keyOf = ([u, v]) => `${u},${v}`;
 
 // --- Rooms ----------------------------------------------------------------------
-// A room is a surface spec for the shared portal board (dist/portal-board.js):
-// one small square per board square, so a step is a move to the square glued
-// on that side. `letters` names the squares.
-// A room from its rows of letters, top row first: each letter is one small
-// square; `wrapX` glues the right edge to the left and `wrapY` the top to the
-// bottom, both by translation (false leaves a wall).
-export function roomFromRows(rows, {wrapX = true, wrapY = true} = {}) {
-  const H = rows.length, W = rows[0].length, squares = {}, right = {}, up = {};
-  rows.forEach((row, k) => [...row].forEach((id, c) => { squares[id] = [c, H - 1 - k]; }));
-  const name = (c, r) => rows[H - 1 - r][c];
-  for (const [id, [c, r]] of Object.entries(squares)) {
-    right[id] = c + 1 < W ? name(c + 1, r) : wrapX ? name(0, r) : null;
-    up[id] = r + 1 < H ? name(c, r + 1) : wrapY ? name(c, 0) : null;
-  }
-  return {squares, right, up};
-}
+// A room is a surface spec for the shared portal board (dist/portal-board.js),
+// built there by roomFromRows: one small square per board square, so a step
+// is a move to the square glued on that side. `letters` names the squares.
 export const surfaceFor = q => surfaceOf(q.room);
 export const sizeOf = S => [S.box[2] - S.box[0], S.box[3] - S.box[1]];
 // The copy a placed point is in, counted in whole rooms: [m, n].
@@ -137,9 +124,9 @@ export function tradeRoute(S, from, target) {
 export const tradePossible = q => tradeRoute(surfaceFor(q), q.pawns, [q.pawns[1], q.pawns[0]]) !== null;
 
 // --- Shrink: erase a step and its way back, or slide a corner -------------------
-// parameters: {mode: 'shrink', room, letters, home, trip, target, budget?}.
-// The trip starts as `trip` and must become `target` ('' is staying at H).
-// With `budget`, at most that many slides (the fewest possible).
+// parameters: {mode: 'shrink', room, letters, home, trip, target}.
+// The trip starts as `trip` and must become `target` ('' is staying at H), by
+// any number of moves.
 export function editWord(word, k) {
   const next = tripApply(stepsOf(word), k);
   return next ? wordOf(next) : null;
@@ -163,18 +150,17 @@ export function editReach(start) {
   reachCache.set(start, dist);
   return dist;
 }
-export const shrinkPossible = q => editReach(q.trip).has(q.target) && editReach(q.trip).get(q.target) <= (q.budget ?? Infinity);
-// Signed area under a word's path, for the parity of slides: a slide moves the
-// path across one square, so the area changes by one.
-const areaOf = word => { let x = 0, y = 0, a = 0; for (const c of word) { const [dx, dy] = DIRS[c]; a += dx * y; x += dx; y += dy; } return a; };
+export const shrinkPossible = q => editReach(q.trip).has(q.target);
 
 // --- Boards ---------------------------------------------------------------------
 // walk: {trip, told, claimed}            every: {trip, found, told, done}
-// trade: {trip, told, claimed}           shrink: {trip, told, claimed[, slides]}
+// trade: {trip, told, claimed}           shrink: {trip, told, claimed}
 // playground: {room, trip}
 // `told` is 'way' after Can't when there is a way (kept until a change), or
 // for every: {kind: 'more'} after That's all with a square still unringed,
-// {kind: 'again', s} after a trip to a square already ringed.
+// {kind: 'again', s} after a trip to a square already ringed. That's all
+// stays off from 'more' until a new square is ringed, so an 'again' in
+// between carries more: true.
 export const playRoom = (q, b) => q.rooms[b.room];
 const qFor = (p, b) => p.parameters.mode === 'playground' ? {...playRoom(p.parameters, b), mode: 'playground'} : p.parameters;
 const hasCant = q => (q.mode === 'walk' && Boolean(q.steps)) || q.mode === 'trade' || q.mode === 'shrink';
@@ -184,13 +170,15 @@ function possible(q) {
   if (q.mode === 'shrink') return shrinkPossible(q);
   return true;
 }
+// After That's all with a square unringed: That's all waits for a new ring.
+const moreLeft = b => b.told?.kind === 'more' || b.told?.more === true;
 const capOf = q => q.mode === 'playground' ? PLAY_TRIP : q.mode === 'walk' && q.steps ? q.steps : q.mode === 'every' ? q.steps - 1 : MAX_TRIP;
 
 function fresh(p) {
   const q = p.parameters;
   if (q.mode === 'playground') return {room: Object.keys(q.rooms)[0], trip: ''};
   if (q.mode === 'every') return {trip: '', found: [], told: null, done: false};
-  if (q.mode === 'shrink') return {trip: q.trip, told: null, claimed: false, ...(q.budget ? {slides: 0} : {})};
+  if (q.mode === 'shrink') return {trip: q.trip, told: null, claimed: false};
   return {trip: '', told: null, claimed: false};
 }
 const keysAre = (b, keys) => object(b) && Object.keys(b).sort().join() === [...keys].sort().join();
@@ -213,23 +201,14 @@ function valid(p, b) {
     if (t === null) return true;
     if (!object(t)) return false;
     if (t.kind === 'more') return keysAre(t, ['kind']) && b.found.length < answers.length;
-    if (t.kind === 'again') return keysAre(t, ['kind', 's']) && b.found.includes(t.s) && b.trip === '';
+    if (t.kind === 'again') return (keysAre(t, ['kind', 's']) || (keysAre(t, ['kind', 's', 'more']) && t.more === true && b.found.length < answers.length)) && b.found.includes(t.s) && b.trip === '';
     return false;
   }
-  const keys = ['trip', 'told', 'claimed', ...(q.mode === 'shrink' && q.budget ? ['slides'] : [])];
-  if (!keysAre(b, keys) || typeof b.claimed !== 'boolean' || (b.told !== null && b.told !== 'way')) return false;
+  if (!keysAre(b, ['trip', 'told', 'claimed']) || typeof b.claimed !== 'boolean' || (b.told !== null && b.told !== 'way')) return false;
   if (b.claimed && b.told !== null) return false;
   if (!hasCant(q) && (b.claimed || b.told !== null)) return false;
   if ((b.claimed && possible(q)) || (b.told === 'way' && !possible(q))) return false;
-  if (q.mode === 'shrink') {
-    const dist = editReach(q.trip);
-    if (typeof b.trip !== 'string' || !dist.has(b.trip)) return false;
-    if (q.budget) {
-      const d = dist.get(b.trip);
-      if (!Number.isInteger(b.slides) || b.slides < d || b.slides > q.budget || (b.slides - (areaOf(b.trip) - areaOf(q.trip))) % 2 !== 0) return false;
-    }
-    return true;
-  }
+  if (q.mode === 'shrink') return typeof b.trip === 'string' && editReach(q.trip).has(b.trip);
   if (!isWord(b.trip, capOf(q))) return false;
   if (q.mode === 'trade' ? tradeEnds(S, q, b.trip).blocked : !legal(S, q.home, b.trip)) return false;
   // A goal is kept the moment it is reached, so no earlier part of the trip reached it.
@@ -259,21 +238,20 @@ function move(p, b, action) {
   }
   if (q.mode === 'every') {
     if (action.type === 'all') {
-      if (b.told?.kind === 'more') return null;
+      if (moreLeft(b)) return null;
       return b.found.length === reachIn(S, q.home, q.steps).length ? {...b, trip: '', told: null, done: true} : {...b, told: {kind: 'more'}};
     }
     if (action.type !== 'step' || !LETTERS.includes(action.dir)) return null;
     const trip = b.trip + action.dir;
     if (!legal(S, q.home, trip)) return null;
-    const told = b.told?.kind === 'more' ? b.told : null;
-    if (trip.length < q.steps) return {...b, trip, told};
+    const more = moreLeft(b);
+    if (trip.length < q.steps) return {...b, trip, told: more ? {kind: 'more'} : null};
     const end = tripLift(S, q.home, trip).end.s;
-    return b.found.includes(end) ? {...b, trip: '', told: {kind: 'again', s: end}} : {...b, trip: '', found: [...b.found, end], told: null};
+    return b.found.includes(end) ? {...b, trip: '', told: {kind: 'again', s: end, ...(more ? {more} : {})}} : {...b, trip: '', found: [...b.found, end], told: null};
   }
   if (q.mode === 'shrink') {
     if (!['slide', 'cancel'].includes(action.type) || editKind(b.trip, action.at) !== action.type) return null;
-    if (action.type === 'slide' && q.budget && b.slides >= q.budget) return null;
-    return {...b, trip: editWord(b.trip, action.at), told: null, ...(q.budget ? {slides: b.slides + (action.type === 'slide' ? 1 : 0)} : {})};
+    return {...b, trip: editWord(b.trip, action.at), told: null};
   }
   // walk and trade
   if (action.type !== 'step' || !LETTERS.includes(action.dir) || b.trip.length >= capOf(q)) return null;
@@ -340,17 +318,17 @@ function shrinkStep(word) {
   if (cancel) return cancel;
   return moves.find(m => m.kind === 'slide' && 'UD'.includes(word[m.at - 1]) && 'RL'.includes(word[m.at])) || null;
 }
-// Turning one trip into another within a slide budget: a breadth-first search.
+// Turning one trip into another: the first move of a shortest route, by a
+// breadth-first search (on puzzle 10 that is a fewest-slides route).
 function turnStep(q, b) {
-  const target = q.target, left = q.budget ? q.budget - b.slides : Infinity;
-  const seen = new Map([[b.trip, null]]), queue = [[b.trip, 0]];
+  const target = q.target, seen = new Map([[b.trip, null]]), queue = [b.trip];
   for (let n = 0; n < queue.length; n++) {
-    const [w, used] = queue[n];
+    const w = queue[n];
     if (w === target) { let a = w, first = null; while (seen.get(a)) { first = seen.get(a)[1]; a = seen.get(a)[0]; } return first; }
     for (const m of tripMoves(stepsOf(w))) {
-      const next = editWord(w, m.at), cost = used + (m.kind === 'slide' ? 1 : 0);
-      if (cost > left || seen.has(next)) continue;
-      seen.set(next, [w, m]); queue.push([next, cost]);
+      const next = editWord(w, m.at);
+      if (seen.has(next)) continue;
+      seen.set(next, [w, m]); queue.push(next);
     }
   }
   return null;
@@ -394,7 +372,7 @@ function hint(p, b) {
   }
   if (!shrinkPossible(q)) return {...cant, text: 'The two trips end in different copies. Press Can’t.'};
   const m = q.target === '' ? shrinkStep(b.trip) : turnStep(q, b);
-  if (!m) return {type: 'deadend', text: q.budget ? 'Too many slides now. Undo.' : 'Undo.'};
+  if (!m) return {type: 'deadend', text: 'Undo.'};
   return {type: 'move', action: {type: m.kind, at: m.at}, text: m.kind === 'cancel' ? `Erase a there-and-back pair: ${pairWords(b.trip, m.at)}.` : `Slide a ${pairWords(b.trip, m.at)} corner.`};
 }
 // The steps that take one square to another in the room (breadth-first).
@@ -495,7 +473,7 @@ function renderWalk(p, a, q0, q, S, done, act) {
   } else if (!done) {
     const parts = [];
     if (steps) parts.push(beads(steps, b.trip.length, `${b.trip.length} of ${steps} steps`));
-    if (q.mode === 'every') parts.push(button('That’s all', {type: 'all'}, b.told?.kind !== 'more', act?.type === 'all'));
+    if (q.mode === 'every') parts.push(button('That’s all', {type: 'all'}, !moreLeft(b), act?.type === 'all'));
     if (hasCant(q)) parts.push(button('Can’t', {type: 'cant'}, b.told !== 'way', act?.type === 'cant'));
     bar = parts.length ? `<div class="pt-bar">${parts.join('')}</div>` : '';
   }
@@ -515,27 +493,28 @@ export const checkerboard = S => S.ids.every(s => ['right', 'up'].every(side => 
 function renderShrink(p, a, q, S, done, act) {
   const b = a.board, steps = stepsOf(b.trip), L = tripLift(S, q.home, b.trip), moving = !done;
   const hintAt = act && (act.type === 'slide' || act.type === 'cancel') ? act.at : null;
-  const room = roomBoard(S, {cls: 'pt-room', label: 'Portal room', point: pt => ({text: letterOf(q, pt.s), label: `${letterOf(q, pt.s)}${pt.s === q.home ? ', home' : ''}`}), under: ring(roomSpots(S, {s: q.home, i: 0, j: 0})[0], 'start'), over: roomTrail(S, {s: q.home, i: 0, j: 0}, steps, 'pb-trail')});
+  // The letters sit in a corner of each square, clear of the trip through the centres.
+  const room = roomBoard(S, {cls: 'pt-room', label: 'Portal room', labelAt: LETTER_AT, point: pt => ({text: letterOf(q, pt.s), textCls: 'corner', label: `${letterOf(q, pt.s)}${pt.s === q.home ? ', home' : ''}`}), under: ring(roomSpots(S, {s: q.home, i: 0, j: 0})[0], 'start'), over: roomTrail(S, {s: q.home, i: 0, j: 0}, steps, 'pb-trail')});
   const startKey = keyAt(S, q.home, [0, 0]), endKey = planeKey(S, L.end);
   const targetLift = q.target ? tripLift(S, q.home, q.target) : null;
   const layer = tripLayer(S, {s: q.home, i: 0, j: 0}, steps, {vertex: (k, kind) => {
-    if (!moving || (kind === 'slide' && q.budget && b.slides >= q.budget)) return {act: false};
+    if (!moving) return {act: false};
     return {act: true, cls: k === hintAt ? 'hinted' : '', label: kind === 'slide' ? `Slide the ${pairName(b.trip, k)} corner after step ${k}` : `Erase steps ${k} and ${k + 1}, ${pairName(b.trip, k)}`};
   }});
   const show = [startKey, endKey, ...L.points.map(pt => planeKey(S, pt)), ...(targetLift ? targetLift.points.map(pt => planeKey(S, pt)) : [])];
   let under = ring(planeSpot(S, at(S, q.home)), 'start') + ring(planeSpot(S, L.end), 'end');
   if (targetLift) under += `<polyline class="pt-target" points="${targetLift.points.map(pt => planeSpot(S, pt).map(f).join(',')).join(' ')}"/>`;
   const [w, h] = sizeOf(S);
-  const plane = planeBoard(S, {cls: 'pt-plane', label: 'Unrolled view', key: `portals-${p.id}`, show, min: Math.max(w, h) + 4, max: Math.max(w, h) * 3 + 2, point: pt => ({text: letterOf(q, pt.s), textCls: 'faint', label: `${letterOf(q, pt.s)}, ${copyWords(copyIndex(S, pt))}`}), square: (s, X, Y, copy) => copy[0] === 0 && copy[1] === 0 ? 'first' : '', under, over: layer.line, top: moving ? layer.controls : ''});
+  const plane = planeBoard(S, {cls: 'pt-plane', label: 'Unrolled view', key: `portals-${p.id}`, show, min: Math.max(w, h) + 4, max: Math.max(w, h) * 3 + 2, labelAt: LETTER_AT, point: pt => ({text: letterOf(q, pt.s), textCls: 'faint corner', label: `${letterOf(q, pt.s)}, ${copyWords(copyIndex(S, pt))}`}), square: (s, X, Y, copy) => copy[0] === 0 && copy[1] === 0 ? 'first' : '', under, over: layer.line, top: moving ? layer.controls : ''});
   const word = `<div class="pt-word" role="img" aria-label="${esc(b.trip ? `Trip: ${[...b.trip].map(c => DIR_NAMES[c]).join(', ')}` : 'No steps left')}">${b.trip ? [...b.trip].map((c, k) => `<span class="${hintAt && (k === hintAt - 1 || k === hintAt) ? 'hinted' : ''}">${ARROWS[c]}</span>`).join('') : '<span class="pt-empty">·</span>'}</div>`;
   const parts = [];
-  if (q.budget && moving) parts.push(beads(q.budget, b.slides, `${b.slides} of ${q.budget} slides`));
   if (moving) parts.push(button('Can’t', {type: 'cant'}, b.told !== 'way', act?.type === 'cant'));
   const bar = parts.length ? `<div class="pt-bar">${parts.join('')}</div>` : '';
   const told = b.told === 'way' ? 'There is a way.' : '';
-  const status = `Trip ${b.trip ? [...b.trip].map(c => DIR_NAMES[c]).join(', ') : 'empty'}. It ends on ${letterOf(q, L.end.s)}, ${copyWords(copyIndex(S, L.end))}.${q.budget ? ` ${b.slides} of ${q.budget} slides.` : ''}${told ? ` ${told}` : ''}`;
+  const status = `Trip ${b.trip ? [...b.trip].map(c => DIR_NAMES[c]).join(', ') : 'empty'}. It ends on ${letterOf(q, L.end.s)}, ${copyWords(copyIndex(S, L.end))}.${told ? ` ${told}` : ''}`;
   return `<div class="pt-puzzle${done ? ' solved' : ''}" data-mechanic-wire="portals">${bar}<div class="pt-stage shrink"><div class="pt-view pt-room-view">${room}</div><div class="pt-view pt-plane-view">${plane}</div>${word}</div>${told ? `<p class="pt-told">${told}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
+const LETTER_AT = [-.38, .39];
 const pairName = (word, k) => `${DIR_NAMES[word[k - 1]]} then ${DIR_NAMES[word[k]]}`;
 
 function wire(root, p, api) {
@@ -580,5 +559,5 @@ export default {
   mechanics: portalMechanics,
   pack: new URL('./portals.json', import.meta.url).href,
   css: new URL('./portals.css', import.meta.url).href,
-  focus: '.pb-arrow:not([disabled]),.pb-vertex[role=button],.pt-button:not([disabled])'
+  focus: '.pb-arrow:not([disabled]),.pb-vertex[role=button]'
 };

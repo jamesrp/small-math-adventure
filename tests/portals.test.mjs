@@ -8,8 +8,8 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo, undoToSolvable} from '../dist/engine.js';
 import {playView} from '../dist/ui.js';
-import {Q, surfaceOf, validSurfaceSpec, canonical, validPoint, step, lift, shoot, develop, planeWindow, tripMove, tripApply, tripMoves, stepsOf, wordOf, roomBoard, planeBoard, arrowPad, roomSpots, planeKey, place, copyOf} from '../dist/portal-board.js';
-import {reachIn, exactPossible, tradePossible, tradeRoute, shrinkPossible, editReach, tripLift, copyIndex, copyWords, checkerboard, surfaceFor, roomFromRows as room} from '../dist/families/portals/portals.js';
+import {Q, surfaceOf, validSurfaceSpec, canonical, validPoint, step, lift, shoot, develop, planeWindow, tripMove, tripApply, tripMoves, stepsOf, wordOf, roomBoard, planeBoard, arrowPad, roomSpots, planeKey, place, copyOf, roomFromRows as room, cornerClasses, cornerClass, pointKey, samePoint} from '../dist/portal-board.js';
+import {reachIn, exactPossible, tradePossible, tradeRoute, shrinkPossible, editReach, tripLift, copyIndex, copyWords, checkerboard, surfaceFor} from '../dist/families/portals/portals.js';
 import {loadPack} from '../scripts/packs.mjs';
 
 const portals = JSON.parse(await readFile(new URL('../dist/families/portals/portals.json', import.meta.url), 'utf8'));
@@ -99,6 +99,47 @@ test('steps cross seams, stop at walls, and keep exact copies in the plane', () 
   const e = lift(ell, {s: 'a', i: 0, j: 0}, stepsOf('RRUU'));
   assert.deepEqual(e.points.map(p => p.s), ['a', 'b', 'a', 'c', 'a']);
   assert.deepEqual([e.end.X, e.end.Y], [2, 2]);
+});
+
+test('corner classes: one point per class, drawn at every corner, with its total angle', () => {
+  // A torus: nine flat points of four corners each.
+  assert.equal(cornerClasses(torus).length, 9);
+  assert.ok(cornerClasses(torus).every(c => c.corners.length === 4 && c.angle === 360 && !c.wall && !c.cone));
+  // The L: all twelve corners are one cone point of 1080 degrees.
+  const L = surfaceOf({...ell.spec, lattice: 'crosses'});
+  assert.deepEqual(cornerClasses(L).map(c => [c.corners.length, c.angle, c.wall, c.cone]), [[12, 1080, false, true]]);
+  const forms = [];
+  for (const s of ['a', 'b', 'c']) for (const i of [0, 1]) for (const j of [0, 1]) forms.push(canonical(L, {s, i, j}));
+  assert.equal(new Set(forms.map(pointKey)).size, 1, 'every corner of the L is one point, with one form');
+  assert.ok(forms.every(pt => samePoint(pt, forms[0]) && validPoint(L, pt)));
+  assert.ok(!validPoint(L, {s: 'b', i: 0, j: 0}), 'another corner of the class is not the stored form');
+  const spots = roomSpots(L, forms[0]).map(([x, y]) => `${x},${y}`).sort();
+  assert.deepEqual(spots, ['0,-1', '0,-2', '0,0', '1,-1', '1,-2', '1,0', '2,-1', '2,0'], 'drawn at all eight corner places of the room');
+  // A placed corner keeps its place in the plane when it changes square.
+  const L2 = surfaceOf({...ell.spec, n: 2, lattice: 'crosses'});
+  const far = canonical(L2, {s: 'b', i: 2, j: 2, X: 1, Y: 0});
+  assert.deepEqual([far.s, far.i, far.j], ['a', 0, 0]);
+  assert.deepEqual(planeKey(L2, far), [4, 2]);
+  // A step out of a corner leaves through a square on that side.
+  const cone = place(L2, canonical(L2, {s: 'b', i: 0, j: 0}));
+  assert.deepEqual(planeKey(L2, step(L2, cone, [-1, 0])), [-1, 0]);
+  assert.deepEqual(planeKey(L2, step(L2, cone, [0, -1])), [0, -1]);
+  assert.equal(step(L2, cone, [1, 0]).s, 'a', 'from the representative, into a');
+  assert.equal(step(L2, place(L2, {s: 'b', i: 0, j: 0}), [1, 0]).s, 'b', 'from a corner of b, into b');
+  // A shot finds a corner target from any square of its class.
+  assert.equal(shoot(L2, {s: 'a', i: 1, j: 1}, [1, 1], {targets: [{s: 'a', i: 0, j: 0}]}).stop, 'target');
+  // The cylinder's rims: points on a wall, half a turn.
+  const rims = cornerClasses(cylinder).filter(c => c.wall);
+  assert.equal(rims.length, 4);
+  assert.ok(rims.every(c => c.angle === 180 && !c.cone));
+  // An inside corner of a walled L: three corners, 270 degrees, and steps along both walls.
+  const walled = surfaceOf({squares: {u: [0, 1], w: [0, 0], t: [1, 0]}, right: {w: 't'}, up: {w: 'u'}, lattice: 'crosses'});
+  const inside = cornerClass(walled, 't', [0, 1]);
+  assert.deepEqual([inside.corners.length, inside.angle, inside.wall], [3, 270, true]);
+  const at = place(walled, canonical(walled, {s: 't', i: 0, j: 1}));
+  assert.deepEqual(planeKey(walled, step(walled, at, [0, 1])), [1, 2], 'up along the wall of the square above');
+  assert.deepEqual(planeKey(walled, step(walled, at, [1, 0])), [2, 1], 'right along the wall of the square below');
+  assert.equal(step(walled, at, [1, 1]), null, 'nothing up and to the right');
 });
 
 test('straight shots of rational slope go through seams, stop at a target, a wall or a cone point', () => {
@@ -235,6 +276,11 @@ test('every square in two steps: rings, found already, there is another, That’
   const more = play(p, a, {type: 'all'});
   assert.deepEqual(more.board.told, {kind: 'more'});
   assert.equal(move(p, more, {type: 'all'}), null);
+  const repeat = play(p, more, ...walk('RR'));
+  assert.deepEqual(repeat.board.told, {kind: 'again', s: 'D', more: true}, 'found already, and still another');
+  assert.equal(move(p, repeat, {type: 'all'}), null, 'That’s all waits for a new square');
+  assert.match(view(p, repeat), /data-focus="pt-all" disabled/);
+  assert.ok(move(p, play(p, repeat, ...walk('LL')), {type: 'all'}), 'a new square turns it back on');
   for (const w of ['LL', 'UU', 'DD', 'RU', 'LU', 'LD', 'RD']) a = play(p, a, ...walk(w));
   assert.ok(!isSolved(p, play(p, a, {type: 'all'}).board), 'H is not ringed yet');
   a = play(p, a, ...walk('RL'));
@@ -255,13 +301,20 @@ test('the trade: never on three wide, half a room apart on four', () => {
   assert.equal(play(q, b, {type: 'cant'}).board.told, 'way');
 });
 
-test('erasing and sliding: the moves, the slide budget, Can’t with the finishing copy', () => {
+test('erasing and sliding: the moves, any route, Can’t with the finishing copy', () => {
   const p = byId('portals-10'), a = freshAttempt(p);
   assert.equal(move(p, a, {type: 'slide', at: 2}), null, 'two steps the same way');
   assert.equal(move(p, a, {type: 'cancel', at: 3}), null, 'not a there-and-back pair');
+  assert.equal(p.objective, 'Turn the trip into the dashed trip.', 'no count on screen');
+  assert.doesNotMatch(view(p, a), /pt-beads/, 'and no beads');
   const one = play(p, a, {type: 'slide', at: 3});
-  assert.deepEqual([one.board.trip, one.board.slides], ['RRURUU', 1]);
-  assert.equal(nextHint(p, play(p, one, {type: 'slide', at: 3})).type, 'deadend', 'nine slides are needed and seven are left');
+  assert.deepEqual(one.board, {trip: 'RRURUU', told: null, claimed: false});
+  const back = play(p, one, {type: 'slide', at: 3});
+  assert.equal(back.board.trip, 'RRRUUU');
+  assert.equal(nextHint(p, back).type, 'move', 'a wasted slide is no dead end');
+  let long = back;
+  for (const at of [3, 2, 1, 4, 3, 2, 5, 4, 3]) long = play(p, long, {type: 'slide', at});
+  assert.ok(isSolved(p, long.board), 'eleven slides solve it too');
   const s = byId('portals-08');
   let b = freshAttempt(s);
   assert.equal(move(s, b, {type: 'cancel', at: 3}), null);
@@ -294,13 +347,15 @@ test('forged saves are rejected', () => {
     ['portals-02', {trip: '', found: ['H', 'H'], told: null, done: false}],
     ['portals-07', {trip: '', found: ['B'], told: null, done: false}],
     ['portals-02', {trip: '', found: ['H'], told: null, done: true}],
-    ['portals-10', {trip: 'UUURRR', told: null, claimed: false, slides: 3}],
-    ['portals-10', {trip: 'RRURUU', told: null, claimed: false, slides: 2}],
+    ['portals-10', {trip: 'RRURUU', told: null, claimed: false, slides: 1}],
+    ['portals-10', {trip: 'RRRUUL', told: null, claimed: false}],
+    ['portals-02', {trip: '', found: ['D'], told: {kind: 'again', s: 'D', more: false}, done: false}],
     ['portals-08', {trip: 'LLL', told: null, claimed: false}],
     ['portals-playground', {room: 'moon', trip: ''}]
   ];
   for (const [id, board] of bad) assert.equal(validBoard(byId(id), board), false, `${id}: ${JSON.stringify(board)}`);
-  assert.equal(validBoard(byId('portals-10'), {trip: 'RRURUU', told: null, claimed: false, slides: 3}), true, 'a slide there, back, and on');
+  assert.equal(validBoard(byId('portals-10'), {trip: 'URURUR', told: null, claimed: false}), true, 'any trip the slides reach');
+  assert.equal(validBoard(byId('portals-02'), {trip: '', found: ['D'], told: {kind: 'again', s: 'D', more: true}, done: false}), true);
 });
 
 test('every puzzle renders its room and views; objectives stay off the board unless needed', () => {

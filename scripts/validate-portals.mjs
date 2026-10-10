@@ -277,11 +277,21 @@ function checkEvery(p, fresh, row, r) {
   const early = play(p, steps(p, fresh, ends.get(row.answers[1])), {type: 'all'});
   assert.deepEqual(early.board.told, {kind: 'more'}, `${p.id}: there is another`);
   refuse(p, early, {type: 'all'}, 'That’s all again before a new square');
+  // A repeat keeps That's all off; only a new square turns it back on.
+  const repeat = steps(p, early, ends.get(row.answers[1]));
+  assert.deepEqual(repeat.board.told, {kind: 'again', s: row.answers[1], more: true}, `${p.id}: found already, and still another`);
+  refuse(p, repeat, {type: 'all'}, 'That’s all after a repeat, before a new square');
+  const w0 = ends.get(row.answers[0]);
+  assert.deepEqual(play(p, repeat, {type: 'step', dir: w0[0]}).board.told, {kind: 'more'}, `${p.id}: still another, mid-trip`);
+  const next = steps(p, repeat, w0);
+  assert.equal(next.board.told, null, `${p.id}: a new square`);
+  assert.ok(move(p, next, {type: 'all'}), `${p.id}: That’s all again after a new square`);
   refuse(p, fresh, {type: 'cant'}, 'Can’t when That’s all is the claim');
   if (r === ROOMS.plain3) { const b = steps(p, fresh, 'R'); refuse(p, b, {type: 'step', dir: 'R'}, 'a step through a wall'); }
   let n = hintsSolve(p, fresh, 'from fresh');
   n += hintsSolve(p, early, 'after a wrong That’s all');
   n += hintsSolve(p, again, 'after a repeat');
+  n += hintsSolve(p, repeat, 'after a repeat with a square still unringed');
   n += hintsSolve(p, steps(p, fresh, 'R'), 'after one step');
   return n;
 }
@@ -315,7 +325,7 @@ function checkTrade(p, fresh, row, r) {
 }
 
 // Erasing and sliding: whether the target is reachable, the fewest slides,
-// the budget, and the finishing copy.
+// any route solving, and the finishing copy.
 function checkShrink(p, fresh, row, r) {
   const q = p.parameters, [dx, dy] = r.disp(q.trip), [tx, ty] = r.disp(q.target);
   // Moves only shorten or reorder; a trip can reach a target exactly when they have the same displacement.
@@ -336,31 +346,32 @@ function checkShrink(p, fresh, row, r) {
   assert.equal(Math.abs(area(q.trip) - area(q.target)), slides, `${p.id}: the area between the trips`);
   assert.equal(editReach(q.trip).get(q.target), slides, `${p.id}: the mechanic’s search agrees`);
   if (row.erasures !== undefined) assert.equal((q.trip.length - q.target.length) / 2, row.erasures);
-  if (q.budget) assert.equal(q.budget, slides, `${p.id}: the budget is the fewest`);
+  assert.equal(p.solution.slides ?? slides, slides);
   const wrong = play(p, fresh, {type: 'cant'});
   assert.equal(wrong.board.told, 'way');
   n += hintsSolve(p, wrong, 'after a wrong Can’t');
-  if (q.budget) {
-    // The nine-slide sequence of the worksheet guide.
+  if (q.target) {
+    // The nine-slide sequence of the worksheet guide: a fewest route.
+    assert.equal(q.trip, 'RRRUUU');
     const guide = ['RRRUUU', 'RRURUU', 'RURRUU', 'URRRUU', 'URRURU', 'URURRU', 'UURRRU', 'UURRUR', 'UURURR', 'UUURRR'];
-    let a = fresh;
-    for (let k = 1; k < guide.length; k++) {
-      const at = [...guide[k]].findIndex((c, i) => c !== guide[k - 1][i]) + 1;
-      a = play(p, a, {type: 'slide', at});
-      assert.equal(a.board.trip, guide[k]);
-    }
-    assert.ok(isSolved(p, a.board), `${p.id}: the guide’s nine slides solve`);
-    // A slide away from the dashed trip leaves too few slides: a dead end, then Undo.
+    const route = a0 => {
+      let a = a0;
+      for (let k = 1; k < guide.length; k++) {
+        const at = [...guide[k]].findIndex((c, i) => c !== guide[k - 1][i]) + 1;
+        a = play(p, a, {type: 'slide', at});
+        assert.equal(a.board.trip, guide[k]);
+      }
+      return a;
+    };
+    assert.ok(isSolved(p, route(fresh).board), `${p.id}: the guide’s nine slides solve`);
+    // Any route solves: two slides that go nowhere, then the nine.
     const back = play(p, play(p, fresh, {type: 'slide', at: 3}), {type: 'slide', at: 3});
     assert.equal(back.board.trip, 'RRRUUU');
-    assert.equal(back.board.slides, 2);
-    assert.equal(nextHint(p, back).type, 'deadend', `${p.id}: too few slides left`);
+    assert.equal(nextHint(p, back).type, 'move', `${p.id}: no dead end after wasted slides`);
+    assert.ok(isSolved(p, route(back).board), `${p.id}: eleven slides solve too`);
     n += hintsSolve(p, back, 'after slides that went nowhere');
-    let spent = fresh;
-    for (let k = 0; k < q.budget; k++) spent = play(p, spent, {type: 'slide', at: 3});
-    assert.equal(spent.board.slides, q.budget);
-    assert.ok(!isSolved(p, spent.board));
-    refuse(p, spent, {type: 'slide', at: 3}, 'a slide past the budget');
+    // Hints from every trip the moves reach.
+    for (const w of editReach(q.trip).keys()) assert.equal(nextHint(p, {...fresh, board: {...fresh.board, trip: w}}).type, w === q.target ? 'done' : 'move', `${p.id}: a hint from ${w}`);
   } else {
     // Sliding the first corner the other way round, then hints.
     const b = play(p, fresh, {type: 'slide', at: 3});
@@ -380,8 +391,7 @@ function checkForgeries(p, fresh, r) {
   if (q.mode === 'shrink') {
     bad.push([{...b, trip: q.trip + 'R'}, 'a trip the moves never reach']);
     bad.push([{...b, trip: 'LLL'}, 'a trip with a different end']);
-    if (q.budget) { bad.push([{...b, slides: 1}, 'a slide count of the wrong parity']); bad.push([{...b, slides: q.budget + 2}, 'more slides than the budget']); }
-    else bad.push([{...b, slides: 0}, 'a slide count with no budget']);
+    bad.push([{...b, slides: 0}, 'a slide count, which the board doesn’t keep']);
   } else if (q.mode === 'every') {
     bad.push([{...b, found: ['Z']}, 'a ring on no square']);
     const two = q.steps === 2 && r === ROOMS.plain3 ? 'B' : null;
@@ -390,6 +400,9 @@ function checkForgeries(p, fresh, r) {
     bad.push([{...b, done: true}, 'That’s all with squares unringed']);
     bad.push([{...b, trip: 'RR'}, 'a trip as long as the count left open']);
     bad.push([{...b, told: {kind: 'again', s: 'H'}}, 'a repeat of a square never ringed']);
+    const [s0] = p.solution.answers;
+    bad.push([{...b, found: [s0], told: {kind: 'again', s: s0, more: false}}, 'a repeat with more: false']);
+    bad.push([{...b, found: [...p.solution.answers], told: {kind: 'again', s: s0, more: true}}, 'another left with every square ringed']);
   } else {
     bad.push([{...b, trip: 'R'.repeat(31)}, 'a trip longer than the limit']);
     const cant = q.mode === 'trade' || q.steps;

@@ -3,9 +3,10 @@
 // pad, arrow keys, Enter on a square, finger slides in both views, Undo, a
 // walk to stars through other copies and back, beads and Can't, every square
 // with Found already, There is another and That's all, the two-pawn trade
-// with its gap, corner and erase discs with the slide budget, hints marked on
-// the board and applied, a wall in the plain room and the tube, and the
-// playground's rooms; no page overflow at phone width. Same environment
+// with its gap, corner and erase discs, any route in puzzle 10, hints marked
+// on the board and applied, where focus goes after a step, arrow keys left
+// alone where they move nothing, a wall in the plain room and the tube, and
+// the playground's rooms; no page overflow at phone width. Same environment
 // variables as the other browser suites (PLAYWRIGHT_MODULE,
 // BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone with touch).
 // Screenshots go in test-results/portals/.
@@ -127,8 +128,10 @@ try {
   assert.equal(await button('That’s all').isDisabled(), true, 'That’s all waits for a new ring');
   await arrows('RR');
   assert.equal(await told(), 'Found already.');
+  assert.equal(await button('That’s all').isDisabled(), true, 'still waiting after a repeat');
   await arrows('LU');
   assert.deepEqual((await board(C)).found, ['D', 'A']);
+  assert.equal(await button('That’s all').isDisabled(), false, 'a new ring turns it back on');
   assert.doesNotMatch(await page.locator('.pt-puzzle').innerText(), /\b\d+ (found|of)\b/, 'no count');
   await hintsFinish();
   await shot('every-solved');
@@ -148,7 +151,11 @@ try {
   await tap(arrow('U'));
   assert.equal(await page.locator('.pt-beads i.on').count(), 1, 'a bead per step');
   assert.equal(await page.locator('.pt-told').count(), 0, 'a step clears it');
-  await arrows('UU');
+  // Enter on a square: focus moves to the pad, not onto Can't.
+  await room('G').focus(); await page.keyboard.press('Enter');
+  assert.equal((await board(D)).trip, 'UU');
+  assert.equal(await page.evaluate(() => document.activeElement?.matches('.pb-arrow') ?? false), true, 'focus on an arrow after the step');
+  await page.keyboard.press('Enter');
   await done();
 
   // Puzzle 12: Can't, and the checkerboard after it.
@@ -187,25 +194,30 @@ try {
   assert.ok(await page.locator('.pb-vertex.cancel[data-pb-vertex="3"]').count(), 'an erase disc where a step goes straight back');
   await vertex(3).focus(); await page.keyboard.press('Enter');
   assert.equal((await board(G)).trip, 'RRUUULLDDD', 'Enter erases the pair');
+  // An arrow key moves nothing here, so it is left to the page.
+  await page.evaluate(() => document.addEventListener('keydown', e => { window.__arrowKept = e.defaultPrevented; }));
+  await vertex(5).focus(); await page.keyboard.press('ArrowDown');
+  assert.equal(await page.evaluate(() => window.__arrowKept), false, 'an arrow key in a shrink puzzle is not swallowed');
   await shot('shrink');
   await undo();
   assert.equal((await board(G)).trip, 'RRRLUUULLDDD');
   await hintsFinish();
   assert.equal((await board(G)).trip, '');
 
-  // Puzzle 10: the slide budget, hints on the board.
+  // Puzzle 10: any route, no count on screen, hints on the board.
   const H = 'portals-10';
   await open(H); await fit('turn');
+  assert.equal(await page.locator('.puzzle-goal').innerText(), 'Turn the trip into the dashed trip.');
+  assert.equal(await page.locator('.pt-beads').count(), 0, 'no beads');
   await tap(vertex(3)); await tap(vertex(3));
-  assert.deepEqual([(await board(H)).trip, (await board(H)).slides], ['RRRUUU', 2], 'a slide there and back uses two');
-  assert.equal(await page.locator('.pt-beads i.on').count(), 2);
+  assert.deepEqual(await board(H), {trip: 'RRRUUU', told: null, claimed: false}, 'a slide there and back');
   await button('Hint').click(); await button('Hint').click();
-  assert.match(await page.locator('.hint-card').innerText(), /Undo/, 'too few slides left');
-  await page.locator('[data-action="rescue"]').click();
-  assert.deepEqual([(await board(H)).trip, (await board(H)).slides], ['RRURUU', 1], 'the rescue goes back to where eight slides are enough');
-  for (const k of [2, 1, 4, 3, 2, 5, 4, 3]) await tap(vertex(k));
+  assert.match(await page.locator('.hint-card').innerText(), /Slide a/, 'a wasted slide is no dead end');
+  assert.equal(await page.locator('[data-action="rescue"]').count(), 0);
+  assert.equal(await page.locator('.pb-vertex.hinted').count(), 1, 'the hinted disc is marked');
+  for (const k of [3, 2, 1, 4, 3, 2, 5, 4, 3]) await tap(vertex(k));
   await done();
-  assert.equal((await board(H)).trip, 'UUURRR', 'the guide’s nine slides');
+  assert.equal((await board(H)).trip, 'UUURRR', 'eleven slides in all');
   await shot('turn-solved');
 
   // Puzzle 11: Can't, from the finishing copy.

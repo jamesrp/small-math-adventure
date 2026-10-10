@@ -83,10 +83,32 @@ export function validSurfaceSpec(spec) {
   return spec.lattice === undefined || spec.lattice === 'cells' || spec.lattice === 'crosses';
 }
 
-const surfaces = new Map();
+// A spec from rows of square names, top row first: each character is one
+// square, drawn where it stands. `wrapX` glues each row's right end to its
+// left end and `wrapY` the top row to the bottom row, both by translation;
+// false leaves a wall. Rows ['ABC', 'DHE', 'FGI'] give Week 41's 3 × 3 torus.
+export function roomFromRows(rows, {wrapX = true, wrapY = true} = {}) {
+  const H = rows.length, W = rows[0].length, squares = {}, right = {}, up = {};
+  rows.forEach((row, k) => [...row].forEach((id, c) => { squares[id] = [c, H - 1 - k]; }));
+  const name = (c, r) => rows[H - 1 - r][c];
+  for (const [id, [c, r]] of Object.entries(squares)) {
+    right[id] = c + 1 < W ? name(c + 1, r) : wrapX ? name(0, r) : null;
+    up[id] = r + 1 < H ? name(c, r + 1) : wrapY ? name(c, 0) : null;
+  }
+  return {squares, right, up};
+}
+
+// Surfaces are cached by spec, the 64 most recently used, so calling
+// surfaceOf in every render is cheap and a family that edits gluings doesn't
+// keep every surface it has made.
+const surfaces = new Map(), SURFACE_CACHE = 64;
 export function surfaceOf(spec) {
   const cacheKey = JSON.stringify(spec);
-  if (surfaces.has(cacheKey)) return surfaces.get(cacheKey);
+  if (surfaces.has(cacheKey)) {
+    const hit = surfaces.get(cacheKey);
+    surfaces.delete(cacheKey); surfaces.set(cacheKey, hit);
+    return hit;
+  }
   const ids = Object.keys(spec.squares), at = Object.fromEntries(ids.map(id => [id, [...spec.squares[id]]]));
   const right = Object.fromEntries(ids.map(id => [id, spec.right?.[id] ?? null]));
   const up = Object.fromEntries(ids.map(id => [id, spec.up?.[id] ?? null]));
@@ -100,12 +122,58 @@ export function surfaceOf(spec) {
   const s = {spec, ids, at, right, up, left, down, glue, n, lattice, byPos, box};
   s.edges = roomEdges(s);
   s.marks = seamMarks(s);
+  s.corners = cornerSets(s);
   // A torus or cylinder: every square's right-then-up and up-then-right agree,
   // so the unrolled plane is one fixed tiling.
   s.abelian = ids.every(id => !right[id] || !up[id] || !up[right[id]] || up[right[id]] === right[up[id]]);
   surfaces.set(cacheKey, s);
+  if (surfaces.size > SURFACE_CACHE) surfaces.delete(surfaces.keys().next().value);
   return s;
 }
+
+// Corners. A square's corner [cx, cy] is its lower-left [0, 0], upper-left
+// [0, 1], lower-right [1, 0] or upper-right [1, 1]. Across a glued right side
+// a square's two right corners are the two left corners of the square there;
+// across a glued top its two top corners are the bottom corners of the square
+// above. The corners this joins up are one point of the surface, a corner
+// class: {corners: [{s, c: [cx, cy]}], angle, wall, cone}. `angle` is the
+// total angle round the point in degrees, 90 for each corner; `wall` says the
+// point lies on a wall; `cone` marks an inner point whose angle isn't 360,
+// where the squares round it don't close up. On a torus every class is four
+// corners and 360 degrees; on Week 64's L all twelve corners are one class of
+// 1080 degrees. The first corner is the class's representative: a lower-left
+// corner when there is one (the square to the right of the point and above
+// it), then upper-left, lower-right, upper-right, in the order of `ids`.
+const CORNERS = [[0, 0], [0, 1], [1, 0], [1, 1]];
+const cornerKey = (id, [cx, cy]) => `${id}:${cx}${cy}`;
+function cornerSets(s) {
+  const parent = new Map();
+  const find = k => { while (parent.get(k) !== k) k = parent.get(k); return k; };
+  const join = (a, b) => { const [ra, rb] = [find(a), find(b)]; if (ra !== rb) parent.set(rb, ra); };
+  for (const id of s.ids) for (const c of CORNERS) parent.set(cornerKey(id, c), cornerKey(id, c));
+  for (const id of s.ids) {
+    const r = s.right[id], u = s.up[id];
+    if (r) { join(cornerKey(id, [1, 0]), cornerKey(r, [0, 0])); join(cornerKey(id, [1, 1]), cornerKey(r, [0, 1])); }
+    if (u) { join(cornerKey(id, [0, 1]), cornerKey(u, [0, 0])); join(cornerKey(id, [1, 1]), cornerKey(u, [1, 0])); }
+  }
+  const groups = new Map();
+  for (const c of CORNERS) for (const id of s.ids) {
+    const root = find(cornerKey(id, c));
+    if (!groups.has(root)) groups.set(root, []);
+    groups.get(root).push({s: id, c});
+  }
+  const classes = [...groups.values()].map(corners => {
+    const wall = corners.some(({s: id, c: [cx, cy]}) => !s.glue[cx ? 'right' : 'left'][id] || !s.glue[cy ? 'up' : 'down'][id]);
+    const angle = 90 * corners.length;
+    return {corners, angle, wall, cone: !wall && angle !== 360};
+  });
+  const of = new Map();
+  classes.forEach((cl, k) => cl.corners.forEach(({s: id, c}) => of.set(cornerKey(id, c), k)));
+  return {classes, of};
+}
+export const cornerClasses = surface => surface.corners.classes;
+// The class of square s's corner [cx, cy].
+export const cornerClass = (surface, s, c) => surface.corners.classes[surface.corners.of.get(cornerKey(s, c))];
 
 // The room's drawn edges. Each side of each square is one of: 'inner' (glued
 // to the square drawn next to it), 'wall' (glued to nothing) or 'seam' (glued
@@ -170,9 +238,18 @@ const seamColour = (s, id, side) => s.edges.find(e => e.s === id && e.side === s
 // A lattice point is {s, i, j}: square s, and integer lattice coordinates
 // inside it. On 'cells' 0 <= i, j < n and the point is the centre of a small
 // cell; on 'crosses' 0 <= i, j <= n, and a point on a glued edge is stored in
-// the square to its right or above (i = n or j = n only beside a wall).
+// the square to its right or above (i = n or j = n only beside a wall). A
+// cross at a corner is stored as its corner class's representative, so every
+// point of the surface has exactly one form, even a cone point.
 // A placed point also has X, Y: where its square lies in the plane, in
 // square units, with the portal room drawn at copy (0, 0).
+const isCorner = (surface, pt) => surface.lattice === 'crosses' && (pt.i === 0 || pt.i === surface.n) && (pt.j === 0 || pt.j === surface.n);
+// The same corner point stored in another corner of its class, keeping its
+// place in the plane (a corner point stays put as the squares turn round it).
+function atCorner(surface, pt, {s, c: [cx, cy]}) {
+  const n = surface.n, out = {s, i: cx * n, j: cy * n};
+  return pt.X === undefined ? out : {...out, X: pt.X + pt.i / n - cx, Y: pt.Y + pt.j / n - cy};
+}
 export function canonical(surface, pt) {
   let {s, i, j, X, Y} = pt;
   const n = surface.n, lim = surface.lattice === 'cells' ? n - 1 : n;
@@ -181,7 +258,8 @@ export function canonical(surface, pt) {
     if (i < 0) { if (!surface.left[s]) return null; s = surface.left[s]; i += n; if (X !== undefined) X--; continue; }
     if (j > lim || (surface.lattice === 'crosses' && j === n && surface.up[s])) { if (!surface.up[s]) return null; s = surface.up[s]; j -= n; if (Y !== undefined) Y++; continue; }
     if (j < 0) { if (!surface.down[s]) return null; s = surface.down[s]; j += n; if (Y !== undefined) Y--; continue; }
-    return X === undefined ? {s, i, j} : {s, i, j, X, Y};
+    const out = X === undefined ? {s, i, j} : {s, i, j, X, Y};
+    return isCorner(surface, out) ? atCorner(surface, out, cornerClass(surface, s, [i / n, j / n]).corners[0]) : out;
   }
   return null;
 }
@@ -200,8 +278,18 @@ export const place = (surface, pt, copy = [0, 0]) => ({s: pt.s, i: pt.i, j: pt.j
 
 // One lattice step from a placed point along [dx, dy] (a unit step, or any
 // integer vector that stays within one square's width), or null at a wall.
+// A step out of a corner leaves through a square the step goes into: the
+// corner given, when its square lies that way, otherwise the first such corner
+// of its class. At a cone point, where several squares lie each way, a family
+// that needs a particular one passes that corner.
 export function step(surface, pt, [dx, dy]) {
-  if (surface.lattice === 'crosses') {
+  if (isCorner(surface, pt)) {
+    const n = surface.n, faces = (d, c) => d > 0 ? c === 0 : d < 0 ? c === 1 : true;
+    const ahead = ({c: [cx, cy]}) => faces(dx, cx) && faces(dy, cy), here = {s: pt.s, c: [pt.i / n, pt.j / n]};
+    const from = ahead(here) ? here : cornerClass(surface, pt.s, here.c).corners.find(ahead);
+    if (!from) return null;
+    pt = {...pt, ...atCorner(surface, pt, from)};
+  } else if (surface.lattice === 'crosses') {
     // A cross on a wall edge can't step out through the wall.
     if ((pt.i === surface.n && dx > 0) || (pt.j === surface.n && dy > 0)) return null;
   }
@@ -270,11 +358,13 @@ export function shoot(surface, from, dir, opts = {}) {
   const reps = [];
   (opts.targets || []).forEach((target, k) => {
     const p = toSpot(target);
+    const cx = Q.eq(p.x, 0) ? 0 : Q.eq(p.x, n) ? 1 : null, cy = Q.eq(p.y, 0) ? 0 : Q.eq(p.y, n) ? 1 : null;
+    // A corner is in every square of its class; a point on a side, in the
+    // square across it too.
+    if (cx !== null && cy !== null) { for (const m of cornerClass(surface, p.s, [cx, cy]).corners) reps.push({k, s: m.s, x: Q(m.c[0] * n), y: Q(m.c[1] * n)}); return; }
     reps.push({k, s: p.s, x: p.x, y: p.y});
-    const onLeft = Q.eq(p.x, 0), onBottom = Q.eq(p.y, 0);
-    if (onLeft && surface.left[p.s]) reps.push({k, s: surface.left[p.s], x: Q(n), y: p.y});
-    if (onBottom && surface.down[p.s]) reps.push({k, s: surface.down[p.s], x: p.x, y: Q(n)});
-    if (onLeft && onBottom && surface.left[p.s] && surface.down[surface.left[p.s]]) reps.push({k, s: surface.down[surface.left[p.s]], x: Q(n), y: Q(n)});
+    if (cx !== null && surface.glue[cx ? 'right' : 'left'][p.s]) reps.push({k, s: surface.glue[cx ? 'right' : 'left'][p.s], x: Q(cx ? 0 : n), y: p.y});
+    if (cy !== null && surface.glue[cy ? 'up' : 'down'][p.s]) reps.push({k, s: surface.glue[cy ? 'up' : 'down'][p.s], x: p.x, y: Q(cy ? 0 : n)});
   });
   const pieces = [];
   const piece = (x2, y2) => { if (!Q.eq(x, x2) || !Q.eq(y, y2)) pieces.push({s, X, Y, a: [x, y], b: [x2, y2]}); };
@@ -421,16 +511,14 @@ export const roomXY = (surface, s, x, y) => [surface.at[s][0] * surface.n + Q.nu
 export const planeXY = (surface, X, Y, x, y) => [X * surface.n + Q.num(x), -(Y * surface.n + Q.num(y))];
 // Where a lattice point is drawn: in the room (every place it appears, since
 // a cross on a seam shows on both sides), and in the plane.
+// A corner point is drawn at every corner of its class.
 export function roomSpots(surface, pt) {
   const [x, y] = spot(surface, pt), n = surface.n, out = [[pt.s, x, y]];
-  if (surface.lattice === 'crosses') {
+  if (isCorner(surface, pt)) out.splice(0, 1, ...cornerClass(surface, pt.s, [pt.i / n, pt.j / n]).corners.map(({s, c}) => [s, Q(c[0] * n), Q(c[1] * n)]));
+  else if (surface.lattice === 'crosses') {
     const l = surface.left[pt.s], d = surface.down[pt.s];
     if (pt.i === 0 && l) out.push([l, Q(n), y]);
     if (pt.j === 0 && d) out.push([d, x, Q(n)]);
-    if (pt.i === 0 && pt.j === 0) {
-      if (l && surface.down[l]) out.push([surface.down[l], Q(n), Q(n)]);
-      if (d && surface.left[d]) out.push([surface.left[d], Q(n), Q(n)]);
-    }
   }
   const spots = out.map(([s, a, b]) => roomXY(surface, s, a, b));
   return spots.filter((p, k) => spots.findIndex(q => Math.abs(q[0] - p[0]) < 1e-9 && Math.abs(q[1] - p[1]) < 1e-9) === k);
@@ -490,6 +578,9 @@ function pointHit(surface, view, at, [cx, cy], look) {
     : `<circle class="pb-hit" cx="${f(cx)}" cy="${f(cy)}" r=".42"/>`;
   return `<g class="${['pb-point', look.cls, look.act ? 'act' : ''].filter(Boolean).join(' ')}" data-pb-point="${esc(at)}" data-pb-view="${view}"${ctrl}>${shape}</g>`;
 }
+// `opts.labelAt` moves every label off its point by [dx, dy] lattice units
+// (y up), to keep it clear of a trip drawn through the points.
+const labelXY = (opts, [x, y]) => opts.labelAt ? [x + opts.labelAt[0], y - opts.labelAt[1]] : [x, y];
 const labelText = (text, [cx, cy], cls = '') => text === undefined || text === null || text === '' ? '' : `<text class="pb-label ${cls}" x="${f(cx)}" y="${f(cy + .13)}">${esc(text)}</text>`;
 
 // The portal room: the surface's squares where the spec lays them out, its
@@ -499,7 +590,8 @@ const labelText = (text, [cx, cy], cls = '') => text === undefined || text === n
 // below and above the points, `opts.top` above the controls, in drawing
 // coordinates (roomXY, roomSpots). `opts.slide` marks a view where a finger
 // slides from point to point; `opts.picture` draws a small picture with no
-// controls (a room button, an icon).
+// controls (a room button, an icon); `opts.labelAt` moves the labels (both
+// views).
 export function roomBoard(surface, opts = {}) {
   const n = surface.n, point = opts.point || (() => ({}));
   const origin = id => [surface.at[id][0] * n, -surface.at[id][1] * n];
@@ -518,7 +610,7 @@ export function roomBoard(surface, opts = {}) {
   for (const id of surface.ids) for (const [i, j] of squarePoints(surface, id)) {
     const pt = {s: id, i, j}, look = point(pt) || {}, at = `${id},${i},${j}`;
     for (const xy of roomSpots(surface, pt)) {
-      labels += labelText(look.text, xy, look.textCls);
+      labels += labelText(look.text, labelXY(opts, xy), look.textCls);
       if (!opts.picture) hits += pointHit(surface, 'room', at, xy, look);
     }
   }
@@ -559,7 +651,7 @@ export function planeBoard(surface, opts = {}) {
     if (opts.marks) for (const m of surface.marks.filter(m => m.s === s)) marks += sideMark(surface, m, x0, y0, opts.markSize ?? .12, 'faint');
     for (const [i, j] of squarePoints(surface, s)) {
       const pt = {s, i, j, X, Y}, [u, v] = planeKey(surface, pt), look = point({...pt, u, v, copy}) || {}, xy = planeSpot(surface, pt);
-      labels += labelText(look.text, xy, look.textCls);
+      labels += labelText(look.text, labelXY(opts, xy), look.textCls);
       hits += pointHit(surface, 'plane', `${u},${v}`, xy, look);
     }
   }
@@ -705,9 +797,9 @@ export function wirePortal(root, handlers, apply) {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     const key = {ArrowRight: 'R', ArrowLeft: 'L', ArrowUp: 'U', ArrowDown: 'D'}[e.key];
     if (key && handlers.dir && !e.target.closest('input,select,textarea')) {
-      e.preventDefault();
+      // Only an arrow that moves the pawn is kept from scrolling the page.
       const action = handlers.dir(key);
-      if (action) apply(action);
+      if (action) { e.preventDefault(); apply(action); }
       return;
     }
     if (!['Enter', ' '].includes(e.key)) return;
