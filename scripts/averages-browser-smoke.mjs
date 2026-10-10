@@ -3,8 +3,9 @@
 // neighbour, where two places' tap areas come closest), the number row, Enter,
 // digits and arrow keys, cards that move, one changed square at a time, Found
 // already, That's all and its refusal held through Undo, Can't only after an
-// attempt, the chase tapped to a smaller square and the argument drawn, a
-// wrong Can't, keyboard focus after moves, and the playground's boards. Same
+// attempt, the chase tapped to a smaller square with nothing marking the next
+// place, a tap away from the chase, the argument drawn, a wrong Can't kept
+// through Undo, keyboard focus after moves, and the playground's boards. Same
 // environment variables as the other browser suites (PLAYWRIGHT_MODULE,
 // BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone with touch).
 // Screenshots go in test-results/averages/.
@@ -110,7 +111,8 @@ try {
   await tap(page.locator('.av-all'));
   await done();
 
-  // Puzzle 8: Can't after an attempt, the chase, Undo, the argument.
+  // Puzzle 8: Can't after an attempt, a tap away from the chase, the chase,
+  // Undo, the argument. Nothing marks the next place to tap.
   P = 'averages-08';
   await open(P); await fit('branch');
   assert.equal(await page.locator('.av-cant').isDisabled(), true, 'Can’t waits for an attempt');
@@ -118,9 +120,14 @@ try {
   await tap(page.locator('.av-cant'));
   assert.deepEqual((await board(P)).chase, ['c']);
   await notClaim('after Can’t');
-  assert.equal(await focused(), 'gb-node-b', 'focus goes to the place to chase');
-  assert.ok((await classes('b')).includes('can-go'));
-  await page.keyboard.press('Enter');
+  assert.equal(await page.evaluate(() => document.activeElement?.matches('.av-board')), true, 'focus goes to the board, not to a place');
+  assert.equal(await page.locator('.av-board .gb-node.can-go').count(), 0, 'no place is tinted');
+  await edgeTap('z', 'a');
+  assert.equal((await board(P)).chase, null, 'a tap on a place not joined to the chase ends it');
+  assert.equal(await told(), 'Not joined to the chase.');
+  await tap(page.locator('.av-cant'));
+  assert.deepEqual((await board(P)).chase, ['c'], 'Can’t again starts a new chase');
+  await place('b').focus(); await page.keyboard.press('Enter');
   assert.deepEqual((await board(P)).chase, ['c', 'b'], 'Enter extends the chase');
   await edgeTap('t', 'b');
   assert.ok((await classes('t')).includes('agree'), 'the 12 square agrees');
@@ -135,25 +142,30 @@ try {
   assert.equal(await page.locator('.av-path').count(), 1, 'the argument is drawn');
   await shot('argument'); await fit('argument');
 
-  // Puzzle 12: a wrong Can't runs out of places; Can't again ends it.
+  // Puzzle 12: a wrong Can't runs out, stays through Undo, and a new number lifts it.
   P = 'averages-12';
   await open(P);
-  await setPlace('a', 3);
+  await setPlace('c', 3);
   await tap(page.locator('.av-cant'));
-  for (let k = 0; k < 6 && await page.locator('.av-board .gb-node.can-go').count(); k++) await tap(page.locator('.av-board .gb-node.can-go').first());
+  for (const id of ['c', 'B', 'T']) await tap(place(id));
   assert.equal(await told(), 'Every square it reaches is 8.');
-  assert.deepEqual([...(await board(P)).chase].sort(), ['B', 'T', 'c', 'd']);
-  await tap(page.locator('.av-cant'));
-  assert.equal((await board(P)).chase, null, 'Can’t again ends the chase');
-  await notClaim('after ending a chase');
-  await setPlace('a', 5); await setPlace('b', 5); await setPlace('c', 8);
+  assert.equal((await board(P)).chase, null, 'the chase ends when it runs out');
+  assert.equal(await page.locator('.av-cant').isDisabled(), true, 'Can’t stays off');
+  await notClaim('after a chase ran out');
+  for (let k = 0; k < 5; k++) await undoButton();
+  assert.equal((await board(P)).told, 'out', 'Undo keeps it');
+  assert.equal(await page.locator('.av-cant').isDisabled(), true);
+  await setPlace('c', 8);
+  assert.equal(await page.locator('.av-cant').isDisabled(), false, 'a new number lifts it');
+  await setPlace('a', 5); await setPlace('b', 5);
   await done();
 
-  // Puzzle 5: the chase's one tap, at the edge of the 0 square facing the circle.
+  // Puzzle 5: the chase through a circle to the 0 square, tapped at the shapes' edges.
   P = 'averages-05';
   await open(P);
-  await setPlace('b', 8);
+  await setPlace('a', 8);
   await tap(page.locator('.av-cant'));
+  await edgeTap('a', 'b');
   await edgeTap('z', 'a');
   await done();
 

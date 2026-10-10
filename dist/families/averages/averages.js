@@ -10,7 +10,10 @@
 //   tie     a circle is given the biggest square's number: make every circle
 //           work, or press Can't and tap out the chase from that circle (every
 //           place joined to a circle at the top must equal it) to a square
-//           that is smaller, which breaks the chain.
+//           that is smaller, which breaks the chain. Nothing marks which place
+//           to tap next: a tap on a place not joined to the chase ends it, and
+//           a chase that runs out without a smaller square is a wrong Can't,
+//           kept in the save (through Undo) until a number changes.
 // Whole numbers only. The playground has every place free.
 import {esc} from '../../expansion-controls.js';
 import {graphOf, edgeGeometry, wireGraph, NODE_R} from '../../graph-board.js';
@@ -204,7 +207,10 @@ export const tieCan = q => groupOf(q, q.target).touching.every(s => q.given[s] =
 // places (null when empty); `found` the ways kept, in order; `more` is set when
 // That's all is refused and holds until a new way; `again` is the index of a
 // found way the board shows again; `done` is That's all accepted.
-// tie: {values, chase}. playground: {board, values} with every place free.
+// tie: {values, chase, told}. `told` is null, 'apart' (a chase ended by a tap
+// on a place not joined to it) or 'out' (a chase that ran out without a
+// smaller square: Can't stays off until a number changes).
+// playground: {board, values} with every place free.
 export const playBoard = (q, b) => ({...q.boards[b.board], mode: 'playground', given: {}, free: Object.keys(q.boards[b.board].places), range: q.range});
 const boardQ = (p, b) => p.parameters.mode === 'playground' ? playBoard(p.parameters, b) : p.parameters;
 const emptyValues = q => Object.fromEntries(q.free.map(id => [id, q.start?.[id] ?? null]));
@@ -212,7 +218,7 @@ const emptyValues = q => Object.fromEntries(q.free.map(id => [id, q.start?.[id] 
 function fresh(p) {
   const q = p.parameters;
   if (q.mode === 'playground') { const board = Object.keys(q.boards)[0]; return {board, values: {...emptyValues(playBoard(q, {board})), ...q.boards[board].start}}; }
-  if (q.mode === 'tie') return {values: emptyValues(q), chase: null};
+  if (q.mode === 'tie') return {values: emptyValues(q), chase: null, told: null};
   return {values: emptyValues(q), found: [], more: false, again: null, done: false};
 }
 const wayOf = (q, values) => q.free.map(id => values[id]);
@@ -220,6 +226,10 @@ const isWay = (q, values) => { const vals = valuesOf(q, values); return q.free.e
 const changed = (q, values) => q.free.filter(id => isSquare(q, id) && values[id] !== q.start[id]);
 const foundAt = (b, way) => b.found.findIndex(w => sameList(w, way));
 const attempted = (q, values) => q.free.some(id => values[id] !== null);
+// A tie attempt counts when a circle in the given circle's group has a number:
+// the claim is about that group, and its certificate runs through it.
+export const triedTie = (q, values) => groupOf(q, q.target).group.some(c => q.free.includes(c) && values[c] !== null);
+const ranOut = (q, chase) => !clashOf(q, chase) && !chaseNext(q, chase).length;
 function validValues(q, values) {
   if (!object(values) || Object.keys(values).sort().join() !== [...q.free].sort().join()) return false;
   if (!q.free.every(id => values[id] === null || (Number.isInteger(values[id]) && values[id] >= q.range[0] && values[id] <= q.range[1]))) return false;
@@ -239,10 +249,14 @@ function valid(p, b) {
   }
   const q = q0;
   if (q.mode === 'tie') {
-    if (Object.keys(b).sort().join() !== 'chase,values' || !validValues(q, b.values)) return false;
+    if (Object.keys(b).sort().join() !== 'chase,told,values' || !validValues(q, b.values)) return false;
+    if (![null, 'apart', 'out'].includes(b.told)) return false;
+    // A chase that ran out is possible only where no smaller square is reached.
+    if (b.told === 'out' && !tieCan(q)) return false;
     if (b.chase === null) return true;
-    // A chase starts only after an attempt, and never on a board already solved.
-    return attempted(q, b.values) && !allWork(q, valuesOf(q, b.values)) && validChase(q, b.chase);
+    // A chase starts only after an attempt, never on a board already solved,
+    // and ends the moment it runs out.
+    return b.told === null && triedTie(q, b.values) && !allWork(q, valuesOf(q, b.values)) && validChase(q, b.chase) && !ranOut(q, b.chase);
   }
   if (Object.keys(b).sort().join() !== 'again,done,found,more,values' || !validValues(q, b.values)) return false;
   if (typeof b.more !== 'boolean' || typeof b.done !== 'boolean' || !Array.isArray(b.found)) return false;
@@ -288,10 +302,17 @@ function move(p, b, action) {
     return null;
   }
   if (q.mode === 'tie') {
-    if (action.type === 'set' && b.chase === null) { const values = setValue(q, b.values, action.id, action.value); return values && {...b, values}; }
-    if (action.type === 'cant' && b.chase === null && attempted(q, b.values)) return {...b, chase: [q.target]};
+    if (action.type === 'set' && b.chase === null) {
+      const values = setValue(q, b.values, action.id, action.value);
+      return !values ? null : values === b.values ? b : {...b, values, told: null};
+    }
+    if (action.type === 'cant' && b.chase === null && b.told !== 'out' && triedTie(q, b.values)) return {...b, chase: [q.target], told: null};
     if (action.type === 'stop' && b.chase !== null) return {...b, chase: null};
-    if (action.type === 'chase' && b.chase !== null && chaseNext(q, b.chase).includes(action.id)) return {...b, chase: [...b.chase, action.id]};
+    if (action.type === 'chase' && b.chase !== null && Object.hasOwn(q.places, action.id) && !b.chase.includes(action.id)) {
+      if (!chaseNext(q, b.chase).includes(action.id)) return {...b, chase: null, told: 'apart'};
+      const chase = [...b.chase, action.id];
+      return ranOut(q, chase) ? {...b, chase: null, told: 'out'} : {...b, chase};
+    }
     return null;
   }
   if (action.type === 'set') {
@@ -337,13 +358,13 @@ function tieHint(q, b) {
     return setHint(q, id, fill[id]);
   }
   if (b.chase === null) {
-    if (!attempted(q, b.values)) {
+    if (!triedTie(q, b.values)) {
       const path = chasePath(q, chaseTo(q));
-      const id = path.find(c => q.free.includes(c)) || q.free[0];
+      const id = path.find(c => q.free.includes(c)) || groupOf(q, q.target).group.find(c => q.free.includes(c));
       return setHint(q, id, M);
     }
     const clash = chasePath(q, chaseTo(q)).at(-1);
-    return {type: 'move', action: {type: 'cant'}, text: `Every place joined to ${an(M)} ${M} circle must be ${M} too, and ${the(q, clash)} can’t be. Press Can’t.`};
+    return {type: 'move', action: {type: 'cant'}, text: `Every place joined to ${an(M)} ${M} circle must be ${M} too, and ${the(q, clash)} can’t be.`};
   }
   const id = chaseStep(q, b.chase);
   return {type: 'move', action: {type: 'chase', id}, text: `Tap ${the(q, id)}.`, id};
@@ -371,7 +392,7 @@ const chasing = (p, b) => p.parameters.mode === 'tie' && b.chase !== null;
 export function tapAction(p, b, id) {
   const q = boardQ(p, b);
   if (solved(p, b)) return null;
-  if (chasing(p, b)) return chaseNext(q, b.chase).includes(id) ? {move: {type: 'chase', id}} : null;
+  if (chasing(p, b)) return Object.hasOwn(q.places, id) && !b.chase.includes(id) ? {move: {type: 'chase', id}} : null;
   return q.free.includes(id) ? {choose: id} : null;
 }
 // A key on the board: a digit sets the chosen place, arrows step it up or down.
@@ -406,15 +427,17 @@ function edgesSVG(q, cls = () => '') {
   return g.edges.map(e => { const {a, b} = edgeGeometry(g, e); return `<line class="gb-line ${cls(e)}" x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}"/>`; }).join('');
 }
 const pathSVG = (q, path, cls) => path.length > 1 ? `<polyline class="${cls}" points="${path.map(id => shapeOf(q).g.pos[id].map(f).join(',')).join(' ')}"/>` : '';
-const boardSVG = (q, inner, label, cls = '') => `<svg class="gb-board av-board ${cls}" viewBox="-2 -2 104 ${f(shapeOf(q).g.height + 4)}" role="group" aria-label="${esc(label)}" data-gb-board>${inner}</svg>`;
+// In a chase the board itself can take focus, so focus after Can't lands on
+// no particular place.
+const boardSVG = (q, inner, label, cls = '') => `<svg class="gb-board av-board ${cls}" viewBox="-2 -2 104 ${f(shapeOf(q).g.height + 4)}" role="group" aria-label="${esc(label)}" data-gb-board${cls.includes('chasing') ? ' tabindex="-1"' : ''}>${inner}</svg>`;
 
 // A small picture of a way, for the shelf: every place with its number.
 function mini(q, vals, cls, label) {
-  const {g, ids} = shapeOf(q), r = 8.2;
+  const {g, ids} = shapeOf(q), r = 10;
   const lines = g.edges.map(e => { const [x1, y1] = g.pos[e.u], [x2, y2] = g.pos[e.v]; return `<line x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}"/>`; }).join('');
   const dots = ids.map(id => {
-    const [x, y] = g.pos[id], locked = !q.free.includes(id) || (q.mode === 'change' && vals[id] === q.start?.[id]);
-    const look = locked ? 'locked' : q.mode === 'change' && isSquare(q, id) ? 'changed' : 'own';
+    const [x, y] = g.pos[id], locked = !q.free.includes(id);
+    const look = locked ? 'locked' : q.mode === 'change' && isSquare(q, id) && vals[id] !== q.start[id] ? 'changed' : 'own';
     const shape = isSquare(q, id) ? `<rect x="${f(x - r)}" y="${f(y - r)}" width="${2 * r}" height="${2 * r}" rx="1.6"/>` : `<circle cx="${f(x)}" cy="${f(y)}" r="${r}"/>`;
     return `<g class="${look}">${shape}<text x="${f(x)}" y="${f(y + r * .4)}">${vals[id] ?? ''}</text></g>`;
   }).join('');
@@ -441,7 +464,6 @@ function render(p, a) {
   const chosen = chosenOf(p, b), chase = chasing(p, b) ? b.chase : null, vals = valuesOf(q, b.values);
   const M = q0.mode === 'tie' ? topOf(q) : null, proof = q0.mode === 'tie' && done && b.chase;
   const whole = proof ? groupOf(q, q.target) : null, path = proof ? chasePath(q, b.chase) : [];
-  const next = chase && !done ? chaseNext(q, chase) : [];
   const node = id => {
     const free = q.free.includes(id), v = vals[id], lit = isCircle(q, id) && works(q, vals, id);
     const own = free && !(q.mode === 'change' && v === q.start[id]), changedHere = q.mode === 'change' && own && isSquare(q, id);
@@ -449,10 +471,11 @@ function render(p, a) {
     const ghost = forced && isCircle(q, id);
     const agree = forced && isSquare(q, id) && q.given[id] === M, clash = forced && isSquare(q, id) && q.given[id] !== M;
     const tap = tapAction(p, b, id);
-    const cls = [free ? 'free' : 'locked', own ? 'own' : '', changedHere ? 'changed' : '', v === null ? 'empty' : '', lit && !chase && !proof ? 'lit' : '', !chase && !done && free && id === chosen ? 'chosen' : '', ghost ? 'forced' : '', agree ? 'agree' : '', clash ? 'clash' : '', next.includes(id) ? 'can-go' : '', hinted?.id === id ? 'hinted' : ''].filter(Boolean).join(' ');
+    const cls = [free ? 'free' : 'locked', own ? 'own' : '', changedHere ? 'changed' : '', v === null ? 'empty' : '', lit && !chase && !proof ? 'lit' : '', !chase && !done && free && id === chosen ? 'chosen' : '', ghost ? 'forced' : '', agree ? 'agree' : '', clash ? 'clash' : '', hinted?.id === id ? 'hinted' : ''].filter(Boolean).join(' ');
     const shown = ghost ? M : v;
     const state = ghost ? `, ${M} if the chase is right` : `, ${v === null ? 'empty' : v}${lit ? ', works' : ''}${agree ? `, ${M} too` : ''}${clash ? `, not ${M}` : ''}`;
-    const doing = !tap ? '' : tap.move ? '. Tap to chase' : id === chosen ? '. Chosen' : '. Choose it';
+    // In a chase every place not yet in it reads the same: nothing marks the next tap.
+    const doing = !tap || tap.move ? '' : id === chosen ? '. Chosen' : '. Choose it';
     const mark = clash ? `<path class="av-cross" d="M${-R * .55},${-R * .55}L${R * .55},${R * .55}M${R * .55},${-R * .55}L${-R * .55},${R * .55}" transform="translate(${f(R * .95)},${f(-R * .95)}) scale(.5)"/>` : '';
     return placeSVG(q, id, {cls, text: shown, act: Boolean(tap), label: `${cap(nameOf(q, id))}${state}${doing}`, mark});
   };
@@ -472,9 +495,9 @@ function render(p, a) {
     if (b.found.length) shelf = `<ul class="av-shelf" aria-label="Ways found">${b.found.map((w, k) => mini(q, valuesOf(q, Object.fromEntries(q.free.map((id, i) => [id, w[i]]))), [k === b.again ? 'again' : '', k === b.found.length - 1 && b.again === null && !b.more && !done ? 'new' : ''].filter(Boolean).join(' '), wordsOf(q, valuesOf(q, Object.fromEntries(q.free.map((id, i) => [id, w[i]])))))).join('')}</ul>`;
   } else if (q0.mode === 'tie' && !done) {
     const act = hinted?.action?.type;
-    // A chase with nothing left to tap and no smaller square is a wrong Can't.
-    if (chase && !next.length) told = `Every square it reaches is ${M}.`;
-    bar = `<div class="av-bar">${chase ? button('Can’t', {type: 'stop'}, 'av-cant', {pressed: true, hinted: act === 'stop', focus: 'av-stop'}) : button('Can’t', {type: 'cant'}, 'av-cant', {pressed: false, enabled: attempted(q, b.values), hinted: act === 'cant', focus: 'av-cant'})}</div>`;
+    // The two refusals: a tap away from the chase, and a chase that ran out.
+    told = b.told === 'apart' ? 'Not joined to the chase.' : b.told === 'out' ? `Every square it reaches is ${M}.` : '';
+    bar = `<div class="av-bar">${chase ? button('Can’t', {type: 'stop'}, 'av-cant', {pressed: true, hinted: act === 'stop', focus: 'av-stop'}) : button('Can’t', {type: 'cant'}, 'av-cant', {pressed: false, enabled: triedTie(q, b.values) && b.told !== 'out', hinted: act === 'cant', focus: 'av-cant'})}</div>`;
   }
   const working = shapeOf(q).circles.filter(c => works(q, vals, c));
   const status = done && proof ? `Can’t: ${listWords(path.map(id => nameOf(q, id)))}; ${nameOf(q, path.at(-1))} is not ${M}.`
@@ -507,9 +530,11 @@ export const averagesMechanics = {
     fresh, valid, solved, move, hint, render, wire,
     ui(p, payload) { if (object(payload) && typeof payload.chosen === 'string') ui(p).chosen = payload.chosen; },
     reset: p => { uiState.delete(p.id); },
-    // Undo keeps the ways found and a refused That's all.
+    // Undo keeps the ways found and a refused That's all, and a tie's chase
+    // that ran out (Can't stays off until a number changes).
     carry(p, from, to) {
       const q = p.parameters;
+      if (q.mode === 'tie') return object(from) && object(to) && from.told === 'out' ? {...to, chase: null, told: 'out'} : to;
       if ((q.mode !== 'every' && q.mode !== 'change') || !object(from) || !object(to) || !Array.isArray(from.found)) return to;
       // Found ways only grow, so the earlier board's list is the start of this one.
       return {...to, found: from.found.map(w => [...w]), more: from.more, done: false};
@@ -525,5 +550,5 @@ export default {
   mechanics: averagesMechanics,
   pack: new URL('./averages.json', import.meta.url).href,
   css: new URL('./averages.css', import.meta.url).href,
-  focus: '.av-board .gb-node[role=button],.av-key'
+  focus: '.av-board[tabindex],.av-board .gb-node[role=button],.av-key'
 };

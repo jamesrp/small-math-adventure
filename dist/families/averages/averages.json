@@ -800,8 +800,9 @@
       "rules": [
         "Squares keep their numbers. A circle works when its number is the average of every place joined to it: add their numbers and share the total equally among them.",
         "An empty place has no number yet. A circle lights when it works, and every circle must work at the same time.",
-        "The dark circle’s number is the biggest square’s. In a board where every circle works, no place is bigger than the biggest square, so a circle that big shares equally only if every place joined to it is just as big.",
-        "If you think the circles can’t all work, press Can’t, then tap places joined to the dark circle, one at a time, and places joined to the circles you tap. A square stops the chase. Reach a smaller square to show it can’t be done."
+        "The dark circle starts with the biggest square’s number.",
+        "Can’t opens once you have put a number on a circle joined to the dark circle, directly or through other circles. After pressing it, tap places one at a time: places joined to the dark circle, then places joined to circles you have tapped. A square ends that branch; reach a smaller square to finish. A tap on a place not joined to the chase ends it.",
+        "If the chase runs out without reaching a smaller square, Can’t stays off until you change a number."
       ],
       "idea": "Equality spreads from circle to circle but stops at a square: the circles behind the 8 can all be 8.",
       "prerequisites": "Halve and average two numbers to 16.",
@@ -814,7 +815,7 @@
         "notice": "Whether your child checks the right circle first, the one with a single neighbour.",
         "prompt": "Does the 8 square have to be the average of its neighbours?",
         "explanation": "A circle with one neighbour equals it, so the middle circle is 8, and 8 is the average of 8 and 8. The left circle is (0 + 8) ÷ 2 = 4. The 8 square need not average 4 and 8: squares keep their numbers, so the chain of equal 8s stops there.",
-        "extension": "Puzzle 5 uses the same board with the 8 on the left circle instead.",
+        "extension": "Puzzle 5 swaps the 8 square and the middle circle.",
         "connection": "The equality case of the maximum principle: a circle at the top forces its whole circle group, and the squares it touches, to the same value.",
         "sourceIds": [
           "averages-week20",
@@ -833,7 +834,7 @@
     {
       "id": "averages-05",
       "number": 5,
-      "title": "First circle",
+      "title": "Swapped row",
       "difficulty_level": "medium",
       "familyTitle": "Sharing circles",
       "mechanic": "averages",
@@ -861,21 +862,21 @@
             "shape": "circle",
             "name": "left circle"
           },
-          "e": {
+          "b": {
             "at": [
               50,
               50
             ],
-            "shape": "square",
-            "name": "8 square"
+            "shape": "circle",
+            "name": "middle circle"
           },
-          "b": {
+          "e": {
             "at": [
               71,
               50
             ],
-            "shape": "circle",
-            "name": "middle circle"
+            "shape": "square",
+            "name": "8 square"
           },
           "c": {
             "at": [
@@ -893,54 +894,55 @@
           ],
           [
             "a",
-            "e"
-          ],
-          [
-            "e",
             "b"
           ],
           [
             "b",
+            "e"
+          ],
+          [
+            "e",
             "c"
           ]
         ],
         "given": {
           "z": 0,
           "e": 8,
-          "a": 8
+          "b": 8
         },
         "free": [
-          "b",
+          "a",
           "c"
         ],
         "range": [
           0,
           12
         ],
-        "target": "a"
+        "target": "b"
       },
-      "objective": "The left circle holds 8, as much as the biggest square. Make every circle work, or press Can’t and show why not.",
+      "objective": "The middle circle holds 8, as much as the biggest square. Make every circle work, or press Can’t and show why not.",
       "visibleObjective": "Make every circle work.",
-      "instruction": "The left circle holds 8, as much as the biggest square. Make every circle work, or press Can’t and show why not.",
+      "instruction": "The middle circle holds 8, as much as the biggest square. Make every circle work, or press Can’t and show why not.",
       "controls": "Tap a circle to choose it, then tap a number below the board. With a keyboard, Tab to a place and type a digit, or use the arrow keys. To claim it can’t be done, press Can’t and tap the chase; press Can’t again to stop.",
       "rules": [
         "Squares keep their numbers. A circle works when its number is the average of every place joined to it: add their numbers and share the total equally among them.",
         "An empty place has no number yet. A circle lights when it works, and every circle must work at the same time.",
-        "The dark circle’s number is the biggest square’s. In a board where every circle works, no place is bigger than the biggest square, so a circle that big shares equally only if every place joined to it is just as big.",
-        "If you think the circles can’t all work, press Can’t, then tap places joined to the dark circle, one at a time, and places joined to the circles you tap. A square stops the chase. Reach a smaller square to show it can’t be done."
+        "The dark circle starts with the biggest square’s number.",
+        "Can’t opens once you have put a number on a circle joined to the dark circle, directly or through other circles. After pressing it, tap places one at a time: places joined to the dark circle, then places joined to circles you have tapped. A square ends that branch; reach a smaller square to finish. A tap on a place not joined to the chase ends it.",
+        "If the chase runs out without reaching a smaller square, Can’t stays off until you change a number."
       ],
-      "idea": "A circle as big as the biggest square forces every neighbour up to it, and a 0 square can’t be raised.",
-      "prerequisites": "Average two numbers to 16, and follow one step of a chain argument.",
+      "idea": "A circle as big as the biggest square forces the circle beside it up to 8 too, and that circle is joined to a 0 square that can’t be raised.",
+      "prerequisites": "Average two numbers to 16, and follow a chain of two steps.",
       "hints": [
-        "What are the two places joined to the left circle?",
-        "Nothing on the board can be bigger than 8, so an 8 shared from two places needs both of them to be 8.",
-        "The 0 square would have to be 8. Press Can’t, then tap the 0 square."
+        "What are the two places joined to the middle circle?",
+        "Nothing on the board can be bigger than 8, so an 8 shared from two places needs both of them to be 8. Then look at the places joined to the left circle.",
+        "The left circle would have to be 8, and then the 0 square too. Press Can’t, then tap the left circle and the 0 square."
       ],
       "parent": {
-        "notice": "Whether your child tries to make the left circle work by changing the other circles, which aren’t joined to it.",
-        "prompt": "What would the 0 square need to be for the left circle to work?",
-        "explanation": "The left circle is joined to the 0 and the 8 squares, whose average is 4, not 8. As a chase: no number is above 8, so both neighbours of an 8 circle must be 8, and the 0 square isn’t. The other two circles can both be 8, but that doesn’t help.",
-        "extension": "Compare puzzle 4: the same board, with the 8 behind the 8 square, works.",
+        "notice": "Whether your child sees that this is puzzle 4’s row with the 8 square and a circle swapped.",
+        "prompt": "Why could the right circle in puzzle 4 be 8, but not the middle circle here?",
+        "explanation": "The middle circle is joined to the left circle and the 8 square. No number is above 8, so both must be 8; then the left circle, joined to the 0 square and the middle circle, needs the 0 square to be 8 too. In the real filling the left circle is 8/3 and the middle one 16/3; with the middle circle held at 8, the left circle works at 4 and the middle circle’s average is only 6.",
+        "extension": "Make the 0 square an 8: now every circle can be 8.",
         "connection": "The strong maximum principle: a circle at the maximum forces its neighbours; the chase ends at a square below the maximum.",
         "sourceIds": [
           "averages-week20",
@@ -950,20 +952,22 @@
       },
       "solution": {
         "chase": [
+          "b",
           "a",
           "z"
         ],
         "group": {
           "group": [
+            "b",
             "a"
           ],
           "touching": [
-            "z",
-            "e"
+            "e",
+            "z"
           ]
         }
       },
-      "provenance": "Week 20 grades 4–5 Problem 4, upper board: the circle between 0 and 8 can’t equal 8. The chase as the certificate is the review card’s App fit."
+      "provenance": "Week 20 grades 4–5 Problem 4, upper board, rearranged: puzzle 4’s five places with the 8 square and a circle swapped, so the tie runs through a circle to the 0. The chase as the certificate is the review card’s App fit."
     },
     {
       "id": "averages-06",
@@ -1060,7 +1064,7 @@
         "notice": "Whether your child keeps both circles working, or fixes one and breaks the other.",
         "prompt": "What do the four numbers in a way have in common?",
         "explanation": "A circle between two places is their average, so it is as far above one as below the other: the steps along the row are equal. With 2 second, the rows are 0 2 4 6, 1 2 3 4, 2 2 2 2 and 3 2 1 0; a left square of 4 would need −2 on the right.",
-        "extension": "Without the 0 to 6 limit, any left square below 4 or above it with negative numbers works: the rows are exactly the equal-step rows through 2.",
+        "extension": "Without the 0 to 6 limit, and with negative numbers allowed, every left square works: the ways are exactly the equal-step rows through 2, such as 4 2 0 −2.",
         "connection": "Discrete harmonic functions on a path are linear: equal gaps between fixed ends.",
         "sourceIds": [
           "averages-week20",
@@ -1319,8 +1323,9 @@
       "rules": [
         "Squares keep their numbers. A circle works when its number is the average of every place joined to it: add their numbers and share the total equally among them.",
         "An empty place has no number yet. A circle lights when it works, and every circle must work at the same time.",
-        "The dark circle’s number is the biggest square’s. In a board where every circle works, no place is bigger than the biggest square, so a circle that big shares equally only if every place joined to it is just as big.",
-        "If you think the circles can’t all work, press Can’t, then tap places joined to the dark circle, one at a time, and places joined to the circles you tap. A square stops the chase. Reach a smaller square to show it can’t be done."
+        "The dark circle starts with the biggest square’s number.",
+        "Can’t opens once you have put a number on a circle joined to the dark circle, directly or through other circles. After pressing it, tap places one at a time: places joined to the dark circle, then places joined to circles you have tapped. A square ends that branch; reach a smaller square to finish. A tap on a place not joined to the chase ends it.",
+        "If the chase runs out without reaching a smaller square, Can’t stays off until you change a number."
       ],
       "idea": "With a circle at the junction, a 12 at the end forces 12 back along every circle to the 0.",
       "prerequisites": "Average up to three numbers and follow a chain of three steps.",
@@ -1748,8 +1753,9 @@
       "rules": [
         "Squares keep their numbers. A circle works when its number is the average of every place joined to it: add their numbers and share the total equally among them.",
         "An empty place has no number yet. A circle lights when it works, and every circle must work at the same time.",
-        "The dark circle’s number is the biggest square’s. In a board where every circle works, no place is bigger than the biggest square, so a circle that big shares equally only if every place joined to it is just as big.",
-        "If you think the circles can’t all work, press Can’t, then tap places joined to the dark circle, one at a time, and places joined to the circles you tap. A square stops the chase. Reach a smaller square to show it can’t be done."
+        "The dark circle starts with the biggest square’s number.",
+        "Can’t opens once you have put a number on a circle joined to the dark circle, directly or through other circles. After pressing it, tap places one at a time: places joined to the dark circle, then places joined to circles you have tapped. A square ends that branch; reach a smaller square to finish. A tap on a place not joined to the chase ends it.",
+        "If the chase runs out without reaching a smaller square, Can’t stays off until you change a number."
       ],
       "idea": "All four circles are one group touching the 0 and the 6, so none can reach 11.",
       "prerequisites": "Average up to four numbers and follow a chain through a triangle of circles.",
@@ -1922,8 +1928,9 @@
       "rules": [
         "Squares keep their numbers. A circle works when its number is the average of every place joined to it: add their numbers and share the total equally among them.",
         "An empty place has no number yet. A circle lights when it works, and every circle must work at the same time.",
-        "The dark circle’s number is the biggest square’s. In a board where every circle works, no place is bigger than the biggest square, so a circle that big shares equally only if every place joined to it is just as big.",
-        "If you think the circles can’t all work, press Can’t, then tap places joined to the dark circle, one at a time, and places joined to the circles you tap. A square stops the chase. Reach a smaller square to show it can’t be done."
+        "The dark circle starts with the biggest square’s number.",
+        "Can’t opens once you have put a number on a circle joined to the dark circle, directly or through other circles. After pressing it, tap places one at a time: places joined to the dark circle, then places joined to circles you have tapped. A square ends that branch; reach a smaller square to finish. A tap on a place not joined to the chase ends it.",
+        "If the chase runs out without reaching a smaller square, Can’t stays off until you change a number."
       ],
       "idea": "The board is one ring, but its two 8 squares wall the right circles off from the 2.",
       "prerequisites": "Average three numbers and solve two circles that depend on each other.",

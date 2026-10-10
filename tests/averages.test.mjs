@@ -48,6 +48,7 @@ test('every way, the filling and the chase match the table', () => {
   assert.deepEqual(waysOf(byId('averages-09').parameters), [[0, 4, 12], [6, 7, 9]], 'the near square moves the circle twice as far');
   assert.deepEqual(waysOf(byId('averages-10').parameters).map(w => w[0]), [1, 6, 11]);
   const four = byId('averages-04').parameters, five = byId('averages-05').parameters;
+  assert.deepEqual(chasePath(five, ['b', 'a', 'z']), ['b', 'a', 'z'], 'puzzle 5’s tie runs through the left circle to the 0');
   assert.equal(tieCan(four), true);
   assert.equal(fillingOf(four).a, 4);
   assert.equal(tieCan(five), false);
@@ -114,23 +115,27 @@ test('cards: a number on one place only; a change puzzle changes one square', ()
   assert.equal(validBoard(nine, {...b.board, values: {A: 6, p: null, B: 12}}), false, 'a save with two squares changed');
 });
 
-test('tie: Can’t only after an attempt; the child taps the chase to a smaller square', () => {
+test('tie: Can’t only after an attempt in the given circle’s group; the child taps the chase', () => {
   const p = byId('averages-08'), q = p.parameters;
   const fresh = freshAttempt(p);
   assert.equal(move(p, fresh, {type: 'cant'}), null, 'nothing tried yet');
   assert.match(view(p, fresh), /class="av-button av-cant"[^>]*disabled/);
-  assert.equal(nextHint(p, fresh).action.type, 'set', 'the hints start with an attempt');
+  assert.deepEqual(nextHint(p, fresh).action, set('b', 12), 'the hints start with an attempt next to the given circle');
   assert.ok(!/press can.t/i.test(p.hints[0]));
   let a = play(p, fresh, set('a', 12));
   const why = nextHint(p, a);
-  assert.equal(why.text, 'Every place joined to a 12 circle must be 12 too, and the 0 square can’t be. Press Can’t.');
+  assert.equal(why.text, 'Every place joined to a 12 circle must be 12 too, and the 0 square can’t be.', 'the reason, leaving the button to level 2');
+  assert.equal(why.action.type, 'cant');
   a = play(p, a, {type: 'cant'});
   assert.deepEqual(a.board.chase, ['c']);
   assert.equal(isSolved(p, a.board), false, 'a bare Can’t is not a solve');
   assert.equal(move(p, a, set('b', 4)), null, 'no numbers during a chase');
-  assert.deepEqual(chaseNext(q, a.board.chase), ['b']);
-  assert.deepEqual(tapAction(p, a.board, 'b'), {move: {type: 'chase', id: 'b'}});
-  assert.equal(tapAction(p, a.board, 'a'), null, 'a place not yet joined to the chase');
+  const html = view(p, a);
+  assert.ok(!/can-go|Tap to chase/.test(html), 'nothing marks the next place to tap');
+  assert.match(html, /aria-label="0 square, 0"/);
+  assert.match(html, /aria-label="Middle circle, empty"/, 'every place not in the chase reads the same');
+  assert.deepEqual(tapAction(p, a.board, 'z'), {move: {type: 'chase', id: 'z'}}, 'any place is a tap');
+  assert.equal(tapAction(p, a.board, 'c'), null, 'except one already in the chase');
   a = play(p, a, {type: 'chase', id: 'b'}, {type: 'chase', id: 't'});
   assert.equal(clashOf(q, a.board.chase), null, 'the 12 square agrees');
   assert.equal(isSolved(p, a.board), false);
@@ -138,23 +143,41 @@ test('tie: Can’t only after an attempt; the child taps the chase to a smaller 
   assert.deepEqual(back.board.chase, ['c', 'b'], 'Undo takes back a tap');
   a = play(p, a, {type: 'chase', id: 'a'}, {type: 'chase', id: 'z'});
   assert.equal(isSolved(p, a.board), true);
-  const html = view(p, a);
-  assert.match(html, /av-path/, 'the argument is drawn');
-  assert.match(html, /class="gb-node av-sq locked clash"/);
-  assert.match(html, /Can’t: bottom circle, middle circle, left circle and 0 square; 0 square is not 12\./);
+  const done = view(p, a);
+  assert.match(done, /av-path/, 'the argument is drawn');
+  assert.match(done, /class="gb-node av-sq locked clash"/);
+  assert.match(done, /Can’t: bottom circle, middle circle, left circle and 0 square; 0 square is not 12\./);
 });
 
-test('tie: a wrong Can’t runs out of places and says so; stopping it lets numbers back', () => {
+test('tie: a tap away from the chase ends it; a chase that runs out is kept through Undo', () => {
+  const eight = byId('averages-08');
+  let off = play(eight, freshAttempt(eight), set('b', 3), {type: 'cant'}, {type: 'chase', id: 'z'});
+  assert.equal(off.board.chase, null);
+  assert.equal(off.board.told, 'apart');
+  assert.match(view(eight, off), /<p class="av-told">Not joined to the chase\.<\/p>/);
+  assert.deepEqual(play(eight, off, {type: 'cant'}).board.chase, ['c'], 'Can’t again starts a new chase');
+  assert.equal(move(eight, play(eight, freshAttempt(eight), set('a', 3)), {type: 'cant'}) !== null, true, 'the left circle is in the group');
   const p = byId('averages-12'), q = p.parameters;
-  let a = play(p, freshAttempt(p), set('a', 3), {type: 'cant'});
-  while (chaseNext(q, a.board.chase).length) a = play(p, a, {type: 'chase', id: chaseNext(q, a.board.chase)[0]});
-  assert.deepEqual([...a.board.chase].sort(), ['B', 'T', 'c', 'd']);
+  assert.equal(move(p, play(p, freshAttempt(p), set('a', 3)), {type: 'cant'}), null, 'a number away from the given circle’s group is no attempt');
+  let a = play(p, freshAttempt(p), set('c', 3), {type: 'cant'}, {type: 'chase', id: 'c'}, {type: 'chase', id: 'B'});
+  assert.deepEqual(a.board.chase, ['d', 'c', 'B']);
+  a = play(p, a, {type: 'chase', id: 'T'});
+  assert.deepEqual(a.board, {values: {a: null, b: null, c: 3}, chase: null, told: 'out'}, 'the chase runs out and ends');
   assert.equal(isSolved(p, a.board), false);
   assert.match(view(p, a), /<p class="av-told">Every square it reaches is 8\.<\/p>/);
-  assert.equal(nextHint(p, a).action.type, 'stop');
-  a = play(p, a, {type: 'stop'}, set('a', 5), set('b', 5), set('c', 8));
+  assert.match(view(p, a), /class="av-button av-cant"[^>]*disabled/);
+  assert.equal(move(p, a, {type: 'cant'}), null, 'Can’t stays off');
+  let back = a;
+  for (let k = 0; k < 6; k++) back = undoCarry(p, back);
+  assert.deepEqual(back.board, {values: {a: null, b: null, c: null}, chase: null, told: 'out'}, 'Undo keeps it');
+  assert.equal(validBoard(p, back.board), true);
+  assert.equal(nextHint(p, a).action.type, 'set');
+  a = play(p, a, set('c', 8));
+  assert.equal(a.board.told, null, 'a new number lifts it');
+  a = play(p, a, set('a', 5), set('b', 5));
   assert.equal(isSolved(p, a.board), true);
   assert.match(view(p, a), /class="gb-node av-ci free own lit"/);
+  assert.equal(validBoard(byId('averages-05'), {values: {a: 1, c: null}, chase: null, told: 'out'}), false, 'no chase runs out where a smaller square is reached');
 });
 
 test('hints alone solve every puzzle, from fresh and after a wrong number', () => {
@@ -212,12 +235,13 @@ test('saves: forged boards are refused', () => {
   assert.equal(validBoard(p, {...B, values: {t: 4, l: null, r: null}}), false, 'past the range');
   assert.equal(validBoard(p, {...B, values: {t: 1, l: null, r: null, c: 2}}), false, 'a number on a given place');
   const t = byId('averages-05');
-  const tb = freshAttempt(t).board;
-  assert.equal(validBoard(t, {...tb, chase: ['a']}), false, 'a chase with no attempt');
-  assert.equal(validBoard(t, {values: {b: 1, c: null}, chase: ['a', 'z', 'e']}), false, 'a chase past its smaller square');
-  assert.equal(validBoard(t, {values: {b: 1, c: null}, chase: ['a', 'b']}), false, 'a chase that jumps');
-  assert.equal(validBoard(t, {values: {b: 1, c: null}, chase: ['a', 'z']}), true);
-  assert.equal(isSolved(t, {values: {b: 1, c: null}, chase: ['a', 'z']}), true);
+  const tb = freshAttempt(t).board, tried = {a: 1, c: null};
+  assert.equal(validBoard(t, {...tb, chase: ['b']}), false, 'a chase with no attempt');
+  assert.equal(validBoard(t, {values: {a: null, c: 1}, chase: ['b'], told: null}), false, 'an attempt away from the group');
+  assert.equal(validBoard(t, {values: tried, chase: ['b', 'a', 'z', 'e'], told: null}), false, 'a chase past its smaller square');
+  assert.equal(validBoard(t, {values: tried, chase: ['b', 'z'], told: null}), false, 'a chase that jumps');
+  assert.equal(validBoard(t, {values: tried, chase: ['b', 'a', 'z'], told: null}), true);
+  assert.equal(isSolved(t, {values: tried, chase: ['b', 'a', 'z'], told: null}), true);
 });
 
 test('the playground: four boards, every place free, never solved, no hints', () => {

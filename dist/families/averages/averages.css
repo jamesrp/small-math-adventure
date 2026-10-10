@@ -7,6 +7,9 @@
    that agrees gets a pine ring and a smaller one a brick ring with a cross. */
 .av-puzzle{display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%}
 .av-board{max-width:440px}
+/* In a chase the board takes focus after Can't; show it only for keyboard use. */
+.av-board[tabindex]:focus{outline:none}
+.av-board[tabindex]:focus-visible{outline:3px solid var(--b-pine,#31533e);outline-offset:3px;border-radius:10px}
 .av-board .gb-reach{fill:transparent}
 .av-board .gb-node .gb-dot{stroke-width:2.2px}
 .av-board .gb-node .gb-label{font-size:5.6px}
@@ -14,9 +17,7 @@
 .av-board .gb-node.locked .gb-label{fill:var(--b-on-pine,#fff8d9)}
 .av-board .gb-node.free .gb-dot{fill:var(--b-card,#fffdf5)}
 .av-board .gb-node.free.empty .gb-dot{stroke-dasharray:3 2.5}
-/* A change puzzle's squares: unchanged ones look given; the changed one is sun. */
-.av-board .gb-node.free.av-sq:not(.own) .gb-dot{fill:var(--b-pine,#31533e);stroke:var(--b-pine,#31533e)}
-.av-board .gb-node.free.av-sq:not(.own) .gb-label{fill:var(--b-on-pine,#fff8d9)}
+/* A change puzzle's changed square is sun. */
 .av-board .gb-node.free.changed .gb-dot{fill:var(--b-sun,#efc76e)}
 .av-board .gb-node[role="button"]:hover .gb-dot{filter:brightness(.96)}
 .av-board .av-halo,.av-board .av-ring{fill:none;stroke:none}
@@ -24,10 +25,7 @@
 .av-board .gb-node.lit .av-halo{fill:var(--b-sun,#efc76e);fill-opacity:.35;stroke:var(--b-sun,#efc76e);stroke-width:5px;vector-effect:non-scaling-stroke}
 .av-board .gb-node.hinted .gb-reach{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:3.5px;vector-effect:non-scaling-stroke;stroke-dasharray:5 4}
 
-/* The chase. */
-.av-board.chasing .gb-node:not(.forced):not(.agree):not(.clash):not(.can-go){opacity:.55}
-.av-board .gb-node.can-go .gb-dot{fill:var(--b-good-soft,#e2ecd6);stroke-dasharray:none}
-.av-board .gb-node.can-go.locked .gb-dot{fill:var(--b-pine,#31533e);stroke:var(--b-good,#3c7a4a);stroke-width:4px}
+/* The chase: nothing marks the next place to tap. */
 .av-board .gb-node.forced .gb-dot{fill:#f7ecd2;stroke:var(--b-ochre,#b38840);stroke-width:3px;stroke-dasharray:4 2.5}
 .av-board .gb-node.forced .gb-label{fill:#7a5a1e;font-style:italic}
 .av-board .gb-node.agree .av-halo{stroke:var(--b-pine,#31533e);stroke-width:3.5px;vector-effect:non-scaling-stroke}
@@ -64,7 +62,7 @@
 .av-mini :is(rect,circle){stroke:var(--b-ink,#294439);stroke-width:1.4px;vector-effect:non-scaling-stroke;fill:var(--b-card,#fffdf5)}
 .av-mini .locked :is(rect,circle),.av-mini rect.locked{fill:var(--b-pine,#31533e);stroke:var(--b-pine,#31533e)}
 .av-mini .changed rect{fill:var(--b-sun,#efc76e)}
-.av-mini text{font:400 11.5px var(--b-display,Georgia,serif);text-anchor:middle;fill:var(--b-ink,#294439)}
+.av-mini text{font:400 15px var(--b-display,Georgia,serif);text-anchor:middle;fill:var(--b-ink,#294439)}
 .av-mini .locked text{fill:var(--b-on-pine,#fff8d9)}
 .av-boards{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;width:100%;max-width:400px}
 .av-puzzle .av-pick{width:calc((100% - 1.5rem) / 4);max-width:84px;min-height:54px;padding:4px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px}

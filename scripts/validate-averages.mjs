@@ -29,7 +29,7 @@ const TABLE = {
   'averages-02': {ways: [[0, 1, 2], [0, 2, 4], [1, 2, 3], [2, 1, 0], [2, 3, 4], [3, 2, 1], [4, 2, 0], [4, 3, 2]]},
   'averages-03': {ways: [[1, 11], [5, 7]]},
   'averages-04': {filling: {a: 4, b: 8}},
-  'averages-05': {chase: ['a', 'z']},
+  'averages-05': {chase: ['b', 'a', 'z']},
   'averages-06': {ways: [[0, 4, 6], [1, 3, 4], [2, 2, 2], [3, 1, 0]]},
   'averages-07': {ways: [[0, 0, 0], [3, 1, 2], [6, 2, 4], [9, 3, 6]]},
   'averages-08': {chase: ['c', 'b', 'a', 'z']},
@@ -316,44 +316,64 @@ function checkEvery(p, fresh, ways) {
 }
 
 function checkTie(p, fresh, row) {
-  const q = p.parameters, M = q.given[q.target];
+  const q = p.parameters, M = q.given[q.target], group = groups(q)[q.target].circles;
+  const mine = group.filter(c => q.free.includes(c)), outside = q.free.filter(c => !group.includes(c));
   let steps = hintsSolve(p, fresh, 'from fresh');
   refuse(p, fresh, {type: 'cant'}, 'Can’t before an attempt');
+  // A number on a circle outside the given circle's group is no attempt at the claim.
+  if (outside.length) refuse(p, play(p, fresh, {type: 'set', id: outside[0], value: M}), {type: 'cant'}, 'Can’t after a number away from the given circle’s group');
   const first = nextHint(p, fresh);
   assert.equal(first.action.type, 'set', `${p.id}: the first hint is an attempt, never Can’t`);
   if (row.filling) {
-    let a = setAll(p, fresh, row.filling);
-    assert.ok(isSolved(p, a.board), `${p.id}: the filling solves`);
-    // A wrong Can't: the chase runs out without a smaller square.
-    let b = play(p, fresh, {type: 'set', id: q.free[0], value: M === 0 ? 1 : 0});
-    b = play(p, b, {type: 'cant'});
-    assert.ok(!isSolved(p, b.board));
+    assert.ok(isSolved(p, setAll(p, fresh, row.filling).board), `${p.id}: the filling solves`);
+    // A wrong Can't: the hint ends it; tapped through, it runs out, and that is
+    // kept through Undo until a number changes.
+    let b = play(p, play(p, fresh, {type: 'set', id: mine[0], value: M === 0 ? 1 : 0}), {type: 'cant'});
     assert.equal(nextHint(p, b).action.type, 'stop', `${p.id}: after a wrong Can’t the hint stops the chase`);
     steps += hintsSolve(p, b, 'after a wrong Can’t');
-    while (chaseNext(q, b.board.chase).length) b = play(p, b, {type: 'chase', id: chaseNext(q, b.board.chase)[0]});
-    assert.ok(!isSolved(p, b.board), `${p.id}: a chase to every reachable place finds no smaller square`);
-    assert.ok(b.board.chase.filter(x => q.places[x].shape === 'square').every(s => q.given[s] === M), `${p.id}: every square it reaches is ${M}`);
-    steps += hintsSolve(p, b, 'after a whole wrong chase');
+    while (b.board.chase) { const next = chaseNext(q, b.board.chase); assert.ok(next.length, `${p.id}: a chase never rests with nothing to tap`); b = play(p, b, {type: 'chase', id: next.at(-1)}); }
+    assert.equal(b.board.told, 'out', `${p.id}: the chase runs out`);
+    assert.ok(!isSolved(p, b.board));
+    refuse(p, b, {type: 'cant'}, 'Can’t again before a number changes');
+    let back = b;
+    for (let k = 0; k < 10; k++) {
+      back = undoCarry(p, back);
+      assert.ok(back.board.told === 'out' && back.board.chase === null && validBoard(p, back.board), `${p.id}: Undo ${k + 1} keeps the chase that ran out`);
+    }
+    refuse(p, back, {type: 'cant'}, 'Can’t after Undo');
+    const changed = play(p, b, {type: 'set', id: mine[0], value: M});
+    assert.equal(changed.board.told, null, `${p.id}: a new number lifts it`);
+    assert.deepEqual(play(p, changed, {type: 'cant'}).board.chase, [q.target], `${p.id}: Can’t opens again`);
+    steps += hintsSolve(p, b, 'after a chase that ran out') + hintsSolve(p, back, 'after Undo past a chase that ran out');
     return steps;
   }
-  // Can't: an attempt, the claim, the chase.
-  let a = play(p, fresh, {type: 'set', id: q.free[0], value: M});
-  const why = nextHint(p, a);
-  assert.equal(why.action.type, 'cant', `${p.id}: after an attempt the hint gives the reason and presses Can’t`);
-  assert.match(why.text, /must be .* can’t be\. Press Can’t\.$/, `${p.id}: the reason comes before Press Can’t`);
-  a = play(p, a, {type: 'cant'});
-  assert.ok(!isSolved(p, a.board), `${p.id}: a bare Can’t is not a solve`);
-  const back = undoCarry(p, a);
-  assert.equal(back.board.chase, null, `${p.id}: Undo takes back the claim, which marked nothing`);
+  // Can't: an attempt in the group, the reason, the claim, the chase.
+  assert.ok(mine.includes(first.action.id), `${p.id}: the hints’ attempt is in the given circle’s group`);
+  const tried = play(p, fresh, {type: 'set', id: first.action.id, value: first.action.value});
+  const why = nextHint(p, tried);
+  assert.equal(why.action.type, 'cant', `${p.id}: after an attempt the hint gives the reason`);
+  assert.match(why.text, /must be .* can’t be\.$/, `${p.id}: the reason`);
+  assert.ok(!/press can.t/i.test(why.text), `${p.id}: the level-1 text leaves the button to level 2`);
+  const claimed = play(p, tried, {type: 'cant'});
+  assert.ok(!isSolved(p, claimed.board), `${p.id}: a bare Can’t is not a solve`);
+  assert.equal(undoCarry(p, claimed).board.chase, null, `${p.id}: Undo takes back the claim, which marked nothing`);
+  let a = claimed;
   for (const id of row.chase.slice(1)) a = play(p, a, {type: 'chase', id});
   assert.ok(isSolved(p, a.board), `${p.id}: the chase to a smaller square solves`);
   refuse(p, a, {type: 'stop'}, 'a move after a solve');
+  // A tap on any place not joined to the chase ends it with one refusal, so
+  // Can't must be pressed again; a tap on a place already in it does nothing.
+  for (const x of Object.keys(q.places).filter(x => x !== q.target && !chaseNext(q, [q.target]).includes(x))) {
+    const off = play(p, claimed, {type: 'chase', id: x});
+    assert.ok(off.board.chase === null && off.board.told === 'apart', `${p.id}: a tap on ${x} ends the chase`);
+    assert.deepEqual(play(p, off, {type: 'cant'}).board, {...off.board, chase: [q.target], told: null}, `${p.id}: Can’t again starts afresh`);
+  }
+  refuse(p, claimed, {type: 'chase', id: q.target}, 'a tap on a place already in the chase');
   // A chase that wanders to an agreeing square first still finishes by hints.
-  let b = play(p, play(p, fresh, {type: 'set', id: q.free.at(-1), value: q.range[0]}), {type: 'cant'});
+  let b = claimed;
   const agree = chaseNext(q, b.board.chase).find(x => q.places[x].shape === 'square' && q.given[x] === M);
   if (agree) b = play(p, b, {type: 'chase', id: agree});
   steps += hintsSolve(p, b, 'after a wandering chase');
-  // Stopping the chase and setting numbers again is allowed.
   const stopped = play(p, b, {type: 'stop'});
   assert.equal(stopped.board.chase, null);
   steps += hintsSolve(p, stopped, 'after stopping a chase');
@@ -369,7 +389,7 @@ function wander(p, fresh) {
     if (rand() < 0.2) { a = undoCarry(p, a); assert.ok(validBoard(p, a.board), `${p.id}: valid after Undo`); continue; }
     const options = [];
     if (q.mode !== 'tie' || a.board.chase === null) for (const id of q.free) options.push({type: 'set', id, value: q.range[0] + Math.floor(rand() * (q.range[1] - q.range[0] + 1))});
-    if (q.mode === 'tie') { options.push({type: a.board.chase ? 'stop' : 'cant'}); if (a.board.chase) for (const id of chaseNext(q, a.board.chase)) options.push({type: 'chase', id}); }
+    if (q.mode === 'tie') { options.push({type: a.board.chase ? 'stop' : 'cant'}); if (a.board.chase) for (const id of Object.keys(q.places)) options.push({type: 'chase', id}); }
     else if (rand() < 0.1) options.push({type: 'all'});
     const action = options[Math.floor(rand() * options.length)], next = move(p, a, action);
     if (next) { a = next; assert.ok(validBoard(p, a.board), `${p.id}: valid after ${JSON.stringify(action)}`); }
@@ -382,25 +402,32 @@ function checkRefusals(p, fresh) {
   for (const [action, why] of [[null, 'nothing'], ['set', 'a string'], [{type: 'set'}, 'no place'], [{type: 'set', id: 'zz', value: 1}, 'an unknown place'], [{type: 'set', id: given, value: 1}, 'a given place'], [{type: 'set', id, value: q.range[1] + 1}, 'a number past the range'], [{type: 'set', id, value: q.range[0] - 1}, 'a number below the range'], [{type: 'set', id, value: 1.5}, 'a fraction'], [{type: 'set', id, value: '3'}, 'a number as a string'], [{type: 'set', id, value: null}, 'clearing a place'], [{type: 'board', board: 'path'}, 'a board change'], [{type: 'chase', id}, 'a chase with no claim'], [{type: 'stop'}, 'stopping no chase'], [{type: 'fly'}, 'an unknown move']]) refuse(p, fresh, action, why);
   if (q.mode === 'tie') {
     refuse(p, fresh, {type: 'all'}, 'That’s all in a tie puzzle');
-    const a = play(p, play(p, fresh, {type: 'set', id, value: q.range[0]}), {type: 'cant'});
-    refuse(p, a, {type: 'set', id, value: q.range[1]}, 'a number during a chase');
+    const mine = groups(q)[q.target].circles.find(c => q.free.includes(c));
+    const a = play(p, play(p, fresh, {type: 'set', id: mine, value: q.range[0]}), {type: 'cant'});
+    refuse(p, a, {type: 'set', id: mine, value: q.range[1]}, 'a number during a chase');
     refuse(p, a, {type: 'cant'}, 'Can’t twice');
     refuse(p, a, {type: 'chase', id: q.target}, 'the given circle again');
+    refuse(p, a, {type: 'chase', id: 'zz'}, 'an unknown place');
     const far = Object.keys(q.places).find(x => x !== q.target && !chaseNext(q, a.board.chase).includes(x));
-    if (far) refuse(p, a, {type: 'chase', id: far}, 'a place not joined to the chase');
+    // The whole chase on a board where the tie is possible: it would have run out.
+    const all = [q.target, ...Object.keys(q.places).filter(x => x !== q.target && (groups(q)[q.target].circles.includes(x) || groups(q)[q.target].squares.has(x)))];
     const forged = [
+      [{...a.board, told: 'apart'}, 'a refusal during a chase'],
+      [{...a.board, chase: null, told: 'maybe'}, 'an unknown refusal'],
+      [{values: a.board.values, chase: null}, 'a missing refusal field'],
       [{...B, chase: [q.target]}, 'a chase with no attempt'],
       [{...a.board, chase: [far || q.free[0]]}, 'a chase not from the given circle'],
       ...(far ? [[{...a.board, chase: [q.target, far]}, 'a chase that jumps']] : []),
       [{...a.board, chase: [q.target, q.target]}, 'a place chased twice'],
       [{...B, values: {...B.values, [id]: 13}}, 'a number past the range'],
       [{...B, values: {...B.values, [given]: 1}}, 'a number on a given place'],
-      [{values: B.values}, 'a missing chase'],
+      [{values: B.values, told: null}, 'a missing chase'],
       [{...B, extra: 1}, 'an unknown field']
     ];
     const row = TABLE[p.id];
     if (row.chase) forged.push([{...a.board, chase: [...row.chase, chaseNext(q, row.chase)[0]].filter(Boolean)}, 'a chase past its smaller square']);
-    if (row.filling) forged.push([{values: {...row.filling}, chase: [q.target]}, 'a chase on a board where every circle works']);
+    if (row.filling) forged.push([{values: {...row.filling}, chase: [q.target], told: null}, 'a chase on a board where every circle works'], [{...a.board, chase: all}, 'a chase that ran out but goes on']);
+    else forged.push([{...a.board, chase: null, told: 'out'}, 'a chase that ran out where a smaller square is reached']);
     for (const [board, why] of forged) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
     return 0;
   }

@@ -25,6 +25,8 @@ const STAR = {aspect: 1.25, scale: 1.35, places: {t: sq(50, 14, 'top square'), c
 const ROW3 = {aspect: 3, scale: 1.5, places: {l: sq(12, 50, 'left square'), c: ci(50, 50, 'circle'), r: sq(88, 50, 'right square')}, edges: [['l', 'c'], ['c', 'r']]};
 const ROW4 = names => ({aspect: 3.4, scale: 1.3, places: {A: sq(9, 50, names[0]), p: ci(36.3, 50, names[1]), q: ci(63.7, 50, names[2]), B: sq(91, 50, names[3])}, edges: [['A', 'p'], ['p', 'q'], ['q', 'B']]});
 const TAIL = {aspect: 4.2, scale: 1.15, places: {z: sq(8, 50, '0 square'), a: ci(29, 50, 'left circle'), e: sq(50, 50, '8 square'), b: ci(71, 50, 'middle circle'), c: ci(92, 50, 'right circle')}, edges: [['z', 'a'], ['a', 'e'], ['e', 'b'], ['b', 'c']]};
+// Puzzle 4's row with the 8 square and the middle circle swapped.
+const SWAP = {aspect: 4.2, scale: 1.15, places: {z: sq(8, 50, '0 square'), a: ci(29, 50, 'left circle'), b: ci(50, 50, 'middle circle'), e: sq(71, 50, '8 square'), c: ci(92, 50, 'right circle')}, edges: [['z', 'a'], ['a', 'b'], ['b', 'e'], ['e', 'c']]};
 const BRANCH = {aspect: 2.1, scale: 1.2, places: {z: sq(8, 28, '0 square'), a: ci(35, 28, 'left circle'), b: ci(62, 28, 'middle circle'), t: sq(91, 28, '12 square'), c: ci(62, 80, 'bottom circle')}, edges: [['z', 'a'], ['a', 'b'], ['b', 't'], ['b', 'c']]};
 const TREE = names => ({aspect: 1.75, scale: 1.2, places: {R: sq(9, 17, names[0]), S: sq(9, 83, names[1]), u: ci(38, 50, 'left circle'), v: ci(66, 50, 'right circle'), T: sq(92, 50, names[2])}, edges: [['R', 'u'], ['S', 'u'], ['u', 'v'], ['v', 'T']]});
 // Week 20 grades 4–5 page 2, upper board, from the worksheet's coordinates.
@@ -41,7 +43,7 @@ const MODE_RULES = {
   every: ['Each way that makes every circle work is kept in a row below the board. Press That’s all when you think you have found every way.'],
   cards: ['Each number card can be on one place only: putting a card on a place takes it off any other place.', 'Each way that makes the circle work is kept in a row below the board. Press That’s all when you think you have found every way.'],
   change: ['Change one square: changing a second square puts the first back. Each way that makes every circle work is kept in a row below the board. Press That’s all when you think you have found every way.'],
-  tie: ['The dark circle’s number is the biggest square’s. In a board where every circle works, no place is bigger than the biggest square, so a circle that big shares equally only if every place joined to it is just as big.', 'If you think the circles can’t all work, press Can’t, then tap places joined to the dark circle, one at a time, and places joined to the circles you tap. A square stops the chase. Reach a smaller square to show it can’t be done.']
+  tie: ['The dark circle starts with the biggest square’s number.', 'Can’t opens once you have put a number on a circle joined to the dark circle, directly or through other circles. After pressing it, tap places one at a time: places joined to the dark circle, then places joined to circles you have tapped. A square ends that branch; reach a smaller square to finish. A tap on a place not joined to the chase ends it.', 'If the chase runs out without reaching a smaller square, Can’t stays off until you change a number.']
 };
 const CONTROLS = {
   every: 'Tap a place to choose it, then tap a number below the board. With a keyboard, Tab to a place and type a digit, or use the arrow keys. Press That’s all when you have every way. Undo keeps the ways found.',
@@ -96,19 +98,19 @@ const PUZZLES = [
     idea: 'Equality spreads from circle to circle but stops at a square: the circles behind the 8 can all be 8.',
     prerequisites: 'Halve and average two numbers to 16.',
     hints: ['The right circle has only one place joined to it. What must that place be?', 'The middle circle must be 8, and then it sits between two 8s. The left circle sits between 0 and 8.', 'Make the middle circle 8 and the left circle 4.'],
-    parent: parent('Whether your child checks the right circle first, the one with a single neighbour.', 'Does the 8 square have to be the average of its neighbours?', 'A circle with one neighbour equals it, so the middle circle is 8, and 8 is the average of 8 and 8. The left circle is (0 + 8) ÷ 2 = 4. The 8 square need not average 4 and 8: squares keep their numbers, so the chain of equal 8s stops there.', 'Puzzle 5 uses the same board with the 8 on the left circle instead.', 'The equality case of the maximum principle: a circle at the top forces its whole circle group, and the squares it touches, to the same value.'),
+    parent: parent('Whether your child checks the right circle first, the one with a single neighbour.', 'Does the 8 square have to be the average of its neighbours?', 'A circle with one neighbour equals it, so the middle circle is 8, and 8 is the average of 8 and 8. The left circle is (0 + 8) ÷ 2 = 4. The 8 square need not average 4 and 8: squares keep their numbers, so the chain of equal 8s stops there.', 'Puzzle 5 swaps the 8 square and the middle circle.', 'The equality case of the maximum principle: a circle at the top forces its whole circle group, and the squares it touches, to the same value.'),
     provenance: 'Week 20 grades 4–5 Problem 4, upper board, and grades 2–3 Problem 4, upper board (with 6): “Which circles can equal the largest square number on their own board?” Here the right circle is given the 8.'
   },
   {
-    title: 'First circle', level: 'medium', board: TAIL, mode: 'tie', given: {z: 0, e: 8, a: 8}, target: 'a', free: ['b', 'c'], range: [0, 12],
-    expect: ['a', 'z'],
-    objective: 'The left circle holds 8, as much as the biggest square. Make every circle work, or press Can’t and show why not.',
+    title: 'Swapped row', level: 'medium', board: SWAP, mode: 'tie', given: {z: 0, e: 8, b: 8}, target: 'b', free: ['a', 'c'], range: [0, 12],
+    expect: ['b', 'a', 'z'],
+    objective: 'The middle circle holds 8, as much as the biggest square. Make every circle work, or press Can’t and show why not.',
     visible: 'Make every circle work.',
-    idea: 'A circle as big as the biggest square forces every neighbour up to it, and a 0 square can’t be raised.',
-    prerequisites: 'Average two numbers to 16, and follow one step of a chain argument.',
-    hints: ['What are the two places joined to the left circle?', 'Nothing on the board can be bigger than 8, so an 8 shared from two places needs both of them to be 8.', 'The 0 square would have to be 8. Press Can’t, then tap the 0 square.'],
-    parent: parent('Whether your child tries to make the left circle work by changing the other circles, which aren’t joined to it.', 'What would the 0 square need to be for the left circle to work?', 'The left circle is joined to the 0 and the 8 squares, whose average is 4, not 8. As a chase: no number is above 8, so both neighbours of an 8 circle must be 8, and the 0 square isn’t. The other two circles can both be 8, but that doesn’t help.', 'Compare puzzle 4: the same board, with the 8 behind the 8 square, works.', 'The strong maximum principle: a circle at the maximum forces its neighbours; the chase ends at a square below the maximum.'),
-    provenance: 'Week 20 grades 4–5 Problem 4, upper board: the circle between 0 and 8 can’t equal 8. The chase as the certificate is the review card’s App fit.'
+    idea: 'A circle as big as the biggest square forces the circle beside it up to 8 too, and that circle is joined to a 0 square that can’t be raised.',
+    prerequisites: 'Average two numbers to 16, and follow a chain of two steps.',
+    hints: ['What are the two places joined to the middle circle?', 'Nothing on the board can be bigger than 8, so an 8 shared from two places needs both of them to be 8. Then look at the places joined to the left circle.', 'The left circle would have to be 8, and then the 0 square too. Press Can’t, then tap the left circle and the 0 square.'],
+    parent: parent('Whether your child sees that this is puzzle 4’s row with the 8 square and a circle swapped.', 'Why could the right circle in puzzle 4 be 8, but not the middle circle here?', 'The middle circle is joined to the left circle and the 8 square. No number is above 8, so both must be 8; then the left circle, joined to the 0 square and the middle circle, needs the 0 square to be 8 too. In the real filling the left circle is 8/3 and the middle one 16/3; with the middle circle held at 8, the left circle works at 4 and the middle circle’s average is only 6.', 'Make the 0 square an 8: now every circle can be 8.', 'The strong maximum principle: a circle at the maximum forces its neighbours; the chase ends at a square below the maximum.'),
+    provenance: 'Week 20 grades 4–5 Problem 4, upper board, rearranged: puzzle 4’s five places with the 8 square and a circle swapped, so the tie runs through a circle to the 0. The chase as the certificate is the review card’s App fit.'
   },
   {
     title: 'Four in a row', level: 'medium', board: ROW4(['left square', 'left circle', 'right circle', 'right square']), mode: 'every', given: {p: 2}, free: ['A', 'q', 'B'], range: [0, 6],
@@ -118,7 +120,7 @@ const PUZZLES = [
     idea: 'On a path every circle is halfway between its neighbours, so the four numbers go up or down in equal steps.',
     prerequisites: 'Halve numbers to 12 and keep two checks in mind at once.',
     hints: ['The left circle holds 2. What could the two places joined to it be?', 'With 0 and 4 around it the 2 works; then the right circle needs 2 and the right square around it to average 4.', 'Every way is an equal-step row through 2: 0 2 4 6, 1 2 3 4, 2 2 2 2 and 3 2 1 0.'],
-    parent: parent('Whether your child keeps both circles working, or fixes one and breaks the other.', 'What do the four numbers in a way have in common?', 'A circle between two places is their average, so it is as far above one as below the other: the steps along the row are equal. With 2 second, the rows are 0 2 4 6, 1 2 3 4, 2 2 2 2 and 3 2 1 0; a left square of 4 would need −2 on the right.', 'Without the 0 to 6 limit, any left square below 4 or above it with negative numbers works: the rows are exactly the equal-step rows through 2.', 'Discrete harmonic functions on a path are linear: equal gaps between fixed ends.'),
+    parent: parent('Whether your child keeps both circles working, or fixes one and breaks the other.', 'What do the four numbers in a way have in common?', 'A circle between two places is their average, so it is as far above one as below the other: the steps along the row are equal. With 2 second, the rows are 0 2 4 6, 1 2 3 4, 2 2 2 2 and 3 2 1 0; a left square of 4 would need −2 on the right.', 'Without the 0 to 6 limit, and with negative numbers allowed, every left square works: the ways are exactly the equal-step rows through 2, such as 4 2 0 −2.', 'Discrete harmonic functions on a path are linear: equal gaps between fixed ends.'),
     provenance: 'New, after Week 20 K–1 Problem 2 and grades 2–3 Problem 2 (two circles on a path, equal steps): choosing the squares so a circle hits a target, as the review card asks.'
   },
   {
@@ -216,6 +218,8 @@ function check(q, row, n) {
   if (q.mode === 'tie') {
     assert.ok(squares.every(s => Object.hasOwn(q.given, s)), `${n}: tie squares are given`);
     assert.equal(topOf(q), Math.max(...squares.map(s => q.given[s])), `${n}: the given circle has the biggest square’s number`);
+    // Can't opens after a number on a circle of the given circle's group, so the group has a free circle.
+    assert.ok(groupOf(q, q.target).group.some(c => q.free.includes(c)), `${n}: the given circle’s group has a free circle`);
     const fill = fillingOf(q);
     assert.equal(Boolean(fill), tieCan(q), `${n}: a filling exists exactly when the given circle’s group touches no smaller square`);
     if (Array.isArray(row.expect)) {
@@ -223,6 +227,7 @@ function check(q, row, n) {
       let chase = [q.target];
       while (!clashOf(q, chase)) chase = [...chase, chaseStep(q, chase)];
       assert.deepEqual(chasePath(q, chase), row.expect, `${n}: the chase`);
+      assert.ok(row.expect.some(c => q.free.includes(c)), `${n}: the hints’ attempt is on the chase`);
       return {chase: row.expect, group: groupOf(q, q.target)};
     }
     assert.deepEqual(Object.fromEntries(q.free.map(c => [c, fill[c]])), row.expect, `${n}: the filling`);
