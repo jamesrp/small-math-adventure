@@ -88,6 +88,6 @@ James decided these on October 5:
 - **Reviews:** any model can review anything.
 - **Agents:** Dot and Codex are one lane. exe.dev has no lane. Any agent may write code; Claude is preferred for front-end work and puzzle UI.
 
-Still open, with my recommendation first:
+And on October 10:
 
-- **Tower cities:** add Week 5's visibility clues as their own group, leaving Symbol Orchard pure, or leave them out as decided in September.
+- **Tower cities:** Week 5's visibility clues go in as their own group, leaving Symbol Orchard's other puzzles pure. This reverses September's "leave them out".
