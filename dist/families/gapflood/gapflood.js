@@ -95,15 +95,26 @@ export function allRoutes(q, s) {
   routeCache.set(key, out);
   return out;
 }
-// Every road triangle of the homes, with its biggest gap.
+// Every road triangle of the homes, with its biggest gap. Each route's
+// distance from every dot is worked out once, so a dot's gap is the nearer of
+// its other two routes' distances (0 when it is on one of them). Dots are
+// numbered so the 12,348 triangles of the 6 × 6 puzzle stay quick.
 const triangleCache = new Map();
 export function triangles(q) {
   const key = JSON.stringify([q.roads, q.homes]);
   if (triangleCache.has(key)) return triangleCache.get(key);
-  const out = [];
-  for (const AB of allRoutes(q, 'AB')) for (const BC of allRoutes(q, 'BC')) for (const CA of allRoutes(q, 'CA')) {
-    const routes = {AB, BC, CA};
-    out.push({routes, ...thinness(q, routes)});
+  const D = distances(q), all = idsOf(q), index = new Map(all.map((u, n) => [u, n])), out = [];
+  const R = SIDES.map(s => allRoutes(q, s)), I = R.map(list => list.map(r => r.map(u => index.get(u))));
+  const N = R.map(list => list.map(r => Int32Array.from(all, u => Math.min(...r.map(v => D[u][v])))));
+  const gapOf = (a, b, c) => {
+    let gap = 0;
+    for (const [route, x, y] of [[I[0][a], N[1][b], N[2][c]], [I[1][b], N[2][c], N[0][a]], [I[2][c], N[0][a], N[1][b]]]) {
+      for (const u of route) { const g = x[u] < y[u] ? x[u] : y[u]; if (g > gap) gap = g; }
+    }
+    return gap;
+  };
+  for (let a = 0; a < R[0].length; a++) for (let b = 0; b < R[1].length; b++) for (let c = 0; c < R[2].length; c++) {
+    out.push({routes: {AB: R[0][a], BC: R[1][b], CA: R[2][c]}, gap: gapOf(a, b, c)});
   }
   triangleCache.set(key, out);
   return out;
@@ -132,12 +143,18 @@ export const allZero = (q, routes) => complete(q, routes) && thinness(q, routes)
 export const certOf = q => q.goal === 'best' ? 'rings' : q.kind === 'tree' ? 'tripod' : q.kind === 'ladder' ? 'columns' : 'rings';
 // Can the goal be reached? Only "a gap of k" can fail.
 export const possible = q => q.goal !== 'reach' || q.k <= bestOf(q);
+// On a tree the child backs a Can't by tapping the forced tripod's centre.
+export const centreClaim = q => q.goal === 'reach' && q.kind === 'tree';
+export const forcedCentre = q => centreOf(Object.fromEntries(SIDES.map(s => [s, allRoutes(q, s)[0]])))[0];
+// The dots where some triangle of these homes reaches the biggest gap.
+export const fatDots = q => [...new Set(goodTriangles(q).flatMap(t => t.dots))];
 
 // --- Boards -------------------------------------------------------------------
 // {routes: {AB, BC, CA}, flood, told, done}. `flood` is the dot flooded (only
 // on a finished triangle); `told` answers a Can't that can be done ('can', kept
-// until a route changes) or a Best that can be beaten ('bigger', kept until a
-// new flood); `done` is a right Can't or Best.
+// until a route changes), a Best that can be beaten ('bigger', kept until a
+// new flood) or a tap on a tree that is not where all three routes meet
+// ('miss'); `done` is a right Can't or Best.
 function fresh(p) {
   const q = p.parameters;
   return {routes: Object.fromEntries(SIDES.map(s => [s, [startOf(q, s)]])), flood: null, told: null, done: false};
@@ -150,6 +167,7 @@ function valid(p, b) {
   const gap = b.flood === null ? null : gapAt(q, b.routes, b.flood);
   if (b.told === 'can') { if (q.goal !== 'reach' || !possible(q) || b.done) return false; }
   else if (b.told === 'bigger') { if (q.goal !== 'best' || gap === null || gap >= bestOf(q) || b.done) return false; }
+  else if (b.told === 'miss') { if (!centreClaim(q) || possible(q) || b.done) return false; }
   else if (b.told !== null) return false;
   if (b.done) {
     if (q.goal === 'zero' || (q.goal === 'reach' && possible(q))) return false;
@@ -168,8 +186,9 @@ function solved(p, b) {
 // --- The chosen route (view state, outside the save) ---------------------------
 const uiState = new Map();
 // Nothing chosen at first: taps draw the first unfinished route, so a puzzle
-// reopened with its triangle finished floods at once.
-function ui(p) { if (!uiState.has(p.id)) uiState.set(p.id, {pen: null}); return uiState.get(p.id); }
+// reopened with its triangle finished floods at once. `claiming` is a pressed
+// Can't on a tree, waiting for the tap on the centre.
+function ui(p) { if (!uiState.has(p.id)) uiState.set(p.id, {pen: null, claiming: false}); return uiState.get(p.id); }
 // The route taps draw: the chosen one, or the first unfinished one; none (taps
 // flood) once all three are finished and none is chosen.
 export function penOf(q, b, pen) {
@@ -195,8 +214,8 @@ function move(p, b, action) {
   } else if (action.type === 'flood' && complete(q, b.routes) && isId(q, action.at) && action.at !== b.flood && gapAt(q, b.routes, action.at) !== null) {
     next = {...b, flood: action.at, told: b.told === 'can' ? 'can' : null};
     pen = null;
-  } else if (action.type === 'cant' && q.goal === 'reach' && b.told !== 'can') {
-    next = possible(q) ? {...b, told: 'can'} : {...b, told: null, done: true};
+  } else if (action.type === 'cant' && q.goal === 'reach' && b.told !== 'can' && (centreClaim(q) ? isId(q, action.at) : action.at === undefined)) {
+    next = possible(q) ? {...b, told: 'can'} : !centreClaim(q) || action.at === forcedCentre(q) ? {...b, told: null, done: true} : {...b, told: 'miss'};
   } else if (action.type === 'best' && q.goal === 'best' && b.flood !== null && b.told !== 'bigger') {
     next = gapAt(q, b.routes, b.flood) === bestOf(q) ? {...b, done: true} : {...b, told: 'bigger'};
   }
@@ -281,7 +300,11 @@ export function stepWords(q, from, to) {
 function hint(p, b) {
   const q = p.parameters;
   if (!valid(p, b) || solved(p, b)) return {type: 'done'};
-  if (!possible(q)) return {type: 'move', action: {type: 'cant'}, text: 'Press Can’t.'};
+  if (!possible(q)) {
+    if (centreClaim(q)) return {type: 'move', action: {type: 'cant', at: forcedCentre(q)}, text: 'On a tree each pair of homes has only one route, and the three routes share every road. Press Can’t and tap where all three meet.'};
+    if (certOf(q) === 'columns') return {type: 'move', action: {type: 'cant'}, text: `Two routes cross every column, and a column is one rung, so no gap can be ${q.k}. Press Can’t.`};
+    return {type: 'move', action: {type: 'cant'}, text: 'Press Can’t.'};
+  }
   const t = nearest(q, b);
   for (const s of SIDES) {
     const r = b.routes[s], k = sharedStart(r, t.routes[s]);
@@ -349,39 +372,43 @@ function render(p, a) {
   const cert = solvedNow ? (q.goal === 'zero' ? 'tripod' : b.done ? certOf(q) : null) : null;
   // A right Can't on a tree shows the one triangle its homes have.
   const routes = cert === 'tripod' && !complete(q, b.routes) ? Object.fromEntries(SIDES.map(s => [s, allRoutes(q, s)[0]])) : b.routes;
-  const pen = solvedNow ? null : penOf(q, b, ui(p).pen);
+  const claiming = !solvedNow && centreClaim(q) && ui(p).claiming;
+  const pen = solvedNow || claiming ? null : penOf(q, b, ui(p).pen);
   const hinted = a.hintLevel >= 2 && !solvedNow ? hint(p, b) : null, act = hinted?.type === 'move' ? hinted.action : null;
   // Best's certificate replaces the flood: each dot's steps to its nearest home.
   const on = sidesAt(routes), fl = b.flood !== null && cert !== 'rings' ? floodOf(q, routes, b.flood) : null;
-  const rings = cert === 'rings' ? homeSteps(q) : null, far = rings ? coverOf(q) : null;
+  // Ochre rings only where the biggest gap can be made, not on every dot that far from a home.
+  const rings = cert === 'rings' ? homeSteps(q) : null, far = rings ? coverOf(q) : null, fat = rings ? fatDots(q) : [];
   const centre = cert === 'tripod' ? centreOf(routes) : [];
   const steps = pen ? nextSteps(q, pen, b.routes[pen]) : [];
   const homeOf = id => ['A', 'B', 'C'].find(x => q.homes[x] === id);
   const node = id => {
-    const x = homeOf(id), sides = on.get(id) || [], action = solvedNow ? null : dotAction(q, b, pen, id);
+    const x = homeOf(id), sides = on.get(id) || [], action = solvedNow ? null : claiming ? {type: 'cant', at: id} : dotAction(q, b, pen, id);
     const own = pen && b.routes[pen].at(-1) === id && !solvedNow;
     const lit = fl && fl.step[id] < fl.gap, step = fl ? Math.min(fl.step[id], 7) : 0;
     const cls = [x ? 'home' : '', own ? `pen t${pen}` : '', steps.includes(id) && !solvedNow ? 'can-go' : '', lit ? `lit d${step}` : '', fl?.arrive.includes(id) && fl.gap > 0 ? 'meet' : '', id === b.flood ? 'source' : '',
-      rings ? `lit d${Math.min(rings[id], 7)}` : '', rings && rings[id] === far ? 'far' : '', centre.includes(id) ? 'centre' : '',
-      (act?.type === 'draw' || act?.type === 'cut') && act.to === id ? 'hinted' : '', act?.type === 'flood' && act.at === id ? 'hinted' : ''].filter(Boolean).join(' ');
-    const doing = !action ? '' : action.type === 'draw' ? `. Draw ${action.side} here` : action.type === 'cut' ? `. Take ${action.side} back to here` : '. Flood it';
+      rings ? `lit d${Math.min(rings[id], 7)}` : '', fat.includes(id) ? 'far' : '', centre.includes(id) ? 'centre' : '',
+      (act?.type === 'draw' || act?.type === 'cut') && act.to === id ? 'hinted' : '', (act?.type === 'flood' || act?.type === 'cant') && act.at === id ? 'hinted' : ''].filter(Boolean).join(' ');
+    const doing = !action ? '' : action.type === 'draw' ? `. Draw ${action.side} here` : action.type === 'cut' ? `. Take ${action.side} back to here` : action.type === 'cant' ? '. All three routes meet here' : '. Flood it';
     const label = `${nameOf(q, id)}${x ? `, home ${x}` : ''}${sides.length ? `, on ${listWords(sides)}` : ''}${fl && id === b.flood ? `, gap ${fl.gap}` : ''}${doing}`;
     const text = x || (rings ? String(rings[id]) : '');
     return {cls, text, act: Boolean(action) || Boolean(own), label: `${label}${own ? `. End of ${pen}` : ''}${rings && !x ? `, ${rings[id]} ${rings[id] === 1 ? 'step' : 'steps'} from a home` : ''}`, badge: fl && id === b.flood ? String(fl.gap) : ''};
   };
   const edge = i => {
-    const action = solvedNow ? null : roadAction(q, b, pen, i), [u, v] = q.roads[i];
+    const action = solvedNow || claiming ? null : roadAction(q, b, pen, i), [u, v] = q.roads[i];
     const mark = (act?.type === 'draw' || act?.type === 'cut') && act.side === pen && roadOf(q, b.routes[pen].at(-1), act.to) === i;
     return {cls: mark ? 'hinted' : '', act: Boolean(action), label: `Road from ${nameOf(q, u)} to ${nameOf(q, v)}${action ? `. ${action.type === 'draw' ? 'Draw' : 'Take'} ${action.side} ${action.type === 'draw' ? 'along it' : 'back'}` : ''}`};
   };
   const under = (fl && fl.gap > 0 ? floodRoads(g, q, fl, 'gf-flood') : '') + (cert === 'tripod' ? glowRoutes(g, q, routes) : '') + (cert === 'columns' ? columnRings(g, q) : '');
-  const board = graphBoard(g, {cls: `gf-map ${q.kind}${q.small ? ' small' : ''}`, label: 'Map of roads', slide: Boolean(pen), node, edge, under, over: trails(g, q, routes)});
+  const board = graphBoard(g, {cls: `gf-map ${q.kind}${q.small ? ' small' : ''}${claiming ? ' claiming' : ''}`, label: 'Map of roads', slide: Boolean(pen), node, edge, under, over: trails(g, q, routes)});
   const hintSide = (act?.type === 'draw' || act?.type === 'cut') && act.side !== pen ? act.side : null;
   const chips = SIDES.map(s => `<button type="button" class="gf-chip t${s}${s === hintSide ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({pen: s})}' data-focus="gf-chip-${s}" aria-pressed="${s === pen}" aria-label="Route ${s}">${s}</button>`).join('');
-  const claim = q.goal === 'reach' ? button('Can’t', {type: 'cant'}, b.told !== 'can', act?.type === 'cant')
+  const claim = centreClaim(q) ? `<button type="button" class="secondary gf-button${act?.type === 'cant' && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="gf-cant" aria-pressed="${claiming}">Can’t</button>`
+    : q.goal === 'reach' ? button('Can’t', {type: 'cant'}, b.told !== 'can', act?.type === 'cant')
     : q.goal === 'best' ? button('Best', {type: 'best'}, b.flood !== null && b.told !== 'bigger', act?.type === 'best') : '';
   const top = solvedNow ? '' : `<div class="gf-bar"><div class="gf-chips" role="group" aria-label="Routes">${chips}</div>${claim}</div>`;
   const told = b.told === 'can' ? 'It can be done.' : b.told === 'bigger' ? 'A bigger gap is possible.'
+    : b.told === 'miss' && !solvedNow ? 'The three routes don’t all meet there.' : claiming ? 'Tap where all three routes meet.'
     : cert === 'rings' ? `Every dot is within ${far} ${far === 1 ? 'step' : 'steps'} of A, B or C.` : cert === 'columns' ? 'Two routes cross every column.' : '';
   const gapNow = b.flood !== null ? gapAt(q, routes, b.flood) : null;
   const status = `${routeWords(q, {routes})}.${gapNow !== null ? ` Gap ${gapNow} at ${nameOf(q, b.flood)}.` : ''}${told ? ` ${told}` : ''}${pen ? ` ${pen} is chosen.` : ''}`;
@@ -394,18 +421,23 @@ const button = (label, action, enabled, hinted) => `<button type="button" class=
 let pressing = false, listening = false;
 const release = () => { pressing = false; };
 function wire(root, p, api) {
-  const now = () => { const b = api.attempt().board; return {b, q: p.parameters, pen: ui(p).pen}; };
+  const now = () => { const b = api.attempt().board, q = p.parameters; return {b, q, pen: ui(p).pen, claiming: centreClaim(q) && ui(p).claiming}; };
   root.addEventListener('pointerdown', () => { pressing = true; });
   if (!listening) { document.addEventListener('pointerup', release); document.addEventListener('pointercancel', release); listening = true; }
   wireGraph(root, {
     stroke: true,
-    node: id => { const {b, q, pen} = now(); if (solved(p, b)) return null; const action = dotAction(q, b, pen, id); return action && !(pressing && action.type === 'flood') ? action : null; },
-    edge: i => { const {b, q, pen} = now(); return solved(p, b) ? null : roadAction(q, b, pen, i); }
+    node: id => {
+      const {b, q, pen, claiming} = now();
+      if (solved(p, b)) return null;
+      const action = claiming ? {type: 'cant', at: id} : dotAction(q, b, pen, id);
+      return action && !(pressing && (action.type === 'flood' || action.type === 'cant')) ? action : null;
+    },
+    edge: i => { const {b, q, pen, claiming} = now(); return solved(p, b) || claiming ? null : roadAction(q, b, pen, i); }
   }, api.apply);
   root.addEventListener('keydown', e => {
     if (!ARROWS[e.key] || e.altKey || e.ctrlKey || e.metaKey) return;
-    const {b, q, pen} = now();
-    const action = solved(p, b) ? null : arrowAction(q, b, pen, e.key);
+    const {b, q, pen, claiming} = now();
+    const action = solved(p, b) || claiming ? null : arrowAction(q, b, pen, e.key);
     if (!action) return;
     e.preventDefault();
     api.apply(action);
@@ -415,10 +447,22 @@ function wire(root, p, api) {
 export const gapMechanics = {
   gapflood: {
     fresh, valid, solved, move, hint, render, wire,
-    // A tap on the chosen route lets go of it, so taps flood again.
+    // A tap on the chosen route lets go of it, so taps flood again. Can't on
+    // a tree is pressed and let go the same way.
     ui(p, payload) {
-      if (!object(payload) || !SIDES.includes(payload.pen)) return;
+      if (!object(payload)) return;
+      if (typeof payload.claiming === 'boolean' && centreClaim(p.parameters)) { ui(p).claiming = payload.claiming; return; }
+      if (!SIDES.includes(payload.pen)) return;
       ui(p).pen = ui(p).pen === payload.pen ? null : payload.pen;
+      ui(p).claiming = false;
+    },
+    // Undo hands the pen back to the route it changed, or, when that route is
+    // finished again or a flood or claim was taken back, to the first
+    // unfinished route: a step taken back can be taken again with one tap.
+    carry(p, from, to) {
+      const q = p.parameters, s = SIDES.find(t => from.routes[t].length !== to.routes[t].length);
+      ui(p).pen = s && !done(q, s, to.routes[s]) ? s : null;
+      return to;
     },
     reset: p => { uiState.delete(p.id); }
   }

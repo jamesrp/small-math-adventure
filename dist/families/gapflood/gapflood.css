@@ -20,6 +20,9 @@
 .gf-puzzle .gf-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
 .gf-puzzle .gf-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
 .gf-puzzle :is(.gf-button,.gf-chip).hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+/* Can't pressed on a tree: every dot can be chosen as where the routes meet. */
+.gf-puzzle .gf-button[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-pine,#31533e);background:#eef3e3}
+.gf-map.claiming .gb-node:not(.home) .gb-dot{fill:var(--b-good-soft,#e2ecd6);stroke:var(--b-pine,#31533e)}
 
 /* The map. */
 .gf-map{max-width:440px}

@@ -7,14 +7,16 @@
 // triangle of every three homes on the tree is a tripod, no ladder 3, 5 or 7
 // squares long has a gap of 2, no ring of 12 more than 3, the corner triangle
 // of side n has gap n and nothing more for n = 1 to 7, and every gap 0 means
-// every road on two routes); witnesses played as moves; hint chains from fresh,
-// after a wrong route, a refused Can't or Best, and random play; illegal moves;
-// forged saves. Run: node scripts/validate-gapflood.mjs
+// every road on two routes); the tree's centre, the one dot a Can't there
+// accepts, and the ochre rings only where the biggest gap can be made;
+// witnesses played as moves; hint chains from fresh, after a wrong route, a
+// refused Can't or Best, a tap that missed the centre, and random play;
+// illegal moves; forged saves. Run: node scripts/validate-gapflood.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {freshAttempt, move, isSolved, nextHint, validBoard} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
-import {bestOf, triangles as mechanicTriangles, coverOf} from '../dist/families/gapflood/gapflood.js';
+import {bestOf, triangles as mechanicTriangles, coverOf, fatDots, forcedCentre} from '../dist/families/gapflood/gapflood.js';
 import {loadPack} from './packs.mjs';
 
 const SIDES = [['AB', 'A', 'B'], ['BC', 'B', 'C'], ['CA', 'C', 'A']];
@@ -113,7 +115,7 @@ const TABLE = {
   'gapflood-07': {goal: 'zero', routes: [5, 20, 5], triangles: 500, best: 3, good: 2, cover: 3},
   'gapflood-08': {goal: 'best', routes: [5, 20, 5], triangles: 500, best: 3, good: 34, cover: 3, at: ['33', '44']},
   'gapflood-09': {goal: 'best', routes: [15, 6, 15], triangles: 1350, best: 3, good: 144, cover: 3, at: ['03', '30']},
-  'gapflood-10': {goal: 'best', routes: [1, 1, 924], triangles: 924, best: 6, good: 1, cover: 6, at: ['06']}
+  'gapflood-10': {goal: 'best', routes: [7, 252, 7], triangles: 12348, best: 5, good: 74, cover: 5, at: ['55', '66']}
 };
 
 const play = (p, a, action) => { const next = move(p, a, action); assert.ok(next && next !== a, `${p.id}: ${JSON.stringify(action)} is legal`); return next; };
@@ -142,6 +144,7 @@ function randomPlay(p, a, n) {
     const options = [];
     for (const [s] of SIDES) for (const to of all) for (const type of ['draw', 'cut']) options.push({type, side: s, to});
     for (const at of all) options.push({type: 'flood', at});
+    for (const at of all) options.push({type: 'cant', at});
     options.push({type: 'cant'}, {type: 'best'});
     const legal = options.filter(o => { const next = move(p, a, o); return next && !isSolved(p, next.board); });
     if (!legal.length) break;
@@ -242,7 +245,14 @@ export async function validateGapflood() {
     assert.equal(mechanicTriangles(q).length, tris.length, `${p.id}: the mechanic's triangles`);
     assert.equal(coverOf(q), cover, `${p.id}: the mechanic's covering`);
     // Certificates.
-    if (q.goal === 'best') assert.equal(cover, best, `${p.id}: every dot within ${best} steps of a home proves Best`);
+    if (q.goal === 'best') {
+      assert.equal(cover, best, `${p.id}: every dot within ${best} steps of a home proves Best`);
+      assert.deepEqual([...fatDots(q)].sort(), row.at, `${p.id}: the ochre rings go only where the biggest gap can be made`);
+    }
+    // On the tree, the dot on all three routes: the tripod's centre the child taps.
+    const centre = row.cant === 'tree' ? ids(q).filter(u => tris[0].routes.every(r => r.includes(u))) : null;
+    if (centre) { assert.equal(centre.length, 1, `${p.id}: one centre`); assert.equal(forcedCentre(q), centre[0], `${p.id}: the mechanic's centre`); assert.equal(p.solution.at, centre[0], `${p.id}: the witness taps it`); }
+    const cant = centre ? {type: 'cant', at: centre[0]} : {type: 'cant'};
     if (row.cant === 'tree') { assert.equal(q.roads.length, ids(q).length - 1); assert.equal(best, 0); }
     if (row.cant === 'ladder') {
       const cols = Object.values(q.homes).map(id => xy(id)[0]), span = ([x, y]) => [Math.min(xy(q.homes[x])[0], xy(q.homes[y])[0]), Math.max(xy(q.homes[x])[0], xy(q.homes[y])[0])];
@@ -259,11 +269,20 @@ export async function validateGapflood() {
     // The witness, played as moves.
     const sol = p.solution;
     if (sol.claim === 'cant') {
-      assert.ok(isSolved(p, play(p, fresh, {type: 'cant'}).board), `${p.id}: Can’t is right`);
+      assert.ok(isSolved(p, play(p, fresh, cant).board), `${p.id}: Can’t is right`);
+      if (centre) {
+        refuse(p, fresh, {type: 'cant'}, 'Can’t on a tree without the tap on the centre');
+        for (const u of ids(q).filter(v => v !== centre[0])) {
+          const missed = play(p, fresh, {type: 'cant', at: u});
+          assert.equal(missed.board.told, 'miss', `${p.id}: a tap on ${u} is not the centre`);
+          assert.ok(!isSolved(p, missed.board));
+        }
+        hintSteps += hintsSolve(p, play(p, fresh, {type: 'cant', at: ids(q).find(v => v !== centre[0])}), 'after a tap that missed the centre');
+      }
       const drawn = drawAll(p, fresh, tris[0].routes);
       assert.ok(!isSolved(p, drawn.board), `${p.id}: drawing alone does not solve`);
       for (const u of Object.keys(tris[0].gaps)) { const f = move(p, drawn, {type: 'flood', at: u}); if (f) assert.ok(!isSolved(p, f.board), `${p.id}: no flood reaches ${q.k}`); }
-      assert.ok(isSolved(p, play(p, drawn, {type: 'cant'}).board), `${p.id}: Can’t after drawing`);
+      assert.ok(isSolved(p, play(p, drawn, cant).board), `${p.id}: Can’t after drawing`);
     } else {
       let a = drawAll(p, fresh, SIDES.map(([s]) => sol.routes[s]));
       if (q.goal === 'zero') assert.ok(isSolved(p, a.board), `${p.id}: every gap 0 solves`);
@@ -314,6 +333,7 @@ function checkRefusals(p, fresh, tris, best) {
   for (const [action, why] of [[null, 'nothing'], ['draw', 'a string'], [{type: 'draw'}, 'no side'], [{type: 'draw', side: 'AC', to: all[0]}, 'an unknown side'], [{type: 'draw', side: 'AB', to: 'zz'}, 'an unknown dot'], [{type: 'draw', side: 'AB', to: far}, 'a step along no road'], [{type: 'draw', side: 'AB', to: A}, 'staying put'], [{type: 'cut', side: 'AB', to: A}, 'taking back an empty route'], [{type: 'flood', at: A}, 'a flood before the triangle is drawn'], [{type: 'fly'}, 'an unknown move']]) refuse(p, fresh, action, why);
   if (away) refuse(p, fresh, {type: 'draw', side: 'AB', to: away}, 'a step that makes the route longer than shortest');
   if (q.goal !== 'reach') refuse(p, fresh, {type: 'cant'}, 'Can’t where there is nothing to claim');
+  if (q.kind !== 'tree') refuse(p, fresh, {type: 'cant', at: A}, 'a tap with Can’t off a tree');
   if (q.goal !== 'best') refuse(p, fresh, {type: 'best'}, 'Best outside a Best puzzle');
   else refuse(p, fresh, {type: 'best'}, 'Best before a flood');
   // On a drawn triangle: a flood off the routes, and the same flood twice.
@@ -339,6 +359,8 @@ function checkRefusals(p, fresh, tris, best) {
   if (away) forged.push([{...b, routes: {...home, AB: [A, away]}}, 'a route longer than shortest']);
   if (q.goal !== 'reach' || q.k <= best) forged.push([{...b, done: true}, 'a Can’t that is not right']);
   if (q.goal === 'reach' && q.k > best) forged.push([{...b, told: 'can'}, '“it can be done” when it can’t']);
+  if (q.kind !== 'tree') forged.push([{...b, told: 'miss'}, 'a missed centre off the tree']);
+  else forged.push([{...b, told: 'miss', done: true}, 'a missed centre that was solved']);
   if (q.goal === 'best') {
     const short = tris.find(x => x.gap < best);
     if (short) {

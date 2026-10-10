@@ -6,7 +6,7 @@
 // Run: node scripts/build-gapflood.mjs
 import {writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import {SIDES, allRoutes, triangles, bestOf, coverOf, goodTriangles, gapAt, possible, certOf, columnSides} from '../dist/families/gapflood/gapflood.js';
+import {SIDES, allRoutes, triangles, bestOf, coverOf, goodTriangles, gapAt, possible, certOf, columnSides, centreClaim, forcedCentre} from '../dist/families/gapflood/gapflood.js';
 
 // A map from coordinates with y up, as on the worksheet: positions become
 // percentages of a board 100 units wide, with `pad` units of margin (the same
@@ -55,6 +55,7 @@ const RULES = [
 ];
 const CLAIM = {
   reach: 'Press Can’t if no choice of shortest routes gives that gap.',
+  tree: 'On a tree, Can’t needs one more tap: the dot where all three routes meet.',
   best: 'Flood the biggest gap you can make and press Best. If a bigger gap is possible, it says so.'
 };
 const CONTROLS = 'Tap AB, BC or CA to choose a route. Tap a tinted dot next to its end, or the road between, or slide along the dots, to draw it; when it reaches its home the next route starts there. Tap a dot already on the route to take it back to there. When all three are drawn, tap a dot on a route to flood it; to change a route, tap its button first. Arrow keys draw too. Undo takes back the last move.';
@@ -82,9 +83,9 @@ const PUZZLES = [
     provenance: 'Week 69 Problem 3, the 2 × 2 map, asked for a gap of 1 as a first try at drawing and flooding.'},
   {number: 2, level: 'easy', title: 'The tree', goal: 'reach', k: 1, map: 'tree', homes: 'j e k', prereq: 'tree',
     check: {routes: [1, 1, 1], triangles: 1, best: 0, good: 0, cover: 4},
-    witness: {claim: 'cant', centre: 'c'},
+    witness: {claim: 'cant', at: 'c'},
     idea: 'On a tree there is one route between two homes, and the three routes overlap as a tripod: every gap is 0.',
-    hints: ['Draw the three routes. Did you ever have a choice?', 'Every road you drew is on two routes.', 'No gap can be 1 or more here. Press Can’t.'],
+    hints: ['Draw the three routes. Did you ever have a choice?', 'Every road you drew is on two routes.', 'No gap can be 1 or more here. Press Can’t and tap where all three routes meet.'],
     parent: {notice: 'Whether your child notices that only one dot is offered at each step, and that every road ends up with two colours.', prompt: 'Can you find a road that only one route uses?', explanation: 'In a tree there is exactly one route without turning back between two dots, since two would make a loop. So the triangle is forced. The three routes meet at one dot, the centre of a tripod (here the dot where the branch to C leaves the long road), and each leg, from a home to the centre, belongs to the two routes from that home. Every dot of a route is on a second route, so every gap is 0 and no choice gives a gap of 1. The same holds for any three homes on any tree: removing a road splits a tree in two, and either no route or exactly two routes cross it, so no road is on exactly one route (Problem 1’s question).', extension: 'Choose other homes on paper. Can any three homes on this tree give a gap? (No: all 220 choices make tripods.)', connection: 'Trees are 0-hyperbolic: every geodesic triangle in a tree is a tripod, 0-thin.'},
     provenance: 'Week 69 Problem 1, the first tree, with homes chosen for the app; Problem 5’s question, answered with Can’t.'},
   {number: 3, level: 'easy', title: 'Every gap 0', goal: 'zero', map: 'grid4', homes: '00 40 44', prereq: 'draw',
@@ -99,7 +100,7 @@ const PUZZLES = [
     witness: {CA: '44 34 24 14 04 03 02 01 00', flood: '04'},
     idea: 'The same homes give a thin or a fat triangle: the gap depends on the routes, not only on the homes.',
     hints: ['Keep CA far from AB and BC.', 'Try CA along the top and down the left side.', 'Draw CA along the top and down the left, then flood the top left corner.'],
-    parent: {notice: 'Whether your child counts the gap along coloured roads only. The flood uses every road, uncoloured ones too, and often finds a shorter way.', prompt: 'Why is the top left corner’s gap 4 and not more?', explanation: '53 of CA’s 70 routes give a gap of 2 or more. Along the top and down the left, the top left corner needs at least 4 steps down to reach AB and at least 4 right to reach BC, so its gap is 4. A dot of any CA that is y up and x across is y steps from AB and 4 − x from BC, so no gap passes 4, and only that one route reaches it.', extension: 'On a bigger square with homes in the corners, what is the biggest gap? (The side of the square: puzzle 10.)', connection: 'Corner triangles of side n have a gap of n, so the gaps on the grid have no bound: the grid is not hyperbolic.'},
+    parent: {notice: 'Whether your child counts the gap along coloured roads only. The flood uses every road, uncoloured ones too, and often finds a shorter way.', prompt: 'Why is the top left corner’s gap 4 and not more?', explanation: '53 of CA’s 70 routes give a gap of 2 or more. Along the top and down the left, the top left corner needs at least 4 steps down to reach AB and at least 4 right to reach BC, so its gap is 4. A dot of any CA that is y up and x across is y steps from AB and 4 − x from BC, so no gap passes 4, and only that one route reaches it.', extension: 'On a bigger square with homes in three corners, what is the biggest gap? (The side of the square, so the gaps on the grid have no bound: Week 69 Problem 4.)', connection: 'Corner triangles of side n have a gap of n, so the gaps on the grid have no bound: the grid is not hyperbolic.'},
     provenance: 'Week 69 Problem 2, right map.'},
   {number: 5, level: 'medium', title: 'The ladder', goal: 'reach', k: 2, map: 'ladder', homes: '00 71 31', prereq: 'draw',
     check: {routes: [8, 1, 4], triangles: 32, best: 1, good: 0, cover: 3},
@@ -115,7 +116,7 @@ const PUZZLES = [
     hints: ['A and B are 6 steps apart either way round.', 'Send AB round the side away from C.', 'Draw AB round the left, flood 9 o’clock, then press Best.'],
     parent: {notice: 'Whether your child sends AB both ways round and compares.', prompt: 'Why can no dot have a gap of 4?', explanation: 'The ring has 12 dots. A (12 o’clock) and B (6 o’clock) are 6 steps apart both ways, so AB has two routes; BC and CA each have one, the short way through 5 and 4 and through 2 and 1. If AB goes through C’s side, the triangle is a tripod and every gap is 0. If it goes the other way, the 9 o’clock dot is 3 steps from A and 3 from B, the nearest dots of the other routes: gap 3. No gap can be bigger: every dot is within 3 steps of a home, and the other two routes of any dot hold all three homes. No three homes on this ring give more than 3.', extension: 'On a ring of 20 dots, what is the biggest gap? (5, a quarter of the way round.)', connection: 'A loop of n roads has triangles about n/4 thick: long loops make fat triangles, and a hyperbolic map has no long loops that cannot be shortcut.'},
     provenance: 'New, from the Week 69 review card’s App fit: a 12-road ring reaches 3.'},
-  {number: 7, level: 'medium', title: 'A tripod', goal: 'zero', map: 'grid4', homes: '00 41 14', prereq: 'plan',
+  {number: 7, level: 'medium', title: 'Meeting roads’ homes', goal: 'zero', map: 'grid4', homes: '00 41 14', prereq: 'plan',
     check: {routes: [5, 20, 5], triangles: 500, best: 3, good: 2, cover: 3},
     witness: {AB: '00 10 11 21 31 41', BC: '41 31 21 11 12 13 14', CA: '14 13 12 11 10 00'},
     idea: 'Every gap is 0 exactly when the routes make a tripod, and its centre is the meeting dot of Meeting roads.',
@@ -134,15 +135,15 @@ const PUZZLES = [
     witness: {AB: '00 10 20 30 40 41 42', BC: '42 32 33 34 24', CA: '24 14 04 03 02 01 00', flood: '03'},
     idea: 'With every route free to bend, the biggest gap is 3, and no dot more than 3 steps from a home proves it.',
     hints: ['Which dots are 3 steps from two homes?', 'The dot 3 up the left side is 3 steps from A and from C.', 'Keep AB and BC away from the dot 3 up the left side, take CA through it, flood it and press Best.'],
-    parent: {notice: 'Whether your child plans where the fat dot will be before drawing, or draws first and floods to look.', prompt: 'How do you know no gap can be 4?', explanation: 'All three routes have choices: 15, 6 and 15 routes, 1,350 triangles. The biggest gap is 3, only at the dot 3 up the left side or 3 along the bottom. For example AB along the bottom and up the right, BC through 3 across, 2 up and 3 across, 4 up, and CA along the top and down the left: the dot 3 up the left side is 3 steps from A and 3 from C and from BC’s nearest dots. Every dot is within 3 steps of a home, and the other two routes of any dot hold all three homes, so no gap passes 3. 144 of the 1,350 triangles reach it.', extension: 'Why does the other fat dot, 3 along the bottom, need AB to go up the left first?', connection: 'A bound on every triangle, here 3, is what “uniformly thin” asks for; on bigger grids it keeps growing.'},
+    parent: {notice: 'Whether your child plans where the fat dot will be before drawing, or draws first and floods to look.', prompt: 'How do you know no gap can be 4?', explanation: 'All three routes have choices: 15, 6 and 15 routes, 1,350 triangles. The biggest gap is 3, only at the dot 3 up the left side or 3 along the bottom. For example AB along the bottom and up the right, BC through 3 across, 2 up and 3 across, 4 up, and CA along the top and down the left: the dot 3 up the left side is 3 steps from A and 3 from C and from BC’s nearest dots. Every dot is within 3 steps of a home, and the other two routes of any dot hold all three homes, so no gap passes 3. 144 of the 1,350 triangles reach it.', extension: 'Why does the other fat dot, 3 along the bottom, need AB to go along the bottom first?', connection: 'A bound on every triangle, here 3, is what “uniformly thin” asks for; on bigger grids it keeps growing.'},
     provenance: 'Week 69 Problem 3, middle map, with the homes of the review card’s fix 1 (0, 0; 4, 2; 2, 4).'},
-  {number: 10, level: 'hard', title: 'A bigger square', goal: 'best', map: 'grid6', homes: '00 60 66', prereq: 'plan',
-    check: {routes: [1, 1, 924], triangles: 924, best: 6, good: 1, cover: 6, at: ['06']},
-    witness: {CA: '66 56 46 36 26 16 06 05 04 03 02 01 00', flood: '06'},
-    idea: 'On a square of side n with homes in three corners the biggest gap is n: grid triangles get as fat as you like.',
-    hints: ['Remember puzzle 4.', 'CA along the top and down the left.', 'Draw CA along the top and down the left, flood the top left corner, then press Best.'],
-    parent: {notice: 'Whether your child carries over puzzle 4 and predicts the gap before flooding.', prompt: 'What would the biggest gap be on a square of side 100?', explanation: 'AB runs along the bottom and BC up the right, the only shortest routes. With CA along the top and down the left, the top left corner needs 6 steps down to reach AB and 6 right to reach BC: gap 6. A dot of any CA that is y up and x across is y steps from AB and 6 − x from BC, so no gap passes 6, and only that one of CA’s 924 routes reaches it. A square of side n gives n, so no number bounds the gaps on the grid.', extension: 'Week 69 Problem 4: whatever number someone names, plan a grid triangle with a bigger gap.', connection: 'The grid, like the plane, is not hyperbolic: no number makes every triangle that thin. Trees and ladders are.'},
-    provenance: 'Week 69 Problem 3, bottom map, with Problem 4’s idea in the notes.'}
+  {number: 10, level: 'hard', title: 'A bigger grid', goal: 'best', map: 'grid6', homes: '00 61 16', prereq: 'plan',
+    check: {routes: [7, 252, 7], triangles: 12348, best: 5, good: 74, cover: 5, at: ['55', '66']},
+    witness: {AB: '00 10 20 30 40 50 60 61', BC: '61 62 63 64 65 66 56 46 36 26 16', CA: '16 06 05 04 03 02 01 00', flood: '66'},
+    idea: 'Off the corners every route has choices, and the biggest gap is still pinned by how far a dot can be from every home.',
+    hints: ['Which dots are far from all three homes?', 'The top right corner is 5 steps from B and 5 from C.', 'Draw BC up the right side and along the top, flood the top right corner, then press Best.'],
+    parent: {notice: 'Whether your child looks for dots far from every home before drawing, as in puzzles 8 and 9.', prompt: 'Why can no gap be 6?', explanation: 'Every route has choices: 7 for AB, 252 for BC and 7 for CA, 12,348 triangles. The top right corner is 5 steps from B and 5 from C. AB stays in the bottom two rows and always ends at B, and CA stays in the left two columns and always starts at C, so when BC passes the corner its gap is 5, whatever AB and CA do. The dot one in from the corner also reaches 5, but only with AB along the bottom first and CA left along the top first. No gap can be 6: every dot is within 5 steps of a home, and the other two routes of any dot hold all three homes. 74 of the 12,348 triangles reach 5.', extension: 'Two more dots on that diagonal are 5 steps from every home. Why does neither ever have a gap of 5? (AB always passes straight below them, at most 4 steps down.)', connection: 'A bound on every triangle is what “uniformly thin” asks for. On this grid it is 5; on bigger grids it keeps growing (Week 69 Problem 4), so the grid is not hyperbolic.'},
+    provenance: 'Week 69 Problem 3’s bottom map (the 6 × 6 grid) with new homes, off the corners so every route has choices, from the review of this port.'}
 ];
 
 const id = n => `gapflood-${String(n).padStart(2, '0')}`;
@@ -161,11 +162,11 @@ const out = PUZZLES.map(item => {
   if (item.goal === 'best') assert.equal(c.cover, best, `${name}: the homes' light covers the map in ${best} steps`);
   if (!possible(q)) {
     assert.ok(['tripod', 'columns'].includes(certOf(q)), `${name}: Can't has a certificate`);
-    if (certOf(q) === 'tripod') assert.equal(q.roads.length, Object.keys(q.nodes).length - 1, `${name}: a tree`);
+    if (certOf(q) === 'tripod') { assert.equal(q.roads.length, Object.keys(q.nodes).length - 1, `${name}: a tree`); assert.ok(centreClaim(q) && forcedCentre(q) === item.witness.at, `${name}: Can’t is backed by a tap on the tripod’s centre`); }
     if (certOf(q) === 'columns') { assert.equal(item.k, 2); assert.ok(columnSides(q).every(col => col.sides.length >= 2), `${name}: two routes cross every column`); }
   }
   let solution;
-  if (item.witness.claim) solution = {claim: 'cant', best};
+  if (item.witness.claim) solution = {claim: 'cant', ...(item.witness.at ? {at: item.witness.at} : {}), best};
   else {
     const routes = Object.fromEntries(SIDES.map(s => [s, routeOf(q, s, item.witness[s])]));
     const t = tris.find(x => SIDES.every(s => JSON.stringify(x.routes[s]) === JSON.stringify(routes[s])));
@@ -179,7 +180,7 @@ const out = PUZZLES.map(item => {
     parameters: q,
     objective: objective(item), visibleObjective: visible(item), instruction: objective(item),
     controls: CONTROLS,
-    rules: [...RULES, ...(CLAIM[item.goal] ? [CLAIM[item.goal]] : [])],
+    rules: [...RULES, ...(CLAIM[item.goal] ? [CLAIM[item.goal]] : []), ...(centreClaim(q) ? [CLAIM.tree] : [])],
     idea: item.idea, prerequisites: PREREQUISITES[item.prereq], hints: item.hints,
     parent: {...item.parent, sourceIds: sources}, solution, provenance: item.provenance
   };

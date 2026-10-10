@@ -358,14 +358,15 @@
     "Each road is one step. Draw a shortest route between each two homes: AB, BC and CA. Only steps that keep a route shortest are allowed, and routes may share roads.",
     "A dot’s gap is the fewest steps from it to another route, along any roads. A dot on two routes has gap 0.",
     "When all three routes are drawn, tap a dot on a route to flood it: the light spreads one step at a time until it meets another route, and the number is the gap.",
-    "Press Can’t if no choice of shortest routes gives that gap."
+    "Press Can’t if no choice of shortest routes gives that gap.",
+    "On a tree, Can’t needs one more tap: the dot where all three routes meet."
    ],
    "idea": "On a tree there is one route between two homes, and the three routes overlap as a tripod: every gap is 0.",
    "prerequisites": "Follow a road from one dot to the next. Reading: one short goal; a grown-up can read it.",
    "hints": [
     "Draw the three routes. Did you ever have a choice?",
     "Every road you drew is on two routes.",
-    "No gap can be 1 or more here. Press Can’t."
+    "No gap can be 1 or more here. Press Can’t and tap where all three routes meet."
    ],
    "parent": {
     "notice": "Whether your child notices that only one dot is offered at each step, and that every road ends up with two colours.",
@@ -381,6 +382,7 @@
    },
    "solution": {
     "claim": "cant",
+    "at": "c",
     "best": 0
    },
    "provenance": "Week 69 Problem 1, the first tree, with homes chosen for the app; Problem 5’s question, answered with Can’t."
@@ -1093,7 +1095,7 @@
     "notice": "Whether your child counts the gap along coloured roads only. The flood uses every road, uncoloured ones too, and often finds a shorter way.",
     "prompt": "Why is the top left corner’s gap 4 and not more?",
     "explanation": "53 of CA’s 70 routes give a gap of 2 or more. Along the top and down the left, the top left corner needs at least 4 steps down to reach AB and at least 4 right to reach BC, so its gap is 4. A dot of any CA that is y up and x across is y steps from AB and 4 − x from BC, so no gap passes 4, and only that one route reaches it.",
-    "extension": "On a bigger square with homes in the corners, what is the biggest gap? (The side of the square: puzzle 10.)",
+    "extension": "On a bigger square with homes in three corners, what is the biggest gap? (The side of the square, so the gaps on the grid have no bound: Week 69 Problem 4.)",
     "connection": "Corner triangles of side n have a gap of n, so the gaps on the grid have no bound: the grid is not hyperbolic.",
     "sourceIds": [
      "gapflood-week69",
@@ -1585,7 +1587,7 @@
   {
    "id": "gapflood-07",
    "number": 7,
-   "title": "A tripod",
+   "title": "Meeting roads’ homes",
    "difficulty_level": "medium",
    "familyTitle": "Meeting roads",
    "libraryFamily": "meeting",
@@ -2666,7 +2668,7 @@
     "notice": "Whether your child plans where the fat dot will be before drawing, or draws first and floods to look.",
     "prompt": "How do you know no gap can be 4?",
     "explanation": "All three routes have choices: 15, 6 and 15 routes, 1,350 triangles. The biggest gap is 3, only at the dot 3 up the left side or 3 along the bottom. For example AB along the bottom and up the right, BC through 3 across, 2 up and 3 across, 4 up, and CA along the top and down the left: the dot 3 up the left side is 3 steps from A and 3 from C and from BC’s nearest dots. Every dot is within 3 steps of a home, and the other two routes of any dot hold all three homes, so no gap passes 3. 144 of the 1,350 triangles reach it.",
-    "extension": "Why does the other fat dot, 3 along the bottom, need AB to go up the left first?",
+    "extension": "Why does the other fat dot, 3 along the bottom, need AB to go along the bottom first?",
     "connection": "A bound on every triangle, here 3, is what “uniformly thin” asks for; on bigger grids it keeps growing.",
     "sourceIds": [
      "gapflood-week69",
@@ -2712,7 +2714,7 @@
   {
    "id": "gapflood-10",
    "number": 10,
-   "title": "A bigger square",
+   "title": "A bigger grid",
    "difficulty_level": "hard",
    "familyTitle": "Meeting roads",
    "libraryFamily": "meeting",
@@ -3315,8 +3317,8 @@
     "scale": 0.72,
     "homes": {
      "A": "00",
-     "B": "60",
-     "C": "66"
+     "B": "61",
+     "C": "16"
     }
    },
    "objective": "Draw a shortest route between each two homes to make the biggest gap you can, flood it and press Best.",
@@ -3329,19 +3331,19 @@
     "When all three routes are drawn, tap a dot on a route to flood it: the light spreads one step at a time until it meets another route, and the number is the gap.",
     "Flood the biggest gap you can make and press Best. If a bigger gap is possible, it says so."
    ],
-   "idea": "On a square of side n with homes in three corners the biggest gap is n: grid triangles get as fat as you like.",
+   "idea": "Off the corners every route has choices, and the biggest gap is still pinned by how far a dot can be from every home.",
    "prerequisites": "Plan three routes at once and compare a dot’s distance to two other routes. Counting to 6.",
    "hints": [
-    "Remember puzzle 4.",
-    "CA along the top and down the left.",
-    "Draw CA along the top and down the left, flood the top left corner, then press Best."
+    "Which dots are far from all three homes?",
+    "The top right corner is 5 steps from B and 5 from C.",
+    "Draw BC up the right side and along the top, flood the top right corner, then press Best."
    ],
    "parent": {
-    "notice": "Whether your child carries over puzzle 4 and predicts the gap before flooding.",
-    "prompt": "What would the biggest gap be on a square of side 100?",
-    "explanation": "AB runs along the bottom and BC up the right, the only shortest routes. With CA along the top and down the left, the top left corner needs 6 steps down to reach AB and 6 right to reach BC: gap 6. A dot of any CA that is y up and x across is y steps from AB and 6 − x from BC, so no gap passes 6, and only that one of CA’s 924 routes reaches it. A square of side n gives n, so no number bounds the gaps on the grid.",
-    "extension": "Week 69 Problem 4: whatever number someone names, plan a grid triangle with a bigger gap.",
-    "connection": "The grid, like the plane, is not hyperbolic: no number makes every triangle that thin. Trees and ladders are.",
+    "notice": "Whether your child looks for dots far from every home before drawing, as in puzzles 8 and 9.",
+    "prompt": "Why can no gap be 6?",
+    "explanation": "Every route has choices: 7 for AB, 252 for BC and 7 for CA, 12,348 triangles. The top right corner is 5 steps from B and 5 from C. AB stays in the bottom two rows and always ends at B, and CA stays in the left two columns and always starts at C, so when BC passes the corner its gap is 5, whatever AB and CA do. The dot one in from the corner also reaches 5, but only with AB along the bottom first and CA left along the top first. No gap can be 6: every dot is within 5 steps of a home, and the other two routes of any dot hold all three homes. 74 of the 12,348 triangles reach 5.",
+    "extension": "Two more dots on that diagonal are 5 steps from every home. Why does neither ever have a gap of 5? (AB always passes straight below them, at most 4 steps down.)",
+    "connection": "A bound on every triangle is what “uniformly thin” asks for. On this grid it is 5; on bigger grids it keeps growing (Week 69 Problem 4), so the grid is not hyperbolic.",
     "sourceIds": [
      "gapflood-week69",
      "gapflood-card69",
@@ -3357,23 +3359,23 @@
       "30",
       "40",
       "50",
-      "60"
+      "60",
+      "61"
      ],
      "BC": [
-      "60",
       "61",
       "62",
       "63",
       "64",
       "65",
-      "66"
-     ],
-     "CA": [
       "66",
       "56",
       "46",
       "36",
       "26",
+      "16"
+     ],
+     "CA": [
       "16",
       "06",
       "05",
@@ -3384,12 +3386,12 @@
       "00"
      ]
     },
-    "flood": "06",
-    "gap": 6,
+    "flood": "66",
+    "gap": 5,
     "claim": "best",
-    "best": 6
+    "best": 5
    },
-   "provenance": "Week 69 Problem 3, bottom map, with Problem 4’s idea in the notes."
+   "provenance": "Week 69 Problem 3’s bottom map (the 6 × 6 grid) with new homes, off the corners so every route has choices, from the review of this port."
   }
  ]
 }

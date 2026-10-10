@@ -88,4 +88,4 @@ To change a puzzle, edit `scripts/build-meeting.mjs`, then run `node scripts/bui
 - **Many taps.** A meeting on the 5 × 5 grid takes up to a dozen steps, and a wrong guess as many to undo. If that drags, a "Walkers home" button, or a long slide that walks a whole route, could help.
 - **Story.** Not on the Lantern Road; no keeper lines.
 - **Grade levels.** Grade-free; not yet in a K–1, 2–3 or 4–5 trail. The review card suggests a K–1 version with two homes on a 3 × 3 grid ("every dot where the walk can stop and still be shortest"), which this family does not have.
-- **Paper only.** The worksheet's written rule for the cube (Problem 5) and the proof of uniqueness stay on paper, as do Week 69's thin triangles, which share the three homes.
+- **Paper only.** The worksheet's written rule for the cube (Problem 5) and the proof of uniqueness stay on paper. Week 69's thin triangles, which share the three homes, are the [Gaps](../gapflood/README.md) group in this family.

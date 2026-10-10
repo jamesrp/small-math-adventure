@@ -1,11 +1,13 @@
 // Plays the Gaps group of Meeting roads through the real interface on the
 // shared graph board: the group in the satchel; drawing by taps, a slide round
-// the whole triangle with the route passing on, a road tap, taking a route back
-// by tapping a dot on it, Enter and arrow keys; a flood and its gap; Can't
-// refused and right (the tree's tripod, the ladder's columns); Best refused and
-// right with each dot's steps from a home; every gap 0; and a slide that runs
-// on past the finished triangle without flooding. Same environment variables
-// as the other browser suites (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL,
+// the whole triangle with the route passing on, Undo handing the pen back, a
+// road tap, taking a route back by tapping a dot on it, Enter and arrow keys;
+// a flood and its gap; Can't refused and right (on the tree with a tap on
+// where all three routes meet, a wrong tap first; the ladder's columns); Best
+// refused and right with each dot's steps from a home; every gap 0; a slide
+// that runs on past the finished triangle without flooding; and the 6 x 6
+// puzzle's 12,348 triangles staying quick. Same environment variables as the
+// other browser suites (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL,
 // TEST_PHONE=1 for a phone with touch). Screenshots go in test-results/gapflood/.
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
@@ -77,6 +79,12 @@ try {
   const b1 = await board(P);
   assert.deepEqual([b1.routes.AB, b1.routes.BC], [['00', '10', '20'], ['20', '21', '22']], 'a slide finishes AB and draws BC on from B');
   assert.equal(await chip('CA').getAttribute('aria-pressed'), 'true', 'CA is chosen next');
+  await page.locator('[data-action="undo"]').click();
+  assert.deepEqual((await board(P)).routes.BC, ['20', '21'], 'Undo takes back BC’s last step');
+  assert.equal(await chip('BC').getAttribute('aria-pressed'), 'true', 'and hands the pen back to BC');
+  await taps('22');
+  assert.deepEqual((await board(P)).routes.BC, ['20', '21', '22'], 'so one tap takes the step again');
+  assert.equal(await chip('CA').getAttribute('aria-pressed'), 'true');
   await tap(road(await roadOf('1 across, 2 up', '2 across, 2 up')));
   assert.deepEqual((await board(P)).routes.CA, ['22', '12'], 'a tap on a road draws along it');
   await taps('11 10');
@@ -95,10 +103,18 @@ try {
   await page.waitForTimeout(1300);
   await shot('flooded');
 
-  // Puzzle 2: the tree. Can't is right and the tripod glows.
-  await open('gapflood-02'); await fit('tree');
+  // Puzzle 2: the tree. Can't, then a tap on where all three routes meet.
+  const T = 'gapflood-02';
+  await open(T); await fit('tree');
   assert.equal(await page.locator('.gb-node.can-go').count(), 1, 'one step offered: the routes are forced');
   await press('Can’t').click();
+  assert.equal(await press('Can’t').getAttribute('aria-pressed'), 'true');
+  assert.equal(await told(), 'Tap where all three routes meet.');
+  await taps('d');
+  assert.equal((await board(T)).told, 'miss');
+  assert.equal(await told(), 'The three routes don’t all meet there.');
+  assert.equal(await page.locator('#completion-heading').count(), 0, 'a wrong dot does not solve');
+  await taps('c');
   await done();
   assert.ok(await page.locator('.gf-glow').count() > 0, 'the tripod glows');
   assert.equal(await page.locator('.gb-node.centre').count(), 1, 'its centre is ringed');
@@ -150,7 +166,7 @@ try {
   await press('Best').click();
   await done(); await fit('best solved');
   assert.equal(await told(), 'Every dot is within 3 steps of A, B or C.');
-  assert.equal(await page.locator('.gb-node.far').count(), 4);
+  assert.equal(await page.locator('.gb-node.far').count(), 2, 'ochre rings only where a gap of 3 can be made');
   await page.waitForTimeout(1300);
   await shot('best');
 
@@ -162,6 +178,27 @@ try {
   await done();
   assert.equal((await board(Z)).flood, null, 'a slide does not flood');
   assert.equal(await page.locator('.gb-node.centre').count(), 1, 'the tripod’s centre: B');
+
+  // Puzzle 10: 12,348 triangles, still quick to hint and to check Best.
+  const W = 'gapflood-10';
+  await open(W); await fit('big grid');
+  let t0 = Date.now();
+  await page.locator('[data-action=hint]').click();
+  await page.locator('.hint-card, [data-action=apply-hint], .hint-text').first().waitFor({timeout: 3000}).catch(() => {});
+  const hintMs = Date.now() - t0;
+  assert.ok(hintMs < 1500, `the first hint comes quickly (${hintMs} ms)`);
+  await slide('00 10 20 30 40 50 60 61 62 63 64 65 66 56 46 36 26 16 06 05 04 03 02 01 00');
+  assert.deepEqual(Object.values((await board(W)).routes).map(r => r.length), [8, 11, 8], 'one slide draws all three routes');
+  await taps('66');
+  assert.equal(await page.locator('.gb-node.source .gb-badge').textContent(), '5');
+  t0 = Date.now();
+  await press('Best').click();
+  await done();
+  const bestMs = Date.now() - t0;
+  assert.ok(bestMs < 1500, `Best is checked quickly (${bestMs} ms)`);
+  assert.equal(await page.locator('.gb-node.far').count(), 2);
+  await fit('big grid solved');
+  console.log(JSON.stringify({hintMs, bestMs}));
 
   assert.deepEqual(errors, []);
   console.log(JSON.stringify({passed: true, phone, errors}));
