@@ -25,7 +25,7 @@ import {esc} from '../../expansion-controls.js';
 import * as G from './plane.js';
 
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
-export const MODES = ['make', 'touch', 'four', 'take', 'fit', 'playground'];
+export const MODES = ['make', 'part', 'touch', 'four', 'take', 'fit', 'playground'];
 export const PLAY_MAX = 10;
 const LETTERS = 'ABCDEFGHIJKL';
 const COLORS = ['sun', 'sky', 'rose', 'leaf', 'lilac', 'sand'];
@@ -33,6 +33,7 @@ const COLORS = ['sun', 'sky', 'rose', 'leaf', 'lilac', 'sand'];
 // --- Puzzles --------------------------------------------------------------
 // Parameters: {mode, frame, view, sites, names, focus, budget, from?} and
 //   make:  target, a list of half-planes {a, b, c} (a·u + b·v ≤ c);
+//   part:  apart, two site indices whose regions must stop touching;
 //   touch: dot (the new dot's letter), touch and avoid (site indices);
 //   four:  dot;
 //   take:  keep [{name, at}], take {name, at};
@@ -58,6 +59,7 @@ export function goal(q, dots) {
   const s = allSites(q, dots), n = newIndex(q);
   switch (q.mode) {
     case 'make': return G.sameRegion(G.cellOf(s, q.focus), targetOf(q));
+    case 'part': return !G.touches(s, q.apart[0], q.apart[1]);
     case 'touch': return dots.length === 1 && q.touch.every(i => G.touches(s, n, i)) && q.avoid.every(i => !G.touches(s, n, i));
     case 'four': return dots.length === 1 && G.fourWayAt(s, n);
     case 'take': return q.keep.every(k => G.owns(s, q.focus, k.at)) && !G.owns(s, q.focus, q.take.at);
@@ -79,15 +81,15 @@ export function reflect(s, h) {
 // Make: the dots the inverse construction needs (A reflected across each side
 // that no fixed site makes already).
 export const makeAnswer = q => q.target.map(h => reflect(q.sites[q.focus], h)).filter(z => z && !has(q.sites, z));
-// Touch, four and take: every single new dot that works.
+// Part, touch, four and take: every single new dot that works.
 export const singleAnswers = q => remember(`s|${JSON.stringify(q)}`, () => G.framePoints(q.frame).filter(z => !has(q.sites, z) && goal(q, [z])));
 
 // --- Boards ---------------------------------------------------------------
-// make, touch, four: {dots, checked}
+// make, part, touch, four: {dots, checked}
 // take:              {dots, checked, claimed, refused}  (claimed, refused: a pair of own() indices or null)
 // fit:               {dots, checked, done, fewer}       (fewer: the smallest count a Fewest claim was refused at)
 // playground:        {dots}                              (every dot, in the order put down)
-const KEYS = {make: 'checked,dots', touch: 'checked,dots', four: 'checked,dots', take: 'checked,claimed,dots,refused', fit: 'checked,done,dots,fewer', playground: 'dots'};
+const KEYS = {make: 'checked,dots', part: 'checked,dots', touch: 'checked,dots', four: 'checked,dots', take: 'checked,claimed,dots,refused', fit: 'checked,done,dots,fewer', playground: 'dots'};
 function fresh(p) {
   const q = p.parameters;
   if (q.mode === 'playground') return {dots: q.start.map(z => [...z])};
@@ -176,52 +178,59 @@ export function where(q, z) {
 const dotWord = (q, b) => (q.dot ? q.dot : b.dots.length > 1 ? 'a dot' : 'the dot');
 
 // --- Hints ------------------------------------------------------------------
+// A hint names one action toward a set of dots that works. Its words are the
+// idea behind the board as it stands: the puzzle's idea, or why a dot has to
+// go, or the reason for Can't. The spot itself is not in the words: the ring
+// at the second level shows it, Apply hint at the third plays it, and the
+// screen-reader status reads it with the ring.
 // Steps toward a set of dots W: move a stray dot to a missing spot (the
-// nearest pair), take a stray dot away, put a missing dot down, then Check.
+// nearest pair), take a stray dot away, put a missing dot down.
 function toward(q, b, W) {
   const extra = b.dots.filter(d => !has(W, d)), missing = W.filter(z => !has(b.dots, z));
   if (extra.length && missing.length) {
     let best = null;
     for (const e of extra) for (const m of missing) if (!best || G.d2(e, m) < best.d) best = {e, m, d: G.d2(e, m)};
-    const who = q.dot ? q.dot : b.dots.length > 1 ? 'a dot' : 'the dot';
-    return {type: 'move', action: {type: 'move', from: best.e, to: best.m}, text: `Move ${who} to the spot ${where(q, best.m)}.`};
+    return {action: {type: 'move', from: best.e, to: best.m}};
   }
-  if (extra.length) return {type: 'move', action: {type: 'remove', at: extra[0]}, text: `Take away the dot ${where(q, extra[0])}.`};
-  if (missing.length) return {type: 'move', action: {type: 'place', at: missing[0]}, text: `Put ${q.dot || 'a dot'} ${where(q, missing[0])}.`};
+  if (extra.length) return {action: {type: 'remove', at: extra[0]}};
+  if (missing.length) return {action: {type: 'place', at: missing[0]}};
   return null;
 }
-const checkHint = {type: 'move', action: {type: 'check'}, text: 'Press Check.'};
+const checkStep = {action: {type: 'check'}, why: 'Press Check.'};
 const nearestTo = (list, z) => list.reduce((top, w) => (!top || G.d2(w, z) < G.d2(top, z) ? w : top), null);
 
-function makeHint(q, b) { return toward(q, b, makeAnswer(q)) || checkHint; }
-// Touch and four: the working spot nearest the dot, or nearest the middle of
-// the frame for a first dot.
+function makeHint(q, b) { return goal(q, b.dots) ? checkStep : toward(q, b, makeAnswer(q)) || checkStep; }
+// Part, touch and four: the working spot nearest the dot, or nearest the aim
+// (or the middle of the frame) for a first dot.
 function singleHint(q, b) {
-  if (b.dots.length === 1 && goal(q, b.dots)) return checkHint;
+  if (b.dots.length === 1 && goal(q, b.dots)) return checkStep;
   const answers = singleAnswers(q);
-  return toward(q, b, [nearestTo(answers, b.dots[0] || q.aim || [0, 0])]) || checkHint;
+  return toward(q, b, [nearestTo(answers, b.dots[0] || q.aim || [0, 0])]) || checkStep;
 }
-// When R can't be taken, the hints first try a dot on R and Check it, then
-// give the reason with Can't.
+// When the place can't be taken, the hints first try a dot on it and Check
+// it, then give the reason with Can't.
 function takeHint(q, b) {
-  const cert = certificates(q)[0];
+  const cert = certificates(q)[0], A = q.names[q.focus], T = q.take.name;
   if (cert) {
-    if (!b.dots.length) return {type: 'move', action: {type: 'place', at: q.take.at}, text: `Put a dot on ${q.take.name}.`};
-    if (!b.checked) return checkHint;
+    if (!b.dots.length) return {action: {type: 'place', at: q.take.at}, why: `Try to take ${T} from ${A} with a dot, and press Check.`};
+    if (!b.checked) return checkStep;
     const [i, j] = cert.map(k => own(q)[k].name);
-    return {type: 'move', action: {type: 'cant', pair: cert}, text: `${q.take.name} is on the straight line from ${i} to ${j}. Press Can’t and tap ${i} and ${j}.`};
+    return {action: {type: 'cant', pair: cert}, why: `${T} is on the straight line from ${i} to ${j}, and ${A}’s region never has a dent. Press Can’t.`};
   }
-  if (goal(q, b.dots)) return checkHint;
+  if (goal(q, b.dots)) return checkStep;
   const answers = singleAnswers(q);
-  // A dot that takes R stays; a dot that takes a kept place goes.
+  // A dot that takes the place stays; a dot that takes a kept place goes.
   const taker = b.dots.find(d => has(answers, d));
   if (taker) {
     const thief = b.dots.find(d => q.keep.some(k => G.d2(d, k.at) < G.d2(q.sites[q.focus], k.at)));
-    if (thief) return {type: 'move', action: {type: 'remove', at: thief}, text: `Take away the dot ${where(q, thief)}.`};
-    return toward(q, b, [taker]) || checkHint;
+    if (thief) {
+      const lost = q.keep.find(k => G.d2(thief, k.at) < G.d2(q.sites[q.focus], k.at)).name;
+      return {action: {type: 'remove', at: thief}, why: `A dot nearer to ${lost} than ${A} is takes ${lost} from ${A}.`};
+    }
+    return toward(q, b, [taker]) || checkStep;
   }
   const aim = b.dots.length ? answers.reduce((top, w) => { const d = Math.min(...b.dots.map(x => G.d2(x, w))); return !top || d < top.d ? {w, d} : top; }, null).w : nearestTo(answers, q.aim || q.take.at);
-  return toward(q, b, [aim]) || checkHint;
+  return toward(q, b, [aim]) || checkStep;
 }
 // Fit: aim at the fewest-dot set that keeps the most of the child's dots.
 function choose(list, k) {
@@ -254,23 +263,36 @@ export function fitAim(q, b) {
 function fitHint(q, b) {
   const n = b.dots.length;
   if (goal(q, b.dots)) {
-    if (n === q.fewest) return b.checked ? {type: 'move', action: {type: 'fewest'}, text: 'Press Fewest.'} : checkHint;
+    if (n === q.fewest) return b.checked ? {action: {type: 'fewest'}, why: 'Press Fewest.'} : checkStep;
     // A dot whose removal keeps the fit goes first.
     const spare = b.dots.find(d => fitsWith(q, without(b.dots, d)));
-    if (spare) return {type: 'move', action: {type: 'remove', at: spare}, text: `Take away the dot ${where(q, spare)}.`};
+    if (spare) return {action: {type: 'remove', at: spare}, why: `${q.names[q.focus]}’s region still fits in the frame with one dot fewer.`};
   }
-  return toward(q, b, fitAim(q, b)) || checkHint;
+  return toward(q, b, fitAim(q, b)) || checkStep;
+}
+// The spot a hint's action names, in words (read with the ring).
+export function spotWords(q, b, action) {
+  switch (action.type) {
+    case 'place': return `Put ${q.dot || 'a dot'} ${where(q, action.at)}.`;
+    case 'move': return `Move ${dotWord(q, b)} to the spot ${where(q, action.to)}.`;
+    case 'remove': return `Take away the dot ${where(q, action.at)}.`;
+    case 'cant': { const [i, j] = action.pair.map(k => own(q)[k].name); return `Press Can’t and tap ${i} and ${j}.`; }
+    case 'fewest': return 'Press Fewest.';
+    default: return 'Press Check.';
+  }
 }
 function hint(p, b) {
   const q = p.parameters;
   if (q.mode === 'playground' || !valid(p, b) || solved(p, b)) return {type: 'done'};
   return remember(`h|${p.id}|${JSON.stringify(b)}`, () => {
+    let h;
     switch (q.mode) {
-      case 'make': return makeHint(q, b);
-      case 'touch': case 'four': return singleHint(q, b);
-      case 'take': return takeHint(q, b);
-      default: return fitHint(q, b);
+      case 'make': h = makeHint(q, b); break;
+      case 'part': case 'touch': case 'four': h = singleHint(q, b); break;
+      case 'take': h = takeHint(q, b); break;
+      default: h = fitHint(q, b);
     }
+    return {type: 'move', action: h.action, text: h.why || p.idea, spot: spotWords(q, b, h.action)};
   });
 }
 
@@ -335,14 +357,21 @@ function grid(q) {
   const margin = `<path class="st-margin" fill-rule="evenodd" d="M${-V} ${-V}H${V}V${V}H${-V}Z M${-F} ${-F}H${F}V${F}H${-F}Z"/>`;
   return `${margin}${out.join('')}`;
 }
-const label = (z, text, cls = '') => `<text class="st-name ${cls}" x="${f(z[0] + 0.55)}" y="${f(-z[1] - 0.5)}">${esc(text)}</text>`;
+// A letter sits inside the little square up and right of its point, clear of
+// the crossings round it; a tap on it goes to its point (labelAt).
+const label = (z, text, cls = '') => `<text class="st-name ${cls}" x="${f(z[0] + 0.62)}" y="${f(-z[1] - 0.36)}">${esc(text)}</text>`;
+const LABEL_BOX = [0.3, 0.92, 0.26, 0.92];
+function labelAt(q, b, [u, v]) {
+  const named = q.mode === 'playground' ? b.dots : [...q.sites, ...(q.dot ? b.dots : []), ...(q.keep || []).map(k => k.at), ...(q.take ? [q.take.at] : [])];
+  return named.find(z => u >= z[0] + LABEL_BOX[0] && u <= z[0] + LABEL_BOX[1] && v >= z[1] + LABEL_BOX[2] && v <= z[1] + LABEL_BOX[3]) || null;
+}
 const cross = (z, cls) => `<path class="st-cross ${cls}" d="M${z[0] - 0.4} ${-z[1]}h0.8M${z[0]} ${-z[1] - 0.4}v0.8"/>`;
 function sitesLayer(q, b, opt) {
   const fixed = q.mode === 'playground' ? [] : q.sites.map((s, i) => `<g class="st-site c-${colorOf(q, i)}" data-site="${i}"><circle cx="${s[0]}" cy="${-s[1]}" r="0.46"/>${label(s, q.names[i])}</g>`);
   const dots = b.dots.map((d, k) => {
     const i = q.mode === 'playground' ? k : q.sites.length + k, held = opt.held && G.samePoint(opt.held, d);
     const name = nameOf(q, i), cls = q.mode === 'playground' ? `st-site c-${colorOf(q, i)}` : 'st-dot';
-    return `<g class="${cls}${held ? ' held' : ''}" data-dot="${G.keyOf(d)}" transform="translate(${at(d)})"><circle r="${q.mode === 'playground' ? 0.46 : 0.38}"/>${name ? `<text class="st-name" x="0.55" y="-0.5">${esc(name)}</text>` : ''}</g>`;
+    return `<g class="${cls}${held ? ' held' : ''}" data-dot="${G.keyOf(d)}" transform="translate(${at(d)})"><circle r="${q.mode === 'playground' ? 0.46 : 0.38}"/>${name ? label([0, 0], name) : ''}</g>`;
   });
   return `${fixed.join('')}${dots.join('')}`;
 }
@@ -387,6 +416,7 @@ function describe(q, b, shown) {
   else list.push(b.dots.length ? `${b.dots.length === 1 ? 'Dot' : 'Dots'} ${b.dots.map(d => where(q, d)).join('; ')}.` : 'No new dots.');
   if (!shown) return list.join(' ');
   const s = q.mode === 'playground' ? b.dots : allSites(q, b.dots), name = i => nameOf(q, i) || 'a new dot';
+  if (q.mode === 'part') list.push(`${q.apart.map(name).join('’s and ')}’s regions ${G.touches(s, q.apart[0], q.apart[1]) ? 'touch' : 'don’t touch'}.`);
   if (q.mode === 'touch' && b.dots.length) list.push(`${q.dot}’s region touches ${q.sites.map((_, i) => i).filter(i => G.touches(s, newIndex(q), i)).map(name).join(', ') || 'no other region'}.`);
   if (q.mode === 'make' || q.mode === 'fit') {
     const cell = G.cellOf(s, q.focus);
@@ -417,6 +447,7 @@ function render(p, a) {
   const emphasis = {};
   if (q.mode === 'make' || q.mode === 'fit') Object.assign(emphasis, {focus: q.focus, good: goal(q, b.dots)});
   if (q.mode === 'touch' && b.dots.length) Object.assign(emphasis, {focus: n, good: goal(q, b.dots), bad: q.avoid.filter(i => G.touches(s, n, i)).map(i => [n, i])});
+  if (q.mode === 'part' && G.touches(s, ...q.apart)) emphasis.bad = [q.apart];
   const claiming = q.mode === 'take' && !done && tried(b) && state.claiming;
   const picks = claiming ? own(q).map((o, i) => {
     const picked = state.pick === i, action = state.pick !== null && !picked ? {type: 'cant', pair: [state.pick, i]} : null;
@@ -434,7 +465,7 @@ function render(p, a) {
   }
   const told = q.mode === 'take' && b.refused ? `Misses ${q.take.name}.` : q.mode === 'fit' && b.fewer !== null && b.checked && b.fewer === b.dots.length ? 'Fewer dots can.' : '';
   const note = told ? `<p class="st-told">${esc(told)}</p>` : '';
-  const status = `${describe(q, b, shown)}${told ? ` ${told}` : ''}${claiming ? ` Tap two places.` : ''}${cursorWords(q, b, state)}`;
+  const status = `${describe(q, b, shown)}${told ? ` ${told}` : ''}${claiming ? ` Tap two places.` : ''}${hinted?.spot ? ` Hint: ${hinted.spot}` : ''}${cursorWords(q, b, state)}`;
   return `<div class="st-puzzle mode-${q.mode}${done ? ' solved' : ''}${claiming ? ' claiming' : ''}" data-mechanic-wire="sites">${svg}${note}${bar}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 function cursorWords(q, b, state) {
@@ -449,23 +480,31 @@ function cursorWords(q, b, state) {
 // dragged to a free point moves there on release (one move, one Undo). Taps
 // are read from the pointer itself. The keyboard moves a cursor; Enter or
 // Space puts, picks up or drops a dot and Delete takes one away.
+// On a touch screen a dragged dot rides two half-squares above the finger,
+// with a cross through it at its crossing, so the finger never hides where
+// it will land.
 let gesture = null, listening = false;
-const pointAt = (svg, x, y) => {
+const exactAt = (svg, x, y) => {
   const m = svg.getScreenCTM?.();
   if (!m) return null;
   const pt = svg.createSVGPoint();
   pt.x = x; pt.y = y;
   const r = pt.matrixTransform(m.inverse());
-  return [Math.round(r.x), Math.round(-r.y)];
+  return [r.x, -r.y];
 };
+const pointAt = (svg, x, y) => { const r = exactAt(svg, x, y); return r && [Math.round(r[0]), Math.round(r[1])]; };
+const LIFT = 2;
 const clamp = (z, F) => [Math.max(-F, Math.min(F, z[0])), Math.max(-F, Math.min(F, z[1]))];
 function onMove(e) {
   const g = gesture;
   if (!g || e.pointerId !== g.pointer) return;
-  const raw = pointAt(g.svg, e.clientX, e.clientY);
+  if (Math.hypot(e.clientX - g.x, e.clientY - g.y) > 12 && !g.moved) {
+    g.moved = true;
+    if (g.dot && g.el) { g.el.classList.add('dragged'); g.el.insertAdjacentHTML('beforeend', '<path class="st-aim" d="M-1 0H1M0 -1V1"/>'); }
+  }
+  if (!g.dot || !g.moved) return;
+  const raw = pointAt(g.svg, e.clientX, e.clientY - g.lift);
   if (!raw) return;
-  if (Math.hypot(e.clientX - g.x, e.clientY - g.y) > 12) g.moved = true;
-  if (!g.dot) return;
   const z = clamp(raw, g.q.frame), b = g.api.attempt().board;
   if (G.samePoint(z, g.at) || !(G.samePoint(z, g.dot) || placeable(g.q, b, z))) return;
   g.at = z;
@@ -493,6 +532,11 @@ function onEnd(e) {
 function wire(root, p, api) {
   const svg = root.querySelector('[data-st-board]'), q = p.parameters;
   if (!svg) return;
+  // On a phone the board reaches the panel's edges (CSS reads --st-bleed)
+  // and its margin past the frame shrinks to a quarter square.
+  const panel = svg.closest('.board-panel'), puzzle = svg.closest('.st-puzzle');
+  if (panel && puzzle) puzzle.style.setProperty('--st-bleed', `${parseFloat(getComputedStyle(panel).paddingLeft) || 0}px`);
+  if (window.matchMedia?.('(max-width: 560px)').matches) { const V = q.view - 0.5; svg.setAttribute('viewBox', `${-V} ${-V} ${2 * V} ${2 * V}`); }
   if (!listening) {
     document.addEventListener('pointermove', onMove);
     for (const type of ['pointerup', 'pointercancel']) document.addEventListener(type, onEnd);
@@ -501,18 +545,20 @@ function wire(root, p, api) {
   const busy = () => { const b = api.attempt().board; return solved(p, b) || (q.mode === 'take' && ui(p).claiming && tried(b)); };
   svg.addEventListener('pointerdown', e => {
     if (e.button > 0 || !e.isPrimary || busy()) return;
-    const raw = pointAt(svg, e.clientX, e.clientY);
-    if (!raw || !G.inFrame(raw, q.frame)) return;
-    const b = api.attempt().board, dot = has(b.dots, raw) ? raw : null;
+    const exact = exactAt(svg, e.clientX, e.clientY);
+    if (!exact) return;
+    const b = api.attempt().board, raw = labelAt(q, b, exact) || exact.map(Math.round);
+    if (!G.inFrame(raw, q.frame)) return;
+    const dot = has(b.dots, raw) ? raw : null, scale = svg.getScreenCTM?.()?.a || 20;
     ui(p).keys = false;
-    gesture = {pointer: e.pointerId, svg, root, api, q, x: e.clientX, y: e.clientY, start: raw, at: raw, dot, moved: false, el: dot ? svg.querySelector(`[data-dot="${G.keyOf(dot)}"]`) : null};
+    gesture = {pointer: e.pointerId, svg, root, api, q, x: e.clientX, y: e.clientY, start: raw, at: raw, dot, moved: false, lift: e.pointerType === 'touch' ? LIFT * scale : 0, el: dot ? svg.querySelector(`[data-dot="${G.keyOf(dot)}"]`) : null};
     if (dot) { root.classList.add('dragging'); e.preventDefault(); }
   });
   // A mouse shows where a dot would go.
   const hover = svg.querySelector('.st-hover');
   svg.addEventListener('pointermove', e => {
     if (e.pointerType !== 'mouse' || gesture || busy()) { hover?.setAttribute('visibility', 'hidden'); return; }
-    const z = pointAt(svg, e.clientX, e.clientY), b = api.attempt().board;
+    const exact = exactAt(svg, e.clientX, e.clientY), b = api.attempt().board, z = exact && (labelAt(q, b, exact) || exact.map(Math.round));
     if (z && G.inFrame(z, q.frame) && (has(b.dots, z) || placeable(q, b, z))) { hover.setAttribute('cx', z[0]); hover.setAttribute('cy', -z[1]); hover.setAttribute('visibility', 'visible'); } else hover?.setAttribute('visibility', 'hidden');
   });
   svg.addEventListener('pointerleave', () => hover?.setAttribute('visibility', 'hidden'));

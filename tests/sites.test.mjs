@@ -1,5 +1,6 @@
 // Nearest dots: exact regions, edges and ties on the half-unit grid; making a
-// target region, touching and avoiding, a four-way tie, taking a place with
+// target region (with spare slots), parting two regions, touching and
+// avoiding, a four-way tie, taking a place with
 // Can't and its segment after a checked attempt, Fewest with its refusal kept
 // across Undo, regions hidden until Check, the playground, hints, saves and
 // rendering.
@@ -35,7 +36,8 @@ function memory() { const values = new Map(); return {getItem: k => values.get(k
 test('the pack validates: answers by clipping, hints solve, illegal moves and forged saves fail', async () => {
   const report = await validateSites();
   assert.equal(report.sitesPuzzles, 12);
-  assert.ok(report.placementsChecked > 50000);
+  assert.ok(report.placementsChecked > 40000);
+  assert.equal(report['sites-04Placements'], 326, 'the corner: the two dots and up to two of 25 harmless extras');
   assert.ok(report.slowestHintMs < 1000);
 });
 
@@ -71,7 +73,7 @@ test('geometry: two dots split along the bisector, three meet at a corner, four 
 });
 
 test('make: a dot halfway, a strip, a corner, a slanted edge and a triangle; one answer each', () => {
-  for (const [id, answer] of [['sites-01', [[0, 0]]], ['sites-02', [[-2, 0], [2, 0]]], ['sites-03', [[0, 2], [2, 0]]], ['sites-04', [[1.5, 1]]], ['sites-09', [[-2, 2], [0, -2], [2, 2]]]]) {
+  for (const [id, answer] of [['sites-01', [[0, 0]]], ['sites-03', [[-2, 0], [2, 0]]], ['sites-04', [[0, 2], [2, 0]]], ['sites-05', [[1.5, 1]]], ['sites-10', [[-2, 2], [0, -2], [2, 2]]]]) {
     const p = byId(id), q = p.parameters;
     assert.deepEqual(makeAnswer(q).map(U).sort(byXY), [...answer].sort(byXY), `${id}: the mirror images`);
     let a = play(p, freshAttempt(p), ...put(...answer));
@@ -84,13 +86,32 @@ test('make: a dot halfway, a strip, a corner, a slanted edge and a triangle; one
   const a = play(p, freshAttempt(p), ...put([-1, 0]), check);
   assert.ok(!isSolved(p, a.board));
   assert.match(view(p, a), /A’s region goes on past the frame and is not the shaded part\./);
-  // Puzzle 3: a dot beyond the frame’s edge is not allowed, and the frame does not close A in.
-  const corner = byId('sites-03');
+  // Puzzle 4: four slots for two real edges. A dot beyond the frame’s edge
+  // is not allowed; an extra dot that changes nothing still makes the corner,
+  // and one left of A cuts it off.
+  const corner = byId('sites-04');
+  assert.equal(corner.parameters.budget, 4);
   assert.equal(move(corner, freshAttempt(corner), {type: 'place', at: [-7, 0]}), null);
+  assert.ok(isSolved(corner, play(corner, freshAttempt(corner), ...put([0, 2], [2, 0], [2, 2]), check).board), 'a harmless extra');
+  assert.ok(!isSolved(corner, play(corner, freshAttempt(corner), ...put([0, 2], [2, 0], [-2, 0]), check).board), 'a dot left of A cuts it');
+});
+
+test('apart: one dot between A and B, and only there, parts their regions', () => {
+  const p = byId('sites-02'), q = p.parameters;
+  assert.equal(q.mode, 'part');
+  assert.deepEqual(singleAnswers(q).map(U).sort(byXY), [[-1.5, 0], [-1, 0], [-0.5, 0], [0, 0], [0.5, 0], [1, 0], [1.5, 0]]);
+  let a = play(p, freshAttempt(p), ...put([0, 1]), check);
+  assert.ok(!isSolved(p, a.board), 'a dot above the middle leaves them touching far below');
+  const html = view(p, a);
+  assert.match(html, /A’s and B’s regions touch\./);
+  assert.match(html, /class="st-edge bad"/, 'their shared edge is marked');
+  a = play(p, a, {type: 'move', from: H([0, 1]), to: H([1, 0])}, check);
+  assert.ok(isSolved(p, a.board));
+  assert.match(view(p, a), /A’s and B’s regions don’t touch\./);
 });
 
 test('regions stay hidden until Check, and a change hides them again', () => {
-  const p = byId('sites-02');
+  const p = byId('sites-03');
   let a = play(p, freshAttempt(p), ...put([-2, 0]));
   assert.doesNotMatch(view(p, a), /st-fill/, 'no regions before Check');
   a = play(p, a, check);
@@ -108,12 +129,12 @@ test('regions stay hidden until Check, and a change hides them again', () => {
 });
 
 test('four at once and two but not three: a point tie counts as touching', () => {
-  const four = byId('sites-05');
+  const four = byId('sites-06');
   assert.deepEqual(singleAnswers(four.parameters), [H([0, -2])]);
   let a = play(four, freshAttempt(four), ...put([0, -2]), check);
   assert.ok(isSolved(four, a.board));
   assert.match(view(four, a), /class="st-tie four"/);
-  const touch = byId('sites-06');
+  const touch = byId('sites-07');
   a = play(touch, freshAttempt(touch), ...put([0, -2]), check);
   assert.ok(!isSolved(touch, a.board), 'D shares the middle with C');
   const html = view(touch, a);
@@ -125,12 +146,12 @@ test('four at once and two but not three: a point tie counts as touching', () =>
 });
 
 test('take: a dot on S takes it with P and Q tied; Can’t needs a checked try and the segment through R', () => {
-  const s = byId('sites-07');
+  const s = byId('sites-08');
   let a = play(s, freshAttempt(s), ...put([0, -2]), check);
   assert.ok(isSolved(s, a.board), 'P and Q tie between A and the new dot, and stay A’s');
   assert.deepEqual(certificates(s.parameters), [], 'no segment through S');
 
-  const r = byId('sites-10'), fresh = freshAttempt(r);
+  const r = byId('sites-11'), fresh = freshAttempt(r);
   assert.equal(move(r, fresh, cant(1, 2)), null, 'Can’t on a fresh board does nothing');
   assert.match(view(r, fresh), /class="secondary st-button st-cant"[^>]*disabled/, 'Can’t waits for a try');
   assert.equal(nextHint(r, fresh).action.type, 'place', 'the first hint is a try, not Can’t');
@@ -138,7 +159,8 @@ test('take: a dot on S takes it with P and Q tied; Can’t needs a checked try a
   assert.equal(move(r, a, cant(1, 2)), null, 'not before Check');
   a = play(r, a, check);
   assert.ok(tried(a.board));
-  assert.match(nextHint(r, a).text, /^R is on the straight line from P to Q\. Press Can’t and tap P and Q\.$/);
+  assert.equal(nextHint(r, a).text, 'R is on the straight line from P to Q, and A’s region never has a dent. Press Can’t.');
+  assert.equal(nextHint(r, a).spot, 'Press Can’t and tap P and Q.');
   const wrong = play(r, a, cant(0, 1));
   assert.deepEqual(wrong.board.refused, [0, 1]);
   assert.match(view(r, wrong), /<p class="st-told">Misses R\.<\/p>/);
@@ -151,7 +173,7 @@ test('take: a dot on S takes it with P and Q tied; Can’t needs a checked try a
   assert.match(html, /class="st-cert good"/);
   assert.match(html, /class="st-fill/, 'the try’s regions stay shown');
   // Keep P, take R: a dot behind A.
-  const k = byId('sites-11');
+  const k = byId('sites-12');
   assert.deepEqual(singleAnswers(k.parameters).map(U).sort(byXY), [[-1.5, 2.5], [-1, 3]]);
   a = play(k, freshAttempt(k), ...put([1, 1]), check);
   assert.ok(!isSolved(k, a.board), 'a dot on R takes P too');
@@ -159,7 +181,7 @@ test('take: a dot on S takes it with P and Q tied; Can’t needs a checked try a
 });
 
 test('Can’t is a toggle that shows the places to tap; picks are view state', () => {
-  const r = byId('sites-10');
+  const r = byId('sites-11');
   const a = play(r, freshAttempt(r), ...put([0, 0]), check);
   M.reset(r);
   M.ui(r, {claiming: true});
@@ -174,7 +196,7 @@ test('Can’t is a toggle that shows the places to tap; picks are view state', (
 });
 
 test('fit: Fewest after a fit; fewer dots can, and Undo keeps that answer', () => {
-  const p = byId('sites-08');
+  const p = byId('sites-09');
   let a = play(p, freshAttempt(p), ...put([0, 2], [2, -2], [-2, -2], [0, -2]));
   assert.equal(move(p, a, fewest), null, 'Fewest needs a Check');
   a = play(p, a, check, fewest);
@@ -188,22 +210,35 @@ test('fit: Fewest after a fit; fewer dots can, and Undo keeps that answer', () =
   a = play(p, back, {type: 'remove', at: H([0, -2])}, check, fewest);
   assert.ok(isSolved(p, a.board));
   assert.match(view(p, a), /st-arg-line/, 'the argument is drawn after a right Fewest');
-  const b = byId('sites-12');
-  assert.ok(b.parameters.budget > b.parameters.fewest);
-  let c = play(b, freshAttempt(b), ...put([0, 2]), check);
-  assert.match(view(b, c), /B’s region goes on past the frame\./);
-  assert.equal(move(b, c, fewest), null, 'no Fewest while B’s region runs off');
-  c = play(b, c, ...put([0, -2]), check, fewest);
-  assert.ok(isSolved(b, c.board));
+  assert.ok(p.parameters.budget > p.parameters.fewest);
+  const c = play(p, freshAttempt(p), ...put([0, 2]), check);
+  assert.match(view(p, c), /A’s region goes on past the frame\./);
+  assert.equal(move(p, c, fewest), null, 'no Fewest while A’s region runs off');
 });
 
-test('hints: words a child can follow, toward the answer, and never Can’t first', () => {
-  const texts = id => { const p = byId(id); let a = freshAttempt(p); const out = []; while (!isSolved(p, a.board)) { const h = nextHint(p, a); out.push(h.text); a = move(p, a, h.action); } return out; };
-  assert.deepEqual(texts('sites-01'), ['Put a dot 2 squares right of A.', 'Press Check.']);
-  assert.deepEqual(texts('sites-05'), ['Put D 4 squares below C.', 'Press Check.']);
-  assert.deepEqual(texts('sites-10'), ['Put a dot on R.', 'Press Check.', 'R is on the straight line from P to Q. Press Can’t and tap P and Q.']);
-  assert.deepEqual(texts('sites-12').slice(-2), ['Press Check.', 'Press Fewest.']);
-  const p = byId('sites-08'), a = play(p, freshAttempt(p), ...put([2, 2]));
+test('hints: the idea in words, the spot on the ring and Apply, never Can’t first', () => {
+  const chain = (id, field) => { const p = byId(id); let a = freshAttempt(p); const out = []; while (!isSolved(p, a.board)) { const h = nextHint(p, a); out.push(h[field]); a = move(p, a, h.action); } return out; };
+  assert.deepEqual(chain('sites-01', 'text'), ['The edge between two dots is halfway between them.', 'Press Check.']);
+  assert.deepEqual(chain('sites-01', 'spot'), ['Put a dot 2 squares right of A.', 'Press Check.']);
+  assert.deepEqual(chain('sites-06', 'text'), ['Four dots on one circle, with no dot inside it, all share its centre.', 'Press Check.']);
+  assert.deepEqual(chain('sites-06', 'spot'), ['Put D 4 squares below C.', 'Press Check.']);
+  assert.deepEqual(chain('sites-11', 'text'), ['Try to take R from A with a dot, and press Check.', 'Press Check.', 'R is on the straight line from P to Q, and A’s region never has a dent. Press Can’t.']);
+  assert.deepEqual(chain('sites-11', 'spot'), ['Put a dot on R.', 'Press Check.', 'Press Can’t and tap P and Q.']);
+  assert.deepEqual(chain('sites-09', 'text').slice(-2), ['Press Check.', 'Press Fewest.']);
+  // One move, then Hint: the card gives the idea; the ring (level 2) shows
+  // the spot and the screen reader hears it; Apply hint (level 3) plays it.
+  const one = byId('sites-01'), moved = play(one, freshAttempt(one), ...put([1, 0]));
+  assert.equal(nextHint(one, moved).text, one.idea);
+  assert.equal(nextHint(one, moved).spot, 'Move the dot to the spot 2 squares right of A.');
+  let html = view(one, {...moved, hintLevel: 1});
+  assert.match(html, /<section class="hint-card"[^>]*><p>The edge between two dots is halfway between them\.<\/p>/);
+  assert.doesNotMatch(html, /2 squares right of A|class="st-hint"/, 'no spot at the first level');
+  html = view(one, {...moved, hintLevel: 2});
+  assert.match(html, /class="st-hint" cx="0" cy="0"/, 'the ring marks the spot');
+  assert.match(html, /role="status">[^<]*Hint: Move the dot to the spot 2 squares right of A\./);
+  assert.match(view(one, {...moved, hintLevel: 3}), /data-action="apply-hint"/);
+  assert.ok(view(one, {...freshAttempt(one), hintLevel: 1}).includes(`<p>${one.hints[0]}</p>`), 'the authored first hint on a fresh board');
+  const p = byId('sites-09'), a = play(p, freshAttempt(p), ...put([2, 2]));
   assert.equal(nextHint(p, a).action.type, 'move', 'a stray dot moves toward a set that works');
   assert.equal(where(p.parameters, H([0, 2])), '2 squares above A');
   for (const q of sites.puzzles.filter(q => q.band !== 'playground')) assert.notEqual(nextHint(q, freshAttempt(q)).action.type, 'cant', `${q.id}`);
@@ -242,7 +277,7 @@ test('the playground: up to ten dots, every one movable, regions always shown; n
 });
 
 test('saves round-trip through storage, and forged saves are refused', () => {
-  const r = byId('sites-10'), s = byId('sites-07'), f = byId('sites-08'), pg = byId('sites-playground');
+  const r = byId('sites-11'), s = byId('sites-08'), f = byId('sites-09'), pg = byId('sites-playground');
   const claimed = play(r, freshAttempt(r), ...put([0, 0]), check, cant(0, 1));
   const half = play(s, freshAttempt(s), ...put([0, 0]));
   const refusedFit = play(f, freshAttempt(f), ...put([0, 2], [2, -2], [-2, -2], [0, -2]), check, fewest);

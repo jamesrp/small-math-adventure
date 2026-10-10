@@ -4,7 +4,9 @@
    or more share a place, a dashed target, and pine and ochre for right and
    wrong. Drawn in half-steps, so strokes do not scale. */
 .st-puzzle{display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%}
-.st-board{display:block;width:100%;max-width:440px;height:auto;aspect-ratio:1;touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer;border-radius:12px;background:var(--b-card,#fffdf5)}
+.st-board{display:block;width:100%;max-width:440px;height:auto;aspect-ratio:1;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;cursor:pointer;border-radius:12px;background:var(--b-card,#fffdf5)}
+/* On a phone the board reaches the panel's edges (wire sets --st-bleed to the panel's padding). */
+@media (max-width:560px){.st-board{width:calc(100% + 2 * var(--st-bleed,0px));max-width:none;margin-inline:calc(-1 * var(--st-bleed,0px));border-radius:0}}
 .st-board:focus{outline:none}
 .st-board:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:4px}
 .st-puzzle.solved .st-board,.st-puzzle.claiming .st-board{cursor:default}
@@ -12,8 +14,9 @@
 
 /* Paper, grid and frame. */
 .st-margin{fill:rgba(41,68,57,.07)}
-.st-grid{stroke:#d9ddc8;stroke-width:1px}
-.st-grid.half{stroke:#ecede0;stroke-width:1px}
+/* Whole squares clearly darker than half squares, so squares can be counted. */
+.st-grid{stroke:#b9c3a3;stroke-width:1.3px}
+.st-grid.half{stroke:#eceee2;stroke-width:1px}
 .st-frame{fill:none;stroke:var(--b-ink,#294439);stroke-width:1.6px}
 
 /* The target: what the focus dot's region should be. */
@@ -49,16 +52,19 @@
 .st-site.c-lilac circle{fill:#c9b6e4}
 .st-site.c-sand circle{fill:#e3cf9f}
 .st-dot circle{fill:var(--b-ink,#294439);stroke:var(--b-card,#fffdf5);stroke-width:1.5px}
-.st-name{font:400 .95px/1 var(--b-display,Georgia,serif);fill:var(--b-ink,#294439);paint-order:stroke;stroke:var(--b-card,#fffdf5);stroke-width:3px;stroke-linejoin:round;pointer-events:none}
+.st-name{font:400 .74px/1 var(--b-display,Georgia,serif);text-anchor:middle;fill:var(--b-ink,#294439);paint-order:stroke;stroke:var(--b-card,#fffdf5);stroke-width:3px;stroke-linejoin:round;pointer-events:none}
 .st-name.mark{font-style:italic}
 .st-sites g.held circle{stroke:var(--b-pine,#31533e);stroke-width:4px}
+/* A dot being dragged, with a cross at the crossing it will land on. */
+.st-sites g.dragged circle{stroke:var(--b-pine,#31533e);stroke-width:3px}
+.st-aim{stroke:var(--b-ochre,#b38840);stroke-width:2px;stroke-linecap:round;pointer-events:none}
 .st-cross{stroke:var(--b-ink,#294439);stroke-width:2.2px;stroke-linecap:round;fill:none}
 .st-ring{fill:none;stroke-width:3px}
 .st-ring.good{stroke:var(--b-pine,#31533e)}
 .st-ring.bad{stroke:var(--b-ochre,#b38840);stroke-dasharray:4 3}
 
 /* Can't: the places to tap, and the segment tapped. */
-.st-pick{cursor:pointer}
+.st-pick{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .st-pick-ring{fill:rgba(255,253,245,.01);stroke:var(--b-pine,#31533e);stroke-width:2px;stroke-dasharray:3 3}
 .st-pick.picked .st-pick-ring{stroke-width:4px;stroke-dasharray:none;fill:rgba(49,83,62,.12)}
 .st-pick:focus{outline:none}

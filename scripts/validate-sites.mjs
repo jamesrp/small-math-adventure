@@ -7,12 +7,16 @@
 // place belongs to a region by a point-in-polygon test. With those it
 // recomputes every answer: the one set of dots for each target region (every
 // placement of up to two dots, and for the triangle the side-by-side argument
-// with a scan of the grid), every single dot that touches, ties or takes,
-// that no one or two dots take R between P and Q, and the fewest dots that
-// close a region (every placement of fewer). Then it plays the puzzles:
-// hints alone from fresh, after a wrong dot, after random play, after a
-// refused Can't and a refused Fewest, a Fewest refusal kept across Undo,
-// Can't refused before an attempt, illegal moves, forged saves and the
+// with a scan of the grid), the extra dots that change nothing where a
+// puzzle has spare slots, every single dot that parts two regions, touches,
+// ties or takes, that no one or two dots take R between P and Q, and the
+// fewest dots that close a region (every placement of fewer). It checks the
+// claims hints and notes make wherever the child's dots are (A, B and C
+// share a place with D in any corner; D's region never touches only one
+// other). Then it plays the puzzles: hints alone from fresh, after a wrong
+// dot, after random play, after a refused Can't and a refused Fewest, with
+// words that give the idea and not the spot, a Fewest refusal kept across
+// Undo, Can't refused before an attempt, illegal moves, forged saves and the
 // playground. Run: node scripts/validate-sites.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
@@ -23,17 +27,19 @@ import {loadPack} from './packs.mjs';
 // The table in docs/sites/README.md, in grid squares.
 const TABLE = {
   'sites-01': {level: 'easy', mode: 'make', answer: [[0, 0]]},
-  'sites-02': {level: 'easy', mode: 'make', answer: [[-2, 0], [2, 0]]},
-  'sites-03': {level: 'easy', mode: 'make', answer: [[0, 2], [2, 0]]},
-  'sites-04': {level: 'medium', mode: 'make', answer: [[1.5, 1]]},
-  'sites-05': {level: 'medium', mode: 'four', count: 1, answers: [[0, -2]]},
-  'sites-06': {level: 'medium', mode: 'touch', count: 56, middle: [[0, -2.5], [0, -3]]},
-  'sites-07': {level: 'medium', mode: 'take', count: 17},
-  'sites-08': {level: 'medium', mode: 'fit', fewest: 3},
-  'sites-09': {level: 'hard', mode: 'make', answer: [[-2, 2], [0, -2], [2, 2]]},
-  'sites-10': {level: 'hard', mode: 'take', count: 0, cant: ['P', 'Q']},
-  'sites-11': {level: 'hard', mode: 'take', count: 2, answers: [[-1, 3], [-1.5, 2.5]]},
-  'sites-12': {level: 'hard', mode: 'fit', fewest: 2}
+  'sites-02': {level: 'easy', mode: 'part', count: 7, answers: [[-1.5, 0], [-1, 0], [-0.5, 0], [0, 0], [0.5, 0], [1, 0], [1.5, 0]]},
+  'sites-03': {level: 'easy', mode: 'make', answer: [[-2, 0], [2, 0]]},
+  // Extra dots that change nothing, as the notes say: not left of A or below
+  // it, and at least as far from the corner (1, 1) of the shaded part as A is.
+  'sites-04': {level: 'easy', mode: 'make', answer: [[0, 2], [2, 0]], harmless: z => z[0] >= 0 && z[1] >= 0 && (z[0] - 2) ** 2 + (z[1] - 2) ** 2 >= 8},
+  'sites-05': {level: 'medium', mode: 'make', answer: [[1.5, 1]]},
+  'sites-06': {level: 'medium', mode: 'four', count: 1, answers: [[0, -2]]},
+  'sites-07': {level: 'medium', mode: 'touch', count: 56, middle: [[0, -2.5], [0, -3]]},
+  'sites-08': {level: 'medium', mode: 'take', count: 17},
+  'sites-09': {level: 'hard', mode: 'fit', fewest: 3},
+  'sites-10': {level: 'hard', mode: 'make', answer: [[-2, 2], [0, -2], [2, 2]]},
+  'sites-11': {level: 'hard', mode: 'take', count: 0, cant: ['P', 'Q']},
+  'sites-12': {level: 'hard', mode: 'take', count: 2, answers: [[-1, 3], [-1.5, 2.5]]}
 };
 
 // --- Exact regions by clipping ------------------------------------------------
@@ -134,6 +140,7 @@ function works(q, dots) {
   const s = [...q.sites, ...dots], n = q.sites.length;
   switch (q.mode) {
     case 'make': return key(regionOf(s, q.focus)) === key(shapeOf(q.target));
+    case 'part': return !share(s, ...q.apart);
     case 'touch': return dots.length === 1 && q.touch.every(i => share(s, n, i)) && q.avoid.every(i => !share(s, n, i));
     case 'four': return dots.length === 1 && fourShare(s);
     case 'take': { const cell = regionOf(s, q.focus); return q.keep.every(k => holds(cell, k.at)) && !holds(cell, q.take.at); }
@@ -145,6 +152,7 @@ function works(q, dots) {
 // --- Play -------------------------------------------------------------------------
 const play = (p, a, action) => { const next = move(p, a, action); assert.ok(next && next !== a, `${p.id}: ${JSON.stringify(action)} is legal`); return next; };
 const refuse = (p, a, action, why) => assert.equal(move(p, a, action), null, `${p.id}: refuses ${why}`);
+const SPOT = /\bsquares?\b|\b(right|left) of\b|\b(up|down) from\b|\b(above|below) [A-Z]\b/;
 let slowest = 0;
 function timedHint(p, a) {
   const t = performance.now(), h = nextHint(p, a), dt = performance.now() - t;
@@ -157,6 +165,9 @@ function hintsSolve(p, a, label) {
     const h = timedHint(p, a);
     assert.equal(h.type, 'move', `${p.id} ${label}: hints name a move`);
     assert.ok(typeof h.text === 'string' && h.text.length > 5, `${p.id} ${label}: hint words`);
+    // The words give the idea; the spot is for the ring and Apply hint.
+    assert.ok(!SPOT.test(h.text), `${p.id} ${label}: "${h.text}" names no spot`);
+    assert.ok(typeof h.spot === 'string' && h.spot.length > 5, `${p.id} ${label}: the spot, for the ring`);
     a = play(p, a, h.action);
   }
   assert.ok(isSolved(p, a.board), `${p.id} ${label}: hints reach a solve`);
@@ -180,6 +191,8 @@ export async function validateSites() {
   assert.deepEqual(puzzles.map(p => p.number), puzzles.map((_, i) => i + 1), 'numbers run 1..n');
   assert.deepEqual(puzzles.map(p => p.id), Object.keys(TABLE), 'every puzzle in the table');
   assert.ok(puzzles.length >= 8 && puzzles.length <= 12, '8 to 12 puzzles');
+  const levels = ['easy', 'medium', 'hard'].map(l => puzzles.filter(p => p.difficulty_level === l).length);
+  assert.ok(Math.max(...levels) - Math.min(...levels) <= 1, `levels balanced (${levels.join('/')})`);
 
   const counts = {placementsChecked: 0, singleDotsChecked: 0, hintSteps: 0, randomStates: 0};
   for (const p of pack.puzzles) {
@@ -218,7 +231,19 @@ export async function validateSites() {
         assert.equal(makers.length, 1, `${p.id}: one grid point makes each side`);
         assert.ok(answer.some(z => z.join() === makers[0].join()), `${p.id}: that point is in the answer`);
       }
-      assert.equal(q.target.length, answer.length, `${p.id}: one new dot per side, so the answer is the only one within ${q.budget}`);
+      assert.equal(q.target.length, answer.length, `${p.id}: one new dot per side, so every placement that works holds the answer`);
+      if (q.budget > answer.length) {
+        // Spare slots: a set of extra dots changes nothing exactly when each
+        // one alone changes nothing (each adds one half-plane), so the
+        // placements that work are the answer and any few of these extras.
+        assert.ok(row.harmless, `${p.id}: spare slots are described`);
+        const extras = free.filter(z => !answer.some(a => a.join() === z.join()) && works(q, [...answer, z]));
+        counts.singleDotsChecked += free.length;
+        assert.ok(sameSet(extras, free.filter(z => !answer.some(a => a.join() === z.join()) && row.harmless(z))), `${p.id}: the extras that change nothing are the ones the notes describe`);
+        for (const set of placements(extras, 2)) { counts.placementsChecked++; assert.ok(works(q, [...answer, ...set]), `${p.id}: two harmless extras together`); }
+        const choose = (n, k) => (k === 0 ? 1 : (choose(n, k - 1) * (n - k + 1)) / k);
+        counts[`${p.id}Placements`] = Array.from({length: q.budget - answer.length + 1}, (_, k) => choose(extras.length, k)).reduce((x, y) => x + y, 0);
+      } else assert.equal(answer.length, q.budget, `${p.id}: no spare slots, so the answer is the only placement`);
       // And by brute force where it is quick: every placement of up to two dots.
       if (q.budget <= 2) {
         const found = [];
@@ -226,13 +251,46 @@ export async function validateSites() {
         assert.equal(found.length, 1, `${p.id}: exactly one placement makes the target`);
         assert.ok(sameSet(found[0], answer), `${p.id}: and it is the answer`);
       }
-    } else if (q.mode === 'touch' || q.mode === 'four' || q.mode === 'take') {
+    } else if (q.mode === 'part' || q.mode === 'touch' || q.mode === 'four' || q.mode === 'take') {
       const answers = free.filter(z => works(q, [z]));
       counts.singleDotsChecked += free.length;
       assert.equal(answers.length, row.count, `${p.id}: how many single dots work`);
       if (row.answers) assert.ok(sameSet(answers, row.answers.map(H)), `${p.id}: the single dots that work`);
       if (row.middle) assert.ok(sameSet(answers.filter(z => z[0] === 0), row.middle.map(H)), `${p.id}: the ones on the middle line`);
       if (q.mode !== 'take' || !row.cant) assert.ok(sameSet(p.solution.answers.map(H), answers), `${p.id}: the pack's answers`);
+      if (q.mode === 'part') {
+        // One dot parts them exactly when it is strictly between them (no
+        // circle through both is then empty), as the notes explain.
+        const [a, b] = q.apart.map(i => q.sites[i]);
+        assert.ok(share(q.sites, ...q.apart), `${p.id}: they touch to begin with`);
+        assert.ok(sameSet(answers, free.filter(z => between(a, b, z))), `${p.id}: the dots that work are the ones between ${q.apart.map(i => q.names[i])}`);
+        // The extension: two dots, 1 square above and below the middle.
+        const pair = [[0, 2], [0, -2]];
+        assert.ok(!works(q, [pair[0]]) && !works(q, [pair[1]]) && works(q, pair), `${p.id}: the extension's two dots part them, and neither does alone`);
+        assert.ok(pair.every(z => !between(a, b, z)), `${p.id}: neither extension dot is between them`);
+      }
+      if (q.mode === 'touch') {
+        // The extension: D's region always borders at least two others.
+        for (const z of free) { const s = [...q.sites, z]; assert.ok(q.sites.filter((_, i) => share(s, q.sites.length, i)).length >= 2, `${p.id}: D at ${z} touches two or more`); }
+      }
+      if (q.mode === 'four') {
+        // Hint 1, wherever the child has put D: without D, A, B and C share
+        // one place, 2 squares from each (hint 2); with D in any corner of
+        // the frame they still do, so a Check there shows it.
+        const [a, b, c] = q.sites;
+        const a1 = 2 * (b[0] - a[0]), b1 = 2 * (b[1] - a[1]), c1 = b[0] ** 2 + b[1] ** 2 - a[0] ** 2 - a[1] ** 2;
+        const a2 = 2 * (c[0] - a[0]), b2 = 2 * (c[1] - a[1]), c2 = c[0] ** 2 + c[1] ** 2 - a[0] ** 2 - a[1] ** 2;
+        const D = a1 * b2 - a2 * b1, O = [(c1 * b2 - c2 * b1) / D, (a1 * c2 - a2 * c1) / D];
+        assert.ok(O.every(Number.isInteger), `${p.id}: the meeting place is on the grid`);
+        assert.ok(q.sites.every(s => (s[0] - O[0]) ** 2 + (s[1] - O[1]) ** 2 === 16), `${p.id}: it is 2 squares from A, B and C`);
+        assert.ok(q.sites.every((_, i) => holds(regionOf(q.sites, i), O)), `${p.id}: without D, A, B and C share it`);
+        assert.match(p.hints[0], /corner/);
+        const F = q.frame;
+        for (const z of [[F, F], [F, -F], [-F, F], [-F, -F]]) {
+          const s = [...q.sites, z];
+          assert.ok(q.sites.every((_, i) => holds(regionOf(s, i), O)) && !holds(regionOf(s, 3), O), `${p.id}: with D in the corner ${z}, A, B and C still share it`);
+        }
+      }
       if (q.mode === 'take') {
         const own = [{name: q.names[q.focus], at: q.sites[q.focus]}, ...q.keep];
         const pairs = [];
