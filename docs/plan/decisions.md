@@ -59,7 +59,7 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 32 | Euclid by squares | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-32.md) | Open, wave 6 | A square-piece group in Tile gardens: fewest squares, fill with 2s and 3s or show "can't", and size a rectangle for a target; not folded into the jugs, which lack the tiling |
 | 33 | Necklaces | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-33.md) | In the app | Bead rings |
 | 34 | Distinguishing colourings | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-34.md) | In the app | Hidden turns in Bead rings |
-| 35 | Frieze symmetry | none | Open, wave 3 | Card first |
+| 35 | Frieze symmetry | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-35.md) | Open, wave 8 | One cell tiled endlessly: place the F's four forms and move a translucent copy to build borders with a move required or forbidden; one lit mismatch certifies "can't" |
 | 36 | Nine-tile SET | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-36.md) | Open, wave 7 | Nine tiles as the tutorial, then a 27-card layer where "reach 9" is a real solve, the avoidance game and three-colour puzzle |
 | 37 | Tetrahedron chirality | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-37.md) | Open, wave 8 | A flat view where a tap turns the model about a corner: turn to match, place letters, sort into groups |
 | 38 | Möbius band and cuts | none | Open, wave 3 | Card first |
