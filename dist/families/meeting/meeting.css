@@ -1,0 +1,66 @@
+@import url('../../graph-board.css');
+/* Meeting roads: three homes in sun, sky and rose, a walker token of the same
+   colour on the rim of the dot it stands on, its trail along the roads (side
+   by side where trails share a road), pine rings for meeting dots, a dashed
+   ink line for a shorter route, and bars across closed roads. */
+.mt-puzzle{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
+.mt-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .9rem;max-width:100%}
+.mt-walkers{display:flex;gap:.45rem}
+.mt-puzzle .mt-walker{display:grid;place-items:center;width:46px;height:46px;min-height:0;padding:0;border-radius:50%;border:2px solid var(--b-ink,#294439);color:var(--b-ink,#294439);font:400 1.3rem/1 var(--b-display,Georgia,serif);box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer}
+.mt-puzzle .mt-walker.tA{background:var(--b-sun,#efc76e)}
+.mt-puzzle .mt-walker.tB{background:var(--b-sky,#9cc9de)}
+.mt-puzzle .mt-walker.tC{background:var(--b-rose,#e7a28f)}
+.mt-puzzle .mt-walker[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-pine,#31533e)}
+.mt-puzzle .mt-walker:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:6px}
+.mt-puzzle .mt-button{min-height:46px;padding:6px 14px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.mt-puzzle .mt-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+.mt-puzzle .mt-tool[aria-pressed="true"]{background:#e9eddc;box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.mt-puzzle :is(.mt-button,.mt-walker).hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+
+/* Slots for the roads that may be closed. */
+.mt-slots{display:inline-flex;gap:6px}
+.mt-slots i{width:26px;height:14px;border-radius:7px;border:2px dashed #9aa88f;box-sizing:border-box}
+.mt-slots i.on{border:0;background:var(--b-bad,#a9503a)}
+
+/* The map. */
+.mt-map{max-width:420px}
+.mt-map.small{max-width:330px}
+.mt-map .gb-node .gb-dot{stroke-width:2px}
+.mt-map .gb-node.home .gb-dot{stroke-width:5px}
+.mt-map .gb-node.hA .gb-dot{stroke:var(--b-sun,#efc76e)}
+.mt-map .gb-node.hB .gb-dot{stroke:var(--b-sky,#9cc9de)}
+.mt-map .gb-node.hC .gb-dot{stroke:var(--b-rose,#e7a28f)}
+.mt-map .gb-node.home .gb-label{font-size:5.6px;fill:var(--b-muted,#5a6850)}
+.mt-map.labelled .gb-label,.mt-map.labelled .gb-node.home .gb-label{font-size:4.1px;fill:var(--b-ink,#294439)}
+.mt-map .gb-node.can-go:not(.home) .gb-dot{fill:var(--b-good-soft,#e2ecd6)}
+.mt-map .gb-node.found .gb-reach{fill:none;stroke:var(--b-pine,#31533e);stroke-width:4px;vector-effect:non-scaling-stroke}
+.mt-map .gb-node.found.hinted .gb-reach{stroke:var(--b-ochre,#b38840)}
+@media (prefers-reduced-motion:no-preference){.mt-map .gb-node.again .gb-reach{animation:mt-pop .5s ease-out}}
+@keyframes mt-pop{from{stroke-width:9px}}
+
+/* Trails, a shorter route, and walker tokens. */
+.mt-trail{stroke-width:6px;vector-effect:non-scaling-stroke;stroke-linecap:round;pointer-events:none}
+.mt-trail.tA{stroke:var(--b-sun,#efc76e)}
+.mt-trail.tB{stroke:var(--b-sky,#9cc9de)}
+.mt-trail.tC{stroke:var(--b-rose,#e7a28f)}
+.mt-proof-glow{fill:none;stroke:rgba(41,68,57,.14);stroke-width:15px;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.mt-proof{fill:none;stroke:var(--b-ink,#294439);stroke-width:3.5px;vector-effect:non-scaling-stroke;stroke-dasharray:7 6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.mt-top{pointer-events:none}
+.mt-token circle{stroke:var(--b-ink,#294439);stroke-width:2px;vector-effect:non-scaling-stroke}
+.mt-token.tA circle{fill:var(--b-sun,#efc76e)}
+.mt-token.tB circle{fill:var(--b-sky,#9cc9de)}
+.mt-token.tC circle{fill:var(--b-rose,#e7a28f)}
+.mt-token text{font-size:6.4px;fill:var(--b-ink,#294439)}
+.mt-token.chosen circle{stroke:var(--b-pine,#31533e);stroke-width:4px}
+.mt-token.hinted circle{stroke:var(--b-ochre,#b38840);stroke-width:4px;stroke-dasharray:4 3}
+
+/* Closed roads. */
+.mt-close .gb-edge.shut .gb-line{stroke-dasharray:3 4}
+
+/* Words that answer a meeting, That's all or No dot works. */
+.mt-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+
+/* The playground's maps. */
+.mt-maps{display:flex;gap:.5rem;justify-content:center}
+.mt-puzzle .mt-pick{width:84px;min-height:58px;padding:4px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px}
+.mt-puzzle .mt-pick[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 2px var(--b-pine,#31533e)}
