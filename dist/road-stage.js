@@ -23,7 +23,7 @@ const move = action => `data-action="expansion-move" data-move="${esc(JSON.strin
 
 // Which road puzzles have a stage. The checks keep a stage to boards it can draw.
 const KINDS = {
-  'ferry-seats': { kind: 'seats', fits: p => p.mechanic === 'swap' && p.start.length <= 6 },
+  'ferry-seats': { kind: 'seats', fits: p => p.mechanic === 'swap' && seatsFit(p) },
   'ferry-bell': { kind: 'bell', fits: p => p.mechanic === 'clock' && p.parameters.mode !== 'choose_jump' && p.parameters.clocks.length <= 2 },
   'ferry-lights': { kind: 'lights', fits: p => p.mechanic === 'toggle' && (p.parameters.topology === 'cycle' && p.parameters.vertices.length <= 6 || p.parameters.topology === 'complete_binary_tree_depth_2') },
   'marsh-boardwalks': { kind: 'boardwalks', fits: p => p.mechanic === 'route' && p.parameters.mode === 'cover' },
@@ -40,6 +40,10 @@ export function stageKind(e, p) {
 // ferry stand on the bow, under the bell wheel.
 const DECK = { cx: 650, back: 470, front: 645, gap: 225, size: 180 };
 const STANDING = [{ x: 1172, y: 792 }, { x: 1318, y: 792 }];
+// Four to six seats: everyone without a seat needs a place to stand.
+function seatsFit(p) {
+  return Array.isArray(p?.start) && Array.isArray(p.target) && p.start.length <= PARTY.length && p.start.length >= PARTY.length - STANDING.length;
+}
 function seatSpots(n) {
   const start = DECK.cx - (n - 1) * DECK.gap / 4, spots = Array.from({ length: n }, (_, j) => ({ x: start + j * DECK.gap / 2, y: j % 2 ? DECK.front : DECK.back }));
   return [...spots.filter((_, j) => j % 2 === 0), ...spots.filter((_, j) => j % 2)];
@@ -68,7 +72,7 @@ function ferryParty(seats, opts) {
 // Seat i belongs to traveler PARTY[target[i]], in the seats puzzle of this trail.
 function homeSeats(p, ctx) {
   const id = getEncounter('ferry-seats')?.selection[p.band], seats = ctx.pack?.puzzles.find(q => q.id === id);
-  return seats ? seats.target.map(t => PARTY[t]) : PARTY.slice(0, 6);
+  return seatsFit(seats) ? seats.target.map(t => PARTY[t]) : PARTY.slice(0, 6);
 }
 
 // The bell hangs from the bow frame; the bell wheels sit on the frame's board.
@@ -200,8 +204,9 @@ export function stageControls(kind, p, a, ctx = {}) {
     return `<form data-puzzle-form class="motion-form stage-bell-form" id="bell-form">${bellChart(p, a, ctx.clockPresentation ?? {})}<button type="submit" class="primary" data-focus="submit-puzzle">Ring</button></form>${feedback ? `<p class="motion-result" role="status">${esc(feedback)}</p>` : ''}`;
   }
   if (kind === 'lights') {
-    const budget = p.parameters.press_budget, left = budget == null ? null : budget - a.board.presses.length;
-    return `<div class="stage-goal-row"><figure class="stage-goal"><figcaption>Goal</figcaption>${lightsGoal(p)}</figure>${left === null ? '' : `<p class="stage-count" role="status"><strong>${left}</strong> ${left === 1 ? 'press' : 'presses'} left</p>`}</div>`;
+    const budget = p.parameters.press_budget, left = budget == null ? null : budget - a.board.presses.length, on = new Set(a.board.on);
+    const lit = p.parameters.vertices.filter(v => on.has(v)).map(esc).join(', ') || 'none';
+    return `<div class="stage-goal-row"><figure class="stage-goal"><figcaption>Goal</figcaption>${lightsGoal(p)}</figure>${left === null ? '' : `<p class="stage-count"><strong>${left}</strong> ${left === 1 ? 'press' : 'presses'} left</p>`}</div><p class="sr-only" role="status">Lit: ${lit}${left === null ? '' : `. ${left} ${left === 1 ? 'press' : 'presses'} left`}</p>`;
   }
   const info = routeInfo(p, a.board), lit = info ? info.uses.filter(n => n > 0).length : 0;
   return `<p class="stage-count"><strong>${info?.cost ?? 0}</strong> ${info?.cost === 1 ? 'step' : 'steps'}<span>${lit} of ${p.parameters.edges.length} lamps lit</span></p><p class="sr-only" role="status">${a.board.path.map(esc).join(' → ')}</p>`;

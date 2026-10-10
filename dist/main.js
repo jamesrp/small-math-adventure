@@ -44,7 +44,7 @@ function activeEncounter(){
 }
 function save(){warning=persistStore(storage,state,puzzles);}
 function put(p,a){profile().attempts[p.id]=a;save();}
-function go(hash){viewState.save();clockTimeline.leave();selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';reaction=null;solveResult=null;if(location.hash===`#${hash}`)render();else location.hash=hash;}
+function go(hash){viewState.save();clockTimeline.leave();focusDone=false;selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';reaction=null;solveResult=null;if(location.hash===`#${hash}`)render();else location.hash=hash;}
 function render(){
   const savedView=viewState.beforeRender(`${state.activeProfileId||''}:${location.hash}`);
   tileGesture=null;
@@ -321,7 +321,7 @@ document.addEventListener('click',event=>{
   else if(action==='clear')dialog('Clear all adventure saves?','<p>This removes every explorer and their progress here, including the recovery copy. Other websites’ data is untouched. Export first if you want a backup.</p>',[{label:'Keep my saves'},{label:'Clear adventure data',danger:true,run:()=>{try{storage.removeItem(SAVE_KEY);storage.removeItem(BACKUP_KEY);state=emptyStore();warning='';sessionCompleted=new Set();go('profiles');}catch{warning='This browser did not allow data to be cleared.';render();}}}]);
   else if(action==='print')window.print();
 });
-function navigate(){if(!state||viewState.isCurrent())return;selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';reaction=null;if(solveResult?.key!==location.hash)solveResult=null;window.speechSynthesis?.cancel();voiceClip?.pause();render();const heading=document.querySelector('#completion-heading')||document.querySelector('#main h1');heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});if(route()[0]==='play'&&profile()?.sound&&puzzle()){const line=document.querySelector('.lr-listen');if(line)narrate(line.dataset.text,line.dataset.voice);else speak(puzzle());}}
+function navigate(){if(!state||viewState.isCurrent())return;focusDone=false;selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';reaction=null;if(solveResult?.key!==location.hash)solveResult=null;window.speechSynthesis?.cancel();voiceClip?.pause();render();const heading=document.querySelector('#completion-heading')||document.querySelector('#main h1');heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});if(route()[0]==='play'&&profile()?.sound&&puzzle()){const line=document.querySelector('.lr-listen');if(line)narrate(line.dataset.text,line.dataset.voice);else speak(puzzle());}}
 // Restore on popstate before native history scrolling; hashchange also covers
 // direct hash edits. A traversal can fire both, so render each entry only once.
 window.addEventListener('popstate',navigate);

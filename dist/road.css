@@ -77,6 +77,10 @@ body:is([data-stop="marsh"],[data-stop="hollow"],[data-stop="lighthouse"],[data-
    at (--x, --y) in it. Phones show the middle 1200 (x 200–1400). The page
    narrows on short screens so the picture and its controls fit together. */
 .lr-play.is-staged{max-width:min(1000px,max(560px,calc((100svh - 330px) * 16 / 9)))}
+/* The seats' pair buttons and the bell's number chart are taller than one row,
+   so their pictures are a little smaller. */
+.lr-play.staged-seats{max-width:min(1000px,max(560px,calc((100svh - 380px) * 16 / 9)))}
+.lr-play.staged-bell{max-width:min(1000px,max(560px,calc((100svh - 440px) * 16 / 9)))}
 .lr-stage{--x0:0;--vw:1600;position:relative;width:100%;aspect-ratio:16/9;border-radius:22px;overflow:hidden;background:#2a8fc2;box-shadow:0 4px 0 rgba(0,0,0,.12),0 12px 30px -18px rgba(0,0,0,.45);isolation:isolate;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .lr-stage.stage-marsh{background:#0e2a33}
 .stage-world{position:absolute;top:0;bottom:0;left:calc(var(--x0) / var(--vw) * -100%);width:calc(1600 / var(--vw) * 100%)}
@@ -163,9 +167,14 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 .lr-play.is-staged .allowed-pairs{margin:0;padding:0;border:0}
 .lr-play.is-staged .allowed-pairs>div{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 .lr-play.is-staged .lr-scene.is-staged .lr-keeper{margin-top:-46px}
-.lr-scene.is-staged .lr-rival{right:auto;left:12px}
+/* Plume's card sits in the stage's top-left corner, which pieces keep clear;
+   on phones that corner is too large a share of the crop, so it moves below. */
+.lr-scene.is-staged .lr-rival{right:auto;left:12px;pointer-events:none}
+@media (max-width:620px){.lr-scene.is-staged .lr-rival{position:static;align-self:flex-end;margin:10px 8px 0}}
+/* A solved stage locks its pieces without fading them. */
+.lr-stage .stage-piece:disabled{opacity:1}
 .lr-play.is-staged .pair-button{min-height:40px;min-width:0;padding:6px 8px;font-size:.9rem}
-@media (min-width:621px){.lr-play.is-staged .puzzle-workspace{position:relative}.lr-play.is-staged .play-heading{position:absolute;right:0;top:-58px;margin:0}}
+@media (min-width:621px){.lr-play.is-staged .puzzle-workspace{position:relative}.lr-play.is-staged .play-heading{position:absolute;right:0;top:-58px;margin:0}.lr-play.is-staged .lr-bubble{max-width:min(52ch,calc(100% - 270px))}}
 @media (max-width:760px){.lr-play.is-staged .play-layout{grid-template-columns:1fr}.lr-play.is-staged .play-sidebar{display:block}}
 .stage-count{margin:0;display:flex;align-items:baseline;justify-content:center;gap:6px 16px;flex-wrap:wrap;color:var(--rd-ink);font-size:1rem}
 .stage-count strong{font-family:var(--rd-display);font-size:1.6rem;font-weight:400}
@@ -190,6 +199,9 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 .stage-bell-form>button{flex:none;min-width:96px}
 .lr-play.is-staged .bell-number>span:first-of-type{min-height:36px}
 @media (max-width:620px){.stage-bell-form{flex-wrap:wrap}.stage-bell-form>button{flex:1 1 100%}}
+/* Beside the pair buttons and the bell chart, Undo, Restart and Hint stack so
+   the controls keep their width. */
+@media (min-width:761px){:is(.lr-play.staged-seats,.lr-play.staged-bell) .play-sidebar .tool-grid{flex-direction:column;align-items:stretch;gap:8px}:is(.lr-play.staged-seats,.lr-play.staged-bell) .play-sidebar .tool-grid button{min-height:0;height:40px;padding-block:0}}
 .lr-play.is-staged .motion-result{margin:10px auto 0;padding:8px 12px;max-width:560px;text-align:center}
 
 /* Solved strip ------------------------------------------------------------------ */

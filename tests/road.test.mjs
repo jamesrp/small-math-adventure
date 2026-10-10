@@ -305,6 +305,20 @@ test('the ferry and marsh puzzles are played in their picture, with the rest of 
   }
 });
 
+test('a stage only takes boards it can draw, and road routes hint at repeats rather than exact-once walks', async () => {
+  const { stageKind, stageBoard } = await import('../dist/road-stage.js');
+  const seats = getEncounter('ferry-seats');
+  for (const p of fullPack.puzzles.filter(q => q.mechanic === 'swap')) {
+    const kind = stageKind(seats, p);
+    assert.equal(kind === 'seats', p.start.length >= 4 && p.start.length <= 6, `${p.id}: ${p.start.length} seats`);
+    if (kind) assert.doesNotThrow(() => stageBoard(kind, { ...p, band: '45' }, freshAttempt(p), { pack: fullPack, profile: profile('45'), sceneStage: 0 }));
+  }
+  for (const p of puzzles.filter(q => q.mechanic === 'route' && q.parameters.mode === 'cover')) {
+    assert.match(p.hints[0], /twice/, p.id);
+    assert.equal(p.hint, p.hints[0]);
+  }
+});
+
 test('a keeper reaction shows its own face as a still and settles on idle after its clip', () => {
   const idle = { status: 'ready', image: 'keeper/wick/idle.webp' }, oops = { status: 'ready', image: 'keeper/wick/oops.webp' };
   const react = () => media('keeper/wick/oops', 'P', { then: 'keeper/wick/idle', loop: false });

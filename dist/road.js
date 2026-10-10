@@ -254,6 +254,10 @@ export function withCampaignPuzzles(puzzles) {
     if (copy.mechanic === 'route') {
       const best = shortestCover(source.parameters).cost;
       copy.parameters = { ...source.parameters, mode: 'cover', target_cost: best, cost_cap: 3 * best };
+      // The catalog's first hint is about walking each road once; here a repeat is allowed but costs steps.
+      const first = 'Can you walk every road without walking one twice? If not, which roads are worth repeating?';
+      copy.hint = first;
+      if (Array.isArray(copy.hints)) copy.hints = [first, ...copy.hints.slice(1)];
     }
     return [copy];
   }));

@@ -19,6 +19,13 @@ function validRoute(p,b){
   return !!info&&info.cost<=capOf(q)&&(q.mode!=='each_edge_once'||info.uses.every(n=>n<=1));
 }
 function solvedRoute(p,b){if(!validRoute(p,b))return false;const q=p.parameters,i=routeInfo(p,b);return i.uses.every(n=>n>0)&&(q.mode==='cover'||i.cost===q.target_cost)&&(!q.closed||i.current===b.path[0]);}
+// A binary heap of [distance, ...] entries, smallest distance first.
+function heap(){
+  const a=[];
+  return {get size(){return a.length;},
+    push(x){a.push(x);for(let i=a.length-1;i>0;){const j=(i-1)>>1;if(a[j][0]<=a[i][0])break;[a[i],a[j]]=[a[j],a[i]];i=j;}},
+    pop(){const top=a[0],last=a.pop();if(a.length){a[0]=last;for(let i=0;;){const l=2*i+1,r=l+1;let k=i;if(l<a.length&&a[l][0]<a[k][0])k=l;if(r<a.length&&a[r][0]<a[k][0])k=r;if(k===i)break;[a[i],a[k]]=[a[k],a[i]];i=k;}}return top;}};
+}
 // The shortest way to finish covering every road from a walk so far (Dijkstra
 // over junction × roads covered). Returns the junctions still to visit (with the
 // starting junction first when the walk is empty) and the total distance.
@@ -27,11 +34,10 @@ export function shortestCover(q,path=[]){
   let best=null;
   for(const prefix of starts){
     const info=routeInfo({parameters:q},{path:prefix});if(!info)continue;
-    const home=prefix[0],key=(v,m)=>`${v}|${m}`,dist=new Map([[key(info.current,info.mask),0]]),back=new Map(),queue=[[0,info.current,info.mask]];
+    const home=prefix[0],key=(v,m)=>`${v}|${m}`,dist=new Map([[key(info.current,info.mask),0]]),back=new Map(),queue=heap();queue.push([0,info.current,info.mask]);
     let goal=null;
-    while(queue.length){
-      let k=0;for(let i=1;i<queue.length;i++)if(queue[i][0]<queue[k][0])k=i;
-      const [d,v,m]=queue.splice(k,1)[0];
+    while(queue.size){
+      const [d,v,m]=queue.pop();
       if(d>dist.get(key(v,m)))continue;
       if(m===full&&(!q.closed||v===home)){goal=[d,v,m];break;}
       for(const [i,[a,b,w]]of q.edges.entries()){

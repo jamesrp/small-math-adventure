@@ -87,5 +87,5 @@ export function playView(p,a,ctx){
  const e=ctx.encounter?.stop&&ctx.profile?ctx.encounter:null,solved=isSolved(p,a.board),presentation=ctx.clockPresentation;
  ctx={...ctx,ringing:Boolean(presentation&&presentation.count<presentation.total),stage:e?stageKind(e,p):null};
  const board=ctx.stage?sceneStage=>stageBoard(ctx.stage,p,a,{...ctx,sceneStage}):null;
- return `<div data-puzzle-id="${esc(p.id)}" class="caravan-puzzle ${e?`lr-play mood-${esc(e.stop)}`:''} ${ctx.stage?'is-staged':''} ${e&&solved&&!ctx.ringing?'lr-solved':''}" aria-label="${esc(p.familyTitle||(p.mechanic==='tile'?'Tile garden':'Cup swaps'))}">${e?encounterScene(e,ctx.profile,p,a,{reaction:ctx.reaction,changed:ctx.changed,held:ctx.ringing,board}):''}<div class="puzzle-workspace">${puzzleView(p,a,ctx)}</div></div>`;
+ return `<div data-puzzle-id="${esc(p.id)}" class="caravan-puzzle ${e?`lr-play mood-${esc(e.stop)}`:''} ${ctx.stage?`is-staged staged-${ctx.stage}`:''} ${e&&solved&&!ctx.ringing?'lr-solved':''}" aria-label="${esc(p.familyTitle||(p.mechanic==='tile'?'Tile garden':'Cup swaps'))}">${e?encounterScene(e,ctx.profile,p,a,{reaction:ctx.reaction,changed:ctx.changed,held:ctx.ringing,board}):''}<div class="puzzle-workspace">${puzzleView(p,a,ctx)}</div></div>`;
 }
