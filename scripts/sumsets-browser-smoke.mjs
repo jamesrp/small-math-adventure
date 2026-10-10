@@ -1,7 +1,7 @@
 // Plays Card totals through the real interface: cards into trays and out
 // again, a full tray, the strip and its stacked tokens, a route by taps and
-// arrow keys, a finished route that misses a total, a step back, Undo, a
-// solve; the most puzzles with shaded dots and the evenly spaced refusal; the
+// keyboard, taps in page order refused, a finished route that misses a
+// total, a step back, Undo keeping the refusal, a solve; the most puzzles with shaded dots and the evenly spaced refusal; the
 // find-every puzzle with Found already, There is another and That's all;
 // the one-card fit; and the playground. Taps land at a control's centre
 // through real hit-testing. Same environment variables as the other browser
@@ -56,21 +56,36 @@ try {
   assert.equal(await page.locator('.ss-strip').getAttribute('aria-label'), 'Totals: 0, 1, 2, 3, 4, 5');
   assert.ok(await page.locator('.ss-token.k2').count() > 0, 'shared totals stack');
   await shot('trays');
+  assert.equal(await page.locator('.ss-dot.can-go').count(), 0, 'nothing marks the next dot');
+  assert.equal(await page.locator('button.ss-dot').count(), 9, 'every dot is a control');
+  // Taps in page order reach the corner without making a route.
+  await walk([2, 0], [2, 1], [2, 2]);
+  assert.equal(await told(), 'Step right or up from the bottom-left dot.');
+  assert.deepEqual((await board(P)).route, [], 'the refusal clears the taps');
+  // Neighbouring dots meet halfway: a tap goes to the nearer one.
+  await tapEdge(dot(0, 0), 1);
+  await tapEdge(dot(0, 1), -1);
+  assert.deepEqual((await board(P)).route, [[0, 0], [0, 1]], 'taps on either side of the boundary between two dots');
+  await tap(dot(0, 0));
+  assert.deepEqual((await board(P)).route, [], 'a tap on the first dot takes back every tap');
   await walk([0, 0], [0, 1], [0, 2], [1, 2]);
+  await tap(dot(1, 2));
+  assert.equal((await board(P)).route.length, 3, 'a tap on the last dot takes it back');
+  await tap(dot(1, 2));
   await dot(2, 2).focus(); await page.keyboard.press('Enter');
   assert.equal(await told(), 'Not on the route: 4.');
   assert.equal(await page.locator('.ss-token.off').count(), 1, 'the missed total is ringed');
+  assert.deepEqual((await board(P)).route, []);
   assert.equal(await page.locator('#completion-heading').count(), 0);
   await shot('missed');
-  await tap(dot(2, 2));
-  assert.equal((await board(P)).route.length, 4, 'a tap on the last dot steps back');
   await page.locator('[data-action="undo"]').click();
-  assert.equal((await board(P)).route.length, 5, 'Undo takes the step back back');
+  assert.equal((await board(P)).route.length, 4, 'Undo brings back the taps');
+  assert.equal(await told(), 'Not on the route: 4.', 'and keeps the refusal');
   await cards('A', 3, 2);
   assert.deepEqual((await board(P)).route, [], 'a card clears the route');
-  await tap(dot(0, 0));
-  await page.keyboard.press('ArrowUp'); await page.keyboard.press('ArrowRight');
-  assert.deepEqual((await board(P)).route, [[0, 0], [1, 0], [1, 1]], 'arrow keys step up and right');
+  assert.equal(await page.locator('.ss-told').count(), 0, 'and the refusal');
+  await walk([0, 0], [1, 0], [1, 1]);
+  assert.deepEqual((await board(P)).route, [[0, 0], [1, 0], [1, 1]]);
   const focused = await page.evaluate(() => document.activeElement?.className || '');
   assert.match(focused, /ss-dot|ss-card/, 'focus stays on the board');
   await walk([2, 1], [2, 2]);

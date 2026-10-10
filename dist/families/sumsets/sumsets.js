@@ -10,8 +10,9 @@
 // the bottom-left dot to the top-right one, one step right or up at a time:
 // every step adds to the total, so the route's m + n − 1 totals are all
 // different. When every total on the strip lies on one route, no cards of
-// these sizes can make fewer, and the child traces that route to finish a
-// "fewest" puzzle. With m, n ≥ 2 that happens exactly when A and B are evenly
+// these sizes can make fewer, and the child taps that route, dot by dot, to
+// finish a "fewest" puzzle. Nothing marks the legal next dot: every dot is a
+// control, and the claim is judged when the child taps the top-right dot. With m, n ≥ 2 that happens exactly when A and B are evenly
 // spaced with the same gap; a one-card tray only shifts the other, so any B
 // works then. The upper bound is one token per pair.
 import {esc} from '../../expansion-controls.js';
@@ -50,7 +51,8 @@ function validTray(q, t, X) {
 // --- Routes ---------------------------------------------------------------------
 // A route is a list of grid cells [i, j]: row i holds A's i-th card from the
 // bottom, column j B's j-th card from the left. It starts at [0, 0] and each
-// step goes right (j + 1) or up (i + 1).
+// step goes right (j + 1) or up (i + 1). The child's taps are any list of
+// different cells; tapping the top-right cell ends the claim.
 const sameCell = (c, d) => c[0] === d[0] && c[1] === d[1];
 export const routeTotals = (b, route = b.route) => route.map(([i, j]) => b.A[i] + b.B[j]);
 export const climbs = totals => totals.every((x, k) => k === 0 || x > totals[k - 1]);
@@ -60,7 +62,9 @@ export function missed(b) {
   const on = new Set(routeTotals(b));
   return totalsOf(b.A, b.B).filter(x => !on.has(x));
 }
-export const routeProves = b => routeDone(b) && climbs(routeTotals(b)) && missed(b).length === 0;
+// A list of taps that is a route so far: from [0, 0], one step right or up each time.
+export const isRoute = route => route.every((c, k) => k === 0 ? sameCell(c, [0, 0]) : (c[0] - route[k - 1][0]) + (c[1] - route[k - 1][1]) === 1 && c[0] >= route[k - 1][0] && c[1] >= route[k - 1][1]);
+export const routeProves = b => routeDone(b) && isRoute(b.route) && climbs(routeTotals(b)) && missed(b).length === 0;
 // The cells a route may step to next.
 export function nextCells(b) {
   if (!b.route.length) return [[0, 0]];
@@ -74,8 +78,38 @@ function validRoute(q, b) {
   if (!Array.isArray(r)) return false;
   if (!r.length) return true;
   if (!routing(q) || !full(q, b)) return false;
-  return r.every((c, k) => Array.isArray(c) && c.length === 2 && c.every(Number.isInteger) && c[0] >= 0 && c[1] >= 0 && c[0] < b.A.length && c[1] < b.B.length &&
-    (k === 0 ? sameCell(c, [0, 0]) : (c[0] - r[k - 1][0]) + (c[1] - r[k - 1][1]) === 1 && c[0] >= r[k - 1][0] && c[1] >= r[k - 1][1]));
+  if (!r.every(c => Array.isArray(c) && c.length === 2 && c.every(Number.isInteger) && c[0] >= 0 && c[1] >= 0 && c[0] < b.A.length && c[1] < b.B.length)) return false;
+  if (new Set(r.map(c => c.join())).size !== r.length) return false;
+  // A tap on the top-right dot ends the claim: the taps stay only when they prove.
+  const corner = r.findIndex(c => sameCell(c, [b.A.length - 1, b.B.length - 1]));
+  return corner < 0 || (corner === r.length - 1 && routeProves(b));
+}
+// A refusal answers the last claim and stays until a card changes:
+// {kind: 'steps'} when the taps were not a route, {kind: 'missed', totals}
+// when a route missed those totals (so these cards can't do it).
+function validTold(q, b) {
+  const t = b.told;
+  if (t === null) return true;
+  if (!object(t) || !routing(q) || !full(q, b)) return false;
+  if (t.kind === 'steps') return Object.keys(t).length === 1;
+  if (t.kind !== 'missed' || Object.keys(t).sort().join() !== 'kind,totals' || !Array.isArray(t.totals)) return false;
+  return missedSets(b.A, b.B).has(JSON.stringify(t.totals)) && t.totals.length > 0;
+}
+// Every list of totals some route through these trays misses.
+const missCache = new Map();
+function missedSets(A, B) {
+  const key = `${A}|${B}`;
+  if (missCache.has(key)) return missCache.get(key);
+  const out = new Set();
+  (function go(route) {
+    const [i, j] = route.at(-1);
+    if (i === A.length - 1 && j === B.length - 1) { out.add(JSON.stringify(missed({A, B, route}))); return; }
+    if (j + 1 < B.length) go([...route, [i, j + 1]]);
+    if (i + 1 < A.length) go([...route, [i + 1, j]]);
+  })([[0, 0]]);
+  if (missCache.size > 500) missCache.clear();
+  missCache.set(key, out);
+  return out;
 }
 
 // --- Designs ---------------------------------------------------------------------
@@ -116,17 +150,17 @@ export function designs(q) {
 export const answersOf = q => designs(q).map(d => d.B);
 
 // --- Boards -------------------------------------------------------------------------
-// fewest, fit, playground: {A, B, route}     most: {A, B}
+// fewest, fit, playground: {A, B, route, told}     most: {A, B}
 // every: {A, B, found, more, again, done}. `found` lists the B trays found, in
 // order; a B that gives the target count joins it the moment it is made.
 // `more` answers a That's all too soon and stays until a new B is found;
 // `again` says the B just made was found already.
-const KEYS = {fewest: 'A,B,route', fit: 'A,B,route', playground: 'A,B,route', most: 'A,B', every: 'A,B,again,done,found,more'};
+const KEYS = {fewest: 'A,B,route,told', fit: 'A,B,route,told', playground: 'A,B,route,told', most: 'A,B', every: 'A,B,again,done,found,more'};
 function fresh(p) {
   const q = p.parameters, A = [...(fixedOf(q, 'A') || [])], B = [...(fixedOf(q, 'B') || [])];
   if (q.mode === 'every') return {A, B, found: [], more: false, again: false, done: false};
   if (q.mode === 'most') return {A, B};
-  return {A, B, route: []};
+  return {A, B, route: [], told: null};
 }
 function validEvery(q, b) {
   const answers = answersOf(q), keys = answers.map(X => X.join());
@@ -146,7 +180,7 @@ function valid(p, b) {
   if (!TRAYS.every(t => validTray(q, t, b[t]))) return false;
   if (q.mode === 'every') return validEvery(q, b);
   if (q.mode === 'most') return true;
-  return validRoute(q, b);
+  return validRoute(q, b) && validTold(q, b);
 }
 function solved(p, b) {
   const q = p.parameters;
@@ -166,7 +200,7 @@ function cardMove(q, b, action) {
   else if (X.length < capOf(q, t)) next = [...X, k].sort((x, y) => x - y);
   else return null;
   const board = {...b, [t]: next};
-  if (routing(q)) return {...board, route: []};
+  if (routing(q)) return {...board, route: [], told: null};
   if (q.mode !== 'every') return board;
   const A = board.A, B = board.B;
   if (B.length === q.trays.B.size && totalsOf(A, B).length === q.target) {
@@ -180,8 +214,16 @@ function move(p, b, action) {
   if (action.type === 'card') return cardMove(q, b, action);
   if (routing(q) && action.type === 'step') {
     const c = action.cell;
-    if (!full(q, b) || !Array.isArray(c) || !nextCells(b).some(d => sameCell(c, d))) return null;
-    return {...b, route: [...b.route, [c[0], c[1]]]};
+    if (!full(q, b) || !Array.isArray(c) || c.length !== 2 || !c.every(Number.isInteger) || c[0] < 0 || c[1] < 0 || c[0] >= b.A.length || c[1] >= b.B.length) return null;
+    const at = b.route.findIndex(d => sameCell(c, d));
+    // A tap on a dot already tapped takes the taps back to just before it.
+    if (at >= 0) return {...b, route: b.route.slice(0, at)};
+    const next = {...b, route: [...b.route, [c[0], c[1]]]};
+    if (!routeDone(next)) return next;
+    // The top-right dot ends the claim, judged at once.
+    if (routeProves(next)) return {...next, told: null};
+    if (!isRoute(next.route) || !climbs(routeTotals(next))) return {...b, route: [], told: {kind: 'steps'}};
+    return {...b, route: [], told: {kind: 'missed', totals: missed(next)}};
   }
   if (routing(q) && action.type === 'back') return b.route.length ? {...b, route: b.route.slice(0, -1)} : null;
   if (q.mode === 'every' && action.type === 'all' && !b.more) {
@@ -205,6 +247,7 @@ function cardHint(q, b, d) {
   return null;
 }
 function routeHint(b) {
+  if (!isRoute(b.route)) return {type: 'move', action: {type: 'back'}, text: 'Take back the last dot.'};
   if (!b.route.length) return {type: 'move', action: {type: 'step', cell: [0, 0]}, text: 'Start at the bottom-left dot.'};
   const [c] = nextCells(b), [i] = b.route.at(-1);
   return {type: 'move', action: {type: 'step', cell: c}, text: `Step ${c[0] > i ? 'up' : 'right'} to ${b.A[c[0]] + b.B[c[1]]}.`};
@@ -261,19 +304,17 @@ function grid(q, b, done, act) {
   const m = b.A.length, n = b.B.length;
   if (!m || !n) return '';
   const counts = pairCounts(b.A, b.B), route = routing(q) ? b.route : [];
-  const live = routing(q) && full(q, b) && !done, nexts = live ? nextCells(b) : [];
-  const off = routing(q) && routeDone(b) ? missed(b) : [];
+  // Every dot is a control while a route can be tapped; nothing marks the next one.
+  const live = routing(q) && full(q, b) && !done;
+  const off = routing(q) && b.told?.kind === 'missed' ? b.told.totals : [];
   const cells = [];
   for (let i = m - 1; i >= 0; i--) for (let j = 0; j < n; j++) {
-    const x = b.A[i] + b.B[j], at = route.findIndex(c => sameCell(c, [i, j])), end = at >= 0 && at === route.length - 1;
-    const go = nexts.some(c => sameCell(c, [i, j])), back = live && end;
-    const cls = ['ss-dot', at >= 0 ? 'on' : '', go ? 'can-go' : '', !routing(q) && counts.get(x) > 1 ? 'repeat' : '', off.includes(x) ? 'off' : '',
-      act?.type === 'step' && sameCell(act.cell, [i, j]) ? 'hinted' : ''].filter(Boolean).join(' ');
+    const x = b.A[i] + b.B[j], at = route.findIndex(c => sameCell(c, [i, j]));
+    const cls = ['ss-dot', at >= 0 ? 'on' : '', !routing(q) && counts.get(x) > 1 ? 'repeat' : '', off.includes(x) ? 'off' : '',
+      act?.type === 'step' && sameCell(act.cell, [i, j]) ? 'hinted' : '', act?.type === 'back' && at >= 0 && at === route.length - 1 ? 'hinted' : ''].filter(Boolean).join(' ');
     const name = `${b.A[i]} plus ${b.B[j]} is ${x}${at >= 0 ? ', on the route' : ''}`;
-    if (go || back) {
-      const action = go ? {type: 'step', cell: [i, j]} : {type: 'back'};
-      cells.push(`<button type="button" class="${cls}" ${moveAttrs(action, `ss-dot-${i}-${j}`)} aria-label="${esc(`${name}. ${go ? (route.length ? 'Step here' : 'Start here') : 'Step back'}`)}">${x}</button>`);
-    } else cells.push(`<span class="${cls}" role="img" aria-label="${esc(name)}">${x}</span>`);
+    if (live) cells.push(`<button type="button" class="${cls}" ${moveAttrs({type: 'step', cell: [i, j]}, `ss-dot-${i}-${j}`)} aria-label="${esc(`${name}${at >= 0 ? '. Take back from here' : ''}`)}"><b>${x}</b></button>`);
+    else cells.push(`<span class="${cls}" role="img" aria-label="${esc(name)}"><b>${x}</b></span>`);
   }
   const pts = route.map(([i, j]) => `${f(j + 0.5)},${f(m - 1 - i + 0.5)}`).join(' ');
   const rows = Array.from({length: m}, (_, r) => `<line x1="0.5" y1="${r + 0.5}" x2="${n - 0.5}" y2="${r + 0.5}"/>`).join('');
@@ -284,7 +325,8 @@ function grid(q, b, done, act) {
   return `<div class="ss-grid" style="--m:${m};--n:${n}"><div class="ss-alabels" aria-hidden="true">${aLabels}</div><div class="ss-dots">${line}<div class="ss-cells" role="group" aria-label="Grid of totals">${cells.join('')}</div></div><span></span><div class="ss-blabels" aria-hidden="true">${bLabels}</div></div>`;
 }
 function told(q, b) {
-  if (routing(q) && routeDone(b)) { const off = missed(b); if (off.length) return `Not on the route: ${listWords(off)}.`; }
+  if (routing(q) && b.told?.kind === 'steps') return 'Step right or up from the bottom-left dot.';
+  if (routing(q) && b.told?.kind === 'missed') return `Not on the route: ${listWords(b.told.totals)}.`;
   if (q.mode === 'most' && q.even && full(q, b) && totalsOf(b.A, b.B).length === b.A.length * b.B.length) {
     const uneven = TRAYS.filter(t => !evenlySpaced(b[t]));
     if (uneven.length) return `${listWords(uneven)} ${uneven.length > 1 ? 'are' : 'is'} not evenly spaced.`;
@@ -295,7 +337,7 @@ function told(q, b) {
 function render(p, a) {
   const q = p.parameters, b = a.board, done = solved(p, b);
   const h = a.hintLevel >= 2 && !done && q.mode !== 'playground' ? hint(p, b) : null, act = h?.type === 'move' ? h.action : null;
-  const off = routing(q) && routeDone(b) ? missed(b) : [];
+  const off = routing(q) && b.told?.kind === 'missed' ? b.told.totals : [];
   const found = q.mode === 'every' && b.found.length ? `<div class="ss-found" role="group" aria-label="${esc(`Found: ${b.found.map(X => listWords(X)).join('; ')}`)}">${b.found.map(X => `<span class="ss-pair" aria-hidden="true">${X.map(x => `<i>${x}</i>`).join('')}</span>`).join('')}</div>` : '';
   const all = q.mode === 'every' && !done ? `<button type="button" class="secondary ss-button${act?.type === 'all' ? ' hinted' : ''}" ${moveAttrs({type: 'all'}, 'ss-all')}${b.more ? ' disabled' : ''}>That’s all</button>` : '';
   const note = told(q, b);
@@ -303,29 +345,18 @@ function render(p, a) {
   return `<div class="ss-puzzle${done ? ' solved' : ''}" data-mechanic-wire="sumsets">${trayRow(q, b, 'A', done, act)}${trayRow(q, b, 'B', done, act)}${found || all ? `<div class="ss-bar">${found}${all}</div>` : ''}${strip(p, b, off)}${grid(q, b, done, act)}${note ? `<p class="ss-told">${esc(note)}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 
-// Arrow keys on the grid extend the route: right and up.
-function wire(root, p, api) {
-  if (!routing(p.parameters)) return;
-  root.addEventListener('keydown', e => {
-    if (!['ArrowRight', 'ArrowUp'].includes(e.key) || e.altKey || e.ctrlKey || e.metaKey || !e.target.closest?.('.ss-grid')) return;
-    const b = api.attempt().board, q = p.parameters;
-    if (!full(q, b) || solved(p, b)) return;
-    const [i, j] = b.route.at(-1) || [-1, -1];
-    const cell = !b.route.length ? [0, 0] : e.key === 'ArrowRight' ? [i, j + 1] : [i + 1, j];
-    if (!nextCells(b).some(c => sameCell(c, cell))) return;
-    e.preventDefault();
-    api.apply({type: 'step', cell});
-  });
-}
-
 export const sumsetsMechanics = {
   sumsets: {
-    fresh, valid, solved, move, hint, render, wire,
+    fresh, valid, solved, move, hint, render,
     reset: p => { lastTotals.delete(p.id); },
     // Undo keeps the B trays already found, and a That's all answered too
-    // soon stays answered until a new one is found.
+    // soon stays answered until a new one is found. A refused route stays
+    // refused until a card changes.
     carry(p, from, to) {
-      if (p.parameters.mode !== 'every' || !object(from) || !object(to) || !Array.isArray(from.found)) return to;
+      const q = p.parameters;
+      if (!object(from) || !object(to)) return to;
+      if (routing(q)) return from.told && TRAYS.every(t => Array.isArray(from[t]) && Array.isArray(to[t]) && same(from[t], to[t])) ? {...to, told: from.told} : to;
+      if (q.mode !== 'every' || !Array.isArray(from.found)) return to;
       return {...to, found: from.found.map(X => [...X]), more: Boolean(from.more), done: false};
     },
     noHint: p => p.parameters.mode === 'playground'

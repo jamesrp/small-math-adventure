@@ -49,21 +49,33 @@ test('trays: a tap puts a card in or takes it out; a full tray takes no more; a 
   assert.equal(move(q, freshAttempt(q), card('A', 0)[0]), null, 'A is given');
 });
 
-test('fewest: a route climbs; a finished route that misses a total names it; one through every total solves', () => {
+test('fewest: every dot is a control; the claim is judged at the top-right dot; a refusal clears the taps and stays through Undo', () => {
   const p = byId('sumsets-04');
   let a = play(p, freshAttempt(p), ...card('A', 0, 1, 3), ...card('B', 0, 1, 2));
-  assert.equal(move(p, a, {type: 'step', cell: [0, 1]}), null, 'a route starts at the corner');
+  assert.doesNotMatch(view(p, a), /can-go/, 'nothing marks the next dot');
+  // Taps in page order (top row first) reach the corner without being a route.
+  const order = play(p, a, ...steps([2, 0], [2, 1], [2, 2]));
+  assert.deepEqual(order.board.route, []);
+  assert.deepEqual(order.board.told, {kind: 'steps'});
+  assert.match(view(p, order), /Step right or up from the bottom-left dot\./);
+  const jump = play(p, a, ...steps([0, 0], [1, 1], [2, 2]));
+  assert.deepEqual(jump.board.told, {kind: 'steps'}, 'a diagonal step is refused');
+  // A route through a design with an extra total misses it.
   a = play(p, a, ...steps([0, 0], [0, 1], [0, 2], [1, 2]));
   assert.deepEqual(nextCells(a.board), [[2, 2]]);
-  assert.equal(move(p, a, {type: 'step', cell: [1, 1]}), null, 'no step left');
-  a = play(p, a, ...steps([2, 2]));
+  a = play(p, a, ...steps([0, 1]));
+  assert.deepEqual(a.board.route, [[0, 0]], 'a tap on a tapped dot takes the taps back to it');
+  a = play(p, a, ...steps([0, 1], [0, 2], [1, 2], [2, 2]));
   assert.equal(isSolved(p, a.board), false);
-  assert.deepEqual(missed(a.board), [4]);
+  assert.deepEqual(a.board.route, [], 'the refusal clears the taps');
+  assert.deepEqual(a.board.told, {kind: 'missed', totals: [4]});
+  assert.equal(missed({...a.board, route: [[0, 0], [0, 1], [0, 2], [1, 2], [2, 2]]}).join(), '4');
   assert.match(view(p, a), /Not on the route: 4\./);
-  a = play(p, a, {type: 'back'});
-  assert.equal(a.board.route.length, 4);
+  const back = {board: sumsetsMechanics.sumsets.carry(p, a.board, undo(a).board)};
+  assert.deepEqual(back.board.told, {kind: 'missed', totals: [4]}, 'Undo keeps the refusal');
+  assert.equal(back.board.route.length, 4);
   a = play(p, a, ...card('A', 3));
-  assert.deepEqual(a.board.route, [], 'a card clears the route');
+  assert.equal(a.board.told, null, 'a card change clears it');
   a = play(p, a, ...card('A', 2), ...steps([0, 0], [1, 0], [1, 1], [2, 1], [2, 2]));
   assert.ok(isSolved(p, a.board));
   assert.equal(move(p, a, card('A', 2)[0]), null, 'nothing after a solve');
@@ -73,7 +85,7 @@ test('fit: with an uneven B only one A card fits every total on one route', () =
   const p = byId('sumsets-07');
   let a = play(p, freshAttempt(p), ...card('A', 0, 1), ...steps([0, 0], [0, 1], [0, 2], [1, 2]));
   assert.equal(isSolved(p, a.board), false);
-  assert.deepEqual(missed(a.board), [2]);
+  assert.deepEqual(a.board.told, {kind: 'missed', totals: [2]});
   a = play(p, a, ...card('A', 1), ...steps([0, 0], [0, 1], [0, 2]));
   assert.ok(isSolved(p, a.board));
 });
@@ -135,7 +147,13 @@ test('hints: idea first, then cards and route; they reach a solve; memoised', ()
 test('saves: forged boards are rejected', () => {
   const p = byId('sumsets-04'), f = freshAttempt(p).board;
   assert.ok(validBoard(p, f));
-  for (const board of [{...f, A: [2, 1]}, {...f, A: [1, 2, 3, 4]}, {...f, route: [[0, 0]]}, {...f, extra: 1}, {A: [], B: []}]) assert.equal(validBoard(p, board), false);
+  for (const board of [{...f, A: [2, 1]}, {...f, A: [1, 2, 3, 4]}, {...f, route: [[0, 0]]}, {...f, told: {kind: 'steps'}}, {...f, extra: 1}, {A: [], B: []}]) assert.equal(validBoard(p, board), false);
+  const full = {A: [0, 1, 3], B: [0, 1, 2], route: [], told: null};
+  assert.ok(validBoard(p, {...full, route: [[2, 0], [0, 1]]}), 'any taps short of the corner');
+  for (const board of [{...full, route: [[0, 0], [0, 0]]}, {...full, route: [[2, 2], [0, 0]]}, {...full, route: [[0, 0], [0, 1], [0, 2], [1, 2], [2, 2]]}, {...full, told: {kind: 'missed', totals: [6]}}, {...full, told: {kind: 'missed', totals: [0]}}, {...full, told: {kind: 'missed', totals: [3, 4]}}, {...full, told: {kind: 'maybe'}}]) assert.equal(validBoard(p, board), false);
+  for (const x of [2, 3, 4]) assert.ok(validBoard(p, {...full, told: {kind: 'missed', totals: [x]}}), `a route can miss ${x}`);
+  const fewest = {A: [0, 1, 2], B: [0, 1, 2], route: [], told: null};
+  assert.equal(validBoard(p, {...fewest, told: {kind: 'missed', totals: [4]}}), false, 'no missed totals when every total fits');
 });
 
 test('render: trays, strip, grid, the hinted card, and no objective repeated on the board', () => {
@@ -143,7 +161,7 @@ test('render: trays, strip, grid, the hinted card, and no objective repeated on 
   const a = play(p, freshAttempt(p), ...card('B', 1, 3));
   const html = view(p, a);
   assert.match(html, /class="ss-strip" role="img" aria-label="Totals: 1, 3, 5"/);
-  assert.match(html, /aria-label="0 plus 1 is 1\. Start here"/);
+  assert.match(html, /<button type="button" class="ss-dot" [^>]*aria-label="2 plus 3 is 5"/, 'every dot is a control');
   assert.equal((html.match(/class="ss-card[ "]/g) || []).length, 20);
   assert.match(view(p, {...freshAttempt(p), hintLevel: 2}), /ss-card hinted/);
   const g = byId('sumsets-playground');

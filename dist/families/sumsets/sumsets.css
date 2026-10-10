@@ -55,13 +55,13 @@
 .ss-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .ss-lines line{stroke:var(--b-line,#d0d6bd);stroke-width:2px;vector-effect:non-scaling-stroke}
 .ss-lines polyline{fill:none;stroke:var(--b-pine,#31533e);stroke-width:7px;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
-.ss-puzzle .ss-dot{position:relative;z-index:3;display:grid;place-items:center;justify-self:center;align-self:center;width:calc(var(--cell) - 10px);height:calc(var(--cell) - 10px);min-height:0;padding:0;border-radius:50%;background:var(--b-card,#fffdf5);border:2px solid var(--b-ink,#294439);color:var(--b-ink,#294439);font:400 1.05rem/1 var(--b-display,Georgia,serif);box-shadow:none}
-.ss-puzzle .ss-dot.can-go{background:var(--b-good-soft,#e2ecd6);border-color:var(--b-pine,#31533e);box-shadow:0 0 0 3px var(--b-good-soft,#e2ecd6)}
-.ss-puzzle .ss-dot.on{background:var(--b-pine,#31533e);border-color:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9)}
-.ss-puzzle .ss-dot.repeat{background:#f3e3bf;border-color:var(--b-ochre,#b38840)}
-.ss-puzzle .ss-dot.off{border:3px solid var(--b-ochre,#b38840);background:#f3e3bf}
-.ss-puzzle .ss-dot.hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
-.ss-puzzle.solved .ss-dot.on{box-shadow:0 0 0 3px var(--b-good-soft,#e2ecd6)}
+.ss-puzzle .ss-dot{position:relative;z-index:3;display:grid;place-items:center;width:var(--cell);height:var(--cell);min-width:0;min-height:0;padding:0;border:0;border-radius:50%;background:transparent;box-shadow:none;color:var(--b-ink,#294439)}
+.ss-dot>b{display:grid;place-items:center;width:calc(var(--cell) - 10px);height:calc(var(--cell) - 10px);border-radius:50%;background:var(--b-card,#fffdf5);border:2px solid var(--b-ink,#294439);box-sizing:border-box;font:400 1.05rem/1 var(--b-display,Georgia,serif)}
+.ss-dot.on>b{background:var(--b-pine,#31533e);border-color:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9)}
+.ss-dot.repeat>b{background:#f3e3bf;border-color:var(--b-ochre,#b38840)}
+.ss-dot.off>b{border:3px solid var(--b-ochre,#b38840);background:#f3e3bf}
+.ss-puzzle .ss-dot.hinted>b{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.ss-puzzle.solved .ss-dot.on>b{box-shadow:0 0 0 3px var(--b-good-soft,#e2ecd6)}
 
 /* Words that answer a finished route, That's all or a tray. */
 .ss-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}

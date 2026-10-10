@@ -6,8 +6,10 @@
 // designs recomputed by brute force and by their structure (common gaps,
 // disjoint jumps, B's jump); every route in every solving design climbs and
 // passes every total, and no route does in any other design; witnesses
-// played as moves; hint chains from fresh, after a wrong card, after a
-// finished route that misses, after a wrong That's all; illegal moves;
+// played as moves; taps in page order, the corner first and a diagonal step
+// refused; refusals kept through Undo; hint chains from fresh, after a wrong
+// card, after a finished route that misses, after taps that are no route,
+// after a wrong That's all; illegal moves;
 // forged saves; the playground. Run: node scripts/validate-sumsets.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
@@ -132,7 +134,8 @@ export async function validateSumsets() {
     // No predict-the-count: no puzzle names its fewest or most in a visible line, a title or a first hint.
     const row = TABLE[p.id];
     assert.equal(q.mode, row.mode, `${p.id}: kind`);
-    if (q.mode !== 'every') for (const text of [p.visibleObjective, p.title, p.hints[0], p.objective]) assert.ok(!new RegExp(`\\b${row.totals}\\b`).test(text), `${p.id}: “${text}” does not give the count ${row.totals}`);
+    const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen'];
+    if (q.mode !== 'every') for (const text of [p.visibleObjective, p.title, p.hints[0], p.objective]) assert.ok(!new RegExp(`\\b(${row.totals}|${WORDS[row.totals]})\\b`, 'i').test(text), `${p.id}: “${text}” does not give the count ${row.totals}`);
 
     // Every design the trays allow, by brute force over bitmasks.
     const designs = [];
@@ -185,12 +188,33 @@ export async function validateSumsets() {
       for (const d of good.slice(0, 12)) { const b = build(p, fresh, d.A, d.B); for (const r of routes(d.A.length, d.B.length)) assert.ok(isSolved(p, walk(p, b, r.slice(0)).board), `${p.id}: any route solves ${d.A} + ${d.B}`); }
       // A design that is not the fewest: a finished route misses a total and does not solve; hints still finish.
       const bad = designs.find(d => !good.includes(d) && d.A.length > 1);
-      let wrong = build(p, fresh, bad.A, bad.B);
-      wrong = walk(p, wrong, routes(bad.A.length, bad.B.length)[0]);
+      const built = build(p, fresh, bad.A, bad.B), r = routes(bad.A.length, bad.B.length)[0];
+      const almost = walk(p, built, r.slice(0, -1));
+      const wrong = play(p, almost, {type: 'step', cell: r.at(-1)});
       assert.ok(!isSolved(p, wrong.board), `${p.id}: a route through a design with too many totals does not solve`);
+      assert.deepEqual(wrong.board.route, [], `${p.id}: the refusal clears the taps`);
+      assert.equal(wrong.board.told.kind, 'missed', `${p.id}: it names the missed totals`);
+      assert.equal(wrong.board.told.totals.length, bad.c - (bad.A.length + bad.B.length - 1), `${p.id}: as many as the extra totals`);
+      const kept = mechanicFor(p).carry(p, wrong.board, undo(wrong).board);
+      assert.deepEqual(kept.told, wrong.board.told, `${p.id}: Undo keeps the refusal`);
+      assert.ok(validBoard(p, kept), `${p.id}: and the board stays valid`);
       hintSteps += hintsSolve(p, wrong, 'after a route that misses');
-      const back = play(p, wrong, {type: 'back'});
-      assert.equal(back.board.route.length, wrong.board.route.length - 1, `${p.id}: back takes one step`);
+      const back = play(p, almost, {type: 'back'});
+      assert.equal(back.board.route.length, almost.board.route.length - 1, `${p.id}: back takes one step`);
+      // A certificate that can fail: page order (top row first), the corner first, and a diagonal are refused.
+      const g = good[0], ready = build(p, fresh, g.A, g.B), m = g.A.length, n = g.B.length, corner = [m - 1, n - 1];
+      if (m > 1) {
+        const page = walk(p, ready, Array.from({length: n}, (_, j) => [m - 1, j]));
+        assert.ok(!isSolved(p, page.board) && page.board.told?.kind === 'steps', `${p.id}: taps in page order do not solve`);
+        hintSteps += hintsSolve(p, page, 'after taps in page order');
+        if (n > 1) {
+          const diagonal = walk(p, ready, [[0, 0], [1, 1]]);
+          assert.ok(!isSolved(p, diagonal.board), `${p.id}: a diagonal step is no route`);
+          hintSteps += hintsSolve(p, diagonal, 'after a diagonal step');
+        }
+      }
+      const first = play(p, ready, {type: 'step', cell: corner});
+      assert.ok(!isSolved(p, first.board) && first.board.told?.kind === 'steps', `${p.id}: the corner alone does not solve`);
     }
     hintSteps += hintsSolve(p, fresh, 'from fresh');
     // A wrong card first.
@@ -223,10 +247,11 @@ function checkRefusals(p, fresh, d) {
     ...(fixedT ? [[{...B, [fixedT]: []}, 'a given tray emptied']] : [])
   ];
   if (q.mode !== 'most') {
-    forged.push([{...B, route: [[0, 0]]}, 'a route before the trays are full']);
-    const full = build(p, fresh, d.A, d.B).board;
-    forged.push([{...full, route: [[0, 1]]}, 'a route that does not start at the corner'], [{...full, route: [[0, 0], [1, 1]]}, 'a diagonal step'], [{...full, route: [[0, 0], [0, 0]]}, 'a step in place'], [{...full, route: [[0, 0], [0, 9]]}, 'a step off the grid'], [{...full, route: 'up'}, 'a route that is not a list']);
-    if (full.B.length > 1) forged.push([{...full, route: [[0, 0], [0, 1], [0, 0]]}, 'a step back left']);
+    forged.push([{...B, route: [[0, 0]]}, 'a route before the trays are full'], [{...B, told: {kind: 'steps'}}, 'a refusal before the trays are full']);
+    const full = build(p, fresh, d.A, d.B).board, m = full.A.length, n = full.B.length;
+    assert.ok(validBoard(p, {...full, route: [[m - 1, 0]]}), `${p.id}: any taps short of the corner are kept`);
+    forged.push([{...full, route: [[0, 0], [0, 0]]}, 'a dot tapped twice'], [{...full, route: [[0, 0], [0, 9]]}, 'a tap off the grid'], [{...full, route: 'up'}, 'a route that is not a list'], [{...full, route: [[m - 1, n - 1], [0, 0]]}, 'taps past the corner'], [{...full, route: [[m - 1, n - 1]]}, 'the corner kept without a proof'],
+      [{...full, told: {kind: 'missed', totals: [99]}}, 'a missed total off the strip'], [{...full, told: {kind: 'missed', totals: []}}, 'a refusal that misses nothing on a design that fits'], [{...full, told: {kind: 'why'}}, 'an unknown refusal'], [{...full, told: 'no'}, 'a refusal that is not a record']);
   }
   for (const [board, why] of forged) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
 }

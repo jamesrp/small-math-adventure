@@ -60,10 +60,10 @@
      }
     }
    },
-   "objective": "Put cards in A and B, watch the totals land on the strip, and trace routes through the grid.",
+   "objective": "Put cards in A and B, watch the totals land on the strip, and tap routes through the grid.",
    "visibleObjective": "",
-   "instruction": "Put cards in A and B, watch the totals land on the strip, and trace routes through the grid.",
-   "controls": "Tap cards to put them in A and B, up to six in each, and tap again to take them out. Tap the bottom-left dot of the grid to start a route, then a dot to its right or above it.",
+   "instruction": "Put cards in A and B, watch the totals land on the strip, and tap routes through the grid.",
+   "controls": "Tap cards to put them in A and B, up to six in each, and tap again to take them out. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it.",
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
@@ -114,15 +114,15 @@
      }
     }
    },
-   "objective": "Choose cards for A and B that make as few different totals as you can, then trace a route through the grid that passes every total.",
+   "objective": "Choose cards for A and B that make as few different totals as you can, then tap a route through the grid that passes every total.",
    "visibleObjective": "As few totals as you can, all on one route.",
-   "instruction": "Choose cards for A and B that make as few different totals as you can, then trace a route through the grid that passes every total.",
-   "controls": "Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Tap the bottom-left dot of the grid to start a route, then a dot to its right or above it to step; tap the route’s last dot to step back. Arrow keys step right and up. Undo takes back the last move.",
+   "instruction": "Choose cards for A and B that make as few different totals as you can, then tap a route through the grid that passes every total.",
+   "controls": "Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it. Tap a dot of your route to take back the taps from there. Undo takes back the last move.",
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
     "A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot. Each step makes the total bigger, so the totals on a route are all different.",
-    "When every total on the strip is on your route, no cards of these sizes can make fewer totals. Finish by tracing that route."
+    "When every total on the strip is on your route, no cards of these sizes can make fewer totals. Finish by tapping that route; the top-right dot checks it."
    ],
    "idea": "Pairs land on the same total when B jumps by as much as A does; a route through the grid shows no two cards can do with fewer.",
    "prerequisites": "Recognise 0–9; the strip does the adding, and a child who adds to 18 can check it. A grown-up can read How to play.",
@@ -259,15 +259,15 @@
      }
     }
    },
-   "objective": "Choose cards for A and B that make as few different totals as you can, then trace a route through the grid that passes every total.",
+   "objective": "Choose cards for A and B that make as few different totals as you can, then tap a route through the grid that passes every total.",
    "visibleObjective": "As few totals as you can, all on one route.",
-   "instruction": "Choose cards for A and B that make as few different totals as you can, then trace a route through the grid that passes every total.",
-   "controls": "Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Tap the bottom-left dot of the grid to start a route, then a dot to its right or above it to step; tap the route’s last dot to step back. Arrow keys step right and up. Undo takes back the last move.",
+   "instruction": "Choose cards for A and B that make as few different totals as you can, then tap a route through the grid that passes every total.",
+   "controls": "Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it. Tap a dot of your route to take back the taps from there. Undo takes back the last move.",
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
     "A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot. Each step makes the total bigger, so the totals on a route are all different.",
-    "When every total on the strip is on your route, no cards of these sizes can make fewer totals. Finish by tracing that route."
+    "When every total on the strip is on your route, no cards of these sizes can make fewer totals. Finish by tapping that route; the top-right dot checks it."
    ],
    "idea": "With two cards in A and three in B the fewest is 4, and a route through the grid shows it.",
    "prerequisites": "Follow right and up steps on a grid, and see that a route’s totals keep growing.",
@@ -341,15 +341,15 @@
      }
     }
    },
-   "objective": "Choose cards for A and B that make as few different totals as you can, then trace a route through the grid that passes every total.",
+   "objective": "Choose cards for A and B that make as few different totals as you can, then tap a route through the grid that passes every total.",
    "visibleObjective": "As few totals as you can, all on one route.",
-   "instruction": "Choose cards for A and B that make as few different totals as you can, then trace a route through the grid that passes every total.",
-   "controls": "Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Tap the bottom-left dot of the grid to start a route, then a dot to its right or above it to step; tap the route’s last dot to step back. Arrow keys step right and up. Undo takes back the last move.",
+   "instruction": "Choose cards for A and B that make as few different totals as you can, then tap a route through the grid that passes every total.",
+   "controls": "Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it. Tap a dot of your route to take back the taps from there. Undo takes back the last move.",
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
     "A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot. Each step makes the total bigger, so the totals on a route are all different.",
-    "When every total on the strip is on your route, no cards of these sizes can make fewer totals. Finish by tracing that route."
+    "When every total on the strip is on your route, no cards of these sizes can make fewer totals. Finish by tapping that route; the top-right dot checks it."
    ],
    "idea": "The fewest for three and three is 5, and it needs A and B to jump by the same amount every time.",
    "prerequisites": "Choose several cards with a plan in mind and keep track of which pairs share a total.",
@@ -445,7 +445,7 @@
    "idea": "The B trays that give the fewest totals are exactly the ones that jump by A’s jump.",
    "prerequisites": "Keep the trays already found in mind and decide when none is left.",
    "hints": [
-    "What do the B trays you have found have in common?",
+    "Try a B: which pairs land on the same total?",
     "Each one found has the same jump between its two cards.",
     "Every B that jumps by 3 works: from 0 and 3 up to 6 and 9."
    ],
@@ -589,17 +589,17 @@
    "objective": "Choose cards for A so that one route through the grid passes every total.",
    "visibleObjective": "Every total on one route.",
    "instruction": "Choose cards for A so that one route through the grid passes every total.",
-   "controls": "Tap a card to put it in A, and tap it again to take it out. Tap the bottom-left dot of the grid to start a route, then a dot to its right or above it to step; tap the route’s last dot to step back. Arrow keys step right and up. Undo takes back the last move.",
+   "controls": "Tap a card to put it in A, and tap it again to take it out. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it. Tap a dot of your route to take back the taps from there. Undo takes back the last move.",
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
     "A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot. Each step makes the total bigger, so the totals on a route are all different.",
-    "Finish by tracing a route that passes every total on the strip. A may have one, two or three cards."
+    "Finish by tapping a route that passes every total on the strip; the top-right dot checks it. A may have one, two or three cards."
    ],
    "idea": "With an uneven B, every total fits on one route only when A has a single card: one card shifts B without merging any totals.",
    "prerequisites": "Follow right and up steps on a grid, and see that a route’s totals keep growing.",
    "hints": [
-    "Can every total fit on one route when A has two cards?",
+    "When a route misses a total, which pairs made it?",
     "B jumps by 1 and then 2. Two A cards would need to jump by both at once.",
     "Take cards out of A until it has just one."
    ],
@@ -667,20 +667,20 @@
      }
     }
    },
-   "objective": "Choose cards for A and B that make as few different totals as you can, then trace a route through the grid that passes every total.",
+   "objective": "Choose cards for A and B that make as few different totals as you can, then tap a route through the grid that passes every total.",
    "visibleObjective": "As few totals as you can, all on one route.",
-   "instruction": "Choose cards for A and B that make as few different totals as you can, then trace a route through the grid that passes every total.",
-   "controls": "Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Tap the bottom-left dot of the grid to start a route, then a dot to its right or above it to step; tap the route’s last dot to step back. Arrow keys step right and up. Undo takes back the last move.",
+   "instruction": "Choose cards for A and B that make as few different totals as you can, then tap a route through the grid that passes every total.",
+   "controls": "Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it. Tap a dot of your route to take back the taps from there. Undo takes back the last move.",
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
     "A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot. Each step makes the total bigger, so the totals on a route are all different.",
-    "When every total on the strip is on your route, no cards of these sizes can make fewer totals. Finish by tracing that route."
+    "When every total on the strip is on your route, no cards of these sizes can make fewer totals. Finish by tapping that route; the top-right dot checks it."
    ],
    "idea": "With A evenly spaced by 3, four B cards make the fewest only when they jump by 3 too, and that fits in 0–9 one way.",
    "prerequisites": "Choose several cards with a plan in mind and keep track of which pairs share a total.",
    "hints": [
-    "A route through this grid passes six dots. Which B lets every total be on it?",
+    "Which B lets every total be on one route?",
     "Each step around a square of the grid must give the same total either way, so B must jump by A’s jump.",
     "Put 0, 3, 6 and 9 in B, then walk a route."
    ],
@@ -901,15 +901,15 @@
      }
     }
    },
-   "objective": "Choose cards for A and B that make as few different totals as you can, then trace a route through the grid that passes every total.",
+   "objective": "Choose cards for A and B that make as few different totals as you can, then tap a route through the grid that passes every total.",
    "visibleObjective": "As few totals as you can, all on one route.",
-   "instruction": "Choose cards for A and B that make as few different totals as you can, then trace a route through the grid that passes every total.",
-   "controls": "Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Tap the bottom-left dot of the grid to start a route, then a dot to its right or above it to step; tap the route’s last dot to step back. Arrow keys step right and up. Undo takes back the last move.",
+   "instruction": "Choose cards for A and B that make as few different totals as you can, then tap a route through the grid that passes every total.",
+   "controls": "Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it. Tap a dot of your route to take back the taps from there. Undo takes back the last move.",
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
     "A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot. Each step makes the total bigger, so the totals on a route are all different.",
-    "When every total on the strip is on your route, no cards of these sizes can make fewer totals. Finish by tracing that route."
+    "When every total on the strip is on your route, no cards of these sizes can make fewer totals. Finish by tapping that route; the top-right dot checks it."
    ],
    "idea": "The fewest for four and four is 7, and the route around every square forces one common jump.",
    "prerequisites": "Choose several cards with a plan in mind and keep track of which pairs share a total.",

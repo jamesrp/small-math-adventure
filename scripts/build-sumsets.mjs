@@ -13,21 +13,21 @@ const RULES = {
   pairs: 'Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.',
   grid: 'The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.',
   route: 'A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot. Each step makes the total bigger, so the totals on a route are all different.',
-  fewest: 'When every total on the strip is on your route, no cards of these sizes can make fewer totals. Finish by tracing that route.',
-  fit: 'Finish by tracing a route that passes every total on the strip. A may have one, two or three cards.',
+  fewest: 'When every total on the strip is on your route, no cards of these sizes can make fewer totals. Finish by tapping that route; the top-right dot checks it.',
+  fit: 'Finish by tapping a route that passes every total on the strip; the top-right dot checks it. A may have one, two or three cards.',
   most: 'Dots that share a total are shaded.',
   even: 'Evenly spaced means the same jump between each card and the next.',
   every: 'Each B that works joins the row above the strip. Press That’s all when you think none is left. It says if there is another.'
 };
 const CONTROLS = {
-  route: 'Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Tap the bottom-left dot of the grid to start a route, then a dot to its right or above it to step; tap the route’s last dot to step back. Arrow keys step right and up. Undo takes back the last move.',
-  fit: 'Tap a card to put it in A, and tap it again to take it out. Tap the bottom-left dot of the grid to start a route, then a dot to its right or above it to step; tap the route’s last dot to step back. Arrow keys step right and up. Undo takes back the last move.',
+  route: 'Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it. Tap a dot of your route to take back the taps from there. Undo takes back the last move.',
+  fit: 'Tap a card to put it in A, and tap it again to take it out. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it. Tap a dot of your route to take back the taps from there. Undo takes back the last move.',
   cards: 'Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Undo takes back the last move.',
   every: 'Tap a card to put it in B, and tap it again to take it out. Press That’s all when you are sure. Undo takes back the last card.',
-  playground: 'Tap cards to put them in A and B, up to six in each, and tap again to take them out. Tap the bottom-left dot of the grid to start a route, then a dot to its right or above it.'
+  playground: 'Tap cards to put them in A and B, up to six in each, and tap again to take them out. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it.'
 };
 const OBJECTIVE = {
-  fewest: 'Choose cards for A and B that make as few different totals as you can, then trace a route through the grid that passes every total.',
+  fewest: 'Choose cards for A and B that make as few different totals as you can, then tap a route through the grid that passes every total.',
   fit: 'Choose cards for A so that one route through the grid passes every total.',
   most: 'Choose cards for A and B that make as many different totals as you can.',
   even: 'Choose evenly spaced cards for A and for B that make as many different totals as you can.',
@@ -73,7 +73,7 @@ const PUZZLES = [
     provenance: 'Week 55 Problem 3, “make as few different totals as you can”, with the route certificate of Problems 8 and 9.'},
   {number: 5, level: 'medium', title: 'Every B', mode: 'every', trays: {A: fixed(0, 3, 6), B: size(2)}, target: 4, check: {totals: 4, designs: 7}, prereq: 'every',
     idea: 'The B trays that give the fewest totals are exactly the ones that jump by A’s jump.',
-    hints: ['What do the B trays you have found have in common?', 'Each one found has the same jump between its two cards.', 'Every B that jumps by 3 works: from 0 and 3 up to 6 and 9.'],
+    hints: ['Try a B: which pairs land on the same total?', 'Each one found has the same jump between its two cards.', 'Every B that jumps by 3 works: from 0 and 3 up to 6 and 9.'],
     parent: {notice: 'Whether your child finds B trays one by one at random or notices the jump of 3 and slides it along.', prompt: 'How do you know there isn’t another?', explanation: 'With B = {b, b + d}, the six pairs give A + b and A + b + d, two copies of {0, 3, 6} shifted. They overlap in two totals exactly when d = 3, A’s jump; d = 6 overlaps one total and any other jump none. So four totals means B = {t, t + 3}, and t can be 0 to 6: seven trays.', extension: 'Which B trays give five totals? (Puzzle 10.)', connection: 'The equality case of the sumset bound, found by a complete search.'},
     provenance: 'Week 55 Problem 5: A = {0, 3, 6}, every two-card B from 0–9 with four totals; no answer slots here.'},
   {number: 6, level: 'medium', title: 'Two even trays', mode: 'most', even: true, trays: {A: size(3), B: size(3)}, check: {totals: 9, designs: 160}, prereq: 'design',
@@ -83,12 +83,12 @@ const PUZZLES = [
     provenance: 'Week 55 Problem 6 and the review card’s fix 5: {0, 2, 4} + {0, 3, 6}, both equally spaced, with 9 totals.'},
   {number: 7, level: 'medium', title: 'Uneven B', mode: 'fit', trays: {A: {max: 3}, B: fixed(0, 1, 3)}, check: {totals: 3, designs: 10}, prereq: 'route',
     idea: 'With an uneven B, every total fits on one route only when A has a single card: one card shifts B without merging any totals.',
-    hints: ['Can every total fit on one route when A has two cards?', 'B jumps by 1 and then 2. Two A cards would need to jump by both at once.', 'Take cards out of A until it has just one.'],
+    hints: ['When a route misses a total, which pairs made it?', 'B jumps by 1 and then 2. Two A cards would need to jump by both at once.', 'Take cards out of A until it has just one.'],
     parent: {notice: 'Whether your child keeps trying two-card A trays, and what they make of the one-card solve.', prompt: 'Why does one A card always work, even though B is uneven?', explanation: 'With A = {a}, the totals are a + 0, a + 1 and a + 3: B shifted by a, three different totals, and the grid is one row, so the route passes them all. With two A cards {a, a + d} there are at least four totals but a route passes only four dots; every total fits only if d equals both of B’s jumps, 1 and 2, which is impossible. So the theorem’s “evenly spaced” needs two cards in each tray.', extension: 'Is there a B tray of three cards for which some two-card A fits every total on one route? (Yes: any evenly spaced B, with A jumping by B’s gap.)', connection: 'The exception in the inverse theorem: when one set is a singleton, |A + B| = |B| for every B.'},
     provenance: 'Week 55 Problem 7: {4} + {0, 1, 3} gives 3 totals, and “Does B need equal spacing?”'},
   {number: 8, level: 'hard', title: 'Given A', mode: 'fewest', trays: {A: fixed(1, 4, 7), B: size(4)}, check: {totals: 6, designs: 1}, prereq: 'design',
     idea: 'With A evenly spaced by 3, four B cards make the fewest only when they jump by 3 too, and that fits in 0–9 one way.',
-    hints: ['A route through this grid passes six dots. Which B lets every total be on it?', 'Each step around a square of the grid must give the same total either way, so B must jump by A’s jump.', 'Put 0, 3, 6 and 9 in B, then walk a route.'],
+    hints: ['Which B lets every total be on one route?', 'Each step around a square of the grid must give the same total either way, so B must jump by A’s jump.', 'Put 0, 3, 6 and 9 in B, then walk a route.'],
     parent: {notice: 'Whether your child tries B jumping by 1 or 2 first, and how they see that only a jump of 3 can work.', prompt: 'Why is there only one B?', explanation: 'A route through a 3 × 4 grid passes 3 + 4 − 1 = 6 dots, so there are at least six totals. Every total on one route forces A and B to share a gap (puzzle 4), and A’s gap is 3, so B = {t, t + 3, t + 6, t + 9}; within 0–9 only t = 0 fits.', extension: 'With A = {1, 3, 5}, how many four-card B give six totals? (Four: B jumps by 2 and starts at 0, 1, 2 or 3.)', connection: 'The inverse theorem pins B down once A is given.'},
     provenance: 'New, from Week 55 Problems 4 and 5: a fixed A and a larger B with a single answer.'},
   {number: 9, level: 'hard', title: 'Many from four', mode: 'most', trays: {A: size(4), B: size(4)}, check: {totals: 16, designs: 8}, prereq: 'design',
@@ -140,8 +140,8 @@ const out = PUZZLES.map(item => {
 const playground = {
   id: 'sumsets-playground', number: 0, title: 'Card totals playground', difficulty_level: 'playground', familyTitle: 'Card totals', mechanic: 'sumsets', band: 'playground', revision: 1, sourceDocument: 'docs/sumsets/README.md',
   parameters: {mode: 'playground', trays: {A: {max: 6}, B: {max: 6}}},
-  objective: 'Put cards in A and B, watch the totals land on the strip, and trace routes through the grid.', visibleObjective: '',
-  instruction: 'Put cards in A and B, watch the totals land on the strip, and trace routes through the grid.',
+  objective: 'Put cards in A and B, watch the totals land on the strip, and tap routes through the grid.', visibleObjective: '',
+  instruction: 'Put cards in A and B, watch the totals land on the strip, and tap routes through the grid.',
   controls: CONTROLS.playground,
   rules: [RULES.pairs, RULES.grid, RULES.route],
   idea: 'Free play with two trays: which cards give few totals, which give many, and what a route shows.',
