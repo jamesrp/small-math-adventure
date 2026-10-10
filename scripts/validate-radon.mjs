@@ -7,7 +7,8 @@
 // every placement of four labels on a 3 × 3 grid of points and every place for
 // D against the fixed triangle; every lattice point of every place puzzle and
 // of the locus board; that bands that miss stay well apart (so no gap hides
-// under a disc); that no single move solves the two-board puzzle;
+// under a disc), and that every split drawn apart shows a gap of at least
+// 4px at its drawn size; that no single move solves the two-board puzzle;
 // witnesses played as moves; hint chains from fresh, after wrong moves and
 // claims and from random states; Undo keeping claims; illegal moves; forged
 // saves; the playground; and the time hints and moves take.
@@ -16,7 +17,7 @@ import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
-import {meetingSplits} from '../dist/families/radon/radon.js';
+import {meetingSplits, cropOf} from '../dist/families/radon/radon.js';
 import {loadPack} from './packs.mjs';
 
 // --- Exact fractions on ordinary numbers (every value here stays small) ------
@@ -73,11 +74,31 @@ function missGap(pos) {
   return least;
 }
 
+// A split shown apart is drawn at the width radon.css gives .sb-mini.sb-big,
+// cropped as cropOf crops it (one step past the dots, plus the picture's
+// 0.35-step margin), with dots of radius 0.13 steps and a 1px rim, and rods
+// as wide as .sb-big .sb-rod. Its narrowest gap, in pixels: a dot to the
+// other group's rod or edge, or to one of its dots. Dots sharing a place are
+// drawn up to 0.275 steps off it.
+function bigGapPx(pos, key, css) {
+  const width = Number(css.match(/\.sb-mini\.sb-big\{width:(\d+)px/)[1]), rod = Number(css.match(/\.sb-big \.sb-rod\{stroke-width:([\d.]+)px/)[1]);
+  const pad = Number(css.match(/\.sb-mini\{width:\d+px;padding:(\d+)px/)[1]), inner = width - 2 * pad - 2;
+  const scale = inner / (cropOf(pos).cols + .7), shared = l => Object.keys(pos).some(m => m !== l && same(pos[m], pos[l]));
+  const dot = l => (.13 + (shared(l) ? .275 : 0)) * scale + .5;
+  const [g, h] = key.split('|').map(s => [...s]);
+  let least = Infinity;
+  for (const [one, other] of [[g, h], [h, g]]) for (const l of one) {
+    for (const m of other) least = Math.min(least, Math.hypot(pos[l][0] - pos[m][0], pos[l][1] - pos[m][1]) * scale - dot(l) - dot(m));
+    for (const m of other) for (const n of other) if (m < n && !same(pos[m], pos[n])) least = Math.min(least, segGap(pos[l], pos[m], pos[n]) * scale - dot(l) - rod / 2);
+  }
+  return least;
+}
+
 // The table in docs/radon/README.md.
 const TABLE = {
   'radon-01': {mode: 'every', level: 'easy', answers: ['AB|CD', 'ABC|D']},
   'radon-02': {mode: 'place', level: 'easy', answers: [[2, 3], [2, 2], [3, 2]]},
-  'radon-03': {mode: 'every', level: 'easy', answers: []},
+  'radon-03': {mode: 'every', level: 'easy', answers: ['AB|CD'], general: true},
   'radon-04': {mode: 'every', level: 'medium', answers: ['AB|CD', 'AD|BC', 'ABD|C', 'ACD|B']},
   'radon-05': {mode: 'place', level: 'medium', count: 19},
   'radon-06': {mode: 'locus', level: 'medium', answers: [[8, 4], [4, 2], [0, 0]]},
@@ -112,6 +133,9 @@ const pick = (r, list) => list[Math.floor(r() * list.length)];
 
 export async function validateRadon() {
   const pack = JSON.parse(await readFile(new URL('../dist/families/radon/radon.json', import.meta.url), 'utf8'));
+  const css = await readFile(new URL('../dist/families/radon/radon.css', import.meta.url), 'utf8');
+  let gapsDrawn = 0, narrowestPx = Infinity;
+  const plain = (pos, key, why) => { const px = bigGapPx(pos, key, css); gapsDrawn++; narrowestPx = Math.min(narrowestPx, px); assert.ok(px >= 4, `${why}: ${key} drawn apart with a gap of ${px.toFixed(2)}px, at least 4`); };
   const {puzzles: all} = await loadPack();
   assert.equal(new Set(all.map(p => p.id)).size, all.length, 'puzzle ids are unique across the packs');
   for (const s of pack.sources) { assert.match(s.url, /^https:\/\//); assert.ok(s.title && s.kind); }
@@ -176,6 +200,8 @@ export async function validateRadon() {
     if (q.mode === 'place') for (const [x, y] of row.answers || []) assert.ok(!text.includes(`${x} across`), `${p.id}: the answer is not in the title, goal or first hint`);
     if (q.mode === 'every') assert.ok(missGap(q.labels) >= .8, `${p.id}: bands that miss are at least 0.8 apart`);
     if (q.mode === 'place') assert.ok(lattice(q).every(D => missGap({...q.labels, D}) >= .6), `${p.id}: wherever D goes, bands that miss are at least 0.6 apart`);
+    if (q.mode === 'every') for (const k of splits(Object.keys(q.labels).sort())) if (!row.answers.includes(k)) plain(q.labels, k, p.id);
+    if (row.general) { const pts = Object.values(q.labels); for (let i = 0; i < 4; i++) for (let j = i + 1; j < 4; j++) for (let k = j + 1; k < 4; k++) assert.ok(!collinear(pts[i], pts[j], pts[k]), `${p.id}: no three dots on a line`); }
     if (q.mode === 'every') { const lp = lpSplits(q.labels); assert.deepEqual(lp, row.answers, `${p.id}: splits by the program`); assert.deepEqual(p.solution.answers, lp, `${p.id}: the pack's answers`); hintSteps += checkEvery(p, fresh, lp); }
     if (q.mode === 'place') {
       const right = lattice(q).filter(D => { pointsChecked++; const lp = lpSplits({...q.labels, D}); return lp.length === q.goal.length && lp.every(k => q.goal.includes(k)); });
@@ -188,6 +214,7 @@ export async function validateRadon() {
       const right = lattice(q).filter(C => { pointsChecked++; return !same(C, q.labels.A) && !same(C, q.labels.B) && lpSplits({...q.labels, C}).length > 0; });
       assert.deepEqual(right, row.answers, `${p.id}: places by the program`);
       assert.ok(right.every(C => collinear(q.labels.A, q.labels.B, C)), `${p.id}: every place is on the line through A and B`);
+      for (const C of lattice(q)) if (!same(C, q.labels.A) && !same(C, q.labels.B) && !right.some(x => same(x, C))) for (const k of splits(['A', 'B', 'C'])) plain({...q.labels, C}, k, `${p.id} C at ${C}`);
       assert.deepEqual(p.solution.answers, right);
       hintSteps += checkLocus(p, fresh, right);
     }
@@ -210,93 +237,109 @@ export async function validateRadon() {
   const p99 = times[Math.floor(times.length * .99)], slowest = times.at(-1);
   assert.ok(p99 < 50, `hints and moves: 99% under 50 ms (${p99.toFixed(1)} ms)`);
   assert.ok(slowest < 500, `the slowest hint or move under 500 ms (${slowest.toFixed(1)} ms)`);
-  return {radonPuzzles: puzzles.length, placements, pointsChecked, hintSteps, p99Ms: Number(p99.toFixed(1)), slowestMs: Math.round(slowest)};
+  return {radonPuzzles: puzzles.length, placements, pointsChecked, hintSteps, gapsDrawn, narrowestGapPx: Number(narrowestPx.toFixed(2)), p99Ms: Number(p99.toFixed(1)), slowestMs: Math.round(slowest)};
 }
 
 // --- Find every split ----------------------------------------------------------
 function checkEvery(p, fresh, answers) {
-  const q = p.parameters, letters = Object.keys(q.labels).sort(), n = letters.length;
+  const q = p.parameters, letters = Object.keys(q.labels).sort(), n = letters.length, all = splits(letters);
   let steps = hintsSolve(p, fresh, 'from fresh');
-  refuse(p, fresh, {type: 'all'}, 'That’s all before any Meet');
+  refuse(p, fresh, {type: 'all'}, 'That’s all with an empty shelf');
   refuse(p, fresh, {type: 'meet'}, 'Meet while every dot is yellow');
   refuse(p, fresh, {type: 'tap', label: 'E'}, 'an unknown letter');
+  refuse(p, fresh, {type: 'drop', key: answers[0]}, 'taking off a split not on the shelf');
   refuse(p, fresh, {type: 'jump'}, 'an unknown move');
-  // Every colouring: Meet tells apart, meet or found already, as the program says.
+  // Colour a split's first group yellow, the rest blue.
+  const colour = (a, k) => { const [g] = k.split('|').map(s => [...s]); for (const [i, l] of letters.entries()) if ((a.board.groups[i] === 0) !== g.includes(l)) a = play(p, a, {type: 'tap', label: l}); return a; };
+  const shelve = (a, list) => list.reduce((b, k) => play(p, colour(b, k), {type: 'meet'}), a);
+  // Every colouring: Meet shelves the split with no verdict; a second Meet
+  // says it is there already.
   for (let bits = 1; bits < (1 << n) - 1; bits++) {
     let a = fresh;
     for (let i = 0; i < n; i++) if (bits >> i & 1) a = play(p, a, {type: 'tap', label: letters[i]});
     const g = letters.filter((_, i) => (bits >> i & 1) === (bits & 1)), h = letters.filter((_, i) => (bits >> i & 1) !== (bits & 1)), k = `${g.join('')}|${h.join('')}`;
     const met = play(p, a, {type: 'meet'});
-    assert.equal(met.board.told, answers.includes(k) ? 'meet' : 'apart', `${p.id} ${k}: Meet answers by the program`);
-    refuse(p, met, {type: 'meet'}, 'a second Meet on the same colours');
-    // Undo keeps the answer while the colours stay.
-    const back = undoMove(p, met);
-    assert.ok(validBoard(p, back.board), `${p.id}: Undo after Meet is valid`);
-    assert.equal(back.board.told, met.board.told, `${p.id}: Undo keeps a Meet answer`);
-    assert.deepEqual(back.board.found, met.board.found, `${p.id}: Undo keeps what was found`);
-    refuse(p, back, {type: 'meet'}, 'Meet again after Undo');
-    // A wrong first claim: hints still solve.
-    if (!answers.includes(k)) steps += hintsSolve(p, met, `after ${k} apart`);
+    assert.deepEqual(met.board.shelf, [k], `${p.id} ${k}: Meet shelves the split`);
+    assert.equal(met.board.refused, null, `${p.id} ${k}: Meet gives no verdict`);
+    const again = play(p, met, {type: 'meet'});
+    assert.equal(again.board.told, 'again', `${p.id} ${k}: already on the shelf`);
+    refuse(p, again, {type: 'meet'}, 'Meet a third time');
+    // That's all judges the shelf.
+    const judged = play(p, met, {type: 'all'});
+    if (answers.length === 1 && answers[0] === k) assert.ok(isSolved(p, judged.board), `${p.id} ${k}: the one split solves`);
+    else assert.deepEqual(judged.board.refused, answers.includes(k) ? {kind: 'more'} : {kind: 'apart', key: k}, `${p.id} ${k}: That’s all refuses by the program`);
+    if (!answers.includes(k)) steps += hintsSolve(p, judged, `after ${k} judged`);
   }
-  if (answers.length) {
-    // That's all too soon: There is another, locked until a new find, through Undo.
-    let a = fresh;
-    const [g] = answers[0].split('|').map(s => [...s]);
-    for (const l of letters.filter(l => !g.includes(l))) a = play(p, a, {type: 'tap', label: l});
-    a = play(p, a, {type: 'meet'});
-    if (answers.length > 1) {
-      a = play(p, a, {type: 'all'});
-      assert.equal(a.board.more, true, `${p.id}: There is another`);
-      refuse(p, a, {type: 'all'}, 'That’s all again before a new find');
-      const tapped = play(p, a, {type: 'tap', label: letters[0]});
-      const back = undoMove(p, tapped);
-      assert.equal(back.board.more, true, `${p.id}: Undo keeps There is another`);
-      refuse(p, back, {type: 'all'}, 'That’s all after Undo');
-      steps += hintsSolve(p, a, 'after a wrong That’s all');
-      // Found already.
-      const again = play(p, play(p, play(p, a, {type: 'tap', label: letters[0]}), {type: 'tap', label: letters[0]}), {type: 'meet'});
-      assert.equal(again.board.told, 'again', `${p.id}: Found already`);
-    }
-  } else {
-    // No split meets: That's all after one try is right.
-    const tried = play(p, play(p, fresh, {type: 'tap', label: 'A'}), {type: 'meet'});
-    assert.equal(tried.board.told, 'apart');
-    assert.ok(isSolved(p, play(p, tried, {type: 'all'}).board), `${p.id}: That’s all after a try`);
-    const h = nextHint(p, fresh);
-    assert.notDeepEqual(h.action, {type: 'all'}, `${p.id}: the first hint is a try, not That’s all`);
+  // Every split on the shelf is refused, naming the first that misses.
+  const full = shelve(fresh, all);
+  assert.equal(full.board.shelf.length, all.length);
+  const firstMiss = all.find(k => !answers.includes(k));
+  let a = play(p, full, {type: 'all'});
+  assert.ok(!isSolved(p, a.board), `${p.id}: a shelf of all seven splits is not a solve`);
+  assert.deepEqual(a.board.refused, {kind: 'apart', key: firstMiss}, `${p.id}: the first split that misses is shown apart`);
+  refuse(p, a, {type: 'all'}, 'That’s all again on the same shelf');
+  // The refusal stays through a colour change and its Undo, and through an
+  // Undo back to the same shelf; it goes when the shelf changes.
+  const tapped = play(p, a, {type: 'tap', label: letters[0]});
+  assert.deepEqual(tapped.board.refused, a.board.refused, `${p.id}: a colour change keeps the refusal`);
+  refuse(p, tapped, {type: 'all'}, 'That’s all after a colour change');
+  const back = undoMove(p, tapped);
+  assert.ok(validBoard(p, back.board), `${p.id}: Undo after a refusal is valid`);
+  assert.deepEqual(back.board.refused, a.board.refused, `${p.id}: Undo keeps the refusal`);
+  refuse(p, back, {type: 'all'}, 'That’s all after Undo');
+  const backAgain = undoMove(p, back);
+  assert.deepEqual(backAgain.board.refused, a.board.refused, `${p.id}: Undo of That’s all keeps the refusal`);
+  const dropped = play(p, a, {type: 'drop', key: firstMiss});
+  assert.equal(dropped.board.refused, null, `${p.id}: taking a split off clears the refusal`);
+  assert.ok(!dropped.board.shelf.includes(firstMiss));
+  const undropped = undoMove(p, dropped);
+  assert.deepEqual(undropped.board.shelf, a.board.shelf, `${p.id}: Undo puts the split back`);
+  steps += hintsSolve(p, a, 'after a full shelf refused');
+  // The right splits but one: There is another. All of them: solved.
+  if (answers.length > 1) {
+    const short = play(p, shelve(fresh, answers.slice(0, -1)), {type: 'all'});
+    assert.deepEqual(short.board.refused, {kind: 'more'}, `${p.id}: There is another`);
+    steps += hintsSolve(p, short, 'after There is another');
   }
+  assert.ok(isSolved(p, play(p, shelve(fresh, [...answers].reverse()), {type: 'all'}).board), `${p.id}: every answer, in any order, solves`);
   // Random states.
   const r = rng(p.number * 97);
   for (let t = 0; t < 30; t++) {
-    let a = fresh;
-    for (let s = 0; s < 8; s++) {
-      const options = [...letters.map(l => ({type: 'tap', label: l})), {type: 'meet'}, {type: 'all'}].filter(m => !isSolved(p, a.board) && move(p, a, m));
+    let b = fresh;
+    for (let s = 0; s < 10; s++) {
+      const options = [...letters.map(l => ({type: 'tap', label: l})), {type: 'meet'}, {type: 'meet'}, {type: 'all'}, ...b.board.shelf.map(key => ({type: 'drop', key}))].filter(m => move(p, b, m));
       if (!options.length) break;
-      const m = pick(r, options);
-      if (m.type === 'all' && isSolved(p, move(p, a, m).board)) continue;
-      a = play(p, a, m);
+      const m = pick(r, options), next = move(p, b, m);
+      if (isSolved(p, next.board)) continue;
+      b = next;
     }
-    steps += hintsSolve(p, a, `random state ${t}`);
+    steps += hintsSolve(p, b, `random state ${t}`);
   }
   // Forged saves.
-  const b = fresh.board, base = {groups: b.groups, found: [], told: null, more: false, tried: false, done: false};
-  const wrongSplit = splits(letters).find(k => !answers.includes(k));
+  const b = fresh.board, base = {groups: b.groups, shelf: [], told: null, refused: null, done: false};
+  const wrongSplit = all.find(k => !answers.includes(k));
   const forged = [
-    [{...base, done: true}, 'done with nothing tried'],
-    [{...base, tried: true, done: true, found: answers.slice(0, -1)}, answers.length ? 'done with a split missing' : null],
-    [{...base, tried: true, found: wrongSplit ? [wrongSplit] : []}, wrongSplit ? 'a found split that does not meet' : null],
-    [{...base, tried: true, found: answers.length ? [answers[0], answers[0]] : []}, answers.length ? 'a split found twice' : null],
-    [{...base, found: answers.slice(0, 1)}, answers.length ? 'a find with nothing tried' : null],
-    [{...base, told: 'apart'}, 'an answer with nothing tried'],
-    [{...base, tried: true, groups: b.groups.map(() => 0), told: 'apart'}, 'an answer for one colour'],
+    [{...base, done: true}, 'done with an empty shelf'],
+    [{...base, shelf: all, done: true}, 'done with every split shelved'],
+    [{...base, shelf: answers.slice(0, -1), done: true}, answers.length > 1 ? 'done with a split missing' : null],
+    [{...base, shelf: [...answers, wrongSplit], done: true}, 'done with a split that misses'],
+    [{...base, shelf: [answers[0], answers[0]]}, 'a split shelved twice'],
+    [{...base, shelf: ['AB|BC']}, 'a split that is not one'],
+    [{...base, shelf: answers, refused: {kind: 'more'}}, 'There is another with every split shelved'],
+    [{...base, shelf: [wrongSplit], refused: {kind: 'more'}}, 'There is another for a shelf that misses'],
+    [{...base, shelf: [answers[0]], refused: {kind: 'apart', key: answers[0]}}, 'a split that meets shown apart'],
+    [{...base, refused: {kind: 'more'}}, 'a refusal with an empty shelf'],
+    [{...base, shelf: [wrongSplit], refused: {kind: 'apart', key: wrongSplit}, done: true}, 'done and refused'],
+    [{...base, told: 'again'}, 'already shelved with nothing shelved'],
+    [{...base, groups: b.groups.map(() => 0), shelf: [answers[0]], told: 'again'}, 'already shelved for one colour'],
+    [{...base, told: 'maybe'}, 'an unknown word'],
     [{...base, groups: [...b.groups.slice(0, -1), 2]}, 'a third colour'],
     [{...base, groups: b.groups.slice(1)}, 'a missing dot'],
-    [{...base, tried: true, more: true, found: answers}, 'There is another with every split found'],
-    [{...base, tried: true, told: 'maybe', groups: [1, ...b.groups.slice(1)]}, 'an unknown answer'],
     [{...base, extra: 1}, 'an extra field'],
-    [{groups: b.groups, found: []}, 'missing fields']
+    [{groups: b.groups, shelf: []}, 'missing fields']
   ];
   for (const [board, why] of forged) if (why) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
+  assert.ok(validBoard(p, {...base, shelf: [wrongSplit], refused: {kind: 'apart', key: wrongSplit}}), `${p.id}: a true refusal is a valid save`);
   return steps;
 }
 

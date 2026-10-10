@@ -1,5 +1,5 @@
 // Stretch bands: bands and when they meet, splits and the ones that meet,
-// finding every split with Meet and That's all, placing D against a goal,
+// shelving splits with Meet and judging the shelf with That's all, placing D against a goal,
 // every place for C, two boards with no common split, the playground, hints,
 // Undo keeping claims, arrow keys, saves and rendering.
 import test from 'node:test';
@@ -61,45 +61,54 @@ test('answers: the pack, the theorem cases', () => {
   assert.deepEqual(commonSplits(q10.boards), meetingSplits(q10.boards[0]), 'the same line twice shares all four');
 });
 
-test('find every split: Meet tells, the shelf keeps, That’s all checks and waits', () => {
+test('find every split: Meet shelves with no verdict, That’s all judges the shelf', () => {
   const p = byId('radon-01');
   let a = freshAttempt(p);
   assert.equal(move(p, a, {type: 'meet'}), null, 'one colour is no split');
-  assert.equal(move(p, a, {type: 'all'}), null, 'That’s all comes after a try');
-  a = play(p, a, ...taps('CD'), {type: 'meet'});
-  assert.equal(a.board.told, 'meet');
-  assert.deepEqual(a.board.found, ['AB|CD']);
-  assert.equal(move(p, a, {type: 'meet'}), null, 'one answer per colouring');
-  a = play(p, a, {type: 'all'});
-  assert.equal(a.board.more, true, 'There is another');
-  assert.equal(move(p, a, {type: 'all'}), null, 'That’s all waits for a new find');
+  assert.equal(move(p, a, {type: 'all'}), null, 'That’s all needs a shelf');
   a = play(p, a, ...taps('A'), {type: 'meet'});
-  assert.equal(a.board.told, 'apart', 'B alone is apart');
-  a = play(p, a, ...taps('A'), {type: 'meet'});
-  assert.equal(a.board.told, 'again', 'Found already');
-  assert.equal(move(p, a, {type: 'all'}), null, 'still waiting');
-  a = play(p, a, ...taps('C'), {type: 'meet'});
-  assert.deepEqual(a.board.found, ['AB|CD', 'ABC|D']);
-  assert.equal(a.board.more, false);
+  assert.deepEqual(a.board.shelf, ['A|BCD'], 'a split that misses goes on the shelf too');
+  assert.equal(a.board.refused, null);
+  let html = view(p, a);
+  assert.doesNotMatch(html, /sb-band/, 'Meet draws no bands');
+  assert.match(html, /data-move="\{&quot;type&quot;:&quot;drop&quot;,&quot;key&quot;:&quot;A\|BCD&quot;\}"/, 'a shelved split is a button that takes it off');
+  a = play(p, a, {type: 'meet'});
+  assert.equal(a.board.told, 'again', 'already on the shelf');
+  a = play(p, a, ...taps('B'), {type: 'meet'}, ...taps('C'), {type: 'meet'});
+  assert.deepEqual(a.board.shelf, ['A|BCD', 'AB|CD', 'ABC|D']);
   a = play(p, a, {type: 'all'});
+  assert.deepEqual(a.board.refused, {kind: 'apart', key: 'A|BCD'}, 'the split that misses is named');
+  html = view(p, a);
+  assert.match(html, /This one doesn’t meet\./);
+  assert.equal((html.match(/class="sb-mini sb-big"/g) || []).length, 1, 'drawn apart, large');
+  assert.match(html, /sb-chip sb-take ringed/);
+  assert.equal(move(p, a, {type: 'all'}), null, 'That’s all waits for the shelf to change');
+  a = play(p, a, {type: 'drop', key: 'A|BCD'});
+  assert.equal(a.board.refused, null);
+  a = play(p, a, {type: 'drop', key: 'ABC|D'}, {type: 'all'});
+  assert.deepEqual(a.board.refused, {kind: 'more'});
+  assert.match(view(p, a), /There is another\./);
+  a = play(p, a, {type: 'meet'}, {type: 'all'});
   assert.ok(isSolved(p, a.board));
+  assert.equal((view(p, a).match(/class="sb-mini"/g) || []).length, 2, 'the shelf drawn with its bands');
   assert.equal(move(p, a, ...taps('A')), null, 'nothing moves once solved');
+  // Every split on the shelf is not a solve.
+  let full = freshAttempt(p);
+  for (const k of splitList(['A', 'B', 'C', 'D'])) { const [g] = k.split('|'); const want = ['A', 'B', 'C', 'D'].map(l => g.includes(l) ? 0 : 1); full = play(p, full, ...['A', 'B', 'C', 'D'].filter((l, i) => full.board.groups[i] !== want[i]).map(label => ({type: 'tap', label})), {type: 'meet'}); }
+  full = play(p, full, {type: 'all'});
+  assert.ok(!isSolved(p, full.board));
+  assert.deepEqual(full.board.refused, {kind: 'apart', key: 'A|BCD'});
 });
 
-test('three dots: no split meets, That’s all after a try', () => {
-  const p = byId('radon-03');
-  const first = nextHint(p, freshAttempt(p));
-  assert.equal(first.action.type, 'tap', 'the first hint is a try, not That’s all');
-  let a = play(p, freshAttempt(p), first.action);
-  assert.deepEqual(nextHint(p, a).action, {type: 'meet'});
-  a = play(p, a, {type: 'meet'});
-  assert.equal(a.board.told, 'apart');
-  assert.match(nextHint(p, a).text, /no split meets/, 'the reason comes before That’s all');
-  assert.doesNotMatch(nextHint(p, a).text, /That’s all/, 'the first level gives the reason, not the claim');
-  a = play(p, a, {type: 'all'});
-  assert.ok(isSolved(p, a.board));
-  const html = view(p, a);
-  assert.equal((html.match(/class="sb-mini"/g) || []).length, 3, 'all three splits drawn apart');
+test('four corners: one split meets, the hints give reasons first', () => {
+  const p = byId('radon-03'), q = p.parameters;
+  assert.deepEqual(meetingSplits(q.labels), ['AB|CD']);
+  assert.doesNotMatch(p.hints.join(' '), /Try one split/);
+  let a = play(p, freshAttempt(p), ...taps('CD'), {type: 'meet'}, {type: 'all'});
+  assert.ok(isSolved(p, a.board), 'the one split that meets');
+  a = play(p, freshAttempt(p), ...taps('C'), {type: 'meet'}, {type: 'all'});
+  assert.deepEqual(a.board.refused, {kind: 'apart', key: 'ABD|C'});
+  assert.equal(nextHint(p, a).action.type, 'drop', 'the hint takes the wrong split off');
 });
 
 test('place D: Check refuses with one split that breaks the goal; D may sit on another dot', () => {
@@ -132,7 +141,7 @@ test('every place for C: rings, crosses, the three splits apart, That’s all', 
   assert.deepEqual(a.board.missed, [[4, 3]]);
   let html = view(p, a);
   assert.match(html, /No split meets\./);
-  assert.equal((html.match(/class="sb-mini"/g) || []).length, 3, 'three splits drawn apart');
+  assert.equal((html.match(/class="sb-mini sb-big"/g) || []).length, 3, 'three splits drawn apart, large');
   assert.equal(move(p, a, {type: 'all'}), null, 'That’s all needs a find');
   assert.equal(move(p, a, {type: 'put', at: [2, 1]}), null, 'not on A');
   a = play(p, a, {type: 'put', at: [4, 2]});
@@ -162,7 +171,7 @@ test('two boards: moves, a shared split drawn on both, no single move, hints', (
   assert.match(h.text, /^Move [ABCD] on the (first|second) board/);
   a = play(p, a, h.action);
   html = view(p, a, true);
-  assert.match(html, new RegExp(`sb-disc sb-cn chosen[^"]*" transform="[^"]*" role="button"[^>]*data-sg-piece="${h.action.board}:${h.action.label}"`), 'a move chooses the letter it moved');
+  assert.match(html, new RegExp(`sb-disc sb-cn chosen[^"]*" transform="[^"]*" role="button"[^>]*data-sg-piece="${h.action.board}:D"`), 'a move leaves the chosen letter to the child');
   for (const m of p.solution.moves) a = move(p, a, m) || a;
   let n = 0;
   while (!isSolved(p, a.board) && n++ < 10) a = play(p, a, nextHint(p, a).action);
@@ -209,15 +218,17 @@ test('hints alone solve every puzzle, from fresh and after a wrong move; the fir
 
 test('Undo takes back moves, not claims', () => {
   const e = byId('radon-04');
-  let a = play(e, freshAttempt(e), ...taps('AB'), {type: 'meet'});
-  let back = undoMove(e, a);
-  assert.equal(back.board.told, 'meet', 'the answer to Meet stays while the colours stay');
-  assert.deepEqual(back.board.found, ['AB|CD']);
-  assert.equal(move(e, back, {type: 'meet'}), null);
-  a = play(e, a, {type: 'all'});
-  back = undoMove(e, play(e, a, ...taps('C')));
-  assert.equal(back.board.more, true, 'There is another survives Undo');
+  let a = play(e, freshAttempt(e), ...taps('A'), {type: 'meet'}, {type: 'all'});
+  assert.deepEqual(a.board.refused, {kind: 'apart', key: 'A|BCD'});
+  let back = undoMove(e, play(e, a, ...taps('C')));
+  assert.deepEqual(back.board.refused, a.board.refused, 'a refused That’s all stays while the shelf stays');
+  assert.equal(move(e, back, {type: 'all'}), null);
+  back = undoMove(e, back);
+  assert.deepEqual(back.board.refused, a.board.refused, 'Undo of That’s all itself keeps it');
   assert.ok(validBoard(e, back.board));
+  const dropped = play(e, a, {type: 'drop', key: 'A|BCD'});
+  assert.equal(dropped.board.refused, null, 'a changed shelf clears it');
+  assert.deepEqual(undoMove(e, dropped).board.refused, a.board.refused, 'Undo back to the same shelf brings it back');
   const p = byId('radon-05');
   a = play(p, freshAttempt(p), {type: 'check'});
   back = undoMove(p, a);
@@ -237,10 +248,11 @@ test('arrow keys step a place across the board', () => {
 
 test('forged saves are rejected', () => {
   const e = byId('radon-01'), fresh = freshAttempt(e).board;
-  assert.equal(validBoard(e, {...fresh, found: ['AC|BD'], tried: true}), false, 'a split that does not meet');
-  assert.equal(validBoard(e, {...fresh, done: true}), false, 'That’s all with nothing tried');
-  assert.equal(validBoard(e, {...fresh, told: 'meet', tried: true, groups: [0, 0, 1, 1]}), false, 'a Meet answer with nothing found');
-  assert.ok(validBoard(e, {...fresh, told: 'meet', tried: true, groups: [0, 0, 1, 1], found: ['AB|CD']}));
+  assert.equal(validBoard(e, {...fresh, shelf: ['AB|CD', 'ABC|D', 'AC|BD'], done: true}), false, 'done with a split that misses');
+  assert.equal(validBoard(e, {...fresh, shelf: splitList(['A', 'B', 'C', 'D']), done: true}), false, 'done with every split shelved');
+  assert.equal(validBoard(e, {...fresh, done: true}), false, 'done with an empty shelf');
+  assert.equal(validBoard(e, {...fresh, shelf: ['AB|CD'], refused: {kind: 'apart', key: 'AB|CD'}}), false, 'a meeting split refused');
+  assert.ok(validBoard(e, {...fresh, shelf: ['AB|CD', 'ABC|D'], done: true}));
   const p = byId('radon-02');
   assert.equal(validBoard(p, {at: [5, 5], refused: false, done: true}), false, 'done in a wrong place');
   assert.equal(validBoard(p, {at: [2, 2], refused: true, done: false}), false, 'refused in a right place');

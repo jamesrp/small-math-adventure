@@ -63,6 +63,11 @@
 .sb-chip b.sb-c0{background:var(--b-sun,#efc76e)}
 .sb-chip b.sb-c1{background:var(--b-sky,#9cc9de);border-left:1.5px solid var(--b-ink,#294439)}
 .sb-chip.ringed{outline:3px solid var(--b-bad,#a9503a);outline-offset:3px}
+/* The shelf of a find-every puzzle: each split a button that takes it off. */
+.sb-puzzle button.sb-chip{padding:0;min-height:44px;cursor:pointer;background:none}
+.sb-puzzle button.sb-chip b{display:flex;align-items:center}
+.sb-puzzle button.sb-chip:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.sb-puzzle button.sb-chip.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
 
 /* Shelf of small pictures. */
 .sb-shelf{display:flex;flex-wrap:wrap;justify-content:center;gap:.45rem;max-width:100%}
@@ -92,3 +97,8 @@
 .sb-mini-board .sb-rod{stroke-width:2.4px}
 .sb-mini-board .sb-ring{stroke-width:2px}
 .sb-mini-board .sb-shared,.sb-mini-board .sb-meet{stroke-width:1.8px}
+/* A split shown apart: wider, with thinner bands, so the narrowest gap is at
+   least 4px (scripts/validate-radon.mjs reads these numbers). */
+.sb-mini.sb-big{width:220px;max-width:100%}
+.sb-big .sb-shape{stroke-width:1.2px}
+.sb-big .sb-rod{stroke-width:1.6px}

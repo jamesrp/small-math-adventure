@@ -171,7 +171,7 @@ export const commonSplits = boards => { const [s, t] = boards.map(meetingSplits)
 // --- Fresh, valid, solved ---------------------------------------------------------
 function fresh(p) {
   const q = p.parameters;
-  if (q.mode === 'every') return {groups: lettersOf(q).map(() => 0), found: [], told: null, more: false, tried: false, done: false};
+  if (q.mode === 'every') return {groups: lettersOf(q).map(() => 0), shelf: [], told: null, refused: null, done: false};
   if (q.mode === 'place') return {at: [...q.start], refused: false, done: false};
   if (q.mode === 'locus') return {found: [], missed: [], at: null, more: false, done: false};
   if (q.mode === 'pair') return {boards: q.boards.map(b => Object.fromEntries(LETTERS.map(l => [l, [...b[l]]]))), refused: false, done: false};
@@ -181,22 +181,22 @@ const keysAre = (b, list) => object(b) && Object.keys(b).sort().join() === [...l
 const isBool = v => typeof v === 'boolean';
 // Four labels on four different points of the board.
 const validSpread = (q, pos) => keysAre(pos, LETTERS) && LETTERS.every(l => isPoint(q, pos[l])) && new Set(LETTERS.map(l => pointKey(pos[l]))).size === 4;
+// Find every: the shelf holds splits the child has claimed, unjudged until
+// That's all. A refusal names the first shelved split that misses, or says
+// one is missing; it stays until the shelf changes.
+const judge = (q, shelf) => { const answers = answersOf(q), miss = shelf.find(k => !answers.includes(k)); return miss ? {kind: 'apart', key: miss} : shelf.length < answers.length ? {kind: 'more'} : null; };
 function validEvery(q, b) {
-  const letters = lettersOf(q), answers = answersOf(q);
-  if (!keysAre(b, ['groups', 'found', 'told', 'more', 'tried', 'done']) || ![b.more, b.tried, b.done].every(isBool)) return false;
+  const letters = lettersOf(q), splits = splitList(letters);
+  if (!keysAre(b, ['groups', 'shelf', 'told', 'refused', 'done']) || !isBool(b.done)) return false;
   if (!Array.isArray(b.groups) || b.groups.length !== letters.length || !b.groups.every(isBit)) return false;
-  if (!Array.isArray(b.found) || !b.found.every(k => answers.includes(k)) || new Set(b.found).size !== b.found.length) return false;
-  if (b.found.length && !b.tried) return false;
+  if (!Array.isArray(b.shelf) || !b.shelf.every(k => splits.includes(k)) || new Set(b.shelf).size !== b.shelf.length) return false;
   const now = splitOfColours(letters, b.groups);
-  if (b.told !== null) {
-    if (!b.tried || now === null) return false;
-    if (b.told === 'meet' && b.found.at(-1) !== now) return false;
-    if (b.told === 'again' && !b.found.includes(now)) return false;
-    if (b.told === 'apart' && answers.includes(now)) return false;
-    if (!['meet', 'again', 'apart'].includes(b.told)) return false;
+  if (b.told !== null && !(b.told === 'again' && now !== null && b.shelf.includes(now))) return false;
+  if (b.refused !== null) {
+    const verdict = b.shelf.length ? judge(q, b.shelf) : null;
+    if (!verdict || JSON.stringify(b.refused) !== JSON.stringify(verdict) || b.done) return false;
   }
-  if (b.more && (!b.tried || b.done || b.found.length === answers.length)) return false;
-  return !b.done || (b.tried && b.found.length === answers.length);
+  return !b.done || (b.shelf.length > 0 && judge(q, b.shelf) === null);
 }
 function valid(p, b) {
   const q = p.parameters;
@@ -239,16 +239,16 @@ function move(p, b, action) {
       if (i < 0) return null;
       return {...b, groups: b.groups.map((v, j) => j === i ? 1 - v : v), told: null};
     }
+    // Meet puts the split on the shelf, unjudged.
     if (action.type === 'meet') {
       const now = splitOfColours(letters, b.groups);
-      // One answer per colouring: Meet waits until a colour changes.
       if (now === null || b.told !== null) return null;
-      if (!answersOf(q).includes(now)) return {...b, told: 'apart', tried: true};
-      if (b.found.includes(now)) return {...b, told: 'again', tried: true};
-      return {...b, found: [...b.found, now], told: 'meet', more: false, tried: true};
+      if (b.shelf.includes(now)) return {...b, told: 'again'};
+      return {...b, shelf: [...b.shelf, now], told: null, refused: null};
     }
-    // That's all needs a try first, and waits for a new split after a refusal.
-    if (action.type === 'all' && b.tried && !b.more) return b.found.length === answersOf(q).length ? {...b, done: true, more: false} : {...b, more: true};
+    if (action.type === 'drop') return b.shelf.includes(action.key) ? {...b, shelf: b.shelf.filter(k => k !== action.key), told: null, refused: null} : null;
+    // That's all judges the whole shelf; after a refusal it waits for a change.
+    if (action.type === 'all' && b.shelf.length && !b.refused) { const verdict = judge(q, b.shelf); return verdict ? {...b, refused: verdict, told: null} : {...b, done: true, told: null}; }
     return null;
   }
   if (q.mode === 'place') {
@@ -271,7 +271,6 @@ function move(p, b, action) {
     if (action.type === 'put') {
       const k = action.board, pos = b.boards[k];
       if (![0, 1].includes(k) || !LETTERS.includes(action.label) || !isPoint(q, action.at) || occupied(pos, action.at)) return null;
-      ui(p).chosen[k] = action.label;
       return {boards: b.boards.map((x, j) => j === k ? {...x, [action.label]: [...action.at]} : x), refused: false, done: false};
     }
     if (action.type === 'check' && !b.refused) return commonSplits(b.boards).length ? {...b, refused: true} : {...b, done: true};
@@ -284,7 +283,6 @@ function move(p, b, action) {
   }
   if (action.type === 'put') {
     if (!LETTERS.includes(action.label) || !isPoint(q, action.at) || occupied(b.at, action.at)) return null;
-    ui(p).chosen[0] = action.label;
     return {...b, at: {...b.at, [action.label]: [...action.at]}};
   }
   return null;
@@ -294,18 +292,15 @@ function move(p, b, action) {
 const nearest = (list, p) => [...list].sort((u, v) => ((u[0] - p[0]) ** 2 + (u[1] - p[1]) ** 2) - ((v[0] - p[0]) ** 2 + (v[1] - p[1]) ** 2))[0];
 function everyHint(q, b) {
   const letters = lettersOf(q), answers = answersOf(q), now = splitOfColours(letters, b.groups);
-  // The reason, not the claim: the second level marks That's all.
-  if (!answers.length && b.tried) return {type: 'move', action: {type: 'all'}, text: 'No dot is on the segment of the other two, so no split meets.'};
-  const aims = answers.length ? answers.filter(k => !b.found.includes(k)) : [splitList(letters)[0]];
+  const wrong = b.shelf.find(k => !answers.includes(k));
+  if (wrong) return {type: 'move', action: {type: 'drop', key: wrong}, text: `Take ${splitWords(wrong)} off the shelf.`, key: wrong};
+  const aims = answers.filter(k => !b.shelf.includes(k));
   if (!aims.length) return {type: 'move', action: {type: 'all'}, text: 'Press That’s all.'};
-  if (aims.includes(now) && b.told === null) return {type: 'move', action: {type: 'meet'}, text: 'Press Meet.'};
+  if (aims.includes(now)) return {type: 'move', action: {type: 'meet'}, text: 'Press Meet.'};
   const off = key => coloursOf(letters, key, b.groups).filter((v, i) => v !== b.groups[i]).length;
   const aim = [...aims].sort((x, y) => off(x) - off(y))[0], want = coloursOf(letters, aim, b.groups);
-  // The aim is the colouring on the board already, refused or found: switch
-  // one dot to leave it (only when the aim is that same split, found again).
-  const i = want.findIndex((v, j) => v !== b.groups[j]), label = letters[i < 0 ? letters.length - 1 : i];
-  const to = i < 0 ? 1 - b.groups[letters.length - 1] : want[i];
-  return {type: 'move', action: {type: 'tap', label}, text: `Make ${label} ${COLOURS[to]}.`, label};
+  const i = want.findIndex((v, j) => v !== b.groups[j]), label = letters[i];
+  return {type: 'move', action: {type: 'tap', label}, text: `Make ${label} ${COLOURS[want[i]]}.`, label};
 }
 function placeHint(q, b) {
   const answers = answersOf(q);
@@ -497,12 +492,16 @@ function drawBoard(q, pos, opts = {}) {
 }
 // A small picture of one split, for a shelf or a certificate: the lattice
 // round the dots, one step past them each way, so the picture is as large as
-// it can be.
-function mini(q, pos, key, meets) {
+// it can be. `big` pictures (a split shown apart) are drawn wider, with
+// thinner bands, so the narrowest gap is still plain
+// (scripts/validate-radon.mjs measures it).
+export function cropOf(pos) {
   const xs = Object.values(pos).map(p => p[0]), ys = Object.values(pos).map(p => p[1]), x0 = Math.min(...xs) - 1, y0 = Math.min(...ys) - 1;
-  const near = {cols: Math.max(...xs) - x0 + 1, rows: Math.max(...ys) - y0 + 1};
-  const moved = Object.fromEntries(Object.entries(pos).map(([l, p]) => [l, [p[0] - x0, p[1] - y0]]));
-  return `<div class="sb-mini" role="listitem">${drawBoard(near, moved, {split: key, picture: true, cls: 'sb-mini-board', label: `${splitWords(key)}${meets ? ' meet' : ' do not meet'}`})}</div>`;
+  return {x0, y0, cols: Math.max(...xs) - x0 + 1, rows: Math.max(...ys) - y0 + 1};
+}
+function mini(q, pos, key, meets, big = false) {
+  const {x0, y0, cols, rows} = cropOf(pos), moved = Object.fromEntries(Object.entries(pos).map(([l, p]) => [l, [p[0] - x0, p[1] - y0]]));
+  return `<div class="sb-mini${big ? ' sb-big' : ''}" role="listitem">${drawBoard({cols, rows}, moved, {split: key, picture: true, cls: 'sb-mini-board', label: `${splitWords(key)}${meets ? ' meet' : ' do not meet'}`})}</div>`;
 }
 const shelf = (items, label) => items.length ? `<div class="sb-shelf" role="list" aria-label="${label}">${items.join('')}</div>` : '';
 // A split as two coloured groups of letters.
@@ -513,20 +512,22 @@ const told = text => text ? `<p class="sb-told">${esc(text)}</p>` : '';
 const colourWords = (letters, bits) => [0, 1].map(c => { const ls = letters.filter((_, i) => bits[i] === c); return ls.length ? `${COLOURS[c][0].toUpperCase()}${COLOURS[c].slice(1)}: ${listWords(ls)}.` : ''; }).filter(Boolean).join(' ');
 
 function renderEvery(p, a) {
-  const q = p.parameters, b = a.board, letters = lettersOf(q), done = solved(p, b), answers = answersOf(q);
+  const q = p.parameters, b = a.board, letters = lettersOf(q), done = solved(p, b);
   const h = a.hintLevel >= 2 && !done ? hint(p, b) : null, act = h?.action;
   const colours = Object.fromEntries(letters.map((l, i) => [l, b.groups[i]])), now = splitOfColours(letters, b.groups);
-  // Bands appear only for a split claimed with Meet, until a colour changes.
-  const split = b.told && now ? now : null;
+  // The board shows colours only: no band is drawn until That's all is judged.
   const look = l => ({act: !done, piece: l, focus: `sb-disc-${l}`, cls: act?.type === 'tap' && act.label === l ? 'hinted' : '', label: `${l}, ${COLOURS[colours[l]]}`});
-  const main = drawBoard(q, q.labels, {split, colours, look});
-  const bar = done ? '' : `<div class="sb-bar">${moveButton('Meet', {type: 'meet'}, now !== null && b.told === null, act?.type === 'meet')}${moveButton('That’s all', {type: 'all'}, b.tried && !b.more, act?.type === 'all')}</div>`;
-  const word = b.told === 'apart' ? 'They don’t meet.' : b.told === 'again' ? 'Found already.' : b.more ? 'There is another.' : '';
-  const found = shelf(b.found.map(k => mini(q, q.labels, k, true)), 'Splits found');
-  // With no split that meets, the finished puzzle shows every split apart.
-  const proof = done && !answers.length ? shelf(splitList(letters).map(k => mini(q, q.labels, k, false)), 'Every split') : '';
-  const say = `${colourWords(letters, b.groups)}${split ? ` ${splitWords(split)}: ${b.told === 'apart' ? 'they don’t meet' : 'they meet'}.` : ''}${b.found.length ? ` Found: ${b.found.map(splitWords).join('; ')}.` : ''}${b.told === 'again' ? ' Found already.' : ''}${b.more ? ' There is another.' : ''}${done ? ' That’s all.' : ''}`;
-  return `<div class="sb-puzzle${done ? ' solved' : ''}" data-mechanic-wire="radon"><div class="sb-stage">${main}</div>${told(word)}${bar}${found}${proof}${status(say)}</div>`;
+  const main = drawBoard(q, q.labels, {colours, look});
+  const bar = done ? '' : `<div class="sb-bar">${moveButton('Meet', {type: 'meet'}, now !== null && b.told === null, act?.type === 'meet')}${moveButton('That’s all', {type: 'all'}, b.shelf.length > 0 && !b.refused, act?.type === 'all')}</div>`;
+  const apart = b.refused?.kind === 'apart' ? b.refused.key : null;
+  const word = b.told === 'again' ? 'Already on the shelf.' : apart ? 'This one doesn’t meet.' : b.refused ? 'There is another.' : '';
+  // The shelf: unjudged splits, each a button that takes it off; once solved,
+  // each split drawn with its bands.
+  const item = key => `<button type="button" class="sb-chip sb-take${apart === key ? ' ringed' : ''}${act?.type === 'drop' && act.key === key ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'drop', key}))}" data-focus="sb-drop-${key.replace('|', '-')}" aria-label="${splitWords(key)}. Take it off the shelf"><b class="sb-c0">${groupsOf(key)[0].join('')}</b><b class="sb-c1">${groupsOf(key)[1].join('')}</b></button>`;
+  const list = done ? shelf(b.shelf.map(k => mini(q, q.labels, k, true)), 'Splits that meet') : b.shelf.length ? `<div class="sb-goal sb-shelved" role="group" aria-label="Shelf">${b.shelf.map(item).join('')}</div>` : '';
+  const proof = apart ? shelf([mini(q, q.labels, apart, false, true)], 'This split apart') : '';
+  const say = `${colourWords(letters, b.groups)}${b.shelf.length ? ` Shelf: ${b.shelf.map(splitWords).join('; ')}.` : ' The shelf is empty.'}${word ? ` ${word}` : ''}${apart ? ` ${splitWords(apart)}.` : ''}${done ? ' That’s all.' : ''}`;
+  return `<div class="sb-puzzle${done ? ' solved' : ''}" data-mechanic-wire="radon"><div class="sb-stage">${main}</div>${told(word)}${proof}${bar}${list}${status(say)}</div>`;
 }
 
 function renderPlace(p, a) {
@@ -567,7 +568,7 @@ function renderLocus(p, a) {
   const bar = done ? '' : `<div class="sb-bar">${moveButton('That’s all', {type: 'all'}, b.found.length > 0 && !b.more, act?.type === 'all')}</div>`;
   const word = b.more ? 'There is another.' : fails ? 'No split meets.' : '';
   // A place that fails shows its three splits apart.
-  const proof = fails && !done ? shelf(splitList(['A', 'B', 'C']).map(k => mini(q, pos, k, false)), 'Every split') : '';
+  const proof = fails && !done ? shelf(splitList(['A', 'B', 'C']).map(k => mini(q, pos, k, false, true)), 'Every split') : '';
   const say = `${b.at ? `C at ${placeWords(b.at)}.` : ''}${works ? ` ${splitWords(split)} meet.` : ''}${word ? ` ${word}` : ''} Places found: ${b.found.length ? b.found.map(placeWords).join('; ') : 'none'}.${done ? ' That’s all.' : ''}`;
   return `<div class="sb-puzzle${done ? ' solved' : ''}" data-mechanic-wire="radon"><div class="sb-stage">${main}</div>${told(word)}${proof}${bar}${status(say)}</div>`;
 }
@@ -671,15 +672,14 @@ export const radonMechanics = {
       if (['colour', 'move'].includes(payload.tool)) ui(p).tool = payload.tool;
     },
     reset: p => { uiState.delete(p.id); },
-    // Undo takes back colours and moves, never a claim: what was found, a
-    // refused That's all, or the answer to a Meet or a Check on the same board.
+    // Undo takes back colours, moves and shelving, never an answer: a refused
+    // That's all or Check stays while the shelf or board is the same, and
+    // places C has been tried stay tried.
     carry(p, from, to) {
       const mode = p.parameters.mode;
       if (!object(from) || !object(to)) return to;
-      if (mode === 'every') {
-        const kept = Array.isArray(from.groups) && Array.isArray(to.groups) && from.groups.join() === to.groups.join();
-        return {...to, found: [...from.found], tried: from.tried || to.tried, more: from.more, told: kept ? from.told : null, done: false};
-      }
+      // A refused That's all stays while the shelf is the same.
+      if (mode === 'every') return from.refused && JSON.stringify(from.shelf) === JSON.stringify(to.shelf) ? {...to, refused: from.refused, told: null, done: false} : {...to, told: null, done: false};
       // Places only ever join the record, so C's earlier place is in it.
       if (mode === 'locus') return {...to, found: from.found.map(x => [...x]), missed: from.missed.map(x => [...x]), more: from.more, done: false};
       if (mode === 'place' && from.refused && Array.isArray(from.at) && Array.isArray(to.at) && same(from.at, to.at)) return {...to, refused: true};

@@ -14,13 +14,13 @@ const RULES = [
   'Swapping yellow and blue gives the same split.'
 ];
 const MODE_RULES = {
-  every: ['Press Meet when you think yellow’s band meets blue’s. A split that meets goes on the shelf below; one that doesn’t shows its two bands apart.', 'Press That’s all when you think every split that meets is on the shelf. It says if there is another.'],
+  every: ['Press Meet when you think yellow’s band meets blue’s: the split goes on the shelf below. Tap a split on the shelf to take it off.', 'Press That’s all when you think the shelf holds every split that meets and no other. If a split on it doesn’t meet, its bands are drawn apart; if one is missing, it says there is another.'],
   place: ['A, B and C stay put. Move D, then press Check: the splits shown must meet, and no other split may. If not, the board shows a split that breaks the rule.', 'D may sit on top of another dot.'],
   locus: ['A and B stay put. Tap a free place to put C there. If some split of A, B and C meets, the place gets a ring and the bands are drawn; if none does, it gets a cross and all three splits are shown apart.', 'Press That’s all when you think you have every place. It says if there is another.'],
   pair: ['Each board has its own A, B, C and D, one to a place. Move dots on either board, then press Check: no split may meet on both boards. If one does, it is drawn on both.']
 };
 const OBJECTIVE = {
-  every: 'Find every split of the dots whose bands meet, then press That’s all.',
+  every: 'Put every split of the dots whose bands meet on the shelf, and no other, then press That’s all.',
   place: 'Move D so that the splits shown meet and no other split does.',
   locus: 'Find every place where C can go so that some split of A, B and C meets, then press That’s all.',
   pair: 'Move dots so that no split meets on both boards.'
@@ -32,7 +32,7 @@ const VISIBLE = {
   pair: 'Move dots so no split meets on both boards.'
 };
 const CONTROLS = {
-  every: 'Tap a letter to switch it between yellow and blue. Press Meet when you think the two bands meet. Press That’s all when none is left. Undo takes back colours.',
+  every: 'Tap a letter to switch it between yellow and blue. Press Meet to put the split on the shelf; tap a split on the shelf to take it off. Press That’s all when the shelf is complete.',
   place: 'Tap a place on the board to move D there, or use the arrow keys. Press Check.',
   locus: 'Tap a place to put C there. Press That’s all when every place is found.',
   pair: 'Tap a letter to choose it, then a free place on the same board to move it there; arrow keys move the chosen letter. Press Check.',
@@ -40,7 +40,6 @@ const CONTROLS = {
 };
 const PREREQUISITES = {
   every: 'Sort four letters into two groups and see whether two drawn bands touch. No reading; a grown-up can read How to play.',
-  three: 'Sort three letters into two groups. No reading or arithmetic.',
   place: 'Picture the bands of a split before they are drawn, and see when three dots are on a line. A grown-up can read the goal.',
   locus: 'See when three dots of a square grid lie on one straight line, including slanted lines.',
   pair: 'Remember which splits meet on one board while building the other, and see when three dots are on a line.'
@@ -64,11 +63,11 @@ const PUZZLES = [
     hints: ['Where would D have to be for the triangle ABC to cover it?', 'Inside the triangle, not on an edge or a corner: there, other splits meet too.', 'Put D at 2 across, 2 up.'],
     parent: {notice: 'Whether your child pictures the triangle before Check draws it.', prompt: 'Why doesn’t A against B, C and D meet when D is inside?', explanation: 'With D strictly inside triangle ABC, ABC | D meets at D. No other split does: A, B and C are each outside the triangle of the other three, and a segment from a corner to D stays inside the triangle and cannot reach the opposite side (guide p. 4). Three lattice points work: 2 across and 2 or 3 up, and 3 across, 2 up.', extension: 'Where could D go so that A alone meets? (Past A, so that A is inside triangle BCD: 0 across, 0 up.)', connection: 'In general position exactly one of the seven splits meets: the Radon partition of four points is unique.'},
     provenance: 'Week 22 K–1 Problem 1, the inside cross, turned round: place D so that only ABC | D meets.'},
-  {number: 3, level: 'easy', title: 'Three dots', mode: 'every', cols: 6, rows: 6, labels: {A: [1, 2], B: [5, 1], C: [3, 5]}, check: [], prereq: 'three',
-    idea: 'Three dots that are not on a line have no split that meets, so four is the fewest that always works.',
-    hints: ['With three dots, what splits are there?', 'Each split is one dot against the segment of the other two.', 'No dot is on the segment of the other two. Try one split, then press That’s all.'],
-    parent: {notice: 'Whether your child expects a split to meet because the four-dot puzzles always had one.', prompt: 'Could you move one dot so that a split meets?', explanation: 'Three dots have three splits, each one dot against the segment of the other two, and they meet only if that dot is on that segment. These three make a triangle, so none does. With four dots some split always meets (Radon), so four is the sharp number in the plane.', extension: 'Puzzle 6 asks for every place C can go so that a split meets.', connection: 'Radon’s number in the plane is 4 = d + 2: three points in general position cannot be split.'},
-    provenance: 'Week 22 2–3 Problem 5 and 4–5 Problem 7 (the three-dot boards) and K–1 Problem 5’s upper cross, on the lattice.'},
+  {number: 3, level: 'easy', title: 'Four corners', mode: 'every', cols: 6, rows: 6, labels: {A: [1, 1], B: [5, 4], C: [5, 1], D: [2, 5]}, check: ['AB|CD'], prereq: 'every',
+    idea: 'When the four dots are the corners of a shape with no dot inside, exactly one split meets: the two diagonals.',
+    hints: ['Is any dot inside the triangle of the other three?', 'No dot is inside the others’ triangle, and no three are on a line. Look for two segments that cross.', 'One split meets: A and B against C and D.'],
+    parent: {notice: 'Whether your child looks for a dot inside the others’ triangle first, and whether they stop after one split or keep checking the rest.', prompt: 'Why can’t a second split meet here?', explanation: 'The dots are the corners of a four-sided shape, in the order A, C, B, D round it, so its diagonals are AB and CD, and they cross: AB | CD meets. No other split does: each dot is outside the triangle of the other three, and the sides AC and BD, and AD and BC, are opposite sides of the shape, which do not touch. With no three dots on a line exactly one split meets, so the shelf should hold just one.', extension: 'Move one dot so that a different split is the only one that meets (puzzles 2 and 5 do this with D).', connection: 'In general position the Radon partition of four points is unique: crossing diagonals, or a point inside a triangle.'},
+    provenance: 'Week 22 4–5 Problem 1’s left placement (one split meets, at the crossing of the diagonals), on the lattice with the corners not in letter order; the first hint is the guide’s held hint for 4–5 Problem 3.'},
   {number: 4, level: 'medium', title: 'On a line', mode: 'every', cols: 8, rows: 5, labels: LINE, check: ['AB|CD', 'AD|BC', 'ABD|C', 'ACD|B'], prereq: 'every',
     idea: 'On a line every band is a stretch of the line; four dots in a row give four splits that meet.',
     hints: ['On a line, each band is a stretch of the line.', 'Two stretches meet when they overlap or touch. Try a middle dot on its own.', 'Four meet: C alone, B alone, A and B against C and D, and A and D against B and C.'],
@@ -82,7 +81,7 @@ const PUZZLES = [
   {number: 6, level: 'medium', title: 'Where can C go?', mode: 'locus', cols: 8, rows: 5, labels: {A: [2, 1], B: [6, 3]}, check: [[8, 4], [4, 2], [0, 0]], prereq: 'locus',
     idea: 'Three dots have a split that meets only when they are on one line: every place for C is on the line through A and B, beyond them too.',
     hints: ['Where must C be for one dot to lie on the segment of the other two?', 'On the line through A and B. Look past A and past B too.', 'C works at 0 across, 0 up, at 4 across, 2 up and at 8 across, 4 up.'],
-    parent: {notice: 'Whether your child looks only between A and B, and whether they see that the line goes on past both.', prompt: 'Why does no dot off the line work?', explanation: 'Each split of three dots is one dot against the segment of the other two, and it meets only when that dot is on that segment, so all three must be on one line. Every free lattice point on the line through A and B works: between A and B, C alone meets; past B, B is between A and C; past A, A is between. The line climbs 1 for every 2 across, so it passes through a lattice point only every 2 across.', extension: 'Could C sit on A? (Yes: then A alone and C alone both meet. The app keeps C off A and B here; the worksheet counts their places too.)', connection: 'Three points have a Radon partition exactly when they are collinear: the degenerate configurations.'},
+    parent: {notice: 'Whether your child looks only between A and B, and whether they see that the line goes on past both.', prompt: 'Why does no dot off the line work?', explanation: 'Each split of three dots is one dot against the segment of the other two, and it meets only when that dot is on that segment, so all three must be on one line. Every free lattice point on the line through A and B works: between A and B, C alone meets; past B, B is between A and C; past A, A is between. The line climbs 1 for every 2 across, so it passes through a lattice point only every 2 across. Each cross is three dots with no split that meets, drawn as its three splits apart: so three dots are not enough, and with four some split always meets (puzzles 1 to 4), which makes four the sharp number in the plane.', extension: 'Could C sit on A? (Yes: then A alone and C alone both meet. The app keeps C off A and B here; the worksheet counts their places too.)', connection: 'Three points have a Radon partition exactly when they are collinear, so Radon’s number in the plane, 4 = d + 2, is sharp (guide, 4–5 Problem 7).'},
     provenance: 'Week 22 2–3 Problem 5 and K–1 Problem 5 (find every place for C), with A and B on a slope-½ lattice line so that three free dots work.'},
   {number: 7, level: 'medium', title: 'Two splits', mode: 'place', cols: 6, rows: 6, labels: TRI, start: [2, 3], goal: ['AD|BC', 'ACD|B'], check: [[6, 1]], prereq: 'place', where: 'Put D on the line from A through B, past B.',
     idea: 'Two splits meet when three dots are on a line, and both meet at the middle one.',
@@ -91,12 +90,12 @@ const PUZZLES = [
     provenance: 'Week 22 K–1 Problem 2, D beyond B, turned round, as the review card’s App fit suggests (“exactly two work, on a line through two dots”).'},
   {number: 8, level: 'hard', title: 'Sharing a place', mode: 'every', cols: 6, rows: 6, labels: {A: [2, 2], B: [5, 1], C: [3, 5], D: [2, 2]}, check: ['A|BCD', 'AB|CD', 'AC|BD', 'ABC|D'], prereq: 'every',
     idea: 'Two letters on one place give four splits that meet: every split that puts them apart.',
-    hints: ['A and D sit on the same place. What happens when they get different colours?', 'Any split with A and D in different colours meets where they sit.', 'Four meet: A alone, A and B against C and D, A and C against B and D, and A, B and C against D.'],
+    hints: ['Look closely at every dot.', 'Any split with A and D in different colours meets where they sit.', 'Four meet: A alone, A and B against C and D, A and C against B and D, and A, B and C against D.'],
     parent: {notice: 'Whether your child treats A and D as one dot, or tries putting them in different colours.', prompt: 'Does a split always meet when two letters share a place?', explanation: 'If A and D are in different groups, both bands contain their shared dot, so the split meets: A | BCD, AB | CD, AC | BD and ABC | D. If they are in the same group, that group’s band is the dot or a segment from it, against B, C or the segment BC, and on this board none of those touch: AD | BC, ABD | C and ACD | B are apart. Yes, a split always meets: put A alone.', extension: 'What if three letters share a place? (Six of the seven meet; all four on one place, all seven.)', connection: 'Radon’s theorem allows repeated points; this is the first case of the guide’s proof (guide p. 18).'},
     provenance: 'Week 22 4–5 Problem 4 (A and D share a location), on the lattice.'},
   {number: 9, level: 'hard', title: 'Four splits', mode: 'place', cols: 6, rows: 6, labels: TRI, start: [3, 2], goal: ['AB|CD', 'AD|BC', 'ABC|D', 'ACD|B'], check: [[5, 1]], prereq: 'place', where: 'Put D on B.',
     idea: 'With A, B and C apart, four splits meet only when D sits on one of them: the four that separate the two.',
-    hints: ['Look at B and D in these four splits.', 'Each split puts B and D in different groups. Where would D have to be for all of those to meet?', 'Put D on B.'],
+    hints: ['What do these four splits have in common?', 'Each split puts B and D in different groups. Where would D have to be for all of those to meet?', 'Put D on B.'],
     parent: {notice: 'Whether your child knows that two letters may share a place, and how they find it.', prompt: 'Why can’t D anywhere else make four meet?', explanation: 'With A, B and C fixed and not on a line, D makes one split meet in general position, two on a line through two of them, and four only on top of one of them; the validator checks every lattice point of the board. ACD | B needs B in triangle ACD and ABC | D needs D in triangle ABC, and together they force D onto B.', extension: 'With A, B and C apart, can five meet? (No: four is the most.)', connection: 'Four labelled points have 1, 2, 4, 5, 6 or 7 Radon partitions, never 0 or 3; with three of them fixed apart, 1, 2 or 4.'},
     provenance: 'New, from the Week 22 review card’s App fit: “or four (only on a vertex; card_app_check.py finds only 1, 2 or 4)”.'},
   {number: 10, level: 'hard', title: 'Two boards', mode: 'pair', cols: 8, rows: 5, boards: [LINE, LINE], prereq: 'pair',

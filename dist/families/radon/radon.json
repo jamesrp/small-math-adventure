@@ -143,17 +143,17 @@
      ]
     }
    },
-   "objective": "Find every split of the dots whose bands meet, then press That’s all.",
+   "objective": "Put every split of the dots whose bands meet on the shelf, and no other, then press That’s all.",
    "visibleObjective": "Find every split whose bands meet.",
-   "instruction": "Find every split of the dots whose bands meet, then press That’s all.",
-   "controls": "Tap a letter to switch it between yellow and blue. Press Meet when you think the two bands meet. Press That’s all when none is left. Undo takes back colours.",
+   "instruction": "Put every split of the dots whose bands meet on the shelf, and no other, then press That’s all.",
+   "controls": "Tap a letter to switch it between yellow and blue. Press Meet to put the split on the shelf; tap a split on the shelf to take it off. Press That’s all when the shelf is complete.",
    "rules": [
     "Every dot goes in one of two groups, yellow or blue, with at least one dot in each. That is a split.",
     "A group’s band is stretched round its dots: one dot is just that dot, two make a segment, three make a filled triangle.",
     "A split meets when the two bands share a point. Touching counts.",
     "Swapping yellow and blue gives the same split.",
-    "Press Meet when you think yellow’s band meets blue’s. A split that meets goes on the shelf below; one that doesn’t shows its two bands apart.",
-    "Press That’s all when you think every split that meets is on the shelf. It says if there is another."
+    "Press Meet when you think yellow’s band meets blue’s: the split goes on the shelf below. Tap a split on the shelf to take it off.",
+    "Press That’s all when you think the shelf holds every split that meets and no other. If a split on it doesn’t meet, its bands are drawn apart; if one is missing, it says there is another."
    ],
    "idea": "When D lies on the segment from A to B, two splits meet, both at D.",
    "prerequisites": "Sort four letters into two groups and see whether two drawn bands touch. No reading; a grown-up can read How to play.",
@@ -271,7 +271,7 @@
   {
    "id": "radon-03",
    "number": 3,
-   "title": "Three dots",
+   "title": "Four corners",
    "difficulty_level": "easy",
    "familyTitle": "Stretch bands",
    "mechanic": "radon",
@@ -285,43 +285,47 @@
     "labels": {
      "A": [
       1,
-      2
+      1
      ],
      "B": [
       5,
-      1
+      4
      ],
      "C": [
-      3,
+      5,
+      1
+     ],
+     "D": [
+      2,
       5
      ]
     }
    },
-   "objective": "Find every split of the dots whose bands meet, then press That’s all.",
+   "objective": "Put every split of the dots whose bands meet on the shelf, and no other, then press That’s all.",
    "visibleObjective": "Find every split whose bands meet.",
-   "instruction": "Find every split of the dots whose bands meet, then press That’s all.",
-   "controls": "Tap a letter to switch it between yellow and blue. Press Meet when you think the two bands meet. Press That’s all when none is left. Undo takes back colours.",
+   "instruction": "Put every split of the dots whose bands meet on the shelf, and no other, then press That’s all.",
+   "controls": "Tap a letter to switch it between yellow and blue. Press Meet to put the split on the shelf; tap a split on the shelf to take it off. Press That’s all when the shelf is complete.",
    "rules": [
     "Every dot goes in one of two groups, yellow or blue, with at least one dot in each. That is a split.",
     "A group’s band is stretched round its dots: one dot is just that dot, two make a segment, three make a filled triangle.",
     "A split meets when the two bands share a point. Touching counts.",
     "Swapping yellow and blue gives the same split.",
-    "Press Meet when you think yellow’s band meets blue’s. A split that meets goes on the shelf below; one that doesn’t shows its two bands apart.",
-    "Press That’s all when you think every split that meets is on the shelf. It says if there is another."
+    "Press Meet when you think yellow’s band meets blue’s: the split goes on the shelf below. Tap a split on the shelf to take it off.",
+    "Press That’s all when you think the shelf holds every split that meets and no other. If a split on it doesn’t meet, its bands are drawn apart; if one is missing, it says there is another."
    ],
-   "idea": "Three dots that are not on a line have no split that meets, so four is the fewest that always works.",
-   "prerequisites": "Sort three letters into two groups. No reading or arithmetic.",
+   "idea": "When the four dots are the corners of a shape with no dot inside, exactly one split meets: the two diagonals.",
+   "prerequisites": "Sort four letters into two groups and see whether two drawn bands touch. No reading; a grown-up can read How to play.",
    "hints": [
-    "With three dots, what splits are there?",
-    "Each split is one dot against the segment of the other two.",
-    "No dot is on the segment of the other two. Try one split, then press That’s all."
+    "Is any dot inside the triangle of the other three?",
+    "No dot is inside the others’ triangle, and no three are on a line. Look for two segments that cross.",
+    "One split meets: A and B against C and D."
    ],
    "parent": {
-    "notice": "Whether your child expects a split to meet because the four-dot puzzles always had one.",
-    "prompt": "Could you move one dot so that a split meets?",
-    "explanation": "Three dots have three splits, each one dot against the segment of the other two, and they meet only if that dot is on that segment. These three make a triangle, so none does. With four dots some split always meets (Radon), so four is the sharp number in the plane.",
-    "extension": "Puzzle 6 asks for every place C can go so that a split meets.",
-    "connection": "Radon’s number in the plane is 4 = d + 2: three points in general position cannot be split.",
+    "notice": "Whether your child looks for a dot inside the others’ triangle first, and whether they stop after one split or keep checking the rest.",
+    "prompt": "Why can’t a second split meet here?",
+    "explanation": "The dots are the corners of a four-sided shape, in the order A, C, B, D round it, so its diagonals are AB and CD, and they cross: AB | CD meets. No other split does: each dot is outside the triangle of the other three, and the sides AC and BD, and AD and BC, are opposite sides of the shape, which do not touch. With no three dots on a line exactly one split meets, so the shelf should hold just one.",
+    "extension": "Move one dot so that a different split is the only one that meets (puzzles 2 and 5 do this with D).",
+    "connection": "In general position the Radon partition of four points is unique: crossing diagonals, or a point inside a triangle.",
     "sourceIds": [
      "radon-week22",
      "radon-card22",
@@ -329,9 +333,11 @@
     ]
    },
    "solution": {
-    "answers": []
+    "answers": [
+     "AB|CD"
+    ]
    },
-   "provenance": "Week 22 2–3 Problem 5 and 4–5 Problem 7 (the three-dot boards) and K–1 Problem 5’s upper cross, on the lattice."
+   "provenance": "Week 22 4–5 Problem 1’s left placement (one split meets, at the crossing of the diagonals), on the lattice with the corners not in letter order; the first hint is the guide’s held hint for 4–5 Problem 3."
   },
   {
    "id": "radon-04",
@@ -366,17 +372,17 @@
      ]
     }
    },
-   "objective": "Find every split of the dots whose bands meet, then press That’s all.",
+   "objective": "Put every split of the dots whose bands meet on the shelf, and no other, then press That’s all.",
    "visibleObjective": "Find every split whose bands meet.",
-   "instruction": "Find every split of the dots whose bands meet, then press That’s all.",
-   "controls": "Tap a letter to switch it between yellow and blue. Press Meet when you think the two bands meet. Press That’s all when none is left. Undo takes back colours.",
+   "instruction": "Put every split of the dots whose bands meet on the shelf, and no other, then press That’s all.",
+   "controls": "Tap a letter to switch it between yellow and blue. Press Meet to put the split on the shelf; tap a split on the shelf to take it off. Press That’s all when the shelf is complete.",
    "rules": [
     "Every dot goes in one of two groups, yellow or blue, with at least one dot in each. That is a split.",
     "A group’s band is stretched round its dots: one dot is just that dot, two make a segment, three make a filled triangle.",
     "A split meets when the two bands share a point. Touching counts.",
     "Swapping yellow and blue gives the same split.",
-    "Press Meet when you think yellow’s band meets blue’s. A split that meets goes on the shelf below; one that doesn’t shows its two bands apart.",
-    "Press That’s all when you think every split that meets is on the shelf. It says if there is another."
+    "Press Meet when you think yellow’s band meets blue’s: the split goes on the shelf below. Tap a split on the shelf to take it off.",
+    "Press That’s all when you think the shelf holds every split that meets and no other. If a split on it doesn’t meet, its bands are drawn apart; if one is missing, it says there is another."
    ],
    "idea": "On a line every band is a stretch of the line; four dots in a row give four splits that meet.",
    "prerequisites": "Sort four letters into two groups and see whether two drawn bands touch. No reading; a grown-up can read How to play.",
@@ -604,9 +610,9 @@
    "parent": {
     "notice": "Whether your child looks only between A and B, and whether they see that the line goes on past both.",
     "prompt": "Why does no dot off the line work?",
-    "explanation": "Each split of three dots is one dot against the segment of the other two, and it meets only when that dot is on that segment, so all three must be on one line. Every free lattice point on the line through A and B works: between A and B, C alone meets; past B, B is between A and C; past A, A is between. The line climbs 1 for every 2 across, so it passes through a lattice point only every 2 across.",
+    "explanation": "Each split of three dots is one dot against the segment of the other two, and it meets only when that dot is on that segment, so all three must be on one line. Every free lattice point on the line through A and B works: between A and B, C alone meets; past B, B is between A and C; past A, A is between. The line climbs 1 for every 2 across, so it passes through a lattice point only every 2 across. Each cross is three dots with no split that meets, drawn as its three splits apart: so three dots are not enough, and with four some split always meets (puzzles 1 to 4), which makes four the sharp number in the plane.",
     "extension": "Could C sit on A? (Yes: then A alone and C alone both meet. The app keeps C off A and B here; the worksheet counts their places too.)",
-    "connection": "Three points have a Radon partition exactly when they are collinear: the degenerate configurations.",
+    "connection": "Three points have a Radon partition exactly when they are collinear, so Radon’s number in the plane, 4 = d + 2, is sharp (guide, 4–5 Problem 7).",
     "sourceIds": [
      "radon-week22",
      "radon-card22",
@@ -743,22 +749,22 @@
      ]
     }
    },
-   "objective": "Find every split of the dots whose bands meet, then press That’s all.",
+   "objective": "Put every split of the dots whose bands meet on the shelf, and no other, then press That’s all.",
    "visibleObjective": "Find every split whose bands meet.",
-   "instruction": "Find every split of the dots whose bands meet, then press That’s all.",
-   "controls": "Tap a letter to switch it between yellow and blue. Press Meet when you think the two bands meet. Press That’s all when none is left. Undo takes back colours.",
+   "instruction": "Put every split of the dots whose bands meet on the shelf, and no other, then press That’s all.",
+   "controls": "Tap a letter to switch it between yellow and blue. Press Meet to put the split on the shelf; tap a split on the shelf to take it off. Press That’s all when the shelf is complete.",
    "rules": [
     "Every dot goes in one of two groups, yellow or blue, with at least one dot in each. That is a split.",
     "A group’s band is stretched round its dots: one dot is just that dot, two make a segment, three make a filled triangle.",
     "A split meets when the two bands share a point. Touching counts.",
     "Swapping yellow and blue gives the same split.",
-    "Press Meet when you think yellow’s band meets blue’s. A split that meets goes on the shelf below; one that doesn’t shows its two bands apart.",
-    "Press That’s all when you think every split that meets is on the shelf. It says if there is another."
+    "Press Meet when you think yellow’s band meets blue’s: the split goes on the shelf below. Tap a split on the shelf to take it off.",
+    "Press That’s all when you think the shelf holds every split that meets and no other. If a split on it doesn’t meet, its bands are drawn apart; if one is missing, it says there is another."
    ],
    "idea": "Two letters on one place give four splits that meet: every split that puts them apart.",
    "prerequisites": "Sort four letters into two groups and see whether two drawn bands touch. No reading; a grown-up can read How to play.",
    "hints": [
-    "A and D sit on the same place. What happens when they get different colours?",
+    "Look closely at every dot.",
     "Any split with A and D in different colours meets where they sit.",
     "Four meet: A alone, A and B against C and D, A and C against B and D, and A, B and C against D."
    ],
@@ -839,7 +845,7 @@
    "idea": "With A, B and C apart, four splits meet only when D sits on one of them: the four that separate the two.",
    "prerequisites": "Picture the bands of a split before they are drawn, and see when three dots are on a line. A grown-up can read the goal.",
    "hints": [
-    "Look at B and D in these four splits.",
+    "What do these four splits have in common?",
     "Each split puts B and D in different groups. Where would D have to be for all of those to meet?",
     "Put D on B."
    ],

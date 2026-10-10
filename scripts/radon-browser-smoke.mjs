@@ -1,7 +1,8 @@
 // Plays Stretch bands through the real interface on the shared square grid:
-// colouring letters by tapping their discs, Meet and its answers, the shelf,
-// That's all with There is another and its lock through Undo, two letters on
-// one point tapped near the edge each disc shows, Enter on a disc, placing D
+// colouring letters by tapping their discs, Meet shelving a split with no
+// verdict, taking one off, That's all judging the shelf and its lock through
+// Undo, a split drawn apart at least 200px wide, two letters on one point
+// tapped near the edge each disc shows, Enter on a disc, placing D
 // by tapping a place, an arrow key and a letter's own disc, Check's
 // refusals with the ringed goal split, every place for C with its crosses and
 // three splits apart, the two boards with choosing and moving and a shared
@@ -45,42 +46,47 @@ try {
   await page.goto(base); await page.locator('#nickname').fill('Bands QA'); await page.locator('#profile-form button[type=submit]').click();
   await page.locator('[data-action=library]').first().click(); await page.locator('.caravan-library').waitFor();
 
-  // Puzzle 1: colour by tapping, Meet, the shelf, That's all.
+  // Puzzle 1: colour by tapping, Meet shelves with no verdict, That's all
+  // judges the shelf.
   const E = 'radon-01';
   await open(E); await fit('every');
   assert.equal(await page.locator('.puzzle-goal').innerText(), 'Find every split whose bands meet.');
-  assert.equal(await page.locator(`${stage} .sb-band`).count(), 0, 'no bands before Meet');
-  assert.equal(await button('That’s all').isDisabled(), true, 'That’s all waits for a try');
+  assert.equal(await page.locator(`${stage} .sb-band`).count(), 0, 'no bands');
+  assert.equal(await button('That’s all').isDisabled(), true, 'That’s all waits for a shelf');
   await tap(disc('C')); await tap(disc('D'));
   assert.deepEqual((await board(E)).groups, [0, 0, 1, 1], 'a tap switches a letter’s colour');
-  assert.equal(await page.locator(`${stage} .sb-band`).count(), 0, 'still no bands while colouring');
   await button('Meet').focus(); await page.keyboard.press('Enter');
-  assert.deepEqual((await board(E)).found, ['AB|CD'], 'a split that meets goes on the shelf');
-  assert.equal(await page.locator(`${stage} .sb-band`).count(), 2, 'its two bands are drawn');
-  assert.equal(await page.locator(`${stage} .sb-meet`).count(), 1, 'with a ring where they meet');
-  assert.equal(await page.locator('.sb-shelf .sb-mini').count(), 1);
-  assert.equal(await page.locator('.sb-found-count, .sb-slot').count(), 0, 'no count, no slots');
+  assert.deepEqual((await board(E)).shelf, ['AB|CD'], 'Meet puts the split on the shelf');
+  assert.equal(await page.locator('.sb-band').count(), 0, 'with no bands and no verdict');
+  assert.equal(await page.locator('.sb-told').count(), 0);
+  assert.equal(await page.locator('.sb-take').count(), 1);
   await notThatsAll('after Meet');
   assert.match((await focused()).cls, /sb-disc|sb-button/, 'focus on the board or a move button');
   await button('That’s all').click();
   assert.equal(await told(), 'There is another.');
-  assert.equal(await button('That’s all').isDisabled(), true, 'That’s all waits for a new find');
+  assert.equal(await button('That’s all').isDisabled(), true, 'That’s all waits for the shelf to change');
   await notThatsAll('after a wrong That’s all');
   await tap(disc('A'));
-  assert.equal(await page.locator(`${stage} .sb-band`).count(), 0, 'bands go when a colour changes');
   await button('Meet').click();
-  assert.equal(await told(), 'They don’t meet.');
+  assert.deepEqual((await board(E)).shelf, ['AB|CD', 'ACD|B']);
+  await button('That’s all').click();
+  assert.equal(await told(), 'This one doesn’t meet.');
+  assert.equal(await page.locator('.sb-take.ringed').count(), 1, 'the split that misses is marked on the shelf');
+  assert.equal(await page.locator('.sb-mini.sb-big .sb-shape').count(), 1, 'and drawn apart: the triangle of A, C and D without B');
   await shot('apart');
-  await undoButton(); await undoButton();
-  assert.equal((await board(E)).more, true, 'Undo keeps There is another');
+  await undoButton();
+  assert.deepEqual((await board(E)).refused, {kind: 'apart', key: 'ACD|B'}, 'Undo keeps the refusal');
   assert.equal(await button('That’s all').isDisabled(), true);
+  await tap(page.locator('.sb-take.ringed'));
+  assert.deepEqual((await board(E)).shelf, ['AB|CD'], 'tapping a split on the shelf takes it off');
+  await tap(disc('A'));
   await disc('C').focus(); await page.keyboard.press('Enter');
   assert.deepEqual((await board(E)).groups, [0, 0, 0, 1], 'Enter on a disc switches it');
   await button('Meet').click();
-  assert.deepEqual((await board(E)).found, ['AB|CD', 'ABC|D']);
-  await shot('two-found');
+  assert.deepEqual((await board(E)).shelf, ['AB|CD', 'ABC|D']);
   await button('That’s all').click();
   await done(); await fit('solved');
+  await shot('two-found');
 
   // Puzzle 8: A and D share a point; a tap goes to the disc it lands on.
   const S = 'radon-08';
@@ -94,8 +100,7 @@ try {
   await tapAt(toward(dx, dy, ax, ay, -r * .5));
   assert.deepEqual((await board(S)).groups, [1, 0, 0, 0], 'D’s far side switches D');
   await button('Meet').click();
-  assert.equal(await page.locator(`${stage} .sb-meet`).count(), 1, 'A alone meets the triangle at the shared point');
-  assert.deepEqual((await board(S)).found, ['A|BCD']);
+  assert.deepEqual((await board(S)).shelf, ['A|BCD']);
   await shot('shared');
 
   // Puzzle 2: Check refuses, then D inside.
@@ -139,7 +144,8 @@ try {
   await tap(spot(27));
   assert.deepEqual((await board(L)).missed, [[4, 3]]);
   assert.equal(await told(), 'No split meets.');
-  assert.equal(await page.locator('.sb-shelf .sb-mini').count(), 3, 'the three splits drawn apart');
+  assert.equal(await page.locator('.sb-shelf .sb-mini.sb-big').count(), 3, 'the three splits drawn apart');
+  for (const w of await page.locator('.sb-mini.sb-big').evaluateAll(els => els.map(e => e.getBoundingClientRect().width))) assert.ok(w >= 200, `a split apart is drawn at least 200px wide (${w})`);
   assert.equal(await button('That’s all').isDisabled(), true, 'That’s all waits for a find');
   await shot('locus-miss');
   await tap(spot(26));
@@ -154,19 +160,22 @@ try {
   await button('That’s all').click();
   await done(); await fit('locus solved');
 
-  // Puzzle 3: hints up to Apply hint, the reason before That's all.
+  // Puzzle 3: the first hint, a wrong shelf refused and kept through Undo,
+  // then hints up to Apply hint.
   const T = 'radon-03';
   await open(T);
   await button('Hint').click();
-  assert.equal(await page.locator('.hint-card').innerText(), 'With three dots, what splits are there?', 'the first hint is the puzzle’s own');
-  await button('Hint').click(); await button('Hint').click();
-  await button('Apply hint').click();
-  await button('Apply hint').click();
-  assert.equal((await board(T)).told, 'apart', 'the hints try a split first');
-  assert.match(await page.locator('.hint-card').innerText(), /no split meets/);
-  assert.doesNotMatch(await page.locator('.hint-card p').innerText(), /That’s all/, 'the hint gives the reason, not the claim');
-  assert.match(await button('That’s all').getAttribute('class'), /hinted/, 'the button is marked instead');
-  await button('Apply hint').click();
+  assert.equal(await page.locator('.hint-card').innerText(), 'Is any dot inside the triangle of the other three?', 'the first hint is the puzzle’s own');
+  await tap(disc('B')); await button('Meet').click(); await button('That’s all').click();
+  assert.equal(await told(), 'This one doesn’t meet.');
+  const big = await page.locator('.sb-mini.sb-big').evaluateAll(els => els.map(e => e.getBoundingClientRect().width));
+  assert.ok(big.length === 1 && big[0] >= 200, `the split apart is drawn at least 200px wide (${big})`);
+  await undoButton();
+  assert.deepEqual((await board(T)).refused, {kind: 'apart', key: 'ACD|B'}, 'Undo keeps the refusal');
+  assert.equal(await button('That’s all').isDisabled(), true);
+  for (let i = 0; i < 3 && !(await button('Apply hint').count()); i++) await button('Hint').click();
+  assert.match(await page.locator('.sb-take').first().getAttribute('class'), /hinted/, 'the hint marks the split to take off');
+  for (let i = 0; i < 8 && !(await page.locator('#completion-heading').count()); i++) await button('Apply hint').click();
   await done();
 
   // Puzzle 10: two boards.
