@@ -1,0 +1,66 @@
+@import url('../../cases.css');
+/* Pairs that stay: circles in sun and squares in sky, each over (or under)
+   its strip, first choice nearest the letter; the pairing as ink lines
+   between the two rows; the partner shaded on every strip, as on the
+   worksheet. Ochre rings a letter wanted, pine rings a partner kept by one
+   who says no; a claim is a dashed line, pine when right and rust when
+   not; a wish met by a no is dotted. */
+.sm-puzzle{display:flex;flex-direction:column;align-items:center;gap:.6rem;width:100%}
+.sm-board{--gut:16px;display:grid;grid-template-columns:var(--gut) repeat(var(--n),minmax(0,1fr));column-gap:6px;row-gap:3px;align-items:center;width:100%;max-width:calc(var(--n) * 104px + 40px);margin:0 auto;touch-action:manipulation}
+.sm-rank{font:400 .72rem/1 var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850);text-align:center;opacity:.8}
+
+/* Letters. */
+.sm-token{justify-self:center;display:grid;place-items:center;box-sizing:border-box;width:50px;height:50px;margin:3px 0;border:2px solid var(--b-ink,#294439);color:var(--b-ink,#294439);font:400 1.45rem/1 var(--b-display,Georgia,serif);box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.sm-c{border-radius:50%;background:var(--b-sun,#efc76e)}
+.sm-s{border-radius:9px;background:var(--b-sky,#9cc9de)}
+.board-panel button.sm-token{min-width:0;min-height:0;padding:0;cursor:pointer;touch-action:none}
+.board-panel button.sm-token.sm-c{border-radius:50%}
+.board-panel button.sm-token.sm-s{border-radius:9px}
+.sm-token.picked{box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-pine,#31533e)}
+.sm-token.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+.sm-token:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:5px}
+
+/* Strips: one place per row, the shape of the letter it names. */
+.sm-cell{justify-self:stretch;display:grid;place-items:center;box-sizing:border-box;height:34px;margin:0;padding:0;border:0;border-radius:8px;background:transparent;color:var(--b-ink,#294439)}
+.board-panel button.sm-cell{min-width:0;min-height:0;padding:0;cursor:pointer;background:rgba(208,214,189,.28);box-shadow:none;touch-action:none}
+.sm-cell i{display:grid;place-items:center;box-sizing:border-box;width:27px;height:27px;border:1.5px solid var(--b-ink,#294439);background:var(--b-card,#fffdf5);font:400 .98rem/1 var(--b-display,Georgia,serif);font-style:normal}
+.sm-cell .sm-ci{border-radius:50%}
+.sm-cell .sm-sq{border-radius:5px}
+.sm-cell.partner .sm-ci{background:var(--b-sun,#efc76e)}
+.sm-cell.partner .sm-sq{background:var(--b-sky,#9cc9de)}
+.sm-cell.want i{box-shadow:0 0 0 2px var(--b-card,#fffdf5),0 0 0 5px var(--b-ochre,#b38840)}
+.sm-cell.keep i{box-shadow:0 0 0 2px var(--b-card,#fffdf5),0 0 0 5px var(--b-pine,#31533e)}
+.sm-cell.no i{opacity:.45}
+.sm-cell.picked{box-shadow:inset 0 0 0 2px var(--b-pine,#31533e);background:#e9eddc}
+.board-panel button.sm-cell.picked{background:#e9eddc}
+.sm-cell.hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:1px}
+.sm-cell:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:1px}
+
+/* The pairing between the rows. */
+.sm-links{grid-column:2 / -1;display:block;width:100%;height:46px;overflow:visible}
+.sm-links line{vector-effect:non-scaling-stroke;stroke-linecap:round}
+.sm-links .pair{stroke:var(--b-ink,#294439);stroke-width:3.5px}
+.sm-links .claim{stroke-width:3.5px;stroke-dasharray:7 6}
+.sm-links .claim.yes{stroke:var(--b-pine,#31533e)}
+.sm-links .claim.no{stroke:var(--b-bad,#a9503a)}
+.sm-links .wish{stroke:var(--b-muted,#5a6850);stroke-width:2.5px;stroke-dasharray:2 5}
+.sm-board.held .sm-links .pair{stroke:#6f7f72}
+
+/* Claims and what they get. */
+.sm-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .8rem;max-width:100%}
+.sm-puzzle .sm-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.sm-puzzle .sm-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+.sm-puzzle .sm-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+.sm-told{margin:0;max-width:30rem;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+.sm-why{margin:0;font-size:.95rem;color:var(--b-muted,#5a6850);text-align:center}
+
+/* Small pairings: the shelf and the playground's sizes. */
+.sm-mini{display:block;height:44px;width:auto}
+.sm-mini-links line{stroke:var(--b-ink,#294439);stroke-width:1.6}
+.sm-mini-links .dash{stroke:var(--b-pine,#31533e);stroke-dasharray:2.5 2}
+.sm-mini circle{fill:var(--b-sun,#efc76e);stroke:var(--b-ink,#294439);stroke-width:.9}
+.sm-mini rect{fill:var(--b-sky,#9cc9de);stroke:var(--b-ink,#294439);stroke-width:.9}
+.sm-mini text{font:400 7px var(--b-display,Georgia,serif);fill:var(--b-ink,#294439);text-anchor:middle}
+.sm-sizes{display:flex;gap:.5rem;justify-content:center}
+.sm-puzzle .sm-size{display:grid;place-items:center;min-width:64px;min-height:56px;padding:4px 8px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:none}
+.sm-puzzle .sm-size[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 2px var(--b-pine,#31533e)}
