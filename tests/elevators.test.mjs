@@ -97,7 +97,7 @@ test('a farthest puzzle has no flag, one line of goal, and only the farthest pla
   assert.ok(!isSolved(p, short.board), 'ending on the ground at 20 is not the farthest');
   assert.deepEqual(nextHint(p, short), {type: 'deadend', text: 'Some trip goes farther. Undo.'});
   assert.ok(isSolved(p, play(p, freshAttempt(p), 'UUURRRDDD').board));
-  const far = byId('elevators-12');
+  const far = byId('elevators-10');
   assert.equal(far.parameters.target, 48);
   assert.ok(isSolved(far, play(far, freshAttempt(far), 'UUUURRRDDDD').board));
 });

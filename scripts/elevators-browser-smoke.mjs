@@ -137,11 +137,11 @@ try {
   await fit('farthest solved'); await shot('08-solved');
 
   // Sixty-three on the densest board: hints alone.
-  const P11 = 'elevators-11';
-  await open(P11); await fit('sixty-three');
+  const P12 = 'elevators-12';
+  await open(P12); await fit('sixty-three');
   await hintSolve();
-  assert.equal((await word(P11)).length, 13);
-  await shot('11-solved');
+  assert.equal((await word(P12)).length, 13);
+  await shot('12-solved');
 
   // The playground: moves, no Hint, Clear and Undo.
   const PG = 'elevators-playground';
