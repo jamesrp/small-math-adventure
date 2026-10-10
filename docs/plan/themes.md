@@ -1,6 +1,6 @@
 # The 63 themes and the app
 
-A first pass, October 4, 2026, for [the horizontal push](README.md). Three readers took the opening pages of each facilitator guide (its theorem-first overview) in [math-circle-worksheets](https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2), looked at student pages where needed, and compared each theme with the app's families. The ratings are a starting point; the review cards in Track C replace them.
+A first pass, October 4, 2026, for [the horizontal push](README.md). Three readers took the opening pages of each facilitator guide (its theorem-first overview) in [math-circle-worksheets](https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2), looked at student pages where needed, and compared each theme with the app's families. The ratings are a starting point; the review cards in Track C replace them. Each week's current decision, in the app or ruled out with a reason, is in [decisions.md](decisions.md).
 
 The app ideas are not ports of the worksheets. Each asks what would be interesting to do with the theme's mathematical object on a screen. Children have enjoyed clicking around to solve puzzles far more than predicting an outcome (see Track B in the plan).
 

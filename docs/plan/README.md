@@ -1,6 +1,6 @@
 # The horizontal push
 
-A plan, October 4, 2026, for three tracks: (A) the app's story, UI, art, voice and video; (B) all 63 math-circle themes in the app; (C) a quality review of the 63. It also sets who does what across Claude, Dot/Codex and James. The theme-by-theme inventory is in [themes.md](themes.md). James reviewed it on October 5; his decisions are folded in and listed at the end.
+A plan, October 4, 2026, for three tracks: (A) the app's story, UI, art, voice and video; (B) all 63 math-circle themes in the app; (C) a quality review of the 63. It also sets who does what across Claude, Dot/Codex and James. The theme-by-theme inventory is in [themes.md](themes.md). Where each week stands, in the app or ruled out with a reason, is in [decisions.md](decisions.md). James reviewed it on October 5; his decisions are folded in and listed at the end.
 
 ## Where things stand
 
