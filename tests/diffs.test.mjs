@@ -40,6 +40,8 @@ test('rings before a target, and the certificates for none', () => {
   assert.deepEqual(reasonOf([1, 2, 2, 2]), {kind: 'odd', marks: [0]});
   assert.equal(reasonOf([0, 0, 2, 4]), null, 'no ring makes it, but neither certificate applies');
   assert.equal(certificate([1, 1, 1, 0], [0, 1, 2]), 'odd');
+  assert.equal(certificate([2, 1, 2, 2], [1]), 'odd', 'one odd number is a reason too');
+  assert.equal(certificate([2, 1, 2, 2], [0, 1]), null);
   assert.equal(certificate([1, 1, 1, 0], [0, 1]), null, 'every odd gap must be marked');
   assert.equal(certificate([0, 0, 0, 2], [0, 1, 2]), 'zeros');
   assert.equal(certificate([0, 0, 0, 2], [0, 1]), null);
@@ -70,8 +72,8 @@ test('Can’t: only after a whole ring, with the marks that show why; a refusal 
   assert.deepEqual(M.carry(p, wrong.board, back.board).refused, [0, 1], 'Undo keeps the refusal');
   const changed = play(p, wrong, {type: 'set', station: 0, h: 2});
   assert.equal(changed.board.refused, null);
-  assert.ok(!isSolved(p, play(p, changed, {type: 'cant', marks: [0, 1, 2]}).board), 'the first three towers are not the reason');
-  const right = play(p, changed, {type: 'cant', marks: [1, 2, 3]});
+  assert.ok(!isSolved(p, play(p, changed, {type: 'cant', marks: [0]}).board), 'the first tower is not the reason');
+  const right = play(p, changed, {type: 'cant', marks: [1]});
   assert.ok(isSolved(p, right.board));
   const possible = byId('diffs-01'), tried = play(possible, freshAttempt(possible), ...sets([0, 0, 0, 0]));
   assert.ok(!isSolved(possible, play(possible, tried, {type: 'cant', marks: [0]}).board), 'Can’t on a ring that has one is refused');
@@ -137,7 +139,11 @@ test('grow: rings join the run when their gaps make the newest one; dead ends ar
   const b = play(four, freshAttempt(four), ...sets([1, 1, 1, 1]), ...sets([1, 2, 1, 2]));
   assert.equal(b.board.run.length, 2, '(1, 2, 1, 2) makes (1, 1, 1, 1)');
   assert.deepEqual(nextHint(four, b).action, {type: 'lift'}, 'but nothing under 3 makes (1, 2, 1, 2)');
-  assert.match(nextHint(four, b).text, /towers up to 2\. Take it back\./);
+  assert.equal(nextHint(four, b).text, 'No ring with towers up to 2 makes this one. Take it back.');
+  // (3, 3, 3, 1) has no ring before it of any height: its numbers have no equal split.
+  const seven = byId('diffs-12'), c = build(seven, build(seven, build(seven, build(seven, freshAttempt(seven), [2, 2, 2, 2]), [0, 2, 0, 2]), [0, 0, 2, 2]), [3, 3, 3, 1]);
+  assert.equal(c.board.run.length, 4);
+  assert.equal(nextHint(seven, c).text, 'No ring makes this one. Take it back.');
 });
 
 test('three towers: going back until a ring comes again', () => {
@@ -148,7 +154,7 @@ test('three towers: going back until a ring comes again', () => {
   a = play(p, a, ...sets([1, 0, 0]));
   assert.equal(a.board.run.length, 2);
   assert.equal(nextHint(p, a).action.type, 'lift');
-  assert.match(nextHint(p, a).text, /odd number/);
+  assert.equal(nextHint(p, a).text, 'No ring makes this one: its numbers add up to an odd number. Take it back.');
   a = play(p, a, {type: 'lift'}, {type: 'set', station: 0, h: 0}, {type: 'set', station: 1, h: 1}, {type: 'set', station: 2, h: 1});
   a = play(p, a, ...sets([1, 1, 0]), ...sets([1, 0, 1]));
   assert.ok(isSolved(p, a.board));

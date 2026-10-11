@@ -45,7 +45,7 @@ const TABLE = {
   'diffs-03': {mode: 'grow', cap: 2, moves: 2},
   'diffs-04': {mode: 'make', target: '0,2,0,0', cap: 2, answers: 0, reason: 'zeros'},
   'diffs-05': {mode: 'make', target: '3,2,2,1', cap: 4, answers: 2},
-  'diffs-06': {mode: 'make', target: '0,1,1,1', cap: 3, answers: 0, reason: 'odd'},
+  'diffs-06': {mode: 'make', target: '2,1,2,2', cap: 3, answers: 0, reason: 'odd'},
   'diffs-07': {mode: 'every', target: '0,1,0,1', cap: 2, answers: 4},
   'diffs-08': {mode: 'grow', cap: 2, moves: 4},
   'diffs-09': {mode: 'grow', cap: 1, loop: '1,0,1'},
@@ -173,7 +173,7 @@ function checkMake(p, fresh, row) {
   // A wrong claim: refused, kept through Undo, and Can't waits for a change.
   const badMarks = row.reason === 'odd' ? [3] : row.reason === 'zeros' ? [0, 1, 2, 3] : [0];
   // Page order proves nothing: the first three towers are never a certificate here.
-  if (row.reason) assert.notDeepEqual(solutionMarks(q), [0, 1, 2], `${p.id}: the certificate is not the first three towers`);
+  if (row.reason) assert.ok(![[0], [0, 1, 2]].some(m => JSON.stringify(m) === JSON.stringify(solutionMarks(q))), `${p.id}: the certificate is not the first towers in page order`);
   const refused = play(p, tried, {type: 'cant', marks: badMarks});
   assert.deepEqual(refused.board.refused, badMarks, `${p.id}: a wrong Can’t is refused`);
   assert.ok(!isSolved(p, refused.board));

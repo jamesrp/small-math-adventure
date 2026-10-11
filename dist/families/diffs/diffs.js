@@ -85,6 +85,9 @@ export function certificate(t, marks) {
   if (marks.length === t.length - 1 && marks.every(i => t[i] === 0) && t.some((v, i) => !marks.includes(i) && v !== 0)) return 'zeros';
   return null;
 }
+// Whether some ring, of any height, makes t: its numbers split into two
+// groups with equal totals (the arrows that climb and the arrows that fall).
+export const splits = t => { for (let m = 0; m < 1 << t.length; m++) if (t.reduce((s, v, i) => s + ((m >> i) & 1 ? v : -v), 0) === 0) return true; return false; };
 // The reason a target has no ring before it, as marks to tap, or null.
 export function reasonOf(t) {
   const odd = oddOnes(t);
@@ -217,7 +220,7 @@ export function reasonText(t) {
   if (!why) return '';
   if (why.kind === 'zeros') return 'Three gaps of 0 would make all four towers equal, and then the last gap is 0 too.';
   const k = why.marks.length;
-  return `Going round, a tower switches between odd and even at each odd gap. With ${k} odd ${k === 1 ? 'gap' : 'gaps'}, A would come back changed.`;
+  return `Going round, a tower switches between odd and even at each odd gap. The ring on the right needs ${k} odd ${k === 1 ? 'gap' : 'gaps'}, so A would come back changed.`;
 }
 function makeHint(q, b) {
   const answers = predecessors(q.target, q.cap);
@@ -268,7 +271,7 @@ function growHint(q, b) {
   }
   const why = reasonOf(b.run[0]);
   const text = !predecessors(b.run[0], q.cap).length
-    ? `No ring makes this one${why?.kind === 'odd' ? ': its gaps add up to an odd number' : why?.kind === 'zeros' ? ': it has three gaps of 0' : ` with towers up to ${q.cap}`}. Take it back.`
+    ? `No ring${splits(b.run[0]) ? ` with towers up to ${q.cap}` : ''} makes this one${why?.kind === 'odd' ? ': its numbers add up to an odd number' : why?.kind === 'zeros' ? ': it has three 0s' : ''}. Take it back.`
     : q.goal.loop ? 'The rings before this one never come back. Take it back.' : 'The rings before this one cannot go back far enough. Take it back.';
   return {type: 'move', action: {type: 'lift'}, text};
 }
@@ -348,7 +351,7 @@ function renderMake(p, a) {
     const ready = complete(b.old) && b.refused === null;
     const submit = state.claiming && state.marks.length;
     const attrs = submit ? moveAttrs({type: 'cant', marks: [...state.marks].sort((x, y) => x - y)}, 'df-cant') : `data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !state.claiming})}' data-focus="df-cant"`;
-    tools = `<div class="df-tools"><button type="button" class="secondary df-cant${showCant && !submit ? ' hinted' : ''}" ${attrs} aria-pressed="${Boolean(state.claiming && ready)}" ${ready ? '' : 'disabled'}>Can’t</button></div>`;
+    tools = `<div class="df-tools"><button type="button" class="secondary df-cant${showCant && !submit ? ' hinted' : ''}" ${attrs}${submit ? ' aria-label="Can’t: check marks"' : ''} aria-pressed="${Boolean(state.claiming && ready)}" ${ready ? '' : 'disabled'}>Can’t</button></div>`;
   }
   const why = b.claim ? certificate(q.target, b.claim) : null;
   const note = b.refused ? 'Those don’t rule it out.' : why === 'zeros' ? 'Three 0 gaps make all four towers equal.' : why === 'odd' ? 'Odd and even can’t swap an odd number of times round a ring.' : '';

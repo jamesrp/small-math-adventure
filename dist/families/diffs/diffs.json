@@ -64,7 +64,7 @@
    "prerequisites": "Compare towers. A grown-up can read How to play.",
    "hints": [
     "Start with a flat ring.",
-    "Rings whose gaps add up to an odd number have nothing before them.",
+    "Rings whose numbers add up to an odd number have nothing before them.",
     "A flat ring of 2s lets you go back further than a flat ring of 1s."
    ],
    "parent": {
@@ -260,7 +260,7 @@
   {
    "id": "diffs-04",
    "number": 4,
-   "title": "Three zeros",
+   "title": "Tall B",
    "difficulty_level": "easy",
    "familyTitle": "Gap rings",
    "mechanic": "diffs",
@@ -291,7 +291,7 @@
    "idea": "Three gaps of 0 make all four towers equal, so the fourth gap must be 0 too.",
    "prerequisites": "Compare towers, and see that equal gaps of 0 mean equal towers. A grown-up can read the reason after Can’t.",
    "hints": [
-    "Try to build it. What do the three 0 gaps say about the towers?",
+    "Build a ring and compare the gaps on its arrows with the ring on the right.",
     "C equals D, D equals A, and A equals B. What is the gap from B to C then?",
     "Build any ring, then press Can’t, tap the three 0s on the right, and press Can’t again."
    ],
@@ -299,7 +299,7 @@
     "notice": "Whether your child tries several rings before deciding none works, and can say why.",
     "prompt": "If A and B are the same, C and D are the same, and D and A are the same, what is the gap from B to C?",
     "explanation": "A gap of 0 means two towers are equal. The gaps from A to B, C to D and D to A are 0, so all four towers are equal, and then the gap from B to C is 0 as well, never 2. So no ring makes (0, 2, 0, 0).",
-    "extension": "The total of (0, 2, 0, 0) is even, so the odd-total reason of puzzle 6 does not apply. Can you find another ring of gaps with an even total that no ring makes? ((0, 0, 2, 4): one gap is bigger than the other three together.)",
+    "extension": "The total of (0, 2, 0, 0) is even, so the odd-total reason of puzzle 6 does not apply. Can you find another ring with an even total that no ring makes? ((0, 0, 2, 4): one gap is bigger than the other three together.)",
     "connection": "A ring of gaps comes from a ring exactly when its numbers split into two groups with equal totals: the gaps that climb and the gaps that fall.",
     "sourceIds": [
      "diffs-week49",
@@ -354,7 +354,7 @@
    "idea": "Going round the ring, the gaps that climb must add up to the gaps that fall.",
    "prerequisites": "Compare two towers and count how many blocks taller one is (gaps up to 4). No reading; a grown-up can read How to play.",
    "hints": [
-    "Start A at 0 or at 4. Which way can the 3 go?",
+    "Put a 0 on one tower and go round from it.",
     "Going round, the climbs and the falls must balance: 3 + 1 against 2 + 2.",
     "Set A to 1, B to 4, C to 2 and D to 0."
    ],
@@ -381,7 +381,7 @@
   {
    "id": "diffs-06",
    "number": 6,
-   "title": "Odd one out",
+   "title": "Low B",
    "difficulty_level": "medium",
    "familyTitle": "Gap rings",
    "mechanic": "diffs",
@@ -393,10 +393,10 @@
     "stations": 4,
     "cap": 3,
     "target": [
-     0,
+     2,
      1,
-     1,
-     1
+     2,
+     2
     ],
     "cant": true
    },
@@ -412,15 +412,15 @@
    "idea": "The gaps of any ring add up to an even number.",
    "prerequisites": "Tell odd from even and follow a ring all the way round. A grown-up can talk through the reason.",
    "hints": [
-    "Try to build it. Each odd gap joins an odd tower to an even one.",
-    "Going round from A, a tower switches between odd and even at each odd gap. How many switches are there?",
-    "Build any ring, then press Can’t, tap the three odd gaps on the right, and press Can’t again."
+    "Build a ring and compare the gaps on its arrows with the ring on the right.",
+    "Going round from A, a tower switches between odd and even at each odd gap. How many switches would there be?",
+    "Build any ring, then press Can’t, tap the odd number on the right, and press Can’t again."
    ],
    "parent": {
     "notice": "Whether your child keeps trying rings, or notices that the last gap always comes out wrong.",
     "prompt": "Start at an even tower and go round. Is each tower odd or even?",
-    "explanation": "A gap is odd exactly when one of its towers is odd and the other even. Going round from A, the towers switch between odd and even at each odd gap, and must come back to A. So there is an even number of odd gaps, and the gaps add up to an even number. (0, 1, 1, 1) has three odd gaps, so no ring makes it.",
-    "extension": "Is an even total enough? ((0, 0, 0, 2) has an even total and no ring makes it: puzzle 4.)",
+    "explanation": "A gap is odd exactly when one of its towers is odd and the other even. Going round from A, the towers switch between odd and even at each odd gap, and must come back to A. So there is an even number of odd gaps, and the gaps add up to an even number. (2, 1, 2, 2) has one odd number, so a ring making it would need one odd gap, and no ring does.",
+    "extension": "Is an even total enough? ((0, 2, 0, 0) has an even total and no ring makes it: puzzle 4.)",
     "connection": "The total of the gaps has the same parity as twice the total of the towers: an invariant mod 2. Four moves later every height is even (worksheet grades 4–5 Problem 5).",
     "sourceIds": [
      "diffs-week49",
@@ -433,13 +433,11 @@
     "reason": {
      "kind": "odd",
      "marks": [
-      1,
-      2,
-      3
+      1
      ]
     }
    },
-   "provenance": "Week 49 grades 2–3 and 4–5 Problem 3, the ring (1,1,1,0), turned to (0,1,1,1) so its certificate is not the first three towers; impossible because its total is odd."
+   "provenance": "Week 49 grades 2–3 and 4–5 Problem 3’s reason for the ring (1,1,1,0), an odd total, on a new ring (2,1,2,2) with one odd number, so the two Can’t certificates differ in shape (three 0s in puzzle 4, one odd number here)."
   },
   {
    "id": "diffs-07",
@@ -531,13 +529,13 @@
    "prerequisites": "Compare towers; plan a few rings ahead and take a ring back when it leads nowhere.",
    "hints": [
     "Start from a flat ring, and look for rings with gaps that a ring can still make.",
-    "A ring whose gaps add up to an odd number has nothing before it.",
+    "A ring whose numbers add up to an odd number has nothing before it.",
     "Build 1 1 1 1, then 1 0 1 0, then 1 0 0 1, then 1 0 0 0."
    ],
    "parent": {
     "notice": "Whether your child takes back a ring that leads nowhere, and whether they notice the odd totals.",
     "prompt": "Why can’t you go back from 1, 2, 1, 2 here?",
-    "explanation": "Some choices are dead ends. A ring with an odd total of gaps, like (0, 0, 1, 0), has nothing before it; and (1, 2, 1, 2), which makes 1, 1, 1, 1, has rings before it only with a tower of 3. One run of four: (1, 0, 0, 0) → (1, 0, 0, 1) → (1, 0, 1, 0) → (1, 1, 1, 1) → zeros, which is also the four-station start of the worksheet’s Problem 5.",
+    "explanation": "Some choices are dead ends. A ring whose numbers add up to an odd number, like (0, 0, 1, 0), has nothing before it; and (1, 2, 1, 2), which makes 1, 1, 1, 1, has rings before it only with a tower of 3. One run of four: (1, 0, 0, 0) → (1, 0, 0, 1) → (1, 0, 1, 0) → (1, 1, 1, 1) → zeros, which is also the four-station start of the worksheet’s Problem 5.",
     "extension": "Try a run that ends at 2, 2, 2, 2 instead. How far back can you go with towers up to 2?",
     "connection": "With towers up to 2 no run is longer than 4 moves (checked by trying all 81 rings).",
     "sourceIds": [
@@ -560,7 +558,7 @@
    "id": "diffs-09",
    "number": 9,
    "title": "Three towers",
-   "difficulty_level": "hard",
+   "difficulty_level": "medium",
    "familyTitle": "Gap rings",
    "mechanic": "diffs",
    "band": "all",
@@ -594,13 +592,13 @@
    "prerequisites": "Compare towers; plan a few rings ahead and take a ring back when it leads nowhere.",
    "hints": [
     "Build a ring of three whose gaps make 1, 0, 1. Which of those rings can you go back from again?",
-    "A ring with an odd total of gaps has nothing before it. Keep the rings with two 1s.",
+    "A ring whose numbers add up to an odd number has nothing before it. Keep the rings with two 1s.",
     "Build 0 1 1, then 1 1 0, then 1 0 1."
    ],
    "parent": {
     "notice": "Whether your child sees that the ring comes back, and what that means for reaching zero.",
     "prompt": "If 1, 0, 1 comes back after three moves, can it ever reach all zeros?",
-    "explanation": "Building back: (0, 1, 1) makes (1, 0, 1), (1, 1, 0) makes (0, 1, 1), and (1, 0, 1) makes (1, 1, 0). So forward the run goes (1, 0, 1) → (1, 1, 0) → (0, 1, 1) → (1, 0, 1) round and round, and never reaches zero. The other choices, (1, 0, 0), (0, 0, 1) and (0, 1, 0), have one odd gap and nothing before them.",
+    "explanation": "Building back: (0, 1, 1) makes (1, 0, 1), (1, 1, 0) makes (0, 1, 1), and (1, 0, 1) makes (1, 1, 0). So forward the run goes (1, 0, 1) → (1, 1, 0) → (0, 1, 1) → (1, 0, 1) round and round, and never reaches zero. The other choices, (1, 0, 0), (0, 0, 1) and (0, 1, 0), have one odd number and nothing before them.",
     "extension": "On four towers the same start (1, 0, 0, 0) reaches zero in four moves (puzzle 8). Why can’t a run on four towers come round?",
     "connection": "With an odd number of stations the Ducci map can cycle; with 4 (or any power of 2) every whole-number start reaches zero (Shapiro).",
     "sourceIds": [
@@ -708,7 +706,7 @@
    "idea": "A long run must end at a flat ring of an even height: four moves make every height even.",
    "prerequisites": "Compare towers; plan a few rings ahead and take a ring back when it leads nowhere.",
    "hints": [
-    "Starting from 1 1 1 1 gives at most four moves. Try a flat ring of 2s.",
+    "Fill the slots from the right, and take back any ring that stops you.",
     "Going back from 2 2 2 2, keep every height even for two rings, then use odd ones.",
     "Build 2 2 2 2, 0 2 0 2, 0 0 2 2, 1 1 1 3, 0 1 2 3, then 0 0 1 3."
    ],
@@ -766,7 +764,7 @@
    "idea": "Building back under a cap, each choice must leave room to keep going.",
    "prerequisites": "Compare towers; plan a few rings ahead and take a ring back when it leads nowhere.",
    "hints": [
-    "End at 2 2 2 2, and keep the early rings small so the later ones can climb.",
+    "Fill the slots from the right, and take back any ring that stops you.",
     "Going back from 2 2 2 2: 0 2 0 2, then 0 0 2 2, then 1 1 1 3.",
     "Then 0 1 2 3, then 1 1 2 4, then 0 1 2 4."
    ],

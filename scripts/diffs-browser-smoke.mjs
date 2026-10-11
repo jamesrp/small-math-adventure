@@ -74,11 +74,12 @@ try {
   assert.deepEqual((await board('diffs-06')).refused, [0], 'Undo keeps the refusal');
   await build([0, 1, 0, 2]);
   await tapAt(page.locator('.df-cant'));
-  for (const i of [3, 1, 2]) await tapAt(page.locator(`.df-pick.s${i}`));
+  await tapAt(page.locator('.df-pick.s1'));
+  assert.equal(await page.locator('.df-cant').getAttribute('aria-label'), 'Can’t: check marks');
   await shot('cant-marks');
   await tapAt(page.locator('.df-cant'));
   await done();
-  assert.deepEqual((await board('diffs-06')).claim, [1, 2, 3]);
+  assert.deepEqual((await board('diffs-06')).claim, [1]);
   await shot('cant-done');
 
   // Every: There is another, then That's all with every ring.
