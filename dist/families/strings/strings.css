@@ -2,7 +2,8 @@
    strings dark pine and the child's strings yellow with an ink edge (as
    Gentle hills colours clues and built towers); a picked dot ringed in pine;
    a refused string dashed brick with the strings it would cross haloed;
-   ochre for hints; a trapped region shaded sun with its dots ringed in ochre.
+   ochre for hints; a trapped region shaded sun, the part tapped outlined in
+   ochre with its left-over dots ringed.
    Paths are steps on a faint grid, numbered under each step; trees stand root
    up; the swap path's corners are rings to tap. */
 .st-puzzle{display:flex;flex-direction:column;align-items:center;gap:.6rem;width:100%;
@@ -46,6 +47,7 @@
 .st-blocker{stroke:var(--st-bad);stroke-opacity:.35;stroke-width:7;stroke-linecap:round;pointer-events:none}
 .st-ghost{stroke:var(--st-bad);stroke-width:1.8;stroke-dasharray:2.4 1.6;stroke-linecap:round;pointer-events:none}
 .st-trap{fill:var(--st-sun);fill-opacity:.45;stroke:none;pointer-events:none}
+.st-here{fill:var(--st-sun);fill-opacity:.4;stroke:var(--st-ochre);stroke-width:1.2;stroke-linejoin:round;pointer-events:none}
 .st-region{fill:transparent;stroke:none;cursor:pointer}
 .mode-regions .st-region:hover{fill:var(--st-sun);fill-opacity:.25}
 .st-region:focus{outline:none}

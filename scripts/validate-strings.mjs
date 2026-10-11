@@ -77,9 +77,9 @@ const TABLE = {
   'strings-02': {mode: 'finish', ways: 2},
   'strings-03': {mode: 'finish', ways: 0, attempt: [[2, 3]], gap: 1},
   'strings-04': {mode: 'decode', pairing: '1-6 2-3 4-5'},
-  'strings-05': {mode: 'finish', ways: 0, attempt: [[2, 3]], gap: 3},
+  'strings-05': {mode: 'finish', ways: 0, attempt: [[2, 3]], gap: 7, own: {attempt: [[2, 4]], gap: 2}},
   'strings-06': {mode: 'every', count: 4},
-  'strings-07': {mode: 'neighbours', attempt: [[1, 3]], cert: [1, 3]},
+  'strings-07': {mode: 'neighbours', attempt: [[1, 4], [5, 7]], cert: [1, 4]},
   'strings-08': {mode: 'tree', shape: '((()()()))'},
   'strings-09': {mode: 'swaps', best: 6},
   'strings-10': {mode: 'every', count: 14},
@@ -89,9 +89,13 @@ const TABLE = {
 
 // --- Playing --------------------------------------------------------------------------
 const play = (p, a, action) => { const next = move(p, a, action); assert.ok(next && next !== a, `${p.id}: ${JSON.stringify(action)} is legal`); return next; };
+// The numbers of the ringed dots in a drawing.
+const ringedDots = html => [...html.matchAll(/<g class="st-dot [^"]*\bringed\b[^"]*"[^>]*><circle[^>]*\/><circle[^>]*\/><text[^>]*>(\d+)<\/text>/g)].map(m => Number(m[1])).sort((x, y) => x - y);
+// Each single string that can be laid, as a one-string attempt.
+const lays1 = (p, fresh) => actions(p, fresh.board).filter(x => x.type === 'lay' && move(p, fresh, x)).map(x => [x.s]);
 const refuse = (p, a, action, why) => assert.equal(move(p, a, action), null, `${p.id}: refuses ${why}`);
 const layAll = (p, a, strings) => strings.reduce((b, s) => play(p, b, {type: 'lay', s}), a);
-let slowest = 0;
+let slowest = 0, ownSeen = 0;
 // A hint in under 100 ms. A slow reading is timed again on copies of the
 // puzzle under new ids (so the remembered hint is not reused), and the
 // fastest counts: a garbage-collection pause is not the hint's own time.
@@ -145,11 +149,12 @@ function checkHintText(p, b, h) {
   }
   if (a.type === 'cant' && q.mode === 'neighbours') {
     const [lo, hi] = a.s, inner = range(q.n).filter(d => inside(d, a.s)), outer = range(q.n).filter(d => d !== lo && d !== hi && !inside(d, a.s));
-    const side = [inner, outer].find(sd => !b.strings.some(t => sd.includes(t[0])) && (sd.length % 2 === 1 || sd.length === 2));
-    assert.ok(side, `${p.id}: the hinted string has a stuck side`);
-    const named = h.text.match(/^Dots? ([\d, and]+?) (is|are) alone/)?.[1].split(/, | and /).map(Number).sort((x, y) => x - y);
-    assert.deepEqual(named, side, `${p.id}: the neighbours hint names the stuck dots (${h.text})`);
-    if (side.length === 2) assert.ok(isNeighbour(q.n, side), `${p.id}: two stuck dots are neighbours`);
+    const side = [inner, outer].find(sd => sd.length === 2 && !b.strings.some(t => sd.includes(t[0]) || sd.includes(t[1])));
+    assert.ok(side, `${p.id}: the hinted string has just two dots on one side`);
+    assert.ok(b.strings.length >= 2, `${p.id}: Can’t is hinted with two strings down`);
+    const named = h.text.match(new RegExp(`^Dots (\\d+) and (\\d+) are alone on one side of the string from ${lo} to ${hi}, and they are neighbours\\.$`));
+    assert.deepEqual(named && [Number(named[1]), Number(named[2])].sort((x, y) => x - y), side, `${p.id}: the neighbours hint names the two dots (${h.text})`);
+    assert.ok(isNeighbour(q.n, side), `${p.id}: two stuck dots are neighbours`);
   }
   if (a.type === 'grow' || a.type === 'prune') {
     // The step named walks up to the node the hint acts on (or its parent).
@@ -330,7 +335,8 @@ export async function validateStrings() {
     for (let k = 0; k < 25; k++) hintSteps += hintsSolve(p, randomPlay(p, fresh, 1 + k % 9), `after random play ${k}`);
     checkForged(p, fresh);
   }
-  return {stringsPuzzles: puzzles.length, ...theorems, claimsChecked, hintSteps, slowestHintMs: Number(slowest.toFixed(1))};
+  assert.ok(ownSeen > 0, 'a trap of the child’s own strings is reachable');
+  return {stringsPuzzles: puzzles.length, ...theorems, claimsChecked, ownTrapsRefused: ownSeen, hintSteps, slowestHintMs: Number(slowest.toFixed(1))};
 }
 
 function checkEvery(p, fresh, brute) {
@@ -358,6 +364,18 @@ function checkEvery(p, fresh, brute) {
   const early = play(p, fresh, {type: 'all'});
   assert.deepEqual(early.board.told, {kind: 'more'}, `${p.id}: there is another`);
   refuse(p, early, {type: 'all'}, 'That’s all again before a new pairing');
+  // Remaking a pairing already on the shelf keeps the lock, through Undo too.
+  {
+    let x = layAll(p, fresh, mine(brute[0]));
+    x = play(p, x, {type: 'all'});
+    assert.deepEqual(x.board.told, {kind: 'more'});
+    x = play(p, play(p, x, {type: 'cut', dot: mine(brute[0])[0][0]}), {type: 'lay', s: mine(brute[0])[0]});
+    assert.deepEqual(x.board.told, {kind: 'again', key: brute[0], more: true}, `${p.id}: a repeat after “there is another” keeps it`);
+    refuse(p, x, {type: 'all'}, 'That’s all after only a repeat');
+    const back = undo(x), carried = {...back, board: S.stringsMechanics.strings.carry(p, x.board, back.board)};
+    assert.ok(validBoard(p, carried.board), `${p.id}: Undo after a repeat is a good board`);
+    refuse(p, carried, {type: 'all'}, 'That’s all after Undo of a repeat');
+  }
   const back = undo(early), carried = {...back, board: S.stringsMechanics.strings.carry(p, early.board, back.board)};
   assert.deepEqual(carried.board.told, {kind: 'more'}, `${p.id}: Undo keeps “there is another”`);
   steps += hintsSolve(p, early, 'after a wrong That’s all');
@@ -384,22 +402,28 @@ function checkFinish(p, fresh, brute, row) {
     const b = play(p, fresh, wrong);
     assert.equal(nextHint(p, b).action.type, 'cut', `${p.id}: the hint takes off a string that leads nowhere`);
     steps += hintsSolve(p, b, 'after a wrong string');
-    // Every Can't tap is refused, and the refusal holds through Undo.
-    for (let g = 1; g <= q.n; g++) {
-      const c = play(p, b, {type: 'cant', gap: g});
-      assert.equal(c.board.refused, g, `${p.id}: Can’t at gap ${g} is refused`);
-      assert.ok(!isSolved(p, c.board));
-      refuse(p, c, {type: 'cant', gap: g === 1 ? 2 : 1}, 'a second Can’t with the same strings');
-      claims++;
+    // Every Can't tap is refused with what is true of the part tapped (the
+    // same words as on a board that can't be finished), and the refusal
+    // holds through Undo.
+    const M = S.stringsMechanics.strings;
+    for (const t of [[wrong.s], ...lays1(p, fresh)]) {
+      const at = layAll(p, fresh, t);
+      for (let g = 1; g <= q.n; g++) {
+        const c = play(p, at, {type: 'cant', gap: g});
+        assert.equal(c.board.refused, g, `${p.id}: Can’t at gap ${g} is refused`);
+        assert.ok(!isSolved(p, c.board));
+        refuse(p, c, {type: 'cant', gap: g === 1 ? 2 : 1}, 'a second Can’t with the same strings');
+        const here = regionFree(q.n, [...q.fixed, ...t], gapPoint(g));
+        assert.match(M.render(p, c), new RegExp(`<p class="st-told">${here.length % 2 ? 'Your own strings trap it' : 'Nothing is trapped there'}\\.</p>`), `${p.id}: ${S.keyOf(t)} gap ${g}: the refusal is true of the part`);
+        if (here.length % 2) ownSeen++;
+        claims++;
+      }
     }
     const c = play(p, b, {type: 'cant', gap: 1});
-    // On a board that can be finished the refusal says only that, and it
-    // stays through Undo while the strings are the same.
-    const M = S.stringsMechanics.strings;
-    assert.match(M.render(p, c), /<p class="st-told">There is a way\.<\/p>/, `${p.id}: a refused Can’t says there is a way`);
     const back = undo(c), carried = M.carry(p, c.board, back.board);
     assert.equal(carried.refused, 1, `${p.id}: Undo keeps the refusal`);
-    assert.match(M.render(p, {...back, board: carried}), /There is a way\./, `${p.id}: the refusal is still shown after Undo`);
+    assert.doesNotMatch(M.render(p, {...back, board: carried}) + M.render(p, c), /There is a way/, `${p.id}: the refusal does not tell the board can be finished`);
+    assert.match(M.render(p, {...back, board: carried}), /st-told/, `${p.id}: the refusal is still shown after Undo`);
     steps += hintsSolve(p, c, 'after a refused Can’t');
     return {steps, claims};
   }
@@ -425,6 +449,8 @@ function checkFinish(p, fresh, brute, row) {
       assert.equal(isSolved(p, c.board), ok, `${p.id}: ${S.keyOf(t)} Can’t at gap ${g}`);
       if (!ok) {
         assert.equal(c.board.refused, g);
+        assert.equal(S.trapCheck(q.n, q.fixed, t, g).why, here.length % 2 ? 'own' : 'even', `${p.id}: ${S.keyOf(t)} gap ${g}: the refusal's reason`);
+        if (here.length % 2) ownSeen++;
         const back = undo(c), carried = S.stringsMechanics.strings.carry(p, c.board, back.board);
         assert.equal(carried.refused, g, `${p.id}: Undo keeps a refused Can’t`);
         refuse(p, {...back, board: carried}, {type: 'cant', gap: g}, 'Can’t again after Undo');
@@ -439,15 +465,21 @@ function checkFinish(p, fresh, brute, row) {
   assert.notEqual(nextHint(p, refused).action.type, 'cant', `${p.id}: after a refused Can’t the hint makes a new attempt`);
   steps += hintsSolve(p, refused, 'after a refused Can’t');
   checkStringRefusals(p, fresh);
-  // The child's own strings can trap dots where the dark strings leave an even
-  // number: that is refused, on a made-up circle of nine with 1–6 dark.
-  const own = {...p, id: 'strings-own-trap', parameters: {mode: 'finish', n: 9, fixed: [[1, 6]]}};
-  S.stringsMechanics.strings.reset(own);
-  const o = layAll(own, freshAttempt(own), [[2, 4]]);
-  const gap3 = play(own, o, {type: 'cant', gap: 2});
-  assert.equal(gap3.board.refused, 2, 'own trap refused');
-  assert.equal(S.trapCheck(9, [[1, 6]], [[2, 4]], 2).why, 'own');
-  steps += hintsSolve(own, gap3, 'after an own trap');
+  // The kept claim: the dark strings' part shaded, the part tapped outlined,
+  // its left-over dots ringed.
+  const M = S.stringsMechanics.strings, html = M.render(p, a);
+  const tapped = regionFree(q.n, [...q.fixed, ...row.attempt], gapPoint(row.gap));
+  assert.match(html, /class="st-trap"/); assert.match(html, /class="st-here"/);
+  assert.deepEqual(ringedDots(html), tapped, `${p.id}: the left-over dots of the part tapped are ringed`);
+  // A trap of the child's own strings, inside a part of the dark strings
+  // that can be paired, is refused with its own words.
+  if (row.own) {
+    const o = play(p, layAll(p, fresh, row.own.attempt), {type: 'cant', gap: row.own.gap});
+    assert.equal(o.board.refused, row.own.gap, `${p.id}: an own trap is refused`);
+    assert.equal(regionFree(q.n, q.fixed, gapPoint(row.own.gap)).length % 2, 0, `${p.id}: the dark strings' part there is even`);
+    assert.match(M.render(p, o), /Your own strings trap it\./);
+    steps += hintsSolve(p, o, 'after an own trap');
+  }
   return {steps, claims};
 }
 
@@ -457,14 +489,16 @@ function checkNeighbours(p, fresh, row) {
   // No pairing avoids neighbours, by brute force.
   assert.equal(noncrossingOf(n).filter(m => !m.some(s => isNeighbour(n, s))).length, 0, `${p.id}: every pairing joins neighbours`);
   refuse(p, fresh, {type: 'cant', s: [1, 3]}, 'Can’t before any string');
+  refuse(p, layAll(p, fresh, [[1, 4]]), {type: 'cant', s: [1, 4]}, 'Can’t with one string, even a stuck one');
   refuse(p, fresh, {type: 'lay', s: [1, 2]}, 'neighbours');
   refuse(p, fresh, {type: 'lay', s: [1, n]}, 'neighbours across the top');
   let a = layAll(p, fresh, row.attempt);
   a = play(p, a, {type: 'cant', s: row.cert});
   assert.ok(isSolved(p, a.board), `${p.id}: the witness claim is kept`);
-  // Every partial attempt without neighbours: every tapped string is kept
-  // exactly when one side has no strings and its dots are odd in number or
-  // two; a kept side really can't be paired; the refusal says why truly.
+  // Every partial attempt without neighbours: with two strings or more, a
+  // tapped string is kept exactly when one side holds just two dots; a kept
+  // side really can't be paired; the refusal says why truly. With one
+  // string, Can't is not taken.
   const lays = actions(p, fresh.board).filter(x => x.type === 'lay' && !isNeighbour(n, x.s)).map(x => x.s);
   let frontier = [[]];
   const seen = new Set();
@@ -481,14 +515,22 @@ function checkNeighbours(p, fresh, row) {
     const t = S.fromKey(k), at = layAll(p, fresh, t);
     for (const s of t) {
       const sides = [range(n).filter(d => inside(d, s)), range(n).filter(d => !s.includes(d) && !inside(d, s))];
-      const stuck = sides.filter(sd => !t.some(x => sd.includes(x[0])) && (sd.length % 2 === 1 || sd.length === 2));
+      const open = sides.filter(sd => !t.some(x => sd.includes(x[0]) || sd.includes(x[1])));
+      const stuck = open.filter(sd => sd.length === 2);
+      if (t.length < 2) { refuse(p, at, {type: 'cant', s}, 'Can’t with one string'); continue; }
       const c = play(p, at, {type: 'cant', s});
       assert.equal(isSolved(p, c.board), stuck.length > 0, `${p.id}: ${k} Can’t on ${s}`);
-      for (const sd of stuck) assert.equal(matchings(sd).filter(m => noncrossing(m) && !m.some(x => isNeighbour(n, x))).length, 0, `${p.id}: a stuck side can't be paired`);
+      for (const sd of stuck) {
+        assert.ok(isNeighbour(n, sd), `${p.id}: two dots alone on a side are neighbours`);
+        assert.equal(matchings(sd).filter(m => noncrossing(m) && !m.some(x => isNeighbour(n, x))).length, 0, `${p.id}: a stuck side can't be paired`);
+      }
       if (!stuck.length) {
-        const text = S.neighbourRefusal(n, t, s);
-        if (text === 'It has strings on both sides.') assert.ok(sides.every(sd => t.some(x => sd.includes(x[0]))), `${p.id}: ${k}: strings on both sides of ${s}`);
-        else assert.ok(sides.some(sd => !t.some(x => sd.includes(x[0])) && sd.some((x, i) => sd.slice(i + 2).some(y => !isNeighbour(n, [x, y])))), `${p.id}: ${k}: a string can still go beside ${s}`);
+        const text = S.neighbourRefusal(n, t, s), odd = open.find(sd => sd.length % 2);
+        if (odd) assert.equal(text, odd.length === 1 ? `This string leaves dot ${odd[0]} on its own.` : 'This string leaves an odd number of dots on one side.', `${p.id}: ${k}: an odd side of ${s}`);
+        else if (open.length) {
+          assert.equal(text, 'A string can still go beside it.');
+          assert.ok(open.some(sd => sd.some((x, i) => sd.slice(i + 2).some(y => !isNeighbour(n, [x, y])))), `${p.id}: ${k}: a string can still go beside ${s}`);
+        } else assert.equal(text, 'It has strings on both sides.');
         const back = undo(c), carried = S.stringsMechanics.strings.carry(p, c.board, back.board);
         assert.deepEqual(carried.refused, s, `${p.id}: Undo keeps a refused Can’t`);
         refuse(p, {...back, board: carried}, {type: 'cant', s}, 'Can’t again after Undo');
@@ -498,10 +540,11 @@ function checkNeighbours(p, fresh, row) {
     if (t.length) steps += hintsSolve(p, at, `from ${k}`);
   }
   // After a refused claim the hint lays a string before Can't again.
-  const wide = layAll(p, fresh, [[1, 6]]);
+  const wide = layAll(p, fresh, [[1, 6], [7, 9]]);
   const refused = play(p, wide, {type: 'cant', s: [1, 6]});
-  assert.equal(refused.board.refused[0], 1, `${p.id}: 1–6 with four dots each side is refused`);
-  assert.equal(S.neighbourRefusal(n, [[1, 6]], [1, 6]), 'A string can still go beside it.');
+  assert.equal(refused.board.refused[0], 1, `${p.id}: 1–6 with four free dots on one side is refused`);
+  assert.equal(S.neighbourRefusal(n, [[1, 6], [7, 9]], [1, 6]), 'A string can still go beside it.');
+  assert.equal(S.neighbourRefusal(n, [[1, 6], [7, 9]], [7, 9]), 'This string leaves dot 8 on its own.');
   assert.equal(nextHint(p, refused).action.type, 'lay', `${p.id}: after a refused Can’t the hint lays a string`);
   steps += hintsSolve(p, refused, 'after a refused Can’t');
   checkStringRefusals(p, fresh);
@@ -609,7 +652,7 @@ function checkForged(p, fresh) {
     if (good) forged.push([{...B, strings: [lone], refused: good}, 'a refusal of a trapped part']);
     forged.push([{...B, strings: [lone], refused: n + 1}, 'a refusal off the circle'], [{...B, strings: [lone], claimed: '1'}, 'a claim named by a string']);
   }
-  if (q.mode === 'neighbours') forged.push([{...B, strings: [[1, 2]]}, 'neighbours'], [{...B, strings: [[1, 3]], claimed: [1, 4]}, 'a claim on a string not laid'], [{...B, strings: [[1, 6]], claimed: [1, 6]}, 'a kept claim that is not stuck'], [{...B, strings: [[1, 3]], refused: [1, 3]}, 'a refusal of a stuck string'], [{...B, claimed: [1, 3]}, 'a claim with no strings']);
+  if (q.mode === 'neighbours') forged.push([{...B, strings: [[1, 2]]}, 'neighbours'], [{...B, strings: [[1, 4], [5, 7]], claimed: [1, 5]}, 'a claim on a string not laid'], [{...B, strings: [[1, 3], [4, 6]], claimed: [1, 3]}, 'a kept claim on an odd side'], [{...B, strings: [[1, 6], [7, 9]], claimed: [1, 6]}, 'a kept claim that is not stuck'], [{...B, strings: [[1, 4], [5, 7]], refused: [1, 4]}, 'a refusal of a stuck string'], [{...B, strings: [[1, 4]], claimed: [1, 4]}, 'a claim with one string'], [{...B, strings: [[1, 6]], refused: [1, 6]}, 'a refusal with one string'], [{...B, claimed: [1, 3]}, 'a claim with no strings']);
   if (q.mode === 'every') {
     const ks = S.completions(n, q.fixed).map(c => S.keyOf([...q.fixed, ...c]));
     const notOne = S.keyOf([...q.fixed, ...S.freeDots(n, q.fixed).reduce((acc, d, i, list) => i % 2 ? acc : [...acc, [d, list[i + 1]]], [])]);
@@ -623,6 +666,8 @@ function checkForged(p, fresh) {
       [{...B, strings: S.fromKey(ks[0]).filter(s => !q.fixed.some(t => t[0] === s[0] && t[1] === s[1]))}, 'a finished pairing not on the shelf'],
       [{...B, done: 'yes'}, 'a done flag that is not true or false'],
       [{...B, told: {kind: 'more', extra: 1}}, 'a told note with extra fields'],
+      [{...B, strings: S.fromKey(ks[0]).filter(s => !q.fixed.some(t => t[0] === s[0] && t[1] === s[1])), found: [ks[0]], told: {kind: 'again', key: ks[0], more: false}}, 'a repeat note whose lock is not true'],
+      [{...B, strings: S.fromKey(ks.at(-1)).filter(s => !q.fixed.some(t => t[0] === s[0] && t[1] === s[1])), found: ks, told: {kind: 'again', key: ks.at(-1), more: true}}, 'a repeat note locked when every pairing is found'],
       [{...B, found: 'all'}, 'a shelf that is not a list']
     );
     if (!ks.includes(notOne)) forged.push([{...B, found: [notOne]}, 'a found pairing that is not one']);

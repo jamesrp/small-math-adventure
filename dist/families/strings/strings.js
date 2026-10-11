@@ -141,15 +141,15 @@ export function sidesOf(n, [a, b]) {
   for (let d = 1; d < a; d++) outside.push(d);
   return [inside, outside];
 }
-// A side is stuck when no string lies on it and its dots (all free) are odd in
-// number, or exactly two, which are then neighbours.
+// A side is stuck when it holds exactly two dots: they are neighbours, so no
+// string may join them, and a string to any other dot would cross. (An odd
+// side is the child's own doing, not a reason every try fails.)
 export function stuckSides(n, strings, s) {
-  return sidesOf(n, s).filter(side => {
-    const set = new Set(side);
-    if (strings.some(t => set.has(t[0]) || set.has(t[1]))) return false;
-    return side.length % 2 === 1 || side.length === 2;
-  });
+  return sidesOf(n, s).filter(side => side.length === 2 && !strings.some(t => side.includes(t[0]) || side.includes(t[1])));
 }
+// Can't needs this many of the child's strings first: in the neighbours
+// puzzle two, so the tap is a choice between strings.
+export const claimMin = q => q.mode === 'neighbours' ? 2 : 1;
 
 // --- Paths ------------------------------------------------------------------------
 export const heights = word => { const h = [0]; for (const c of word) h.push(h.at(-1) + (c === 'U' ? 1 : -1)); return h; };
@@ -273,6 +273,8 @@ export function nodeWords(pos) {
 const fixedOf = q => q.fixed || [];
 const dotsOf = (q, b) => q.mode === 'playground' ? b.n : q.n;
 const allStrings = (q, b) => [...fixedOf(q), ...b.strings];
+// That's all waits for a new pairing after "There is another".
+const lockedAll = b => b.told?.kind === 'more' || b.told?.more === true;
 export const targetOf = q => q.word ? pairingOfWord(q.word) : null;
 export const totalOf = q => completions(q.n, fixedOf(q)).length;
 
@@ -308,8 +310,8 @@ function valid(p, b) {
     case 'neighbours': {
       if (keys(b) !== 'claimed,refused,strings' || !validStrings(q, b)) return false;
       const known = s => Array.isArray(s) && b.strings.some(t => t[0] === s[0] && t[1] === s[1]);
-      if (b.claimed !== null && (b.refused !== null || !known(b.claimed) || !stuckSides(q.n, b.strings, b.claimed).length)) return false;
-      if (b.refused !== null && (!known(b.refused) || stuckSides(q.n, b.strings, b.refused).length)) return false;
+      if (b.claimed !== null && (b.refused !== null || b.strings.length < claimMin(q) || !known(b.claimed) || !stuckSides(q.n, b.strings, b.claimed).length)) return false;
+      if (b.refused !== null && (b.strings.length < claimMin(q) || !known(b.refused) || stuckSides(q.n, b.strings, b.refused).length)) return false;
       return true;
     }
     case 'every': {
@@ -323,7 +325,10 @@ function valid(p, b) {
       if (t !== null) {
         if (!object(t)) return false;
         if (t.kind === 'more') { if (keys(t) !== 'kind' || b.found.length >= answers.size || b.done) return false; }
-        else if (t.kind === 'again') { if (keys(t) !== 'key,kind' || !b.found.includes(t.key) || keyOf(all) !== t.key) return false; }
+        else if (t.kind === 'again') {
+          if (!['key,kind', 'key,kind,more'].includes(keys(t)) || !b.found.includes(t.key) || keyOf(all) !== t.key) return false;
+          if ('more' in t && (t.more !== true || b.found.length >= answers.size || b.done)) return false;
+        }
         else return false;
       }
       return !b.done || b.found.length === answers.size;
@@ -380,7 +385,7 @@ function move(p, b, action) {
     case 'finish': case 'neighbours': {
       if (action.type === 'lay' || action.type === 'cut') { const strings = stringsMove(q, b, action); next = strings && {strings, claimed: null, refused: null}; break; }
       // Can't comes after an attempt, once per change of the strings.
-      if (action.type !== 'cant' || !b.strings.length || b.refused !== null) break;
+      if (action.type !== 'cant' || b.strings.length < claimMin(q) || b.refused !== null) break;
       if (q.mode === 'finish') next = trapCheck(q.n, fixedOf(q), b.strings, action.gap).ok ? {...b, claimed: action.gap} : int(action.gap) && action.gap >= 1 && action.gap <= q.n ? {...b, refused: action.gap} : null;
       else {
         const s = Array.isArray(action.s) && b.strings.find(t => t[0] === action.s[0] && t[1] === action.s[1]);
@@ -390,16 +395,18 @@ function move(p, b, action) {
     }
     case 'every': {
       if (action.type === 'all') {
-        if (b.told?.kind === 'more') break;
+        if (lockedAll(b)) break;
         next = b.found.length === totalOf(q) ? {...b, told: null, done: true} : {...b, told: {kind: 'more'}};
         break;
       }
       const strings = stringsMove(q, b, action);
       if (!strings) break;
-      const all = [...fixedOf(q), ...strings], more = b.told?.kind === 'more' ? b.told : null;
-      if (!complete(q.n, all)) { next = {...b, strings, told: more}; break; }
+      // "There is another" holds until a new pairing is found: remaking one
+      // already on the shelf keeps it.
+      const all = [...fixedOf(q), ...strings], more = lockedAll(b);
+      if (!complete(q.n, all)) { next = {...b, strings, told: more ? {kind: 'more'} : null}; break; }
       const key = keyOf(all);
-      next = b.found.includes(key) ? {...b, strings, told: {kind: 'again', key}} : {...b, strings, found: [...b.found, key], told: null};
+      next = b.found.includes(key) ? {...b, strings, told: more ? {kind: 'again', key, more: true} : {kind: 'again', key}} : {...b, strings, found: [...b.found, key], told: null};
       break;
     }
     case 'decode': case 'treepair': { const strings = stringsMove(q, b, action); next = strings && {strings}; break; }
@@ -450,6 +457,10 @@ function anyLay(q, b, n, all) {
   }
   return null;
 }
+// Why a part of the dark strings can't be paired.
+const trapReason = (n, fixed, whole) => !fixed.length ? `There are ${NUMBER[n]} dots, and each string takes two.`
+  : whole.free.length === 1 ? `Dot ${whole.free[0]} can’t join any other dot.`
+  : `${dotsWords(whole.free)} can only join each other, and each string takes two.`;
 function finishHint(q, b) {
   const fixed = fixedOf(q), ways = completions(q.n, fixed);
   if (ways.length) return towards(nearest(ways, b.strings), b.strings);
@@ -465,11 +476,8 @@ function finishHint(q, b) {
   // The board's odd regions inside odd fixed regions; the smallest one.
   const here = regions(q.n, allStrings(q, b)).list.filter(r => r.free.length % 2 && regionOf(q.n, fixed, r.gaps[0]).free.length % 2).sort((x, y) => x.free.length - y.free.length)[0];
   const whole = regionOf(q.n, fixed, here.gaps[0]), lone = here.free.at(-1);
-  const reason = !fixed.length ? `There are ${NUMBER[q.n]} dots, and each string takes two.`
-    : whole.free.length === 1 ? `Dot ${whole.free[0]} can’t join any other dot.`
-    : `${dotsWords(whole.free)} can only join each other, and each string takes two.`;
   // The reason only: the second level marks Can't, then the part to tap.
-  return {type: 'move', action: {type: 'cant', gap: here.gaps[0]}, text: reason, gap: here.gaps[0], dot: lone};
+  return {type: 'move', action: {type: 'cant', gap: here.gaps[0]}, text: trapReason(q.n, fixed, whole), gap: here.gaps[0], dot: lone};
 }
 function everyHint(q, b) {
   const fixed = fixedOf(q), found = new Set(b.found);
@@ -478,25 +486,22 @@ function everyHint(q, b) {
   return towards(nearest(left, b.strings), b.strings);
 }
 function neighboursHint(q, b) {
-  const n = q.n;
-  if (b.refused === null) {
-    const cert = b.strings.find(s => stuckSides(n, b.strings, s).length);
-    if (cert) {
-      const side = stuckSides(n, b.strings, cert)[0];
-      const reason = side.length === 1 ? `Dot ${side[0]} is alone on one side of ${stringWords(cert)}.`
-        : side.length === 2 ? `Dots ${side[0]} and ${side[1]} are alone on one side of ${stringWords(cert)}, and they are neighbours.`
-        : `${dotsWords(side)} are alone on one side of ${stringWords(cert)}, and each string takes two.`;
-      return {type: 'move', action: {type: 'cant', s: cert}, text: reason, string: cert};
-    }
+  const n = q.n, mine = b.strings, isStuck = s => stuckSides(n, mine, s).length > 0, cert = mine.find(isStuck);
+  if (cert && b.refused === null && mine.length >= claimMin(q)) {
+    const [x, y] = stuckSides(n, mine, cert)[0];
+    // The reason only: the second level marks Can't, then the string.
+    return {type: 'move', action: {type: 'cant', s: cert}, text: `Dots ${x} and ${y} are alone on one side of ${stringWords(cert)}, and they are neighbours.`, string: cert};
   }
-  // Lay a string that skips one dot, on a side with no strings.
-  const sides = b.strings.length ? b.strings.flatMap(s => sidesOf(n, s)).filter(side => side.length >= 3 && !b.strings.some(t => side.includes(t[0]))) : [Array.from({length: n}, (_, i) => i + 1)];
-  for (const side of sides) for (let i = 0; i + 2 < side.length; i++) {
-    const s = norm([side[i], side[i + 2]]);
-    if (!layProblem(q, b, s)) return {type: 'move', action: {type: 'lay', s}, text: `Join ${s[0]} and ${s[1]}.`, dots: s};
-  }
-  const last = b.strings.at(-1);
-  return {type: 'move', action: {type: 'cut', dot: last[0]}, text: `Take off ${stringWords(last)}.`, dots: last};
+  const legal = [];
+  for (let a = 1; a <= n; a++) for (let c = a + 1; c <= n; c++) if (!layProblem(q, b, [a, c])) legal.push([a, c]);
+  const makesStuck = s => stuckSides(n, [...mine, s], s).length > 0;
+  // With no stuck string, lay one that leaves two dots on a side; with one,
+  // lay another string (one that is not stuck, if there is one), so that a
+  // claim has two strings to choose from.
+  const s = cert ? legal.find(t => !makesStuck(t)) || legal[0] : legal.find(makesStuck);
+  if (s) return {type: 'move', action: {type: 'lay', s}, text: `Join ${s[0]} and ${s[1]}.`, dots: s};
+  const off = mine.find(t => !isStuck(t)) || mine.at(-1);
+  return {type: 'move', action: {type: 'cut', dot: off[0]}, text: `Take off ${stringWords(off)}.`, dots: off};
 }
 // Tree hints name a dot by the up step of the child's own walk that reaches
 // it (the walk is drawn over the path, steps numbered underneath).
@@ -686,9 +691,15 @@ const told = text => text ? `<p class="st-told">${esc(text)}</p>` : '';
 const status = text => `<p class="sr-only" role="status">${esc(text)}</p>`;
 const stringsSay = (n, all) => all.length ? `Strings: ${sortStrings(all).map(([a, b]) => `${a} to ${b}`).join(', ')}.` : 'No strings.';
 const FINISH_REFUSAL = {even: 'Nothing is trapped there.', own: 'Your own strings trap it.'};
-// Why a tapped string is not stuck: strings on both sides, or a side where a
-// string can still go (four or more free dots, an even number).
-export const neighbourRefusal = (n, strings, s) => sidesOf(n, s).every(side => strings.some(t => side.includes(t[0]))) ? 'It has strings on both sides.' : 'A string can still go beside it.';
+// Why a tapped string is not stuck: a side it leaves odd (the child's own
+// doing), a side where a string can still go (four or more dots, an even
+// number), or strings on both sides.
+export function neighbourRefusal(n, strings, s) {
+  const open = sidesOf(n, s).filter(side => !strings.some(t => side.includes(t[0]) || side.includes(t[1])));
+  const odd = open.find(side => side.length % 2);
+  if (odd) return odd.length === 1 ? `This string leaves dot ${odd[0]} on its own.` : 'This string leaves an odd number of dots on one side.';
+  return open.length ? 'A string can still go beside it.' : 'It has strings on both sides.';
+}
 
 function renderCircleMode(p, a) {
   const q = p.parameters, b = a.board, done = solved(p, b), n = dotsOf(q, b), state = ui(p);
@@ -696,28 +707,28 @@ function renderCircleMode(p, a) {
   const h = a.hintLevel >= 2 && !done && q.mode !== 'playground' ? hint(p, b) : null;
   const hinting = h?.type === 'move' ? h : null;
   const cantKind = q.mode === 'finish' ? 'regions' : q.mode === 'neighbours' ? 'strings' : null;
-  const claiming = cantKind && !done && state.cant && b.strings.length && b.refused === null;
+  const claiming = cantKind && !done && state.cant && b.strings.length >= claimMin(q) && b.refused === null;
   const hintCant = hinting?.action.type === 'cant';
   const mode = done ? 'picture' : claiming ? cantKind : 'dots';
   const marks = {dots: hintCant ? (mode === 'regions' ? [hinting.dot] : null) : hinting?.dots, gap: hintCant && mode === 'regions' ? hinting.gap : null, string: hintCant && mode === 'strings' ? hinting.string : null, bad: state.tried?.blockers};
   let shade = '', words = '', below = '', shelf = '', say = '';
-  // Claims: a kept Can't shades the trapped region and rings its dots; a kept
-  // neighbours claim shades the stuck side of the tapped string.
+  // Claims: a kept Can't shades the part of the dark strings that is trapped,
+  // outlines the part the child tapped and rings its dots; a kept neighbours
+  // claim shades the stuck side of the tapped string.
   if (q.mode === 'finish' && b.claimed !== null) {
     const c = trapCheck(n, fixed, b.strings, b.claimed);
-    shade = `<path class="st-trap" d="${regionPath(n, c.whole)}"/>`;
-    marks.ring = c.whole.free;
-    say = `Trapped: ${c.whole.free.length === 1 ? `dot ${c.whole.free[0]}` : `dots ${listWords(c.whole.free.map(String))}`}, ${NUMBER[c.whole.free.length]} in all.`;
+    shade = `<path class="st-trap" d="${regionPath(n, c.whole)}"/><path class="st-here" d="${regionPath(n, c.here)}"/>`;
+    marks.ring = c.here.free;
+    say = `${trapReason(n, fixed, c.whole)} You tapped the part with ${c.here.free.length === 1 ? `dot ${c.here.free[0]}` : `dots ${listWords([...c.here.free].sort((x, y) => x - y).map(String))}`}.`;
   }
   if (q.mode === 'neighbours' && b.claimed !== null) {
     const side = stuckSides(n, b.strings, b.claimed)[0];
     shade = `<path class="st-trap" d="${sidePath(n, b.claimed, side)}"/>`;
-    marks.ring = side; marks.cert = b.claimed;
-    if (side.length === 2) marks.ghost = [side];
-    say = side.length === 2 ? `Only dots ${side[0]} and ${side[1]} are left beside the string, and they are neighbours.` : `${capital(NUMBER[side.length])} ${side.length === 1 ? 'dot is' : 'dots are'} left beside the string.`;
+    marks.ring = side; marks.cert = b.claimed; marks.ghost = [side];
+    say = `Only dots ${side[0]} and ${side[1]} are left beside the string, and they are neighbours.`;
   }
-  // On a board that can be finished, any Can't is refused with "There is a way."
-  if (q.mode === 'finish' && b.refused !== null) words = completions(n, fixed).length ? 'There is a way.' : FINISH_REFUSAL[trapCheck(n, fixed, b.strings, b.refused).why] || '';
+  // A refusal says only what is true of the part tapped, on every board.
+  if (q.mode === 'finish' && b.refused !== null) words = FINISH_REFUSAL[trapCheck(n, fixed, b.strings, b.refused).why] || '';
   if (q.mode === 'neighbours' && b.refused !== null) words = neighbourRefusal(n, b.strings, b.refused);
   if (q.mode === 'every') {
     if (b.told?.kind === 'more') words = 'There is another.';
@@ -729,9 +740,9 @@ function renderCircleMode(p, a) {
     if (cantKind) {
       // Pressing Can't sends focus to the circle itself, not to any part or
       // string, so nothing points at the answer; Tab then walks the choices.
-      parts.push(toggle('Can’t', {cant: !state.cant}, 'cant', Boolean(claiming), b.strings.length > 0 && b.refused === null, hintCant && !state.cant, claiming ? 'st-cant' : 'st-board'));
+      parts.push(toggle('Can’t', {cant: !state.cant}, 'cant', Boolean(claiming), b.strings.length >= claimMin(q) && b.refused === null, hintCant && !state.cant, claiming ? 'st-cant' : 'st-board'));
     }
-    if (q.mode === 'every') parts.push(button('That’s all', {type: 'all'}, 'all', b.told?.kind !== 'more', hinting?.action.type === 'all'));
+    if (q.mode === 'every') parts.push(button('That’s all', {type: 'all'}, 'all', !lockedAll(b), hinting?.action.type === 'all'));
     if (q.mode === 'playground') parts.push(`<span class="st-size" role="group" aria-label="Dots">${sizeButton('−', n - 1, 'fewer', 'Fewer dots', n > MIN_DOTS)}${sizeButton('+', n + 1, 'more', 'More dots', n < MAX_DOTS)}</span>`, button('Clear', {type: 'clear'}, 'clear', b.strings.length > 0, false));
     if (parts.length) below = `<div class="st-bar">${parts.join('')}</div>`;
   }
@@ -818,6 +829,29 @@ export function nearestDot(n, [x, y], reach = Math.min(13, R * Math.sin(Math.PI 
   for (let d = 1; d <= n; d++) { const [px, py] = dotAt(n, d), dist = Math.hypot(px - x, py - y); if (dist < bestD) { best = d; bestD = dist; } }
   return best;
 }
+// The part of the circle a tap claims while Can't is pressed. A tap within
+// reach of a free dot goes to that dot's part, since a child aims at the dot
+// left over. Inside the circle, the part under the finger: two points are in
+// one part when no string's line runs between them. Just outside the rim,
+// the part touching the rim in that direction. Well outside, none.
+const gapAngle = (n, g) => -Math.PI / 2 + 2 * Math.PI * (g - 0.5) / n;
+const sideOf = (n, [a, c], [x, y]) => { const [x1, y1] = dotAt(n, a), [x2, y2] = dotAt(n, c); return Math.sign((x2 - x1) * (y - y1) - (y2 - y1) * (x - x1)); };
+export function partAt(n, strings, [x, y]) {
+  const d = nearestDot(n, [x, y]);
+  if (d !== null && !usedDots(strings).has(d)) return regionOfDot(n, strings, d);
+  const r = Math.hypot(x - C, y - C);
+  if (r <= R) {
+    for (let g = 1; g <= n; g++) {
+      const rim = [C + R * Math.cos(gapAngle(n, g)), C + R * Math.sin(gapAngle(n, g))];
+      // A tap right on a string counts for the first part beside it.
+      if (strings.every(s => { const v = sideOf(n, s, [x, y]); return v === 0 || v === sideOf(n, s, rim); })) return regionOf(n, strings, g);
+    }
+    return null;
+  }
+  if (r > R + 14) return null;
+  const turn = ((Math.atan2(y - C, x - C) + Math.PI / 2) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+  return regionOf(n, strings, Math.floor(turn / (2 * Math.PI / n)) % n + 1);
+}
 const segDist = ([x, y], [x1, y1], [x2, y2]) => { const dx = x2 - x1, dy = y2 - y1, t = Math.max(0, Math.min(1, ((x - x1) * dx + (y - y1) * dy) / (dx * dx + dy * dy))); return Math.hypot(x - x1 - t * dx, y - y1 - t * dy); };
 export function nearestString(n, strings, point, reach = 7) {
   let best = null, bestD = reach;
@@ -852,9 +886,10 @@ function wire(root, p, api) {
     const b = now(), n = dotsOf(q, b), state = ui(p);
     if (solved(p, b)) return null;
     if (circle.classList.contains('mode-regions')) {
-      // A claim is one tap, judged at once. A tap that misses every part
+      // A claim is one tap, judged at once. A tap well away from the circle
       // lets go of Can't rather than doing nothing.
-      const gap = Number(target?.closest?.('[data-gap]')?.dataset.gap);
+      const part = point ? partAt(n, [...fixedOf(q), ...b.strings], point) : null;
+      const gap = part ? part.gaps[0] : Number(target?.closest?.('[data-gap]')?.dataset.gap);
       return gap ? {move: {type: 'cant', gap}} : {ui: {cant: false}};
     }
     if (circle.classList.contains('mode-strings')) {
@@ -868,8 +903,8 @@ function wire(root, p, api) {
   };
   if (circle) {
     circle.addEventListener('click', e => {
-      // Region taps go by what is under the finger; dots and strings by distance.
-      const point = circle.classList.contains('mode-regions') ? null : svgPoint(circle, e);
+      // Taps go by distance: to the nearest dot, string or part.
+      const point = svgPoint(circle, e);
       run(onCircle(e.target, point));
     });
     circle.addEventListener('keydown', e => {
@@ -935,7 +970,7 @@ export const stringsMechanics = {
     carry(p, from, to) {
       const q = p.parameters;
       if (!object(from) || !object(to)) return to;
-      if (q.mode === 'every' && Array.isArray(from.found)) return {...to, found: [...from.found], told: from.told?.kind === 'more' ? from.told : null, done: false};
+      if (q.mode === 'every' && Array.isArray(from.found)) return {...to, found: [...from.found], told: lockedAll(from) ? {kind: 'more'} : null, done: false};
       if ((q.mode === 'finish' || q.mode === 'neighbours') && from.refused !== null && keyOf(from.strings) === keyOf(to.strings)) return {...to, refused: from.refused, claimed: null};
       return to;
     },

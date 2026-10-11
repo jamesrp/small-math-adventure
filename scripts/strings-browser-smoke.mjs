@@ -2,7 +2,8 @@
 // dots (and by Enter on focused dots), taps between close dots, a crossing
 // refused and drawn, a string cut, Can't refused on a board that can be
 // finished; Can't let go by a miss, a wrong part refused and kept through
-// Undo, then the trapped part tapped and shaded; a whole puzzle by
+// Undo, then the trapped part tapped, shaded and outlined; the child's own
+// trap refused; taps on and around the left-over dot the hint rings; a whole puzzle by
 // keyboard; collecting every pairing with Found already, There is another and
 // That's all; neighbours refused, a string tapped near another for Can't; a
 // path decoded; a tree grown and pruned; strings for a tree; swaps by corner,
@@ -77,15 +78,16 @@ try {
   await tapDot(8, 6);
   assert.deepEqual((await board(P2)).strings, [], 'a tap on a strung dot takes the string off');
   // Can't on a board that can be finished: one claim, and the refusal says
-  // only that there is a way. It stays through Undo.
+  // what is true of the part tapped, as on any board. It stays through Undo.
   await join(8, [2, 3]);
   await button('Can’t').click();
   const outside = await page.evaluate(() => [...document.querySelectorAll('.st-region')].find(r => /dots 5, 6, 7 and 8/.test(r.getAttribute('aria-label'))).dataset.gap);
   await tapAt(await regionPoint(outside));
-  await told('There is a way.');
+  await told('Nothing is trapped there.');
+  assert.equal(await page.getByText('There is a way').count(), 0, 'nothing tells that the board can be finished');
   assert.equal(await button('Can’t').isDisabled(), true, 'one claim on these strings');
   await button('↶ Undo').click();
-  await told('There is a way.');
+  await told('Nothing is trapped there.');
   assert.equal(await button('Can’t').isDisabled(), true, 'Undo keeps the refusal');
   await join(8, [5, 8], [6, 7]);
   await done();
@@ -121,12 +123,42 @@ try {
   await tapAt(await regionPoint(4));
   await done();
   assert.equal(await page.locator('.st-trap').count(), 1, 'the trapped part is shaded');
-  assert.equal(await page.locator('.st-dot.ringed').count(), 7, 'all seven dots ringed');
+  assert.equal(await page.locator('.st-here').count(), 1, 'the part tapped is outlined');
+  assert.equal(await page.locator('.st-dot.ringed').count(), 1, 'and its left-over dot ringed');
   await shot('03-solved');
 
-  // Puzzle 5 by keyboard: Enter on dots, arrow keys, Can't, Enter on a part.
+  // Puzzle 5 by taps: a dot shut in by the child's own string is refused;
+  // then taps on the left-over dot the hint rings (its centre, outside it,
+  // inside it) each claim its part, never letting go of Can't.
   const P5 = 'strings-05';
-  await open(P5);
+  await open(P5); await fit('two dark strings');
+  await join(10, [2, 4]);
+  await button('Can’t').click();
+  await tapDot(10, 3);
+  assert.equal((await board(P5)).refused, 2, 'a tap on dot 3 claims its part');
+  await told('Your own strings trap it.');
+  await shot('05-own');
+  for (const k of [1, 1.12, 1.24, 0.9]) {
+    // Start again: Replay after a solve, Restart after the refusal.
+    if (await page.locator('#completion-heading').count()) await page.locator('[data-action=replay]').click();
+    else await page.locator('[data-action=restart]').click();
+    await page.locator('.st-circle.mode-dots').waitFor();
+    assert.deepEqual((await board(P5)).strings, []);
+    await join(10, [2, 3]);
+    while (!(await button('Can’t').evaluate(b => b.classList.contains('hinted')))) await button('Hint').click();
+    await button('Can’t').click();
+    const ringed = Number(await page.locator('.st-dot.hinted text').textContent());
+    assert.ok([8, 10].includes(ringed), `the hint rings a left-over dot (${ringed})`);
+    if (k === 1) await shot('05-ringed');
+    await tapAt(await screen(dotAt(10, ringed).map(v => 50 + (v - 50) * k)));
+    await done();
+    assert.equal(await page.locator('.st-dot.ringed').count(), 1, `a tap at ${k} of the radius on dot ${ringed} claims its part`);
+  }
+  await shot('05-solved');
+  await page.locator('[data-action=replay]').click();
+
+  // Puzzle 5 by keyboard: Enter on dots, arrow keys, Can't, Enter on a part.
+  await page.locator('.st-circle.mode-dots').waitFor();
   await page.locator('.st-dot[data-dot="2"]').focus();
   await page.keyboard.press('Enter');
   await page.keyboard.press('ArrowRight');
@@ -149,13 +181,12 @@ try {
   await page.keyboard.press('Escape');
   await page.locator('.st-dot[data-dot="2"]').focus(); await page.keyboard.press('Enter');
   assert.deepEqual((await board(P5)).strings, [], 'Enter on a strung dot takes its string off');
-  await page.locator('.st-dot[data-dot="6"]').focus(); await page.keyboard.press('Enter');
-  await page.locator('.st-dot[data-dot="8"]').focus(); await page.keyboard.press('Enter');
+  await page.locator('.st-dot[data-dot="4"]').focus(); await page.keyboard.press('Enter');
+  await page.locator('.st-dot[data-dot="5"]').focus(); await page.keyboard.press('Enter');
   await button('Can’t').focus(); await page.keyboard.press('Enter');
-  const seven = (await page.evaluate(() => [...document.querySelectorAll('.st-region')].map(r => [r.dataset.gap, r.getAttribute('aria-label')]))).find(([, label]) => /dot 7\b/.test(label))[0];
-  await page.locator(`.st-region[data-gap="${seven}"]`).focus(); await page.keyboard.press('Enter');
+  const eight = (await page.evaluate(() => [...document.querySelectorAll('.st-region')].map(r => [r.dataset.gap, r.getAttribute('aria-label')]))).find(([, label]) => /dot 8\b/.test(label))[0];
+  await page.locator(`.st-region[data-gap="${eight}"]`).focus(); await page.keyboard.press('Enter');
   await done();
-  await shot('05-solved');
 
   // Puzzle 1: every pairing of six, Found already, There is another, That's all.
   const P1 = 'strings-01';
@@ -179,25 +210,35 @@ try {
   await button('That’s all').click();
   await done();
 
-  // Puzzle 7: neighbours refused; a string with room beside it refused; then
-  // a string tapped near another for Can't.
+  // Puzzle 7: neighbours refused; Can't waits for two strings; a string with
+  // room beside it refused; a string leaving one dot refused; then a string
+  // with two neighbours beside it, tapped near another.
   const P7 = 'strings-07';
   await open(P7); await fit('neighbours');
   await join(10, [4, 5]);
   await told('Those two are neighbours.');
   assert.deepEqual((await board(P7)).strings, []);
   await join(10, [1, 6]);
+  assert.equal(await button('Can’t').isDisabled(), true, 'Can’t waits for two strings');
+  await join(10, [7, 9]);
   await button('Can’t').click();
   assert.equal(await page.locator('.st-circle.mode-strings').count(), 1);
+  assert.equal((await focused()).focus, 'st-board', 'focus on the board, not a string');
   await tapAt(await screen(lerp(dotAt(10, 1), dotAt(10, 6), 0.5)));
   await told('A string can still go beside it.');
   await join(10, [2, 4]);
   await button('Can’t').click();
-  // Between 1–6 and 2–4, nearer 2–4.
-  const mid24 = lerp(dotAt(10, 2), dotAt(10, 4), 0.5), mid16 = lerp(dotAt(10, 1), dotAt(10, 6), 0.3);
-  await tapAt(await screen(lerp(mid16, mid24, 0.85)));
+  await tapAt(await screen(lerp(dotAt(10, 2), dotAt(10, 4), 0.5)));
+  await told('This string leaves dot 3 on its own.');
+  await tapDot(10, 2);
+  await join(10, [2, 5]);
+  await button('Can’t').click();
+  // Between 1–6 and 2–5, nearer 2–5.
+  const mid25 = lerp(dotAt(10, 2), dotAt(10, 5), 0.5), mid16 = lerp(dotAt(10, 1), dotAt(10, 6), 0.5);
+  await tapAt(await screen(lerp(mid16, mid25, 0.75)));
   await done();
-  assert.deepEqual((await board(P7)).claimed, [2, 4], 'the nearer string was tapped');
+  assert.deepEqual((await board(P7)).claimed, [2, 5], 'the nearer string was tapped');
+  assert.equal(await page.locator('.st-ghost').count(), 1, 'the forced neighbour string is drawn');
   await shot('07-solved');
 
   // Puzzle 4: a path decoded, a wrong step marked.

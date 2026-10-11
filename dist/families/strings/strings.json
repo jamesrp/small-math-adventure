@@ -181,7 +181,7 @@
    "parent": {
     "notice": "Whether your child tries to join 2 or 3 to a dot beyond the dark string, and sees it refused.",
     "prompt": "Why must 2 and 3 join each other?",
-    "explanation": "The dark string from 1 to 4 leaves 2 and 3 on one side and 5, 6, 7, 8 on the other. A string from one side to the other would cross it, so 2 joins 3 and the other four pair among themselves: 5–6 with 7–8, or 5–8 with 6–7. Either one solves the puzzle, and Can’t is refused.",
+    "explanation": "The dark string from 1 to 4 leaves 2 and 3 on one side and 5, 6, 7, 8 on the other. A string from one side to the other would cross it, so 2 joins 3 and the other four pair among themselves: 5–6 with 7–8, or 5–8 with 6–7. Either one solves the puzzle. A Can’t is refused with what is true of the part tapped: “Nothing is trapped there.”, or “Your own strings trap it.” when the child’s own string (5–7, say) has shut a dot in.",
     "extension": "With the dark string from 1 to 6 instead, there are again two ways. Why?",
     "connection": "A fixed chord can be completed without crossings exactly when it leaves an even number of points on each side.",
     "sourceIds": [
@@ -231,7 +231,7 @@
    "parent": {
     "notice": "Whether your child keeps trying new strings, or counts what is left after each one.",
     "prompt": "How many dots are free after one string? After two?",
-    "explanation": "Each string takes two dots, so the free dots go 7, 5, 3, 1: always odd, never 0. However the strings go, some part of the circle has an odd number of free dots, and that part is the certificate the app asks for after Can’t. It then shades the whole circle and rings all seven dots.",
+    "explanation": "Each string takes two dots, so the free dots go 7, 5, 3, 1: always odd, never 0. However the strings go, some part of the circle has an odd number of free dots, and that part is the certificate the app asks for after Can’t. It then shades the whole circle, outlines the part tapped and rings that part’s dots.",
     "extension": "Which of 3, 4, 5, 6 and 10 dots can be paired? (The even ones; joining neighbours round the circle always works.)",
     "connection": "Parity: a perfect matching needs an even number of points.",
     "sourceIds": [
@@ -317,7 +317,7 @@
   {
    "id": "strings-05",
    "number": 5,
-   "title": "Straight across",
+   "title": "Two dark strings",
    "difficulty_level": "medium",
    "familyTitle": "Circle strings",
    "mechanic": "strings",
@@ -326,11 +326,15 @@
    "sourceDocument": "docs/strings/README.md",
    "parameters": {
     "mode": "finish",
-    "n": 8,
+    "n": 10,
     "fixed": [
      [
       1,
-      5
+      6
+     ],
+     [
+      7,
+      9
      ]
     ]
    },
@@ -345,19 +349,19 @@
     "Dark strings stay where they are.",
     "Pair every dot. If that can’t be done, press Can’t, then tap the part of the circle where the free dots can’t all get partners."
    ],
-   "idea": "A string that leaves an odd number of dots on a side can never be finished.",
+   "idea": "The dark strings cut the circle into parts, and a pairing can be finished only when every part has an even number of free dots.",
    "prerequisites": "Count up to ten dots on each side of a string.",
    "hints": [
-    "Count the dots on each side of the dark string.",
-    "Three dots on each side, and no string can cross over.",
-    "Lay a string on one side, press Can’t and tap the part of the circle where a dot is left alone."
+    "Which dots can reach each other without crossing a dark string?",
+    "Dots 2, 3, 4 and 5 can pair up. What about dot 8, and dot 10?",
+    "Lay a string, press Can’t and tap the part of the circle with dot 8."
    ],
    "parent": {
-    "notice": "Whether your child counts the sides before laying strings, or after getting stuck.",
-    "prompt": "What happens to the third dot on each side?",
-    "explanation": "The dark string from 1 to 5 leaves 2, 3, 4 on one side and 6, 7, 8 on the other. Strings stay on their own side and take two dots each, so one dot on each side is always left. After Can’t and a tap on the part where a dot is left alone, the app shades that side of the dark string and rings its three dots.",
-    "extension": "Which dark strings from dot 1 can be finished on eight dots? (1–2, 1–4, 1–6 and 1–8.)",
-    "connection": "A fixed chord can be completed exactly when it leaves an even number of points on each side.",
+    "notice": "Whether your child pairs the four dots inside the long dark string and then looks for partners for 8 and 10, and whether a string such as 2–4 that shuts in dot 3 is mistaken for the reason.",
+    "prompt": "Which dots can dot 8 reach?",
+    "explanation": "The dark strings 1–6 and 7–9 cut the circle into three parts: 2, 3, 4, 5 inside the long string; 8 inside the short one; and 10 outside both. Strings stay in their part and take two dots each. Dots 2 to 5 can pair up, but 8 and 10 have no one to join, so the pairing can’t be finished. After Can’t, a tap on the part with dot 8 (or dot 10) is kept: the app shades that part, outlines it and rings its dot. A string such as 2–4 leaves dot 3 alone too, but only because of that string, so a tap there is refused: “Your own strings trap it.”",
+    "extension": "Which dark strings from dot 1 can be finished on eight dots? (1–2, 1–4, 1–6 and 1–8; 1–5 leaves three dots on each side.)",
+    "connection": "Fixed chords can be completed without crossings exactly when every region they make has an even number of free points.",
     "sourceIds": [
      "strings-week12",
      "strings-card12",
@@ -372,22 +376,18 @@
        3
       ]
      ],
-     "gap": 3
+     "gap": 7
     },
     "trapped": [
      [
-      2,
-      3,
-      4
+      10
      ],
      [
-      6,
-      7,
       8
      ]
     ]
    },
-   "provenance": "Week 12 K–1 Problem 3, the 1–5 start."
+   "provenance": "Week 12 K–1 Problem 3 (a dark string to finish), here with two dark strings and a part of four that can be paired; the problem’s 1–5 start is the extension."
   },
   {
    "id": "strings-06",
@@ -464,28 +464,28 @@
     "mode": "neighbours",
     "n": 10
    },
-   "objective": "Pair every dot without joining two neighbours, or press Can’t and tap a string with stuck dots beside it.",
+   "objective": "Pair every dot without joining two neighbours, or press Can’t and tap a string with just two dots on one side.",
    "visibleObjective": "Pair every dot without joining neighbours.",
-   "instruction": "Pair every dot without joining two neighbours, or press Can’t and tap a string with stuck dots beside it.",
-   "controls": "Tap a dot, then another, to join them. Tap a dot with your string to take it off. Can’t, then a tap on one of your strings, says the dots beside it are stuck; press Can’t again to put it away. Undo takes back the last move.",
+   "instruction": "Pair every dot without joining two neighbours, or press Can’t and tap a string with just two dots on one side.",
+   "controls": "Tap a dot, then another, to join them. Tap a dot with your string to take it off. Once two strings are down, Can’t, then a tap on one of your strings, says the two dots beside it are stuck; press Can’t again to put it away. Undo takes back the last move.",
    "rules": [
     "Tap a dot, then another, to join them with a string. Each dot takes one string.",
     "Strings may not cross. A string that would cross another is not laid.",
     "Tap a dot with your string on it to take that string off.",
     "Two dots next to each other round the circle are neighbours, and here no string may join them.",
-    "If it can’t be done, press Can’t, then tap a string with stuck dots on one side: one left over (or any odd number), or just two neighbours."
+    "If it can’t be done, lay two strings or more, press Can’t, then tap a string with just two dots on one side."
    ],
-   "idea": "A string with no string on one side shuts its dots in; in a full pairing that side is empty, so the string joins neighbours.",
+   "idea": "A string with no string on one side shuts its dots in; in a full pairing an innermost string has nothing beside it, so it joins neighbours.",
    "prerequisites": "Tap two dots to join them and see when strings cross. No reading once a grown-up has read How to play.",
    "hints": [
-    "Lay a string, then look at the dots on its smaller side.",
-    "The dots on one side of a string can only pair with each other. What is left in the end?",
-    "Join 1 and 3: dot 2 is alone beside it. Press Can’t and tap that string."
+    "Lay a string, then look at the dots on its smaller side. Who can they join?",
+    "The dots on one side of a string can only pair with each other. What if only two are left there?",
+    "Join 1 and 4: dots 2 and 3 are left beside it, and they are neighbours. Lay one more string, press Can’t and tap the string from 1 to 4."
    ],
    "parent": {
-    "notice": "Whether your child sees that every string shuts in the dots on each side, and looks for the smallest side.",
+    "notice": "Whether your child sees that every string shuts in the dots on each side, and keeps choosing smaller sides until two neighbours are left.",
     "prompt": "What can the dots on this side of the string join?",
-    "explanation": "The dots on one side of a string can only pair with each other. In a finished pairing, take an innermost string: one with no other string on one side (from any string, keep moving to a string on its smaller side). Any dot on that side would need a string there too, so there is no dot: the string joins neighbours. So every pairing joins two neighbours. The app asks for this on the child’s own try: after Can’t, tap a string with no string on one side and, there, an odd number of dots (one is left over) or exactly two (they are neighbours). Four or more dots there are not stuck yet, since a string that skips one dot still fits; the app says “A string can still go beside it.”",
+    "explanation": "The dots on one side of a string can only pair with each other. In a finished pairing, take an innermost string: one with no other string on one side (from any string, keep moving to a string on its smaller side). Any dot on that side would need a string there too, so there is no dot: the string joins neighbours. So every pairing joins two neighbours. The app asks for the last step on the child’s own try: once two strings are down, press Can’t and tap a string with just two dots on one side. Those two are neighbours, so they can’t be joined, and a string to any other dot would cross. A string that leaves an odd number of dots on a side is refused (“This string leaves dot 2 on its own.”): that is the string’s own doing, and a better string might avoid it. Four or more dots, an even number, get “A string can still go beside it.”, and strings on both sides get “It has strings on both sides.”",
     "extension": "With crossings allowed it can be done: on eight dots, 1–3, 2–4, 5–7 and 6–8 join no neighbours. Try it on paper.",
     "connection": "Every noncrossing perfect matching of points on a circle contains a pair of neighbours (an innermost chord).",
     "sourceIds": [
@@ -499,16 +499,20 @@
      "attempt": [
       [
        1,
-       3
+       4
+      ],
+      [
+       5,
+       7
       ]
      ],
      "string": [
       1,
-      3
+      4
      ]
     }
    },
-   "provenance": "Week 12 K–1 Problem 6 (eight dots), moved to ten dots: on eight, every first string already leaves a stuck side, while on ten a first string such as 1–6 does not."
+   "provenance": "Week 12 K–1 Problem 6 (eight dots), on ten dots for more room to try strings before two neighbours are left."
   },
   {
    "id": "strings-08",
