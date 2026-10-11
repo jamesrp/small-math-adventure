@@ -218,8 +218,8 @@ test('hints: board moves first, reasons before claims, quick, and they finish ev
     assert.ok(!['none', 'all'].includes(first.action.type), `${p.id}: never a claim first`);
     assert.equal(first.text === 'Press No row.' || first.text === 'Press No city.', false);
     for (; !isSolved(p, a.board) && steps < 60; steps++) {
-      const t = performance.now(), h = nextHint(p, a);
-      assert.ok(performance.now() - t < 100, `${p.id}: a quick hint`);
+      const t = process.cpuUsage(), h = nextHint(p, a), u = process.cpuUsage(t);
+      assert.ok((u.user + u.system) / 1000 < 100, `${p.id}: a quick hint (CPU time, so a loaded machine doesn't fail it)`);
       if (h.action.type === 'none') assert.match(h.text, /^(Seeing|Wherever)/, `${p.id}: the reason first`);
       a = play(p, a, h.action);
     }

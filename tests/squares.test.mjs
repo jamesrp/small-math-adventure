@@ -197,8 +197,8 @@ test('hints alone solve every puzzle from fresh, and fast', () => {
   for (const p of squares.puzzles.filter(p => p.band !== 'playground')) {
     let a = freshAttempt(p);
     for (let i = 0; i < 60 && !isSolved(p, a.board); i++) {
-      const t = performance.now(), h = nextHint(p, a);
-      assert.ok(performance.now() - t < 100, `${p.id}: a hint in well under 100 ms`);
+      const t = process.cpuUsage(), h = nextHint(p, a), u = process.cpuUsage(t);
+      assert.ok((u.user + u.system) / 1000 < 100, `${p.id}: a hint in well under 100 ms (CPU time, so a loaded machine doesn't fail it)`);
       assert.equal(h.type, 'move', `${p.id}: ${h.text}`);
       a = play(p, a, h.action);
     }
