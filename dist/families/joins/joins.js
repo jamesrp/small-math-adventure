@@ -382,7 +382,7 @@ function render(p, a) {
   } else if (q.mode === 'reach') {
     const phase = b.claim === 'halving';
     const off = done && phase ? {bench: unmatched(b.bench, b.goal), goal: unmatched(b.goal, b.bench)} : {bench: [], goal: []};
-    top = `<div class="jn-goal${phase ? ' open' : ''}" role="group" aria-label="Goal"><span class="jn-tag" aria-hidden="true">Goal</span>${strips(p, b, 'goal', {chosen, live: live && phase, marks: marks('goal'), hinted: hintOn('goal'), off: off.goal})}</div>`;
+    top = `<div class="jn-goal${phase ? ' open' : ''}" style="--n:${b.goal.length}" role="group" aria-label="Goal"><span class="jn-tag" aria-hidden="true">Goal</span>${strips(p, b, 'goal', {chosen, live: live && phase, marks: marks('goal'), hinted: hintOn('goal'), off: off.goal})}</div>`;
     rows = bench({off: off.bench});
     if (!done && !phase) bar = button('Can’t', {type: 'cant'}, 'jn-cant', {move: true, enabled: b.tried && b.claim === null, hinted: act?.type === 'cant'});
     if (!note) note = done && phase ? 'The odd strips differ.' : phase ? 'Halve every even strip in both rows.' : b.claim === 'refused' ? 'There is a way.' : '';

@@ -9,7 +9,9 @@
 .jn-tag{position:absolute;top:3px;left:10px;font:600 .78rem/1 var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850)}
 .jn-row{position:relative;height:36px}
 .jn-goal .jn-row{height:22px}
-.jn-goal.open .jn-row{height:40px}
+/* While the goal can be halved its rows are taps: as tall as fits, 40 px
+   for up to four strips, back to 22 px for eight or more. */
+.jn-goal.open .jn-row{height:clamp(22px,calc(204px / var(--n,1) - 4px),40px)}
 .jn-puzzle .jn-strip{position:absolute;left:0;top:0;bottom:0;box-sizing:border-box;min-height:0;min-width:0;margin:0;padding:0;border:2px solid var(--b-ink,#294439);border-radius:4px;background-color:var(--b-sun,#efc76e);background-image:linear-gradient(to right,rgba(41,68,57,.6) 1.5px,transparent 1.5px);background-size:calc(100% / var(--l)) 100%;background-position:-1.5px 0;box-shadow:none;color:inherit;cursor:default}
 .jn-puzzle button.jn-strip{cursor:pointer}
 .jn-puzzle .jn-strip.goal{background-color:var(--b-leaf,#86a68c)}
