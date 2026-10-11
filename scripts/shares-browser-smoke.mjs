@@ -61,6 +61,12 @@ try {
   assert.equal(await button('Fair').isDisabled(), true, 'Fair waits for every card');
   await drag(card('R1'), tray('B'));
   assert.equal((await board(P)).at.R1, 'B', 'a drag puts a card in a tray');
+  const moves = (await page.evaluate(([k, id]) => JSON.parse(localStorage.getItem(k)).profiles[0].attempts[id].moves, [key, P]));
+  // Drag R1 to a corner of its own tray (far enough to be a drag, not a tap).
+  const trayB = await tray('B').boundingBox();
+  await drag(card('R1'), {boundingBox: async () => ({x: trayB.x + 12, y: trayB.y + trayB.height - 12, width: 0, height: 0})});
+  assert.equal(await page.evaluate(([k, id]) => JSON.parse(localStorage.getItem(k)).profiles[0].attempts[id].moves, [key, P]), moves, 'a card dropped back where it was is no move');
+  assert.equal((await page.locator('.feedback').innerText()).trim(), '', 'and no message');
   await tap(card('R2'));
   assert.equal(await card('R2').getAttribute('aria-pressed'), 'true', 'a tap lifts a card');
   assert.equal(await card('R3').evaluate(e => e.tagName), 'SPAN', 'the other cards rest');
@@ -72,7 +78,7 @@ try {
   await card('B1').focus(); await page.keyboard.press('ArrowLeft');
   await button('Fair').click();
   assert.equal(await page.locator('.sh-told').innerText(), 'A would swap.');
-  assert.equal(await page.locator('.sh-view').count(), 2, 'A’s count under each tray');
+  assert.equal(await page.locator('.sh-view, .sh-worth').count(), 0, 'no counts of the trays');
   assert.match(await focusedClass(), /sh-card/, 'focus goes back to the board after Fair');
   await shot('refused');
   for (const id of ['R1', 'R2', 'R3']) await drag(card(id), tray('A'));
@@ -80,28 +86,29 @@ try {
   assert.equal(await page.locator('.sh-told').count(), 0, 'a move clears the refusal');
   await button('Fair').click(); await done();
 
-  // Puzzle 4: That's all refused, ways found, Found already, the catalog.
-  P = 'shares-04';
+  // Puzzle 5: That's all refused, Keep unjudged, the shelf refused, Undo, the catalog.
+  P = 'shares-05';
   await open(P);
   await button('That’s all').click();
   assert.equal(await page.locator('.sh-told').innerText(), 'There is another.');
-  assert.equal(await button('That’s all').isDisabled(), true, 'That’s all waits for a new way');
+  assert.equal(await button('That’s all').isDisabled(), true, 'That’s all waits for the shelf to change');
   assert.doesNotMatch(await focusedClass(), /sh-all|sh-cant/, 'focus is not left on That’s all');
-  const ways = [['A', 'A', 'A', 'B'], ['A', 'A', 'B', 'B'], ['A', 'B', 'A', 'B'], ['B', 'A', 'A', 'B']];
   const ids = ['R1', 'R2', 'R3', 'B1'];
-  for (const [k, way] of ways.entries()) {
-    for (const [i, owner] of way.entries()) if ((await board(P)).at[ids[i]] !== owner) await drag(card(ids[i]), tray(owner));
-      await button('Fair').click();
-    assert.equal((await board(P)).found.length, k + 1, `way ${k + 1} kept`);
-    if (k === 0) {
-      assert.equal(await page.locator('.sh-found li').count(), 1, 'a thumbnail');
-      await drag(card('R1'), tray('B')); await drag(card('R1'), tray('A'));
-      await button('Fair').click();
-      assert.equal(await page.locator('.sh-told').innerText(), 'Found already.');
-      await page.locator('[data-action="undo"]').click();
-      assert.equal((await board(P)).found.length, 1, 'Undo keeps the way found');
-    }
-  }
+  const arrange = async way => { for (const [i, owner] of [...way].entries()) if ((await board(P)).at[ids[i]] !== owner) await drag(card(ids[i]), tray(owner)); };
+  await arrange('ABBA');
+  await button('Keep').click();
+  assert.deepEqual((await board(P)).shelf, ['ABBA'], 'kept without a word');
+  assert.equal(await page.locator('.sh-told').count(), 0);
+  assert.equal(await page.locator('.sh-found .sh-kept').count(), 1, 'a picture of the way kept');
+  assert.equal(await button('Keep').isDisabled(), true, 'a way already kept');
+  await button('That’s all').click();
+  assert.equal(await page.locator('.sh-told').innerText(), 'Somebody would swap in one.');
+  await page.locator('[data-action="undo"]').click();
+  assert.equal(await page.locator('.sh-told').innerText(), 'Somebody would swap in one.', 'Undo keeps the refusal');
+  assert.equal(await button('That’s all').isDisabled(), true);
+  await tap(page.locator('.sh-kept').first());
+  assert.deepEqual((await board(P)).shelf, [], 'a tap takes a kept way back');
+  for (const way of ['AAAB', 'AABB', 'ABAB', 'BAAB']) { await arrange(way); await button('Keep').click(); }
   await shot('every');
   await button('That’s all').click(); await done();
   assert.equal(await page.locator('.sh-catalog td.fair').count(), 2, 'the catalog after That’s all');
@@ -120,7 +127,7 @@ try {
   assert.equal((await board(P)).claim, null);
   await tap(card('R1')); await tap(card('R3'));
   const claim = (await board(P)).claim;
-  assert.equal(claim.odd, 'R2', 'the card left over');
+  assert.deepEqual(claim.left, ['R2'], 'the card left over');
   assert.equal(await page.locator('.sh-told').innerText(), 'One left over.');
   await shot('pairing');
   await button('Cut').click();
@@ -132,8 +139,20 @@ try {
   await drag(card('R3'), tray('V'));
   await button('Fair').click(); await done();
 
-  // Puzzle 6: shapes by drag and tap, a swap, a refused group, Can't with Check.
-  P = 'shares-06';
+  // Puzzle 3: four reds, where Can't is wrong.
+  P = 'shares-03';
+  await open(P);
+  for (const [id, to] of [['R1', 'U'], ['R2', 'U'], ['R3', 'U'], ['R4', 'V']]) await drag(card(id), tray(to));
+  await button('Can’t').click();
+  await tap(card('R1')); await tap(card('R4'));
+  assert.equal(await page.locator('.sh-told').innerText(), '2 left over.', 'an even number left over is refused');
+  assert.equal(await button('Can’t').isDisabled(), true, 'until a card moves');
+  await shot('four-reds');
+  await drag(card('R3'), tray('V'));
+  await button('Fair').click(); await done();
+
+  // Puzzle 7: shapes by drag and tap, a swap, a refused group, Can't with Check.
+  P = 'shares-07';
   await open(P); await fit('favourites');
   assert.equal(await page.locator('.puzzle-goal').innerText(), 'Give everyone a favourite.');
   await drag(item('circle'), person('A'));
@@ -143,25 +162,27 @@ try {
   assert.equal(swap.at.triangle, 'A'); assert.equal(swap.at.circle, null, 'giving A another shape sends the circle back');
   await drag(item('circle'), person('C'));
   await button('Can’t').click();
-  await tap(person('A')); await tap(person('D'));
+  await tap(person('A')); await tap(person('B'));
   await button('Check').click();
   assert.equal(await page.locator('.sh-told').innerText(), '2 people, 4 shapes.', 'a group with enough shapes is refused');
   assert.match(await focusedClass(), /sh-item|sh-person/, 'focus goes back to the board after Check');
   await shot('refused-group');
+  assert.equal(await button('Can’t').isDisabled(), true, 'Can’t shuts until a shape moves');
+  await drag(item('circle'), person('D'));
   await button('Can’t').click();
-  for (const x of ['A', 'B', 'C']) await tap(person(x));
+  for (const x of ['A', 'C', 'D']) await tap(person(x));
   await button('Check').click(); await done();
   assert.equal(await page.locator('.sh-told').innerText(), '3 people, 2 shapes.');
   await shot('short-group');
 
-  // Puzzle 3: everyone a favourite.
-  P = 'shares-03';
+  // Puzzle 4: everyone a favourite.
+  P = 'shares-04';
   await open(P);
   for (const [s, x] of [['circle', 'B'], ['triangle', 'A'], ['square', 'C'], ['diamond', 'D']]) await drag(item(s), person(x));
   await done();
 
-  // Puzzle 7: the knife by tap and by slide, a cut that isn't equal, the star, round two.
-  P = 'shares-07';
+  // Puzzle 8: the knife by tap and by slide, a cut that isn't equal, the star, round two.
+  P = 'shares-08';
   await open(P); await fit('strip');
   assert.equal(await page.locator('.puzzle-goal').count(), 0, 'the board carries the duel’s goal');
   assert.equal(await page.locator('.sh-goal').innerText(), 'Cut so you get half, whichever piece B takes.');
@@ -173,7 +194,8 @@ try {
   await button('Cut').click();
   assert.equal((await board(P)).r1.star, false);
   assert.equal(await page.locator('.sh-told').innerText(), 'Not equal for you.');
-  assert.equal(await page.locator('.sh-worth').count(), 2, 'your count under each piece');
+  assert.equal(await page.locator('.sh-worth').count(), 1, 'your count under your own piece only');
+  assert.equal(await page.locator('.sh-strip .sh-on').innerText(), 'B', 'B’s token on the piece B took');
   await shot('unequal');
   // A slide: the knife follows and rests where the finger stops.
   const [x0, y0] = await at(1), [x1, y1] = await at(4.2);
@@ -193,16 +215,24 @@ try {
   await shot('round-two');
   await tap(page.locator('button.sh-piece').nth(1));
   assert.equal(await page.locator('.sh-told').innerText(), 'The other piece is more for you.');
+  assert.equal(await page.locator('button.sh-piece').count(), 0, 'the take is final');
+  await page.locator('[data-action="undo"]').click();
+  assert.equal(await page.locator('button.sh-piece').count(), 0, 'Undo keeps it');
+  await shot('final-take');
+  await button('Again').click();
+  assert.equal((await board(P)).r1, null, 'Again starts the duel over');
+  await page.locator('.sh-gap').nth(3).focus(); await page.keyboard.press('Enter');
+  await button('Cut').click();
   await tap(page.locator('button.sh-piece').nth(0)); await done();
 
-  // Puzzle 10: keyboard on a join, then Cut.
-  P = 'shares-10';
-  await open(P); await fit('strip 10');
+  // Puzzle 11: keyboard on a join, then Cut.
+  P = 'shares-11';
+  await open(P); await fit('strip 11');
   await page.locator('.sh-gap').nth(3).focus(); await page.keyboard.press('Enter');
   assert.equal(await page.locator('.sh-gap[aria-pressed="true"]').getAttribute('aria-label'), 'Knife after 4 squares', 'Enter on a join places the knife');
   await button('Cut').click();
   assert.equal((await board(P)).r1.star, true);
-  await shot('duel-10');
+  await shot('duel-11');
 
   assert.deepEqual(errors, []);
   console.log(JSON.stringify({passed: true, phone}, null, 2));

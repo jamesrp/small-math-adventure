@@ -6,11 +6,14 @@
 //
 // Five modes on one mechanic:
 // - one, every: two people with different tastes share whole cards. Find one
-//   envy-free division, or every one (labelled cards: who gets which card),
-//   ended by That's all; the catalog by A's reds and blues is the certificate.
-// - halve: two people with the same taste share three cards they each count
-//   as 1. No whole division works; the child shows it by pairing the cards
-//   (one is left over), then cuts a card in half.
+//   envy-free division (Fair checks it), or every one (labelled cards: who
+//   gets which card): Keep puts a division on the shelf unjudged, and That's
+//   all judges the whole shelf at once; the catalog by A's reds and blues is
+//   the certificate.
+// - halve: two people with the same taste share equal cards they each count
+//   as 1. With an odd number no whole division works; the child shows it by
+//   pairing the cards one from each tray (an odd number is left over), then
+//   cuts a card in half. With an even number Can't is refused.
 // - favourites: n people, n items, one each. With one item each, nobody
 //   envies exactly when everyone holds a favourite, so this is a perfect
 //   matching; Can't is certified by k people whose favourites are fewer than k
@@ -26,6 +29,7 @@ const keysAre = (o, keys) => object(o) && Object.keys(o).sort().join() === [...k
 const int = v => Number.isInteger(v);
 const memo = (cache, key, make) => { if (!cache.has(key)) cache.set(key, make()); return cache.get(key); };
 const listWords = items => items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`;
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 export const MODES = ['one', 'every', 'halve', 'favourites', 'duel'];
 
 // --- Two people sharing cards ---------------------------------------------------
@@ -37,14 +41,14 @@ export function goodsNow(q, cut = null) {
 export const worth = (person, good) => person.likes[good.colour] * (good.half ? 1 : 2);
 export const trayWorth = (goods, at, judge, owner) => goods.reduce((s, g) => s + (at[g.id] === owner ? worth(judge, g) : 0), 0);
 export const complete = (goods, at) => goods.every(g => at[g.id] !== null);
-// The first person who counts another tray worth more than their own, or null.
-export function envious(q, goods, at) {
-  for (const p of q.people) {
+// Everybody who counts another tray worth more than their own, and the first.
+export function enviousAll(q, goods, at) {
+  return q.people.filter(p => {
     const own = trayWorth(goods, at, p, p.id);
-    if (q.people.some(o => o.id !== p.id && trayWorth(goods, at, p, o.id) > own)) return p.id;
-  }
-  return null;
+    return q.people.some(o => o.id !== p.id && trayWorth(goods, at, p, o.id) > own);
+  }).map(p => p.id);
 }
+export const envious = (q, goods, at) => enviousAll(q, goods, at)[0] ?? null;
 export const keyOf = (goods, at) => goods.map(g => at[g.id] ?? '-').join('');
 const atOf = (goods, key) => Object.fromEntries(goods.map((g, i) => [g.id, key[i] === '-' ? null : key[i]]));
 // Every complete division with no envy, as keys (owners in card order).
@@ -66,17 +70,19 @@ const goodName = g => g.half ? `half of ${g.of}` : g.id;
 
 // --- Boards -------------------------------------------------------------------
 // one:   {at, told, done}
-// every: {at, found, more, told, done}
+// every: {at, shelf, told, done}
 // halve: {at, cut, claim, told, done}
 // at maps each card now on the board to its owner or null (still on the table).
-// told: null, {kind: 'swap', who} after a refused Fair, {kind: 'again'} after
-// Fair on a division found already, {kind: 'over', n} after a refused Can't
-// (n cards left over once the cards are paired across, 0 or 2 or more).
-// more: That's all was refused, kept until a new division is found.
-// claim (halve): {pairs, odd} once Can't is shown, the odd card left unpaired.
+// shelf (every): the divisions kept, as keys in order, none of them judged.
+// told: null; {kind: 'swap', who} after a refused Fair (everybody who would
+// swap); {kind: 'unfair'} or {kind: 'more'} after a refused That's all,
+// kept until the shelf changes; {kind: 'over', n} after a refused Can't (an
+// even number n of cards left over once the cards are paired across).
+// claim (halve): {pairs, left} once Can't is shown: the pairs, and the cards
+// left over, an odd number of them.
 const shareFresh = q => {
   const at = Object.fromEntries(q.goods.map(g => [g.id, null]));
-  if (q.mode === 'every') return {at, found: [], more: false, told: null, done: false};
+  if (q.mode === 'every') return {at, shelf: [], told: null, done: false};
   if (q.mode === 'halve') return {at, cut: null, claim: null, told: null, done: false};
   return {at, told: null, done: false};
 };
@@ -96,10 +102,10 @@ export function pairingLeft(q, pairs) {
 // The pairing for Can't is shown on the child's own attempt: each pair is one
 // card from each tray ("one for U, one for V"), and it goes on until one tray
 // has no card left unpaired. Returns the cards left over, or null when a pair
-// is not across the trays or another pair could still be made. Exactly one
-// card over proves that no whole division works: with one taste and equal
-// cards, a fair share needs as many cards each, and moving a card across
-// changes the cards left over by two, so an odd number over never reaches 0.
+// is not across the trays or another pair could still be made. An odd number
+// over proves that no whole division works: with one taste and equal cards, a
+// fair share needs as many cards each, and moving a card across changes the
+// cards left over by two, so an odd number over never reaches 0.
 export function acrossLeft(q, at, pairs) {
   const left = pairingLeft(q, pairs);
   if (!left || !pairs.every(([x, y]) => at[x] !== null && at[y] !== null && at[x] !== at[y])) return null;
@@ -115,39 +121,41 @@ const normPairs = (q, pairs) => {
   return pairs.map(p => [...p].sort((x, y) => order(x) - order(y))).sort((x, y) => order(x[0]) - order(y[0]));
 };
 function validShare(q, b) {
-  const want = {one: ['at', 'done', 'told'], every: ['at', 'done', 'found', 'more', 'told'], halve: ['at', 'claim', 'cut', 'done', 'told']}[q.mode];
+  const want = {one: ['at', 'done', 'told'], every: ['at', 'done', 'shelf', 'told'], halve: ['at', 'claim', 'cut', 'done', 'told']}[q.mode];
   if (!keysAre(b, want) || typeof b.done !== 'boolean') return false;
   const cut = q.mode === 'halve' ? b.cut : null;
   if (q.mode === 'halve') {
     if (b.claim !== null) {
-      if (!keysAre(b.claim, ['odd', 'pairs'])) return false;
+      if (!keysAre(b.claim, ['left', 'pairs'])) return false;
       const left = pairingLeft(q, b.claim.pairs);
-      if (!left || !b.claim.pairs.length || left.length !== 1 || left[0] !== b.claim.odd || JSON.stringify(normPairs(q, b.claim.pairs)) !== JSON.stringify(b.claim.pairs)) return false;
+      if (!left || left.length % 2 === 0 || !same(left, b.claim.left) || !same(normPairs(q, b.claim.pairs), b.claim.pairs)) return false;
     }
     if (cut !== null && (b.claim === null || !q.goods.some(g => g.id === cut))) return false;
   }
   const goods = goodsNow(q, cut), ids = q.people.map(p => p.id);
   if (!keysAre(b.at, goods.map(g => g.id)) || !goods.every(g => b.at[g.id] === null || ids.includes(b.at[g.id]))) return false;
   const full = complete(goods, b.at), key = keyOf(goods, b.at), fair = fairKeys(q, cut);
+  const shelfFair = q.mode === 'every' && Array.isArray(b.shelf) && b.shelf.every(k => fair.includes(k));
   if (q.mode === 'every') {
-    if (!Array.isArray(b.found) || !b.found.every((k, i) => fair.includes(k) && (i === 0 || b.found[i - 1] < k)) || typeof b.more !== 'boolean') return false;
-    if (b.more && (b.done || b.found.length === fair.length)) return false;
+    const whole = k => typeof k === 'string' && k.length === goods.length && [...k].every(c => ids.includes(c));
+    if (!Array.isArray(b.shelf) || !b.shelf.every((k, i) => whole(k) && (i === 0 || b.shelf[i - 1] < k))) return false;
   }
   const t = b.told;
   if (t !== null) {
     if (!object(t)) return false;
-    if (t.kind === 'swap') { if (!keysAre(t, ['kind', 'who']) || !full || envious(q, goods, b.at) !== t.who) return false; }
-    else if (t.kind === 'again') { if (!keysAre(t, ['kind']) || q.mode !== 'every' || !full || !b.found.includes(key)) return false; }
+    if (t.kind === 'swap') { if (!keysAre(t, ['kind', 'who']) || q.mode === 'every' || !full || !t.who.length || !same(enviousAll(q, goods, b.at), t.who)) return false; }
+    else if (t.kind === 'unfair') { if (!keysAre(t, ['kind']) || q.mode !== 'every' || shelfFair) return false; }
+    else if (t.kind === 'more') { if (!keysAre(t, ['kind']) || q.mode !== 'every' || !shelfFair || b.shelf.length >= fair.length) return false; }
     else if (t.kind === 'over') {
-      // A refused Can't: the cards left over after pairing across the trays.
+      // A refused Can't: an even number of cards left over after pairing across.
       const [u, v] = q.people.map(p => goods.filter(g => b.at[g.id] === p.id).length);
-      if (!keysAre(t, ['kind', 'n']) || q.mode !== 'halve' || b.claim !== null || cut !== null || !full || t.n === 1 || t.n !== Math.abs(u - v)) return false;
+      if (!keysAre(t, ['kind', 'n']) || q.mode !== 'halve' || b.claim !== null || cut !== null || !full || t.n % 2 !== 0 || t.n !== Math.abs(u - v)) return false;
     }
     else return false;
   }
   if (b.done) {
     if (t !== null) return false;
-    if (q.mode === 'every') return b.found.length === fair.length;
+    if (q.mode === 'every') return same(b.shelf, fair);
     return full && fair.includes(key);
   }
   return true;
@@ -158,32 +166,47 @@ function shareMove(q, b, action) {
     if (!keysAre(action, ['good', 'to', 'type']) || !goods.some(g => g.id === action.good)) return null;
     if (action.to !== null && !q.people.some(p => p.id === action.to)) return null;
     if (b.at[action.good] === action.to) return null;
-    return {...b, at: {...b.at, [action.good]: action.to}, told: null};
+    // A refused That's all stands until the shelf changes, not the cards.
+    return {...b, at: {...b.at, [action.good]: action.to}, told: q.mode === 'every' ? b.told : null};
+  }
+  if (q.mode === 'every') {
+    // Keep shelves a division without judging it; That's all judges the
+    // whole shelf once, and its refusal stands until the shelf changes.
+    if (action.type === 'keep') {
+      if (!keysAre(action, ['type']) || !full) return null;
+      const key = keyOf(goods, b.at);
+      if (b.shelf.includes(key)) return null;
+      return {...b, shelf: [...b.shelf, key].sort(), told: null};
+    }
+    if (action.type === 'drop') {
+      if (!keysAre(action, ['key', 'type']) || !b.shelf.includes(action.key)) return null;
+      return {...b, shelf: b.shelf.filter(k => k !== action.key), told: null};
+    }
+    if (action.type === 'all') {
+      if (!keysAre(action, ['type']) || b.told) return null;
+      const fair = fairKeys(q);
+      if (!b.shelf.every(k => fair.includes(k))) return {...b, told: {kind: 'unfair'}};
+      if (b.shelf.length < fair.length) return {...b, told: {kind: 'more'}};
+      return {...b, done: true};
+    }
+    return null;
   }
   if (action.type === 'fair') {
-    if (!keysAre(action, ['type']) || !full || b.told) return null;
-    const who = envious(q, goods, b.at);
-    if (who) return {...b, told: {kind: 'swap', who}};
-    if (q.mode !== 'every') return {...b, done: true};
-    const key = keyOf(goods, b.at);
-    if (b.found.includes(key)) return {...b, told: {kind: 'again'}};
-    const found = [...b.found, key].sort();
-    return {...b, found, more: false, done: false};
-  }
-  if (action.type === 'all') {
-    if (q.mode !== 'every' || !keysAre(action, ['type']) || b.more) return null;
-    return b.found.length === fairKeys(q).length ? {...b, told: null, done: true} : {...b, more: true};
+    if (!keysAre(action, ['type']) || !full || b.told?.kind === 'swap') return null;
+    const who = enviousAll(q, goods, b.at);
+    if (who.length) return {...b, told: {kind: 'swap', who}};
+    return {...b, told: null, done: true};
   }
   if (q.mode !== 'halve') return null;
   if (action.type === 'cant') {
     // Can't is a claim about the child's own attempt, so it waits for every
-    // card to be given out, and it is answered once per attempt.
-    // A refusal stands until a card moves.
+    // card to be given out, and it is answered once per arrangement: a
+    // refusal stands, through Undo, until a card moves.
     if (!keysAre(action, ['pairs', 'type']) || b.claim || cut !== null || !full || b.told?.kind === 'over') return null;
     const left = acrossLeft(q, b.at, action.pairs);
     if (!left) return null;
-    if (left.length !== 1) return {...b, told: {kind: 'over', n: left.length}};
-    return {...b, told: null, claim: {odd: left[0], pairs: normPairs(q, action.pairs)}};
+    if (left.length % 2 === 0) return {...b, told: {kind: 'over', n: left.length}};
+    return {...b, told: null, claim: {left, pairs: normPairs(q, action.pairs)}};
   }
   if (action.type === 'halve') {
     if (!keysAre(action, ['good', 'type']) || !b.claim || cut !== null || !q.goods.some(g => g.id === action.good)) return null;
@@ -210,26 +233,28 @@ function shareHint(q, b) {
   return memo(hintCache, JSON.stringify([q.people, q.goods, q.mode, b]), () => {
     const cut = q.mode === 'halve' ? b.cut : null, goods = goodsNow(q, cut), key = keyOf(goods, b.at), full = complete(goods, b.at);
     if (q.mode === 'every') {
-      const left = fairKeys(q).filter(k => !b.found.includes(k));
-      if (!left.length) return {type: 'move', action: {type: 'all'}, text: 'Every fair way is found.'};
-      if (full && left.includes(key) && !b.told) return {type: 'move', action: {type: 'fair'}, text: 'Nobody would swap here. Press Fair.'};
+      // Take back a kept way that somebody would swap, then keep the
+      // nearest way not yet kept, then That's all.
+      const fair = fairKeys(q), bad = b.shelf.find(k => !fair.includes(k));
+      if (bad) {
+        const [A] = q.people, mine = goods.filter((g, i) => bad[i] === A.id).map(g => g.id);
+        return {type: 'move', action: {type: 'drop', key: bad}, text: `Take back the way where ${A.id} has ${mine.length ? listWords(mine) : 'nothing'}: ${listWords(enviousAll(q, goods, atOf(goods, bad)))} would swap.`};
+      }
+      const left = fair.filter(k => !b.shelf.includes(k));
+      if (!left.length) return {type: 'move', action: {type: 'all'}, text: 'Every way nobody would swap is kept.'};
+      if (full && left.includes(key)) return {type: 'move', action: {type: 'keep'}, text: 'Nobody would swap here. Press Keep.'};
       return towards(q, goods, b, nearest(key, left));
     }
-    if (q.mode === 'one' || cut !== null) return towards(q, goods, b, nearest(key, fairKeys(q, cut)));
-    if (b.claim) return {type: 'move', action: {type: 'halve', good: b.claim.odd}, text: `Cut ${b.claim.odd} in half.`};
+    if (q.mode === 'one' || cut !== null || fairKeys(q).length) return towards(q, goods, b, nearest(key, fairKeys(q, cut)));
+    if (b.claim) return {type: 'move', action: {type: 'halve', good: b.claim.left[0]}, text: `Cut ${b.claim.left[0]} in half.`};
     if (!full) {
       // An attempt first: give out the cards as evenly as they go.
       const g = goods.find(x => b.at[x.id] === null), count = id => goods.filter(x => b.at[x.id] === id).length;
       const to = q.people.reduce((low, p) => count(p.id) < count(low.id) ? p : low).id;
       return {type: 'move', action: {type: 'put', good: g.id, to}, text: `Put ${g.id} ${trayWords(q, to)}.`};
     }
-    // Even out a lopsided attempt first, so that one card is left over.
-    const [u, v] = q.people.map(p => p.id), count = id => goods.filter(x => b.at[x.id] === id).length;
-    if (Math.abs(count(u) - count(v)) > 1) {
-      const [big, small] = count(u) > count(v) ? [u, v] : [v, u], g = goods.find(x => b.at[x.id] === big);
-      return {type: 'move', action: {type: 'put', good: g.id, to: small}, text: `Put ${g.id} ${trayWords(q, small)}.`};
-    }
-    return {type: 'move', action: {type: 'cant', pairs: maximalPairs(q, b.at)}, text: `${u} and ${v} count every card the same, so nobody would swap only when each has as many cards. Pair the cards one from each tray: one is left over.`};
+    const [u, v] = q.people.map(p => p.id), pairs = maximalPairs(q, b.at), n = goods.length - 2 * pairs.length;
+    return {type: 'move', action: {type: 'cant', pairs}, text: `${u} and ${v} count every card the same, so nobody would swap only when each has as many cards. Pair the cards one from each tray: ${n === 1 ? 'one is' : `${n} are`} left over.`};
   });
 }
 
@@ -237,13 +262,14 @@ function shareHint(q, b) {
 // q.people: [{id, likes: [itemId]}]; q.items: [{id}] with as many items as people.
 // Board: {at: {item: person | null}, tried, group, told}. group is a shown
 // Can't: people (two or more) whose favourites are fewer than them. told is
-// {kind: 'enough', group, liked} after a group that likes enough items.
+// {kind: 'enough', group, liked} after a group that likes enough items; it
+// stands, and Can't stays shut, until a shape moves.
 export const SHAPES = ['circle', 'triangle', 'square', 'diamond', 'star'];
 const perms = a => a.length <= 1 ? [a] : a.flatMap((x, i) => perms([...a.slice(0, i), ...a.slice(i + 1)]).map(r => [x, ...r]));
 const matchCache = new Map();
 // Every way to give each person one of their favourites, as item lists in people order.
 export function matchings(q) {
-  return memo(matchCache, JSON.stringify(q.people), () => perms(q.items.map(i => i.id)).filter(m => m.every((it, k) => q.people[k].likes.includes(it))));
+  return memo(matchCache, JSON.stringify([q.people, q.items]), () => perms(q.items.map(i => i.id)).filter(m => m.every((it, k) => q.people[k].likes.includes(it))));
 }
 export const likedBy = (q, group) => [...new Set(group.flatMap(id => personOf(q, id).likes))];
 export const shortGroup = (q, group) => likedBy(q, group).length < group.length;
@@ -284,8 +310,7 @@ function favMove(q, b, action) {
     return {...b, at, tried: true, told: null};
   }
   if (action.type === 'cant') {
-    if (!keysAre(action, ['group', 'type']) || !b.tried || !groupOk(q, action.group)) return null;
-    if (b.told && JSON.stringify(b.told.group) === JSON.stringify(action.group)) return null;
+    if (!keysAre(action, ['group', 'type']) || !b.tried || b.told || !groupOk(q, action.group)) return null;
     if (shortGroup(q, action.group)) return {...b, group: action.group, told: null};
     return {...b, told: {kind: 'enough', group: action.group, liked: likedBy(q, action.group).length}};
   }
@@ -300,8 +325,13 @@ function favHint(q, b) {
       const k = q.people.findIndex((p, i) => b.at[target[i]] !== p.id);
       return {type: 'move', action: {type: 'give', item: target[k], to: q.people[k].id}, text: `Give the ${target[k]} to ${q.people[k].id}.`};
     }
+    // An attempt first (and a fresh one after a refused group), then the reason.
     const g = shortestGroup(q);
-    if (!b.tried) { const p = personOf(q, g[0]); return {type: 'move', action: {type: 'give', item: p.likes[0], to: p.id}, text: `Give the ${p.likes[0]} to ${p.id}.`}; }
+    if (!b.tried || b.told) {
+      const p = personOf(q, g[0]), item = p.likes.find(i => b.at[i] !== p.id);
+      if (item) return {type: 'move', action: {type: 'give', item, to: p.id}, text: `Give the ${item} to ${p.id}.`};
+      return {type: 'move', action: {type: 'give', item: p.likes[0], to: null}, text: `Put the ${p.likes[0]} back.`};
+    }
     const liked = likedBy(q, g);
     return {type: 'move', action: {type: 'cant', group: g}, text: `${listWords(g)} only like the ${listWords(liked.map(String))}: ${g.length} people, ${liked.length} shapes.`};
   });
@@ -312,7 +342,9 @@ function favHint(q, b) {
 // Board: {r1, r2}. r1 = {at, star}: the child's cut after `at` squares, starred
 // when the two pieces are worth the same to the child. r2 = {side, star}: the
 // piece the child takes after the other person cuts, starred when it is worth
-// at least as much to the child as the other piece.
+// at least as much to the child as the other piece. The take is final: a
+// take without a star can only be followed by Again, which starts the duel
+// over, and Undo keeps it.
 const colourOf = c => c === 'R' ? 'red' : 'blue';
 export const stripWorth = (strip, taste, from, to) => [...strip.slice(from, to)].reduce((s, c) => s + taste[colourOf(c)], 0);
 export const equalCuts = (strip, taste) => { const n = strip.length, t = stripWorth(strip, taste, 0, n), out = []; for (let k = 1; k < n; k++) if (2 * stripWorth(strip, taste, 0, k) === t) out.push(k); return out; };
@@ -340,13 +372,18 @@ function duelMove(q, b, action) {
     return {r1: {at: action.at, star: fairCut(q, action.at)}, r2: null};
   }
   if (action.type === 'take') {
-    if (!keysAre(action, ['side', 'type']) || !b.r1?.star || b.r2?.star || !['left', 'right'].includes(action.side) || b.r2?.side === action.side) return null;
+    if (!keysAre(action, ['side', 'type']) || !b.r1?.star || b.r2 || !['left', 'right'].includes(action.side)) return null;
     return {...b, r2: {side: action.side, star: goodPick(q, action.side)}};
+  }
+  if (action.type === 'again') {
+    if (!keysAre(action, ['type']) || !b.r2 || b.r2.star) return null;
+    return duelFresh();
   }
   return null;
 }
 const squares = k => `${k} ${k === 1 ? 'square' : 'squares'}`;
 function duelHint(q, b) {
+  if (b.r2 && !b.r2.star) return {type: 'move', action: {type: 'again'}, text: 'The other piece was more for you. Press Again.'};
   if (!b.r1?.star) {
     const at = equalCuts(q.strip, q.you)[0], total = stripWorth(q.strip, q.you, 0, q.strip.length);
     return {type: 'move', action: {type: 'cut', at}, text: `The whole strip is worth ${total} to you, so each piece should be worth ${total / 2}. Cut after ${squares(at)}.`};
@@ -394,7 +431,9 @@ function hint(p, b) {
 // pick: the card or item lifted by a tap; claiming: Can't is pressed;
 // chosen: people tapped for Can't; pairs: cards paired for Can't;
 // tool: 'cut' while the halving tool is held; knife: where the knife rests.
+// It lasts while a puzzle is on screen: drawing another puzzle clears it.
 const uiState = new Map();
+let onScreen = null;
 const ui = p => memo(uiState, p.id, () => ({pick: null, claiming: false, chosen: [], pairs: [], tool: null, knife: null, said: null, refused: null}));
 
 // --- Drawing --------------------------------------------------------------------
@@ -406,7 +445,6 @@ const token = (id, cls = '') => `<b class="sh-tok${cls}">${esc(id)}</b>`;
 const taste = (id, likes, colours = ['red', 'blue'], hidden = false) => `<div class="sh-taste${hidden ? ' hidden' : ''}" role="group" aria-label="${esc(id)}: ${hidden ? 'card face down' : colours.map(c => `${c} ${likes[c]}`).join(', ')}">${token(id)}${hidden ? colours.map(() => '<span class="sh-like face-down" aria-hidden="true">?</span>').join('') : colours.map(c => likeChip(c, likes[c])).join('')}</div>`;
 const moveAttrs = (action, focus = '') => `data-action="expansion-move" data-move="${esc(JSON.stringify(action))}"${focus ? ` data-focus="${focus}"` : ''}`;
 const uiAttrs = (payload, focus = '') => `data-action="mechanic-ui" data-ui="${esc(JSON.stringify(payload))}"${focus ? ` data-focus="${focus}"` : ''}`;
-const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 // Claim buttons hand focus back to the board after a move: no element keeps
 // their focus key, so the app falls back to the family's focus selector.
 const claimButton = (label, action, enabled, hinted, cls) => `<button type="button" class="sh-button ${cls}${hinted ? ' hinted' : ''}" ${moveAttrs(action, 'sh-board')} ${enabled ? '' : 'disabled'}>${label}</button>`;
@@ -443,10 +481,10 @@ function catalog(q) {
   }
   return `<table class="sh-catalog" aria-label="Every way, by what ${esc(A.id)} gets"><tbody>${rows.join('')}</tbody></table>`;
 }
-function thumb(q, goods, key) {
+function thumb(q, goods, key, hinted = false) {
   const tray = id => goods.filter((g, i) => key[i] === id).map(g => `<i class="${g.colour}">${esc(g.id.slice(1))}</i>`).join('');
   const words = q.people.map(p => `${p.id}: ${goods.filter((g, i) => key[i] === p.id).map(g => g.id).join(', ') || 'nothing'}`).join('. ');
-  return `<li aria-label="${esc(words)}">${q.people.map(p => `<span class="sh-mini">${tray(p.id)}</span>`).join('')}</li>`;
+  return `<li><button type="button" class="sh-kept${hinted ? ' hinted' : ''}" ${moveAttrs({type: 'drop', key}, 'sh-board')} aria-label="${esc(`Take back: ${words}`)}">${q.people.map(p => `<span class="sh-mini">${tray(p.id)}</span>`).join('')}</button></li>`;
 }
 
 // A refused claim clears the taps that made it, once, when it first shows.
@@ -462,12 +500,13 @@ function renderShare(p, a) {
   const shown = a.hintLevel >= 2 && !done ? hint(p, b) : null, act = shown?.action;
   const claiming = q.mode === 'halve' && !done && !b.claim && state.claiming;
   const cutting = q.mode === 'halve' && !done && b.claim && cut === null && (state.tool === 'cut' || act?.type === 'halve');
-  const paired = new Map((claiming ? state.pairs : b.claim?.pairs || []).flatMap((pair, k) => pair.map(id => [id, k + 1])));
+  // A shown Can't keeps its pair marks while the cards stay where they were.
+  const standing = Boolean(b.claim) && cut === null && same(acrossLeft(q, b.at, b.claim.pairs), b.claim.left);
+  const paired = new Map((claiming ? state.pairs : standing ? b.claim.pairs : []).flatMap((pair, k) => pair.map(id => [id, k + 1])));
   const pick = state.pick;
-  const swap = b.told?.kind === 'swap' ? personOf(q, b.told.who) : null;
   const card = g => {
     const hinted = (act?.type === 'put' && act.good === g.id) || (act?.type === 'halve' && act.good === g.id) || (act?.type === 'cant' && act.pairs.flat().includes(g.id)) ? ' hinted' : '';
-    const look = `${pick === g.id ? ' picked' : ''}${hinted}${paired.has(g.id) ? ` paired p${paired.get(g.id)}` : ''}${b.claim?.odd === g.id && cut === null ? ' odd' : ''}`;
+    const look = `${pick === g.id ? ' picked' : ''}${hinted}${paired.has(g.id) ? ` paired p${paired.get(g.id)}` : ''}${standing && b.claim.left.includes(g.id) ? ' odd' : ''}`;
     if (done) return cardHtml(g, look, null);
     if (claiming) {
       // Every card answers a tap, and nothing marks which taps are right: a
@@ -495,22 +534,19 @@ function renderShare(p, a) {
     const attrs = drop ? `type="button" ${moveAttrs({type: 'put', good: pick, to: owner}, `sh-good-${pick}`)} aria-label="${esc(`Put ${pick} ${trayWords(q, owner)}`)}"` : `role="group" aria-label="${esc(label)}"`;
     return `<${tag} class="${cls}${drop ? ' drop' : ''}${hinted}" data-sh-zone="${owner ?? ''}" ${attrs}>${inner}</${tag}>`;
   };
-  const view = id => {
-    // After a refused Fair, the envious person's values for every tray.
-    if (!swap) return '';
-    return `<span class="sh-view" aria-label="${esc(`Worth ${trayWorth(goods, b.at, swap, id) / 2} to ${swap.id}`)}">${token(swap.id, ' small')}<b>${trayWorth(goods, b.at, swap, id) / 2}</b></span>`;
-  };
   const sidesHtml = q.people.map(person => {
     const mine = goods.filter(g => b.at[g.id] === person.id);
-    return `<section class="sh-side">${taste(person.id, person.likes, ['red', 'blue'].filter(c => q.goods.some(g => g.colour === c)))}${zone(person.id, mine.map(card).join('') || '<span class="sh-empty" aria-hidden="true"></span>', 'sh-tray', `${person.id}’s tray`)}${view(person.id)}</section>`;
+    return `<section class="sh-side">${taste(person.id, person.likes, ['red', 'blue'].filter(c => q.goods.some(g => g.colour === c)))}${zone(person.id, mine.map(card).join('') || '<span class="sh-empty" aria-hidden="true"></span>', 'sh-tray', `${person.id}’s tray`)}</section>`;
   }).join('');
   const table = goods.filter(g => b.at[g.id] === null);
   const tableHtml = done ? '' : zone(null, table.map(card).join(''), `sh-table${table.length ? '' : ' empty'}`, 'Table');
   let bar = '';
   if (!done) {
     const buttons = [];
-    buttons.push(claimButton('Fair', {type: 'fair'}, full && !b.told && !claiming && !cutting, act?.type === 'fair', 'sh-fair'));
-    if (q.mode === 'every') buttons.push(claimButton('That’s all', {type: 'all'}, !b.more, act?.type === 'all', 'sh-all'));
+    if (q.mode === 'every') {
+      buttons.push(claimButton('Keep', {type: 'keep'}, full && !b.shelf.includes(keyOf(goods, b.at)), act?.type === 'keep', 'sh-keep'));
+      buttons.push(claimButton('That’s all', {type: 'all'}, !b.told, act?.type === 'all', 'sh-all'));
+    } else buttons.push(claimButton('Fair', {type: 'fair'}, full && b.told?.kind !== 'swap' && !claiming && !cutting, act?.type === 'fair', 'sh-fair'));
     if (q.mode === 'halve' && !b.claim) {
       // With one tray empty there is no pair to make, so Can't is the claim.
       const open = full && b.told?.kind !== 'over', hinted = act?.type === 'cant' && !claiming;
@@ -519,9 +555,14 @@ function renderShare(p, a) {
     if (q.mode === 'halve' && b.claim && cut === null) buttons.push(toggleButton('Cut', {tool: cutting ? null : 'cut'}, cutting, act?.type === 'halve' && !cutting, 'sh-cut'));
     bar = `<div class="sh-bar">${buttons.join('')}</div>`;
   }
-  const over = b.told?.kind === 'over' ? (b.told.n ? `${b.told.n} left over.` : 'They pair up.') : '';
-  const said = swap ? `${swap.id} would swap.` : b.told?.kind === 'again' ? 'Found already.' : over || (claiming && state.said) || (b.more ? 'There is another.' : b.claim && cut === null ? 'One left over.' : '');
-  const found = q.mode === 'every' && b.found.length && !done ? `<ol class="sh-found" aria-label="Found">${b.found.map(k => thumb(q, goods, k)).join('')}</ol>` : '';
+  const told = b.told?.kind;
+  const said = told === 'swap' ? `${listWords(b.told.who)} would swap.`
+    : told === 'unfair' ? 'Somebody would swap in one.'
+    : told === 'more' ? 'There is another.'
+    : told === 'over' ? (b.told.n ? `${b.told.n} left over.` : 'They pair up.')
+    : (claiming && state.said) || (standing ? (b.claim.left.length === 1 ? 'One left over.' : `${b.claim.left.length} left over.`) : '');
+  // The shelf: each kept way, unjudged; tap one to take it back.
+  const found = q.mode === 'every' && b.shelf.length && !done ? `<ol class="sh-found" aria-label="Kept">${b.shelf.map(k => thumb(q, goods, k, act?.type === 'drop' && act.key === k)).join('')}</ol>` : '';
   const cert = q.mode === 'every' && done ? catalog(q) : '';
   const words = `${q.people.map(person => `${person.id} has ${goods.filter(g => b.at[g.id] === person.id).map(goodName).join(', ') || 'nothing'}`).join('. ')}. ${table.length ? `On the table: ${table.map(goodName).join(', ')}.` : ''}${said ? ` ${said}` : ''}${pick ? ` ${pick} is lifted.` : ''}`;
   return `<div class="sh-puzzle mode-${q.mode}${done ? ' solved' : ''}" data-mechanic-wire="shares"><div class="sh-sides">${sidesHtml}</div>${tableHtml}${bar}${note(said)}${found}${cert}${status(words)}</div>`;
@@ -553,7 +594,8 @@ function renderFav(p, a) {
   };
   const pile = q.items.filter(i => b.at[i.id] === null).map(i => item(i.id, 'not given'));
   const giving = !done && !claiming && pick;
-  const pileHtml = done ? '' : giving && b.at[pick] !== null
+  // Solved by a group, the pile stays so its ringed shapes show.
+  const pileHtml = done && !b.group ? '' : giving && b.at[pick] !== null
     ? `<button type="button" class="sh-pile drop${act?.type === 'give' && act.to === null ? ' hinted' : ''}" data-sh-zone="" ${moveAttrs({type: 'give', item: pick, to: null}, `sh-item-${pick}`)} aria-label="Put the ${esc(pick)} back">${pile.join('')}</button>`
     : `<div class="sh-pile${pile.length ? '' : ' empty'}" data-sh-zone="" role="group" aria-label="Not given">${pile.join('')}</div>`;
   const rows = q.people.map(person => {
@@ -570,7 +612,7 @@ function renderFav(p, a) {
   }).join('');
   let bar = '';
   if (!done) {
-    const cant = toggleButton('Can’t', {claiming: !claiming}, claiming, act?.type === 'cant' && !claiming, 'sh-cant', b.tried);
+    const cant = toggleButton('Can’t', {claiming: !claiming}, claiming, act?.type === 'cant' && !claiming, 'sh-cant', b.tried && !b.told);
     const check = claiming ? claimButton('Check', {type: 'cant', group: [...state.chosen].sort((x, y) => q.people.findIndex(p => p.id === x) - q.people.findIndex(p => p.id === y))}, state.chosen.length >= 2, act?.type === 'cant' && claiming, 'sh-check') : '';
     bar = `<div class="sh-bar">${cant}${check}</div>`;
   }
@@ -587,19 +629,23 @@ function stripHtml(q, opts) {
     const piece = (side, inner, k) => {
       const tag = opts.take ? 'button' : 'div';
       const attrs = opts.take ? `type="button" ${moveAttrs({type: 'take', side}, `sh-take-${side}`)} aria-label="${esc(`Take the ${side} piece`)}"` : `aria-hidden="true"`;
-      return `<${tag} class="sh-piece${opts.hinted === side ? ' hinted' : ''}${opts.mine === side ? ' mine' : ''}" style="flex:${k}" ${attrs}>${inner}</${tag}>`;
+      return `<${tag} class="sh-piece${opts.hinted === side ? ' hinted' : ''}${opts.mine === side ? ' mine' : ''}" style="flex:${k}" ${attrs}>${inner}${opts.them === side ? onPiece() : ''}</${tag}>`;
     };
     return `<div class="sh-pieces" style="--n:${n}">${piece('left', l, opts.split)}${piece('right', r, n - opts.split)}</div>`;
   }
   const gaps = Array.from({length: n - 1}, (_, i) => i + 1).map(k => `<button type="button" class="sh-gap${opts.knife === k ? ' on' : ''}${opts.hinted === k ? ' hinted' : ''}" style="left:${(k / n * 100).toFixed(3)}%" ${uiAttrs({knife: k}, `sh-gap-${k}`)} aria-pressed="${opts.knife === k}" aria-label="Knife after ${squares(k)}"></button>`).join('');
   const knife = opts.knife ? `<i class="sh-knife${opts.cut ? ' cut' : ''}" style="left:${(opts.knife / n * 100).toFixed(3)}%" aria-hidden="true"></i>` : '';
-  return `<div class="sh-strip" data-sh-strip="${n}" style="--n:${n}">${cells.join('')}${gaps}${knife}</div>`;
+  const took = opts.them ? onPiece(((opts.them === 'left' ? opts.knife : opts.knife + n) / 2 / n * 100).toFixed(3)) : '';
+  return `<div class="sh-strip" data-sh-strip="${n}" style="--n:${n}">${cells.join('')}${gaps}${knife}${took}</div>`;
 }
-// Under the pieces: who takes each, and what it is worth to the child.
-function underHtml(q, at, mineSide, star, them, flush = false) {
+// B's token sits on the piece B took. Under the pieces only the child's own
+// piece is counted, by the child's values: no number of B's is ever shown,
+// and no number stands beside B's token.
+const onPiece = (left = null) => `<b class="sh-tok sh-on"${left === null ? '' : ` style="left:${left}%"`} aria-hidden="true">B</b>`;
+function underHtml(q, at, mineSide, star, flush = false) {
   const [l, r] = sides(q, at, q.you);
   const n = q.strip.length;
-  const cell = (side, v, k) => `<div class="sh-under-piece" style="flex:${k}">${token(side === mineSide ? 'You' : them ? 'B' : '', side === mineSide ? ' you' : '')}<b class="sh-worth" aria-label="Worth ${v} to you">${v}</b>${side === mineSide && star ? '<span class="sh-star" role="img" aria-label="Half for sure">★</span>' : ''}</div>`;
+  const cell = (side, v, k) => `<div class="sh-under-piece" style="flex:${k}">${side === mineSide ? `${token('You', ' you')}<b class="sh-worth" aria-label="Worth ${v} to you">${v}</b>${star ? '<span class="sh-star" role="img" aria-label="Half for sure">★</span>' : ''}` : ''}</div>`;
   return `<div class="sh-under${flush ? ' flush' : ''}" style="--n:${n}">${cell('left', l, at)}${cell('right', r, n - at)}</div>`;
 }
 function renderDuel(p, a) {
@@ -613,22 +659,26 @@ function renderDuel(p, a) {
     // The last cut stays drawn on the strip, with who took which piece and
     // the child's own count of each, until the knife is placed again.
     const showCut = b.r1 && knife === null;
-    body = stripHtml(q, {knife: showCut ? b.r1.at : knife, cut: showCut, hinted: act?.type === 'cut' ? act.at : null});
+    const them = showCut ? theyTake(q, b.r1.at) : null;
+    body = stripHtml(q, {knife: showCut ? b.r1.at : knife, cut: showCut, them, hinted: act?.type === 'cut' ? act.at : null});
     if (showCut) {
-      const mine = theyTake(q, b.r1.at) === 'left' ? 'right' : 'left';
-      body += underHtml(q, b.r1.at, mine, false, true, true);
+      body += underHtml(q, b.r1.at, them === 'left' ? 'right' : 'left', false, true);
       said = 'Not equal for you.';
     }
     body += `<div class="sh-bar">${claimButton('Cut', {type: 'cut', at: knife ?? 0}, knife !== null && knife !== b.r1?.at, act?.type === 'cut' && knife === act.at, 'sh-cutnow')}</div>`;
   } else {
-    const mine1 = theyTake(q, b.r1.at) === 'left' ? 'right' : 'left';
-    const first = `<div class="sh-round done">${stripHtml(q, {split: b.r1.at, mine: mine1})}${underHtml(q, b.r1.at, mine1, true, true)}</div>`;
+    const them1 = theyTake(q, b.r1.at), mine1 = them1 === 'left' ? 'right' : 'left';
+    const first = `<div class="sh-round done">${stripHtml(q, {split: b.r1.at, mine: mine1, them: them1})}${underHtml(q, b.r1.at, mine1, true)}</div>`;
     const cutB = theirCut(q);
-    goal = done ? '' : 'Take a piece.';
-    const mine2 = b.r2?.side ?? null;
-    const second = `<div class="sh-round">${stripHtml(q, {split: cutB, take: !done, mine: mine2, hinted: act?.type === 'take' ? act.side : null})}${b.r2 ? underHtml(q, cutB, mine2, b.r2.star, true) : ''}</div>`;
+    goal = b.r2 ? '' : 'Take a piece.';
+    const mine2 = b.r2?.side ?? null, them2 = mine2 && (mine2 === 'left' ? 'right' : 'left');
+    const second = `<div class="sh-round">${stripHtml(q, {split: cutB, take: !b.r2, mine: mine2, them: them2, hinted: act?.type === 'take' ? act.side : null})}${b.r2 ? underHtml(q, cutB, mine2, b.r2.star) : ''}</div>`;
     body = first + second;
-    said = b.r2 && !b.r2.star ? 'The other piece is more for you.' : '';
+    // A take is final: a take without a star leaves only Again.
+    if (b.r2 && !b.r2.star) {
+      said = 'The other piece is more for you.';
+      body += `<div class="sh-bar">${claimButton('Again', {type: 'again'}, true, act?.type === 'again', 'sh-again')}</div>`;
+    }
   }
   const words = round1 ? (b.r1 && knife === null ? `You cut after ${squares(b.r1.at)}. B takes the ${theyTake(q, b.r1.at)} piece. ${said}` : knife ? `Knife after ${squares(knife)}.` : 'No cut yet.') : `Your cut after ${squares(b.r1.at)} was equal for you. B cuts after ${squares(theirCut(q))}.${b.r2 ? ` You take the ${b.r2.side} piece.` : ''}${said ? ` ${said}` : ''}`;
   return `<div class="sh-puzzle mode-duel${done ? ' solved' : ''}" data-mechanic-wire="shares">${goal ? `<p class="sh-goal">${esc(goal)}</p>` : ''}${tastes}${body}${note(said)}${status(words)}</div>`;
@@ -636,6 +686,7 @@ function renderDuel(p, a) {
 
 function render(p, a) {
   const q = p.parameters;
+  if (onScreen !== p.id) { uiState.clear(); onScreen = p.id; }
   if (two(q)) return renderShare(p, a);
   return q.mode === 'favourites' ? renderFav(p, a) : renderDuel(p, a);
 }
@@ -715,7 +766,9 @@ function wire(root, p, api) {
     dragged = true;
     later(() => {
       if (!zone) return;
+      // A card dropped back where it was is no move.
       const to = zone.dataset.shZone || null;
+      if (api.attempt().board.at[d.good] === to) return;
       api.apply(q.mode === 'favourites' ? {type: 'give', item: d.good, to} : {type: 'put', good: d.good, to});
     });
   };
@@ -756,20 +809,22 @@ export const shareMechanics = {
     fresh, valid, solved, move, hint, render, wire,
     ui: uiHook,
     reset: p => { uiState.delete(p.id); },
-    // Undo takes back moves, not claims: divisions found stay found, a
-    // refused That's all stays refused until a new one is found, a Can't
-    // that has been shown stays shown, and a refused Can't or group stands
-    // until a card or shape moves.
+    // Undo takes back moves, not claims: a refused That's all stands until
+    // the shelf changes, a Can't that has been shown stays shown, a refused
+    // Can't or group stands until a card or shape moves, and a take is final.
     carry(p, from, to) {
       const q = p.parameters;
       if (!object(from) || !object(to)) return to;
-      if (q.mode === 'every' && Array.isArray(from.found)) return {...to, found: [...from.found], more: Boolean(from.more), done: false};
+      // A refused That's all stands until the shelf changes.
+      if (q.mode === 'every' && from.told && !to.told && same(from.shelf, to.shelf)) return {...to, told: from.told};
       if (q.mode === 'halve') {
         if (from.claim && !to.claim) return {...to, claim: from.claim, told: to.told?.kind === 'over' ? null : to.told};
         if (from.told?.kind === 'over' && !to.told && !to.claim && same(from.at, to.at)) return {...to, told: from.told};
       }
       // A refused group stands until a shape moves.
       if (q.mode === 'favourites' && from.told && !to.told && !to.group && same(from.at, to.at)) return {...to, told: from.told, tried: true};
+      // A take without a star is final.
+      if (q.mode === 'duel' && from.r2 && !from.r2.star && !to.r2 && same(from.r1, to.r1)) return {...to, r2: from.r2};
       return to;
     }
   }
@@ -782,5 +837,5 @@ export default {
   mechanics: shareMechanics,
   pack: new URL('./shares.json', import.meta.url).href,
   css: new URL('./shares.css', import.meta.url).href,
-  focus: '.sh-puzzle .sh-card:is(button),.sh-puzzle .sh-item:is(button),.sh-puzzle button.sh-person,.sh-puzzle .sh-gap,.sh-puzzle button.sh-piece'
+  focus: '.sh-puzzle .sh-card:is(button),.sh-puzzle .sh-item:is(button),.sh-puzzle button.sh-person,.sh-puzzle .sh-gap,.sh-puzzle button.sh-piece,.sh-puzzle .sh-again'
 };

@@ -34,7 +34,6 @@
 .sh-puzzle .drop{border-color:var(--b-pine,#31533e);border-style:solid;background:#eef1e1;cursor:pointer}
 .sh-puzzle .sh-over{border-color:var(--b-ochre,#b38840)!important;border-style:solid;background:#fbf4dc}
 .sh-empty{display:block}
-.sh-view{display:inline-flex;align-items:center;gap:5px;font:400 1.15rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
 
 /* Cards. */
 .sh-puzzle .sh-card{position:relative;display:inline-grid;place-items:center;align-content:center;width:44px;height:58px;min-height:0;margin:0;padding:0;border-radius:8px;border:2px solid var(--b-ink,#294439);box-shadow:0 2px 0 rgba(41,68,57,.35);font:400 1.05rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439);touch-action:none;user-select:none;-webkit-user-select:none}
@@ -50,9 +49,11 @@
 .sh-puzzle .sh-card.cuttable::before{content:'';position:absolute;top:3px;bottom:3px;left:50%;border-left:2px dashed var(--b-ink,#294439)}
 .sh-puzzle .sh-card.cuttable{cursor:crosshair}
 
-/* What has been found, and the catalog that shows nothing is missing. */
+/* The shelf of kept ways, and the catalog that shows nothing is missing. */
 .sh-found{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:0;padding:0;list-style:none}
-.sh-found li{display:flex;gap:3px;padding:4px;border-radius:8px;border:1.5px solid var(--b-pine,#31533e);background:var(--b-good-soft,#e2ecd6)}
+.sh-found li{display:flex}
+.sh-puzzle .sh-kept{display:flex;gap:3px;min-height:0;margin:0;padding:4px;border-radius:8px;border:1.5px solid var(--b-ink,#294439);background:var(--b-card,#fffdf5);box-shadow:none;cursor:pointer}
+.sh-puzzle .sh-kept:focus-visible{outline:3px solid var(--b-ochre,#b38840);outline-offset:2px}
 .sh-mini{display:flex;gap:2px;min-width:14px;padding:2px;border-radius:4px;background:var(--b-card,#fffdf5)}
 .sh-mini i,.sh-pips i{display:inline-grid;place-items:center;width:13px;height:17px;border-radius:3px;border:1px solid var(--b-ink,#294439);font:normal 400 .62rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
 .sh-mini i.red,.sh-pips i.red{background:var(--sh-red)}
@@ -97,7 +98,7 @@
 .sh-knife{position:absolute;top:-12px;bottom:-12px;width:4px;margin-left:-2px;border-radius:2px;background:var(--b-ink,#294439);pointer-events:none}
 .sh-knife::before{content:'';position:absolute;top:-2px;left:50%;margin-left:-7px;border:7px solid transparent;border-top:9px solid var(--b-ink,#294439)}
 .sh-pieces,.sh-under{display:flex;gap:14px;width:100%}
-.sh-puzzle .sh-piece{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;height:64px;min-height:0;margin:0;padding:0;border:2px solid var(--b-ink,#294439);border-radius:6px;background:none;box-shadow:none;overflow:hidden}
+.sh-puzzle .sh-piece{position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;height:64px;min-height:0;margin:0;padding:0;border:2px solid var(--b-ink,#294439);border-radius:6px;background:none;box-shadow:none;overflow:hidden}
 .sh-puzzle .sh-piece.mine{box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-pine,#31533e)}
 .sh-puzzle button.sh-piece{cursor:pointer}
 .sh-under-piece{display:flex;align-items:center;justify-content:center;gap:6px;min-width:0}
@@ -111,3 +112,4 @@
 .sh-under.flush .sh-under-piece + .sh-under-piece{border-left:2px solid var(--b-ink,#294439)}
 .sh-knife.cut{background:var(--b-bad,#a9503a)}
 .sh-knife.cut::before{border-top-color:var(--b-bad,#a9503a)}
+.sh-tok.sh-on{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;box-shadow:0 0 0 2px var(--b-card,#fffdf5)}

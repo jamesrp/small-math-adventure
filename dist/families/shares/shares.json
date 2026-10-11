@@ -106,7 +106,7 @@
     "notice": "Whether your child counts each tray with the same person’s card, rather than A’s card for A’s tray and B’s card for B’s.",
     "prompt": "Would A swap? Count both trays with A’s card. Would B swap? Count both with B’s card.",
     "explanation": "A counts the cards 3, 3, 3, 1 (10 in all) and B counts them 1, 1, 1, 3 (6 in all). All the reds to A and the blue to B gives A 9 against 1 and B 3 against 3: a tie, so B would not swap either. Two reds to A and one red with the blue to B also works, three ways, since A gets 6 against 4 and B 4 against 2. Every other division leaves somebody wanting the other tray. Envy-free is about each person’s own comparison; A’s 9 and B’s 3 are never compared.",
-    "extension": "Find every way (puzzle 4).",
+    "extension": "Find every way (puzzle 5).",
     "connection": "This is an envy-free allocation of indivisible goods with additive valuations.",
     "sourceIds": [
      "shares-week58",
@@ -187,18 +187,18 @@
      }
     ]
    },
-   "objective": "Give out all the cards so that nobody would swap trays. If whole cards can’t do it, show why, then cut a card in half.",
+   "objective": "Give out all the cards so that nobody would swap trays.",
    "visibleObjective": "Share the cards so nobody would swap.",
-   "instruction": "Give out all the cards so that nobody would swap trays. If whole cards can’t do it, show why, then cut a card in half.",
-   "controls": "Drag a card into a tray, or tap a card and then a tray. Press Fair when nobody would swap. Press Can’t, then pair the cards: tap a card, then a card in the other tray. Then press Cut and tap a card to cut it in half.",
+   "instruction": "Give out all the cards so that nobody would swap trays.",
+   "controls": "Drag a card into a tray, or tap a card and then a tray. Press Fair when nobody would swap. Press Can’t, then pair the cards: tap a card, then a card in the other tray. After a right Can’t, press Cut and tap a card to cut it in half.",
    "rules": [
     "Each person counts a tray with their own card: every red card is worth their red number, every blue card their blue number.",
     "Nobody would swap when each person counts their own tray worth at least as much as the other tray. A tie is fine.",
     "Every card goes to somebody.",
-    "Press Can’t when no way with whole cards works, then pair the cards up, one from each tray. After that, Cut cuts one card in half; each half is worth half as much."
+    "If you think whole cards can’t do it, press Can’t and pair the cards, one from each tray. After a right Can’t, Cut cuts one card in half; each half is worth half as much."
    ],
    "idea": "When two people have the same taste, nobody envies only if the trays are worth the same; three equal whole cards can’t do that, and one cut fixes it.",
-   "prerequisites": "Count to three and know that two halves make one. No reading beyond the card labels.",
+   "prerequisites": "Count to four and know that two halves make one. No reading beyond the card labels.",
    "hints": [
     "Give out all three cards. Would anybody swap?",
     "U and V count every card as 1, so a fair share needs as many cards each.",
@@ -224,6 +224,9 @@
       "R2"
      ]
     ],
+    "left": [
+     "R3"
+    ],
     "cut": "R3",
     "fair": [
      "UVUV",
@@ -237,6 +240,124 @@
   {
    "id": "shares-03",
    "number": 3,
+   "title": "Four reds",
+   "difficulty_level": "easy",
+   "familyTitle": "Fair shares",
+   "mechanic": "shares",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/shares/README.md",
+   "parameters": {
+    "mode": "halve",
+    "people": [
+     {
+      "id": "U",
+      "likes": {
+       "red": 1,
+       "blue": 1
+      }
+     },
+     {
+      "id": "V",
+      "likes": {
+       "red": 1,
+       "blue": 1
+      }
+     }
+    ],
+    "goods": [
+     {
+      "id": "R1",
+      "colour": "red"
+     },
+     {
+      "id": "R2",
+      "colour": "red"
+     },
+     {
+      "id": "R3",
+      "colour": "red"
+     },
+     {
+      "id": "R4",
+      "colour": "red"
+     }
+    ]
+   },
+   "objective": "Give out all the cards so that nobody would swap trays.",
+   "visibleObjective": "Share the cards so nobody would swap.",
+   "instruction": "Give out all the cards so that nobody would swap trays.",
+   "controls": "Drag a card into a tray, or tap a card and then a tray. Press Fair when nobody would swap. Press Can’t, then pair the cards: tap a card, then a card in the other tray. After a right Can’t, press Cut and tap a card to cut it in half.",
+   "rules": [
+    "Each person counts a tray with their own card: every red card is worth their red number, every blue card their blue number.",
+    "Nobody would swap when each person counts their own tray worth at least as much as the other tray. A tie is fine.",
+    "Every card goes to somebody.",
+    "If you think whole cards can’t do it, press Can’t and pair the cards, one from each tray. After a right Can’t, Cut cuts one card in half; each half is worth half as much."
+   ],
+   "idea": "With one taste and equal cards a fair share is the same number of cards each, so an even number of cards shares out whole, and Can’t is wrong.",
+   "prerequisites": "Count to four and know that two halves make one. No reading beyond the card labels.",
+   "hints": [
+    "Give out all four cards. Would anybody swap?",
+    "U and V count every card as 1. How many cards should each have?",
+    "Two cards each: paired one from each tray, none is left over."
+   ],
+   "parent": {
+    "notice": "Whether your child, fresh from puzzle 2, presses Can’t before trying two cards each, and what “2 left over.” or “They pair up.” tells them.",
+    "prompt": "With three cards one was left over. What happens with four?",
+    "explanation": "U and V both count every card as 1, so nobody would swap exactly when each has two cards: 6 ways, one for each pair of cards U could get. Pairing the cards one from each tray leaves an even number over (0 with two each, 2 with three and one, 4 with all four in one tray), so Can’t is refused: an even number left over can reach 0 by moving cards across, and an odd number never can.",
+    "extension": "Five reds? Six? Which numbers of cards can be shared with whole cards?",
+    "connection": "Parity: equal items split evenly between two people exactly when there is an even number of them.",
+    "sourceIds": [
+     "shares-week58",
+     "shares-card58",
+     "shares-procaccia"
+    ]
+   },
+   "solution": {
+    "fair": [
+     {
+      "R1": "U",
+      "R2": "U",
+      "R3": "V",
+      "R4": "V"
+     },
+     {
+      "R1": "U",
+      "R2": "V",
+      "R3": "U",
+      "R4": "V"
+     },
+     {
+      "R1": "U",
+      "R2": "V",
+      "R3": "V",
+      "R4": "U"
+     },
+     {
+      "R1": "V",
+      "R2": "U",
+      "R3": "U",
+      "R4": "V"
+     },
+     {
+      "R1": "V",
+      "R2": "U",
+      "R3": "V",
+      "R4": "U"
+     },
+     {
+      "R1": "V",
+      "R2": "V",
+      "R3": "U",
+      "R4": "U"
+     }
+    ]
+   },
+   "provenance": "Week 58 Problem 5 (student page 5): U and V with red cards worth 1 each; the four-card contrast to its three cards is new, added so that Can’t can be wrong."
+  },
+  {
+   "id": "shares-04",
+   "number": 4,
    "title": "Four favourites",
    "difficulty_level": "easy",
    "familyTitle": "Fair shares",
@@ -331,8 +452,8 @@
    "provenance": "Week 58 Problem 6 (student page 6, Grades 3–5) with four people and one item each, as the review card’s App fit asks; new instance."
   },
   {
-   "id": "shares-04",
-   "number": 4,
+   "id": "shares-05",
+   "number": 5,
    "title": "Every way with four cards",
    "difficulty_level": "medium",
    "familyTitle": "Fair shares",
@@ -377,18 +498,18 @@
      }
     ]
    },
-   "objective": "Find every way to give out all the cards so that nobody would swap trays, then press That’s all.",
+   "objective": "Keep every way to give out all the cards so that nobody would swap trays, then press That’s all.",
    "visibleObjective": "Find every way nobody would swap.",
-   "instruction": "Find every way to give out all the cards so that nobody would swap trays, then press That’s all.",
-   "controls": "Drag a card into a tray, or tap a card and then a tray. Arrow keys move a card to the left or right tray, and down to the table. Press Fair to keep a way nobody would swap, and That’s all when none is left. Undo takes back the last move; ways found stay found.",
+   "instruction": "Keep every way to give out all the cards so that nobody would swap trays, then press That’s all.",
+   "controls": "Drag a card into a tray, or tap a card and then a tray. Arrow keys move a card to the left or right tray, and down to the table. Press Keep to keep a way, tap a kept way to take it back, and press That’s all when every way nobody would swap is kept. Undo takes back the last move.",
    "rules": [
     "Each person counts a tray with their own card: every red card is worth their red number, every blue card their blue number.",
     "Nobody would swap when each person counts their own tray worth at least as much as the other tray. A tie is fine.",
     "Every card goes to somebody.",
-    "Press Fair to keep a way nobody would swap. Giving different cards counts as a different way. Press That’s all when none is left; it says if there is another."
+    "Press Keep to keep a way on the shelf, and tap a kept way to take it back. Giving different cards counts as a different way. Press That’s all when every way nobody would swap is kept; it checks the whole shelf at once."
    ],
    "idea": "Finding every envy-free division calls for a system, and sorting the divisions by how many reds A gets shows that none is missing.",
-   "prerequisites": "Add up to 10, and keep track of the ways found so far; organizing them (by how many reds A gets) is part of the puzzle.",
+   "prerequisites": "Add up to 10, and keep track of the ways kept so far; organizing them (by how many reds A gets) is part of the puzzle.",
    "hints": [
     "How many reds could A get? Try each number.",
     "A must get at least two reds, and the blue must go to B.",
@@ -397,7 +518,7 @@
    "parent": {
     "notice": "Whether your child organizes the search (by how many reds A gets) or moves cards at random, and whether they count R1, R2 and R3 as different.",
     "prompt": "How do you know there isn’t another?",
-    "explanation": "A counts reds 3 and the blue 1, out of 10. If A gets the blue, B has at most 3 reds, worth 3 to B against 4 or more for A’s tray, so B envies. So B gets the blue. If A gets one red or none, A has 3 or less against 7 or more. With two reds A has 6 against 4, and B has 4 against 2: three ways, one for each red left out. With all three, A has 9 against 1 and B 3 against 3, a tie. Four ways, out of 16.",
+    "explanation": "A counts reds 3 and the blue 1, out of 10. If A gets the blue and a red or more, B counts A’s tray at 4 or more against at most 2 for B’s own, so B would swap; if A gets only the blue, A counts 1 against 9 and would swap. So B gets the blue. If A gets one red or none, A has 3 or less against 7 or more. With two reds A has 6 against 4, and B has 4 against 2: three ways, one for each red left out. With all three, A has 9 against 1 and B 3 against 3, a tie. Four ways, out of 16.",
     "extension": "Swap the taste cards. How many ways now?",
     "connection": "Envy-freeness for two people with additive values equals proportionality: each gets at least half by their own count.",
     "sourceIds": [
@@ -437,8 +558,8 @@
    "provenance": "Week 58 Problem 1 (student page 1), asked as “find every”; the review card’s App fit: 4 successes, certified by the catalog sorted by A’s red count."
   },
   {
-   "id": "shares-05",
-   "number": 5,
+   "id": "shares-06",
+   "number": 6,
    "title": "Every way with two of each",
    "difficulty_level": "medium",
    "familyTitle": "Fair shares",
@@ -483,18 +604,18 @@
      }
     ]
    },
-   "objective": "Find every way to give out all the cards so that nobody would swap trays, then press That’s all.",
+   "objective": "Keep every way to give out all the cards so that nobody would swap trays, then press That’s all.",
    "visibleObjective": "Find every way nobody would swap.",
-   "instruction": "Find every way to give out all the cards so that nobody would swap trays, then press That’s all.",
-   "controls": "Drag a card into a tray, or tap a card and then a tray. Arrow keys move a card to the left or right tray, and down to the table. Press Fair to keep a way nobody would swap, and That’s all when none is left. Undo takes back the last move; ways found stay found.",
+   "instruction": "Keep every way to give out all the cards so that nobody would swap trays, then press That’s all.",
+   "controls": "Drag a card into a tray, or tap a card and then a tray. Arrow keys move a card to the left or right tray, and down to the table. Press Keep to keep a way, tap a kept way to take it back, and press That’s all when every way nobody would swap is kept. Undo takes back the last move.",
    "rules": [
     "Each person counts a tray with their own card: every red card is worth their red number, every blue card their blue number.",
     "Nobody would swap when each person counts their own tray worth at least as much as the other tray. A tie is fine.",
     "Every card goes to somebody.",
-    "Press Fair to keep a way nobody would swap. Giving different cards counts as a different way. Press That’s all when none is left; it says if there is another."
+    "Press Keep to keep a way on the shelf, and tap a kept way to take it back. Giving different cards counts as a different way. Press That’s all when every way nobody would swap is kept; it checks the whole shelf at once."
    ],
    "idea": "Ties count: four of the five envy-free divisions leave both people exactly level.",
-   "prerequisites": "Add up to 10, and keep track of the ways found so far; organizing them (by how many reds A gets) is part of the puzzle.",
+   "prerequisites": "Add up to 10, and keep track of the ways kept so far; organizing them (by how many reds A gets) is part of the puzzle.",
    "hints": [
     "Try a red and a blue each. Would anybody swap?",
     "A red and a blue is worth 4 to each person, the same as the other tray. Which red goes with which blue?",
@@ -549,8 +670,8 @@
    "provenance": "Week 58 Problem 2 (student page 2): R1, R2, B1 and B2 with the same preference cards, “Find every … division that is envy-free for both people. … Different card labels count as different cards”; five answers."
   },
   {
-   "id": "shares-06",
-   "number": 6,
+   "id": "shares-07",
+   "number": 7,
    "title": "Four people, four shapes",
    "difficulty_level": "medium",
    "familyTitle": "Fair shares",
@@ -571,21 +692,21 @@
      {
       "id": "B",
       "likes": [
-       "triangle"
+       "square",
+       "diamond",
+       "circle"
       ]
      },
      {
       "id": "C",
       "likes": [
-       "triangle",
-       "circle"
+       "triangle"
       ]
      },
      {
       "id": "D",
       "likes": [
-       "square",
-       "diamond",
+       "triangle",
        "circle"
       ]
      }
@@ -618,13 +739,13 @@
    "prerequisites": "No arithmetic: match people to shapes. Reading is limited to the letters A to E.",
    "hints": [
     "Try to give everyone a favourite. Who keeps missing out?",
-    "Look at A, B and C together. Which shapes do they like?",
-    "A, B and C only like the circle and the triangle: 3 people, 2 shapes."
+    "Look at A, C and D together. Which shapes do they like?",
+    "A, C and D only like the circle and the triangle: 3 people, 2 shapes."
    ],
    "parent": {
-    "notice": "Whether your child moves shapes around for a while before looking at a group of people together, and whether D taking the circle looks like the problem.",
-    "prompt": "If D gave up the circle, would that help?",
-    "explanation": "A, B and C like only the circle and the triangle between them. Two shapes can go to at most two of those three people, so one of them never holds a favourite, whoever gets what. Three people with two favourite shapes between them is the reason; no arrangement of the shapes can beat it.",
+    "notice": "Whether your child moves shapes around for a while before looking at a group of people together, and whether B taking the circle looks like the problem.",
+    "prompt": "If B gave up the circle, would that help?",
+    "explanation": "A, C and D like only the circle and the triangle between them. Two shapes can go to at most two of those three people, so one of them never holds a favourite, whoever gets what. Three people with two favourite shapes between them is the reason; no arrangement of the shapes can beat it.",
     "extension": "Change one person’s card so that everyone can have a favourite.",
     "connection": "Hall’s marriage theorem: everyone can be matched exactly when every group of k people likes at least k items together.",
     "sourceIds": [
@@ -636,8 +757,8 @@
    "solution": {
     "cant": [
      "A",
-     "B",
-     "C"
+     "C",
+     "D"
     ],
     "liked": [
      "circle",
@@ -647,8 +768,8 @@
    "provenance": "Week 58 Problem 6 with four people, where the review card’s App fit asks for “can’t” certified by k people whose favourites are fewer than k items; new instance."
   },
   {
-   "id": "shares-07",
-   "number": 7,
+   "id": "shares-08",
+   "number": 8,
    "title": "Cut and choose",
    "difficulty_level": "medium",
    "familyTitle": "Fair shares",
@@ -686,7 +807,7 @@
     "Cut after 4 squares: 4 reds are worth 12, and so are 2 reds and 6 blues."
    ],
    "parent": {
-    "notice": "Whether your child cuts at the colour join (6 squares), which is 18 against 6 for them, and what happens when B takes the 18.",
+    "notice": "Whether your child cuts at the colour join (6 squares), 18 against 6 for them: B takes the blue piece, so they keep 18, but with no star, because a B who liked red would have taken the 18.",
     "prompt": "Does it matter what B likes when you cut?",
     "explanation": "The strip is worth 6 × 3 + 6 × 1 = 24 to you, so each piece should be worth 12. Four reds are 12, and two reds and six blues are 6 + 6 = 12. Whichever piece B takes, you keep 12, half. B counts red 1 and blue 3, so B takes the right piece, worth 20 of 24 to B: both get more than half by their own counts, because their tastes differ. When B cuts, B cuts after 8 squares (6 + 6 = 12 each for B), and you take the left piece, worth 20 to you.",
     "extension": "Where would you cut if you counted red 2 and blue 2?",
@@ -706,8 +827,8 @@
    "provenance": "Week 58 Problem 3 (student page 3, Grades 2–5): the 300 mm strip, red then blue, A’s values red 3, blue 1 per panel and B’s red 1, blue 3; cuts at 100 mm and 200 mm, here 4 and 8 of 12 squares."
   },
   {
-   "id": "shares-08",
-   "number": 8,
+   "id": "shares-09",
+   "number": 9,
    "title": "Five people, five shapes",
    "difficulty_level": "hard",
    "familyTitle": "Fair shares",
@@ -792,7 +913,7 @@
     "notice": "Whether your child gives A the square (A’s first shape) and then can’t finish, and whether they find the group of three that needs the circle, the triangle and the square.",
     "prompt": "Who can have the square without leaving someone else stuck?",
     "explanation": "B, D and E like only the circle, the triangle and the square between them: three people, three shapes, so those shapes must go to them. Then A gets the diamond and C the star, the only shape C has left. B, D and E can share their three shapes two ways (B circle, D triangle, E square; or B triangle, D square, E circle). If A takes the square instead, B, D and E have two shapes for three people.",
-    "extension": "Is there a third way? (No: the validator lists both.)",
+    "extension": "Is there a third way? (No: once A has the diamond and C the star, B, D and E pass the circle, the triangle and the square round in one of just two directions.)",
     "connection": "A tight group (exactly as many shapes as people) is where Hall’s condition is an equality; matchings must use it fully.",
     "sourceIds": [
      "shares-week58",
@@ -821,8 +942,8 @@
    "provenance": "Week 58 Problem 6 with five people, as the review card’s App fit asks; new instance."
   },
   {
-   "id": "shares-09",
-   "number": 9,
+   "id": "shares-10",
+   "number": 10,
    "title": "Five people again",
    "difficulty_level": "hard",
    "familyTitle": "Fair shares",
@@ -931,9 +1052,9 @@
    "provenance": "Week 58 Problem 6 with five people and a can’t, as the review card’s App fit asks; new instance."
   },
   {
-   "id": "shares-10",
-   "number": 10,
-   "title": "Not at the join",
+   "id": "shares-11",
+   "number": 11,
+   "title": "Cut and choose again",
    "difficulty_level": "hard",
    "familyTitle": "Fair shares",
    "mechanic": "shares",
