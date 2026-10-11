@@ -12,9 +12,9 @@ const size = n => ({size: n});
 const RULES = {
   pairs: 'Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.',
   grid: 'The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.',
-  route: 'A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot. Each step makes the total bigger, so the totals on a route are all different.',
-  fewest: 'When every total on the strip is on your route, no cards of these sizes can make fewer totals. Finish by tapping that route; the top-right dot checks it.',
-  fit: 'Finish by tapping a route that passes every total on the strip; the top-right dot checks it. A may have one, two or three cards.',
+  route: 'A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot.',
+  fewest: 'Finish by tapping a route that passes every total on the strip; the top-right dot checks it.',
+  fit: 'Finish by tapping a route that passes every total on the strip; the top-right dot checks it. A may have one, two or three cards; a route with one card counts once a route with more has been tried.',
   most: 'Dots that share a total are shaded.',
   even: 'Evenly spaced means the same jump between each card and the next.',
   every: 'Each B that works joins the row above the strip. Press That’s all when you think none is left. It says if there is another.'
@@ -56,11 +56,11 @@ const PUZZLES = [
     hints: ['Which pairs could land on the same total?', 'A jumps by 2. If B jumps by 2 too, two pairs share a total.', 'Put 0 and 2 in B, then walk a route through the grid.'],
     parent: {notice: 'Whether your child picks B at random or looks for pairs that share a total, and whether they see that the route has three dots whatever B is.', prompt: 'Why can no B make fewer than three totals?', explanation: 'With A = {0, 2} and B = {b, c}, b < c, the totals 0 + b, 2 + b and 2 + c are always different: they climb along the route bottom-left, up, right (or right, then up). So there are at least three totals. Three is reached exactly when 0 + c equals 2 + b, that is, when B jumps by 2: {0, 2}, {1, 3}, up to {7, 9}, eight ways.', extension: 'In the playground, try A = {0, 3}. Which B give three totals now?', connection: 'The smallest sumset theorem: two sets of sizes m and n have at least m + n − 1 different sums.'},
     provenance: 'Week 55 Problem 1: {0, 2} + {1, 3} gives 3 totals and {0, 2} + {1, 4} gives 4; here the child chooses B.'},
-  {number: 2, level: 'easy', title: 'Choose B', mode: 'most', trays: {A: fixed(0, 1, 2), B: size(3)}, check: {totals: 9, designs: 20}, prereq: 'add',
-    idea: 'All nine totals are different when B’s cards are far enough apart that A’s small jumps can’t bridge them.',
-    hints: ['Where do two pairs land together?', 'A’s cards are at most 2 apart. Two B cards closer than 3 let two pairs meet.', 'Put 0, 3 and 6 in B.'],
-    parent: {notice: 'Whether your child spreads B’s cards out after seeing shaded dots, or keeps adjusting one card at a time.', prompt: 'Why can’t there be more than nine totals?', explanation: 'Three A cards and three B cards make nine pairs, and each pair drops one token, so nine is the most. Two pairs a + b and a′ + b′ share a total exactly when b′ − b = a − a′, a jump inside B equal to a jump inside A. A’s jumps are 1 and 2, so every jump in B must be at least 3: B = {0, 3, 6} is one of the twenty choices.', extension: 'Which B makes the fewest totals with this A? (Any three cards in a row, such as {4, 5, 6}: five totals.)', connection: 'The largest sumset: |A + B| = mn exactly when the differences of A and of B never agree (a Sidon-type condition).'},
-    provenance: 'Week 55 Problem 2, third trial: {0, 1, 2} + {0, 3, 6} gives 9 totals; here the child chooses B.'},
+  {number: 2, level: 'easy', title: 'Choose B', mode: 'most', trays: {A: fixed(0, 1, 3), B: size(3)}, check: {totals: 9, designs: 4}, prereq: 'add',
+    idea: 'All nine totals are different when B’s cards are far enough apart that none of A’s jumps fits between two of them.',
+    hints: ['Where do two pairs land together?', 'A’s cards are 1, 2 and 3 apart. Two B cards that close let two pairs meet.', 'Put 0, 4 and 8 in B.'],
+    parent: {notice: 'Whether your child spreads B’s cards out after seeing shaded dots, or keeps adjusting one card at a time.', prompt: 'Why can’t there be more than nine totals?', explanation: 'Three A cards and three B cards make nine pairs, and each pair drops one token, so nine is the most. Two pairs a + b and a′ + b′ share a total exactly when b′ − b = a − a′, a jump inside B equal to a jump inside A. A’s jumps are 1, 2 and 3, so every jump in B must be at least 4, and three such cards fit in 0–9 four ways: {0, 4, 8}, {0, 4, 9}, {0, 5, 9} and {1, 5, 9}.', extension: 'Which B makes the fewest totals with this A? (Six, for example B = {0, 1, 3}; five would need A evenly spaced.)', connection: 'The largest sumset: |A + B| = mn exactly when the differences of A and of B never agree (a Sidon-type condition).'},
+    provenance: 'Week 55 Problem 2: the third trial {0, 1, 2} + {0, 3, 6} gives 9 totals; here A is the second trial’s {0, 1, 3}, so that only four B work, and the child chooses B.'},
   {number: 3, level: 'easy', title: 'Two and three', mode: 'fewest', trays: {A: size(2), B: size(3)}, check: {totals: 4, designs: 160}, prereq: 'route',
     idea: 'With two cards in A and three in B the fewest is 4, and a route through the grid shows it.',
     hints: ['How many dots does a route through this grid pass?', 'A route has four dots, all different totals. Can every total be on it?', 'Put 0 and 1 in A and 0, 1 and 2 in B, then walk a route.'],
@@ -81,10 +81,10 @@ const PUZZLES = [
     hints: ['Do evenly spaced trays always give few totals?', 'Try A jumping by 2 and B jumping by 3.', 'Put 0, 2 and 4 in A and 0, 3 and 6 in B.'],
     parent: {notice: 'Whether your child expects evenly spaced trays to give few totals, as in puzzle 4.', prompt: 'Both trays are evenly spaced. Why are all nine totals different?', explanation: 'With A = {0, 2, 4} and B = {0, 3, 6}, two pairs share a total only when a jump in B equals a jump in A. A’s jumps are 2 and 4 and B’s are 3 and 6, so none agree and all nine totals differ. Even spacing gives the fewest only when the two gaps are the same.', extension: 'Which pairs of jumps give nine totals? (Any two of 1, 2, 3, 4 where neither is the other or twice the other.)', connection: 'The inverse theorem needs one common difference; two progressions with unrelated differences give a sumset as large as possible.'},
     provenance: 'Week 55 Problem 6 and the review card’s fix 5: {0, 2, 4} + {0, 3, 6}, both equally spaced, with 9 totals.'},
-  {number: 7, level: 'medium', title: 'Uneven B', mode: 'fit', trays: {A: {max: 3}, B: fixed(0, 1, 3)}, check: {totals: 3, designs: 10}, prereq: 'route',
+  {number: 7, level: 'medium', title: 'Uneven B', mode: 'fit', trays: {A: {max: 3, start: [0, 2]}, B: fixed(0, 1, 3)}, check: {totals: 3, designs: 10}, prereq: 'route',
     idea: 'With an uneven B, every total fits on one route only when A has a single card: one card shifts B without merging any totals.',
-    hints: ['When a route misses a total, which pairs made it?', 'B jumps by 1 and then 2. Two A cards would need to jump by both at once.', 'Take cards out of A until it has just one.'],
-    parent: {notice: 'Whether your child keeps trying two-card A trays, and what they make of the one-card solve.', prompt: 'Why does one A card always work, even though B is uneven?', explanation: 'With A = {a}, the totals are a + 0, a + 1 and a + 3: B shifted by a, three different totals, and the grid is one row, so the route passes them all. With two A cards {a, a + d} there are at least four totals but a route passes only four dots; every total fits only if d equals both of B’s jumps, 1 and 2, which is impossible. So the theorem’s “evenly spaced” needs two cards in each tray.', extension: 'Is there a B tray of three cards for which some two-card A fits every total on one route? (Yes: any evenly spaced B, with A jumping by B’s gap.)', connection: 'The exception in the inverse theorem: when one set is a singleton, |A + B| = |B| for every B.'},
+    hints: ['Tap a route through the grid. Which total does it miss?', 'B jumps by 1 and then 2. Two A cards would need to jump by both at once.', 'After a route with two cards is refused, take cards out of A until it has just one.'],
+    parent: {notice: 'Whether your child keeps trying two-card A trays, and what they make of the one-card solve. A starts with two cards, and a one-card route counts only after a route with more cards has been refused, so the solve follows a real attempt.', prompt: 'Why does one A card always work, even though B is uneven?', explanation: 'With A = {a}, the totals are a + 0, a + 1 and a + 3: B shifted by a, three different totals, and the grid is one row, so the route passes them all. With two A cards {a, a + d} there are at least four totals but a route passes only four dots; every total fits only if d equals both of B’s jumps, 1 and 2, which is impossible. So the theorem’s “evenly spaced” needs two cards in each tray.', extension: 'Is there a B tray of three cards for which some two-card A fits every total on one route? (Yes: any evenly spaced B, with A jumping by B’s gap.)', connection: 'The exception in the inverse theorem: when one set is a singleton, |A + B| = |B| for every B.'},
     provenance: 'Week 55 Problem 7: {4} + {0, 1, 3} gives 3 totals, and “Does B need equal spacing?”'},
   {number: 8, level: 'hard', title: 'Given A', mode: 'fewest', trays: {A: fixed(1, 4, 7), B: size(4)}, check: {totals: 6, designs: 1}, prereq: 'design',
     idea: 'With A evenly spaced by 3, four B cards make the fewest only when they jump by 3 too, and that fits in 0–9 one way.',
@@ -93,7 +93,7 @@ const PUZZLES = [
     provenance: 'New, from Week 55 Problems 4 and 5: a fixed A and a larger B with a single answer.'},
   {number: 9, level: 'hard', title: 'Many from four', mode: 'most', trays: {A: size(4), B: size(4)}, check: {totals: 16, designs: 8}, prereq: 'design',
     idea: 'Sixteen different totals from four and four cards needs every jump in A to differ from every jump in B, and 0–9 leaves very little room.',
-    hints: ['Which jumps can A and B not share?', 'Give one tray small jumps and the other jumps too big for them, and keep both inside 0–9.', 'Put 0, 1, 8 and 9 in A and 0, 2, 4 and 6 in B.'],
+    hints: ['Fill both trays and look at the shaded dots. Which pairs land together?', 'Two pairs share a total when a jump inside A equals a jump inside B. Give one tray small jumps and the other jumps too big for them, inside 0–9.', 'Put 0, 1, 8 and 9 in A and 0, 2, 4 and 6 in B.'],
     parent: {notice: 'Whether your child plans the jumps of each tray, or changes cards one by one after shaded dots appear.', prompt: 'Why can’t A be four cards in a row?', explanation: 'Two pairs share a total exactly when a jump inside A equals a jump inside B. Four cards in a row have jumps 1, 2 and 3, so B’s cards would all need to be at least 4 apart, which takes 12 in 0–9. The only way is A = {0, 1, 8, 9} (jumps 1, 7, 8 and 9) with B four cards two apart, or the same with A and B exchanged: 8 of the 44,100 choices.', extension: 'What is the fewest for four and four? (Puzzle 11.)', connection: 'The upper bound mn, reached when the difference sets of A and B meet only in 0.'},
     provenance: 'The Week 55 review card’s fix 4 and App fit: 4 + 4 with 16 totals, “only {0, 1, 8, 9} with four cards of gap 2”.'},
   {number: 10, level: 'hard', title: 'Every B again', mode: 'every', trays: {A: fixed(0, 3, 6), B: size(2)}, target: 5, check: {totals: 5, designs: 4}, prereq: 'every',
@@ -124,6 +124,12 @@ const out = PUZZLES.map(item => {
     for (let j = 0; j < d.B.length; j++) route.push([0, j]);
     for (let i = 1; i < d.A.length; i++) route.push([i, d.B.length - 1]);
     solution = {A: d.A, B: d.B, totals: item.check.totals, route};
+    if (item.mode === 'fit') {
+      const A0 = item.trays.A.start, first = [];
+      for (let j = 0; j < d.B.length; j++) first.push([0, j]);
+      for (let i = 1; i < A0.length; i++) first.push([i, d.B.length - 1]);
+      solution.refusedFirst = {A: A0, route: first, missed: totalsOf(A0, d.B).filter(x => !first.some(([i, j]) => A0[i] + d.B[j] === x))};
+    }
   }
   const rules = [RULES.pairs, RULES.grid, ...(item.mode === 'fewest' || item.mode === 'fit' ? [RULES.route, RULES[item.mode]] : []), ...(item.mode === 'most' ? [RULES.most] : []), ...(item.even ? [RULES.even] : []), ...(item.mode === 'every' ? [RULES.every] : [])];
   return {

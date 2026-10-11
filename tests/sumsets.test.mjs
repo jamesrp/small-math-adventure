@@ -81,22 +81,34 @@ test('fewest: every dot is a control; the claim is judged at the top-right dot; 
   assert.equal(move(p, a, card('A', 2)[0]), null, 'nothing after a solve');
 });
 
-test('fit: with an uneven B only one A card fits every total on one route', () => {
-  const p = byId('sumsets-07');
-  let a = play(p, freshAttempt(p), ...card('A', 0, 1), ...steps([0, 0], [0, 1], [0, 2], [1, 2]));
-  assert.equal(isSolved(p, a.board), false);
+test('fit: A starts with two cards; a one-card route counts only after a refused route, kept through Undo and Restart', () => {
+  const p = byId('sumsets-07'), m = sumsetsMechanics.sumsets;
+  const fresh = freshAttempt(p);
+  assert.deepEqual(fresh.board.A, [0, 2]);
+  const early = play(p, fresh, ...card('A', 2), ...steps([0, 0], [0, 1], [0, 2]));
+  assert.equal(isSolved(p, early.board), false, 'a tap-through solves nothing');
+  assert.deepEqual(early.board.told, {kind: 'first'});
+  assert.match(view(p, early), /First try a route with more cards in A\./);
+  let a = play(p, fresh, ...steps([0, 0], [0, 1], [0, 2], [1, 2]));
   assert.deepEqual(a.board.told, {kind: 'missed', totals: [2]});
-  a = play(p, a, ...card('A', 1), ...steps([0, 0], [0, 1], [0, 2]));
+  assert.equal(a.board.tried, true);
+  assert.equal(m.carry(p, a.board, undo(a).board).tried, true, 'Undo keeps the refusal');
+  assert.equal(m.carryOnRestart(p, a.board, freshAttempt(p).board).tried, true, 'Restart keeps it');
+  a = play(p, a, ...card('A', 2), ...steps([0, 0], [0, 1], [0, 2]));
   assert.ok(isSolved(p, a.board));
+  let h = freshAttempt(p), n = 0;
+  while (!isSolved(p, h.board) && n++ < 20) h = play(p, h, nextHint(p, h).action);
+  assert.ok(isSolved(p, h.board) && h.board.tried, 'hints go through a refused route');
 });
 
 test('most: solved when every pair has its own total; evenly spaced when asked', () => {
   const p = byId('sumsets-02');
-  let a = play(p, freshAttempt(p), ...card('B', 0, 2, 6));
-  assert.equal(isSolved(p, a.board), false);
+  let a = play(p, freshAttempt(p), ...card('B', 0, 3, 6));
+  assert.equal(isSolved(p, a.board), false, 'B jumps by 3, as A does');
   assert.match(view(p, a), /ss-dot repeat/);
-  a = play(p, a, ...card('B', 2, 3));
+  a = play(p, a, ...card('B', 3, 6, 4, 8));
   assert.ok(isSolved(p, a.board));
+  assert.equal(designs(p.parameters).length, 4);
   const e = byId('sumsets-06');
   let b = play(e, freshAttempt(e), ...card('A', 0, 1, 3), ...card('B', 0, 4, 8));
   assert.equal(totalCount(b.board.A, b.board.B), 9);
@@ -154,6 +166,12 @@ test('saves: forged boards are rejected', () => {
   for (const x of [2, 3, 4]) assert.ok(validBoard(p, {...full, told: {kind: 'missed', totals: [x]}}), `a route can miss ${x}`);
   const fewest = {A: [0, 1, 2], B: [0, 1, 2], route: [], told: null};
   assert.equal(validBoard(p, {...fewest, told: {kind: 'missed', totals: [4]}}), false, 'no missed totals when every total fits');
+});
+
+test('the family: symbol and focus', async () => {
+  const entry = (await import('../dist/families/sumsets/sumsets.js')).default;
+  assert.equal(entry.family.symbol, '∔');
+  assert.ok(entry.focus.split(',').every(sel => sel.startsWith('button.')), 'focus only lands on buttons');
 });
 
 test('render: trays, strip, grid, the hinted card, and no objective repeated on the board', () => {

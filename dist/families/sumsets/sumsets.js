@@ -65,6 +65,10 @@ export function missed(b) {
 // A list of taps that is a route so far: from [0, 0], one step right or up each time.
 export const isRoute = route => route.every((c, k) => k === 0 ? sameCell(c, [0, 0]) : (c[0] - route[k - 1][0]) + (c[1] - route[k - 1][1]) === 1 && c[0] >= route[k - 1][0] && c[1] >= route[k - 1][1]);
 export const routeProves = b => routeDone(b) && isRoute(b.route) && climbs(routeTotals(b)) && missed(b).length === 0;
+// In a fit puzzle a one-card A shifts B, so its one-row route is forced; it
+// counts only after a route with two or more A cards has been refused
+// (`tried`, kept through Undo and Restart).
+export const accepts = (q, b) => routeProves(b) && (q.mode !== 'fit' || b.A.length > 1 || b.tried === true);
 // The cells a route may step to next.
 export function nextCells(b) {
   if (!b.route.length) return [[0, 0]];
@@ -82,7 +86,7 @@ function validRoute(q, b) {
   if (new Set(r.map(c => c.join())).size !== r.length) return false;
   // A tap on the top-right dot ends the claim: the taps stay only when they prove.
   const corner = r.findIndex(c => sameCell(c, [b.A.length - 1, b.B.length - 1]));
-  return corner < 0 || (corner === r.length - 1 && routeProves(b));
+  return corner < 0 || (corner === r.length - 1 && accepts(q, b));
 }
 // A refusal answers the last claim and stays until a card changes:
 // {kind: 'steps'} when the taps were not a route, {kind: 'missed', totals}
@@ -92,6 +96,7 @@ function validTold(q, b) {
   if (t === null) return true;
   if (!object(t) || !routing(q) || !full(q, b)) return false;
   if (t.kind === 'steps') return Object.keys(t).length === 1;
+  if (t.kind === 'first') return Object.keys(t).length === 1 && q.mode === 'fit' && b.A.length === 1 && !b.tried;
   if (t.kind !== 'missed' || Object.keys(t).sort().join() !== 'kind,totals' || !Array.isArray(t.totals)) return false;
   return missedSets(b.A, b.B).has(JSON.stringify(t.totals)) && t.totals.length > 0;
 }
@@ -155,12 +160,12 @@ export const answersOf = q => designs(q).map(d => d.B);
 // order; a B that gives the target count joins it the moment it is made.
 // `more` answers a That's all too soon and stays until a new B is found;
 // `again` says the B just made was found already.
-const KEYS = {fewest: 'A,B,route,told', fit: 'A,B,route,told', playground: 'A,B,route,told', most: 'A,B', every: 'A,B,again,done,found,more'};
+const KEYS = {fewest: 'A,B,route,told', fit: 'A,B,route,told,tried', playground: 'A,B,route,told', most: 'A,B', every: 'A,B,again,done,found,more'};
 function fresh(p) {
-  const q = p.parameters, A = [...(fixedOf(q, 'A') || [])], B = [...(fixedOf(q, 'B') || [])];
+  const q = p.parameters, A = [...(fixedOf(q, 'A') || q.trays.A.start || [])], B = [...(fixedOf(q, 'B') || q.trays.B.start || [])];
   if (q.mode === 'every') return {A, B, found: [], more: false, again: false, done: false};
   if (q.mode === 'most') return {A, B};
-  return {A, B, route: [], told: null};
+  return q.mode === 'fit' ? {A, B, route: [], told: null, tried: false} : {A, B, route: [], told: null};
 }
 function validEvery(q, b) {
   const answers = answersOf(q), keys = answers.map(X => X.join());
@@ -180,6 +185,7 @@ function valid(p, b) {
   if (!TRAYS.every(t => validTray(q, t, b[t]))) return false;
   if (q.mode === 'every') return validEvery(q, b);
   if (q.mode === 'most') return true;
+  if (q.mode === 'fit' && typeof b.tried !== 'boolean') return false;
   return validRoute(q, b) && validTold(q, b);
 }
 function solved(p, b) {
@@ -188,7 +194,7 @@ function solved(p, b) {
   if (q.mode === 'every') return b.done;
   if (!full(q, b)) return false;
   if (q.mode === 'most') return goodDesign(q, b.A, b.B);
-  return routeProves(b);
+  return accepts(q, b);
 }
 
 function cardMove(q, b, action) {
@@ -218,12 +224,15 @@ function move(p, b, action) {
     const at = b.route.findIndex(d => sameCell(c, d));
     // A tap on a dot already tapped takes the taps back to just before it.
     if (at >= 0) return {...b, route: b.route.slice(0, at)};
-    const next = {...b, route: [...b.route, [c[0], c[1]]]};
+    // In the playground a tap after a finished route starts a new one.
+    const next = {...b, route: routeDone(b) ? [[c[0], c[1]]] : [...b.route, [c[0], c[1]]]};
     if (!routeDone(next)) return next;
     // The top-right dot ends the claim, judged at once.
-    if (routeProves(next)) return {...next, told: null};
+    if (accepts(q, next)) return {...next, told: null};
     if (!isRoute(next.route) || !climbs(routeTotals(next))) return {...b, route: [], told: {kind: 'steps'}};
-    return {...b, route: [], told: {kind: 'missed', totals: missed(next)}};
+    const off = missed(next);
+    if (off.length) return {...b, route: [], told: {kind: 'missed', totals: off}, ...(q.mode === 'fit' && b.A.length > 1 ? {tried: true} : {})};
+    return {...b, route: [], told: {kind: 'first'}};
   }
   if (routing(q) && action.type === 'back') return b.route.length ? {...b, route: b.route.slice(0, -1)} : null;
   if (q.mode === 'every' && action.type === 'all' && !b.more) {
@@ -252,6 +261,12 @@ function routeHint(b) {
   const [c] = nextCells(b), [i] = b.route.at(-1);
   return {type: 'move', action: {type: 'step', cell: c}, text: `Step ${c[0] > i ? 'up' : 'right'} to ${b.A[c[0]] + b.B[c[1]]}.`};
 }
+// Fit, before a refused route: a route with two or more A cards first.
+function fitFirst(q, b) {
+  if (q.mode !== 'fit' || b.tried) return null;
+  if (b.A.length < 2) { const k = [...Array(TOP + 1).keys()].find(x => !b.A.includes(x)); return {type: 'move', action: {type: 'card', tray: 'A', card: k}, text: `Put ${k} in A.`}; }
+  return routeHint(b);
+}
 const hintCache = new Map();
 function hint(p, b) {
   const q = p.parameters;
@@ -263,7 +278,7 @@ function hint(p, b) {
     const left = designs(q).filter(d => !b.found.some(X => same(X, d.B)));
     h = left.length ? cardHint(q, b, nearest(left, b)) : {type: 'move', action: {type: 'all'}, text: 'Press That’s all.'};
   } else {
-    h = cardHint(q, b, nearest(designs(q), b)) || (routing(q) ? routeHint(b) : {type: 'done'});
+    h = fitFirst(q, b) || cardHint(q, b, nearest(designs(q), b)) || (routing(q) ? routeHint(b) : {type: 'done'});
   }
   if (hintCache.size > 2000) hintCache.clear();
   hintCache.set(key, h);
@@ -326,6 +341,7 @@ function grid(q, b, done, act) {
 }
 function told(q, b) {
   if (routing(q) && b.told?.kind === 'steps') return 'Step right or up from the bottom-left dot.';
+  if (routing(q) && b.told?.kind === 'first') return 'First try a route with more cards in A.';
   if (routing(q) && b.told?.kind === 'missed') return `Not on the route: ${listWords(b.told.totals)}.`;
   if (q.mode === 'most' && q.even && full(q, b) && totalsOf(b.A, b.B).length === b.A.length * b.B.length) {
     const uneven = TRAYS.filter(t => !evenlySpaced(b[t]));
@@ -355,10 +371,16 @@ export const sumsetsMechanics = {
     carry(p, from, to) {
       const q = p.parameters;
       if (!object(from) || !object(to)) return to;
-      if (routing(q)) return from.told && TRAYS.every(t => Array.isArray(from[t]) && Array.isArray(to[t]) && same(from[t], to[t])) ? {...to, told: from.told} : to;
+      if (routing(q)) {
+        let next = from.told && TRAYS.every(t => Array.isArray(from[t]) && Array.isArray(to[t]) && same(from[t], to[t])) ? {...to, told: from.told} : to;
+        if (q.mode === 'fit' && from.tried === true) next = {...next, tried: true, told: next.told?.kind === 'first' ? null : next.told};
+        return next;
+      }
       if (q.mode !== 'every' || !Array.isArray(from.found)) return to;
       return {...to, found: from.found.map(X => [...X]), more: Boolean(from.more), done: false};
     },
+    // Restart keeps a fit puzzle's refused route.
+    carryOnRestart: (p, from, to) => p.parameters.mode === 'fit' && object(from) && object(to) && from.tried === true ? {...to, tried: true} : to,
     noHint: p => p.parameters.mode === 'playground'
   }
 };
@@ -366,9 +388,9 @@ export const sumsetsMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'sumsets',
-  family: {id: 'sumsets', symbol: '⊞'},
+  family: {id: 'sumsets', symbol: '∔'},
   mechanics: sumsetsMechanics,
   pack: new URL('./sumsets.json', import.meta.url).href,
   css: new URL('./sumsets.css', import.meta.url).href,
-  focus: '.ss-dot[data-action],.ss-card:not([disabled])'
+  focus: 'button.ss-dot[data-action],button.ss-card:not([disabled])'
 };

@@ -9,7 +9,7 @@
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
-    "A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot. Each step makes the total bigger, so the totals on a route are all different."
+    "A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot."
    ],
    "sourceIds": [
     "sumsets-week55",
@@ -67,7 +67,7 @@
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
-    "A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot. Each step makes the total bigger, so the totals on a route are all different."
+    "A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot."
    ],
    "idea": "Free play with two trays: which cards give few totals, which give many, and what a route shows.",
    "prerequisites": "None. A grown-up or a partner can set a challenge, such as a number of totals to make.",
@@ -121,8 +121,8 @@
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
-    "A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot. Each step makes the total bigger, so the totals on a route are all different.",
-    "When every total on the strip is on your route, no cards of these sizes can make fewer totals. Finish by tapping that route; the top-right dot checks it."
+    "A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot.",
+    "Finish by tapping a route that passes every total on the strip; the top-right dot checks it."
    ],
    "idea": "Pairs land on the same total when B jumps by as much as A does; a route through the grid shows no two cards can do with fewer.",
    "prerequisites": "Recognise 0–9; the strip does the adding, and a child who adds to 18 can check it. A grown-up can read How to play.",
@@ -187,7 +187,7 @@
       "fixed": [
        0,
        1,
-       2
+       3
       ]
      },
      "B": {
@@ -204,18 +204,18 @@
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
     "Dots that share a total are shaded."
    ],
-   "idea": "All nine totals are different when B’s cards are far enough apart that A’s small jumps can’t bridge them.",
+   "idea": "All nine totals are different when B’s cards are far enough apart that none of A’s jumps fits between two of them.",
    "prerequisites": "Recognise 0–9; the strip does the adding, and a child who adds to 18 can check it. A grown-up can read How to play.",
    "hints": [
     "Where do two pairs land together?",
-    "A’s cards are at most 2 apart. Two B cards closer than 3 let two pairs meet.",
-    "Put 0, 3 and 6 in B."
+    "A’s cards are 1, 2 and 3 apart. Two B cards that close let two pairs meet.",
+    "Put 0, 4 and 8 in B."
    ],
    "parent": {
     "notice": "Whether your child spreads B’s cards out after seeing shaded dots, or keeps adjusting one card at a time.",
     "prompt": "Why can’t there be more than nine totals?",
-    "explanation": "Three A cards and three B cards make nine pairs, and each pair drops one token, so nine is the most. Two pairs a + b and a′ + b′ share a total exactly when b′ − b = a − a′, a jump inside B equal to a jump inside A. A’s jumps are 1 and 2, so every jump in B must be at least 3: B = {0, 3, 6} is one of the twenty choices.",
-    "extension": "Which B makes the fewest totals with this A? (Any three cards in a row, such as {4, 5, 6}: five totals.)",
+    "explanation": "Three A cards and three B cards make nine pairs, and each pair drops one token, so nine is the most. Two pairs a + b and a′ + b′ share a total exactly when b′ − b = a − a′, a jump inside B equal to a jump inside A. A’s jumps are 1, 2 and 3, so every jump in B must be at least 4, and three such cards fit in 0–9 four ways: {0, 4, 8}, {0, 4, 9}, {0, 5, 9} and {1, 5, 9}.",
+    "extension": "Which B makes the fewest totals with this A? (Six, for example B = {0, 1, 3}; five would need A evenly spaced.)",
     "connection": "The largest sumset: |A + B| = mn exactly when the differences of A and of B never agree (a Sidon-type condition).",
     "sourceIds": [
      "sumsets-week55",
@@ -227,16 +227,16 @@
     "A": [
      0,
      1,
-     2
+     3
     ],
     "B": [
      0,
-     3,
-     6
+     4,
+     8
     ],
     "totals": 9
    },
-   "provenance": "Week 55 Problem 2, third trial: {0, 1, 2} + {0, 3, 6} gives 9 totals; here the child chooses B."
+   "provenance": "Week 55 Problem 2: the third trial {0, 1, 2} + {0, 3, 6} gives 9 totals; here A is the second trial’s {0, 1, 3}, so that only four B work, and the child chooses B."
   },
   {
    "id": "sumsets-03",
@@ -266,8 +266,8 @@
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
-    "A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot. Each step makes the total bigger, so the totals on a route are all different.",
-    "When every total on the strip is on your route, no cards of these sizes can make fewer totals. Finish by tapping that route; the top-right dot checks it."
+    "A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot.",
+    "Finish by tapping a route that passes every total on the strip; the top-right dot checks it."
    ],
    "idea": "With two cards in A and three in B the fewest is 4, and a route through the grid shows it.",
    "prerequisites": "Follow right and up steps on a grid, and see that a route’s totals keep growing.",
@@ -348,8 +348,8 @@
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
-    "A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot. Each step makes the total bigger, so the totals on a route are all different.",
-    "When every total on the strip is on your route, no cards of these sizes can make fewer totals. Finish by tapping that route; the top-right dot checks it."
+    "A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot.",
+    "Finish by tapping a route that passes every total on the strip; the top-right dot checks it."
    ],
    "idea": "The fewest for three and three is 5, and it needs A and B to jump by the same amount every time.",
    "prerequisites": "Choose several cards with a plan in mind and keep track of which pairs share a total.",
@@ -575,7 +575,11 @@
     "mode": "fit",
     "trays": {
      "A": {
-      "max": 3
+      "max": 3,
+      "start": [
+       0,
+       2
+      ]
      },
      "B": {
       "fixed": [
@@ -593,18 +597,18 @@
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
-    "A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot. Each step makes the total bigger, so the totals on a route are all different.",
-    "Finish by tapping a route that passes every total on the strip; the top-right dot checks it. A may have one, two or three cards."
+    "A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot.",
+    "Finish by tapping a route that passes every total on the strip; the top-right dot checks it. A may have one, two or three cards; a route with one card counts once a route with more has been tried."
    ],
    "idea": "With an uneven B, every total fits on one route only when A has a single card: one card shifts B without merging any totals.",
    "prerequisites": "Follow right and up steps on a grid, and see that a route’s totals keep growing.",
    "hints": [
-    "When a route misses a total, which pairs made it?",
+    "Tap a route through the grid. Which total does it miss?",
     "B jumps by 1 and then 2. Two A cards would need to jump by both at once.",
-    "Take cards out of A until it has just one."
+    "After a route with two cards is refused, take cards out of A until it has just one."
    ],
    "parent": {
-    "notice": "Whether your child keeps trying two-card A trays, and what they make of the one-card solve.",
+    "notice": "Whether your child keeps trying two-card A trays, and what they make of the one-card solve. A starts with two cards, and a one-card route counts only after a route with more cards has been refused, so the solve follows a real attempt.",
     "prompt": "Why does one A card always work, even though B is uneven?",
     "explanation": "With A = {a}, the totals are a + 0, a + 1 and a + 3: B shifted by a, three different totals, and the grid is one row, so the route passes them all. With two A cards {a, a + d} there are at least four totals but a route passes only four dots; every total fits only if d equals both of B’s jumps, 1 and 2, which is impossible. So the theorem’s “evenly spaced” needs two cards in each tray.",
     "extension": "Is there a B tray of three cards for which some two-card A fits every total on one route? (Yes: any evenly spaced B, with A jumping by B’s gap.)",
@@ -638,7 +642,34 @@
       0,
       2
      ]
-    ]
+    ],
+    "refusedFirst": {
+     "A": [
+      0,
+      2
+     ],
+     "route": [
+      [
+       0,
+       0
+      ],
+      [
+       0,
+       1
+      ],
+      [
+       0,
+       2
+      ],
+      [
+       1,
+       2
+      ]
+     ],
+     "missed": [
+      2
+     ]
+    }
    },
    "provenance": "Week 55 Problem 7: {4} + {0, 1, 3} gives 3 totals, and “Does B need equal spacing?”"
   },
@@ -674,8 +705,8 @@
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
-    "A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot. Each step makes the total bigger, so the totals on a route are all different.",
-    "When every total on the strip is on your route, no cards of these sizes can make fewer totals. Finish by tapping that route; the top-right dot checks it."
+    "A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot.",
+    "Finish by tapping a route that passes every total on the strip; the top-right dot checks it."
    ],
    "idea": "With A evenly spaced by 3, four B cards make the fewest only when they jump by 3 too, and that fits in 0–9 one way.",
    "prerequisites": "Choose several cards with a plan in mind and keep track of which pairs share a total.",
@@ -771,8 +802,8 @@
    "idea": "Sixteen different totals from four and four cards needs every jump in A to differ from every jump in B, and 0–9 leaves very little room.",
    "prerequisites": "Choose several cards with a plan in mind and keep track of which pairs share a total.",
    "hints": [
-    "Which jumps can A and B not share?",
-    "Give one tray small jumps and the other jumps too big for them, and keep both inside 0–9.",
+    "Fill both trays and look at the shaded dots. Which pairs land together?",
+    "Two pairs share a total when a jump inside A equals a jump inside B. Give one tray small jumps and the other jumps too big for them, inside 0–9.",
     "Put 0, 1, 8 and 9 in A and 0, 2, 4 and 6 in B."
    ],
    "parent": {
@@ -908,8 +939,8 @@
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
-    "A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot. Each step makes the total bigger, so the totals on a route are all different.",
-    "When every total on the strip is on your route, no cards of these sizes can make fewer totals. Finish by tapping that route; the top-right dot checks it."
+    "A route starts at the bottom-left dot and steps right or up, one dot at a time, to the top-right dot.",
+    "Finish by tapping a route that passes every total on the strip; the top-right dot checks it."
    ],
    "idea": "The fewest for four and four is 7, and the route around every square forces one common jump.",
    "prerequisites": "Choose several cards with a plan in mind and keep track of which pairs share a total.",

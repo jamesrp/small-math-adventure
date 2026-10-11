@@ -128,13 +128,21 @@ try {
   await page.getByRole('button', {name: 'That’s all', exact: true}).click();
   await done();
 
-  // Puzzle 7: one A card fits every total on one route.
+  // Puzzle 7: A starts with two cards; one card counts only after a refused route.
   const F = 'sumsets-07';
   await open(F);
-  await cards('A', 2, 5);
+  assert.deepEqual((await board(F)).A, [0, 2]);
+  await cards('A', 2);
+  await walk([0, 0], [0, 1], [0, 2]);
+  assert.equal(await told(), 'First try a route with more cards in A.');
+  assert.equal(await page.locator('#completion-heading').count(), 0, 'a tap-through solves nothing');
+  await cards('A', 2);
   await walk([0, 0], [0, 1], [0, 2], [1, 2]);
-  assert.match(await told(), /^Not on the route: /);
-  await cards('A', 5);
+  assert.equal(await told(), 'Not on the route: 2.');
+  assert.equal((await board(F)).tried, true);
+  await page.locator('[data-action="restart"]').click();
+  assert.equal((await board(F)).tried, true, 'Restart keeps the refused route');
+  await cards('A', 2);
   await walk([0, 0], [0, 1], [0, 2]);
   await done();
 
@@ -146,6 +154,13 @@ try {
   assert.equal(await cardOf('A', 1).isDisabled(), true, 'six cards at most');
   await walk([0, 0], [1, 0]);
   await fit('playground full');
+  // A route through every total stays drawn, and the next tap starts a new one.
+  await cards('A', 0, 2, 4, 6, 8, 9); await cards('B', 1, 3, 5, 7, 9, 0);
+  await cards('A', 0, 2, 4); await cards('B', 1, 3);
+  await walk([0, 0], [0, 1], [1, 1], [2, 1]);
+  assert.equal((await board(G)).route.length, 4);
+  await walk([1, 0]);
+  assert.deepEqual((await board(G)).route, [[1, 0]], 'the playground keeps going after a finished route');
   await shot('playground');
   assert.deepEqual(errors, []);
   console.log(JSON.stringify({passed: true, phone, errors}));

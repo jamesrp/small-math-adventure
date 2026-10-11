@@ -45,7 +45,7 @@ const allowed = (rule, X) => rule.fixed ? sameSet(rule.fixed, X) : rule.size ? X
 // The table in docs/sumsets/README.md.
 const TABLE = {
   'sumsets-01': {mode: 'fewest', totals: 3, designs: 8},
-  'sumsets-02': {mode: 'most', totals: 9, designs: 20},
+  'sumsets-02': {mode: 'most', totals: 9, designs: 4},
   'sumsets-03': {mode: 'fewest', totals: 4, designs: 160},
   'sumsets-04': {mode: 'fewest', totals: 5, designs: 120},
   'sumsets-05': {mode: 'every', totals: 4, designs: 7, jump: 3},
@@ -177,7 +177,9 @@ export async function validateSumsets() {
     // The witness, played as moves.
     const w = p.solution;
     assert.ok(good.some(d => sameSet(d.A, w.A) && sameSet(d.B, w.B)), `${p.id}: the witness design solves`);
-    let a = build(p, fresh, w.A, w.B);
+    // Fit: a route with the starting two A cards is refused first, and only then does a one-card route count.
+    const start = q.mode === 'fit' ? checkFitFirst(p, fresh, w) : fresh;
+    let a = build(p, start, w.A, w.B);
     if (q.mode === 'most') assert.ok(isSolved(p, a.board), `${p.id}: the witness solves`);
     else {
       assert.ok(!isSolved(p, a.board), `${p.id}: a design alone is not a solve`);
@@ -185,7 +187,7 @@ export async function validateSumsets() {
       assert.ok(isSolved(p, done.board), `${p.id}: the witness route solves`);
       refuse(p, done, {type: 'back'}, 'a move after a solve');
       // Every route through every solving design solves (a sample of designs for the big ones).
-      for (const d of good.slice(0, 12)) { const b = build(p, fresh, d.A, d.B); for (const r of routes(d.A.length, d.B.length)) assert.ok(isSolved(p, walk(p, b, r.slice(0)).board), `${p.id}: any route solves ${d.A} + ${d.B}`); }
+      for (const d of good.slice(0, 12)) { const b = build(p, start, d.A, d.B); for (const r of routes(d.A.length, d.B.length)) assert.ok(isSolved(p, walk(p, b, r.slice(0)).board), `${p.id}: any route solves ${d.A} + ${d.B}`); }
       // A design that is not the fewest: a finished route misses a total and does not solve; hints still finish.
       const bad = designs.find(d => !good.includes(d) && d.A.length > 1);
       const built = build(p, fresh, bad.A, bad.B), r = routes(bad.A.length, bad.B.length)[0];
@@ -229,12 +231,14 @@ export async function validateSumsets() {
 }
 
 function checkRefusals(p, fresh, d) {
+  // Puzzle 7's A starts with two cards, so its grid is ready at once.
+  const startsFull = Boolean(p.parameters.trays.A.start);
   const q = p.parameters, fixedT = ['A', 'B'].find(t => q.trays[t].fixed), freeT = ['A', 'B'].find(t => !q.trays[t].fixed);
-  for (const [action, why] of [[null, 'nothing'], ['card', 'a string'], [{type: 'card'}, 'no tray'], [{type: 'card', tray: 'C', card: 1}, 'an unknown tray'], [{type: 'card', tray: freeT, card: 10}, 'a card past 9'], [{type: 'card', tray: freeT, card: -1}, 'a card below 0'], [{type: 'card', tray: freeT, card: '1'}, 'a card named by a string'], [{type: 'card', tray: freeT, card: 1.5}, 'half a card'], [{type: 'step', cell: [0, 0]}, 'a route before the trays are full'], [{type: 'back'}, 'a step back with no route'], [{type: 'all'}, 'That’s all outside find-every'], [{type: 'fly'}, 'an unknown move']]) refuse(p, fresh, action, why);
+  for (const [action, why] of [[null, 'nothing'], ['card', 'a string'], [{type: 'card'}, 'no tray'], [{type: 'card', tray: 'C', card: 1}, 'an unknown tray'], [{type: 'card', tray: freeT, card: 10}, 'a card past 9'], [{type: 'card', tray: freeT, card: -1}, 'a card below 0'], [{type: 'card', tray: freeT, card: '1'}, 'a card named by a string'], [{type: 'card', tray: freeT, card: 1.5}, 'half a card'], ...(startsFull ? [] : [[{type: 'step', cell: [0, 0]}, 'a route before the trays are full']]), [{type: 'back'}, 'a step back with no route'], [{type: 'all'}, 'That’s all outside find-every'], [{type: 'fly'}, 'an unknown move']]) refuse(p, fresh, action, why);
   if (fixedT) refuse(p, fresh, {type: 'card', tray: fixedT, card: q.trays[fixedT].fixed[0]}, 'changing a given tray');
   // A full tray takes no more cards.
   const cap = q.trays[freeT].size ?? q.trays[freeT].max;
-  let a = fresh;
+  let a = build(p, fresh, freeT === 'A' ? [] : fresh.board.A, freeT === 'B' ? [] : fresh.board.B);
   for (let k = 0; k < cap; k++) a = play(p, a, {type: 'card', tray: freeT, card: k});
   refuse(p, a, {type: 'card', tray: freeT, card: 9}, 'a card past the tray’s size');
   const B = fresh.board;
@@ -247,13 +251,40 @@ function checkRefusals(p, fresh, d) {
     ...(fixedT ? [[{...B, [fixedT]: []}, 'a given tray emptied']] : [])
   ];
   if (q.mode !== 'most') {
-    forged.push([{...B, route: [[0, 0]]}, 'a route before the trays are full'], [{...B, told: {kind: 'steps'}}, 'a refusal before the trays are full']);
+    if (!startsFull) forged.push([{...B, route: [[0, 0]]}, 'a route before the trays are full'], [{...B, told: {kind: 'steps'}}, 'a refusal before the trays are full']);
     const full = build(p, fresh, d.A, d.B).board, m = full.A.length, n = full.B.length;
     assert.ok(validBoard(p, {...full, route: [[m - 1, 0]]}), `${p.id}: any taps short of the corner are kept`);
     forged.push([{...full, route: [[0, 0], [0, 0]]}, 'a dot tapped twice'], [{...full, route: [[0, 0], [0, 9]]}, 'a tap off the grid'], [{...full, route: 'up'}, 'a route that is not a list'], [{...full, route: [[m - 1, n - 1], [0, 0]]}, 'taps past the corner'], [{...full, route: [[m - 1, n - 1]]}, 'the corner kept without a proof'],
       [{...full, told: {kind: 'missed', totals: [99]}}, 'a missed total off the strip'], [{...full, told: {kind: 'missed', totals: []}}, 'a refusal that misses nothing on a design that fits'], [{...full, told: {kind: 'why'}}, 'an unknown refusal'], [{...full, told: 'no'}, 'a refusal that is not a record']);
   }
   for (const [board, why] of forged) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
+}
+
+function checkFitFirst(p, fresh, w) {
+  const q = p.parameters, B = q.trays.B.fixed, first = w.refusedFirst;
+  assert.deepEqual(fresh.board.A, q.trays.A.start, `${p.id}: A starts with two cards`);
+  assert.deepEqual(first.A, q.trays.A.start);
+  // A one-card route before any refused route is refused, and solves nothing.
+  const early = walk(p, build(p, fresh, w.A, B), w.route);
+  assert.ok(!isSolved(p, early.board), `${p.id}: a one-card route does not count before a refused route`);
+  assert.deepEqual(early.board.told, {kind: 'first'}, `${p.id}: it asks for a route with more cards first`);
+  assert.deepEqual(early.board.route, []);
+  // The route with the starting cards misses a total, and the refusal is recorded.
+  const refused = walk(p, fresh, first.route);
+  assert.deepEqual(refused.board.told, {kind: 'missed', totals: first.missed}, `${p.id}: the starting cards miss ${first.missed}`);
+  assert.equal(refused.board.tried, true, `${p.id}: the refusal is recorded`);
+  // It stays through Undo and Restart.
+  const m = mechanicFor(p), undone = m.carry(p, refused.board, undo(refused).board);
+  assert.equal(undone.tried, true, `${p.id}: Undo keeps the refusal`);
+  assert.ok(validBoard(p, undone));
+  const restarted = m.carryOnRestart(p, refused.board, freshAttempt(p).board);
+  assert.equal(restarted.tried, true, `${p.id}: Restart keeps it`);
+  assert.ok(validBoard(p, restarted) && sameSet(restarted.A, q.trays.A.start), `${p.id}: Restart puts the starting cards back`);
+  // A forged early solve and forged records.
+  const done = walk(p, build(p, refused, w.A, B), w.route);
+  assert.ok(isSolved(p, done.board), `${p.id}: after the refusal the one-card route solves`);
+  for (const [board, why] of [[{...done.board, tried: false}, 'a one-card solve with no refused route'], [{...fresh.board, tried: 'yes'}, 'a refusal record that is not true or false'], [{A: fresh.board.A, B, route: [], told: null}, 'a missing refusal record'], [{...build(p, refused, w.A, B).board, told: {kind: 'first'}}, '“try more cards first” after a refused route'], [{...fresh.board, told: {kind: 'first'}}, '“try more cards first” with two cards']]) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
+  return refused;
 }
 
 function checkEvery(p, fresh, answers) {
@@ -303,6 +334,9 @@ function checkPlayground(p, fresh) {
   assert.ok(!isSolved(p, a.board), `${p.id}: never solved`);
   a = walk(p, a, [[0, 0], [0, 1], [1, 1], [2, 1]]);
   assert.ok(!isSolved(p, a.board), `${p.id}: a route through the fewest does not end the playground`);
+  assert.equal(a.board.route.length, 4, `${p.id}: a route through every total stays drawn`);
+  a = play(p, a, {type: 'step', cell: [1, 0]});
+  assert.deepEqual(a.board.route, [[1, 0]], `${p.id}: a tap after a finished route starts a new one`);
   a = build(p, a, [0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5]);
   refuse(p, a, {type: 'card', tray: 'A', card: 9}, 'a seventh card');
   refuse(p, a, {type: 'all'}, 'That’s all');

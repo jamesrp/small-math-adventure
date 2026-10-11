@@ -21,17 +21,17 @@ Experiments come first: tap cards, watch tokens land and stack, see which dots s
 
 ## Where they appear
 
-**Puzzles → Card totals** (symbol ⊞) is a satchel family on the family seam ([Adding a family](../ADDING-A-FAMILY.md)), with a **Playground** button above Easy, Medium and Hard. The puzzles are grade-free (`band: "all"`).
+**Puzzles → Card totals** (symbol ∔) is a satchel family on the family seam ([Adding a family](../ADDING-A-FAMILY.md)), with a **Playground** button above Easy, Medium and Hard. The puzzles are grade-free (`band: "all"`).
 
 | # | Level | Kind | Trays | Answer | Solving designs | Week 55 source |
 |---|---|---|---|---|---|---|
 | 1 | Easy | Fewest | A = {0, 2}, B two cards | 3 totals: B jumps by 2 | 8 of 45 | Problem 1 |
-| 2 | Easy | Most | A = {0, 1, 2}, B three cards | 9: B's cards at least 3 apart | 20 of 120 | Problem 2, third trial |
+| 2 | Easy | Most | A = {0, 1, 3}, B three cards | 9: B's cards at least 4 apart | 4 of 120 | Problem 2, third trial, with the second trial's A |
 | 3 | Easy | Fewest | two and three | 4: one common gap | 160 of 5,400 | Problem 4 (2 + 3) |
 | 4 | Medium | Fewest | three and three | 5: one common gap | 120 of 14,400 | Problem 3 |
 | 5 | Medium | Every | A = {0, 3, 6}, B two cards with 4 totals | {t, t + 3}, t = 0…6: seven | 7 of 45 | Problem 5 |
 | 6 | Medium | Most, both evenly spaced | three and three | 9, e.g. {0, 2, 4} + {0, 3, 6} | 160 of 14,400 | Problem 6, fix 5 |
-| 7 | Medium | Fit | A one to three cards, B = {0, 1, 3} | 3: A has one card | 10 of 175 | Problem 7 |
+| 7 | Medium | Fit | A one to three cards, starting {0, 2}; B = {0, 1, 3} | 3: A has one card, after a refused route with more | 10 of 175 | Problem 7 |
 | 8 | Hard | Fewest | A = {1, 4, 7}, B four cards | 6: B = {0, 3, 6, 9} only | 1 of 210 | New, from Problems 4–5 |
 | 9 | Hard | Most | four and four | 16: {0, 1, 8, 9} with four cards two apart | 8 of 44,100 | Fix 4 and App fit |
 | 10 | Hard | Every | A = {0, 3, 6}, B two cards with 5 totals | {t, t + 6}, t = 0…3: four | 4 of 45 | New, from Problem 5 |
@@ -42,7 +42,7 @@ Experiments come first: tap cards, watch tokens land and stack, see which dots s
 - **Trays.** Each tray is a row of the ten cards 0–9; a tap puts a card in (lit, sun for A, sky for B) or takes it out. Dots by the tray's letter show its size; a full tray's other cards fade. A given tray shows its cards with blank places between, so its spacing is visible.
 - **The strip** of totals 0–18 gets one leaf token per total; pairs that share a total stack on one token, and new tokens drop in.
 - **The grid** shows every pair, A going up and B across. In the most and find-every puzzles, dots that share a total are shaded ochre.
-- **Fewest and fit.** When the trays are full, every dot of the grid is a control and nothing marks the next one: the certificate can fail. The child taps dots one at a time (a tap on a dot already tapped takes the taps back to just before it), and tapping the top-right dot ends the claim, judged at once. Taps that are not a route from the bottom-left dot, one step right or up at a time (taps in page order, a diagonal, the corner first), get "Step right or up from the bottom-left dot." A route that misses totals gets "Not on the route: …" with those totals ringed on the strip and in the grid. Either refusal clears the taps, is kept in the save, and stays through Undo until a card changes, so it is no free yes/no oracle; a route that passes every total solves. There is no Fewest button: the route is the claim, and the child supplies it. In puzzle 7's one-card solve the grid is one row, so its route is forced; the work there is finding that one card fits.
+- **Fewest and fit.** When the trays are full, every dot of the grid is a control and nothing marks the next one: the certificate can fail. The child taps dots one at a time (a tap on a dot already tapped takes the taps back to just before it), and tapping the top-right dot ends the claim, judged at once. Taps that are not a route from the bottom-left dot, one step right or up at a time (taps in page order, a diagonal, the corner first), get "Step right or up from the bottom-left dot." A route that misses totals gets "Not on the route: …" with those totals ringed on the strip and in the grid. Either refusal clears the taps, is kept in the save, and stays through Undo until a card changes, so it is no free yes/no oracle; a route that passes every total solves. There is no Fewest button: the route is the claim, and the child supplies it. In puzzle 7 a one-card grid is one row, so its route is forced: A starts with two cards, and a one-card route counts only after a route with two or more A cards has been refused ("First try a route with more cards in A." otherwise). That refusal is recorded in the save and kept through Undo and Restart. In the playground a route through every total stays drawn, and the next tap starts a new route.
 - **Most** solves the moment every pair has its own total (and, in puzzle 6, both trays are evenly spaced; if not, "A is not evenly spaced."). The bound needs no claim: the grid shows one dot per pair.
 - **Find every.** A B that gives the count joins a row of found trays the moment it is made; making it again says "Found already." That's all is checked: too soon, "There is another." and That's all waits for a new find. Undo keeps the found row and that answer. There are no answer slots and no count.
 - **Hints** start with the puzzle's authored question, then name one card to take out or put in, nearest the trays' current cards, then the route's next step (after taking back a tap that is no part of a route), or That's all. A hint is the only thing that marks a dot. They are memoised per board.
@@ -68,7 +68,7 @@ Experiments come first: tap cards, watch tokens land and stack, see which dots s
 ## Not yet done
 
 1. **Watch whether children tap a route** without being told, now that nothing lights the start or the next dot, or need a grown-up after building a fewest design. If they stall, the first hint may need to point at the grid.
-2. **Watch puzzle 7**: whether a child thinks of a one-card A, and whether the solve feels earned or accidental.
+2. **Watch puzzle 7**: whether a child thinks of a one-card A after the starting two cards are refused, or reads the refusal as arbitrary.
 3. **Watch the strip on a phone**: its numerals are small at 375 px, and stacked tokens show shared totals only by their height.
 4. The worksheet's proofs (Problems 9 and 10) are not in the app; the route certificate is the only proof step the child performs.
 5. No K–1 route (the card's fix 1); the counter action might suit younger children with fewer cards.
