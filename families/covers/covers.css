@@ -1,0 +1,116 @@
+@import url('../../sq-grid.css');
+/* Area traps: squares green when all in the shape, yellow when partly in it,
+   blank when not; the shape drawn over them in a light ink wash with an ink
+   outline; a bar below with the inside in green and the partial squares in
+   yellow, its ends marked in Georgia numerals; pine for a goal and for
+   ringed splits, ochre for a hint. */
+.cv-puzzle{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%;--cv-whole:#a9c6a5;--cv-part:#f3d68c;--cv-out:var(--b-card,#fffdf5);--cv-edge:#8d997f}
+.cv-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .9rem;max-width:100%;min-height:46px}
+.cv-puzzle .cv-button{min-height:46px;min-width:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.cv-puzzle .cv-claim:not([disabled]){border-color:var(--b-pine,#31533e)}
+.cv-puzzle .cv-button[disabled]{opacity:.5;box-shadow:none}
+.cv-puzzle .cv-button[aria-pressed="true"]{background:#e9eddc;border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.cv-puzzle .cv-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.cv-puzzle .cv-nudge{font-size:1.3rem;padding:4px 12px;line-height:1}
+.cv-told{margin:0;font-weight:600;color:var(--b-bad,#a9503a)}
+
+/* Splits used. */
+.cv-slots{display:inline-flex;gap:6px}
+.cv-slots i{width:18px;height:18px;border-radius:50%;border:2px dashed #9aa88f;box-sizing:border-box}
+.cv-slots i.on{border:2px solid var(--b-pine,#31533e);background:var(--b-pine,#31533e)}
+
+/* The boards. */
+.cv-stage{width:100%;max-width:440px}
+.cv-board .sg-rim{stroke:var(--b-ink,#294439);stroke-width:2px}
+.cv-shape{fill:rgba(41,68,57,.16);stroke:var(--b-ink,#294439);stroke-width:2.4px;vector-effect:non-scaling-stroke;stroke-linejoin:round;pointer-events:none}
+.cv-hint{fill:rgba(239,199,110,.35);stroke:var(--b-ochre,#b38840);stroke-width:3px;stroke-dasharray:6 4;vector-effect:non-scaling-stroke;pointer-events:none}
+
+/* Split: the finest grid is drawn only through the unsplit squares. */
+.cv-split .sg-cell{fill:var(--cv-out);stroke:none}
+.cv-split .sg-piece.cv-leaf{stroke:var(--cv-edge);stroke-width:1.2px}
+.cv-split .sg-piece.cv-leaf.whole{fill:var(--cv-whole)}
+.cv-split .sg-piece.cv-leaf.part{fill:var(--cv-part)}
+.cv-split .sg-piece.cv-leaf.out{fill:var(--cv-out)}
+.cv-split .sg-point.cv-join .sg-pip{fill:var(--b-ink,#294439);stroke:var(--b-card,#fffdf5);stroke-width:1.2px;vector-effect:non-scaling-stroke}
+/* The join dot's whole reach is drawn, so a tap that lands on it is seen to
+   land on the dot, not on the quarter under it. */
+.cv-split .sg-point.cv-join .sg-reach{fill:rgba(255,253,245,.72);stroke:var(--b-ink,#294439);stroke-width:1.3px;vector-effect:non-scaling-stroke}
+.cv-split .sg-point.cv-join:focus-visible .sg-reach{stroke:var(--b-ochre,#b38840);stroke-width:2.5px;stroke-dasharray:4 3}
+.cv-split .sg-point.cv-join.hinted .sg-reach{fill:rgba(239,199,110,.75);stroke:var(--b-ochre,#b38840);stroke-width:2.5px;stroke-dasharray:4 3}
+.cv-split.d1 .sg-point.cv-join .sg-reach{r:4.4px}
+.cv-split.d1 .sg-point.cv-join .sg-pip{r:1.7px}
+.cv-split.d2 .sg-point.cv-join .sg-reach{r:5.5px}
+.cv-split.d2 .sg-point.cv-join .sg-pip{r:2.1px}
+.cv-ring{fill:none;stroke:var(--b-pine,#31533e);stroke-width:3.5px;vector-effect:non-scaling-stroke;pointer-events:none}
+.cv-gain{font-family:var(--b-display,Georgia,serif);fill:var(--b-ink,#294439);text-anchor:middle;paint-order:stroke;stroke:var(--b-card,#fffdf5);stroke-width:2.5px;stroke-linejoin:round;pointer-events:none}
+.cv-split.d1 .cv-gain{font-size:7px}
+.cv-split.d2 .cv-gain{font-size:12px}
+.cv-mini{display:block;width:44px;height:44px;max-height:none;margin:0}
+.cv-mini .sg-piece.cv-leaf{stroke-width:.6px}
+.cv-mini .cv-shape{stroke-width:1.2px}
+.cv-mini .sg-rim{stroke-width:1px}
+
+/* Shapes in the playground. */
+.cv-shapes{display:flex;flex-wrap:wrap;justify-content:center;gap:.45rem}
+.cv-puzzle .cv-pick-shape{display:grid;place-items:center;min-height:54px;min-width:54px;padding:4px;background:var(--b-card,#fffdf5);border:1px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.cv-puzzle .cv-pick-shape[aria-pressed="true"]{background:#e9eddc;border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+
+/* Paint: each big square framed and tinted with its mark. */
+.cv-paint .sg-cell{stroke:#d3d9c0}
+.cv-paint .sg-cell.mark-whole{fill:#dfe9db}
+.cv-paint .sg-cell.mark-part{fill:#f8eac0}
+.cv-paint .sg-cell.mark-out{fill:var(--cv-out)}
+.cv-paint .sg-cell.ink{fill:#7f8c83;stroke:#6c786f}
+.cv-big{fill:none;stroke-width:3px;vector-effect:non-scaling-stroke;pointer-events:none}
+.cv-big.whole{stroke:#5f8c66}
+.cv-big.part{stroke:#c99a3c}
+.cv-big.out{stroke:#c4c9b2;stroke-width:1.5px}
+.cv-big.off{stroke-dasharray:7 5}
+.cv-sign{font-family:var(--b-display,Georgia,serif);font-size:9px;font-weight:700;fill:var(--b-pine,#31533e);text-anchor:middle;paint-order:stroke;stroke:var(--b-card,#fffdf5);stroke-width:2px;pointer-events:none}
+
+/* Slide: the grid moves under a fixed shape inside a window. */
+.cv-slide-stage{max-width:400px}
+.cv-slide{display:block;width:100%;height:auto;max-height:62vh;margin:.4rem auto;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;outline:none}
+.cv-slide.dragging{cursor:grabbing}
+.cv-slide:focus-visible .cv-frame{stroke:var(--b-ochre,#b38840);stroke-dasharray:6 4;stroke-width:3px}
+.cv-window{fill:var(--cv-out)}
+.cv-cell{stroke:var(--cv-edge);stroke-width:1.2px;vector-effect:non-scaling-stroke}
+.cv-cell.whole{fill:var(--cv-whole)}
+.cv-cell.part{fill:var(--cv-part)}
+.cv-cell.out{fill:var(--cv-out)}
+.cv-frame{fill:none;stroke:var(--b-ink,#294439);stroke-width:2px;vector-effect:non-scaling-stroke}
+.cv-slide-bar{width:100%;display:flex;justify-content:center}
+
+/* The bar: inside in green from 0, the partial squares in yellow after it,
+   one tick per unit of area. */
+.cv-ruler{position:relative;box-sizing:border-box;width:100%;max-width:440px;padding:10px 1.7rem 0}
+.cv-ruler.with-pin{padding-top:34px}
+.cv-track{position:relative;height:20px;border:1.5px solid var(--b-ink,#294439);border-radius:4px;background-color:var(--b-card,#fffdf5);background-image:linear-gradient(to right,var(--b-line,#d0d6bd) 1px,transparent 1px);background-size:calc(100% / var(--top)) 100%}
+.cv-track i{position:absolute;display:block}
+.cv-in{left:0;top:0;bottom:0;background:var(--cv-whole)}
+.cv-part{top:0;bottom:0;background:var(--cv-part)}
+.cv-bracket{top:-7px;bottom:-7px;margin-left:-2px;padding-right:4px;border:3px solid var(--b-pine,#31533e);border-radius:4px;box-sizing:content-box}
+.cv-notch{top:-9px;bottom:-9px;width:4px;margin-left:-2px;background:var(--b-pine,#31533e);border-radius:2px}
+.cv-zone{top:-7px;bottom:-7px;border:3px solid var(--b-pine,#31533e);border-radius:4px;box-sizing:border-box}
+.cv-zone.open-right{border-right-style:dashed;border-top-right-radius:0;border-bottom-right-radius:0}
+.cv-zone.open-left{border-left-style:dashed;border-top-left-radius:0;border-bottom-left-radius:0}
+.cv-needle{top:-9px;bottom:-9px;width:3px;margin-left:-1.5px;background:var(--b-ink,#294439)}
+.cv-tag{position:absolute;top:-34px;transform:translateX(-50%);padding:0 6px;font:400 1.05rem/1.4 var(--b-display,Georgia,serif);color:var(--b-card,#fffdf5);background:var(--b-ink,#294439);border-radius:6px;white-space:nowrap}
+.cv-nums{position:relative;height:34px}
+.cv-num{position:absolute;top:6px;font:400 1.2rem/1.2 var(--b-display,Georgia,serif);color:var(--b-ink,#294439);white-space:nowrap}
+.cv-num.before{transform:translateX(-100%);padding-right:3px}
+.cv-num.after{padding-left:3px}
+.cv-num.mid{transform:translateX(-50%)}
+/* A fraction with no glyph of its own (sixteenths), stacked. */
+.cv-frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin-left:2px;font-size:.62em;line-height:1.05}
+.cv-frac span:first-child{border-bottom:1.2px solid currentColor;padding:0 1px}
+
+/* The colour key in How to play. */
+.cv-key{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem .5rem}
+.cv-chip{display:inline-block;width:16px;height:16px;border:1.5px solid #8d997f;border-radius:3px;vertical-align:middle}
+.cv-chip.whole{background:#a9c6a5}
+.cv-chip.part{background:#f3d68c}
+.cv-chip.out{background:#fffdf5}
+.cv-chip.grey{background:#7f8c83}
+
+@media (prefers-reduced-motion:no-preference){.cv-split .sg-piece.cv-leaf,.cv-paint .sg-cell{transition:fill .15s}}

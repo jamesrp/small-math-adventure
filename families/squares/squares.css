@@ -1,0 +1,80 @@
+@import url('../../sq-grid.css');
+/* Squares in Tile gardens: square pieces on the shared square grid, coloured
+   by size so equal squares look equal, with Georgia numerals for their sides
+   and the rectangle's side lengths. The rule's cuts are ink squares with an
+   ochre ring round the last one. */
+.sq-puzzle{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
+.sq-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem 1rem;max-width:100%;min-height:46px}
+.sq-buttons{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem}
+.sq-puzzle .sq-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.sq-puzzle .sq-button[disabled]{opacity:.5;box-shadow:none}
+.sq-puzzle .sq-button[aria-pressed="true"]{background:#e9eddc;border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.sq-puzzle .sq-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.sq-note{margin:0;font-weight:600;color:var(--b-bad,#a9503a)}
+
+/* The board. Small rectangles get big squares; big ones use the width. */
+.sq-stage{width:100%;max-width:min(560px, calc(var(--sq-cols) * 60px + 70px))}
+.sq-puzzle .sq-board{max-width:none;max-height:70vh}
+.sq-board .sg-cell.corner{fill:#dfe9d6;stroke:var(--b-pine,#31533e);stroke-width:2.5px}
+.sq-board .sg-piece{stroke:var(--b-ink,#294439);stroke-width:1.8px}
+.sq-board .sg-piece.hinted{stroke:var(--b-ochre,#b38840);stroke-width:3.5px;stroke-dasharray:5 4}
+.sq-num{font-family:var(--b-display,Georgia,serif);fill:var(--b-ink,#294439);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.sq-side{font-family:var(--b-display,Georgia,serif);font-size:5.6px;fill:var(--b-muted,#5a6850);text-anchor:middle;pointer-events:none}
+.sq-side-left{text-anchor:end;dominant-baseline:central}
+
+/* Sizes. */
+.sq-board .s1,.sq-mini .s1,.sq-icon .s1{fill:#f3e7c4}
+.sq-board .s2,.sq-mini .s2,.sq-icon .s2{fill:#9cc9de}
+.sq-board .s3,.sq-mini .s3,.sq-icon .s3{fill:#a9c79a}
+.sq-board .s4,.sq-mini .s4,.sq-icon .s4{fill:#efc76e}
+.sq-board .s5,.sq-mini .s5,.sq-icon .s5{fill:#e7a28f}
+.sq-board .s6,.sq-mini .s6,.sq-icon .s6{fill:#bfc0f1}
+.sq-board .s7,.sq-mini .s7,.sq-icon .s7{fill:#d9b8e0}
+.sq-board .s8,.sq-mini .s8,.sq-icon .s8{fill:#c8d3a8}
+
+/* Sizing a rectangle: the grid outside it is faint, its far corner a knob. */
+.sq-area .sg-cell{fill:#f2f0e6;stroke:#e2e0d0}
+.sq-area .sg-cell.inside{fill:#fbf8ec;stroke:#d3d9c0}
+.sq-area .sg-cell.rest{fill:#fff3cf}
+.sq-area .sg-rim{stroke:#c9c6b0;stroke-width:1.4px}
+.sq-rect{fill:none;stroke:var(--b-ink,#294439);stroke-width:2.6px;vector-effect:non-scaling-stroke;pointer-events:none}
+.sq-knob{fill:var(--b-pine,#31533e);stroke:var(--b-card,#fffdf5);stroke-width:1.5px;vector-effect:non-scaling-stroke;pointer-events:none}
+
+/* The biggest-square rule's cuts. */
+.sq-cuts{pointer-events:none}
+.sq-cut-fill{stroke:none}
+.sq-cut-line{fill:none;stroke:var(--b-ink,#294439);stroke-width:2px;vector-effect:non-scaling-stroke}
+.sq-last{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:5px;vector-effect:non-scaling-stroke}
+.mode-four .sq-cut-line{stroke-width:2.6px}
+
+/* Can't: tabs for rows (right) and columns (below), lines picked, 3s that fit. */
+.sq-band{fill:rgba(179,136,64,.28);pointer-events:none}
+.sq-ghost{fill:rgba(49,83,62,.08);stroke:var(--b-pine,#31533e);stroke-width:2px;stroke-dasharray:5 4;vector-effect:non-scaling-stroke;pointer-events:none}
+.sq-tab{cursor:pointer;outline:none}
+.sq-tab circle{fill:var(--b-card,#fffdf5);stroke:var(--b-ochre,#b38840);stroke-width:1.6px;vector-effect:non-scaling-stroke}
+.sq-tab text{font-family:var(--b-display,Georgia,serif);font-size:4.2px;fill:var(--b-ink,#294439);text-anchor:middle;pointer-events:none}
+.sq-tab.on circle{fill:var(--b-sun,#efc76e);stroke:var(--b-ink,#294439)}
+.sq-tab:hover circle{fill:#f6e7b9}
+.sq-tab:focus-visible circle{stroke:var(--b-ink,#294439);stroke-width:3px;stroke-dasharray:3 2}
+.sq-tab.hinted circle{stroke-width:3px;stroke-dasharray:3 2;fill:#f6e3b0}
+
+/* What may be placed, the tray, the recipe. */
+.sq-menu,.sq-tray,.sq-recipe{display:inline-flex;align-items:flex-end;gap:6px}
+.sq-icon{display:block;height:auto}
+.sq-icon rect{stroke:var(--b-ink,#294439);stroke-width:1.2}
+.sq-icon-grid{stroke:rgba(41,68,57,.25);stroke-width:.8;fill:none}
+.sq-tray i{display:block;opacity:.25}
+.sq-tray i.on{opacity:1}
+.sq-recipe{gap:14px;padding:6px 12px;background:#fbf4dc;border:1.5px solid #ead9a4;border-radius:12px}
+.sq-group{display:inline-flex;align-items:flex-end;gap:3px}
+.sq-recipe .sq-icon rect{fill:#e7d7a6}
+
+/* Rectangles kept. */
+.sq-shelf{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem;margin:0;padding:0;list-style:none}
+.sq-slot{display:grid;place-items:center;width:78px;height:78px;padding:5px;background:#fbf4dc;border:1.5px solid #ead9a4;border-radius:12px;box-sizing:border-box}
+.sq-slot.here{box-shadow:0 0 0 3px var(--b-sun,#efc76e)}
+.sq-mini{display:block;max-width:100%;max-height:100%}
+.sq-mini-sq{stroke:var(--b-ink,#294439);stroke-width:.8}
+.sq-mini-last{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:2.2}
+@media (prefers-reduced-motion:no-preference){.sq-slot.here{animation:sq-pop .35s ease-out}}
+@keyframes sq-pop{from{transform:scale(.85)}to{transform:scale(1)}}

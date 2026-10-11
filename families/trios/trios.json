@@ -1,0 +1,1260 @@
+{
+ "title": "Trios",
+ "version": 1,
+ "families": [
+  {
+   "id": "trios",
+   "title": "Trios",
+   "mathematics": "A card has two, three or four attributes with three values each: shape and fill for the nine tiles, then a count of one, two or three shapes for 27 cards, then an ink colour for 81. A trio is three different cards whose values are, attribute by attribute, all the same or all different: with values 0, 1, 2 that is a + b + c ≡ 0 (mod 3), so the cards are the points of affine space over the integers mod 3 and trios are its lines. Any two cards have exactly one third card. Among the nine tiles four trios pass through each tile, the twelve trios form exactly four splits, at most four tiles hold no trio (five tiles have ten pairs, and the four other tiles complete at most two each), and every stuck set has four. Among 27 cards the most is nine, though one-at-a-time choices often stick at eight. Two colours always leave a one-colour trio (4 + 4 < 9); three need not. In the game where the first to own a trio loses, the first player wins by answering every tile with its opposite through their first tile."
+  }
+ ],
+ "sources": [
+  {
+   "id": "trios-week36",
+   "title": "Bellingham Math Circle — Week 36: Making threes (student packets K–1, 2–3 and 4–5, and adult guide)",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-36",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "trios-bonus36",
+   "title": "Week 36 bonus (W36-BONUS-v1): the avoidance game, ownership colours and numbered tiles, with its guide",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/blob/main/lowell-math-circle-year-2/week-36/week-36-bonus.pdf",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "trios-card36",
+   "title": "Week 36 review card and math check (completion, splits, the four-tile maximum, the 27- and 81-card App fit)",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-36.md",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "trios-carney",
+   "title": "Julia Carney — SET and Finite Affine Geometry, University of Chicago REU (2021), sections 1–3 and section 5, pp. 15–16, as the Week 36 guide cites",
+   "url": "https://www.math.uchicago.edu/~may/REU2021/REUPapers/Carney.pdf",
+   "kind": "research"
+  },
+  {
+   "id": "trios-khovanova",
+   "title": "Tanya Khovanova — SET Tic-Tac-Toe (June 2020), a related game the Week 36 guide cites",
+   "url": "https://blog.tanyakhovanova.com/2020/06/set-tic-tac-toe/",
+   "kind": "research"
+  }
+ ],
+ "puzzles": [
+  {
+   "id": "trios-playground",
+   "number": 0,
+   "title": "Trios playground",
+   "difficulty_level": "playground",
+   "familyTitle": "Trios",
+   "mechanic": "trios",
+   "band": "playground",
+   "revision": 1,
+   "sourceDocument": "docs/trios/README.md",
+   "parameters": {
+    "mode": "playground",
+    "orders": {
+     "2": [
+      8,
+      0,
+      6,
+      5,
+      7,
+      3,
+      4,
+      1,
+      2
+     ],
+     "3": [
+      12,
+      10,
+      6,
+      1,
+      17,
+      7,
+      15,
+      20,
+      14,
+      25,
+      23,
+      22,
+      2,
+      21,
+      11,
+      19,
+      16,
+      0,
+      4,
+      26,
+      8,
+      13,
+      5,
+      3,
+      24,
+      18,
+      9
+     ],
+     "4": [
+      31,
+      35,
+      9,
+      28,
+      44,
+      2,
+      69,
+      63,
+      37,
+      72,
+      67,
+      40,
+      16,
+      21,
+      26,
+      49,
+      43,
+      25,
+      15,
+      70,
+      11,
+      48,
+      45,
+      65,
+      41,
+      33,
+      55,
+      0,
+      3,
+      12,
+      42,
+      57,
+      20,
+      27,
+      50,
+      4,
+      14,
+      77,
+      80,
+      60,
+      22,
+      62,
+      79,
+      68,
+      64,
+      17,
+      54,
+      19,
+      58,
+      23,
+      38,
+      51,
+      66,
+      10,
+      39,
+      73,
+      34,
+      47,
+      78,
+      36,
+      6,
+      5,
+      18,
+      56,
+      61,
+      74,
+      13,
+      29,
+      32,
+      7,
+      1,
+      75,
+      30,
+      24,
+      71,
+      53,
+      52,
+      59,
+      46,
+      76,
+      8
+     ]
+    }
+   },
+   "objective": "Choose as many cards as you can with no trio, from 9, 27 or 81 cards.",
+   "visibleObjective": "",
+   "instruction": "Choose as many cards as you can with no trio, from 9, 27 or 81 cards.",
+   "controls": "Choose 9, 27 or 81 cards. Tap a card to choose it, and tap it again to put it back. Dimmed cards would make a trio with two chosen cards; tap one to light those two. Clear puts every card back.",
+   "rules": [
+    "A trio is three different cards whose shapes, fills, counts and (with 81 cards) colours are each all the same or all different. Where the cards sit doesn’t matter.",
+    "A card that would make a trio with two chosen cards is dimmed and can’t be chosen; tap it to light the two."
+   ],
+   "idea": "Free play: how many cards with no trio? Four of 9, nine of 27 and twenty of 81.",
+   "prerequisites": "None for the nine; three or four attributes at once for the larger decks.",
+   "hints": [
+    "Choose cards until every other card is dimmed. How many do you have?",
+    "With 27 cards, try for nine.",
+    "With 81 cards the most is twenty."
+   ],
+   "parent": {
+    "notice": "Whether your child aims for a big set or explores which cards rule out others.",
+    "prompt": "When every card is dimmed, can you swap one card and keep going?",
+    "explanation": "In the nine every stuck set has four tiles. In the 27 a stuck set has eight or nine cards. In the 81 the most is twenty, and random choices rarely get there (about 9 in 5,000 runs, the review card found).",
+    "extension": "With 81 cards, how big a set can you reach without help?",
+    "connection": "These are cap sets in dimensions 2, 3 and 4 over the integers mod 3; the 81 cards are the deck of the card game SET.",
+    "sourceIds": [
+     "trios-card36",
+     "trios-bonus36",
+     "trios-carney"
+    ]
+   },
+   "provenance": "The review card’s App fit: 81 cards, whose largest set with no trio has 20, as a playground; Week 36 bonus Problem 3’s 27 cards."
+  },
+  {
+   "id": "trios-01",
+   "number": 1,
+   "title": "Third tile",
+   "difficulty_level": "easy",
+   "familyTitle": "Trios",
+   "mechanic": "trios",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/trios/README.md",
+   "parameters": {
+    "mode": "complete",
+    "deck": 2,
+    "order": [
+     1,
+     2,
+     3,
+     4,
+     7,
+     5,
+     8,
+     0,
+     6
+    ],
+    "pairs": [
+     [
+      0,
+      3
+     ],
+     [
+      0,
+      1
+     ],
+     [
+      3,
+      7
+     ],
+     [
+      4,
+      2
+     ]
+    ]
+   },
+   "objective": "Tap the tile that makes a trio with the two ringed tiles, for four pairs in turn.",
+   "visibleObjective": "Tap the tile that makes a trio.",
+   "instruction": "Tap the tile that makes a trio with the two ringed tiles, for four pairs in turn.",
+   "controls": "Tap a tile or card. Undo takes back a wrong tap.",
+   "rules": [
+    "A trio is three different tiles whose shapes are all the same or all different, and whose fills are all the same or all different. Where the tiles sit doesn’t matter.",
+    "Two tiles are ringed. Tap a tile that makes a trio with them. After a wrong tap, a row for each attribute shows ✓ when it is all the same or all different and ✗ when two are the same."
+   ],
+   "idea": "Two tiles decide the third: keep what they share, and where they differ take the value that is missing.",
+   "prerequisites": "Tell circles, triangles and squares apart, and open, striped and solid fills, and judge the two separately. No reading; a grown-up can read How to play.",
+   "hints": [
+    "Look at the two shapes first, then at the two fills.",
+    "If the two shapes are the same, the third tile has that shape too. If they differ, it has the missing shape. Fills work the same way.",
+    "The open and striped circles need the solid circle."
+   ],
+   "parent": {
+    "notice": "Whether your child judges shapes and fills separately or looks for a tile that “goes with” the pair. After a wrong tap the ✗ row shows which attribute fails.",
+    "prompt": "Could two ringed tiles have two different third tiles?",
+    "explanation": "Attribute by attribute the rule leaves no choice: the same value where the two agree, the missing value where they differ. So any two different tiles have exactly one third tile, and it is always one of the nine. The four pairs are the worksheet’s: same shape, same fill, and two that differ in both.",
+    "extension": "Take turns choosing two tiles for each other and racing to the third.",
+    "connection": "With the values written 0, 1, 2, the third tile is −(x + y) mod 3 in each attribute. The nine tiles are the points of the plane over the integers mod 3, trios are its lines, and two points lie on exactly one line.",
+    "sourceIds": [
+     "trios-week36",
+     "trios-bonus36",
+     "trios-card36",
+     "trios-carney"
+    ]
+   },
+   "solution": {
+    "answers": [
+     6,
+     2,
+     2,
+     6
+    ],
+    "names": [
+     "solid circle",
+     "open square",
+     "open square",
+     "solid circle"
+    ]
+   },
+   "provenance": "Week 36 Problem 1 in every band: its four pairs in page order (open + striped circle, open circle + open triangle, striped circle + solid triangle, striped triangle + open square)."
+  },
+  {
+   "id": "trios-02",
+   "number": 2,
+   "title": "Through one tile",
+   "difficulty_level": "easy",
+   "familyTitle": "Trios",
+   "mechanic": "trios",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/trios/README.md",
+   "parameters": {
+    "mode": "through",
+    "deck": 2,
+    "order": [
+     1,
+     3,
+     4,
+     7,
+     2,
+     8,
+     6,
+     5,
+     0
+    ],
+    "centre": 0
+   },
+   "objective": "Find every trio that uses the ringed tile. Press That’s all when none is left.",
+   "visibleObjective": "Find every trio with the ringed tile.",
+   "instruction": "Find every trio that uses the ringed tile. Press That’s all when none is left.",
+   "controls": "Tap two tiles. Tap a picked tile again to put it back. Press That’s all when you are sure. Undo takes back the last tap.",
+   "rules": [
+    "A trio is three different tiles whose shapes are all the same or all different, and whose fills are all the same or all different. Where the tiles sit doesn’t matter.",
+    "One tile is ringed. Tap two other tiles to make a trio with it; each trio found is drawn. Press That’s all when you think none is left. It says if there is another."
+   ],
+   "idea": "The eight other tiles pair off: each pair makes one trio with the ringed tile, so there are four.",
+   "prerequisites": "Keep what has been found in mind and decide when none is left. No arithmetic.",
+   "hints": [
+    "Pick any other tile. Which tile makes a trio with it and the ringed tile?",
+    "A tile already in a trio with the ringed tile can’t be in a second one.",
+    "When every other tile is in a trio with the ringed tile, there are no more."
+   ],
+   "parent": {
+    "notice": "Whether your child sees that a tile already used can’t make another trio with the ringed tile.",
+    "prompt": "How do you know there isn’t a fifth trio?",
+    "explanation": "Any other tile has exactly one partner that completes a trio with the open circle. So the eight other tiles fall into four pairs, one trio each: 8 ÷ 2 = 4. Two trios through the open circle can’t share another tile, or that pair would have two third tiles. The four trios are the striped and solid circles, the open triangle and square, the striped triangle and solid square, and the solid triangle and striped square.",
+    "extension": "Is it four for every tile? Try another in the playground’s nine.",
+    "connection": "Every point of the plane of order 3 lies on (9 − 1) ÷ 2 = 4 lines.",
+    "sourceIds": [
+     "trios-week36",
+     "trios-bonus36",
+     "trios-card36",
+     "trios-carney"
+    ]
+   },
+   "solution": {
+    "pairs": [
+     "1.2",
+     "3.6",
+     "4.8",
+     "5.7"
+    ],
+    "names": [
+     [
+      "open triangle",
+      "open square"
+     ],
+     [
+      "striped circle",
+      "solid circle"
+     ],
+     [
+      "striped triangle",
+      "solid square"
+     ],
+     [
+      "striped square",
+      "solid triangle"
+     ]
+    ]
+   },
+   "provenance": "Week 36 Grades 4–5 Problem 3, Grades 2–3 Problem 4 and K–1 Problem 4 (every three through one chosen tile); the open circle is the guide’s example (p. 3)."
+  },
+  {
+   "id": "trios-03",
+   "number": 3,
+   "title": "Four with no trio",
+   "difficulty_level": "easy",
+   "familyTitle": "Trios",
+   "mechanic": "trios",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/trios/README.md",
+   "parameters": {
+    "mode": "cap",
+    "deck": 2,
+    "order": [
+     3,
+     4,
+     8,
+     6,
+     5,
+     2,
+     1,
+     7,
+     0
+    ],
+    "target": 4,
+    "can": true,
+    "dim": false
+   },
+   "objective": "Choose four tiles with no trio among them.",
+   "visibleObjective": "Choose four tiles with no trio.",
+   "instruction": "Choose four tiles with no trio among them.",
+   "controls": "Tap a tile to choose it, and tap it again to put it back. The dots show how many to choose. To claim it can’t be done, choose that many, press Can’t and tap three tiles that make a trio. Undo takes back the last tap.",
+   "rules": [
+    "A trio is three different tiles whose shapes are all the same or all different, and whose fills are all the same or all different. Where the tiles sit doesn’t matter.",
+    "Tap tiles to choose them, and again to put them back. When as many are chosen as the dots show, a trio among them is reported but not shown.",
+    "If you think it can’t be done, make a full try, press Can’t and tap a trio in it. Can’t is checked."
+   ],
+   "idea": "Two shapes with two fills, such as the open and striped circles and triangles, hold no trio.",
+   "prerequisites": "Tell circles, triangles and squares apart, and open, striped and solid fills, and judge the two separately. No reading; a grown-up can read How to play.",
+   "hints": [
+    "Choose two tiles. Which tile would make a trio with them? Keep it out.",
+    "Try using only two shapes and only two fills.",
+    "The open circle, striped circle, open triangle and striped triangle hold no trio."
+   ],
+   "parent": {
+    "notice": "Whether your child, told “There is a trio.”, hunts for it and swaps one tile, or starts again.",
+    "prompt": "Why do the open and striped circles and triangles hold no trio?",
+    "explanation": "Any three of them have two of one shape or two of one fill, because only two shapes and two fills are used. Of the 126 ways to choose four tiles, 54 hold no trio. Can’t is here too: it is refused, because four is possible.",
+    "extension": "Puzzle 5 asks for five.",
+    "connection": "A set of points with no line is a cap. Four is the largest cap in the plane of order 3.",
+    "sourceIds": [
+     "trios-week36",
+     "trios-bonus36",
+     "trios-card36",
+     "trios-carney"
+    ]
+   },
+   "solution": {
+    "witness": [
+     0,
+     1,
+     3,
+     4
+    ],
+    "names": [
+     "open circle",
+     "open triangle",
+     "striped circle",
+     "striped triangle"
+    ],
+    "count": 54
+   },
+   "provenance": "Week 36 K–1 Problem 3 and Grades 2–3 Problem 3 (keep as many tiles as you can without an allowed three)."
+  },
+  {
+   "id": "trios-04",
+   "number": 4,
+   "title": "Every split",
+   "difficulty_level": "medium",
+   "familyTitle": "Trios",
+   "mechanic": "trios",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/trios/README.md",
+   "parameters": {
+    "mode": "split",
+    "deck": 2,
+    "order": [
+     3,
+     7,
+     8,
+     1,
+     5,
+     4,
+     0,
+     2,
+     6
+    ]
+   },
+   "objective": "Split the nine tiles into three trios, in every way there is. Press That’s all when none is left.",
+   "visibleObjective": "Find every way to split the tiles into three trios.",
+   "instruction": "Split the nine tiles into three trios, in every way there is. Press That’s all when none is left.",
+   "controls": "Tap a tile to put it in the next tray with room. Tap a tile in a tray to take it out. Press That’s all when you are sure. Undo takes back the last tap.",
+   "rules": [
+    "A trio is three different tiles whose shapes are all the same or all different, and whose fills are all the same or all different. Where the tiles sit doesn’t matter.",
+    "Tap a tile to put it in the next tray, and tap a tile in a tray to take it out. When the three trays hold three trios, the split is kept and the trays empty. Press That’s all when you think none is left. It says if there is another."
+   ],
+   "idea": "There are exactly four splits: by shape, by fill, and two where each trio has every shape and every fill once.",
+   "prerequisites": "Keep what has been found in mind and decide when none is left. No arithmetic.",
+   "hints": [
+    "Start with three trios that are easy to see.",
+    "Every split puts the open circle in one trio, and only four trios use it.",
+    "Put the open circle with the striped triangle and the solid square, and see what the other trays must hold."
+   ],
+   "parent": {
+    "notice": "Whether your child finds the two mixed splits, and notices that once two trays hold trios the last three tiles make a trio too.",
+    "prompt": "How do you know there are no more splits?",
+    "explanation": "In every split the open circle is in one trio, and only four trios use it. Once that trio is chosen the other two are forced: two trios with no tile in common change their attributes the same way, and each such family has exactly three trios. So the four trios through one tile give exactly four splits, and between them the twelve trios each appear once.",
+    "extension": "Read a mixed split as a Latin square: shapes as rows, fills as columns, the tray as the symbol.",
+    "connection": "The splits are the four parallel classes of the affine plane of order 3; the two mixed ones form a pair of orthogonal Latin squares of order 3, like Symbol Orchard’s.",
+    "sourceIds": [
+     "trios-week36",
+     "trios-bonus36",
+     "trios-card36",
+     "trios-carney"
+    ]
+   },
+   "solution": {
+    "splits": [
+     "0.1.2|3.4.5|6.7.8",
+     "0.3.6|1.4.7|2.5.8",
+     "0.4.8|1.5.6|2.3.7",
+     "0.5.7|1.3.8|2.4.6"
+    ],
+    "names": [
+     [
+      [
+       "open circle",
+       "open triangle",
+       "open square"
+      ],
+      [
+       "striped circle",
+       "striped triangle",
+       "striped square"
+      ],
+      [
+       "solid circle",
+       "solid triangle",
+       "solid square"
+      ]
+     ],
+     [
+      [
+       "open circle",
+       "striped circle",
+       "solid circle"
+      ],
+      [
+       "open triangle",
+       "striped triangle",
+       "solid triangle"
+      ],
+      [
+       "open square",
+       "striped square",
+       "solid square"
+      ]
+     ],
+     [
+      [
+       "open circle",
+       "striped triangle",
+       "solid square"
+      ],
+      [
+       "open triangle",
+       "striped square",
+       "solid circle"
+      ],
+      [
+       "open square",
+       "striped circle",
+       "solid triangle"
+      ]
+     ],
+     [
+      [
+       "open circle",
+       "striped square",
+       "solid triangle"
+      ],
+      [
+       "open triangle",
+       "striped circle",
+       "solid square"
+      ],
+      [
+       "open square",
+       "striped triangle",
+       "solid circle"
+      ]
+     ]
+    ]
+   },
+   "provenance": "Week 36 Grades 4–5 Problem 4 (find every split, and explain why the list is complete); K–1 and Grades 2–3 Problem 2."
+  },
+  {
+   "id": "trios-05",
+   "number": 5,
+   "title": "Five with no trio",
+   "difficulty_level": "medium",
+   "familyTitle": "Trios",
+   "mechanic": "trios",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/trios/README.md",
+   "parameters": {
+    "mode": "cap",
+    "deck": 2,
+    "order": [
+     7,
+     5,
+     3,
+     2,
+     4,
+     8,
+     1,
+     0,
+     6
+    ],
+    "target": 5,
+    "can": true,
+    "dim": false
+   },
+   "objective": "Choose five tiles with no trio among them. If it can’t be done, choose five, press Can’t and tap a trio among them.",
+   "visibleObjective": "Choose five tiles with no trio.",
+   "instruction": "Choose five tiles with no trio among them. If it can’t be done, choose five, press Can’t and tap a trio among them.",
+   "controls": "Tap a tile to choose it, and tap it again to put it back. The dots show how many to choose. To claim it can’t be done, choose that many, press Can’t and tap three tiles that make a trio. Undo takes back the last tap.",
+   "rules": [
+    "A trio is three different tiles whose shapes are all the same or all different, and whose fills are all the same or all different. Where the tiles sit doesn’t matter.",
+    "Tap tiles to choose them, and again to put them back. When as many are chosen as the dots show, a trio among them is reported but not shown.",
+    "If you think it can’t be done, make a full try, press Can’t and tap a trio in it. Can’t is checked."
+   ],
+   "idea": "Five tiles always hold a trio: their ten pairs need third tiles, and the four other tiles can complete at most two pairs each.",
+   "prerequisites": "Try several times before deciding something can’t be done, and point to the trio that proves a try fails.",
+   "hints": [
+    "Start from four tiles with no trio. Is there a fifth that makes no trio with two of them?",
+    "Each tile you add makes a trio with two you have.",
+    "Every five you try holds a trio. That trio is the reason."
+   ],
+   "parent": {
+    "notice": "Whether your child tries several fives before pressing Can’t, and notices that from four tiles with no trio every other tile makes a trio.",
+    "prompt": "Why can’t there be five?",
+    "explanation": "Suppose five tiles held no trio. Each of their ten pairs has a third tile, and it must be one of the four others. Put each pair in the dish of its third tile. Two pairs in one dish can’t share a tile (that tile and the dish tile would have two third tiles), and five tiles hold at most two pairs with nothing in common, so four dishes take at most eight pairs, not ten. After a right Can’t the app draws the dishes for your child’s own five: none holds more than two, and the pairs left over lie inside a trio.",
+    "extension": "From any three tiles with no trio exactly three tiles can be added, so choosing one tile at a time always stops at four, never sooner.",
+    "connection": "Four is the largest cap in the plane of order 3. Counting pairs against their third points is the start of the arguments that bound caps in larger spaces.",
+    "sourceIds": [
+     "trios-week36",
+     "trios-bonus36",
+     "trios-card36",
+     "trios-carney"
+    ]
+   },
+   "solution": {
+    "impossible": true
+   },
+   "provenance": "Week 36 Grades 4–5 Problem 2 (explain why a larger collection is impossible) and the guide’s ten pair markers in four dishes (p. 5)."
+  },
+  {
+   "id": "trios-06",
+   "number": 6,
+   "title": "Third card",
+   "difficulty_level": "medium",
+   "familyTitle": "Trios",
+   "mechanic": "trios",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/trios/README.md",
+   "parameters": {
+    "mode": "complete",
+    "deck": 3,
+    "order": [
+     14,
+     2,
+     16,
+     13,
+     20,
+     24,
+     15,
+     9,
+     4,
+     25,
+     7,
+     0,
+     22,
+     1,
+     5,
+     26,
+     3,
+     6,
+     18,
+     17,
+     8,
+     12,
+     21,
+     19,
+     23,
+     10,
+     11
+    ],
+    "pairs": [
+     [
+      0,
+      9
+     ],
+     [
+      0,
+      13
+     ],
+     [
+      13,
+      23
+     ],
+     [
+      6,
+      2
+     ]
+    ]
+   },
+   "objective": "Tap the card that makes a trio with the two ringed cards, for four pairs in turn.",
+   "visibleObjective": "Tap the card that makes a trio.",
+   "instruction": "Tap the card that makes a trio with the two ringed cards, for four pairs in turn.",
+   "controls": "Tap a tile or card. Undo takes back a wrong tap.",
+   "rules": [
+    "A trio is three different cards whose shapes, fills and counts are each all the same or all different. Where the cards sit doesn’t matter.",
+    "Two cards are ringed. Tap a card that makes a trio with them. After a wrong tap, a row for each attribute shows ✓ when it is all the same or all different and ✗ when two are the same."
+   ],
+   "idea": "A third attribute follows the same rule: one, two and three shapes are all different; two, two and two are all the same.",
+   "prerequisites": "Judge three attributes at once: shape, fill and how many shapes (one to three). A grown-up can read How to play.",
+   "hints": [
+    "Check the shapes, then the fills, then how many shapes.",
+    "Counts follow the same rule: the same count, or the missing one.",
+    "One open circle and two open circles need three open circles."
+   ],
+   "parent": {
+    "notice": "Whether your child scans all 25 cards or works out the third card attribute by attribute and then looks for it.",
+    "prompt": "These two cards differ only in count. What must the third be?",
+    "explanation": "With three attributes and the same rule for each, any two of the 27 cards still have exactly one third card. The second pair is the bonus page’s allowed example: an open circle, a striped triangle and a solid square with counts 1, 2 and 3. With counts 1, 1 and 2 the same three would not be a trio.",
+    "extension": "How many trios use one card? (Thirteen: the other 26 cards pair off.)",
+    "connection": "The 27 cards are the points of three-dimensional space over the integers mod 3, as in the card game SET, which adds a fourth attribute.",
+    "sourceIds": [
+     "trios-week36",
+     "trios-bonus36",
+     "trios-card36",
+     "trios-carney"
+    ]
+   },
+   "solution": {
+    "answers": [
+     18,
+     26,
+     3,
+     4
+    ],
+    "names": [
+     "three open circles",
+     "three solid squares",
+     "one striped circle",
+     "one striped triangle"
+    ]
+   },
+   "provenance": "Week 36 bonus Problem 3: numbered shape-fill tiles, with the number drawn as one, two or three shapes, and its two convention examples (1, 1, 2 not allowed; 1, 2, 3 allowed)."
+  },
+  {
+   "id": "trios-07",
+   "number": 7,
+   "title": "Two colours",
+   "difficulty_level": "medium",
+   "familyTitle": "Trios",
+   "mechanic": "trios",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/trios/README.md",
+   "parameters": {
+    "mode": "paint",
+    "order": [
+     0,
+     7,
+     3,
+     4,
+     2,
+     5,
+     1,
+     8,
+     6
+    ],
+    "values": 2,
+    "rule": "mono",
+    "can": true
+   },
+   "objective": "Colour every tile yellow or blue so that no trio is all one colour. If it can’t be done, colour all nine, press Can’t and tap a trio all one colour.",
+   "visibleObjective": "Colour every tile so no trio is all one colour.",
+   "instruction": "Colour every tile yellow or blue so that no trio is all one colour. If it can’t be done, colour all nine, press Can’t and tap a trio all one colour.",
+   "controls": "Tap a tile to change its colour. To claim it can’t be done, colour all nine, press Can’t and tap three tiles that make a trio all one colour. Undo takes back the last tap.",
+   "rules": [
+    "A trio is three different tiles whose shapes are all the same or all different, and whose fills are all the same or all different. Where the tiles sit doesn’t matter.",
+    "Tap a tile to change its colour. When every tile is coloured, a trio all one colour is reported but not shown.",
+    "If you think it can’t be done, colour all nine, press Can’t and tap a trio all one colour. Can’t is checked."
+   ],
+   "idea": "Each colour holds at most four tiles without a trio, and 4 + 4 < 9.",
+   "prerequisites": "Try several times before deciding something can’t be done, and point to the trio that proves a try fails.",
+   "hints": [
+    "Colour all nine, then look for a trio all one colour.",
+    "However you colour them, one colour has five tiles or more.",
+    "Every colouring you try leaves a trio all one colour. That trio is the reason."
+   ],
+   "parent": {
+    "notice": "Whether your child connects this with puzzle 5: a colour with five tiles holds a trio.",
+    "prompt": "Why can’t two colours work?",
+    "explanation": "The tiles of one colour may hold no trio, so each colour has at most four (puzzle 5). Two colours hold at most 4 + 4 = 8 tiles, and there are nine. None of the 512 colourings works, and even a five–four split leaves two one-colour trios. After a right Can’t the app lines up each colour’s tiles with room for four.",
+    "extension": "Puzzle 8 allows three colours.",
+    "connection": "Any two-colouring of the plane of order 3 has a one-colour line: the smallest case of a Ramsey-type fact about lines.",
+    "sourceIds": [
+     "trios-week36",
+     "trios-bonus36",
+     "trios-card36",
+     "trios-carney"
+    ]
+   },
+   "solution": {
+    "impossible": true
+   },
+   "provenance": "Week 36 bonus Problem 2 (can you do it with only two counter colours?), with 9 > 4 + 4 from the bonus guide (p. 2)."
+  },
+  {
+   "id": "trios-08",
+   "number": 8,
+   "title": "Three colours",
+   "difficulty_level": "medium",
+   "familyTitle": "Trios",
+   "mechanic": "trios",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/trios/README.md",
+   "parameters": {
+    "mode": "paint",
+    "order": [
+     2,
+     8,
+     0,
+     3,
+     7,
+     5,
+     6,
+     4,
+     1
+    ],
+    "values": 3,
+    "rule": "mono",
+    "can": true
+   },
+   "objective": "Colour every tile yellow, blue or red so that no trio is all one colour.",
+   "visibleObjective": "Colour every tile so no trio is all one colour.",
+   "instruction": "Colour every tile yellow, blue or red so that no trio is all one colour.",
+   "controls": "Tap a tile to change its colour. To claim it can’t be done, colour all nine, press Can’t and tap three tiles that make a trio all one colour. Undo takes back the last tap.",
+   "rules": [
+    "A trio is three different tiles whose shapes are all the same or all different, and whose fills are all the same or all different. Where the tiles sit doesn’t matter.",
+    "Tap a tile to change its colour. When every tile is coloured, a trio all one colour is reported but not shown.",
+    "If you think it can’t be done, colour all nine, press Can’t and tap a trio all one colour. Can’t is checked."
+   ],
+   "idea": "Three colours work: for example four tiles with no trio in one colour, four in another, and one left.",
+   "prerequisites": "Tell circles, triangles and squares apart, and open, striped and solid fills, and judge the two separately. No reading; a grown-up can read How to play.",
+   "hints": [
+    "Give one colour to four tiles that hold no trio.",
+    "Then give a second colour to four more with no trio.",
+    "Make the open and striped circles and triangles yellow, the solid square red and the rest blue."
+   ],
+   "parent": {
+    "notice": "Whether your child builds one colour at a time, keeping each colour free of trios.",
+    "prompt": "Can you do it with three tiles of each colour?",
+    "explanation": "Each colour must hold no trio. Four, four and one works, and so do three of each (1,008 of the 3,762 colourings with named colours). The bonus guide’s witness (p. 2), in shape rows and fill columns, is red, red, blue / red, red, blue / blue, blue, green; here that is yellow, yellow, blue / yellow, yellow, blue / blue, blue, red. Can’t is here too: it is refused, because three colours are possible.",
+    "extension": "Puzzle 11 is stricter: no trio all one count and none with three different counts.",
+    "connection": "The fewest colours with no one-colour line is the chromatic number of the plane’s lines as a hypergraph: here 3.",
+    "sourceIds": [
+     "trios-week36",
+     "trios-bonus36",
+     "trios-card36",
+     "trios-carney"
+    ]
+   },
+   "solution": {
+    "witness": [
+     2,
+     1,
+     1,
+     1,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    "count": 3762
+   },
+   "provenance": "Week 36 bonus Problem 2 (using three colours)."
+  },
+  {
+   "id": "trios-09",
+   "number": 9,
+   "title": "Nine cards",
+   "difficulty_level": "hard",
+   "familyTitle": "Trios",
+   "mechanic": "trios",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/trios/README.md",
+   "parameters": {
+    "mode": "cap",
+    "deck": 3,
+    "order": [
+     26,
+     13,
+     9,
+     5,
+     23,
+     21,
+     6,
+     17,
+     7,
+     22,
+     2,
+     4,
+     20,
+     1,
+     16,
+     15,
+     11,
+     25,
+     14,
+     0,
+     8,
+     19,
+     10,
+     24,
+     18,
+     12,
+     3
+    ],
+    "target": 9,
+    "can": false,
+    "dim": true
+   },
+   "objective": "Choose nine of the 27 cards with no trio among them.",
+   "visibleObjective": "Choose nine cards with no trio.",
+   "instruction": "Choose nine of the 27 cards with no trio among them.",
+   "controls": "Tap a card to choose it, and tap it again to put it back. Tap a dimmed card to light the two chosen cards that rule it out. The dots show how many to choose. Undo takes back the last tap.",
+   "rules": [
+    "A trio is three different cards whose shapes, fills and counts are each all the same or all different. Where the cards sit doesn’t matter.",
+    "Tap cards to choose them, and again to put them back. A card that would make a trio with two chosen cards is dimmed; tap it to see which two."
+   ],
+   "idea": "Nine is the most, but choosing one card at a time sticks at eight more often than not; getting out means giving cards up.",
+   "prerequisites": "Judge three attributes at once: shape, fill and how many shapes (one to three). A grown-up can read How to play.",
+   "hints": [
+    "A dimmed card would make a trio with two you have. Tap it to see which two.",
+    "If every card is dimmed at eight, take some out and try again.",
+    "One open circle; two each of the striped and solid circles and the open triangle and square; three each of the striped and solid triangles and squares."
+   ],
+   "parent": {
+    "notice": "How often your child sticks at eight, and which cards they take out.",
+    "prompt": "When you are stuck at eight, which cards are worth giving up?",
+    "explanation": "At most nine of the 27 cards hold no trio, and 2,106 nines do. Choosing at random one card at a time sticks at eight about two times in three, and every stuck set has eight or nine cards. Each dimmed card lights the pair that rules it out, which shows the set is stuck.",
+    "extension": "Puzzle 10 starts stuck at eight.",
+    "connection": "Sets with no line are cap sets. The largest has 4 points in the plane, 9 in three dimensions and 20 in four (the 81 cards of the playground); Ellenberg and Gijswijt (2017) proved they grow much more slowly than 3ⁿ.",
+    "sourceIds": [
+     "trios-week36",
+     "trios-bonus36",
+     "trios-card36",
+     "trios-carney"
+    ]
+   },
+   "solution": {
+    "witness": [
+     0,
+     1,
+     3,
+     4,
+     9,
+     10,
+     14,
+     17,
+     23
+    ],
+    "names": [
+     "one open circle",
+     "one open triangle",
+     "one striped circle",
+     "one striped triangle",
+     "two open circles",
+     "two open triangles",
+     "two striped squares",
+     "two solid squares",
+     "three striped squares"
+    ],
+    "count": 2106
+   },
+   "provenance": "Week 36 bonus Problem 3’s 27 numbered tiles, without its one-per-tile rule; the review card’s App fit (random choices stick at eight in 13,752 of 20,000 runs)."
+  },
+  {
+   "id": "trios-10",
+   "number": 10,
+   "title": "Stuck at eight",
+   "difficulty_level": "hard",
+   "familyTitle": "Trios",
+   "mechanic": "trios",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/trios/README.md",
+   "parameters": {
+    "mode": "cap",
+    "deck": 3,
+    "order": [
+     10,
+     18,
+     1,
+     7,
+     19,
+     8,
+     2,
+     26,
+     17,
+     0,
+     9,
+     20,
+     11,
+     16,
+     24,
+     22,
+     6,
+     12,
+     23,
+     4,
+     3,
+     13,
+     15,
+     5,
+     21,
+     14,
+     25
+    ],
+    "target": 9,
+    "can": false,
+    "dim": true,
+    "start": [
+     0,
+     1,
+     3,
+     4,
+     9,
+     10,
+     12,
+     13
+    ]
+   },
+   "objective": "Choose nine of the 27 cards with no trio among them, starting from eight that are stuck.",
+   "visibleObjective": "Choose nine cards with no trio.",
+   "instruction": "Choose nine of the 27 cards with no trio among them, starting from eight that are stuck.",
+   "controls": "Tap a card to choose it, and tap it again to put it back. Tap a dimmed card to light the two chosen cards that rule it out. The dots show how many to choose. Undo takes back the last tap.",
+   "rules": [
+    "A trio is three different cards whose shapes, fills and counts are each all the same or all different. Where the cards sit doesn’t matter.",
+    "Tap cards to choose them, and again to put them back. A card that would make a trio with two chosen cards is dimmed; tap it to see which two."
+   ],
+   "idea": "Four one-shape and four two-shape cards can rule out every three-shape card; reaching nine means giving up at least two.",
+   "prerequisites": "Judge three attributes at once: shape, fill and how many shapes (one to three). A grown-up can read How to play.",
+   "hints": [
+    "Every card is dimmed. Tap a few to see which pairs rule them out.",
+    "No three-shape card can join while these eight stay. Take two out.",
+    "At most six of these eight belong to any nine with no trio."
+   ],
+   "parent": {
+    "notice": "Whether your child takes out one card and tries again, or reasons about which cards rule out the most.",
+    "prompt": "Why is every three-shape card ruled out here?",
+    "explanation": "Each three-shape card is the third card of a one-shape and a two-shape card already chosen. These eight hold no trio and nothing can be added, yet no nine with no trio contains more than six of them, so at least two must go and three new cards come in.",
+    "extension": "Find a stuck eight of your own in the playground.",
+    "connection": "A complete cap that is not the largest: in three dimensions every complete cap has eight or nine points.",
+    "sourceIds": [
+     "trios-week36",
+     "trios-bonus36",
+     "trios-card36",
+     "trios-carney"
+    ]
+   },
+   "solution": {
+    "witness": [
+     0,
+     1,
+     3,
+     4,
+     9,
+     10,
+     14,
+     17,
+     23
+    ],
+    "names": [
+     "one open circle",
+     "one open triangle",
+     "one striped circle",
+     "one striped triangle",
+     "two open circles",
+     "two open triangles",
+     "two striped squares",
+     "two solid squares",
+     "three striped squares"
+    ],
+    "count": 2106
+   },
+   "provenance": "New, from the review card’s App fit: a stuck eight, chosen so that at least two cards must go."
+  },
+  {
+   "id": "trios-11",
+   "number": 11,
+   "title": "Counts",
+   "difficulty_level": "hard",
+   "familyTitle": "Trios",
+   "mechanic": "trios",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/trios/README.md",
+   "parameters": {
+    "mode": "paint",
+    "order": [
+     1,
+     0,
+     3,
+     7,
+     5,
+     4,
+     2,
+     8,
+     6
+    ],
+    "values": 3,
+    "rule": "card",
+    "can": false,
+    "start": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "objective": "Give every tile one, two or three shapes so that no three tiles make a trio as cards.",
+   "visibleObjective": "Change counts until no trio is left.",
+   "instruction": "Give every tile one, two or three shapes so that no three tiles make a trio as cards.",
+   "controls": "Tap a tile to give it one more shape, from three back to one. Undo takes back the last tap.",
+   "rules": [
+    "A trio is three different cards whose shapes, fills and counts are each all the same or all different. Where the cards sit doesn’t matter.",
+    "Each tile is a card with one, two or three of its shape. Tap a tile to change how many. Three tiles that make a trio as cards are drawn."
+   ],
+   "idea": "Every trio of tiles must end with exactly two counts alike: none all one count, none with three different counts.",
+   "prerequisites": "Judge three attributes at once: shape, fill and how many shapes (one to three). A grown-up can read How to play.",
+   "hints": [
+    "Every tile has one shape, so every trio is drawn. Change counts to break them.",
+    "No trio of tiles may have its counts all the same or all different.",
+    "One open circle; two each of the striped and solid circles and the open triangle and square; three each of the rest."
+   ],
+   "parent": {
+    "notice": "Whether your child sees that fixing one trio can make another, and starts to plan by groups of tiles.",
+    "prompt": "Why can’t each count be used three times?",
+    "explanation": "The tiles with one count must hold no trio, so each count is used at most four times; and no trio may use all three counts. Of the 19,683 ways to give counts, exactly 162 work, and every one uses one count once and the other two four times. The bonus guide’s design is count − 1 = x² + y² (mod 3), with shapes and fills numbered 0, 1, 2.",
+    "extension": "Compare puzzle 8: every design here is also a three-colouring with no one-colour trio, but not the other way round.",
+    "connection": "A design is a nine-card cap among the 27 with one card of each shape and fill, such as the quadric x² + y² over the integers mod 3.",
+    "sourceIds": [
+     "trios-week36",
+     "trios-bonus36",
+     "trios-card36",
+     "trios-carney"
+    ]
+   },
+   "solution": {
+    "witness": [
+     2,
+     1,
+     1,
+     1,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    "count": 162
+   },
+   "provenance": "Week 36 bonus Problem 3 (one numbered version of every shape-fill tile, with no allowed three), with the numbers drawn as counts of shapes."
+  },
+  {
+   "id": "trios-12",
+   "number": 12,
+   "title": "First to a trio loses",
+   "difficulty_level": "hard",
+   "familyTitle": "Trios",
+   "mechanic": "trios",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/trios/README.md",
+   "parameters": {
+    "mode": "game",
+    "deck": 2,
+    "order": [
+     1,
+     4,
+     5,
+     6,
+     0,
+     7,
+     8,
+     2,
+     3
+    ]
+   },
+   "objective": "Take turns with the app claiming tiles; you go first. Whoever first owns a trio among their own tiles loses. Win.",
+   "visibleObjective": "Take turns with the app; the first to own a trio loses.",
+   "instruction": "Take turns with the app claiming tiles; you go first. Whoever first owns a trio among their own tiles loses. Win.",
+   "controls": "Tap a tile to claim it; the app answers at once. Undo takes back your last turn and the app’s answer.",
+   "rules": [
+    "A trio is three different tiles whose shapes are all the same or all different, and whose fills are all the same or all different. Where the tiles sit doesn’t matter.",
+    "You and the app take turns claiming a tile; you go first. Whoever first owns a trio among their own tiles loses. Tiles you own are yellow, theirs blue."
+   ],
+   "idea": "The first player wins: claim any tile, then answer each tile they claim with the tile that makes a trio with it and your first tile.",
+   "prerequisites": "Take turns, and look ahead one move: which tile would give you a trio?",
+   "hints": [
+    "Your first tile can be any tile. Look at how it pairs up the other eight.",
+    "When they claim a tile, claim the one that makes a trio with theirs and your first tile.",
+    "With that answer you never own a trio, and they run out of safe tiles first."
+   ],
+   "parent": {
+    "notice": "Whether your child starts answering the app’s tile with its “opposite”, and whether a loss feels like information.",
+    "prompt": "Why is the opposite tile always free when you need it?",
+    "explanation": "Claim a tile c. Every other tile x has one opposite, the third tile of c and x, so the other eight fall into four opposite pairs. Answer each of their tiles with its opposite: you never hold both tiles of a pair, so you never own a trio through c, and a trio of yours away from c would mirror a trio of theirs made earlier. They lose by their third or fourth tile. The app plays its best: at your second turn the opposite is the only claim that keeps the win (later there are sometimes two or three).",
+    "extension": "In the base packet’s game (Grades 2–3 and 4–5 Problem 5) both players add to one shared collection and whoever completes a trio loses: the fifth tile always completes one (every stuck set has four), so the second player wins however anyone plays.",
+    "connection": "The opposite is the reflection through c, a symmetry of the plane of order 3 that maps trios to trios. The Week 36 guide cites Tanya Khovanova’s SET tic-tac-toe as a related game precedent, not as the same game.",
+    "sourceIds": [
+     "trios-week36",
+     "trios-bonus36",
+     "trios-card36",
+     "trios-carney",
+     "trios-khovanova"
+    ]
+   },
+   "solution": {
+    "turns": [
+     1,
+     0,
+     2,
+     3,
+     8,
+     4,
+     7,
+     5
+    ],
+    "names": [
+     "open triangle",
+     "open circle",
+     "open square",
+     "striped circle",
+     "solid square",
+     "striped triangle",
+     "solid triangle",
+     "striped square"
+    ]
+   },
+   "provenance": "Week 36 bonus Problem 1 (private ownership, first to own an allowed three loses), with the app as the second player."
+  }
+ ]
+}

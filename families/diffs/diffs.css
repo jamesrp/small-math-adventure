@@ -1,0 +1,55 @@
+/* Gap rings: two rings side by side, the child's (sun blocks, tappable) and
+   the one to make (pine blocks). Each ring has towers at its corners, an
+   arrow from each tower to the next with the gap in a disc on it, and under
+   each tower its letter and height. The run of a grow puzzle is a row of
+   small number rings ending in zeros, with dashed slots still to fill. */
+.df-board{--df-w:38px;--df-c:26px;--df-sun:var(--b-sun,#efc76e);--df-ink:var(--b-ink,#294439);--df-pine:var(--b-pine,#31533e);display:flex;flex-direction:column;align-items:center;gap:.75rem;width:100%}
+.df-pair{display:flex;align-items:center;justify-content:center;gap:.5rem;max-width:100%}
+.df-to{font-size:1.5rem;color:var(--b-muted,#5a6850)}
+.df-ring{display:grid;gap:2px;padding:.55rem .6rem;border-radius:16px;background:var(--b-paper,#f5f1e6);border:1.5px dashed var(--b-line,#d0d6bd)}
+.df-ring.df-target{border-style:solid}
+.df-ring.n4{grid-template-areas:"s0 a0 s1" "a3 . a1" "s3 a2 s2";grid-template-columns:auto 2.6rem auto;grid-template-rows:auto 2.4rem auto}
+.df-ring.n3{grid-template-areas:"a2 s0 a0" "s2 a1 s1";grid-template-columns:auto auto auto;grid-template-rows:auto auto}
+.df-board.solved .df-ring{border:2px solid var(--b-good,#3c7a4a);background:var(--b-good-soft,#e2ecd6)}
+.df-st{display:flex;flex-direction:column;align-items:center;gap:2px;margin:0;padding:2px;border:0;border-radius:8px;background:none;box-shadow:none;font:inherit;color:inherit;min-width:0;min-height:0}
+.df-st.s0{grid-area:s0}.df-st.s1{grid-area:s1}.df-st.s2{grid-area:s2}.df-st.s3{grid-area:s3}
+.df-tower{display:flex;flex-direction:column;gap:2px}
+.df-board .df-cell{display:block;width:var(--df-w);height:var(--df-c);min-width:0;min-height:0;margin:0;padding:0;border:1.5px solid transparent;border-radius:5px;background:#ebe8da;box-shadow:none}
+.df-board .df-cell.on{background:var(--df-sun);border-color:var(--df-ink)}
+.df-target .df-cell.on{background:var(--df-pine)}
+.df-board .df-floor{display:block;width:calc(var(--df-w) + 8px);height:9px;min-width:0;min-height:0;margin:1px 0 0;padding:0;border:0;border-radius:3px;background:var(--df-ink);box-shadow:none}
+.df-board .df-floor.unset{background:transparent;border:1.5px dashed var(--b-muted,#5a6850)}
+.df-edit button.df-floor{height:14px}
+.df-edit button.df-cell:hover,.df-edit button.df-floor:hover{filter:brightness(.94)}
+.df-foot{display:flex;align-items:baseline;gap:3px;min-height:1.2rem}
+.df-foot i{font-style:normal;font-size:.72rem;color:var(--b-muted,#5a6850)}
+.df-foot b{font-family:var(--b-display,Georgia,serif);font-size:1rem;min-width:.6em}
+.df-arrow{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;color:var(--b-muted,#5a6850)}
+.df-arrow i{font-style:normal;font-size:1.1rem;line-height:1}
+.df-ring.n4 .a1,.df-ring.n4 .a3{flex-direction:row;gap:2px}
+.df-ring .a0{grid-area:a0}.df-ring .a1{grid-area:a1}.df-ring .a2{grid-area:a2}.df-ring .a3{grid-area:a3}
+.df-gap{display:flex;align-items:center;justify-content:center;width:1.9rem;height:1.9rem;border-radius:50%;background:var(--b-card,#fffdf5);border:1.5px solid var(--df-ink);font-family:var(--b-display,Georgia,serif);font-size:1.1rem;color:var(--df-ink)}
+.df-gap.unset{border-style:dashed;border-color:var(--b-line,#b9c2a5)}
+.df-board .df-pick{cursor:pointer;outline:2px dashed var(--b-bad,#a9503a);outline-offset:1px}
+.df-board .df-pick.marked{outline:3px solid var(--b-bad,#a9503a);background:#f6dfd6}
+.df-st.claimed{outline:3px solid var(--b-bad,#a9503a);outline-offset:1px;border-radius:8px}
+.df-arrow.claimed .df-gap{border-color:var(--b-bad,#a9503a);border-width:2.5px}
+.df-tools{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem}
+.df-board .df-cant[aria-pressed="true"]{border-color:var(--b-bad,#a9503a);box-shadow:inset 0 0 0 1.5px var(--b-bad,#a9503a)}
+.df-note{margin:0;font-weight:600;text-align:center}
+.df-note.bad{color:var(--b-bad,#a9503a)}
+.df-found,.df-run{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.35rem;max-width:100%;list-style:none;margin:0;padding:0}
+.df-run li+li::before{content:"→";margin-right:.35rem;color:var(--b-muted,#5a6850)}
+.df-run li{display:flex;align-items:center}
+.df-mini{display:grid;grid-template-areas:"m0 m1" "m3 m2";gap:0 .4rem;padding:3px 7px;border-radius:7px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);font-family:var(--b-display,Georgia,serif);font-size:.95rem;line-height:1.15;min-width:2.1rem;min-height:2.1rem}
+.df-mini.n3{grid-template-areas:"m0 m0" "m2 m1";text-align:center}
+.df-mini i{font-style:normal}
+.df-mini .m0{grid-area:m0}.df-mini .m1{grid-area:m1}.df-mini .m2{grid-area:m2}.df-mini .m3{grid-area:m3}
+.df-mini.empty{border-style:dashed;background:transparent}
+.df-mini.loop,.df-found li.now .df-mini{border:2.5px solid var(--df-pine)}
+.df-run li.zero .df-mini{color:var(--b-muted,#5a6850)}
+.df-run.solved .df-mini{border-color:var(--b-good,#3c7a4a)}
+.df-board .df-lift{display:block;margin:0;padding:0;min-width:0;min-height:0;border:0;border-radius:8px;background:none;box-shadow:none;cursor:pointer}
+.df-board .df-lift .df-mini{border:1.5px solid var(--df-ink);background:#f7e3b3}
+.df-board .hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:2px}
+@media (max-width:420px){.df-board{--df-w:30px;--df-c:22px}.df-ring{padding:.45rem .4rem}.df-ring.n4{grid-template-columns:auto 1.9rem auto;grid-template-rows:auto 1.9rem auto}.df-gap{width:1.45rem;height:1.45rem;font-size:.9rem}.df-pair{gap:.25rem}.df-to{font-size:1.2rem}}

@@ -1,0 +1,132 @@
+/* Circle strings: dots on a paper circle with Georgia numbers outside; fixed
+   strings dark pine and the child's strings yellow with an ink edge (as
+   Gentle hills colours clues and built towers); a picked dot ringed in pine;
+   a refused string dashed brick with the strings it would cross haloed;
+   ochre for hints; a trapped region shaded sun, the part tapped outlined in
+   ochre with its left-over dots ringed.
+   Paths are steps on a faint grid, numbered under each step; trees stand root
+   up; the swap path's corners are rings to tap. */
+.st-puzzle{display:flex;flex-direction:column;align-items:center;gap:.6rem;width:100%;
+  --st-ink:var(--b-ink,#294439);--st-paper:var(--b-card,#fffdf5);--st-pine:var(--b-pine,#31533e);--st-sun:var(--b-sun,#efc76e);
+  --st-ochre:var(--b-ochre,#b38840);--st-bad:var(--b-bad,#a9503a);--st-line:var(--b-line,#d0d6bd);--st-muted:var(--b-muted,#5a6850)}
+.st-row{display:flex;flex-direction:column;align-items:center;gap:.6rem;width:100%}
+.st-puzzle.st-two .st-row{flex-direction:row;flex-wrap:wrap;justify-content:center;align-items:center}
+.st-frame{width:100%;max-width:380px;display:flex;justify-content:center}
+.st-two .st-frame{flex:1 1 300px;max-width:360px}
+.st-side{display:flex;flex-direction:column;align-items:center;gap:.5rem;flex:1 1 220px;max-width:360px;width:100%}
+
+/* The circle. */
+.st-circle{width:100%;height:auto;max-height:62vh;overflow:visible;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.st-rim{fill:var(--st-paper);stroke:var(--st-ink);stroke-width:.9}
+.st-dot{cursor:pointer}
+.st-circle:not(.mode-dots) .st-dot{cursor:default}
+.st-dot .st-ring{fill:transparent;stroke:none}
+.st-dot .st-disc{fill:var(--st-paper);stroke:var(--st-ink);stroke-width:1.1}
+.st-dot.mine .st-disc{fill:var(--st-sun)}
+.st-dot.fixed .st-disc{fill:var(--st-pine)}
+.st-dot text{font-family:var(--b-display,Georgia,serif);font-size:5.4px;fill:var(--st-muted);text-anchor:middle;pointer-events:none}
+.st-dot.picked .st-ring{fill:var(--b-good-soft,#e2ecd6);stroke:var(--st-pine);stroke-width:1.8}
+.st-dot.hinted .st-ring{stroke:var(--st-ochre);stroke-width:1.6;stroke-dasharray:1.6 1.2}
+.st-dot.ringed .st-ring{stroke:var(--st-ochre);stroke-width:1.3}
+.st-dot.wrong .st-ring{stroke:var(--st-bad);stroke-width:1.4;stroke-dasharray:1.4 1}
+.st-dot:focus{outline:none}
+.st-dot:focus-visible .st-ring{stroke:var(--st-ochre);stroke-width:2}
+.st-string line{stroke-linecap:round;pointer-events:none}
+.st-string .st-edge{stroke:var(--st-ink);stroke-width:3.6}
+.st-string .st-core{stroke:var(--st-sun);stroke-width:2}
+.st-string.fixed .st-edge{stroke:var(--st-pine);stroke-width:3.4}
+.st-string.fixed .st-core{stroke:var(--st-pine);stroke-width:0}
+.st-string.blocked .st-edge{stroke:var(--st-bad);stroke-width:4.6}
+.st-string.hinted .st-edge{stroke:var(--st-ochre);stroke-width:5}
+.st-string.cert .st-edge{stroke:var(--st-ochre);stroke-width:4.8}
+.st-string .st-hit{stroke:transparent;stroke-width:12;pointer-events:stroke}
+.st-target{cursor:pointer}
+.st-target:focus{outline:none}
+.st-target:focus-visible .st-edge{stroke:var(--st-ochre);stroke-width:5.2}
+.st-tried{stroke:var(--st-bad);stroke-width:1.8;stroke-dasharray:3 2;stroke-linecap:round;pointer-events:none}
+.st-blocker{stroke:var(--st-bad);stroke-opacity:.35;stroke-width:7;stroke-linecap:round;pointer-events:none}
+.st-ghost{stroke:var(--st-bad);stroke-width:1.8;stroke-dasharray:2.4 1.6;stroke-linecap:round;pointer-events:none}
+.st-trap{fill:var(--st-sun);fill-opacity:.45;stroke:none;pointer-events:none}
+.st-here{fill:var(--st-sun);fill-opacity:.4;stroke:var(--st-ochre);stroke-width:1.2;stroke-linejoin:round;pointer-events:none}
+.st-region{fill:transparent;stroke:none;cursor:pointer}
+.mode-regions .st-region:hover{fill:var(--st-sun);fill-opacity:.25}
+.st-region:focus{outline:none}
+.st-region:focus-visible{fill:var(--st-sun);fill-opacity:.35;stroke:var(--st-ochre);stroke-width:1.2}
+.st-region.hinted{fill:var(--st-ochre);fill-opacity:.22;stroke:var(--st-ochre);stroke-width:1;stroke-dasharray:2 1.4}
+.mode-regions .st-dot,.mode-regions .st-string,.mode-strings .st-dot{pointer-events:none}
+.mode-regions .st-rim{fill:#fbf3dc}
+.st-circle:focus{outline:none}
+.st-circle:focus-visible .st-rim{stroke:var(--st-ochre);stroke-width:1.6}
+.st-mini{width:100%;height:auto}
+.st-mini .st-rim{stroke-width:1.4}
+.st-mini .st-dot .st-disc{stroke-width:1.4}
+.st-mini .st-string .st-edge{stroke-width:4.6}
+.st-mini .st-string .st-core{stroke-width:2.6}
+
+/* Paths. */
+.st-path{width:100%;max-width:360px;height:auto;overflow:visible;user-select:none;-webkit-user-select:none}
+.st-grid{stroke:var(--st-line);stroke-width:.4}
+.st-grid.ground{stroke:var(--st-ink);stroke-width:.9}
+.st-step{stroke:var(--st-ink);stroke-width:1.6;stroke-linecap:round}
+.st-step.todo{stroke:var(--st-muted);stroke-width:1.3}
+.st-step.ok{stroke:var(--b-good,#3c7a4a);stroke-width:2.8}
+.st-step.off{stroke:var(--st-bad);stroke-width:2.2;stroke-dasharray:2 1.4}
+.st-over{stroke:var(--st-sun);stroke-width:2.2;stroke-linecap:round;stroke-opacity:.95}
+.st-dash{stroke:var(--st-ochre);stroke-width:1.3;stroke-dasharray:2.2 1.6;stroke-linecap:round}
+.st-vertex{fill:var(--st-ink)}
+.st-num{font-family:var(--b-display,Georgia,serif);font-size:4.2px;fill:var(--st-muted);text-anchor:middle}
+.st-corner{cursor:pointer}
+.st-corner .st-corner-hit{fill:transparent}
+.st-corner .st-corner-ring{fill:var(--st-paper);stroke:var(--st-pine);stroke-width:1}
+.st-corner.hinted .st-corner-ring{stroke:var(--st-ochre);stroke-width:1.6;stroke-dasharray:1.4 1}
+.st-corner:hover .st-corner-ring{fill:var(--b-good-soft,#e2ecd6)}
+.st-corner:focus{outline:none}
+.st-corner:focus-visible .st-corner-ring{stroke:var(--st-ochre);stroke-width:1.8}
+.st-diamond path{fill:var(--st-sun);fill-opacity:.5;stroke:var(--st-ochre);stroke-width:.5}
+.st-diamond text{font-family:var(--b-display,Georgia,serif);font-size:5px;fill:var(--st-ink);text-anchor:middle}
+
+/* Trees. */
+.st-tree{width:100%;height:auto;max-height:34vh;overflow:visible}
+.st-tree-frame .st-tree{max-width:300px;max-height:40vh}
+.st-tline{stroke:var(--st-ink);stroke-width:1.5;stroke-linecap:round}
+.st-tdot{fill:var(--st-paper);stroke:var(--st-ink);stroke-width:1}
+.st-tnode.root .st-tdot{fill:var(--st-ink)}
+.st-tree.yours .st-tline{stroke:var(--st-ochre)}
+.st-tree.yours .st-tnode:not(.root) .st-tdot{fill:var(--st-sun)}
+.st-tree.build .st-tnode:not(.root) .st-tdot{fill:var(--st-sun)}
+.st-tree .st-hit{stroke:transparent;fill:transparent;stroke-width:9;pointer-events:all}
+.st-tnode[role=button],.st-tedge[role=button]{cursor:pointer}
+.st-tnode:focus,.st-tedge:focus{outline:none}
+.st-tnode:focus-visible .st-tdot,.st-tnode.hinted .st-tdot{stroke:var(--st-ochre);stroke-width:1.8}
+.st-tnode.hinted .st-tdot{stroke-dasharray:1.4 1}
+.st-tedge:focus-visible .st-tline,.st-tedge.hinted .st-tline{stroke:var(--st-ochre);stroke-width:2.6}
+.st-tedge.hinted .st-tline{stroke-dasharray:2 1.4}
+.st-trees{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;max-width:380px}
+.st-trees .st-tree{flex:1 1 0;min-width:0;max-width:170px;max-height:24vh}
+.st-vs{font-family:var(--b-display,Georgia,serif);font-size:1.6rem;color:var(--st-muted)}
+.st-trees.same .st-vs{color:var(--st-pine)}
+
+/* Buttons, words, the shelf, swap beads and the start cards. */
+.st-bar{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.5rem .8rem}
+.st-puzzle .st-button{min-height:46px;min-width:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--st-paper);color:var(--st-ink);border:1px solid var(--st-pine);border-radius:12px;box-shadow:0 2px 0 var(--st-line)}
+.st-puzzle .st-button[aria-pressed=true]{background:#e9eddc;border-color:var(--st-pine);box-shadow:inset 0 0 0 1.5px var(--st-pine);color:var(--st-ink)}
+.st-puzzle .st-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--st-line)}
+.st-puzzle .st-button.hinted{outline:4px dashed var(--st-ochre);outline-offset:4px}
+.st-size{display:inline-flex;gap:.4rem}
+.st-size .st-button{font-size:1.25rem;padding:4px 14px}
+.st-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--st-ink);text-align:center}
+.st-shelf{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;max-width:420px}
+.st-shelf li{width:58px;padding:2px;background:var(--st-paper);border:1px solid var(--st-line);border-radius:10px}
+.st-shelf li.again{border-color:var(--st-pine);box-shadow:inset 0 0 0 1.5px var(--st-pine)}
+@media (prefers-reduced-motion:no-preference){.st-shelf li.again{animation:st-pop .45s ease-out}}
+@keyframes st-pop{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+.st-beads{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;min-height:10px;max-width:320px}
+.st-beads i{width:10px;height:10px;border-radius:50%;background:var(--st-pine)}
+.st-cards{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:4px}
+.st-card{display:flex;flex-direction:column;align-items:center;min-width:26px;padding:3px 0;border:1px solid var(--st-line);border-radius:6px;background:var(--st-paper);font-family:var(--b-display,Georgia,serif)}
+.st-card b{font-weight:600;color:var(--st-ink)}
+.st-card i{font-style:normal;font-size:.8rem;color:var(--st-ochre);font-weight:700}
+.st-card.D{border-color:var(--st-ochre)}
+.st-sum{align-self:center;margin-left:.4rem;font-family:var(--b-display,Georgia,serif);color:var(--st-ink)}
+.st-path-frame{max-width:420px}
+@media (max-width:640px){.st-puzzle.st-two .st-row{flex-direction:column}.st-side{flex-basis:auto}}

@@ -1,0 +1,993 @@
+{
+ "title": "Stretch bands",
+ "version": 1,
+ "families": [
+  {
+   "id": "radon",
+   "title": "Stretch bands",
+   "mathematics": "Labelled dots sit on the points of a square lattice. A split puts them in two groups, and a group’s band is the convex hull of its dots: a dot, a segment or a filled shape. A split meets when the two bands share a point. Radon’s theorem in the plane: four dots always have a split that meets, while three dots not on a line have none, so four is sharp. With no three dots on a line exactly one split of four meets (crossing diagonals, or a dot inside the triangle of the others); a dot on the line through two others gives two; four dots on a line give four; two labels on one point give at least four. With A, B and C fixed and not on a line, a placed D makes 1, 2 or 4 splits meet, 4 only on top of one of them. Every coordinate is a whole number, so contacts and lines are exact.",
+   "rules": [
+    "Every dot goes in one of two groups, yellow or blue, with at least one dot in each. That is a split.",
+    "A group’s band is stretched round its dots: one dot is just that dot, two make a segment, three make a filled triangle.",
+    "A split meets when the two bands share a point. Touching counts.",
+    "Swapping yellow and blue gives the same split."
+   ],
+   "sourceIds": [
+    "radon-week22",
+    "radon-card22",
+    "radon-gallier"
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "id": "radon-week22",
+   "title": "Bellingham Math Circle — Week 22: Meeting regions, four-point convex partitions (student packets and adult guide)",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-22",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "radon-card22",
+   "title": "Week 22 review card and math check (answers, App fit and Decision)",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-22.md",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "radon-gallier",
+   "title": "Jean Gallier and Jocelyn Quaintance — Aspects of Convex Geometry (author-hosted version of October 9, 2025), §3.5, Theorem 3.10 (Radon’s theorem) and Figure 3.10, printed pages 75–77, as cited by the Week 22 adult guide",
+   "url": "https://www.cis.upenn.edu/~jean/combtopol.pdf",
+   "kind": "research"
+  }
+ ],
+ "puzzles": [
+  {
+   "id": "radon-playground",
+   "number": 0,
+   "title": "Stretch bands playground",
+   "difficulty_level": "playground",
+   "familyTitle": "Stretch bands",
+   "mechanic": "radon",
+   "band": "playground",
+   "revision": 1,
+   "sourceDocument": "docs/radon/README.md",
+   "parameters": {
+    "mode": "playground",
+    "cols": 6,
+    "rows": 6,
+    "labels": {
+     "A": [
+      1,
+      1
+     ],
+     "B": [
+      5,
+      2
+     ],
+     "C": [
+      4,
+      5
+     ],
+     "D": [
+      1,
+      4
+     ]
+    },
+    "groups": [
+     0,
+     0,
+     1,
+     1
+    ]
+   },
+   "objective": "Move the four dots and switch their colours to see when the yellow band meets the blue one.",
+   "visibleObjective": "",
+   "instruction": "Move the four dots and switch their colours to see when the yellow band meets the blue one.",
+   "controls": "Tap a letter to switch its colour. Press Move, then tap a letter and a free place to move it there; arrow keys move it too. Press Move again to colour.",
+   "rules": [
+    "Every dot goes in one of two groups, yellow or blue, with at least one dot in each. That is a split.",
+    "A group’s band is stretched round its dots: one dot is just that dot, two make a segment, three make a filled triangle.",
+    "A split meets when the two bands share a point. Touching counts.",
+    "Swapping yellow and blue gives the same split."
+   ],
+   "idea": "Free play with four dots: one player places them, the other looks for a split that meets.",
+   "prerequisites": "None. A grown-up or a partner can place the dots as a challenge.",
+   "hints": [
+    "Place the dots for a partner, then let them colour.",
+    "Try to place four dots so that no split meets.",
+    "Some split always meets: a dot between two others, a dot inside the triangle of the others, or crossing diagonals."
+   ],
+   "parent": {
+    "notice": "Whether your child, placing the dots, tries to beat the splitter, and what they try: a line, a triangle with a dot inside, a square.",
+    "prompt": "Can you place the four dots so that no split meets?",
+    "explanation": "No: every placement of four dots has a split that meets. (Here each dot has its own place; if two shared one, put one of them alone.) If three are on a line, put the middle one alone. Otherwise either one dot is inside the triangle of the others (put it alone) or the four make a quadrilateral whose diagonals cross (pair opposite corners).",
+    "extension": "With three dots, can the placer always win? (Yes, unless the three are on one line.)",
+    "connection": "Radon’s theorem in the plane, case by case (guide p. 18).",
+    "sourceIds": [
+     "radon-week22",
+     "radon-card22",
+     "radon-gallier"
+    ]
+   },
+   "provenance": "Week 22 K–1 Problems 4 and 6 and 2–3 Problem 6: take turns placing A, B, C and D; can the other player always split them so the bands meet?"
+  },
+  {
+   "id": "radon-01",
+   "number": 1,
+   "title": "Four dots",
+   "difficulty_level": "easy",
+   "familyTitle": "Stretch bands",
+   "mechanic": "radon",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/radon/README.md",
+   "parameters": {
+    "mode": "every",
+    "cols": 6,
+    "rows": 6,
+    "labels": {
+     "A": [
+      1,
+      1
+     ],
+     "B": [
+      5,
+      1
+     ],
+     "C": [
+      2,
+      5
+     ],
+     "D": [
+      4,
+      1
+     ]
+    }
+   },
+   "objective": "Put every split of the dots whose bands meet on the shelf, and no other, then press That’s all.",
+   "visibleObjective": "Find every split whose bands meet.",
+   "instruction": "Put every split of the dots whose bands meet on the shelf, and no other, then press That’s all.",
+   "controls": "Tap a letter to switch it between yellow and blue. Press Meet to put the split on the shelf; tap a split on the shelf to take it off. Press That’s all when the shelf is complete.",
+   "rules": [
+    "Every dot goes in one of two groups, yellow or blue, with at least one dot in each. That is a split.",
+    "A group’s band is stretched round its dots: one dot is just that dot, two make a segment, three make a filled triangle.",
+    "A split meets when the two bands share a point. Touching counts.",
+    "Swapping yellow and blue gives the same split.",
+    "Press Meet when you think yellow’s band meets blue’s: the split goes on the shelf below. Tap a split on the shelf to take it off.",
+    "Press That’s all when you think the shelf holds every split that meets and no other. If a split on it doesn’t meet, its bands are drawn apart; if one is missing, it says there is another."
+   ],
+   "idea": "When D lies on the segment from A to B, two splits meet, both at D.",
+   "prerequisites": "Sort four letters into two groups and see whether two drawn bands touch. No reading; a grown-up can read How to play.",
+   "hints": [
+    "Can a group have just one dot?",
+    "D is on the segment from A to B. Which bands could touch D?",
+    "Two meet: A and B against C and D, and A, B and C against D."
+   ],
+   "parent": {
+    "notice": "Whether your child counts touching as meeting, and whether they try splits in some order or at random.",
+    "prompt": "Why do yellow A and B meet blue C and D?",
+    "explanation": "D lies on the segment AB, so it is in the segment AB and in the segment CD: AB | CD meets at D. D is also on an edge of the filled triangle ABC, so ABC | D meets at D. The other five fail: A alone is outside triangle BCD, B alone is outside triangle ACD, C alone is off the segment through A, B and D, and AC | BD and AD | BC are apart.",
+    "extension": "Where else on the line through A and B could D go? Past B, the two that meet are AD | BC and ACD | B, both at B (puzzle 7 asks for that).",
+    "connection": "Radon’s theorem: four points in the plane always have a split whose convex hulls meet. A point on a segment is a degenerate case, with two such splits.",
+    "sourceIds": [
+     "radon-week22",
+     "radon-card22",
+     "radon-gallier"
+    ]
+   },
+   "solution": {
+    "answers": [
+     "AB|CD",
+     "ABC|D"
+    ]
+   },
+   "provenance": "Week 22 K–1 Problem 2, D on AB, on a 6 × 6 lattice with D off the middle of AB."
+  },
+  {
+   "id": "radon-02",
+   "number": 2,
+   "title": "One split",
+   "difficulty_level": "easy",
+   "familyTitle": "Stretch bands",
+   "mechanic": "radon",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/radon/README.md",
+   "parameters": {
+    "mode": "place",
+    "cols": 6,
+    "rows": 6,
+    "labels": {
+     "A": [
+      1,
+      1
+     ],
+     "B": [
+      5,
+      1
+     ],
+     "C": [
+      1,
+      5
+     ]
+    },
+    "start": [
+     5,
+     5
+    ],
+    "goal": [
+     "ABC|D"
+    ],
+    "where": "Put D inside the triangle of A, B and C."
+   },
+   "objective": "Move D so that the splits shown meet and no other split does.",
+   "visibleObjective": "Move D so only this split meets.",
+   "instruction": "Move D so that the splits shown meet and no other split does.",
+   "controls": "Tap a place on the board to move D there, or use the arrow keys. Press Check.",
+   "rules": [
+    "Every dot goes in one of two groups, yellow or blue, with at least one dot in each. That is a split.",
+    "A group’s band is stretched round its dots: one dot is just that dot, two make a segment, three make a filled triangle.",
+    "A split meets when the two bands share a point. Touching counts.",
+    "Swapping yellow and blue gives the same split.",
+    "A, B and C stay put. Move D, then press Check: the splits shown must meet, and no other split may. If not, the board shows a split that breaks the rule.",
+    "D may sit on top of another dot."
+   ],
+   "idea": "A dot strictly inside the triangle of the other three makes exactly one split meet.",
+   "prerequisites": "Picture the bands of a split before they are drawn, and see when three dots are on a line. A grown-up can read the goal.",
+   "hints": [
+    "Where would D have to be for the triangle ABC to cover it?",
+    "Inside the triangle, not on an edge or a corner: there, other splits meet too.",
+    "Put D at 2 across, 2 up."
+   ],
+   "parent": {
+    "notice": "Whether your child pictures the triangle before Check draws it.",
+    "prompt": "Why doesn’t A against B, C and D meet when D is inside?",
+    "explanation": "With D strictly inside triangle ABC, ABC | D meets at D. No other split does: A, B and C are each outside the triangle of the other three, and a segment from a corner to D stays inside the triangle and cannot reach the opposite side (guide p. 4). Three lattice points work: 2 across and 2 or 3 up, and 3 across, 2 up.",
+    "extension": "Where could D go so that A alone meets? (Past A, so that A is inside triangle BCD: 0 across, 0 up.)",
+    "connection": "In general position exactly one of the seven splits meets: the Radon partition of four points is unique.",
+    "sourceIds": [
+     "radon-week22",
+     "radon-card22",
+     "radon-gallier"
+    ]
+   },
+   "solution": {
+    "answers": [
+     [
+      2,
+      3
+     ],
+     [
+      2,
+      2
+     ],
+     [
+      3,
+      2
+     ]
+    ]
+   },
+   "provenance": "Week 22 K–1 Problem 1, the inside cross, turned round: place D so that only ABC | D meets."
+  },
+  {
+   "id": "radon-03",
+   "number": 3,
+   "title": "Four corners",
+   "difficulty_level": "easy",
+   "familyTitle": "Stretch bands",
+   "mechanic": "radon",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/radon/README.md",
+   "parameters": {
+    "mode": "every",
+    "cols": 6,
+    "rows": 6,
+    "labels": {
+     "A": [
+      1,
+      1
+     ],
+     "B": [
+      5,
+      4
+     ],
+     "C": [
+      5,
+      1
+     ],
+     "D": [
+      2,
+      5
+     ]
+    }
+   },
+   "objective": "Put every split of the dots whose bands meet on the shelf, and no other, then press That’s all.",
+   "visibleObjective": "Find every split whose bands meet.",
+   "instruction": "Put every split of the dots whose bands meet on the shelf, and no other, then press That’s all.",
+   "controls": "Tap a letter to switch it between yellow and blue. Press Meet to put the split on the shelf; tap a split on the shelf to take it off. Press That’s all when the shelf is complete.",
+   "rules": [
+    "Every dot goes in one of two groups, yellow or blue, with at least one dot in each. That is a split.",
+    "A group’s band is stretched round its dots: one dot is just that dot, two make a segment, three make a filled triangle.",
+    "A split meets when the two bands share a point. Touching counts.",
+    "Swapping yellow and blue gives the same split.",
+    "Press Meet when you think yellow’s band meets blue’s: the split goes on the shelf below. Tap a split on the shelf to take it off.",
+    "Press That’s all when you think the shelf holds every split that meets and no other. If a split on it doesn’t meet, its bands are drawn apart; if one is missing, it says there is another."
+   ],
+   "idea": "When the four dots are the corners of a shape with no dot inside, exactly one split meets: the two diagonals.",
+   "prerequisites": "Sort four letters into two groups and see whether two drawn bands touch. No reading; a grown-up can read How to play.",
+   "hints": [
+    "Is any dot inside the triangle of the other three?",
+    "No dot is inside the others’ triangle, and no three are on a line. Look for two segments that cross.",
+    "One split meets: A and B against C and D."
+   ],
+   "parent": {
+    "notice": "Whether your child looks for a dot inside the others’ triangle first, and whether they stop after one split or keep checking the rest.",
+    "prompt": "Why can’t a second split meet here?",
+    "explanation": "The dots are the corners of a four-sided shape, in the order A, C, B, D round it, so its diagonals are AB and CD, and they cross: AB | CD meets. No other split does: each dot is outside the triangle of the other three, and the sides AC and BD, and AD and BC, are opposite sides of the shape, which do not touch. With no three dots on a line exactly one split meets, so the shelf should hold just one.",
+    "extension": "Move one dot so that a different split is the only one that meets (puzzles 2 and 5 do this with D).",
+    "connection": "In general position the Radon partition of four points is unique: crossing diagonals, or a point inside a triangle.",
+    "sourceIds": [
+     "radon-week22",
+     "radon-card22",
+     "radon-gallier"
+    ]
+   },
+   "solution": {
+    "answers": [
+     "AB|CD"
+    ]
+   },
+   "provenance": "Week 22 4–5 Problem 1’s left placement (one split meets, at the crossing of the diagonals), on the lattice with the corners not in letter order; the first hint is the guide’s held hint for 4–5 Problem 3."
+  },
+  {
+   "id": "radon-04",
+   "number": 4,
+   "title": "On a line",
+   "difficulty_level": "medium",
+   "familyTitle": "Stretch bands",
+   "mechanic": "radon",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/radon/README.md",
+   "parameters": {
+    "mode": "every",
+    "cols": 8,
+    "rows": 5,
+    "labels": {
+     "A": [
+      1,
+      1
+     ],
+     "B": [
+      5,
+      3
+     ],
+     "C": [
+      3,
+      2
+     ],
+     "D": [
+      7,
+      4
+     ]
+    }
+   },
+   "objective": "Put every split of the dots whose bands meet on the shelf, and no other, then press That’s all.",
+   "visibleObjective": "Find every split whose bands meet.",
+   "instruction": "Put every split of the dots whose bands meet on the shelf, and no other, then press That’s all.",
+   "controls": "Tap a letter to switch it between yellow and blue. Press Meet to put the split on the shelf; tap a split on the shelf to take it off. Press That’s all when the shelf is complete.",
+   "rules": [
+    "Every dot goes in one of two groups, yellow or blue, with at least one dot in each. That is a split.",
+    "A group’s band is stretched round its dots: one dot is just that dot, two make a segment, three make a filled triangle.",
+    "A split meets when the two bands share a point. Touching counts.",
+    "Swapping yellow and blue gives the same split.",
+    "Press Meet when you think yellow’s band meets blue’s: the split goes on the shelf below. Tap a split on the shelf to take it off.",
+    "Press That’s all when you think the shelf holds every split that meets and no other. If a split on it doesn’t meet, its bands are drawn apart; if one is missing, it says there is another."
+   ],
+   "idea": "On a line every band is a stretch of the line; four dots in a row give four splits that meet.",
+   "prerequisites": "Sort four letters into two groups and see whether two drawn bands touch. No reading; a grown-up can read How to play.",
+   "hints": [
+    "On a line, each band is a stretch of the line.",
+    "Two stretches meet when they overlap or touch. Try a middle dot on its own.",
+    "Four meet: C alone, B alone, A and B against C and D, and A and D against B and C."
+   ],
+   "parent": {
+    "notice": "Whether your child keeps track of what is on the shelf and sees that swapping the colours is not a new split.",
+    "prompt": "How do you know there isn’t a fifth?",
+    "explanation": "The dots are on one line in the order A, C, B, D. A band is the stretch from its first to its last dot, and two stretches meet when they overlap. C and B each sit inside the stretch of the other three; AB and CD overlap from C to B; AD covers BC. A and D alone are at the ends, and AC and BD are side by side: four of the seven.",
+    "extension": "Put four dots on a line in another order. Is it always four? (Yes: the two middle dots alone, and the two pairings whose stretches interleave or nest.)",
+    "connection": "On a line Radon’s number is 3: of three dots on a line, the middle one alone always meets the other two.",
+    "sourceIds": [
+     "radon-week22",
+     "radon-card22",
+     "radon-gallier"
+    ]
+   },
+   "solution": {
+    "answers": [
+     "AB|CD",
+     "AD|BC",
+     "ABD|C",
+     "ACD|B"
+    ]
+   },
+   "provenance": "Week 22 4–5 Problem 2 (A, C, B, D in that order on a slanted line), on a slope-½ lattice line; the same task as K–1 Problem 3 and 2–3 Problem 2."
+  },
+  {
+   "id": "radon-05",
+   "number": 5,
+   "title": "One split again",
+   "difficulty_level": "medium",
+   "familyTitle": "Stretch bands",
+   "mechanic": "radon",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/radon/README.md",
+   "parameters": {
+    "mode": "place",
+    "cols": 6,
+    "rows": 6,
+    "labels": {
+     "A": [
+      1,
+      1
+     ],
+     "B": [
+      5,
+      1
+     ],
+     "C": [
+      1,
+      5
+     ]
+    },
+    "start": [
+     2,
+     2
+    ],
+    "goal": [
+     "AD|BC"
+    ],
+    "where": "Put D past the segment BC from A, so that A to D crosses B to C."
+   },
+   "objective": "Move D so that the splits shown meet and no other split does.",
+   "visibleObjective": "Move D so only this split meets.",
+   "instruction": "Move D so that the splits shown meet and no other split does.",
+   "controls": "Tap a place on the board to move D there, or use the arrow keys. Press Check.",
+   "rules": [
+    "Every dot goes in one of two groups, yellow or blue, with at least one dot in each. That is a split.",
+    "A group’s band is stretched round its dots: one dot is just that dot, two make a segment, three make a filled triangle.",
+    "A split meets when the two bands share a point. Touching counts.",
+    "Swapping yellow and blue gives the same split.",
+    "A, B and C stay put. Move D, then press Check: the splits shown must meet, and no other split may. If not, the board shows a split that breaks the rule.",
+    "D may sit on top of another dot."
+   ],
+   "idea": "AD against BC is the only split when the segment AD crosses BC and no three dots are on a line.",
+   "prerequisites": "Picture the bands of a split before they are drawn, and see when three dots are on a line. A grown-up can read the goal.",
+   "hints": [
+    "What are the bands of A and D, and of B and C? Where could D go for them to meet?",
+    "Past BC, seen from A, and not lined up with two of A, B and C: lined up, a second split meets.",
+    "Put D at 5 across, 5 up."
+   ],
+   "parent": {
+    "notice": "Whether D lands on the line through B and C, or on the line from A through B; Check then shows the extra split.",
+    "prompt": "Why can’t another split meet as well?",
+    "explanation": "With D past BC, the four dots make a convex quadrilateral whose diagonals are AD and BC, and the diagonals cross. Each dot is outside the triangle of the other three, and opposite sides are apart, so no other split meets. If D is on the line through two of A, B and C, three dots are on a line and a second split meets.",
+    "extension": "Where could D go so that AB against CD is the only split? (Past AB from C, below the segment AB, so that CD crosses AB.)",
+    "connection": "The Radon partition of a convex quadrilateral is its pair of diagonals.",
+    "sourceIds": [
+     "radon-week22",
+     "radon-card22",
+     "radon-gallier"
+    ]
+   },
+   "solution": {
+    "answers": [
+     [
+      2,
+      6
+     ],
+     [
+      3,
+      6
+     ],
+     [
+      4,
+      6
+     ],
+     [
+      5,
+      6
+     ],
+     [
+      6,
+      6
+     ],
+     [
+      2,
+      5
+     ],
+     [
+      3,
+      5
+     ],
+     [
+      4,
+      5
+     ],
+     [
+      5,
+      5
+     ],
+     [
+      6,
+      5
+     ],
+     [
+      3,
+      4
+     ],
+     [
+      4,
+      4
+     ],
+     [
+      5,
+      4
+     ],
+     [
+      6,
+      4
+     ],
+     [
+      4,
+      3
+     ],
+     [
+      5,
+      3
+     ],
+     [
+      6,
+      3
+     ],
+     [
+      5,
+      2
+     ],
+     [
+      6,
+      2
+     ]
+    ]
+   },
+   "provenance": "Week 22 K–1 Problem 1’s upper-right cross (AD | BC) turned round, as the review card’s App fit suggests; 4–5 Problem 5 asks for arrangements with a single success."
+  },
+  {
+   "id": "radon-06",
+   "number": 6,
+   "title": "Where can C go?",
+   "difficulty_level": "medium",
+   "familyTitle": "Stretch bands",
+   "mechanic": "radon",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/radon/README.md",
+   "parameters": {
+    "mode": "locus",
+    "cols": 8,
+    "rows": 5,
+    "labels": {
+     "A": [
+      2,
+      1
+     ],
+     "B": [
+      6,
+      3
+     ]
+    }
+   },
+   "objective": "Find every place where C can go so that some split of A, B and C meets, then press That’s all.",
+   "visibleObjective": "Find every place for C where a split meets.",
+   "instruction": "Find every place where C can go so that some split of A, B and C meets, then press That’s all.",
+   "controls": "Tap a place to put C there. Press That’s all when every place is found.",
+   "rules": [
+    "Every dot goes in one of two groups, yellow or blue, with at least one dot in each. That is a split.",
+    "A group’s band is stretched round its dots: one dot is just that dot, two make a segment, three make a filled triangle.",
+    "A split meets when the two bands share a point. Touching counts.",
+    "Swapping yellow and blue gives the same split.",
+    "A and B stay put. Tap a free place to put C there. If some split of A, B and C meets, the place gets a ring and the bands are drawn; if none does, it gets a cross and all three splits are shown apart.",
+    "Press That’s all when you think you have every place. It says if there is another."
+   ],
+   "idea": "Three dots have a split that meets only when they are on one line: every place for C is on the line through A and B, beyond them too.",
+   "prerequisites": "See when three dots of a square grid lie on one straight line, including slanted lines.",
+   "hints": [
+    "Where must C be for one dot to lie on the segment of the other two?",
+    "On the line through A and B. Look past A and past B too.",
+    "C works at 0 across, 0 up, at 4 across, 2 up and at 8 across, 4 up."
+   ],
+   "parent": {
+    "notice": "Whether your child looks only between A and B, and whether they see that the line goes on past both.",
+    "prompt": "Why does no dot off the line work?",
+    "explanation": "Each split of three dots is one dot against the segment of the other two, and it meets only when that dot is on that segment, so all three must be on one line. Every free lattice point on the line through A and B works: between A and B, C alone meets; past B, B is between A and C; past A, A is between. The line climbs 1 for every 2 across, so it passes through a lattice point only every 2 across. Each cross is three dots with no split that meets, drawn as its three splits apart: so three dots are not enough, and with four some split always meets (puzzles 1 to 4), which makes four the sharp number in the plane.",
+    "extension": "Could C sit on A? (Yes: then A alone and C alone both meet. The app keeps C off A and B here; the worksheet counts their places too.)",
+    "connection": "Three points have a Radon partition exactly when they are collinear, so Radon’s number in the plane, 4 = d + 2, is sharp (guide, 4–5 Problem 7).",
+    "sourceIds": [
+     "radon-week22",
+     "radon-card22",
+     "radon-gallier"
+    ]
+   },
+   "solution": {
+    "answers": [
+     [
+      8,
+      4
+     ],
+     [
+      4,
+      2
+     ],
+     [
+      0,
+      0
+     ]
+    ]
+   },
+   "provenance": "Week 22 2–3 Problem 5 and K–1 Problem 5 (find every place for C), with A and B on a slope-½ lattice line so that three free dots work."
+  },
+  {
+   "id": "radon-07",
+   "number": 7,
+   "title": "Two splits",
+   "difficulty_level": "medium",
+   "familyTitle": "Stretch bands",
+   "mechanic": "radon",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/radon/README.md",
+   "parameters": {
+    "mode": "place",
+    "cols": 6,
+    "rows": 6,
+    "labels": {
+     "A": [
+      1,
+      1
+     ],
+     "B": [
+      5,
+      1
+     ],
+     "C": [
+      1,
+      5
+     ]
+    },
+    "start": [
+     2,
+     3
+    ],
+    "goal": [
+     "AD|BC",
+     "ACD|B"
+    ],
+    "where": "Put D on the line from A through B, past B."
+   },
+   "objective": "Move D so that the splits shown meet and no other split does.",
+   "visibleObjective": "Move D so only these splits meet.",
+   "instruction": "Move D so that the splits shown meet and no other split does.",
+   "controls": "Tap a place on the board to move D there, or use the arrow keys. Press Check.",
+   "rules": [
+    "Every dot goes in one of two groups, yellow or blue, with at least one dot in each. That is a split.",
+    "A group’s band is stretched round its dots: one dot is just that dot, two make a segment, three make a filled triangle.",
+    "A split meets when the two bands share a point. Touching counts.",
+    "Swapping yellow and blue gives the same split.",
+    "A, B and C stay put. Move D, then press Check: the splits shown must meet, and no other split may. If not, the board shows a split that breaks the rule.",
+    "D may sit on top of another dot."
+   ],
+   "idea": "Two splits meet when three dots are on a line, and both meet at the middle one.",
+   "prerequisites": "Picture the bands of a split before they are drawn, and see when three dots are on a line. A grown-up can read the goal.",
+   "hints": [
+    "Both splits can meet at the same dot. Which one?",
+    "B must be on the segment from A to D.",
+    "Put D at 6 across, 1 up."
+   ],
+   "parent": {
+    "notice": "Whether your child sees that both splits share B, then lines D up with A and B.",
+    "prompt": "Why must B lie between A and D?",
+    "explanation": "In general position only one split meets, so two means three dots on a line. Then the middle dot alone meets, and so does the pairing of the two ends against the middle dot with the fourth. Here B alone (ACD | B) and AD | BC meet, so B is the middle of A, B, D on one line: D is past B on the line from A, at 6 across, 1 up, the only such lattice point on the board.",
+    "extension": "Which two meet when D is on the segment AC? (AC against BD, and A, B and C against D.)",
+    "connection": "Exactly two Radon partitions means exactly one collinear triple.",
+    "sourceIds": [
+     "radon-week22",
+     "radon-card22",
+     "radon-gallier"
+    ]
+   },
+   "solution": {
+    "answers": [
+     [
+      6,
+      1
+     ]
+    ]
+   },
+   "provenance": "Week 22 K–1 Problem 2, D beyond B, turned round, as the review card’s App fit suggests (“exactly two work, on a line through two dots”)."
+  },
+  {
+   "id": "radon-08",
+   "number": 8,
+   "title": "Sharing a place",
+   "difficulty_level": "hard",
+   "familyTitle": "Stretch bands",
+   "mechanic": "radon",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/radon/README.md",
+   "parameters": {
+    "mode": "every",
+    "cols": 6,
+    "rows": 6,
+    "labels": {
+     "A": [
+      2,
+      2
+     ],
+     "B": [
+      5,
+      1
+     ],
+     "C": [
+      3,
+      5
+     ],
+     "D": [
+      2,
+      2
+     ]
+    }
+   },
+   "objective": "Put every split of the dots whose bands meet on the shelf, and no other, then press That’s all.",
+   "visibleObjective": "Find every split whose bands meet.",
+   "instruction": "Put every split of the dots whose bands meet on the shelf, and no other, then press That’s all.",
+   "controls": "Tap a letter to switch it between yellow and blue. Press Meet to put the split on the shelf; tap a split on the shelf to take it off. Press That’s all when the shelf is complete.",
+   "rules": [
+    "Every dot goes in one of two groups, yellow or blue, with at least one dot in each. That is a split.",
+    "A group’s band is stretched round its dots: one dot is just that dot, two make a segment, three make a filled triangle.",
+    "A split meets when the two bands share a point. Touching counts.",
+    "Swapping yellow and blue gives the same split.",
+    "Press Meet when you think yellow’s band meets blue’s: the split goes on the shelf below. Tap a split on the shelf to take it off.",
+    "Press That’s all when you think the shelf holds every split that meets and no other. If a split on it doesn’t meet, its bands are drawn apart; if one is missing, it says there is another."
+   ],
+   "idea": "Two letters on one place give four splits that meet: every split that puts them apart.",
+   "prerequisites": "Sort four letters into two groups and see whether two drawn bands touch. No reading; a grown-up can read How to play.",
+   "hints": [
+    "Look closely at every dot.",
+    "Any split with A and D in different colours meets where they sit.",
+    "Four meet: A alone, A and B against C and D, A and C against B and D, and A, B and C against D."
+   ],
+   "parent": {
+    "notice": "Whether your child treats A and D as one dot, or tries putting them in different colours.",
+    "prompt": "Does a split always meet when two letters share a place?",
+    "explanation": "If A and D are in different groups, both bands contain their shared dot, so the split meets: A | BCD, AB | CD, AC | BD and ABC | D. If they are in the same group, that group’s band is the dot or a segment from it, against B, C or the segment BC, and on this board none of those touch: AD | BC, ABD | C and ACD | B are apart. Yes, a split always meets: put A alone.",
+    "extension": "What if three letters share a place? (Six of the seven meet; all four on one place, all seven.)",
+    "connection": "Radon’s theorem allows repeated points; this is the first case of the guide’s proof (guide p. 18).",
+    "sourceIds": [
+     "radon-week22",
+     "radon-card22",
+     "radon-gallier"
+    ]
+   },
+   "solution": {
+    "answers": [
+     "A|BCD",
+     "AB|CD",
+     "AC|BD",
+     "ABC|D"
+    ]
+   },
+   "provenance": "Week 22 4–5 Problem 4 (A and D share a location), on the lattice."
+  },
+  {
+   "id": "radon-09",
+   "number": 9,
+   "title": "Four splits",
+   "difficulty_level": "hard",
+   "familyTitle": "Stretch bands",
+   "mechanic": "radon",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/radon/README.md",
+   "parameters": {
+    "mode": "place",
+    "cols": 6,
+    "rows": 6,
+    "labels": {
+     "A": [
+      1,
+      1
+     ],
+     "B": [
+      5,
+      1
+     ],
+     "C": [
+      1,
+      5
+     ]
+    },
+    "start": [
+     3,
+     2
+    ],
+    "goal": [
+     "AB|CD",
+     "AD|BC",
+     "ABC|D",
+     "ACD|B"
+    ],
+    "where": "Put D on B."
+   },
+   "objective": "Move D so that the splits shown meet and no other split does.",
+   "visibleObjective": "Move D so only these splits meet.",
+   "instruction": "Move D so that the splits shown meet and no other split does.",
+   "controls": "Tap a place on the board to move D there, or use the arrow keys. Press Check.",
+   "rules": [
+    "Every dot goes in one of two groups, yellow or blue, with at least one dot in each. That is a split.",
+    "A group’s band is stretched round its dots: one dot is just that dot, two make a segment, three make a filled triangle.",
+    "A split meets when the two bands share a point. Touching counts.",
+    "Swapping yellow and blue gives the same split.",
+    "A, B and C stay put. Move D, then press Check: the splits shown must meet, and no other split may. If not, the board shows a split that breaks the rule.",
+    "D may sit on top of another dot."
+   ],
+   "idea": "With A, B and C apart, four splits meet only when D sits on one of them: the four that separate the two.",
+   "prerequisites": "Picture the bands of a split before they are drawn, and see when three dots are on a line. A grown-up can read the goal.",
+   "hints": [
+    "What do these four splits have in common?",
+    "Each split puts B and D in different groups. Where would D have to be for all of those to meet?",
+    "Put D on B."
+   ],
+   "parent": {
+    "notice": "Whether your child knows that two letters may share a place, and how they find it.",
+    "prompt": "Why can’t D anywhere else make four meet?",
+    "explanation": "With A, B and C fixed and not on a line, D makes one split meet in general position, two on a line through two of them, and four only on top of one of them; the validator checks every lattice point of the board. ACD | B needs B in triangle ACD and ABC | D needs D in triangle ABC, and together they force D onto B.",
+    "extension": "With A, B and C apart, can five meet? (No: four is the most.)",
+    "connection": "Four labelled points have 1, 2, 4, 5, 6 or 7 Radon partitions, never 0 or 3; with three of them fixed apart, 1, 2 or 4.",
+    "sourceIds": [
+     "radon-week22",
+     "radon-card22",
+     "radon-gallier"
+    ]
+   },
+   "solution": {
+    "answers": [
+     [
+      5,
+      1
+     ]
+    ]
+   },
+   "provenance": "New, from the Week 22 review card’s App fit: “or four (only on a vertex; card_app_check.py finds only 1, 2 or 4)”."
+  },
+  {
+   "id": "radon-10",
+   "number": 10,
+   "title": "Two boards",
+   "difficulty_level": "hard",
+   "familyTitle": "Stretch bands",
+   "mechanic": "radon",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/radon/README.md",
+   "parameters": {
+    "mode": "pair",
+    "cols": 8,
+    "rows": 5,
+    "boards": [
+     {
+      "A": [
+       1,
+       1
+      ],
+      "B": [
+       5,
+       3
+      ],
+      "C": [
+       3,
+       2
+      ],
+      "D": [
+       7,
+       4
+      ]
+     },
+     {
+      "A": [
+       1,
+       1
+      ],
+      "B": [
+       5,
+       3
+      ],
+      "C": [
+       3,
+       2
+      ],
+      "D": [
+       7,
+       4
+      ]
+     }
+    ]
+   },
+   "objective": "Move dots so that no split meets on both boards.",
+   "visibleObjective": "Move dots so no split meets on both boards.",
+   "instruction": "Move dots so that no split meets on both boards.",
+   "controls": "Tap a letter to choose it, then a free place on the same board to move it there; arrow keys move the chosen letter. Press Check.",
+   "rules": [
+    "Every dot goes in one of two groups, yellow or blue, with at least one dot in each. That is a split.",
+    "A group’s band is stretched round its dots: one dot is just that dot, two make a segment, three make a filled triangle.",
+    "A split meets when the two bands share a point. Touching counts.",
+    "Swapping yellow and blue gives the same split.",
+    "Each board has its own A, B, C and D, one to a place. Move dots on either board, then press Check: no split may meet on both boards. If one does, it is drawn on both."
+   ],
+   "idea": "Every board has a split that meets, but two boards can avoid sharing one.",
+   "prerequisites": "Remember which splits meet on one board while building the other, and see when three dots are on a line.",
+   "hints": [
+    "Which splits meet on the line? None of them may meet on the other board.",
+    "Make one board where a single split meets, one that doesn’t meet on the line.",
+    "On the second board, move B off the line and then put D inside the triangle of A, B and C."
+   ],
+   "parent": {
+    "notice": "Whether your child first works out which splits meet on the line (puzzle 4) and then aims for one of the others.",
+    "prompt": "Which splits are left once the line has taken its four?",
+    "explanation": "On the line A, C, B, D four splits meet: AB | CD, AD | BC, ABD | C and ACD | B. The other three, A | BCD, AC | BD and ABC | D, are free. A board with no three dots on a line has exactly one split that meets, so it is enough to make one of those three the only one: D inside triangle ABC, A inside triangle BCD, or AC crossing BD. No single move off the line does it (a dot moved off leaves three on a line, whose two splits are among the four), so it takes two.",
+    "extension": "Make two boards that each have exactly one split, different ones (4–5 Problem 5).",
+    "connection": "Every four points have a Radon partition, and which partition depends only on the order type of the points.",
+    "sourceIds": [
+     "radon-week22",
+     "radon-card22",
+     "radon-gallier"
+    ]
+   },
+   "solution": {
+    "moves": [
+     {
+      "type": "put",
+      "board": 1,
+      "label": "A",
+      "at": [
+       1,
+       2
+      ]
+     },
+     {
+      "type": "put",
+      "board": 1,
+      "label": "B",
+      "at": [
+       0,
+       1
+      ]
+     }
+    ],
+    "splits": [
+     [
+      "AB|CD",
+      "AD|BC",
+      "ABD|C",
+      "ACD|B"
+     ],
+     [
+      "AC|BD"
+     ]
+    ]
+   },
+   "provenance": "Week 22 2–3 Problem 4 (two arrangements; no split may work for both), with both boards starting on 4–5 Problem 2’s line."
+  }
+ ]
+}

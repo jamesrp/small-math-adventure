@@ -40,7 +40,31 @@ const paths = [
   './families/lamplighter/lamplighter.js',
   './families/robot/robot.js',
   './families/elevators/elevators.js',
-  './families/meeting/meeting.js'
+  './families/meeting/meeting.js',
+  './families/portals/portals.js',
+  './families/gapflood/gapflood.js',
+  './families/matching/matching.js',
+  './families/ends/ends.js',
+  './families/towers/towers.js',
+  './families/knots/knots.js',
+  './families/cardmachines/cardmachines.js',
+  './families/geoboard/geoboard.js',
+  './families/squares/squares.js',
+  './families/covers/covers.js',
+  './families/sites/sites.js',
+  './families/glued/glued.js',
+  './families/shields/shields.js',
+  './families/strands/strands.js',
+  './families/averages/averages.js',
+  './families/radon/radon.js',
+  './families/ranges/ranges.js',
+  './families/diffs/diffs.js',
+  './families/sumsets/sumsets.js',
+  './families/trios/trios.js',
+  './families/nests/nests.js',
+  './families/joins/joins.js',
+  './families/strings/strings.js',
+  './families/shares/shares.js'
 ];
 
 export const FAMILIES = await Promise.all(paths.map(path => import(path).then(module => module.default)));

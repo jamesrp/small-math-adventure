@@ -1,0 +1,108 @@
+/* Tower cities: a row of towers between two end numbers, and the Orchard's
+   grid of squares with edge numbers around it. A square's leaf fill rises with
+   its height. Looking along a line marks the towers seen in sun and greys the
+   hidden ones; the side view below the grid shows the same line as towers.
+   Pine for the chosen thing, ochre for attention, Georgia for numbers. */
+.tw-board{--tw-ink:var(--b-ink,#294439);--tw-line:var(--b-line,#d0d6bd);--tw-card:var(--b-card,#fffdf5);--tw-paper:var(--b-paper,#f5f1e6);--tw-sun:var(--b-sun,#efc76e);--tw-leaf:#cfdcc8;--tw-grey:#e4e2d6;--tw-pine:var(--b-pine,#31533e);--tw-ochre:var(--b-ochre,#b38840);--tw-bad:var(--b-bad,#a9503a);--tw-num:var(--b-display,Georgia,'Times New Roman',serif);display:flex;flex-direction:column;align-items:center;gap:.85rem;width:100%;color:var(--tw-ink)}
+.tw-board button{font-family:inherit;color:inherit}
+.tw-main{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:1rem 1.4rem;max-width:100%}
+
+/* The row of towers */
+.tw-rowgrid{--tw:56px;--bh:20px;display:grid;grid-template-columns:48px repeat(var(--n),var(--tw)) 48px;align-items:end;justify-items:center;gap:8px 6px;padding:.8rem .7rem .6rem;border-radius:16px;background:var(--tw-paper);border:1.5px dashed var(--tw-line);max-width:100%}
+.tw-rowboard.solved .tw-rowgrid{border:2px solid var(--b-good,#3c7a4a);background:var(--b-good-soft,#e2ecd6)}
+.tw-end{display:grid;place-items:center;width:46px;height:46px;margin-bottom:26px;padding:0;border-radius:50%;border:2px solid var(--tw-ink);background:var(--tw-card);font-family:var(--tw-num)!important;font-size:1.45rem;cursor:pointer;position:relative}
+.tw-end.looking{background:var(--tw-pine);border-color:var(--tw-pine);color:var(--b-on-pine,#fff8d9)}
+.tw-end .tw-eye{position:absolute;top:-17px;width:24px;height:16px}
+.tw-tower{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;padding:6px 4px 4px;border:2px solid transparent;border-radius:12px;background:transparent;cursor:pointer;touch-action:none}
+.tw-tower:is(button):hover{background:#efeadb}
+.tw-tower.lifted{border-color:var(--tw-pine);background:#e9eddc;transform:translateY(-6px)}
+.tw-stack{display:flex;flex-direction:column-reverse;gap:2px}
+.tw-stack i{display:block;width:calc(var(--tw) - 14px);height:var(--bh);border:1.5px solid var(--tw-ink);border-radius:4px;background:var(--tw-leaf)}
+.tw-tower.seen .tw-stack i{background:var(--tw-sun)}
+.tw-tower.hidden .tw-stack i{background:var(--tw-grey);border-color:#9ba190}
+.tw-num{font-family:var(--tw-num);font-size:1.05rem;line-height:1}
+.tw-proof{display:contents}
+.tw-lane-slot{display:flex;align-items:flex-end;justify-content:center;width:100%;height:34px;border-bottom:1.5px dotted var(--tw-line)}
+.tw-ghost{display:block;width:22px;height:30px;border:2px dashed var(--tw-ochre);border-radius:5px;background:#f7e3b3}
+.tw-miss{display:grid;place-items:center;width:26px;height:30px;color:var(--tw-bad);font-size:1.5rem;font-weight:700;line-height:1}
+.tw-rowboard .tw-tower.tallest{border-color:var(--tw-ochre);border-style:dashed}
+.tw-lane-end{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--tw-ochre);color:#fff;font-family:var(--tw-num);font-size:1.05rem}
+
+/* The city grid and its edge places */
+.tw-city{--c:60px;--e:44px;display:grid;grid-template-columns:var(--e) repeat(var(--n),var(--c)) var(--e);grid-auto-rows:auto;gap:4px;align-items:center;justify-items:center}
+.tw-city.tw-n4:not(.tw-mini){--c:54px}
+.tw-city > .tw-corner{width:var(--e);height:var(--e)}
+.tw-board .tw-city > .latin-cell{position:relative;display:grid;place-items:center;width:var(--c);height:var(--c);min-width:0;min-height:0;aspect-ratio:auto;padding:0;overflow:hidden;font-size:1.5rem}
+.tw-fill{position:absolute;left:0;right:0;bottom:0;height:calc(var(--f) * 100%);background:var(--tw-leaf);pointer-events:none}
+.tw-h{position:relative}
+.tw-board .tw-city > .latin-cell.tw-static{cursor:default}
+.tw-board .tw-city > .latin-cell.seen{border-color:var(--tw-ochre)}
+.tw-board .tw-city > .latin-cell.seen .tw-fill{background:var(--tw-sun)}
+.tw-board .tw-city > .latin-cell.hidden .tw-fill{background:var(--tw-grey)}
+.tw-board .tw-city > .latin-cell.hidden .tw-h{opacity:.55}
+.tw-board .tw-city > .latin-cell.ruled::after{content:'✕';position:absolute;top:2px;right:5px;color:var(--tw-bad);font-size:1.05rem;font-weight:700;line-height:1}
+.tw-board .tw-city > .latin-cell.ruled{border-color:var(--tw-bad)}
+.tw-board .tw-city > .latin-cell.ruled.empty::after{top:0;right:0;bottom:0;left:0;display:grid;place-items:center;font-size:1.9rem;font-weight:400;opacity:.75}
+.tw-board .tw-city > .latin-cell.could{outline:3px solid var(--tw-ochre);outline-offset:-5px}
+.tw-slot{display:grid;place-items:center;width:var(--e);height:var(--e);min-width:0;min-height:0;padding:0;border:0;border-radius:50%;background:transparent;font-family:var(--tw-num)!important;font-size:1.25rem;line-height:1}
+button.tw-slot{cursor:pointer;border:1.5px solid var(--tw-line);background:var(--tw-card)}
+button.tw-slot.clue{border:1.5px solid var(--tw-ink)}
+.tw-slot.looking,.tw-slot.toggle.clue{background:var(--tw-pine);border-color:var(--tw-pine);color:var(--b-on-pine,#fff8d9)}
+.tw-slot.off{box-shadow:0 0 0 3px var(--tw-ochre)}
+.tw-slot.ruling{box-shadow:0 0 0 3px var(--tw-bad)}
+.tw-slot.pickable{border:2px dashed var(--tw-bad)}
+.tw-slot.open,.tw-slot.toggle{border:1.5px dashed var(--tw-ochre)}
+.tw-slot.open[aria-pressed="true"]{background:#fdf6e1;box-shadow:0 0 0 3px #f1dca5;border-style:solid}
+.tw-slot.extra{background:var(--tw-sun);border:1.5px solid var(--tw-ink)}
+.tw-slot.toggle:disabled{opacity:.4;cursor:default}
+.tw-city.solved{outline:2px solid var(--b-good,#3c7a4a);outline-offset:6px;border-radius:8px}
+
+/* The side view along a line */
+.tw-side{--tw:28px;--bh:12px;display:flex;align-items:flex-end;gap:5px;padding:.45rem .8rem .5rem .6rem;border-radius:12px;background:var(--tw-paper);border:1.5px dashed var(--tw-line)}
+.tw-side .tw-eye{width:26px;height:18px;margin:0 4px 2px 0}
+.tw-side.from-end{padding:.45rem .6rem .5rem .8rem}
+.tw-side.from-end .tw-eye{margin:0 0 2px 4px}
+.tw-side .tw-tower{padding:0;border:0;cursor:default}
+.tw-eye path{fill:var(--tw-card);stroke:var(--tw-ink);stroke-width:1.6}
+.tw-eye circle{fill:var(--tw-pine)}
+.tw-end.looking .tw-eye path{fill:var(--tw-card)}
+
+/* Keypad, claims and notes */
+.tw-board .tw-keypad{margin-top:0;width:100%;max-width:340px}
+.tw-tools{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem}
+.tw-board .tw-no[aria-pressed="true"]{border-color:var(--tw-bad);box-shadow:inset 0 0 0 1.5px var(--tw-bad)}
+.tw-note{margin:0;color:var(--tw-bad);font-weight:600}
+
+/* Cities found, the first city, another city that fits */
+.tw-found{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem;list-style:none;margin:0;padding:0}
+.tw-found li{display:flex;border-radius:9px;background:var(--tw-card);border:1px solid var(--tw-line);padding:4px}
+.tw-found li.dim{opacity:.32}
+.tw-found .tw-city.tw-mini{--e:2px}
+.tw-pick-city{display:flex;padding:2px;border:2px solid transparent;border-radius:7px;background:transparent;cursor:pointer}
+.tw-pick-city[aria-pressed="true"]{border-color:var(--tw-ochre);background:#fdf6e1}
+.tw-city.tw-mini{--c:19px;--e:13px;gap:1px}
+.tw-mc{display:grid;place-items:center;width:var(--c);height:var(--c);border:1px solid var(--tw-line);border-radius:3px;background:var(--tw-card);font-family:var(--tw-num);font-size:.8rem}
+.tw-mc.marked{background:#f7e3b3;border-color:var(--tw-ochre)}
+.tw-ms{display:grid;place-items:center;width:var(--e);height:var(--e);font-family:var(--tw-num);font-size:.72rem;color:var(--b-muted,#5a6850)}
+.tw-second{margin:0;display:flex;flex-direction:column;align-items:center;gap:.25rem;padding:.4rem .5rem;border-radius:10px;background:var(--tw-paper);border:1.5px dashed var(--tw-ochre)}
+.tw-second .tw-city.tw-mini{--c:24px;--e:16px}
+.tw-second .tw-mc{font-size:.95rem}
+.tw-second .tw-ms{font-size:.85rem;color:var(--tw-ink)}
+.tw-second figcaption{font-size:.85rem;color:var(--b-muted,#5a6850)}
+.tw-ref{display:flex;padding:.35rem;border-radius:10px;background:var(--tw-paper);border:1px solid var(--tw-line)}
+.tw-ref .tw-city.tw-mini{--c:22px;--e:2px}
+.tw-beads{display:flex;gap:.45rem;list-style:none;margin:0;padding:0}
+.tw-beads li{width:18px;height:18px;border-radius:50%;border:1.5px dashed var(--tw-line)}
+.tw-beads li.used{background:var(--tw-pine);border:1.5px solid var(--tw-ink)}
+
+.tw-board .hinted{outline:4px dashed var(--tw-ochre);outline-offset:2px}
+
+@media (max-width:420px){
+  .tw-rowgrid{--tw:48px;--bh:18px;grid-template-columns:44px repeat(var(--n),var(--tw)) 44px;gap:8px 3px;padding:.7rem .4rem .5rem}
+  .tw-end{width:44px;height:44px;font-size:1.3rem}
+  .tw-city{--c:56px;gap:3px}
+  .tw-city.tw-n4:not(.tw-mini){--c:50px}
+  .tw-board .tw-city > .latin-cell{font-size:1.3rem}
+  .tw-slot{font-size:1.1rem}
+  .tw-main{gap:.8rem}
+}

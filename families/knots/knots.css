@@ -1,0 +1,72 @@
+/* Knot colours: cords drawn as ink-edged channels filled with red, blue or
+   yellow (paper when uncoloured), a pine ring under a crossing whose three
+   arcs work and a dashed brick ring under one that clashes, end dots in their
+   fixed colour, an ochre halo for a hinted arc, a dashed brick halo for an arc
+   a refused claim's chain does not force, and an ochre ring for the crossing
+   a chain starts from. The tap band of an arc stops square at its ends, so a
+   tap on a crossing reaches the arc on top. */
+.kn-puzzle{display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%;
+  --kn-red:#d1473a;--kn-blue:#3a6dc3;--kn-yellow:#f1c232;--kn-paper:#fffdf5;--kn-ink:var(--b-ink,#294439)}
+.kn-frame{width:100%;display:flex;justify-content:center}
+.kn-board{width:100%;max-width:440px;max-height:72vh;height:auto;overflow:visible;touch-action:manipulation}
+/* A before and an after picture: side by side, or one above the other on a
+   narrow screen, each on its own card. */
+.kn-pair{display:flex;align-items:center;justify-content:center;gap:.35rem;width:100%}
+.kn-pair .kn-board{flex:1 1 0;min-width:0;max-width:330px;overflow:hidden;background:var(--b-card,#fffdf5);border:1px solid var(--b-line,#d0d6bd);border-radius:12px}
+.kn-arrow{flex:none;width:26px;height:26px;fill:none;stroke:var(--kn-ink);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+@media (max-width:640px){.kn-pair{flex-direction:column}.kn-pair .kn-board{flex:none;width:100%;max-width:400px;max-height:31vh}.kn-arrow{transform:rotate(90deg)}}
+
+/* Cords. */
+.kn-arc path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.kn-arc .kn-hit{stroke:transparent;stroke-width:10px;stroke-linecap:butt;pointer-events:stroke;cursor:pointer}
+.kn-arc .kn-ink{stroke:var(--kn-ink);stroke-width:4.6px;pointer-events:none}
+.kn-arc .kn-fill{stroke-width:2.8px;pointer-events:none;transition:stroke .12s}
+.kn-arc .kn-halo{stroke:transparent;stroke-width:9px;pointer-events:none}
+.kn-arc:focus{outline:none}
+.kn-arc:focus-visible .kn-halo{stroke:var(--b-ochre,#b38840);stroke-opacity:.55}
+.kn-arc.hinted .kn-halo{stroke:var(--b-ochre,#b38840);stroke-opacity:.9;stroke-dasharray:2.2 2}
+.kn-arc.loose .kn-halo{stroke:var(--b-bad,#a9503a);stroke-opacity:.85;stroke-dasharray:2.4 1.8}
+.kn-arc.fixed .kn-ink{stroke-width:5.4px}
+:is(.kn-fill,.kn-mini-arc).k0{stroke:var(--kn-red)}
+:is(.kn-fill,.kn-mini-arc).k1{stroke:var(--kn-blue)}
+:is(.kn-fill,.kn-mini-arc).k2{stroke:var(--kn-yellow)}
+ .kn-fill.blank{stroke:var(--kn-paper)}
+
+/* Rings under crossings and end dots. */
+.kn-cross circle{fill:none;stroke:none}
+.kn-cross.ok circle{fill:var(--b-good-soft,#e2ecd6);stroke:var(--b-pine,#31533e);stroke-width:1.5px}
+.kn-cross.clash circle{fill:var(--b-bad-soft,#f5e3d9);stroke:var(--b-bad,#a9503a);stroke-width:1.6px;stroke-dasharray:2 1.4}
+.kn-cross.seed circle{stroke:var(--b-ochre,#b38840);stroke-width:2.6px;stroke-dasharray:none}
+.kn-end{pointer-events:none}
+.kn-end .kn-end-ring{fill:none;stroke:none}
+.kn-end.ok .kn-end-ring{stroke:var(--b-pine,#31533e);stroke-width:1.2px}
+.kn-end.clash .kn-end-ring{fill:var(--b-bad-soft,#f5e3d9);stroke:var(--b-bad,#a9503a);stroke-width:1.5px;stroke-dasharray:2 1.4}
+.kn-dot{stroke:var(--kn-ink);stroke-width:1.2px}
+.kn-dot.k0{fill:var(--kn-red)}
+.kn-dot.k1{fill:var(--kn-blue)}
+.kn-dot.k2{fill:var(--kn-yellow)}
+.kn-dot.blank{fill:var(--kn-paper)}
+.kn-end:not(.fixed) .kn-dot{stroke-dasharray:1.4 1}
+
+/* Buttons, words and the shelf of colourings found. */
+.kn-bar{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem .8rem}
+.kn-puzzle .kn-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--kn-ink);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.kn-puzzle .kn-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+.kn-puzzle .kn-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+.kn-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--kn-ink);text-align:center}
+.kn-shelf{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;max-width:440px}
+.kn-shelf li{width:64px;padding:3px;background:var(--b-card,#fffdf5);border:1px solid var(--b-line,#d0d6bd);border-radius:10px}
+.kn-shelf li.again{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+@media (prefers-reduced-motion:no-preference){.kn-shelf li.again{animation:kn-pop .45s ease-out}}
+@keyframes kn-pop{from{transform:scale(1.12)}}
+.kn-shelf.wide li{width:118px}
+.kn-clashes li{width:86px}
+.kn-mini{display:block;width:100%;height:auto}
+.kn-mini-arc{fill:none;stroke-width:5px;stroke-linecap:round;stroke-linejoin:round}
+.kn-mini-arc.blank{stroke:var(--kn-ink)}
+
+/* The playground's knots. */
+.kn-picks{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;max-width:460px}
+.kn-puzzle .kn-pick{width:58px;min-height:52px;padding:4px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px}
+.kn-puzzle .kn-pick[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 2px var(--b-pine,#31533e)}
+.kn-pick .kn-mini-arc{stroke-width:6px}

@@ -1,0 +1,797 @@
+{
+ "title": "Gap rings",
+ "version": 1,
+ "families": [
+  {
+   "id": "diffs",
+   "title": "Gap rings",
+   "mathematics": "A ring of towers whose next ring is the gaps between neighbours: D(a, b, c, d) = (|a − b|, |b − c|, |c − d|, |d − a|), Ducci’s four-number game. Every puzzle goes backward. A ring of gaps comes from some ring exactly when its numbers split into two groups with equal totals; two certificates the child can point at rule a ring out: an odd total (going round, odd and even swap at each odd gap and must come back), or three gaps of 0 (all four towers equal, so the fourth gap is 0 too). Adding the same to every tower keeps the gaps. On four towers every whole-number start reaches all zeros (after four moves every height is even, and the tallest never grows); with towers up to 4 the longest runs take 7 moves. On three towers a run can come round for ever.",
+   "rules": [
+    "Each arrow goes from a tower to the next one round the ring. The number on it is the gap: how many blocks taller one of its towers is than the other.",
+    "The next ring puts each gap at the tower its arrow leaves: the gap from A to B becomes the new A."
+   ],
+   "sourceIds": [
+    "diffs-week49",
+    "diffs-card49",
+    "diffs-shapiro"
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "id": "diffs-week49",
+   "title": "Bellingham Math Circle — Week 49: Four towers and differences (student packets, adult guide and bonus)",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-49",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "diffs-card49",
+   "title": "Week 49 review card and math checks (predecessors, the two certificates, longest runs, three stations; App fit and Decision)",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-49.md",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "diffs-shapiro",
+   "title": "Daniel Shapiro — The Four-Number Game (2005), the parity proof that every start reaches zero",
+   "url": "https://bpb-us-w2.wpmucdn.com/u.osu.edu/dist/d/5402/files/2014/08/4NumbersGame-18ok6xx.pdf",
+   "kind": "research"
+  }
+ ],
+ "puzzles": [
+  {
+   "id": "diffs-playground",
+   "number": 0,
+   "title": "Gap rings playground",
+   "difficulty_level": "playground",
+   "familyTitle": "Gap rings",
+   "mechanic": "diffs",
+   "band": "playground",
+   "revision": 1,
+   "sourceDocument": "docs/diffs/README.md",
+   "parameters": {
+    "mode": "playground"
+   },
+   "objective": "Build rings back from zero with towers up to 5, each ring’s gaps making the one after it, as far back as you like.",
+   "visibleObjective": "",
+   "instruction": "Build rings back from zero with towers up to 5, each ring’s gaps making the one after it, as far back as you like.",
+   "controls": "Tap a block to build a tower up to it, or the floor under a tower for 0. Tap the top block (or the floor) again to clear the tower. Tap the newest ring in the row to take it back and change it.",
+   "rules": [
+    "Each arrow goes from a tower to the next one round the ring. The number on it is the gap: how many blocks taller one of its towers is than the other.",
+    "The next ring puts each gap at the tower its arrow leaves: the gap from A to B becomes the new A.",
+    "A ring whose gaps make the ring on the right joins the row, and the next ring must make it in turn. Tap the newest ring in the row to take it back."
+   ],
+   "idea": "Free play: how long a run can you build backward?",
+   "prerequisites": "Compare towers. A grown-up can read How to play.",
+   "hints": [
+    "Start with a flat ring.",
+    "Rings whose numbers add up to an odd number have nothing before them.",
+    "A flat ring of 2s lets you go back further than a flat ring of 1s."
+   ],
+   "parent": {
+    "notice": "Whether your child aims for long runs and what they learn from dead ends.",
+    "prompt": "What is the longest run you can build? Is there a longer one?",
+    "explanation": "With towers up to 5 the longest runs take 7 moves, the same as with towers up to 4 (checked by trying every ring). Showing that nothing is longer needs that whole search, so it is a question for grown-ups.",
+    "extension": "Build a run, then double every tower of its first ring in your head. How long is that run?",
+    "connection": "Ducci’s four-number game (Shapiro).",
+    "sourceIds": [
+     "diffs-week49",
+     "diffs-card49",
+     "diffs-shapiro"
+    ]
+   },
+   "provenance": "Week 49 Problem 2, “longest run”, as free play built backward."
+  },
+  {
+   "id": "diffs-01",
+   "number": 1,
+   "title": "All ones",
+   "difficulty_level": "easy",
+   "familyTitle": "Gap rings",
+   "mechanic": "diffs",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/diffs/README.md",
+   "parameters": {
+    "mode": "make",
+    "stations": 4,
+    "cap": 2,
+    "target": [
+     1,
+     1,
+     1,
+     1
+    ],
+    "cant": true
+   },
+   "objective": "Build a ring whose gaps make the ring on the right, or press Can’t and show why no ring can.",
+   "visibleObjective": "Make the gaps match the ring on the right.",
+   "instruction": "Build a ring whose gaps make the ring on the right, or press Can’t and show why no ring can.",
+   "controls": "Tap a block to build a tower up to it, or the floor under a tower for 0. Tap the top block (or the floor) again to clear the tower. Can’t: press it, tap the towers on the right that show why, then press it again. Undo takes back the last change.",
+   "rules": [
+    "Each arrow goes from a tower to the next one round the ring. The number on it is the gap: how many blocks taller one of its towers is than the other.",
+    "The next ring puts each gap at the tower its arrow leaves: the gap from A to B becomes the new A.",
+    "If no ring can do it, build a ring, press Can’t, tap the towers on the right that show why, and press Can’t again."
+   ],
+   "idea": "A ring that goes up, down, up, down by one block has every gap 1.",
+   "prerequisites": "Compare two towers and count how many blocks taller one is (gaps up to 4). No reading; a grown-up can read How to play.",
+   "hints": [
+    "Every gap should be 1. What do neighbouring towers look like then?",
+    "Neighbours must differ by one block all the way round.",
+    "Set A to 0, B to 1, C to 0 and D to 1."
+   ],
+   "parent": {
+    "notice": "Whether your child builds one tower at a time and fixes gaps as they appear, or plans the up-down pattern.",
+    "prompt": "Can you make all ones a different way?",
+    "explanation": "Each tower must be one block from both neighbours, so the towers go up or down by one at every arrow and come back round to A. Up, down, up, down gives (0, 1, 0, 1) or (1, 0, 1, 0); up, up, down, down gives (0, 1, 2, 1) and its turns. With towers up to 2 there are eight rings in all, counting (1, 2, 1, 2), which is (0, 1, 0, 1) with one block added to every tower.",
+    "extension": "Add one block to every tower of your ring. What happens to the gaps?",
+    "connection": "The rule is the Ducci map D(a, b, c, d) = (|a − b|, |b − c|, |c − d|, |d − a|) (Shapiro, The Four-Number Game).",
+    "sourceIds": [
+     "diffs-week49",
+     "diffs-card49",
+     "diffs-shapiro"
+    ]
+   },
+   "solution": {
+    "answers": [
+     "0,1,0,1",
+     "0,1,2,1",
+     "1,0,1,0",
+     "1,0,1,2",
+     "1,2,1,0",
+     "1,2,1,2",
+     "2,1,0,1",
+     "2,1,2,1"
+    ]
+   },
+   "provenance": "Week 49 grades 2–3 and 4–5 Problem 3, the ring (1,1,1,1): “Is this ring the result of one move?”"
+  },
+  {
+   "id": "diffs-02",
+   "number": 2,
+   "title": "Two and nothing",
+   "difficulty_level": "easy",
+   "familyTitle": "Gap rings",
+   "mechanic": "diffs",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/diffs/README.md",
+   "parameters": {
+    "mode": "make",
+    "stations": 4,
+    "cap": 2,
+    "target": [
+     2,
+     0,
+     2,
+     0
+    ],
+    "cant": true
+   },
+   "objective": "Build a ring whose gaps make the ring on the right, or press Can’t and show why no ring can.",
+   "visibleObjective": "Make the gaps match the ring on the right.",
+   "instruction": "Build a ring whose gaps make the ring on the right, or press Can’t and show why no ring can.",
+   "controls": "Tap a block to build a tower up to it, or the floor under a tower for 0. Tap the top block (or the floor) again to clear the tower. Can’t: press it, tap the towers on the right that show why, then press it again. Undo takes back the last change.",
+   "rules": [
+    "Each arrow goes from a tower to the next one round the ring. The number on it is the gap: how many blocks taller one of its towers is than the other.",
+    "The next ring puts each gap at the tower its arrow leaves: the gap from A to B becomes the new A.",
+    "If no ring can do it, build a ring, press Can’t, tap the towers on the right that show why, and press Can’t again."
+   ],
+   "idea": "A gap of 0 means two towers are equal.",
+   "prerequisites": "Compare two towers and count how many blocks taller one is (gaps up to 4). No reading; a grown-up can read How to play.",
+   "hints": [
+    "Which towers must be equal?",
+    "The gaps from B to C and from D to A are 0, so B equals C and D equals A.",
+    "Set A to 0, B to 2, C to 2 and D to 0."
+   ],
+   "parent": {
+    "notice": "Whether your child reads the 0s as “these two towers match”.",
+    "prompt": "Why must A and D be the same height?",
+    "explanation": "The gap from B to C is 0, so B and C are equal; the gap from D to A is 0, so D and A are equal. Then A and B must be 2 apart: (0, 2, 2, 0) or (2, 0, 0, 2) with towers up to 2.",
+    "extension": "With towers up to 3, how many rings make (2, 0, 2, 0)? (Four: add one block to every tower of either.)",
+    "connection": "Equal gaps of 0 glue towers together; this is what makes three zero gaps impossible in puzzle 4.",
+    "sourceIds": [
+     "diffs-week49",
+     "diffs-card49",
+     "diffs-shapiro"
+    ]
+   },
+   "solution": {
+    "answers": [
+     "0,2,2,0",
+     "2,0,0,2"
+    ]
+   },
+   "provenance": "Week 49 grades 2–3 and 4–5 Problem 3, the ring (2,0,2,0)."
+  },
+  {
+   "id": "diffs-03",
+   "number": 3,
+   "title": "Two moves to zero",
+   "difficulty_level": "easy",
+   "familyTitle": "Gap rings",
+   "mechanic": "diffs",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/diffs/README.md",
+   "parameters": {
+    "mode": "grow",
+    "stations": 4,
+    "cap": 2,
+    "goal": {
+     "moves": 2
+    }
+   },
+   "objective": "Fill the row back from zero: each ring’s gaps make the next ring, so the first ring takes 2 moves to reach all zeros.",
+   "visibleObjective": "Fill the row: each ring’s gaps make the next.",
+   "instruction": "Fill the row back from zero: each ring’s gaps make the next ring, so the first ring takes 2 moves to reach all zeros.",
+   "controls": "Tap a block to build a tower up to it, or the floor under a tower for 0. Tap the top block (or the floor) again to clear the tower. Tap the newest ring in the row to take it back and change it. Undo takes back the last change.",
+   "rules": [
+    "Each arrow goes from a tower to the next one round the ring. The number on it is the gap: how many blocks taller one of its towers is than the other.",
+    "The next ring puts each gap at the tower its arrow leaves: the gap from A to B becomes the new A.",
+    "A ring whose gaps make the ring on the right joins the row, and the next ring must make it in turn. Tap the newest ring in the row to take it back."
+   ],
+   "idea": "Only a flat ring becomes all zeros in one move, and a ring becomes flat when all its gaps are equal.",
+   "prerequisites": "Compare towers; plan a few rings ahead and take a ring back when it leads nowhere.",
+   "hints": [
+    "Which rings have every gap 0?",
+    "All four towers equal makes all zeros. Then which ring has all its gaps equal to that height?",
+    "Set every tower to 1. Then build 0, 1, 0, 1."
+   ],
+   "parent": {
+    "notice": "Whether your child sees that the first ring must be flat, and then looks for a ring whose gaps are all the same.",
+    "prompt": "Could the ring before all zeros have two different heights?",
+    "explanation": "All four gaps are 0 only when all four towers are equal, so the ring just before zero is flat, (c, c, c, c), with c not 0. The ring before that has every gap c, so it goes up and down by c round the ring, like (0, 1, 0, 1) for c = 1. Rings that first reach zero on the second move are exactly those whose four gaps are equal and not 0.",
+    "extension": "How many flat rings are there with towers up to 2? Which of them can you go back from?",
+    "connection": "Running the Ducci map backward: the preimage of zero is the constant rings.",
+    "sourceIds": [
+     "diffs-week49",
+     "diffs-card49",
+     "diffs-shapiro"
+    ]
+   },
+   "solution": {
+    "run": [
+     "0,1,0,1",
+     "1,1,1,1"
+    ]
+   },
+   "provenance": "Week 49 K–1 Problems 3 and 4: starts that become all zeros in one move, and on the second move."
+  },
+  {
+   "id": "diffs-04",
+   "number": 4,
+   "title": "Tall B",
+   "difficulty_level": "easy",
+   "familyTitle": "Gap rings",
+   "mechanic": "diffs",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/diffs/README.md",
+   "parameters": {
+    "mode": "make",
+    "stations": 4,
+    "cap": 2,
+    "target": [
+     0,
+     2,
+     0,
+     0
+    ],
+    "cant": true
+   },
+   "objective": "Build a ring whose gaps make the ring on the right, or press Can’t and show why no ring can.",
+   "visibleObjective": "Make the gaps match the ring on the right.",
+   "instruction": "Build a ring whose gaps make the ring on the right, or press Can’t and show why no ring can.",
+   "controls": "Tap a block to build a tower up to it, or the floor under a tower for 0. Tap the top block (or the floor) again to clear the tower. Can’t: press it, tap the towers on the right that show why, then press it again. Undo takes back the last change.",
+   "rules": [
+    "Each arrow goes from a tower to the next one round the ring. The number on it is the gap: how many blocks taller one of its towers is than the other.",
+    "The next ring puts each gap at the tower its arrow leaves: the gap from A to B becomes the new A.",
+    "If no ring can do it, build a ring, press Can’t, tap the towers on the right that show why, and press Can’t again."
+   ],
+   "idea": "Three gaps of 0 make all four towers equal, so the fourth gap must be 0 too.",
+   "prerequisites": "Compare towers, and see that equal gaps of 0 mean equal towers. A grown-up can read the reason after Can’t.",
+   "hints": [
+    "Build a ring and compare the gaps on its arrows with the ring on the right.",
+    "C equals D, D equals A, and A equals B. What is the gap from B to C then?",
+    "Build any ring, then press Can’t, tap the three 0s on the right, and press Can’t again."
+   ],
+   "parent": {
+    "notice": "Whether your child tries several rings before deciding none works, and can say why.",
+    "prompt": "If A and B are the same, C and D are the same, and D and A are the same, what is the gap from B to C?",
+    "explanation": "A gap of 0 means two towers are equal. The gaps from A to B, C to D and D to A are 0, so all four towers are equal, and then the gap from B to C is 0 as well, never 2. So no ring makes (0, 2, 0, 0).",
+    "extension": "The total of (0, 2, 0, 0) is even, so the odd-total reason of puzzle 6 does not apply. Can you find another ring with an even total that no ring makes? ((0, 0, 2, 4): one gap is bigger than the other three together.)",
+    "connection": "A ring of gaps comes from a ring exactly when its numbers split into two groups with equal totals: the gaps that climb and the gaps that fall.",
+    "sourceIds": [
+     "diffs-week49",
+     "diffs-card49",
+     "diffs-shapiro"
+    ]
+   },
+   "solution": {
+    "answers": [],
+    "reason": {
+     "kind": "zeros",
+     "marks": [
+      0,
+      2,
+      3
+     ]
+    }
+   },
+   "provenance": "Week 49 grades 2–3 and 4–5 Problem 3, the ring (0,0,0,2), turned to (0,2,0,0) so its certificate is not the first three towers; impossible because three zero gaps force a constant ring."
+  },
+  {
+   "id": "diffs-05",
+   "number": 5,
+   "title": "Back from the example",
+   "difficulty_level": "medium",
+   "familyTitle": "Gap rings",
+   "mechanic": "diffs",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/diffs/README.md",
+   "parameters": {
+    "mode": "make",
+    "stations": 4,
+    "cap": 4,
+    "target": [
+     3,
+     2,
+     2,
+     1
+    ],
+    "cant": true
+   },
+   "objective": "Build a ring whose gaps make the ring on the right, or press Can’t and show why no ring can.",
+   "visibleObjective": "Make the gaps match the ring on the right.",
+   "instruction": "Build a ring whose gaps make the ring on the right, or press Can’t and show why no ring can.",
+   "controls": "Tap a block to build a tower up to it, or the floor under a tower for 0. Tap the top block (or the floor) again to clear the tower. Can’t: press it, tap the towers on the right that show why, then press it again. Undo takes back the last change.",
+   "rules": [
+    "Each arrow goes from a tower to the next one round the ring. The number on it is the gap: how many blocks taller one of its towers is than the other.",
+    "The next ring puts each gap at the tower its arrow leaves: the gap from A to B becomes the new A.",
+    "If no ring can do it, build a ring, press Can’t, tap the towers on the right that show why, and press Can’t again."
+   ],
+   "idea": "Going round the ring, the gaps that climb must add up to the gaps that fall.",
+   "prerequisites": "Compare two towers and count how many blocks taller one is (gaps up to 4). No reading; a grown-up can read How to play.",
+   "hints": [
+    "Put a 0 on one tower and go round from it.",
+    "Going round, the climbs and the falls must balance: 3 + 1 against 2 + 2.",
+    "Set A to 1, B to 4, C to 2 and D to 0."
+   ],
+   "parent": {
+    "notice": "Whether your child fixes one tower and works round the ring, undoing when the last gap comes out wrong.",
+    "prompt": "If A to B climbs 3, which other gaps must fall?",
+    "explanation": "Going round from A and back, every gap is a climb or a fall, and the climbs must equal the falls. Here 3 + 1 = 2 + 2, so either the 3 and the 1 climb and the 2s fall, giving (1, 4, 2, 0), or the other way, giving (3, 0, 2, 4). Both span 4 blocks, so with towers up to 4 these are the only two.",
+    "extension": "Is there a ring whose gaps make (3, 2, 2, 2)? (No: its total is odd.)",
+    "connection": "Choosing a sign for each gap so the signed total is 0 is the partition problem for four numbers.",
+    "sourceIds": [
+     "diffs-week49",
+     "diffs-card49",
+     "diffs-shapiro"
+    ]
+   },
+   "solution": {
+    "answers": [
+     "1,4,2,0",
+     "3,0,2,4"
+    ]
+   },
+   "provenance": "Week 49 page 1 worked example run backward: (1,4,2,0) makes (3,2,2,1)."
+  },
+  {
+   "id": "diffs-06",
+   "number": 6,
+   "title": "Low B",
+   "difficulty_level": "medium",
+   "familyTitle": "Gap rings",
+   "mechanic": "diffs",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/diffs/README.md",
+   "parameters": {
+    "mode": "make",
+    "stations": 4,
+    "cap": 3,
+    "target": [
+     2,
+     1,
+     2,
+     2
+    ],
+    "cant": true
+   },
+   "objective": "Build a ring whose gaps make the ring on the right, or press Can’t and show why no ring can.",
+   "visibleObjective": "Make the gaps match the ring on the right.",
+   "instruction": "Build a ring whose gaps make the ring on the right, or press Can’t and show why no ring can.",
+   "controls": "Tap a block to build a tower up to it, or the floor under a tower for 0. Tap the top block (or the floor) again to clear the tower. Can’t: press it, tap the towers on the right that show why, then press it again. Undo takes back the last change.",
+   "rules": [
+    "Each arrow goes from a tower to the next one round the ring. The number on it is the gap: how many blocks taller one of its towers is than the other.",
+    "The next ring puts each gap at the tower its arrow leaves: the gap from A to B becomes the new A.",
+    "If no ring can do it, build a ring, press Can’t, tap the towers on the right that show why, and press Can’t again."
+   ],
+   "idea": "The gaps of any ring add up to an even number.",
+   "prerequisites": "Tell odd from even and follow a ring all the way round. A grown-up can talk through the reason.",
+   "hints": [
+    "Build a ring and compare the gaps on its arrows with the ring on the right.",
+    "Going round from A, a tower switches between odd and even at each odd gap. How many switches would there be?",
+    "Build any ring, then press Can’t, tap the odd number on the right, and press Can’t again."
+   ],
+   "parent": {
+    "notice": "Whether your child keeps trying rings, or notices that the last gap always comes out wrong.",
+    "prompt": "Start at an even tower and go round. Is each tower odd or even?",
+    "explanation": "A gap is odd exactly when one of its towers is odd and the other even. Going round from A, the towers switch between odd and even at each odd gap, and must come back to A. So there is an even number of odd gaps, and the gaps add up to an even number. (2, 1, 2, 2) has one odd number, so a ring making it would need one odd gap, and no ring does.",
+    "extension": "Is an even total enough? ((0, 2, 0, 0) has an even total and no ring makes it: puzzle 4.)",
+    "connection": "The total of the gaps has the same parity as twice the total of the towers: an invariant mod 2. Four moves later every height is even (worksheet grades 4–5 Problem 5).",
+    "sourceIds": [
+     "diffs-week49",
+     "diffs-card49",
+     "diffs-shapiro"
+    ]
+   },
+   "solution": {
+    "answers": [],
+    "reason": {
+     "kind": "odd",
+     "marks": [
+      1
+     ]
+    }
+   },
+   "provenance": "Week 49 grades 2–3 and 4–5 Problem 3’s reason for the ring (1,1,1,0), an odd total, on a new ring (2,1,2,2) with one odd number, so the two Can’t certificates differ in shape (three 0s in puzzle 4, one odd number here)."
+  },
+  {
+   "id": "diffs-07",
+   "number": 7,
+   "title": "Every way to 0 1 0 1",
+   "difficulty_level": "medium",
+   "familyTitle": "Gap rings",
+   "mechanic": "diffs",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/diffs/README.md",
+   "parameters": {
+    "mode": "every",
+    "stations": 4,
+    "cap": 2,
+    "target": [
+     0,
+     1,
+     0,
+     1
+    ]
+   },
+   "objective": "Find every ring with towers up to 2 whose gaps make the ring on the right, then press That’s all.",
+   "visibleObjective": "Find every ring whose gaps make the ring on the right.",
+   "instruction": "Find every ring with towers up to 2 whose gaps make the ring on the right, then press That’s all.",
+   "controls": "Tap a block to build a tower up to it, or the floor under a tower for 0. Tap the top block (or the floor) again to clear the tower. Undo takes back the last change and keeps the rings found.",
+   "rules": [
+    "Each arrow goes from a tower to the next one round the ring. The number on it is the gap: how many blocks taller one of its towers is than the other.",
+    "The next ring puts each gap at the tower its arrow leaves: the gap from A to B becomes the new A.",
+    "Each ring that works is kept below the board. Press That’s all when you think none is left; it says if there is another."
+   ],
+   "idea": "Adding the same number of blocks to every tower keeps every gap.",
+   "prerequisites": "Keep the rings already found in mind, and look for a way to make new ones from them.",
+   "hints": [
+    "Find one ring first. Which towers must be equal?",
+    "A equals B and C equals D, one block apart. Once you have one, add a block to every tower.",
+    "The rings are 0 0 1 1, 1 1 0 0, 1 1 2 2 and 2 2 1 1. Then press That’s all."
+   ],
+   "parent": {
+    "notice": "After the first ring, whether your child changes towers at random or lifts every tower by one.",
+    "prompt": "How do you know there are no more?",
+    "explanation": "The 0 gaps make A equal B and C equal D, and the 1 gaps make those two pairs one block apart. So the ring is two equal towers next to two equal towers one higher or one lower: (x, x, x ± 1, x ± 1). With towers up to 2 that is (0, 0, 1, 1), (1, 1, 2, 2), (1, 1, 0, 0) and (2, 2, 1, 1).",
+    "extension": "With towers up to 3, how many are there? (Six.)",
+    "connection": "The map ignores adding a constant: every preimage comes in a family of shifts.",
+    "sourceIds": [
+     "diffs-week49",
+     "diffs-card49",
+     "diffs-shapiro"
+    ]
+   },
+   "solution": {
+    "answers": [
+     "0,0,1,1",
+     "1,1,0,0",
+     "1,1,2,2",
+     "2,2,1,1"
+    ]
+   },
+   "provenance": "New, in the style of the Week 49 bonus Problem 1 (find every old ring); the ring (0,1,0,1) is the guide’s first move of (1,1,0,0)."
+  },
+  {
+   "id": "diffs-08",
+   "number": 8,
+   "title": "Four moves back",
+   "difficulty_level": "medium",
+   "familyTitle": "Gap rings",
+   "mechanic": "diffs",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/diffs/README.md",
+   "parameters": {
+    "mode": "grow",
+    "stations": 4,
+    "cap": 2,
+    "goal": {
+     "moves": 4
+    }
+   },
+   "objective": "Fill the row back from zero: each ring’s gaps make the next ring, so the first ring takes 4 moves to reach all zeros.",
+   "visibleObjective": "Fill the row: each ring’s gaps make the next.",
+   "instruction": "Fill the row back from zero: each ring’s gaps make the next ring, so the first ring takes 4 moves to reach all zeros.",
+   "controls": "Tap a block to build a tower up to it, or the floor under a tower for 0. Tap the top block (or the floor) again to clear the tower. Tap the newest ring in the row to take it back and change it. Undo takes back the last change.",
+   "rules": [
+    "Each arrow goes from a tower to the next one round the ring. The number on it is the gap: how many blocks taller one of its towers is than the other.",
+    "The next ring puts each gap at the tower its arrow leaves: the gap from A to B becomes the new A.",
+    "A ring whose gaps make the ring on the right joins the row, and the next ring must make it in turn. Tap the newest ring in the row to take it back."
+   ],
+   "idea": "Some rings have no ring before them, so the order of choices matters going back.",
+   "prerequisites": "Compare towers; plan a few rings ahead and take a ring back when it leads nowhere.",
+   "hints": [
+    "Start from a flat ring, and look for rings with gaps that a ring can still make.",
+    "A ring whose numbers add up to an odd number has nothing before it.",
+    "Build 1 1 1 1, then 1 0 1 0, then 1 0 0 1, then 1 0 0 0."
+   ],
+   "parent": {
+    "notice": "Whether your child takes back a ring that leads nowhere, and whether they notice the odd totals.",
+    "prompt": "Why can’t you go back from 1, 2, 1, 2 here?",
+    "explanation": "Some choices are dead ends. A ring whose numbers add up to an odd number, like (0, 0, 1, 0), has nothing before it; and (1, 2, 1, 2), which makes 1, 1, 1, 1, has rings before it only with a tower of 3. One run of four: (1, 0, 0, 0) → (1, 0, 0, 1) → (1, 0, 1, 0) → (1, 1, 1, 1) → zeros, which is also the four-station start of the worksheet’s Problem 5.",
+    "extension": "Try a run that ends at 2, 2, 2, 2 instead. How far back can you go with towers up to 2?",
+    "connection": "With towers up to 2 no run is longer than 4 moves (checked by trying all 81 rings).",
+    "sourceIds": [
+     "diffs-week49",
+     "diffs-card49",
+     "diffs-shapiro"
+    ]
+   },
+   "solution": {
+    "run": [
+     "0,0,0,1",
+     "0,0,1,1",
+     "0,1,0,1",
+     "1,1,1,1"
+    ]
+   },
+   "provenance": "Week 49 K–1 Problem 5 and older Problem 4: (1,0,0,0) on four stations takes 4 moves; here built backward."
+  },
+  {
+   "id": "diffs-09",
+   "number": 9,
+   "title": "Three towers",
+   "difficulty_level": "medium",
+   "familyTitle": "Gap rings",
+   "mechanic": "diffs",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/diffs/README.md",
+   "parameters": {
+    "mode": "grow",
+    "stations": 3,
+    "cap": 1,
+    "goal": {
+     "loop": true
+    },
+    "start": [
+     [
+      1,
+      0,
+      1
+     ]
+    ]
+   },
+   "objective": "Build rings back from the one on the right, each one’s gaps making the ring after it, until a ring comes again.",
+   "visibleObjective": "Go back until a ring comes again.",
+   "instruction": "Build rings back from the one on the right, each one’s gaps making the ring after it, until a ring comes again.",
+   "controls": "Tap a block to build a tower up to it, or the floor under a tower for 0. Tap the top block (or the floor) again to clear the tower. Tap the newest ring in the row to take it back and change it. Undo takes back the last change.",
+   "rules": [
+    "Each arrow goes from a tower to the next one round the ring. The number on it is the gap: how many blocks taller one of its towers is than the other.",
+    "The next ring puts each gap at the tower its arrow leaves: the gap from A to B becomes the new A.",
+    "A ring whose gaps make the ring on the right joins the row, and the next ring must make it in turn. Tap the newest ring in the row to take it back."
+   ],
+   "idea": "On three towers a run can come round for ever, so it never reaches zero.",
+   "prerequisites": "Compare towers; plan a few rings ahead and take a ring back when it leads nowhere.",
+   "hints": [
+    "Build a ring of three whose gaps make 1, 0, 1. Which of those rings can you go back from again?",
+    "A ring whose numbers add up to an odd number has nothing before it. Keep the rings with two 1s.",
+    "Build 0 1 1, then 1 1 0, then 1 0 1."
+   ],
+   "parent": {
+    "notice": "Whether your child sees that the ring comes back, and what that means for reaching zero.",
+    "prompt": "If 1, 0, 1 comes back after three moves, can it ever reach all zeros?",
+    "explanation": "Building back: (0, 1, 1) makes (1, 0, 1), (1, 1, 0) makes (0, 1, 1), and (1, 0, 1) makes (1, 1, 0). So forward the run goes (1, 0, 1) → (1, 1, 0) → (0, 1, 1) → (1, 0, 1) round and round, and never reaches zero. The other choices, (1, 0, 0), (0, 0, 1) and (0, 1, 0), have one odd number and nothing before them.",
+    "extension": "On four towers the same start (1, 0, 0, 0) reaches zero in four moves (puzzle 8). Why can’t a run on four towers come round?",
+    "connection": "With an odd number of stations the Ducci map can cycle; with 4 (or any power of 2) every whole-number start reaches zero (Shapiro).",
+    "sourceIds": [
+     "diffs-week49",
+     "diffs-card49",
+     "diffs-shapiro"
+    ]
+   },
+   "solution": {
+    "run": [
+     "1,0,1",
+     "1,1,0",
+     "0,1,1",
+     "1,0,1"
+    ]
+   },
+   "provenance": "Week 49 K–1 Problem 5 and older Problem 4: (1,0,0) on three stations reaches (1,0,1) and repeats; here the loop is built backward."
+  },
+  {
+   "id": "diffs-10",
+   "number": 10,
+   "title": "Every way to 1 2 1 2",
+   "difficulty_level": "hard",
+   "familyTitle": "Gap rings",
+   "mechanic": "diffs",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/diffs/README.md",
+   "parameters": {
+    "mode": "every",
+    "stations": 4,
+    "cap": 3,
+    "target": [
+     1,
+     2,
+     1,
+     2
+    ]
+   },
+   "objective": "Find every ring with towers up to 3 whose gaps make the ring on the right, then press That’s all.",
+   "visibleObjective": "Find every ring whose gaps make the ring on the right.",
+   "instruction": "Find every ring with towers up to 3 whose gaps make the ring on the right, then press That’s all.",
+   "controls": "Tap a block to build a tower up to it, or the floor under a tower for 0. Tap the top block (or the floor) again to clear the tower. Undo takes back the last change and keeps the rings found.",
+   "rules": [
+    "Each arrow goes from a tower to the next one round the ring. The number on it is the gap: how many blocks taller one of its towers is than the other.",
+    "The next ring puts each gap at the tower its arrow leaves: the gap from A to B becomes the new A.",
+    "Each ring that works is kept below the board. Press That’s all when you think none is left; it says if there is another."
+   ],
+   "idea": "Each ring that works is a choice of which gaps climb, with the climbs balancing the falls.",
+   "prerequisites": "Keep the rings already found in mind, and look for a way to make new ones from them.",
+   "hints": [
+    "Find one ring first. Going round, which gaps climb and which fall?",
+    "The climbs must add up to the falls: a 1 and a 2 climb, the other 1 and 2 fall.",
+    "The rings are 0 1 3 2, 1 0 2 3, 2 3 1 0 and 3 2 0 1. Then press That’s all."
+   ],
+   "parent": {
+    "notice": "Whether your child finds new rings by turning or flipping one they found.",
+    "prompt": "If you turn a ring that works upside down (each tower becomes 3 minus itself), does it still work?",
+    "explanation": "Going round, the climbs must equal the falls, and 1 + 2 = 1 + 2 can be split four ways with one 1 and one 2 climbing. Each split gives a ring that spans 3 blocks, so with towers up to 3 there is exactly one ring for each: (0, 1, 3, 2), (1, 0, 2, 3), (2, 3, 1, 0) and (3, 2, 0, 1).",
+    "extension": "How many rings make (1, 1, 1, 1) with towers up to 3, if one tower must be 0? (Six, the bonus page’s first answer.)",
+    "connection": "Each preimage is a sign vector with signed sum 0; shifting and flipping (h → 3 − h) map preimages to preimages.",
+    "sourceIds": [
+     "diffs-week49",
+     "diffs-card49",
+     "diffs-shapiro"
+    ]
+   },
+   "solution": {
+    "answers": [
+     "0,1,3,2",
+     "1,0,2,3",
+     "2,3,1,0",
+     "3,2,0,1"
+    ]
+   },
+   "provenance": "Week 49 bonus Problem 1, the target (1,2,1,2) with heights 0–3 (four old rings)."
+  },
+  {
+   "id": "diffs-11",
+   "number": 11,
+   "title": "Six moves",
+   "difficulty_level": "hard",
+   "familyTitle": "Gap rings",
+   "mechanic": "diffs",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/diffs/README.md",
+   "parameters": {
+    "mode": "grow",
+    "stations": 4,
+    "cap": 3,
+    "goal": {
+     "moves": 6
+    }
+   },
+   "objective": "Fill the row back from zero: each ring’s gaps make the next ring, so the first ring takes 6 moves to reach all zeros.",
+   "visibleObjective": "Fill the row: each ring’s gaps make the next.",
+   "instruction": "Fill the row back from zero: each ring’s gaps make the next ring, so the first ring takes 6 moves to reach all zeros.",
+   "controls": "Tap a block to build a tower up to it, or the floor under a tower for 0. Tap the top block (or the floor) again to clear the tower. Tap the newest ring in the row to take it back and change it. Undo takes back the last change.",
+   "rules": [
+    "Each arrow goes from a tower to the next one round the ring. The number on it is the gap: how many blocks taller one of its towers is than the other.",
+    "The next ring puts each gap at the tower its arrow leaves: the gap from A to B becomes the new A.",
+    "A ring whose gaps make the ring on the right joins the row, and the next ring must make it in turn. Tap the newest ring in the row to take it back."
+   ],
+   "idea": "A long run must end at a flat ring of an even height: four moves make every height even.",
+   "prerequisites": "Compare towers; plan a few rings ahead and take a ring back when it leads nowhere.",
+   "hints": [
+    "Fill the slots from the right, and take back any ring that stops you.",
+    "Going back from 2 2 2 2, keep every height even for two rings, then use odd ones.",
+    "Build 2 2 2 2, 0 2 0 2, 0 0 2 2, 1 1 1 3, 0 1 2 3, then 0 0 1 3."
+   ],
+   "parent": {
+    "notice": "Whether your child notices that runs ending at 1, 1, 1, 1 stop at four, and tries 2, 2, 2, 2.",
+    "prompt": "After four moves every height is even. What does that say about a ring that is flat after five moves?",
+    "explanation": "After four moves every height is even (worksheet grades 4–5 Problem 5). A run of six moves is flat after five, so that flat ring is even: here 2, 2, 2, 2. Going back, (0, 2, 0, 2), (0, 0, 2, 2), (1, 1, 1, 3), (0, 1, 2, 3) and (0, 0, 1, 3) make a run of six. With towers up to 3 no run is longer (checked by trying all 256 rings), but the puzzle only asks for six.",
+    "extension": "Double every tower of a run. Does it take the same number of moves?",
+    "connection": "Doubling commutes with the map, so moves are unchanged by scaling (worksheet grades 4–5 Problem 6).",
+    "sourceIds": [
+     "diffs-week49",
+     "diffs-card49",
+     "diffs-shapiro"
+    ]
+   },
+   "solution": {
+    "run": [
+     "0,0,1,3",
+     "0,1,2,3",
+     "1,1,1,3",
+     "0,0,2,2",
+     "0,2,0,2",
+     "2,2,2,2"
+    ]
+   },
+   "provenance": "Week 49 Problem 2 (longest run), with heights 0–3; built backward as the review card suggests."
+  },
+  {
+   "id": "diffs-12",
+   "number": 12,
+   "title": "Seven moves",
+   "difficulty_level": "hard",
+   "familyTitle": "Gap rings",
+   "mechanic": "diffs",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/diffs/README.md",
+   "parameters": {
+    "mode": "grow",
+    "stations": 4,
+    "cap": 4,
+    "goal": {
+     "moves": 7
+    }
+   },
+   "objective": "Fill the row back from zero: each ring’s gaps make the next ring, so the first ring takes 7 moves to reach all zeros.",
+   "visibleObjective": "Fill the row: each ring’s gaps make the next.",
+   "instruction": "Fill the row back from zero: each ring’s gaps make the next ring, so the first ring takes 7 moves to reach all zeros.",
+   "controls": "Tap a block to build a tower up to it, or the floor under a tower for 0. Tap the top block (or the floor) again to clear the tower. Tap the newest ring in the row to take it back and change it. Undo takes back the last change.",
+   "rules": [
+    "Each arrow goes from a tower to the next one round the ring. The number on it is the gap: how many blocks taller one of its towers is than the other.",
+    "The next ring puts each gap at the tower its arrow leaves: the gap from A to B becomes the new A.",
+    "A ring whose gaps make the ring on the right joins the row, and the next ring must make it in turn. Tap the newest ring in the row to take it back."
+   ],
+   "idea": "Building back under a cap, each choice must leave room to keep going.",
+   "prerequisites": "Compare towers; plan a few rings ahead and take a ring back when it leads nowhere.",
+   "hints": [
+    "Fill the slots from the right, and take back any ring that stops you.",
+    "Going back from 2 2 2 2: 0 2 0 2, then 0 0 2 2, then 1 1 1 3.",
+    "Then 0 1 2 3, then 1 1 2 4, then 0 1 2 4."
+   ],
+   "parent": {
+    "notice": "How your child recovers from a dead end: taking back one ring or starting again.",
+    "prompt": "Which rings did you have to take back, and why?",
+    "explanation": "One run of seven: (0, 1, 2, 4) → (1, 1, 2, 4) → (0, 1, 2, 3) → (1, 1, 1, 3) → (0, 0, 2, 2) → (0, 2, 0, 2) → (2, 2, 2, 2) → zeros. Sixteen of the 625 rings with towers up to 4 take 7 moves and none takes more, but only checking every ring shows that, so the puzzle asks for seven, not for the most.",
+    "extension": "In the playground, with towers up to 5, how long a run can you build? (Still seven.)",
+    "connection": "The worst case grows slowly with the cap: about four moves for each doubling of the tallest tower (Shapiro’s halving proof).",
+    "sourceIds": [
+     "diffs-week49",
+     "diffs-card49",
+     "diffs-shapiro"
+    ]
+   },
+   "solution": {
+    "run": [
+     "0,1,2,4",
+     "1,1,2,4",
+     "0,1,2,3",
+     "1,1,1,3",
+     "0,0,2,2",
+     "0,2,0,2",
+     "2,2,2,2"
+    ]
+   },
+   "provenance": "Week 49 Problem 2, the longest run with heights 0–4, and the guide’s chain from (0,1,2,4); built backward as the review card suggests."
+  }
+ ]
+}

@@ -1,0 +1,89 @@
+/* Nesting cards: paper cards with ink outlines, each picture in its own place
+   and colour (circle sun, triangle sky, square rose, star leaf, diamond
+   lilac), a pine ring on chosen cards and a pine pin on kept ones, faded
+   cards joined to the chosen card they nest with by an ochre line, and rows
+   with a mark at the start that fills pine when the row holds one chosen card. */
+.ns-puzzle{--ns-gap:9px;--ns-lilac:#c6a9d9;container-type:inline-size;position:relative;display:flex;flex-direction:column;align-items:center;gap:.6rem;width:100%;
+  --ns-card:min(var(--ns-max,80px),calc((100cqi - var(--ns-gap) * (var(--ns-cols) - 1) - var(--ns-framepad,8px)) / var(--ns-cols)),calc((100cqi - var(--ns-rowpad) - var(--ns-gap) * (var(--ns-slots) - 1)) / var(--ns-slots)))}
+.ns-puzzle.multi{--ns-framepad:30px}
+.ns-puzzle.every.solved .ns-decks{display:none}
+.ns-decks{display:flex;flex-direction:column;align-items:center;gap:.7rem;width:100%}
+.ns-deck{display:flex;flex-direction:column;align-items:center;gap:.4rem}
+.ns-deck.framed{padding:8px 10px 10px;border:1.5px solid var(--b-line,#d0d6bd);border-radius:16px;background:var(--b-paper,#f5f1e6)}
+.ns-deck.framed.done{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+
+/* The cards. */
+.ns-tray{display:grid;grid-template-columns:repeat(var(--ns-cols),var(--ns-card));gap:var(--ns-gap);justify-content:center;padding:4px;border-radius:14px}
+.ns-tray.drop{min-height:calc(var(--ns-card) + 8px);min-width:calc(var(--ns-card) * 2);border:1.5px dashed transparent}
+.ns-tray.drop:empty{min-height:calc(var(--ns-card) / 2)}
+.ns-puzzle.dragging .ns-tray.drop{border-color:var(--b-line,#d0d6bd)}
+.ns-tray.drop.drop-over{border-color:var(--b-pine,#31533e);background:var(--b-good-soft,#e2ecd6)}
+.ns-puzzle .ns-card{position:relative;display:block;width:var(--ns-card);height:var(--ns-card);min-height:0;margin:0;padding:0;border:2px solid var(--b-ink,#294439);border-radius:12%;background:var(--b-card,#fffdf5);box-shadow:0 2px 0 var(--b-line,#d0d6bd);color:var(--b-ink,#294439);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+.ns-card .ns-face{display:block;width:100%;height:100%;pointer-events:none}
+/* Each card answers taps up to the middle of the gap around it, under its ring. */
+.ns-puzzle .ns-card::before{content:'';position:absolute;inset:-6px}
+.ns-face :is(circle,polygon,rect):not(.ns-spot){stroke:var(--b-ink,#294439);stroke-width:1.4px;stroke-linejoin:round}
+.ns-face .ns-s0{fill:var(--b-sun,#efc76e)}
+.ns-face .ns-s1{fill:var(--b-sky,#9cc9de)}
+.ns-face .ns-s2{fill:var(--b-rose,#e7a28f)}
+.ns-face .ns-s3{fill:var(--b-leaf,#86a68c)}
+.ns-face .ns-s4{fill:var(--ns-lilac)}
+.ns-face .ns-spot{fill:#d3d8c3}
+.ns-puzzle .ns-card.chosen{border-color:var(--b-pine,#31533e);background:#eef3e4;box-shadow:0 0 0 2px var(--b-card,#fffdf5),0 0 0 5px var(--b-pine,#31533e)}
+.ns-puzzle .ns-card.kept{cursor:default;background:#e3ead6}
+.ns-puzzle .ns-card.kept::after{content:'';position:absolute;top:-8px;left:50%;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--b-pine,#31533e);border:2px solid var(--b-card,#fffdf5)}
+.ns-puzzle .ns-card.out{opacity:.4;border-style:dashed;box-shadow:none}
+.ns-puzzle .ns-card.out.shown{opacity:.8;border-color:var(--b-ochre,#b38840)}
+.ns-puzzle .ns-card.blocker{box-shadow:0 0 0 2px var(--b-card,#fffdf5),0 0 0 5px var(--b-ochre,#b38840)}
+.ns-puzzle .ns-card:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:6px}
+.ns-puzzle .ns-card.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:6px}
+.ns-puzzle .ns-card.drag{touch-action:none;cursor:grab}
+.ns-puzzle .ns-card.lifted{opacity:.2}
+.ns-card.ns-ghost{position:fixed;left:0;top:0;z-index:1000;margin:0;pointer-events:none;opacity:.92;cursor:grabbing;box-shadow:0 8px 18px rgba(41,68,57,.28)}
+@media (hover:hover){.ns-puzzle .ns-card:not(.kept):not(.out):hover{background:#f6f0dc}.ns-puzzle .ns-card.chosen:not(.kept):hover{background:#e4ecd7}}
+
+/* Circles to fill above a deck. */
+.ns-pips{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:100%}
+.ns-pips i{width:16px;height:16px;border-radius:50%;border:2px dashed #9aa88f;box-sizing:border-box}
+.ns-pips i.on{border:2px solid var(--b-pine,#31533e);background:var(--b-pine,#31533e)}
+
+/* Rows. */
+.ns-rows{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%}
+.ns-row{display:flex;align-items:center;gap:6px;box-sizing:border-box;width:min(100%,calc(var(--ns-rowpad) + var(--ns-slots) * var(--ns-card) + (var(--ns-slots) - 1) * var(--ns-gap)));min-height:calc(var(--ns-card) + 14px);padding:6px;border:1.5px solid var(--b-line,#d0d6bd);border-radius:14px;background:var(--b-paper,#f5f1e6)}
+.ns-row.new{border-style:dashed;background:transparent}
+.ns-row.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:2px}
+.ns-row.drop-over{border-color:var(--b-pine,#31533e);border-style:solid;background:var(--b-good-soft,#e2ecd6)}
+.ns-line{display:flex;flex-wrap:wrap;align-items:center;gap:var(--ns-gap);min-width:0}
+.ns-mark{flex:none;width:14px;height:14px;border-radius:50%;border:2px dashed #9aa88f;box-sizing:border-box}
+.ns-row.one .ns-mark{border:2px solid var(--b-pine,#31533e);background:var(--b-pine,#31533e)}
+.ns-row.many .ns-mark{border:2px solid var(--b-ochre,#b38840);background:var(--b-ochre,#b38840)}
+.ns-row.blocked .ns-mark{border:2px solid #9aa88f;background:linear-gradient(135deg,transparent 42%,#9aa88f 42% 58%,transparent 58%)}
+.ns-row.new .ns-mark{visibility:hidden}
+/* Centred in the gap before the card, over both cards' rings. */
+.ns-card .ns-break{position:absolute;top:-2px;bottom:-2px;left:calc(-2px - var(--ns-gap) / 2 - 3px);width:6px;border-radius:3px;background:var(--b-ochre,#b38840);box-shadow:0 0 0 2px var(--b-paper,#f5f1e6);pointer-events:none}
+
+/* Links between a faded card and the chosen cards it nests with. */
+.ns-links{position:absolute;left:0;top:0;overflow:visible;pointer-events:none;z-index:2}
+.ns-link-halo{stroke:var(--b-card,#fffdf5);stroke-width:8px;stroke-linecap:round;opacity:.9}
+.ns-link{stroke-width:3.5px;stroke-linecap:round}
+.ns-link.try{stroke:var(--b-ochre,#b38840);stroke-dasharray:7 6}
+.ns-link.proof{stroke:#8a9a80;stroke-width:2.5px}
+
+/* Collections found, That's all and the words that answer it. */
+.ns-found{display:flex;flex-direction:column;align-items:center;gap:6px;max-width:100%}
+.ns-found-set{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;padding:5px 7px;border:1.5px solid var(--b-pine,#31533e);border-radius:12px;background:var(--b-paper,#f5f1e6)}
+.ns-mini{display:block;width:28px;height:28px;border:1.5px solid var(--b-ink,#294439);border-radius:4px;background:var(--b-card,#fffdf5);box-sizing:border-box}
+.ns-mini .ns-face{display:block;width:100%;height:100%}
+@media (prefers-reduced-motion:no-preference){.ns-found-set.again{animation:ns-pop .6s ease-out}}
+@keyframes ns-pop{from{box-shadow:0 0 0 6px var(--b-ochre,#b38840)}}
+.ns-bar{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem}
+.ns-puzzle .ns-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.ns-puzzle .ns-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+.ns-puzzle .ns-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+.ns-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+
+/* The playground's decks. */
+.ns-picks{display:flex;gap:.6rem;justify-content:center}
+.ns-puzzle .ns-pick{width:58px;height:58px;min-height:0;padding:3px;background:var(--b-card,#fffdf5);border:2px solid var(--b-line,#d0d6bd);border-radius:12px}
+.ns-puzzle .ns-pick[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 2px var(--b-pine,#31533e)}
+.ns-pick .ns-face{display:block;width:100%;height:100%}

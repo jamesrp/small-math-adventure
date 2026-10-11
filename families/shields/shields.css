@@ -1,0 +1,86 @@
+@import url('../../portal-board.css');
+/* Portal shields: the room (where shields go) and the unrolled view (where
+   shots are tapped) side by side, stacked on a phone with the room first.
+   Shields are pine crosses on lattice crosses, never discs. A shot that gets
+   through is rose; a stopped shot is pine; shots tapped for a claim take sun,
+   sky, leaf and plum. S is an ink dot, T an ink ring. */
+.sh-puzzle{container-type:inline-size;display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
+.sh-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .9rem;max-width:100%}
+.sh-stage{display:grid;grid-template-columns:minmax(0,1fr);gap:.7rem;justify-items:center;width:100%;max-width:420px}
+/* Stacked, the view to tap comes first: the unrolled view while shots are being chosen. */
+.sh-puzzle.claiming .sh-plane-view{order:-1}
+.sh-view{width:100%;min-width:0}
+.sh-room-view{max-width:330px}
+.sh-plane-view{max-width:360px}
+@container (min-width:640px){
+  .sh-stage{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);align-items:center;max-width:820px;gap:1.2rem}
+  .sh-room-view{max-width:360px}
+  .sh-plane-view{max-width:420px}
+  .sh-puzzle.claiming .sh-plane-view{order:0}
+}
+
+/* The room: crosses are quiet until touched; the grid's even lines are the worksheet's. */
+.sh-room .pb-grid{stroke:#e6e9d8}
+.sh-dot{fill:#8f9a86;pointer-events:none}
+.sh-puzzle .sh-room .pb-point.act .pb-hit{fill:transparent}
+.sh-puzzle .sh-room .pb-point.act:hover .pb-hit{fill:rgba(134,166,140,.22)}
+.sh-puzzle .pb-point:not(.act){pointer-events:none}
+.sh-puzzle .sh-room .pb-point.hinted .pb-hit{fill:rgba(239,199,110,.55)}
+.sh-plane .pb-grid{display:none}
+.sh-plane .pb-square.first{fill:#f7ebc6}
+
+/* S, T and labels. */
+.sh-s{fill:var(--b-ink,#294439);pointer-events:none}
+.sh-s.home{fill:var(--b-ink,#294439)}
+.sh-t{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:2px;vector-effect:non-scaling-stroke;pointer-events:none}
+.sh-label{font-family:var(--b-display,Georgia,serif);font-size:.5px;text-anchor:middle;fill:var(--b-ink,#294439);pointer-events:none}
+.sh-label.plane{font-size:1.5px}
+
+/* Shields: a pine cross on its point. */
+.sh-shield{fill:none;stroke:var(--b-pine,#31533e);stroke-width:3.2px;stroke-linecap:round;vector-effect:non-scaling-stroke;pointer-events:none}
+.sh-plane .sh-shield{stroke-width:2.2px}
+.sh-plane .sh-shield.copy{opacity:.4}
+.sh-ring{fill:none;stroke-width:2.6px;vector-effect:non-scaling-stroke;pointer-events:none}
+
+/* Shots. */
+.sh-shot{stroke-width:3px;stroke-linecap:round;vector-effect:non-scaling-stroke;pointer-events:none;fill:none}
+.sh-shot.faint{stroke:#9aa68f;stroke-width:1.6px;stroke-dasharray:3 4}
+.sh-shot.stopped{stroke:var(--b-pine,#31533e)}
+.sh-shot.escape{stroke:#c4553f;stroke-width:3.4px}
+.sh-shot.refused{stroke:#c4553f;stroke-width:2.4px;stroke-dasharray:6 4}
+.sh-portal{pointer-events:none;fill:#9aa68f}
+.sh-portal.stopped{fill:var(--b-pine,#31533e)}
+.sh-portal.escape,.sh-portal.refused{fill:#c4553f}
+.sh-portal.faint{display:none}
+.sh-shot.k0{stroke:#c9962e}.sh-portal.k0,.sh-ring.k0{fill:#c9962e}
+.sh-shot.k1{stroke:#4f8fae}.sh-portal.k1{fill:#4f8fae}
+.sh-shot.k2{stroke:#5f8a67}.sh-portal.k2{fill:#5f8a67}
+.sh-shot.k3{stroke:#8a6aa8}.sh-portal.k3{fill:#8a6aa8}
+.sh-shot.k4{stroke:#b06a3c}.sh-portal.k4{fill:#b06a3c}
+.sh-ring.k0{fill:none;stroke:#c9962e}.sh-ring.k1{stroke:#4f8fae}.sh-ring.k2{stroke:#5f8a67}.sh-ring.k3{stroke:#8a6aa8}.sh-ring.k4{stroke:#b06a3c}
+.sh-clash{fill:rgba(239,199,110,.35);stroke:var(--b-ochre,#b38840);stroke-width:2.4px;stroke-dasharray:4 3;vector-effect:non-scaling-stroke;pointer-events:none}
+
+/* Copies of T (or S) to tap in the unrolled view. */
+.sh-puzzle .sh-plane .pb-point.pick .pb-hit{fill:rgba(255,253,245,.01);stroke:var(--b-ochre,#b38840);stroke-width:1.6px;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}
+.sh-puzzle .sh-plane .pb-point.pick:hover .pb-hit{fill:rgba(239,199,110,.25)}
+.sh-puzzle .sh-plane .pb-point.pick.k0 .pb-hit{fill:rgba(201,150,46,.22);stroke:#c9962e;stroke-dasharray:none}
+.sh-puzzle .sh-plane .pb-point.pick.k1 .pb-hit{fill:rgba(79,143,174,.22);stroke:#4f8fae;stroke-dasharray:none}
+.sh-puzzle .sh-plane .pb-point.pick.k2 .pb-hit{fill:rgba(95,138,103,.22);stroke:#5f8a67;stroke-dasharray:none}
+.sh-puzzle .sh-plane .pb-point.pick.k3 .pb-hit{fill:rgba(138,106,168,.22);stroke:#8a6aa8;stroke-dasharray:none}
+.sh-puzzle .sh-plane .pb-point.pick.k4 .pb-hit{fill:rgba(176,106,60,.22);stroke:#b06a3c;stroke-dasharray:none}
+.sh-puzzle .sh-plane .pb-point.pick.aimed .pb-hit{fill:rgba(49,83,62,.14);stroke:var(--b-pine,#31533e);stroke-dasharray:none}
+.sh-puzzle .sh-plane .pb-point.pick.hinted .pb-hit{fill:rgba(239,199,110,.5);stroke-width:2.6px}
+
+/* Buttons and words. */
+.sh-puzzle .sh-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.sh-puzzle .sh-button[aria-pressed="true"]{background:#e3ecdf;box-shadow:inset 0 0 0 2px var(--b-pine,#31533e)}
+.sh-puzzle .sh-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+.sh-puzzle .sh-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+.sh-prompt,.sh-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+
+/* The playground's rooms. */
+.sh-rooms{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
+.sh-puzzle .sh-pick{width:60px;min-height:60px;padding:6px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px}
+.sh-puzzle .sh-pick[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 2px var(--b-pine,#31533e)}
+.sh-mini{display:block;width:100%;height:auto}
+.sh-mini-room{fill:#fbf8ec;stroke:#5b93ad;stroke-width:1.5px;stroke-dasharray:3 2;vector-effect:non-scaling-stroke}

@@ -1,0 +1,104 @@
+@import url('../../sq-grid.css');
+/* Stretch bands: lettered discs on the points of the shared square grid,
+   yellow (sun) and blue (sky) for the two groups of a split, their bands as a
+   filled shape, a thick segment or a ring, a pine ring where two bands meet,
+   pine for the dot being moved or chosen, ochre for a hint, and a shelf of
+   small pictures under the board. */
+.sb-puzzle,.sb-help{--sb-sun-edge:#c99a35;--sb-sky-edge:#5d93b0}
+.sb-puzzle{display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%}
+.sb-stage{width:100%;display:flex;justify-content:center}
+.sb-puzzle .sg-board.sb-board{max-width:420px;max-height:60vh;margin:.1rem auto 0}
+.sb-board .sg-cell{fill:#fbf8ec;stroke:#e3e5d3}
+.sb-pip{fill:#9aa88f;pointer-events:none}
+
+/* Discs. */
+.sb-disc .sb-face{stroke:var(--b-ink,#294439);stroke-width:1.8px;vector-effect:non-scaling-stroke}
+.sb-disc.sb-c0 .sb-face{fill:var(--b-sun,#efc76e)}
+.sb-disc.sb-c1 .sb-face{fill:var(--b-sky,#9cc9de)}
+.sb-disc.sb-cn .sb-face{fill:var(--b-card,#fffdf5)}
+.sb-letter{stroke:none;font-family:var(--b-display,Georgia,serif);text-anchor:middle;fill:var(--b-ink,#294439);pointer-events:none}
+.sb-disc.moving .sb-face,.sb-disc.chosen .sb-face{stroke:var(--b-pine,#31533e);stroke-width:3.6px}
+.sb-disc.moving.sb-cn .sb-face{fill:var(--b-pine,#31533e)}
+.sb-disc.moving.sb-cn .sb-letter{fill:var(--b-on-pine,#fff8d9)}
+.sb-disc .sb-hit{fill:transparent;stroke:none}
+.sb-disc[role="button"]{cursor:pointer;outline:none}
+.sb-disc[role="button"]:hover .sb-hit{fill:rgba(49,83,62,.12)}
+.sb-disc[role="button"]:focus-visible .sb-hit{fill:rgba(179,136,64,.18);stroke:var(--b-ochre,#b38840);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}
+.sb-disc.hinted .sb-hit,.sb-disc.hinted:not([role]) .sb-face{stroke:var(--b-ochre,#b38840);stroke-width:3px;vector-effect:non-scaling-stroke;stroke-dasharray:5 3;fill:rgba(239,199,110,.35)}
+
+/* Bands. */
+.sb-band{pointer-events:none;vector-effect:non-scaling-stroke}
+.sb-shape{stroke-width:2.4px;stroke-linejoin:round;fill-opacity:.5}
+.sb-shape.sb-c0{fill:var(--b-sun,#efc76e);stroke:var(--sb-sun-edge)}
+.sb-shape.sb-c1{fill:var(--b-sky,#9cc9de);stroke:var(--sb-sky-edge)}
+.sb-rod{stroke-width:6px;stroke-linecap:round}
+.sb-rod.sb-c0{stroke:var(--sb-sun-edge)}
+.sb-rod.sb-c1{stroke:var(--sb-sky-edge)}
+.sb-ring{fill:none;stroke-width:3.4px}
+.sb-ring.sb-c0{stroke:var(--sb-sun-edge)}
+.sb-ring.sb-c1{stroke:var(--sb-sky-edge)}
+.sb-shared{stroke:var(--b-pine,#31533e);stroke-width:3px;vector-effect:non-scaling-stroke;stroke-linecap:round;pointer-events:none}
+.sb-meet{fill:none;stroke:var(--b-pine,#31533e);stroke-width:3px;vector-effect:non-scaling-stroke;pointer-events:none}
+.sb-meet-dot{fill:var(--b-pine,#31533e);pointer-events:none}
+
+/* Points that are tap targets. */
+.sb-spot{cursor:pointer;outline:none}
+.sb-spot .sb-reach{fill:transparent}
+.sb-spot:hover .sb-reach{fill:rgba(49,83,62,.1)}
+.sb-spot:focus-visible .sb-reach{fill:rgba(179,136,64,.18);stroke:var(--b-ochre,#b38840);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}
+.sb-spot.hinted .sb-reach{fill:rgba(239,199,110,.5);stroke:var(--b-ochre,#b38840);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}
+.sb-found,.sb-found-ring{fill:none;stroke:var(--b-pine,#31533e);stroke-width:3px;vector-effect:non-scaling-stroke;pointer-events:none}
+.sb-missed{stroke:var(--b-bad,#a9503a);stroke-width:2.4px;vector-effect:non-scaling-stroke;stroke-linecap:round;pointer-events:none}
+
+/* Buttons, words and the goal. */
+.sb-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .8rem}
+.sb-puzzle .sb-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.sb-puzzle .sb-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+.sb-puzzle .sb-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+.sb-puzzle .sb-tool[aria-pressed="true"]{background:#e9eddc;box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.sb-told{margin:0;font-weight:600;color:var(--b-ink,#294439);text-align:center}
+.sb-goal{display:flex;flex-wrap:wrap;justify-content:center;gap:.45rem .6rem}
+.sb-chip{display:inline-flex;border:1.5px solid var(--b-ink,#294439);border-radius:10px;overflow:hidden;font:400 1.15rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439);box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.sb-chip b{font-weight:400;padding:.42rem .55rem;letter-spacing:.08em}
+.sb-chip b.sb-c0{background:var(--b-sun,#efc76e)}
+.sb-chip b.sb-c1{background:var(--b-sky,#9cc9de);border-left:1.5px solid var(--b-ink,#294439)}
+.sb-chip.ringed{outline:3px solid var(--b-bad,#a9503a);outline-offset:3px}
+/* The shelf of a find-every puzzle: each split a button that takes it off. */
+.sb-puzzle button.sb-chip{padding:0;min-height:44px;cursor:pointer;background:none}
+.sb-puzzle button.sb-chip b{display:flex;align-items:center}
+.sb-puzzle button.sb-chip:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.sb-puzzle button.sb-chip.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+
+/* Shelf of small pictures. */
+.sb-shelf{display:flex;flex-wrap:wrap;justify-content:center;gap:.45rem;max-width:100%}
+.sb-mini{width:104px;padding:3px;border-radius:10px;background:var(--b-card,#fffdf5);border:1px solid var(--b-line,#d0d6bd);box-sizing:border-box}
+.sb-puzzle .sg-board.sb-mini-board,.sb-help .sg-board.sb-mini-board{max-width:100%;margin:0 auto}
+.sb-mini-board .sg-rim{stroke-width:1.4px}
+
+/* Two boards. */
+.sb-two{display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem 1rem;width:100%}
+.sb-half{flex:1 1 300px;max-width:420px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:.4rem}
+.sb-pairs .sg-board.sb-board{max-height:42vh}
+
+.sb-puzzle.solved .sb-stage .sg-rim,.sb-pairs.solved .sb-board .sg-rim{stroke:var(--b-good,#3c7a4a)}
+
+/* How to play: the three kinds of band. */
+.sb-help{display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center;margin:.4rem 0}
+.sb-help figure{margin:0;width:96px}
+
+/* Small pictures: dots without letters, thinner lines. */
+.sb-dot{stroke:var(--b-ink,#294439);stroke-width:1px;vector-effect:non-scaling-stroke}
+.sb-dot.sb-c0{fill:var(--b-sun,#efc76e)}
+.sb-dot.sb-c1{fill:var(--b-sky,#9cc9de)}
+.sb-dot.sb-cn{fill:var(--b-card,#fffdf5)}
+.sb-mini-board .sg-cell{stroke:none}
+.sb-mini-board .sb-pip{fill:#c3cbb5}
+.sb-mini-board .sb-shape{stroke-width:1.4px}
+.sb-mini-board .sb-rod{stroke-width:2.4px}
+.sb-mini-board .sb-ring{stroke-width:2px}
+.sb-mini-board .sb-shared,.sb-mini-board .sb-meet{stroke-width:1.8px}
+/* A split shown apart: wider, with thinner bands, so the narrowest gap is at
+   least 4px (scripts/validate-radon.mjs reads these numbers). */
+.sb-mini.sb-big{width:220px;max-width:100%}
+.sb-big .sb-shape{stroke-width:1.2px}
+.sb-big .sb-rod{stroke-width:1.6px}
