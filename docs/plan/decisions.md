@@ -2,7 +2,7 @@
 
 James asked on October 10, 2026 that every worksheet week end in one of two states: **in the app**, or **not porting**, with the reason written down. "Waiting" is a step in a wave, never an end state. A week reaches its decision through its review card in the worksheets repository ([plans/review](https://github.com/jamesrp/math-circle-worksheets/tree/main/plans/review)), and then a port when the card says port. A week that waits on a board or on another family gets that board or family built in a wave, or a reason why not.
 
-**Where things stand:** 79 weeks (1–78 and the Week 1 encore). 63 are in the app and 1 is ruled out, so 15 are open, every one planned into a wave. James put Waves 8 and 9 on hold on October 10 to save the weekly quota; Wave 7 finishes first.
+**Where things stand:** 79 weeks (1–78 and the Week 1 encore). 64 are in the app and 1 is ruled out, so 14 are open, every one planned into a wave. James put Waves 8 and 9 on hold on October 10 to save the weekly quota; Wave 7 is done, so the 14 open weeks are the ones those two waves hold.
 
 Whoever changes a week's state changes its row here in the same push, and the count above.
 
@@ -14,7 +14,7 @@ Each wave is claimed on both work boards like any other item. The weeks a wave p
 2. **Wave 4, the portal board (done).** Week 41's pawn on a portal board with a live unrolled view, then Week 70's shields and Week 64's glued squares on it, and Week 75's strands on a wraparound strip with the same lift view.
 3. **Wave 5, roads and graphs (done).** Week 69 as a group in Meeting roads, Week 68 on an endless panning map, and the graph themes whose cards say port: 17, 27 and 40.
 4. **Wave 6, grids (done).** Week 15's nearest-site cells on a half-unit lattice, and the grid themes whose cards say port: 5, 32, 48 and 57.
-5. **Wave 7, sets and numbers.** 12, 19, 20, 22, 36, 49, 51, 54, 55 and 58.
+5. **Wave 7, sets and numbers (done).** 12, 19, 20, 22, 36, 49, 51, 54, 55 and 58.
 6. **Wave 8, symmetry, words and reflections.** 35, 37, Week 76's shrink tool, and Weeks 71 and 21 as groups in Mirror Couriers.
 7. **Wave 9, the rest.** Week 65's octagon floor, 77 as a loop group in Lantern Wires, 78, and the paper-and-continuous themes, whose cards all say port: 28, 38, 50, 56, 59 and 61. Each gets a port with a real on-screen solve or a final reason not to. The same wave makes the touch-ups the in-app families' own cards ask for (Weeks 8–11).
 
@@ -82,7 +82,7 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 55 | Sumsets | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-55.md) | In the app | Card totals ([docs/sumsets/README.md](../sumsets/README.md)): trays whose totals merge on a dot grid; fewest and most totals, every B with That's all, and "fewest" certified by a route the child taps |
 | 56 | Polyhedra and Euler | [revise](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-56.md) | Open, wave 9 | A corner builder (every ring that closes, with "That's all") and erasing edges to a tree on the graph engine; unfolding stays with paper solids |
 | 57 | Lattice area | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-57.md) | In the app | Geoboard ([docs/geoboard/README.md](../geoboard/README.md)): bands that refuse crossing sides and light outline and inside dots, targets to build, cuts and holes, and Can't certified by Pick's count |
-| 58 | Fair division | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-58.md) | Open, wave 7 | Trays without a live value table: every envy-free division with "That's all", the odd case then halving, favourites for four or five, a cut-and-choose duel |
+| 58 | Fair division | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-58.md) | In the app | Fair shares ([docs/shares/README.md](../shares/README.md)): cards dragged into trays beside each person's taste card, with no value table and no one's number set against another's; every fair division shelved and judged by That's all; the odd case certified by pairing, then halving; favourites with Can't certified by the people the child taps; a cut-and-choose duel |
 | 59 | Constant-width shapes | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-59.md) | Open, wave 9 | C becomes B: choose each arc's centre so the shape spins snug between rails, with a still rail as the certificate |
 | 60 | Optimal stopping | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-60.md) | In the app | Take it or pass (PR #24) |
 | 61 | Geometry on a sphere | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-61.md) | Open, wave 9 | A turnable globe with corners on a 15° grid: three right corners, triangles that hit a named fraction, a lune-pair playground |
