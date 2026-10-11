@@ -220,6 +220,15 @@ test('hints: name a card, reach a solve alone from fresh and from a wrong start,
   assert.equal(h.text, 'Every collection of three here has cards of only one size, and you have found both.');
   assert.doesNotMatch(view(e, {...all, hintLevel: 1}), /ns-all hinted/);
   assert.match(view(e, {...all, hintLevel: 2}), /class="secondary ns-button ns-all hinted"/);
+  // Sixteen cards has one collection of six: That's all before it says there is another, and after it solves.
+  const six = byId('nests-07');
+  let one = play(six, freshAttempt(six), {type: 'all'});
+  assert.deepEqual(one.board.told, {kind: 'more'});
+  assert.equal(move(six, one, {type: 'all'}), null, 'not again until a collection is found');
+  one = play(six, one, ...taps(six, 0, 'AB AC AD BC BD CD'));
+  assert.equal(one.board.found.length, 1);
+  assert.equal(nextHint(six, one).text, 'Every collection of six here has cards of only one size, and you have found it.');
+  assert.ok(isSolved(six, play(six, one, {type: 'all'}).board));
   // Rows hints end in a solve from any rows, including ones that tempt the fewest-row cover to change.
   const ten = byId('nests-10'), rnd = (() => { let x = 7; return () => (x = (x * 1664525 + 1013904223) >>> 0) / 2 ** 32; })();
   for (let trial = 0; trial < 40; trial++) {

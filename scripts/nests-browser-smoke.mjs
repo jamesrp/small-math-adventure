@@ -73,10 +73,10 @@ try {
   assert.match(await card(R, 0, 'A').getAttribute('class'), /blocker/);
   // Two cards side by side: a point just outside one card, in the gap, goes to the nearer card.
   const [b0, b1] = [await box(card(R, 0, '0')), await box(card(R, 0, 'B'))];
-  assert.ok(Math.abs(b0.y - b1.y) < 1 && b1.x > b0.x, 'the empty card and the triangle sit side by side');
-  await tapAt(b0.x + b0.width + 3, b0.y + b0.height / 2);
+  assert.ok(Math.abs(b0.y - b1.y) < 1 && b0.x > b1.x, 'the triangle and the empty card sit side by side');
+  await tapAt(b0.x - 3, b0.y + b0.height / 2);
   assert.deepEqual((await board(R)).decks[0].out, [index(R, 0, 'AC'), index(R, 0, '0')].sort((x, y) => x - y), 'the gap next to the empty card is the empty card’s');
-  await tapAt(b1.x - 3, b1.y + b1.height / 2);
+  await tapAt(b1.x + b1.width + 3, b1.y + b1.height / 2);
   assert.ok((await board(R)).decks[0].chosen.includes(index(R, 0, 'B')), 'the gap next to the triangle is the triangle’s');
   await tapAt(b1.x + 2, b1.y + 2);
   assert.ok(!(await board(R)).decks[0].chosen.includes(index(R, 0, 'B')), 'a corner of the triangle card puts it back');

@@ -72,22 +72,24 @@ const PRINTED = {
   groups: [['', 'A', 'B'], ['A', 'AB', 'B'], ['AB', 'AC', 'BC'], ['A', 'BC', 'ABC']],
   // Reshuffles of the printed decks (checked below to hold the same cards).
   deck4x: ['BCD', 'C', 'B', 'ACD', 'BD', 'AC', 'ABD', 'AD', 'AB', 'CD', 'ABCD', 'D', 'BC', 'A', '', 'ABC'],
-  ext3: ['C', '', 'AB', 'BC', 'A', 'ABC', 'B', 'AC']
+  ext3: ['C', '', 'AB', 'BC', 'A', 'ABC', 'B', 'AC'],
+  deck3s: ['AC', 'B', '', 'ABC', 'A', 'BC', 'AB', 'C']
 };
 assert.deepEqual([...PRINTED.deck4x].sort(), [...PRINTED.deck4].sort(), 'the reshuffled sixteen are the printed sixteen');
 assert.deepEqual([...PRINTED.ext3].sort(), [...PRINTED.deck3].sort(), 'the reshuffled eight are the printed eight');
+assert.deepEqual([...PRINTED.deck3s].sort(), [...PRINTED.deck3].sort(), 'the swapped eight are the printed eight');
 // Tapping every card of a deck in a given order: each card joins unless it nests with one already in.
 const inOrder = (cards, keep, order) => order.reduce((pick, i) => (pick.includes(cards[i]) || pick.some(x => nest(x, cards[i])) ? pick : [...pick, cards[i]]), [...keep]);
 const PAIRS5 = 'AB/AC/AD/AE/BC/BD/BE/CD/CE/DE', TRIPLES5 = 'ABC/ABD/ABE/ACD/ACE/ADE/BCD/BCE/BDE/CDE';
 // The table in docs/nests/README.md.
 const TABLE = {
   'nests-01': {mode: 'reach', decks: PRINTED.groups, answers: [['A/B'], ['A/B'], ['AB/AC/BC'], ['A/BC']], inOrder: [true, false, true, false]},
-  'nests-02': {mode: 'reach', decks: ['deck3'], answers: [['A/B/C', 'AB/AC/BC']]},
+  'nests-02': {mode: 'reach', decks: ['deck3s'], answers: [['A/B/C', 'AB/AC/BC']]},
   'nests-03': {mode: 'best', decks: ['deck2'], best: [2]},
   'nests-04': {mode: 'extend', decks: ['ext3', 'ext3', 'ext3'], starts: [['ABC'], ['A', 'BC'], ['AB']], best: [1, 2, 3], inOrder: [true, true, false]},
   'nests-05': {mode: 'every', decks: ['deck3'], answers: [['A/B/C', 'AB/AC/BC']]},
   'nests-06': {mode: 'best', decks: ['deck3'], best: [3]},
-  'nests-07': {mode: 'reach', decks: ['deck4x'], answers: [['AB/AC/AD/BC/BD/CD']]},
+  'nests-07': {mode: 'every', decks: ['deck4x'], answers: [['AB/AC/AD/BC/BD/CD']]},
   'nests-08': {mode: 'best', decks: [PRINTED.deck3.filter(s => s !== 'A' && s !== 'BC')], best: [2]},
   'nests-09': {mode: 'extend', decks: ['deck4x', 'deck4x'], starts: [['A', 'BCD'], ['AB', 'AC']], best: [2, 6], inOrder: [true, false]},
   'nests-10': {mode: 'best', decks: ['deck4x'], best: [6]},
@@ -207,11 +209,15 @@ export async function validateNests() {
       assert.deepEqual(deck.start || [], (row.starts || [])[q.decks.indexOf(deck)] || [], `${p.id}: the start`);
     }
     // Tapping every card in page order finishes a deck only where the table says there is no choice to make;
-    // the sixteen-card decks also stop short tapped backwards and down the columns.
+    // the sixteen-card decks and the eight-card reach deck also stop short tapped backwards, down the columns
+    // (sixteen cards four or five wide), and up the columns as shown;
+    // the eight also along each row right to left, from the top or the bottom.
     if (row.mode !== 'best') q.decks.forEach((deck, d) => {
       const keep = deck.start || [], goal = deck.target ?? row.best[d], order = [...deck.cards.keys()];
       assert.equal(inOrder(deck.cards, keep, order).length >= goal, (row.inOrder || [])[d] ?? false, `${p.id}: deck ${d + 1} tapped in page order`);
-      if (deck.cards.length === 16 && !(row.inOrder || [])[d]) for (const ord of [[...order].reverse(), ...[4, 5].map(w => [...Array(w).keys()].flatMap(c => order.filter(i => i % w === c)))]) assert.ok(inOrder(deck.cards, keep, ord).length < goal, `${p.id}: deck ${d + 1} tapped in another plain order`);
+      const columns = w => [...Array(w).keys()].flatMap(c => order.filter(i => i % w === c));
+      const rightToLeft = w => order.map(i => i - i % w + (w - 1 - i % w));
+      if ((deck.cards.length === 16 || (row.mode === 'reach' && deck.cards.length === 8)) && !(row.inOrder || [])[d]) for (const ord of [[...order].reverse(), ...(deck.cards.length === 16 ? [4, 5] : [deck.cols]).map(columns), columns(deck.cols).reverse(), ...(deck.cards.length === 8 ? [rightToLeft(deck.cols), rightToLeft(deck.cols).reverse()] : [])]) assert.ok(inOrder(deck.cards, keep, ord).length < goal, `${p.id}: deck ${d + 1} tapped in another plain order`);
     });
     if (p.id === 'nests-12') {
       const deck = q.decks[0].cards, every = bigCollections(deck);
@@ -241,6 +247,10 @@ export async function validateNests() {
     // The witness, played as moves.
     let a = fresh;
     if (row.mode === 'every') {
+      // That's all before anything is found is answered, and the answer holds until a collection is found.
+      const none = play(p, a, {type: 'all'});
+      assert.deepEqual(none.board.told, {kind: 'more'}, `${p.id}: there is another, before any is found`);
+      refuse(p, none, {type: 'all'}, 'That’s all again before a collection');
       for (const [n, set] of p.solution.answers.entries()) {
         for (const s of set) a = play(p, a, {type: 'tap', deck: 0, card: idx(q, 0, s)});
         assert.equal(a.board.found.length, n + 1, `${p.id}: a collection of the size is kept`);
@@ -249,6 +259,7 @@ export async function validateNests() {
           let again = a;
           for (const s of set) again = play(p, again, {type: 'tap', deck: 0, card: idx(q, 0, s)});
           assert.deepEqual(again.board.told, {kind: 'again', at: 0}, `${p.id}: found already`);
+          if (p.solution.answers.length === 1) continue;
           const early = play(p, a, {type: 'all'});
           assert.deepEqual(early.board.told, {kind: 'more'}, `${p.id}: there is another`);
           refuse(p, early, {type: 'all'}, 'That’s all again before a new collection');

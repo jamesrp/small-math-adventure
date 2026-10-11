@@ -266,8 +266,8 @@
      {
       "cards": [
        "AC",
-       "",
        "B",
+       "",
        "ABC",
        "A",
        "BC",
@@ -318,7 +318,7 @@
      ]
     ]
    },
-   "provenance": "Week 19 K–1 Problem 4 and grades 2–3 Problem 2: the eight-card deck in printed order."
+   "provenance": "Week 19 K–1 Problem 4 and grades 2–3 Problem 2: the eight-card deck, with the empty card and the triangle swapped from the printed order so that tapping in order, either way along the rows or the columns, stops short."
   },
   {
    "id": "nests-03",
@@ -352,7 +352,7 @@
     "A card fits inside another when all its pictures are on the other card. The empty card fits inside every card. Two cards nest when one fits inside the other.",
     "Tap a card to choose it, and tap it again to put it back. A card that nests with a chosen card can’t be chosen: it fades, and a line joins it to the chosen card it nests with.",
     "Drag each card into a row, or onto the dashed row to start a new one. In a row each card must fit inside the next; a bar marks two that don’t.",
-    "A collection takes at most one card from each row. So when every card is in a row and each row holds one chosen card, no collection can be bigger. A filled circle at the start of a row means it holds one chosen card."
+    "A filled circle at the start of a row means it holds one chosen card."
    ],
    "idea": "Two rows hold all four cards, and a collection takes at most one card from each row, so two is the most.",
    "prerequisites": "Match pictures, and drag cards into rows where each fits inside the next. A grown-up can read How to play.",
@@ -518,7 +518,7 @@
   {
    "id": "nests-05",
    "number": 5,
-   "title": "Another just as big",
+   "title": "Collections of three",
    "difficulty_level": "medium",
    "familyTitle": "Nesting cards",
    "mechanic": "nests",
@@ -551,7 +551,7 @@
    "rules": [
     "A card fits inside another when all its pictures are on the other card. The empty card fits inside every card. Two cards nest when one fits inside the other.",
     "Tap a card to choose it, and tap it again to put it back. A card that nests with a chosen card can’t be chosen: it fades, and a line joins it to the chosen card it nests with.",
-    "When the chosen cards fill the circles, the collection is kept below and the cards go back. Press That’s all when you think none is left. It says if there is another."
+    "When the chosen cards fill the circles, the collection is kept below and the cards go back. Press That’s all when you think none is left."
    ],
    "idea": "The eight-card deck has exactly two collections of three: the one-picture cards and the two-picture cards.",
    "prerequisites": "Keep the collections already found in mind and decide when none is left.",
@@ -626,7 +626,7 @@
     "A card fits inside another when all its pictures are on the other card. The empty card fits inside every card. Two cards nest when one fits inside the other.",
     "Tap a card to choose it, and tap it again to put it back. A card that nests with a chosen card can’t be chosen: it fades, and a line joins it to the chosen card it nests with.",
     "Drag each card into a row, or onto the dashed row to start a new one. In a row each card must fit inside the next; a bar marks two that don’t.",
-    "A collection takes at most one card from each row. So when every card is in a row and each row holds one chosen card, no collection can be bigger. A filled circle at the start of a row means it holds one chosen card."
+    "A filled circle at the start of a row means it holds one chosen card."
    ],
    "idea": "Three rows hold all eight cards, so no collection has four.",
    "prerequisites": "Match pictures, and drag cards into rows where each fits inside the next. A grown-up can read How to play.",
@@ -690,7 +690,7 @@
    "revision": 1,
    "sourceDocument": "docs/nests/README.md",
    "parameters": {
-    "mode": "reach",
+    "mode": "every",
     "decks": [
      {
       "cards": [
@@ -716,28 +716,28 @@
      }
     ]
    },
-   "objective": "Choose cards with no chosen card inside another until the circles are full.",
-   "visibleObjective": "",
-   "instruction": "Choose cards with no chosen card inside another until the circles are full.",
-   "controls": "Tap a card to choose it or put it back. Tap a faded card to see which chosen card it nests with. Undo takes back the last tap.",
+   "objective": "Find every collection of this many cards with no card inside another. Press That’s all when none is left.",
+   "visibleObjective": "Find every collection of this size.",
+   "instruction": "Find every collection of this many cards with no card inside another. Press That’s all when none is left.",
+   "controls": "Tap a card to choose it or put it back. Tap a faded card to see which chosen card it nests with. Press That’s all when you are sure. Undo takes back the last tap.",
    "rules": [
     "A card fits inside another when all its pictures are on the other card. The empty card fits inside every card. Two cards nest when one fits inside the other.",
     "Tap a card to choose it, and tap it again to put it back. A card that nests with a chosen card can’t be chosen: it fades, and a line joins it to the chosen card it nests with.",
-    "Fill the circles above each deck with chosen cards."
+    "When the chosen cards fill the circles, the collection is kept below and the cards go back. Press That’s all when you think none is left."
    ],
-   "idea": "The six two-picture cards are a collection, and the only one of six.",
-   "prerequisites": "Match pictures and count to three or four. A grown-up can read How to play.",
+   "idea": "The six two-picture cards are a collection of six, and the only one.",
+   "prerequisites": "Match pictures and count to six, and decide when no other collection is left. A grown-up can read How to play.",
    "hints": [
     "Pick one card. Which cards can never be chosen with it?",
     "Cards with the same number of pictures never nest.",
-    "Choose the six cards with two pictures."
+    "Choose the six cards with two pictures. Then press That’s all."
    ],
    "parent": {
-    "notice": "Whether your child tries one-picture cards first (four of them) and then looks for a bigger kind.",
-    "prompt": "There are four one-picture cards and four three-picture cards. Why do two-picture cards make more?",
-    "explanation": "Cards with the same number of pictures never nest, so each size makes a collection: one empty card, four with one picture, six with two, four with three, one full card. The six two-picture cards are the biggest of these. They are in fact the only collection of six; the notes to puzzle 10 show why.",
+    "notice": "Whether your child tries one-picture cards first (four of them) and then looks for a bigger kind, and what makes them sure, once six are found, that no other six exists.",
+    "prompt": "Could a collection of six use a card with one picture?",
+    "explanation": "Cards with the same number of pictures never nest, so each size makes a collection: one empty card, four with one picture, six with two, four with three, one full card. The six two-picture cards are the biggest of these, and no other collection has six. The empty and full cards nest with every card. A one-picture card, say the circle, nests with the empty card and the seven cards that hold the circle; the cards left use only triangle, square and star, and at most three of them make a collection (puzzle 6), so a collection with the circle has at most four. A three-picture card is the same with every card swapped for the pictures it lacks. So a collection of six uses only two-picture cards, and there are exactly six of those.",
     "extension": "Find a collection of four that mixes one-picture and two-picture cards. (The circle with the triangle and square, triangle and star, and square and star cards.)",
-    "connection": "Sperner’s theorem: on n pictures the largest collection has as many cards as the middle size, here 6 = C(4, 2).",
+    "connection": "Sperner’s theorem: on n pictures the largest collection has as many cards as the middle size, here 6 = C(4, 2); for an even number of pictures the middle size is the only largest collection.",
     "sourceIds": [
      "nests-week19",
      "nests-card19",
@@ -747,7 +747,7 @@
     ]
    },
    "solution": {
-    "chosen": [
+    "answers": [
      [
       "BD",
       "AC",
@@ -758,7 +758,7 @@
      ]
     ]
    },
-   "provenance": "Week 19 grades 2–3 Problem 6 and grades 4–5 Problem 2: the sixteen-card deck, reshuffled so that tapping in order stops short."
+   "provenance": "Week 19 grades 2–3 Problem 6 and grades 4–5 Problems 2 and 8 (the six is the only one): the sixteen-card deck, reshuffled so that tapping in order stops short."
   },
   {
    "id": "nests-08",
@@ -795,7 +795,7 @@
     "A card fits inside another when all its pictures are on the other card. The empty card fits inside every card. Two cards nest when one fits inside the other.",
     "Tap a card to choose it, and tap it again to put it back. A card that nests with a chosen card can’t be chosen: it fades, and a line joins it to the chosen card it nests with.",
     "Drag each card into a row, or onto the dashed row to start a new one. In a row each card must fit inside the next; a bar marks two that don’t.",
-    "A collection takes at most one card from each row. So when every card is in a row and each row holds one chosen card, no collection can be bigger. A filled circle at the start of a row means it holds one chosen card."
+    "A filled circle at the start of a row means it holds one chosen card."
    ],
    "idea": "Taking out two cards can break both collections of three; two rows then prove two is the most.",
    "prerequisites": "Match pictures, and drag cards into rows where each fits inside the next. A grown-up can read How to play.",
@@ -1004,7 +1004,7 @@
     "A card fits inside another when all its pictures are on the other card. The empty card fits inside every card. Two cards nest when one fits inside the other.",
     "Tap a card to choose it, and tap it again to put it back. A card that nests with a chosen card can’t be chosen: it fades, and a line joins it to the chosen card it nests with.",
     "Drag each card into a row, or onto the dashed row to start a new one. In a row each card must fit inside the next; a bar marks two that don’t.",
-    "A collection takes at most one card from each row. So when every card is in a row and each row holds one chosen card, no collection can be bigger. A filled circle at the start of a row means it holds one chosen card."
+    "A filled circle at the start of a row means it holds one chosen card."
    ],
    "idea": "Six rows hold all sixteen cards, each with one two-picture card, so six is the most.",
    "prerequisites": "Patience with sixteen cards; see that a row can hold only one card of each size. Reading the goal helps.",
@@ -1017,7 +1017,7 @@
     "notice": "Whether your child counts rows and chosen cards against each other, and what they do with a row that has no chosen card.",
     "prompt": "Which part of your board shows six can be done, and which shows seven can’t?",
     "explanation": "The six two-picture cards make a collection: same size, so none nests. Rows such as empty, circle, circle-triangle, circle-triangle-square, full; star, circle-star, circle-triangle-star; square, circle-square, circle-square-star; square-star; triangle, triangle-square, triangle-square-star; and triangle-star hold all sixteen cards. A collection takes at most one card from each row, so seven is impossible. Both halves are needed: a big collection alone does not rule out a bigger one, and rows alone do not show six can be reached. Many other six-row arrangements work.",
-    "extension": "Explain why there is no other collection of six. (A one-picture card nests with seven cards that hold it and the empty card, leaving the three-picture world of the other symbols, whose largest collection is three; so a collection with it has at most four. The same goes for a three-picture card, by swapping each card for the pictures it lacks.)",
+    "extension": "How few rows could hold the thirty-two cards of puzzle 12? (Ten, one through each two-picture card: the ten two-picture cards need a row each, and ten rows can be built.)",
     "connection": "Sperner’s theorem (1928) for four elements, proved by a symmetric chain decomposition; the unique maximum antichain is the middle level.",
     "sourceIds": [
      "nests-week19",
@@ -1121,8 +1121,8 @@
     "A card fits inside another when all its pictures are on the other card. The empty card fits inside every card. Two cards nest when one fits inside the other.",
     "Tap a card to choose it, and tap it again to put it back. A card that nests with a chosen card can’t be chosen: it fades, and a line joins it to the chosen card it nests with.",
     "Drag each card into a row, or onto the dashed row to start a new one. In a row each card must fit inside the next; a bar marks two that don’t.",
-    "A collection takes at most one card from each row. So when every card is in a row and each row holds one chosen card, no collection can be bigger. A filled circle at the start of a row means it holds one chosen card.",
-    "A collection with the pinned card can take nothing from a row whose cards all nest with it, so that row needs no chosen card."
+    "A filled circle at the start of a row means it holds one chosen card.",
+    "A row whose cards all nest with the pinned card needs no chosen card; its circle is slashed."
    ],
    "idea": "With the circle card kept, every card that holds the circle is out; the rest is the eight-card deck on the other three pictures.",
    "prerequisites": "Patience with sixteen cards; see that a row can hold only one card of each size. Reading the goal helps.",
@@ -1250,7 +1250,7 @@
    "rules": [
     "A card fits inside another when all its pictures are on the other card. The empty card fits inside every card. Two cards nest when one fits inside the other.",
     "Tap a card to choose it, and tap it again to put it back. A card that nests with a chosen card can’t be chosen: it fades, and a line joins it to the chosen card it nests with.",
-    "When the chosen cards fill the circles, the collection is kept below and the cards go back. Press That’s all when you think none is left. It says if there is another."
+    "When the chosen cards fill the circles, the collection is kept below and the cards go back. Press That’s all when you think none is left."
    ],
    "idea": "On five pictures the largest collections are the ten two-picture cards and the ten three-picture cards, and there are no others.",
    "prerequisites": "Sort cards by how many pictures they have, and keep a large collection in mind.",

@@ -455,7 +455,7 @@ function hint(p, b) {
     const info = infoOf(p, b), s = b.decks[0], have = new Set(b.found.map(f => JSON.stringify(f)));
     const left = ofSize(info, info.target).filter(a => !have.has(JSON.stringify(a)));
     // The claim's hint gives the reason; the second level marks That's all.
-    h = left.length ? collectionHint(p, 0, info, s, left) : {type: 'move', action: {type: 'all'}, text: `Every collection of ${NUMBER[info.target] ?? info.target} here has cards of only one size, and you have found ${b.found.length === 2 ? 'both' : 'each one'}.`};
+    h = left.length ? collectionHint(p, 0, info, s, left) : {type: 'move', action: {type: 'all'}, text: `Every collection of ${NUMBER[info.target] ?? info.target} here has cards of only one size, and you have found ${b.found.length === 1 ? 'it' : b.found.length === 2 ? 'both' : 'each one'}.`};
   } else {
     for (let d = 0; d < b.decks.length && !h; d++) {
       const info = infoOf(p, b, d), s = b.decks[d];
