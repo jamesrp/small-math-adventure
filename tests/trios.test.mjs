@@ -120,10 +120,18 @@ test('four with no trio: Can’t after a full try is refused, and the refusal su
   assert.doesNotMatch(html, /A trio: /, 'and not named to a screen reader either');
   a = play(p, a, {type: 'cant', trio: [T.SO, T.CO, T.TO]});
   assert.equal(a.board.told, 'way');
-  assert.match(view(p, a), /There is a way\./);
+  assert.match(view(p, a, true), /There is a way\./, 'said right after the claim');
   assert.equal(move(p, a, {type: 'cant', trio: [T.CO, T.TO, T.SO]}), null);
-  assert.equal(mech.carry(p, a.board, undo(a).board).told, 'way', 'Undo keeps the refusal');
+  const back = {...undo(a), board: mech.carry(p, a.board, undo(a).board)};
+  assert.equal(back.board.told, 'way', 'Undo keeps the refusal');
+  assert.doesNotMatch(view(p, back, true), /There is a way\./, 'but does not say it again');
+  assert.match(view(p, back, true), /class="secondary tr-button tr-cant"[^>]*disabled/, 'Can’t stays off');
   assert.equal(mech.carryOnRestart(p, a.board, restart(p, a).board).told, 'way', 'Restart keeps it too');
+  const later = play(p, a, {type: 'pick', card: T.CH}, {type: 'pick', card: T.TH});
+  assert.equal(later.board.told, 'way');
+  html = view(p, later, true);
+  assert.match(html, /There is a trio\./, 'a later full try with a trio gets the usual note');
+  assert.doesNotMatch(html, /There is a way\./);
   a = play(p, a, {type: 'pick', card: T.SO}, {type: 'pick', card: T.TH});
   assert.ok(isSolved(p, a.board), 'open and striped circles and triangles');
 });
@@ -144,6 +152,17 @@ test('five with no trio: hints try first, then Can’t with the trio tapped; the
   assert.equal(wrong.board.told, 'not');
   assert.match(view(p, wrong), /Not a trio\./);
   assert.equal(move(p, wrong, {type: 'cant', trio: [T.CO, T.TO, T.CH]}), wrong, 'a second wrong claim is judged and refused again');
+  const outside = play(p, a, {type: 'cant', trio: [T.CO, T.TO, T.SO]});
+  assert.equal(outside.board.told, 'out', 'a real trio, but not all in the five');
+  assert.match(view(p, outside), /Not a trio in your five\./);
+  // Undo leaves Can't mode and its picks.
+  mech.reset(p);
+  mech.ui(p, {claiming: true});
+  mech.ui(p, {pick: trio[0]});
+  const undone = {...undo(wrong), board: mech.carry(p, wrong.board, undo(wrong).board)};
+  const undoneHtml = view(p, undone, true);
+  assert.doesNotMatch(undoneHtml, /Tap the trio\.|claim-picked/, 'Undo clears Can’t mode and its picks');
+  assert.doesNotMatch(undoneHtml, /aria-pressed="true"[^>]*>Can’t/);
   // Can't mode: the first two taps are view state; the third sends the claim.
   mech.reset(p);
   mech.ui(p, {claiming: true});
@@ -249,6 +268,12 @@ test('forged saves are rejected', () => {
   assert.equal(validBoard(cap, {...b, told: 'way'}), false, 'a refusal where five can’t be done');
   const through = byId('trios-02');
   assert.equal(validBoard(through, {pick: [], found: ['1.3'], told: null, done: false}), false);
+  assert.equal(validBoard(through, {pick: [], found: ['1.2'], told: 'again', done: true}), false, '“found already” with That’s all done');
+  assert.ok(validBoard(through, {pick: [], found: ['1.2'], told: 'again', done: false}), '“found already” mid-search');
+  const split = byId('trios-04'), one = splits().map(s => s.map(t => [...t].sort((x, y) => x - y).join('.')).sort().join('|'))[0];
+  assert.equal(validBoard(split, {trays: [[], [], []], found: [one], told: 'again', done: true}), false, 'a split “found already” with That’s all done');
+  assert.ok(validBoard(split, {trays: [[], [], []], found: [one], told: 'again', done: false}));
+  assert.equal(validBoard(cap, {...b, told: 'out'}), false, 'a trio outside the try before a full try');
   assert.equal(validBoard(byId('trios-12'), {turns: [0, 0]}), false);
   assert.equal(validBoard(byId('trios-09'), {chosen: [0, 1, 2], claim: null, told: null}), false, 'a trio with dimming');
 });

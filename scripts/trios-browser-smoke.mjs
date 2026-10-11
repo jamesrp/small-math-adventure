@@ -123,8 +123,10 @@ try {
   await page.locator('[data-action="undo"]').click();
   assert.equal(await button('Can’t').isDisabled(), true, 'Undo keeps the refusal');
   assert.equal((await board(P3.id)).told, 'way');
+  assert.equal(await told(), 'There is a trio.', 'the refusal is said once; afterwards the usual note');
   await page.locator('[data-action="restart"]').click();
   assert.equal((await board(P3.id)).told, 'way', 'Restart keeps it too');
+  assert.equal(await button('Can’t').isDisabled(), true);
   await taps([T.CO, T.TO, T.CH, T.TH]);
   await done();
 
@@ -142,7 +144,7 @@ try {
   assert.equal(await page.locator('.tr-card.claimable, .tr-card.hinted, .tr-card.claim-picked, .tr-card.in-bad, .tr-line').count(), 0, 'nothing marks the tiles to tap');
   assert.equal(await page.locator('button.tr-card').count(), 9, 'every tile can be tapped');
   await taps([T.CO, T.TO, T.SO]);
-  assert.equal(await told(), 'Not a trio.', 'a trio that is not among the five is refused');
+  assert.equal(await told(), 'Not a trio in your five.', 'a trio that is not among the five is refused');
   assert.equal(await page.locator('.tr-card.claim-picked').count(), 0, 'the refusal clears the taps');
   assert.equal(await button('Can’t').getAttribute('aria-pressed'), 'false');
   assert.ok(await focusIsOnBoard(), 'focus after a wrong claim is on the board, not Can’t');
@@ -151,6 +153,13 @@ try {
   assert.equal(await told(), 'Not a trio.', 'a second wrong claim is refused the same way');
   assert.equal(await page.locator('.tr-card.claim-picked').count(), 0);
   await shot('five-not');
+  // Undo leaves Can't mode and its picks.
+  await button('Can’t').click();
+  await taps([T.CO]);
+  assert.equal(await page.locator('.tr-card.claim-picked').count(), 1);
+  await page.locator('[data-action="undo"]').click();
+  assert.equal(await page.locator('.tr-card.claim-picked').count(), 0, 'Undo clears the picks');
+  assert.equal(await button('Can’t').getAttribute('aria-pressed'), 'false', 'and Can’t mode');
   await button('Can’t').click();
   await taps(trio, 'corner');
   await done(); await fit('five solved');

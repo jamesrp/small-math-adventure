@@ -485,6 +485,8 @@ function checkCap(p, fresh, row, {nines}) {
     assert.equal(wrong.board.told, 'not', `${p.id}: a certificate that is not a trio is refused`);
     assert.equal(move(p, wrong, {type: 'cant', trio: notTrio}), wrong, `${p.id}: a second wrong certificate is judged and refused the same way`);
     assert.equal(play(p, full, {type: 'cant', trio: [tri[0], tri[1], [...Array(9).keys()].find(i => !full.board.chosen.includes(i))]}).board.told, 'not', `${p.id}: a certificate off the chosen tiles is refused`);
+    const outside = LINES9.find(t => !t.every(i => full.board.chosen.includes(i)));
+    assert.equal(play(p, full, {type: 'cant', trio: outside}).board.told, 'out', `${p.id}: a real trio not all in the try is refused as outside it`);
     const claimed = play(p, full, {type: 'cant', trio: tri});
     if (row.possible) {
       assert.equal(claimed.board.told, 'way', `${p.id}: Can’t is refused when it can be done`);
@@ -605,16 +607,16 @@ function checkForged(p, fresh) {
   if (q.mode === 'complete') bad.push([{...B, round: q.pairs.length + 1}, 'a round past the end'], [{...B, miss: third0(q)}, 'a “wrong” tap that was right'], [{...B, miss: q.pairs[0][0]}, 'a ringed card as a miss'], [{...B, round: -1}, 'a negative round']);
   if (q.mode === 'through') {
     const [x, y] = LINES9.find(t => t.includes(q.centre)).filter(i => i !== q.centre);
-    bad.push([{...B, found: ['0.1']}, 'a found pair that is not a trio'], [{...B, pick: [x, y]}, 'a trio left picked'], [{...B, done: true}, 'That’s all too soon'], [{...B, found: [`${Math.min(x, y)}.${Math.max(x, y)}`, `${Math.min(x, y)}.${Math.max(x, y)}`]}, 'a trio found twice'], [{...B, pick: [q.centre]}, 'the ringed tile picked'], [{...B, told: 'again'}, '“found already” with nothing found']);
+    bad.push([{...B, found: ['0.1']}, 'a found pair that is not a trio'], [{...B, pick: [x, y]}, 'a trio left picked'], [{...B, done: true}, 'That’s all too soon'], [{...B, found: [`${Math.min(x, y)}.${Math.max(x, y)}`, `${Math.min(x, y)}.${Math.max(x, y)}`]}, 'a trio found twice'], [{...B, pick: [q.centre]}, 'the ringed tile picked'], [{...B, told: 'again'}, '“found already” with nothing found'], [{...B, found: [`${Math.min(x, y)}.${Math.max(x, y)}`], told: 'again', done: true}, '“found already” after That’s all']);
   }
-  if (q.mode === 'split') bad.push([{...B, trays: [[0, 1, 2], [3, 4, 5], [6, 7, 8]]}, 'a split left in the trays'], [{...B, found: ['0.1.2|3.4.5|6.7.9']}, 'a forged split'], [{...B, trays: [[0, 0], [], []]}, 'a tile twice'], [{...B, done: true}, 'That’s all too soon'], [{...B, trays: [[0, 1, 2, 3], [], []]}, 'four in a tray']);
+  if (q.mode === 'split') bad.push([{...B, trays: [[0, 1, 2], [3, 4, 5], [6, 7, 8]]}, 'a split left in the trays'], [{...B, found: ['0.1.2|3.4.5|6.7.9']}, 'a forged split'], [{...B, trays: [[0, 0], [], []]}, 'a tile twice'], [{...B, done: true}, 'That’s all too soon'], [{...B, trays: [[0, 1, 2, 3], [], []]}, 'four in a tray'], [{...B, found: [[...linesByDirection(2).values()][0].map(lineKey).sort().join('|')], told: 'again', done: true}, '“found already” after That’s all']);
   if (q.mode === 'cap') {
     const some = [...Array(q.target).keys()];
-    bad.push([{...B, chosen: [...Array(q.target + 1).keys()]}, 'too many'], [{...B, chosen: [2, 1]}, 'an unsorted list'], [{...B, chosen: some.map(i => i + 3), claim: LINES9[0], told: null}, 'a claim whose trio is not chosen'], [{...B, chosen: some, claim: LINES9[0], told: null}, TABLE[p.id].possible || !q.can ? 'a claim where it can be done' : null], [{...B, told: 'way'}, TABLE[p.id].possible && q.can ? null : 'a refusal where it can’t be done']);
+    bad.push([{...B, chosen: [...Array(q.target + 1).keys()]}, 'too many'], [{...B, chosen: [2, 1]}, 'an unsorted list'], [{...B, chosen: some.map(i => i + 3), claim: LINES9[0], told: null}, 'a claim whose trio is not chosen'], [{...B, chosen: some, claim: LINES9[0], told: null}, TABLE[p.id].possible || !q.can ? 'a claim where it can be done' : null], [{...B, told: 'way'}, TABLE[p.id].possible && q.can ? null : 'a refusal where it can’t be done'], [{...B, told: 'out'}, 'a trio outside the try before a full try']);
     if (q.dim) bad.push([{...B, chosen: [0, 1, 2]}, 'a chosen trio with dimming']);
     if (q.can && !TABLE[p.id].possible) bad.push([{...B, chosen: [0, 1, 2], claim: [0, 1, 2], told: null}, 'a claim before a full try']);
   }
-  if (q.mode === 'paint') bad.push([{...B, paint: Array(9).fill(q.values)}, 'a colour out of range'], [{...B, paint: Array(8).fill(0)}, 'eight tiles'], [{...B, claim: LINES9[0], told: null, paint: Array(9).fill(0)}, TABLE[p.id].possible ? 'a claim where it can be done' : null], [{...B, told: 'not'}, q.can ? (B.paint.every(v => v !== null) ? null : 'a wrong certificate before every tile is coloured') : 'a certificate without Can’t']);
+  if (q.mode === 'paint') bad.push([{...B, paint: Array(9).fill(q.values)}, 'a colour out of range'], [{...B, paint: Array(8).fill(0)}, 'eight tiles'], [{...B, claim: LINES9[0], told: null, paint: Array(9).fill(0)}, TABLE[p.id].possible ? 'a claim where it can be done' : null], [{...B, told: 'not'}, q.can ? (B.paint.every(v => v !== null) ? null : 'a wrong certificate before every tile is coloured') : 'a certificate without Can’t'], [{...B, told: 'out', paint: Array(9).fill(0)}, 'a trio outside the try on a colouring']);
   if (q.mode === 'paint' && q.start) bad.push([{...B, paint: [null, ...B.paint.slice(1)]}, 'a blank tile where every tile starts with a count']);
   if (q.mode === 'game') bad.push([{turns: [0, 0]}, 'a tile claimed twice'], [{turns: [0]}, 'a turn without the app’s answer'], [{turns: [0, (appClaim(1, 0) + 1) % 9 || 2]}, 'an answer the app would not give'], [{turns: [9, 0]}, 'a tile off the board']);
   for (const [board, why] of bad) if (why) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);

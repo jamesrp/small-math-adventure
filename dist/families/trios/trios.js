@@ -206,7 +206,8 @@ const ownTrio = mask => lineMasks.map((l, k) => (mask & l) === l ? trios(2)[k] :
 //   game:       {turns}                   playground: {deck, chosen}
 // found holds keys (sorted ids joined by dots, or trio keys joined by bars);
 // told answers That's all ('more'), a repeat ('again'), a refused Can't
-// ('way', kept for the rest of the attempt) or a wrong certificate ('not').
+// ('way', kept for the rest of the attempt) or a wrong certificate ('not',
+// or 'out' for a real trio not all in the try).
 const isOrder = (d, order) => Array.isArray(order) && order.length === deckSize(d) && new Set(order).size === order.length && order.every(i => isCard(d, i));
 export const PLAY_DECKS = [2, 3, 4];
 
@@ -244,7 +245,7 @@ function valid(p, b) {
     // A pair that makes a trio is kept the moment it is picked.
     if (b.pick.length === 2 && isTrio(2, q.centre, ...b.pick)) return false;
     if (b.told === 'more') return !b.done && b.found.length < allowed.length;
-    if (b.told === 'again') return b.pick.length === 0 && b.found.length > 0;
+    if (b.told === 'again') return !b.done && b.pick.length === 0 && b.found.length > 0;
     return b.told === null && (!b.done || b.found.length === allowed.length);
   }
   if (q.mode === 'split') {
@@ -257,7 +258,7 @@ function valid(p, b) {
     const all = splits().map(splitKey);
     if (!Array.isArray(b.found) || new Set(b.found).size !== b.found.length || !b.found.every(k => all.includes(k))) return false;
     if (b.told === 'more') return !b.done && b.found.length < all.length;
-    if (b.told === 'again') return placed.length === 0 && b.found.length > 0;
+    if (b.told === 'again') return !b.done && placed.length === 0 && b.found.length > 0;
     return b.told === null && (!b.done || b.found.length === all.length);
   }
   if (q.mode === 'cap') {
@@ -283,7 +284,7 @@ function claimOk(q, b, full) {
     return b.told === null;
   }
   if (b.told === 'way') return Boolean(q.can) && possibleOf(q);
-  if (b.told === 'not') return Boolean(q.can) && full;
+  if (b.told === 'not' || (b.told === 'out' && q.mode === 'cap')) return Boolean(q.can) && full;
   return b.told === null;
 }
 // The certificate for Can't: a trio among the chosen cards, or a trio of
@@ -351,8 +352,9 @@ function moveClaim(q, b, action, full) {
   if (!q.can || b.told === 'way' || !full) return null;
   const trio = Array.isArray(action.trio) ? sortIds(action.trio) : null;
   if (!trio || trio.length !== 3 || new Set(trio).size !== 3) return null;
-  // A wrong certificate is judged and refused every time; the move clears the taps.
-  if (!certificate(q, b, trio)) return {...b, told: 'not'};
+  // A wrong certificate is judged and refused every time; the move clears the
+  // taps. A real trio that is not all in the try is 'out', not 'not'.
+  if (!certificate(q, b, trio)) return {...b, told: q.mode === 'cap' && isTrio(q.deck, ...trio) ? 'out' : 'not'};
   return possibleOf(q) ? {...b, told: 'way'} : {...b, claim: trio, told: null};
 }
 const keepWay = b => b.told === 'way' ? 'way' : null;
@@ -401,7 +403,9 @@ function move(p, b, action) {
     case 'game': next = moveGame(q, b, action); break;
     default: next = movePlay(b, action);
   }
-  if (next) Object.assign(ui(p), {claiming: false, picks: [], why: null});
+  // 'There is a way.' is said only right after the refused claim; the
+  // refusal itself stays in the save.
+  if (next) Object.assign(ui(p), {claiming: false, picks: [], why: null, way: action.type === 'cant' && next.told === 'way'});
   return next;
 }
 
@@ -532,7 +536,7 @@ function hint(p, b) {
 // Can't mode and its picks, and the dimmed card whose blocking pair is lit,
 // live outside the save.
 const uiState = new Map();
-const ui = p => { if (!uiState.has(p.id)) uiState.set(p.id, {claiming: false, picks: [], why: null}); return uiState.get(p.id); };
+const ui = p => { if (!uiState.has(p.id)) uiState.set(p.id, {claiming: false, picks: [], why: null, way: false}); return uiState.get(p.id); };
 
 // --- Drawing -----------------------------------------------------------------
 // A card face: one to three shapes in ink, open, striped or solid. Stripes
@@ -756,7 +760,8 @@ function renderCap(p, a) {
   const check = whyPair ? strip(d, [...whyPair, why], {big: d === 2}) : '';
   const picture = done && b.claim && d === 2 ? dishesHtml(b.chosen) : '';
   const unfound = hidden && full && bad.length && !done;
-  const note = told({way: 'There is a way.', not: 'Not a trio.'}[b.told] || (claiming ? 'Tap the trio.' : unfound ? 'There is a trio.' : ''));
+  const said = b.told === 'way' ? (state.way ? 'There is a way.' : '') : {not: 'Not a trio.', out: `Not a trio in your ${['four', 'five'][q.target - 4] || 'try'}.`}[b.told];
+  const note = told(said || (claiming ? 'Tap the trio.' : unfound ? 'There is a trio.' : ''));
   const status = `${b.chosen.length} chosen${b.chosen.length ? `: ${listWords(b.chosen.map(i => cardName(d, i)))}` : ''}.${bad.length && !q.dim && !hidden ? ` A trio: ${listWords(bad[0].map(i => cardName(d, i)))}.` : ''}${q.dim && b.chosen.length < q.target && blocked.size + b.chosen.length === deckSize(d) ? ' Every other card is ruled out.' : ''}`;
   return `<div class="tr-puzzle${done ? ' solved' : ''}${claiming ? ' claiming' : ''}"><div class="tr-top">${slots}</div>${board}${check}${note}${claimBar(p, b, full, done, hinted)}${picture}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
@@ -779,7 +784,8 @@ function renderPaint(p, a) {
     return {cls: base.join(' '), label: `${label}. Make it ${say}`, move: {type: 'paint', tile: id, value: next}, face};
   }, flags.map(t => [t, 'bad']), {big: !counts});
   const picture = done && b.claim ? classesHtml(b.paint, b.claim) : '';
-  const note = told({way: 'There is a way.', not: counts ? 'Not a trio.' : 'Not a trio all one colour.'}[b.told] || (claiming ? 'Tap the trio.' : hidden && full && flagged.length && !done ? 'A trio is all one colour.' : ''));
+  const said = b.told === 'way' ? (state.way ? 'There is a way.' : '') : {not: counts ? 'Not a trio.' : 'Not a trio all one colour.'}[b.told];
+  const note = told(said || (claiming ? 'Tap the trio.' : hidden && full && flagged.length && !done ? 'A trio is all one colour.' : ''));
   const say = i => counts ? cardName(3, i + 9 * b.paint[i]) : `${tileName(i)} ${b.paint[i] === null ? 'blank' : PAINTS[b.paint[i]]}`;
   const status = `${q.order.map(say).join(', ')}.${flags.length && !b.claim ? ` ${flags.length} ${flags.length === 1 ? 'trio is' : 'trios are'} marked.` : ''}`;
   return `<div class="tr-puzzle${done ? ' solved' : ''}${claiming ? ' claiming' : ''}">${board}${note}${claimBar(p, b, full, done, hinted)}${picture}<p class="sr-only" role="status">${esc(status)}</p></div>`;
@@ -829,9 +835,11 @@ export const triosMechanics = {
       if (int(payload.why)) state.why = state.why === payload.why ? null : payload.why;
     },
     reset: p => { uiState.delete(p.id); },
-    // Undo keeps what was found and a refused Can't; Restart keeps the refusal too.
+    // Undo clears Can't mode, its picks and any shown pair, and keeps what was
+    // found and a refused Can't; Restart keeps the refusal too.
     carry(p, from, to) {
       const q = p.parameters;
+      Object.assign(ui(p), {claiming: false, picks: [], why: null, way: false});
       if (!object(from) || !object(to)) return to;
       if ((q.mode === 'through' || q.mode === 'split') && Array.isArray(from.found)) return {...to, found: [...from.found], told: from.told === 'more' ? 'more' : null, done: false};
       if ((q.mode === 'cap' || q.mode === 'paint') && from.told === 'way') return {...to, claim: null, told: 'way'};
