@@ -15,15 +15,15 @@ const RULES = {
   ],
   free: [
     'Cut any strip into two, or join any two strips.',
-    'Keep each collection that fits. Press That’s all when none is left; it says if there is another.'
+    'Keep each collection that fits. That’s all says if there is another.'
   ],
-  reach: 'Make the goal, or press Can’t once you have tried, if no joins and halvings can make it. After Can’t, halve every even strip in both rows.',
+  reach: 'Can’t works after a move. Then halve every even strip in both rows; the claim is checked when every strip is odd.',
   flip: 'Flip turns the rows of squares into columns.',
   match: 'Tap a collection to put its strips on the bench. When no two strips match, it pairs with what it has become.'
 };
 const CONTROLS = {
   halving: 'Tap a strip to choose it. Tap it again to halve it at the dashed line, or tap a strip of the same length to join the two. Undo takes back the last move.',
-  reach: 'Tap a strip to choose it. Tap it again to halve it at the dashed line, or tap a strip of the same length to join the two. Press Can’t when the goal can’t be made; then halve strips in both rows the same way. Undo takes back the last move.',
+  reach: 'Tap a strip to choose it. Tap it again to halve it at the dashed line, or tap a strip of the same length to join the two. After Can’t, goal strips halve the same way. Undo takes back the last move.',
   free: 'Tap a strip to choose it. Tap a dashed line on it to cut there, or tap another strip to join the two. Keep puts the collection on the shelf. Undo takes back the last move.',
   match: 'Tap a collection to take it. Tap a strip to choose it, then a strip of the same length to join the two, or the chosen strip again to halve it. Undo takes back the last move.',
   playground: 'Tap a strip to choose it. Tap it again to halve it, or tap a strip of the same length to join the two. + adds a strip of 1 and − takes one away.'
@@ -96,8 +96,8 @@ const PUZZLES = [
     provenance: 'The Week 54 review card’s App fit: 8, 1, 1, 1, 1, 1, 1 → 2, 2, 2, 2, 2, 2, 2 needs both kinds of move.'},
   {number: 12, level: 'hard', title: 'Four different', mode: 'reach', start: [6, 2, 2], goal: [4, 3, 2, 1], check: {can: false}, prereq: 'reach',
     idea: 'Two collections can share strip lengths and still not connect: the count of each odd strip is what stays.',
-    hints: ['Try making the 3 of the goal.', 'Halve every strip of yours as far as it goes, then do the same to the goal. Count the 3s.', 'Yours halves to 3, 3, 1, 1, 1, 1 and the goal to 3, 1, 1, 1, 1, 1, 1, 1. Press Can’t and halve both.'],
-    parent: {notice: 'Whether your child makes the 4 and the 3 and then looks for the 2 and 1, and when they suspect the second 3.', prompt: 'What happens to the other 3?', explanation: 'Halving 6, 2, 2 all the way gives two 3s and four 1s; halving 4, 3, 2, 1 gives one 3 and seven 1s. Every move keeps the number of 3s (a 6 is two 3s, a 12 four), so the two 3s can never become one.', extension: 'Change one strip of the goal so it can be made. (4, 3, 3 works: two 3s and four 1s.)', connection: 'For each odd u, the number of u’s in the all-odd form is invariant; together they decide reachability.'},
+    hints: ['Try to make the goal.', 'Halve every strip of yours as far as it goes, then do the same to the goal. Count the 3s.', 'Yours halves to 3, 3, 1, 1, 1, 1 and the goal to 3, 1, 1, 1, 1, 1, 1, 1. Press Can’t and halve both.'],
+    parent: {notice: 'Whether your child makes the 4 and the 3 and then looks for the 2 and 1, and when they suspect the second 3.', prompt: 'What happens to the other 3?', explanation: 'Halving 6, 2, 2 all the way gives two 3s and four 1s; halving 4, 3, 2, 1 gives one 3 and seven 1s. Every move keeps the number of 3s (a 6 is two 3s, a 12 four), so the two 3s can never become one.', extension: 'Change the goal so it can be made. (4, 3, 3 works: two 3s and four 1s.)', connection: 'For each odd u, the number of u’s in the all-odd form is invariant; together they decide reachability.'},
     provenance: 'New: a reach-or-refute pair whose all-odd forms differ only in their 3s.'}
 ];
 

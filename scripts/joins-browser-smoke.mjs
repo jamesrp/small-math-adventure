@@ -36,7 +36,14 @@ try {
   await open('joins-06'); await fit('joins-06');
   assert.equal(await page.locator('.jn-goal .jn-strip').count(), 5, 'the goal is drawn');
   await tap(strip(1)); assert.equal(await strip(1).getAttribute('aria-pressed'), 'true', 'a tap chooses');
-  await tap(strip(2)); assert.equal(await bench('joins-06'), '6,4', 'two 3s join');
+  await tap(strip(1)); assert.equal(await strip(1).getAttribute('aria-pressed'), null, 'a second tap on an odd strip is refused');
+  // Keyboard join from the last strip: the strip in that place is gone, so
+  // focus must fall back to a strip button, never to the goal's picture.
+  await strip(1).focus(); await page.keyboard.press('Enter');
+  await strip(2).focus(); await page.keyboard.press('Enter');
+  assert.equal(await bench('joins-06'), '6,4', 'two 3s join');
+  const onStrip = () => page.evaluate(() => document.activeElement?.tagName === 'BUTTON' && document.activeElement.classList.contains('jn-strip') && !document.activeElement.classList.contains('goal'));
+  assert.ok(await onStrip(), 'focus stays on a strip button after a join from the last index');
   await tap(strip(1)); await tap(strip(0));
   assert.equal(await told(), 'Only equal strips join.');
   assert.equal(await page.locator('.jn-strip.marked').count(), 2, 'both strips are marked');
@@ -59,11 +66,13 @@ try {
   assert.equal(await bench('joins-06'), '3,3,2,1,1');
   await tap(strip(2)); await tap(strip(2));
   assert.equal((await board('joins-06')).claim, 'halving', 'not judged yet');
-  await tap(strip(0, 'goal')); await tap(strip(0, 'goal'));
+  await strip(0, 'goal').focus(); await page.keyboard.press('Enter'); await page.keyboard.press('Enter');
   assert.equal(await told(), 'There is a way.');
-  assert.equal((await board('joins-06')).goal.join(','), '6,1,1,1,1', 'the goal comes back whole');
+  assert.ok(await onStrip(), 'focus moves to a bench strip button, not the goal picture or Can’t');
+  assert.equal((await board('joins-06')).goal.join(','), '3,3,1,1,1,1', 'the goal stays halved');
   assert.ok(await button('Can’t').isDisabled());
   await page.locator('[data-action=undo]').click();
+  assert.equal(await page.locator('.jn-goal .jn-strip').count(), 5, 'Undo visibly joins the goal back');
   assert.ok(await button('Can’t').isDisabled(), 'Undo keeps the refusal');
   assert.equal(await told(), 'There is a way.');
   await tap(strip(0)); await tap(strip(1)); await done();

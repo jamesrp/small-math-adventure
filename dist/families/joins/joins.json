@@ -119,12 +119,12 @@
    "objective": "Make the goal by joining equal strips and halving even ones, or press Can’t if it can’t be made.",
    "visibleObjective": "",
    "instruction": "Make the goal by joining equal strips and halving even ones, or press Can’t if it can’t be made.",
-   "controls": "Tap a strip to choose it. Tap it again to halve it at the dashed line, or tap a strip of the same length to join the two. Press Can’t when the goal can’t be made; then halve strips in both rows the same way. Undo takes back the last move.",
+   "controls": "Tap a strip to choose it. Tap it again to halve it at the dashed line, or tap a strip of the same length to join the two. After Can’t, goal strips halve the same way. Undo takes back the last move.",
    "rules": [
     "A collection is some strips of squares. Their squares add up to its total, and their order does not matter.",
     "Two strips of the same length can join into one strip twice as long.",
     "A strip of even length can be halved into two equal strips.",
-    "Make the goal, or press Can’t once you have tried, if no joins and halvings can make it. After Can’t, halve every even strip in both rows."
+    "Can’t works after a move. Then halve every even strip in both rows; the claim is checked when every strip is odd."
    ],
    "idea": "Only equal strips join, so the two 1s must become a 2 before the 2s can grow.",
    "prerequisites": "Compare lengths by eye and count squares to 16. No reading; a grown-up can read How to play.",
@@ -207,7 +207,7 @@
    "rules": [
     "A collection is some strips of squares. Their squares add up to its total, and their order does not matter.",
     "Cut any strip into two, or join any two strips.",
-    "Keep each collection that fits. Press That’s all when none is left; it says if there is another."
+    "Keep each collection that fits. That’s all says if there is another."
    ],
    "idea": "A catalog is complete when it is organized: by the longest strip, then by what is left.",
    "prerequisites": "Count squares to the total and remember which collections are on the shelf. A grown-up can read the goal line.",
@@ -294,7 +294,7 @@
    "rules": [
     "A collection is some strips of squares. Their squares add up to its total, and their order does not matter.",
     "Cut any strip into two, or join any two strips.",
-    "Keep each collection that fits. Press That’s all when none is left; it says if there is another."
+    "Keep each collection that fits. That’s all says if there is another."
    ],
    "idea": "With odd strips only, the 1s fill whatever the bigger odd strips leave.",
    "prerequisites": "Count squares to the total and remember which collections are on the shelf. A grown-up can read the goal line.",
@@ -376,7 +376,7 @@
    "rules": [
     "A collection is some strips of squares. Their squares add up to its total, and their order does not matter.",
     "Cut any strip into two, or join any two strips.",
-    "Keep each collection that fits. Press That’s all when none is left; it says if there is another."
+    "Keep each collection that fits. That’s all says if there is another."
    ],
    "idea": "With all strips different, the longest strip can’t be too short: 3 + 2 + 1 is only 6.",
    "prerequisites": "Count squares to the total and remember which collections are on the shelf. A grown-up can read the goal line.",
@@ -618,12 +618,12 @@
    "objective": "Make the goal by joining equal strips and halving even ones, or press Can’t if it can’t be made.",
    "visibleObjective": "",
    "instruction": "Make the goal by joining equal strips and halving even ones, or press Can’t if it can’t be made.",
-   "controls": "Tap a strip to choose it. Tap it again to halve it at the dashed line, or tap a strip of the same length to join the two. Press Can’t when the goal can’t be made; then halve strips in both rows the same way. Undo takes back the last move.",
+   "controls": "Tap a strip to choose it. Tap it again to halve it at the dashed line, or tap a strip of the same length to join the two. After Can’t, goal strips halve the same way. Undo takes back the last move.",
    "rules": [
     "A collection is some strips of squares. Their squares add up to its total, and their order does not matter.",
     "Two strips of the same length can join into one strip twice as long.",
     "A strip of even length can be halved into two equal strips.",
-    "Make the goal, or press Can’t once you have tried, if no joins and halvings can make it. After Can’t, halve every even strip in both rows."
+    "Can’t works after a move. Then halve every even strip in both rows; the claim is checked when every strip is odd."
    ],
    "idea": "Some goals need joins and halvings both: the 3s join while the 4 breaks down.",
    "prerequisites": "Join and halve with purpose, and compare two collections strip by strip. Halving even numbers to 16.",
@@ -699,12 +699,12 @@
    "objective": "Make the goal by joining equal strips and halving even ones, or press Can’t if it can’t be made.",
    "visibleObjective": "",
    "instruction": "Make the goal by joining equal strips and halving even ones, or press Can’t if it can’t be made.",
-   "controls": "Tap a strip to choose it. Tap it again to halve it at the dashed line, or tap a strip of the same length to join the two. Press Can’t when the goal can’t be made; then halve strips in both rows the same way. Undo takes back the last move.",
+   "controls": "Tap a strip to choose it. Tap it again to halve it at the dashed line, or tap a strip of the same length to join the two. After Can’t, goal strips halve the same way. Undo takes back the last move.",
    "rules": [
     "A collection is some strips of squares. Their squares add up to its total, and their order does not matter.",
     "Two strips of the same length can join into one strip twice as long.",
     "A strip of even length can be halved into two equal strips.",
-    "Make the goal, or press Can’t once you have tried, if no joins and halvings can make it. After Can’t, halve every even strip in both rows."
+    "Can’t works after a move. Then halve every even strip in both rows; the claim is checked when every strip is odd."
    ],
    "idea": "Halving everything gives an all-odd collection that no move changes; different ones mean no route.",
    "prerequisites": "Join and halve with purpose, and compare two collections strip by strip. Halving even numbers to 16.",
@@ -770,7 +770,7 @@
    "rules": [
     "A collection is some strips of squares. Their squares add up to its total, and their order does not matter.",
     "Cut any strip into two, or join any two strips.",
-    "Keep each collection that fits. Press That’s all when none is left; it says if there is another.",
+    "Keep each collection that fits. That’s all says if there is another.",
     "Flip turns the rows of squares into columns."
    ],
    "idea": "Flip turns “at most 3 strips” into “no strip longer than 3”, so either catalog counts the other.",
@@ -868,7 +868,7 @@
    "rules": [
     "A collection is some strips of squares. Their squares add up to its total, and their order does not matter.",
     "Cut any strip into two, or join any two strips.",
-    "Keep each collection that fits. Press That’s all when none is left; it says if there is another."
+    "Keep each collection that fits. That’s all says if there is another."
    ],
    "idea": "A long catalog needs an order: by longest strip, then by the longest strip of what is left.",
    "prerequisites": "Count squares to the total and remember which collections are on the shelf. A grown-up can read the goal line.",
@@ -1051,7 +1051,7 @@
    "rules": [
     "A collection is some strips of squares. Their squares add up to its total, and their order does not matter.",
     "Cut any strip into two, or join any two strips.",
-    "Keep each collection that fits. Press That’s all when none is left; it says if there is another."
+    "Keep each collection that fits. That’s all says if there is another."
    ],
    "idea": "The all-different catalog grows with the total; organizing by the longest strip keeps it complete.",
    "prerequisites": "Count squares to the total and remember which collections are on the shelf. A grown-up can read the goal line.",
@@ -1167,12 +1167,12 @@
    "objective": "Make the goal by joining equal strips and halving even ones, or press Can’t if it can’t be made.",
    "visibleObjective": "",
    "instruction": "Make the goal by joining equal strips and halving even ones, or press Can’t if it can’t be made.",
-   "controls": "Tap a strip to choose it. Tap it again to halve it at the dashed line, or tap a strip of the same length to join the two. Press Can’t when the goal can’t be made; then halve strips in both rows the same way. Undo takes back the last move.",
+   "controls": "Tap a strip to choose it. Tap it again to halve it at the dashed line, or tap a strip of the same length to join the two. After Can’t, goal strips halve the same way. Undo takes back the last move.",
    "rules": [
     "A collection is some strips of squares. Their squares add up to its total, and their order does not matter.",
     "Two strips of the same length can join into one strip twice as long.",
     "A strip of even length can be halved into two equal strips.",
-    "Make the goal, or press Can’t once you have tried, if no joins and halvings can make it. After Can’t, halve every even strip in both rows."
+    "Can’t works after a move. Then halve every even strip in both rows; the claim is checked when every strip is odd."
    ],
    "idea": "The 8 must come down and the 1s go up to meet at 2s: neither kind of move alone gets there.",
    "prerequisites": "Join and halve with purpose, and compare two collections strip by strip. Halving even numbers to 16.",
@@ -1265,17 +1265,17 @@
    "objective": "Make the goal by joining equal strips and halving even ones, or press Can’t if it can’t be made.",
    "visibleObjective": "",
    "instruction": "Make the goal by joining equal strips and halving even ones, or press Can’t if it can’t be made.",
-   "controls": "Tap a strip to choose it. Tap it again to halve it at the dashed line, or tap a strip of the same length to join the two. Press Can’t when the goal can’t be made; then halve strips in both rows the same way. Undo takes back the last move.",
+   "controls": "Tap a strip to choose it. Tap it again to halve it at the dashed line, or tap a strip of the same length to join the two. After Can’t, goal strips halve the same way. Undo takes back the last move.",
    "rules": [
     "A collection is some strips of squares. Their squares add up to its total, and their order does not matter.",
     "Two strips of the same length can join into one strip twice as long.",
     "A strip of even length can be halved into two equal strips.",
-    "Make the goal, or press Can’t once you have tried, if no joins and halvings can make it. After Can’t, halve every even strip in both rows."
+    "Can’t works after a move. Then halve every even strip in both rows; the claim is checked when every strip is odd."
    ],
    "idea": "Two collections can share strip lengths and still not connect: the count of each odd strip is what stays.",
    "prerequisites": "Join and halve with purpose, and compare two collections strip by strip. Halving even numbers to 16.",
    "hints": [
-    "Try making the 3 of the goal.",
+    "Try to make the goal.",
     "Halve every strip of yours as far as it goes, then do the same to the goal. Count the 3s.",
     "Yours halves to 3, 3, 1, 1, 1, 1 and the goal to 3, 1, 1, 1, 1, 1, 1, 1. Press Can’t and halve both."
    ],
@@ -1283,7 +1283,7 @@
     "notice": "Whether your child makes the 4 and the 3 and then looks for the 2 and 1, and when they suspect the second 3.",
     "prompt": "What happens to the other 3?",
     "explanation": "Halving 6, 2, 2 all the way gives two 3s and four 1s; halving 4, 3, 2, 1 gives one 3 and seven 1s. Every move keeps the number of 3s (a 6 is two 3s, a 12 four), so the two 3s can never become one.",
-    "extension": "Change one strip of the goal so it can be made. (4, 3, 3 works: two 3s and four 1s.)",
+    "extension": "Change the goal so it can be made. (4, 3, 3 works: two 3s and four 1s.)",
     "connection": "For each odd u, the number of u’s in the all-odd form is invariant; together they decide reachability.",
     "sourceIds": [
      "joins-week54",

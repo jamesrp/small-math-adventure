@@ -140,7 +140,7 @@ function valid(p, b) {
     if (keys(b) !== 'bench,claim,goal,tried' || !isCollection(b.bench) || !isCollection(b.goal) || typeof b.tried !== 'boolean' || ![null, 'halving', 'refused'].includes(b.claim)) return false;
     if (!reachable(q.start, b.bench) || (!b.tried && !same(b.bench, q.start)) || (b.claim && !b.tried)) return false;
     const can = reachable(q.start, q.goal);
-    if (b.claim === 'refused') return can && same(b.goal, q.goal);
+    if (b.claim === 'refused') return can && reachable(q.goal, b.goal);
     // A claim is judged the moment both rows are all odd, so a matching pair never rests here.
     if (b.claim === 'halving') return reachable(q.goal, b.goal) && !(allOdd(b.bench) && allOdd(b.goal) && can);
     return same(b.goal, q.goal);
@@ -155,10 +155,11 @@ function valid(p, b) {
 // In matching, a collection lands on its partner once it has the other kind.
 const landed = (q, list) => q.to === 'odd' ? allOdd(list) : allDifferent(list);
 // A Can't is judged once both rows are all odd: different collections solve
-// it; the same one is refused, and the goal comes back whole.
+// it; the same one is refused. The goal stays halved, so Undo can join it
+// back step by step, until the next move on the bench brings it back whole.
 function judge(q, b) {
   if (!allOdd(b.bench) || !allOdd(b.goal) || !same(b.bench, b.goal)) return b;
-  return {...b, claim: 'refused', goal: [...q.goal]};
+  return {...b, claim: 'refused'};
 }
 function solved(p, b) {
   const q = p.parameters;
@@ -187,7 +188,7 @@ function move(p, b, action) {
     const bench = applyTo(b.bench, action, free(q));
     if (!bench) return null;
     if (q.mode === 'playground' && bench[0] > q.span) return null;
-    if (q.mode === 'reach') return b.claim === 'halving' ? judge(q, {...b, bench}) : {...b, bench, tried: true, claim: null};
+    if (q.mode === 'reach') return b.claim === 'halving' ? judge(q, {...b, bench}) : {...b, bench, goal: [...q.goal], tried: true, claim: null};
     if (q.mode === 'match' && landed(q, bench)) return {bench: null, card: null, paired: [...b.paired, b.card]};
     return {...b, bench};
   }
@@ -418,13 +419,14 @@ export const joinsMechanics = {
       if (object(payload.told) && TOLD[payload.told.kind]) { state.told = {...payload.told, at: b}; if (payload.told.kind !== 'unequal') state.chosen = null; }
     },
     reset: p => { uiState.delete(p.id); },
-    // Undo keeps what was kept, the pairs made and a refused claim.
+    // Undo takes back moves, keeps and pairs, never a verdict: "There is
+    // another." stays while anything is kept, and "There is a way." stays
+    // (with the goal row as it was at that step) until the bench moves.
     carry(p, from, to) {
       const q = p.parameters;
       if (!object(from) || !object(to)) return to;
-      if (q.mode === 'catalog' && Array.isArray(from.shelf)) return {...to, shelf: from.shelf.map(c => [...c]), more: from.more, done: false};
-      if (q.mode === 'match' && Array.isArray(from.paired)) return to.card !== null && from.paired.includes(to.card) ? {bench: null, card: null, paired: [...from.paired]} : {...to, paired: [...from.paired]};
-      if (q.mode === 'reach' && from.claim === 'refused') return {...to, claim: 'refused', tried: true, goal: [...q.goal]};
+      if (q.mode === 'catalog' && from.more && Array.isArray(to.shelf) && to.shelf.length) return {...to, more: true, done: false};
+      if (q.mode === 'reach' && from.claim === 'refused') return {...to, claim: 'refused', tried: true};
       return to;
     },
     noHint: p => p.parameters.mode === 'playground'
@@ -438,5 +440,5 @@ export default {
   mechanics: joinsMechanics,
   pack: new URL('./joins.json', import.meta.url).href,
   css: new URL('./joins.css', import.meta.url).href,
-  focus: '.jn-strip:not([disabled]),.jn-card:not([disabled]),.jn-keep'
+  focus: 'button.jn-strip:not([disabled]),button.jn-card:not([disabled]),.jn-keep'
 };

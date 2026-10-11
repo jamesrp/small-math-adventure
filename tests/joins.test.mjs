@@ -100,6 +100,10 @@ test('catalogs: Keep, refusals that point, That’s all and its lock through Und
   assert.equal(back.board.more, true, 'Undo does not escape the claim');
   assert.equal(back.board.shelf.length, 1);
   assert.ok(!/\b\d+ (of|left|found)\b/.test(view(p, a)), 'no visible count');
+  // Undo after Keep takes the keep back; the refusal stays while anything is kept.
+  const kept = play(p, back, {type: 'join', sizes: [4, 3]}, {type: 'cut', size: 7, at: 5}, {type: 'cut', size: 2, at: 1}, {type: 'keep'});
+  assert.equal(kept.board.more, false, 'a new keep clears “There is another.”');
+  assert.equal(undo(p, kept).board.shelf.length, kept.board.shelf.length - 1, 'Undo takes the keep back');
   // Duplicates on the shelf get the ochre ring.
   const b = play(p, freshAttempt(p), {type: 'keep'});
   mech.ui(p, {told: {kind: 'again', index: 0}, at: JSON.stringify(b.board)});
@@ -146,14 +150,17 @@ test('a wrong Can’t is refused once both rows match, and stays refused until t
   assert.equal(a.board.claim, 'halving', 'not judged before the goal is halved');
   a = play(p, a, {type: 'cut', size: 6, at: 3, side: 'goal'});
   assert.equal(a.board.claim, 'refused');
-  assert.deepEqual(a.board.goal, [6, 1, 1, 1, 1], 'the goal comes back whole');
+  assert.deepEqual(a.board.goal, [3, 3, 1, 1, 1, 1], 'the goal stays halved until the bench moves');
   assert.match(view(p, a), /There is a way\./);
   assert.equal(move(p, a, {type: 'cant'}), null);
   const back = undo(p, a);
   assert.equal(back.board.claim, 'refused');
+  assert.deepEqual(back.board.goal, [6, 1, 1, 1, 1], 'Undo joins the goal back, a visible step');
   assert.ok(validBoard(p, back.board));
   assert.equal(move(p, back, {type: 'cant'}), null);
-  assert.equal(play(p, a, join(3)).board.claim, null, 'a new move clears it');
+  const on = play(p, a, join(3));
+  assert.equal(on.board.claim, null, 'a new move clears it');
+  assert.ok(isSolved(p, on.board), 'and here reaches the goal');
 });
 
 test('hints: the authored nudge first, Can’t only after the reason, never first', () => {
@@ -173,7 +180,7 @@ test('hints: the authored nudge first, Can’t only after the reason, never firs
   for (const at of [7, 6, 5, 4]) { const b = play(p, a, {type: 'cut', size: 8, at}), t0 = performance.now(); nextHint(p, b); assert.ok(performance.now() - t0 < 100, 'a hint takes well under 100 ms'); }
 });
 
-test('matching: take a card, join until all differ, it pairs; Undo keeps pairs', () => {
+test('matching: take a card, join until all differ, it pairs; Undo takes the pair back', () => {
   const p = byId('joins-05'), q = p.parameters, i = q.cards.findIndex(c => c.join() === '3,3,1,1');
   let a = play(p, freshAttempt(p), {type: 'load', card: i}, join(3));
   assert.deepEqual(a.board.bench, [6, 1, 1]);
@@ -182,7 +189,7 @@ test('matching: take a card, join until all differ, it pairs; Undo keeps pairs',
   assert.equal(a.board.card, null);
   assert.match(view(p, a), /3, 3, 1, 1 pairs with 6, 2/);
   const back = undo(p, a);
-  assert.deepEqual(back.board, {bench: null, card: null, paired: [i]});
+  assert.deepEqual(back.board, {bench: [6, 1, 1], card: i, paired: []});
   assert.ok(validBoard(p, back.board));
 });
 
@@ -193,6 +200,13 @@ test('the playground: + and −, joins and halvings, no goal', () => {
   assert.ok(!isSolved(p, a.board));
   assert.equal(nextHint(p, a).type, 'done');
   assert.ok(mech.noHint(p));
+});
+
+test('the focus fallback finds only strip buttons, never the goal picture', async () => {
+  const entry = (await import('../dist/families/joins/joins.js')).default;
+  assert.match(entry.focus, /^button\.jn-strip/);
+  const p = byId('joins-01'), html = view(p, freshAttempt(p));
+  assert.ok(html.indexOf('<div class="jn-strip goal') < html.indexOf('<button class="jn-strip'), 'the goal picture comes first in the page');
 });
 
 test('saves are checked', () => {

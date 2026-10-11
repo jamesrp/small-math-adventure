@@ -206,6 +206,7 @@ function checkCatalog(p, fresh, row) {
       assert.equal(back.board.shelf.length, 1, `${p.id}: Undo keeps the shelf`);
     }
   }
+  for (let u = a; u.history.length; u = undo(p, u)) assert.notEqual(JSON.stringify(undo(p, u).board), JSON.stringify(u.board), `${p.id}: every Undo changes the board`);
   a = play(p, a, {type: 'all'});
   assert.ok(isSolved(p, a.board), `${p.id}: every answer kept, then That’s all`);
   // A refused keep points: a non-fitting collection is not kept.
@@ -248,15 +249,18 @@ function checkReach(p, fresh, row) {
     const before = wrong;
     wrong = halveAll(p, wrong);
     assert.equal(wrong.board.claim, 'refused', `${p.id}: matching halves refuse the claim`);
-    assert.deepEqual(wrong.board.goal, q.goal, `${p.id}: the goal comes back whole`);
+    assert.equal(canon(wrong.board.goal), canon(wrong.board.bench), `${p.id}: the goal stays halved, matching the bench`);
     assert.ok(wrong.board.bench.every(x => x % 2), `${p.id}: the bench stays halved`);
     refuse(p, wrong, {type: 'cant'}, 'Can’t again on the same board');
     const back = undo(p, wrong);
     assert.equal(back.board.claim, 'refused', `${p.id}: Undo keeps the refusal`);
+    assert.notEqual(canon(back.board.goal) + '|' + canon(back.board.bench), canon(wrong.board.goal) + '|' + canon(wrong.board.bench), `${p.id}: Undo after a refusal changes what is drawn`);
     assert.ok(validBoard(p, back.board), `${p.id}: the undone board is valid`);
     refuse(p, back, {type: 'cant'}, 'Can’t again after Undo');
     const pair = wrong.board.bench.find((x, k, r) => r[k + 1] === x);
-    assert.equal(play(p, wrong, {type: 'join', sizes: [pair, pair]}).board.claim, null, `${p.id}: a new move clears the refusal`);
+    const moved = play(p, wrong, {type: 'join', sizes: [pair, pair]});
+    assert.equal(moved.board.claim, null, `${p.id}: a new move clears the refusal`);
+    assert.deepEqual(moved.board.goal, q.goal, `${p.id}: and brings the goal back whole`);
     steps += hintsSolve(p, before, 'inside a wrong Can’t');
     steps += hintsSolve(p, wrong, 'after a wrong Can’t');
     steps += hintsSolve(p, back, 'after a wrong Can’t and Undo');
@@ -308,7 +312,7 @@ function checkReach(p, fresh, row) {
   if (even) refuse(p, fresh, {type: 'cut', size: even, at: 1}, 'a cut off the middle');
   for (const [action, why] of [[{type: 'keep'}, 'Keep'], [{type: 'all'}, 'That’s all'], [{type: 'flip'}, 'Flip'], [{type: 'load', card: 0}, 'taking a card'], [{type: 'join', sizes: [99, 99]}, 'joining strips that are not there'], [{type: 'join', sizes: [1]}, 'a join of one strip'], [{type: 'cut', size: 2, at: 1, side: 'moon'}, 'an unknown row']]) refuse(p, fresh, action, why);
   const B = fresh.board, other = upward(sum(q.start)).find(c => !search(q.start).has(canon(c)));
-  for (const [board, why] of [[{...B, bench: [...q.start].reverse()}, 'a bench not longest first'], [{...B, tried: true, bench: other.sort((x, y) => y - x)}, 'a bench no moves reach'], [{...B, bench: q.goal}, 'a moved bench with no try'], [{...B, claim: 'wrong'}, 'a claim before any try'], [{...B, tried: true, claim: 'refused', ...(can ? {goal: [...q.start]} : {})}, can ? 'a refusal with a changed goal' : 'a refusal of a true Can’t'], ...(can ? [[{...B, tried: true, claim: 'halving', bench: oddOf(q.start), goal: oddOf(q.goal)}, 'a claim left unjudged with both rows matching']] : []), [{...B, tried: true, goal: [...q.start]}, 'a changed goal'], [{...B, claim: 'maybe', tried: true}, 'an unknown claim'], [{...B, extra: 1}, 'an unknown field']]) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
+  for (const [board, why] of [[{...B, bench: [...q.start].reverse()}, 'a bench not longest first'], [{...B, tried: true, bench: other.sort((x, y) => y - x)}, 'a bench no moves reach'], [{...B, bench: q.goal}, 'a moved bench with no try'], [{...B, claim: 'wrong'}, 'a claim before any try'], [{...B, tried: true, claim: 'refused', ...(can ? {goal: [...other].sort((x, y) => y - x)} : {})}, can ? 'a refusal with a changed goal' : 'a refusal of a true Can’t'], ...(can ? [[{...B, tried: true, claim: 'halving', bench: oddOf(q.start), goal: oddOf(q.goal)}, 'a claim left unjudged with both rows matching']] : []), [{...B, tried: true, goal: [...q.start]}, 'a changed goal'], [{...B, claim: 'maybe', tried: true}, 'an unknown claim'], [{...B, extra: 1}, 'an unknown field']]) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
   return steps;
 }
 const sum = list => list.reduce((s, x) => s + x, 0);
@@ -336,6 +340,7 @@ function checkMatch(p, fresh, row) {
     assert.ok(a.board.paired.includes(i), `${p.id}: card ${i} pairs`);
   }
   assert.ok(isSolved(p, a.board), `${p.id}: every card paired`);
+  for (let u = {...a, history: a.history.slice(0, -1)}; u.history.length; u = undo(p, u)) assert.notEqual(JSON.stringify(undo(p, u).board), JSON.stringify(u.board), `${p.id}: every Undo changes the board`);
   let steps = hintsSolve(p, fresh, 'from fresh');
   // A card taken, a halving back and forth, then hints; and Undo after a pair.
   const multi = q.cards.findIndex(c => new Set(c).size < c.length);
