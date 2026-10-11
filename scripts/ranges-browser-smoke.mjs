@@ -1,11 +1,12 @@
 // Plays Ruler strips through the real interface: dragging a strip's end, a
 // tap on its row, Undo across a drag, arrow keys and Home/End with focus kept
-// on the board, Can't off until a try, a wrong Can't kept through Undo, a
-// right Can't with its two extreme joins pinned (a wrong pair refused, the
-// refusal kept through Undo), widening a band by its handles
-// against the app's attack, Widest refused and accepted, gaps pinned,
-// a locked total stopping a drag, contested presses where a band's ends meet
-// the strip's end in the playground, and no overflow. Same environment
+// on the board, Can't off until a try, Can't and Widest with no verdict on
+// the press and judged by two pins (a wrong pair refused, the refusal kept
+// through Undo), widening a band by its handles against the app's attack, a
+// tap taking a band's right end down onto its left end, gaps pinned (the
+// cross pairing, the same A twice), A twice in a join, a locked total
+// stopping a drag, contested presses where a band's ends meet the strip's
+// end in the playground, and no overflow. Same environment
 // variables as the other browser suites (PLAYWRIGHT_MODULE,
 // BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone with touch).
 // Screenshots go in test-results/ranges/.
@@ -55,7 +56,8 @@ try {
   await page.locator('[data-action=library]').first().click(); await page.locator('.caravan-library').waitFor();
   assert.equal(await page.locator('.satchel-family[data-view-key="family-ranges"] .family-ink-symbol').innerText(), '↔');
 
-  // Puzzle 1: a drag, Undo, a tap, a wrong Can't kept through Undo, a break.
+  // Puzzle 1: a drag, Undo, a tap, a wrong Can't with no verdict on the press,
+  // its pins refused and the refusal kept through Undo, then a break.
   await open('ranges-01'); await fit('puzzle 1');
   assert.equal(await button('Can’t').isDisabled(), true, 'Can’t waits for a try');
   await drag('A', 5, 4);
@@ -65,13 +67,17 @@ try {
   await drag('A', 5, 9);
   assert.equal((await board('ranges-01')).len.A, 6, 'a drag past the band stops at its end');
   await button('Can’t').click();
-  assert.equal((await board('ranges-01')).cant, 'no');
-  assert.equal(await page.locator('.rg-note').innerText(), 'It can break.');
+  const c1 = await board('ranges-01');
+  assert.deepEqual([c1.cant, c1.told], [true, null], 'Can’t gives no verdict on the press');
+  assert.equal(await page.locator('.rg-note').innerText(), 'Pin the shortest and the longest join.', 'the same words as on a board that holds');
   assert.match(await focused(), /rg-knob|rg-card/, 'focus leaves Can’t for the board');
+  await button('Pin').click();
+  await tap('A', 4);
+  await button('Pin').click();
+  assert.equal(await page.locator('.rg-note').innerText(), 'A join can be shorter.', '8 and 10 are refused');
   await page.locator('[data-action="undo"]').click();
-  assert.equal(await button('Can’t').isDisabled(), true, 'Undo keeps the refusal');
-  assert.equal((await board('ranges-01')).cant, 'no');
-  await tap('A', 4); await tap('B', 2.2);
+  assert.equal(await page.locator('.rg-note').innerText(), 'A join can be shorter.', 'Undo keeps the refusal');
+  await tap('B', 2.2);
   assert.deepEqual((await board('ranges-01')).len, {A: 4, B: 3}, 'taps set lengths, held inside the band');
   await done(); await shot('01-broken');
 
@@ -105,29 +111,47 @@ try {
   await button('Pin').click();
   await done(); await shot('04-cant');
 
-  // Puzzle 5: the band's handles, the app's attack, Widest refused and accepted.
+  // Puzzle 5: the band's handles, the app's attack, Widest judged by its pins.
+  const key = async (s, k) => { await page.locator(`.rg-knob[data-focus="rg-knob-${s}"]`).focus(); await page.keyboard.press(k); };
   await open('ranges-05'); await fit('puzzle 5');
   assert.equal(await page.locator('.rg-end.broken').count(), 1, 'the app shows a join that escapes');
   assert.equal(await page.locator('.rg-knob[data-focus="rg-knob-A"]').count(), 0, 'the strips are the app’s before Widest');
+  assert.equal(await button('Widest').isDisabled(), true, 'Widest waits for a try');
   await drag('B', 6, 5, 0.3);
   assert.deepEqual((await board('ranges-05')).card, [5, 5], 'a drag on the band’s right end');
+  await page.locator('[data-action="undo"]').click();
+  await tap('B', 5, 0.3);
+  assert.deepEqual((await board('ranges-05')).card, [5, 5], 'a tap on the left end’s own unit takes the right end down to it');
   assert.equal(await page.locator('.rg-end.broken').count(), 0, 'nothing escapes 5 to 5');
   await button('Widest').click();
-  assert.equal(await page.locator('.rg-note').innerText(), 'It can be wider.');
-  assert.equal(await button('Widest').isDisabled(), true, 'the answer waits for a change');
+  assert.deepEqual([(await board('ranges-05')).claim, (await board('ranges-05')).told], [true, null], 'Widest gives no verdict on the press');
+  assert.equal(await page.locator('.rg-note').innerText(), 'Pin the shortest and the longest join.');
+  await key('A', 'Home'); await button('Pin').click();
+  await key('A', 'End'); await button('Pin').click();
+  assert.equal(await page.locator('.rg-note').innerText(), 'The band can be wider.', '8 and 9 are off the window’s left edge');
+  await page.locator('[data-action="undo"]').click();
+  assert.equal(await page.locator('.rg-note').innerText(), 'The band can be wider.', 'Undo keeps the refusal');
   await tap('B', 4, 0.3);
-  assert.deepEqual((await board('ranges-05')).card, [4, 5], 'a tap left of the band moves its left end');
+  const b5 = await board('ranges-05');
+  assert.deepEqual([b5.card, b5.claim], [[4, 5], false], 'a tap left of the band moves its left end and takes Widest back');
   await button('Widest').click();
-  assert.equal((await board('ranges-05')).claim, 'yes');
-  await page.locator('.rg-knob[data-focus="rg-knob-A"]').waitFor();
-  const b5 = await board('ranges-05'), other = b5.len.A === 3 ? {A: 4, B: 5} : {A: 3, B: 4};
-  await button('Pin').click();
-  await tap('A', other.A); await tap('B', other.B);
-  await button('Pin').click();
+  const m5 = await board('ranges-05');
+  assert.ok(m5.len.A + m5.len.B > 7 && m5.len.A + m5.len.B < 9, 'after Widest the strips start between the edges');
+  await key('A', 'Home'); await key('B', 'Home'); await button('Pin').click();
+  await key('A', 'End'); await key('B', 'End'); await button('Pin').click();
   await done(); await shot('05-widest');
 
-  // Puzzle 6: gaps kept as bars.
-  await open('ranges-06');
+  // Puzzle 6: two separate strips, the cross pairing.
+  await open('ranges-06'); await fit('puzzle 6');
+  await tap('A', 15); await tap('B', 10); await button('Pin').click();
+  await tap('A', 13); await button('Pin').click();
+  assert.equal(await page.locator('.rg-note').innerText(), 'A gap can be smaller.', '5 and 3 are refused');
+  await tap('A', 15); await button('Pin').click();
+  await tap('A', 13); await tap('B', 12); await button('Pin').click();
+  await done(); await shot('06-cross');
+
+  // Puzzle 7: gaps kept as bars.
+  await open('ranges-07');
   await tap('A', 6); await tap('B', 4);
   assert.equal(await page.locator('.rg-kept').count(), 0, 'no gap is marked before a pin');
   await button('Pin').click();
@@ -137,16 +161,25 @@ try {
   await tap('A', 6); await button('Pin').click();
   await tap('A', 4); await tap('B', 6);
   await button('Pin').click();
-  await done(); await shot('06-gaps');
+  await done(); await shot('07-gaps');
 
-  // Puzzle 8: a locked total stops A at 9.
+  // Puzzle 8: A twice in the join; its band's ends by drag and tap.
   await open('ranges-08'); await fit('puzzle 8');
+  await drag('A', 6, 5, 0.3); await tap('A', 3, 0.3);
+  assert.deepEqual((await board('ranges-08')).card, [3, 5]);
+  await button('Widest').click();
+  await key('A', 'Home'); await key('B', 'Home'); await button('Pin').click();
+  await key('A', 'End'); await key('B', 'End'); await button('Pin').click();
+  await done(); await shot('08-twice');
+
+  // Puzzle 9: a locked total stops A at 9.
+  await open('ranges-09'); await fit('puzzle 9');
   await drag('A', 8, 12);
-  assert.deepEqual((await board('ranges-08')).len, {A: 9, B: 3}, 'A stops at 9 and B moves with it');
+  assert.deepEqual((await board('ranges-09')).len, {A: 9, B: 3}, 'A stops at 9 and B moves with it');
   await button('Pin').click();
   await tap('B', 5);
   await button('Pin').click();
-  await done(); await shot('08-total');
+  await done(); await shot('09-total');
 
   // The playground: where a band's two ends meet, the press side picks; lower
   // in the row, the strip's end is nearer.

@@ -80,7 +80,7 @@
     "Each strip’s end stays inside its gray band. Strips join end to end from 0, and the ruler shows where a join ends."
    ],
    "idea": "Free play with two strips and their bands: where can the join end?",
-   "prerequisites": "None. A partner can set the bands and a claim, and the other tries to break it.",
+   "prerequisites": "None. A partner can set the bands and say a claim aloud, and the other tries to break it.",
    "hints": [
     "Set the bands, then find the shortest and the longest join.",
     "Make one band wider by one. How much wider does the spread of joins get?",
@@ -145,7 +145,7 @@
    "rules": [
     "Each strip’s end stays inside its gray band. Strips join end to end from 0, and the ruler shows where a join ends.",
     "The shaded window is the app’s claim: every join ends inside it.",
-    "Can’t says no join ends outside the window. After it, pin the shortest and the longest join; the two pins are checked together."
+    "Can’t says no join ends outside the window. After it, pin the shortest and the longest join; the two pins are checked together, and they decide whether Can’t is right."
    ],
    "idea": "One setting outside is enough to break a claim about every setting; the shortest join takes every strip at its shortest.",
    "prerequisites": "Reading a ruler to 13 and comparing lengths. No adding: the ruler shows where the join ends.",
@@ -179,7 +179,7 @@
   {
    "id": "ranges-02",
    "number": 2,
-   "title": "A long strip",
+   "title": "Wider bands",
    "difficulty_level": "easy",
    "familyTitle": "Ruler strips",
    "mechanic": "ranges",
@@ -221,7 +221,7 @@
    "rules": [
     "Each strip’s end stays inside its gray band. Strips join end to end from 0, and the ruler shows where a join ends.",
     "The shaded window is the app’s claim: every join ends inside it.",
-    "Can’t says no join ends outside the window. After it, pin the shortest and the longest join; the two pins are checked together."
+    "Can’t says no join ends outside the window. After it, pin the shortest and the longest join; the two pins are checked together, and they decide whether Can’t is right."
    ],
    "idea": "The other side of the window: the longest join takes every strip at its longest.",
    "prerequisites": "Reading a ruler to 13 and comparing lengths. No adding: the ruler shows where the join ends.",
@@ -396,7 +396,7 @@
    "rules": [
     "Each strip’s end stays inside its gray band. Strips join end to end from 0, and the ruler shows where a join ends.",
     "The shaded window is the app’s claim: every join ends inside it.",
-    "Can’t says no join ends outside the window. After it, pin the shortest and the longest join; the two pins are checked together."
+    "Can’t says no join ends outside the window. After it, pin the shortest and the longest join; the two pins are checked together, and they decide whether Can’t is right."
    ],
    "idea": "A claim nobody can break is shown by the two extreme settings: if the shortest and the longest join are inside, every join is.",
    "prerequisites": "Reading a ruler to 13 and comparing lengths. No adding: the ruler shows where the join ends.",
@@ -474,8 +474,8 @@
    "rules": [
     "Each strip’s end stays inside its gray band. Strips join end to end from 0, and the ruler shows where a join ends.",
     "The shaded window is the app’s claim: every join ends inside it.",
-    "If some join can end outside the window, the app sets the strips to show one.",
-    "Widest says the band can’t grow at either end. After it, pin the shortest and the longest join; the two pins are checked together."
+    "Before Widest, the app sets the strips: if some join can end outside the window, it shows one.",
+    "Widest says the band can’t grow at either end. After it, pin the shortest and the longest join; they are right when they end on the window’s two edges."
    ],
    "idea": "Each end of the widest band is pinned by one setting: A at 3 forces B to reach 4, and A at 4 stops B past 5.",
    "prerequisites": "Reading a ruler and the break puzzles. The app does the attacking; the child decides how far each end of the band can go.",
@@ -521,8 +521,97 @@
   {
    "id": "ranges-06",
    "number": 6,
-   "title": "One A, then a B",
+   "title": "Two long strips",
    "difficulty_level": "medium",
+   "familyTitle": "Ruler strips",
+   "mechanic": "ranges",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/ranges/README.md",
+   "parameters": {
+    "mode": "gap",
+    "ruler": 16,
+    "cards": {
+     "A": [
+      13,
+      15
+     ],
+     "B": [
+      10,
+      12
+     ]
+    },
+    "start": {
+     "A": 14,
+     "B": 11
+    },
+    "rows": [
+     [
+      "A"
+     ],
+     [
+      "B"
+     ]
+    ],
+    "pairs": [
+     [
+      0,
+      1
+     ]
+    ]
+   },
+   "objective": "Pin the biggest and the smallest gap.",
+   "visibleObjective": "Pin the biggest and the smallest gap.",
+   "instruction": "Pin the biggest and the smallest gap.",
+   "controls": "Drag the end of a strip, or tap its row, to change its length. Arrow keys move a focused end. Press Pin for a setting with the biggest gap and for one with the smallest.",
+   "rules": [
+    "Each strip’s end stays inside its gray band. Strips join end to end from 0, and the ruler shows where a join ends.",
+    "The gap is between the ends of two rows. Pin a setting with the biggest gap and one with the smallest; the two pins are checked together."
+   ],
+   "idea": "Two separate strips pair across: the biggest gap takes the longest A with the shortest B, the smallest the shortest A with the longest B, so the gap runs from 13 − 12 = 1 to 15 − 10 = 5.",
+   "prerequisites": "Reading a ruler and comparing two ends. No subtracting: the gap is drawn between the ends.",
+   "hints": [
+    "Which way should each strip move to make the gap bigger?",
+    "The gap is biggest when A is longest and B is shortest.",
+    "Pin A 15 with B 10, then A 13 with B 12."
+   ],
+   "parent": {
+    "notice": "Whether your child first pairs the longest A with the longest B, and what changes their mind.",
+    "prompt": "Why isn’t the biggest gap 15 − 12?",
+    "explanation": "On their own, A runs from 13 to 15 and B from 10 to 12. The gap A − B is biggest when A is as long as it can be and B as short: 15 − 10 = 5; and smallest the other way round: 13 − 12 = 1. Pairing like with like (15 − 12 or 13 − 10, both 3) gives neither end. Every gap from 1 to 5 occurs.",
+    "extension": "Make every gap from 1 to 5. Which gap can be made the most ways?",
+    "connection": "Subtracting ranges: the low end of a difference is a low end less a high end. Widths add even when you subtract: 2 + 2 = 4, the width of 1 to 5.",
+    "sourceIds": [
+     "ranges-week51",
+     "ranges-card51",
+     "ranges-moore"
+    ]
+   },
+   "solution": {
+    "gaps": [
+     {
+      "smallest": 1,
+      "biggest": 5
+     }
+    ],
+    "pins": [
+     {
+      "A": 13,
+      "B": 12
+     },
+     {
+      "A": 15,
+      "B": 10
+     }
+    ]
+   },
+   "provenance": "Week 51 Grades 2–3 and 4–5 Problem 6: a long strip of 13 to 15 units and a short strip of 10 to 12, both from 0, and the tightest guaranteed gap, 1 to 5. The review card’s fix 3 puts this cross pairing before the shared A of Problems 4–5."
+  },
+  {
+   "id": "ranges-07",
+   "number": 7,
+   "title": "One A, then a B",
+   "difficulty_level": "hard",
    "familyTitle": "Ruler strips",
    "mechanic": "ranges",
    "band": "all",
@@ -628,9 +717,9 @@
    "provenance": "Week 51 K–1 Problem 4 and Grades 2–3 and 4–5 Problem 5: the same A twice against a separate B, both 4 to 6, with the white pieces 4 and 1 (the review card’s fix 2: both A’s are always the same)."
   },
   {
-   "id": "ranges-07",
-   "number": 7,
-   "title": "Three strips",
+   "id": "ranges-08",
+   "number": 8,
+   "title": "A, A and B",
    "difficulty_level": "hard",
    "familyTitle": "Ruler strips",
    "mechanic": "ranges",
@@ -642,24 +731,20 @@
     "ruler": 16,
     "cards": {
      "A": [
-      2,
-      3
+      4,
+      6
      ],
      "B": [
       3,
-      5
-     ],
-     "C": [
-      5,
-      5
+      4
      ]
     },
-    "edit": "C",
+    "edit": "A",
     "rows": [
      [
       "A",
-      "B",
-      "C"
+      "A",
+      "B"
      ]
     ],
     "window": [
@@ -667,29 +752,30 @@
      14
     ]
    },
-   "objective": "Make C’s band as wide as you can while every join ends from 9 to 14, then press Widest and pin the shortest and the longest join.",
-   "visibleObjective": "Make C’s band as wide as you can while every join ends from 9 to 14.",
-   "instruction": "Make C’s band as wide as you can while every join ends from 9 to 14, then press Widest and pin the shortest and the longest join.",
-   "controls": "Drag an end of B’s band, or tap near it. Arrow keys move a focused end. Press Widest, then set the strips and press Pin for the shortest join and for the longest.",
+   "objective": "Make A’s band as wide as you can while every join ends from 9 to 14, then press Widest and pin the shortest and the longest join.",
+   "visibleObjective": "Make A’s band as wide as you can while every join ends from 9 to 14.",
+   "instruction": "Make A’s band as wide as you can while every join ends from 9 to 14, then press Widest and pin the shortest and the longest join.",
+   "controls": "Drag an end of A’s band, or tap near it. Arrow keys move a focused end. Press Widest, then set the strips and press Pin for the shortest join and for the longest.",
    "rules": [
     "Each strip’s end stays inside its gray band. Strips join end to end from 0, and the ruler shows where a join ends.",
+    "A letter drawn twice is one strip: both copies are always the same length.",
     "The shaded window is the app’s claim: every join ends inside it.",
-    "If some join can end outside the window, the app sets the strips to show one.",
-    "Widest says the band can’t grow at either end. After it, pin the shortest and the longest join; the two pins are checked together."
+    "Before Widest, the app sets the strips: if some join can end outside the window, it shows one.",
+    "Widest says the band can’t grow at either end. After it, pin the shortest and the longest join; they are right when they end on the window’s two edges."
    ],
-   "idea": "Widths add: the window is 5 wide, A’s and B’s bands use 1 and 2, so C’s widest band is 2 wide, pinned by the shortest and the longest join.",
+   "idea": "A strip drawn twice counts twice: one more unit on A’s band moves the longest join by two. The window is 5 wide and B’s band uses 1, so A’s band can be only 2 wide: 3 to 5.",
    "prerequisites": "Reading a ruler and the break puzzles. The app does the attacking; the child decides how far each end of the band can go.",
    "hints": [
-    "Grow C’s band one end at a time, and watch for a join the app gets out.",
-    "The shortest join is 2 + 3 + C’s left end; the longest is 3 + 5 + C’s right end.",
-    "Make C’s band 4 to 6, press Widest, then pin 2 + 3 + 4 and 3 + 5 + 6."
+    "Move one end of A’s band by one, and watch how far the join moves.",
+    "A is in the join twice: the shortest join is A’s left end twice and 3, the longest A’s right end twice and 4.",
+    "Make A’s band 3 to 5, press Widest, then pin 3 + 3 + 3 and 5 + 5 + 4."
    ],
    "parent": {
-    "notice": "Whether your child grows each end until the app escapes and then steps back, rather than guessing a band.",
-    "prompt": "How could you tell the width of C’s band before trying?",
-    "explanation": "The shortest join is 2 + 3 + c and must reach 9, so C’s left end is at least 4; the longest is 3 + 5 + C’s right end and must fit within 14, so C’s right end is at most 6. C 4 to 6 is the one widest band: its width 2 is the window’s 5 less A’s 1 and B’s 2.",
-    "extension": "If B’s band were 3 to 6, how wide could C’s band be? (1: from 4 to 5.)",
-    "connection": "width(A + B + C) = width A + width B + width C, so a target window leaves exactly its width less the others’ for the last band.",
+    "notice": "Whether your child expects one unit on A’s band to move the join by one, and what they make of it moving by two.",
+    "prompt": "A’s band went from 3 to 5 to 3 to 6. Why did the longest join jump by 2?",
+    "explanation": "Both copies of A are the same strip, so the join is A + A + B. The shortest is twice A’s left end, plus 3, and must reach 9, so A’s left end is at least 3; the longest is twice A’s right end, plus 4, and must fit within 14, so A’s right end is at most 5. A 3 to 5 gives joins from 9 to 14, on both edges: the joins spread 2 + 2 + 1 = 5, the window’s width.",
+    "extension": "What if the row were A + B + B? Which band could grow most, and how far?",
+    "connection": "In interval arithmetic A + A is twice as wide as A, while A − A is exactly 0 (Puzzles 3 and 7): one strip used twice is not two strips.",
     "sourceIds": [
      "ranges-week51",
      "ranges-card51",
@@ -698,32 +784,29 @@
    },
    "solution": {
     "band": [
-     4,
-     6
+     3,
+     5
     ],
     "pins": [
      {
-      "A": 2,
-      "B": 3,
-      "C": 4
+      "A": 3,
+      "B": 3
      },
      {
-      "A": 3,
-      "B": 5,
-      "C": 6
+      "A": 5,
+      "B": 4
      }
     ],
     "start": {
-     "A": 2,
-     "B": 3,
-     "C": 5
+     "A": 6,
+     "B": 4
     }
    },
-   "provenance": "New, from Week 51 Problem 3 (the widest card for B) and Grades 2–3 and 4–5 Problem 4 (which strip’s width matters), with a third strip."
+   "provenance": "New, from Week 51 Grades 2–3 and 4–5 Problem 3 (the widest card for B) and Grades 4–5 Problem 9 (a strip used twice is one strip), with A twice in the join."
   },
   {
-   "id": "ranges-08",
-   "number": 8,
+   "id": "ranges-09",
+   "number": 9,
    "title": "Twelve in all",
    "difficulty_level": "hard",
    "familyTitle": "Ruler strips",
@@ -787,7 +870,7 @@
    "idea": "A total locked at 12 ties B to A, cuts A’s band to 7 to 9 (A = 10 would need B = 2), and makes the gap 2A − 12: from 2 to 6.",
    "prerequisites": "Reading a ruler and comparing two ends. No subtracting: the gap is drawn between the ends.",
    "hints": [
-    "Drag A as far as it goes each way, and watch B.",
+    "A and B share 12. What happens to B when A grows?",
     "A stops at 9, because B can’t be shorter than 3. Then the gap is 9 − 3.",
     "Pin A at 9 for the biggest gap, then at 7 for the smallest."
    ],

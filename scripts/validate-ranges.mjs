@@ -12,6 +12,7 @@ import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
+import {settings} from '../dist/families/ranges/ranges.js';
 import {loadPack} from './packs.mjs';
 
 // The table in docs/ranges/README.md.
@@ -21,9 +22,10 @@ const TABLE = {
   'ranges-03': {mode: 'gap', gaps: [[3, 4]]},
   'ranges-04': {mode: 'break', range: [8, 10], breakable: false},
   'ranges-05': {mode: 'widen', band: [4, 5]},
-  'ranges-06': {mode: 'gap', gaps: [[3, 3], [1, 5]]},
-  'ranges-07': {mode: 'widen', band: [4, 6]},
-  'ranges-08': {mode: 'gap', gaps: [[2, 6]], reachA: [7, 9]}
+  'ranges-06': {mode: 'gap', gaps: [[1, 5]]},
+  'ranges-07': {mode: 'gap', gaps: [[3, 3], [1, 5]]},
+  'ranges-08': {mode: 'widen', band: [3, 5]},
+  'ranges-09': {mode: 'gap', gaps: [[2, 6]], reachA: [7, 9]}
 };
 
 // A row as a linear form: how many times each strip appears, plus the white pieces.
@@ -48,12 +50,15 @@ function span(form0, cards0, total) {
 }
 const joinSpan = (q, cards) => span(rowForm(q.rows[0]), cards, null);
 const gapSpans = q => q.pairs.map(([t, u]) => span(minus(rowForm(q.rows[t]), rowForm(q.rows[u])), q.cards, q.total));
+// How many times the band being widened is in the join.
+const copies = q => q.rows[0].filter(x => x === q.edit).length;
 // The widest band from the window: its left end makes the shortest join reach
-// the window, its right end keeps the longest inside.
+// the window, its right end keeps the longest inside (a strip in the join n
+// times moves it n units per unit).
 function widestByWindow(q) {
-  const others = q.rows[0].filter(x => x !== q.edit);
-  const lo = q.window[0] - others.reduce((t, x) => t + (typeof x === 'number' ? x : q.cards[x][0]), 0);
-  const hi = q.window[1] - others.reduce((t, x) => t + (typeof x === 'number' ? x : q.cards[x][1]), 0);
+  const others = q.rows[0].filter(x => x !== q.edit), n = copies(q);
+  const lo = Math.ceil((q.window[0] - others.reduce((t, x) => t + (typeof x === 'number' ? x : q.cards[x][0]), 0)) / n);
+  const hi = Math.floor((q.window[1] - others.reduce((t, x) => t + (typeof x === 'number' ? x : q.cards[x][1]), 0)) / n);
   return [Math.max(1, lo), hi];
 }
 // A separate simulator: every whole setting of the bands, its join's end.
@@ -171,17 +176,20 @@ function checkBreak(p, fresh, row) {
   if (row.breakable) {
     // The witness: every setting ending outside breaks it.
     for (const len of p.solution.breaks) assert.ok(isSolved(p, setTo(p, fresh, len).board), `${p.id}: ${JSON.stringify(len)} breaks the claim`);
+    // A wrong Can't gets no verdict on the press; its pins are refused, since
+    // a join outside the window would break the claim before it was pinned.
     const wrong = play(p, tried, {type: 'cant'});
-    assert.equal(wrong.board.cant, 'no', `${p.id}: a wrong Can’t is refused`);
-    assert.ok(!isSolved(p, wrong.board), `${p.id}: a refused Can’t is no solve`);
+    assert.deepEqual([wrong.board.cant, wrong.board.told, wrong.board.pins], [true, null, []], `${p.id}: Can’t gives no verdict on the press`);
+    assert.ok(!isSolved(p, wrong.board), `${p.id}: Can’t alone is no solve`);
     refuse(p, wrong, {type: 'cant'}, 'Can’t again');
-    const back = undo(wrong), kept = mechanicFor(p).carry(p, wrong.board, back.board);
-    assert.equal(kept.cant, 'no', `${p.id}: Undo keeps the refusal`);
+    const inside = settings(q, q.cards).filter(len => joinOf(q, len) >= q.window[0] && joinOf(q, len) <= q.window[1]);
+    const lowIn = inside.reduce((u, v) => joinOf(q, v) < joinOf(q, u) ? v : u), highIn = inside.reduce((u, v) => joinOf(q, v) > joinOf(q, u) ? v : u);
+    checkWrongPins(p, wrong, [lowIn, highIn], joinOf(q, lowIn) > lo ? 'shorter' : 'longer');
     steps += hintsSolve(p, wrong, 'after a wrong Can’t');
     steps += hintsSolve(p, tried, 'after a try');
   } else {
     const right = play(p, tried, {type: 'cant'});
-    assert.equal(right.board.cant, 'yes', `${p.id}: Can’t is right`);
+    assert.deepEqual([right.board.cant, right.board.told], [true, null], `${p.id}: Can’t gives no verdict on the press`);
     assert.ok(!isSolved(p, right.board), `${p.id}: Can’t alone is no solve`);
     assert.deepEqual(p.solution.pins.map(len => joinOf(q, len)), row.range, `${p.id}: the pins are the shortest and the longest join`);
     assert.ok(isSolved(p, pinBoth(p, right, p.solution.pins).board), `${p.id}: the shortest and the longest join certify it`);
@@ -197,11 +205,14 @@ function checkBreak(p, fresh, row) {
     [{...B, len: {[s]: B.len[s]}}, 'a missing strip'],
     [{...B, extra: 1}, 'an unknown field'],
     [{...B, tried: 'yes'}, 'a try that is not true or false'],
-    [{...B, cant: row.breakable ? 'yes' : 'no', tried: true}, row.breakable ? 'Can’t accepted on a claim that breaks' : 'Can’t refused on a claim that holds'],
+    [{...B, cant: 'yes', tried: true}, 'a Can’t that is not true or false'],
     [{...B, cant: 'maybe'}, 'an unknown answer'],
     [{...B, pins: [{...B.len}]}, 'a pin before Can’t'],
     [{...B, told: 'shorter'}, 'a refused pin before Can’t'],
-    ...(row.breakable ? [] : [[{...B, tried: true, cant: 'yes', pins: [p.solution.pins[1], p.solution.pins[1]]}, 'two pins that are not the certificate'], [{...B, tried: true, cant: 'yes', pins: [p.solution.pins[0]], told: 'longer'}, 'a refusal with a pin standing'], [{...B, tried: true, cant: 'yes', told: 'bigger'}, 'a gap’s refusal on a join'], [{...B, tried: false, cant: 'yes'}, 'Can’t without a try']])
+    [{...B, tried: true, cant: true, pins: [settings(q, q.cards)[0], settings(q, q.cards)[0]]}, 'two pins that are not the certificate'],
+    [{...B, tried: true, cant: true, pins: [{...B.len}], told: 'longer'}, 'a refusal with a pin standing'],
+    [{...B, tried: true, cant: true, told: 'bigger'}, 'a gap’s refusal on a join'],
+    [{...B, tried: false, cant: true}, 'Can’t without a try']
   ]);
   return steps;
 }
@@ -211,7 +222,7 @@ function checkWiden(p, fresh, row) {
   assert.deepEqual(widestByWindow(q), row.band, `${p.id}: the widest band from the window`);
   // Brute force, with the separate simulator: every band, every setting.
   let best = -1, bests = [];
-  const top = q.ruler - q.rows[0].filter(x => x !== q.edit).reduce((t, x) => t + q.cards[x][1], 0);
+  const top = Math.floor((q.ruler - q.rows[0].filter(x => x !== q.edit).reduce((t, x) => t + (typeof x === 'number' ? x : q.cards[x][1]), 0)) / copies(q));
   for (let lo = 1; lo <= top; lo++) for (let hi = lo; hi <= top; hi++) {
     const ends = allEnds(q, {...q.cards, [q.edit]: [lo, hi]});
     if (ends.some(v => v < q.window[0] || v > q.window[1])) continue;
@@ -221,11 +232,13 @@ function checkWiden(p, fresh, row) {
   assert.deepEqual(bests, [row.band], `${p.id}: one widest band`);
   assert.deepEqual(p.solution.band, row.band, `${p.id}: the pack’s answer`);
   const others = Object.keys(q.cards).filter(s => s !== q.edit);
-  assert.equal(row.band[1] - row.band[0], q.window[1] - q.window[0] - others.reduce((t, s) => t + q.cards[s][1] - q.cards[s][0], 0), `${p.id}: widths add`);
+  assert.equal(copies(q) * (row.band[1] - row.band[0]), q.window[1] - q.window[0] - others.reduce((t, s) => t + q.rows[0].filter(x => x === s).length * (q.cards[s][1] - q.cards[s][0]), 0), `${p.id}: widths add, and the widest band’s joins fill the window exactly`);
   // The strips can't move before Widest; the app shows its attack.
   refuse(p, fresh, {type: 'set', strip: others[0], length: q.cards[others[0]][0] === B.len[others[0]] ? q.cards[others[0]][1] : q.cards[others[0]][0]}, 'moving a strip before Widest');
+  refuse(p, fresh, {type: 'widest'}, 'Widest before the band has moved');
   let steps = hintsSolve(p, fresh, 'from fresh');
-  // A wrong Widest: on an unsafe band, and on a safe band that can grow.
+  // A wrong Widest, on an unsafe band and on a safe band that can grow: no
+  // verdict on the press; the pins of its shortest and longest join are refused.
   const unsafe = [row.band[0] - 1, row.band[1]], narrow = [row.band[0] + 1, row.band[1]];
   for (const band of [unsafe, narrow]) {
     let a = fresh;
@@ -235,24 +248,31 @@ function checkWiden(p, fresh, row) {
     if (band === unsafe) assert.ok(end < q.window[0] || end > q.window[1], `${p.id}: the app shows a join that escapes ${JSON.stringify(band)}`);
     else assert.ok(ends.every(v => v >= q.window[0] && v <= q.window[1]), `${p.id}: ${JSON.stringify(band)} is safe`);
     const wrong = play(p, a, {type: 'widest'});
-    assert.equal(wrong.board.claim, 'no', `${p.id}: Widest on ${JSON.stringify(band)} is refused`);
-    refuse(p, wrong, {type: 'widest'}, 'Widest again on the same band');
+    assert.deepEqual([wrong.board.claim, wrong.board.told, wrong.board.pins], [true, null, []], `${p.id}: Widest on ${JSON.stringify(band)} gives no verdict on the press`);
+    refuse(p, wrong, {type: 'widest'}, 'Widest again');
+    const cards = {...q.cards, [q.edit]: band}, all = settings(q, cards), short = all.reduce((u, v) => joinOf(q, v) < joinOf(q, u) ? v : u), long = all.reduce((u, v) => joinOf(q, v) > joinOf(q, u) ? v : u);
+    checkWrongPins(p, wrong, [short, long], band === unsafe ? 'outside' : 'wider');
     steps += hintsSolve(p, wrong, `after Widest on ${JSON.stringify(band)}`);
   }
   // The witness.
   let a = fresh;
   for (const [end, value] of [['lo', row.band[0]], ['hi', row.band[1]]]) if (a.board.card[end === 'lo' ? 0 : 1] !== value) a = play(p, a, {type: 'card', strip: q.edit, end, value});
   a = play(p, a, {type: 'widest'});
-  assert.equal(a.board.claim, 'yes', `${p.id}: Widest is right`);
-  refuse(p, a, {type: 'card', strip: q.edit, end: 'lo', value: 1}, 'changing the band after Widest');
+  assert.deepEqual([a.board.claim, a.board.told], [true, null], `${p.id}: Widest gives no verdict on the press`);
+  const at = joinOf(q, a.board.len);
+  assert.ok(at > q.window[0] && at < q.window[1], `${p.id}: after Widest the strips start between the edges, so neither pin is free`);
+  assert.equal(play(p, a, {type: 'card', strip: q.edit, end: 'lo', value: row.band[0] - 1}).board.claim, false, `${p.id}: moving the band takes Widest back`);
   assert.deepEqual(p.solution.pins.map(len => joinOf(q, len)), q.window, `${p.id}: the pins touch both edges of the window`);
   assert.ok(isSolved(p, pinBoth(p, a, p.solution.pins).board), `${p.id}: the shortest and the longest join certify it`);
   checkWrongPins(p, a, [p.solution.pins[0], p.solution.pins[0]], 'longer');
   for (const [action, why] of [[{type: 'card', strip: q.edit, end: 'hi', value: top + 1}, 'a band past the ruler'], [{type: 'card', strip: q.edit, end: 'lo', value: 0}, 'a band from 0'], [{type: 'card', strip: q.edit, end: 'lo', value: B.card[1] + 1}, 'a band turned round'], [{type: 'card', strip: others[0], end: 'lo', value: 1}, 'another strip’s band'], [{type: 'cant'}, 'Can’t']]) refuse(p, fresh, action, why);
   forged(p, [
     [{...B, len: {...B.len, [others[0]]: q.cards[others[0]][0] === B.len[others[0]] ? q.cards[others[0]][1] : q.cards[others[0]][0]}}, 'strips that are not the app’s attack'],
-    [{...B, claim: 'yes'}, 'Widest accepted on the starting band'],
-    [{...B, card: [row.band[0], row.band[1]], claim: 'no', len: a.board.len}, 'Widest refused on the widest band'],
+    [{...B, claim: 'yes'}, 'a claim that is not true or false'],
+    [{...B, claim: true}, 'Widest on the starting band'],
+    [{...B, card: [...row.band], claim: true, len: {...p.solution.pins[0]}, pins: [p.solution.pins[0], p.solution.pins[0]]}, 'two pins that are not the certificate'],
+    [{...B, card: [...unsafe], claim: true, len: {...p.solution.pins[0]}, pins: (() => { const all = settings(q, {...q.cards, [q.edit]: unsafe}); return [all[0], all[all.length - 1]]; })()}, 'two pins on a band that lets a join out'],
+    [{...B, told: 'wider'}, 'a refusal before Widest'],
     [{...B, card: [0, 3]}, 'a band from 0'],
     [{...B, card: [5, 4]}, 'a band turned round'],
     [{...B, pins: [{...B.len}]}, 'a pin before Widest']
