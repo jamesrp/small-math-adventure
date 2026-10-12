@@ -57,3 +57,4 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | How the keeper `talk` pose behaves, before any idle or talk loops | | | open; Claude |
 | Voice-casting brief for six keepers and Plume (plan item 6) | Claude, Codex lane thread | `claude/codex-lane-h6jaem` | done |
 | Dot/Codex briefs for the keeper reaction clips and scene motion, and a kickoff prompt (plan item 6); keeper reaction stills now show in the game | Claude, Codex lane thread | `claude/codex-lane-h6jaem` | done |
+| Deployed puzzle review, October 12: clarity, controls, visual design and mathematics (13 types; no app edits) | Codex and review subagents | `main` (review only) | in progress |
