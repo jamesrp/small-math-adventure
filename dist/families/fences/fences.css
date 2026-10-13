@@ -27,7 +27,7 @@
 .gf-icon-post{stroke:#6b4f2e;stroke-width:3;stroke-linecap:round;fill:none}
 
 /* The plot. */
-.gf-stage{width:100%;max-width:min(440px, calc(var(--gf-cols) * 76px + 30px))}
+.gf-stage{width:100%;max-width:min(380px, calc(var(--gf-cols) * 66px + 30px))}
 .gf-board .sg-cell{fill:#f3ecd9;stroke:#dccfae}
 .gf-board .sg-cell.tile{fill:#8fb07f;stroke:#6f9562}
 .gf-board .sg-cell.pond{fill:#9cc9de;stroke:#86b6cc}

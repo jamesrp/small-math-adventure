@@ -395,11 +395,13 @@ export function tapAction(p, b, id) {
   if (chasing(p, b)) return Object.hasOwn(q.places, id) && !b.chase.includes(id) ? {move: {type: 'chase', id}} : null;
   return q.free.includes(id) ? {choose: id} : null;
 }
-// A key on the board: a digit sets the chosen place, arrows step it up or down.
-export function keyAction(p, b, key) {
+// A key on a place edits that place; the number row edits the chosen one.
+export function keyAction(p, b, key, focused = null) {
   const q = boardQ(p, b);
   if (solved(p, b) || chasing(p, b)) return null;
-  const id = chosenOf(p, b), now = b.values[id];
+  const id = focused === null ? chosenOf(p, b) : focused;
+  if (!q.free.includes(id)) return null;
+  const now = b.values[id];
   let value = null;
   if (/^[0-9]$/.test(key)) value = Number(key);
   else if (key === 'ArrowUp' || key === 'ArrowRight') value = now === null ? q.range[0] : now + 1;
@@ -516,9 +518,14 @@ function wire(root, p, api) {
       return action.move;
     }
   }, api.apply);
+  root.addEventListener('focusin', e => {
+    const id = e.target.closest('[data-gb-node]')?.dataset.gbNode;
+    if (!id || solved(p, now()) || chasing(p, now()) || !boardQ(p, now()).free.includes(id)) return;
+    if (ui(p).chosen !== id) api.ui({chosen: id});
+  });
   root.addEventListener('keydown', e => {
     if (e.altKey || e.ctrlKey || e.metaKey || !e.target.closest('[data-gb-board],.av-keys')) return;
-    const action = keyAction(p, now(), e.key);
+    const action = keyAction(p, now(), e.key, e.target.closest('[data-gb-node]')?.dataset.gbNode ?? null);
     if (!action) return;
     e.preventDefault();
     api.apply(action);

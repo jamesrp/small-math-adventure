@@ -17,7 +17,7 @@
 .gl-corners-view{width:100%;max-width:min(100%,calc(270px * var(--a,1)))}
 .gl-stage.play .gl-room-view{max-width:300px}
 .gl-stage.play .gl-strip-view{--sq:110px}
-@container (min-width:600px){
+@container (min-width:520px){
   .gl-stage{flex-direction:row;align-items:center;justify-content:center;gap:1.4rem}
   .gl-room-view{flex:0 1 360px;max-width:360px}
   .gl-trips{flex:1 1 0;max-width:460px}

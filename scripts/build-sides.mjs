@@ -24,7 +24,7 @@ export const family = {
 
 const RULES_TEXT = family.rules;
 const W = ['sides-week45'];
-const DRAW = 'Tap a side in the cup to draw it: it shows, and the other side of its card is covered. Tap the ? to turn the card over, then put the side with the colour underneath. Press That’s all when every one is there.';
+const DRAW = 'Tap a side to draw it: it shows, and the other side of its card is covered. Tap the ? to turn the card over, then put the side with the colour underneath. Press That’s all when every one is there.';
 const DESIGN = 'Tap a side to put it in the cup or take it out. Try it shows the red sides in the cup, sorted by the colour underneath.';
 // Whole cards have no numbers: every side on the table is in the cup.
 const CARDS_RULES = max => [

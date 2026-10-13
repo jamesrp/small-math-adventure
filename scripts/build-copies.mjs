@@ -208,7 +208,7 @@ const playground = {
   id: 'copies-playground', number: 0, title: 'Copying bags playground', band: 'playground', difficulty_level: 'playground',
   parameters: {mode: 'playground'},
   objective: 'Draw runs of four and watch where they land.',
-  controls: 'Choose what joins the bag after each draw. Tap a counter to draw it, or press Draw for a random one. A run is four draws; when it ends, a dot drops into the column for how many reds were drawn. Finish completes a run at random and 10 runs makes ten more. Clear empties the columns.',
+  controls: 'Each drawn counter goes back; choose what joins it. Tap a counter to draw it, or press Draw for a random one. A run is four draws; when it ends, a dot drops into the column for how many reds were drawn. Finish completes a run at random and 10 runs makes ten more. Clear empties the columns.',
   rules: [RULES_TEXT[0], 'Draw any counter; each one in the bag is as likely as any other. It goes back, and the chosen rule says what joins it.'],
   idea: 'Free play: many random runs under three rules, to see the columns come out even, peaked or tall in the middle.',
   prerequisites: 'None. Grown-ups can suggest comparing the rules.',
@@ -228,9 +228,12 @@ const puzzles = [playground, ...authored].map(({expect, sourceIds, parent, ...p}
   const q = p.parameters;
   const count = q.mode === 'playground' ? undefined : targetKeys(q).length;
   if (expect !== undefined && count !== expect) throw Error(`${p.number}: ${count}, not ${expect}`);
+  const draw = q.rule === 'return' ? 'The counter goes back; nothing is added.'
+    : q.rule === 'other' ? 'The counter goes back, and one of the other colour joins it.'
+    : 'The counter goes back, and a copy of its colour joins it.';
   const controls = q.mode === 'playground' ? p.controls
-    : q.mode === 'make' ? 'Tap a counter to draw it. Again starts over with the first bag.'
-    : 'Tap counters to draw them. Keep puts the finished draws on the shelf; Again starts over. Press That’s all when every one is there.';
+    : q.mode === 'make' ? `Tap a counter to draw it. ${draw} Again starts over with the first bag.`
+    : `Tap counters to draw them. ${draw} Keep puts the finished draws on the shelf; Again starts over. Press That’s all when every one is there.`;
   return {
     id: q.mode === 'playground' ? p.id : `copies-${String(p.number).padStart(2, '0')}`,
     number: p.number, title: p.title, band: p.band || 'all', difficulty_level: p.difficulty_level,

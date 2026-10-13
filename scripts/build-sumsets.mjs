@@ -137,7 +137,7 @@ const out = PUZZLES.map(item => {
     parameters: q,
     objective: item.mode === 'every' ? OBJECTIVE.every(item.target) : OBJECTIVE[k], visibleObjective: item.mode === 'every' ? VISIBLE.every(item.target) : VISIBLE[k],
     instruction: item.mode === 'every' ? OBJECTIVE.every(item.target) : OBJECTIVE[k],
-    controls: item.mode === 'every' ? CONTROLS.every : item.mode === 'most' ? CONTROLS.cards : item.mode === 'fit' ? CONTROLS.fit : CONTROLS.route,
+    controls: `${RULES.pairs} ${item.mode === 'every' ? CONTROLS.every : item.mode === 'most' ? CONTROLS.cards : item.mode === 'fit' ? CONTROLS.fit : CONTROLS.route}`,
     rules, idea: item.idea, prerequisites: PREREQUISITES[item.prereq], hints: item.hints,
     parent: {...item.parent, sourceIds: sources}, solution, provenance: item.provenance
   };
@@ -148,7 +148,7 @@ const playground = {
   parameters: {mode: 'playground', trays: {A: {max: 6}, B: {max: 6}}},
   objective: 'Put cards in A and B, watch the totals land on the strip, and tap routes through the grid.', visibleObjective: '',
   instruction: 'Put cards in A and B, watch the totals land on the strip, and tap routes through the grid.',
-  controls: CONTROLS.playground,
+  controls: `${RULES.pairs} ${CONTROLS.playground}`,
   rules: [RULES.pairs, RULES.grid, RULES.route],
   idea: 'Free play with two trays: which cards give few totals, which give many, and what a route shows.',
   prerequisites: 'None. A grown-up or a partner can set a challenge, such as a number of totals to make.',

@@ -135,7 +135,7 @@ function readHint(text) {
   if (m) return {kind: 'bead', strand: COL[m[2]], row: ORD[m[1]], by: NUM[m[3]] * (m[4] === 'right' ? 1 : -1)};
   m = text.match(/^Move the (red|blue|green) end (\w+) cop(?:y|ies) (left|right)\.$/);
   if (m) return {kind: 'end', strand: COL[m[1]], by: NUM[m[2]] * (m[3] === 'right' ? 1 : -1)};
-  if (text === 'No crossings are left. Press Done, then That’s all.') return {kind: 'done', copies: []};
+  if (text === 'No crossings are left. Press Done.') return {kind: 'done', copies: []};
   m = text.match(/^Every crossing left is with a copy of red that blue has to cross: the (?:copy that starts|copies that start) ([a-z, ]+?) cop(?:y|ies) (left|right) of A\. Press Done, tap (?:it|them), then That’s all\.$/);
   if (m) return {kind: 'done', copies: m[1].split(/, | and /).map(w => NUM[w] * (m[2] === 'right' ? 1 : -1))};
   m = text.match(/^(Red|Blue|Green)’s end is between the others: (\w+) cop(?:y|ies) from (red|blue|green)’s and (\w+) cop(?:y|ies) from (red|blue|green)’s\. So (red|blue|green) and (red|blue|green) ends are (\w+) cop(?:y|ies) apart: they cross [a-z ]+?(?:, never [a-z ]+)?\. Press Can’t and tap (red|blue|green)\.$/);

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { freshAttempt, move, nextHint, isSolved, restart, validBoard, undo } from '../dist/engine.js';
 import { mechanicFor, isExpansion } from '../dist/expansion.js';
+import { clockPeriod } from '../dist/motion.js';
 import { STOPS, SIDE, MAIN, CAST, TOOLS, BAND_KEYS, SCORE_UNITS, freshJourney, getEncounter, getProgress, startJourney, beginEncounter, recordSolve, validateJourney, withCampaignPuzzles, resolvePuzzle, canVisitEncounter, campaignId, trailFor, hasTool, medals, scoreOf, optimumOf, rivalScore, starsFor, maxStars, rivalVerdict, stopReached } from '../dist/road.js';
 import { emptyStore, validateStore, parseBackup } from '../dist/storage.js';
 import { playView } from '../dist/ui.js';
@@ -281,13 +282,18 @@ test('the ferry and marsh puzzles are played in their picture, with the rest of 
         assert.equal(count(/class="stage-piece stage-traveler is-still is-standing"/g), 6 - p.start.length);
       }
       if (id === 'ferry-bell') {
-        // Everyone sits where the seats puzzle left them; the bell rings the chart's number.
+        // Everyone sits where the seats puzzle left them; the bell rings the chosen count.
         assert.equal(count(/class="stage-piece stage-traveler is-still"/g) + count(/is-standing/g), 6);
         assert.equal(count(/class="stage-wheel"/g), p.parameters.clocks.length);
         assert.match(html, /<button type="submit" form="bell-form" class="stage-piece stage-bell/);
         assert.match(html, /<form data-puzzle-form [^>]*id="bell-form">/);
-        assert.doesNotMatch(html, /type="number"/);
-        assert.ok(count(/name="activations"/g) >= 10);
+        if (clockPeriod(p.parameters) > 20) {
+          assert.match(html, /type="number" name="activations"/);
+          assert.equal(count(/name="activations"/g), 1);
+        } else {
+          assert.doesNotMatch(html, /type="number"/);
+          assert.ok(count(/name="activations"/g) >= 10);
+        }
       }
       if (id === 'ferry-lights') {
         assert.equal(count(/class="wire-hit stage-rope-hit/g), p.parameters.edges.length);

@@ -107,7 +107,7 @@
 .board-panel .jug-vessel>strong{font-family:var(--b-display);font-weight:400;color:var(--b-ink)}
 
 /* Odd-pebble balance */
-.board-panel .balance-art{display:block;width:min(100%,460px);height:auto;margin:6px auto 2px}
+.board-panel .balance-art{display:block;width:min(100%,340px);height:auto;margin:2px auto}
 .board-panel .balance-stand{stroke:var(--b-ink);stroke-width:5;stroke-linecap:round;fill:none}
 .board-panel .balance-beam{stroke:var(--b-ink);stroke-width:7;stroke-linecap:round}
 .board-panel .balance-pivot-dot{fill:var(--b-sun);stroke:var(--b-ink);stroke-width:2.5}
@@ -116,8 +116,8 @@
 .board-panel .balance-stone ellipse{fill:#c9cbbd;stroke:var(--b-ink);stroke-width:2}
 .board-panel .balance-stone.is-normal ellipse{fill:var(--b-leaf)}
 .board-panel .balance-stone text{font-family:var(--b-display);font-size:12px;text-anchor:middle;fill:var(--b-ink)}
-.board-panel .balance-pebbles{grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:8px;margin:12px 0}
-.board-panel .balance-pebble{border:1px solid var(--b-line);border-radius:14px;background:var(--b-paper);padding:4px 6px 8px}
+.board-panel .balance-pebbles{grid-template-columns:repeat(auto-fill,minmax(144px,1fr));gap:6px;margin:8px 0}
+.board-panel .balance-pebble{border:1px solid var(--b-line);border-radius:14px;background:var(--b-paper);padding:2px 5px 4px}
 .board-panel .balance-pebble.pebble-on-left,.board-panel .balance-pebble.pebble-on-right{background:#f6edd2;border-color:#e3cf98}
 .board-panel .balance-pebble legend{display:flex;align-items:center;gap:6px;padding:0 4px}
 .board-panel .pebble-token{display:inline-grid;place-items:center;width:34px;height:30px;border-radius:50%;background:#c9cbbd;border:2px solid var(--b-ink);font-family:var(--b-display);font-weight:400;font-size:1.05rem;color:var(--b-ink)}
@@ -143,3 +143,8 @@
 .board-panel :is(.answer-coin,.answer-choice) input:focus-visible+*{outline:3px solid var(--b-ochre);outline-offset:2px}
 .board-panel .measurement-observation:empty{display:none}
 .board-panel .measurement-observation{background:var(--b-paper);border:1px solid var(--b-line)}
+
+/* Tall Nim piles keep every stone large enough to tap in two columns. */
+.board-panel .nim-puzzle .duel-pile:has(>:nth-child(7)){display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--nim-rows,6),44px);gap:2px;transform:scaleY(-1)}
+.board-panel .nim-puzzle .duel-pile:has(>:nth-child(7))>.duel-pebble{transform:scaleY(-1)}
+.board-panel .nim-puzzle .duel-pile:has(>:nth-child(7))>.duel-pebble.lift{transform:scaleY(-1) translateY(-8px)}

@@ -19,7 +19,7 @@ const STEP = 'A step left or right is as long as the number beside its level: 1 
 const FLAG = 'Start at 0 on the ground. End on the ground at the flag.';
 const FAR = 'Start at 0 on the ground. End on the ground as far right as any trip with these moves can end.';
 const BUDGET = 'The outlines under the board show how many moves you may make.';
-const CONTROLS = 'Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.';
+const CONTROLS = 'Up or Down rides one level. Left or Right moves by the number beside that level; each level doubles the step length. Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.';
 export const family = {
   id: 'elevators',
   title: 'Doubling elevators',

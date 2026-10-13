@@ -148,6 +148,14 @@ test('every puzzle renders cups in numbered slots and its ticket cups; Keep and 
   assert.match(parentView({...emptyStore(), profiles: []}, null, pack), /Ticket shuffles/);
 });
 
+test('solved catalogs require an optional disclosure and kept stories stay on the board', () => {
+  const p = byId('shuffles-06'), a = solve(p), html = view(p, a);
+  assert.equal(a.board.kept.length, 4);
+  assert.match(html, /<details class="shuffle-explore" data-view-key="shuffle-catalog"><summary>Every story<\/summary><section class="case-catalog"/);
+  assert.doesNotMatch(html, /<details[^>]*\bopen\b/);
+  assert.match(html, /aria-label="Stories kept"/);
+});
+
 test('the playground: three rules, three or four cups, Draw finishes a story, never solved', () => {
   const pg = byId('shuffles-playground');
   let a = play(pg, freshAttempt(pg), [draw(2), {type: 'random'}, keep]);

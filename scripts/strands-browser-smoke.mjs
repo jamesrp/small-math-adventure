@@ -73,6 +73,16 @@ try {
   await page.goto(base); await page.locator('#nickname').fill('Strands QA'); await page.locator('#profile-form button[type=submit]').click();
   await page.locator('[data-action=library]').first().click(); await page.locator('.caravan-library').waitFor();
 
+  // No crossings needs no empty certificate dialog: Done completes directly.
+  await open('strands-01');
+  for (let i = 0; i < 3; i++) await button('Hint').click();
+  for (let n = 0; n < 20 && !(await page.locator('.hint-card').innerText()).includes('No crossings are left. Press Done.'); n++) await button('Apply hint').click();
+  assert.ok((await page.locator('.hint-card').innerText()).includes('No crossings are left. Press Done.'));
+  await button('Done').click();
+  await done();
+  assert.equal(await page.getByRole('button', {name: 'That’s all', exact: true}).count(), 0, 'there is no empty-copy confirmation');
+  assert.equal((await board('strands-01')).done, true);
+
   // Puzzle 4: windings 0 and 2.
   const U = 'strands-04';
   await open(U); await fit('untangle');

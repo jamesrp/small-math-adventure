@@ -25,7 +25,11 @@ const base = (process.env.TEST_URL || 'http://127.0.0.1:4187').replace(/\/$/, ''
 const out = process.env.SHOTS ? `${process.env.SHOTS.replace(/\/$/, '')}/` : new URL('../test-results/strings/', import.meta.url).pathname;
 const shot = name => page.screenshot({path: `${out}${name}${phone ? '-375' : '-desktop'}.png`, fullPage: true});
 const board = id => page.evaluate(([k, id]) => JSON.parse(localStorage.getItem(k)).profiles[0].attempts[id]?.board, [key, id]);
-const open = async id => { await page.goto(`${base}/#play/${id}`); await page.locator('.st-puzzle').waitFor(); };
+const open = async id => {
+  await page.goto(`${base}/#play/${id}`); await page.locator('[data-mechanic-wire="strings"]').waitFor();
+  const labels = page.locator('[data-mechanic-wire="strings"] .st-dot text');
+  if (await labels.count()) assert.equal(await labels.first().evaluate(e => getComputedStyle(e).stroke), 'none', 'dot numerals do not inherit another family’s stroke');
+};
 const done = () => page.locator('#completion-heading').waitFor({timeout: 5000});
 const fit = async label => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `${label}: no page overflow`);
 const told = text => page.locator('.st-told', {hasText: text}).waitFor({timeout: 5000});

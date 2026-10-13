@@ -182,7 +182,7 @@
    "objective": "Choose as many cards as you can with no trio, from 9, 27 or 81 cards.",
    "visibleObjective": "",
    "instruction": "Choose as many cards as you can with no trio, from 9, 27 or 81 cards.",
-   "controls": "Choose 9, 27 or 81 cards. Tap a card to choose it, and tap it again to put it back. Dimmed cards would make a trio with two chosen cards; tap one to light those two. Clear puts every card back.",
+   "controls": "A trio has three different cards: each attribute is all the same or all different. Choose 9, 27 or 81 cards. Tap a card to choose it, and tap it again to put it back. Dimmed cards would make a trio with two chosen cards; tap one to light those two. Clear puts every card back.",
    "rules": [
     "A trio is three different cards whose shapes, fills, counts and (with 81 cards) colours are each all the same or all different. Where the cards sit doesn’t matter.",
     "A card that would make a trio with two chosen cards is dimmed and can’t be chosen; tap it to light the two."
@@ -254,7 +254,7 @@
    "objective": "Tap the tile that makes a trio with the two ringed tiles, for four pairs in turn.",
    "visibleObjective": "Tap the tile that makes a trio.",
    "instruction": "Tap the tile that makes a trio with the two ringed tiles, for four pairs in turn.",
-   "controls": "Tap a tile or card. Undo takes back a wrong tap.",
+   "controls": "A trio has three different tiles: the shapes are all the same or all different, and the fills are all the same or all different. Tap a tile or card. Undo takes back a wrong tap.",
    "rules": [
     "A trio is three different tiles whose shapes are all the same or all different, and whose fills are all the same or all different. Where the tiles sit doesn’t matter.",
     "Two tiles are ringed. Tap a tile that makes a trio with them. After a wrong tap, a row for each attribute shows ✓ when it is all the same or all different and ✗ when two are the same."
@@ -324,7 +324,7 @@
    "objective": "Find every trio that uses the ringed tile. Press That’s all when none is left.",
    "visibleObjective": "Find every trio with the ringed tile.",
    "instruction": "Find every trio that uses the ringed tile. Press That’s all when none is left.",
-   "controls": "Tap two tiles. Tap a picked tile again to put it back. Press That’s all when you are sure. Undo takes back the last tap.",
+   "controls": "A trio has three different tiles: the shapes are all the same or all different, and the fills are all the same or all different. Tap two tiles. Tap a picked tile again to put it back. Press That’s all when you are sure. Undo takes back the last tap.",
    "rules": [
     "A trio is three different tiles whose shapes are all the same or all different, and whose fills are all the same or all different. Where the tiles sit doesn’t matter.",
     "One tile is ringed. Tap two other tiles to make a trio with it; each trio found is drawn. Press That’s all when you think none is left. It says if there is another."
@@ -408,7 +408,7 @@
    "objective": "Choose four tiles with no trio among them.",
    "visibleObjective": "Choose four tiles with no trio.",
    "instruction": "Choose four tiles with no trio among them.",
-   "controls": "Tap a tile to choose it, and tap it again to put it back. The dots show how many to choose. To claim it can’t be done, choose that many, press Can’t and tap three tiles that make a trio. Undo takes back the last tap.",
+   "controls": "A trio has three different tiles: the shapes are all the same or all different, and the fills are all the same or all different. Tap a tile to choose it, and tap it again to put it back. The dots show how many to choose. To claim it can’t be done, choose that many, press Can’t and tap three tiles that make a trio. Undo takes back the last tap.",
    "rules": [
     "A trio is three different tiles whose shapes are all the same or all different, and whose fills are all the same or all different. Where the tiles sit doesn’t matter.",
     "Tap tiles to choose them, and again to put them back. When as many are chosen as the dots show, a trio among them is reported but not shown.",
@@ -479,7 +479,7 @@
    "objective": "Split the nine tiles into three trios, in every way there is. Press That’s all when none is left.",
    "visibleObjective": "Find every way to split the tiles into three trios.",
    "instruction": "Split the nine tiles into three trios, in every way there is. Press That’s all when none is left.",
-   "controls": "Tap a tile to put it in the next tray with room. Tap a tile in a tray to take it out. Press That’s all when you are sure. Undo takes back the last tap.",
+   "controls": "A trio has three different tiles: the shapes are all the same or all different, and the fills are all the same or all different. Tap a tile to put it in the next tray with room. Tap a tile in a tray to take it out. Press That’s all when you are sure. Undo takes back the last tap.",
    "rules": [
     "A trio is three different tiles whose shapes are all the same or all different, and whose fills are all the same or all different. Where the tiles sit doesn’t matter.",
     "Tap a tile to put it in the next tray, and tap a tile in a tray to take it out. When the three trays hold three trios, the split is kept and the trays empty. Press That’s all when you think none is left. It says if there is another."
@@ -615,7 +615,7 @@
    "objective": "Choose five tiles with no trio among them. If it can’t be done, choose five, press Can’t and tap a trio among them.",
    "visibleObjective": "Choose five tiles with no trio.",
    "instruction": "Choose five tiles with no trio among them. If it can’t be done, choose five, press Can’t and tap a trio among them.",
-   "controls": "Tap a tile to choose it, and tap it again to put it back. The dots show how many to choose. To claim it can’t be done, choose that many, press Can’t and tap three tiles that make a trio. Undo takes back the last tap.",
+   "controls": "A trio has three different tiles: the shapes are all the same or all different, and the fills are all the same or all different. Tap a tile to choose it, and tap it again to put it back. The dots show how many to choose. To claim it can’t be done, choose that many, press Can’t and tap three tiles that make a trio. Undo takes back the last tap.",
    "rules": [
     "A trio is three different tiles whose shapes are all the same or all different, and whose fills are all the same or all different. Where the tiles sit doesn’t matter.",
     "Tap tiles to choose them, and again to put them back. When as many are chosen as the dots show, a trio among them is reported but not shown.",
@@ -710,7 +710,7 @@
    "objective": "Tap the card that makes a trio with the two ringed cards, for four pairs in turn.",
    "visibleObjective": "Tap the card that makes a trio.",
    "instruction": "Tap the card that makes a trio with the two ringed cards, for four pairs in turn.",
-   "controls": "Tap a tile or card. Undo takes back a wrong tap.",
+   "controls": "A trio has three different cards: shapes, fills and counts are each all the same or all different. Tap a tile or card. Undo takes back a wrong tap.",
    "rules": [
     "A trio is three different cards whose shapes, fills and counts are each all the same or all different. Where the cards sit doesn’t matter.",
     "Two cards are ringed. Tap a card that makes a trio with them. After a wrong tap, a row for each attribute shows ✓ when it is all the same or all different and ✗ when two are the same."
@@ -781,7 +781,7 @@
    "objective": "Colour every tile yellow or blue so that no trio is all one colour. If it can’t be done, colour all nine, press Can’t and tap a trio all one colour.",
    "visibleObjective": "Colour every tile so no trio is all one colour.",
    "instruction": "Colour every tile yellow or blue so that no trio is all one colour. If it can’t be done, colour all nine, press Can’t and tap a trio all one colour.",
-   "controls": "Tap a tile to change its colour. To claim it can’t be done, colour all nine, press Can’t and tap three tiles that make a trio all one colour. Undo takes back the last tap.",
+   "controls": "A trio has three different tiles: the shapes are all the same or all different, and the fills are all the same or all different. Tap a tile to change its colour. To claim it can’t be done, colour all nine, press Can’t and tap three tiles that make a trio all one colour. Undo takes back the last tap.",
    "rules": [
     "A trio is three different tiles whose shapes are all the same or all different, and whose fills are all the same or all different. Where the tiles sit doesn’t matter.",
     "Tap a tile to change its colour. When every tile is coloured, a trio all one colour is reported but not shown.",
@@ -842,7 +842,7 @@
    "objective": "Colour every tile yellow, blue or red so that no trio is all one colour.",
    "visibleObjective": "Colour every tile so no trio is all one colour.",
    "instruction": "Colour every tile yellow, blue or red so that no trio is all one colour.",
-   "controls": "Tap a tile to change its colour. To claim it can’t be done, colour all nine, press Can’t and tap three tiles that make a trio all one colour. Undo takes back the last tap.",
+   "controls": "A trio has three different tiles: the shapes are all the same or all different, and the fills are all the same or all different. Tap a tile to change its colour. To claim it can’t be done, colour all nine, press Can’t and tap three tiles that make a trio all one colour. Undo takes back the last tap.",
    "rules": [
     "A trio is three different tiles whose shapes are all the same or all different, and whose fills are all the same or all different. Where the tiles sit doesn’t matter.",
     "Tap a tile to change its colour. When every tile is coloured, a trio all one colour is reported but not shown.",
@@ -933,7 +933,7 @@
    "objective": "Choose nine of the 27 cards with no trio among them.",
    "visibleObjective": "Choose nine cards with no trio.",
    "instruction": "Choose nine of the 27 cards with no trio among them.",
-   "controls": "Tap a card to choose it, and tap it again to put it back. Tap a dimmed card to light the two chosen cards that rule it out. The dots show how many to choose. Undo takes back the last tap.",
+   "controls": "A trio has three different cards: shapes, fills and counts are each all the same or all different. Tap a card to choose it, and tap it again to put it back. Tap a dimmed card to light the two chosen cards that rule it out. The dots show how many to choose. Undo takes back the last tap.",
    "rules": [
     "A trio is three different cards whose shapes, fills and counts are each all the same or all different. Where the cards sit doesn’t matter.",
     "Tap cards to choose them, and again to put them back. A card that would make a trio with two chosen cards is dimmed; tap it to see which two."
@@ -1044,7 +1044,7 @@
    "objective": "Choose nine of the 27 cards with no trio among them, starting from eight that are stuck.",
    "visibleObjective": "Choose nine cards with no trio.",
    "instruction": "Choose nine of the 27 cards with no trio among them, starting from eight that are stuck.",
-   "controls": "Tap a card to choose it, and tap it again to put it back. Tap a dimmed card to light the two chosen cards that rule it out. The dots show how many to choose. Undo takes back the last tap.",
+   "controls": "A trio has three different cards: shapes, fills and counts are each all the same or all different. Tap a card to choose it, and tap it again to put it back. Tap a dimmed card to light the two chosen cards that rule it out. The dots show how many to choose. Undo takes back the last tap.",
    "rules": [
     "A trio is three different cards whose shapes, fills and counts are each all the same or all different. Where the cards sit doesn’t matter.",
     "Tap cards to choose them, and again to put them back. A card that would make a trio with two chosen cards is dimmed; tap it to see which two."
@@ -1137,7 +1137,7 @@
    "objective": "Give every tile one, two or three shapes so that no three tiles make a trio as cards.",
    "visibleObjective": "Change counts until no trio is left.",
    "instruction": "Give every tile one, two or three shapes so that no three tiles make a trio as cards.",
-   "controls": "Tap a tile to give it one more shape, from three back to one. Undo takes back the last tap.",
+   "controls": "A trio has three different cards: shapes, fills and counts are each all the same or all different. Tap a tile to give it one more shape, from three back to one. Undo takes back the last tap.",
    "rules": [
     "A trio is three different cards whose shapes, fills and counts are each all the same or all different. Where the cards sit doesn’t matter.",
     "Each tile is a card with one, two or three of its shape. Tap a tile to change how many. Three tiles that make a trio as cards are drawn."
@@ -1206,7 +1206,7 @@
    "objective": "Take turns with the app claiming tiles; you go first. Whoever first owns a trio among their own tiles loses. Win.",
    "visibleObjective": "Take turns with the app; the first to own a trio loses.",
    "instruction": "Take turns with the app claiming tiles; you go first. Whoever first owns a trio among their own tiles loses. Win.",
-   "controls": "Tap a tile to claim it; the app answers at once. Undo takes back your last turn and the app’s answer.",
+   "controls": "A trio has three different tiles: the shapes are all the same or all different, and the fills are all the same or all different. Tap a tile to claim it; the app answers at once. Undo takes back your last turn and the app’s answer.",
    "rules": [
     "A trio is three different tiles whose shapes are all the same or all different, and whose fills are all the same or all different. Where the tiles sit doesn’t matter.",
     "You and the app take turns claiming a tile; you go first. Whoever first owns a trio among their own tiles loses. Tiles you own are yellow, theirs blue."

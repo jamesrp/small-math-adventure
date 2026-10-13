@@ -16,7 +16,7 @@ const RULES = {
   every: [...RULE, 'Each ring that works is kept below the board. Press That’s all when you think none is left; it says if there is another.'],
   grow: [...RULE, 'A ring whose gaps make the ring on the right joins the row, and the next ring must make it in turn. Tap the newest ring in the row to take it back.']
 };
-const BUILD = 'Tap a block to build a tower up to it, or the floor under a tower for 0. Tap the top block (or the floor) again to clear the tower.';
+const BUILD = 'A gap is how many blocks taller one neighbouring tower is than the other. Each gap becomes the height of the tower its arrow leaves in the next ring. Tap a block to build a tower up to it, or the floor under a tower for 0. Tap the top block (or the floor) again to clear the tower.';
 const CONTROLS = {
   make: `${BUILD} Can’t: press it, tap the towers on the right that show why, then press it again. Undo takes back the last change.`,
   every: `${BUILD} Undo takes back the last change and keeps the rings found.`,

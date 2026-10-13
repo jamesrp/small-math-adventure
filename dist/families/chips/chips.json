@@ -109,7 +109,7 @@
    },
    "objective": "Find every order of firing until no circle can fire.",
    "instruction": "Find every order of firing until no circle can fire.",
-   "controls": "Tap a glowing circle to fire it. When no circle can fire, the order is saved. Again puts the starting chips back. Undo takes back one firing; saved orders stay.",
+   "controls": "Tap a glowing circle to fire it. When no circle can fire, the order is saved. New run puts the starting chips back. Undo takes back one firing; saved orders stay. Press That’s all when every answer is saved.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -154,7 +154,7 @@
    },
    "objective": "Find every finish you can reach with 4 chips.",
    "instruction": "Find every finish you can reach with 4 chips.",
-   "controls": "Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. Again clears the board. Undo takes back one step; saved answers stay.",
+   "controls": "Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. New run clears the board. Undo takes back one step; saved answers stay. Press That’s all when every answer is saved.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -203,7 +203,7 @@
    },
    "objective": "Find every order of firing until no circle can fire.",
    "instruction": "Find every order of firing until no circle can fire.",
-   "controls": "Tap a glowing circle to fire it. When no circle can fire, the order is saved. Again puts the starting chips back. Undo takes back one firing; saved orders stay.",
+   "controls": "Tap a glowing circle to fire it. When no circle can fire, the order is saved. New run puts the starting chips back. Undo takes back one firing; saved orders stay. Press That’s all when every answer is saved.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -252,7 +252,7 @@
    },
    "objective": "Find every order of firing until no circle can fire.",
    "instruction": "Find every order of firing until no circle can fire.",
-   "controls": "Tap a glowing circle to fire it. When no circle can fire, the order is saved. Again puts the starting chips back. Undo takes back one firing; saved orders stay.",
+   "controls": "Tap a glowing circle to fire it. When no circle can fire, the order is saved. New run puts the starting chips back. Undo takes back one firing; saved orders stay. Press That’s all when every answer is saved.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -301,7 +301,7 @@
    },
    "objective": "Find every start with 6 chips that finishes like the card.",
    "instruction": "Find every start with 6 chips that finishes like the card.",
-   "controls": "Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. Again clears the board. Undo takes back one step; saved answers stay.",
+   "controls": "Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. New run clears the board. Undo takes back one step; saved answers stay. Press That’s all when every answer is saved.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -352,7 +352,7 @@
    },
    "objective": "Find every order of firing until no circle can fire.",
    "instruction": "Find every order of firing until no circle can fire.",
-   "controls": "Tap a glowing circle to fire it. When no circle can fire, the order is saved. Again puts the starting chips back. Undo takes back one firing; saved orders stay.",
+   "controls": "Tap a glowing circle to fire it. When no circle can fire, the order is saved. New run puts the starting chips back. Undo takes back one firing; saved orders stay. Press That’s all when every answer is saved.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -397,7 +397,7 @@
    },
    "objective": "Build a board where no circle can fire, then add one chip that sets off 4 firings.",
    "instruction": "Build a board where no circle can fire, then add one chip that sets off 4 firings.",
-   "controls": "Tap circles to add chips. The first chip that lets a circle fire is the extra chip; then tap glowing circles to fire until none can. Again clears the board.",
+   "controls": "Tap circles to add chips. The first chip that lets a circle fire is the extra chip; then tap glowing circles to fire until none can. New run clears the board.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -444,7 +444,7 @@
    },
    "objective": "Find every finish you can reach with 4 chips.",
    "instruction": "Find every finish you can reach with 4 chips.",
-   "controls": "Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. Again clears the board. Undo takes back one step; saved answers stay.",
+   "controls": "Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. New run clears the board. Undo takes back one step; saved answers stay. Press That’s all when every answer is saved.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -494,7 +494,7 @@
    },
    "objective": "Find every start with 10 chips that finishes like the card.",
    "instruction": "Find every start with 10 chips that finishes like the card.",
-   "controls": "Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. Again clears the board. Undo takes back one step; saved answers stay.",
+   "controls": "Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. New run clears the board. Undo takes back one step; saved answers stay. Press That’s all when every answer is saved.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -541,7 +541,7 @@
    },
    "objective": "Place 6 chips so that 9 firings happen.",
    "instruction": "Place 6 chips so that 9 firings happen.",
-   "controls": "Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. Again clears the board. Undo takes back one step; saved answers stay.",
+   "controls": "Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. New run clears the board. Undo takes back one step; saved answers stay.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -591,7 +591,7 @@
    },
    "objective": "Find every order of firing until no circle can fire.",
    "instruction": "Find every order of firing until no circle can fire.",
-   "controls": "Tap a glowing circle to fire it. When no circle can fire, the order is saved. Again puts the starting chips back. Undo takes back one firing; saved orders stay.",
+   "controls": "Tap a glowing circle to fire it. When no circle can fire, the order is saved. New run puts the starting chips back. Undo takes back one firing; saved orders stay. Press That’s all when every answer is saved.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -636,7 +636,7 @@
    },
    "objective": "Place 3 chips so the firing never stops.",
    "instruction": "Place 3 chips so the firing never stops.",
-   "controls": "Tap circles to place the 3 chips, then tap glowing circles to fire. A board that comes back to an earlier position will repeat forever. Again clears the board.",
+   "controls": "Tap circles to place the 3 chips, then tap glowing circles to fire. A board that comes back to an earlier position will repeat forever. New run clears the board.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",

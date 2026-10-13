@@ -55,6 +55,17 @@ try {
   assert.equal(await page.locator('.puzzle-goal').textContent().then(t => t.trim()), 'Find every way to make the circle work.', 'one short objective');
   assert.ok((await classes('t')).includes('chosen'), 'the first free place starts chosen');
   assert.equal(await place('c').getAttribute('role'), 'img', 'the given circle is not a control');
+  await tap(place('l')); await page.keyboard.press('Tab');
+  assert.equal(await focused(), 'gb-node-r', 'Tab reaches the right square');
+  assert.ok((await classes('r')).includes('chosen'), 'focus chooses the right square');
+  await page.keyboard.press('1');
+  assert.deepEqual((await board(P)).values, {t: null, l: null, r: 1}, 'typing edits the focused square, leaving the clicked square alone');
+  await page.keyboard.press('ArrowUp');
+  assert.equal((await board(P)).values.r, 2, 'arrows edit the focused square too');
+  await tap(numberKey(3));
+  assert.equal((await board(P)).values.r, 3, 'the keypad follows keyboard focus');
+  for (let k = 0; k < 3; k++) await undoButton();
+  await tap(place('t'));
   await tap(numberKey(2));
   assert.equal((await board(P)).values.t, 2, 'a number goes on the chosen place');
   assert.equal(await focused(), 'av-key-2', 'focus stays on the number row');

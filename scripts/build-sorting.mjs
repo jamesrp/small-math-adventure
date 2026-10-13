@@ -295,7 +295,7 @@ const puzzles = [playground, ...authored].map(({expect, sourceIds, parent, ...p}
     id: q.mode === 'playground' ? p.id : `sorting-${String(p.number).padStart(2, '0')}`,
     number: p.number, title: p.title, band: p.band || 'all', difficulty_level: p.difficulty_level,
     mechanic: 'sorting', familyTitle: family.title, revision: 1, parameters: q,
-    objective: p.objective, instruction: p.objective, controls, rules,
+    objective: p.objective, instruction: p.objective, controls: `${q.cards === 'binary' ? TALL : 'At each bar, the smaller card goes to the upper lane and the larger to the lower lane.'} ${controls}`, rules,
     idea: p.idea, prerequisites: p.prerequisites, hints: p.hints,
     parent: {...parent, sourceIds}, provenance: p.provenance, sourceDocument: 'docs/sorting/README.md'
   };

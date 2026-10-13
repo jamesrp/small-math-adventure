@@ -40,8 +40,8 @@ The worksheets are in [math-circle-worksheets, week 11](https://github.com/james
 
 - **Placing.** Puzzles that start empty show a tray of chips. Tap a circle to put one there. Firing waits until the tray is empty, so a start is always complete before the run.
 - **Firing.** A circle that can fire has a gold ring and a gentle glow. Tap it to fire; chips fly along the lines. The letters fired so far show below the board, with a count in firing and avalanche puzzles.
-- **Again.** When nothing can fire, **Again** returns to the start (or to an empty tray) and keeps everything found so far. Undo takes back one move and also keeps discoveries.
-- **What was found.** Puzzles that ask for every answer show one slot per answer. A new order, finish or start fills a slot with a small picture of that board. A run that ends without counting in puzzles 5, 7, 9 and 10 (a finish unlike the card, or too few firings) turns the goal card or the count red.
+- **New run.** The primary board control returns to the start (or to an empty tray) and keeps everything found so far. Undo takes back one move and also keeps discoveries. Restart clears the collection.
+- **What was found.** Puzzles that ask for every answer show only the orders, finishes or starts already found. **That’s all** checks the collection without revealing the number of answers in advance. An incomplete claim reports that more remain. A run that ends without counting in puzzles 5, 7, 9 and 10 (a finish unlike the card, or too few firings) turns the goal card or the count red.
 - **Avalanche (puzzle 7).** Chips can be added while nothing can fire. The chip that first makes a circle ready is the extra chip; after it, only firing is allowed.
 - **Loop (puzzle 12).** The board has no sink. If a run comes back to a board it has already shown, a ↻ appears and the puzzle is solved.
 - **Hints.** Before any move, the first hint is the authored nudge. Otherwise hints name a move toward an answer not yet found (“Fire C. An order you haven’t found yet goes this way.”), and the third level offers Apply hint. Hints can lead all the way to a solve, as in the other expansion families.
@@ -58,6 +58,7 @@ The playground has no goal, no Hint and never counts as solved.
 
 - Only legal moves are accepted: no firing a circle that is short of chips, no firing during placing, no adding in order puzzles, and no moves after a solve.
 - Saved boards are replayed from their placed chips and fired letters, so the piles shown are always derived, never stored. A save whose found list holds anything that is not an answer to that puzzle is rejected.
+- New exhaustive collections store their completeness claim. Older completed saves retain their count-based completion, so this interaction change preserves their progress and puzzle revisions.
 - Undo keeps discoveries through the `carry` hook in `main.js`. Restart clears them.
 
 ## Files
@@ -69,7 +70,7 @@ The playground has no goal, no Hint and never counts as solved.
 | `dist/families/chips/chips.json` | The pack: 12 puzzles, the playground, 1 family and 4 sources, merged with `puzzles.json` and `proofs.json` at load through `dist/families.js` |
 | `scripts/build-chips.mjs` | Authoring list; computes each puzzle’s answer count and writes `dist/families/chips/chips.json` |
 | `scripts/validate-chips.mjs` | Recomputes every answer set with an independent simulator; checks one finish and one firing count per start, that puzzles 7 and 10 ask for the true maximum, that hints alone solve every puzzle, illegal moves, Undo keeping discoveries, forged saves, and every playground board (including the 1000-chip grid against a separate settle, conservation and symmetry); run by `npm run build` |
-| `tests/chips.test.mjs` | Firing orders, Again, placing, the avalanche, the loop, Undo, saves, the playground, the satchel and rendering |
+| `tests/chips.test.mjs` | Firing orders, new runs, partial and complete claims, legacy completed saves, placing, the avalanche, the loop, Undo, saves, the playground, the satchel and rendering |
 
 Two small hooks were added for this family and are available to any mechanic: `carry(p, from, to)` lets Undo keep part of the board, and `noHint(p)` hides the Hint button (`ui.js`). The pack is additive, like the proofs pack, so existing puzzles and their saves are unchanged. The family's one line in `dist/families.js` brings in its mechanic, pack, stylesheet, symbol and focus target; `tests/chips.test.mjs` and `node scripts/families-browser-smoke.mjs` (which solves all twelve puzzles through hints) check it.
 
@@ -77,7 +78,7 @@ To change a puzzle, edit `scripts/build-chips.mjs`, then run `node scripts/build
 
 ## Not yet done
 
-- **Children’s play.** Nothing here has been tried by children. Things to watch: whether K–1 children read the letter record or just the board, whether **Again** is found without help, and whether the slot pictures make it clear that a finish has already been found.
+- **Children’s play.** Nothing here has been tried by children. Things to watch: whether K–1 children read the letter record or just the board, whether **New run** is found without help, and whether the saved pictures make it clear that a finish has already been found.
 - **Story.** Chip firing is not on the Lantern Road and has no keeper or companion lines.
 - **Grade levels.** The family is grade-free; it does not yet appear in a K–1, 2–3 or 4–5 trail.
 - **Proofs.** The weight and remainder arguments live in the grown-up notes. A later proof puzzle could ask a child to show that a start cannot reach a finish, using the remainder, in the style of the Proofs groups.

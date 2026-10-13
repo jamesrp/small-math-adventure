@@ -12,9 +12,9 @@
 .sh-view{width:100%;min-width:0}
 .sh-room-view{max-width:330px}
 .sh-plane-view{max-width:360px}
-@container (min-width:640px){
-  .sh-stage{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);align-items:center;max-width:820px;gap:1.2rem}
-  .sh-room-view{max-width:360px}
+@container (min-width:520px){
+  .sh-stage{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);align-items:center;max-width:820px;gap:.8rem}
+  .sh-room-view{max-width:300px}
   .sh-plane-view{max-width:420px}
   .sh-puzzle.claiming .sh-plane-view{order:0}
 }

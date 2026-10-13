@@ -219,7 +219,7 @@ function wireClockBoard(){
 }
 function wireForms(){
   document.querySelectorAll('form[data-puzzle-form]').forEach(form=>form.addEventListener('submit',e=>{e.preventDefault();const p=puzzle();if(p&&profile())applyPair(p,Object.fromEntries(new FormData(e.currentTarget)),p.mechanic==='clock'?'ring':null);}));
-  document.querySelectorAll('input[name="activations"]').forEach(input=>input.addEventListener('change',e=>clockTimeline.edit(e.target.value)));
+  document.querySelectorAll('input[name="activations"]').forEach(input=>input.addEventListener(input.type==='number'?'input':'change',e=>clockTimeline.edit(e.target.value,input.type!=='number')));
   document.querySelector('#profile-form')?.addEventListener('submit',e=>{e.preventDefault();const data=new FormData(e.currentTarget),name=String(data.get('name')).trim();if(!name){document.querySelector('#nickname').focus();return;}if(state.profiles.length>=30){dialog('All save slots are full','<p>There is room for 30 explorers. Export and remove an unused save in the grown-up area.</p>');return;}const pr={id:uid(),name,band:data.get('band'),avatar:0,sound:false,attempts:{}};state.profiles.push(pr);state.activeProfileId=pr.id;save();go(['library','play'].includes(route()[0])?location.hash.slice(1):'map');});
   document.querySelector('#checker')?.addEventListener('change',e=>{checker=e.target.checked;document.querySelector('.tile-board')?.classList.toggle('show-checker',checker);});
   document.querySelector('#catalog-band')?.addEventListener('change',()=>render());

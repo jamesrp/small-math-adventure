@@ -31,7 +31,7 @@ export const family = {
   sourceIds: sources.map(s => s.id)
 };
 const OBJECTIVE = 'Bring the robot to the flag with the goal memory, in exactly the moves shown.';
-const CONTROLS = 'Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.';
+const CONTROLS = 'North adds the column number to memory; south subtracts it. East and west leave memory unchanged. Tap a corner next to the robot to move it there, or use the arrow keys. Undo takes a move back.';
 
 const authored = [
   {
@@ -273,7 +273,7 @@ const playground = {
   objective: 'Walk the robot anywhere and watch its memory.',
   visibleObjective: '',
   instruction: 'Walk the robot anywhere and watch its memory.',
-  controls: 'Tap a corner next to the robot to move it there, or use the arrow keys. Clear takes the robot home with memory 0. Undo takes a move back.',
+  controls: 'North adds the column number to memory; south subtracts it. East and west leave memory unchanged. Tap a corner next to the robot to move it there, or use the arrow keys. Clear takes the robot home with memory 0. Undo takes a move back.',
   rules: [...RULES, 'Nothing needs finishing.'],
   idea: 'Free walking: draw loops, big and small, either way round, and watch the shading outside them cancel.',
   prerequisites: 'None.',

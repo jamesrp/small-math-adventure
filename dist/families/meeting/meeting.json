@@ -576,7 +576,7 @@
    "objective": "Walk the three walkers on any map to find meeting dots, and move the homes to set a new puzzle.",
    "visibleObjective": "",
    "instruction": "Walk the three walkers on any map to find meeting dots, and move the homes to set a new puzzle.",
-   "controls": "Choose a map. Tap A, B or C to choose a walker, then tap or slide to walk it. Press Homes, then tap a home and another dot to move it there; press Homes again to walk.",
+   "controls": "A meeting dot lies on a shortest route between each pair of homes. Choose a map. Tap A, B or C to choose a walker, then tap or slide to walk it. Press Homes, then tap a home and another dot to move it there; press Homes again to walk.",
    "rules": [
     "Each road is one step. A shortest route between two dots takes the fewest steps.",
     "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
@@ -728,7 +728,7 @@
    "objective": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
    "visibleObjective": "",
    "instruction": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
-   "controls": "Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
+   "controls": "A meeting dot lies on a shortest route between each pair of homes. Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
    "rules": [
     "Each road is one step. A shortest route between two dots takes the fewest steps.",
     "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
@@ -1092,7 +1092,7 @@
    "objective": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
    "visibleObjective": "",
    "instruction": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
-   "controls": "Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
+   "controls": "A meeting dot lies on a shortest route between each pair of homes. Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
    "rules": [
     "Each road is one step. A shortest route between two dots takes the fewest steps.",
     "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
@@ -1261,7 +1261,7 @@
    "objective": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
    "visibleObjective": "",
    "instruction": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
-   "controls": "Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
+   "controls": "A meeting dot lies on a shortest route between each pair of homes. Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
    "rules": [
     "Each road is one step. A shortest route between two dots takes the fewest steps.",
     "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
@@ -1379,7 +1379,7 @@
    "objective": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
    "visibleObjective": "",
    "instruction": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
-   "controls": "Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
+   "controls": "A meeting dot lies on a shortest route between each pair of homes. Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
    "rules": [
     "Each road is one step. A shortest route between two dots takes the fewest steps.",
     "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
@@ -1741,7 +1741,7 @@
    "objective": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
    "visibleObjective": "",
    "instruction": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
-   "controls": "Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
+   "controls": "A meeting dot lies on a shortest route between each pair of homes. Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
    "rules": [
     "Each road is one step. A shortest route between two dots takes the fewest steps.",
     "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
@@ -1923,7 +1923,7 @@
    "objective": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
    "visibleObjective": "",
    "instruction": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
-   "controls": "Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
+   "controls": "A meeting dot lies on a shortest route between each pair of homes. Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
    "rules": [
     "Each road is one step. A shortest route between two dots takes the fewest steps.",
     "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
@@ -2100,7 +2100,7 @@
    "objective": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
    "visibleObjective": "",
    "instruction": "Bring the three walkers to one dot so that any two walks together make a shortest route between their homes.",
-   "controls": "Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
+   "controls": "A meeting dot lies on a shortest route between each pair of homes. Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
    "rules": [
     "Each road is one step. A shortest route between two dots takes the fewest steps.",
     "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
@@ -2463,7 +2463,7 @@
    "objective": "Find every meeting dot: every dot where the three walkers can stand so that any two walks together make a shortest route between their homes. Press That’s all when none is left.",
    "visibleObjective": "Find every meeting dot.",
    "instruction": "Find every meeting dot: every dot where the three walkers can stand so that any two walks together make a shortest route between their homes. Press That’s all when none is left.",
-   "controls": "Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
+   "controls": "A meeting dot lies on a shortest route between each pair of homes. Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
    "rules": [
     "Each road is one step. A shortest route between two dots takes the fewest steps.",
     "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
@@ -2597,7 +2597,7 @@
    "objective": "Find every meeting dot: every dot where the three walkers can stand so that any two walks together make a shortest route between their homes. Press That’s all when none is left.",
    "visibleObjective": "Find every meeting dot.",
    "instruction": "Find every meeting dot: every dot where the three walkers can stand so that any two walks together make a shortest route between their homes. Press That’s all when none is left.",
-   "controls": "Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
+   "controls": "A meeting dot lies on a shortest route between each pair of homes. Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
    "rules": [
     "Each road is one step. A shortest route between two dots takes the fewest steps.",
     "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
@@ -2719,7 +2719,7 @@
    "objective": "Find every meeting dot: every dot where the three walkers can stand so that any two walks together make a shortest route between their homes. Press That’s all when none is left.",
    "visibleObjective": "Find every meeting dot.",
    "instruction": "Find every meeting dot: every dot where the three walkers can stand so that any two walks together make a shortest route between their homes. Press That’s all when none is left.",
-   "controls": "Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
+   "controls": "A meeting dot lies on a shortest route between each pair of homes. Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
    "rules": [
     "Each road is one step. A shortest route between two dots takes the fewest steps.",
     "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
@@ -2854,7 +2854,7 @@
    "objective": "Find every meeting dot: every dot where the three walkers can stand so that any two walks together make a shortest route between their homes. Press That’s all when none is left.",
    "visibleObjective": "Find every meeting dot.",
    "instruction": "Find every meeting dot: every dot where the three walkers can stand so that any two walks together make a shortest route between their homes. Press That’s all when none is left.",
-   "controls": "Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
+   "controls": "A meeting dot lies on a shortest route between each pair of homes. Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.",
    "rules": [
     "Each road is one step. A shortest route between two dots takes the fewest steps.",
     "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
@@ -3011,7 +3011,7 @@
    "objective": "Close one road so that no dot is a meeting dot for A, B and C.",
    "visibleObjective": "Close one road so no dot works.",
    "instruction": "Close one road so that no dot is a meeting dot for A, B and C.",
-   "controls": "Tap a road to close it, and tap it again to open it. The slot shows how many roads may be closed. Press No dot works when you are sure. Undo takes back the last change.",
+   "controls": "A meeting dot lies on a shortest route between each pair of homes. Tap a road to close it, and tap it again to open it. The slot shows how many roads may be closed. Press No dot works when you are sure. Undo takes back the last change.",
    "rules": [
     "Each road is one step. A meeting dot for A, B and C is on a shortest route between each two of them. It may be a home.",
     "Tap a road to close it and again to open it. The map must stay in one piece.",

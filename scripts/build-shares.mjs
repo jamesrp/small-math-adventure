@@ -159,7 +159,7 @@ const out = PUZZLES.map(item => {
     id: id(item.number), number: item.number, title: item.title, difficulty_level: item.level, familyTitle: 'Fair shares', mechanic: 'shares', band: 'all', revision: 1, sourceDocument: 'docs/shares/README.md',
     parameters: q,
     objective: OBJECTIVE[item.mode], visibleObjective: VISIBLE[item.mode], instruction: OBJECTIVE[item.mode],
-    controls: CONTROLS[item.mode],
+    controls: item.mode === 'favourites' ? CONTROLS[item.mode] : `${item.mode === 'duel' ? RULES.duel[0] : 'Each person values every red or blue card by the matching number on their own card. Nobody would swap when their own tray is worth at least as much as the other tray; a tie is fine.'} ${CONTROLS[item.mode]}`,
     rules: item.mode === 'favourites' ? RULES.favourites : item.mode === 'duel' ? RULES.duel : [...RULES.two, ...(item.mode === 'every' ? [RULES.every] : item.mode === 'halve' ? [RULES.halve] : [])],
     idea: item.idea, prerequisites: PREREQUISITES[item.mode === 'one' ? 'two' : item.mode], hints: item.hints,
     parent: {...item.parent, sourceIds: sources}, solution, provenance: item.provenance

@@ -35,7 +35,7 @@ try{
  await page.locator('.latin-cell[data-cell="0"]').click();await page.keyboard.press('5');assert.equal((await state()).profiles[0].attempts['latin-06'].board.cells[0],5);
  await page.keyboard.press('Backspace');assert.equal((await state()).profiles[0].attempts['latin-06'].board.cells[0],0);
  await page.getByRole('button',{name:'Mark 1',exact:true}).click();await page.getByRole('button',{name:'Clear square',exact:true}).click();assert.equal((await state()).profiles[0].attempts['latin-06'].board.cells[0],0);
- await goto('code-01');await clickMove({type:'toggle',position:0});await clickMove({type:'toggle',position:1});await clickMove({type:'toggle',position:1});await clickMove({type:'submit'});await page.locator('#completion-heading').waitFor();
+ await goto('code-01');await clickMove({type:'set',position:0,value:0});await clickMove({type:'set',position:1,value:1});await clickMove({type:'submit'});await page.locator('#completion-heading').waitFor();
  await goto('nim-01');await takeNim('nim-01',2,1);assert.equal(await page.locator('#completion-heading').count(),0);const remaining=(await state()).profiles[0].attempts['nim-01'].board.piles;await takeNim('nim-01',remaining.findIndex(Boolean)+1,1);await page.locator('#completion-heading').waitFor();
  await goto('nim-02');await takeNim('nim-02',2,4);assert.deepEqual((await state()).profiles[0].attempts['nim-02'].board.piles,[1,1]);
  await takeNim('nim-02',1,1);assert.equal(await page.locator('#completion-heading').count(),0);assert.match(await page.locator('.nim-status').innerText(),/Opponent took the last pebble/);

@@ -34,6 +34,8 @@ test('two orders from A 2, B 2 finish the same way and solve the first puzzle', 
   assert.equal(runOf(p, a.board).sink, 2);
   assert.equal(move(p, a, fire('A')), null, 'nothing can fire at the finish');
   a = play(p, a, [{type: 'again'}, fire('B'), fire('A')]);
+  assert.equal(isSolved(p, a.board), false, 'all answers need an explicit completeness claim');
+  a = play(p, a, [{type: 'all'}]);
   assert.ok(isSolved(p, a.board));
   assert.deepEqual(runOf(p, a.board).piles, [1, 1]);
 });
@@ -148,8 +150,44 @@ test('every puzzle renders its board, goal and controls', () => {
     assert.match(html, /class="chip-(board|grid)/, p.id);
     if (p.band !== 'playground') {
       assert.ok(html.includes(p.objective), `${p.id}: objective shown`);
-      if (p.parameters.answers > 1) assert.equal((html.match(/chip-slot empty/g) || []).length, p.parameters.answers, `${p.id}: one slot per answer`);
+      assert.doesNotMatch(html, /chip-slot empty|Found \d+ of/, `${p.id}: no answer count revealed`);
+      if (['orders', 'finishes', 'starts'].includes(p.parameters.mode)) assert.match(html, /That’s all/);
     }
   }
   assert.match(parentView({...emptyStore(), profiles: []}, null, pack), /Chip firing/);
+});
+
+
+test('completeness claims reject a partial collection without revealing its size, and old completed saves remain readable', () => {
+  const p = byId('chips-01');
+  let a = play(p, freshAttempt(p), [fire('A'), fire('B'), {type: 'all'}]);
+  assert.equal(a.board.claim, 'more');
+  assert.equal(isSolved(p, a.board), false);
+  const html = playView(p, a, {pack, selected: null, message: ''});
+  assert.match(html, /More orders remain/);
+  assert.doesNotMatch(html, /Found 1 of 2|chip-slot empty/);
+  a = play(p, a, [{type: 'again'}, fire('B'), fire('A')]);
+  const legacy = {...a.board}; delete legacy.claim;
+  assert.equal(mechanicFor(p).valid(p, legacy), true);
+  assert.equal(isSolved(p, legacy), true, 'the prior completed format keeps its solve');
+  assert.equal(mechanicFor(p).valid(p, {...freshAttempt(p).board, claim: 'all'}), false, 'forged complete claim rejected');
+  a = play(p, a, [{type: 'all'}]);
+  assert.equal(isSolved(p, a.board), true);
+});
+
+test('Undo into legacy history keeps an unclaimed collection unclaimed and saveable', () => {
+  const p = byId('chips-01'), m = mechanicFor(p);
+  const legacy = freshAttempt(p); delete legacy.board.claim;
+  let a = play(p, legacy, [fire('A'), fire('B'), {type: 'again'}, fire('B'), fire('A')]);
+  assert.equal(a.completed, false);
+  while (a.history.length) {
+    const back = undo(a);
+    a = {...back, board: m.carry(p, a.board, back.board)};
+    assert.equal(a.board.claim, 'open');
+    assert.equal(isSolved(p, a.board), false);
+    const store = {...emptyStore(), activeProfileId: 'one', profiles: [profile({[p.id]: a})]};
+    assert.doesNotThrow(() => validateStore(store, puzzles));
+  }
+  assert.deepEqual(a.board.found, ['AB', 'BA']);
+  assert.ok(isSolved(p, play(p, a, [{type: 'all'}]).board));
 });

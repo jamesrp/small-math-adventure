@@ -179,13 +179,12 @@ function clockPicture(clock, count, label, total, control = null) {
   return `<figure class="clock-picture"><figcaption>${esc(label)}<span class="clock-jump-caption">Jump ${clock.jump}</span></figcaption><svg viewBox="0 0 320 320" ${role} aria-label="${name}">${clockFace(clock, count, total)}</svg></figure>`;
 }
 
-// Count puzzles take their answer from a chart of numbers instead of a typed
-// one: tap a number, then ring. Numbers already rung stay marked. The chart
-// runs to a whole row past the first time every marker is back at its start,
-// so it always holds the answer without pointing at it.
+// Small count puzzles offer tap choices, marking the numbers already rung.
+// Longer periods use one numeric control instead of a large answer bank.
 export function bellChart(p, attempt, presentation = {}) {
   const chosen = Number(presentation.draft ?? attempt.board.prediction ?? 0);
   const length = Math.max(10, Math.ceil(clockPeriod(p.parameters) / 10) * 10);
+  if (length > 20) return `<label class="bell-count">Bells<input type="number" name="activations" min="1" max="${length}" step="1" inputmode="numeric" value="${esc(presentation.draft ?? attempt.board.prediction ?? '')}" data-focus="bell-count" required></label>`;
   const tried = new Set([...(attempt.history || []).map(h => h.board.prediction), attempt.board.prediction].filter(n => n != null));
   return `<fieldset class="bell-chart"><legend class="sr-only">Bell count</legend>${range(1, length).map(n => `<label class="bell-number ${tried.has(n) ? 'is-tried' : ''}"><input type="radio" name="activations" value="${n}" data-focus="bell-${n}" ${n === chosen ? 'checked' : ''} required><span>${n}</span>${tried.has(n) ? `<span class="sr-only"> (rung)</span>` : ''}</label>`).join('')}</fieldset>`;
 }
@@ -239,7 +238,7 @@ const clock = {
     const table = prediction === null ? '' : `<details class="motion-route"><summary>See every landing${count > routeLimit ? ` (first ${routeLimit} bells)` : ''}</summary><div class="motion-table-wrap"><table><caption>One bell moves every marker</caption><thead><tr><th scope="col">Bell</th>${clocks.map((_, i) => `<th scope="col">Clock ${i + 1}</th>`).join('')}</tr></thead><tbody>${range(0, routeLimit).map(t => `<tr><th scope="row">${t}${t === 0 ? ' · start' : ''}</th>${clocks.map(clock => `<td>${(clock.start + clock.jump * t) % clock.positions}${(clock.start + clock.jump * t) % clock.positions === clock.target ? ' ★' : ''}</td>`).join('')}</tr>`).join('')}</tbody></table></div></details>`;
     return `<div class="motion-board">${table}</div>`;
   },
-  demo: 'Tap a bell count, then ring. Starting places are bell zero. A star only counts when the marker lands there. Each bell moves every marker.'
+  demo: 'Choose a bell count, then ring. Starting places are bell zero. A star only counts when the marker lands there. Each bell moves every marker.'
 };
 
 const fraction = (numerator, denominator = 1) => {

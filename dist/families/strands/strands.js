@@ -374,7 +374,7 @@ function copiesText(walls) {
 }
 function untangleHint(p, b) {
   const q = p.parameters, C = cylOf(q), [xr, xb] = routesOf(p, b), least = untangleFewest(q), count = untangleCount(p, b), walls = barriers(...q.w);
-  if (count === least && b.told === null) return {type: 'move', action: {type: 'done', copies: walls}, text: walls.length ? `Every crossing left is with a copy of red that blue has to cross: ${copiesText(walls)}. Press Done, tap ${walls.length === 1 ? 'it' : 'them'}, then That’s all.` : 'No crossings are left. Press Done, then That’s all.'};
+  if (count === least && b.told === null) return {type: 'move', action: {type: 'done', copies: walls}, text: walls.length ? `Every crossing left is with a copy of red that blue has to cross: ${copiesText(walls)}. Press Done, tap ${walls.length === 1 ? 'it' : 'them'}, then That’s all.` : 'No crossings are left. Press Done.'};
   if (count === least) {
     // A refused claim at the fewest waits for a move: a short step that keeps the fewest.
     for (const d of [1, -1, 2, -2, 3, -3]) for (let j = 1; j < C.M; j++) for (const i of [1, 0]) {
@@ -562,10 +562,10 @@ function renderUntangle(p, b, done, act) {
   if (target) top = `<circle class="st-target" cx="${f(target.x)}" cy="${f(-target.row)}" r=".32"/>` + top;
   for (const c of cross) top += ring([c.x + c.k * C.N, -c.t]);
   const lift = liftView(p, C, {cls: claiming ? 'claiming' : '', slide: moving, under, over, clipTop: hits, top});
-  // Done starts the claim; That's all sends it with the copies tapped. Back
-  // takes Done's place, so a second tap on Done never sends a claim.
+  // With no crossings there is no certificate to pick. Otherwise Done starts
+  // the claim; That's all sends it with the copies tapped, and Back leaves it.
   let bar = '';
-  if (moving) bar = `<div class="st-bar st-slots"><span></span>${uiButton('Done', {claim: JSON.stringify(b)}, 'st-claim', {disabled: b.told !== null, hinted: Boolean(claimHint)})}<span></span></div>`;
+  if (moving) bar = `<div class="st-bar st-slots"><span></span>${cross.length === 0 ? button('Done', {type: 'done', copies: []}, {disabled: b.told !== null, hinted: Boolean(claimHint)}) : uiButton('Done', {claim: JSON.stringify(b)}, 'st-claim', {disabled: b.told !== null, hinted: Boolean(claimHint)})}<span></span></div>`;
   if (claiming) bar = `<div class="st-bar st-slots"><span></span>${uiButton('Back', {claim: null}, 'st-back')}${button('That’s all', {type: 'done', copies: [...picks].sort((x, y) => x - y)}, {hinted: Boolean(claimHint)})}</div>`;
   const told = claiming ? 'Tap each red copy that blue must cross, then press That’s all.' : b.told === 'fewer' ? 'There is a way with fewer.' : b.told === 'copies' ? 'Those aren’t the copies blue must cross.' : b.told === 'none' ? 'Blue must cross some copy of red.' : '';
   const status = `${crossingWords(cross.length)}. Red ends at the B ${copyWords(q.w[0])}, blue at the B ${copyWords(q.w[1])}.${claiming ? ` ${picks.length} ${picks.length === 1 ? 'copy' : 'copies'} tapped.` : ''}${told ? ` ${told}` : ''}`;

@@ -212,6 +212,17 @@ test('taps choose a place; digits and arrows set it', () => {
   mech.reset(p);
 });
 
+test('typing on a focused place edits it instead of the last chosen place', () => {
+  const p = byId('averages-01'), a = freshAttempt(p);
+  mech.reset(p);
+  mech.ui(p, {chosen: 'l'});
+  assert.deepEqual(keyAction(p, a.board, '1', 'r'), set('r', 1));
+  assert.deepEqual(keyAction(p, a.board, 'ArrowUp', 'r'), set('r', 0));
+  assert.deepEqual(keyAction(p, a.board, '1'), set('l', 1), 'the number row still uses the chosen place');
+  assert.equal(keyAction(p, a.board, '1', 'c'), null, 'a given place cannot be edited');
+  mech.reset(p);
+});
+
 test('rendering: the board carries the task, with no count of ways and no names', () => {
   for (const p of averages.puzzles) {
     const html = view(p, freshAttempt(p));

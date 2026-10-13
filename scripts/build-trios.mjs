@@ -210,7 +210,7 @@ const out = PUZZLES.map(item => {
     id: id(item.number), number: item.number, title: item.title, difficulty_level: item.level, familyTitle: 'Trios', mechanic: 'trios', band: 'all', revision: 1, sourceDocument: 'docs/trios/README.md',
     parameters: q,
     objective: item.objective, visibleObjective: item.visible, instruction: item.objective,
-    controls: CONTROLS[item.mode === 'cap' ? (item.dim ? 'dim' : 'cap') : item.mode === 'paint' ? (item.rule === 'card' ? 'counts' : 'colours') : item.mode],
+    controls: `${d === 2 && item.rule !== 'card' ? 'A trio has three different tiles: the shapes are all the same or all different, and the fills are all the same or all different.' : 'A trio has three different cards: shapes, fills and counts are each all the same or all different.'} ${CONTROLS[item.mode === 'cap' ? (item.dim ? 'dim' : 'cap') : item.mode === 'paint' ? (item.rule === 'card' ? 'counts' : 'colours') : item.mode]}`,
     rules: item.mode === 'complete' ? RULES.complete(d) : item.mode === 'cap' ? (item.dim ? RULES.dim : RULES.four) : item.mode === 'paint' ? (item.rule === 'card' ? RULES.counts : item.can ? RULES.colours : RULES.colours.slice(0, 2)) : RULES[item.mode],
     idea: item.idea, prerequisites: PREREQ[item.prereq], hints: item.hints,
     parent: {...item.parent, sourceIds: sources}, solution, provenance: item.provenance
@@ -222,7 +222,7 @@ const playground = {
   parameters: {mode: 'playground', orders: {2: shuffled(2, 3601), 3: shuffled(3, 3602), 4: shuffled(4, 3603)}},
   objective: 'Choose as many cards as you can with no trio, from 9, 27 or 81 cards.', visibleObjective: '',
   instruction: 'Choose as many cards as you can with no trio, from 9, 27 or 81 cards.',
-  controls: CONTROLS.playground,
+  controls: `A trio has three different cards: each attribute is all the same or all different. ${CONTROLS.playground}`,
   rules: ['A trio is three different cards whose shapes, fills, counts and (with 81 cards) colours are each all the same or all different. Where the cards sit doesn’t matter.', 'A card that would make a trio with two chosen cards is dimmed and can’t be chosen; tap it to light the two.'],
   idea: 'Free play: how many cards with no trio? Four of 9, nine of 27 and twenty of 81.',
   prerequisites: 'None for the nine; three or four attributes at once for the larger decks.',

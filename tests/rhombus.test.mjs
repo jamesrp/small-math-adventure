@@ -200,9 +200,9 @@ test('rendering: each kind of puzzle shows only the controls it needs', () => {
   const html = p => view(p, freshAttempt(p));
   const fill = html(long);
   assert.match(fill, /data-mechanic-wire="rhombus"/);
-  assert.match(fill, /Drag across 2 triangles/);
+  assert.match(fill, /Tap or drag 2 triangles/);
   assert.doesNotMatch(fill, /data-tg-point=/, 'no flips in a fill puzzle');
-  assert.match(html(pinwheel), /Drag across 4 triangles/);
+  assert.match(html(pinwheel), /Tap or drag 4 triangles/);
   const packed = html(mountain);
   assert.match(packed, /aria-label="Rhombi: 0"/);
   assert.match(packed, /aria-label="Dots: 0"/);

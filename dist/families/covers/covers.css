@@ -20,7 +20,7 @@
 .cv-slots i.on{border:2px solid var(--b-pine,#31533e);background:var(--b-pine,#31533e)}
 
 /* The boards. */
-.cv-stage{width:100%;max-width:440px}
+.cv-stage{width:100%;max-width:360px}
 .cv-board .sg-rim{stroke:var(--b-ink,#294439);stroke-width:2px}
 .cv-shape{fill:rgba(41,68,57,.16);stroke:var(--b-ink,#294439);stroke-width:2.4px;vector-effect:non-scaling-stroke;stroke-linejoin:round;pointer-events:none}
 .cv-hint{fill:rgba(239,199,110,.35);stroke:var(--b-ochre,#b38840);stroke-width:3px;stroke-dasharray:6 4;vector-effect:non-scaling-stroke;pointer-events:none}

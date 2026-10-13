@@ -53,7 +53,7 @@
       },
       "objective": "Fill a bag, choose a rule and draw.",
       "instruction": "Fill a bag, choose a rule and draw.",
-      "controls": "Tap a counter to change its colour; + and − add or take away a counter. Choose a square, a circle or a skip for each colour pair. Draw takes one random pair and Draw 10 takes ten; each lands on its shape. Clear empties the piles.",
+      "controls": "A rule is fair when equally many possible pairs give a square or a circle, with at least one of each. Each possible pair is equally likely. The first counter goes back before the second draw. Tap a counter to change its colour; + and − add or take away a counter. Choose a square, a circle or a skip for each colour pair. Draw takes one random pair and Draw 10 takes ten; each lands on its shape. Clear empties the piles.",
       "rules": [
         "A bag holds numbered red and blue counters.",
         "Two counters are drawn in order, each counter as likely as any other. The first goes back before the second is drawn.",
@@ -94,7 +94,7 @@
       },
       "objective": "Keep every pair.",
       "instruction": "Keep every pair.",
-      "controls": "Tap a counter, then another (the same one again is allowed). Keep puts the pair on the shelf; Again puts both back without keeping them. Press That’s all when every one is there.",
+      "controls": "The first counter goes back before the second draw. Tap a counter, then another (the same one again is allowed). Keep puts the pair on the shelf; Again puts both back without keeping them. Press That’s all when every one is there.",
       "rules": [
         "A bag holds numbered red and blue counters.",
         "Two counters are drawn in order, each counter as likely as any other. The first goes back before the second is drawn.",
@@ -136,7 +136,7 @@
       },
       "objective": "Make a fair rule that skips nothing.",
       "instruction": "Make a fair rule that skips nothing.",
-      "controls": "Tap a square, a circle or a skip beside each colour pair. Every pair of counters moves to its shape.",
+      "controls": "A rule is fair when equally many possible pairs give a square or a circle, with at least one of each. Each possible pair is equally likely. The first counter goes back before the second draw. Tap a square, a circle or a skip beside each colour pair. Every pair of counters moves to its shape.",
       "rules": [
         "A bag holds numbered red and blue counters.",
         "Two counters are drawn in order, each counter as likely as any other. The first goes back before the second is drawn.",
@@ -179,7 +179,7 @@
       },
       "objective": "Make a fair rule.",
       "instruction": "Make a fair rule.",
-      "controls": "Tap a square, a circle or a skip beside each colour pair. Every pair of counters moves to its shape.",
+      "controls": "A rule is fair when equally many possible pairs give a square or a circle, with at least one of each. Each possible pair is equally likely. The first counter goes back before the second draw. Tap a square, a circle or a skip beside each colour pair. Every pair of counters moves to its shape.",
       "rules": [
         "A bag holds numbered red and blue counters.",
         "Two counters are drawn in order, each counter as likely as any other. The first goes back before the second is drawn.",
@@ -223,7 +223,7 @@
       },
       "objective": "Make the skip pile as small as you can.",
       "instruction": "Make the skip pile as small as you can.",
-      "controls": "Tap a counter to change its colour. Every pair of counters moves to its shape. Press Done when shapes come as often as they can.",
+      "controls": "A rule is fair when equally many possible pairs give a square or a circle, with at least one of each. Each possible pair is equally likely. The first counter goes back before the second draw. Tap a counter to change its colour. Every pair of counters moves to its shape. Press Done when shapes come as often as they can.",
       "rules": [
         "A bag holds numbered red and blue counters.",
         "Two counters are drawn in order, each counter as likely as any other. The first goes back before the second is drawn.",
@@ -266,7 +266,7 @@
       },
       "objective": "With the first counter kept out, make a fair rule that skips nothing.",
       "instruction": "With the first counter kept out, make a fair rule that skips nothing.",
-      "controls": "Tap a square, a circle or a skip beside each colour pair. Every pair of counters moves to its shape.",
+      "controls": "A rule is fair when equally many possible pairs give a square or a circle, with at least one of each. Each possible pair is equally likely. The first counter stays out before the second draw. Tap a square, a circle or a skip beside each colour pair. Every pair of counters moves to its shape.",
       "rules": [
         "A bag holds numbered red and blue counters.",
         "Two counters are drawn in order, each as likely as any other left in the bag. The first stays out, so the two are always different.",
@@ -309,7 +309,7 @@
       },
       "objective": "Make a fair rule with the skip pile as small as you can.",
       "instruction": "Make a fair rule with the skip pile as small as you can.",
-      "controls": "Tap a square, a circle or a skip beside each colour pair. Every pair of counters moves to its shape. Press Done when you can’t skip fewer.",
+      "controls": "A rule is fair when equally many possible pairs give a square or a circle, with at least one of each. Each possible pair is equally likely. The first counter goes back before the second draw. Tap a square, a circle or a skip beside each colour pair. Every pair of counters moves to its shape. Press Done when you can’t skip fewer.",
       "rules": [
         "A bag holds numbered red and blue counters.",
         "Two counters are drawn in order, each counter as likely as any other. The first goes back before the second is drawn.",
@@ -354,7 +354,7 @@
       },
       "objective": "Make a fair rule for these two bags.",
       "instruction": "Make a fair rule for these two bags.",
-      "controls": "Tap a square, a circle or a skip beside each colour pair. Every pair of counters moves to its shape.",
+      "controls": "A rule is fair when equally many possible pairs give a square or a circle, with at least one of each. Each possible pair is equally likely. Draw once from each bag, in order. Tap a square, a circle or a skip beside each colour pair. Every pair of counters moves to its shape.",
       "rules": [
         "A bag holds numbered red and blue counters.",
         "The first counter comes from the 1st bag and the second from the 2nd, each counter as likely as any other in its bag.",
@@ -397,7 +397,7 @@
       },
       "objective": "Make a fair rule with the skip pile as small as you can.",
       "instruction": "Make a fair rule with the skip pile as small as you can.",
-      "controls": "Tap a square, a circle or a skip beside each colour pair. Every pair of counters moves to its shape. Press Done when you can’t skip fewer.",
+      "controls": "A rule is fair when equally many possible pairs give a square or a circle, with at least one of each. Each possible pair is equally likely. The first counter goes back before the second draw. Tap a square, a circle or a skip beside each colour pair. Every pair of counters moves to its shape. Press Done when you can’t skip fewer.",
       "rules": [
         "A bag holds numbered red and blue counters.",
         "Two counters are drawn in order, each counter as likely as any other. The first goes back before the second is drawn.",

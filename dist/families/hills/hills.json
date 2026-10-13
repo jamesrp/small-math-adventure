@@ -48,7 +48,7 @@
    "objective": "Build landscapes and pin towers.",
    "visibleObjective": "",
    "instruction": "Build landscapes and pin towers.",
-   "controls": "Choose 5, 7 or 9 towers, and a row or a ring. Tap a level to build a tower to it, or drag. Tap a tower’s top block to pin it; empty towers then show, dashed, the heights the pins allow. Clear empties every tower that is not pinned.",
+   "controls": "Neighbouring towers may differ by at most one block; in a ring the last neighbours the first. Choose 5, 7 or 9 towers, and a row or a ring. Tap a level to build a tower to it, or drag. Tap a tower’s top block to pin it; empty towers then show, dashed, the heights the pins allow. Clear empties every tower that is not pinned.",
    "rules": [
     "Heights are whole numbers of blocks, 0 or more.",
     "Neighbouring towers may differ by at most one block.",
@@ -105,7 +105,7 @@
    "objective": "Build every tower.",
    "visibleObjective": "Build every tower.",
    "instruction": "Build every tower.",
-   "controls": "Tap a level in a tower to build it to that height, or drag up and down the tower. Tap the top block again to clear it.",
+   "controls": "Neighbouring towers may differ by at most one block. Tap a level in a tower to build it to that height, or drag up and down the tower. Tap the top block again to clear it.",
    "rules": [
     "Heights are whole numbers of blocks, 0 or more.",
     "Neighbouring towers may differ by at most one block.",
@@ -171,7 +171,7 @@
    "objective": "Build every tower.",
    "visibleObjective": "Build every tower.",
    "instruction": "Build every tower.",
-   "controls": "Tap a level in a tower to build it to that height, or drag up and down the tower. Tap the top block again to clear it. If two clues can never be joined, press Can’t and tap both.",
+   "controls": "Neighbouring towers may differ by at most one block. Tap a level in a tower to build it to that height, or drag up and down the tower. Tap the top block again to clear it. If two clues can never be joined, press Can’t and tap both.",
    "rules": [
     "Heights are whole numbers of blocks, 0 or more.",
     "Neighbouring towers may differ by at most one block.",
@@ -241,7 +241,7 @@
    "objective": "Find every landscape.",
    "visibleObjective": "Find every landscape.",
    "instruction": "Find every landscape.",
-   "controls": "Tap a level in a tower to build it to that height, or drag up and down the tower. Tap the top block again to clear it. Press That’s all when you have every landscape.",
+   "controls": "Neighbouring towers may differ by at most one block. Tap a level in a tower to build it to that height, or drag up and down the tower. Tap the top block again to clear it. Press That’s all when you have every landscape.",
    "rules": [
     "Heights are whole numbers of blocks, 0 or more.",
     "Neighbouring towers may differ by at most one block.",
@@ -304,7 +304,7 @@
    "objective": "Pin the fewest towers so only this landscape fits.",
    "visibleObjective": "Pin the fewest towers so only this landscape fits.",
    "instruction": "Pin the fewest towers so only this landscape fits.",
-   "controls": "Tap a tower to pin or unpin it.",
+   "controls": "Neighbouring towers may differ by at most one block. Tap a tower to pin or unpin it.",
    "rules": [
     "Heights are whole numbers of blocks, 0 or more.",
     "Neighbouring towers may differ by at most one block.",
@@ -373,7 +373,7 @@
    "objective": "Build every tower.",
    "visibleObjective": "Build every tower.",
    "instruction": "Build every tower.",
-   "controls": "Tap a level in a tower to build it to that height, or drag up and down the tower. Tap the top block again to clear it. If two clues can never be joined, press Can’t and tap both.",
+   "controls": "Neighbouring towers may differ by at most one block. Tap a level in a tower to build it to that height, or drag up and down the tower. Tap the top block again to clear it. If two clues can never be joined, press Can’t and tap both.",
    "rules": [
     "Heights are whole numbers of blocks, 0 or more.",
     "Neighbouring towers may differ by at most one block.",
@@ -451,7 +451,7 @@
    "objective": "Build every tower.",
    "visibleObjective": "Build every tower.",
    "instruction": "Build every tower.",
-   "controls": "Tap a level in a tower to build it to that height, or drag up and down the tower. Tap the top block again to clear it. If two clues can never be joined, press Can’t and tap both.",
+   "controls": "Neighbouring towers may differ by at most one block. Tap a level in a tower to build it to that height, or drag up and down the tower. Tap the top block again to clear it. If two clues can never be joined, press Can’t and tap both.",
    "rules": [
     "Heights are whole numbers of blocks, 0 or more.",
     "Neighbouring towers may differ by at most one block.",
@@ -520,7 +520,7 @@
    "objective": "Pin the fewest towers so only this landscape fits.",
    "visibleObjective": "Pin the fewest towers so only this landscape fits.",
    "instruction": "Pin the fewest towers so only this landscape fits.",
-   "controls": "Tap a tower to pin or unpin it.",
+   "controls": "Neighbouring towers may differ by at most one block. Tap a tower to pin or unpin it.",
    "rules": [
     "Heights are whole numbers of blocks, 0 or more.",
     "Neighbouring towers may differ by at most one block.",
@@ -587,7 +587,7 @@
    "objective": "Find every landscape.",
    "visibleObjective": "Find every landscape.",
    "instruction": "Find every landscape.",
-   "controls": "Tap a level in a tower to build it to that height, or drag up and down the tower. Tap the top block again to clear it. Press That’s all when you have every landscape.",
+   "controls": "Neighbouring towers may differ by at most one block. The last tower neighbours the first. Tap a level in a tower to build it to that height, or drag up and down the tower. Tap the top block again to clear it. Press That’s all when you have every landscape.",
    "rules": [
     "Heights are whole numbers of blocks, 0 or more.",
     "Neighbouring towers may differ by at most one block.",
@@ -656,7 +656,7 @@
    "objective": "Find every landscape.",
    "visibleObjective": "Find every landscape.",
    "instruction": "Find every landscape.",
-   "controls": "Tap a level in a tower to build it to that height, or drag up and down the tower. Tap the top block again to clear it. Press That’s all when you have every landscape.",
+   "controls": "Neighbouring towers may differ by at most one block. Tap a level in a tower to build it to that height, or drag up and down the tower. Tap the top block again to clear it. Press That’s all when you have every landscape.",
    "rules": [
     "Heights are whole numbers of blocks, 0 or more.",
     "Neighbouring towers may differ by at most one block.",
@@ -728,7 +728,7 @@
    "objective": "Build every tower.",
    "visibleObjective": "Build every tower.",
    "instruction": "Build every tower.",
-   "controls": "Tap a level in a tower to build it to that height, or drag up and down the tower. Tap the top block again to clear it. If two clues can never be joined, press Can’t and tap both.",
+   "controls": "Neighbouring towers may differ by at most one block. The last tower neighbours the first. Tap a level in a tower to build it to that height, or drag up and down the tower. Tap the top block again to clear it. If two clues can never be joined, press Can’t and tap both.",
    "rules": [
     "Heights are whole numbers of blocks, 0 or more.",
     "Neighbouring towers may differ by at most one block.",
@@ -797,7 +797,7 @@
    "objective": "Pin the fewest towers so only this landscape fits.",
    "visibleObjective": "Pin the fewest towers so only this landscape fits.",
    "instruction": "Pin the fewest towers so only this landscape fits.",
-   "controls": "Tap a tower to pin or unpin it.",
+   "controls": "Neighbouring towers may differ by at most one block. The last tower neighbours the first. Tap a tower to pin or unpin it.",
    "rules": [
     "Heights are whole numbers of blocks, 0 or more.",
     "Neighbouring towers may differ by at most one block.",
@@ -864,7 +864,7 @@
    "objective": "Pin the fewest towers so only this landscape fits.",
    "visibleObjective": "Pin the fewest towers so only this landscape fits.",
    "instruction": "Pin the fewest towers so only this landscape fits.",
-   "controls": "Tap a tower to pin or unpin it.",
+   "controls": "Neighbouring towers may differ by at most one block. Tap a tower to pin or unpin it.",
    "rules": [
     "Heights are whole numbers of blocks, 0 or more.",
     "Neighbouring towers may differ by at most one block.",

@@ -7,7 +7,7 @@
    not; a wish met by a no is dotted. */
 .sm-puzzle{display:flex;flex-direction:column;align-items:center;gap:.6rem;width:100%}
 .sm-board{--gut:16px;display:grid;grid-template-columns:var(--gut) repeat(var(--n),minmax(0,1fr));column-gap:6px;row-gap:3px;align-items:center;width:100%;max-width:calc(var(--n) * 104px + 40px);margin:0 auto;touch-action:manipulation}
-.sm-rank{font:400 .72rem/1 var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850);text-align:center;opacity:.8}
+.sm-rank{font:400 .9rem/1 var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850);text-align:center;opacity:1}
 
 /* Letters. */
 .sm-token{justify-self:center;display:grid;place-items:center;box-sizing:border-box;width:50px;height:50px;margin:3px 0;border:2px solid var(--b-ink,#294439);color:var(--b-ink,#294439);font:400 1.45rem/1 var(--b-display,Georgia,serif);box-shadow:0 2px 0 var(--b-line,#d0d6bd)}

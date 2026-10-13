@@ -5,9 +5,16 @@ import {freshAttempt,resumeAttempt,move,nextHint,undo,restart,isSolved,validBoar
 import {emptyStore,validateStore,parseBackup} from '../dist/storage.js';
 import {playView,mapView,parentView,catalogHTML} from '../dist/ui.js';
 import {libraryView} from '../dist/caravan-ui.js';
+import {publicSourcePath} from '../scripts/import-expansion.mjs';
 const pack=JSON.parse(await readFile(new URL('../dist/puzzles.json',import.meta.url),'utf8'));
 const puzzles=pack.puzzles,expanded=puzzles.filter(p=>p.band==='all');
 function fixture(){return {...emptyStore(),activeProfileId:'test',profiles:[{id:'test',name:'Explorer',avatar:0,band:'k1',sound:false,attempts:{}}]};}
+test('source citations preserve repository filenames without host folder paths',()=>{
+ assert.equal(publicSourcePath('/host/example/lowell-math-circle-year-2/source/week-02/week-02-k-1.tex'),'lowell-math-circle-year-2/source/week-02/week-02-k-1.tex');
+ assert.equal(publicSourcePath('/host/example/plans/week-02-redesign.md'),'plans/week-02-redesign.md');
+ assert.equal(publicSourcePath('/host/example/source.pdf'),'source.pdf');
+ assert.ok(pack.sources.every(s=>!s.path||!s.path.startsWith('/')));
+});
 test('difficulty groups expose every expanded puzzle once from every grade trail, with saved completion',()=>{
  for(const band of ['k1','23','45']){
   const profile={...fixture().profiles[0],band,attempts:{'latin-12':{completed:true}}};

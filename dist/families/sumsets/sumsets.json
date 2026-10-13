@@ -63,7 +63,7 @@
    "objective": "Put cards in A and B, watch the totals land on the strip, and tap routes through the grid.",
    "visibleObjective": "",
    "instruction": "Put cards in A and B, watch the totals land on the strip, and tap routes through the grid.",
-   "controls": "Tap cards to put them in A and B, up to six in each, and tap again to take them out. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it.",
+   "controls": "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token. Tap cards to put them in A and B, up to six in each, and tap again to take them out. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it.",
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
@@ -117,7 +117,7 @@
    "objective": "Choose cards for A and B that make as few different totals as you can, then tap a route through the grid that passes every total.",
    "visibleObjective": "As few totals as you can, all on one route.",
    "instruction": "Choose cards for A and B that make as few different totals as you can, then tap a route through the grid that passes every total.",
-   "controls": "Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it. Tap a dot of your route to take back the taps from there. Undo takes back the last move.",
+   "controls": "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token. Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it. Tap a dot of your route to take back the taps from there. Undo takes back the last move.",
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
@@ -198,7 +198,7 @@
    "objective": "Choose cards for A and B that make as many different totals as you can.",
    "visibleObjective": "As many totals as you can.",
    "instruction": "Choose cards for A and B that make as many different totals as you can.",
-   "controls": "Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Undo takes back the last move.",
+   "controls": "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token. Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Undo takes back the last move.",
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
@@ -262,7 +262,7 @@
    "objective": "Choose cards for A and B that make as few different totals as you can, then tap a route through the grid that passes every total.",
    "visibleObjective": "As few totals as you can, all on one route.",
    "instruction": "Choose cards for A and B that make as few different totals as you can, then tap a route through the grid that passes every total.",
-   "controls": "Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it. Tap a dot of your route to take back the taps from there. Undo takes back the last move.",
+   "controls": "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token. Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it. Tap a dot of your route to take back the taps from there. Undo takes back the last move.",
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
@@ -344,7 +344,7 @@
    "objective": "Choose cards for A and B that make as few different totals as you can, then tap a route through the grid that passes every total.",
    "visibleObjective": "As few totals as you can, all on one route.",
    "instruction": "Choose cards for A and B that make as few different totals as you can, then tap a route through the grid that passes every total.",
-   "controls": "Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it. Tap a dot of your route to take back the taps from there. Undo takes back the last move.",
+   "controls": "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token. Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it. Tap a dot of your route to take back the taps from there. Undo takes back the last move.",
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
@@ -436,7 +436,7 @@
    "objective": "Find every B of two cards that makes exactly 4 different totals with this A. Press That’s all when none is left.",
    "visibleObjective": "Find every B with 4 totals.",
    "instruction": "Find every B of two cards that makes exactly 4 different totals with this A. Press That’s all when none is left.",
-   "controls": "Tap a card to put it in B, and tap it again to take it out. Press That’s all when you are sure. Undo takes back the last card.",
+   "controls": "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token. Tap a card to put it in B, and tap it again to take it out. Press That’s all when you are sure. Undo takes back the last card.",
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
@@ -520,7 +520,7 @@
    "objective": "Choose evenly spaced cards for A and for B that make as many different totals as you can.",
    "visibleObjective": "Both trays evenly spaced, as many totals as you can.",
    "instruction": "Choose evenly spaced cards for A and for B that make as many different totals as you can.",
-   "controls": "Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Undo takes back the last move.",
+   "controls": "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token. Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Undo takes back the last move.",
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
@@ -593,7 +593,7 @@
    "objective": "Choose cards for A so that one route through the grid passes every total.",
    "visibleObjective": "Every total on one route.",
    "instruction": "Choose cards for A so that one route through the grid passes every total.",
-   "controls": "Tap a card to put it in A, and tap it again to take it out. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it. Tap a dot of your route to take back the taps from there. Undo takes back the last move.",
+   "controls": "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token. Tap a card to put it in A, and tap it again to take it out. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it. Tap a dot of your route to take back the taps from there. Undo takes back the last move.",
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
@@ -701,7 +701,7 @@
    "objective": "Choose cards for A and B that make as few different totals as you can, then tap a route through the grid that passes every total.",
    "visibleObjective": "As few totals as you can, all on one route.",
    "instruction": "Choose cards for A and B that make as few different totals as you can, then tap a route through the grid that passes every total.",
-   "controls": "Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it. Tap a dot of your route to take back the taps from there. Undo takes back the last move.",
+   "controls": "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token. Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it. Tap a dot of your route to take back the taps from there. Undo takes back the last move.",
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
@@ -793,7 +793,7 @@
    "objective": "Choose cards for A and B that make as many different totals as you can.",
    "visibleObjective": "As many totals as you can.",
    "instruction": "Choose cards for A and B that make as many different totals as you can.",
-   "controls": "Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Undo takes back the last move.",
+   "controls": "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token. Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Undo takes back the last move.",
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
@@ -864,7 +864,7 @@
    "objective": "Find every B of two cards that makes exactly 5 different totals with this A. Press That’s all when none is left.",
    "visibleObjective": "Find every B with 5 totals.",
    "instruction": "Find every B of two cards that makes exactly 5 different totals with this A. Press That’s all when none is left.",
-   "controls": "Tap a card to put it in B, and tap it again to take it out. Press That’s all when you are sure. Undo takes back the last card.",
+   "controls": "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token. Tap a card to put it in B, and tap it again to take it out. Press That’s all when you are sure. Undo takes back the last card.",
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",
@@ -935,7 +935,7 @@
    "objective": "Choose cards for A and B that make as few different totals as you can, then tap a route through the grid that passes every total.",
    "visibleObjective": "As few totals as you can, all on one route.",
    "instruction": "Choose cards for A and B that make as few different totals as you can, then tap a route through the grid that passes every total.",
-   "controls": "Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it. Tap a dot of your route to take back the taps from there. Undo takes back the last move.",
+   "controls": "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token. Tap a card to put it in its tray, and tap it again to take it out. The dots by a tray show how many cards it holds. Tap the dots of a route one at a time, starting at the bottom-left; tapping the top-right dot checks it. Tap a dot of your route to take back the taps from there. Undo takes back the last move.",
    "rules": [
     "Each card in A pairs with each card in B. A pair drops a token on the strip at its total, and pairs with the same total share a token.",
     "The grid shows every pair: A’s cards go up, B’s go across, and each dot holds their total.",

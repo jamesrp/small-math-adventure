@@ -1,4 +1,4 @@
-.network-graph {position:relative; width:100%; max-width:520px; aspect-ratio:1.15; margin:1.2rem auto;}
+.network-graph {position:relative; width:100%; max-width:400px; aspect-ratio:1.15; margin:.5rem auto;}
 .network-graph svg {position:absolute;width:100%;height:100%;overflow:visible;inset:0;}
 .network-graph line {stroke:#8396ae;stroke-width:.65;}
 .network-graph line.road-used {stroke:#227768;stroke-width:1.2;stroke-dasharray:2 1;}

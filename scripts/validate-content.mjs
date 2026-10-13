@@ -15,7 +15,7 @@ export async function validateContent(){
     assert.equal(new Set(list.map(p=>JSON.stringify(p.parameters))).size,expected,`${f.id}: distinct starting data`);
   }
   assert.equal(new Set(sources.map(s=>s.id)).size,sources.length);
-  for(const source of sources){if(source.url)assert.match(source.url,/^https:\/\//);else assert.ok(source.path?.startsWith('/'));assert.ok(source.title);}
+  for(const source of sources){if(source.url)assert.match(source.url,/^https:\/\//);else assert.ok(typeof source.path==='string'&&source.path.trim()&&!/^(\/|[A-Za-z]:[\\/])/.test(source.path),'Curriculum sources use repository-relative paths or filenames.');assert.ok(source.title);}
   let moves=0;
   for(const band of ['k1','23','45'])for(const mechanic of ['tile','swap']){
     const list=puzzles.filter(p=>p.band===band&&p.mechanic===mechanic);

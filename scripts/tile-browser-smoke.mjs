@@ -45,7 +45,7 @@ async function checkShape(p,piece,invalid){
  await reset(p);const id=p.id,size=piece.length;
  assert.equal(await action('rotate-tile').count(),0);assert.equal(await action('place-tile').count(),0);
  assert.equal(await page.locator('.tile-piece-picture').getAttribute('aria-label'),size===3?'L-tromino, 3 squares':'Domino, 2 squares');
- assert.equal((await page.locator('.tile-piece-guide').innerText()).trim(),`Drag across ${size} squares`);
+ assert.equal((await page.locator('.tile-piece-guide').innerText()).trim(),`Tap or drag ${size} squares`);
  assert.equal(await page.locator('.tile-board').evaluate(n=>getComputedStyle(n).touchAction),'none');
  await action('demo').click();const help=await page.locator('dialog').innerText();assert.match(help,/drag/i);assert.match(help,/tap/i);assert.doesNotMatch(help,/click|rotate/i);await page.getByRole('button',{name:'Done',exact:true}).click();
  await page.evaluate(()=>{window.spoken='';window.SpeechSynthesisUtterance=class{constructor(text){window.spoken=text;}};window.speechSynthesis.speak=()=>{};});await action('speak').click();assert.match(await page.evaluate(()=>window.spoken),/drag/i);assert.doesNotMatch(await page.evaluate(()=>window.spoken),/click|rotate/i);
@@ -66,7 +66,7 @@ async function checkShape(p,piece,invalid){
  const other=p.cells.find(n=>!piece.includes(n));before=await attempt(id);
  await stroke([other,piece[0]],{inspect:async()=>assert.ok(await page.locator('.tile-preview.invalid').count()>0,'occupied-cell stroke is blocked')});
  assert.deepEqual(await attempt(id),before,'occupied-cell stroke does not change the board');
- await action('undo').click();assert.equal((await attempt(id)).board.length,0);assert.match(await page.locator('.tile-piece-guide').innerText(),/Drag across/);
+ await action('undo').click();assert.equal((await attempt(id)).board.length,0);assert.match(await page.locator('.tile-piece-guide').innerText(),/Tap or drag/);
  // Revisited cells are kept, both for out-and-back and the L corner return.
  const returnPath=size===3?[piece[0],piece[1],piece[0],piece[2]]:[piece[0],piece[1],piece[0]];
  await stroke(returnPath);assert.equal((await attempt(id)).board.length,1);await action('undo').click();

@@ -25,7 +25,7 @@ try{
   await page.goto(`${base}/#play/${p.id}`);await cell(p.cells[0]).waitFor();
   const size=p.tileShape==='l-tromino'?3:2;if(size===3)lCount++;
   assert.equal(await page.locator('.tile-piece-picture').getAttribute('aria-label'),size===3?'L-tromino, 3 squares':'Domino, 2 squares');
-  assert.match(await page.locator('.tile-piece-guide').innerText(),new RegExp(`Drag across ${size} squares`));
+  assert.match(await page.locator('.tile-piece-guide').innerText(),new RegExp(`Tap or drag ${size} squares`));
   for(const [index,piece] of p.solution.entries()){
    const before=await attempt(p.id);
    if(index===0){await drag(piece);drags++;}else{for(const n of piece)await cell(n).click();taps++;}

@@ -30,8 +30,8 @@ const CONTROLS = {
   differ: 'Tap a card to keep it. Press That’s all when every card where A and B score differently is there.',
   bag: 'Tap a ticket to put it in the bag, then set the switches to a best plan for that bag. Keep checks the ticket with that plan. Press That’s all when every one is there.'
 };
-const two = 'Choose Take or Pass for each first offer so that the nine cards score as much as possible together.';
-const three = 'Choose Take or Pass for each first offer, and for each second offer after a passed first, so that the 27 cards score as much as possible together.';
+const two = 'Make the nine cards score as much as possible together.';
+const three = 'Make the 27 cards score as much as possible together.';
 
 const authored = [
   {

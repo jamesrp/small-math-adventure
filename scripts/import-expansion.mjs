@@ -3,6 +3,15 @@
 // additive catalog. Legacy Nim answers migrate explicitly in storage.js.
 import {readFile,writeFile} from 'node:fs/promises';
 const root=new URL('../',import.meta.url);
+// Source citations name files in the worksheets repository, never a host's folders.
+export function publicSourcePath(path){
+  if(!path||!(/^(\/|[A-Za-z]:[\\/])/.test(path)))return path;
+  const normalized=path.replaceAll('\\','/');
+  for(const marker of ['lowell-math-circle-year-2/','plans/']){
+    const at=normalized.indexOf(marker);if(at>=0)return normalized.slice(at);
+  }
+  return normalized.split('/').at(-1);
+}
 export async function importExpansion(){
   const pack=JSON.parse(await readFile(new URL('dist/puzzles.json',root),'utf8'));
   pack.puzzles=pack.puzzles.filter(p=>p.mechanic==='tile'||p.mechanic==='swap');
@@ -15,7 +24,7 @@ export async function importExpansion(){
       const refs=new Map();
       const sourceIds=f.sources.map((s,i)=>{
         const id=`expansion-${f.id}-${i+1}`;if(s.id)refs.set(s.id,id);
-        pack.sources.push({id,title:s.title||`${s.path?.split('/').at(-1)||f.title} — ${s.section||'Source notes'}`,kind:s.path?'local curriculum':'mathematics',...(s.url?{url:s.url}:{}),...(s.path?{path:s.path}:{}),section:s.section||'',contribution:s.contribution||s.use||''});return id;
+        pack.sources.push({id,title:s.title||`${s.path?.split('/').at(-1)||f.title} — ${s.section||'Source notes'}`,kind:s.path?'local curriculum':'mathematics',...(s.url?{url:s.url}:{}),...(s.path?{path:publicSourcePath(s.path)}:{}),section:s.section||'',contribution:s.contribution||s.use||''});return id;
       });
       const rules=Array.isArray(f.rules)?f.rules:[f.rules];
       // New worksheet sources must not silently change older instances' citations.
@@ -32,6 +41,7 @@ export async function importExpansion(){
     }
   }
   const order=['toggle','clock','billiard','route','latin','code','nim','color','jug','weigh'];
+  pack.sources=pack.sources.map(s=>s.path?{...s,path:publicSourcePath(s.path)}:s);
   pack.families=families.sort((a,b)=>order.indexOf(a.id)-order.indexOf(b.id));pack.expansionVersion=2;
   await writeFile(new URL('dist/puzzles.json',root),JSON.stringify(pack,null,2)+'\n');
   return pack;

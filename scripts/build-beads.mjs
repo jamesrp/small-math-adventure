@@ -383,7 +383,7 @@ const puzzles = authored.map(a => {
     mechanic: hidden ? 'lopsided' : 'beads', ...(hidden ? {libraryFamily: 'beads', group: GROUP} : {}), familyTitle: family.title, revision: 1,
     parameters: q,
     objective: a.objective, ...(a.visibleObjective !== undefined ? {visibleObjective: a.visibleObjective} : {}), instruction: a.visibleObjective || a.objective,
-    controls: hidden ? (q.fewest ? CONTROLS.fewest(q.fewest === 'colours' ? 'colours' : 'gold beads') : q.mode === 'every' ? `${CONTROLS.hidden} ${CONTROLS.every}` : `${CONTROLS.hidden} Press No ring can if you are sure no ring works.`) : controlsFor(q) || CONTROLS.turns,
+    controls: `The colours are ${q.colours === 2 ? 'green and gold' : 'green, gold and blue'}. ${hidden ? (q.fewest ? CONTROLS.fewest(q.fewest === 'colours' ? 'colours' : 'gold beads') : q.mode === 'every' ? `${CONTROLS.hidden} ${CONTROLS.every}` : `${CONTROLS.hidden} Press No ring can if you are sure no ring works.`) : controlsFor(q) || CONTROLS.turns}`,
     rules: hidden ? [...HIDDEN_RULES, ...(q.mode === 'every' ? ['A turned or flipped ring is the same ring.'] : [])] : [...family.rules, ...(q.mode === 'every' ? ['Flipping a ring over is not allowed, so a ring and its mirror image can be different.'] : [])],
     idea: a.idea, prerequisites: a.prerequisites, hints: a.hints,
     parent: {...a.parent, sourceIds: sourceIds(a)},

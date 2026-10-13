@@ -208,6 +208,10 @@ function catalogFor(q, steps) {
   if (q.mode === 'design') return catalogHTML(stories(steps), orderBins(q.cups), madeBy(q.start, steps), {...storySaid(q.start, steps), label: 'Every story', mark: () => 'yes'});
   return '';
 }
+function exploreCatalog(q, steps) {
+  const catalog = catalogFor(q, steps);
+  return catalog ? `<details class="shuffle-explore" data-view-key="shuffle-catalog"><summary>${q.mode === 'rows' ? 'Every row' : 'Every story'}</summary>${catalog}</details>` : '';
+}
 // A design that fails shows why: two stories that make one order, or an
 // order no story makes.
 function verdictHTML(q, steps) {
@@ -226,7 +230,7 @@ function renderPuzzle(p, a) {
     const cups = cupsBoard(q.start, {slots: true, inert: true, label: 'Cups in their slots'});
     const tickets = ticketsHTML(steps, [], {design: true, cups: q.cups, still: solved, hint: h?.type === 'toggle' ? h : null});
     const actions = solved ? '' : `<div class="case-actions">${button('Try it', {type: 'try'}, h?.type === 'try' ? 'hinted' : '', b.tried ? 'disabled' : '')}</div>`;
-    const result = solved ? catalogFor(q, steps) : b.tried ? verdictHTML(q, steps) : '';
+    const result = solved ? exploreCatalog(q, steps) : b.tried ? verdictHTML(q, steps) : '';
     return `<div class="shuffle-puzzle" data-mechanic-wire="shuffles">${cups}${tickets}${actions}${result}</div>`;
   }
   const board = cupsFor(steps, row, b.story, {still: solved, hint: h?.type === 'draw' ? h.ticket : null});
@@ -237,7 +241,7 @@ function renderPuzzle(p, a) {
   const missed = every && b.missed ? '<p class="case-note" role="status">There’s another.</p>' : '';
   const current = finished(steps, b.story) && !solved ? keyOf(q, b.story) : null;
   const shelf = every ? shelfFor(q, steps, b, {current, load: !solved, label: q.mode === 'rows' ? 'Rows kept' : 'Stories kept'}) : '';
-  const cat = solved ? catalogFor(q, steps) : '';
+  const cat = solved ? exploreCatalog(q, steps) : '';
   return `<div class="shuffle-puzzle" data-mechanic-wire="shuffles">${board}${tickets}${actions}${missed}${shelf}${cat}<p class="sr-only" role="status">${esc(describe(row, b.story) + '.')}</p></div>`;
 }
 

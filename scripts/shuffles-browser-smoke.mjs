@@ -128,6 +128,10 @@ try {
   const P6 = 'shuffles-06';
   await open(P6);
   await hintSolve();
+  assert.equal(await page.locator('.case-catalog').isVisible(), false, 'the full catalog starts collapsed');
+  assert.equal(await page.locator('.case-shelf .case-kept').count(), 4, 'the four kept stories remain visible');
+  await page.locator('.shuffle-explore summary').click();
+  assert.equal(await page.locator('.case-catalog').isVisible(), true, 'Every story opens the optional catalog');
   assert.equal(await page.locator('.case-catalog .case-kept').count(), 27);
   assert.equal(await page.locator('.case-catalog .case-kept.yes').count(), 4);
   await fit('any slot'); await shot('06-solved');

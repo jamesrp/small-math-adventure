@@ -204,6 +204,10 @@ const puzzles = [playground, ...authored].map(({expect, sourceIds, parent, ...p}
   // Find-every: the pairs to keep. A rule: the rules that solve. Busiest: the most shapes.
   const count = q.mode === 'pairs' ? pairsOf(q).length : q.mode === 'busiest' ? mostShapes(q.size, q.rule) : q.mode === 'rule' ? solving(q).length : undefined;
   if (expect !== undefined && count !== expect) throw Error(`${p.number}: ${count}, not ${expect}`);
+  const draw = q.distinct ? 'The first counter stays out before the second draw.'
+    : q.second ? 'Draw once from each bag, in order.'
+    : 'The first counter goes back before the second draw.';
+  const fair = 'A rule is fair when equally many possible pairs give a square or a circle, with at least one of each. Each possible pair is equally likely.';
   const controls = q.mode === 'playground' ? p.controls
     : q.mode === 'pairs' ? 'Tap a counter, then another (the same one again is allowed). Keep puts the pair on the shelf; Again puts both back without keeping them. Press That’s all when every one is there.'
     : q.mode === 'busiest' ? 'Tap a counter to change its colour. Every pair of counters moves to its shape. Press Done when shapes come as often as they can.'
@@ -212,7 +216,7 @@ const puzzles = [playground, ...authored].map(({expect, sourceIds, parent, ...p}
     id: q.mode === 'playground' ? p.id : `bags-${String(p.number).padStart(2, '0')}`,
     number: p.number, title: p.title, band: p.band || 'all', difficulty_level: p.difficulty_level,
     mechanic: 'bags', familyTitle: family.title, revision: 1, parameters: q,
-    objective: p.objective, instruction: p.objective, controls, rules: p.rules || RULES_TEXT,
+    objective: p.objective, instruction: p.objective, controls: q.mode === 'pairs' ? `${draw} ${controls}` : `${fair} ${draw} ${controls}`, rules: p.rules || RULES_TEXT,
     idea: p.idea, prerequisites: p.prerequisites, hints: p.hints,
     parent: {...parent, sourceIds}, provenance: p.provenance, sourceDocument: 'docs/bags/README.md'
   };

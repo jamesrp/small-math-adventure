@@ -29,10 +29,10 @@ export const family = {
 const RULES = family.rules;
 const NO_SINK = ['A circle can fire when it holds at least one chip for each line that touches it.', 'Firing sends one chip along each of its lines. Extra chips stay.', 'This board has no sink, so chips never leave.'];
 const CONTROLS = {
-  orders: 'Tap a glowing circle to fire it. When no circle can fire, the order is saved. Again puts the starting chips back. Undo takes back one firing; saved orders stay.',
-  place: 'Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. Again clears the board. Undo takes back one step; saved answers stay.',
-  avalanche: 'Tap circles to add chips. The first chip that lets a circle fire is the extra chip; then tap glowing circles to fire until none can. Again clears the board.',
-  loop: 'Tap circles to place the 3 chips, then tap glowing circles to fire. A board that comes back to an earlier position will repeat forever. Again clears the board.'
+  orders: 'Tap a glowing circle to fire it. When no circle can fire, the order is saved. New run puts the starting chips back. Undo takes back one firing; saved orders stay.',
+  place: 'Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. New run clears the board. Undo takes back one step; saved answers stay.',
+  avalanche: 'Tap circles to add chips. The first chip that lets a circle fire is the extra chip; then tap glowing circles to fire until none can. New run clears the board.',
+  loop: 'Tap circles to place the 3 chips, then tap glowing circles to fire. A board that comes back to an earlier position will repeat forever. New run clears the board.'
 };
 const ORDERS_RULE = 'A run ends when no circle can fire. Each different order of firing counts once.';
 
@@ -258,7 +258,7 @@ const puzzles = authored.map(a => {
     mechanic: 'chips', familyTitle: family.title, revision: 1,
     parameters: {...a.parameters},
     objective: a.objective, instruction: a.objective,
-    controls: mode === 'orders' ? CONTROLS.orders : mode === 'avalanche' ? CONTROLS.avalanche : mode === 'loop' ? CONTROLS.loop : CONTROLS.place,
+    controls: (mode === 'orders' ? CONTROLS.orders : mode === 'avalanche' ? CONTROLS.avalanche : mode === 'loop' ? CONTROLS.loop : CONTROLS.place) + (['orders', 'finishes', 'starts'].includes(mode) ? ' Press That’s all when every answer is saved.' : ''),
     rules: mode === 'loop' ? [...NO_SINK, 'Place all 3 chips before firing. If the board repeats a position, it will repeat forever.'] : mode === 'orders' ? [...RULES, ORDERS_RULE] : mode === 'avalanche' ? [...RULES, 'Add chips one at a time. The first chip that lets a circle fire is the extra one; after it, only firing is allowed.'] : [...RULES, `Place all ${a.parameters.chips} chips before firing. A run ends when no circle can fire.`],
     idea: a.idea, prerequisites: a.prerequisites, hints: a.hints,
     parent: {...a.parent, sourceIds: ['chips-week11', 'chips-hlmppw', ...(a.parent.connection.includes('Levine and Propp') ? ['chips-sandpile'] : []), ...(a.parent.connection.includes('Dhar') ? ['chips-dhar'] : [])]},

@@ -27,6 +27,7 @@ const MORE = {
   every: 'Press Shorten when your trip is ready, then tap turning points until none is left. What is left joins the row below. Press New trip for another, and That’s all when you think the row has every route.',
   kept: 'A trip loses no steps when it has no turning point.'
 };
+const TURN = 'A turning point is a dot with the same dot before and after it: its two steps go along one road and straight back.';
 const CONTROLS = {
   shorten: 'Tap a turning point in the row of dots to cancel the steps into and out of it.',
   walk: 'Tap a dot next to the pawn, or a road it stands on, to take a step; or slide along the dots. The beads count your steps, and Undo takes a step back. After Shorten, tap a turning point in the row of dots to cancel its two steps.',
@@ -136,7 +137,7 @@ const out = PUZZLES.map(item => {
     id, number: item.number, title: item.title, band: 'all', difficulty_level: item.level, mechanic: 'detours', familyTitle: 'Road detours', revision: 1,
     parameters: q,
     objective: item.objective, visibleObjective: item.objective, instruction: item.objective,
-    controls: q.mode === 'shorten' ? CONTROLS.shorten : CONTROLS.walk,
+    controls: `${TURN} ${q.mode === 'shorten' ? CONTROLS.shorten : CONTROLS.walk}`,
     rules: [...RULES, q.mode === 'shorten' ? MORE.shorten : q.mode === 'every' ? MORE.every : MORE.make, ...(q.result === 'kept' ? [MORE.kept] : [])],
     idea: item.idea, prerequisites: PREREQUISITES[kind], hints: item.hints,
     parent: {...item.parent, sourceIds: sources},
@@ -147,7 +148,7 @@ const playground = {
   id: 'detours-playground', number: 0, title: 'Road detours playground', band: 'playground', difficulty_level: 'playground', mechanic: 'detours', familyTitle: 'Road detours', revision: 1,
   parameters: {mode: 'playground', maps: Object.fromEntries(Object.entries(MAPS).map(([k, v]) => [k, {...v}]))},
   objective: 'Walk the pawn on any map and cancel steps that turn straight back.',
-  controls: CONTROLS.playground,
+  controls: `${TURN} ${CONTROLS.playground}`,
   rules: [...RULES, 'Walking and cancelling can be mixed in any order here.'],
   idea: 'Free walking and shortening on a tree, a ring and two rings.',
   prerequisites: 'None. A grown-up can suggest a question from the puzzles.',

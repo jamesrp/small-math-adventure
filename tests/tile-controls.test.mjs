@@ -115,13 +115,13 @@ test('L renderer paints only occupied cells and exposes every hinted coordinate'
  for(const label of ['row 1, column 3','row 2, column 2','row 2, column 3'])assert.ok(rendered.includes(label));
  assert.ok(!rendered.includes('puzzle-goal'));
  const empty=playView(fixture,freshAttempt(fixture),{...context,tileSelection:[2]});
- assert.match(empty,/Drag across 3 squares/);
+ assert.match(empty,/Tap or drag 3 squares/);
  assert.match(empty,/aria-label="L-tromino, 3 squares"/);
  assert.match(empty,/data-cell="2"[^>]*aria-label="Row 1, column 3, selected" aria-pressed="true"/);
- assert.doesNotMatch(rendered,/Drag across 3 squares|rotate-tile|place-tile/);
+ assert.doesNotMatch(rendered,/Tap or drag 3 squares|rotate-tile|place-tile/);
  const dominoFixture={...fixture,tileShape:undefined};
  const dominoEmpty=playView(dominoFixture,freshAttempt(dominoFixture),context);
- assert.match(dominoEmpty,/Drag across 2 squares/);
+ assert.match(dominoEmpty,/Tap or drag 2 squares/);
  assert.match(dominoEmpty,/aria-label="Domino, 2 squares"/);
  assert.doesNotMatch(dominoEmpty,/Rotate|Place|elbow/);
 });

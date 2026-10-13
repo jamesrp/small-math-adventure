@@ -30,7 +30,7 @@ const MORE = {
   part: 'Two regions touch when they share a place, even a single point.',
   fit: 'When the region fits, press Fewest if no fewer dots could do it. If fewer can, it says so.'
 };
-const CONTROLS = 'Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.';
+const CONTROLS = 'A dot’s region contains every place nearest to it, measured in a straight line. Equally near places belong to every tied dot; regions continue past the frame. Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away. Press Check to see every region. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away. Undo takes back the last change.';
 const MORE_CONTROLS = {take: ' After a Check, press Can’t, then tap two places.', fit: ' Press Fewest once the region fits.'};
 
 const PUZZLES = [
@@ -209,7 +209,7 @@ const playground = {
   parameters: {mode: 'playground', frame: FRAME, view: VIEW, start: [[-1.5, -1], [1.5, 1]].map(H)},
   objective: 'Put down, move and take away dots, and watch every dot’s region change.', visibleObjective: '',
   instruction: 'Put down, move and take away dots, and watch every dot’s region change.',
-  controls: 'Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away; the regions change as you go. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away.',
+  controls: 'A dot’s region contains every place nearest to it, measured in a straight line. Equally near places belong to every tied dot; regions continue past the frame. Tap where grid lines cross to put a dot there. Drag a dot to move it, or tap it to take it away; the regions change as you go. With a keyboard, the arrow keys move a ring, Enter or Space puts down, picks up or drops a dot, and Delete takes one away.',
   rules: [RULES[0], RULES[1], 'Edges are places two dots share; a small ring marks a place three or more share, and a bigger one four or more.'],
   idea: 'Free play with up to ten dots: the edge between two dots, a third dot erasing part of it, ties of three and four, and regions shrinking when a dot is added.',
   prerequisites: 'None. A grown-up can suggest what to try.',

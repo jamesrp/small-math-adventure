@@ -5,7 +5,7 @@
    pine pins and bars for the extremes kept; one ruler under everything. */
 .rg-puzzle{display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%}
 /* The board keeps to a little over half the screen's height, so its buttons stay in view. */
-.rg-board{display:block;width:100%;max-width:min(620px,calc(var(--rg-aspect,1) * 58vh));height:auto;touch-action:none;user-select:none;-webkit-user-select:none;overflow:visible}
+.rg-board{display:block;width:100%;max-width:min(620px,calc(var(--rg-aspect,1) * 48vh));height:auto;touch-action:none;user-select:none;-webkit-user-select:none;overflow:visible}
 .rg-puzzle.solved .rg-board{background:var(--b-good-soft,#e2ecd6);border-radius:10px}
 .rg-grid{stroke:var(--b-line,#d0d6bd);stroke-width:.35}
 .rg-ruler{stroke:var(--b-ink,#294439);stroke-width:.8}

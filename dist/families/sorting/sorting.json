@@ -61,7 +61,7 @@
       },
       "objective": "Build any machine and send cards through it.",
       "instruction": "Build any machine and send cards through it.",
-      "controls": "Choose how many lanes and which cards. Tap two dots in a column to place a bar, and tap a bar to take it away. Tap two cards on the left to swap them, or tap a short or tall card to change it. Run sends the cards through; Test sends every start and shows one that goes wrong, if any; Shuffle picks a new start; Clear takes every bar away.",
+      "controls": "At each bar, the smaller card goes to the upper lane and the larger to the lower lane. Choose how many lanes and which cards. Tap two dots in a column to place a bar, and tap a bar to take it away. Tap two cards on the left to swap them, or tap a short or tall card to change it. Run sends the cards through; Test sends every start and shows one that goes wrong, if any; Shuffle picks a new start; Clear takes every bar away.",
       "rules": [
         "Cards ride from left to right along their lanes.",
         "At a bar, the two cards it joins compare: the smaller goes to the upper lane, the larger to the lower one.",
@@ -120,7 +120,7 @@
       },
       "objective": "Find a start this machine gets wrong.",
       "instruction": "Find a start this machine gets wrong.",
-      "controls": "Tap two cards on the left to swap them, or drag one onto another. Run sends them through the machine.",
+      "controls": "At each bar, the smaller card goes to the upper lane and the larger to the lower lane. Tap two cards on the left to swap them, or drag one onto another. Run sends them through the machine.",
       "rules": [
         "Cards ride from left to right along their lanes.",
         "At a bar, the two cards it joins compare: the smaller goes to the upper lane, the larger to the lower one.",
@@ -179,7 +179,7 @@
       },
       "objective": "Find every start this machine gets wrong.",
       "instruction": "Find every start this machine gets wrong.",
-      "controls": "Tap two cards on the left to swap them, or drag one onto another. Run sends them through the machine; each start you run is kept below. Press That’s all when you have every start it gets wrong.",
+      "controls": "At each bar, the smaller card goes to the upper lane and the larger to the lower lane. Tap two cards on the left to swap them, or drag one onto another. Run sends them through the machine; each start you run is kept below. Press That’s all when you have every start it gets wrong.",
       "rules": [
         "Cards ride from left to right along their lanes.",
         "At a bar, the two cards it joins compare: the smaller goes to the upper lane, the larger to the lower one.",
@@ -239,7 +239,7 @@
       },
       "objective": "Add a bar so this machine sorts every start.",
       "instruction": "Add a bar so this machine sorts every start.",
-      "controls": "Tap one dot in an empty column, then another dot in the same column, to place a bar between those lanes. Tap a bar you placed to take it away. Test sends every start through the machine. Run sends just the cards on the left; tap two of them to swap.",
+      "controls": "At each bar, the smaller card goes to the upper lane and the larger to the lower lane. Tap one dot in an empty column, then another dot in the same column, to place a bar between those lanes. Tap a bar you placed to take it away. Test sends every start through the machine. Run sends just the cards on the left; tap two of them to swap.",
       "rules": [
         "Cards ride from left to right along their lanes.",
         "At a bar, the two cards it joins compare: the smaller goes to the upper lane, the larger to the lower one.",
@@ -290,7 +290,7 @@
       },
       "objective": "Build a machine that sorts every start.",
       "instruction": "Build a machine that sorts every start.",
-      "controls": "Tap one dot in an empty column, then another dot in the same column, to place a bar between those lanes. Tap a bar you placed to take it away. Test sends every start through the machine. Run sends just the cards on the left; tap two of them to swap.",
+      "controls": "At each bar, the smaller card goes to the upper lane and the larger to the lower lane. Tap one dot in an empty column, then another dot in the same column, to place a bar between those lanes. Tap a bar you placed to take it away. Test sends every start through the machine. Run sends just the cards on the left; tap two of them to swap.",
       "rules": [
         "Cards ride from left to right along their lanes.",
         "At a bar, the two cards it joins compare: the smaller goes to the upper lane, the larger to the lower one.",
@@ -349,7 +349,7 @@
       },
       "objective": "Find two starts that light the same bars.",
       "instruction": "Find two starts that light the same bars.",
-      "controls": "Tap two cards on the left to swap them, or drag one onto another. Run sends them through the machine; a bar lights when its cards swap, and each start you run is kept below with its lights.",
+      "controls": "At each bar, the smaller card goes to the upper lane and the larger to the lower lane. Tap two cards on the left to swap them, or drag one onto another. Run sends them through the machine; a bar lights when its cards swap, and each start you run is kept below with its lights.",
       "rules": [
         "Cards ride from left to right along their lanes.",
         "At a bar, the two cards it joins compare: the smaller goes to the upper lane, the larger to the lower one.",
@@ -418,7 +418,7 @@
       },
       "objective": "Add a bar so this machine sorts every start.",
       "instruction": "Add a bar so this machine sorts every start.",
-      "controls": "Tap one dot in an empty column, then another dot in the same column, to place a bar between those lanes. Tap a bar you placed to take it away. Test sends every start through the machine. Run sends just the cards on the left; tap two of them to swap.",
+      "controls": "At each bar, the smaller card goes to the upper lane and the larger to the lower lane. Tap one dot in an empty column, then another dot in the same column, to place a bar between those lanes. Tap a bar you placed to take it away. Test sends every start through the machine. Run sends just the cards on the left; tap two of them to swap.",
       "rules": [
         "Cards ride from left to right along their lanes.",
         "At a bar, the two cards it joins compare: the smaller goes to the upper lane, the larger to the lower one.",
@@ -471,7 +471,7 @@
       },
       "objective": "Build a machine that sorts every start. Bars join lanes side by side.",
       "instruction": "Build a machine that sorts every start. Bars join lanes side by side.",
-      "controls": "Tap one dot in an empty column, then another dot in the same column, to place a bar between those lanes. Tap a bar you placed to take it away. Test sends every start through the machine. Run sends just the cards on the left; tap two of them to swap.",
+      "controls": "At each bar, the smaller card goes to the upper lane and the larger to the lower lane. Tap one dot in an empty column, then another dot in the same column, to place a bar between those lanes. Tap a bar you placed to take it away. Test sends every start through the machine. Run sends just the cards on the left; tap two of them to swap.",
       "rules": [
         "Cards ride from left to right along their lanes.",
         "At a bar, the two cards it joins compare: the smaller goes to the upper lane, the larger to the lower one.",
@@ -541,7 +541,7 @@
       },
       "objective": "Find a start that one more bar at the end can’t fix.",
       "instruction": "Find a start that one more bar at the end can’t fix.",
-      "controls": "Tap two cards on the left to swap them, or drag one onto another. Run sends them through the machine.",
+      "controls": "At each bar, the smaller card goes to the upper lane and the larger to the lower lane. Tap two cards on the left to swap them, or drag one onto another. Run sends them through the machine.",
       "rules": [
         "Cards ride from left to right along their lanes.",
         "At a bar, the two cards it joins compare: the smaller goes to the upper lane, the larger to the lower one.",
@@ -612,7 +612,7 @@
       },
       "objective": "Find a start this machine gets wrong.",
       "instruction": "Find a start this machine gets wrong.",
-      "controls": "Tap a card on the left to change it between short and tall. Run sends them through the machine.",
+      "controls": "Short and tall cards compare the same way: short goes up, tall goes down. Tap a card on the left to change it between short and tall. Run sends them through the machine.",
       "rules": [
         "Cards ride from left to right along their lanes.",
         "At a bar, the two cards it joins compare: the smaller goes to the upper lane, the larger to the lower one.",
@@ -686,7 +686,7 @@
       },
       "objective": "Find a start this machine gets wrong.",
       "instruction": "Find a start this machine gets wrong.",
-      "controls": "Tap two cards on the left to swap them, or drag one onto another. Run sends them through the machine.",
+      "controls": "At each bar, the smaller card goes to the upper lane and the larger to the lower lane. Tap two cards on the left to swap them, or drag one onto another. Run sends them through the machine.",
       "rules": [
         "Cards ride from left to right along their lanes.",
         "At a bar, the two cards it joins compare: the smaller goes to the upper lane, the larger to the lower one.",
@@ -755,7 +755,7 @@
       },
       "objective": "Find every start this machine gets wrong.",
       "instruction": "Find every start this machine gets wrong.",
-      "controls": "Tap a card on the left to change it between short and tall. Run sends them through the machine; each start you run is kept below. Press That’s all when you have every start it gets wrong.",
+      "controls": "Short and tall cards compare the same way: short goes up, tall goes down. Tap a card on the left to change it between short and tall. Run sends them through the machine; each start you run is kept below. Press That’s all when you have every start it gets wrong.",
       "rules": [
         "Cards ride from left to right along their lanes.",
         "At a bar, the two cards it joins compare: the smaller goes to the upper lane, the larger to the lower one.",
@@ -808,7 +808,7 @@
       },
       "objective": "Build a machine that sorts every start.",
       "instruction": "Build a machine that sorts every start.",
-      "controls": "Tap one dot in an empty column, then another dot in the same column, to place a bar between those lanes. Tap a bar you placed to take it away. Test sends every start through the machine. Run sends just the cards on the left; tap two of them to swap.",
+      "controls": "At each bar, the smaller card goes to the upper lane and the larger to the lower lane. Tap one dot in an empty column, then another dot in the same column, to place a bar between those lanes. Tap a bar you placed to take it away. Test sends every start through the machine. Run sends just the cards on the left; tap two of them to swap.",
       "rules": [
         "Cards ride from left to right along their lanes.",
         "At a bar, the two cards it joins compare: the smaller goes to the upper lane, the larger to the lower one.",

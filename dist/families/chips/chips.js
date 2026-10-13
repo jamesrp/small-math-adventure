@@ -122,6 +122,7 @@ export function answers(p) {
   return found;
 }
 
+const exhaustive = p => ['orders', 'finishes', 'starts'].includes(p.parameters.mode);
 const supplied = q => ['finishes', 'starts', 'firings', 'loop'].includes(q.mode);
 const emptyRun = (p, g) => ({placed: p.parameters.mode === 'orders' ? [...p.parameters.start] : g.ids.map(() => 0), word: '', drop: null});
 // Replays the current run from its start. Returns null for an impossible board.
@@ -168,19 +169,26 @@ function validPuzzleBoard(p, b) {
     const spots = new Set(placeable(p, g));
     if (b.placed.some((n, i) => n && !spots.has(i))) return false;
   }
+  if (b.claim !== undefined && (!['open', 'more', 'all'].includes(b.claim) || !exhaustive(p) || b.claim === 'all' && b.found.length !== q.answers)) return false;
   return Boolean(runOf(p, b));
 }
-const solvedPuzzle = (p, b) => validPuzzleBoard(p, b) && b.found.length >= p.parameters.answers;
+// Missing claim is the legacy count-based save format: preserve completed saves.
+const solvedPuzzle = (p, b) => validPuzzleBoard(p, b) && b.found.length >= p.parameters.answers && (!exhaustive(p) || b.claim === undefined || b.claim === 'all');
 function record(p, b) {
   const run = runOf(p, b);
-  return run?.item !== null && run?.item !== undefined && answers(p).has(run.item) && !b.found.includes(run.item) ? {...b, found: [...b.found, run.item]} : b;
+  return run?.item !== null && run?.item !== undefined && answers(p).has(run.item) && !b.found.includes(run.item) ? {...b, found: [...b.found, run.item], ...(exhaustive(p) ? {claim: 'open'} : {})} : b;
 }
 function movePuzzle(p, b, action) {
   if (!validPuzzleBoard(p, b) || solvedPuzzle(p, b) || !object(action)) return null;
   const q = p.parameters, g = boardInfo(q.board), run = runOf(p, b);
+  if (action.type === 'all') {
+    if (!exhaustive(p)) return null;
+    const claim = b.found.length === q.answers ? 'all' : 'more';
+    return b.claim === claim ? null : {...b, claim};
+  }
   if (action.type === 'again') {
     const fresh = emptyRun(p, g);
-    return b.word || b.drop || key(b.placed) !== key(fresh.placed) ? {...b, ...fresh} : null;
+    return b.word || b.drop || key(b.placed) !== key(fresh.placed) ? {...b, ...fresh, ...(exhaustive(p) ? {claim: 'open'} : {})} : null;
   }
   const i = typeof action.node === 'string' && Object.hasOwn(g.index, action.node) ? g.index[action.node] : -1;
   if (i < 0) return null;
@@ -201,24 +209,25 @@ function movePuzzle(p, b, action) {
 function hintPuzzle(p, b) {
   if (solvedPuzzle(p, b)) return {type: 'done'};
   const q = p.parameters, g = boardInfo(q.board), run = runOf(p, b);
+  if (exhaustive(p) && b.found.length === q.answers) return {type: 'move', action: {type: 'all'}, text: 'Every answer is saved. Press That’s all.'};
   const open = [...answers(p)].filter(([item]) => !b.found.includes(item)).map(([, witness]) => witness);
   const again = text => ({type: 'move', action: {type: 'again'}, text});
   if (q.mode === 'orders') {
     const word = !run.finished && open.find(w => w.word.startsWith(b.word))?.word;
     if (word) return {type: 'move', action: {type: 'fire', node: word[b.word.length]}, text: `Fire ${word[b.word.length]}. An order you haven’t found yet goes this way.`};
-    return again(run.finished ? 'Press Again. Next time, choose a different circle at an earlier step.' : 'Every order from here has been found. Press Again and choose differently earlier.');
+    return again(run.finished ? 'Press New run. Next time, choose a different circle at an earlier step.' : 'Every order from here has been found. Press New run and choose differently earlier.');
   }
   const fits = w => b.placed.every((n, i) => n <= w.placed[i]);
   if (run.placing) {
     const target = open.find(fits);
-    if (!target) return again('No new answer starts with these chips. Press Again and place them differently.');
+    if (!target) return again('No new answer starts with these chips. Press New run and place them differently.');
     const i = target.placed.findIndex((n, j) => n > b.placed[j]);
     const node = i >= 0 ? g.ids[i] : target.drop;
     return {type: 'move', action: {type: 'add', node}, text: `Put a chip on ${node}.`};
   }
   const live = !run.finished && open.some(w => key(w.placed) === key(b.placed) && (q.mode !== 'avalanche' || w.drop === b.drop));
   if (live) { const node = g.ids[run.ready[0]]; return {type: 'move', action: {type: 'fire', node}, text: `Fire ${node}.`}; }
-  return again(run.finished ? 'Press Again and try a different start.' : 'This start won’t give a new answer. Press Again and try a different start.');
+  return again(run.finished ? 'Press New run and try a different start.' : 'This start won’t give a new answer. Press New run and try a different start.');
 }
 
 // The playground: any board, chips added and fired freely, nothing to solve.
@@ -335,19 +344,18 @@ function renderPuzzle(p, a, ctx = {}) {
   const tray = run.left ? `<div class="chip-tray" role="img" aria-label="${plural(run.left, 'chip')} to place">${chipDots(run.left)}<span class="chip-count">${run.left}</span></div>` : '';
   const counted = ['firings', 'avalanche'].includes(q.mode) ? `<span class="chip-word-count" aria-hidden="true">${b.word.length}</span>` : '';
   const loopMark = run.looped ? '<span class="chip-loop" role="img" aria-label="The board repeated">↻</span>' : '';
-  const againButton = (b.word || b.drop || (q.mode !== 'orders' && sum(b.placed))) && !solved ? `<button type="button" class="secondary chip-again ${hint?.action?.type === 'again' ? 'hinted' : ''}" data-chip-move="${esc(JSON.stringify({type: 'again'}))}" data-focus="chip-again"><span aria-hidden="true">↺</span> Again</button>` : '';
-  const items = q.answers > 1 ? `<ol class="chip-found" aria-label="Found ${b.found.length} of ${q.answers}">${Array.from({length: q.answers}, (_, i) => {
-    const item = b.found[i];
-    if (item === undefined) return '<li class="chip-slot empty" aria-label="Not found yet"></li>';
+  const againButton = (b.word || b.drop || (q.mode !== 'orders' && sum(b.placed))) && !solved ? `<button type="button" class="primary chip-again ${hint?.action?.type === 'again' ? 'hinted' : ''}" data-chip-move="${esc(JSON.stringify({type: 'again'}))}" data-focus="chip-again"><span aria-hidden="true">↺</span> New run</button>` : '';
+  const items = exhaustive(p) && b.found.length ? `<ol class="chip-found" aria-label="Saved answers">${b.found.map(item => {
     const fresh = item === run.item ? ' fresh' : '';
     if (q.mode === 'orders') { const finish = stabilize(g, q.start).piles; return `<li class="chip-slot${fresh}"><strong class="chip-slot-word">${esc(item)}</strong>${miniBoard(g, finish, `Finish: ${describe(g, finish)}`)}</li>`; }
     const piles = item.split(',').map(Number);
     return `<li class="chip-slot${fresh}">${miniBoard(g, piles, `${q.mode === 'finishes' ? 'Finish' : 'Start'}: ${describe(g, piles)}`)}</li>`;
   }).join('')}</ol>` : '';
+  const claim = exhaustive(p) && !solved ? `<button type="button" class="secondary chip-claim" data-chip-move="${esc(JSON.stringify({type: 'all'}))}" data-focus="chip-all">That’s all</button>${b.claim === 'more' ? `<p class="chip-feedback" role="status">More ${q.mode === 'orders' ? 'orders' : q.mode === 'finishes' ? 'finishes' : 'starts'} remain.</p>` : ''}` : '';
   const board = chipBoard(g, run.piles, run.sink, {fire: !run.placing && !run.finished && !solved, add: i => run.placing && !solved && spots.has(i), hinted});
   const missed = run.finished && !run.item && !solved ? ' missed' : '';
   const status = run.placing ? `${run.left === null ? 'Add chips' : `${plural(run.left, 'chip')} to place`}. ${describe(g, run.piles)}.` : `${b.word ? `Fired ${[...b.word].join(' ')}. ` : ''}${describe(g, run.piles)}${g.sink ? `, sink ${run.sink}` : ''}.${run.looped ? ' The board repeated.' : run.finished ? ' No circle can fire.' : ''}`;
-  return `<div class="chips-puzzle mode-${q.mode}${missed}" data-mechanic-wire="chips">${goal}${board}${tray}<div class="chip-run">${wordStrip(b.word, counted + loopMark)}${againButton}</div>${items}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="chips-puzzle mode-${q.mode}${missed}" data-mechanic-wire="chips">${goal}${board}${tray}<div class="chip-run">${wordStrip(b.word, counted + loopMark)}${againButton}</div>${items}${claim}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 
 const thumb = name => {
@@ -477,7 +485,7 @@ function wire(root, p, api) {
 
 export const chipMechanics = {
   chips: {
-    fresh: p => p.parameters.mode === 'playground' ? freshPlay() : {...emptyRun(p, boardInfo(p.parameters.board)), found: []},
+    fresh: p => p.parameters.mode === 'playground' ? freshPlay() : {...emptyRun(p, boardInfo(p.parameters.board)), found: [], ...(exhaustive(p) ? {claim: 'open'} : {})},
     valid: (p, b) => p.parameters.mode === 'playground' ? validPlay(b) : validPuzzleBoard(p, b),
     solved: (p, b) => p.parameters.mode === 'playground' ? false : solvedPuzzle(p, b),
     move: (p, b, action) => p.parameters.mode === 'playground' ? movePlay(b, action) : movePuzzle(p, b, action),
@@ -491,7 +499,7 @@ export const chipMechanics = {
     },
     reset: p => { uiState.delete(p.id); },
     // Undo takes back a move but never a discovery.
-    carry: (p, from, to) => p.parameters.mode === 'playground' || !object(to) ? to : {...to, found: [...from.found]},
+    carry: (p, from, to) => p.parameters.mode === 'playground' || !object(to) ? to : {...to, found: [...from.found], ...(from.claim !== undefined ? {claim: to.claim ?? 'open'} : {})},
     noHint: p => p.parameters.mode === 'playground'
   }
 };

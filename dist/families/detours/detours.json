@@ -201,7 +201,7 @@
     }
    },
    "objective": "Walk the pawn on any map and cancel steps that turn straight back.",
-   "controls": "Choose a map. Tap a dot next to the pawn to take a step, or slide along the dots. Tap a turning point in the row of dots to cancel its two steps.",
+   "controls": "A turning point is a dot with the same dot before and after it: its two steps go along one road and straight back. Choose a map. Tap a dot next to the pawn to take a step, or slide along the dots. Tap a turning point in the row of dots to cancel its two steps.",
    "rules": [
     "Each step takes the pawn along one road to the next dot.",
     "Two steps cancel when they go along the same road there and straight back. The dot between them is a turning point.",
@@ -306,7 +306,7 @@
    "objective": "Shorten the trip as far as it goes.",
    "visibleObjective": "Shorten the trip as far as it goes.",
    "instruction": "Shorten the trip as far as it goes.",
-   "controls": "Tap a turning point in the row of dots to cancel the steps into and out of it.",
+   "controls": "A turning point is a dot with the same dot before and after it: its two steps go along one road and straight back. Tap a turning point in the row of dots to cancel the steps into and out of it.",
    "rules": [
     "Each step takes the pawn along one road to the next dot.",
     "Two steps cancel when they go along the same road there and straight back. The dot between them is a turning point.",
@@ -412,7 +412,7 @@
    "objective": "Shorten the trip as far as it goes.",
    "visibleObjective": "Shorten the trip as far as it goes.",
    "instruction": "Shorten the trip as far as it goes.",
-   "controls": "Tap a turning point in the row of dots to cancel the steps into and out of it.",
+   "controls": "A turning point is a dot with the same dot before and after it: its two steps go along one road and straight back. Tap a turning point in the row of dots to cancel the steps into and out of it.",
    "rules": [
     "Each step takes the pawn along one road to the next dot.",
     "Two steps cancel when they go along the same road there and straight back. The dot between them is a turning point.",
@@ -511,7 +511,7 @@
    "objective": "Make a 12-step trip from A back to A that uses every road. Then shorten it.",
    "visibleObjective": "Make a 12-step trip from A back to A that uses every road. Then shorten it.",
    "instruction": "Make a 12-step trip from A back to A that uses every road. Then shorten it.",
-   "controls": "Tap a dot next to the pawn, or a road it stands on, to take a step; or slide along the dots. The beads count your steps, and Undo takes a step back. After Shorten, tap a turning point in the row of dots to cancel its two steps.",
+   "controls": "A turning point is a dot with the same dot before and after it: its two steps go along one road and straight back. Tap a dot next to the pawn, or a road it stands on, to take a step; or slide along the dots. The beads count your steps, and Undo takes a step back. After Shorten, tap a turning point in the row of dots to cancel its two steps.",
    "rules": [
     "Each step takes the pawn along one road to the next dot.",
     "Two steps cancel when they go along the same road there and straight back. The dot between them is a turning point.",
@@ -609,7 +609,7 @@
    "objective": "Find every route a 7-step trip from C to F can shorten to.",
    "visibleObjective": "Find every route a 7-step trip from C to F can shorten to.",
    "instruction": "Find every route a 7-step trip from C to F can shorten to.",
-   "controls": "Tap a dot next to the pawn, or a road it stands on, to take a step; or slide along the dots. The beads count your steps, and Undo takes a step back. After Shorten, tap a turning point in the row of dots to cancel its two steps.",
+   "controls": "A turning point is a dot with the same dot before and after it: its two steps go along one road and straight back. Tap a dot next to the pawn, or a road it stands on, to take a step; or slide along the dots. The beads count your steps, and Undo takes a step back. After Shorten, tap a turning point in the row of dots to cancel its two steps.",
    "rules": [
     "Each step takes the pawn along one road to the next dot.",
     "Two steps cancel when they go along the same road there and straight back. The dot between them is a turning point.",
@@ -701,7 +701,7 @@
    "objective": "Make an 8-step trip from A back to A that shortens to A→B→C→D→A.",
    "visibleObjective": "Make an 8-step trip from A back to A that shortens to A→B→C→D→A.",
    "instruction": "Make an 8-step trip from A back to A that shortens to A→B→C→D→A.",
-   "controls": "Tap a dot next to the pawn, or a road it stands on, to take a step; or slide along the dots. The beads count your steps, and Undo takes a step back. After Shorten, tap a turning point in the row of dots to cancel its two steps.",
+   "controls": "A turning point is a dot with the same dot before and after it: its two steps go along one road and straight back. Tap a dot next to the pawn, or a road it stands on, to take a step; or slide along the dots. The beads count your steps, and Undo takes a step back. After Shorten, tap a turning point in the row of dots to cancel its two steps.",
    "rules": [
     "Each step takes the pawn along one road to the next dot.",
     "Two steps cancel when they go along the same road there and straight back. The dot between them is a turning point.",
@@ -787,7 +787,7 @@
    "objective": "Find every route an 8-step trip from A back to A can shorten to.",
    "visibleObjective": "Find every route an 8-step trip from A back to A can shorten to.",
    "instruction": "Find every route an 8-step trip from A back to A can shorten to.",
-   "controls": "Tap a dot next to the pawn, or a road it stands on, to take a step; or slide along the dots. The beads count your steps, and Undo takes a step back. After Shorten, tap a turning point in the row of dots to cancel its two steps.",
+   "controls": "A turning point is a dot with the same dot before and after it: its two steps go along one road and straight back. Tap a dot next to the pawn, or a road it stands on, to take a step; or slide along the dots. The beads count your steps, and Undo takes a step back. After Shorten, tap a turning point in the row of dots to cancel its two steps.",
    "rules": [
     "Each step takes the pawn along one road to the next dot.",
     "Two steps cancel when they go along the same road there and straight back. The dot between them is a turning point.",
@@ -898,7 +898,7 @@
    "objective": "Make a 12-step trip from H back to H, through both rings, that loses no steps.",
    "visibleObjective": "Make a 12-step trip from H back to H, through both rings, that loses no steps.",
    "instruction": "Make a 12-step trip from H back to H, through both rings, that loses no steps.",
-   "controls": "Tap a dot next to the pawn, or a road it stands on, to take a step; or slide along the dots. The beads count your steps, and Undo takes a step back. After Shorten, tap a turning point in the row of dots to cancel its two steps.",
+   "controls": "A turning point is a dot with the same dot before and after it: its two steps go along one road and straight back. Tap a dot next to the pawn, or a road it stands on, to take a step; or slide along the dots. The beads count your steps, and Undo takes a step back. After Shorten, tap a turning point in the row of dots to cancel its two steps.",
    "rules": [
     "Each step takes the pawn along one road to the next dot.",
     "Two steps cancel when they go along the same road there and straight back. The dot between them is a turning point.",
@@ -985,7 +985,7 @@
    "objective": "Find every route a trip of up to 6 steps from A to C can shorten to.",
    "visibleObjective": "Find every route a trip of up to 6 steps from A to C can shorten to.",
    "instruction": "Find every route a trip of up to 6 steps from A to C can shorten to.",
-   "controls": "Tap a dot next to the pawn, or a road it stands on, to take a step; or slide along the dots. The beads count your steps, and Undo takes a step back. After Shorten, tap a turning point in the row of dots to cancel its two steps.",
+   "controls": "A turning point is a dot with the same dot before and after it: its two steps go along one road and straight back. Tap a dot next to the pawn, or a road it stands on, to take a step; or slide along the dots. The beads count your steps, and Undo takes a step back. After Shorten, tap a turning point in the row of dots to cancel its two steps.",
    "rules": [
     "Each step takes the pawn along one road to the next dot.",
     "Two steps cancel when they go along the same road there and straight back. The dot between them is a turning point.",
@@ -1089,7 +1089,7 @@
    "objective": "Make a 9-step trip from H back to H that goes round the left ring once each way and loses no steps.",
    "visibleObjective": "Make a 9-step trip from H back to H that goes round the left ring once each way and loses no steps.",
    "instruction": "Make a 9-step trip from H back to H that goes round the left ring once each way and loses no steps.",
-   "controls": "Tap a dot next to the pawn, or a road it stands on, to take a step; or slide along the dots. The beads count your steps, and Undo takes a step back. After Shorten, tap a turning point in the row of dots to cancel its two steps.",
+   "controls": "A turning point is a dot with the same dot before and after it: its two steps go along one road and straight back. Tap a dot next to the pawn, or a road it stands on, to take a step; or slide along the dots. The beads count your steps, and Undo takes a step back. After Shorten, tap a turning point in the row of dots to cancel its two steps.",
    "rules": [
     "Each step takes the pawn along one road to the next dot.",
     "Two steps cancel when they go along the same road there and straight back. The dot between them is a turning point.",
@@ -1196,7 +1196,7 @@
    "objective": "Make a trip from H back to H that goes along every road once each way and loses no steps.",
    "visibleObjective": "Make a trip from H back to H that goes along every road once each way and loses no steps.",
    "instruction": "Make a trip from H back to H that goes along every road once each way and loses no steps.",
-   "controls": "Tap a dot next to the pawn, or a road it stands on, to take a step; or slide along the dots. The beads count your steps, and Undo takes a step back. After Shorten, tap a turning point in the row of dots to cancel its two steps.",
+   "controls": "A turning point is a dot with the same dot before and after it: its two steps go along one road and straight back. Tap a dot next to the pawn, or a road it stands on, to take a step; or slide along the dots. The beads count your steps, and Undo takes a step back. After Shorten, tap a turning point in the row of dots to cancel its two steps.",
    "rules": [
     "Each step takes the pawn along one road to the next dot.",
     "Two steps cancel when they go along the same road there and straight back. The dot between them is a turning point.",

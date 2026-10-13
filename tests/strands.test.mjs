@@ -110,7 +110,11 @@ test('untangle: one claim, Done with the copies tapped, checked only when it is 
 
 test('untangle with nothing forced: Done with no copies solves', () => {
   const p = byId('strands-01');
+  mechanicFor(p).reset(p);
   const a = play(p, freshAttempt(p), {type: 'bead', strand: 1, row: 3, x: 3}, {type: 'bead', strand: 1, row: 4, x: 3});
+  assert.match(view(p, a), /data-action="expansion-move" data-move="\{&quot;type&quot;:&quot;done&quot;,&quot;copies&quot;:\[\]\}"[^>]*>Done</, 'Done sends the empty certificate immediately');
+  assert.doesNotMatch(view(p, a), /data-focus="st-claim"|>That’s all</);
+  assert.equal(nextHint(p, a).text, 'No crossings are left. Press Done.');
   assert.equal(play(p, a, {type: 'done', copies: [0]}).board.told, 'copies');
   assert.ok(isSolved(p, play(p, a, {type: 'done', copies: []}).board));
 });

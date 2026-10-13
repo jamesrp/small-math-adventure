@@ -90,8 +90,8 @@
         ],
         "n": 2
       },
-      "objective": "Choose Take or Pass for each first offer so that the nine cards score as much as possible together.",
-      "instruction": "Choose Take or Pass for each first offer so that the nine cards score as much as possible together.",
+      "objective": "Make the nine cards score as much as possible together.",
+      "instruction": "Make the nine cards score as much as possible together.",
       "controls": "Tap a switch to change Take to Pass or back. Each card lights the offer the plan takes and fades the ones it never sees. Press Best plan when no plan scores more on all the cards together.",
       "rules": [
         "A bag holds three tickets, each as likely to be drawn as any other. Every offer is a fresh draw: the ticket goes back, so offers can repeat.",
@@ -136,8 +136,8 @@
         ],
         "n": 2
       },
-      "objective": "Choose Take or Pass for each first offer so that the nine cards score as much as possible together.",
-      "instruction": "Choose Take or Pass for each first offer so that the nine cards score as much as possible together.",
+      "objective": "Make the nine cards score as much as possible together.",
+      "instruction": "Make the nine cards score as much as possible together.",
       "controls": "Tap a switch to change Take to Pass or back. Each card lights the offer the plan takes and fades the ones it never sees. Press Best plan when no plan scores more on all the cards together.",
       "rules": [
         "A bag holds three tickets, each as likely to be drawn as any other. Every offer is a fresh draw: the ticket goes back, so offers can repeat.",
@@ -182,8 +182,8 @@
         ],
         "n": 2
       },
-      "objective": "Choose Take or Pass for each first offer so that the nine cards score as much as possible together.",
-      "instruction": "Choose Take or Pass for each first offer so that the nine cards score as much as possible together.",
+      "objective": "Make the nine cards score as much as possible together.",
+      "instruction": "Make the nine cards score as much as possible together.",
       "controls": "Tap a switch to change Take to Pass or back. Each card lights the offer the plan takes and fades the ones it never sees. Press Best plan when no plan scores more on all the cards together.",
       "rules": [
         "A bag holds three tickets, each as likely to be drawn as any other. Every offer is a fresh draw: the ticket goes back, so offers can repeat.",
@@ -345,8 +345,8 @@
         ],
         "n": 3
       },
-      "objective": "Choose Take or Pass for each first offer, and for each second offer after a passed first, so that the 27 cards score as much as possible together.",
-      "instruction": "Choose Take or Pass for each first offer, and for each second offer after a passed first, so that the 27 cards score as much as possible together.",
+      "objective": "Make the 27 cards score as much as possible together.",
+      "instruction": "Make the 27 cards score as much as possible together.",
       "controls": "Tap a switch to change Take to Pass or back. Each card lights the offer the plan takes and fades the ones it never sees. Press Best plan when no plan scores more on all the cards together.",
       "rules": [
         "A bag holds three tickets, each as likely to be drawn as any other. Every offer is a fresh draw: the ticket goes back, so offers can repeat.",
@@ -391,8 +391,8 @@
         ],
         "n": 3
       },
-      "objective": "Choose Take or Pass for each first offer, and for each second offer after a passed first, so that the 27 cards score as much as possible together.",
-      "instruction": "Choose Take or Pass for each first offer, and for each second offer after a passed first, so that the 27 cards score as much as possible together.",
+      "objective": "Make the 27 cards score as much as possible together.",
+      "instruction": "Make the 27 cards score as much as possible together.",
       "controls": "Tap a switch to change Take to Pass or back. Each card lights the offer the plan takes and fades the ones it never sees. Press Best plan when no plan scores more on all the cards together.",
       "rules": [
         "A bag holds three tickets, each as likely to be drawn as any other. Every offer is a fresh draw: the ticket goes back, so offers can repeat.",

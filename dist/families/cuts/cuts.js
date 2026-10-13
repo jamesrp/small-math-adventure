@@ -198,9 +198,10 @@ const shapePoints = P => P.xy.map((_, k) => at(P, k).map(f).join(',')).join(' ')
 const linePath = (P, d, cls, extra = '') => { const [a, b] = P.diagonals[d], [x1, y1] = at(P, a), [x2, y2] = at(P, b); return `<line class="${cls}" x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}"${extra}/>`; };
 
 // A small picture of a filling, for shelves and cards.
-export function mini(P, ds, cls = '', label = 'Filling') {
+export function mini(P, ds, cls = '', label = 'Filling', labeled = false) {
   const tris = pieces(P, ds).filter(t => t.length === 3).map(t => `<polygon class="ct-tri" points="${t.map(k => at(P, k).map(f).join(',')).join(' ')}"/>`).join('');
-  return `<svg class="ct-mini ${cls}" viewBox="-112 -112 224 224" role="img" aria-label="${esc(label)}">${tris}<polygon class="ct-shape" points="${shapePoints(P)}"/>${ds.map(d => linePath(P, d, 'ct-line')).join('')}</svg>`;
+  const labels = labeled ? P.xy.map((_, k) => { const [x, y] = at(P, k, R * 1.2); return `<text class="ct-label" x="${f(x)}" y="${f(y + 5)}" aria-hidden="true">${LETTERS[k]}</text>`; }).join('') : '';
+  return `<svg class="ct-mini ${cls}" viewBox="${labeled ? '-136 -136 272 272' : '-112 -112 224 224'}" role="img" aria-label="${esc(label)}">${tris}<polygon class="ct-shape" points="${shapePoints(P)}"/>${ds.map(d => linePath(P, d, 'ct-line')).join('')}${labels}</svg>`;
 }
 const describe = (P, ds) => ds.length ? `Lines ${ds.map(d => lineName(P, d)).join(', ')}` : 'No lines';
 
@@ -227,7 +228,7 @@ function drawBoard(P, ds, opts) {
 
 const moveButton = (label, action, cls = '', extra = '') => `<button type="button" class="secondary ct-action ${cls}" data-ct-move="${esc(JSON.stringify(action))}" data-focus="ct-${action.type}" ${extra}>${label}</button>`;
 const counter = (label, n, of, over) => `<p class="ct-counter" aria-label="${label}: ${n}${of === undefined ? '' : ` of ${of}`}">${label} <strong class="${over ? 'over' : ''}">${n}</strong>${of === undefined ? '' : ` / ${of}`}</p>`;
-const card = (P, key, label, cls) => `<figure class="ct-card ${cls}">${mini(P, fromKey(P, key), '', label)}</figure>`;
+const card = (P, key, label, cls) => `<figure class="ct-card ${cls}">${mini(P, fromKey(P, key), '', label, true)}</figure>`;
 
 function renderPuzzle(p, a) {
   const q = p.parameters, b = a.board, P = polygonFor(p), solved = solvedPuzzle(p, b), state = ui(p);
@@ -259,7 +260,9 @@ function renderPuzzle(p, a) {
       status = `${plural(flips, 'flip', 'flips')}. ${describe(P, ds)}.`;
     }
   }
-  return `<div class="ct-puzzle mode-${q.mode}${solved ? ' solved' : ''}" data-mechanic-wire="cuts">${top}<div class="ct-stage">${body}</div>${bottom}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  const stage = `<div class="ct-stage">${body}</div>`;
+  const workspace = q.mode === 'reach' || q.mode === 'home' ? `<div class="ct-comparison"><div class="ct-reference">${top}</div>${stage}</div>` : `${top}${stage}`;
+  return `<div class="ct-puzzle mode-${q.mode}${solved ? ' solved' : ''}" data-mechanic-wire="cuts">${workspace}${bottom}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 const sizeIcon = n => mini(polygonOf(n), [], 'ct-size-icon', SHAPES[n]);
 function renderPlay(p, a) {

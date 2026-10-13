@@ -78,7 +78,7 @@
       "id": "expansion-toggle-1",
       "title": "week-02-k-1.tex — K–1 / 1, Tasks 1–2, “Two at a time”",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-02/week-02-k-1.tex",
+      "path": "lowell-math-circle-year-2/source/week-02/week-02-k-1.tex",
       "section": "K–1 / 1, Tasks 1–2, “Two at a time”",
       "contribution": "The uniform endpoint flip and the four-cycle adjacent/opposite targets."
     },
@@ -86,7 +86,7 @@
       "id": "expansion-toggle-2",
       "title": "week-02-grades-2-3.tex — Grades 2–3 / 2, Task 4, “Make two far-apart lamps”",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-02/week-02-grades-2-3.tex",
+      "path": "lowell-math-circle-year-2/source/week-02/week-02-grades-2-3.tex",
       "section": "Grades 2–3 / 2, Task 4, “Make two far-apart lamps”",
       "contribution": "A path flips only its endpoints."
     },
@@ -94,7 +94,7 @@
       "id": "expansion-toggle-3",
       "title": "week-02-grades-4-5.tex — Grades 4–5 / 2, Tasks 3–4, and / 3, Task 7",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-02/week-02-grades-4-5.tex",
+      "path": "lowell-math-circle-year-2/source/week-02/week-02-grades-4-5.tex",
       "section": "Grades 4–5 / 2, Tasks 3–4, and / 3, Task 7",
       "contribution": "Two complementary reduced solutions on a ring, plus equal-length alternatives."
     },
@@ -102,7 +102,7 @@
       "id": "expansion-toggle-4",
       "title": "week-02-facilitator.tex — Facilitator / 3, “Undergraduate interpretation”; / 4, “Extra: why a tree has one solution” and “Research connection and its boundary”",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-02/week-02-facilitator.tex",
+      "path": "lowell-math-circle-year-2/source/week-02/week-02-facilitator.tex",
       "section": "Facilitator / 3, “Undergraduate interpretation”; / 4, “Extra: why a tree has one solution” and “Research connection and its boundary”",
       "contribution": "Binary incidence, tree forced edges, and T-joins."
     },
@@ -110,7 +110,7 @@
       "id": "expansion-toggle-5",
       "title": "week-02-redesign.md — “The mathematical destination”; “Sources and boundaries”; “Verification and future progression”",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/plans/week-02-redesign.md",
+      "path": "plans/week-02-redesign.md",
       "section": "“The mathematical destination”; “Sources and boundaries”; “Verification and future progression”",
       "contribution": "Undergraduate/research lineage and natural progression from rings to trees/networks."
     },
@@ -118,7 +118,7 @@
       "id": "expansion-toggle-6",
       "title": "Week 2 / Lamp lab / Compact puzzle catalog (F02-S-CAT-v2)",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog.pdf",
+      "path": "lowell-math-circle-year-2/week-02/week-02-shared-catalog.pdf",
       "section": "Problems 1–7 and 9; exact problem/target in each adaptation note",
       "contribution": "Exact graphs, starting states, and target pictures from the September 30 compact catalog. Problem 9 uses the bridge 2–5 from the shared data."
     },
@@ -126,7 +126,7 @@
       "id": "expansion-toggle-7",
       "title": "Week 2 / Lamp lab / Upper puzzle catalog (F02-S-CAT-UP-v1)",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog-upper.pdf",
+      "path": "lowell-math-circle-year-2/week-02/week-02-shared-catalog-upper.pdf",
       "section": "Problems 1, 2, 3, 4, and 6; exact lettered case in each adaptation note",
       "contribution": "Reachable path, ring, island, and tree targets; exact minima from Problem 4. All-solutions questions become individual target solves."
     },
@@ -134,7 +134,7 @@
       "id": "expansion-clock-1",
       "title": "week-04-k-1.tex — K–1 / 1, Tasks 1–2; / 2, Tasks 3–5",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-04/week-04-k-1.tex",
+      "path": "lowell-math-circle-year-2/source/week-04/week-04-k-1.tex",
       "section": "K–1 / 1, Tasks 1–2; / 2, Tasks 3–5",
       "contribution": "Concrete clockwise hops, skipped landings, and undo."
     },
@@ -142,7 +142,7 @@
       "id": "expansion-clock-2",
       "title": "week-04-grades-2-3.tex — Grades 2–3 / 2, Tasks 3–5, “A code that skips places”",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-04/week-04-grades-2-3.tex",
+      "path": "lowell-math-circle-year-2/source/week-04/week-04-grades-2-3.tex",
       "section": "Grades 2–3 / 2, Tasks 3–5, “A code that skips places”",
       "contribution": "Compare +2 and +3 on a ten-position ring; split into disjoint loops."
     },
@@ -150,7 +150,7 @@
       "id": "expansion-clock-3",
       "title": "week-04-grades-4-5.tex — Grades 4–5 / 2, Task 3; / 3, Tasks 5–7",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-04/week-04-grades-4-5.tex",
+      "path": "lowell-math-circle-year-2/source/week-04/week-04-grades-4-5.tex",
       "section": "Grades 4–5 / 2, Task 3; / 3, Tasks 5–7",
       "contribution": "Return times, divisibility, and the distinction between reversibility and a full orbit."
     },
@@ -158,7 +158,7 @@
       "id": "expansion-clock-4",
       "title": "week-04-facilitator.tex — Facilitator / 2, “Upper: key and complete classification”; / 3, “Upper: inverse and composition”",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-04/week-04-facilitator.tex",
+      "path": "lowell-math-circle-year-2/source/week-04/week-04-facilitator.tex",
       "section": "Facilitator / 2, “Upper: key and complete classification”; / 3, “Upper: inverse and composition”",
       "contribution": "The twelve-shift period table and cyclic-group interpretation."
     },
@@ -166,7 +166,7 @@
       "id": "expansion-clock-5",
       "title": "week-04-redesign.md — “Mathematical destination”; “Checked results and proofs”; “Sources, research boundary, and history”",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/plans/week-04-redesign.md",
+      "path": "plans/week-04-redesign.md",
       "section": "“Mathematical destination”; “Checked results and proofs”; “Sources, research boundary, and history”",
       "contribution": "Order n/gcd(n,k), including the local citation to Judson Ch. 4 §4.1, Theorem 4.13. Linked clocks are our extension, not a worksheet claim."
     },
@@ -174,7 +174,7 @@
       "id": "expansion-billiard-1",
       "title": "week-09-k-1.tex — K–1 page 1, Tasks 1–2; page 2, Task 4, “Open the wall”",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-09/week-09-k-1.tex",
+      "path": "lowell-math-circle-year-2/source/week-09/week-09-k-1.tex",
       "section": "K–1 page 1, Tasks 1–2; page 2, Task 4, “Open the wall”",
       "contribution": "Tall-table reflection and mirror-copy folding."
     },
@@ -182,7 +182,7 @@
       "id": "expansion-billiard-2",
       "title": "week-09-grades-2-3.tex — Grades 2–3 page 1, Tasks 1–2; page 2, Tasks 3–5",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-09/week-09-grades-2-3.tex",
+      "path": "lowell-math-circle-year-2/source/week-09/week-09-grades-2-3.tex",
       "section": "Grades 2–3 page 1, Tasks 1–2; page 2, Tasks 3–5",
       "contribution": "2×3 route, shared wall multiples, and inverse table design."
     },
@@ -190,7 +190,7 @@
       "id": "expansion-billiard-3",
       "title": "week-09-grades-4-5.tex — Grades 4–5 page 2, Tasks 3–6; page 3, Tasks 7–8",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-09/week-09-grades-4-5.tex",
+      "path": "lowell-math-circle-year-2/source/week-09/week-09-grades-4-5.tex",
       "section": "Grades 4–5 page 2, Tasks 3–6; page 3, Tasks 7–8",
       "contribution": "Reduced parity instead of raw even/odd side lengths; bounce count; inverse design."
     },
@@ -198,7 +198,7 @@
       "id": "expansion-billiard-4",
       "title": "week-09-facilitator.tex — Facilitator / 2, “Upper theorem with all hypotheses”; / 3, “Extra page: rational and irrational directions” and “Keep the conventions straight”; / 4, “Mathematical direction and primary sources”",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-09/week-09-facilitator.tex",
+      "path": "lowell-math-circle-year-2/source/week-09/week-09-facilitator.tex",
       "section": "Facilitator / 2, “Upper theorem with all hypotheses”; / 3, “Extra page: rational and irrational directions” and “Keep the conventions straight”; / 4, “Mathematical direction and primary sources”",
       "contribution": "Exact corner/bounce rules and physical versus normalized slope; local research lineage to Masur–Tabachnikov §§1.3–1.5."
     },
@@ -206,7 +206,7 @@
       "id": "expansion-billiard-5",
       "title": "week-09-redesign.md — “Verified mathematical backbone”; “Sources and boundary between class and research”; “Returning children and future branches”",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/plans/week-09-redesign.md",
+      "path": "plans/week-09-redesign.md",
       "section": "“Verified mathematical backbone”; “Sources and boundary between class and research”; “Returning children and future branches”",
       "contribution": "Source boundary, existing Lowell rectangle work, and why unfolding/inverse design matter."
     },
@@ -214,7 +214,7 @@
       "id": "expansion-route-1",
       "title": "week-10-redesign.md — Entry points and mathematical work; Verified mathematical backbone",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/plans/week-10-redesign.md",
+      "path": "plans/week-10-redesign.md",
       "section": "Entry points and mathematical work; Verified mathematical backbone",
       "contribution": "Euler-trail and route-inspection progression, adapted to app completion tasks."
     },
@@ -222,7 +222,7 @@
       "id": "expansion-route-2",
       "title": "week-10-facilitator.tex — One-walk maps: checks and proof; Delivery routes and optimality",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-10/week-10-facilitator.tex",
+      "path": "lowell-math-circle-year-2/source/week-10/week-10-facilitator.tex",
       "section": "One-walk maps: checks and proof; Delivery routes and optimality",
       "contribution": "Dead ends, cycle splicing, odd-vertex pairing; new maps or new parameters below."
     },
@@ -238,7 +238,7 @@
       "id": "expansion-color-1",
       "title": "grades-2-3-year-a.md — Summer Week 15 Map coloring; Entry points item 15 Maps",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/plans/grades-2-3-year-a.md",
+      "path": "plans/grades-2-3-year-a.md",
       "section": "Summer Week 15 Map coloring; Entry points item 15 Maps",
       "contribution": "Local source proposes neighbor coloring and smallest sufficient palette; its cited JRMF PDF was not independently read for this catalog."
     },
@@ -262,7 +262,7 @@
       "id": "expansion-latin-1",
       "title": "week-05-k-1.tex — Task 5, A tiny city",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-05/week-05-k-1.tex",
+      "path": "lowell-math-circle-year-2/source/week-05/week-05-k-1.tex",
       "section": "Task 5, A tiny city",
       "contribution": "Entry-level pure row/column object."
     },
@@ -270,7 +270,7 @@
       "id": "expansion-latin-2",
       "title": "week-05-extra-grades-6-7.tex — RuleBox; Tasks 1–3, Small swaps force a lower bound",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-05/week-05-extra-grades-6-7.tex",
+      "path": "lowell-math-circle-year-2/source/week-05/week-05-extra-grades-6-7.tex",
       "section": "RuleBox; Tasks 1–3, Small swaps force a lower bound",
       "contribution": "Entry-clue model and Latin trades; the app drops proof tasks."
     },
@@ -278,7 +278,7 @@
       "id": "expansion-latin-3",
       "title": "week-05-facilitator.tex — Extra: a lower bound with an escape move; Where the mathematics goes",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-05/week-05-facilitator.tex",
+      "path": "lowell-math-circle-year-2/source/week-05/week-05-facilitator.tex",
       "section": "Extra: a lower bound with an escape move; Where the mathematics goes",
       "contribution": "Entry-clue determining sets, Latin trades, and research connection."
     },
@@ -286,7 +286,7 @@
       "id": "expansion-latin-4",
       "title": "week-05-redesign.md — The mathematical work; Checked mathematics and boundaries; Sources and lineage",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/plans/week-05-redesign.md",
+      "path": "plans/week-05-redesign.md",
       "section": "The mathematical work; Checked mathematics and boundaries; Sources and lineage",
       "contribution": "Distinguishes entry clues from visibility clues; cites undergraduate Latin squares and critical-set research."
     },
@@ -294,7 +294,7 @@
       "id": "expansion-code-1",
       "title": "week-06-k-1.tex — RuleBox; Tasks 2–4",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-06/week-06-k-1.tex",
+      "path": "lowell-math-circle-year-2/source/week-06/week-06-k-1.tex",
       "section": "RuleBox; Tasks 2–4",
       "contribution": "Binary repetition and exact-position feedback."
     },
@@ -302,7 +302,7 @@
       "id": "expansion-code-2",
       "title": "week-06-grades-2-3.tex — Tasks 2–3, Change exactly one place; Three tests, then name the secret",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-06/week-06-grades-2-3.tex",
+      "path": "lowell-math-circle-year-2/source/week-06/week-06-grades-2-3.tex",
       "section": "Tasks 2–3, Change exactly one place; Three tests, then name the secret",
       "contribution": "Difference-of-scores decoding."
     },
@@ -310,7 +310,7 @@
       "id": "expansion-code-3",
       "title": "week-06-extra-grades-6-7.tex — Tasks 1–3, Five places, only four tests",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-06/week-06-extra-grades-6-7.tex",
+      "path": "lowell-math-circle-year-2/source/week-06/week-06-extra-grades-6-7.tex",
       "section": "Tasks 1–3, Five places, only four tests",
       "contribution": "Five-bit landmarks 00000,00011,00101,01001; new score histories here."
     },
@@ -318,7 +318,7 @@
       "id": "expansion-code-4",
       "title": "week-06-facilitator.tex — Extra: decode and prove; Undergraduate and research connections",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-06/week-06-facilitator.tex",
+      "path": "lowell-math-circle-year-2/source/week-06/week-06-facilitator.tex",
       "section": "Extra: decode and prove; Undergraduate and research connections",
       "contribution": "Pair-sum decoding and local citation to Cáceres et al., Sections 2 and 6."
     },
@@ -326,7 +326,7 @@
       "id": "expansion-code-5",
       "title": "week-06-redesign.md — Checked mathematics and boundaries; Sources and lineage",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/plans/week-06-redesign.md",
+      "path": "plans/week-06-redesign.md",
       "section": "Checked mathematics and boundaries; Sources and lineage",
       "contribution": "Identifying versus submitting; exact-position feedback distinguished from commercial Mastermind."
     },
@@ -334,7 +334,7 @@
       "id": "expansion-nim-1",
       "title": "week-07-k-1.tex — Tasks 2–5, Can you leave a little trap? and A trap that grows",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-k-1.tex",
+      "path": "lowell-math-circle-year-2/source/week-07/week-07-k-1.tex",
       "section": "Tasks 2–5, Can you leave a little trap? and A trap that grows",
       "contribution": "Pedagogical precursor: a winning move must work against every reply. The constrained subtraction rule is not carried into this family."
     },
@@ -342,7 +342,7 @@
       "id": "expansion-nim-2",
       "title": "week-07-facilitator.tex — Middle: backward reasoning; Extra: smallest-missing labels",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-facilitator.tex",
+      "path": "lowell-math-circle-year-2/source/week-07/week-07-facilitator.tex",
       "section": "Middle: backward reasoning; Extra: smallest-missing labels",
       "contribution": "Recursive W/L definition and why combined games need richer labels."
     },
@@ -350,7 +350,7 @@
       "id": "expansion-nim-3",
       "title": "week-08-k-1.tex — Task 4, Two little piles",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-k-1.tex",
+      "path": "lowell-math-circle-year-2/source/week-08/week-08-k-1.tex",
       "section": "Task 4, Two little piles",
       "contribution": "Natural unrestricted removal rule and mirror play."
     },
@@ -358,7 +358,7 @@
       "id": "expansion-nim-4",
       "title": "week-08-grades-2-3.tex — Tasks 3–5, The board is two piles",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-2-3.tex",
+      "path": "lowell-math-circle-year-2/source/week-08/week-08-grades-2-3.tex",
       "section": "Tasks 3–5, The board is two piles",
       "contribution": "Equality strategy and third-pile counterexamples."
     },
@@ -366,7 +366,7 @@
       "id": "expansion-nim-5",
       "title": "week-08-grades-4-5.tex — Tasks 2–6, Compare two kinds of balance; Balance the binary columns",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-4-5.tex",
+      "path": "lowell-math-circle-year-2/source/week-08/week-08-grades-4-5.tex",
       "section": "Tasks 2–6, Compare two kinds of balance; Balance the binary columns",
       "contribution": "Transition from total/equality heuristics to binary bundles."
     },
@@ -374,7 +374,7 @@
       "id": "expansion-nim-6",
       "title": "week-08-facilitator.tex — The binary invariant; Why the test is sufficient, for any number of piles",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-facilitator.tex",
+      "path": "lowell-math-circle-year-2/source/week-08/week-08-facilitator.tex",
       "section": "The binary invariant; Why the test is sufficient, for any number of piles",
       "contribution": "Winning algorithm and primary historical Bouton citation."
     },
@@ -382,7 +382,7 @@
       "id": "expansion-nim-7",
       "title": "week-08-redesign.md — Verified mathematical backbone",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/plans/week-08-redesign.md",
+      "path": "plans/week-08-redesign.md",
       "section": "Verified mathematical backbone",
       "contribution": "Exact normal-play rules and complete two-obligation reasoning."
     },
@@ -390,7 +390,7 @@
       "id": "expansion-jug-1",
       "title": "week-04-redesign.md — Mathematical destination; Checked results and proofs",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/plans/week-04-redesign.md",
+      "path": "plans/week-04-redesign.md",
       "section": "Mathematical destination; Checked results and proofs",
       "contribution": "Conceptual link only; these are newly authored jug tasks, not worksheet exercises."
     },
@@ -406,7 +406,7 @@
       "id": "expansion-weigh-1",
       "title": "week-06-facilitator.tex — K–1: elimination becomes a decision tree; A difficult answer that stays consistent",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-06/week-06-facilitator.tex",
+      "path": "lowell-math-circle-year-2/source/week-06/week-06-facilitator.tex",
       "section": "K–1: elimination becomes a decision tree; A difficult answer that stays consistent",
       "contribution": "Adapt the experiment-and-update structure to a different physical mathematical model."
     },
@@ -414,7 +414,7 @@
       "id": "expansion-weigh-2",
       "title": "Daniel Finkel and the Balance Problem - The New York Times.pdf — The Balance Problem, page 1; solutions, pages 2–3",
       "kind": "local curriculum",
-      "path": "/Users/jamespfeiffer/math-circle/external-resources/nytimes/Daniel Finkel and the Balance Problem - The New York Times.pdf",
+      "path": "Daniel Finkel and the Balance Problem - The New York Times.pdf",
       "section": "The Balance Problem, page 1; solutions, pages 2–3",
       "contribution": "Supplementary local inspiration for balance experiments and known/unknown coin status; its two-bag problem is not copied."
     },
@@ -11654,7 +11654,7 @@
         "T-UP"
       ],
       "provenance": "Week 2 upper catalog, Problem 6, case B. Exact graph, start, and target; the worksheet asks for every solution set. The app accepts any solution; comparing all reduced sets remains in the grown-up notes.",
-      "difficulty_level": "hard",
+      "difficulty_level": "easy",
       "worksheet": {
         "catalog": "upper",
         "problem": 6,

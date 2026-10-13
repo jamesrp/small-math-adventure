@@ -16,7 +16,7 @@
 .mr-goal .mr-icon{width:24px}
 
 /* The board. */
-.mr-puzzle .sg-board.mr-board{max-width:420px;max-height:62vh;margin:.2rem auto 0}
+.mr-puzzle .sg-board.mr-board{max-width:350px;max-height:48vh;margin:.2rem auto 0}
 .mr-board .sg-cell{fill:#fbf8ec;stroke:#c9d0b5}
 .mr-board .sg-cell.mr-pos{fill:var(--b-sun,#efc76e);fill-opacity:.5}
 .mr-board .sg-cell.mr-pos.deep{fill-opacity:1}

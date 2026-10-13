@@ -57,6 +57,7 @@ const RULES = {
     'Press No dot works when you think no dot is a meeting dot. If one still is, it appears with a shortest walk to it from each home.'
   ]
 };
+const MEETING = 'A meeting dot lies on a shortest route between each pair of homes.';
 const CONTROLS = {
   walk: 'Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.',
   close: 'Tap a road to close it, and tap it again to open it. The slot shows how many roads may be closed. Press No dot works when you are sure. Undo takes back the last change.',
@@ -162,7 +163,7 @@ const out = PUZZLES.map(item => {
     id: id(item.number), number: item.number, title: item.title, difficulty_level: item.level, familyTitle: 'Meeting roads', mechanic: 'meeting', band: 'all', revision: 1, sourceDocument: 'docs/meeting/README.md',
     parameters: q,
     objective: OBJECTIVE[item.mode], visibleObjective: VISIBLE[item.mode], instruction: OBJECTIVE[item.mode],
-    controls: CONTROLS[item.mode === 'close' ? 'close' : 'walk'],
+    controls: `${MEETING} ${CONTROLS[item.mode === 'close' ? 'close' : 'walk']}`,
     rules: item.mode === 'close' ? RULES.close : [...RULES.walk, ...(item.mode === 'every' ? [RULES.every] : [])],
     idea: item.idea, prerequisites: PREREQUISITES[item.prereq], hints: item.hints,
     parent: {...item.parent, sourceIds: sources}, solution, provenance: item.provenance
@@ -180,7 +181,7 @@ const playground = {
   parameters: {mode: 'playground', maps: playMaps},
   objective: 'Walk the three walkers on any map to find meeting dots, and move the homes to set a new puzzle.', visibleObjective: '',
   instruction: 'Walk the three walkers on any map to find meeting dots, and move the homes to set a new puzzle.',
-  controls: CONTROLS.playground,
+  controls: `${MEETING} ${CONTROLS.playground}`,
   rules: [...RULES.walk, 'Each meeting dot found gets a ring, and the walkers go home.'],
   idea: 'Free play on a grid, a tree and the cube: place three homes and find where they meet.',
   prerequisites: 'None. A grown-up or a partner can set the homes as a challenge.',

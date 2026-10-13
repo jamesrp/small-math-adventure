@@ -326,7 +326,7 @@ function renderPuzzle(p, a) {
   if (q.mode === 'pack') {
     top = `<div class="rh-tools" role="group" aria-label="Tool">${toolButton('piece', rhombusIcon, 'Rhombi', b.pieces.length, tool === 'piece', hint?.tool === 'piece' && tool !== 'piece')}${toolButton('dot', dotIcon, 'Dots', b.dots.length, tool === 'dot', hint?.tool === 'dot' && tool !== 'dot')}</div>`;
   } else if (q.mode === 'fill' && !b.pieces.length) {
-    top = `<p class="rh-prompt">${pieceIcon(shape)}<span>Drag across ${shape === 'chevron' ? 4 : 2} triangles</span></p>`;
+    top = `<p class="rh-prompt">${pieceIcon(shape)}<span>Tap or drag ${shape === 'chevron' ? 4 : 2} triangles</span></p>`;
   } else if (q.mode === 'flip') {
     const over = b.flips > q.budget;
     top = `<div class="rh-goalbar"><figure class="rh-goal" aria-label="Goal">${mini(g, q.goal, 'goal', 'Goal tiling')}<figcaption aria-hidden="true">⚑</figcaption></figure><p class="rh-counter" aria-label="Flips: ${b.flips} of ${q.budget}">Flips <strong class="${over ? 'over' : ''}">${b.flips}</strong> / ${q.budget}</p></div>`;

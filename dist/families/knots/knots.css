@@ -8,7 +8,7 @@
 .kn-puzzle{display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%;
   --kn-red:#d1473a;--kn-blue:#3a6dc3;--kn-yellow:#f1c232;--kn-paper:#fffdf5;--kn-ink:var(--b-ink,#294439)}
 .kn-frame{width:100%;display:flex;justify-content:center}
-.kn-board{width:100%;max-width:440px;max-height:72vh;height:auto;overflow:visible;touch-action:manipulation}
+.kn-board{width:100%;max-width:380px;max-height:52vh;height:auto;overflow:visible;touch-action:manipulation}
 /* A before and an after picture: side by side, or one above the other on a
    narrow screen, each on its own card. */
 .kn-pair{display:flex;align-items:center;justify-content:center;gap:.35rem;width:100%}

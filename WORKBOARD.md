@@ -59,8 +59,7 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Dot/Codex briefs for the keeper reaction clips and scene motion, and a kickoff prompt (plan item 6); keeper reaction stills now show in the game | Claude, Codex lane thread | `claude/codex-lane-h6jaem` | done |
 | Deployed puzzle review, October 12: clarity, controls, visual design and mathematics (57 families; no app edits) | Codex and review subagents | `main` (review only) | done; 57 families reviewed, 67 completed puzzle IDs; feedback delivered in the review chat |
 | Review How to play browser TTS and audition custom ElevenLabs instruction voices (James, October 12) | Codex, Help voice auditions thread | `codex/help-voice-auditions` | in progress; samples only, James picks before production |
-
-| Puzzle review fixes: CSS isolation and board layouts (family styles, sites/strings selectors, shared board CSS) | Codex layout subagent | `codex/puzzle-review-layout` | in progress |
-| Puzzle review fixes: keyboard, clock controls and completion flows | Codex controls subagent | `codex/puzzle-review-controls` | in progress |
-| Puzzle review fixes: first-panel Help definitions and concise copy (packs and authoring scripts) | Codex Help subagent | `codex/puzzle-review-help` | in progress |
-| Puzzle review fixes: integration, difficulty labels, remaining recommendations and verification | Codex | `codex/puzzle-review-fixes` | in progress |
+| Puzzle review fixes: CSS isolation and board layouts (family styles, sites/strings selectors, shared board CSS) | Codex layout subagent | `codex/puzzle-review-layout` | done; tested and integrated to main |
+| Puzzle review fixes: keyboard, clock controls and completion flows | Codex controls subagent | `codex/puzzle-review-controls` | done; tested and integrated to main |
+| Puzzle review fixes: first-panel Help definitions and concise copy (packs and authoring scripts) | Codex Help subagent | `codex/puzzle-review-help` | done; tested and integrated to main |
+| Puzzle review fixes: integration, difficulty labels, remaining recommendations and verification | Codex | `codex/puzzle-review-fixes` | done; tested and integrated to main |

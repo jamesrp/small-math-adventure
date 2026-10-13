@@ -93,7 +93,7 @@
       },
       "objective": "Sort every side that could show red by the colour underneath.",
       "instruction": "Sort every side that could show red by the colour underneath.",
-      "controls": "Tap a side in the cup to draw it: it shows, and the other side of its card is covered. Tap the ? to turn the card over, then put the side with the colour underneath. Press That’s all when every one is there.",
+      "controls": "Tap a side to draw it: it shows, and the other side of its card is covered. Tap the ? to turn the card over, then put the side with the colour underneath. Press That’s all when every one is there.",
       "rules": [
         "Three cards: one red on both sides, one red on one side and blue on the other, one blue on both sides. Their six sides are numbered 1 to 6.",
         "A number is drawn from the cup, each number in the cup as likely as any other, and that side shows. The other side of its card is underneath."
@@ -142,7 +142,7 @@
       },
       "objective": "Sort every side that could show blue by the colour underneath.",
       "instruction": "Sort every side that could show blue by the colour underneath.",
-      "controls": "Tap a side in the cup to draw it: it shows, and the other side of its card is covered. Tap the ? to turn the card over, then put the side with the colour underneath. Press That’s all when every one is there.",
+      "controls": "Tap a side to draw it: it shows, and the other side of its card is covered. Tap the ? to turn the card over, then put the side with the colour underneath. Press That’s all when every one is there.",
       "rules": [
         "Three cards: one red on both sides, one red on one side and blue on the other, one blue on both sides. Their six sides are numbered 1 to 6.",
         "A number is drawn from the cup, each number in the cup as likely as any other, and that side shows. The other side of its card is underneath."
@@ -186,7 +186,7 @@
       },
       "objective": "With only 1 and 3 in the cup, sort every side that could show red by the colour underneath.",
       "instruction": "With only 1 and 3 in the cup, sort every side that could show red by the colour underneath.",
-      "controls": "Tap a side in the cup to draw it: it shows, and the other side of its card is covered. Tap the ? to turn the card over, then put the side with the colour underneath. Press That’s all when every one is there.",
+      "controls": "Tap a side to draw it: it shows, and the other side of its card is covered. Tap the ? to turn the card over, then put the side with the colour underneath. Press That’s all when every one is there.",
       "rules": [
         "Three cards: one red on both sides, one red on one side and blue on the other, one blue on both sides. Their six sides are numbered 1 to 6.",
         "A number is drawn from the cup, each number in the cup as likely as any other, and that side shows. The other side of its card is underneath."

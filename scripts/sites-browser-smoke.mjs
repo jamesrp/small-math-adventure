@@ -69,6 +69,9 @@ try {
   console.log(`Crossings ${gap.toFixed(1)} px apart on a ${width.toFixed(0)} px board.`);
   if (phone) assert.ok(gap >= 25, `crossings at least 25 px apart on a phone (${gap.toFixed(1)})`);
   assert.equal(await page.locator('[data-st-board]').evaluate(e => getComputedStyle(e).webkitTapHighlightColor), 'rgba(0, 0, 0, 0)', 'no tap flash');
+  const frame = await page.locator('[data-mechanic-wire="sites"] rect.st-frame').evaluate(e => ({width: Number(e.getAttribute('width')), rendered: parseFloat(getComputedStyle(e).width)}));
+  assert.equal(frame.rendered, frame.width, 'family styles preserve the authored frame width');
+
   const [whole, half] = await page.evaluate(() => ['.st-grid:not(.half)', '.st-grid.half'].map(c => getComputedStyle(document.querySelector(c)).stroke));
   assert.notEqual(whole, half, 'whole-square lines differ from half-square lines');
   assert.match(await page.locator('body').innerText(), /Make A’s region exactly the shaded part\./);

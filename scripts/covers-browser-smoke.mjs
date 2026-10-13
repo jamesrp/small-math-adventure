@@ -25,7 +25,7 @@ const board = id => page.evaluate(([k, id]) => JSON.parse(localStorage.getItem(k
 const open = async id => { await page.goto(`${base}/#play/${id}`); await page.locator('.cv-puzzle').waitFor(); };
 const done = () => page.locator('#completion-heading').waitFor({timeout: 5000});
 const fit = async label => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `${label}: no page overflow`);
-const center = async locator => { const b = await locator.boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
+const center = async locator => { await locator.scrollIntoViewIfNeeded(); const b = await locator.boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
 const tapAt = async (x, y) => { if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); };
 const tap = async locator => tapAt(...await center(locator));
 const piece = k => page.locator(`.cv-board [data-sg-piece="${k}"]`);

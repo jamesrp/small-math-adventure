@@ -7,7 +7,7 @@
 .sb-puzzle,.sb-help{--sb-sun-edge:#c99a35;--sb-sky-edge:#5d93b0}
 .sb-puzzle{display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%}
 .sb-stage{width:100%;display:flex;justify-content:center}
-.sb-puzzle .sg-board.sb-board{max-width:420px;max-height:60vh;margin:.1rem auto 0}
+.sb-puzzle .sg-board.sb-board{max-width:360px;max-height:48vh;margin:.1rem auto 0}
 .sb-board .sg-cell{fill:#fbf8ec;stroke:#e3e5d3}
 .sb-pip{fill:#9aa88f;pointer-events:none}
 

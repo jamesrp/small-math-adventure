@@ -144,6 +144,18 @@ test('clock gear mode accepts every valid gear and rejects early returns', () =>
   assert.equal(handler.move(p, initial(p), { jump: 12 }), null);
 });
 
+test('long clock periods use a compact count input while introductory charts remain tappable', () => {
+  const handler = motionMechanics.clock;
+  const small = puzzle('clock-01'), large = puzzle('clock-12');
+  const taps = handler.render(small, {board: initial(small)});
+  assert.match(taps, /type="radio" name="activations"/);
+  assert.doesNotMatch(taps, /class="bell-count"/);
+  const input = handler.render(large, {board: initial(large)}, {clockPresentation: {draft: '19'}});
+  assert.match(input, /type="number" name="activations" min="1" max="60" step="1" inputmode="numeric" value="19"/);
+  assert.doesNotMatch(input, /class="bell-chart"|type="radio"/);
+  assert.equal(handler.solved(large, handler.move(large, initial(large), {activations: '19'})), true);
+});
+
 test('choose-jump ring maps taps and drags to allowed clockwise jumps', () => {
   for (const id of ['clock-04', 'clock-07']) {
     const p = puzzle(id), {positions,start,jump_min,jump_max} = p.parameters;

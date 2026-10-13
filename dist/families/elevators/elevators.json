@@ -60,7 +60,7 @@
    "objective": "Ride the elevators and step anywhere.",
    "visibleObjective": "",
    "instruction": "Ride the elevators and step anywhere.",
-   "controls": "Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back. Clear starts again from 0.",
+   "controls": "Up or Down rides one level. Left or Right moves by the number beside that level; each level doubles the step length. Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back. Clear starts again from 0.",
    "rules": [
     "Up and Down ride one level. The car can’t go below the ground.",
     "A step left or right is as long as the number beside its level: 1 on the ground, then 2, 4, 8, 16 and 32. Each level doubles.",
@@ -109,7 +109,7 @@
    "objective": "Reach the flag and end on the ground.",
    "visibleObjective": "",
    "instruction": "Reach the flag and end on the ground.",
-   "controls": "Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
+   "controls": "Up or Down rides one level. Left or Right moves by the number beside that level; each level doubles the step length. Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
    "rules": [
     "Up and Down ride one level. The car can’t go below the ground.",
     "A step left or right is as long as the number beside its level: 1 on the ground, then 2, 4, 8, 16 and 32. Each level doubles.",
@@ -161,7 +161,7 @@
    "objective": "Reach the flag and end on the ground.",
    "visibleObjective": "",
    "instruction": "Reach the flag and end on the ground.",
-   "controls": "Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
+   "controls": "Up or Down rides one level. Left or Right moves by the number beside that level; each level doubles the step length. Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
    "rules": [
     "Up and Down ride one level. The car can’t go below the ground.",
     "A step left or right is as long as the number beside its level: 1 on the ground, then 2, 4, 8, 16 and 32. Each level doubles.",
@@ -213,7 +213,7 @@
    "objective": "Reach the flag and end on the ground.",
    "visibleObjective": "",
    "instruction": "Reach the flag and end on the ground.",
-   "controls": "Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
+   "controls": "Up or Down rides one level. Left or Right moves by the number beside that level; each level doubles the step length. Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
    "rules": [
     "Up and Down ride one level. The car can’t go below the ground.",
     "A step left or right is as long as the number beside its level: 1 on the ground, then 2, 4, 8, 16 and 32. Each level doubles.",
@@ -265,7 +265,7 @@
    "objective": "Reach the flag and end on the ground.",
    "visibleObjective": "",
    "instruction": "Reach the flag and end on the ground.",
-   "controls": "Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
+   "controls": "Up or Down rides one level. Left or Right moves by the number beside that level; each level doubles the step length. Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
    "rules": [
     "Up and Down ride one level. The car can’t go below the ground.",
     "A step left or right is as long as the number beside its level: 1 on the ground, then 2, 4, 8, 16 and 32. Each level doubles.",
@@ -317,7 +317,7 @@
    "objective": "Reach the flag and end on the ground.",
    "visibleObjective": "",
    "instruction": "Reach the flag and end on the ground.",
-   "controls": "Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
+   "controls": "Up or Down rides one level. Left or Right moves by the number beside that level; each level doubles the step length. Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
    "rules": [
     "Up and Down ride one level. The car can’t go below the ground.",
     "A step left or right is as long as the number beside its level: 1 on the ground, then 2, 4, 8, 16 and 32. Each level doubles.",
@@ -369,7 +369,7 @@
    "objective": "Reach the flag and end on the ground.",
    "visibleObjective": "",
    "instruction": "Reach the flag and end on the ground.",
-   "controls": "Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
+   "controls": "Up or Down rides one level. Left or Right moves by the number beside that level; each level doubles the step length. Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
    "rules": [
     "Up and Down ride one level. The car can’t go below the ground.",
     "A step left or right is as long as the number beside its level: 1 on the ground, then 2, 4, 8, 16 and 32. Each level doubles.",
@@ -421,7 +421,7 @@
    "objective": "Reach the flag and end on the ground.",
    "visibleObjective": "",
    "instruction": "Reach the flag and end on the ground.",
-   "controls": "Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
+   "controls": "Up or Down rides one level. Left or Right moves by the number beside that level; each level doubles the step length. Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
    "rules": [
     "Up and Down ride one level. The car can’t go below the ground.",
     "A step left or right is as long as the number beside its level: 1 on the ground, then 2, 4, 8, 16 and 32. Each level doubles.",
@@ -476,7 +476,7 @@
    "objective": "End on the ground as far right as you can in 9 moves.",
    "visibleObjective": "Go as far right as you can.",
    "instruction": "End on the ground as far right as you can in 9 moves.",
-   "controls": "Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
+   "controls": "Up or Down rides one level. Left or Right moves by the number beside that level; each level doubles the step length. Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
    "rules": [
     "Up and Down ride one level. The car can’t go below the ground.",
     "A step left or right is as long as the number beside its level: 1 on the ground, then 2, 4, 8, 16 and 32. Each level doubles.",
@@ -528,7 +528,7 @@
    "objective": "Reach the flag and end on the ground.",
    "visibleObjective": "",
    "instruction": "Reach the flag and end on the ground.",
-   "controls": "Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
+   "controls": "Up or Down rides one level. Left or Right moves by the number beside that level; each level doubles the step length. Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
    "rules": [
     "Up and Down ride one level. The car can’t go below the ground.",
     "A step left or right is as long as the number beside its level: 1 on the ground, then 2, 4, 8, 16 and 32. Each level doubles.",
@@ -582,7 +582,7 @@
    "objective": "End on the ground as far right as you can in 11 moves.",
    "visibleObjective": "Go as far right as you can.",
    "instruction": "End on the ground as far right as you can in 11 moves.",
-   "controls": "Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
+   "controls": "Up or Down rides one level. Left or Right moves by the number beside that level; each level doubles the step length. Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
    "rules": [
     "Up and Down ride one level. The car can’t go below the ground.",
     "A step left or right is as long as the number beside its level: 1 on the ground, then 2, 4, 8, 16 and 32. Each level doubles.",
@@ -634,7 +634,7 @@
    "objective": "Reach the flag and end on the ground.",
    "visibleObjective": "",
    "instruction": "Reach the flag and end on the ground.",
-   "controls": "Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
+   "controls": "Up or Down rides one level. Left or Right moves by the number beside that level; each level doubles the step length. Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
    "rules": [
     "Up and Down ride one level. The car can’t go below the ground.",
     "A step left or right is as long as the number beside its level: 1 on the ground, then 2, 4, 8, 16 and 32. Each level doubles.",
@@ -687,7 +687,7 @@
    "objective": "Reach the flag and end on the ground.",
    "visibleObjective": "",
    "instruction": "Reach the flag and end on the ground.",
-   "controls": "Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
+   "controls": "Up or Down rides one level. Left or Right moves by the number beside that level; each level doubles the step length. Tap an arrow, press an arrow key, or tap a ringed dot next to the car. Undo takes a move back.",
    "rules": [
     "Up and Down ride one level. The car can’t go below the ground.",
     "A step left or right is as long as the number beside its level: 1 on the ground, then 2, 4, 8, 16 and 32. Each level doubles.",

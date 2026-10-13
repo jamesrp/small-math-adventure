@@ -19,45 +19,45 @@
       "sources": [
         {
           "id": "T-K",
-          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-02/week-02-k-1.tex",
+          "path": "lowell-math-circle-year-2/source/week-02/week-02-k-1.tex",
           "section": "K–1 / 1, Tasks 1–2, “Two at a time”",
           "contribution": "The uniform endpoint flip and the four-cycle adjacent/opposite targets."
         },
         {
           "id": "T-M",
-          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-02/week-02-grades-2-3.tex",
+          "path": "lowell-math-circle-year-2/source/week-02/week-02-grades-2-3.tex",
           "section": "Grades 2–3 / 2, Task 4, “Make two far-apart lamps”",
           "contribution": "A path flips only its endpoints."
         },
         {
           "id": "T-U",
-          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-02/week-02-grades-4-5.tex",
+          "path": "lowell-math-circle-year-2/source/week-02/week-02-grades-4-5.tex",
           "section": "Grades 4–5 / 2, Tasks 3–4, and / 3, Task 7",
           "contribution": "Two complementary reduced solutions on a ring, plus equal-length alternatives."
         },
         {
           "id": "T-F",
-          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-02/week-02-facilitator.tex",
+          "path": "lowell-math-circle-year-2/source/week-02/week-02-facilitator.tex",
           "section": "Facilitator / 3, “Undergraduate interpretation”; / 4, “Extra: why a tree has one solution” and “Research connection and its boundary”",
           "contribution": "Binary incidence, tree forced edges, and T-joins."
         },
         {
           "id": "T-R",
-          "path": "/Users/jamespfeiffer/math-circle/plans/week-02-redesign.md",
+          "path": "plans/week-02-redesign.md",
           "section": "“The mathematical destination”; “Sources and boundaries”; “Verification and future progression”",
           "contribution": "Undergraduate/research lineage and natural progression from rings to trees/networks."
         },
         {
           "id": "T-CAT",
           "title": "Week 2 / Lamp lab / Compact puzzle catalog (F02-S-CAT-v2)",
-          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog.pdf",
+          "path": "lowell-math-circle-year-2/week-02/week-02-shared-catalog.pdf",
           "section": "Problems 1–7 and 9; exact problem/target in each adaptation note",
           "contribution": "Exact graphs, starting states, and target pictures from the September 30 compact catalog. Problem 9 uses the bridge 2–5 from the shared data."
         },
         {
           "id": "T-UP",
           "title": "Week 2 / Lamp lab / Upper puzzle catalog (F02-S-CAT-UP-v1)",
-          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/week-02/week-02-shared-catalog-upper.pdf",
+          "path": "lowell-math-circle-year-2/week-02/week-02-shared-catalog-upper.pdf",
           "section": "Problems 1, 2, 3, 4, and 6; exact lettered case in each adaptation note",
           "contribution": "Reachable path, ring, island, and tree targets; exact minima from Problem 4. All-solutions questions become individual target solves."
         }
@@ -4858,7 +4858,7 @@
             "T-UP"
           ],
           "provenance": "Week 2 upper catalog, Problem 6, case B. Exact graph, start, and target; the worksheet asks for every solution set. The app accepts any solution; comparing all reduced sets remains in the grown-up notes.",
-          "difficulty_level": "hard",
+          "difficulty_level": "easy",
           "worksheet": {
             "catalog": "upper",
             "problem": 6,
@@ -4900,31 +4900,31 @@
       "sources": [
         {
           "id": "C-K",
-          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-04/week-04-k-1.tex",
+          "path": "lowell-math-circle-year-2/source/week-04/week-04-k-1.tex",
           "section": "K–1 / 1, Tasks 1–2; / 2, Tasks 3–5",
           "contribution": "Concrete clockwise hops, skipped landings, and undo."
         },
         {
           "id": "C-M",
-          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-04/week-04-grades-2-3.tex",
+          "path": "lowell-math-circle-year-2/source/week-04/week-04-grades-2-3.tex",
           "section": "Grades 2–3 / 2, Tasks 3–5, “A code that skips places”",
           "contribution": "Compare +2 and +3 on a ten-position ring; split into disjoint loops."
         },
         {
           "id": "C-U",
-          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-04/week-04-grades-4-5.tex",
+          "path": "lowell-math-circle-year-2/source/week-04/week-04-grades-4-5.tex",
           "section": "Grades 4–5 / 2, Task 3; / 3, Tasks 5–7",
           "contribution": "Return times, divisibility, and the distinction between reversibility and a full orbit."
         },
         {
           "id": "C-F",
-          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-04/week-04-facilitator.tex",
+          "path": "lowell-math-circle-year-2/source/week-04/week-04-facilitator.tex",
           "section": "Facilitator / 2, “Upper: key and complete classification”; / 3, “Upper: inverse and composition”",
           "contribution": "The twelve-shift period table and cyclic-group interpretation."
         },
         {
           "id": "C-R",
-          "path": "/Users/jamespfeiffer/math-circle/plans/week-04-redesign.md",
+          "path": "plans/week-04-redesign.md",
           "section": "“Mathematical destination”; “Checked results and proofs”; “Sources, research boundary, and history”",
           "contribution": "Order n/gcd(n,k), including the local citation to Judson Ch. 4 §4.1, Theorem 4.13. Linked clocks are our extension, not a worksheet claim."
         }
@@ -5872,31 +5872,31 @@
       "sources": [
         {
           "id": "B-K",
-          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-09/week-09-k-1.tex",
+          "path": "lowell-math-circle-year-2/source/week-09/week-09-k-1.tex",
           "section": "K–1 page 1, Tasks 1–2; page 2, Task 4, “Open the wall”",
           "contribution": "Tall-table reflection and mirror-copy folding."
         },
         {
           "id": "B-M",
-          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-09/week-09-grades-2-3.tex",
+          "path": "lowell-math-circle-year-2/source/week-09/week-09-grades-2-3.tex",
           "section": "Grades 2–3 page 1, Tasks 1–2; page 2, Tasks 3–5",
           "contribution": "2×3 route, shared wall multiples, and inverse table design."
         },
         {
           "id": "B-U",
-          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-09/week-09-grades-4-5.tex",
+          "path": "lowell-math-circle-year-2/source/week-09/week-09-grades-4-5.tex",
           "section": "Grades 4–5 page 2, Tasks 3–6; page 3, Tasks 7–8",
           "contribution": "Reduced parity instead of raw even/odd side lengths; bounce count; inverse design."
         },
         {
           "id": "B-F",
-          "path": "/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-09/week-09-facilitator.tex",
+          "path": "lowell-math-circle-year-2/source/week-09/week-09-facilitator.tex",
           "section": "Facilitator / 2, “Upper theorem with all hypotheses”; / 3, “Extra page: rational and irrational directions” and “Keep the conventions straight”; / 4, “Mathematical direction and primary sources”",
           "contribution": "Exact corner/bounce rules and physical versus normalized slope; local research lineage to Masur–Tabachnikov §§1.3–1.5."
         },
         {
           "id": "B-R",
-          "path": "/Users/jamespfeiffer/math-circle/plans/week-09-redesign.md",
+          "path": "plans/week-09-redesign.md",
           "section": "“Verified mathematical backbone”; “Sources and boundary between class and research”; “Returning children and future branches”",
           "contribution": "Source boundary, existing Lowell rectangle work, and why unfolding/inverse design matter."
         }
