@@ -2,7 +2,7 @@
 
 James asked on October 10, 2026 that every worksheet week end in one of two states: **in the app**, or **not porting**, with the reason written down. "Waiting" is a step in a wave, never an end state. A week reaches its decision through its review card in the worksheets repository ([plans/review](https://github.com/jamesrp/math-circle-worksheets/tree/main/plans/review)), and then a port when the card says port. A week that waits on a board or on another family gets that board or family built in a wave, or a reason why not.
 
-**Where things stand:** 79 weeks (1–78 and the Week 1 encore). 64 are in the app and 1 is ruled out, so 14 are open, every one planned into a wave. Wave 7 is done. James lifted the October 10 hold on Waves 8 and 9 on October 16 and asked for the remaining work to be split across threads of a few weeks each, so the 14 open weeks and the touch-ups are now five batches (below), each in its own thread.
+**Where things stand:** 85 weeks (1–84 and the Week 1 encore). 64 are in the app and 1 is ruled out, so 20 are open: 14 are planned into the batches below, Week 79 is getting its card, and Weeks 80–84 wait for the organizer's review of their drafts before they are carded. Wave 7 is done. James lifted the October 10 hold on Waves 8 and 9 on October 16 and asked for the remaining work to be split across threads of a few weeks each, so the 14 open weeks and the touch-ups are now five batches (below), each in its own thread.
 
 Whoever changes a week's state changes its row here in the same push, and the count above.
 
@@ -111,7 +111,10 @@ Cards link to the worksheets repository. A card's verdict (keep, revise, rework,
 | 76 | Substitution strips | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-76.md) | Open, wave 8 | Catch the impostor with a Shrink tool and an exact factor check |
 | 77 | Persistent holes | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-77.md) | Open, wave 9 | A loop group in Lantern Wires: tap filled triangles to darken a lit loop, or certify "can't" with an edge only unfilled tiles touch; schedules on Hard |
 | 78 | Three-armed lines (tropical lines) | [keep](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-78.md) | Open, wave 9 | Placement checked on submit: one line through the targets, aligned targets as a ray, "can't" for three targets with fan certificates |
+| 79 | Numbered-ball detectives | [draft](https://github.com/jamesrp/math-circle-worksheets/blob/main/lowell-math-circle-year-2/WEEKS-79-84-DRAFT.md) | Open, card in progress | Organizer-approved October 15; its card and math check are being written, and the card ends in the port decision |
+| 80 | Midnight laboratory | [draft](https://github.com/jamesrp/math-circle-worksheets/blob/main/lowell-math-circle-year-2/WEEKS-79-84-DRAFT.md) | Open, awaiting organizer review | Draft revised October 15 for the organizer's review; carded once that review settles |
+| 81 | Buckets of Fish | [draft](https://github.com/jamesrp/math-circle-worksheets/blob/main/lowell-math-circle-year-2/WEEKS-79-84-DRAFT.md) | Open, awaiting organizer review | Draft revised October 15 for the organizer's review; carded once that review settles |
+| 82 | Endless queues | [draft](https://github.com/jamesrp/math-circle-worksheets/blob/main/lowell-math-circle-year-2/WEEKS-79-84-DRAFT.md) | Open, awaiting organizer review | Draft revised October 15 for the organizer's review; carded once that review settles |
+| 83 | Hackenbush balances | [draft](https://github.com/jamesrp/math-circle-worksheets/blob/main/lowell-math-circle-year-2/WEEKS-79-84-DRAFT.md) | Open, awaiting organizer review | Draft awaiting the organizer's first review; carded once that review settles |
+| 84 | Public knowledge | [draft](https://github.com/jamesrp/math-circle-worksheets/blob/main/lowell-math-circle-year-2/WEEKS-79-84-DRAFT.md) | Open, awaiting organizer review | Draft awaiting the organizer's first review; carded once that review settles |
 
-## Not yet in the library
-
-Weeks 79–84 (infinity, ordinal, surreal and public-knowledge drafts) are on Codex's `drafts/infinity-six-activities` branch of the worksheets repository and haven't merged. They join this table when they reach `main`.
