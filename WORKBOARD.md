@@ -63,3 +63,4 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Puzzle review fixes: keyboard, clock controls and completion flows | Codex controls subagent | `codex/puzzle-review-controls` | done; tested and integrated to main |
 | Puzzle review fixes: first-panel Help definitions and concise copy (packs and authoring scripts) | Codex Help subagent | `codex/puzzle-review-help` | done; tested and integrated to main |
 | Puzzle review fixes: integration, difficulty labels, remaining recommendations and verification | Codex | `codex/puzzle-review-fixes` | done; tested and integrated to main |
+| Waves 8 and 9, Batch 1 (Mirror Couriers): Week 9 touch-ups to the base `billiard` mechanic first, then the Week 71 aims and Week 21 folds groups on top | Claude, Mirror Couriers ports thread | `claude/ports-mirror-couriers-6n5jcf` (builders on `port/couriers`, `port/aims`, `port/folds`) | in progress |
