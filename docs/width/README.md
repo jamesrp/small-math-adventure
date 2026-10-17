@@ -30,7 +30,7 @@ Experiments come first: build, spin, watch the rail. The conjecture (use the cor
 
 ## Where they appear
 
-**Puzzles → Snug spinners** (symbol ◬) is a satchel family on the family seam ([Adding a family](../ADDING-A-FAMILY.md)), with a **Playground** button above Easy, Medium and Hard. The puzzles are grade-free (`band: "all"`). Corners are lettered in order round the shape (counterclockwise) in puzzles 1 to 4; from puzzle 5 on the letters are mixed, so the answer is found by looking, not from a pattern of letters. The levels follow the number of full shapes a child can make: Easy has 8, 4 and 4, Medium 32, 32 and 16, and Hard asks a new question. "m" dots are halfway along a gap; "i" dots are inside, a fraction t of the way from a gap's middle to the corner across.
+**Puzzles → Snug spinners** (symbol ⌓, a circular arc on its chord) is a satchel family on the family seam ([Adding a family](../ADDING-A-FAMILY.md)), with a **Playground** button above Easy, Medium and Hard. The puzzles are grade-free (`band: "all"`). Corners are lettered in order round the shape (counterclockwise) in puzzles 1 to 4; from puzzle 5 on the letters are mixed, so the answer is found by looking, not from a pattern of letters. The levels follow the number of full shapes a child can make: Easy has 8, 4 and 4, Medium 32, 32 and 16, and Hard asks a new question. "m" dots are halfway along a gap; "i" dots are inside, a fraction t of the way from a gap's middle to the corner across.
 
 | # | Level | Kind | Corners in order | Dots or spots | Start | Answer (gap → centre) | Least drift | Week 59 source |
 |---|---|---|---|---|---|---|---|---|
