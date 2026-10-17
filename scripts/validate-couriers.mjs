@@ -8,7 +8,7 @@
 // must be refused. Run: node scripts/validate-couriers.mjs
 import { readFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import { billiard } from '../dist/couriers.js';
+import { billiard, launchesHold } from '../dist/couriers.js';
 
 const gcd = (a, b) => (b ? gcd(b, a % b) : a);
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -82,14 +82,14 @@ function legalActions(p, b) {
   if (q.mode === 'shape') { out.push({ type: 'cant' }, { type: 'done' }); for (const at of rooms(...q.map)) out.push({ type: 'tap', at }); }
   if (q.mode === 'every') { out.push({ type: 'done' }); for (const room of rooms(q.cols, q.rows)) out.push({ type: 'keep', room }); }
   if (q.mode === 'aim') for (const aim of rooms(...q.sheet)) out.push({ type: 'launch', aim });
-  if (q.mode === 'cross') for (let j = 0; j <= q.sheet[1]; j++) for (let i = 0; i <= q.sheet[0]; i++) if (i || j) out.push({ type: 'tap', at: [i, j] });
+  if (q.mode === 'cross') { out.push({ type: 'again' }); for (let j = 0; j <= q.sheet[1]; j++) for (let i = 0; i <= q.sheet[0]; i++) if (i || j) out.push({ type: 'tap', at: [i, j] }); }
   return out.filter(a => billiard.move(p, b, a));
 }
 
 export default async function validateCouriers() {
   const pack = JSON.parse(await readFile(new URL('../dist/puzzles.json', import.meta.url), 'utf8'));
   const puzzles = pack.puzzles.filter(p => p.mechanic === 'billiard');
-  stats = { puzzles: puzzles.length, launches: 0, impossible: [], certificates: {}, oneRefusal: 0, hintRuns: 0, refusedForgeries: 0, illegalMoves: 0 };
+  stats = { puzzles: puzzles.length, launches: 0, impossible: [], certificates: {}, oneRefusal: 0, finalPicks: 0, fallingTallies: 0, hintRuns: 0, refusedForgeries: 0, illegalMoves: 0 };
   seed = 9;
   for (const p of puzzles) check(p);
   return stats;
@@ -122,7 +122,26 @@ function check(p) {
     let meets = 0;
     for (let t = 1; t <= Math.min(q.sheet[0] * q.width, q.sheet[1] * q.height); t++) if (t % q.width === 0 && t % q.height === 0) meets++;
     assert.ok(meets >= 2, `${p.id}: the line meets ${meets} crossing, so the first is no choice`);
-  }
+    // A pick on the line past the first crossing is final: no further tap,
+    // not even the right one, until Again; a pick off the line can be retried.
+    const out = walk(q.width, q.height), [a, u] = [out.across, out.up];
+    for (let j = 0; j <= q.sheet[1]; j++) for (let i = 0; i <= q.sheet[0]; i++) if (i || j) {
+      const after = billiard.move(p, fresh(p), { type: 'tap', at: [i, j] });
+      const later = i % a === 0 && j % u === 0 && i / a === j / u && i / a >= 2;
+      if (after.done) continue;
+      assert.equal(billiard.move(p, after, { type: 'tap', at: [a, u] }) === null, later, `${p.id}: after ${i},${j} the first crossing is ${later ? 'refused' : 'still open'}`);
+      const again = billiard.move(p, after, { type: 'again' });
+      assert.equal(again === null, !later, `${p.id}: Again only after a final pick`);
+      if (later) {
+        assert.deepEqual(again, fresh(p), `${p.id}: Again starts over`);
+        const html = billiard.render(p, { board: after, hintLevel: 0 });
+        assert.match(html, /class="cr-unfold"/, `${p.id}: the line is drawn to where it really stops`);
+        assert.match(html, /data-focus="cr-again"/);
+        stats.finalPicks++;
+      }
+    }
+    assert.equal(billiard.noUndo(p), true, `${p.id}: a final pick has no Undo`);
+  } else assert.equal(billiard.noUndo(p), false);
 
   // 1b. Every launch counts once, and Undo (the mechanic's carry) keeps the count.
   if (q.mode !== 'cross') {
@@ -133,6 +152,14 @@ function check(p) {
     for (const action of launchesOf(misses)) { b = billiard.move(p, b, action); line.push(b); }
     assert.equal(b.launches, misses.length, `${p.id}: one count per launch`);
     for (let k = line.length - 2; k >= 0; k--) { b = billiard.carry(p, b, line[k]); assert.equal(b.launches, misses.length, `${p.id}: Undo keeps the launch count`); assert.ok(billiard.valid(p, b)); }
+    // The saved line of play: tallies that never fall hold; a tally forged
+    // below an earlier board's is refused.
+    const history = line.slice(0, -1).map((board, moves) => ({ board, moves }));
+    assert.equal(launchesHold({ history, board: line.at(-1) }), true);
+    assert.equal(launchesHold({ history: history.slice(0, 1), board: b }), true, `${p.id}: after Undo the board keeps the higher tally`);
+    assert.equal(launchesHold({ history, board: { ...line.at(-1), launches: history.at(-1).board.launches - 1 } }), false, `${p.id}: a tally lowered below the history is refused`);
+    assert.equal(launchesHold({ history: [...history.slice(0, -1), { ...history.at(-1), board: { ...history.at(-1).board, launches: line.at(-1).launches + 5 } }], board: line.at(-1) }), false, `${p.id}: a history tally above the board's is refused`);
+    stats.fallingTallies += 2;
   }
 
   // 2. Impossible targets: no room up to 40 by 40 meets them, and the corner
@@ -223,7 +250,10 @@ function check(p) {
     }
   } else if (q.mode === 'aim') {
     wrong.push([{ type: 'launch', aim: rooms(...q.sheet).find(c => !hits(aimWalk(q, c), q.target)) }]);
-  } else wrong.push([{ type: 'tap', at: [1, 0] }], [{ type: 'tap', at: [1, 1] }]);
+  } else {
+    const out = walk(q.width, q.height);
+    wrong.push([{ type: 'tap', at: [1, 0] }], [{ type: 'tap', at: [1, 1] }], [{ type: 'tap', at: [2 * out.across, 2 * out.up] }]);
+  }
   for (const actions of wrong) hintsSolve(p, play(p, fresh(p), actions), `after ${JSON.stringify(actions)}`);
   for (let run = 0; run < 25; run++) {
     let b = fresh(p);
@@ -233,7 +263,7 @@ function check(p) {
 
   // 4. Illegal moves are refused.
   const illegal = [null, {}, { type: 'fly' }, { type: 'launch' }, { type: 'launch', room: [0, 1] }, { type: 'launch', room: [1.5, 1] }, { type: 'launch', room: ['1', '1'] },
-    { type: 'launch', aim: [0, 0] }, { type: 'tap', at: [-1, 0] }, { type: 'tap', at: [1, 1, 1] }, { type: 'keep', room: [99, 1] }];
+    { type: 'launch', aim: [0, 0] }, { type: 'tap', at: [-1, 0] }, { type: 'tap', at: [1, 1, 1] }, { type: 'keep', room: [99, 1] }, { type: 'again' }];
   if (q.mode === 'shape' || q.mode === 'every') illegal.push({ type: 'launch', room: [q.cols + 1, 1] }, { type: 'launch', room: [1, q.rows + 1] });
   if (q.mode === 'shape') illegal.push({ type: 'cant' }, { type: 'tap', at: [1, 1] }, { type: 'done' }, { type: 'keep', room: [1, 1] });
   if (q.mode === 'every') illegal.push({ type: 'done' }, { type: 'cant' });
@@ -270,7 +300,7 @@ function check(p) {
     const miss = rooms(...q.sheet).find(c => !hits(aimWalk(q, c), q.target)), hit = answers[0].split(',').map(Number);
     forged.push({ aim: miss, done: true, launches: 1 }, { aim: null, done: true, launches: 1 }, { aim: [0, 1], done: false, launches: 1 }, { aim: hit, done: true, launches: 0 }, { aim: miss, done: false });
   }
-  if (q.mode === 'cross') forged.push({ tap: [1, 1], done: true }, { tap: [0, 0], done: false }, { tap: answers[0].split(',').map(Number), done: false });
+  if (q.mode === 'cross') { const [a, u] = answers[0].split(',').map(Number); forged.push({ tap: [1, 1], done: true }, { tap: [0, 0], done: false }, { tap: [a, u], done: false }, { tap: [2 * a, 2 * u], done: true }); }
   for (const board of forged) {
     assert.equal(billiard.valid(p, board), false, `${p.id}: forged ${JSON.stringify(board)}`);
     assert.equal(billiard.solved(p, board), false);

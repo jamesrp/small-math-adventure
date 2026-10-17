@@ -178,6 +178,9 @@ const distinct = list => new Set(list.map(keyOf)).size === list.length;
 const shelfKey = kept => kept.map(keyOf).sort().join(' ');
 const roomOutcome = (q, [w, h]) => launchOutcome(w, h, q.rise ?? 1, q.run ?? 1);
 export const crossAnswer = q => firstCrossing(q.width, q.height);
+// Cross mode: a tap on the line past its first crossing is a final choice. The
+// attempt is over until Again (or Restart); a tap off the line can be retried.
+export const pastFirst = (q, tap) => pair(tap) && tap[0] * q.width === tap[1] * q.height && !same(tap, crossAnswer(q));
 export const aimMeets = (q, aim) => meets(aimOutcome(q.width, q.height, ...aim), q.target);
 
 export function judgeShelf(q, kept) {
@@ -329,7 +332,9 @@ function move(p, b, action) {
   if (q.mode === 'shape') return moveShape(q, b, action);
   if (q.mode === 'every') return moveEvery(q, b, action);
   if (q.mode === 'aim') return action.type === 'launch' && inSheet(q, action.aim) ? { aim: [...action.aim], done: aimMeets(q, action.aim), launches: b.launches + 1 } : null;
-  return action.type === 'tap' && inCrossing(q, action.at) ? { tap: [...action.at], done: same(action.at, crossAnswer(q)) } : null;
+  if (action.type === 'again') return pastFirst(q, b.tap) ? { tap: null, done: false } : null;
+  if (action.type !== 'tap' || !inCrossing(q, action.at) || pastFirst(q, b.tap)) return null;
+  return { tap: [...action.at], done: same(action.at, crossAnswer(q)) };
 }
 
 // Undo takes back a move but keeps the launch tally, a lock and a refusal:
@@ -404,6 +409,7 @@ function hint(p, b) {
     const aim = aimAnswers(q)[0];
     return { type: 'move', action: { type: 'launch', aim }, text: `Aim at the crossing ${cornerWords(aim)}, then Launch.` };
   }
+  if (pastFirst(q, b.tap)) return { type: 'move', action: { type: 'again' }, text: 'The ball stops at the first crossing on its line. Press Again.' };
   const at = crossAnswer(q);
   return { type: 'move', action: { type: 'tap', at }, text: `The line first meets a crossing ${cornerWords(at)}. Tap it.` };
 }
@@ -544,7 +550,9 @@ function sheetBoard(p, b, v, attempt) {
   const roomFine = r >= 9 ? [...range(1, q.width - 1).map(x => `<line x1="${RX(x)}" y1="${RY(0)}" x2="${RX(x)}" y2="${RY(q.height)}"/>`), ...range(1, q.height - 1).map(y => `<line x1="${RX(0)}" y1="${RY(y)}" x2="${RX(q.width)}" y2="${RY(y)}"/>`)].join('') : '';
   const cross = q.mode === 'cross';
   // What was launched: the aim, or (cross) the line's first crossing once found.
-  const shot = cross ? (b.done ? crossAnswer(q) : null) : b.aim && same(b.aim, v.aim) ? b.aim : null;
+  // After a final wrong pick the line is drawn too, to where the ball really stops.
+  const over = cross && pastFirst(q, b.tap);
+  const shot = cross ? (b.done || over ? crossAnswer(q) : null) : b.aim && same(b.aim, v.aim) ? b.aim : null;
   let flight = '', folded = '', outcome = null;
   if (shot) {
     const { rise, run } = aimAt(q.width, q.height, ...shot), line = unfoldLine(q.width, q.height, rise, run);
@@ -574,7 +582,7 @@ function sheetBoard(p, b, v, attempt) {
   const points = range(cross ? 0 : 1, L.J).flatMap(j => range(cross ? 0 : 1, L.I).map(i => [i, j])).filter(c => c[0] || c[1]).map(c => {
     const [i, j] = c, x = SX(i * q.width), y = SY(j * q.height), on = chosen && same(chosen, c);
     const refused = cross && b.tap && !b.done && same(b.tap, c);
-    return `<g class="cr-crossing${on ? ' chosen' : ''}${refused ? ' refused' : ''}${hintAt && same(hintAt, c) ? ' hinted' : ''}" data-at="${i},${j}" data-cx="${x}" data-cy="${y}" role="button" tabindex="${same(cursor, c) ? 0 : -1}" data-focus="cr-at-${i}-${j}" aria-pressed="${Boolean(on)}" aria-label="Crossing ${i} across, ${j} up"><circle class="cr-hit" cx="${x}" cy="${y}" r="${num(Math.max(8, Math.min(16, s * Math.min(q.width, q.height) / 2.2)))}"/><circle class="cr-pt" cx="${x}" cy="${y}" r="3.5"/></g>`;
+    return `<g class="cr-crossing${on ? ' chosen' : ''}${refused ? ' refused' : ''}${hintAt && same(hintAt, c) ? ' hinted' : ''}" data-at="${i},${j}" data-cx="${x}" data-cy="${y}" role="button" tabindex="${same(cursor, c) ? 0 : -1}" data-focus="cr-at-${i}-${j}"${over ? ' aria-disabled="true"' : ''} aria-pressed="${Boolean(on)}" aria-label="Crossing ${i} across, ${j} up"><circle class="cr-hit" cx="${x}" cy="${y}" r="${num(Math.max(8, Math.min(16, s * Math.min(q.width, q.height) / 2.2)))}"/><circle class="cr-pt" cx="${x}" cy="${y}" r="3.5"/></g>`;
   }).join('');
   const aimArrow = !cross && v.aim ? (() => { const { rise, run } = aimAt(q.width, q.height, ...v.aim), n = Math.hypot(run, rise), len = 26; return `<g class="cr-arrow"><line x1="${SX(0)}" y1="${SY(0)}" x2="${num(SX(0) + len * run / n)}" y2="${num(SY(0) - len * rise / n)}"/><circle cx="${num(SX(0) + len * run / n)}" cy="${num(SY(0) - len * rise / n)}" r="3.5"/></g>`; })() : '';
   const label = cross ? `Copies of a ${q.width} by ${q.height} room, ${L.I} across and ${L.J} up, with the ball's straight line drawn.` : `Room ${q.width} wide and ${q.height} high; goal: the ${legendCorner(target)} corner. Below, copies of the room, ${L.I} across and ${L.J} up.`;
@@ -630,6 +638,7 @@ function render(p, attempt) {
       if (b.aim && same(b.aim, v.aim)) { const out = aimOutcome(q.width, q.height, ...b.aim); result = `${cornerName(out.corner).replace(/^./, c => c.toUpperCase())} after ${plural(out.bounces, 'bounce')}.`; }
       controls = button('Launch', { type: 'launch', aim: v.aim }, 'primary', `data-focus="cr-launch"${v.aim && !b.done ? '' : ' disabled'}`);
     }
+    if (q.mode === 'cross' && pastFirst(q, b.tap)) controls = button('Again', { type: 'again' }, 'primary', 'data-focus="cr-again"');
   }
   const status = note || result;
   return `<div class="motion-board cr-board mode-${q.mode}" data-mechanic-wire="billiard">${board}<p class="cr-status${note ? ' cr-told' : ''}" role="status">${esc(status)}</p>${controls ? `<div class="cr-controls">${controls}</div>` : ''}</div>`;
@@ -660,6 +669,9 @@ export function nearest(svg, x, y, selector) {
 // A claim on a possible board ("There is a way.") closes the corner map, so
 // focus moves on to the room's corner instead of a dot that has gone.
 const closesMap = (p, b, action) => p.parameters.mode === 'shape' && b.cert !== null && move(p, b, action)?.cert === null;
+// A final wrong pick on the line moves focus to Again; Again moves it back to
+// the sheet, onto the crossing that was tapped.
+const endsAttempt = (p, b, action) => p.parameters.mode === 'cross' && action?.type === 'tap' && !pastFirst(p.parameters, b.tap) && pastFirst(p.parameters, action.at);
 
 function wire(root, p, api) {
   const q = p.parameters;
@@ -669,6 +681,7 @@ function wire(root, p, api) {
     let action = null;
     try { action = JSON.parse(button.dataset.move); } catch { return; }
     if (closesMap(p, api.attempt().board, action)) button.dataset.focus = 'cr-corner';
+    if (action?.type === 'again') { const tap = api.attempt().board.tap; if (Array.isArray(tap)) button.dataset.focus = `cr-at-${tap.join('-')}`; }
   }, true);
   const roomSvg = root.querySelector('[data-cr-room]');
   if (roomSvg) wireRoom(roomSvg, p, api);
@@ -759,9 +772,10 @@ function wireDots(svg, p, api, selector, tapAction) {
     if (!action) { api.ui({ aim: at, cursor: at }); return; }
     if (closesMap(p, api.attempt().board, action)) node.dataset.focus = 'cr-corner';
     else { const v = views.get(p.id); if (v) v.cursor = at; }
+    if (endsAttempt(p, api.attempt().board, action)) { node.dataset.focus = 'cr-again'; node.focus?.({ preventScroll: true }); }
     api.apply(action);
   };
-  let press = null;
+  let press = null, touched = false;
   svg.addEventListener('pointerdown', e => { if (e.button > 0 || !e.isPrimary) return; press = { id: e.pointerId, x: e.clientX, y: e.clientY }; });
   svg.addEventListener('pointerup', e => {
     if (!press || e.pointerId !== press.id) return;
@@ -769,8 +783,11 @@ function wireDots(svg, p, api, selector, tapAction) {
     press = null;
     if (moved) return;
     const node = nearest(svg, e.clientX, e.clientY, selector);
-    if (node) { e.preventDefault(); act(node); }
+    if (node) { e.preventDefault(); touched = e.pointerType === 'touch'; act(node); }
   });
+  // A finger's tap is followed by emulated mouse events whose mousedown would
+  // move focus back to the dot under it; the move already placed focus.
+  svg.addEventListener('touchend', e => { if (touched && e.cancelable) e.preventDefault(); touched = false; }, { passive: false });
   // Keyboard: one dot takes Tab; arrow keys move between dots, Enter or Space taps.
   svg.addEventListener('keydown', e => {
     const node = e.target.closest?.(selector);
@@ -790,5 +807,18 @@ function wireDots(svg, p, api, selector, tapAction) {
 
 function help() { return ''; }
 
-export const billiard = { fresh, valid: validCourier, solved: (p, b) => validCourier(p, b) && b.done === true, move, hint, render, wire, ui, reset, carry, help };
+// A first-crossing pick is final, so those puzzles have no Undo (Again or
+// Restart starts over).
+const noUndo = p => p.parameters.mode === 'cross';
+
+// Saves: along the Undo history the launch tally never falls, so each earlier
+// board's tally is at most the next one's and at most the board's own. Boards
+// without a tally (first crossing) pass.
+export function launchesHold(attempt) {
+  const line = [...(attempt?.history || []).map(h => h?.board), attempt?.board].map(b => b?.launches);
+  if (line.every(n => n === undefined)) return true;
+  return line.every((n, k) => integer(n) && (k === 0 || n >= line[k - 1]));
+}
+
+export const billiard = { fresh, valid: validCourier, solved: (p, b) => validCourier(p, b) && b.done === true, move, hint, render, wire, ui, reset, carry, help, noUndo };
 export const courierParts = { fresh, move, hint, judgeShelf, roomOutcome, view };

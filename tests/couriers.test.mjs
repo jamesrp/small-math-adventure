@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   billiard, launchOutcome, firstCrossing, aimAt, aimOutcome, unfoldLine, foldPoint, foldMap, simulateBilliard, cornerMap,
-  reachable, judgeLine, judgeHalf, lineOf, roomsFor, everyAnswer, judgeShelf, legacyBilliardBoard, foldCorner, HOME
+  reachable, judgeLine, judgeHalf, lineOf, roomsFor, everyAnswer, judgeShelf, legacyBilliardBoard, launchesHold, foldCorner, HOME
 } from '../dist/couriers.js';
 import { motionMechanics } from '../dist/motion.js';
 import { freshAttempt, move, undo, isSolved, nextHint } from '../dist/engine.js';
@@ -292,7 +292,7 @@ test('the path draws on Launch, never while the room changes; drags and aims are
   billiard.reset(a);
 });
 
-test('cross: the line meets two crossings; a tap past the first, or off the line, is told apart', () => {
+test('cross: the line meets two crossings; a tap past the first is final, a tap off the line can be retried', () => {
   const p = byId('billiard-13');
   assert.match(billiard.render(p, { board: billiard.move(p, fresh(p), { type: 'tap', at: [1, 0] }) }), /The line doesn’t go there\./);
   // 2 by 3 rooms on a 6 by 4 sheet: the diagonal passes the crossings 3 across,
@@ -301,7 +301,24 @@ test('cross: the line meets two crossings; a tap past the first, or off the line
   assert.equal(billiard.move(p, fresh(p), { type: 'tap', at: [3, 2] }).done, true);
   const later = billiard.move(p, fresh(p), { type: 'tap', at: [6, 4] });
   assert.equal(later.done, false);
-  assert.match(billiard.render(p, { board: later }), /It stops before that\./);
+  const over = billiard.render(p, { board: later, hintLevel: 0 });
+  assert.match(over, /It stops before that\./);
+  // A final choice: the other crossing is no longer open, Again starts over,
+  // focus goes to Again, and the line is drawn to where the ball really stops.
+  assert.equal(billiard.move(p, later, { type: 'tap', at: [3, 2] }), null);
+  assert.match(over, /data-move="\{&quot;type&quot;:&quot;again&quot;\}"[^>]*data-focus="cr-again"|data-focus="cr-again"[^>]*data-move/);
+  assert.match(over, /class="cr-unfold"/);
+  assert.match(over, /class="cr-folded"/);
+  assert.match(over, /data-at="3,2"[^>]*aria-disabled="true"/);
+  assert.deepEqual(billiard.hint(p, later).action, { type: 'again' });
+  assert.deepEqual(billiard.move(p, later, { type: 'again' }), fresh(p));
+  assert.equal(billiard.move(p, fresh(p), { type: 'again' }), null, 'Again only after a final pick');
+  // Off the line: retried freely, no Again.
+  const offLine = billiard.move(p, fresh(p), { type: 'tap', at: [1, 0] });
+  assert.doesNotMatch(billiard.render(p, { board: offLine }), /cr-again/);
+  assert.equal(billiard.move(p, offLine, { type: 'tap', at: [3, 2] }).done, true);
+  assert.equal(billiard.noUndo(p), true, 'no Undo past a final pick');
+  assert.equal(billiard.noUndo(byId('billiard-04')), false);
   const tall = byId('billiard-14');
   assert.deepEqual(tall.parameters.sheet, [6, 8]);
   assert.equal(billiard.move(tall, fresh(tall), { type: 'tap', at: [3, 4] }).done, true);
@@ -368,6 +385,24 @@ test('saves: revision 1 boards migrate to a fresh reworked puzzle, keeping what 
     assert.throws(() => parseBackup(JSON.stringify(bad), pack));
   }
   assert.equal(legacyBilliardBoard({ prediction: null, extra: 1 }), false);
+  // A launch tally that falls along the Undo history is refused; one that only
+  // grows (Undo keeps the higher tally on the board) loads.
+  const p4 = byId('billiard-01');
+  let a4 = freshAttempt(p4);
+  for (const room of [[1, 1], [2, 2], [3, 3]]) a4 = move(p4, a4, { type: 'launch', room });
+  const back4 = undo(a4), undone4 = { ...back4, board: billiard.carry(p4, a4.board, back4.board) };
+  assert.equal(launchesHold(undone4), true);
+  for (const [label, attempt] of [['undone', undone4], ['played', a4]]) {
+    const ok = store();
+    ok.profiles[0].attempts[p4.id] = attempt;
+    assert.doesNotThrow(() => parseBackup(JSON.stringify(ok), pack), label);
+  }
+  for (const forge of [a => { a.board.launches = 1; }, a => { a.history[1].board.launches = 9; }, a => { a.history[0].board.launches = 2; a.history[1].board.launches = 1; }]) {
+    const bad = store(), forged = structuredClone(a4);
+    forge(forged);
+    bad.profiles[0].attempts[p4.id] = forged;
+    assert.throws(() => parseBackup(JSON.stringify(bad), pack), /Undo history/);
+  }
 });
 
 test('the road’s Mirror room keeps its picks and counts launches; dragging is free', () => {

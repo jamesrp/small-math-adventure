@@ -237,8 +237,21 @@ try {
   await boardFits('billiard-13 sheet');
   await tapDot('1,0');
   assert.equal(await status(), 'The line doesn’t go there.');
+  // A pick on the line past the first crossing is final: the line is drawn to
+  // where the ball really stops, focus goes to Again, and the other crossing
+  // is closed until Again (there is no Undo here).
   await tapDot('6,4');
   assert.equal(await status(), 'It stops before that.', 'the line meets a second crossing');
+  assert.equal(await focused(), 'cr-again', 'focus goes to Again');
+  assert.equal(await page.locator('.cr-unfold').count(), 1, 'the line is drawn to where it stops');
+  assert.equal(await page.getByRole('button', { name: /Undo/ }).isDisabled(), true);
+  await tapDot('3,2');
+  assert.deepEqual((await board('billiard-13')).tap, [6, 4], 'the first crossing is closed after a final pick');
+  await page.waitForTimeout(4500); await shot('13-over');
+  await button('Again').focus(); await page.keyboard.press('Enter');
+  assert.equal(await status(), '');
+  assert.equal(await page.locator('.cr-unfold').count(), 0);
+  assert.equal(await focused(), 'cr-at-6-4', 'Again returns focus to the sheet');
   await tapDot('3,2');
   await solved();
   await page.waitForTimeout(4500); await shot('13-solved');

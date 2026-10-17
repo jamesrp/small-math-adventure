@@ -6,6 +6,7 @@ import {emptyStore,validateStore,parseBackup} from '../dist/storage.js';
 import {playView,mapView,parentView,catalogHTML} from '../dist/ui.js';
 import {libraryView} from '../dist/caravan-ui.js';
 import {publicSourcePath} from '../scripts/import-expansion.mjs';
+import {mechanicFor} from '../dist/expansion.js';
 const pack=JSON.parse(await readFile(new URL('../dist/puzzles.json',import.meta.url),'utf8'));
 const puzzles=pack.puzzles,expanded=puzzles.filter(p=>p.band==='all');
 function fixture(){return {...emptyStore(),activeProfileId:'test',profiles:[{id:'test',name:'Explorer',avatar:0,band:'k1',sound:false,attempts:{}}]};}
@@ -52,7 +53,9 @@ test('all expansion boards, undo histories, hints, and completion round-trip thr
  const store=fixture();
  for(const p of expanded){let a=freshAttempt(p);let steps=0;
   while(!isSolved(p,a.board)&&steps++<200){
-   const h=nextHint(p,a);assert.equal(h.type,'move',p.id);const next=move(p,a,h.action);assert.ok(next,p.id);assert.deepEqual(undo(next).board,a.board);assert.equal(undo(next).moves,a.moves);
+   const h=nextHint(p,a);assert.equal(h.type,'move',p.id);const next=move(p,a,h.action);assert.ok(next,p.id);
+   // A puzzle without Undo (a final first-crossing pick) keeps no history.
+   if(mechanicFor(p).noUndo?.(p))assert.equal(next.history.length,0,p.id);else{assert.deepEqual(undo(next).board,a.board);assert.equal(undo(next).moves,a.moves);}
    a={...next,hintLevel:3,helpUsed:true};store.profiles[0].attempts[p.id]=a;
    assert.deepEqual(parseBackup(JSON.stringify(store),puzzles).profiles[0].attempts[p.id],a,p.id);
   }

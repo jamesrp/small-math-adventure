@@ -1,7 +1,7 @@
 import { BANDS, CONTENT_VERSION, freshAttempt, validBoard, isSolved, clone } from './engine.js';
 import { legacyNimBoard } from './deduction.js';
 import { weighingSecret } from './measurement.js';
-import { legacyBilliardBoard } from './couriers.js';
+import { legacyBilliardBoard, launchesHold } from './couriers.js';
 import { validateJourney, freshJourney, withCampaignPuzzles, resolvePuzzle, campaignAttemptReachable } from './road.js';
 import { validateJourney as validateRoad3Journey } from './caravan-road3.js';
 import { validateJourney as validateCaravanJourney } from './caravan-legacy.js';
@@ -290,6 +290,8 @@ export function validateStore(value, puzzles) {
       if (a.history.length > Math.min(a.moves,120)) throw new Error(`Undo history for ${id} is not valid.`);
       for (const [i,h] of a.history.entries()) if (!h || !(p.mechanic==='nim'&&legacyNimBoard(p,a.board)?legacyNimBoard(p,h.board):validBoard(p,h.board)) || h.moves !== a.moves-a.history.length+i) throw new Error(`Undo history for ${id} is not valid.`);
       if (p.mechanic === 'weigh' && a.history.some(h => JSON.stringify(weighingSecret(p,h.board)) !== JSON.stringify(weighingSecret(p,a.board)))) throw new Error(`Undo history for ${id} changes the hidden pebble.`);
+      // A Mirror Couriers launch tally never falls along the Undo history.
+      if (p.mechanic === 'billiard' && !launchesHold(a)) throw new Error(`Undo history for ${id} is not valid.`);
     }
   }
   if (value.activeProfileId !== null && !ids.has(value.activeProfileId)) throw new Error('The selected explorer is missing.');
