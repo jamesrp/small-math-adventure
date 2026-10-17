@@ -67,3 +67,24 @@ test('a small picture of the map marks the links asked for and is never a contro
   assert.equal((html.match(/<circle/g) || []).length, 3);
   assert.doesNotMatch(html, /role="button"|tabindex/);
 });
+
+test('a bend draws two bridges between one pair as curves to either side', () => {
+  const two = {aspect: 2, nodes: {A: [10, 50], B: [90, 50]}, edges: [['A', 'B', null, 12], ['A', 'B', null, -12], ['B', 'A', null, 12]]};
+  assert.equal(validGraphSpec(two), true);
+  assert.equal(validGraphSpec({...two, edges: [['A', 'B', null, 'x']]}), false, 'a bend is a number');
+  const g = graphOf(two), [up, down, back] = g.edges.map(e => edgeGeometry(g, e));
+  assert.equal(g.edges[0].bend, 12);
+  assert.ok(up.m[1] > 30 && up.m[1] < 33 && down.m[1] > 17 && down.m[1] < 20, 'the midpoints sit about half the bend to either side (+ is along the normal, here down)');
+  assert.ok(Math.abs(up.m[1] - 25 - (25 - down.m[1])) < 1e-9, 'symmetric');
+  assert.deepEqual(back.m.map(n => +n.toFixed(6)), down.m.map(n => +n.toFixed(6)), 'a bend follows the edge’s own direction');
+  for (const {a} of [up, down]) assert.ok(Math.abs(Math.hypot(a[0] - 10, a[1] - 25) - (NODE_R + 1)) < 1e-9, 'ends stop short of the node, toward the curve');
+  const html = graphBoard(g, {edge: i => ({act: i === 0, strokes: ['on']})});
+  assert.equal((html.match(/<path class="gb-line" d="M[\d.,]+ Q[\d.,]+ [\d.,]+" fill="none"\/>/g) || []).length, 3, 'curves');
+  assert.match(html, /<path class="gb-stroke on" d="M/);
+  assert.match(html, /<path class="gb-hit" d="M[^"]+" fill="none" role="button"[^>]*data-gb-edge="0"/);
+  assert.match(graphMini(g), /<path class="gb-mini-line/);
+  // Straight edges draw as before.
+  assert.doesNotMatch(graphBoard(graphOf(spec)), /<path/);
+  const directed = graphBoard(graphOf({...two, directed: true}));
+  assert.equal((directed.match(/gb-head/g) || []).length, 3, 'arrowheads on curves');
+});
