@@ -1,12 +1,14 @@
 // Plays Flat folds through the real interface: rays labelled by taps inside
 // the disk (including the contested points between two rays) and by keys on
-// the letter chips, Fold with the side view of a jam and of a flat fold,
-// Can't after a fold with the wedges coloured and Check (refused with There
-// is a way, kept through Undo; refused colourings; the clash and the fans),
-// tabs placed from a stock with Can't and the disks of the count, the
-// busiest tab board on a 375 x 667 phone, the new ray dragged, moved by keys
-// and placed by a tap, the playground (add, remove, keys, Clear), focus after
-// moves, and no page overflow. Same environment variables as the other
+// the letter chips, Fold with the side view of a jam and of a flat fold
+// (eight rays too), Can't after a fold with the wedges coloured and Check
+// (refused with There is a way, kept through Undo; refused colourings; the
+// clash and the fans), tabs placed from a stock with Can't and each disk
+// marked with the tabs it takes, the busiest tab board on a 375 x 667 phone,
+// the new ray dragged, stepped by a tap on the knob, moved by keys and by
+// the rim band, and left alone by a tap inside that letters a ray, the
+// playground (add, letter, press and hold to remove, keys, Clear), focus
+// after moves, and no page overflow. Same environment variables as the other
 // browser suites (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL,
 // TEST_PHONE=1 for a phone with touch). Screenshots go in
 // test-results/creases/.
@@ -69,6 +71,17 @@ async function drag(from, to) {
   }
   await settle();
 }
+// Press and hold a point for 0.7 s.
+async function hold([x, y]) {
+  if (!phone) { await page.mouse.move(x, y); await page.mouse.down(); await page.waitForTimeout(700); await page.mouse.up(); }
+  else {
+    cdp ||= await context.newCDPSession(page);
+    await cdp.send('Input.dispatchTouchEvent', {type: 'touchStart', touchPoints: [{x, y}]});
+    await page.waitForTimeout(700);
+    await cdp.send('Input.dispatchTouchEvent', {type: 'touchEnd', touchPoints: []});
+  }
+  await page.waitForTimeout(250);
+}
 const centre = async locator => { await locator.scrollIntoViewIfNeeded(); const b = await locator.boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
 const undo = () => page.locator('[data-action="undo"]').click().then(settle);
 
@@ -123,34 +136,43 @@ try {
   await page.waitForTimeout(1200);
   await shot('02-flat');
 
-  // Puzzle 9: the contested points between two rays 30 degrees apart.
+  // Puzzle 9: eight rays (0, 30, 60, 90, 150, 210, 240, 300; rays 1, 2 and
+  // 5 printed); the contested points between two rays 30 degrees apart;
+  // then a flat fold.
   P = 'creases-09';
   await open(P);
-  await tapDisk(disk(), 44, 55);
-  assert.equal((await board(P)).labels[1], 'M', '14° from ray 2 and 16° from ray 3: ray 2');
   await tapDisk(disk(), 46, 55);
-  assert.deepEqual((await board(P)).labels, ['V', 'M', 'V', null, 'V', null], '16° from ray 2 and 14° from ray 3 (printed): nothing');
-  await tapDisk(disk(), 285, 30);
-  assert.equal((await board(P)).labels[5], 'M', 'near the centre, still the nearest ray');
-  await tapDisk(disk(), 150, 70);
-  assert.deepEqual((await board(P)).labels, ['V', 'M', 'V', null, 'V', 'M'], 'mid-wedge, 30° from both rays: nothing');
-  await tap(chip(3));
-  assert.equal((await board(P)).labels[3], 'M', 'a chip');
-  await fit('six rays');
+  assert.equal((await board(P)).labels[2], 'M', '16° from ray 2 and 14° from ray 3: ray 3');
+  await tapDisk(disk(), 44, 55);
+  assert.deepEqual((await board(P)).labels, ['V', 'V', 'M', null, 'M', null, null, null], '14° from ray 2 (printed) and 16° from ray 3: nothing');
+  await tapDisk(disk(), 287, 30);
+  assert.equal((await board(P)).labels[7], 'M', 'near the centre, still the nearest ray');
+  await tapDisk(disk(), 120, 70);
+  assert.deepEqual((await board(P)).labels, ['V', 'V', 'M', null, 'M', null, null, 'M'], 'mid-wedge, 30° from both rays: nothing');
+  await tap(chip(3)); await tap(chip(5)); await tap(chip(6)); await tap(chip(6));
+  assert.deepEqual((await board(P)).labels, [...'VVMMMMVM'], 'chips');
+  await fit('eight rays');
+  await tap(button('Fold'));
+  await done();
+  await page.locator('svg.cr-stack.flat').waitFor();
+  await page.waitForTimeout(1200);
+  await shot('09-eight');
 
-  // Puzzle 4: five rays; a wrong colouring is refused and cleared; one clash.
+  // Puzzle 4: seven rays, two printed; a wrong colouring is refused in
+  // words that don't state the rule, and cleared; one clash.
   P = 'creases-04';
   await open(P);
-  for (let k = 0; k < 5; k++) await tap(chip(k));
+  for (const k of [1, 2, 4, 5, 6]) await tap(chip(k));
   await tap(button('Fold'));
   await page.locator('svg.cr-stack.clash').waitFor();
   await tap(button('Can’t'));
-  const colour = async word => { for (const [k, c] of [...word].entries()) { const now = (await board(P)).paint[k]; if (now === c) continue; await tapWedge([60, 60, 60, 90, 90], k); if ((await board(P)).paint[k] !== c) await tapWedge([60, 60, 60, 90, 90], k); } };
-  await colour('FFFBF');
+  const seven = [30, 30, 60, 60, 60, 60, 60];
+  const colour = async word => { for (const [k, c] of [...word].entries()) { const now = (await board(P)).paint[k]; if (now === c) continue; await tapWedge(seven, k); if ((await board(P)).paint[k] !== c) await tapWedge(seven, k); } };
+  await colour('FFFFFFF');
   await tap(button('Check'));
-  assert.equal(await told(), 'Neighbours match in more than one place.');
-  assert.equal((await board(P)).paint, '.....', 'the colours are cleared');
-  await colour('FBFBF');
+  assert.equal(await told(), 'Not that colouring.');
+  assert.equal((await board(P)).paint, '.......', 'the colours are cleared');
+  await colour('FBFBFBF');
   await tap(button('Check'));
   await done();
   await page.locator('.cr-clash').waitFor();
@@ -188,12 +210,17 @@ try {
   await shot('06-tabs');
   await tap(button('Can’t'));
   assert.equal((await active()).focus, 'cr-pick-0', 'Can’t sends focus to the first disk');
-  await tap(page.locator('button.cr-disk-pick').nth(0));
+  const pickDisk = i => tap(page.locator('button.cr-disk-pick').nth(i));
+  await pickDisk(0);
+  assert.equal(await button('Check').isDisabled(), true, 'Check waits for every disk');
+  await pickDisk(1); await pickDisk(2);
+  assert.deepEqual((await board(P)).pick, ['odd', 'odd', 'odd']);
+  await shot('06-marks');
   await tap(button('Check'));
-  assert.equal(await told(), 'Not those disks.');
-  await focusOnBoard('after a refused pick');
-  await tap(page.locator('button.cr-disk-pick').nth(2));
-  await tap(page.locator('button.cr-disk-pick').nth(1));
+  assert.equal(await told(), 'Not those tabs.');
+  await focusOnBoard('after a refused marking');
+  await pickDisk(1); await pickDisk(2); await pickDisk(0); await pickDisk(0);
+  assert.deepEqual((await board(P)).pick, ['even', 'odd', 'odd'], 'a second tap: two the same');
   await tap(button('Check'));
   await done();
   assert.equal(await page.locator('.cr-sum').innerText(), 'The M tabs used are 2 or 4, never 3.');
@@ -215,22 +242,29 @@ try {
   }
   await shot('11-busiest');
 
-  // Puzzle 12: the new ray dragged in, moved by keys, placed by a tap.
+  // Puzzle 12: the new ray dragged in, stepped by a tap on the knob, moved
+  // by keys and by the rim band; a tap inside letters a ray and leaves the
+  // new ray where it is.
   P = 'creases-12';
   await open(P);
   const knob = page.locator('.cr-knob');
   await drag(await centre(knob), await diskPoint(disk(), 330, 89));
   assert.equal((await board(P)).at, 330, 'dragged to 330°');
-  await knob.focus(); await page.keyboard.press('ArrowRight'); await settle();
-  assert.equal((await board(P)).at, 345, 'a key moves it a tick');
+  await tap(knob);
+  assert.equal((await board(P)).at, 345, 'a tap on the knob steps it a tick');
+  await knob.focus(); await page.keyboard.press('ArrowLeft'); await settle();
+  assert.equal((await board(P)).at, 330, 'a key moves it a tick');
   assert.equal((await active()).focus, 'cr-knob', 'focus stays on the knob');
-  await page.keyboard.press('ArrowLeft'); await settle();
-  assert.equal((await board(P)).at, 330);
+  await tapDisk(disk(), 40, 60);
+  assert.equal((await board(P)).at, 330, 'a tap inside 10° from ray 2 leaves the new ray');
+  assert.equal((await board(P)).labels[1], 'M', 'and letters ray 2');
   await tapDisk(disk(), 300, 60);
-  assert.equal((await board(P)).at, 300, 'a tap away from the rays moves the new ray there');
-  await tapDisk(disk(), 333, 60);
-  assert.equal((await board(P)).at, 330, 'a tap 3° from a tick, 33° from the new ray, moves it');
-  for (const [pos, times] of [[0, 1], [1, 1], [2, 1], [3, 2], [4, 1], [5, 2]]) for (let t = 0; t < times; t++) await tap(chip(pos));
+  assert.equal((await board(P)).at, 330, 'a tap inside far from every ray does nothing');
+  await tapDisk(disk(), 300, 95);
+  assert.equal((await board(P)).at, 300, 'a tap in the rim band moves the new ray there');
+  await tapDisk(disk(), 333, 95);
+  assert.equal((await board(P)).at, 330, 'a rim tap 3° from a tick, 33° from the new ray, moves it');
+  for (const [pos, times] of [[0, 1], [2, 1], [3, 2], [4, 1], [5, 2]]) for (let t = 0; t < times; t++) await tap(chip(pos));
   assert.deepEqual((await board(P)).labels, ['M', 'M', 'M', 'V', 'M', 'V'], 'the new ray’s letter is last');
   await tap(button('Fold'));
   await done();
@@ -243,7 +277,10 @@ try {
   await tapDisk(disk(), 46, 60);
   assert.deepEqual((await board(P)).rays, [0, 45, 90, 180, 270], 'a tap between rays adds one');
   await tapDisk(disk(), 90, 96);
-  assert.deepEqual((await board(P)).rays, [0, 45, 180, 270], 'a tap on a ray’s end removes it');
+  assert.deepEqual((await board(P)).rays, [0, 45, 90, 180, 270], 'a tap on a ray’s end keeps it');
+  assert.equal((await board(P)).labels[2], 'M', 'and letters it');
+  await hold(await diskPoint(disk(), 90, 60));
+  assert.deepEqual((await board(P)).rays, [0, 45, 180, 270], 'press and hold removes it');
   await page.locator('.cr-knob').focus();
   await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight');
   assert.deepEqual((await board(P)).rays, [0, 45, 180, 270], 'keys move the knob, not the board');

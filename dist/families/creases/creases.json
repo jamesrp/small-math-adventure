@@ -55,7 +55,7 @@
       "objective": "Crease a disk and fold it.",
       "visibleObjective": "",
       "instruction": "Crease a disk and fold it.",
-      "controls": "A crease is a mountain (M) when it rises towards you from the yellow front and a valley (V) when it sinks away; the wedges are the pieces between the rays. Tap inside the disk away from the rays to add a ray, tap a ray or its letter to switch it between M and V, and tap a ray’s end on the rim (or press Delete) to take it away. The round knob adds a ray too: drag it in, or use the arrow keys and Enter. Press Fold to fold it; Clear takes every ray away.",
+      "controls": "A crease is a mountain (M) when it rises towards you from the yellow front and a valley (V) when it sinks away; the wedges are the pieces between the rays. Tap inside the disk away from the rays to add a ray, tap a ray or its letter to switch it between M and V, and press and hold a ray (or press Delete) to take it away. The round knob adds a ray too: drag it in, or use the arrow keys and Enter. Press Fold to fold it; Clear takes every ray away.",
       "rules": [
         "Every ray is folded all the way flat, as a mountain (M) or a valley (V) seen from the yellow front.",
         "Paper can’t pass through paper: layers may touch, but no fold may go through a layer.",
@@ -109,7 +109,7 @@
       "objective": "Add one ray so that the disk folds flat, and fold it.",
       "visibleObjective": "Add a ray so the disk folds flat.",
       "instruction": "Add one ray so that the disk folds flat, and fold it.",
-      "controls": "A crease is a mountain (M) when it rises towards you from the yellow front and a valley (V) when it sinks away; the wedges are the pieces between the rays. Drag the round knob round the rim, or tap the disk away from the rays, to put the new ray on a tick; arrow keys move the knob too. Tap a ray or its letter to switch it between M and V, then press Fold.",
+      "controls": "A crease is a mountain (M) when it rises towards you from the yellow front and a valley (V) when it sinks away; the wedges are the pieces between the rays. Drag the round knob round the rim, tap it, or tap near the rim, to put the new ray on a tick; arrow keys move the knob too. Tap a ray or its letter to switch it between M and V, then press Fold.",
       "rules": [
         "Every ray is folded all the way flat, as a mountain (M) or a valley (V) seen from the yellow front.",
         "Paper can’t pass through paper: layers may touch, but no fold may go through a layer.",
@@ -272,12 +272,12 @@
       "objective": "Use every tab so that every disk folds flat, or show that it can’t be done.",
       "visibleObjective": "Use every tab so all the disks fold.",
       "instruction": "Use every tab so that every disk folds flat, or show that it can’t be done.",
-      "controls": "A crease is a mountain (M) when it rises towards you from the yellow front and a valley (V) when it sinks away; the wedges are the pieces between the rays. Each tab is an M or a V for one open ray. Tap an open ray to put a tab on it (M, then V, then off), and press Fold when every tab is on. If you think it can’t be done, press Can’t after a fold, tap the disks that show why, and press Check.",
+      "controls": "A crease is a mountain (M) when it rises towards you from the yellow front and a valley (V) when it sinks away; the wedges are the pieces between the rays. Each tab is an M or a V for one open ray. Tap an open ray to put a tab on it (M, then V, then off), and press Fold when every tab is on. If you think it can’t be done, press Can’t after a fold, tap each disk until it shows the tabs that disk can take (one M and one V, or two the same), and press Check.",
       "rules": [
         "Every ray is folded all the way flat, as a mountain (M) or a valley (V) seen from the yellow front.",
         "Paper can’t pass through paper: layers may touch, but no fold may go through a layer.",
         "Printed letters (dark) stay as they are.",
-        "Each tab labels one open ray, and every tab is used. Can’t: after a fold, press Can’t, tap the disks that show why, and press Check."
+        "Each tab labels one open ray, and every tab is used. Can’t: after a fold, press Can’t, tap each disk until it shows the tabs it can take, and press Check."
       ],
       "idea": "Each right-angle disk folds with one or three mountains, so the printed letters decide how many M tabs each disk can take.",
       "prerequisites": "Count to six and keep track of tabs used. No reading beyond M, V and the disk letters.",
@@ -311,7 +311,7 @@
     {
       "id": "creases-04",
       "number": 4,
-      "title": "Sixty and ninety",
+      "title": "Two thirties",
       "difficulty_level": "easy",
       "familyTitle": "Flat folds",
       "mechanic": "creases",
@@ -321,15 +321,19 @@
       "parameters": {
         "mode": "fold",
         "angles": [
+          30,
+          30,
           60,
           60,
           60,
-          90,
-          90
+          60,
+          60
         ],
         "fixed": [
+          "M",
           null,
           null,
+          "V",
           null,
           null,
           null
@@ -346,17 +350,17 @@
         "Can’t: after a fold, press Can’t, colour each wedge by the side it would show facing up, and press Check."
       ],
       "idea": "Every crease turns the paper over, so the wedges face up and down in turn; with an odd number of creases two neighbours face the same way.",
-      "prerequisites": "No arithmetic needed to fold; reading the degrees on the wedges, and adding two or three of them, helps with the reason a disk can’t fold.",
+      "prerequisites": "No arithmetic needed: counting the rays and following which way each wedge faces is enough.",
       "hints": [
-        "Label every ray and press Fold. Look at the two ends of the strip.",
+        "Label the open rays and press Fold. Look at the two ends of the strip.",
         "Every crease turns the paper over. Which wedges face up when it is folded?",
-        "Going round, the wedges face up, down, up, down, up: the two wedges beside ray 1 both face up, though ray 1 is a crease."
+        "Going round, the wedges face up, down, up, down, up, down, up: the two wedges beside ray 1 both face up, though ray 1 is a crease."
       ],
       "parent": {
         "notice": "Whether your child changes letters for a long time, or starts to wonder whether letters can fix it at all.",
         "prompt": "If the wedge after ray 1 faces up, which way does the next one face? And the one before ray 1?",
-        "explanation": "Each crease turns the paper over, so neighbouring wedges face opposite ways when folded flat. Round five wedges that goes up, down, up, down, up, and the last wedge meets the first at ray 1 facing the same way, though ray 1 is a crease. So five creases can never fold flat, whatever the angles and letters. The certificate is a colouring with exactly one pair of matching neighbours: an odd ring can’t be coloured alternately.",
-        "extension": "Does the same happen with three creases? With seven?",
+        "explanation": "Each crease turns the paper over, so neighbouring wedges face opposite ways when folded flat. Round seven wedges that goes up, down, up, down, up, down, up, and the last wedge meets the first at ray 1 facing the same way, though ray 1 is a crease. So seven creases can never fold flat, whatever the angles and letters. The certificate is a colouring with exactly one pair of matching neighbours: an odd ring can’t be coloured alternately. A random colouring passes 14 times in 128.",
+        "extension": "Does the same happen with three creases? With five?",
         "connection": "A flat-foldable vertex has an even number of creases: the faces are properly 2-coloured by which side faces up.",
         "sourceIds": [
           "creases-week28",
@@ -366,9 +370,9 @@
       },
       "solution": {
         "cant": "odd",
-        "rays": 5
+        "rays": 7
       },
-      "provenance": "Week 28 Grades 4–5 Problem 2, pattern B (60°, 60°, 60°, 90°, 90°): “Can any of these patterns close flat along every ray?”"
+      "provenance": "Week 28 Grades 4–5 Problem 2, pattern C (30°, 30°, 60°, 60°, 60°, 60°, 60°): “Can any of these patterns close flat along every ray?” The printed mountain on ray 1 and valley on ray 4 are new."
     },
     {
       "id": "creases-05",
@@ -495,12 +499,12 @@
       "objective": "Use every tab so that every disk folds flat, or show that it can’t be done.",
       "visibleObjective": "Use every tab so all the disks fold.",
       "instruction": "Use every tab so that every disk folds flat, or show that it can’t be done.",
-      "controls": "A crease is a mountain (M) when it rises towards you from the yellow front and a valley (V) when it sinks away; the wedges are the pieces between the rays. Each tab is an M or a V for one open ray. Tap an open ray to put a tab on it (M, then V, then off), and press Fold when every tab is on. If you think it can’t be done, press Can’t after a fold, tap the disks that show why, and press Check.",
+      "controls": "A crease is a mountain (M) when it rises towards you from the yellow front and a valley (V) when it sinks away; the wedges are the pieces between the rays. Each tab is an M or a V for one open ray. Tap an open ray to put a tab on it (M, then V, then off), and press Fold when every tab is on. If you think it can’t be done, press Can’t after a fold, tap each disk until it shows the tabs that disk can take (one M and one V, or two the same), and press Check.",
       "rules": [
         "Every ray is folded all the way flat, as a mountain (M) or a valley (V) seen from the yellow front.",
         "Paper can’t pass through paper: layers may touch, but no fold may go through a layer.",
         "Printed letters (dark) stay as they are.",
-        "Each tab labels one open ray, and every tab is used. Can’t: after a fold, press Can’t, tap the disks that show why, and press Check."
+        "Each tab labels one open ray, and every tab is used. Can’t: after a fold, press Can’t, tap each disk until it shows the tabs it can take, and press Check."
       ],
       "idea": "A parity certificate: the M tabs a set of disks can use come in fixed odd and even amounts, and the stock can miss them all.",
       "prerequisites": "Count to six and keep track of tabs used. No reading beyond M, V and the disk letters.",
@@ -512,7 +516,7 @@
       "parent": {
         "notice": "Whether your child keeps moving tabs, and when they start counting what each disk can take instead.",
         "prompt": "How many M tabs can disk A take? And disk B?",
-        "explanation": "Each disk folds with one or three mountains. Disk A (M ? V ?) takes 0 or 2 M tabs, and disks B and C take exactly 1 each, so the three disks use 2 or 4 M tabs, never 3. The certificate is disks B and C: the two disks that need exactly one M tab and one V tab. In parity terms: three folded disks have an odd number of mountains, but the printed three plus three tabs make six.",
+        "explanation": "Each disk folds with one or three mountains. Disk A (M ? V ?) takes 0 or 2 M tabs, and disks B and C take exactly 1 each, so the three disks use 2 or 4 M tabs, never 3. The certificate marks each disk with the tabs it can take: disks B and C one M tab and one V tab, disk A two the same. In parity terms: three folded disks have an odd number of mountains, but the printed three plus three tabs make six.",
         "extension": "Which stocks of six tabs work? (2 or 4 M tabs.)",
         "connection": "A parity invariant from Maekawa’s theorem; the worksheet’s concrete proof sets the two choices for disk A beside the forced one-M disks.",
         "sourceIds": [
@@ -526,6 +530,11 @@
         "disks": [
           1,
           2
+        ],
+        "marks": [
+          "even",
+          "odd",
+          "odd"
         ],
         "takes": [
           [
@@ -568,7 +577,7 @@
       "objective": "Add one ray so that the disk folds flat, and fold it.",
       "visibleObjective": "Add a ray so the disk folds flat.",
       "instruction": "Add one ray so that the disk folds flat, and fold it.",
-      "controls": "A crease is a mountain (M) when it rises towards you from the yellow front and a valley (V) when it sinks away; the wedges are the pieces between the rays. Drag the round knob round the rim, or tap the disk away from the rays, to put the new ray on a tick; arrow keys move the knob too. Tap a ray or its letter to switch it between M and V, then press Fold.",
+      "controls": "A crease is a mountain (M) when it rises towards you from the yellow front and a valley (V) when it sinks away; the wedges are the pieces between the rays. Drag the round knob round the rim, tap it, or tap near the rim, to put the new ray on a tick; arrow keys move the knob too. Tap a ray or its letter to switch it between M and V, then press Fold.",
       "rules": [
         "Every ray is folded all the way flat, as a mountain (M) or a valley (V) seen from the yellow front.",
         "Paper can’t pass through paper: layers may touch, but no fold may go through a layer.",
@@ -672,7 +681,7 @@
     {
       "id": "creases-09",
       "number": 9,
-      "title": "Six creases",
+      "title": "Eight creases",
       "difficulty_level": "hard",
       "familyTitle": "Flat folds",
       "mechanic": "creases",
@@ -684,17 +693,21 @@
         "angles": [
           30,
           30,
+          30,
           60,
           60,
-          90,
-          90
+          30,
+          60,
+          60
         ],
         "fixed": [
           "V",
-          null,
           "V",
           null,
-          "V",
+          null,
+          "M",
+          null,
+          null,
           null
         ]
       },
@@ -708,19 +721,19 @@
         "Printed letters (dark) stay as they are.",
         "Can’t: after a fold, press Can’t, colour each wedge by the side it would show facing up, and press Check."
       ],
-      "idea": "Small wedges fold away in pairs, and what is left must fold too: the rules apply again to the smaller disk.",
+      "idea": "A run of equal slim wedges folds away like a zigzag and its creases split evenly; with big-little-big and the counting rule, that leaves 2 of the 32 labellings.",
       "prerequisites": "No arithmetic needed to fold; reading the degrees on the wedges, and adding two or three of them, helps with the reason a disk can’t fold.",
       "hints": [
-        "Label rays 2, 4 and 6 and press Fold. Where does it jam?",
-        "Six creases fold with four of one letter and two of the other. Round the two 30° wedges, rays 1, 2 and 3 can’t all bend the same way.",
-        "Make ray 2 a mountain, ray 4 a mountain and ray 6 a valley."
+        "Label the open rays and press Fold. Where does it jam?",
+        "Rays 1 to 4 border three 30° wedges in a row between bigger wedges: they need two of each letter. Rays 6 and 7, round the other 30° wedge, need one of each.",
+        "Eight creases fold with five of one letter and three of the other. Make rays 3, 4 and 8 mountains, and rays 6 and 7 one mountain and one valley."
       ],
       "parent": {
-        "notice": "Whether your child works from the small wedges outwards, and what they make of a jam that moves when a far ray changes.",
-        "prompt": "Which ray must differ from rays 1 and 3?",
-        "explanation": "Six creases fold with four of one letter and two of the other (Maekawa), so with three valleys printed one more of rays 2, 4, 6 is a valley. Round the run of two 30° wedges, rays 1, 2 and 3 can’t all be valleys, so ray 2 is a mountain; one of rays 4 and 6 is the other. Folding the 30° pair away (a crimp) leaves wedges 60°, 60° between two 90° wedges with rays 3, 4 and 5, which again can’t all bend the same way: ray 4 is the mountain and ray 6 a valley, VMVMVV.",
-        "extension": "With no printed letters, how many labellings fold? (18 of 64.)",
-        "connection": "Crimp reduction (Hull): fold away a smallest wedge or run of equal wedges, then check the smaller vertex. It decides every single-vertex labelling.",
+        "notice": "Whether your child works on the run of slim wedges first, or changes letters one at a time and watches where the jam moves.",
+        "prompt": "Rays 1 and 2 are valleys. What must rays 3 and 4 be for the three slim wedges to fold away?",
+        "explanation": "Three 30° wedges in a row lie between 60° wedges. Folded flat they zigzag, and the four rays round them (rays 1 to 4) take two mountains and two valleys; rays 1 and 2 are printed valleys, so rays 3 and 4 are mountains. The other 30° wedge is smaller than both its neighbours, so rays 6 and 7 differ (big-little-big). Eight creases fold with five of one letter and three of the other (Maekawa): rays 3, 4 and 5 and one of rays 6 and 7 are mountains, so ray 8 is the fifth. Both VVMMMMVM and VVMMMVMM fold, and the app accepts either; the three rules leave only these 2 of the 32 labellings.",
+        "extension": "With no printed letters, how many of the 256 labellings fold? (24.)",
+        "connection": "The generalized big-little-big lemma (a run of equal smallest wedges), Maekawa’s theorem and Hull’s crimp reduction, which decides every single-vertex labelling.",
         "sourceIds": [
           "creases-week28",
           "creases-card28",
@@ -729,10 +742,11 @@
       },
       "solution": {
         "words": [
-          "VMVMVV"
+          "VVMMMMVM",
+          "VVMMMVMM"
         ]
       },
-      "provenance": "Week 28 Grades 4–5 Problem 3, pattern B and Problem 6 (30°, 30°, 60°, 60°, 90°, 90°); the printed valleys on rays 1, 3 and 5 are new, so that random letters fold one time in eight."
+      "provenance": "New: eight creases with runs of slim wedges, extending Week 28 Grades 4–5 Problem 3 (pattern D has eight rays) and Problem 6 (six creases from 30°, 60° and 90° wedges). The printed letters (valleys on rays 1 and 2, a mountain on ray 5) are chosen so that 2 of the 32 completions fold."
     },
     {
       "id": "creases-10",
@@ -755,11 +769,11 @@
           120
         ],
         "fixed": [
+          "V",
           null,
+          "V",
           null,
-          null,
-          null,
-          null,
+          "V",
           null
         ]
       },
@@ -773,18 +787,18 @@
         "Printed letters (dark) stay as they are.",
         "Can’t: after a fold, press Can’t, colour each wedge by the side it would show facing up, and press Check."
       ],
-      "idea": "With six wedges the half-turn rule still decides: alternate wedges adding to 150° and 210° can’t close.",
+      "idea": "With six wedges the half-turn rule still decides: alternate wedges adding to 150° and 210° can’t close, whatever the letters, printed or not.",
       "prerequisites": "No arithmetic needed to fold; reading the degrees on the wedges, and adding two or three of them, helps with the reason a disk can’t fold.",
       "hints": [
-        "Label every ray and press Fold. Look at the seam.",
+        "Label the open rays and press Fold. Look at the seam.",
         "Folded flat, every other wedge points the same way, and each set of three has to make a half-turn, 180°.",
         "The wedges after rays 1, 3 and 5 make 30 + 30 + 90 = 150°, and the others 30 + 60 + 120 = 210°."
       ],
       "parent": {
         "notice": "Whether your child uses the colouring from the four-ray disks, or starts again with letters.",
         "prompt": "Which wedges point the same way when it is folded?",
-        "explanation": "Folded flat, the wedges alternate forward and back: 30 − 30 + 30 − 60 + 90 − 120 = −60, so the rim ends 60° short of closing whatever the letters. The certificate is the two fans: the wedges after rays 1, 3 and 5 make 150° and the others 210°, not two half-turns.",
-        "extension": "Reorder the same six angles so that the disk folds. (Puzzle 9’s order works; the worksheet counts 12 orders starting with 30°.)",
+        "explanation": "Folded flat, the wedges alternate forward and back: 30 − 30 + 30 − 60 + 90 − 120 = −60, so the rim ends 60° short of closing whatever the letters, printed or chosen. The certificate is the two fans: the wedges after rays 1, 3 and 5 make 150° and the others 210°, not two half-turns.",
+        "extension": "Reorder the same six angles so that the disk folds with your own letters. (30°, 30°, 30°, 60°, 120°, 90° works: 30 + 30 + 120 and 30 + 60 + 90 both make 180°. Of the orders that start with 30°, 18 work.)",
         "connection": "Kawasaki’s condition for six creases.",
         "sourceIds": [
           "creases-week28",
@@ -799,7 +813,7 @@
           210
         ]
       },
-      "provenance": "Week 28 Grades 4–5 Problem 3, pattern C (30°, 30°, 30°, 60°, 90°, 120°)."
+      "provenance": "Week 28 Grades 4–5 Problem 3, pattern C (30°, 30°, 30°, 60°, 90°, 120°). The printed valleys on rays 1, 3 and 5 are new: letters can’t close a gap."
     },
     {
       "id": "creases-11",
@@ -879,12 +893,12 @@
       "objective": "Use every tab so that every disk folds flat, or show that it can’t be done.",
       "visibleObjective": "Use every tab so all the disks fold.",
       "instruction": "Use every tab so that every disk folds flat, or show that it can’t be done.",
-      "controls": "A crease is a mountain (M) when it rises towards you from the yellow front and a valley (V) when it sinks away; the wedges are the pieces between the rays. Each tab is an M or a V for one open ray. Tap an open ray to put a tab on it (M, then V, then off), and press Fold when every tab is on. If you think it can’t be done, press Can’t after a fold, tap the disks that show why, and press Check.",
+      "controls": "A crease is a mountain (M) when it rises towards you from the yellow front and a valley (V) when it sinks away; the wedges are the pieces between the rays. Each tab is an M or a V for one open ray. Tap an open ray to put a tab on it (M, then V, then off), and press Fold when every tab is on. If you think it can’t be done, press Can’t after a fold, tap each disk until it shows the tabs that disk can take (one M and one V, or two the same), and press Check.",
       "rules": [
         "Every ray is folded all the way flat, as a mountain (M) or a valley (V) seen from the yellow front.",
         "Paper can’t pass through paper: layers may touch, but no fold may go through a layer.",
         "Printed letters (dark) stay as they are.",
-        "Each tab labels one open ray, and every tab is used. Can’t: after a fold, press Can’t, tap the disks that show why, and press Check."
+        "Each tab labels one open ray, and every tab is used. Can’t: after a fold, press Can’t, tap each disk until it shows the tabs it can take, and press Check."
       ],
       "idea": "Disks that need exactly one M tab are settled first; the disks that take none or two then share what is left.",
       "prerequisites": "Count to six and keep track of tabs used. No reading beyond M, V and the disk letters.",
@@ -949,7 +963,7 @@
       "objective": "Add one ray so that the disk folds flat, and fold it.",
       "visibleObjective": "Add a ray so the disk folds flat.",
       "instruction": "Add one ray so that the disk folds flat, and fold it.",
-      "controls": "A crease is a mountain (M) when it rises towards you from the yellow front and a valley (V) when it sinks away; the wedges are the pieces between the rays. Drag the round knob round the rim, or tap the disk away from the rays, to put the new ray on a tick; arrow keys move the knob too. Tap a ray or its letter to switch it between M and V, then press Fold.",
+      "controls": "A crease is a mountain (M) when it rises towards you from the yellow front and a valley (V) when it sinks away; the wedges are the pieces between the rays. Drag the round knob round the rim, tap it, or tap near the rim, to put the new ray on a tick; arrow keys move the knob too. Tap a ray or its letter to switch it between M and V, then press Fold.",
       "rules": [
         "Every ray is folded all the way flat, as a mountain (M) or a valley (V) seen from the yellow front.",
         "Paper can’t pass through paper: layers may touch, but no fold may go through a layer.",

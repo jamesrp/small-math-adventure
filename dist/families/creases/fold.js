@@ -131,8 +131,14 @@ export const folds = (angles, word) => flatOrder(angles, word) !== null;
 export const words = n => Array.from({length: 2 ** n}, (_, m) => Array.from({length: n}, (_, k) => (m >> (n - 1 - k)) & 1 ? 'V' : 'M').join(''));
 const wordCache = new Map();
 export const validWords = angles => memo(wordCache, angles.join(','), () => words(angles.length).filter(w => folds(angles, w)));
-// Every completion of fixed labels (null where open) that folds.
-export const completions = (angles, fixed) => validWords(angles).filter(w => fixed.every((f, k) => !f || w[k] === f));
+// Every completion of fixed labels (null where open) that folds: only the
+// words that keep the fixed labels are searched (32 of 256 for eight rays
+// with three printed), unless every word already has been.
+const completionCache = new Map();
+export const completions = (angles, fixed) => memo(completionCache, `${angles.join(',')}|${fixed.map(f => f || '.').join('')}`, () => {
+  const fits = w => fixed.every((f, k) => !f || w[k] === f);
+  return wordCache.has(angles.join(',')) ? validWords(angles).filter(fits) : words(angles.length).filter(w => fits(w) && folds(angles, w));
+});
 
 // What a fold shows. 'flat' with its order; 'clash' (an odd number of
 // rays), 'gap' (the alternating sums differ) or 'jam' (the labels) with the

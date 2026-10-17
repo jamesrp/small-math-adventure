@@ -15,29 +15,38 @@ import {mechanicFor} from '../dist/expansion.js';
 import {loadPack} from './packs.mjs';
 import {validWords, foldResult} from '../dist/families/creases/fold.js';
 
-// The table in docs/creases/README.md.
+// The table in docs/creases/README.md. random: how many of the random taps
+// counted below win, out of how many: letters on the open rays (a fold), a
+// colouring after Can't (a can't), a use of all the tabs or a marking of
+// every disk (tabs), a free tick and letters (a ray).
 const TABLE = {
-  'creases-01': {level: 'easy', mode: 'ray', at: 300, words: 6},
-  'creases-02': {level: 'easy', mode: 'fold', words: ['MMMV']},
-  'creases-03': {level: 'easy', mode: 'tabs', ways: 4},
-  'creases-04': {level: 'easy', mode: 'fold', words: [], cant: 'odd'},
-  'creases-05': {level: 'medium', mode: 'fold', words: ['MVVV']},
-  'creases-06': {level: 'medium', mode: 'tabs', ways: 0, odd: [1, 2]},
-  'creases-07': {level: 'medium', mode: 'ray', at: 270, words: 4},
-  'creases-08': {level: 'medium', mode: 'fold', words: [], cant: 'gap'},
-  'creases-09': {level: 'hard', mode: 'fold', words: ['VMVMVV']},
-  'creases-10': {level: 'hard', mode: 'fold', words: [], cant: 'gap'},
-  'creases-11': {level: 'hard', mode: 'tabs', ways: 8},
-  'creases-12': {level: 'hard', mode: 'ray', at: 330, words: 18}
+  'creases-01': {level: 'easy', mode: 'ray', at: 300, words: 6, random: [6, 336]},
+  'creases-02': {level: 'easy', mode: 'fold', words: ['MMMV'], random: [1, 4]},
+  'creases-03': {level: 'easy', mode: 'tabs', ways: 4, random: [4, 15]},
+  'creases-04': {level: 'easy', mode: 'fold', words: [], cant: 'odd', random: [14, 128]},
+  'creases-05': {level: 'medium', mode: 'fold', words: ['MVVV'], random: [1, 4]},
+  'creases-06': {level: 'medium', mode: 'tabs', ways: 0, odd: [1, 2], random: [1, 8]},
+  'creases-07': {level: 'medium', mode: 'ray', at: 270, words: 4, random: [4, 336]},
+  'creases-08': {level: 'medium', mode: 'fold', words: [], cant: 'gap', random: [2, 16]},
+  'creases-09': {level: 'hard', mode: 'fold', words: ['VVMMMMVM', 'VVMMMVMM'], random: [2, 32]},
+  'creases-10': {level: 'hard', mode: 'fold', words: [], cant: 'gap', random: [2, 64]},
+  'creases-11': {level: 'hard', mode: 'tabs', ways: 8, random: [8, 70]},
+  'creases-12': {level: 'hard', mode: 'ray', at: 330, words: 18, random: [18, 1216]}
 };
+// Design ceilings on the random share, with room below each to catch a
+// regression that the exact counts above would also catch: a fold's letters
+// by level (two open rays can't go below one in four), a certificate
+// colouring (one in eight: a five-wedge odd disk, at 10 in 32, fails), a
+// marking of the tab disks, a use of the tabs by level, a ray.
+const CEILING = {letters: {easy: 0.25, medium: 0.25, hard: 0.1}, colouring: 0.125, marking: 0.125, tabs: {easy: 0.3, medium: 0.2, hard: 0.15}, ray: 0.05};
 // foldcheck.py's valid_words (brute force over layer orders, which agreed
 // with its crimp_words) for every disk in the pack, printed on 2026-10-17
 // from plans/review/checks/week-28/foldcheck.py.
 const FOLDCHECK = {
   '60,120,120,60': ['MMMV', 'MVMM', 'MVVV', 'VMMM', 'VMVV', 'VVVM'],
   '30,60,150,120': ['MVMM', 'MVVV', 'VMMM', 'VMVV'],
-  '30,30,60,60,90,90': ['MMVMVM', 'MMVVMM', 'MMVVVV', 'MVMMVM', 'MVMVMM', 'MVMVVV', 'MVVMMM', 'MVVMVV', 'MVVVMV', 'VMMMVM', 'VMMVMM', 'VMMVVV', 'VMVMMM', 'VMVMVV', 'VMVVMV', 'VVMMMM', 'VVMMVV', 'VVMVMV'],
-  '60,60,60,90,90': [],
+  '30,30,30,60,60,30,60,60': ['MMVVMMVM', 'MMVVMVMM', 'MMVVVMVV', 'MMVVVVMV', 'MVMVMMVM', 'MVMVMVMM', 'MVMVVMVV', 'MVMVVVMV', 'MVVMMMVM', 'MVVMMVMM', 'MVVMVMVV', 'MVVMVVMV', 'VMMVMMVM', 'VMMVMVMM', 'VMMVVMVV', 'VMMVVVMV', 'VMVMMMVM', 'VMVMMVMM', 'VMVMVMVV', 'VMVMVVMV', 'VVMMMMVM', 'VVMMMVMM', 'VVMMVMVV', 'VVMMVVMV'],
+  '30,30,60,60,60,60,60': [],
   '45,90,90,135': [],
   '30,30,30,60,90,120': [],
   '90,90,90,90': ['MMMV', 'MMVM', 'MVMM', 'MVVV', 'VMMM', 'VMVV', 'VVMV', 'VVVM'],
@@ -173,6 +182,7 @@ export async function validateCreases() {
         assert.deepEqual(odd, t.odd, `${p.id}: the certificate disks`);
         assert.notEqual(odd.length % 2, q.stock.M % 2, `${p.id}: the stock has the other parity`);
         assert.deepEqual(p.solution.disks, t.odd, `${p.id}: solution`);
+        assert.deepEqual(p.solution.marks, q.disks.map((_, i) => (odd.includes(i) ? 'odd' : 'even')), `${p.id}: the marks`);
       }
     }
     if (q.mode === 'ray') {
@@ -225,7 +235,9 @@ export async function validateCreases() {
         let m = q.stock.M;
         q.disks.forEach((d, i) => blanksOf(d).forEach(k => { tabs.push({type: 'tab', disk: i, ray: k, to: m-- > 0 ? 'M' : 'V'}); }));
       }
-      return t.ways ? [...tabs, {type: 'fold'}] : [...tabs, {type: 'fold'}, {type: 'cant'}, ...t.odd.map(d => ({type: 'pick', disk: d})), {type: 'check'}];
+      // A tap marks a disk as taking one M tab and one V tab, a second tap as
+      // taking two the same.
+      return t.ways ? [...tabs, {type: 'fold'}] : [...tabs, {type: 'fold'}, {type: 'cant'}, ...q.disks.flatMap((_, d) => Array(t.odd.includes(d) ? 1 : 2).fill({type: 'pick', disk: d})), {type: 'check'}];
     }
     const angles = sectors([...q.rays, t.at]), word = validWords(angles)[0], order = [...q.rays.map((r, k) => [r, k]), [t.at, q.rays.length]].sort((x, y) => x[0] - y[0]).map(([, k]) => k);
     return [{type: 'place', at: t.at}, ...[...word].map((c, pos) => ({type: 'label', ray: order[pos], to: c})), {type: 'fold'}];
@@ -279,7 +291,8 @@ export async function validateCreases() {
     assert.ok(claiming, `${p.id}: Can't after a fold`);
     const marks = q.mode === 'fold'
       ? q.angles.map((_, k) => ({type: 'paint', sector: k, to: 'F'}))
-      : [{type: 'pick', disk: 0}];
+      : q.disks.map((_, d) => ({type: 'pick', disk: d}));
+    if (q.mode === 'tabs') assert.equal(move(p, play(p, claiming, marks.slice(1)), {type: 'check'}), null, `${p.id}: Check waits for every disk`);
     const checked = move(p, play(p, claiming, marks), {type: 'check'});
     assert.ok(checked && !isSolved(p, checked.board), `${p.id}: a wrong or early claim is refused`);
     const possible = TABLE[p.id].words?.length || TABLE[p.id].ways;
@@ -306,24 +319,28 @@ export async function validateCreases() {
 
   // How often random tapping wins: random letters on the open rays (a fold
   // puzzle), a random use of all the tabs, a random tick and letters for the
-  // ray; and random certificates: a random colouring, a random set of disks.
+  // ray; and random certificates: a random colouring, a random marking of
+  // every disk. Each count is the table's, and under its ceiling.
   const rates = {};
+  const rate = (p, won, total, unit, ceiling) => {
+    rates[p.id] = `${won}/${total} ${unit}`;
+    assert.deepEqual([won, total], TABLE[p.id].random, `${p.id}: random ${unit}`);
+    assert.ok(won / total <= ceiling, `${p.id}: random ${unit} win at most ${ceiling} of the time`);
+  };
   for (const p of puzzles) {
     const q = p.parameters, t = TABLE[p.id];
     if (q.mode === 'fold' && t.words.length) {
       const open = q.fixed.filter(f => !f).length;
-      rates[p.id] = `${t.words.length}/${2 ** open} letterings`;
-      assert.ok(t.words.length / 2 ** open <= 0.25, `${p.id}: random letters rarely fold`);
+      rate(p, allWords(open).filter(w => { const word = q.fixed.map(f => f); let i = 0; word.forEach((f, k) => { if (!f) word[k] = w[i++]; }); return validWords(q.angles).includes(word.join('')); }).length, 2 ** open, 'letterings', CEILING.letters[t.level]);
     }
     if (q.mode === 'fold' && !t.words.length) {
       const n = q.angles.length, mech2 = mechanicFor(p);
       const won = allWords(n).map(w => w.replace(/M/g, 'F').replace(/V/g, 'B')).filter(paint => {
-        const b = {labels: q.fixed.map(() => 'M'), tried: 'M'.repeat(n), paint, told: null, done: null};
-        const after = mech2.move(p, b, {type: 'check'});
-        return after?.done === 'cant';
+        const b = {labels: q.fixed.map(f => f || 'M'), tried: q.fixed.map(f => f || 'M').join(''), paint, told: null, done: null};
+        assert.ok(mech2.valid(p, b), `${p.id}: a colouring board`);
+        return mech2.move(p, b, {type: 'check'})?.done === 'cant';
       }).length;
-      rates[p.id] = `${won}/${2 ** n} colourings`;
-      assert.ok(won / 2 ** n <= 0.32, `${p.id}: a random colouring rarely certifies`);
+      rate(p, won, 2 ** n, 'colourings', CEILING.colouring);
     }
     if (q.mode === 'tabs' && t.ways) {
       const slots = q.disks.flatMap((d, i) => blanksOf(d).map(k => [i, k]));
@@ -336,24 +353,24 @@ export async function validateCreases() {
         if (words.every((w, i) => rightWords({...q.disks[i], fixed: [...w]}).length === 1)) won++;
       }
       assert.equal(won, t.ways, `${p.id}: the ways again, by placements`);
-      rates[p.id] = `${won}/${total} placements`;
-      assert.ok(won / total <= 0.27, `${p.id}: random tabs rarely work`);
+      rate(p, won, total, 'placements', CEILING.tabs[t.level]);
     }
     if (q.mode === 'tabs' && !t.ways) {
       const d = q.disks.length, mech2 = mechanicFor(p), sol = witness(p), tried = play(p, freshAttempt(p), sol.slice(0, sol.findIndex(x => x.type === 'cant') + 1)).board;
       let won = 0;
       for (let m = 0; m < 2 ** d; m++) {
-        const pick = [...Array(d).keys()].filter(i => (m >> i) & 1);
+        const pick = [...Array(d).keys()].map(i => ((m >> i) & 1 ? 'odd' : 'even'));
+        assert.ok(mech2.valid(p, {...tried, pick}), `${p.id}: a marking board`);
         if (mech2.move(p, {...tried, pick}, {type: 'check'})?.done === 'cant') won++;
       }
-      rates[p.id] = `${won}/${2 ** d} sets of disks`;
-      assert.equal(won, 1, `${p.id}: one set of disks certifies`);
+      assert.equal(won, 1, `${p.id}: one marking certifies`);
+      rate(p, won, 2 ** d, 'markings', CEILING.marking);
     }
     if (q.mode === 'ray') {
-      const ticks = Array.from({length: 24}, (_, k) => k * 15).filter(at => !q.rays.includes(at));
-      const words = t.words, n = q.rays.length + 1;
-      rates[p.id] = `${words}/${ticks.length * 2 ** n} places and letterings`;
-      assert.ok(words / (ticks.length * 2 ** n) < 0.05, `${p.id}: a random ray and letters rarely fold`);
+      const ticks = Array.from({length: 24}, (_, k) => k * 15).filter(at => !q.rays.includes(at)), n = q.rays.length + 1;
+      const won = sum(ticks.map(at => crimpWords(sectors([...q.rays, at])).length));
+      assert.equal(won, t.words, `${p.id}: only the one tick folds`);
+      rate(p, won, ticks.length * 2 ** n, 'places and letterings', CEILING.ray);
     }
   }
   report.randomTapSuccess = rates;
@@ -427,12 +444,16 @@ export async function validateCreases() {
     if (q.mode === 'tabs') {
       const allM = b.at.map((labels, i) => labels.map((l, k) => l || (q.disks[i].fixed[k] ? l : 'M')));
       forged(p, {...b, at: allM}, 'more M tabs than the stock');
-      if (t.ways) forged(p, {...b, done: 'cant', tried: 'x', pick: []}, 'Can’t on a possible stock');
+      if (t.ways) forged(p, {...b, done: 'cant', tried: 'x', pick: q.disks.map(() => 'odd')}, 'Can’t on a possible stock');
       else {
         const sol = witness(p), tried = play(p, freshAttempt(p), sol.slice(0, sol.findIndex(x => x.type === 'cant'))).board;
-        forged(p, {...tried, pick: [0], done: 'cant'}, 'Can’t with the wrong disks');
+        const truth = q.disks.map((_, i) => (t.odd.includes(i) ? 'odd' : 'even'));
+        forged(p, {...tried, pick: q.disks.map(() => 'odd'), done: 'cant'}, 'Can’t with the wrong marks');
+        forged(p, {...tried, pick: truth.map((m, i) => (i ? m : null)), done: 'cant'}, 'Can’t with a disk unmarked');
+        forged(p, {...tried, pick: t.odd, done: 'cant'}, 'Can’t with the old list of disks');
         forged(p, {...tried, done: 'fold'}, 'done on tabs that jam');
-        forged(p, {...tried, pick: t.odd, done: 'cant', told: 'way'}, 'a done that was also refused');
+        forged(p, {...tried, pick: truth, done: 'cant', told: 'way'}, 'a done that was also refused');
+        forged(p, {...tried, pick: truth, told: 'pick'}, 'a refusal that kept its marks');
       }
     }
     if (q.mode === 'ray') {

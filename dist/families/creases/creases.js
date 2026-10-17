@@ -10,8 +10,8 @@
 //   half-turn.
 // - tabs: three or four right-angle disks share a stock of M and V tabs.
 //   Every folding right-angle disk has one or three M's, so the stock can
-//   fail by parity; the child's certificate is the set of disks that need
-//   one M tab and one V tab.
+//   fail by parity; the child's certificate marks each disk with the tabs it
+//   can take: one M and one V, or two the same.
 // - ray: drag in the one ray that lets a disk close, then fold it.
 // - playground: add, label and remove rays on a disk and fold it.
 import {esc} from '../../expansion-controls.js';
@@ -100,8 +100,10 @@ function moveFold(q, b, a) {
 // --- Disks sharing a stock of tabs ----------------------------------------------------
 // q.disks: [{angles, fixed}], q.stock: {M, V}, with as many tabs as blank
 // rays. Board: {at, tried, pick, told, done}: at holds each disk's labels;
-// pick is the disks tapped while Can't is on; told is 'way' (a refused Can't,
-// kept until a tab moves) or 'pick' (disks that are not the certificate).
+// pick, while Can't is on, marks each disk with the M tabs it can take:
+// 'odd' (one M tab, with two open rays) or 'even' (none or two), null before
+// a tap; told is 'way' (a refused Can't, kept until a tab moves) or 'pick'
+// (marks that are not the certificate).
 const tabsPossible = q => memo(possibleCache, JSON.stringify([q.disks, q.stock]), () => shares(q.disks, q.stock).length > 0);
 const tabsFresh = q => ({at: q.disks.map(d => d.fixed.map(f => f || null)), tried: null, pick: null, told: null, done: null});
 export const usedTabs = (q, at, letter) => sum(at.map((labels, i) => labels.filter((l, k) => !q.disks[i].fixed[k] && l === letter).length));
@@ -109,7 +111,11 @@ const tabsKey = at => at.map(wordOf).join('/');
 const allPlaced = (q, at) => usedTabs(q, at, 'M') === q.stock.M && usedTabs(q, at, 'V') === q.stock.V;
 const diskFolds = (q, at, i) => full(at[i]) && foldResult(q.disks[i].angles, wordOf(at[i])).kind === 'flat';
 const allFold = (q, at) => q.disks.every((_, i) => diskFolds(q, at, i));
-const pickOk = (q, pick) => Array.isArray(pick) && pick.every((d, k) => int(d) && d >= 0 && d < q.disks.length && (k === 0 || pick[k - 1] < d));
+const MARKS = ['odd', 'even'];
+const pickOk = (q, pick) => Array.isArray(pick) && pick.length === q.disks.length && pick.every(m => m === null || MARKS.includes(m));
+const unmarked = q => q.disks.map(() => null);
+// The certificate: each disk marked by the parity of the M tabs it takes.
+export const tabsTruth = q => { const odd = oddDisks(q.disks, q.stock); return odd && q.disks.map((_, i) => (odd.includes(i) ? 'odd' : 'even')); };
 function validTabs(q, b) {
   if (!keysAre(b, ['at', 'done', 'pick', 'told', 'tried']) || !Array.isArray(b.at) || b.at.length !== q.disks.length) return false;
   if (!b.at.every((labels, i) => Array.isArray(labels) && labels.length === q.disks[i].angles.length && labels.every((l, k) => (q.disks[i].fixed[k] ? l === q.disks[i].fixed[k] : [null, 'M', 'V'].includes(l))))) return false;
@@ -123,10 +129,10 @@ function validTabs(q, b) {
   }
   if (b.pick !== null && !(pickOk(q, b.pick) && b.tried !== null)) return false;
   const possible = tabsPossible(q);
-  if (b.told !== null && !(b.told === 'way' ? possible && b.done === null : b.told === 'pick' && !possible && same(b.pick, []))) return false;
+  if (b.told !== null && !(b.told === 'way' ? possible && b.done === null : b.told === 'pick' && !possible && same(b.pick, unmarked(q)))) return false;
   if (b.done === null) return true;
   if (b.done === 'fold') return b.pick === null && b.told === null && allPlaced(q, b.at) && allFold(q, b.at);
-  if (b.done === 'cant') return !possible && b.told === null && same(b.pick, oddDisks(q.disks, q.stock));
+  if (b.done === 'cant') return !possible && b.told === null && same(b.pick, tabsTruth(q));
   return false;
 }
 function moveTabs(q, b, a) {
@@ -144,19 +150,20 @@ function moveTabs(q, b, a) {
   }
   if (a.type === 'cant') {
     if (!keysAre(a, ['type'])) return null;
-    if (b.pick === null) return b.tried === null || b.told === 'way' ? null : {...b, pick: [], told: null};
+    if (b.pick === null) return b.tried === null || b.told === 'way' ? null : {...b, pick: unmarked(q), told: null};
     return {...b, pick: null, told: b.told === 'way' ? 'way' : null};
   }
   if (a.type === 'pick') {
+    // A tap shows one M tab and one V tab, then two the same, then one of
+    // each again.
     if (!keysAre(a, ['disk', 'type']) || b.pick === null || b.told === 'way' || !int(a.disk) || a.disk < 0 || a.disk >= q.disks.length) return null;
-    const pick = b.pick.includes(a.disk) ? b.pick.filter(d => d !== a.disk) : [...b.pick, a.disk].sort((x, y) => x - y);
-    return {...b, pick, told: null};
+    return {...b, pick: b.pick.map((m, i) => (i === a.disk ? (m === 'odd' ? 'even' : 'odd') : m)), told: null};
   }
   if (a.type === 'check') {
-    if (!keysAre(a, ['type']) || b.pick === null || b.told === 'way') return null;
+    if (!keysAre(a, ['type']) || b.pick === null || b.told === 'way' || b.pick.includes(null)) return null;
     if (tabsPossible(q)) return {...b, pick: null, told: 'way'};
-    if (same(b.pick, oddDisks(q.disks, q.stock))) return {...b, done: 'cant', told: null};
-    return {...b, pick: [], told: 'pick'};
+    if (same(b.pick, tabsTruth(q))) return {...b, done: 'cant', told: null};
+    return {...b, pick: unmarked(q), told: 'pick'};
   }
   return null;
 }
@@ -321,14 +328,20 @@ function foldHint(q, b) {
   return {type: 'move', action: {type: 'cant'}, text: reasonText(q.angles)};
 }
 const diskName = i => `disk ${LETTERS[i]}`;
+// The M tabs a mark stands for on a disk: every count of that parity up to
+// the disk's open rays (one, or none and two, on two open rays).
+const markCounts = (d, mark) => Array.from({length: blanks(d).length + 1}, (_, m) => m).filter(m => m % 2 === (mark === 'odd' ? 1 : 0));
+const tabWord = (m, open) => (m === 0 ? `${open === 1 ? 'a V tab' : `${open} V tabs`}` : m === open ? `${open === 1 ? 'an M tab' : `${open} M tabs`}` : `${m === 1 ? 'one M tab' : `${m} M tabs`} and ${open - m === 1 ? 'one V tab' : `${open - m} V tabs`}`);
+const markWords = (d, mark) => { const open = blanks(d).length, counts = markCounts(d, mark); return open === 2 && mark === 'even' ? 'two tabs the same' : counts.map(m => tabWord(m, open)).join(' or '); };
+const tabPicture = (open, counts) => counts.map(m => `<span>${'<i class="m">M</i>'.repeat(m)}${'<i class="v">V</i>'.repeat(open - m)}</span>`).join('<em>or</em>');
 // Rays of a right-angle disk are named by where they point.
 const SIDES = {0: 'top', 90: 'right', 180: 'bottom', 270: 'left'};
 const sideName = (d, k) => { const at = rayAngles(d.angles)[k]; return SIDES[at] ? `the ${SIDES[at]} ray` : rayName(k); };
 function tabsHint(q, b) {
   if (b.pick !== null) {
     if (tabsPossible(q) || b.told === 'way') return {...offHint, text: 'There is a way to share the tabs. Turn off Can’t.'};
-    const goal = oddDisks(q.disks, q.stock), d = q.disks.findIndex((_, i) => b.pick.includes(i) !== goal.includes(i));
-    if (d >= 0) return {type: 'move', action: {type: 'pick', disk: d}, text: `${goal.includes(d) ? 'Tap' : 'Untap'} ${diskName(d)}.`};
+    const goal = tabsTruth(q), d = goal.findIndex((m, i) => b.pick[i] !== m);
+    if (d >= 0) return {type: 'move', action: {type: 'pick', disk: d}, text: `Tap ${diskName(d)} until it shows ${markWords(q.disks[d], goal[d])}.`};
     return {type: 'move', action: {type: 'check'}, text: 'Press Check.'};
   }
   const tabText = (i, k, to) => (to ? `Put ${to === 'M' ? 'an M' : 'a V'} tab on ${sideName(q.disks[i], k)} of ${diskName(i)}.` : `Take the tab off ${sideName(q.disks[i], k)} of ${diskName(i)}.`);
@@ -429,7 +442,7 @@ function diskSvg(o) {
     const l = o.labels[k], [x, y] = pt(d, R);
     parts.push(`<line class="cr-ray ${l ? l.toLowerCase() : 'open'}${o.isNew?.(k) ? ' new' : ''}${o.marks?.jam?.has(k) ? ' jam' : ''}" x1="0" y1="0" x2="${x}" y2="${y}"/>`);
   });
-  if (o.marks?.clash !== undefined) { const [x, y] = pt(dirs[o.marks.clash], R * 0.62); parts.push(`<circle class="cr-clash" cx="${x}" cy="${y}" r="13"/>`); }
+  if (o.marks?.clash !== undefined) { const [x, y] = pt(dirs[o.marks.clash], R * 0.48); parts.push(`<circle class="cr-clash" cx="${x}" cy="${y}" r="13"/>`); }
   // Chips: printed letters dark, the child's letters on paper, open rays empty.
   dirs.forEach((d, k) => {
     const l = o.labels[k], [x, y] = pt(d, CHIP), act = o.chip?.(k), fixed = o.fixed[k];
@@ -538,7 +551,7 @@ function fansSvg(angles) {
 
 // View state: the knob while it is dragged, and the playground knob's tick
 // while it is moved by keys.
-let knobDrag = null, playCursor = null;
+let knobDrag = null, playCursor = null, held = false;
 const freeFor = (p, b) => (modeOf(p) === 'ray' ? at => freeTick(p.parameters, at) : at => tick(at) && !b.rays.includes(at) && b.rays.length < MAX_RAYS);
 function moveKnob(knob, at, text) {
   const [x, y] = pt(at, KNOB_R);
@@ -578,7 +591,7 @@ function renderFold(p, a) {
   if (b.done === 'cant' && n % 2 === 0) panel = fansSvg(q.angles);
   else if (result) panel = stackSvg(q.angles, result, {anim: `${p.id}:${a.moves}:${result.kind === 'flat' ? w : b.tried}`});
   const tools = done ? '' : `<div class="cr-tools">${painting ? '' : toolButton('Fold', {type: 'fold'}, full(b.labels) && w !== b.tried, shown, 'cr-fold')}${toolButton('Can’t', {type: 'cant'}, painting || (b.tried !== null && b.told !== 'way'), shown, 'cr-cant', painting, painting ? 'cr-fold' : 'cr-w0')}${painting ? toolButton('Check', {type: 'check'}, !b.paint.includes('.') && b.told !== 'way', shown, 'cr-check', undefined, 'cr-w0') : ''}</div>`;
-  const told = b.told === 'way' ? 'There is a way.' : b.told === 'match' ? (n % 2 ? 'Neighbours match in more than one place.' : 'Some neighbours match.') : '';
+  const told = b.told === 'way' ? 'There is a way.' : b.told === 'match' ? 'Not that colouring.' : '';
   const say = done ? (b.done === 'fold' ? 'It folds flat.' : n % 2 ? clashWords(b.paint) : fansSvg(q.angles).match(/aria-label="([^"]*)"/)[1]) : `${labelsWords(b.labels)}.${result ? ` ${resultWords(result)}` : ''}${painting ? ` Colouring: ${[...b.paint].map((c, k) => `wedge ${k + 1} ${colourName(c)}`).join(', ')}.` : ''}`;
   return `<div class="cr-puzzle cr-fold-mode${done ? ' solved' : ''}${painting ? ' painting' : ''}" data-mechanic-wire="creases"><div class="cr-stage"><div class="cr-disk-wrap">${disk}</div>${panel ? `<div class="cr-panel">${panel}</div>` : ''}</div>${tools}${note(told)}${status(say)}</div>`;
 }
@@ -591,7 +604,7 @@ function renderTabs(p, a) {
   const disks = q.disks.map((d, i) => {
     const result = b.done === 'fold' || failed ? foldResult(d.angles, wordOf(b.at[i])) : null;
     const jam = result && result.kind !== 'flat' ? problemMarks(d.angles, result).rays : new Set();
-    const chosen = (picking || proof) && b.pick.includes(i);
+    const mark = picking ? b.pick[i] : null;
     const svg = diskSvg({
       dirs: rayAngles(d.angles), labels: b.at[i], fixed: d.fixed.map(Boolean), focus: `cr-d${i}`, label: `Disk ${LETTERS[i]}${result ? `, ${result.kind === 'flat' ? 'folds' : 'jams'}` : ''}`, small: true, letter: LETTERS[i], hidden: picking, ok: result?.kind === 'flat',
       rayName: k => { const n = sideName(d, k); return n[4].toUpperCase() + n.slice(5); },
@@ -604,17 +617,18 @@ function renderTabs(p, a) {
       marks: {jam, hinted: shown?.type === 'tab' && shown.disk === i ? shown.ray : undefined},
       hit: done || picking ? '' : `tabs:${i}`
     });
-    const takes = proof ? `<span class="cr-takes" role="img" aria-label="${esc(`Disk ${LETTERS[i]} takes ${needs(d).map(m => `${m} M`).join(' or ')}`)}">${needs(d).map(m => `<span>${'<i class="m">M</i>'.repeat(m)}${'<i class="v">V</i>'.repeat(blanks(d).length - m)}</span>`).join('<em>or</em>')}</span>` : '';
+    const takes = proof ? `<span class="cr-takes" role="img" aria-label="${esc(`Disk ${LETTERS[i]} takes ${markWords(d, b.pick[i])}`)}">${tabPicture(blanks(d).length, needs(d))}</span>` : '';
     const stack = result ? stackSvg(d.angles, result, {anim: `${p.id}:${a.moves}:${i}:${wordOf(b.at[i])}`, width: 200}) : '';
-    if (picking) return `<button type="button" class="cr-tab-disk cr-disk-pick${chosen ? ' chosen' : ''}${shown?.type === 'pick' && shown.disk === i ? ' hinted' : ''}" ${moveAttrs({type: 'pick', disk: i}, `cr-pick-${i}`)} aria-pressed="${chosen}" aria-label="Disk ${LETTERS[i]}">${svg}</button>`;
-    return `<figure class="cr-tab-disk${chosen ? ' chosen' : ''}">${svg}${takes}${stack}</figure>`;
+    // While Can't is on, a tap on a disk marks the tabs it can take.
+    if (picking) return `<button type="button" class="cr-tab-disk cr-disk-pick${mark ? ' marked' : ''}${shown?.type === 'pick' && shown.disk === i ? ' hinted' : ''}" ${moveAttrs({type: 'pick', disk: i}, `cr-pick-${i}`)} aria-label="${esc(`Disk ${LETTERS[i]}, ${mark ? `takes ${markWords(d, mark)}` : 'not marked'}`)}">${svg}<span class="cr-takes${mark ? '' : ' empty'}" aria-hidden="true">${mark ? tabPicture(blanks(d).length, markCounts(d, mark)) : '<span><i></i><i></i></span>'}</span></button>`;
+    return `<figure class="cr-tab-disk">${svg}${takes}${stack}</figure>`;
   }).join('');
   const tabs = ['M', 'V'].flatMap(l => Array.from({length: q.stock[l]}, (_, k) => `<i class="cr-tab ${l.toLowerCase()}${k < usedTabs(q, b.at, l) ? ' used' : ''}">${l}</i>`)).join('');
   const stock = `<div class="cr-stock" role="img" aria-label="${esc(`Tabs left: ${q.stock.M - usedTabs(q, b.at, 'M')} M, ${q.stock.V - usedTabs(q, b.at, 'V')} V`)}">${tabs}</div>`;
   const total = proof ? `<p class="cr-sum">${esc(tabsTotal(q))}</p>` : '';
-  const tools = done ? '' : `<div class="cr-tools">${picking ? '' : toolButton('Fold', {type: 'fold'}, allPlaced(q, b.at) && key !== b.tried, shown, 'cr-fold')}${toolButton('Can’t', {type: 'cant'}, picking || (b.tried !== null && b.told !== 'way'), shown, 'cr-cant', picking, picking ? 'cr-fold' : 'cr-pick-0')}${picking ? toolButton('Check', {type: 'check'}, b.told !== 'way', shown, 'cr-check', undefined, 'cr-pick-0') : ''}</div>`;
-  const told = b.told === 'way' ? 'There is a way.' : b.told === 'pick' ? 'Not those disks.' : '';
-  const say = done ? (b.done === 'fold' ? 'Every disk folds flat.' : tabsReason(q)) : `${q.disks.map((_, i) => `Disk ${LETTERS[i]}: ${labelsWords(b.at[i])}`).join('. ')}.${failed ? ` ${q.disks.map((d, i) => `Disk ${LETTERS[i]} ${foldResult(d.angles, wordOf(b.at[i])).kind === 'flat' ? 'folds' : 'jams'}`).join(', ')}.` : ''}${picking ? ` Tapped: ${b.pick.map(i => LETTERS[i]).join(', ') || 'none'}.` : ''}`;
+  const tools = done ? '' : `<div class="cr-tools">${picking ? '' : toolButton('Fold', {type: 'fold'}, allPlaced(q, b.at) && key !== b.tried, shown, 'cr-fold')}${toolButton('Can’t', {type: 'cant'}, picking || (b.tried !== null && b.told !== 'way'), shown, 'cr-cant', picking, picking ? 'cr-fold' : 'cr-pick-0')}${picking ? toolButton('Check', {type: 'check'}, b.told !== 'way' && !b.pick.includes(null), shown, 'cr-check', undefined, 'cr-pick-0') : ''}</div>`;
+  const told = b.told === 'way' ? 'There is a way.' : b.told === 'pick' ? 'Not those tabs.' : '';
+  const say = done ? (b.done === 'fold' ? 'Every disk folds flat.' : tabsReason(q)) : `${q.disks.map((_, i) => `Disk ${LETTERS[i]}: ${labelsWords(b.at[i])}`).join('. ')}.${failed ? ` ${q.disks.map((d, i) => `Disk ${LETTERS[i]} ${foldResult(d.angles, wordOf(b.at[i])).kind === 'flat' ? 'folds' : 'jams'}`).join(', ')}.` : ''}${picking ? ` ${q.disks.map((d, i) => `Disk ${LETTERS[i]} ${b.pick[i] ? `takes ${markWords(d, b.pick[i])}` : 'not marked'}`).join(', ')}.` : ''}`;
   return `<div class="cr-puzzle cr-tabs-mode cr-n${q.disks.length}${done ? ' solved' : ''}${picking ? ' picking' : ''}" data-mechanic-wire="creases">${stock}<div class="cr-disks">${disks}</div>${total}${tools}${note(told)}${status(say)}</div>`;
 }
 
@@ -667,7 +681,10 @@ const render = (p, a) => ({fold: renderFold, tabs: renderTabs, ray: renderRay, p
 const angDist = (x, y) => { const d = Math.abs(((x - y) % 360 + 360) % 360); return Math.min(d, 360 - d); };
 // What a tap at radius r and direction deg (degrees clockwise from the top)
 // on a disk does: the nearest ray when the tap is close to one, otherwise,
-// where a ray can be added or moved, the nearest free tick.
+// where a ray can be added or moved, the nearest free tick. The new ray of a
+// ray puzzle moves only from the rim band (and the knob and keys): once it
+// is placed, a tap inside the disk letters the nearest ray, as in a fold.
+export const RIM_BAND = R - 14;
 export function tapAction(p, b, hit, r, deg) {
   const q = p.parameters, near = (dirs, limit) => {
     let best = -1, bd = limit;
@@ -687,18 +704,33 @@ export function tapAction(p, b, hit, r, deg) {
   }
   const snap = ((Math.round(deg / STEP) * STEP) % 360 + 360) % 360;
   if (hit === 'ray') {
-    const g = q.rays.length, order = b.at === null ? q.rays.map((_, k) => k) : rayOrder(q, b.at);
-    const pos = near(order.map(k => (k < g ? q.rays[k] : b.at)), 7.5);
+    const g = q.rays.length, order = b.at === null ? q.rays.map((_, k) => k) : rayOrder(q, b.at), rim = r > RIM_BAND;
+    const pos = near(order.map(k => (k < g ? q.rays[k] : b.at)), rim ? 7.5 : 20);
     if (pos >= 0) { const k = order[pos]; return k < g && q.fixed[k] ? null : {type: 'label', ray: k, to: nextLabel(b.labels[k])}; }
-    return freeTick(q, snap) && snap !== b.at ? {type: 'place', at: snap} : null;
+    return (rim || b.at === null) && freeTick(q, snap) && snap !== b.at ? {type: 'place', at: snap} : null;
   }
   if (hit === 'play') {
-    const k = near(b.rays, r > R - 14 ? 6 : 7.5);
-    if (k >= 0) return r > R - 14 ? {type: 'remove', at: b.rays[k]} : {type: 'label', at: b.rays[k], to: nextLabel(b.labels[k])};
+    const k = near(b.rays, 7.5);
+    if (k >= 0) return {type: 'label', at: b.rays[k], to: nextLabel(b.labels[k])};
     return b.rays.length < MAX_RAYS && !b.rays.includes(snap) ? {type: 'add', at: snap} : null;
   }
   return null;
 }
+// Pressing and holding a ray in the playground takes it away.
+export function holdAction(p, b, r, deg) {
+  if (modeOf(p) !== 'playground' || r < R * 0.18 || r > R + 12) return null;
+  const k = b.rays.findIndex(d => angDist(d, deg) <= 7.5 && b.rays.every(e => angDist(e, deg) >= angDist(d, deg)));
+  return k >= 0 ? {type: 'remove', at: b.rays[k]} : null;
+}
+export const HOLD_MS = 550;
+// The next free tick clockwise (or anticlockwise) from a tick, or from the
+// top when there is none.
+function stepTick(free, from, dir) {
+  let at = from === null ? (dir > 0 ? 345 : 15) : from;
+  for (let i = 0; i < 360 / STEP; i++) { at = (at + dir * STEP + 360) % 360; if (free(at)) return at === from ? null : at; }
+  return null;
+}
+export const knobTap = (p, b) => { if (modeOf(p) !== 'ray') return null; const at = stepTick(freeFor(p, b), b.at, 1); return at === null ? null : {type: 'place', at}; };
 const local = (svg, e) => {
   const m = svg.getScreenCTM();
   if (!m) return null;
@@ -728,11 +760,27 @@ function wire(root, p, api) {
   root.querySelectorAll('[data-cr-hit]').forEach(hitArea => {
     const svg = hitArea.ownerSVGElement;
     hitArea.addEventListener('click', e => {
+      if (held) { held = false; return; }
       const at = local(svg, e);
       if (!at) return;
       const action = tapAction(p, api.attempt().board, hitArea.dataset.crHit, at.r, at.deg);
       if (action) api.apply(action);
     });
+    if (hitArea.dataset.crHit !== 'play') return;
+    // Press and hold a ray to take it away; moving or lifting first cancels.
+    let timer = null, start = null;
+    const cancel = () => { clearTimeout(timer); timer = null; };
+    hitArea.addEventListener('pointerdown', e => {
+      if (e.button > 0) return;
+      held = false;
+      const at = local(svg, e), action = at && holdAction(p, api.attempt().board, at.r, at.deg);
+      if (!action) return;
+      start = [e.clientX, e.clientY];
+      timer = setTimeout(() => { timer = null; held = true; api.apply(action); }, HOLD_MS);
+    });
+    hitArea.addEventListener('pointermove', e => { if (timer && Math.hypot(e.clientX - start[0], e.clientY - start[1]) > 8) cancel(); });
+    for (const type of ['pointerup', 'pointercancel', 'pointerleave']) hitArea.addEventListener(type, cancel);
+    hitArea.addEventListener('contextmenu', e => e.preventDefault());
   });
   // SVG buttons answer Enter and Space as buttons do; Delete removes a ray in
   // the playground.
@@ -747,11 +795,9 @@ function wire(root, p, api) {
     const knobEl = e.target.closest?.('.cr-knob');
     if (knobEl && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
       e.preventDefault();
-      const b = api.attempt().board, dir = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : -1, free = freeFor(p, b);
-      const from = modeOf(p) === 'ray' ? b.at : playCursor?.id === p.id ? playCursor.at : null;
-      let at = from === null ? (dir > 0 ? 345 : 15) : from;
-      for (let i = 0; i < 360 / STEP; i++) { at = (at + dir * STEP + 360) % 360; if (free(at)) break; }
-      if (!free(at) || at === from) return;
+      const b = api.attempt().board, dir = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : -1;
+      const from = modeOf(p) === 'ray' ? b.at : playCursor?.id === p.id ? playCursor.at : null, at = stepTick(freeFor(p, b), from, dir);
+      if (at === null) return;
       if (modeOf(p) === 'ray') api.apply({type: 'place', at});
       else { playCursor = {id: p.id, at}; moveKnob(knobEl, at, `At ${at}°. Enter adds a ray here`); }
       return;
@@ -792,7 +838,12 @@ function wire(root, p, api) {
     const {at, moved} = knobDrag;
     knobDrag = null;
     knob.classList.remove('dragging');
-    if (!moved) return;
+    if (!moved) {
+      // A tap on the knob steps the new ray to the next free tick.
+      const action = knobTap(p, api.attempt().board);
+      if (action) api.apply(action);
+      return;
+    }
     if (modeOf(p) === 'ray' && at !== api.attempt().board.at) api.apply({type: 'place', at});
     if (modeOf(p) === 'playground') { playCursor = null; api.apply({type: 'add', at}); }
   };

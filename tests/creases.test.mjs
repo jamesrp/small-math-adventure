@@ -10,7 +10,7 @@ import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/
 import {playView} from '../dist/ui.js';
 import {FAMILIES} from '../dist/families.js';
 import {image, alternating, foldResult, validWords, completions, words, rayAngles, sectorsOf, shares, oddDisks, needs} from '../dist/families/creases/fold.js';
-import creasesModule, {creaseMechanics, clashes, certificate, tapAction, nextTab, goodPlaces, R, reasonText, tabsReason} from '../dist/families/creases/creases.js';
+import creasesModule, {creaseMechanics, clashes, certificate, tapAction, holdAction, knobTap, nextTab, goodPlaces, R, RIM_BAND, reasonText, tabsReason, tabsTruth} from '../dist/families/creases/creases.js';
 import {loadPack} from '../scripts/packs.mjs';
 import validateCreases from '../scripts/validate-creases.mjs';
 
@@ -68,6 +68,9 @@ test('the colouring certificate: one clash for an odd disk, none for an even one
   assert.equal(certificate([45, 90, 90, 135], 'BFBF'), true);
   assert.equal(certificate([45, 90, 90, 135], 'FFBB'), false);
   assert.equal(certificate([60, 120, 120, 60], 'FBFB'), false, 'no colouring certifies a disk whose half-turns are right');
+  const seven = [30, 30, 60, 60, 60, 60, 60], all = words(7).map(w => w.replace(/M/g, 'F').replace(/V/g, 'B'));
+  assert.equal(all.filter(c => certificate(seven, c)).length, 14, 'seven wedges: 14 of 128 colourings have exactly one clash');
+  assert.equal(all.filter(c => certificate([45, 90, 90, 135], c.slice(0, 4))).length / 8, 2, 'four wedges: the two alternating colourings');
 });
 
 test('fold: Fold, then Can’t only after a failed fold, refused on a possible disk and kept through Undo', () => {
@@ -100,19 +103,29 @@ test('fold: Fold, then Can’t only after a failed fold, refused on a possible d
   assert.match(view(p, done), /cr-stack flat/);
 });
 
-test('fold: the odd disk is certified by a colouring with one clash, after a fold', () => {
+test('fold: the odd disk is certified by a colouring with one clash, after a fold; a refusal never states the rule', () => {
   const p = byId('04');
-  let a = play(p, freshAttempt(p), ...[0, 1, 2, 3, 4].map(k => label(k, 'M')), FOLD, CANT);
+  assert.deepEqual(p.parameters.fixed, ['M', null, null, 'V', null, null, null], 'printed letters on a disk that can’t fold');
+  let a = play(p, freshAttempt(p), ...[1, 2, 4, 5, 6].map(k => label(k, 'M')), FOLD, CANT);
   const paint = s => [...s].map((c, k) => ({type: 'paint', sector: k, to: c}));
-  const wrong = play(p, a, ...paint('FFFBF'), CHECK);
-  assert.equal(wrong.board.told, 'match');
-  assert.equal(wrong.board.paint, '.....', 'a refused colouring is cleared');
-  assert.match(view(p, wrong), /Neighbours match in more than one place\./);
-  const right = play(p, wrong, ...paint('FBFBB'), CHECK);
+  const all = play(p, a, ...paint('FFFFFFF'), CHECK);
+  assert.equal(all.board.told, 'match');
+  assert.equal(all.board.paint, '.......', 'a refused colouring is cleared');
+  const said = view(p, all).match(/cr-told">([^<]*)</)[1];
+  assert.equal(said, 'Not that colouring.');
+  const two = play(p, all, ...paint('FBFBFFF'), CHECK);
+  assert.equal(view(p, two).match(/cr-told">([^<]*)</)[1], said, 'the same words for every wrong colouring');
+  assert.equal(view(byId('08'), p8()).match(/cr-told">([^<]*)</)[1], said, 'and on an even disk');
+  const right = play(p, two, ...paint('FBFBFBB'), CHECK);
   assert.ok(isSolved(p, right.board), 'any colouring with exactly one clash');
-  assert.match(view(p, right), /The wedges on both sides of ray 5 face the same way\./);
+  assert.match(view(p, right), /The wedges on both sides of ray 7 face the same way\./);
   assert.match(view(p, right), /cr-clash/);
 });
+// Puzzle 8 after a fold, Can’t and a colouring that is refused.
+function p8() {
+  const p = byId('08');
+  return play(p, freshAttempt(p), ...[0, 1, 2, 3].map(k => label(k, 'V')), FOLD, CANT, ...[0, 1, 2, 3].map(k => ({type: 'paint', sector: k, to: 'F'})), CHECK);
+}
 
 test('fold: an even disk that can’t close shows its two fans after the colouring', () => {
   const p = byId('08');
@@ -134,13 +147,24 @@ test('tabs: tabs from a stock, Fold, and the disks that show the count after Can
   assert.equal(nextTab(q, a.board.at, 1, 3), 'V', 'a tap skips a letter that has run out');
   a = play(p, a, tab(1, 3, 'V'), tab(2, 1, 'V'), tab(2, 3, 'V'), FOLD);
   assert.ok(a.board.tried);
-  a = play(p, a, CANT, {type: 'pick', disk: 0}, CHECK);
+  const pick = disk => ({type: 'pick', disk});
+  a = play(p, a, CANT);
+  assert.deepEqual(a.board.pick, [null, null, null]);
+  assert.equal((view(p, a).match(/cr-takes empty/g) || []).length, 3, 'every disk waits for a mark');
+  assert.equal(move(p, play(p, a, pick(0), pick(1)), CHECK), null, 'Check waits for every disk');
+  a = play(p, a, pick(0), pick(1), pick(2));
+  assert.deepEqual(a.board.pick, ['odd', 'odd', 'odd'], 'a first tap: one M tab and one V tab');
+  assert.match(view(p, a), /aria-label="Disk A, takes one M tab and one V tab"/);
+  a = play(p, a, CHECK);
   assert.equal(a.board.told, 'pick');
-  assert.match(view(p, a), /Not those disks\./);
-  assert.ok(!/\d/.test('Not those disks.'), 'no counts in the refusal');
-  a = play(p, a, {type: 'pick', disk: 2}, {type: 'pick', disk: 1}, CHECK);
+  assert.deepEqual(a.board.pick, [null, null, null], 'a refused marking is cleared');
+  assert.match(view(p, a), /Not those tabs\./);
+  a = play(p, a, pick(1), pick(2), pick(0), pick(0));
+  assert.deepEqual(a.board.pick, ['even', 'odd', 'odd'], 'a second tap: two the same');
+  assert.deepEqual(tabsTruth(q), ['even', 'odd', 'odd']);
+  assert.match(view(p, a), /aria-label="Disk A, takes two tabs the same"/);
+  a = play(p, a, CHECK);
   assert.ok(isSolved(p, a.board));
-  assert.deepEqual(a.board.pick, [1, 2], 'kept in order');
   assert.match(view(p, a), /The M tabs used are 2 or 4, never 3\./);
   assert.equal(tabsReason(q), 'A right-angle disk folds with one or three M’s. Disks B and C need one M tab and one V tab each; disk A takes two of the same. So the M tabs used are 2 or 4, never 3.');
 });
@@ -148,11 +172,11 @@ test('tabs: tabs from a stock, Fold, and the disks that show the count after Can
 test('tabs: Can’t on a stock that works is refused and kept through Undo', () => {
   const p = byId('03');
   const tab = (disk, ray, to) => ({type: 'tab', disk, ray, to});
-  let a = play(p, freshAttempt(p), tab(0, 1, 'M'), tab(0, 3, 'M'), tab(1, 2, 'V'), tab(1, 3, 'V'), tab(2, 1, 'V'), tab(2, 3, 'V'), FOLD, CANT, {type: 'pick', disk: 1}, CHECK);
+  let a = play(p, freshAttempt(p), tab(0, 1, 'M'), tab(0, 3, 'M'), tab(1, 2, 'V'), tab(1, 3, 'V'), tab(2, 1, 'V'), tab(2, 3, 'V'), FOLD, CANT, ...[0, 1, 2].map(disk => ({type: 'pick', disk})), CHECK);
   assert.equal(a.board.told, 'way');
   const back = carried(p, a);
   assert.equal(back.board.told, 'way');
-  assert.deepEqual(back.board.pick, [1]);
+  assert.deepEqual(back.board.pick, ['odd', 'odd', 'odd']);
   assert.equal(move(p, back, CHECK), null);
   const html = view(p, play(p, freshAttempt(p), tab(0, 1, 'V'), tab(0, 3, 'V'), tab(1, 2, 'M'), tab(1, 3, 'V'), tab(2, 1, 'M'), tab(2, 3, 'V'), FOLD));
   assert.ok(html.includes('class="cr-disk small ok"'), 'a disk that folds has a green rim');
@@ -175,27 +199,47 @@ test('ray: the new ray goes on a free tick, and only one tick closes', () => {
 });
 
 test('taps go to the nearest ray, and contested points to the visibly nearest target', () => {
-  const p = byId('09'), b = freshAttempt(p).board;
-  // Rays at 0, 30, 60, 120, 180, 270; rays 1, 3 and 5 printed.
-  assert.deepEqual(tapAction(p, b, 'fold', 60, 31), label(1, 'M'), 'ray 2');
-  assert.deepEqual(tapAction(p, b, 'fold', 60, 44), label(1, 'M'), 'just nearer ray 2 than ray 3');
-  assert.equal(tapAction(p, b, 'fold', 60, 46), null, 'just nearer ray 3, which is printed');
-  assert.equal(tapAction(p, b, 'fold', 60, 90), null, 'mid-wedge, far from every ray');
-  assert.deepEqual(tapAction(p, b, 'fold', 60, 139), label(3, 'M'), 'within reach of ray 4');
-  assert.equal(tapAction(p, b, 'fold', 5, 31), null, 'the centre, where all rays meet');
-  assert.equal(tapAction(p, b, 'fold', R + 30, 31), null, 'off the disk');
-  const r = byId('01'), rb = freshAttempt(r).board;
-  assert.deepEqual(tapAction(r, rb, 'ray', 80, 296), {type: 'place', at: 300}, 'a tap away from rays places the new ray on the nearest tick');
-  assert.deepEqual(tapAction(r, rb, 'ray', 80, 64), label(1, 'M'), 'near a given ray: its letter');
-  const placed = play(r, freshAttempt(r), {type: 'place', at: 300}).board;
-  assert.deepEqual(tapAction(r, placed, 'ray', 80, 303), label(3, 'M'), 'near the new ray: its letter');
-  const g = creases.puzzles.find(x => x.id === 'creases-playground'), gb = freshAttempt(g).board;
-  assert.deepEqual(tapAction(g, gb, 'play', 95, 91), {type: 'remove', at: 90}, 'a ray’s end on the rim removes it');
-  assert.deepEqual(tapAction(g, gb, 'play', 60, 91), {type: 'label', at: 90, to: 'M'}, 'inside: its letter');
-  assert.deepEqual(tapAction(g, gb, 'play', 60, 46), {type: 'add', at: 45}, 'between rays: a new ray');
+  const p = byId('05'), b = freshAttempt(p).board;
+  // Rays at 0, 30, 90 and 240; rays 2 and 3 printed.
+  assert.deepEqual(tapAction(p, b, 'fold', 60, 1), label(0, 'M'), 'ray 1');
+  assert.deepEqual(tapAction(p, b, 'fold', 60, 14), label(0, 'M'), 'just nearer ray 1 than ray 2');
+  assert.equal(tapAction(p, b, 'fold', 60, 16), null, 'just nearer ray 2, which is printed');
+  assert.equal(tapAction(p, b, 'fold', 60, 165), null, 'mid-wedge, far from every ray');
+  assert.deepEqual(tapAction(p, b, 'fold', 60, 258), label(3, 'M'), 'within reach of ray 4');
+  assert.equal(tapAction(p, b, 'fold', 5, 1), null, 'the centre, where all rays meet');
+  assert.equal(tapAction(p, b, 'fold', R + 30, 1), null, 'off the disk');
   const t = byId('11'), tb = freshAttempt(t).board;
   assert.deepEqual(tapAction(t, tb, 'tabs:1', 60, 130), {type: 'tab', disk: 1, ray: 1, to: 'M'}, 'a small disk: the nearest ray, anywhere');
   assert.equal(tapAction(t, tb, 'tabs:1', 60, 10), null, 'a printed ray');
+});
+
+test('ray: once the new ray is placed, taps inside letter the nearest ray; the rim band, the knob and keys move it', () => {
+  const r = byId('01'), rb = freshAttempt(r).board;
+  // Rays at 0, 60 and 180.
+  assert.deepEqual(tapAction(r, rb, 'ray', 60, 296), {type: 'place', at: 300}, 'before it is placed, a tap away from the rays places it');
+  assert.deepEqual(tapAction(r, rb, 'ray', 60, 75), label(1, 'M'), 'near a given ray: its letter');
+  const placed = play(r, freshAttempt(r), {type: 'place', at: 300}).board;
+  assert.deepEqual(tapAction(r, placed, 'ray', 60, 312), label(3, 'M'), 'near the new ray: its letter');
+  assert.equal(tapAction(r, placed, 'ray', 60, 240), null, 'inside, far from every ray: nothing moves');
+  assert.deepEqual(tapAction(r, placed, 'ray', RIM_BAND + 6, 240), {type: 'place', at: 240}, 'the rim band moves it');
+  assert.deepEqual(tapAction(r, placed, 'ray', RIM_BAND + 6, 62), label(1, 'M'), 'the rim band at a ray’s end: its letter');
+  const twelve = byId('12'), b12 = play(twelve, freshAttempt(twelve), {type: 'place', at: 330}).board;
+  // Rays at 0, 30, 90, 150 and 240, the new ray at 330: a tap 10° from ray 2.
+  assert.deepEqual(tapAction(twelve, b12, 'ray', 60, 40), label(1, 'M'), 'puzzle 12: ray 2, and the new ray stays at 330°');
+  assert.deepEqual(knobTap(r, rb), {type: 'place', at: 15}, 'a tap on the parked knob: the first free tick');
+  assert.deepEqual(knobTap(r, placed), {type: 'place', at: 315}, 'a tap on the knob: one free tick on');
+  assert.deepEqual(knobTap(r, play(r, freshAttempt(r), {type: 'place', at: 165}).board), {type: 'place', at: 195}, 'stepping over a given ray');
+});
+
+test('playground taps: a tap letters or adds; press and hold takes a ray away', () => {
+  const g = creases.puzzles.find(x => x.id === 'creases-playground'), gb = freshAttempt(g).board;
+  assert.deepEqual(tapAction(g, gb, 'play', 95, 91), {type: 'label', at: 90, to: 'M'}, 'a tap at a ray’s end letters it');
+  assert.deepEqual(tapAction(g, gb, 'play', 60, 91), {type: 'label', at: 90, to: 'M'}, 'inside: its letter');
+  assert.deepEqual(tapAction(g, gb, 'play', 60, 46), {type: 'add', at: 45}, 'between rays: a new ray');
+  assert.deepEqual(holdAction(g, gb, 60, 93), {type: 'remove', at: 90}, 'holding a ray');
+  assert.equal(holdAction(g, gb, 60, 46), null, 'holding between rays');
+  assert.equal(holdAction(byId('05'), freshAttempt(byId('05')).board, 60, 1), null, 'only in the playground');
+  assert.equal(knobTap(g, gb), null, 'the playground knob is dragged or moved by keys');
 });
 
 test('playground: add, label, remove, fold any disk, up to eight rays', () => {
@@ -229,12 +273,16 @@ test('hints: an attempt and a reason come before any claim, quick in CPU time, a
   }
 });
 
-test('taps are fast: a fold of eight rays and its hint in well under 100 ms of CPU', () => {
-  const t = process.cpuUsage();
-  for (const w of ['MVMVMVMM', 'MMMMVVVV', 'VMVMVMVM']) foldResult([45, 45, 45, 45, 45, 45, 45, 45], w);
-  foldResult([15, 30, 45, 60, 75, 30, 60, 45], 'MMVMVMVV');
-  const u = process.cpuUsage(t);
-  assert.ok((u.user + u.system) / 1000 / 4 < 100, 'each fold under 100 ms');
+test('taps are fast: every fold of eight rays in well under 100 ms of CPU', () => {
+  const nine = byId('09').parameters;
+  const cases = [...['MVMVMVMM', 'MMMMVVVV', 'VMVMVMVM'].map(w => [[45, 45, 45, 45, 45, 45, 45, 45], w]), [[15, 30, 45, 60, 75, 30, 60, 45], 'MMVMVMVV'],
+    ...words(5).map(w => { let i = 0; return [nine.angles, nine.fixed.map(f => f || w[i++]).join('')]; })];
+  for (const [angles, w] of cases) {
+    const t = process.cpuUsage();
+    foldResult(angles, w);
+    const u = process.cpuUsage(t);
+    assert.ok((u.user + u.system) / 1000 < 100, `${angles} ${w}: under 100 ms`);
+  }
 });
 
 test('Undo always changes the board on screen', () => {
@@ -257,10 +305,12 @@ test('saves: forged boards are rejected', () => {
   for (const [p, board, why] of [
     [f, {labels: ['V', 'V', 'V', 'M'], tried: null, paint: null, told: null, done: 'fold'}, 'done on VVVM'],
     [f, {labels: ['M', 'V', 'V', 'V'], tried: 'MVVV', paint: null, told: null, done: null}, 'a fold that worked recorded as failed'],
-    [o, {labels: ['M', 'M', 'M', 'M', 'M'], tried: 'MMMMM', paint: 'FFFFF', told: null, done: 'cant'}, 'a colouring with five clashes'],
-    [o, {labels: ['M', 'M', 'M', 'M', 'M'], tried: null, paint: 'FBFBF', told: null, done: 'cant'}, 'Can’t with no fold'],
-    [o, {labels: [null, null, null, null, null], tried: null, paint: null, told: 'way', done: null}, 'There is a way on a disk that can’t fold'],
-    [t, {at: [['M', 'M', 'V', 'M'], ['M', 'M', 'M', 'V'], ['V', 'M', 'V', 'V']], tried: 'MMVM/MMMV/VMVV', pick: [0], done: 'cant', told: null}, 'the wrong disks'],
+    [o, {labels: [...'MMMVMMM'], tried: 'MMMVMMM', paint: 'FFFFFFF', told: null, done: 'cant'}, 'a colouring with seven clashes'],
+    [o, {labels: [...'MMMVMMM'], tried: 'MMMVMMM', paint: 'FBFBFBB', told: 'match', done: null}, 'a refusal that kept its colours'],
+    [o, {labels: [...'MMMVMMM'], tried: null, paint: 'FBFBFBF', told: null, done: 'cant'}, 'Can’t with no fold'],
+    [o, {labels: ['M', null, null, 'V', null, null, null], tried: null, paint: null, told: 'way', done: null}, 'There is a way on a disk that can’t fold'],
+    [t, {at: [['M', 'M', 'V', 'M'], ['M', 'M', 'M', 'V'], ['V', 'M', 'V', 'V']], tried: 'MMVM/MMMV/VMVV', pick: ['odd', 'odd', 'odd'], done: 'cant', told: null}, 'the wrong marks'],
+    [t, {at: [['M', 'M', 'V', 'M'], ['M', 'M', 'M', 'V'], ['V', 'M', 'V', 'V']], tried: 'MMVM/MMMV/VMVV', pick: [1, 2], done: 'cant', told: null}, 'a list of disks instead of marks'],
     [t, {at: [['M', 'V', 'V', 'V'], ['M', 'M', 'M', 'V'], ['V', 'M', 'V', 'V']], tried: null, pick: null, done: 'fold', told: null}, 'a stock with a tab missing'],
     [r, {at: 315, labels: ['M', 'M', 'M', 'M', 'M', 'V'], tried: null, done: true}, 'done with the ray a tick off'],
     [r, {at: 330, labels: ['M', 'M', 'M', 'M', 'M', 'M'], tried: null, done: true}, 'done on letters that jam']
