@@ -176,14 +176,14 @@ const storeUi = (p, payload) => {
 
 // --- Drawing the buckets --------------------------------------------------------------
 const FISH = '<path d="M2 9C6 2.6 14.6 2 21 7.4L28.6 2.6V15.4L21 10.6C14.6 16 6 15.4 2 9Z"/><circle cx="7.4" cy="7.8" r="1.35"/>';
-const fish = (cls = '') => `<svg class="bk-fish${cls ? ` ${cls}` : ''}" viewBox="0 0 30 18" aria-hidden="true">${FISH}</svg>`;
+const fish = (cls = '') => `<svg class="fb-fish${cls ? ` ${cls}` : ''}" viewBox="0 0 30 18" aria-hidden="true">${FISH}</svg>`;
 const fishWords = n => `${n} fish`;
-const button = (label, action, cls, enabled = true, hinted = false) => `<button type="button" class="${cls} bk-button${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="bk-${esc(action.type)}${action.first ? `-${action.first}` : ''}" ${enabled ? '' : 'disabled'}>${label}</button>`;
-const uiButton = (label, payload, cls, focus) => `<button type="button" class="${cls} bk-button" data-action="mechanic-ui" data-ui="${esc(JSON.stringify(payload))}" data-focus="${focus}">${label}</button>`;
+const button = (label, action, cls, enabled = true, hinted = false) => `<button type="button" class="${cls} fb-button${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="fb-${esc(action.type)}${action.first ? `-${action.first}` : ''}" ${enabled ? '' : 'disabled'}>${label}</button>`;
+const uiButton = (label, payload, cls, focus) => `<button type="button" class="${cls} fb-button" data-action="mechanic-ui" data-ui="${esc(JSON.stringify(payload))}" data-focus="${focus}">${label}</button>`;
 // The buckets of one position. `live` makes them buttons for building a move;
 // `pending` is the move being built; `last` is my last move, drawn until the
 // child starts a move (its taken fish dashed, its added fish ringed).
-function bucketsHTML(q, pos, {live = false, pending = null, last = null, key = '', label = 'Buckets'}) {
+function bucketsHTML(q, pos, {live = false, pending = null, last = null, hinted = -1, key = '', label = 'Buckets'}) {
   const K = capOf(q), T = takesOf(q), from = pending ? pending.from - 1 : -1;
   const shown = !pending && last ? last : null;
   const buckets = pos.map((count, i) => {
@@ -201,8 +201,8 @@ function bucketsHTML(q, pos, {live = false, pending = null, last = null, key = '
       ...Array.from({length: added}, () => fish('new')), ...Array.from({length: slots}, () => fish('slot')),
       ...Array.from({length: lifted}, () => fish('lift')), ...Array.from({length: gone}, () => fish('gone'))
     ].join('');
-    const cls = ['bk-bucket', role === 'take' ? 'taking' : '', role === 'add' ? 'adding' : '', off ? 'off' : ''].filter(Boolean).join(' ');
-    const inner = `<span class="bk-shoal" aria-hidden="true">${shoal}</span>`;
+    const cls = ['fb-bucket', role === 'take' ? 'taking' : '', role === 'add' ? 'adding' : '', off ? 'off' : '', i === hinted ? 'hinted' : ''].filter(Boolean).join(' ');
+    const inner = `<span class="fb-shoal" aria-hidden="true">${shoal}</span>`;
     const name = `Bucket ${i + 1}, ${fishWords(count)}`;
     let next = null, words = name;
     if (live && !pending && count > 0) { next = {from: i + 1, take: 1, add: pos.map(() => 0)}; words = `${name}. Take one.`; }
@@ -218,38 +218,44 @@ function bucketsHTML(q, pos, {live = false, pending = null, last = null, key = '
     }
     const tappable = live && (role === 'take' || role === 'add' || (!pending && count > 0));
     const body = tappable
-      ? `<button type="button" class="${cls}" data-i="${i}" data-action="mechanic-ui" data-ui="${esc(JSON.stringify({pending: next ? {key, ...next} : null}))}" data-focus="bk-bucket-${i}" aria-label="${esc(words)}">${inner}</button>`
+      ? `<button type="button" class="${cls}" data-i="${i}" data-action="mechanic-ui" data-ui="${esc(JSON.stringify({pending: next ? {key, ...next} : null}))}" data-focus="fb-bucket-${i}" aria-label="${esc(words)}">${inner}</button>`
       : `<span class="${cls}" data-i="${i}" role="img" aria-label="${esc(name)}">${inner}</span>`;
-    return `<div class="bk-column">${body}<span class="bk-num" aria-hidden="true">${i + 1}</span></div>`;
+    return `<div class="fb-column">${body}<span class="fb-num" aria-hidden="true">${i + 1}</span></div>`;
   }).join('');
-  return `<div class="bk-board${K > 1 ? ' fours' : ''}" role="group" aria-label="${esc(label)}" style="--n:${pos.length}">${buckets}</div>`;
+  return `<div class="fb-board${K > 1 ? ' fours' : ''}" role="group" aria-label="${esc(label)}" style="--n:${pos.length}">${buckets}</div>`;
 }
 // The controls under the buckets on the child's turn: End turn, and Cancel
 // while a move is being built.
 function turnControls(pending) {
   const end = button('End turn', pending ? {type: 'move', ...pending} : {type: 'move'}, 'primary', Boolean(pending));
-  return pending ? `${end}${uiButton('Cancel', {pending: null}, 'secondary', 'bk-cancel')}` : end;
+  return pending ? `${end}${uiButton('Cancel', {pending: null}, 'secondary', 'fb-cancel')}` : end;
 }
-const pips = (n, on, what) => `<span class="bk-pips" role="img" aria-label="${on} of ${n} ${what}">${Array.from({length: n}, (_, i) => `<span class="${i < on ? 'on' : ''}"></span>`).join('')}</span>`;
+const pips = (n, on, what) => `<span class="fb-pips" role="img" aria-label="${on} of ${n} ${what}">${Array.from({length: n}, (_, i) => `<span class="${i < on ? 'on' : ''}"></span>`).join('')}</span>`;
 
 // --- Duels, every reply and who-starts rounds (mechanic `buckets`) ---------------------
 // The save: the start, the buckets now, who went first and the turns; a round
 // also keeps the streak, the games won in it (each its start, who went first
 // and its turns, replayed against the perfect opponent when a save is checked)
-// and whether this start was new; every reply keeps which first move it is on.
-const FIELDS = {duel: ['start', 'pos', 'first', 'turns'], replies: ['start', 'pos', 'first', 'turns', 'round'], streak: ['start', 'pos', 'first', 'turns', 'streak', 'won', 'fresh']};
+// and whether this start was new; every reply keeps which first move it is on
+// and the games won against the first moves before it, replayed like a round's.
+const FIELDS = {duel: ['start', 'pos', 'first', 'turns'], replies: ['start', 'pos', 'first', 'turns', 'round', 'won'], streak: ['start', 'pos', 'first', 'turns', 'streak', 'won', 'fresh']};
 const gameOf = b => ({start: b.start, first: b.first, turns: b.turns});
 const sameGame = (a, b) => JSON.stringify(gameOf(a)) === JSON.stringify(gameOf(b));
-function roundBoard(q, round) {
+function roundBoard(q, round, won = []) {
   const m = firstMoves(q)[round];
-  return {start: [...q.start], pos: after(q.start, m), first: 'opponent', turns: [{player: 'opponent', ...clone(m)}], round};
+  return {start: [...q.start], pos: after(q.start, m), first: 'opponent', turns: [{player: 'opponent', ...clone(m)}], round, won: clone(won)};
 }
+// A game against first move i of every reply: from the start, me first with that move.
+const replyGame = (q, game, i) => keysAre(game, ['start', 'first', 'turns']) && same(game.start, q.start) && game.first === 'opponent' && sameMove(game.turns[0], firstMoves(q)[i]);
 function gameValid(p, b) {
   const q = p.parameters, mode = q.mode;
   if (!FIELDS[mode] || !keysAre(b, FIELDS[mode])) return false;
   if (mode === 'streak' ? !inPool(q, b.start) : !same(b.start, q.start)) return false;
   if (mode === 'duel' && b.first !== 'you') return false;
-  if (mode === 'replies' && (b.first !== 'opponent' || !integer(b.round) || b.round < 0 || b.round >= firstMoves(q).length || !sameMove(b.turns[0], firstMoves(q)[b.round]))) return false;
+  if (mode === 'replies') {
+    if (!integer(b.round) || b.round < 0 || b.round >= firstMoves(q).length || !replyGame(q, gameOf(b), b.round)) return false;
+    if (!Array.isArray(b.won) || b.won.length !== b.round || !b.won.every((game, i) => replyGame(q, game, i) && replay(q, game)?.winner === 'you')) return false;
+  }
   const run = replay(q, b);
   if (!run || !same(run.pos, b.pos)) return false;
   // Saves land before the choice, on the child's turn, or after the game.
@@ -318,8 +324,8 @@ function gameMove(p, b, action, random = Math.random) {
     return next;
   }
   if (q.mode === 'replies' && run.over) {
-    if (action.type === 'next' && run.winner === 'you') return roundBoard(q, b.round + 1);
-    if (action.type === 'again' && run.winner === 'opponent') return roundBoard(q, b.round);
+    if (action.type === 'next' && run.winner === 'you') return roundBoard(q, b.round + 1, [...b.won, gameOf(b)]);
+    if (action.type === 'again' && run.winner === 'opponent') return roundBoard(q, b.round, b.won);
     return null;
   }
   if (q.mode === 'streak' && (action.type === 'new' || action.type === 'again') && b.first !== null && run.over) {
@@ -350,7 +356,7 @@ function gameHint(p, b) {
   if (q.mode === 'streak') return b.first !== null && run.over && run.winner === 'you' ? {type: 'move', action: {type: 'new'}, text: 'Try a new start.'} : {type: 'note'};
   if (run.over) {
     if (q.mode === 'replies') return run.winner === 'you' ? {type: 'move', action: {type: 'next'}, text: 'Try the next first move.'} : {type: 'move', action: {type: 'again'}, text: 'Play this first move again.'};
-    return {type: 'deadend', text: 'I took the last fish. Undo or restart to try again.'};
+    return {type: 'deadend', text: 'Undo or restart to try again.'};
   }
   const win = winningMoves(q, b.pos)[0];
   if (win) return {type: 'move', action: {type: 'move', ...win}, text: MOVE_HINT};
@@ -363,7 +369,9 @@ function gameRender(p, a) {
   const pending = yourTurn ? pendingFor(p, q, b, b.pos) : null;
   if (!yourTurn) building.delete(p.id);
   const last = b.turns.at(-1)?.player === 'opponent' ? b.turns.at(-1) : null;
-  const board = bucketsHTML(q, b.pos, {live: yourTurn, pending, last, key: hash(b)});
+  // From the second Hint press, the bucket a winning move takes from is ringed.
+  const hinted = yourTurn && q.mode !== 'streak' && a.hintLevel >= 2 ? (winningMoves(q, b.pos)[0]?.from ?? 0) - 1 : -1;
+  const board = bucketsHTML(q, b.pos, {live: yourTurn, pending, last, hinted, key: hash(b)});
   let controls = '';
   if (yourTurn) controls = turnControls(pending);
   else if (!done && q.mode === 'streak') controls = b.first === null
@@ -373,17 +381,17 @@ function gameRender(p, a) {
   let status = b.first === null ? '' : gameStatus(run, b.turns);
   if (q.mode === 'streak' && run.over && run.winner === 'you' && !b.fresh) status += ' Wins count from a new start.';
   const bar = q.mode === 'streak' ? pips(q.streak, b.streak, 'wins in a row') : q.mode === 'replies' ? pips(firstMoves(q).length, b.round + (run.winner === 'you' ? 1 : 0), 'first moves answered') : '';
-  return `<div class="bk-puzzle" data-mechanic-wire="buckets">
-    <div class="bk-roundbar"><p class="bk-status" role="status" tabindex="-1" data-focus="bk-status">${esc(status)}</p>${bar}</div>
+  return `<div class="fb-puzzle" data-mechanic-wire="buckets">
+    <div class="fb-roundbar"><p class="fb-status" role="status" tabindex="-1" data-focus="fb-status">${esc(status)}</p>${bar}</div>
     ${board}
-    <div class="bk-actions">${controls}</div>
+    <div class="fb-actions">${controls}</div>
   </div>`;
 }
 // A tap on a bucket that takes no part in the move being built (an empty one,
 // or one at or right of the bucket taken from) is reported as not allowed.
 function wireBuckets(root, p, api) {
   root.addEventListener('click', event => {
-    const bucket = event.target.closest('span.bk-bucket[data-i]');
+    const bucket = event.target.closest('span.fb-bucket[data-i]');
     if (!bucket || !root.contains(bucket)) return;
     const b = api.attempt()?.board, ctx = b && gameContext(p, b);
     if (!ctx) return;
@@ -544,33 +552,33 @@ export function sortHint(p, b) {
 // picking a start to play, chooses it).
 function cardsHTML(b, {live, pick = false, chosen = null, flag = null, hinted = null}) {
   const cells = Array.from({length: 16}, (_, c) => {
-    if (c === 0) return '<span class="bk-card blank" aria-hidden="true"></span>';
+    if (c === 0) return '<span class="fb-card blank" aria-hidden="true"></span>';
     const [l, r] = cardStart(c), on = b.marked.includes(c);
-    const mini = n => `<span class="bk-mini">${Array.from({length: n}, () => fish()).join('')}</span>`;
-    const cls = ['bk-card', !pick && on ? 'marked' : '', pick && chosen === c ? 'chosen' : '', flag === c ? 'flag' : '', hinted === c ? 'hinted' : ''].filter(Boolean).join(' ');
+    const mini = n => `<span class="fb-mini">${Array.from({length: n}, () => fish()).join('')}</span>`;
+    const cls = ['fb-card', !pick && on ? 'marked' : '', pick && chosen === c ? 'chosen' : '', flag === c ? 'flag' : '', hinted === c ? 'hinted' : ''].filter(Boolean).join(' ');
     const label = `${l} and ${r}${!pick && on ? ', marked' : ''}`;
     const action = pick ? {type: 'start', cell: c} : {type: 'mark', cell: c};
     const inner = `${mini(l)}${mini(r)}`;
     if (!live) return `<span class="${cls}" role="img" aria-label="${esc(label)}">${inner}</span>`;
-    return `<button type="button" class="${cls}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="bk-card-${c}" aria-label="${esc(label)}" aria-pressed="${pick ? chosen === c : on}">${inner}</button>`;
+    return `<button type="button" class="${cls}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="fb-card-${c}" aria-label="${esc(label)}" aria-pressed="${pick ? chosen === c : on}">${inner}</button>`;
   }).join('');
-  return `<div class="bk-cards" role="group" aria-label="Starts">${cells}</div>`;
+  return `<div class="fb-cards" role="group" aria-label="Starts">${cells}</div>`;
 }
 function sortRender(p, a) {
   const b = a.board, done = b.done;
   const shown = a.hintLevel >= 2 && !done ? sortHint(p, b) : null, act = shown?.type === 'move' ? shown.action : null;
   if (!b.play) {
     building.delete(p.id);
-    const note = `<p class="bk-note" role="status">${b.refused?.more ? 'There is another.' : ''}</p>`;
+    const note = `<p class="fb-note" role="status">${b.refused?.more ? 'There is another.' : ''}</p>`;
     const tools = done ? '' : `${button('Play', {type: 'try'}, 'secondary')}${button('That’s all', {type: 'all'}, 'primary', b.marked.length > 0 && !b.refused, act?.type === 'all')}`;
-    return `<div class="bk-puzzle sort" data-mechanic-wire="bucketsort">${cardsHTML(b, {live: !done, hinted: act?.type === 'mark' ? act.cell : null})}<div class="bk-actions">${tools}</div>${note}</div>`;
+    return `<div class="fb-puzzle sort" data-mechanic-wire="bucketsort">${cardsHTML(b, {live: !done, hinted: act?.type === 'mark' ? act.cell : null})}<div class="fb-actions">${tools}</div>${note}</div>`;
   }
   const play = b.play, run = playState(b), out = play.kind === 'out';
   if (play.first === null) {
     // Picking a start for a practice game: tap a card, then who starts.
     building.delete(p.id);
     const choose = play.start === null ? '' : `${button('Me first', {type: 'choose', first: 'you'}, 'secondary')}${button('You first', {type: 'choose', first: 'opponent'}, 'secondary')}`;
-    return `<div class="bk-puzzle sort" data-mechanic-wire="bucketsort"><p class="bk-status" role="status" tabindex="-1" data-focus="bk-status">${play.start === null ? 'Tap a card to start from.' : ''}</p>${cardsHTML(b, {live: true, pick: true, chosen: play.start})}<div class="bk-actions">${choose}${button('Back', {type: 'back'}, 'secondary')}</div></div>`;
+    return `<div class="fb-puzzle sort" data-mechanic-wire="bucketsort"><p class="fb-status" role="status" tabindex="-1" data-focus="fb-status">${play.start === null ? 'Tap a card to start from.' : ''}</p>${cardsHTML(b, {live: true, pick: true, chosen: play.start})}<div class="fb-actions">${choose}${button('Back', {type: 'back'}, 'secondary')}</div></div>`;
   }
   const yourTurn = !run.over && run.toMove === 'you';
   const pending = yourTurn ? pendingFor(p, PLAY, b, run.pos) : null;
@@ -578,14 +586,14 @@ function sortRender(p, a) {
   const last = play.turns.at(-1)?.player === 'opponent' ? play.turns.at(-1) : null;
   let status = gameStatus(run, play.turns);
   if (out && run.over) status += ' The marks are cleared.';
-  // During a play-out, why I go first leads the line.
-  const opening = out && !run.over ? `<span class="bk-label">${esc(`Whoever starts from ${startWords(cardStart(play.start))} can win. I go first.`)}</span> ` : '';
+  // During a play-out, and after it, why I went first leads the line.
+  const opening = out ? `<span class="fb-label">${esc(`Whoever starts from ${startWords(cardStart(play.start))} can win.${run.over ? '' : ' I go first.'}`)}</span> ` : '';
   const back = out && !run.over ? '' : button('Back', {type: 'back'}, run.over ? 'primary' : 'secondary');
   const controls = `${yourTurn ? turnControls(pending) : ''}${back}`;
-  return `<div class="bk-puzzle sort" data-mechanic-wire="bucketsort">
-    <p class="bk-status" role="status" tabindex="-1" data-focus="bk-status">${opening}${esc(status)}</p>
+  return `<div class="fb-puzzle sort" data-mechanic-wire="bucketsort">
+    <p class="fb-status" role="status" tabindex="-1" data-focus="fb-status">${opening}${esc(status)}</p>
     ${bucketsHTML(PLAY, run.pos, {live: yourTurn, pending, last, key: hash(b), label: `Buckets, from ${startWords(cardStart(play.start))}`})}
-    <div class="bk-actions">${controls}</div>
+    <div class="fb-actions">${controls}</div>
   </div>`;
 }
 
@@ -626,5 +634,5 @@ export default {
   css: new URL('./buckets.css', import.meta.url).href,
   // Buckets first, then the move controls; the status line only when the
   // board has no control left (a lost duel).
-  focus: ':is([data-mechanic-wire="buckets"],[data-mechanic-wire="bucketsort"]) :is(button.bk-bucket,button.bk-card,.bk-actions button:not(:disabled)),:is([data-mechanic-wire="buckets"],[data-mechanic-wire="bucketsort"]):not(:has(button:not(:disabled))) .bk-status'
+  focus: ':is([data-mechanic-wire="buckets"],[data-mechanic-wire="bucketsort"]) :is(button.fb-bucket,button.fb-card,.fb-actions button:not(:disabled)),:is([data-mechanic-wire="buckets"],[data-mechanic-wire="bucketsort"]):not(:has(button:not(:disabled))) .fb-status'
 };

@@ -31,15 +31,15 @@ const board = id => page.evaluate(([k, id]) => JSON.parse(localStorage.getItem(k
 const open = async id => { await page.goto(`${base}/#play/${id}`); await page.locator(`[data-puzzle-id="${id}"] [data-mechanic-wire]`).waitFor(); };
 const done = () => page.locator('#completion-heading').waitFor({timeout: 5000});
 const fit = async label => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `${label}: no page overflow`);
-const bucket = i => page.locator(`[data-mechanic-wire] .bk-bucket[data-i="${i - 1}"]`);
+const bucket = i => page.locator(`[data-mechanic-wire] .fb-bucket[data-i="${i - 1}"]`);
 const press = name => page.getByRole('button', {name, exact: true});
-const status = () => page.locator('[data-mechanic-wire] .bk-status').innerText();
+const status = () => page.locator('[data-mechanic-wire] .fb-status').innerText();
 // Taps go through real hit-testing at a point of the control (its centre by
 // default), by touch on a phone and by mouse otherwise.
 const tapAt = async (locator, fx = .5, fy = .5) => { await locator.scrollIntoViewIfNeeded(); const b = await locator.boundingBox(); const x = b.x + b.width * fx, y = b.y + b.height * fy; if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); await page.waitForTimeout(40); };
 const tap = locator => tapAt(locator);
 const focused = () => page.evaluate(() => { const e = document.activeElement; return {tag: e?.tagName, id: e?.id || '', cls: typeof e?.className === 'string' ? e.className : '', focus: e?.dataset?.focus || ''}; });
-const onBoard = f => /bk-bucket|bk-card|bk-button/.test(f.cls) || f.focus === 'bk-status' || f.id === 'completion-heading';
+const onBoard = f => /fb-bucket|fb-card|fb-button/.test(f.cls) || f.focus === 'fb-status' || f.id === 'completion-heading';
 // The move controls are in view without scrolling, from the top of the page.
 const inView = async (locator, label) => { await page.evaluate(() => scrollTo(0, 0)); const b = await locator.first().boundingBox(); const h = await page.evaluate(() => innerHeight); assert.ok(b && b.y >= 0 && b.y + b.height <= h, `${label}: the control is in view (${b && Math.round(b.y + b.height)} of ${h})`); };
 const message = () => page.locator('.feedback').innerText();
@@ -61,7 +61,7 @@ async function winGame(p, label) {
   const q = p.parameters;
   let b = await board(p.id);
   if (b.first === null) {
-    await tap(page.locator(`[data-focus="bk-choose-${moverWins(q, b.pos) ? 'you' : 'opponent'}"]`));
+    await tap(page.locator(`[data-focus="fb-choose-${moverWins(q, b.pos) ? 'you' : 'opponent'}"]`));
     assert.ok(onBoard(await focused()), `${label}: focus lands on the board after choosing`);
   }
   for (let i = 0; i < 40; i++) {
@@ -89,7 +89,7 @@ try {
   // 0, 0 and 1: How to play; a lost duel from refilling; Undo; the win.
   let p = byId('buckets-01');
   await open(p.id); await fit('0, 0 and 1, fresh');
-  const width = (await page.locator('.bk-board').boundingBox()).width;
+  const width = (await page.locator('.fb-board').boundingBox()).width;
   assert.ok(width <= 380, `the board is compact (${width}px)`);
   await inView(press('End turn'), '0, 0 and 1, fresh');
   await page.locator('[data-action="demo"]').first().click();
@@ -98,7 +98,7 @@ try {
   assert.equal(await press('End turn').isDisabled(), true, 'End turn waits for a tap');
   await tap(bucket(3)); await tap(bucket(1));
   assert.equal(await bucket(3).evaluate(e => e.classList.contains('taking')), true);
-  assert.equal(await page.locator('.bk-fish.new').count(), 1, 'the added fish shows');
+  assert.equal(await page.locator('.fb-fish.new').count(), 1, 'the added fish shows');
   await inView(press('End turn'), '0, 0 and 1, a move being built'); await inView(press('Cancel'), '0, 0 and 1, a move being built');
   await shot('building'); await fit('a move being built');
   await tap(press('End turn'));
@@ -113,7 +113,7 @@ try {
   p = byId('buckets-02');
   await open(p.id);
   await tap(bucket(3)); await tap(bucket(2)); await tap(press('Cancel'));
-  assert.equal(await page.locator('.bk-bucket.taking').count(), 0, 'Cancel drops the move being built');
+  assert.equal(await page.locator('.fb-bucket.taking').count(), 0, 'Cancel drops the move being built');
   assert.equal(await press('End turn').isDisabled(), true);
   await tap(bucket(1)); await tap(bucket(2));
   assert.match(await message(), /not allowed/, 'a bucket right of the one taken from is refused');
@@ -123,7 +123,7 @@ try {
   checks.push('2, 1 and 1: Cancel, and a refused tap on the right');
   await play({from: 3, take: 1, add: [0, 0, 0]}, 'a losing move');
   assert.match(await status(), /^I took 1 from bucket \d( and added 1 to buckets? [\d, and]+)?\. Your turn$/);
-  assert.ok(await page.locator('.bk-fish.gone').count() === 1, 'the fish I took is drawn dashed');
+  assert.ok(await page.locator('.fb-fish.gone').count() === 1, 'the fish I took is drawn dashed');
   await shot('reply'); await fit('after my reply');
   await tap(page.locator('[data-action="undo"]'));
   await winGame(p, '2, 1 and 1'); await done(); checks.push('2, 1 and 1: my reply drawn, Undo, and a win by taps');
@@ -164,12 +164,12 @@ try {
   p = byId('buckets-04');
   await open(p.id); await fit('cards, fresh');
   await inView(press('That’s all'), 'cards, fresh');
-  const card = c => page.locator(`[data-focus="bk-card-${c}"]`);
+  const card = c => page.locator(`[data-focus="fb-card-${c}"]`);
   await tapAt(card(5), .9, .1); await tapAt(card(2), .1, .9);
-  f = await focused(); assert.match(f.focus, /^bk-card-/, 'focus stays on the card');
+  f = await focused(); assert.match(f.focus, /^fb-card-/, 'focus stays on the card');
   await tap(press('That’s all'));
   assert.deepEqual((await board(p.id)).refused, {more: true});
-  assert.match(await page.locator('.bk-note').innerText(), /^There is another\.$/);
+  assert.match(await page.locator('.fb-note').innerText(), /^There is another\.$/);
   assert.equal(await press('That’s all').isDisabled(), true, 'That’s all waits for a change');
   assert.doesNotMatch(await page.locator('[data-mechanic-wire]').innerText(), /\d+ (more|left)/, 'no count');
   await tap(press('Play'));
@@ -190,7 +190,7 @@ try {
   await tap(card(8)); await tap(card(10));
   await tap(press('That’s all'));
   assert.equal((await board(p.id)).play.kind, 'out');
-  assert.match(await page.locator('.bk-label').innerText(), /^Whoever starts from 1 and 1 can win\. I go first\.$/);
+  assert.match(await page.locator('.fb-label').innerText(), /^Whoever starts from 1 and 1 can win\. I go first\.$/);
   assert.equal(await press('Back').count(), 0, 'the play-out cannot be left');
   await shot('playout'); await fit('play-out');
   for (let i = 0; i < 10 && /Your turn/.test(await status()); i++) {
@@ -199,7 +199,8 @@ try {
     for (const t of play2.turns) pos = after(pos, t);
     await play(moves(PLAY, pos)[0], `play-out ${i + 1}`);
   }
-  assert.match(await status(), /^I took the last fish\. The marks are cleared\.$/);
+  assert.match(await status(), /^Whoever starts from 1 and 1 can win\.\s+I took the last fish\. The marks are cleared\.$/, 'why I went first stays after the game');
+  await inView(press('Back'), 'play-out over');
   assert.deepEqual((await board(p.id)).marked, []);
   await tap(press('Back'));
   for (const c of p.solution.cards) await tap(card(c));
@@ -210,9 +211,9 @@ try {
   p = byId('buckets-07');
   await open(p.id); await fit('encore, fresh');
   await tap(bucket(2)); await tap(bucket(2));
-  assert.equal(await page.locator('.bk-fish.lift').count(), 2, 'a second tap takes another');
+  assert.equal(await page.locator('.fb-fish.lift').count(), 2, 'a second tap takes another');
   for (let i = 0; i < 4; i++) await tap(bucket(1));
-  assert.equal(await page.locator('.bk-fish.new').count(), 0, 'a fourth tap takes the added fish out');
+  assert.equal(await page.locator('.fb-fish.new').count(), 0, 'a fourth tap takes the added fish out');
   await tap(bucket(1));
   await inView(press('End turn'), 'encore, a move being built');
   await shot('encore-building'); await fit('encore, a move being built');
@@ -221,7 +222,21 @@ try {
   assert.deepEqual(after(b.start, b.turns[0]), [4, 4], 'the taps made the move shown');
   await winGame(p, 'encore'); await done(); checks.push('encore: take 2, add 1, and win');
   p = byId('buckets-08');
-  await open(p.id); await finishStreak(p, 'encore rounds'); checks.push('encore rounds: three wins from new starts');
+  // The fullest bucket a child can meet (validate-buckets.mjs): 16 fish in the
+  // encore, after refilling fully from 5 and 5 twice. End turn stays in view.
+  await open(p.id); await tap(press('Me first'));
+  const turns = [{player: 'you', from: 2, take: 1, add: [3, 0]}, {player: 'opponent', from: 2, take: 1, add: [3, 0]}, {player: 'you', from: 2, take: 1, add: [3, 0]}, {player: 'opponent', from: 2, take: 2, add: [2, 0]}];
+  const full = {...await board(p.id), start: [5, 5], pos: [16, 0], first: 'you', turns, streak: 0, won: [], fresh: true};
+  await page.evaluate(([k, id, b]) => { const s = JSON.parse(localStorage.getItem(k)); s.profiles[0].attempts[id].board = b; localStorage.setItem(k, JSON.stringify(s)); }, [key, p.id, full]);
+  await page.reload(); await page.locator(`[data-puzzle-id="${p.id}"] [data-mechanic-wire]`).waitFor();
+  assert.deepEqual((await board(p.id)).pos, [16, 0], 'the full save is accepted');
+  assert.equal(await page.locator('.fb-bucket[data-i="0"] .fb-fish').count(), 16);
+  await tap(bucket(1));
+  await inView(press('End turn'), 'encore, 16 fish'); await fit('encore, 16 fish');
+  await shot('encore-16');
+  checks.push('encore: 16 fish in a bucket, End turn in view');
+  await tap(press('Cancel')); await tap(page.locator('[data-action="restart"]').first());
+  await finishStreak(p, 'encore rounds'); checks.push('encore rounds: three wins from new starts');
 
   assert.deepEqual(errors, []);
   console.log(JSON.stringify({passed: true, phone, checks, errors}, null, 2));

@@ -25,7 +25,7 @@ const cpuMs = f => { const t = process.cpuUsage(); f(); const u = process.cpuUsa
 const box = (n, max) => n === 0 ? [[]] : box(n - 1, max).flatMap(s => Array.from({length: max + 1}, (_, c) => [...s, c]));
 // The buckets on the screen: for each, whether it is a button and the move its tap stores.
 function buckets(html) {
-  return [...html.matchAll(/<(button|span) type="button" class="(bk-bucket[^"]*)" data-i="(\d+)" data-action="mechanic-ui" data-ui="([^"]*)"|<span class="(bk-bucket[^"]*)" data-i="(\d+)" role="img"/g)]
+  return [...html.matchAll(/<(button|span) type="button" class="(fb-bucket[^"]*)" data-i="(\d+)" data-action="mechanic-ui" data-ui="([^"]*)"|<span class="(fb-bucket[^"]*)" data-i="(\d+)" role="img"/g)]
     .map(m => m[1] ? {i: Number(m[3]), cls: m[2], ui: JSON.parse(unesc(m[4]))} : {i: Number(m[6]), cls: m[5], ui: null});
 }
 // Tap bucket i (1 is the leftmost) as the screen does: store what the button carries, then draw again.
@@ -36,7 +36,7 @@ function tap(p, a, i) {
   return M[p.mechanic].render(p, a);
 }
 const endTurn = html => {
-  const m = html.match(/<button type="button" class="primary bk-button" data-action="expansion-move" data-move="([^"]*)" data-focus="bk-move" (disabled)?/);
+  const m = html.match(/<button type="button" class="primary fb-button" data-action="expansion-move" data-move="([^"]*)" data-focus="fb-move" (disabled)?/);
   assert.ok(m, 'End turn is drawn');
   return {action: JSON.parse(unesc(m[1])), disabled: Boolean(m[2])};
 };
@@ -83,11 +83,11 @@ test('a move by taps: take from a bucket, add to buckets on its left, End turn; 
   let shown = buckets(html);
   assert.match(shown[2].cls, /taking/);
   assert.match(shown[0].cls, /adding/); assert.match(shown[1].cls, /adding/);
-  assert.match(html, /class="bk-fish lift"/, 'the taken fish is lifted');
-  assert.equal([...html.matchAll(/class="bk-fish slot"/g)].length, 2, 'a place for one fish in each bucket on the left');
-  assert.match(html, /data-focus="bk-cancel"/);
+  assert.match(html, /class="fb-fish lift"/, 'the taken fish is lifted');
+  assert.equal([...html.matchAll(/class="fb-fish slot"/g)].length, 2, 'a place for one fish in each bucket on the left');
+  assert.match(html, /data-focus="fb-cancel"/);
   html = tap(p, a, 2);
-  assert.equal([...html.matchAll(/class="bk-fish new"/g)].length, 1);
+  assert.equal([...html.matchAll(/class="fb-fish new"/g)].length, 1);
   const end = endTurn(html);
   assert.equal(end.disabled, false);
   assert.deepEqual(end.action, {type: 'move', from: 3, take: 1, add: [0, 1, 0]});
@@ -171,6 +171,9 @@ test('every reply: go second from 2 and 2 against each of my three first moves, 
   }
   assert.ok(isSolved(p, a.board));
   assert.ok(validBoard(p, JSON.parse(JSON.stringify(a.board))));
+  assert.equal(a.board.won.length, 2, 'the games won against the first two moves are kept');
+  assert.equal(validBoard(p, {...a.board, won: []}), false, 'a last round alone is not a solve');
+  assert.equal(validBoard(p, {...a.board, won: [a.board.won[1], a.board.won[0]]}), false);
 });
 
 test('who starts: choose, win three in a row from new starts; the choice is final, a loss empties the streak, a practice win does not count', () => {
@@ -180,7 +183,7 @@ test('who starts: choose, win three in a row from new starts; the choice is fina
   const r = seeded(4);
   let b = M.buckets.fresh(p, r), wins = 0;
   const html = M.buckets.render(p, {board: b, hintLevel: 0});
-  const looks = [...html.matchAll(/<button type="button" class="([^"]*)"[^>]*data-focus="bk-choose-(?:you|opponent)"/g)].map(m => m[1]);
+  const looks = [...html.matchAll(/<button type="button" class="([^"]*)"[^>]*data-focus="fb-choose-(?:you|opponent)"/g)].map(m => m[1]);
   assert.equal(looks.length, 2); assert.equal(looks[0], looks[1], 'neither choice looks like the default');
   assert.equal(M.buckets.move(p, b, {type: 'move', from: 1, take: 1, add: [0, 0, 0]}), null, 'choose first');
   while (!M.buckets.solved(p, b)) {
@@ -219,8 +222,8 @@ test('Every start: marks, Play, That’s all and its lock; a wrong card is playe
   assert.deepEqual(secondCards().map(cardStart), [[2, 0], [0, 2], [2, 2]]);
   let a = freshAttempt(p);
   let html = M.bucketsort.render(p, a);
-  assert.equal([...html.matchAll(/<button type="button" class="bk-card/g)].length, 15);
-  assert.match(html, /data-focus="bk-all" disabled/, 'nothing marked, nothing to judge');
+  assert.equal([...html.matchAll(/<button type="button" class="fb-card/g)].length, 15);
+  assert.match(html, /data-focus="fb-all" disabled/, 'nothing marked, nothing to judge');
   assert.doesNotMatch(html, /\b(3|three) (starts|cards)\b/i, 'no count');
   a = move(p, a, {type: 'mark', cell: 2});
   a = move(p, a, {type: 'mark', cell: 5});
@@ -248,13 +251,19 @@ test('Every start: marks, Play, That’s all and its lock; a wrong card is playe
   assert.equal(w.board.play.kind, 'out'); assert.equal(w.board.play.turns[0].player, 'opponent');
   html = M.bucketsort.render(p, w);
   assert.match(html, /Whoever starts from 1 and 1 can win\. I go first\./);
-  assert.doesNotMatch(html, /data-focus="bk-back"/, 'no way out but to play it');
+  assert.doesNotMatch(html, /data-focus="fb-back"/, 'no way out but to play it');
   assert.equal(move(p, w, {type: 'back'}), null);
   for (let i = 0; i < 20 && w.board.marked.length; i++) w = move(p, w, sortHint(p, w.board).action, seeded(i));
   assert.deepEqual(w.board.marked, []);
-  assert.match(M.bucketsort.render(p, w), /I took the last fish\. The marks are cleared\./);
+  html = M.bucketsort.render(p, w);
+  assert.match(html, /Whoever starts from 1 and 1 can win\.<\/span> I took the last fish\. The marks are cleared\./, 'why I went first stays after the game');
   w = move(p, w, {type: 'back'});
   assert.deepEqual(w.board, M.bucketsort.fresh(p));
+  // A wrong card one move from the end: the play-out is over at once, and the line still says why.
+  const quick = move(p, move(p, full, {type: 'mark', cell: 1}), {type: 'all'}, seeded(1));
+  assert.deepEqual(quick.board.refused, {wrong: 1});
+  assert.deepEqual(quick.board.marked, []);
+  assert.match(M.bucketsort.render(p, quick), /Whoever starts from 1 and 0 can win\.<\/span> I took the last fish\. The marks are cleared\./);
   full = move(p, full, {type: 'mark', cell: 5});
   const right = move(p, full, {type: 'all'});
   assert.ok(isSolved(p, right.board));
@@ -270,13 +279,13 @@ test('the encore: take 1 to 3, add up to 3, and 3 and 6 is won only by leaving 4
   const a = freshAttempt(p);
   let html = tap(p, a, 2);
   html = tap(p, a, 2);
-  assert.equal([...html.matchAll(/class="bk-fish lift"/g)].length, 2, 'a second tap takes another fish');
-  assert.equal([...html.matchAll(/class="bk-fish slot"/g)].length, 3, 'room for up to 3 added fish');
+  assert.equal([...html.matchAll(/class="fb-fish lift"/g)].length, 2, 'a second tap takes another fish');
+  assert.equal([...html.matchAll(/class="fb-fish slot"/g)].length, 3, 'room for up to 3 added fish');
   html = tap(p, a, 1);
   assert.deepEqual(endTurn(html).action, {type: 'move', from: 2, take: 2, add: [1, 0]});
   for (let i = 0; i < 3; i++) html = tap(p, a, 1);
   assert.deepEqual(endTurn(html).action, {type: 'move', from: 2, take: 2, add: [0, 0]}, 'after 3, a tap takes the added fish out');
-  assert.match(html, /class="bk-board fours"/);
+  assert.match(html, /class="fb-board fours"/);
   M.buckets.reset(p);
   const won = move(p, a, {type: 'move', from: 2, take: 2, add: [1, 0]}, seeded(1));
   assert.deepEqual(won.board.turns.at(-1).player, 'opponent');
@@ -301,6 +310,14 @@ test('hints point to a winning move without naming the rule; Apply hint makes it
   }
   const p = byId('buckets-02'), h = nextHint(p, freshAttempt(p));
   assert.equal(h.text, 'Some move wins from here. Which buckets would you like to leave me?');
+  // From the second press, the bucket a winning move takes from is ringed; never in a round.
+  const ringed = level => buckets(M.buckets.render(p, {...freshAttempt(p), hintLevel: level})).filter(b => /hinted/.test(b.cls)).map(b => b.i);
+  assert.deepEqual(ringed(1), []); assert.deepEqual(ringed(2), [2]); assert.deepEqual(ringed(3), [2]);
+  const round = byId('buckets-06'), b = M.buckets.move(round, {...M.buckets.fresh(round, seeded(1)), start: [3, 1, 1], pos: [3, 1, 1]}, {type: 'choose', first: 'you'});
+  assert.doesNotMatch(M.buckets.render(round, {board: b, hintLevel: 3}), /hinted/);
+  // A lost duel: the line above the buckets says who took the last fish, the hint only what to do.
+  const first = byId('buckets-01'), lost = move(first, freshAttempt(first), {type: 'move', from: 3, take: 1, add: [1, 0, 0]}, seeded(1));
+  assert.equal(nextHint(first, lost).text, 'Undo or restart to try again.');
 });
 
 test('saves: fresh boards are valid; forged wins, streaks and marks are not; Restart deals a fresh board', () => {
@@ -326,8 +343,8 @@ test('rendering: no title on the play screen, How to play opens with the move, l
     assert.match(p.controls, /^A move takes /);
     assert.doesNotMatch(`${p.title} ${p.controls} ${p.rules.join(' ')}`, /\beven\b|\bodd\b|pair|multiple|parity/i, `${p.id}: How to play names no rule`);
     assert.match(board, /data-mechanic-wire="(buckets|bucketsort)"/);
-    if (p.mechanic === 'buckets') for (const b of buckets(board)) assert.ok(b.cls.startsWith('bk-bucket'));
-    for (const m of board.matchAll(/class="bk-bucket[^"]*"[^>]*aria-label="([^"]*)"/g)) assert.match(m[1], /^Bucket \d+, \d+ fish/);
+    if (p.mechanic === 'buckets') for (const b of buckets(board)) assert.ok(b.cls.startsWith('fb-bucket'));
+    for (const m of board.matchAll(/class="fb-bucket[^"]*"[^>]*aria-label="([^"]*)"/g)) assert.match(m[1], /^Bucket \d+, \d+ fish/);
     assert.doesNotMatch(board, /\b\d+ (more|left|to go|to find)\b/, `${p.id}: no count`);
   }
 });

@@ -205,9 +205,11 @@ export default async function validateBuckets() {
       // What guessing with That's all costs, in taps (a mark, That's all, Back
       // and End turn are one each; building a move is one tap a fish): knowing
       // the answer; marking every card and letting play-outs strip the wrong
-      // ones; and leaving one card out at a time ("There is another." then
-      // says it is an answer). Playing every card second, perfectly, is the
-      // most solving by play can cost.
+      // ones; leaving one card out at a time ("There is another." then says it
+      // is an answer); and testing groups by halves (leave a group unmarked:
+      // "There is another." says it holds an answer, a play-out that it holds
+      // none). Playing every card second, perfectly, is what solving by play
+      // costs.
       const gameTaps = mv => 1 + mv.take + mv.add.reduce((x, y) => x + y, 0);
       const run = strategy => {
         let b = m.fresh(p), taps = 0, lost = 0;
@@ -233,6 +235,30 @@ export default async function validateBuckets() {
           }
           if (!b.done) { markTo(second); act({type: 'all'}); }
         }
+        if (strategy === 'groupTest') {
+          const wrong = new Set(), right = new Set();
+          // Leave `group` unmarked, with every card known wrong: true when it holds an answer.
+          const test = group => {
+            markTo(cards.filter(c => !group.includes(c) && !wrong.has(c)));
+            act({type: 'all'});
+            if (b.done) return null;
+            if (b.play) { group.forEach(c => wrong.add(c)); wrong.add(b.refused.wrong); lost++; playOn(); act({type: 'back'}); return false; }
+            return true;
+          };
+          for (let guard = 0; guard < 40 && !b.done; guard++) {
+            let open = cards.filter(c => !wrong.has(c) && !right.has(c)), holds = false;
+            if (!open.length) { markTo([...right]); act({type: 'all'}); break; }
+            // Narrow to one answer: halve a group known (or tested) to hold one.
+            while (!b.done) {
+              if (holds && open.length === 1) { right.add(open[0]); break; }
+              const half = open.slice(0, Math.ceil(open.length / 2)), verdict = test(half);
+              if (verdict === null) break;
+              if (verdict) { open = half; holds = true; }
+              else { open = open.filter(c => !half.includes(c) && !wrong.has(c)); if (!open.length) break; }
+            }
+          }
+          if (!b.done) { markTo(second); act({type: 'all'}); }
+        }
         if (strategy === 'byPlay') {
           const won = [];
           for (const c of cards) {
@@ -247,10 +273,11 @@ export default async function validateBuckets() {
         assert.ok(b.done, `${p.id}: ${strategy} solves`);
         return {taps, lost};
       };
-      const costs = {knowing: run('knowing'), byPlay: run('byPlay'), stripping: run('stripping'), leaveOneOut: run('leaveOneOut')};
+      const costs = {knowing: run('knowing'), byPlay: run('byPlay'), stripping: run('stripping'), leaveOneOut: run('leaveOneOut'), groupTest: run('groupTest')};
       report.guessCost = costs;
       assert.ok(costs.stripping.lost === wrongs.length && costs.stripping.taps > 5 * costs.knowing.taps, `${p.id}: marking everything loses a game per wrong card`);
       assert.ok(costs.leaveOneOut.taps > 10 * costs.knowing.taps, `${p.id}: testing one card at a time costs far more than knowing the answer`);
+      assert.ok(costs.groupTest.taps > 10 * costs.knowing.taps && costs.groupTest.lost > 0, `${p.id}: testing groups costs lost games and far more than knowing the answer`);
       // Illegal moves and forged saves.
       const fresh = freshAttempt(p);
       for (const action of [{type: 'all'}, {type: 'mark', cell: 0}, {type: 'mark', cell: 16}, {type: 'mark', cell: 1.5}, {type: 'move', from: 1, take: 1, add: [0, 0]}, {type: 'back'}, {type: 'start', cell: 4}, {type: 'choose', first: 'you'}, {type: 'keep'}]) assert.equal(move(p, fresh, action), null, `${p.id}: rejects ${JSON.stringify(action)}`);
@@ -371,15 +398,27 @@ export default async function validateBuckets() {
         else assert.equal(longestBySearch({cap: q.cap}, to), Math.max(...successors(q, pos).map(s => longestBySearch({cap: q.cap}, s.to))), `${p.id}: from ${pos} a longest game`);
       }
     }
-    // The most fish in one bucket over random games from the puzzle's starts.
+    // The most fish in one bucket on the child's turn, over every game from
+    // the puzzle's starts: the child making any move, and I any of the moves
+    // my rule allows (a winning one, or else one making the longest game).
     const starts = q.mode === 'streak' ? startPool(q) : [q.start];
+    const replies = pos => {
+      const all = successors(q, pos), wins = all.filter(s => !searchWins(q, s.to));
+      if (wins.length) return wins.map(s => s.to);
+      const best = Math.max(...all.map(s => longestBySearch({cap: q.cap}, s.to)));
+      return all.filter(s => longestBySearch({cap: q.cap}, s.to) === best).map(s => s.to);
+    };
     let most = 0;
-    const r = seeded(17);
-    for (let g = 0; g < 400; g++) {
-      let pos = [...starts[g % starts.length]];
-      while (pos.some(Boolean)) { const opts = successors(q, pos); pos = opts[Math.floor(r() * opts.length)].to; most = Math.max(most, ...pos); }
+    const seen = new Set(), queue = [];
+    const visit = (pos, mine) => { const k = `${mine}/${pos}`; if (!seen.has(k) && pos.some(Boolean)) { seen.add(k); queue.push([pos, mine]); } };
+    for (const start of starts) { visit(start, false); if (q.mode !== 'duel') visit(start, true); }
+    while (queue.length) {
+      const [pos, mine] = queue.pop();
+      if (!mine) { most = Math.max(most, ...pos); for (const s of successors(q, pos)) visit(s.to, true); }
+      else for (const to of replies(pos)) visit(to, false);
     }
     report.mostFish[p.id] = most;
+    assert.ok(most <= 16, `${p.id}: at most 16 fish in a bucket on the child’s turn (the browser smoke draws 16)`);
 
     // Illegal moves: refills on or right of the bucket, more than the cap,
     // taking more than allowed or from an empty bucket, a wrong length; and
@@ -433,6 +472,13 @@ export default async function validateBuckets() {
       assert.equal(validBoard(p, {...fresh, round: 2}), false, `${p.id}: the round's first move`);
       assert.equal(validBoard(p, {...fresh, round: 3}), false);
       assert.equal(validBoard(p, {...fresh, first: 'you'}), false);
+      // A later round holds a real win against each earlier first move.
+      const firsts = successors(q, q.start).map(s => s.move);
+      const won = i => { const turns = [{player: 'opponent', ...firsts[i]}]; let pos = standing(q, q.start, turns); while (pos.some(Boolean)) { const mv = turns.length % 2 ? repair(q, pos) : opponentMove(q, pos, seeded(turns.length)); turns.push({player: turns.length % 2 ? 'you' : 'opponent', ...mv}); pos = standing(q, pos, [mv]); } return {start: q.start, first: 'opponent', turns}; };
+      const roundAt = (i, list) => ({start: q.start, pos: standing(q, q.start, [firsts[i]]), first: 'opponent', turns: [{player: 'opponent', ...firsts[i]}], round: i, won: list});
+      assert.ok(validBoard(p, roundAt(2, [won(0), won(1)])), `${p.id}: an honest third round`);
+      const lost = {...won(0), turns: [{player: 'opponent', ...firsts[0]}, {player: 'you', from: 2, take: 1, add: [0, 0]}, ...successors(q, standing(q, q.start, [firsts[0], {from: 2, take: 1, add: [0, 0]}])).filter(s => !searchWins(q, s.to)).slice(0, 1).map(s => ({player: 'opponent', ...s.move}))]};
+      for (const [i, list] of [[], [won(0)], [won(1), won(0)], [won(0), won(0)], [lost, won(1)], [won(0), {...won(1), extra: 1}]].entries()) assert.equal(validBoard(p, roundAt(2, list)), false, `${p.id}: rejects forged earlier rounds ${i}`);
     }
     if (q.mode === 'streak') {
       const pool = startPool(q), a = pool.find(s => searchWins(q, s)), b2 = pool.find(s => searchWins(q, s) && String(s) !== String(a));

@@ -101,7 +101,7 @@ const authored = [
     visibleObjective: 'Mark every start where you would rather go second.',
     idea: 'Of the fifteen cards, 2 and 0, 0 and 2, and 2 and 2 are the starts where you would rather go second.',
     prerequisites: 'Puzzles 1–3. Count to 3.',
-    hints: ['Use Play to try a card both ways. Which cards can you win going second?', 'A start is one to mark when every move from it reaches a start that is not marked.', 'Start with the cards with the fewest fish.'],
+    hints: ['Use Play to try a card both ways. Which cards can you win going second?', 'Count 0 and 0 as marked. Then a start is one to mark when every move from it reaches a start that is not marked.', 'Start with the cards with the fewest fish.'],
     parent: {notice: 'Whether your child decides each card by playing it, starting from the cards with the fewest fish, or marks a guessed pattern.', prompt: 'How do you know there is no other?', explanation: `${PARITY} So among the fifteen cards the second-player starts are 2 and 0, 0 and 2, and 2 and 2. While a start is missing, That’s all says only “There is another.”, with no count, even if a wrong card is marked too. Once none is missing, a wrong That’s all is final: the app goes first from the wrong card, wins, and clears the marks.`, extension: 'Which three-bucket starts with 0 to 3 fish would you rather hand over? (There are seven.)', connection: CONNECTION},
     provenance: 'Week 81 Problem 2 (sort the sixteen two-bucket cards into starts the first player can force and starts the second player can force); the empty card is left out.'
   },
@@ -126,7 +126,6 @@ const authored = [
   {
     number: 7, difficulty_level: 'hard', title: 'Up to 3: 3 and 6',
     parameters: {mode: 'duel', start: [3, 6], cap: 3, takes: 3},
-    objective: 'Take the last fish to win. You go first. A move takes 1, 2 or 3 fish and adds up to 3 to each bucket to its left.',
     visibleObjective: 'Take 1, 2 or 3 at a time, add up to 3 to each bucket on the left, and take the last fish.',
     idea: 'With takes of 1 to 3 and adds of up to 3, the starts to hand over are those where every bucket is a multiple of 4. From 3 and 6, take 2 from bucket 2 and add 1 to bucket 1, leaving 4 and 4.',
     prerequisites: 'Puzzles 1–6. Counting in fours helps.',
@@ -137,7 +136,6 @@ const authored = [
   {
     number: 8, difficulty_level: 'hard', title: 'Up to 3: two buckets of 0 to 5',
     parameters: {mode: 'streak', buckets: 2, max: 5, cap: 3, takes: 3, streak: STREAK},
-    objective: 'Choose who starts, then take the last fish. A move takes 1, 2 or 3 fish and adds up to 3 to each bucket to its left. Win 3 games in a row from new starts.',
     visibleObjective: 'Take 1, 2 or 3 at a time, add up to 3 to each bucket on the left, and win 3 games in a row.',
     idea: 'Let me start exactly when every bucket is a multiple of 4: 4 and 0, 0 and 4, 4 and 4.',
     prerequisites: 'Puzzle 7. Counting in fours helps.',

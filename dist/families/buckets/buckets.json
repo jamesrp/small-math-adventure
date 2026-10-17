@@ -370,7 +370,7 @@
    "prerequisites": "Puzzles 1–3. Count to 3.",
    "hints": [
     "Use Play to try a card both ways. Which cards can you win going second?",
-    "A start is one to mark when every move from it reaches a start that is not marked.",
+    "Count 0 and 0 as marked. Then a start is one to mark when every move from it reaches a start that is not marked.",
     "Start with the cards with the fewest fish."
    ],
    "parent": {
@@ -605,9 +605,9 @@
     "cap": 3,
     "takes": 3
    },
-   "objective": "Take the last fish to win. You go first. A move takes 1, 2 or 3 fish and adds up to 3 to each bucket to its left.",
+   "objective": "Take the last fish to win. You go first.",
    "visibleObjective": "Take 1, 2 or 3 at a time, add up to 3 to each bucket on the left, and take the last fish.",
-   "instruction": "Take the last fish to win. You go first. A move takes 1, 2 or 3 fish and adds up to 3 to each bucket to its left.",
+   "instruction": "Take the last fish to win. You go first.",
    "controls": "A move takes 1, 2 or 3 fish from one bucket and may add up to 3 fish to each bucket to its left. Whoever takes the last fish wins. Tap a bucket to take a fish from it, and again to take more, up to 3; tap a bucket to its left to add a fish, and again to add more, up to 3; one more tap puts them back. Then End turn. I reply at once. Undo takes back your move and my reply.",
    "rules": [
     "Players take turns.",
@@ -678,9 +678,9 @@
     "takes": 3,
     "streak": 3
    },
-   "objective": "Choose who starts, then take the last fish. A move takes 1, 2 or 3 fish and adds up to 3 to each bucket to its left. Win 3 games in a row from new starts.",
+   "objective": "Choose who starts, then take the last fish. Win 3 games in a row from new starts.",
    "visibleObjective": "Take 1, 2 or 3 at a time, add up to 3 to each bucket on the left, and win 3 games in a row.",
-   "instruction": "Choose who starts, then take the last fish. A move takes 1, 2 or 3 fish and adds up to 3 to each bucket to its left. Win 3 games in a row from new starts.",
+   "instruction": "Choose who starts, then take the last fish. Win 3 games in a row from new starts.",
    "controls": "A move takes 1, 2 or 3 fish from one bucket and may add up to 3 fish to each bucket to its left. Whoever takes the last fish wins. Choose Me first or You first. Tap a bucket to take a fish from it, and again to take more, up to 3; tap a bucket to its left to add a fish, and again to add more, up to 3; one more tap puts them back. Then End turn. I reply at once. Win 3 games in a row from new starts. After a loss, Same start again is practice and does not count.",
    "rules": [
     "Players take turns.",
