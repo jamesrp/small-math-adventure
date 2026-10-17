@@ -67,6 +67,7 @@ function newBend(q, all, u, v) {
     if (ok !== undefined) { best = ok; break; }
     if (size === 4) best = tries[0];
   }
+  if (bendMemo.size > 500) bendMemo.clear();
   bendMemo.set(key, best);
   return best;
 }
@@ -77,6 +78,7 @@ export function bridgesOf(q, added = []) {
   if (allMemo.has(key)) return allMemo.get(key);
   const all = q.bridges.map(([u, v, bend]) => [u, v, bend || 0]);
   for (const [u, v] of added) all.push([u, v, newBend(q, all, u, v)]);
+  if (allMemo.size > 500) allMemo.clear();
   allMemo.set(key, all);
   return all;
 }
@@ -107,7 +109,8 @@ export function walkOf(all, start, path) {
 const finishMemo = new Map();
 export function finishOnce(all, at, mask, home = null) {
   const full = (1 << all.length) - 1, key = JSON.stringify(all.map(([u, v]) => u + '|' + v)) + `#${home}`;
-  if (!finishMemo.has(key)) finishMemo.set(key, new Map());
+  // A table per set of bridges; a long session of new bridges starts afresh.
+  if (!finishMemo.has(key)) { if (finishMemo.size > 60) finishMemo.clear(); finishMemo.set(key, new Map()); }
   const memo = finishMemo.get(key);
   const go = (x, m) => {
     if (m === full) return home === null || x === home ? [] : null;
@@ -418,7 +421,7 @@ function hintFor(q, b) {
   }
   // A delivery route.
   const best = fewestRepeats(q), ends = deadEnds(q);
-  if (can.fewest && walk.repeats === best) return claimHint(q, b, 'fewest', `${list(ends)} are dead ends: the truck must come back over each one’s bridge, so ${best} is the fewest. Press Fewest, tap ${list(ends)} and Check.`);
+  if (can.fewest && walk.repeats === best) return claimHint(q, b, 'fewest', `${list(ends)} are dead ends: a route must come back over each one’s bridge, so ${best} is the fewest. Press Fewest, tap ${list(ends)} and Check.`);
   if (b.start === null) return place(islandsOf(q).find(s => finishDelivery(all, s, 0, s)?.repeats === best));
   if (complete(q, all, b, walk)) return again(walk.repeats > best ? 'Fewer repeats can work. Press Again.' : 'Press Again and walk it once more.');
   const rest = finishDelivery(all, walk.at, maskOf(walk.uses), b.start);

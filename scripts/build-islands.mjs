@@ -204,7 +204,7 @@ const authored = [
     hints: ['Try a route. Which bridges did you cross twice?', 'A route into a dead end must come back out over the same bridge.', 'From B: to A and back, to C and back, to D and back. Then Fewest, tap A, C and D, and Check.'],
     parent: {
       notice: 'Whether your child expects 2 repeats, as two new bridges would fix four odd islands, and what they make of needing 3.',
-      prompt: 'How does the truck leave a dead end?',
+      prompt: 'How does a route leave a dead end?',
       explanation: 'Each of A, C and D has one bridge, so a route that visits it and comes back crosses that bridge twice. That is three repeats whichever island the route starts on, and B, A, B, C, B, D, B uses exactly three. New bridges could go anywhere; repeats must run along existing bridges, which is why the count is 3, not 2.',
       extension: 'For a route that may end anywhere, what is the fewest? (Two: start on one dead end and finish on another.)',
       connection: 'The Chinese postman problem: the fewest repeats pair the odd vertices along shortest paths (Edmonds and Johnson, 1973).'
