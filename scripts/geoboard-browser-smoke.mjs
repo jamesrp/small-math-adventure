@@ -4,7 +4,8 @@
 // and moving it, a picked-up corner let go by Undo, a corner drag, a tap
 // between dots going to the nearest dot, Enter and arrow keys, a solve; Can't
 // waiting for a band, the stepper, a wrong claim with one short refusal kept
-// by Undo and a right claim with its argument; That's all refused with no
+// by Undo (which also takes back the tap that closed the band) and a right
+// claim with its argument; That's all refused with no
 // count shown; a cut with its seam dots and a refused cut; a hole; hints,
 // including an impossible goal's attempt, Pick's count and Can't; the
 // playground's sizes; and no page overflow. Same environment variables as the other browser suites
@@ -140,9 +141,14 @@ try {
   assert.equal(await page.locator('.geo-note').textContent(), '3 outline dots don’t fit Pick’s rule.', 'with one short refusal');
   assert.equal(await page.locator('.geo-eq').count(), 0, 'and no rule worked out');
   assert.ok(await activeIsSafe(), 'focus after a claim is not on Can’t');
+  // The claim left the band as it was, so one Undo also takes back the tap
+  // that closed it; the refusal stays.
   await page.locator('[data-action="undo"]').click();
   b = await board(P8);
-  assert.deepEqual([b.refused, b.loops.length], [3, 1], 'Undo keeps the refusal');
+  assert.deepEqual([b.refused, b.loops.length, b.open.length], [3, 0, 4], 'Undo keeps the refusal and opens the band');
+  assert.equal(await page.locator('.geo-note').textContent(), '3 outline dots don’t fit Pick’s rule.', 'the refusal still shows');
+  assert.ok(await button('Can’t').isDisabled(), 'Can’t waits for the band to close again');
+  await tap([0, 0]);
   await button('Can’t').click();
   for (let i = 0; i < 5; i++) await page.getByRole('button', {name: 'More'}).click();
   await button('Can’t').click();

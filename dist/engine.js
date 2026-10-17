@@ -156,9 +156,10 @@ export function undo(attempt) {
 // discoveries, refusals and tallies), and on past any step that `draw` shows
 // just as the screen is now, so every press changes what the child sees (a
 // refusal the shelf has since outgrown draws nothing). `draw` renders an
-// attempt as the play screen would. The current attempt is drawn last, so a
-// renderer that animates from the board it drew last still starts from the
-// screen.
+// attempt as the play screen would. The screen is drawn after the first step,
+// since a press closes view-only state (an open stepper, a one-time line)
+// whatever it takes back. The current attempt is drawn last, so a renderer
+// that animates from the board it drew last still starts from the screen.
 export function undoPress(puzzle, attempt, draw = null) {
   const carry = isExpansion(puzzle) ? mechanicFor(puzzle).carry : null;
   const back = a => { const b = undo(a); return carry && b !== a ? { ...b, board: carry(puzzle, a.board, b.board) } : b; };

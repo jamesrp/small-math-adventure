@@ -2,10 +2,12 @@
 // choosing places by tapping them (also at the edge of a shape facing its
 // neighbour, where two places' tap areas come closest), the number row, Enter,
 // digits and arrow keys, cards that move, one changed square at a time, Found
-// already, That's all and its refusal held through Undo, Can't only after an
-// attempt, the chase tapped to a smaller square with nothing marking the next
-// place, a tap away from the chase, the argument drawn, a wrong Can't kept
-// through Undo, keyboard focus after moves, and the playground's boards. Same
+// already, That's all and its refusal held through Undo (one press also takes
+// back the number before it), Can't only after an attempt, the chase tapped to
+// a smaller square with nothing marking the next place, a tap away from the
+// chase, the argument drawn, a wrong Can't kept through Undo (one press takes
+// back the chase and the number before it), keyboard focus after moves, and
+// the playground's boards. Same
 // environment variables as the other browser suites (PLAYWRIGHT_MODULE,
 // BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone with touch).
 // Screenshots go in test-results/averages/.
@@ -89,11 +91,13 @@ try {
   assert.equal(await focused(), 'gb-node-r', 'focus stays on the place');
   assert.equal(await page.locator('.av-all').isDisabled(), false, 'a new way lifts the refusal');
   await tap(page.locator('.av-all'));
+  // That's all left the board as it was, so one Undo also takes back the 3.
   await undoButton();
   assert.equal((await board(P)).found.length, 2, 'Undo keeps the ways found');
   assert.equal((await board(P)).more, true, 'and the refusal');
   assert.equal(await page.locator('.av-all').isDisabled(), true);
-  await setPlace('l', 2); await setPlace('r', 2);
+  assert.deepEqual((await board(P)).values, {t: 2, l: 1, r: 2}, 'and takes back the number before That’s all');
+  await setPlace('l', 2);
   assert.equal(await told(), 'Found already.');
   assert.equal(await page.locator('.av-shelf li.again').count(), 1);
   await shot('found-already'); await fit('found already');
@@ -163,9 +167,13 @@ try {
   assert.equal((await board(P)).chase, null, 'the chase ends when it runs out');
   assert.equal(await page.locator('.av-cant').isDisabled(), true, 'Can’t stays off');
   await notClaim('after a chase ran out');
-  for (let k = 0; k < 5; k++) await undoButton();
-  assert.equal((await board(P)).told, 'out', 'Undo keeps it');
+  // With the refusal kept, the chase and Can't draw like the board before
+  // them, so one Undo takes them back with the 3, and Undo greys out.
+  await undoButton();
+  assert.deepEqual(await board(P), {values: {a: null, b: null, c: null}, chase: null, told: 'out'}, 'Undo keeps it');
+  assert.equal(await told(), 'Every square it reaches is 8.');
   assert.equal(await page.locator('.av-cant').isDisabled(), true);
+  assert.equal(await page.locator('[data-action="undo"]').isDisabled(), true, 'with nothing left to take back, Undo greys out');
   await setPlace('c', 8);
   assert.equal(await page.locator('.av-cant').isDisabled(), false, 'a new number lifts it');
   await setPlace('a', 5); await setPlace('b', 5);

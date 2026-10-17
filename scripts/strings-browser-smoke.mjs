@@ -1,8 +1,9 @@
 // Plays Circle strings through the real interface: strings laid by tapping two
 // dots (and by Enter on focused dots), taps between close dots, a crossing
 // refused and drawn, a string cut, Can't refused on a board that can be
-// finished; Can't let go by a miss, a wrong part refused and kept through
-// Undo, then the trapped part tapped, shaded and outlined; the child's own
+// finished; Can't let go by a miss, a wrong part refused, one Undo taking back
+// the refusal with the string before it and the same part refused again, then
+// the trapped part tapped, shaded and outlined; the child's own
 // trap refused; taps on and around the left-over dot the hint rings; a whole puzzle by
 // keyboard; collecting every pairing with Found already, There is another and
 // That's all; neighbours refused, a string tapped near another for Can't; a
@@ -82,7 +83,9 @@ try {
   await tapDot(8, 6);
   assert.deepEqual((await board(P2)).strings, [], 'a tap on a strung dot takes the string off');
   // Can't on a board that can be finished: one claim, and the refusal says
-  // what is true of the part tapped, as on any board. It stays through Undo.
+  // what is true of the part tapped, as on any board. Undo keeps it only on
+  // these strings, where it looks the same, so one press takes back the string
+  // too; the same part on the same strings is refused again.
   await join(8, [2, 3]);
   await button('Can’t').click();
   const outside = await page.evaluate(() => [...document.querySelectorAll('.st-region')].find(r => /dots 5, 6, 7 and 8/.test(r.getAttribute('aria-label'))).dataset.gap);
@@ -91,14 +94,21 @@ try {
   assert.equal(await page.getByText('There is a way').count(), 0, 'nothing tells that the board can be finished');
   assert.equal(await button('Can’t').isDisabled(), true, 'one claim on these strings');
   await button('↶ Undo').click();
+  assert.deepEqual(await board(P2), {strings: [], claimed: null, refused: null}, 'one Undo takes back the claim and the string 2 to 3');
+  assert.equal(await page.locator('.st-told').count(), 0, 'the refusal goes with the string');
+  assert.equal(await button('Can’t').isDisabled(), true, 'Can’t waits for an attempt');
+  await join(8, [2, 3]);
+  await button('Can’t').click();
+  await tapAt(await regionPoint(outside));
   await told('Nothing is trapped there.');
-  assert.equal(await button('Can’t').isDisabled(), true, 'Undo keeps the refusal');
+  assert.equal(await button('Can’t').isDisabled(), true, 'the same part is refused again');
   await join(8, [5, 8], [6, 7]);
   await done();
   await shot('02-solved');
 
-  // Puzzle 3: Can't waits for an attempt; a wrong part refused and kept
-  // through Undo; then the trapped part.
+  // Puzzle 3: Can't waits for an attempt; a wrong part refused; one Undo back
+  // to the start, Undo greyed out; the same part refused again; then the
+  // trapped part.
   const P3 = 'strings-03';
   await open(P3); await fit('seven');
   assert.equal(await button('Can’t').isDisabled(), true, 'Can’t waits for an attempt');
@@ -120,8 +130,14 @@ try {
   assert.equal(await button('Can’t').isDisabled(), true, 'one claim per attempt');
   await shot('03-refused');
   await button('↶ Undo').click();
-  assert.equal(await button('Can’t').isDisabled(), true, 'Undo keeps the refusal');
-  assert.deepEqual((await board(P3)).strings, [[2, 3]]);
+  assert.deepEqual(await board(P3), {strings: [], claimed: null, refused: null}, 'one Undo takes back the claim and the string 2 to 3');
+  assert.equal(await page.locator('.st-told').count(), 0, 'the refusal goes with the string');
+  assert.equal(await button('↶ Undo').isDisabled(), true, 'back at the start, Undo greys out');
+  await join(7, [2, 3]);
+  await button('Can’t').click();
+  await tapAt(await regionPoint(2));
+  assert.equal((await board(P3)).refused, 2, 'the same part is refused again');
+  assert.equal(await button('Can’t').isDisabled(), true, 'one claim per attempt');
   await join(7, [4, 6]);
   await button('Can’t').click();
   await tapAt(await regionPoint(4));

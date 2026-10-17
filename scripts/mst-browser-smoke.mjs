@@ -61,11 +61,18 @@ try {
   await button('That’s all').click();
   assert.match(await page.locator('.mst-told').innerText(), /another/);
   await page.locator('[data-action="undo"]').click();
+  // Undo keeps the row, so taking back the keep draws nothing new and the
+  // same press takes back AD with it.
+  const panel = () => page.locator('.board-panel').innerHTML(), kept = await panel();
   await page.locator('[data-action="undo"]').click();
+  assert.notEqual(await panel(), kept, 'the press changes the board');
   assert.equal(await page.locator('.mst-found li').count(), 1, 'Undo keeps what was found');
-  await buy(E, 'AD');
+  assert.deepEqual((await board(E)).bought.sort(), [L(E, 'AB'), L(E, 'AC')].sort(), 'one press takes back the keep and AD');
+  await button('That’s all').click();
+  assert.match(await page.locator('.mst-told').innerText(), /another/, 'That’s all on the same row is still refused');
+  await buy(E, 'CD');
   assert.equal(await page.locator('.mst-found li').count(), 1);
-  await buy(E, 'CD'); await button('Cheapest').click();
+  await button('Cheapest').click();
   await buy(E, 'AB', 'BC'); await button('Cheapest').click();
   await buy(E, 'CD', 'AD'); await button('Cheapest').click();
   assert.equal(await page.locator('.mst-found li').count(), 4);

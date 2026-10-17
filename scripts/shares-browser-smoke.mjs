@@ -103,8 +103,17 @@ try {
   assert.equal(await button('Keep').isDisabled(), true, 'a way already kept');
   await button('That’s all').click();
   assert.equal(await page.locator('.sh-told').innerText(), 'Somebody would swap in one.');
+  // The claim press draws nothing of its own once its refusal is kept, so one
+  // Undo takes it back with the Keep before it.
   await page.locator('[data-action="undo"]').click();
-  assert.equal(await page.locator('.sh-told').innerText(), 'Somebody would swap in one.', 'Undo keeps the refusal');
+  assert.deepEqual((await board(P)).shelf, [], 'Undo takes back the claim and the Keep before it');
+  assert.equal(await page.locator('.sh-kept').count(), 0);
+  const back = (await board(P)).at;
+  assert.equal(ids.map(id => back[id]).join(''), 'ABBA', 'but not the cards');
+  assert.equal(await page.locator('.sh-told').innerText(), 'There is another.', 'Undo keeps the refusal of the empty shelf');
+  assert.equal(await button('That’s all').isDisabled(), true);
+  await button('Keep').click(); await button('That’s all').click();
+  assert.equal(await page.locator('.sh-told').innerText(), 'Somebody would swap in one.', 'the same shelf is refused again');
   assert.equal(await button('That’s all').isDisabled(), true);
   await tap(page.locator('.sh-kept').first());
   assert.deepEqual((await board(P)).shelf, [], 'a tap takes a kept way back');
@@ -216,8 +225,16 @@ try {
   await tap(page.locator('button.sh-piece').nth(1));
   assert.equal(await page.locator('.sh-told').innerText(), 'The other piece is more for you.');
   assert.equal(await page.locator('button.sh-piece').count(), 0, 'the take is final');
+  // Undo's first step keeps the take and draws nothing new, so the same press
+  // goes on past the equal cut: round one again, which Again also gives.
   await page.locator('[data-action="undo"]').click();
-  assert.equal(await page.locator('button.sh-piece').count(), 0, 'Undo keeps it');
+  assert.deepEqual(await board(P), {r1: {at: 6, star: false}, r2: null}, 'Undo takes back the take and the cut before it');
+  assert.equal(await page.locator('.sh-told').innerText(), 'Not equal for you.');
+  assert.equal(await page.locator('button.sh-piece').count(), 0, 'no piece to take without cutting again');
+  await page.locator('.sh-gap').nth(3).focus(); await page.keyboard.press('Enter');
+  await button('Cut').click();
+  await tap(page.locator('button.sh-piece').nth(1));
+  assert.equal(await page.locator('.sh-told').innerText(), 'The other piece is more for you.');
   await shot('final-take');
   await button('Again').click();
   assert.equal((await board(P)).r1, null, 'Again starts the duel over');

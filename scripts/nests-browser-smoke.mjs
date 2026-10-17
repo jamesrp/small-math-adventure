@@ -166,8 +166,15 @@ try {
   assert.equal(await page.locator('.ns-puzzle > .ns-told').innerText(), 'There is another.');
   assert.equal(await page.getByRole('button', {name: 'That’s all', exact: true}).isDisabled(), true);
   assert.notEqual(await focusKey(), 'ns-all', 'focus leaves That’s all');
+  // Under the kept answer, the tap that found A, B, C again draws like That's
+  // all, so one Undo takes back both: C and A stay chosen.
   await page.locator('[data-action="undo"]').click();
   assert.deepEqual((await board(E)).told, {kind: 'more'}, 'Undo keeps the answer');
+  assert.equal(await page.locator('.ns-puzzle > .ns-told').innerText(), 'There is another.');
+  assert.equal(await page.getByRole('button', {name: 'That’s all', exact: true}).isDisabled(), true, 'That’s all still waits for a new collection');
+  assert.deepEqual((await board(E)).decks[0].chosen, [index(E, 0, 'A'), index(E, 0, 'C')].sort((x, y) => x - y), 'and takes back the last tap');
+  assert.equal((await board(E)).found.length, 1);
+  await taps(E, 0, 'C A');
   await taps(E, 0, 'AB');
   assert.notEqual(await focusKey(), 'ns-all');
   await taps(E, 0, 'AC BC');

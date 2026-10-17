@@ -1,8 +1,9 @@
 // Plays Trios through the real interface: third tiles with the rule rows
 // after a wrong tap, trios through a ringed tile with There is another and
 // That's all, splits in trays, Can't with a tapped trio (nothing marks the
-// tiles to tap; refused when it can be done, and kept through Undo and
-// Restart; each wrong trio refused; drawn as dishes when right),
+// tiles to tap; refused when it can be done, and kept through Undo, which
+// takes back the tile before the claim too, and Restart; each wrong trio
+// refused; drawn as dishes when right),
 // dimmed cards that light their pair among the 27, colours and counts, the
 // game against the app, and the playground's 9, 27 and 81. Taps go through
 // real hit-testing at card corners and on the lines between tiles; keyboard
@@ -120,10 +121,15 @@ try {
   assert.equal(await told(), 'There is a way.');
   assert.equal(await button('Can’t').isDisabled(), true);
   assert.ok(await focusIsOnBoard(), 'focus after the claim is on the board');
+  // Undo of the claim keeps its refusal and leaves the same try, so one press
+  // goes on to take back the tile before it.
   await page.locator('[data-action="undo"]').click();
-  assert.equal(await button('Can’t').isDisabled(), true, 'Undo keeps the refusal');
-  assert.equal((await board(P3.id)).told, 'way');
-  assert.equal(await told(), 'There is a trio.', 'the refusal is said once; afterwards the usual note');
+  assert.deepEqual((await board(P3.id)).chosen, [T.CO, T.TO, T.SO], 'Undo takes back the claim and the tile before it');
+  assert.equal((await board(P3.id)).told, 'way', 'Undo keeps the refusal');
+  assert.equal(await page.locator('.tr-told').count(), 0, 'the refusal is said once: its line goes');
+  await taps([T.CH]);
+  assert.equal(await button('Can’t').isDisabled(), true, 'the same try still can’t claim');
+  assert.equal(await told(), 'There is a trio.', 'afterwards the usual note');
   await page.locator('[data-action="restart"]').click();
   assert.equal((await board(P3.id)).told, 'way', 'Restart keeps it too');
   assert.equal(await button('Can’t').isDisabled(), true);

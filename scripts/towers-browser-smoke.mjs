@@ -1,7 +1,8 @@
 // Plays Tower cities (the Towers group in Symbol Orchard) through the real
 // interface: the group in the Orchard's list, swaps by tap and by drag, looking
 // from an end, No row off until a swap, a right No row with its lanes and a
-// wrong one refused across Undo; heights by keypad and by typed digits, rings
+// wrong one refused across Undo (one press taking back the claim and the swap
+// before it); heights by keypad and by typed digits, rings
 // on numbers a full city misses, looking along a full line; No city after a
 // height, a wrong line and the right one; every city with There is another,
 // That's all and one more number; making a puzzle with the partner's second
@@ -96,11 +97,14 @@ try {
   assert.equal(await page.locator('.tw-note').innerText(), 'A row fits.');
   assert.equal(await button('No row').isDisabled(), true, 'refused once, for good');
   assert.equal(await focusIsClaim(), false, 'focus is not left on No row');
+  // Undo of the claim keeps the refusal, which draws just as it does now, so
+  // the same press takes back the swap.
   await undoButton();
-  assert.equal((await board(R5)).refused, true, 'Undo of the claim keeps the refusal');
-  await undoButton();
-  assert.deepEqual((await board(R5)).row, [2, 1, 4, 3], 'Undo takes back the swap');
-  assert.equal(await button('No row').isDisabled(), true, 'but not the refusal');
+  assert.deepEqual((await board(R5)).row, [2, 1, 4, 3], 'one Undo takes back the claim and the swap');
+  assert.equal((await board(R5)).refused, true, 'but not the refusal');
+  assert.equal(await page.locator('.tw-note').innerText(), 'A row fits.');
+  assert.equal(await button('No row').isDisabled(), true, 'No row stays off');
+  assert.equal(await page.locator('[data-action="undo"]').isDisabled(), true, 'back at the start, Undo greys out');
   await tower(0).focus(); await page.keyboard.press('Enter');
   assert.equal(await tower(0).getAttribute('aria-pressed'), 'true', 'Enter lifts a tower');
   await tower(1).focus(); await page.keyboard.press('Enter');

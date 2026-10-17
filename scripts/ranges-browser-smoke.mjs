@@ -1,15 +1,16 @@
 // Plays Ruler strips through the real interface: dragging a strip's end, a
 // tap on its row, Undo across a drag, arrow keys and Home/End with focus kept
 // on the board, Can't off until a try, Can't and Widest with no verdict on
-// the press and judged by two pins (a wrong pair refused, the refusal kept
-// through Undo), widening a band by its handles against the app's attack, a
-// tap taking a band's right end down onto its left end, gaps pinned (the
-// cross pairing, the same A twice), A twice in a join, a locked total
-// stopping a drag, contested presses where a band's ends meet the strip's
-// end in the playground, and no overflow. Same environment
-// variables as the other browser suites (PLAYWRIGHT_MODULE,
-// BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone with touch).
-// Screenshots go in test-results/ranges/.
+// the press and judged by two pins (a wrong pair refused; Undo keeps the
+// refusal only where the strips found it, so one press takes back the refused
+// pin with the move before it, and the same pins are refused again), widening
+// a band by its handles against the app's attack, a tap taking a band's right
+// end down onto its left end, gaps pinned (the cross pairing, the same A
+// twice), A twice in a join, a locked total stopping a drag, contested presses
+// where a band's ends meet the strip's end in the playground, and no
+// overflow. Same environment variables as the other browser suites
+// (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone
+// with touch). Screenshots go in test-results/ranges/.
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
 const {chromium} = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
@@ -57,7 +58,8 @@ try {
   assert.equal(await page.locator('.satchel-family[data-view-key="family-ranges"] .family-ink-symbol').innerText(), '↔');
 
   // Puzzle 1: a drag, Undo, a tap, a wrong Can't with no verdict on the press,
-  // its pins refused and the refusal kept through Undo, then a break.
+  // its pins refused, one Undo taking back the pin and the tap before it, the
+  // same pins refused again, then a break.
   await open('ranges-01'); await fit('puzzle 1');
   assert.equal(await button('Can’t').isDisabled(), true, 'Can’t waits for a try');
   await drag('A', 5, 4);
@@ -75,8 +77,16 @@ try {
   await tap('A', 4);
   await button('Pin').click();
   assert.equal(await page.locator('.rg-note').innerText(), 'A join can be shorter.', '8 and 10 are refused');
+  // Undo keeps the refusal while the strips are where it found them, which
+  // looks just like the refusal, so the press goes on to take back the tap.
   await page.locator('[data-action="undo"]').click();
-  assert.equal(await page.locator('.rg-note').innerText(), 'A join can be shorter.', 'Undo keeps the refusal');
+  const u1 = await board('ranges-01');
+  assert.deepEqual([u1.len, u1.pins, u1.told], [{A: 6, B: 4}, [{A: 6, B: 4}], null], 'one Undo takes back the refused pin and the tap to 4');
+  assert.equal(await page.locator('.rg-note').count(), 0, 'the refusal goes with the tap');
+  assert.equal(await page.locator('.rg-pin').count(), 1, 'and the first pin is back');
+  await tap('A', 4);
+  await button('Pin').click();
+  assert.equal(await page.locator('.rg-note').innerText(), 'A join can be shorter.', 'the same pins are refused again');
   await tap('B', 2.2);
   assert.deepEqual((await board('ranges-01')).len, {A: 4, B: 3}, 'taps set lengths, held inside the band');
   await done(); await shot('01-broken');
@@ -102,8 +112,14 @@ try {
   assert.equal(await page.locator('.rg-pin').count(), 0, 'the refusal clears the pins');
   await shot('04-refused');
   await page.locator('[data-action="undo"]').click();
-  assert.equal(await page.locator('.rg-note').innerText(), 'A join can be longer.', 'Undo keeps the refusal');
-  assert.equal(await page.locator('.rg-pin').count(), 0, 'Undo brings no pin back');
+  const u4 = await board('ranges-04');
+  assert.deepEqual([u4.len, u4.pins, u4.told], [{A: 4, B: 4}, [{A: 4, B: 4}], null], 'one Undo takes back the refused pin and End');
+  assert.equal(await page.locator('.rg-note').count(), 0, 'the refusal goes with End');
+  assert.equal(await page.locator('.rg-pin').count(), 1, 'and the shortest join’s pin is back');
+  await page.locator('.rg-knob[data-focus="rg-knob-A"]').focus(); await page.keyboard.press('End');
+  await button('Pin').click();
+  assert.equal(await page.locator('.rg-note').innerText(), 'A join can be longer.', 'the same pins are refused again');
+  assert.equal(await page.locator('.rg-pin').count(), 0, 'and the pins clear');
   await page.locator('.rg-knob[data-focus="rg-knob-A"]').focus(); await page.keyboard.press('Home');
   await button('Pin').click();
   await page.locator('.rg-knob[data-focus="rg-knob-A"]').focus(); await page.keyboard.press('End');
@@ -130,7 +146,11 @@ try {
   await key('A', 'End'); await button('Pin').click();
   assert.equal(await page.locator('.rg-note').innerText(), 'The band can be wider.', '8 and 9 are off the window’s left edge');
   await page.locator('[data-action="undo"]').click();
-  assert.equal(await page.locator('.rg-note').innerText(), 'The band can be wider.', 'Undo keeps the refusal');
+  const u5 = await board('ranges-05');
+  assert.deepEqual([u5.len, u5.pins, u5.told, u5.claim], [{A: 3, B: 5}, [{A: 3, B: 5}], null, true], 'one Undo takes back the refused pin and End, not Widest');
+  assert.equal(await page.locator('.rg-note').count(), 0, 'the refusal goes with End');
+  await key('A', 'End'); await button('Pin').click();
+  assert.equal(await page.locator('.rg-note').innerText(), 'The band can be wider.', 'the same pins are refused again');
   await tap('B', 4, 0.3);
   const b5 = await board('ranges-05');
   assert.deepEqual([b5.card, b5.claim], [[4, 5], false], 'a tap left of the band moves its left end and takes Widest back');

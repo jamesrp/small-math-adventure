@@ -1,9 +1,11 @@
 // Plays Area traps through the real interface: splits by tapping squares and
 // by Enter, a join by its dot, Undo, a split that gains nothing, taps near a
 // join dot going where they are seen to land, Best refused and kept refused
-// across Undo, then accepted with its savings drawn; painting by taps and a
-// finger stroke, Can't closed until the painting fits, refused with a pause
-// on a painting that is not the closest, accepted on the closest with its
+// across one Undo that also takes back the split, then accepted with its
+// savings drawn; painting by taps and a finger stroke, Can't closed until the
+// painting fits, refused with a pause on a painting that is not the closest
+// (one Undo takes back the claim and the last tap, and the same painting is
+// refused again), accepted on the closest with its
 // signs; the same pause on a target that can be met; sliding the grid by a
 // drag, by arrow buttons and by arrow keys; and the playground's shapes and
 // Clear. Same environment variables as
@@ -111,10 +113,13 @@ try {
   assert.equal(await told(), 'A smaller cover is possible.');
   assert.equal(await button('Best').isDisabled(), true, 'Best waits for a smaller cover');
   assert.equal(await onBoard(), true, 'focus leaves Best for the board');
-  await page.locator('[data-action="undo"]').click();
+  // Best left the splits as they were, so one Undo takes back the claim and
+  // the split together.
   await page.locator('[data-action="undo"]').click();
   assert.deepEqual(await board(B), {splits: [], refused: 15.5, done: false}, 'Undo takes back the claim and the split, not the refusal');
   assert.equal(await button('Best').isDisabled(), true);
+  assert.equal(await told(), 'A smaller cover is possible.');
+  assert.equal(await page.locator('[data-action="undo"]').isDisabled(), true, 'with nothing left to take back, Undo greys out');
   await tap(piece('0,0')); await tap(piece('6,6'));
   await button('Best').click();
   await done(); await fit('best solved');
@@ -139,8 +144,16 @@ try {
   assert.equal(await button('Can’t').isDisabled(), true, 'paused until the painting changes');
   assert.equal(await onBoard(), true, 'focus goes to the board, not Can’t');
   await shot('paint-closer');
+  // Can't left the painting as it was, so one Undo also takes back the last
+  // tap; the pause goes with that painting, as it would for a new stroke.
+  const painting = (await board(C)).painted;
   await page.locator('[data-action="undo"]').click();
-  assert.equal((await board(C)).paused, true, 'Undo keeps the pause');
+  assert.deepEqual(await board(C), {painted: painting.filter(i => i !== 16), paused: false, done: false}, 'Undo takes back the claim and the last tap');
+  assert.equal(await page.locator('.cv-told').count(), 0);
+  await tap(cell(16));
+  assert.equal(await button('Can’t').isDisabled(), false, 'the same painting again');
+  await button('Can’t').click();
+  assert.equal(await told(), 'Get closer first.', 'is refused again');
   for (const i of [3, 8, 13, 18, 17, 22]) await tap(cell(i));
   assert.equal(await page.locator('.cv-told').count(), 0, 'a stroke lifts the pause');
   await button('Can’t').click();
