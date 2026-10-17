@@ -69,7 +69,7 @@ Totals: 18 A, 37 B, 8 C. Weeks 1, 2 and 15 have been taught; the rest are unpilo
 | 56 | Polyhedra and Euler | Count V, E, F on solids; add corner gaps | V − E + F = 2; total gap 720° | No | C | Handling solids; maybe a fold-a-net mechanic later | L |
 | 57 | Lattice area | Draw lattice polygons; count dots and area | Pick's theorem | Yes: Geoboard | B | Geoboard; targets like "area 5, no inside dots" | M |
 | 58 | Fair division | Deal items with different values; check proportional and envy-free | Envy-free implies proportional; not the reverse for three | Yes: Fair shares | B | Drag items into bundles with a live value table | M |
-| 59 | Constant-width shapes | Turn shapes between parallel supports; construct with a compass | The Reuleaux triangle has constant width | No | C | Continuous; a playground toy, not a solve | L |
+| 59 | Constant-width shapes | Turn shapes between parallel supports; construct with a compass | The Reuleaux triangle has constant width | Yes: Snug spinners | C | Continuous; a playground toy, not a solve | L |
 | 60 | Optimal stopping | Take or pass offers; score rules over all cases | Backward induction gives thresholds | No | B | Set thresholds; the app scores all cases. Few rules, so guard against trying them all | M |
 | 61 | Geometry on a sphere | Shortest routes, great circles, triangle areas | Spherical excess | No | C | Continuous 3D; a globe demo, not a solve | L |
 | 62 | Scheduling as colouring | Fewest slots; odd cycles and cliques; first-fit orders | Clique ≤ slots; two slots iff no odd cycle; first-fit depends on order | Shares Neighbor Lanterns' object | A | First-fit order: pick an order that uses exactly k slots | S |
