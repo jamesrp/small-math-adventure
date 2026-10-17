@@ -1,0 +1,125 @@
+/* Flat folds: a paper disk with its yellow front up, creases from the centre
+   (a mountain solid, a valley dashed, an open ray dotted), letter chips round
+   the rim (printed ones dark), and below it the rim of the disk folded up as
+   a strip seen from the side: yellow and green layers by the side facing up,
+   bends for the creases, and the problems of a jam in rust. Pine and ochre
+   for right and hinted, as on every board. */
+[data-mechanic-wire="creases"]{--cr-front:var(--b-sun,#efc76e);--cr-back:var(--b-leaf,#86a68c);--cr-ink:var(--b-ink,#294439);--cr-paper:var(--b-card,#fffdf5);--cr-bad:var(--b-bad,#a9503a);--cr-hint:var(--b-ochre,#b38840);--cr-good:var(--b-good,#3c7a4a);display:flex;flex-direction:column;align-items:center;gap:.6rem;width:100%}
+[data-mechanic-wire="creases"] .cr-stage{display:flex;flex-direction:column;align-items:center;gap:.4rem;width:100%}
+[data-mechanic-wire="creases"] .cr-disk-wrap{width:100%;max-width:310px}
+[data-mechanic-wire="creases"] svg{display:block;overflow:visible}
+[data-mechanic-wire="creases"] .cr-disk{width:100%;height:auto;aspect-ratio:1;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+[data-mechanic-wire="creases"] .cr-disk :is(.cr-rim,.cr-tick,.cr-ray,.cr-num,.cr-deg,.cr-centre,.cr-ghost,.cr-clash,.cr-disk-letter){pointer-events:none}
+[data-mechanic-wire="creases"] .cr-hit{fill:transparent;cursor:pointer}
+
+/* The disk. */
+[data-mechanic-wire="creases"] .cr-wedge{stroke:none}
+[data-mechanic-wire="creases"] .cr-wedge.front{fill:var(--cr-front)}
+[data-mechanic-wire="creases"] .cr-wedge.back{fill:var(--cr-back)}
+[data-mechanic-wire="creases"] .cr-wedge.blank{fill:#f2efe3}
+[data-mechanic-wire="creases"] .cr-sector{cursor:pointer;stroke:var(--cr-ink);stroke-width:1px}
+[data-mechanic-wire="creases"] .cr-sector:focus{outline:none}
+[data-mechanic-wire="creases"] .cr-sector:focus-visible{stroke:var(--cr-hint);stroke-width:4px}
+[data-mechanic-wire="creases"] .cr-wedge.hinted{stroke:var(--cr-hint);stroke-width:4px;stroke-dasharray:7 4}
+[data-mechanic-wire="creases"] .cr-rim{fill:none;stroke:var(--cr-ink);stroke-width:2px}
+[data-mechanic-wire="creases"] .cr-tick{stroke:var(--cr-ink);stroke-width:1.2px;opacity:.55}
+[data-mechanic-wire="creases"] .cr-ray{stroke:var(--cr-ink);stroke-width:3px;stroke-linecap:round}
+[data-mechanic-wire="creases"] .cr-ray.v{stroke-dasharray:8 5;stroke-linecap:butt}
+[data-mechanic-wire="creases"] .cr-ray.open{stroke-width:2px;stroke-dasharray:1.5 5;opacity:.75}
+[data-mechanic-wire="creases"] .cr-ray.new{stroke:#7a5a1f}
+[data-mechanic-wire="creases"] .cr-ray.jam{stroke:var(--cr-bad);stroke-width:4px}
+[data-mechanic-wire="creases"] .cr-num{font:11px var(--b-display,Georgia,serif);fill:var(--cr-ink);opacity:.7;text-anchor:middle}
+[data-mechanic-wire="creases"] .cr-centre{fill:var(--cr-ink)}
+[data-mechanic-wire="creases"] .cr-deg{font:600 13px system-ui,sans-serif;fill:var(--cr-ink);text-anchor:middle;pointer-events:none}
+[data-mechanic-wire="creases"] .cr-clash{fill:none;stroke:var(--cr-bad);stroke-width:3.5px}
+[data-mechanic-wire="creases"] .cr-ghost{fill:none;stroke:var(--cr-hint);stroke-width:3px;stroke-dasharray:4 3}
+
+/* Chips: open (dashed), the child's letters (paper), printed letters (dark). */
+[data-mechanic-wire="creases"] .cr-chip circle{fill:var(--cr-paper);stroke:var(--cr-ink);stroke-width:2px}
+[data-mechanic-wire="creases"] .cr-chip text{font:700 15px system-ui,sans-serif;fill:var(--cr-ink);text-anchor:middle;pointer-events:none}
+[data-mechanic-wire="creases"] .cr-chip.open circle{stroke-dasharray:4 3;stroke-width:1.6px}
+[data-mechanic-wire="creases"] .cr-chip.fixed circle{fill:var(--cr-ink);stroke:var(--cr-ink)}
+[data-mechanic-wire="creases"] .cr-chip.fixed text{fill:var(--b-on-pine,#fff8d9)}
+[data-mechanic-wire="creases"] .cr-chip.new circle{stroke:#7a5a1f}
+[data-mechanic-wire="creases"] .cr-chip.jam circle{stroke:var(--cr-bad);stroke-width:3px}
+[data-mechanic-wire="creases"] .cr-chip[role="button"]{cursor:pointer}
+[data-mechanic-wire="creases"] .cr-chip[role="button"]:hover circle{fill:#f3efdc}
+[data-mechanic-wire="creases"] .cr-chip:focus{outline:none}
+[data-mechanic-wire="creases"] .cr-chip:focus-visible circle{stroke:var(--cr-hint);stroke-width:4px}
+[data-mechanic-wire="creases"] .cr-chip.hinted circle{stroke:var(--cr-hint);stroke-width:4px;stroke-dasharray:5 3}
+
+/* The new ray's knob, on the rim or parked by it. */
+[data-mechanic-wire="creases"] .cr-knob{cursor:grab;touch-action:none}
+[data-mechanic-wire="creases"] .cr-knob.dragging{cursor:grabbing}
+[data-mechanic-wire="creases"] .cr-knob circle{fill:#e9c77c;stroke:#7a5a1f;stroke-width:2.5px}
+[data-mechanic-wire="creases"] .cr-knob .cr-knob-hit{fill:transparent;stroke:none}
+[data-mechanic-wire="creases"] .cr-knob path{stroke:#7a5a1f;stroke-width:2.5px;stroke-linecap:round}
+[data-mechanic-wire="creases"] .cr-knob:focus{outline:none}
+[data-mechanic-wire="creases"] .cr-knob:focus-visible circle:not(.cr-knob-hit),[data-mechanic-wire="creases"] .cr-knob.hinted circle:not(.cr-knob-hit){stroke:var(--cr-hint);stroke-width:4px}
+[data-mechanic-wire="creases"] .cr-knob.hinted circle:not(.cr-knob-hit){stroke-dasharray:5 3}
+
+/* The folded strip, seen from the side. */
+[data-mechanic-wire="creases"] .cr-panel{width:100%;max-width:310px}
+[data-mechanic-wire="creases"] .cr-stack,[data-mechanic-wire="creases"] .cr-fans{width:100%;height:auto}
+[data-mechanic-wire="creases"] .cr-layer{stroke:var(--cr-ink);stroke-width:1.2px}
+[data-mechanic-wire="creases"] .cr-layer.front{fill:var(--cr-front)}
+[data-mechanic-wire="creases"] .cr-layer.back{fill:var(--cr-back)}
+[data-mechanic-wire="creases"] .cr-bend{fill:none;stroke:var(--cr-ink);stroke-width:2px}
+[data-mechanic-wire="creases"] .cr-bend.moving{stroke-dasharray:4 3}
+[data-mechanic-wire="creases"] .cr-bend.bad{stroke:var(--cr-bad);stroke-width:3px}
+[data-mechanic-wire="creases"] .cr-seam-miss{stroke:var(--cr-bad);stroke-width:2px;stroke-dasharray:3 3}
+[data-mechanic-wire="creases"] .cr-end{fill:var(--cr-bad)}
+[data-mechanic-wire="creases"] .cr-x path{stroke:var(--cr-bad);stroke-width:3px;stroke-linecap:round}
+[data-mechanic-wire="creases"] .cr-stack.flat .cr-layer{stroke:var(--cr-good)}
+
+/* The two fans of an even disk against a half-turn. */
+[data-mechanic-wire="creases"] .cr-fan{stroke:var(--cr-ink);stroke-width:1.2px}
+[data-mechanic-wire="creases"] .cr-fan.front{fill:var(--cr-front)}
+[data-mechanic-wire="creases"] .cr-fan.back{fill:var(--cr-back)}
+[data-mechanic-wire="creases"] .cr-fan-sum{font:700 15px system-ui,sans-serif;fill:var(--cr-ink);text-anchor:middle}
+[data-mechanic-wire="creases"] .cr-half{fill:none;stroke:var(--cr-ink);stroke-width:2px}
+[data-mechanic-wire="creases"] .cr-half.arc{stroke-width:1.5px;stroke-dasharray:4 4}
+[data-mechanic-wire="creases"] .cr-short{fill:var(--b-bad-soft,#f5e3d9);stroke:var(--cr-bad);stroke-width:2px;stroke-dasharray:4 3}
+[data-mechanic-wire="creases"] .cr-over{fill:var(--cr-bad);fill-opacity:.35;stroke:var(--cr-bad);stroke-width:2px}
+
+/* Several disks sharing tabs. */
+[data-mechanic-wire="creases"] .cr-stock{display:flex;flex-wrap:wrap;justify-content:center;gap:5px}
+[data-mechanic-wire="creases"] .cr-tab{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;border:2px solid var(--cr-ink);background:var(--cr-paper);font:700 .9rem system-ui,sans-serif;font-style:normal;color:var(--cr-ink)}
+[data-mechanic-wire="creases"] .cr-tab.used{opacity:.3;border-style:dashed}
+[data-mechanic-wire="creases"] .cr-disks{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem .4rem;width:100%;max-width:640px}
+[data-mechanic-wire="creases"] .cr-tab-disk{flex:0 1 200px}
+[data-mechanic-wire="creases"].cr-n4 .cr-disks{max-width:440px}
+[data-mechanic-wire="creases"] .cr-tab-disk{box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:.2rem;margin:0;min-width:0;padding:.25rem;border-radius:12px;border:2px solid transparent}
+[data-mechanic-wire="creases"] .cr-tab-disk.chosen{border-color:var(--cr-bad);background:var(--b-bad-soft,#f5e3d9)}
+[data-mechanic-wire="creases"] .cr-tab-disk .cr-disk{max-width:200px}
+[data-mechanic-wire="creases"] .cr-tab-disk .cr-stack{max-width:200px}
+[data-mechanic-wire="creases"] .cr-disk-letter{font:30px var(--b-display,Georgia,serif);fill:var(--cr-ink)}
+[data-mechanic-wire="creases"] .cr-disk.small .cr-chip text{font-size:21px}
+[data-mechanic-wire="creases"] .cr-disk.small .cr-ray{stroke-width:4px}
+[data-mechanic-wire="creases"] button.cr-disk-pick{width:100%;min-height:44px;margin:0;border:2px dashed var(--b-line,#d0d6bd);background:var(--cr-paper);color:var(--cr-ink);box-shadow:none;cursor:pointer;font:inherit}
+[data-mechanic-wire="creases"] button.cr-disk-pick .cr-disk{pointer-events:none}
+[data-mechanic-wire="creases"] button.cr-disk-pick.chosen{border:2px solid var(--cr-bad);background:var(--b-bad-soft,#f5e3d9)}
+[data-mechanic-wire="creases"] button.cr-disk-pick.hinted{outline:4px dashed var(--cr-hint);outline-offset:2px}
+[data-mechanic-wire="creases"] .cr-takes{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:3px;font-size:.8rem}
+[data-mechanic-wire="creases"] .cr-takes span{display:inline-flex;gap:2px}
+[data-mechanic-wire="creases"] .cr-takes i{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:4px;border:1.5px solid var(--cr-ink);font:700 .7rem system-ui,sans-serif;font-style:normal}
+[data-mechanic-wire="creases"] .cr-takes em{font-style:normal;color:var(--b-muted,#5a6850);padding:0 2px}
+[data-mechanic-wire="creases"] .cr-sum{margin:0;font-weight:600;text-align:center}
+
+/* Buttons and notes. */
+[data-mechanic-wire="creases"] .cr-tools{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem}
+[data-mechanic-wire="creases"] .cr-tool{min-width:92px;min-height:46px}
+[data-mechanic-wire="creases"] .cr-cant[aria-pressed="true"]{border-color:var(--cr-bad);box-shadow:inset 0 0 0 1.5px var(--cr-bad)}
+[data-mechanic-wire="creases"] .cr-tool.hinted{outline:4px dashed var(--cr-hint);outline-offset:2px}
+[data-mechanic-wire="creases"] .cr-told{margin:0;color:var(--cr-bad);font-weight:600}
+[data-mechanic-wire="creases"].solved .cr-rim,[data-mechanic-wire="creases"] .cr-disk.ok .cr-rim{stroke:var(--cr-good);stroke-width:3px}
+[data-mechanic-wire="creases"] .cr-disk.small.ok .cr-rim{stroke-width:5px}
+
+@media (max-width:420px){
+  [data-mechanic-wire="creases"] .cr-disk-wrap,[data-mechanic-wire="creases"] .cr-panel{max-width:280px}
+  [data-mechanic-wire="creases"] .cr-disks{gap:.3rem .2rem}
+  [data-mechanic-wire="creases"] .cr-tab-disk{flex-basis:47%;padding:.1rem}
+  [data-mechanic-wire="creases"] .cr-tool{min-width:84px}
+  /* On a phone the disks that share tabs show a jam on their rays and a fold by a green rim, without the side view, so the buttons stay in sight. */
+  [data-mechanic-wire="creases"] .cr-tab-disk .cr-stack{display:none}
+}
