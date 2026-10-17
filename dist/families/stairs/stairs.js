@@ -13,8 +13,10 @@
 // staircase, presses Fewest and taps windows, as many as a staircase with
 // that many turns needs; the claim is right exactly when no row of the strip
 // holds two of them, which can only happen when the staircase has the fewest
-// turns. Nothing shows which columns work, and a wrong set is refused with
-// one line that never says whether the staircase itself has the fewest turns.
+// turns. Nothing shows which columns work. A wrong set is refused with one
+// line that never says whether the staircase itself has the fewest turns;
+// the refusal is a move, kept through Undo, and Fewest stays off until the
+// walk changes, so sets can't be tried one after another on one staircase.
 //
 // Exact length ("exact" puzzles). Left steps are allowed too, never back
 // along the street just walked, so a path never meets itself. Its length is
@@ -175,6 +177,10 @@ function finishOf(q, walk, kept) {
 /* ------------------------------------------------------------------ *
  * Saves, moves and solves
  * ------------------------------------------------------------------ */
+// A set of columns Fewest can judge on this walk: on the flag, as many as
+// the staircase needs, different and in order.
+const claimable = (q, walk, w) => atFlag(q, walk) && Array.isArray(w) && w.length === need(turnsOf(walk)) &&
+  w.every((c, i) => int(c) && c >= 0 && c < q.a && (!i || c > w[i - 1]));
 const sameKeys = (b, keys) => object(b) && Object.keys(b).sort().join() === keys;
 const complete = (q, walk) => walk.length === q.steps && atFlag(q, walk);
 function valid(p, b) {
@@ -186,9 +192,11 @@ function valid(p, b) {
     // The first path to reach the flag on the last box is kept at once.
     return !(complete(q, b.walk) && !b.kept);
   }
-  if (!sameKeys(b, 'walk,windows') || !trace(q, b.walk) || /[^EN]/.test(b.walk)) return false;
-  if (b.windows === null) return true;
-  return atFlag(q, b.walk) && Array.isArray(b.windows) && b.windows.length === need(turnsOf(b.walk)) && certifies(q, b.windows);
+  if (!sameKeys(b, 'refused,told,walk,windows') || !trace(q, b.walk) || /[^EN]/.test(b.walk) || typeof b.told !== 'boolean') return false;
+  if (b.windows !== null) return b.refused === null && !b.told && claimable(q, b.walk, b.windows) && certifies(q, b.windows);
+  // A refused claim: a set of the right size that a flat piece joins, on the flag.
+  if (b.refused !== null) return claimable(q, b.walk, b.refused) && !certifies(q, b.refused);
+  return !b.told;
 }
 function solved(p, b) {
   if (!valid(p, b)) return false;
@@ -212,7 +220,7 @@ export function walkTo(q, walk, to) {
 // A new walk, with the exact-length keep folded in.
 function settle(q, b, walk) {
   if (exactMode(q)) return complete(q, walk) && !b.kept ? {walk: '', kept: walk} : {walk, kept: b.kept};
-  return {walk, windows: null};
+  return {walk, windows: null, refused: null, told: false};
 }
 function move(p, b, action) {
   if (!valid(p, b) || solved(p, b) || !object(action)) return null;
@@ -226,9 +234,11 @@ function move(p, b, action) {
     if (typeof walk !== 'string' || walk === b.walk || !trace(q, walk) || (exactMode(q) && walk.length > q.steps)) return null;
     return settle(q, b, walk);
   }
+  // One claim per walk: a right set solves; a wrong one is recorded and
+  // keeps Fewest off until the walk changes.
   if (action.type === 'fewest' && !exactMode(q)) {
-    if (!atFlag(q, b.walk) || !Array.isArray(action.windows) || action.windows.length !== need(turnsOf(b.walk)) || !certifies(q, action.windows)) return null;
-    return {walk: b.walk, windows: [...action.windows]};
+    if (b.refused !== null || !claimable(q, b.walk, action.windows)) return null;
+    return certifies(q, action.windows) ? {walk: b.walk, windows: [...action.windows], refused: null, told: false} : {walk: b.walk, windows: null, refused: [...action.windows], told: true};
   }
   return null;
 }
@@ -254,13 +264,20 @@ function hint(p, b) {
   if (solved(p, b)) return {type: 'done'};
   const q = p.parameters, marks = exactMode(q) ? [] : view(p).marks;
   const key = `${p.id}:${JSON.stringify(b)}:${marks.join()}`;
-  if (!hintCache.has(key)) hintCache.set(key, exactMode(q) ? exactHint(q, b) : turnsHint(q, b.walk, marks));
+  if (!hintCache.has(key)) hintCache.set(key, exactMode(q) ? exactHint(q, b) : turnsHint(q, b.walk, marks, b.refused !== null));
   return hintCache.get(key);
 }
-function turnsHint(q, walk, marks) {
+function turnsHint(q, walk, marks, refused) {
   let i = walk.length;
   while (i > 0 && !onTrack(q, walk.slice(0, i))) i--;
   if (i < walk.length) return backTo(q, walk, i);
+  // After a refused claim on a staircase with the fewest turns, Fewest
+  // comes back once the walk changes: take back its last piece.
+  if (refused) {
+    let j = walk.length;
+    while (j > 0 && walk[j - 1] === walk.at(-1)) j--;
+    return backTo(q, walk, j);
+  }
   if (atFlag(q, walk)) {
     const sets = windowSets(q, need(fewest(q))), set = sets.find(s => marks.every(c => s.includes(c))) || sets[0];
     return {type: 'move', action: {type: 'fewest', windows: set}, text: `Press Fewest and tap columns ${ordinals(set.map(c => c + 1))}, counting from the left: no flat piece can cross two of them.`};
@@ -286,19 +303,14 @@ function exactHint(q, b) {
  * View state: Fewest pressed, and the windows tapped so far
  * ------------------------------------------------------------------ */
 const views = new Map();
-// told: the columns of the last refused claim, shown until the next tap.
-const view = p => { if (!views.has(p.id)) views.set(p.id, {claim: false, marks: [], told: null}); return views.get(p.id); };
-const calm = p => Object.assign(view(p), {claim: false, marks: [], told: null});
+const view = p => { if (!views.has(p.id)) views.set(p.id, {claim: false, marks: []}); return views.get(p.id); };
+const calm = p => Object.assign(view(p), {claim: false, marks: []});
 function ui(p, payload) {
   if (!object(payload) || exactMode(p.parameters)) return;
   const v = view(p);
-  if (payload.claim === 'toggle') { Object.assign(v, {claim: !v.claim, marks: [], told: null}); return; }
-  if (!v.claim) return;
-  if (int(payload.mark) && payload.mark >= 0 && payload.mark < p.parameters.a) {
+  if (payload.claim === 'toggle') { Object.assign(v, {claim: !v.claim, marks: []}); return; }
+  if (v.claim && int(payload.mark) && payload.mark >= 0 && payload.mark < p.parameters.a)
     v.marks = v.marks.includes(payload.mark) ? v.marks.filter(c => c !== payload.mark) : [...v.marks, payload.mark].sort((x, y) => x - y);
-    v.told = null;
-  }
-  if (Array.isArray(payload.refuse) && payload.refuse.every(c => int(c) && c >= 0 && c < p.parameters.a)) Object.assign(v, {marks: [], told: [...payload.refuse]});
 }
 
 /* ------------------------------------------------------------------ *
@@ -389,11 +401,11 @@ function slotsHtml(q, walk) {
 }
 function render(p, a) {
   const q = p.parameters, b = a.board, done = solved(p, b), exact = exactMode(q), v = view(p);
-  const claim = !exact && !done && v.claim && atFlag(q, b.walk);
+  const claim = !exact && !done && v.claim && atFlag(q, b.walk) && b.refused === null;
   const shown = a.hintLevel >= 2 && !done ? hint(p, b) : null;
   const hinted = shown?.type === 'move' ? (shown.action.type === 'go' ? {go: shown.action.to} : {windows: shown.action.windows}) : null;
   const live = !done && !claim && (!exact || b.walk.length < q.steps);
-  const board = boardSvg(q, {walk: b.walk, kept: exact ? b.kept : '', live, claim, marks: claim ? v.marks : null, told: claim && !v.marks.length ? v.told : null, windows: done && !exact ? b.windows : null, hinted, label: exact ? 'Streets' : 'Streets and the gray strip'});
+  const board = boardSvg(q, {walk: b.walk, kept: exact ? b.kept : '', live, claim, marks: claim ? v.marks : null, told: !exact && b.told ? b.refused : null, windows: done && !exact ? b.windows : null, hinted, label: exact ? 'Streets' : 'Streets and the gray strip'});
   const end = endOf(q, b.walk);
   let below = '', note = '', status = `At ${across(end)}.`;
   if (exact) {
@@ -401,14 +413,15 @@ function render(p, a) {
     if (!done && b.kept && complete(q, b.walk)) note = 'That’s the same path.';
     status += ` ${plural(q.steps - b.walk.length, 'step')} left.${b.kept ? ' One path kept.' : ''}`;
   } else {
-    const ready = atFlag(q, b.walk) && !done;
+    // Fewest waits for the flag, and after a refusal for a change of walk.
+    const ready = atFlag(q, b.walk) && !done && b.refused === null;
     const fewestButton = `<button type="button" class="secondary st-fewest${hinted?.windows && !claim ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='{"claim":"toggle"}' data-focus="st-fewest" aria-pressed="${claim}" ${ready ? '' : 'disabled'}>Fewest</button>`;
     const slots = claim ? `<ol class="st-wins" aria-label="Windows">${Array.from({length: need(turnsOf(b.walk))}, (_, i) => `<li class="${i < v.marks.length ? 'on' : ''}" aria-hidden="true"></li>`).join('')}</ol>` : '';
     below = done ? '' : `<div class="st-tools">${fewestButton}${slots}</div>`;
-    if (claim && v.told && !v.marks.length) note = 'A flat piece can cross two of these.';
+    if (b.told) note = 'A flat piece can cross two of these.';
     status += ` ${plural(turnsOf(b.walk), 'turn')}.${claim ? ` ${v.marks.length} of ${need(turnsOf(b.walk))} windows.` : ''}`;
   }
-  return `<div class="st-puzzle${done ? ' solved' : ''}" data-mechanic-wire="stairs"><div class="st-table">${board}</div>${below}${note ? `<p class="st-note">${esc(note)}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="st-puzzle${done ? ' solved' : ''}" data-mechanic-wire="stairs"><div class="st-table">${board}</div>${below}${note ? `<p class="st-note" role="status">${esc(note)}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 // How to play: one small worked picture, not a puzzle of the group.
 function help(p) {
@@ -459,7 +472,7 @@ function paintDrag() {
   svg.querySelectorAll('.st-go').forEach(el => el.classList.add('st-hidden'));
 }
 function pointerMove(e) {
-  if (!drag || e.pointerId !== drag.pointer) return;
+  if (!drag || e.pointerId !== drag.pointer || drag.tap) return;
   if (drag.still || (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 10)) return;
   drag.moved = true;
   const next = dragTo(drag.q, drag.walk, nearest(drag.q, worldAt(drag.svg, drag.q, e.clientX, e.clientY)));
@@ -469,6 +482,7 @@ function pointerEnd(e) {
   if (!drag || e.pointerId !== drag.pointer) return;
   const d = drag;
   drag = null;
+  if (d.tap) { lastTap = performance.now(); if (e.type === 'pointerup') d.tap(); return; }
   // A cancelled drag, or one that ends where it began, just redraws the board.
   if (e.type !== 'pointerup') { if (d.moved) d.api.ui({}); return; }
   lastTap = performance.now();
@@ -482,9 +496,8 @@ function wire(root, p, api) {
   const board = () => api.attempt().board;
   const tapWindow = c => {
     const v = view(p), marks = v.marks.includes(c) ? v.marks.filter(m => m !== c) : [...v.marks, c].sort((x, y) => x - y);
-    if (marks.length === need(turnsOf(board().walk))) {
-      if (certifies(q, marks)) { calm(p); api.apply({type: 'fewest', windows: marks}); } else api.ui({refuse: marks});
-    } else api.ui({mark: c});
+    // The tap that fills the last slot is the claim, right or wrong.
+    if (marks.length === need(turnsOf(board().walk))) { calm(p); api.apply({type: 'fewest', windows: marks}); } else api.ui({mark: c});
   };
   const act = el => {
     if (el.dataset.window !== undefined) tapWindow(Number(el.dataset.window));
@@ -511,12 +524,15 @@ function wire(root, p, api) {
   }
   svg.addEventListener('pointerdown', e => {
     if (e.button > 0 || !e.isPrimary) return;
+    // A column counts once, when the press ends, however long it lasts;
+    // the click that follows is ignored. Focus goes to the column.
     if (svg.classList.contains('st-claiming')) {
       const el = e.target.closest('[data-window]');
       if (!el) return;
       e.preventDefault();
-      lastTap = performance.now();
-      tapWindow(Number(el.dataset.window));
+      el.focus({preventScroll: true});
+      const c = Number(el.dataset.window);
+      drag = {pointer: e.pointerId, tap: () => tapWindow(c)};
       return;
     }
     const b = board();
@@ -530,11 +546,17 @@ function wire(root, p, api) {
 
 export const stairMechanics = {
   stairs: {
-    fresh: p => exactMode(p.parameters) ? {walk: '', kept: ''} : {walk: '', windows: null},
+    fresh: p => exactMode(p.parameters) ? {walk: '', kept: ''} : {walk: '', windows: null, refused: null, told: false},
     valid, solved, hint, render, help, wire, ui,
     // A move to the trail leaves Fewest; so does Undo.
     move(p, b, action) { const next = move(p, b, action); if (next) calm(p); return next; },
-    carry(p, from, to) { calm(p); return to; },
+    // Undo takes back moves, not a refusal: on the same walk the refusal
+    // stands, with its line gone, so the Undo still changes the board.
+    carry(p, from, to) {
+      calm(p);
+      if (exactMode(p.parameters) || !object(from) || !object(to) || !Array.isArray(from.refused) || to.refused !== null || to.walk !== from.walk) return to;
+      return {...to, refused: from.refused, told: false};
+    },
     reset: p => { calm(p); }
   }
 };

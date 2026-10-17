@@ -19,7 +19,7 @@ The robot's state (x, y, z) is an element of the integer Heisenberg group, with 
 
 ## Where they appear
 
-**Puzzles → Memory robot** is a satchel family on the family seam ([Adding a family](../ADDING-A-FAMILY.md)), with a **Playground** button above Easy, Medium and Hard. The puzzles are grade-free (`band: "all"`).
+**Puzzles → Memory robot** is a satchel family on the family seam ([Adding a family](../ADDING-A-FAMILY.md)), with a **Playground** button above Easy, Medium and Hard. The puzzles are grade-free (`band: "all"`). Below the levels, Week 50's staircases in a strip and paths of an exact length, on this board with the memory hidden, are the [Staircases](../stairs/README.md) group.
 
 Every board is the same: street corners with x and y from −2 to 4, the wall at x = 0. The budget is the fewest moves, found by search on the board, and the board never makes a puzzle longer than the open plane does (the validator checks both). It does cut some of the open plane's shortest walks, noted in the last column.
 

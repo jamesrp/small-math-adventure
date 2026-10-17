@@ -4,13 +4,14 @@
 // on a corner of the trail taking the walk back, a tap away from every dot
 // doing nothing; a drag from the robot and back over the trail; Fewest off
 // until the flag; a staircase with too many turns, whose windows are always
-// refused, with the refusal drawn until the next tap; the fewest turns and
-// the right windows solving, drawn; Undo; the keyboard (Enter on a dot, the
-// arrow keys, Enter on a column) with focus on the board, never on Fewest;
-// hints marking a dot, a corner to go back to and the windows, and hints
-// alone finishing the hardest staircase; an exact length kept, the same path
-// again, a second path; and the busiest boards of the hardest puzzles fitting
-// a 375 × 667 phone. Same environment variables as the other browser suites
+// refused, the refusal kept through Undo and Fewest off until the walk
+// changes; a long press on a column counting once; the fewest turns and the
+// right windows solving, drawn; the keyboard (Enter on a dot, the arrow keys,
+// Enter on a column) with focus on the board, never on Fewest; hints marking
+// a dot, a corner to go back to and the windows, and hints alone finishing
+// the hardest staircase; an exact length kept, the same path again, a second
+// path; and the busiest boards of the hardest puzzles fitting a 375 × 667
+// phone. Same environment variables as the other browser suites
 // (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone).
 // Screenshots go in test-results/stairs/.
 import assert from 'node:assert/strict';
@@ -82,6 +83,18 @@ async function drag(points) {
   await cdp.detach();
 }
 const tapColumns = async (...cols) => { for (const c of cols) { const r = page.locator(`[data-window="${c}"]`); await r.scrollIntoViewIfNeeded(); const b = await r.boundingBox(); await tapAt([b.x + b.width / 2, b.y + b.height * .15]); await page.waitForTimeout(120); } };
+// A press held for most of a second on a column, as a mouse or a finger.
+async function longPress(c) {
+  const r = page.locator(`[data-window="${c}"]`); await r.scrollIntoViewIfNeeded();
+  const b = await r.boundingBox(), x = b.x + b.width / 2, y = b.y + b.height * .15;
+  if (!phone) { await page.mouse.move(x, y); await page.mouse.down(); await page.waitForTimeout(900); await page.mouse.up(); await page.waitForTimeout(150); return; }
+  const cdp = await context.newCDPSession(page);
+  await cdp.send('Input.dispatchTouchEvent', {type: 'touchStart', touchPoints: [{x, y}]});
+  await page.waitForTimeout(900);
+  await cdp.send('Input.dispatchTouchEvent', {type: 'touchEnd', touchPoints: []});
+  await cdp.detach();
+  await page.waitForTimeout(150);
+}
 const focused = () => page.evaluate(() => document.activeElement?.dataset.focus || document.activeElement?.id || document.activeElement?.tagName);
 
 try {
@@ -111,7 +124,8 @@ try {
   assert.equal(await walk(P1), 'ENENEN');
   await tapCorner(P1, 1, 1, 'EN');
   assert.equal(await page.locator('.st-trail-case').getAttribute('points'), '0,30 10,30 10,20');
-  // Too many turns: every claim is refused; the refused columns stay until the next tap.
+  // Too many turns: every claim is refused. The refusal is a move: one line,
+  // the columns outlined, Fewest off, focus on the board.
   await tapWalk(P1, 'ENENEEE');
   assert.equal(await walk(P1), 'ENENENEEE');
   assert.equal(await page.locator('.st-fewest').isDisabled(), false);
@@ -120,25 +134,40 @@ try {
   assert.equal(await page.locator('.st-column.on, .st-window-on, .st-window-hint').count(), 0, 'nothing marks which columns work');
   await tapColumns(0, 2, 4);
   assert.equal(await page.locator('.st-column.on').count(), 3);
+  assert.match(await focused(), /^st-window-/, 'a tapped column takes focus');
   await tapColumns(5);
-  await page.locator('.st-note', {hasText: 'A flat piece can cross two of these.'}).waitFor();
+  await page.locator('.st-note[role=status]', {hasText: 'A flat piece can cross two of these.'}).waitFor();
   assert.equal(await page.locator('.st-window-told').count(), 4);
-  assert.equal(await page.locator('.st-column.on').count(), 0, 'the taps clear');
-  assert.equal((await board(P1)).windows, null);
+  assert.equal(await page.locator('.st-column').count(), 0, 'the taps clear');
+  assert.deepEqual(await board(P1), {walk: 'ENENENEEE', windows: null, refused: [0, 2, 4, 5], told: true});
+  assert.equal(await page.locator('.st-fewest').isDisabled(), true, 'Fewest stays off while the refusal stands');
+  assert.equal(await focused(), 'st-board', 'focus lands on the board, not on Fewest');
   await fit('refused'); await shot('01-refused');
-  await tapColumns(0);
-  assert.equal(await page.locator('.st-window-told').count(), 0, 'the next tap clears the refusal');
-  // Undo takes back the last piece and leaves Fewest.
+  // Undo keeps the refusal (its line goes); the next Undo takes back a piece and ends it.
+  await button('↶ Undo').click();
+  await eventually(async () => assert.deepEqual(await board(P1), {walk: 'ENENENEEE', windows: null, refused: [0, 2, 4, 5], told: false}));
+  assert.equal(await page.locator('.st-note').count(), 0);
+  assert.equal(await page.locator('.st-fewest').isDisabled(), true);
   await button('↶ Undo').click();
   await eventually(async () => assert.equal(await walk(P1), 'ENENEN'));
-  assert.equal(await page.locator('.st-column').count(), 0);
-  // Start again and make 2 turns: the windows are the first and last columns.
+  assert.equal((await board(P1)).refused, null);
+  // Start again and make 2 turns. A long press on a column counts once; a
+  // wrong pair is refused, and taking back the last piece brings Fewest back.
   await tapCorner(P1, 0, 0, '');
   await tapWalk(P1, 'EEENNNEEE');
   await button('Fewest').click();
   assert.equal(await page.locator('.st-wins li').count(), 2);
-  await tapColumns(0, 4);
-  await page.locator('.st-note').waitFor();
+  await longPress(0);
+  assert.equal(await page.locator('.st-column.on').count(), 1, 'a long press marks a column once');
+  await longPress(4);
+  await page.locator('.st-note', {hasText: 'A flat piece can cross two of these.'}).waitFor();
+  await page.waitForTimeout(900);
+  assert.equal(await page.locator('.st-note').count(), 1, 'the refusal is not tapped away by the click after a long press');
+  assert.deepEqual((await board(P1)).refused, [0, 4]);
+  await tapCorner(P1, 3, 3, 'EEENNN');
+  await tapWalk(P1, 'EEE');
+  assert.equal(await page.locator('.st-fewest').isDisabled(), false, 'a change of walk brings Fewest back');
+  await button('Fewest').click();
   await tapColumns(0, 5);
   await solved();
   assert.deepEqual((await board(P1)).windows, [0, 5]);

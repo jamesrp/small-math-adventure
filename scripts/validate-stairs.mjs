@@ -5,19 +5,22 @@
 // corner and heading). Windows: which columns one flat piece can join, read
 // off every flat run inside the strip, and every set of columns tried as a
 // bitmask (the mechanic compares row spans); the fewest turns must be
-// 2k − 2 for the most windows k, every set the mechanic accepts must be a
-// real certificate and every real one accepted; the share of random column
-// sets that pass is counted, as is tapping columns in page order. Exact
+// 2k − 2 for the most windows k, and every set claimed once must solve
+// exactly when it is a real certificate; any other set is recorded as a
+// refusal that takes no second claim on that walk, survives Undo (with its
+// line gone) and ends when the walk changes. The share of random column
+// sets that pass is counted, and page order and evenly spaced columns are
+// reported. Exact
 // length: every path of the puzzle's length enumerated step by step,
 // counted, checked against length = a + b + 2L and accepted as a solve in
 // pairs; the longest paths and the lengths that can't happen. Then hints
-// alone (fresh, after a wrong staircase, after a refused claim, after the
-// same path twice, after random play), hint time, illegal moves and forged
-// saves, including forged solves.
+// alone (fresh, after a wrong staircase, after a refused claim and Undo past
+// it, after the same path twice, after random play), hint time, illegal
+// moves and forged saves, including forged solves and forged refusals.
 // Run: node scripts/validate-stairs.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import {freshAttempt, move, isSolved, nextHint, validBoard, undoToSolvable} from '../dist/engine.js';
+import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
 import {isExpansion, mechanicFor} from '../dist/expansion.js';
 import {loadPack} from './packs.mjs';
 
@@ -183,17 +186,25 @@ export default async function validateStairs() {
       assert.equal(p.solution.flatPieces, k);
       const witness = p.solution.staircase;
       assert.ok(ends(q, witness) && turns(witness) === t, `${label}: the witness staircase`);
-      // Every set of k columns: the mechanic accepts exactly the real certificates.
+      const at = play(p, fresh, witness);
+      const claim = (a, windows) => move(p, a, {type: 'fewest', windows});
+      // Every set of k columns, claimed once on the witness: the real
+      // certificates solve; every other set is recorded as a refusal, after
+      // which no second claim is taken on that walk, not even a right one.
       const accepted = new Set(sets);
       let checked = 0;
       for (let m = 0; m < 1 << q.a; m++) if (bits(m) === k) {
-        const b = {walk: witness, windows: cols(m)};
-        assert.equal(validBoard(p, b), accepted.has(m), `${label}: windows ${cols(m)}`);
-        assert.equal(isSolved(p, b), accepted.has(m));
+        const after = claim(at, cols(m));
+        assert.ok(after, `${label}: windows ${cols(m)} are judged`);
+        assert.equal(isSolved(p, after.board), accepted.has(m), `${label}: windows ${cols(m)}`);
+        if (!accepted.has(m)) {
+          assert.deepEqual(after.board, {walk: witness, windows: null, refused: cols(m), told: true}, `${label}: the refusal is recorded`);
+          assert.equal(claim(after, cols(sets[0])), null, `${label}: no second claim on the same walk`);
+        }
         checked++;
       }
       assert.equal(checked, choose(q.a, k));
-      // Random taps rarely pass, page order never does.
+      // Random taps rarely pass; page order and even spacing are reported.
       const random = seeded(50 + p.number);
       let passes = 0;
       const tries = 20000;
@@ -204,9 +215,12 @@ export default async function validateStairs() {
       }
       const share = passes / tries;
       assert.ok(share <= .12, `${label}: random columns pass ${share}`);
-      assert.equal(validBoard(p, {walk: witness, windows: Array.from({length: k}, (_, c) => c)}), false, `${label}: columns in page order fail`);
+      const pageOrder = Array.from({length: k}, (_, c) => c), even = Array.from({length: k}, (_, i) => Math.round(i * (q.a - 1) / (k - 1)));
+      assert.equal(isSolved(p, claim(at, pageOrder).board), false, `${label}: columns in page order fail`);
       const pieceStarts = []; for (let i = 0, x = 0; i < witness.length; i++) { if (witness[i] === 'E' && witness[i - 1] !== 'E') pieceStarts.push(x); if (witness[i] === 'E') x++; }
-      report.certificates.push({id: label, fewest: t, windows: k, sets: sets.length, of: choose(q.a, k), randomShare: Number(share.toFixed(4)), firstColumnOfEachFlatPiece: validBoard(p, {walk: witness, windows: pieceStarts})});
+      report.certificates.push({id: label, fewest: t, windows: k, sets: sets.length, of: choose(q.a, k), randomShare: Number(share.toFixed(4)), exactShare: `${sets.length}/${choose(q.a, k)}`,
+        pageOrder: isSolved(p, claim(at, pageOrder).board), evenlySpaced: `${even.map(c => c + 1).join(',')} ${isSolved(p, claim(at, even).board) ? 'passes' : 'fails'}`,
+        firstColumnOfEachFlatPiece: isSolved(p, claim(at, pieceStarts).board)});
       // A staircase with more turns can never be certified.
       let longer = null;
       for (let n = t + 2; n <= t + 4 && !longer; n++) {
@@ -218,18 +232,34 @@ export default async function validateStairs() {
         };
         go('', 0, 0, 'E', n);
       }
-      // On a strip as low as puzzles 1 and 3 every staircase turns as often as
-      // the height allows, so none turns more than the fewest.
       report.certificates.at(-1).moreTurns = Boolean(longer);
+      // On a strip as low as puzzle 1 every staircase turns as often as
+      // the height allows, so none turns more than the fewest.
       if (longer) {
-        const extra = Math.ceil(turns(longer) / 2) + 1;
+        const extra = Math.ceil(turns(longer) / 2) + 1, wrong = play(p, fresh, longer);
         assert.ok(extra > k, `${label}: more turns need more windows than exist`);
-        for (let m = 0; m < 1 << q.a; m++) if (bits(m) === extra) assert.equal(validBoard(p, {walk: longer, windows: cols(m)}), false, `${label}: a longer staircase is never certified`);
-        for (let m = 0; m < 1 << q.a; m++) if (bits(m) === k) assert.equal(validBoard(p, {walk: longer, windows: cols(m)}), false, `${label}: k windows never certify a longer staircase`);
+        for (let m = 0; m < 1 << q.a; m++) if (bits(m) === extra) {
+          assert.equal(validBoard(p, {walk: longer, windows: cols(m), refused: null, told: false}), false, `${label}: a longer staircase is never certified`);
+          assert.equal(isSolved(p, claim(wrong, cols(m)).board), false);
+        }
+        for (let m = 0; m < 1 << q.a; m++) if (bits(m) === k) assert.equal(claim(wrong, cols(m)), null, `${label}: k windows are too few for a longer staircase`);
       } else assert.ok(2 * q.b <= t + 1 + (t % 2), `${label}: no staircase turns more, because every up piece takes a block of height`);
 
+      // Undo through a refusal, as the app makes it: the refusal stands, its
+      // line goes, and the board changes; the next Undo changes the walk and
+      // ends it; back on the same walk, Fewest takes a claim again.
+      const m = mechanicFor(p), undoLikeApp = a => { const u = undo(a); return {...u, board: m.carry(p, a.board, u.board)}; };
+      const refused = claim(at, pageOrder);
+      const back1 = undoLikeApp(refused);
+      assert.deepEqual(back1.board, {walk: witness, windows: null, refused: pageOrder, told: false}, `${label}: Undo keeps the refusal`);
+      assert.equal(claim(back1, cols(sets[0])), null, `${label}: still no second claim after Undo`);
+      const back2 = undoLikeApp(back1);
+      assert.notEqual(back2.board.walk, witness);
+      assert.equal(back2.board.refused, null, `${label}: a different walk ends the refusal`);
+      assert.ok(isSolved(p, claim(play(p, back2, witness.slice(back2.board.walk.length)), cols(sets[0])).board), `${label}: back on the walk, a right claim solves`);
+
       // Hints alone: fresh; after a staircase that turns too often; after
-      // a refused claim; after random play.
+      // a refused claim (and after Undo past it); after random play.
       report.hintSteps += hintRun(p, fresh, `${label} fresh`);
       if (longer) {
         const wrong = play(p, fresh, longer);
@@ -237,14 +267,11 @@ export default async function validateStairs() {
         assert.equal(timedHint(p, wrong).action.type, 'go', `${label}: a staircase with too many turns is taken back`);
         report.hintSteps += hintRun(p, wrong, `${label} after too many turns`);
       }
-      const m = mechanicFor(p);
-      let at = play(p, fresh, witness);
-      m.ui(p, {claim: 'toggle'});
-      const bad = Array.from({length: k}, (_, c) => c);
-      m.ui(p, {refuse: bad});
-      assert.equal(timedHint(p, at).action.type, 'fewest', `${label}: after a refused claim the hint names windows`);
-      report.hintSteps += hintRun(p, at, `${label} after a refused claim`);
-      m.reset(p);
+      assert.equal(timedHint(p, refused).action.type, 'go', `${label}: after a refused claim the hint changes the walk`);
+      assert.doesNotMatch(timedHint(p, refused).text, /Fewest/);
+      report.hintSteps += hintRun(p, refused, `${label} after a refused claim`);
+      report.hintSteps += hintRun(p, back1, `${label} after Undo past a refused claim`);
+      mechanicFor(p).reset(p);
       const random2 = seeded(500 + p.number);
       let r = fresh;
       for (let i = 0; i < 6; i++) {
@@ -255,33 +282,37 @@ export default async function validateStairs() {
       report.hintSteps += hintRun(p, r, `${label} after random play`);
 
       // Illegal moves.
-      const w1 = witness.slice(0, 1);
       for (const action of [{type: 'go', to: [1, 1]}, {type: 'go', to: [0, 0]}, {type: 'go', to: [q.a + 1, 0]}, {type: 'go', to: [-1, 0]}, {type: 'go', to: [.5, 0]}, {type: 'go', to: '1,0'}, {type: 'go'},
         {type: 'walk', walk: 'W'}, {type: 'walk', walk: 'S'}, {type: 'walk', walk: ''}, {type: 'walk', walk: 'N'.repeat(q.b + 1)}, {type: 'walk', walk: 3},
-        {type: 'fewest', windows: sets.length ? cols(sets[0]) : []}, {type: 'claim'}, null, 'E', ['E']]) {
-        const before = fresh;
-        assert.equal(move(p, before, action), null, `${label}: rejects ${JSON.stringify(action)}`);
+        {type: 'fewest', windows: cols(sets[0])}, {type: 'fewest', windows: pageOrder}, {type: 'claim'}, null, 'E', ['E']]) {
+        assert.equal(move(p, fresh, action), null, `${label}: rejects ${JSON.stringify(action)}`);
         report.illegalMoves++;
       }
       // Off the strip: a corner straight up or right that the strip doesn't hold.
       for (const c of [[0, q.b], [q.a, 0]]) { assert.equal(move(p, fresh, {type: 'go', to: c}), null, `${label}: no run off the strip to ${c}`); report.illegalMoves++; }
-      at = play(p, fresh, witness);
-      for (const windows of [cols(sets[0]).slice(1), [...cols(sets[0]), q.a - 1].sort((x, y) => x - y), Array.from({length: k}, (_, c) => c), cols(sets[0]).reverse(), [...cols(sets[0]).slice(1), cols(sets[0])[1]], cols(sets[0]).map(c => c + .5), [q.a, ...cols(sets[0]).slice(1)]]) {
-        assert.equal(move(p, at, {type: 'fewest', windows}), null, `${label}: rejects windows ${windows}`);
+      const good = cols(sets[0]);
+      for (const windows of [good.slice(1), [...good, q.a - 1].sort((x, y) => x - y), [...good].reverse(), [...good.slice(1), good[1]], good.map(c => c + .5), [q.a, ...good.slice(1)], [-1, ...good.slice(1)], 'all', null]) {
+        assert.equal(claim(at, windows), null, `${label}: rejects windows ${windows}`);
         report.illegalMoves++;
       }
-      const done = step(p, at, {type: 'fewest', windows: cols(sets[0])});
+      const done = step(p, at, {type: 'fewest', windows: good});
       assert.ok(isSolved(p, done.board));
       assert.equal(move(p, done, {type: 'go', to: [0, 0]}), null, `${label}: nothing after a solve`);
-      report.illegalMoves++;
+      assert.equal(claim(done, good), null, `${label}: no claim after a solve`);
+      report.illegalMoves += 2;
 
-      // Forged saves.
-      for (const f of [null, 'E', {}, {walk: ''}, {walk: '', windows: null, done: true}, {walk: 'X', windows: null}, {walk: 'EW', windows: null}, {walk: ['E'], windows: null},
-        {walk: 'N'.repeat(q.b), windows: null}, {walk: witness, windows: []}, {walk: witness, windows: cols(sets[0]).slice(1)}, {walk: witness, windows: Array.from({length: k}, (_, c) => c)},
-        {walk: witness.slice(0, -1), windows: cols(sets[0])}, ...(longer ? [{walk: longer, windows: cols(sets[0])}] : []), {walk: witness, windows: 'all'}, {walk: witness, windows: [...cols(sets[0])].reverse()}]) {
+      // Forged saves, including forged solves and forged refusals.
+      const B = (walk, windows = null, refused = null, told = false) => ({walk, windows, refused, told});
+      const wrongSet = cols(Array.from({length: 1 << q.a}, (_, m) => m).find(m => bits(m) === k && !accepted.has(m)));
+      for (const f of [null, 'E', {}, {walk: ''}, {walk: '', windows: null}, {...B(''), done: true}, {...B(witness, good), done: true}, B('X'), B('EW'), B(['E']), B('N'.repeat(q.b)),
+        B(witness, []), B(witness, good.slice(1)), B(witness, pageOrder), B(witness.slice(0, -1), good), ...(longer ? [B(longer, good)] : []), B(witness, 'all'), B(witness, [...good].reverse()),
+        B(witness, good, good), B(witness, good, null, true), B('', null, null, true), B(witness, null, null, 'no'),
+        B(witness, null, good), B(witness, null, good, true), B(witness, null, wrongSet.slice(1), true), B(witness, null, [...wrongSet].reverse(), true), B(witness.slice(0, -1), null, wrongSet, true),
+        B(witness, null, 'all', true), B(witness, wrongSet, wrongSet, true), ...(longer ? [B(longer, null, wrongSet, true)] : [])]) {
         assert.equal(validBoard(p, f), false, `${label}: rejects a forged save ${JSON.stringify(f)}`);
         report.forgeries++;
       }
+      assert.ok(validBoard(p, B(witness, null, wrongSet, true)) && validBoard(p, B(witness, null, wrongSet, false)), `${label}: a real refusal is a valid save`);
     } else {
       // Exact length: every path of the length, enumerated here.
       const all = exactPaths(q, q.steps), L = (q.steps - q.a - q.b) / 2;

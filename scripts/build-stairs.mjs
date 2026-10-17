@@ -15,7 +15,7 @@ const turnsRules = q => [
   'The robot starts at the ring and walks to the flag, only right and up, along the streets.',
   'It must stay in the gray strip. It may run along the strip’s edge.',
   'A turn is a corner where the walk changes from right to up or from up to right. A flat piece is a straight run to the right.',
-  'Fewest: tap columns until the slots beside it are full. The claim is right when no flat piece inside the strip could cross two of the columns you tapped.'
+  'Fewest: tap columns until the slots beside it are full. The claim is right when no flat piece inside the strip could cross two of the columns you tapped. After a wrong claim, Fewest comes back when the staircase changes.'
 ];
 const exactRules = q => [
   'The robot starts at the ring and walks to the flag along the streets: right, left or up, one block per step.',
@@ -24,7 +24,7 @@ const exactRules = q => [
   'It must reach the flag on the last box. The first path that does is kept; a second, different one solves the puzzle.'
 ];
 const CONTROLS = {
-  turns: 'A staircase goes only right and up along the streets. A turn is a corner where it changes direction, and a flat piece is a straight run to the right. Tap a dot to send the robot straight there, or drag from the robot; tap a corner of the trail, or drag back over it, to go back there. The arrow keys move one block. On the flag, press Fewest and tap columns, one for each slot: columns no flat piece inside the strip can cross two of. Undo takes back a move.',
+  turns: 'A staircase goes only right and up along the streets. A turn is a corner where it changes direction, and a flat piece is a straight run to the right. Tap a dot to send the robot straight there, or drag from the robot; tap a corner of the trail, or drag back over it, to go back there. The arrow keys move one block. On the flag, press Fewest and tap columns, one for each slot: columns no flat piece inside the strip can cross two of. After a wrong set, Fewest comes back when the staircase changes. Undo takes back a move.',
   exact: 'Each step is one block right, left or up, and a path never turns straight back along the street it just walked. Each box under the board is one step. Tap a dot to send the robot straight there, or drag from the robot; tap a corner of the trail, or drag back over it, to go back there. The arrow keys move one block. A path that reaches the flag on the last box is kept as a dashed line, and the robot starts again for a second, different path. Undo takes back a move.'
 };
 
@@ -58,19 +58,19 @@ const PUZZLES = [
       connection: 'The strip here is 5/3 of a block above and below the diagonal of a 9 × 6 rectangle; on the bottom and top streets it holds 2 blocks against 5 in the middle, as the worksheet guide’s 20 mm end pieces against 40 mm middle pieces.'
     },
     provenance: 'New, after Week 50 Problem 4: a 9 × 6 rectangle (slope 2/3) with a strip 5/3 of a block above and below the diagonal.'},
-  {number: 3, level: 'medium', title: 'Shallow strip', parameters: {mode: 'turns', a: 12, b: 3, D: 9},
-    check: {fewest: 6, sets: 4, spans: [[0, 3], [1, 7], [5, 11], [9, 12]]},
-    idea: 'A shallow strip: 12 blocks across, 3 up. A flat piece covers at most 6 blocks in the middle streets and 3 at the ends, so four columns far enough apart need four flat pieces and 6 turns.',
-    prerequisites: 'Counting blocks to 12. Reading: one short goal; a grown-up can read How to play.',
-    hints: ['Count the blocks across, and how many one flat piece can cover.', 'Each climb is only one block. Make the flat pieces long.', 'The first and last columns need their own flat pieces. How many more?'],
+  {number: 3, level: 'medium', title: 'Twice as long', parameters: {mode: 'turns', a: 12, b: 6, D: 18},
+    check: {fewest: 4, sets: 2, spans: [[0, 3], [0, 5], [1, 7], [3, 9], [5, 11], [7, 12], [9, 12]]},
+    idea: 'Puzzle 1’s strip, running twice as far. A flat piece that crosses the first column runs on one of the bottom two streets, which the strip ends by 5 across; one that crosses the last column runs on one of the top two, which start at 7 across. So no flat piece crosses two of columns 1, 6 and 12: three flat pieces, and 4 turns.',
+    prerequisites: 'Counting blocks to 12, and seeing whether a corner is inside the gray strip. Reading: one short goal; a grown-up can read How to play.',
+    hints: ['How far can one flat piece reach on the bottom two streets?', 'Make each straight piece as long as the strip allows.', 'Which column can share a flat piece with neither the first column nor the last?'],
     parent: {
-      notice: 'Whether your child counts how far a flat piece can reach on each street, and uses that to choose columns.',
-      prompt: 'Why does the staircase need four flat pieces, not three?',
-      explanation: 'The streets hold flat pieces from 0 to 3, 1 to 7, 5 to 11 and 9 to 12 across. Columns 1, 4 or 5, 8 or 9, and 12 lie on no common flat piece, so four flat pieces and at least 6 turns are needed. Right 3, up 1, right 4, up 1, right 4, up 1, right 1 has 6.',
-      extension: 'With the same strip on a rectangle 16 blocks across and 4 up, how many turns would the fewest be?',
-      connection: 'Every column must be crossed by one flat piece, and a flat piece crosses a set of consecutive columns that one street of the strip holds; choosing columns no such set contains two of is the dual of covering the columns by those sets.'
+      notice: 'Whether your child compares this strip with puzzle 1’s: the same width, so flat pieces no longer than before, with twice as far to go.',
+      prompt: 'Puzzle 1 took 2 turns. Why does this one take more?',
+      explanation: 'Every staircase crosses every column once, on a flat piece. The streets hold flat pieces from 0 to 3, 0 to 5, 1 to 7, 3 to 9, 5 to 11, 7 to 12 and 9 to 12 across. Column 1 lies only on the bottom two streets, which end by 5 across, and column 12 only on the top two, which start at 7 across, so no flat piece crosses two of columns 1, 6 and 12 (or 1, 7 and 12). Three flat pieces with climbs between them make at least 4 turns. Right 3, up 3, right 6, up 3, right 3 has 4, and it is the only one of the 4,462 staircases in the strip that does.',
+      extension: 'The same strip three times as long, on a rectangle 18 blocks across and 9 up: how many turns now?',
+      connection: 'The strip keeps its width while the rectangle doubles, so the flat pieces stay as short and there are more of them to place: the fewest turns grow with the length of the strip divided by its width, as the worksheet guide counts 40 mm pieces across 160 mm.'
     },
-    provenance: 'New, after Week 50 Problem 4: a 12 × 3 rectangle (slope 1/4) with a strip 3/4 of a block above and below the diagonal.'},
+    provenance: 'New, after Week 50 Problem 4 (all bands): puzzle 1’s strip, 1½ blocks above and below the diagonal at slope ½, on a 12 × 6 rectangle (suggested in the review of this port).'},
   {number: 4, level: 'medium', title: 'Steeper strip', parameters: {mode: 'turns', a: 12, b: 9, D: 18},
     check: {fewest: 6, sets: 13, spans: [[0, 2], [0, 3], [1, 4], [2, 6], [4, 7], [5, 8], [6, 10], [8, 11], [9, 12], [10, 12]]},
     idea: 'The worksheet’s strip, 1½ blocks above and below the diagonal, on a smaller rectangle. A flat piece covers at most 4 blocks, and 2 at the bottom and top, so 12 blocks need four flat pieces and 6 turns.',
@@ -94,7 +94,7 @@ const PUZZLES = [
       prompt: 'Why can’t a staircase with 7 turns cover 16 blocks across?',
       explanation: 'With 7 turns there are at most 8 pieces, so at most four flat pieces, and if four, one of them starts at S or ends at F. They cover at most 2 + 4 + 4 + 4 = 14 blocks, short of 16. The windows say the same thing column by column: no flat piece crosses two of columns 1, 4, 7, 11 and 15, for example. Right 2, up 3, right 4, up 3, right 4, up 3, right 4, up 3, right 2 has 8 turns, the guide’s staircase.',
       extension: 'Narrow the strip in your head until the corners on its edge fall out. Can a staircase still get through, and with how many turns?',
-      connection: 'This is the worksheet’s Problem 4 at 10 mm a block: 160 × 120 mm, the ±15 mm strip, the fewest 8. The guide notes that the answer depends on the edge counting as inside; without it the fewest is 9.'
+      connection: 'This is the worksheet’s Problem 4 at 10 mm a block: 160 × 120 mm, the ±15 mm strip, the fewest 8. The guide notes that the answer depends on the edge counting as inside: on paper, with corners anywhere, the fewest without the edge is 9. On these streets, with the corners on the edge left out, every climb is shorter and the fewest is 12.'
     },
     provenance: 'Week 50 Problem 4, all bands: the 160 × 120 mm rectangle and the strip 15 mm above and below the diagonal, at 10 mm a block; the guide’s eight-turn staircase and seven-turn proof.'},
   {number: 6, level: 'easy', title: 'Nine steps', parameters: {mode: 'exact', a: 4, b: 3, steps: 9},

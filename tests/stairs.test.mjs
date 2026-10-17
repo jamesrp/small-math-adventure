@@ -1,9 +1,9 @@
 // Staircases, a group in Memory robot: corners, walks and turns in a strip;
 // spans, windows and the fewest turns; taps, cuts, drags and arrow keys;
 // Fewest, which waits for the flag, judges the windows on the last tap and
-// refuses with one line; exact lengths, the kept path and a second one;
-// hints (CPU-timed), Undo, saves, rendering, styles, How to play and the
-// satchel.
+// records a refusal that holds through Undo until the walk changes; exact
+// lengths, the kept path and a second one; hints (CPU-timed), Undo, saves,
+// rendering, styles, How to play and the satchel.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -74,7 +74,7 @@ test('spans, windows and the fewest turns: 2k − 2 for the most windows k', () 
 
 test('taps: straight to a dot, back to a corner of the trail; drags and arrow steps', () => {
   const p = byId(2), q = p.parameters, fresh = freshAttempt(p);
-  assert.deepEqual(fresh.board, {walk: '', windows: null});
+  assert.deepEqual(fresh.board, {walk: '', windows: null, refused: null, told: false});
   assert.deepEqual(reach(q, '').map(([d, c]) => d + c), ['E1,0', 'E2,0', 'N0,1'], 'the dots one straight piece reaches');
   assert.equal(walkTo(q, '', [2, 0]), 'EE');
   assert.equal(walkTo(q, '', [3, 0]), null, 'off the strip');
@@ -101,7 +101,7 @@ test('taps: straight to a dot, back to a corner of the trail; drags and arrow st
   assert.equal(walkTo(e, 'EEEENWWW', [4, 1]), 'EEEEN', 'a corner of the trail, not a step back');
 });
 
-test('Fewest waits for the flag; the windows are judged on the last tap, refused with one line, and can fail', () => {
+test('Fewest waits for the flag; the windows are judged on the last tap; a refusal is recorded and holds until the walk changes', () => {
   const p = byId(2), q = p.parameters, fresh = freshAttempt(p);
   assert.match(view(p, fresh), /<button[^>]*st-fewest[^>]*disabled>Fewest<\/button>/, 'off before the flag');
   assert.equal(move(p, fresh, {type: 'fewest', windows: [0, 4, 8]}), null, 'no claim on a fresh board');
@@ -109,9 +109,10 @@ test('Fewest waits for the flag; the windows are judged on the last tap, refused
   assert.ok(atFlag(q, many.board.walk));
   assert.equal(turnsOf(many.board.walk), 10);
   assert.doesNotMatch(view(p, many), /st-fewest[^>]*disabled/, 'on at the flag');
-  // On a staircase with too many turns no set of windows is ever accepted.
-  for (const set of windowSets(q, 3)) assert.equal(move(p, many, {type: 'fewest', windows: set}), null);
+  // Ten turns need six windows; there are never more than three, so every claim is refused.
+  for (const set of windowSets(q, 3)) assert.equal(move(p, many, {type: 'fewest', windows: set}), null, 'one window for each slot');
   assert.equal(windowSets(q, need(10)).length, 0);
+  assert.equal(move(p, many, {type: 'fewest', windows: [0, 2, 4, 6, 7, 8]}).board.refused.length, 6);
   // The claim: Fewest shows the columns, none marked; nothing tells which work.
   const good = walkOn(p, fresh, p.solution.staircase);
   M.reset(p);
@@ -127,29 +128,38 @@ test('Fewest waits for the flag; the windows are judged on the last tap, refused
   assert.equal((html.match(/class="st-window-on"/g) || []).length, 2);
   M.ui(p, {mark: 1});
   assert.equal((view(p, good, true).match(/st-column on/g) || []).length, 1, 'a second tap unmarks');
-  // A wrong set: one line, the taps clear, the refused columns stay drawn until the next tap.
-  M.ui(p, {refuse: [0, 1, 8]});
-  html = view(p, good, true);
-  assert.match(html, /A flat piece can cross two of these\./);
+  // A wrong set is a move: one line, the columns outlined, Fewest off.
+  const refused = play(p, good, {type: 'fewest', windows: [0, 1, 8]});
+  assert.deepEqual(refused.board, {walk: p.solution.staircase, windows: null, refused: [0, 1, 8], told: true});
+  html = view(p, refused, true);
+  assert.match(html, /<p class="st-note" role="status">A flat piece can cross two of these\.<\/p>/);
   assert.equal((html.match(/st-window-told/g) || []).length, 3);
-  assert.equal((html.match(/st-column on/g) || []).length, 0);
-  assert.doesNotMatch(M.render(p, good).replace(/<p class="sr-only"[\s\S]*?<\/p>/g, '').replace(/<[^>]*>/g, ' '), /turn/i, 'the refusal never judges the staircase');
-  M.ui(p, {mark: 4});
-  assert.doesNotMatch(view(p, good, true), /st-window-told|A flat piece/);
-  // The right set solves and draws the windows and the flat pieces.
-  const done = play(p, good, {type: 'fewest', windows: [0, 4, 8]});
+  assert.match(html, /<button[^>]*st-fewest[^>]*disabled>Fewest<\/button>/, 'Fewest is off after a refusal');
+  assert.doesNotMatch(html, /class="st-column/);
+  assert.doesNotMatch(M.render(p, refused).replace(/<p class="sr-only"[\s\S]*?<\/p>/g, '').replace(/<[^>]*>/g, ' '), /turn/i, 'the refusal never judges the staircase');
+  M.ui(p, {claim: 'toggle'});
+  assert.doesNotMatch(view(p, refused, true), /st-claiming/, 'no claim while the refusal stands');
+  M.reset(p);
+  for (const set of [[0, 4, 8], [0, 1, 2]]) assert.equal(move(p, refused, {type: 'fewest', windows: set}), null, 'no second claim on the same walk');
+  // A change of walk ends it; back on the flag, the right set solves.
+  const away = play(p, refused, {type: 'go', to: [7, 6]});
+  assert.equal(away.board.refused, null);
+  const again = play(p, away, {type: 'go', to: [9, 6]});
+  assert.equal(again.board.walk, p.solution.staircase);
+  assert.doesNotMatch(view(p, again), /st-fewest[^>]*disabled|A flat piece/);
+  const done = play(p, again, {type: 'fewest', windows: [0, 4, 8]});
   assert.ok(isSolved(p, done.board));
   html = view(p, done, true);
   assert.equal((html.match(/st-window-on proved/g) || []).length, 3);
   assert.equal((html.match(/class="st-flat"/g) || []).length, 3);
   assert.doesNotMatch(html, /st-fewest|st-column/);
   assert.equal(move(p, done, {type: 'go', to: [0, 0]}), null, 'nothing after a solve');
-  // Of all sets of three columns, only the real windows pass; page order fails.
+  // Of all sets of three columns claimed once, only the real windows solve.
   let pass = 0, of = 0;
-  for (let i = 0; i < 9; i++) for (let j = i + 1; j < 9; j++) for (let k = j + 1; k < 9; k++) { of++; if (move(p, good, {type: 'fewest', windows: [i, j, k]})) pass++; }
+  for (let i = 0; i < 9; i++) for (let j = i + 1; j < 9; j++) for (let k = j + 1; k < 9; k++) { of++; if (isSolved(p, move(p, good, {type: 'fewest', windows: [i, j, k]}).board)) pass++; }
   assert.deepEqual([pass, of], [1, 84]);
-  assert.equal(move(p, good, {type: 'fewest', windows: [0, 1, 2]}), null);
   assert.equal(move(p, good, {type: 'fewest', windows: [0, 4]}), null, 'one window for each slot');
+  assert.equal(move(p, good, {type: 'fewest', windows: [8, 4, 0]}), null, 'in order');
   M.reset(p);
 });
 
@@ -193,6 +203,11 @@ test('hints alone solve every puzzle, fresh and after wrong moves, quickly and w
     if (q.mode === 'turns') {
       const zig = (() => { let w = ''; for (let i = 0; i < 40 && !atFlag(q, w); i++) { const c = 'EN'[i % 2]; w = trace(q, w + c) ? w + c : w + 'EN'[(i + 1) % 2]; } return w; })();
       starts.push(walkOn(p, freshAttempt(p), zig));
+      // After a refused claim on the fewest staircase, the hint changes the walk first.
+      const refused = play(p, walkOn(p, freshAttempt(p), p.solution.staircase), {type: 'fewest', windows: Array.from({length: p.solution.flatPieces}, (_, c) => c)});
+      assert.equal(nextHint(p, refused).action.type, 'go');
+      assert.match(nextHint(p, refused).text, /^Take the trail back to/);
+      starts.push(refused);
     } else {
       // Right as far as the strip allows, then up: the flag well before the last box.
       let w = '';
@@ -243,31 +258,53 @@ test('hint marks: a dot to go to, a corner to go back to, or the windows, only f
   M.reset(p);
 });
 
-test('Undo takes back moves, always changes the board, and leaves Fewest', () => {
-  const p = byId(3), fresh = freshAttempt(p);
-  let a = walkOn(p, fresh, 'EEENEEEENEEEENE');
+test('Undo takes back moves, always changes the board, leaves Fewest, and keeps a refusal while the walk is the same', () => {
+  const p = byId(3), fresh = freshAttempt(p), w = p.solution.staircase;
+  const a = walkOn(p, fresh, w);
   M.ui(p, {claim: 'toggle'}); M.ui(p, {mark: 0});
   const back = undoLikeApp(p, a);
   assert.notEqual(back.board.walk, a.board.walk);
   assert.doesNotMatch(view(p, back, true), /st-claiming|st-column/, 'Undo leaves the claim');
   for (let b = a; b.history.length; b = undo(b)) assert.notDeepEqual(undo(b).board, b.board, 'every Undo changes the board');
-  const e = byId(6), kept = walkOn(e, freshAttempt(e), 'EEEENNWNE');
-  assert.deepEqual(undoLikeApp(e, kept).board, {walk: 'EEEENNWN', kept: ''}, 'Undo after a keep takes back the last piece');
+  // Undo after a refusal: the line and outline go, the refusal stays, Fewest stays off.
+  const refused = play(p, a, {type: 'fewest', windows: [0, 1, 11]});
+  const kept = undoLikeApp(p, refused);
+  assert.deepEqual(kept.board, {walk: w, windows: null, refused: [0, 1, 11], told: false});
+  assert.notDeepEqual(kept.board, refused.board, 'the Undo changes the board');
+  const html = view(p, kept);
+  assert.doesNotMatch(html, /A flat piece|st-window-told/);
+  assert.match(html, /<button[^>]*st-fewest[^>]*disabled>Fewest<\/button>/);
+  assert.equal(move(p, kept, {type: 'fewest', windows: [0, 5, 11]}), null, 'Undo is no way round the refusal');
+  // The next Undo takes back a piece, and the refusal ends with the walk.
+  const piece = undoLikeApp(p, kept);
+  assert.notEqual(piece.board.walk, w);
+  assert.equal(piece.board.refused, null);
+  const e = byId(6), done = walkOn(e, freshAttempt(e), 'EEEENNWNE');
+  assert.deepEqual(undoLikeApp(e, done).board, {walk: 'EEEENNWN', kept: ''}, 'Undo after a keep takes back the last piece');
 });
 
-test('saves are checked, including forged solves', () => {
-  const p = byId(2), q = p.parameters, w = p.solution.staircase;
-  assert.ok(validBoard(p, {walk: w, windows: [0, 4, 8]}));
-  assert.ok(validBoard(p, {walk: 'EE', windows: null}));
+test('saves are checked, including forged solves and forged refusals', () => {
+  const p = byId(2), w = p.solution.staircase, B = (walk, windows = null, refused = null, told = false) => ({walk, windows, refused, told});
+  assert.ok(validBoard(p, B(w, [0, 4, 8])));
+  assert.ok(validBoard(p, B('EE')));
+  assert.ok(validBoard(p, B(w, null, [0, 1, 8], true)));
+  assert.ok(validBoard(p, B(w, null, [0, 1, 8], false)), 'a refusal after Undo');
   for (const [board, why] of [
-    [{walk: w, windows: [0, 4, 7]}, 'windows a flat piece joins'],
-    [{walk: 'EE', windows: [0, 4, 8]}, 'a claim away from the flag'],
-    [{walk: 'ENENEENNEENENEE', windows: [0, 4, 8]}, 'too few windows for that many turns'],
-    [{walk: w, windows: [0, 4, 8], done: true}, 'a forged done'],
-    [{walk: w}, 'missing windows'],
-    [{walk: 'EEE', windows: null}, 'off the strip'],
-    [{walk: 'EW', windows: null}, 'a left step in a staircase'],
-    [{walk: 5, windows: null}, 'not a walk'],
+    [B(w, [0, 4, 7]), 'windows a flat piece joins'],
+    [B('EE', [0, 4, 8]), 'a claim away from the flag'],
+    [B('ENENEENNEENENEE', [0, 4, 8]), 'too few windows for that many turns'],
+    [{...B(w, [0, 4, 8]), done: true}, 'a forged done'],
+    [{walk: w, windows: [0, 4, 8]}, 'missing the refusal fields'],
+    [B(w, null, [0, 4, 8], true), 'a right set recorded as refused'],
+    [B(w, [0, 4, 8], [0, 1, 8], true), 'a solve and a refusal'],
+    [B(w, null, [0, 1], true), 'a refusal of the wrong size'],
+    [B(w, null, [8, 1, 0], true), 'a refusal out of order'],
+    [B('EE', null, [0, 1, 8], true), 'a refusal away from the flag'],
+    [B(w, null, null, true), 'a refusal line with no refusal'],
+    [B(w, null, [0, 1, 8], 'yes'), 'a refusal line that is not true or false'],
+    [B('EEE'), 'off the strip'],
+    [B('EW'), 'a left step in a staircase'],
+    [B(5), 'not a walk'],
     [null, 'nothing']
   ]) assert.equal(validBoard(p, board), false, why);
   const e = byId(6);
@@ -279,10 +316,9 @@ test('saves are checked, including forged solves', () => {
     [{walk: 'EEEENWNEN', kept: 'EEEENWNEN', done: true}, 'a forged done'],
     [{walk: 'EEEENWNENE', kept: 'EEEENNWNE'}, 'past the last box'],
     [{walk: 'EWE', kept: ''}, 'straight back'],
-    [{walk: '', windows: null}, 'the other kind of puzzle']
+    [B(''), 'the other kind of puzzle']
   ]) assert.equal(validBoard(e, board), false, why);
   assert.equal(isSolved(e, {walk: 'EEEENNWNE', kept: 'EEEENNWNE'}), false);
-  assert.ok(q);
 });
 
 test('rendering: scoped styles, the board size, How to play, objectives and the satchel', () => {
