@@ -951,7 +951,7 @@
       "prerequisites": "Comparing two piles up to 9; alternating turns.",
       "idea": "With two piles, equal piles lose for the player to move: copy the other player.",
       "hints": [
-        "Look at the two piles. Are they equal?",
+        "Lost a game? Same start again replays those piles. Watch what I do after each of your takes.",
         "If the piles are equal, let me start. Then copy my move on the other pile.",
         "If the piles are unequal, go first and make them equal."
       ],
@@ -967,7 +967,8 @@
           "proof-memo"
         ]
       },
-      "sourceDocument": "docs/proofs/README.md"
+      "sourceDocument": "docs/proofs/README.md",
+      "next": "nim-03"
     },
     {
       "id": "proof-duel-02",
@@ -994,9 +995,9 @@
       "prerequisites": "Pebble Duel easy and medium puzzles; bundles of 4, 2 and 1 help.",
       "idea": "With three piles, a position is losing for the mover exactly when the bundles of 4, 2 and 1 come in pairs.",
       "hints": [
-        "Split each pile into bundles of 4, 2 and 1.",
-        "If every bundle size appears an even number of times, let me start.",
-        "On your turn, take pebbles so every bundle size appears an even number of times again."
+        "Lost a game? Same start again replays those piles. Watch which piles I leave you.",
+        "Think of the starts you lost after going first. Split each pile into bundles of 4, 2 and 1. What do those starts have in common?",
+        "When I won, what did my takes leave you each time? Leave me piles like those."
       ],
       "parent": {
         "notice": "Whether your child decides who starts before moving, and how quickly.",

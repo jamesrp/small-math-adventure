@@ -10,15 +10,27 @@ const byType = type => puzzles.filter(p => p.id.startsWith(`${type}-`));
 const puzzle = id => puzzles.find(p => p.id === id);
 const { latin, code, nim } = deductionMechanics;
 const copy = value => JSON.parse(JSON.stringify(value));
-test('Nim bundle help represents every counter in larger piles, including the 8 column', () => {
+test('Nim bundle help appears only after Duel 1, states no rule, and represents every counter, including the 8 column', () => {
   const p = puzzle('nim-12'), board = nim.fresh(p);
-  const html = nim.help(p, {board});
+  assert.equal(nim.help(p, {board}), '', 'no table without a profile');
+  assert.equal(nim.help(p, {board}, {completed: () => false}), '', 'no table before Duel 1');
+  const html = nim.help(p, {board}, {completed: id => id === 'proof-duel-01'});
+  assert.doesNotMatch(html, /balanced|even count/i, 'the table states no rule');
   assert.match(html, /8-bundle/);
   const rows = [...html.matchAll(/<tr><th scope="row">\d+: (\d+)<\/th>((?:<td>[01]<\/td>)+)<\/tr>/g)];
   assert.equal(rows.length, p.parameters.piles.length);
   for (const row of rows) {
     const bits = [...row[2].matchAll(/<td>([01])<\/td>/g)].map(match => Number(match[1]));
     assert.equal(bits.reduce((sum, bit, i) => sum + bit * [8,4,2,1][i], 0), Number(row[1]));
+  }
+});
+test('Nim hints name a take but not the rule', () => {
+  for (const p of byType('nim')) {
+    const hint = nim.hint(p, nim.fresh(p));
+    assert.equal(hint.type, 'move', p.id);
+    assert.doesNotMatch(hint.text, /balanced|even/i, `${p.id}: no rule in the hint`);
+    assert.doesNotMatch(p.title, /mirror|pair|balance|bundle|component|repair|cancel/i, `${p.id}: titled by its start`);
+    assert.match(p.title, new RegExp(`^Piles of ${p.parameters.piles.slice(0, -1).join(', ')} and ${p.parameters.piles.at(-1)}$`), `${p.id}: the title names the start`);
   }
 });
 function followHints(handler, p, board = handler.fresh(p)) {

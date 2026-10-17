@@ -395,7 +395,7 @@ Two players alternate. On a turn, remove any positive number of counters from ex
 - Display binary bundles only as an optional visual aid. Actual play still removes ordinary counters; a move must decrease exactly one pile.
 - There may be multiple winning first moves. Store and accept all; especially the final instance has three.
 
-### nim-01 — Leave the pair
+### nim-01 — Piles of 1 and 2
 
 **Child task:** Win a game starting with piles of 1 and 2.
 
@@ -407,7 +407,7 @@ Two players alternate. On a turn, remove any positive number of counters from ex
 
 The first listed move is the stored canonical witness; every listed move is accepted.
 
-**Hint:** Leave the other player two piles of 1.
+**Hint:** Think about the end of the game. Which piles would you like to leave the opponent?
 
 **Insight:** The smallest equal-pile position lets you answer either move with the last counter.
 
@@ -415,7 +415,7 @@ The first listed move is the stored canonical witness; every listed move is acce
 
 **Why this step:** A three-counter endgame with an immediate reply; first rules example.
 
-### nim-02 — Build a mirror
+### nim-02 — Piles of 2 and 5
 
 **Child task:** Win a game starting with piles of 2 and 5.
 
@@ -427,7 +427,7 @@ The first listed move is the stored canonical witness; every listed move is acce
 
 The first listed move is the stored canonical witness; every listed move is accepted.
 
-**Hint:** Can you make the two piles match in one move?
+**Hint:** What did you leave the opponent last time? Can you leave something like it here?
 
 **Insight:** Equal piles let a player copy the opponent in the other pile until both are empty.
 
@@ -435,7 +435,7 @@ The first listed move is the stored canonical witness; every listed move is acce
 
 **Why this step:** Winning requires preserving a pattern across possible replies, not just taking the largest number.
 
-### nim-03 — Three piles break the old rule
+### nim-03 — Piles of 1, 1 and 2
 
 **Child task:** Win a game starting with piles of 1, 1, and 2.
 
@@ -447,7 +447,7 @@ The first listed move is the stored canonical witness; every listed move is acce
 
 The first listed move is the stored canonical witness; every listed move is accepted.
 
-**Hint:** The two matching piles do not protect the player who receives this position. Can you remove the extra pile?
+**Hint:** Two piles worked before. What would you like to leave the opponent here?
 
 **Insight:** Two equal piles cancel as game components, but an unmatched third pile matters. An even total alone is not a losing-position test.
 
@@ -455,7 +455,7 @@ The first listed move is the stored canonical witness; every listed move is acce
 
 **Why this step:** Numbers shrink while the reasoning changes: a third component invalidates the earlier two-pile equality shortcut.
 
-### nim-04 — No equal piles needed
+### nim-04 — Piles of 1, 2 and 4
 
 **Child task:** Win a game starting with piles of 1, 2, and 4.
 
@@ -467,7 +467,7 @@ The first listed move is the stored canonical witness; every listed move is acce
 
 The first listed move is the stored canonical witness; every listed move is accepted.
 
-**Hint:** Try leaving 1, 2, and 3. Whatever changes next, you can leave two equal piles and an empty pile.
+**Hint:** Try a take. If the opponent wins, Undo and look at what it left you.
 
 **Insight:** A losing three-pile state need not contain equal piles. The 1/2 bundle pattern of 1,2,3 balances.
 
@@ -475,7 +475,7 @@ The first listed move is the stored canonical witness; every listed move is acce
 
 **Why this step:** Moves from the candidate result have six different replies to consider. This breaks the naive equality picture without large piles.
 
-### nim-05 — Repair one binary column
+### nim-05 — Piles of 3, 4 and 5
 
 **Child task:** Win a game starting with piles of 3, 4, and 5.
 
@@ -487,7 +487,7 @@ The first listed move is the stored canonical witness; every listed move is acce
 
 The first listed move is the stored canonical witness; every listed move is accepted.
 
-**Hint:** Show each pile using bundles 4, 2, and 1. Which bundle appears an odd number of times?
+**Hint:** Split each pile into bundles of 4, 2 and 1. Compare them with piles of 1, 2 and 3.
 
 **Insight:** Every binary column must contain an even number of bundles, not merely the total number of counters.
 
@@ -495,7 +495,7 @@ The first listed move is the stored canonical witness; every listed move is acce
 
 **Why this step:** The winning move changes the smallest pile, so a largest-pile heuristic fails. This is the first nontrivial use of the binary display.
 
-### nim-06 — One move, several ways
+### nim-06 — Piles of 4, 5 and 6
 
 **Child task:** Win a game starting with piles of 4, 5, and 6.
 
@@ -509,7 +509,7 @@ The first listed move is the stored canonical witness; every listed move is acce
 
 The first listed move is the stored canonical witness; every listed move is accepted.
 
-**Hint:** One legal option changes 4 to 3. Removing one counter trades a 4-bundle for 2+1; inspect all the columns again.
+**Hint:** Split each pile into bundles of 4, 2 and 1, and compare them with the piles you left in the last puzzle.
 
 **Insight:** Binary balancing can require lower bits to turn on as a pile shrinks. Different piles can provide different valid balancing moves.
 

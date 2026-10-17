@@ -15068,7 +15068,7 @@ ID: `code-12`
 
 ### Pebble Duel
 
-#### 1. Leave the pair
+#### 1. Piles of 1 and 2
 
 ID: `nim-01`
 
@@ -15095,7 +15095,7 @@ ID: `nim-01`
 }
 ```
 
-**Hint:** Leave the other player two piles of 1.
+**Hint:** Think about the end of the game. Which piles would you like to leave the opponent?
 
 **Insight:** The smallest equal-pile position lets you answer either move with the last counter.
 
@@ -15131,7 +15131,7 @@ ID: `nim-01`
 
 **Sources:** [week-07-k-1.tex — Tasks 2–5, Can you leave a little trap? and A trap that grows](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-k-1.tex); [week-07-facilitator.tex — Middle: backward reasoning; Extra: smallest-missing labels](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-facilitator.tex); [week-08-k-1.tex — Task 4, Two little piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-k-1.tex); [week-08-grades-2-3.tex — Tasks 3–5, The board is two piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-2-3.tex); [week-08-grades-4-5.tex — Tasks 2–6, Compare two kinds of balance; Balance the binary columns](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-4-5.tex); [week-08-facilitator.tex — The binary invariant; Why the test is sufficient, for any number of piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-facilitator.tex); [week-08-redesign.md — Verified mathematical backbone](/Users/jamespfeiffer/math-circle/plans/week-08-redesign.md).
 
-#### 2. Build a mirror
+#### 2. Piles of 2 and 5
 
 ID: `nim-02`
 
@@ -15158,7 +15158,7 @@ ID: `nim-02`
 }
 ```
 
-**Hint:** Can you make the two piles match in one move?
+**Hint:** What did you leave the opponent last time? Can you leave something like it here?
 
 **Insight:** Equal piles let a player copy the opponent in the other pile until both are empty.
 
@@ -15194,7 +15194,7 @@ ID: `nim-02`
 
 **Sources:** [week-07-k-1.tex — Tasks 2–5, Can you leave a little trap? and A trap that grows](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-k-1.tex); [week-07-facilitator.tex — Middle: backward reasoning; Extra: smallest-missing labels](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-facilitator.tex); [week-08-k-1.tex — Task 4, Two little piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-k-1.tex); [week-08-grades-2-3.tex — Tasks 3–5, The board is two piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-2-3.tex); [week-08-grades-4-5.tex — Tasks 2–6, Compare two kinds of balance; Balance the binary columns](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-4-5.tex); [week-08-facilitator.tex — The binary invariant; Why the test is sufficient, for any number of piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-facilitator.tex); [week-08-redesign.md — Verified mathematical backbone](/Users/jamespfeiffer/math-circle/plans/week-08-redesign.md).
 
-#### 3. Three piles break the old rule
+#### 3. Piles of 1, 1 and 2
 
 ID: `nim-03`
 
@@ -15222,7 +15222,7 @@ ID: `nim-03`
 }
 ```
 
-**Hint:** The two matching piles do not protect the player who receives this position. Can you remove the extra pile?
+**Hint:** Two piles worked before. What would you like to leave the opponent here?
 
 **Insight:** Two equal piles cancel as game components, but an unmatched third pile matters. An even total alone is not a losing-position test.
 
@@ -15260,7 +15260,7 @@ ID: `nim-03`
 
 **Sources:** [week-07-k-1.tex — Tasks 2–5, Can you leave a little trap? and A trap that grows](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-k-1.tex); [week-07-facilitator.tex — Middle: backward reasoning; Extra: smallest-missing labels](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-facilitator.tex); [week-08-k-1.tex — Task 4, Two little piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-k-1.tex); [week-08-grades-2-3.tex — Tasks 3–5, The board is two piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-2-3.tex); [week-08-grades-4-5.tex — Tasks 2–6, Compare two kinds of balance; Balance the binary columns](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-4-5.tex); [week-08-facilitator.tex — The binary invariant; Why the test is sufficient, for any number of piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-facilitator.tex); [week-08-redesign.md — Verified mathematical backbone](/Users/jamespfeiffer/math-circle/plans/week-08-redesign.md).
 
-#### 4. No equal piles needed
+#### 4. Piles of 1, 2 and 4
 
 ID: `nim-04`
 
@@ -15288,7 +15288,7 @@ ID: `nim-04`
 }
 ```
 
-**Hint:** Try leaving 1, 2, and 3. Whatever changes next, you can leave two equal piles and an empty pile.
+**Hint:** Try a take. If the opponent wins, Undo and look at what it left you.
 
 **Insight:** A losing three-pile state need not contain equal piles. The 1/2 bundle pattern of 1,2,3 balances.
 
@@ -15326,7 +15326,7 @@ ID: `nim-04`
 
 **Sources:** [week-07-k-1.tex — Tasks 2–5, Can you leave a little trap? and A trap that grows](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-k-1.tex); [week-07-facilitator.tex — Middle: backward reasoning; Extra: smallest-missing labels](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-facilitator.tex); [week-08-k-1.tex — Task 4, Two little piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-k-1.tex); [week-08-grades-2-3.tex — Tasks 3–5, The board is two piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-2-3.tex); [week-08-grades-4-5.tex — Tasks 2–6, Compare two kinds of balance; Balance the binary columns](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-4-5.tex); [week-08-facilitator.tex — The binary invariant; Why the test is sufficient, for any number of piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-facilitator.tex); [week-08-redesign.md — Verified mathematical backbone](/Users/jamespfeiffer/math-circle/plans/week-08-redesign.md).
 
-#### 5. Repair one binary column
+#### 5. Piles of 3, 4 and 5
 
 ID: `nim-05`
 
@@ -15354,7 +15354,7 @@ ID: `nim-05`
 }
 ```
 
-**Hint:** Show each pile using bundles 4, 2, and 1. Which bundle appears an odd number of times?
+**Hint:** Split each pile into bundles of 4, 2 and 1. Compare them with piles of 1, 2 and 3.
 
 **Insight:** Every binary column must contain an even number of bundles, not merely the total number of counters.
 
@@ -15392,7 +15392,7 @@ ID: `nim-05`
 
 **Sources:** [week-07-k-1.tex — Tasks 2–5, Can you leave a little trap? and A trap that grows](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-k-1.tex); [week-07-facilitator.tex — Middle: backward reasoning; Extra: smallest-missing labels](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-facilitator.tex); [week-08-k-1.tex — Task 4, Two little piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-k-1.tex); [week-08-grades-2-3.tex — Tasks 3–5, The board is two piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-2-3.tex); [week-08-grades-4-5.tex — Tasks 2–6, Compare two kinds of balance; Balance the binary columns](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-4-5.tex); [week-08-facilitator.tex — The binary invariant; Why the test is sufficient, for any number of piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-facilitator.tex); [week-08-redesign.md — Verified mathematical backbone](/Users/jamespfeiffer/math-circle/plans/week-08-redesign.md).
 
-#### 6. One move, several ways
+#### 6. Piles of 4, 5 and 6
 
 ID: `nim-06`
 
@@ -15420,7 +15420,7 @@ ID: `nim-06`
 }
 ```
 
-**Hint:** One legal option changes 4 to 3. Removing one counter trades a 4-bundle for 2+1; inspect all the columns again.
+**Hint:** Split each pile into bundles of 4, 2 and 1, and compare them with the piles you left in the last puzzle.
 
 **Insight:** Binary balancing can require lower bits to turn on as a pile shrinks. Different piles can provide different valid balancing moves.
 
@@ -15476,7 +15476,7 @@ ID: `nim-06`
 
 **Sources:** [week-07-k-1.tex — Tasks 2–5, Can you leave a little trap? and A trap that grows](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-k-1.tex); [week-07-facilitator.tex — Middle: backward reasoning; Extra: smallest-missing labels](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-facilitator.tex); [week-08-k-1.tex — Task 4, Two little piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-k-1.tex); [week-08-grades-2-3.tex — Tasks 3–5, The board is two piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-2-3.tex); [week-08-grades-4-5.tex — Tasks 2–6, Compare two kinds of balance; Balance the binary columns](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-4-5.tex); [week-08-facilitator.tex — The binary invariant; Why the test is sufficient, for any number of piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-facilitator.tex); [week-08-redesign.md — Verified mathematical backbone](/Users/jamespfeiffer/math-circle/plans/week-08-redesign.md).
 
-#### 7. Cancel the matching pair
+#### 7. Piles of 2, 2, 3 and 5
 
 ID: `nim-07`
 
@@ -15505,7 +15505,7 @@ ID: `nim-07`
 }
 ```
 
-**Hint:** The two piles of 2 cancel. Balance the other two piles.
+**Hint:** If the two piles of 2 were not there, what would you leave the opponent?
 
 **Insight:** Equal game components cancel even when other piles remain.
 
@@ -15545,7 +15545,7 @@ ID: `nim-07`
 
 **Sources:** [week-07-k-1.tex — Tasks 2–5, Can you leave a little trap? and A trap that grows](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-k-1.tex); [week-07-facilitator.tex — Middle: backward reasoning; Extra: smallest-missing labels](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-facilitator.tex); [week-08-k-1.tex — Task 4, Two little piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-k-1.tex); [week-08-grades-2-3.tex — Tasks 3–5, The board is two piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-2-3.tex); [week-08-grades-4-5.tex — Tasks 2–6, Compare two kinds of balance; Balance the binary columns](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-4-5.tex); [week-08-facilitator.tex — The binary invariant; Why the test is sufficient, for any number of piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-facilitator.tex); [week-08-redesign.md — Verified mathematical backbone](/Users/jamespfeiffer/math-circle/plans/week-08-redesign.md).
 
-#### 8. A balanced group plus one
+#### 8. Piles of 1, 3, 5, 7 and 2
 
 ID: `nim-08`
 
@@ -15575,7 +15575,7 @@ ID: `nim-08`
 }
 ```
 
-**Hint:** Check the 1,3,5,7 group in bundles. What remains outside that balanced group?
+**Hint:** Split 1, 3, 5 and 7 into bundles of 4, 2 and 1. Then look at the pile of 2.
 
 **Insight:** A whole collection can cancel even when no two piles match.
 
@@ -15639,7 +15639,7 @@ ID: `nim-08`
 
 **Sources:** [week-07-k-1.tex — Tasks 2–5, Can you leave a little trap? and A trap that grows](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-k-1.tex); [week-07-facilitator.tex — Middle: backward reasoning; Extra: smallest-missing labels](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-facilitator.tex); [week-08-k-1.tex — Task 4, Two little piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-k-1.tex); [week-08-grades-2-3.tex — Tasks 3–5, The board is two piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-2-3.tex); [week-08-grades-4-5.tex — Tasks 2–6, Compare two kinds of balance; Balance the binary columns](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-4-5.tex); [week-08-facilitator.tex — The binary invariant; Why the test is sufficient, for any number of piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-facilitator.tex); [week-08-redesign.md — Verified mathematical backbone](/Users/jamespfeiffer/math-circle/plans/week-08-redesign.md).
 
-#### 9. Remove a whole component
+#### 9. Piles of 3, 5, 6 and 7
 
 ID: `nim-09`
 
@@ -15668,7 +15668,7 @@ ID: `nim-09`
 }
 ```
 
-**Hint:** Look at the first three piles as 4,2,1 bundles. Can one whole pile be removed to leave every column even?
+**Hint:** Split the first three piles into bundles of 4, 2 and 1. What do they make together?
 
 **Insight:** A winning move can remove an entire pile while leaving three unequal piles.
 
@@ -15728,7 +15728,7 @@ ID: `nim-09`
 
 **Sources:** [week-07-k-1.tex — Tasks 2–5, Can you leave a little trap? and A trap that grows](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-k-1.tex); [week-07-facilitator.tex — Middle: backward reasoning; Extra: smallest-missing labels](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-facilitator.tex); [week-08-k-1.tex — Task 4, Two little piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-k-1.tex); [week-08-grades-2-3.tex — Tasks 3–5, The board is two piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-2-3.tex); [week-08-grades-4-5.tex — Tasks 2–6, Compare two kinds of balance; Balance the binary columns](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-4-5.tex); [week-08-facilitator.tex — The binary invariant; Why the test is sufficient, for any number of piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-facilitator.tex); [week-08-redesign.md — Verified mathematical backbone](/Users/jamespfeiffer/math-circle/plans/week-08-redesign.md).
 
-#### 10. Break the eight bundle
+#### 10. Piles of 2, 4, 7 and 8
 
 ID: `nim-10`
 
@@ -15757,7 +15757,7 @@ ID: `nim-10`
 }
 ```
 
-**Hint:** Try reducing 8 to 1, then compare the 8,4,2,1 columns.
+**Hint:** Split each pile into bundles of 8, 4, 2 and 1. Which pile is the only one with an 8?
 
 **Insight:** Shrinking a pile across a power of two can switch several smaller binary columns on.
 
@@ -15797,7 +15797,7 @@ ID: `nim-10`
 
 **Sources:** [week-07-k-1.tex — Tasks 2–5, Can you leave a little trap? and A trap that grows](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-k-1.tex); [week-07-facilitator.tex — Middle: backward reasoning; Extra: smallest-missing labels](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-facilitator.tex); [week-08-k-1.tex — Task 4, Two little piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-k-1.tex); [week-08-grades-2-3.tex — Tasks 3–5, The board is two piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-2-3.tex); [week-08-grades-4-5.tex — Tasks 2–6, Compare two kinds of balance; Balance the binary columns](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-4-5.tex); [week-08-facilitator.tex — The binary invariant; Why the test is sufficient, for any number of piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-facilitator.tex); [week-08-redesign.md — Verified mathematical backbone](/Users/jamespfeiffer/math-circle/plans/week-08-redesign.md).
 
-#### 11. Five piles, several repairs
+#### 11. Piles of 1, 4, 6, 9 and 11
 
 ID: `nim-11`
 
@@ -15827,7 +15827,7 @@ ID: `nim-11`
 }
 ```
 
-**Hint:** Inspect the 1-bundle column first. Several piles can repair the imbalance.
+**Hint:** Split each pile into bundles of 8, 4, 2 and 1, and start with the biggest bundle.
 
 **Insight:** More than one winning opening may exist; every opponent reply must still be balanced again.
 
@@ -15891,7 +15891,7 @@ ID: `nim-11`
 
 **Sources:** [week-07-k-1.tex — Tasks 2–5, Can you leave a little trap? and A trap that grows](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-k-1.tex); [week-07-facilitator.tex — Middle: backward reasoning; Extra: smallest-missing labels](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-07/week-07-facilitator.tex); [week-08-k-1.tex — Task 4, Two little piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-k-1.tex); [week-08-grades-2-3.tex — Tasks 3–5, The board is two piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-2-3.tex); [week-08-grades-4-5.tex — Tasks 2–6, Compare two kinds of balance; Balance the binary columns](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-grades-4-5.tex); [week-08-facilitator.tex — The binary invariant; Why the test is sufficient, for any number of piles](/Users/jamespfeiffer/math-circle/lowell-math-circle-year-2/source/week-08/week-08-facilitator.tex); [week-08-redesign.md — Verified mathematical backbone](/Users/jamespfeiffer/math-circle/plans/week-08-redesign.md).
 
-#### 12. Rebundle across five piles
+#### 12. Piles of 3, 5, 8, 10 and 12
 
 ID: `nim-12`
 
@@ -15921,7 +15921,7 @@ ID: `nim-12`
 }
 ```
 
-**Hint:** Find the highest unbalanced bundle column. Which pile can lose that bundle and repair the smaller columns too?
+**Hint:** Split each pile into bundles of 8, 4, 2 and 1. Which piles have an 8?
 
 **Insight:** Choosing among multiple reductions requires coordinating all binary columns across five components.
 

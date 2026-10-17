@@ -294,12 +294,12 @@ for index,design in enumerate(code_designs):
 
 
 nim_designs=[
-    ([2,2,3,5],'Cancel the matching pair','The two piles of 2 cancel. Balance the other two piles.','Equal game components cancel even when other piles remain.','medium'),
-    ([1,3,5,7,2],'A balanced group plus one','Check the 1,3,5,7 group in bundles. What remains outside that balanced group?','A whole collection can cancel even when no two piles match.','medium'),
-    ([3,5,6,7],'Remove a whole component','Look at the first three piles as 4,2,1 bundles. Can one whole pile be removed to leave every column even?','A winning move can remove an entire pile while leaving three unequal piles.' ,'hard'),
-    ([2,4,7,8],'Break the eight bundle','Try reducing 8 to 1, then compare the 8,4,2,1 columns.','Shrinking a pile across a power of two can switch several smaller binary columns on.','hard'),
-    ([1,4,6,9,11],'Five piles, several repairs','Inspect the 1-bundle column first. Several piles can repair the imbalance.','More than one winning opening may exist; every opponent reply must still be balanced again.','hard'),
-    ([3,5,8,10,12],'Rebundle across five piles','Find the highest unbalanced bundle column. Which pile can lose that bundle and repair the smaller columns too?','Choosing among multiple reductions requires coordinating all binary columns across five components.','hard')]
+    ([2,2,3,5],'Piles of 2, 2, 3 and 5','If the two piles of 2 were not there, what would you leave the opponent?','Equal game components cancel even when other piles remain.','medium'),
+    ([1,3,5,7,2],'Piles of 1, 3, 5, 7 and 2','Split 1, 3, 5 and 7 into bundles of 4, 2 and 1. Then look at the pile of 2.','A whole collection can cancel even when no two piles match.','medium'),
+    ([3,5,6,7],'Piles of 3, 5, 6 and 7','Split the first three piles into bundles of 4, 2 and 1. What do they make together?','A winning move can remove an entire pile while leaving three unequal piles.' ,'hard'),
+    ([2,4,7,8],'Piles of 2, 4, 7 and 8','Split each pile into bundles of 8, 4, 2 and 1. Which pile is the only one with an 8?','Shrinking a pile across a power of two can switch several smaller binary columns on.','hard'),
+    ([1,4,6,9,11],'Piles of 1, 4, 6, 9 and 11','Split each pile into bundles of 8, 4, 2 and 1, and start with the biggest bundle.','More than one winning opening may exist; every opponent reply must still be balanced again.','hard'),
+    ([3,5,8,10,12],'Piles of 3, 5, 8, 10 and 12','Split each pile into bundles of 8, 4, 2 and 1. Which piles have an 8?','Choosing among multiple reductions requires coordinating all binary columns across five components.','hard')]
 for piles,title,hint,insight,level in nim_designs:
     winners=[m for m in nim_moves(piles) if reduce(xor,m['after'],0)==0];assert winners
     add('nim',title,dict(piles=piles,pile_numbering='left to right, starting at 1',normal_play=True,task='win_game',allowed_removal='any positive amount from exactly one nonempty pile'),

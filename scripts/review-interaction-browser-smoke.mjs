@@ -44,7 +44,7 @@ try {
   await page.keyboard.press('Enter');
   await page.locator('#completion-heading').waitFor();
   assert.ok((await attempt('chips-01')).completed);
-  for (const [id, definition] of [['trios-01', /shapes are all the same or all different/], ['copies-01', /goes back.*copy/i], ['bags-playground', /possible pairs/], ['code-12', /Choose 0 or 1 in each position/], ['nim-12', /choose how many to take/]]) {
+  for (const [id, definition] of [['trios-01', /shapes are all the same or all different/], ['copies-01', /goes back.*copy/i], ['bags-playground', /possible pairs/], ['code-12', /Choose 0 or 1 in each position/], ['nim-12', /one or more pebbles from one pile/]]) {
     await open(id);
     await page.getByRole('button', {name: 'How to play', exact: true}).click();
     const primary = (await page.locator('.dialog-body>p').allTextContents()).join(' ');

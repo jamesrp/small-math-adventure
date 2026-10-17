@@ -145,6 +145,7 @@ const code = {
 };
 
 const nimPicks = new Map();
+const NIM_BUNDLES_AFTER = 'proof-duel-01';
 const nimSum = piles => piles.reduce((sum, pile) => sum ^ pile, 0);
 function nimChoice(piles, choice) {
   return object(choice) && integer(choice.pile) && choice.pile >= 1 && choice.pile <= piles.length && integer(choice.remove) && choice.remove >= 1 && choice.remove <= piles[choice.pile - 1];
@@ -195,7 +196,7 @@ const nim = {
     if (nimWinner(board)) return { type: 'deadend', text: 'The opponent took the last pebble. Undo or restart to try again.' };
     const best = winningMove(board.piles), choice = best || legalNimMoves(board.piles)[0];
     return { type: 'move', action: { type: 'choose', ...choice },
-      text: best ? `Take ${choice.remove} from pile ${choice.pile}, leaving ${afterChoice(board.piles, choice).join(', ')}. Keep returning the opponent to a balanced position.` : `There is no forced win from these piles. Try taking ${choice.remove} from pile ${choice.pile}, or undo your last turn.` };
+      text: best ? `Take ${choice.remove} from pile ${choice.pile}, leaving ${afterChoice(board.piles, choice).join(', ')}.` : `There is no forced win from these piles. Try taking ${choice.remove} from pile ${choice.pile}, or undo your last turn.` };
   },
   // Piles of pebbles, as in the proof duel: lift a pebble and everything above
   // it, then Take. On the road the opponent is a named rival.
@@ -222,11 +223,14 @@ const nim = {
   },
   ui(p, payload) { if (payload && Object.hasOwn(payload, 'pick')) { if (payload.pick) nimPicks.set(p.id, payload.pick); else nimPicks.delete(p.id); } },
   reset(p) { nimPicks.delete(p.id); },
-  help(p, attempt) {
+  // The bundle table is earned: it appears in How to play only after the
+  // two-pile duel (Duel 1 in Proofs) is solved, and states no rule.
+  help(p, attempt, ctx = {}) {
+    if (!ctx.completed?.(NIM_BUNDLES_AFTER)) return '';
     const piles = attempt.board.piles;
     const largest = Math.max(...p.parameters.piles), bundles = [];
     for (let size = 2 ** Math.max(2, Math.floor(Math.log2(largest))); size >= 1; size /= 2) bundles.push(size);
-    return `<div class="deduction-puzzle"><details class="nim-bundles"><summary>Explore ${bundles.slice(0,-1).join(', ')}, and 1 bundles</summary><p>Each pile can use a bundle size at most once. A balanced position has an even count in every column.</p><table><caption>Remaining piles as bundles</caption><thead><tr><th scope="col">Pile</th>${bundles.map(size => `<th scope="col">${size}-bundle</th>`).join('')}</tr></thead><tbody>${piles.map((size, i) => `<tr><th scope="row">${i + 1}: ${size}</th>${bundles.map(bundle => `<td>${size & bundle ? '1' : '0'}</td>`).join('')}</tr>`).join('')}</tbody></table></details></div>`;
+    return `<div class="deduction-puzzle"><details class="nim-bundles"><summary>Explore ${bundles.slice(0,-1).join(', ')}, and 1 bundles</summary><p>Each pile can use a bundle size at most once.</p><table><caption>Remaining piles as bundles</caption><thead><tr><th scope="col">Pile</th>${bundles.map(size => `<th scope="col">${size}-bundle</th>`).join('')}</tr></thead><tbody>${piles.map((size, i) => `<tr><th scope="row">${i + 1}: ${size}</th>${bundles.map(bundle => `<td>${size & bundle ? '1' : '0'}</td>`).join('')}</tr>`).join('')}</tbody></table></details></div>`;
   },
   demo: 'Tap a pebble to lift it and every pebble above it, then Take. The opponent replies automatically. Take the last pebble to win. Undo takes back your move and the opponent’s reply.'
 };

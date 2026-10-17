@@ -1,0 +1,84 @@
+/* Race to the star and Every start: a square board on paper with ink lines and
+   a sun star in the bottom-left corner, a pine token, small pine dots on the
+   squares the token can reach, a dashed ring where my token came from, ochre
+   rings for attention (lost starts, a refused mark), pine squares for marks,
+   and the duel's leaf pebbles. Shared by the two mechanics of the module. */
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]){display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%}
+
+/* The board. */
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-board{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:1px;width:100%;max-width:380px;aspect-ratio:1;padding:2px;background:var(--b-line,#d0d6bd);border:2px solid var(--b-ink,#294439);border-radius:10px;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-cell{position:relative;display:grid;place-items:center;min-width:0;min-height:0;aspect-ratio:1;padding:0;margin:0;border:0;border-radius:0;box-shadow:none;font:inherit;color:var(--b-ink,#294439);background:var(--b-card,#fffdf5);-webkit-tap-highlight-color:transparent;cursor:default}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-cell.odd{background:#f3efe1}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-board .rr-cell:first-child{border-top-left-radius:7px}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-board .rr-cell:last-child{border-bottom-right-radius:7px}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-cell.star{background:#f8e7b9;border-bottom-left-radius:7px}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-star{grid-area:1/1;width:72%;height:72%;fill:var(--b-sun,#efc76e);stroke:var(--b-ink,#294439);stroke-width:1.6px;stroke-linejoin:round}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) button.rr-cell{cursor:pointer}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) button.rr-cell:hover:not(.marked){background:#e9eddc;filter:none}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) button.rr-cell:active{transform:none}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-cell:focus{outline:none}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-cell:focus-visible{outline:3px solid var(--b-ochre,#b38840);outline-offset:-3px;z-index:1}
+
+/* The token, the squares it can reach, and where my token came from. */
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-token{grid-area:1/1;width:66%;height:66%;border-radius:50%;background:var(--b-pine,#31533e);box-shadow:inset 0 0 0 3px var(--b-pine,#31533e),inset 0 0 0 5px var(--b-card,#fffdf5);pointer-events:none}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-cell.star .rr-token{width:52%;height:52%;opacity:.92}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-cell.star .rr-dot{grid-area:1/1;z-index:1}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) button.rr-cell.star:hover{background:#f3dc9c}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-dot{width:24%;height:24%;border-radius:50%;background:var(--b-pine,#31533e);opacity:.55;pointer-events:none}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-cell.target:hover .rr-dot{opacity:1;width:32%;height:32%}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-cell.from::after{content:"";grid-area:1/1;width:56%;height:56%;border-radius:50%;border:2px dashed var(--b-ink,#294439);opacity:.6;pointer-events:none}
+
+/* Attention: a start lost after going first (hint), a refused mark, a hinted square. */
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-cell.lost{box-shadow:inset 0 0 0 3px var(--b-ochre,#b38840)}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-cell.flag{box-shadow:inset 0 0 0 4px var(--b-ochre,#b38840)}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-cell.hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:-6px}
+
+/* Marks. */
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-cell.marked{background:var(--b-pine,#31533e)}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-cell.marked.flag{box-shadow:inset 0 0 0 4px var(--b-ochre,#b38840),inset 0 0 0 6px var(--b-card,#fffdf5)}
+
+/* Wins in a row, the line about the last turn, and the buttons. */
+[data-mechanic-wire="rookrace"] .rr-roundbar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;max-width:380px}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-key{display:block;width:52px;height:52px;flex:none;overflow:visible}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-key-grid{fill:var(--b-card,#fffdf5);stroke:var(--b-line,#d0d6bd);stroke-width:1.2px}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-key-arrows{fill:none;stroke:var(--b-ink,#294439);stroke-width:2.2px;stroke-linecap:round}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-key marker path{fill:var(--b-ink,#294439);stroke:none}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-key-token{fill:var(--b-pine,#31533e)}
+[data-mechanic-wire="rookrace"] .rr-pips{display:inline-flex;gap:8px}
+[data-mechanic-wire="rookrace"] .rr-pips span{width:16px;height:16px;border-radius:50%;border:2px solid var(--b-ink,#294439);background:var(--b-card,#fffdf5)}
+[data-mechanic-wire="rookrace"] .rr-pips span.on{background:var(--b-pine,#31533e);border-color:var(--b-pine,#31533e)}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) :is(.rr-status,.es-status,.es-note,.es-label){margin:0;text-align:center;font-family:var(--b-display,Georgia,serif);font-size:1.08rem;line-height:1.35;min-height:1.35em}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) :is(.rr-status,.es-status):focus{outline:none}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .es-label{color:var(--b-muted,#5a6850);font-size:1rem}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) :is(.rr-actions,.es-actions){display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.5rem;min-height:46px}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) :is(.rr-actions,.es-actions):empty{min-height:0}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) :is(.rr-button,.es-button){min-height:46px;padding:8px 16px;white-space:nowrap}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) :is(.rr-button,.es-button).secondary{background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd);font-weight:600}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .es-button[disabled]{opacity:.5;box-shadow:none}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) :is(.es-button,.es-slot,.es-chip).hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+
+/* Every start with three piles: the start being built, one column of slots a
+   pile, and the shelf of kept starts. */
+[data-mechanic-wire="everystart"] .es-builder{display:flex;justify-content:center;align-items:flex-end;gap:clamp(18px,8vw,48px)}
+[data-mechanic-wire="everystart"] .es-builder-pile{display:flex;flex-direction:column;align-items:center;gap:6px}
+[data-mechanic-wire="everystart"] .es-slots{display:flex;flex-direction:column-reverse;align-items:center;gap:3px}
+[data-mechanic-wire="everystart"] .es-slot{width:42px;min-width:42px;height:34px;min-height:34px;padding:0;border-radius:50%;background:transparent;border:2px dashed #b9b49c;box-shadow:none}
+[data-mechanic-wire="everystart"] .es-slot.on{background:var(--b-leaf,#86a68c);border:2px solid var(--b-ink,#294439)}
+[data-mechanic-wire="everystart"] .es-slot:disabled{opacity:1}
+[data-mechanic-wire="everystart"] .es-count{font-family:var(--b-display,Georgia,serif);font-size:1.1rem;color:var(--b-muted,#5a6850)}
+[data-mechanic-wire="everystart"] .es-shelf{display:flex;flex-wrap:wrap;justify-content:center;gap:.45rem;width:100%;max-width:380px;min-height:52px;padding:6px;border-top:2px dashed var(--b-line,#d0d6bd)}
+[data-mechanic-wire="everystart"] .es-chip{display:inline-flex;gap:6px;align-items:center;min-height:40px;padding:4px 10px;border-radius:10px;background:var(--b-card,#fffdf5);border:1px solid var(--b-pine,#31533e);box-shadow:0 2px 0 var(--b-line,#d0d6bd);font:400 1.1rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
+[data-mechanic-wire="everystart"] .es-chip.flag{box-shadow:0 0 0 3px var(--b-ochre,#b38840)}
+[data-mechanic-wire="everystart"] .es-chip:disabled{opacity:1}
+
+/* A game from a start: the duel's bowls and pebbles. */
+[data-mechanic-wire="everystart"] .es-piles{display:flex;justify-content:center;align-items:flex-end;gap:clamp(14px,6vw,40px);min-height:150px;padding:8px 0}
+[data-mechanic-wire="everystart"] .es-bowl{display:flex;flex-direction:column;align-items:center;gap:6px}
+[data-mechanic-wire="everystart"] .es-pile{display:flex;flex-direction:column-reverse;align-items:center;gap:3px}
+[data-mechanic-wire="everystart"] .es-pebble{width:42px;min-width:42px;height:34px;min-height:34px;padding:0;border-radius:50%;background:var(--b-leaf,#86a68c);border:2px solid var(--b-ink,#294439);box-shadow:none}
+[data-mechanic-wire="everystart"] .es-pebble:disabled{opacity:1;cursor:default}
+[data-mechanic-wire="everystart"] .es-pebble.lift{background:var(--b-sun,#efc76e);border-color:var(--b-ochre,#b38840);transform:translateY(-4px)}
+[data-mechanic-wire="everystart"] .es-pebble.gone{display:block;background:transparent;border:2px dashed #c9c3a8}
+@media (hover:hover){[data-mechanic-wire="everystart"] .es-pile button.es-pebble:not(:disabled):hover,[data-mechanic-wire="everystart"] .es-pile button.es-pebble:not(:disabled):hover~button.es-pebble{background:var(--b-sun,#efc76e);border-color:var(--b-ochre,#b38840)}}
+@media (max-width:420px){[data-mechanic-wire="everystart"] :is(.es-slot,.es-pebble){width:38px;min-width:38px;height:31px;min-height:31px}:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-key{width:44px;height:44px}:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) :is(.rr-status,.es-status,.es-note){font-size:1rem}}
+@media (prefers-reduced-motion:no-preference){[data-mechanic-wire="everystart"] .es-pebble{transition:transform .15s,background .15s}}

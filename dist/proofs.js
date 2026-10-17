@@ -936,7 +936,8 @@ function duelMove(p, board, action, random = Math.random) {
 function duelHint(p, board) {
   if (!duelValid(p, board)) return { type: 'deadend', text: 'Restart the duel.' };
   if (board.streak >= p.parameters.streak) return { type: 'done' };
-  if (board.first !== null && duelOver(board)) return { type: 'move', action: { type: 'new' }, text: 'Try a new start.' };
+  // After a loss the authored nudges stay (the first suggests Same start again).
+  if (board.first !== null && duelOver(board) && duelWinner(board) !== 'opponent') return { type: 'move', action: { type: 'new' }, text: 'Try a new start.' };
   return note();
 }
 function duelSolve(p, board) {
