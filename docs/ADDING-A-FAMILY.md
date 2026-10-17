@@ -74,7 +74,7 @@ These are optional:
 | `carry(p, from, to)` | Lets Undo keep part of the board (Chip firing keeps its discoveries) |
 | `carryOnRestart(p, from, to)` | Lets Restart keep part of the board (Card machines keeps the rows Test has shown) |
 | `noUndo(p)`, `noHint(p)` | Hide Undo or Hint |
-| `help(p, attempt)` | Extra HTML for How to play |
+| `help(p, attempt, ctx)` | Extra HTML for How to play; `ctx.completed(id)` says whether the child has solved another puzzle, so help can be earned (Pebble Duel's bundle table waits for Duel 1) |
 
 ## Puzzle fields
 
@@ -83,6 +83,7 @@ Copy the shape of a puzzle in `dist/families/chips/chips.json`: `id`, `number`, 
 - `band` is `all` for grade-free puzzles grouped by `difficulty_level` (`easy`, `medium`, `hard`), or `playground` for the playground, whose `parameters.mode` is `playground`.
 - `objective` is the full goal for How to play and read-aloud. The play screen shows it as one line unless `visibleObjective` says otherwise: set `visibleObjective: ''` when the board already shows the goal, as the copy rules in `AGENTS.md` ask.
 - `controls` is the How to play text for the controls.
+- `next` (optional) is the id of the puzzle Next puzzle opens after this one, when it should leave its own list, as Pebble Duel's puzzle 2 leads to Duel 1. Without it, Next walks the puzzle's group or level.
 
 ## A group inside an existing family
 
