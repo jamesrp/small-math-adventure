@@ -1,0 +1,93 @@
+/* Shrink strips: lettered tiles on paper, A in sun and B in sky with Georgia
+   letters; seams as ink bars between pairs, a dashed ghost for a partner cut
+   off at an end, a rose-red bracket under or over a marked pair (AA or BB),
+   a red cross on a stuck row and pine for a row of one tile. The strip and
+   the piece sit above the rows; pine marks the chosen tiles, ochre the
+   flipped tile and hints. */
+[data-mechanic-wire="shrink"]{--sk-a:var(--b-sun,#efc76e);--sk-b:var(--b-sky,#9cc9de);--sk-bad:var(--b-bad,#a9503a);display:flex;flex-direction:column;align-items:center;gap:.65rem;width:100%;max-width:560px;margin:0 auto}
+[data-mechanic-wire="shrink"] .hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+[data-mechanic-wire="shrink"] .sk-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+
+/* Tiles. */
+[data-mechanic-wire="shrink"] .sk-tile{display:inline-grid;place-items:center;box-sizing:border-box;min-width:0;min-height:0;margin:0;padding:0;border-radius:6px;border:2px solid var(--b-ink,#294439);font:400 1.1rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439);box-shadow:none;user-select:none;-webkit-user-select:none}
+[data-mechanic-wire="shrink"] .sk-tile.a{background:var(--sk-a)}
+[data-mechanic-wire="shrink"] .sk-tile.b{background:var(--sk-b)}
+[data-mechanic-wire="shrink"] button.sk-tile{cursor:pointer}
+[data-mechanic-wire="shrink"] button.sk-tile:focus-visible{outline:3px solid var(--b-ochre,#b38840);outline-offset:2px}
+
+/* The strip (impostor) and the piece (repair): tiles to tap, in lines of at
+   most ten; … where the strip repeats forever. */
+[data-mechanic-wire="shrink"] .sk-strip{display:flex;flex-direction:column;align-items:center;gap:7px;width:100%;touch-action:none}
+[data-mechanic-wire="shrink"] .sk-piece{touch-action:auto}
+[data-mechanic-wire="shrink"] .sk-line{display:grid;grid-template-columns:repeat(var(--c),minmax(0,34px));gap:3px;justify-content:center;width:100%}
+[data-mechanic-wire="shrink"] .sk-strip .sk-tile{width:100%;height:38px;font-size:1.05rem}
+[data-mechanic-wire="shrink"] .sk-more{display:grid;place-items:center;font:400 1.3rem/1 var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850)}
+[data-mechanic-wire="shrink"] .sk-strip .sk-tile.sel{box-shadow:0 5px 0 -1px var(--b-pine,#31533e)}
+[data-mechanic-wire="shrink"] .sk-strip .sk-tile.sliding{box-shadow:0 5px 0 -1px var(--b-ochre,#b38840)}
+[data-mechanic-wire="shrink"] .sk-strip .sk-tile.caught{box-shadow:0 5px 0 -1px var(--sk-bad)}
+[data-mechanic-wire="shrink"] .sk-strip .sk-tile.anchor{box-shadow:0 0 0 2px var(--b-card,#fffdf5),0 0 0 5px var(--b-pine,#31533e)}
+[data-mechanic-wire="shrink"] .sk-piece .sk-tile.flipped,[data-mechanic-wire="shrink"] .sk-row .sk-tile.flipped{box-shadow:0 0 0 2px var(--b-card,#fffdf5),0 0 0 5px var(--b-ochre,#b38840)}
+
+/* The rows: n tiles in n + 2 slots (a ghost slot at each end), with the
+   joins' buttons laid over them. */
+[data-mechanic-wire="shrink"] .sk-tree{display:flex;flex-direction:column;align-items:center;width:100%}
+[data-mechanic-wire="shrink"] .sk-node{display:flex;flex-direction:column;align-items:center;width:100%;min-width:0}
+[data-mechanic-wire="shrink"] .sk-row{position:relative;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));width:min(100%,calc(var(--n) * 42px));height:46px;margin:0 auto}
+[data-mechanic-wire="shrink"] .sk-slot{display:grid;place-items:center;min-width:0}
+[data-mechanic-wire="shrink"] .sk-row .sk-tile{width:calc(100% - 5px);max-width:36px;height:34px}
+/* A long row keeps its tiles as wide as a narrow screen allows. */
+[data-mechanic-wire="shrink"] .sk-row.long .sk-tile{width:calc(100% - 2px);border-width:1.5px;border-radius:4px;font-size:1rem}
+[data-mechanic-wire="shrink"] .sk-row .sk-tile.ghost{border-style:dashed;border-color:var(--b-muted,#5a6850);background:transparent;color:var(--b-muted,#5a6850)}
+[data-mechanic-wire="shrink"] .sk-row.one .sk-tile{background:var(--b-pine,#31533e);border-color:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9)}
+[data-mechanic-wire="shrink"] .sk-row.stuck .sk-tile:not(.ghost){opacity:.72}
+[data-mechanic-wire="shrink"] .sk-seam{position:absolute;top:2px;bottom:2px;width:4px;margin-left:-2px;border-radius:2px;background:var(--b-ink,#294439);pointer-events:none}
+[data-mechanic-wire="shrink"] .sk-mark{position:absolute;box-sizing:border-box;height:8px;border:3px solid var(--sk-bad);pointer-events:none}
+[data-mechanic-wire="shrink"] .sk-mark.under{bottom:0;border-top:0;border-radius:0 0 5px 5px}
+[data-mechanic-wire="shrink"] .sk-mark.over{top:0;border-bottom:0;border-radius:5px 5px 0 0}
+[data-mechanic-wire="shrink"] .sk-x{position:absolute;right:-6px;top:-8px;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--sk-bad);color:#fff;font:700 .75rem/1 system-ui,sans-serif;pointer-events:none}
+[data-mechanic-wire="shrink"] .sk-gap{position:absolute;top:0;bottom:0;z-index:1;min-width:0;min-height:0;margin:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+[data-mechanic-wire="shrink"] .sk-gap::after{content:'';position:absolute;left:var(--at,50%);top:5px;bottom:5px;margin-left:-1px;border-left:2px dashed transparent}
+[data-mechanic-wire="shrink"] .sk-gap:focus-visible::after{border-left-color:rgba(41,68,57,.45)}
+@media (hover:hover){[data-mechanic-wire="shrink"] .sk-gap:not(.on):hover::after{border-left-color:rgba(41,68,57,.45)}}
+[data-mechanic-wire="shrink"] .sk-gap:focus-visible{outline:none}
+[data-mechanic-wire="shrink"] .sk-gap.on{cursor:default}
+[data-mechanic-wire="shrink"] .sk-gap.hinted{outline-offset:-2px}
+
+/* Shrunk rows below a row: one column for each placement shrunk, the
+   current one's stub in pine; Shrink sits where the next row will go. */
+[data-mechanic-wire="shrink"] .sk-kids{display:flex;justify-content:center;gap:12px;width:100%}
+[data-mechanic-wire="shrink"] .sk-kid{display:flex;flex:1 1 0;flex-direction:column;align-items:center;min-width:0}
+[data-mechanic-wire="shrink"] .sk-kid::before{content:'';width:2px;height:12px;background:var(--b-line,#d0d6bd)}
+[data-mechanic-wire="shrink"] .sk-kid.on::before{background:var(--b-pine,#31533e)}
+[data-mechanic-wire="shrink"] .sk-shrink{min-height:42px;margin:2px 0 0;padding:6px 16px;border-radius:12px;border:1.5px dashed var(--b-pine,#31533e);background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);font-weight:650;box-shadow:none;white-space:nowrap}
+
+/* Keep, That's all, and the shelf. */
+[data-mechanic-wire="shrink"] .sk-bar{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem .7rem}
+[data-mechanic-wire="shrink"] .sk-button{min-height:46px;padding:6px 16px;font-weight:650;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+[data-mechanic-wire="shrink"] .sk-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+[data-mechanic-wire="shrink"] .sk-shelf{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:0;padding:0;list-style:none}
+[data-mechanic-wire="shrink"] .sk-shelf li{display:flex}
+[data-mechanic-wire="shrink"] .sk-kept,[data-mechanic-wire="shrink"] .sk-pick{display:flex;min-width:0;min-height:0;margin:0;padding:5px 6px;border-radius:9px;border:1.5px solid var(--b-ink,#294439);background:var(--b-card,#fffdf5);box-shadow:none;cursor:pointer}
+[data-mechanic-wire="shrink"] .sk-shelf.done .sk-kept{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e);cursor:default}
+[data-mechanic-wire="shrink"] .sk-pieces{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+[data-mechanic-wire="shrink"] .sk-pick{padding:7px 8px}
+[data-mechanic-wire="shrink"] .sk-pick.on{box-shadow:0 0 0 2px var(--b-card,#fffdf5),0 0 0 5px var(--b-pine,#31533e)}
+[data-mechanic-wire="shrink"] span.sk-pick{cursor:default}
+[data-mechanic-wire="shrink"] .sk-mini{display:inline-flex;align-items:center;gap:1px}
+[data-mechanic-wire="shrink"] .sk-mini i{display:inline-grid;place-items:center;box-sizing:border-box;width:16px;height:21px;border-radius:3px;border:1.5px solid var(--b-ink,#294439);font:normal 400 .75rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
+[data-mechanic-wire="shrink"] .sk-mini i.a{background:var(--sk-a)}
+[data-mechanic-wire="shrink"] .sk-mini i.b{background:var(--sk-b)}
+[data-mechanic-wire="shrink"] .sk-mini i.ghost{border-style:dashed;border-color:var(--b-muted,#5a6850);background:transparent;color:var(--b-muted,#5a6850)}
+[data-mechanic-wire="shrink"] .sk-mini i.flipped{box-shadow:0 0 0 2px var(--b-ochre,#b38840)}
+[data-mechanic-wire="shrink"] .sk-mini .sk-cut{width:3px;height:25px;margin:0 2px;border-radius:2px;background:var(--b-ink,#294439)}
+
+/* The playground: each row under the row it grew from, each pair touching
+   under its tile. */
+[data-mechanic-wire="shrink"] .sk-garden{display:flex;flex-direction:column;gap:12px;width:100%}
+[data-mechanic-wire="shrink"] .sk-grown{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));width:min(100%,calc(var(--n) * 44px));margin:0 auto}
+[data-mechanic-wire="shrink"] .sk-grown .sk-tile{justify-self:center;width:min(100%,38px);height:36px}
+[data-mechanic-wire="shrink"] .sk-grown button.sk-tile{width:44px;height:44px;font-size:1.3rem}
+[data-mechanic-wire="shrink"] .sk-cell{display:flex;min-width:0}
+[data-mechanic-wire="shrink"] .sk-cell .sk-tile{width:min(100% - 1px,38px)}
+[data-mechanic-wire="shrink"] .sk-cell .sk-tile.left{margin-left:auto;border-top-right-radius:2px;border-bottom-right-radius:2px}
+[data-mechanic-wire="shrink"] .sk-cell .sk-tile.right{margin-right:auto;margin-left:-1px;border-top-left-radius:2px;border-bottom-left-radius:2px}

@@ -1,0 +1,480 @@
+// Checks the Shrink strips pack (dist/families/shrink/shrink.json) against the
+// Thue–Morse word itself, by methods unlike the mechanic's: the word's first
+// 16384 tiles from the binary-digit rule (tile n is A when n has an even
+// number of ones), checked complete for short pieces against the word's
+// known factor counts; a piece is real when it occurs there, and a way of
+// placing seams fits when it occurs at a place of that parity. Every answer
+// (the ways, the fixes, the stuck runs) is recomputed from occurrences; the
+// mechanic's own test of real and stuck rows is compared with occurrences for
+// every word of up to 14 tiles; the child's trees are judged by a separate
+// shrinker; certificates are built for every stuck run within the tree's
+// limits; witnesses and hint chains are played from fresh and after wrong
+// moves, wrong claims and Undo; illegal moves and forged saves are refused;
+// random play is counted to show that a certificate can fail; and hints are
+// timed in CPU time. Run: node scripts/validate-shrink.mjs
+import {readFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
+import {mechanicFor} from '../dist/expansion.js';
+import {loadPack} from './packs.mjs';
+import {real, fits, stuck, validTree, LIMIT, MODES} from '../dist/families/shrink/shrink.js';
+
+// The table in docs/shrink/README.md. seams: [piece, way] pairs, way 0 pairs
+// the first two tiles and 1 leaves the first tile alone; repair: tiles (from
+// 0) whose flip fixes the piece; impostor: the leftmost shortest stuck run,
+// its length and the number of stuck runs of at most k tiles.
+const TABLE = {
+  'shrink-01': {level: 'easy', mode: 'seams', ways: [[0, 0], [0, 1], [1, 0], [2, 1]]},
+  'shrink-02': {level: 'easy', mode: 'impostor', run: [0, 4], shortest: 5, dead: 15},
+  'shrink-03': {level: 'easy', mode: 'repair', fixes: [4]},
+  'shrink-04': {level: 'medium', mode: 'seams', ways: [[0, 0], [1, 0], [1, 1], [2, 0]]},
+  'shrink-05': {level: 'medium', mode: 'impostor', run: [1, 8], shortest: 8, dead: 19},
+  'shrink-06': {level: 'medium', mode: 'repair', fixes: [1, 4, 5]},
+  'shrink-07': {level: 'medium', mode: 'impostor', run: [8, 12], shortest: 5, dead: 3},
+  'shrink-08': {level: 'hard', mode: 'impostor', run: [2, 9], shortest: 8, dead: 6},
+  'shrink-09': {level: 'hard', mode: 'repair', fixes: [0, 7]},
+  'shrink-10': {level: 'hard', mode: 'impostor', run: [3, 16], shortest: 14, dead: 6}
+};
+
+// --- The Thue–Morse word ---------------------------------------------------------
+const ones = n => { let c = 0; for (; n; n &= n - 1) c++; return c; };
+const TM = Array.from({length: 1 << 14}, (_, n) => ones(n) % 2 ? 'B' : 'A').join('');
+const places = new Map();
+function occurrences(w) {
+  if (!places.has(w)) { const out = []; for (let i = TM.indexOf(w); i >= 0; i = TM.indexOf(w, i + 1)) out.push(i); places.set(w, out); }
+  return places.get(w);
+}
+const isFactor = w => occurrences(w).length > 0;
+const parities = w => [0, 1].filter(s => occurrences(w).some(i => i % 2 === s));
+// The factor counts of the Thue–Morse word (Brlek; de Luca and Varricchio):
+// p(1) = 2, p(2) = 4, and for n = 2^r + q + 1 ≥ 3 with 0 ≤ q < 2^r, p(n) is
+// 6·2^(r−1) + 4q when q ≤ 2^(r−1), and 8·2^(r−1) + 2q otherwise.
+function complexity(n) {
+  if (n <= 2) return 2 * n;
+  let r = 0;
+  while (2 ** (r + 1) + 1 <= n) r++;
+  const q = n - 2 ** r - 1, h = 2 ** (r - 1);
+  return q <= h ? 6 * h + 4 * q : 8 * h + 2 * q;
+}
+const words = n => n === 0 ? [''] : words(n - 1).flatMap(w => [w + 'A', w + 'B']);
+const flip = (w, i) => w.slice(0, i) + (w[i] === 'A' ? 'B' : 'A') + w.slice(i + 1);
+
+// --- A separate shrinker: pad with ghosts, cut into pairs ----------------------------
+const otherOf = c => c === 'A' ? 'B' : 'A';
+function pairsOf(w, s) {
+  let padded = s === 1 ? otherOf(w[0]) + w : w;
+  if (padded.length % 2) padded += otherOf(padded.at(-1));
+  return padded.match(/../g);
+}
+const markedOf = (w, s) => pairsOf(w, s).some(p => p[0] === p[1]);
+const parentOf = (w, s) => pairsOf(w, s).map(p => p[0]).join('');
+// A tree certifies a row stuck when each way is tried and marked, or shrunk
+// to a row the tree certifies.
+function certifies(node, w) {
+  if (!node) return false;
+  return [0, 1].every(s => (node.t[s] && markedOf(w, s)) || (node.k[s] !== null && !markedOf(w, s) && certifies(node.k[s], parentOf(w, s))));
+}
+// The smallest certificate of a non-factor, with its node count and depth.
+function certificate(w) {
+  if (w.length <= 2) return null;
+  const k = [0, 1].map(s => markedOf(w, s) ? null : certificate(parentOf(w, s)));
+  if ([0, 1].some(s => !markedOf(w, s) && !k[s])) return null;
+  return {s: 1, t: [true, true], k};
+}
+const size = n => n ? 1 + size(n.k[0]) + size(n.k[1]) : 0;
+const depth = n => n ? 1 + Math.max(depth(n.k[0]), depth(n.k[1])) : 0;
+// Every way shrunk as far as it goes (rows of two tiles are tried, not shrunk).
+function fullTree(w) {
+  if (w.length < 2) return {s: null, t: [false, false], k: [null, null]};
+  return {s: 1, t: [true, true], k: [0, 1].map(s => w.length > 2 && !markedOf(w, s) ? fullTree(parentOf(w, s)) : null)};
+}
+// The moves that build a tree from a fresh row: for each way, a seam tap,
+// then Shrink and the moves below.
+function treeMoves(node, path = '', extra = {}) {
+  const out = [];
+  for (const s of [0, 1]) {
+    if (!node.t[s]) continue;
+    out.push({type: 'seam', at: path, s, ...extra});
+    if (node.k[s]) out.push({type: 'shrink', at: path, s, ...extra}, ...treeMoves(node.k[s], path + s, extra));
+  }
+  return out;
+}
+
+// --- Play ---------------------------------------------------------------------------------
+const play = (p, a, action) => { const next = move(p, a, action); assert.ok(next && next !== a, `${p.id}: ${JSON.stringify(action)} is legal`); return next; };
+const refuse = (p, a, action, why) => assert.equal(move(p, a, action), null, `${p.id}: refuses ${why}`);
+const carried = (p, a) => { const to = undo(a); return {...to, board: mechanicFor(p).carry(p, a.board, to.board)}; };
+let slowest = 0;
+function hintsSolve(p, a, label) {
+  let steps = 0;
+  for (; !isSolved(p, a.board) && steps < 90; steps++) {
+    const t = process.cpuUsage(), h = nextHint(p, a), u = process.cpuUsage(t), ms = (u.user + u.system) / 1000;
+    slowest = Math.max(slowest, ms);
+    assert.ok(ms < 100, `${p.id} ${label}: a quick hint (CPU time)`);
+    assert.equal(h.type, 'move', `${p.id} ${label}: hints name a move (${h.text})`);
+    assert.ok(typeof h.text === 'string' && h.text.length > 5, `${p.id} ${label}: hint words`);
+    a = play(p, a, h.action);
+  }
+  assert.ok(isSolved(p, a.board), `${p.id} ${label}: hints reach a solve`);
+  return steps;
+}
+// A seeded random number generator, so the counts repeat.
+function rng(seed) { return () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; }; }
+
+function checkWords() {
+  // The prefix holds every short factor: its counts match the formula.
+  for (let n = 1; n <= 24; n++) {
+    const seen = new Set();
+    for (let i = 0; i + n <= TM.length; i++) seen.add(TM.slice(i, i + n));
+    assert.equal(seen.size, complexity(n), `factors of length ${n}`);
+  }
+  // Real rows are the factors, fits are the parities of occurrence, and the
+  // full tree certifies exactly the non-factors; certificates stay in limits.
+  let checked = 0, biggest = 0, deepest = 0;
+  for (let n = 1; n <= 14; n++) for (const w of words(n)) {
+    assert.equal(real(w), isFactor(w), `${w}: real exactly when a factor`);
+    if (n <= 12) for (const s of [0, 1]) assert.equal(fits(w, s), parities(w).includes(s), `${w}: way ${s} fits exactly when it occurs at that parity`);
+    const full = fullTree(w);
+    assert.equal(certifies(full, w), !isFactor(w), `${w}: the full tree certifies exactly a non-factor`);
+    if (n <= 12) assert.equal(stuck(full, w), !isFactor(w), `${w}: the mechanic agrees on the full tree`);
+    if (!isFactor(w)) {
+      const c = certificate(w);
+      assert.ok(c && validTree(c, w) && stuck(c, w), `${w}: a certificate the mechanic accepts`);
+      biggest = Math.max(biggest, size(c)); deepest = Math.max(deepest, depth(c));
+    }
+    checked++;
+  }
+  // From four tiles on a factor fits one way only (recognizability).
+  for (let n = 4; n <= 12; n++) for (const w of words(n)) if (isFactor(w)) assert.equal(parities(w).length, 1, `${w}: one way`);
+  assert.deepEqual(words(3).filter(w => parities(w).length === 2), ['ABA', 'BAB'], 'ABA and BAB fit both ways');
+  assert.ok(biggest <= LIMIT.nodes && deepest <= LIMIT.depth, 'every certificate of up to 14 tiles fits the limits');
+  return {checked, biggestCertificate: biggest, deepestCertificate: deepest};
+}
+
+function checkSeams(p, row) {
+  const q = p.parameters, fresh = freshAttempt(p);
+  const ways = q.pieces.flatMap((w, i) => parities(w).map(s => [i, s]));
+  assert.deepEqual(ways, row.ways, `${p.id}: the ways, from occurrences`);
+  assert.deepEqual(p.solution.ways, row.ways, `${p.id}: the stored ways`);
+  let steps = hintsSolve(p, fresh, 'from fresh');
+  // Witness: place each way and keep it, then That's all.
+  let a = fresh;
+  for (const [i, s] of row.ways) { a = play(p, a, {type: 'seam', piece: i, at: '', s}); a = play(p, a, {type: 'keep', piece: i}); }
+  a = play(p, a, {type: 'all'});
+  assert.ok(isSolved(p, a.board), `${p.id}: the witness solves`);
+  // A wrong way kept: That's all refuses once, the refusal stays through Undo
+  // (its note goes) until the shelf changes.
+  const wrong = [0, 1, 2].flatMap(i => [0, 1].map(s => [i, s])).find(x => !row.ways.some(y => y.join() === x.join()));
+  let b = play(p, fresh, {type: 'seam', piece: wrong[0], at: '', s: wrong[1]});
+  b = play(p, b, {type: 'keep', piece: wrong[0]});
+  assert.equal(b.board.told, null, `${p.id}: Keep says nothing`);
+  b = play(p, b, {type: 'all'});
+  assert.equal(b.board.told, 'stuck', `${p.id}: a kept way that gets stuck`);
+  refuse(p, b, {type: 'all'}, 'That’s all twice on one shelf');
+  const back = carried(p, b);
+  assert.ok(back.board.refused && back.board.told === null, `${p.id}: Undo keeps the refusal and drops its note`);
+  refuse(p, back, {type: 'all'}, 'That’s all after Undo on the same shelf');
+  steps += hintsSolve(p, b, 'after a wrong way and That’s all');
+  steps += hintsSolve(p, back, 'after Undo');
+  // Too few: "There is another."
+  let c = play(p, fresh, {type: 'seam', piece: row.ways[0][0], at: '', s: row.ways[0][1]});
+  c = play(p, play(p, c, {type: 'keep', piece: row.ways[0][0]}), {type: 'all'});
+  assert.equal(c.board.told, 'more', `${p.id}: there is another`);
+  steps += hintsSolve(p, c, 'after too few');
+  // Moves on the trees: a Shrink needs seams and no mark; a way is shrunk once.
+  const [i, s] = row.ways[0];
+  refuse(p, fresh, {type: 'shrink', piece: i, at: '', s}, 'Shrink before seams');
+  refuse(p, fresh, {type: 'keep', piece: i}, 'Keep before seams');
+  const placed = play(p, fresh, {type: 'seam', piece: i, at: '', s});
+  refuse(p, placed, {type: 'seam', piece: i, at: '', s}, 'the same seams again');
+  const shrunk = play(p, placed, {type: 'shrink', piece: i, at: '', s});
+  refuse(p, shrunk, {type: 'shrink', piece: i, at: '', s}, 'a second Shrink of one way');
+  refuse(p, fresh, {type: 'seam', piece: 9, at: '', s: 0}, 'a piece that isn’t there');
+  refuse(p, fresh, {type: 'seam', piece: 0, at: '0', s: 0}, 'a row not yet shrunk');
+  refuse(p, fresh, {type: 'seam', piece: 0, at: '', s: 2}, 'a third way');
+  refuse(p, fresh, {type: 'drop', piece: 0, s: 0}, 'taking back a way not kept');
+  const marked = q.pieces.flatMap((w, j) => [0, 1].filter(t => markedOf(w, t)).map(t => [j, t]))[0];
+  if (marked) refuse(p, play(p, fresh, {type: 'seam', piece: marked[0], at: '', s: marked[1]}), {type: 'shrink', piece: marked[0], at: '', s: marked[1]}, 'Shrink on a marked way');
+  refuse(p, a, {type: 'drop', piece: row.ways[0][0], s: row.ways[0][1]}, 'moves after the solve');
+  // Forged saves.
+  const sorted = list => [...list].sort((x, y) => JSON.stringify(x) < JSON.stringify(y) ? -1 : 1);
+  for (const [board, why] of [
+    [{...fresh.board, done: true}, 'a forged done'],
+    [{...fresh.board, shelf: sorted([wrong, ...row.ways]), done: true}, 'done with a wrong way kept'],
+    [{...fresh.board, shelf: row.ways.slice(1), done: true}, 'done with a way missing'],
+    [{...fresh.board, told: 'more'}, 'a note without a refusal'],
+    [{...fresh.board, told: 'stuck', refused: true}, '“gets stuck” on an empty shelf'],
+    [{...a.board, refused: true, done: false}, 'a refusal of the whole answer'],
+    [{...fresh.board, shelf: [[0, 0], [0, 0]]}, 'a way kept twice'],
+    [{...fresh.board, shelf: [[0, 1], [0, 0]]}, 'an unsorted shelf'],
+    [{...fresh.board, shelf: [[7, 0]]}, 'a way of a piece that isn’t there'],
+    [{...fresh.board, trees: fresh.board.trees.slice(1)}, 'a missing tree'],
+    [{...fresh.board, trees: fresh.board.trees.map((t, j) => j ? t : {s: 0, t: [false, false], k: [null, null]})}, 'seams on a way never tried'],
+    [{...fresh.board, extra: 1}, 'an unknown field']
+  ]) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
+  // Keep judges nothing, so a right shelf marked done is a real finish whatever
+  // the trees show; it is what That's all makes.
+  assert.ok(validBoard(p, {...fresh.board, shelf: row.ways, done: true}), `${p.id}: a right shelf is a finish`);
+  // A row shrunk on a marked way is forged.
+  if (marked) {
+    const t = {s: marked[1], t: [marked[1] === 0, marked[1] === 1], k: [0, 1].map(x => x === marked[1] ? {s: null, t: [false, false], k: [null, null]} : null)};
+    assert.equal(validBoard(p, {...fresh.board, trees: fresh.board.trees.map((x, j) => j === marked[0] ? t : x)}), false, `${p.id}: rejects a row shrunk on a marked way`);
+  }
+  return steps;
+}
+
+function checkRepair(p, row) {
+  const q = p.parameters, fresh = freshAttempt(p);
+  assert.ok(!isFactor(q.piece), `${p.id}: the piece is in no grown row`);
+  const fixes = [...q.piece].map((_, i) => i).filter(i => isFactor(flip(q.piece, i)));
+  assert.deepEqual(fixes, row.fixes, `${p.id}: the fixes, from occurrences`);
+  assert.deepEqual(p.solution.fixes, row.fixes, `${p.id}: the stored fixes`);
+  let steps = hintsSolve(p, fresh, 'from fresh');
+  let a = fresh;
+  for (const i of row.fixes) { a = play(p, a, {type: 'flip', i}); a = play(p, a, {type: 'keep'}); }
+  assert.ok(isSolved(p, play(p, a, {type: 'all'}).board), `${p.id}: the witness solves`);
+  // Each fix shrinks to one tile on the board, one way at a time.
+  for (const i of row.fixes) {
+    let w = flip(q.piece, i), b = play(p, fresh, {type: 'flip', i}), path = '';
+    while (w.length > 1) {
+      // A factor of three tiles or more has an unmarked way to a factor; two
+      // unequal tiles pair to one, and two equal tiles leave the first alone.
+      const s = w.length > 2 ? [0, 1].find(t => !markedOf(w, t) && isFactor(parentOf(w, t))) : w[0] === w[1] ? 1 : 0;
+      b = play(p, b, {type: 'seam', at: path, s});
+      b = play(p, b, {type: 'shrink', at: path, s});
+      w = parentOf(w, s); path += s;
+      assert.ok(path.length <= LIMIT.depth, `${p.id}: flip ${i} shrinks within the limit`);
+    }
+  }
+  // A wrong flip kept, That's all, Undo.
+  const wrong = [...q.piece].map((_, i) => i).find(i => !row.fixes.includes(i));
+  let b = play(p, play(p, play(p, fresh, {type: 'flip', i: wrong}), {type: 'keep'}), {type: 'all'});
+  assert.equal(b.board.told, 'stuck', `${p.id}: a kept flip that still gets stuck`);
+  refuse(p, b, {type: 'all'}, 'That’s all twice');
+  const back = carried(p, b);
+  assert.ok(back.board.refused && !back.board.told, `${p.id}: Undo keeps the refusal`);
+  steps += hintsSolve(p, b, 'after a wrong flip');
+  steps += hintsSolve(p, back, 'after Undo');
+  let c = play(p, play(p, play(p, fresh, {type: 'flip', i: row.fixes[0]}), {type: 'keep'}), {type: 'all'});
+  assert.equal(c.board.told, row.fixes.length > 1 ? 'more' : null, `${p.id}: one fix kept`);
+  if (row.fixes.length === 1) assert.ok(isSolved(p, c.board));
+  else steps += hintsSolve(p, c, 'after one fix');
+  // A flip moves: flipping another tile puts the first back.
+  const f = play(p, play(p, fresh, {type: 'flip', i: 0}), {type: 'flip', i: 1});
+  assert.equal(f.board.flip, 1, `${p.id}: one flip at a time`);
+  assert.equal(play(p, f, {type: 'flip', i: 1}).board.flip, null, `${p.id}: a second tap flips back`);
+  refuse(p, fresh, {type: 'keep'}, 'Keep with no flip');
+  refuse(p, fresh, {type: 'flip', i: q.piece.length}, 'a tile off the piece');
+  refuse(p, fresh, {type: 'flip', i: 0.5}, 'half a tile');
+  refuse(p, fresh, {type: 'drop', i: 0}, 'taking back a flip not kept');
+  refuse(p, play(p, play(p, fresh, {type: 'flip', i: 0}), {type: 'keep'}), {type: 'keep'}, 'keeping a flip twice');
+  for (const [board, why] of [
+    [{...fresh.board, done: true}, 'a forged done'],
+    [{...fresh.board, shelf: [wrong, ...row.fixes].sort((x, y) => JSON.stringify(x) < JSON.stringify(y) ? -1 : 1), done: true}, 'done with a wrong flip'],
+    [{...fresh.board, flip: q.piece.length}, 'a flip off the piece'],
+    [{...fresh.board, flip: 0, tree: {s: 0, t: [true, false], k: [{s: null, t: [false, false], k: [null, null]}, null]}}, 'a tree for another piece (or a marked way shrunk)'],
+    [{...fresh.board, told: 'more', refused: true, shelf: [wrong]}, 'a note that doesn’t match the shelf'],
+    [{...fresh.board, tree: null}, 'no tree'],
+    [{...fresh.board, shelf: [1, 0]}, 'an unsorted shelf']
+  ]) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
+  return steps;
+}
+
+function checkImpostor(p, row, random) {
+  const q = p.parameters, fresh = freshAttempt(p), n = q.strip.length;
+  // The stuck runs, from occurrences.
+  const runs = [];
+  for (let len = 2; len <= q.k; len++) for (let a = 0; a + len <= n; a++) if (!isFactor(q.strip.slice(a, a + len))) runs.push([a, a + len - 1]);
+  assert.equal(runs.length, row.dead, `${p.id}: stuck runs of at most ${q.k} tiles`);
+  assert.deepEqual(runs[0], row.run, `${p.id}: the leftmost shortest stuck run`);
+  assert.equal(row.run[1] - row.run[0] + 1, row.shortest, `${p.id}: its length`);
+  assert.ok(q.k > row.shortest, `${p.id}: the budget is more than the shortest`);
+  assert.deepEqual(p.solution.run, row.run, `${p.id}: the stored run`);
+  // An endless strip shows every run of at most k tiles of the endless strip.
+  if (q.endless) {
+    const period = [1, 2, 3, 4, 5, 6, 7, 8].find(d => [...q.strip].every((c, i) => i < d || c === q.strip[i - d]));
+    const endless = q.strip.repeat(4), seen = new Set(), shown = new Set();
+    for (let len = 1; len <= q.k; len++) for (let a = 0; a < period; a++) seen.add(endless.slice(a, a + len));
+    for (let len = 1; len <= q.k; len++) for (let a = 0; a + len <= n; a++) shown.add(q.strip.slice(a, a + len));
+    assert.ok([...seen].every(w => shown.has(w)), `${p.id}: the strip shows every run`);
+  }
+  let steps = hintsSolve(p, fresh, 'from fresh');
+  // Every stuck run can be certified within the limits, by the moves of its
+  // smallest certificate; no real run can.
+  for (const [a, z] of runs) {
+    const w = q.strip.slice(a, z + 1), c = certificate(w);
+    assert.ok(c && size(c) <= LIMIT.nodes && depth(c) <= LIMIT.depth, `${p.id}: a certificate for ${w}`);
+    let b = play(p, fresh, {type: 'select', a, b: z});
+    for (const m of treeMoves(c)) if (!isSolved(p, b.board)) b = play(p, b, m);
+    assert.ok(isSolved(p, b.board), `${p.id}: ${w} certified by its moves`);
+    assert.ok(certifies(b.board.tree, w), `${p.id}: the separate shrinker agrees`);
+  }
+  // A real run: its full tree, as far as the limits allow, never solves.
+  const realRun = [0, 1];
+  let b = play(p, fresh, {type: 'select', a: realRun[0], b: realRun[1]});
+  for (const m of treeMoves(fullTree(q.strip.slice(0, 2)))) { const next = move(p, b, m); if (next) b = next; }
+  assert.ok(!isSolved(p, b.board), `${p.id}: two tiles are never stuck`);
+  steps += hintsSolve(p, b, 'after choosing real tiles');
+  const longReal = (() => { for (let len = q.k; len >= 2; len--) for (let a = 0; a + len <= n; a++) if (isFactor(q.strip.slice(a, a + len))) return [a, a + len - 1]; })();
+  b = play(p, fresh, {type: 'select', a: longReal[0], b: longReal[1]});
+  for (const m of treeMoves(fullTree(q.strip.slice(longReal[0], longReal[1] + 1)))) { const next = move(p, b, m); if (next) b = next; }
+  assert.ok(!isSolved(p, b.board), `${p.id}: a long real run never sticks`);
+  steps += hintsSolve(p, b, 'after shrinking a real run every way');
+  // Half a certificate, then hints; and a stuck run left half done.
+  const [a0, z0] = row.run;
+  let h = play(p, fresh, {type: 'select', a: a0, b: z0});
+  h = play(p, h, {type: 'seam', at: '', s: 0});
+  steps += hintsSolve(p, h, 'after one seam on the stuck run');
+  // Illegal moves.
+  refuse(p, fresh, {type: 'select', a: 0, b: q.k}, 'more than k tiles');
+  refuse(p, fresh, {type: 'select', a: 3, b: 3}, 'one tile');
+  refuse(p, fresh, {type: 'select', a: -1, b: 2}, 'a tile off the strip');
+  refuse(p, fresh, {type: 'select', a: n - 2, b: n}, 'a tile past the end');
+  refuse(p, fresh, {type: 'seam', at: '', s: 0}, 'seams with no tiles chosen');
+  const chosen = play(p, fresh, {type: 'select', a: a0, b: z0});
+  refuse(p, chosen, {type: 'select', a: a0, b: z0}, 'the same tiles again');
+  refuse(p, chosen, {type: 'shrink', at: '', s: 0}, 'Shrink before seams');
+  refuse(p, chosen, {type: 'seam', at: '1', s: 0}, 'a row not yet shrunk');
+  refuse(p, chosen, {type: 'seam', at: 'x', s: 0}, 'a bad path');
+  refuse(p, chosen, {type: 'keep'}, 'Keep (no shelf here)');
+  refuse(p, chosen, {type: 'all'}, 'That’s all (no shelf here)');
+  const reselect = play(p, play(p, chosen, {type: 'seam', at: '', s: 1}), {type: 'select', a: 0, b: 1});
+  assert.equal(reselect.board.tree.s, null, `${p.id}: choosing again starts a new row`);
+  // Forged saves.
+  const solvedBoard = (() => { let x = play(p, fresh, {type: 'select', a: a0, b: z0}); for (const m of treeMoves(certificate(q.strip.slice(a0, z0 + 1)))) if (!isSolved(p, x.board)) x = play(p, x, m); return x.board; })();
+  refuse(p, {...fresh, board: solvedBoard}, {type: 'select', a: 0, b: 1}, 'moves after the solve');
+  const leafNode = {s: null, t: [false, false], k: [null, null]};
+  for (const [board, why] of [
+    [{sel: null, tree: leafNode}, 'a tree with no tiles chosen'],
+    [{sel: [0, q.k], tree: leafNode}, 'too many tiles'],
+    [{sel: [2, 2], tree: leafNode}, 'one tile'],
+    [{sel: [3, 1], tree: leafNode}, 'a backwards choice'],
+    [{sel: [a0, z0], tree: {s: 1, t: [true, true], k: [null, null]}, done: true}, 'a forged done field'],
+    [{sel: [a0, z0], tree: {s: 0, t: [false, false], k: [null, null]}}, 'seams on a way never tried'],
+    [{sel: [a0, z0], tree: {s: null, t: [false, false], k: [leafNode, null]}}, 'a row shrunk on a way never tried'],
+    [{sel: [a0, z0], tree: {s: null, t: [true, true], k: [{s: null, t: [true, true], k: [null, null], x: 1}, null]}}, 'an unknown field in a row'],
+    [{sel: [a0, z0], tree: chainOf(LIMIT.depth + 2)}, 'a tree deeper than the limit']
+  ]) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
+  // A forged stuck tree on a real run: marks can't be claimed where there are none.
+  const realW = q.strip.slice(longReal[0], longReal[1] + 1);
+  assert.ok(!stuck({s: 1, t: [true, true], k: [null, null]}, realW), `${p.id}: trying both ways of a real run without shrinking proves nothing`);
+  // Random play: how often do random choices and taps solve? A choice of tiles
+  // is the real decision; the share that solves is about the share of stuck runs.
+  let solves = 0;
+  const trials = 400;
+  for (let t = 0; t < trials; t++) {
+    let x = fresh;
+    for (let m = 0; m < 40 && !isSolved(p, x.board); m++) {
+      const options = legalMoves(p, x.board, random);
+      if (!options.length) break;
+      const next = move(p, x, options[Math.floor(random() * options.length)]);
+      if (next) x = next;
+    }
+    if (isSolved(p, x.board)) solves++;
+  }
+  const total = (() => { let c = 0; for (let len = 2; len <= q.k; len++) c += Math.max(0, n - len + 1); return c; })();
+  return {steps, randomShare: solves / trials, stuckShare: runs.length / total};
+}
+// A chain of rows each shrunk on its first way, deeper than allowed.
+function chainOf(d) { let node = {s: null, t: [false, false], k: [null, null]}; for (let i = 0; i < d; i++) node = {s: 0, t: [true, false], k: [node, null]}; return node; }
+// The impostor's legal moves (selections reselect only now and then).
+function legalMoves(p, b, random) {
+  const q = p.parameters, out = [];
+  if (b.sel === null || random() < 0.03) {
+    for (let len = 2; len <= q.k; len++) for (let a = 0; a + len <= q.strip.length; a++) out.push({type: 'select', a, b: a + len - 1});
+    return out;
+  }
+  const visit = (node, w, path) => {
+    if (!node || w.length < 2) return;
+    for (const s of [0, 1]) {
+      if (node.s !== s) out.push({type: 'seam', at: path, s});
+      else if (!node.k[s] && !markedOf(w, s)) out.push({type: 'shrink', at: path, s});
+      if (node.k[s]) visit(node.k[s], parentOf(w, s), path + s);
+    }
+  };
+  visit(b.tree, q.strip.slice(b.sel[0], b.sel[1] + 1), '');
+  return out;
+}
+
+function checkPlayground(p) {
+  const fresh = freshAttempt(p);
+  assert.ok(validBoard(p, fresh.board) && !isSolved(p, fresh.board), `${p.id}: starts valid, never solved`);
+  let a = fresh;
+  for (let r = 1; r < p.parameters.rows; r++) a = play(p, a, {type: 'grow'});
+  refuse(p, a, {type: 'grow'}, 'a row past the last');
+  a = play(p, a, {type: 'start'});
+  assert.equal(a.board.start, 'B');
+  assert.ok(!isSolved(p, a.board));
+  assert.equal(mechanicFor(p).noHint(p), true, `${p.id}: no hints in the playground`);
+  for (const [board, why] of [[{start: 'C', rows: 1}, 'a third letter'], [{start: 'A', rows: 0}, 'no rows'], [{start: 'A', rows: p.parameters.rows + 1}, 'too many rows'], [{start: 'A', rows: 1, done: true}, 'a forged done']]) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
+}
+
+export async function validateShrink() {
+  const pack = JSON.parse(await readFile(new URL('../dist/families/shrink/shrink.json', import.meta.url), 'utf8'));
+  const {puzzles: all} = await loadPack();
+  assert.equal(new Set(all.map(p => p.id)).size, all.length, 'puzzle ids are unique across the packs');
+  for (const s of pack.sources) { assert.match(s.url, /^https:\/\//); assert.ok(s.title && s.kind); }
+  assert.ok(pack.sources.some(s => s.url.endsWith('lowell-math-circle-year-2/week-76')), 'the worksheet week');
+  assert.ok(pack.sources.some(s => s.url.endsWith('plans/review/week-76.md')), 'the review card');
+  assert.equal(pack.families.length, 1);
+  assert.equal(pack.families[0].id, 'shrink');
+  const words = checkWords();
+  const [playground, ...puzzles] = pack.puzzles;
+  assert.equal(playground.id, 'shrink-playground');
+  for (const mode of MODES) assert.ok(pack.puzzles.some(p => p.parameters.mode === mode), `a ${mode} puzzle`);
+  checkPlayground(playground);
+  assert.deepEqual(puzzles.map(p => p.number), puzzles.map((_, i) => i + 1), 'numbers run 1..n');
+  assert.deepEqual(puzzles.map(p => p.id), Object.keys(TABLE), 'every puzzle in the table');
+  let hintSteps = 0;
+  const shares = {};
+  const random = rng(76);
+  for (const p of pack.puzzles) {
+    for (const field of ['objective', 'controls', 'idea', 'prerequisites', 'provenance', 'familyTitle']) assert.ok(typeof p[field] === 'string' && p[field].length > 5, `${p.id}: ${field}`);
+    assert.match(p.provenance, /Week 76|new/i, `${p.id}: provenance names its source`);
+    assert.match(p.controls, /^A row grows by turning every A into AB/, `${p.id}: How to play opens with the mathematics`);
+    assert.equal(typeof p.visibleObjective, 'string', `${p.id}: visibleObjective`);
+    assert.ok(p.visibleObjective.length < 150 && !/\n/.test(p.visibleObjective), `${p.id}: one short objective`);
+    assert.ok(Array.isArray(p.rules) && p.rules.length && p.hints.length === 3, `${p.id}: rules and three hints`);
+    assert.ok(!/can.t|press/i.test(p.hints[0]), `${p.id}: the first hint is not a claim`);
+    assert.ok(!/\b(both|ends?|only|none|stuck|ABABA|fix(es)?)\b/i.test(p.title), `${p.id}: the title does not give the answer away`);
+    for (const field of ['notice', 'prompt', 'explanation', 'extension', 'connection']) assert.ok(p.parent[field], `${p.id}: parent ${field}`);
+    assert.ok(p.parent.sourceIds.every(id => pack.sources.some(s => s.id === id)), `${p.id}: sources`);
+  }
+  for (const p of puzzles) {
+    const row = TABLE[p.id], q = p.parameters;
+    assert.equal(p.mechanic, 'shrink');
+    assert.equal(p.band, 'all');
+    assert.equal(p.difficulty_level, row.level, `${p.id}: level`);
+    assert.equal(q.mode, row.mode, `${p.id}: mode`);
+    const fresh = freshAttempt(p);
+    assert.ok(validBoard(p, fresh.board), `${p.id}: starts valid`);
+    assert.ok(!isSolved(p, fresh.board), `${p.id}: starts unsolved`);
+    const first = nextHint(p, fresh);
+    assert.equal(first.type, 'move', `${p.id}: a first hint`);
+    assert.ok(first.action.type !== 'all', `${p.id}: the first hint is never That’s all`);
+    for (const forged of [null, [], 'x', {}]) assert.equal(validBoard(p, forged), false, `${p.id}: rejects ${JSON.stringify(forged)}`);
+    refuse(p, fresh, {type: 'fly'}, 'an unknown move');
+    refuse(p, fresh, null, 'no move');
+    refuse(p, fresh, {type: 'grow'}, 'a playground move');
+    // The stored witness solves.
+    let w = fresh;
+    for (const m of p.solution.moves) w = play(p, w, m);
+    assert.ok(isSolved(p, w.board), `${p.id}: the stored witness solves`);
+    if (q.mode === 'seams') {
+      hintSteps += checkSeams(p, row);
+      // Random shelves: one subset of the six ways in 64 is right.
+      shares[p.id] = `random shelf 1/${2 ** (q.pieces.length * 2)}`;
+    } else if (q.mode === 'repair') {
+      hintSteps += checkRepair(p, row);
+      shares[p.id] = `random shelf 1/${2 ** q.piece.length}`;
+    } else {
+      const r = checkImpostor(p, row, random);
+      hintSteps += r.steps;
+      assert.ok(r.randomShare <= Math.max(0.45, r.stuckShare * 2), `${p.id}: random play rarely solves (${r.randomShare})`);
+      shares[p.id] = `random play ${(r.randomShare * 100).toFixed(1)}% (stuck runs ${(r.stuckShare * 100).toFixed(1)}% of choices)`;
+    }
+  }
+  return {puzzles: puzzles.length, playground: 1, words, hintSteps, slowestHintMs: Number(slowest.toFixed(2)), randomSolveShares: shares};
+}
+export default validateShrink;
+if (process.argv[1] === new URL(import.meta.url).pathname) console.log(JSON.stringify(await validateShrink(), null, 2));
