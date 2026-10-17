@@ -1,6 +1,7 @@
 // Snug spinners: exact numbers in Q(√r), which points may centre which gap,
-// the solve test, the width as a shape turns, moves and Undo, hints (in CPU
-// time), saves, rendering of the build and spin views, and the playground.
+// the solve test, the width as a shape turns, moves and Undo, placing a
+// missing corner, hints (in CPU time, never naming the answer), saves,
+// rendering of the build and spin views, and the playground.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -17,6 +18,8 @@ const M = widthMechanics.width;
 const play = (p, a, ...actions) => actions.reduce((b, action) => { const next = move(p, b, action); assert.ok(next, `${JSON.stringify(action)} is legal`); return next; }, a);
 const view = (p, a) => playView(p, a, {pack, selected: null, message: ''});
 const arc = (gap, at) => ({type: 'arc', gap, at});
+const puzzles = width.puzzles.filter(p => p.band !== 'playground');
+const spotOf = p => p.solution.corner ?? null;
 
 test('exact numbers a + b√r', () => {
   const F = field(5), x = F.parse('1/2|-3/4'), y = F.parse('-2|1');
@@ -43,32 +46,52 @@ test('which points may centre which gap, exactly', () => {
   assert.deepEqual(exactOf(p1).gaps.map(g => [...g.joins].sort()), [['C', 'mAB'], ['A', 'mBC'], ['B', 'mCA']]);
   assert.equal(joinable(p1, 0, 'mBC'), false, 'another side’s midpoint misses');
   assert.equal(joinable(p1, 0, 'A'), false, 'an end is not a centre');
-  // Every irregular pentagon: only the corner across and the gap's own dots.
-  for (const p of width.puzzles.filter(p => p.band !== 'playground')) {
-    const e = exactOf(p), n = e.n;
+  // Every puzzle (with the missing corner in its place): only the corner
+  // across and the gap's own dots.
+  for (const p of puzzles) {
+    const e = exactOf(p, spotOf(p)), n = e.n;
     e.gaps.forEach((g, i) => {
-      const own = Object.keys(p.parameters.pins).filter(id => id.slice(1) === `${g.a}${g.b}`);
+      const own = Object.keys(p.parameters.pins || {}).filter(id => id.slice(1) === `${g.a}${g.b}`);
       assert.deepEqual([...g.joins].sort(), [e.order[(i + (n + 1) / 2) % n], ...own].sort(), `${p.id} gap ${g.a}${g.b}`);
     });
   }
+  // Before the corner is placed, the gaps beside it are not there and nothing centres the gap across.
+  const h = byId('width-07'), e0 = exactOf(h), X = h.parameters.open;
+  e0.gaps.forEach(g => { if (g.a === X || g.b === X) assert.deepEqual([g.live, g.joins], [false, []]); });
+  assert.deepEqual(e0.gaps[h.solution.arcs.indexOf(X)].joins, [], 'no corner centres the gap across from the missing corner');
 });
 
 test('the solve: every arc on a corner with one radius; the width is constant exactly then', () => {
-  for (const p of width.puzzles.filter(p => p.band !== 'playground')) {
-    const answer = p.solution.arcs, {turn} = layoutOf(p);
-    assert.ok(snug(p, answer), `${p.id}: the witness`);
-    const shape = shapeOf(p, answer), w = widthAt(shape, 0);
+  for (const p of puzzles) {
+    const answer = p.solution.arcs, spot = spotOf(p), {turn} = layoutOf(p);
+    assert.ok(snug(p, answer, spot), `${p.id}: the witness`);
+    const shape = shapeOf(p, answer, spot), w = widthAt(shape, 0);
     for (let k = 0; k < 90; k++) assert.ok(Math.abs(widthAt(shape, k * Math.PI / 90) - w) < 1e-9, `${p.id}: constant width`);
-    assert.ok(verdictOf(p, answer).ok);
+    assert.ok(verdictOf(p, answer, spot).ok);
     // Swap in each other centre the gap allows: the width changes.
-    exactOf(p).gaps.forEach((g, i) => g.joins.filter(c => c !== answer[i]).forEach(c => {
-      const arcs = answer.map((x, j) => j === i ? c : x), v = verdictOf(p, arcs);
-      assert.ok(!snug(p, arcs) && !v.ok, `${p.id}: ${c} on gap ${i} is not a solve`);
+    exactOf(p, spot).gaps.forEach((g, i) => g.joins.filter(c => c !== answer[i]).forEach(c => {
+      const arcs = answer.map((x, j) => j === i ? c : x), v = verdictOf(p, arcs, spot);
+      assert.ok(!snug(p, arcs, spot) && !v.ok, `${p.id}: ${c} on gap ${i} is not a solve`);
       assert.ok(v.worst > 0.02 && v.at > 0 && v.at < Math.PI, `${p.id}: the spin stops where the gap has changed`);
-      assert.ok(Math.abs(widthAt(shapeOf(p, arcs), turn + v.at) - v.w0 - Math.sign(widthAt(shapeOf(p, arcs), turn + v.at) - v.w0) * v.worst) < 1e-12);
+      assert.ok(Math.abs(widthAt(shapeOf(p, arcs, spot), turn + v.at) - v.w0 - Math.sign(widthAt(shapeOf(p, arcs, spot), turn + v.at) - v.w0) * v.worst) < 1e-12);
     }));
-    assert.equal(snug(p, answer.map((c, i) => i ? c : null)), false, `${p.id}: an empty gap is not a solve`);
+    assert.equal(snug(p, answer.map((c, i) => i ? c : null), spot), false, `${p.id}: an empty gap is not a solve`);
+    if (spot) for (const other of Object.keys(p.parameters.spots)) if (other !== spot) assert.equal(snug(p, answer, other), false, `${p.id}: the witness arcs on ${other}`);
   }
+});
+
+test('half circles on the triangle: 3 along a side, 2 + √3/2 across it, and no corner touches a rail', () => {
+  const p = byId('width-01'), arcs = ['mAB', 'mBC', 'mCA'], shape = shapeOf(p, arcs);
+  let lo = Infinity, hi = -Infinity;
+  for (let k = 0; k < 3600; k++) {
+    const t = k * Math.PI / 3600, ux = Math.sin(t), uy = Math.cos(t), w = widthAt(shape, t);
+    lo = Math.min(lo, w); hi = Math.max(hi, w);
+    // Each rail rests on a half circle: strictly beyond every corner.
+    for (const [x, y] of [[ux, uy], [-ux, -uy]]) assert.ok(support(shape, x, y).h > Math.max(...shape.corners.map(c => c[0] * x + c[1] * y)) + 0.1, 'no corner touches a rail');
+  }
+  assert.ok(Math.abs(lo - (2 + Math.sqrt(3) / 2)) < 1e-6, `least width ${lo}`);
+  assert.ok(Math.abs(hi - 3) < 1e-6, `greatest width ${hi}`);
+  assert.ok(Math.abs(widthAt(shape, 0) - (2 + Math.sqrt(3) / 2)) < 1e-12 && Math.abs(widthAt(shape, Math.PI / 2) - 3) < 1e-12, 'across a side, and along it');
 });
 
 test('support function and spin frames', () => {
@@ -105,29 +128,70 @@ test('moves, Undo, illegal moves and saves', () => {
   assert.equal(isSolved(r, ra.board), false);
 });
 
-test('hints: a nudge first, then one arc at a time, quickly (CPU time)', () => {
-  for (const p of width.puzzles.filter(p => p.band !== 'playground')) {
+test('placing the missing corner: moves, Undo, illegal moves and saves', () => {
+  const p = byId('width-07'), q = p.parameters, X = q.open, right = p.solution.corner, answer = p.solution.arcs;
+  const wrong = Object.keys(q.spots).find(s => s !== right), gx = q.order.indexOf(X), gPrev = (gx + 4) % 5, gAcross = answer.indexOf(X);
+  let a = freshAttempt(p);
+  assert.deepEqual(a.board, {corner: null, arcs: q.start});
+  assert.equal(q.start.filter(Boolean).length, 2, 'two arcs are drawn at the start');
+  assert.equal(move(p, a, arc(gAcross, X)), null, 'nothing is centred on a corner that is not there');
+  assert.equal(move(p, a, arc(gx, answer[gx])), null, 'no arc ends at a corner that is not there');
+  a = play(p, a, {type: 'corner', at: wrong});
+  assert.equal(a.board.corner, wrong);
+  // On a wrong spot some arc beside it, or across from it, cannot be drawn.
+  const misses = [gPrev, gx, gAcross].filter(i => !joinable(p, i, answer[i], wrong));
+  assert.ok(misses.length >= 1);
+  const ok = [gPrev, gx, gAcross].find(i => joinable(p, i, answer[i], wrong));
+  if (ok != null) a = play(p, a, arc(ok, answer[ok]));
+  // Moving the corner takes its arcs with it; Undo brings them back.
+  const moved = play(p, a, {type: 'corner', at: right});
+  assert.deepEqual(moved.board, {corner: right, arcs: q.start});
+  assert.deepEqual(undo(moved).board, a.board, 'Undo puts the corner and its arcs back');
+  let b = moved;
+  for (const i of [gPrev, gx, gAcross]) b = play(p, b, arc(i, answer[i]));
+  assert.equal(isSolved(p, b.board), true);
+  for (const [action, why] of [[{type: 'corner', at: 'Z'}, 'no such spot'], [{type: 'corner', at: right}, 'the same spot'], [{type: 'corner', at: q.order[0]}, 'a corner for a spot'], [arc(gAcross, wrong), 'a spot as a centre']]) assert.equal(move(p, moved, action), null, why);
+  for (const board of [{corner: right, arcs: answer, done: true}, {arcs: answer}, {corner: wrong, arcs: answer}, {corner: null, arcs: answer}, {corner: 'Z', arcs: q.start}, {corner: right, arcs: answer.slice(1)}]) assert.equal(validBoard(p, board), false, JSON.stringify(board));
+  assert.equal(validBoard(p, {corner: right, arcs: answer}), true);
+  // A puzzle with every corner has no corner to place.
+  assert.equal(move(byId('width-01'), freshAttempt(byId('width-01')), {type: 'corner', at: 's1'}), null);
+});
+
+test('hints: a nudge first, then questions; the board marks the answer; quickly (CPU time)', () => {
+  for (const p of puzzles) {
     let a = freshAttempt(p), steps = 0;
     a = {...a, hintLevel: 1};
-    assert.match(view(p, a), new RegExp(p.hints[0].replace(/[?’.]/g, '.')), `${p.id}: the authored first hint on a fresh board`);
+    assert.match(view(p, a), new RegExp(p.hints[0].replace(/[?’.()]/g, '.')), `${p.id}: the authored first hint on a fresh board`);
     for (; !isSolved(p, a.board) && steps < 10; steps++) {
       const t = process.cpuUsage(), h = nextHint(p, a), u = process.cpuUsage(t);
       assert.ok((u.user + u.system) / 1000 < 100, `${p.id}: a quick hint`);
       assert.equal(h.type, 'move');
-      assert.match(h.text, /^Centre the arc from [A-E] to [A-E] on [A-E]\.$/);
+      // The text asks; it never names the centre or the spot.
+      assert.match(h.text, /\?$/);
+      if (h.action.type === 'arc') assert.doesNotMatch(h.text, new RegExp(`\\b${h.action.at}\\b`), `${p.id}: “${h.text}”`);
+      else assert.ok(!h.text.includes(p.parameters.names[h.action.at]) && !h.text.includes(h.action.at));
+      // After a move the card shows the question, and the board rings the answer from the second level.
+      const card = view(p, {...a, moves: 1, hintLevel: 1});
+      assert.ok(card.includes(h.text.replace(/’/g, '’')) || card.includes(h.text), `${p.id}: the card shows the question`);
+      const marked = view(p, {...a, moves: 1, hintLevel: 2});
+      assert.match(marked, h.action.type === 'arc' ? new RegExp(`wd-corner[^"]*hinted[^>]*data-pt="${h.action.at}"|wd-hint-ring`) : new RegExp(`wd-spot hinted[^>]*data-pt="${h.action.at}"`), `${p.id}: the board marks the answer at level 2`);
       a = play(p, a, h.action);
     }
     assert.ok(isSolved(p, a.board), `${p.id}: solved by hints`);
     assert.equal(nextHint(p, a).type, 'done');
   }
   // A wrong arc is put right before an empty gap is filled.
-  const p = byId('width-03'), a = play(p, freshAttempt(p), arc(2, 'mCD'));
+  const p = byId('width-04'), a = play(p, freshAttempt(p), arc(2, 'mCD'));
   assert.deepEqual(nextHint(p, a).action, arc(2, 'A'));
-  assert.equal(nextHint(p, a).text, 'Centre the arc from C to D on A.');
+  assert.equal(nextHint(p, a).text, 'The arc from C to D is centred on a dot. Which corner could the compass reach both C and D from?');
+  assert.equal(nextHint(byId('width-01'), freshAttempt(byId('width-01'))).text, 'Which corner could the compass reach both A and B from?');
+  // A missing corner: the hint asks for the spot the width from both corners across.
+  const h = byId('width-07');
+  assert.equal(nextHint(h, freshAttempt(h)).text, 'Which spot is as far from B as A is, and as far from D as C is?');
 });
 
 test('rendering: the build view, a miss, the spin, hints; quick taps', () => {
-  const p = byId('width-03');
+  const p = byId('width-04');
   M.reset(p);
   let a = freshAttempt(p);
   let html = view(p, a);
@@ -159,11 +223,29 @@ test('rendering: the build view, a miss, the spin, hints; quick taps', () => {
   assert.match(html, /wd-hint-gap/);
   assert.match(html, /wd-hint-ring/);
   // Render and hint for the busiest board in well under 100 ms of CPU.
-  const q = byId('width-09'), qa = play(q, freshAttempt(q), arc(0, `m${q.parameters.order[0]}${q.parameters.order[1]}`));
-  const t = process.cpuUsage();
+  const q = byId('width-05'), qa = play(q, freshAttempt(q), arc(0, `m${q.parameters.order[0]}${q.parameters.order[1]}`));
+  let t = process.cpuUsage();
   view(q, {...qa, hintLevel: 2}); nextHint(q, qa);
-  const u = process.cpuUsage(t);
+  let u = process.cpuUsage(t);
   assert.ok((u.user + u.system) / 1000 < 100, 'a quick render');
+  // A missing corner: spots, a dotted line where it goes, then a corner on a spot.
+  const h = byId('width-09'), spots = Object.keys(h.parameters.spots);
+  M.reset(h);
+  let ha = freshAttempt(h);
+  html = view(h, ha);
+  assert.equal((html.match(/class="wd-pt wd-spot/g) || []).length, spots.length, 'every spot');
+  assert.equal((html.match(/class="wd-pt wd-corner/g) || []).length, 4, 'four corners');
+  assert.match(html, /class="wd-open"/);
+  assert.equal((html.match(/class="wd-hit wd-gap"/g) || []).length, 3, 'only the gaps between the corners there');
+  ha = play(h, ha, {type: 'corner', at: spots[0]});
+  t = process.cpuUsage();
+  html = view(h, {...ha, hintLevel: 2});
+  u = process.cpuUsage(t);
+  assert.ok((u.user + u.system) / 1000 < 100, 'a quick render with spots');
+  assert.equal((html.match(/class="wd-pt wd-spot/g) || []).length, spots.length - 1, 'the spot under the corner is not drawn');
+  assert.equal((html.match(/class="wd-pt wd-corner/g) || []).length, 5);
+  assert.doesNotMatch(html, /class="wd-open"/);
+  assert.match(html, new RegExp(`data-pt="${h.parameters.open}"[^>]*aria-label="Corner ${h.parameters.open}, on spot 1"`));
 });
 
 test('the playground: shapes, turning, the band, no hints', () => {

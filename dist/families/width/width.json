@@ -5,7 +5,7 @@
   {
    "id": "width",
    "title": "Snug spinners",
-   "mathematics": "The width of a shape in a direction is the gap between two parallel lines that touch it on either side. A shape has constant width when that gap is the same in every direction, so it turns between two fixed rails touching both. A circle does; so does a Reuleaux polygon: take an odd polygon whose star diagonals (each corner to the two corners across from it) all have length w, and join each pair of neighbouring corners by an arc of radius w centred on the corner across. When a rail touches an arc, the parallel rail through that arc’s centre touches the corner there, and every direction is of this kind, so the width is w every way. The puzzles give the corners of an equilateral triangle, a regular pentagon and irregular pentagons with equal star diagonals, exactly; the child chooses each arc’s centre, which must be the same distance from both ends of its gap. Among the centres offered, the shape spins snug exactly when every arc is centred on a corner with one common radius: the Reuleaux polygon. Half circles on the sides and arcs centred on dots inside give shapes whose width changes, and the spin stops where it has changed most.",
+   "mathematics": "The width of a shape in a direction is the gap between two parallel lines that touch it on either side. A shape has constant width when that gap is the same in every direction, so it turns between two fixed rails touching both. A circle does; so does a Reuleaux polygon: take an odd polygon whose star diagonals (each corner to the two corners across from it) all have length w, and join each pair of neighbouring corners by an arc of radius w centred on the corner across. When a rail touches an arc, the parallel rail through that arc’s centre touches the corner there, and every direction is of this kind, so the width is w every way. The puzzles give the corners of an equilateral triangle, a regular pentagon and irregular pentagons with equal star diagonals, exactly; the child chooses each arc’s centre, which must be the same distance from both ends of its gap. Among the centres offered, the shape spins snug exactly when every arc is centred on a corner with one common radius: the Reuleaux polygon. Half circles on the sides and arcs centred on dots inside give shapes whose width changes, and the spin stops where it has changed most. In the hard puzzles one corner is missing and the child first puts it on one of several spots: it belongs where it is the width from the two corners across from it, where two circles of that radius cross, and on every other spot some arc’s compass misses.",
    "rules": [
     "Each gap between neighbouring corners gets one arc, drawn round a centre like a compass. The centre must be the same distance from both corners, or the arc misses.",
     "When every gap has an arc, the shape turns between two rails: the bottom rail stays, and the top rail rests on the shape.",
@@ -337,7 +337,7 @@
    "parent": {
     "notice": "Whether your child tries the dots in the middle first. Half circles bulge too far: the width changes as the shape turns.",
     "prompt": "When the shape turns, which point of it touches the bottom rail while the top rail touches an arc?",
-    "explanation": "Centre each arc on the corner across from its gap. Each arc then has radius equal to the side, 2 units here. Whenever one rail touches an arc, the other touches that arc’s centre corner, and the gap between the rails is the radius. Every direction is like this, so the width never changes: this is the Reuleaux triangle. Half circles on the sides (the dots in the middle) make a shape that is wider across a bulge than corner to bulge.",
+    "explanation": "Centre each arc on the corner across from its gap. Each arc then has radius equal to the side, 2 units here. Whenever one rail touches an arc, the other touches that arc’s centre corner, and the gap between the rails is the radius. Every direction is like this, so the width never changes: this is the Reuleaux triangle. With half circles on the sides instead (centred on the dots in the middle), the shape is 3 units wide along a side but only 2 + √3/2, about 2.87, across it, and no corner ever touches a rail.",
     "extension": "Is the curved triangle’s width the same as its corners’ distance apart? (Yes: the radius is the side.)",
     "connection": "The Reuleaux triangle: the worksheet’s Problems 3 and 4.",
     "sourceIds": [
@@ -454,8 +454,120 @@
   {
    "id": "width-03",
    "number": 3,
-   "title": "Five corners",
+   "title": "Wobbly pentagon",
    "difficulty_level": "easy",
+   "familyTitle": "Snug spinners",
+   "mechanic": "width",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/width/README.md",
+   "parameters": {
+    "field": {
+     "r": 5,
+     "tx": "5/8|1/8",
+     "ty": "1"
+    },
+    "corners": {
+     "A": [
+      "0",
+      "1"
+     ],
+     "B": [
+      "-1",
+      "-1/4|1/4"
+     ],
+     "C": [
+      "1/2|-1/2",
+      "-1/4|-1/4"
+     ],
+     "D": [
+      "-1/2|1/2",
+      "-1/4|-1/4"
+     ],
+     "E": [
+      "1",
+      "-1/4|1/4"
+     ]
+    },
+    "order": [
+     "A",
+     "B",
+     "C",
+     "D",
+     "E"
+    ],
+    "pins": {
+     "iBC": [
+      "1/16|-3/16",
+      "-1/4|1/16"
+     ],
+     "iDE": [
+      "-1/16|3/16",
+      "-1/4|1/16"
+     ]
+    },
+    "names": {
+     "A": "Corner A",
+     "B": "Corner B",
+     "C": "Corner C",
+     "D": "Corner D",
+     "E": "Corner E",
+     "iBC": "Dot inside, near B and C",
+     "iDE": "Dot inside, near D and E"
+    },
+    "mode": "repair",
+    "turn": 0,
+    "start": [
+     "D",
+     "iBC",
+     "A",
+     "iDE",
+     "C"
+    ]
+   },
+   "objective": "Change the arcs so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
+   "visibleObjective": "Fix the shape so it spins snug between two rails.",
+   "instruction": "Change the arcs so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
+   "controls": "A shape’s width is the gap between two parallel rails that both touch it. It spins snug when the gap stays the same all the way round. Tap a gap between two corners, then a corner or dot to centre its arc there: the arc must reach both corners. When every gap has an arc, the shape spins between the rails. Tap an arc to change it; Spin plays the turn again. Undo takes back the last arc.",
+   "rules": [
+    "Each gap between neighbouring corners gets one arc, drawn round a centre like a compass. The centre must be the same distance from both corners, or the arc misses.",
+    "When every gap has an arc, the shape turns between two rails: the bottom rail stays, and the top rail rests on the shape.",
+    "If the top rail never moves, the shape spins snug. If it moves, the shape stops at a turn where the gap has changed."
+   ],
+   "idea": "One look at where the rail moves narrows down which arcs are wrong.",
+   "prerequisites": "Compare distances by eye, or with a compass in mind. No reading or arithmetic.",
+   "hints": [
+    "When the rail has moved, look at which arc touches it.",
+    "Arcs centred on dots inside bulge more than the others."
+   ],
+   "parent": {
+    "notice": "Whether your child uses the spin and the shape to find the wrong arcs, or changes arcs at random, and whether the three good arcs show them where the other two should be centred.",
+    "prompt": "Which arcs bulge more than the rest?",
+    "explanation": "Two arcs are centred on dots inside, so their radius is shorter than the diagonal. Centred on the corner across from their gaps, they match the other three, and every arc has the radius of a diagonal: a Reuleaux pentagon.",
+    "extension": "Fix one of the two arcs and spin. Is the shape snug yet? (No: the rail still moves at some turn.)",
+    "connection": "In a shape of constant width, each arc faces the corner at its centre across the shape, one radius away.",
+    "sourceIds": [
+     "width-week59",
+     "width-card59",
+     "width-reuleaux"
+    ]
+   },
+   "solution": {
+    "arcs": [
+     "D",
+     "E",
+     "A",
+     "B",
+     "C"
+    ]
+   },
+   "provenance": "New, after the Week 59 guide’s optional return for Problem 3 (p. 6, diagnosing an altered outline): a regular Reuleaux pentagon with two arcs of the wrong radius."
+  },
+  {
+   "id": "width-04",
+   "number": 4,
+   "title": "Five corners",
+   "difficulty_level": "medium",
    "familyTitle": "Snug spinners",
    "mechanic": "width",
    "band": "all",
@@ -549,7 +661,7 @@
     "For each gap, try the corner furthest away from it."
    ],
    "parent": {
-    "notice": "Whether your child carries the triangle’s rule over, and how they pick the “corner across” when there are five.",
+    "notice": "Whether your child carries the rule from the triangle and the wobbly pentagon over, and how they pick the “corner across” when there are five.",
     "prompt": "For the gap from A to B, which corner is as far from A as from B?",
     "explanation": "In a regular pentagon, the corner across from a side is the same distance, a diagonal, from both its ends. Centring every arc there gives five arcs of radius one diagonal. When the top rail touches an arc, the bottom rail touches the corner across, and the gap is the diagonal in every direction: a Reuleaux pentagon. Half circles on the sides bulge out and the width changes.",
     "extension": "Why not a square with four arcs? (On a square, each corner across from a side is nearer one end of it than the other, so no arc centred there joins the two ends.)",
@@ -570,118 +682,6 @@
     ]
    },
    "provenance": "New: the card’s App fit asks for a regular pentagon after the equilateral triangle of Week 59 Problem 3."
-  },
-  {
-   "id": "width-04",
-   "number": 4,
-   "title": "Wobbly pentagon",
-   "difficulty_level": "medium",
-   "familyTitle": "Snug spinners",
-   "mechanic": "width",
-   "band": "all",
-   "revision": 1,
-   "sourceDocument": "docs/width/README.md",
-   "parameters": {
-    "field": {
-     "r": 5,
-     "tx": "5/8|1/8",
-     "ty": "1"
-    },
-    "corners": {
-     "A": [
-      "0",
-      "1"
-     ],
-     "B": [
-      "-1",
-      "-1/4|1/4"
-     ],
-     "C": [
-      "1/2|-1/2",
-      "-1/4|-1/4"
-     ],
-     "D": [
-      "-1/2|1/2",
-      "-1/4|-1/4"
-     ],
-     "E": [
-      "1",
-      "-1/4|1/4"
-     ]
-    },
-    "order": [
-     "A",
-     "B",
-     "C",
-     "D",
-     "E"
-    ],
-    "pins": {
-     "iBC": [
-      "1/16|-3/16",
-      "-1/4|1/16"
-     ],
-     "iDE": [
-      "-1/16|3/16",
-      "-1/4|1/16"
-     ]
-    },
-    "names": {
-     "A": "Corner A",
-     "B": "Corner B",
-     "C": "Corner C",
-     "D": "Corner D",
-     "E": "Corner E",
-     "iBC": "Dot inside, near B and C",
-     "iDE": "Dot inside, near D and E"
-    },
-    "mode": "repair",
-    "turn": 0,
-    "start": [
-     "D",
-     "iBC",
-     "A",
-     "iDE",
-     "C"
-    ]
-   },
-   "objective": "Change the arcs so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
-   "visibleObjective": "Fix the shape so it spins snug between two rails.",
-   "instruction": "Change the arcs so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
-   "controls": "A shape’s width is the gap between two parallel rails that both touch it. It spins snug when the gap stays the same all the way round. Tap a gap between two corners, then a corner or dot to centre its arc there: the arc must reach both corners. When every gap has an arc, the shape spins between the rails. Tap an arc to change it; Spin plays the turn again. Undo takes back the last arc.",
-   "rules": [
-    "Each gap between neighbouring corners gets one arc, drawn round a centre like a compass. The centre must be the same distance from both corners, or the arc misses.",
-    "When every gap has an arc, the shape turns between two rails: the bottom rail stays, and the top rail rests on the shape.",
-    "If the top rail never moves, the shape spins snug. If it moves, the shape stops at a turn where the gap has changed."
-   ],
-   "idea": "One look at where the rail moves narrows down which arcs are wrong.",
-   "prerequisites": "Compare distances by eye, or with a compass in mind. No reading or arithmetic.",
-   "hints": [
-    "When the rail has moved, look at which arc touches it.",
-    "Arcs centred on dots inside bulge more than the others."
-   ],
-   "parent": {
-    "notice": "Whether your child uses the spin and the shape to find the wrong arcs, or changes arcs at random.",
-    "prompt": "Which arcs bulge more than the rest?",
-    "explanation": "Two arcs are centred on dots inside, so their radius is shorter than the diagonal. Centred on the corner across from their gaps, they match the other three, and every arc has the radius of a diagonal: a Reuleaux pentagon.",
-    "extension": "Fix one of the two arcs and spin. Is the shape snug yet? (No: the rail still moves at some turn.)",
-    "connection": "In a shape of constant width, each arc faces the corner at its centre across the shape, one radius away.",
-    "sourceIds": [
-     "width-week59",
-     "width-card59",
-     "width-reuleaux"
-    ]
-   },
-   "solution": {
-    "arcs": [
-     "D",
-     "E",
-     "A",
-     "B",
-     "C"
-    ]
-   },
-   "provenance": "New, after the Week 59 guide’s optional return for Problem 3 (p. 6, diagnosing an altered outline): a regular Reuleaux pentagon with two arcs of the wrong radius."
   },
   {
    "id": "width-05",
@@ -921,7 +921,7 @@
   {
    "id": "width-07",
    "number": 7,
-   "title": "Almost a triangle",
+   "title": "Missing corner",
    "difficulty_level": "hard",
    "familyTitle": "Snug spinners",
    "mechanic": "width",
@@ -930,97 +930,106 @@
    "sourceDocument": "docs/width/README.md",
    "parameters": {
     "field": {
-     "r": 519267,
+     "r": 403,
      "tx": "1",
      "ty": "1"
     },
     "corners": {
-     "C": [
+     "D": [
       "0|0",
       "0|0"
      ],
-     "E": [
-      "385/493|0",
-      "-78/493|0"
+     "A": [
+      "18/73|0",
+      "-25/73|0"
+     ],
+     "C": [
+      "9/73|75/1898",
+      "-25/146|27/949"
      ],
      "B": [
-      "1|0",
-      "0|0"
-     ],
-     "A": [
-      "385/986|39/154309",
-      "-39/493|385/308618"
-     ],
-     "D": [
-      "9/29|0",
-      "21/29|0"
+      "18/73|0",
+      "48/73|0"
      ]
     },
     "order": [
-     "C",
-     "E",
-     "B",
+     "D",
      "A",
-     "D"
+     "E",
+     "C",
+     "B"
     ],
-    "pins": {
-     "mCE": [
-      "385/986|0",
-      "-39/493|0"
+    "open": "E",
+    "spots": {
+     "s1": [
+      "24107/45625|0",
+      "-13776/45625|0"
      ],
-     "mBA": [
-      "1371/1972|39/308618",
-      "-39/986|385/617236"
+     "s2": [
+      "1434/1825|0",
+      "-337/1825|0"
      ],
-     "mDC": [
-      "9/58|0",
-      "21/58|0"
+     "s3": [
+      "301/365|0",
+      "24/365|0"
      ],
-     "iCE": [
-      "385/986|13/308618",
-      "-39/493|385/1851708"
+     "s4": [
+      "40/41|0",
+      "9/41|0"
      ],
-     "iDC": [
-      "103/348|0",
-      "35/116|0"
+     "s5": [
+      "40/41|0",
+      "-9/41|0"
+     ],
+     "s6": [
+      "1|0",
+      "0|0"
      ]
     },
     "names": {
-     "C": "Corner C",
-     "E": "Corner E",
-     "B": "Corner B",
-     "A": "Corner A",
      "D": "Corner D",
-     "mCE": "Dot halfway from C to E",
-     "mBA": "Dot halfway from B to A",
-     "mDC": "Dot halfway from D to C",
-     "iCE": "Dot inside, near C and E",
-     "iDC": "Dot inside, near D and C"
+     "A": "Corner A",
+     "C": "Corner C",
+     "B": "Corner B",
+     "s1": "Spot 1",
+     "s2": "Spot 2",
+     "s3": "Spot 3",
+     "s4": "Spot 4",
+     "s5": "Spot 5",
+     "s6": "Spot 6"
     },
-    "mode": "build",
-    "turn": -6
+    "mode": "place",
+    "turn": 0,
+    "start": [
+     "C",
+     null,
+     null,
+     "A",
+     null
+    ]
    },
-   "objective": "Centre an arc across every gap so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
-   "visibleObjective": "Make a shape that spins snug between two rails.",
-   "instruction": "Centre an arc across every gap so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
-   "controls": "A shape’s width is the gap between two parallel rails that both touch it. It spins snug when the gap stays the same all the way round. Tap a gap between two corners, then a corner or dot to centre its arc there: the arc must reach both corners. When every gap has an arc, the shape spins between the rails. Tap an arc to change it; Spin plays the turn again. Undo takes back the last arc.",
+   "objective": "Put corner E on one of the spots and centre an arc across every gap so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
+   "visibleObjective": "Put corner E on a spot, then make the shape spin snug.",
+   "instruction": "Put corner E on one of the spots and centre an arc across every gap so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
+   "controls": "A shape’s width is the gap between two parallel rails that both touch it. It spins snug when the gap stays the same all the way round. Tap a spot to put the missing corner there; tap another spot to move it. Tap a gap between two corners, then a corner to centre its arc there: the arc must reach both corners. When every gap has an arc, the shape spins between the rails. Tap an arc to change it; Spin plays the turn again. Undo takes back the last step.",
    "rules": [
+    "One corner is missing. It goes on one of the spots; moving it to another spot takes away the arcs that touch it.",
     "Each gap between neighbouring corners gets one arc, drawn round a centre like a compass. The centre must be the same distance from both corners, or the arc misses.",
     "When every gap has an arc, the shape turns between two rails: the bottom rail stays, and the top rail rests on the shape.",
     "If the top rail never moves, the shape spins snug. If it moves, the shape stops at a turn where the gap has changed."
    ],
-   "idea": "Even when two corners nearly vanish, the rule is about which corner is the same distance from both ends of each gap.",
-   "prerequisites": "Use what worked for the triangle and the regular pentagon on corners that are not evenly spaced.",
+   "idea": "A snug shape’s missing corner cannot go just anywhere that looks right: it must be the width from the two corners whose arcs reach it, where two compass circles cross.",
+   "prerequisites": "Has made snug pentagons: every arc centred on the corner across from its gap, with one radius. Compares distances by eye; a compass that misses draws a circle that can be used to check which spots lie on it.",
    "hints": [
-    "Two of the gaps are short. Which corner is equally far from both ends of each?",
-    "The corner across is two corners on from the gap, going either way round."
+    "The two arcs already drawn have the radius every arc needs. Where could corner E go so that its arcs have that radius too?",
+    "E must be as far from B as A is, and as far from D as C is: where a circle round B through A crosses a circle round D through C."
    ],
    "parent": {
-    "notice": "Whether your child treats the shape as a triangle and looks for three arcs.",
-    "prompt": "Which corner is across from the short gap at the bottom?",
-    "explanation": "This pentagon is close to a triangle, but it has five corners and five gaps, and each corner is 1 unit from the two corners across from it. Each arc is centred on the corner across from its gap, the third corner after it. The short gaps get short arcs of radius 1.",
-    "extension": "If the two short gaps shrank to nothing, what shape would be left? (A Reuleaux triangle.)",
-    "connection": "Reuleaux triangles are limits of Reuleaux pentagons; among shapes of constant width w, the Reuleaux triangle has the least area (Blaschke–Lebesgue).",
+    "notice": "Whether your child tries the spots one by one, or uses the circle a missed compass draws to see which spots it passes through.",
+    "prompt": "Which spots are as far from B as A is? Which are as far from D as C is?",
+    "explanation": "The arc from A to E is centred on B, the arc from E to C on D, and the arc from B to D on E. For all of them to have the common radius (the width, the radius of the two arcs already drawn), E must be exactly the width from B and from D: on the circle round B through A and on the circle round D through C. Two circles cross in at most two points, and only one of them is on this side of BD, so exactly one spot works. Two other spots are on the first circle only, two on the second only, and one is as far from B as from D but nearer than the width: each leaves an arc whose compass misses, so no full shape can be made on them.",
+    "extension": "If A were the missing corner instead, which two corners would fix where it goes? (C and B: it is the width from both.)",
+    "connection": "Building a Reuleaux pentagon corner by corner: each new corner is where two circles of the common radius cross, the same equal steps as walking a five-pointed star.",
     "sourceIds": [
      "width-week59",
      "width-card59",
@@ -1028,20 +1037,21 @@
     ]
    },
    "solution": {
+    "corner": "s6",
     "arcs": [
-     "A",
-     "D",
      "C",
-     "E",
-     "B"
+     "B",
+     "D",
+     "A",
+     "E"
     ]
    },
-   "provenance": "New, after the card’s App fit (irregular Reuleaux pentagons)."
+   "provenance": "New, after Week 59 Problem 3 (each arc drawn with a compass from the corner across) and the card’s App fit (irregular Reuleaux pentagons): here the compass finds a corner instead of an arc."
   },
   {
    "id": "width-08",
    "number": 8,
-   "title": "Lopsided wobble",
+   "title": "Where does B go?",
    "difficulty_level": "hard",
    "familyTitle": "Snug spinners",
    "mechanic": "width",
@@ -1050,94 +1060,106 @@
    "sourceDocument": "docs/width/README.md",
    "parameters": {
     "field": {
-     "r": 286339,
+     "r": 123,
      "tx": "1",
      "ty": "1"
     },
     "corners": {
-     "E": [
+     "C": [
       "0|0",
       "0|0"
      ],
-     "B": [
-      "293/325|0",
-      "-74/325|0"
+     "E": [
+      "1071/3233|0",
+      "-1472/3233|0"
      ],
-     "D": [
+     "A": [
       "1|0",
       "0|0"
      ],
-     "C": [
-      "293/650|37/91325",
-      "-37/325|293/182650"
-     ],
-     "A": [
-      "1/25|0",
-      "7/25|0"
+     "D": [
+      "1071/6466|46368/662765",
+      "-736/3233|67473/1325530"
      ]
     },
     "order": [
-     "E",
-     "B",
-     "D",
      "C",
-     "A"
+     "E",
+     "A",
+     "D",
+     "B"
     ],
-    "pins": {
-     "mEB": [
-      "293/650|0",
-      "-37/325|0"
+    "open": "B",
+    "spots": {
+     "s1": [
+      "225/3233|0",
+      "1185/3233|0"
      ],
-     "iDC": [
-      "943/1625|74/456625",
-      "-74/1625|293/456625"
+     "s2": [
+      "8/53|0",
+      "28/53|0"
      ],
-     "iCA": [
-      "612/1625|74/456625",
-      "34/1625|293/456625"
+     "s3": [
+      "4104/16165|0",
+      "6096/16165|0"
+     ],
+     "s4": [
+      "841/3233|0",
+      "2175/3233|0"
+     ],
+     "s5": [
+      "35043/80825|0",
+      "43601/80825|0"
+     ],
+     "s6": [
+      "1430614/2020625|0",
+      "951748/2020625|0"
      ]
     },
     "names": {
-     "E": "Corner E",
-     "B": "Corner B",
-     "D": "Corner D",
      "C": "Corner C",
+     "E": "Corner E",
      "A": "Corner A",
-     "mEB": "Dot halfway from E to B",
-     "iDC": "Dot inside, near D and C",
-     "iCA": "Dot inside, near C and A"
+     "D": "Corner D",
+     "s1": "Spot 1",
+     "s2": "Spot 2",
+     "s3": "Spot 3",
+     "s4": "Spot 4",
+     "s5": "Spot 5",
+     "s6": "Spot 6"
     },
-    "mode": "repair",
+    "mode": "place",
     "turn": 0,
     "start": [
+     "D",
+     null,
      "C",
-     "A",
-     "iDC",
-     "iCA",
-     "D"
+     null,
+     null
     ]
    },
-   "objective": "Change the arcs so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
-   "visibleObjective": "Fix the shape so it spins snug between two rails.",
-   "instruction": "Change the arcs so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
-   "controls": "A shape’s width is the gap between two parallel rails that both touch it. It spins snug when the gap stays the same all the way round. Tap a gap between two corners, then a corner or dot to centre its arc there: the arc must reach both corners. When every gap has an arc, the shape spins between the rails. Tap an arc to change it; Spin plays the turn again. Undo takes back the last arc.",
+   "objective": "Put corner B on one of the spots and centre an arc across every gap so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
+   "visibleObjective": "Put corner B on a spot, then make the shape spin snug.",
+   "instruction": "Put corner B on one of the spots and centre an arc across every gap so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
+   "controls": "A shape’s width is the gap between two parallel rails that both touch it. It spins snug when the gap stays the same all the way round. Tap a spot to put the missing corner there; tap another spot to move it. Tap a gap between two corners, then a corner to centre its arc there: the arc must reach both corners. When every gap has an arc, the shape spins between the rails. Tap an arc to change it; Spin plays the turn again. Undo takes back the last step.",
    "rules": [
+    "One corner is missing. It goes on one of the spots; moving it to another spot takes away the arcs that touch it.",
     "Each gap between neighbouring corners gets one arc, drawn round a centre like a compass. The centre must be the same distance from both corners, or the arc misses.",
     "When every gap has an arc, the shape turns between two rails: the bottom rail stays, and the top rail rests on the shape.",
     "If the top rail never moves, the shape spins snug. If it moves, the shape stops at a turn where the gap has changed."
    ],
-   "idea": "On a lopsided shape, an arc is right only when centred on the corner across, with the common radius; a half circle is another way to be wrong.",
-   "prerequisites": "Use what worked for the triangle and the regular pentagon on corners that are not evenly spaced.",
+   "idea": "Each corner of a Reuleaux pentagon is fixed by two others: it is the width from both.",
+   "prerequisites": "Has made snug pentagons: every arc centred on the corner across from its gap, with one radius. Compares distances by eye; a compass that misses draws a circle that can be used to check which spots lie on it.",
    "hints": [
-    "Look at where the rail moves and which arc touches it then.",
-    "An arc centred on a dot bulges more than one centred on a corner."
+    "The two arcs already drawn have the radius every arc needs. Where could corner B go so that its arcs have that radius too?",
+    "B must be as far from E as D is, and as far from A as C is: where a circle round E through D crosses a circle round A through C."
    ],
    "parent": {
-    "notice": "Whether your child finds the wrong arcs from the spin or by comparing how curved the arcs look, and whether they try the half circle.",
-    "prompt": "Which arcs are centred on corners now, and which on dots?",
-    "explanation": "Two arcs are centred on dots inside, so their radius is shorter than 1 and they bulge. Centre each on the corner across from its gap and all five have radius 1, the common length of the star diagonals. A half circle, centred on the dot in the middle of a gap, has the wrong radius too.",
-    "extension": "Tap each arc: which corner is it centred on? Is every corner the centre of exactly one arc?",
-    "connection": "In a Reuleaux polygon every corner is the centre of exactly one arc, the one across from it.",
+    "notice": "Whether your child tries the spots one by one, or uses the circle a missed compass draws to see which spots it passes through.",
+    "prompt": "Which spots are as far from E as D is? Which are as far from A as C is?",
+    "explanation": "The arc from D to B is centred on E, the arc from B to C on A, and the arc from E to A on B. For all of them to have the common radius (the width, the radius of the two arcs already drawn), B must be exactly the width from E and from A: on the circle round E through D and on the circle round A through C. Two circles cross in at most two points, and only one of them is on this side of EA, so exactly one spot works. Two other spots are on the first circle only, two on the second only, and one is as far from E as from A but nearer than the width: each leaves an arc whose compass misses, so no full shape can be made on them.",
+    "extension": "If D were the missing corner instead, which two corners would fix where it goes? (C and E: it is the width from both.)",
+    "connection": "Building a Reuleaux pentagon corner by corner: each new corner is where two circles of the common radius cross, the same equal steps as walking a five-pointed star.",
     "sourceIds": [
      "width-week59",
      "width-card59",
@@ -1145,20 +1167,21 @@
     ]
    },
    "solution": {
+    "corner": "s2",
     "arcs": [
-     "C",
-     "A",
-     "E",
+     "D",
      "B",
-     "D"
+     "C",
+     "E",
+     "A"
     ]
    },
-   "provenance": "New, after the Week 59 guide’s optional return for Problem 3 (p. 6, diagnosing an altered outline), on an irregular Reuleaux pentagon."
+   "provenance": "New, after Week 59 Problem 3 (each arc drawn with a compass from the corner across) and the card’s App fit (irregular Reuleaux pentagons): here the compass finds a corner instead of an arc."
   },
   {
    "id": "width-09",
    "number": 9,
-   "title": "Kite",
+   "title": "Last corner",
    "difficulty_level": "hard",
    "familyTitle": "Snug spinners",
    "mechanic": "width",
@@ -1167,113 +1190,123 @@
    "sourceDocument": "docs/width/README.md",
    "parameters": {
     "field": {
-     "r": 286339,
+     "r": 763,
      "tx": "1",
      "ty": "1"
     },
     "corners": {
-     "A": [
+     "C": [
       "0|0",
       "0|0"
      ],
-     "D": [
-      "293/325|0",
-      "-74/325|0"
+     "E": [
+      "121/221|0",
+      "-110/221|0"
      ],
-     "C": [
+     "B": [
       "1|0",
       "0|0"
      ],
-     "E": [
-      "293/650|37/91325",
-      "-37/325|293/182650"
-     ],
-     "B": [
-      "1/25|0",
-      "7/25|0"
+     "D": [
+      "1/13|0",
+      "5/13|0"
      ]
     },
     "order": [
+     "C",
+     "E",
+     "B",
+     "A",
+     "D"
+    ],
+    "open": "A",
+    "spots": {
+     "s1": [
+      "50523/276250|787/138125",
+      "-60093/138125|9157/276250"
+     ],
+     "s2": [
+      "1188/5525|163/11050",
+      "-3707/11050|167/5525"
+     ],
+     "s3": [
+      "121/442|4/221",
+      "-55/221|22/1105"
+     ],
+     "s4": [
+      "2915/9061|301/18122",
+      "-3311/18122|265/9061"
+     ],
+     "s5": [
+      "121/442|5/221",
+      "-55/221|11/442"
+     ],
+     "s6": [
+      "1925/9061|499/18122",
+      "-5489/18122|175/9061"
+     ]
+    },
+    "names": {
+     "C": "Corner C",
+     "E": "Corner E",
+     "B": "Corner B",
+     "D": "Corner D",
+     "s1": "Spot 1",
+     "s2": "Spot 2",
+     "s3": "Spot 3",
+     "s4": "Spot 4",
+     "s5": "Spot 5",
+     "s6": "Spot 6"
+    },
+    "mode": "place",
+    "turn": 0,
+    "start": [
+     null,
+     "D",
+     null,
+     null,
+     "B"
+    ]
+   },
+   "objective": "Put corner A on one of the spots and centre an arc across every gap so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
+   "visibleObjective": "Put corner A on a spot, then make the shape spin snug.",
+   "instruction": "Put corner A on one of the spots and centre an arc across every gap so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
+   "controls": "A shape’s width is the gap between two parallel rails that both touch it. It spins snug when the gap stays the same all the way round. Tap a spot to put the missing corner there; tap another spot to move it. Tap a gap between two corners, then a corner to centre its arc there: the arc must reach both corners. When every gap has an arc, the shape spins between the rails. Tap an arc to change it; Spin plays the turn again. Undo takes back the last step.",
+   "rules": [
+    "One corner is missing. It goes on one of the spots; moving it to another spot takes away the arcs that touch it.",
+    "Each gap between neighbouring corners gets one arc, drawn round a centre like a compass. The centre must be the same distance from both corners, or the arc misses.",
+    "When every gap has an arc, the shape turns between two rails: the bottom rail stays, and the top rail rests on the shape.",
+    "If the top rail never moves, the shape spins snug. If it moves, the shape stops at a turn where the gap has changed."
+   ],
+   "idea": "With four corners of a snug pentagon in place, there is exactly one place for the fifth.",
+   "prerequisites": "Has made snug pentagons: every arc centred on the corner across from its gap, with one radius. Compares distances by eye; a compass that misses draws a circle that can be used to check which spots lie on it.",
+   "hints": [
+    "The two arcs already drawn have the radius every arc needs. Where could corner A go so that its arcs have that radius too?",
+    "A must be as far from C as B is, and as far from E as D is: where a circle round C through B crosses a circle round E through D."
+   ],
+   "parent": {
+    "notice": "Whether your child tries the spots one by one, or uses the circle a missed compass draws to see which spots it passes through.",
+    "prompt": "Which spots are as far from C as B is? Which are as far from E as D is?",
+    "explanation": "The arc from B to A is centred on C, the arc from A to D on E, and the arc from C to E on A. For all of them to have the common radius (the width, the radius of the two arcs already drawn), A must be exactly the width from C and from E: on the circle round C through B and on the circle round E through D. Two circles cross in at most two points, and only one of them is on this side of CE, so exactly one spot works. Two other spots are on the first circle only, two on the second only, and one is as far from C as from E but nearer than the width: each leaves an arc whose compass misses, so no full shape can be made on them.",
+    "extension": "If B were the missing corner instead, which two corners would fix where it goes? (D and C: it is the width from both.)",
+    "connection": "Building a Reuleaux pentagon corner by corner: each new corner is where two circles of the common radius cross, the same equal steps as walking a five-pointed star.",
+    "sourceIds": [
+     "width-week59",
+     "width-card59",
+     "width-reuleaux"
+    ]
+   },
+   "solution": {
+    "corner": "s5",
+    "arcs": [
      "A",
      "D",
      "C",
      "E",
      "B"
-    ],
-    "pins": {
-     "mAD": [
-      "293/650|0",
-      "-37/325|0"
-     ],
-     "mCE": [
-      "943/1300|37/182650",
-      "-37/650|293/365300"
-     ],
-     "mEB": [
-      "319/1300|37/182650",
-      "27/325|293/365300"
-     ],
-     "iCE": [
-      "943/1625|74/456625",
-      "-74/1625|293/456625"
-     ],
-     "iEB": [
-      "612/1625|74/456625",
-      "34/1625|293/456625"
-     ]
-    },
-    "names": {
-     "A": "Corner A",
-     "D": "Corner D",
-     "C": "Corner C",
-     "E": "Corner E",
-     "B": "Corner B",
-     "mAD": "Dot halfway from A to D",
-     "mCE": "Dot halfway from C to E",
-     "mEB": "Dot halfway from E to B",
-     "iCE": "Dot inside, near C and E",
-     "iEB": "Dot inside, near E and B"
-    },
-    "mode": "build",
-    "turn": 0
-   },
-   "objective": "Centre an arc across every gap so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
-   "visibleObjective": "Make a shape that spins snug between two rails.",
-   "instruction": "Centre an arc across every gap so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
-   "controls": "A shape’s width is the gap between two parallel rails that both touch it. It spins snug when the gap stays the same all the way round. Tap a gap between two corners, then a corner or dot to centre its arc there: the arc must reach both corners. When every gap has an arc, the shape spins between the rails. Tap an arc to change it; Spin plays the turn again. Undo takes back the last arc.",
-   "rules": [
-    "Each gap between neighbouring corners gets one arc, drawn round a centre like a compass. The centre must be the same distance from both corners, or the arc misses.",
-    "When every gap has an arc, the shape turns between two rails: the bottom rail stays, and the top rail rests on the shape.",
-    "If the top rail never moves, the shape spins snug. If it moves, the shape stops at a turn where the gap has changed."
-   ],
-   "idea": "The same construction works however the corners are spread, as long as the star diagonals are equal.",
-   "prerequisites": "Use what worked for the triangle and the regular pentagon on corners that are not evenly spaced.",
-   "hints": [
-    "For each gap, find the corner that is the same distance from both its ends.",
-    "The corner across is two corners on from the gap, going either way round."
-   ],
-   "parent": {
-    "notice": "Whether your child now goes straight to the corner across, or still tries the dots.",
-    "prompt": "How do you find the corner across from a gap without measuring?",
-    "explanation": "Going round the pentagon, the corner across from the gap between corners 1 and 2 is corner 4: two corners on from the gap either way round. Each corner is 1 unit from the two corners across from it, so every arc centred there has radius 1 and the shape has width 1. The dots in the middle of gaps and inside give arcs of other radii.",
-    "extension": "Make your own: five sticks of one length joined end to end into a five-pointed star. Its points are the corners of a pentagon like this one.",
-    "connection": "A Reuleaux polygon comes from an odd polygon whose star diagonals are all equal: walking the star is a closed path of equal steps.",
-    "sourceIds": [
-     "width-week59",
-     "width-card59",
-     "width-reuleaux"
     ]
    },
-   "solution": {
-    "arcs": [
-     "E",
-     "B",
-     "A",
-     "D",
-     "C"
-    ]
-   },
-   "provenance": "New, after the card’s App fit (irregular Reuleaux pentagons)."
+   "provenance": "New, after Week 59 Problem 3 (each arc drawn with a compass from the corner across) and the card’s App fit (irregular Reuleaux pentagons): here the compass finds a corner instead of an arc."
   }
  ]
 }

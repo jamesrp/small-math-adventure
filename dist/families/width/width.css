@@ -1,8 +1,9 @@
 /* Snug spinners: a paper card with ink corners on sun discs, dashed gaps
    and ink arcs while building; a sun shape between two ink rails while it
-   spins, with a dashed line where the top rail started. Pine marks the
-   chosen gap and a rail that never moved; ochre marks a compass that missed,
-   the band the top rail moved through, and hints. */
+   spins, with a dashed line where the top rail started; hollow spots where a
+   missing corner may go. Pine marks the chosen gap and a rail that never
+   moved; ochre marks a compass that missed, the band the top rail moved
+   through, and hints. */
 [data-mechanic-wire="width"]{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
 [data-mechanic-wire="width"] .wd-bar{display:flex;justify-content:flex-end;gap:.4rem;width:100%;max-width:360px}
 [data-mechanic-wire="width"] .wd-bar.wd-shapes{justify-content:center;flex-wrap:wrap;gap:.3rem}
@@ -61,7 +62,7 @@
 [data-mechanic-wire="width"].wd-anim .wd-final{display:none}
 [data-mechanic-wire="width"].wd-anim .wd-hit{pointer-events:none}
 
-/* Playground: shape picker, the mark O and the turn buttons. */
+/* Playground: shape picker (outline and corner dots), the mark O and the turn buttons. */
 [data-mechanic-wire="width"] .wd-pick{width:2.4rem;height:2.4rem;min-width:0;min-height:0;padding:.15rem;display:inline-flex;align-items:center;justify-content:center}
 [data-mechanic-wire="width"] .wd-pick[aria-pressed="true"]{opacity:1;background:rgba(239,199,110,.45);border-color:var(--b-ink,#294439);cursor:default}
 [data-mechanic-wire="width"] .wd-icon{width:100%;height:100%}
@@ -69,3 +70,9 @@
 [data-mechanic-wire="width"] .wd-mark{fill:var(--b-ink,#294439);stroke:var(--b-card,#fffdf5);stroke-width:1.5px}
 [data-mechanic-wire="width"] .wd-mark-label{font-size:13px;font-style:italic;font-weight:400}
 [data-mechanic-wire="width"] .wd-turn-button{min-width:3.2rem;font-size:1.25rem}
+
+/* Placing a corner: the dotted line where it goes, and hollow spots. */
+[data-mechanic-wire="width"] .wd-open{fill:none;stroke:var(--b-ink,#294439);stroke-width:2px;stroke-dasharray:1 6;stroke-linecap:round;opacity:.6}
+[data-mechanic-wire="width"] .wd-ring{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:2.2px}
+[data-mechanic-wire="width"] .wd-spot.hinted .wd-ring{stroke:var(--b-ochre,#b38840);stroke-width:4px}
+[data-mechanic-wire="width"] .wd-icon circle{fill:var(--b-ink,#294439)}

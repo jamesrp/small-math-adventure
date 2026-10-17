@@ -1,11 +1,13 @@
 // Authoring list for Snug spinners (worksheet Week 59). Builds every puzzle's
-// corners and dots exactly in Q(√r), checks that the corners make a convex
-// polygon whose star diagonals are all equal (so the arcs centred on the
-// corners across make a Reuleaux polygon), finds which points may centre which
-// gap with the mechanic's exact test, measures how far the width moves for
-// every other full shape a child can make, and writes
-// dist/families/width/width.json. Run: node scripts/build-width.mjs
-// (add --report to print the measurements).
+// corners, dots and spots exactly in Q(√r), checks that the corners make a
+// convex polygon whose star diagonals are all equal (so the arcs centred on
+// the corners across make a Reuleaux polygon), finds which points may centre
+// which gap with the mechanic's exact test, measures how far the width moves
+// for every other full shape a child can make and how far every missed
+// compass misses, checks that in the hard puzzles exactly one spot can take
+// the missing corner and that every other spot leaves a compass that misses,
+// and writes dist/families/width/width.json.
+// Run: node scripts/build-width.mjs (add --report to print the measurements).
 import {writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {field, frac} from '../dist/families/width/surd.js';
@@ -56,11 +58,13 @@ const T = (n, d) => [BigInt(n), BigInt(d)];
 const SHAPES = {
   triangle: triangle(),
   pentagon: pentagon(),
-  // Unit steps from the triples 3-4-5, 8-15-17, 20-21-29 and 7-24-25 / 33-56-65.
+  // Unit steps from the triples 3-4-5, 5-12-13, 8-15-17, 11-60-61, 28-45-53
+  // and 48-55-73.
   lopsided: reuleaux5([T(-4, 5), T(3, 5)], [T(8, 17), T(-15, 17)]),
   long: reuleaux5([T(-3, 5), T(4, 5)], [T(0, 1), T(-1, 1)]),
-  slim: reuleaux5([T(-20, 29), T(21, 29)], [T(8, 17), T(-15, 17)]),
-  kite: reuleaux5([T(-24, 25), T(7, 25)], [T(56, 65), T(-33, 65)])
+  pairs: reuleaux5([T(-55, 73), T(48, 73)], [T(0, 1), T(-1, 1)]),
+  house: reuleaux5([T(-45, 53), T(28, 53)], [T(11, 61), T(-60, 61)]),
+  tilted: reuleaux5([T(-12, 13), T(5, 13)], [T(8, 17), T(-15, 17)])
 };
 
 if (process.argv.includes('--shapes')) { console.log(JSON.stringify(SHAPES)); process.exit(0); }
@@ -91,24 +95,72 @@ function withDots(base, list, letters) {
 const mids = n => Array.from({length: n}, (_, i) => [i, '0']);
 
 // ---------------------------------------------------------------------------
+// Place puzzles: four corners of an irregular Reuleaux pentagon, the fifth
+// (the corner o places round the shape) missing, and spots where it might go.
+// The corner belongs where it is the width from the two corners whose arcs
+// reach it, P(o+2) and P(o+3): where the circles of that radius round them
+// cross. The other spots are exact too: S turned round P(o+2) ("first") or
+// P(o+3) ("second") by rational rotations, so on one circle and not the
+// other, and one on the perpendicular bisector of P(o+2)P(o+3), nearer than
+// the width (t of the way from its middle to S).
+const ROT = {'9/41': [40, 9, 41], '7/25': [24, 7, 25], '11/61': [60, 11, 61]};
+function place(base, letters, o, spots, turn) {
+  const F = field(base.field.r), names0 = Object.keys(base.corners), order = [...letters], n = order.length;
+  const at = Object.fromEntries(order.map((id, i) => [id, base.corners[names0[i]].map(v => F.parse(v))]));
+  const k = j => order[(o + j + n) % n], S = at[k(0)], centre = {first: at[k(2)], second: at[k(3)]};
+  const rotate = (C, V, [x, y, h], sign) => {
+    const c = F.of(`${x}/${h}`), s = F.of(`${sign < 0 ? '-' : ''}${y}/${h}`), dx = F.sub(V[0], C[0]), dy = F.sub(V[1], C[1]);
+    return [F.add(C[0], F.sub(F.mul(c, dx), F.mul(s, dy))), F.add(C[1], F.add(F.mul(s, dx), F.mul(c, dy)))];
+  };
+  const raw = [{kind: 'the corner', pt: S}];
+  for (const [which, rot, sign, times] of spots.turns) {
+    let pt = S;
+    for (let t = 0; t < times; t++) pt = rotate(centre[which], pt, ROT[rot], sign);
+    raw.push({kind: `${which} circle`, pt});
+  }
+  const half = F.of('1/2'), A = centre.first, B = centre.second, M = [0, 1].map(j => F.mul(half, F.add(A[j], B[j]))), t = F.of(spots.bisector);
+  raw.push({kind: 'bisector', pt: [0, 1].map(j => F.add(M[j], F.mul(t, F.sub(S[j], M[j]))))});
+  // Spots are numbered left to right as drawn.
+  const th = turn * Math.PI / 180, bx = pt => Math.cos(th) * F.float(pt[0]) - Math.sin(th) * F.float(pt[1]);
+  raw.sort((u, v) => bx(u.pt) - bx(v.pt));
+  const ids = raw.map((_, i) => `s${i + 1}`), fixed = order.filter(id => id !== k(0));
+  return {
+    params: {
+      field: base.field, corners: Object.fromEntries(fixed.map(id => [id, at[id].map(v => F.str(v))])), order, open: k(0),
+      spots: Object.fromEntries(raw.map((r, i) => [ids[i], r.pt.map(v => F.str(v))])),
+      names: Object.fromEntries([...fixed.map(id => [id, `Corner ${id}`]), ...ids.map((id, i) => [id, `Spot ${i + 1}`])])
+    },
+    kinds: Object.fromEntries(raw.map((r, i) => [ids[i], r.kind])),
+    right: ids[raw.findIndex(r => r.kind === 'the corner')]
+  };
+}
+// The letters round a place puzzle: the missing corner X, its neighbours, and
+// the two corners whose arcs reach it.
+function roles(letters, o) { const n = letters.length, k = j => letters[(o + j + n) % n]; return {X: k(0), prev: k(-1), next: k(1), c1: k(2), c2: k(3)}; }
+
+// ---------------------------------------------------------------------------
 // Copy.
 
 const WIDTH = 'A shape’s width is the gap between two parallel rails that both touch it. It spins snug when the gap stays the same all the way round.';
 const CONTROLS = `${WIDTH} Tap a gap between two corners, then a corner or dot to centre its arc there: the arc must reach both corners. When every gap has an arc, the shape spins between the rails. Tap an arc to change it; Spin plays the turn again. Undo takes back the last arc.`;
+const CONTROLS_PLACE = `${WIDTH} Tap a spot to put the missing corner there; tap another spot to move it. Tap a gap between two corners, then a corner to centre its arc there: the arc must reach both corners. When every gap has an arc, the shape spins between the rails. Tap an arc to change it; Spin plays the turn again. Undo takes back the last step.`;
 const RULES = [
   'Each gap between neighbouring corners gets one arc, drawn round a centre like a compass. The centre must be the same distance from both corners, or the arc misses.',
   'When every gap has an arc, the shape turns between two rails: the bottom rail stays, and the top rail rests on the shape.',
   'If the top rail never moves, the shape spins snug. If it moves, the shape stops at a turn where the gap has changed.'
 ];
+const PLACE_RULE = 'One corner is missing. It goes on one of the spots; moving it to another spot takes away the arcs that touch it.';
 const OBJECTIVE = {
   build: 'Centre an arc across every gap so that the shape spins snug between two rails: the gap between the rails never changes as it turns.',
-  repair: 'Change the arcs so that the shape spins snug between two rails: the gap between the rails never changes as it turns.'
+  repair: 'Change the arcs so that the shape spins snug between two rails: the gap between the rails never changes as it turns.',
+  place: X => `Put corner ${X} on one of the spots and centre an arc across every gap so that the shape spins snug between two rails: the gap between the rails never changes as it turns.`
 };
-const VISIBLE = {build: 'Make a shape that spins snug between two rails.', repair: 'Fix the shape so it spins snug between two rails.'};
+const VISIBLE = {build: 'Make a shape that spins snug between two rails.', repair: 'Fix the shape so it spins snug between two rails.', place: X => `Put corner ${X} on a spot, then make the shape spin snug.`};
 const PREREQ = {
   triangle: 'None beyond seeing which corner is far from a gap. Tapping and watching; a grown-up can read How to play.',
   pentagon: 'Compare distances by eye, or with a compass in mind. No reading or arithmetic.',
-  irregular: 'Use what worked for the triangle and the regular pentagon on corners that are not evenly spaced.'
+  irregular: 'Use what worked for the triangle and the regular pentagon on corners that are not evenly spaced.',
+  place: 'Has made snug pentagons: every arc centred on the corner across from its gap, with one radius. Compares distances by eye; a compass that misses draws a circle that can be used to check which spots lie on it.'
 };
 const sources = ['width-week59', 'width-card59', 'width-reuleaux'];
 
@@ -118,23 +170,23 @@ const PUZZLES = [
   {number: 1, level: 'easy', title: 'Three corners', shape: 'triangle', dots: mids(3), mode: 'build', prereq: 'triangle', turn: 0,
     idea: 'An arc centred on the corner across its gap keeps the same reach in every direction: the curved triangle spins snug.',
     hints: ['When the top rail touches an arc, what is touching the bottom rail?', 'Try putting the compass point on the corner across from the gap.'],
-    parent: {notice: 'Whether your child tries the dots in the middle first. Half circles bulge too far: the width changes as the shape turns.', prompt: 'When the shape turns, which point of it touches the bottom rail while the top rail touches an arc?', explanation: 'Centre each arc on the corner across from its gap. Each arc then has radius equal to the side, 2 units here. Whenever one rail touches an arc, the other touches that arc’s centre corner, and the gap between the rails is the radius. Every direction is like this, so the width never changes: this is the Reuleaux triangle. Half circles on the sides (the dots in the middle) make a shape that is wider across a bulge than corner to bulge.', extension: 'Is the curved triangle’s width the same as its corners’ distance apart? (Yes: the radius is the side.)', connection: 'The Reuleaux triangle: the worksheet’s Problems 3 and 4.'},
+    parent: {notice: 'Whether your child tries the dots in the middle first. Half circles bulge too far: the width changes as the shape turns.', prompt: 'When the shape turns, which point of it touches the bottom rail while the top rail touches an arc?', explanation: 'Centre each arc on the corner across from its gap. Each arc then has radius equal to the side, 2 units here. Whenever one rail touches an arc, the other touches that arc’s centre corner, and the gap between the rails is the radius. Every direction is like this, so the width never changes: this is the Reuleaux triangle. With half circles on the sides instead (centred on the dots in the middle), the shape is 3 units wide along a side but only 2 + √3/2, about 2.87, across it, and no corner ever touches a rail.', extension: 'Is the curved triangle’s width the same as its corners’ distance apart? (Yes: the radius is the side.)', connection: 'The Reuleaux triangle: the worksheet’s Problems 3 and 4.'},
     provenance: 'Week 59 Problem 3 (Grades 3–5): “Each short arc joins two corners and has the third corner as its center”, with the spin test of Problems 1–2 (Grades 2–5). The dots halfway along the sides are the guide’s “center on a side midpoint”, a different construction (adult guide p. 6).'},
   {number: 2, level: 'easy', title: 'Rounded triangle', shape: 'triangle', dots: [[0, '1/2'], [1, '1/2']], start: [0, 1], mode: 'repair', prereq: 'triangle', turn: 0,
     idea: 'Rounded is not enough: each arc must be drawn from the corner across, with the shape’s width as its radius.',
     hints: ['Watch where the top rail moves. Which arc is touching it then?', 'An arc centred on a dot inside bulges more than one centred on a corner.'],
     parent: {notice: 'Whether your child can tell from the shape which arcs are wrong, and changes one at a time to watch the spin.', prompt: 'The rounded arcs look smooth. Why is the shape wider one way than another?', explanation: 'Two arcs are centred on dots inside the triangle, so their radius is shorter than the side and they bulge more. A rail resting on such an arc is one radius from its centre, a dot inside, and the other rail is on the far side of that dot by an amount that changes as the shape turns. Centring every arc on the corner across from it gives every arc the radius of the side, and then the gap is that radius in every direction.', extension: 'On the curved triangle, which is wider: corner to the arc opposite, or arc to arc? (Neither. Every direction gives the radius.)', connection: 'The worksheet guide’s rounded triangles, whose arcs are not centred on the corners, beside the exact curved triangle of Problem 3.'},
     provenance: 'Week 59 Problem 3 (Grades 3–5) and the adult guide’s optional return (p. 6): “let children diagnose such a deliberately altered scrap outline by finding a changing-width witness.”'},
-  {number: 3, level: 'easy', title: 'Five corners', shape: 'pentagon', dots: mids(5), mode: 'build', prereq: 'pentagon', turn: 0,
-    idea: 'The triangle’s idea works with five corners: each arc is centred on the corner across from its gap.',
-    hints: ['Which corner is the same distance from both corners of a gap?', 'For each gap, try the corner furthest away from it.'],
-    parent: {notice: 'Whether your child carries the triangle’s rule over, and how they pick the “corner across” when there are five.', prompt: 'For the gap from A to B, which corner is as far from A as from B?', explanation: 'In a regular pentagon, the corner across from a side is the same distance, a diagonal, from both its ends. Centring every arc there gives five arcs of radius one diagonal. When the top rail touches an arc, the bottom rail touches the corner across, and the gap is the diagonal in every direction: a Reuleaux pentagon. Half circles on the sides bulge out and the width changes.', extension: 'Why not a square with four arcs? (On a square, each corner across from a side is nearer one end of it than the other, so no arc centred there joins the two ends.)', connection: 'Reuleaux polygons exist for every odd number of corners; the British 20p and 50p coins are Reuleaux heptagons.'},
-    provenance: 'New: the card’s App fit asks for a regular pentagon after the equilateral triangle of Week 59 Problem 3.'},
-  {number: 4, level: 'medium', title: 'Wobbly pentagon', shape: 'pentagon', dots: [[1, '1/4'], [3, '1/4']], start: [1, 3], mode: 'repair', prereq: 'pentagon', turn: 0,
+  {number: 3, level: 'easy', title: 'Wobbly pentagon', shape: 'pentagon', dots: [[1, '1/4'], [3, '1/4']], start: [1, 3], mode: 'repair', prereq: 'pentagon', turn: 0,
     idea: 'One look at where the rail moves narrows down which arcs are wrong.',
     hints: ['When the rail has moved, look at which arc touches it.', 'Arcs centred on dots inside bulge more than the others.'],
-    parent: {notice: 'Whether your child uses the spin and the shape to find the wrong arcs, or changes arcs at random.', prompt: 'Which arcs bulge more than the rest?', explanation: 'Two arcs are centred on dots inside, so their radius is shorter than the diagonal. Centred on the corner across from their gaps, they match the other three, and every arc has the radius of a diagonal: a Reuleaux pentagon.', extension: 'Fix one of the two arcs and spin. Is the shape snug yet? (No: the rail still moves at some turn.)', connection: 'In a shape of constant width, each arc faces the corner at its centre across the shape, one radius away.'},
+    parent: {notice: 'Whether your child uses the spin and the shape to find the wrong arcs, or changes arcs at random, and whether the three good arcs show them where the other two should be centred.', prompt: 'Which arcs bulge more than the rest?', explanation: 'Two arcs are centred on dots inside, so their radius is shorter than the diagonal. Centred on the corner across from their gaps, they match the other three, and every arc has the radius of a diagonal: a Reuleaux pentagon.', extension: 'Fix one of the two arcs and spin. Is the shape snug yet? (No: the rail still moves at some turn.)', connection: 'In a shape of constant width, each arc faces the corner at its centre across the shape, one radius away.'},
     provenance: 'New, after the Week 59 guide’s optional return for Problem 3 (p. 6, diagnosing an altered outline): a regular Reuleaux pentagon with two arcs of the wrong radius.'},
+  {number: 4, level: 'medium', title: 'Five corners', shape: 'pentagon', dots: mids(5), mode: 'build', prereq: 'pentagon', turn: 0,
+    idea: 'The triangle’s idea works with five corners: each arc is centred on the corner across from its gap.',
+    hints: ['Which corner is the same distance from both corners of a gap?', 'For each gap, try the corner furthest away from it.'],
+    parent: {notice: 'Whether your child carries the rule from the triangle and the wobbly pentagon over, and how they pick the “corner across” when there are five.', prompt: 'For the gap from A to B, which corner is as far from A as from B?', explanation: 'In a regular pentagon, the corner across from a side is the same distance, a diagonal, from both its ends. Centring every arc there gives five arcs of radius one diagonal. When the top rail touches an arc, the bottom rail touches the corner across, and the gap is the diagonal in every direction: a Reuleaux pentagon. Half circles on the sides bulge out and the width changes.', extension: 'Why not a square with four arcs? (On a square, each corner across from a side is nearer one end of it than the other, so no arc centred there joins the two ends.)', connection: 'Reuleaux polygons exist for every odd number of corners; the British 20p and 50p coins are Reuleaux heptagons.'},
+    provenance: 'New: the card’s App fit asks for a regular pentagon after the equilateral triangle of Week 59 Problem 3.'},
   {number: 5, letters: 'BEADC', level: 'medium', title: 'Lopsided', shape: 'lopsided', dots: mids(5), mode: 'build', prereq: 'irregular', turn: 12,
     idea: 'Corners need not be evenly spaced: when each corner is the same distance from both corners across from it, the curved shape spins snug.',
     hints: ['Which corner is the same distance from both corners of this gap?', 'The arc for each gap is centred on the corner across from it, as for the regular pentagon.'],
@@ -145,36 +197,78 @@ const PUZZLES = [
     hints: ['Look for the corner that is the same distance from both ends of the short gap.', 'Each arc is centred on the corner across from its gap.'],
     parent: {notice: 'Whether the very short gap confuses your child: its arc is short but has the same radius as the others.', prompt: 'The short arc and the long arc: which has the bigger radius?', explanation: 'All five radii are the same: each corner is 1 unit from the two corners across from it. The short gap’s arc is a small piece of a big circle. Centring each arc on the corner across makes a Reuleaux pentagon of width 1.', extension: 'In the playground, compare this shape with the regular curved pentagon. Do they look the same width?', connection: 'Barbier’s theorem: every shape of constant width w has perimeter πw, however lopsided.'},
     provenance: 'New, after Week 59 Problems 3–4 and the card’s App fit.'},
-  {number: 7, letters: 'CEBAD', level: 'hard', title: 'Almost a triangle', shape: 'slim', dots: [[0, '0'], [2, '0'], [4, '0'], [0, '1/6'], [4, '1/6']], mode: 'build', prereq: 'irregular', turn: -6,
-    idea: 'Even when two corners nearly vanish, the rule is about which corner is the same distance from both ends of each gap.',
-    hints: ['Two of the gaps are short. Which corner is equally far from both ends of each?', 'The corner across is two corners on from the gap, going either way round.'],
-    parent: {notice: 'Whether your child treats the shape as a triangle and looks for three arcs.', prompt: 'Which corner is across from the short gap at the bottom?', explanation: 'This pentagon is close to a triangle, but it has five corners and five gaps, and each corner is 1 unit from the two corners across from it. Each arc is centred on the corner across from its gap, the third corner after it. The short gaps get short arcs of radius 1.', extension: 'If the two short gaps shrank to nothing, what shape would be left? (A Reuleaux triangle.)', connection: 'Reuleaux triangles are limits of Reuleaux pentagons; among shapes of constant width w, the Reuleaux triangle has the least area (Blaschke–Lebesgue).'},
-    provenance: 'New, after the card’s App fit (irregular Reuleaux pentagons).'},
-  {number: 8, letters: 'EBDCA', level: 'hard', title: 'Lopsided wobble', shape: 'kite', dots: [[0, '0'], [2, '1/5'], [3, '1/5']], start: [2, 3], mode: 'repair', prereq: 'irregular', turn: 0,
-    idea: 'On a lopsided shape, an arc is right only when centred on the corner across, with the common radius; a half circle is another way to be wrong.',
-    hints: ['Look at where the rail moves and which arc touches it then.', 'An arc centred on a dot bulges more than one centred on a corner.'],
-    parent: {notice: 'Whether your child finds the wrong arcs from the spin or by comparing how curved the arcs look, and whether they try the half circle.', prompt: 'Which arcs are centred on corners now, and which on dots?', explanation: 'Two arcs are centred on dots inside, so their radius is shorter than 1 and they bulge. Centre each on the corner across from its gap and all five have radius 1, the common length of the star diagonals. A half circle, centred on the dot in the middle of a gap, has the wrong radius too.', extension: 'Tap each arc: which corner is it centred on? Is every corner the centre of exactly one arc?', connection: 'In a Reuleaux polygon every corner is the centre of exactly one arc, the one across from it.'},
-    provenance: 'New, after the Week 59 guide’s optional return for Problem 3 (p. 6, diagnosing an altered outline), on an irregular Reuleaux pentagon.'},
-  {number: 9, letters: 'ADCEB', level: 'hard', title: 'Kite', shape: 'kite', dots: [[0, '0'], [2, '0'], [3, '0'], [2, '1/5'], [3, '1/5']], mode: 'build', prereq: 'irregular', turn: 0,
-    idea: 'The same construction works however the corners are spread, as long as the star diagonals are equal.',
-    hints: ['For each gap, find the corner that is the same distance from both its ends.', 'The corner across is two corners on from the gap, going either way round.'],
-    parent: {notice: 'Whether your child now goes straight to the corner across, or still tries the dots.', prompt: 'How do you find the corner across from a gap without measuring?', explanation: 'Going round the pentagon, the corner across from the gap between corners 1 and 2 is corner 4: two corners on from the gap either way round. Each corner is 1 unit from the two corners across from it, so every arc centred there has radius 1 and the shape has width 1. The dots in the middle of gaps and inside give arcs of other radii.', extension: 'Make your own: five sticks of one length joined end to end into a five-pointed star. Its points are the corners of a pentagon like this one.', connection: 'A Reuleaux polygon comes from an odd polygon whose star diagonals are all equal: walking the star is a closed path of equal steps.'},
-    provenance: 'New, after the card’s App fit (irregular Reuleaux pentagons).'}
+  // Hard: put the missing corner on a spot, then build. The two arcs that
+  // neither end at the missing corner nor are centred on it are drawn.
+  {number: 7, letters: 'DAECB', open: 2, level: 'hard', title: 'Missing corner', shape: 'pairs', mode: 'place', turn: 0,
+    spots: {turns: [['first', '7/25', -1, 1], ['first', '7/25', -1, 2], ['second', '9/41', 1, 1], ['second', '9/41', -1, 1]], bisector: '4/5'},
+    idea: 'A snug shape’s missing corner cannot go just anywhere that looks right: it must be the width from the two corners whose arcs reach it, where two compass circles cross.'},
+  {number: 8, letters: 'CEADB', open: 4, level: 'hard', title: 'Where does B go?', shape: 'house', mode: 'place', turn: 0,
+    spots: {turns: [['first', '7/25', -1, 1], ['first', '7/25', -1, 2], ['second', '11/61', 1, 1], ['second', '11/61', -1, 1]], bisector: '4/5'},
+    idea: 'Each corner of a Reuleaux pentagon is fixed by two others: it is the width from both.'},
+  {number: 9, letters: 'CEBAD', open: 3, level: 'hard', title: 'Last corner', shape: 'tilted', mode: 'place', turn: 0,
+    spots: {turns: [['second', '7/25', 1, 1], ['second', '7/25', 1, 2], ['first', '9/41', 1, 1], ['first', '9/41', -1, 1]], bisector: '4/5'},
+    idea: 'With four corners of a snug pentagon in place, there is exactly one place for the fifth.'}
 ];
+// The copy for a place puzzle, from its letters.
+function placeCopy(item) {
+  const {X, prev, next, c1, c2} = roles(item.letters, item.open);
+  return {
+    hints: [`The two arcs already drawn have the radius every arc needs. Where could corner ${X} go so that its arcs have that radius too?`, `${X} must be as far from ${c1} as ${prev} is, and as far from ${c2} as ${next} is: where a circle round ${c1} through ${prev} crosses a circle round ${c2} through ${next}.`],
+    parent: {
+      notice: 'Whether your child tries the spots one by one, or uses the circle a missed compass draws to see which spots it passes through.',
+      prompt: `Which spots are as far from ${c1} as ${prev} is? Which are as far from ${c2} as ${next} is?`,
+      explanation: `The arc from ${prev} to ${X} is centred on ${c1}, the arc from ${X} to ${next} on ${c2}, and the arc from ${c1} to ${c2} on ${X}. For all of them to have the common radius (the width, the radius of the two arcs already drawn), ${X} must be exactly the width from ${c1} and from ${c2}: on the circle round ${c1} through ${prev} and on the circle round ${c2} through ${next}. Two circles cross in at most two points, and only one of them is on this side of ${c1}${c2}, so exactly one spot works. Two other spots are on the first circle only, two on the second only, and one is as far from ${c1} as from ${c2} but nearer than the width: each leaves an arc whose compass misses, so no full shape can be made on them.`,
+      extension: `If ${prev} were the missing corner instead, which two corners would fix where it goes? (${next} and ${c1}: it is the width from both.)`,
+      connection: 'Building a Reuleaux pentagon corner by corner: each new corner is where two circles of the common radius cross, the same equal steps as walking a five-pointed star.'
+    },
+    provenance: 'New, after Week 59 Problem 3 (each arc drawn with a compass from the corner across) and the card’s App fit (irregular Reuleaux pentagons): here the compass finds a corner instead of an arc.'
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Build and check.
 
+const pad = k => `width-${String(k).padStart(2, '0')}`;
+const pxApart = (L, ids, xy) => { let apart = Infinity, close = ''; ids.forEach((u, i) => ids.slice(i + 1).forEach(v => { const d = Math.hypot(xy[u][0] - xy[v][0], xy[u][1] - xy[v][1]) * L.s; if (d < apart) { apart = d; close = `${u}–${v}`; } })); return {apart, close}; };
+// Every full shape the child can make on this board (one spot, or none):
+// the least drift of the ones that are not snug, and the snug ones.
+function fullShapes(p, spot) {
+  const e = exactOf(p, spot), L = layoutOf(p), n = e.n, out = {combos: 0, least: Infinity, worstOf: '', snug: []};
+  const walk = (i, arcs) => {
+    if (i === n) { out.combos++; if (snug(p, arcs, spot)) out.snug.push(arcs.join('')); else { const px = verdictOf(p, arcs, spot).worst * L.s; if (px < out.least) { out.least = px; out.worstOf = arcs.join(''); } } return; }
+    for (const c of e.gaps[i].joins) walk(i + 1, [...arcs, c]);
+  };
+  walk(0, []);
+  return out;
+}
+// A compass on any other point misses the far corner visibly.
+function leastMiss(p, spot) {
+  const e = exactOf(p, spot), L = layoutOf(p), xy = L.pos(e.spot);
+  let miss = Infinity, missOf = '';
+  e.gaps.forEach((gap, i) => { if (gap.live) e.points.forEach(c => {
+    if (c === gap.a || c === gap.b || gap.joins.includes(c)) return;
+    const [A, B, C] = [gap.a, gap.b, c].map(id => xy[id]), px = Math.abs(Math.hypot(C[0] - A[0], C[1] - A[1]) - Math.hypot(C[0] - B[0], C[1] - B[1])) * L.s;
+    if (px < miss) { miss = px; missOf = `${gap.a}${gap.b}@${c}`; }
+  }); });
+  return {miss, missOf};
+}
+function checkCorners(item, e, F) {
+  const n = e.n, o = e.order;
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) if (j !== i && j !== (i + 1) % n) assert.equal(e.g.turn(o[i], o[(i + 1) % n], o[j]), 1, `${item.title}: convex, counterclockwise`);
+  const d0 = e.g.d2(o[0], o[across(n, 0)]);
+  for (let i = 0; i < n; i++) for (const k of [(n - 1) / 2, (n + 1) / 2]) assert.ok(F.eq(e.g.d2(o[i], o[(i + k) % n]), d0), `${item.title}: equal star diagonals`);
+  return d0;
+}
+
 const out = [];
 for (const item of PUZZLES) {
+  if (item.mode === 'place') { out.push(buildPlace(item)); continue; }
   const base = SHAPES[item.shape], params = withDots(base, item.dots, item.letters), n = params.order.length;
   // Corners make a convex polygon, counterclockwise, with equal star diagonals.
   const F = field(base.field.r);
   const probe = {id: `probe-${item.number}`, revision: 1, parameters: {...params, mode: 'build', turn: item.turn}};
   const e = exactOf(probe);
-  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) if (j !== i && j !== (i + 1) % n) assert.equal(e.g.turn(params.order[i], params.order[(i + 1) % n], params.order[j]), 1, `${item.title}: convex, counterclockwise`);
-  const d0 = e.g.d2(params.order[0], params.order[across(n, 0) % n]);
-  for (let i = 0; i < n; i++) for (const k of [(n - 1) / 2, (n + 1) / 2]) assert.ok(F.eq(e.g.d2(params.order[i], params.order[(i + k) % n]), d0), `${item.title}: equal star diagonals`);
+  const d0 = checkCorners(item, e, F);
   // Each gap may be centred on its corner across and its own dots, nothing else.
   const answer = params.order.map((_, i) => params.order[across(n, i)]);
   e.gaps.forEach((gap, i) => {
@@ -185,30 +279,16 @@ for (const item of PUZZLES) {
   });
   const start = item.start ? e.gaps.map((gap, i) => item.start.includes(i) ? `i${gap.a}${gap.b}` : answer[i]) : null;
   if (start) assert.ok(start.every((c, i) => joinable(probe, i, c)), `${item.title}: the start is legal`);
-  const p = {...probe, id: `width-${String(item.number).padStart(2, '0')}`, parameters: {...params, mode: item.mode, turn: item.turn, ...(start ? {start} : {})}};
+  const p = {...probe, id: pad(item.number), parameters: {...params, mode: item.mode, turn: item.turn, ...(start ? {start} : {})}};
   assert.ok(snug(p, answer), `${item.title}: the answer is snug`);
   // Every other full shape the child can make: the width moves visibly.
-  const L = layoutOf(p), choices = e.gaps.map(gap => gap.joins);
-  let least = Infinity, combos = 0, worstOf = null;
-  const walk = (i, arcs) => {
-    if (i === n) { combos++; const v = verdictOf(p, arcs); if (!snug(p, arcs)) { const px = v.worst * L.s; if (px < least) { least = px; worstOf = arcs.join(''); } } return; }
-    for (const c of choices[i]) walk(i + 1, [...arcs, c]);
-  };
-  walk(0, []);
-  // A compass on any other point misses the far corner visibly.
-  let miss = Infinity, missOf = '';
-  e.gaps.forEach((gap, i) => e.points.forEach(c => {
-    if (c === gap.a || c === gap.b || joinable(p, i, c)) return;
-    const [A, B, C] = [gap.a, gap.b, c].map(id => L.xy[id]), px = Math.abs(Math.hypot(C[0] - A[0], C[1] - A[1]) - Math.hypot(C[0] - B[0], C[1] - B[1])) * L.s;
-    if (px < miss) { miss = px; missOf = `${gap.a}${gap.b}@${c}`; }
-  }));
-  // Corners and dots far enough apart to tap one or the other.
-  let apart = Infinity, close = '';
-  e.points.forEach((u, i) => e.points.slice(i + 1).forEach(v => { const d = Math.hypot(L.xy[u][0] - L.xy[v][0], L.xy[u][1] - L.xy[v][1]) * L.s; if (d < apart) { apart = d; close = `${u}–${v}`; } }));
+  const L = layoutOf(p), full = fullShapes(p, null), {miss, missOf} = leastMiss(p, null);
+  assert.deepEqual(full.snug, [answer.join('')], `${item.title}: exactly one snug full shape`);
+  const {apart, close} = pxApart(L, e.points, L.xy);
   assert.ok(apart >= 30, `${item.title}: points at least 30 px apart (${apart.toFixed(1)}, ${close})`);
   const w = Math.sqrt(F.float(d0)) * L.s;
-  if (REPORT) console.log(`${p.id} ${item.title}: width ${w.toFixed(0)} px, ${combos} full shapes, least wobble ${least.toFixed(1)} px (${worstOf}), least miss ${miss.toFixed(1)} px (${missOf}), closest points ${apart.toFixed(1)} px (${close})${start ? `, start wobble ${(verdictOf(p, start).worst * L.s).toFixed(1)} px` : ''}`);
-  assert.ok(least >= 8, `${item.title}: every other full shape wobbles at least 8 px (${least.toFixed(1)}, ${worstOf})`);
+  if (REPORT) console.log(`${p.id} ${item.title}: width ${w.toFixed(0)} px, ${full.combos} full shapes, least wobble ${full.least.toFixed(1)} px (${full.worstOf}), least miss ${miss.toFixed(1)} px (${missOf}), closest points ${apart.toFixed(1)} px (${close})${start ? `, start wobble ${(verdictOf(p, start).worst * L.s).toFixed(1)} px` : ''}`);
+  assert.ok(full.least >= 8, `${item.title}: every other full shape wobbles at least 8 px (${full.least.toFixed(1)}, ${full.worstOf})`);
   assert.ok(miss >= 6, `${item.title}: every miss is at least 6 px (${miss.toFixed(1)}, ${missOf})`);
   out.push({
     id: p.id, number: item.number, title: item.title, difficulty_level: item.level, familyTitle: 'Snug spinners', mechanic: 'width', band: 'all', revision: 1, sourceDocument: 'docs/width/README.md',
@@ -219,6 +299,53 @@ for (const item of PUZZLES) {
     solution: {arcs: answer},
     provenance: item.provenance
   });
+}
+
+function buildPlace(item) {
+  const base = SHAPES[item.shape], F = field(base.field.r), {params, kinds, right} = place(base, item.letters, item.open, item.spots, item.turn);
+  const n = params.order.length, {X} = roles(item.letters, item.open);
+  const p = {id: pad(item.number), revision: 1, parameters: {...params, mode: 'place', turn: item.turn}};
+  // With the corner on its spot: convex, equal star diagonals, and each gap
+  // may be centred on its corner across only.
+  const e = exactOf(p, right), d0 = checkCorners(item, e, F);
+  const answer = params.order.map((_, i) => params.order[across(n, i)]);
+  e.gaps.forEach((gap, i) => assert.deepEqual(gap.joins, [answer[i]], `${item.title}: gap ${gap.a}${gap.b} joins only ${answer[i]}`));
+  // Drawn at the start: the arcs that neither end at the missing corner nor are centred on it.
+  p.parameters.start = e.gaps.map((gap, i) => gap.a === X || gap.b === X || answer[i] === X ? null : answer[i]);
+  assert.equal(p.parameters.start.filter(Boolean).length, 2, `${item.title}: two arcs drawn at the start`);
+  assert.ok(p.parameters.start.every((c, i) => c === null || joinable(p, i, c, null)), `${item.title}: the start is legal before the corner is placed`);
+  assert.ok(snug(p, answer, right), `${item.title}: the answer is snug`);
+  const L = layoutOf(p), report = [];
+  let least = Infinity, leastOf = '';
+  for (const spot of Object.keys(params.spots)) {
+    const es = exactOf(p, spot), full = fullShapes(p, spot), {miss, missOf} = leastMiss(p, spot);
+    // Every spot keeps the five corners convex, so every outline is a fair shape.
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) if (j !== i && j !== (i + 1) % n) assert.equal(es.g.turn(es.order[i], es.order[(i + 1) % n], es.order[j]), 1, `${item.title}: convex with ${X} on ${spot}`);
+    assert.ok(miss >= 6, `${item.title}: on ${spot}, every miss is at least 6 px (${miss.toFixed(1)}, ${missOf})`);
+    if (miss < least) { least = miss; leastOf = `${spot} ${missOf}`; }
+    // Which of the corner's three arcs miss with their corner across.
+    const fails = es.gaps.map((gap, i) => ({gap, i})).filter(({gap, i}) => (gap.a === X || gap.b === X || answer[i] === X) && !gap.joins.includes(answer[i]));
+    if (spot === right) { assert.deepEqual(full.snug, [answer.join('')]); assert.equal(full.combos, 1); }
+    else {
+      assert.deepEqual(full.snug, [], `${item.title}: nothing on ${spot} is snug`);
+      assert.ok(fails.length >= 1, `${item.title}: on ${spot}, some arc misses`);
+      assert.ok(full.combos === 0 || full.least >= 8, `${item.title}: any full shape on ${spot} wobbles visibly`);
+    }
+    report.push(`${spot} (${kinds[spot]}): ${spot === right ? 'snug' : `${fails.map(({gap, i}) => `${gap.a}${gap.b} on ${answer[i]}`).join(', ')} miss${fails.length === 1 ? 'es' : ''}, ${full.combos} full shapes`}, least miss ${miss.toFixed(1)} px`);
+  }
+  const ids = [...params.order.filter(id => id !== X), ...Object.keys(params.spots)], {apart, close} = pxApart(L, ids, L.xy);
+  assert.ok(apart >= 30, `${item.title}: corners and spots at least 30 px apart (${apart.toFixed(1)}, ${close})`);
+  if (REPORT) console.log(`${p.id} ${item.title}: width ${(Math.sqrt(F.float(d0)) * L.s).toFixed(0)} px, ${X} on ${right}, closest points ${apart.toFixed(1)} px (${close}), least miss ${least.toFixed(1)} px (${leastOf})\n  ${report.join('\n  ')}`);
+  const copy = placeCopy(item);
+  return {
+    id: p.id, number: item.number, title: item.title, difficulty_level: item.level, familyTitle: 'Snug spinners', mechanic: 'width', band: 'all', revision: 1, sourceDocument: 'docs/width/README.md',
+    parameters: p.parameters,
+    objective: OBJECTIVE.place(X), visibleObjective: VISIBLE.place(X), instruction: OBJECTIVE.place(X),
+    controls: CONTROLS_PLACE, rules: [PLACE_RULE, ...RULES], idea: item.idea, prerequisites: PREREQ.place, hints: copy.hints,
+    parent: {...copy.parent, sourceIds: sources},
+    solution: {corner: right, arcs: answer},
+    provenance: copy.provenance
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -262,7 +389,7 @@ const json = {
   version: 1,
   families: [{
     id: 'width', title: 'Snug spinners',
-    mathematics: 'The width of a shape in a direction is the gap between two parallel lines that touch it on either side. A shape has constant width when that gap is the same in every direction, so it turns between two fixed rails touching both. A circle does; so does a Reuleaux polygon: take an odd polygon whose star diagonals (each corner to the two corners across from it) all have length w, and join each pair of neighbouring corners by an arc of radius w centred on the corner across. When a rail touches an arc, the parallel rail through that arc’s centre touches the corner there, and every direction is of this kind, so the width is w every way. The puzzles give the corners of an equilateral triangle, a regular pentagon and irregular pentagons with equal star diagonals, exactly; the child chooses each arc’s centre, which must be the same distance from both ends of its gap. Among the centres offered, the shape spins snug exactly when every arc is centred on a corner with one common radius: the Reuleaux polygon. Half circles on the sides and arcs centred on dots inside give shapes whose width changes, and the spin stops where it has changed most.',
+    mathematics: 'The width of a shape in a direction is the gap between two parallel lines that touch it on either side. A shape has constant width when that gap is the same in every direction, so it turns between two fixed rails touching both. A circle does; so does a Reuleaux polygon: take an odd polygon whose star diagonals (each corner to the two corners across from it) all have length w, and join each pair of neighbouring corners by an arc of radius w centred on the corner across. When a rail touches an arc, the parallel rail through that arc’s centre touches the corner there, and every direction is of this kind, so the width is w every way. The puzzles give the corners of an equilateral triangle, a regular pentagon and irregular pentagons with equal star diagonals, exactly; the child chooses each arc’s centre, which must be the same distance from both ends of its gap. Among the centres offered, the shape spins snug exactly when every arc is centred on a corner with one common radius: the Reuleaux polygon. Half circles on the sides and arcs centred on dots inside give shapes whose width changes, and the spin stops where it has changed most. In the hard puzzles one corner is missing and the child first puts it on one of several spots: it belongs where it is the width from the two corners across from it, where two circles of that radius cross, and on every other spot some arc’s compass misses.',
     rules: RULES, sourceIds: sources
   }],
   sources: [

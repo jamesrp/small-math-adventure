@@ -3,53 +3,69 @@
 // every gap has its arc, the shape turns between two rails: the bottom rail
 // stays put and the top rail rests on the shape. A top rail that never moves
 // shows the shape has the same width every way round; the turn where it moves
-// shows that it does not.
+// shows that it does not. In the hard puzzles one corner is missing: the
+// child first puts it on one of a few spots, then builds the arcs.
 //
-// Every choice is exact. Corners and dots are points of Q(√r) (surd.js), an
-// arc may be centred on a point only when that point is exactly as far from
-// both ends of the gap, and a shape is a solve exactly when every arc is
-// centred on a corner and all the arcs have the same radius: the Reuleaux
-// polygon of the given corners. Floating point is used only to draw and to
-// choose which turn to stop at when showing a failure.
+// Every choice is exact. Corners, dots and spots are points of Q(√r)
+// (surd.js), an arc may be centred on a point only when that point is exactly
+// as far from both ends of the gap, and a shape is a solve exactly when every
+// corner is in place, every arc is centred on a corner and all the arcs have
+// the same radius: the Reuleaux polygon of the corners. Floating point is used
+// only to draw and to choose which turn to stop at when showing a failure.
 import {esc} from '../../expansion-controls.js';
 import {geometry} from './surd.js';
 
 const TAU = 2 * Math.PI;
 const SIZE = 360, MID = 180, FLOOR = 334, RAIL = 7, REACH = 154;
+// Drawn radius and tap radius of each kind of point. A tap inside a point's
+// tap radius goes to the point; a little further out it goes to the point only
+// when it is nearer the point's drawn edge than any gap's line.
+const MARK = {corner: [12.5, 14], dot: [5.5, 9], spot: [8, 12]};
 const POINT_REACH = 17, GAP_REACH = 22;
 const STEPS = 720;
 
 const object = value => Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 const isPlayground = p => p.parameters.mode === 'playground';
+const isPlace = p => typeof p.parameters.open === 'string';
+const spotOf = (p, b) => isPlace(p) ? (b?.corner ?? null) : null;
 const fix = x => Math.round(x * 100) / 100;
 
 // ---------------------------------------------------------------------------
 // The exact layer: which points may centre which gap, and the solve test.
+// In a "place" puzzle one corner (`open`) is missing until the child puts it
+// on one of the spots; everything exact then depends on that spot.
 
 const exactMemo = new WeakMap();
-export function exactOf(p) {
+export function exactOf(p, spot = null) {
   const q = p.parameters;
-  let e = exactMemo.get(q);
+  let memo = exactMemo.get(q);
+  if (!memo) { memo = new Map(); exactMemo.set(q, memo); }
+  const placed = isPlace(p) && typeof spot === 'string' && Object.hasOwn(q.spots, spot) ? spot : null;
+  let e = memo.get(placed ?? '');
   if (e) return e;
-  const g = geometry(q.field, {...q.corners, ...(q.pins || {})});
-  const order = q.order, n = order.length, points = [...order, ...Object.keys(q.pins || {})];
+  const pts = {...q.corners, ...(q.pins || {})};
+  if (placed) pts[q.open] = q.spots[placed];
+  const g = geometry(q.field, pts);
+  const order = q.order, n = order.length, points = [...order.filter(id => pts[id]), ...Object.keys(q.pins || {})];
   const gaps = order.map((a, i) => {
-    const b = order[(i + 1) % n];
-    const joins = points.filter(c => c !== a && c !== b && g.F.eq(g.d2(c, a), g.d2(c, b)));
-    return {a, b, joins, r2: Object.fromEntries(joins.map(c => [c, g.d2(c, a)]))};
+    const b = order[(i + 1) % n], live = Boolean(pts[a] && pts[b]);
+    const joins = live ? points.filter(c => c !== a && c !== b && g.F.eq(g.d2(c, a), g.d2(c, b))) : [];
+    return {a, b, live, joins, r2: Object.fromEntries(joins.map(c => [c, g.d2(c, a)]))};
   });
-  e = {g, order, n, points, gaps};
-  exactMemo.set(q, e);
+  e = {g, order, n, points, gaps, spot: placed};
+  memo.set(placed ?? '', e);
   return e;
 }
 // A point may centre a gap's arc when it is exactly as far from both ends.
-export const joinable = (p, gap, at) => Boolean(exactOf(p).gaps[gap]?.joins.includes(at));
+export const joinable = (p, gap, at, spot = null) => Boolean(exactOf(p, spot).gaps[gap]?.joins.includes(at));
 const complete = arcs => arcs.every(c => c != null);
-// The solve: every arc centred on a corner, every radius the same (exactly).
-export function snug(p, arcs) {
-  const e = exactOf(p);
+// The solve: every corner in place, every arc centred on a corner, every
+// radius the same (exactly).
+export function snug(p, arcs, spot = null) {
+  const e = exactOf(p, spot);
+  if (isPlace(p) && !e.spot) return false;
   if (!Array.isArray(arcs) || arcs.length !== e.n || !complete(arcs)) return false;
-  if (!arcs.every((c, i) => e.order.includes(c) && joinable(p, i, c))) return false;
+  if (!arcs.every((c, i) => e.order.includes(c) && joinable(p, i, c, spot))) return false;
   const r0 = e.gaps[0].r2[arcs[0]];
   return arcs.every((c, i) => e.g.F.eq(e.gaps[i].r2[c], r0));
 }
@@ -88,46 +104,65 @@ export const widthAt = (shape, alpha) => { const ux = Math.sin(alpha), uy = Math
 
 const layoutMemo = new WeakMap();
 function arcSamples(arc, k = 24) { return Array.from({length: k + 1}, (_, j) => { const t = arc.a0 + arc.span * j / k; return [arc.c[0] + arc.rho * Math.cos(t), arc.c[1] + arc.rho * Math.sin(t)]; }); }
-// Positions in the plane, the centre G of the corners and the drawing scale,
-// chosen so that every shape the puzzle allows fits in either view.
+// Positions in the plane, the centre G of the fixed corners and the drawing
+// scale, chosen so that every shape the puzzle allows (with the missing corner
+// on any spot) fits in either view. `pos(spot)` gives every position, with
+// the missing corner on that spot.
 export function layoutOf(p) {
   const q = p.parameters;
   let L = layoutMemo.get(q);
   if (L) return L;
-  const e = exactOf(p);
-  const xy = Object.fromEntries(e.points.map(id => [id, e.g.xy(id)]));
-  const G = [0, 1].map(k => e.order.reduce((sum, id) => sum + xy[id][k], 0) / e.n);
-  const turn = (q.turn || 0) * Math.PI / 180, c = Math.cos(turn), sn = Math.sin(turn), all = [];
-  e.points.forEach(id => all.push(xy[id]));
-  e.gaps.forEach(gap => gap.joins.forEach(k => all.push(...arcSamples(arcOf(xy[k], xy[gap.a], xy[gap.b])))));
-  const R = Math.max(...all.map(pt => Math.hypot(pt[0] - G[0], pt[1] - G[1]))), s = REACH / R;
+  const all = {...q.corners, ...(q.pins || {}), ...(q.spots || {})}, g = geometry(q.field, all);
+  const xy = Object.fromEntries(Object.keys(all).map(id => [id, g.xy(id)]));
+  const fixed = q.order.filter(id => q.corners[id]);
+  const G = [0, 1].map(k => fixed.reduce((sum, id) => sum + xy[id][k], 0) / fixed.length);
+  const posMemo = new Map();
+  const pos = spot => {
+    const key = isPlace(p) && spot && xy[spot] ? spot : '';
+    if (!posMemo.has(key)) posMemo.set(key, key ? {...xy, [q.open]: xy[key]} : xy);
+    return posMemo.get(key);
+  };
+  const turn = (q.turn || 0) * Math.PI / 180, c = Math.cos(turn), sn = Math.sin(turn), pts = Object.values(xy);
+  for (const spot of isPlace(p) ? Object.keys(q.spots) : [null]) {
+    const e = exactOf(p, spot), at = pos(spot);
+    e.gaps.forEach(gap => gap.joins.forEach(k => pts.push(...arcSamples(arcOf(at[k], at[gap.a], at[gap.b])))));
+  }
+  const R = Math.max(...pts.map(pt => Math.hypot(pt[0] - G[0], pt[1] - G[1]))), s = REACH / R;
   // The build view centres the box round everything that can be drawn;
   // `home` is where G sits on the board then.
-  const xs = all.map(pt => c * (pt[0] - G[0]) - sn * (pt[1] - G[1])), ys = all.map(pt => sn * (pt[0] - G[0]) + c * (pt[1] - G[1]));
+  const xs = pts.map(pt => c * (pt[0] - G[0]) - sn * (pt[1] - G[1])), ys = pts.map(pt => sn * (pt[0] - G[0]) + c * (pt[1] - G[1]));
   const home = [MID - s * (Math.min(...xs) + Math.max(...xs)) / 2, MID + s * (Math.min(...ys) + Math.max(...ys)) / 2];
-  L = {xy, G, R, s, turn, home};
+  L = {xy, G, R, s, turn, home, pos};
   layoutMemo.set(q, L);
   return L;
 }
-export function shapeOf(p, arcs) {
-  const e = exactOf(p), {xy} = layoutOf(p);
-  return {corners: e.order.map(id => xy[id]), arcs: arcs.map((c, i) => c == null ? null : arcOf(xy[c], xy[e.gaps[i].a], xy[e.gaps[i].b]))};
+// The corners there are, in order, and the arc (or none) from each to the
+// next; while a corner is missing, its neighbours are joined straight.
+export function shapeOf(p, arcs, spot = null) {
+  const e = exactOf(p, spot), xy = layoutOf(p).pos(e.spot), ids = e.order.filter(id => xy[id]);
+  return {
+    corners: ids.map(id => xy[id]),
+    arcs: ids.map((id, k) => {
+      const i = e.order.indexOf(id), next = ids[(k + 1) % ids.length], c = arcs?.[i];
+      return e.order[(i + 1) % e.n] === next && c != null && xy[c] ? arcOf(xy[c], xy[id], xy[next]) : null;
+    })
+  };
 }
 
 // Where to stop when the shape is not snug: the turn (from the starting
 // position, within half a turn) where the gap between the rails has changed
 // the most. Memoised per board.
 const verdictMemo = new Map();
-export function verdictOf(p, arcs) {
-  const key = `${p.id}|${p.revision}|${arcs.join(',')}`;
+export function verdictOf(p, arcs, spot = null) {
+  const key = `${p.id}|${p.revision}|${spot ?? ''}|${arcs.join(',')}`;
   if (verdictMemo.has(key)) return verdictMemo.get(key);
-  const shape = shapeOf(p, arcs), {turn} = layoutOf(p), w0 = widthAt(shape, turn);
+  const shape = shapeOf(p, arcs, spot), {turn} = layoutOf(p), w0 = widthAt(shape, turn);
   let worst = 0, at = 0;
   for (let k = 1; k < STEPS; k++) {
     const th = Math.PI * k / STEPS, d = Math.abs(widthAt(shape, turn + th) - w0);
     if (d > worst + 1e-12) { worst = d; at = th; }
   }
-  const v = {ok: snug(p, arcs), w0, worst, at};
+  const v = {ok: snug(p, arcs, spot), w0, worst, at};
   if (verdictMemo.size > 400) verdictMemo.clear();
   verdictMemo.set(key, v);
   return v;
@@ -179,13 +214,13 @@ export function spinFrame(shape, G, s, turn, theta, lift = 1, home = [MID, MID])
 
 const uiState = new Map();
 const ui = p => { if (!uiState.has(p.id)) uiState.set(p.id, {replay: 0}); return uiState.get(p.id); };
-const keyOf = b => (b.arcs || []).map(c => c ?? '-').join(',');
+const keyOf = b => `${b.corner ?? ''}|${(b.arcs || []).map(c => c ?? '-').join(',')}`;
 
 function selected(p, b, hinted) {
-  const u = ui(p), key = keyOf(b);
-  if (u.sel?.key === key) return u.sel.gap;
-  if (hinted) return hinted.gap;
-  const empty = b.arcs.findIndex(c => c == null);
+  const u = ui(p), key = keyOf(b), e = exactOf(p, spotOf(p, b)), live = i => Boolean(e.gaps[i]?.live);
+  if (u.sel?.key === key && live(u.sel.gap)) return u.sel.gap;
+  if (Number.isInteger(hinted?.gap)) return hinted.gap;
+  const empty = b.arcs.findIndex((c, i) => c == null && live(i));
   return empty >= 0 ? empty : null;
 }
 function viewOf(p, a) {
@@ -200,41 +235,65 @@ function viewOf(p, a) {
 
 function fresh(p) {
   if (isPlayground(p)) return {shape: 0};
-  return {arcs: (p.parameters.start || p.parameters.order.map(() => null)).slice()};
+  const arcs = (p.parameters.start || p.parameters.order.map(() => null)).slice();
+  return isPlace(p) ? {corner: null, arcs} : {arcs};
 }
 function valid(p, b) {
   if (!object(b)) return false;
-  if (isPlayground(p)) return Object.keys(b).length === 1 && Number.isInteger(b.shape) && b.shape >= 0 && b.shape < p.parameters.shapes.length;
-  const e = exactOf(p);
-  if (Object.keys(b).length !== 1 || !Array.isArray(b.arcs) || b.arcs.length !== e.n) return false;
-  return b.arcs.every((c, i) => c === null || (typeof c === 'string' && joinable(p, i, c)));
+  const q = p.parameters;
+  if (isPlayground(p)) return Object.keys(b).length === 1 && Number.isInteger(b.shape) && b.shape >= 0 && b.shape < q.shapes.length;
+  if (isPlace(p)) {
+    if (Object.keys(b).sort().join(',') !== 'arcs,corner') return false;
+    if (b.corner !== null && !(typeof b.corner === 'string' && Object.hasOwn(q.spots, b.corner))) return false;
+  } else if (Object.keys(b).length !== 1) return false;
+  const e = exactOf(p, spotOf(p, b));
+  if (!Array.isArray(b.arcs) || b.arcs.length !== e.n) return false;
+  return b.arcs.every((c, i) => c === null || (typeof c === 'string' && e.gaps[i].joins.includes(c)));
 }
-const solved = (p, b) => !isPlayground(p) && valid(p, b) && snug(p, b.arcs);
+const solved = (p, b) => !isPlayground(p) && valid(p, b) && snug(p, b.arcs, spotOf(p, b));
 function move(p, b, action) {
   if (!object(action) || !valid(p, b)) return null;
+  const q = p.parameters;
   if (isPlayground(p)) {
-    if (action.type !== 'shape' || !Number.isInteger(action.shape) || action.shape === b.shape || action.shape < 0 || action.shape >= p.parameters.shapes.length) return null;
+    if (action.type !== 'shape' || !Number.isInteger(action.shape) || action.shape === b.shape || action.shape < 0 || action.shape >= q.shapes.length) return null;
     return {shape: action.shape};
   }
+  // Put the missing corner on a spot. Arcs that end at it, or are centred
+  // on it, go with it.
+  if (action.type === 'corner') {
+    if (!isPlace(p) || typeof action.at !== 'string' || !Object.hasOwn(q.spots, action.at) || action.at === b.corner) return null;
+    const {gaps} = exactOf(p);
+    return {corner: action.at, arcs: b.arcs.map((c, i) => c === q.open || gaps[i].a === q.open || gaps[i].b === q.open ? null : c)};
+  }
   if (action.type !== 'arc' || !Number.isInteger(action.gap) || typeof action.at !== 'string') return null;
-  if (!joinable(p, action.gap, action.at) || b.arcs[action.gap] === action.at) return null;
+  if (!joinable(p, action.gap, action.at, spotOf(p, b)) || b.arcs[action.gap] === action.at) return null;
   const arcs = b.arcs.slice();
   arcs[action.gap] = action.at;
-  return {arcs};
+  return isPlace(p) ? {corner: b.corner, arcs} : {arcs};
 }
+// Hints point at the reasoning; the board marks the gap and rings the centre
+// (or the spot) from the second level, and the third offers Apply hint.
 const hintMemo = new Map();
 function hint(p, b) {
-  if (isPlayground(p)) return {type: 'note'};
-  if (!valid(p, b)) return {type: 'note'};
-  if (snug(p, b.arcs)) return {type: 'done'};
+  if (isPlayground(p) || !valid(p, b)) return {type: 'note'};
+  const spot = spotOf(p, b);
+  if (snug(p, b.arcs, spot)) return {type: 'done'};
   const key = `${p.id}|${keyOf(b)}`;
   if (hintMemo.has(key)) return hintMemo.get(key);
-  const e = exactOf(p), want = p.solution.arcs;
-  // A wrong arc first, then the first gap with none.
-  let gap = b.arcs.findIndex((c, i) => c != null && c !== want[i]);
-  if (gap < 0) gap = b.arcs.findIndex(c => c == null);
-  const {a, b: end} = e.gaps[gap];
-  const out = {type: 'move', action: {type: 'arc', gap, at: want[gap]}, gap, text: `Centre the arc from ${a} to ${end} on ${want[gap]}.`};
+  const q = p.parameters, want = p.solution;
+  let out;
+  if (isPlace(p) && spot !== want.corner) {
+    // The missing corner is the width from the two corners whose arcs reach it.
+    const n = q.order.length, o = q.order.indexOf(q.open), at = k => q.order[(o + k + n) % n];
+    out = {type: 'move', action: {type: 'corner', at: want.corner}, text: `Which spot is as far from ${at(2)} as ${at(-1)} is, and as far from ${at(3)} as ${at(1)} is?`};
+  } else {
+    // A wrong arc first, then the first gap with none.
+    let gap = b.arcs.findIndex((c, i) => c != null && c !== want.arcs[i]);
+    if (gap < 0) gap = b.arcs.findIndex(c => c == null);
+    const {a, b: end} = exactOf(p, spot).gaps[gap], now = b.arcs[gap];
+    const ask = `Which corner could the compass reach both ${a} and ${end} from?`;
+    out = {type: 'move', action: {type: 'arc', gap, at: want.arcs[gap]}, gap, text: now == null ? ask : q.pins?.[now] ? `The arc from ${a} to ${end} is centred on a dot. ${ask}` : `Look again at the arc from ${a} to ${end}. ${ask}`};
+  }
   if (hintMemo.size > 400) hintMemo.clear();
   hintMemo.set(key, out);
   return out;
@@ -244,53 +303,71 @@ function hint(p, b) {
 // Rendering a puzzle.
 
 const nameOf = (p, id) => p.parameters.names?.[id] || `Corner ${id}`;
+const shortName = (p, id) => nameOf(p, id).replace(/^Corner /, '');
 const gapName = (p, i) => { const {a, b} = exactOf(p).gaps[i]; return `${a} to ${b}`; };
+const pointSvg = (cls, id, kind, [x, y], label, inner) => `<g class="wd-pt ${cls}" role="button" tabindex="0" data-pt="${esc(id)}" data-r="${MARK[kind][0]}" data-hit="${MARK[kind][1]}" data-focus="wd-pt-${esc(id)}" aria-label="${esc(label)}"><circle class="wd-pad" cx="${fix(x)}" cy="${fix(y)}" r="${MARK[kind][1]}"/>${inner}</g>`;
+
+// A compass round `at` that misses: drawn from the corner that stays put
+// (the gap's first corner, or its other corner when the first is the one
+// being placed), past the other end, with a short bar from the circle to the
+// corner it missed. While placing a corner, the circle runs on past every
+// spot, so it shows which spots it passes through.
+function missSvg(p, e, xy, at, gapIndex, centre) {
+  const q = p.parameters, gap = e.gaps[gapIndex], back = isPlace(p) && gap.a === q.open;
+  const [from, to] = back ? [gap.b, gap.a] : [gap.a, gap.b], c = xy[centre], F = xy[from], T = xy[to], dir = back ? -1 : 1;
+  const rho = Math.hypot(F[0] - c[0], F[1] - c[1]), angle = pt => Math.atan2(pt[1] - c[1], pt[0] - c[0]), t0 = angle(F);
+  const off = pt => ((dir * (angle(pt) - t0)) % TAU + TAU) % TAU;
+  let reach = off(T) + 0.22;
+  if (isPlace(p) && (gap.a === q.open || gap.b === q.open)) for (const id of Object.keys(q.spots)) { const d = off(xy[id]); if (d < Math.PI) reach = Math.max(reach, d + 0.12); }
+  const k = 40, pts = Array.from({length: k + 1}, (_, j) => { const t = t0 + dir * reach * j / k; return at([c[0] + rho * Math.cos(t), c[1] + rho * Math.sin(t)]); });
+  const tb = angle(T), onCircle = at([c[0] + rho * Math.cos(tb), c[1] + rho * Math.sin(tb)]);
+  return {from, to, centre, svg: `<path class="wd-leg" d="M${P(at(c))}L${P(at(F))}"/><path class="wd-miss" d="M${pts.map(P).join('L')}"/><path class="wd-short" d="M${P(onCircle)}L${P(at(T))}"/>`};
+}
 
 function buildSvg(p, a, hinted) {
-  const b = a.board, e = exactOf(p), L = layoutOf(p), {xy, G, s, turn, home} = L;
-  const at = placer(G, s, turn, home[0], home[1]), shape = shapeOf(p, b.arcs), u = ui(p), key = keyOf(b);
-  const sel = selected(p, b, hinted), miss = u.miss?.key === key && u.miss.gap === sel ? u.miss : null;
-  const full = complete(b.arcs);
+  const b = a.board, q = p.parameters, e = exactOf(p, spotOf(p, b)), L = layoutOf(p), {G, s, turn, home} = L, xy = L.pos(e.spot);
+  const at = placer(G, s, turn, home[0], home[1]), u = ui(p), key = keyOf(b);
+  const sel = selected(p, b, hinted), missed = u.miss?.key === key && u.miss.gap === sel ? u.miss : null;
+  const arcs = e.gaps.map((gap, i) => gap.live && b.arcs[i] ? arcOf(xy[b.arcs[i]], xy[gap.a], xy[gap.b]) : null);
+  const hintArc = hinted?.action.type === 'arc' ? hinted : null, hintSpot = hinted?.action.type === 'corner' ? hinted.action.at : null;
   const parts = [`<rect class="wd-paper" x="0" y="0" width="${SIZE}" height="${SIZE}" rx="14"/>`];
-  parts.push(`<path class="wd-fill${full ? ' full' : ''}" d="${outline(shape, at, s, turn)}"/>`);
+  parts.push(`<path class="wd-fill${complete(b.arcs) ? ' full' : ''}" d="${outline(shapeOf(p, b.arcs, e.spot), at, s, turn)}"/>`);
+  // While a corner is missing, a dotted line where it goes.
+  if (isPlace(p) && !e.spot) {
+    const n = e.n, o = e.order.indexOf(q.open);
+    parts.push(`<path class="wd-open" d="M${P(at(xy[e.order[(o + n - 1) % n]]))}L${P(at(xy[e.order[(o + 1) % n]]))}"/>`);
+  }
   // The chosen gap glows under its chord or arc.
-  if (sel != null) parts.push(`<path class="wd-glow" d="${piece(shape.arcs[sel], xy[e.gaps[sel].a], xy[e.gaps[sel].b], at, s)}"/>`);
-  if (hinted) parts.push(`<path class="wd-hint-gap" d="${piece(shape.arcs[hinted.gap], xy[e.gaps[hinted.gap].a], xy[e.gaps[hinted.gap].b], at, s)}"/>`);
-  e.gaps.forEach((gap, i) => {
-    const arc = shape.arcs[i];
-    parts.push(`<path class="${arc ? 'wd-arc' : 'wd-chord'}" d="${piece(arc, xy[gap.a], xy[gap.b], at, s)}"/>`);
-  });
+  if (sel != null) parts.push(`<path class="wd-glow" d="${piece(arcs[sel], xy[e.gaps[sel].a], xy[e.gaps[sel].b], at, s)}"/>`);
+  if (hintArc) parts.push(`<path class="wd-hint-gap" d="${piece(arcs[hintArc.gap], xy[e.gaps[hintArc.gap].a], xy[e.gaps[hintArc.gap].b], at, s)}"/>`);
+  e.gaps.forEach((gap, i) => { if (gap.live) parts.push(`<path class="${arcs[i] ? 'wd-arc' : 'wd-chord'}" d="${piece(arcs[i], xy[gap.a], xy[gap.b], at, s)}"/>`); });
   // The chosen arc's compass: its centre and the two radii it was drawn with.
-  if (sel != null && b.arcs[sel] && !miss) {
+  if (sel != null && b.arcs[sel] && !missed) {
     const c = at(xy[b.arcs[sel]]);
     for (const end of [e.gaps[sel].a, e.gaps[sel].b]) parts.push(`<path class="wd-leg" d="M${P(c)}L${P(at(xy[end]))}"/>`);
   }
-  // A compass that misses: round the tapped point from the first end, past
-  // the second end, and the gap between that circle and the second end.
-  if (miss) {
-    const gap = e.gaps[miss.gap], c = xy[miss.at], A = xy[gap.a], B = xy[gap.b];
-    const arc = arcOf(c, A, B), over = 0.22, from = arc.a0, to = arc.a0 + arc.span + over;
-    const k = 32, pts = Array.from({length: k + 1}, (_, j) => { const t = from + (to - from) * j / k; return at([c[0] + arc.rho * Math.cos(t), c[1] + arc.rho * Math.sin(t)]); });
-    const tb = Math.atan2(B[1] - c[1], B[0] - c[0]), onCircle = at([c[0] + arc.rho * Math.cos(tb), c[1] + arc.rho * Math.sin(tb)]);
-    parts.push(`<path class="wd-leg" d="M${P(at(c))}L${P(at(A))}"/>`);
-    parts.push(`<path class="wd-miss" d="M${pts.map(P).join('L')}"/>`);
-    parts.push(`<path class="wd-short" d="M${P(onCircle)}L${P(at(B))}"/>`);
-  }
+  const miss = missed ? missSvg(p, e, xy, at, missed.gap, missed.at) : null;
+  if (miss) parts.push(miss.svg);
   // Hit areas for the gaps, under the points.
   e.gaps.forEach((gap, i) => {
-    const arc = shape.arcs[i], label = `${arc ? `Arc from ${gapName(p, i)}, centred on ${nameOf(p, b.arcs[i]).replace(/^Corner /, '')}` : `Gap from ${gapName(p, i)}`}${sel === i ? ', chosen' : ''}`;
-    parts.push(`<path class="wd-hit wd-gap" role="button" tabindex="0" data-gap="${i}" data-focus="wd-gap-${i}" aria-pressed="${sel === i}" aria-label="${esc(label)}" d="${piece(arc, xy[gap.a], xy[gap.b], at, s)}"/>`);
+    if (!gap.live) return;
+    const label = `${arcs[i] ? `Arc from ${gapName(p, i)}, centred on ${shortName(p, b.arcs[i])}` : `Gap from ${gapName(p, i)}`}${sel === i ? ', chosen' : ''}`;
+    parts.push(`<path class="wd-hit wd-gap" role="button" tabindex="0" data-gap="${i}" data-focus="wd-gap-${i}" aria-pressed="${sel === i}" aria-label="${esc(label)}" d="${piece(arcs[i], xy[gap.a], xy[gap.b], at, s)}"/>`);
   });
   const centre = sel != null ? b.arcs[sel] : null, ends = sel != null ? [e.gaps[sel].a, e.gaps[sel].b] : [];
-  for (const id of Object.keys(p.parameters.pins || {})) {
-    const [x, y] = at(xy[id]);
-    const cls = ['wd-pt', 'wd-pin', id === centre ? 'centre' : '', miss?.at === id ? 'missed' : ''].join(' ');
-    parts.push(`<g class="${cls}" role="button" tabindex="0" data-pt="${esc(id)}" data-focus="wd-pt-${esc(id)}" aria-label="${esc(nameOf(p, id))}"><circle class="wd-pad" cx="${fix(x)}" cy="${fix(y)}" r="${POINT_REACH}"/><circle class="wd-dot" cx="${fix(x)}" cy="${fix(y)}" r="5.5"/></g>`);
+  for (const id of Object.keys(q.pins || {})) {
+    const pt = at(xy[id]);
+    parts.push(pointSvg(['wd-pin', id === centre ? 'centre' : '', missed?.at === id ? 'missed' : ''].join(' '), id, 'dot', pt, nameOf(p, id), `<circle class="wd-dot" cx="${fix(pt[0])}" cy="${fix(pt[1])}" r="${MARK.dot[0]}"/>`));
+  }
+  for (const id of Object.keys(q.spots || {})) {
+    if (id === e.spot) continue;
+    const pt = at(xy[id]);
+    parts.push(pointSvg(['wd-spot', id === hintSpot ? 'hinted' : ''].join(' '), id, 'spot', pt, nameOf(p, id), `<circle class="wd-ring" cx="${fix(pt[0])}" cy="${fix(pt[1])}" r="${MARK.spot[0]}"/>`));
   }
   for (const id of e.order) {
-    const [x, y] = at(xy[id]);
-    const cls = ['wd-pt', 'wd-corner', id === centre ? 'centre' : '', ends.includes(id) ? 'end' : '', miss?.at === id ? 'missed' : '', hinted?.action.at === id ? 'hinted' : ''].join(' ');
-    parts.push(`<g class="${cls}" role="button" tabindex="0" data-pt="${esc(id)}" data-focus="wd-pt-${esc(id)}" aria-label="${esc(nameOf(p, id))}"><circle class="wd-pad" cx="${fix(x)}" cy="${fix(y)}" r="${POINT_REACH}"/><circle class="wd-disc" cx="${fix(x)}" cy="${fix(y)}" r="12.5"/><text x="${fix(x)}" y="${fix(y)}">${esc(id)}</text></g>`);
+    if (!xy[id]) continue;
+    const pt = at(xy[id]), label = id === q.open ? `Corner ${id}, on ${nameOf(p, e.spot).replace(/^Spot/, 'spot')}` : nameOf(p, id);
+    parts.push(pointSvg(['wd-corner', id === centre ? 'centre' : '', ends.includes(id) ? 'end' : '', missed?.at === id ? 'missed' : '', hintArc?.action.at === id ? 'hinted' : ''].join(' '), id, 'corner', pt, label, `<circle class="wd-disc" cx="${fix(pt[0])}" cy="${fix(pt[1])}" r="${MARK.corner[0]}"/><text x="${fix(pt[0])}" y="${fix(pt[1])}">${esc(id)}</text>`));
   }
   return {svg: `<svg class="wd-board" data-view="build" viewBox="0 0 ${SIZE} ${SIZE}" role="group" aria-label="Corners and gaps">${parts.join('')}</svg>`, sel, miss};
 }
@@ -299,7 +376,8 @@ function railsSvg(top, cls = '') {
   return `<rect class="wd-rail wd-floor" x="6" y="${FLOOR}" width="${SIZE - 12}" height="${RAIL}" rx="3"/><rect class="wd-rail wd-top${cls}" x="6" y="${fix(top - RAIL)}" width="${SIZE - 12}" height="${RAIL}" rx="3"/>`;
 }
 function spinSvg(p, a, hinted) {
-  const b = a.board, e = exactOf(p), {G, s, turn, xy} = layoutOf(p), shape = shapeOf(p, b.arcs), v = verdictOf(p, b.arcs);
+  const b = a.board, spot = spotOf(p, b), e = exactOf(p, spot), L = layoutOf(p), {G, s, turn} = L, xy = L.pos(e.spot);
+  const shape = shapeOf(p, b.arcs, spot), v = verdictOf(p, b.arcs, spot);
   const start = spinFrame(shape, G, s, turn, 0), end = v.ok ? start : spinFrame(shape, G, s, turn, v.at);
   const parts = [`<rect class="wd-paper" x="0" y="0" width="${SIZE}" height="${SIZE}" rx="14"/>`];
   // Final-frame marks: other turns of a snug shape between the same rails,
@@ -316,38 +394,37 @@ function spinSvg(p, a, hinted) {
   parts.push(`<path class="wd-start" d="M6 ${fix(start.top - RAIL / 2)}H${SIZE - 6}"/>`);
   parts.push(railsSvg(end.top, v.ok ? ' snug' : ''));
   parts.push(`<g class="wd-final">${end.touch.map(([x, y]) => `<circle class="wd-touch${v.ok ? ' snug' : ''}" cx="${fix(x)}" cy="${fix(y)}" r="4.5"/>`).join('')}</g>`);
-  if (hinted) {
+  if (hinted?.action.type === 'arc') {
     const gap = e.gaps[hinted.gap], [x, y] = end.at(xy[hinted.action.at]);
     parts.push(`<g class="wd-final"><path class="wd-hint-gap" d="${piece(shape.arcs[hinted.gap], xy[gap.a], xy[gap.b], end.at, s)}"/><circle class="wd-hint-ring" cx="${fix(x)}" cy="${fix(y)}" r="13"/></g>`);
   }
   e.order.forEach(id => { const [x, y] = inward(end.at, G, xy[id]); parts.push(`<text class="wd-letter" data-letter="${esc(id)}" x="${fix(x)}" y="${fix(y)}">${esc(id)}</text>`); });
   // Tap an arc to change it.
   e.gaps.forEach((gap, i) => {
-    parts.push(`<path class="wd-hit wd-gap" role="button" tabindex="0" data-gap="${i}" data-focus="wd-gap-${i}" aria-label="${esc(`Arc from ${gapName(p, i)}, centred on ${nameOf(p, b.arcs[i]).replace(/^Corner /, '')}`)}" d="${piece(shape.arcs[i], xy[gap.a], xy[gap.b], end.at, s)}"/>`);
+    parts.push(`<path class="wd-hit wd-gap" role="button" tabindex="0" data-gap="${i}" data-focus="wd-gap-${i}" aria-label="${esc(`Arc from ${gapName(p, i)}, centred on ${shortName(p, b.arcs[i])}`)}" d="${piece(shape.arcs[i], xy[gap.a], xy[gap.b], end.at, s)}"/>`);
   });
   return `<svg class="wd-board" data-view="spin" viewBox="0 0 ${SIZE} ${SIZE}" role="group" aria-label="The shape between two rails">${parts.join('')}</svg>`;
 }
 
 function renderPuzzle(p, a) {
-  const b = a.board, done = snug(p, b.arcs), view = viewOf(p, a);
-  const hinted = a.hintLevel >= 2 && !done ? hint(p, b) : null;
+  const b = a.board, q = p.parameters, spot = spotOf(p, b), done = snug(p, b.arcs, spot), view = viewOf(p, a);
+  const h = a.hintLevel >= 2 && !done ? hint(p, b) : null, hinted = h?.type === 'move' ? h : null;
   const full = complete(b.arcs);
   const spinPayload = esc(JSON.stringify({view: 'spin'}));
   const bar = `<div class="wd-bar"><button type="button" class="secondary wd-spin" data-action="mechanic-ui" data-ui="${spinPayload}" data-focus="wd-spin"${full ? '' : ' disabled'} aria-label="${view === 'spin' ? 'Spin again' : 'Spin'}"><span aria-hidden="true">↻</span> Spin</button></div>`;
   let svg, status;
   if (view === 'spin') {
     svg = spinSvg(p, a, hinted);
-    const v = verdictOf(p, b.arcs);
-    status = v.ok ? 'The shape turns all the way round and the top rail never moves.' : `Turned ${Math.round(v.at * 180 / Math.PI)} degrees, the top rail has moved ${widthAt(shapeOf(p, b.arcs), layoutOf(p).turn + v.at) > v.w0 ? 'up' : 'down'}.`;
+    const v = verdictOf(p, b.arcs, spot);
+    status = v.ok ? 'The shape turns all the way round and the top rail never moves.' : `Turned ${Math.round(v.at * 180 / Math.PI)} degrees, the top rail has moved ${widthAt(shapeOf(p, b.arcs, spot), layoutOf(p).turn + v.at) > v.w0 ? 'up' : 'down'}.`;
   } else {
-    const built = buildSvg(p, a, hinted);
+    const built = buildSvg(p, a, hinted), sel = built.sel;
     svg = built.svg;
-    const sel = built.sel;
-    status = sel == null ? 'Choose a gap.' : built.miss ? `A circle round ${nameOf(p, built.miss.at).replace(/^Corner /, '')} from ${exactOf(p).gaps[sel].a} misses ${exactOf(p).gaps[sel].b}.` : `Gap from ${gapName(p, sel)} chosen${b.arcs[sel] ? `, centred on ${nameOf(p, b.arcs[sel]).replace(/^Corner /, '')}` : ''}.`;
+    const waiting = isPlace(p) && !spot ? `Corner ${q.open} is not on a spot yet. ` : '';
+    status = built.miss ? `A circle round ${shortName(p, built.miss.centre)} from ${built.miss.from} misses ${built.miss.to}.` : `${waiting}${sel == null ? 'Choose a gap.' : `Gap from ${gapName(p, sel)} chosen${b.arcs[sel] ? `, centred on ${shortName(p, b.arcs[sel])}` : ''}.`}`;
   }
   return `<div class="wd-puzzle${done ? ' solved' : ''}" data-mechanic-wire="width" data-view="${view}">${bar}${svg}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
-
 // ---------------------------------------------------------------------------
 // The playground: ready-made shapes turned by hand between closing rails.
 
@@ -381,9 +458,12 @@ function notePlay(p, u) {
 }
 const PLAY_SCALE = 3.2, PLAY_STEP = 5;
 function playFrame(item, deg) { return spinFrame(item.shape, item.G, PLAY_SCALE, 0, deg * Math.PI / 180); }
+// A shape's button: its outline, with a dot at each corner, so the curved
+// triangle (three dots) and the curved pentagons (five) look different.
 function iconOf(item) {
-  const sh = item.shape, k = 0.3, at = placer(item.G, k, 0, 20, 20);
-  return `<svg class="wd-icon" viewBox="0 0 40 40" aria-hidden="true"><path d="${outline(sh, at, k, 0)}"/></svg>`;
+  const sh = item.shape, k = 0.45, at = placer(item.G, k, 0, 20, 20);
+  const dots = (sh.corners || []).map(pt => { const [x, y] = at(pt); return `<circle cx="${fix(x)}" cy="${fix(y)}" r="2"/>`; }).join('');
+  return `<svg class="wd-icon" viewBox="0 0 40 40" aria-hidden="true"><path d="${outline(sh, at, k, 0)}"/>${dots}</svg>`;
 }
 function renderPlay(p, a) {
   const b = a.board, list = playShapes(p), item = list[b.shape], u = playUi(p, b);
@@ -405,11 +485,13 @@ function renderPlay(p, a) {
 
 
 // ---------------------------------------------------------------------------
-// Gestures. A tap goes to the nearest corner or dot within reach (they sit on
-// top), and otherwise to the nearest gap or arc within reach. The spin plays
-// once for each new full shape, and again on Spin.
+// Gestures. A tap inside a corner's disc, a dot or a spot (with a small
+// margin) goes to it; a little further out it goes to the point only when the
+// tap is nearer the point's edge than any gap's line; otherwise it goes to
+// the nearest gap or arc within reach. The spin plays once for each new full
+// shape, and again on Spin; a tap or key during it ends it on its last frame.
 
-let seen = null;
+let seen = null, running = null;
 const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 function toBoard(svg, x, y) {
   const m = svg.getScreenCTM?.();
@@ -418,25 +500,30 @@ function toBoard(svg, x, y) {
   return [pt.x, pt.y];
 }
 function nearest(svg, at, view) {
-  let best = null, near = POINT_REACH;
+  let point = null;
   if (view === 'build') for (const el of svg.querySelectorAll('.wd-pt')) {
     const c = el.querySelector('.wd-pad'), d = Math.hypot(at[0] - Number(c.getAttribute('cx')), at[1] - Number(c.getAttribute('cy')));
-    if (d < near) { near = d; best = {pt: el.dataset.pt}; }
+    const edge = d - Number(el.dataset.r), inside = d <= Number(el.dataset.hit);
+    // A point whose tap radius holds the tap beats one that only has it in reach.
+    if ((inside || d <= POINT_REACH) && (!point || inside > point.inside || (inside === point.inside && edge < point.edge))) point = {pt: el.dataset.pt, edge, inside};
   }
-  if (best) return best;
-  near = GAP_REACH;
+  if (point?.inside) return {pt: point.pt};
+  // The distance to each gap's line or arc: sampled every 2 units, then
+  // refined round the nearest sample.
+  let gap = null, near = GAP_REACH;
   for (const el of svg.querySelectorAll('.wd-gap')) {
-    const len = el.getTotalLength?.() || 0, k = Math.max(8, Math.ceil(len / 6));
-    for (let j = 0; j <= k; j++) {
-      const q = el.getPointAtLength(len * j / k), d = Math.hypot(at[0] - q.x, at[1] - q.y);
-      if (d < near) { near = d; best = {gap: Number(el.dataset.gap)}; }
-    }
+    const len = el.getTotalLength?.() || 0, k = Math.max(16, Math.ceil(len / 2)), dist = t => { const q = el.getPointAtLength(Math.min(len, Math.max(0, t))); return Math.hypot(at[0] - q.x, at[1] - q.y); };
+    let best = 0, d0 = Infinity;
+    for (let j = 0; j <= k; j++) { const d = dist(len * j / k); if (d < d0) { d0 = d; best = len * j / k; } }
+    for (let j = -16; j <= 16; j++) d0 = Math.min(d0, dist(best + j * len / k / 16));
+    if (d0 < near) { near = d0; gap = Number(el.dataset.gap); }
   }
-  return best;
+  if (point && (gap == null || point.edge < near)) return {pt: point.pt};
+  return gap == null ? null : {gap};
 }
 function act(p, api, target) {
-  const a = api.attempt(), b = a.board, u = ui(p), key = keyOf(b), view = viewOf(p, a);
-  if (!target || snug(p, b.arcs)) return;
+  const a = api.attempt(), b = a.board, q = p.parameters, spot = spotOf(p, b), u = ui(p), key = keyOf(b), view = viewOf(p, a);
+  if (!target || snug(p, b.arcs, spot)) return;
   if (target.gap != null) {
     u.sel = {gap: target.gap, key};
     u.miss = null;
@@ -445,11 +532,16 @@ function act(p, api, target) {
     return;
   }
   if (view !== 'build') return;
-  const hinted = a.hintLevel >= 2 ? hint(p, b) : null, gap = selected(p, b, hinted?.type === 'move' ? hinted : null);
+  if (isPlace(p) && Object.hasOwn(q.spots, target.pt)) {
+    u.miss = null; u.sel = null; u.view = null;
+    api.apply({type: 'corner', at: target.pt});
+    return;
+  }
+  const h = a.hintLevel >= 2 ? hint(p, b) : null, gap = selected(p, b, h?.type === 'move' ? h : null);
   if (gap == null) return;
-  const {a: from, b: to} = exactOf(p).gaps[gap];
+  const {a: from, b: to} = exactOf(p, spot).gaps[gap];
   if (target.pt === from || target.pt === to) return;
-  if (!joinable(p, gap, target.pt)) { u.miss = {gap, at: target.pt, key}; u.sel = {gap, key}; api.ui({}); return; }
+  if (!joinable(p, gap, target.pt, spot)) { u.miss = {gap, at: target.pt, key}; u.sel = {gap, key}; api.ui({}); return; }
   if (b.arcs[gap] === target.pt) return;
   u.miss = null;
   u.sel = null;
@@ -457,9 +549,11 @@ function act(p, api, target) {
   api.apply({type: 'arc', gap, at: target.pt});
 }
 
-function animate(root, p, a) {
-  const svg = root.querySelector('svg[data-view="spin"]');
-  const shape = shapeOf(p, a.board.arcs), {G, s, turn, xy, home} = layoutOf(p), v = verdictOf(p, a.board.arcs);
+// The spin: lift onto the floor, then turn (all the way round when snug, or
+// to the stopping turn). With reduced motion there is no movement: the shape
+// rests unturned between the rails for a moment, then the last frame appears.
+function animate(root, svg, p, a, still) {
+  const spot = spotOf(p, a.board), shape = shapeOf(p, a.board.arcs, spot), L = layoutOf(p), {G, s, turn, home} = L, xy = L.pos(spot), v = verdictOf(p, a.board.arcs, spot);
   const el = {shape: svg.querySelector('.wd-shape'), top: svg.querySelector('.wd-top'), letters: [...svg.querySelectorAll('.wd-letter')]};
   const lift = 450, spin = v.ok ? 2600 : Math.max(700, 1700 * v.at / Math.PI), goal = v.ok ? TAU : v.at;
   const ease = t => t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
@@ -470,10 +564,18 @@ function animate(root, p, a) {
     el.top.setAttribute('y', fix((up < 1 ? -RAIL + (f.top + RAIL) * up : f.top) - RAIL));
     el.letters.forEach(t => { const [x, y] = inward(f.at, G, xy[t.dataset.letter]); t.setAttribute('x', fix(x)); t.setAttribute('y', fix(y)); });
   };
-  const finish = () => { if (stop) return; stop = true; draw(goal === TAU ? 0 : goal, 1); root.classList.remove('wd-anim'); };
+  const finish = () => {
+    if (stop) return;
+    stop = true;
+    if (running?.svg === svg) running = null;
+    if (!svg.isConnected) return;
+    draw(goal === TAU ? 0 : goal, 1);
+    root.classList.remove('wd-anim');
+  };
+  running = {svg, finish};
   root.classList.add('wd-anim');
+  if (still) { draw(0, 1); setTimeout(finish, 700); return; }
   draw(0, 0);
-  svg.addEventListener('pointerdown', finish, {capture: true, once: true});
   const step = now => {
     if (stop || !svg.isConnected) return;
     t0 ??= now;
@@ -490,7 +592,11 @@ function wirePuzzle(root, p, api) {
   const svg = root.querySelector('svg.wd-board');
   if (!svg) return;
   const view = svg.dataset.view;
+  // A tap that ends the spin only ends it: its click lands on nothing.
+  let swallow = false;
+  svg.addEventListener('pointerdown', () => { swallow = false; if (running?.svg === svg) { running.finish(); swallow = true; } }, {capture: true});
   svg.addEventListener('click', e => {
+    if (swallow) { swallow = false; return; }
     const at = toBoard(svg, e.clientX, e.clientY);
     if (at) act(p, api, nearest(svg, at, view));
   });
@@ -499,13 +605,14 @@ function wirePuzzle(root, p, api) {
     const el = e.target.closest?.('[data-gap],[data-pt]');
     if (!el) return;
     e.preventDefault();
+    if (running?.svg === svg) { running.finish(); return; }
     act(p, api, el.dataset.pt ? {pt: el.dataset.pt} : {gap: Number(el.dataset.gap)});
   });
   if (view !== 'spin') return;
   const a = api.attempt(), key = `${p.id}|${keyOf(a.board)}|${ui(p).replay}`, before = seen;
   seen = key;
-  if (before === key || reduced() || typeof requestAnimationFrame !== 'function') return;
-  animate(root, p, a);
+  if (before === key || typeof requestAnimationFrame !== 'function') return;
+  animate(root, svg, p, a, reduced());
 }
 
 function wirePlay(root, p, api) {
