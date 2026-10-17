@@ -185,9 +185,13 @@ test('hints: a nudge first, then questions; the board marks the answer; quickly 
   assert.deepEqual(nextHint(p, a).action, arc(2, 'A'));
   assert.equal(nextHint(p, a).text, 'The arc from C to D is centred on a dot. Which corner could the compass reach both C and D from?');
   assert.equal(nextHint(byId('width-01'), freshAttempt(byId('width-01'))).text, 'Which corner could the compass reach both A and B from?');
-  // A missing corner: the hint asks for the spot the width from both corners across.
-  const h = byId('width-07');
-  assert.equal(nextHint(h, freshAttempt(h)).text, 'Which spot is as far from B as A is, and as far from D as C is?');
+  // A missing corner: a nudge that names no other corner and no distance; the
+  // board rings the spot from the second level.
+  const h = byId('width-07'), X = h.parameters.open, right = h.solution.corner, wrong = Object.keys(h.parameters.spots).find(t => t !== right);
+  assert.equal(nextHint(h, freshAttempt(h)).text, `Which spot lets corner ${X}’s arcs have the same radius as the two already drawn?`);
+  const placed = play(h, freshAttempt(h), {type: 'corner', at: wrong});
+  assert.equal(nextHint(h, placed).text, `Can corner ${X}’s arcs have the same radius as the two already drawn, from here?`);
+  assert.deepEqual(nextHint(h, placed).action, {type: 'corner', at: right});
 });
 
 test('rendering: the build view, a miss, the spin, hints; quick taps', () => {
@@ -237,7 +241,10 @@ test('rendering: the build view, a miss, the spin, hints; quick taps', () => {
   assert.equal((html.match(/class="wd-pt wd-corner/g) || []).length, 4, 'four corners');
   assert.match(html, /class="wd-open"/);
   assert.equal((html.match(/class="wd-hit wd-gap"/g) || []).length, 3, 'only the gaps between the corners there');
+  assert.doesNotMatch(html, /aria-pressed="true"/, 'no gap is chosen before the corner is placed');
+  assert.match(html, /role="status">Corner [A-E] is not on a spot yet\.</);
   ha = play(h, ha, {type: 'corner', at: spots[0]});
+  assert.match(view(h, ha), /aria-pressed="true"/, 'a gap is chosen once the corner is placed');
   t = process.cpuUsage();
   html = view(h, {...ha, hintLevel: 2});
   u = process.cpuUsage(t);

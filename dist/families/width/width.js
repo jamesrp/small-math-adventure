@@ -19,8 +19,9 @@ const TAU = 2 * Math.PI;
 const SIZE = 360, MID = 180, FLOOR = 334, RAIL = 7, REACH = 154;
 // Drawn radius and tap radius of each kind of point. A tap inside a point's
 // tap radius goes to the point; a little further out it goes to the point only
-// when it is nearer the point's drawn edge than any gap's line.
-const MARK = {corner: [12.5, 14], dot: [5.5, 9], spot: [8, 12]};
+// when it is nearer the point's drawn edge than any gap's line. A spot's tap
+// radius is its drawn ring, so a gap's line beside a spot keeps its taps.
+const MARK = {corner: [12.5, 14], dot: [5.5, 9], spot: [8, 8]};
 const POINT_REACH = 17, GAP_REACH = 22;
 const STEPS = 720;
 
@@ -122,15 +123,23 @@ export function layoutOf(p) {
     if (!posMemo.has(key)) posMemo.set(key, key ? {...xy, [q.open]: xy[key]} : xy);
     return posMemo.get(key);
   };
-  const turn = (q.turn || 0) * Math.PI / 180, c = Math.cos(turn), sn = Math.sin(turn), pts = Object.values(xy);
+  // Everything that can be drawn while building, and everything that can
+  // spin: a full shape. In a place puzzle only the right spot allows a full
+  // shape (the builder and validator check this), so spots and the arcs a
+  // wrong spot allows need only fit the build view, not every turn.
+  const turn = (q.turn || 0) * Math.PI / 180, c = Math.cos(turn), sn = Math.sin(turn), pts = Object.values(xy), spun = [];
   for (const spot of isPlace(p) ? Object.keys(q.spots) : [null]) {
-    const e = exactOf(p, spot), at = pos(spot);
-    e.gaps.forEach(gap => gap.joins.forEach(k => pts.push(...arcSamples(arcOf(at[k], at[gap.a], at[gap.b])))));
+    const e = exactOf(p, spot), at = pos(spot), arcs = [];
+    e.gaps.forEach(gap => gap.joins.forEach(k => arcs.push(...arcSamples(arcOf(at[k], at[gap.a], at[gap.b])))));
+    pts.push(...arcs);
+    if (isPlace(p) && e.gaps.every(gap => gap.joins.length)) spun.push(...e.order.map(id => at[id]), ...arcs);
   }
-  const R = Math.max(...pts.map(pt => Math.hypot(pt[0] - G[0], pt[1] - G[1]))), s = REACH / R;
+  const far = list => Math.max(...list.map(pt => Math.hypot(pt[0] - G[0], pt[1] - G[1])));
   // The build view centres the box round everything that can be drawn;
   // `home` is where G sits on the board then.
   const xs = pts.map(pt => c * (pt[0] - G[0]) - sn * (pt[1] - G[1])), ys = pts.map(pt => sn * (pt[0] - G[0]) + c * (pt[1] - G[1]));
+  const half = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) / 2;
+  const R = spun.length ? Math.max(far(spun), half) : far(pts), s = REACH / R;
   const home = [MID - s * (Math.min(...xs) + Math.max(...xs)) / 2, MID + s * (Math.min(...ys) + Math.max(...ys)) / 2];
   L = {xy, G, R, s, turn, home, pos};
   layoutMemo.set(q, L);
@@ -216,10 +225,14 @@ const uiState = new Map();
 const ui = p => { if (!uiState.has(p.id)) uiState.set(p.id, {replay: 0}); return uiState.get(p.id); };
 const keyOf = b => `${b.corner ?? ''}|${(b.arcs || []).map(c => c ?? '-').join(',')}`;
 
+// The chosen gap: the one tapped, else the hint's, else the first empty one
+// (none while a corner is still to be placed: the gap across from it is
+// centred on that corner).
 function selected(p, b, hinted) {
   const u = ui(p), key = keyOf(b), e = exactOf(p, spotOf(p, b)), live = i => Boolean(e.gaps[i]?.live);
   if (u.sel?.key === key && live(u.sel.gap)) return u.sel.gap;
   if (Number.isInteger(hinted?.gap)) return hinted.gap;
+  if (isPlace(p) && !e.spot) return null;
   const empty = b.arcs.findIndex((c, i) => c == null && live(i));
   return empty >= 0 ? empty : null;
 }
@@ -283,9 +296,10 @@ function hint(p, b) {
   const q = p.parameters, want = p.solution;
   let out;
   if (isPlace(p) && spot !== want.corner) {
-    // The missing corner is the width from the two corners whose arcs reach it.
-    const n = q.order.length, o = q.order.indexOf(q.open), at = k => q.order[(o + k + n) % n];
-    out = {type: 'move', action: {type: 'corner', at: want.corner}, text: `Which spot is as far from ${at(2)} as ${at(-1)} is, and as far from ${at(3)} as ${at(1)} is?`};
+    // A nudge that names no other corner and no distance: the board rings
+    // the spot from the second level, and the third offers Apply hint.
+    const X = q.open;
+    out = {type: 'move', action: {type: 'corner', at: want.corner}, text: spot ? `Can corner ${X}’s arcs have the same radius as the two already drawn, from here?` : `Which spot lets corner ${X}’s arcs have the same radius as the two already drawn?`};
   } else {
     // A wrong arc first, then the first gap with none.
     let gap = b.arcs.findIndex((c, i) => c != null && c !== want.arcs[i]);
@@ -420,8 +434,8 @@ function renderPuzzle(p, a) {
   } else {
     const built = buildSvg(p, a, hinted), sel = built.sel;
     svg = built.svg;
-    const waiting = isPlace(p) && !spot ? `Corner ${q.open} is not on a spot yet. ` : '';
-    status = built.miss ? `A circle round ${shortName(p, built.miss.centre)} from ${built.miss.from} misses ${built.miss.to}.` : `${waiting}${sel == null ? 'Choose a gap.' : `Gap from ${gapName(p, sel)} chosen${b.arcs[sel] ? `, centred on ${shortName(p, b.arcs[sel])}` : ''}.`}`;
+    const waiting = isPlace(p) && !spot ? `Corner ${q.open} is not on a spot yet.` : '';
+    status = built.miss ? `A circle round ${shortName(p, built.miss.centre)} from ${built.miss.from} misses ${built.miss.to}.` : sel == null ? waiting || 'Choose a gap.' : `${waiting ? `${waiting} ` : ''}Gap from ${gapName(p, sel)} chosen${b.arcs[sel] ? `, centred on ${shortName(p, b.arcs[sel])}` : ''}.`;
   }
   return `<div class="wd-puzzle${done ? ' solved' : ''}" data-mechanic-wire="width" data-view="${view}">${bar}${svg}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }

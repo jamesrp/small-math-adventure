@@ -5,13 +5,14 @@
 // which gap with the mechanic's exact test, measures how far the width moves
 // for every other full shape a child can make and how far every missed
 // compass misses, checks that in the hard puzzles exactly one spot can take
-// the missing corner and that every other spot leaves a compass that misses,
-// and writes dist/families/width/width.json.
+// the missing corner, that every other spot leaves a compass that misses and
+// is on the circles its recipe says, and that the spots keep clear of the
+// lines a tap must reach, and writes dist/families/width/width.json.
 // Run: node scripts/build-width.mjs (add --report to print the measurements).
 import {writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {field, frac} from '../dist/families/width/surd.js';
-import {exactOf, layoutOf, verdictOf, snug, joinable} from '../dist/families/width/width.js';
+import {exactOf, layoutOf, verdictOf, snug, joinable, arcOf} from '../dist/families/width/width.js';
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E'];
 const REPORT = process.argv.includes('--report');
@@ -99,27 +100,40 @@ const mids = n => Array.from({length: n}, (_, i) => [i, '0']);
 // (the corner o places round the shape) missing, and spots where it might go.
 // The corner belongs where it is the width from the two corners whose arcs
 // reach it, P(o+2) and P(o+3): where the circles of that radius round them
-// cross. The other spots are exact too: S turned round P(o+2) ("first") or
-// P(o+3) ("second") by rational rotations, so on one circle and not the
-// other, and one on the perpendicular bisector of P(o+2)P(o+3), nearer than
-// the width (t of the way from its middle to S).
-const ROT = {'9/41': [40, 9, 41], '7/25': [24, 7, 25], '11/61': [60, 11, 61]};
-function place(base, letters, o, spots, turn) {
+// cross. The other spots are exact too, each from a recipe:
+// - {on: 'first' | 'second', turn: 's/h'}: the corner turned round P(o+2)
+//   ("first") or P(o+3) ("second") by the rotation whose sine is s/h (its
+//   cosine from the Pythagorean triple), away from the arc the corner ends, so
+//   on that circle only, beyond the corner and never on the answer's arcs;
+// - {bisector: t}: on the perpendicular bisector of P(o+2)P(o+3), t of the
+//   way from its middle to the corner (t < 1 nearer than the width, t > 1
+//   further);
+// - {off: [a, b]}: the corner moved by a·(corner − P(o+2)) + b·(corner −
+//   P(o+3)), with a ≠ b, which (checked below) is on neither circle.
+function place(base, letters, o, recipes, turn) {
   const F = field(base.field.r), names0 = Object.keys(base.corners), order = [...letters], n = order.length;
   const at = Object.fromEntries(order.map((id, i) => [id, base.corners[names0[i]].map(v => F.parse(v))]));
   const k = j => order[(o + j + n) % n], S = at[k(0)], centre = {first: at[k(2)], second: at[k(3)]};
-  const rotate = (C, V, [x, y, h], sign) => {
+  // Corners go counterclockwise, and each arc runs counterclockwise round its
+  // centre, so "beyond the corner" is counterclockwise round P(o+2) and
+  // clockwise round P(o+3).
+  const rotate = (C, V, turn, sign) => {
+    const [y, h] = turn.split('/').map(BigInt), x = isqrt(h * h - y * y);
+    assert.equal(x * x + y * y, h * h, `${turn} is the sine of a rational rotation`);
     const c = F.of(`${x}/${h}`), s = F.of(`${sign < 0 ? '-' : ''}${y}/${h}`), dx = F.sub(V[0], C[0]), dy = F.sub(V[1], C[1]);
     return [F.add(C[0], F.sub(F.mul(c, dx), F.mul(s, dy))), F.add(C[1], F.add(F.mul(s, dx), F.mul(c, dy)))];
   };
+  const half = F.of('1/2'), A = centre.first, B = centre.second, M = [0, 1].map(j => F.mul(half, F.add(A[j], B[j])));
   const raw = [{kind: 'the corner', pt: S}];
-  for (const [which, rot, sign, times] of spots.turns) {
-    let pt = S;
-    for (let t = 0; t < times; t++) pt = rotate(centre[which], pt, ROT[rot], sign);
-    raw.push({kind: `${which} circle`, pt});
+  for (const r of recipes) {
+    if (r.on) raw.push({kind: `${r.on} circle`, pt: rotate(centre[r.on], S, r.turn, r.on === 'first' ? 1 : -1)});
+    else if (r.bisector) { const t = F.of(r.bisector); raw.push({kind: 'bisector', pt: [0, 1].map(j => F.add(M[j], F.mul(t, F.sub(S[j], M[j]))))}); }
+    else {
+      const [a, b] = r.off.map(v => F.of(v));
+      assert.notEqual(r.off[0], r.off[1], 'an off spot is not on the bisector');
+      raw.push({kind: 'off', pt: [0, 1].map(j => F.add(S[j], F.add(F.mul(a, F.sub(S[j], A[j])), F.mul(b, F.sub(S[j], B[j])))))});
+    }
   }
-  const half = F.of('1/2'), A = centre.first, B = centre.second, M = [0, 1].map(j => F.mul(half, F.add(A[j], B[j]))), t = F.of(spots.bisector);
-  raw.push({kind: 'bisector', pt: [0, 1].map(j => F.add(M[j], F.mul(t, F.sub(S[j], M[j]))))});
   // Spots are numbered left to right as drawn.
   const th = turn * Math.PI / 180, bx = pt => Math.cos(th) * F.float(pt[0]) - Math.sin(th) * F.float(pt[1]);
   raw.sort((u, v) => bx(u.pt) - bx(v.pt));
@@ -199,25 +213,37 @@ const PUZZLES = [
     provenance: 'New, after Week 59 Problems 3–4 and the card’s App fit.'},
   // Hard: put the missing corner on a spot, then build. The two arcs that
   // neither end at the missing corner nor are centred on it are drawn.
-  {number: 7, letters: 'DAECB', open: 2, level: 'hard', title: 'Missing corner', shape: 'pairs', mode: 'place', turn: 0,
-    spots: {turns: [['first', '7/25', -1, 1], ['first', '7/25', -1, 2], ['second', '9/41', 1, 1], ['second', '9/41', -1, 1]], bisector: '4/5'},
+  {number: 7, letters: 'CAEBD', open: 4, level: 'hard', title: 'Missing corner', shape: 'pairs', mode: 'place', turn: 0,
+    spots: [{on: 'first', turn: '9/41'}, {on: 'second', turn: '39/89'}, {off: ['-3/40', '-1/5']}, {off: ['-1/20', '-2/5']}, {off: ['9/40', '-1/5']}],
     idea: 'A snug shape’s missing corner cannot go just anywhere that looks right: it must be the width from the two corners whose arcs reach it, where two compass circles cross.'},
   {number: 8, letters: 'CEADB', open: 4, level: 'hard', title: 'Where does B go?', shape: 'house', mode: 'place', turn: 0,
-    spots: {turns: [['first', '7/25', -1, 1], ['first', '7/25', -1, 2], ['second', '11/61', 1, 1], ['second', '11/61', -1, 1]], bisector: '4/5'},
+    spots: [{on: 'first', turn: '51/149'}, {on: 'second', turn: '52/173'}, {bisector: '7/10'}, {bisector: '6/5'}, {off: ['7/40', '7/20']}],
     idea: 'Each corner of a Reuleaux pentagon is fixed by two others: it is the width from both.'},
-  {number: 9, letters: 'CEBAD', open: 3, level: 'hard', title: 'Last corner', shape: 'tilted', mode: 'place', turn: 0,
-    spots: {turns: [['second', '7/25', 1, 1], ['second', '7/25', 1, 2], ['first', '9/41', 1, 1], ['first', '9/41', -1, 1]], bisector: '4/5'},
+  {number: 9, letters: 'CEBAD', open: 1, level: 'hard', title: 'Last corner', shape: 'tilted', mode: 'place', turn: 0,
+    spots: [{on: 'first', turn: '9/41'}, {on: 'second', turn: '8/17'}, {bisector: '7/10'}, {off: ['-1/10', '-7/20']}, {off: ['1/5', '-1/5']}],
     idea: 'With four corners of a snug pentagon in place, there is exactly one place for the fifth.'}
 ];
+// The other spots of a place puzzle, in words.
+const WORDS = ['no', 'one', 'two', 'three', 'four', 'five'];
+function others(item, c1, c2) {
+  const count = kind => item.spots.filter(kind).length, be = k => `${WORDS[k]} ${k === 1 ? 'is' : 'are'}`;
+  const parts = [
+    [count(r => r.on === 'first'), k => `${be(k)} on the circle round ${c1} only`],
+    [count(r => r.on === 'second'), k => `${be(k)} on the circle round ${c2} only`],
+    [count(r => r.bisector), k => `${be(k)} as far from ${c1} as from ${c2} but not the width from them`],
+    [count(r => r.off), k => `${be(k)} on neither circle`]
+  ].filter(([k]) => k).map(([k, say]) => say(k));
+  return parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}` : parts[0];
+}
 // The copy for a place puzzle, from its letters.
 function placeCopy(item) {
   const {X, prev, next, c1, c2} = roles(item.letters, item.open);
   return {
-    hints: [`The two arcs already drawn have the radius every arc needs. Where could corner ${X} go so that its arcs have that radius too?`, `${X} must be as far from ${c1} as ${prev} is, and as far from ${c2} as ${next} is: where a circle round ${c1} through ${prev} crosses a circle round ${c2} through ${next}.`],
+    hints: [`The two arcs already drawn have the radius every arc needs. Where could corner ${X} go so that its arcs have that radius too?`],
     parent: {
       notice: 'Whether your child tries the spots one by one, or uses the circle a missed compass draws to see which spots it passes through.',
       prompt: `Which spots are as far from ${c1} as ${prev} is? Which are as far from ${c2} as ${next} is?`,
-      explanation: `The arc from ${prev} to ${X} is centred on ${c1}, the arc from ${X} to ${next} on ${c2}, and the arc from ${c1} to ${c2} on ${X}. For all of them to have the common radius (the width, the radius of the two arcs already drawn), ${X} must be exactly the width from ${c1} and from ${c2}: on the circle round ${c1} through ${prev} and on the circle round ${c2} through ${next}. Two circles cross in at most two points, and only one of them is on this side of ${c1}${c2}, so exactly one spot works. Two other spots are on the first circle only, two on the second only, and one is as far from ${c1} as from ${c2} but nearer than the width: each leaves an arc whose compass misses, so no full shape can be made on them.`,
+      explanation: `The arc from ${prev} to ${X} is centred on ${c1}, the arc from ${X} to ${next} on ${c2}, and the arc from ${c1} to ${c2} on ${X}. For all of them to have the common radius (the width, the radius of the two arcs already drawn), ${X} must be exactly the width from ${c1} and from ${c2}: on the circle round ${c1} through ${prev} and on the circle round ${c2} through ${next}. Two circles cross in at most two points, and only one of them is on this side of ${c1}${c2}, so exactly one spot works. Of the other spots, ${others(item, c1, c2)}: each leaves an arc whose compass misses, so no full shape can be made on them.`,
       extension: `If ${prev} were the missing corner instead, which two corners would fix where it goes? (${next} and ${c1}: it is the width from both.)`,
       connection: 'Building a Reuleaux pentagon corner by corner: each new corner is where two circles of the common radius cross, the same equal steps as walking a five-pointed star.'
     },
@@ -251,6 +277,31 @@ function leastMiss(p, spot) {
     if (px < miss) { miss = px; missOf = `${gap.a}${gap.b}@${c}`; }
   }); });
   return {miss, missOf};
+}
+// How near the spots come to a line the child can tap, in board pixels, with
+// the corner off the board and on each spot in turn: the dashed line of every
+// empty gap, the arcs drawn at the start, and every arc that can be drawn.
+// `must` covers the lines a tap must reach past the spots (every dashed line,
+// the arcs drawn at the start, and the answer's arcs); `wrongArcs` is
+// reported only, since a spot on one of the circles lies on the arc a wrong
+// spot on the same circle allows, by construction.
+const ROOM_PX = 14;
+const segPx = (P, A, B) => { const dx = B[0] - A[0], dy = B[1] - A[1], t = Math.max(0, Math.min(1, ((P[0] - A[0]) * dx + (P[1] - A[1]) * dy) / (dx * dx + dy * dy))); return Math.hypot(P[0] - A[0] - t * dx, P[1] - A[1] - t * dy); };
+const arcPx = (P, c, A, B) => { const arc = arcOf(c, A, B); let d = Infinity; for (let j = 0; j <= 360; j++) { const t = arc.a0 + arc.span * j / 360; d = Math.min(d, Math.hypot(P[0] - c[0] - arc.rho * Math.cos(t), P[1] - c[1] - arc.rho * Math.sin(t))); } return d; };
+function clearance(p, right) {
+  const q = p.parameters, L = layoutOf(p), spots = Object.keys(q.spots), must = {d: Infinity, of: ''}, wrongArcs = {d: Infinity, of: ''};
+  for (const st of [null, ...spots]) {
+    const e = exactOf(p, st), xy = L.pos(e.spot);
+    e.gaps.forEach((gap, i) => {
+      if (!gap.live) return;
+      const A = xy[gap.a], B = xy[gap.b], lines = q.start[i] != null ? [[q.start[i], true]] : [[null, true], ...gap.joins.map(c => [c, st === right])];
+      for (const t of spots) if (t !== st) for (const [c, need] of lines) {
+        const d = (c == null ? segPx(xy[t], A, B) : arcPx(xy[t], xy[c], A, B)) * L.s, into = need ? must : wrongArcs;
+        if (d < into.d) { into.d = d; into.of = `${t} from ${c == null ? 'the dashed line' : `the arc on ${c}`} ${gap.a}${gap.b}, corner on ${st ?? 'no spot'}`; }
+      }
+    });
+  }
+  return {must, wrongArcs};
 }
 function checkCorners(item, e, F) {
   const n = e.n, o = e.order;
@@ -325,6 +376,10 @@ function buildPlace(item) {
     if (miss < least) { least = miss; leastOf = `${spot} ${missOf}`; }
     // Which of the corner's three arcs miss with their corner across.
     const fails = es.gaps.map((gap, i) => ({gap, i})).filter(({gap, i}) => (gap.a === X || gap.b === X || answer[i] === X) && !gap.joins.includes(answer[i]));
+    // Each spot is what its recipe says: which of the three arcs miss.
+    const gx = params.order.indexOf(X), gPrev = (gx + n - 1) % n, gAcross = answer.indexOf(X);
+    const expect = {'the corner': [], 'first circle': [gx, gAcross], 'second circle': [gPrev, gAcross], bisector: [gPrev, gx], off: [gPrev, gx, gAcross]}[kinds[spot]];
+    assert.deepEqual(fails.map(({i}) => i).sort(), [...expect].sort(), `${item.title}: ${spot} is on ${kinds[spot]}`);
     if (spot === right) { assert.deepEqual(full.snug, [answer.join('')]); assert.equal(full.combos, 1); }
     else {
       assert.deepEqual(full.snug, [], `${item.title}: nothing on ${spot} is snug`);
@@ -335,7 +390,10 @@ function buildPlace(item) {
   }
   const ids = [...params.order.filter(id => id !== X), ...Object.keys(params.spots)], {apart, close} = pxApart(L, ids, L.xy);
   assert.ok(apart >= 30, `${item.title}: corners and spots at least 30 px apart (${apart.toFixed(1)}, ${close})`);
-  if (REPORT) console.log(`${p.id} ${item.title}: width ${(Math.sqrt(F.float(d0)) * L.s).toFixed(0)} px, ${X} on ${right}, closest points ${apart.toFixed(1)} px (${close}), least miss ${least.toFixed(1)} px (${leastOf})\n  ${report.join('\n  ')}`);
+  // Taps on a line reach it past the spots.
+  const room = clearance(p, right);
+  assert.ok(room.must.d >= ROOM_PX, `${item.title}: every spot at least ${ROOM_PX} px from every dashed line, starting arc and answer arc (${room.must.d.toFixed(1)}, ${room.must.of})`);
+  if (REPORT) console.log(`${p.id} ${item.title}: width ${(Math.sqrt(F.float(d0)) * L.s).toFixed(0)} px, ${X} on ${right}, closest points ${apart.toFixed(1)} px (${close}), least miss ${least.toFixed(1)} px (${leastOf}), spots off lines ${room.must.d.toFixed(1)} px (${room.must.of}), off arcs a wrong spot allows ${room.wrongArcs.d.toFixed(1)} px (${room.wrongArcs.of})\n  ${report.join('\n  ')}`);
   const copy = placeCopy(item);
   return {
     id: p.id, number: item.number, title: item.title, difficulty_level: item.level, familyTitle: 'Snug spinners', mechanic: 'width', band: 'all', revision: 1, sourceDocument: 'docs/width/README.md',

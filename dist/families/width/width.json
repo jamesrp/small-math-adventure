@@ -935,7 +935,7 @@
      "ty": "1"
     },
     "corners": {
-     "D": [
+     "C": [
       "0|0",
       "0|0"
      ],
@@ -943,53 +943,53 @@
       "18/73|0",
       "-25/73|0"
      ],
-     "C": [
-      "9/73|75/1898",
-      "-25/146|27/949"
+     "E": [
+      "1|0",
+      "0|0"
      ],
      "B": [
-      "18/73|0",
-      "48/73|0"
+      "9/73|75/1898",
+      "-25/146|27/949"
      ]
     },
     "order": [
-     "D",
+     "C",
      "A",
      "E",
-     "C",
-     "B"
+     "B",
+     "D"
     ],
-    "open": "E",
+    "open": "D",
     "spots": {
      "s1": [
-      "24107/45625|0",
-      "-13776/45625|0"
+      "81/2993|0",
+      "1895/2993|0"
      ],
      "s2": [
-      "1434/1825|0",
-      "-337/1825|0"
+      "18/73|0",
+      "48/73|0"
      ],
      "s3": [
-      "301/365|0",
-      "24/365|0"
+      "29/73|0",
+      "1317/2920|0"
      ],
      "s4": [
-      "40/41|0",
-      "9/41|0"
+      "29/73|0",
+      "2193/2920|0"
      ],
      "s5": [
-      "40/41|0",
-      "-9/41|0"
+      "40/73|0",
+      "503/1460|0"
      ],
      "s6": [
-      "1|0",
-      "0|0"
+      "3969/6497|0",
+      "5985/6497|0"
      ]
     },
     "names": {
-     "D": "Corner D",
-     "A": "Corner A",
      "C": "Corner C",
+     "A": "Corner A",
+     "E": "Corner E",
      "B": "Corner B",
      "s1": "Spot 1",
      "s2": "Spot 2",
@@ -1001,16 +1001,16 @@
     "mode": "place",
     "turn": 0,
     "start": [
+     "B",
+     null,
      "C",
      null,
-     null,
-     "A",
      null
     ]
    },
-   "objective": "Put corner E on one of the spots and centre an arc across every gap so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
-   "visibleObjective": "Put corner E on a spot, then make the shape spin snug.",
-   "instruction": "Put corner E on one of the spots and centre an arc across every gap so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
+   "objective": "Put corner D on one of the spots and centre an arc across every gap so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
+   "visibleObjective": "Put corner D on a spot, then make the shape spin snug.",
+   "instruction": "Put corner D on one of the spots and centre an arc across every gap so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
    "controls": "A shape’s width is the gap between two parallel rails that both touch it. It spins snug when the gap stays the same all the way round. Tap a spot to put the missing corner there; tap another spot to move it. Tap a gap between two corners, then a corner to centre its arc there: the arc must reach both corners. When every gap has an arc, the shape spins between the rails. Tap an arc to change it; Spin plays the turn again. Undo takes back the last step.",
    "rules": [
     "One corner is missing. It goes on one of the spots; moving it to another spot takes away the arcs that touch it.",
@@ -1021,14 +1021,13 @@
    "idea": "A snug shape’s missing corner cannot go just anywhere that looks right: it must be the width from the two corners whose arcs reach it, where two compass circles cross.",
    "prerequisites": "Has made snug pentagons: every arc centred on the corner across from its gap, with one radius. Compares distances by eye; a compass that misses draws a circle that can be used to check which spots lie on it.",
    "hints": [
-    "The two arcs already drawn have the radius every arc needs. Where could corner E go so that its arcs have that radius too?",
-    "E must be as far from B as A is, and as far from D as C is: where a circle round B through A crosses a circle round D through C."
+    "The two arcs already drawn have the radius every arc needs. Where could corner D go so that its arcs have that radius too?"
    ],
    "parent": {
     "notice": "Whether your child tries the spots one by one, or uses the circle a missed compass draws to see which spots it passes through.",
-    "prompt": "Which spots are as far from B as A is? Which are as far from D as C is?",
-    "explanation": "The arc from A to E is centred on B, the arc from E to C on D, and the arc from B to D on E. For all of them to have the common radius (the width, the radius of the two arcs already drawn), E must be exactly the width from B and from D: on the circle round B through A and on the circle round D through C. Two circles cross in at most two points, and only one of them is on this side of BD, so exactly one spot works. Two other spots are on the first circle only, two on the second only, and one is as far from B as from D but nearer than the width: each leaves an arc whose compass misses, so no full shape can be made on them.",
-    "extension": "If A were the missing corner instead, which two corners would fix where it goes? (C and B: it is the width from both.)",
+    "prompt": "Which spots are as far from A as B is? Which are as far from E as C is?",
+    "explanation": "The arc from B to D is centred on A, the arc from D to C on E, and the arc from A to E on D. For all of them to have the common radius (the width, the radius of the two arcs already drawn), D must be exactly the width from A and from E: on the circle round A through B and on the circle round E through C. Two circles cross in at most two points, and only one of them is on this side of AE, so exactly one spot works. Of the other spots, one is on the circle round A only, one is on the circle round E only and three are on neither circle: each leaves an arc whose compass misses, so no full shape can be made on them.",
+    "extension": "If B were the missing corner instead, which two corners would fix where it goes? (C and A: it is the width from both.)",
     "connection": "Building a Reuleaux pentagon corner by corner: each new corner is where two circles of the common radius cross, the same equal steps as walking a five-pointed star.",
     "sourceIds": [
      "width-week59",
@@ -1037,11 +1036,11 @@
     ]
    },
    "solution": {
-    "corner": "s6",
+    "corner": "s2",
     "arcs": [
-     "C",
      "B",
      "D",
+     "C",
      "A",
      "E"
     ]
@@ -1092,28 +1091,28 @@
     "open": "B",
     "spots": {
      "s1": [
-      "225/3233|0",
-      "1185/3233|0"
+      "-22991/129320|0",
+      "28623/32330|0"
      ],
      "s2": [
+      "-84221/481717|0",
+      "196139/481717|0"
+     ],
+     "s3": [
+      "776/16165|0",
+      "10984/16165|0"
+     ],
+     "s4": [
       "8/53|0",
       "28/53|0"
      ],
-     "s3": [
-      "4104/16165|0",
-      "6096/16165|0"
-     ],
-     "s4": [
-      "841/3233|0",
-      "2175/3233|0"
-     ],
      "s5": [
-      "35043/80825|0",
-      "43601/80825|0"
+      "4936/16165|0",
+      "4874/16165|0"
      ],
      "s6": [
-      "1430614/2020625|0",
-      "951748/2020625|0"
+      "3200/9169|0",
+      "6960/9169|0"
      ]
     },
     "names": {
@@ -1151,13 +1150,12 @@
    "idea": "Each corner of a Reuleaux pentagon is fixed by two others: it is the width from both.",
    "prerequisites": "Has made snug pentagons: every arc centred on the corner across from its gap, with one radius. Compares distances by eye; a compass that misses draws a circle that can be used to check which spots lie on it.",
    "hints": [
-    "The two arcs already drawn have the radius every arc needs. Where could corner B go so that its arcs have that radius too?",
-    "B must be as far from E as D is, and as far from A as C is: where a circle round E through D crosses a circle round A through C."
+    "The two arcs already drawn have the radius every arc needs. Where could corner B go so that its arcs have that radius too?"
    ],
    "parent": {
     "notice": "Whether your child tries the spots one by one, or uses the circle a missed compass draws to see which spots it passes through.",
     "prompt": "Which spots are as far from E as D is? Which are as far from A as C is?",
-    "explanation": "The arc from D to B is centred on E, the arc from B to C on A, and the arc from E to A on B. For all of them to have the common radius (the width, the radius of the two arcs already drawn), B must be exactly the width from E and from A: on the circle round E through D and on the circle round A through C. Two circles cross in at most two points, and only one of them is on this side of EA, so exactly one spot works. Two other spots are on the first circle only, two on the second only, and one is as far from E as from A but nearer than the width: each leaves an arc whose compass misses, so no full shape can be made on them.",
+    "explanation": "The arc from D to B is centred on E, the arc from B to C on A, and the arc from E to A on B. For all of them to have the common radius (the width, the radius of the two arcs already drawn), B must be exactly the width from E and from A: on the circle round E through D and on the circle round A through C. Two circles cross in at most two points, and only one of them is on this side of EA, so exactly one spot works. Of the other spots, one is on the circle round E only, one is on the circle round A only, two are as far from E as from A but not the width from them and one is on neither circle: each leaves an arc whose compass misses, so no full shape can be made on them.",
     "extension": "If D were the missing corner instead, which two corners would fix where it goes? (C and E: it is the width from both.)",
     "connection": "Building a Reuleaux pentagon corner by corner: each new corner is where two circles of the common radius cross, the same equal steps as walking a five-pointed star.",
     "sourceIds": [
@@ -1167,7 +1165,7 @@
     ]
    },
    "solution": {
-    "corner": "s2",
+    "corner": "s4",
     "arcs": [
      "D",
      "B",
@@ -1199,13 +1197,13 @@
       "0|0",
       "0|0"
      ],
-     "E": [
-      "121/221|0",
-      "-110/221|0"
-     ],
      "B": [
       "1|0",
       "0|0"
+     ],
+     "A": [
+      "121/442|5/221",
+      "-55/221|11/442"
      ],
      "D": [
       "1/13|0",
@@ -1219,37 +1217,37 @@
      "A",
      "D"
     ],
-    "open": "A",
+    "open": "E",
     "spots": {
      "s1": [
-      "50523/276250|787/138125",
-      "-60093/138125|9157/276250"
+      "1/13|0",
+      "-8/13|0"
      ],
      "s2": [
-      "1188/5525|163/11050",
-      "-3707/11050|167/5525"
+      "1123/2210|-1/221",
+      "-82/221|-11/2210"
      ],
      "s3": [
-      "121/442|4/221",
-      "-55/221|22/1105"
+      "1571/4420|1/442",
+      "-145/884|11/4420"
      ],
      "s4": [
-      "2915/9061|301/18122",
-      "-3311/18122|265/9061"
+      "3853/8840|3/884",
+      "-145/442|33/8840"
      ],
      "s5": [
-      "121/442|5/221",
-      "-55/221|11/442"
+      "121/221|0",
+      "-110/221|0"
      ],
      "s6": [
-      "1925/9061|499/18122",
-      "-5489/18122|175/9061"
+      "10791/18122|109/18122",
+      "-7821/18122|-79/18122"
      ]
     },
     "names": {
      "C": "Corner C",
-     "E": "Corner E",
      "B": "Corner B",
+     "A": "Corner A",
      "D": "Corner D",
      "s1": "Spot 1",
      "s2": "Spot 2",
@@ -1262,15 +1260,15 @@
     "turn": 0,
     "start": [
      null,
-     "D",
      null,
+     "C",
      null,
      "B"
     ]
    },
-   "objective": "Put corner A on one of the spots and centre an arc across every gap so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
-   "visibleObjective": "Put corner A on a spot, then make the shape spin snug.",
-   "instruction": "Put corner A on one of the spots and centre an arc across every gap so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
+   "objective": "Put corner E on one of the spots and centre an arc across every gap so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
+   "visibleObjective": "Put corner E on a spot, then make the shape spin snug.",
+   "instruction": "Put corner E on one of the spots and centre an arc across every gap so that the shape spins snug between two rails: the gap between the rails never changes as it turns.",
    "controls": "A shape’s width is the gap between two parallel rails that both touch it. It spins snug when the gap stays the same all the way round. Tap a spot to put the missing corner there; tap another spot to move it. Tap a gap between two corners, then a corner to centre its arc there: the arc must reach both corners. When every gap has an arc, the shape spins between the rails. Tap an arc to change it; Spin plays the turn again. Undo takes back the last step.",
    "rules": [
     "One corner is missing. It goes on one of the spots; moving it to another spot takes away the arcs that touch it.",
@@ -1281,14 +1279,13 @@
    "idea": "With four corners of a snug pentagon in place, there is exactly one place for the fifth.",
    "prerequisites": "Has made snug pentagons: every arc centred on the corner across from its gap, with one radius. Compares distances by eye; a compass that misses draws a circle that can be used to check which spots lie on it.",
    "hints": [
-    "The two arcs already drawn have the radius every arc needs. Where could corner A go so that its arcs have that radius too?",
-    "A must be as far from C as B is, and as far from E as D is: where a circle round C through B crosses a circle round E through D."
+    "The two arcs already drawn have the radius every arc needs. Where could corner E go so that its arcs have that radius too?"
    ],
    "parent": {
     "notice": "Whether your child tries the spots one by one, or uses the circle a missed compass draws to see which spots it passes through.",
-    "prompt": "Which spots are as far from C as B is? Which are as far from E as D is?",
-    "explanation": "The arc from B to A is centred on C, the arc from A to D on E, and the arc from C to E on A. For all of them to have the common radius (the width, the radius of the two arcs already drawn), A must be exactly the width from C and from E: on the circle round C through B and on the circle round E through D. Two circles cross in at most two points, and only one of them is on this side of CE, so exactly one spot works. Two other spots are on the first circle only, two on the second only, and one is as far from C as from E but nearer than the width: each leaves an arc whose compass misses, so no full shape can be made on them.",
-    "extension": "If B were the missing corner instead, which two corners would fix where it goes? (D and C: it is the width from both.)",
+    "prompt": "Which spots are as far from A as C is? Which are as far from D as B is?",
+    "explanation": "The arc from C to E is centred on A, the arc from E to B on D, and the arc from A to D on E. For all of them to have the common radius (the width, the radius of the two arcs already drawn), E must be exactly the width from A and from D: on the circle round A through C and on the circle round D through B. Two circles cross in at most two points, and only one of them is on this side of AD, so exactly one spot works. Of the other spots, one is on the circle round A only, one is on the circle round D only, one is as far from A as from D but not the width from them and two are on neither circle: each leaves an arc whose compass misses, so no full shape can be made on them.",
+    "extension": "If C were the missing corner instead, which two corners would fix where it goes? (B and A: it is the width from both.)",
     "connection": "Building a Reuleaux pentagon corner by corner: each new corner is where two circles of the common radius cross, the same equal steps as walking a five-pointed star.",
     "sourceIds": [
      "width-week59",

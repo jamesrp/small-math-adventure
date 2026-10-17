@@ -9,9 +9,11 @@
 // first puts a missing corner on one of several spots, the same for every
 // spot: exactly one spot gives a snug shape, every other spot leaves a
 // compass that misses, and the cost of trying every spot is reported. Also:
-// every compass miss is visible, points are far enough apart to tap, hints
-// alone solve from fresh and after every wrong first move without their text
-// naming the centre or spot, illegal moves are refused, forged saves
+// every compass miss is visible, points are far enough apart to tap, spots
+// keep clear of the lines a tap must reach with the corner on every spot,
+// hints alone solve from fresh and after every wrong first move without
+// their text naming the centre or spot (or, for where a corner goes, any
+// other corner or a distance), illegal moves are refused, forged saves
 // (including a forged done) are rejected, and the playground's shapes are or
 // are not of constant width as its notes say.
 // Run: node scripts/validate-width.mjs
@@ -91,8 +93,10 @@ const refuse = (p, a, action, why) => assert.equal(move(p, a, action), null, `${
 // Hint text points at the reasoning: it never names the centre or the spot
 // (the board rings it from the second level).
 function hintText(p, h, label) {
-  const named = h.action.type === 'corner' ? [h.action.at, p.parameters.names[h.action.at]] : [h.action.at];
+  const q = p.parameters, named = h.action.type === 'corner' ? [h.action.at, q.names[h.action.at], ...q.order.filter(id => id !== q.open)] : [h.action.at];
   for (const name of named) assert.ok(!new RegExp(`\\b${name}\\b`).test(h.text), `${p.id} ${label}: the hint “${h.text}” does not name ${name}`);
+  // Where the corner goes: a nudge, not the deciding condition.
+  if (h.action.type === 'corner') assert.ok(!/as far|width|circle/.test(h.text), `${p.id} ${label}: the hint “${h.text}” names no distance`);
   assert.ok(h.text.length > 20 && /\?$/.test(h.text), `${p.id} ${label}: the hint asks a question`);
 }
 function hintsSolve(p, a, label) {
@@ -116,11 +120,11 @@ const TABLE = {
   'width-04': ['ABCDE', 'DEABC', 'medium'],
   'width-05': ['BEADC', 'DCBEA', 'medium'],
   'width-06': ['DACEB', 'EBDAC', 'medium'],
-  'width-07': ['DAECB', 'CBDAE', 'hard', 'E'],
+  'width-07': ['CAEBD', 'BDCAE', 'hard', 'D'],
   'width-08': ['CEADB', 'DBCEA', 'hard', 'B'],
-  'width-09': ['CEBAD', 'ADCEB', 'hard', 'A']
+  'width-09': ['CEBAD', 'ADCEB', 'hard', 'E']
 };
-const WOBBLE_PX = 8, MISS_PX = 6, APART_PX = 30;
+const WOBBLE_PX = 8, MISS_PX = 6, APART_PX = 30, ROOM_PX = 14;
 
 // Shared checks for one placement of the corners (all of them there).
 function cornersOf(p, E, order, label) {
@@ -152,6 +156,36 @@ function missOf(E, order, joins, ids, s) {
   let miss = Infinity;
   order.forEach((a, i) => { const b = order[(i + 1) % order.length]; for (const c of ids) if (c !== a && c !== b && !joins[i].includes(c)) { const [A, B, C] = [a, b, c].map(E.pos); miss = Math.min(miss, Math.abs(Math.hypot(C[0] - A[0], C[1] - A[1]) - Math.hypot(C[0] - B[0], C[1] - B[1])) * s); } });
   return miss;
+}
+// Taps on a line reach it past the spots: with the corner off the board and
+// on each spot, every other spot keeps ROOM_PX from every dashed line of an
+// empty gap and every arc drawn at the start, and with the corner on the
+// right spot from the answer's arcs too. Distances are measured here from the
+// validator's own positions: to a segment, and to an arc sampled densely.
+const segTo = (P, A, B) => { const dx = B[0] - A[0], dy = B[1] - A[1], t = Math.max(0, Math.min(1, ((P[0] - A[0]) * dx + (P[1] - A[1]) * dy) / (dx * dx + dy * dy))); return Math.hypot(P[0] - A[0] - t * dx, P[1] - A[1] - t * dy); };
+function arcTo(P, C, A, B) {
+  const r = Math.hypot(A[0] - C[0], A[1] - C[1]), t0 = Math.atan2(A[1] - C[1], A[0] - C[0]);
+  let span = Math.atan2(B[1] - C[1], B[0] - C[0]) - t0;
+  while (span <= 0) span += 2 * Math.PI;
+  let d = Infinity;
+  for (let k = 0; k <= 2000; k++) { const t = t0 + span * k / 2000; d = Math.min(d, Math.hypot(P[0] - C[0] - r * Math.cos(t), P[1] - C[1] - r * Math.sin(t))); }
+  return d;
+}
+function roomOf(p, s) {
+  const q = p.parameters, order = q.order, n = order.length, X = q.open, spots = Object.keys(q.spots), right = p.solution.corner, out = {px: Infinity, of: ''};
+  for (const st of [null, ...spots]) {
+    const E = exact(q, st), joins = st ? joinsOf(E, order, order) : null;
+    order.forEach((a, i) => {
+      const b = order[(i + 1) % n];
+      if (!st && (a === X || b === X)) return;
+      const lines = q.start[i] != null ? [q.start[i]] : [null, ...(st === right ? joins[i] : [])];
+      for (const t of spots) if (t !== st) for (const c of lines) {
+        const d = (c == null ? segTo(E.pos(t), E.pos(a), E.pos(b)) : arcTo(E.pos(t), E.pos(c), E.pos(a), E.pos(b))) * s;
+        if (d < out.px) { out.px = d; out.of = `${t} from ${c == null ? 'the dashed line' : `the arc on ${c}`} ${a}${b}, ${X} on ${st ?? 'no spot'}`; }
+      }
+    });
+  }
+  return out;
 }
 function apartOf(E, ids, s) { let apart = Infinity; ids.forEach((u, i) => ids.slice(i + 1).forEach(v => { const [P, Q] = [u, v].map(E.pos); apart = Math.min(apart, Math.hypot(P[0] - Q[0], P[1] - Q[1]) * s); })); return apart; }
 // The shape, up to turning and mirroring: its side lengths round it.
@@ -263,6 +297,8 @@ function checkPlace(p) {
   assert.deepEqual(snugAll, [`${right}:${answer.split('').join(',')}`], `${p.id}: exactly one spot and one set of arcs make a snug shape, the witness`);
   assert.ok(miss >= MISS_PX, `${p.id}: every miss shows by at least ${MISS_PX} px (${miss.toFixed(1)})`);
   assert.ok(apart >= APART_PX, `${p.id}: corners and spots at least ${APART_PX} px apart (${apart.toFixed(1)})`);
+  const room = roomOf(p, s);
+  assert.ok(room.px >= ROOM_PX, `${p.id}: spots at least ${ROOM_PX} px from the lines a tap must reach (${room.px.toFixed(1)}: ${room.of})`);
 
   // Play.
   const fresh = freshAttempt(p);
@@ -313,7 +349,7 @@ function checkPlace(p) {
   // The cost of a blind sweep: every spot tried, each wrong one until a compass misses.
   const wrongs = spots.filter(t => t !== right);
   const sweep = {spots: spots.length, spinsOnWrongSpots: wrongs.reduce((k, t) => k + report[t].fullShapes, 0), worstTaps: wrongs.reduce((k, t) => k + 1 + report[t].tapsToReject, 0) + 1 + 3};
-  return {spot: right, apart: Number(apart.toFixed(1)), miss: Number(miss.toFixed(1)), hintSteps: Math.max(...steps), spots: report, sweep, sides};
+  return {spot: right, apart: Number(apart.toFixed(1)), miss: Number(miss.toFixed(1)), offLines: Number(room.px.toFixed(1)), hintSteps: Math.max(...steps), spots: report, sweep, sides};
 }
 
 function checkPlayground(p) {
