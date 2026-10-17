@@ -1,0 +1,87 @@
+/* Footprint borders: a paper strip with a dashed middle line, the cell framed
+   in pine, the border's Fs in sun with ink outlines, and the copy over them
+   in translucent sky, each copy F outlined pine where it lands on an F like
+   it and red where it misses. Goal chips above, the copy's buttons and the
+   four forms below. Every rule is scoped to the family's root. */
+[data-mechanic-wire="friezes"]{--fz-card:var(--b-card,#fffdf5);display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%}
+[data-mechanic-wire="friezes"] .fz-board{display:block;width:100%;max-width:560px;height:auto;touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;border-radius:12px;background:var(--fz-card);cursor:grab}
+[data-mechanic-wire="friezes"].dragging .fz-board{cursor:grabbing}
+[data-mechanic-wire="friezes"].solved .fz-board{cursor:default}
+[data-mechanic-wire="friezes"] .fz-board:focus{outline:none}
+[data-mechanic-wire="friezes"] .fz-board:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:4px}
+[data-mechanic-wire="friezes"] .fz-board *{vector-effect:non-scaling-stroke}
+
+/* The strip, the cell, the middle line and the crossing line. */
+[data-mechanic-wire="friezes"] .fz-strip{fill:var(--b-paper,#f5f1e6);stroke:var(--b-line,#d0d6bd);stroke-width:1px}
+[data-mechanic-wire="friezes"] .fz-cell{fill:rgba(134,166,140,.12);stroke:var(--b-leaf,#86a68c);stroke-width:2px}
+[data-mechanic-wire="friezes"] .fz-mid{stroke:var(--b-ink,#294439);stroke-width:1.2px;stroke-dasharray:5 4;opacity:.7}
+[data-mechanic-wire="friezes"] .fz-cross{stroke:var(--b-ink,#294439);stroke-width:1.6px;stroke-dasharray:3 3}
+[data-mechanic-wire="friezes"] .fz-empty{fill:none;stroke:#b9c3a3;stroke-width:1px;stroke-dasharray:3 3}
+
+/* Footprints: the border's, then the copy's. */
+[data-mechanic-wire="friezes"] .fz-f .fz-body{fill:var(--b-sun,#efc76e);stroke:var(--b-ink,#294439);stroke-width:1.3px;stroke-linejoin:round}
+[data-mechanic-wire="friezes"] .fz-f .fz-arrow{fill:var(--b-ink,#294439)}
+[data-mechanic-wire="friezes"] .fz-f.rep .fz-body{fill:#f3d998}
+[data-mechanic-wire="friezes"] .fz-copy,[data-mechanic-wire="friezes"] .fz-arg{pointer-events:none}
+[data-mechanic-wire="friezes"] .fz-copy-frame{fill:none;stroke:#4f86a0;stroke-width:1.6px;stroke-dasharray:6 4}
+[data-mechanic-wire="friezes"] .fz-c .fz-body{fill:rgba(156,201,222,.5);stroke:#3d6f88;stroke-width:1.6px;stroke-linejoin:round}
+[data-mechanic-wire="friezes"] .fz-c .fz-arrow{fill:rgba(41,68,57,.45)}
+[data-mechanic-wire="friezes"] .fz-c.home .fz-body{fill:rgba(156,201,222,.18);stroke:rgba(61,111,136,.5)}
+[data-mechanic-wire="friezes"] .fz-c.home .fz-arrow{fill:none}
+[data-mechanic-wire="friezes"] .fz-c.hit .fz-body{fill:rgba(134,166,140,.45);stroke:var(--b-pine,#31533e);stroke-width:2.2px}
+[data-mechanic-wire="friezes"] .fz-c.miss .fz-body{fill:rgba(231,162,143,.45);stroke:var(--b-bad,#a9503a);stroke-width:2.4px}
+
+/* Marks: hints, a footprint held, picks for a claim, and a claim's argument. */
+[data-mechanic-wire="friezes"] :is(.fz-hint,.fz-held,.fz-pick,.fz-ring){fill:none;stroke-width:2.4px}
+[data-mechanic-wire="friezes"] .fz-hint{stroke:var(--b-ochre,#b38840);stroke-dasharray:4 3}
+[data-mechanic-wire="friezes"] .fz-hint-point{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:2.4px;stroke-dasharray:3 2}
+[data-mechanic-wire="friezes"] .fz-hint-frame{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:2px;stroke-dasharray:4 3}
+[data-mechanic-wire="friezes"] .fz-held,[data-mechanic-wire="friezes"] .fz-pick{stroke:var(--b-pine,#31533e)}
+[data-mechanic-wire="friezes"] .fz-ring{stroke:var(--b-pine,#31533e);stroke-width:3px}
+[data-mechanic-wire="friezes"] .fz-ring.bad{stroke:var(--b-bad,#a9503a)}
+[data-mechanic-wire="friezes"] .fz-span{stroke:var(--b-pine,#31533e);stroke-width:2.4px}
+[data-mechanic-wire="friezes"] .fz-row-none{fill:rgba(169,80,58,.1)}
+[data-mechanic-wire="friezes"] .fz-point{stroke:var(--b-card,#fffdf5);stroke-width:1.5px}
+[data-mechanic-wire="friezes"] .fz-point.good{fill:var(--b-pine,#31533e)}
+[data-mechanic-wire="friezes"] .fz-point.bad{fill:var(--b-bad,#a9503a)}
+[data-mechanic-wire="friezes"] .fz-fade{pointer-events:none}
+[data-mechanic-wire="friezes"] .fz-hit{fill:transparent;cursor:pointer}
+[data-mechanic-wire="friezes"] .fz-hit:focus{outline:none}
+[data-mechanic-wire="friezes"] .fz-hit:focus-visible{fill:rgba(179,136,64,.18);stroke:var(--b-ochre,#b38840);stroke-width:2px}
+[data-mechanic-wire="friezes"].claiming .fz-board{cursor:pointer}
+
+/* Goal chips. */
+[data-mechanic-wire="friezes"] .fz-goals{display:flex;flex-wrap:wrap;justify-content:center;gap:.45rem .7rem}
+[data-mechanic-wire="friezes"] .fz-goal{display:flex;align-items:center;gap:.35rem;min-height:46px;padding:2px 8px;border-radius:12px;border:1.5px solid var(--b-line,#d0d6bd);background:var(--b-card,#fffdf5)}
+[data-mechanic-wire="friezes"] .fz-goal.done{border-color:var(--b-pine,#31533e);background:var(--b-good-soft,#e2ecd6);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+[data-mechanic-wire="friezes"] .fz-move-icon{width:54px;height:38px;display:block}
+[data-mechanic-wire="friezes"] .fz-icon-line{stroke:var(--b-ink,#294439);stroke-width:1.2px;stroke-dasharray:3 2}
+[data-mechanic-wire="friezes"] .fz-icon-dot{fill:var(--b-ink,#294439)}
+[data-mechanic-wire="friezes"] .fz-icon-num{font-family:var(--b-display,Georgia,serif);font-size:13px;font-weight:700;fill:var(--b-ink,#294439);stroke:var(--fz-card);stroke-width:3px;paint-order:stroke;vector-effect:none}
+[data-mechanic-wire="friezes"] .fz-icon-arrow{fill:none;stroke:var(--b-ink,#294439);stroke-width:1.4px;stroke-linecap:round;stroke-linejoin:round}
+[data-mechanic-wire="friezes"] .fz-icon-cross{stroke:var(--b-bad,#a9503a);stroke-width:2px;stroke-linecap:round}
+[data-mechanic-wire="friezes"] .fz-goal.done .fz-icon-cross{stroke:var(--b-pine,#31533e)}
+[data-mechanic-wire="friezes"] .fz-move-icon .fz-f .fz-body,[data-mechanic-wire="friezes"] .fz-icon .fz-f .fz-body{stroke-width:1px}
+
+/* Buttons: the copy's moves, the forms, claims and the playground's repeat. */
+[data-mechanic-wire="friezes"] .fz-tools{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.45rem .9rem;max-width:100%}
+[data-mechanic-wire="friezes"] :is(.fz-copy-tools,.fz-forms,.fz-periods){display:flex;gap:.4rem;flex-wrap:wrap;justify-content:center}
+[data-mechanic-wire="friezes"] .fz-button{min-height:46px;min-width:46px;padding:4px 10px;display:inline-flex;align-items:center;justify-content:center;font-weight:600;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd);white-space:nowrap}
+[data-mechanic-wire="friezes"] .fz-button[disabled]{opacity:.45;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+[data-mechanic-wire="friezes"] .fz-button[aria-pressed="true"]{background:#e9eddc;box-shadow:inset 0 0 0 2px var(--b-pine,#31533e)}
+[data-mechanic-wire="friezes"] .fz-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+[data-mechanic-wire="friezes"] .fz-tool{padding:2px 4px}
+[data-mechanic-wire="friezes"] .fz-form{padding:2px 6px}
+[data-mechanic-wire="friezes"] .fz-icon{width:34px;height:30px;display:block}
+[data-mechanic-wire="friezes"] .fz-period{font-family:var(--b-display,Georgia,serif);font-size:1.1rem}
+[data-mechanic-wire="friezes"] .fz-period[aria-pressed="true"]{opacity:1;background:#e9eddc;border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 2px var(--b-pine,#31533e)}
+[data-mechanic-wire="friezes"] .fz-claim{min-height:40px;padding:4px 10px}
+
+/* Words that answer a claim, or say what to tap for one. */
+[data-mechanic-wire="friezes"] .fz-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+@media (max-width:420px){
+  [data-mechanic-wire="friezes"] .fz-move-icon{width:46px;height:32px}
+  [data-mechanic-wire="friezes"] .fz-goal{padding:2px 6px}
+  [data-mechanic-wire="friezes"] .fz-tools{gap:.4rem .5rem}
+  [data-mechanic-wire="friezes"] .fz-button{min-width:44px;min-height:44px}
+}
