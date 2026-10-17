@@ -371,7 +371,8 @@ function walkHint(q, b, all, walk, closed, starts) {
   if (b.start === null) return place(starts[0]);
   const home = closed ? b.start : null, rest = starts.includes(b.start) ? finishOnce(all, walk.at, maskOf(walk.uses), home) : null;
   if (rest && rest.length) return cross(all, walk.at, rest[0]);
-  return again(b.path.length ? 'This walk can’t pick up every counter from here. Press Again.' : 'Press Again and start somewhere else.');
+  const whole = walk.uses.every(n => n === 1);
+  return again(!b.path.length ? 'Press Again and start somewhere else.' : !whole ? 'This walk can’t pick up every counter from here. Press Again.' : closed && walk.at !== b.start ? 'This walk picked up every counter but didn’t come back. Press Again.' : 'This walk picked up every counter. Press Again and walk again.');
 }
 function claimHint(q, b, claim, text) {
   const picks = expected(q);

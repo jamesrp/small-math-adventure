@@ -296,3 +296,12 @@ test('every puzzle renders its solved board', () => {
     assert.match(html, /completion-heading/, `${p.id}: completion`);
   }
 });
+
+test('a hint never says a whole walk can’t pick up every counter', () => {
+  const p = byId(1);
+  let a = play(p, freshAttempt(p), {type: 'island', island: 'A'}, {type: 'bridge', bridge: 2}, {type: 'bridge', bridge: 0}, {type: 'bridge', bridge: 1});
+  assert.deepEqual(a.board.colored, ['A'], 'the whole walk colors its start');
+  a = play(p, a, {type: 'color', island: 'A'});
+  const text = nextHint(p, a)?.text ?? '';
+  assert.doesNotMatch(text, /can’t pick up every counter/, text);
+});
