@@ -8,7 +8,8 @@
 // is another and That's all; sorting, where That's all judges nothing: on a
 // wrong sort a pair that can match refuses Can't round the child's arrows,
 // locked, and a small model goes back to sorting; then the proof after a
-// right sort; the playground's Letters. Every puzzle is also solved through the interface by
+// right sort; a right Can't before the last pair says so and is remembered
+// when That's all comes again; the playground's Letters. Every puzzle is also solved through the interface by
 // following its hints. Checks focus, page overflow and the board's size.
 // Same environment variables as the other browser suites (PLAYWRIGHT_MODULE,
 // BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a 375 × 667 phone with
@@ -326,8 +327,26 @@ try {
   await shot('change-matching');
   await solveByHints(P10);
 
+  // Puzzle 11: That's all on the unsorted models; the first pair are twins,
+  // shown apart by the hints, and the app says so and moves on. Back to
+  // sorting and That's all again: they are not asked for again.
+  const P11 = 'tetra-11';
+  await open(P11);
+  for (let k = 0; k < 3; k++) await tap(page.locator('.tt-model.tt-bench button.tt-corner.p0'));
+  await tap(button('That’s all'));
+  await solveByHints(P11, async () => (await board(P11)).proof?.n > 0);
+  assert.equal(await told(), 'Right: those two can’t match. Now these two.', 'a right Can’t before the last pair says so');
+  assert.equal((await board(P11)).apart.length, 1, 'and is remembered');
+  await fit('sort next'); await size('sort next'); await shot('sort-next');
+  await tap(page.locator('.tt-stack').last());
+  assert.equal(await page.locator('.tt-proving').count(), 0, 'back to sorting');
+  await tap(button('That’s all'));
+  assert.equal((await board(P11)).proof.n, 1, 'That’s all again skips the pair shown apart');
+  assert.equal(await page.locator('.tt-told').count(), 0, 'with nothing said');
+  await solveByHints(P11);
+
   // Every other puzzle, solved through the interface by its hints.
-  for (const p of tetra.puzzles.filter(p => p.band !== 'playground' && ![P1, P2, P3, P6, P7, P8, P9, P10, P12].includes(p.id))) { await open(p.id); await fit(p.id); await size(p.id); await solveByHints(p.id); }
+  for (const p of tetra.puzzles.filter(p => p.band !== 'playground' && ![P1, P2, P3, P6, P7, P8, P9, P10, P11, P12].includes(p.id))) { await open(p.id); await fit(p.id); await size(p.id); await solveByHints(p.id); }
 
   // The playground: turn either model, change letters.
   const G = 'tetra-playground';

@@ -3,7 +3,8 @@
 // wrong claims locked through Undo and Restart, the refusal shown while
 // locked), one change, set-ups with Start again, no dead ends and a first hint
 // that doesn't sort them, every pair with the new pair marked, sorting with a
-// That's all that judges nothing and its proof, the playground, hints, saves,
+// That's all that judges nothing, its proof and the pairs it remembers as
+// shown apart, the playground, hints that don't tell the kind, saves,
 // rendering, styles and timing.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -11,7 +12,7 @@ import {readFile} from 'node:fs/promises';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo, restart} from '../dist/engine.js';
 import {playView} from '../dist/ui.js';
 import {FAMILIES} from '../dist/families.js';
-import tetraModule, {tetraMechanics, TURN, ROTATIONS, isRotation, turned, labelsOf, rotated, canMatch, tapsTo, judge, clockwise, classesOf, traceTap, describe, proofPairs, cardLabels, LETTERS} from '../dist/families/tetra/tetra.js';
+import tetraModule, {tetraMechanics, TURN, ROTATIONS, isRotation, turned, labelsOf, rotated, canMatch, tapsTo, judge, clockwise, classesOf, traceTap, describe, proofPairs, cardLabels, stacksOf, LETTERS} from '../dist/families/tetra/tetra.js';
 import {loadPack} from '../scripts/packs.mjs';
 
 const tetra = JSON.parse(await readFile(new URL('../dist/families/tetra/tetra.json', import.meta.url), 'utf8'));
@@ -276,6 +277,11 @@ test('sorting: models that look alike stack; That’s all judges nothing and ask
   let t = turnTo(shown, 1), R = labelsOf(cardLabels(q, t.board, 1), t.board.proof.at);
   const next = play(p, t, {type: 'cant', left: [1, 2], right: [R.indexOf(L[1]), R.indexOf(L[2])]});
   assert.equal(next.board.proof.n, 1);
+  assert.equal(next.board.told, 'next');
+  assert.match(board(p, next), /<p class="tt-told">Right: those two can’t match\. Now these two\.<\/p>/, 'a right Can’t before the last pair says so');
+  assert.equal(next.board.apart.length, 1);
+  assert.match(next.board.apart[0], /^0·1\|[0-3]{4}\|12\|[1-3]{2}$/, 'remembered with its Can’t');
+  assert.equal(play(p, next, ...taps(0)).board.told, null, 'a turn takes the message away');
   assert.ok(canMatch(cardLabels(q, next.board, 0), cardLabels(q, next.board, 2)));
   t = turnTo(next, 2); R = labelsOf(cardLabels(q, t.board, 2), t.board.proof.at);
   const refused = play(p, t, {type: 'cant', left: [1, 2], right: [R.indexOf(L[1]), R.indexOf(L[2])]});
@@ -290,7 +296,17 @@ test('sorting: models that look alike stack; That’s all judges nothing and ask
   const sorting = play(p, refused, {type: 'back', card: 2});
   assert.equal(sorting.board.proof, null);
   assert.doesNotMatch(board(p, sorting), /tt-told/);
+  // That's all again skips the pair shown apart, straight to the locked pair.
+  const skipped = play(p, sorting, {type: 'all'});
+  assert.equal(skipped.board.proof.n, 1, 'the twins are not asked for again');
+  assert.match(board(p, skipped), /Same way round\./);
+  // A turn that changes neither stack keeps it; one that changes a stack forgets it.
+  const look = (b, n) => cardLabels(q, b, n).join('');
+  const k = [0, 1, 2, 3].find(at => { const b = play(p, sorting, {type: 'turn', card: 4, at}).board; return ![0, 1].some(n => look(b, 4) === look(b, n)); });
+  assert.deepEqual(play(p, sorting, {type: 'turn', card: 4, at: k}).board.apart, sorting.board.apart, 'another stack turned: still shown apart');
+  assert.deepEqual(play(p, sorting, {type: 'turn', card: 5, at: 0}).board.apart, [], 'a model of its stack turned: forgotten');
   a = play(p, sorting, ...[2, 4].flatMap(n => tapsTo(q.cards[0], q.cards[n]).map(at => ({type: 'turn', card: n, at}))));
+  assert.deepEqual(a.board.apart, [], 'a stack that changed forgets the pairs it heads');
   const html = board(p, a);
   assert.equal((html.match(/class="tt-stack/g) || []).length, 2, 'two stacks');
   assert.doesNotMatch(html.replace(/<p class="sr-only"[^]*?<\/p>/g, ''), /\b(two|2) (stacks|groups|classes)\b/i, 'no count of classes on the board');
@@ -345,6 +361,33 @@ test('hints: never Can’t or That’s all first, the reason before Can’t, and
   assert.equal(nextHint(p, turnedAway).action.type, 'turn', 'first bring the same letter to the middle');
 });
 
+test('hints don’t tell twins from a pair that can match: the same letter into the middle, then the middle until the tops agree', () => {
+  const p = byId(9), start = freshAttempt(p), put = order => play(p, start, ...order.map(at => ({type: 'place', side: 'right', at})));
+  const R = a => labelsOf(a.board.letters, a.board.at), L = p.parameters.left;
+  // A at the top of both, B in the middle: one can match, one is a twin.
+  const can = put([1, 0, 2, 3]), twins = put([1, 0, 3, 2]);
+  assert.deepEqual([R(can), R(twins)].map(x => x.join('')), ['BACD', 'BADC']);
+  assert.ok(canMatch(L, R(can)) && !canMatch(L, R(twins)));
+  assert.deepEqual(nextHint(p, can), nextHint(p, twins), 'the same first hint');
+  assert.equal(nextHint(p, can).text, 'Tap the left corner.', 'which brings A into the middle');
+  // A in the middle of both, the tops different: the middle, for both.
+  const can2 = put([0, 2, 1, 3]), twins2 = put([0, 3, 1, 2]);
+  assert.ok(canMatch(L, R(can2)) && !canMatch(L, R(twins2)) && R(can2)[1] !== L[1] && R(twins2)[1] !== L[1]);
+  for (const a of [can2, twins2]) assert.equal(nextHint(p, play(p, a, ...taps(0), ...taps(0), ...taps(0))).text, 'Tap the middle.');
+  // In a sort's proof too: every pair hinted alike until the picture shows the kind.
+  const s = byId(11), sq = s.parameters, shown = play(s, play(s, freshAttempt(s), {type: 'turn', card: 0, at: 0}, {type: 'turn', card: 0, at: 0}, {type: 'turn', card: 0, at: 0}), {type: 'all'});
+  let a = shown;
+  for (let n = 0; n < 8 && !canMatch(...proofPairs(sq, a.board)[a.board.proof.n].map(k => cardLabels(sq, a.board, k))); n++) {
+    const [x, y] = proofPairs(sq, a.board)[a.board.proof.n], Lx = cardLabels(sq, a.board, x), Ry = labelsOf(cardLabels(sq, a.board, y), a.board.proof.at), h = nextHint(s, a);
+    if (Lx[0] !== Ry[0]) assert.equal(labelsOf(cardLabels(sq, a.board, y), turned(a.board.proof.at, h.action.at))[0], Lx[0], 'the twins: the same letter into the middle');
+    while (nextHint(s, a).action.type === 'turn') a = play(s, a, nextHint(s, a).action);
+    a = play(s, a, nextHint(s, a).action);
+  }
+  const [x, y] = proofPairs(sq, a.board)[a.board.proof.n], Lx = cardLabels(sq, a.board, x), Ry = labelsOf(cardLabels(sq, a.board, y), a.board.proof.at), h = nextHint(s, a);
+  if (Lx[0] !== Ry[0]) assert.equal(labelsOf(cardLabels(sq, a.board, y), turned(a.board.proof.at, h.action.at))[0], Lx[0], 'a pair that can match: the same');
+  else assert.equal(h.text, 'Tap the middle.');
+});
+
 test('forged saves are rejected', () => {
   const p = byId(3), B = freshAttempt(p).board;
   for (const [b, why] of [
@@ -376,6 +419,15 @@ test('forged saves are rejected', () => {
   assert.equal(validBoard(s, {...S, tried: true, proof: {n: 0, at: [0, 1, 2, 3], tried: false, claim: null}}), true, 'That’s all on any sort shows the pairs');
   assert.equal(validBoard(s, {...S, proof: {n: 0, at: [0, 1, 2, 3], tried: false, claim: null}}), false, 'a proof before a turn');
   assert.equal(validBoard(s, {...S, tried: true, proof: {n: 2, at: [0, 1, 2, 3], tried: false, claim: null}}), false, 'a proof past a pair that can match');
+  // Pairs shown apart carry the right Can't on them.
+  const sq = s.parameters, at01 = ROTATIONS.find(g => labelsOf(sq.cards[1], g)[0] === sq.cards[0][0]), R01 = labelsOf(sq.cards[1], at01), L0 = sq.cards[0];
+  const cert = `0·1|${at01.join('')}|12|${R01.indexOf(L0[1])}${R01.indexOf(L0[2])}`;
+  assert.equal(validBoard(s, {...S, tried: true, apart: [cert]}), true, 'twins shown apart');
+  assert.equal(validBoard(s, {...S, tried: true, apart: [cert], proof: {n: 1, at: [0, 1, 2, 3], tried: false, claim: null}, told: 'next'}), true, 'and the next pair');
+  assert.equal(validBoard(s, {...S, tried: true, apart: [cert], proof: {n: 0, at: [0, 1, 2, 3], tried: false, claim: null}}), false, 'a proof of a pair shown apart');
+  assert.equal(validBoard(s, {...S, apart: [cert]}), false, 'shown apart before a turn');
+  assert.equal(validBoard(s, {...S, tried: true, apart: ['0·1|0123|12|12']}), false, 'shown apart with no right Can’t');
+  assert.equal(validBoard(s, {...S, tried: true, apart: ['0·2|0123|12|12']}), false, 'a pair that can match, shown apart');
 });
 
 test('rendering: two models with letter discs, your corners are buttons, objectives only where the board can’t say it', () => {

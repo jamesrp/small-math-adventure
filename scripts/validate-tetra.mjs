@@ -10,7 +10,11 @@
 // fails on a pair that can match); every puzzle's answers by those methods;
 // witnesses played as moves; every reachable board of the pair puzzles,
 // set-ups included, with a hint that is a legal move and never a dead end (so
-// nothing is said unasked); hint chains from fresh, after random play, after
+// nothing is said unasked) and that follows one ladder for both kinds, as at
+// every pose of every pair a sort's proof shows (so no hint tells twins from
+// a pair that can match before the picture does); pairs shown apart in a
+// sort, remembered, skipped by That's all again and forgotten exactly when
+// their stacks change; hint chains from fresh, after random play, after
 // form refusals, wrong claims, a wrong That's all, every set-up and a sort's
 // proof; Undo with the mechanic's carry (refusals and locks stay, with the
 // lock's refusal on screen, the screen always changes, after every pair
@@ -66,7 +70,7 @@ const ALL = words(LETTERS, 4);
 const bag = w => [...w].sort().join('');
 
 // --- Playing --------------------------------------------------------------------
-const TOLD = {round: 'Same way round.', way: 'There is a way.'};
+const TOLD = {round: 'Same way round.', way: 'There is a way.', next: 'Right: those two can’t match. Now these two.'};
 const cantOff = html => /class="secondary tt-button tt-cant"[^>]*disabled/.test(html);
 const play = (p, a, action) => { const next = move(p, a, action); assert.ok(next && next !== a, `${p.id}: ${JSON.stringify(action)} is legal`); return next; };
 const playAll = (p, a, actions) => actions.reduce((b, x) => play(p, b, x), a);
@@ -183,6 +187,37 @@ function reach(p, start, want) {
   assert.fail(`${start.puzzleId || ''}: no pose found`);
 }
 // Every pose, with the fewest taps that reach it (breadth first).
+// --- Hints that don't tell the kind --------------------------------------------
+// What a pair of twins and a pair that can match share, and so all a hint may
+// follow until the board itself shows the kind: whether the middles agree,
+// and where the first model's middle letter sits on the second. The hint must
+// be the turn that brings that letter into the middle, then the middle until
+// the top letters agree (on a fresh set-up whose middles agree, one tap for
+// the whole puzzle). Once middle and top agree the picture shows the kind
+// (the same, or two letters swapped), and the hints may part. A pair with a
+// repeated letter always matches, so it has no twin to be told from.
+const turnV = (R, k) => { const g = permOf(TURNS[k]), next = []; R.forEach((x, i) => { next[g[i]] = x; }); return next; };
+const blindTally = () => ({twins: 0, can: 0, shown: 0, setup: new Set(), middle: {twins: 0, can: 0}});
+function blindHint(p, tally, L, R, h, freshSetup) {
+  if (new Set(L).size < 4) return;
+  if (L[0] === R[0] && L[1] === R[1]) { tally.shown++; return; }
+  const kind = matchV(L, R) ? 'can' : 'twins';
+  tally[kind]++;
+  assert.equal(h.type, 'move', `${p.id}: a hint`);
+  if (L[0] !== R[0] && h.text === 'Tap the middle.') tally.middle[kind]++;
+  if (L[0] !== R[0]) {
+    const k = [1, 2, 3].filter(c => turnV(R, c)[0] === L[0]);
+    assert.equal(k.length, 1, `${p.id}: one tap brings ${L[0]} into the middle`);
+    assert.deepEqual([h.action.type, h.action.at, h.action.card], ['turn', k[0], undefined], `${p.id}: with ${L.join('')} and ${R.join('')} (${kind}), the hint brings ${L[0]} into the middle (${h.text})`);
+  } else if (freshSetup) {
+    assert.equal(h.action.type, 'turn', `${p.id}: a fresh set-up gets a tap`);
+    tally.setup.add(h.text);
+  } else assert.deepEqual([h.action.type, h.action.at], ['turn', 0], `${p.id}: with ${L.join('')} and ${R.join('')} (${kind}), the middle until the tops agree (${h.text})`);
+}
+const blindWords = t => {
+  assert.ok(t.setup.size <= 1, `one tap for every fresh set-up whose middles agree (${[...t.setup].join(' / ')})`);
+  return `${t.twins} twin and ${t.can} matchable states hinted by one rule (${t.shown} showing the kind); “Tap the middle.” while the middles differ: ${t.middle.twins} twin, ${t.middle.can} matchable${t.setup.size ? `; fresh set-ups: “${[...t.setup][0]}”` : ''}`;
+};
 const POSES = (() => { const out = new Map([['0,1,2,3', []]]), queue = [[]]; for (let n = 0; n < queue.length; n++) for (const k of [0, 1, 2, 3]) { const t = [...queue[n], k], key = poseOf(t).join(); if (!out.has(key)) { out.set(key, t); queue.push(t); } } return [...out.values()]; })();
 
 export async function validateTetra() {
@@ -258,7 +293,7 @@ export async function validateTetra() {
   assert.ok(puzzles.length >= 8 && puzzles.length <= 12, '8 to 12 puzzles');
 
   let hintSteps = 0;
-  const accept = {}, reachable = {};
+  const accept = {}, reachable = {}, blind = {};
   for (const p of pack.puzzles) {
     assert.equal(p.mechanic, 'tetra');
     assert.ok(p.id.startsWith('tetra-'));
@@ -284,7 +319,8 @@ export async function validateTetra() {
     else if (row.kind === 'change' || row.kind === 'blank') hintSteps += checkSetup(p, fresh, row, accept);
     else if (row.kind === 'merges') hintSteps += checkMerges(p, fresh, row);
     else hintSteps += checkSort(p, fresh, row, accept);
-    if (q.mode === 'pair') reachable[p.id] = checkReachable(p, fresh);
+    if (q.mode === 'pair') reachable[p.id] = checkReachable(p, fresh, blind);
+    if (q.mode === 'sort') blind[`${p.id} sort pairs`] = checkSortBlind(p, fresh);
     hintSteps += hintsSolve(p, fresh, 'from fresh');
     // Random play, then hints, Undo on the way.
     const rand = seeded(p.number * 7919);
@@ -295,7 +331,7 @@ export async function validateTetra() {
     }
     checkForged(p, fresh);
   }
-  return {tetraPuzzles: puzzles.length, labellingPairs: pairs, certificateTraces: certified, repeatedLetterWayRefusals: wayRefusals, randomTraceAcceptance: accept, reachableBoards: reachable, hintSteps, hintCalls, slowestHintMs: hintCpu};
+  return {tetraPuzzles: puzzles.length, labellingPairs: pairs, certificateTraces: certified, repeatedLetterWayRefusals: wayRefusals, randomTraceAcceptance: accept, reachableBoards: reachable, firstHintBlind: blind, hintSteps, hintCalls, slowestHintMs: hintCpu};
 }
 
 // Turn to match, or show with Can't that no turn can.
@@ -676,13 +712,54 @@ function checkWrongSorts(p, fresh, classes, accept) {
   return steps;
 }
 // Turn the proof's second model to the first one's middle letter and show the
-// pair apart.
+// pair apart: remembered, on to the next pair, saying so; Undo forgets it.
+const lockedNow = (q, b) => b.wrong.some(k => k.startsWith(`${proofPairs(q, b)[b.proof.n].join('·')}|`));
 function certify(p, a) {
   const q = p.parameters, [n, m] = proofPairs(q, a.board)[a.board.proof.n], L = cardLabels(q, a.board, n);
   const on = reachProof(p, a, X => X[0] === L[0]), R = labelsOf(cardLabels(q, on.board, m), on.board.proof.at);
   const next = play(p, on, {type: 'cant', left: [1, 2], right: [R.indexOf(L[1]), R.indexOf(L[2])]});
-  assert.ok(next.board.done || next.board.proof.n === a.board.proof.n + 1, `${p.id}: twins shown apart, on to the next pair`);
+  if (next.board.done) return next;
+  assert.ok(next.board.proof.n > a.board.proof.n && next.board.apart.includes(`${n}·${m}|${on.board.proof.at.join('')}|12|${R.indexOf(L[1])}${R.indexOf(L[2])}`), `${p.id}: twins shown apart and remembered, on to the next pair`);
+  const locked = lockedNow(q, next.board);
+  assert.equal(next.board.told, locked ? null : 'next', `${p.id}: a right Can’t before the last pair says so`);
+  if (!locked) assert.ok(view(p, next).includes(`<p class="tt-told">${TOLD.next}</p>`), `${p.id}: “${TOLD.next}”`);
+  const back = undoCarry(p, next);
+  assert.ok(back.board.apart.length === a.board.apart.length && back.board.proof.n === a.board.proof.n, `${p.id}: Undo of a right Can’t forgets it`);
   return next;
+}
+// Every pair a sort's proof shows, after the right sort, every sort one model
+// short and random ones: at every pose of its second model, the hint doesn't
+// tell twins from a pair that can match. Twins are shown apart to reach the
+// pairs after them.
+function checkSortBlind(p, fresh) {
+  const q = p.parameters, tally = blindTally(), rand = seeded(p.number * 104729), classes = classesOf(q.cards);
+  const turnsTo = (g, n) => fewest(q.cards[g[0]], q.cards[n]).map(at => ({type: 'turn', card: n, at}));
+  const sorts = [playAll(p, fresh, classes.flatMap(g => g.slice(1).flatMap(n => turnsTo(g, n))))];
+  for (const g of classes) for (const out of g.slice(1)) sorts.push(playAll(p, fresh, classes.flatMap(h => h.slice(1).filter(n => n !== out).flatMap(n => turnsTo(h, n)))));
+  // Random sorts: some classes stacked, then a few models turned at random.
+  for (let r = 0; r < 160; r++) {
+    let a = playAll(p, fresh, classes.filter(() => rand() < 0.5).flatMap(g => g.slice(1).flatMap(n => turnsTo(g, n))));
+    for (let k = Math.floor(rand() * 7); k > 0 || !a.board.tried; k--) a = play(p, a, {type: 'turn', card: Math.floor(rand() * q.cards.length), at: Math.floor(rand() * 4)});
+    sorts.push(a);
+  }
+  let pairs = 0;
+  for (const s of sorts) {
+    let a = s.board.tried ? play(p, s, {type: 'all'}) : null;
+    for (let k = 0; a && a.board.proof && !a.board.done && k < 30; k++) {
+      const [n, m] = proofPairs(q, a.board)[a.board.proof.n], L = cardLabels(q, a.board, n);
+      const seen = new Map([[`${a.board.proof.at.join()}|${a.board.proof.tried}`, a]]), queue = [a];
+      for (let i = 0; i < queue.length; i++) for (const at of [0, 1, 2, 3]) {
+        const b = move(p, queue[i], {type: 'turn', at}), id = b && `${b.board.proof.at.join()}|${b.board.proof.tried}`;
+        if (b && !seen.has(id)) { seen.set(id, b); queue.push(b); }
+      }
+      assert.equal(seen.size, 13, `${p.id}: every pose of the pair, and the pair as it comes up`);
+      for (const b of seen.values()) blindHint(p, tally, L, labelsOf(cardLabels(q, b.board, m), b.board.proof.at), hintAt(p, b), false);
+      pairs++;
+      if (matchV(L, cardLabels(q, a.board, m))) break;
+      a = certify(p, a);
+    }
+  }
+  return `${pairs} pairs over ${sorts.length} sorts: ${blindWords(tally)}`;
 }
 // From a wrong sort: That's all, the twins shown apart, then a wrong claim on
 // the first pair that can match. The refusal shows round the child's arrows,
@@ -709,16 +786,31 @@ function checkProofLock(p, sorted, want) {
   const turned = play(p, c, {type: 'turn', at: 0});
   assert.ok(turned.board.proof.claim === null && view(p, turned).includes(TOLD[kind]), `${p.id}: a turn takes the arrows, not the refusal`);
   noCant(p, turned, 'Can’t after a turn');
-  // Back to sorting; That's all again on the same stacks finds the pair still locked.
+  // Back to sorting; That's all again on the same stacks skips the pairs
+  // shown apart and finds the pair still locked.
   const sorting = play(p, c, {type: 'back', card: m});
   assert.ok(sorting.board.proof === null && !view(p, sorting).includes(TOLD[kind]), `${p.id}: back to sorting, with no message`);
+  assert.deepEqual(sorting.board.apart, c.board.apart, `${p.id}: going back keeps the pairs shown apart`);
   let again = play(p, sorting, {type: 'all'});
-  while (again.board.proof.n < at) again = certify(p, again);
+  assert.equal(again.board.proof.n, at, `${p.id}: That’s all again skips the pairs shown apart`);
+  // A turn that changes a stack (its models or their look) forgets the pairs
+  // it heads; any other turn keeps them.
+  const stackOf = b => { const groups = new Map(); q.cards.forEach((_, k) => { const id = cardLabels(q, b, k).join(''); groups.set(id, [...(groups.get(id) || []), k]); }); return k => [...groups].map(([id, g]) => `${g.join()}|${id}`).find(x => x.split('|')[0].split(',').includes(String(k))); };
+  let drops = 0, keeps = 0;
+  for (let k = 0; k < q.cards.length; k++) for (const corner of [0, 1, 2, 3]) {
+    const t = play(p, sorting, {type: 'turn', card: k, at: corner}), was = stackOf(sorting.board), now = stackOf(t.board);
+    const want = sorting.board.apart.filter(e => e.slice(0, e.indexOf('|')).split('·').every(x => was(Number(x)) === now(Number(x))));
+    assert.deepEqual(t.board.apart, want, `${p.id}: a turn of model ${k + 1} forgets exactly the pairs whose stacks it changes`);
+    assert.ok(validBoard(p, t.board), `${p.id}: a valid board after the turn`);
+    drops += sorting.board.apart.length - want.length; keeps += want.length;
+  }
+  if (sorting.board.apart.length) assert.ok(drops > 0 && keeps > 0, `${p.id}: some turns forget a pair shown apart, others keep it`);
   again = play(p, again, {type: 'turn', at: 0});
   noCant(p, again, 'Can’t on the same two after That’s all again');
   assert.ok(view(p, again).includes(TOLD[kind]), `${p.id}: with its refusal`);
   const restarted = restartCarry(p, c);
   assert.deepEqual(restarted.board.wrong, c.board.wrong, `${p.id}: Restart keeps the lock`);
+  assert.deepEqual(restarted.board.apart, [], `${p.id}: Restart forgets the pairs shown apart`);
   assert.ok(validBoard(p, restarted.board), `${p.id}: a valid board after Restart`);
   for (const [b, label] of [[c, 'after a wrong claim in a sort'], [back, 'after Undo of it'], [sorting, 'back to sorting after it'], [again, 'at the locked pair again'], [restarted, 'after Restart with a lock']]) steps += hintsSolve(p, b, label);
   return steps;
@@ -762,8 +854,8 @@ function proofCounts(p, start) {
 // hint, since only boards that can match are locked). On each unsolved one the
 // hint is a legal move and never a dead end, so no message comes unasked, and
 // the hints from it reach a solve.
-function checkReachable(p, fresh) {
-  const m = mechanicFor(p), q = p.parameters, strip = b => JSON.stringify({...b, wrong: []});
+function checkReachable(p, fresh, blind) {
+  const m = mechanicFor(p), q = p.parameters, strip = b => JSON.stringify({...b, wrong: []}), tally = blindTally();
   const seen = new Map([[strip(fresh.board), fresh.board]]), queue = [fresh.board];
   for (let n = 0; n < queue.length; n++) {
     const b = queue[n];
@@ -798,7 +890,10 @@ function checkReachable(p, fresh) {
     unsolved++;
     if (!setupDone(q, b)) mid++; else if (q.place) after++;
     assert.ok(solves(b), `${p.id}: hints solve from ${JSON.stringify(b)}`);
+    // The hint doesn't tell twins from a pair that can match.
+    if (setupDone(q, b) && !(q.merge && !b.merged)) blindHint(p, tally, b.left, labelsOf(b.letters, b.at), m.hint(p, b), Boolean(q.place) && !b.tried);
   }
+  if (tally.twins || tally.can) blind[p.id] = blindWords(tally);
   return `${seen.size} boards, ${unsolved} unsolved${q.place ? ` (${mid} mid-set-up, ${after} after a set-up)` : ''}`;
 }
 function checkForged(p, fresh) {
@@ -863,6 +958,29 @@ function checkForged(p, fresh) {
     forged.push([{...C, told: k === 'round' ? 'way' : 'round', proof: {...C.proof, claim: {...C.proof.claim, kind: k === 'round' ? 'way' : 'round'}}}, 'a refusal of the wrong kind']);
     forged.push([{...C, wrong: [lock(nc, mc, k === 'round' ? 'way' : 'round')]}, 'a lock with another refusal']);
     forged.push([{...C, proof: {...C.proof, claim: null}, told: 'letters'}, 'a form message on a locked pair']);
+    // Pairs shown apart: each with a right Can't on two stacks shown now.
+    const certOf = (b, [x, y]) => { const L = cardLabels(q, b, x), at = POSES.map(poseOf).find(g => labelsOf(cardLabels(q, b, y), g)[0] === L[0]), R = labelsOf(cardLabels(q, b, y), at); return `${x}·${y}|${at.join('')}|12|${R.indexOf(L[1])}${R.indexOf(L[2])}`; };
+    const twinsU = pairsU.filter(([x, y]) => !matchV(q.cards[x], q.cards[y])), tw = twinsU[0], twIdx = pairsU.indexOf(tw), cert = certOf(U, tw);
+    const skip = pairsU.findIndex(x => x !== tw);
+    assert.ok(validBoard(p, {...U, apart: [cert]}), `${p.id}: a pair shown apart is valid`);
+    assert.ok(validBoard(p, {...U, apart: [cert], proof: {...start, n: skip}}), `${p.id}: a proof that skips it is valid`);
+    assert.ok(validBoard(p, {...U, apart: [cert], proof: {...start, n: skip}, told: 'next'}), `${p.id}: and says so`);
+    forged.push([{...U, apart: [cert], proof: {...start, n: twIdx}}, 'a proof of a pair shown apart']);
+    forged.push([{...U, proof: {...start, n: 0}, told: 'next'}, '“Right” with nothing shown apart']);
+    forged.push([{...U, apart: [cert], proof: {...start, n: skip, tried: true, at: [0, 2, 3, 1]}, told: 'next'}, 'a stale “Right”']);
+    forged.push([{...B, apart: [cert]}, 'a pair shown apart before a turn']);
+    forged.push([{...U, apart: [`${tw.join('·')}|0123|12|12`]}, 'a pair shown apart with no right Can’t']);
+    forged.push([{...U, apart: [cert.slice(0, -2) + [...cert.slice(-2)].reverse().join('')]}, 'a pair shown apart with letters that don’t follow']);
+    forged.push([{...U, apart: [certOf(U, pairsU[can]), `${pairsU[can].join('·')}|0123|12|12`].sort()}, 'a pair that can match, shown apart']);
+    forged.push([{...U, apart: [certOf(U, pairsU[can])]}, 'a pair that can match, shown apart with its middles agreeing']);
+    forged.push([{...U, apart: [cert, cert.replace('|12|', '|21|')].sort()}, 'a pair shown apart twice']);
+    if (twinsU.length > 1) forged.push([{...U, apart: [certOf(U, twinsU[0]), certOf(U, twinsU[1])].sort().reverse()}, 'pairs shown apart out of order']);
+    forged.push([{...U, apart: [cert + '|1']}, 'a pair shown apart with more than a Can’t']);
+    const under = cls[0][1], other = proofPairs(q, S)[0].find(x => !cls[0].includes(x)), sub = [under, other].sort((x, y) => x - y);
+    forged.push([{...S, apart: [certOf(S, sub)]}, 'a pair shown apart that heads no stacks']);
+    if (apart) forged.push([{...S, apart: [`${apart.join('·')}|0123|12|12`]}, 'a pair shown apart with different letters']);
+    assert.ok(validBoard(p, {...S, apart: [certOf(S, [n0, m0])], done: true}), `${p.id}: every pair shown apart, That’s all is done at once`);
+    forged.push([{...S, apart: [certOf(S, [n0, m0])], proof: start}, 'a proof with every pair shown apart']);
   } else if (q.mode === 'merges') {
     forged.push([{...B, at: reflect, tried: true}, 'a reflected model']);
     forged.push([{...B, done: true}, 'a done shelf that is short']);
