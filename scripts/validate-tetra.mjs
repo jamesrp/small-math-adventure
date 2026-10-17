@@ -5,13 +5,15 @@
 // never a reflection); matching recomputed by parity for all 65,536 pairs of
 // labellings, with the classes of every multiset of letters; the view-from-A
 // certificate checked against every pair of twins and every trace, and the
-// share of random traces it accepts (on the pairs and on a sort's proof);
-// every puzzle's answers by those methods; witnesses played as moves; every
-// reachable board of the pair puzzles, set-ups included, with a hint that is a
-// legal move and never a dead end (so nothing is said unasked); hint chains
-// from fresh, after random play, after form refusals, wrong claims, a wrong
-// That's all, every set-up and a sort's proof; Undo with the mechanic's carry
-// (refusals and locks stay, the screen always changes, after every pair
+// share of random traces it accepts (on the pairs, and on a sort's proof
+// after right and wrong sorts: That's all judges nothing, so a wrong sort
+// fails on a pair that can match); every puzzle's answers by those methods;
+// witnesses played as moves; every reachable board of the pair puzzles,
+// set-ups included, with a hint that is a legal move and never a dead end (so
+// nothing is said unasked); hint chains from fresh, after random play, after
+// form refusals, wrong claims, a wrong That's all, every set-up and a sort's
+// proof; Undo with the mechanic's carry (refusals and locks stay, with the
+// lock's refusal on screen, the screen always changes, after every pair
 // shelved too); locks kept through Undo, Start again and Restart; illegal
 // moves; forged saves; the playground; hint CPU time.
 // Run: node scripts/validate-tetra.mjs
@@ -64,6 +66,8 @@ const ALL = words(LETTERS, 4);
 const bag = w => [...w].sort().join('');
 
 // --- Playing --------------------------------------------------------------------
+const TOLD = {round: 'Same way round.', way: 'There is a way.'};
+const cantOff = html => /class="secondary tt-button tt-cant"[^>]*disabled/.test(html);
 const play = (p, a, action) => { const next = move(p, a, action); assert.ok(next && next !== a, `${p.id}: ${JSON.stringify(action)} is legal`); return next; };
 const playAll = (p, a, actions) => actions.reduce((b, x) => play(p, b, x), a);
 const refuse = (p, a, action, why) => assert.equal(move(p, a, action), null, `${p.id}: refuses ${why}`);
@@ -115,8 +119,9 @@ function candidates(p, b) {
   if (q.mode === 'sort') {
     q.cards.forEach((_, n) => [0, 1, 2, 3].forEach(at => out.push({type: 'turn', card: n, at})));
     out.push({type: 'all'});
-    // The proof's own turns and claims.
+    // The proof's own turns and claims, and going back to sorting.
     for (const at of [0, 1, 2, 3]) out.push({type: 'turn', at});
+    q.cards.forEach((_, card) => out.push({type: 'back', card}));
     for (const left of TRACES) for (const right of TRACES) out.push({type: 'cant', left, right});
     return out;
   }
@@ -346,6 +351,7 @@ function checkTurn(p, fresh, row, accept) {
     assert.equal(back.board.told, null, `${p.id}: Undo takes the message away`);
     assert.deepEqual(back.board.wrong, c.board.wrong, `${p.id}: Undo keeps the lock`);
     noCant(p, back, 'Can’t after Undo');
+    assert.ok(cantOff(view(p, back)) && view(p, back).includes(`<p class="tt-told">${TOLD[c.board.claim.kind]}</p>`), `${p.id}: a greyed Can’t shows the lock’s refusal`);
     const turned = play(p, back, {type: 'turn', at: 0});
     assert.equal(turned.board.claim, null, `${p.id}: a turn takes the refused arrows away`);
     noCant(p, turned, 'Can’t after a turn');
@@ -431,6 +437,13 @@ function checkSetup(p, fresh, row, accept) {
     if (row.goal === 'match') assert.deepEqual(match.map(key), row.match, `${p.id}: changes that match`);
     else assert.deepEqual(apart.map(key), row.apart, `${p.id}: changes that can’t`);
   }
+  // The first hint after a set-up doesn't sort it: twins whose middles
+  // agree get a first hint that a set-up that can match gets too (in the
+  // changes, the same one after every change).
+  const ends = finishes.map(f => ({f, L: f.a.board.left, R: labelsOf(f.a.board.letters, f.a.board.at), text: hintAt(p, f.a).text}));
+  const canFirst = ends.filter(e => matchV(e.L, e.R) && e.L.join() !== e.R.join()), alike = canFirst.filter(e => e.L[0] === e.R[0]);
+  for (const e of ends) if (!matchV(e.L, e.R) && e.L[0] === e.R[0]) assert.ok((alike.length ? alike : canFirst).some(c => c.text === e.text), `${p.id}: twins ${e.f.made.join()} get a first hint a match gets too (${e.text})`);
+  if (row.kind === 'change') assert.equal(new Set(ends.map(e => e.text)).size, 1, `${p.id}: the same first hint after every change`);
   for (const f of finishes) {
     const L = f.a.board.left, R = labelsOf(f.a.board.letters, f.a.board.at), can = matchV(L, R);
     assert.equal(bag(L), bag(R), `${p.id}: both end with the same letters`);
@@ -568,42 +581,43 @@ function checkSort(p, fresh, row, accept) {
   const ready = a;
   a = play(p, a, {type: 'all'});
   steps += checkProof(p, a, classes, accept);
-  // One stack short of joined: refused, and kept while the stacks are the same.
-  const last = classes.find(g => g.length > 1), m = last.at(-1);
-  const short = playAll(p, fresh, classes.flatMap(g => g.slice(1).filter(n => n !== m).flatMap(n => fewest(q.cards[g[0]], q.cards[n]).map(at => ({type: 'turn', card: n, at})))));
-  const told = play(p, short, {type: 'all'});
-  assert.equal(told.board.told, 'more', `${p.id}: some can still match`);
-  refuse(p, told, {type: 'all'}, 'That’s all again on the same stacks');
-  const back = undoCarry(p, told);
-  refuse(p, back, {type: 'all'}, 'That’s all after Undo, on the same stacks');
-  // Turning a card round three times brings the same stacks back, still refused.
-  const round = playAll(p, back, [0, 0, 0].map(at => ({type: 'turn', card: m, at})));
-  refuse(p, round, {type: 'all'}, 'That’s all on the same stacks after turning round');
-  steps += hintsSolve(p, told, 'after a wrong That’s all');
+  steps += checkWrongSorts(p, fresh, classes, accept);
   assert.ok(classes.every(g => g.every(n => bag(q.cards[n]) === bag(q.cards[g[0]]))), `${p.id}: a stack keeps its letters`);
   refuse(p, fresh, {type: 'turn', card: q.cards.length, at: 0}, 'an unknown card');
   refuse(p, ready, {type: 'turn', card: 0, at: 4}, 'an unknown corner');
   return steps;
 }
-// After a right That's all, the certificate: a model from each of two stacks
-// with the same letters, shown apart with Can't. Stacks with different
-// letters need none.
+// After That's all on a right sort: a model from each of two stacks with the
+// same letters, shown apart with Can't. Stacks with different letters need none.
 function checkProof(p, a, classes, accept) {
   const q = p.parameters;
   let steps = 0;
-  assert.ok(!isSolved(p, a.board), `${p.id}: a right That’s all asks for the certificate`);
+  assert.ok(!isSolved(p, a.board), `${p.id}: That’s all asks for the certificate`);
   assert.ok(a.board.proof && a.board.told === null, `${p.id}: the proof starts`);
   const pairs = proofPairs(q, a.board), classOf = n => classes.findIndex(g => g.includes(n));
   assert.deepEqual(pairs.map(([n, m]) => [classOf(n), classOf(m)]), p.solution.twins, `${p.id}: the stacks to show apart`);
   const want = classes.flatMap((g, i) => classes.slice(i + 1).flatMap((h, j) => bag(q.cards[g[0]]) === bag(q.cards[h[0]]) ? [[i, i + 1 + j]] : []));
   assert.deepEqual(pairs.map(([n, m]) => [classOf(n), classOf(m)]), want, `${p.id}: exactly the stacks with the same letters`);
   for (const [n, m] of pairs) assert.ok(new Set(q.cards[n]).size === 4 && !matchV(q.cards[n], q.cards[m]), `${p.id}: twins with four different letters`);
+  const html = view(p, a);
+  assert.doesNotMatch(html, /tt-ask|can’t match\./, `${p.id}: no line states the conclusion`);
+  assert.doesNotMatch(html, /class="tt-stack[^"]*"[^>]*disabled/, `${p.id}: the small models stay live`);
   const back = undoCarry(p, a);
   assert.equal(back.board.proof, null, `${p.id}: Undo goes back to sorting`);
   refuse(p, a, {type: 'all'}, 'That’s all during the proof');
   refuse(p, a, {type: 'turn', card: 0, at: 0}, 'a card turned during the proof');
+  refuse(p, a, {type: 'back'}, 'back to sorting with no model');
+  refuse(p, a, {type: 'back', card: q.cards.length}, 'back to sorting with an unknown model');
+  refuse(p, back, {type: 'back', card: 0}, 'back to sorting while sorting');
+  // A small model goes back to sorting, stacks as they were; That's all again.
+  const sorting = play(p, a, {type: 'back', card: pairs[0][1]});
+  assert.deepEqual([sorting.board.proof, sorting.board.cards], [null, a.board.cards], `${p.id}: back to sorting`);
+  assert.deepEqual(play(p, sorting, {type: 'all'}).board.proof, a.board.proof, `${p.id}: That’s all again`);
   noCant(p, a, 'Can’t before a turn');
-  proofShare(p, a, accept);
+  const share = proofCounts(p, a);
+  assert.equal(share.wrong, 0, `${p.id}: no claim refused as wrong on twins`);
+  accept[`${p.id} right sort`] = `${share.ok}/${share.total} accepted (${(100 * share.ok / share.total).toFixed(1)}%), ${share.form} refused for their form`;
+  assert.ok(share.ok > 0 && share.ok / share.total < 0.05, `${p.id}: random traces rarely complete the proof`);
   const [n, m] = pairs[0], L = cardLabels(q, a.board, n), Rof = b => labelsOf(cardLabels(q, b.board, m), b.board.proof.at);
   // Form refusals, kept off the record.
   const off = reachProof(p, a, X => X[0] !== L[0]);
@@ -620,6 +634,93 @@ function checkProof(p, a, classes, accept) {
   assert.ok(isSolved(p, ok.board), `${p.id}: the certificate solves the sort`);
   assert.equal((view(p, ok).match(/tt-arrow ok/g) || []).length, 2, `${p.id}: both arrows drawn`);
   steps += hintsSolve(p, a, 'from the proof');
+  steps += hintsSolve(p, sorting, 'back to sorting from the proof');
+  return steps;
+}
+// Wrong sorts: the board before any stacking, and every sort one model short
+// of right. That's all judges none of them: the pairs come up as on a right
+// sort, the twins among them are shown apart, and the first pair that can
+// match refuses every claim of the right form, for a reason.
+function checkWrongSorts(p, fresh, classes, accept) {
+  const q = p.parameters;
+  let steps = 0, ok = 0, wrong = 0, form = 0, total = 0;
+  const kinds = new Set(), turnsTo = (g, n) => fewest(q.cards[g[0]], q.cards[n]).map(at => ({type: 'turn', card: n, at}));
+  const sorts = [playAll(p, fresh, [0, 0, 0].map(at => ({type: 'turn', card: 0, at})))];
+  for (const g of classes) for (const out of g.slice(1)) {
+    const s = playAll(p, fresh, classes.flatMap(h => h.slice(1).filter(n => n !== out).flatMap(n => turnsTo(h, n))));
+    sorts.push(s.board.tried ? s : playAll(p, s, [0, 0, 0].map(at => ({type: 'turn', card: 0, at}))));
+  }
+  for (const s of sorts) {
+    let a = play(p, s, {type: 'all'});
+    assert.ok(a.board.proof && !isSolved(p, a.board) && a.board.told === null, `${p.id}: That’s all on a wrong sort says nothing, and shows the pairs`);
+    for (let k = 0; ; k++) {
+      const [n, m] = proofPairs(q, a.board)[a.board.proof.n];
+      if (matchV(cardLabels(q, a.board, n), cardLabels(q, a.board, m))) break;
+      a = certify(p, a);
+      assert.ok(!isSolved(p, a.board) && k < 20, `${p.id}: twins shown apart never solve a wrong sort`);
+    }
+    const c = proofCounts(p, a);
+    ok += c.ok; wrong += c.wrong; form += c.form; total += c.total;
+    c.kinds.forEach(k => kinds.add(k));
+    steps += hintsSolve(p, a, 'from a pair that can match');
+  }
+  steps += checkProofLock(p, sorts.at(-1));
+  if (q.cards.some(c => new Set(c).size === 3)) {
+    // Two stacks of A, A, B, C models can also earn "There is a way.".
+    assert.ok(kinds.has('way'), `${p.id}: a repeated letter can fool the arrows in a sort`);
+    const twoAs = classes.find(g => new Set(q.cards[g[0]]).size === 3);
+    steps += checkProofLock(p, playAll(p, fresh, classes.filter(g => g !== twoAs).flatMap(g => g.slice(1).flatMap(n => turnsTo(g, n)))), 'way');
+  }
+  assert.equal(ok, 0, `${p.id}: no claim accepted on a pair that can match`);
+  accept[`${p.id} wrong sorts`] = `${ok}/${total} accepted on the first pair that can match, ${wrong} refused as wrong (${[...kinds].sort().join(', ')}), ${form} refused for their form, over ${sorts.length} wrong sorts`;
+  return steps;
+}
+// Turn the proof's second model to the first one's middle letter and show the
+// pair apart.
+function certify(p, a) {
+  const q = p.parameters, [n, m] = proofPairs(q, a.board)[a.board.proof.n], L = cardLabels(q, a.board, n);
+  const on = reachProof(p, a, X => X[0] === L[0]), R = labelsOf(cardLabels(q, on.board, m), on.board.proof.at);
+  const next = play(p, on, {type: 'cant', left: [1, 2], right: [R.indexOf(L[1]), R.indexOf(L[2])]});
+  assert.ok(next.board.done || next.board.proof.n === a.board.proof.n + 1, `${p.id}: twins shown apart, on to the next pair`);
+  return next;
+}
+// From a wrong sort: That's all, the twins shown apart, then a wrong claim on
+// the first pair that can match. The refusal shows round the child's arrows,
+// those two lock, and the lock holds (with its refusal) through Undo, turns,
+// going back to sorting, That's all again and Restart.
+function checkProofLock(p, sorted, want) {
+  const q = p.parameters;
+  let a = play(p, sorted, {type: 'all'}), steps = 0;
+  for (let k = 0; k < 20; k++) { const [n, m] = proofPairs(q, a.board)[a.board.proof.n]; if (matchV(cardLabels(q, a.board, n), cardLabels(q, a.board, m))) break; a = certify(p, a); }
+  const [n, m] = proofPairs(q, a.board)[a.board.proof.n], L = cardLabels(q, a.board, n), at = a.board.proof.n;
+  const traceFor = X => TRACES.flatMap(x => TRACES.map(y => [x, y])).find(([x, y]) => judge(L, X, x, y).kind === (want || 'round'));
+  const on = reachProof(p, a, X => Boolean(traceFor(X))), trace = traceFor(labelsOf(cardLabels(q, on.board, m), on.board.proof.at));
+  const c = play(p, on, {type: 'cant', left: trace[0], right: trace[1]}), kind = c.board.told;
+  assert.ok(TOLD[kind] && c.board.proof.claim.kind === kind && !isSolved(p, c.board), `${p.id}: refused for a reason (${kind})`);
+  const shown = view(p, c);
+  assert.equal((shown.match(/tt-arrow off/g) || []).length, 2, `${p.id}: the refusal round the child’s own arrows`);
+  assert.ok(shown.includes(`<p class="tt-told">${TOLD[kind]}</p>`) && cantOff(shown), `${p.id}: its message, and Can’t off`);
+  assert.deepEqual(c.board.wrong, [`${n}·${m}|${kind}`], `${p.id}: those two locked`);
+  noCant(p, c, 'Can’t again on those two');
+  const back = undoCarry(p, c);
+  assert.ok(back.board.proof.claim === null && back.board.wrong.length === 1, `${p.id}: Undo keeps the lock`);
+  assert.ok(view(p, back).includes(`<p class="tt-told">${TOLD[kind]}</p>`) && cantOff(view(p, back)), `${p.id}: and its refusal shows`);
+  noCant(p, back, 'Can’t after Undo');
+  const turned = play(p, c, {type: 'turn', at: 0});
+  assert.ok(turned.board.proof.claim === null && view(p, turned).includes(TOLD[kind]), `${p.id}: a turn takes the arrows, not the refusal`);
+  noCant(p, turned, 'Can’t after a turn');
+  // Back to sorting; That's all again on the same stacks finds the pair still locked.
+  const sorting = play(p, c, {type: 'back', card: m});
+  assert.ok(sorting.board.proof === null && !view(p, sorting).includes(TOLD[kind]), `${p.id}: back to sorting, with no message`);
+  let again = play(p, sorting, {type: 'all'});
+  while (again.board.proof.n < at) again = certify(p, again);
+  again = play(p, again, {type: 'turn', at: 0});
+  noCant(p, again, 'Can’t on the same two after That’s all again');
+  assert.ok(view(p, again).includes(TOLD[kind]), `${p.id}: with its refusal`);
+  const restarted = restartCarry(p, c);
+  assert.deepEqual(restarted.board.wrong, c.board.wrong, `${p.id}: Restart keeps the lock`);
+  assert.ok(validBoard(p, restarted.board), `${p.id}: a valid board after Restart`);
+  for (const [b, label] of [[c, 'after a wrong claim in a sort'], [back, 'after Undo of it'], [sorting, 'back to sorting after it'], [again, 'at the locked pair again'], [restarted, 'after Restart with a lock']]) steps += hintsSolve(p, b, label);
   return steps;
 }
 // The nearest proof pose (at least one tap away) whose second model's letters satisfy `want`.
@@ -633,8 +734,10 @@ function reachProof(p, start, want) {
   }
   assert.fail(`${p.id}: no proof pose found`);
 }
-// The share of random claims a proof accepts, over every pose and trace.
-function proofShare(p, start, accept) {
+// Every claim on the pair shown, over every pose of its second model and all
+// 36 traces: how many a child tapping at random would have accepted, refused
+// as wrong (a pair that can match) or refused for their form.
+function proofCounts(p, start) {
   const q = p.parameters, seen = new Map(), queue = [start];
   for (let n = 0; n < queue.length; n++) for (const at of [0, 1, 2, 3]) {
     const b = move(p, queue[n], {type: 'turn', at});
@@ -642,19 +745,17 @@ function proofShare(p, start, accept) {
     seen.set(b.board.proof.at.join(), b); queue.push(b);
   }
   assert.equal(seen.size, 12, `${p.id}: the proof's model turns to every pose`);
-  let ok = 0, form = 0;
+  let ok = 0, wrong = 0, form = 0;
+  const kinds = new Set();
   for (const a of seen.values()) for (const x of TRACES) for (const y of TRACES) {
     const b = move(p, a, {type: 'cant', left: x, right: y});
     assert.ok(b, `${p.id}: a proof claim is judged`);
-    if (b.board.done || b.board.proof.n > a.board.proof.n) {
-      ok++;
-      const [n, m] = proofPairs(q, a.board)[a.board.proof.n];
-      assert.ok(!matchV(cardLabels(q, a.board, n), labelsOf(cardLabels(q, a.board, m), a.board.proof.at)), `${p.id}: only a true claim`);
-    } else { form++; assert.ok(['middle', 'letters'].includes(b.board.told), `${p.id}: every other claim refused for its form`); }
+    const [n, m] = proofPairs(q, a.board)[a.board.proof.n], can = matchV(cardLabels(q, a.board, n), labelsOf(cardLabels(q, a.board, m), a.board.proof.at));
+    if (b.board.done || b.board.proof.n > a.board.proof.n) { ok++; assert.ok(!can, `${p.id}: only a true claim`); }
+    else if (b.board.proof.claim) { wrong++; kinds.add(b.board.proof.claim.kind); assert.ok(can && b.board.told === b.board.proof.claim.kind, `${p.id}: refused as wrong only on a pair that can match`); }
+    else { form++; assert.ok(['middle', 'letters'].includes(b.board.told), `${p.id}: every other claim refused for its form`); }
   }
-  const total = ok + form;
-  accept[`${p.id} proof`] = `${ok}/${total} accepted (${(100 * ok / total).toFixed(1)}%), ${form} refused for their form`;
-  assert.ok(ok > 0 && ok / total < 0.05, `${p.id}: random traces rarely complete the proof`);
+  return {ok, wrong, form, total: ok + wrong + form, kinds};
 }
 // Every board a pair puzzle can reach by moves, Undo and Restart (the locks
 // set aside: hints never use them, and a locked board never gets a Can't
@@ -704,15 +805,33 @@ function checkForged(p, fresh) {
   const q = p.parameters, B = fresh.board, reflect = [0, 1, 3, 2];
   const forged = [[{...B, extra: 1}, 'an unknown field'], [null, 'nothing']];
   if (q.mode === 'sort') {
+    const U = {...B, tried: true}, start = {n: 0, at: [0, 1, 2, 3], tried: false, claim: null};
+    assert.ok(validBoard(p, U), `${p.id}: a touched, unsorted board is valid`);
     forged.push([{...B, cards: B.cards.map((c, n) => n ? c : reflect), tried: true}, 'a reflected model']);
-    forged.push([{...B, done: true}, 'a done sort that is not sorted']);
-    forged.push([{...B, tried: true, refused: classesOf(q.cards)}, 'a refusal of the right stacks']);
-    forged.push([{...B, tried: true, told: 'more', refused: null}, 'a message with no refusal']);
+    forged.push([{...B, done: true}, 'a done sort never touched']);
+    forged.push([{...U, done: true}, 'a done sort that is not sorted']);
+    forged.push([{...U, refused: null}, 'a field a sort no longer has']);
+    forged.push([{...U, told: 'round'}, 'a refusal while sorting']);
+    forged.push([{...U, told: 'more'}, 'the old refusal of That’s all']);
     forged.push([{...B, cards: B.cards.slice(1)}, 'a missing card']);
-    forged.push([{...B, tried: true, proof: {n: 0, at: [0, 1, 2, 3], tried: false, claim: null}}, 'a proof before the sort is right']);
+    forged.push([{...B, proof: start}, 'a proof before a turn']);
+    // Locks: two models that can match, in order, once each, with a refusal they can earn.
+    const cls = classesOf(q.cards), mate = [cls[0][0], cls[0][1]];
+    const twin = cls.flatMap((g, i) => cls.slice(i + 1).filter(h => bag(q.cards[g[0]]) === bag(q.cards[h[0]])).map(h => [g[0], h[0]].sort((x, y) => x - y)))[0];
+    const apart = cls.flatMap((g, i) => cls.slice(i + 1).filter(h => bag(q.cards[g[0]]) !== bag(q.cards[h[0]])).map(h => [g[0], h[0]].sort((x, y) => x - y)))[0];
+    const lock = (x, y, kind) => `${x}·${y}|${kind}`;
+    assert.ok(validBoard(p, {...B, wrong: [lock(...mate, 'round')]}), `${p.id}: a lock kept by Restart is valid`);
+    forged.push([{...B, wrong: [lock(...twin, 'round')]}, 'a lock on twins']);
+    if (apart) forged.push([{...B, wrong: [lock(...apart, 'round')]}, 'a lock on two with different letters']);
+    forged.push([{...B, wrong: [lock(mate[1], mate[0], 'round')]}, 'a lock out of order']);
+    if (new Set(q.cards[mate[0]]).size === 4) forged.push([{...B, wrong: [lock(...mate, 'way')]}, 'a refusal four different letters can’t earn']);
+    forged.push([{...B, wrong: [lock(...mate, 'round'), lock(...mate, 'way')]}, 'a lock twice']);
+    forged.push([{...B, wrong: [lock(0, q.cards.length, 'round')]}, 'a lock on a model that is not there']);
+    forged.push([{...B, wrong: [lock(...mate, 'letters')]}, 'a lock with a form refusal']);
+    forged.push([{...B, wrong: [7]}, 'a lock that is not two models']);
     // On a right sort: the certificate can't be skipped, faked or misplaced.
-    const classes = classesOf(q.cards), S = playAll(p, fresh, classes.flatMap(g => g.slice(1).flatMap(n => fewest(q.cards[g[0]], q.cards[n]).map(at => ({type: 'turn', card: n, at}))))).board;
-    const start = {n: 0, at: [0, 1, 2, 3], tried: false, claim: null}, [n0, m0] = proofPairs(q, S)[0], L0 = cardLabels(q, S, n0);
+    const S = playAll(p, fresh, cls.flatMap(g => g.slice(1).flatMap(n => fewest(q.cards[g[0]], q.cards[n]).map(at => ({type: 'turn', card: n, at}))))).board;
+    const [n0, m0] = proofPairs(q, S)[0], L0 = cardLabels(q, S, n0);
     const poseWith = same => POSES.map(poseOf).find(at => (labelsOf(cardLabels(q, S, m0), at)[0] === L0[0]) === same);
     forged.push([{...S, done: true}, 'a right sort done without its certificate']);
     forged.push([{...S, proof: {...start, n: 1}}, 'a proof of a pair that is not there']);
@@ -720,7 +839,30 @@ function checkForged(p, fresh) {
     forged.push([{...S, proof: {...start, tried: true, at: poseWith(true)}, told: 'middle'}, 'a stale “not the same letter in the middle”']);
     forged.push([{...S, proof: {...start, tried: true, at: poseWith(false)}, told: 'letters'}, 'a stale “follow the same letters”']);
     forged.push([{...S, proof: {...start, tried: true, at: poseWith(false), claim: {ok: true, at: poseWith(false), left: [1, 2], right: [1, 2]}}, done: true}, 'a certificate with different middles']);
-    forged.push([{...S, proof: start, told: 'more'}, 'a refusal message during the proof']);
+    forged.push([{...S, proof: start, told: 'more'}, 'an old refusal during the proof']);
+    forged.push([{...S, proof: {...start, tried: true, at: poseWith(true)}, told: 'round'}, 'a wrong-claim message with no claim']);
+    // On a wrong sort: no proof past a pair that can match, and no solve.
+    const pairsU = proofPairs(q, U), can = pairsU.findIndex(([x, y]) => matchV(q.cards[x], q.cards[y]));
+    forged.push([{...U, proof: {...start, n: can + 1}}, 'a proof past a pair that can match']);
+    const last = pairsU.length - 1, [xl, yl] = pairsU[last], Ll = q.cards[xl];
+    const atl = POSES.map(poseOf).find(at => labelsOf(q.cards[yl], at)[0] === Ll[0]), Rl = labelsOf(q.cards[yl], atl);
+    forged.push([{...U, done: true, proof: {n: last, at: atl, tried: true, claim: {ok: true, at: atl, left: [1, 2], right: [Rl.indexOf(Ll[1]), Rl.indexOf(Ll[2])]}}}, 'a wrong sort solved by its last pair']);
+    // A wrong claim, as a board: everything about it must fit.
+    let a = play(p, {...fresh, board: U}, {type: 'all'});
+    while (a.board.proof.n < can) a = certify(p, a);
+    const [nc, mc] = pairsU[can], Lc = q.cards[nc];
+    const on = reachProof(p, a, X => X[0] === Lc[0]), Rc = labelsOf(q.cards[mc], on.board.proof.at);
+    const trace = TRACES.flatMap(x => TRACES.map(y => [x, y])).find(([x, y]) => judge(Lc, Rc, x, y).kind);
+    const C = play(p, on, {type: 'cant', left: trace[0], right: trace[1]}).board, k = C.proof.claim.kind;
+    assert.ok(validBoard(p, C), `${p.id}: a wrong claim in a sort is a valid board`);
+    forged.push([{...C, wrong: []}, 'a wrong claim with no lock']);
+    forged.push([{...C, told: null}, 'a wrong claim with its message gone']);
+    forged.push([{...C, told: 'middle'}, 'a wrong claim with a form message']);
+    forged.push([{...C, done: true}, 'a wrong claim that solves']);
+    forged.push([{...C, proof: {...C.proof, at: [0, 2, 3, 1].map(i => C.proof.at[i])}}, 'a wrong claim from another pose']);
+    forged.push([{...C, told: k === 'round' ? 'way' : 'round', proof: {...C.proof, claim: {...C.proof.claim, kind: k === 'round' ? 'way' : 'round'}}}, 'a refusal of the wrong kind']);
+    forged.push([{...C, wrong: [lock(nc, mc, k === 'round' ? 'way' : 'round')]}, 'a lock with another refusal']);
+    forged.push([{...C, proof: {...C.proof, claim: null}, told: 'letters'}, 'a form message on a locked pair']);
   } else if (q.mode === 'merges') {
     forged.push([{...B, at: reflect, tried: true}, 'a reflected model']);
     forged.push([{...B, done: true}, 'a done shelf that is short']);

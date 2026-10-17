@@ -980,10 +980,10 @@
      ]
     ]
    },
-   "objective": "Turn models so the ones that match stack together.",
-   "visibleObjective": "Turn models so the ones that match stack together.",
-   "instruction": "Turn models so the ones that match stack together.",
-   "controls": "A model is a solid with a letter on each of its four corners. It is drawn from one corner: that corner is in the middle, nearest you, and the other three make the triangle behind it. Two models match when one can be turned so that every corner shows the same letter as the other model’s corner in that place. Tap a small model to put it on the big board, then tap the big board’s corners to turn it a third of the way round each. Models that look exactly alike stack together. That’s all checks that no two stacks could be turned to match. If that is right, a model from each of two stacks with the same letters comes up as a pair, to show with Can’t that they can’t match. Tap the corners of the second one to turn it (its stack stays as it is) until both have the same letter in the middle. Then press Can’t and tap two letters round the middle of each model, the same two in the same order: an arrow goes from the first through the second.",
+   "objective": "Turn models so the ones that match stack together, then try Can’t on each pair shown.",
+   "visibleObjective": "Turn models so the ones that match stack together, then try Can’t on each pair shown.",
+   "instruction": "Turn models so the ones that match stack together, then try Can’t on each pair shown.",
+   "controls": "A model is a solid with a letter on each of its four corners. It is drawn from one corner: that corner is in the middle, nearest you, and the other three make the triangle behind it. Two models match when one can be turned so that every corner shows the same letter as the other model’s corner in that place. Tap a small model to put it on the big board, then tap the big board’s corners to turn it a third of the way round each. Models that look exactly alike stack together. When you think no two stacks could be turned to match, press That’s all. A model from each of two stacks with the same letters then comes up as a pair, for Can’t, one pair after another; stacks with different letters need no pair. Tap the corners of the pair’s second model to turn it (its stack stays as it is) until both have the same letter in the middle. Then press Can’t and tap two letters round the middle of each model, the same two in the same order: an arrow goes from the first through the second. If Can’t is refused, those two can match, and Can’t stays off for them. A tap on a small model goes back to sorting.",
    "rules": [
     "A model is a regular tetrahedron with a letter on each corner, drawn from one corner: that corner is in the middle, nearest you, and the other three are the triangle of the far face.",
     "A tap on a corner turns the model a third of the way round that corner. The corner stays put and the other three move one place round it. Turning never changes the letters.",
@@ -1000,7 +1000,7 @@
    "parent": {
     "notice": "Whether your child expects more than two stacks, and how they decide that a model can’t join a stack.",
     "prompt": "Why can’t the last two stacks become one?",
-    "explanation": "Twelve turns give each model twelve different looks, and the 24 ways to put on four different letters fall into two groups of twelve: on one, seen from A, the other three go round clockwise, and on the other anticlockwise. So six models make two stacks. After That’s all, the child shows with Can’t, as in puzzle 3, that the two can’t join: with the same letter in the middle of both, the arrows run opposite ways.",
+    "explanation": "Twelve turns give each model twelve different looks, and the 24 ways to put on four different letters fall into two groups of twelve: on one, seen from A, the other three go round clockwise, and on the other anticlockwise. So six models make two stacks. That’s all judges nothing itself: it shows a model from each two stacks with the same letters and asks for Can’t, as in puzzle 3. On the two right stacks the arrows run opposite ways, with the same letter in the middle of both. On a wrong sort, two stacks that could join come up as well, and Can’t is refused on them (“Same way round.”).",
     "extension": "How many different models can be made with A, B, C and D if models that match count as the same? (Two.)",
     "connection": "The 24 labellings form two orbits of the tetrahedron’s rotation group A4, which has 12 elements: 24 ÷ 12 = 2.",
     "sourceIds": [
@@ -1124,10 +1124,10 @@
      ]
     ]
    },
-   "objective": "Turn models so the ones that match stack together.",
-   "visibleObjective": "Turn models so the ones that match stack together.",
-   "instruction": "Turn models so the ones that match stack together.",
-   "controls": "A model is a solid with a letter on each of its four corners. It is drawn from one corner: that corner is in the middle, nearest you, and the other three make the triangle behind it. Two models match when one can be turned so that every corner shows the same letter as the other model’s corner in that place. Tap a small model to put it on the big board, then tap the big board’s corners to turn it a third of the way round each. Models that look exactly alike stack together. That’s all checks that no two stacks could be turned to match. If that is right, a model from each of two stacks with the same letters comes up as a pair, to show with Can’t that they can’t match. Tap the corners of the second one to turn it (its stack stays as it is) until both have the same letter in the middle. Then press Can’t and tap two letters round the middle of each model, the same two in the same order: an arrow goes from the first through the second.",
+   "objective": "Turn models so the ones that match stack together, then try Can’t on each pair shown.",
+   "visibleObjective": "Turn models so the ones that match stack together, then try Can’t on each pair shown.",
+   "instruction": "Turn models so the ones that match stack together, then try Can’t on each pair shown.",
+   "controls": "A model is a solid with a letter on each of its four corners. It is drawn from one corner: that corner is in the middle, nearest you, and the other three make the triangle behind it. Two models match when one can be turned so that every corner shows the same letter as the other model’s corner in that place. Tap a small model to put it on the big board, then tap the big board’s corners to turn it a third of the way round each. Models that look exactly alike stack together. When you think no two stacks could be turned to match, press That’s all. A model from each of two stacks with the same letters then comes up as a pair, for Can’t, one pair after another; stacks with different letters need no pair. Tap the corners of the pair’s second model to turn it (its stack stays as it is) until both have the same letter in the middle. Then press Can’t and tap two letters round the middle of each model, the same two in the same order: an arrow goes from the first through the second. If Can’t is refused, those two can match, and Can’t stays off for them. A tap on a small model goes back to sorting.",
    "rules": [
     "A model is a regular tetrahedron with a letter on each corner, drawn from one corner: that corner is in the middle, nearest you, and the other three are the triangle of the far face.",
     "A tap on a corner turns the model a third of the way round that corner. The corner stays put and the other three move one place round it. Turning never changes the letters.",
@@ -1144,7 +1144,7 @@
    "parent": {
     "notice": "Whether your child gives the A, A, B, C mirror look-alikes separate stacks.",
     "prompt": "Why do all the A, A, B, C models stack, when the A, B, C, D ones make two stacks?",
-    "explanation": "All twelve ways to put on A, A, B and C match each other (puzzle 5): swapping the two As changes nothing, so any arrangement can be turned into any other. The models with four different letters fall into two groups, as in puzzle 11. So the eight models make three stacks. Only the two stacks of four different letters need the Can’t certificate after That’s all; stacks with different letters can never match.",
+    "explanation": "All twelve ways to put on A, A, B and C match each other (puzzle 5): swapping the two As changes nothing, so any arrangement can be turned into any other. The models with four different letters fall into two groups, as in puzzle 11. So the eight models make three stacks. After That’s all, only the two stacks of four different letters come up for Can’t; stacks with different letters can never match. If the A, A, B, C models are left in two stacks, those two come up too, and Can’t is refused (“Same way round.” or “There is a way.”).",
     "extension": "What about A, A, B and B? (All of those stack together too.)",
     "connection": "A labelling with a repeated letter is its own mirror image, so its orbit under rotation is also its orbit under every symmetry.",
     "sourceIds": [

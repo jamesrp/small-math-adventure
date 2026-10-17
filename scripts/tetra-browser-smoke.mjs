@@ -1,12 +1,14 @@
 // Plays Mirror twins through the real interface: turns by tapping corners
 // (one with the turn animating, near a disc's edge), Enter on a corner, Undo;
 // Can't with its traced arrows (not the same middle, other letters, a right
-// claim, and a wrong one locked through Undo); one change by letter chips;
-// changing an A on each and placing four letters, with nothing said unasked
-// after a set-up that misses the goal, and Start again; every pair with the
-// new pair marked, Found already, There is another and That's all; sorting
-// with a refused That's all and the proof after a right one; the
-// playground's Letters. Every puzzle is also solved through the interface by
+// claim, and a wrong one locked through Undo and Restart with its refusal
+// still shown); one change by letter chips; changing an A on each and placing
+// four letters, with nothing said unasked after a set-up that misses the goal,
+// and Start again; every pair with the new pair marked, Found already, There
+// is another and That's all; sorting, where That's all judges nothing: on a
+// wrong sort a pair that can match refuses Can't round the child's arrows,
+// locked, and a small model goes back to sorting; then the proof after a
+// right sort; the playground's Letters. Every puzzle is also solved through the interface by
 // following its hints. Checks focus, page overflow and the board's size.
 // Same environment variables as the other browser suites (PLAYWRIGHT_MODULE,
 // BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a 375 × 667 phone with
@@ -14,7 +16,7 @@
 import assert from 'node:assert/strict';
 import {mkdir, readFile} from 'node:fs/promises';
 import {mechanicFor} from '../dist/expansion.js';
-import {tapsTo, labelsOf, turned} from '../dist/families/tetra/tetra.js';
+import {tapsTo, labelsOf, turned, judge, proofPairs, cardLabels} from '../dist/families/tetra/tetra.js';
 const {chromium} = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const browser = await chromium.launch({headless: true, ...(process.env.BROWSER_EXECUTABLE ? {executablePath: process.env.BROWSER_EXECUTABLE} : {})});
 const phone = process.env.TEST_PHONE === '1';
@@ -76,6 +78,7 @@ async function act(id, action) {
   else if (action.type === 'cant') { await tap(button('Can’t match')); for (const k of action.left) await tap(corner('left', k)); for (const k of action.right) await tap(corner('right', k)); }
   else if (action.type === 'all') await tap(button('That’s all'));
   else if (action.type === 'again') await tap(button('Start again'));
+  else if (action.type === 'back') await tap(page.locator(`.tt-stack:has([data-flip="${id}:card${action.card}"])`));
   else throw new Error(`no tap for ${JSON.stringify(action)}`);
 }
 async function solveByHints(id, until = solvedNow) {
@@ -169,12 +172,14 @@ try {
   await focusOnBoard('after a wrong claim');
   await shot('cant-refused');
   await undoButton();
-  assert.equal(await page.locator('.tt-told').count(), 0, 'Undo changes the screen');
+  assert.equal(await page.locator('.tt-arrow').count(), 0, 'Undo takes the arrows away');
   assert.equal(await button('Can’t match').isDisabled(), true, 'and the lock stays');
+  assert.equal(await told(), 'Same way round.', 'with its refusal');
   assert.equal((await board(P2)).wrong.length, 1);
   await tap(page.locator('[data-action="restart"]'));
   await tap(corner('right', 3));
   assert.equal(await button('Can’t match').isDisabled(), true, 'and through Restart');
+  assert.equal(await told(), 'Same way round.', 'still with its refusal');
   const b2 = await board(P2);
   for (const k of tapsTo(byId(P2).parameters.left, labelsOf(b2.letters, b2.at))) await tap(corner('right', k));
   await done();
@@ -253,10 +258,13 @@ try {
   await solveByHints(P8);
   await fit('merges solved'); await shot('merges-solved');
 
-  // Puzzle 12: sorting eight models, That's all refused, then solved.
+  // Puzzle 12: sorting eight models. That's all on a wrong sort judges
+  // nothing; Can't on a pair that can match is refused; back to sorting; then
+  // the proof after a right sort.
   const P12 = 'tetra-12';
   await open(P12); await fit('sort'); await size('sort');
   assert.equal(await page.locator('.tt-stack').count(), 8);
+  assert.equal(await page.locator('.puzzle-goal').innerText(), byId(P12).visibleObjective, 'one objective line, naming both steps');
   await tap(page.locator('.tt-stack:has([data-flip="tetra-12:card3"])'));
   assert.equal(await page.locator('.tt-stack.chosen [data-flip="tetra-12:card3"]').count(), 1, 'a tap puts a model on the big board');
   const c3 = tapsTo(byId(P12).parameters.cards[0], byId(P12).parameters.cards[3]);
@@ -264,18 +272,48 @@ try {
   assert.equal(await page.locator('.tt-stack').count(), 7, 'two alike stack');
   await focusOnBoard('after a turn on the big board');
   await tap(button('That’s all'));
-  assert.equal(await told(), 'Some can still match.');
-  assert.equal(await button('That’s all').isDisabled(), true);
-  await shot('sort-refused'); await size('sort refused');
-  // A right That's all: the proof, on a model from each of the two stacks
-  // with four different letters.
-  await solveByHints(P12, async () => await page.locator('.tt-proving').count() > 0);
+  assert.equal(await page.locator('.tt-proving .tt-model').count(), 2, 'That’s all shows a pair, whatever the sort');
+  assert.equal(await page.locator('.tt-told, .tt-ask').count(), 0, 'and says nothing about the sort');
+  assert.equal(await page.locator('.puzzle-goal').count(), 1, 'still one objective line');
+  assert.equal(await page.locator('.tt-stack:not([disabled])').count(), 7, 'the small models stay live');
+  // Turn the second model and trace a claim this pair refuses: it can match.
+  {
+    const q = byId(P12).parameters, b = await board(P12), [n, m] = proofPairs(q, b)[b.proof.n], L = cardLabels(q, b, n);
+    const seen = new Map([[b.proof.at.join(), []]]), queue = [b.proof.at];
+    let plan = null;
+    for (let i = 0; i < queue.length && !plan; i++) for (const k of [0, 1, 2, 3]) {
+      const at = turned(queue[i], k), path = [...seen.get(queue[i].join()), k];
+      if (seen.has(at.join())) continue;
+      seen.set(at.join(), path); queue.push(at);
+      const R = labelsOf(cardLabels(q, b, m), at);
+      const trace = [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]].flatMap(x => [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]].map(y => [x, y])).find(([x, y]) => judge(L, R, x, y).kind);
+      if (trace) { plan = {path, trace}; break; }
+    }
+    for (const k of plan.path) await tap(corner('right', k));
+    await tap(button('Can’t match'));
+    for (const k of plan.trace[0]) await tap(corner('left', k));
+    for (const k of plan.trace[1]) await tap(corner('right', k));
+  }
+  assert.ok(['Same way round.', 'There is a way.'].includes(await told()), 'refused for a reason');
+  assert.equal(await page.locator('.tt-arrow.off').count(), 2, 'round the child’s own arrows');
+  assert.equal(await button('Can’t match').isDisabled(), true, 'those two locked');
+  assert.equal((await board(P12)).wrong.length, 1);
+  await fit('sort refused'); await size('sort refused'); await shot('sort-refused');
+  const refusal = await told();
+  await undoButton();
+  assert.equal(await page.locator('.tt-arrow').count(), 0, 'Undo takes the arrows away');
+  assert.equal(await told(), refusal, 'and keeps the refusal while locked');
+  assert.equal(await button('Can’t match').isDisabled(), true);
+  await tap(page.locator('.tt-stack').first());
+  assert.equal(await page.locator('.tt-proving').count(), 0, 'a small model goes back to sorting');
+  assert.equal(await page.locator('.tt-told').count(), 0);
+  await focusOnBoard('back to sorting');
+  // A right sort: the proof, on a model from each of the two stacks with four different letters.
+  await solveByHints(P12, async () => await page.locator('.tt-proving').count() > 0 && proofPairs(byId(P12).parameters, await board(P12)).length === 1);
   assert.equal(await page.locator('.tt-proving .tt-model').count(), 2, 'a pair of models');
-  assert.equal(await page.locator('.tt-ask').innerText(), 'Show with Can’t that these two can’t match.');
   assert.equal(await page.locator('.tt-stack.compared').count(), 2, 'the two stacks marked');
-  assert.equal(await page.locator('.tt-stack:not([disabled])').count(), 0, 'the stacks stay as they are');
   assert.equal(await button('Can’t match').isDisabled(), true, 'Can’t after a turn');
-  await focusOnBoard('after a right That’s all');
+  await focusOnBoard('after That’s all');
   await fit('sort proof'); await size('sort proof'); await shot('sort-proof');
   await solveByHints(P12);
   assert.equal(await page.locator('.tt-arrow.ok').count(), 2, 'the certificate’s arrows');

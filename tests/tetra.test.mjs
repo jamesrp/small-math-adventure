@@ -1,8 +1,10 @@
 // Mirror twins: turns and rotations, no reflection, matching and the two
 // classes, turning to match, Can't with its traced arrows (form refusals,
-// wrong claims locked through Undo and Restart), one change, set-ups with
-// Start again and no dead ends, every pair with the new pair marked, sorting
-// with its proof, the playground, hints, saves, rendering, styles and timing.
+// wrong claims locked through Undo and Restart, the refusal shown while
+// locked), one change, set-ups with Start again, no dead ends and a first hint
+// that doesn't sort them, every pair with the new pair marked, sorting with a
+// That's all that judges nothing and its proof, the playground, hints, saves,
+// rendering, styles and timing.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -117,8 +119,10 @@ test('a wrong Can’t: one short refusal, and Can’t stays off on those letters
   assert.deepEqual(back.board.wrong, c.board.wrong, 'and keeps the lock');
   assert.equal(back.board.told, null);
   assert.notEqual(board(p, back), board(p, c), 'Undo changes the screen');
-  assert.doesNotMatch(board(p, back), /Same way round/);
+  assert.doesNotMatch(board(p, back), /tt-arrow off/);
   assert.match(board(p, back), /class="secondary tt-button tt-cant"[^>]*disabled/, 'Can’t still off');
+  assert.match(board(p, back), /<p class="tt-told">Same way round\.<\/p>/, 'with the refusal it earned');
+  assert.match(board(p, restartCarry(p, c)), /<p class="tt-told">Same way round\.<\/p>/, 'after Restart too');
   const before = undoCarry(p, back);
   assert.ok(noCant(p, play(p, before, ...taps(3))), 'no second claim, back to the start');
   assert.ok(noCant(p, play(p, restartCarry(p, c), ...taps(3))), 'nor after Restart');
@@ -176,14 +180,19 @@ test('set-ups: an A changed on each, or four letters on blank corners, before an
   assert.deepEqual(a.board.left, W('DCBA'));
   a = play(p, a, ...taps(1));
   assert.ok(isSolved(p, a.board), 'the As that meet, then one tap');
-  // Both middle As make twins. No dead end: the hints bring the same letter to
+  // Both middle As make twins. No dead end: the hints make an attempt (the
+  // same first tap as a change that matches), bring the same letter back to
   // both middles, then give the reason and Start again.
   const wrong = play(p, fresh, {type: 'place', side: 'left', at: 0}, {type: 'place', side: 'right', at: 0});
+  const matching = play(p, fresh, {type: 'place', side: 'left', at: 0}, {type: 'place', side: 'right', at: 2});
   assert.equal(nextHint(p, wrong).type, 'move');
-  assert.deepEqual(nextHint(p, wrong).action, {type: 'turn', at: 0});
+  assert.deepEqual(nextHint(p, wrong).action, {type: 'turn', at: 1});
+  assert.equal(nextHint(p, wrong).text, nextHint(p, matching).text, 'the first hint doesn’t sort the changes');
   assert.match(view(p, wrong), /<div class="feedback " role="status" aria-live="polite"><\/div>/, 'nothing said unasked');
   assert.doesNotMatch(view(p, wrong), /tt-told/);
-  const shown = play(p, wrong, ...taps(0));
+  let shown = wrong;
+  for (let n = 0; n < 4 && nextHint(p, shown).action.type === 'turn'; n++) shown = play(p, shown, nextHint(p, shown).action);
+  assert.equal(labelsOf(shown.board.letters, shown.board.at)[0], 'D', 'the same letter in both middles');
   assert.deepEqual(nextHint(p, shown).action, {type: 'again'});
   assert.equal(nextHint(p, shown).text, 'With D in the middle of both, A, B and C go round opposite ways, and a turn never changes that. So these two can’t match. Press Start again.');
   const again = play(p, shown, {type: 'again'});
@@ -251,36 +260,48 @@ test('every pair: a pair goes on the shelf when the models match and both start 
   assert.doesNotMatch(html, /\b\d+ (of|\/) \d+\b|[0-6] found/, 'no count of pairs');
 });
 
-test('sorting: models that look alike stack; That’s all needs no two stacks that could match, with no count shown', () => {
+test('sorting: models that look alike stack; That’s all judges nothing and asks for Can’t on stacks with the same letters, with no count shown', () => {
   const p = byId(11), q = p.parameters, fresh = freshAttempt(p);
   assert.equal(move(p, fresh, {type: 'all'}), null, 'not before a turn');
   assert.deepEqual(classesOf(q.cards), [[0, 2, 4], [1, 3, 5]]);
   let a = fresh;
-  for (const n of [2, 4]) a = play(p, a, ...tapsTo(q.cards[0], q.cards[n]).map(at => ({type: 'turn', card: n, at})));
-  const told = play(p, a, {type: 'all'});
-  assert.equal(told.board.told, 'more');
-  assert.match(board(p, told), /Some can still match\./);
-  assert.equal(move(p, told, {type: 'all'}), null);
-  const back = undoCarry(p, told);
-  assert.equal(move(p, back, {type: 'all'}), null, 'kept through Undo');
-  assert.notEqual(board(p, back), board(p, told));
   for (const n of [3, 5]) a = play(p, a, ...tapsTo(q.cards[1], q.cards[n]).map(at => ({type: 'turn', card: n, at})));
+  // A wrong sort: That's all says nothing about it and shows the pairs.
+  const shown = play(p, a, {type: 'all'});
+  assert.equal(shown.board.told, null);
+  assert.deepEqual(proofPairs(q, shown.board), [[0, 1], [0, 2], [0, 4], [1, 2], [1, 4], [2, 4]], 'every two stacks with the same letters');
+  assert.doesNotMatch(board(p, shown), /Some can still match|can’t match\./, 'no verdict, no conclusion stated');
+  // The first pair are twins: shown apart, on to the next, which can match.
+  const L = cardLabels(q, shown.board, 0), turnTo = (b, m) => { for (const k of [0, 1, 2, 3]) { const next = play(p, b, ...taps(k)); if (labelsOf(cardLabels(q, next.board, m), next.board.proof.at)[0] === L[0]) return next; } };
+  let t = turnTo(shown, 1), R = labelsOf(cardLabels(q, t.board, 1), t.board.proof.at);
+  const next = play(p, t, {type: 'cant', left: [1, 2], right: [R.indexOf(L[1]), R.indexOf(L[2])]});
+  assert.equal(next.board.proof.n, 1);
+  assert.ok(canMatch(cardLabels(q, next.board, 0), cardLabels(q, next.board, 2)));
+  t = turnTo(next, 2); R = labelsOf(cardLabels(q, t.board, 2), t.board.proof.at);
+  const refused = play(p, t, {type: 'cant', left: [1, 2], right: [R.indexOf(L[1]), R.indexOf(L[2])]});
+  assert.equal(refused.board.told, 'round', 'refused for a reason');
+  assert.deepEqual(refused.board.wrong, ['0·2|round'], 'those two locked');
+  assert.match(board(p, refused), /<p class="tt-told">Same way round\.<\/p>/);
+  assert.equal((board(p, refused).match(/tt-arrow off/g) || []).length, 2, 'round the child’s own arrows');
+  assert.ok(noCant(p, refused) && noCant(p, play(p, refused, ...taps(0))), 'no second claim on them');
+  assert.match(board(p, play(p, refused, ...taps(0))), /Same way round\./, 'the refusal stays while locked');
+  // A small model goes back to sorting.
+  assert.match(board(p, refused), /class="tt-stack[^"]*"[^>]*data-action="expansion-move"[^>]*&quot;back&quot;/);
+  const sorting = play(p, refused, {type: 'back', card: 2});
+  assert.equal(sorting.board.proof, null);
+  assert.doesNotMatch(board(p, sorting), /tt-told/);
+  a = play(p, sorting, ...[2, 4].flatMap(n => tapsTo(q.cards[0], q.cards[n]).map(at => ({type: 'turn', card: n, at}))));
   const html = board(p, a);
   assert.equal((html.match(/class="tt-stack/g) || []).length, 2, 'two stacks');
   assert.doesNotMatch(html.replace(/<p class="sr-only"[^]*?<\/p>/g, ''), /\b(two|2) (stacks|groups|classes)\b/i, 'no count of classes on the board');
-  // A right That's all asks for the certificate: one model from each of the
-  // two stacks, shown apart with Can't.
+  // A right sort: one model from each of the two stacks, for Can't.
   a = play(p, a, {type: 'all'});
   assert.ok(!isSolved(p, a.board), 'not solved yet');
   assert.deepEqual(proofPairs(q, a.board), [[0, 1]]);
-  assert.match(board(p, a), /Show with Can’t that these two can’t match\./);
   assert.equal((board(p, a).match(/class="tt-model /g) || []).length, 2, 'a pair of models');
   assert.equal(move(p, a, {type: 'turn', card: 0, at: 0}), null, 'the stacks stay as they are');
   assert.ok(noCant(p, a), 'Can’t after a turn');
-  const L = cardLabels(q, a.board, 0);
-  let t = a;
-  for (const k of [0, 1, 2, 3]) { const next = play(p, a, ...taps(k)); if (labelsOf(cardLabels(q, next.board, 1), next.board.proof.at)[0] === L[0]) { t = next; break; } }
-  const R = labelsOf(cardLabels(q, t.board, 1), t.board.proof.at);
+  t = turnTo(a, 1); R = labelsOf(cardLabels(q, t.board, 1), t.board.proof.at);
   assert.equal(R[0], L[0], 'the same letter in both middles');
   assert.equal(play(p, t, {type: 'cant', left: [1, 2], right: [R.indexOf(L[2]), R.indexOf(L[1])]}).board.told, 'letters');
   a = play(p, t, {type: 'cant', left: [1, 2], right: [R.indexOf(L[1]), R.indexOf(L[2])]});
@@ -289,6 +310,7 @@ test('sorting: models that look alike stack; That’s all needs no two stacks th
   const e = byId(12);
   assert.deepEqual(classesOf(e.parameters.cards), [[0, 3, 5], [1, 4, 7], [2, 6]], 'the A, A, B, C models make one stack');
   assert.deepEqual(e.solution.twins, [[1, 2]], 'only the two stacks of four different letters need a certificate');
+  assert.equal(p.visibleObjective, 'Turn models so the ones that match stack together, then try Can’t on each pair shown.', 'one objective line names both steps');
 });
 
 test('the playground: turn either model, change letters, never solved, no Hint', () => {
@@ -332,7 +354,8 @@ test('forged saves are rejected', () => {
     [{...B, told: 'round'}, 'a refusal with no claim'],
     [{...B, letters: W('BDCD')}, 'changed letters'],
     [{...B, merged: ['D', 'C']}, 'a change on a puzzle without one'],
-    [{...B, wrong: ['A·D·C·B|A·D·B·C']}, 'a lock on twins'],
+    [{...B, wrong: ['A·D·C·B|A·D·B·C|round']}, 'a lock on twins'],
+    [{...B, wrong: ['A·D·C·B|A·D·B·C']}, 'a lock without its refusal'],
     [{...B, tried: true, at: [0, 2, 3, 1], told: 'letters'}, 'a stale message: the middles differ']
   ]) assert.equal(validBoard(p, b), false, why);
   const two = byId(2), T = freshAttempt(two).board;
@@ -341,12 +364,18 @@ test('forged saves are rejected', () => {
   assert.equal(validBoard(two, {...restartCarry(two, play(two, freshAttempt(two), ...taps(3), {type: 'cant', left: [1, 2], right: [1, 2]})).board}), true, 'a lock carried by Restart');
   const s = byId(11), S = freshAttempt(s).board;
   assert.equal(validBoard(s, {...S, done: true}), false, 'a forged done');
-  assert.equal(validBoard(s, {...S, tried: true, refused: [[0, 2, 4], [1, 3, 5]]}), false, 'a refusal of the right stacks');
+  assert.equal(validBoard(s, {...S, tried: true, refused: null}), false, 'a field a sort no longer has');
+  assert.equal(validBoard(s, {...S, wrong: ['0·1|round']}), false, 'a lock on twins');
+  assert.equal(validBoard(s, {...S, wrong: ['2·0|round']}), false, 'a lock out of order');
+  assert.equal(validBoard(s, {...S, wrong: ['0·2|way']}), false, 'a refusal four different letters can’t earn');
+  assert.equal(validBoard(s, {...S, wrong: ['0·2|round']}), true, 'a lock carried by Restart');
   const e = byId(8), E = freshAttempt(e).board;
   assert.equal(validBoard(e, {...E, done: true}), false);
   assert.equal(validBoard(e, {...E, found: ['AB', 'AC', 'AD', 'BC', 'BD', 'CD'], refused: 6}), false, 'a refusal of a full shelf');
   assert.equal(validBoard(e, {...E, tried: true, found: ['BC', 'CD'], told: {kind: 'new', pair: 'BC'}}), false, 'a new pair that is not the last');
-  assert.equal(validBoard(s, {...S, tried: true, proof: {n: 0, at: [0, 1, 2, 3], tried: false, claim: null}}), false, 'a proof on an unsorted board');
+  assert.equal(validBoard(s, {...S, tried: true, proof: {n: 0, at: [0, 1, 2, 3], tried: false, claim: null}}), true, 'That’s all on any sort shows the pairs');
+  assert.equal(validBoard(s, {...S, proof: {n: 0, at: [0, 1, 2, 3], tried: false, claim: null}}), false, 'a proof before a turn');
+  assert.equal(validBoard(s, {...S, tried: true, proof: {n: 2, at: [0, 1, 2, 3], tried: false, claim: null}}), false, 'a proof past a pair that can match');
 });
 
 test('rendering: two models with letter discs, your corners are buttons, objectives only where the board can’t say it', () => {
