@@ -1,7 +1,8 @@
 /* Octagon streets: one or two floors, each a disk (octagons) or a framed
    square (squares) of pale ground with ink roads; flowers in rose rooms, a
    leaf trail behind the robot, a sun home ring with a faint arrow for the way
-   the robot faced at the start, and an ink robot arrow. Strokes do not scale.
+   the robot faced at the start (a sun arrowhead at the edge when home is off
+   the drawing), and an ink robot arrow. Strokes do not scale.
    Two floors sit side by side; in a narrow panel tabs show one at a time. */
 [data-mechanic-wire="octagon"]{display:flex;flex-direction:column;align-items:center;gap:.6rem;width:100%;container-type:inline-size}
 [data-mechanic-wire="octagon"] .oc-floors{display:grid;grid-template-columns:minmax(0,380px);justify-content:center;gap:1rem;width:100%}
@@ -35,13 +36,14 @@
 [data-mechanic-wire="octagon"] .oc-home{fill:none;stroke:var(--b-sun,#efc76e);stroke-width:4px}
 [data-mechanic-wire="octagon"] .oc-ghost{fill:none;stroke:var(--b-ink,#294439);stroke-width:1.4px;stroke-dasharray:3 2;opacity:.75}
 [data-mechanic-wire="octagon"] .oc-robot{fill:var(--b-ink,#294439);stroke:#fff;stroke-width:1.4px;stroke-linejoin:round}
+[data-mechanic-wire="octagon"] .oc-homeward{fill:var(--b-sun,#efc76e);stroke:var(--b-ink,#294439);stroke-width:1.4px;stroke-linejoin:round}
 
-/* Can't: every dot or wall is a target alike; the certificate drawings. */
+/* Can't: every dot drawn is a target, alike; dots tapped toward an answer of
+   several dots are filled; the certificate drawings. */
 [data-mechanic-wire="octagon"] .oc-claiming .oc-board{cursor:pointer}
 [data-mechanic-wire="octagon"] .oc-target{fill:#fff;stroke:var(--b-ink,#294439);stroke-width:1.4px;cursor:pointer}
-[data-mechanic-wire="octagon"] .oc-target.oc-wall{fill:none;stroke:#9bb0a6;stroke-width:5px;stroke-linecap:round}
+[data-mechanic-wire="octagon"] .oc-target.oc-marked{fill:var(--b-ochre,#b38840)}
 [data-mechanic-wire="octagon"] .oc-target:focus{outline:none;stroke:var(--b-ochre,#b38840);stroke-width:3px}
-[data-mechanic-wire="octagon"] .oc-target.oc-wall:focus{stroke-width:7px}
 [data-mechanic-wire="octagon"] .oc-proof{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:6px;stroke-linecap:round;stroke-linejoin:round}
 [data-mechanic-wire="octagon"] .oc-ring{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:3px}
 [data-mechanic-wire="octagon"] .oc-turn{fill:#fff;stroke:#b24a3c;stroke-width:1.6px;stroke-dasharray:3 2}

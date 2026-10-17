@@ -180,9 +180,12 @@ export function fenceOk(kind, q, walk) {
   return flowerKeys(kind, q).every(k => rooms.has(k));
 }
 export const goalMet = (kind, q, walk) => q.mode === 'home' ? walk.length === q.moves && atHome(kind, walk) : q.mode === 'fence' ? fenceOk(kind, q, walk) : false;
-// What Can't asks the child to tap: the halfway dot of an even home walk, the
-// wall the flowers share for a fence; nothing for an odd home walk.
-export const tapKind = q => q.mode === 'fence' ? 'road' : q.mode === 'home' && q.moves % 2 === 0 ? 'dot' : null;
+// What Can't asks the child to tap: on a home goal of even length, the dot the
+// walk reached after half its moves ('dot'); of odd length, every dot of the
+// walk other than home that shares home's colour ('dots'). A fence's Can't is
+// pressed alone (null): its reason, left − right = 4 + 4n, is about every
+// fence at once, so no part of one walk can be pointed at.
+export const tapKind = q => q.mode === 'home' ? (q.moves % 2 ? 'dots' : 'dot') : null;
 const capOf = q => q.mode === 'home' ? q.moves : q.mode === 'fence' ? FENCE_CAP : PLAY_CAP;
 // Whether a move is allowed after this walk on this floor.
 export function canGo(kind, q, walk, m) {
@@ -300,13 +303,16 @@ export {patchOf, compose, invert, toward, rot, rotSq};
 // --- Boards ------------------------------------------------------------------
 // A puzzle has one or two floors with the same goal:
 //   parameters: {mode: 'home', moves} or {mode: 'fence', flowers, maxLeft,
-//   maxRight, wall}, with floors: [{kind, solutions, attempt}]; an empty
-//   solutions list means no walk reaches the goal on that floor, and then the
+//   maxRight}, with floors: [{kind, solutions, attempt}]; an empty solutions
+//   list means no walk reaches the goal on that floor, and then the
 //   solutions list of a fence goal is every fence within FENCE_CAP moves.
-// Each floor's board is {walk, told, cert}: the moves; a refused claim ('way':
-// there is a way; 'miss': the tap does not show why); and the certificate of
-// a right Can't (the dot or wall tapped, '' where nothing is tapped), else
-// null. The playground's board is {walks: [..]}, one walk for each floor.
+// Each floor's board is {walk, told, cert}: the moves; a standing refusal,
+// {say, walk}, where say is 'way' (there is a way) or 'miss' (not that dot,
+// not those dots) and walk is the finished walk it was about, kept until a
+// different walk is finished; and the certificate of a right Can't (the dot
+// tapped, as its dot key; the dots tapped, as a sorted list of dot keys; ''
+// for a fence), else null. The playground's board is {walks: [..]}, one walk
+// for each floor.
 const playing = q => q.mode === 'playground';
 const possible = spec => spec.solutions.length > 0;
 const freshFloor = () => ({walk: '', told: null, cert: null});
@@ -323,27 +329,51 @@ export function legalWalk(kind, q, walk) {
   return true;
 }
 const settled = (kind, q, f) => f.cert !== null || goalMet(kind, q, f.walk);
-// The dot after half the moves (an even home goal) and the wall the flowers
-// share (a fence goal): what a right Can't points at. An odd home goal has
-// nothing to tap; its certificate is the empty word.
+// The state after half the moves of an even home walk.
 export const halfwayState = (kind, walk) => trace(kind, walk).states[walk.length / 2];
-export function claimRight(kind, q, walk, cert) {
+// The dots an odd home walk reached after an even number of moves, other than
+// home: the ones that share home's colour. Sorted dot keys.
+export function evenDots(kind, walk) {
+  const {dots} = trace(kind, walk), out = new Set();
+  for (let k = 2; k < dots.length; k += 2) if (dots[k] !== dots[0]) out.add(dots[k]);
+  return [...out].sort();
+}
+// A Can't's certificate in the form it is saved in, or undefined if it is
+// not one: '' for a fence, a dot key for one dot, sorted dot keys for dots.
+function certOf(kind, q, cert) {
   const t = tapKind(q);
-  if (t === null) return cert === '';
-  if (!isWord(cert) || (t === 'road' && !isWord(q.wall))) return false;
-  if (t === 'dot') return walk.length % 2 === 0 && dotKey(kind, reduce(kind, cert)) === dotKey(kind, halfwayState(kind, walk));
-  return roadKey(kind, reduce(kind, cert)) === roadKey(kind, reduce(kind, q.wall));
+  if (t === null) return cert === '' ? '' : undefined;
+  if (t === 'dot') return isWord(cert) ? dotKey(kind, reduce(kind, cert)) : undefined;
+  if (!Array.isArray(cert) || cert.length > 64 || !cert.every(isWord)) return undefined;
+  const keys = cert.map(c => dotKey(kind, reduce(kind, c)));
+  return new Set(keys).size === keys.length ? keys.sort() : undefined;
+}
+// Whether Can't with this certificate is right for this finished walk: the
+// dot after half the moves, or exactly the walk's dots of home's colour.
+export function claimRight(kind, q, walk, cert) {
+  const c = certOf(kind, q, cert), t = tapKind(q);
+  if (c === undefined) return false;
+  if (t === null) return true;
+  if (t === 'dot') return walk.length % 2 === 0 && c === trace(kind, walk).dots[walk.length / 2];
+  const want = evenDots(kind, walk);
+  return c.length === want.length && c.every((x, j) => x === want[j]);
+}
+function validTold(kind, q, spec, f) {
+  const t = f.told;
+  if (t === null) return true;
+  if (!object(t) || Object.keys(t).sort().join() !== 'say,walk' || !['way', 'miss'].includes(t.say)) return false;
+  if (!legalWalk(kind, q, t.walk) || !spent(kind, q, t.walk) || goalMet(kind, q, t.walk) || f.cert !== null) return false;
+  // "There is a way" only where there is one; "Not that …" only where a tap
+  // can be wrong. A refusal stands until a different walk is finished.
+  if (t.say === 'way' ? !possible(spec) : tapKind(q) === null) return false;
+  return !spent(kind, q, f.walk) || f.walk === t.walk;
 }
 function validFloor(q, spec, f) {
   if (!object(f) || Object.keys(f).sort().join() !== 'cert,told,walk') return false;
-  if (![null, 'way', 'miss'].includes(f.told) || !(f.cert === null || isWord(f.cert))) return false;
   const kind = spec.kind;
-  if (!legalWalk(kind, q, f.walk)) return false;
-  if (f.cert !== null) return !possible(spec) && f.told === null && spent(kind, q, f.walk) && claimRight(kind, q, f.walk, f.cert);
-  if (f.told === 'way' && !possible(spec)) return false;
-  if (f.told === 'miss' && (possible(spec) || tapKind(q) === null)) return false;
-  if (f.told && goalMet(kind, q, f.walk)) return false;
-  return true;
+  if (!legalWalk(kind, q, f.walk) || !validTold(kind, q, spec, f)) return false;
+  if (f.cert === null) return true;
+  return !possible(spec) && spent(kind, q, f.walk) && claimRight(kind, q, f.walk, f.cert) && JSON.stringify(certOf(kind, q, f.cert)) === JSON.stringify(f.cert);
 }
 function valid(p, b) {
   const q = p.parameters;
@@ -356,6 +386,7 @@ function solved(p, b) {
   if (playing(q) || !valid(p, b)) return false;
   return b.floors.every((f, i) => settled(q.floors[i].kind, q, f));
 }
+// Can't opens on a finished try with no refusal standing.
 export const canClaim = (kind, q, f) => !settled(kind, q, f) && f.told === null && spent(kind, q, f.walk);
 function move(p, b, action) {
   const q = p.parameters;
@@ -372,21 +403,29 @@ function move(p, b, action) {
     const f = b.floors[i], spec = q.floors[i];
     if (settled(kind, q, f)) return null;
     let g = null;
-    if (action.type === 'go' && canGo(kind, q, f.walk, action.turn)) g = {walk: f.walk + action.turn, told: null, cert: null};
+    if (action.type === 'go' && canGo(kind, q, f.walk, action.turn)) {
+      // A refusal goes when a different walk is finished.
+      const walk = f.walk + action.turn;
+      g = {walk, told: f.told && spent(kind, q, walk) && walk !== f.told.walk ? null : f.told, cert: null};
+    }
     // Back takes back a floor's last move, as Undo does, and keeps a refusal;
     // the hints use it, so they never need the global Undo.
     else if (action.type === 'back' && f.walk.length) g = {walk: f.walk.slice(0, -1), told: f.told, cert: null};
     else if (action.type === 'claim' && canClaim(kind, q, f)) {
       const t = tapKind(q);
       if (Object.keys(action).sort().join() !== (t === null ? 'floor,type' : 'cert,floor,type')) return null;
-      if (t !== null && !isWord(action.cert)) return null;
-      const cert = t === null ? '' : reduce(kind, action.cert);
-      if (possible(spec)) g = {...f, told: 'way'};
-      else g = claimRight(kind, q, f.walk, cert) ? {...f, cert} : {...f, told: 'miss'};
+      const cert = t === null ? '' : certOf(kind, q, action.cert);
+      if (cert === undefined) return null;
+      // The tap is judged first, on every floor: a wrong one gets the same
+      // refusal wherever it is made; a right one shows the certificate or,
+      // where the goal can be reached, says so.
+      if (!claimRight(kind, q, f.walk, cert)) g = {...f, told: {say: 'miss', walk: f.walk}};
+      else if (possible(spec)) g = {...f, told: {say: 'way', walk: f.walk}};
+      else g = {...f, cert};
     }
     if (g) next = {floors: b.floors.map((x, j) => j === i ? g : x)};
   }
-  if (next) Object.assign(ui(p), {claim: null, live: i});
+  if (next) Object.assign(ui(p), {claim: null, marks: [], live: i});
   return next;
 }
 
@@ -397,10 +436,28 @@ const say = n => NUMBER[n] || String(n);
 // Why Can't is right, given before Can't is marked: the halfway dot, the
 // colours, the corners of two rooms.
 export function reason(kind, q) {
-  if (q.mode === 'fence') return 'Two rooms have 16 corners. At each end of the wall they share, a fence round both goes straight, so 4 corners are lost: 12 left turns at least. Press Can’t, then tap the wall the flowers share.';
-  if (q.moves % 2) return `Colour the dots light and dark so every road joins a light dot to a dark one. Home is light, and every move changes the colour, so after ${say(q.moves)} moves the robot is on a dark dot. Press Can’t.`;
+  if (q.mode === 'fence') return 'Two rooms have 16 corners. At each end of the wall they share, a fence round both goes straight, so 4 corners are lost: 12 left turns. A fence round more rooms needs 4 more for each room. Press Can’t.';
+  if (q.moves % 2) return `Colour the dots light and dark so every road joins a light dot to a dark one. Home is light, and every move changes the colour, so after ${say(q.moves)} moves the robot is on a dark dot. Press Can’t, then tap the light dots on your walk.`;
   const k = q.moves / 2;
   return `After ${say(k)} moves the robot is ${say(k)} roads from home, and on this floor the only ${say(k)}-road way back is the way it came, which starts with a turn round. Press Can’t, then tap the dot after ${say(k)} moves.`;
+}
+// The next move of a try on a floor with no answer: the authored try where it
+// fits, but never a move that can only finish again the walk a standing
+// refusal is about (Can't stays shut there), and off that walk first.
+function nextTry(kind, q, spec, w, avoid) {
+  const forced = x => {
+    for (;;) {
+      if (x === avoid) return true;
+      if (!avoid.startsWith(x) || spent(kind, q, x)) return false;
+      const legal = TURNS.filter(m => canGo(kind, q, x, m));
+      if (legal.length !== 1 || legal[0] !== avoid[x.length]) return false;
+      x += legal[0];
+    }
+  };
+  const order = [...new Set([...(spec.attempt.startsWith(w) && spec.attempt.length > w.length ? [spec.attempt[w.length]] : []), 'L', 'S', 'R'])];
+  let moves = order.filter(m => canGo(kind, q, w, m) && !(avoid && forced(w + m)));
+  if (avoid && avoid.startsWith(w)) moves = [...moves.filter(m => m !== avoid[w.length]), ...moves.filter(m => m === avoid[w.length])];
+  return moves[0];
 }
 // A wrong walk is never a 'deadend' hint: the app shows a dead end's text
 // unasked, and on a floor with an answer that would say which floors have one.
@@ -417,13 +474,13 @@ function floorHint(p, b, i) {
     return back(q.mode === 'home' ? 'This walk can’t come home in time. Take back the last move.' : 'This fence can’t work. Take back the last move.');
   }
   if (!spent(kind, q, w)) {
-    const order = [...(spec.attempt.startsWith(w) && spec.attempt.length > w.length ? [spec.attempt[w.length]] : []), 'L', 'S', 'R'];
-    return go(order.find(m => canGo(kind, q, w, m)));
+    const m = nextTry(kind, q, spec, w, f.told ? f.told.walk : null);
+    return m ? go(m) : back('Take back the last move, then finish another try.');
   }
   if (f.told) return back('Take back the last move, then finish another try.');
   const t = tapKind(q), action = {type: 'claim', floor: i};
   if (t === 'dot') action.cert = halfwayState(kind, w);
-  if (t === 'road') action.cert = reduce(kind, q.wall);
+  if (t === 'dots') action.cert = evenDots(kind, w);
   return {type: 'move', action, text: reason(kind, q), floor: i};
 }
 function hint(p, b) {
@@ -434,27 +491,36 @@ function hint(p, b) {
 }
 
 // --- View state ----------------------------------------------------------------
-// Which floor's Can't is waiting for a tap, which floor a narrow screen shows,
-// which floor was used last (for focus), and each floor's view, kept outside
-// the save.
+// Which floor's Can't is waiting for taps and the dots tapped so far, which
+// floor a narrow screen shows, which floor was used last (for focus), each
+// floor's view, and the certificate each floor last slid to; none of it saved.
 const uiState = new Map();
 function ui(p) {
-  if (!uiState.has(p.id)) uiState.set(p.id, {claim: null, tab: 0, live: 0, views: {}, drawn: {}});
+  if (!uiState.has(p.id)) uiState.set(p.id, {claim: null, marks: [], tab: 0, live: 0, views: {}, drawn: {}});
   return uiState.get(p.id);
 }
-// Undo keeps a recorded refusal. When the step taken back is the refusal
+const sameTold = (a, b) => Boolean(a && b && a.say === b.say && a.walk === b.walk);
+// Undo keeps a standing refusal. When the step taken back is the refusal
 // itself, the walk's last move goes with it, so the board visibly changes and
-// the refusal stays until the next move.
+// the refusal stays until a different walk is finished.
 function carry(p, from, to) {
-  ui(p).claim = null;
+  Object.assign(ui(p), {claim: null, marks: []});
   const q = p.parameters;
   if (playing(q) || !object(from) || !object(to) || !Array.isArray(from.floors) || !Array.isArray(to.floors)) return to;
   return {floors: to.floors.map((t, i) => {
-    const f = from.floors[i];
-    if (!object(f) || !object(t) || !f.told || t.told || t.cert !== null) return t;
+    const f = from.floors[i], kind = q.floors[i].kind;
+    if (!object(f) || !object(t) || !object(f.told) || t.cert !== null || sameTold(t.told, f.told)) return t;
     if (t.walk === f.walk) return f.walk ? {walk: f.walk.slice(0, -1), told: f.told, cert: null} : t;
-    return f.walk.startsWith(t.walk) ? {...t, told: f.told} : t;
+    if (spent(kind, q, t.walk) && t.walk !== f.told.walk) return t;
+    return {...t, told: f.told};
   })};
+}
+// Restart keeps a standing refusal too, on the fresh floor.
+function carryOnRestart(p, from, to) {
+  Object.assign(ui(p), {claim: null, marks: []});
+  const q = p.parameters;
+  if (playing(q) || !object(from) || !object(to) || !Array.isArray(from.floors) || !Array.isArray(to.floors)) return to;
+  return {floors: to.floors.map((t, i) => { const f = from.floors[i]; return object(f) && object(f.told) && f.cert === null && object(t) ? {...t, told: f.told} : t; })};
 }
 
 // --- Drawing -----------------------------------------------------------------
@@ -469,7 +535,21 @@ const scr = z => [z[0] * S, -z[1] * S];
 const ROOM_MID = {oct: Math.tanh(Math.acosh(1 + Math.SQRT2) / 2), sq: SQ_EDGE / Math.SQRT2};
 const ROAD_END = {oct: Math.tanh(EDGE / 2), sq: SQ_EDGE};
 const shownAt = (kind, z) => Boolean(z) && (kind === 'oct' ? norm2(z) < 0.99 * 0.99 : Math.abs(z[0]) < 1.1 && Math.abs(z[1]) < 1.1);
-const tappable = (kind, z) => Boolean(z) && (kind === 'oct' ? norm2(z) < 0.965 * 0.965 : Math.abs(z[0]) < 0.97 && Math.abs(z[1]) < 0.97);
+// After Can't only dots big enough to tap are drawn, and each is a target: on
+// octagons those within 0.94 of the middle, where neighbouring dots are still
+// about 15 px apart on a 340 px floor. Others come closer with a drag.
+export const TARGET_R = 0.94;
+const targetable = (kind, z) => Boolean(z) && (kind === 'oct' ? norm2(z) < TARGET_R * TARGET_R : Math.abs(z[0]) < 0.97 && Math.abs(z[1]) < 0.97);
+// How far a tap may be from what it chooses: in hyperbolic distance on
+// octagons (so the reach shrinks with the drawing towards the rim; a road is
+// 1.53 long), in picture units on squares (a road is 0.36 long).
+const REACH = {claim: {oct: 0.7, sq: 0.16}, go: {oct: 0.5, sq: 0.22}};
+function gap(kind, z, w) {
+  const d = Math.hypot(z[0] - w[0], z[1] - w[1]);
+  if (kind === 'sq') return d;
+  const den = Math.hypot(1 - (z[0] * w[0] + z[1] * w[1]), z[0] * w[1] - z[1] * w[0]);
+  return 2 * Math.atanh(Math.min(0.999999, d / Math.max(1e-9, den)));
+}
 const shrink = (kind, z) => kind === 'oct' ? Math.max(0, 1 - norm2(z)) : 1;
 const UP = kind => kind === 'sq' ? rotSq(Math.PI / 2) : rot(Math.PI / 2);
 // The view centred on a state, slid from the old view where that is near.
@@ -499,6 +579,20 @@ function viewer(kind, view) {
     return d === null ? null : apply(kind, compose(kind, view.frame, mapOf(kind, d)), local || [0, 0]);
   };
   return {rel, at};
+}
+// The direction of home from the middle of the picture, however far away it
+// is: the map is built letter by letter and scaled (not normalised), which
+// keeps its numbers small and leaves the point it sends 0 to unchanged.
+function homeAngle(kind, view) {
+  let M = view.frame;
+  for (const c of reduce(kind, inverse(view.anchor))) {
+    if (kind === 'sq') { M = compose(kind, M, GEN.sq[c]); continue; }
+    const N = GEN.oct[c], a = cadd(cmul(M.a, N.a), cmul(M.b, cbar(N.b))), b = cadd(cmul(M.a, N.b), cmul(M.b, cbar(N.a)));
+    const s = Math.max(Math.hypot(a[0], a[1]), Math.hypot(b[0], b[1])) || 1;
+    M = {a: [a[0] / s, a[1] / s], b: [b[0] / s, b[1] / s]};
+  }
+  const z = apply(kind, M, [0, 0]);
+  return Math.atan2(z[1], z[0]);
 }
 // The geodesic from a to b (picture coordinates): an arc of the circle through
 // them that meets the rim at right angles; a straight line on squares.
@@ -530,6 +624,15 @@ function arrowPath(kind, V, w, size) {
   const P = (f, g) => `${fmt(a[0] + u[0] * s * f + n[0] * s * g)} ${fmt(a[1] + u[1] * s * f + n[1] * s * g)}`;
   return `M${P(1.1, 0)}L${P(-0.65, 0.7)}L${P(-0.3, 0)}L${P(-0.65, -0.7)}Z`;
 }
+// Home is off the drawing: a sun arrowhead near the edge points to it.
+function homeMarker(kind, view) {
+  const t = homeAngle(kind, view), u = [Math.cos(t), Math.sin(t)];
+  if (!Number.isFinite(t)) return '';
+  const r = kind === 'oct' ? 0.9 : 0.9 / Math.max(Math.abs(u[0]), Math.abs(u[1]));
+  const c = scr([u[0] * r, u[1] * r]), d = [u[0], -u[1]], n = [-d[1], d[0]], s = 7;
+  const P = (f, g) => `${fmt(c[0] + d[0] * s * f + n[0] * s * g)} ${fmt(c[1] + d[1] * s * f + n[1] * s * g)}`;
+  return `<path class="oc-homeward" d="M${P(1, 0)}L${P(-0.6, 0.85)}L${P(-0.6, -0.85)}Z"/>`;
+}
 function flowerAt(kind, V, e) {
   const z = V.at(e, [ROOM_MID[kind] * Math.SQRT1_2, ROOM_MID[kind] * Math.SQRT1_2]);
   if (!shownAt(kind, z)) return '';
@@ -539,45 +642,66 @@ function flowerAt(kind, V, e) {
   const petals = [0, 1, 2, 3, 4].map(j => { const t = j * 2 * Math.PI / 5 - Math.PI / 2; return `<circle cx="${fmt(5.4 * Math.cos(t))}" cy="${fmt(5.4 * Math.sin(t))}" r="3.8"/>`; }).join('');
   return `<g class="oc-flower" transform="translate(${fmt(x)} ${fmt(y)}) scale(${k.toFixed(3)})">${petals}<circle class="oc-flower-mid" r="3"/></g>`;
 }
+// The walls round the flower rooms: the outline (walls of one flower) and the
+// walls two flowers share.
+function flowerWalls(kind, q) {
+  const count = new Map(), first = new Map();
+  for (const e of flowerKeys(kind, q)) for (const c of roomEdges(kind, e)) { const k = roadKey(kind, c); count.set(k, (count.get(k) || 0) + 1); if (!first.has(k)) first.set(k, c); }
+  return {outline: [...count].filter(([, n]) => n === 1).map(([k]) => first.get(k)), shared: [...count].filter(([, n]) => n > 1).map(([k]) => first.get(k))};
+}
 // What a tap can choose on a floor: the three roads ahead of the robot, or,
-// while Can't waits for a tap, every dot or every wall in view.
+// while Can't waits for taps, every dot drawn (all but home), listed outward
+// from the middle of the picture and clockwise from the top.
 function choices(p, a, i, view, claiming) {
   const q = p.parameters, kind = q.floors[i].kind, walk = walkOf(q, a.board, i), V = viewer(kind, view);
   if (claiming) {
-    const {verts, roads} = patchOf(kind), out = [];
-    if (tapKind(q) === 'dot') {
-      for (const v of verts) {
-        const z = apply(kind, view.frame, v.z);
-        if (tappable(kind, z)) out.push({cert: reduce(kind, view.anchor + v.word), pts: [z], z});
-      }
-    } else {
-      for (const r of roads) {
-        const w = reduce(kind, view.anchor + r.word), pts = roadPoints(kind, V, w);
-        if (tappable(kind, pts[2])) out.push({cert: w, pts});
-      }
+    const {verts} = patchOf(kind), home = dotKey(kind, ''), onWalk = new Set(trace(kind, walk).dots), out = [];
+    for (const v of verts) {
+      const z = apply(kind, view.frame, v.z), cert = dotKey(kind, reduce(kind, view.anchor + v.word));
+      if (targetable(kind, z) && cert !== home) out.push({cert, pts: [z], z, walk: onWalk.has(cert)});
     }
-    return out.sort((x, y) => x.cert.length - y.cert.length || (x.cert < y.cert ? -1 : 1));
+    const ring = z => Math.round(norm2(z) * 1000), clock = z => (Math.atan2(z[0], z[1]) + 2 * Math.PI) % (2 * Math.PI);
+    return out.sort((x, y) => ring(x.z) - ring(y.z) || clock(x.z) - clock(y.z));
   }
   const f = playing(q) ? null : a.board.floors[i];
   if (f && settled(kind, q, f)) return [];
   const g = trace(kind, walk).states.at(-1);
   return TURNS.filter(m => canGo(kind, q, walk, m)).map(m => ({turn: m, pts: roadPoints(kind, V, reduce(kind, g + TURN[m]))}));
 }
-// The targets a right or wrong Can't tap can choose from in the view a floor
-// opens with after its last move (for the validator's count of how often a
-// random tap is right).
+const claimingOn = (p, a, i) => {
+  const q = p.parameters, f = playing(q) ? null : a.board.floors[i];
+  return Boolean(f) && ui(p).claim === i && tapKind(q) !== null && canClaim(q.floors[i].kind, q, f);
+};
+// The targets after Can't in the view a floor opens with after its last move
+// (for the validator's count of how often a random tap is right).
 export function claimTargets(p, a, i) {
   const q = p.parameters, kind = q.floors[i].kind, g = trace(kind, walkOf(q, a.board, i)).states.at(-1);
   return choices(p, a, i, centred(kind, null, g, g), true).map(c => c.cert);
 }
-function nearest(list, z, reach) {
-  let best = null, bestD = reach;
+// The choice drawn nearest a tap, if the tap is within its reach. The reach
+// is measured on the floor (shrinking with the drawing toward the rim), but
+// the choice is the nearest in the picture, so a tap never takes a dot drawn
+// farther from it than another.
+function nearest(kind, list, z, reach) {
+  let best = null, at = null, bestD = Infinity;
   for (const c of list) for (const pt of c.pts) {
     if (!pt) continue;
     const d = Math.hypot(pt[0] - z[0], pt[1] - z[1]);
-    if (d < bestD) { best = c; bestD = d; }
+    if (d < bestD) { best = c; at = pt; bestD = d; }
   }
-  return best;
+  return best && gap(kind, at, z) < reach ? best : null;
+}
+// What a tap at z (disk coordinates of floor i's picture) chooses now.
+export function pickAt(p, a, i, z) {
+  const kind = p.parameters.floors[i].kind, v = ui(p).views[i];
+  if (!v) return null;
+  const claiming = claimingOn(p, a, i);
+  return nearest(kind, choices(p, a, i, v, claiming), z, REACH[claiming ? 'claim' : 'go'][kind]);
+}
+// Where a state's dot is drawn now on floor i (null when it is not placed).
+export function drawnAt(p, i, word) {
+  const kind = p.parameters.floors[i].kind, v = ui(p).views[i];
+  return v ? viewer(kind, v).at(word) : null;
 }
 function floorInner(p, a, i, view, o) {
   const q = p.parameters, spec = q.floors[i], kind = spec.kind, walk = walkOf(q, a.board, i);
@@ -596,12 +720,12 @@ function floorInner(p, a, i, view, o) {
   out.push(flowers.map(e => flowerAt(kind, V, e)).join(''));
   // The certificate of a right Can't, drawn round the child's own walk.
   const cert = f && f.cert !== null ? tapKind(q) : undefined;
-  if (cert === null) {
+  if (cert === 'dots') {
     const base = colourOf(view.anchor);
     const light = [], dark = [];
     verts.forEach((v, j) => { if (shownAt(kind, P[j])) ((base + colourOf(v.word)) % 2 ? dark : light).push(dotPath(P[j], dotSize(kind, P[j], 6))); });
     out.push(`<path class="oc-light" d="${light.join('')}"/><path class="oc-dark" d="${dark.join('')}"/>`);
-  } else {
+  } else if (!o.claiming) {
     const dots = verts.map((v, j) => shownAt(kind, P[j]) ? dotPath(P[j], dotSize(kind, P[j], 3.4)) : '').join('');
     out.push(`<path class="oc-dot" d="${dots}"/>`);
   }
@@ -619,34 +743,37 @@ function floorInner(p, a, i, view, o) {
     out.push(`<path class="oc-proof" d="${d}"/>`);
     if (shownAt(kind, hz)) out.push(`<path class="oc-ring" d="${dotPath(hz, dotSize(kind, hz, 11))}"/><path class="oc-turn" d="${arrowPath(kind, V, reduce(kind, T.states[k] + 'TT'), 13)}"/>`);
   }
-  if (cert === 'road') {
-    const wall = reduce(kind, q.wall), wk = roadKey(kind, wall), ends = [V.at(wall), V.at(wall + 'H')];
-    let fence = '', corners = '';
-    for (const e of flowers) for (const c of roomEdges(kind, e)) {
-      if (roadKey(kind, c) === wk) continue;
+  if (cert === 'dots') out.push(`<path class="oc-ring" d="${f.cert.map(c => V.at(c)).filter(z => shownAt(kind, z)).map(z => dotPath(z, dotSize(kind, z, 10))).join('')}"/>`);
+  if (cert === null) {
+    // The tightest fence round the flowers, the corners where it must turn,
+    // and the shared wall, at whose ends it goes straight.
+    const {outline, shared} = flowerWalls(kind, q), ends = new Set(shared.flatMap(w => [dotKey(kind, w), dotKey(kind, reduce(kind, w + 'H'))]));
+    let fence = '', corners = '', walls = '';
+    for (const c of outline) {
       const z1 = V.at(c), z2 = V.at(c + 'H');
       if (z1 && z2) fence += seg(kind, z1, z2);
-      if (z1 && shownAt(kind, z1) && !ends.some(x => x && Math.hypot(x[0] - z1[0], x[1] - z1[1]) < 1e-6)) corners += dotPath(z1, dotSize(kind, z1, 5));
+      if (z1 && shownAt(kind, z1) && !ends.has(dotKey(kind, c))) corners += dotPath(z1, dotSize(kind, z1, 5));
     }
-    out.push(`<path class="oc-tight" d="${fence}"/><path class="oc-corner" d="${corners}"/>`);
-    if (ends[0] && ends[1]) out.push(`<path class="oc-proof" d="${seg(kind, ends[0], ends[1])}"/>`);
+    for (const w of shared) { const z1 = V.at(w), z2 = V.at(w + 'H'); if (z1 && z2) walls += seg(kind, z1, z2); }
+    out.push(`<path class="oc-tight" d="${fence}"/><path class="oc-corner" d="${corners}"/><path class="oc-proof" d="${walls}"/>`);
   }
-  // Home: a ring and the way the robot faced at the start.
+  // Home: a ring and the way the robot faced at the start, or, when home is
+  // off the drawing, an arrowhead at the edge pointing to it.
   const home = V.at('');
   if (shownAt(kind, home)) out.push(`<path class="oc-home" d="${dotPath(home, Math.max(2.6, dotSize(kind, home, 9)))}"/><path class="oc-ghost" d="${arrowPath(kind, V, '', 12)}"/>`);
+  else out.push(homeMarker(kind, view));
   // A hint's road or target.
   const hm = o.hint && o.hint.type === 'move' ? o.hint.action : null;
-  if (hm && hm.type === 'go') { const ps = roadPoints(kind, V, reduce(kind, T.states.at(-1) + TURN[hm.turn])); const z0 = V.at(T.states.at(-1)), z1 = V.at(reduce(kind, T.states.at(-1) + TURN[hm.turn] + 'H')); if (z0 && z1 && ps.length) out.push(`<path class="oc-hinted" d="${seg(kind, z0, z1)}"/>`); }
+  if (hm && hm.type === 'go') { const z0 = V.at(T.states.at(-1)), z1 = V.at(reduce(kind, T.states.at(-1) + TURN[hm.turn] + 'H')); if (z0 && z1) out.push(`<path class="oc-hinted" d="${seg(kind, z0, z1)}"/>`); }
   if (hm && hm.type === 'claim' && hm.cert !== undefined && o.claiming) {
-    if (tapKind(q) === 'dot') { const z = V.at(hm.cert); if (shownAt(kind, z)) out.push(`<path class="oc-hinted" d="${dotPath(z, dotSize(kind, z, 9))}"/>`); }
-    else { const z0 = V.at(hm.cert), z1 = V.at(hm.cert + 'H'); if (z0 && z1) out.push(`<path class="oc-hinted" d="${seg(kind, z0, z1)}"/>`); }
+    const want = Array.isArray(hm.cert) ? hm.cert : [hm.cert];
+    out.push(`<path class="oc-hinted" d="${want.map(c => V.at(c)).filter(z => targetable(kind, z)).map(z => dotPath(z, Math.max(5, dotSize(kind, z, 9)))).join('')}"/>`);
   }
-  // Can't is waiting for a tap: every dot, or every wall, is a target.
+  // Can't is waiting for taps: every dot drawn is a target, all alike; dots
+  // already tapped toward an answer of several dots are filled.
   if (o.claiming) {
-    const list = choices(p, a, i, view, true);
-    out.push(list.map(c => tapKind(q) === 'dot'
-      ? `<path class="oc-target" d="${dotPath(c.z, Math.max(2.6, dotSize(kind, c.z, 6)))}" tabindex="0" role="button" aria-label="Dot" data-cert="${c.cert}" data-focus="oc-board-${i}"/>`
-      : `<path class="oc-target oc-wall" d="${seg(kind, V.at(c.cert), V.at(c.cert + 'H'))}" tabindex="0" role="button" aria-label="Wall" data-cert="${c.cert}" data-focus="oc-board-${i}"/>`).join(''));
+    const marks = new Set(ui(p).marks), many = tapKind(q) === 'dots';
+    out.push(choices(p, a, i, view, true).map(c => `<path class="oc-target${marks.has(c.cert) ? ' oc-marked' : ''}" d="${dotPath(c.z, Math.max(2.6, dotSize(kind, c.z, 6)))}" tabindex="0" role="button" aria-label="${c.walk ? 'Dot on the walk' : 'Dot'}"${many ? ` aria-pressed="${marks.has(c.cert)}"` : ''} data-cert="${c.cert}" data-focus="oc-t-${i}-${c.cert}"/>`).join(''));
   }
   out.push(`<path class="oc-robot" d="${arrowPath(kind, V, T.states.at(-1), 13)}"/>`);
   if (kind === 'sq') out.push('</g>');
@@ -658,30 +785,39 @@ const GLYPH = {L: '↰', S: '↑', R: '↱'};
 const LABEL = {L: 'Turn left', S: 'Go straight', R: 'Turn right'};
 const NAME = {oct: 'Octagons', sq: 'Squares'};
 const turnWords = walk => [...walk].map(m => ({L: 'left', S: 'straight', R: 'right'})[m]).join(', ');
+const REFUSAL = {way: 'There is a way.', dot: 'Not that dot.', dots: 'Not those dots.'};
 function floorPanel(p, a, i, h, live) {
   const q = p.parameters, spec = q.floors[i], kind = spec.kind, s = ui(p), walk = walkOf(q, a.board, i);
   const f = playing(q) ? null : a.board.floors[i], done = f ? settled(kind, q, f) : false;
-  const claiming = Boolean(f) && s.claim === i && tapKind(q) !== null && canClaim(kind, q, f);
-  const T = trace(kind, walk), g = T.states.at(-1);
-  // A right Can't brings its certificate to the middle: the halfway dot, or
-  // the middle of the wall the flowers share.
-  if (f && f.cert !== null && tapKind(q) !== null && !s.drawn[i]) {
-    s.drawn[i] = true;
+  const claiming = claimingOn(p, a, i);
+  const T = trace(kind, walk), g = T.states.at(-1), hh = h && h.floor === i ? h : null;
+  const hm = hh && hh.type === 'move' ? hh.action : null;
+  // A right Can't brings its certificate to the middle once (again after an
+  // Undo and a new right Can't): the halfway dot, or the middle of the wall
+  // the flowers share.
+  const certKey = f && f.cert !== null ? `${walk}|${JSON.stringify(f.cert)}` : null;
+  if (certKey === null) s.drawn[i] = null;
+  else if (s.drawn[i] !== certKey) {
+    s.drawn[i] = certKey;
+    const shared = q.mode === 'fence' ? flowerWalls(kind, q).shared[0] : undefined;
     if (tapKind(q) === 'dot') s.views[i] = centred(kind, viewFor(p, i, kind, g), halfwayState(kind, walk), g);
-    else {
-      const v = centred(kind, viewFor(p, i, kind, g), reduce(kind, q.wall), g);
+    else if (shared !== undefined) {
+      const v = centred(kind, viewFor(p, i, kind, g), shared, g);
       const mid = apply(kind, v.frame, [kind === 'oct' ? Math.tanh(EDGE / 4) : SQ_EDGE / 2, 0]);
-      s.views[i] = settle(kind, {anchor: v.anchor, robot: g, frame: compose(kind, invert(kind, toward(kind, mid)), v.frame)});
-      s.views[i].robot = g;
+      s.views[i] = {...settle(kind, {anchor: v.anchor, frame: compose(kind, invert(kind, toward(kind, mid)), v.frame)}), robot: g};
     }
   }
-  const view = viewFor(p, i, kind, g), hh = h && h.floor === i ? h : null;
-  const label = `${kind === 'oct' ? 'Octagon' : 'Square'} floor${walk.length ? `. Moves: ${turnWords(walk)}` : ''}${atHome(kind, walk) && walk.length ? '. Home, facing the same way' : ''}${claiming ? `. Tap the ${tapKind(q) === 'dot' ? 'dot' : 'wall'}` : ''}`;
+  // A hint that marks the dot to tap brings it within reach if it is not.
+  if (claiming && hm && hm.type === 'claim' && tapKind(q) === 'dot') {
+    const v = viewFor(p, i, kind, g);
+    if (!targetable(kind, viewer(kind, v).at(hm.cert))) s.views[i] = centred(kind, v, reduce(kind, hm.cert), g);
+  }
+  const view = viewFor(p, i, kind, g);
+  const label = `${kind === 'oct' ? 'Octagon' : 'Square'} floor${walk.length ? `. Moves: ${turnWords(walk)}` : ''}${atHome(kind, walk) && walk.length ? '. Home, facing the same way' : ''}${claiming ? `. Tap the ${tapKind(q) === 'dot' ? 'dot' : 'dots'}` : ''}`;
   const svg = `<svg class="oc-board ${kind}" viewBox="-104 -104 208 208" tabindex="0" role="group" data-floor="${i}" data-focus="oc-board-${i}" aria-label="${esc(label)}">${floorInner(p, a, i, view, {claiming, hint: hh})}</svg>`;
   let record = '';
   if (q.mode === 'home') record = `<div class="oc-record" aria-hidden="true">${Array.from({length: q.moves}, (_, k) => `<i class="${k < walk.length ? 'on' : ''}">${k < walk.length ? GLYPH[walk[k]] : ''}</i>`).join('')}</div>`;
   if (q.mode === 'fence' && Number.isInteger(q.maxLeft)) record = `<div class="oc-budget" role="img" aria-label="Left turns allowed: ${q.maxLeft}. Used: ${lefts(walk)}.">${Array.from({length: q.maxLeft}, (_, k) => `<i class="${k < lefts(walk) ? 'used' : ''}">↰</i>`).join('')}</div>`;
-  const hm = hh && hh.type === 'move' ? hh.action : null;
   let controls = '';
   if (!done) {
     const go = TURNS.map(m => `<button type="button" class="secondary oc-go${hm && hm.type === 'go' && hm.turn === m ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'go', floor: i, turn: m}))}" data-focus="oc-go-${i}-${m}" aria-label="${LABEL[m]}" ${canGo(kind, q, walk, m) ? '' : 'disabled'}>${GLYPH[m]}</button>`).join('');
@@ -695,7 +831,7 @@ function floorPanel(p, a, i, h, live) {
     }
     controls = `<div class="oc-controls">${go}${extra}</div>`;
   }
-  const told = f && f.told ? (f.told === 'way' ? 'There is a way.' : tapKind(q) === 'dot' ? 'Not that dot.' : 'Not that wall.') : '';
+  const told = f && f.told ? REFUSAL[f.told.say === 'way' ? 'way' : tapKind(q)] : '';
   const cls = ['oc-wrap', kind, i === live ? 'oc-live' : '', i === s.tab ? 'oc-on' : 'oc-off', done ? 'oc-done' : '', claiming ? 'oc-claiming' : ''].filter(Boolean).join(' ');
   return `<div class="${cls}" data-floor="${i}">${svg}${record}${controls}${told ? `<p class="oc-told">${told}</p>` : ''}</div>`;
 }
@@ -708,26 +844,34 @@ function render(p, a) {
   const floors = q.floors.map((_, i) => floorPanel(p, a, i, h, s.live)).join('');
   const status = playing(q) ? '' : q.floors.map((f, i) => {
     const x = b.floors[i];
-    return `${NAME[f.kind]}: ${x.cert !== null ? 'can’t, shown' : goalMet(f.kind, q, x.walk) ? 'done' : x.told === 'way' ? 'there is a way' : x.told === 'miss' ? 'not that' : `${x.walk.length} ${x.walk.length === 1 ? 'move' : 'moves'}`}.`;
+    return `${NAME[f.kind]}: ${x.cert !== null ? 'can’t, shown' : goalMet(f.kind, q, x.walk) ? 'done' : x.told ? (x.told.say === 'way' ? 'there is a way' : 'not that') : `${x.walk.length} ${x.walk.length === 1 ? 'move' : 'moves'}`}.`;
   }).join(' ');
   return `<div class="oc-puzzle${done ? ' solved' : ''}${n > 1 ? ' two' : ''}" data-mechanic-wire="octagon">${tabs}<div class="oc-floors">${floors}</div><p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 
 // --- Gestures ----------------------------------------------------------------
 // A tap chooses the nearest road ahead of the robot (or, after Can't, the
-// nearest dot or wall); a drag slides the floor to look round it. Arrow keys
-// move; Enter on a target taps it; Escape leaves Can't.
+// nearest dot); a drag slides the floor to look round it. Arrow keys move;
+// Enter on a target taps it; Escape leaves Can't.
 const KEYS = {ArrowLeft: 'L', ArrowUp: 'S', ArrowRight: 'R'};
+// A tap on a target: one dot is the whole claim; for several dots each tap
+// marks or unmarks one, and the claim is judged when the last is in.
+function tapTarget(p, api, i, cert) {
+  const q = p.parameters, kind = q.floors[i].kind;
+  if (tapKind(q) === 'dot') { api.apply({type: 'claim', floor: i, cert}); return; }
+  const s = ui(p), marks = s.marks.includes(cert) ? s.marks.filter(x => x !== cert) : [...s.marks, cert];
+  if (marks.length >= evenDots(kind, walkOf(q, api.attempt().board, i)).length) api.apply({type: 'claim', floor: i, cert: marks});
+  else api.ui({marks});
+}
 function wire(root, p, api) {
   const q = p.parameters;
   root.querySelectorAll('svg.oc-board').forEach(svg => {
     const i = Number(svg.dataset.floor), kind = q.floors[i].kind;
-    const claimingNow = () => { const a = api.attempt(), f = playing(q) ? null : a.board.floors[i]; return Boolean(f) && ui(p).claim === i && tapKind(q) !== null && canClaim(kind, q, f); };
     const toDisk = e => { const r = svg.getBoundingClientRect(); return [((e.clientX - r.left) / r.width * 208 - 104) / S, -((e.clientY - r.top) / r.height * 208 - 104) / S]; };
     const clampPan = z => { const m = Math.hypot(z[0], z[1]), lim = kind === 'oct' ? 0.9 : 3; return m > lim ? [z[0] * lim / m, z[1] * lim / m] : z; };
     let start = null, panning = false, last = null, frame = 0;
     const redraw = () => {
-      const a = api.attempt(), claiming = claimingNow();
+      const a = api.attempt(), claiming = claimingOn(p, a, i);
       const h = !playing(q) && a.hintLevel >= 2 && !solved(p, a.board) ? hint(p, a.board) : null;
       svg.innerHTML = floorInner(p, a, i, ui(p).views[i], {claiming, hint: h && h.floor === i ? h : null});
     };
@@ -754,12 +898,10 @@ function wire(root, p, api) {
       const tap = !panning, z = toDisk(e);
       start = null;
       if (!tap) return;
-      const v = ui(p).views[i], a = api.attempt();
-      if (!v) return;
-      const claiming = claimingNow();
-      const pick = nearest(choices(p, a, i, v, claiming), z, claiming ? (tapKind(q) === 'dot' ? 0.16 : 0.12) : 0.22);
+      const a = api.attempt(), pick = pickAt(p, a, i, z);
       if (!pick) return;
-      api.apply(claiming ? {type: 'claim', floor: i, cert: pick.cert} : {type: 'go', floor: i, turn: pick.turn});
+      if (claimingOn(p, a, i)) tapTarget(p, api, i, pick.cert);
+      else api.apply({type: 'go', floor: i, turn: pick.turn});
     });
     svg.addEventListener('pointercancel', () => { start = null; });
   });
@@ -770,7 +912,7 @@ function wire(root, p, api) {
     const i = Number(at.dataset.floor);
     if (e.target.classList?.contains('oc-target') && (e.key === 'Enter' || e.key === ' ')) {
       e.preventDefault();
-      api.apply({type: 'claim', floor: i, cert: e.target.dataset.cert});
+      tapTarget(p, api, i, e.target.dataset.cert);
       return;
     }
     if (e.key === 'Escape' && ui(p).claim === i) { e.preventDefault(); api.ui({claim: null}); return; }
@@ -785,12 +927,13 @@ function wire(root, p, api) {
 
 export const octagonMechanics = {
   octagon: {
-    fresh, valid, solved, move, hint, render, wire, carry,
+    fresh, valid, solved, move, hint, render, wire, carry, carryOnRestart,
     ui(p, payload) {
       if (!object(payload)) return;
       const s = ui(p), n = p.parameters.floors.length;
       if (Number.isInteger(payload.tab) && payload.tab >= 0 && payload.tab < n) Object.assign(s, {tab: payload.tab, live: payload.tab});
-      if ('claim' in payload) s.claim = Number.isInteger(payload.claim) && payload.claim >= 0 && payload.claim < n ? payload.claim : null;
+      if ('claim' in payload) Object.assign(s, {claim: Number.isInteger(payload.claim) && payload.claim >= 0 && payload.claim < n ? payload.claim : null, marks: []});
+      if (Array.isArray(payload.marks) && s.claim !== null) s.marks = payload.marks.filter(isWord).slice(0, 64);
       if (s.claim !== null) s.live = s.claim;
     },
     reset: p => { uiState.delete(p.id); },

@@ -13,8 +13,12 @@
 //   tested by a ray crossing the fence.
 // - The rewriting rules hold in the matrices, and the mechanic's normal forms
 //   name the same elements as the matrices for every word of up to 8 letters.
+// - Claims are judged tap first, by the dot (or dots) these models name: a
+//   wrong tap reads the same on every floor, with an answer or not; only the
+//   right tap says There is a way or shows the certificate; a refusal stands
+//   until a different walk is finished, through Undo and Restart.
 // - Hints alone solve every puzzle from a fresh start, after a wrong move,
-//   after a refused claim and after a wrong certificate tap, never as a
+//   after a wrong tap and after a refusal kept through Restart, never as a
 //   dead end (whose text the app shows unasked); a random tap
 //   rarely makes a certificate; illegal moves and forged saves are refused.
 // Run: node scripts/validate-octagon.mjs
@@ -23,7 +27,7 @@ import assert from 'node:assert/strict';
 import {performance} from 'node:perf_hooks';
 import {freshAttempt, move, isSolved, nextHint, validBoard} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
-import {reduce, rulesFor, MOVE, TURNS, FENCE_CAP, PLAY_CAP, EDGE, claimTargets, goalMet, halfwayState, lefts, rights} from '../dist/families/octagon/octagon.js';
+import {reduce, rulesFor, MOVE, TURNS, FENCE_CAP, PLAY_CAP, EDGE, claimTargets, goalMet, halfwayState, evenDots, dotKey, lefts, rights} from '../dist/families/octagon/octagon.js';
 import {loadPack} from './packs.mjs';
 
 // --- Z[√2] and matrices ------------------------------------------------------
@@ -220,6 +224,25 @@ function sqWalk(walk) {
   for (const m of walk) { d = (d + TURN_SQ[m]) % 4; x += DIRS[d][0]; y += DIRS[d][1]; pts.push([x, y]); }
   return {pts, end: {x, y, d}};
 }
+// The dot after each move of a walk, from home: matrices or coordinates.
+const dotsOfWalk = (O, kind, walk) => {
+  if (kind === 'sq') return sqWalk(walk).pts.map(([x, y]) => `${x},${y}`);
+  let M = I3;
+  const out = [O.dot(M)];
+  for (const x of walk) { M = mmul(M, O.moves[x]); out.push(O.dot(M)); }
+  return out;
+};
+// The dot of a word in T, t and H (a dot key the mechanic saves).
+const dotOfWord = (O, kind, word) => kind === 'oct' ? O.dot(O.G.word(word)) : (({x, y}) => `${x},${y}`)(sqState(word));
+const binomial = (n, k) => { let r = 1; for (let j = 1; j <= k; j++) r = r * (n - k + j) / j; return Math.round(r); };
+// The refusal the page shows for an attempt, as text.
+function refusalText(p, a) {
+  mechanicFor(p).reset(p);
+  const html = mechanicFor(p).render(p, a), found = [...html.matchAll(/<p class="oc-told">([^<]*)<\/p>/g)].map(x => x[1]);
+  mechanicFor(p).reset(p);
+  assert.equal(found.length, 1, `${p.id}: one refusal shown`);
+  return found[0];
+}
 // A point is inside a closed polygon when a ray to the right crosses it an
 // odd number of times.
 function crossings([px, py], pts) {
@@ -363,42 +386,75 @@ export async function validateOctagon() {
         refuse(p, a, {type: 'go', floor: i, turn: 'S'}, 'a move on a finished floor');
       }
     }
-    // Hints: fresh, after a wrong move, after a refused claim, after a wrong tap.
+    // Hints: fresh and after a wrong move.
     report.hints += followHints(p, freshAttempt(p), 'fresh');
     const h0 = nextHint(p, freshAttempt(p)), other = TURNS.find(x => x !== h0.action.turn && mechanicFor(p).move(p, freshAttempt(p).board, {type: 'go', floor: h0.floor, turn: x}));
     report.hints += followHints(p, play(p, freshAttempt(p), {type: 'go', floor: h0.floor, turn: other}), 'after a wrong move');
+    // Claims on each floor after a finished try that fails, judged tap first:
+    // which dot (or dots) is right is computed here from the matrices or the
+    // integer walk, not by the mechanic. A wrong tap gets the same refusal on
+    // every floor, with an answer or not; the right one shows the certificate,
+    // or says there is a way; a refusal stands until a different walk is
+    // finished, through Undo-like steps and Restart.
+    const tap = q.mode === 'home' ? (q.moves % 2 ? 'dots' : 'dot') : null, wrongText = new Set();
     for (const [i, spec] of q.floors.entries()) {
-      // Finish a try that fails, then claim.
+      const kind = spec.kind, label = `${p.id} ${kind}`, n = q.mode === 'home' ? q.moves : FENCE_CAP;
+      const tryWalk = spec.solutions.length ? 'S'.repeat(n) : spec.attempt;
       let a = freshAttempt(p);
-      const kind = spec.kind, tap = q.mode === 'fence' ? 'road' : q.moves % 2 ? null : 'dot';
-      const tryWalk = spec.solutions.length ? null : spec.attempt;
-      if (tryWalk === null) {
-        // A floor with an answer: a finished try that fails, then Can't.
-        const n = q.mode === 'home' ? q.moves : FENCE_CAP;
-        const fail = ['S'.repeat(n), 'L' + 'S'.repeat(n - 1)].find(w => !spec.solutions.includes(w));
-        for (const x of fail) a = play(p, a, {type: 'go', floor: i, turn: x});
-        const claim = {type: 'claim', floor: i, ...(tap ? {cert: ''} : {})};
-        a = play(p, a, claim);
-        assert.equal(a.board.floors[i].told, 'way', `${p.id} ${kind}: There is a way.`);
-        refuse(p, a, claim, 'a second claim before the walk changes');
-        report.hints += followHints(p, a, 'after a refused claim');
-      } else {
-        for (const x of tryWalk) a = play(p, a, {type: 'go', floor: i, turn: x});
-        const targets = tap ? claimTargets(p, a, i) : [''];
-        const right = targets.filter(c => mechanicFor(p).move(p, a.board, {type: 'claim', floor: i, ...(tap ? {cert: c} : {})})?.floors[i].cert !== null);
-        report.randomTaps[`${p.id} ${kind}`] = !tap ? 'nothing to tap; the colouring is drawn' : `${right.length} of ${targets.length} targets in the first view${right.length ? '' : ' (the dot is reached by dragging the floor)'}`;
-        if (tap) assert.ok(right.length <= 1 && right.length / targets.length <= 1 / 8, `${p.id} ${kind}: a random tap rarely makes the certificate`);
-        if (tap) {
-          const rightCert = right[0] ?? (tap === 'dot' ? halfwayState(kind, a.board.floors[i].walk) : reduce(kind, q.wall));
-          assert.notEqual(mechanicFor(p).move(p, a.board, {type: 'claim', floor: i, cert: rightCert}).floors[i].cert, null, `${p.id} ${kind}: the right tap is accepted`);
-          const wrong = targets.find(c => !right.includes(c));
-          a = play(p, a, {type: 'claim', floor: i, cert: wrong});
-          assert.equal(a.board.floors[i].told, 'miss', `${p.id} ${kind}: a wrong tap is refused`);
-          refuse(p, a, {type: 'claim', floor: i, cert: rightCert}, 'the right tap before the walk changes');
-          report.hints += followHints(p, a, 'after a wrong tap');
+      for (const x of tryWalk) a = play(p, a, {type: 'go', floor: i, turn: x});
+      const w = a.board.floors[i].walk, seen = dotsOfWalk(O, kind, w), targets = tap ? claimTargets(p, a, i) : [];
+      const claimWith = cert => ({type: 'claim', floor: i, ...(tap ? {cert} : {})});
+      let right;
+      if (tap === 'dot') {
+        right = targets.filter(c => dotOfWord(O, kind, c) === seen[n / 2]);
+        assert.ok(right.length <= 1, `${label}: one target is the dot after half the moves`);
+        right = right[0] ?? dotKey(kind, halfwayState(kind, w));
+        assert.equal(dotOfWord(O, kind, right), seen[n / 2]);
+        for (const c of targets) assert.equal(mechanicFor(p).move(p, a.board, claimWith(c)).floors[i].told?.say === 'miss', c !== right, `${label}: target ${c} judged as the exact model says`);
+        report.randomTaps[label] = `${targets.includes(right) ? 1 : 0} of ${targets.length} targets in the first view${targets.includes(right) ? '' : ' (the dot comes within reach by dragging the floor)'}`;
+        assert.ok(1 / targets.length <= 1 / 8, `${label}: a random tap rarely makes the certificate`);
+      } else if (tap === 'dots') {
+        const want = new Set(seen.filter((d, k) => k % 2 === 0 && k > 0 && d !== seen[0]));
+        right = evenDots(kind, w);
+        assert.deepEqual(new Set(right.map(c => dotOfWord(O, kind, c))), want, `${label}: the walk’s dots of home’s colour`);
+        assert.equal(right.length, want.size);
+        const inView = right.filter(c => targets.includes(c)).length, ways = binomial(targets.length, right.length);
+        report.randomTaps[label] = `${right.length} dots to tap; ${inView === right.length ? `1 random choice in ${ways}` : `${inView} of them in the first view`}`;
+        assert.ok(ways >= 8, `${label}: a random choice of dots rarely makes the certificate`);
+      }
+      if (tap) {
+        const wrong = tap === 'dot' ? targets.find(c => c !== right) : [targets.find(c => !right.includes(c)), ...right.slice(1)];
+        const missed = play(p, a, claimWith(wrong));
+        assert.deepEqual(missed.board.floors[i].told, {say: 'miss', walk: w}, `${label}: a wrong tap is refused`);
+        wrongText.add(refusalText(p, missed));
+        refuse(p, missed, claimWith(right), 'the right tap while the refusal stands');
+        if (tap === 'dots') {
+          for (const odd of [right.slice(1), [...right, targets.find(c => !right.includes(c))]]) if (odd.length) assert.equal(mechanicFor(p).move(p, a.board, claimWith(odd)).floors[i].told?.say, 'miss', `${label}: too few or too many dots are refused`);
         }
+        let again = play(p, missed, {type: 'back', floor: i});
+        again = play(p, again, {type: 'go', floor: i, turn: w.at(-1)});
+        assert.deepEqual(again.board.floors[i].told, {say: 'miss', walk: w}, `${label}: the same walk again keeps the refusal`);
+        refuse(p, again, claimWith(right), 'Can’t on the same walk again');
+        const changed = play(p, play(p, missed, {type: 'back', floor: i}), {type: 'go', floor: i, turn: TURNS.find(x => x !== w.at(-1))});
+        assert.equal(changed.board.floors[i].told, null, `${label}: a different finished walk ends the refusal`);
+        const restarted = mechanicFor(p).carryOnRestart(p, missed.board, mechanicFor(p).fresh(p));
+        assert.deepEqual(restarted.floors[i], {walk: '', told: {say: 'miss', walk: w}, cert: null}, `${label}: Restart keeps the refusal`);
+        assert.ok(validBoard(p, restarted), `${label}: a kept refusal is a valid board`);
+        report.hints += followHints(p, missed, 'after a wrong tap');
+        report.hints += followHints(p, {...freshAttempt(p), board: restarted}, 'after Restart with a refusal');
+      }
+      const judged = play(p, a, claimWith(right));
+      if (spec.solutions.length) {
+        assert.deepEqual(judged.board.floors[i].told, {say: 'way', walk: w}, `${label}: There is a way, after the right tap only`);
+        refuse(p, judged, claimWith(right), 'a second claim on the same walk');
+        report.hints += followHints(p, judged, 'after There is a way');
+      } else {
+        assert.deepEqual(judged.board.floors[i].cert, tap === null ? '' : right, `${label}: the right claim shows the certificate`);
+        assert.equal(judged.board.floors[i].told, null);
+        assert.ok(validBoard(p, judged.board));
       }
     }
+    if (tap) assert.equal(wrongText.size, 1, `${p.id}: a wrong tap reads the same on every floor (${[...wrongText].join(' / ')})`);
     // Illegal moves and forged saves.
     const a0 = freshAttempt(p), m = mechanicFor(p);
     refuse(p, a0, {type: 'go', floor: 0, turn: 'U'}, 'a turn round');
@@ -408,25 +464,42 @@ export async function validateOctagon() {
     refuse(p, a0, {type: 'back', floor: 0}, 'taking back a move that was not made');
     const blank = {walk: '', told: null, cert: null}, floorsWith = (i, f) => ({floors: q.floors.map((_, j) => j === i ? f : blank)});
     for (const [i, spec] of q.floors.entries()) {
+      const kind = spec.kind, n = q.mode === 'home' ? q.moves : FENCE_CAP, fail = spec.solutions.length ? 'S'.repeat(n) : spec.attempt;
+      const say = tap ? 'miss' : 'way', standing = tap || spec.solutions.length;
       const bad = [
         [{walk: 'LX', told: null, cert: null}, 'a letter that is not a move'],
-        [{walk: 'L'.repeat(q.mode === 'home' ? q.moves + 1 : FENCE_CAP + 1), told: null, cert: null}, 'too many moves'],
-        [{walk: '', told: 'miss', cert: null, extra: 1}, 'an extra field'],
-        [{walk: '', told: 'maybe', cert: null}, 'an unknown refusal'],
-        [{walk: '', told: null, cert: ''}, 'a certificate before a try']
+        [{walk: 'L'.repeat(n + 1), told: null, cert: null}, 'too many moves'],
+        [{walk: '', told: null, cert: null, extra: 1}, 'an extra field'],
+        [{walk: fail, told: say, cert: null}, 'a refusal not keyed to a walk'],
+        [{walk: fail, told: {say: 'maybe', walk: fail}, cert: null}, 'an unknown refusal'],
+        [{walk: fail, told: {say, walk: fail, extra: 1}, cert: null}, 'a refusal with an extra field'],
+        [{walk: '', told: {say, walk: fail.slice(0, -1)}, cert: null}, 'a refusal about an unfinished walk'],
+        [{walk: '', told: null, cert: tap === 'dots' ? [] : tap === 'dot' ? 'H' : ''}, 'a certificate before a try']
       ];
+      if (standing) for (const walk of [fail, fail.slice(0, -1), '']) assert.ok(validBoard(p, floorsWith(i, {walk, told: {say, walk: fail}, cert: null})), `${p.id} ${kind}: a standing refusal with the walk ${walk || 'empty'}`);
+      if (q.mode === 'home') bad.push([{walk: fail.slice(0, -1) + TURNS.find(x => x !== fail.at(-1)), told: {say, walk: fail}, cert: null}, 'a refusal kept past a different finished walk']);
       if (spec.solutions.length) {
-        bad.push([{walk: spec.solutions[0].slice(0, -1), told: 'miss', cert: null}, 'a wrong tap on a floor with an answer']);
-        bad.push([{walk: spec.solutions[0], told: null, cert: ''}, 'a certificate where there is a way']);
-        bad.push([{walk: spec.solutions[0], told: 'way', cert: null}, 'a refusal on a solved floor']);
+        bad.push([{walk: spec.solutions[0], told: null, cert: tap === 'dots' ? [] : tap === 'dot' ? dotKey(kind, '') : ''}, 'a certificate where there is a way']);
+        bad.push([{walk: spec.solutions[0], told: {say: 'way', walk: spec.solutions[0]}, cert: null}, 'a refusal about a walk that reaches the goal']);
+        if (!tap) bad.push([{walk: fail, told: {say: 'miss', walk: fail}, cert: null}, '“Not that” where nothing is tapped']);
       } else {
-        const w = spec.attempt, tap = q.mode === 'fence' ? 'road' : q.moves % 2 ? null : 'dot';
-        bad.push([{walk: w, told: 'way', cert: null}, '“There is a way” where there is none']);
-        if (tap) bad.push([{walk: w, told: null, cert: tap === 'dot' ? w.length > 2 ? reduce(spec.kind, '') : 'H' : 'H'}, 'a forged certificate']);
-        bad.push([{walk: w.slice(0, -1), told: null, cert: tap ? reduce(spec.kind, q.wall || '') : ''}, 'a certificate before the try is finished']);
+        bad.push([{walk: fail, told: {say: 'way', walk: fail}, cert: null}, '“There is a way” where there is none']);
+        const right = tap === 'dot' ? dotKey(kind, halfwayState(kind, fail)) : tap === 'dots' ? evenDots(kind, fail) : '';
+        if (tap === 'dot') {
+          bad.push([{walk: fail, told: null, cert: dotKey(kind, '')}, 'a forged certificate']);
+          const loose = ['T', 'TT', 't'].map(x => reduce(kind, right + x)).find(x => x !== right);
+          bad.push([{walk: fail, told: null, cert: loose}, 'a certificate not saved as its dot key']);
+        }
+        if (tap === 'dots') {
+          bad.push([{walk: fail, told: null, cert: right.slice(1)}, 'a certificate missing a dot']);
+          bad.push([{walk: fail, told: null, cert: [...right].reverse().concat(right.length > 1 ? [] : [right[0]])}, 'dots out of order or twice']);
+        }
+        bad.push([{walk: fail.slice(0, -1), told: null, cert: right}, 'a certificate before the try is finished']);
+        bad.push([{walk: fail, told: {say: 'miss', walk: fail}, cert: right}, 'a certificate with a refusal']);
+        assert.ok(validBoard(p, floorsWith(i, {walk: fail, told: null, cert: right})), `${p.id} ${kind}: the right certificate is a valid board`);
       }
       if (q.mode === 'fence') bad.push([{walk: 'LLLLLLLLL', told: null, cert: null}, 'a fence that uses a dot twice']);
-      for (const [f, why] of bad) assert.equal(validBoard(p, floorsWith(i, f)), false, `${p.id} ${spec.kind}: rejects ${why}`);
+      for (const [f, why] of bad) assert.equal(validBoard(p, floorsWith(i, f)), false, `${p.id} ${kind}: rejects ${why}`);
     }
     assert.equal(validBoard(p, {floors: q.floors.map(() => blank), done: true}), false, `${p.id}: rejects a forged done`);
     assert.equal(validBoard(p, {floors: q.floors.slice(1).map(() => blank)}), false, `${p.id}: rejects a missing floor`);
