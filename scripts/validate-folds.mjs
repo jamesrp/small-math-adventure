@@ -179,6 +179,14 @@ function taps(p, b) {
   }
   return out.filter(action => mechanicFor(p).move(p, b, action));
 }
+// Two walls: with a complete route on the board, take the first touch away
+// and touch it again, twice, so both orders have been folded and the
+// touches are back as they were.
+function bothOrders(p, a) {
+  if (p.parameters.mode !== 'walls' || a.board.touches.length !== 2 || !a.board.folded) return a;
+  for (let i = 0; i < 2; i++) { const [t] = a.board.touches, tap = {type: 'touch', wall: t.wall, at: t.at}; a = move(p, move(p, a, tap), tap); }
+  return a;
+}
 const claimActions = p => p.parameters.mode === 'route' && p.parameters.claim === 'less' ? [{type: 'claim', route: 0}, {type: 'claim', route: 1}] : [{type: 'claim'}];
 function hintLoop(p, start, label) {
   let a = start, steps = 0;
@@ -252,7 +260,11 @@ export default async function validateFolds() {
       }
       if (q.claim === 'shorter') {
         const [s, f] = q.routes[0], beat = allowed(q.line).filter(k => q.guesses.every(g => sumSign(lengthAt(q.line, q.dots[s], q.dots[f], k), lengthAt(q.line, q.dots[s], q.dots[f], g)) < 0));
-        assert.deepEqual(beat, [4, 5, 6, 7], `${label}: the contacts that beat both dashed routes`);
+        assert.deepEqual(beat, [4, 5, 6], `${label}: the contacts that beat both dashed routes`);
+        // Clear margins: every other contact is at least a twentieth longer
+        // or shorter than the shorter dashed route.
+        const L = k => lengthAt(q.line, q.dots[s], q.dots[f], k).reduce((t, n) => t + Math.sqrt(n), 0), bar = Math.min(...q.guesses.map(L));
+        for (const k of allowed(q.line)) if (!q.guesses.includes(k)) assert.ok(Math.abs(L(k) / bar - 1) >= .05, `${label}: contact ${k} is clearly shorter or longer than the dashed routes`);
       }
       if (q.claim === 'less') {
         const [L0, L1] = q.routes.map(([s, f]) => bestLength(q.line, q.dots[s], q.dots[f])), c = sumSign(L0, L1);
@@ -341,26 +353,31 @@ export default async function validateFolds() {
       assert.equal(move(p, fresh, action), null, `${label}: no claim on a fresh board`);
       assert.equal(move(p, move(p, fresh, {type: 'fold'}), action), null, `${label}: no claim on a folded fresh board`);
     }
+    // Random attempts: up to four taps, Fold (and with two walls both
+    // orders), then each claim. Every kind of board but the block has a
+    // refusable claim; the block's That's all is a final choice.
     const wrong = (() => {
-      // A complete board whose claim is refused but not final.
       for (let trial = 0; trial < 400; trial++) {
         let a = fresh;
         for (let i = 0; i < 4; i++) { const options = taps(p, a.board); if (!options.length) break; a = move(p, a, pick(random, options)) || a; }
-        a = move(p, a, {type: 'fold'}) || a;
+        a = bothOrders(p, move(p, a, {type: 'fold'}) || a);
         if (!a.board.folded) continue;
         for (const action of claimActions(p)) {
           const before = M.move(p, a.board, action);
           if (before && before.refused.length > a.board.refused.length) return {a, action};
+          if (before && q.mode === 'block' && !before.done) assert.equal(before.lost, true, `${label}: a wrong That’s all ends the try`);
         }
       }
       return null;
     })();
-    assert.ok(wrong, `${label}: a refusable claim`);
-    {
+    if (q.mode === 'block') assert.equal(wrong, null, `${label}: no refusal that is not final`);
+    else assert.ok(wrong, `${label}: a refusable claim`);
+    if (wrong) {
       const {a, action} = wrong, refused = move(p, a, action);
       report.claims++;
       assert.equal(refused.board.told, true);
       assert.equal(move(p, refused, action), null, `${label}: no second claim on a refused board`);
+      for (const other of claimActions(p)) assert.equal(move(p, refused, other), null, `${label}: every claim stays off on a refused board`);
       const undone = back(p, refused);
       assert.deepEqual(undone.board.refused, refused.board.refused, `${label}: Undo keeps the refusal`);
       assert.equal(undone.board.told, false, `${label}: Undo clears the note`);
@@ -370,29 +387,69 @@ export default async function validateFolds() {
       const text = visible(M.render(p, {...refused, hintLevel: 0}));
       assert.doesNotMatch(text, /\d/, `${label}: a refusal prints no numbers`);
       report.hintMoves += hintLoop(p, refused, `${label} after a refusal`);
+      assert.ok(validBoard(p, refused.board), `${label}: a refused claim saves`);
     }
-    // A wrong final choice ends the try, through Undo too.
-    if (q.mode === 'walls' || q.claim === 'less') {
+    // A wrong final choice ends the try, through Undo too: the finish in
+    // puzzle 4, the stretch in the windows, the order of the walls and the
+    // shelf round the block.
+    const lostTry = (() => {
       let a = fresh;
+      const tap = action => { a = move(p, a, action); assert.ok(a, `${label}: ${json(action)}`); };
       if (q.mode === 'walls') {
+        // Both orders folded, the worse order last.
         const second = sol.first === 'lower' ? 'upper' : 'lower';
-        a = move(p, move(p, move(p, a, {type: 'touch', wall: second, at: 5}), {type: 'touch', wall: sol.first, at: 6}), {type: 'fold'});
-        a = move(p, a, {type: 'claim'});
-        assert.equal(a.board.lost, true, `${label}: the other order first ends the try`);
-      } else {
-        for (const [i, k] of sol.contacts.entries()) a = move(p, a, {type: 'touch', route: i, at: k});
-        a = move(p, move(p, a, {type: 'fold'}), {type: 'claim', route: 1 - sol.choose});
-        assert.equal(a.board.pick, 1 - sol.choose); assert.equal(a.board.done, false);
+        for (const action of [{type: 'touch', wall: second, at: 5}, {type: 'touch', wall: sol.first, at: 6}, {type: 'fold'}]) tap(action);
+        assert.equal(move(p, a, {type: 'claim'}), null, `${label}: no claim before both orders are folded`);
+        for (const action of [{type: 'touch', wall: second, at: 5}, {type: 'touch', wall: second, at: 5}]) tap(action);
+        assert.deepEqual([...a.board.seen].sort(), ['lower', 'upper'], `${label}: both orders folded`);
+        for (const action of [{type: 'touch', wall: sol.first, at: 6}, {type: 'touch', wall: sol.first, at: 6}]) tap(action);
+        tap({type: 'claim'});
+        return a;
       }
+      if (q.mode === 'route' && q.claim === 'less') {
+        for (const [i, k] of sol.contacts.entries()) tap({type: 'touch', route: i, at: k});
+        tap({type: 'fold'}); tap({type: 'claim', route: 1 - sol.choose});
+        assert.equal(a.board.pick, 1 - sol.choose); assert.equal(a.board.done, false);
+        return a;
+      }
+      if (q.mode === 'route' && q.line.windows) {
+        // Every allowed contact: the best is right, the other stretch's best
+        // end is final, and the rest are refused.
+        const [S, F] = q.routes[0].map(l => q.dots[l]), ends = q.line.windows.map(([lo, hi]) => trueBest({dir: q.line.dir, at: q.line.at, windows: [[lo, hi]]}, S, F));
+        for (const k of allowed(q.line)) {
+          const b = M.move(p, M.move(p, M.move(p, fresh.board, {type: 'touch', route: 0, at: k}), {type: 'fold'}), {type: 'claim'});
+          if (k === sol.contacts[0]) assert.equal(b.done, true, `${label}: ${k} is shortest`);
+          else if (ends.includes(k)) assert.equal(b.lost, true, `${label}: ${k}, the other stretch’s best, ends the try`);
+          else assert.ok(!b.lost && b.refused.length === 1, `${label}: ${k} is refused`);
+        }
+        tap({type: 'touch', route: 0, at: ends.find(k => k !== sol.contacts[0])}); tap({type: 'fold'}); tap({type: 'claim'});
+        return a;
+      }
+      if (q.mode === 'block') {
+        // Keep the best route round the other side, or only one of a tie.
+        const {best, legal} = blockBrute(q), over = best.length === 1 ? legal.filter(path => path.every(i => (i < 2) !== (best[0][0] < 2))).sort((x, y) => x.length - y.length)[0] : best[0];
+        for (const i of over) tap({type: 'corner', i});
+        tap({type: 'keep'}); tap({type: 'fold'}); tap({type: 'claim'});
+        return a;
+      }
+      return null;
+    })();
+    if (lostTry) {
+      const a = lostTry;
+      report.claims++;
+      assert.equal(a.board.lost, true, `${label}: the wrong choice ends the try`);
+      assert.ok(validBoard(p, a.board), `${label}: a lost try saves`);
       assert.equal(M.noUndo(p), false);
-      M.render(p, {...a, hintLevel: 0});
+      const text = visible(M.render(p, {...a, hintLevel: 0}));
       assert.equal(M.noUndo(p), true, `${label}: Undo is off in a lost try`);
+      assert.match(text, /Again/, `${label}: a lost try offers Again`);
+      assert.doesNotMatch(text, /\d/, `${label}: a lost try prints no numbers`);
       assert.deepEqual(back(p, a).board, a.board, `${label}: Undo can't leave a lost try`);
       for (const action of [...taps(p, fresh.board).slice(0, 3), {type: 'fold'}, ...claimActions(p)]) assert.equal(move(p, a, action), null, `${label}: a lost try takes only Again`);
       report.hintMoves += hintLoop(p, a, `${label} after a lost try`);
       M.render(p, {...fresh, hintLevel: 0});
       assert.equal(M.noUndo(p), false);
-    }
+    } else assert.ok(!(q.mode === 'walls' || q.mode === 'block' || q.claim === 'less' || q.line?.windows), `${label}: a final choice is tested`);
 
     // How often random taps pass the claim: up to six taps, Fold, one claim.
     let pass = 0;
@@ -402,6 +459,7 @@ export default async function validateFolds() {
       const n = 1 + Math.floor(random() * 6);
       for (let i = 0; i < n; i++) { const options = taps(p, b); if (!options.length) break; b = M.move(p, b, pick(random, options)) || b; }
       if (!b.folded) b = M.move(p, b, {type: 'fold'});
+      if (q.mode === 'walls') b = bothOrders(p, {...fresh, board: b}).board;
       const action = pick(random, claimActions(p)), next = M.move(p, b, action);
       if (next && M.solved(p, next)) pass++;
     }
@@ -443,19 +501,19 @@ export default async function validateFolds() {
       forgeries.push({...b, contacts, folded: true, refused: [{state: q.move ? {contacts, at: b.at} : {contacts}, why: 'beaten', mark: 7}]});
       if (q.move) forgeries.push({...b, at: q.dots.A}, {...b, at: [0, 0]});
       if (q.claim !== 'less') forgeries.push({...solvedBoard, pick: 0});
-      if (q.claim === 'less') forgeries.push({...solvedBoard, pick: null}, {...solvedBoard, done: false, pick: sol.choose});
+      if (q.claim === 'less') forgeries.push({...solvedBoard, pick: null}, {...solvedBoard, done: false, pick: sol.choose}, {...solvedBoard, done: false, lost: true}, {...b, lost: true, pick: 0});
+      forgeries.push({...b, lost: true}, {...b, lost: 'no'}, {...solvedBoard, lost: true}, {...solvedBoard, done: false, lost: true});
     }
     if (q.mode === 'every') forgeries.push({...b, starts: [[1, 1], [1, 1]]}, {...b, starts: [[2, 2], [1, 1]]}, {...b, starts: [q.dots[q.finish]]}, {...solvedBoard, starts: solvedBoard.starts.slice(1)},
       {...b, starts: [[1, 1]], folded: true, refused: [{state: {starts: [[1, 1]]}, why: 'more'}]});
-    if (q.mode === 'walls') forgeries.push({...b, touches: [{wall: 'lower', at: 1}, {wall: 'lower', at: 2}]}, {...b, lost: true}, {...solvedBoard, lost: true}, {...solvedBoard, touches: solvedBoard.touches.map(t => ({...t, at: t.at + 1}))},
+    if (q.mode === 'walls') forgeries.push({...b, seen: ['lower', 'lower']}, {...b, seen: ['middle']}, {...b, seen: 'lower'}, {...solvedBoard, seen: [sol.first]}, {...solvedBoard, done: false, lost: true},
+      {...b, touches: [{wall: 'lower', at: 1}, {wall: 'lower', at: 2}]}, {...b, lost: true}, {...solvedBoard, lost: true}, {...solvedBoard, touches: solvedBoard.touches.map(t => ({...t, at: t.at + 1}))},
       {...b, touches: [{wall: sol.first === 'lower' ? 'upper' : 'lower', at: 4}, {wall: sol.first, at: 4}], folded: true, refused: [{state: {touches: [{wall: sol.first === 'lower' ? 'upper' : 'lower', at: 4}, {wall: sol.first, at: 4}]}, why: 'shorter'}]});
-    if (q.mode === 'block') forgeries.push({...b, path: [0, 2]}, {...b, path: [0, 0]}, {...b, shelf: [[0]]}, {...b, shelf: [[0, 1], [0, 1]]}, {...solvedBoard, shelf: solvedBoard.shelf.slice(1)},
+    if (q.mode === 'block') forgeries.push({...b, lost: true}, {...solvedBoard, lost: true}, {...solvedBoard, done: false, lost: true}, {...b, path: [0, 2]}, {...b, path: [0, 0]}, {...b, shelf: [[0]]}, {...b, shelf: [[0, 1], [0, 1]]}, {...solvedBoard, shelf: solvedBoard.shelf.slice(1)},
       {...b, shelf: [[0, 1, 2]], folded: true, refused: [{state: {shelf: [[0, 1, 2]]}, why: 'more'}]});
     // A refusal recorded for a board whose claim is right.
     forgeries.push({...solvedBoard, done: false, refused: [{state: sliceOf(q, solvedBoard), why: 'more'}]});
     for (const forged of forgeries) assert.equal(validBoard(p, forged), false, `${label}: rejects a forged save ${json(forged)}`);
-    // Each mechanic accepts its own saved refusal.
-    assert.ok(validBoard(p, move(p, wrong.a, wrong.action).board), `${label}: a refused claim saves`);
   }
   assert.ok(worstHint < 50, `hints take ${worstHint.toFixed(1)} ms of CPU`);
   report.worstHintMs = +worstHint.toFixed(2);

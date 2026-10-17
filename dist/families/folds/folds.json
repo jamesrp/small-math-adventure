@@ -55,22 +55,22 @@
     "view": [
      0,
      -3,
-     12,
+     11,
      3
     ],
     "line": {
      "dir": "h",
      "at": 0,
      "from": 0,
-     "to": 12
+     "to": 11
     },
     "dots": {
      "A": [
-      1,
+      3,
       2
      ],
      "B": [
-      11,
+      8,
       3
      ]
     },
@@ -83,7 +83,7 @@
     "claim": "shorter",
     "guesses": [
      3,
-     9
+     7
     ]
    },
    "objective": "Make a route from A to B that is shorter than both dashed routes.",
@@ -105,7 +105,7 @@
    "parent": {
     "notice": "Whether your child compares routes by how bent they look once folded, rather than by guessing.",
     "prompt": "After folding, which route would a tight string make?",
-    "explanation": "Folding B’s leg over the river doesn’t change its length, so every route from A to B is as long as its folded route from A to B′. The straight segment from A to B′ is the shortest of those, and it crosses the river at 5 across (counting grid lines from the left edge). Contacts at 4, 5, 6 and 7 across all beat both dashed routes, which touch at 3 and 9; 5 across is the shortest of all.",
+    "explanation": "Folding B’s leg over the river doesn’t change its length, so every route from A to B is as long as its folded route from A to B′. The straight segment from A to B′ (5 across and 5 down) is the shortest of those, and it crosses the river at 5 across (counting grid lines from the left edge). The dashed routes touch at 3 and 7 across; contacts at 4, 5 and 6 across beat both, by at least a twentieth of the rope, and 5 across is the shortest of all.",
     "extension": "Can two different contacts give routes of exactly the same length? (Yes: for each contact on one side of the best one there can be one on the other side, but they need not be grid points.)",
     "connection": "Heron’s reflection principle: the route through M is as long as A–M–B′, and A–M–B′ is shortest when it is straight.",
     "sourceIds": [
@@ -331,7 +331,7 @@
    "objective": "Make the shortest routes from A to B and from A to C, then choose the finish that needs less rope.",
    "visibleObjective": "Which finish needs less rope?",
    "instruction": "Make the shortest routes from A to B and from A to C, then choose the finish that needs less rope.",
-   "controls": "A route goes straight from its start to one point of the river, then straight to its finish. Tap B or C to choose its route, then tap the river where that route touches. Fold flips the finish’s side of the route over the river, and Unfold flips it back. After folding, choose a finish and press Less rope. A wrong choice ends the try: press Again. Any other wrong claim is refused, and the claim stays off until the board changes.",
+   "controls": "A route goes straight from its start to one point of the river, then straight to its finish. Tap B or C to choose its route, then tap the river where that route touches. Fold flips the finish’s side of the route over the river, and Unfold flips it back. After folding, press Less rope: B or Less rope: C. A wrong choice ends the try: press Again. Any other wrong claim is refused, and the claim stays off until the board changes.",
    "rules": [
     "A route goes straight from its start to one point of the line, then straight to its finish.",
     "Fold flips the finish’s side of the route over the line.",
@@ -340,7 +340,7 @@
    "idea": "Once both routes are straight when folded, their lengths are the distances from A to B′ and to C′, which can be compared directly, even though C is nearer A than B is.",
    "prerequisites": "Shortest routes puzzle 2.",
    "hints": [
-    "C is nearer to A than B is. Does its route need less rope?",
+    "Make each route as short as you can before you choose.",
     "Make each route straight when folded, then compare B′ and C′.",
     "Swing the rope round A: C′ is farther from A than B′, so choose B."
    ],
@@ -757,7 +757,7 @@
    "objective": "Make the shortest route from A to B that touches a heavy stretch of the river.",
    "visibleObjective": "Make the shortest route from A to B.",
    "instruction": "Make the shortest route from A to B that touches a heavy stretch of the river.",
-   "controls": "A route goes straight from its start to one point of a heavy stretch of the river, then straight to its finish. Tap a heavy stretch where your route touches. Fold flips the finish’s side of the route over the river, and Unfold flips it back. After folding, press Shortest when no allowed route can be shorter. A wrong claim is refused, and the claim stays off until the board changes.",
+   "controls": "A route goes straight from its start to one point of a heavy stretch of the river, then straight to its finish. Tap a heavy stretch where your route touches. Fold flips the finish’s side of the route over the river, and Unfold flips it back. After folding, press Shortest when no allowed route can be shorter. If your route is the shortest on its stretch but the other stretch has a shorter one, the try ends: press Again. Any other wrong claim is refused, and the claim stays off until the board changes.",
    "rules": [
     "A route goes straight from its start to one point of the line, then straight to its finish.",
     "Fold flips the finish’s side of the route over the line.",
@@ -767,7 +767,7 @@
    "prerequisites": "Shortest routes puzzle 2 (the same A and B).",
    "hints": [
     "Fold. Where does the straight line from A to B′ cross the river?",
-    "The nearer to that crossing, the shorter: try the end of each heavy stretch nearer it, and compare.",
+    "On each side of that crossing, the nearer the touch, the shorter the route: try the end of each heavy stretch nearer it, and compare.",
     "Touch the left end of the right stretch, at 9 across."
    ],
    "parent": {
@@ -909,9 +909,9 @@
     }
    },
    "objective": "Make the shortest route from A to B that touches each wall once, in either order.",
-   "visibleObjective": "Touch each wall once. Make the shortest route.",
+   "visibleObjective": "Make the shortest route that touches each wall once.",
    "instruction": "Make the shortest route from A to B that touches each wall once, in either order.",
-   "controls": "A route goes straight from A to a point of one wall, straight to a point of the other wall, then straight to B. The wall you tap first is touched first. Tap a point of a wall to touch it there; tap another point of the same wall to move the touch, and the same point to take it away. Fold flips the route over the walls, one wall at a time, and Unfold flips it back. After folding, press Shortest when no route touching both walls is shorter. If the other order is shorter, the try ends: press Again. Any other wrong claim is refused, and the claim stays off until the board changes.",
+   "controls": "A route goes straight from A to a point of one wall, straight to a point of the other wall, then straight to B. The wall you tap first is touched first. Tap a point of a wall to touch it there; tap another point of the same wall to move the touch, and the same point to take it away. Fold flips the route over the walls, one wall at a time, and Unfold flips it back. Shortest turns on once you have folded a route in each order; press it when no route touching both walls is shorter. If the other order is shorter, the try ends: press Again. Any other wrong claim is refused, and the claim stays off until the board changes.",
    "rules": [
     "A route goes straight from A to one point of each wall, then straight to B.",
     "Fold flips the route over the walls, one wall at a time.",
@@ -922,7 +922,7 @@
    "hints": [
     "Which wall should the route touch first? Try both orders.",
     "Fold: B flips over the second wall, then over the first. Which order puts the double image nearer A?",
-    "Touch the lower wall first at 3 across, then the upper wall at 9 across."
+    "Fold a route in each order. The shortest touches the lower wall first at 3 across, then the upper wall at 9 across."
    ],
    "parent": {
     "notice": "Whether your child tries both orders before claiming, and whether the folded route is straight through both walls.",
@@ -988,7 +988,7 @@
    "objective": "Keep every shortest route from A to B round the block, then press That’s all.",
    "visibleObjective": "Keep every shortest route round the block.",
    "instruction": "Keep every shortest route from A to B round the block, then press That’s all.",
-   "controls": "A route goes in straight pieces from A to B, bending only at corners of the block. It may run along the block’s edge but never through it. Tap corners in order to bend the route there; tap the last corner again to take it back. Press Keep to put the route on the shelf, and tap a kept route to take it off. Fold flips the routes over the line through A and B, and Unfold flips them back. After folding, press That’s all when every shortest route is kept. A wrong claim is refused, and the claim stays off until the shelf changes.",
+   "controls": "A route goes in straight pieces from A to B, bending only at corners of the block. It may run along the block’s edge but never through it. Tap corners in order to bend the route there; tap the last corner again to take it back. Press Keep to put the route on the shelf, and tap a kept route to take it off. Fold flips the routes over the line through A and B, and Unfold flips them back. After folding, press That’s all when every shortest route is kept, and no other. A wrong That’s all ends the try: press Again.",
    "rules": [
     "A route goes in straight pieces round the block, never through it.",
     "Fold flips the routes over the line through A and B.",
@@ -1064,7 +1064,7 @@
    "objective": "Keep every shortest route from A to B round the block, then press That’s all.",
    "visibleObjective": "Keep every shortest route round the block.",
    "instruction": "Keep every shortest route from A to B round the block, then press That’s all.",
-   "controls": "A route goes in straight pieces from A to B, bending only at corners of the block. It may run along the block’s edge but never through it. Tap corners in order to bend the route there; tap the last corner again to take it back. Press Keep to put the route on the shelf, and tap a kept route to take it off. Fold flips the routes over the line through A and B, and Unfold flips them back. After folding, press That’s all when every shortest route is kept. A wrong claim is refused, and the claim stays off until the shelf changes.",
+   "controls": "A route goes in straight pieces from A to B, bending only at corners of the block. It may run along the block’s edge but never through it. Tap corners in order to bend the route there; tap the last corner again to take it back. Press Keep to put the route on the shelf, and tap a kept route to take it off. Fold flips the routes over the line through A and B, and Unfold flips them back. After folding, press That’s all when every shortest route is kept, and no other. A wrong That’s all ends the try: press Again.",
    "rules": [
     "A route goes in straight pieces round the block, never through it.",
     "Fold flips the routes over the line through A and B.",

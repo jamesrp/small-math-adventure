@@ -1,6 +1,7 @@
 // Mirror Couriers shortest routes (dist/families/folds/folds.js): exact
 // length comparison, folds and best contacts, windows, two walls, the block,
-// moves and claims on each kind of board, refusals through Undo, a lost try,
+// moves and claims on each kind of board, refusals through Undo, final
+// choices (the finish, the stretch, the order of the walls, the shelf),
 // hints, saves, rendering, the playground and the satchel group.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -92,15 +93,24 @@ test('beat both: shorter than both dashed routes is enough', () => {
   const p = byId('folds-01');
   const a = play(p, freshAttempt(p), [{type: 'touch', route: 0, at: 4}, {type: 'fold'}, {type: 'claim'}]);
   assert.ok(isSolved(p, a.board));
+  assert.ok(isSolved(p, play(p, freshAttempt(p), [{type: 'touch', route: 0, at: 6}, {type: 'fold'}, {type: 'claim'}]).board));
   const b = play(p, freshAttempt(p), [{type: 'touch', route: 0, at: 8}, {type: 'fold'}, {type: 'claim'}]);
   assert.equal(b.board.done, false);
   assert.match(text(render(p, b)), /Not shorter than this one\./);
   assert.match(render(p, b), /fd-guess marked/);
+  const tie = play(p, freshAttempt(p), [{type: 'touch', route: 0, at: 7}, {type: 'fold'}, {type: 'claim'}]);
+  assert.equal(tie.board.done, false, 'as long as a dashed route is not shorter');
 });
 
 test('less rope: a wrong final choice ends the try, and Undo cannot leave it', () => {
   const p = byId('folds-04'), M = mechanicFor(p);
   const made = play(p, freshAttempt(p), [{type: 'touch', route: 0, at: 7}, {type: 'touch', route: 1, at: 4}, {type: 'fold'}]);
+  // The choice is its own button for each finish, apart from the route
+  // chosen for touching (route A to C is the one being edited here).
+  const html = render(p, made);
+  assert.match(html, /data-move="\{&quot;type&quot;:&quot;claim&quot;,&quot;route&quot;:0\}"[^>]*>Less rope: B</);
+  assert.match(html, /data-move="\{&quot;type&quot;:&quot;claim&quot;,&quot;route&quot;:1\}"[^>]*>Less rope: C</);
+  assert.equal(move(p, made, {type: 'claim'}), null, 'a claim names its finish');
   const lost = move(p, made, {type: 'claim', route: 1});
   assert.equal(lost.board.pick, 1);
   assert.match(text(render(p, lost)), /The rope to B is shorter\./);
@@ -116,6 +126,24 @@ test('less rope: a wrong final choice ends the try, and Undo cannot leave it', (
   const bent = play(p, freshAttempt(p), [{type: 'touch', route: 0, at: 6}, {type: 'touch', route: 1, at: 4}, {type: 'fold'}, {type: 'claim', route: 0}]);
   assert.equal(bent.board.pick, null);
   assert.equal(bent.board.refused.length, 1);
+  assert.equal(move(p, bent, {type: 'claim', route: 1}), null, 'both choices stay off on a refused board');
+});
+
+test('windows: the other stretch’s best end is a final choice; the rest are refused', () => {
+  const p = byId('folds-08'), M = mechanicFor(p);
+  const at = k => play(p, freshAttempt(p), [{type: 'touch', route: 0, at: k}, {type: 'fold'}, {type: 'claim'}]);
+  const lost = at(3);
+  assert.equal(lost.board.lost, true);
+  assert.match(text(render(p, lost)), /The other stretch has a shorter route\./);
+  assert.match(text(render(p, lost)), /Again/);
+  assert.equal(M.noUndo(p), true);
+  assert.deepEqual(back(p, lost).board, lost.board);
+  for (const k of [0, 2, 10, 12]) {
+    const refused = at(k);
+    assert.equal(refused.board.lost, false, `${k} is refused, not final`);
+    assert.match(text(render(p, refused)), /There is a shorter one\./);
+  }
+  assert.ok(isSolved(p, at(9).board));
 });
 
 test('same rope and same place: move the letter, then make both shortest routes', () => {
@@ -124,8 +152,14 @@ test('same rope and same place: move the letter, then make both shortest routes'
   assert.ok(isSolved(tie, a.board));
   const other = play(tie, freshAttempt(tie), [{type: 'move', at: [0, 4]}, {type: 'touch', route: 0, at: 7}, {type: 'touch', route: 1, at: 2}, {type: 'fold'}, {type: 'claim'}]);
   assert.ok(isSolved(tie, other.board), 'every place that works is accepted');
-  const unequal = play(tie, freshAttempt(tie), [{type: 'move', at: [5, 4]}, {type: 'touch', route: 0, at: 7}, {type: 'touch', route: 1, at: 4}, {type: 'fold'}, {type: 'claim'}]);
+  const unequal = play(tie, freshAttempt(tie), [{type: 'move', at: [9, 4]}, {type: 'touch', route: 0, at: 7}, {type: 'touch', route: 1, at: 5}, {type: 'fold'}, {type: 'claim'}]);
   assert.match(text(render(tie, unequal)), /Not the same rope\./);
+  // Both routes must be shortest before the ropes are compared, so a
+  // refusal never says whether C is in the right place.
+  for (const at of [[5, 4], [6, 4]]) {
+    const bent = play(tie, freshAttempt(tie), [{type: 'move', at}, {type: 'touch', route: 0, at: 7}, {type: 'touch', route: 1, at: 2}, {type: 'fold'}, {type: 'claim'}]);
+    assert.match(text(render(tie, bent)), /There is a shorter one\./, `C at ${at}`);
+  }
   assert.equal(move(tie, freshAttempt(tie), {type: 'move', at: [3, 2]}), null, 'not onto A');
   const share = byId('folds-07');
   for (const at of [[8, 1], [11, 4]]) assert.ok(isSolved(share, play(share, freshAttempt(share), [{type: 'move', at}, {type: 'touch', route: 0, at: 7}, {type: 'touch', route: 1, at: 7}, {type: 'fold'}, {type: 'claim'}]).board));
@@ -148,13 +182,26 @@ test('every start: That’s all judges the whole set once', () => {
   assert.equal(move(p, freshAttempt(p), {type: 'start', at: [3, -1]}), null, 'not across the river');
 });
 
-test('two walls: the order is a final choice, and a bent route is refused', () => {
+test('two walls: Shortest after both orders are folded; the order is a final choice', () => {
   const p = byId('folds-10'), M = mechanicFor(p);
-  const wrongOrder = play(p, freshAttempt(p), [{type: 'touch', wall: 'upper', at: 4}, {type: 'touch', wall: 'lower', at: 8}, {type: 'fold'}, {type: 'claim'}]);
+  // Taking the first touch away and touching it again swaps the order.
+  const swap = (a, wall, at) => play(p, a, [{type: 'touch', wall, at}, {type: 'touch', wall, at}]);
+  let a = play(p, freshAttempt(p), [{type: 'touch', wall: 'upper', at: 4}, {type: 'touch', wall: 'lower', at: 8}, {type: 'fold'}]);
+  assert.deepEqual(a.board.seen, ['upper']);
+  assert.equal(move(p, a, {type: 'claim'}), null, 'Shortest is off until both orders are folded');
+  assert.match(text(render(p, a)), /Fold a route in the other order too\./);
+  a = swap(a, 'upper', 4);
+  assert.deepEqual(a.board.seen, ['upper', 'lower']);
+  assert.deepEqual(back(p, a).board.seen, ['upper', 'lower'], 'Undo keeps the orders folded');
+  assert.doesNotMatch(text(render(p, a)), /other order/);
+  const wrongOrder = move(p, swap(a, 'lower', 8), {type: 'claim'});
   assert.equal(wrongOrder.board.lost, true);
   assert.match(text(render(p, wrongOrder)), /The other order is shorter\./);
   assert.equal(M.noUndo(p), true);
-  const bent = play(p, freshAttempt(p), [{type: 'touch', wall: 'lower', at: 3}, {type: 'touch', wall: 'upper', at: 8}, {type: 'fold'}, {type: 'claim'}]);
+  assert.deepEqual(move(p, wrongOrder, {type: 'again'}).board.seen, [], 'Again starts a new try');
+  render(p, freshAttempt(p));
+  let bent = play(p, freshAttempt(p), [{type: 'touch', wall: 'lower', at: 3}, {type: 'touch', wall: 'upper', at: 8}, {type: 'fold'}]);
+  bent = move(p, swap(swap(bent, 'lower', 3), 'upper', 8), {type: 'claim'});
   assert.equal(bent.board.lost, false);
   assert.match(text(render(p, bent)), /There is a shorter one\./);
   const moved = play(p, bent, [{type: 'touch', wall: 'upper', at: 9}, {type: 'claim'}]);
@@ -163,19 +210,26 @@ test('two walls: the order is a final choice, and a bent route is refused', () =
   assert.deepEqual(removed.board.touches, [], 'tapping the same point takes the touch away');
 });
 
-test('round the block: keep, drop and That’s all', () => {
-  const p = byId('folds-12');
+test('round the block: keep, drop, and That’s all is a final choice', () => {
+  const p = byId('folds-12'), M = mechanicFor(p);
   let a = play(p, freshAttempt(p), [{type: 'corner', i: 0}, {type: 'corner', i: 1}, {type: 'keep'}, {type: 'fold'}]);
   assert.equal(move(p, a, {type: 'keep'}), null, 'no keeping the same route twice');
   const more = move(p, a, {type: 'claim'});
-  assert.match(text(render(p, more)), /There is another\./);
+  assert.equal(more.board.lost, true, 'a missing route ends the try');
+  const html = render(p, more);
+  assert.match(text(html), /There is another\./);
+  assert.match(text(html), /Again/);
+  assert.doesNotMatch(html, /fd-mark|marked|data-move="\{&quot;type&quot;:&quot;drop/, 'no verdict per kept route, and the shelf is still');
+  assert.equal(M.noUndo(p), true);
+  assert.equal(move(p, more, {type: 'drop', i: 0}), null);
   a = play(p, a, [{type: 'corner', i: 1}, {type: 'corner', i: 0}, {type: 'corner', i: 3}, {type: 'corner', i: 2}, {type: 'keep'}, {type: 'claim'}]);
   assert.ok(isSolved(p, a.board));
   const long = play(p, freshAttempt(p), [{type: 'corner', i: 0}, {type: 'corner', i: 1}, {type: 'corner', i: 2}, {type: 'keep'}, {type: 'fold'}, {type: 'claim'}]);
-  assert.match(text(render(p, long)), /This one isn’t shortest\./);
-  const dropped = move(p, long, {type: 'drop', i: 0});
+  assert.equal(long.board.lost, true);
+  assert.match(text(render(p, long)), /A kept route isn’t shortest\./);
+  const dropped = play(p, freshAttempt(p), [{type: 'corner', i: 0}, {type: 'corner', i: 1}, {type: 'keep'}, {type: 'drop', i: 0}]);
   assert.deepEqual(dropped.board.shelf, []);
-  assert.equal(dropped.board.told, false);
+  render(p, freshAttempt(p));
 });
 
 test('hints solve every puzzle from a fresh board, quickly, and never start with a claim', () => {
@@ -194,11 +248,18 @@ test('hints solve every puzzle from a fresh board, quickly, and never start with
 
 test('saves: forged boards are refused', () => {
   const p = byId('folds-02'), fresh = freshAttempt(p).board;
-  for (const forged of [{...fresh, done: true}, {...fresh, contacts: [7], done: true}, {...fresh, told: true}, {...fresh, contacts: [99]}, {...fresh, pick: 0}, {...fresh, extra: 1}])
+  for (const forged of [{...fresh, done: true}, {...fresh, contacts: [7], done: true}, {...fresh, told: true}, {...fresh, contacts: [99]}, {...fresh, pick: 0}, {...fresh, lost: true}, {...fresh, contacts: [7], folded: true, lost: true}, {...fresh, extra: 1}])
     assert.equal(validBoard(p, forged), false, JSON.stringify(forged));
   assert.equal(validBoard(p, {...fresh, contacts: [7], folded: true, done: true}), true);
   const w = byId('folds-10');
   assert.equal(validBoard(w, {...freshAttempt(w).board, lost: true}), false, 'a lost try needs a final claim');
+  const right = {...freshAttempt(w).board, touches: [{wall: 'lower', at: 3}, {wall: 'upper', at: 9}], folded: true, done: true};
+  assert.equal(validBoard(w, {...right, seen: ['lower', 'upper']}), true);
+  assert.equal(validBoard(w, {...right, seen: ['lower']}), false, 'a claim needs both orders folded');
+  const less = byId('folds-04'), made = {...freshAttempt(less).board, contacts: [7, 4], folded: true};
+  assert.equal(validBoard(less, {...made, done: true, pick: 0}), true);
+  assert.equal(validBoard(less, {...made, lost: true, pick: 0}), false, 'a right choice is not lost');
+  assert.equal(validBoard(less, {...made, lost: true, pick: 1}), true);
 });
 
 test('the board: no fold, no length, until asked', () => {

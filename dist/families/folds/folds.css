@@ -65,7 +65,7 @@
 [data-mechanic-wire="folds"] .fd-chip{width:76px;min-width:0;min-height:44px;padding:3px;margin:0;border:1.5px solid var(--b-line,#d0d6bd);border-radius:8px;background:var(--b-card,#fffdf5);box-shadow:none;cursor:pointer}
 [data-mechanic-wire="folds"] .fd-chip svg{display:block;width:100%;height:auto}
 [data-mechanic-wire="folds"] .fd-chip .fd-route{stroke-width:6}
-[data-mechanic-wire="folds"] .fd-chip.marked{border:2.5px solid var(--b-bad,#a9503a)}
+[data-mechanic-wire="folds"] .fd-chip.still{cursor:default}
 [data-mechanic-wire="folds"] .fd-chip.hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:2px}
 [data-mechanic-wire="folds"] .fd-chip:focus-visible{outline:3px solid var(--b-pine,#31533e);outline-offset:2px}
 [data-mechanic-wire="folds"] .fd-note{margin:0;text-align:center;color:var(--b-ink,#294439)}

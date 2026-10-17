@@ -2,10 +2,13 @@
 // group and playground in the satchel; touching the river by tapping a
 // point and the space beside it (a tap goes to the nearest point); Fold
 // before any claim; a refused claim, its note cleared by Undo while the claim
-// stays off; a solve; choosing a route by tapping its finish; a wrong final
-// choice, with Undo off and Again; moving a letter; every start with That's
-// all; two walls, whose board grows when folded; the block's shelf; keyboard
-// taps and the focus after them; and the playground's slide and arrow keys.
+// stays off; a solve; choosing a route to touch by tapping its finish and the
+// finish that needs less rope by its own button; a wrong final choice, with
+// Undo off, focus on Again and Again; moving a letter; every start with
+// That's all; two walls, whose Shortest waits for both orders and whose
+// board grows when folded; the block's shelf, whose wrong That's all ends
+// the try; keyboard taps and the focus after them; and the playground's
+// slide and arrow keys.
 // Checks that nothing overflows a 375-pixel phone and that the busiest
 // boards fit one screen with their controls. Same environment variables as
 // the other browser suites (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL,
@@ -89,7 +92,8 @@ try {
   await press('Shortest'); await done();
   await shot('solved');
 
-  // Puzzle 4: choose a route by its finish; a wrong final choice.
+  // Puzzle 4: choose a route to touch by its finish; the finish that needs
+  // less rope is its own button, so a wrong choice is a choice.
   P = 'folds-04';
   await open(P); await fit('less');
   await tap(pt('fd-c-7'));
@@ -99,16 +103,19 @@ try {
   assert.deepEqual((await board(P)).contacts, [7, 4]);
   await press('Fold');
   assert.equal(await page.locator('[data-mechanic-wire="folds"] .fd-letter.image').count(), 2, 'B′ and C′');
-  await press('Less rope');
+  assert.equal(await button('Less rope: B').count(), 1); assert.equal(await button('Less rope: C').count(), 1);
+  await press('Less rope: C');
   assert.equal((await board(P)).pick, 1);
   assert.equal(await note(), 'The rope to B is shorter.');
   assert.equal(await undoButton().isDisabled(), true, 'Undo is off in a lost try');
+  assert.equal((await focused()).focus, 'fd-again', 'focus lands on Again, not the page');
   await shot('lost');
   await press('Again');
   assert.deepEqual((await board(P)).contacts, [null, null]);
   assert.equal(await undoButton().isDisabled(), true, 'a fresh board has nothing to undo');
-  await tap(pt('fd-l-B')); await tap(pt('fd-c-7')); await tap(pt('fd-l-C')); await tap(pt('fd-c-4')); await press('Fold'); await tap(pt('fd-l-B'));
-  await press('Less rope'); await done();
+  await tap(pt('fd-l-B')); await tap(pt('fd-c-7')); await tap(pt('fd-l-C')); await tap(pt('fd-c-4')); await press('Fold');
+  assert.equal(await pt('fd-l-C').getAttribute('aria-pressed'), 'true', 'route A to C is still the one chosen for touching');
+  await press('Less rope: B'); await done();
   await shot('less-solved');
 
   // Puzzle 7: move D, then make both routes.
@@ -144,31 +151,51 @@ try {
   const small = (await page.locator('[data-mechanic-wire="folds"] .fd-board').boundingBox()).height;
   await press('Fold'); await fit('walls folded');
   assert.ok((await page.locator('[data-mechanic-wire="folds"] .fd-board').boundingBox()).height > small, 'the folded board shows the double image');
+  assert.equal(await button('Shortest').isDisabled(), true, 'Shortest waits for the other order');
+  assert.equal(await note(), 'Fold a route in the other order too.');
   if (phone) await fitsScreen('walls folded');
   await shot('walls-folded');
+  // Take the lower touch away and touch it again: upper first, folded.
+  await tap(pt('fd-lower-3')); await tap(pt('fd-lower-3'));
+  assert.deepEqual((await board(P)).seen, ['lower', 'upper']);
+  if (phone) await fitsScreen('walls upper first');
+  await tap(pt('fd-upper-9')); await tap(pt('fd-upper-9'));
+  assert.deepEqual((await board(P)).touches, [{wall: 'lower', at: 3}, {wall: 'upper', at: 9}]);
+  assert.equal(await button('Shortest').isDisabled(), false);
   await press('Shortest'); await done(); await fit('walls solved');
   await shot('walls-solved');
 
-  // Puzzle 12: the block, the shelf and That's all.
+  // Puzzle 12: the block, the shelf, and That's all as a final choice.
   P = 'folds-12';
   await open(P); await fit('block');
-  await tap(pt('fd-k-0')); await tap(pt('fd-k-1'));
-  assert.deepEqual((await board(P)).path, [0, 1]);
-  await press('Keep');
-  assert.equal(await page.locator('[data-mechanic-wire="folds"] .fd-chip').count(), 1, 'the route is on the shelf');
-  assert.match((await focused()).cls, /fd-pt|fd-button|fd-chip/, 'focus after Keep stays on the board');
-  await tap(pt('fd-k-1')); await tap(pt('fd-k-0'));
-  assert.deepEqual((await board(P)).path, [], 'tapping the last corner takes it back');
-  await tap(pt('fd-k-3')); await tap(pt('fd-k-2')); await tap(pt('fd-k-1')); await press('Keep');
+  const keepUnder = async () => {
+    await tap(pt('fd-k-0')); await tap(pt('fd-k-1'));
+    assert.deepEqual((await board(P)).path, [0, 1]);
+    await press('Keep');
+    assert.equal(await page.locator('[data-mechanic-wire="folds"] .fd-chip').count(), 1, 'the route is on the shelf');
+    assert.match((await focused()).cls, /fd-pt|fd-button|fd-chip/, 'focus after Keep stays on the board');
+    await tap(pt('fd-k-1')); await tap(pt('fd-k-0'));
+    assert.deepEqual((await board(P)).path, [], 'tapping the last corner takes it back');
+  };
+  await keepUnder();
   await press('Fold'); await press('That’s all');
-  assert.equal(await note(), 'This one isn’t shortest.');
-  assert.equal(await page.locator('[data-mechanic-wire="folds"] .fd-chip.marked').count(), 1);
+  assert.equal((await board(P)).lost, true, 'a wrong That’s all ends the try');
+  assert.equal(await note(), 'There is another.');
+  assert.equal(await page.locator('[data-mechanic-wire="folds"] .fd-chip.still').count(), 1, 'the shelf stays, without a verdict on each route');
+  assert.equal(await page.locator('[data-mechanic-wire="folds"] button.fd-chip').count(), 0);
+  assert.equal(await undoButton().isDisabled(), true, 'Undo is off in a lost try');
+  assert.equal((await focused()).focus, 'fd-again', 'focus lands on Again');
+  await shot('block-lost');
+  await press('Again');
+  assert.deepEqual((await board(P)).shelf, []);
+  await keepUnder();
+  await tap(pt('fd-k-3')); await tap(pt('fd-k-2')); await tap(pt('fd-k-1')); await press('Keep');
   await tap(page.locator('[data-mechanic-wire="folds"] .fd-chip').nth(1));
   assert.equal((await board(P)).shelf.length, 1, 'tapping a kept route takes it off');
   await tap(pt('fd-k-1'));
   await press('Keep');
   if (phone) await fitsScreen('block with a shelf');
-  await press('That’s all'); await done(); await fit('block solved');
+  await press('Fold'); await press('That’s all'); await done(); await fit('block solved');
   await shot('block-solved');
 
   // The playground: slide along the river, arrow keys, move a letter.

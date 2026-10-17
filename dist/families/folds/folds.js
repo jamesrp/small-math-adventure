@@ -30,7 +30,9 @@ const range = (a, b) => Array.from({length: Math.max(0, b - a + 1)}, (_, i) => a
 const byPlace = (p, q) => p[0] - q[0] || p[1] - q[1];
 const eq = (x, y) => JSON.stringify(x) === JSON.stringify(y);
 export const MODES = ['route', 'every', 'walls', 'block', 'playground'];
-const MAX_REFUSALS = 40;
+// Refusals are kept for the whole try; past this many the claim stays off
+// until Restart (a bound for saves, far beyond play).
+const MAX_REFUSALS = 500;
 
 // --- Exact lengths ---------------------------------------------------------
 // A length is a list of whole numbers under square roots. Write each √n as
@@ -128,6 +130,11 @@ export function bestContact(line, S, F) {
   return best;
 }
 export const isBest = (line, S, F, k) => { const [num, den] = bestContact(line, S, F); return den === 1 && num === k; };
+// Is k the best contact of its own stretch?
+export const stretchBest = (line, S, F, k) => {
+  const own = stretches(line).find(([a, b]) => a <= k && k <= b);
+  return !!own && isBest({dir: line.dir, at: line.at, windows: [own]}, S, F, k);
+};
 // The shortest rope from S to F, squared, when the fold's contact is allowed.
 export const ropeSquared = (line, S, F) => d2(S, mirror(line, F));
 
@@ -240,13 +247,23 @@ export function judge(q, s, pick = null) {
       const beaten = q.guesses.findIndex(g => compareLengths(mine, legs(line, ...route(0), g)) >= 0);
       return beaten < 0 ? {ok: true} : {why: 'beaten', mark: beaten};
     }
+    // Contacts the child can see differ: say so first. Then every route
+    // must be shortest before ropes are compared, so a refusal never tells
+    // whether a letter is in the right place.
+    if (q.claim === 'share' && s.contacts[0] !== s.contacts[1]) return {why: 'apart'};
+    // Windows: a stretch's best end that loses to the other stretch's is a
+    // final choice between the two candidates.
+    if (line.windows) {
+      const [S, F] = route(0), k = s.contacts[0];
+      if (isBest(line, S, F, k)) return {ok: true};
+      return stretchBest(line, S, F, k) ? {why: 'window', final: true} : {why: 'shorter', mark: 0};
+    }
+    const bent = firstNotBest();
+    if (bent >= 0) return {why: q.claim === 'share' ? 'bends' : 'shorter', mark: bent};
     if (q.claim === 'tie') {
       const [r0, r1] = [0, 1].map(i => ropeSquared(line, ...route(i)));
       if (r0 !== r1) return {why: 'unequal'};
     }
-    if (q.claim === 'share' && s.contacts[0] !== s.contacts[1]) return {why: 'apart'};
-    const bent = firstNotBest();
-    if (bent >= 0) return {why: q.claim === 'share' ? 'bends' : 'shorter', mark: bent};
     if (q.claim === 'less') {
       const ropes = [0, 1].map(i => ropeSquared(line, ...route(i)));
       return ropes[pick] < ropes[1 - pick] ? {ok: true} : {why: 'longer', mark: pick, final: true};
@@ -264,10 +281,11 @@ export function judge(q, s, pick = null) {
     if (wallsWinner(q) !== first) return {why: 'order', final: true};
     return compareLengths(wallsLegs(q, s.touches), [wallsBest(q, first).rope]) === 0 ? {ok: true} : {why: 'shorter'};
   }
+  // The shelf settles over against under, so a wrong one ends the try.
   if (q.mode === 'block') {
-    const {shortest} = blockRoutes(q), wrong = s.shelf.findIndex(path => !shortest.some(r => eq(r, path)));
-    if (wrong >= 0) return {why: 'long', mark: wrong};
-    return s.shelf.length === shortest.length ? {ok: true} : {why: 'more'};
+    const {shortest} = blockRoutes(q);
+    if (s.shelf.some(path => !shortest.some(r => eq(r, path)))) return {why: 'long', final: true};
+    return s.shelf.length === shortest.length ? {ok: true} : {why: 'more', final: true};
   }
   return {why: 'none'};
 }
@@ -315,10 +333,10 @@ export function placeSolutions(q) {
 // --- Boards ----------------------------------------------------------------
 function fresh(p) {
   const q = p.parameters;
-  if (q.mode === 'route') return {contacts: q.routes.map(() => null), ...(q.move ? {at: [...q.dots[q.move]]} : {}), folded: false, refused: [], told: false, pick: null, done: false};
+  if (q.mode === 'route') return {contacts: q.routes.map(() => null), ...(q.move ? {at: [...q.dots[q.move]]} : {}), folded: false, refused: [], told: false, pick: null, lost: false, done: false};
   if (q.mode === 'every') return {starts: [], folded: false, refused: [], told: false, done: false};
-  if (q.mode === 'walls') return {touches: [], folded: false, refused: [], told: false, lost: false, done: false};
-  if (q.mode === 'block') return {path: [], shelf: [], folded: false, refused: [], told: false, done: false};
+  if (q.mode === 'walls') return {touches: [], seen: [], folded: false, refused: [], told: false, lost: false, done: false};
+  if (q.mode === 'block') return {path: [], shelf: [], folded: false, refused: [], told: false, lost: false, done: false};
   return {at: q.start, dots: {A: [...q.dots.A], B: [...q.dots.B]}, folded: false};
 }
 const keys = (b, list) => Object.keys(b).length === list.length && list.every(k => Object.hasOwn(b, k));
@@ -376,7 +394,7 @@ function valid(p, b) {
     const {A, B} = b.dots;
     return [A, B].every(d => isPt(d) && inBox(q.place, d) && side(q.line, d) > 0) && !same(A, B);
   }
-  const list = {route: ['contacts', 'folded', 'refused', 'told', 'pick', 'done', ...(q.move ? ['at'] : [])], every: ['starts', 'folded', 'refused', 'told', 'done'], walls: ['touches', 'folded', 'refused', 'told', 'lost', 'done'], block: ['path', 'shelf', 'folded', 'refused', 'told', 'done']}[q.mode];
+  const list = {route: ['contacts', 'folded', 'refused', 'told', 'pick', 'lost', 'done', ...(q.move ? ['at'] : [])], every: ['starts', 'folded', 'refused', 'told', 'done'], walls: ['touches', 'seen', 'folded', 'refused', 'told', 'lost', 'done'], block: ['path', 'shelf', 'folded', 'refused', 'told', 'lost', 'done']}[q.mode];
   if (!keys(b, list) || typeof b.folded !== 'boolean' || typeof b.done !== 'boolean' || typeof b.told !== 'boolean' || !Array.isArray(b.refused) || b.refused.length > MAX_REFUSALS) return false;
   const s = slice(q, b);
   if (!validSlice(q, s)) return false;
@@ -391,10 +409,18 @@ function valid(p, b) {
   if (b.told && !refusalFor(b, s)) return false;
   // A claim is made on a folded, complete board; done only when it is right,
   // and a final refusal only when it is final.
-  const lost = q.mode === 'walls' ? b.lost : q.mode === 'route' ? b.pick !== null && !b.done : false;
-  if (q.mode === 'walls' && typeof b.lost !== 'boolean') return false;
-  if (q.mode === 'route' && !(b.pick === null || (q.claim === 'less' && int(b.pick) && b.pick >= 0 && b.pick < 2))) return false;
-  if (q.mode === 'route' && q.claim === 'less' && b.done && b.pick === null) return false;
+  if (q.mode !== 'every' && typeof b.lost !== 'boolean') return false;
+  const lost = b.lost === true;
+  // The finish a Less rope claim chose is saved with the claim, and only then.
+  if (q.mode === 'route') {
+    const picked = q.claim === 'less' && (b.done || lost);
+    if (picked ? !(int(b.pick) && b.pick >= 0 && b.pick < 2) : b.pick !== null) return false;
+  }
+  // Two walls: the orders folded so far, each at most once; a claim needs both.
+  if (q.mode === 'walls') {
+    if (!Array.isArray(b.seen) || !b.seen.every(w => ['lower', 'upper'].includes(w)) || new Set(b.seen).size !== b.seen.length) return false;
+    if ((b.done || lost) && b.seen.length < 2) return false;
+  }
   if (b.done || lost) {
     if (!b.folded || !ready(q, b) || (b.done && lost)) return false;
     const j = judge(q, s, q.mode === 'route' ? b.pick : null);
@@ -406,11 +432,10 @@ function valid(p, b) {
 const solved = (p, b) => valid(p, b) && b.done === true;
 
 // --- Moves -----------------------------------------------------------------
-const record = (b, s, j) => ({...b, told: true, refused: [...b.refused, {state: s, why: j.why, ...(j.mark === undefined ? {} : {mark: j.mark})}].slice(-MAX_REFUSALS)});
+const record = (b, s, j) => ({...b, told: true, refused: [...b.refused, {state: s, why: j.why, ...(j.mark === undefined ? {} : {mark: j.mark})}]});
 function claim(q, b, action) {
-  if (!b.folded || !ready(q, b)) return null;
+  if (!claimable(q, b)) return null;
   const s = slice(q, b);
-  if (refusalFor(b, s)) return null;
   let pick = null;
   if (q.mode === 'route' && q.claim === 'less') {
     pick = action.route;
@@ -418,13 +443,24 @@ function claim(q, b, action) {
   }
   const j = judge(q, s, pick);
   if (j.ok) return q.mode === 'route' ? {...b, pick, done: true} : {...b, done: true};
-  if (j.final) return q.mode === 'route' ? {...b, pick} : {...b, lost: true};
+  if (j.final) return q.mode === 'route' ? {...b, pick, lost: true} : {...b, lost: true};
   return record(b, s, j);
 }
-// Every move but Fold and a claim clears the refusal note.
+// A claim needs a folded, complete board that has not been refused, room in
+// the record, and with two walls a folded route in each order this try.
+function claimable(q, b) {
+  if (!b.folded || !ready(q, b) || b.refused.length >= MAX_REFUSALS || refusalFor(b, slice(q, b))) return false;
+  return q.mode !== 'walls' || b.seen.length === 2;
+}
+// Every move but Fold and a claim clears the refusal note. With two walls,
+// a folded route touching both walls records its order as seen.
 function move(p, b, action) {
-  const next = step(p, b, action);
-  return next && object(action) && !['fold', 'claim', 'again'].includes(action.type) && p.parameters.mode !== 'playground' ? {...next, told: false} : next;
+  const q = p.parameters;
+  let next = step(p, b, action);
+  if (!next || !object(action) || q.mode === 'playground') return next;
+  if (!['fold', 'claim', 'again'].includes(action.type)) next = {...next, told: false};
+  if (q.mode === 'walls' && !next.lost && !next.done && next.folded && next.touches.length === 2 && !next.seen.includes(next.touches[0].wall)) next = {...next, seen: [...next.seen, next.touches[0].wall]};
+  return next;
 }
 function step(p, b, action) {
   const q = p.parameters;
@@ -490,12 +526,13 @@ function step(p, b, action) {
 // the record (the claim stays off on that board, and Undo clears only the
 // note), and a try ended by a wrong final choice stays ended until Again or
 // Restart (Undo is off then; see noUndo).
-const isLost = (q, b) => q.mode === 'walls' ? b.lost === true : q.mode === 'route' && b.pick !== null && b.done === false;
+const isLost = (q, b) => q.mode !== 'every' && q.mode !== 'playground' && b.lost === true;
 function carry(p, from, to) {
   const q = p.parameters;
   if (q.mode === 'playground' || !object(from) || !object(to) || !Array.isArray(from.refused)) return to;
   if (isLost(q, from)) return from;
-  return {...to, refused: from.refused, told: false};
+  const next = {...to, refused: from.refused, told: false};
+  return q.mode === 'walls' && Array.isArray(from.seen) ? {...next, seen: from.seen} : next;
 }
 
 // --- Hints -----------------------------------------------------------------
@@ -508,7 +545,7 @@ const near = (from, list) => [...list].sort((s, t) => d2(from, s) - d2(from, t) 
 const routeName = (q, i) => `${q.routes[i][0]} to ${q.routes[i][1]}`;
 function routeHint(q, b) {
   const line = q.line, where = NAMES[line.dir];
-  if (b.pick !== null) return {type: 'move', action: {type: 'again'}, text: 'Press Again.'};
+  if (b.lost) return {type: 'move', action: {type: 'again'}, text: 'Press Again.'};
   if (!b.folded) return {type: 'move', action: {type: 'fold'}, text: `Fold: the finish flips over the ${where}, and the rope keeps its length.`};
   let at = b.at, targets;
   if (q.move) {
@@ -526,13 +563,13 @@ function routeHint(q, b) {
     if (b.contacts[i] === targets[i]) continue;
     const [S, F] = routeOf(q, {at}, i), [num, den] = foldContact(line, S, F), outside = !(den === 1 && num === targets[i]);
     const text = outside
-      ? `The straight line from ${q.routes[i][0]} to ${q.routes[i][1]}′ crosses where you can’t touch. Touch the nearest place you can.`
+      ? `The straight line from ${q.routes[i][0]} to ${q.routes[i][1]}′ crosses where you can’t touch. On each side of that crossing, the nearer the touch, the shorter the route: of the two stretch ends nearest it, this one is shorter.`
       : `${q.routes.length > 1 ? `${routeName(q, i)}: t` : 'T'}ouch where the straight line from ${q.routes[i][0]} to ${q.routes[i][1]}′ crosses the ${where}.`;
     return {type: 'move', action: {type: 'touch', route: i, at: targets[i]}, text};
   }
   if (q.claim === 'less') {
     const ropes = [0, 1].map(i => ropeSquared(line, ...routeOf(q, b, i))), win = ropes[0] < ropes[1] ? 0 : 1;
-    return {type: 'move', action: {type: 'claim', route: win}, text: `Both ropes are straight now. The one to ${q.routes[win][1]}′ is shorter: choose ${q.routes[win][1]} and press Less rope.`};
+    return {type: 'move', action: {type: 'claim', route: win}, text: `Both ropes are straight now. The one to ${q.routes[win][1]}′ is shorter: press Less rope: ${q.routes[win][1]}.`};
   }
   return {type: 'move', action: {type: 'claim'}, text: `Press ${CLAIM_LABEL[q.claim]}.`};
 }
@@ -544,16 +581,24 @@ function everyHint(q, b) {
   if (missing.length) return {type: 'move', action: {type: 'start', at: near(q.line.dir === 'h' ? [q.p, q.line.at] : [q.line.at, q.p], missing)}, text: `Starts that work lie on the straight line from ${q.finish}′ through P, past P.`};
   return {type: 'move', action: {type: 'claim'}, text: 'Press That’s all.'};
 }
+// Two walls: fold a route in each order (a complete route as it stands, then
+// the worse order first), then make the better order's route straight and
+// claim.
 function wallsHint(q, b) {
   if (b.lost) return {type: 'move', action: {type: 'again'}, text: 'Press Again.'};
-  const first = wallsWinner(q), second = otherWall(first), best = wallsBest(q, first), [c1, c2] = best.at.map(([n]) => n), t = b.touches;
-  if (t.length && t[0].wall !== first) return {type: 'move', action: {type: 'touch', wall: t[0].wall, at: t[0].at}, text: `Start with the ${first} wall: folding B twice that way lands nearer A. Take this touch away.`};
-  if (!t.length || t[0].at !== c1) return {type: 'move', action: {type: 'touch', wall: first, at: c1}, text: `Touch the ${first} wall here first.`};
+  const t = b.touches;
+  if (t.length === 2 && !b.folded && !b.seen.includes(t[0].wall)) return {type: 'move', action: {type: 'fold'}, text: 'Fold to see this order unfolded.'};
+  const win = wallsWinner(q), lose = otherWall(win), order = [lose, win].find(o => !b.seen.includes(o)) ?? win, last = b.seen.length === 2;
+  const clamp = k => Math.min(Math.max(k, q.walls.from), q.walls.to);
+  const [c1, c2] = wallsBest(q, order).at.map(([n, d]) => clamp(Math.round(n / d))), second = otherWall(order);
+  if (t.length && t[0].wall !== order) return {type: 'move', action: {type: 'touch', wall: t[0].wall, at: t[0].at}, text: last ? `Start with the ${win} wall: folding B twice that way lands nearer A. Take this touch away.` : `To try the ${order} wall first, take this touch away.`};
+  if (!t.length || t[0].at !== c1) return {type: 'move', action: {type: 'touch', wall: order, at: c1}, text: last ? `Touch the ${order} wall here first.` : `Try the ${order} wall first: touch it here.`};
   if (t.length < 2 || t[1].at !== c2) return {type: 'move', action: {type: 'touch', wall: second, at: c2}, text: `Then touch the ${second} wall here.`};
-  if (!b.folded) return {type: 'move', action: {type: 'fold'}, text: 'Fold to see the whole route straight.'};
+  if (!b.folded) return {type: 'move', action: {type: 'fold'}, text: last ? 'Fold to see the whole route straight.' : 'Fold to see this order unfolded.'};
   return {type: 'move', action: {type: 'claim'}, text: 'Press Shortest.'};
 }
 function blockHint(q, b) {
+  if (b.lost) return {type: 'move', action: {type: 'again'}, text: 'Press Again.'};
   const {shortest} = blockRoutes(q), wrong = b.shelf.findIndex(path => !shortest.some(r => eq(r, path)));
   if (wrong >= 0) return {type: 'move', action: {type: 'drop', i: wrong}, text: 'This route is longer than the shortest. Take it off the shelf.'};
   const missing = shortest.find(r => !b.shelf.some(path => eq(path, r)));
@@ -598,7 +643,8 @@ const U = 40;
 export const CLAIM_LABEL = {shorter: 'Shorter', shortest: 'Shortest', less: 'Less rope', tie: 'Same rope', share: 'Same place'};
 const SAY = {
   beaten: 'Not shorter than this one.', shorter: 'There is a shorter one.', unequal: 'Not the same rope.', apart: 'They touch at different places.',
-  bends: 'This one bends.', misses: 'This one’s shortest route misses P.', more: 'There is another.', order: 'The other order is shorter.', long: 'This one isn’t shortest.'
+  bends: 'This one bends.', misses: 'This one’s shortest route misses P.', more: 'There is another.', order: 'The other order is shorter.', long: 'A kept route isn’t shortest.',
+  window: 'The other stretch has a shorter route.', other: 'Fold a route in the other order too.'
 };
 const prime = (letter, n = 1) => `${letter}${n === 2 ? '″' : '′'}`;
 // Two walls: the board grows to hold the folded route and, after the
@@ -659,12 +705,12 @@ const placeWords = (f, [x, y]) => `${x - f.view[0]} across, ${y - f.view[1]} up`
 const boardHtml = (f, svg, buttons, label, cls = '') => `<div class="fd-board${cls ? ` ${cls}` : ''}" data-fd-board style="--cols:${f.cols};--rows:${f.rows}" role="group" aria-label="${esc(label)}"><svg viewBox="0 0 ${f.cols * U} ${f.rows * U}" aria-hidden="true">${svg}</svg>${buttons}</div>`;
 const moveAttr = action => `data-fd-move="${esc(JSON.stringify(action))}"`;
 const hinted = (h, test) => h && h.type === 'move' && test(h.action);
-const control = (label, action, enabled, h, extra = '') => `<button type="button" class="secondary fd-button${hinted(h, a => a.type === action.type && (a.route === undefined || a.route === action.route)) ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="fd-${action.type}" ${enabled ? '' : 'disabled'} ${extra}>${esc(label)}</button>`;
+const control = (label, action, enabled, h, extra = '', focus = `fd-${action.type}`) => `<button type="button" class="secondary fd-button${hinted(h, a => a.type === action.type && (a.route === undefined || a.route === action.route)) ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="${focus}" ${enabled ? '' : 'disabled'} ${extra}>${esc(label)}</button>`;
 const foldButton = (b, h) => control(b.folded ? 'Unfold' : 'Fold', {type: 'fold'}, true, h, `aria-pressed="${b.folded}"`);
 const noteHtml = (text, good = false) => text ? `<p class="fd-note${good ? ' good' : ''}" role="status">${esc(text)}</p>` : '<p class="fd-note" role="status"></p>';
 
 function renderRoute(p, a) {
-  const q = p.parameters, b = a.board, done = solved(p, b), lost = b.pick !== null && !b.done, f = frame(q.view), line = q.line;
+  const q = p.parameters, b = a.board, done = solved(p, b), lost = b.lost === true, f = frame(q.view), line = q.line;
   const dots = dotsOf(q, b), sel = Math.min(ui(p).route, q.routes.length - 1), s = slice(q, b), refusal = refusalFor(b, s), told = b.told ? refusal : null;
   const h = a.hintLevel >= 2 && !done ? hint(p, b) : null;
   const colors = ['r0', 'r1'], parts = [paper(f), farSide(f, line, side(line, dots.A)), lineDrawing(f, line)];
@@ -688,13 +734,18 @@ function renderRoute(p, a) {
     const ropes = q.routes.map((_, i) => routeOf(q, b, i)), shorter = q.claim === 'less' ? (ropeSquared(line, ...ropes[0]) < ropeSquared(line, ...ropes[1]) ? 0 : 1) : 0;
     parts.push(arc(f, ropes[shorter][0], mirror(line, ropes[shorter][1]), 'fd-arc'));
   }
-  if (done && line.windows) { const [S, F] = routeOf(q, b, 0); parts.push(seg(f, S, mirror(line, F), 'fd-straight')); }
+  if ((done || lost) && line.windows) {
+    const [S, F] = routeOf(q, b, 0), [k] = bestContact(line, S, F);
+    parts.push(seg(f, S, mirror(line, F), 'fd-straight'));
+    if (lost) parts.push(polyline(f, [S, pointOn(line, k), mirror(line, F)], 'fd-route r1 flipped'));
+  }
   if (b.folded) {
     const finishes = [...new Set(q.routes.map(r => r[1]))];
     for (const name of finishes) parts.push(letter(f, prime(name), mirror(line, dots[name]), 'image'));
   }
   const finishOf = i => dots[q.routes[i][1]];
-  if (q.routes.length > 1 && !done) parts.push(ring(f, finishOf(sel), `fd-chosen ${colors[sel]}`));
+  if (q.routes.length > 1 && !done && !lost) parts.push(ring(f, finishOf(sel), `fd-chosen ${colors[sel]}`));
+  if (lost && b.pick !== null) parts.push(ring(f, finishOf(b.pick), 'fd-mark'));
   if (told && ['shorter', 'bends'].includes(told.why) && q.routes.length > 1) parts.push(ring(f, finishOf(told.mark), 'fd-mark'));
   for (const [name, pt] of Object.entries(dots)) parts.push(letter(f, name, pt, name === q.move ? 'moving' : ''));
   // Buttons: the river's contacts, the letters that choose a route, and the
@@ -714,12 +765,14 @@ function renderRoute(p, a) {
     });
     if (q.move) for (const pt of placeSpots(q)) if (!same(pt, b.at)) buttons.push(button(f, pt, `${moveAttr({type: 'move', at: pt})} data-focus="fd-p-${pt.join('_')}"`, `Move ${q.move} to ${placeWords(f, pt)}`, `fd-free${hintedMove && same(hintedMove, pt) ? ' hinted' : ''}`));
   }
-  const ready_ = b.contacts.every(int), claimLabel = q.claim === 'less' ? `${CLAIM_LABEL.less}: ${q.routes[sel][1]}` : CLAIM_LABEL[q.claim];
-  const claimAction = q.claim === 'less' ? {type: 'claim', route: sel} : {type: 'claim'};
+  // Less rope names its finish on the button: one button per finish, apart
+  // from the route chosen for touching.
+  const can = claimable(q, b), claims = q.claim === 'less'
+    ? q.routes.map((r, i) => control(`${CLAIM_LABEL.less}: ${r[1]}`, {type: 'claim', route: i}, can, h, '', `fd-claim-${i}`)).join('')
+    : control(CLAIM_LABEL[q.claim], {type: 'claim'}, can, h);
   const tools = done ? '' : lost ? `<div class="fd-tools">${control('Again', {type: 'again'}, true, h)}</div>`
-    : `<div class="fd-tools">${foldButton(b, h)}${b.folded ? control(claimLabel, claimAction, ready_ && !refusal, h) : ''}</div>`;
-  const other = q.claim === 'less' && lost ? q.routes[1 - b.pick][1] : null;
-  const note = lost ? `The rope to ${other} is shorter.` : told ? SAY[told.why] : '';
+    : `<div class="fd-tools">${foldButton(b, h)}${b.folded ? claims : ''}</div>`;
+  const note = !lost ? (told ? SAY[told.why] : '') : q.claim === 'less' ? `The rope to ${q.routes[1 - b.pick][1]} is shorter.` : SAY.window;
   const status = q.routes.map((_, i) => `Route ${routeName(q, i)}${b.contacts[i] === null ? ' has no contact yet' : ` touches the ${NAMES[line.dir]} at ${across(q, b.contacts[i])}`}.`).join(' ') + (b.folded ? ' Folded.' : '') + (q.move ? ` ${q.move} at ${placeWords(f, b.at)}.` : '');
   return `<div class="fd-puzzle" data-mechanic-wire="folds">${boardHtml(f, parts.join(''), buttons.join(''), `Board with a ${NAMES[line.dir]}`)}${tools}${noteHtml(note)}<p class="sr-only">${esc(status)}</p></div>`;
 }
@@ -743,7 +796,7 @@ function renderEvery(p, a) {
     const on = b.starts.some(S => same(S, pt));
     buttons.push(button(f, pt, `${moveAttr({type: 'start', at: pt})} data-focus="fd-s-${x}_${y}" aria-pressed="${on}"`, `${on ? 'Start' : 'Empty'} at ${placeWords(f, pt)}`, `fd-free${on ? ' on' : ''}${hintedAt && same(hintedAt, pt) ? ' hinted' : ''}`));
   }
-  const tools = done ? '' : `<div class="fd-tools">${foldButton(b, h)}${b.folded ? control('That’s all', {type: 'claim'}, b.starts.length > 0 && !refusal, h) : ''}</div>`;
+  const tools = done ? '' : `<div class="fd-tools">${foldButton(b, h)}${b.folded ? control('That’s all', {type: 'claim'}, claimable(q, b), h) : ''}</div>`;
   const status = `${b.starts.length ? `Starts at ${b.starts.map(S => placeWords(f, S)).join('; ')}.` : 'No starts yet.'}${b.folded ? ' Folded.' : ''}`;
   return `<div class="fd-puzzle" data-mechanic-wire="folds">${boardHtml(f, parts.join(''), buttons.join(''), 'Board with a river')}${tools}${noteHtml(told ? SAY[told.why] : '')}<p class="sr-only">${esc(status)}</p></div>`;
 }
@@ -775,16 +828,18 @@ function renderWalls(p, a) {
     buttons.push(button(f, pt, `${moveAttr({type: 'touch', wall: w, at: k})} data-focus="fd-${w}-${k}"`, `${w === 'lower' ? 'Lower' : 'Upper'} wall at ${k - f.view[0]}${i >= 0 ? `, touched ${i ? 'second' : 'first'}` : ''}`, `fd-on-line${hintedAt && hintedAt.wall === w && hintedAt.at === k ? ' hinted' : ''}`));
   }
   const tools = done ? '' : b.lost ? `<div class="fd-tools">${control('Again', {type: 'again'}, true, h)}</div>`
-    : `<div class="fd-tools">${foldButton(b, h)}${b.folded ? control('Shortest', {type: 'claim'}, t.length === 2 && !refusal, h) : ''}</div>`;
-  const note = b.lost ? SAY.order : told ? SAY[told.why] : '';
+    : `<div class="fd-tools">${foldButton(b, h)}${b.folded ? control('Shortest', {type: 'claim'}, claimable(q, b), h) : ''}</div>`;
+  const note = b.lost ? SAY.order : told ? SAY[told.why] : !done && b.folded && t.length === 2 && b.seen.length < 2 ? SAY.other : '';
   const status = t.length ? `The route touches ${t.map(x => `the ${x.wall} wall at ${x.at - f.view[0]}`).join(', then ')}.` : 'No touches yet.';
   return `<div class="fd-puzzle" data-mechanic-wire="folds">${boardHtml(f, parts.join(''), buttons.join(''), 'Board with two walls')}${tools}${noteHtml(note)}<p class="sr-only">${esc(status + (b.folded ? ' Folded.' : ''))}</p></div>`;
 }
 
-function thumb(q, path, i, marked, h) {
+function thumb(q, path, i, still, h) {
   const f = frame(q.view), [x0, y0, x1, y1] = q.rect;
   const svg = `<rect class="fd-block" x="${f.X(x0)}" y="${f.Y(y1)}" width="${(x1 - x0) * U}" height="${(y1 - y0) * U}"/>${polyline(f, blockPoints(q, path), 'fd-route r1')}${dot(f, q.dots.A, 'fd-thumb-dot', .3)}${dot(f, q.dots.B, 'fd-thumb-dot', .3)}`;
-  return `<button type="button" class="fd-chip${marked ? ' marked' : ''}${hinted(h, a => a.type === 'drop' && a.i === i) ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'drop', i}))}" data-focus="fd-chip-${i}" aria-label="Kept route ${i + 1}, round ${path.length} ${path.length === 1 ? 'corner' : 'corners'}. Tap to take it off the shelf."><svg viewBox="0 0 ${f.cols * U} ${f.rows * U}" aria-hidden="true">${svg}</svg></button>`;
+  const picture = `<svg viewBox="0 0 ${f.cols * U} ${f.rows * U}" aria-hidden="true">${svg}</svg>`, name = `Kept route ${i + 1}, round ${path.length} ${path.length === 1 ? 'corner' : 'corners'}`;
+  if (still) return `<span class="fd-chip still" role="img" aria-label="${esc(name)}">${picture}</span>`;
+  return `<button type="button" class="fd-chip${hinted(h, a => a.type === 'drop' && a.i === i) ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'drop', i}))}" data-focus="fd-chip-${i}" aria-label="${esc(name)}. Tap to take it off the shelf.">${picture}</button>`;
 }
 // The shortest route bending only at corners on the other side of the line
 // through A and B from the only shortest route, or null when there is a tie.
@@ -796,7 +851,7 @@ function otherSide(q) {
   return others.reduce((best, path) => !best || compareLengths(blockLegs(q, path), blockLegs(q, best)) < 0 ? path : best, null);
 }
 function renderBlock(p, a) {
-  const q = p.parameters, b = a.board, done = solved(p, b), f = frame(q.view), [x0, y0, x1, y1] = q.rect, corners = cornersOf(q.rect);
+  const q = p.parameters, b = a.board, done = solved(p, b), lost = b.lost === true, over = done || lost, f = frame(q.view), [x0, y0, x1, y1] = q.rect, corners = cornersOf(q.rect);
   const s = slice(q, b), refusal = refusalFor(b, s), told = b.told ? refusal : null, h = a.hintLevel >= 2 && !done ? hint(p, b) : null;
   const flip = ([x, y]) => [x, 2 * q.axis - y];
   const parts = [paper(f), `<rect class="fd-block" x="${f.X(x0)}" y="${f.Y(y1)}" width="${(x1 - x0) * U}" height="${(y1 - y0) * U}"/>`];
@@ -809,22 +864,26 @@ function renderBlock(p, a) {
   if (b.folded) {
     parts.push(seg(f, [f.view[0] - .5, q.axis], [f.view[2] + .5, q.axis], 'fd-foldline'));
     for (const path of b.shelf) parts.push(polyline(f, blockPoints(q, path).map(flip), 'fd-route r1 flipped'));
-    if (b.path.length && !done) parts.push(polyline(f, pts.map(flip), 'fd-route r0 flipped'));
-    if (done) {
+    if (b.path.length && !over) parts.push(polyline(f, pts.map(flip), 'fd-route r0 flipped'));
+    if (over) {
       const other = otherSide(q);
       if (other) parts.push(polyline(f, blockPoints(q, other).map(flip), 'fd-route r0 flipped'));
     }
   }
-  if (!done) parts.push(polyline(f, pts.slice(0, -1), 'fd-route r0'), seg(f, pts[pts.length - 2], q.dots.B, `fd-route r0${legal ? '' : ' blocked'}`));
+  if (!over) parts.push(polyline(f, pts.slice(0, -1), 'fd-route r0'), seg(f, pts[pts.length - 2], q.dots.B, `fd-route r0${legal ? '' : ' blocked'}`));
+  // A lost try draws every shortest route, so the flipped routes can be
+  // compared with them.
+  if (lost) for (const path of blockRoutes(q).shortest) parts.push(polyline(f, blockPoints(q, path), 'fd-route r0'));
   for (const [i, c] of corners.entries()) parts.push(dot(f, c, `fd-corner${b.path.includes(i) ? ' on' : ''}`, .14));
   parts.push(letter(f, 'A', q.dots.A), letter(f, 'B', q.dots.B));
   const buttons = [], hintedAt = hinted(h, x => x.type === 'corner') ? h.action.i : null;
-  if (!done) for (const [i, c] of corners.entries()) buttons.push(button(f, c, `${moveAttr({type: 'corner', i})} data-focus="fd-k-${i}"`, `Corner ${['bottom left', 'bottom right', 'top right', 'top left'][i]}${b.path.includes(i) ? `, bend ${b.path.indexOf(i) + 1}` : ''}`, `fd-on-line${hintedAt === i ? ' hinted' : ''}`));
-  const shelf = b.shelf.length ? `<div class="fd-shelf" role="group" aria-label="Kept routes">${b.shelf.map((path, i) => thumb(q, path, i, told?.why === 'long' && told.mark === i, h)).join('')}</div>` : '';
+  if (!over) for (const [i, c] of corners.entries()) buttons.push(button(f, c, `${moveAttr({type: 'corner', i})} data-focus="fd-k-${i}"`, `Corner ${['bottom left', 'bottom right', 'top right', 'top left'][i]}${b.path.includes(i) ? `, bend ${b.path.indexOf(i) + 1}` : ''}`, `fd-on-line${hintedAt === i ? ' hinted' : ''}`));
+  const shelf = b.shelf.length ? `<div class="fd-shelf" role="group" aria-label="Kept routes">${b.shelf.map((path, i) => thumb(q, path, i, over, h)).join('')}</div>` : '';
   const keepable = b.path.length > 0 && legal && !b.shelf.some(r => eq(r, b.path));
-  const tools = done ? '' : `<div class="fd-tools">${control('Keep', {type: 'keep'}, keepable, h)}${foldButton(b, h)}${b.folded ? control('That’s all', {type: 'claim'}, b.shelf.length > 0 && !refusal, h) : ''}</div>`;
+  const tools = done ? '' : lost ? `<div class="fd-tools">${control('Again', {type: 'again'}, true, h)}</div>`
+    : `<div class="fd-tools">${control('Keep', {type: 'keep'}, keepable, h)}${foldButton(b, h)}${b.folded ? control('That’s all', {type: 'claim'}, claimable(q, b), h) : ''}</div>`;
   const status = `The route bends at ${b.path.length} ${b.path.length === 1 ? 'corner' : 'corners'}${legal ? '' : ' and its last part crosses the block'}. ${b.shelf.length} kept.${b.folded ? ' Folded.' : ''}`;
-  return `<div class="fd-puzzle" data-mechanic-wire="folds">${boardHtml(f, parts.join(''), buttons.join(''), 'Board with a block')}${tools}${shelf}${noteHtml(told ? SAY[told.why] : '')}<p class="sr-only">${esc(status)}</p></div>`;
+  return `<div class="fd-puzzle" data-mechanic-wire="folds">${boardHtml(f, parts.join(''), buttons.join(''), 'Board with a block')}${tools}${shelf}${noteHtml(lost ? SAY[judge(q, s).why] : told ? SAY[told.why] : '')}<p class="sr-only">${esc(status)}</p></div>`;
 }
 
 function renderPlayground(p, a) {
@@ -931,5 +990,5 @@ export default {
   mechanics: foldMechanics,
   pack: new URL('./folds.json', import.meta.url).href,
   css: new URL('./folds.css', import.meta.url).href,
-  focus: '[data-mechanic-wire="folds"] .fd-pt:not(:disabled),[data-mechanic-wire="folds"] .fd-button[data-focus="fd-fold"]:not(:disabled)'
+  focus: '[data-mechanic-wire="folds"] .fd-pt:not(:disabled),[data-mechanic-wire="folds"] .fd-button:not(:disabled)'
 };
