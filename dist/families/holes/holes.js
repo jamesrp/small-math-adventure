@@ -492,7 +492,7 @@ function drawBoard(p, B, look) {
   const [x, y, w, h] = B.m.box, pad = 4;
   // The hatching that marks a hole (one board on a page, so one pattern id).
   const hatch = B.holes.length ? '<defs><pattern id="hl-hatch" width="2.4" height="2.4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="hl-hatch-bg" width="2.4" height="2.4"/><line class="hl-hatch-line" x1="0" y1="0" x2="0" y2="2.4"/></pattern></defs>' : '';
-  return `<svg class="tg-board hl-svg${look.solved ? ' solved' : ''}" viewBox="${n2(x - pad)} ${n2(y - pad)} ${n2(w + 2 * pad)} ${n2(h + 2 * pad)}" style="--hl-units:${n2((w + 2 * pad) / 10)}" role="group" data-tg-board tabindex="-1" aria-label="${esc(look.label || 'Board')}">${hatch}${tris}${holes}${shade}${wires}${lines(outs, 'out')}${lines(glows, 'glow')}${dots}${rings}${picks}${marks}${markedPlaces}${cellHits}${holeHits}${placeHits}</svg>`;
+  return `<svg class="tg-board hl-svg${look.solved ? ' solved' : ''}" viewBox="${n2(x - pad)} ${n2(y - pad)} ${n2(w + 2 * pad)} ${n2(h + 2 * pad)}" style="--hl-units:${n2((w + 2 * pad) / 10)};--hl-ratio:${n2((w + 2 * pad) / (h + 2 * pad))}" role="group" data-tg-board tabindex="-1" aria-label="${esc(look.label || 'Board')}">${hatch}${tris}${holes}${shade}${wires}${lines(outs, 'out')}${lines(glows, 'glow')}${dots}${rings}${picks}${marks}${markedPlaces}${cellHits}${holeHits}${placeHits}</svg>`;
 }
 function insetPts(B, t, k = .62) {
   const [cx, cy] = B.m.centre[t];
@@ -526,7 +526,7 @@ function renderCancel(p, a) {
   const note = b.refused?.shown ? 'That one doesn’t keep it lit.' : '';
   const litCount = listOf(lit).length;
   const status = solved ? (right ? `${Cap(faceName(B, b.cant))} stays inside the loop, so it can’t go dark.` : 'Every wire is dark.') : `${litCount ? plural(litCount, 'wire lit', 'wires lit') : 'Every wire is dark'}.${point ? ' Tap the triangle or hole that keeps the loop lit.' : ''}${note ? ` ${note}` : ''}`;
-  return `<div class="hl-board hl-cancel${solved ? ' solved' : ''}${point ? ' pointing' : ''}" data-mechanic-wire="holes">${board}<div class="hl-tools">${cant}</div>${note ? `<p class="hl-note">${note}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="hl-board hl-cancel${solved ? ' solved' : ''}${point ? ' pointing' : ''}" data-mechanic-wire="holes">${board}<div class="hl-tools">${cant}${note ? `<p class="hl-note">${note}</p>` : ''}</div><p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 
 // The tile track: an outline for each tile up to the marked one; tiles
@@ -550,7 +550,7 @@ function renderSchedule(p, a) {
   const cells = t => {
     if (!live || s.filled[t]) return {};
     const ready = fillable(B, s.present, t);
-    return ready ? {act: true, label: `Fill ${faceName(B, t)}${s.inside?.includes(t) ? ', inside the lit loop' : ''}`, cls: ' ready'} : {};
+    return ready ? {act: true, label: `Fill ${faceName(B, t)}`, cls: ' ready'} : {};
   };
   const places = e => live ? {act: true, label: `Add the wire between dots ${B.m.edges[e][0] + 1} and ${B.m.edges[e][1] + 1}`} : null;
   const lit = s.saved && !s.out ? [{mask: s.saved, cls: 'sun'}] : [];
@@ -589,7 +589,7 @@ function renderRace(p, a) {
   const note = b.refused?.shown ? raceRefusal(p, b.refused.tiles) : '';
   const word = x => x ? `out with fill ${x}` : 'lit';
   const status = solved && right ? 'Every tile the pink loop needs is inside the yellow loop.' : `Yellow loop ${word(s.yellow)}, pink loop ${word(s.pink)}. ${plural(b.fills.length, 'triangle', 'triangles')} filled.${point ? ' Tap the tiles that fill the pink loop, then Check.' : ''}${note ? ` ${note}` : ''}`;
-  return `<div class="hl-board hl-race${solved ? ' solved' : ''}${point ? ' pointing' : ''}" data-mechanic-wire="holes">${board}<div class="hl-tools">${cant}${check}</div>${note ? `<p class="hl-note">${esc(note)}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="hl-board hl-race${solved ? ' solved' : ''}${point ? ' pointing' : ''}" data-mechanic-wire="holes">${board}<div class="hl-tools">${cant}${check}${note ? `<p class="hl-note">${esc(note)}</p>` : ''}</div><p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 
 // Taps on the board go through tri-grid's wireTri (pointer press and

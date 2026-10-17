@@ -141,7 +141,7 @@ const authored = [
     expect: {dark: true, taps: 3},
     idea: 'Tap the tiles inside the lit loop: each tap takes one triangle out of the loop, and a tile outside it makes the loop bigger.',
     prerequisites: 'Square.',
-    hints: ['Which triangles are inside the lit loop?', 'Tapping a tile inside the loop takes that triangle out of it.', 'Tap the three tiles inside the loop.'],
+    hints: ['Tap tiles and watch how the loop changes.', 'Tapping a tile inside the loop takes that triangle out of it.', 'Tap the three tiles inside the loop.'],
     parent: {
       notice: 'Whether your child taps a tile outside the loop, sees the loop grow to take it in, and taps it again.',
       prompt: 'What happens to the loop when you tap a tile inside it? And outside it?',
@@ -153,35 +153,35 @@ const authored = [
   },
   {
     number: 3, difficulty_level: 'easy', title: 'Another strip',
-    parameters: {kind: 'cancel', mesh: boards.strip6, filled: [0, 1, 3, 4, 5], lit: outline(boards.strip6, [0, 1, 2, 3, 4])},
-    expect: {certificates: [2]},
+    parameters: {kind: 'cancel', mesh: boards.strip6, filled: [0, 1, 3, 4], lit: outline(boards.strip6, [0, 1, 2, 3, 4])},
+    expect: {certificates: [2], empty: 2},
     idea: 'An empty triangle inside the lit loop never leaves it: taps move the loop, but the empty triangle stays inside, so the wires can’t all go dark.',
     prerequisites: 'Strip.',
-    hints: ['Tap tiles inside the loop and watch where it goes.', 'Can the empty triangle ever leave the loop?', 'The loop always goes round the empty triangle. Press Can’t and tap it.'],
+    hints: ['Tap tiles inside the loop and watch where it goes.', 'Can the empty triangle inside the loop ever leave it?', 'The loop always goes round the empty triangle in the middle. Press Can’t and tap it.'],
     parent: {
-      notice: 'Whether your child keeps tapping, trying to reach the empty triangle, and whether they can say why it never goes.',
+      notice: 'Whether your child keeps tapping, trying to reach the empty triangle in the middle, whether they press Can’t on the empty triangle at the end, and whether they can say why the middle one never goes.',
       prompt: 'You can’t tap the empty triangle. Could the loop ever stop going round it?',
-      explanation: 'Every loop on this strip goes round exactly one set of triangles, and a tap adds or removes just the triangle tapped. The empty triangle has no tile, so nothing ever takes it out of the set: the lit wires always go round it and can’t all be dark. Tapping it after Can’t shows the reason, with the triangles the loop goes round shaded.',
+      explanation: 'Every loop on this strip goes round exactly one set of triangles, and a tap adds or removes just the triangle tapped. The empty triangle in the middle has no tile, so nothing ever takes it out of the set: the lit wires always go round it and can’t all be dark. Tapping it after Can’t shows the reason, with the triangles the loop goes round shaded. The empty triangle at the end is outside the loop and stays outside, so Can’t on it is refused.',
       extension: 'If the empty triangle were outside the loop, could the wires go dark? (Yes, as in Strip.)',
       connection: 'In Week 77’s words, the saved loop survives because a triangle it needs is never filled: a loop is gone exactly when every triangle inside it is filled.'
     },
-    provenance: 'New for the app: a strip whose lit loop goes round an empty triangle, after Week 77 page 1 (a loop is gone when “some selection” of the filled triangles leaves no tokens).'
+    provenance: 'New for the app: a strip whose lit loop goes round one of its two empty triangles, after Week 77 page 1 (a loop is gone when “some selection” of the filled triangles leaves no tokens).'
   },
   {
     number: 4, difficulty_level: 'easy', title: 'Ring',
-    parameters: {kind: 'cancel', mesh: boards.ring, filled: all(boards.ring), lit: outline(boards.ring, [HOLE, 2, 6, 7])},
-    expect: {certificates: [HOLE]},
+    parameters: {kind: 'cancel', mesh: boards.ring, filled: except(boards.ring, [16]), lit: outline(boards.ring, [HOLE, 2, 6, 7])},
+    expect: {certificates: [HOLE], empty: 2},
     idea: 'A loop round the hole stays round the hole: taps move it, but the hole is never a tile.',
     prerequisites: 'Another strip.',
     hints: ['Tap the tiles inside the loop.', 'What is left inside the loop once you have tapped them?', 'The loop always goes round the hole. Press Can’t and tap the hole.'],
     parent: {
-      notice: 'Whether your child taps the three tiles and then tries tiles further round, chasing the loop round the ring.',
-      prompt: 'Every triangle has a tile. Why can’t the wires go dark?',
-      explanation: 'The lit wires go round the hole and three tiles. Tapping those three leaves the hole’s own rim lit. Any tap from there moves the loop out round another triangle, but the hole stays inside, because a tap changes only the tile tapped and the hole is not a tile. So some wires are always lit. Here no lit wire is touched only by empty triangles, and still the wires can’t go dark.',
+      notice: 'Whether your child taps the three tiles and then tries tiles further round, chasing the loop round the ring, and whether they press Can’t on the empty triangle at the bottom.',
+      prompt: 'Every triangle inside the loop has a tile. Why can’t the wires go dark?',
+      explanation: 'The lit wires go round the hole and three tiles. Tapping those three leaves the hole’s own rim lit. Any tap from there moves the loop out round another triangle, but the hole stays inside, because a tap changes only the tile tapped and the hole is not a tile. So some wires are always lit. The empty triangle at the bottom is outside the loop and stays outside, so Can’t on it is refused. No lit wire ever has an empty triangle or the hole on both sides, and still the wires can’t go dark.',
       extension: 'Is there a lit loop on this ring that goes round the hole and can go dark? (No: whatever you tap, the hole stays inside.)',
       connection: 'The hole is a permanent hole: in homology over Z₂ a loop round it is a class that no tiles can kill. This is the Week 77 card’s “ring with a permanent hole”.'
     },
-    provenance: 'New for the app: a ring with a permanent hole, as the Week 77 review card’s Decision asks, with the lit loop round the hole and every triangle tiled.'
+    provenance: 'New for the app: a ring with a permanent hole, as the Week 77 review card’s Decision asks, with the lit loop round the hole, every triangle inside it tiled and one empty triangle outside it.'
   },
   {
     number: 5, difficulty_level: 'medium', title: 'Ring again',
@@ -189,7 +189,7 @@ const authored = [
     expect: {dark: true, taps: 7},
     idea: 'The loop hugs the hole but doesn’t go round it. Every triangle inside it is a tile, so tapping them all makes it dark.',
     prerequisites: 'Ring.',
-    hints: ['Does the loop go all the way round the hole?', 'Every triangle inside the loop has a tile.', 'Tap the seven tiles inside the loop.'],
+    hints: ['Tap a tile inside the loop and watch where the loop goes.', 'Every triangle inside the loop has a tile.', 'Tap the seven tiles inside the loop.'],
     parent: {
       notice: 'Whether your child decides at a glance that the loop goes round the hole, as in Ring, and presses Can’t.',
       prompt: 'Is the hole inside this loop? How can you tell?',
@@ -205,7 +205,7 @@ const authored = [
     expect: {dark: true, taps: 6},
     idea: 'Two loops round the hole together go round no hole: a path out from the hole crosses two lit wires, so the hole is outside, and the six tiles between the loops make the wires dark.',
     prerequisites: 'Ring again.',
-    hints: ['Is the hole inside the lit wires? Count the lit wires a path from the hole to the edge of the board crosses.', 'A path out from the hole crosses two lit wires.', 'Tap the six tiles whose sides are all lit.'],
+    hints: ['Tap one tile and watch which wires go dark.', 'A path out from the hole crosses two lit wires.', 'Tap the six tiles whose sides are all lit.'],
     parent: {
       notice: 'Whether your child says it can’t be done because the wires go round the hole, as in Ring, and what they think when Can’t on the hole is refused.',
       prompt: 'The hexagon and the star both go round the hole. Why can these wires go dark when the loop in Ring couldn’t?',
@@ -218,7 +218,7 @@ const authored = [
   {
     number: 7, difficulty_level: 'medium', title: 'Big triangle',
     parameters: {kind: 'cancel', mesh: boards.big, filled: except(boards.big, [0, 6]), lit: outline(boards.big, except(boards.big, [0, 9, 15]))},
-    expect: {certificates: [6]},
+    expect: {certificates: [6], empty: 2},
     idea: 'An empty triangle keeps the wires lit even when no lit wire touches it: it is inside the loop, and taps never move it out.',
     prerequisites: 'Another strip.',
     hints: ['Tap some tiles inside the loop and watch where the loop goes.', 'Which triangle inside the loop can’t you tap?', 'The loop always goes round the middle triangle. Press Can’t and tap it.'],
@@ -234,10 +234,10 @@ const authored = [
   {
     number: 8, difficulty_level: 'medium', title: 'Round the top',
     parameters: {kind: 'cancel', mesh: boards.ring, filled: except(boards.ring, [6, 16]), lit: outline(boards.ring, [7, 4, 3, 2, 1, 0, 6, 5, 9])},
-    expect: {certificates: [6]},
+    expect: {certificates: [6], empty: 3},
     idea: 'This loop goes round an empty triangle but not the hole: the empty triangle is the reason, and the hole has no part in it.',
     prerequisites: 'Ring again and Big triangle.',
-    hints: ['Is the hole inside the loop? Is every triangle inside it a tile?', 'One triangle inside the loop has no tile.', 'The loop always goes round the empty triangle beside the hole. Press Can’t and tap it.'],
+    hints: ['Tap tiles inside the loop and see how small you can make it.', 'One triangle inside the loop has no tile.', 'The loop always goes round the empty triangle beside the hole. Press Can’t and tap it.'],
     parent: {
       notice: 'Whether your child presses Can’t and taps the hole, since the loop curls round it.',
       prompt: 'Which keeps the loop lit, the hole or the empty triangle? How do you know?',
@@ -249,19 +249,19 @@ const authored = [
   },
   {
     number: 9, difficulty_level: 'hard', title: 'First loop',
-    parameters: {kind: 'schedule', mesh: boards.strip4, start: [[0, 3], [3, 4], [0, 1], [4, 5], [2, 5]], target: 3},
-    expect: {first: [1, 2, 3], losing: 1},
-    idea: 'The first wire decides which loop lights: the gap closes the whole rim, round all four triangles; a diagonal closes a loop round one, two or three. A loop goes out with the last tile inside it, so fill the triangles outside it first.',
+    parameters: {kind: 'schedule', mesh: boards.strip6, start: [[0, 1], [1, 2], [2, 3], [3, 7], [6, 7], [5, 6], [4, 5]], target: 3},
+    expect: {first: [1, 2, 3], losing: 3},
+    idea: 'The first wire decides which loop lights: the gap closes the whole rim, round all six triangles; a wire across the strip closes a loop round the triangles on its far side from the gap, five, four, three, two or one. A loop goes out with the last tile inside it, so choose a loop round three or fewer and fill the triangles outside it first.',
     prerequisites: 'Strip.',
-    hints: ['Add a dashed wire and see which loop lights. Undo and try another.', 'A loop goes out when the last triangle inside it is filled. How many triangles are inside the lit loop?', 'Add the diagonal that closes a loop round three triangles, then fill those three.'],
+    hints: ['Add a dashed wire and see which loop lights. Undo and try another.', 'A loop goes out when the last triangle inside it is filled. How many triangles are inside the lit loop?', 'Add the wire that closes a loop round three triangles, then fill those three.'],
     parent: {
-      notice: 'Whether your child fills the triangles inside the lit loop first, so that it goes out too soon, and then fills outside ones first.',
-      prompt: 'Which tile put the loop out? Could you have made it go out later?',
-      explanation: 'The solid wires are the rim with a gap at the top right, so the first dashed wire you add closes a loop at once. The gap closes the whole rim, which goes round all four triangles, so it can’t go out by the third tile. The diagonals close loops round one, two or three triangles. A loop goes out exactly when the last triangle inside it is filled, so for a loop round n triangles, fill 3 − n triangles outside it first and its own n after them.',
-      extension: 'If the marked tile were the fourth, which first wires would work? (All four, each with the right order.)',
+      notice: 'Whether your child adds the dashed wire nearest the gap first and lights a loop round five triangles, and whether they fill the triangles inside a small loop first, so that it goes out too soon.',
+      prompt: 'Which tile put the loop out? Which first wires could make it go out with the marked tile?',
+      explanation: 'The solid wires are the rim with a gap at the left end, so the first dashed wire you add closes a loop at once. The gap closes the whole rim, round all six triangles. Each wire across the strip closes a loop through the rim on the side away from the gap, so it goes round the triangles to its right: five, four, three, two or one. Only the loops round three or fewer can go out by the third tile. A loop goes out exactly when the last triangle inside it is filled, so for a loop round n triangles, fill 3 − n triangles outside it first and its own n after them.',
+      extension: 'If the marked tile were the fifth, which first wires would work? (Every one but the gap.)',
       connection: 'Week 77 Problem 2: on the square with AB, BC and CD in place, adding DA first saves the rim, which needs both halves; adding AC first saves triangle ABC, which goes out at stage 8 only if ACD is filled first.'
     },
-    provenance: `${B77} Problem 2: “Save the first loop when it closes. Find every schedule in which that saved loop first disappears at stage 8.” The square’s start, its rim with one side missing, and its diagonal place become a strip of four triangles; the app asks for one schedule, not every one.`
+    provenance: `${B77} Problem 2: “Save the first loop when it closes. Find every schedule in which that saved loop first disappears at stage 8.” The square’s start, its rim with one side missing, and its diagonal place become a strip of six triangles with five places across it; the app asks for one schedule, not every one.`
   },
   {
     number: 10, difficulty_level: 'hard', title: 'Ring of wires',
@@ -269,7 +269,7 @@ const authored = [
     expect: {first: [1, 2], losing: 8},
     idea: 'A loop round the hole never goes out, and a loop round three triangles can’t go out by the second tile. Choose a first wire whose loop goes round one or two triangles, then plan the order.',
     prerequisites: 'First loop and Ring.',
-    hints: ['Add a dashed wire and see which loop lights. Does it go round the hole?', 'A loop round the hole never goes out. Look for a first wire whose loop goes round one or two triangles.', 'Add a wire that closes a loop round two triangles, then fill those two.'],
+    hints: ['Add a dashed wire and see which loop lights. Try a few before you fill a triangle.', 'A loop round the hole never goes out. Look for a first wire whose loop goes round one or two triangles.', 'Add a wire that closes a loop round two triangles, then fill those two.'],
     parent: {
       notice: 'Whether your child adds the wire at the gap first, lighting a loop all the way round the hole, and keeps filling tiles waiting for it to go out.',
       prompt: 'Which first wires light a loop round the hole? Why can that loop never go out?',
@@ -285,7 +285,7 @@ const authored = [
     expect: {race: true},
     idea: 'The yellow loop needs every triangle but the top one; the pink loop needs the top one. Fill the yellow loop’s five first.',
     prerequisites: 'Ring again.',
-    hints: ['Which triangles are inside the yellow loop? Which are inside the pink one?', 'The pink loop needs a triangle the yellow loop doesn’t. Leave it till last.', 'Fill every triangle but the top one.'],
+    hints: ['Fill triangles one at a time and watch which loop goes out first.', 'The pink loop needs a triangle the yellow loop doesn’t. Leave it till last.', 'Fill every triangle but the top one.'],
     parent: {
       notice: 'Whether your child fills the triangles in reading order and sees both loops go out together, or the pink one first.',
       prompt: 'Which triangle does the pink loop need that the yellow loop doesn’t?',
@@ -337,6 +337,9 @@ function check(p, item) {
     const inside = facesInside(B, startLit(p)), certs = certificates(p);
     if (e.dark && (!canGoDark(p) || inside.length !== e.taps)) throw Error(`${p.id}: expected dark in ${e.taps} taps, inside ${inside}`);
     if (e.certificates && sorted(certs).join() !== sorted(e.certificates).join()) throw Error(`${p.id}: certificates ${certs}`);
+    // After Can't the faces without a tile are the real choices: at least two.
+    const bare = B.T + B.holes.length - q.filled.length;
+    if (e.certificates && (bare < 2 || (e.empty !== undefined && bare !== e.empty))) throw Error(`${p.id}: ${bare} faces without a tile`);
   } else if (q.kind === 'schedule') {
     // Each first wire's loop: its size, or a hole inside.
     const sizes = [];

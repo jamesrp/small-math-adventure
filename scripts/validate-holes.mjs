@@ -11,8 +11,8 @@
 // - a schedule's saved loop is gone exactly when it is a sum, mod 2, of the
 //   filled tiles' outlines (Gaussian elimination); for every first wire the
 //   goal is reachable exactly when some k tiles have the loop in their span
-//   and one of them is needed; on the small board every legal play is
-//   enumerated;
+//   and one of them is needed; random play's chance of winning is found
+//   exactly by a search over states (or over 20,000 plays on the ring);
 // - a race can be won exactly when some set of filled tiles kills the
 //   yellow loop and not the pink one (every set of tiles is tried), and the
 //   tiles of a Can't claim are the only set whose outline is the pink loop.
@@ -20,7 +20,8 @@
 // witnesses; hints alone from fresh, after wrong moves and after refusals;
 // Can't only after an attempt, its lock kept through Undo with the note
 // hidden, and refusals that say the same of the same taps on every board;
-// how often random certificate taps succeed; illegal moves; forged saves.
+// how often random certificate taps succeed, among the faces without a
+// tile; illegal moves; forged saves.
 // Run: node scripts/validate-holes.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
@@ -211,9 +212,20 @@ function checkCancel(p, stats) {
     let m = lit;
     for (let i = 0; i < 12; i++) { m ^= M.faceMask[pick(tiles)]; if (!m) break; assert.ok(same(insideByRays(M, m).filter(f => !tiles.includes(f)), byRays), `${label}: taps never move an empty face or the hole`); }
   }
-  // Random certificate taps: one face of all.
-  if (byRays.length) stats.certificateOdds.push(`${label} ${byRays.length}/${F}`);
-  if (byRays.length) assert.ok(byRays.length / F <= 1 / 6, `${label}: a random face is seldom a certificate`);
+  // Random certificate taps. After Can't every face is a button, but a
+  // child picks among the faces without a tile (a tile can be tapped, so it
+  // is no reason): at least two of them, so the tap is a choice.
+  const bare = range(F).filter(f => !tiles.includes(f));
+  if (byRays.length) {
+    stats.certificateOdds.push(`${label} ${byRays.length}/${bare.length} faces without a tile`);
+    assert.ok(bare.length >= 2 && byRays.length / bare.length <= 1 / 2, `${label}: at least two faces without a tile, and a random one is right at most half the time`);
+    // The card's certificate, a lit wire with no tile on either side: such
+    // a wire is lit exactly when one side is inside, which taps never change.
+    const sideFaces = range(M.E).map(e => range(F).filter(f => M.faceMask[f] >> BigInt(e) & one));
+    const cardWire = sideFaces.some(fs => fs.every(f => !tiles.includes(f)) && fs.filter(f => byRays.includes(f)).length === 1);
+    stats.cardWire.push(`${label} ${cardWire ? 'has' : 'has none'}`);
+    if (['holes-04', 'holes-07'].includes(label)) assert.ok(!cardWire, `${label}: no lit wire ever has no tile on either side (the notes say so)`);
+  }
 
   // Hints from fresh; the first hint taps a tile, never Can't.
   const fresh = freshAttempt(p);
@@ -305,6 +317,35 @@ function canFinish(M, loop, k) {
   choose(0, []);
   return ok;
 }
+// A step-at-a-time simulator for counting plays: the same rules as
+// simulate, with states that can be keyed.
+function scheduleStepper(M, q) {
+  const startSet = q.start.map(([a, b]) => M.index.get(key2(a, b)));
+  const pathBetween = (present, a, b) => {
+    const seen = new Map([[a, null]]), stack = [a];
+    while (stack.length) { const x = stack.pop(); for (const e of present) { const [u, v] = M.ends[e]; const y = u === x ? v : v === x ? u : -1; if (y >= 0 && !seen.has(y)) { seen.set(y, e); stack.push(y); } } }
+    if (!seen.has(b)) return null;
+    let m = 0n;
+    for (let x = b; x !== a;) { const e = seen.get(x); m ^= one << BigInt(e); x = M.ends[e][0] === x ? M.ends[e][1] : M.ends[e][0]; }
+    return m;
+  };
+  return {
+    fresh: () => ({present: new Set(startSet), filled: [], saved: null, out: 0}),
+    key: st => `${sorted([...st.present]).join()}|${sorted(st.filled).join()}|${st.saved ?? ''}`,
+    next: st => [...range(M.E).filter(e => !st.present.has(e)).map(edge => ({edge})), ...range(M.T).filter(t => !st.filled.includes(t) && bitsOf(M, M.tileMask[t]).every(e => st.present.has(e))).map(tile => ({tile}))],
+    step(st, step) {
+      const n = {present: new Set(st.present), filled: [...st.filled], saved: st.saved, out: st.out};
+      if ('edge' in step) {
+        if (!n.saved) { const path = pathBetween(n.present, ...M.ends[step.edge]); if (path !== null) n.saved = path ^ one << BigInt(step.edge); }
+        n.present.add(step.edge);
+      } else {
+        n.filled.push(step.tile);
+        if (n.saved && inSpan(n.filled.map(f => M.tileMask[f]), n.saved)) n.out = n.filled.length;
+      }
+      return n;
+    }
+  };
+}
 function checkSchedule(p, stats) {
   const q = p.parameters, M = model(q.mesh), label = p.id, k = q.target;
   const start = new Set(q.start.map(([a, b]) => M.index.get(key2(a, b))));
@@ -330,31 +371,45 @@ function checkSchedule(p, stats) {
   const w = simulate(M, q, p.solution.steps);
   assert.ok(w && w.out === k, `${label}: the witness goes out with tile ${k}`);
   stats.hintSteps += hintRun(p, fresh, label);
-  // Every legal play on a small board, and the module agrees on each end;
-  // on a big one, random plays.
-  if (M.E <= 9) {
-    let plays = 0, wins = 0, chance = 0;
-    const explore = (steps, prob) => {
-      const s = simulate(M, q, steps), a = play(p, steps);
-      assert.equal(isSolved(p, a.board), s.out === k, `${label}: solved exactly when the separate simulator says so`);
-      if (s.out || s.filled.length >= k) { plays++; if (s.out === k) { wins++; chance += prob; } return; }
-      const next = [...range(M.E).filter(e => !s.present.has(e)).map(edge => ({edge})), ...range(M.T).filter(t => !s.filled.includes(t) && bitsOf(M, M.tileMask[t]).every(e => s.present.has(e))).map(tile => ({tile}))];
-      for (const st of next) explore([...steps, st], prob / next.length);
+  // How often uniformly random play wins (each legal step equally likely):
+  // exactly, by a search over states, when the places are few; otherwise
+  // over 20,000 random plays. The module agrees on random plays.
+  const sim = scheduleStepper(M, q);
+  if (places.length <= 8) {
+    const memo = new Map();
+    const value = st => {
+      if (st.out || st.filled.length >= k) return {p: st.out === k ? 1 : 0, plays: 1, wins: st.out === k ? 1 : 0};
+      const id = sim.key(st);
+      if (memo.has(id)) return memo.get(id);
+      const next = sim.next(st), r = {p: 0, plays: 0, wins: 0};
+      for (const step of next) { const v = value(sim.step(st, step)); r.p += v.p / next.length; r.plays += v.plays; r.wins += v.wins; }
+      memo.set(id, r);
+      return r;
     };
-    explore([], 1);
-    stats.schedulePlays.push(`${label}: ${wins} of ${plays} complete plays win; random taps win ${(chance * 100).toFixed(1)}%`);
+    const r = value(sim.fresh());
+    stats.schedulePlays.push(`${label}: ${r.wins} of ${r.plays} complete plays win; random play wins ${(r.p * 100).toFixed(1)}% (exact)`);
+    stats.scheduleOdds[label] = r.p;
   } else {
     let wins = 0;
-    for (let run = 0; run < 400; run++) {
-      const steps = [];
-      for (;;) {
-        const s = simulate(M, q, steps);
-        if (s.out || s.filled.length >= k) { if (s.out === k) wins++; break; }
-        steps.push(pick([...range(M.E).filter(e => !s.present.has(e)).map(edge => ({edge})), ...range(M.T).filter(t => !s.filled.includes(t) && bitsOf(M, M.tileMask[t]).every(e => s.present.has(e))).map(tile => ({tile}))]));
-      }
-      if (run < 60) assert.equal(isSolved(p, play(p, steps).board), simulate(M, q, steps).out === k, `${label}: the module agrees on a random play`);
+    const runs = 20000;
+    for (let run = 0; run < runs; run++) {
+      let st = sim.fresh();
+      while (!(st.out || st.filled.length >= k)) st = sim.step(st, pick(sim.next(st)));
+      if (st.out === k) wins++;
     }
-    stats.schedulePlays.push(`${label}: random taps win ${(wins / 4).toFixed(1)}% of 400 plays`);
+    stats.schedulePlays.push(`${label}: random play wins ${(wins / runs * 100).toFixed(1)}% of ${runs} plays`);
+    stats.scheduleOdds[label] = wins / runs;
+  }
+  // A hard schedule is not won by guessing: few first wires win, and random
+  // play seldom does.
+  assert.ok(winners / places.length <= 2 / 3 && stats.scheduleOdds[label] < 0.1, `${label}: guessing seldom wins (${winners}/${places.length} first wires, ${stats.scheduleOdds[label]})`);
+  for (let run = 0; run < 120; run++) {
+    let st = sim.fresh();
+    const steps = [];
+    while (!(st.out || st.filled.length >= k)) { const step = pick(sim.next(st)); steps.push(step); st = sim.step(st, step); }
+    const ref = simulate(M, q, steps);
+    assert.ok(ref && ref.out === st.out, `${label}: the two simulators agree`);
+    assert.equal(isSolved(p, play(p, steps).board), st.out === k, `${label}: the module agrees on a random play`);
   }
   // Wrong orders the board shows: the loop out too soon (its own tiles
   // first), or still lit at the marked tile (a loop round the hole, or too
@@ -481,7 +536,7 @@ export default async function validateHoles() {
   assert.equal(own.families[0].id, 'holes');
   assert.ok(own.families[0].sourceIds.every(id => ids.has(id)));
   assert.ok(pack.puzzles.some(p => p.mechanic === 'toggle' && p.familyTitle === 'Lantern Wires'), 'Lantern Wires is in the base pack');
-  const stats = {hintSteps: 0, refusals: 0, illegal: 0, forgeries: 0, certificateOdds: [], firstWires: [], schedulePlays: [], raceOrders: []};
+  const stats = {hintSteps: 0, refusals: 0, illegal: 0, forgeries: 0, certificateOdds: [], cardWire: [], firstWires: [], schedulePlays: [], scheduleOdds: {}, raceOrders: []};
   for (const p of puzzles) {
     const label = p.id;
     assert.equal(p.id, `holes-${String(p.number).padStart(2, '0')}`);
@@ -493,6 +548,7 @@ export default async function validateHoles() {
     assert.ok(p.rules.length >= 3, `${label}: rules`);
     assert.equal(p.hints.length, 3, `${label}: three hints`);
     assert.doesNotMatch(p.hints[0], /Can’t/, `${label}: the first hint never says Can’t`);
+    assert.match(p.hints[0], /^(Tap|Add|Fill|Try)\b/, `${label}: the first hint is something to do`);
     assert.doesNotMatch(p.title, /can’t|hole|empty|gap/i, `${label}: the title doesn’t give the answer`);
     for (const field of ['notice', 'prompt', 'explanation', 'extension', 'connection']) assert.ok(p.parent[field]?.trim(), `${label}: parent.${field}`);
     assert.ok(p.parent.sourceIds.includes('holes-week77') && p.parent.sourceIds.every(id => ids.has(id)), `${label}: sources resolve`);
@@ -514,7 +570,7 @@ export default async function validateHoles() {
     assert.ok(same(insideByRays(R, lit), faces), 'ring: the faces inside a loop, by rays, are the faces it outlines');
     assert.equal(inSpan(R.tileMask, lit), faces.every(f => f < R.T), 'ring: a sum of tile outlines exactly when no hole is inside');
   }
-  const loops = theorems([puzzles.find(p => p.parameters.mesh.cells.length === 2).parameters.mesh, puzzles.find(p => p.parameters.mesh.cells.length === 4).parameters.mesh, puzzles.find(p => p.parameters.mesh.cells.length === 6 && p.parameters.kind === 'race').parameters.mesh]);
+  const loops = theorems([puzzles.find(p => p.parameters.mesh.cells.length === 2).parameters.mesh, puzzles.find(p => p.parameters.mesh.cells.length === 6 && p.parameters.kind === 'cancel').parameters.mesh, puzzles.find(p => p.parameters.mesh.cells.length === 6 && p.parameters.kind === 'race').parameters.mesh]);
   return {puzzles: puzzles.length, loopsChecked: loops, ...stats};
 }
 

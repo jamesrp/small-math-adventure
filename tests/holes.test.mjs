@@ -33,7 +33,7 @@ test('the pack validates by sums of outlines, ray casting and searches over ever
   assert.equal(report.puzzles, 12);
   assert.ok(report.loopsChecked > 50);
   assert.ok(report.refusals > 50 && report.forgeries > 100);
-  assert.deepEqual(report.firstWires, ['holes-09 3/4', 'holes-10 11/19']);
+  assert.deepEqual(report.firstWires, ['holes-09 3/6', 'holes-10 11/19']);
 });
 
 test('boards: triangles, a hole, wires and the faces each loop goes round', () => {
@@ -109,24 +109,31 @@ test('Can’t: only after a tap; the right face solves and shows the reason; a w
 test('schedules: the first wire closes and lights a loop; tiles need three wires; the loop goes out with its last tile', () => {
   const p = P(9), B = boardOf(p.parameters), fresh = freshAttempt(p);
   assert.equal(move(p, fresh, {tile: 0}), null, 'no tile before its three wires');
-  const gap = wireOf(p, 1, 2), diag = wireOf(p, 1, 5), small = wireOf(p, 0, 4);
-  const rim = replaySchedule(p, [{edge: gap}]);
-  assert.deepEqual(facesInside(B, rim.saved), [0, 1, 2, 3], 'the gap closes the whole rim');
-  assert.equal(replaySchedule(p, [{edge: small}]).inside.length, 1);
+  // The rim has its gap at the left end; each wire across the strip closes a
+  // loop round the triangles to its right.
+  const gap = wireOf(p, 0, 4), three = wireOf(p, 6, 1), small = wireOf(p, 7, 2);
+  assert.deepEqual(facesInside(B, replaySchedule(p, [{edge: gap}]).saved), [0, 1, 2, 3, 4, 5], 'the gap closes the whole rim');
+  assert.deepEqual(replaySchedule(p, [{edge: wireOf(p, 5, 0)}]).inside, [1, 2, 3, 4, 5], 'the wire nearest the gap closes a loop round five');
+  assert.deepEqual(replaySchedule(p, [{edge: three}]).inside, [3, 4, 5]);
+  assert.deepEqual(replaySchedule(p, [{edge: small}]).inside, [5]);
   // Fill the small loop's own tile first: it goes out too soon.
-  const soon = play(p, fresh, [{edge: small}, {tile: 0}]);
+  const soon = play(p, fresh, [{edge: small}, {tile: 5}]);
   assert.equal(replaySchedule(p, soon.board.steps).out, 1);
   assert.deepEqual(nextHint(p, soon), {type: 'deadend', text: 'It went out too soon. Undo.'});
   assert.match(html(p, soon), /class="hl-out"/, 'a loop that went out leaves a trace');
   // The loop round three triangles, filled in any order, goes out with tile 3.
-  const win = play(p, fresh, [{edge: diag}, {edge: wireOf(p, 0, 4)}, {edge: wireOf(p, 1, 4)}, {tile: 2}, {tile: 0}, {tile: 1}]);
+  const win = play(p, fresh, [{edge: three}, {edge: wireOf(p, 6, 2)}, {edge: small}, {tile: 5}, {tile: 3}, {tile: 4}]);
   assert.ok(isSolved(p, win.board));
-  // The rim needs four tiles, so it is still lit at the marked third.
-  const lit = play(p, fresh, [{edge: gap}, {edge: small}, {edge: wireOf(p, 1, 4)}, {edge: diag}, {tile: 0}, {tile: 1}, {tile: 2}]);
+  // The rim needs six tiles, so it is still lit at the marked third.
+  const across = [[5, 0], [5, 1], [6, 1], [6, 2], [7, 2]].map(([a, b]) => ({edge: wireOf(p, a, b)}));
+  const lit = play(p, fresh, [{edge: gap}, ...across, {tile: 0}, {tile: 1}, {tile: 2}]);
   assert.deepEqual(nextHint(p, lit), {type: 'deadend', text: 'It is still lit. Undo.'});
   assert.equal(move(p, lit, {tile: 3}), null, 'nothing after the marked tile');
   // Before the board shows it, a doomed first wire leaves no line under the board.
   assert.deepEqual(nextHint(p, play(p, fresh, [{edge: gap}])), {type: 'deadend', text: ''});
+  assert.deepEqual(nextHint(p, play(p, fresh, [{edge: wireOf(p, 5, 1)}])), {type: 'deadend', text: ''}, 'a loop round four needs four tiles');
+  // Screen readers hear which triangles are ready, not which are inside.
+  assert.doesNotMatch(html(p, play(p, fresh, [{edge: three}, {edge: wireOf(p, 6, 2)}])), /inside/);
   const track = html(p, win);
   assert.equal((track.match(/<li class="hl-slot/g) || []).length, 3, 'an outline for each tile up to the marked one');
   assert.match(track, /hl-slot filled target out/);
@@ -238,7 +245,9 @@ test('every style rule is scoped under the group’s root', async () => {
   const rules = css.replace(/\/\*[\s\S]*?\*\//g, '').split('}').map(r => r.trim()).filter(Boolean);
   for (const rule of rules) {
     if (rule.startsWith('@import')) { assert.match(rule, /tri-grid\.css/); continue; }
-    const selectors = rule.slice(0, rule.indexOf('{')).split(',');
+    // A rule inside @supports: check the rule itself.
+    const inner = rule.startsWith('@supports') ? rule.slice(rule.indexOf('{') + 1) : rule;
+    const selectors = inner.slice(0, inner.indexOf('{')).split(',');
     for (const sel of selectors) assert.match(sel.trim(), /^\[data-mechanic-wire="holes"\]/, sel);
   }
 });
