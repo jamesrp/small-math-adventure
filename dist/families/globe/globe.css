@@ -65,7 +65,7 @@
 [data-mechanic-wire="globe"] .gl-wedge-right{fill:none;stroke:var(--b-pine,#31533e);stroke-width:2px}
 [data-mechanic-wire="globe"] .gl-deg{font:400 1rem/1 var(--b-display,Georgia,serif);white-space:nowrap}
 [data-mechanic-wire="globe"] .gl-deg.approx{color:var(--b-muted,#5a6850);font-size:.9rem}
-[data-mechanic-wire="globe"] :is(.gl-card,.gl-turn,.gl-cant,.gl-record,.gl-pair):focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
+[data-mechanic-wire="globe"] :is(.gl-card,.gl-turn,.gl-cant,.gl-again,.gl-record,.gl-pair):focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
 
 /* Sets of corners and Can't. */
 [data-mechanic-wire="globe"] .gl-shelf{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.4rem .5rem;max-width:100%}
@@ -75,21 +75,23 @@
 [data-mechanic-wire="globe"] .gl-record.made{border-style:solid;border-color:var(--b-pine,#31533e);background:var(--b-good-soft,#e2ecd6);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
 [data-mechanic-wire="globe"] .gl-record.cant{border-style:solid;border-color:var(--b-ink,#294439);color:var(--b-muted,#5a6850);text-decoration:line-through;text-decoration-thickness:2px}
 [data-mechanic-wire="globe"] .gl-record.hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
-[data-mechanic-wire="globe"] .gl-cant{min-height:40px;padding:6px 14px;font-weight:600;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer}
+[data-mechanic-wire="globe"] .gl-record.refused{border-style:solid;border-color:var(--b-ochre,#b38840);background:#f7ecd2;box-shadow:inset 0 0 0 1.5px var(--b-ochre,#b38840)}
+[data-mechanic-wire="globe"] :is(.gl-cant,.gl-again){min-height:40px;padding:6px 14px;font-weight:600;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer}
 [data-mechanic-wire="globe"] .gl-cant[aria-pressed="true"]{background:#e9eddc;box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
 [data-mechanic-wire="globe"] .gl-cant[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd);cursor:default}
-[data-mechanic-wire="globe"] .gl-cant.hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
+[data-mechanic-wire="globe"] :is(.gl-cant,.gl-again).hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
 [data-mechanic-wire="globe"] .gl-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
 
 /* The argument after a right Can't: corners side by side against a straight line. */
-[data-mechanic-wire="globe"] .gl-argument{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:.4rem 1.2rem}
-[data-mechanic-wire="globe"] .gl-fan{width:118px;height:auto}
+[data-mechanic-wire="globe"] .gl-argument{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:.4rem .8rem}
+[data-mechanic-wire="globe"] .gl-fan{width:min(140px,42vw);height:auto;flex:none}
 [data-mechanic-wire="globe"] .gl-fan-part{stroke:var(--b-ink,#294439);stroke-width:1.2px;stroke-linejoin:round}
 [data-mechanic-wire="globe"] .gl-fan-part.p0{fill:#f8e3b1}
 [data-mechanic-wire="globe"] .gl-fan-part.p1{fill:#d4e7ef}
 [data-mechanic-wire="globe"] .gl-fan-part.p2{fill:#f3d3c9}
-[data-mechanic-wire="globe"] .gl-fan-extra{fill:var(--b-sun,#efc76e);stroke:var(--b-ink,#294439);stroke-width:1.6px}
-[data-mechanic-wire="globe"] .gl-fan-name{font-family:var(--b-display,Georgia,serif);font-size:9px;text-anchor:middle;fill:var(--b-ink,#294439);pointer-events:none}
+[data-mechanic-wire="globe"] .gl-fan-extra{fill:var(--b-sun,#efc76e);stroke:var(--b-ink,#294439);stroke-width:1.6px;stroke-linejoin:round}
+[data-mechanic-wire="globe"] .gl-fan-tick{fill:none;stroke:var(--b-ink,#294439);stroke-width:1.2px}
+[data-mechanic-wire="globe"] .gl-fan-name{font-family:var(--b-display,Georgia,serif);font-size:12px;text-anchor:middle;fill:var(--b-ink,#294439);pointer-events:none}
 [data-mechanic-wire="globe"] .gl-fan-line{fill:none;stroke:var(--b-ink,#294439);stroke-width:2.4px;stroke-linecap:round}
 
 /* The playground's lune pairs. */

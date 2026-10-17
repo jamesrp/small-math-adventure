@@ -9,28 +9,33 @@
 // It checks content fields and sources; every solution set; that on the grid
 // only triangles with two right corners have every corner a whole number of
 // degrees (all 3,032,624 triangles), so a set adding up to 180° or less is
-// never made; hint chains from fresh, after a wrong move and after a wrong
-// Can't; random Can't taps; Undo keeping made sets, claims and refusals with
-// a visible change; illegal moves; forged saves; and the playground's
-// covering counts. Run: node scripts/validate-globe.mjs
+// never made, and that no other corner prints as a whole number after ≈;
+// that no straight run of one corner from a fraction puzzle's start passes an
+// answer; hint chains from fresh, after a wrong move and after a wrong Can't;
+// random Can't taps counted with retries (a wrong one ends the attempt, so
+// there are none) and the share of states with one set left to claim; Undo
+// keeping made sets and claims, never stepping back over an ended attempt,
+// and visibly changing the board at every step of random walks; illegal
+// moves; forged saves; and the playground's covering counts.
+// Run: node scripts/validate-globe.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
 import {loadPack} from './packs.mjs';
-import {solutionsOf, triangleFacts, cellsOf, covers, coverCounts} from '../dist/families/globe/globe.js';
+import {solutionsOf, triangleFacts, cellsOf, covers, coverCounts, approxText} from '../dist/families/globe/globe.js';
 
 // The table in docs/globe/README.md: solutions counted as labelled
 // placements of the corners (per set, for sets; 0 for a set that can't be made).
 const TABLE = {
   'globe-01': {level: 'easy', mode: 'right', count: 2},
   'globe-02': {level: 'easy', mode: 'fraction', steps: 4, count: 6},
-  'globe-03': {level: 'easy', mode: 'records', counts: [4, 0]},
+  'globe-03': {level: 'easy', mode: 'records', counts: [4, 0, 4]},
   'globe-04': {level: 'medium', mode: 'right', count: 2},
   'globe-05': {level: 'medium', mode: 'fraction', steps: 8, count: 624},
   'globe-06': {level: 'medium', mode: 'records', counts: [144, 144, 144]},
   'globe-07': {level: 'hard', mode: 'right', count: 8},
-  'globe-08': {level: 'hard', mode: 'fraction', steps: 9, count: 624},
+  'globe-08': {level: 'hard', mode: 'fraction', steps: 9, count: 72},
   'globe-09': {level: 'hard', mode: 'fraction', steps: 3, count: 16},
   'globe-10': {level: 'hard', mode: 'records', counts: [3744, 0, 3744]}
 };
@@ -151,7 +156,7 @@ function checkField() {
 // degree; the exact pass then confirms each corner and the area.
 function everyTriangle() {
   const t0 = process.cpuUsage();
-  let triangles = 0, flatTriples = 0, maxFlat = 0, minDet = Infinity, minExcess = Infinity, otherWhole = 0;
+  let triangles = 0, flatTriples = 0, maxFlat = 0, minDet = Infinity, minExcess = Infinity, otherWhole = 0, nearWhole = {off: Infinity, x: null};
   const candidates = [];
   for (let i = 0; i < N; i++) for (let j = i + 1; j < N; j++) for (let k = j + 1; k < N; k++) {
     const det = fdet(i, j, k), y = Math.abs(det);
@@ -160,12 +165,17 @@ function everyTriangle() {
     const A = fcorner(i, j, k, det), B = fcorner(j, k, i, det), C = fcorner(k, i, j, det);
     minExcess = Math.min(minExcess, A + B + C - 180);
     let fifteen = 0;
-    for (const x of [A, B, C]) if (nearStep(x, 1)) { if (nearStep(x, 15)) fifteen++; else otherWhole++; }
+    for (const x of [A, B, C]) {
+      if (nearStep(x, 1)) { if (nearStep(x, 15)) fifteen++; else otherWhole++; }
+      else { const off = Math.abs(x - Math.round(x)); if (off < nearWhole.off) nearWhole = {off, x}; }
+    }
     if (fifteen === 3) candidates.push([i, j, k, Math.round(A), Math.round(B), Math.round(C)]);
   }
   assert.equal(triangles, 3032624, 'every triangle of three dots');
   assert.ok(maxFlat < 1e-14 && minDet > 1e-4, `three dots on one great circle are told apart from a triangle (${maxFlat}, ${minDet})`);
   assert.equal(otherWhole, 0, 'no corner is a whole number of degrees other than a multiple of 15°');
+  // The card for the corner nearest a whole number still shows a decimal after ≈ (every other needs fewer places).
+  assert.doesNotMatch(approxText(nearWhole.x), /^\d+(\.0+)?$/, `≈ never prints a whole number (${nearWhole.x})`);
   assert.ok(minExcess > 0.02, 'every triangle’s corners add up to more than 180°');
   // Exact: three dots on one great circle have det exactly 0 (a sample), and every candidate is exact.
   for (let s = 0, seen = 0; seen < 300 && s < 1e6; s++) {
@@ -188,7 +198,7 @@ function everyTriangle() {
   assert.equal(octants.length, 528, 'triangles with three right corners');
   assert.ok(octants.every(t => t.v.some(i => GRID[i][0] === 0)), 'every one has a corner on the equator');
   const cpu = process.cpuUsage(t0);
-  return {triangles, flatTriples, fifteen, types: Object.fromEntries([...types].sort((m, n) => m[0] - n[0]).map(([g, n]) => [`${g},90,90`, n])), minExcess, ms: Math.round((cpu.user + cpu.system) / 1000)};
+  return {triangles, flatTriples, fifteen, types: Object.fromEntries([...types].sort((m, n) => m[0] - n[0]).map(([g, n]) => [`${g},90,90`, n])), minExcess, nearWhole, ms: Math.round((cpu.user + cpu.system) / 1000)};
 }
 
 // --- Solutions by brute force ----------------------------------------------------
@@ -238,8 +248,19 @@ function bruteSolutions(p, every) {
 // --- Playing ---------------------------------------------------------------------
 const play = (p, a, action) => { const next = move(p, a, action); assert.ok(next && next !== a, `${p.id}: ${JSON.stringify(action)} is legal`); return next; };
 const refuse = (p, a, action, why) => assert.equal(move(p, a, action), null, `${p.id}: refuses ${why}`);
-const undoCarry = (p, a) => { const back = undo(a), carry = mechanicFor(p).carry; return carry ? {...back, board: carry(p, a.board, back.board)} : back; };
+// Undo as the app does it: only with history and without noUndo, then carry.
+const undoCarry = (p, a) => { const m = mechanicFor(p); if (!a.history.length || m.noUndo?.(p)) return a; const back = undo(a); return m.carry ? {...back, board: m.carry(p, a.board, back.board)} : back; };
 const made = b => b.built.map(e => e.record);
+const sum = r => r.reduce((s, x) => s + x, 0);
+const atStart = (p, b) => p.parameters.letters.every(x => keyOf(b.corners[x]) === keyOf(p.parameters.start[x]));
+const openSets = (p, b) => p.parameters.records.map((r, i) => i).filter(i => !made(b).includes(i) && !b.cant.includes(i));
+const drawn = (p, a) => mechanicFor(p).render(p, a);
+// A move that ends an attempt (a wrong Can't) or starts a fresh one (Again) keeps no history.
+function checkSealed(p, a, label) {
+  assert.equal(a.history.length, 0, `${p.id} ${label}: no history, so Undo can’t step back over the end`);
+  assert.equal(mechanicFor(p).noUndo?.(p), true, `${p.id} ${label}: Undo is off`);
+  assert.equal(undoCarry(p, a), a, `${p.id} ${label}: Undo does nothing`);
+}
 function hintsSolve(p, a, label) {
   let steps = 0;
   for (; !isSolved(p, a.board) && steps < 30; steps++) {
@@ -248,16 +269,20 @@ function hintsSolve(p, a, label) {
     assert.ok(typeof h.text === 'string' && h.text.length > 5, `${p.id} ${label}: hint words`);
     if (h.action.type === 'cant') {
       const r = p.parameters.records[h.action.record];
-      assert.ok(a.board.tried, `${p.id} ${label}: Can’t is hinted only after an attempt`);
-      assert.ok(r.reduce((s, x) => s + x, 0) <= 180, `${p.id} ${label}: Can’t is hinted only for a set adding up to 180° or less`);
+      assert.ok(!atStart(p, a.board), `${p.id} ${label}: Can’t is hinted only after an attempt`);
+      assert.ok(sum(r) <= 180, `${p.id} ${label}: Can’t is hinted only for a set adding up to 180° or less`);
       assert.match(h.text, /add up to \d+°\. Every triangle you make adds up to more\./, `${p.id} ${label}: the reason comes with the Can’t hint`);
-      assert.ok(p.parameters.records.every((s, i) => made(a.board).includes(i) || a.board.cant.includes(i) || s.reduce((m, x) => m + x, 0) <= 180), `${p.id} ${label}: Can’t is hinted once every set that can be made is made`);
-    } else assert.ok(!/Can’t/.test(h.text), `${p.id} ${label}: a move hint does not mention Can’t`);
+      assert.ok(p.parameters.records.every((s, i) => made(a.board).includes(i) || a.board.cant.includes(i) || sum(s) <= 180), `${p.id} ${label}: Can’t is hinted once every set that can be made is made`);
+    } else if (h.action.type === 'again') assert.notEqual(a.board.over, null, `${p.id} ${label}: Again is hinted only after a wrong Can’t`);
+    else assert.ok(!/Can’t/.test(h.text), `${p.id} ${label}: a move hint does not mention Can’t`);
     const before = a;
     a = play(p, a, h.action);
-    // Undo always changes the board, and keeps what was made, claimed or refused.
+    if (h.action.type === 'again') { assert.deepEqual(a.board, freshAttempt(p).board, `${p.id} ${label}: Again starts afresh`); checkSealed(p, a, `${label}, after Again`); continue; }
+    assert.ok(p.parameters.mode !== 'records' || a.board.over === null, `${p.id} ${label}: a hint never ends the attempt`);
+    // Undo always changes the board, and keeps what was made or claimed.
     const back = undoCarry(p, a);
     assert.notDeepEqual(back.board, a.board, `${p.id} ${label}: Undo changes the board`);
+    assert.notEqual(drawn(p, back), drawn(p, a), `${p.id} ${label}: Undo changes the picture`);
     if (p.parameters.mode === 'records') {
       assert.deepEqual(made(back.board), made(a.board), `${p.id} ${label}: Undo keeps the sets made`);
       assert.deepEqual(back.board.cant, a.board.cant, `${p.id} ${label}: Undo keeps right claims`);
@@ -277,14 +302,36 @@ function wrongMove(p, a) {
   }
   throw Error(`${p.id}: no wrong move`);
 }
+// Straight runs: one free corner moved a dot at a time north, south, east or
+// west from the start (over a pole and down the other side, as the arrow keys
+// go). Returns the runs that pass an answer, as "B east 2".
+function straightRuns(p, keys) {
+  const q = p.parameters, out = [];
+  const stepOf = ([lat, lon], [dl, dn]) => { const n = lat + dl; if (Math.abs(lat) === 90) return null; return Math.abs(n) > 90 ? null : Math.abs(n) === 90 ? [n, 0] : [n, ((lon + dn) % 360 + 360) % 360]; };
+  for (const x of q.letters.filter(y => !q.locked.includes(y))) for (const [d, v] of Object.entries({north: [15, 0], south: [-15, 0], east: [0, 15], west: [0, -15]})) {
+    let at = q.start[x];
+    for (let k = 1; k < 24; k++) {
+      at = stepOf(at, v);
+      if (!at || keyOf(at) === keyOf(q.start[x])) break;
+      const map = {...q.start, [x]: at};
+      if (keys.has(mapKey(q, map))) { out.push(`${x} ${d} ${k}`); break; }
+    }
+  }
+  return out;
+}
 
-function checkPlacements(p, row, every) {
+function checkPlacements(p, row, every, runs) {
   const q = p.parameters, fresh = freshAttempt(p), mine = bruteSolutions(p, every);
   const theirs = new Set(solutionsOf(p).map(m => mapKey(q, m)));
   assert.equal(mine.size, row.count, `${p.id}: ${mine.size} solutions by brute force`);
   assert.deepEqual([...theirs].sort(), [...mine].sort(), `${p.id}: the mechanic finds the same solutions`);
   assert.equal(p.solution.count, row.count, `${p.id}: the pack’s count`);
-  if (q.mode === 'fraction') assert.equal(48 * q.fraction[0] / q.fraction[1], row.steps, `${p.id}: the fraction is ${row.steps} steps of 15°`);
+  if (q.mode === 'fraction') {
+    assert.equal(48 * q.fraction[0] / q.fraction[1], row.steps, `${p.id}: the fraction is ${row.steps} steps of 15°`);
+    // A child sweeping one corner along a line from the start, dot by dot, never walks into the answer.
+    runs[p.id] = straightRuns(p, mine);
+    assert.deepEqual(runs[p.id], [], `${p.id}: no straight run of one corner from the start passes an answer`);
+  }
   // Each solution is solved as a board; a near one is not.
   for (const key of [...mine].slice(0, 12)) {
     const corners = Object.fromEntries(q.letters.map((x, n) => { const [lat, lon] = key.split(' ')[n].split(',').map(Number); return [x, [lat, lon]]; }));
@@ -295,6 +342,7 @@ function checkPlacements(p, row, every) {
   const wrong = wrongMove(p, fresh);
   steps += hintsSolve(p, wrong.next, 'after a wrong move');
   refuse(p, fresh, {type: 'cant', record: 0}, 'Can’t, which this puzzle has not');
+  refuse(p, fresh, {type: 'again'}, 'Again, which this puzzle has not');
   refuse(p, fresh, {type: 'pair', corner: q.letters[0]}, 'a lune pair outside the playground');
   forgeries(p, fresh.board, [
     [{...fresh.board, done: true}, 'a forged done'],
@@ -303,88 +351,174 @@ function checkPlacements(p, row, every) {
   return steps;
 }
 
+// A random claimer, with retries: at each chance it taps one open set; a
+// right claim is followed by a wiggle (a move that makes nothing) and the
+// next claim. Every tap sequence is followed to its end: all the sets that
+// can't be made claimed (a right run), or a wrong claim, which ends the
+// attempt and leaves no retry in it.
+function claimRuns(p, a) {
+  const q = p.parameters;
+  let right = 0, runs = 0;
+  for (const i of openSets(p, a.board)) {
+    const next = play(p, a, {type: 'cant', record: i});
+    if (next.board.over !== null) {
+      runs++;
+      assert.equal(next.board.over, i, `${p.id}: the wrong claim is recorded`);
+      checkSealed(p, next, 'after a wrong Can’t');
+      for (const x of q.letters) for (const to of [[15, 15], [-30, 105], [0, 135]]) refuse(p, next, {type: 'place', corner: x, to}, 'a move after a wrong Can’t');
+      for (let j = 0; j < q.records.length; j++) refuse(p, next, {type: 'cant', record: j}, 'a retry after a wrong Can’t');
+      continue;
+    }
+    if (!openSets(p, next.board).some(j => sum(q.records[j]) <= 180)) { right++; runs++; continue; }
+    const deeper = claimRuns(p, wrongMove(p, next).next);
+    right += deeper.right; runs += deeper.runs;
+  }
+  return {right, runs};
+}
+// States of a shelf with Can't open: each set that can be made, made or not,
+// and each that can't, claimed or not, short of a solve. Forced: one set left,
+// so a claim has one tap; forced right: that set is one that can't be made.
+function forcedShare(p) {
+  const q = p.parameters, sets = q.records.map((r, i) => i), flats = sets.filter(i => sum(q.records[i]) <= 180);
+  let states = 0, forced = 0, forcedRight = 0;
+  for (let mask = 0; mask < 1 << sets.length; mask++) {
+    const done = sets.filter(i => mask >> i & 1);
+    if (done.length === sets.length) continue;
+    states++;
+    const open = sets.filter(i => !done.includes(i));
+    if (open.length === 1) { forced++; if (flats.includes(open[0])) forcedRight++; }
+  }
+  return {states, forced, forcedRight};
+}
+// Random walks of moves, right claims and Undos, then Undo all the way back:
+// every Undo changes the board and the picture, keeps what was made and
+// claimed, and the history never holds an ended attempt.
+function undoWalks(p, walks = 12, length = 14) {
+  const q = p.parameters, free = q.letters.filter(x => !q.locked.includes(x));
+  let seed = 61, undos = 0;
+  const rand = n => { seed = (seed * 1103515245 + 12345) % 2147483648; return Math.floor(seed / 2147483648 * n); };
+  for (let w = 0; w < walks; w++) {
+    let a = freshAttempt(p);
+    for (let k = 0; k < length && !isSolved(p, a.board); k++) {
+      const flats = openSets(p, a.board).filter(i => sum(q.records[i]) <= 180), roll = rand(10);
+      let next = null;
+      if (roll < 2 && a.history.length) { next = undoCarry(p, a); assert.notEqual(drawn(p, next), drawn(p, a), `${p.id}: Undo mid-walk changes the picture`); undos++; }
+      else if (roll < 4 && flats.length && !atStart(p, a.board)) next = move(p, a, {type: 'cant', record: flats[rand(flats.length)]});
+      else if (roll < 5) { const sols = solutionsOf(p).flat(), s = sols[rand(sols.length)], x = free[rand(free.length)]; next = move(p, a, {type: 'place', corner: x, to: s[x]}); }
+      else { const x = free[rand(free.length)], at = a.board.corners[x], nb = GRID.filter(g => keyOf(g) !== keyOf(at) && Math.abs(g[0] - at[0]) <= 15 && (Math.abs(g[0]) === 90 || Math.abs(at[0]) === 90 || Math.abs(((g[1] - at[1]) % 360 + 540) % 360 - 180) <= 15)); next = move(p, a, {type: 'place', corner: x, to: nb[rand(nb.length)]}); }
+      if (next) a = next;
+    }
+    for (const h of a.history) assert.equal(h.board.over, null, `${p.id}: the history never holds an ended attempt`);
+    while (a.history.length) {
+      const back = undoCarry(p, a);
+      assert.notDeepEqual(back.board, a.board, `${p.id}: every Undo changes the board`);
+      assert.notEqual(drawn(p, back), drawn(p, a), `${p.id}: every Undo changes the picture`);
+      assert.deepEqual(made(back.board), made(a.board), `${p.id}: Undo keeps the sets made`);
+      assert.deepEqual(back.board.cant, a.board.cant, `${p.id}: Undo keeps right claims`);
+      assert.ok(validBoard(p, back.board), `${p.id}: the board after Undo is valid`);
+      a = back; undos++;
+    }
+  }
+  return undos;
+}
+
 function checkRecords(p, row, every, shares) {
   const q = p.parameters, fresh = freshAttempt(p), mine = bruteSolutions(p, every), theirs = solutionsOf(p);
   assert.deepEqual(mine.map(s => s.size), row.counts, `${p.id}: solutions for each set by brute force`);
   q.records.forEach((r, i) => {
     assert.deepEqual(theirs[i].map(m => mapKey(q, m)).sort(), [...mine[i]].sort(), `${p.id}: the mechanic finds the same triangles for ${r}`);
-    const flat = r.reduce((s, x) => s + x, 0) <= 180;
+    const flat = sum(r) <= 180;
     assert.equal(flat, mine[i].size === 0, `${p.id}: ${r} can’t be made exactly when it adds up to 180° or less`);
-    assert.deepEqual(p.solution.records[i], flat ? {cant: true, sum: r.reduce((s, x) => s + x, 0)} : {witness: p.solution.records[i].witness, count: row.counts[i]}, `${p.id}: the pack’s solution for ${r}`);
+    assert.deepEqual(p.solution.records[i], flat ? {cant: true, sum: sum(r)} : {witness: p.solution.records[i].witness, count: row.counts[i]}, `${p.id}: the pack’s solution for ${r}`);
   });
+  assert.ok(theirs.filter(s => s.length).length >= 2, `${p.id}: at least two sets can be made, so a first claim is a choice among three`);
   assert.equal(nextHint(p, fresh).action.type, 'place', `${p.id}: the first hint moves a corner`);
   // Can't waits for an attempt.
   for (let i = 0; i < q.records.length; i++) refuse(p, fresh, {type: 'cant', record: i}, 'Can’t on a fresh board');
+  refuse(p, fresh, {type: 'again'}, 'Again before a wrong Can’t');
   let steps = hintsSolve(p, fresh, 'from fresh');
   const wrong = wrongMove(p, fresh), tried = wrong.next;
   steps += hintsSolve(p, tried, 'after a wrong move');
-  // Random Can't taps at the first chance: each open set tapped once.
-  const open = q.records.map((r, i) => i).filter(i => !made(tried.board).includes(i));
-  const right = open.filter(i => move(p, tried, {type: 'cant', record: i}).board.cant.includes(i));
-  shares[p.id] = `${right.length}/${open.length}`;
-  assert.ok(right.length < open.length, `${p.id}: a random Can’t tap can fail`);
-  // A wrong Can't: one short refusal, kept through Undo until a corner moves; hints still solve.
-  const bad = open.find(i => !right.includes(i));
-  const told = play(p, tried, {type: 'cant', record: bad});
-  assert.equal(told.board.refused, bad, `${p.id}: the refusal names the set`);
-  assert.equal(told.board.told, true, `${p.id}: There is a way.`);
-  assert.deepEqual(told.board.cant, [], `${p.id}: a wrong claim records nothing`);
-  for (let i = 0; i < q.records.length; i++) refuse(p, told, {type: 'cant', record: i}, 'a second Can’t before a corner moves');
-  const kept = undoCarry(p, told);
-  assert.equal(kept.board.refused, bad, `${p.id}: Undo keeps the refusal`);
-  assert.equal(kept.board.told, false, `${p.id}: Undo takes the words away, so the board changes`);
-  assert.ok(validBoard(p, kept.board), `${p.id}: the kept refusal is a valid board`);
-  for (let i = 0; i < q.records.length; i++) refuse(p, kept, {type: 'cant', record: i}, 'Can’t after Undo while the corners stay');
-  steps += hintsSolve(p, told, 'after a wrong Can’t');
-  steps += hintsSolve(p, kept, 'after Undo of a wrong Can’t');
-  // A right Can't, then Undo: the claim stays, the drawing goes.
-  for (const i of right) {
+  // Random claims at the first chance, with retries.
+  const runs = claimRuns(p, tried), forced = forcedShare(p);
+  shares[p.id] = {firstChance: `${runs.right}/${runs.runs}`, ...forced};
+  assert.ok(runs.right < runs.runs, `${p.id}: a random claim can fail`);
+  // A wrong Can't: one short refusal; the attempt is over, and Again starts afresh.
+  const bad = openSets(p, tried.board).find(i => sum(q.records[i]) > 180);
+  const over = play(p, tried, {type: 'cant', record: bad});
+  assert.equal(over.board.over, bad, `${p.id}: the wrong claim names the set`);
+  assert.deepEqual(over.board.cant, [], `${p.id}: a wrong claim records no claim`);
+  assert.ok(!isSolved(p, over.board), `${p.id}: an ended attempt is not a solve`);
+  assert.match(drawn(p, over), /<p class="gl-told">There is a way\.<\/p>/, `${p.id}: There is a way.`);
+  assert.match(drawn(p, over), /class="gl-record refused"/, `${p.id}: the set is marked on the shelf`);
+  assert.doesNotMatch(drawn(p, over), /class="gl-cant/, `${p.id}: no Can’t once the attempt is over`);
+  checkSealed(p, over, 'after a wrong Can’t');
+  const again = play(p, over, {type: 'again'});
+  assert.deepEqual(again.board, fresh.board, `${p.id}: Again starts afresh`);
+  checkSealed(p, again, 'after Again');
+  for (let i = 0; i < q.records.length; i++) refuse(p, again, {type: 'cant', record: i}, 'Can’t on the fresh start after Again');
+  steps += hintsSolve(p, over, 'after a wrong Can’t');
+  // A wrong Can't after a set is made loses the set too.
+  const witness = theirs.findIndex(s => s.length);
+  let built = null, target = null;
+  for (const s of theirs[witness]) {
+    for (const order of [q.letters, [...q.letters].reverse()]) {
+      let a = tried;
+      for (const x of order) if (keyOf(a.board.corners[x]) !== keyOf(s[x])) { const n = move(p, a, {type: 'place', corner: x, to: s[x]}); if (n) a = n; }
+      if (made(a.board).includes(witness)) { built = a; target = s; break; }
+    }
+    if (built) break;
+  }
+  assert.ok(built, `${p.id}: a witness makes its set by moves`);
+  const back = undoCarry(p, built);
+  assert.ok(made(back.board).includes(witness), `${p.id}: Undo keeps a set made`);
+  for (let i = 0; i < q.records.length; i++) if (made(built.board).includes(i)) refuse(p, built, {type: 'cant', record: i}, 'Can’t on a set already made');
+  const other = openSets(p, built.board).find(i => sum(q.records[i]) > 180);
+  if (other !== undefined) { const lost = play(p, built, {type: 'cant', record: other}); assert.deepEqual(play(p, lost, {type: 'again'}).board, fresh.board, `${p.id}: Again after a wrong Can’t clears the sets made`); }
+  // A right Can't, then Undo: the claim stays and its argument goes; undoing a move after it brings the argument back.
+  for (const i of openSets(p, tried.board).filter(j => sum(q.records[j]) <= 180)) {
     const c = play(p, tried, {type: 'cant', record: i});
     assert.equal(c.board.shown, i, `${p.id}: the argument is drawn for ${q.records[i]}`);
-    const back = undoCarry(p, c);
-    assert.deepEqual(back.board.cant, [i], `${p.id}: Undo keeps a right claim`);
-    assert.equal(back.board.shown, null, `${p.id}: Undo takes the drawing away`);
+    assert.match(drawn(p, c), /gl-argument/);
+    const b1 = undoCarry(p, c);
+    assert.deepEqual(b1.board.cant, [i], `${p.id}: Undo keeps a right claim`);
+    assert.equal(b1.board.shown, null, `${p.id}: Undo takes the argument away`);
     refuse(p, c, {type: 'cant', record: i}, 'the same claim twice');
+    const m = wrongMove(p, c).next, b2 = undoCarry(p, m);
+    assert.equal(b2.board.shown, i, `${p.id}: undoing a move after a claim brings its argument back`);
+    const b3 = undoCarry(p, b2);
+    assert.equal(b3.board.shown, null, `${p.id}: and the next Undo takes it away`);
+    assert.notEqual(drawn(p, b3), drawn(p, b2), `${p.id}: so that Undo shows a change`);
   }
-  // Making a set, then Undo: the set stays made, the corners go back.
-  const witness = theirs.findIndex(s => s.length);
-  if (witness >= 0) {
-    const target = theirs[witness][0];
-    let a = tried;
-    for (const x of q.letters) if (keyOf(a.board.corners[x]) !== keyOf(target[x])) { const n = move(p, a, {type: 'place', corner: x, to: target[x]}); if (n) a = n; }
-    if (made(a.board).includes(witness)) {
-      const back = undoCarry(p, a);
-      assert.ok(made(back.board).includes(witness), `${p.id}: Undo keeps a set made`);
-      for (let i = 0; i < q.records.length; i++) if (made(a.board).includes(i)) refuse(p, a, {type: 'cant', record: i}, 'Can’t on a set already made');
-    }
-  }
+  const undos = undoWalks(p);
   refuse(p, tried, {type: 'cant', record: q.records.length}, 'a set that is not there');
   refuse(p, tried, {type: 'cant', record: '0'}, 'a set named by a string');
   // Forged saves.
-  const target = theirs.find(s => s.length)[0], wit = theirs.findIndex(s => s.length), flatIndex = q.records.findIndex(r => r.reduce((s, x) => s + x, 0) <= 180);
-  const t = tried.board, other = q.records.findIndex((r, i) => i !== wit && theirs[i].length);
+  const flatIndex = q.records.findIndex(r => sum(r) <= 180), t = tried.board, other2 = q.records.findIndex((r, i) => i !== witness && theirs[i].length);
   const forged = [
     [{...t, done: true}, 'a forged done'],
-    [{...t, built: [{record: wit, corners: t.corners}]}, 'a set made with corners that don’t make it'],
-    [{...t, built: [wit]}, 'a set made without its corners'],
-    [{...t, built: [{record: wit, corners: target}, {record: wit, corners: target}]}, 'a set made twice'],
-    [{...t, cant: [wit]}, 'a claim on a set that can be made'],
-    [{...fresh.board, built: [{record: wit, corners: target}]}, 'a set made before any move'],
-    [{...fresh.board, cant: flatIndex >= 0 ? [flatIndex] : [0]}, 'a claim before any move'],
-    [{...t, refused: flatIndex >= 0 ? flatIndex : q.records.length}, 'a refusal of a set that can’t be made'],
-    [{...t, told: true}, 'There is a way. without a refusal'],
+    [{...t, built: [{record: witness, corners: t.corners}]}, 'a set made with corners that don’t make it'],
+    [{...t, built: [witness]}, 'a set made without its corners'],
+    [{...t, built: [{record: witness, corners: target}, {record: witness, corners: target}]}, 'a set made twice'],
+    [{...t, cant: [witness]}, 'a claim on a set that can be made'],
+    [{...t, over: flatIndex >= 0 ? flatIndex : q.records.length}, 'an ended attempt on a set that can’t be made'],
+    [{...t, over: 'x'}, 'an ended attempt on no set'],
+    [{...t, corners: target, built: [{record: witness, corners: target}], over: witness}, 'an ended attempt on a set already made'],
+    [{...fresh.board, over: witness}, 'an ended attempt on the starting triangle'],
     [{...t, shown: 0}, 'an argument for a set not claimed'],
     [{...t, corners: target}, 'corners that make a set not recorded'],
-    [{...t, tried: 'yes'}, 'a tried flag that is not true or false']
+    [{...t, tried: true}, 'an extra field'],
+    [{...t, refused: null, told: false}, 'fields from an earlier save']
   ];
-  if (other >= 0) forged.push([{...t, built: [{record: other, corners: target}]}, 'corners that make a different set']);
+  if (flatIndex >= 0) forged.push([{...fresh.board, cant: [flatIndex], shown: flatIndex}, 'an argument on the starting triangle'], [{...t, cant: [flatIndex], shown: flatIndex, over: witness}, 'an argument and an ended attempt']);
+  if (other2 >= 0) forged.push([{...t, built: [{record: other2, corners: target}]}, 'corners that make a different set']);
   forgeries(p, t, forged);
+  if (flatIndex >= 0) assert.ok(validBoard(p, {...fresh.board, cant: [flatIndex]}), `${p.id}: a claim kept after Undo back to the start is a real board`);
   // A full forged shelf is still checked: made sets need their own corners.
   const allMade = {...t, corners: target, built: q.records.map((r, i) => theirs[i].length ? {record: i, corners: theirs[i][0]} : null).filter(Boolean), cant: q.records.map((r, i) => i).filter(i => !theirs[i].length)};
-  const solvedForge = isSolved(p, allMade);
-  assert.ok(validBoard(p, allMade) && solvedForge, `${p.id}: a shelf whose every set carries corners that make it is a real solve`);
+  assert.ok(validBoard(p, allMade) && isSolved(p, allMade), `${p.id}: a shelf whose every set carries corners that make it is a real solve`);
   forgeries(p, t, [[{...allMade, built: allMade.built.map(e => ({...e, corners: t.corners}))}, 'a full shelf without the corners that make it']]);
-  return steps;
+  return {steps, undos};
 }
 
 function forgeries(p, board, list) {
@@ -494,8 +628,8 @@ export async function validateGlobe() {
   assert.ok(playground, 'a playground');
   assert.deepEqual(puzzles.map(p => p.number), puzzles.map((_, i) => i + 1), 'numbers run 1..n');
   assert.deepEqual(puzzles.map(p => p.id), Object.keys(TABLE), 'every puzzle in the table');
-  let hintSteps = 0;
-  const shares = {};
+  let hintSteps = 0, undoSteps = 0;
+  const shares = {}, runs = {};
   for (const p of [playground, ...puzzles]) {
     const q = p.parameters;
     assert.equal(p.mechanic, 'globe');
@@ -521,7 +655,8 @@ export async function validateGlobe() {
     assert.equal(p.difficulty_level, row.level, `${p.id}: level`);
     assert.equal(q.mode, row.mode, `${p.id}: mode`);
     checkMoves(p);
-    hintSteps += q.mode === 'records' ? checkRecords(p, row, every, shares) : checkPlacements(p, row, every);
+    if (q.mode === 'records') { const r = checkRecords(p, row, every, shares); hintSteps += r.steps; undoSteps += r.undos; }
+    else hintSteps += checkPlacements(p, row, every, runs);
     // The mechanic's corners on the solutions agree with the exact cotangent test.
     for (const m of solutionsOf(p).flat().slice(0, 40)) {
       const v = q.letters.map(x => INDEX.get(keyOf(m[x]))), det = fdet(...v), y = abs(xdet(...v)), facts = triangleFacts(q.letters.map(x => m[x]));
@@ -532,7 +667,7 @@ export async function validateGlobe() {
       });
     }
   }
-  return {puzzles: puzzles.length, triangles: every.triangles, allMultiplesOf15: every.fifteen.length, types: every.types, smallestExcess: Number(every.minExcess.toFixed(4)), randomCantTaps: shares, hintSteps, slowSigns, triangleCpuMs: every.ms};
+  return {puzzles: puzzles.length, triangles: every.triangles, allMultiplesOf15: every.fifteen.length, types: every.types, smallestExcess: Number(every.minExcess.toFixed(4)), cornerNearestWhole: {degrees: every.nearWhole.x, shown: `≈${approxText(every.nearWhole.x)}°`}, straightRunsToAnswer: runs, claims: shares, hintSteps, undoSteps, slowSigns, triangleCpuMs: every.ms};
 }
 export default validateGlobe;
 if (process.argv[1] === new URL(import.meta.url).pathname) console.log(JSON.stringify(await validateGlobe(), null, 2));

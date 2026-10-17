@@ -2,11 +2,13 @@
 // chosen corner to a dot, taps between a corner and the next dot (nearer the
 // corner chooses it, nearer the dot moves there), a drag that carries a
 // corner (one Undo), a drag that turns the ball, the turn buttons, arrow keys
-// (and Shift to turn), focus after moves, a tap where a corner sits behind
-// the ball, Hint (the first idea, then the marks, then Apply hint), a set
-// made, a wrong Can't refused and kept across Undo, a right Can't with its
-// argument drawn, the busiest board fitting a 375 × 667 phone, and the
-// playground's lune pairs. Same environment variables as the other browser
+// (and Shift to turn, and a hop over a dot that leaves no triangle), focus
+// after moves, Hint (the first idea, then the marks, then Apply hint), a set
+// made, a wrong Can't that ends the attempt (Undo off, nothing moves, Again
+// starts afresh), a right Can't with its argument drawn and legible, a fan
+// past a whole turn, Undo after a claim and a move, the busiest board fitting
+// a 375 × 667 phone, the playground's lune pairs, and a tap on a corner's
+// faint disc behind the ball where a front dot lies under it. Same environment variables as the other browser
 // suites (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a
 // 375 × 667 phone with touch). Screenshots go in test-results/globe/.
 import assert from 'node:assert/strict';
@@ -36,7 +38,13 @@ const spot = pt => page.evaluate(async ([lat, lon]) => {
 }, pt);
 const between = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
 const tapAt = async ([x, y]) => { if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); await page.waitForTimeout(40); };
-const tap = async pt => tapAt(await spot(pt));
+// A dot off the bottom or top of the screen is scrolled into view first, as a child would.
+const tap = async pt => {
+  let at = await spot(pt);
+  const h = await page.evaluate(() => innerHeight);
+  if (at[1] < 8 || at[1] > h - 8) { await page.evaluate(dy => scrollBy(0, dy), at[1] - h / 2); at = await spot(pt); }
+  return tapAt(at);
+};
 let cdp = null;
 async function dragAt(a, b) {
   if (!phone) {
@@ -56,6 +64,9 @@ const press = async selector => { await page.locator(selector).click(); await pa
 const undoButton = () => press('[data-action="undo"]');
 const focusClass = () => page.evaluate(() => document.activeElement?.className?.baseVal ?? document.activeElement?.className ?? '');
 const told = () => page.locator('.gl-told').count();
+const undoOff = () => page.locator('[data-action="undo"]').isDisabled();
+const puzzleHTML = () => page.locator('.gl-puzzle').evaluate(e => e.innerHTML);
+const hit = async k => { await page.keyboard.press(k); await page.waitForTimeout(30); };
 try {
   await mkdir(out, {recursive: true});
   await page.goto(base); await page.locator('#nickname').fill('Globe QA'); await page.locator('#profile-form button[type=submit]').click();
@@ -114,6 +125,9 @@ try {
   assert.ok(same((await viewOf())[0], Math.min(90, v2[0] + 15)), 'Shift with an arrow turns the ball');
   assert.deepEqual((await board(P)).corners.B, [0, 60], 'and moves nothing');
   assert.match(await focusClass(), /gl-ball/);
+  // Up to 15° N, then west across A's meridian: the key hops the dot on it, which leaves no triangle.
+  await hit('ArrowUp'); for (let i = 0; i < 4; i++) await hit('ArrowLeft');
+  assert.deepEqual((await board(P)).corners.B, [15, 345], 'B crosses the 0° line by arrow keys');
   await shot('right-corners');
   // Hint: the idea first, then the marks, then Apply hint.
   await press('[data-action="restart"]');
@@ -128,7 +142,7 @@ try {
   await press('[data-action="apply-hint"]');
   await done();
 
-  // Puzzle 3: a set made, a wrong Can't refused and kept, a right Can't drawn.
+  // Puzzle 3: a wrong Can't ends the attempt; Again; sets made; a right Can't drawn.
   P = 'globe-03';
   await open(P); await fit('puzzle 3');
   assert.equal(await page.locator('.gl-cant').isDisabled(), true, 'Can’t waits for an attempt');
@@ -136,36 +150,68 @@ try {
   await tap([15, 60]);
   assert.equal(await page.locator('.gl-cant').isDisabled(), false, 'Can’t after a move');
   await press('.gl-cant');
-  assert.equal(await page.locator('.gl-record.pick').count(), 2, 'every open set can be tapped');
+  assert.equal(await page.locator('.gl-record.pick').count(), 3, 'every open set can be tapped');
   assert.equal(await page.locator('.gl-record.pick.hinted').count(), 0, 'nothing marks the right tap');
   await press('.gl-record.pick >> nth=0');
   assert.equal(await told(), 1, 'There is a way.');
   assert.equal(await page.locator('.gl-told').innerText(), 'There is a way.');
-  assert.equal(await page.locator('.gl-cant').isDisabled(), true, 'no second claim until a corner moves');
+  assert.equal(await page.locator('.gl-record.refused').count(), 1, 'the set is marked on the shelf');
+  assert.equal(await page.locator('.gl-cant').count(), 0, 'no Can’t once the attempt is over');
+  assert.equal(await page.locator('.gl-record.pick').count(), 0, 'and no set to tap');
+  assert.equal(await undoOff(), true, 'Undo can’t step back over the end');
   assert.match(await focusClass(), /gl-ball/, 'after a claim, focus is on the ball, not Can’t or a set');
-  await shot('sets-refused');
-  await undoButton();
-  assert.equal(await told(), 0, 'Undo takes the words away');
-  assert.equal(await page.locator('.gl-cant').isDisabled(), true, 'and keeps the refusal');
-  assert.equal((await board(P)).refused, 0);
+  const ended = await board(P);
   await tap([0, 45]);
-  assert.equal(await page.locator('.gl-record.made').count(), 1, 'the set is made');
+  assert.deepEqual(await board(P), ended, 'no corner moves once the attempt is over');
+  await shot('sets-ended');
+  await press('.gl-again');
+  assert.deepEqual((await board(P)).corners, pack.puzzles.find(p => p.id === P).parameters.start, 'Again starts afresh');
+  assert.equal(await told(), 0);
+  assert.equal(await undoOff(), true, 'and Undo can’t bring the end back');
+  assert.equal(await page.locator('.gl-cant').isDisabled(), true, 'Can’t waits for a move again');
+  await tap([0, 45]);
+  assert.equal(await page.locator('.gl-record.made').count(), 1, 'a set is made');
   assert.deepEqual((await board(P)).built, [{record: 0, corners: {N: [90, 0], A: [0, 0], B: [0, 45]}}]);
-  assert.equal(await page.locator('.gl-cant').isDisabled(), false, 'a move clears the refusal');
+  // Can't, then Undo: the half-made claim ends with it.
+  await press('.gl-cant');
+  assert.equal(await page.locator('.gl-record.pick').count(), 2, 'two sets left to tap');
+  await undoButton();
+  assert.equal(await page.locator('.gl-record.pick').count(), 0, 'Undo leaves no set to tap');
+  assert.equal(await page.locator('.gl-cant').getAttribute('aria-pressed'), 'false');
+  await tap([-30, 90]);
+  assert.equal(await page.locator('.gl-record.made').count(), 2, 'both sets that can be made are made');
   await press('.gl-cant');
   assert.equal(await page.locator('.gl-record.pick').count(), 1);
   await press('.gl-record.pick');
   await done();
   assert.equal(await page.locator('.gl-argument .gl-fan').count(), 2, 'the argument: both sets of corners against a straight line');
-  assert.equal(await page.locator('.gl-argument .gl-fan-extra').count(), 1, 'the triangle’s corners pass the line');
+  assert.ok(await page.locator('.gl-argument .gl-fan-extra').count() >= 1, 'the triangle’s corners pass the line');
+  const label = await page.locator('.gl-argument .gl-fan-name').evaluateAll(es => Math.min(...es.map(e => e.getBoundingClientRect().height)));
+  assert.ok(label >= 11, `the fans’ labels are legible (${label.toFixed(1)} px)`);
+  console.log(`Fan labels ${label.toFixed(1)} px tall.`);
   await shot('sets-solved');
 
-  // Puzzle 10: the busiest board (three sets, a right Can't and its argument) fits the screen.
+  // Puzzle 3 again, by arrow keys to 75° S 165° W: the corners add up to more than a whole turn, and the fan winds inward.
+  await press('[data-action="replay"]');
+  await page.locator('.gl-puzzle').waitFor();
+  await page.locator('[data-gl-ball]').focus();
+  for (let i = 0; i < 7; i++) await hit('ArrowDown');
+  for (let i = 0; i < 8; i++) await hit('ArrowRight');
+  assert.deepEqual((await board(P)).corners.B, [-75, 195], 'B by keys, hopping the 180° line');
+  await press('.gl-cant'); await press('.gl-record.pick >> nth=1');
+  assert.deepEqual((await board(P)).cant, [1]);
+  const fan = await page.locator('.gl-fan.mine').boundingBox(), names = await page.locator('.gl-fan.mine .gl-fan-name').count();
+  assert.equal(names, 3, 'each corner of a fan past a whole turn is lettered');
+  assert.ok(fan.x >= 0 && fan.x + fan.width <= (phone ? 375 : 1024), 'the fan fits the screen');
+  assert.match(await page.locator('.gl-fan.mine').getAttribute('aria-label'), /about 505\.5°/);
+  await page.locator('.gl-argument').scrollIntoViewIfNeeded();
+  await page.locator('.gl-argument').screenshot({path: new URL(`big-fan${phone ? '-phone' : ''}.png`, out).pathname});
+
+  // Puzzle 10: the busiest board (three sets, a right Can't and its argument) fits the screen; Undo after a claim and a move.
   P = 'globe-10';
   await open(P);
   await tap([30, 30]);
-  if (!(await board(P))?.tried) { await press('[data-focus="gl-card-C"]'); await tap([60, 30]); }
-  assert.equal((await board(P)).tried, true);
+  assert.deepEqual((await board(P)).corners.A, [30, 30]);
   await press('.gl-cant');
   await press('.gl-record.pick >> nth=1');
   assert.deepEqual((await board(P)).cant, [1], 'a set adding up to 180° is claimed');
@@ -177,8 +223,16 @@ try {
   console.log(`Busiest board ${busy.width.toFixed(0)} × ${busy.height.toFixed(0)} px.`);
   await page.locator('.gl-puzzle').scrollIntoViewIfNeeded();
   await shot('busiest');
+  await tap([30, 15]);
+  assert.equal(await page.locator('.gl-argument').count(), 0, 'a move takes the argument away');
+  let before = await puzzleHTML();
   await undoButton();
-  assert.equal(await page.locator('.gl-argument').count(), 0, 'Undo takes the argument away');
+  assert.notEqual(await puzzleHTML(), before, 'Undo of the move changes the board');
+  assert.equal(await page.locator('.gl-argument').count(), 1, 'and brings back the argument that board had');
+  before = await puzzleHTML();
+  await undoButton();
+  assert.notEqual(await puzzleHTML(), before, 'Undo of the claim changes the board');
+  assert.equal(await page.locator('.gl-argument').count(), 0, 'it takes the argument away');
   assert.deepEqual((await board(P)).cant, [1], 'and keeps the claim');
 
   // Puzzle 5: a fraction, made by Hint alone after a wrong move.
@@ -200,19 +254,22 @@ try {
   assert.ok(await page.locator('.gl-count', {hasText: '3'}).count() >= 1, 'the triangle shows 3');
   assert.ok(await page.locator('.gl-count', {hasText: '1'}).count() >= 1, 'other regions show 1');
   await shot('playground');
-  // Turn until C is behind the ball, choose A, and tap where C would be: the tap goes to a front dot.
+  // Turn until C is behind the ball with a front dot under its faint disc, choose A, and tap that dot: the tap goes to C, as drawn.
   await press('[data-focus="gl-card-A"]');
-  for (let i = 0; i < 12; i++) await press('[data-focus="gl-turn-left"]');
-  const [cx, cy, cz] = await spot([0, 90]);
-  assert.ok(cz < 0, 'C is behind the ball');
-  await tapAt([cx, cy]);
-  const after = await board(P);
-  assert.deepEqual(after.corners.C, [0, 90], 'the corner behind the ball is not moved');
-  assert.notDeepEqual(after.corners.A, [90, 0], 'the tap went to a front dot, for A');
-  const [, , az] = await spot(after.corners.A);
-  assert.ok(az > 0, 'A is now on a dot at the front');
-  await dragAt(await spot(after.corners.A), await spot([after.corners.A[0], (after.corners.A[1] + 15) % 360]));
-  assert.notDeepEqual((await board(P)).corners.A, after.corners.A, 'a corner drags in the playground');
+  for (let i = 0; i < 11; i++) await press('[data-focus="gl-turn-left"]');
+  const [cx, cy, cz] = await spot([0, 90]), [dx, dy, dz] = await spot([30, 135]);
+  assert.ok(cz < 0 && dz > 0, 'C is behind the ball and the dot in front');
+  const ratio = await page.locator('[data-gl-ball] svg').evaluate(svg => svg.getBoundingClientRect().width / 200);
+  assert.ok(Math.hypot(dx - cx, dy - cy) < 7.6 * ratio, 'the front dot lies under C’s faint disc');
+  const corners0 = (await board(P)).corners;
+  await tapAt([dx, dy]);
+  assert.deepEqual((await board(P)).corners, corners0, 'nothing moves: A does not jump to the hidden dot');
+  assert.equal(await page.locator('[data-focus="gl-card-C"]').getAttribute('aria-pressed'), 'true', 'C is chosen');
+  const [, , cz2] = await spot([0, 90]);
+  assert.ok(cz2 > 0, 'and the ball turns to show it');
+  await shot('behind-tap');
+  await dragAt(await spot([0, 90]), await spot([0, 105]));
+  assert.deepEqual((await board(P)).corners.C, [0, 105], 'a corner drags in the playground');
 
   assert.deepEqual(errors, [], 'no page errors');
   console.log(`Ball triangles browser smoke passed${phone ? ' (phone)' : ''}.`);

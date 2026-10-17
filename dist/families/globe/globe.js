@@ -177,17 +177,22 @@ export const fractionText = q => `${q.fraction[0]}/${q.fraction[1]}`;
 
 // --- Boards --------------------------------------------------------------------
 // right, fraction: {corners}
-// records: {corners, built, cant, refused, told, shown, tried}
+// records: {corners, built, cant, shown, over}
 // playground: {corners, pairs}
 // `built` lists the records made, each with the corners that made it, and
-// `cant` those claimed right; `refused` is a
-// record a wrong Can't named (kept, and Can't off, until a corner moves);
-// `told` shows "There is a way." and `shown` draws the argument for a right
-// Can't, both only until the next change.
+// `cant` those claimed right; `shown` is the record whose argument is drawn
+// after a right Can't, until the next move. `over` is a record a wrong Can't
+// named: that attempt is over ("There is a way."), and only Again (a fresh
+// start) or Restart follows. Can't needs a triangle other than the starting
+// one, so the argument is drawn round the child's own attempt.
 const freeOf = q => q.letters.filter(x => !q.locked.includes(x));
 export const madeOf = b => b.built.map(e => e.record);
 const cloneCorners = c => Object.fromEntries(Object.entries(c).map(([x, p]) => [x, [...p]]));
 export const sameCorners = (c, d) => Object.keys(c).every(x => samePoint(c[x], d[x]));
+export const atStart = (q, b) => sameCorners(b.corners, q.start);
+const openOf = (q, b) => q.records.map((r, i) => i).filter(i => !madeOf(b).includes(i) && !b.cant.includes(i));
+// Whether Can't can be pressed: a records board still in play, not the starting triangle, with a set open.
+export const canClaim = (q, b) => q.mode === 'records' && b.over === null && !atStart(q, b) && openOf(q, b).length > 0;
 const triangle = (q, corners) => triangleFacts(pointsOf(q, corners)).ok;
 function validCorners(q, c) {
   if (!object(c) || Object.keys(c).sort().join() !== [...q.letters].sort().join()) return false;
@@ -196,7 +201,7 @@ function validCorners(q, c) {
 }
 function fresh(p) {
   const q = p.parameters, corners = cloneCorners(q.start);
-  if (q.mode === 'records') return {corners, built: [], cant: [], refused: null, told: false, shown: null, tried: false};
+  if (q.mode === 'records') return {corners, built: [], cant: [], shown: null, over: null};
   if (q.mode === 'playground') return {corners, pairs: []};
   return {corners};
 }
@@ -205,7 +210,7 @@ function valid(p, b) {
   if (!object(b) || !validCorners(q, b.corners)) return false;
   if (q.mode === 'right' || q.mode === 'fraction') return Object.keys(b).join() === 'corners';
   if (q.mode === 'playground') return Object.keys(b).sort().join() === 'corners,pairs' && Array.isArray(b.pairs) && b.pairs.every(x => q.letters.includes(x)) && new Set(b.pairs).size === b.pairs.length;
-  if (Object.keys(b).sort().join() !== 'built,cant,corners,refused,shown,told,tried') return false;
+  if (Object.keys(b).sort().join() !== 'built,cant,corners,over,shown') return false;
   const n = q.records.length, isIndex = i => Number.isInteger(i) && i >= 0 && i < n;
   const list = l => Array.isArray(l) && l.every(isIndex) && new Set(l).size === l.length;
   // A record made keeps the corners that made it, and they must make it.
@@ -214,27 +219,33 @@ function valid(p, b) {
   if (!list(made) || !list(b.cant) || made.some(i => b.cant.includes(i))) return false;
   // Only a record with no area is a right Can't.
   if (b.cant.some(i => !flat(q.records[i]))) return false;
-  if (typeof b.tried !== 'boolean' || typeof b.told !== 'boolean') return false;
-  if (!b.tried && (made.length || b.cant.length || b.refused !== null || !sameCorners(b.corners, q.start))) return false;
-  if (b.refused !== null && !(isIndex(b.refused) && !flat(q.records[b.refused]) && !made.includes(b.refused))) return false;
-  if (b.told && b.refused === null) return false;
+  // Only a set that can be made, and is not made yet, ends an attempt.
+  if (b.over !== null && !(isIndex(b.over) && !flat(q.records[b.over]) && !made.includes(b.over))) return false;
   if (b.shown !== null && !b.cant.includes(b.shown)) return false;
+  // A claim, right or wrong, comes after a move: never on the starting triangle; and a board shows one of them at most.
+  if ((b.over !== null || b.shown !== null) && atStart(q, b)) return false;
+  if (b.over !== null && b.shown !== null) return false;
   // A record the triangle matches is kept the moment it is made.
   return matches(q, b.corners).every(i => made.includes(i));
 }
 function solved(p, b) {
   const q = p.parameters;
   if (q.mode === 'playground' || !valid(p, b)) return false;
-  if (q.mode === 'records') return q.records.every((r, i) => madeOf(b).includes(i) || b.cant.includes(i));
+  if (q.mode === 'records') return b.over === null && q.records.every((r, i) => madeOf(b).includes(i) || b.cant.includes(i));
   const f = factsOf(q, b.corners);
   if (q.mode === 'right') return f.corners.every(c => c.deg === 90);
   return f.excess === targetSteps(q);
 }
+// A wrong Can't ends the attempt and Again starts a fresh one. The engine
+// asks noUndo straight after this hook, for the board it is committing, so
+// those two moves keep no history: no Undo steps back over an end.
+const sealed = new Set();
 function move(p, b, action) {
   const q = p.parameters;
   if (!valid(p, b) || solved(p, b) || !object(action)) return null;
   let next = null;
-  if (action.type === 'place') {
+  if (q.mode === 'records' && b.over !== null) next = action.type === 'again' ? fresh(p) : null;
+  else if (action.type === 'place') {
     const x = action.corner, to = action.to;
     if (!q.letters.includes(x) || q.locked.includes(x) || !isPoint(to) || samePoint(b.corners[x], to)) return null;
     const corners = {...cloneCorners(b.corners), [x]: [...to]};
@@ -242,12 +253,12 @@ function move(p, b, action) {
     next = {...b, corners};
     if (q.mode === 'records') {
       const made = matches(q, corners).filter(i => !madeOf(b).includes(i));
-      next = {...next, built: [...b.built, ...made.map(record => ({record, corners: cloneCorners(corners)}))], refused: null, told: false, shown: null, tried: true};
+      next = {...next, built: [...b.built, ...made.map(record => ({record, corners: cloneCorners(corners)}))], shown: null};
     }
   } else if (action.type === 'cant' && q.mode === 'records') {
     const i = action.record;
-    if (!b.tried || b.refused !== null || !Number.isInteger(i) || i < 0 || i >= q.records.length || madeOf(b).includes(i) || b.cant.includes(i)) return null;
-    next = flat(q.records[i]) ? {...b, cant: [...b.cant, i], shown: i, told: false} : {...b, refused: i, told: true, shown: null};
+    if (!canClaim(q, b) || !openOf(q, b).includes(i)) return null;
+    next = flat(q.records[i]) ? {...b, cant: [...b.cant, i], shown: i} : {...b, shown: null, over: i};
   } else if (action.type === 'pair' && q.mode === 'playground') {
     const x = action.corner;
     if (!q.letters.includes(x)) return null;
@@ -258,6 +269,7 @@ function move(p, b, action) {
     const state = ui(p);
     if (action.type === 'place') state.chosen = action.corner;
     state.claiming = false;
+    if (q.mode === 'records' && (next.over !== null || action.type === 'again')) sealed.add(p.id); else sealed.delete(p.id);
   }
   return next;
 }
@@ -371,13 +383,13 @@ function hint(p, b) {
   if (memoHints.size > 400) memoHints.clear();
   let out = {type: 'done'};
   if (q.mode !== 'records') { const best = nearest(q, b.corners, solutionsOf(p)); if (best) out = placeHint(b, best); }
+  else if (b.over !== null) out = {type: 'move', action: {type: 'again'}, text: 'Press Again, then make that set.'};
   else {
-    const open = q.records.map((r, i) => i).filter(i => !madeOf(b).includes(i) && !b.cant.includes(i));
-    const makeable = open.filter(i => !flat(q.records[i]));
+    const open = openOf(q, b), makeable = open.filter(i => !flat(q.records[i]));
     const best = makeable.length ? nearest(q, b.corners, makeable.flatMap(i => solutionsOf(p)[i])) : null;
     if (best) out = placeHint(b, best);
-    else if (open.length && (!b.tried || b.refused !== null)) {
-      // A first attempt before any claim: one step for a free corner.
+    else if (open.length && atStart(q, b)) {
+      // On the starting triangle, before a claim: one step for a free corner.
       const x = freeOf(q)[0], moves = GRID.filter(pt => arcDeg(pt, b.corners[x]) < 15.001 && !samePoint(pt, b.corners[x]));
       const to = moves.find(pt => triangle(q, {...b.corners, [x]: pt}) && !q.letters.some(y => samePoint(b.corners[y], pt)));
       if (to) out = {type: 'move', action: {type: 'place', corner: x, to}, text: `Make a triangle: move ${x} ${whereWords(b.corners[x], to)}.`};
@@ -551,8 +563,14 @@ function wedge(deg, right) {
   const mark = right ? `<path class="gl-wedge-right" d="M23 27V21H17"/>` : `<path class="gl-wedge-arc" d="M23 27A${r} ${r} 0 0 0 ${f1(ax)} ${f1(ay)}"/>`;
   return `<svg class="gl-wedge" viewBox="0 0 34 30" aria-hidden="true" focusable="false"><path class="gl-wedge-fill" d="M17 27L32 27A15 15 0 0 0 ${f1(x)} ${f1(y)}Z"/>${mark}<path class="gl-wedge-ray" d="M32 27H17L${f1(x)} ${f1(y)}"/></svg>`;
 }
-const degText = c => c.deg !== null ? `${c.deg}°` : `≈${c.approx.toFixed(1)}°`;
-const degWords = c => c.deg !== null ? `${c.deg} degrees` : `about ${c.approx.toFixed(1)} degrees`;
+// A size that is not a whole number of degrees, to one decimal, or to more
+// when one decimal would print a whole number (≈90.02°, never ≈90.0°).
+export function approxText(x) {
+  for (let d = 1; d <= 8; d++) { const t = x.toFixed(d); if (!/\.0+$/.test(t)) return t; }
+  return x.toFixed(8);
+}
+const degText = c => c.deg !== null ? `${c.deg}°` : `≈${approxText(c.approx)}°`;
+const degWords = c => c.deg !== null ? `${c.deg} degrees` : `about ${approxText(c.approx)} degrees`;
 export function placeWords(pt) {
   if (isPole(pt)) return `at the ${pt[0] > 0 ? 'north' : 'south'} pole`;
   const [lat, lon] = pt, ew = lon === 0 || lon === 180 ? `${lon}°` : lon < 180 ? `${lon}° east` : `${360 - lon}° west`;
@@ -569,40 +587,56 @@ function cards(p, b, facts, chosen, hintCorner, done) {
 }
 const TURNS = [['left', 'Turn left', 'M14 5L7 12L14 19'], ['up', 'Turn up', 'M5 14L12 7L19 14'], ['down', 'Turn down', 'M5 10L12 17L19 10'], ['right', 'Turn right', 'M10 5L17 12L10 19']];
 const turnButtons = () => `<div class="gl-turns" role="group" aria-label="Turn the ball">${TURNS.map(([id, label, d]) => `<button type="button" class="gl-turn" data-action="mechanic-ui" data-ui='${JSON.stringify({turn: id})}' data-focus="gl-turn-${id}" aria-label="${label}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="${d}"/></svg></button>`).join('')}</div>`;
-function shelf(p, b, state, hintRecord, done) {
-  const q = p.parameters, claiming = state.claiming && !done;
+// The sets, then Can't (or Again once a wrong Can't has ended the attempt).
+// Sets become buttons only while Can't is pressed and can be.
+function shelf(p, b, state, act, done) {
+  const q = p.parameters, can = !done && canClaim(q, b), claiming = state.claiming && can;
+  const hintRecord = act?.type === 'cant' ? act.record : null;
   const items = q.records.map((r, i) => {
-    const made = madeOf(b).includes(i), cant = b.cant.includes(i), open = !made && !cant;
-    const cls = `gl-record${made ? ' made' : ''}${cant ? ' cant' : ''}${hintRecord === i ? ' hinted' : ''}`;
+    const made = madeOf(b).includes(i), cant = b.cant.includes(i), over = b.over === i;
+    const cls = `gl-record${made ? ' made' : ''}${cant ? ' cant' : ''}${over ? ' refused' : ''}${hintRecord === i ? ' hinted' : ''}`;
     const inner = r.map(c => `<span>${c}°</span>`).join('');
-    const label = `${recordWords(r)}${made ? ', made' : cant ? ', can’t be made' : ''}`;
-    if (claiming && open) return `<button type="button" class="${cls} pick" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'cant', record: i}))}" data-focus="gl-record-${i}" aria-label="${label}">${inner}</button>`;
+    const label = `${recordWords(r)}${made ? ', made' : cant ? ', can’t be made' : over ? ', there is a way' : ''}`;
+    if (claiming && !made && !cant) return `<button type="button" class="${cls} pick" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'cant', record: i}))}" data-focus="gl-record-${i}" aria-label="${label}">${inner}</button>`;
     return `<div class="${cls}" role="img" aria-label="${label}">${inner}</div>`;
   }).join('');
-  const can = !done && b.tried && b.refused === null && q.records.some((r, i) => !madeOf(b).includes(i) && !b.cant.includes(i));
-  const button = done ? '' : `<button type="button" class="gl-cant${hintRecord !== null && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="gl-cant" aria-pressed="${claiming}" ${can ? '' : 'disabled'}>Can’t</button>`;
+  const button = done ? '' : b.over !== null
+    ? `<button type="button" class="gl-again${act?.type === 'again' ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'again'}))}" data-focus="gl-again">Again</button>`
+    : `<button type="button" class="gl-cant${hintRecord !== null && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="gl-cant" aria-pressed="${claiming}" ${can ? '' : 'disabled'}>Can’t</button>`;
   return `<div class="gl-shelf"><div class="gl-records" role="group" aria-label="Sets of corners">${items}</div>${button}</div>`;
 }
 // The argument for a right Can't: the record's corners laid side by side
 // reach a straight line and no further; the child's triangle's corners pass
 // it, and the part past the line is its area.
 // Each part carries its corner's letter (the child's) or size (the set's).
+// The corners turn anticlockwise from the right end of the line, one after
+// another. What passes the line is shaded in sun; past a whole turn the fan
+// winds inward, smaller each time round, so no part hides another.
+// Past a whole turn the radius shrinks by `wind` over the fan, at least 16 a
+// turn (sums stay below 540°), so each label sits in its own part's ring.
+export const FAN = {cx: 64, cy: 56, r: 48, wind: 24, font: 12, inset: 8};
+export function fanRadius(total, t) { return total > 360 ? FAN.r - FAN.wind * t / total : FAN.r; }
 function fan(degs, cls, label, names) {
-  let at = 0, parts = '', marks = '';
-  const point = (t, r = 44) => [60 + r * Math.cos(t * DEG), 54 - r * Math.sin(t * DEG)];
+  const total = degs.reduce((s, d) => s + d, 0), {cx, cy} = FAN;
+  const at = (t, r = fanRadius(total, t)) => [cx + r * Math.cos(t * DEG), cy - r * Math.sin(t * DEG)];
+  const sector = (a, b) => { const n = Math.max(1, Math.ceil((b - a) / 3)); return `M${cx} ${cy}${Array.from({length: n + 1}, (_, k) => at(a + (b - a) * k / n)).map(([x, y]) => `L${f1(x)} ${f1(y)}`).join('')}Z`; };
+  let parts = '', ticks = '', marks = '', t = 0;
   degs.forEach((d, i) => {
-    const [x1, y1] = point(at), [x2, y2] = point(at + d);
-    parts += `<path class="gl-fan-part p${i}" d="M60 54L${f1(x1)} ${f1(y1)}A44 44 0 0 0 ${f1(x2)} ${f1(y2)}Z"/>`;
-    const [tx, ty] = point(at + d / 2, 30);
-    if (d * DEG * 30 >= String(names[i]).length * 6) marks += `<text class="gl-fan-name" x="${f1(tx)}" y="${f1(ty + 3.5)}">${names[i]}</text>`;
-    at += d;
+    parts += `<path class="gl-fan-part p${i}" d="${sector(t, t + d)}"/>`;
+    if (t + d > 180 && t + d < total - 1e-9) { const [x, y] = at(t + d); ticks += `M${cx} ${cy}L${f1(x)} ${f1(y)}`; }
+    const mid = t + d / 2, r = total > 360 ? fanRadius(total, mid) - FAN.inset : 31, [tx, ty] = at(mid, r);
+    if (d * DEG * r >= String(names[i]).length * 0.62 * FAN.font) marks += `<text class="gl-fan-name" x="${f1(tx)}" y="${f1(ty + 0.36 * FAN.font)}">${names[i]}</text>`;
+    t += d;
   });
-  if (at > 180) { const [x1, y1] = point(180), [x2, y2] = point(at); parts += `<path class="gl-fan-extra" d="M60 54L${f1(x1)} ${f1(y1)}A44 44 0 ${at - 180 > 180 ? 1 : 0} 0 ${f1(x2)} ${f1(y2)}Z"/>`; }
-  return `<svg class="gl-fan ${cls}" viewBox="0 0 120 ${at > 180 ? 104 : 60}" role="img" aria-label="${label}">${parts}<path class="gl-fan-line" d="M8 54H112"/>${marks}</svg>`;
+  const extra = total > 180 ? `<path class="gl-fan-extra" d="${sector(180, Math.min(total, 360))}${total > 360 ? sector(360, total) : ''}"/>${ticks ? `<path class="gl-fan-tick" d="${ticks}"/>` : ''}` : '';
+  // The picture reaches as far below the line as the fan does.
+  const depth = total <= 180 ? 0 : total >= 270 ? FAN.r : FAN.r * Math.sin((total - 180) * DEG), height = Math.max(62, Math.ceil(cy + depth + 6));
+  return `<svg class="gl-fan ${cls}" viewBox="0 0 128 ${height}" role="img" aria-label="${label}">${parts}${extra}<path class="gl-fan-line" d="M4 ${cy}H124"/>${marks}</svg>`;
 }
 function argument(p, b, facts) {
-  const q = p.parameters, r = q.records[b.shown], mine = facts.corners.map(c => c.deg ?? c.approx), sum = Math.round(mine.reduce((s, c) => s + c, 0) * 10) / 10;
-  return `<div class="gl-argument">${fan(mine, 'mine', `Your triangle’s corners side by side: ${sum}°, past a straight line`, q.letters)}${fan(r, 'record', `${recordWords(r)} side by side: ${sumOf(r)}°, no further than a straight line`, r.map(c => `${c}°`))}</div>`;
+  const q = p.parameters, r = q.records[b.shown], mine = facts.corners.map(c => c.deg ?? c.approx), sum = mine.reduce((s, c) => s + c, 0);
+  const sumText = facts.corners.every(c => c.deg !== null) ? `${sum}°` : `about ${approxText(sum)}°`;
+  return `<div class="gl-argument">${fan(mine, 'mine', `Your triangle’s corners side by side: ${sumText}, past a straight line`, q.letters)}${fan(r, 'record', `${recordWords(r)} side by side: ${sumOf(r)}°, no further than a straight line`, r.map(c => `${c}°`))}</div>`;
 }
 const LUNE = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6 7 6 17 12 22C18 17 18 7 12 2Z"/></svg>';
 function pairButtons(p, b) {
@@ -612,34 +646,38 @@ function pairButtons(p, b) {
 const depthOf = (view, pt) => dot(vec(pt), frameOf(view).d);
 const viewOn = pt => ({lat: clampLat(Math.round(pt[0] * 0.75 / 15) * 15), lon: pt[1]});
 function render(p, a) {
-  const q = p.parameters, b = a.board, done = solved(p, b), state = ui(p), facts = factsOf(q, b.corners);
+  const q = p.parameters, b = a.board, done = solved(p, b), over = q.mode === 'records' && b.over !== null, state = ui(p), facts = factsOf(q, b.corners);
   const h = a.hintLevel >= 2 && !done && q.mode !== 'playground' ? hint(p, b) : null, act = h?.type === 'move' ? h.action : null;
-  const hintCorner = act?.type === 'place' ? act.corner : null, hintTo = act?.type === 'place' ? act.to : null, hintRecord = act?.type === 'cant' ? act.record : null;
+  const hintCorner = act?.type === 'place' ? act.corner : null, hintTo = act?.type === 'place' ? act.to : null;
   // A marked dot on the far side turns the ball toward it, once.
   if (hintTo && state.turnedFor !== keyOf(hintTo) && depthOf(state.view, hintTo) < 0.3) { state.view = viewOn(hintTo); state.turnedFor = keyOf(hintTo); }
-  const chosen = done ? null : state.chosen;
+  const chosen = done || over ? null : state.chosen;
   const label = `Ball. ${q.letters.map(x => `${x} ${placeWords(b.corners[x])}`).join('; ')}.${chosen ? ` ${chosen} is chosen: arrow keys move it, and Shift with an arrow turns the ball.` : ''}`;
   const globe = `<div class="gl-ball" data-gl-ball tabindex="0" role="application" aria-roledescription="ball" aria-label="${esc(label)}" data-focus="gl-ball" data-view="${state.view.lat},${state.view.lon}"><svg viewBox="0 0 ${BOX} ${BOX}" aria-hidden="true" focusable="false">${globeInner(p, b, state.view, {chosen, hintCorner, hintTo})}</svg></div>`;
-  const told = q.mode === 'records' && b.told ? '<p class="gl-told">There is a way.</p>' : '';
-  const status = `${q.letters.map((x, i) => `${x} ${degWords(facts.corners[i])}`).join(', ')}.${q.mode === 'records' && b.built.length ? ` Made: ${madeOf(b).map(i => recordWords(q.records[i])).join('; ')}.` : ''}${told ? ' There is a way.' : ''}${q.mode === 'records' && b.shown !== null ? ` ${recordWords(q.records[b.shown])} can’t be made.` : ''}`;
+  const told = over ? '<p class="gl-told">There is a way.</p>' : '';
+  const status = `${q.letters.map((x, i) => `${x} ${degWords(facts.corners[i])}`).join(', ')}.${q.mode === 'records' && b.built.length ? ` Made: ${madeOf(b).map(i => recordWords(q.records[i])).join('; ')}.` : ''}${over ? ` ${recordWords(q.records[b.over])}: there is a way. Press Again.` : ''}${q.mode === 'records' && b.shown !== null ? ` ${recordWords(q.records[b.shown])} can’t be made.` : ''}`;
   // The sets and Can't, the corners' sizes, the ball, then its turns; the
-  // words for a refused Can't sit under the sets, the argument for a right one
+  // words for a wrong Can't sit under the sets, the argument for a right one
   // under the ball.
-  return `<div class="gl-puzzle${done ? ' solved' : ''}${q.mode === 'records' ? ' records' : ''}" data-mechanic-wire="globe">${q.mode === 'records' ? shelf(p, b, state, hintRecord, done) : ''}${told}${cards(p, b, facts, chosen, hintCorner, done)}${globe}${turnButtons()}${q.mode === 'playground' ? pairButtons(p, b) : ''}${q.mode === 'records' && b.shown !== null ? argument(p, b, facts) : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="gl-puzzle${done ? ' solved' : ''}${over ? ' over' : ''}${q.mode === 'records' ? ' records' : ''}" data-mechanic-wire="globe">${q.mode === 'records' ? shelf(p, b, state, act, done) : ''}${told}${cards(p, b, facts, chosen, hintCorner, done || over)}${globe}${turnButtons()}${q.mode === 'playground' ? pairButtons(p, b) : ''}${q.mode === 'records' && b.shown !== null ? argument(p, b, facts) : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 
 // --- Taps, drags and keys ------------------------------------------------------
-// A tap on a front corner's disc goes to that corner (the one nearest the
-// viewer first, as it is drawn on top); otherwise to the nearer of the
-// nearest front corner and the nearest front dot within reach. A corner
-// behind the ball is never tapped. A drag that starts on a corner carries it
-// from dot to dot; any other drag turns the ball.
+// A tap goes to what is drawn on top there: a front corner's disc (the one
+// nearest the viewer first), then the faint disc of a corner behind the ball
+// (drawn over the front dots, so a tap on it chooses that corner and turns
+// the ball to it), then the nearer of the nearest front corner and the
+// nearest front dot within reach. A drag that starts on a front corner
+// carries it from dot to dot; any other drag turns the ball.
 const DISC = 9, CORNER_REACH = 10.5, DOT_REACH = 13;
 export function tapTarget(q, corners, view, x, y) {
   const F = frameOf(view);
-  const hits = q.letters.map(c => { const [sx, sy, z] = screenOf(F, vec(corners[c])); return {c, d: Math.hypot(sx - x, sy - y), z}; }).filter(h => h.z > 0 && h.d <= CORNER_REACH);
+  const all = q.letters.map(c => { const [sx, sy, z] = screenOf(F, vec(corners[c])); return {c, d: Math.hypot(sx - x, sy - y), z}; });
+  const hits = all.filter(h => h.z > 0 && h.d <= CORNER_REACH);
   const onDisc = hits.filter(h => h.d <= DISC).sort((m, n) => n.z - m.z || m.d - n.d);
   if (onDisc.length) return {corner: onDisc[0].c};
+  const back = all.filter(h => h.z <= 0 && h.d <= DISC).sort((m, n) => n.z - m.z || m.d - n.d);
+  if (back.length) return {corner: back[0].c, behind: true};
   let best = null;
   GRIDV.forEach((v, i) => { const [sx, sy, z] = screenOf(F, v), d = Math.hypot(sx - x, sy - y); if (z > 0.08 && d <= DOT_REACH && (!best || d < best.d)) best = {d, dot: GRID[i]}; });
   const near = hits.sort((m, n) => m.d - n.d)[0];
@@ -649,7 +687,7 @@ export function tapTarget(q, corners, view, x, y) {
 // What a tap does: choose a free corner, or move the chosen corner to a dot.
 export function tapAction(q, corners, chosen, target) {
   if (!target) return null;
-  if (target.corner) return q.locked.includes(target.corner) ? null : {choose: target.corner};
+  if (target.corner) return q.locked.includes(target.corner) ? null : target.behind ? {choose: target.corner, turn: true} : {choose: target.corner};
   const here = q.letters.find(x => samePoint(corners[x], target.dot));
   if (here) return q.locked.includes(here) ? null : {choose: here};
   return chosen && !q.locked.includes(chosen) ? {move: {type: 'place', corner: chosen, to: target.dot}} : null;
@@ -663,6 +701,19 @@ export function keyStep(view, from, key) {
     return Math.abs(next) === 90 ? [next, 0] : Math.abs(next) > 90 ? null : [next, lon];
   }
   if (key === 'ArrowLeft' || key === 'ArrowRight') return isPole(from) ? null : [lat, (lon + (key === 'ArrowRight' ? 15 : -15) + 360) % 360];
+  return null;
+}
+// Where an arrow key takes a corner: the next dot that way where it makes a
+// triangle and meets no other corner, hopping over any that don't (so B in
+// puzzle 1 crosses A's meridian); null when there is none.
+export function keyTarget(q, corners, view, x, key) {
+  let at = corners[x];
+  for (let k = 0; k < 24; k++) {
+    at = keyStep(view, at, key);
+    if (!at || samePoint(at, corners[x])) return null;
+    const next = {...corners, [x]: at};
+    if (!q.letters.some(y => y !== x && samePoint(corners[y], at)) && triangle(q, next)) return at;
+  }
   return null;
 }
 const TURN_KEYS = {ArrowLeft: [0, 15], ArrowRight: [0, -15], ArrowUp: [-15, 0], ArrowDown: [15, 0]};
@@ -711,9 +762,11 @@ function onEnd(e) {
   if (g.moved) { g.api.ui({view: g.now || g.view}); return; }
   if (g.done) return;
   const action = tapAction(q, g.board.corners, state.chosen, tapTarget(q, g.board.corners, g.view, ...g.start));
-  if (action?.choose) g.api.ui({chosen: action.choose});
+  if (action?.choose) g.api.ui({chosen: action.choose, ...(action.turn ? {view: viewOn(g.board.corners[action.choose])} : {})});
   else if (action?.move) g.api.apply(action.move);
 }
+// No corner moves once the puzzle is solved or a wrong Can't has ended the attempt.
+const stopped = (p, b) => solved(p, b) || (p.parameters.mode === 'records' && b.over !== null);
 function wire(root, p, api) {
   const box = root.querySelector('[data-gl-ball]'), svg = box?.querySelector('svg'), q = p.parameters;
   if (!svg) return;
@@ -726,8 +779,8 @@ function wire(root, p, api) {
     if (e.button > 0 || !e.isPrimary) return;
     const at = svgPoint(svg, e);
     if (!at) return;
-    const b = api.attempt().board, done = solved(p, b), state = ui(p), target = done ? null : tapTarget(q, b.corners, state.view, ...at);
-    const free = target?.corner && !q.locked.includes(target.corner);
+    const b = api.attempt().board, done = stopped(p, b), state = ui(p), target = done ? null : tapTarget(q, b.corners, state.view, ...at);
+    const free = target?.corner && !target.behind && !q.locked.includes(target.corner);
     gesture = {p, api, svg, board: b, view: {...state.view}, pointer: e.pointerId, x: e.clientX, y: e.clientY, start: at, moved: false, done, kind: free ? 'corner' : 'turn', corner: free ? target.corner : null, to: free ? b.corners[target.corner] : null};
     svg.setPointerCapture?.(e.pointerId);
     e.preventDefault();
@@ -739,8 +792,8 @@ function wire(root, p, api) {
     const b = api.attempt().board, state = ui(p);
     e.preventDefault();
     if (e.shiftKey) { const [dLat, dLon] = TURN_KEYS[e.key]; api.ui({view: turned(state.view, dLat, dLon)}); return; }
-    if (solved(p, b) || !state.chosen || q.locked.includes(state.chosen)) return;
-    const to = keyStep(state.view, b.corners[state.chosen], e.key);
+    if (stopped(p, b) || !state.chosen || q.locked.includes(state.chosen)) return;
+    const to = keyTarget(q, b.corners, state.view, state.chosen, e.key);
     if (!to) return;
     // Keep the corner in sight.
     if (depthOf(state.view, to) < 0.25) state.view = viewOn(to);
@@ -759,16 +812,19 @@ export const globeMechanics = {
       if (TURN_BUTTONS[payload.turn]) { const [dLat, dLon] = TURN_BUTTONS[payload.turn]; state.view = turned(state.view, dLat, dLon); }
       if (typeof payload.claiming === 'boolean') state.claiming = payload.claiming;
     },
-    reset: p => { uiState.delete(p.id); },
-    // Undo takes back moves, never a record made, a right Can't, or a refusal
-    // while the corners stay where it was given; the words and the argument
-    // drawn for the last claim go, so each Undo visibly changes the board.
+    reset: p => { uiState.delete(p.id); sealed.delete(p.id); },
+    // Undo takes back moves, never a set made or a right Can't: the board goes
+    // back with every set made and claimed kept, and with the argument that
+    // board showed, so undoing a claim takes its argument away and undoing a
+    // move after it brings it back; every Undo visibly changes the board. A
+    // wrong Can't keeps no history (noUndo), so Undo never steps back over it.
     carry(p, from, to) {
       if (p.parameters.mode !== 'records' || !object(from) || !object(to)) return to;
-      let refused = sameCorners(from.corners, to.corners) ? from.refused : to.refused;
-      if (refused !== null && madeOf(from).includes(refused)) refused = null;
-      return {...to, built: from.built.map(e => ({record: e.record, corners: cloneCorners(e.corners)})), cant: [...from.cant], refused, told: false, shown: null, tried: from.tried || to.tried};
+      ui(p).claiming = false;
+      const cant = [...from.cant];
+      return {...to, built: from.built.map(e => ({record: e.record, corners: cloneCorners(e.corners)})), cant, shown: to.shown !== null && cant.includes(to.shown) ? to.shown : null};
     },
+    noUndo: p => sealed.has(p.id),
     noHint: p => p.parameters.mode === 'playground'
   }
 };

@@ -1,8 +1,9 @@
 // Ball triangles: exact corners and areas on the 15° grid, three right
 // corners, pole–equator fractions, sets of corners made or refuted with the
-// corner-sum rule after an attempt, a refusal kept across Undo, taps that go
-// to what the child sees, keys, hints (quick, never Can't first), the lune
-// pair playground, rendering, saves and the satchel.
+// corner-sum rule after an attempt, a wrong Can't that ends the attempt (no
+// Undo over it), Undo that always changes the board, taps that go to what the
+// child sees, keys, hints (quick, never Can't first), the argument's fans, the
+// lune pair playground, rendering, saves and the satchel.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -11,7 +12,7 @@ import {emptyStore, validateStore, loadStore, persistStore} from '../dist/storag
 import {libraryView} from '../dist/caravan-ui.js';
 import {playView, parentView} from '../dist/ui.js';
 import {FAMILIES} from '../dist/families.js';
-import {globeMechanics, factsOf, triangleFacts, kSign, kFloat, K, kMul, kSub, cosK, tapTarget, tapAction, keyStep, turned, frameOf, screenOf, vec, coverCounts, whereWords, placeWords, madeOf} from '../dist/families/globe/globe.js';
+import {globeMechanics, factsOf, triangleFacts, kSign, kFloat, K, kMul, kSub, cosK, tapTarget, tapAction, keyStep, keyTarget, turned, frameOf, screenOf, vec, coverCounts, whereWords, placeWords, madeOf, approxText, GRID, fanRadius, FAN} from '../dist/families/globe/globe.js';
 import {validateGlobe} from '../scripts/validate-globe.mjs';
 import {loadPack} from '../scripts/packs.mjs';
 
@@ -22,7 +23,9 @@ const M = globeMechanics.globe;
 const play = (p, a, ...actions) => actions.reduce((b, action) => { const next = move(p, b, action); assert.ok(next, `${p.id}: ${JSON.stringify(action)} is legal`); return next; }, a);
 const place = (corner, to) => ({type: 'place', corner, to});
 const cant = record => ({type: 'cant', record});
-const back = (p, a) => { const b = undo(a); return {...b, board: M.carry(p, a.board, b.board)}; };
+// Undo as the app does it: nothing without history or with noUndo, else back one step and carry.
+const back = (p, a) => { if (!a.history.length || M.noUndo(p)) return a; const b = undo(a); return {...b, board: M.carry(p, a.board, b.board)}; };
+const undoOff = html => /data-action="undo"[^>]*disabled/.test(html);
 const view = (p, a) => playView(p, a, {pack, selected: null, message: ''});
 const solve = p => { let a = freshAttempt(p); for (let i = 0; !isSolved(p, a.board) && i < 40; i++) a = move(p, a, nextHint(p, a).action); return a; };
 const profile = (attempts = {}) => ({id: 'one', name: 'Explorer', avatar: 0, band: 'k1', sound: false, attempts});
@@ -34,7 +37,13 @@ test('the pack validates: answers by brute force in Q(t), hints solve, illegal m
   assert.equal(report.puzzles, 10);
   assert.equal(report.triangles, 3032624);
   assert.ok(Object.keys(report.types).every(t => t.endsWith(',90,90')));
-  assert.deepEqual(report.randomCantTaps, {'globe-03': '1/2', 'globe-06': '0/3', 'globe-10': '1/3'});
+  assert.deepEqual(report.claims, {
+    'globe-03': {firstChance: '1/3', states: 7, forced: 3, forcedRight: 1},
+    'globe-06': {firstChance: '0/3', states: 7, forced: 3, forcedRight: 0},
+    'globe-10': {firstChance: '1/3', states: 7, forced: 3, forcedRight: 1}
+  });
+  assert.ok(Object.values(report.straightRunsToAnswer).every(r => r.length === 0), 'no fraction puzzle is solved by sweeping one corner along a line');
+  assert.doesNotMatch(report.cornerNearestWhole.shown, /^≈\d+(\.0+)?°$/);
 });
 
 test('exact numbers: signs in Q(√2, √3), and cos 15° squared', () => {
@@ -98,50 +107,84 @@ test('fractions: a twelfth is a 60° gap, and the board never prints the area', 
   assert.ok(isSolved(p, other.board), 'either way round');
 });
 
-test('sets: made by a triangle with exactly those corners; Can’t after an attempt, judged by the corner sum', () => {
+test('sets: made by a triangle with exactly those corners; Can’t after an attempt, judged by the corner sum; a wrong Can’t ends the attempt', () => {
   const p = byId('globe-03');
   let a = freshAttempt(p);
   M.reset(p);
   assert.equal(move(p, a, cant(1)), null, 'no Can’t on a fresh board');
   assert.match(view(p, a), /class="gl-cant"[^>]*disabled/, 'the Can’t button waits');
   a = play(p, a, place('B', [15, 60]));
-  assert.equal(a.board.tried, true);
   assert.doesNotMatch(view(p, a), /class="gl-cant"[^>]*disabled/, 'Can’t is open after a move');
-  // A wrong claim: one refusal, kept through Undo until a corner moves.
-  const told = play(p, a, cant(0));
-  assert.equal(told.board.refused, 0);
-  assert.match(view(p, told), /There is a way\./);
-  assert.deepEqual(view(p, told).match(/<p class="gl-told">([^<]*)<\/p>/g), ['<p class="gl-told">There is a way.</p>'], 'the refusal prints no values');
-  assert.equal(move(p, told, cant(1)), null, 'no second claim until a corner moves');
-  const kept = back(p, told);
-  assert.equal(kept.board.refused, 0, 'Undo keeps the refusal');
-  assert.doesNotMatch(view(p, kept), /There is a way\./, 'Undo takes the words away');
-  assert.notDeepEqual(kept.board, told.board, 'Undo changes the board');
-  assert.equal(move(p, kept, cant(1)), null, 'still no claim after Undo');
-  // Making the set: kept with the corners that made it.
-  let m = play(p, kept, place('B', [0, 45]));
+  // A wrong claim: one refusal, and the attempt is over.
+  const over = play(p, a, cant(0));
+  assert.equal(over.board.over, 0);
+  const html = view(p, over);
+  assert.deepEqual(html.match(/<p class="gl-told">([^<]*)<\/p>/g), ['<p class="gl-told">There is a way.</p>'], 'the refusal prints no values');
+  assert.match(html, /class="gl-record refused"[^>]*aria-label="90°, 90° and 45°, there is a way"/, 'the set is marked on the shelf');
+  assert.doesNotMatch(html, /class="gl-cant/, 'no Can’t');
+  assert.match(html, /class="gl-again"/, 'Again instead');
+  assert.equal(over.history.length, 0, 'the end keeps no history');
+  assert.ok(undoOff(html), 'Undo is off, so it can’t step back over the end');
+  assert.equal(back(p, over), over);
+  for (const action of [cant(1), cant(2), place('B', [0, 45]), place('B', [15, 75])]) assert.equal(move(p, over, action), null, `no ${JSON.stringify(action)} once it is over`);
+  assert.ok(!isSolved(p, play(p, freshAttempt(p), place('B', [0, 45]), place('B', [15, 60]), cant(2)).board), 'a wrong Can’t is never a solve');
+  assert.equal(nextHint(p, over).action.type, 'again');
+  const again = play(p, over, {type: 'again'});
+  assert.deepEqual(again.board, freshAttempt(p).board, 'Again starts afresh');
+  assert.ok(undoOff(view(p, again)), 'and Undo can’t bring the end back');
+  assert.equal(move(p, again, cant(1)), null, 'Can’t waits for a move again');
+  // Making the sets: each kept with the corners that made it, and kept through Undo.
+  let m = play(p, again, place('B', [15, 60]), place('B', [0, 45]));
   assert.deepEqual(madeOf(m.board), [0]);
   assert.deepEqual(m.board.built[0].corners, {N: [90, 0], A: [0, 0], B: [0, 45]});
-  assert.equal(m.board.refused, null, 'a move clears the refusal');
   assert.match(view(p, m), /gl-record made/);
   const undone = back(p, m);
   assert.deepEqual(madeOf(undone.board), [0], 'Undo keeps a set made');
   assert.deepEqual(undone.board.corners.B, [15, 60], 'and puts the corner back');
-  // The right claim: the argument is drawn, and Undo keeps the claim.
+  // Two sets open: a claim is a choice of two.
+  M.ui(p, {claiming: true});
+  assert.equal((view(p, m).match(/gl-record[^"]*pick/g) || []).length, 2, 'the open sets can be tapped');
+  // Undo ends a half-made claim: no set stays a button.
+  const u = back(p, m);
+  assert.equal((view(p, u).match(/gl-record[^"]*pick/g) || []).length, 0, 'no pick buttons after Undo');
+  assert.match(view(p, u), /class="gl-cant"[^>]*aria-pressed="false"/);
+  m = play(p, m, place('B', [0, 120]));
+  assert.deepEqual(madeOf(m.board), [0, 2]);
   M.ui(p, {claiming: true});
   const picking = view(p, m);
-  assert.equal((picking.match(/gl-record[^"]*pick/g) || []).length, 1, 'only the open set can be tapped');
+  assert.equal((picking.match(/gl-record[^"]*pick/g) || []).length, 1, 'the last open set is the only tap');
   assert.doesNotMatch(picking, /gl-record[^"]*pick[^"]*hinted|gl-record[^"]*hinted[^"]*pick/, 'nothing marks the right tap');
   const done = play(p, m, cant(1));
   assert.ok(isSolved(p, done.board));
   assert.match(view(p, done), /gl-argument/);
   assert.match(view(p, done), /side by side: 180°, no further than a straight line/);
+  // Can't's set buttons follow Can't itself: none while it can't be pressed.
+  M.ui(p, {claiming: true});
+  assert.equal((view(p, freshAttempt(p)).match(/gl-record[^"]*pick/g) || []).length, 0, 'no pick buttons on the starting triangle');
+  M.reset(p);
 });
 
-test('a shelf of sets that can all be made: every Can’t is refused', () => {
+test('Undo always changes the board: a right claim, a move, then Undo back to the start', () => {
+  const p = byId('globe-10');
+  M.reset(p);
+  let a = play(p, freshAttempt(p), place('A', [30, 30]), cant(1));
+  assert.deepEqual(a.board.cant, [1]);
+  a = play(p, a, place('A', [30, 15]));
+  const one = back(p, a), two = back(p, one), three = back(p, two);
+  assert.equal(one.board.shown, 1, 'undoing the move brings back the argument that board had');
+  assert.notDeepEqual(one.board, a.board);
+  assert.notDeepEqual(two.board, one.board, 'undoing the claim takes the argument away');
+  assert.notEqual(view(p, two), view(p, one));
+  assert.deepEqual(two.board.cant, [1], 'and keeps the claim');
+  assert.notDeepEqual(three.board, two.board);
+  assert.deepEqual(three.board.corners, p.parameters.start);
+  assert.equal(move(p, three, cant(0)), null, 'back on the starting triangle, Can’t waits for a move');
+});
+
+test('a shelf of sets that can all be made: every Can’t ends the attempt', () => {
   const p = byId('globe-06');
   const a = play(p, freshAttempt(p), place('A', [0, 0]));
-  for (let i = 0; i < 3; i++) assert.equal(move(p, a, cant(i)).board.refused, i, `set ${i} can be made`);
+  for (let i = 0; i < 3; i++) assert.equal(move(p, a, cant(i)).board.over, i, `set ${i} can be made: the claim ends the attempt`);
   const s = solve(p);
   assert.ok(isSolved(p, s.board));
   assert.deepEqual(s.board.cant, []);
@@ -176,7 +219,7 @@ test('hints: quick in CPU time, a corner move first, the reason before Can’t, 
   assert.equal(placeWords([-15, 45]), 'at 15° south, 45° east');
 });
 
-test('taps go to what the child sees: a corner before a nearby dot, never a corner behind the ball', () => {
+test('taps go to what the child sees: a corner before a nearby dot, and a corner behind the ball on its faint disc', () => {
   const p = byId('globe-01'), q = p.parameters, corners = q.start, v = {lat: 20, lon: 30}, F = frameOf(v);
   const [bx, by] = screenOf(F, vec(corners.B));
   assert.deepEqual(tapTarget(q, corners, v, bx, by), {corner: 'B'});
@@ -195,10 +238,15 @@ test('taps go to what the child sees: a corner before a nearby dot, never a corn
   assert.ok(Math.hypot(ux - ax, uy - ay) < 7.6, 'the next dot on the ring is under A’s disc');
   assert.deepEqual(tapTarget(pg, ring, top, ux, uy), {corner: 'A'}, 'a dot hidden by a corner’s disc goes to the corner');
   assert.deepEqual(tapTarget(pg, ring, top, wx, wy), {dot: [75, 30]}, 'the dot after it is its own');
-  // Turn B to the back: a tap where it would be goes to a front dot.
-  const behind = {lat: -20, lon: 225}, G = frameOf(behind), [hx, hy, hz] = screenOf(G, vec(corners.B));
+  // Turn B to the back: its faint disc is drawn over the front dots, so a tap on it chooses B and turns the ball to it.
+  const behind = {lat: -60, lon: 210}, G = frameOf(behind), [hx, hy, hz] = screenOf(G, vec(corners.B));
   assert.ok(hz < 0);
-  assert.equal(tapTarget(q, corners, behind, hx, hy)?.corner, undefined, 'a corner behind the ball is not tapped');
+  assert.deepEqual(tapTarget(q, corners, behind, hx, hy), {corner: 'B', behind: true}, 'a tap on a corner’s faint disc behind the ball chooses it');
+  const under = GRID.map(pt => [pt, ...screenOf(G, vec(pt))]).filter(([, x, y, z]) => z > 0.08 && Math.hypot(x - hx, y - hy) < 7.6);
+  assert.ok(under.length, 'a front dot lies under B’s faint disc');
+  for (const [pt, x, y] of under) assert.deepEqual(tapTarget(q, corners, behind, x, y), {corner: 'B', behind: true}, `a tap on the front dot ${pt} under the disc goes to the disc`);
+  assert.deepEqual(tapAction(q, corners, 'B', {corner: 'B', behind: true}), {choose: 'B', turn: true});
+  assert.equal(tapAction(q, corners, 'B', {corner: 'N', behind: true}), null, 'a corner that stays put is not chosen from behind either');
   // What a tap does.
   assert.deepEqual(tapAction(q, corners, 'B', {corner: 'B'}), {choose: 'B'});
   assert.equal(tapAction(q, corners, 'B', {corner: 'N'}), null, 'a corner that stays put is not chosen');
@@ -217,6 +265,12 @@ test('keys: arrows step a corner by one dot; over a pole; turning wraps', () => 
   assert.deepEqual(keyStep(v, [90, 0], 'ArrowDown'), [75, 30], 'off the pole toward the view');
   assert.equal(keyStep(v, [90, 0], 'ArrowRight'), null);
   assert.deepEqual(keyStep(v, [-75, 0], 'ArrowDown'), [-90, 0]);
+  // An arrow key hops over a dot that leaves no triangle: B in puzzle 1 crosses A's meridian.
+  const q1 = byId('globe-01').parameters, c1 = {N: [90, 0], A: [0, 0], B: [30, 15]};
+  assert.deepEqual(keyTarget(q1, c1, v, 'B', 'ArrowLeft'), [30, 345], 'over the 0° line');
+  assert.deepEqual(keyTarget(q1, {...c1, B: [30, 165]}, v, 'B', 'ArrowRight'), [30, 195], 'over the 180° line');
+  assert.deepEqual(keyTarget(q1, c1, v, 'B', 'ArrowRight'), [30, 30]);
+  assert.equal(keyTarget(q1, {...c1, B: [75, 15]}, v, 'B', 'ArrowUp'), null, 'N’s pole is taken');
   assert.deepEqual(turned({lat: 80, lon: 350}, 15, 15), {lat: 90, lon: 5});
   assert.deepEqual(turned({lat: -80, lon: 5}, -15, -15), {lat: -90, lon: 350});
 });
@@ -228,9 +282,9 @@ test('every puzzle renders a ball, three corner cards and its objective; nothing
     assert.match(html, /data-gl-ball/, `${p.id}: ball`);
     assert.equal((html.match(/class="gl-card[ "]/g) || []).length, 3, `${p.id}: three corner cards`);
     if (p.visibleObjective) assert.ok(html.includes(p.visibleObjective), `${p.id}: objective shown`);
-    // The cards show the exact corner from the field, or ≈ and one decimal.
+    // The cards show the exact corner from the field, or ≈ and a decimal.
     const f = factsOf(p.parameters, a.board.corners);
-    for (const c of f.corners) assert.ok(html.includes(c.deg !== null ? `>${c.deg}°<` : `≈${c.approx.toFixed(1)}°`), `${p.id}: a card shows ${c.deg ?? c.approx}`);
+    for (const c of f.corners) assert.ok(html.includes(c.deg !== null ? `>${c.deg}°<` : `≈${approxText(c.approx)}°`), `${p.id}: a card shows ${c.deg ?? c.approx}`);
     if (p.band === 'playground') continue;
     const done = view(p, solve(p));
     assert.match(done, /gl-puzzle solved/, `${p.id}: solved`);
@@ -240,6 +294,43 @@ test('every puzzle renders a ball, three corner cards and its objective; nothing
   assert.equal(module.family.symbol, '◍');
   assert.equal(FAMILIES.filter(m => m.family?.symbol === '◍').length, 1, 'a symbol of its own');
   assert.equal(module.focus, '[data-gl-ball]', 'focus falls back to the ball, never Can’t, a set or a card');
+});
+
+test('cards never print a whole number after ≈, and the fans stay readable past a whole turn', () => {
+  assert.equal(approxText(50.77), '50.8');
+  assert.equal(approxText(90.0162), '90.02');
+  assert.equal(approxText(176.0329), '176.03');
+  assert.equal(approxText(77.99995871625818), '77.99996');
+  // Puzzle 7 with B at 75° N 15° E and C at 15° N 90° W: B's corner is 90.016°.
+  const p7 = byId('globe-07');
+  M.reset(p7);
+  const near = play(p7, freshAttempt(p7), place('B', [75, 15]), place('C', [15, 270]));
+  assert.match(view(p7, near), />≈90\.02°</);
+  assert.doesNotMatch(view(p7, near), /≈\d+\.0°/);
+  // Puzzle 3 with B at 75° S 165° W: corners add up to about 505.5°, and the fan winds inward.
+  const p = byId('globe-03');
+  M.reset(p);
+  const big = play(p, freshAttempt(p), place('B', [-75, 195]), cant(1));
+  const html = view(p, big), fans = html.match(/<svg class="gl-fan[^"]*"[^>]*>.*?<\/svg>/g);
+  assert.equal(fans.length, 2);
+  assert.match(fans[0], /aria-label="Your triangle’s corners side by side: about 505\.5°, past a straight line"/);
+  for (const svg of fans) {
+    const [w, h] = svg.match(/viewBox="0 0 (\d+) (\d+)"/).slice(1).map(Number);
+    const nums = [...svg.matchAll(/[ML](-?[\d.]+) (-?[\d.]+)/g)].map(m => [Number(m[1]), Number(m[2])]);
+    assert.ok(nums.every(([x, y]) => x >= 0 && x <= w && y >= 0 && y <= h), 'every part of the fan is inside its picture');
+  }
+  assert.equal((fans[0].match(/class="gl-fan-name"/g) || []).length, 3, 'each of the triangle’s corners is lettered');
+  assert.equal((fans[1].match(/class="gl-fan-name"/g) || []).length, 3, 'each of the set’s corners is labelled');
+  const degs = factsOf(p.parameters, big.board.corners).corners.map(c => c.deg ?? c.approx), total = degs.reduce((s, d) => s + d, 0);
+  let t = 0;
+  for (const d of degs) {
+    const mid = t + d / 2, r = fanRadius(total, mid) - FAN.inset;
+    if (mid + 360 < total) assert.ok(fanRadius(total, mid + 360) <= r - FAN.font / 2, 'a label stays clear of the next turn');
+    t += d;
+  }
+  // The widest a fan can wind (just under 540°) still leaves room.
+  assert.ok(FAN.wind * 360 / 540 >= FAN.inset + FAN.font / 2);
+  M.reset(p);
 });
 
 test('the playground: lune pairs cover the triangle and its opposite three times, every other region once', () => {
@@ -262,7 +353,7 @@ test('the playground: lune pairs cover the triangle and its opposite three times
 test('saves round-trip through storage, and forged saves are refused', () => {
   const r = byId('globe-03'), f = byId('globe-05'), pg = byId('globe-playground');
   const claimed = play(r, freshAttempt(r), place('B', [0, 45]), place('B', [15, 45]), cant(1));
-  const refused = play(r, freshAttempt(r), place('B', [15, 60]), cant(0));
+  const ended = play(r, freshAttempt(r), place('B', [15, 60]), cant(0));
   const half = play(f, freshAttempt(f), place('B', [0, 60]));
   const toy = play(pg, freshAttempt(pg), {type: 'pair', corner: 'B'});
   const store = {...emptyStore(), activeProfileId: 'one', profiles: [profile({[r.id]: claimed, [f.id]: half, [pg.id]: toy})]};
@@ -273,10 +364,12 @@ test('saves round-trip through storage, and forged saves are refused', () => {
   const solved = solve(r);
   assert.deepEqual(resumeAttempt(r, solved).board, freshAttempt(r).board);
   const forge = (id, board) => ({...store, profiles: [profile({[id]: {...freshAttempt(byId(id)), board}})]});
-  assert.ok(validBoard(r, refused.board));
-  assert.throws(() => validateStore(forge(r.id, {...refused.board, refused: 1}), puzzles), 'a refusal of the set that can’t be made');
+  assert.ok(validBoard(r, ended.board));
+  assert.throws(() => validateStore(forge(r.id, {...ended.board, over: 1}), puzzles), 'an attempt ended on the set that can’t be made');
+  assert.throws(() => validateStore(forge(r.id, {...ended.board, over: null, refused: 0, told: true}), puzzles), 'an earlier save’s refusal');
   assert.throws(() => validateStore(forge(r.id, {...claimed.board, built: [{record: 0, corners: claimed.board.corners}]}), puzzles), 'a set made with corners that don’t make it');
-  assert.throws(() => validateStore(forge(r.id, {...freshAttempt(r).board, cant: [1]}), puzzles), 'a claim with no try');
+  assert.throws(() => validateStore(forge(r.id, {...freshAttempt(r).board, cant: [1], shown: 1}), puzzles), 'an argument on the starting triangle');
+  assert.throws(() => validateStore(forge(r.id, {...freshAttempt(r).board, over: 0}), puzzles), 'an attempt ended with no move');
   assert.throws(() => validateStore(forge(f.id, {corners: {N: [90, 0], A: [0, 0], B: [0, 60]}, done: true}), puzzles), 'a forged done');
   assert.throws(() => validateStore(forge(f.id, {corners: {N: [75, 0], A: [0, 0], B: [0, 60]}}), puzzles), 'N moved');
 });
