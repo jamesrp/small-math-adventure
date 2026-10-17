@@ -182,8 +182,8 @@ export function answers(q, cell) {
 // Puzzle: {cell, copy, tried, shown, done, refused, last}.
 //   tried: the attempt keys the copy has made on this cell (a Can't needs one,
 //     a shown move needs its own, and a Shortest the slide or glide by its
-//     length). An edit starts it again: the copy's state then counts only if
-//     it matches the new cell.
+//     length). An edit starts it again from the copy's state as it stands:
+//     the matches and misses it shows on the new cell are an attempt too.
 //   shown: the match goals the copy has matched on this cell.
 //   done: the claims judged right on this cell, [{goal, pick}].
 //   refused: the claims judged wrong, in the order made, [{goal, pick, why,
@@ -207,8 +207,8 @@ function fresh(p) {
   if (q.mode === 'playground') return {cell: blankCell(q.start), copy: {...HOME}};
   return record(q, {cell: cloneCell(q.cell), copy: {...HOME}, tried: [], shown: [], done: [], refused: [], last: null});
 }
-// After a copy move (moved) its attempt is recorded; after any move, a match
-// the copy makes now is recorded, with its attempt.
+// After a copy move or an edit (moved) the copy's state is recorded as an
+// attempt on the board it now shows; a match it makes now is recorded too.
 function record(q, b, moved = false) {
   const now = fits(b.cell, b.copy);
   const tried = moved || now ? [...new Set([...b.tried, ...keysOf(b.copy)])].sort() : b.tried;
@@ -262,10 +262,10 @@ function valid(p, b) {
   if (q.edit === 'none' && !sameCell(b.cell, q.cell)) return false;
   if (q.edit === 'move' && inventory(b.cell) !== inventory(q.cell)) return false;
   if (!Array.isArray(b.tried) || !b.tried.every(k => typeof k === 'string' && TRIED.test(k)) || new Set(b.tried).size !== b.tried.length) return false;
-  // The copy's own attempt is on record: always on a fixed border (only copy
-  // moves happen there), and wherever it matches now.
+  // The copy's own attempt is on record: every copy move and every edit
+  // records the state it leaves the copy in.
   const now = fits(b.cell, b.copy);
-  if ((q.edit === 'none' || now) && !keysOf(b.copy).every(k => b.tried.includes(k))) return false;
+  if (!keysOf(b.copy).every(k => b.tried.includes(k))) return false;
   // A move is shown only where it can be, after its own attempt.
   if (!Array.isArray(b.shown) || !b.shown.every((i, k) => Number.isInteger(i) && q.goals[i]?.type === 'match' && matchable(b.cell, q.goals[i]) && b.tried.includes(showKey(q.goals[i])) && (k === 0 || b.shown[k - 1] < i))) return false;
   // A match the copy makes now is recorded.
@@ -328,7 +328,7 @@ function move(p, b, action) {
     else { const cell = editMove(q, b.cell, action); next = cell && {...b, cell}; }
   } else if (['put', 'clear', 'shift'].includes(action.type)) {
     const cell = editMove(q, b.cell, action);
-    next = cell && record(q, {...b, cell, tried: [], shown: [], done: [], last: null});
+    next = cell && record(q, {...b, cell, tried: [], shown: [], done: [], last: null}, true);
   } else if (['slide', ...TOOLS].includes(action.type)) {
     const copy = copyMove(q, periodOf(b.cell), b.copy, action);
     next = copy && record(q, {...b, copy, last: null}, true);
@@ -522,9 +522,9 @@ function plan(p, b) {
     if (isDone(b, i)) continue;
     if (goal.type === 'cant') {
       if (!b.tried.includes(tryKey(goal))) {
-        // The attempt: the nearest state of that move other than where the
-        // copy is (after an edit it may be there untried); for the flip, the
-        // only one, by way of home.
+        // The attempt: the nearest state of that move (the copy is not in
+        // one, or it would be tried); for the flip, the only one, by way of
+        // home.
         const to = nearestState(q, b.copy, cantStates(P, goal)) || HOME;
         const step = copyStep(q, b.copy, to), next = copyMove(q, P, b.copy, step.action);
         const lead = {flip: 'Try the flip alone', slide: `Try a slide of ${goal.by} places`, turn: 'Try a half-turn', mirror: 'Try a flip across'}[goal.move];
@@ -536,7 +536,7 @@ function plan(p, b) {
     if (goal.type === 'shortest') {
       const d = shortestOf(cell, goal.move), now = claimDist(cell, b.copy, goal);
       const open = [d, -d].map(u => ({...shortMoves[goal.move], u})).filter(g => !b.refused.some(r => r.goal === i && refusalOn(q, r, cell, g)));
-      if (!open.length) return {stuck: true, text: STUCK};
+      if (!open.length) return {stuck: true, text: `Shortest ${goal.move} was refused both ways. Restart to try again.`};
       if (now !== d || lockedOn(q, b, i)) return copyStep(q, b.copy, nearestState(q, b.copy, open));
       const cert = bestCert(cell, goal, d);
       return {action: {type: 'shortest', goal: i, pick: cert}, text: claimWords(q, cell, goal, cert, d), slots: cert, button: `claim-${i}`};
@@ -742,15 +742,21 @@ function render(p, a) {
   const told = said && claim === null ? whyText(q.goals[said.goal], said.why) : '';
   const prompt = goal ? (goal.type === 'centre' ? 'Tap the point.' : isFamily(goal) ? 'Tap an F, then what it becomes.' : goal.type === 'cant' ? 'Tap an F, then where it lands.' : 'Tap an F, then the nearest one it can land on.') : '';
   // Why a claim is off when nothing else is said: a row is empty, or a
-  // refusal stands on this board (after Undo, or coming back to it).
+  // refusal stands on this board (after Undo, or coming back to it). When
+  // every way left to finish is refused, the board says to Restart, even
+  // beside the refusal just made (only refusals can do that).
+  const stuckHint = !play && !done && claim === null && b.refused.length ? hint(p, b) : null;
+  const stuck = stuckHint?.type === 'stuck' ? stuckHint.text : '';
   let why = '';
-  if (!play && !done && !told && !prompt) {
+  if (stuck && !told) why = stuck;
+  else if (!play && !done && !told && !prompt) {
     const waiting = q.goals.map((g, i) => i).filter(i => q.goals[i].type !== 'match' && !isDone(b, i));
     if (!bothRows(cell) && waiting.some(i => q.goals[i].type === 'cant' && b.tried.includes(tryKey(q.goals[i])))) why = 'A border needs an F in each row.';
     else if (waiting.some(i => lockedOn(q, b, i))) why = waiting.some(i => lockedOn(q, b, i) && q.goals[i].type === 'shortest') ? 'Shortest was refused with the copy here.' : 'A claim was refused on this border.';
   }
-  const note = told || prompt || why ? `<p class="fz-told${why && !told && !prompt ? ' fz-quiet' : ''}">${esc(told || prompt || why)}</p>` : '';
-  const status = `${describeCell(cell)} ${claim === null ? describeCopy(q, cell, b.copy) : prompt}${told ? ` ${told}` : ''}${why ? ` ${why}` : ''}${hinted?.text && a.hintLevel >= 2 ? ` Hint: ${hinted.text}` : ''}`;
+  const noteText = told && stuck ? `${told} ${stuck}` : told || prompt || why;
+  const note = noteText ? `<p class="fz-told${why && !told && !prompt && !stuck ? ' fz-quiet' : ''}">${esc(noteText)}</p>` : '';
+  const status = `${describeCell(cell)} ${claim === null ? describeCopy(q, cell, b.copy) : prompt}${told ? ` ${told}` : ''}${stuck && told ? ` ${stuck}` : ''}${why ? ` ${why}` : ''}${hinted?.text && a.hintLevel >= 2 && !stuck ? ` Hint: ${hinted.text}` : ''}`;
   return `<div class="fz-puzzle${done ? ' solved' : ''}${claim !== null ? ' claiming' : ''}${editMode !== 'none' && !done ? ' editing' : ''}" data-mechanic-wire="friezes">${goals}${svg}${note}${tools}<p class="sr-only" role="status">${esc(status.trim())}</p></div>`;
 }
 

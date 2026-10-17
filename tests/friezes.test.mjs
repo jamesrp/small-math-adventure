@@ -1,8 +1,10 @@
 // Footprint borders: the four forms and the copy's moves, matches on the
 // guide's witness borders, shortest slides and glides, forced half-turns,
-// building and moving Fs, attempts before Can't, Fs in both rows before any
+// building and moving Fs, attempts before Can't (the copy's state counting
+// after an edit), Fs in both rows before any
 // claim, certificates right and wrong (gaps too), refusals kept with their
-// board through edits, slides and Undo and cleared by Restart, hints (quick,
+// board through edits, slides and Undo and cleared by Restart (the board
+// saying so when every way is refused), hints (quick,
 // in CPU time, and solving from fresh), saves, rendering and the family's
 // symbol.
 import test from 'node:test';
@@ -68,17 +70,24 @@ test('moves of the copy: slides, the three buttons, and what each counts as', ()
   assert.equal(move(p, a, {type: 'slide', by: 3}), null, 'no further than a cell');
 });
 
-test('building: free places, moving Fs, and an edit starts the attempts again', () => {
+test('building: free places, moving Fs, and an edit starts the attempts again from the copy', () => {
   const p = byId(3);
   let a = play(p, freshAttempt(p), {type: 'put', c: 0, r: 0, form: A}, {type: 'put', c: 1, r: 1, form: H}, {type: 'flip'});
   assert.deepEqual(a.board.tried, ['flip']);
   a = play(p, a, {type: 'slide', by: 1});
   assert.deepEqual(a.board.shown, [0], 'the glide is shown');
   a = play(p, a, {type: 'clear', c: 1, r: 1});
-  assert.deepEqual([a.board.tried, a.board.shown], [[], []], 'an edit clears what was shown and tried, and the copy where it is, missing, is no attempt');
+  assert.deepEqual([a.board.tried, a.board.shown], [['glide', 'glide:1'], []], 'an edit clears what was shown and tried, and the copy where it stands, missing, is the attempt');
   a = play(p, a, {type: 'put', c: 1, r: 1, form: H});
   assert.deepEqual([a.board.tried, a.board.shown], [['glide', 'glide:1'], [0]], 'a match the copy makes after an edit is shown, with its attempt');
   assert.equal(F.canClaim(p.parameters, a.board, 1), false, 'the flip alone is tried again before Can’t');
+  // The copy flipped, then the H moved along: the copy still shows the flip
+  // missing on the new border, and that is the attempt.
+  let e = play(p, freshAttempt(p), {type: 'put', c: 0, r: 0, form: A}, {type: 'put', c: 0, r: 1, form: H}, {type: 'flip'});
+  assert.ok(F.fits(e.board.cell, e.board.copy), 'the flip matches A over H');
+  e = play(p, e, {type: 'clear', c: 0, r: 1}, {type: 'put', c: 1, r: 1, form: H});
+  assert.ok(e.board.tried.includes('flip') && !F.fits(e.board.cell, e.board.copy), 'the flip, now missing, counts');
+  assert.equal(F.canClaim(p.parameters, e.board, 1), true, 'so Can’t is on');
   const m = byId(4);
   let b = play(m, freshAttempt(m), {type: 'shift', from: [0, 0], to: [1, 0]});
   assert.equal(F.inventory(b.board.cell), F.inventory(m.parameters.cell));
@@ -157,7 +166,10 @@ test('shortest: the nearest F of the form the move needs, as far as the copy wen
   assert.ok(moved.board.refused.length === 1 && F.canClaim(p.parameters, moved.board, 0), 'slid the other way, Shortest is on');
   const twice = play(p, moved, {type: 'shortest', goal: 0, pick: [[0, 0], [1, 0]]});
   assert.equal(nextHint(p, twice).type, 'stuck', 'refused both ways: nothing to apply');
-  assert.equal(nextHint(p, twice).text, F.STUCK);
+  assert.equal(nextHint(p, twice).text, 'Shortest slide was refused both ways. Restart to try again.');
+  assert.match(view(p, twice), /class="fz-told">[^<]*It can’t land there\. Shortest slide was refused both ways\. Restart to try again\.</, 'the board says to Restart, beside the refusal');
+  assert.match(view(p, play(p, twice, {type: 'slide', by: 1})), /class="fz-told">Shortest slide was refused both ways\. Restart to try again\.</, 'and after the copy moves on');
+  assert.doesNotMatch(view(p, far), /class="fz-told[^"]*">[^<]*Restart/, 'one way refused: no Restart note');
   // The glide: half the slide.
   let g = play(p, near, {type: 'flip'}, {type: 'slide', by: -2});
   assert.equal(g.board.copy.u, 2);
@@ -224,6 +236,8 @@ test('saves: forged claims, attempts and borders are refused', () => {
   assert.equal(validBoard(q, {...c, copy: at(slide, 4), tried: ['slide', 'slide:4'], done: [{goal: 0, pick: [[0, 0], [2, 0]]}]}), false, 'a Shortest without the 2-place slide tried');
   const r = byId(3), d = freshAttempt(r).board;
   assert.equal(validBoard(r, {...d, cell: cellOf('A·/·H'), copy: at(flip, 0), tried: ['flip'], shown: [0]}), false, 'a glide shown with only the flip tried');
+  assert.equal(validBoard(r, {...d, cell: cellOf('A·/·H'), copy: at(flip, 0), tried: []}), false, 'a build with the copy flipped and no attempt');
+  assert.equal(validBoard(r, {...d, cell: cellOf('A·/·H'), copy: at(flip, 0), tried: ['flip']}), true, 'a build with the copy flipped, tried');
 });
 
 test('render: one board, goal chips with their claims, tools, and no empty containers', () => {

@@ -11,11 +11,12 @@
 // own reading of the certificate and compared with the app's, with the share
 // of random taps that pass, and taps in page order and keyboard order fail;
 // true claims that can't be shown are counted (none on an answer); witnesses
-// are played as moves; refusals stay through edits and back, slides and
+// are played as moves; an attempt followed by an edit still counts, from
+// the copy where it stands; refusals stay through edits and back, slides and
 // back, and Undo, and Restart clears them; hints solve from fresh, after
 // wrong edits and copy moves, after a refused claim, after Undo and after
-// Restart, and say Restart when every way left is refused; illegal moves and
-// forged saves are refused; and the playground.
+// Restart, and say Restart (on the board too) when every way left is
+// refused; illegal moves and forged saves are refused; and the playground.
 // Run: node scripts/validate-friezes.mjs
 import assert from 'node:assert/strict';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo, restart} from '../dist/engine.js';
@@ -401,6 +402,18 @@ async function validateFriezes() {
     w = play(p, w, {type: 'slide', by: 1});
     if (q.tools.includes('flip')) w = play(p, w, {type: 'flip'});
     hintsSolve(p, w, 'after wrong moves');
+    // An attempt and then an edit: the copy still shows that move on the new
+    // border, and that counts, so the Can't is on there (with both rows).
+    if (q.edit !== 'none') q.goals.forEach((goal, i) => {
+      if (goal.type !== 'cant') return;
+      let t = play(p, fresh, goal.move === 'slide' ? {type: 'slide', by: goal.by} : {type: goal.move});
+      const cell = t.board.cell, gaps = [...Array(2 * P).keys()].map(s => [s >> 1, s & 1]).filter(([c, r]) => cell[r][c] === null);
+      if (q.edit === 'free') t = gaps.length ? play(p, t, {type: 'put', c: gaps[0][0], r: gaps[0][1], form: 0}) : play(p, t, {type: 'clear', c: 0, r: 0});
+      else { const f0 = M.footprints(cell).find(x => gaps.some(([, r]) => r === x.r)); t = play(p, t, {type: 'shift', from: [f0.c, f0.r], to: gaps.find(([, r]) => r === f0.r)}); }
+      assert.ok(t.board.tried.includes(M.tryKey(goal)), `${p.id}: after an edit the copy's ${goal.move} where it stands counts`);
+      assert.equal(M.canClaim(q, t.board, i), bothRowsOf(t.board.cell), `${p.id}: after an attempt and an edit, Can't ${goal.move} is on with both rows`);
+      hintsSolve(p, t, 'after an attempt and an edit');
+    });
     // A refused claim: it stays through an edit and back, a slide and back,
     // and Undo (each puts the same board back, and the claim stays off);
     // Restart clears it; hints solve after each.
@@ -426,8 +439,8 @@ async function validateFriezes() {
       assert.ok(sameBoardCell(round.board.cell, refused.board.cell) && M.sameCopy(round.board.copy, refused.board.copy), `${p.id}: back to the same board`);
       assert.equal(M.canClaim(q, round.board, i), false, `${p.id}: the claim stays off on the same board`);
       if (q.edit !== 'none') {
-        // The edit started the attempts again: the copy where it is doesn't count.
-        assert.ok(round.board.tried.every(k => M.keysOf(round.board.copy).includes(k)) && (M.fits(round.board.cell, round.board.copy) || round.board.tried.length === 0), `${p.id}: after an edit only a match of the copy where it is counts`);
+        // The edit started the attempts again from the copy where it stands.
+        assert.deepEqual(round.board.tried, [...M.keysOf(round.board.copy)].sort(), `${p.id}: after an edit the copy's state where it stands is the attempt`);
       }
       hintsSolve(p, round, 'after going away and back');
       let again = restart(p, refused);
@@ -444,6 +457,11 @@ async function validateFriezes() {
         two = play(p, two, {type: 'shortest', goal: i, pick: wrong2});
         assert.equal(nextHint(p, two).type, 'stuck', `${p.id}: refused both ways, the hint says Restart`);
         assert.match(nextHint(p, two).text, /Restart/);
+        // The board says so too, beside the refusal and once the copy moves.
+        const noteOf = a => { mech.reset(p); const html = mech.render(p, {board: a.board, hintLevel: 0, moves: 1}); mech.reset(p); return html.match(/<p class="fz-told[^"]*">([^<]*)<\/p>/)?.[1] || ''; };
+        assert.match(noteOf(two), /Restart to try again/, `${p.id}: refused both ways, the board says Restart`);
+        assert.match(noteOf(play(p, two, {type: 'slide', by: two.board.copy.u > 0 ? -1 : 1})), /Restart to try again/, `${p.id}: refused both ways, the board still says Restart after a slide`);
+        assert.doesNotMatch(noteOf(refused), /Restart/, `${p.id}: refused one way, the board doesn't say Restart`);
         const fresh2 = {...restart(p, two), board: mech.carryOnRestart(p, two.board, freshAttempt(p).board)};
         hintsSolve(p, fresh2, 'after Restart from stuck');
         report.stuck = [...(report.stuck || []), p.id];
@@ -532,7 +550,8 @@ function checkForged(p, fresh, solvedAttempt) {
   reject({...b, cell: b.cell.map(row => row.map(() => 7))}, 'an unknown form');
   if (q.edit === 'none') reject({...b, cell: b.cell.map((row, r) => row.map((v, c) => (r === 0 && c === 0 ? (v === null ? 0 : null) : v)))}, 'a changed border');
   if (q.edit === 'move') reject({...b, cell: b.cell.map((row, r) => row.map((v, c) => (r === 0 && c === 0 ? (v === null ? 2 : null) : v)))}, 'an F more or less');
-  if (q.edit === 'none') reject({...b, copy: {s: 1, f: 1, u: 1}}, 'a copy slid but not tried');
+  reject({...b, copy: {s: 1, f: 1, u: 1}}, 'a copy slid but not tried');
+  if (q.tools.includes('flip')) reject({...b, copy: {s: 1, f: -1, u: 0}}, 'a copy flipped but not tried');
   reject({...b, tried: ['teleport']}, 'an unknown attempt');
   reject({...b, tried: ['flip', 'flip']}, 'an attempt twice');
   q.goals.forEach((goal, i) => {

@@ -6,7 +6,8 @@
 // edit and back, and a right claim with its argument on another border;
 // Can't by Tab and Enter down the page, refused, then Restart; no claim with
 // a row empty; Can't for every half-turn with the forms; Shortest refused,
-// kept after a slide away and back, and right the other way; the half-turn's
+// kept after a slide away and back, and right the other way; Shortest
+// refused both ways, with the board's note to Restart; the half-turn's
 // point among drawn dots, and Restart after a wrong one; and the playground's
 // lengths. Same environment variables as the other
 // browser suites (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1
@@ -96,7 +97,27 @@ try {
   await page.keyboard.press('ArrowLeft'); await page.keyboard.press('ArrowRight');
   assert.equal(await page.getByRole('button', {name: 'Shortest'}).isDisabled(), true, 'slid away and back, it is off again');
   assert.equal(await told(), 'Shortest was refused with the copy here.');
+  // Refused at the shortest slide both ways: the board points to Restart.
+  const wrongShortest = async () => {
+    await page.getByRole('button', {name: 'Shortest'}).click();
+    await page.locator('[data-fz-slot="0,0"]').focus(); await page.keyboard.press('Enter');
+    await page.locator('[data-fz-slot="4,0"]').focus(); await page.keyboard.press('Enter');
+  };
   await page.keyboard.press('ArrowLeft'); await page.keyboard.press('ArrowLeft');
+  await wrongShortest();
+  assert.doesNotMatch(await told(), /Restart/, 'one way refused: no Restart note');
+  await page.locator('.fz-board').focus();
+  for (let k = 0; k < 4; k++) await page.keyboard.press('ArrowLeft');
+  assert.deepEqual((await board(P2)).copy, {s: 1, f: 1, u: -2});
+  await wrongShortest();
+  assert.match(await told(), /Shortest slide was refused both ways\. Restart to try again\.$/, 'both ways refused: the board says to Restart');
+  await page.locator('.fz-board').focus(); await page.keyboard.press('ArrowRight');
+  assert.equal(await told(), 'Shortest slide was refused both ways. Restart to try again.', 'and still after a slide');
+  await shot('shortest-stuck');
+  await restartButton();
+  assert.deepEqual((await board(P2)).refused, [], 'Restart clears them');
+  await page.locator('.fz-board').focus();
+  await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight');
   await page.getByRole('button', {name: 'Shortest'}).click();
   await page.locator('[data-fz-slot="0,0"]').focus(); await page.keyboard.press('Enter');
   await page.locator('[data-fz-slot="2,0"]').focus(); await page.keyboard.press(' ');
