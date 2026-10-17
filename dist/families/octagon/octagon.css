@@ -1,0 +1,65 @@
+/* Octagon streets: one or two floors, each a disk (octagons) or a framed
+   square (squares) of pale ground with ink roads; flowers in rose rooms, a
+   leaf trail behind the robot, a sun home ring with a faint arrow for the way
+   the robot faced at the start, and an ink robot arrow. Strokes do not scale.
+   Two floors sit side by side; in a narrow panel tabs show one at a time. */
+[data-mechanic-wire="octagon"]{display:flex;flex-direction:column;align-items:center;gap:.6rem;width:100%;container-type:inline-size}
+[data-mechanic-wire="octagon"] .oc-floors{display:grid;grid-template-columns:minmax(0,380px);justify-content:center;gap:1rem;width:100%}
+[data-mechanic-wire="octagon"].two .oc-floors{grid-template-columns:repeat(2,minmax(0,340px))}
+[data-mechanic-wire="octagon"] .oc-wrap{display:flex;flex-direction:column;align-items:center;gap:.45rem;min-width:0}
+[data-mechanic-wire="octagon"] .oc-tabs{display:none;gap:.4rem}
+[data-mechanic-wire="octagon"] .oc-tab{min-height:40px;padding:6px 14px}
+[data-mechanic-wire="octagon"] .oc-tab[aria-pressed="true"],[data-mechanic-wire="octagon"] .oc-cant[aria-pressed="true"]{background:#e9eddc;border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e);color:var(--b-ink,#294439)}
+@container (max-width:600px){
+  [data-mechanic-wire="octagon"] .oc-tabs{display:flex}
+  [data-mechanic-wire="octagon"].two .oc-floors{grid-template-columns:minmax(0,380px)}
+  [data-mechanic-wire="octagon"].two .oc-wrap.oc-off{display:none}
+}
+
+/* The board. */
+[data-mechanic-wire="octagon"] .oc-board{display:block;width:100%;height:auto;aspect-ratio:1;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;cursor:grab}
+[data-mechanic-wire="octagon"] .oc-board:focus{outline:none}
+[data-mechanic-wire="octagon"] .oc-board:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px;border-radius:50%}
+[data-mechanic-wire="octagon"] .oc-board.sq:focus-visible{border-radius:8px}
+[data-mechanic-wire="octagon"] .oc-board *{vector-effect:non-scaling-stroke}
+[data-mechanic-wire="octagon"] .oc-ground{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:1.6px}
+[data-mechanic-wire="octagon"] .oc-roads{fill:none;stroke:#6f8279;stroke-width:1.5px;stroke-linecap:round}
+[data-mechanic-wire="octagon"] .oc-dot{fill:#6f8279}
+[data-mechanic-wire="octagon"] .oc-bloom{fill:#f6d5cb;stroke:none}
+[data-mechanic-wire="octagon"] .oc-inside{fill:#d7e6c9;stroke:none}
+[data-mechanic-wire="octagon"] .oc-flower circle{fill:var(--b-rose,#e7a28f)}
+[data-mechanic-wire="octagon"] .oc-flower .oc-flower-mid{fill:var(--b-sun,#efc76e)}
+[data-mechanic-wire="octagon"] .oc-trail{fill:none;stroke:var(--b-leaf,#86a68c);stroke-width:5px;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
+[data-mechanic-wire="octagon"] .oc-trail.oc-met{stroke:#4f8a5b}
+[data-mechanic-wire="octagon"] .oc-used{fill:#4f6f58}
+[data-mechanic-wire="octagon"] .oc-home{fill:none;stroke:var(--b-sun,#efc76e);stroke-width:4px}
+[data-mechanic-wire="octagon"] .oc-ghost{fill:none;stroke:var(--b-ink,#294439);stroke-width:1.4px;stroke-dasharray:3 2;opacity:.75}
+[data-mechanic-wire="octagon"] .oc-robot{fill:var(--b-ink,#294439);stroke:#fff;stroke-width:1.4px;stroke-linejoin:round}
+
+/* Can't: every dot or wall is a target alike; the certificate drawings. */
+[data-mechanic-wire="octagon"] .oc-claiming .oc-board{cursor:pointer}
+[data-mechanic-wire="octagon"] .oc-target{fill:#fff;stroke:var(--b-ink,#294439);stroke-width:1.4px;cursor:pointer}
+[data-mechanic-wire="octagon"] .oc-target.oc-wall{fill:none;stroke:#9bb0a6;stroke-width:5px;stroke-linecap:round}
+[data-mechanic-wire="octagon"] .oc-target:focus{outline:none;stroke:var(--b-ochre,#b38840);stroke-width:3px}
+[data-mechanic-wire="octagon"] .oc-target.oc-wall:focus{stroke-width:7px}
+[data-mechanic-wire="octagon"] .oc-proof{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:6px;stroke-linecap:round;stroke-linejoin:round}
+[data-mechanic-wire="octagon"] .oc-ring{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:3px}
+[data-mechanic-wire="octagon"] .oc-turn{fill:#fff;stroke:#b24a3c;stroke-width:1.6px;stroke-dasharray:3 2}
+[data-mechanic-wire="octagon"] .oc-light{fill:#fff;stroke:var(--b-ink,#294439);stroke-width:1.2px}
+[data-mechanic-wire="octagon"] .oc-dark{fill:var(--b-ink,#294439)}
+[data-mechanic-wire="octagon"] .oc-tight{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:2.4px;stroke-dasharray:6 4}
+[data-mechanic-wire="octagon"] .oc-corner{fill:var(--b-ochre,#b38840)}
+[data-mechanic-wire="octagon"] .oc-hinted{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:4px;stroke-dasharray:5 4;stroke-linecap:round}
+
+/* The move record, the left-turn budget and the controls. */
+[data-mechanic-wire="octagon"] .oc-record,[data-mechanic-wire="octagon"] .oc-budget{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;max-width:100%}
+[data-mechanic-wire="octagon"] .oc-record i{display:grid;place-items:center;width:18px;height:24px;border:1.5px solid #c6d1c9;border-radius:5px;font-style:normal;font-weight:800;font-size:.95rem;color:var(--b-ink,#294439);background:#fff}
+[data-mechanic-wire="octagon"] .oc-record i.on{border-color:var(--b-leaf,#86a68c);background:#eef5ea}
+[data-mechanic-wire="octagon"] .oc-budget i{display:grid;place-items:center;width:14px;height:22px;font-style:normal;font-weight:800;font-size:.9rem;color:var(--b-ink,#294439)}
+[data-mechanic-wire="octagon"] .oc-budget i.used{opacity:.22}
+[data-mechanic-wire="octagon"] .oc-controls{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem}
+[data-mechanic-wire="octagon"] .oc-go{min-width:52px;min-height:48px;padding:4px 10px;font-size:1.45rem;line-height:1;font-weight:800}
+[data-mechanic-wire="octagon"] .oc-cant,[data-mechanic-wire="octagon"] .oc-clear{min-height:48px;padding:6px 14px}
+[data-mechanic-wire="octagon"] .hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+[data-mechanic-wire="octagon"] .oc-told{margin:0;font-weight:700;color:#8a4b2a;text-align:center}
+[data-mechanic-wire="octagon"] .oc-done .oc-board{cursor:grab}
