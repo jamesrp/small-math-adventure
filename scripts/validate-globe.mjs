@@ -174,8 +174,11 @@ function everyTriangle() {
   assert.equal(triangles, 3032624, 'every triangle of three dots');
   assert.ok(maxFlat < 1e-14 && minDet > 1e-4, `three dots on one great circle are told apart from a triangle (${maxFlat}, ${minDet})`);
   assert.equal(otherWhole, 0, 'no corner is a whole number of degrees other than a multiple of 15°');
-  // The card for the corner nearest a whole number still shows a decimal after ≈ (every other needs fewer places).
-  assert.doesNotMatch(approxText(nearWhole.x), /^\d+(\.0+)?$/, `≈ never prints a whole number (${nearWhole.x})`);
+  // Every inexact corner prints with at most two decimals, never a whole number after ≈: the corner nearest a
+  // whole number is told in words, on the right side of it, and two decimals print no whole number from 0.005 off.
+  const near = approxText(nearWhole.x), n = Math.round(nearWhole.x);
+  assert.equal(near, `just ${nearWhole.x < n ? 'under' : 'over'} ${n}°`, `the corner nearest a whole number in words (${nearWhole.x})`);
+  for (const x of [n - 0.0051, n + 0.0051, n - 0.051, n + 0.049, n + 0.5]) assert.match(approxText(x), /^≈\d+\.(\d?[1-9]|[1-9]\d?)°$|^just (under|over) \d+°$/, `at most two decimals, never a whole number (${x})`);
   assert.ok(minExcess > 0.02, 'every triangle’s corners add up to more than 180°');
   // Exact: three dots on one great circle have det exactly 0 (a sample), and every candidate is exact.
   for (let s = 0, seen = 0; seen < 300 && s < 1e6; s++) {
@@ -640,7 +643,7 @@ export async function validateGlobe() {
     assert.equal(typeof p.visibleObjective, 'string', `${p.id}: visibleObjective`);
     assert.ok(Array.isArray(p.rules) && p.rules.length && p.hints.length === 3, `${p.id}: rules and three hints`);
     assert.ok(!/can.t|press/i.test(p.hints[0]), `${p.id}: the first hint is not a claim`);
-    assert.ok(!/\b(can.t|none|impossible|only)\b/i.test(p.title), `${p.id}: the title does not give the answer away`);
+    assert.ok(!/\b(can.t|none|impossible|only|no|pole|tilted|side)\b/i.test(p.title), `${p.id}: the title does not give the answer away`);
     for (const field of ['notice', 'prompt', 'explanation', 'extension', 'connection']) assert.ok(p.parent[field], `${p.id}: parent ${field}`);
     assert.ok(p.parent.sourceIds.every(id => pack.sources.some(s => s.id === id)), `${p.id}: sources`);
     assert.ok(mechanicFor(p), `${p.id}: mechanic`);
@@ -667,7 +670,7 @@ export async function validateGlobe() {
       });
     }
   }
-  return {puzzles: puzzles.length, triangles: every.triangles, allMultiplesOf15: every.fifteen.length, types: every.types, smallestExcess: Number(every.minExcess.toFixed(4)), cornerNearestWhole: {degrees: every.nearWhole.x, shown: `≈${approxText(every.nearWhole.x)}°`}, straightRunsToAnswer: runs, claims: shares, hintSteps, undoSteps, slowSigns, triangleCpuMs: every.ms};
+  return {puzzles: puzzles.length, triangles: every.triangles, allMultiplesOf15: every.fifteen.length, types: every.types, smallestExcess: Number(every.minExcess.toFixed(4)), cornerNearestWhole: {degrees: every.nearWhole.x, shown: approxText(every.nearWhole.x)}, straightRunsToAnswer: runs, claims: shares, hintSteps, undoSteps, slowSigns, triangleCpuMs: every.ms};
 }
 export default validateGlobe;
 if (process.argv[1] === new URL(import.meta.url).pathname) console.log(JSON.stringify(await validateGlobe(), null, 2));

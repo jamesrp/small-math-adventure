@@ -43,7 +43,7 @@ test('the pack validates: answers by brute force in Q(t), hints solve, illegal m
     'globe-10': {firstChance: '1/3', states: 7, forced: 3, forcedRight: 1}
   });
   assert.ok(Object.values(report.straightRunsToAnswer).every(r => r.length === 0), 'no fraction puzzle is solved by sweeping one corner along a line');
-  assert.doesNotMatch(report.cornerNearestWhole.shown, /^≈\d+(\.0+)?°$/);
+  assert.equal(report.cornerNearestWhole.shown, 'just under 78°');
 });
 
 test('exact numbers: signs in Q(√2, √3), and cos 15° squared', () => {
@@ -246,7 +246,11 @@ test('taps go to what the child sees: a corner before a nearby dot, and a corner
   assert.ok(under.length, 'a front dot lies under B’s faint disc');
   for (const [pt, x, y] of under) assert.deepEqual(tapTarget(q, corners, behind, x, y), {corner: 'B', behind: true}, `a tap on the front dot ${pt} under the disc goes to the disc`);
   assert.deepEqual(tapAction(q, corners, 'B', {corner: 'B', behind: true}), {choose: 'B', turn: true});
-  assert.equal(tapAction(q, corners, 'B', {corner: 'N', behind: true}), null, 'a corner that stays put is not chosen from behind either');
+  // A dark corner's faint disc lets a tap through: from 45° S, 30° E, N's disc sits over the front dot at 0°, 30° E.
+  const south = {lat: -45, lon: 30}, S = frameOf(south), [nx, ny, nz] = screenOf(S, vec(corners.N)), [ex, ey, ez] = screenOf(S, vec([0, 30]));
+  assert.ok(nz < 0 && ez > 0 && Math.hypot(ex - nx, ey - ny) < 1, 'N’s faint disc covers the dot');
+  assert.deepEqual(tapTarget(q, corners, south, ex, ey), {dot: [0, 30]}, 'the tap goes to the dot');
+  assert.deepEqual(tapAction(q, corners, 'B', tapTarget(q, corners, south, ex, ey)), {move: place('B', [0, 30])}, 'and moves the chosen corner there');
   // What a tap does.
   assert.deepEqual(tapAction(q, corners, 'B', {corner: 'B'}), {choose: 'B'});
   assert.equal(tapAction(q, corners, 'B', {corner: 'N'}), null, 'a corner that stays put is not chosen');
@@ -284,7 +288,7 @@ test('every puzzle renders a ball, three corner cards and its objective; nothing
     if (p.visibleObjective) assert.ok(html.includes(p.visibleObjective), `${p.id}: objective shown`);
     // The cards show the exact corner from the field, or ≈ and a decimal.
     const f = factsOf(p.parameters, a.board.corners);
-    for (const c of f.corners) assert.ok(html.includes(c.deg !== null ? `>${c.deg}°<` : `≈${approxText(c.approx)}°`), `${p.id}: a card shows ${c.deg ?? c.approx}`);
+    for (const c of f.corners) assert.ok(html.includes(c.deg !== null ? `>${c.deg}°<` : `>${approxText(c.approx)}<`), `${p.id}: a card shows ${c.deg ?? c.approx}`);
     if (p.band === 'playground') continue;
     const done = view(p, solve(p));
     assert.match(done, /gl-puzzle solved/, `${p.id}: solved`);
@@ -297,10 +301,19 @@ test('every puzzle renders a ball, three corner cards and its objective; nothing
 });
 
 test('cards never print a whole number after ≈, and the fans stay readable past a whole turn', () => {
-  assert.equal(approxText(50.77), '50.8');
-  assert.equal(approxText(90.0162), '90.02');
-  assert.equal(approxText(176.0329), '176.03');
-  assert.equal(approxText(77.99995871625818), '77.99996');
+  assert.equal(approxText(50.77), '≈50.8°');
+  assert.equal(approxText(90.0162), '≈90.02°');
+  assert.equal(approxText(176.0329), '≈176.03°');
+  assert.equal(approxText(77.99995871625818), 'just under 78°', 'nearer a whole number than two decimals show: words');
+  assert.equal(approxText(150.003), 'just over 150°');
+  // Puzzle 10 with the grid's corner nearest a whole number: its card says so in words.
+  const p10 = byId('globe-10');
+  M.reset(p10);
+  const close = play(p10, freshAttempt(p10), place('A', [75, 150]), place('B', [60, 15]), place('C', [0, 285]));
+  const card = view(p10, close);
+  assert.match(card, /<span class="gl-deg approx near">just under 78°<\/span>/);
+  assert.match(card, /aria-label="Corner A, just under 78 degrees"/);
+  M.reset(p10);
   // Puzzle 7 with B at 75° N 15° E and C at 15° N 90° W: B's corner is 90.016°.
   const p7 = byId('globe-07');
   M.reset(p7);

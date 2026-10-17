@@ -563,14 +563,18 @@ function wedge(deg, right) {
   const mark = right ? `<path class="gl-wedge-right" d="M23 27V21H17"/>` : `<path class="gl-wedge-arc" d="M23 27A${r} ${r} 0 0 0 ${f1(ax)} ${f1(ay)}"/>`;
   return `<svg class="gl-wedge" viewBox="0 0 34 30" aria-hidden="true" focusable="false"><path class="gl-wedge-fill" d="M17 27L32 27A15 15 0 0 0 ${f1(x)} ${f1(y)}Z"/>${mark}<path class="gl-wedge-ray" d="M32 27H17L${f1(x)} ${f1(y)}"/></svg>`;
 }
-// A size that is not a whole number of degrees, to one decimal, or to more
-// when one decimal would print a whole number (≈90.02°, never ≈90.0°).
-export function approxText(x) {
-  for (let d = 1; d <= 8; d++) { const t = x.toFixed(d); if (!/\.0+$/.test(t)) return t; }
-  return x.toFixed(8);
+// A size that is not a whole number of degrees: one decimal, or two where one
+// would print a whole number; nearer a whole number than that, in words. So
+// "≈50.8°", "≈90.02°" or "just under 78°", never a whole number after ≈.
+function approxOf(x) {
+  for (const d of [1, 2]) { const t = x.toFixed(d); if (!/\.0+$/.test(t)) return {t}; }
+  const n = Math.round(x);
+  return {n, side: x < n ? 'under' : 'over'};
 }
-const degText = c => c.deg !== null ? `${c.deg}°` : `≈${approxText(c.approx)}°`;
-const degWords = c => c.deg !== null ? `${c.deg} degrees` : `about ${approxText(c.approx)} degrees`;
+export const approxText = x => { const a = approxOf(x); return a.t ? `≈${a.t}°` : `just ${a.side} ${a.n}°`; };
+const aboutText = (x, unit = '°') => { const a = approxOf(x); return a.t ? `about ${a.t}${unit}` : `just ${a.side} ${a.n}${unit}`; };
+const degText = c => c.deg !== null ? `${c.deg}°` : approxText(c.approx);
+const degWords = c => c.deg !== null ? `${c.deg} degrees` : aboutText(c.approx, ' degrees');
 export function placeWords(pt) {
   if (isPole(pt)) return `at the ${pt[0] > 0 ? 'north' : 'south'} pole`;
   const [lat, lon] = pt, ew = lon === 0 || lon === 180 ? `${lon}°` : lon < 180 ? `${lon}° east` : `${360 - lon}° west`;
@@ -579,7 +583,7 @@ export function placeWords(pt) {
 function cards(p, b, facts, chosen, hintCorner, done) {
   const q = p.parameters;
   return `<div class="gl-cards" role="group" aria-label="Corners">${q.letters.map((x, i) => {
-    const c = facts.corners[i], locked = q.locked.includes(x), inner = `<span class="gl-card-top"><span class="gl-letter">${x}</span>${wedge(c.approx, c.deg === 90)}</span><span class="gl-deg${c.deg === null ? ' approx' : ''}">${degText(c)}</span>`;
+    const c = facts.corners[i], locked = q.locked.includes(x), inner = `<span class="gl-card-top"><span class="gl-letter">${x}</span>${wedge(c.approx, c.deg === 90)}</span><span class="gl-deg${c.deg === null ? ' approx' : ''}${c.deg === null && !approxText(c.approx).startsWith('≈') ? ' near' : ''}">${degText(c)}</span>`;
     const label = `Corner ${x}, ${degWords(c)}${locked ? ', stays put' : ''}`;
     if (locked || done) return `<div class="gl-card${locked ? ' locked' : ''}" role="img" aria-label="${label}">${inner}</div>`;
     return `<button type="button" class="gl-card${x === hintCorner && x !== chosen ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({chosen: x})}' data-focus="gl-card-${x}" aria-pressed="${x === chosen}" aria-label="${label}">${inner}</button>`;
@@ -635,7 +639,7 @@ function fan(degs, cls, label, names) {
 }
 function argument(p, b, facts) {
   const q = p.parameters, r = q.records[b.shown], mine = facts.corners.map(c => c.deg ?? c.approx), sum = mine.reduce((s, c) => s + c, 0);
-  const sumText = facts.corners.every(c => c.deg !== null) ? `${sum}°` : `about ${approxText(sum)}°`;
+  const sumText = facts.corners.every(c => c.deg !== null) ? `${sum}°` : aboutText(sum);
   return `<div class="gl-argument">${fan(mine, 'mine', `Your triangle’s corners side by side: ${sumText}, past a straight line`, q.letters)}${fan(r, 'record', `${recordWords(r)} side by side: ${sumOf(r)}°, no further than a straight line`, r.map(c => `${c}°`))}</div>`;
 }
 const LUNE = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6 7 6 17 12 22C18 17 18 7 12 2Z"/></svg>';
@@ -664,10 +668,11 @@ function render(p, a) {
 
 // --- Taps, drags and keys ------------------------------------------------------
 // A tap goes to what is drawn on top there: a front corner's disc (the one
-// nearest the viewer first), then the faint disc of a corner behind the ball
-// (drawn over the front dots, so a tap on it chooses that corner and turns
-// the ball to it), then the nearer of the nearest front corner and the
-// nearest front dot within reach. A drag that starts on a front corner
+// nearest the viewer first), then the faint disc of a free corner behind the
+// ball (drawn over the front dots, so a tap on it chooses that corner and
+// turns the ball to it; a dark corner's faint disc lets the tap through to the
+// dot under it), then the nearer of the nearest front corner and the nearest
+// front dot within reach. A drag that starts on a front corner
 // carries it from dot to dot; any other drag turns the ball.
 const DISC = 9, CORNER_REACH = 10.5, DOT_REACH = 13;
 export function tapTarget(q, corners, view, x, y) {
@@ -676,7 +681,7 @@ export function tapTarget(q, corners, view, x, y) {
   const hits = all.filter(h => h.z > 0 && h.d <= CORNER_REACH);
   const onDisc = hits.filter(h => h.d <= DISC).sort((m, n) => n.z - m.z || m.d - n.d);
   if (onDisc.length) return {corner: onDisc[0].c};
-  const back = all.filter(h => h.z <= 0 && h.d <= DISC).sort((m, n) => n.z - m.z || m.d - n.d);
+  const back = all.filter(h => h.z <= 0 && h.d <= DISC && !q.locked.includes(h.c)).sort((m, n) => n.z - m.z || m.d - n.d);
   if (back.length) return {corner: back[0].c, behind: true};
   let best = null;
   GRIDV.forEach((v, i) => { const [sx, sy, z] = screenOf(F, v), d = Math.hypot(sx - x, sy - y); if (z > 0.08 && d <= DOT_REACH && (!best || d < best.d)) best = {d, dot: GRID[i]}; });

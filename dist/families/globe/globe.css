@@ -65,6 +65,7 @@
 [data-mechanic-wire="globe"] .gl-wedge-right{fill:none;stroke:var(--b-pine,#31533e);stroke-width:2px}
 [data-mechanic-wire="globe"] .gl-deg{font:400 1rem/1 var(--b-display,Georgia,serif);white-space:nowrap}
 [data-mechanic-wire="globe"] .gl-deg.approx{color:var(--b-muted,#5a6850);font-size:.9rem}
+[data-mechanic-wire="globe"] .gl-deg.near{white-space:normal;font-size:.8rem;line-height:1.05;text-align:center}
 [data-mechanic-wire="globe"] :is(.gl-card,.gl-turn,.gl-cant,.gl-again,.gl-record,.gl-pair):focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
 
 /* Sets of corners and Can't. */
