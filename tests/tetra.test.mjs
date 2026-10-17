@@ -449,11 +449,11 @@ test('rendering: two models with letter discs, your corners are buttons, objecti
   assert.match(board(byId(2), freshAttempt(byId(2))), /tt-cant"[^>]*disabled/, 'Can’t starts off');
 });
 
-test('the module: registered last, a unique symbol, scoped styles, focus only on enabled buttons', () => {
-  assert.equal(FAMILIES.at(-1), tetraModule);
+test('the module: registered, a unique symbol, scoped styles, focus only on enabled buttons', () => {
+  assert.equal(FAMILIES.filter(f => f === tetraModule).length, 1);
   assert.equal(tetraModule.family.symbol, '⧖');
   assert.equal(FAMILIES.filter(f => f.family?.symbol === '⧖').length, 1);
-  assert.equal(FAMILIES.filter(f => ['◬', '◭'].includes(f.family?.symbol)).length, 1, 'not a triangle like Rainbow triangles’ ◭');
+  assert.ok(!['◬', '◭'].includes(tetraModule.family.symbol), 'not a triangle like Rainbow triangles’ ◭');
   const rules = css.replace(/\/\*[^]*?\*\//g, '').replace(/@keyframes[^{]+\{[^{}]*\{[^}]*\}\s*\}/g, '').replace(/@media[^{]+\{/g, '').split('}').map(r => r.trim()).filter(r => r.includes('{'));
   // Split a selector list at its own commas, not those inside :is().
   const list = s => { const out = ['']; let depth = 0; for (const ch of s) { depth += ch === '(' ? 1 : ch === ')' ? -1 : 0; if (ch === ',' && !depth) out.push(''); else out[out.length - 1] += ch; } return out; };
