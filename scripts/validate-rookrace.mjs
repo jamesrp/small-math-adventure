@@ -10,7 +10,8 @@
 // practice games; that That's all judges the whole shelf, plays a wrong start
 // out at once and then clears the marks, locks after "There is another." until
 // a change, is hard to pass by chance, and costs far more to use as an oracle
-// than knowing the answer; illegal moves; forged saves; and CPU time per tap. Run: node scripts/validate-rookrace.mjs
+// than knowing the answer (with one answer, a blind guess loses a game per
+// wrong start); illegal moves; forged saves; and CPU time per tap. Run: node scripts/validate-rookrace.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {freshAttempt, move, isSolved, nextHint, validBoard} from '../dist/engine.js';
@@ -81,11 +82,15 @@ function boutonStarts(q) {
 // letting That's all strip the wrong starts one at a time; and asking That's
 // all about one start at a time. "before" counts the second and third under the
 // first design (a wrong start was named first and rung, so one tap took it off);
-// "after" plays them against the mechanic, where That's all says "There is
-// another." whenever an answer is missing, so one start alone learns nothing,
-// and a wrong start (named only when nothing is missing) is a game I win going
-// first, after which the marks or the shelf are cleared. "leaveOneOut" is the
-// cheapest test of a single start that is left.
+// "after" plays them against the mechanic, where with several answers That's
+// all says "There is another." whenever one is missing, so one start alone
+// learns nothing, and a wrong start (named only when nothing is missing) is a
+// game I win going first, after which the marks or the shelf are cleared.
+// "leaveOneOut" is the cheapest test of a single start that is left. With one
+// answer a wrong start is named first, so a guess at one start is a guess at
+// the whole answer and a wrong one is a lost game: "blindGuess" averages 200
+// shuffled orders against the same orders by play ("lost" counts games I win
+// going first).
 function slotTaps(build, key) {
   const t = key.split(',').map(Number);
   return Math.min(...[[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]].map(o => o.filter((i, k) => t[i] !== build[k]).length));
@@ -107,10 +112,18 @@ function guessCosts(p, candidates, answers) {
     before.oneAtATime += 1;
   }
   if (!solved) { for (const c of answers) before.oneAtATime += keepTaps(c); before.oneAtATime += 1; }
+  // A blind guess with one answer (the before model): keep a start, That's all,
+  // and on "There is another." take it off and try the next; no game is lost.
+  const blindBefore = list => {
+    build = [1, 1, 1];
+    let taps = 0;
+    for (const c of list) { taps += keepTaps(c) + 1; if (answers.includes(c)) break; taps += 1; }
+    return taps;
+  };
   // The after simulation, on the mechanic itself.
-  const run = strategy => {
+  const run = (strategy, list = candidates) => {
     const r = seeded(13);
-    let b = m.fresh(p), taps = 0, presses = 0;
+    let b = m.fresh(p), taps = 0, presses = 0, lost = 0;
     const act = (action, n = 1) => { b = m.move(p, b, action, r); assert.ok(b, `${p.id}: ${JSON.stringify(action)}`); taps += n; if (action.type === 'all') presses++; };
     const keep = c => {
       if (!piles) return act({type: 'mark', cell: c});
@@ -123,6 +136,7 @@ function guessCosts(p, candidates, answers) {
     // A play-out, ended as fast as the child can: on a board, step next to the
     // star; with piles, take the biggest pile away.
     const playOut = () => {
+      lost++;
       for (let i = 0; i < 40 && b.play; i++) {
         const turns = b.play.turns;
         if (piles) {
@@ -176,42 +190,82 @@ function guessCosts(p, candidates, answers) {
     // Solving by play: try every start in a practice game, letting me go first
     // and playing perfectly, then keep the ones won and press That's all. A
     // child who thinks plays far fewer games; this is the most play can cost.
-    if (strategy === 'byPlay') {
-      const won = [];
-      for (const c of candidates) {
-        if (piles) { const t = c.split(',').map(Number); t.forEach((n, i) => { if (b.build[i] !== n) act({type: 'set', pile: i, n}); }); act({type: 'try'}); }
-        else { act({type: 'try'}); act({type: 'start', cell: c}); }
-        act({type: 'choose', first: 'opponent'});
-        for (let k = 0; k < 40; k++) {
-          const turns = b.play.turns;
-          if (piles) {
-            const at = turns.reduce((x, t) => x.map((n, j) => j === t.pile - 1 ? n - t.take : n), b.play.start);
-            if (at.every(n => !n)) break;
-            const moves = at.flatMap((n, j) => Array.from({length: n}, (_, d) => ({pile: j + 1, take: d + 1})));
-            const best = moves.find(m => !pilesWin(at.map((n, j) => j === m.pile - 1 ? n - m.take : n))) || moves[0];
-            act({type: 'take', ...best}, 2);
-          } else {
-            const at = turns.at(-1)?.to ?? squareOf(q, b.play.start);
-            if (!at[0] && !at[1]) break;
-            const options = slides(q)(at);
-            act({type: 'move', to: options.find(t => !squareWins(q, t)) || options[0]});
-          }
+    // A practice game from one start, letting me go first, played perfectly;
+    // true when the child wins.
+    const practice = c => {
+      if (piles) { const t = c.split(',').map(Number); t.forEach((n, i) => { if (b.build[i] !== n) act({type: 'set', pile: i, n}); }); act({type: 'try'}); }
+      else { act({type: 'try'}); act({type: 'start', cell: c}); }
+      act({type: 'choose', first: 'opponent'});
+      for (let k = 0; k < 40; k++) {
+        const turns = b.play.turns;
+        if (piles) {
+          const at = turns.reduce((x, t) => x.map((n, j) => j === t.pile - 1 ? n - t.take : n), b.play.start);
+          if (at.every(n => !n)) break;
+          const moves = at.flatMap((n, j) => Array.from({length: n}, (_, d) => ({pile: j + 1, take: d + 1})));
+          const best = moves.find(m => !pilesWin(at.map((n, j) => j === m.pile - 1 ? n - m.take : n))) || moves[0];
+          act({type: 'take', ...best}, 2);
+        } else {
+          const at = turns.at(-1)?.to ?? squareOf(q, b.play.start);
+          if (!at[0] && !at[1]) break;
+          const options = slides(q)(at);
+          act({type: 'move', to: options.find(t => !squareWins(q, t)) || options[0]});
         }
-        if (b.play.turns.at(-1).player === 'you') won.push(c);
-        act({type: 'back'});
       }
+      const won = b.play.turns.at(-1).player === 'you';
+      act({type: 'back'});
+      return won;
+    };
+    if (strategy === 'byPlay') {
+      const won = candidates.filter(c => practice(c));
       assert.deepEqual([...won].sort(), [...answers].sort(), `${p.id}: playing perfectly second wins exactly from the answers`);
       for (const c of answers) keep(c);
       act({type: 'all'});
     }
+    // One answer, a blind guess: keep a start and press That's all, in a
+    // shuffled order. A wrong guess is played out at once, I going first.
+    if (strategy === 'blind') {
+      for (const c of list) {
+        keep(c); act({type: 'all'});
+        if (b.done) break;
+        assert.equal(b.play?.kind, 'out', `${p.id}: a wrong guess is played out`);
+        playOut();
+      }
+    }
+    // The same order by play: a practice game from each start until one is
+    // won, then keep that one and press That's all.
+    if (strategy === 'playUntilWon') {
+      for (const c of list) {
+        if (!practice(c)) { lost++; continue; }
+        keep(c); act({type: 'all'});
+        if (b.done) break;
+      }
+    }
     assert.ok(b.done, `${p.id}: ${strategy} solves`);
-    return {taps, presses};
+    return {taps, presses, lost};
   };
   const keptOf = b => piles ? b.shelf : b.marked;
   const verdicts = new Set();
   const after = {stripping: run('stripping'), oneAtATime: run('oneAtATime'), leaveOneOut: run('leaveOneOut')};
   after.oneAtATime.verdicts = [...verdicts].sort();
-  return {knowing: run('knowing').taps, byPlay: run('byPlay').taps, before, after};
+  const out = {knowing: run('knowing').taps, byPlay: run('byPlay').taps, before, after};
+  // With one answer, a guess is a guess at the whole answer: 200 shuffled
+  // orders, a blind guess before and after, and the same orders by play.
+  if (A === 1) {
+    const r = seeded(31), orders = Array.from({length: 200}, () => { const o = [...candidates]; for (let i = o.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [o[i], o[j]] = [o[j], o[i]]; } return o; });
+    const mean = xs => Math.round(10 * xs.reduce((x, y) => x + y, 0) / xs.length) / 10;
+    const runs = orders.map(o => ({wrongTried: o.indexOf(answers[0]), before: blindBefore(o), blind: run('blind', o), play: run('playUntilWon', o)}));
+    for (const x of runs) {
+      assert.equal(x.blind.lost, x.wrongTried, `${p.id}: every wrong guess is a lost game`);
+      assert.equal(x.play.lost, x.wrongTried, `${p.id}: the same games Play loses`);
+    }
+    out.blindGuess = {
+      orders: orders.length, wrongTried: mean(runs.map(x => x.wrongTried)),
+      before: {taps: mean(runs.map(x => x.before)), lost: 0},
+      after: {taps: mean(runs.map(x => x.blind.taps)), lost: mean(runs.map(x => x.blind.lost)), worst: Math.max(...runs.map(x => x.blind.taps))},
+      byPlayUntilWon: {taps: mean(runs.map(x => x.play.taps)), lost: mean(runs.map(x => x.play.lost))}
+    };
+  }
+  return out;
 }
 
 const cpu = f => { const t = process.cpuUsage(); const out = f(); const u = process.cpuUsage(t); return {out, ms: (u.user + u.system) / 1000}; };
@@ -378,7 +432,10 @@ export default async function validateRookrace() {
     assert.equal(judge(q, answers), null, `${p.id}: the answers pass`);
     assert.deepEqual(judge(q, answers.slice(1)), {more: true}, `${p.id}: a missing answer is “There is another.”`);
     assert.deepEqual(judge(q, [...answers, wrongs[0]]), {wrong: wrongs[0]}, `${p.id}: a wrong answer is named`);
-    assert.deepEqual(judge(q, [wrongs[0]]), {more: true}, `${p.id}: but only when nothing is missing`);
+    // With several answers a wrong start is named only when nothing is missing;
+    // with one answer it is named first, so a single guess is never a free check.
+    if (answers.length > 1) assert.deepEqual(judge(q, [wrongs[0]]), {more: true}, `${p.id}: but only when nothing is missing`);
+    else for (const c of wrongs) assert.deepEqual(judge(q, [c]), {wrong: c}, `${p.id}: one answer: a wrong start alone is named`);
     // Hints alone, from fresh: every hint is a legal move and they finish.
     const follow = (a, label) => {
       for (let i = 0; i < 400 && !isSolved(p, a.board); i++) {
@@ -401,11 +458,12 @@ export default async function validateRookrace() {
     a = add(a, wrongs.at(-1)); if (q.kind === 'piles') a = move(p, a, {type: 'keep'});
     for (const c of answers) { a = add(a, c); if (q.kind === 'piles') a = move(p, a, {type: 'keep'}); }
     const judged = a.board;
-    // With an answer missing, the same wrong start gets only "There is another.".
+    // With an answer missing, the same wrong start gets only "There is another."
+    // (several answers), or is played out all the same (one answer).
     const partial = move(p, a, q.kind === 'piles' ? {type: 'drop', key: answers[0]} : {type: 'mark', cell: answers[0]});
     const asked = move(p, partial, {type: 'all'});
-    assert.deepEqual(asked.board.refused, {more: true}, `${p.id}: missing comes first`);
-    assert.equal(asked.board.play, null);
+    if (answers.length > 1) { assert.deepEqual(asked.board.refused, {more: true}, `${p.id}: missing comes first`); assert.equal(asked.board.play, null); }
+    else { assert.deepEqual(asked.board.refused, {wrong: wrongs.at(-1)}, `${p.id}: one answer: wrong comes first`); assert.equal(asked.board.play.kind, 'out'); }
     for (let seed = 1; seed <= 20; seed++) {
       const r = seeded(seed);
       let b = rookraceMechanics.everystart.move(p, judged, {type: 'all'}, r);
@@ -450,8 +508,19 @@ export default async function validateRookrace() {
     assert.ok(costs.after.stripping.taps >= 3 * costs.before.stripping, `${p.id}: marking everything costs several times what it did`);
     assert.ok(costs.after.leaveOneOut.taps >= 10 * costs.knowing, `${p.id}: testing one start at a time costs far more than knowing the answer`);
     for (const way of ['stripping', 'leaveOneOut']) assert.ok(costs.after[way].taps > costs.byPlay, `${p.id}: ${way} costs more than playing every start`);
-    // One start alone: with more than one answer, That's all only ever says "There is another.".
+    // One start alone: with more than one answer, That's all only ever says
+    // "There is another.". With one answer it never does: a wrong guess is a
+    // game I win going first, the same game Play from that start gives, so a
+    // blind guess loses as many games as testing those starts by play (checked
+    // order by order in guessCosts) and costs more taps than it did. It cannot
+    // cost much more than play: the guess is the game.
     if (answers.length > 1) assert.deepEqual(costs.after.oneAtATime.verdicts, ['more'], `${p.id}: one start alone learns nothing`);
+    else {
+      assert.deepEqual(costs.after.oneAtATime.verdicts, ['done', 'wrong'], `${p.id}: one answer: a guess is never a free check`);
+      const g = costs.blindGuess;
+      assert.ok(g.after.lost === g.wrongTried && g.after.lost === g.byPlayUntilWon.lost && g.after.lost >= 4, `${p.id}: a blind guess loses a game per wrong start, as play does`);
+      assert.ok(g.after.taps >= 1.3 * g.before.taps, `${p.id}: a blind guess costs more than it did`);
+    }
     // Random shelves almost never pass: the claim can fail. Two guessers: each
     // start kept with chance 1/2, and with the chance that matches the answer count.
     const r = seeded(5), shares = {half: .5, matched: answers.length / candidates.length}, out = {};

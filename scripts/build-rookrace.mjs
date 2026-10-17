@@ -30,16 +30,26 @@ export const family = {
 };
 
 const SLIDE = q => q.queen ? 'A turn slides the token straight left, straight down, or diagonally down and to the left, one or more squares' : 'A turn slides the token straight left or straight down, one or more squares';
-function controls(q) {
-  if (q.kind === 'race') return `${SLIDE(q)}, and whoever moves it onto the star wins. Choose Me first or You first, then tap a dotted square to move the token there; I reply at once. Win 3 games in a row from new starts. After a loss, Same start again is practice and does not count.`;
-  if (q.kind === 'board') return `${SLIDE(q)}, and whoever moves it onto the star wins. Tap a square to mark it, and again to clear it. Play, then a square, tries a game from it against me. That’s all checks every mark at once: if a marked start is one where the first player can win, I go first from it and win, and then the marks are cleared.`;
-  return 'A turn takes one or more pebbles from one pile, and whoever takes the last pebble wins. The order of the piles does not matter. Tap a slot to set a pile, Keep to put the start on the shelf, and a kept start to take it off. Play tries the start against me. That’s all checks the whole shelf at once: if a kept start is one where the first player can win, I go first from it and win, and then the shelf is cleared.';
+// What That’s all does, as the mechanic's judge() decides it. With more than
+// one answer it says “There is another.” while one is missing, whatever else is
+// marked, and is final only once none is; with a single answer it is final at
+// once (a wrong start is looked for first), so “There is another.” never comes.
+function thatsAll(q, answers, it = 'That’s all') {
+  const piles = q.kind === 'piles', start = piles ? 'a kept start' : 'a marked start', clear = piles ? 'the shelf is cleared' : 'the marks are cleared';
+  const final = `if ${start} is one where the first player can win, I go first from it and win, and then ${clear}.`;
+  return answers === 1 ? [`${it} is final: ${final}`] : [`While a start is still missing, ${it} says “There is another.”`, `Once none is missing, ${it} is final: ${final}`];
 }
-function rules(q) {
-  if (q.kind === 'piles') return ['Players take turns.', 'A turn takes one or more pebbles from one pile.', 'Whoever takes the last pebble wins.', `Each pile has 1 to ${q.max} pebbles, and the order of the piles does not matter.`, 'The app never misses a winning move.', 'That’s all is final: if a kept start is one where the first player can win, I play it going first, and then the shelf is cleared.'];
+function controls(q, answers) {
+  if (q.kind === 'race') return `${SLIDE(q)}, and whoever moves it onto the star wins. Choose Me first or You first, then tap a dotted square to move the token there; I reply at once. Win 3 games in a row from new starts. After a loss, Same start again is practice and does not count.`;
+  const check = `That’s all checks ${q.kind === 'board' ? 'every mark' : 'the whole shelf'} at once. ${thatsAll(q, answers, 'it').join(' ').replace(/^it/, 'It')}`;
+  if (q.kind === 'board') return `${SLIDE(q)}, and whoever moves it onto the star wins. Tap a square to mark it, and again to clear it. Play, then a square, tries a game from it against me. ${check}`;
+  return `A turn takes one or more pebbles from one pile, and whoever takes the last pebble wins. The order of the piles does not matter. Tap a slot to set a pile, Keep to put the start on the shelf, and a kept start to take it off. Play tries the start against me. ${check}`;
+}
+function rules(q, answers) {
+  if (q.kind === 'piles') return ['Players take turns.', 'A turn takes one or more pebbles from one pile.', 'Whoever takes the last pebble wins.', `Each pile has 1 to ${q.max} pebbles, and the order of the piles does not matter.`, 'The app never misses a winning move.', ...thatsAll(q, answers)];
   const out = ['Players take turns.', `${SLIDE(q)}.`, 'Whoever moves the token onto the star wins.'];
   if (q.kind === 'race') return [...out, 'Before each game, choose who starts. The app never misses a winning move.', 'Win 3 games in a row. Only games from a new start count; Same start again is for practice.'];
-  return [...out, 'A start is any square except the star.', 'The app never misses a winning move.', 'That’s all is final: if a marked start is one where the first player can win, I play it going first, and then the marks are cleared.'];
+  return [...out, 'A start is any square except the star.', 'The app never misses a winning move.', ...thatsAll(q, answers)];
 }
 
 const RACE_HINTS = queen => [
@@ -112,7 +122,7 @@ const authored = [
     idea: 'On the rook board the starts where you would rather go second are the diagonal.',
     prerequisites: 'Star race 1 or 2.',
     hints: ['Start near the star. From which squares can the first player reach the star at once?', 'A start is one to mark when every move from it reaches a square that is not marked.', 'Work outward from the star, one square at a time.'],
-    parent: {notice: 'Whether your child works outward from the star, deciding each square from the squares it can reach, or marks a guessed pattern.', prompt: 'Why is 1 right and 1 up a good square to hand over, and 2 right and 1 up not?', explanation: `${ROOK_EXPLANATION(6).split(' Starts are drawn')[0]} After a wrong That’s all the app goes first from the ringed wrong square, wins, and clears the marks; a missing square gets only “There is another.”, with no count.`, extension: 'How do you know you have found them all?', connection: 'P-positions of two-pile Nim; marking works outward by backward induction (Ferguson, §1).'},
+    parent: {notice: 'Whether your child works outward from the star, deciding each square from the squares it can reach, or marks a guessed pattern.', prompt: 'Why is 1 right and 1 up a good square to hand over, and 2 right and 1 up not?', explanation: `${ROOK_EXPLANATION(6).split(' Starts are drawn')[0]} While a square is missing, That’s all says only “There is another.”, with no count, even if a wrong square is marked too. Once none is missing, a wrong That’s all is final: the app goes first from the ringed wrong square, wins, and clears the marks.`, extension: 'How do you know you have found them all?', connection: 'P-positions of two-pile Nim; marking works outward by backward induction (Ferguson, §1).'},
     provenance: 'Week 8 K–1 Problem 4 (the open 6-by-6 board: colour every square you want to move the token to), as in grades 2–3 Problem 2 and grades 4–5 Problem 1 on 8-by-8.'
   },
   {
@@ -123,7 +133,7 @@ const authored = [
     idea: 'Of the ten starts with piles of 1 to 3, only 1, 2 and 3 is one where you would rather go second.',
     prerequisites: 'Two-pile copying (Pebble Duel easy puzzles or Duel 1). Count to 9.',
     hints: ['Use Play to try a start both ways. Which starts can you win going second?', 'If two piles are equal, the first player can take the whole third pile. What then?', 'Check the starts with no two piles equal.'],
-    parent: {notice: 'Whether your child rules out starts with two equal piles quickly (take the third pile, then copy) and then checks the rest by play.', prompt: 'How do you know there is no other?', explanation: 'There are ten starts. Any start with two equal piles is a first-player win: take the whole third pile and copy. That leaves only 1, 2 and 3, and from there every move leaves two piles that can be made equal or a pair plus one, so the second player wins.', extension: 'What changes with piles up to 4?', connection: 'Bouton’s theorem: 1 ⊕ 2 ⊕ 3 = 0 (Ferguson, §2).'},
+    parent: {notice: 'Whether your child rules out starts with two equal piles quickly (take the third pile, then copy) and then checks the rest by play.', prompt: 'How do you know there is no other?', explanation: 'There are ten starts. Any start with two equal piles is a first-player win: take the whole third pile and copy. That leaves only 1, 2 and 3, and from there every move leaves two piles that can be made equal or a pair plus one, so the second player wins. With a single answer, That’s all looks for a wrong start first and never says “There is another.”: each wrong guess is played out at once, the app going first and winning, and the shelf is cleared, so guessing costs a lost game per wrong start, the same game Play would have given.', extension: 'What changes with piles up to 4?', connection: 'Bouton’s theorem: 1 ⊕ 2 ⊕ 3 = 0 (Ferguson, §2).'},
     provenance: 'Week 8 grades 2–3 Problem 8 (every start with three piles of 1, 2 or 3 where you would rather go second; explain how you know you have found them all) and K–1 Problem 8.'
   },
   {
@@ -192,6 +202,7 @@ export const puzzles = authored.map(item => {
     : {secondSquares: secondSquares(q), cells: secondSquares(q).map(s => cellOf(q, s)), starts: allSquares(q).length};
   const found = (solution.secondStarts || solution.secondSquares.map(s => s.join(','))).join(' ');
   assert.equal(found, EXPECTED[id], `${id}: answers match the hand-worked list`);
+  const answerCount = found.split(' ').length;
   return {
     id,
     number: item.number,
@@ -207,8 +218,8 @@ export const puzzles = authored.map(item => {
     objective: item.objective || RACE_OBJECTIVE,
     visibleObjective: item.visibleObjective ?? 'Win 3 games in a row.',
     instruction: item.objective || RACE_OBJECTIVE,
-    controls: controls(q),
-    rules: rules(q),
+    controls: controls(q, answerCount),
+    rules: rules(q, answerCount),
     idea: item.idea,
     prerequisites: item.prerequisites,
     hints: item.hints,

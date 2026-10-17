@@ -7,8 +7,11 @@
 
 /* The board: at most 380px, and short enough on a phone that the controls
    under it stay in view (the page above it and the controls under it take up
-   to about 430px when the top bar wraps onto two lines). */
-:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-board{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:1px;width:100%;max-width:clamp(220px,calc(100vh - 430px),380px);max-width:clamp(220px,calc(100svh - 430px),380px);aspect-ratio:1;padding:2px;background:var(--b-line,#d0d6bd);border:2px solid var(--b-ink,#294439);border-radius:10px;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+   to about 430px when the top bar wraps onto two lines), but never shorter
+   than 27px a column (the 11-by-11 board is 297px, squares of about 25px
+   between the lines): on a 375-by-667 phone with a short name it all fits;
+   with a long name (the top bar on two lines) it is a short scroll. */
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-board{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:1px;width:100%;max-width:clamp(max(220px,min(380px,calc(var(--n) * 27px))),calc(100vh - 430px),380px);max-width:clamp(max(220px,min(380px,calc(var(--n) * 27px))),calc(100svh - 430px),380px);aspect-ratio:1;padding:2px;background:var(--b-line,#d0d6bd);border:2px solid var(--b-ink,#294439);border-radius:10px;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 :is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-cell{position:relative;display:grid;place-items:center;min-width:0;min-height:0;aspect-ratio:1;padding:0;margin:0;border:0;border-radius:0;box-shadow:none;font:inherit;color:var(--b-ink,#294439);background:var(--b-card,#fffdf5);-webkit-tap-highlight-color:transparent;cursor:default}
 :is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-cell.odd{background:#f3efe1}
 :is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-board .rr-cell:first-child{border-top-left-radius:7px}
@@ -49,9 +52,9 @@
 [data-mechanic-wire="rookrace"] .rr-pips{display:inline-flex;gap:8px}
 [data-mechanic-wire="rookrace"] .rr-pips span{width:16px;height:16px;border-radius:50%;border:2px solid var(--b-ink,#294439);background:var(--b-card,#fffdf5)}
 [data-mechanic-wire="rookrace"] .rr-pips span.on{background:var(--b-pine,#31533e);border-color:var(--b-pine,#31533e)}
-:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) :is(.rr-status,.es-status,.es-note,.es-label){margin:0;text-align:center;font-family:var(--b-display,Georgia,serif);font-size:1.08rem;line-height:1.35;min-height:1.35em}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) :is(.rr-status,.es-status,.es-note){margin:0;text-align:center;font-family:var(--b-display,Georgia,serif);font-size:1.08rem;line-height:1.35;min-height:1.35em}
 :is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) :is(.rr-status,.es-status):focus{outline:none}
-:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .es-label{color:var(--b-muted,#5a6850);font-size:1rem}
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .es-label{color:var(--b-muted,#5a6850)}
 :is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) :is(.rr-actions,.es-actions){display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.5rem;min-height:46px}
 :is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) :is(.rr-actions,.es-actions):empty{min-height:0}
 :is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) :is(.rr-button,.es-button){min-height:46px;padding:8px 16px;white-space:nowrap}

@@ -19,9 +19,9 @@ const {chromium} = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const browser = await chromium.launch({headless: true, ...(process.env.BROWSER_EXECUTABLE ? {executablePath: process.env.BROWSER_EXECUTABLE} : {})});
 const phone = process.env.TEST_PHONE === '1';
 const context = await browser.newContext({viewport: phone ? {width: 375, height: 667} : {width: 1024, height: 768}, hasTouch: phone});
-const page = await context.newPage(), errors = [];
-page.on('pageerror', e => errors.push(e.message));
-page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
+let page = await context.newPage();
+const errors = [], listen = pg => { pg.on('pageerror', e => errors.push(e.message)); pg.on('console', m => { if (m.type() === 'error') errors.push(m.text()); }); };
+listen(page);
 const base = (process.env.TEST_URL || 'http://127.0.0.1:4187').replace(/\/$/, ''), key = 'small-math-adventure:saves:v1';
 const pack = JSON.parse(await readFile(new URL('../dist/families/rookrace/rookrace.json', import.meta.url), 'utf8'));
 const byId = id => pack.puzzles.find(p => p.id === id);
@@ -143,14 +143,15 @@ try {
   // Every start on the 11-by-11 queen board.
   p = byId('everystart-06');
   const q = p.parameters, answers = p.solution.secondSquares;
-  await open(p.id); await fit('queen marks, fresh'); await inView(press('That’s all'), 'queen marks, fresh');
+  // (Its controls in view are checked below with a short name: Rook QA puts
+  // the top bar on two lines, and then the 11-by-11 board is a short scroll.)
+  await open(p.id); await fit('queen marks, fresh');
   // Mark a wrong square and three right ones, tapping near the edges where squares meet.
   await tapAt(cell(5, 2), .9, .1);
   for (const [i, [x, y]] of answers.slice(0, 3).entries()) await tapAt(cell(x, y), [.08, .92, .5][i], [.92, .08, .5][i]);
   assert.deepEqual((await board(p.id)).marked.length, 4, 'taps at a square’s edge mark that square');
   let f = await focused();
   assert.match(f.focus, /^rr-cell-/, 'focus stays on the marked square');
-  await inView(press('That’s all'), 'queen marks, marked');
   // With squares missing, That's all says only "There is another.", wrong mark or not.
   await tap(press('That’s all'));
   assert.deepEqual((await board(p.id)).refused, {more: true});
@@ -177,7 +178,7 @@ try {
   assert.equal(await cell(5, 2).evaluate(e => e.classList.contains('flag')), true, 'the wrong square is ringed');
   await shot('queen-playout'); await fit('queen play-out');
   for (let i = 0; i < 30; i++) { if (!await page.locator('.rr-cell.target').count()) break; await tap(page.locator('.rr-cell.target').last()); }
-  assert.match(await page.locator('.es-status').innerText(), /I moved .* and reached the star\. The marks are cleared\./, 'the app wins the play-out');
+  assert.match(await page.locator('.es-status').innerText(), /^I reached the star\. The marks are cleared\.$/, 'the app wins the play-out');
   assert.deepEqual((await board(p.id)).marked, [], 'and the marks are cleared');
   await tap(press('Back'));
   for (const [x, y] of answers) await tap(cell(x, y));
@@ -225,6 +226,27 @@ try {
   for (const start of p.solution.secondStarts) { await setStart(start); await tap(press('Keep')); }
   await tap(press('That’s all'));
   await done(); checks.push('piles: keep, again, practice, There is another, play-out and clearing, solve');
+
+  // A short name keeps the top bar on one line, and then every state of the
+  // 11-by-11 board has its controls (and, in a play-out, its bottom row) in view.
+  page = await (await browser.newContext({viewport: phone ? {width: 375, height: 667} : {width: 1024, height: 768}, hasTouch: phone})).newPage(); listen(page);
+  await page.goto(base); await page.locator('#nickname').fill('Maya'); await page.locator('#profile-form button[type=submit]').click();
+  await page.locator('.caravan-nav [data-action=library]').waitFor();
+  p = byId('everystart-06');
+  await open(p.id); await inView(press('That’s all'), 'short name, queen marks, fresh');
+  for (const [x, y] of [[5, 2], ...answers]) await tap(cell(x, y));
+  await inView(press('That’s all'), 'short name, queen marks, marked');
+  await tap(press('Play')); await inView(press('Back'), 'short name, practice, choosing a square');
+  await tap(cell(6, 1)); await inView(press('You first'), 'short name, practice, choosing who starts');
+  await tap(press('You first')); await inView(page.locator('.rr-board'), 'short name, practice game'); await inView(press('Back'), 'short name, practice game');
+  for (let i = 0; i < 30; i++) { if (!await page.locator('.rr-cell.target').count()) break; await tap(page.locator('.rr-cell.target').last()); }
+  await inView(press('Back'), 'short name, practice over'); await tap(press('Back'));
+  await tap(press('That’s all')); assert.equal((await board(p.id)).play.kind, 'out');
+  await inView(page.locator('.rr-board'), 'short name, play-out');
+  for (let i = 0; i < 30; i++) { if (!await page.locator('.rr-cell.target').count()) break; await tap(page.locator('.rr-cell.target').last()); }
+  await inView(press('Back'), 'short name, play-out over');
+  await shot('queen-short-name-playout-over');
+  checks.push('queen marks, short name: the controls and the board are in view in every state');
 
   assert.deepEqual(errors, []);
   console.log(JSON.stringify({passed: true, phone, checks, errors}, null, 2));

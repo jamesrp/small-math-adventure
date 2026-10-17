@@ -259,6 +259,31 @@ test('hints alone finish every Every start puzzle, quickly, and name a wrong sta
   assert.equal(judge(q, [...p.solution.cells, cellOf(q, [1, 1])]).wrong, cellOf(q, [1, 1]));
 });
 
+test('one answer (piles of 1 to 3): every wrong guess is played out and clears the shelf; “There is another.” never comes', () => {
+  const p = byId('everystart-02'), q = p.parameters, [answer] = p.solution.secondStarts;
+  const starts = []; for (let x = 1; x <= 3; x++) for (let y = x; y <= 3; y++) for (let z = y; z <= 3; z++) starts.push(`${x},${y},${z}`);
+  assert.equal(starts.length, 10);
+  for (const c of starts.filter(c => c !== answer)) {
+    assert.deepEqual(judge(q, [c]), {wrong: c}, `${c} alone is named`);
+    assert.deepEqual(judge(q, [c, answer].sort()), {wrong: c}, `${c} with the answer is named`);
+    let a = freshAttempt(p);
+    c.split(',').forEach((n, i) => { a = move(p, a, {type: 'set', pile: i, n: Number(n)}); });
+    a = move(p, a, {type: 'keep'});
+    a = move(p, a, {type: 'all'}, seeded(2));
+    assert.equal(a.board.play.kind, 'out', `${c}: played out at once`);
+    assert.equal(a.board.play.first, 'opponent');
+    for (let i = 0; i < 20 && a.board.shelf.length; i++) a = move(p, a, everyHint(p, a.board).action, seeded(i));
+    assert.deepEqual(a.board.shelf, [], `${c}: then the shelf is cleared`);
+    assert.match(M.everystart.render(p, a), /I took the last pebble\. The shelf is cleared\./);
+  }
+  assert.equal(judge(q, [answer]), null);
+  assert.ok(!p.rules.some(r => /There is another/.test(r)) && !/There is another/.test(p.controls), 'How to play does not promise “There is another.”');
+  for (const other of json.puzzles.filter(x => x.mechanic === 'everystart' && x.id !== p.id)) {
+    assert.ok(other.rules.some(r => /^While a start is still missing, That’s all says “There is another\.”$/.test(r)), `${other.id}: How to play says when That’s all is final`);
+    assert.match(other.controls, /Once none is missing, it is final/);
+  }
+});
+
 test('saves: a fresh race and a finished shelf are valid; forged ones are not', () => {
   const race = byId('rookrace-02');
   assert.ok(validBoard(race, JSON.parse(JSON.stringify(freshAttempt(race).board))));
@@ -270,7 +295,9 @@ test('saves: a fresh race and a finished shelf are valid; forged ones are not', 
   // A play-out keeps the shelf it judged until it ends, and only then clears it.
   const out = (shelf, turns) => ({build: [1, 1, 1], shelf, told: null, refused: {wrong: '1,1,2'}, play: {kind: 'out', start: [1, 1, 2], first: 'opponent', turns}, done: false});
   assert.ok(validBoard(every, out(['1,1,2', '1,2,3'], [{player: 'opponent', pile: 3, take: 2}])), 'I took 2: your turn');
-  assert.equal(validBoard(every, out(['1,1,2'], [{player: 'opponent', pile: 3, take: 2}])), false, 'a wrong start is named only when nothing is missing');
+  assert.ok(validBoard(every, out(['1,1,2'], [{player: 'opponent', pile: 3, take: 2}])), 'one answer: a wrong start alone is played out');
+  assert.equal(validBoard(byId('everystart-03'), out(['1,1,2'], [{player: 'opponent', pile: 3, take: 2}])), false, 'several answers: a wrong start is named only when nothing is missing');
+  assert.equal(validBoard(every, {build: [1, 1, 1], shelf: ['1,1,2'], told: null, refused: {more: true}, play: null, done: false}), false, 'one answer: never “There is another.” to a wrong start');
   assert.ok(validBoard(every, out([], [{player: 'opponent', pile: 3, take: 2}, {player: 'you', pile: 1, take: 1}, {player: 'opponent', pile: 2, take: 1}])), 'over and cleared');
   assert.equal(validBoard(every, out(['1,1,2', '1,2,3'], [{player: 'opponent', pile: 3, take: 2}, {player: 'you', pile: 1, take: 1}, {player: 'opponent', pile: 2, take: 1}])), false, 'over but not cleared');
   assert.equal(validBoard(every, out([], [{player: 'opponent', pile: 3, take: 2}])), false, 'cleared before the end');

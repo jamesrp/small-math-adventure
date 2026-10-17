@@ -346,8 +346,9 @@ function wireBoard(root, p, api) {
 // --- Every start ------------------------------------------------------------------
 // Boards: the marks (cells, ascending). Piles: the start being built, the shelf
 // (sorted keys such as "1,2,3", in order), and "Already on the shelf.". Both:
-// That's all's verdict ({more} says one is missing; {wrong}, given only when
-// none is, names the first kept start the first player can win from), a game
+// That's all's verdict ({more} says one is missing; {wrong} names the first
+// kept start the first player can win from, given only when none is missing
+// unless the puzzle has a single answer; see judge), a game
 // being played, and done. A game
 // is a practice try (from the start being built, or from a tapped square; the
 // child chooses who starts) or the play-out of a wrong That's all: I go first
@@ -359,14 +360,19 @@ const answersOf = q => pilesKind(q) ? secondStarts(q).map(keyOf) : secondSquares
 const order = (q, list) => pilesKind(q) ? [...list].sort((a, b) => { const x = startOfKey(a), y = startOfKey(b); return x[0] - y[0] || x[1] - y[1] || x[2] - y[2]; }) : [...list].sort((a, b) => a - b);
 const keptOf = (q, b) => pilesKind(q) ? b.shelf : b.marked;
 const winsFrom = (q, candidate) => pilesKind(q) ? pilesWin(startOfKey(candidate)) : squareWins(q, squareOf(q, candidate));
-// That's all on this shelf: null (right), {more: true} or {wrong}. Whether
-// anything is missing is asked first, so a That's all with a few marks says
-// nothing about them; only a shelf holding every answer and something more has
-// a wrong start named (and played out). Asked the other way round, one mark and
-// That's all would be a cheap yes-or-no check on each start.
+// That's all on this shelf: null (right), {more: true} or {wrong}. With more
+// than one answer, whether anything is missing is asked first, so a That's all
+// with a few marks says nothing about them; only a shelf holding every answer
+// and something more has a wrong start named (and played out). Asked the other
+// way round, one mark and That's all would be a cheap yes-or-no check on each
+// start. With a single answer that same order is the cheap check (a wrong start
+// alone would get "There is another."), so there a wrong start is looked for
+// first: every wrong guess is a game I win going first, and "There is another."
+// never comes.
 export function judge(q, kept) {
-  if (!answersOf(q).every(c => kept.includes(c))) return {more: true};
-  const wrong = order(q, kept).find(c => winsFrom(q, c));
+  const answers = answersOf(q), wrong = order(q, kept).find(c => winsFrom(q, c));
+  if (answers.length === 1 && wrong !== undefined) return {wrong};
+  if (!answers.every(c => kept.includes(c))) return {more: true};
   return wrong === undefined ? null : {wrong};
 }
 const isCandidate = (q, c) => pilesKind(q) ? typeof c === 'string' && pileStarts(q).some(s => keyOf(s) === c) : integer(c) && c >= 0 && c < q.size * q.size && c !== 0;
@@ -483,8 +489,9 @@ function everyMove(p, b, action, random = Math.random) {
     settleOut(q, next);
     return next;
   }
-  // That's all judges the whole shelf. A wrong start is played out at once, I
-  // going first; a missing one is only "There is another.", until a change.
+  // That's all judges the whole shelf (see judge). A wrong start is played out
+  // at once, I going first; a missing one is only "There is another.", until a
+  // change.
   if (action.type === 'all') {
     const kept = keptOf(q, b);
     if (!kept.length || b.refused) return null;
@@ -592,7 +599,9 @@ function playPanel(p, b, state, act) {
     status = run.over ? (run.winner === 'you' ? 'You took the last pebble.' : `${took}I took the last pebble.`) : `${took}Your turn`;
   } else if (play.first !== null) {
     const before = play.turns.length > 1 ? play.turns.at(-2).to : squareOf(q, play.start);
-    status = run.over ? (run.winner === 'you' ? 'You reached the star.' : `I moved ${stepWords(before, run.at)} and reached the star.`) : `${last?.player === 'opponent' ? `I moved ${stepWords(before, run.at)}. ` : ''}Your turn`;
+    // The end of a play-out keeps to one line (the dashed ring shows my last
+    // move), so Back stays in view under the 11-by-11 board on a small phone.
+    status = run.over ? (run.winner === 'you' ? 'You reached the star.' : out ? 'I reached the star.' : `I moved ${stepWords(before, run.at)} and reached the star.`) : `${last?.player === 'opponent' ? `I moved ${stepWords(before, run.at)}. ` : ''}Your turn`;
   }
   const yourTurn = play.first !== null && !run.over && run.toMove === 'you';
   const choose = play.first === null && play.start !== null ? `${button('Me first', {type: 'choose', first: 'you'}, 'secondary')}${button('You first', {type: 'choose', first: 'opponent'}, 'secondary')}` : '';
@@ -613,8 +622,10 @@ function playPanel(p, b, state, act) {
   const back = out && !run.over ? '' : button('Back', {type: 'back'}, run.over ? 'primary' : 'secondary');
   // When the play-out ends, one line says what happened, including the clearing.
   if (out && run.over) status += ` ${pilesKind(q) ? 'The shelf is' : 'The marks are'} cleared.`;
-  const opening = out && !run.over ? `<p class="es-label">${esc(`Whoever starts from ${pilesKind(q) ? pileWords(play.start) : 'the ringed square'} can win. I go first.`)}</p>` : '';
-  return `${opening}<p class="es-status" role="status" tabindex="-1" data-focus="es-status">${esc(status)}</p>${field}<div class="es-actions">${controls}${back}</div>`;
+  // During a play-out, why I go first leads the same line as the turn, which
+  // keeps the board's bottom row in view on a small phone.
+  const opening = out && !run.over ? `<span class="es-label">${esc(`Whoever starts from ${pilesKind(q) ? pileWords(play.start) : 'the ringed square'} can win. I go first.`)}</span> ` : '';
+  return `<p class="es-status" role="status" tabindex="-1" data-focus="es-status">${opening}${esc(status)}</p>${field}<div class="es-actions">${controls}${back}</div>`;
 }
 const uiState = new Map();
 const ui = p => { if (!uiState.has(p.id)) uiState.set(p.id, {pick: null}); return uiState.get(p.id); };
