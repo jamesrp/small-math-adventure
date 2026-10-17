@@ -2,7 +2,7 @@
 
 James asked on October 10, 2026 that every worksheet week end in one of two states: **in the app**, or **not porting**, with the reason written down. "Waiting" is a step in a wave, never an end state. A week reaches its decision through its review card in the worksheets repository ([plans/review](https://github.com/jamesrp/math-circle-worksheets/tree/main/plans/review)), and then a port when the card says port. A week that waits on a board or on another family gets that board or family built in a wave, or a reason why not.
 
-**Where things stand:** 98 weeks (1–97 and the Week 1 encore). 78 are in the app and 4 are ruled out, so 16 are open: Week 81 is being built as a Pebble Duel group in its own thread, and Weeks 83–97 wait for the organizer's review of their drafts before they are carded. Wave 7 is done. James lifted the October 10 hold on Waves 8 and 9 on October 16 and asked for the remaining work to be split across threads of a few weeks each, so the 14 open weeks and the touch-ups are now five batches (below), each in its own thread.
+**Where things stand:** 98 weeks (1–97 and the Week 1 encore). 78 are in the app and 4 are ruled out, so 16 are open: Week 81 is being built as a Pebble Duel group in its own thread, and Weeks 83–97 wait for the organizer's review of their drafts before they are carded. Wave 7 is done. James lifted the October 10 hold on Waves 8 and 9 on October 16 and asked for the remaining work to be split across threads of a few weeks each, so the 14 open weeks and the touch-ups became five batches (below), each in its own thread. All five merged on October 17, and every row here was checked against the cards, themes.md and the specs that day.
 
 Whoever changes a week's state changes its row here in the same push, and the count above.
 
@@ -15,10 +15,10 @@ Each wave is claimed on both work boards like any other item. The weeks a wave p
 3. **Wave 5, roads and graphs (done).** Week 69 as a group in Meeting roads, Week 68 on an endless panning map, and the graph themes whose cards say port: 17, 27 and 40.
 4. **Wave 6, grids (done).** Week 15's nearest-site cells on a half-unit lattice, and the grid themes whose cards say port: 5, 32, 48 and 57.
 5. **Wave 7, sets and numbers (done).** 12, 19, 20, 22, 36, 49, 51, 54, 55 and 58.
-6. **Wave 8, symmetry, words and reflections.** 35, 37, Week 76's shrink tool, and Weeks 71 and 21 as groups in Mirror Couriers.
-7. **Wave 9, the rest.** Week 65's octagon floor, 77 as a loop group in Lantern Wires, 78, and the paper-and-continuous themes, whose cards all say port: 28, 38, 50, 56, 59 and 61. Each gets a port with a real on-screen solve or a final reason not to. The same wave makes the touch-ups the in-app families' own cards ask for (Weeks 8–11).
+6. **Wave 8, symmetry, words and reflections (done, in the batches below).** 35, 37, Week 76's shrink tool, and Weeks 71 and 21 as groups in Mirror Couriers.
+7. **Wave 9, the rest (done, in the batches below).** Week 65's octagon floor, 77 as a loop group in Lantern Wires, 78, and the paper-and-continuous themes, whose cards all say port: 28, 38, 50, 56, 59 and 61. Each gets a port with a real on-screen solve or a final reason not to. The same wave makes the touch-ups the in-app families' own cards ask for (Weeks 8–11).
 
-**Batches, from October 16.** Each batch thread builds, reviews and merges its weeks and changes their rows here in the same push; the "Every week to a decision" thread keeps this tracker and checks every row once all five have merged.
+**Batches, from October 16.** Each batch thread builds, reviews and merges its weeks and changes their rows here in the same push; the "Every week to a decision" thread keeps this tracker and checks every row once all five have merged. All five merged on October 17, and the check is done.
 
 - **Batch 1, Mirror Couriers:** the Week 9 touch-ups, then Weeks 71 and 21 as groups.
 - **Batch 2, symmetry and solids:** Weeks 35, 37, 61 and 56.
