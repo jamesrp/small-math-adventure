@@ -18,7 +18,8 @@
 // the band has fewer closed edges than the picture has rings, the child
 // presses Can't after four dots and taps each closed edge once (the circles
 // are the certificate), and the app draws them with the extra rings crossed
-// out. Seams puzzles: change seams in a circle of three or four strips so
+// out; on a band with one closed edge, where a tap would be no choice, Can't
+// alone is the claim once the dots are on two edge lines. Seams puzzles: change seams in a circle of three or four strips so
 // fixed dots group like the rings; dots on single edges pin individual seams,
 // so the one bit of parity never decides a solve. Pieces puzzles: choose the
 // seam, cut lines and punch holes to make pieces with given numbers of closed
@@ -49,11 +50,13 @@ const cap = s => s[0].toUpperCase() + s.slice(1);
 // strip k's first square drawn at layout[k]. Its `lines` are heights a child
 // may cut (single strips only) and its `spots` the places for holes (inside
 // the strip) and notches (on an edge): {x, y, name}, x along the strip, y up.
+// On a dots puzzle (`dots`) cuts are drawn with a wider gap, so dots on its
+// two sides stay apart.
 const shapes = new WeakMap();
 export function shapeFrom(src) {
   if (shapes.has(src)) return shapes.get(src);
   const K = src.strips, len = src.len, n = src.n;
-  const sh = {K, len, n, L: len * n, layout: src.layout || [[0, 0]], lines: src.lines || [], spots: src.spots || [], fixed: src.fixed || Array(K).fill(true), start: src.start || src.seams, budget: src.budget ?? null};
+  const sh = {K, len, n, L: len * n, layout: src.layout || [[0, 0]], lines: src.lines || [], spots: src.spots || [], fixed: src.fixed || Array(K).fill(true), start: src.start || src.seams, dots: src.mode === 'dots'};
   shapes.set(src, sh);
   return sh;
 }
@@ -174,13 +177,15 @@ export const comesHomeFlipped = seams => seams.filter(m => m === 'R').length % 2
 
 // --- Boards ---------------------------------------------------------------------------
 // dots:       {dots, told, flags, claimed}   dots: segments in the order
-//             placed (at most four); told 'flags' after a certificate that
-//             misses a closed edge or taps one twice, 'way' after a whole one
-//             on a band that can do the picture; flags: that whole
-//             certificate's taps, drawn with "There is a way." (Undo takes
-//             them back and keeps the words), otherwise empty; claimed false,
-//             or after a right Can't the segments tapped (one on each closed
-//             edge)
+//             placed (at most four); told 'way' after a whole certificate on
+//             a band that can do the picture; flags: that certificate's taps,
+//             drawn with "There is a way." (Undo takes them back and keeps
+//             the words), otherwise empty; claimed false, or after a right
+//             Can't the segments tapped (one on each closed edge; none on a
+//             band with one closed edge, where Can't itself is the claim). A
+//             certificate that misses a closed edge or taps one twice is not
+//             a move: That's all then says "Tap each closed edge once." in
+//             the view (never saved) until the board changes or Can't opens.
 // seams:      {seams}
 // pieces:     {seams, cuts, holes}    cuts: heights cut (a cut on an R band
 //             runs on round to n - h); holes: punched spots
@@ -199,20 +204,18 @@ function validBuild(sh, b, start) {
   if (!validSeams(sh, b.seams, start)) return false;
   if (!Array.isArray(b.cuts) || !b.cuts.every(h => sh.lines.includes(h)) || !sortedUnique(b.cuts)) return false;
   if (sh.K === 1 && b.seams[0] === 'R' && !b.cuts.every(h => b.cuts.includes(sh.n - h))) return false;
-  if (!Array.isArray(b.holes) || !b.holes.every(i => Number.isInteger(i) && i >= 0 && i < sh.spots.length) || !sortedUnique(b.holes)) return false;
-  return sh.budget === null || b.holes.length <= sh.budget;
+  return Array.isArray(b.holes) && b.holes.every(i => Number.isInteger(i) && i >= 0 && i < sh.spots.length) && sortedUnique(b.holes);
 }
 function valid(p, b) {
   const q = p.parameters;
   if (q.mode === 'dots') {
     if (!keysAre(b, ['dots', 'told', 'flags', 'claimed']) || !Array.isArray(b.flags) || !Array.isArray(b.dots) || b.dots.length > MAX_DOTS || new Set(b.dots).size !== b.dots.length) return false;
     const {sh} = bandOf(q, b), topo = topologyOf(q, b);
-    if (!b.dots.every(d => validSeg(sh, topo, d)) || ![null, 'flags', 'way'].includes(b.told) || (b.claimed !== false && !Array.isArray(b.claimed))) return false;
+    if (!b.dots.every(d => validSeg(sh, topo, d)) || ![null, 'way'].includes(b.told) || (b.claimed !== false && !Array.isArray(b.claimed))) return false;
     const full = b.dots.length === MAX_DOTS, match = dotsMatch(q, topo, b.dots), possible = dotsPossible(q, topo);
     if (b.told !== 'way' && b.flags.length) return false;
-    if (b.claimed) return b.told === null && full && !possible && validFlags(sh, topo, b.claimed) && certified(topo, b.claimed);
-    if (b.told === 'way') return possible && full && !match && (!b.flags.length || (validFlags(sh, topo, b.flags) && certified(topo, b.flags)));
-    if (b.told === 'flags') return full && !match;
+    if (b.claimed) return b.told === null && full && !possible && cantReady(q, topo, b.dots) && (oneEdge(topo) ? b.claimed.length === 0 : validFlags(sh, topo, b.claimed) && certified(topo, b.claimed));
+    if (b.told === 'way') return !oneEdge(topo) && possible && full && !match && (!b.flags.length || (validFlags(sh, topo, b.flags) && certified(topo, b.flags)));
     return true;
   }
   if (q.mode === 'seams') return keysAre(b, ['seams']) && validSeams(shapeFrom(q), b.seams, q.start);
@@ -231,8 +234,13 @@ function solved(p, b) {
   return p.parameters.mode !== 'playground' && valid(p, b) && goalMet(p.parameters, b);
 }
 // Can't opens once four dots are down and don't match, and not again after
-// "There is a way." until a dot moves.
-export const cantOpen = (q, b) => q.mode === 'dots' && b.dots.length === MAX_DOTS && !b.claimed && b.told !== 'way' && !dotsMatch(q, topologyOf(q, b), b.dots);
+// "There is a way." until a dot moves. On a band with one closed edge no tap
+// could be a real choice, so Can't is the claim itself, and it waits for
+// dots on two edge lines (the top and the bottom of B), which the child has
+// then seen light as one closed edge.
+export const oneEdge = topo => topo.circles.length === 1;
+const cantReady = (q, topo, dots) => dots.length === MAX_DOTS && !dotsMatch(q, topo, dots) && (!oneEdge(topo) || new Set(dots.map(d => parseSeg(d).line)).size >= 2);
+export const cantOpen = (q, b) => q.mode === 'dots' && !b.claimed && b.told !== 'way' && cantReady(q, topologyOf(q, b), b.dots);
 const validFlags = (sh, topo, flags) => Array.isArray(flags) && flags.length > 0 && flags.length <= MAX_FLAGS && new Set(flags).size === flags.length && flags.every(k => validSeg(sh, topo, k));
 // A certificate: one tap on each closed edge, none twice.
 export function certified(topo, flags) {
@@ -260,8 +268,9 @@ function step(p, b, action) {
     }
     if (action.type === 'cant') {
       const flags = action.flags;
-      if (!cantOpen(q, b) || !validFlags(sh, topo, flags)) return null;
-      if (!certified(topo, flags)) return {...b, told: 'flags', flags: []};
+      if (!cantOpen(q, b) || !Array.isArray(flags)) return null;
+      if (oneEdge(topo)) return flags.length === 0 && !dotsPossible(q, topo) ? {...b, told: null, flags: [], claimed: []} : null;
+      if (!validFlags(sh, topo, flags) || !certified(topo, flags)) return null;
       return dotsPossible(q, topo) ? {...b, told: 'way', flags: [...flags]} : {...b, told: null, flags: [], claimed: [...flags]};
     }
     return null;
@@ -287,7 +296,6 @@ function step(p, b, action) {
     const i = action.i;
     if (!Number.isInteger(i) || i < 0 || i >= sh.spots.length) return null;
     if (b.holes.includes(i)) return {...b, holes: b.holes.filter(x => x !== i)};
-    if (sh.budget !== null && b.holes.length >= sh.budget) return null;
     return {...b, holes: [...b.holes, i].sort((x, y) => x - y)};
   }
   return null;
@@ -302,7 +310,7 @@ export function buildMoves(q, b) {
   for (let k = 0; k < sh.K; k++) if (seamFree(sh, b, k)) out.push({type: 'seam', k});
   if (q.mode === 'seams') return out;
   for (const h of sh.lines) if (!(sh.K === 1 && b.seams[0] === 'R' && h > sh.n - h)) out.push({type: 'cut', h});
-  sh.spots.forEach((_, i) => { if (b.holes.includes(i) || sh.budget === null || b.holes.length < sh.budget) out.push({type: 'hole', i}); });
+  sh.spots.forEach((_, i) => out.push({type: 'hole', i}));
   return out;
 }
 const pathMemo = new Map();
@@ -365,8 +373,8 @@ function segsOf(sh, topo, c) {
 }
 // The first segment of a closed edge, middle first, that sits clear of the
 // dots and flags already down (a cut's two sides are drawn close together).
-function clearSeg(sh, topo, c, taken) {
-  const all = segsOf(sh, topo, c).filter(k => !taken.includes(k));
+function clearSeg(sh, topo, c, taken, line = null) {
+  const all = segsOf(sh, topo, c).filter(k => !taken.includes(k) && (line === null || parseSeg(k).line === line));
   const at = k => { const s = parseSeg(k); return {k: s.k, x: s.x, y: lineY(sh, s)}; };
   const clear = (k, far) => { const a = at(k); return taken.every(t => { const o = at(t); return o.k !== a.k || Math.abs(o.x - a.x) >= far || Math.abs(o.y - a.y) >= 1; }); };
   return all.find(k => clear(k, 2)) || all.find(k => clear(k, 1)) || all[0];
@@ -375,7 +383,16 @@ function dotsHint(q, b) {
   const {sh, cuts} = bandOf(q, b), topo = topologyOf(q, b), C = topo.circles.length, rings = desc(q.rings);
   const count = topo.circles.map(() => 0);
   for (const d of b.dots) count[circleOfSeg(topo, d)]++;
-  const add = c => { const seg = clearSeg(sh, topo, c, b.dots); return {type: 'move', action: {type: 'dot', seg}, text: `Put a dot on the ${lineWords(sh, cuts, parseSeg(seg).line)}.`}; };
+  const add = (c, line = null) => { const seg = clearSeg(sh, topo, c, b.dots, line); return {type: 'move', action: {type: 'dot', seg}, text: `Put a dot on the ${lineWords(sh, cuts, parseSeg(seg).line)}.`}; };
+  const off = seg => ({type: 'move', action: {type: 'dot', seg}, text: `Take the dot off the ${lineWords(sh, cuts, parseSeg(seg).line)}.`});
+  if (rings.length > C && C === 1) {
+    // One closed edge: dots on both edge lines (each lights the one closed
+    // edge), then Can't by itself.
+    const perLine = topo.lines.map(l => b.dots.filter(d => parseSeg(d).line === l.key).length);
+    if (b.dots.length === MAX_DOTS && perLine.filter(x => x > 0).length < 2) return off(b.dots[b.dots.length - 1]);
+    if (b.dots.length < MAX_DOTS) return add(0, topo.lines[perLine.indexOf(Math.min(...perLine))].key);
+    return {type: 'move', action: {type: 'cant', flags: []}, text: `One closed edge holds every dot, and the picture has ${WORDS[rings.length]} rings. Press Can’t.`};
+  }
   if (rings.length > C) {
     // No way: four dots first, then the claim with its reason.
     if (b.dots.length < MAX_DOTS) return add(count.indexOf(Math.min(...count)));
@@ -395,10 +412,7 @@ function dotsHint(q, b) {
   };
   go(0, new Set(), topo.circles.map(() => 0));
   const over = count.findIndex((v, c) => v > best.target[c]);
-  if (over >= 0) {
-    const seg = [...b.dots].reverse().find(d => circleOfSeg(topo, d) === over);
-    return {type: 'move', action: {type: 'dot', seg}, text: `Take the dot off the ${lineWords(sh, cuts, parseSeg(seg).line)}.`};
-  }
+  if (over >= 0) return off([...b.dots].reverse().find(d => circleOfSeg(topo, d) === over));
   return add(count.findIndex((v, c) => v < best.target[c]));
 }
 function buildWords(q, b, action) {
@@ -425,16 +439,19 @@ function hint(p, b) {
 }
 
 // --- View state ------------------------------------------------------------------------------
-// Lit edges (lamps, by line), the Can't taps and the carried arrow: kept
-// outside the save and cleared by Restart. A new board closes Can't and drops
-// lamps on lines that are gone.
+// Lit edges (lamps, by line), the Can't taps, a refused certificate's words
+// (told) and the carried arrow: kept outside the save and cleared by
+// Restart. A new board closes Can't, drops the words and drops lamps on
+// lines that are gone.
 const views = new Map();
-const view = p => { if (!views.has(p.id)) views.set(p.id, {lamps: [], claiming: false, flags: [], arrow: false, board: undefined}); return views.get(p.id); };
+const view = p => { if (!views.has(p.id)) views.set(p.id, {lamps: [], claiming: false, flags: [], told: null, arrow: false, board: undefined}); return views.get(p.id); };
 function setView(p, payload) {
   if (!object(payload)) return;
   const v = view(p);
   if (Array.isArray(payload.lamps)) v.lamps = payload.lamps.slice(0, LAMPS.length).map(l => typeof l === 'string' ? l : null);
-  if ('claiming' in payload) { v.claiming = Boolean(payload.claiming); v.flags = []; }
+  if ('claiming' in payload) { v.claiming = Boolean(payload.claiming); v.flags = []; v.told = null; }
+  // That's all with taps that are not one on each closed edge: no move.
+  if (payload.refuse === true) { v.claiming = false; v.flags = []; v.told = 'flags'; }
   if (typeof payload.flag === 'string') v.flags = v.flags.includes(payload.flag) ? v.flags.filter(k => k !== payload.flag) : v.flags.length < MAX_FLAGS ? [...v.flags, payload.flag] : v.flags;
   if ('arrow' in payload) v.arrow = Boolean(payload.arrow);
 }
@@ -461,7 +478,7 @@ function toggleLamp(topo, lamps, line) {
 // square under it.
 const at = (S, sh, k, X, Y) => { const j = Math.min(sh.len - 1, Math.max(0, Math.floor(X / sh.n))); return roomXY(S, letter(sh, k, j), X - j * sh.n, Y); };
 const scaleOf = sh => Math.max(1, sh.L / 8);
-const gapOf = sh => .035 * sh.n;
+const gapOf = sh => sh.dots ? .3 * scaleOf(sh) : .035 * sh.n;
 const lineY = (sh, l) => l.h === 0 || l.h === sh.n ? l.h : l.h + (l.s === 'u' ? gapOf(sh) : -gapOf(sh));
 const segXY = (S, sh, key) => { const s = parseSeg(key); return at(S, sh, s.k, s.x + .5, lineY(sh, s)); };
 function box(S, sh, k, X0, Y0, X1, Y1) {
@@ -507,8 +524,10 @@ function drawBand(p, q, b, o) {
   const {sh, seams, cuts, holes} = bandOf(q, b), topo = topologyOf(q, b), S = surfaceFor(sh, seams), u = scaleOf(sh), g = gapOf(sh);
   const shown = o.shown || null, cutSet = new Set(cuts);
   let under = '', over = '', top = '';
-  // Pieces: a pale tint each once the band is in two or more.
-  if (topo.pieces.length > 1) topo.lanes.forEach(l => {
+  // Pieces (only where the child cuts): a pale tint each once the band is in
+  // two or more. Dots puzzles draw no pieces, so the paper cut keeps its
+  // surprise.
+  if (o.build && topo.pieces.length > 1) topo.lanes.forEach(l => {
     const a = l.a === 0 ? 0 : l.a + g, c = l.b === sh.n ? sh.n : l.b - g;
     under += rect(box(S, sh, l.k, 0, a, sh.L, c), `mb-tint t${topo.pieceOf.get(l.key) % 4}`);
   });
@@ -569,13 +588,13 @@ function drawBand(p, q, b, o) {
     top += hit(`line:${h}`, `Cut ${cutLineWords(sh, h)}`, `mb-line-${h}`, hitRect(box(S, sh, 0, 0, h - .4, sh.L, h + .4)), {hinted: shown?.type === 'cut' && cutCurve(sh, seams, shown.h).includes(h)});
   }
   if (o.targets === 'dots' || o.targets === 'flags') for (const l of topo.lines) for (let x = 0; x < sh.L; x++) {
-    const key = `${l.key}:${x}`, words = lineWords(sh, cuts, l.key), r = edgeZone(sh, l, u);
+    const key = `${l.key}:${x}`, words = lineWords(sh, cuts, l.key), r = edgeZone(sh, l, u, cuts);
     const on = o.targets === 'dots' ? (o.dots || []).includes(key) : (o.flags || []).includes(key);
     const hinted = o.targets === 'dots' ? shown?.type === 'dot' && shown.seg === key : shown?.type === 'cant' && shown.flags.includes(key) && !on;
     top += hit(`seg:${key}`, `${cap(words)}, place ${x + 1}${on ? (o.targets === 'dots' ? ', dot' : ', tapped') : ''}`, `mb-seg-${key}`, hitRect(box(S, sh, l.k, x, r[0], x + 1, r[1])), {hinted, pressed: on});
   }
   if (o.targets === 'lamps') for (const l of topo.lines) {
-    const r = edgeZone(sh, l, u), lit = o.lit.has(topo.circleOf.get(l.key));
+    const r = edgeZone(sh, l, u, cuts), lit = o.lit.has(topo.circleOf.get(l.key));
     top += hit(`lamp:${l.key}`, `Light the ${lineWords(sh, cuts, l.key)}`, `mb-lamp-${l.key}`, hitRect(box(S, sh, l.k, 0, r[0], sh.L, r[1])), {pressed: lit});
   }
   if (o.build && !o.done) for (let k = 0; k < sh.K; k++) if (seamFree(sh, b, k)) {
@@ -587,8 +606,21 @@ function drawBand(p, q, b, o) {
     over += `<g class="mb-scissors${cut ? ' cut' : ''}"><circle cx="${f(x)}" cy="${f(y)}" r="${f(Math.min(.36 * u, d * .9))}"/><text x="${f(x)}" y="${f(y + .15 * u)}" font-size="${f(.44 * u)}">✂</text></g>`;
     top += hit(`line:${h}`, cut ? `Tape ${cutLineWords(sh, h)} back` : `Cut ${cutLineWords(sh, h)}`, `mb-scissors-${h}`, hitRect(box(S, sh, 0, -1.05 * u, h - d, -.02, h + d)), {hinted: shown?.type === 'cut' && cutCurve(sh, seams, shown.h).includes(h), pressed: cut});
   }
+  // A hole or notch takes only the taps nearer its drawn rim than an edge or
+  // line: a hole's disc reaches halfway from its rim to the nearest line; a
+  // notch takes its half disc from a little way in, so a tap on the edge
+  // across or beside it lights the edge.
   if (o.build && !o.done) sh.spots.forEach((sp, i) => {
-    top += hit(`spot:${i}`, `${cap(holes.includes(i) ? `fill the ${sp.name}` : `punch the ${sp.name}`)}`, `mb-spot-${i}`, hitDisc(at(S, sh, sp.k || 0, sp.x, sp.y), .5 * u), {hinted: shown?.type === 'hole' && shown.i === i, pressed: holes.includes(i)});
+    const k = sp.k || 0, r = .34 * u;
+    let area;
+    if (sp.y > 0 && sp.y < sh.n) {
+      const ys = [0, sh.n, ...sh.lines.flatMap(h => cutSet.has(h) ? [h - g, h + g] : [h])], d = Math.min(...ys.map(y => Math.abs(y - sp.y)));
+      area = hitDisc(at(S, sh, k, sp.x, sp.y), Math.min(.5 * u, Math.max(r + .06 * u, (r + d) / 2)));
+    } else {
+      const inward = sp.y === 0 ? 1 : -1;
+      area = hitRect(box(S, sh, k, sp.x - r - .1 * u, sp.y + inward * .45 * r, sp.x + r + .1 * u, sp.y + inward * (r + .3 * u)));
+    }
+    top += hit(`spot:${i}`, `${cap(holes.includes(i) ? `fill the ${sp.name}` : `punch the ${sp.name}`)}`, `mb-spot-${i}`, area, {hinted: shown?.type === 'hole' && shown.i === i, pressed: holes.includes(i)});
   });
   // Room for the scissors and seam letters at the ends, less above and below.
   const [c0, r0, c1, r1] = S.box, n = sh.n, px = 1.1 * u, py = .9 * u;
@@ -596,11 +628,15 @@ function drawBand(p, q, b, o) {
   return roomBoard(S, {cls: `mb-room${sh.K > 1 ? ' strips' : ''}`, label: o.label || 'Band', pad: px, point: () => false, under, over, top}).replace(/viewBox="[^"]*"/, `viewBox="${vb}"`);
 }
 // Where a tap reaches an edge line: from outside the strip (walls) or the
-// cut's middle (cut sides) about half a step into the paper.
-function edgeZone(sh, l, u) {
+// cut's middle (cut sides), a little past the drawn line into the paper,
+// never past halfway to the next line.
+function edgeZone(sh, l, u, cuts) {
   if (l.h === 0) return [-.8 * u, .4];
   if (l.h === sh.n) return [sh.n - .4, sh.n + .8 * u];
-  return l.s === 'u' ? [l.h, l.h + .5] : [l.h - .5, l.h];
+  const ys = [0, sh.n, ...sh.lines, ...cuts];
+  if (l.s === 'u') { const next = Math.min(...ys.filter(y => y > l.h)); return [l.h, l.h + Math.min(gapOf(sh) + .35 * u, (next - l.h) / 2)]; }
+  const next = Math.max(...ys.filter(y => y < l.h));
+  return [l.h - Math.min(gapOf(sh) + .35 * u, (l.h - next) / 2), l.h];
 }
 function lockGlyph(x, y, u) {
   const w = .17 * u, h = .15 * u;
@@ -643,7 +679,7 @@ const status = text => `<p class="sr-only" role="status">${esc(text)}</p>`;
 function sync(p, q, b) {
   const v = view(p), now = JSON.stringify(b);
   if (v.board !== now) {
-    if (v.board !== undefined) { v.claiming = false; v.flags = []; }
+    if (v.board !== undefined) { v.claiming = false; v.flags = []; v.told = null; }
     v.board = now;
     const topo = topologyOf(q, b);
     v.lamps = v.lamps.map(l => l !== null && topo.circleOf.has(l) ? l : null);
@@ -679,8 +715,12 @@ function renderDots(p, a) {
   const picture = ringPicture(rings, {colours, crossed: done && b.claimed ? rings.length - topo.circles.length : 0, label: ringsWords(rings)});
   const hintCant = shown?.type === 'cant';
   const allReady = claiming && hintCant && shown.flags.every(k => v.flags.includes(k)) && v.flags.length === shown.flags.length;
-  const bar = done ? '' : `<div class="mb-bar">${uiButton('Can’t', {claiming: !claiming}, {pressed: claiming, enabled: open, hinted: hintCant && !claiming, focus: claiming ? 'mb-cant-close' : 'mb-cant-open'})}${claiming ? moveButton('That’s all', {type: 'cant', flags: v.flags}, {enabled: v.flags.length > 0, hinted: allReady, focus: 'mb-all'}) : ''}</div>`;
-  const told = b.told === 'way' ? 'There is a way.' : b.told === 'flags' ? 'Tap each closed edge once.' : '';
+  // On a band with one closed edge Can't is the claim; otherwise it opens the
+  // taps, and That's all is a move only for one tap on each closed edge.
+  const all = certified(topo, v.flags) ? moveButton('That’s all', {type: 'cant', flags: v.flags}, {hinted: allReady, focus: 'mb-all'}) : uiButton('That’s all', {refuse: true}, {enabled: v.flags.length > 0, focus: 'mb-all'});
+  const cant = oneEdge(topo) ? moveButton('Can’t', {type: 'cant', flags: []}, {enabled: open, hinted: hintCant, focus: 'mb-cant'}) : uiButton('Can’t', {claiming: !claiming}, {pressed: claiming, enabled: open, hinted: hintCant && !claiming, focus: claiming ? 'mb-cant-close' : 'mb-cant-open'});
+  const bar = done ? '' : `<div class="mb-bar">${cant}${claiming ? all : ''}</div>`;
+  const told = b.told === 'way' ? 'There is a way.' : v.told === 'flags' && !done ? 'Tap each closed edge once.' : '';
   const groups = groupSizes(topo, b.dots);
   const say = done && b.claimed ? `${cap(plural(topo.circles.length, 'closed edge'))} and ${plural(rings.length, 'ring')}.` : claiming ? `${plural(v.flags.length, 'edge')} tapped.` : b.dots.length ? `Dots by closed edge: ${groups.join(', ')}.` : '';
   return `<div class="mb-puzzle mode-dots${done ? ' solved' : ''}${claiming ? ' claiming' : ''}" data-mechanic-wire="mobius"><div class="mb-goal-row">${picture}</div><div class="mb-band">${band}</div>${bar}${told ? `<p class="mb-told">${told}</p>` : ''}${status(`${say}${told ? ` ${told}` : ''}`)}</div>`;
@@ -689,17 +729,19 @@ function renderDots(p, a) {
 function renderSeams(p, a) {
   const q = p.parameters, b = a.board, v = sync(p, q, b), done = solved(p, b), topo = topologyOf(q, b);
   const shown = a.hintLevel >= 2 && !done ? hint(p, b).action : null;
-  const lit = litCircles(topo, v.lamps);
-  const band = drawBand(p, q, b, {lit, marks: q.marks, targets: 'lamps', build: true, shown, done, arrow: v.arrow || done, label: 'Circle of strips'});
+  // Solved: the stars' closed edge lights rose and the diamonds' leaf, like their rings.
+  const sh = shapeFrom(q), markCircle = kind => circleOfSeg(topo, markSeg(sh, q.marks.find(m => m.kind === kind)));
+  const lit = done ? new Map([[markCircle('star'), 'rose'], [markCircle('diamond'), 'leaf']]) : litCircles(topo, v.lamps);
+  const band = drawBand(p, q, b, {lit, marks: q.marks, targets: done ? null : 'lamps', build: true, shown, done, arrow: v.arrow || done, label: 'Circle of strips'});
   const kinds = ['star', 'diamond'].map(kind => q.marks.filter(m => m.kind === kind).map(m => m.kind));
-  const picture = ringPicture(kinds.map(k => k.length), {kinds, label: 'Rings: two stars; two diamonds'});
+  const picture = ringPicture(kinds.map(k => k.length), {kinds, colours: done ? ['rose', 'leaf'] : [], label: 'Rings: two stars; two diamonds'});
   const bar = `<div class="mb-bar">${uiButton(arrowIcon, {arrow: !v.arrow}, {pressed: v.arrow || done, enabled: !done, focus: 'mb-arrow', aria: 'Carry an arrow round'})}</div>`;
   const say = `Seams: ${b.seams.join(' ')}.${lit.size ? ` ${plural(lit.size, 'closed edge')} lit.` : ''}`;
   return `<div class="mb-puzzle mode-seams${done ? ' solved' : ''}" data-mechanic-wire="mobius"><div class="mb-goal-row">${picture}</div><div class="mb-band strips">${band}</div>${bar}${status(say)}</div>`;
 }
 
 function renderPieces(p, a) {
-  const q = p.parameters, b = a.board, v = sync(p, q, b), done = solved(p, b), topo = topologyOf(q, b), {sh} = bandOf(q, b);
+  const q = p.parameters, b = a.board, v = sync(p, q, b), done = solved(p, b), topo = topologyOf(q, b);
   const shown = a.hintLevel >= 2 && !done ? hint(p, b).action : null;
   const lit = litCircles(topo, v.lamps);
   const band = drawBand(p, q, b, {lit, targets: 'lamps', build: true, shown, done, label: 'Band'});
@@ -707,9 +749,8 @@ function renderPieces(p, a) {
   // Solved: each card takes the tint of a piece it matches.
   const used = new Set(), colours = done ? goal.map(e => { const i = topo.edges.findIndex((x, j) => x === e && !used.has(j)); used.add(i); return topo.pieces.length > 1 ? `t${i % 4}` : 't0'; }) : [];
   const picture = piecePicture(goal, {colours, label: piecesWords(goal)});
-  const budget = sh.budget === null ? '' : `<span class="mb-budget" role="img" aria-label="${esc(`${plural(sh.budget - b.holes.length, 'hole')} left`)}">${Array.from({length: sh.budget}, (_, i) => `<i class="${i < b.holes.length ? 'used' : ''}"></i>`).join('')}</span>`;
   const say = `Seam ${b.seams[0]}. ${plural(topo.pieces.length, 'piece')}.${lit.size ? ` ${plural(lit.size, 'closed edge')} lit.` : ''}`;
-  return `<div class="mb-puzzle mode-pieces${done ? ' solved' : ''}" data-mechanic-wire="mobius"><div class="mb-goal-row">${picture}${budget}</div><div class="mb-band">${band}</div>${status(say)}</div>`;
+  return `<div class="mb-puzzle mode-pieces${done ? ' solved' : ''}" data-mechanic-wire="mobius"><div class="mb-goal-row">${picture}</div><div class="mb-band">${band}</div>${status(say)}</div>`;
 }
 
 function renderPlay(p, a) {
@@ -733,9 +774,6 @@ function render(p, a) {
 // --- Taps and keys ----------------------------------------------------------------------------
 function wire(root, p, api) {
   const q = p.parameters;
-  // That's all closes the taps whatever it says, even when the board is
-  // unchanged (a second refusal of the same kind).
-  root.addEventListener('click', e => { if (e.target.closest?.('[data-focus="mb-all"]')) { const v = view(p); v.claiming = false; v.flags = []; } }, true);
   wirePortal(root, {
     point: (where, point) => {
       const b = api.attempt().board;

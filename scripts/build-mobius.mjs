@@ -20,20 +20,20 @@ const RULES = {
   edge: 'A closed edge is an edge you can follow round, through the seams, until you are back where you started.',
   dots: 'Four dots go on the edges. Dots in one ring must be on one closed edge, and dots in different rings on different closed edges. Other closed edges may have no dots.',
   cant: 'If it can’t be done, press Can’t once four dots are down, tap each closed edge once, and press That’s all.',
+  cantOne: 'If it can’t be done, put dots on both the top and the bottom edge, four in all, and press Can’t.',
   cut: 'A cut runs along the band all the way round, through the seams, until it closes.',
   circle: 'In a circle of strips, each strip’s right end is joined to the next strip’s left end, and the last strip’s right end to the first strip’s left end.',
   marks: 'The two stars must be on one closed edge, and the two diamonds on another.',
   pieces: 'Make pieces like the cards: each ring on a card is one closed edge of that piece.',
-  holes: 'A hole takes out paper inside the band; a notch takes a bite out of an edge.',
-  budget: 'Punch at most as many holes as the pips show.',
+  holes: 'A hole takes out paper inside the band.',
+  notch: 'A hole takes out paper inside the band; a notch takes a bite out of an edge.',
   lock: 'While the band is cut, its seam stays as it is.'
 };
 const DEFINE = 'A band is a strip with its ends joined: M joins • to • and □ to □ straight across, R joins them after a half-turn. A closed edge is an edge you can follow round until you are back where you started.';
 const CONTROLS = {
   dots: `${DEFINE} Tap an edge to put a dot there: it lights its closed edge, and dots on one closed edge share a colour. Tap a dot to take it off. Can’t opens once four dots are down: then tap each closed edge once and press That’s all. Tab and Enter work too. Undo takes back a dot.`,
+  dotsOne: `${DEFINE} Tap an edge to put a dot there: it lights its closed edge, and dots on one closed edge share a colour. Tap a dot to take it off. Can’t opens once four dots are down, on both the top and the bottom edge. Tab and Enter work too. Undo takes back a dot.`,
   seams: 'A circle of strips is joined end to end: each seam joins • to • and □ to □, straight across at M and after a half-turn at R. A closed edge is an edge you can follow round until you are back where you started. Tap a seam’s letter to change it; a padlock means it stays. Tap an edge to light its closed edge, and again to turn it off. The arrow button carries an arrow once round. Tab and Enter work too. Undo takes back a change.',
-  pieces: `${DEFINE} Tap the seam’s letter to change it, but not while the band is cut. Tap a dashed line or its ✂ to cut along it all the way round, and the ✂ again to tape it back. Tap a dashed ring to punch it out, and again to fill it. Tap an edge to light its closed edge. Tab and Enter work too. Undo takes back a change.`,
-  budget: ' The pips show how many holes you may punch.',
   playground: 'A band is a strip with its ends joined: M straight across, R after a half-turn. Choose one strip or a circle of three or four. Tap a seam’s letter to change it, a dashed line or ✂ to cut all the way round, a dashed ring to punch it out, and an edge to light its closed edge. The arrow button carries an arrow once round.'
 };
 const PREREQ = {
@@ -43,10 +43,20 @@ const PREREQ = {
   pieces: 'Puzzles 1 to 4 first. Cut and tape back, and compare pieces with cards by counting closed edges up to four.',
   holes: 'Count closed edges up to four, and add one for each hole.'
 };
+// A pieces puzzle's controls and objective name lines and holes only when it has them.
+const and = list => list.length > 1 ? `${list.slice(0, -1).join(', ')} and ${list[list.length - 1]}` : list[0];
+function piecesControls(q) {
+  const notch = q.spots.some(sp => sp.y === 0 || sp.y === q.n);
+  return [DEFINE, q.lines.length ? 'Tap the seam’s letter to change it, but not while the band is cut.' : 'Tap the seam’s letter to change it.',
+    ...(q.lines.length ? ['Tap a dashed line or its ✂ to cut along it all the way round, and the ✂ again to tape it back.'] : []),
+    ...(q.spots.length ? [notch ? 'Tap a dashed ring to punch a hole, or the dashed half ring on the edge to cut the notch, and again to fill it.' : 'Tap a dashed ring to punch a hole, and again to fill it.'] : []),
+    'Tap an edge to light its closed edge. Tab and Enter work too. Undo takes back a change.'].join(' ');
+}
+const piecesObjective = q => `${and(['Choose the seam', ...(q.lines.length ? ['cut along lines'] : []), ...(q.spots.length ? ['punch holes'] : [])])} to make pieces like the cards: one piece for each card, with one closed edge for each ring on it.`;
 const OBJ = {
-  dots: ['Put four dots on the edges so that they group like the rings: dots in one ring on one closed edge, different rings on different closed edges, or show that it can’t be done.', 'Put four dots on the edges to match the rings.'],
-  seams: ['Change seams so that the dots group like the rings: the two stars on one closed edge and the two diamonds on another.', 'Change seams so the marks group like the rings.'],
-  pieces: ['Choose the seam, cut along lines and punch holes to make pieces like the cards: one piece for each card, with one closed edge for each ring on it.', 'Make pieces like these.']
+  dots: () => ['Put four dots on the edges so that they group like the rings: dots in one ring on one closed edge, different rings on different closed edges, or show that it can’t be done.', 'Put four dots on the edges to match the rings.'],
+  seams: () => ['Change seams so that the marks group like the rings: the two stars on one closed edge and the two diamonds on another.', 'Change seams so the marks group like the rings.'],
+  pieces: q => [piecesObjective(q), 'Make pieces like these.']
 };
 const sources = ['mobius-week38', 'mobius-bonus38', 'mobius-card38', 'mobius-hatcher', 'mobius-nrich'];
 
@@ -61,8 +71,8 @@ const PUZZLES = [
     provenance: 'Week 38 K–1 and grades 2–3 Problem 3 (place four edge dots to match each ring picture on A), the 2 + 2 picture; K–1 Problem 2 (two dots on one closed edge, or on different ones).'},
   {number: 2, level: 'easy', title: 'Rings on B', q: dots(4, 'R', [], [2, 2]), check: {circles: 1, possible: false}, kind: 'dots',
     idea: 'A strip joined after a half-turn has one closed edge: following the top edge through the R seam leads onto the bottom edge.',
-    hints: ['Put a dot on the top edge and watch what lights up.', 'The light goes through the seam and comes back along the bottom edge, so B has only one closed edge.', 'Put four dots down, press Can’t, tap the edge once, then press That’s all.'],
-    parent: {notice: 'The moment the top edge lights the bottom one too. Your child may try every place on the band before believing it.', prompt: 'Where does your finger come out after the seam if it starts on the top edge?', explanation: 'At an R seam the top of the right end meets the bottom of the left end, so a trip along the top edge carries on along the bottom edge and only closes after two laps: band B, a Möbius band, has one closed edge. Two rings need two closed edges, so 2 + 2 can’t be made; one tap on the one edge is the certificate.', extension: 'Which ring pictures work on B? (Only 4.)', connection: 'The Möbius band has one boundary circle, which wraps twice round the band’s core circle (Hatcher, Algebraic Topology, Chapter 0).'},
+    hints: ['Put a dot on the top edge and watch what lights up.', 'The light goes through the seam and comes back along the bottom edge, so B has only one closed edge.', 'Put two dots on the top edge and two on the bottom edge, then press Can’t.'],
+    parent: {notice: 'The moment the top edge lights the bottom one too. Your child may try every place on the band before believing it.', prompt: 'Where does your finger come out after the seam if it starts on the top edge?', explanation: 'At an R seam the top of the right end meets the bottom of the left end, so a trip along the top edge carries on along the bottom edge and only closes after two laps: band B, a Möbius band, has one closed edge. Two rings need two closed edges, so 2 + 2 can’t be made. With one closed edge there is nothing to choose in a tap, so Can’t needs no taps here; it opens once dots are on both the top and the bottom edge, where your child has seen them light as one, and the app then draws the edge and crosses out the second ring.', extension: 'Which ring pictures work on B? (Only 4.)', connection: 'The Möbius band has one boundary circle, which wraps twice round the band’s core circle (Hatcher, Algebraic Topology, Chapter 0).'},
     provenance: 'Week 38 K–1 and grades 2–3 Problem 3 on B (the 2 + 2 picture is impossible) and K–1 Problem 2 on B (no two dots can be on different closed edges).'},
   {number: 3, level: 'easy', title: 'Cut A', q: dots(4, 'M', [2], [1, 1, 1, 1]), check: {circles: 4, possible: true}, kind: 'cutdots',
     idea: 'A cut down the middle of A gives two thinner bands, each with a top and a bottom edge: four closed edges.',
@@ -87,32 +97,32 @@ const PUZZLES = [
   {number: 7, level: 'medium', title: 'Two lines', q: {mode: 'pieces', ...one(6), start: ['M'], fixed: [false], lines: [2, 4], spots: [], goal: [1, 2]}, check: {solves: 1, of: 6, fewest: 2}, kind: 'pieces',
     idea: 'A strip cut a third of the way across: with an R seam the middle lane stays a Möbius band (one edge) and the outer lanes join into a band with two edges.',
     hints: ['Try the seam both ways, and cut.', 'With an M seam every lane is its own band with two edges. With R, the top lane joins the bottom lane.', 'Change the seam to R, then cut the lower line.'],
-    parent: {notice: 'Whether your child notices that cutting one line with an R seam also cuts the other: the cut comes back through the seam at the other height.', prompt: 'Light the edges of the middle piece. How many closed edges does it have?', explanation: 'With an R seam a cut one third of the way up comes back through the seam two thirds of the way up, so one cut divides the band into three lanes. The seam takes the middle lane to itself (turned over: a Möbius band, one edge) and swaps the top and bottom lanes (one piece, an annulus with two edges).', extension: 'With the seam M, how many pieces does cutting both lines make, and how many edges does each have? (Three bands, two edges each.)', connection: 'Bonus Problem 1’s lane cycles: the R seam reverses the lanes, so lanes k and n + 1 − k pair up, and a middle lane exists only for an odd number of lanes.'},
+    parent: {notice: 'Cut a paper strip first: the app tints each piece as soon as the band is cut, which gives away what the scissors would show. Then watch whether your child notices that cutting one line with an R seam also cuts the other: the cut comes back through the seam at the other height.', prompt: 'Light the edges of the middle piece. How many closed edges does it have?', explanation: 'With an R seam a cut one third of the way up comes back through the seam two thirds of the way up, so one cut divides the band into three lanes. The seam takes the middle lane to itself (turned over: a Möbius band, one edge) and swaps the top and bottom lanes (one piece, an annulus with two edges).', extension: 'With the seam M, how many pieces does cutting both lines make, and how many edges does each have? (Three bands, two edges each.)', connection: 'Bonus Problem 1’s lane cycles: the R seam reverses the lanes, so lanes k and n + 1 − k pair up, and a middle lane exists only for an odd number of lanes.'},
     provenance: 'Week 38 bonus Problem 1 (three lanes with M and R seams; a cut result with both a one-edge piece and a two-edge piece).'},
-  {number: 8, level: 'medium', title: 'Holes', q: {mode: 'pieces', ...one(4), start: ['R'], fixed: [false], lines: [], spots: [{x: 2, y: 2, name: 'left hole'}, {x: 4, y: 3, name: 'middle hole'}, {x: 6, y: 1, name: 'right hole'}, {x: 3, y: 4, name: 'notch'}], budget: 3, goal: [4]}, check: {solves: 7, of: 30, fewest: 3, fewestHoles: 2}, kind: 'holes',
-    idea: 'Each hole adds a closed edge and a notch adds none: an M band with two holes or an R band with three both have four closed edges.',
-    hints: ['Punch a hole and light its rim.', 'Each hole is a new closed edge; the notch only bends an edge you already have. B starts with one closed edge and A with two.', 'Change the seam to M, then punch the left hole and the middle hole.'],
-    parent: {notice: 'Whether your child expects the notch to make a new edge, and checks by lighting the edge it bites into.', prompt: 'If you ran your finger round the notch, would you come back to where you started without leaving the old edge?', explanation: 'A small hole inside the band adds its rim as a new closed edge and leaves the band in one piece; a notch only detours an existing edge. So the closed edges are the seam’s (two for M, one for R) plus the holes: four from M with two holes, or R with three. There are seven ways with at most three punches.', extension: 'Make a band with exactly three closed edges in two different ways.', connection: 'Removing a disc from the interior of a surface adds one boundary component and lowers the Euler characteristic by one; a notch at the boundary changes neither.'},
-    provenance: 'Week 38 bonus Problem 3 (bands with holes and notches; design a connected band with four closed edges using at most three holes). The bonus’s hole across the seam is left out.'},
+  {number: 8, level: 'medium', title: 'Holes', q: {mode: 'pieces', ...one(4), start: ['M'], fixed: [false], lines: [], spots: [{x: 2, y: 2, name: 'left hole'}, {x: 6, y: 2, name: 'right hole'}, {x: 4, y: 4, name: 'notch'}], goal: [4]}, check: {solves: 2, of: 16, fewest: 2}, kind: 'holes',
+    idea: 'Each hole adds a closed edge and a notch adds none: A with both holes has four closed edges, but B with both holes has only three.',
+    hints: ['Punch a hole and light its rim.', 'Each hole is a new closed edge; the notch only bends an edge you already have. A has two closed edges and B only one.', 'Keep the seam M, and punch the left hole and the right hole.'],
+    parent: {notice: 'Whether your child expects the notch to make a new edge, and checks by lighting the edge it bites into; and whether they try B and find it falls one short.', prompt: 'If you ran your finger round the notch, would you come back to where you started without leaving the old edge?', explanation: 'A small hole inside the band adds its rim as a new closed edge and leaves the band in one piece; a notch only detours an existing edge. So the closed edges are the seam’s (two for M, one for R) plus the holes. With two places for holes, A reaches four but B at most three, so the seam must be M, with both holes punched; the notch may be cut or not. Two of the sixteen boards work.', extension: 'Make a band with exactly three closed edges in two different ways.', connection: 'Removing a disc from the interior of a surface adds one boundary component and lowers the Euler characteristic by one; a notch at the boundary changes neither.'},
+    provenance: 'Week 38 bonus Problem 3 (bands with holes and notches; design a connected band with four closed edges), with two places for holes so that only A can do it. The bonus’s hole across the seam is left out.'},
   {number: 9, level: 'hard', title: 'B in thirds', q: dots(6, 'R', [2, 4], [1, 1, 1, 1]), check: {circles: 3, possible: false}, kind: 'cutdots',
     idea: 'B cut a third of the way across makes a Möbius band and an annulus: three closed edges, one too few for four rings.',
     hints: ['Light each edge of the cut band in turn.', 'The middle piece’s edge is the inner sides of both cuts. The outer piece has the old edge and the outer sides of both cuts. That makes three closed edges, and the picture has four rings.', 'Put four dots down, press Can’t, tap one edge of each colour, then press That’s all.'],
     parent: {notice: 'Whether your child sees that the edge under the lower cut and the edge over the upper cut light together.', prompt: 'Which two sides of the cuts light up together?', explanation: 'With the R seam the two cut lines are one cut that goes round twice. The middle lane is a Möbius band whose edge is the two inner sides of the cut; the outer lanes join into an annulus whose edges are the old edge and the two outer sides. Three closed edges can’t hold four rings.', extension: 'Which pictures can be made? (All but 1 + 1 + 1 + 1.)', connection: 'The card’s proposed K–1 and grades 2–3 Problem 7: cutting B one third of the way across gives a Möbius band linked with an annulus.'},
     provenance: 'Week 38 review card, fix 3 (an adult cuts B one third of the way across; which four-dot pictures can be made), the 1 + 1 + 1 + 1 picture; bonus Problem 1’s three-lane R band.'},
-  {number: 10, level: 'hard', title: 'Four strips', q: {mode: 'seams', ...strips(4), start: ['R', 'M', 'R', 'R'], fixed: [false, false, true, false], marks: [mark('star', 0, true, 2), mark('star', 2, false, 2), mark('diamond', 1, false, 1), mark('diamond', 3, false, 1)]}, check: {solutions: ['MRRM'], of: 8, fewest: 3}, kind: 'seams',
+  {number: 10, level: 'hard', title: 'Four strips', q: {mode: 'seams', ...strips(4), start: ['R', 'R', 'R', 'R'], fixed: [false, false, true, false], marks: [mark('star', 0, true, 2), mark('star', 2, false, 2), mark('diamond', 1, false, 1), mark('diamond', 3, false, 1)]}, check: {solutions: ['MRRM'], of: 8, fewest: 2}, kind: 'seams',
     idea: 'With one seam fixed, the dots decide the other three: follow an edge seam by seam, then close the circle with an even number of R seams.',
-    hints: ['Light the edge under each mark and see which marks share it.', 'If the first seam were R, the top of strip 1 would carry on along the bottom of strip 2, onto a diamond. So the first seam is M.', 'Change the seam after strip 1 to M, the seam after strip 2 to R and the seam after strip 4 to M.'],
+    hints: ['Light the edge under each mark and see which marks share it.', 'If the first seam were R, the top of strip 1 would carry on along the bottom of strip 2, onto a diamond. So the first seam is M.', 'Change the seam after strip 1 to M and the seam after strip 4 to M.'],
     parent: {notice: 'Whether your child plans from the fixed seam, or follows one light all the way round before changing anything.', prompt: 'Is strip 3’s bottom edge on the same closed edge as strip 1’s top? Which seams decide that?', explanation: 'From the top of strip 1 an edge is on the bottom of strip k exactly when an odd number of the seams before strip k are R. The stars (top of strip 1, bottom of strip 3) need seams 1 and 2 to turn over once in all; the diamonds (bottom of strips 2 and 4) must not share the stars’ edge, so seam 1 is M, seam 2 is R, and with the fixed seam 3 (R) the edge is on the bottom of strip 4 too; stars and diamonds need two closed edges, so the number of R seams is even and seam 4 is M.', extension: 'Bonus Problem 2: design a four-strip circle with one closed edge, and another with two.', connection: 'The edge count is the parity of the R seams, but which edges join depends on the partial sums: the dots pin the first three, and the parity pins the last.'},
     provenance: 'Week 38 bonus Problem 2 (four-strip circles with one closed edge or two), with one seam fixed and fixed stars and diamonds: new.'},
   {number: 11, level: 'hard', title: 'Three lines', q: {mode: 'pieces', ...one(4), start: ['M'], fixed: [false], lines: [1, 2, 3], spots: [], goal: [1, 2]}, check: {solves: 1, of: 12, fewest: 2}, kind: 'pieces',
     idea: 'On an R band the middle cut gives one piece with two edges, but a cut a quarter of the way across leaves a Möbius band in the middle.',
     hints: ['Try cutting different lines, with each seam.', 'With the seam R, the middle line is a cut by itself, and the lowest and top lines are one cut that goes round twice.', 'Change the seam to R, then cut the lowest line.'],
-    parent: {notice: 'Whether your child compares the middle cut with the off-centre cut, and lights the middle piece’s edge.', prompt: 'After cutting the middle line, how many pieces are there? After cutting the lowest line?', explanation: 'On B the middle cut gives one piece with two edges (puzzle 4). The lowest line comes back through the R seam as the top line, so cutting it leaves three lanes: the middle two lanes form a Möbius band (one edge) and the outer lanes an annulus (two edges). Cutting the middle line as well would split that Möbius band into an annulus.', extension: 'With four lanes and an R seam, cut every line: what pieces do you get? (Two annuli, as bonus Problem 1’s 4R.)', connection: 'Bonus Problem 1’s four-lane R band: lanes 1 and 4 pair up, and lanes 2 and 3; cutting only some lines merges lanes first.'},
+    parent: {notice: 'Cut paper strips first: the app tints each piece as soon as the band is cut, which gives away what the scissors would show. Then watch whether your child compares the middle cut with the off-centre cut, and lights the middle piece’s edge.', prompt: 'After cutting the middle line, how many pieces are there? After cutting the lowest line?', explanation: 'On B the middle cut gives one piece with two edges (puzzle 4). The lowest line comes back through the R seam as the top line, so cutting it leaves three lanes: the middle two lanes form a Möbius band (one edge) and the outer lanes an annulus (two edges). Cutting the middle line as well would split that Möbius band into an annulus.', extension: 'With four lanes and an R seam, cut every line: what pieces do you get? (Two annuli, as bonus Problem 1’s 4R.)', connection: 'Bonus Problem 1’s four-lane R band: lanes 1 and 4 pair up, and lanes 2 and 3; cutting only some lines merges lanes first.'},
     provenance: 'Week 38 bonus Problem 1 (four lanes, M and R seams) and grades 2–3 and 4–5 Problems 4–5 (the middle cut of B), combined: new.'},
   {number: 12, level: 'hard', title: 'Cut and punch', q: {mode: 'pieces', ...one(6), start: ['M'], fixed: [false], lines: [2, 4], spots: [{x: 2, y: 5, name: 'hole in the top lane'}, {x: 6, y: 3, name: 'hole in the middle lane'}, {x: 10, y: 1, name: 'hole in the bottom lane'}], goal: [1, 3]}, check: {solves: 2, of: 48, fewest: 3}, kind: 'pieces',
     idea: 'A piece with one edge must be a Möbius band; the hole goes in the piece beside it, which already has two edges.',
     hints: ['Which piece can have just one closed edge?', 'Only a Möbius band has one closed edge, so the seam must be R and the band cut; the outer piece then needs one more closed edge.', 'Change the seam to R, cut the lower line, then punch the hole in the top lane.'],
-    parent: {notice: 'Whether your child works backwards from the one-edge card.', prompt: 'Which piece does the top lane belong to after the cut?', explanation: 'Every piece of an M band has at least two edges, so the one-edge piece is the Möbius band in the middle of an R band cut a third of the way across. The outer piece is an annulus with two edges, and a hole in the top or bottom lane (both in that piece) makes three.', extension: 'Make pieces with two and two closed edges in two different ways.', connection: 'Pieces are cycles of the lanes, and holes add boundary components to the piece they are in: the two counts combine independently.'},
+    parent: {notice: 'Cut a paper strip first: the app tints each piece as soon as the band is cut, which gives away what the scissors would show. Then watch whether your child works backwards from the one-edge card.', prompt: 'Which piece does the top lane belong to after the cut?', explanation: 'Every piece of an M band has at least two edges, so the one-edge piece is the Möbius band in the middle of an R band cut a third of the way across. The outer piece is an annulus with two edges, and a hole in the top or bottom lane (both in that piece) makes three.', extension: 'Make pieces with two and two closed edges in two different ways.', connection: 'Pieces are cycles of the lanes, and holes add boundary components to the piece they are in: the two counts combine independently.'},
     provenance: 'Week 38 bonus Problems 1 and 3 combined (lane cuts and holes): new.'}
 ];
 
@@ -128,14 +138,17 @@ const out = PUZZLES.map(item => {
     assert.equal(dotsPossible(q, topo), item.check.possible, `${p.id}: possible`);
     for (const h of q.cuts) assert.ok(q.seams[0] === 'M' || q.cuts.includes(q.n - h), `${p.id}: a cut on B runs on round`);
     // Play the hints from a fresh board: they place dots and, when the
-    // picture can't be made, claim with one tap on each closed edge.
+    // picture can't be made, claim with one tap on each closed edge (with
+    // Can't alone on a band with one closed edge).
     let b = fresh, steps = 0;
     while (!M.solved(p, b)) { const h = M.hint(p, b); b = M.move(p, b, h.action); assert.ok(b && ++steps < 20, `${p.id}: hints solve`); }
     solution = item.check.possible
       ? {possible: true, closedEdges: topo.circles.length, dots: b.dots, groups: groupSizes(topo, b.dots)}
-      : {cant: true, certificate: 'one tap on each closed edge', closedEdges: topo.circles.length, rings: q.rings.length, dots: b.dots, taps: b.claimed};
-    rules = [RULES.band, RULES.edge, ...(q.cuts.length ? [RULES.cut] : []), RULES.dots, RULES.cant];
-    controls = CONTROLS.dots;
+      : {cant: true, certificate: topo.circles.length === 1 ? 'Can’t after dots on both edge lines' : 'one tap on each closed edge', closedEdges: topo.circles.length, rings: q.rings.length, dots: b.dots, taps: b.claimed};
+    const bare = topo.circles.length === 1 && !item.check.possible;
+    if (bare) assert.deepEqual(b.claimed, [], `${p.id}: Can't alone`);
+    rules = [RULES.band, RULES.edge, ...(q.cuts.length ? [RULES.cut] : []), RULES.dots, bare ? RULES.cantOne : RULES.cant];
+    controls = bare ? CONTROLS.dotsOne : CONTROLS.dots;
   } else {
     const all = reachable(p), solves = all.filter(b => M.solved(p, b)), path = pathFrom(p, fresh);
     if (q.mode === 'seams') {
@@ -148,18 +161,14 @@ const out = PUZZLES.map(item => {
       assert.equal(solves.length, item.check.solves, `${p.id}: solving boards`);
       assert.equal(all.length, item.check.of, `${p.id}: boards`);
       for (const sp of q.spots) assert.ok(!q.lines.includes(sp.y), `${p.id}: no spot on a line`);
-      rules = [RULES.band, RULES.edge, ...(q.lines.length ? [RULES.cut, RULES.lock] : []), RULES.pieces, ...(q.spots.length ? [RULES.holes] : []), ...(q.budget ? [RULES.budget] : [])];
-      controls = CONTROLS.pieces + (q.budget ? CONTROLS.budget : '');
+      const notch = q.spots.some(sp => sp.y === 0 || sp.y === q.n);
+      rules = [RULES.band, RULES.edge, ...(q.lines.length ? [RULES.cut, RULES.lock] : []), RULES.pieces, ...(q.spots.length ? [notch ? RULES.notch : RULES.holes] : [])];
+      controls = piecesControls(q);
       solution = {boards: solves, of: all.length, fewest: path.length, edges: q.goal};
-      if (q.budget) {
-        const fewestHoles = Math.min(...solves.map(b => b.holes.length));
-        assert.equal(fewestHoles, item.check.fewestHoles, `${p.id}: fewest holes`);
-        assert.ok(q.budget > fewestHoles, `${p.id}: the budget is not the fewest`);
-      }
     }
     assert.equal(path.length, item.check.fewest, `${p.id}: fewest moves`);
   }
-  const [objective, visible] = OBJ[q.mode];
+  const [objective, visible] = OBJ[q.mode](q);
   return {
     id: p.id, number: item.number, title: item.title, difficulty_level: item.level, familyTitle: 'Seams', mechanic: 'mobius', band: 'all', revision: 1, sourceDocument: 'docs/mobius/README.md',
     parameters: q, objective, visibleObjective: visible, instruction: objective, controls, rules,
@@ -179,7 +188,7 @@ const playground = {
   objective: 'Join strips with M and R seams, cut them along their lines, punch holes, and light the closed edges.', visibleObjective: '',
   instruction: 'Join strips with M and R seams, cut them along their lines, punch holes, and light the closed edges.',
   controls: CONTROLS.playground,
-  rules: [RULES.band, RULES.edge, RULES.circle, RULES.cut, RULES.holes, RULES.lock],
+  rules: [RULES.band, RULES.edge, RULES.circle, RULES.cut, RULES.notch, RULES.lock],
   idea: 'Free play with seams, cuts and holes: the closed edges and pieces follow from the seams alone.',
   prerequisites: 'None. A grown-up or a partner can suggest a seam to change or a line to cut.',
   hints: ['Light an edge of one strip with an M seam, then change the seam to R.', 'In three strips, change one seam at a time and light an edge each time.', 'Cut one strip along a line with each seam, and light every edge.'],

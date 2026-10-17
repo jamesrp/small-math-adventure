@@ -112,9 +112,6 @@
 [data-mechanic-wire="mobius"] .mb-card.t2{fill:#f3d6cc}
 [data-mechanic-wire="mobius"] .mb-card.t3{fill:#dce8d8}
 [data-mechanic-wire="mobius"] .mb-card-ring{fill:none;stroke:var(--mb-ink);stroke-width:2px;vector-effect:non-scaling-stroke}
-[data-mechanic-wire="mobius"] .mb-budget{display:flex;gap:5px}
-[data-mechanic-wire="mobius"] .mb-budget i{width:14px;height:14px;border-radius:50%;border:2px dashed #8b977d;background:transparent}
-[data-mechanic-wire="mobius"] .mb-budget i.used{border:2px solid var(--mb-ink);background:var(--mb-card)}
 
 /* Buttons. */
 [data-mechanic-wire="mobius"] .mb-button{min-height:44px;min-width:56px}

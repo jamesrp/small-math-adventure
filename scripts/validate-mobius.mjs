@@ -10,9 +10,11 @@
 // every way four dots can fall on the closed edges; every seam choice and
 // every board of seams, cuts and holes; how often random taps solve each
 // seam and pieces puzzle and each Can't certificate (and in page order);
-// witnesses played as moves; hint chains from fresh, after a wrong move,
-// after a wrong Can't and after Undo; illegal moves; forged saves, including
-// a forged claim; the playground; the time hints take (CPU time).
+// tapping each free control once, in every order and in page order; Can't
+// alone on the band with one closed edge; witnesses played as moves; hint
+// chains from fresh, after a wrong move, after a wrong Can't and after Undo;
+// illegal moves; forged saves, including a forged claim; the playground; the
+// time hints take (CPU time).
 // Run: node scripts/validate-mobius.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
@@ -129,25 +131,48 @@ const shapeOf = s => ({K: s.strips, L: s.len * s.n, n: s.n});
 
 // --- The answers ------------------------------------------------------------------------------
 // Dots: closed edges and whether the picture can be made. Seams: the only
-// seams. Pieces: how many boards solve, of how many.
+// seams. Pieces: how many boards solve, of how many. Both: the fewest moves.
 const TABLE = {
   'mobius-01': {mode: 'dots', circles: 2, possible: true, pieces: ['annulus']},
   'mobius-02': {mode: 'dots', circles: 1, possible: false, pieces: ['Möbius band']},
   'mobius-03': {mode: 'dots', circles: 4, possible: true, pieces: ['annulus', 'annulus']},
   'mobius-04': {mode: 'dots', circles: 2, possible: true, pieces: ['annulus']},
   'mobius-05': {mode: 'dots', circles: 2, possible: false, pieces: ['annulus']},
-  'mobius-06': {mode: 'seams', solutions: ['RMR'], of: 8},
-  'mobius-07': {mode: 'pieces', solves: 1, of: 6, pieces: ['annulus', 'Möbius band']},
-  'mobius-08': {mode: 'pieces', solves: 7, of: 30},
+  'mobius-06': {mode: 'seams', solutions: ['RMR'], of: 8, fewest: 2},
+  'mobius-07': {mode: 'pieces', solves: 1, of: 6, fewest: 2, pieces: ['annulus', 'Möbius band']},
+  'mobius-08': {mode: 'pieces', solves: 2, of: 16, fewest: 2},
   'mobius-09': {mode: 'dots', circles: 3, possible: false, pieces: ['annulus', 'Möbius band']},
-  'mobius-10': {mode: 'seams', solutions: ['MRRM'], of: 8},
-  'mobius-11': {mode: 'pieces', solves: 1, of: 12, pieces: ['annulus', 'Möbius band']},
-  'mobius-12': {mode: 'pieces', solves: 2, of: 48}
+  'mobius-10': {mode: 'seams', solutions: ['MRRM'], of: 8, fewest: 2},
+  'mobius-11': {mode: 'pieces', solves: 1, of: 12, fewest: 2, pieces: ['annulus', 'Möbius band']},
+  'mobius-12': {mode: 'pieces', solves: 2, of: 48, fewest: 3}
 };
 // Random taps may solve at most this share of seam and pieces puzzles (a
 // uniformly random board, or as many random moves as the fewest) and of
 // Can't certificates (one to six random edge taps).
 const RANDOM_BOARD = .25, RANDOM_TAPS = .25, RANDOM_CERT = .26;
+// Tapping each free control once, in any order, may pass through a solve in
+// at most this share of the orders, and never in page order.
+const EACH_ONCE = 1 / 3;
+const perms = list => list.length <= 1 ? [list] : list.flatMap((x, i) => perms([...list.slice(0, i), ...list.slice(i + 1)]).map(r => [x, ...r]));
+// Each control tapped once, in every order: how many orders pass through a
+// solve, and whether page order does. A tap the board refuses at that moment
+// (a seam while the band is cut) changes nothing. The mechanic plays every
+// order too and must agree.
+function eachOnce(p, start, controls, tap, isGoal) {
+  const pass = order => { let b = start; for (const c of order) { b = tap(b, c) || b; if (isGoal(b)) return true; } return false; };
+  const passMechanic = order => { let a = freshAttempt(p); for (const c of order) { a = move(p, a, c) || a; if (isSolved(p, a.board)) return true; } return false; };
+  let solving = 0;
+  const orders = perms(controls);
+  for (const order of orders) {
+    const ok = pass(order);
+    assert.equal(passMechanic(order), ok, `${p.id}: the mechanic agrees on ${JSON.stringify(order)}`);
+    if (ok) solving++;
+  }
+  const out = {orders: orders.length, solving, pageOrder: pass(controls)};
+  assert.ok(!out.pageOrder, `${p.id}: tapping each control once in page order doesn’t solve it`);
+  assert.ok(solving / orders.length <= EACH_ONCE, `${p.id}: tapping each control once solves ${solving} of ${orders.length} orders`);
+  return out;
+}
 
 const play = (p, a, ...actions) => actions.reduce((x, action) => { const next = move(p, x, action); assert.ok(next && next !== x, `${p.id}: ${JSON.stringify(action)} is legal`); return next; }, a);
 const refused = (p, a, action, label) => assert.equal(move(p, a, action), null, `${p.id}: ${label}`);
@@ -246,19 +271,27 @@ function checkDots(p, fresh, row) {
   refused(p, tried, {type: 'cant', flags: [segs[0], segs[0]]}, 'Can’t with a tap twice');
   refused(p, tried, {type: 'cant', flags: segs.slice(0, 7)}, 'Can’t with seven taps');
   // A certificate is one tap on each closed edge. Two on one closed edge, or
-  // one missing, is refused ("Tap each closed edge once.") and Can't stays open.
+  // one missing, is not a move (the page says "Tap each closed edge once."
+  // without saving it) and Can't stays open.
   const cert = Array.from({length: B.circles}, (_, c) => byCircle(c)[c % byCircle(c).length]);
   const twice = [...cert, byCircle(0).find(k => k !== cert[0])];
   const short = cert.slice(0, -1);
-  for (const [flags, label] of [[twice, 'a closed edge tapped twice'], ...(short.length ? [[short, 'a closed edge missed']] : [])]) {
-    // A second refusal of the same kind leaves the board as it was.
-    const r = move(p, tried, {type: 'cant', flags});
-    assert.ok(r, `${p.id}: ${label} is a claim`);
-    assert.equal(r.board.told, 'flags', `${p.id}: ${label} is refused`);
-    assert.ok(!isSolved(p, r.board));
-    tried = r;
-  }
+  for (const [flags, label] of [[twice, 'a closed edge tapped twice'], ...(short.length ? [[short, 'a closed edge missed']] : [])]) refused(p, tried, {type: 'cant', flags}, `${label} is not a move`);
   const t2 = tried;
+  // One closed edge: no tap is a choice, so Can't alone is the claim, once
+  // dots are on both edge lines (the top and the bottom of B).
+  const oneEdge = B.circles === 1;
+  let both = null, bareCantOpens = null;
+  if (oneEdge) {
+    assert.ok(!possible, `${p.id}: one closed edge can’t do a picture of two rings`);
+    assert.equal(new Set(wrong.map(k => k.split(':').slice(0, 2).join(':'))).size, 1, `${p.id}: the wrong dots are on one edge line`);
+    const other = segs.find(k => k.split(':')[1] !== wrong[0].split(':')[1]);
+    both = play(p, tried, {type: 'dot', seg: wrong[3]}, {type: 'dot', seg: other});
+    refused(p, both, {type: 'cant', flags: [cert[0]]}, 'a tap on the one closed edge is not a claim');
+    // Four random dots open Can't when they are not all on one edge line.
+    const lines = [...new Set(segs.map(k => k.split(':').slice(0, 2).join(':')))];
+    bareCantOpens = 1 - lines.reduce((m, l) => m + binom(segs.filter(k => k.startsWith(`${l}:`)).length, 4), 0) / binom(segs.length, 4);
+  }
   if (possible) {
     // A whole certificate on a band that can do it: "There is a way.", kept
     // through Undo while the dots are the same, lifted by a dot.
@@ -278,11 +311,15 @@ function checkDots(p, fresh, row) {
     hintsSolve(p, r, 'after "There is a way."');
     hintsSolve(p, back, 'after Undo of a refused Can’t');
   } else {
-    // Every certificate claims; the claim is final.
-    const r = play(p, t2, {type: 'cant', flags: [...cert].reverse()});
+    // Every certificate claims (Can't alone with one closed edge); the claim is final.
+    const r = oneEdge ? play(p, both, {type: 'cant', flags: []}) : play(p, t2, {type: 'cant', flags: [...cert].reverse()});
     assert.ok(isSolved(p, r.board) === true && r.completed === true && Array.isArray(r.board.claimed), `${p.id}: a right Can’t`);
     refused(p, r, {type: 'dot', seg: wrong[0]}, 'no move after the claim');
-    assert.deepEqual(p.solution.taps.map(k => circleOf.get(k)).sort(), Array.from({length: B.circles}, (_, c) => c), `${p.id}: the pack’s taps certify`);
+    if (oneEdge) {
+      assert.deepEqual(r.board.claimed, [], `${p.id}: Can’t alone claims no taps`);
+      assert.deepEqual(p.solution.taps, [], `${p.id}: the pack claims with Can’t alone`);
+      assert.ok(new Set(p.solution.dots.map(k => k.split(':').slice(0, 2).join(':'))).size >= 2, `${p.id}: the pack’s dots are on both edge lines`);
+    } else assert.deepEqual(p.solution.taps.map(k => circleOf.get(k)).sort(), Array.from({length: B.circles}, (_, c) => c), `${p.id}: the pack’s taps certify`);
   }
   // Random taps: how often a certificate of m random distinct edge taps
   // passes (m from one to six, equally likely), and with m right; and the
@@ -291,7 +328,7 @@ function checkDots(p, fresh, row) {
   const right = sizes.reduce((m, s) => m * s, 1) / binom(segs.length, B.circles);
   const random = B.circles <= 6 ? right / 6 : 0;
   const pageOrder = [1, 2, 3, 4, 5, 6].filter(m => new Set(segs.slice(0, m).map(k => circleOf.get(k))).size === m && m === B.circles).length;
-  if (!possible) assert.ok(random <= RANDOM_CERT, `${p.id}: random taps pass the certificate ${random.toFixed(3)} of the time`);
+  if (!possible && !oneEdge) assert.ok(random <= RANDOM_CERT, `${p.id}: random taps pass the certificate ${random.toFixed(3)} of the time`);
   // Forged saves.
   const b = fresh.board, t2b = t2.board;
   const forged = [
@@ -312,13 +349,16 @@ function checkDots(p, fresh, row) {
     {...t2b, told: 'flags', flags: cert},
     {...t2b, told: null, flags: cert},
     {...t2b, told: null, flags: [], claimed: cert, extra: true},
+    {...t2b, told: null, flags: [], claimed: []},
+    ...(both ? [{...both.board, claimed: [cert[0]]}, {...both.board, told: 'way'}] : []),
     ...(possible ? [{...b, dots: p.solution.dots, told: 'flags'}] : [{...t2b, told: 'way'}])
   ];
   forged.forEach((f, i) => assert.equal(validBoard(p, f), false, `${p.id}: forged save ${i} refused`));
   refused(p, fresh, {type: 'seam', k: 0}, 'the seam is fixed here');
   refused(p, fresh, {type: 'cut', h: 1}, 'no cutting here');
   const steps = hintsSolve(p, fresh, 'from fresh') + hintsSolve(p, t2, 'after a wrong Can’t') + hintsSolve(p, play(p, fresh, {type: 'dot', seg: wrong[0]}, {type: 'dot', seg: wrong[1]}), 'after wrong dots');
-  return {steps, closedEdges: B.circles, certificateRandom: Number(random.toFixed(4)), certificatePageOrder: pageOrder > 0, segments: segs.length, ...(possible ? {randomDots: Number(randomDots.toFixed(4))} : {})};
+  const claim = oneEdge ? {certificate: 'Can’t alone', bareCantOpens: Number(bareCantOpens.toFixed(4))} : {certificateRandom: Number(random.toFixed(4)), certificatePageOrder: pageOrder > 0};
+  return {steps, closedEdges: B.circles, ...claim, segments: segs.length, ...(possible ? {randomDots: Number(randomDots.toFixed(4))} : {})};
 }
 
 // Every seam choice the free seams allow.
@@ -356,6 +396,7 @@ function checkSeams(p, fresh, row) {
   // Fewest changes, and random taps.
   const dist = s => s.filter((m, k) => m !== q.start[k]).length, fewest = dist(sols[0].split(''));
   assert.equal(p.solution.fewest, fewest, `${p.id}: fewest changes`);
+  assert.equal(fewest, row.fewest, `${p.id}: fewest changes in the table`);
   assert.ok(fewest >= 2, `${p.id}: more than one change`);
   const share = sols.length / choices.length;
   const walk = randomWalk(q.start, s => s.flatMap((m, k) => q.fixed[k] ? [] : [s.map((x, i) => i === k ? (x === 'M' ? 'R' : 'M') : x)]), meets, fewest);
@@ -364,6 +405,9 @@ function checkSeams(p, fresh, row) {
   // the answer's, or a single change of parity doesn't solve it.
   const oneChange = choices.filter(s => dist(s) === 1);
   assert.ok(oneChange.every(s => !meets(s)), `${p.id}: no single change solves it`);
+  // Each free seam changed once, in every order and in page order (first seam first).
+  const free = q.fixed.flatMap((fx, k) => fx ? [] : [k]);
+  const once = eachOnce(p, q.start, free.map(k => ({type: 'seam', k})), (s, c) => s.map((m, i) => i === c.k ? (m === 'M' ? 'R' : 'M') : m), meets);
   // Witness as moves; illegal moves; forged saves.
   let a = fresh;
   q.start.forEach((m, k) => { if (m !== sols[0][k]) a = play(p, a, {type: 'seam', k}); });
@@ -374,23 +418,20 @@ function checkSeams(p, fresh, row) {
   refused(p, fresh, {type: 'dot', seg: '0:0u:0'}, 'no dots here');
   const forged = [{seams: q.start.slice(1)}, {seams: q.start.map(() => 'X')}, {...fresh.board, extra: 1}, ...q.fixed.map((fx, k) => fx ? {seams: q.start.map((m, i) => i === k ? (m === 'M' ? 'R' : 'M') : m)} : null).filter(Boolean)];
   forged.forEach((f, i) => assert.equal(validBoard(p, f), false, `${p.id}: forged save ${i} refused`));
-  const free = q.fixed.indexOf(false), wrongMove = {type: 'seam', k: q.start.findIndex((m, k) => !q.fixed[k] && m === sols[0][k])};
-  const steps = hintsSolve(p, fresh, 'from fresh') + hintsSolve(p, play(p, fresh, wrongMove.k >= 0 ? wrongMove : {type: 'seam', k: free}), 'after a wrong move');
-  return {steps, randomBoard: share, randomTaps: Number(walk.toFixed(4)), fewest};
+  const wrongMove = {type: 'seam', k: q.start.findIndex((m, k) => !q.fixed[k] && m === sols[0][k])};
+  const steps = hintsSolve(p, fresh, 'from fresh') + hintsSolve(p, play(p, fresh, wrongMove.k >= 0 ? wrongMove : {type: 'seam', k: free[0]}), 'after a wrong move');
+  return {steps, randomBoard: share, randomTaps: Number(walk.toFixed(4)), fewest, eachOnce: once};
 }
 
 // Every board of a pieces puzzle or a playground shape: each seam choice,
 // each set of cut curves (a cut on an R band runs on round to n - h), each
-// set of holes within the budget.
+// set of holes.
 function subsets(list) { return list.reduce((acc, x) => [...acc, ...acc.map(s => [...s, x])], [[]]); }
 function allBoards(shape) {
   const s = {...shape, lines: shape.lines || [], spots: shape.spots || []}, out = [];
   for (const seams of seamChoices(s.start, s.fixed)) {
     const curves = s.strips === 1 && seams[0] === 'R' ? s.lines.filter(h => h <= s.n - h).map(h => [...new Set([h, s.n - h])]) : s.lines.map(h => [h]);
-    for (const cs of subsets(curves)) for (const holes of subsets(s.spots.map((_, i) => i))) {
-      if (s.budget && holes.length > s.budget) continue;
-      out.push({seams, cuts: cs.flat().sort((a, b) => a - b), holes});
-    }
+    for (const cs of subsets(curves)) for (const holes of subsets(s.spots.map((_, i) => i))) out.push({seams, cuts: cs.flat().sort((a, b) => a - b), holes});
   }
   return out;
 }
@@ -410,13 +451,13 @@ function checkPieces(p, fresh, row) {
   assert.deepEqual(p.solution.boards.map(b => JSON.stringify(b)).sort(), solves.map(b => JSON.stringify(b)).sort(), `${p.id}: the pack’s solving boards`);
   if (row.pieces) for (const b of solves) assert.deepEqual(band({...shapeOf(q), seams: b.seams, cuts: b.cuts}).pieces.map(kind).sort(), [...row.pieces].sort(), `${p.id}: the pieces are ${row.pieces.join(' and ')}`);
   // Moves: change a free seam (not while cut), cut or tape a curve, punch or
-  // fill a hole within the budget. Fewest moves and random taps.
+  // fill a hole. Fewest moves and random taps.
   const movesOf = b => {
     const out = [];
     if (!b.cuts.length) q.fixed.forEach((fx, k) => { if (!fx) out.push({...b, seams: b.seams.map((m, i) => i === k ? (m === 'M' ? 'R' : 'M') : m)}); });
     const curves = b.seams[0] === 'R' ? q.lines.filter(h => h <= q.n - h).map(h => [...new Set([h, q.n - h])]) : q.lines.map(h => [h]);
     for (const c of curves) out.push({...b, cuts: c.every(h => b.cuts.includes(h)) ? b.cuts.filter(h => !c.includes(h)) : [...b.cuts, ...c].sort((x, y) => x - y)});
-    q.spots.forEach((_, i) => { if (b.holes.includes(i)) out.push({...b, holes: b.holes.filter(x => x !== i)}); else if (!q.budget || b.holes.length < q.budget) out.push({...b, holes: [...b.holes, i].sort((x, y) => x - y)}); });
+    q.spots.forEach((_, i) => out.push({...b, holes: b.holes.includes(i) ? b.holes.filter(x => x !== i) : [...b.holes, i].sort((x, y) => x - y)}));
     return out;
   };
   const start = {seams: q.start, cuts: [], holes: []}, key = b => JSON.stringify(b), isGoal = b => same(edgesOf(q, b), goal);
@@ -425,9 +466,19 @@ function checkPieces(p, fresh, row) {
   assert.equal(dist.size, boards.length, `${p.id}: every board can be reached`);
   const fewest = Math.min(...solves.map(b => dist.get(key(b))));
   assert.equal(p.solution.fewest, fewest, `${p.id}: fewest moves`);
+  assert.equal(fewest, row.fewest, `${p.id}: fewest moves in the table`);
   const share = solves.length / boards.length, walk = randomWalk(start, movesOf, isGoal, fewest);
   assert.ok(share <= RANDOM_BOARD && walk <= RANDOM_TAPS, `${p.id}: random boards solve ${share.toFixed(3)}, random taps ${walk.toFixed(3)}`);
-  if (q.budget) assert.ok(Math.min(...solves.map(b => b.holes.length)) < q.budget, `${p.id}: the budget is more than the fewest holes`);
+  // Each control tapped once, in every order and in page order: the lines
+  // from the bottom, then the seam, then the spots. A line's tap cuts or tapes
+  // its whole curve.
+  const controls = [...q.lines.map(h => ({type: 'cut', h})), ...q.fixed.flatMap((fx, k) => fx ? [] : [{type: 'seam', k}]), ...q.spots.map((_, i) => ({type: 'hole', i}))];
+  const tap = (b, c) => {
+    if (c.type === 'seam') return b.cuts.length ? null : {...b, seams: b.seams.map((m, i) => i === c.k ? (m === 'M' ? 'R' : 'M') : m)};
+    if (c.type === 'cut') { const curve = b.seams[0] === 'R' ? [...new Set([c.h, q.n - c.h])] : [c.h]; return {...b, cuts: curve.every(h => b.cuts.includes(h)) ? b.cuts.filter(h => !curve.includes(h)) : [...new Set([...b.cuts, ...curve])].sort((x, y) => x - y)}; }
+    return {...b, holes: b.holes.includes(c.i) ? b.holes.filter(x => x !== c.i) : [...b.holes, c.i].sort((x, y) => x - y)};
+  };
+  const once = eachOnce(p, start, controls, tap, isGoal);
   // The witness as moves, in a different order from the hints: holes first.
   const w = solves[0];
   let a = fresh;
@@ -447,10 +498,6 @@ function checkPieces(p, fresh, row) {
   refused(p, fresh, {type: 'hole', i: q.spots.length}, 'no such spot');
   refused(p, fresh, {type: 'dot', seg: '0:0u:0'}, 'no dots here');
   refused(p, fresh, {type: 'seam', k: 1}, 'no second seam');
-  if (q.budget) {
-    const full = play(p, fresh, ...Array.from({length: q.budget}, (_, i) => ({type: 'hole', i})));
-    refused(p, full, {type: 'hole', i: q.budget}, 'no hole past the budget');
-  }
   // Forged saves.
   const b = fresh.board;
   const forged = [
@@ -462,7 +509,7 @@ function checkPieces(p, fresh, row) {
     {...b, seams: ['X']},
     {...b, seams: ['M', 'M']},
     ...(q.lines.length > 1 && q.lines.some(h => h !== q.n - h) ? [{...b, seams: ['R'], cuts: [q.lines.find(h => h !== q.n - h)]}] : []),
-    ...(q.budget ? [{...b, holes: q.spots.map((_, i) => i).slice(0, q.budget + 1)}] : [])
+    ...(q.spots.length > 1 ? [{...b, holes: [1, 0]}] : [])
   ];
   forged.forEach((f, i) => assert.equal(validBoard(p, f), false, `${p.id}: forged save ${i} refused`));
   // Hints from fresh and after a wrong move: one that leaves the band no
@@ -475,7 +522,7 @@ function checkPieces(p, fresh, row) {
   assert.ok(wrongAction, `${p.id}: a wrong first move exists`);
   const wrong = play(p, fresh, wrongAction);
   const steps = hintsSolve(p, fresh, 'from fresh') + hintsSolve(p, wrong, 'after a wrong move');
-  return {steps, randomBoard: Number(share.toFixed(4)), randomTaps: Number(walk.toFixed(4)), fewest};
+  return {steps, randomBoard: Number(share.toFixed(4)), randomTaps: Number(walk.toFixed(4)), fewest, eachOnce: once};
 }
 
 function checkPlayground(p, fresh) {
@@ -484,7 +531,7 @@ function checkPlayground(p, fresh) {
   let boards = 0;
   for (const [id, s] of Object.entries(q.shapes)) {
     const a = id === fresh.board.shape ? fresh : play(p, fresh, {type: 'shape', id});
-    for (const b of allBoards({...s, budget: null})) {
+    for (const b of allBoards(s)) {
       const board = {shape: id, ...b};
       assert.ok(validBoard(p, board), `${id}: ${JSON.stringify(b)} is a playground board`);
       assert.equal(isSolved(p, board), false, 'the playground is never solved');

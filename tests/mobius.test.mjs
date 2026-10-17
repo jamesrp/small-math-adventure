@@ -145,18 +145,16 @@ test('dots: four dots match the rings, a fifth is refused, a dot lifts', () => {
   assert.equal(play(p, b, {type: 'dot', seg: '0:0u:3'}).board.dots.length, 3);
 });
 
-test('dots: Can’t needs four dots, a tap on each closed edge, and stays refused through Undo', () => {
+test('dots: Can’t needs four dots and one tap on each closed edge; "There is a way." stays through Undo', () => {
   const p = byId('mobius-05'), q = p.parameters;
   const fresh = freshAttempt(p);
   assert.ok(!cantOpen(q, fresh.board));
   let a = play(p, fresh, ...['0:0u:1', '0:0u:2', '0:4d:3', '0:2d:3'].map(seg => ({type: 'dot', seg})));
   assert.ok(cantOpen(q, a.board));
-  // One tap on the walls only misses the cut; two on one closed edge (top and bottom) twice.
-  for (const flags of [['0:0u:0'], ['0:0u:0', '0:4d:0'], ['0:0u:0', '0:2d:0', '0:2u:0']]) {
-    const r = move(p, a, {type: 'cant', flags});
-    assert.equal(r.board.told, 'flags', JSON.stringify(flags));
-    assert.ok(cantOpen(q, r.board), 'Can’t stays open');
-  }
+  // One tap on the walls only misses the cut; two on one closed edge (top and
+  // bottom) twice: not moves, so nothing is saved and Can't stays open.
+  for (const flags of [['0:0u:0'], ['0:0u:0', '0:4d:0'], ['0:0u:0', '0:2d:0', '0:2u:0']]) assert.equal(move(p, a, {type: 'cant', flags}), null, JSON.stringify(flags));
+  assert.ok(cantOpen(q, a.board), 'Can’t stays open');
   const right = play(p, a, {type: 'cant', flags: ['0:2u:6', '0:4d:0']});
   assert.equal(isSolved(p, right.board), true, 'solved is a boolean (saves need one)');
   assert.equal(right.completed, true);
@@ -178,10 +176,26 @@ test('dots: Can’t needs four dots, a tap on each closed edge, and stays refuse
   assert.ok(!cantOpen(p4.parameters, back2.board), 'and three dots don’t open Can’t');
 });
 
+test('dots: on the band with one closed edge, Can’t alone claims once dots are on the top and the bottom', () => {
+  const p = byId('mobius-02'), q = p.parameters;
+  const low = play(p, freshAttempt(p), ...['0:0u:1', '0:0u:2', '0:0u:3', '0:0u:5'].map(seg => ({type: 'dot', seg})));
+  assert.ok(!cantOpen(q, low.board), 'four dots on the bottom edge only');
+  assert.equal(move(p, low, {type: 'cant', flags: []}), null);
+  const both = play(p, low, {type: 'dot', seg: '0:0u:5'}, {type: 'dot', seg: '0:4d:5'});
+  assert.ok(cantOpen(q, both.board), 'dots on the bottom and the top');
+  assert.equal(move(p, both, {type: 'cant', flags: ['0:0u:0']}), null, 'a tap is no choice here');
+  const r = play(p, both, {type: 'cant', flags: []});
+  assert.equal(isSolved(p, r.board), true);
+  assert.deepEqual(r.board.claimed, []);
+});
+
 test('dots: forged saves, including a forged claim', () => {
-  const p = byId('mobius-02'), b = freshAttempt(p).board, four = ['0:0u:1', '0:0u:2', '0:0u:3', '0:4d:1'];
-  for (const f of [{...b, claimed: true}, {...b, claimed: ['0:0u:0']}, {...b, dots: four, claimed: ['0:0u:0', '0:4d:0']}, {...b, dots: four, told: 'way'}, {...b, dots: four, flags: ['0:4d:5']}, {...b, dots: four, told: 'flags', flags: ['0:4d:5']}, {...b, dots: [...four, '0:4d:2']}, {...b, dots: ['0:2u:0']}, {...b, x: 1}]) assert.equal(validBoard(p, f), false, JSON.stringify(f));
-  assert.equal(validBoard(p, {...b, dots: four, claimed: ['0:4d:5']}), true, 'a real claim');
+  const p = byId('mobius-02'), b = freshAttempt(p).board, four = ['0:0u:1', '0:0u:2', '0:0u:3', '0:4d:1'], low = ['0:0u:1', '0:0u:2', '0:0u:3', '0:0u:4'];
+  for (const f of [{...b, claimed: true}, {...b, claimed: ['0:0u:0']}, {...b, claimed: []}, {...b, dots: four, claimed: ['0:0u:0', '0:4d:0']}, {...b, dots: four, claimed: ['0:4d:5']}, {...b, dots: low, claimed: []}, {...b, dots: four, told: 'way'}, {...b, dots: four, told: 'flags'}, {...b, dots: four, flags: ['0:4d:5']}, {...b, dots: four, told: 'flags', flags: ['0:4d:5']}, {...b, dots: [...four, '0:4d:2']}, {...b, dots: ['0:2u:0']}, {...b, x: 1}]) assert.equal(validBoard(p, f), false, JSON.stringify(f));
+  assert.equal(validBoard(p, {...b, dots: four, claimed: []}), true, 'a real claim');
+  const p5 = byId('mobius-05'), five = ['0:0u:1', '0:0u:2', '0:4d:3', '0:2d:3'];
+  assert.equal(validBoard(p5, {...b, dots: five, claimed: []}), false, 'two closed edges need their taps');
+  assert.equal(validBoard(p5, {...b, dots: five, claimed: ['0:2u:6', '0:4d:0']}), true);
 });
 
 // --- Seams, cuts and holes ----------------------------------------------------------------------
@@ -191,11 +205,14 @@ test('seams: the dots pin each seam, and a fixed seam stays', () => {
   const a = play(p, fresh, {type: 'seam', k: 0}, {type: 'seam', k: 2});
   assert.ok(isSolved(p, a.board));
   const p10 = byId('mobius-10');
+  assert.deepEqual(freshAttempt(p10).board.seams, ['R', 'R', 'R', 'R']);
   assert.equal(move(p10, freshAttempt(p10), {type: 'seam', k: 2}), null, 'the padlocked seam');
   assert.equal(validBoard(p10, {seams: ['R', 'M', 'M', 'R']}), false);
+  assert.ok(isSolved(p10, play(p10, freshAttempt(p10), {type: 'seam', k: 0}, {type: 'seam', k: 3}).board), 'two changes');
+  assert.ok(!isSolved(p10, play(p10, freshAttempt(p10), {type: 'seam', k: 0}, {type: 'seam', k: 1}).board), 'page order’s first two changes miss');
 });
 
-test('pieces: a cut runs on round an R band, locks the seam and tapes back; holes keep to the budget', () => {
+test('pieces: a cut runs on round an R band, locks the seam and tapes back; B with every hole falls short', () => {
   const p = byId('mobius-11'), fresh = freshAttempt(p);
   let a = play(p, fresh, {type: 'seam', k: 0}, {type: 'cut', h: 3});
   assert.deepEqual(a.board.cuts, [1, 3], 'one cut, both heights');
@@ -204,12 +221,12 @@ test('pieces: a cut runs on round an R band, locks the seam and tapes back; hole
   assert.equal(move(p, m, {type: 'seam', k: 0}), null, 'no seam change while cut');
   assert.deepEqual(play(p, m, {type: 'cut', h: 2}).board.cuts, [], 'tapes back');
   const p8 = byId('mobius-08');
-  const full = play(p8, freshAttempt(p8), {type: 'hole', i: 0}, {type: 'hole', i: 1}, {type: 'hole', i: 3});
-  assert.equal(move(p8, full, {type: 'hole', i: 2}), null, 'the budget');
-  assert.ok(!isSolved(p8, full.board), 'R with two holes and a notch: three edges');
-  assert.ok(isSolved(p8, play(p8, full, {type: 'hole', i: 3}, {type: 'hole', i: 2}).board), 'R with three holes: four');
+  const holes = play(p8, freshAttempt(p8), {type: 'hole', i: 0}, {type: 'hole', i: 1});
+  assert.ok(isSolved(p8, holes.board), 'A with both holes: four edges');
+  const b8 = play(p8, freshAttempt(p8), {type: 'seam', k: 0}, {type: 'hole', i: 0}, {type: 'hole', i: 1}, {type: 'hole', i: 2});
+  assert.ok(!isSolved(p8, b8.board), 'B with both holes and the notch: three edges');
+  assert.ok(validBoard(p8, b8.board), 'no budget');
   assert.equal(validBoard(p, {seams: ['R'], cuts: [1], holes: []}), false, 'a cut on B goes both ways');
-  assert.equal(validBoard(p8, {seams: ['R'], cuts: [], holes: [0, 1, 2, 3]}), false, 'past the budget');
 });
 
 // --- Hints ---------------------------------------------------------------------------------------
@@ -237,23 +254,53 @@ test('hints solve every puzzle from fresh, quickly, and never start with Can’t
 
 // --- Rendering ------------------------------------------------------------------------------------
 test('rendering: controls, lamps, Can’t taps hide the colours, and the solved band', () => {
-  const p = byId('mobius-02');
+  const p = byId('mobius-05');
   let a = play(p, freshAttempt(p), ...['0:0u:1', '0:0u:2', '0:0u:3', '0:4d:1'].map(seg => ({type: 'dot', seg})));
   let html = view(p, a);
   assert.match(html, /data-mechanic-wire="mobius"/);
   assert.match(html, /mb-dot rose/, 'dots on one closed edge share a colour');
-  assert.equal((html.match(/data-pb-point="seg:/g) || []).length, 16, 'one control per edge segment');
+  assert.equal((html.match(/data-pb-point="seg:/g) || []).length, 32, 'one control per edge segment');
+  assert.ok(!/mb-tint/.test(html), 'no piece tints on a dots puzzle');
   M.ui(p, {claiming: true});
   html = view(p, a);
   assert.ok(!/mb-dot rose/.test(html) && /mb-dot plain/.test(html), 'Can’t hides the colours');
   assert.match(html, /That’s all/);
+  // Taps that are not one on each closed edge: That's all refuses in the view, never in the save.
   M.ui(p, {flag: '0:4d:2'});
-  a = play(p, a, {type: 'cant', flags: ['0:4d:2']});
+  html = view(p, a);
+  assert.match(html, /data-ui="\{&quot;refuse&quot;:true\}"[^>]*data-focus="mb-all"/, 'That’s all is not a move yet');
+  M.ui(p, {refuse: true});
+  html = view(p, a);
+  assert.match(html, /Tap each closed edge once\./);
+  assert.ok(!/That’s all/.test(html), 'the taps close');
+  assert.match(html, /data-focus="mb-cant-open" aria-pressed="false" >/, 'Can’t stays open');
+  const lifted = play(p, a, {type: 'dot', seg: '0:4d:1'});
+  assert.ok(!/Tap each closed edge once/.test(view(p, lifted)), 'a dot moved drops the words');
+  view(p, a);
+  M.ui(p, {claiming: true});
+  M.ui(p, {flag: '0:4d:2'});
+  M.ui(p, {flag: '0:2u:6'});
+  html = view(p, a);
+  assert.match(html, /data-action="expansion-move" data-move="[^"]*cant[^"]*" data-focus="mb-all"/, 'one tap on each closed edge is a move');
+  a = play(p, a, {type: 'cant', flags: ['0:4d:2', '0:2u:6']});
   html = view(p, a);
   assert.ok(!/data-pb-point=/.test(html), 'no controls once solved');
   assert.match(html, /mb-ring-x/, 'the extra ring is crossed out');
-  assert.match(html, /mb-arrow home flipped/, 'the arrow comes home flipped');
   M.reset(p);
+  // One closed edge: Can't is the claim, once dots are on the top and the bottom.
+  const p2 = byId('mobius-02');
+  const low = play(p2, freshAttempt(p2), ...['0:0u:1', '0:0u:2', '0:0u:3', '0:0u:5'].map(seg => ({type: 'dot', seg})));
+  assert.match(view(p2, low), /data-focus="mb-cant" disabled/);
+  const both = play(p2, low, {type: 'dot', seg: '0:0u:5'}, {type: 'dot', seg: '0:4d:5'});
+  assert.match(view(p2, both), /data-action="expansion-move" data-move="\{&quot;type&quot;:&quot;cant&quot;,&quot;flags&quot;:\[\]\}" data-focus="mb-cant" >/);
+  html = view(p2, play(p2, both, {type: 'cant', flags: []}));
+  assert.match(html, /mb-ring-x/, 'the extra ring is crossed out');
+  assert.match(html, /mb-lit rose/, 'the one closed edge is drawn');
+  assert.match(html, /mb-arrow home flipped/, 'the arrow comes home flipped');
+  M.reset(p2);
+  // Cut A has two pieces, untinted.
+  const p3 = byId('mobius-03');
+  assert.ok(!/mb-tint/.test(view(p3, freshAttempt(p3))), 'no piece tints on a dots puzzle');
   // "There is a way." keeps the certificate's flags drawn; Undo takes them back and keeps the words.
   const p4 = byId('mobius-04');
   let w = play(p4, freshAttempt(p4), ...['0:0u:1', '0:0u:2', '0:4d:3', '0:2d:3'].map(seg => ({type: 'dot', seg})), {type: 'cant', flags: ['0:0u:0', '0:2u:0']});
@@ -270,6 +317,13 @@ test('rendering: controls, lamps, Can’t taps hide the colours, and the solved 
   M.ui(p6, {lamps: ['0:2d']});
   html = view(p6, freshAttempt(p6));
   assert.equal((html.match(/mb-lit rose/g) || []).length, 3, 'the top of strip 1 lights round three strips');
+  M.reset(p6);
+  // A solved seams puzzle lights its two closed edges, like the rings.
+  html = view(p6, play(p6, freshAttempt(p6), {type: 'seam', k: 0}, {type: 'seam', k: 2}));
+  assert.equal((html.match(/mb-lit rose/g) || []).length, 3);
+  assert.equal((html.match(/mb-lit leaf/g) || []).length, 3);
+  assert.match(html, /mb-ring rose/);
+  assert.match(html, /mb-ring leaf/);
   M.reset(p6);
   // Pieces: seams, scissors, spots and lines are controls; cut pieces are tinted.
   const p12 = byId('mobius-12');

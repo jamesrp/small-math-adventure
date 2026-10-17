@@ -322,24 +322,24 @@
    "objective": "Put four dots on the edges so that they group like the rings: dots in one ring on one closed edge, different rings on different closed edges, or show that it can’t be done.",
    "visibleObjective": "Put four dots on the edges to match the rings.",
    "instruction": "Put four dots on the edges so that they group like the rings: dots in one ring on one closed edge, different rings on different closed edges, or show that it can’t be done.",
-   "controls": "A band is a strip with its ends joined: M joins • to • and □ to □ straight across, R joins them after a half-turn. A closed edge is an edge you can follow round until you are back where you started. Tap an edge to put a dot there: it lights its closed edge, and dots on one closed edge share a colour. Tap a dot to take it off. Can’t opens once four dots are down: then tap each closed edge once and press That’s all. Tab and Enter work too. Undo takes back a dot.",
+   "controls": "A band is a strip with its ends joined: M joins • to • and □ to □ straight across, R joins them after a half-turn. A closed edge is an edge you can follow round until you are back where you started. Tap an edge to put a dot there: it lights its closed edge, and dots on one closed edge share a colour. Tap a dot to take it off. Can’t opens once four dots are down, on both the top and the bottom edge. Tab and Enter work too. Undo takes back a dot.",
    "rules": [
     "A band is a strip whose ends are joined. Each strip’s left end has • at the top and □ at the bottom. Join • to • and □ to □: at an M seam the right end has them the same way up, at an R seam swapped, so the strip is joined after a half-turn.",
     "A closed edge is an edge you can follow round, through the seams, until you are back where you started.",
     "Four dots go on the edges. Dots in one ring must be on one closed edge, and dots in different rings on different closed edges. Other closed edges may have no dots.",
-    "If it can’t be done, press Can’t once four dots are down, tap each closed edge once, and press That’s all."
+    "If it can’t be done, put dots on both the top and the bottom edge, four in all, and press Can’t."
    ],
    "idea": "A strip joined after a half-turn has one closed edge: following the top edge through the R seam leads onto the bottom edge.",
    "prerequisites": "Follow an edge with a finger and group four dots by colour. No reading or counting past four; a grown-up can read How to play.",
    "hints": [
     "Put a dot on the top edge and watch what lights up.",
     "The light goes through the seam and comes back along the bottom edge, so B has only one closed edge.",
-    "Put four dots down, press Can’t, tap the edge once, then press That’s all."
+    "Put two dots on the top edge and two on the bottom edge, then press Can’t."
    ],
    "parent": {
     "notice": "The moment the top edge lights the bottom one too. Your child may try every place on the band before believing it.",
     "prompt": "Where does your finger come out after the seam if it starts on the top edge?",
-    "explanation": "At an R seam the top of the right end meets the bottom of the left end, so a trip along the top edge carries on along the bottom edge and only closes after two laps: band B, a Möbius band, has one closed edge. Two rings need two closed edges, so 2 + 2 can’t be made; one tap on the one edge is the certificate.",
+    "explanation": "At an R seam the top of the right end meets the bottom of the left end, so a trip along the top edge carries on along the bottom edge and only closes after two laps: band B, a Möbius band, has one closed edge. Two rings need two closed edges, so 2 + 2 can’t be made. With one closed edge there is nothing to choose in a tap, so Can’t needs no taps here; it opens once dots are on both the top and the bottom edge, where your child has seen them light as one, and the app then draws the edge and crosses out the second ring.",
     "extension": "Which ring pictures work on B? (Only 4.)",
     "connection": "The Möbius band has one boundary circle, which wraps twice round the band’s core circle (Hatcher, Algebraic Topology, Chapter 0).",
     "sourceIds": [
@@ -352,18 +352,16 @@
    },
    "solution": {
     "cant": true,
-    "certificate": "one tap on each closed edge",
+    "certificate": "Can’t after dots on both edge lines",
     "closedEdges": 1,
     "rings": 2,
     "dots": [
      "0:0u:3",
+     "0:4d:3",
      "0:0u:5",
-     "0:0u:1",
-     "0:0u:7"
+     "0:4d:5"
     ],
-    "taps": [
-     "0:4d:3"
-    ]
+    "taps": []
    },
    "provenance": "Week 38 K–1 and grades 2–3 Problem 3 on B (the 2 + 2 picture is impossible) and K–1 Problem 2 on B (no two dots can be on different closed edges)."
   },
@@ -680,9 +678,9 @@
      }
     ]
    },
-   "objective": "Change seams so that the dots group like the rings: the two stars on one closed edge and the two diamonds on another.",
+   "objective": "Change seams so that the marks group like the rings: the two stars on one closed edge and the two diamonds on another.",
    "visibleObjective": "Change seams so the marks group like the rings.",
-   "instruction": "Change seams so that the dots group like the rings: the two stars on one closed edge and the two diamonds on another.",
+   "instruction": "Change seams so that the marks group like the rings: the two stars on one closed edge and the two diamonds on another.",
    "controls": "A circle of strips is joined end to end: each seam joins • to • and □ to □, straight across at M and after a half-turn at R. A closed edge is an edge you can follow round until you are back where you started. Tap a seam’s letter to change it; a padlock means it stays. Tap an edge to light its closed edge, and again to turn it off. The arrow button carries an arrow once round. Tab and Enter work too. Undo takes back a change.",
    "rules": [
     "A band is a strip whose ends are joined. Each strip’s left end has • at the top and □ at the bottom. Join • to • and □ to □: at an M seam the right end has them the same way up, at an R seam swapped, so the strip is joined after a half-turn.",
@@ -759,10 +757,10 @@
      2
     ]
    },
-   "objective": "Choose the seam, cut along lines and punch holes to make pieces like the cards: one piece for each card, with one closed edge for each ring on it.",
+   "objective": "Choose the seam and cut along lines to make pieces like the cards: one piece for each card, with one closed edge for each ring on it.",
    "visibleObjective": "Make pieces like these.",
-   "instruction": "Choose the seam, cut along lines and punch holes to make pieces like the cards: one piece for each card, with one closed edge for each ring on it.",
-   "controls": "A band is a strip with its ends joined: M joins • to • and □ to □ straight across, R joins them after a half-turn. A closed edge is an edge you can follow round until you are back where you started. Tap the seam’s letter to change it, but not while the band is cut. Tap a dashed line or its ✂ to cut along it all the way round, and the ✂ again to tape it back. Tap a dashed ring to punch it out, and again to fill it. Tap an edge to light its closed edge. Tab and Enter work too. Undo takes back a change.",
+   "instruction": "Choose the seam and cut along lines to make pieces like the cards: one piece for each card, with one closed edge for each ring on it.",
+   "controls": "A band is a strip with its ends joined: M joins • to • and □ to □ straight across, R joins them after a half-turn. A closed edge is an edge you can follow round until you are back where you started. Tap the seam’s letter to change it, but not while the band is cut. Tap a dashed line or its ✂ to cut along it all the way round, and the ✂ again to tape it back. Tap an edge to light its closed edge. Tab and Enter work too. Undo takes back a change.",
    "rules": [
     "A band is a strip whose ends are joined. Each strip’s left end has • at the top and □ at the bottom. Join • to • and □ to □: at an M seam the right end has them the same way up, at an R seam swapped, so the strip is joined after a half-turn.",
     "A closed edge is an edge you can follow round, through the seams, until you are back where you started.",
@@ -778,7 +776,7 @@
     "Change the seam to R, then cut the lower line."
    ],
    "parent": {
-    "notice": "Whether your child notices that cutting one line with an R seam also cuts the other: the cut comes back through the seam at the other height.",
+    "notice": "Cut a paper strip first: the app tints each piece as soon as the band is cut, which gives away what the scissors would show. Then watch whether your child notices that cutting one line with an R seam also cuts the other: the cut comes back through the seam at the other height.",
     "prompt": "Light the edges of the middle piece. How many closed edges does it have?",
     "explanation": "With an R seam a cut one third of the way up comes back through the seam two thirds of the way up, so one cut divides the band into three lanes. The seam takes the middle lane to itself (turned over: a Möbius band, one edge) and swaps the top and bottom lanes (one piece, an annulus with two edges).",
     "extension": "With the seam M, how many pieces does cutting both lines make, and how many edges does each have? (Three bands, two edges each.)",
@@ -835,7 +833,7 @@
      ]
     ],
     "start": [
-     "R"
+     "M"
     ],
     "fixed": [
      false
@@ -848,48 +846,41 @@
       "name": "left hole"
      },
      {
-      "x": 4,
-      "y": 3,
-      "name": "middle hole"
-     },
-     {
       "x": 6,
-      "y": 1,
+      "y": 2,
       "name": "right hole"
      },
      {
-      "x": 3,
+      "x": 4,
       "y": 4,
       "name": "notch"
      }
     ],
-    "budget": 3,
     "goal": [
      4
     ]
    },
-   "objective": "Choose the seam, cut along lines and punch holes to make pieces like the cards: one piece for each card, with one closed edge for each ring on it.",
+   "objective": "Choose the seam and punch holes to make pieces like the cards: one piece for each card, with one closed edge for each ring on it.",
    "visibleObjective": "Make pieces like these.",
-   "instruction": "Choose the seam, cut along lines and punch holes to make pieces like the cards: one piece for each card, with one closed edge for each ring on it.",
-   "controls": "A band is a strip with its ends joined: M joins • to • and □ to □ straight across, R joins them after a half-turn. A closed edge is an edge you can follow round until you are back where you started. Tap the seam’s letter to change it, but not while the band is cut. Tap a dashed line or its ✂ to cut along it all the way round, and the ✂ again to tape it back. Tap a dashed ring to punch it out, and again to fill it. Tap an edge to light its closed edge. Tab and Enter work too. Undo takes back a change. The pips show how many holes you may punch.",
+   "instruction": "Choose the seam and punch holes to make pieces like the cards: one piece for each card, with one closed edge for each ring on it.",
+   "controls": "A band is a strip with its ends joined: M joins • to • and □ to □ straight across, R joins them after a half-turn. A closed edge is an edge you can follow round until you are back where you started. Tap the seam’s letter to change it. Tap a dashed ring to punch a hole, or the dashed half ring on the edge to cut the notch, and again to fill it. Tap an edge to light its closed edge. Tab and Enter work too. Undo takes back a change.",
    "rules": [
     "A band is a strip whose ends are joined. Each strip’s left end has • at the top and □ at the bottom. Join • to • and □ to □: at an M seam the right end has them the same way up, at an R seam swapped, so the strip is joined after a half-turn.",
     "A closed edge is an edge you can follow round, through the seams, until you are back where you started.",
     "Make pieces like the cards: each ring on a card is one closed edge of that piece.",
-    "A hole takes out paper inside the band; a notch takes a bite out of an edge.",
-    "Punch at most as many holes as the pips show."
+    "A hole takes out paper inside the band; a notch takes a bite out of an edge."
    ],
-   "idea": "Each hole adds a closed edge and a notch adds none: an M band with two holes or an R band with three both have four closed edges.",
+   "idea": "Each hole adds a closed edge and a notch adds none: A with both holes has four closed edges, but B with both holes has only three.",
    "prerequisites": "Count closed edges up to four, and add one for each hole.",
    "hints": [
     "Punch a hole and light its rim.",
-    "Each hole is a new closed edge; the notch only bends an edge you already have. B starts with one closed edge and A with two.",
-    "Change the seam to M, then punch the left hole and the middle hole."
+    "Each hole is a new closed edge; the notch only bends an edge you already have. A has two closed edges and B only one.",
+    "Keep the seam M, and punch the left hole and the right hole."
    ],
    "parent": {
-    "notice": "Whether your child expects the notch to make a new edge, and checks by lighting the edge it bites into.",
+    "notice": "Whether your child expects the notch to make a new edge, and checks by lighting the edge it bites into; and whether they try B and find it falls one short.",
     "prompt": "If you ran your finger round the notch, would you come back to where you started without leaving the old edge?",
-    "explanation": "A small hole inside the band adds its rim as a new closed edge and leaves the band in one piece; a notch only detours an existing edge. So the closed edges are the seam’s (two for M, one for R) plus the holes: four from M with two holes, or R with three. There are seven ways with at most three punches.",
+    "explanation": "A small hole inside the band adds its rim as a new closed edge and leaves the band in one piece; a notch only detours an existing edge. So the closed edges are the seam’s (two for M, one for R) plus the holes. With two places for holes, A reaches four but B at most three, so the seam must be M, with both holes punched; the notch may be cut or not. Two of the sixteen boards work.",
     "extension": "Make a band with exactly three closed edges in two different ways.",
     "connection": "Removing a disc from the interior of a surface adds one boundary component and lowers the Euler characteristic by one; a notch at the boundary changes neither.",
     "sourceIds": [
@@ -919,71 +910,18 @@
       "cuts": [],
       "holes": [
        0,
-       2
-      ]
-     },
-     {
-      "seams": [
-       "M"
-      ],
-      "cuts": [],
-      "holes": [
        1,
        2
-      ]
-     },
-     {
-      "seams": [
-       "R"
-      ],
-      "cuts": [],
-      "holes": [
-       0,
-       1,
-       2
-      ]
-     },
-     {
-      "seams": [
-       "M"
-      ],
-      "cuts": [],
-      "holes": [
-       0,
-       1,
-       3
-      ]
-     },
-     {
-      "seams": [
-       "M"
-      ],
-      "cuts": [],
-      "holes": [
-       0,
-       2,
-       3
-      ]
-     },
-     {
-      "seams": [
-       "M"
-      ],
-      "cuts": [],
-      "holes": [
-       1,
-       2,
-       3
       ]
      }
     ],
-    "of": 30,
-    "fewest": 3,
+    "of": 16,
+    "fewest": 2,
     "edges": [
      4
     ]
    },
-   "provenance": "Week 38 bonus Problem 3 (bands with holes and notches; design a connected band with four closed edges using at most three holes). The bonus’s hole across the seam is left out."
+   "provenance": "Week 38 bonus Problem 3 (bands with holes and notches; design a connected band with four closed edges), with two places for holes so that only A can do it. The bonus’s hole across the seam is left out."
   },
   {
    "id": "mobius-09",
@@ -1106,7 +1044,7 @@
     ],
     "start": [
      "R",
-     "M",
+     "R",
      "R",
      "R"
     ],
@@ -1143,9 +1081,9 @@
      }
     ]
    },
-   "objective": "Change seams so that the dots group like the rings: the two stars on one closed edge and the two diamonds on another.",
+   "objective": "Change seams so that the marks group like the rings: the two stars on one closed edge and the two diamonds on another.",
    "visibleObjective": "Change seams so the marks group like the rings.",
-   "instruction": "Change seams so that the dots group like the rings: the two stars on one closed edge and the two diamonds on another.",
+   "instruction": "Change seams so that the marks group like the rings: the two stars on one closed edge and the two diamonds on another.",
    "controls": "A circle of strips is joined end to end: each seam joins • to • and □ to □, straight across at M and after a half-turn at R. A closed edge is an edge you can follow round until you are back where you started. Tap a seam’s letter to change it; a padlock means it stays. Tap an edge to light its closed edge, and again to turn it off. The arrow button carries an arrow once round. Tab and Enter work too. Undo takes back a change.",
    "rules": [
     "A band is a strip whose ends are joined. Each strip’s left end has • at the top and □ at the bottom. Join • to • and □ to □: at an M seam the right end has them the same way up, at an R seam swapped, so the strip is joined after a half-turn.",
@@ -1158,7 +1096,7 @@
    "hints": [
     "Light the edge under each mark and see which marks share it.",
     "If the first seam were R, the top of strip 1 would carry on along the bottom of strip 2, onto a diamond. So the first seam is M.",
-    "Change the seam after strip 1 to M, the seam after strip 2 to R and the seam after strip 4 to M."
+    "Change the seam after strip 1 to M and the seam after strip 4 to M."
    ],
    "parent": {
     "notice": "Whether your child plans from the fixed seam, or follows one light all the way round before changing anything.",
@@ -1182,7 +1120,7 @@
      "M"
     ],
     "of": 8,
-    "fewest": 3
+    "fewest": 2
    },
    "provenance": "Week 38 bonus Problem 2 (four-strip circles with one closed edge or two), with one seam fixed and fixed stars and diamonds: new."
   },
@@ -1224,10 +1162,10 @@
      2
     ]
    },
-   "objective": "Choose the seam, cut along lines and punch holes to make pieces like the cards: one piece for each card, with one closed edge for each ring on it.",
+   "objective": "Choose the seam and cut along lines to make pieces like the cards: one piece for each card, with one closed edge for each ring on it.",
    "visibleObjective": "Make pieces like these.",
-   "instruction": "Choose the seam, cut along lines and punch holes to make pieces like the cards: one piece for each card, with one closed edge for each ring on it.",
-   "controls": "A band is a strip with its ends joined: M joins • to • and □ to □ straight across, R joins them after a half-turn. A closed edge is an edge you can follow round until you are back where you started. Tap the seam’s letter to change it, but not while the band is cut. Tap a dashed line or its ✂ to cut along it all the way round, and the ✂ again to tape it back. Tap a dashed ring to punch it out, and again to fill it. Tap an edge to light its closed edge. Tab and Enter work too. Undo takes back a change.",
+   "instruction": "Choose the seam and cut along lines to make pieces like the cards: one piece for each card, with one closed edge for each ring on it.",
+   "controls": "A band is a strip with its ends joined: M joins • to • and □ to □ straight across, R joins them after a half-turn. A closed edge is an edge you can follow round until you are back where you started. Tap the seam’s letter to change it, but not while the band is cut. Tap a dashed line or its ✂ to cut along it all the way round, and the ✂ again to tape it back. Tap an edge to light its closed edge. Tab and Enter work too. Undo takes back a change.",
    "rules": [
     "A band is a strip whose ends are joined. Each strip’s left end has • at the top and □ at the bottom. Join • to • and □ to □: at an M seam the right end has them the same way up, at an R seam swapped, so the strip is joined after a half-turn.",
     "A closed edge is an edge you can follow round, through the seams, until you are back where you started.",
@@ -1243,7 +1181,7 @@
     "Change the seam to R, then cut the lowest line."
    ],
    "parent": {
-    "notice": "Whether your child compares the middle cut with the off-centre cut, and lights the middle piece’s edge.",
+    "notice": "Cut paper strips first: the app tints each piece as soon as the band is cut, which gives away what the scissors would show. Then watch whether your child compares the middle cut with the off-centre cut, and lights the middle piece’s edge.",
     "prompt": "After cutting the middle line, how many pieces are there? After cutting the lowest line?",
     "explanation": "On B the middle cut gives one piece with two edges (puzzle 4). The lowest line comes back through the R seam as the top line, so cutting it leaves three lanes: the middle two lanes form a Möbius band (one edge) and the outer lanes an annulus (two edges). Cutting the middle line as well would split that Möbius band into an annulus.",
     "extension": "With four lanes and an R seam, cut every line: what pieces do you get? (Two annuli, as bonus Problem 1’s 4R.)",
@@ -1334,14 +1272,14 @@
    "objective": "Choose the seam, cut along lines and punch holes to make pieces like the cards: one piece for each card, with one closed edge for each ring on it.",
    "visibleObjective": "Make pieces like these.",
    "instruction": "Choose the seam, cut along lines and punch holes to make pieces like the cards: one piece for each card, with one closed edge for each ring on it.",
-   "controls": "A band is a strip with its ends joined: M joins • to • and □ to □ straight across, R joins them after a half-turn. A closed edge is an edge you can follow round until you are back where you started. Tap the seam’s letter to change it, but not while the band is cut. Tap a dashed line or its ✂ to cut along it all the way round, and the ✂ again to tape it back. Tap a dashed ring to punch it out, and again to fill it. Tap an edge to light its closed edge. Tab and Enter work too. Undo takes back a change.",
+   "controls": "A band is a strip with its ends joined: M joins • to • and □ to □ straight across, R joins them after a half-turn. A closed edge is an edge you can follow round until you are back where you started. Tap the seam’s letter to change it, but not while the band is cut. Tap a dashed line or its ✂ to cut along it all the way round, and the ✂ again to tape it back. Tap a dashed ring to punch a hole, and again to fill it. Tap an edge to light its closed edge. Tab and Enter work too. Undo takes back a change.",
    "rules": [
     "A band is a strip whose ends are joined. Each strip’s left end has • at the top and □ at the bottom. Join • to • and □ to □: at an M seam the right end has them the same way up, at an R seam swapped, so the strip is joined after a half-turn.",
     "A closed edge is an edge you can follow round, through the seams, until you are back where you started.",
     "A cut runs along the band all the way round, through the seams, until it closes.",
     "While the band is cut, its seam stays as it is.",
     "Make pieces like the cards: each ring on a card is one closed edge of that piece.",
-    "A hole takes out paper inside the band; a notch takes a bite out of an edge."
+    "A hole takes out paper inside the band."
    ],
    "idea": "A piece with one edge must be a Möbius band; the hole goes in the piece beside it, which already has two edges.",
    "prerequisites": "Puzzles 1 to 4 first. Cut and tape back, and compare pieces with cards by counting closed edges up to four.",
@@ -1351,7 +1289,7 @@
     "Change the seam to R, cut the lower line, then punch the hole in the top lane."
    ],
    "parent": {
-    "notice": "Whether your child works backwards from the one-edge card.",
+    "notice": "Cut a paper strip first: the app tints each piece as soon as the band is cut, which gives away what the scissors would show. Then watch whether your child works backwards from the one-edge card.",
     "prompt": "Which piece does the top lane belong to after the cut?",
     "explanation": "Every piece of an M band has at least two edges, so the one-edge piece is the Möbius band in the middle of an R band cut a third of the way across. The outer piece is an annulus with two edges, and a hole in the top or bottom lane (both in that piece) makes three.",
     "extension": "Make pieces with two and two closed edges in two different ways.",
