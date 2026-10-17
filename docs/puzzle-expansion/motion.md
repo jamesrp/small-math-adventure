@@ -254,6 +254,8 @@ The clock renderer's red reference arrow follows one clockwise jump on an inner 
 
 ## Mirror Couriers (`billiard`)
 
+> **Revision note:** this section describes revision 1 of Mirror Couriers. The current family (revision 2, Week 9 touch-ups) is specified in [docs/couriers/README.md](../couriers/README.md).
+
 **Child-facing launch:** Send the light from the bottom-left corner. It goes straight and bounces like a mirror at each wall. Which corner will it reach first? Later, shape the room or aim the light to deliver the message.
 
 **Prerequisites:** Entry: follow a diagonal and distinguish a wall from a corner; no independent reading required. Later: count grid dimensions, compare repeated wall intervals, distinguish first arrival from a later one. Aiming levels require interpreting a rise/run arrow; fraction notation and gcd are optional strategies. The final level suits children comfortable coordinating two ratios, often 4–5 or beyond.
@@ -443,6 +445,8 @@ These are implemented alongside 01–06. See [the difficulty expansion](difficul
 | `clock-12` | Hard | Three non-unit jumps require reducing each orbit and coordinating its phase; ring-size LCM alone gives the wrong first hit. |
 
 ### Mirror Couriers additions
+
+> **Revision note:** this section describes revision 1 of Mirror Couriers. The current family (revision 2, Week 9 touch-ups) is specified in [docs/couriers/README.md](../couriers/README.md).
 
 | ID | Level | Insight |
 |---|---|---|

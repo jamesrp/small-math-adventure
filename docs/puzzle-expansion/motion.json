@@ -5855,781 +5855,1027 @@
     {
       "id": "billiard",
       "title": "Mirror Couriers",
-      "child_prompt": "Send the light from the bottom-left corner. It goes straight and bounces like a mirror at each wall. Which corner will it reach first? Later, shape the room or aim the light to deliver the message.",
+      "child_prompt": "The ball rolls straight from the bottom-left corner, bounces off each wall like light in a mirror and stops at the first corner it reaches. Shape the room or aim the ball to send it where it should go.",
       "rules": [
-        "Start exactly at the bottom-left corner (0,0), initially moving right and up.",
-        "A vertical wall reverses the horizontal direction; a horizontal wall reverses the vertical direction. Crossing an old part of the path has no effect.",
-        "Stop at the FIRST corner reached after launch. A corner collision is terminal, not a bounce.",
-        "Count only non-corner wall reflections. Predictions are submitted before the path animation.",
-        "A direction is specified by positive integer rise/run: move run units right per rise units up before reflection. The controls show this as an aim arrow; it is not necessary to read fraction notation.",
-        "Design modes accept every permitted setting satisfying the exact corner and reflection count; reset and replay are unlimited."
+        "The ball starts in the bottom-left corner and rolls in a straight line: one square right for every square up, unless the arrow shows a steeper start.",
+        "At a wall it bounces like light in a mirror. A side wall turns it back left or right; the top or bottom turns it back down or up. Each wall it hits is one bounce.",
+        "It stops at the first corner it reaches. Reaching the corner is not a bounce, and crossing its own path does nothing.",
+        "The path is drawn when you Launch, not while you change the room or the aim.",
+        "Can’t is a claim. After a launch it opens copies of the room, each copy corner marked with the room corner it folds onto; tap the corners that show no room works. A wrong claim gets one short answer.",
+        "In a find-every puzzle, Keep the rooms you think work and press That’s all; the whole shelf is judged at once."
       ],
-      "mathematics": "Unfold a rectangle into mirror copies: the reflected trajectory becomes a straight ray through a rectangular lattice. For slope 1 and reduced dimensions w=ga,h=gb, the first corner has horizontal side right iff b is odd and vertical side top iff a is odd, after a+b−2 bounces. Rational directions reduce to the same lattice problem after scaling the axes. This is the elementary unfolding construction used in billiard dynamics and the torus model, without claiming ergodicity or density results.",
-      "prerequisites": "Entry: follow a diagonal and distinguish a wall from a corner; no independent reading required. Later: count grid dimensions, compare repeated wall intervals, distinguish first arrival from a later one. Aiming levels require interpreting a rise/run arrow; fraction notation and gcd are optional strategies. The final level suits children comfortable coordinating two ratios, often 4–5 or beyond.",
-      "natural_variation": "Use whole rectangles with all four sides reflective, vary aspect ratio or rational launch direction, and alternate forward prediction with inverse design. Offer an unfolding overlay after an attempt so the same mathematical object acquires a useful representation.",
-      "guardrail": "No internal obstacle mazes, one-off mirror exceptions, colored locks, or arbitrary absent walls. Avoid implying that a bigger table is automatically harder. Keep the first-corner stop rule exact, and never confuse physical slope with normalized-square slope.",
-      "depth_assessment": "Moderate candidate with a visual/number-theoretic strength. Tracing alone is a short-lived interaction. Later instances make inverse design the required win, and the last requires accounting for rectangle shape when selecting a direction. Once the reduced-ratio method is mastered, new rectangles alone are repetition.",
+      "mathematics": "Unfold the room into mirror copies and the bouncing path becomes a straight line. From the bottom-left corner of a w × h room, going one square right per square up, the line first meets a copy corner q = h/g rooms across and p = w/g rooms up, where g = gcd(w, h). That corner folds onto the right wall exactly when q is odd and onto the top exactly when p is odd, and the ball has bounced p + q − 2 times. So a top-right stop takes an even number of bounces, a top-left or bottom-right stop an odd number, a single bounce means one side is twice the other, and the start corner is never reached: every copy of it is an even number of rooms across and up, and halfway there is a copy corner the ball reaches first. A steeper start (rise up for run across) only rescales: q = run·h/g′ and p = rise·w/g′ with g′ = gcd(run·h, rise·w). This is the unfolding used for billiards in rectangles and on the flat torus; the app makes no claim about irrational directions or ergodicity.",
+      "prerequisites": "Entry: drag a corner, press Launch and watch where the ball stops; no reading needed beyond the goal line. Then count bounces, compare rooms that stop at the same corner, and read the copies of a room as a map. The corner-map claims ask a child to find every copy corner a given number of bounces away (across + up − 2), and the hardest rooms combine a steeper start with the room’s shape; these suit children comfortable with doubling and with odd and even, often grades 2–5 or beyond.",
+      "natural_variation": "Vary the target corner and bounce count, the grid a room may fill, and the starting direction; aim by tapping a copy corner in the sheet of copies; ask for every room with a given bounce count; include one impossible target per set, answered with Can’t and a tapped certificate on the corner map.",
+      "guardrail": "Rooms are whole rectangles with four mirror walls and the ball starts at the bottom-left corner. No obstacles, missing walls or one-off exceptions. The path appears only after Launch, so design is not a scan. Keep the first-corner stop exact and never confuse the room’s slope with the slope in the square grid.",
+      "depth_assessment": "Shaping the room asks for the inverse of the rule; an impossible target asks for a reason, given by pointing at the copy corners a bounce count allows; find-every asks for a complete list and a reason it is complete; aiming in the sheet makes the unfolding itself the move. Once the reduced-ratio rule is known, new targets alone become routine; the steeper starts and the larger maps keep the hard set from being repetition.",
       "sources": [
         {
           "id": "B-K",
-          "path": "lowell-math-circle-year-2/source/week-09/week-09-k-1.tex",
-          "section": "K–1 page 1, Tasks 1–2; page 2, Task 4, “Open the wall”",
-          "contribution": "Tall-table reflection and mirror-copy folding."
+          "path": "lowell-math-circle-year-2/source/week-09/src/k-1.tex",
+          "section": "K–1 Problem 5 (draw a table so the ball stops at the circled corner), Problem 6 (back to the dot) and Problem 7 (fold a straight line)",
+          "contribution": "Design a room for a corner; the start corner is never reached; folding the unfolded line."
         },
         {
           "id": "B-M",
-          "path": "lowell-math-circle-year-2/source/week-09/week-09-grades-2-3.tex",
-          "section": "Grades 2–3 page 1, Tasks 1–2; page 2, Tasks 3–5",
-          "contribution": "2×3 route, shared wall multiples, and inverse table design."
+          "path": "lowell-math-circle-year-2/source/week-09/src/grades-2-3.tex",
+          "section": "Grades 2–3 Problem 4 (four targets, one impossible), Problem 6 (every one-bounce table up to 6 by 6), Problem 7 (sheets of copies) and Problem 8 (back to the start)",
+          "contribution": "Room design with an impossible target, find every, the unfolded sheet."
         },
         {
           "id": "B-U",
-          "path": "lowell-math-circle-year-2/source/week-09/week-09-grades-4-5.tex",
-          "section": "Grades 4–5 page 2, Tasks 3–6; page 3, Tasks 7–8",
-          "contribution": "Reduced parity instead of raw even/odd side lengths; bounce count; inverse design."
+          "path": "lowell-math-circle-year-2/source/week-09/src/grades-4-5.tex",
+          "section": "Grades 4–5 Problem 3 (the 2 by 3 sheet), Problem 4 (the 4 by 3 sheet), Problem 5 (6 by 10), Problem 6 (four targets, one impossible) and Problem 7 (never home)",
+          "contribution": "First crossing on the sheet, reduced sides, parity bans, the halfway argument."
         },
         {
           "id": "B-F",
-          "path": "lowell-math-circle-year-2/source/week-09/week-09-facilitator.tex",
-          "section": "Facilitator / 2, “Upper theorem with all hypotheses”; / 3, “Extra page: rational and irrational directions” and “Keep the conventions straight”; / 4, “Mathematical direction and primary sources”",
-          "contribution": "Exact corner/bounce rules and physical versus normalized slope; local research lineage to Masur–Tabachnikov §§1.3–1.5."
+          "path": "lowell-math-circle-year-2/source/week-09/guide-src/facilitator.tex",
+          "section": "Facilitator guide, “Table by table” (answers for 2–3 P4, P6 and 4–5 P3, P4, P6, P7) and “The mathematics behind the week”",
+          "contribution": "The rule (q across, p up for a p by q table in lowest terms), the parity of a top-right stop, the halfway crossing."
         },
         {
           "id": "B-R",
-          "path": "plans/week-09-redesign.md",
-          "section": "“Verified mathematical backbone”; “Sources and boundary between class and research”; “Returning children and future branches”",
-          "contribution": "Source boundary, existing Lowell rectangle work, and why unfolding/inverse design matter."
+          "path": "plans/review/week-09.md",
+          "section": "App fit and the Decision of October 10, 2026",
+          "contribution": "Shape the room with one impossible target per set, every one-bounce room, send it home, aim in the sheet; the path draws on Launch."
         }
       ],
       "instances": [
         {
           "id": "billiard-01",
-          "title": "Up the tall room",
-          "prompt": "Room width 2, height 4. Launch diagonally up-right (rise 1, run 1). Choose the first corner and the number of wall bounces before it.",
+          "title": "To the top left",
+          "prompt": "Shape the room so the ball stops at the top left corner.",
           "parameters": {
-            "mode": "predict",
-            "width": 2,
-            "height": 4,
-            "rise": 1,
-            "run": 1
-          },
-          "solution": {
-            "corner": "top-left",
-            "bounces": 1,
-            "path": [
-              [
-                "0",
-                "0"
-              ],
-              [
-                "2",
-                "2"
-              ],
-              [
-                "0",
-                "4"
-              ]
+            "mode": "shape",
+            "cols": 4,
+            "rows": 4,
+            "start": [
+              1,
+              1
+            ],
+            "target": {
+              "corner": "top-left"
+            },
+            "map": [
+              4,
+              4
             ]
           },
-          "hint": "At the right wall, the light can still travel upward. Only its left/right direction changes.",
-          "insight": "A wall reverses one component of direction; it does not turn the light back along its incoming path.",
-          "difficulty_step": "A one-bounce tutorial with a concrete visual decision.",
-          "prerequisites": "Follow grid directions; count wall contacts.",
+          "solution": {
+            "moves": [
+              {
+                "type": "launch",
+                "room": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "answers": [
+              "1×2",
+              "3×2",
+              "1×4",
+              "2×4",
+              "3×4"
+            ]
+          },
+          "hint": "Launch a room and watch where the ball stops. Change one side, then Launch again.",
+          "insight": "A room twice as tall as it is wide sends the ball to the top left after one bounce; other rooms reach the top left too.",
+          "difficulty_step": "The first room-design puzzle: drag, Launch, compare. Any room that stops at the top left solves it.",
+          "prerequisites": "Drag a corner; tell the four corners apart.",
           "source_refs": [
-            "B-K"
+            "B-K",
+            "B-R"
           ],
-          "provenance": "Direct source rectangle with a concise prediction interface.",
-          "difficulty_level": "easy"
+          "provenance": "Week 9 K–1 Problem 5, top-left picture, on a 4 by 4 grid. Revision 1 asked for a prediction in the 2 by 4 room; that room is one answer here.",
+          "difficulty_level": "easy",
+          "revision": 2
         },
         {
           "id": "billiard-02",
-          "title": "A crossing is not a wall",
-          "prompt": "Room width 2, height 3. Launch diagonally up-right (rise 1, run 1). Choose the first corner and the number of wall bounces before it.",
+          "title": "To the bottom right",
+          "prompt": "Shape the room so the ball stops at the bottom right corner.",
           "parameters": {
-            "mode": "predict",
-            "width": 2,
-            "height": 3,
-            "rise": 1,
-            "run": 1
-          },
-          "solution": {
-            "corner": "bottom-right",
-            "bounces": 3,
-            "path": [
-              [
-                "0",
-                "0"
-              ],
-              [
-                "2",
-                "2"
-              ],
-              [
-                "1",
-                "3"
-              ],
-              [
-                "0",
-                "2"
-              ],
-              [
-                "2",
-                "0"
-              ]
+            "mode": "shape",
+            "cols": 4,
+            "rows": 4,
+            "start": [
+              1,
+              1
+            ],
+            "target": {
+              "corner": "bottom-right"
+            },
+            "map": [
+              4,
+              4
             ]
           },
-          "hint": "Imagine another copy of the room across the next wall, and keep going straight into it.",
-          "insight": "Unfolding turns several reflections into a straight path; old path crossings do not create collisions.",
-          "difficulty_step": "The route has three bounces and crosses itself. A local “turn at every intersection” rule fails.",
-          "prerequisites": "Follow grid directions; count wall contacts.",
+          "solution": {
+            "moves": [
+              {
+                "type": "launch",
+                "room": [
+                  2,
+                  1
+                ]
+              }
+            ],
+            "answers": [
+              "2×1",
+              "4×1",
+              "4×2",
+              "2×3",
+              "4×3"
+            ]
+          },
+          "hint": "Try a room that is wider than it is tall.",
+          "insight": "The ball can come back down: it stops at the bottom right when the room, in lowest terms, is an odd number of squares high and an even number wide.",
+          "difficulty_step": "Same move as the first puzzle, a corner that needs a less obvious room.",
+          "prerequisites": "Drag a corner; tell the four corners apart.",
           "source_refs": [
-            "B-M"
+            "B-K",
+            "B-R"
           ],
-          "provenance": "Direct source rectangle; no worksheet proof is required.",
-          "difficulty_level": "easy"
+          "provenance": "Week 9 K–1 Problem 5, bottom-right picture, on a 4 by 4 grid. Revision 1 asked for a prediction in the 2 by 3 room; that room is one answer here. The road’s K–1 Mirror room.",
+          "difficulty_level": "easy",
+          "revision": 2
         },
         {
           "id": "billiard-03",
-          "title": "Both sides are even",
-          "prompt": "Room width 6, height 10. Launch diagonally up-right (rise 1, run 1). Choose the first corner and the number of wall bounces before it.",
+          "title": "Six bounces",
+          "prompt": "Shape the room so the ball stops at the top right corner after exactly 6 bounces.",
           "parameters": {
-            "mode": "predict",
-            "width": 6,
-            "height": 10,
-            "rise": 1,
-            "run": 1
-          },
-          "solution": {
-            "corner": "top-right",
-            "bounces": 6,
-            "path": [
-              [
-                "0",
-                "0"
-              ],
-              [
-                "6",
-                "6"
-              ],
-              [
-                "2",
-                "10"
-              ],
-              [
-                "0",
-                "8"
-              ],
-              [
-                "6",
-                "2"
-              ],
-              [
-                "4",
-                "0"
-              ],
-              [
-                "0",
-                "4"
-              ],
-              [
-                "6",
-                "10"
-              ]
+            "mode": "shape",
+            "cols": 10,
+            "rows": 10,
+            "start": [
+              1,
+              1
+            ],
+            "target": {
+              "corner": "top-right",
+              "bounces": 6
+            },
+            "map": [
+              7,
+              7
             ]
           },
-          "hint": "A 6-by-10 room has the same shape as a 3-by-5 room. Shrink the picture before following it.",
-          "insight": "Raw side parity is misleading. Dividing out the common scale exposes a 3:5 shape, which reaches the top-right after six bounces.",
-          "difficulty_step": "A deliberately selected parity trap introduces scale invariance; this is not merely a larger tracing task.",
-          "prerequisites": "Follow grid directions; count wall contacts.",
+          "solution": {
+            "moves": [
+              {
+                "type": "launch",
+                "room": [
+                  7,
+                  1
+                ]
+              }
+            ],
+            "answers": [
+              "7×1",
+              "5×3",
+              "3×5",
+              "10×6",
+              "1×7",
+              "6×10"
+            ]
+          },
+          "hint": "Find a smaller room first. What happens when you double both sides?",
+          "insight": "A room behaves like its sides divided by their common factor: 6 by 10 does what 3 by 5 does. Rooms in lowest terms p wide and q high with p + q = 8, both odd, are the answers.",
+          "difficulty_step": "A larger grid and an exact bounce count; doubling a room keeps its corner and bounces.",
+          "prerequisites": "Count bounces; notice a room and its double behave alike.",
           "source_refs": [
             "B-U",
             "B-F"
           ],
-          "provenance": "Direct source upper-table rectangle, adapted to a required corner/bounce prediction.",
-          "difficulty_level": "medium"
+          "provenance": "Week 9 4–5 Problem 5 (the 6 by 10 table stops at the top right after 6 bounces), turned into design on a 10 by 10 grid. Revision 1 asked for that prediction; 6 by 10 is one answer here.",
+          "difficulty_level": "medium",
+          "revision": 2
         },
         {
           "id": "billiard-04",
-          "title": "Build the delivery room",
-          "prompt": "The room is 6 squares tall. Set its width from 1 through 12. Launch diagonally up-right. Make the first corner top-right, after exactly 2 bounces.",
+          "title": "Two bounces",
+          "prompt": "Shape the room so the ball stops at the top right corner after exactly 2 bounces.",
           "parameters": {
-            "mode": "choose_width",
-            "height": 6,
-            "width_min": 1,
-            "width_max": 12,
-            "rise": 1,
-            "run": 1,
-            "target_corner": "top-right",
-            "target_bounces": 2
-          },
-          "solution": {
-            "width": 2,
-            "all_valid_widths": [
-              2
+            "mode": "shape",
+            "cols": 6,
+            "rows": 6,
+            "start": [
+              1,
+              1
             ],
-            "corner": "top-right",
-            "bounces": 2,
-            "path": [
-              [
-                "0",
-                "0"
-              ],
-              [
-                "2",
-                "2"
-              ],
-              [
-                "0",
-                "4"
-              ],
-              [
-                "2",
-                "6"
-              ]
+            "target": {
+              "corner": "top-right",
+              "bounces": 2
+            },
+            "map": [
+              4,
+              4
             ]
           },
-          "hint": "Two bounces mean three straight pieces. Try a room that stacks three copies of its width up its height.",
-          "insight": "Inverse design: the reduced shape must be 1:3 or 3:1. Height 6 and the full width interval leave width 2.",
-          "difficulty_step": "The player must construct a room for a desired trajectory, rather than predict a supplied room.",
-          "prerequisites": "Follow grid directions; coordinate a geometric control with a first-corner target.",
+          "solution": {
+            "moves": [
+              {
+                "type": "launch",
+                "room": [
+                  3,
+                  1
+                ]
+              }
+            ],
+            "answers": [
+              "3×1",
+              "6×2",
+              "1×3",
+              "2×6"
+            ]
+          },
+          "hint": "Launch a long, thin room and count its bounces. Then make it longer or shorter.",
+          "insight": "Top right after two bounces needs one side three times the other.",
+          "difficulty_step": "An exact bounce count on the 6 by 6 grid of the worksheet.",
+          "prerequisites": "Count bounces up to a few.",
           "source_refs": [
             "B-M",
-            "B-U",
-            "B-F"
+            "B-F",
+            "B-R"
           ],
-          "provenance": "New bounded inverse-design instance; source explicitly proposes top-right after at least one bounce.",
-          "difficulty_level": "medium"
+          "provenance": "Week 9 2–3 Problem 4 (design a table for a written target), target new. Revision 1 fixed the height at 6 and asked for the width; its answer, 2 by 6, answers here. The road’s 2–3 Mirror room.",
+          "difficulty_level": "medium",
+          "revision": 2
         },
         {
           "id": "billiard-05",
-          "title": "Aim across a square",
-          "prompt": "Room width 1, height 1. Set the launch arrow's rise and run, each from 1 through 4. Make the first corner bottom-right, after exactly 3 bounces.",
+          "title": "Aim in a square room",
+          "prompt": "Aim so the ball stops at the bottom right corner after exactly 3 bounces.",
           "parameters": {
-            "mode": "choose_direction",
+            "mode": "aim",
             "width": 1,
             "height": 1,
-            "component_min": 1,
-            "component_max": 4,
-            "target_corner": "bottom-right",
-            "target_bounces": 3
+            "sheet": [
+              4,
+              4
+            ],
+            "target": {
+              "corner": "bottom-right",
+              "bounces": 3
+            }
           },
           "solution": {
-            "rise": 2,
-            "run": 3,
-            "all_valid_directions": [
-              [
-                2,
-                3
-              ],
-              [
-                4,
-                1
-              ]
+            "moves": [
+              {
+                "type": "launch",
+                "aim": [
+                  3,
+                  2
+                ]
+              }
             ],
-            "corner": "bottom-right",
-            "bounces": 3,
-            "path": [
-              [
-                "0",
-                "0"
-              ],
-              [
-                "1",
-                "2/3"
-              ],
-              [
-                "1/2",
-                "1"
-              ],
-              [
-                "0",
-                "2/3"
-              ],
-              [
-                "1",
-                "0"
-              ]
+            "answers": [
+              "3,2",
+              "1,4"
             ]
           },
-          "hint": "In mirrored square rooms, aim for a corner three room-widths right and two room-heights up.",
-          "insight": "In a square, coprime rise/run p/q reaches the first lattice corner (q,p). Odd run and even rise give bottom-right; p+q−2 counts the bounces. Both 2/3 and 4/1 are valid here.",
-          "difficulty_step": "The room stays tiny. Choosing a direction replaces changing size, and the exact bounce target rejects many directions that reach the correct corner.",
-          "prerequisites": "Follow grid directions; coordinate a geometric control with a first-corner target.",
+          "hint": "Aim at a crossing and Launch. Which copy corners fold onto the bottom right?",
+          "insight": "Aiming at the copy corner a rooms across and b up (a and b with no common factor) stops the ball there after a + b − 2 bounces; it folds onto the right when a is odd and the bottom when b is even.",
+          "difficulty_step": "The aim replaces the rise and run menus: tap a crossing of the sheet, Launch, and the line folds into the path.",
+          "prerequisites": "Count rooms across and up on the sheet.",
           "source_refs": [
-            "B-F"
+            "B-U",
+            "B-F",
+            "B-R"
           ],
-          "provenance": "New inverse form of the source rational-slope example, with the full 1–4 control range. Both successful directions are accepted.",
-          "difficulty_level": "hard"
+          "provenance": "Revision 1 asked for rise and run from menus in a 1 by 1 room (bottom right after 3); the card’s App fit replaces those menus by tapping a copy corner (4–5 Problems 3–4 sheet). Both old answers, 2 up for 3 across and 4 up for 1 across, are crossings here. The road’s 4–5 Mirror room.",
+          "difficulty_level": "medium",
+          "revision": 2
         },
         {
           "id": "billiard-06",
-          "title": "The room changes the aim",
-          "prompt": "Room width 3, height 2. Set the launch arrow's rise and run, each from 1 through 10. Make the first corner top-right, after exactly 4 bounces.",
+          "title": "Aim in a wide room",
+          "prompt": "Aim so the ball stops at the top right corner after exactly 4 bounces.",
           "parameters": {
-            "mode": "choose_direction",
+            "mode": "aim",
             "width": 3,
             "height": 2,
-            "component_min": 1,
-            "component_max": 10,
-            "target_corner": "top-right",
-            "target_bounces": 4
+            "sheet": [
+              6,
+              6
+            ],
+            "target": {
+              "corner": "top-right",
+              "bounces": 4
+            }
           },
           "solution": {
-            "rise": 10,
-            "run": 3,
-            "all_valid_directions": [
-              [
-                10,
-                3
-              ]
+            "moves": [
+              {
+                "type": "launch",
+                "aim": [
+                  5,
+                  1
+                ]
+              }
             ],
-            "corner": "top-right",
-            "bounces": 4,
-            "path": [
-              [
-                "0",
-                "0"
-              ],
-              [
-                "3/5",
-                "2"
-              ],
-              [
-                "6/5",
-                "0"
-              ],
-              [
-                "9/5",
-                "2"
-              ],
-              [
-                "12/5",
-                "0"
-              ],
-              [
-                "3",
-                "2"
-              ]
+            "answers": [
+              "5,1",
+              "1,5"
             ]
           },
-          "hint": "Open five copies of the room upward. Their far top-right corner is 3 squares right and 10 squares up.",
-          "insight": "The physical slope differs from the unit-square slope. Rise/run 10/3 in a 3×2 room is five room-heights per room-width, reaching top-right after four horizontal-wall bounces.",
-          "difficulty_step": "A square-based answer such as rise 5, run 1 is no longer right. The required solve must combine room aspect ratio with launch direction; no larger board or extra obstacle is added.",
-          "prerequisites": "Follow grid directions; coordinate a geometric control with a first-corner target.",
+          "hint": "The room is not a square, so the line to a crossing is not at 45°. Count rooms, not squares.",
+          "insight": "On the sheet only the rooms count: top right after four bounces is a copy corner 1 across and 5 up, or 5 across and 1 up, whatever the room’s shape.",
+          "difficulty_step": "A rectangular room: the aim in squares differs from the aim in rooms.",
+          "prerequisites": "Count rooms across and up; odd and even.",
           "source_refs": [
+            "B-U",
             "B-F",
-            "B-U"
+            "B-R"
           ],
-          "provenance": "New rectangular rational-direction inverse instance applying the source explicit normalized-slope warning.",
-          "difficulty_level": "hard"
+          "provenance": "Revision 1 asked for rise and run in a 3 by 2 room (top right after 4) from menus; now aimed by tapping a crossing (card App fit). Its answer, 10 up for 3 across, is the crossing 1 across and 5 up.",
+          "difficulty_level": "hard",
+          "revision": 2
         },
         {
           "id": "billiard-07",
-          "title": "A steeper launch",
+          "title": "A steeper ball",
+          "prompt": "Shape the room so the ball stops at the bottom right corner after exactly 9 bounces.",
           "parameters": {
-            "mode": "predict",
-            "width": 4,
-            "height": 3,
+            "mode": "shape",
+            "cols": 6,
+            "rows": 6,
+            "start": [
+              1,
+              1
+            ],
+            "target": {
+              "corner": "bottom-right",
+              "bounces": 9
+            },
+            "map": [
+              10,
+              10
+            ],
             "rise": 2,
             "run": 1
           },
           "solution": {
-            "corner": "bottom-right",
-            "bounces": 9,
-            "path": [
-              [
-                "0",
-                "0"
-              ],
-              [
-                "3/2",
-                "3"
-              ],
-              [
-                "3",
-                "0"
-              ],
-              [
-                "4",
-                "2"
-              ],
-              [
-                "7/2",
-                "3"
-              ],
-              [
-                "2",
-                "0"
-              ],
-              [
-                "1/2",
-                "3"
-              ],
-              [
-                "0",
-                "2"
-              ],
-              [
-                "1",
-                "0"
-              ],
-              [
-                "5/2",
-                "3"
-              ],
-              [
-                "4",
-                "0"
-              ]
+            "moves": [
+              {
+                "type": "launch",
+                "room": [
+                  5,
+                  1
+                ]
+              }
+            ],
+            "answers": [
+              "5×1",
+              "4×3",
+              "3×5"
             ]
           },
-          "hint": "In reflected rooms, the ray rises two units for every unit right. Find its first intersection of both wall grids.",
-          "insight": "Non-unit slope changes the first simultaneous wall crossing; reducing room width and height alone is insufficient.",
-          "prerequisites": "Use reflected copies, room counts, and the direction arrow.",
-          "difficulty_level": "medium",
-          "difficulty_reasoning": "Non-unit slope changes the first simultaneous wall crossing; reducing room width and height alone is insufficient.",
-          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
-          "prompt": "Predict the first corner and bounce count."
+          "hint": "The ball now goes two squares up for every square across. Try a room wider than it is tall.",
+          "insight": "A steeper start rescales one side: with 2 up for 1 across, a w by h room acts like a 2w by h room at 45°.",
+          "difficulty_step": "A steeper launch: the 45° rule no longer applies directly.",
+          "prerequisites": "Count bounces up to ten; compare a room with its double.",
+          "source_refs": [
+            "B-F"
+          ],
+          "provenance": "New in the app: no worksheet problem uses a steeper start. Revision 1 asked for a prediction in the 4 by 3 room with this start; that room is one answer here.",
+          "difficulty_level": "hard",
+          "revision": 2
         },
         {
           "id": "billiard-08",
-          "title": "Design the opposite side",
+          "title": "Three bounces",
+          "prompt": "Shape the room so the ball stops at the bottom right corner after exactly 3 bounces.",
           "parameters": {
-            "mode": "choose_width",
-            "height": 6,
-            "width_min": 1,
-            "width_max": 12,
-            "rise": 1,
-            "run": 1,
-            "target_corner": "bottom-right",
-            "target_bounces": 3
-          },
-          "solution": {
-            "width": 4,
-            "all_valid_widths": [
-              4
+            "mode": "shape",
+            "cols": 6,
+            "rows": 6,
+            "start": [
+              1,
+              1
             ],
-            "corner": "bottom-right",
-            "bounces": 3,
-            "path": [
-              [
-                "0",
-                "0"
-              ],
-              [
-                "4",
-                "4"
-              ],
-              [
-                "2",
-                "6"
-              ],
-              [
-                "0",
-                "4"
-              ],
-              [
-                "4",
-                "0"
-              ]
+            "target": {
+              "corner": "bottom-right",
+              "bounces": 3
+            },
+            "map": [
+              5,
+              5
             ]
           },
-          "hint": "Three bounces means five whole room crossings in all. Bottom-right needs an odd horizontal count and an even vertical count.",
-          "insight": "The corner and bounce count together determine reduced room proportions.",
-          "prerequisites": "Use reflected copies, room counts, and the direction arrow.",
+          "solution": {
+            "moves": [
+              {
+                "type": "launch",
+                "room": [
+                  4,
+                  1
+                ]
+              }
+            ],
+            "answers": [
+              "4×1",
+              "2×3",
+              "4×6"
+            ]
+          },
+          "hint": "Count the bounces of a few rooms that stop at the bottom right.",
+          "insight": "Bottom right after three bounces: rooms that in lowest terms are 4 by 1 or 2 by 3, and their doubles.",
+          "difficulty_step": "Two different room shapes give the same target; a doubled room does too.",
+          "prerequisites": "Count bounces; tell corners apart.",
+          "source_refs": [
+            "B-M",
+            "B-F"
+          ],
+          "provenance": "Week 9 2–3 Problem 4 (design for a written target); target new. Revision 1 fixed the height at 6 and asked for the width; its answer, 4 by 6, answers here.",
           "difficulty_level": "medium",
-          "difficulty_reasoning": "The corner and bounce count together determine reduced room proportions.",
-          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
-          "prompt": "Reach bottom-right first after exactly 3 bounces."
+          "revision": 2
         },
         {
           "id": "billiard-09",
-          "title": "Several correct arrows",
+          "title": "Aim in a tall room",
+          "prompt": "Aim so the ball stops at the top right corner after exactly 6 bounces.",
           "parameters": {
-            "mode": "choose_direction",
+            "mode": "aim",
             "width": 2,
             "height": 3,
-            "component_min": 1,
-            "component_max": 10,
-            "target_corner": "top-right",
-            "target_bounces": 6
+            "sheet": [
+              6,
+              6
+            ],
+            "target": {
+              "corner": "top-right",
+              "bounces": 6
+            }
           },
           "solution": {
-            "rise": 5,
-            "run": 2,
-            "all_valid_directions": [
-              [
-                5,
-                2
-              ],
-              [
-                9,
-                10
-              ],
-              [
-                10,
-                4
-              ]
+            "moves": [
+              {
+                "type": "launch",
+                "aim": [
+                  5,
+                  3
+                ]
+              }
             ],
-            "corner": "top-right",
-            "bounces": 6,
-            "path": [
-              [
-                "0",
-                "0"
-              ],
-              [
-                "6/5",
-                "3"
-              ],
-              [
-                "2",
-                "1"
-              ],
-              [
-                "8/5",
-                "0"
-              ],
-              [
-                "2/5",
-                "3"
-              ],
-              [
-                "0",
-                "2"
-              ],
-              [
-                "4/5",
-                "0"
-              ],
-              [
-                "2",
-                "3"
-              ]
+            "answers": [
+              "5,3",
+              "3,5"
             ]
           },
-          "hint": "Look for coprime odd room counts adding to eight, then convert rooms into actual units.",
-          "insight": "Different reduced slopes can satisfy the same corner and bounce target; every bounded valid direction is accepted.",
-          "prerequisites": "Use reflected copies, room counts, and the direction arrow.",
+          "hint": "A top-right copy corner is an odd number of rooms across and an odd number up.",
+          "insight": "Top right after six bounces: copy corners 3 across and 5 up, or 5 across and 3 up.",
+          "difficulty_step": "More bounces, two answers on the sheet.",
+          "prerequisites": "Odd and even; count rooms on the sheet.",
+          "source_refs": [
+            "B-U",
+            "B-F",
+            "B-R"
+          ],
+          "provenance": "Revision 1 asked for rise and run in a 2 by 3 room (top right after 6) from menus; now aimed by tapping a crossing (card App fit). Its answers are the crossings 3 across and 5 up, and 5 across and 3 up.",
           "difficulty_level": "hard",
-          "difficulty_reasoning": "Different reduced slopes can satisfy the same corner and bounce target; every bounded valid direction is accepted.",
-          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
-          "prompt": "Reach top-right first after exactly 6 bounces."
+          "revision": 2
         },
         {
           "id": "billiard-10",
-          "title": "Change the room, keep the arrow",
+          "title": "Three up, two across",
+          "prompt": "Shape the room so the ball stops at the top left corner after exactly 5 bounces.",
           "parameters": {
-            "mode": "choose_width",
-            "height": 8,
-            "width_min": 1,
-            "width_max": 12,
+            "mode": "shape",
+            "cols": 8,
+            "rows": 8,
+            "start": [
+              1,
+              1
+            ],
+            "target": {
+              "corner": "top-left",
+              "bounces": 5
+            },
+            "map": [
+              6,
+              6
+            ],
             "rise": 3,
-            "run": 2,
-            "target_corner": "top-left",
-            "target_bounces": 5
+            "run": 2
           },
           "solution": {
-            "width": 4,
-            "all_valid_widths": [
-              4
+            "moves": [
+              {
+                "type": "launch",
+                "room": [
+                  1,
+                  2
+                ]
+              }
             ],
-            "corner": "top-left",
-            "bounces": 5,
-            "path": [
-              [
-                "0",
-                "0"
-              ],
-              [
-                "4",
-                "6"
-              ],
-              [
-                "8/3",
-                "8"
-              ],
-              [
-                "0",
-                "4"
-              ],
-              [
-                "8/3",
-                "0"
-              ],
-              [
-                "4",
-                "2"
-              ],
-              [
-                "0",
-                "8"
-              ]
+            "answers": [
+              "1×2",
+              "5×3",
+              "2×4",
+              "3×6",
+              "4×8"
             ]
           },
-          "hint": "Top-left needs an even number of widths and an odd number of heights; their sum must be seven.",
-          "insight": "Inverse room design must combine fixed slope, reduced crossing counts, parity, and the first-corner condition.",
-          "prerequisites": "Use reflected copies, room counts, and the direction arrow.",
+          "hint": "Try rooms twice as tall as they are wide, and count the bounces.",
+          "insight": "With 3 up for 2 across, a w by h room acts like a 3w by 2h room at 45°; top left after five bounces comes from 5 by 3 and from every room twice as tall as wide.",
+          "difficulty_step": "A steeper start and a bounce count: both the room’s shape and the direction matter.",
+          "prerequisites": "Count bounces; compare rooms with a common shape.",
+          "source_refs": [
+            "B-F"
+          ],
+          "provenance": "New in the app. Revision 1 fixed the height at 8 and asked for the width with this start; its answer, 4 by 8, answers here.",
           "difficulty_level": "hard",
-          "difficulty_reasoning": "Inverse room design must combine fixed slope, reduced crossing counts, parity, and the first-corner condition.",
-          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
-          "prompt": "Reach top-left first after exactly 5 bounces."
+          "revision": 2
         },
         {
           "id": "billiard-11",
-          "title": "Reject an early corner",
+          "title": "Eight bounces",
+          "prompt": "Aim so the ball stops at the top right corner after exactly 8 bounces.",
           "parameters": {
-            "mode": "choose_direction",
+            "mode": "aim",
             "width": 4,
             "height": 3,
-            "component_min": 1,
-            "component_max": 12,
-            "target_corner": "top-right",
-            "target_bounces": 8
+            "sheet": [
+              7,
+              7
+            ],
+            "target": {
+              "corner": "top-right",
+              "bounces": 8
+            }
           },
           "solution": {
-            "rise": 1,
-            "run": 12,
-            "all_valid_directions": [
-              [
-                1,
-                12
-              ],
-              [
-                7,
-                4
-              ]
+            "moves": [
+              {
+                "type": "launch",
+                "aim": [
+                  7,
+                  3
+                ]
+              }
             ],
-            "corner": "top-right",
-            "bounces": 8,
-            "path": [
-              [
-                "0",
-                "0"
-              ],
-              [
-                "4",
-                "1/3"
-              ],
-              [
-                "0",
-                "2/3"
-              ],
-              [
-                "4",
-                "1"
-              ],
-              [
-                "0",
-                "4/3"
-              ],
-              [
-                "4",
-                "5/3"
-              ],
-              [
-                "0",
-                "2"
-              ],
-              [
-                "4",
-                "7/3"
-              ],
-              [
-                "0",
-                "8/3"
-              ],
-              [
-                "4",
-                "3"
-              ]
+            "answers": [
+              "7,3",
+              "3,7"
             ]
           },
-          "hint": "Five widths and five heights share a factor and reach a corner too early. Try another pair adding to ten.",
-          "insight": "Unreduced crossing counts can fit the endpoint but fail the first-corner requirement.",
-          "prerequisites": "Use reflected copies, room counts, and the direction arrow.",
+          "hint": "Aim at a crossing and Launch. Does the ball always reach the crossing you aimed at?",
+          "insight": "The ball stops at the first copy corner on its line: aiming 5 across and 5 up stops it 1 across and 1 up. The answers are 3 across and 7 up, and 7 across and 3 up.",
+          "difficulty_step": "A copy corner that is not the first on its line is a trap.",
+          "prerequisites": "Odd and even; notice a line can pass an earlier crossing.",
+          "source_refs": [
+            "B-U",
+            "B-F",
+            "B-R"
+          ],
+          "provenance": "Revision 1 asked for rise and run in a 4 by 3 room (top right after 8) from menus; now aimed by tapping a crossing (card App fit). Its answer 7 up for 4 across is the crossing 3 across and 7 up.",
           "difficulty_level": "hard",
-          "difficulty_reasoning": "Unreduced crossing counts can fit the endpoint but fail the first-corner requirement.",
-          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
-          "prompt": "Reach top-right first after exactly 8 bounces."
+          "revision": 2
         },
         {
           "id": "billiard-12",
-          "title": "Nine bounces, one aim",
+          "title": "Nine bounces",
+          "prompt": "Aim so the ball stops at the bottom right corner after exactly 9 bounces.",
           "parameters": {
-            "mode": "choose_direction",
+            "mode": "aim",
             "width": 3,
             "height": 4,
-            "component_min": 1,
-            "component_max": 12,
-            "target_corner": "bottom-right",
-            "target_bounces": 9
+            "sheet": [
+              7,
+              7
+            ],
+            "target": {
+              "corner": "bottom-right",
+              "bounces": 9
+            }
           },
           "solution": {
-            "rise": 8,
-            "run": 5,
-            "all_valid_directions": [
-              [
-                8,
-                5
-              ]
+            "moves": [
+              {
+                "type": "launch",
+                "aim": [
+                  7,
+                  4
+                ]
+              }
             ],
-            "corner": "bottom-right",
-            "bounces": 9,
-            "path": [
-              [
-                "0",
-                "0"
-              ],
-              [
-                "5/2",
-                "4"
-              ],
-              [
-                "3",
-                "16/5"
-              ],
-              [
-                "1",
-                "0"
-              ],
-              [
-                "0",
-                "8/5"
-              ],
-              [
-                "3/2",
-                "4"
-              ],
-              [
-                "3",
-                "8/5"
-              ],
-              [
-                "2",
-                "0"
-              ],
-              [
-                "0",
-                "16/5"
-              ],
-              [
-                "1/2",
-                "4"
-              ],
-              [
-                "3",
-                "0"
-              ]
+            "answers": [
+              "7,4",
+              "5,6"
             ]
           },
-          "hint": "Try five widths and six heights. Convert those distances to an arrow, then reduce it.",
-          "insight": "A bounded inverse problem joins parity, coprimality and aspect ratio; guessing the same slope as a unit square fails.",
-          "prerequisites": "Use reflected copies, room counts, and the direction arrow.",
+          "hint": "A bottom-right copy corner is an odd number of rooms across and an even number up.",
+          "insight": "Bottom right after nine bounces: copy corners across + up = 11 with across odd, such as 5 across and 6 up.",
+          "difficulty_step": "The largest sheet; several crossings fold onto the right corner with the wrong count.",
+          "prerequisites": "Odd and even; add across and up.",
+          "source_refs": [
+            "B-U",
+            "B-F",
+            "B-R"
+          ],
+          "provenance": "Revision 1 asked for rise and run in a 3 by 4 room (bottom right after 9) from menus; now aimed by tapping a crossing (card App fit). Its answer, 8 up for 5 across, is the crossing 5 across and 6 up.",
           "difficulty_level": "hard",
-          "difficulty_reasoning": "A bounded inverse problem joins parity, coprimality and aspect ratio; guessing the same slope as a unit square fails.",
-          "provenance": "New September 2026 app instance in the mathematical family of the listed sources; no worksheet problem or prose copied.",
-          "prompt": "Reach bottom-right first after exactly 9 bounces."
+          "revision": 2
+        },
+        {
+          "id": "billiard-13",
+          "title": "The first crossing",
+          "prompt": "Tap the first point on the ball’s line where two walls cross.",
+          "parameters": {
+            "mode": "cross",
+            "width": 2,
+            "height": 3,
+            "sheet": [
+              4,
+              3
+            ]
+          },
+          "solution": {
+            "moves": [
+              {
+                "type": "tap",
+                "at": [
+                  3,
+                  2
+                ]
+              }
+            ],
+            "answers": [
+              "3,2"
+            ],
+            "stop": {
+              "corner": "bottom-right",
+              "bounces": 3,
+              "across": 3,
+              "up": 2
+            }
+          },
+          "hint": "Follow the line. It crosses many walls; find where it meets two at once.",
+          "insight": "The ball’s straight line through the copies stops where it first meets a corner of the copies: 3 rooms across and 2 up for the 2 by 3 room. The rooms it passed fold into the path.",
+          "difficulty_step": "The unfolding as a move: a crossing of one wall is not a corner.",
+          "prerequisites": "Follow a straight line on a grid.",
+          "source_refs": [
+            "B-U",
+            "B-M",
+            "B-R"
+          ],
+          "provenance": "Week 9 4–5 Problem 3: the 2 by 3 table on a sheet of 4 by 3 copies; the line first meets a crossing 3 across and 2 up (facilitator answer). The fold replaces cutting and folding paper.",
+          "difficulty_level": "easy"
+        },
+        {
+          "id": "billiard-14",
+          "title": "A 4 by 3 sheet",
+          "prompt": "Tap the first point on the ball’s line where two walls cross.",
+          "parameters": {
+            "mode": "cross",
+            "width": 4,
+            "height": 3,
+            "sheet": [
+              4,
+              5
+            ]
+          },
+          "solution": {
+            "moves": [
+              {
+                "type": "tap",
+                "at": [
+                  3,
+                  4
+                ]
+              }
+            ],
+            "answers": [
+              "3,4"
+            ],
+            "stop": {
+              "corner": "bottom-right",
+              "bounces": 5,
+              "across": 3,
+              "up": 4
+            }
+          },
+          "hint": "Count the squares along the line until it reaches a corner of a copy.",
+          "insight": "For a 4 by 3 room the line first meets a corner 3 rooms across and 4 up: the ball stops at the bottom right after 5 bounces.",
+          "difficulty_step": "A wider room makes the first crossing farther away.",
+          "prerequisites": "Follow a straight line; count rooms.",
+          "source_refs": [
+            "B-U",
+            "B-F"
+          ],
+          "provenance": "Week 9 4–5 Problem 4 (the 4 by 3 table: 3 across, 4 up, bottom right after 5), with the copy walls drawn; placing them is in the spec’s “Not yet done”.",
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "billiard-15",
+          "title": "One bounce",
+          "prompt": "Find every room up to 6 by 6 where the ball bounces exactly once.",
+          "parameters": {
+            "mode": "every",
+            "cols": 6,
+            "rows": 6,
+            "start": [
+              1,
+              1
+            ],
+            "bounces": 1
+          },
+          "solution": {
+            "moves": [
+              {
+                "type": "keep",
+                "room": [
+                  2,
+                  1
+                ]
+              },
+              {
+                "type": "keep",
+                "room": [
+                  1,
+                  2
+                ]
+              },
+              {
+                "type": "keep",
+                "room": [
+                  4,
+                  2
+                ]
+              },
+              {
+                "type": "keep",
+                "room": [
+                  6,
+                  3
+                ]
+              },
+              {
+                "type": "keep",
+                "room": [
+                  2,
+                  4
+                ]
+              },
+              {
+                "type": "keep",
+                "room": [
+                  3,
+                  6
+                ]
+              },
+              {
+                "type": "done"
+              }
+            ],
+            "answers": [
+              "2×1",
+              "1×2",
+              "4×2",
+              "6×3",
+              "2×4",
+              "3×6"
+            ]
+          },
+          "hint": "Start with rooms one square high. Which one bounces once?",
+          "insight": "The ball bounces once exactly when one side is twice the other: six rooms up to 6 by 6.",
+          "difficulty_step": "Find every: the list is judged as a whole, so its completeness is the puzzle.",
+          "prerequisites": "Count one bounce; doubling.",
+          "source_refs": [
+            "B-M",
+            "B-F",
+            "B-R"
+          ],
+          "provenance": "Week 9 2–3 Problem 6 (every table up to 6 by 6 with one bounce; the facilitator lists six).",
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "billiard-16",
+          "title": "Back to the start",
+          "prompt": "Shape the room so the ball stops back at the corner it started from.",
+          "parameters": {
+            "mode": "shape",
+            "cols": 6,
+            "rows": 6,
+            "start": [
+              1,
+              1
+            ],
+            "target": {
+              "corner": "bottom-left"
+            },
+            "map": [
+              6,
+              6
+            ]
+          },
+          "solution": {
+            "moves": [
+              {
+                "type": "launch",
+                "room": [
+                  1,
+                  1
+                ]
+              },
+              {
+                "type": "cant"
+              },
+              {
+                "type": "tap",
+                "at": [
+                  2,
+                  2
+                ]
+              },
+              {
+                "type": "tap",
+                "at": [
+                  1,
+                  1
+                ]
+              }
+            ],
+            "answers": [],
+            "certificate": "a copy of the start corner and a copy corner on the way to it"
+          },
+          "hint": "Launch a few rooms. Where does each one stop?",
+          "insight": "The ball never comes back to its start: every copy of the start corner is an even number of rooms across and up, and halfway there the line meets a copy corner where the ball stops first.",
+          "difficulty_step": "The first impossible goal; the claim points at one copy of the start and the corner the ball reaches before it.",
+          "prerequisites": "Tell corners apart; find a point halfway along a line.",
+          "source_refs": [
+            "B-K",
+            "B-M",
+            "B-U",
+            "B-F",
+            "B-R"
+          ],
+          "provenance": "Week 9 K–1 Problem 6, 2–3 Problem 8 and 4–5 Problem 7 (the ball never stops where it started), answered with Can’t (card Decision: send it home).",
+          "difficulty_level": "easy"
+        },
+        {
+          "id": "billiard-17",
+          "title": "Three bounces to the top right",
+          "prompt": "Shape the room so the ball stops at the top right corner after exactly 3 bounces.",
+          "parameters": {
+            "mode": "shape",
+            "cols": 6,
+            "rows": 6,
+            "start": [
+              1,
+              1
+            ],
+            "target": {
+              "corner": "top-right",
+              "bounces": 3
+            },
+            "map": [
+              6,
+              6
+            ]
+          },
+          "solution": {
+            "moves": [
+              {
+                "type": "launch",
+                "room": [
+                  1,
+                  1
+                ]
+              },
+              {
+                "type": "cant"
+              },
+              {
+                "type": "tap",
+                "at": [
+                  4,
+                  1
+                ]
+              },
+              {
+                "type": "tap",
+                "at": [
+                  3,
+                  2
+                ]
+              },
+              {
+                "type": "tap",
+                "at": [
+                  2,
+                  3
+                ]
+              },
+              {
+                "type": "tap",
+                "at": [
+                  1,
+                  4
+                ]
+              },
+              {
+                "type": "done"
+              }
+            ],
+            "answers": [],
+            "certificate": "4,1 3,2 2,3 1,4"
+          },
+          "hint": "Launch rooms that stop at the top right and count their bounces.",
+          "insight": "A top-right stop takes an even number of bounces: its copy corner is odd across and odd up, so across + up − 2 is even. Three bounces is impossible.",
+          "difficulty_step": "The impossible target of the medium set; the claim points at every copy corner three bounces away.",
+          "prerequisites": "Count bounces; odd and even.",
+          "source_refs": [
+            "B-M",
+            "B-F",
+            "B-R"
+          ],
+          "provenance": "Week 9 2–3 Problem 4, fourth target (top right after 3 bounces, impossible; facilitator answer).",
+          "difficulty_level": "medium"
+        },
+        {
+          "id": "billiard-18",
+          "title": "Eight bounces to the bottom right",
+          "prompt": "Shape the room so the ball stops at the bottom right corner after exactly 8 bounces.",
+          "parameters": {
+            "mode": "shape",
+            "cols": 8,
+            "rows": 8,
+            "start": [
+              1,
+              1
+            ],
+            "target": {
+              "corner": "bottom-right",
+              "bounces": 8
+            },
+            "map": [
+              9,
+              9
+            ]
+          },
+          "solution": {
+            "moves": [
+              {
+                "type": "launch",
+                "room": [
+                  1,
+                  1
+                ]
+              },
+              {
+                "type": "cant"
+              },
+              {
+                "type": "tap",
+                "at": [
+                  9,
+                  1
+                ]
+              },
+              {
+                "type": "tap",
+                "at": [
+                  7,
+                  3
+                ]
+              },
+              {
+                "type": "tap",
+                "at": [
+                  3,
+                  7
+                ]
+              },
+              {
+                "type": "tap",
+                "at": [
+                  1,
+                  9
+                ]
+              },
+              {
+                "type": "done"
+              }
+            ],
+            "answers": [],
+            "certificate": "9,1 7,3 3,7 1,9"
+          },
+          "hint": "Count the bounces of rooms that stop at the bottom right. Are they ever even?",
+          "insight": "A bottom-right copy corner is odd across and even up, so across + up − 2 is odd: no room stops there after 8 bounces.",
+          "difficulty_step": "The impossible target of the hard set, on the largest map; corners on the line that are not first on their own line may be tapped or left.",
+          "prerequisites": "Odd and even; add across and up.",
+          "source_refs": [
+            "B-U",
+            "B-F",
+            "B-R"
+          ],
+          "provenance": "Week 9 4–5 Problem 6, fourth target, adapted: bottom right after 10 bounces became 8 so its map (9 by 9 copies) fits the board; both are impossible for the same reason.",
+          "difficulty_level": "hard"
         }
       ]
     }

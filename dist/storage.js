@@ -1,6 +1,7 @@
 import { BANDS, CONTENT_VERSION, freshAttempt, validBoard, isSolved, clone } from './engine.js';
 import { legacyNimBoard } from './deduction.js';
 import { weighingSecret } from './measurement.js';
+import { legacyBilliardBoard } from './couriers.js';
 import { validateJourney, freshJourney, withCampaignPuzzles, resolvePuzzle, campaignAttemptReachable } from './road.js';
 import { validateJourney as validateRoad3Journey } from './caravan-road3.js';
 import { validateJourney as validateCaravanJourney } from './caravan-legacy.js';
@@ -216,7 +217,13 @@ const legacyGardens = {
 };
 const savedDefinition = (p, a) => p?.revision === 2 && p.tileShape === 'l-tromino' && a?.revision === 1 && Object.hasOwn(legacyGardens,p.id) ? legacyGardens[p.id] : p;
 const readableBoard = (p, board) => validBoard(p, board) || p.mechanic === 'nim' && legacyNimBoard(p, board);
+// A Mirror Couriers save from revision 1 (the predict-and-launch menus) is a
+// prediction or a menu setting; revision 2 starts that puzzle afresh and keeps
+// what was earned, as the L-tromino gardens do.
+const legacyCourier = (p, a) => p?.mechanic === 'billiard' && p.revision === 2 && a?.revision === 1 && legacyBilliardBoard(a.board) && Array.isArray(a.history) && a.history.every(h => legacyBilliardBoard(h?.board));
+const courierAttempt = (p, a) => legacyCourier(p, a) ? {...a, revision:p.revision, board:freshAttempt(p).board, history:[], moves:0} : a;
 function restoredAttempt(p, a) {
+  a = courierAttempt(p, a);
   const saved = {revision:a.revision,board:clone(a.board),history:clone(a.history),moves:a.moves,hintLevel:a.hintLevel,helpUsed:a.helpUsed,completed:a.completed,lastPlayed:a.lastPlayed};
   if (savedDefinition(p,a) !== p) {
     const fresh = freshAttempt(p);
@@ -268,12 +275,12 @@ export function validateStore(value, puzzles) {
     }
     journeys.set(profile.id,{...(journey?{journey}:{}),...(caravanJourney?{caravanJourney}:{}),...(rescueJourney?{rescueJourney}:{}),...(roadJourney?{roadJourney}:{})});
     const effectiveProfile={...profile,journey};
-    for (const [id,a] of Object.entries(profile.attempts)) {
+    for (const [id,saved] of Object.entries(profile.attempts)) {
       const base = byId.get(id);
       // Archived pump capability belongs to the original rescue, never the new road.
       const archived=base?.campaignVersion===2;
       const current = archived?resolveRescuePuzzle(base,{...profile,journey:rescueJourney}):resolvePuzzle(base,effectiveProfile);
-      const p = savedDefinition(current,a);
+      const p = savedDefinition(current,saved), a = courierAttempt(p,saved);
       if (base?.campaignOnly) {
         const reached = base.campaignVersion===4 ? campaignAttemptReachable(effectiveProfile,base) : Object.values((archived?rescueJourney:roadJourney)?.bindings||{}).includes(id);
         if (!reached) throw new Error('A campaign puzzle has not been reached.');

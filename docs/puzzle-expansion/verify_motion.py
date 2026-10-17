@@ -7,6 +7,7 @@ Billiards use exact rational collision events, not the gcd/bounce formulas.
 """
 from collections import deque
 from fractions import Fraction
+from math import gcd
 from pathlib import Path
 import json
 
@@ -137,31 +138,39 @@ def serialize_path(path):
 
 
 def check_billiard(instance):
+    """Mirror Couriers revision 2 (docs/couriers/README.md): rooms, aims and
+    crossings are recomputed with the exact wall-collision trace above."""
     p, s = instance['parameters'], instance['solution']
     mode = p['mode']
-    if mode == 'predict':
-        width, height = p['width'], p['height']
-        rise, run = p['rise'], p['run']
-    elif mode == 'choose_width':
-        width, height = s['width'], p['height']
-        rise, run = p['rise'], p['run']
-        answers = [w for w in range(p['width_min'], p['width_max']+1)
-                   if trace(w, height, rise, run)[:2] == (p['target_corner'], p['target_bounces'])]
-        assert answers == s['all_valid_widths'] and width in answers
+    hit = lambda out, t: out[0] == t['corner'] and ('bounces' not in t or out[1] == t['bounces'])
+    rooms = lambda cols, rows: [(w, h) for h in range(1, rows + 1) for w in range(1, cols + 1)]
+    if mode in ('shape', 'every'):
+        rise, run = p.get('rise', 1), p.get('run', 1)
+        if mode == 'shape':
+            answers = [f'{w}×{h}' for w, h in rooms(p['cols'], p['rows']) if hit(trace(w, h, rise, run), p['target'])]
+        else:
+            answers = [f'{w}×{h}' for w, h in rooms(p['cols'], p['rows']) if trace(w, h)[1] == p['bounces']]
+        if mode == 'shape' and not answers:
+            # Impossible: no room up to 30 by 30 either.
+            assert not any(hit(trace(w, h, rise, run), p['target']) for w, h in rooms(30, 30))
+    elif mode == 'aim':
+        def aim(a, b):
+            rise, run = b * p['height'], a * p['width']
+            g = gcd(rise, run)
+            return trace(p['width'], p['height'], rise // g, run // g)
+        answers = [f'{a},{b}' for a, b in rooms(*p['sheet']) if gcd(a, b) == 1 and hit(aim(a, b), p['target'])]
     else:
-        assert mode == 'choose_direction'
-        width, height = p['width'], p['height']
-        rise, run = s['rise'], s['run']
-        answers = [[a, b] for a in range(p['component_min'], p['component_max']+1)
-                   for b in range(p['component_min'], p['component_max']+1)
-                   if trace(width, height, a, b)[:2] == (p['target_corner'], p['target_bounces'])]
-        assert answers == s['all_valid_directions'] and [rise, run] in answers
-    corner, bounces, path = trace(width, height, rise, run)
-    assert corner == s['corner'] and bounces == s['bounces']
-    assert serialize_path(path) == s['path']
-    if mode != 'predict':
-        assert (corner, bounces) == (p['target_corner'], p['target_bounces'])
-    return f"{corner}, {bounces} bounces"
+        assert mode == 'cross'
+        corner, bounces, path = trace(p['width'], p['height'])
+        # The unfolded line meets its first copy corner after bounces + 1 wall pieces:
+        # one copy wall per bounce, so across + up = bounces + 2.
+        end_x = sum(abs(b[0] - a[0]) for a, b in zip(path, path[1:]))
+        end_y = sum(abs(b[1] - a[1]) for a, b in zip(path, path[1:]))
+        a, b = int(end_x / p['width']), int(end_y / p['height'])
+        assert a + b == bounces + 2
+        answers = [f'{a},{b}']
+    assert sorted(answers) == sorted(s['answers']), (instance['id'], answers, s['answers'])
+    return f"{mode}: {' '.join(answers) or 'impossible'}"
 
 
 def main():
@@ -170,12 +179,12 @@ def main():
     check = {'toggle': check_toggle, 'clock': check_clock, 'billiard': check_billiard}
     count = 0
     for family in data['families']:
-        assert len(family['instances']) == (42 if family['id'] == 'toggle' else 12)
+        assert len(family['instances']) == {'toggle': 42, 'billiard': 18}.get(family['id'], 12)
         for instance in family['instances']:
             result = check[family['id']](instance)
             print(f"{instance['id']}: OK ({result})")
             count += 1
-    print(f'PASS: {count} solvable instances; all stated minima/first hits and complete choice sets checked.')
+    print(f'PASS: {count} instances; all stated minima/first hits, complete choice sets and impossible targets checked.')
 
 
 if __name__ == '__main__':

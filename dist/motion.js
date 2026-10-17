@@ -1,6 +1,7 @@
-import { esc, selectField, submitButton } from './expansion-controls.js';
+import { esc, submitButton } from './expansion-controls.js';
 import { clockJumpArc } from './clock-geometry.js';
 import { clockRunCount, clockTrailStep, CLOCK_TRAIL_LIMIT } from './clock-playback.js';
+import { billiard } from './couriers.js';
 
 // Adapted from the locally consulted weeks 02, 04, and 09 worksheets and
 // redesign notes. Instance-level provenance lives in the expansion catalog.
@@ -11,8 +12,6 @@ const range = (min, max) => Array.from({ length: max - min + 1 }, (_, i) => min 
 const gcd = (a, b) => b ? gcd(b, a % b) : a;
 const lcm = (a, b) => a / gcd(a, b) * b;
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : word === 'press' ? 'es' : 's'}`;
-const corners = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
-const cornerName = value => value.replace('-', ' ');
 
 export function toggleState(p, presses) {
   const { vertices, edges, initial_on } = p.parameters;
@@ -241,127 +240,8 @@ const clock = {
   demo: 'Choose a bell count, then ring. Starting places are bell zero. A star only counts when the marker lands there. Each bell moves every marker.'
 };
 
-const fraction = (numerator, denominator = 1) => {
-  const divisor = gcd(Math.abs(numerator), denominator);
-  return denominator / divisor === 1 ? String(numerator / divisor) : `${numerator / divisor}/${denominator / divisor}`;
-};
-const fractionNumber = value => { const [n, d = 1] = String(value).split('/').map(Number); return n / d; };
-const foldFraction = (numerator, denominator, size) => {
-  const remainder = numerator % (2 * size * denominator);
-  return fraction(remainder <= size * denominator ? remainder : 2 * size * denominator - remainder, denominator);
-};
-
-// Exact unfolded wall events. Cross-products order rational times without
-// floating-point corner tolerances; only the SVG projection uses decimals.
-export function simulateBilliard(width, height, rise, run) {
-  if (![width, height, rise, run].every(value => integer(value) && value > 0 && value <= 1000)) throw new RangeError('Positive integer room and direction components are required.');
-  const divisor = gcd(rise * width, run * height);
-  const roomsX = run * height / divisor, roomsY = rise * width / divisor;
-  const path = [['0', '0']];
-  let vertical = 1, horizontal = 1;
-  while (vertical < roomsX || horizontal < roomsY) {
-    const verticalTime = vertical * width * rise, horizontalTime = horizontal * height * run;
-    if (vertical < roomsX && (horizontal >= roomsY || verticalTime < horizontalTime)) {
-      path.push([String(vertical % 2 ? width : 0), foldFraction(rise * vertical * width, run, height)]);
-      vertical++;
-    } else {
-      path.push([foldFraction(run * horizontal * height, rise, width), String(horizontal % 2 ? height : 0)]);
-      horizontal++;
-    }
-  }
-  path.push([String(roomsX % 2 ? width : 0), String(roomsY % 2 ? height : 0)]);
-  return { corner: `${roomsY % 2 ? 'top' : 'bottom'}-${roomsX % 2 ? 'right' : 'left'}`, bounces: roomsX + roomsY - 2, path, roomsX, roomsY };
-}
-
-function validBilliard(p, board) {
-  if (!object(board) || !Object.hasOwn(board, 'prediction')) return false;
-  const choice = board.prediction, params = p.parameters;
-  if (choice === null) return true;
-  if (!object(choice)) return false;
-  if (params.mode === 'predict') return corners.includes(choice.corner) && integer(choice.bounces) && choice.bounces >= 0;
-  if (params.mode === 'choose_width') return integer(choice.width) && choice.width >= params.width_min && choice.width <= params.width_max;
-  return ['rise', 'run'].every(key => integer(choice[key]) && choice[key] >= params.component_min && choice[key] <= params.component_max);
-}
-
-function billiardSetting(p, choice) {
-  const params = p.parameters;
-  return {
-    width: params.mode === 'choose_width' ? choice?.width ?? params.width_min : params.width,
-    height: params.height,
-    rise: params.mode === 'choose_direction' ? choice?.rise ?? params.component_min : params.rise,
-    run: params.mode === 'choose_direction' ? choice?.run ?? params.component_min : params.run
-  };
-}
-
-function billiardResult(setting) { return simulateBilliard(setting.width, setting.height, setting.rise, setting.run); }
-function solvedBilliard(p, board) {
-  if (!validBilliard(p, board) || board.prediction === null) return false;
-  const result = billiardResult(billiardSetting(p, board.prediction)), params = p.parameters;
-  return params.mode === 'predict'
-    ? board.prediction.corner === result.corner && board.prediction.bounces === result.bounces
-    : result.corner === params.target_corner && result.bounces === params.target_bounces;
-}
-
-function roomPicture(setting, result) {
-  const { width, height, rise, run } = setting, scale = Math.min(280 / width, 260 / height);
-  const left = (360 - width * scale) / 2, top = 36, bottom = top + height * scale, right = left + width * scale;
-  const xy = ([x, y]) => `${left + fractionNumber(x) * scale},${bottom - fractionNumber(y) * scale}`;
-  const grids = [...range(1, width - 1).map(x => `<line x1="${left + x * scale}" y1="${top}" x2="${left + x * scale}" y2="${bottom}"/>`), ...range(1, height - 1).map(y => `<line x1="${left}" y1="${top + y * scale}" x2="${right}" y2="${top + y * scale}"/>`)].join('');
-  const arrowLength = Math.min(46, width * scale / 2, height * scale / 2), norm = Math.hypot(run, rise);
-  const arrow = `<line class="aim-line" x1="${left}" y1="${bottom}" x2="${left + arrowLength * run / norm}" y2="${bottom - arrowLength * rise / norm}"/><circle class="aim-tip" cx="${left + arrowLength * run / norm}" cy="${bottom - arrowLength * rise / norm}" r="4"/>`;
-  const path = result ? `<polyline class="courier-path" pathLength="1" points="${result.path.map(xy).join(' ')}"/>${result.path.slice(1, -1).map((point, i) => { const [x, y] = xy(point).split(','); return `<circle class="bounce-dot" cx="${x}" cy="${y}" r="4"><title>Bounce ${i + 1}</title></circle>`; }).join('')}` : '';
-  return `<figure class="courier-room"><figcaption>${width} × ${height} · ${rise} up, ${run} right</figcaption><svg viewBox="0 0 360 ${bottom + 45}" role="img" aria-label="${width} by ${height} room. Start bottom left, aim ${rise} up for ${run} right.${result ? ` First corner ${cornerName(result.corner)}, ${plural(result.bounces, 'wall bounce')}.` : ' Predict before revealing the path.'}"><g class="room-grid">${grids}</g><rect class="room-wall" x="${left}" y="${top}" width="${width * scale}" height="${height * scale}"/>${path}${arrow}<circle class="launch-dot" cx="${left}" cy="${bottom}" r="6"/><text class="room-label" x="16" y="${top - 14}" text-anchor="start">top left</text><text class="room-label" x="344" y="${top - 14}" text-anchor="end">top right</text><text class="room-label" x="16" y="${bottom + 24}" text-anchor="start">start · bottom left</text><text class="room-label" x="344" y="${bottom + 24}" text-anchor="end">bottom right</text></svg></figure>`;
-}
-
-function unfoldedPicture(setting, result) {
-  const { width, height } = setting, { roomsX, roomsY } = result;
-  const scale = Math.min(320 / (roomsX * width), 240 / (roomsY * height));
-  const right = 20 + roomsX * width * scale, bottom = 20 + roomsY * height * scale;
-  const grid = [...range(0, roomsX).map(x => `<line x1="${20 + x * width * scale}" y1="20" x2="${20 + x * width * scale}" y2="${bottom}"/>`), ...range(0, roomsY).map(y => `<line x1="20" y1="${20 + y * height * scale}" x2="${right}" y2="${20 + y * height * scale}"/>`)].join('');
-  return `<details class="motion-route"><summary>Open the mirror rooms</summary><p>The light goes straight through copies of the room: ${plural(roomsX, 'room')} right and ${plural(roomsY, 'room')} up. It stops at the first crossing of both kinds of wall.</p><svg class="unfolded-rooms" viewBox="0 0 ${right + 20} ${bottom + 20}" role="img" aria-label="Unfolded path through ${roomsX} room widths and ${roomsY} room heights"><g class="room-grid">${grid}</g><line class="unfolded-path" x1="20" y1="${bottom}" x2="${right}" y2="20"/><circle class="launch-dot" cx="20" cy="${bottom}" r="4"/></svg></details>`;
-}
-
-const billiard = {
-  fresh: () => ({ prediction: null }),
-  valid: validBilliard,
-  solved: solvedBilliard,
-  move(p, board, action) {
-    if (!validBilliard(p, board) || !object(action)) return null;
-    const mode = p.parameters.mode;
-    const prediction = mode === 'predict' ? { corner: action.corner, bounces: numberInput(action.bounces) }
-      : mode === 'choose_width' ? { width: numberInput(action.width) }
-        : { rise: numberInput(action.rise), run: numberInput(action.run) };
-    return validBilliard(p, { prediction }) ? { prediction } : null;
-  },
-  hint(p, board) {
-    if (!validBilliard(p, board)) return { type: 'deadend', text: 'Start again to restore the mirror room.' };
-    if (solvedBilliard(p, board)) return { type: 'done' };
-    const params = p.parameters;
-    if (params.mode === 'predict') {
-      const result = billiardResult(billiardSetting(p, null));
-      return { type: 'move', action: { corner: result.corner, bounces: result.bounces }, text: `Follow ${plural(result.bounces + 1, 'straight piece')} to the ${cornerName(result.corner)} corner. Count ${plural(result.bounces, 'wall bounce')} before the corner.` };
-    }
-    const choices = params.mode === 'choose_width' ? range(params.width_min, params.width_max).map(width => ({ width })) : range(params.component_min, params.component_max).flatMap(rise => range(params.component_min, params.component_max).map(run => ({ rise, run })));
-    const action = choices.find(prediction => solvedBilliard(p, { prediction }));
-    if (!action) return { type: 'deadend', text: 'No setting in these controls reaches the requested corner and bounce count.' };
-    return { type: 'move', action, text: params.mode === 'choose_width' ? `Try width ${action.width}. The height stays ${params.height}; count the straight pieces.` : `Aim ${action.rise} squares up for ${action.run} squares right. Open mirror copies of this room to follow the straight line.` };
-  },
-  render(p, attempt) {
-    const params = p.parameters, prediction = attempt.board.prediction, setting = billiardSetting(p, prediction), result = prediction === null ? null : billiardResult(setting);
-    const controls = params.mode === 'predict'
-      ? `${selectField('corner', 'First corner', corners.map(value => ({ value, label: cornerName(value) })), prediction?.corner ?? 'top-left')}<label class="motion-field">Bounces before corner<input name="bounces" type="number" min="0" step="1" inputmode="numeric" value="${prediction?.bounces ?? ''}"  required></label>`
-      : params.mode === 'choose_width'
-        ? selectField('width', 'Room width', range(params.width_min, params.width_max), prediction?.width ?? params.width_min)
-        : `${selectField('rise', 'Aim up (rise)', range(params.component_min, params.component_max), prediction?.rise ?? params.component_min)}${selectField('run', 'Aim right (run)', range(params.component_min, params.component_max), prediction?.run ?? params.component_min)}`;
-    const feedback = result ? `${solvedBilliard(p,attempt.board)?'':`<div class="motion-result" role="status">First corner: <strong>${cornerName(result.corner)}</strong>. Wall bounces: <strong>${result.bounces}</strong>.</div>`}` : '';
-    return `<div class="motion-board billiard-board">${roomPicture(setting, result)}<form data-puzzle-form class="motion-form">${controls}${submitButton('Launch')}</form>${feedback}</div>`;
-  },
-  help(p, attempt) {
-    if (attempt.board.prediction === null) return '';
-    const setting = billiardSetting(p, attempt.board.prediction);
-    return `<div class="motion-board">${unfoldedPicture(setting, billiardResult(setting))}</div>`;
-  },
-  demo: 'Choose the first corner and the number of wall bounces, then launch. The path appears only after your prediction. At a wall one direction reverses; at the first corner the light stops. Design puzzles let you set the room or launch arrow.'
-};
+// Mirror Couriers (billiard) lives in couriers.js; its geometry is re-exported
+// here so existing imports keep working.
+export { simulateBilliard, launchOutcome, firstCrossing, aimAt, unfoldLine, cornerMap } from './couriers.js';
 
 export const motionMechanics = { toggle, clock, billiard };

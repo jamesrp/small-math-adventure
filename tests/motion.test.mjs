@@ -14,6 +14,7 @@ const initial = p => motionMechanics[p.mechanic].fresh(p);
 function applyWitness(p) {
   const handler = motionMechanics[p.mechanic], solution = p.solution;
   if (p.mechanic === 'toggle') return solution.presses.reduce((board, edge) => handler.move(p, board, { edge: edgeIndex(p, edge) }), initial(p));
+  if (p.mechanic === 'billiard') return solution.moves.reduce((board, action) => handler.move(p, board, action), initial(p));
   return handler.move(p, initial(p), solution);
 }
 
@@ -317,15 +318,21 @@ test('one clock timeline restarts, cancels, restores and caps long runs', () => 
   assert.match(html, /class="clock-center"[^>]*>49</);
 });
 
-test('exact billiard paths match all authored rational witnesses', () => {
+// Mirror Couriers has its own suite (tests/couriers.test.mjs); these keep the
+// shared exact path solver honest.
+test('billiard answers in the catalog launch to their targets on the exact path solver', () => {
   for (const p of puzzles.filter(p => p.mechanic === 'billiard')) {
-    const width = p.solution.width ?? p.parameters.width, height = p.parameters.height;
-    const rise = p.solution.rise ?? p.parameters.rise, run = p.solution.run ?? p.parameters.run;
-    const result = simulateBilliard(width, height, rise, run);
-    assert.deepEqual(result.path, p.solution.path, p.id);
-    assert.equal(result.corner, p.solution.corner);
-    assert.equal(result.bounces, p.solution.bounces);
-    assert.equal(result.path.length, result.bounces + 2, 'launch and terminal corner are not wall bounces');
+    const q = p.parameters;
+    for (const answer of p.solution.answers) {
+      const [a, b] = answer.split(/[×,]/).map(Number);
+      const result = q.mode === 'shape' || q.mode === 'every' ? simulateBilliard(a, b, q.rise ?? 1, q.run ?? 1) : simulateBilliard(q.width, q.height, b * q.height, a * q.width);
+      assert.equal(result.path.length, result.bounces + 2, 'launch and terminal corner are not wall bounces');
+      if (q.mode === 'every') assert.equal(result.bounces, q.bounces, `${p.id} ${answer}`);
+      else if (q.mode !== 'cross') {
+        assert.equal(result.corner, q.target.corner, `${p.id} ${answer}`);
+        if (q.target.bounces !== undefined) assert.equal(result.bounces, q.target.bounces, `${p.id} ${answer}`);
+      }
+    }
   }
 });
 
@@ -353,50 +360,14 @@ test('billiard arithmetic agrees with independent reflection for 576 room/direct
   }
 });
 
-test('billiard design validates all alternatives, whole intervals, and physical slope', () => {
+test('billiard draws the path only after Launch', () => {
   const handler = motionMechanics.billiard;
-  for (const p of puzzles.filter(p => p.mechanic === 'billiard' && p.parameters.mode !== 'predict')) {
-    const params = p.parameters, winners = [];
-    if (params.mode === 'choose_width') {
-      for (let width = params.width_min; width <= params.width_max; width++) {
-        const board = handler.move(p, initial(p), { width: String(width) });
-        assert.ok(board);
-        if (handler.solved(p, board)) winners.push(width);
-      }
-      assert.deepEqual(winners, p.solution.all_valid_widths);
-      assert.equal(handler.move(p, initial(p), { width: params.width_max + 1 }), null);
-    } else {
-      for (let rise = params.component_min; rise <= params.component_max; rise++) for (let run = params.component_min; run <= params.component_max; run++) {
-        const board = handler.move(p, initial(p), { rise: String(rise), run: String(run) });
-        assert.ok(board);
-        if (handler.solved(p, board)) winners.push([rise, run]);
-      }
-      assert.deepEqual(winners, p.solution.all_valid_directions);
-      assert.equal(handler.move(p, initial(p), { rise: params.component_max + 1, run: 1 }), null);
-    }
+  for (const p of puzzles.filter(p => p.mechanic === 'billiard' && ['shape', 'every'].includes(p.parameters.mode))) {
+    handler.reset(p);
+    const fresh = initial(p);
+    assert.doesNotMatch(handler.render(p, { board: fresh }), /class="cr-path"/, p.id);
+    const board = handler.move(p, fresh, { type: 'launch', room: p.parameters.start });
+    assert.match(handler.render(p, { board }), /class="cr-path"/, p.id);
+    assert.equal(handler.help(p, { board }), '');
   }
-  const p = puzzle('billiard-06');
-  assert.equal(handler.solved(p, handler.move(p, initial(p), { rise: 5, run: 1 })), false, 'square-normalized direction is wrong for this rectangle');
-});
-
-test('billiard predictions conceal the path until submission and recover after wrong choices', () => {
-  const handler = motionMechanics.billiard;
-  for (const p of puzzles.filter(p => p.mechanic === 'billiard')) {
-    const fresh = initial(p), hidden = handler.render(p, { board: fresh });
-    assert.doesNotMatch(hidden, /class="courier-path"|class="unfolded-rooms"/);
-    assert.equal(handler.help(p, { board: fresh }), '');
-    const wrong = p.parameters.mode === 'predict' ? { corner: 'bottom-left', bounces: 0 } : p.parameters.mode === 'choose_width' ? { width: 1 } : { rise: 1, run: 1 };
-    const board = handler.move(p, fresh, wrong);
-    assert.equal(handler.solved(p, board), false);
-    const shown = handler.render(p, { board });
-    assert.match(shown, /class="courier-path"/);
-    assert.doesNotMatch(shown, /class="unfolded-rooms"/);
-    assert.match(handler.help(p, { board }), /class="unfolded-rooms"/);
-    const hint = handler.hint(p, board);
-    assert.equal(handler.solved(p, handler.move(p, board, hint.action)), true);
-  }
-  const p = puzzle('billiard-01');
-  assert.equal(handler.move(p, initial(p), { corner: 'top-left', bounces: -1 }), null);
-  assert.equal(handler.move(p, initial(p), { corner: '<script>', bounces: 1 }), null);
-  assert.equal(handler.move(p, initial(p), { corner: 'top-left', bounces: '1.5' }), null);
 });

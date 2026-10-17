@@ -45,13 +45,6 @@
 .board-panel .clock-center{font-family:var(--b-display);font-weight:400;fill:var(--b-ink)}
 .board-panel .clock-picture figcaption{font-family:var(--b-display);font-weight:400}
 
-/* Mirror rooms */
-.board-panel .room-wall{stroke:var(--b-ink);stroke-width:3.5}
-.board-panel .room-grid line{stroke:#e2e4d4}
-.board-panel :is(.aim-line){stroke:var(--b-pine)}
-.board-panel :is(.aim-tip,.launch-dot){fill:var(--b-pine)}
-.board-panel :is(.courier-path,.unfolded-path){stroke:var(--b-ochre)}
-.board-panel .bounce-dot{fill:var(--b-ochre)}
 .board-panel .motion-result{background:var(--b-paper);border:1px solid var(--b-line)}
 
 /* Maps: routes and colors */

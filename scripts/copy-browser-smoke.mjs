@@ -55,17 +55,16 @@ async function assertEssentialConstraints(puzzle,goal){
    else if(p.clocks.length>1)assert.match(goal,/every marker/i,`${id}: simultaneous landing condition`);
    break;
   case 'billiard':
-   if(p.mode==='predict'){
-    // Inspect the label's own text; nested option text is not part of the prompt.
-    const corner=board.locator('select[name="corner"]');
-    assert.equal(await corner.count(),1,`${id}: first-corner choice`);
-    assert.equal(await corner.evaluate(node=>Array.from(node.closest('label').childNodes).filter(child=>child.nodeType===Node.TEXT_NODE).map(child=>child.textContent).join('').trim()),'First corner',`${id}: first-corner label`);
-    assert.equal(await page.getByLabel('Bounces before corner',{exact:true}).count(),1,`${id}: bounce count excludes the stopping corner`);
-   }else{
-    assert.ok(goal.includes(p.target_corner.replace('-',' ')),`${id}: target corner`);
-    assert.match(goal,new RegExp(`exactly ${p.target_bounces} bounces`),`${id}: exact bounce count`);
-    assert.match(goal,/first/i,`${id}: first corner stops the ray`);
+   // The goal corner is ringed on the board; the visible line carries what the
+   // board cannot show: the bounce count, the start, or the find-every bound.
+   if(p.mode==='cross')assert.match(goal,/first meets a crossing/i,`${id}: first crossing`);
+   else if(p.mode==='every')assert.match(goal,new RegExp(`every room where the ball bounces ${p.bounces===1?'once':`${p.bounces} times`}`,'i'),`${id}: find-every target`);
+   else{
+    if(p.target.corner==='bottom-left')assert.match(goal,/back at the start/i,`${id}: back to the start`);
+    else if(p.target.bounces!==undefined)assert.match(goal,new RegExp(`after ${p.target.bounces} bounces?\\b`),`${id}: exact bounce count`);
+    assert.equal(await board.locator('.cr-target').count(),1,`${id}: the goal corner is ringed`);
    }
+   assert.equal(await board.locator('select,input').count(),0,`${id}: no menus or typed answers`);
    break;
   case 'route':
    assert.match(goal,/every road/i,`${id}: road coverage rule`);
@@ -116,7 +115,7 @@ try{
  await capture('map');await captureSizes('map');
  for(const puzzle of puzzles){
   await page.goto(`${base}/#play/${puzzle.id}`);await page.locator(`.caravan-puzzle[data-puzzle-id="${puzzle.id}"] .board-panel`).waitFor();
-  const goals=await page.locator('.puzzle-goal').count(),shouldBeImplicit=['swap','toggle','code'].includes(puzzle.mechanic)||(puzzle.mechanic==='billiard'&&puzzle.parameters.mode==='predict');
+  const goals=await page.locator('.puzzle-goal').count(),shouldBeImplicit=['swap','toggle','code'].includes(puzzle.mechanic);
   assert.ok(goals<=1,`${puzzle.id}: at most one visible objective`);
   if(shouldBeImplicit)assert.equal(goals,0,`${puzzle.id}: the board or controls already communicate the task`);
   objectiveCounts[goals?'one':'zero']++;

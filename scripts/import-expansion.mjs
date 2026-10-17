@@ -31,7 +31,7 @@ export async function importExpansion(){
       const defaultSources=f.default_source_refs?f.default_source_refs.map(id=>refs.get(id)):sourceIds;
       families.push({id:f.id,title:names[f.id],rules,mathematics:f.mathematics,prerequisites:f.prerequisites||f.instances[0].prerequisites||f.instances[0].readiness,sourceIds});
       for(const [i,p]of f.instances.entries())pack.puzzles.push({
-        ...p,band:'all',mechanic:f.id,familyTitle:names[f.id],number:i+1,revision:1,
+        ...p,band:'all',mechanic:f.id,familyTitle:names[f.id],number:i+1,revision:p.revision||1,
         instruction:p.prompt,idea:p.insight,rules,controls:f.child_prompt||rules[0],
         prerequisites:p.prerequisites||p.readiness||f.prerequisites,
         hints:[p.hint,'Look at what your latest move changed. You can undo and try another choice.','Ask for one next move from this position.'],

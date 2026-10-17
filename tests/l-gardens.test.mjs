@@ -10,10 +10,12 @@ const {puzzles}=await read('../dist/puzzles.json');
 const originals=await read('./fixtures/gardens-v1.json');
 const baseline=await read('./fixtures/pack-before-l.json');
 const ids=['k1','23','45'].flatMap(b=>['04','08','12'].map(n=>`tile-${b}-${n}`));
-test('the original pack retains its order and only the nine selected garden records change',()=>{
+// Mirror Couriers 01-12 were reworked in place for Week 9 (docs/couriers/README.md); their checks live in tests/couriers.test.mjs.
+const couriers=Array.from({length:12},(_,i)=>`billiard-${String(i+1).padStart(2,'0')}`);
+test('the original pack retains its order and only the nine selected garden records and the reworked couriers change',()=>{
  const original=puzzles.filter(p=>baseline.some(b=>b.id===p.id));
  assert.equal(original.length,192);assert.deepEqual(original.map(p=>p.id),baseline.map(p=>p.id));
- assert.deepEqual(original.filter((p,i)=>createHash('sha256').update(JSON.stringify(p)).digest('hex')!==baseline[i].hash).map(p=>p.id),ids);
+ assert.deepEqual(original.filter((p,i)=>createHash('sha256').update(JSON.stringify(p)).digest('hex')!==baseline[i].hash).map(p=>p.id),[...ids,...couriers]);
  for(const band of ['k1','23','45']){const gardens=puzzles.filter(p=>p.band===band&&p.mechanic==='tile');assert.equal(gardens.length,12);assert.equal(gardens.filter(p=>p.tileShape==='l-tromino').length,3);}
 });
 for(const id of ids)test(`${id}: mandatory Ls, accepted witness, hints and consequential choices`,()=>{

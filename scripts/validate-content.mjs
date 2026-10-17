@@ -2,13 +2,14 @@ import { readFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {withCampaignPuzzles} from '../dist/road.js';
 import { freshAttempt, move, isSolved, solveTiles, solveSwaps, nextHint, validBoard, tileSize } from '../dist/engine.js';
+import validateCouriers from './validate-couriers.mjs';
 export async function validateContent(){
   const pack=JSON.parse(await readFile(new URL('../dist/puzzles.json',import.meta.url),'utf8'));
   const {puzzles,sources}=pack;
-  assert.equal(puzzles.length,222);assert.equal(new Set(puzzles.map(p=>p.id)).size,puzzles.length);
+  assert.equal(puzzles.length,228);assert.equal(new Set(puzzles.map(p=>p.id)).size,puzzles.length);
   assert.equal(pack.families.length,10);for(const f of pack.families){
     const list=puzzles.filter(p=>p.mechanic===f.id);
-    const expected=f.id==='toggle'?42:12;
+    const expected=f.id==='toggle'?42:f.id==='billiard'?18:12;
     assert.equal(list.length,expected);assert.deepEqual(list.map(p=>p.number),Array.from({length:expected},(_,i)=>i+1));
     assert.ok(list.every(p=>p.band==='all'&&['easy','medium','hard'].includes(p.difficulty_level)));
     for(const level of ['easy','medium','hard'])assert.ok(list.some(p=>p.difficulty_level===level),`${f.id}: ${level}`);
@@ -22,7 +23,8 @@ export async function validateContent(){
     assert.equal(list.length,12);assert.deepEqual(list.map(p=>p.number).sort((a,b)=>a-b),Array.from({length:12},(_,i)=>i+1));
   }
   for(const p of puzzles){
-    assert.equal(p.revision,/^tile-(k1|23|45)-(04|08|12)$/.test(p.id)?2:1);
+    // Revision 2: the L-tromino gardens and the reworked Mirror Couriers 01–12.
+    assert.equal(p.revision,/^tile-(k1|23|45)-(04|08|12)$/.test(p.id)||/^billiard-(0[1-9]|1[0-2])$/.test(p.id)?2:1);
     if (/^tile-(k1|23|45)-(04|08|12)$/.test(p.id)) assert.equal(p.tileShape,'l-tromino');for(const key of ['id','title','instruction','idea'])assert.ok(typeof p[key]==='string'&&p[key].trim(),`${p.id} ${key}`);
     assert.equal(p.hints.length,3);p.hints.forEach(h=>assert.ok(typeof h==='string'&&h.trim()));
     for(const key of ['notice','prompt','explanation','extension','connection'])assert.ok(p.parent[key]?.trim(),`${p.id} parent.${key}`);
@@ -58,6 +60,8 @@ export async function validateContent(){
     }
     assert.ok(isSolved(p,a.board),`${p.id}: checked solution`);
   }
-  return {puzzles:puzzles.length,campaignPuzzles:campaign.length,gradeBands:3,mechanics:12,sources:sources.length,verifiedWitnessMoves:moves};
+  // Mirror Couriers (billiard) is rechecked by its own independent validator.
+  const couriers=await validateCouriers();
+  return {puzzles:puzzles.length,campaignPuzzles:campaign.length,gradeBands:3,mechanics:12,sources:sources.length,verifiedWitnessMoves:moves,couriers};
 }
 if(process.argv[1]===new URL(import.meta.url).pathname)console.log(JSON.stringify(await validateContent(),null,2));
