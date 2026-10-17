@@ -1,0 +1,80 @@
+@import url('../../sq-grid.css');
+/* Staircases, a group on Memory robot's board with the memory hidden: the
+   streets of a rectangle, the gray strip with its dotted diagonal, usable
+   streets in ink, the walk as an ink trail with a paper edge, the pine
+   robot and the flag, reach dots, windows in ochre (a right claim in sun
+   yellow), and one box per step for exact lengths. Every rule is scoped
+   under the group's own root. */
+[data-mechanic-wire="stairs"]{--st-strip:#d9d9cc;--st-ochre:var(--b-ochre,#b38840)}
+[data-mechanic-wire="stairs"].st-puzzle{display:flex;flex-direction:column;align-items:center;gap:.6rem;width:100%}
+[data-mechanic-wire="stairs"] .st-table{display:flex;flex-direction:column;align-items:center;width:100%;max-width:420px;padding:.5rem .4rem .3rem;border-radius:16px;background:var(--b-paper,#f5f1e6);border:1.5px dashed var(--b-line,#d0d6bd);box-sizing:border-box}
+[data-mechanic-wire="stairs"].st-puzzle.solved .st-table{border:2px solid var(--b-good,#3c7a4a);background:var(--b-good-soft,#e2ecd6)}
+
+/* The board. */
+[data-mechanic-wire="stairs"] .sg-board.st-board{max-width:380px;max-height:56vh;margin:.1rem auto;touch-action:none}
+[data-mechanic-wire="stairs"] .sg-board.st-board:focus{outline:none}
+[data-mechanic-wire="stairs"] .sg-board.st-board:focus-visible{outline:2px dashed var(--st-ochre);outline-offset:3px}
+[data-mechanic-wire="stairs"] .st-board .sg-cell{fill:#fbf8ec;stroke:#dfe3cf}
+[data-mechanic-wire="stairs"] .st-board .sg-rim{stroke:var(--b-ink,#294439);stroke-width:1.6px}
+[data-mechanic-wire="stairs"] .st-strip{fill:var(--st-strip);stroke:#9a9a88;stroke-width:1px;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="stairs"] .st-street{fill:none;stroke:var(--b-ink,#294439);stroke-opacity:.42;stroke-width:1.2px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+[data-mechanic-wire="stairs"] .st-diagonal{fill:none;stroke:var(--b-ink,#294439);stroke-opacity:.55;stroke-width:1.4px;vector-effect:non-scaling-stroke;stroke-dasharray:1.5 4;stroke-linecap:round}
+[data-mechanic-wire="stairs"] .st-window-on{fill:rgba(239,199,110,.55);stroke:var(--st-ochre);stroke-width:1.6px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}
+[data-mechanic-wire="stairs"] .st-window-on.proved{fill:var(--b-sun,#efc76e);fill-opacity:.85;stroke-dasharray:none}
+[data-mechanic-wire="stairs"] .st-window-told{fill:rgba(231,162,143,.28);stroke:#a9503a;stroke-width:1.6px;vector-effect:non-scaling-stroke;stroke-dasharray:3 3}
+[data-mechanic-wire="stairs"] .st-window-hint{fill:rgba(239,199,110,.25);stroke:var(--st-ochre);stroke-width:2.2px;vector-effect:non-scaling-stroke;stroke-dasharray:5 4}
+[data-mechanic-wire="stairs"] .st-ghost{fill:none;stroke:var(--b-muted,#5a6850);stroke-opacity:.7;stroke-width:3px;vector-effect:non-scaling-stroke;stroke-dasharray:6 5;stroke-linecap:round;stroke-linejoin:round}
+[data-mechanic-wire="stairs"] .st-trail-case{fill:none;stroke:var(--b-card,#fffdf5);stroke-width:7px;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
+[data-mechanic-wire="stairs"] .st-trail{fill:none;stroke:var(--b-ink,#294439);stroke-width:3px;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round}
+[data-mechanic-wire="stairs"] .st-flat{stroke:var(--b-pine,#31533e);stroke-width:5px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+[data-mechanic-wire="stairs"] .st-start{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:2px;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="stairs"] .st-back-hint{fill:rgba(239,199,110,.55);stroke:var(--st-ochre);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}
+
+/* Memory robot's robot and flag. */
+[data-mechanic-wire="stairs"] .mr-pole{stroke:var(--b-ink,#294439);stroke-width:2.2px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+[data-mechanic-wire="stairs"] .mr-cloth{fill:var(--b-rose,#e7a28f);stroke:var(--b-ink,#294439);stroke-width:1.5px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+[data-mechanic-wire="stairs"] .mr-body{fill:var(--b-pine,#31533e);stroke:var(--b-ink,#294439);stroke-width:1.5px;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="stairs"] .mr-eye,[data-mechanic-wire="stairs"] .mr-antenna-tip{fill:var(--b-on-pine,#fff8d9)}
+[data-mechanic-wire="stairs"] .mr-antenna-tip{stroke:var(--b-pine,#31533e);stroke-width:1.2px;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="stairs"] .mr-antenna{stroke:var(--b-pine,#31533e);stroke-width:2px;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="stairs"] .mr-mouth{stroke:var(--b-on-pine,#fff8d9);stroke-width:1.6px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+[data-mechanic-wire="stairs"] .st-robot,[data-mechanic-wire="stairs"] .st-flag{pointer-events:none}
+
+/* The corners one straight piece can reach: a soft pine pip, an ochre ring when hinted. */
+[data-mechanic-wire="stairs"] .st-go{cursor:pointer;outline:none}
+[data-mechanic-wire="stairs"] .st-go.st-hidden{display:none}
+[data-mechanic-wire="stairs"] .st-reach{fill:transparent}
+[data-mechanic-wire="stairs"] .st-pip{fill:var(--b-pine,#31533e);fill-opacity:.5}
+[data-mechanic-wire="stairs"] .st-go:hover .st-reach{fill:rgba(49,83,62,.12)}
+[data-mechanic-wire="stairs"] .st-go:focus-visible .st-reach{fill:rgba(179,136,64,.22);stroke:var(--st-ochre);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}
+[data-mechanic-wire="stairs"] .st-go.hinted .st-reach{fill:rgba(239,199,110,.6);stroke:var(--st-ochre);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}
+[data-mechanic-wire="stairs"] .st-go.hinted .st-pip{fill:var(--st-ochre);fill-opacity:1}
+
+/* Fewest: every column is a control; none is marked until tapped. */
+[data-mechanic-wire="stairs"] .st-board.st-claiming{touch-action:manipulation}
+[data-mechanic-wire="stairs"] .st-column{fill:transparent;cursor:pointer;outline:none}
+[data-mechanic-wire="stairs"] .st-column:hover{fill:rgba(41,68,57,.06)}
+[data-mechanic-wire="stairs"] .st-column:focus-visible{fill:rgba(179,136,64,.14);stroke:var(--st-ochre);stroke-width:2px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}
+[data-mechanic-wire="stairs"] .st-tools{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .9rem}
+[data-mechanic-wire="stairs"] .st-fewest{min-height:46px;padding:6px 20px}
+[data-mechanic-wire="stairs"] .st-fewest[aria-pressed="true"]{background:var(--b-sun-soft,#f8e7b9);border-color:var(--st-ochre)}
+[data-mechanic-wire="stairs"] .st-fewest.hinted{outline:3px dashed var(--st-ochre);outline-offset:3px}
+[data-mechanic-wire="stairs"] .st-wins{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+[data-mechanic-wire="stairs"] .st-wins li{width:16px;height:28px;border-radius:4px;border:1.5px dashed var(--st-ochre);box-sizing:border-box}
+[data-mechanic-wire="stairs"] .st-wins li.on{background:rgba(239,199,110,.75);border-style:solid}
+[data-mechanic-wire="stairs"] .st-note{margin:0;font-weight:600;color:var(--b-ink,#294439)}
+
+/* One box per step, filling with arrows. */
+[data-mechanic-wire="stairs"] .st-boxes{--st-box:26px;display:flex;flex-wrap:wrap;justify-content:center;gap:4px;list-style:none;margin:0;padding:0;max-width:calc(var(--st-row,9) * (var(--st-box) + 4px))}
+[data-mechanic-wire="stairs"] .st-played,[data-mechanic-wire="stairs"] .st-slot{display:flex;align-items:center;justify-content:center;width:var(--st-box);height:var(--st-box);border-radius:7px;box-sizing:border-box}
+[data-mechanic-wire="stairs"] .st-played{background:var(--b-card,#fffdf5);border:1px solid var(--b-line,#d0d6bd)}
+[data-mechanic-wire="stairs"] .st-slot{border:1.5px dashed var(--b-line,#d0d6bd)}
+[data-mechanic-wire="stairs"] .st-arrow{width:0;height:0;border:6px solid transparent}
+[data-mechanic-wire="stairs"] .st-arrow.st-E{border-left:9px solid var(--b-ink,#294439);border-right-width:0;margin-left:3px}
+[data-mechanic-wire="stairs"] .st-arrow.st-W{border-right:9px solid var(--b-ink,#294439);border-left-width:0;margin-right:3px}
+[data-mechanic-wire="stairs"] .st-arrow.st-N{border-bottom:9px solid var(--b-ink,#294439);border-top-width:0;margin-bottom:3px}
+
+/* How to play: one small picture. */
+[data-mechanic-wire="stairs"].st-help{display:flex;justify-content:center;margin:.6rem 0}
+[data-mechanic-wire="stairs"].st-help .sg-board.st-mini{width:220px;max-width:70%;margin:0}
+@media (max-width:420px){[data-mechanic-wire="stairs"] .st-table{padding:.4rem .15rem .2rem}[data-mechanic-wire="stairs"] .st-boxes{--st-box:24px}}
