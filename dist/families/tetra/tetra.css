@@ -1,0 +1,92 @@
+/* Mirror twins: each model is drawn from one corner, a triangle with that
+   corner in the middle, three paper faces and ink edges, with a letter disc
+   on every corner. The other model sits on a sun card; yours is plain paper
+   and its corners are buttons. Pine marks the chosen thing and a right
+   claim's arrows, ochre a hint or the arrow being drawn. During a turn the
+   faces give way to a wire frame that turns with the letters. */
+[data-mechanic-wire="tetra"]{display:flex;flex-direction:column;align-items:center;gap:.6rem;width:100%}
+[data-mechanic-wire="tetra"] .tt-pair{display:grid;grid-template-columns:1fr 1fr;gap:clamp(8px,3vw,22px);width:100%;max-width:430px}
+[data-mechanic-wire="tetra"] .tt-model{display:flex;flex-direction:column;align-items:center;gap:.3rem;min-width:0;padding:6px 6px 8px;border-radius:14px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);box-sizing:border-box}
+[data-mechanic-wire="tetra"] .tt-model.tt-goal{background:#fbf4dc;border-color:#ead9a4}
+[data-mechanic-wire="tetra"].solved .tt-model.tt-right,[data-mechanic-wire="tetra"].solved .tt-model.tt-bench{border-color:var(--b-pine,#31533e)}
+[data-mechanic-wire="tetra"] .tt-view{position:relative;width:100%;aspect-ratio:100/88;container-type:inline-size;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+[data-mechanic-wire="tetra"] .tt-solid{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+
+/* The solid: three faces round the near corner, lit a little differently. */
+[data-mechanic-wire="tetra"] .tt-face{stroke:none}
+[data-mechanic-wire="tetra"] .tt-face.f0{fill:#f4ecd4}
+[data-mechanic-wire="tetra"] .tt-face.f1{fill:#e6dcc0}
+[data-mechanic-wire="tetra"] .tt-face.f2{fill:#faf5e6}
+[data-mechanic-wire="tetra"] .tt-goal .tt-face.f0{fill:#f3e3b4}
+[data-mechanic-wire="tetra"] .tt-goal .tt-face.f1{fill:#e8d39e}
+[data-mechanic-wire="tetra"] .tt-goal .tt-face.f2{fill:#f8edc8}
+[data-mechanic-wire="tetra"] :is(.tt-edge,.tt-wire){stroke:var(--b-ink,#294439);stroke-width:1.7px;stroke-linecap:round;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="tetra"] .tt-wire{display:none}
+[data-mechanic-wire="tetra"] .tt-turning .tt-wire{display:inline}
+[data-mechanic-wire="tetra"] .tt-turning :is(.tt-face,.tt-edge,.tt-arrow){opacity:0}
+
+/* Letter discs on the corners, centred by margins (a percentage margin is of
+   the picture's width, as the disc's own size is), so a pressed button's
+   transform never moves it off the finger. */
+[data-mechanic-wire="tetra"] .tt-corner{--d:27%;position:absolute;display:grid;place-items:center;width:var(--d);aspect-ratio:1;height:auto;min-height:0;margin:calc(var(--d) / -2) 0 0 calc(var(--d) / -2);padding:0;box-sizing:border-box;border-radius:50%;border:2px solid var(--b-ink,#294439);background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);font:400 15.5cqw/1 var(--b-display,Georgia,serif);-webkit-tap-highlight-color:transparent}
+[data-mechanic-wire="tetra"] .tt-corner span{display:block;pointer-events:none}
+[data-mechanic-wire="tetra"] .tt-corner.blank{border-style:dashed;border-color:#8f9b84;background:rgba(255,253,245,.75)}
+[data-mechanic-wire="tetra"] button.tt-corner{cursor:pointer;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+[data-mechanic-wire="tetra"] button.tt-corner:active{box-shadow:none}
+[data-mechanic-wire="tetra"] button.tt-corner:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
+[data-mechanic-wire="tetra"] .tt-corner.from{box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-ochre,#b38840)}
+[data-mechanic-wire="tetra"] .tt-corner.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+
+/* Arrows round the middle: ochre while drawn or refused, pine when right. */
+[data-mechanic-wire="tetra"] .tt-arrow path{fill:none;stroke-width:2.8px;stroke-linecap:round;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="tetra"] .tt-arrow polygon{stroke:none}
+[data-mechanic-wire="tetra"] .tt-arrow.ok path{stroke:var(--b-pine,#31533e)}
+[data-mechanic-wire="tetra"] .tt-arrow.ok polygon{fill:var(--b-pine,#31533e)}
+[data-mechanic-wire="tetra"] .tt-arrow:is(.drawing,.off) path{stroke:var(--b-ochre,#b38840)}
+[data-mechanic-wire="tetra"] .tt-arrow:is(.drawing,.off) polygon{fill:var(--b-ochre,#b38840)}
+[data-mechanic-wire="tetra"] .tt-arrow.off path{stroke-dasharray:5 4}
+
+/* Letters still to put on, in the order they go. */
+[data-mechanic-wire="tetra"] .tt-pending{display:flex;gap:4px;justify-content:center;flex-wrap:wrap}
+[data-mechanic-wire="tetra"] .tt-sticker{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--b-ink,#294439);background:var(--b-card,#fffdf5);font:400 1rem/1 var(--b-display,Georgia,serif);box-shadow:0 1px 0 var(--b-line,#d0d6bd)}
+[data-mechanic-wire="tetra"] .tt-sticker:first-child{border-width:2.5px}
+
+/* Controls under the models. */
+[data-mechanic-wire="tetra"] .tt-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .9rem;max-width:100%}
+[data-mechanic-wire="tetra"] .tt-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+[data-mechanic-wire="tetra"] .tt-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+[data-mechanic-wire="tetra"] .tt-button[aria-pressed="true"]{background:#e9eddc;box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+[data-mechanic-wire="tetra"] :is(.tt-button,.tt-chip,.tt-stack).hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+[data-mechanic-wire="tetra"] .tt-chips{display:flex;gap:.45rem}
+[data-mechanic-wire="tetra"] .tt-chip{display:grid;place-items:center;width:46px;height:46px;min-height:0;padding:0;border-radius:50%;border:2px solid var(--b-ink,#294439);background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);font:400 1.35rem/1 var(--b-display,Georgia,serif);box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer}
+[data-mechanic-wire="tetra"] .tt-chip.lifted{border-color:var(--b-pine,#31533e);box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-pine,#31533e)}
+[data-mechanic-wire="tetra"] .tt-chip:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:6px}
+[data-mechanic-wire="tetra"] .tt-told{margin:0;font-weight:600;color:var(--b-ink,#294439);text-align:center}
+
+/* Pairs of letters found. */
+[data-mechanic-wire="tetra"] .tt-shelf{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;max-width:430px}
+[data-mechanic-wire="tetra"] .tt-found{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:999px;background:var(--b-good-soft,#e2ecd6);border:1.5px solid var(--b-pine,#31533e);font:400 1rem/1 var(--b-display,Georgia,serif)}
+[data-mechanic-wire="tetra"] .tt-found i{font-style:normal;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-ink,#294439)}
+@media (prefers-reduced-motion:no-preference){[data-mechanic-wire="tetra"] .tt-found.again{animation:tetra-pop .5s ease-out}}
+@keyframes tetra-pop{from{transform:scale(1.18)}}
+
+/* Sorting: the chosen model large, every model small below, alike ones stacked. */
+[data-mechanic-wire="tetra"] .tt-bench{width:min(250px,64%)}
+[data-mechanic-wire="tetra"] .tt-cards{--mw:70px;--mh:62px;display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:10px 12px;max-width:440px}
+[data-mechanic-wire="tetra"] .tt-stack{position:relative;width:calc(var(--mw) + (var(--n) - 1) * 5px);height:calc(var(--mh) + (var(--n) - 1) * 5px);min-height:0;margin:0;padding:0;border:0;background:none;box-shadow:none;cursor:pointer;border-radius:12px}
+[data-mechanic-wire="tetra"] .tt-stack[disabled]{cursor:default;opacity:1}
+[data-mechanic-wire="tetra"] .tt-stack:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:4px}
+[data-mechanic-wire="tetra"] .tt-layer{position:absolute;left:calc(var(--k) * 5px);top:calc(var(--k) * 5px)}
+[data-mechanic-wire="tetra"] .tt-mini{display:block;position:relative;width:var(--mw);height:var(--mh);border-radius:10px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);box-shadow:0 2px 0 var(--b-line,#d0d6bd);box-sizing:border-box}
+[data-mechanic-wire="tetra"] .tt-mini .tt-solid{inset:3px 4px;width:calc(100% - 8px);height:calc(100% - 6px)}
+[data-mechanic-wire="tetra"] .tt-stack.chosen .tt-layer:last-child .tt-mini{border:2.5px solid var(--b-pine,#31533e)}
+[data-mechanic-wire="tetra"] .tt-mini-discs circle{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:1.4px;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="tetra"] .tt-mini-letters text{font:400 17px var(--b-display,Georgia,serif);fill:var(--b-ink,#294439);text-anchor:middle}
+[data-mechanic-wire="tetra"].solved .tt-mini{border-color:var(--b-pine,#31533e)}
+
+@media (max-width:420px){
+  [data-mechanic-wire="tetra"] .tt-model{padding:4px 4px 6px}
+  [data-mechanic-wire="tetra"] .tt-corner{--d:29%}
+  [data-mechanic-wire="tetra"] .tt-bench{width:min(210px,62%)}
+  [data-mechanic-wire="tetra"] .tt-cards{--mw:64px;--mh:57px;gap:8px}
+}
