@@ -35,7 +35,10 @@ const int = v => Number.isInteger(v);
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const memo = (cache, key, make) => { if (!cache.has(key)) cache.set(key, make()); return cache.get(key); };
 export const MODES = ['seams', 'impostor', 'repair', 'playground'];
-export const LIMIT = {depth: 10, nodes: 48};
+// Bounds on a saved tree. With the two-tile rule (wayAllowed) no legal tree
+// comes near them: the largest, for any row of up to 16 tiles, has 10 rows,
+// 7 levels and one fork (scripts/validate-shrink.mjs checks it).
+export const LIMIT = {depth: 8, nodes: 16};
 export const word = s => typeof s === 'string' && /^[AB]+$/.test(s);
 
 // --- Rows, pairs and ghosts ----------------------------------------------------
@@ -71,6 +74,12 @@ export function real(w) {
   return memo(realCache, w, () => [0, 1].some(s => { const p = shrinkWord(w, s); return p !== null && real(p); }));
 }
 export const fits = (w, s) => { const p = shrinkWord(w, s); return p !== null && real(p); };
+// Two different tiles are one pair: they shrink only paired (AB to A, BA to
+// B). Leaving the first tile alone would give two tiles again (AB to BB, BB to
+// AB, …), so the rows could go round for ever. Two equal tiles have only that
+// way (AA to BA to B). So every row of two tiles reaches one tile in at most
+// two shrinks, and a tree can't go round.
+export const wayAllowed = (w, s) => w.length >= 2 && !(w.length === 2 && s === 1 && w[0] !== w[1]);
 // Every placement of each piece from which it can shrink to one tile.
 export const fitsOf = pieces => pieces.flatMap((w, i) => [0, 1].filter(s => fits(w, s)).map(s => [i, s]));
 // Every tile whose flip makes the piece real.
@@ -91,7 +100,7 @@ export function wordAt(w, path) {
   for (const c of path) { if (w === null) return null; w = shrinkWord(w, Number(c)); }
   return w;
 }
-const countNodes = node => node ? 1 + countNodes(node.k[0]) + countNodes(node.k[1]) : 0;
+export const countNodes = node => node ? 1 + countNodes(node.k[0]) + countNodes(node.k[1]) : 0;
 // A row is stuck when each placement is tried and marked, or shrinks to a
 // stuck row. Rows of one or two tiles never are.
 export function stuck(node, w) {
@@ -106,7 +115,7 @@ export function validTree(node, w, depth = 0, count = {n: 0}) {
   if (!(s === null || s === 0 || s === 1)) return false;
   if (!Array.isArray(t) || t.length !== 2 || !t.every(x => typeof x === 'boolean')) return false;
   if (!Array.isArray(k) || k.length !== 2) return false;
-  if (w.length < 2 && (s !== null || t[0] || t[1])) return false;
+  if ([0, 1].some(p => t[p] && !wayAllowed(w, p))) return false;
   if (s !== null && !t[s]) return false;
   for (const p of [0, 1]) {
     if (k[p] === null) continue;
@@ -128,7 +137,7 @@ function treeMove(root, w, action) {
   const node = nodeAt(root, action.at), here = wordAt(w, action.at);
   if (!node || here === null || here.length < 2 || ![0, 1].includes(action.s)) return null;
   if (action.type === 'seam') {
-    if (node.s === action.s) return null;
+    if (node.s === action.s || !wayAllowed(here, action.s)) return null;
     return setAt(root, action.at, {...node, s: action.s, t: node.t.map((x, i) => x || i === action.s)});
   }
   if (node.s !== action.s || node.k[node.s] || marked(here, node.s).length) return null;
@@ -166,7 +175,7 @@ function validShelf(q, b) {
   const allRight = b.shelf.every(isRight);
   if (![null, 'stuck', 'more'].includes(b.told) || typeof b.refused !== 'boolean' || typeof b.done !== 'boolean') return false;
   const complete = allRight && b.shelf.length === answer.length;
-  if (b.refused && complete) return false;
+  if (b.refused && (complete || !b.shelf.length)) return false;
   if (b.told !== null && b.told !== (allRight ? 'more' : 'stuck')) return false;
   if (b.told !== null && !b.refused) return false;
   if (b.done && (b.refused || !complete)) return false;
@@ -211,7 +220,7 @@ function shelfMove(q, b, action, entry) {
     return {...b, shelf: b.shelf.filter(x => !same(x, gone)), told: null, refused: false};
   }
   if (action.type === 'all') {
-    if (b.refused) return null;
+    if (b.refused || !b.shelf.length) return null;
     if (!b.shelf.every(x => answer.some(y => same(x, y)))) return {...b, told: 'stuck', refused: true};
     if (b.shelf.length < answer.length) return {...b, told: 'more', refused: true};
     return {...b, done: true};
@@ -273,20 +282,34 @@ function move(p, b, action) {
 }
 
 // --- Hints ----------------------------------------------------------------------------
-// The words for a placement, and the first unsettled step of a certificate:
-// a placement to try, a Shrink, or a row below.
+// A hint never judges the child's own tiles, flip or kept seams before the
+// child's tree has settled them: until then it leads the child's own
+// shrinking (one step at a time), and only a run, flip or way the tree has
+// shown to reach one tile, or to be stuck, lets the hint name another.
 const wayWords = s => s === 1 ? 'leave the first tile alone' : 'pair the first two tiles';
-// The next step that makes `node` stuck, depth first; null when it is stuck or
-// can't be (a row that is real).
+const seamStep = (w, path, s) => ({type: 'seam', at: path, s, text: `On ${w}, ${wayWords(s)}.`});
+// The next step that shows way s of a row gets stuck; null once it is shown.
+function wayStep(node, w, path, s) {
+  if (deadWay(node, w, s)) return null;
+  if (marked(w, s).length) return seamStep(w, path, s);
+  if (node.k[s]) return stuckStep(node.k[s], shrinkWord(w, s), path + s);
+  return node.s !== s ? seamStep(w, path, s) : {type: 'shrink', at: path, s, text: `Shrink ${w}.`};
+}
+// The next step that makes a row stuck, depth first; null when it is stuck
+// (or can't be: a row that is real).
 function stuckStep(node, w, path) {
-  for (const s of [0, 1]) {
-    if (deadWay(node, w, s)) continue;
-    if (marked(w, s).length) return {type: 'seam', at: path, s, text: `On ${w}, ${wayWords(s)}.`};
-    if (node.k[s]) { const step = stuckStep(node.k[s], shrinkWord(w, s), path + s); if (step) return step; continue; }
-    if (node.s !== s) return {type: 'seam', at: path, s, text: `On ${w}, ${wayWords(s)}.`};
-    return {type: 'shrink', at: path, s, text: `Shrink ${w}.`};
-  }
+  for (const s of [0, 1]) { const step = wayStep(node, w, path, s); if (step) return step; }
   return null;
+}
+// Whether the tree shows the row reaching one tile.
+const shownReal = (node, w) => w.length === 1 || [0, 1].some(s => node.k[s] && shownReal(node.k[s], shrinkWord(w, s)));
+// The way a real row fits (two tiles: the only way allowed that shortens).
+const fitWay = w => w.length === 2 ? (w[0] === w[1] ? 1 : 0) : [0, 1].find(s => fits(w, s));
+// The next step that takes a real row down to one tile along way s.
+function realStep(node, w, path, s = fitWay(w)) {
+  if (w.length < 2) return null;
+  if (node.k[s]) return realStep(node.k[s], shrinkWord(w, s), path + s);
+  return node.s !== s ? seamStep(w, path, s) : {type: 'shrink', at: path, s, text: `Shrink ${w}.`};
 }
 // The shortest run of at most k tiles that no grown row has (leftmost first).
 const runCache = new Map();
@@ -299,32 +322,63 @@ export function stuckRuns(q) {
 }
 const hintCache = new Map();
 const tileList = (a, z) => a === z ? `tile ${a + 1}` : `tiles ${a + 1} to ${z + 1}`;
+const untried = node => !node.t[0] && !node.t[1];
+const moveHint = (step, text = step.text, extra = {}) => { const {text: _, ...action} = step; return {type: 'move', action: {...action, ...extra}, text}; };
 function hintBoard(q, b) {
   return memo(hintCache, JSON.stringify([q, b]), () => {
     if (q.mode === 'impostor') {
-      if (b.sel === null || real(selWord(q, b.sel))) {
-        const [a, z] = stuckRuns(q)[0];
-        return {type: 'move', action: {type: 'select', a, b: z}, text: `Choose ${tileList(a, z)}.`};
-      }
-      const step = stuckStep(b.tree, selWord(q, b.sel), '');
-      const {text, ...action} = step;
-      return {type: 'move', action, text};
+      const [A, Z] = stuckRuns(q)[0], choose = text => ({type: 'move', action: {type: 'select', a: A, b: Z}, text});
+      if (b.sel === null) return choose('Choose some tiles and shrink them.');
+      const w = selWord(q, b.sel), lead = untried(b.tree) ? `Place seams on ${tileList(...b.sel)} and shrink.` : undefined;
+      if (!real(w)) return moveHint(stuckStep(b.tree, w, ''), lead);
+      if (!shownReal(b.tree, w)) return moveHint(realStep(b.tree, w, ''), lead);
+      const mine = tileList(...b.sel);
+      return choose(`${mine[0].toUpperCase()}${mine.slice(1)} can shrink to one tile. Choose ${tileList(A, Z)}.`);
     }
     const answer = answerOf(q), isRight = x => answer.some(y => same(x, y));
     const bad = b.shelf.find(x => !isRight(x));
     if (q.mode === 'seams') {
-      if (bad) return {type: 'move', action: {type: 'drop', piece: bad[0], s: bad[1]}, text: `Take back the seams on ${q.pieces[bad[0]]} that ${wayWords(bad[1])}: that way gets stuck.`};
+      if (bad) {
+        const [i, s] = bad, w = q.pieces[i], node = b.trees[i];
+        if (deadWay(node, w, s)) return {type: 'move', action: {type: 'drop', piece: i, s}, text: `Take back the seams on ${w} that ${wayWords(s)}: that way gets stuck.`};
+        const step = wayStep(node, w, '', s);
+        return moveHint(step, step.type === 'seam' && step.at === '' ? `Shrink ${w} the way you kept it.` : undefined, {piece: i});
+      }
+      // Seams the child has placed and not kept are shrunk next, until the
+      // tree shows where they lead.
+      for (const [i, node] of b.trees.entries()) {
+        const s = node.s, w = q.pieces[i];
+        if (s === null || b.shelf.some(x => same(x, [i, s]))) continue;
+        if (!isRight([i, s])) { if (!deadWay(node, w, s)) return moveHint(wayStep(node, w, '', s), undefined, {piece: i}); continue; }
+        if (!(node.k[s] && shownReal(node.k[s], shrinkWord(w, s)))) return moveHint(realStep(node, w, '', s), undefined, {piece: i});
+        return {type: 'move', action: {type: 'keep', piece: i}, text: `${w} shrinks to one tile this way. Press Keep.`};
+      }
       const missing = answer.find(x => !b.shelf.some(y => same(x, y)));
       if (!missing) return {type: 'move', action: {type: 'all'}, text: 'Every way that can shrink to one tile is kept.'};
-      const [i, s] = missing;
-      if (b.trees[i].s !== s) return {type: 'move', action: {type: 'seam', piece: i, at: '', s}, text: `On ${q.pieces[i]}, ${wayWords(s)}.`};
-      return {type: 'move', action: {type: 'keep', piece: i}, text: `${q.pieces[i]} can shrink to one tile this way. Press Keep.`};
+      const [i, s] = missing, w = q.pieces[i], node = b.trees[i];
+      if (!(node.k[s] && shownReal(node.k[s], shrinkWord(w, s)))) {
+        const step = realStep(node, w, '', s);
+        return moveHint(step, step.type === 'seam' && step.at === '' ? untried(node) ? `Place seams on ${w} and shrink.` : `Try the other way on ${w}.` : undefined, {piece: i});
+      }
+      if (node.s !== s) return moveHint(seamStep(w, '', s), undefined, {piece: i});
+      return {type: 'move', action: {type: 'keep', piece: i}, text: `${w} shrinks to one tile this way. Press Keep.`};
     }
-    if (bad !== undefined) return {type: 'move', action: {type: 'drop', i: bad}, text: `Take back the flip of tile ${bad + 1}: it still gets stuck.`};
+    const w = pieceNow(q, b), lead = untried(b.tree) ? 'Place seams on the piece and shrink.' : undefined;
+    if (bad !== undefined) {
+      if (b.flip !== bad) return {type: 'move', action: {type: 'flip', i: bad}, text: 'Check the flips you kept: flip one and shrink the piece.'};
+      if (stuck(b.tree, w)) return {type: 'move', action: {type: 'drop', i: bad}, text: `Take back the flip of tile ${bad + 1}: it gets stuck.`};
+      return moveHint(stuckStep(b.tree, w, ''), lead);
+    }
     const missing = answer.find(x => !b.shelf.includes(x));
     if (missing === undefined) return {type: 'move', action: {type: 'all'}, text: 'Every flip that works is kept.'};
-    if (b.flip !== missing) return {type: 'move', action: {type: 'flip', i: missing}, text: `Flip tile ${missing + 1}.`};
-    return {type: 'move', action: {type: 'keep'}, text: 'Now the piece can shrink to one tile. Press Keep.'};
+    const tryFix = text => ({type: 'move', action: {type: 'flip', i: missing}, text});
+    if (b.flip === null || b.shelf.includes(b.flip)) return tryFix(b.shelf.length ? 'Try another flip.' : 'Flip a tile and shrink the piece.');
+    if (isRight(b.flip)) {
+      if (shownReal(b.tree, w)) return {type: 'move', action: {type: 'keep'}, text: 'It shrinks to one tile. Press Keep.'};
+      return moveHint(realStep(b.tree, w, ''), lead);
+    }
+    if (stuck(b.tree, w)) return tryFix(`Flip tile ${missing + 1}.`);
+    return moveHint(stuckStep(b.tree, w, ''), lead);
   });
 }
 function hint(p, b) {
@@ -386,15 +440,18 @@ function rowHtml(ctx, node, w, path) {
   for (const p of [0, 1]) if (node.t[p]) for (const i of marked(w, p)) overlay += `<i class="sk-mark ${p ? 'over' : 'under'}" style="left:${pos(i + 1)};width:${pos(2)}" aria-hidden="true"></i>`;
   let gaps = '';
   if (!one && !done) {
-    for (let g = 0; g <= n; g++) {
+    // The joins of the ways allowed; join g's line is at slot g + 1.
+    const joins = [];
+    for (let g = 0; g <= n; g++) if (wayAllowed(w, g % 2)) joins.push(g);
+    const hintG = act?.type === 'seam' && act.at === path && (act.piece ?? null) === (ctx.piece ?? null) ? joins.find(g => g % 2 === act.s && g > 0 && g < n) ?? joins.find(g => g % 2 === act.s) : null;
+    joins.forEach((g, j) => {
       const p = g % 2, on = s === p, key = `${base}${path}-${g}`;
-      const hinted = act && ['seam'].includes(act.type) && act.at === path && act.s === p && (act.piece ?? null) === (ctx.piece ?? null) && g === (p === 1 ? 1 : Math.min(2, n)) ? ' hinted' : '';
       const attrs = on ? `aria-pressed="true" ${uiAttrs({}, key)}` : `aria-pressed="false" ${moveAttrs({type: 'seam', at: path, s: p, ...ctx.extra}, key)}`;
-      // Each join takes the taps nearest to it: from the middle of the tile
-      // before to the middle of the tile after, and the ends reach the edges.
-      const from = g === 0 ? 0 : g + .5, to = g === n ? n + 2 : g + 1.5;
-      gaps += `<button type="button" class="sk-gap${on ? ' on' : ''}${hinted}" style="left:${pos(from)};width:${pos(to - from)};--at:${((g + 1 - from) / (to - from) * 100).toFixed(2)}%" ${attrs} aria-label="${esc(`Seams ${joinName(g, n)}`)}"></button>`;
-    }
+      // Each join takes the taps nearest to it: halfway to the next join on
+      // each side, and the joins at the ends reach the edges.
+      const from = j === 0 ? 0 : (joins[j - 1] + g) / 2 + 1, to = j === joins.length - 1 ? n + 2 : (g + joins[j + 1]) / 2 + 1;
+      gaps += `<button type="button" class="sk-gap${on ? ' on' : ''}${g === hintG ? ' hinted' : ''}" style="left:${pos(from)};width:${pos(to - from)};--at:${((g + 1 - from) / (to - from) * 100).toFixed(2)}%" ${attrs} aria-label="${esc(`Seams ${joinName(g, n)}`)}"></button>`;
+    });
   }
   const label = `${w}${s === null ? '' : s ? ', first tile alone' : ', paired from the first tile'}${node.t.some((x, p) => x && marked(w, p).length) ? ', a pair marked' : ''}${isStuck ? ', stuck' : ''}${one ? ', one tile' : ''}`;
   const row = `<div class="sk-row${isStuck ? ' stuck' : ''}${one ? ' one' : ''}${n + 2 > 12 ? ' long' : ''}" style="--n:${n + 2}" role="group" aria-label="${esc(label)}">${slots.join('')}${overlay}${gaps}${isStuck ? '<b class="sk-x" aria-hidden="true">✕</b>' : ''}</div>`;
@@ -405,8 +462,9 @@ function rowHtml(ctx, node, w, path) {
     if (node.k[p]) kids.push(`<div class="sk-kid${s === p ? ' on' : ''}" style="flex-grow:${widthOf(node.k[p], shrinkWord(w, p))}">${rowHtml(ctx, node.k[p], shrinkWord(w, p), path + p)}</div>`);
     else if (!done && s === p && n >= 2 && !marked(w, p).length && ctx.room && path.length < LIMIT.depth) {
       const hinted = act?.type === 'shrink' && act.at === path ? ' hinted' : '';
-      const next = shrinkWord(w, p).length;
-      kids.push(`<div class="sk-kid on" style="flex-grow:4"><button type="button" class="sk-shrink${hinted}" ${moveAttrs({type: 'shrink', at: path, s: p, ...ctx.extra}, `${base}${path}${p}-${next > 1 ? 1 : 0}`)}>Shrink</button></div>`);
+      // Focus goes to the new row's first inner join, if it has one.
+      const next = shrinkWord(w, p), g = next.length < 2 ? null : wayAllowed(next, 1) ? 1 : 0;
+      kids.push(`<div class="sk-kid on" style="flex-grow:4"><button type="button" class="sk-shrink${hinted}" ${moveAttrs({type: 'shrink', at: path, s: p, ...ctx.extra}, g === null ? 'sk-board' : `${base}${path}${p}-${g}`)}>Shrink</button></div>`);
     }
   }
   return `<div class="sk-node">${row}${kids.length ? `<div class="sk-kids${kids.length > 1 ? ' fork' : ''}">${kids.join('')}</div>` : ''}</div>`;
@@ -511,7 +569,7 @@ function render(p, a) {
     const entry = q.mode === 'seams' ? (b.trees[active].s === null ? null : [active, b.trees[active].s]) : b.flip;
     if (!done) {
       const keepAction = q.mode === 'seams' ? {type: 'keep', piece: active} : {type: 'keep'};
-      bar = `<div class="sk-bar">${barButton('Keep', keepAction, entry !== null && !b.shelf.some(x => same(x, entry)), act?.type === 'keep', 'sk-keep')}${barButton('That’s all', {type: 'all'}, !b.refused, act?.type === 'all', 'sk-all')}</div>`;
+      bar = `<div class="sk-bar">${barButton('Keep', keepAction, entry !== null && !b.shelf.some(x => same(x, entry)), act?.type === 'keep' && (act.piece ?? active) === active, 'sk-keep')}${barButton('That’s all', {type: 'all'}, !b.refused && b.shelf.length > 0, act?.type === 'all', 'sk-all')}</div>`;
     }
     if (b.shelf.length) {
       const item = x => {

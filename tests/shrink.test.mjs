@@ -9,7 +9,7 @@ import {readFile} from 'node:fs/promises';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
 import {playView} from '../dist/ui.js';
 import {FAMILIES} from '../dist/families.js';
-import {shrinkMechanics, grow, shrinkWord, marked, real, fits, fitsOf, fixesOf, stuck, stuckRuns, leaf, LIMIT} from '../dist/families/shrink/shrink.js';
+import {shrinkMechanics, grow, shrinkWord, marked, real, fits, fitsOf, fixesOf, stuck, stuckRuns, leaf, LIMIT, wayAllowed, countNodes} from '../dist/families/shrink/shrink.js';
 import {loadPack} from '../scripts/packs.mjs';
 
 const shrink = JSON.parse(await readFile(new URL('../dist/families/shrink/shrink.json', import.meta.url), 'utf8'));
@@ -157,22 +157,28 @@ test('repair: one flip at a time, Keep and That’s all', () => {
   assert.ok(isSolved(p, a.board));
 });
 
-test('the tree stays within its limits, and Shrink is not offered past them', () => {
-  const p = byId('10');
-  let a = play(p, freshAttempt(p), {type: 'select', a: 0, b: 1});
-  // AB ↔ BB ↔ AB …: a cycle of rows of two tiles, shrunk until the depth limit.
-  let path = '';
-  for (let d = 0; d < LIMIT.depth; d++) {
-    const s = 1;
-    const next = move(p, a, {type: 'seam', at: path, s});
-    if (next) a = next;
-    const shrunk = move(p, a, {type: 'shrink', at: path, s});
-    if (!shrunk) break;
-    a = shrunk; path += s;
-  }
-  assert.equal(path.length, LIMIT.depth);
-  assert.equal(move(p, play(p, a, {type: 'seam', at: path, s: 1}), {type: 'shrink', at: path, s: 1}), null);
-  assert.doesNotMatch(board(view(p, play(p, a, {type: 'seam', at: path, s: 1}))), new RegExp(`data-move="[^"]*shrink[^"]*&quot;at&quot;:&quot;${path}&quot;`), 'no Shrink at the limit');
+test('rows of two tiles end the tree: two different tiles only pair, so no row comes round again', () => {
+  assert.ok(wayAllowed('AB', 0) && !wayAllowed('AB', 1) && !wayAllowed('BA', 1));
+  assert.ok(wayAllowed('AA', 1) && wayAllowed('BB', 1) && wayAllowed('ABA', 1));
+  const p = byId('01');
+  // ABA paired gives AA; AA leaves the first tile alone, to BA; BA pairs, to B.
+  let a = play(p, freshAttempt(p), {type: 'seam', piece: 0, at: '', s: 0}, {type: 'shrink', piece: 0, at: '', s: 0});
+  a = play(p, a, {type: 'seam', piece: 0, at: '0', s: 1}, {type: 'shrink', piece: 0, at: '0', s: 1});
+  assert.equal(move(p, a, {type: 'seam', piece: 0, at: '01', s: 1}), null, 'BA can’t leave its first tile alone');
+  a = play(p, a, {type: 'seam', piece: 0, at: '01', s: 0}, {type: 'shrink', piece: 0, at: '01', s: 0});
+  let html = view(p, a);
+  assert.match(html, /aria-label="B, one tile"/);
+  assert.doesNotMatch(board(html), /&quot;at&quot;:&quot;010&quot;/, 'nothing to tap on one tile');
+  // BA's joins: only its ends, each taking half the row.
+  const ba = html.slice(html.indexOf('aria-label="BA, paired from the first tile"'));
+  const gaps = [...ba.slice(0, ba.indexOf('</div>')).matchAll(/class="sk-gap[^"]*" style="left:([\d.]+)%;width:([\d.]+)%/g)].map(m => [Number(m[1]), Number(m[2])]);
+  assert.deepEqual(gaps, [[0, 50], [50, 50]]);
+  // The deepest legal tree of any row is small: Shrink is never refused for size.
+  assert.ok(countNodes(a.board.trees[0]) < LIMIT.nodes);
+  a = play(p, a, {type: 'seam', piece: 0, at: '', s: 1}, {type: 'shrink', piece: 0, at: '', s: 1}, {type: 'seam', piece: 0, at: '1', s: 1}, {type: 'shrink', piece: 0, at: '1', s: 1}, {type: 'seam', piece: 0, at: '11', s: 0}, {type: 'shrink', piece: 0, at: '11', s: 0});
+  html = view(p, a);
+  assert.equal((html.match(/class="sk-kids/g) || []).length, 5, 'one fork, then a single column under each side');
+  assert.equal((html.match(/sk-kids fork/g) || []).length, 1);
 });
 
 test('hints solve every puzzle from fresh and after a wrong start, quickly, and never open with a claim', () => {
@@ -181,9 +187,9 @@ test('hints solve every puzzle from fresh and after a wrong start, quickly, and 
     const first = nextHint(p, fresh);
     assert.ok(!['all', 'keep'].includes(first.action.type), `${p.id}: the first hint acts on the board`);
     const starts = [fresh];
-    if (p.parameters.mode === 'impostor') starts.push(play(p, fresh, {type: 'select', a: 0, b: 1}, {type: 'seam', at: '', s: 1}));
+    if (p.parameters.mode === 'impostor') starts.push(play(p, fresh, {type: 'select', a: 0, b: 1}, {type: 'seam', at: '', s: 0}));
     if (p.parameters.mode === 'repair') starts.push(play(p, fresh, {type: 'flip', i: 2}, {type: 'keep'}, {type: 'all'}));
-    if (p.parameters.mode === 'seams') starts.push(play(p, fresh, {type: 'all'}));
+    if (p.parameters.mode === 'seams') starts.push(play(p, fresh, {type: 'seam', piece: 2, at: '', s: 1}, {type: 'keep', piece: 2}, {type: 'all'}));
     for (let a of starts) {
       for (let i = 0; i < 90 && !isSolved(p, a.board); i++) {
         const t = process.cpuUsage(), h = nextHint(p, a), u = process.cpuUsage(t);
@@ -194,6 +200,29 @@ test('hints solve every puzzle from fresh and after a wrong start, quickly, and 
       assert.ok(isSolved(p, a.board), `${p.id} solved by hints`);
     }
   }
+});
+
+test('hints wait for the child’s own shrinking before judging a run, a flip or a kept way', () => {
+  const text = (id, ...moves) => { const p = byId(id); return nextHint(p, play(p, freshAttempt(p), ...moves)).text; };
+  assert.equal(text('07', {type: 'select', a: 0, b: 4}), 'Place seams on tiles 1 to 5 and shrink.');
+  assert.equal(text('07', {type: 'select', a: 8, b: 12}), 'Place seams on tiles 9 to 13 and shrink.', 'the same words for the impostor');
+  assert.equal(text('03', {type: 'flip', i: 0}), 'Place seams on the piece and shrink.');
+  assert.equal(text('09', {type: 'flip', i: 0}), 'Place seams on the piece and shrink.', 'the same words for a fix');
+  assert.equal(text('04', {type: 'seam', piece: 0, at: '', s: 1}), 'Shrink ABAB.', 'seams placed and not kept are shrunk first');
+  assert.equal(text('04', {type: 'seam', piece: 0, at: '', s: 0}), 'Shrink ABAB.', 'the same words for a way that works');
+  // Once the child's rows show tiles 1 to 5 reach one tile, the hint names a stuck run.
+  const p = byId('07');
+  let a = play(p, freshAttempt(p), {type: 'select', a: 0, b: 4});
+  for (let i = 0; i < 10 && nextHint(p, a).action.type !== 'select'; i++) a = play(p, a, nextHint(p, a).action);
+  assert.match(a.board.tree ? view(p, a) : '', /one tile/);
+  assert.equal(nextHint(p, a).text, 'Tiles 1 to 5 can shrink to one tile. Choose tiles 9 to 13.');
+});
+
+test('That’s all needs something kept', () => {
+  const p = byId('01'), a = freshAttempt(p);
+  assert.equal(move(p, a, {type: 'all'}), null);
+  assert.match(view(p, a), /class="sk-button sk-all"[^>]*disabled/);
+  assert.equal(validBoard(p, {...a.board, refused: true}), false);
 });
 
 test('saves are checked, including a forged finish', () => {

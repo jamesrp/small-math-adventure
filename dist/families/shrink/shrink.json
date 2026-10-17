@@ -10,7 +10,8 @@
     "A row grows by turning every A into AB and every B into BA, all at once: A, AB, ABBA, ABBABAAB, and on. A piece is a run of tiles cut from a grown row.",
     "Shrinking undoes one step. Seams split the row into pairs in one of two ways: pair the first two tiles, or leave the first tile alone. A tile cut off from its partner at an end gets the partner back as a dashed ghost, the other letter.",
     "Each pair shrinks to its first letter. A pair AA or BB is marked: no tile grows into it.",
-    "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. A row of one or two tiles is never stuck."
+    "A row of two different tiles is one pair, so its seams go only at its ends.",
+    "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. Only rows of three tiles or more can be stuck."
    ],
    "sourceIds": [
     "shrink-week76",
@@ -109,7 +110,8 @@
     "A row grows by turning every A into AB and every B into BA, all at once: A, AB, ABBA, ABBABAAB, and on. A piece is a run of tiles cut from a grown row.",
     "Shrinking undoes one step. Seams split the row into pairs in one of two ways: pair the first two tiles, or leave the first tile alone. A tile cut off from its partner at an end gets the partner back as a dashed ghost, the other letter.",
     "Each pair shrinks to its first letter. A pair AA or BB is marked: no tile grows into it.",
-    "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. A row of one or two tiles is never stuck.",
+    "A row of two different tiles is one pair, so its seams go only at its ends.",
+    "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. Only rows of three tiles or more can be stuck.",
     "Keep puts the seams on a piece’s top row on the shelf, unjudged; a tap on the shelf takes one back. That’s all checks the whole shelf at once and can be pressed again once the shelf changes."
    ],
    "idea": "A grown row is made of pairs AB and BA, so a way of placing seams that marks AA or BB is not how the piece was cut; a piece as short as ABA fits both ways.",
@@ -222,8 +224,9 @@
     "A row grows by turning every A into AB and every B into BA, all at once: A, AB, ABBA, ABBABAAB, and on. A piece is a run of tiles cut from a grown row.",
     "Shrinking undoes one step. Seams split the row into pairs in one of two ways: pair the first two tiles, or leave the first tile alone. A tile cut off from its partner at an end gets the partner back as a dashed ghost, the other letter.",
     "Each pair shrinks to its first letter. A pair AA or BB is marked: no tile grows into it.",
-    "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. A row of one or two tiles is never stuck.",
-    "Choose at most the number of tiles shown, in one run. The puzzle is solved when the chosen tiles are stuck; the child’s own rows show it."
+    "A row of two different tiles is one pair, so its seams go only at its ends.",
+    "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. Only rows of three tiles or more can be stuck.",
+    "Choose a run of at most the number of tiles shown. The puzzle is solved when the chosen tiles are stuck."
    ],
    "idea": "ABABA is in no grown row: it shrinks to AAA one way and BBB the other, and both mark a pair. So a strip repeating AB is an impostor.",
    "prerequisites": "Read A and B and keep several rows in view. Choosing which tiles to test is the puzzle; the rows below are built one tap at a time.",
@@ -384,7 +387,8 @@
     "A row grows by turning every A into AB and every B into BA, all at once: A, AB, ABBA, ABBABAAB, and on. A piece is a run of tiles cut from a grown row.",
     "Shrinking undoes one step. Seams split the row into pairs in one of two ways: pair the first two tiles, or leave the first tile alone. A tile cut off from its partner at an end gets the partner back as a dashed ghost, the other letter.",
     "Each pair shrinks to its first letter. A pair AA or BB is marked: no tile grows into it.",
-    "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. A row of one or two tiles is never stuck.",
+    "A row of two different tiles is one pair, so its seams go only at its ends.",
+    "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. Only rows of three tiles or more can be stuck.",
     "One tile is flipped at a time; flipping another puts the first back. Keep puts the flip on the shelf, unjudged; That’s all checks the whole shelf at once."
    ],
    "idea": "Three equal tiles never sit in a grown row, so the flipped tile is in BBB; only one of its three tiles fixes the piece.",
@@ -451,7 +455,8 @@
     "A row grows by turning every A into AB and every B into BA, all at once: A, AB, ABBA, ABBABAAB, and on. A piece is a run of tiles cut from a grown row.",
     "Shrinking undoes one step. Seams split the row into pairs in one of two ways: pair the first two tiles, or leave the first tile alone. A tile cut off from its partner at an end gets the partner back as a dashed ghost, the other letter.",
     "Each pair shrinks to its first letter. A pair AA or BB is marked: no tile grows into it.",
-    "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. A row of one or two tiles is never stuck.",
+    "A row of two different tiles is one pair, so its seams go only at its ends.",
+    "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. Only rows of three tiles or more can be stuck.",
     "Keep puts the seams on a piece’s top row on the shelf, unjudged; a tap on the shelf takes one back. That’s all checks the whole shelf at once and can be pressed again once the shelf changes."
    ],
    "idea": "A way with no marked pair can still be stuck lower down: ABAB with the first tile alone shrinks to BBB.",
@@ -564,8 +569,9 @@
     "A row grows by turning every A into AB and every B into BA, all at once: A, AB, ABBA, ABBABAAB, and on. A piece is a run of tiles cut from a grown row.",
     "Shrinking undoes one step. Seams split the row into pairs in one of two ways: pair the first two tiles, or leave the first tile alone. A tile cut off from its partner at an end gets the partner back as a dashed ghost, the other letter.",
     "Each pair shrinks to its first letter. A pair AA or BB is marked: no tile grows into it.",
-    "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. A row of one or two tiles is never stuck.",
-    "Choose at most the number of tiles shown, in one run. The puzzle is solved when the chosen tiles are stuck; the child’s own rows show it."
+    "A row of two different tiles is one pair, so its seams go only at its ends.",
+    "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. Only rows of three tiles or more can be stuck.",
+    "Choose a run of at most the number of tiles shown. The puzzle is solved when the chosen tiles are stuck."
    ],
    "idea": "Shrinking a strip that repeats ABBA gives the strip that repeats AB, so the tiles that shrink to ABABA are stuck.",
    "prerequisites": "Read A and B and keep several rows in view. Choosing which tiles to test is the puzzle; the rows below are built one tap at a time.",
@@ -757,7 +763,8 @@
     "A row grows by turning every A into AB and every B into BA, all at once: A, AB, ABBA, ABBABAAB, and on. A piece is a run of tiles cut from a grown row.",
     "Shrinking undoes one step. Seams split the row into pairs in one of two ways: pair the first two tiles, or leave the first tile alone. A tile cut off from its partner at an end gets the partner back as a dashed ghost, the other letter.",
     "Each pair shrinks to its first letter. A pair AA or BB is marked: no tile grows into it.",
-    "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. A row of one or two tiles is never stuck.",
+    "A row of two different tiles is one pair, so its seams go only at its ends.",
+    "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. Only rows of three tiles or more can be stuck.",
     "One tile is flipped at a time; flipping another puts the first back. Keep puts the flip on the shelf, unjudged; That’s all checks the whole shelf at once."
    ],
    "idea": "One flipped tile can have more than one repair: three different flips each give a piece of a grown row.",
@@ -838,8 +845,9 @@
     "A row grows by turning every A into AB and every B into BA, all at once: A, AB, ABBA, ABBABAAB, and on. A piece is a run of tiles cut from a grown row.",
     "Shrinking undoes one step. Seams split the row into pairs in one of two ways: pair the first two tiles, or leave the first tile alone. A tile cut off from its partner at an end gets the partner back as a dashed ghost, the other letter.",
     "Each pair shrinks to its first letter. A pair AA or BB is marked: no tile grows into it.",
-    "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. A row of one or two tiles is never stuck.",
-    "Choose at most the number of tiles shown, in one run. The puzzle is solved when the chosen tiles are stuck; the child’s own rows show it."
+    "A row of two different tiles is one pair, so its seams go only at its ends.",
+    "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. Only rows of three tiles or more can be stuck.",
+    "Choose a run of at most the number of tiles shown. The puzzle is solved when the chosen tiles are stuck."
    ],
    "idea": "One wrong tile in a long piece of a grown row shows up as a short stuck run right next to it.",
    "prerequisites": "Read A and B and keep several rows in view. Choosing which tiles to test is the puzzle; the rows below are built one tap at a time.",
@@ -954,8 +962,9 @@
     "A row grows by turning every A into AB and every B into BA, all at once: A, AB, ABBA, ABBABAAB, and on. A piece is a run of tiles cut from a grown row.",
     "Shrinking undoes one step. Seams split the row into pairs in one of two ways: pair the first two tiles, or leave the first tile alone. A tile cut off from its partner at an end gets the partner back as a dashed ghost, the other letter.",
     "Each pair shrinks to its first letter. A pair AA or BB is marked: no tile grows into it.",
-    "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. A row of one or two tiles is never stuck.",
-    "Choose at most the number of tiles shown, in one run. The puzzle is solved when the chosen tiles are stuck; the child’s own rows show it."
+    "A row of two different tiles is one pair, so its seams go only at its ends.",
+    "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. Only rows of three tiles or more can be stuck.",
+    "Choose a run of at most the number of tiles shown. The puzzle is solved when the chosen tiles are stuck."
    ],
    "idea": "Every short run of this strip fits a grown row; the impostor needs eight tiles, and it fails one row down, where AABAA marks a pair both ways.",
    "prerequisites": "Read A and B and keep several rows in view. Choosing which tiles to test is the puzzle; the rows below are built one tap at a time.",
@@ -1065,7 +1074,8 @@
     "A row grows by turning every A into AB and every B into BA, all at once: A, AB, ABBA, ABBABAAB, and on. A piece is a run of tiles cut from a grown row.",
     "Shrinking undoes one step. Seams split the row into pairs in one of two ways: pair the first two tiles, or leave the first tile alone. A tile cut off from its partner at an end gets the partner back as a dashed ghost, the other letter.",
     "Each pair shrinks to its first letter. A pair AA or BB is marked: no tile grows into it.",
-    "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. A row of one or two tiles is never stuck.",
+    "A row of two different tiles is one pair, so its seams go only at its ends.",
+    "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. Only rows of three tiles or more can be stuck.",
     "One tile is flipped at a time; flipping another puts the first back. Keep puts the flip on the shelf, unjudged; That’s all checks the whole shelf at once."
    ],
    "idea": "When every inner flip makes three equal tiles, a fix must be at an end, and here either end works.",
@@ -1138,8 +1148,9 @@
     "A row grows by turning every A into AB and every B into BA, all at once: A, AB, ABBA, ABBABAAB, and on. A piece is a run of tiles cut from a grown row.",
     "Shrinking undoes one step. Seams split the row into pairs in one of two ways: pair the first two tiles, or leave the first tile alone. A tile cut off from its partner at an end gets the partner back as a dashed ghost, the other letter.",
     "Each pair shrinks to its first letter. A pair AA or BB is marked: no tile grows into it.",
-    "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. A row of one or two tiles is never stuck.",
-    "Choose at most the number of tiles shown, in one run. The puzzle is solved when the chosen tiles are stuck; the child’s own rows show it."
+    "A row of two different tiles is one pair, so its seams go only at its ends.",
+    "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. Only rows of three tiles or more can be stuck.",
+    "Choose a run of at most the number of tiles shown. The puzzle is solved when the chosen tiles are stuck."
    ],
    "idea": "A grown row repeated forever is not a grown row: shrinking three times reaches ABABA.",
    "prerequisites": "Read A and B and keep several rows in view. Choosing which tiles to test is the puzzle; the rows below are built one tap at a time.",
@@ -1151,7 +1162,7 @@
    "parent": {
     "notice": "Whether your child uses the earlier repeating strips: this one shrinks to ABBA repeated and then to AB repeated.",
     "prompt": "What does this strip shrink to? And that one?",
-    "explanation": "ABBABAAB repeated, paired from the first tile, shrinks to ABBA repeated and then to AB repeated, which has ABABA. Tracing ABABA back up gives ABAABABBABAABA (tiles 4–17, and again from tile 8): paired from the first tile it marks AA; with the first tile alone it shrinks to BBAABBAA, which marks BB one way and shrinks to ABABA the other, and ABABA shrinks to AAA or BBB. No run of thirteen tiles or fewer is stuck.",
+    "explanation": "ABBABAAB repeated, paired from the first tile, shrinks to ABBA repeated and then to AB repeated, which has ABABA. Tracing ABABA back up gives ABAABABBABAABA (tiles 4–17, and its swap BABBABAABABBAB from tile 8): paired from the first tile it marks AA; with the first tile alone it shrinks to BBAABBAA, which marks BB one way and shrinks to ABABA the other, and ABABA shrinks to AAA or BBB. No run of thirteen tiles or fewer is stuck.",
     "extension": "Two copies, ABBABAABABBABAAB, do sit in a grown row (worksheet Problem 3 asks whether it is a whole one). Where?",
     "connection": "Squares such as ABBABAABABBABAAB occur in the Thue–Morse word, but overlaps do not (Thue, 1912), so three copies of a block never do.",
     "sourceIds": [

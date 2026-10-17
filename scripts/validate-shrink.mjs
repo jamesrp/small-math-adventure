@@ -83,11 +83,16 @@ function certificate(w) {
 }
 const size = n => n ? 1 + size(n.k[0]) + size(n.k[1]) : 0;
 const depth = n => n ? 1 + Math.max(depth(n.k[0]), depth(n.k[1])) : 0;
-// Every way shrunk as far as it goes (rows of two tiles are tried, not shrunk).
+// The two-tile rule, written again here: two different tiles only pair.
+const allowedWay = (w, s) => w.length >= 2 && (w.length > 2 || s === 0 || w[0] === w[1]);
+// The deepest legal tree: every way allowed tried, and every unmarked one
+// shrunk, down to rows of one tile. If the rule let rows go round, this would
+// never end.
 function fullTree(w) {
-  if (w.length < 2) return {s: null, t: [false, false], k: [null, null]};
-  return {s: 1, t: [true, true], k: [0, 1].map(s => w.length > 2 && !markedOf(w, s) ? fullTree(parentOf(w, s)) : null)};
+  const t = [0, 1].map(s => allowedWay(w, s));
+  return {s: t[1] ? 1 : t[0] ? 0 : null, t, k: [0, 1].map(s => t[s] && !markedOf(w, s) ? fullTree(parentOf(w, s)) : null)};
 }
+const forks = n => n ? (n.k[0] && n.k[1] ? 1 : 0) + forks(n.k[0]) + forks(n.k[1]) : 0;
 // The moves that build a tree from a fresh row: for each way, a seam tap,
 // then Shrink and the moves below.
 function treeMoves(node, path = '', extra = {}) {
@@ -128,15 +133,21 @@ function checkWords() {
     for (let i = 0; i + n <= TM.length; i++) seen.add(TM.slice(i, i + n));
     assert.equal(seen.size, complexity(n), `factors of length ${n}`);
   }
-  // Real rows are the factors, fits are the parities of occurrence, and the
-  // full tree certifies exactly the non-factors; certificates stay in limits.
+  // Real rows are the factors, fits are the parities of occurrence, the full
+  // legal tree certifies exactly the non-factors (by the separate shrinker and
+  // by the mechanic), and every full tree and certificate is legal and within
+  // the limits, for every word of up to 16 tiles (the longest impostor run
+  // allowed is 15).
   let checked = 0, biggest = 0, deepest = 0;
-  for (let n = 1; n <= 14; n++) for (const w of words(n)) {
+  const full = {rows: 0, levels: 0, forks: 0};
+  for (let n = 1; n <= 16; n++) for (const w of words(n)) {
     assert.equal(real(w), isFactor(w), `${w}: real exactly when a factor`);
     if (n <= 12) for (const s of [0, 1]) assert.equal(fits(w, s), parities(w).includes(s), `${w}: way ${s} fits exactly when it occurs at that parity`);
-    const full = fullTree(w);
-    assert.equal(certifies(full, w), !isFactor(w), `${w}: the full tree certifies exactly a non-factor`);
-    if (n <= 12) assert.equal(stuck(full, w), !isFactor(w), `${w}: the mechanic agrees on the full tree`);
+    const f = fullTree(w);
+    assert.equal(certifies(f, w), !isFactor(w), `${w}: the full tree certifies exactly a non-factor`);
+    assert.equal(stuck(f, w), !isFactor(w), `${w}: the mechanic agrees on the full tree`);
+    assert.ok(validTree(f, w), `${w}: the full tree is legal and within the limits`);
+    full.rows = Math.max(full.rows, size(f)); full.levels = Math.max(full.levels, depth(f)); full.forks = Math.max(full.forks, forks(f));
     if (!isFactor(w)) {
       const c = certificate(w);
       assert.ok(c && validTree(c, w) && stuck(c, w), `${w}: a certificate the mechanic accepts`);
@@ -144,11 +155,18 @@ function checkWords() {
     }
     checked++;
   }
+  // The two-tile rule: AB and BA only pair; a tree can't hold the other way.
+  for (const w of ['AB', 'BA']) {
+    assert.equal(validTree({s: 1, t: [false, true], k: [null, null]}, w), false, `${w}: leaving the first tile alone is not a way`);
+    assert.equal(validTree({s: 0, t: [true, false], k: [{s: null, t: [false, false], k: [null, null]}, null]}, w), true, `${w}: pairing is`);
+  }
+  assert.equal(validTree({s: 1, t: [true, true], k: [null, {s: 0, t: [true, false], k: [{s: null, t: [false, false], k: [null, null]}, null]}]}, 'AA'), true, 'AA leaves the first tile alone, to BA, to B');
   // From four tiles on a factor fits one way only (recognizability).
   for (let n = 4; n <= 12; n++) for (const w of words(n)) if (isFactor(w)) assert.equal(parities(w).length, 1, `${w}: one way`);
   assert.deepEqual(words(3).filter(w => parities(w).length === 2), ['ABA', 'BAB'], 'ABA and BAB fit both ways');
-  assert.ok(biggest <= LIMIT.nodes && deepest <= LIMIT.depth, 'every certificate of up to 14 tiles fits the limits');
-  return {checked, biggestCertificate: biggest, deepestCertificate: deepest};
+  assert.ok(biggest <= LIMIT.nodes && deepest <= LIMIT.depth, 'every certificate of up to 16 tiles fits the limits');
+  assert.ok(full.forks <= 1, 'a legal tree forks at most once, so it has at most two columns');
+  return {checked, biggestCertificate: {rows: biggest, levels: deepest}, biggestLegalTree: full};
 }
 
 function checkSeams(p, row) {
@@ -157,6 +175,7 @@ function checkSeams(p, row) {
   assert.deepEqual(ways, row.ways, `${p.id}: the ways, from occurrences`);
   assert.deepEqual(p.solution.ways, row.ways, `${p.id}: the stored ways`);
   let steps = hintsSolve(p, fresh, 'from fresh');
+  refuse(p, fresh, {type: 'all'}, 'That’s all on an empty shelf');
   // Witness: place each way and keep it, then That's all.
   let a = fresh;
   for (const [i, s] of row.ways) { a = play(p, a, {type: 'seam', piece: i, at: '', s}); a = play(p, a, {type: 'keep', piece: i}); }
@@ -204,6 +223,7 @@ function checkSeams(p, row) {
     [{...fresh.board, shelf: row.ways.slice(1), done: true}, 'done with a way missing'],
     [{...fresh.board, told: 'more'}, 'a note without a refusal'],
     [{...fresh.board, told: 'stuck', refused: true}, '“gets stuck” on an empty shelf'],
+    [{...fresh.board, refused: true}, 'a refusal of an empty shelf'],
     [{...a.board, refused: true, done: false}, 'a refusal of the whole answer'],
     [{...fresh.board, shelf: [[0, 0], [0, 0]]}, 'a way kept twice'],
     [{...fresh.board, shelf: [[0, 1], [0, 0]]}, 'an unsorted shelf'],
@@ -230,6 +250,7 @@ function checkRepair(p, row) {
   assert.deepEqual(fixes, row.fixes, `${p.id}: the fixes, from occurrences`);
   assert.deepEqual(p.solution.fixes, row.fixes, `${p.id}: the stored fixes`);
   let steps = hintsSolve(p, fresh, 'from fresh');
+  refuse(p, fresh, {type: 'all'}, 'That’s all on an empty shelf');
   let a = fresh;
   for (const i of row.fixes) { a = play(p, a, {type: 'flip', i}); a = play(p, a, {type: 'keep'}); }
   assert.ok(isSolved(p, play(p, a, {type: 'all'}).board), `${p.id}: the witness solves`);
@@ -275,6 +296,7 @@ function checkRepair(p, row) {
     [{...fresh.board, flip: 0, tree: {s: 0, t: [true, false], k: [{s: null, t: [false, false], k: [null, null]}, null]}}, 'a tree for another piece (or a marked way shrunk)'],
     [{...fresh.board, told: 'more', refused: true, shelf: [wrong]}, 'a note that doesn’t match the shelf'],
     [{...fresh.board, tree: null}, 'no tree'],
+    [{...fresh.board, refused: true}, 'a refusal of an empty shelf'],
     [{...fresh.board, shelf: [1, 0]}, 'an unsorted shelf']
   ]) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
   return steps;
@@ -309,17 +331,26 @@ function checkImpostor(p, row, random) {
     assert.ok(isSolved(p, b.board), `${p.id}: ${w} certified by its moves`);
     assert.ok(certifies(b.board.tree, w), `${p.id}: the separate shrinker agrees`);
   }
-  // A real run: its full tree, as far as the limits allow, never solves.
+  // A real run: every move of its deepest legal tree is accepted, Shrink
+  // ends at rows of one tile, and the run never sticks.
   const realRun = [0, 1];
   let b = play(p, fresh, {type: 'select', a: realRun[0], b: realRun[1]});
-  for (const m of treeMoves(fullTree(q.strip.slice(0, 2)))) { const next = move(p, b, m); if (next) b = next; }
+  for (const m of treeMoves(fullTree(q.strip.slice(0, 2)))) b = play(p, b, m);
   assert.ok(!isSolved(p, b.board), `${p.id}: two tiles are never stuck`);
+  refuse(p, b, {type: 'seam', at: '0', s: 0}, 'seams on a row of one tile');
   steps += hintsSolve(p, b, 'after choosing real tiles');
-  const longReal = (() => { for (let len = q.k; len >= 2; len--) for (let a = 0; a + len <= n; a++) if (isFactor(q.strip.slice(a, a + len))) return [a, a + len - 1]; })();
-  b = play(p, fresh, {type: 'select', a: longReal[0], b: longReal[1]});
-  for (const m of treeMoves(fullTree(q.strip.slice(longReal[0], longReal[1] + 1)))) { const next = move(p, b, m); if (next) b = next; }
-  assert.ok(!isSolved(p, b.board), `${p.id}: a long real run never sticks`);
-  steps += hintsSolve(p, b, 'after shrinking a real run every way');
+  for (let len = q.k; len >= 2; len--) for (let a = 0; a + len <= n; a++) {
+    const w = q.strip.slice(a, a + len);
+    if (!isFactor(w)) continue;
+    b = play(p, fresh, {type: 'select', a, b: a + len - 1});
+    for (const m of treeMoves(fullTree(w))) b = play(p, b, m);
+    assert.ok(!isSolved(p, b.board), `${p.id}: ${w} never sticks`);
+  }
+  // The two-tile rule on the board: AB and BA only pair.
+  const ab = (() => { for (let a = 0; a + 1 < n; a++) if (q.strip[a] !== q.strip[a + 1]) return a; })();
+  b = play(p, fresh, {type: 'select', a: ab, b: ab + 1});
+  refuse(p, b, {type: 'seam', at: '', s: 1}, 'leaving the first of two different tiles alone');
+  steps += hintsSolve(p, play(p, play(p, b, {type: 'seam', at: '', s: 0}), {type: 'shrink', at: '', s: 0}), 'after shrinking two tiles to one');
   // Half a certificate, then hints; and a stuck run left half done.
   const [a0, z0] = row.run;
   let h = play(p, fresh, {type: 'select', a: a0, b: z0});
@@ -356,6 +387,7 @@ function checkImpostor(p, row, random) {
     [{sel: [a0, z0], tree: chainOf(LIMIT.depth + 2)}, 'a tree deeper than the limit']
   ]) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
   // A forged stuck tree on a real run: marks can't be claimed where there are none.
+  const longReal = (() => { for (let len = q.k; len >= 2; len--) for (let a = 0; a + len <= n; a++) if (isFactor(q.strip.slice(a, a + len))) return [a, a + len - 1]; })();
   const realW = q.strip.slice(longReal[0], longReal[1] + 1);
   assert.ok(!stuck({s: 1, t: [true, true], k: [null, null]}, realW), `${p.id}: trying both ways of a real run without shrinking proves nothing`);
   // Random play: how often do random choices and taps solve? A choice of tiles
@@ -365,35 +397,76 @@ function checkImpostor(p, row, random) {
   for (let t = 0; t < trials; t++) {
     let x = fresh;
     for (let m = 0; m < 40 && !isSolved(p, x.board); m++) {
-      const options = legalMoves(p, x.board, random);
+      const options = legalMoves(p, x.board);
       if (!options.length) break;
-      const next = move(p, x, options[Math.floor(random() * options.length)]);
-      if (next) x = next;
+      const pick = options[Math.floor(random() * options.length)], next = move(p, x, pick);
+      assert.ok(next, `${p.id}: random play's move ${JSON.stringify(pick)} is legal`);
+      x = next;
     }
     if (isSolved(p, x.board)) solves++;
   }
   const total = (() => { let c = 0; for (let len = 2; len <= q.k; len++) c += Math.max(0, n - len + 1); return c; })();
-  return {steps, randomShare: solves / trials, stuckShare: runs.length / total};
+  // Two plainer strategies: choose k tiles anywhere (the share of k-tile runs
+  // that are stuck), and slide k tiles along from the left (the try that
+  // first sticks).
+  const full = Array.from({length: n - q.k + 1}, (_, a) => q.strip.slice(a, a + q.k));
+  const fullBudget = full.filter(w => !isFactor(w)).length / full.length;
+  const slide = full.findIndex(w => !isFactor(w)) + 1;
+  return {steps, randomShare: solves / trials, stuckShare: runs.length / total, fullBudget, slide};
 }
 // A chain of rows each shrunk on its first way, deeper than allowed.
 function chainOf(d) { let node = {s: null, t: [false, false], k: [null, null]}; for (let i = 0; i < d; i++) node = {s: 0, t: [true, false], k: [node, null]}; return node; }
 // The impostor's legal moves (selections reselect only now and then).
-function legalMoves(p, b, random) {
+function legalMoves(p, b) {
   const q = p.parameters, out = [];
-  if (b.sel === null || random() < 0.03) {
+  if (b.sel === null) {
     for (let len = 2; len <= q.k; len++) for (let a = 0; a + len <= q.strip.length; a++) out.push({type: 'select', a, b: a + len - 1});
     return out;
   }
   const visit = (node, w, path) => {
     if (!node || w.length < 2) return;
     for (const s of [0, 1]) {
-      if (node.s !== s) out.push({type: 'seam', at: path, s});
+      if (node.s !== s) { if (allowedWay(w, s)) out.push({type: 'seam', at: path, s}); }
       else if (!node.k[s] && !markedOf(w, s)) out.push({type: 'shrink', at: path, s});
       if (node.k[s]) visit(node.k[s], parentOf(w, s), path + s);
     }
   };
   visit(b.tree, q.strip.slice(b.sel[0], b.sel[1] + 1), '');
   return out;
+}
+
+// A hint never judges the child's own tiles, flip or seams before the
+// child's tree has settled them: the first hint after a choice, a flip or
+// seams is a step of the child's own shrinking, with the same words whether
+// it fits or not.
+function checkHintsWait(p) {
+  const q = p.parameters, fresh = freshAttempt(p);
+  if (q.mode === 'impostor') {
+    const texts = new Set();
+    for (let len = 2; len <= q.k; len++) for (let a = 0; a + len <= q.strip.length; a++) {
+      const h = nextHint(p, play(p, fresh, {type: 'select', a, b: a + len - 1}));
+      assert.ok(h.action.type === 'seam' && h.action.at === '', `${p.id}: after choosing tiles ${a + 1}–${a + len}, the hint is a seam on them`);
+      texts.add(h.text.replace(/\d+/g, '#'));
+    }
+    assert.equal(texts.size, 1, `${p.id}: the same words for a stuck run and a real one`);
+  }
+  if (q.mode === 'repair') {
+    for (let i = 0; i < q.piece.length; i++) {
+      const h = nextHint(p, play(p, fresh, {type: 'flip', i}));
+      assert.ok(h.action.type === 'seam' && h.text === 'Place seams on the piece and shrink.', `${p.id}: after flipping tile ${i + 1}, the hint shrinks the piece`);
+    }
+  }
+  if (q.mode === 'seams') {
+    for (let i = 0; i < q.pieces.length; i++) for (const s of [0, 1]) {
+      const a = play(p, fresh, {type: 'seam', piece: i, at: '', s}), first = nextHint(p, a);
+      assert.notEqual(first.action.type, 'keep', `${p.id}: no Keep before the way is shrunk`);
+      // Unless the seams mark a pair (shown at once), the hint shrinks them.
+      if (!markedOf(q.pieces[i], s)) assert.ok(first.action.type === 'shrink' && first.action.piece === i && first.action.at === '' && first.action.s === s, `${p.id}: seams placed on piece ${i + 1} are shrunk first`);
+      const kept = play(p, a, {type: 'keep', piece: i}), h = nextHint(p, kept);
+      if (markedOf(q.pieces[i], s)) continue;
+      assert.notEqual(h.action.type, 'drop', `${p.id}: a kept way is not judged before it is shrunk`);
+    }
+  }
 }
 
 function checkPlayground(p) {
@@ -460,6 +533,7 @@ export async function validateShrink() {
     let w = fresh;
     for (const m of p.solution.moves) w = play(p, w, m);
     assert.ok(isSolved(p, w.board), `${p.id}: the stored witness solves`);
+    checkHintsWait(p);
     if (q.mode === 'seams') {
       hintSteps += checkSeams(p, row);
       // Random shelves: one subset of the six ways in 64 is right.
@@ -470,8 +544,10 @@ export async function validateShrink() {
     } else {
       const r = checkImpostor(p, row, random);
       hintSteps += r.steps;
-      assert.ok(r.randomShare <= Math.max(0.45, r.stuckShare * 2), `${p.id}: random play rarely solves (${r.randomShare})`);
-      shares[p.id] = `random play ${(r.randomShare * 100).toFixed(1)}% (stuck runs ${(r.stuckShare * 100).toFixed(1)}% of choices)`;
+      // One choice of tiles per try: random play can do no better than the
+      // share of stuck runs, up to sampling noise (400 tries).
+      assert.ok(r.randomShare <= r.stuckShare + 0.08 && r.randomShare < 0.4, `${p.id}: random play solves no more often than a random run is stuck (${r.randomShare})`);
+      shares[p.id] = `random play ${(r.randomShare * 100).toFixed(1)}% (stuck runs ${(r.stuckShare * 100).toFixed(1)}% of choices); ${q.k} tiles anywhere ${(r.fullBudget * 100).toFixed(0)}%; ${q.k} tiles slid from the left stick on try ${r.slide}`;
     }
   }
   return {puzzles: puzzles.length, playground: 1, words, hintSteps, slowestHintMs: Number(slowest.toFixed(2)), randomSolveShares: shares};

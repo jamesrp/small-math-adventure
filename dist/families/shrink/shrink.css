@@ -17,7 +17,7 @@
 
 /* The strip (impostor) and the piece (repair): tiles to tap, in lines of at
    most ten; … where the strip repeats forever. */
-[data-mechanic-wire="shrink"] .sk-strip{display:flex;flex-direction:column;align-items:center;gap:7px;width:100%;touch-action:none}
+[data-mechanic-wire="shrink"] .sk-strip{display:flex;flex-direction:column;align-items:center;gap:7px;width:100%;touch-action:pan-y}
 [data-mechanic-wire="shrink"] .sk-piece{touch-action:auto}
 [data-mechanic-wire="shrink"] .sk-line{display:grid;grid-template-columns:repeat(var(--c),minmax(0,34px));gap:3px;justify-content:center;width:100%}
 [data-mechanic-wire="shrink"] .sk-strip .sk-tile{width:100%;height:38px;font-size:1.05rem}

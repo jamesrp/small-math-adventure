@@ -4,12 +4,15 @@
 // by keyboard, Shrink with focus moving to the new row, a fork of stuck rows
 // and a solve; every way on several pieces with Keep, That's all, its refusal
 // kept through Undo and a kept way taken back; a flipped tile repaired; the
-// playground grown; the busiest board at 375 px; and focus after moves. Same
+// playground grown; the busiest board at 375 px, with the legal trees of
+// puzzle 10 that go deepest and have the most rows, and puzzle 1's ABA tree
+// with Keep and That's all in reach; and focus after moves. Same
 // environment variables as the other browser suites (PLAYWRIGHT_MODULE,
 // BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone with touch).
 // Screenshots go in SHOTS, or test-results/shrink/.
 import assert from 'node:assert/strict';
 import {mkdir, readFile} from 'node:fs/promises';
+import {shrinkWord, marked, wayAllowed} from '../dist/families/shrink/shrink.js';
 const {chromium} = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const browser = await chromium.launch({headless: true, ...(process.env.BROWSER_EXECUTABLE ? {executablePath: process.env.BROWSER_EXECUTABLE} : {})});
 const phone = process.env.TEST_PHONE === '1';
@@ -57,6 +60,40 @@ async function slide(from, to) {
     await page.waitForTimeout(400);
   }
   await settle();
+}
+// The deepest legal tree of a row, as moves: each way allowed placed, and
+// each unmarked one shrunk, down to rows of one tile.
+function deepest(w, path = '', extra = {}) {
+  const out = [];
+  for (const s of [0, 1]) {
+    if (!wayAllowed(w, s)) continue;
+    out.push({type: 'seam', at: path, s, ...extra});
+    if (!marked(w, s).length) out.push({type: 'shrink', at: path, s, ...extra}, ...deepest(shrinkWord(w, s), path + s, extra));
+  }
+  return out;
+}
+const norm = o => JSON.stringify(Object.keys(o).sort().reduce((m, k) => (m[k] = o[k], m), {}));
+// Plays a move through the board: a seam by a tap on its join's line, Shrink
+// and the rest by a tap on the button.
+async function playMove(m) {
+  if (m.type === 'select') { await tap(tile(m.a)); await tap(tile(m.b)); return; }
+  const want = norm(m);
+  const i = await page.evaluate(want => [...document.querySelectorAll('[data-mechanic-wire="shrink"] [data-move]')].findIndex(el => { const o = JSON.parse(el.dataset.move); return JSON.stringify(Object.keys(o).sort().reduce((x, k) => (x[k] = o[k], x), {})) === want; }), want);
+  assert.ok(i >= 0, `a control for ${want}`);
+  const target = page.locator('[data-mechanic-wire="shrink"] [data-move]').nth(i);
+  if (m.type !== 'seam') return tap(target);
+  await target.scrollIntoViewIfNeeded();
+  const b = await target.boundingBox(), at = await target.evaluate(el => parseFloat(getComputedStyle(el).getPropertyValue('--at')) / 100);
+  await tapAt(b.x + b.width * at, b.y + b.height / 2);
+}
+// The tree is readable: no overflow, tiles wide enough and never overlapping.
+async function readable(label, least) {
+  await fit(label);
+  const rows = await page.locator('.sk-row').evaluateAll(rows => rows.map(r => [...r.querySelectorAll('.sk-tile')].map(t => t.getBoundingClientRect()).map(b => [b.left, b.right])));
+  const widths = rows.flat().map(([l, r]) => r - l);
+  assert.ok(Math.min(...widths) >= least, `${label}: tiles at least ${least} px wide (${Math.min(...widths).toFixed(1)})`);
+  for (const row of rows) for (let i = 1; i < row.length; i++) assert.ok(row[i][0] >= row[i - 1][1] - 0.5, `${label}: tiles don't overlap`);
+  return rows.length;
 }
 // The way placed on the row at a path of a board's tree.
 const wayAt = (tree, path) => { let node = tree; for (const c of path) node = node.k[Number(c)]; return node.s; };
@@ -143,12 +180,14 @@ try {
   assert.equal(await button('That’s all').isDisabled(), true, 'but the refusal stands');
   await tap(page.locator('button.sk-kept').first());
   assert.deepEqual((await board(P)).shelf, [], 'a tap on the shelf takes a way back');
-  assert.equal(await button('That’s all').isDisabled(), false);
+  assert.equal((await board(P)).refused, false, 'and lifts the refusal');
+  assert.equal(await button('That’s all').isDisabled(), true, 'That’s all needs something kept');
   // Show that ABAB with the first tile alone is stuck, then keep the right ways.
   await tap(button('Shrink'));
   await tapSlot('BBB', 2.8); await tapSlot('BBB', 2.2);
   assert.equal(await page.locator('.sk-row[aria-label^="BBB"].stuck').count(), 1);
   await tapSlot('ABAB', 2.8); await tap(button('Keep'));
+  assert.equal(await button('That’s all').isDisabled(), false);
   await tap(page.locator('.sk-pick').nth(1));
   assert.equal(await page.locator('.sk-row[aria-label^="BAB"]').count(), 1, 'a tap on a piece brings it to the work area');
   await tapSlot('BAB', 2.8); await tap(button('Keep'));
@@ -197,23 +236,44 @@ try {
   P = 'shrink-10';
   await open(P);
   const witness = pack.puzzles.find(p => p.id === P).solution.moves;
-  const norm = o => JSON.stringify(Object.keys(o).sort().reduce((m, k) => (m[k] = o[k], m), {}));
-  for (const m of witness) {
-    if (m.type === 'select') { await tap(tile(m.a)); await tap(tile(m.b)); continue; }
-    const want = norm(m);
-    const i = await page.evaluate(want => [...document.querySelectorAll('[data-mechanic-wire="shrink"] [data-move]')].findIndex(el => { const o = JSON.parse(el.dataset.move); return JSON.stringify(Object.keys(o).sort().reduce((x, k) => (x[k] = o[k], x), {})) === want; }), want);
-    assert.ok(i >= 0, `a control for ${want}`);
-    const target = page.locator('[data-mechanic-wire="shrink"] [data-move]').nth(i);
-    if (m.type === 'shrink') await tap(target);
-    else { await target.scrollIntoViewIfNeeded(); const b = await target.boundingBox(); const at = await target.evaluate(el => parseFloat(getComputedStyle(el).getPropertyValue('--at')) / 100); await tapAt(b.x + b.width * at, b.y + b.height / 2); }
-    await fit(`puzzle 10 after ${want}`);
-  }
+  for (const m of witness) { await playMove(m); await fit(`puzzle 10 after ${norm(m)}`); }
   await done();
   const wide = await page.locator('[data-mechanic-wire="shrink"]').boundingBox();
   assert.ok(wide.width <= (phone ? 375 : 600), 'the board fits');
   const tiny = await page.locator('.sk-row .sk-tile').evaluateAll(els => Math.min(...els.map(e => e.getBoundingClientRect().width)));
   assert.ok(tiny >= (phone ? 13 : 20), `tiles stay legible (${tiny.toFixed(1)} px)`);
   await shot('busiest');
+
+  // The deepest legal tree on the busiest puzzle: fifteen tiles, every way
+  // shrunk to one tile (seven rows, one fork), at this width.
+  await page.locator('[data-action="replay"], [data-action="restart"]').first().click(); await settle();
+  const long = 'ABBABAABABBABAAB'.slice(0, 15);
+  assert.equal(pack.puzzles.find(p => p.id === P).parameters.strip.slice(0, 15), long);
+  await playMove({type: 'select', a: 0, b: 14});
+  for (const m of deepest(long)) await playMove(m);
+  assert.equal(await readable('the deepest tree of puzzle 10', phone ? 13 : 20), 7, 'seven rows');
+  assert.equal(await page.locator('.sk-kids.fork').count(), 1, 'one fork');
+  assert.equal(await page.locator('button.sk-shrink').count(), 0, 'nothing left to shrink');
+  await shot('deepest');
+  // The tree with the most rows on this strip: tiles 1 to 12, nine rows.
+  await playMove({type: 'select', a: 0, b: 11});
+  for (const m of deepest(long.slice(0, 12))) await playMove(m);
+  assert.equal(await readable('the tallest tree of puzzle 10', phone ? 13 : 20), 9, 'nine rows');
+  assert.equal(await page.locator('.sk-kids.fork').count(), 1, 'one fork');
+  await shot('tallest');
+
+  // The deepest tree on puzzle 1's ABA, with Keep and That's all still reachable.
+  P = 'shrink-01';
+  await open(P);
+  for (const m of deepest('ABA', '', {piece: 0})) await playMove(m);
+  await readable('the deepest tree of ABA', 20);
+  for (const name of ['Keep', 'That’s all']) {
+    const control = button(name);
+    await control.scrollIntoViewIfNeeded();
+    const b = await control.boundingBox(), h = await page.evaluate(() => innerHeight);
+    assert.ok(b && b.y >= 0 && b.y + b.height <= h, `${name} can be brought into view`);
+  }
+  await shot('deepest-aba');
 
   // A hint marks its tap, never a certificate's next tap without being asked.
   P = 'shrink-07';

@@ -12,11 +12,12 @@ const RULES = [
   'A row grows by turning every A into AB and every B into BA, all at once: A, AB, ABBA, ABBABAAB, and on. A piece is a run of tiles cut from a grown row.',
   'Shrinking undoes one step. Seams split the row into pairs in one of two ways: pair the first two tiles, or leave the first tile alone. A tile cut off from its partner at an end gets the partner back as a dashed ghost, the other letter.',
   'Each pair shrinks to its first letter. A pair AA or BB is marked: no tile grows into it.',
-  'A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. A row of one or two tiles is never stuck.'
+  'A row of two different tiles is one pair, so its seams go only at its ends.',
+  'A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. Only rows of three tiles or more can be stuck.'
 ];
 const MODE_RULES = {
   seams: 'Keep puts the seams on a piece’s top row on the shelf, unjudged; a tap on the shelf takes one back. That’s all checks the whole shelf at once and can be pressed again once the shelf changes.',
-  impostor: 'Choose at most the number of tiles shown, in one run. The puzzle is solved when the chosen tiles are stuck; the child’s own rows show it.',
+  impostor: 'Choose a run of at most the number of tiles shown. The puzzle is solved when the chosen tiles are stuck.',
   repair: 'One tile is flipped at a time; flipping another puts the first back. Keep puts the flip on the shelf, unjudged; That’s all checks the whole shelf at once.',
   playground: 'Grow adds the next row, up to five rows. The top tile switches between A and B.'
 };
@@ -120,15 +121,23 @@ const PUZZLES = [
     idea: 'A grown row repeated forever is not a grown row: shrinking three times reaches ABABA.',
     hints: ['Shrink a long run. What strip do the shrunk rows come from?', 'ABBABAAB repeated shrinks to ABBA repeated, and then to AB repeated. Which tiles shrink to ABABA?', 'Choose tiles 4 to 17, ABAABABBABAABA: with the first tile alone it shrinks to BBAABBAA, then ABABA, which is stuck both ways.'],
     parent: {notice: 'Whether your child uses the earlier repeating strips: this one shrinks to ABBA repeated and then to AB repeated.', prompt: 'What does this strip shrink to? And that one?',
-      explanation: 'ABBABAAB repeated, paired from the first tile, shrinks to ABBA repeated and then to AB repeated, which has ABABA. Tracing ABABA back up gives ABAABABBABAABA (tiles 4–17, and again from tile 8): paired from the first tile it marks AA; with the first tile alone it shrinks to BBAABBAA, which marks BB one way and shrinks to ABABA the other, and ABABA shrinks to AAA or BBB. No run of thirteen tiles or fewer is stuck.',
+      explanation: 'ABBABAAB repeated, paired from the first tile, shrinks to ABBA repeated and then to AB repeated, which has ABABA. Tracing ABABA back up gives ABAABABBABAABA (tiles 4–17, and its swap BABBABAABABBAB from tile 8): paired from the first tile it marks AA; with the first tile alone it shrinks to BBAABBAA, which marks BB one way and shrinks to ABABA the other, and ABABA shrinks to AAA or BBB. No run of thirteen tiles or fewer is stuck.',
       extension: 'Two copies, ABBABAABABBABAAB, do sit in a grown row (worksheet Problem 3 asks whether it is a whole one). Where?', connection: 'Squares such as ABBABAABABBABAAB occur in the Thue–Morse word, but overlaps do not (Thue, 1912), so three copies of a block never do.'},
     provenance: 'Week 76 Problem 3 (student page 2): the fourth claim, ABBABAAB twice, repeated forever as in Problem 6; new instance.'}
 ];
 
 const id = n => `shrink-${String(n).padStart(2, '0')}`;
+const hintMoves = new Map();
+// The runs the grown-up explanations name, by first tile (counting from 1).
+const NAMED = {
+  5: [[1, 'ABBAABBAAB'], [2, 'BBAABBAA'], [4, 'AABBAABB']],
+  7: [[9, 'ABABA']],
+  8: [[3, 'BABBAABA'], [9, 'BABBAABA']],
+  10: [[4, 'ABAABABBABAABA'], [8, 'BABBABAABABBAB']]
+};
 const mech = shrinkMechanics.shrink;
-// The witness: the hints followed from a fresh board.
-function witness(p) {
+// The hints followed from a fresh board, which must solve it.
+function hintChain(p) {
   let b = mech.fresh(p);
   const moves = [];
   for (let i = 0; i < 80 && !mech.solved(p, b); i++) {
@@ -162,6 +171,11 @@ const out = PUZZLES.map(item => {
     assert.ok(item.k > shortest, `${id(item.number)}: the budget is not the shortest`);
     if (item.endless) assert.ok(strip.length >= item.k + item.block.length - 1, `${id(item.number)}: the strip shows every run of at most k tiles of the endless strip`);
     solution = {run: item.check.run, word: strip.slice(item.check.run[0], item.check.run[1] + 1), stuckRuns: runs};
+    for (const [from, w] of NAMED[item.number] || []) {
+      assert.equal(strip.slice(from - 1, from - 1 + w.length), w, `${id(item.number)}: ${w} from tile ${from}`);
+      assert.ok(item.parent.explanation.includes(w) || item.hints.some(h => h.includes(w)), `${id(item.number)}: ${w} is named`);
+      assert.ok(!real(w), `${id(item.number)}: ${w} is stuck`);
+    }
   }
   const p = {
     id: id(item.number), number: item.number, title: item.title, difficulty_level: item.level, familyTitle: 'Shrink strips', mechanic: 'shrink', band: 'all', revision: 1, sourceDocument: 'docs/shrink/README.md',
@@ -171,7 +185,17 @@ const out = PUZZLES.map(item => {
     idea: item.idea, prerequisites: PREREQUISITES[item.mode], hints: item.hints,
     parent: {...item.parent, sourceIds: sources}, solution: null, provenance: item.provenance
   };
-  p.solution = {...solution, moves: witness(p)};
+  // The witness: an impostor's hint chain (the run and its certificate); in
+  // the other modes each answer placed and kept, then That's all.
+  const chain = hintChain(p);
+  const moves = q.mode === 'impostor' ? chain
+    : q.mode === 'seams' ? [...solution.ways.flatMap(([i, s]) => [{type: 'seam', piece: i, at: '', s}, {type: 'keep', piece: i}]), {type: 'all'}]
+    : [...solution.fixes.flatMap(i => [{type: 'flip', i}, {type: 'keep'}]), {type: 'all'}];
+  let b = mech.fresh(p);
+  for (const m of moves) { b = mech.move(p, b, m); assert.ok(b, `${p.id}: the witness move ${JSON.stringify(m)} is legal`); }
+  assert.ok(mech.solved(p, b), `${p.id}: the witness solves`);
+  p.solution = {...solution, moves};
+  hintMoves.set(p.id, chain.length);
   return p;
 });
 
@@ -209,4 +233,4 @@ const json = {
   puzzles: [playground, ...out]
 };
 await writeFile(new URL('../dist/families/shrink/shrink.json', import.meta.url), JSON.stringify(json, null, 1) + '\n');
-console.log(out.map(p => `${p.id} ${p.difficulty_level} ${p.parameters.mode} ${JSON.stringify(p.solution.ways ?? p.solution.fixes ?? [p.solution.run, p.solution.word])} (${p.solution.moves.length} hint moves)`).join('\n'));
+console.log(out.map(p => `${p.id} ${p.difficulty_level} ${p.parameters.mode} ${JSON.stringify(p.solution.ways ?? p.solution.fixes ?? [p.solution.run, p.solution.word])} (hints solve it in ${hintMoves.get(p.id)} moves)`).join('\n'));
