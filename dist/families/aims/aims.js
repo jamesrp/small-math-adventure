@@ -80,17 +80,15 @@ const designWhy = (q, word) => (q.four && !fourWalls(word) ? 'four' : 'rect');
 
 // Every solving shot on the puzzle's aim points (for hints and checks).
 export const starts = q => (q.movable ? roomAims(q.room) : [q.start]);
-export function answers(q) {
-  return remember(`a|${JSON.stringify(q)}`, () => {
-    const out = [];
-    for (const s of starts(q)) for (const e of frameAims(q.room, q.frame)) {
-      const r = fold(q.room, s, e);
-      if (legal(r) && meets(q, r.word)) out.push({start: s, end: e});
-    }
-    return out;
-  });
-}
-export const possible = q => answers(q).length > 0;
+// The solving shots from one start. Hints search start by start, nearest
+// first, so a cold hint folds a few hundred shots, not every start's.
+const answersFrom = (q, s) => remember(`af|${JSON.stringify(q)}|${s}`, () => {
+  const out = [];
+  for (const e of frameAims(q.room, q.frame)) { const r = fold(q.room, s, e); if (legal(r) && meets(q, r.word)) out.push({start: s, end: e}); }
+  return out;
+});
+export const answers = q => remember(`a|${JSON.stringify(q)}`, () => starts(q).flatMap(s => answersFrom(q, s)));
+export const possible = q => remember(`p|${JSON.stringify(q)}`, () => starts(q).some(s => answersFrom(q, s).length > 0));
 
 // --- Walls in the copies ----------------------------------------------------
 // A wall of a copy is a segment of the plane with its letter; its id is its
@@ -298,23 +296,28 @@ function move(p, b, action) {
 const spell = word => [...word].join(', then ');
 const gap = (room, a, b) => { const [x, y] = euclid(room, a), [u, v] = euclid(room, b); return (x - u) ** 2 + (y - v) ** 2; };
 const nearest = (room, list, to) => [...list].sort((a, b) => gap(room, a, to) - gap(room, b, to) || byPlace(a, b))[0];
-// A launch toward one of the shots in `list`: from the child's start if it can
-// work, else from the nearest start that can.
-function toward(q, b, list) {
-  let here = list.filter(w => same(w.start, b.start));
-  if (!here.length) { const s = nearest(q.room, [...new Map(list.map(w => [String(w.start), w.start])).values()], b.start); here = list.filter(w => same(w.start, s)); }
+// A launch toward one of the shots `from(start)` gives: from the child's start
+// if it can work, else from the nearest start that can, tried nearest first.
+function towardFrom(q, b, from) {
+  let here = from(b.start);
+  if (!here.length) { const s = [...starts(q)].sort((x, y) => gap(q.room, x, b.start) - gap(q.room, y, b.start) || byPlace(x, y)).find(x => from(x).length); here = from(s); }
   const s = here[0].start, e = nearest(q.room, here.map(w => w.end), b.end ?? s);
   return {type: 'launch', start: [...s], end: [...e]};
 }
+const toward = (q, b, list) => towardFrom(q, b, s => list.filter(w => same(w.start, s)));
 const where = (b, action) => (same(action.start, b.start) ? 'launch at the outlined spot' : 'move the start and launch at the outlined spots');
-// Shots whose word starts the way the Can't word starts, up to its returning letter.
-function attempts(q) {
-  return remember(`at|${JSON.stringify(q)}`, () => {
-    const out = [], pre = prefixOf(q);
-    for (const s of starts(q)) for (const e of frameAims(q.room, q.frame)) { const r = fold(q.room, s, e); if (attempted(q, r) && !meets(q, r.word)) out.push({start: s, end: e}); }
-    return out.filter(w => fold(q.room, w.start, w.end).word === pre).length ? out.filter(w => fold(q.room, w.start, w.end).word === pre) : out;
-  });
-}
+// Shots from one start whose word starts the way the Can't word starts, up to
+// its returning letter (all), and those whose word is exactly that start
+// (exact). Hints lead to an exact one whenever any start has one.
+const attemptsFrom = (q, s) => remember(`tf|${JSON.stringify(q)}|${s}`, () => {
+  const all = [], exact = [], pre = prefixOf(q);
+  for (const e of frameAims(q.room, q.frame)) {
+    const r = fold(q.room, s, e);
+    if (attempted(q, r) && !meets(q, r.word)) { all.push({start: s, end: e}); if (r.word === pre) exact.push({start: s, end: e}); }
+  }
+  return {all, exact};
+});
+const exactAttempts = q => remember(`te|${JSON.stringify(q)}`, () => starts(q).some(s => attemptsFrom(q, s).exact.length > 0));
 // The given shot, stretched (or squeezed) into the play room.
 const mapGiven = (q, [x, y]) => [(x * ROOMS[q.room].W) / ROOMS[q.given.room].W, y];
 function computeHint(p, b) {
@@ -329,9 +332,9 @@ function computeHint(p, b) {
       return {type: 'move', action: {type: 'claim', walls: certificate(q).map(s => s.id).sort()},
         text: `The ${letter} wall a shot crosses and the ${letter} wall it needs after ${spell(q.word.slice(i + 1, j))} lie on one line, and a straight shot crosses a line only once. So ${q.word} can’t happen: press Can’t and tap those two walls.`};
     }
-    if (possible(q) && attempted(q, r)) { const action = toward(q, b, answers(q)); return {type: 'move', action, text: `${corner}Cross ${spell(q.word)}: ${where(b, action)}.`}; }
-    const list = attempts(q).filter(w => !(same(w.start, b.start) && same(w.end, b.end)));
-    const action = toward(q, b, list);
+    if (possible(q) && attempted(q, r)) { const action = towardFrom(q, b, s => answersFrom(q, s)); return {type: 'move', action, text: `${corner}Cross ${spell(q.word)}: ${where(b, action)}.`}; }
+    const kind = exactAttempts(q) ? 'exact' : 'all';
+    const action = towardFrom(q, b, s => attemptsFrom(q, s)[kind].filter(w => !(same(w.start, b.start) && same(w.end, b.end))));
     return {type: 'move', action, text: `${corner}Try ${spell(pre)}: ${where(b, action)}.`};
   }
   if (q.mode === 'design') {
@@ -348,7 +351,7 @@ function computeHint(p, b) {
     const action = {type: 'launch', start: [...q.start], end: mapGiven(q, q.given.end)};
     return {type: 'move', action, text: `${corner}Launch at the same spot in the same copy as the shot above: the outlined spot.`};
   }
-  const action = toward(q, b, answers(q));
+  const action = towardFrom(q, b, s => answersFrom(q, s));
   return {type: 'move', action, text: `${corner}Cross ${spell(q.word)}: ${where(b, action)}.`};
 }
 const hint = (p, b) => remember(`h|${p.id}|${JSON.stringify(p.parameters)}|${JSON.stringify(b)}`, () => computeHint(p, b));
