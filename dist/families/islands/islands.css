@@ -1,0 +1,36 @@
+@import url('../../graph-board.css');
+/* Bridge Courier islands: islands joined by bridges, a counter on every
+   bridge not yet crossed, the walked bridges in pine, new bridges dashed,
+   coloured starts in sun, the token's island ringed in pine, and the
+   islands tapped for a claim in ochre. */
+[data-mechanic-wire="islands"].isl-puzzle{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
+[data-mechanic-wire="islands"] .isl-tools,[data-mechanic-wire="islands"] .isl-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.4rem}
+[data-mechanic-wire="islands"] .isl-button{min-height:46px;padding:6px 14px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+[data-mechanic-wire="islands"] .isl-button:not([disabled]){border-color:var(--b-pine,#31533e)}
+[data-mechanic-wire="islands"] .isl-button[disabled]{opacity:.5;box-shadow:none}
+[data-mechanic-wire="islands"] .isl-button[aria-pressed="true"]{background:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9);border-color:var(--b-pine,#31533e)}
+[data-mechanic-wire="islands"] .isl-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+[data-mechanic-wire="islands"] .isl-say{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+[data-mechanic-wire="islands"] .isl-say.told{color:var(--b-bad,#a9503a)}
+
+/* The map. */
+[data-mechanic-wire="islands"] .isl-map{max-width:380px}
+[data-mechanic-wire="islands"] .isl-map .gb-line{stroke:#8f9c84;stroke-width:5px}
+[data-mechanic-wire="islands"] .isl-map .gb-edge.new .gb-line{stroke-dasharray:6 5}
+[data-mechanic-wire="islands"] .isl-map .gb-stroke.walked{stroke:var(--b-pine,#31533e);stroke-width:7px}
+[data-mechanic-wire="islands"] .isl-map .gb-edge.new .gb-stroke.walked{stroke-dasharray:8 4}
+[data-mechanic-wire="islands"] .isl-counter{fill:var(--b-sun,#efc76e);stroke:var(--b-ochre,#b38840);stroke-width:1.5px;vector-effect:non-scaling-stroke;pointer-events:none}
+[data-mechanic-wire="islands"] .isl-map .gb-tag{pointer-events:none}
+[data-mechanic-wire="islands"] .isl-map .gb-node .gb-dot{fill:#e4ecd9}
+[data-mechanic-wire="islands"] .isl-map .gb-node.colored .gb-dot{fill:var(--b-sun,#efc76e)}
+[data-mechanic-wire="islands"] .isl-map .gb-node.start .gb-dot{stroke-dasharray:3 2}
+[data-mechanic-wire="islands"] .isl-map .gb-node.here .gb-reach{fill:none;stroke:var(--b-pine,#31533e);stroke-width:4px;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="islands"] .isl-map .gb-node.picked .gb-dot{stroke:var(--b-ochre,#b38840);stroke-width:5px}
+[data-mechanic-wire="islands"] .isl-map .gb-node.lit .gb-dot{fill:var(--b-pine,#31533e);stroke:var(--b-pine,#31533e)}
+[data-mechanic-wire="islands"] .isl-map .gb-node.lit .gb-label{fill:var(--b-on-pine,#fff8d9)}
+[data-mechanic-wire="islands"] .isl-map .gb-node.hinted .gb-reach{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:3.5px;stroke-dasharray:5 4}
+@media (prefers-reduced-motion:no-preference){[data-mechanic-wire="islands"] .isl-map.solved .gb-node.lit .gb-dot{animation:isl-lit .45s ease-out}}
+@keyframes isl-lit{40%{fill:var(--b-sun,#efc76e)}}
+/* Only the tap areas and the islands take taps, so a road drawn over another
+   (a new bridge bent around an island) never hides the one beneath. */
+[data-mechanic-wire="islands"] .isl-map .gb-line,[data-mechanic-wire="islands"] .isl-map .gb-stroke{pointer-events:none}
