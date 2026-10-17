@@ -1,0 +1,98 @@
+/* Three-arm lines: graph paper in a frame, lines drawn as three arms with
+   arrowheads in the margin (the arms run on past the edge), A in sky, B in
+   dashed orange so a shared stretch shows both, the child's own junction in
+   ink, circles on card, the goal in sun, and pine and ochre for right and
+   wrong. Drawn in half-steps scaled by 5, so strokes do not scale. Each
+   coloured piece sets --tr-c and the shapes read it. */
+[data-mechanic-wire="tropical"].tr-puzzle{display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%}
+[data-mechanic-wire="tropical"] .tr-board{display:block;width:100%;max-width:380px;height:auto;aspect-ratio:1;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;cursor:pointer;border-radius:12px;background:var(--b-card,#fffdf5)}
+/* On a phone the board reaches the panel's edges (wire sets --tr-bleed to the panel's padding). */
+@media (max-width:560px){[data-mechanic-wire="tropical"].tr-puzzle .tr-board{width:calc(100% + 2 * var(--tr-bleed,0px));max-width:none;margin-inline:calc(-1 * var(--tr-bleed,0px));border-radius:0}}
+[data-mechanic-wire="tropical"] .tr-board:focus{outline:none}
+[data-mechanic-wire="tropical"] .tr-board:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:4px}
+[data-mechanic-wire="tropical"].solved .tr-board{cursor:default}
+[data-mechanic-wire="tropical"] .tr-board *{vector-effect:non-scaling-stroke}
+
+/* Paper, grid and frame: whole squares darker than half squares. */
+[data-mechanic-wire="tropical"] .tr-paper{fill:var(--b-card,#fffdf5)}
+[data-mechanic-wire="tropical"] .tr-grid{stroke:#b9c3a3;stroke-width:1.2px}
+[data-mechanic-wire="tropical"] .tr-grid.half{stroke:#e6e9da;stroke-width:1px}
+[data-mechanic-wire="tropical"] .tr-frame{fill:none;stroke:var(--b-ink,#294439);stroke-width:1.6px}
+
+/* Colours. */
+[data-mechanic-wire="tropical"] .tr-ray,[data-mechanic-wire="tropical"] .tr-head,[data-mechanic-wire="tropical"] .tr-junction,[data-mechanic-wire="tropical"] .tr-name{--tr-c:var(--b-ink,#294439)}
+[data-mechanic-wire="tropical"] .tr-a{--tr-c:#3f7fa3}
+[data-mechanic-wire="tropical"] .tr-b{--tr-c:#cc6f2c}
+[data-mechanic-wire="tropical"] .tr-j{--tr-c:var(--b-ink,#294439)}
+[data-mechanic-wire="tropical"] .tr-goal{--tr-c:rgba(232,186,84,.62)}
+[data-mechanic-wire="tropical"] .tr-off{--tr-c:var(--b-ochre,#b38840)}
+[data-mechanic-wire="tropical"] .tr-fan-on{--tr-c:var(--b-pine,#31533e)}
+[data-mechanic-wire="tropical"] .tr-fan-off{--tr-c:#9aa88f}
+[data-mechanic-wire="tropical"] .tr-hint-ray{--tr-c:var(--b-ochre,#b38840)}
+[data-mechanic-wire="tropical"] .good{--tr-c:var(--b-pine,#31533e)}
+[data-mechanic-wire="tropical"] .bad{--tr-c:var(--b-ochre,#b38840)}
+
+/* Lines: arms, arrowheads and the junction. */
+[data-mechanic-wire="tropical"] .tr-ray{stroke:var(--tr-c);stroke-width:2.6px;stroke-linecap:round;fill:none}
+[data-mechanic-wire="tropical"] .tr-head{fill:var(--tr-c);stroke:none}
+[data-mechanic-wire="tropical"] .tr-junction{fill:var(--tr-c);stroke:var(--b-card,#fffdf5);stroke-width:1.5px}
+[data-mechanic-wire="tropical"] .tr-ray.tr-b{stroke-dasharray:7 4;stroke-linecap:butt}
+[data-mechanic-wire="tropical"] .tr-ray.tr-off{stroke-width:2px;stroke-dasharray:4 4}
+[data-mechanic-wire="tropical"] .tr-ray.tr-fan-on{stroke-width:2.4px;stroke-dasharray:6 4}
+[data-mechanic-wire="tropical"] .tr-ray.tr-fan-off{stroke-width:1.6px;stroke-dasharray:3 4}
+[data-mechanic-wire="tropical"] .tr-ray.tr-hint-ray{stroke-width:3px;stroke-dasharray:5 3;pointer-events:none}
+[data-mechanic-wire="tropical"] .tr-line.chosen .tr-ray{stroke-width:3.4px}
+[data-mechanic-wire="tropical"] .tr-line.chosen .tr-junction{stroke:var(--b-ink,#294439);stroke-width:2px}
+[data-mechanic-wire="tropical"].mode-through.solved .tr-ray.tr-j,[data-mechanic-wire="tropical"].mode-through.solved .tr-ray.good{stroke-width:3.2px}
+
+/* The goal: a sun ring around a point, or a broad sun band along a stretch. */
+[data-mechanic-wire="tropical"] .tr-ring.tr-goal{fill:rgba(239,199,110,.45);stroke:var(--b-ink,#294439);stroke-width:2px;stroke-dasharray:4 3}
+[data-mechanic-wire="tropical"] .tr-ray.tr-goal{stroke-width:11px;stroke-linecap:round}
+[data-mechanic-wire="tropical"] .tr-goal-ray{pointer-events:none}
+[data-mechanic-wire="tropical"] .tr-goal-start{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:2px;stroke-dasharray:3 2}
+
+/* What two lines share (after Check, and always in the playground). */
+[data-mechanic-wire="tropical"] .tr-ray.tr-thick{stroke-width:6px;opacity:.8}
+[data-mechanic-wire="tropical"] .tr-ray.tr-thick.bad{stroke-width:10px;opacity:.5}
+[data-mechanic-wire="tropical"] .tr-head.tr-thick.bad{opacity:.6}
+[data-mechanic-wire="tropical"] .tr-ring{fill:none;stroke:var(--tr-c);stroke-width:3px;pointer-events:none}
+[data-mechanic-wire="tropical"] .tr-ring.bad{stroke-dasharray:4 3}
+
+/* Circles and names. */
+[data-mechanic-wire="tropical"] .tr-circle{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:2.2px}
+[data-mechanic-wire="tropical"] .tr-circle.tr-on{fill:var(--b-sun,#efc76e)}
+[data-mechanic-wire="tropical"] .tr-name{font:400 6.2px/1 var(--b-display,Georgia,serif);text-anchor:middle;fill:var(--tr-c);paint-order:stroke;stroke:var(--b-card,#fffdf5);stroke-width:3px;stroke-linejoin:round;pointer-events:none}
+[data-mechanic-wire="tropical"] .tr-target .tr-name{font-style:italic}
+
+/* Marks: broad leaf bands beneath the line, so its arms stay readable; a stroke being drawn is lighter. */
+[data-mechanic-wire="tropical"] .tr-ray.tr-mark,[data-mechanic-wire="tropical"] line.tr-mark{--tr-c:#6f9e78;stroke:var(--tr-c);stroke-width:11px;stroke-linecap:round;opacity:.7}
+[data-mechanic-wire="tropical"] .tr-head.tr-mark{--tr-c:#6f9e78;fill:var(--tr-c);stroke:none;opacity:.8}
+[data-mechanic-wire="tropical"] .tr-mark-dot{fill:#6f9e78;opacity:.75}
+[data-mechanic-wire="tropical"] .tr-mark.good,[data-mechanic-wire="tropical"] .tr-mark-dot.good{--tr-c:var(--b-pine,#31533e);fill:var(--b-pine,#31533e);opacity:.55}
+[data-mechanic-wire="tropical"] .tr-mark.bad,[data-mechanic-wire="tropical"] .tr-mark-dot.bad{--tr-c:var(--b-ochre,#b38840);fill:var(--b-ochre,#b38840);opacity:.9}
+[data-mechanic-wire="tropical"] .tr-mark.tr-drawing,[data-mechanic-wire="tropical"] .tr-mark-dot.tr-drawing{opacity:.4}
+[data-mechanic-wire="tropical"] .tr-preview{pointer-events:none}
+
+/* Can't: every circle gets the same tap ring. */
+[data-mechanic-wire="tropical"] .tr-pick{cursor:pointer;-webkit-tap-highlight-color:transparent}
+[data-mechanic-wire="tropical"] .tr-pick-ring{fill:rgba(255,253,245,.01);stroke:var(--b-pine,#31533e);stroke-width:2px;stroke-dasharray:3 3}
+[data-mechanic-wire="tropical"] .tr-pick.picked .tr-pick-ring{stroke-width:4px;stroke-dasharray:none;fill:rgba(49,83,62,.14)}
+[data-mechanic-wire="tropical"] .tr-pick:focus{outline:none}
+[data-mechanic-wire="tropical"] .tr-pick:focus-visible .tr-pick-ring{stroke:var(--b-ochre,#b38840);stroke-width:4px}
+
+/* Hints. */
+[data-mechanic-wire="tropical"] .tr-ring.tr-hint{stroke:var(--b-ochre,#b38840);stroke-width:3.5px;stroke-dasharray:5 3}
+
+/* The bar: Check, Can't, Keep, Drop, That's all. */
+[data-mechanic-wire="tropical"] .tr-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .8rem;max-width:100%}
+[data-mechanic-wire="tropical"] .tr-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+[data-mechanic-wire="tropical"] .tr-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+[data-mechanic-wire="tropical"] .tr-cant[aria-pressed="true"]{background:#e9eddc;box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+[data-mechanic-wire="tropical"] .tr-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+[data-mechanic-wire="tropical"] .tr-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+
+/* How to play pictures. */
+[data-mechanic-wire="tropical"].tr-help{display:flex;flex-wrap:wrap;gap:.8rem;justify-content:center;margin:.4rem 0}
+[data-mechanic-wire="tropical"].tr-help figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:.3rem}
+[data-mechanic-wire="tropical"].tr-help .tr-picture{width:180px;max-width:42vw;cursor:default;touch-action:auto}
+[data-mechanic-wire="tropical"].tr-help figcaption{font-family:var(--b-display,Georgia,serif);font-size:.98rem;text-align:center}
