@@ -255,7 +255,7 @@ function solveAll(q, stats) {
 const play = (p, a, action) => { const next = move(p, a, action); assert.ok(next && next !== a, `${p.id}: ${JSON.stringify(action)} is legal`); return next; };
 const refuse = (p, a, action, why) => assert.equal(move(p, a, action), null, `${p.id}: refuses ${why}`);
 const launch = (p, a, start, end) => play(p, a, {type: 'launch', start, end});
-// Undo as the app does it: the mechanic's carry keeps a refusal.
+// One Undo step as the app takes it: the mechanic's carry keeps a refusal.
 const undoApp = (p, a) => { const next = undo(a); return next === a ? a : {...next, board: mechanicFor(p).carry(p, a.board, next.board)}; };
 const screen = (p, a) => mechanicFor(p).render(p, a);
 function hintsSolve(p, a, label) {

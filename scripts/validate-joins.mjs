@@ -93,7 +93,7 @@ function hintsSolve(p, a, label) {
   assert.ok(isSolved(p, a.board), `${p.id} ${label}: hints reach a solve`);
   return n;
 }
-// Undo as the app does it: the previous board, through the mechanic's carry.
+// One Undo step as the app takes it: the previous board, through the mechanic's carry.
 const undo = (p, a) => ({...a, board: mechanicFor(p).carry(p, a.board, a.history.at(-1).board), history: a.history.slice(0, -1)});
 // A small seeded random walk of legal moves, for wandering.
 function wander(p, a, n, seed) {

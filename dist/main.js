@@ -23,6 +23,11 @@ let sessionCompleted=new Set(),activePlay=null;
 let reaction=null,solveResult=null,oopsCount=0;
 // A solve whose strip is still held back (bells still ringing) takes focus when it appears.
 let focusDone=false;
+// The play screen an Undo press drew for the attempt it lands on. The render
+// after the press shows it as drawn: drawing it again would cost another hint,
+// and a renderer that animates from the board it drew last (a piece coming
+// back) would then start from the board Undo lands on.
+let undoDrawn=null;
 let storage;
 try{storage=window.localStorage;}catch{storage={getItem(){throw Error();},setItem(){throw Error();},removeItem(){throw Error();}};}
 const uid=()=>globalThis.crypto?.randomUUID?.()||`explorer-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -62,7 +67,8 @@ function render(){
   if(playKey&&p.mechanic==='clock')clockTimeline.enter(playKey,p,attempt(p).board.prediction);
   else if(clockTimeline.key)clockTimeline.leave();
   const encounter=activeEncounter();
-  const content=view==='parents'?parentView(state,pr,pack,pwaMessage,savedView.values['catalog-band']):!pr||view==='profiles'?caravanProfiles(state,puzzles):view==='journal'?journalView(pr,puzzles):view==='finale'&&getProgress(pr).complete?finaleView(pr):view==='library'?libraryView(pr,puzzles):view==='play'&&p?playView(p,attempt(p),playContext(p,pr,encounter)):roadMapView(pr);
+  const content=view==='parents'?parentView(state,pr,pack,pwaMessage,savedView.values['catalog-band']):!pr||view==='profiles'?caravanProfiles(state,puzzles):view==='journal'?journalView(pr,puzzles):view==='finale'&&getProgress(pr).complete?finaleView(pr):view==='library'?libraryView(pr,puzzles):view==='play'&&p?(undoDrawn??playView(p,attempt(p),playContext(p,pr,encounter))):roadMapView(pr);
+  undoDrawn=null;
   document.body.dataset.view=view||'map';
   document.body.classList.toggle('on-encounter',Boolean(encounter));
   if(encounter)document.body.dataset.stop=encounter.stop;else delete document.body.dataset.stop;
@@ -309,8 +315,9 @@ document.addEventListener('click',event=>{
   else if(action==='mechanic-ui'&&p&&a&&isExpansion(p)){try{mechanicFor(p).ui?.(p,JSON.parse(control.dataset.ui));}catch{}message='';render();}
   else if(action==='expansion-move'&&p&&a){try{applyPair(p,JSON.parse(control.dataset.move));}catch{message='Choose a move using the controls above.';render();}}
   else if(action==='swap-pair'&&p?.mechanic==='swap')applyPair(p,control.dataset.pair.split(',').map(Number));
-  // Undo compares screens at rest, as they will look after the press (a clock run drawn whole).
-  else if(action==='undo'&&a&&!(isExpansion(p)&&mechanicFor(p).noUndo?.(p))){selected=null;tileSelection=[];highlighted=null;message='';const ctx={...playContext(p,profile(),activeEncounter()),clockPresentation:undefined},next=undoPress(p,a,b=>playView(p,b,ctx));put(p,next);if(p.mechanic==='clock')clockTimeline.restore(p,next.board.prediction);else render();}
+  // Undo compares the screen before the press with each step back as it will
+  // look after it, both at rest (a clock run drawn whole).
+  else if(action==='undo'&&a&&!(isExpansion(p)&&mechanicFor(p).noUndo?.(p))){const atRest=()=>({...playContext(p,profile(),activeEncounter()),clockPresentation:undefined}),shown=a.history.length?playView(p,a,atRest()):null;selected=null;tileSelection=[];highlighted=null;message='';const ctx=atRest();let drawn=null;const next=undoPress(p,a,b=>(drawn={attempt:b,html:playView(p,b,ctx)}).html,shown);put(p,next);if(p.mechanic==='clock')clockTimeline.restore(p,next.board.prediction);else{undoDrawn=drawn?.attempt===next?drawn.html:null;render();}}
   else if((action==='restart'||action==='replay')&&a){const encounter=activeEncounter();let next=restart(p,a);reaction=null;solveResult=null;if(isExpansion(p))mechanicFor(p).reset?.(p);if(action==='restart'&&isExpansion(p)&&mechanicFor(p).carryOnRestart)next={...next,board:mechanicFor(p).carryOnRestart(p,a.board,next.board)};put(p,next);selected=null;tileSelection=[];highlighted=null;message='';if(action==='replay'&&encounter&&!p.campaignOnly)go(`play/${p.id}`);else if(p.mechanic==='clock')clockTimeline.restore(p,next.board.prediction);else render();}
   else if(action==='hint'&&a){const next={...a,hintLevel:Math.min(a.hintLevel+1,3),helpUsed:true};put(p,next);const h=nextHint(p,next);highlighted=next.hintLevel>=2&&h.type==='move'?h.pair:null;message='';if(activeEncounter())reaction={key:location.hash,kind:'hint',n:next.hintLevel};render();}
   else if(action==='apply-hint'&&a){const h=nextHint(p,a);if(h.type==='move')applyPair(p,h.action||h.pair);}

@@ -92,7 +92,7 @@ function finish(p, a, limit = 120) {
   assert.ok(isSolved(p, a.board), `${p.id}: hints alone finish`);
   return steps;
 }
-// Undo as the app does it: back one step, keeping what carry keeps.
+// One Undo step as the app takes it: back one step, keeping what carry keeps.
 const undoCarry = (p, a) => { const back = undo(a), carry = mechanicFor(p).carry; return carry ? {...back, board: carry(p, a.board, back.board)} : back; };
 // Every move a child could make on this board.
 function legalMoves(p, a) {

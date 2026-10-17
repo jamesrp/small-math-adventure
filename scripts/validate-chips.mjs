@@ -373,9 +373,11 @@ function checkUndoTrails(byId) {
   };
   const report = {};
   for (const [label, [id, actions]] of Object.entries(trails)) {
-    const {still} = undoTrail(byId(id), actions);
+    const {still, presses} = undoTrail(byId(id), actions);
     assert.deepEqual(still, [], `${label}: Undo ${still.join(', ')} changed nothing`);
-    report[label] = 'every Undo changes the board';
+    // Each step draws a change of its own, so no press passes over one.
+    assert.equal(presses, actions.length, `${label}: ${actions.length} steps take ${presses} presses`);
+    report[label] = 'every Undo changes the board, one step a press';
   }
   // A refusal, then the shelf completed: back over the claim press the refusal
   // no longer applies and nothing is drawn for it, so that step goes with the

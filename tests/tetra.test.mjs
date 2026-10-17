@@ -23,7 +23,7 @@ const byId = n => tetra.puzzles.find(p => p.id === (typeof n === 'number' ? `tet
 const play = (p, a, ...actions) => actions.reduce((b, action) => { const next = move(p, b, action); assert.ok(next, `${JSON.stringify(action)} is legal`); return next; }, a);
 const taps = (...at) => at.map(k => ({type: 'turn', at: k}));
 const W = s => [...s];
-// Undo as the app does it: one step, then carry.
+// One Undo step as the app takes it: back a step, then carry.
 const undoCarry = (p, a) => { const next = undo(a); return {...next, board: m.carry(p, a.board, next.board)}; };
 const restartCarry = (p, a) => { const next = restart(p, a); return {...next, board: m.carryOnRestart(p, a.board, next.board)}; };
 const noCant = (p, a) => [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]].every(x => [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]].every(y => move(p, a, {type: 'cant', left: x, right: y}) === null));

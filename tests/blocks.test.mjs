@@ -24,7 +24,7 @@ const byId = id => blocks.puzzles.find(p => p.id === id);
 const always = value => () => value;
 const play = (p, a, ...actions) => actions.reduce((x, action) => { const next = move(p, x, action, always(0)); assert.ok(next, `${p.id}: ${JSON.stringify(action)}`); return next; }, a);
 const view = (p, a) => playView(p, a, {pack, selected: null, message: ''});
-// Undo as the app does it, with the mechanic's carry hook.
+// One Undo step as the app takes it, with the mechanic's carry hook.
 const takeBack = (p, a) => { const b = undo(a), carry = mechanicFor(p).carry; return carry ? {...b, board: carry(p, a.board, b.board)} : b; };
 const gridFor = p => gridOf(p.parameters.board);
 const smallHexagon = byId('blueduel-01'), strip = byId('blueduel-02'), bigHexagon = byId('blueduel-07'), triangleDuel = byId('blueduel-09');

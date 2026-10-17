@@ -17,14 +17,15 @@ test('accept alternate tilings, reject wrapping/overlap/corners without mutation
 test('current-position hints remain legal after every single legal starting move',()=>{
  for(const p of puzzles.filter(p=>['tile','swap'].includes(p.mechanic))){const pairs=p.mechanic==='tile'?tilePlacements(p):p.edges;for(const pair of pairs){let a=move(p,freshAttempt(p),pair),hint=nextHint(p,a);if(hint.type==='deadend'){assert.equal(solveTiles(p,a.board),null);const recovered=undoToSolvable(p,a);assert.ok(solveTiles(p,recovered.board));}else if(hint.type==='move'){const path=p.mechanic==='tile'?solveTiles(p,a.board):solveSwaps(p,a.board);for(const pair of path){a=move(p,a,pair);assert.ok(a);}assert.ok(isSolved(p,a.board));}}}
 });
-test('one Undo press passes over steps the screen draws the same, then draws the current attempt',()=>{
+test('one Undo press passes over steps drawn the same as the screen before it',()=>{
  const p=puzzles.find(p=>p.mechanic==='tile'&&p.solution.length>=3);let a=freshAttempt(p);for(const pair of p.solution.slice(0,3))a=move(p,a,pair);
  assert.equal(undoPress(p,a).board.length,2,'without a drawing, one step');
  assert.equal(undoPress(p,a,x=>String(x.board.length)).board.length,2,'a step the screen shows is one press');
  const drawn=[],back=undoPress(p,a,x=>{drawn.push(x);return x.board.length?'tiles':'empty';});
  assert.deepEqual(back.board,[]);assert.equal(back.moves,0);assert.equal(back.history.length,0);
- assert.equal(drawn.at(-1),a,'the current attempt is drawn last');
+ assert.equal(drawn[0],a,'the screen is drawn before the first step');
  assert.equal(undoPress(p,a,()=>'same').history.length,0,'nothing left that the screen shows: back to the start');
+ assert.equal(undoPress(p,a,()=>'tiles','tiles and a line').board.length,2,'a press that closes a line on the screen takes one step');
  const fresh=freshAttempt(p);assert.equal(undoPress(p,fresh,()=>{throw Error('drawn');}),fresh,'nothing to undo draws nothing');
 });
 test('illegal swap pairs rejected and 120-step undo cap stays consistent',()=>{

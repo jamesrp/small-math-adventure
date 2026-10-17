@@ -153,7 +153,7 @@ function hintsSolve(p, a, label, answers = null) {
   return a;
 }
 const fillTo = (p, a, goal) => goal.reduce((b, v, k) => b.board.cells[k] === v ? b : play(p, b, {type: 'set', cell: k, value: v}), a);
-// Undo as the app does it: the engine's undo, then the mechanic's carry.
+// One Undo step as the app takes it: the engine's undo, then the mechanic's carry.
 const undoLikeApp = (p, a) => { const u = undo(a); return u === a ? a : {...u, board: mechanicFor(p).carry(p, a.board, u.board)}; };
 
 export async function validateTowers() {

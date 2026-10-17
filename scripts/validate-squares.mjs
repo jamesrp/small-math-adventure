@@ -118,7 +118,7 @@ const play = (p, a, action) => { const next = move(p, a, action); assert.ok(next
 const refuse = (p, a, action, why) => { const next = move(p, a, action); assert.ok(next === null || next === a, `${p.id}: refuses ${why}`); };
 const places = list => list.map(([x, y, s]) => ({type: 'place', x, y, s}));
 const playAll = (p, a, actions) => actions.reduce((b, action) => play(p, b, action), a);
-// Undo as the app does it, with the mechanic's carry.
+// One Undo step as the app takes it, with the mechanic's carry.
 const undoCarry = (p, a) => { const next = undo(a); return next === a ? a : {...next, board: mechanicFor(p).carry(p, a.board, next.board)}; };
 let hintSteps = 0, hintRuns = 0, slowest = 0, slowestAt = "";
 function hintsSolve(p, a, label) {

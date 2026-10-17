@@ -111,7 +111,7 @@ const L = {right: {A: 'B', B: 'A', C: 'C'}, up: {A: 'C', B: 'B', C: 'A'}};
 
 const play = (p, a, ...actions) => actions.reduce((x, action) => { const next = move(p, x, action); assert.ok(next, `${p.id}: ${JSON.stringify(action)} is legal`); return next; }, a);
 const refused = (p, a, action, label) => assert.equal(move(p, a, action), null, `${p.id}: ${label}`);
-// Undo as the app does it: the mechanic's carry keeps a refused claim.
+// One Undo step as the app takes it: the mechanic's carry keeps a refused claim.
 const undoCarry = (p, a) => { const next = undo(a); return next === a ? a : {...next, board: mechanicFor(p).carry(p, a.board, next.board)}; };
 // Follow the hints, applying each, until the puzzle is solved.
 function hintsSolve(p, a, label) {

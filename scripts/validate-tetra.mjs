@@ -83,7 +83,7 @@ function restartCarry(p, a) {
   const m = mechanicFor(p), next = freshAttempt(p);
   return m.carryOnRestart ? {...next, board: m.carryOnRestart(p, a.board, next.board)} : next;
 }
-// Undo as the app does it: one step back, then the mechanic's carry. The
+// One Undo step as the app takes it: one step back, then the mechanic's carry. The
 // screen must change.
 function undoCarry(p, a) {
   const m = mechanicFor(p), before = m.render(p, {...a, hintLevel: 0});

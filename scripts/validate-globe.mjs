@@ -251,7 +251,7 @@ function bruteSolutions(p, every) {
 // --- Playing ---------------------------------------------------------------------
 const play = (p, a, action) => { const next = move(p, a, action); assert.ok(next && next !== a, `${p.id}: ${JSON.stringify(action)} is legal`); return next; };
 const refuse = (p, a, action, why) => assert.equal(move(p, a, action), null, `${p.id}: refuses ${why}`);
-// Undo as the app does it: only with history and without noUndo, then carry.
+// One Undo step as the app takes it: only with history and without noUndo, then carry.
 const undoCarry = (p, a) => { const m = mechanicFor(p); if (!a.history.length || m.noUndo?.(p)) return a; const back = undo(a); return m.carry ? {...back, board: m.carry(p, a.board, back.board)} : back; };
 const made = b => b.built.map(e => e.record);
 const sum = r => r.reduce((s, x) => s + x, 0);

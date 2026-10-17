@@ -17,7 +17,7 @@ const M = coversMechanics.covers;
 const play = (p, a, ...actions) => actions.reduce((b, action) => { const next = move(p, b, action); assert.ok(next, `${JSON.stringify(action)} is legal`); return next; }, a);
 const split = (...nodes) => nodes.map(node => ({type: 'split', node}));
 const view = (p, a) => playView(p, a, {pack, selected: null, message: ''});
-// Undo as the app does it: back one move, then the mechanic's carry.
+// One Undo step as the app takes it: back one move, then the mechanic's carry.
 const undoOnce = (p, a) => { const next = undo(a); return {...next, board: M.carry(p, a.board, next.board)}; };
 const paintAll = (p, a, squares) => play(p, a, {type: 'paint', squares, on: true});
 

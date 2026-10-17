@@ -23,7 +23,7 @@ const M = globeMechanics.globe;
 const play = (p, a, ...actions) => actions.reduce((b, action) => { const next = move(p, b, action); assert.ok(next, `${p.id}: ${JSON.stringify(action)} is legal`); return next; }, a);
 const place = (corner, to) => ({type: 'place', corner, to});
 const cant = record => ({type: 'cant', record});
-// Undo as the app does it: nothing without history or with noUndo, else back one step and carry.
+// One Undo step as the app takes it: nothing without history or with noUndo, else back one step and carry.
 const back = (p, a) => { if (!a.history.length || M.noUndo(p)) return a; const b = undo(a); return {...b, board: M.carry(p, a.board, b.board)}; };
 const undoOff = html => /data-action="undo"[^>]*disabled/.test(html);
 const view = (p, a) => playView(p, a, {pack, selected: null, message: ''});

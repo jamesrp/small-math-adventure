@@ -21,7 +21,7 @@ const glueAll = (p, a, w) => {
   for (const kind of p.parameters.sides) for (const s of Object.keys(p.parameters.squares)) if (w[kind][s] !== null && a.board[kind][s] !== w[kind][s]) a = play(p, a, {type: 'glue', side: kind, from: s, to: w[kind][s]});
   return a;
 };
-// Undo as the app does it, with the mechanic's carry.
+// One Undo step as the app takes it, with the mechanic's carry.
 const undoCarry = (p, a) => { const next = undo(a); return {...next, board: M.carry(p, a.board, next.board)}; };
 const L = {right: {A: 'B', B: 'A', C: 'C'}, up: {A: 'C', B: 'B', C: 'A'}};
 

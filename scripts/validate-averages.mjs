@@ -106,7 +106,7 @@ let slowest = 0;
 const timed = f => { const t = performance.now(), out = f(); slowest = Math.max(slowest, performance.now() - t); return out; };
 const play = (p, a, action) => { const next = timed(() => move(p, a, action)); assert.ok(next && next !== a, `${p.id}: ${JSON.stringify(action)} is legal`); return next; };
 const refuse = (p, a, action, why) => assert.equal(move(p, a, action), null, `${p.id}: refuses ${why}`);
-// Undo as the app does it, with the mechanic's carry.
+// One Undo step as the app takes it, with the mechanic's carry.
 function undoCarry(p, a) {
   const back = undo(a), carry = mechanicFor(p).carry;
   return back === a || !carry ? back : {...back, board: carry(p, a.board, back.board)};

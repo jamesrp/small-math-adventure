@@ -160,7 +160,7 @@ function blockBrute(q) {
 // --- Play helpers -------------------------------------------------------------
 function seeded(seed) { let s = seed >>> 0; return () => (s = (s * 1664525 + 1013904223) >>> 0) / 2 ** 32; }
 const pick = (random, list) => list[Math.floor(random() * list.length)];
-// Undo as the app does it: the engine steps back, then the module carries.
+// One Undo step as the app takes it: the engine steps back, then the module carries.
 const back = (p, a) => { const next = undo(a); return next === a ? a : {...next, board: mechanicFor(p).carry(p, a.board, next.board)}; };
 // The moves a child can tap on this board, other than Fold and claims.
 function taps(p, b) {

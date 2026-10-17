@@ -181,7 +181,7 @@ const hintRun = (p, a, label, limit = 300) => {
   return steps;
 };
 const play = (p, actions, from = freshAttempt(p)) => actions.reduce((a, x) => { const next = a && move(p, a, x); assert.ok(next, `${p.id}: ${JSON.stringify(x)} is legal`); return next; }, from);
-// Undo as the app does it: the engine's undo, then the mechanic's carry.
+// One Undo step as the app takes it: the engine's undo, then the mechanic's carry.
 const undoInApp = (p, a) => { const next = undo(a); return next === a ? a : {...next, board: mechanicFor(p).carry(p, a.board, next.board)}; };
 let seed = 20261017;
 const random = () => (seed = (seed * 16807) % 2147483647) / 2147483647;

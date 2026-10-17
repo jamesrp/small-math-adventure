@@ -119,7 +119,7 @@ function checkGeometry(counts) {
 // --- Play ---------------------------------------------------------------------
 const play = (p, a, action) => { const next = move(p, a, action); assert.ok(next && next !== a, `${p.id}: ${JSON.stringify(action)} is legal`); return next; };
 const refuse = (p, a, action, why) => assert.equal(move(p, a, action), null, `${p.id}: refuses ${why}`);
-// Undo as the app does it: the previous board, with what the mechanic keeps.
+// One Undo step as the app takes it: the previous board, with what the mechanic keeps.
 function undoOnce(p, a) {
   const next = undo(a);
   return next === a ? a : {...next, board: mechanicFor(p).carry(p, a.board, next.board)};
