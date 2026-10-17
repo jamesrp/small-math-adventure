@@ -2,7 +2,8 @@
    paper, the room itself in sun, the copies a shot passes through in a
    leaf tint, walls in ink with their letters, the shot in pine with ochre
    crossings, an ochre ring at a corner hit, and below it the word in tiles
-   beside the same shot folded into the room. Scoped to the group's root. */
+   beside the same shot folded into the room. While aiming, only a dashed
+   aim line is drawn; Launch draws the rest. Scoped to the group's root. */
 [data-mechanic-wire="aims"]{display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%}
 [data-mechanic-wire="aims"] .am-board{display:block;width:100%;max-width:380px;height:auto;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;cursor:crosshair;border-radius:12px;background:var(--b-card,#fffdf5)}
 [data-mechanic-wire="aims"] .am-board.solved{cursor:default}
@@ -32,6 +33,9 @@
 [data-mechanic-wire="aims"] .am-start.movable{stroke:var(--b-sun,#efc76e);stroke-width:3px}
 [data-mechanic-wire="aims"] .am-end{fill:rgba(255,253,245,.85);stroke:var(--b-pine,#31533e);stroke-width:2.5px}
 [data-mechanic-wire="aims"] .am-end.given{stroke-width:2px}
+/* Aiming: only the straight aim and its end, dashed until Launch. */
+[data-mechanic-wire="aims"] .am-aim{stroke:var(--b-pine,#31533e);stroke-width:2px;stroke-dasharray:7 5;stroke-linecap:round;opacity:.8}
+[data-mechanic-wire="aims"] .am-end.aim{stroke-dasharray:4 3}
 [data-mechanic-wire="aims"] .am-hint{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:2.5px;stroke-dasharray:4 3}
 [data-mechanic-wire="aims"] .am-hint-wall{stroke:var(--b-ochre,#b38840);stroke-width:6px;stroke-dasharray:5 4;opacity:.8;stroke-linecap:round}
 
@@ -52,6 +56,11 @@
 [data-mechanic-wire="aims"] .am-tile.goal{background:transparent;border:1.5px dashed #9aa58f}
 [data-mechanic-wire="aims"] .am-tile.corner{color:var(--b-bad,#a9503a);border-color:var(--b-bad,#a9503a);background:var(--b-bad-soft,#f5e3d9)}
 [data-mechanic-wire="aims"] .am-tile.empty{background:transparent;border-color:transparent}
+/* After a right Check the letters are buttons: tap two. */
+[data-mechanic-wire="aims"] button.am-tile{min-height:0;width:38px;height:44px;padding:0;font-weight:400;border:2px solid var(--b-pine,#31533e);background:var(--b-card,#fffdf5);border-radius:9px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+[data-mechanic-wire="aims"] button.am-tile.picked{background:var(--b-pine,#31533e);color:#fffdf5}
+[data-mechanic-wire="aims"] button.am-tile.hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:2px}
+[data-mechanic-wire="aims"] .am-tile.proved{background:var(--b-pine,#31533e);color:#fffdf5;border-color:var(--b-pine,#31533e)}
 [data-mechanic-wire="aims"] .am-fold-box{flex:0 0 auto;line-height:0}
 [data-mechanic-wire="aims"] .am-fold-room{fill:#f6e2ae;stroke:var(--b-ink,#294439);stroke-width:1.6px;stroke-linejoin:round}
 [data-mechanic-wire="aims"] .am-fold-lab{font-family:var(--b-display,Georgia,serif);font-size:11px;fill:var(--b-muted,#5a6850);text-anchor:middle;dominant-baseline:central}
@@ -73,5 +82,11 @@
 [data-mechanic-wire="aims"] .am-cant[aria-pressed="true"],[data-mechanic-wire="aims"] .am-stretch[aria-pressed="true"]{background:#e9eddc;border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
 [data-mechanic-wire="aims"] .am-note{margin:0;text-align:center;color:var(--b-ink,#294439)}
 [data-mechanic-wire="aims"] .am-note.good{color:var(--b-good,#3c7a4a);font-weight:600}
+/* Under the note: a square shot with the same word (a refused Check), the
+   two walls on one line, or steeper and flatter than the diagonal. */
+[data-mechanic-wire="aims"] .am-proofbox{display:flex;justify-content:center;width:100%;max-width:380px}
+[data-mechanic-wire="aims"] .am-mini{display:block;width:100%;max-width:220px;height:auto}
+[data-mechanic-wire="aims"] .am-mini *{vector-effect:non-scaling-stroke}
+[data-mechanic-wire="aims"] .am-diag{stroke:var(--b-muted,#5a6850);stroke-width:1.2px;stroke-dasharray:4 4}
 [data-mechanic-wire="aims"].am-help{flex-direction:row;justify-content:center;gap:12px;margin:.4rem 0}
 @media (prefers-reduced-motion:reduce){[data-mechanic-wire="aims"] .am-given .am-geo,[data-mechanic-wire="aims"] .am-given .am-marks>*{transition:none}}

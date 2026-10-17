@@ -5,7 +5,7 @@
 // them again by a different method.
 import {writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import {answers, certificate, judge, possible} from '../dist/families/aims/aims.js';
+import {answers, certificate, judge, obstruction, possible, prefixOf} from '../dist/families/aims/aims.js';
 import {fold} from '../dist/families/aims/fold.js';
 
 const SRC = ['aims-week71', 'aims-calderon', 'aims-duchin'];
@@ -15,10 +15,10 @@ const RULES = [
   'At a wall it bounces like light in a mirror: in the mirror copies of the room it runs straight on.',
   'Its word is the walls it meets, in order. A shot that meets a corner is not allowed.'
 ];
-const BASE = 'A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to choose where the shot ends; arrow keys move the end too.';
+const BASE = 'A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to aim, then press Launch (or Enter) to send the shot; arrow keys move the aim too.';
 const MOVE = ' Drag the start dot to move it (with a keyboard, Shift and an arrow key).';
-const CANT = ' After a shot, Can’t says the word can’t be made: then tap the two walls that show why. A wrong pair is refused, and Can’t waits for a new shot.';
-const CHECK = ' Check asks whether some rectangle could make the shot’s word too. A refused Check waits for a new shot.';
+const CANT = q => ` Can’t opens after a launch whose word starts ${prefixOf(q)}. Press it if you think ${q.word} can’t be made, then tap the two walls that show why. A wrong pair is refused, and Can’t waits for a new launch.`;
+const CHECK = q => ` Check asks whether some rectangle could make the launched word too. A refused Check shows a square shot with the same word, and Check waits for a new word.${q.four ? ' A right Check draws why no rectangle makes it.' : ' After a right Check, tap the two letters of the word that show why no rectangle makes it.'}`;
 
 const puzzles = [
   {
@@ -41,7 +41,7 @@ const puzzles = [
     parameters: {mode: 'target', room: 'square', start: [5, 5], frame: [-2, 2, -2, 2], word: 'CBA'},
     expect: {count: 20},
     idea: 'The letters of a word name the copies the shot passes, one wall at a time: up through C, left through B, up through A.',
-    hints: ['C is the top wall. After C, which copy is the shot in?', 'Go up through C, then left through that copy’s B wall, then up through A.', 'End the shot two copies up and one to the left.'],
+    hints: ['C is the top wall. After C, which copy is the shot in?', 'Go up through C, then left through that copy’s B wall, then up through A.', 'Aim two copies up and one to the left, then launch.'],
     parent: {
       notice: 'Whether your child plans the copies from the letters, or drags until the word appears.',
       prompt: 'Where is the A wall of the copy above the room?',
@@ -55,7 +55,7 @@ const puzzles = [
     title: 'A slanted room', level: 'easy',
     parameters: {mode: 'target', room: 'rhombus', start: [7, 7], frame: CORNER, word: 'AB'},
     expect: {count: 34},
-    idea: 'The rhombus folds the same way: its copies are mirror images across each wall, though they lie at slants. The copies appear as the shot reaches them.',
+    idea: 'The rhombus folds the same way: its copies are mirror images across each wall, though they lie at slants. The copies along a shot appear when it is launched.',
     hints: ['A is the bottom wall. Shoot down through it and look at the new copy.', 'In the copy below A, find its B wall.', 'Cross A, then that copy’s B wall, down and to the left.'],
     parent: {
       notice: 'Whether your child expects the copy below A to look like the room, and checks its letters.',
@@ -71,7 +71,7 @@ const puzzles = [
     parameters: {mode: 'target', room: 'square', start: [5, 5], frame: [-2, 2, -2, 2], word: 'ACB'},
     expect: {count: 3},
     idea: 'Two up-down walls before a side wall needs a shot between three and five times as steep as it is wide: the order of crossings is set by the slope.',
-    hints: ['A, then C, then B: the shot crosses two walls going down before any side wall.', 'It must be very steep, and lean just a little to the left.', 'End the shot two copies down and one to the left, close to the B wall.'],
+    hints: ['A, then C, then B: the shot crosses two walls going down before any side wall.', 'It must be very steep, and lean just a little to the left.', 'Aim two copies down and one to the left, close to the B wall.'],
     parent: {
       notice: 'Whether your child makes AC first and then leans the shot until B comes before the next A.',
       prompt: 'Why must the shot be so steep?',
@@ -117,7 +117,7 @@ const puzzles = [
       given: {room: 'square', start: [5, 5], end: [23, 17], frame: [0, 2, 0, 1]}},
     expect: {count: 20},
     idea: 'The wide room’s copies are the square’s copies stretched across: aim at the same spot in the same copy and the word is the same. Aiming the same way does not work.',
-    hints: ['The square shot ends in the copy two across and one up.', 'In the wide copies, the same copy is two across and one up too.', 'End the shot at the same spot in that copy.'],
+    hints: ['The square shot ends in the copy two across and one up.', 'In the wide copies, the same copy is two across and one up too.', 'Aim at the same spot in that copy and launch.'],
     parent: {
       notice: 'Whether your child first copies the direction of the square shot (which gives another word) and then copies its copy and spot.',
       prompt: 'After the solve, press Stretch. What happens to the square shot?',
@@ -132,12 +132,12 @@ const puzzles = [
     parameters: {mode: 'design', room: 'rhombus', start: [7, 7], frame: CORNER},
     expect: {count: 64},
     idea: 'A word with A, B, A (or B, A, B) rules out every rectangle, and the rhombus makes it at its sharp corner: some words tell the rhombus from a rectangle.',
-    hints: ['Which word did a rectangle never make?', 'ABA can’t happen in any rectangle.', 'Make ABA near the sharp corner, then press Check.'],
+    hints: ['Which word did a rectangle never make?', 'ABA can’t happen in any rectangle.', 'Make ABA near the sharp corner, press Check, and tap its two A’s.'],
     parent: {
       notice: 'Whether your child uses ABA from the earlier puzzles, or finds a new kind of word.',
       prompt: 'How do you know no rectangle, of any shape, can make it?',
       explanation: 'In every rectangle the A and C walls take turns along a shot, and so do B and D: a straight line crosses evenly spaced lines in order. A word breaking that rule (ABA, BAB) can’t come from a rectangle of any shape.',
-      extension: 'Is there a word the square can make that the rhombus can’t? (ACB is one: in the rhombus a shot that crosses A and then C leans too far to reach B next.)',
+      extension: 'Is there a word the square can make that the rhombus can’t? (ACB is one: from A to the copy’s C the shot drifts left by less than half a side per height, slower than the next copy’s B wall leans, so it can’t reach B.)',
       connection: 'Week 71 Problem 3 as a design goal; the review card’s first fix lists the words that rule rooms out.'
     },
     provenance: 'Week 71 Problem 3 ("rooms not ruled out"), as a design goal checked against every rectangle word.'
@@ -148,7 +148,7 @@ const puzzles = [
       given: {room: 'wide', start: [10, 5], end: [-38, 11], frame: [-2, 0, 0, 1]}},
     expect: {count: 3},
     idea: 'Squeezing goes back: a wide-room shot halved across is a square shot with the same word. Only a few spots work, and the squeezed shot finds one.',
-    hints: ['The wide shot ends in the copy two to the left and one up.', 'Find the same copy among the square copies.', 'End the shot at the same spot in that copy, close to its C wall.'],
+    hints: ['The wide shot ends in the copy two to the left and one up.', 'Find the same copy among the square copies.', 'Aim at the same spot in that copy, close to its C wall.'],
     parent: {
       notice: 'Whether your child uses the same copy and spot, or searches the few spots that work.',
       prompt: 'After the solve, press Squeeze. Why does the word stay the same?',
@@ -196,7 +196,7 @@ function copyFor(q) {
   if (q.mode === 'target') return {
     objective: `Make a shot in the ${room} whose word is ${q.word}${q.cant ? ', or say it can’t be done' : ''}.`,
     visibleObjective: 'Make a shot with this word.',
-    controls: BASE + (q.movable ? MOVE : '') + (q.cant ? CANT : '')
+    controls: BASE + (q.movable ? MOVE : '') + (q.cant ? CANT(q) : '')
   };
   if (q.mode === 'remake') {
     const there = {square: 'square', wide: 'wide room'}[q.given.room];
@@ -207,9 +207,9 @@ function copyFor(q) {
     };
   }
   return {
-    objective: q.four ? 'Make a shot in the rhombus that meets each wall once, with a word no rectangle can make, and press Check.' : 'Make a shot in the rhombus whose word no rectangle can make, and press Check.',
+    objective: q.four ? 'Make a shot in the rhombus that meets each wall once, with a word no rectangle can make, and press Check.' : 'Make a shot in the rhombus whose word no rectangle can make, press Check, and tap the two letters that show why.',
     visibleObjective: q.four ? 'Make a word with each wall once that no rectangle can make.' : 'Make a word no rectangle can make.',
-    controls: BASE + (q.movable ? MOVE : '') + CHECK
+    controls: BASE + (q.movable ? MOVE : '') + CHECK(q)
   };
 }
 
@@ -223,7 +223,7 @@ const out = puzzles.map((d, i) => {
   }
   const witness = list[0] ?? null;
   const solution = q.mode === 'design'
-    ? {start: witness.start, end: witness.end, word: fold(q.room, witness.start, witness.end).word, shots: list.length}
+    ? {start: witness.start, end: witness.end, word: fold(q.room, witness.start, witness.end).word, ...(q.four ? {} : {pair: obstruction(fold(q.room, witness.start, witness.end).word)}), shots: list.length}
     : q.cant && !list.length ? {possible: false, walls: certificate(q).map(s => s.id).sort()}
       : {possible: true, start: witness.start, end: witness.end, shots: list.length};
   const copy = copyFor(q);

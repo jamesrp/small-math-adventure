@@ -1,11 +1,14 @@
-// Plays Mirror Couriers bounce words through the real interface: a tap that
-// hits a corner, a tap between four aim points, Undo, a drag that solves, the
-// arrow keys and where focus goes, Can't with wall taps (a refusal kept
-// through Undo, a tap near a corner where walls meet, the right pair and its
-// line), Escape and Enter on walls, dragging the start in the rhombus and the
-// rhombus refusing the square's walls, hints with Apply hint, a remake with
-// Stretch, Check refused and accepted, the busiest board of the hardest
-// puzzle at phone size, How to play, and Mirror Couriers' own puzzles and
+// Plays Mirror Couriers bounce words through the real interface: aiming
+// draws only the straight aim (a sweep with the button held shows no word),
+// Launch is the move (a corner hit, Undo, Enter on the board), arrow keys and
+// where focus goes, Can't closed until a launch starts the word, wall taps (a
+// refusal kept through Undo, a tap near a corner where walls meet, the right
+// pair and its line), Can't and then Undo leaving the board live, Escape and
+// Enter on walls, hints after a wrong shot trying the word's start first,
+// dragging and tapping the start in the rhombus, a remake with Stretch,
+// Check refused with a square shot and kept for the same word, the letters
+// after a right Check, the busiest board of the hardest puzzle at phone size
+// with its drawn argument, How to play, and Mirror Couriers' own puzzles and
 // Sight lines still opening. Same environment variables as the other browser
 // suites (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a
 // 375 × 667 phone with touch). Screenshots go in test-results/aims/, or in
@@ -31,8 +34,18 @@ const note = () => page.locator('.am-note').innerText();
 const noNote = async label => assert.equal(await page.locator('.am-note').count(), 0, label);
 const button = name => page.getByRole('button', {name, exact: true});
 const focused = () => page.evaluate(() => { const e = document.activeElement; return e?.dataset?.focus || e?.id || e?.tagName; });
+const word = () => page.locator('.am-row.now .am-tile:not(.empty)').allInnerTexts().then(t => t.join(''));
+// The aim waiting for Launch, from the Launch button.
+const aim = async () => JSON.parse(await page.locator('.am-launch').getAttribute('data-move'));
+const launch = async () => { await button('Launch').click(); };
 const pack = await (await fetch(`${base}/families/aims/aims.json`)).json();
 const params = id => pack.puzzles.find(p => p.id === id).parameters;
+// Nothing of a shot is drawn while aiming.
+async function onlyAim(label) {
+  assert.equal(await page.locator('.am-board .am-aim').count(), 1, `${label}: the aim line`);
+  for (const sel of ['.am-hit', '.am-shot', '.am-wall.crossed', '.am-copy.passed', '.am-fold-path']) assert.equal(await page.locator(`[data-mechanic-wire="aims"] ${sel}`).count(), 0, `${label}: no ${sel} while aiming`);
+  assert.equal(await word(), '', `${label}: no word while aiming`);
+}
 
 // A point of the app's plane (rhombus points in its slanted coordinates) on
 // screen, through the play window's paper, which spans the window's frame.
@@ -51,25 +64,31 @@ async function spot(id, pt) {
 }
 const tapXY = async ([x, y]) => { if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); };
 const tap = async (id, pt) => tapXY(await spot(id, pt));
+const shoot = async (id, pt) => { await tap(id, pt); await launch(); };
 const wall = async (id, seam) => { const n = seam.split(',').map(Number); return tap(id, [(n[0] + n[2]) / 2, (n[1] + n[3]) / 2]); };
 // A drag: a mouse drag on a desktop, a touch drag on a phone, where the end
 // rides 34 px above the finger, so the finger stops 34 px below the target.
+// `during` runs with the button (or finger) still down.
 let cdp = null;
-async function drag(from, to) {
+async function drag(from, to, during = null) {
   const target = phone ? [to[0], to[1] + 34] : to;
   if (!phone) {
     await page.mouse.move(...from); await page.mouse.down();
-    await page.mouse.move(...target, {steps: 10}); await page.mouse.up();
+    await page.mouse.move(...target, {steps: 10});
+    if (during) await during();
+    await page.mouse.up();
     return;
   }
   cdp ||= await context.newCDPSession(page);
   const touch = (type, [x, y]) => cdp.send('Input.dispatchTouchEvent', {type, touchPoints: type === 'touchEnd' ? [] : [{x, y}]});
   await touch('touchStart', from);
   for (let s = 1; s <= 10; s++) await touch('touchMove', [from[0] + ((target[0] - from[0]) * s) / 10, from[1] + ((target[1] - from[1]) * s) / 10]);
+  if (during) await during();
   await touch('touchEnd', target);
 }
+async function hintTo(level) { for (let i = 0; i < level; i++) if (await button('Hint').count()) await button('Hint').click(); }
 async function hintsToSolve() {
-  for (let i = 0; i < 3; i++) if (await button('Hint').count()) await button('Hint').click();
+  await hintTo(3);
   for (let k = 0; k < 8 && !(await page.locator('#completion-heading').count()); k++) await button('Apply hint').click();
   await done();
 }
@@ -80,62 +99,97 @@ try {
   await page.locator('[data-action=library]').first().click(); await page.locator('.caravan-library').waitFor();
   assert.equal(await page.locator('[data-view-key="family-billiard"] h2', {hasText: 'Bounce words'}).count(), 1, 'the group in Mirror Couriers');
 
-  // Puzzle 1: a corner, a contested tap, Undo, a drag that solves.
+  // Puzzle 1: aiming draws only the aim; Launch, a corner, Undo, Enter.
   const P1 = 'aims-01';
   await open(P1); await fit('puzzle 1');
   assert.equal(await page.locator('.puzzle-goal').innerText(), 'Make a shot with this word.');
   assert.equal(await page.locator('.am-row.goal .am-tile').allInnerTexts().then(t => t.join('')), 'DC');
+  assert.equal(await button('Launch').isDisabled(), true, 'nothing to launch yet');
   await tap(P1, [15, 15]);
+  await onlyAim('a tap');
+  assert.equal((await board(P1)).end, null, 'a tap only aims');
+  assert.deepEqual((await aim()).end, [15, 15]);
+  assert.equal(await page.locator('.am-board .am-corner').count(), 0, 'no corner ring before Launch');
+  // A sweep with the button held across many aim points shows no word.
+  let sweeps = 0;
+  await drag(await spot(P1, [3, 1]), await spot(P1, [27, 21]), async () => { await onlyAim('a sweep'); sweeps++; });
+  assert.equal(sweeps, 1);
+  await tap(P1, [15, 15]);
+  await launch();
   assert.deepEqual((await board(P1)).end, [15, 15]);
+  assert.equal((await attempt(P1)).moves, 1, 'a launch is a move');
   assert.equal(await note(), 'That shot hits a corner.');
   assert.equal(await page.locator('.am-tile.corner').count(), 1);
   assert.equal(await page.locator('.am-board .am-corner').count(), 1, 'a ring at the corner');
-  assert.equal(await focused(), 'am-board', 'focus stays on the board after a tap');
+  assert.equal(await focused(), 'am-board', 'focus goes to the board after Launch');
   await tap(P1, [10.6, 10.3]);
-  assert.deepEqual((await board(P1)).end, [11, 11], 'a tap near a corner goes to the nearest aim point');
+  assert.deepEqual((await aim()).end, [11, 11], 'a tap near a corner goes to the nearest aim point');
+  await launch();
+  assert.deepEqual((await board(P1)).end, [11, 11]);
   await page.locator('[data-action="undo"]').click();
-  assert.deepEqual((await board(P1)).end, [15, 15], 'Undo');
+  assert.deepEqual((await board(P1)).end, [15, 15], 'Undo takes the launch back');
+  assert.equal(await note(), 'That shot hits a corner.');
   await drag(await spot(P1, [7, 3]), await spot(P1, [17, 13]));
+  assert.deepEqual((await aim()).end, [17, 13], 'the drag aims where it is let go');
+  assert.equal(await page.locator('#completion-heading').count(), 0, 'not solved before Launch');
+  await page.locator('.am-board').focus(); await page.keyboard.press('Enter');
   await done(); await fit('puzzle 1 solved');
-  assert.deepEqual((await board(P1)).end, [17, 13], 'the drag ends the shot where it is let go');
+  assert.deepEqual((await board(P1)).end, [17, 13], 'Enter launches');
   await shot('01-solved');
 
-  // Puzzle 2: arrow keys.
+  // Puzzle 2: arrow keys aim; Enter launches.
   const P2 = 'aims-02';
   await open(P2);
   await page.locator('.am-board').focus();
   await page.keyboard.press('ArrowRight');
-  assert.deepEqual((await board(P2)).end, [7, 5], 'an arrow sets the end next to the start');
+  assert.deepEqual((await aim()).end, [7, 5], 'an arrow aims next to the start');
   await page.keyboard.press('ArrowUp'); await page.keyboard.press('ArrowUp');
-  assert.deepEqual((await board(P2)).end, [7, 9]);
+  assert.deepEqual((await aim()).end, [7, 9]);
   assert.equal(await focused(), 'am-board', 'keys keep focus on the board');
+  await onlyAim('arrow keys');
+  await page.keyboard.press('Enter');
+  assert.deepEqual((await board(P2)).end, [7, 9]);
+  assert.equal(await focused(), 'am-board');
 
   // Puzzle 5: Can't in the square.
   const P5 = 'aims-05';
   await open(P5); await fit('puzzle 5');
-  assert.equal(await button('Can’t').isDisabled(), true, 'Can’t waits for a shot');
-  await tap(P5, [3, -7]);
-  assert.equal(await page.locator('.am-row.now .am-tile').allInnerTexts().then(t => t.join('')), 'A');
+  assert.equal(await button('Can’t').isDisabled(), true, 'Can’t waits for a launch');
+  await shoot(P5, [3, -7]);
+  assert.equal(await word(), 'A');
+  assert.equal(await button('Can’t').isDisabled(), true, 'Can’t waits for a launch that starts A, B');
+  await shoot(P5, [-1, -9]);
+  assert.equal(await word(), 'AB');
+  assert.equal(await button('Can’t').isDisabled(), false);
+  // Can't, then Undo: the board still aims and launches.
+  await button('Can’t').click();
+  assert.equal(await page.locator('.am-pick').count(), 24);
+  await page.locator('[data-action="undo"]').click();
+  assert.equal(await word(), 'A');
+  assert.equal(await page.locator('.am-pick').count(), 0, 'Undo puts the walls away');
+  await tap(P5, [-3, -9]);
+  await onlyAim('after Can’t and Undo');
+  await launch();
+  assert.equal(await word(), 'AB', 'and Launch still works');
   await button('Can’t').click();
   assert.equal(await button('Can’t').getAttribute('aria-pressed'), 'true');
   assert.equal(await note(), 'Tap two walls.');
-  assert.equal(await page.locator('.am-pick').count(), 24);
   assert.equal(await page.locator('.am-pick.picked').count(), 0, 'no wall is marked before it is tapped');
   await wall(P5, '0,0,10,0');
   assert.equal(await page.locator('.am-pick.picked').count(), 1);
   await wall(P5, '0,0,10,0');
   assert.equal(await page.locator('.am-pick.picked').count(), 0, 'a second tap on the same wall lets it go');
   await wall(P5, '0,0,10,0'); await wall(P5, '10,0,20,0');
-  assert.equal(await note(), 'Not the A walls ABA needs.');
+  assert.equal(await note(), 'Those two don’t stop ABA.');
   assert.deepEqual((await board(P5)).refused.walls, ['0,0,10,0', '10,0,20,0']);
-  assert.equal(await button('Can’t').isDisabled(), true, 'one claim per shot');
+  assert.equal(await button('Can’t').isDisabled(), true, 'one claim per launch');
   assert.notEqual(await focused(), 'am-cant', 'focus leaves Can’t');
   await shot('05-refused');
   await page.locator('[data-action="undo"]').click();
   await noNote('Undo hides the refusal');
   assert.equal((await board(P5)).refused.shown, false, 'and keeps it');
-  assert.equal(await button('Can’t').isDisabled(), true, 'Can’t still waits for a new shot');
-  await tap(P5, [-3, -7]);
+  assert.equal(await button('Can’t').isDisabled(), true, 'Can’t still waits for a new launch');
+  await shoot(P5, [-1, -9]);
   assert.equal(await button('Can’t').isDisabled(), false);
   await button('Can’t').click();
   await wall(P5, '0,0,10,0');
@@ -146,11 +200,14 @@ try {
   assert.equal(await note(), 'Both A walls lie on one line.');
   await shot('05-solved');
 
-  // Puzzle 10: keyboard on walls, Escape, and the hint chain to the claim.
+  // Puzzle 10: keyboard on walls, Escape, hints after a wrong shot, the claim.
   const P10 = 'aims-10';
   await open(P10);
-  await tap(P10, [10, 15]);
+  await shoot(P10, [-2, 25]);
+  assert.equal(await word(), 'CAB');
   await button('Can’t').click();
+  const named = await page.locator('.am-pick').first().getAttribute('aria-label');
+  assert.match(named, /^[ABCD] wall of (the room|the copy .+)$/, 'walls are named by copy');
   await page.locator('.am-pick').first().focus(); await page.keyboard.press('Enter');
   assert.equal(await page.locator('.am-pick.picked').count(), 1, 'Enter picks a wall');
   assert.equal(await page.locator('.am-pick.picked').evaluate(e => e === document.activeElement), true, 'focus stays on the picked wall');
@@ -158,57 +215,108 @@ try {
   assert.equal(await page.locator('.am-pick').count(), 0, 'Escape puts the walls away');
   await page.locator('[data-action="restart"]').click();
   await button('Hint').click();
-  const first = await page.locator('.hint-card').innerText();
-  assert.doesNotMatch(first, /Can’t/, 'the first hint does not say Can’t');
+  assert.doesNotMatch(await page.locator('.hint-card').innerText(), /Can’t/, 'the first hint does not say Can’t');
+  await shoot(P10, [10, 15]);
+  assert.equal(await word(), 'C');
+  await hintTo(2);
+  assert.match(await page.locator('.hint-card').innerText(), /Try C, then A, then B/, 'after a wrong shot the hint tries the word’s start');
+  assert.equal(await page.locator('.am-board .am-hint').count() >= 1, true, 'the hinted spot is outlined');
+  assert.equal(await page.locator('.am-launch.hinted').count(), 0, 'Launch is outlined only once the aim is there');
+  await hintTo(1);
+  await button('Apply hint').click();
+  assert.equal(await word(), 'CAB');
   await hintsToSolve();
   assert.ok((await board(P10)).claimed, 'the hints end in the claim');
 
-  // Puzzle 6: the rhombus; drag the start, the square’s walls are refused.
+  // Puzzle 6: the rhombus; drag and tap the start, refusals there.
   const P6 = 'aims-06';
   await open(P6); await fit('puzzle 6');
   await drag(await spot(P6, [7, 7]), await spot(P6, [4, 4]));
-  assert.deepEqual((await board(P6)).start, [4, 4], 'the start is dragged');
+  assert.deepEqual((await aim()).start, [4, 4], 'the start is dragged');
+  assert.deepEqual((await board(P6)).start, [7, 7], 'and moves at Launch');
+  await tap(P6, [4, 4]);
+  const near = await aim();
+  assert.ok(near.end && String(near.end) !== '4,4', 'a tap on the start aims beside it');
   await tap(P6, [19, 4]);
-  assert.equal(await page.locator('.am-row.now .am-tile').allInnerTexts().then(t => t.join('')), 'D');
+  await launch();
+  assert.deepEqual((await board(P6)).start, [4, 4]);
+  assert.equal(await word(), 'D');
+  assert.equal(await button('Can’t').isDisabled(), true);
+  await hintTo(3);
+  assert.match(await page.locator('.hint-card').innerText(), /Try A, then B/);
+  await button('Apply hint').click();
+  assert.equal(await word(), 'AB');
   await button('Can’t').click();
   const seams = await page.locator('.am-pick').evaluateAll(list => list.map(e => e.dataset.seam));
   await wall(P6, seams[0]); await wall(P6, seams[1]);
-  assert.match(await note(), /^Not (on one line|the A walls ABA needs)\.$/);
+  assert.match(await note(), /^(Not on one line|Those two don’t stop ABA)\.$/);
   assert.equal(await page.locator('#completion-heading').count(), 0);
   await shot('06-refused');
   await hintsToSolve();
-  assert.equal(await page.locator('.am-row.now .am-tile').allInnerTexts().then(t => t.join('')), 'ABA');
+  assert.equal(await word(), 'ABA');
 
   // Puzzle 7: a remake, then Stretch.
   const P7 = 'aims-07';
   await open(P7); await fit('puzzle 7');
   assert.equal(await page.locator('.am-given').count(), 1);
   assert.equal(await button('Stretch').count(), 0, 'Stretch only after the solve');
-  await tap(P7, pack.puzzles.find(p => p.id === P7).solution.end);
+  await shoot(P7, pack.puzzles.find(p => p.id === P7).solution.end);
   await done();
   await button('Stretch').click();
   assert.equal(await page.locator('.am-given.stretched').count(), 1);
   assert.equal(await button('Stretch').getAttribute('aria-pressed'), 'true');
   await page.waitForTimeout(1100); await shot('07-stretched'); await fit('stretched');
 
-  // Puzzle 8: Check refused, kept through Undo, then accepted.
+  // Puzzle 8: Check refused with a square shot, kept for the same word and
+  // through Undo; a right Check, a wrong pair of letters, then the two A’s.
   const P8 = 'aims-08';
   await open(P8);
   assert.equal(await button('Check').isDisabled(), true);
-  await tap(P8, [22, 7]);
-  assert.equal(await page.locator('.am-row.now .am-tile').allInnerTexts().then(t => t.join('')), 'D');
+  await shoot(P8, [22, 7]);
+  assert.equal(await word(), 'D');
   await button('Check').click();
-  assert.equal(await note(), 'A rectangle can make it too.');
+  assert.equal(await note(), 'A square makes it too.');
+  assert.equal(await page.locator('.am-proofbox .am-mini').getAttribute('aria-label'), 'A square shot with the word D');
   assert.equal(await button('Check').isDisabled(), true);
+  await shot('08-evidence');
+  await shoot(P8, [22, -5]);
+  assert.equal(await word(), 'D');
+  assert.equal(await button('Check').isDisabled(), true, 'Check stays off for the same word');
   await page.locator('[data-action="undo"]').click();
+  await page.locator('[data-action="undo"]').click();
+  assert.equal((await board(P8)).refused?.shown, false);
   await noNote('Undo hides the refused Check');
-  assert.equal(await button('Check').isDisabled(), true, 'Check still waits for a new shot');
-  await hintsToSolve();
+  assert.equal(await button('Check').isDisabled(), true, 'Check still waits for a new word');
+  await shoot(P8, [-11, -17]);
+  assert.equal(await word(), 'ABAD');
+  await button('Check').click();
+  assert.equal(await note(), 'No rectangle makes it. Tap the two letters that show why.');
+  assert.equal(await page.locator('button.am-tile').count(), 4);
+  await tap(P8, [22, 7]);
+  assert.equal(await page.locator('.am-board .am-aim').count(), 1);
+  assert.equal(await page.locator('button.am-tile').count(), 4, 'the letters stay while aiming elsewhere');
+  await page.locator('.am-board').focus(); await page.keyboard.press('Escape');
+  assert.equal(await page.locator('.am-board .am-aim').count(), 0, 'Escape puts the aim back');
+  await page.locator('button.am-tile').nth(1).click();
+  assert.equal(await page.locator('button.am-tile.picked').count(), 1);
+  assert.equal(await focused(), 'am-tile-1');
+  await page.locator('button.am-tile').nth(3).click();
+  assert.equal(await note(), 'Those two don’t show why.');
+  assert.equal(await page.locator('button.am-tile').count(), 0, 'one pair per word');
+  await shoot(P8, [-11, -14]);
+  assert.equal(await word(), 'ABA');
+  await button('Check').click();
+  await page.locator('button.am-tile').nth(0).click(); await page.locator('button.am-tile').nth(2).click();
+  await done(); await fit('puzzle 8 solved');
+  assert.deepEqual((await board(P8)).pair, [0, 2]);
+  assert.equal(await note(), 'In a rectangle the two A walls would lie on one line.');
+  assert.equal(await page.locator('.am-proofbox .am-mini .am-proof').count(), 1);
+  await shot('08-solved');
 
-  // Puzzle 11, the busiest board: a long shot at phone size.
+  // Puzzle 11, the busiest board: a long shot at phone size, then the argument.
   const P11 = 'aims-11';
   await open(P11);
-  await tap(P11, [70, -38]);
+  await shoot(P11, [70, -38]);
   const box = await page.locator('.am-board').boundingBox(), vw = page.viewportSize().width;
   assert.ok(box.width <= 381 && box.x >= 0 && box.x + box.width <= vw, 'the board fits');
   await fit('puzzle 11 with a long shot');
@@ -216,6 +324,9 @@ try {
   assert.ok(check.x >= 0 && check.x + check.width <= vw, 'Check is on screen across');
   await shot('11-long');
   await hintsToSolve();
+  assert.match(await note(), /^In a rectangle, [ABCD] to [ABCD] is (steeper|flatter) than the diagonal and [ABCD] to [ABCD] is (flatter|steeper)\.$/);
+  assert.equal(await page.locator('.am-proofbox .am-mini .am-diag').count(), 2);
+  await fit('puzzle 11 solved'); await shot('11-solved');
 
   // How to play shows the folded room and its copies.
   await open(P1);

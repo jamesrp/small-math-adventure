@@ -13,15 +13,20 @@
 // mechanic shot by shot; checks every impossibility for every rectangle and
 // every start (not only the window's aim points), the certificate walls by
 // unfolding the room itself, and how often random taps solve a certificate;
-// replays the witnesses; checks that hints alone solve every puzzle from a
-// fresh board, after a wrong shot, after a corner hit, after a refused claim
-// or Check and after Undo; and rejects illegal moves and forged saves.
+// checks that every word a refused Check can show has a square shot (by the
+// simulator), that the letters accepted after a right Check are exactly those
+// whose square walls lie on one line, and that Check stays off until the word
+// changes; replays the witnesses (a launch is one move); checks that hints
+// alone solve every puzzle from a fresh board, after a wrong shot, after a
+// corner hit, after a refused claim, Check or pair and after Undo, that the
+// Can't twins' hints first try the word's start, and that the remake hint
+// aims at the given spot; and rejects illegal moves and forged saves.
 // Run: node scripts/validate-aims.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
-import {answers, seams, judge, certificate, frameAims} from '../dist/families/aims/aims.js';
+import {answers, seams, judge, certificate, frameAims, squareShot} from '../dist/families/aims/aims.js';
 import {fold, rectangleWord} from '../dist/families/aims/fold.js';
 import {loadPack} from './packs.mjs';
 
@@ -249,8 +254,10 @@ function solveAll(q, stats) {
 // --- Playing through the engine ---------------------------------------------------------
 const play = (p, a, action) => { const next = move(p, a, action); assert.ok(next && next !== a, `${p.id}: ${JSON.stringify(action)} is legal`); return next; };
 const refuse = (p, a, action, why) => assert.equal(move(p, a, action), null, `${p.id}: refuses ${why}`);
+const launch = (p, a, start, end) => play(p, a, {type: 'launch', start, end});
 // Undo as the app does it: the mechanic's carry keeps a refusal.
 const undoApp = (p, a) => { const next = undo(a); return next === a ? a : {...next, board: mechanicFor(p).carry(p, a.board, next.board)}; };
+const screen = (p, a) => mechanicFor(p).render(p, a);
 function hintsSolve(p, a, label) {
   let steps = 0;
   for (; !isSolved(p, a.board) && steps < 12; steps++) {
@@ -262,16 +269,54 @@ function hintsSolve(p, a, label) {
   assert.ok(isSolved(p, a.board), `${p.id} ${label}: hints reach a solve`);
   return steps;
 }
-// A shot from the board's start whose word is not the goal (and not a corner).
-function wrongShot(p, b) {
-  const q = p.parameters;
-  return frameAims(q.room, q.frame).find(e => { const r = simulate(q.room, b.start, e); return !r.corner && r.inside && r.word.length && !goal(q, r.word); });
+// The word of a shot that counts (no corner, at least one wall), else null.
+const wordAt = (q, s, e) => { const r = simulate(q.room, s, e); return !r.corner && r.inside && r.word.length ? r.word : null; };
+const dirOf = c => ('AC'.includes(c) ? 'H' : 'V');
+// A returning pair: the same letter at i and j with only walls of the other
+// direction between (at least one).
+const returns = (w, i, j) => j >= i + 2 && w[i] === w[j] && [...w.slice(i + 1, j)].every(c => dirOf(c) !== dirOf(w[i]));
+// A Can't word up to its first returning letter (AB for ABA, CAB for CABA).
+function prefixFor(word) {
+  for (let j = 0; j < word.length; j++) for (let i = 0; i < j; i++) if (returns(word, i, j)) return word.slice(0, j);
+  return null;
 }
-function cornerShot(p, b) {
-  const q = p.parameters;
-  return frameAims(q.room, q.frame).find(e => simulate(q.room, b.start, e).corner);
+// Shots from a start: one whose word is not the goal and (for Can't) does not
+// start the word; one that starts it; one that hits a corner.
+function wrongShot(p, start) {
+  const q = p.parameters, pre = q.cant ? prefixFor(q.word) : null;
+  return frameAims(q.room, q.frame).find(e => { const w = wordAt(q, start, e); return w && !goal(q, w) && !(pre && w.startsWith(pre)) && (q.mode !== 'design' || lpRectangle(w)); });
 }
-
+function prefixShot(p) {
+  const q = p.parameters, pre = prefixFor(q.word), from = [q.start, ...(q.movable ? roomStarts(q.room) : [])];
+  for (const s of from) for (const e of frameAims(q.room, q.frame)) { const w = wordAt(q, s, e); if (w && w.startsWith(pre) && !goal(q, w)) return {start: s, end: e}; }
+  return null;
+}
+function cornerShot(p, start) {
+  const q = p.parameters;
+  return frameAims(q.room, q.frame).find(e => simulate(q.room, start, e).corner);
+}
+// The copies along a word, unfolded in exact Euclidean coordinates: faces[k]
+// is the room after k letters, and wall(k) the wall of face k with letter k.
+function unfold(roomName, word) {
+  let poly = EUCLID[roomName].corners;
+  const faces = [poly];
+  for (const c of word) {
+    const i = LETTERS.indexOf(c), a = poly[i], e = vSub(poly[(i + 1) % 4], a);
+    poly = poly.map(pt => { const w = vSub(pt, a), t = kDiv(vDot(w, e), vDot(e, e)); return vSub(vScale(K(2), vAdd(a, vScale(t, e))), pt); });
+    faces.push(poly);
+  }
+  return {faces, wall: (k, letter = word[k]) => { const i = LETTERS.indexOf(letter); return [faces[k][i], faces[k][(i + 1) % 4]]; }};
+}
+const onOneLine = (s1, s2) => { const dir = vSub(s1[1], s1[0]), on = pt => kSign(vCross(dir, vSub(pt, s1[0]))) === 0; return on(s2[0]) && on(s2[1]); };
+// mulberry32, for random taps.
+function random(seed) {
+  return n => {
+    seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return Math.floor((((t ^ (t >>> 14)) >>> 0) / 4294967296) * n);
+  };
+}
 // --- Expected answers ---------------------------------------------------------------------
 const EXPECT = {
   'aims-01': {word: 'DC', count: 10, level: 'easy'},
@@ -384,117 +429,231 @@ export async function validateAims() {
       }
     }
 
-    // Witness replay.
-    let a = freshAttempt(p);
-    assert.ok(validBoard(p, a.board) && !isSolved(p, a.board), `${p.id}: starts valid and unsolved`);
-    if (p.solution.possible === false) {
-      const h = nextHint(p, a);
-      a = play(p, a, h.action);
-      a = play(p, a, {type: 'claim', walls: p.solution.walls});
+    // Witness replay: a launch (after a launch that starts the word, for
+    // Can't), then Check and the pair of letters for design puzzles.
+    const sol = p.solution, fresh = freshAttempt(p), b = fresh.board, pre = q.cant ? prefixFor(q.word) : null;
+    assert.ok(validBoard(p, b) && !isSolved(p, b), `${p.id}: starts valid and unsolved`);
+    let a = fresh;
+    if (sol.possible === false) {
+      const t = prefixShot(p);
+      a = launch(p, a, t.start, t.end);
+      a = play(p, a, {type: 'claim', walls: sol.walls});
     } else {
-      if (q.movable && String(p.solution.start) !== String(a.board.start)) a = play(p, a, {type: 'start', start: p.solution.start});
-      a = play(p, a, {type: 'aim', end: p.solution.end});
-      if (q.mode === 'design') a = play(p, a, {type: 'check'});
+      a = launch(p, a, sol.start, sol.end);
+      if (q.mode === 'design') {
+        assert.equal(wordAt(q, sol.start, sol.end), sol.word, `${p.id}: the witness word`);
+        a = play(p, a, {type: 'check'});
+        if (!q.four) { assert.ok(returns(sol.word, ...sol.pair), `${p.id}: the witness pair returns`); a = play(p, a, {type: 'pair', tiles: sol.pair}); }
+      }
     }
     assert.ok(isSolved(p, a.board), `${p.id}: the witness solves`);
-    refuse(p, a, {type: 'aim', end: frameAims(q.room, q.frame)[0]}, 'a move after the solve');
+    const solvedBoard = a.board;
+    refuse(p, a, {type: 'launch', start: b.start, end: wrongShot(p, b.start)}, 'a launch after the solve');
 
-    // Hints alone, from fresh and after wrong moves.
-    const fresh = freshAttempt(p);
+    // Each launch is one move, and Undo takes it back.
+    const wrongEnd = wrongShot(p, b.start), wrong = launch(p, fresh, b.start, wrongEnd);
+    assert.equal(wrong.moves, 1, `${p.id}: a launch is a move`);
+    assert.deepEqual(undo(wrong).board, b, `${p.id}: Undo takes a launch back`);
+    refuse(p, wrong, {type: 'launch', start: b.start, end: wrongEnd}, 'the same launch again');
+
+    // Hints alone, from fresh and after wrong launches.
     stats.hintSteps += hintsSolve(p, fresh, 'from fresh');
-    const wrongEnd = wrongShot(p, fresh.board), wrong = play(p, fresh, {type: 'aim', end: wrongEnd});
     stats.hintSteps += hintsSolve(p, wrong, 'after a wrong shot');
-    const cornerEnd = cornerShot(p, fresh.board);
+    const cornerEnd = cornerShot(p, b.start);
     if (cornerEnd) {
-      const c = play(p, fresh, {type: 'aim', end: cornerEnd});
+      const c = launch(p, fresh, b.start, cornerEnd);
       assert.ok(nextHint(p, c).text.startsWith('That shot hits a corner.'), `${p.id}: the hint names the corner`);
       stats.hintSteps += hintsSolve(p, c, 'after a corner hit');
+      if (q.cant) refuse(p, c, {type: 'claim', walls: certificate(q).map(s => s.id).sort()}, 'Can’t after a corner hit');
+      if (q.mode === 'design') refuse(p, c, {type: 'check'}, 'Check on a corner hit');
     }
     if (q.movable) {
-      const other = roomStarts(q.room).find(s => String(s) !== String(q.start));
-      stats.hintSteps += hintsSolve(p, play(p, wrong, {type: 'start', start: other}), 'after moving the start');
+      const other = roomStarts(q.room).find(s => String(s) !== String(q.start) && wrongShot(p, s));
+      stats.hintSteps += hintsSolve(p, launch(p, wrong, other, wrongShot(p, other)), 'after moving the start');
+    }
+    // The remake hint aims at the given shot's spot, stretched (or squeezed).
+    if (q.mode === 'remake') {
+      const [Wg] = SIZE[q.given.room], [Wp] = SIZE[q.room], target = {type: 'launch', start: q.start, end: [(q.given.end[0] * Wp) / Wg, q.given.end[1]]};
+      for (const at of [fresh, wrong]) assert.deepEqual(nextHint(p, at).action, target, `${p.id}: the hint launches at the given spot in the same copy`);
+    }
+    // Can't twins: from fresh and after a wrong shot the first hint launches a
+    // shot that starts the word, whether or not the room can make it.
+    if (q.cant) {
+      for (const at of [fresh, wrong]) {
+        const h = nextHint(p, at), w = wordAt(q, h.action.start, h.action.end);
+        assert.equal(h.action.type, 'launch'); assert.ok(w.startsWith(pre) && !goal(q, w), `${p.id}: the hint first tries ${pre}`);
+        assert.match(h.text, new RegExp(`Try ${[...pre].join(', then ')}:`), `${p.id}: the hint names ${pre}`);
+      }
     }
 
-    // Claims: before a shot, wrong pairs (refused once, kept through Undo), right ones.
+    // Claims: closed until a launch starts the word; every pair can be
+    // claimed once; only the certificate is accepted; a refusal stays through
+    // Undo without its words.
     if (q.cant) {
-      refuse(p, fresh, {type: 'claim', walls: certificate(q).map(s => s.id).sort()}, 'Can’t before a shot');
-      const list = seams(q, wrong.board);
+      const cert = certificate(q).map(s => s.id).sort();
+      refuse(p, fresh, {type: 'claim', walls: cert}, 'Can’t before a launch');
+      refuse(p, wrong, {type: 'claim', walls: cert}, `Can’t after a launch that does not start ${pre}`);
+      const t = prefixShot(p), tried = launch(p, fresh, t.start, t.end), list = seams(q, tried.board);
       let right = 0, total = 0;
       for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) {
         total++;
-        const next = move(p, wrong, {type: 'claim', walls: [list[i].id, list[j].id]});
+        const walls = [list[i].id, list[j].id], next = move(p, tried, {type: 'claim', walls});
         assert.ok(next, `${p.id}: any two walls can be claimed`);
-        if (isSolved(p, next.board)) { right++; continue; }
-        assert.equal(next.board.refused.shown, true);
+        if (isSolved(p, next.board)) { right++; assert.match(screen(p, next), /lie on one line\./); continue; }
+        const f = next.board.refused;
+        assert.equal(f.shown, true);
+        const note = q.room === 'rhombus' && f.why === 'line' ? 'Not on one line.' : `Those two don’t stop ${q.word}.`;
+        assert.ok(screen(p, next).includes(note), `${p.id}: a refused pair says ${note}`);
+        assert.doesNotMatch(screen(p, next), /Not the|walls ABA needs|walls CABA needs/, `${p.id}: a refusal names no wanted wall`);
         if (total <= 3) {
           stats.refusedClaims++;
-          refuse(p, next, {type: 'claim', walls: certificate(q).map(s => s.id).sort()}, 'a second claim on the same shot');
+          refuse(p, next, {type: 'claim', walls: cert}, 'a second claim on the same launch');
           const back = undoApp(p, next);
-          assert.deepEqual(back.board.refused, {...next.board.refused, shown: false}, `${p.id}: Undo keeps the refusal, without its words`);
-          assert.notEqual(mechanicFor(p).render(p, back), mechanicFor(p).render(p, next), `${p.id}: Undo changes the screen`);
-          refuse(p, back, {type: 'claim', walls: certificate(q).map(s => s.id).sort()}, 'a claim after Undo of a refusal');
+          assert.deepEqual(back.board.refused, {...f, shown: false}, `${p.id}: Undo keeps the refusal, without its words`);
+          assert.notEqual(screen(p, back), screen(p, next), `${p.id}: Undo changes the screen`);
+          refuse(p, back, {type: 'claim', walls: cert}, 'a claim after Undo of a refusal');
+          const again = launch(p, back, t.start, wrongShot(p, t.start));
+          assert.equal(again.board.refused, null, `${p.id}: a new launch clears the refusal`);
           stats.hintSteps += hintsSolve(p, next, 'after a refused claim');
           stats.hintSteps += hintsSolve(p, back, 'after Undo of a refused claim');
         }
       }
       assert.equal(right, x.count === 0 ? 1 : 0, `${p.id}: exactly the certificate pair is accepted`);
       // Random two-tap sequences on the walls, as a child tapping at random.
-      let seed = 71, solvedTaps = 0;
-      const rnd = n => { // mulberry32
-        seed = (seed + 0x6D2B79F5) | 0;
-        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-        return Math.floor((((t ^ (t >>> 14)) >>> 0) / 4294967296) * n);
-      };
+      const rnd = random(71);
+      let solvedTaps = 0;
       for (let k = 0; k < 4000; k++) {
         const i = rnd(list.length); let j = rnd(list.length - 1); if (j >= i) j++;
-        const next = move(p, wrong, {type: 'claim', walls: [list[i].id, list[j].id]});
+        const next = move(p, tried, {type: 'claim', walls: [list[i].id, list[j].id]});
         if (next && isSolved(p, next.board)) solvedTaps++;
       }
       stats[`${p.id} certificate`] = {walls: list.length, pairs: total, randomTapSolves: `${solvedTaps} of 4000`};
       assert.ok(solvedTaps / 4000 < 0.02, `${p.id}: random taps rarely solve the certificate`);
     }
-    // Check: refused once per shot, kept through Undo.
+
+    // Check: a refusal shows a square shot with the same word (checked here
+    // by the simulator for every word Check can refuse), and Check stays off
+    // until the word changes; a right Check asks for the two letters (or, with
+    // each wall once, draws why).
     if (q.mode === 'design') {
-      refuse(p, fresh, {type: 'check'}, 'Check before a shot');
-      if (cornerEnd) refuse(p, play(p, fresh, {type: 'aim', end: cornerEnd}), {type: 'check'}, 'Check on a corner hit');
+      refuse(p, fresh, {type: 'check'}, 'Check before a launch');
+      const words = new Map();
+      for (const e of frameAims(q.room, q.frame)) { const w = wordAt(q, q.start, e); if (w && !words.has(w)) words.set(w, e); }
+      let evidence = 0;
+      for (const [w, e] of words) {
+        if (goal(q, w) || (q.four && !fourWalls(w))) continue;
+        assert.ok(lpRectangle(w), `${p.id}: ${w} is refused because a rectangle makes it`);
+        const s = squareShot(w);
+        assert.ok(s, `${p.id}: a square shot with ${w}`);
+        assert.equal(wordAt({room: 'square'}, s.start, s.end), w, `${p.id}: the simulator agrees the square shot spells ${w}`);
+        const no = play(p, launch(p, fresh, q.start, e), {type: 'check'});
+        assert.deepEqual(no.board.refused, {word: w, why: 'rect', shown: true});
+        assert.ok(screen(p, no).includes('A square makes it too.') && screen(p, no).includes(`A square shot with the word ${w}`), `${p.id}: the refusal shows the square shot for ${w}`);
+        evidence++;
+      }
+      stats[`${p.id} refusal evidence`] = `${evidence} words, each checked`;
       const no = play(p, wrong, {type: 'check'});
       assert.ok(!isSolved(p, no.board) && no.board.refused.shown, `${p.id}: a wrong Check is refused`);
-      refuse(p, no, {type: 'check'}, 'Check twice on one shot');
+      refuse(p, no, {type: 'check'}, 'Check twice on one word');
+      // Two shots with one refused word: the second keeps the refusal.
+      const ends = new Map();
+      for (const e of frameAims(q.room, q.frame)) { const w = wordAt(q, q.start, e); if (w && !goal(q, w)) ends.set(w, [...(ends.get(w) ?? []), e]); }
+      const [lockWord, [e1, e2]] = [...ends].find(([, list]) => list.length > 1);
+      const locked = play(p, launch(p, fresh, q.start, e1), {type: 'check'}), sameWord = launch(p, locked, q.start, e2);
+      assert.deepEqual(sameWord.board.refused, locked.board.refused, `${p.id}: a new shot with the same word (${lockWord}) keeps the refusal`);
+      refuse(p, sameWord, {type: 'check'}, 'Check on a new shot with the same word');
+      assert.match(screen(p, sameWord), /data-move='\{"type":"check"\}'[^>]*disabled/, `${p.id}: Check stays off for the same word`);
+      const otherEnd = frameAims(q.room, q.frame).find(e => { const w = wordAt(q, q.start, e); return w && w !== lockWord && !goal(q, w); });
+      const otherWord = launch(p, locked, q.start, otherEnd);
+      assert.equal(otherWord.board.refused, null, `${p.id}: a new word clears the refusal`);
+      assert.ok(move(p, otherWord, {type: 'check'}), `${p.id}: Check opens for a new word`);
       const back = undoApp(p, no);
       assert.equal(back.board.refused?.shown, false, `${p.id}: Undo keeps the refused Check`);
       refuse(p, back, {type: 'check'}, 'Check again after Undo');
       stats.hintSteps += hintsSolve(p, no, 'after a refused Check');
       stats.hintSteps += hintsSolve(p, back, 'after Undo of a refused Check');
+      if (q.four) {
+        // A word that is not four walls is refused with no square shot.
+        const e = [...words].find(([w]) => !fourWalls(w) && !lpRectangle(w))?.[1];
+        if (e) { const f = play(p, launch(p, fresh, q.start, e), {type: 'check'}); assert.equal(f.board.refused.why, 'four'); assert.ok(screen(p, f).includes('Use each wall once.')); }
+        const done = play(p, launch(p, fresh, sol.start, sol.end), {type: 'check'}), w = sol.word;
+        assert.ok(isSolved(p, done.board), `${p.id}: a right Check solves`);
+        const steep = 'AC'.includes(w[0]) ? `${w[0]} to ${w[1]} is steeper than the diagonal and ${w[2]} to ${w[3]} is flatter` : `${w[0]} to ${w[1]} is flatter than the diagonal and ${w[2]} to ${w[3]} is steeper`;
+        assert.ok(screen(p, done).includes(steep) && screen(p, done).includes('am-mini'), `${p.id}: the right Check draws why`);
+        for (const [x1] of [...words].filter(([w2]) => goal(q, w2))) assert.ok(dirOf(x1[0]) === dirOf(x1[1]) && dirOf(x1[2]) === dirOf(x1[3]) && dirOf(x1[0]) !== dirOf(x1[2]), `${p.id}: ${x1} has two of one direction, then two of the other`);
+      } else {
+        // Every answer word: each pair of letters, and random taps.
+        const answerWords = new Map();
+        for (const w of mine) { const word = wordAt(q, w.start, w.end); if (!answerWords.has(word)) answerWords.set(word, w); }
+        const shares = {};
+        for (const [w, shotW] of answerWords) {
+          const checked = play(p, launch(p, fresh, shotW.start, shotW.end), {type: 'check'});
+          assert.ok(!isSolved(p, checked.board) && checked.board.checked, `${p.id}: a right Check on ${w} asks for the letters`);
+          assert.ok(screen(p, checked).includes('Tap the two letters that show why.') && screen(p, checked).includes('data-am-tile="0"'), `${p.id}: the letters are buttons`);
+          const {wall} = unfold('square', w);
+          let rightPairs = 0, pairs = 0;
+          for (let i = 0; i < w.length; i++) for (let j = i + 1; j < w.length; j++) {
+            pairs++;
+            const next = play(p, checked, {type: 'pair', tiles: [i, j]}), geo = w[i] === w[j] && j >= i + 2 && onOneLine(wall(i), wall(j));
+            assert.equal(isSolved(p, next.board), geo, `${p.id}: ${w} letters ${i}, ${j} are accepted exactly when their square walls lie on one line`);
+            assert.equal(returns(w, i, j), geo);
+            if (geo) { rightPairs++; assert.ok(screen(p, next).includes('lie on one line') && screen(p, next).includes('am-mini')); continue; }
+            assert.deepEqual(next.board.refused, {word: w, why: 'pair', tiles: [i, j], shown: true});
+            assert.ok(screen(p, next).includes('Those two don’t show why.'));
+            refuse(p, next, {type: 'pair', tiles: [...[i, j]]}, 'a second pair on the same word');
+            if (pairs === 1) {
+              const back = undoApp(p, next);
+              assert.equal(back.board.refused?.shown, false, `${p.id}: Undo keeps the refused pair`);
+              refuse(p, back, {type: 'pair', tiles: [i, j]}, 'a pair after Undo of a refused pair');
+              stats.hintSteps += hintsSolve(p, next, 'after a refused pair');
+              stats.hintSteps += hintsSolve(p, back, 'after Undo of a refused pair');
+            }
+          }
+          if (['ABAD', 'ABADC', 'BABC', 'ADCD'].includes(w)) assert.ok(rightPairs < pairs - 1, `${p.id}: ${w} leaves a real choice of letters`);
+          const rnd = random(8);
+          let hits = 0;
+          for (let k = 0; k < 2000; k++) { const i = rnd(w.length); let j = rnd(w.length - 1); if (j >= i) j++; if (isSolved(p, play(p, checked, {type: 'pair', tiles: [Math.min(i, j), Math.max(i, j)]}).board)) hits++; }
+          shares[w] = `${rightPairs} of ${pairs} pairs; random taps ${hits} of 2000`;
+          stats.hintSteps += hintsSolve(p, checked, `after a right Check on ${w}`);
+        }
+        stats[`${p.id} letter pairs`] = shares;
+      }
     }
 
     // Illegal moves.
-    const b = fresh.board, aimsHere = frameAims(q.room, q.frame);
+    const aimsHere = frameAims(q.room, q.frame), L = end => ({type: 'launch', start: b.start, end});
     const illegal = [
-      [{type: 'aim', end: [b.start[0] + 1, b.start[1]]}, 'an end off the aim points'],
-      [{type: 'aim', end: [10000, 10000]}, 'an end outside the window'],
-      [{type: 'aim', end: 'here'}, 'an end that is not a point'],
-      [{type: 'aim', end: [1.5, 1]}, 'a fractional end'],
+      [L([b.start[0] + 1, b.start[1]]), 'an end off the aim points'],
+      [L([10000, 10000]), 'an end outside the window'],
+      [L('here'), 'an end that is not a point'],
+      [L([1.5, 1]), 'a fractional end'],
+      [L(null), 'a launch with no end'],
+      [L([...b.start]), 'an end at the start'],
+      [{type: 'launch', end: wrongEnd}, 'a launch with no start'],
+      [{type: 'launch', start: [-1, -1], end: wrongEnd}, 'a start outside the room'],
+      [{type: 'aim', end: wrongEnd}, 'an aim that is not a launch'],
       [{type: 'jump'}, 'an unknown move'],
-      [{type: 'check'}, q.mode === 'design' ? 'Check before a shot' : 'Check outside a design puzzle'],
+      [{type: 'check'}, q.mode === 'design' ? 'Check before a launch' : 'Check outside a design puzzle'],
+      [{type: 'pair', tiles: [0, 2]}, q.mode === 'design' ? 'letters before a right Check' : 'letters outside a design puzzle'],
       [{type: 'claim', walls: ['0,0,10,0', '0,0,10,0']}, 'a claim of one wall twice'],
       [null, 'no move']
     ];
-    if (!q.movable) illegal.push([{type: 'start', start: roomStarts(q.room).find(s => String(s) !== String(q.start))}, 'moving a fixed start']);
-    else illegal.push([{type: 'start', start: [-1, -1]}, 'a start outside the room'], [{type: 'start', start: [...b.start]}, 'a start that does not move']);
+    if (!q.movable) illegal.push([{type: 'launch', start: roomStarts(q.room).find(s => String(s) !== String(q.start)), end: wrongEnd}, 'moving a fixed start']);
     for (const [action, why] of illegal) { refuse(p, fresh, action, why); stats.illegal++; }
-    const shotA = play(p, fresh, {type: 'aim', end: wrongEnd});
-    refuse(p, shotA, {type: 'aim', end: wrongEnd}, 'the same end again'); stats.illegal++;
-    if (!q.cant) { refuse(p, shotA, {type: 'claim', walls: ['a', 'b']}, 'Can’t where there is none'); stats.illegal++; }
-    if (q.cant) { refuse(p, shotA, {type: 'claim', walls: ['1,1,2,2', seams(q, shotA.board)[0].id].sort()}, 'a claim of a wall not drawn'); stats.illegal++; }
-    if (q.mode !== 'design') { refuse(p, shotA, {type: 'check'}, 'Check outside a design puzzle'); stats.illegal++; }
+    if (!q.cant) { refuse(p, wrong, {type: 'claim', walls: ['a', 'b']}, 'Can’t where there is none'); stats.illegal++; }
+    if (q.cant) { const t = prefixShot(p), tried = launch(p, fresh, t.start, t.end); refuse(p, tried, {type: 'claim', walls: ['1,1,2,2', seams(q, tried.board)[0].id].sort()}, 'a claim of a wall not drawn'); stats.illegal++; }
+    if (q.mode !== 'design') { refuse(p, wrong, {type: 'check'}, 'Check outside a design puzzle'); stats.illegal++; }
+    if (q.mode === 'design' && !q.four) {
+      const checked = play(p, launch(p, fresh, sol.start, sol.end), {type: 'check'});
+      for (const [tiles, why] of [[[0, sol.word.length], 'a letter past the word'], [[2, 0], 'letters out of order'], [[1, 1], 'one letter twice'], ['ab', 'letters that are not numbers']]) { refuse(p, checked, {type: 'pair', tiles}, why); stats.illegal++; }
+    }
 
     // Forged saves.
-    const sol = p.solution, solvedBoard = a.board;
     const forged = [
       [{...b, extra: 1}, 'an extra field'],
       [{...b, end: [b.start[0] + 1, b.start[1]]}, 'an end off the aim points'],
       [{...b, end: aimsHere[0].map(v => v + 100000)}, 'an end outside the window'],
+      [{...b, end: [...b.start]}, 'an end at the start'],
       [{...b, start: [0, 0]}, 'a start on a corner'],
       [{...b, start: 'x'}, 'a start that is not a point'],
       ['board', 'a string'],
@@ -502,34 +661,59 @@ export async function validateAims() {
     ];
     if (!q.movable) forged.push([{...b, start: roomStarts(q.room).find(s => String(s) !== String(q.start))}, 'a moved fixed start']);
     if (q.mode === 'design') {
+      const wrongWord = wordAt(q, b.start, wrongEnd), why = q.four && !fourWalls(wrongWord) ? 'four' : 'rect';
       forged.push(
-        [{...b, end: wrongEnd, done: true}, 'a forged done on a rectangle word'],
-        [{...b, done: true}, 'done with no shot'],
-        [{...b, end: sol.end, refused: {why: 'rect', shown: true}}, 'a refusal of a word no rectangle makes'],
-        [{...b, end: wrongEnd, refused: {why: 'right', shown: true}}, 'a refusal with an unknown reason'],
-        [{...solvedBoard, refused: {why: 'rect', shown: false}}, 'done and refused at once'],
-        [{...b, done: 'yes'}, 'a done that is not true or false']
+        [{...b, end: wrongEnd, checked: true, done: true}, 'a forged done on a rectangle word'],
+        [{...b, done: true, checked: true}, 'done with no shot'],
+        [{...b, end: sol.end, refused: {word: sol.word, why: 'rect', shown: true}}, 'a refusal of a word no rectangle makes'],
+        [{...b, end: wrongEnd, refused: {word: wrongWord, why: 'right', shown: true}}, 'a refusal with an unknown reason'],
+        [{...b, end: wrongEnd, refused: {word: wrongWord, why: why === 'four' ? 'rect' : 'four', shown: true}}, 'a refusal with the wrong reason'],
+        [{...b, end: wrongEnd, refused: {word: `${wrongWord}A`, why, shown: true}}, 'a refusal of another word'],
+        [{...b, end: wrongEnd, refused: {why, shown: true}}, 'a refusal with no word'],
+        [{...solvedBoard, refused: {word: sol.word, why: 'rect', shown: false}}, 'done and refused at once'],
+        [{...b, done: 'yes'}, 'a done that is not true or false'],
+        [{...b, checked: 'yes'}, 'a checked that is not true or false'],
+        [{...b, end: wrongEnd, checked: true}, 'a right Check on a rectangle word'],
+        [{...b, end: sol.end, pair: q.four ? [0, 2] : sol.pair}, 'letters with no right Check'],
+        [{...b, end: sol.end, done: true, pair: q.four ? null : sol.pair}, 'done with no Check']
       );
-      const why = q.four && !fourWalls(simulate(q.room, b.start, wrongEnd).word) ? 'four' : 'rect';
-      forged.push([{...b, end: wrongEnd, refused: {why: why === 'four' ? 'rect' : 'four', shown: true}}, 'a refusal with the wrong reason']);
-      if (cornerEnd) forged.push([{...b, end: cornerEnd, refused: {why: 'rect', shown: true}}, 'a refused Check on a corner hit']);
+      if (cornerEnd) forged.push([{...b, end: cornerEnd, refused: {word: simulate(q.room, b.start, cornerEnd).word, why: 'rect', shown: true}}, 'a refused Check on a corner hit']);
+      if (q.four) forged.push(
+        [{...b, end: sol.end, checked: true}, 'a right Check that did not finish'],
+        [{...b, end: sol.end, checked: true, done: true, pair: [0, 2]}, 'letters where none are asked']
+      );
+      else forged.push(
+        [{...b, end: sol.end, checked: true, done: true, pair: [0, 1]}, 'done with letters that do not return'],
+        [{...b, end: sol.end, checked: true, done: true, pair: null}, 'done with no letters'],
+        [{...b, end: sol.end, refused: {word: sol.word, why: 'pair', tiles: [0, 1], shown: true}}, 'refused letters with no Check'],
+        [{...b, end: sol.end, checked: true, refused: {word: sol.word, why: 'pair', tiles: sol.pair, shown: true}}, 'a refusal of the right letters'],
+        [{...b, end: sol.end, checked: true, refused: {word: sol.word, why: 'pair', tiles: [0, 9], shown: true}}, 'refused letters past the word'],
+        [{...b, end: sol.end, checked: true, refused: {word: sol.word, why: 'pair', shown: true}}, 'refused letters with no tiles']
+      );
     }
     if (q.cant) {
-      const list = seams(q, shotA.board), cert = certificate(q).map(s => s.id).sort();
+      const t = prefixShot(p), tried = launch(p, fresh, t.start, t.end).board, list = seams(q, tried), cert = certificate(q).map(s => s.id).sort();
       const notCert = [list[0].id, list[1].id].sort();
       forged.push(
         [{...b, claimed: cert}, 'a claim with no shot'],
-        [{...shotA.board, claimed: notCert}, 'a claimed pair that is not the certificate'],
-        [{...shotA.board, claimed: cert, refused: {walls: notCert, why: judge(q, notCert), shown: true}}, 'a claim both kept and refused'],
-        [{...shotA.board, refused: {walls: notCert, why: judge(q, notCert) === 'line' ? 'walls' : 'line', shown: true}}, 'a refusal with the wrong reason'],
-        [{...shotA.board, refused: {walls: cert, why: 'walls', shown: true}}, 'a refusal of the right pair'],
-        [{...shotA.board, refused: {walls: notCert, why: judge(q, notCert)}}, 'a refusal missing a field'],
-        [{...shotA.board, claimed: [cert[1], cert[0]]}, 'a claim out of order']
+        [{...wrong.board, claimed: cert}, `a claim after a shot that does not start ${pre}`],
+        [{...wrong.board, refused: {walls: notCert, why: judge(q, notCert), shown: true}}, `a refusal after a shot that does not start ${pre}`],
+        [{...tried, claimed: notCert}, 'a claimed pair that is not the certificate'],
+        [{...tried, claimed: cert, refused: {walls: notCert, why: judge(q, notCert), shown: true}}, 'a claim both kept and refused'],
+        [{...tried, refused: {walls: notCert, why: judge(q, notCert) === 'line' ? 'walls' : 'line', shown: true}}, 'a refusal with the wrong reason'],
+        [{...tried, refused: {walls: cert, why: 'walls', shown: true}}, 'a refusal of the right pair'],
+        [{...tried, refused: {walls: notCert, why: judge(q, notCert)}}, 'a refusal missing a field'],
+        [{...tried, claimed: [cert[1], cert[0]]}, 'a claim out of order']
       );
-      if (x.count) forged.push([{...shotA.board, claimed: cert}, 'Can’t on a word the room can make']);
+      if (cornerEnd) forged.push([{...b, end: cornerEnd, claimed: cert}, 'a claim after a corner hit']);
+      if (x.count) forged.push([{...tried, claimed: cert}, 'Can’t on a word the room can make']);
     } else if (q.mode !== 'design') forged.push([{...b, claimed: null}, 'a claim field without Can’t']);
     for (const [board, why] of forged) { assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`); stats.forged++; }
   }
+  // The Can't twins (square and rhombus ABA) have the same first hints.
+  const [square, rhombus] = ['aims-05', 'aims-06'].map(id => pack.puzzles.find(p => p.id === id));
+  assert.equal(square.hints[0], rhombus.hints[0], 'the twins’ first written hints match');
+  assert.equal(nextHint(square, freshAttempt(square)).text, nextHint(rhombus, freshAttempt(rhombus)).text, 'the twins’ first shown hints match');
   return {puzzles: pack.puzzles.length, words, rectangleWords: rect, stretchedShots: stretched, ...stats};
 }
 export default validateAims;

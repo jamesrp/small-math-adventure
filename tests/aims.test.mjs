@@ -1,15 +1,17 @@
 // Mirror Couriers bounce words (dist/families/aims/): exact folding of shots
 // in the square, the wide room and the 60° rhombus; corner hits; which words
-// a rectangle makes; the puzzles' answers; claims, Check and their refusals
-// through Undo; hints and their speed; the board's markup; and the group in
-// the Mirror Couriers library.
+// a rectangle makes; the puzzles' answers; Launch as the move, with only the
+// aim drawn before it; claims after a launch that starts the word, Check with
+// its square evidence and letter pairs, and their refusals through Undo; Can't
+// and Undo leaving the board live; hints and their speed; the board's markup;
+// and the group in the Mirror Couriers library.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
 import {ROOMS, fold, isAim, apply, compose, ID, rectangleWord, roomAims} from '../dist/families/aims/fold.js';
-import aimsModule, {answers, certificate, judge, seams, obstruction, step, frameAims} from '../dist/families/aims/aims.js';
+import aimsModule, {answers, certificate, judge, seams, obstruction, step, frameAims, squareShot} from '../dist/families/aims/aims.js';
 import {libraryView} from '../dist/caravan-ui.js';
 import {loadPack, FAMILIES} from '../scripts/packs.mjs';
 import {simulate, lpRectangle, cutting} from '../scripts/validate-aims.mjs';
@@ -88,35 +90,79 @@ test('every puzzle’s answer count, and a witness that solves', () => {
       a = play(p, a, nextHint(p, a).action);
       a = play(p, a, {type: 'claim', walls: p.solution.walls});
     } else {
-      if (String(p.solution.start) !== String(a.board.start)) a = play(p, a, {type: 'start', start: p.solution.start});
-      a = play(p, a, {type: 'aim', end: p.solution.end});
+      a = play(p, a, {type: 'launch', start: p.solution.start, end: p.solution.end});
       if (p.parameters.mode === 'design') a = play(p, a, {type: 'check'});
+      if (p.solution.pair) a = play(p, a, {type: 'pair', tiles: p.solution.pair});
     }
     assert.ok(isSolved(p, a.board), p.id);
   }
   assert.deepEqual(pack.puzzles.map(p => p.difficulty_level), ['easy', 'easy', 'easy', 'medium', 'medium', 'medium', 'medium', 'medium', 'hard', 'hard', 'hard']);
 });
 
-test('Can’t: only after a shot, the two A walls on one line, one refusal kept through Undo', () => {
-  const p = byId('aims-05'), q = p.parameters, fresh = freshAttempt(p), cert = certificate(q).map(s => s.id).sort();
+test('a launch is one move, and Undo takes it back', () => {
+  const p = byId('aims-01'), fresh = freshAttempt(p), L = end => ({type: 'launch', start: [5, 5], end});
+  const a = play(p, fresh, L([13, 11]));
+  assert.equal(a.moves, 1);
+  assert.ok(isSolved(p, a.board));
+  assert.deepEqual(undo(a).board, fresh.board);
+  // A corner hit is decided at the launch, and costs one.
+  const c = play(p, fresh, L([15, 15]));
+  assert.equal(c.moves, 1);
+  assert.ok(fold('square', [5, 5], [15, 15]).corner && !isSolved(p, c.board));
+  assert.match(mechanicFor(p).render(p, c), /That shot hits a corner\./);
+  assert.equal(move(p, c, L([15, 15])), null, 'the same launch again');
+  assert.equal(move(p, fresh, {type: 'launch', start: [7, 5], end: [13, 11]}), null, 'a fixed start stays');
+  assert.equal(move(p, fresh, {type: 'aim', end: [13, 11]}), null, 'aiming is not a move');
+});
+
+test('while aiming only the straight aim is drawn; Launch draws the rest', () => {
+  for (const id of ['aims-01', 'aims-03', 'aims-07']) {
+    const p = byId(id), m = mechanicFor(p), q = p.parameters, end = p.solution.end;
+    m.reset(p);
+    const fresh = freshAttempt(p);
+    m.render(p, fresh);
+    m.ui(p, {aim: {start: q.start, end}});
+    const html = m.render(p, fresh);
+    assert.match(html, /class="am-aim"/, `${id}: the aim line`);
+    assert.match(html, /class="am-end aim"/, `${id}: the snapped end`);
+    for (const drawn of ['am-hit', 'am-shot"', 'am-wall crossed', 'am-copy passed', 'am-fold-path']) assert.ok(!html.slice(html.indexOf('data-am-board')).includes(drawn), `${id}: no ${drawn} while aiming`);
+    assert.match(html, /aria-label="Not launched"/, `${id}: no word while aiming`);
+    if (q.room !== 'rhombus') assert.equal((html.match(/class="am-lab/g) || []).length > 4, true, `${id}: the copies and letters stay`);
+    else assert.equal((html.slice(html.indexOf('data-am-board')).match(/class="am-copy/g) || []).length, 1, `${id}: the rhombus room alone`);
+    const launch = html.match(/<button[^>]*am-launch[^>]*>/)[0];
+    assert.doesNotMatch(launch, /disabled/);
+    assert.deepEqual(JSON.parse(launch.match(/data-move='([^']*)'/)[1]), {type: 'launch', start: q.start, end});
+    const a = play(p, fresh, {type: 'launch', start: q.start, end}), after = m.render(p, a);
+    assert.match(after, /class="am-hit/); assert.match(after, /am-wall crossed/); assert.match(after, /class="am-fold-path"/);
+    assert.doesNotMatch(after, /class="am-aim"/);
+  }
+});
+
+test('Can’t: after a launch that starts the word, the two A walls on one line, one refusal kept through Undo', () => {
+  const p = byId('aims-05'), q = p.parameters, fresh = freshAttempt(p), cert = certificate(q).map(s => s.id).sort(), L = end => ({type: 'launch', start: [5, 5], end});
   assert.deepEqual(cert, ['-10,0,0,0', '0,0,10,0'], 'the room’s A wall and the A wall after A, B');
   assert.equal(move(p, fresh, {type: 'claim', walls: cert}), null, 'not on a fresh board');
-  const shot = play(p, fresh, {type: 'aim', end: [3, -7]});
+  const justA = play(p, fresh, L([3, -7]));
   assert.equal(fold('square', [5, 5], [3, -7]).word, 'A');
-  // Two A walls on one line, but not the ones ABA needs.
+  assert.equal(move(p, justA, {type: 'claim', walls: cert}), null, 'not before a launch gets as far as A, B');
+  assert.match(mechanicFor(p).render(p, justA), /class="secondary am-cant"[^>]*disabled/);
+  const shot = play(p, fresh, L([-1, -9]));
+  assert.equal(fold('square', [5, 5], [-1, -9]).word, 'AB');
+  assert.doesNotMatch(mechanicFor(p).render(p, shot), /class="secondary am-cant"[^>]*disabled/);
+  // Two A walls on one line, but not the ones ABA needs: the same refusal.
   const wrong = play(p, shot, {type: 'claim', walls: ['0,0,10,0', '10,0,20,0']});
   assert.deepEqual(wrong.board.refused, {walls: ['0,0,10,0', '10,0,20,0'], why: 'walls', shown: true});
-  assert.match(mechanicFor(p).render(p, wrong), /Not the A walls ABA needs\./);
-  assert.equal(move(p, wrong, {type: 'claim', walls: cert}), null, 'one claim per shot');
+  assert.match(mechanicFor(p).render(p, wrong), /Those two don’t stop ABA\./);
+  assert.equal(move(p, wrong, {type: 'claim', walls: cert}), null, 'one claim per launch');
   const back = undoApp(p, wrong);
   assert.equal(back.board.refused.shown, false);
-  assert.doesNotMatch(mechanicFor(p).render(p, back), /Not the A walls/, 'Undo hides the words');
+  assert.doesNotMatch(mechanicFor(p).render(p, back), /don’t stop/, 'Undo hides the words');
   assert.equal(move(p, back, {type: 'claim', walls: cert}), null, 'and keeps the lock');
   const line = play(p, shot, {type: 'claim', walls: ['0,0,0,10', '0,0,10,0']});
   assert.equal(line.board.refused.why, 'line');
-  assert.match(mechanicFor(p).render(p, line), /Not on one line\./);
-  // A new shot clears the refusal; the right pair solves and draws the line.
-  const again = play(p, wrong, {type: 'aim', end: [-3, -7]});
+  assert.match(mechanicFor(p).render(p, line), /Those two don’t stop ABA\./, 'a rectangle refusal does not say which test failed');
+  // A new launch clears the refusal; the right pair solves and draws the line.
+  const again = play(p, wrong, L([-3, -9]));
   assert.equal(again.board.refused, null);
   const right = play(p, again, {type: 'claim', walls: cert});
   assert.ok(isSolved(p, right.board));
@@ -124,30 +170,86 @@ test('Can’t: only after a shot, the two A walls on one line, one refusal kept 
   assert.match(html, /class="am-proof"/); assert.equal((html.match(/class="am-proved"/g) || []).length, 2);
   assert.match(html, /Both A walls lie on one line\./);
   // In the rhombus the same two walls are not on one line.
-  const r = byId('aims-06'), rq = r.parameters, rs = play(r, freshAttempt(r), {type: 'aim', end: [4, -5]});
+  const r = byId('aims-06'), rq = r.parameters, rs = play(r, freshAttempt(r), {type: 'launch', start: [7, 7], end: [4, -17]});
+  assert.equal(fold('rhombus', [7, 7], [4, -17]).word, 'AB');
   const rc = certificate(rq).map(s => s.id).sort();
-  assert.notEqual(judge(rq, rc), 'right');
-  assert.ok(seams(rq, rs.board).length >= 8);
+  assert.equal(judge(rq, rc), 'line');
+  assert.match(mechanicFor(r).render(r, play(r, rs, {type: 'claim', walls: rc})), /Not on one line\./);
+  const list = seams(rq, rs.board), level = list.filter(s => s.a[1] === s.b[1]);
+  const pair = level.flatMap((s, i) => level.slice(i + 1).map(t => [s, t])).find(([s, t]) => judge(rq, [s.id, t.id].sort()) === 'walls');
+  if (pair) assert.match(mechanicFor(r).render(r, play(r, rs, {type: 'claim', walls: pair.map(s => s.id).sort()})), /Those two don’t stop ABA\./, 'a collinear rhombus pair');
+  assert.ok(list.length >= 8);
 });
 
-test('Check judges a design shot once, and a refusal stays through Undo', () => {
-  const p = byId('aims-08'), fresh = freshAttempt(p);
+test('after Can’t and Undo the board still answers taps', () => {
+  const p = byId('aims-05'), m = mechanicFor(p), fresh = freshAttempt(p);
+  m.reset(p);
+  const shot = play(p, fresh, {type: 'launch', start: [5, 5], end: [-1, -9]});
+  m.render(p, shot);
+  m.ui(p, {claiming: true});
+  assert.match(m.render(p, shot), /am-pick/, 'Can’t opens the walls');
+  const back = undo(shot);
+  let html = m.render(p, back);
+  assert.doesNotMatch(html, /am-pick|Tap two walls/, 'Undo closes them');
+  m.ui(p, {claiming: true});
+  html = m.render(p, back);
+  assert.doesNotMatch(html, /am-pick/, 'Can’t can’t open with nothing launched');
+  // A stale Can’t (the board changed under it) is dropped too.
+  m.render(p, shot); m.ui(p, {claiming: true});
+  const other = play(p, shot, {type: 'launch', start: [5, 5], end: [3, -7]});
+  assert.doesNotMatch(m.render(p, other), /am-pick/);
+  m.ui(p, {aim: {start: [5, 5], end: [-3, -9]}});
+  assert.match(m.render(p, other), /class="am-aim"/, 'aiming still works');
+});
+
+test('Check: a refusal shows a square shot and stays until the word changes; a right one asks why', () => {
+  const p = byId('aims-08'), q = p.parameters, fresh = freshAttempt(p), L = end => ({type: 'launch', start: [7, 7], end});
   assert.equal(move(p, fresh, {type: 'check'}), null, 'nothing to check');
-  const rectWord = frameAims('rhombus', p.parameters.frame).find(e => { const r = fold('rhombus', [7, 7], e); return !r.corner && r.word.length && rectangleWord(r.word); });
-  const a = play(p, fresh, {type: 'aim', end: rectWord}), no = play(p, a, {type: 'check'});
-  assert.deepEqual(no.board.refused, {why: 'rect', shown: true});
-  assert.match(mechanicFor(p).render(p, no), /A rectangle can make it too\./);
+  const [e1, e2] = frameAims('rhombus', q.frame).filter(e => { const r = fold('rhombus', [7, 7], e); return !r.corner && r.inside && r.word === 'A'; });
+  const no = play(p, play(p, fresh, L(e1)), {type: 'check'});
+  assert.deepEqual(no.board.refused, {word: 'A', why: 'rect', shown: true});
+  const html = mechanicFor(p).render(p, no);
+  assert.match(html, /A square makes it too\./); assert.match(html, /class="am-mini"[^>]*aria-label="A square shot with the word A"/);
+  const sq = squareShot('A');
+  assert.equal(simulate('square', sq.start, sq.end).word, 'A');
+  const same = play(p, no, L(e2));
+  assert.deepEqual(same.board.refused, no.board.refused, 'another shot with the same word');
+  assert.equal(move(p, same, {type: 'check'}), null, 'Check stays off for the same word');
+  const aa = frameAims('rhombus', q.frame).find(e => fold('rhombus', [7, 7], e).word === 'AD' && !fold('rhombus', [7, 7], e).corner);
+  const changed = play(p, same, L(aa));
+  assert.equal(changed.board.refused, null);
+  assert.ok(move(p, changed, {type: 'check'}), 'a new word opens Check');
   const back = undoApp(p, no);
   assert.equal(back.board.refused.shown, false);
   assert.equal(move(p, back, {type: 'check'}), null);
-  const aba = answers(p.parameters).find(w => fold('rhombus', w.start, w.end).word === 'ABA');
-  const yes = play(p, play(p, back, {type: 'aim', end: aba.end}), {type: 'check'});
-  assert.ok(isSolved(p, yes.board));
+  // ABAD: a right Check, then the two A’s (not A and D, not B and D).
+  const abad = answers(q).find(w => fold('rhombus', w.start, w.end).word === 'ABAD');
+  const checked = play(p, play(p, back, L(abad.end)), {type: 'check'});
+  assert.ok(checked.board.checked && !isSolved(p, checked.board));
+  assert.match(mechanicFor(p).render(p, checked), /Tap the two letters that show why\./);
+  assert.equal((mechanicFor(p).render(p, checked).match(/data-am-tile=/g) || []).length, 4);
+  mechanicFor(p).ui(p, {aim: {start: [7, 7], end: e1}});
+  const aimingHtml = mechanicFor(p).render(p, checked);
+  assert.match(aimingHtml, /class="am-aim"/);
+  assert.equal((aimingHtml.match(/data-am-tile=/g) || []).length, 4, 'the letters stay while aiming elsewhere');
+  const bad = play(p, checked, {type: 'pair', tiles: [1, 3]});
+  assert.equal(bad.board.refused.why, 'pair');
+  assert.match(mechanicFor(p).render(p, bad), /Those two don’t show why\./);
+  assert.equal(move(p, bad, {type: 'pair', tiles: [0, 2]}), null, 'one pair per word');
+  const good = play(p, checked, {type: 'pair', tiles: [0, 2]});
+  assert.ok(isSolved(p, good.board));
+  assert.match(mechanicFor(p).render(p, good), /the two A walls would lie on one line/);
+  assert.match(mechanicFor(p).render(p, good), /aria-label="In the square’s copies the two A walls of ABA lie on one line"/);
+  // All four walls: ABA is refused for its walls, ACDB is drawn.
   const four = byId('aims-11'), f = freshAttempt(four);
   const notFour = frameAims('rhombus', four.parameters.frame).find(e => { const r = fold('rhombus', [7, 7], e); return !r.corner && r.inside && r.word === 'ABA'; });
-  const refused = play(four, play(four, f, {type: 'aim', end: notFour}), {type: 'check'});
+  const refused = play(four, play(four, f, {type: 'launch', start: [7, 7], end: notFour}), {type: 'check'});
   assert.equal(refused.board.refused.why, 'four');
   assert.match(mechanicFor(four).render(four, refused), /Use each wall once\./);
+  const acdb = play(four, play(four, f, {type: 'launch', start: [7, 7], end: [46, -38]}), {type: 'check'});
+  assert.ok(isSolved(four, acdb.board));
+  assert.match(mechanicFor(four).render(four, acdb), /A to C is steeper than the diagonal and D to B is flatter\./);
+  assert.match(mechanicFor(four).render(four, acdb), /class="am-diag"/);
 });
 
 test('hints solve every puzzle, quickly, and never open with Can’t', () => {
@@ -173,7 +275,9 @@ test('the board markup: no highlighted taps, focusable walls after Can’t, one 
   let html = m.render(p, fresh);
   assert.match(html, /class="secondary am-cant"[^>]*disabled>Can’t/);
   assert.doesNotMatch(html, /\b\d+ of \d+\b/, 'no counter');
-  const a = play(p, fresh, {type: 'aim', end: [10, 15]});
+  const a = play(p, fresh, {type: 'launch', start: [10, 5], end: [-2, 25]});
+  assert.equal(fold('wide', [10, 5], [-2, 25]).word, 'CAB');
+  m.render(p, a);
   m.ui(p, {claiming: true});
   html = m.render(p, a);
   const picks = html.match(/class="am-pick[^"]*"/g) || [];
@@ -181,15 +285,17 @@ test('the board markup: no highlighted taps, focusable walls after Can’t, one 
   assert.ok(picks.every(c => c === 'class="am-pick"'), 'none is marked before it is tapped');
   assert.match(html, /tabindex="0" role="button" data-seam=/);
   assert.match(html, /Tap two walls\./);
-  m.ui(p, {pick: seams(p.parameters, a.board)[3].id});
+  const third = seams(p.parameters, a.board)[3];
+  m.ui(p, {pick: third.id});
   assert.equal((m.render(p, a).match(/am-pick picked/g) || []).length, 1);
+  assert.match(m.render(p, a), /aria-label="[ABCD] wall of (the room|the copy \d (left|right)( and \d (up|down))?|the copy \d (up|down))"/, 'walls are named by copy');
   m.reset(p);
   assert.doesNotMatch(m.render(p, a), /am-pick/);
   // Remakes show the other room’s shot, and Stretch only after the solve.
   const r = byId('aims-07'), rm = mechanicFor(r);
   assert.match(rm.render(r, freshAttempt(r)), /class="am-given"/);
   assert.doesNotMatch(rm.render(r, freshAttempt(r)), /am-stretch/);
-  const solved = play(r, freshAttempt(r), {type: 'aim', end: r.solution.end});
+  const solved = play(r, freshAttempt(r), {type: 'launch', start: r.solution.start, end: r.solution.end});
   assert.match(rm.render(r, solved), /data-am-stretch aria-pressed="false"[^>]*>Stretch</);
   assert.match(rm.render(r, solved), /class="am-shot ghost"/, 'the stretched shot is drawn over the child’s');
   for (const q of pack.puzzles) assert.ok(q.visibleObjective.length < 70, `${q.id}: a short objective`);
@@ -209,10 +315,14 @@ test('arrow keys move to the nearest aim within 45° of the arrow', () => {
 
 test('saves: forged boards and moves after the solve are refused', () => {
   const p = byId('aims-11'), b = freshAttempt(p).board;
-  assert.equal(validBoard(p, {...b, end: [46, -38], done: false}), true);
-  assert.equal(validBoard(p, {...b, end: [46, -38], done: true}), true, 'ACDB, each wall once');
+  assert.equal(validBoard(p, {...b, end: [46, -38]}), true);
+  assert.equal(validBoard(p, {...b, end: [46, -38], checked: true, done: true}), true, 'ACDB, each wall once');
   assert.equal(fold('rhombus', [7, 7], [46, -38]).word, 'ACDB');
-  assert.equal(validBoard(p, {...b, end: [4, -5], done: true}), false, 'a forged done');
+  assert.equal(validBoard(p, {...b, end: [46, -38], done: true}), false, 'done with no Check');
+  assert.equal(validBoard(p, {...b, end: [4, -5], checked: true, done: true}), false, 'a forged done');
+  const d = byId('aims-08'), db = freshAttempt(d).board;
+  assert.equal(validBoard(d, {...db, end: [-11, -17], checked: true, done: true, pair: [0, 2]}), true, 'ABAD with its two A’s');
+  assert.equal(validBoard(d, {...db, end: [-11, -17], checked: true, done: true, pair: [1, 3]}), false, 'ABAD with B and D');
   const t = byId('aims-05'), tb = freshAttempt(t).board;
   assert.equal(validBoard(t, {...tb, end: [3, -7], claimed: ['0,0,10,0', '10,0,20,0']}), false, 'a forged claim');
   assert.equal(validBoard(t, {...tb, claimed: ['-10,0,0,0', '0,0,10,0']}), false, 'a claim before any shot');

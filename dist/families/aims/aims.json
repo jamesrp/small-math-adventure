@@ -68,7 +68,7 @@
    "objective": "Make a shot in the square whose word is DC.",
    "visibleObjective": "Make a shot with this word.",
    "instruction": "Make a shot in the square whose word is DC.",
-   "controls": "A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to choose where the shot ends; arrow keys move the end too.",
+   "controls": "A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to aim, then press Launch (or Enter) to send the shot; arrow keys move the aim too.",
    "rules": [
     "A shot starts inside the room and goes straight until it meets a wall.",
     "At a wall it bounces like light in a mirror: in the mirror copies of the room it runs straight on.",
@@ -137,7 +137,7 @@
    "objective": "Make a shot in the square whose word is CBA.",
    "visibleObjective": "Make a shot with this word.",
    "instruction": "Make a shot in the square whose word is CBA.",
-   "controls": "A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to choose where the shot ends; arrow keys move the end too.",
+   "controls": "A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to aim, then press Launch (or Enter) to send the shot; arrow keys move the aim too.",
    "rules": [
     "A shot starts inside the room and goes straight until it meets a wall.",
     "At a wall it bounces like light in a mirror: in the mirror copies of the room it runs straight on.",
@@ -148,7 +148,7 @@
    "hints": [
     "C is the top wall. After C, which copy is the shot in?",
     "Go up through C, then left through that copy’s B wall, then up through A.",
-    "End the shot two copies up and one to the left."
+    "Aim two copies up and one to the left, then launch."
    ],
    "parent": {
     "notice": "Whether your child plans the copies from the letters, or drags until the word appears.",
@@ -206,13 +206,13 @@
    "objective": "Make a shot in the rhombus whose word is AB.",
    "visibleObjective": "Make a shot with this word.",
    "instruction": "Make a shot in the rhombus whose word is AB.",
-   "controls": "A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to choose where the shot ends; arrow keys move the end too.",
+   "controls": "A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to aim, then press Launch (or Enter) to send the shot; arrow keys move the aim too.",
    "rules": [
     "A shot starts inside the room and goes straight until it meets a wall.",
     "At a wall it bounces like light in a mirror: in the mirror copies of the room it runs straight on.",
     "Its word is the walls it meets, in order. A shot that meets a corner is not allowed."
    ],
-   "idea": "The rhombus folds the same way: its copies are mirror images across each wall, though they lie at slants. The copies appear as the shot reaches them.",
+   "idea": "The rhombus folds the same way: its copies are mirror images across each wall, though they lie at slants. The copies along a shot appear when it is launched.",
    "prerequisites": "Bounce words puzzle 2.",
    "hints": [
     "A is the bottom wall. Shoot down through it and look at the new copy.",
@@ -275,7 +275,7 @@
    "objective": "Make a shot in the square whose word is ACB.",
    "visibleObjective": "Make a shot with this word.",
    "instruction": "Make a shot in the square whose word is ACB.",
-   "controls": "A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to choose where the shot ends; arrow keys move the end too.",
+   "controls": "A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to aim, then press Launch (or Enter) to send the shot; arrow keys move the aim too.",
    "rules": [
     "A shot starts inside the room and goes straight until it meets a wall.",
     "At a wall it bounces like light in a mirror: in the mirror copies of the room it runs straight on.",
@@ -286,7 +286,7 @@
    "hints": [
     "A, then C, then B: the shot crosses two walls going down before any side wall.",
     "It must be very steep, and lean just a little to the left.",
-    "End the shot two copies down and one to the left, close to the B wall."
+    "Aim two copies down and one to the left, close to the B wall."
    ],
    "parent": {
     "notice": "Whether your child makes AC first and then leans the shot until B comes before the next A.",
@@ -346,7 +346,7 @@
    "objective": "Make a shot in the square whose word is ABA, or say it can’t be done.",
    "visibleObjective": "Make a shot with this word.",
    "instruction": "Make a shot in the square whose word is ABA, or say it can’t be done.",
-   "controls": "A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to choose where the shot ends; arrow keys move the end too. Drag the start dot to move it (with a keyboard, Shift and an arrow key). After a shot, Can’t says the word can’t be made: then tap the two walls that show why. A wrong pair is refused, and Can’t waits for a new shot.",
+   "controls": "A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to aim, then press Launch (or Enter) to send the shot; arrow keys move the aim too. Drag the start dot to move it (with a keyboard, Shift and an arrow key). Can’t opens after a launch whose word starts AB. Press it if you think ABA can’t be made, then tap the two walls that show why. A wrong pair is refused, and Can’t waits for a new launch.",
    "rules": [
     "A shot starts inside the room and goes straight until it meets a wall.",
     "At a wall it bounces like light in a mirror: in the mirror copies of the room it runs straight on.",
@@ -412,7 +412,7 @@
    "objective": "Make a shot in the rhombus whose word is ABA, or say it can’t be done.",
    "visibleObjective": "Make a shot with this word.",
    "instruction": "Make a shot in the rhombus whose word is ABA, or say it can’t be done.",
-   "controls": "A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to choose where the shot ends; arrow keys move the end too. Drag the start dot to move it (with a keyboard, Shift and an arrow key). After a shot, Can’t says the word can’t be made: then tap the two walls that show why. A wrong pair is refused, and Can’t waits for a new shot.",
+   "controls": "A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to aim, then press Launch (or Enter) to send the shot; arrow keys move the aim too. Drag the start dot to move it (with a keyboard, Shift and an arrow key). Can’t opens after a launch whose word starts AB. Press it if you think ABA can’t be made, then tap the two walls that show why. A wrong pair is refused, and Can’t waits for a new launch.",
    "rules": [
     "A shot starts inside the room and goes straight until it meets a wall.",
     "At a wall it bounces like light in a mirror: in the mirror copies of the room it runs straight on.",
@@ -498,7 +498,7 @@
    "objective": "Make a shot in the wide room with the same word as the shot in the square, DCB.",
    "visibleObjective": "Make the same word in the wide room.",
    "instruction": "Make a shot in the wide room with the same word as the shot in the square, DCB.",
-   "controls": "A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to choose where the shot ends; arrow keys move the end too. The shot above is in the square. After the solve, Stretch stretches its picture across.",
+   "controls": "A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to aim, then press Launch (or Enter) to send the shot; arrow keys move the aim too. The shot above is in the square. After the solve, Stretch stretches its picture across.",
    "rules": [
     "A shot starts inside the room and goes straight until it meets a wall.",
     "At a wall it bounces like light in a mirror: in the mirror copies of the room it runs straight on.",
@@ -509,7 +509,7 @@
    "hints": [
     "The square shot ends in the copy two across and one up.",
     "In the wide copies, the same copy is two across and one up too.",
-    "End the shot at the same spot in that copy."
+    "Aim at the same spot in that copy and launch."
    ],
    "parent": {
     "notice": "Whether your child first copies the direction of the square shot (which gives another word) and then copies its copy and spot.",
@@ -563,10 +563,10 @@
      18
     ]
    },
-   "objective": "Make a shot in the rhombus whose word no rectangle can make, and press Check.",
+   "objective": "Make a shot in the rhombus whose word no rectangle can make, press Check, and tap the two letters that show why.",
    "visibleObjective": "Make a word no rectangle can make.",
-   "instruction": "Make a shot in the rhombus whose word no rectangle can make, and press Check.",
-   "controls": "A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to choose where the shot ends; arrow keys move the end too. Check asks whether some rectangle could make the shot’s word too. A refused Check waits for a new shot.",
+   "instruction": "Make a shot in the rhombus whose word no rectangle can make, press Check, and tap the two letters that show why.",
+   "controls": "A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to aim, then press Launch (or Enter) to send the shot; arrow keys move the aim too. Check asks whether some rectangle could make the launched word too. A refused Check shows a square shot with the same word, and Check waits for a new word. After a right Check, tap the two letters of the word that show why no rectangle makes it.",
    "rules": [
     "A shot starts inside the room and goes straight until it meets a wall.",
     "At a wall it bounces like light in a mirror: in the mirror copies of the room it runs straight on.",
@@ -577,13 +577,13 @@
    "hints": [
     "Which word did a rectangle never make?",
     "ABA can’t happen in any rectangle.",
-    "Make ABA near the sharp corner, then press Check."
+    "Make ABA near the sharp corner, press Check, and tap its two A’s."
    ],
    "parent": {
     "notice": "Whether your child uses ABA from the earlier puzzles, or finds a new kind of word.",
     "prompt": "How do you know no rectangle, of any shape, can make it?",
     "explanation": "In every rectangle the A and C walls take turns along a shot, and so do B and D: a straight line crosses evenly spaced lines in order. A word breaking that rule (ABA, BAB) can’t come from a rectangle of any shape.",
-    "extension": "Is there a word the square can make that the rhombus can’t? (ACB is one: in the rhombus a shot that crosses A and then C leans too far to reach B next.)",
+    "extension": "Is there a word the square can make that the rhombus can’t? (ACB is one: from A to the copy’s C the shot drifts left by less than half a side per height, slower than the next copy’s B wall leans, so it can’t reach B.)",
     "connection": "Week 71 Problem 3 as a design goal; the review card’s first fix lists the words that rule rooms out.",
     "sourceIds": [
      "aims-week71",
@@ -601,6 +601,10 @@
      -17
     ],
     "word": "ABADC",
+    "pair": [
+     0,
+     2
+    ],
     "shots": 64
    },
    "provenance": "Week 71 Problem 3 (\"rooms not ruled out\"), as a design goal checked against every rectangle word.",
@@ -652,7 +656,7 @@
    "objective": "Make a shot in the square with the same word as the shot in the wide room, BDC.",
    "visibleObjective": "Make the same word in the square.",
    "instruction": "Make a shot in the square with the same word as the shot in the wide room, BDC.",
-   "controls": "A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to choose where the shot ends; arrow keys move the end too. The shot above is in the wide room. After the solve, Squeeze squeezes its picture across.",
+   "controls": "A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to aim, then press Launch (or Enter) to send the shot; arrow keys move the aim too. The shot above is in the wide room. After the solve, Squeeze squeezes its picture across.",
    "rules": [
     "A shot starts inside the room and goes straight until it meets a wall.",
     "At a wall it bounces like light in a mirror: in the mirror copies of the room it runs straight on.",
@@ -663,7 +667,7 @@
    "hints": [
     "The wide shot ends in the copy two to the left and one up.",
     "Find the same copy among the square copies.",
-    "End the shot at the same spot in that copy, close to its C wall."
+    "Aim at the same spot in that copy, close to its C wall."
    ],
    "parent": {
     "notice": "Whether your child uses the same copy and spot, or searches the few spots that work.",
@@ -723,7 +727,7 @@
    "objective": "Make a shot in the wide room whose word is CABA, or say it can’t be done.",
    "visibleObjective": "Make a shot with this word.",
    "instruction": "Make a shot in the wide room whose word is CABA, or say it can’t be done.",
-   "controls": "A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to choose where the shot ends; arrow keys move the end too. Drag the start dot to move it (with a keyboard, Shift and an arrow key). After a shot, Can’t says the word can’t be made: then tap the two walls that show why. A wrong pair is refused, and Can’t waits for a new shot.",
+   "controls": "A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to aim, then press Launch (or Enter) to send the shot; arrow keys move the aim too. Drag the start dot to move it (with a keyboard, Shift and an arrow key). Can’t opens after a launch whose word starts CAB. Press it if you think CABA can’t be made, then tap the two walls that show why. A wrong pair is refused, and Can’t waits for a new launch.",
    "rules": [
     "A shot starts inside the room and goes straight until it meets a wall.",
     "At a wall it bounces like light in a mirror: in the mirror copies of the room it runs straight on.",
@@ -787,7 +791,7 @@
    "objective": "Make a shot in the rhombus that meets each wall once, with a word no rectangle can make, and press Check.",
    "visibleObjective": "Make a word with each wall once that no rectangle can make.",
    "instruction": "Make a shot in the rhombus that meets each wall once, with a word no rectangle can make, and press Check.",
-   "controls": "A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to choose where the shot ends; arrow keys move the end too. Check asks whether some rectangle could make the shot’s word too. A refused Check waits for a new shot.",
+   "controls": "A shot goes straight from the start and bounces off each wall like light off a mirror. In the picture it runs straight on into a mirror copy of the room instead. The walls it crosses, in order, spell its word, and the small room beside the word shows the same shot bouncing. A shot that hits a corner doesn’t count. Drag or tap in the copies to aim, then press Launch (or Enter) to send the shot; arrow keys move the aim too. Check asks whether some rectangle could make the launched word too. A refused Check shows a square shot with the same word, and Check waits for a new word. A right Check draws why no rectangle makes it.",
    "rules": [
     "A shot starts inside the room and goes straight until it meets a wall.",
     "At a wall it bounces like light in a mirror: in the mirror copies of the room it runs straight on.",
