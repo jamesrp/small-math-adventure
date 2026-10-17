@@ -8,7 +8,7 @@
 // Run: node scripts/validate-chips.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
+import {freshAttempt, move, isSolved, nextHint, validBoard, undo, undoPress} from '../dist/engine.js';
 import {isExpansion, mechanicFor} from '../dist/expansion.js';
 import {BOARDS, PLAYGROUND_BOARDS, GRID, answers, settleGrid, stillRun, stillAnswers} from '../dist/families/chips/chips.js';
 import {loadPack} from './packs.mjs';
@@ -96,7 +96,7 @@ function expected(p) {
 
 // A small seeded random source, so a failure can be replayed.
 function seeded(seed) { let x = seed >>> 0; return () => { x = (x * 1664525 + 1013904223) >>> 0; return x / 2 ** 32; }; }
-// Undo as the app does it (dist/main.js): one step back, then the mechanic's carry.
+// One step of Undo as the app takes it (undoPress in dist/engine.js): back a step, then the mechanic's carry.
 const takeBack = (p, a) => { const b = undo(a); return b === a ? a : {...b, board: mechanicFor(p).carry(p, a.board, b.board)}; };
 const play = (p, a, actions) => actions.reduce((x, action) => { const next = move(p, x, action); assert.ok(next && next !== x, `${p.id}: ${JSON.stringify(action)} is legal`); return next; }, a);
 const cpu = () => { const t = process.cpuUsage(); return (t.user + t.system) / 1000; };
@@ -350,15 +350,16 @@ function wander(p, seed, length) {
 }
 
 
-// Every Undo changes what the family draws: play a sequence, then Undo to the
-// start, comparing the family's own render before and after each step. Returns
-// the Undo numbers that changed nothing.
+// Every Undo changes what the family draws: play a sequence, then press Undo
+// to the start as the app does (undoPress, drawing with the family's own
+// render), comparing before and after each press. Returns the presses that
+// changed nothing and the number of presses.
 function undoTrail(p, actions) {
   const m = mechanicFor(p), view = a => m.render(p, {...a, hintLevel: 0}, {});
-  let a = play(p, freshAttempt(p), actions), shown = view(a);
+  let a = play(p, freshAttempt(p), actions), shown = view(a), k = 0;
   const still = [];
-  for (let k = 1; a.history.length; k++) { a = takeBack(p, a); const now = view(a); if (now === shown) still.push(k); shown = now; }
-  return still;
+  while (a.history.length) { k++; a = undoPress(p, a, view); const now = view(a); if (now === shown) still.push(k); shown = now; }
+  return {still, presses: k};
 }
 function checkUndoTrails(byId) {
   const f = node => ({type: 'fire', node}), add = node => ({type: 'add', node}), drop = {type: 'drop'}, again = {type: 'again'};
@@ -372,16 +373,16 @@ function checkUndoTrails(byId) {
   };
   const report = {};
   for (const [label, [id, actions]] of Object.entries(trails)) {
-    const still = undoTrail(byId(id), actions);
+    const {still} = undoTrail(byId(id), actions);
     assert.deepEqual(still, [], `${label}: Undo ${still.join(', ')} changed nothing`);
     report[label] = 'every Undo changes the board';
   }
-  // Known gap (spec, Not yet done): a refusal, then the shelf completed, then
-  // Undo back over the claim press: the refusal no longer applies and nothing
-  // is drawn for it, so that one Undo shows no change. Recorded so a fix shows.
-  const gap = undoTrail(byId('chips-01'), [f('A'), f('B'), {type: 'all'}, again, f('B'), f('A')]);
-  assert.deepEqual(gap, [4], 'chips-01: only the Undo of a refused claim after the shelf was completed shows no change');
-  report['chips-01 refusal, then the shelf completed'] = `Undo ${gap.join(', ')} shows no change (known gap)`;
+  // A refusal, then the shelf completed: back over the claim press the refusal
+  // no longer applies and nothing is drawn for it, so that step goes with the
+  // next press, and six steps take five presses.
+  const outgrown = undoTrail(byId('chips-01'), [f('A'), f('B'), {type: 'all'}, again, f('B'), f('A')]);
+  assert.deepEqual(outgrown, {still: [], presses: 5}, 'chips-01: Undo passes over the claim press the shelf has outgrown');
+  report['chips-01 refusal, then the shelf completed'] = `every Undo changes the board (six steps in ${outgrown.presses} presses)`;
   return report;
 }
 // Every board that play reaches (up to a small sink) is accepted when saved.

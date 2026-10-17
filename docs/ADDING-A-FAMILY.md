@@ -63,7 +63,7 @@ Every mechanic has these:
 | `solved(p, board)` | Whether the board is a solve |
 | `move(p, board, action, random)` | The next board, or `null` for an illegal move |
 | `hint(p, board)` | `{type: 'move', action, text}`, `{type: 'deadend', text}` (shown unasked under the board; add `quiet: true` to tell it only behind Hint), `{type: 'done'}`, or `{type: 'note'}` to show the authored hints by level and never an answer |
-| `render(p, attempt, ctx)` | The board's HTML. Buttons with `data-action="expansion-move"` and a JSON `data-move` make moves; `data-action="mechanic-ui"` with `data-ui` changes view-only state |
+| `render(p, attempt, ctx)` | The board's HTML. Buttons with `data-action="expansion-move"` and a JSON `data-move` make moves; `data-action="mechanic-ui"` with `data-ui` changes view-only state. Undo also draws earlier attempts to compare them with the screen, then the current one last, so a renderer that animates from the board it drew last still starts from the screen |
 
 These are optional:
 
@@ -71,7 +71,7 @@ These are optional:
 |---|---|
 | `wire(root, p, api)` | Pointer and keyboard gestures on the element marked `data-mechanic-wire`; `api.apply(action)` makes a move, `api.ui(payload)` changes view state, `api.attempt()` reads the attempt and `api.tile` holds the tile-gesture helpers |
 | `ui(p, payload)` and `reset(p)` | View-only state such as the chosen tool, kept outside the save |
-| `carry(p, from, to)` | Lets Undo keep part of the board (Chip firing keeps its discoveries) |
+| `carry(p, from, to)` | Lets Undo keep part of the board (Chip firing keeps its discoveries). A step that then draws just as the screen does goes with the same press (`undoPress` in `dist/engine.js`), so a kept tally or a refusal that no longer shows never leaves an Undo that changes nothing |
 | `carryOnRestart(p, from, to)` | Lets Restart keep part of the board (Card machines keeps the rows Test has shown) |
 | `noUndo(p)`, `noHint(p)` | Hide Undo or Hint |
 | `help(p, attempt, ctx)` | Extra HTML for How to play; `ctx.completed(id)` says whether the child has solved another puzzle, so help can be earned (Pebble Duel's bundle table waits for Duel 1) |

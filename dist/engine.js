@@ -152,6 +152,23 @@ export function undo(attempt) {
   const previous = attempt.history.at(-1);
   return { ...attempt, board: clone(previous.board), moves: previous.moves, history: attempt.history.slice(0,-1), lastPlayed: Date.now() };
 }
+// One press of Undo: back a step, then the mechanic's `carry` (which keeps
+// discoveries, refusals and tallies), and on past any step that `draw` shows
+// just as the screen is now, so every press changes what the child sees (a
+// refusal the shelf has since outgrown draws nothing). `draw` renders an
+// attempt as the play screen would. The current attempt is drawn last, so a
+// renderer that animates from the board it drew last still starts from the
+// screen.
+export function undoPress(puzzle, attempt, draw = null) {
+  const carry = isExpansion(puzzle) ? mechanicFor(puzzle).carry : null;
+  const back = a => { const b = undo(a); return carry && b !== a ? { ...b, board: carry(puzzle, a.board, b.board) } : b; };
+  let next = back(attempt);
+  if (!draw || next === attempt) return next;
+  const shown = draw(attempt);
+  while (next.history.length && draw(next) === shown) next = back(next);
+  draw(attempt);
+  return next;
+}
 export function restart(puzzle, attempt, random = Math.random) {
   return { ...freshAttempt(puzzle, random), completed: attempt.completed, helpUsed: attempt.helpUsed };
 }

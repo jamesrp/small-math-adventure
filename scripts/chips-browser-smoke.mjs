@@ -1,6 +1,7 @@
 // Plays Chip firing through the real interface: That's all on a shelf puzzle
 // (off with nothing shelved, one refusal whose line goes with Undo while That's
-// all stays off through Undo and New run, focus off the claim), and the Still
+// all stays off through Undo and New run, focus off the claim), Undo passing
+// over the claim press of a refusal the shelf has outgrown, and the Still
 // boards group: capacity (chips until a circle glows, a glowing circle firing,
 // Most refused and kept off, the argument drawn after a right claim) and the
 // add-one cycle (a still start, chips added at A, the row of still boards, a
@@ -73,6 +74,20 @@ try {
   assert.equal(await thatsAll().isDisabled(), false, 'a new order opens That’s all');
   assert.equal(await page.locator('.chip-feedback').count(), 0);
   await shot('orders-refused');
+
+  // Puzzle 1: a refusal the shelf has since outgrown. The board the claim made
+  // draws like the one before it, so Undo passes over that step: every press
+  // changes the board, and six steps take five presses.
+  const O = 'chips-01';
+  await open(O);
+  await taps('A B'); await thatsAll().click(); assert.equal(await told(), 'There is another.');
+  await button('New run').click(); await taps('B A');
+  const panel = () => page.locator('.board-panel').innerHTML(), rows = [];
+  for (let shown = await panel(); await page.locator('[data-action="undo"]').isEnabled();) {
+    await undo(); const now = await panel();
+    assert.notEqual(now, shown, `Undo ${rows.length + 1} changes the board`); shown = now; rows.push((await board(O)).word);
+  }
+  assert.deepEqual(rows, ['B', '', 'AB', 'A', ''], 'Undo from the board the claim made goes on to A');
 
   // Still boards 1: capacity on the square with a diagonal.
   const C = 'chips-s01';

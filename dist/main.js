@@ -3,7 +3,7 @@ import { extendTileStroke, startTileStroke, tapTileSelection, tileInstructions, 
 import {isExpansion,mechanicFor,playInstructions} from './expansion.js';
 import {FAMILIES,mergePacks} from './families.js';
 import {puzzleObjective} from './puzzle-copy.js';
-import { BANDS,freshAttempt,resumeAttempt,isSolved,nextHint,move,removeTile,undo,restart,undoToSolvable } from './engine.js';
+import { BANDS,freshAttempt,resumeAttempt,isSolved,nextHint,move,removeTile,undoPress,restart,undoToSolvable } from './engine.js';
 import { SAVE_KEY,BACKUP_KEY,emptyStore,loadStore,persistStore,parseBackup,importProfiles } from './storage.js';
 import { esc,playView,parentView,notesHTML } from './ui.js';
 import { getProgress, getEncounter, startJourney, beginEncounter, recordSolve, continueAfter, withCampaignPuzzles, resolvePuzzle, canVisitEncounter, stopOf, BAND_KEYS } from './road.js';
@@ -62,8 +62,7 @@ function render(){
   if(playKey&&p.mechanic==='clock')clockTimeline.enter(playKey,p,attempt(p).board.prediction);
   else if(clockTimeline.key)clockTimeline.leave();
   const encounter=activeEncounter();
-  const here=location.hash,result=solveResult?.key===here?solveResult:null,said=reaction?.key===here?reaction:null;
-  const content=view==='parents'?parentView(state,pr,pack,pwaMessage,savedView.values['catalog-band']):!pr||view==='profiles'?caravanProfiles(state,puzzles):view==='journal'?journalView(pr,puzzles):view==='finale'&&getProgress(pr).complete?finaleView(pr):view==='library'?libraryView(pr,puzzles):view==='play'&&p?playView(p,attempt(p),{pack,profile:pr,encounter,selected,tileSelection,highlighted,message,checker,sessionCount:sessionCompleted.size,clockPresentation:p.mechanic==='clock'?clockTimeline.presentation:undefined,reaction:said,result,changed:Boolean(result?.first)}):roadMapView(pr);
+  const content=view==='parents'?parentView(state,pr,pack,pwaMessage,savedView.values['catalog-band']):!pr||view==='profiles'?caravanProfiles(state,puzzles):view==='journal'?journalView(pr,puzzles):view==='finale'&&getProgress(pr).complete?finaleView(pr):view==='library'?libraryView(pr,puzzles):view==='play'&&p?playView(p,attempt(p),playContext(p,pr,encounter)):roadMapView(pr);
   document.body.dataset.view=view||'map';
   document.body.classList.toggle('on-encounter',Boolean(encounter));
   if(encounter)document.body.dataset.stop=encounter.stop;else delete document.body.dataset.stop;
@@ -92,6 +91,9 @@ function render(){
   wireMechanic();
   viewState.restore();
 }
+// What the play screen draws besides the attempt: the moment's selections,
+// message, keeper reaction and solve.
+function playContext(p,pr,encounter){const here=location.hash,result=solveResult?.key===here?solveResult:null;return {pack,profile:pr,encounter,selected,tileSelection,highlighted,message,checker,sessionCount:sessionCompleted.size,clockPresentation:p.mechanic==='clock'?clockTimeline.presentation:undefined,reaction:reaction?.key===here?reaction:null,result,changed:Boolean(result?.first)};}
 // A piece that changed place (a traveler swapping seats, Hops walking a
 // boardwalk) moves there from where it was instead of jumping.
 function glide(before){
@@ -307,7 +309,8 @@ document.addEventListener('click',event=>{
   else if(action==='mechanic-ui'&&p&&a&&isExpansion(p)){try{mechanicFor(p).ui?.(p,JSON.parse(control.dataset.ui));}catch{}message='';render();}
   else if(action==='expansion-move'&&p&&a){try{applyPair(p,JSON.parse(control.dataset.move));}catch{message='Choose a move using the controls above.';render();}}
   else if(action==='swap-pair'&&p?.mechanic==='swap')applyPair(p,control.dataset.pair.split(',').map(Number));
-  else if(action==='undo'&&a&&!(isExpansion(p)&&mechanicFor(p).noUndo?.(p))){let next=undo(a);if(isExpansion(p)&&mechanicFor(p).carry&&next!==a)next={...next,board:mechanicFor(p).carry(p,a.board,next.board)};put(p,next);selected=null;tileSelection=[];highlighted=null;message='';if(p.mechanic==='clock')clockTimeline.restore(p,next.board.prediction);else render();}
+  // Undo compares screens at rest, as they will look after the press (a clock run drawn whole).
+  else if(action==='undo'&&a&&!(isExpansion(p)&&mechanicFor(p).noUndo?.(p))){selected=null;tileSelection=[];highlighted=null;message='';const ctx={...playContext(p,profile(),activeEncounter()),clockPresentation:undefined},next=undoPress(p,a,b=>playView(p,b,ctx));put(p,next);if(p.mechanic==='clock')clockTimeline.restore(p,next.board.prediction);else render();}
   else if((action==='restart'||action==='replay')&&a){const encounter=activeEncounter();let next=restart(p,a);reaction=null;solveResult=null;if(isExpansion(p))mechanicFor(p).reset?.(p);if(action==='restart'&&isExpansion(p)&&mechanicFor(p).carryOnRestart)next={...next,board:mechanicFor(p).carryOnRestart(p,a.board,next.board)};put(p,next);selected=null;tileSelection=[];highlighted=null;message='';if(action==='replay'&&encounter&&!p.campaignOnly)go(`play/${p.id}`);else if(p.mechanic==='clock')clockTimeline.restore(p,next.board.prediction);else render();}
   else if(action==='hint'&&a){const next={...a,hintLevel:Math.min(a.hintLevel+1,3),helpUsed:true};put(p,next);const h=nextHint(p,next);highlighted=next.hintLevel>=2&&h.type==='move'?h.pair:null;message='';if(activeEncounter())reaction={key:location.hash,kind:'hint',n:next.hintLevel};render();}
   else if(action==='apply-hint'&&a){const h=nextHint(p,a);if(h.type==='move')applyPair(p,h.action||h.pair);}

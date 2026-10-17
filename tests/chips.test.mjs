@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {freshAttempt, move, nextHint, isSolved, undo, restart, resumeAttempt} from '../dist/engine.js';
+import {freshAttempt, move, nextHint, isSolved, undo, undoPress, restart, resumeAttempt} from '../dist/engine.js';
 import {emptyStore, validateStore, loadStore, persistStore} from '../dist/storage.js';
 import {libraryView} from '../dist/caravan-ui.js';
 import {playView, parentView} from '../dist/ui.js';
@@ -220,6 +220,16 @@ test('That’s all is off with an empty shelf, and Undo never takes back a refus
   for (let k = 0; k < 2; k++) { a = takeBack(a); assert.equal(a.board.claim, 'more', `Undo ${k + 2} keeps the lock`); }
   assert.deepEqual(a.board.found, ['ABAB']);
   assert.equal(a.board.word, 'AB');
+});
+
+test('Undo passes over the claim press of a refusal the shelf has outgrown', () => {
+  const p = byId('chips-01'), view = x => playView(p, x, {pack, selected: null, message: ''});
+  let a = play(p, freshAttempt(p), [fire('A'), fire('B'), {type: 'all'}, {type: 'again'}, fire('B'), fire('A')]);
+  const rows = [];
+  while (a.history.length) { const before = view(a); a = undoPress(p, a, view); assert.notEqual(view(a), before, `Undo ${rows.length + 1} changes the screen`); rows.push(a.board.word); }
+  assert.deepEqual(rows, ['B', '', 'AB', 'A', ''], 'Undo from the board the claim made goes on to A');
+  assert.deepEqual(a.board.found, ['AB', 'BA']);
+  assert.equal(a.board.claim, 'open');
 });
 
 // The Still boards group: capacity and the add-one cycle.
