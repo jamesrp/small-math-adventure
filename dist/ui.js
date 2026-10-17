@@ -21,7 +21,9 @@ function puzzleView(p,a,ctx){
   const expansion=isExpansion(p),solved=isSolved(p,a.board),hint=nextHint(p,a),shown=solved&&!ctx.ringing;
   const objective=visiblePuzzleObjective(p);
   ctx={...ctx,highlighted:a.hintLevel>=2&&hint.type==='move'?hint.pair:null};
-  const feedback=ctx.message||(!solved&&hint.type==='deadend'&&!a.hintLevel?(expansion?hint.text:'This leaves an unfillable gap. Undo or lift a tile.'):'');
+  // A dead end marked `quiet` is told only behind Hint.
+  const deadend=!solved&&hint.type==='deadend'&&!hint.quiet;
+  const feedback=ctx.message||(deadend&&!a.hintLevel?(expansion?hint.text:'This leaves an unfillable gap. Undo or lift a tile.'):'');
   return `${shown&&ctx.encounter?encounterDone(ctx.encounter,ctx.profile,p,a,ctx.result):''}<div class="play-heading">
     ${a.completed&&!solved?'<span class="solved-indicator">✓ Solved</span>':''}<div class="play-help">${btn('How to play','demo','quiet')}${btn('<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M11 4 6 8H3v8h3l5 4V4Z"/><path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></svg>','speak','quiet small','aria-label="Read instructions aloud"')}</div>
   </div>
@@ -32,7 +34,7 @@ function puzzleView(p,a,ctx){
       ${p.mechanic==='tile'?`<div class="board-bottom"><label class="checker-toggle"><input type="checkbox" id="checker" ${ctx.checker?'checked':''}> Checker colors</label></div>`:''}
     </section>
     ${solved&&ctx.encounter?'':`<aside class="play-sidebar">${solved?completionCard(p,a,ctx):`<div class="tool-grid">${btn('↶ Undo','undo','secondary',a.history.length&&!(expansion&&mechanicFor(p).noUndo?.(p))?'':'disabled')}${btn('Restart','restart','secondary')}${expansion&&mechanicFor(p).noHint?.(p)?'':btn('Hint','hint','hint-button')}</div>${a.hintLevel?(expansion?expansionHintCard(a,hint,p):hintCard(p,a,hint,ctx)):''}`}</aside>`}
-  </div><div class="feedback ${hint.type==='deadend'&&!solved?'deadend':''}" role="status" aria-live="polite">${esc(feedback)}</div>`;
+  </div><div class="feedback ${deadend?'deadend':''}" role="status" aria-live="polite">${esc(feedback)}</div>`;
 }
 function expansionHintCard(a,hint,p){
   // A 'note' hint (Proofs evidence puzzles) shows the authored hints by level and never an answer.

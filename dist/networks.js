@@ -81,10 +81,12 @@ function moveRoute(p,b,action){
   if(!validRoute(p,b)||!object(action)||typeof action.vertex!=='string'||!p.parameters.vertices.includes(action.vertex)||solvedRoute(p,b))return null;
   const next={path:[...b.path,action.vertex]};return validRoute(p,next)?next:null;
 }
+// A doomed route is told only when Hint is asked for (quiet), so children walk
+// into the dead end themselves (Week 10 review card).
 function hintRoute(p,b){
   if(solvedRoute(p,b))return {type:'done'};
   const path=solveRoute(p,b);
-  return path?.length?{type:'move',action:{vertex:path[0]},text:b.path.length?`Follow the road from ${b.path.at(-1)} to ${path[0]}. A complete route is still possible from there.`:`Start at ${path[0]}. This leaves a route that can visit every road.`,remaining:path.length}:{type:'deadend',text:'This route cannot finish within the rules. Undo to before a stranded road or an extra repeat, then choose another road.'};
+  return path?.length?{type:'move',action:{vertex:path[0]},text:b.path.length?`Follow the road from ${b.path.at(-1)} to ${path[0]}. A complete route is still possible from there.`:`Start at ${path[0]}. This leaves a route that can visit every road.`,remaining:path.length}:{type:'deadend',quiet:true,text:'This route cannot finish within the rules. Undo to before a stranded road or an extra repeat, then choose another road.'};
 }
 function validColor(p,b){return object(b)&&Array.isArray(b.colors)&&b.colors.length===p.parameters.vertices.length&&b.colors.every(c=>Number.isInteger(c)&&c>=0&&c<=p.parameters.palette_size)&&Number.isInteger(b.selectedColor)&&b.selectedColor>=1&&b.selectedColor<=p.parameters.palette_size;}
 const conflicts=(p,colors)=>p.parameters.edges.filter(([u,v])=>{const a=colors[p.parameters.vertices.indexOf(u)],b=colors[p.parameters.vertices.indexOf(v)];return a&&a===b;});
