@@ -1,0 +1,77 @@
+/* Mirror Couriers bounce words: a window of mirror copies of the room on
+   paper, the room itself in sun, the copies a shot passes through in a
+   leaf tint, walls in ink with their letters, the shot in pine with ochre
+   crossings, an ochre ring at a corner hit, and below it the word in tiles
+   beside the same shot folded into the room. Scoped to the group's root. */
+[data-mechanic-wire="aims"]{display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%}
+[data-mechanic-wire="aims"] .am-board{display:block;width:100%;max-width:380px;height:auto;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;cursor:crosshair;border-radius:12px;background:var(--b-card,#fffdf5)}
+[data-mechanic-wire="aims"] .am-board.solved{cursor:default}
+[data-mechanic-wire="aims"] .am-board.claiming{cursor:pointer}
+[data-mechanic-wire="aims"] .am-board:focus{outline:none}
+[data-mechanic-wire="aims"] .am-board:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
+[data-mechanic-wire="aims"] .am-board *,[data-mechanic-wire="aims"] .am-given *{vector-effect:non-scaling-stroke}
+
+/* Copies and walls. */
+[data-mechanic-wire="aims"] .am-paper{fill:var(--b-paper,#f5f1e6)}
+[data-mechanic-wire="aims"] .am-copy{fill:var(--b-paper,#f5f1e6);stroke:none}
+[data-mechanic-wire="aims"] .am-copy.passed{fill:#e3ead6}
+[data-mechanic-wire="aims"] .am-copy.room{fill:#f6e2ae}
+[data-mechanic-wire="aims"] .am-wall{stroke:#7d8b78;stroke-width:1.2px;stroke-linecap:round}
+[data-mechanic-wire="aims"] .am-wall.crossed{stroke:var(--b-ochre,#b38840);stroke-width:3px}
+[data-mechanic-wire="aims"] .am-lab{font-family:var(--b-display,Georgia,serif);font-size:14px;fill:var(--b-ink,#294439);text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:var(--b-paper,#f5f1e6);stroke-width:3.5px;stroke-linejoin:round;pointer-events:none}
+[data-mechanic-wire="aims"] .am-lab.crossed{font-weight:700;fill:#7a5a1f}
+
+/* The shot. */
+[data-mechanic-wire="aims"] .am-shot{stroke:var(--b-pine,#31533e);stroke-width:2.6px;stroke-linecap:round}
+[data-mechanic-wire="aims"] .am-shot.ghost{stroke:var(--b-ochre,#b38840);stroke-dasharray:6 5;stroke-width:2px}
+[data-mechanic-wire="aims"] .am-shot-after{stroke:var(--b-pine,#31533e);stroke-width:1.6px;stroke-dasharray:3 5;opacity:.45}
+[data-mechanic-wire="aims"] .am-hit{fill:var(--b-ochre,#b38840);stroke:var(--b-card,#fffdf5);stroke-width:1px}
+[data-mechanic-wire="aims"] .am-hit.ghost{display:none}
+[data-mechanic-wire="aims"] .am-corner{fill:none;stroke:var(--b-bad,#a9503a);stroke-width:2.5px}
+[data-mechanic-wire="aims"] .am-start{fill:var(--b-pine,#31533e);stroke:var(--b-card,#fffdf5);stroke-width:1.5px}
+[data-mechanic-wire="aims"] .am-start.movable{stroke:var(--b-sun,#efc76e);stroke-width:3px}
+[data-mechanic-wire="aims"] .am-end{fill:rgba(255,253,245,.85);stroke:var(--b-pine,#31533e);stroke-width:2.5px}
+[data-mechanic-wire="aims"] .am-end.given{stroke-width:2px}
+[data-mechanic-wire="aims"] .am-hint{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:2.5px;stroke-dasharray:4 3}
+[data-mechanic-wire="aims"] .am-hint-wall{stroke:var(--b-ochre,#b38840);stroke-width:6px;stroke-dasharray:5 4;opacity:.8;stroke-linecap:round}
+
+/* Can't: every wall can be tapped; the picked one is pine. A right claim
+   draws the line through both walls. */
+[data-mechanic-wire="aims"] .am-pick{stroke:transparent;stroke-width:16px;stroke-linecap:round;outline:none}
+[data-mechanic-wire="aims"] .am-pick.picked{stroke:rgba(49,83,62,.75);stroke-width:5px}
+[data-mechanic-wire="aims"] .am-pick:focus-visible{stroke:rgba(179,136,64,.6);stroke-width:7px}
+[data-mechanic-wire="aims"] .am-proof{stroke:var(--b-ochre,#b38840);stroke-width:2px;stroke-dasharray:7 5}
+[data-mechanic-wire="aims"] .am-proved{stroke:var(--b-pine,#31533e);stroke-width:5px;stroke-linecap:round}
+
+/* The word and the folded room. */
+[data-mechanic-wire="aims"] .am-strip{display:flex;align-items:center;justify-content:center;gap:14px;width:100%;max-width:380px}
+[data-mechanic-wire="aims"] .am-words{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1 1 auto;align-items:flex-start}
+[data-mechanic-wire="aims"] .am-rows{display:flex;flex-direction:column;gap:5px}
+[data-mechanic-wire="aims"] .am-row{display:flex;flex-wrap:wrap;gap:4px;min-height:30px}
+[data-mechanic-wire="aims"] .am-tile{display:grid;place-items:center;width:28px;height:30px;border-radius:7px;font-family:var(--b-display,Georgia,serif);font-size:1.15rem;color:var(--b-ink,#294439);background:var(--b-chip,#eceddf);border:1.5px solid var(--b-line,#d0d6bd)}
+[data-mechanic-wire="aims"] .am-tile.goal{background:transparent;border:1.5px dashed #9aa58f}
+[data-mechanic-wire="aims"] .am-tile.corner{color:var(--b-bad,#a9503a);border-color:var(--b-bad,#a9503a);background:var(--b-bad-soft,#f5e3d9)}
+[data-mechanic-wire="aims"] .am-tile.empty{background:transparent;border-color:transparent}
+[data-mechanic-wire="aims"] .am-fold-box{flex:0 0 auto;line-height:0}
+[data-mechanic-wire="aims"] .am-fold-room{fill:#f6e2ae;stroke:var(--b-ink,#294439);stroke-width:1.6px;stroke-linejoin:round}
+[data-mechanic-wire="aims"] .am-fold-lab{font-family:var(--b-display,Georgia,serif);font-size:11px;fill:var(--b-muted,#5a6850);text-anchor:middle;dominant-baseline:central}
+[data-mechanic-wire="aims"] .am-fold-path{fill:none;stroke:var(--b-pine,#31533e);stroke-width:1.8px;stroke-linejoin:round;stroke-linecap:round}
+[data-mechanic-wire="aims"] .am-fold-hit{fill:var(--b-ochre,#b38840)}
+[data-mechanic-wire="aims"] .am-fold-start{fill:var(--b-pine,#31533e)}
+[data-mechanic-wire="aims"] .am-fold-end{fill:var(--b-card,#fffdf5);stroke:var(--b-pine,#31533e);stroke-width:1.5px}
+
+/* The other room's window in a remake; Stretch slides it onto the play window. */
+[data-mechanic-wire="aims"] .am-given{display:block;width:100%;max-width:380px;height:auto}
+[data-mechanic-wire="aims"] .am-given .am-geo{transform-box:view-box;transform-origin:var(--cx) 0;transition:transform .9s ease-in-out}
+[data-mechanic-wire="aims"] .am-given.stretched .am-geo{transform:scaleX(var(--k))}
+[data-mechanic-wire="aims"] .am-given .am-marks>*{transition:transform .9s ease-in-out}
+[data-mechanic-wire="aims"] .am-given.stretched .am-marks>*{transform:translateX(var(--dx))}
+
+/* Buttons and notes. */
+[data-mechanic-wire="aims"] .am-tools{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-start;margin-top:4px}
+[data-mechanic-wire="aims"] .am-tools .hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:2px}
+[data-mechanic-wire="aims"] .am-cant[aria-pressed="true"],[data-mechanic-wire="aims"] .am-stretch[aria-pressed="true"]{background:#e9eddc;border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+[data-mechanic-wire="aims"] .am-note{margin:0;text-align:center;color:var(--b-ink,#294439)}
+[data-mechanic-wire="aims"] .am-note.good{color:var(--b-good,#3c7a4a);font-weight:600}
+[data-mechanic-wire="aims"].am-help{flex-direction:row;justify-content:center;gap:12px;margin:.4rem 0}
+@media (prefers-reduced-motion:reduce){[data-mechanic-wire="aims"] .am-given .am-geo,[data-mechanic-wire="aims"] .am-given .am-marks>*{transition:none}}
