@@ -131,11 +131,10 @@ try {
   await press('Stays');
   assert.equal((await board(E)).pending, true);
   assert.equal(await page.locator('.sm-board.held').count(), 1);
-  for (let i = 0; i < 2; i++) {
-    await page.locator('[data-action="undo"]').click();
-    assert.equal((await board(E)).pending, true, 'Undo does not lift the hold');
-    assert.equal((await board(E)).pairing, 'ZYWX', 'nor take back the move that made the pairing');
-  }
+  await page.locator('[data-action="undo"]').click();
+  assert.equal((await board(E)).pending, true, 'Undo does not lift the hold');
+  assert.equal((await board(E)).pairing, 'ZYWX', 'nor take back the move that made the pairing');
+  assert.equal(await page.locator('[data-action="undo"]').isDisabled(), true, 'with nothing it can take back, Undo greys out');
   assert.equal(await told(), 'Can’t stay. Tap a circle and a square that would both rather be together.');
   await taps('C', 'X');
   assert.equal(await told(), 'C and X say no. Tap a circle and a square that would both rather be together.');
