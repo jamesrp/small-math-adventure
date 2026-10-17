@@ -45,9 +45,9 @@ Totals: 18 A, 37 B, 8 C. Weeks 1, 2 and 15 have been taught; the rest are unpilo
 | 32 | Euclid by squares | Cut the largest squares off a rectangle; compare with equal-square tilings | The last square is the gcd | Yes: Squares, a group in Tile gardens | B | Tap to cut squares on a grid | S |
 | 33 | Necklaces | Bead rings up to rotation; group readouts; count rings | At a prime p, mixed rings have p views; p divides c^p − c | No | B | Rotatable rings; collect every distinct necklace | M |
 | 34 | Distinguishing colourings | Colour ring spots so no rotation or flip matches | Three kinds for 3–5 spots, two from 6 | No | B | Tap to colour; the app animates every symmetry and shows a match. Shares 33's ring | S |
-| 35 | Frieze symmetry | Find slides, flips, glides and half-turns in footprint borders; build borders | A glide twice is a slide; two flips make a half-turn | No | B | Edit a motif; the app tiles the strip and checks moves with overlays | M |
+| 35 | Frieze symmetry | Find slides, flips, glides and half-turns in footprint borders; build borders | A glide twice is a slide; two flips make a half-turn | Yes: Footprint borders | B | Edit a motif; the app tiles the strip and checks moves with overlays | M |
 | 36 | Nine-tile SET | Find threes, the largest three-free set, partitions | AG(2,3): 12 lines; the largest cap is 4 | Yes: Trios | A | Instant checking; thin at nine tiles, so grow to 27 and 81 cards | S |
-| 37 | Tetrahedron chirality | Match labeled tetrahedra by rotation; mirror pairs fail | 12 rotations; two classes of labelings | No | B | 3D rotate-to-match, or a 2D swap variant with 3-cycles only | L |
+| 37 | Tetrahedron chirality | Match labeled tetrahedra by rotation; mirror pairs fail | 12 rotations; two classes of labelings | Yes: Mirror twins | B | 3D rotate-to-match, or a 2D swap variant with 3-cycles only | L |
 | 38 | Möbius band and cuts | Trace edges of paper bands; predict cuts | One boundary; a middle cut gives one band | Yes: Seams | C | Physical. Cut bands on screen and see what comes out | L |
 | 39 | Path reduction | Lay steps on a map; cancel back-and-forth pairs | A unique reduced form; on two rings ab ≠ ba | No (Bridge Courier's graph) | B | Lay steps, tap pairs to cancel; a zero-net loop that doesn't vanish | M |
 | 40 | Knot tricolouring | Colour arcs so each crossing is all same or all different | The colouring count is an invariant: trefoil 9, unknot 3 | Yes: Knot colours | B | Tap arcs; find a nonconstant colouring; count them | M |
@@ -66,12 +66,12 @@ Totals: 18 A, 37 B, 8 C. Weeks 1, 2 and 15 have been taught; the rest are unpilo
 | 53 | Cheapest networks | Buy a connected network; the cheapest; swap to improve | Spanning trees; cut and cycle rules | No | A | Tap links to buy; target price; collect tied optima | S |
 | 54 | Partitions | List partitions; join and split strips; swap rows and columns | Euler: odd parts and distinct parts are equinumerous | Yes: Joining strips | B | A strip workbench with join and split; duplicates dropped | M |
 | 55 | Sumsets | Choose digit sets; minimise or maximise distinct sums | m + n − 1 ≤ \|A + B\| ≤ mn; equality iff evenly spaced | Yes: Card totals | A | Pick cards; the table merges repeats; "exactly 6 totals" | S |
-| 56 | Polyhedra and Euler | Count V, E, F on solids; add corner gaps | V − E + F = 2; total gap 720° | No | C | Handling solids; maybe a fold-a-net mechanic later | L |
+| 56 | Polyhedra and Euler | Count V, E, F on solids; add corner gaps | V − E + F = 2; total gap 720° | Yes: Corners | C | Handling solids; maybe a fold-a-net mechanic later | L |
 | 57 | Lattice area | Draw lattice polygons; count dots and area | Pick's theorem | Yes: Geoboard | B | Geoboard; targets like "area 5, no inside dots" | M |
 | 58 | Fair division | Deal items with different values; check proportional and envy-free | Envy-free implies proportional; not the reverse for three | Yes: Fair shares | B | Drag items into bundles with a live value table | M |
 | 59 | Constant-width shapes | Turn shapes between parallel supports; construct with a compass | The Reuleaux triangle has constant width | Yes: Snug spinners | C | Continuous; a playground toy, not a solve | L |
 | 60 | Optimal stopping | Take or pass offers; score rules over all cases | Backward induction gives thresholds | No | B | Set thresholds; the app scores all cases. Few rules, so guard against trying them all | M |
-| 61 | Geometry on a sphere | Shortest routes, great circles, triangle areas | Spherical excess | No | C | Continuous 3D; a globe demo, not a solve | L |
+| 61 | Geometry on a sphere | Shortest routes, great circles, triangle areas | Spherical excess | Yes: Ball triangles | C | Continuous 3D; a globe demo, not a solve | L |
 | 62 | Scheduling as colouring | Fewest slots; odd cycles and cliques; first-fit orders | Clique ≤ slots; two slots iff no odd cycle; first-fit depends on order | Shares Neighbor Lanterns' object | A | First-fit order: pick an order that uses exactly k slots | S |
 | 63 | Derangements | Place cards so none is at home; overlap counts | Inclusion-exclusion; D_n = (n − 1)(D_{n−1} + D_{n−2}) | No (the cups fit) | B | Drag cards to homes; collect all nine for four cards | S |
 
