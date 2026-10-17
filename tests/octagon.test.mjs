@@ -103,9 +103,10 @@ test('home goals: the tap is judged first on every floor, and a refusal stands u
   // Undo takes back the refusal with the last move, and keeps it showing.
   let b = undoApp(p2, r);
   assert.deepEqual(b.board.floors[0], {walk: 'LLL', told: {say: 'way', walk: 'LLLS'}, cert: null});
-  assert.ok(view(p2, b).includes('There is a way.'), 'still shown');
+  assert.ok(!view(p2, b).includes('There is a way.'), 'its words wait for that walk');
   b = play(p2, b, {type: 'go', floor: 0, turn: 'S'});
   assert.deepEqual(b.board.floors[0].told, {say: 'way', walk: 'LLLS'}, 'the same walk again keeps it');
+  assert.ok(view(p2, b).includes('<p class="oc-told">There is a way.</p>'), 'and shows it');
   assert.equal(move(p2, b, {type: 'claim', floor: 0, cert: sqHalf}), null, 'and keeps Can’t shut');
   b = play(p2, undoApp(p2, b), {type: 'go', floor: 0, turn: 'R'});
   assert.deepEqual(b.board.floors[0], {walk: 'LLLR', told: null, cert: null}, 'a different finished walk ends it');
@@ -123,6 +124,8 @@ test('home goals: the tap is judged first on every floor, and a refusal stands u
   const restarted = mech.carryOnRestart(p2, c.board, mech.fresh(p2));
   assert.deepEqual(restarted.floors[1], {walk: '', told: {say: 'miss', walk: 'LLLL'}, cert: null}, 'Restart keeps it');
   assert.ok(validBoard(p2, restarted));
+  assert.ok(!view(p2, {...freshAttempt(p2), board: restarted}).includes('oc-told'), 'not shown under an empty floor');
+  assert.ok(view(p2, play(p2, {...freshAttempt(p2), board: restarted}, ...walkOn(1, 'LLLL'))).includes('<p class="oc-told">Not that dot.</p>'), 'shown when that walk is finished again');
   c = undoApp(p2, c);
   assert.deepEqual(c.board.floors[1], {walk: 'LLL', told: {say: 'miss', walk: 'LLLL'}, cert: null});
   c = play(p2, c, {type: 'go', floor: 1, turn: 'S'});
@@ -334,7 +337,7 @@ test('taps: reach shrinks toward the rim, and a tap chooses only among drawn tar
   assert.equal(pickAt(p4, b, 1, [0, 0.4])?.turn, 'S', 'a tap on the road straight ahead');
 });
 
-test('home off the drawing: a marker at the edge points to it', () => {
+test('home off the drawing: a marker on the edge, outside every target, points to it', () => {
   const p4 = byNumber(4);
   let a = play(p4, freshAttempt(p4), ...walkOn(1, 'SS'));
   let html = view(p4, a);
@@ -343,11 +346,48 @@ test('home off the drawing: a marker at the edge points to it', () => {
     a = play(p4, freshAttempt(p4), ...walkOn(floor, 'SSSSSS'));
     html = view(p4, a);
     const board = html.split('<svg class="oc-board').slice(1)[floor];
-    const m = board.match(/<path class="oc-homeward" d="M(-?[\d.]+) (-?[\d.]+)/);
-    assert.ok(m && !board.includes('class="oc-home"'), `floor ${floor}: home off the drawing, a marker instead`);
+    const d = (board.match(/<path class="oc-homeward" d="([^"]*)"/) || [])[1];
+    assert.ok(d && !board.includes('class="oc-home"'), `floor ${floor}: home off the drawing, a marker instead`);
+    const pts = [...d.matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map(m => [Number(m[1]), Number(m[2])]);
     // The robot walked straight up the picture, so home is straight down.
-    assert.ok(Math.abs(Number(m[1])) < 1 && Number(m[2]) > 80, `floor ${floor}: the marker points down (${m[1]}, ${m[2]})`);
+    assert.ok(Math.abs(pts[0][0]) < 1 && pts[0][1] > 100, `floor ${floor}: the marker points down past the edge (${pts[0]})`);
+    const out = floor === 1 ? z => Math.hypot(...z) : z => Math.max(Math.abs(z[0]), Math.abs(z[1]));
+    for (const z of pts) assert.ok(out(z) >= 96, `floor ${floor}: the marker is outside the targets (${z})`);
+    assert.ok(board.lastIndexOf('oc-homeward') > board.lastIndexOf('oc-robot'), `floor ${floor}: drawn last, outside the square’s clip`);
   }
+});
+
+test('the second hint level brings the next dot to tap within reach, and a line asks for a drag', () => {
+  const p5 = byNumber(5), p4 = byNumber(4), p2 = byNumber(2);
+  let a = play(p5, freshAttempt(p5), ...walkOn(0, 'LLSLLSL'), {type: 'claim', floor: 0, cert: evenDots('sq', 'LLSLLSL')}, ...walkOn(1, 'SSSSSSS'));
+  const dots = trace('oct', 'SSSSSSS').dots, [d2, d4, d6] = [dots[2], dots[4], dots[6]];
+  const reach = z => Math.hypot(...z) < TARGET_R;
+  mech.reset(p5);
+  mech.ui(p5, {claim: 1});
+  let html = view(p5, a, true);
+  assert.ok(html.includes('<p class="oc-cue">Drag the floor to reach dots near the edge.</p>'), 'dots of the walk are beyond reach');
+  assert.ok(reach(drawnAt(p5, 1, d6)) && !reach(drawnAt(p5, 1, d4)) && !reach(drawnAt(p5, 1, d2)), 'only the last light dot within reach');
+  const hinted = {...a, hintLevel: 2};
+  html = view(p5, hinted, true);
+  assert.ok(html.includes('oc-hinted'), 'the hint rings the dot within reach');
+  assert.ok(reach(drawnAt(p5, 1, d6)), 'no slide while a dot to tap is within reach');
+  mech.ui(p5, {marks: [d6]});
+  view(p5, hinted, true);
+  assert.ok(Math.hypot(...drawnAt(p5, 1, d2)) < 1e-9, 'then the floor slides to the first light dot not yet marked');
+  mech.ui(p5, {marks: [d6, d2]});
+  view(p5, hinted, true);
+  assert.ok(reach(drawnAt(p5, 1, d4)) && Math.hypot(...drawnAt(p5, 1, d2)) < 1e-9, 'the last is within reach from there, so no slide');
+  // One dot: the dot after half the moves.
+  a = play(p4, freshAttempt(p4), ...walkOn(0, 'LLSLLS'), ...walkOn(1, 'SSSSSS'));
+  mech.reset(p4);
+  mech.ui(p4, {claim: 1});
+  view(p4, {...a, hintLevel: 2}, true);
+  assert.ok(Math.hypot(...drawnAt(p4, 1, halfwayState('oct', 'SSSSSS'))) < 1e-9, 'the halfway dot slides to the middle');
+  // No line when every dot of the walk can be tapped.
+  a = play(p2, freshAttempt(p2), ...walkOn(1, 'LLLL'));
+  mech.reset(p2);
+  mech.ui(p2, {claim: 1});
+  assert.ok(view(p2, a, true).includes('<p class="oc-cue" hidden>'), 'the line is hidden');
 });
 
 test('after Undo of a right Can’t, the next right Can’t brings its dot to the middle again', () => {

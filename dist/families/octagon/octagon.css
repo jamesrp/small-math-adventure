@@ -64,4 +64,6 @@
 [data-mechanic-wire="octagon"] .oc-cant,[data-mechanic-wire="octagon"] .oc-clear{min-height:48px;padding:6px 14px}
 [data-mechanic-wire="octagon"] .hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
 [data-mechanic-wire="octagon"] .oc-told{margin:0;font-weight:700;color:#8a4b2a;text-align:center}
+[data-mechanic-wire="octagon"] .oc-cue{margin:0;font-size:.85rem;color:var(--b-muted,#5a6850);text-align:center}
+[data-mechanic-wire="octagon"] .oc-cue[hidden]{display:none}
 [data-mechanic-wire="octagon"] .oc-done .oc-board{cursor:grab}

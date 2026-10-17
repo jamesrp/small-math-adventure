@@ -624,12 +624,13 @@ function arrowPath(kind, V, w, size) {
   const P = (f, g) => `${fmt(a[0] + u[0] * s * f + n[0] * s * g)} ${fmt(a[1] + u[1] * s * f + n[1] * s * g)}`;
   return `M${P(1.1, 0)}L${P(-0.65, 0.7)}L${P(-0.3, 0)}L${P(-0.65, -0.7)}Z`;
 }
-// Home is off the drawing: a sun arrowhead near the edge points to it.
+// Home is off the drawing: a sun arrowhead on the edge points out toward it,
+// outside every target (from 0.97 of the way out to just past the edge).
 function homeMarker(kind, view) {
   const t = homeAngle(kind, view), u = [Math.cos(t), Math.sin(t)];
   if (!Number.isFinite(t)) return '';
-  const r = kind === 'oct' ? 0.9 : 0.9 / Math.max(Math.abs(u[0]), Math.abs(u[1]));
-  const c = scr([u[0] * r, u[1] * r]), d = [u[0], -u[1]], n = [-d[1], d[0]], s = 7;
+  const r = kind === 'oct' ? 1 : 1 / Math.max(Math.abs(u[0]), Math.abs(u[1]));
+  const c = scr([u[0] * r, u[1] * r]), d = [u[0], -u[1]], n = [-d[1], d[0]], s = 4.6;
   const P = (f, g) => `${fmt(c[0] + d[0] * s * f + n[0] * s * g)} ${fmt(c[1] + d[1] * s * f + n[1] * s * g)}`;
   return `<path class="oc-homeward" d="M${P(1, 0)}L${P(-0.6, 0.85)}L${P(-0.6, -0.85)}Z"/>`;
 }
@@ -703,6 +704,14 @@ export function drawnAt(p, i, word) {
   const kind = p.parameters.floors[i].kind, v = ui(p).views[i];
   return v ? viewer(kind, v).at(word) : null;
 }
+// Whether some dot of the walk (other than home) is drawn too near the edge
+// to tap, so a drag may be needed: the trail already shows this, so saying it
+// names no answer.
+export function walkBeyond(p, a, i, view) {
+  const q = p.parameters, kind = q.floors[i].kind, V = viewer(kind, view), {dots} = trace(kind, walkOf(q, a.board, i));
+  return dots.some((d, k) => k > 0 && d !== dots[0] && !targetable(kind, V.at(d)));
+}
+const CUE = 'Drag the floor to reach dots near the edge.';
 function floorInner(p, a, i, view, o) {
   const q = p.parameters, spec = q.floors[i], kind = spec.kind, walk = walkOf(q, a.board, i);
   const f = playing(q) ? null : a.board.floors[i], V = viewer(kind, view), {verts, roads} = patchOf(kind);
@@ -761,7 +770,6 @@ function floorInner(p, a, i, view, o) {
   // off the drawing, an arrowhead at the edge pointing to it.
   const home = V.at('');
   if (shownAt(kind, home)) out.push(`<path class="oc-home" d="${dotPath(home, Math.max(2.6, dotSize(kind, home, 9)))}"/><path class="oc-ghost" d="${arrowPath(kind, V, '', 12)}"/>`);
-  else out.push(homeMarker(kind, view));
   // A hint's road or target.
   const hm = o.hint && o.hint.type === 'move' ? o.hint.action : null;
   if (hm && hm.type === 'go') { const z0 = V.at(T.states.at(-1)), z1 = V.at(reduce(kind, T.states.at(-1) + TURN[hm.turn] + 'H')); if (z0 && z1) out.push(`<path class="oc-hinted" d="${seg(kind, z0, z1)}"/>`); }
@@ -777,6 +785,7 @@ function floorInner(p, a, i, view, o) {
   }
   out.push(`<path class="oc-robot" d="${arrowPath(kind, V, T.states.at(-1), 13)}"/>`);
   if (kind === 'sq') out.push('</g>');
+  if (!shownAt(kind, home)) out.push(homeMarker(kind, view));
   return out.join('');
 }
 
@@ -807,10 +816,13 @@ function floorPanel(p, a, i, h, live) {
       s.views[i] = {...settle(kind, {anchor: v.anchor, frame: compose(kind, invert(kind, toward(kind, mid)), v.frame)}), robot: g};
     }
   }
-  // A hint that marks the dot to tap brings it within reach if it is not.
-  if (claiming && hm && hm.type === 'claim' && tapKind(q) === 'dot') {
-    const v = viewFor(p, i, kind, g);
-    if (!targetable(kind, viewer(kind, v).at(hm.cert))) s.views[i] = centred(kind, v, reduce(kind, hm.cert), g);
+  // A hint that marks the dots to tap brings the next one within reach when
+  // none still to tap is: the dot after half the moves, or the first light
+  // dot of the walk (in the walk's order) not yet marked.
+  if (claiming && hm && hm.type === 'claim' && hm.cert !== undefined) {
+    const v = viewFor(p, i, kind, g), V = viewer(kind, v), marks = new Set(s.marks);
+    const todo = tapKind(q) === 'dot' ? [hm.cert] : [...new Set(T.dots.filter((d, k) => k >= 2 && k % 2 === 0 && d !== T.dots[0]))].filter(d => !marks.has(d));
+    if (todo.length && !todo.some(c => targetable(kind, V.at(c)))) s.views[i] = centred(kind, v, reduce(kind, todo[0]), g);
   }
   const view = viewFor(p, i, kind, g);
   const label = `${kind === 'oct' ? 'Octagon' : 'Square'} floor${walk.length ? `. Moves: ${turnWords(walk)}` : ''}${atHome(kind, walk) && walk.length ? '. Home, facing the same way' : ''}${claiming ? `. Tap the ${tapKind(q) === 'dot' ? 'dot' : 'dots'}` : ''}`;
@@ -831,9 +843,12 @@ function floorPanel(p, a, i, h, live) {
     }
     controls = `<div class="oc-controls">${go}${extra}</div>`;
   }
-  const told = f && f.told ? REFUSAL[f.told.say === 'way' ? 'way' : tapKind(q)] : '';
+  // A refusal is shown on the walk it is about; saved, it stays through Undo
+  // and Restart and shows again when that walk is finished again.
+  const told = f && f.told && f.walk === f.told.walk ? REFUSAL[f.told.say === 'way' ? 'way' : tapKind(q)] : '';
+  const cue = claiming ? `<p class="oc-cue"${walkBeyond(p, a, i, view) ? '' : ' hidden'}>${CUE}</p>` : '';
   const cls = ['oc-wrap', kind, i === live ? 'oc-live' : '', i === s.tab ? 'oc-on' : 'oc-off', done ? 'oc-done' : '', claiming ? 'oc-claiming' : ''].filter(Boolean).join(' ');
-  return `<div class="${cls}" data-floor="${i}">${svg}${record}${controls}${told ? `<p class="oc-told">${told}</p>` : ''}</div>`;
+  return `<div class="${cls}" data-floor="${i}">${svg}${record}${controls}${told ? `<p class="oc-told">${told}</p>` : ''}${cue}</div>`;
 }
 function render(p, a) {
   const q = p.parameters, b = a.board, s = ui(p), done = solved(p, b), n = q.floors.length;
@@ -844,7 +859,7 @@ function render(p, a) {
   const floors = q.floors.map((_, i) => floorPanel(p, a, i, h, s.live)).join('');
   const status = playing(q) ? '' : q.floors.map((f, i) => {
     const x = b.floors[i];
-    return `${NAME[f.kind]}: ${x.cert !== null ? 'can’t, shown' : goalMet(f.kind, q, x.walk) ? 'done' : x.told ? (x.told.say === 'way' ? 'there is a way' : 'not that') : `${x.walk.length} ${x.walk.length === 1 ? 'move' : 'moves'}`}.`;
+    return `${NAME[f.kind]}: ${x.cert !== null ? 'can’t, shown' : goalMet(f.kind, q, x.walk) ? 'done' : x.told && x.walk === x.told.walk ? (x.told.say === 'way' ? 'there is a way' : 'not that') : `${x.walk.length} ${x.walk.length === 1 ? 'move' : 'moves'}`}.`;
   }).join(' ');
   return `<div class="oc-puzzle${done ? ' solved' : ''}${n > 1 ? ' two' : ''}" data-mechanic-wire="octagon">${tabs}<div class="oc-floors">${floors}</div><p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
@@ -874,6 +889,8 @@ function wire(root, p, api) {
       const a = api.attempt(), claiming = claimingOn(p, a, i);
       const h = !playing(q) && a.hintLevel >= 2 && !solved(p, a.board) ? hint(p, a.board) : null;
       svg.innerHTML = floorInner(p, a, i, ui(p).views[i], {claiming, hint: h && h.floor === i ? h : null});
+      const cue = svg.parentElement?.querySelector('.oc-cue');
+      if (cue && claiming) cue.hidden = !walkBeyond(p, a, i, ui(p).views[i]);
     };
     svg.addEventListener('pointerdown', e => {
       if (e.button) return;

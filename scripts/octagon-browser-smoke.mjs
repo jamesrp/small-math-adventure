@@ -44,7 +44,7 @@ const targets = (i, words) => page.evaluate(async ([i, words]) => {
   const m = await import('/families/octagon/octagon.js');
   const s = document.querySelector(`svg.oc-board[data-floor="${i}"]`), kind = s.classList.contains('oct') ? 'oct' : 'sq';
   const want = new Set(words.map(w => m.dotKey(kind, m.reduce(kind, w))));
-  return [...s.querySelectorAll('.oc-target')].map(t => { const r = t.getBoundingClientRect(), c = t.dataset.cert; return {x: r.x + r.width / 2, y: r.y + r.height / 2, cert: c, right: want.has(m.dotKey(kind, m.reduce(kind, c)))}; });
+  return [...s.querySelectorAll('.oc-target')].map(t => { const r = t.getBoundingClientRect(), c = t.dataset.cert; return {x: r.x + r.width / 2, y: r.y + r.height / 2, cert: c, marked: t.classList.contains('oc-marked'), right: want.has(m.dotKey(kind, m.reduce(kind, c)))}; });
 }, [i, words]);
 const halfway = (kind, walk) => page.evaluate(async ([kind, walk]) => (await import('/families/octagon/octagon.js')).halfwayState(kind, walk), [kind, walk]);
 const lightDots = (kind, walk) => page.evaluate(async ([kind, walk]) => (await import('/families/octagon/octagon.js')).evenDots(kind, walk), [kind, walk]);
@@ -120,10 +120,10 @@ try {
   assert.equal(await told(0).innerText(), 'Not that dot.', 'squares: a wrong dot is refused');
   assert.equal(await cant(0).isDisabled(), true, 'Can’t shut while the refusal stands');
   await page.locator('[data-action="undo"]').click();
-  assert.equal(await told(0).innerText(), 'Not that dot.', 'Undo keeps the refusal');
-  assert.equal((await board(P2)).floors[0].walk, 'SSS', 'and takes back a move');
+  assert.deepEqual((await board(P2)).floors[0], {walk: 'SSS', told: {say: 'miss', walk: 'SSSS'}, cert: null}, 'Undo takes back a move and keeps the refusal');
+  assert.equal(await told(0).count(), 0, 'its words wait for that walk');
   await moves(0, 'S');
-  assert.equal(await told(0).innerText(), 'Not that dot.', 'the same walk again keeps it');
+  assert.equal(await told(0).innerText(), 'Not that dot.', 'the same walk again shows it');
   assert.equal(await cant(0).isDisabled(), true, 'and keeps Can’t shut');
   await page.locator('[data-action="undo"]').click();
   await moves(0, 'L');
@@ -134,7 +134,7 @@ try {
   assert.equal(await told(0).innerText(), 'There is a way.', 'squares: the right dot says there is a way');
   await shot('p2-way');
   await page.locator('[data-action="undo"]').click();
-  assert.equal(await told(0).innerText(), 'There is a way.', 'Undo keeps it');
+  assert.deepEqual((await board(P2)).floors[0].told, {say: 'way', walk: 'SSSL'}, 'Undo keeps it');
   await show(1);
   await moves(1, 'LLLL');
   await cant(1).click();
@@ -157,8 +157,7 @@ try {
   assert.equal(await told(1).innerText(), 'Not that dot.', 'a contested tap goes to the nearer dot, refused in the same words as on squares');
   await shot('p2-wrong-dot');
   await page.locator('[data-action="undo"]').click();
-  assert.equal(await told(1).innerText(), 'Not that dot.', 'Undo keeps the refusal');
-  assert.equal((await board(P2)).floors[1].walk, 'LLL');
+  assert.deepEqual((await board(P2)).floors[1], {walk: 'LLL', told: {say: 'miss', walk: 'LLLL'}, cert: null}, 'Undo keeps the refusal');
   await moves(1, 'S');
   assert.equal(await told(1).count(), 0, 'a different walk clears it');
   await cant(1).click();
@@ -170,8 +169,13 @@ try {
   await shot('p2-certificate');
   await page.locator('[data-action="restart"]').click();
   await show(0);
-  assert.equal(await told(0).innerText(), 'There is a way.', 'Restart keeps the refusal');
-  assert.equal((await board(P2)).floors[0].walk, '', 'on a fresh floor');
+  assert.deepEqual((await board(P2)).floors[0], {walk: '', told: {say: 'way', walk: 'SSSL'}, cert: null}, 'Restart keeps the refusal');
+  assert.equal(await told(0).count(), 0, 'with no words under an empty floor');
+  await moves(0, 'SSSL');
+  assert.equal(await told(0).innerText(), 'There is a way.', 'until that walk is finished again');
+  assert.equal(await cant(0).isDisabled(), true);
+  await page.locator('[data-action="restart"]').click();
+  await show(0);
   await moves(0, 'LLLL');
   assert.equal(await told(0).count(), 0);
   await show(1);
@@ -189,11 +193,14 @@ try {
   await show(1); await moves(1, 'SSSSSS');
   assert.equal(await floor(1).locator('.oc-homeward').count(), 1, 'a marker points to home');
   assert.equal(await floor(1).locator('.oc-home').count(), 0, 'home is off the drawing');
+  const mark = [...(await floor(1).locator('.oc-homeward').getAttribute('d')).matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map(m => Math.hypot(Number(m[1]), Number(m[2])));
+  assert.ok(Math.min(...mark) >= 96, `the marker is on the edge, outside every target (${Math.min(...mark).toFixed(1)})`);
   await shot('p4-home-marker');
   await cant(1).click();
   const half4 = await halfway('oct', 'SSSSSS'), z4 = await trailPoint(1, 3);
   assert.ok(Math.hypot(...z4) > 0.94, `the dot after three moves is near the rim (${Math.hypot(...z4).toFixed(3)})`);
   assert.equal((await targets(1, [half4])).filter(t => t.right).length, 0, 'it is not a target');
+  assert.equal(await floor(1).locator('.oc-cue').isVisible(), true, 'a line asks for a drag');
   const before4 = JSON.stringify(await board(P4));
   await tapDisk(1, ...z4);
   assert.equal(JSON.stringify(await board(P4)), before4, 'a tap on it chooses nothing');
@@ -223,7 +230,7 @@ try {
   assert.equal(await told(0).innerText(), 'Not those dots.', 'judged on the last tap');
   assert.equal(await floor(0).locator('.oc-target').count(), 0, 'the taps are cleared');
   await page.locator('[data-action="undo"]').click();
-  assert.equal(await told(0).innerText(), 'Not those dots.', 'Undo keeps the refusal');
+  assert.deepEqual((await board(P5)).floors[0].told, {say: 'miss', walk: 'LLSLLSL'}, 'Undo keeps the refusal');
   await moves(0, 'R');
   assert.equal(await told(0).count(), 0, 'a different walk clears it');
   await cant(0).click();
@@ -236,6 +243,23 @@ try {
   assert.equal(list.filter(t => t.right).length, 3);
   for (const t of list.filter(u => u.right)) await tapAt(t.x, t.y);
   await done(); await shot('p5-colouring');
+
+  // Puzzle 10: thirteen straight moves leave the light dots beyond reach; at
+  // the second hint level the floor slides to each one still to tap.
+  const P10 = 'octagon-10';
+  await open(P10);
+  await moves(0, 'S'.repeat(13));
+  await cant(0).click();
+  await page.locator('[data-action="hint"]').click(); await page.locator('[data-action="hint"]').click();
+  const light10 = await lightDots('oct', 'S'.repeat(13));
+  assert.equal(light10.length, 6);
+  for (let k = 0; k < 8 && (await board(P10)).floors[0].cert === null; k++) {
+    const next = (await targets(0, light10)).find(t => t.right && !t.marked);
+    assert.ok(next, `a light dot still to tap is within reach (${k})`);
+    await tapAt(next.x, next.y);
+  }
+  assert.deepEqual((await board(P10)).floors[0].cert, light10, 'all six tapped');
+  await done(); await shot('p10-colouring');
 
   // Puzzle 8: squares fence with four lefts; octagons run out of left turns,
   // and Can't alone draws the tight fence and its 12 corners.

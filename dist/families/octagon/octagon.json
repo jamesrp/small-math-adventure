@@ -9,7 +9,7 @@
    "rules": [
     "Each move turns left, goes straight on or turns right at a dot, then walks one road. The robot never turns round.",
     "On the octagon floor every room has eight corners, all right angles, and four rooms meet at every dot. The floor slides so the robot stays in the middle; rooms near the rim are drawn smaller but are all the same size.",
-    "Can’t works once a try is finished. When Can’t is not right, it waits for a different finished try."
+    "Can’t works once a try is finished. After a wrong tap or “There is a way.”, it waits for a different finished try."
    ],
    "sourceIds": [
     "octagon-week65",
@@ -122,7 +122,7 @@
     "Each move turns left, goes straight on or turns right at a dot, then walks one road. The robot never turns round.",
     "On the octagon floor every room has eight corners, all right angles, and four rooms meet at every dot. The floor slides so the robot stays in the middle; rooms near the rim are drawn smaller but are all the same size.",
     "Make exactly 8 moves. The walk must end on the yellow ring with the robot pointing like the faint arrow.",
-    "Can’t works once a try is finished. When Can’t is not right, it waits for a different finished try."
+    "Can’t works once a try is finished. After a wrong tap or “There is a way.”, it waits for a different finished try."
    ],
    "idea": "On the octagon floor, the robot comes home facing the same way by going round a whole room: eight corners, not four.",
    "prerequisites": "Tell left from right and count moves to fourteen. Keeping track of which way the robot faces on a curved road takes practice; a grown-up can trace the first moves with a finger.",
@@ -192,7 +192,7 @@
     "Each move turns left, goes straight on or turns right at a dot, then walks one road. The robot never turns round.",
     "On the octagon floor every room has eight corners, all right angles, and four rooms meet at every dot. The floor slides so the robot stays in the middle; rooms near the rim are drawn smaller but are all the same size.",
     "Make exactly 4 moves. The walk must end on the yellow ring with the robot pointing like the faint arrow.",
-    "Can’t works once a try is finished. When Can’t is not right, it waits for a different finished try."
+    "Can’t works once a try is finished. After a wrong tap or “There is a way.”, it waits for a different finished try."
    ],
    "idea": "Four turns make a loop on squares but not on octagons: there, after two moves the only two-road way back is the way the robot came, and it starts with a turn round.",
    "prerequisites": "Tell left from right and count moves to fourteen. Keeping track of which way the robot faces on a curved road takes practice; a grown-up can trace the first moves with a finger.",
@@ -850,7 +850,7 @@
     "On the octagon floor every room has eight corners, all right angles, and four rooms meet at every dot. The floor slides so the robot stays in the middle; rooms near the rim are drawn smaller but are all the same size.",
     "A fence comes home facing the same way and never uses a dot twice. The flowers must be inside it.",
     "No right turns.",
-    "Can’t works once a try is finished. When Can’t is not right, it waits for a different finished try."
+    "Can’t works once a try is finished. After a wrong tap or “There is a way.”, it waits for a different finished try."
    ],
    "idea": "Round two rooms a fence turns left 12 times on octagons and 4 times on squares: 16 corners less the 4 at the ends of the shared wall, against 8 less 4.",
    "prerequisites": "Tell left from right and plan a walk that must not cross itself. A grown-up can read the goal.",
@@ -930,7 +930,7 @@
     "Each move turns left, goes straight on or turns right at a dot, then walks one road. The robot never turns round.",
     "On the octagon floor every room has eight corners, all right angles, and four rooms meet at every dot. The floor slides so the robot stays in the middle; rooms near the rim are drawn smaller but are all the same size.",
     "Make exactly 6 moves. The walk must end on the yellow ring with the robot pointing like the faint arrow.",
-    "Can’t works once a try is finished. When Can’t is not right, it waits for a different finished try."
+    "Can’t works once a try is finished. After a wrong tap or “There is a way.”, it waits for a different finished try."
    ],
    "idea": "Six moves home works six ways on squares and no way on octagons; the dot after three moves shows why.",
    "prerequisites": "Tell left from right and count moves to fourteen. Keeping track of which way the robot faces on a curved road takes practice; a grown-up can trace the first moves with a finger.",
@@ -1002,7 +1002,7 @@
     "Each move turns left, goes straight on or turns right at a dot, then walks one road. The robot never turns round.",
     "On the octagon floor every room has eight corners, all right angles, and four rooms meet at every dot. The floor slides so the robot stays in the middle; rooms near the rim are drawn smaller but are all the same size.",
     "Make exactly 7 moves. The walk must end on the yellow ring with the robot pointing like the faint arrow.",
-    "Can’t works once a try is finished. When Can’t is not right, it waits for a different finished try."
+    "Can’t works once a try is finished. After a wrong tap or “There is a way.”, it waits for a different finished try."
    ],
    "idea": "No odd walk comes home, on either floor: colour the dots light and dark so every road joins two colours.",
    "prerequisites": "Tell left from right and count moves. The reason for Can’t is a colouring idea a grown-up can draw on paper first.",
@@ -1092,7 +1092,7 @@
     "On the octagon floor every room has eight corners, all right angles, and four rooms meet at every dot. The floor slides so the robot stays in the middle; rooms near the rim are drawn smaller but are all the same size.",
     "A fence comes home facing the same way and never uses a dot twice. The flowers must be inside it.",
     "No right turns.",
-    "Can’t works once a try is finished. When Can’t is not right, it waits for a different finished try."
+    "Can’t works once a try is finished. After a wrong tap or “There is a way.”, it waits for a different finished try."
    ],
    "idea": "Two rooms that meet only at a corner can’t be fenced alone; with no right turns the fence takes all four rooms at that dot.",
    "prerequisites": "Tell left from right and plan a walk that must not cross itself. A grown-up can read the goal.",
@@ -1169,7 +1169,7 @@
     "Each move turns left, goes straight on or turns right at a dot, then walks one road. The robot never turns round.",
     "On the octagon floor every room has eight corners, all right angles, and four rooms meet at every dot. The floor slides so the robot stays in the middle; rooms near the rim are drawn smaller but are all the same size.",
     "Make exactly 14 moves. The walk must end on the yellow ring with the robot pointing like the faint arrow.",
-    "Can’t works once a try is finished. When Can’t is not right, it waits for a different finished try."
+    "Can’t works once a try is finished. After a wrong tap or “There is a way.”, it waits for a different finished try."
    ],
    "idea": "After 8, the next return home on octagons is 14 moves: round two rooms.",
    "prerequisites": "Tell left from right and count moves to fourteen. Keeping track of which way the robot faces on a curved road takes practice; a grown-up can trace the first moves with a finger.",
@@ -1206,7 +1206,7 @@
    "id": "octagon-08",
    "number": 8,
    "title": "Eleven left turns",
-   "difficulty_level": "hard",
+   "difficulty_level": "medium",
    "familyTitle": "Octagon streets",
    "mechanic": "octagon",
    "band": "all",
@@ -1699,7 +1699,7 @@
     "A fence comes home facing the same way and never uses a dot twice. The flowers must be inside it.",
     "No right turns.",
     "At most 11 left turns: each one uses a ↰.",
-    "Can’t works once a try is finished. When Can’t is not right, it waits for a different finished try."
+    "Can’t works once a try is finished. After a wrong tap or “There is a way.”, it waits for a different finished try."
    ],
    "idea": "Two octagons need 12 left turns at least; two squares need only 4.",
    "prerequisites": "Tell left from right and plan a walk that must not cross itself. A grown-up can read the goal.",
@@ -1775,7 +1775,7 @@
     "On the octagon floor every room has eight corners, all right angles, and four rooms meet at every dot. The floor slides so the robot stays in the middle; rooms near the rim are drawn smaller but are all the same size.",
     "A fence comes home facing the same way and never uses a dot twice. The flowers must be inside it.",
     "At most 19 left turns: each one uses a ↰.",
-    "Can’t works once a try is finished. When Can’t is not right, it waits for a different finished try."
+    "Can’t works once a try is finished. After a wrong tap or “There is a way.”, it waits for a different finished try."
    ],
    "idea": "With a right turn allowed, three rooms round the corner dot are enough: 17 lefts and 1 right.",
    "prerequisites": "Tell left from right and plan a walk that must not cross itself. A grown-up can read the goal.",
@@ -1837,7 +1837,7 @@
     "Each move turns left, goes straight on or turns right at a dot, then walks one road. The robot never turns round.",
     "On the octagon floor every room has eight corners, all right angles, and four rooms meet at every dot. The floor slides so the robot stays in the middle; rooms near the rim are drawn smaller but are all the same size.",
     "Make exactly 13 moves. The walk must end on the yellow ring with the robot pointing like the faint arrow.",
-    "Can’t works once a try is finished. When Can’t is not right, it waits for a different finished try."
+    "Can’t works once a try is finished. After a wrong tap or “There is a way.”, it waits for a different finished try."
    ],
    "idea": "Thirteen is one short of fourteen, and no odd walk comes home.",
    "prerequisites": "Tell left from right and count moves. The reason for Can’t is a colouring idea a grown-up can draw on paper first.",
