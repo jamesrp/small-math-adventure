@@ -1,9 +1,11 @@
 // Plays Mirror twins through the real interface: turns by tapping corners
 // (one with the turn animating, near a disc's edge), Enter on a corner, Undo;
 // Can't with its traced arrows (not the same middle, other letters, a right
-// claim, and a wrong one kept through Undo); one change by letter chips;
-// changing an A on each; placing four letters; every pair with Found already,
-// There is another and That's all; sorting with a refused That's all; the
+// claim, and a wrong one locked through Undo); one change by letter chips;
+// changing an A on each and placing four letters, with nothing said unasked
+// after a set-up that misses the goal, and Start again; every pair with the
+// new pair marked, Found already, There is another and That's all; sorting
+// with a refused That's all and the proof after a right one; the
 // playground's Letters. Every puzzle is also solved through the interface by
 // following its hints. Checks focus, page overflow and the board's size.
 // Same environment variables as the other browser suites (PLAYWRIGHT_MODULE,
@@ -30,6 +32,11 @@ const done = () => page.locator('#completion-heading').waitFor({timeout: 5000});
 const solvedNow = async () => await page.locator('#completion-heading').count() > 0;
 const fit = async label => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `${label}: no page overflow`);
 const told = () => page.locator('.tt-told').innerText();
+// After a set-up, with Hint never pressed, the app says nothing.
+async function quiet(label) {
+  assert.equal(await page.locator('.feedback').innerText(), '', `${label}: no feedback unasked`);
+  assert.equal(await page.locator('.tt-told, .hint-card').count(), 0, `${label}: no message or hint unasked`);
+}
 const center = async locator => { const b = await locator.boundingBox(); assert.ok(b, 'a control on screen'); return [b.x + b.width / 2, b.y + b.height / 2]; };
 // Taps go through real hit-testing at a point, as a finger would.
 const tapAt = async (x, y) => { if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); };
@@ -59,7 +66,7 @@ async function size(label) {
 // One hint's move, made by tapping what a child would tap.
 async function act(id, action) {
   const p = byId(id);
-  if (action.type === 'turn' && p.parameters.mode === 'sort') {
+  if (action.type === 'turn' && p.parameters.mode === 'sort' && action.card !== undefined) {
     const card = page.locator(`.tt-stack:has([data-flip="${id}:card${action.card}"])`);
     if (!await card.evaluate(e => e.classList.contains('chosen'))) await tap(card);
     await tap(page.locator(`.tt-model.tt-bench button.tt-corner.p${action.at}`));
@@ -68,22 +75,23 @@ async function act(id, action) {
   else if (action.type === 'merge') { await tap(button(`Change ${action.drop}`)); await tap(button(`Change ${action.drop} to ${action.keep}`)); }
   else if (action.type === 'cant') { await tap(button('Can’t match')); for (const k of action.left) await tap(corner('left', k)); for (const k of action.right) await tap(corner('right', k)); }
   else if (action.type === 'all') await tap(button('That’s all'));
+  else if (action.type === 'again') await tap(button('Start again'));
   else throw new Error(`no tap for ${JSON.stringify(action)}`);
 }
-async function solveByHints(id) {
+async function solveByHints(id, until = solvedNow) {
   const p = byId(id), m = mechanicFor(p);
-  for (let n = 0; n < 80 && !await solvedNow(); n++) {
+  for (let n = 0; n < 80 && !await until(); n++) {
     const h = m.hint(p, await board(id));
-    if (h.type === 'deadend') { await undoButton(); continue; }
+    assert.equal(h.type, 'move', `${id}: never a dead end (${h.text})`);
     await act(id, h.action);
   }
-  await done();
+  if (until === solvedNow) await done();
 }
 try {
   await mkdir(out, {recursive: true});
   await page.goto(base); await page.locator('#nickname').fill('Tetra QA'); await page.locator('#profile-form button[type=submit]').click();
   await page.locator('[data-action=library]').first().click(); await page.locator('.caravan-library').waitFor();
-  assert.equal(await page.locator('.family-ink-symbol', {hasText: '◬'}).count(), 1, 'the family’s symbol in the satchel');
+  assert.equal(await page.locator('.family-ink-symbol', {hasText: '⧖'}).count(), 1, 'the family’s symbol in the satchel');
 
   // Puzzle 1: turning, with the turn shown, Enter on a corner, Undo.
   const P1 = 'tetra-01';
@@ -138,6 +146,7 @@ try {
   await tap(corner('right', wrongTwo[0])); await tap(corner('right', wrongTwo[1]));
   assert.equal(await told(), 'Follow the same letters on both.');
   await tap(button('Can’t match'));
+  assert.equal(await page.locator('.tt-told').count(), 0, 'the message gives way while tracing again');
   await tap(corner('left', 1)); await tap(corner('left', 2));
   await shot('cant-tracing');
   await tap(corner('right', R3.indexOf('D'))); await tap(corner('right', R3.indexOf('C')));
@@ -155,13 +164,17 @@ try {
   await tap(corner('right', R2.indexOf('D'))); await tap(corner('right', R2.indexOf('C')));
   assert.equal(await told(), 'Same way round.');
   assert.equal(await page.locator('.tt-arrow.off').count(), 2, 'both arrows, the same way round');
+  assert.equal(await page.locator('.tt-over .tt-arrow').count(), 2, 'drawn above the discs');
   assert.equal(await button('Can’t match').isDisabled(), true, 'Can’t is off');
   await focusOnBoard('after a wrong claim');
   await shot('cant-refused');
   await undoButton();
   assert.equal(await page.locator('.tt-told').count(), 0, 'Undo changes the screen');
-  assert.equal(await button('Can’t match').isDisabled(), true, 'and the claim stays');
-  assert.equal((await board(P2)).claim.ok, false);
+  assert.equal(await button('Can’t match').isDisabled(), true, 'and the lock stays');
+  assert.equal((await board(P2)).wrong.length, 1);
+  await tap(page.locator('[data-action="restart"]'));
+  await tap(corner('right', 3));
+  assert.equal(await button('Can’t match').isDisabled(), true, 'and through Restart');
   const b2 = await board(P2);
   for (const k of tapsTo(byId(P2).parameters.left, labelsOf(b2.letters, b2.at))) await tap(corner('right', k));
   await done();
@@ -184,6 +197,15 @@ try {
   await open(P7); await fit('change');
   assert.equal(await page.locator('.tt-sticker').count(), 2, 'a D waits by each model');
   assert.equal(await page.locator('.tt-model.tt-right button.tt-corner').count(), 2, 'only your As can change');
+  assert.equal(await button('Start again').isDisabled(), true, 'nothing to start again yet');
+  // Both middle As make twins, and the app says nothing about it.
+  await tap(corner('left', 0)); await quiet('one A changed');
+  await tap(corner('right', 0)); await quiet('both middle As changed');
+  await tap(corner('right', 0)); await quiet('turned');
+  await shot('change-twins');
+  await tap(button('Start again'));
+  assert.deepEqual((await board(P7)).placed, {left: 0, right: 0}, 'Start again');
+  await focusOnBoard('after Start again');
   await tap(corner('left', 0)); await tap(corner('right', 2));
   assert.deepEqual((await board(P7)).placed, {left: 1, right: 1});
   await shot('change');
@@ -193,6 +215,11 @@ try {
   // Puzzle 9: four letters on blank corners, then Can't.
   const P9 = 'tetra-09';
   await open(P9); await fit('blank'); await size('blank');
+  // A copy of the other model: nothing said as the letters go on.
+  for (const k of [0, 3, 2, 1]) { await tap(corner('right', k)); await quiet(`a copy, letter on ${k}`); }
+  await tap(corner('right', 0)); await quiet('a copy, turned');
+  await tap(button('Start again'));
+  assert.equal(await page.locator('.tt-sticker').count(), 4, 'the letters come off');
   for (const k of [0, 1, 2, 3]) await tap(corner('right', k));
   assert.deepEqual((await board(P9)).letters, ['A', 'B', 'C', 'D']);
   assert.equal(await page.locator('.tt-sticker').count(), 0);
@@ -210,6 +237,10 @@ try {
   await tap(button('Change C')); await tap(button('Change C to B'));
   assert.deepEqual((await board(P8)).found, ['BC'], 'B and C made the same match at once');
   assert.equal(await page.locator('.tt-found').count(), 1, 'on the shelf');
+  assert.equal(await page.locator('.tt-found.new').count(), 1, 'marked as just found');
+  await undoButton();
+  assert.equal(await page.locator('.tt-found').count(), 1, 'Undo keeps it on the shelf');
+  assert.equal(await page.locator('.tt-found.new').count(), 0, 'and takes the mark away');
   await tap(button('Change B')); await tap(button('Change B to C'));
   assert.equal(await told(), 'Found already.');
   await tap(button('That’s all'));
@@ -236,11 +267,29 @@ try {
   assert.equal(await told(), 'Some can still match.');
   assert.equal(await button('That’s all').isDisabled(), true);
   await shot('sort-refused'); await size('sort refused');
+  // A right That's all: the proof, on a model from each of the two stacks
+  // with four different letters.
+  await solveByHints(P12, async () => await page.locator('.tt-proving').count() > 0);
+  assert.equal(await page.locator('.tt-proving .tt-model').count(), 2, 'a pair of models');
+  assert.equal(await page.locator('.tt-ask').innerText(), 'Show with Can’t that these two can’t match.');
+  assert.equal(await page.locator('.tt-stack.compared').count(), 2, 'the two stacks marked');
+  assert.equal(await page.locator('.tt-stack:not([disabled])').count(), 0, 'the stacks stay as they are');
+  assert.equal(await button('Can’t match').isDisabled(), true, 'Can’t after a turn');
+  await focusOnBoard('after a right That’s all');
+  await fit('sort proof'); await size('sort proof'); await shot('sort-proof');
   await solveByHints(P12);
+  assert.equal(await page.locator('.tt-arrow.ok').count(), 2, 'the certificate’s arrows');
   await fit('sort solved'); await shot('sort-solved');
 
+  // Puzzle 10: a change that matches, and nothing said about it.
+  const P10 = 'tetra-10';
+  await open(P10);
+  await tap(corner('left', 0)); await tap(corner('right', 2)); await quiet('a change that matches');
+  await shot('change-matching');
+  await solveByHints(P10);
+
   // Every other puzzle, solved through the interface by its hints.
-  for (const p of tetra.puzzles.filter(p => p.band !== 'playground' && ![P1, P2, P3, P6, P7, P8, P9, P12].includes(p.id))) { await open(p.id); await fit(p.id); await size(p.id); await solveByHints(p.id); }
+  for (const p of tetra.puzzles.filter(p => p.band !== 'playground' && ![P1, P2, P3, P6, P7, P8, P9, P10, P12].includes(p.id))) { await open(p.id); await fit(p.id); await size(p.id); await solveByHints(p.id); }
 
   // The playground: turn either model, change letters.
   const G = 'tetra-playground';

@@ -1,14 +1,15 @@
 // Mirror twins: turns and rotations, no reflection, matching and the two
 // classes, turning to match, Can't with its traced arrows (form refusals,
-// wrong claims kept through Undo), one change, set-ups, every pair, sorting,
-// the playground, hints, saves, rendering, styles and timing.
+// wrong claims locked through Undo and Restart), one change, set-ups with
+// Start again and no dead ends, every pair with the new pair marked, sorting
+// with its proof, the playground, hints, saves, rendering, styles and timing.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {freshAttempt, move, isSolved, nextHint, validBoard, undo, undoToSolvable} from '../dist/engine.js';
+import {freshAttempt, move, isSolved, nextHint, validBoard, undo, restart} from '../dist/engine.js';
 import {playView} from '../dist/ui.js';
 import {FAMILIES} from '../dist/families.js';
-import tetraModule, {tetraMechanics, TURN, ROTATIONS, isRotation, turned, labelsOf, rotated, canMatch, tapsTo, judge, clockwise, classesOf, traceTap, describe, LETTERS} from '../dist/families/tetra/tetra.js';
+import tetraModule, {tetraMechanics, TURN, ROTATIONS, isRotation, turned, labelsOf, rotated, canMatch, tapsTo, judge, clockwise, classesOf, traceTap, describe, proofPairs, cardLabels, LETTERS} from '../dist/families/tetra/tetra.js';
 import {loadPack} from '../scripts/packs.mjs';
 
 const tetra = JSON.parse(await readFile(new URL('../dist/families/tetra/tetra.json', import.meta.url), 'utf8'));
@@ -21,6 +22,8 @@ const taps = (...at) => at.map(k => ({type: 'turn', at: k}));
 const W = s => [...s];
 // Undo as the app does it: one step, then carry.
 const undoCarry = (p, a) => { const next = undo(a); return {...next, board: m.carry(p, a.board, next.board)}; };
+const restartCarry = (p, a) => { const next = restart(p, a); return {...next, board: m.carryOnRestart(p, a.board, next.board)}; };
+const noCant = (p, a) => [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]].every(x => [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]].every(y => move(p, a, {type: 'cant', left: x, right: y}) === null));
 const board = (p, a) => { m.reset(p); return m.render(p, {...a, hintLevel: 0}); };
 const view = (p, a) => { m.reset(p); return playView(p, a, {pack, selected: null, message: ''}); };
 
@@ -95,7 +98,7 @@ test('Can’t: only after a turn; the same middle letter and the same two letter
   assert.equal((board(p, ok).match(/tt-arrow ok/g) || []).length, 2, 'both arrows drawn');
 });
 
-test('a wrong Can’t: one short refusal, kept through Undo and turns, and Can’t stays off while the letters are the same', () => {
+test('a wrong Can’t: one short refusal, and Can’t stays off on those letters through turns, Undo and Restart', () => {
   const p = byId(2);
   // Other ADCB; yours BACD. A tap on the left corner brings A to the middle without a match.
   const a = play(p, freshAttempt(p), ...taps(3));
@@ -110,14 +113,17 @@ test('a wrong Can’t: one short refusal, kept through Undo and turns, and Can�
   assert.match(board(p, c), /tt-arrow off/);
   assert.match(board(p, c), /class="secondary tt-button tt-cant"[^>]*disabled/);
   const back = undoCarry(p, c);
-  assert.deepEqual(back.board.claim, c.board.claim, 'Undo keeps the claim');
+  assert.equal(back.board.claim, null, 'Undo takes the claim’s arrows away');
+  assert.deepEqual(back.board.wrong, c.board.wrong, 'and keeps the lock');
   assert.equal(back.board.told, null);
   assert.notEqual(board(p, back), board(p, c), 'Undo changes the screen');
   assert.doesNotMatch(board(p, back), /Same way round/);
   assert.match(board(p, back), /class="secondary tt-button tt-cant"[^>]*disabled/, 'Can’t still off');
   const before = undoCarry(p, back);
-  assert.deepEqual(before.board.claim, c.board.claim, 'kept back to the start');
-  assert.equal(move(p, play(p, before, ...taps(3)), {type: 'cant', left: t, right: u}), null, 'no second claim');
+  assert.ok(noCant(p, play(p, before, ...taps(3))), 'no second claim, back to the start');
+  assert.ok(noCant(p, play(p, restartCarry(p, c), ...taps(3))), 'nor after Restart');
+  assert.ok(noCant(p, play(p, c, ...taps(0))), 'nor after a turn');
+  assert.equal(play(p, c, ...taps(0)).board.claim, null, 'a turn takes the arrows away');
   // The pair still matches by turning.
   const won = play(p, before, ...taps(...tapsTo(W('ADCB'), labelsOf(before.board.letters, before.board.at))));
   assert.ok(isSolved(p, won.board));
@@ -170,10 +176,20 @@ test('set-ups: an A changed on each, or four letters on blank corners, before an
   assert.deepEqual(a.board.left, W('DCBA'));
   a = play(p, a, ...taps(1));
   assert.ok(isSolved(p, a.board), 'the As that meet, then one tap');
+  // Both middle As make twins. No dead end: the hints bring the same letter to
+  // both middles, then give the reason and Start again.
   const wrong = play(p, fresh, {type: 'place', side: 'left', at: 0}, {type: 'place', side: 'right', at: 0});
-  assert.equal(nextHint(p, wrong).type, 'deadend');
-  assert.equal(nextHint(p, wrong).text, 'These two can’t match now. Undo a change.');
-  assert.deepEqual(undoToSolvable(p, wrong).board.placed, {left: 1, right: 0});
+  assert.equal(nextHint(p, wrong).type, 'move');
+  assert.deepEqual(nextHint(p, wrong).action, {type: 'turn', at: 0});
+  assert.match(view(p, wrong), /<div class="feedback " role="status" aria-live="polite"><\/div>/, 'nothing said unasked');
+  assert.doesNotMatch(view(p, wrong), /tt-told/);
+  const shown = play(p, wrong, ...taps(0));
+  assert.deepEqual(nextHint(p, shown).action, {type: 'again'});
+  assert.equal(nextHint(p, shown).text, 'With D in the middle of both, A, B and C go round opposite ways, and a turn never changes that. So these two can’t match. Press Start again.');
+  const again = play(p, shown, {type: 'again'});
+  assert.deepEqual([again.board.left, again.board.letters, again.board.placed], [p.parameters.left, p.parameters.right, {left: 0, right: 0}], 'Start again');
+  assert.equal(move(p, again, {type: 'again'}), null, 'nothing to start again');
+  assert.match(board(p, wrong), /tt-again"[^>]*data-move/, 'a Start again button');
   const b = byId(9), start = freshAttempt(b);
   let c = play(b, start, ...[0, 1, 2, 3].map(at => ({type: 'place', side: 'right', at})));
   assert.deepEqual(labelsOf(c.board.letters, c.board.at), W('ABCD'));
@@ -183,6 +199,25 @@ test('set-ups: an A changed on each, or four letters on blank corners, before an
   const R = labelsOf(c.board.letters, c.board.at);
   c = play(b, c, {type: 'cant', left: [1, 2], right: [R.indexOf('D'), R.indexOf('C')]});
   assert.ok(isSolved(b, c.board));
+  // A copy of the other model: the hints turn it to a visible match, then
+  // Start again. A wrong claim on it locks those letters, however they come back.
+  const copy = play(b, start, ...[0, 3, 2, 1].map(at => ({type: 'place', side: 'right', at})));
+  assert.deepEqual(labelsOf(copy.board.letters, copy.board.at), b.parameters.left);
+  assert.deepEqual(nextHint(b, copy).action, {type: 'again'});
+  assert.equal(nextHint(b, copy).text, 'These two match. Press Start again.');
+  const turnedCopy = play(b, copy, ...taps(0));
+  const S = labelsOf(turnedCopy.board.letters, turnedCopy.board.at);
+  const locked = play(b, turnedCopy, {type: 'cant', left: [1, 2], right: [S.indexOf('D'), S.indexOf('C')]});
+  assert.equal(locked.board.told, 'round');
+  let back = locked;
+  for (let n = 0; n < 3; n++) back = undoCarry(b, back);
+  assert.deepEqual(back.board.placed, {left: 0, right: 3}, 'the D taken off');
+  assert.ok(noCant(b, play(b, back, {type: 'place', side: 'right', at: 1}, ...taps(0))), 'and put back: still locked');
+  const fromAgain = play(b, locked, {type: 'again'}, ...[0, 3, 2, 1].map(at => ({type: 'place', side: 'right', at})), ...taps(0));
+  assert.ok(noCant(b, fromAgain), 'after Start again');
+  assert.ok(noCant(b, play(b, restartCarry(b, locked), ...[0, 3, 2, 1].map(at => ({type: 'place', side: 'right', at})), ...taps(0))), 'after Restart');
+  const other = play(b, restartCarry(b, locked), ...[0, 1, 3, 2].map(at => ({type: 'place', side: 'right', at})), ...taps(0));
+  assert.ok(!noCant(b, other), 'other letters are free');
 });
 
 test('every pair: a pair goes on the shelf when the models match and both start again; found already; there is another; Undo keeps the shelf', () => {
@@ -191,6 +226,11 @@ test('every pair: a pair goes on the shelf when the models match and both start 
   let a = play(p, fresh, {type: 'merge', drop: 'C', keep: 'B'});
   assert.deepEqual(a.board.found, ['BC'], 'B and C are in each other’s places');
   assert.deepEqual(a.board.left, W('ADCB'));
+  assert.match(board(p, a), /class="tt-found new"/, 'the pair just found is marked');
+  const unmade = undoCarry(p, a);
+  assert.deepEqual(unmade.board.found, ['BC'], 'Undo keeps it on the shelf');
+  assert.notEqual(board(p, unmade), board(p, a), 'and changes the screen');
+  assert.doesNotMatch(board(p, unmade), /tt-found new/);
   const again = play(p, a, {type: 'merge', drop: 'B', keep: 'C'});
   assert.deepEqual(again.board.told, {kind: 'again', pair: 'BC'});
   assert.match(board(p, again), /Found already\./);
@@ -228,10 +268,27 @@ test('sorting: models that look alike stack; That’s all needs no two stacks th
   const html = board(p, a);
   assert.equal((html.match(/class="tt-stack/g) || []).length, 2, 'two stacks');
   assert.doesNotMatch(html.replace(/<p class="sr-only"[^]*?<\/p>/g, ''), /\b(two|2) (stacks|groups|classes)\b/i, 'no count of classes on the board');
+  // A right That's all asks for the certificate: one model from each of the
+  // two stacks, shown apart with Can't.
   a = play(p, a, {type: 'all'});
+  assert.ok(!isSolved(p, a.board), 'not solved yet');
+  assert.deepEqual(proofPairs(q, a.board), [[0, 1]]);
+  assert.match(board(p, a), /Show with Can’t that these two can’t match\./);
+  assert.equal((board(p, a).match(/class="tt-model /g) || []).length, 2, 'a pair of models');
+  assert.equal(move(p, a, {type: 'turn', card: 0, at: 0}), null, 'the stacks stay as they are');
+  assert.ok(noCant(p, a), 'Can’t after a turn');
+  const L = cardLabels(q, a.board, 0);
+  let t = a;
+  for (const k of [0, 1, 2, 3]) { const next = play(p, a, ...taps(k)); if (labelsOf(cardLabels(q, next.board, 1), next.board.proof.at)[0] === L[0]) { t = next; break; } }
+  const R = labelsOf(cardLabels(q, t.board, 1), t.board.proof.at);
+  assert.equal(R[0], L[0], 'the same letter in both middles');
+  assert.equal(play(p, t, {type: 'cant', left: [1, 2], right: [R.indexOf(L[2]), R.indexOf(L[1])]}).board.told, 'letters');
+  a = play(p, t, {type: 'cant', left: [1, 2], right: [R.indexOf(L[1]), R.indexOf(L[2])]});
   assert.ok(isSolved(p, a.board));
+  assert.equal((board(p, a).match(/tt-arrow ok/g) || []).length, 2, 'both arrows drawn');
   const e = byId(12);
   assert.deepEqual(classesOf(e.parameters.cards), [[0, 3, 5], [1, 4, 7], [2, 6]], 'the A, A, B, C models make one stack');
+  assert.deepEqual(e.solution.twins, [[1, 2]], 'only the two stacks of four different letters need a certificate');
 });
 
 test('the playground: turn either model, change letters, never solved, no Hint', () => {
@@ -274,14 +331,22 @@ test('forged saves are rejected', () => {
     [{...B, tried: true, claim: {ok: true, at: [0, 1, 2, 3], left: [1, 2], right: [1, 2]}}, 'a claim with different middles'],
     [{...B, told: 'round'}, 'a refusal with no claim'],
     [{...B, letters: W('BDCD')}, 'changed letters'],
-    [{...B, merged: ['D', 'C']}, 'a change on a puzzle without one']
+    [{...B, merged: ['D', 'C']}, 'a change on a puzzle without one'],
+    [{...B, wrong: ['A·D·C·B|A·D·B·C']}, 'a lock on twins'],
+    [{...B, tried: true, at: [0, 2, 3, 1], told: 'letters'}, 'a stale message: the middles differ']
   ]) assert.equal(validBoard(p, b), false, why);
+  const two = byId(2), T = freshAttempt(two).board;
+  assert.equal(validBoard(two, {...T, tried: true, at: [1, 2, 0, 3], told: 'middle'}), false, 'a stale message: A in the middle of both');
+  assert.equal(validBoard(two, {...T, tried: true, at: [1, 2, 0, 3], told: 'letters'}), true, 'a fitting one');
+  assert.equal(validBoard(two, {...restartCarry(two, play(two, freshAttempt(two), ...taps(3), {type: 'cant', left: [1, 2], right: [1, 2]})).board}), true, 'a lock carried by Restart');
   const s = byId(11), S = freshAttempt(s).board;
   assert.equal(validBoard(s, {...S, done: true}), false, 'a forged done');
   assert.equal(validBoard(s, {...S, tried: true, refused: [[0, 2, 4], [1, 3, 5]]}), false, 'a refusal of the right stacks');
   const e = byId(8), E = freshAttempt(e).board;
   assert.equal(validBoard(e, {...E, done: true}), false);
   assert.equal(validBoard(e, {...E, found: ['AB', 'AC', 'AD', 'BC', 'BD', 'CD'], refused: 6}), false, 'a refusal of a full shelf');
+  assert.equal(validBoard(e, {...E, tried: true, found: ['BC', 'CD'], told: {kind: 'new', pair: 'BC'}}), false, 'a new pair that is not the last');
+  assert.equal(validBoard(s, {...S, tried: true, proof: {n: 0, at: [0, 1, 2, 3], tried: false, claim: null}}), false, 'a proof on an unsorted board');
 });
 
 test('rendering: two models with letter discs, your corners are buttons, objectives only where the board can’t say it', () => {
@@ -305,8 +370,9 @@ test('rendering: two models with letter discs, your corners are buttons, objecti
 
 test('the module: registered last, a unique symbol, scoped styles, focus only on enabled buttons', () => {
   assert.equal(FAMILIES.at(-1), tetraModule);
-  assert.equal(tetraModule.family.symbol, '◬');
-  assert.equal(FAMILIES.filter(f => f.family?.symbol === '◬').length, 1);
+  assert.equal(tetraModule.family.symbol, '⧖');
+  assert.equal(FAMILIES.filter(f => f.family?.symbol === '⧖').length, 1);
+  assert.equal(FAMILIES.filter(f => ['◬', '◭'].includes(f.family?.symbol)).length, 1, 'not a triangle like Rainbow triangles’ ◭');
   const rules = css.replace(/\/\*[^]*?\*\//g, '').replace(/@keyframes[^{]+\{[^{}]*\{[^}]*\}\s*\}/g, '').replace(/@media[^{]+\{/g, '').split('}').map(r => r.trim()).filter(r => r.includes('{'));
   // Split a selector list at its own commas, not those inside :is().
   const list = s => { const out = ['']; let depth = 0; for (const ch of s) { depth += ch === '(' ? 1 : ch === ')' ? -1 : 0; if (ch === ',' && !depth) out.push(''); else out[out.length - 1] += ch; } return out; };

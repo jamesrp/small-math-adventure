@@ -5,17 +5,21 @@
 // never a reflection); matching recomputed by parity for all 65,536 pairs of
 // labellings, with the classes of every multiset of letters; the view-from-A
 // certificate checked against every pair of twins and every trace, and the
-// share of random traces it accepts; every puzzle's answers by those methods;
-// witnesses played as moves; hint chains from fresh, after random play, after
-// form refusals, wrong claims, a wrong That's all and every set-up; Undo with
-// the mechanic's carry (refusals stay, the screen changes); illegal moves;
-// forged saves; the playground; hint CPU time.
+// share of random traces it accepts (on the pairs and on a sort's proof);
+// every puzzle's answers by those methods; witnesses played as moves; every
+// reachable board of the pair puzzles, set-ups included, with a hint that is a
+// legal move and never a dead end (so nothing is said unasked); hint chains
+// from fresh, after random play, after form refusals, wrong claims, a wrong
+// That's all, every set-up and a sort's proof; Undo with the mechanic's carry
+// (refusals and locks stay, the screen always changes, after every pair
+// shelved too); locks kept through Undo, Start again and Restart; illegal
+// moves; forged saves; the playground; hint CPU time.
 // Run: node scripts/validate-tetra.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import {freshAttempt, move, isSolved, nextHint, validBoard, undo, undoToSolvable} from '../dist/engine.js';
+import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
-import {TURN, SPOT, SOLID, ROTATIONS, LETTERS, canMatch, clockwise, judge, labelsOf, classesOf} from '../dist/families/tetra/tetra.js';
+import {TURN, SPOT, SOLID, ROTATIONS, LETTERS, canMatch, clockwise, judge, labelsOf, classesOf, proofPairs, cardLabels, setupDone} from '../dist/families/tetra/tetra.js';
 import {loadPack} from './packs.mjs';
 
 // --- The solid, independently ------------------------------------------------
@@ -63,7 +67,14 @@ const bag = w => [...w].sort().join('');
 const play = (p, a, action) => { const next = move(p, a, action); assert.ok(next && next !== a, `${p.id}: ${JSON.stringify(action)} is legal`); return next; };
 const playAll = (p, a, actions) => actions.reduce((b, x) => play(p, b, x), a);
 const refuse = (p, a, action, why) => assert.equal(move(p, a, action), null, `${p.id}: refuses ${why}`);
+// No claim at all is taken on a locked board.
+const noCant = (p, a, why) => { for (const left of TRACES) for (const right of TRACES) refuse(p, a, {type: 'cant', left, right}, why); };
 const view = (p, a) => { const m = mechanicFor(p); m.reset?.(p); return m.render(p, {...a, hintLevel: 0}); };
+// Restart as the app does it: a fresh attempt, then the mechanic's carry.
+function restartCarry(p, a) {
+  const m = mechanicFor(p), next = freshAttempt(p);
+  return m.carryOnRestart ? {...next, board: m.carryOnRestart(p, a.board, next.board)} : next;
+}
 // Undo as the app does it: one step back, then the mechanic's carry. The
 // screen must change.
 function undoCarry(p, a) {
@@ -74,7 +85,7 @@ function undoCarry(p, a) {
   assert.notEqual(m.render(p, {...next, hintLevel: 0}), before, `${p.id}: Undo changes the screen`);
   return next;
 }
-let hintCpu = 0, hintCalls = 0, rescues = 0;
+let hintCpu = 0, hintCalls = 0;
 function hintAt(p, a) {
   const t = process.cpuUsage(), h = nextHint(p, a), u = process.cpuUsage(t), ms = (u.user + u.system) / 1000;
   hintCpu = Math.max(hintCpu, ms); hintCalls++;
@@ -86,7 +97,7 @@ function hintsSolve(p, a, label) {
   for (; !isSolved(p, a.board) && steps < 80; steps++) {
     const h = hintAt(p, a);
     assert.ok(typeof h.text === 'string' && h.text.length > 5, `${p.id} ${label}: a hint with words`);
-    if (h.type === 'deadend') { const b = undoToSolvable(p, a); assert.notEqual(b, a, `${p.id} ${label}: the rescue Undo goes back`); a = b; rescues++; continue; }
+    assert.notEqual(h.type, 'deadend', `${p.id} ${label}: never a dead end (${h.text})`);
     assert.equal(h.type, 'move', `${p.id} ${label}: hints name a move (${h.text})`);
     if (h.action.type === 'cant') assert.ok(!/^Press/.test(h.text), `${p.id}: the reason before Can’t`);
     a = play(p, a, h.action);
@@ -101,12 +112,20 @@ const TRACES = [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]];
 // Every move the mechanic might be offered on a board.
 function candidates(p, b) {
   const q = p.parameters, out = [];
-  if (q.mode === 'sort') { q.cards.forEach((_, n) => [0, 1, 2, 3].forEach(at => out.push({type: 'turn', card: n, at}))); out.push({type: 'all'}); return out; }
+  if (q.mode === 'sort') {
+    q.cards.forEach((_, n) => [0, 1, 2, 3].forEach(at => out.push({type: 'turn', card: n, at})));
+    out.push({type: 'all'});
+    // The proof's own turns and claims.
+    for (const at of [0, 1, 2, 3]) out.push({type: 'turn', at});
+    for (const left of TRACES) for (const right of TRACES) out.push({type: 'cant', left, right});
+    return out;
+  }
   for (const at of [0, 1, 2, 3]) out.push({type: 'turn', at});
   for (const drop of LETTERS) for (const keep of LETTERS) if (drop !== keep) out.push({type: 'merge', drop, keep});
   if (q.mode === 'merges') { out.push({type: 'all'}); return out; }
   for (const side of ['left', 'right']) for (const at of [0, 1, 2, 3]) out.push({type: 'place', side, at});
   for (const left of TRACES) for (const right of TRACES) out.push({type: 'cant', left, right});
+  out.push({type: 'again'});
   return out;
 }
 function randomPlay(p, a, rand, n) {
@@ -234,7 +253,7 @@ export async function validateTetra() {
   assert.ok(puzzles.length >= 8 && puzzles.length <= 12, '8 to 12 puzzles');
 
   let hintSteps = 0;
-  const accept = {};
+  const accept = {}, reachable = {};
   for (const p of pack.puzzles) {
     assert.equal(p.mechanic, 'tetra');
     assert.ok(p.id.startsWith('tetra-'));
@@ -259,18 +278,19 @@ export async function validateTetra() {
     else if (row.kind === 'merge') hintSteps += checkMerge(p, fresh, row);
     else if (row.kind === 'change' || row.kind === 'blank') hintSteps += checkSetup(p, fresh, row, accept);
     else if (row.kind === 'merges') hintSteps += checkMerges(p, fresh, row);
-    else hintSteps += checkSort(p, fresh, row);
+    else hintSteps += checkSort(p, fresh, row, accept);
+    if (q.mode === 'pair') reachable[p.id] = checkReachable(p, fresh);
     hintSteps += hintsSolve(p, fresh, 'from fresh');
     // Random play, then hints, Undo on the way.
     const rand = seeded(p.number * 7919);
     for (let run = 0; run < 25; run++) {
       let a = randomPlay(p, fresh, rand, 1 + Math.floor(rand() * 10));
-      if (a.history.length && run % 3 === 0) a = undoCarry(p, a);
+      if (a.history.length) { const back = undoCarry(p, a); if (run % 3 === 0) a = back; }
       hintSteps += hintsSolve(p, a, `after random play ${run}`);
     }
     checkForged(p, fresh);
   }
-  return {tetraPuzzles: puzzles.length, labellingPairs: pairs, certificateTraces: certified, repeatedLetterWayRefusals: wayRefusals, randomTraceAcceptance: accept, hintSteps, rescues, hintCalls, slowestHintMs: hintCpu};
+  return {tetraPuzzles: puzzles.length, labellingPairs: pairs, certificateTraces: certified, repeatedLetterWayRefusals: wayRefusals, randomTraceAcceptance: accept, reachableBoards: reachable, hintSteps, hintCalls, slowestHintMs: hintCpu};
 }
 
 // Turn to match, or show with Can't that no turn can.
@@ -311,7 +331,8 @@ function checkTurn(p, fresh, row, accept) {
     assert.equal(ok.board.claim.ok, true);
     return steps;
   }
-  // A wrong claim: refused, kept through Undo and turns, and Can't stays off.
+  // A wrong claim: refused once, and Can't stays off on these letters through
+  // turns, Undo and Restart.
   const wrongs = TRACES.flatMap(x => TRACES.map(y => [x, y])).filter(([x, y]) => { const r = judge(L, Rn, x, y); return r.kind; });
   assert.ok(wrongs.length > 0, `${p.id}: a claim that can fail`);
   for (const [x, y] of wrongs) {
@@ -319,15 +340,17 @@ function checkTurn(p, fresh, row, accept) {
     assert.ok(!isSolved(p, c.board), `${p.id}: a wrong claim does not solve`);
     assert.equal(c.board.claim.ok, false);
     assert.equal(c.board.told, c.board.claim.kind, `${p.id}: one short refusal`);
-    for (const [v, w] of TRACES.map(v => [v, v])) refuse(p, c, {type: 'cant', left: v, right: w}, 'Can’t again on the same letters');
+    assert.equal(c.board.wrong.length, 1, `${p.id}: the letters are locked`);
+    noCant(p, c, 'Can’t again on the same letters');
     const back = undoCarry(p, c);
-    assert.deepEqual(back.board.claim, c.board.claim, `${p.id}: Undo keeps the refused claim`);
     assert.equal(back.board.told, null, `${p.id}: Undo takes the message away`);
+    assert.deepEqual(back.board.wrong, c.board.wrong, `${p.id}: Undo keeps the lock`);
+    noCant(p, back, 'Can’t after Undo');
     const turned = play(p, back, {type: 'turn', at: 0});
-    assert.deepEqual(turned.board.claim, c.board.claim, `${p.id}: a turn keeps the refused claim`);
-    for (const [v, w] of TRACES.flatMap(v => TRACES.map(w => [v, w]))) refuse(p, turned, {type: 'cant', left: v, right: w}, 'Can’t while refused');
-    const backTwice = undoCarry(p, undoCarry(p, turned));
-    assert.deepEqual(backTwice.board.claim, c.board.claim, `${p.id}: Undo past the turn keeps the claim`);
+    assert.equal(turned.board.claim, null, `${p.id}: a turn takes the refused arrows away`);
+    noCant(p, turned, 'Can’t after a turn');
+    noCant(p, play(p, undoCarry(p, undoCarry(p, turned)), {type: 'turn', at: 1}), 'Can’t after Undo past the turn');
+    noCant(p, play(p, restartCarry(p, c), {type: 'turn', at: 2}), 'Can’t after Restart');
     steps += hintsSolve(p, c, 'after a wrong claim');
   }
   return steps;
@@ -397,6 +420,10 @@ function checkSetup(p, fresh, row, accept) {
   if (row.kind === 'blank') {
     assert.equal(finishes.length, row.of, `${p.id}: every placement`);
     assert.equal(apart.length, row.apart, `${p.id}: placements that can't match`);
+    // Exactly the turned copies with two letters swapped.
+    const swapped = new Set();
+    for (let i = 0; i < 4; i++) for (let j = i + 1; j < 4; j++) { const w = [...q.left]; [w[i], w[j]] = [w[j], w[i]]; for (const g of EVEN) { const x = []; w.forEach((c, k) => { x[g[k]] = c; }); swapped.add(x.join('')); } }
+    assert.deepEqual([...swapped].sort(), apart.map(f => f.a.board.letters.join('')).sort(), `${p.id}: the turned copies with a swap`);
   } else {
     const key = f => f.made.join(), match = finishes.filter(f => !apart.includes(f));
     assert.equal(finishes.length, 4, `${p.id}: four ways to change one A on each`);
@@ -407,32 +434,78 @@ function checkSetup(p, fresh, row, accept) {
   for (const f of finishes) {
     const L = f.a.board.left, R = labelsOf(f.a.board.letters, f.a.board.at), can = matchV(L, R);
     assert.equal(bag(L), bag(R), `${p.id}: both end with the same letters`);
-    if (q.goal === 'match') {
-      if (can) { const b = playAll(p, f.a, fewest(L, R).map(at => ({type: 'turn', at}))); assert.ok(isSolved(p, b.board), `${p.id}: a change that matches, then turns`); }
-      else { assert.equal(hintAt(p, f.a).type, 'deadend', `${p.id}: a wrong change is a dead end`); steps += hintsSolve(p, f.a, `after the change ${f.made.join()}`); }
-      continue;
-    }
-    // Apart: a twin is certified after a turn; a pair that matches never is.
-    if (!can) {
+    if (q.goal === 'match' && can) { const b = playAll(p, f.a, fewest(L, R).map(at => ({type: 'turn', at}))); assert.ok(isSolved(p, b.board), `${p.id}: a change that matches, then turns`); continue; }
+    if (q.goal === 'apart' && !can) {
+      // A twin is certified after a turn.
       const a = reach(p, f.a, X => X[0] === L[0]), Rn = labelsOf(a.board.letters, a.board.at);
       const b = play(p, a, {type: 'cant', left: [1, 2], right: [Rn.indexOf(L[1]), Rn.indexOf(L[2])]});
       assert.ok(isSolved(p, b.board), `${p.id}: the twin ${f.made.join()} certified`);
       assert.ok(!isSolved(p, playAll(p, f.a, [{type: 'turn', at: 0}, {type: 'turn', at: 0}, {type: 'turn', at: 0}]).board), `${p.id}: a set-up alone is no solve`);
-    } else {
-      assert.equal(hintAt(p, f.a).type, 'deadend', `${p.id}: a pair that matches is a dead end`);
-      steps += hintsSolve(p, f.a, `after the placement ${f.made.join()}`);
+      continue;
     }
+    // A set-up that misses the goal is no dead end: the hints show it on the
+    // models (turned to match, or the same letter brought to both middles),
+    // then start again.
+    let a = f.a, h = hintAt(p, a);
+    for (let n = 0; h.action.type === 'turn' && n < 4; n++) { a = play(p, a, h.action); h = hintAt(p, a); }
+    assert.equal(h.action.type, 'again', `${p.id}: ${f.made.join()} shown, then Start again`);
+    const La = a.board.left, Ra = labelsOf(a.board.letters, a.board.at);
+    if (q.goal === 'apart') assert.ok(La.every((x, i) => x === Ra[i]), `${p.id}: the models visibly match first`);
+    else { assert.ok(a.board.tried && La[0] === Ra[0], `${p.id}: the same letter in both middles first`); assert.match(h.text, /^With [A-D] in the middle of both, .* opposite ways/, `${p.id}: the reason`); }
+    const again = play(p, a, h.action);
+    assert.deepEqual([again.board.left, again.board.letters, again.board.placed, again.board.at], [q.left, q.right, {left: 0, right: 0}, [0, 1, 2, 3]], `${p.id}: Start again takes the letters back`);
+    undoCarry(p, again);
+    steps += hintsSolve(p, f.a, `after the set-up ${f.made.join()}`);
+    if (q.goal === 'apart') steps += checkLock(p, f);
   }
   if (q.cant) traceShare(p, apart[0].a, accept);
-  // No turn or claim before the set-up is done.
+  // No turn, claim or Start again before the set-up has begun.
   refuse(p, fresh, {type: 'turn', at: 0}, 'a turn during the set-up');
+  refuse(p, fresh, {type: 'again'}, 'Start again with nothing put on');
   for (const t of TRACES) refuse(p, fresh, {type: 'cant', left: t, right: t}, 'Can’t during the set-up');
   const s = sides[0], wrongAt = [0, 1, 2, 3].find(at => (s === 'left' ? q.left : q.right)[at] !== q.place[s].on);
   if (wrongAt !== undefined) refuse(p, fresh, {type: 'place', side: s, at: wrongAt}, 'a letter on a corner that is not to change');
   const once = play(p, fresh, {type: 'place', side: s, at: (s === 'left' ? q.left : q.right).indexOf(q.place[s].on)});
   refuse(p, once, {type: 'place', side: s, at: (s === 'left' ? q.left : q.right).indexOf(q.place[s].on)}, 'the same corner twice');
   undoCarry(p, once);
+  const restarted = play(p, once, {type: 'again'});
+  assert.deepEqual(restarted.board.placed, {left: 0, right: 0}, `${p.id}: Start again mid-set-up`);
+  assert.ok(isSolved(p, playAll(p, restarted, hintChain(p, restarted)).board), `${p.id}: Start again mid-set-up, then hints`);
   return steps;
+}
+// The hints' moves from an attempt to a solve.
+function hintChain(p, a) {
+  const out = [];
+  for (let n = 0; !isSolved(p, a.board) && n < 60; n++) { const h = hintAt(p, a); out.push(h.action); a = play(p, a, h.action); }
+  return out;
+}
+// A wrong claim on a set-up that can match locks those letters: through Undo
+// of a letter and putting it back, Start again and the same letters again,
+// and Restart.
+function checkLock(p, f) {
+  const L = f.a.board.left, a = reach(p, f.a, X => X[0] === L[0]), Rn = labelsOf(a.board.letters, a.board.at);
+  const trace = TRACES.flatMap(x => TRACES.map(y => [x, y])).find(([x, y]) => judge(L, Rn, x, y).kind);
+  const c = play(p, a, {type: 'cant', left: trace[0], right: trace[1]});
+  assert.ok(c.board.claim && !c.board.claim.ok, `${p.id}: a wrong claim on ${f.made.join()}`);
+  // Undo back to before the last letter, then put it back.
+  let b = c;
+  while (b.board.placed.left + b.board.placed.right === f.made.length) b = undoCarry(p, b);
+  noCant(p, play(p, finishFrom(p, b, f.a.board), {type: 'turn', at: 0}), 'Can’t on letters taken off and put back');
+  noCant(p, play(p, finishFrom(p, play(p, c, {type: 'again'}), f.a.board), {type: 'turn', at: 0}), 'Can’t after Start again and the same letters');
+  noCant(p, play(p, finishFrom(p, restartCarry(p, c), f.a.board), {type: 'turn', at: 0}), 'Can’t after Restart and the same letters');
+  return 0;
+}
+// Put letters on until the set-up is the given board's.
+function finishFrom(p, a, goal) {
+  const q = p.parameters;
+  for (let n = 0; n < 8 && !setupDone(q, a.board); n++) {
+    const side = ['left', 'right'].find(s => q.place[s] && a.board.placed[s] < q.place[s].letters.length);
+    const now = side === 'left' ? a.board.left : a.board.letters, want = side === 'left' ? goal.left : goal.letters, next = q.place[side].letters[a.board.placed[side]];
+    const sticker = [0, 1, 2, 3].find(k => now[k] === q.place[side].on && want[k] === next);
+    a = play(p, a, {type: 'place', side, at: side === 'left' ? sticker : a.board.at.indexOf(sticker)});
+  }
+  assert.deepEqual([a.board.left, a.board.letters], [goal.left, goal.letters], `${p.id}: the same letters again`);
+  return a;
 }
 // Every pair of letters that, made the same, lets the twins match.
 function checkMerges(p, fresh, row) {
@@ -450,11 +523,20 @@ function checkMerges(p, fresh, row) {
     for (const at of fewest(L, R)) a = play(p, a, {type: 'turn', at});
     assert.equal(a.board.found.length, before + 1, `${p.id}: ${pair} goes on the shelf`);
     assert.deepEqual([a.board.left, a.board.letters, a.board.merged, a.board.at], [q.left, q.right, null, [0, 1, 2, 3]], `${p.id}: both models start again`);
+    // The pair just shelved is marked; Undo keeps it on the shelf, takes the
+    // mark away and so changes the screen, whichever pair it is (B and C
+    // match with no turn at all).
+    assert.deepEqual(a.board.told, {kind: 'new', pair}, `${p.id}: ${pair} marked as just found`);
+    const kept = undoCarry(p, a);
+    assert.deepEqual(kept.board.found, a.board.found, `${p.id}: Undo keeps the pairs found`);
+    assert.notDeepEqual(kept.board.told, a.board.told, `${p.id}: Undo takes the mark away`);
+    // The same pair the other way round is found already, and Undo shows it.
+    const L2 = q.left.map(x => x === keep ? drop : x), R2 = q.right.map(x => x === keep ? drop : x);
+    const again = playAll(p, a, [{type: 'merge', drop: keep, keep: drop}, ...fewest(L2, R2).map(at => ({type: 'turn', at}))]);
+    assert.deepEqual(again.board.told, {kind: 'again', pair}, `${p.id}: ${pair} found already`);
+    assert.deepEqual(again.board.found, a.board.found);
+    undoCarry(p, again);
     if (pair === 'AB') {
-      // The same pair the other way round is found already.
-      const again = playAll(p, a, [{type: 'merge', drop: keep, keep: drop}, ...fewest(L.map(x => x === keep ? drop : x), R.map(x => x === keep ? drop : x)).map(at => ({type: 'turn', at}))]);
-      assert.deepEqual(again.board.told, {kind: 'again', pair: 'AB'}, `${p.id}: found already`);
-      assert.deepEqual(again.board.found, a.board.found);
       // That's all now is refused, once, kept through Undo.
       const early = play(p, a, {type: 'all'});
       assert.equal(early.board.told, 'more', `${p.id}: there is another`);
@@ -464,9 +546,6 @@ function checkMerges(p, fresh, row) {
       assert.equal(back.board.refused, early.board.found.length, `${p.id}: Undo keeps the refusal`);
       refuse(p, back, {type: 'all'}, 'That’s all after Undo, on the same shelf');
       steps += hintsSolve(p, early, 'after a wrong That’s all');
-      // Undo after a pair is shelved keeps it on the shelf.
-      const kept = undoCarry(p, a);
-      assert.deepEqual(kept.board.found, a.board.found, `${p.id}: Undo keeps the pairs found`);
     }
   }
   assert.deepEqual(taps, row.taps, `${p.id}: fewest taps after each change`);
@@ -475,7 +554,7 @@ function checkMerges(p, fresh, row) {
   return steps;
 }
 // Sort models into stacks that match.
-function checkSort(p, fresh, row) {
+function checkSort(p, fresh, row, accept) {
   const q = p.parameters;
   let steps = 0;
   assert.equal(new Set(q.cards.map(c => c.join(''))).size, q.cards.length, `${p.id}: no two cards start alike`);
@@ -488,7 +567,7 @@ function checkSort(p, fresh, row) {
   for (const g of classes) for (const n of g.slice(1)) for (const at of fewest(q.cards[g[0]], q.cards[n])) a = play(p, a, {type: 'turn', card: n, at});
   const ready = a;
   a = play(p, a, {type: 'all'});
-  assert.ok(isSolved(p, a.board), `${p.id}: stacked by class, That’s all`);
+  steps += checkProof(p, a, classes, accept);
   // One stack short of joined: refused, and kept while the stacks are the same.
   const last = classes.find(g => g.length > 1), m = last.at(-1);
   const short = playAll(p, fresh, classes.flatMap(g => g.slice(1).filter(n => n !== m).flatMap(n => fewest(q.cards[g[0]], q.cards[n]).map(at => ({type: 'turn', card: n, at})))));
@@ -506,6 +585,121 @@ function checkSort(p, fresh, row) {
   refuse(p, ready, {type: 'turn', card: 0, at: 4}, 'an unknown corner');
   return steps;
 }
+// After a right That's all, the certificate: a model from each of two stacks
+// with the same letters, shown apart with Can't. Stacks with different
+// letters need none.
+function checkProof(p, a, classes, accept) {
+  const q = p.parameters;
+  let steps = 0;
+  assert.ok(!isSolved(p, a.board), `${p.id}: a right That’s all asks for the certificate`);
+  assert.ok(a.board.proof && a.board.told === null, `${p.id}: the proof starts`);
+  const pairs = proofPairs(q, a.board), classOf = n => classes.findIndex(g => g.includes(n));
+  assert.deepEqual(pairs.map(([n, m]) => [classOf(n), classOf(m)]), p.solution.twins, `${p.id}: the stacks to show apart`);
+  const want = classes.flatMap((g, i) => classes.slice(i + 1).flatMap((h, j) => bag(q.cards[g[0]]) === bag(q.cards[h[0]]) ? [[i, i + 1 + j]] : []));
+  assert.deepEqual(pairs.map(([n, m]) => [classOf(n), classOf(m)]), want, `${p.id}: exactly the stacks with the same letters`);
+  for (const [n, m] of pairs) assert.ok(new Set(q.cards[n]).size === 4 && !matchV(q.cards[n], q.cards[m]), `${p.id}: twins with four different letters`);
+  const back = undoCarry(p, a);
+  assert.equal(back.board.proof, null, `${p.id}: Undo goes back to sorting`);
+  refuse(p, a, {type: 'all'}, 'That’s all during the proof');
+  refuse(p, a, {type: 'turn', card: 0, at: 0}, 'a card turned during the proof');
+  noCant(p, a, 'Can’t before a turn');
+  proofShare(p, a, accept);
+  const [n, m] = pairs[0], L = cardLabels(q, a.board, n), Rof = b => labelsOf(cardLabels(q, b.board, m), b.board.proof.at);
+  // Form refusals, kept off the record.
+  const off = reachProof(p, a, X => X[0] !== L[0]);
+  const middle = play(p, off, {type: 'cant', left: [1, 2], right: [1, 2]});
+  assert.equal(middle.board.told, 'middle', `${p.id}: not the same letter in the middle`);
+  undoCarry(p, middle);
+  steps += hintsSolve(p, middle, 'after a form refusal in the proof');
+  const on = reachProof(p, a, X => X[0] === L[0]), R = Rof(on), u = [R.indexOf(L[1]), R.indexOf(L[2])];
+  const wrongU = TRACES.find(w => !(R[w[0]] === L[1] && R[w[1]] === L[2]));
+  const letters = play(p, on, {type: 'cant', left: [1, 2], right: wrongU});
+  assert.equal(letters.board.told, 'letters', `${p.id}: follow the same letters`);
+  // The certificate solves.
+  const ok = play(p, on, {type: 'cant', left: [1, 2], right: u});
+  assert.ok(isSolved(p, ok.board), `${p.id}: the certificate solves the sort`);
+  assert.equal((view(p, ok).match(/tt-arrow ok/g) || []).length, 2, `${p.id}: both arrows drawn`);
+  steps += hintsSolve(p, a, 'from the proof');
+  return steps;
+}
+// The nearest proof pose (at least one tap away) whose second model's letters satisfy `want`.
+function reachProof(p, start, want) {
+  const q = p.parameters, [, m] = proofPairs(q, start.board)[start.board.proof.n], seen = new Set(), queue = [start];
+  for (let n = 0; n < queue.length; n++) for (const at of [0, 1, 2, 3]) {
+    const b = move(p, queue[n], {type: 'turn', at});
+    if (!b || seen.has(b.board.proof.at.join())) continue;
+    if (want(labelsOf(cardLabels(q, b.board, m), b.board.proof.at))) return b;
+    seen.add(b.board.proof.at.join()); queue.push(b);
+  }
+  assert.fail(`${p.id}: no proof pose found`);
+}
+// The share of random claims a proof accepts, over every pose and trace.
+function proofShare(p, start, accept) {
+  const q = p.parameters, seen = new Map(), queue = [start];
+  for (let n = 0; n < queue.length; n++) for (const at of [0, 1, 2, 3]) {
+    const b = move(p, queue[n], {type: 'turn', at});
+    if (!b || seen.has(b.board.proof.at.join())) continue;
+    seen.set(b.board.proof.at.join(), b); queue.push(b);
+  }
+  assert.equal(seen.size, 12, `${p.id}: the proof's model turns to every pose`);
+  let ok = 0, form = 0;
+  for (const a of seen.values()) for (const x of TRACES) for (const y of TRACES) {
+    const b = move(p, a, {type: 'cant', left: x, right: y});
+    assert.ok(b, `${p.id}: a proof claim is judged`);
+    if (b.board.done || b.board.proof.n > a.board.proof.n) {
+      ok++;
+      const [n, m] = proofPairs(q, a.board)[a.board.proof.n];
+      assert.ok(!matchV(cardLabels(q, a.board, n), labelsOf(cardLabels(q, a.board, m), a.board.proof.at)), `${p.id}: only a true claim`);
+    } else { form++; assert.ok(['middle', 'letters'].includes(b.board.told), `${p.id}: every other claim refused for its form`); }
+  }
+  const total = ok + form;
+  accept[`${p.id} proof`] = `${ok}/${total} accepted (${(100 * ok / total).toFixed(1)}%), ${form} refused for their form`;
+  assert.ok(ok > 0 && ok / total < 0.05, `${p.id}: random traces rarely complete the proof`);
+}
+// Every board a pair puzzle can reach by moves, Undo and Restart (the locks
+// set aside: hints never use them, and a locked board never gets a Can't
+// hint, since only boards that can match are locked). On each unsolved one the
+// hint is a legal move and never a dead end, so no message comes unasked, and
+// the hints from it reach a solve.
+function checkReachable(p, fresh) {
+  const m = mechanicFor(p), q = p.parameters, strip = b => JSON.stringify({...b, wrong: []});
+  const seen = new Map([[strip(fresh.board), fresh.board]]), queue = [fresh.board];
+  for (let n = 0; n < queue.length; n++) {
+    const b = queue[n];
+    if (m.solved(p, b)) continue;
+    for (const action of candidates(p, b)) {
+      const next = m.move(p, b, action);
+      if (!next) continue;
+      assert.ok(m.valid(p, next), `${p.id}: every move gives a valid board`);
+      const k = strip(next);
+      if (!seen.has(k)) { seen.set(k, next); queue.push(next); }
+    }
+  }
+  let mid = 0, after = 0, unsolved = 0;
+  const memo = new Map();
+  const solves = b => {
+    const k = strip(b);
+    if (memo.has(k)) return memo.get(k);
+    memo.set(k, false);
+    let ok = m.solved(p, b);
+    if (!ok) {
+      const h = m.hint(p, b);
+      assert.equal(h.type, 'move', `${p.id}: a hint on every reachable board, never a dead end (${h.text})`);
+      const next = m.move(p, b, h.action);
+      assert.ok(next, `${p.id}: the hint is a legal move (${JSON.stringify(h.action)})`);
+      ok = solves(next);
+    }
+    memo.set(k, ok);
+    return ok;
+  };
+  for (const b of seen.values()) {
+    if (m.solved(p, b)) continue;
+    unsolved++;
+    if (!setupDone(q, b)) mid++; else if (q.place) after++;
+    assert.ok(solves(b), `${p.id}: hints solve from ${JSON.stringify(b)}`);
+  }
+  return `${seen.size} boards, ${unsolved} unsolved${q.place ? ` (${mid} mid-set-up, ${after} after a set-up)` : ''}`;
+}
 function checkForged(p, fresh) {
   const q = p.parameters, B = fresh.board, reflect = [0, 1, 3, 2];
   const forged = [[{...B, extra: 1}, 'an unknown field'], [null, 'nothing']];
@@ -515,6 +709,18 @@ function checkForged(p, fresh) {
     forged.push([{...B, tried: true, refused: classesOf(q.cards)}, 'a refusal of the right stacks']);
     forged.push([{...B, tried: true, told: 'more', refused: null}, 'a message with no refusal']);
     forged.push([{...B, cards: B.cards.slice(1)}, 'a missing card']);
+    forged.push([{...B, tried: true, proof: {n: 0, at: [0, 1, 2, 3], tried: false, claim: null}}, 'a proof before the sort is right']);
+    // On a right sort: the certificate can't be skipped, faked or misplaced.
+    const classes = classesOf(q.cards), S = playAll(p, fresh, classes.flatMap(g => g.slice(1).flatMap(n => fewest(q.cards[g[0]], q.cards[n]).map(at => ({type: 'turn', card: n, at}))))).board;
+    const start = {n: 0, at: [0, 1, 2, 3], tried: false, claim: null}, [n0, m0] = proofPairs(q, S)[0], L0 = cardLabels(q, S, n0);
+    const poseWith = same => POSES.map(poseOf).find(at => (labelsOf(cardLabels(q, S, m0), at)[0] === L0[0]) === same);
+    forged.push([{...S, done: true}, 'a right sort done without its certificate']);
+    forged.push([{...S, proof: {...start, n: 1}}, 'a proof of a pair that is not there']);
+    forged.push([{...S, proof: start, told: 'middle'}, 'a proof message before a turn']);
+    forged.push([{...S, proof: {...start, tried: true, at: poseWith(true)}, told: 'middle'}, 'a stale “not the same letter in the middle”']);
+    forged.push([{...S, proof: {...start, tried: true, at: poseWith(false)}, told: 'letters'}, 'a stale “follow the same letters”']);
+    forged.push([{...S, proof: {...start, tried: true, at: poseWith(false), claim: {ok: true, at: poseWith(false), left: [1, 2], right: [1, 2]}}, done: true}, 'a certificate with different middles']);
+    forged.push([{...S, proof: start, told: 'more'}, 'a refusal message during the proof']);
   } else if (q.mode === 'merges') {
     forged.push([{...B, at: reflect, tried: true}, 'a reflected model']);
     forged.push([{...B, done: true}, 'a done shelf that is short']);
@@ -524,6 +730,10 @@ function checkForged(p, fresh) {
     forged.push([{...B, found: ['AB'], refused: 2}, 'a refusal past the shelf']);
     forged.push([{...B, left: [...B.left.slice(0, 3), 'A']}, 'letters that do not follow']);
     forged.push([{...B, merged: ['D', 'C']}, 'a merge with the letters unchanged']);
+    forged.push([{...B, tried: true, told: {kind: 'new', pair: 'AB'}}, 'a new pair not on the shelf']);
+    forged.push([{...B, tried: true, found: ['AB', 'CD'], told: {kind: 'new', pair: 'AB'}}, 'a new pair that is not the last found']);
+    forged.push([{...B, tried: true, found: ['AB'], at: [0, 2, 3, 1], told: {kind: 'new', pair: 'AB'}}, 'a new pair with the model turned']);
+    forged.push([{...B, tried: true, found: ['AB', 'CD'], refused: 2, told: {kind: 'new', pair: 'CD'}}, 'a new pair found before the shelf’s refusal']);
   } else {
     forged.push([{...B, at: reflect, tried: true}, 'a reflected model']);
     forged.push([{...B, at: [1, 2, 3, 0], tried: true}, 'a pose no turn reaches']);
@@ -540,6 +750,26 @@ function checkForged(p, fresh) {
       forged.push([{...B, tried: true, claim: {ok: false, kind: judge(L, R, [1, 2], u).kind === 'round' ? 'way' : 'round', at: [0, 1, 2, 3], left: [1, 2], right: u}}, 'a refusal of the wrong kind']);
     }
     if (!q.cant) forged.push([{...B, tried: true, told: 'middle', at: [0, 2, 3, 1]}, 'a claim where none is offered']);
+    // Locks: only on letters that can match, each once, only where Can't is offered.
+    const key = b => `${b.left.join('·')}|${b.letters.join('·')}`;
+    forged.push([{...B, wrong: ['A·B|C·D']}, 'a lock on letters that never were']);
+    forged.push([{...B, wrong: [7]}, 'a lock that is not letters']);
+    if (!q.cant) forged.push([{...B, wrong: [key(B)]}, 'a lock where Can’t is not offered']);
+    if (q.cant && !q.place && !matchV(q.left, q.right)) forged.push([{...B, wrong: [key(B)]}, 'a lock on twins']);
+    if (q.cant && !q.place && matchV(q.left, q.right)) {
+      forged.push([{...B, wrong: [key(B), key(B)]}, 'a lock twice']);
+      // Messages that don't fit the board.
+      const a = reach(p, fresh, X => X[0] === q.left[0]), b = reach(p, fresh, X => X[0] !== q.left[0]);
+      forged.push([{...a.board, told: 'middle'}, 'a stale “not the same letter in the middle”']);
+      forged.push([{...b.board, told: 'letters'}, 'a stale “follow the same letters”']);
+      const Rn = labelsOf(a.board.letters, a.board.at), trace = TRACES.flatMap(x => TRACES.map(y => [x, y])).find(([x, y]) => judge(q.left, Rn, x, y).kind);
+      const c = play(p, a, {type: 'cant', left: trace[0], right: trace[1]}).board;
+      assert.ok(validBoard(p, c), `${p.id}: a wrong claim is a valid board`);
+      forged.push([{...c, wrong: []}, 'a wrong claim with no lock']);
+      forged.push([{...c, at: [0, 2, 3, 1].map(k => c.at[k])}, 'a wrong claim from another pose']);
+      forged.push([{...c, told: null}, 'a wrong claim with its message gone']);
+      forged.push([{...c, told: 'middle'}, 'a wrong claim with a form message']);
+    }
   }
   for (const [board, why] of forged) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
 }

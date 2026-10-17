@@ -16,7 +16,10 @@
 //
 // The certificate for "can't match" is the child's own: with the same letter
 // in the middle of both models, tap the same two letters round it on each;
-// the arrows from the first through the second run opposite ways.
+// the arrows from the first through the second run opposite ways. A sort's
+// right That's all asks for the same certificate on each two stacks with the
+// same letters. Nothing is said about a set-up until the child asks for a
+// hint: no hint is a dead end.
 import {esc} from '../../expansion-controls.js';
 
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -117,35 +120,53 @@ const partitionKey = groups => groups.map(g => [...g].sort((x, y) => x - y).join
 const isPartition = (groups, n) => Array.isArray(groups) && groups.every(g => Array.isArray(g) && g.length && g.every(Number.isInteger)) && same(groups.flat().sort((x, y) => x - y), [...Array(n).keys()]);
 
 // --- Boards -------------------------------------------------------------------
-// pair:       {at, letters, left, tried, merged, placed, claim, told}
+// pair:       {at, letters, left, tried, merged, placed, claim, told, wrong}
 // merges:     {at, letters, left, tried, merged, found, refused, told, done}
-// sort:       {cards, tried, refused, told, done}
+// sort:       {cards, tried, refused, told, done, proof}
 // playground: {left: {at, letters}, right: {at, letters}}
 // The left model never turns; its letters are listed by position. The right
 // model's letters are listed by sticker and `at` is its pose. `placed` counts
 // the letters put on each side in a set-up (blank corners filled in order, or
 // an A changed to D); `merged` is [drop, keep] once one letter has become
 // another on both models. A claim is {ok, kind?, at, left, right}: the pose it
-// was made in and the two traces. A wrong claim stays (Can't is off while the
-// letters are the same); `told` is the message the last move earned, so a
-// turn or an Undo clears it and leaves the claim. In merges and sort,
+// was made in and the two traces; a turn clears a wrong one. `wrong` lists
+// the letters (both models, by sticker) that a wrong claim was made on, and
+// Can't stays off whenever the letters are one of them. `told` is the message
+// the last move earned, so a turn or an Undo clears it. In merges and sort,
 // `refused` is what That's all was refused on (the number of pairs found, or
-// the stacks), and That's all stays off until that changes.
+// the stacks), and That's all stays off until that changes. A sort's `proof`
+// is the certificate after a right That's all: {n, at, tried, claim}, the
+// pair of stacks with the same letters being shown apart (n), the pose of
+// the second one's model, whether it has turned, and the accepted claim.
 const setupOf = (q, side) => q.place?.[side] || null;
 export const setupDone = (q, b) => ['left', 'right'].every(side => !setupOf(q, side) || b.placed[side] === setupOf(q, side).letters.length);
-const locked = b => Boolean(b.claim && !b.claim.ok);
 const pairKey = b => `${b.left.join('·')}|${b.letters.join('·')}`;
+const locked = b => b.wrong.includes(pairKey(b));
 const startOf = q => ({at: [...ID], letters: [...q.right], left: [...q.left], tried: false, merged: null});
 const PAIRS = ['AB', 'AC', 'AD', 'BC', 'BD', 'CD'];
 export const pairOf = (x, y) => [x, y].sort().join('');
 const merge = (list, drop, keep) => list.map(x => x === drop ? keep : x);
+const bagOf = labels => [...labels].sort().join('');
+// After a right sort, each two stacks with the same letters (so mirror twins),
+// as the first model of each.
+export function proofPairs(q, b) {
+  const tops = stacksOf(q, b).map(g => g[0]), out = [];
+  tops.forEach((n, i) => tops.slice(i + 1).forEach(m => { if (bagOf(cardLabels(q, b, n)) === bagOf(cardLabels(q, b, m))) out.push([n, m]); }));
+  return out;
+}
+// The two models of a sort's proof: the first stack's look, and the second
+// stack's look turned to the proof's pose.
+function proofModels(q, b) {
+  const [n, m] = proofPairs(q, b)[b.proof.n];
+  return {n, m, L: cardLabels(q, b, n), R: labelsOf(cardLabels(q, b, m), b.proof.at)};
+}
 
 function fresh(p) {
   const q = p.parameters;
-  if (q.mode === 'sort') return {cards: q.cards.map(() => [...ID]), tried: false, refused: null, told: null, done: false};
+  if (q.mode === 'sort') return {cards: q.cards.map(() => [...ID]), tried: false, refused: null, told: null, done: false, proof: null};
   if (q.mode === 'playground') return {left: {at: [...ID], letters: [...q.left]}, right: {at: [...ID], letters: [...q.right]}};
   if (q.mode === 'merges') return {...startOf(q), found: [], refused: null, told: null, done: false};
-  return {...startOf(q), placed: {left: 0, right: 0}, claim: null, told: null};
+  return {...startOf(q), placed: {left: 0, right: 0}, claim: null, told: null, wrong: []};
 }
 
 const keys = (b, list) => object(b) && Object.keys(b).sort().join() === list;
@@ -171,28 +192,49 @@ function lettersFollow(q, b) {
   }
   return true;
 }
+// Each locked set of letters is a finished set-up (or the puzzle's own
+// letters) on which the two models can match, so a wrong claim was possible.
+function validWrong(q, b) {
+  // Kept sorted, so each set of locks is saved one way.
+  if (!Array.isArray(b.wrong) || !b.wrong.every((k, i) => !i || b.wrong[i - 1] < k)) return false;
+  if (!q.cant) return b.wrong.length === 0;
+  const placed = {left: setupOf(q, 'left')?.letters.length ?? 0, right: setupOf(q, 'right')?.letters.length ?? 0};
+  return b.wrong.every(k => {
+    const parts = typeof k === 'string' ? k.split('|') : [];
+    if (parts.length !== 2) return false;
+    const [left, letters] = parts.map(x => x.split('·'));
+    return letterList(left) && letterList(letters) && lettersFollow(q, {left, letters, merged: null, placed}) && canMatch(left, letters);
+  });
+}
 function validClaim(q, b) {
   const c = b.claim;
   if (c === null) return true;
-  if (!q.cant || !setupDone(q, b) || !object(c) || typeof c.ok !== 'boolean' || !isRotation(c.at) || !isTrace(c.left) || !isTrace(c.right)) return false;
+  if (!q.cant || !setupDone(q, b) || !b.tried || !object(c) || typeof c.ok !== 'boolean' || !isRotation(c.at) || !same(c.at, b.at) || !isTrace(c.left) || !isTrace(c.right)) return false;
   if (Object.keys(c).sort().join() !== (c.ok ? 'at,left,ok,right' : 'at,kind,left,ok,right')) return false;
-  const r = judge(b.left, labelsOf(b.letters, c.at), c.left, c.right);
-  if (c.ok) return r.ok === true && same(c.at, b.at) && b.tried;
-  return r.kind === c.kind;
+  const r = judge(b.left, labelsOf(b.letters, b.at), c.left, c.right);
+  if (c.ok) return r.ok === true && b.told === null;
+  return r.kind === c.kind && b.told === c.kind && locked(b);
+}
+// A message must fit the board it is on: a wrong claim's with that claim, and
+// a form refusal's with the middles it was about.
+function validTold(q, b) {
+  const t = b.told, L = b.left, R = labelsOf(b.letters, b.at);
+  if (t === null) return true;
+  // Nothing is said on models that already match: that is a solve.
+  if (!q.cant || !setupDone(q, b) || !b.tried || (q.goal === 'match' && matches(L, R))) return false;
+  if (t === 'round' || t === 'way') return Boolean(b.claim) && !b.claim.ok;
+  if (t !== 'middle' && t !== 'letters') return false;
+  return b.claim === null && !locked(b) && (t === 'middle') === (L[0] !== R[0]);
 }
 function validPair(q, b) {
-  if (!keys(b, 'at,claim,left,letters,merged,placed,told,tried') || !isRotation(b.at) || typeof b.tried !== 'boolean') return false;
+  if (!keys(b, 'at,claim,left,letters,merged,placed,told,tried,wrong') || !isRotation(b.at) || typeof b.tried !== 'boolean') return false;
   const blank = q.place?.right?.on === '' || q.place?.left?.on === '';
   if (!letterList(b.left, blank) || !letterList(b.letters, blank)) return false;
-  if (!keys(b.placed, 'left,right') || !lettersFollow(q, b)) return false;
+  if (!keys(b.placed, 'left,right') || !lettersFollow(q, b) || !validWrong(q, b)) return false;
   // No turn, claim or message during a set-up.
   if (!setupDone(q, b) && (!same(b.at, ID) || b.tried || b.claim !== null || b.told !== null)) return false;
   if (!same(b.at, ID) && !b.tried) return false;
-  if (b.told !== null) {
-    if (!q.cant || b.claim?.ok) return false;
-    if (['round', 'way'].includes(b.told) ? !locked(b) || b.claim.kind !== b.told : !['middle', 'letters'].includes(b.told) || locked(b)) return false;
-  }
-  return validClaim(q, b);
+  return validTold(q, b) && validClaim(q, b);
 }
 function validMerges(q, b) {
   if (!keys(b, 'at,done,found,left,letters,merged,refused,told,tried') || !isRotation(b.at) || typeof b.tried !== 'boolean' || typeof b.done !== 'boolean') return false;
@@ -207,22 +249,40 @@ function validMerges(q, b) {
   const t = b.told;
   if (t === null) return true;
   if (t === 'more') return b.refused === b.found.length && !b.done;
-  if (object(t) && t.kind === 'again') return Object.keys(t).sort().join() === 'kind,pair' && b.found.includes(t.pair) && b.merged === null && same(b.at, ID);
+  // The models at the start again, after a pair found already (anywhere on
+  // the shelf) or just now (the last one on it).
+  if (!object(t) || Object.keys(t).sort().join() !== 'kind,pair' || b.merged !== null || !same(b.at, ID) || !b.tried) return false;
+  if (t.kind === 'again') return b.found.includes(t.pair);
+  // A pair just found came after any refusal of the shelf.
+  if (t.kind === 'new') return b.found.at(-1) === t.pair && b.refused !== b.found.length;
   return false;
 }
 function validSort(q, b) {
-  if (!keys(b, 'cards,done,refused,told,tried') || typeof b.tried !== 'boolean' || typeof b.done !== 'boolean') return false;
+  if (!keys(b, 'cards,done,proof,refused,told,tried') || typeof b.tried !== 'boolean' || typeof b.done !== 'boolean') return false;
   if (!Array.isArray(b.cards) || b.cards.length !== q.cards.length || !b.cards.every(isRotation)) return false;
-  if (!b.tried && (b.done || b.told !== null || b.cards.some(at => !same(at, ID)))) return false;
-  const classes = classesOf(q.cards), stacks = stacksOf(q, b);
-  if (b.done && (stacks.length !== classes.length || b.told !== null)) return false;
-  if (b.told !== null && (b.told !== 'more' || b.refused === null || partitionKey(b.refused) !== partitionKey(stacks))) return false;
-  if (b.refused === null) return true;
-  // A refusal records the stacks it was given, which could still be joined.
-  const r = b.refused;
-  if (!isPartition(r, q.cards.length)) return false;
-  const classOf = n => classes.findIndex(c => c.includes(n));
-  return r.every(g => g.every(n => classOf(n) === classOf(g[0]))) && r.length > classes.length;
+  if (!b.tried && (b.done || b.told !== null || b.proof !== null || b.cards.some(at => !same(at, ID)))) return false;
+  const classes = classesOf(q.cards), stacks = stacksOf(q, b), right = stacks.length === classes.length;
+  if (b.refused !== null) {
+    // A refusal records the stacks it was given, which could still be joined.
+    const r = b.refused, classOf = n => classes.findIndex(c => c.includes(n));
+    if (!isPartition(r, q.cards.length) || !r.every(g => g.every(n => classOf(n) === classOf(g[0]))) || r.length <= classes.length) return false;
+  }
+  if (b.proof === null) {
+    if (b.done) return right && !proofPairs(q, b).length && b.told === null;
+    return b.told === null || (b.told === 'more' && b.refused !== null && partitionKey(b.refused) === partitionKey(stacks));
+  }
+  // The proof comes only after a right That's all, with the stacks as they were.
+  const f = b.proof, pairs = right ? proofPairs(q, b) : [];
+  if (!keys(f, 'at,claim,n,tried') || !Number.isInteger(f.n) || f.n < 0 || f.n >= pairs.length || !isRotation(f.at) || typeof f.tried !== 'boolean' || (!f.tried && !same(f.at, ID))) return false;
+  const {L, R} = proofModels(q, b);
+  if (b.done) {
+    const c = f.claim;
+    if (f.n !== pairs.length - 1 || b.told !== null || !f.tried || !keys(c, 'at,left,ok,right') || c.ok !== true || !same(c.at, f.at) || !isTrace(c.left) || !isTrace(c.right)) return false;
+    return judge(L, R, c.left, c.right).ok === true;
+  }
+  if (f.claim !== null) return false;
+  if (b.told === null) return true;
+  return f.tried && (b.told === 'middle' ? L[0] !== R[0] : b.told === 'letters' && L[0] === R[0]);
 }
 function validPlay(q, b) {
   return keys(b, 'left,right') && ['left', 'right'].every(side => keys(b[side], 'at,letters') && isRotation(b[side].at) && letterList(b[side].letters));
@@ -258,17 +318,27 @@ function mergeMove(b, action) {
   if (b.merged || !LETTERS.includes(drop) || !LETTERS.includes(keep) || drop === keep || !all.includes(drop) || !all.includes(keep)) return null;
   return {...b, left: merge(b.left, drop, keep), letters: merge(b.letters, drop, keep), merged: [drop, keep]};
 }
+// A claim on two models: a form refusal, a wrong claim, or right.
+function claim(L, R, action) {
+  if (!isTrace(action.left) || !isTrace(action.right)) return null;
+  return judge(L, R, action.left, action.right);
+}
 function movePair(q, b, action) {
   const t = action.type;
+  // Start again: a set-up's letters go back as they were; locks stay.
+  if (t === 'again') return q.place && b.placed.left + b.placed.right > 0 ? {...b, ...startOf(q), placed: {left: 0, right: 0}, claim: null, told: null} : null;
   if (t === 'place') return place(q, b, action);
   if (!setupDone(q, b)) return null;
-  if (t === 'turn') return corner(action.at) ? {...b, at: turned(b.at, action.at), tried: true, told: null} : null;
+  if (t === 'turn') return corner(action.at) ? {...b, at: turned(b.at, action.at), tried: true, claim: null, told: null} : null;
   if (t === 'merge') { if (!q.merge) return null; const next = mergeMove(b, action); return next && {...next, claim: null, told: null}; }
   if (t === 'cant') {
-    if (!q.cant || !b.tried || locked(b) || !isTrace(action.left) || !isTrace(action.right)) return null;
-    const r = judge(b.left, labelsOf(b.letters, b.at), action.left, action.right);
+    if (!q.cant || !b.tried || locked(b)) return null;
+    const r = claim(b.left, labelsOf(b.letters, b.at), action);
+    if (!r) return null;
     if (r.told) return {...b, told: r.told};
-    return {...b, claim: {ok: Boolean(r.ok), ...(r.kind ? {kind: r.kind} : {}), at: [...b.at], left: [...action.left], right: [...action.right]}, told: r.kind || null};
+    const made = {at: [...b.at], left: [...action.left], right: [...action.right]};
+    if (r.ok) return {...b, claim: {ok: true, ...made}, told: null};
+    return {...b, claim: {ok: false, kind: r.kind, ...made}, told: r.kind, wrong: [...b.wrong, pairKey(b)].sort()};
   }
   return null;
 }
@@ -286,19 +356,34 @@ function moveMerges(q, b, action) {
   if (!next) return null;
   if (!next.merged || !matches(next.left, labelsOf(next.letters, next.at))) return {...next, told: null};
   const pair = pairOf(...next.merged), home = {...next, ...startOf(q), tried: true};
-  return next.found.includes(pair) ? {...home, told: {kind: 'again', pair}} : {...home, found: [...next.found, pair], told: null};
+  return next.found.includes(pair) ? {...home, told: {kind: 'again', pair}} : {...home, found: [...next.found, pair], told: {kind: 'new', pair}};
 }
 function moveSort(q, b, action) {
+  const f = b.proof;
   if (action.type === 'turn') {
+    if (!corner(action.at)) return null;
+    // During the proof, taps turn the second model of the pair.
+    if (f) return action.card === undefined && !b.done ? {...b, proof: {...f, at: turned(f.at, action.at), tried: true}, told: null} : null;
     const n = action.card;
-    if (!Number.isInteger(n) || n < 0 || n >= q.cards.length || !corner(action.at)) return null;
+    if (!Number.isInteger(n) || n < 0 || n >= q.cards.length) return null;
     const cards = b.cards.map((at, i) => i === n ? turned(at, action.at) : at);
     return {...b, cards, tried: true, told: null};
   }
   if (action.type === 'all') {
     const stacks = stacksOf(q, b);
-    if (!b.tried || (b.refused && partitionKey(b.refused) === partitionKey(stacks))) return null;
-    return stacks.length === classesOf(q.cards).length ? {...b, told: null, done: true} : {...b, refused: stacks, told: 'more'};
+    if (f || !b.tried || (b.refused && partitionKey(b.refused) === partitionKey(stacks))) return null;
+    if (stacks.length !== classesOf(q.cards).length) return {...b, refused: stacks, told: 'more'};
+    return proofPairs(q, b).length ? {...b, told: null, proof: {n: 0, at: [...ID], tried: false, claim: null}} : {...b, told: null, done: true};
+  }
+  if (action.type === 'cant') {
+    if (!f || !f.tried) return null;
+    const {L, R} = proofModels(q, b), r = claim(L, R, action);
+    if (!r) return null;
+    if (r.told) return {...b, told: r.told};
+    // The stacks of a right sort with the same letters are always twins.
+    if (!r.ok) return null;
+    if (f.n < proofPairs(q, b).length - 1) return {...b, told: null, proof: {n: f.n + 1, at: [...ID], tried: false, claim: null}};
+    return {...b, told: null, done: true, proof: {...f, claim: {ok: true, at: [...f.at], left: [...action.left], right: [...action.right]}}};
   }
   return null;
 }
@@ -321,15 +406,20 @@ function move(p, b, action) {
   if (next) {
     const s = ui(p);
     s.tracing = false; s.trace = {left: [], right: []}; s.lift = null;
-    if (q.mode === 'sort' && action.type === 'turn') s.card = action.card;
+    if (q.mode === 'sort' && action.type === 'turn' && Number.isInteger(action.card)) s.card = action.card;
   }
   return next;
 }
 
 // --- Hints --------------------------------------------------------------------
+// No hint is a dead end: the app never says unasked whether a set-up can
+// match. A set-up that can't reach its goal is shown by its own models (turn
+// them to match, or bring the same letter to both middles) and then started
+// again.
 const TAP_WORDS = ['Tap the middle.', 'Tap the top corner.', 'Tap the right corner.', 'Tap the left corner.'];
 const AT_WORDS = ['in the middle', 'at the top', 'on the right', 'on the left'];
 const turnHint = k => ({type: 'move', action: {type: 'turn', at: k}, text: TAP_WORDS[k]});
+const againHint = text => ({type: 'move', action: {type: 'again'}, text});
 // Every way to finish a set-up from here, as the placements still to make.
 function finishes(q, b) {
   const sides = ['left', 'right'].filter(side => setupOf(q, side) && b.placed[side] < setupOf(q, side).letters.length);
@@ -342,17 +432,23 @@ function finishes(q, b) {
   })(b, []);
   return out;
 }
+// The next letter: towards a set-up that reaches the goal if one is left, and
+// otherwise the first place it can go.
 function setupHint(q, b) {
   const want = q.goal === 'apart' ? (L, R) => !canMatch(L, R) : (L, R) => canMatch(L, R);
-  const ok = finishes(q, b).find(f => want(f.board.left, labelsOf(f.board.letters, f.board.at)));
-  if (!ok) return {type: 'deadend', text: 'That letter can’t lead to it. Undo it.'};
+  const all = finishes(q, b), ok = all.find(f => want(f.board.left, labelsOf(f.board.letters, f.board.at))) || all[0];
   const {side, at} = ok.made[0], s = setupOf(q, side), letter = s.letters[b.placed[side]];
   const text = s.on === '' ? `Put ${letter} ${AT_WORDS[at]}.` : `On the ${side} model, change the ${s.on} ${AT_WORDS[at]} to ${letter}.`;
   return {type: 'move', action: {type: 'place', side, at}, text};
 }
+// Why twins can't match, seen from the middle letter they share.
+function reasonFor(L) {
+  const {left} = claimFor(L, L), [x, y] = left.map(k => L[k]), z = [1, 2, 3].map(k => L[k]).find(c => c !== x && c !== y);
+  return {x, y, text: `With ${L[0]} in the middle of both, ${x}, ${y} and ${z} go round opposite ways, and a turn never changes that.`};
+}
 function claimHint(L, R) {
-  const {left, right} = claimFor(L, R), [x, y] = left.map(k => L[k]), z = [1, 2, 3].map(k => L[k]).find(c => c !== x && c !== y);
-  return {type: 'move', action: {type: 'cant', left, right}, text: `With ${L[0]} in the middle of both, ${x}, ${y} and ${z} go round opposite ways, and a turn never changes that. Press Can’t, then tap ${x} and then ${y} on each.`};
+  const {left, right} = claimFor(L, R), {x, y, text} = reasonFor(L);
+  return {type: 'move', action: {type: 'cant', left, right}, text: `${text} Press Can’t, then tap ${x} and then ${y} on each.`};
 }
 function pairHint(p, b) {
   const q = p.parameters;
@@ -360,10 +456,16 @@ function pairHint(p, b) {
   const L = b.left, R = labelsOf(b.letters, b.at), can = canMatch(L, R);
   if (q.merge && !b.merged) return {type: 'move', action: {type: 'merge', drop: q.hintMerge[0], keep: q.hintMerge[1]}, text: `Change ${q.hintMerge[0]} to ${q.hintMerge[1]}.`};
   if (q.goal === 'match' && can) return turnHint(tapsTo(L, R)[0]);
-  if (q.goal === 'match' && !q.cant) return {type: 'deadend', text: 'These two can’t match now. Undo a change.'};
-  if (q.goal === 'apart' && can) return {type: 'deadend', text: 'These two can match. Undo the letters.'};
-  // Can't: first an attempt that puts the same letter in the middle of both.
+  // A set-up that can match when the goal is apart: turn until they visibly
+  // match, then start again.
+  if (q.goal === 'apart' && can) {
+    const taps = tapsTo(L, R);
+    return taps.length ? turnHint(taps[0]) : againHint('These two match. Press Start again.');
+  }
+  // Twins: first an attempt that puts the same letter in the middle of both.
   if (!b.tried || R[0] !== L[0]) return turnHint(tapsToMiddle(R, L[0])[0]);
+  // A set-up that made twins when the goal is a match: the reason, then again.
+  if (!q.cant && q.place) return againHint(`${reasonFor(L).text} So these two can’t match. Press Start again.`);
   return claimHint(L, R);
 }
 function mergesHint(p, b) {
@@ -385,6 +487,11 @@ function cardWords(q, b, n) {
 }
 function sortHint(p, b) {
   const q = p.parameters, classes = classesOf(q.cards);
+  if (b.proof) {
+    const {L, R} = proofModels(q, b);
+    if (!b.proof.tried || R[0] !== L[0]) return turnHint(tapsToMiddle(R, L[0])[0]);
+    return claimHint(L, R);
+  }
   for (const c of classes) {
     const goal = cardLabels(q, b, c[0]);
     for (const n of c.slice(1)) {
@@ -432,16 +539,20 @@ const H = 88, f = n => Number(n.toFixed(2));
 const FACES = [[0, 1, 2], [0, 2, 3], [0, 3, 1]];
 const EDGES = [[0, 1], [0, 2], [0, 3], [1, 2], [2, 3], [3, 1]];
 const pt = k => `${SPOT[k][0]},${SPOT[k][1]}`;
-// An arrow round the middle from corner a, through b, towards the third.
+// An arrow round the middle from corner a, through b, towards the third, on
+// the ring between the middle disc and the others. It is drawn over the discs,
+// on a pale halo.
+export const ARROW_RADIUS = 20;
 function arrow(a, b, cls) {
-  const dir = clockwise(a, b) ? 1 : -1, r = 21, [cx, cy] = SPOT[0];
+  const dir = clockwise(a, b) ? 1 : -1, r = ARROW_RADIUS, [cx, cy] = SPOT[0];
   const ang = k => Math.atan2(SPOT[k][1] - cy, SPOT[k][0] - cx);
-  const t0 = ang(a) + dir * 0.42, t1 = ang(a) + dir * (4 * Math.PI / 3 - 0.42);
+  const t0 = ang(a) + dir * 0.34, t1 = ang(a) + dir * (4 * Math.PI / 3 - 0.6);
   const P = t => [cx + r * Math.cos(t), cy + r * Math.sin(t)];
-  const [x0, y0] = P(t0), [x1, y1] = P(t1), tip = P(t1 + dir * 0.32);
+  const [x0, y0] = P(t0), [x1, y1] = P(t1), tip = P(t1 + dir * 0.44);
   const back = [Math.cos(t1), Math.sin(t1)], side = [-Math.sin(t1) * dir, Math.cos(t1) * dir];
-  const head = [[tip[0], tip[1]], [x1 + back[0] * 4.2 - side[0] * 1.5, y1 + back[1] * 4.2 - side[1] * 1.5], [x1 - back[0] * 4.2 - side[0] * 1.5, y1 - back[1] * 4.2 - side[1] * 1.5]];
-  return `<g class="tt-arrow ${cls}"><path d="M${f(x0)} ${f(y0)} A${r} ${r} 0 1 ${dir > 0 ? 1 : 0} ${f(x1)} ${f(y1)}"/><polygon points="${head.map(([x, y]) => `${f(x)},${f(y)}`).join(' ')}"/></g>`;
+  const head = [[tip[0], tip[1]], [x1 + back[0] * 4.4 - side[0] * 1.2, y1 + back[1] * 4.4 - side[1] * 1.2], [x1 - back[0] * 4.4 - side[0] * 1.2, y1 - back[1] * 4.4 - side[1] * 1.2]];
+  const d = `M${f(x0)} ${f(y0)} A${r} ${r} 0 1 ${dir > 0 ? 1 : 0} ${f(x1)} ${f(y1)}`, points = head.map(([x, y]) => `${f(x)},${f(y)}`).join(' ');
+  return `<g class="tt-arrow ${cls}"><path class="halo" d="${d}"/><polygon class="halo" points="${points}"/><path d="${d}"/><polygon points="${points}"/></g>`;
 }
 function solid(over = '') {
   const faces = FACES.map((face, i) => `<polygon class="tt-face f${i}" points="${face.map(pt).join(' ')}"/>`).join('');
@@ -454,60 +565,73 @@ const letterText = x => x === '' ? '' : esc(x);
 const sayLetter = x => x === '' ? 'blank' : x;
 export const describe = labels => `${sayLetter(labels[0])} in the middle; ${sayLetter(labels[1])} top, ${sayLetter(labels[2])} right, ${sayLetter(labels[3])} left`;
 // One model, large. `corners(k)` gives each corner's control: {attrs, label,
-// cls} for a button, or null for a still corner.
+// cls} for a button, or null for a still corner. Arrows go on a layer above
+// the discs.
 function model({labels, stickers, key, at, side, label, cls = '', corners, over = '', pending = []}) {
   const discs = labels.map((x, k) => {
     const c = corners(k), tag = c ? 'button' : 'span', blank = x === '' ? ' blank' : '';
     const attrs = c ? `type="button" ${c.attrs} aria-label="${esc(c.label)}"` : 'aria-hidden="true"';
     return `<${tag} class="tt-corner p${k}${blank}${c?.cls ? ` ${c.cls}` : ''}" style="${spotStyle(k)}" data-sticker="${stickers[k]}" ${attrs}><span>${letterText(x)}</span></${tag}>`;
   }).join('');
+  const layer = over ? `<svg class="tt-over" viewBox="0 0 100 ${H}" aria-hidden="true">${over}</svg>` : '';
   const waiting = pending.length ? `<div class="tt-pending" aria-hidden="true">${pending.map(x => `<span class="tt-sticker">${esc(x)}</span>`).join('')}</div>` : '';
-  return `<div class="tt-model tt-${side}${cls ? ` ${cls}` : ''}" role="group" aria-label="${esc(label)}" ${key ? `data-tt-key="${esc(key)}" data-at="${at.join('')}"` : ''}><div class="tt-view">${solid(over)}${discs}</div>${waiting}</div>`;
+  return `<div class="tt-model tt-${side}${cls ? ` ${cls}` : ''}" role="group" aria-label="${esc(label)}" ${key ? `data-tt-key="${esc(key)}" data-at="${at.join('')}"` : ''}><div class="tt-view">${solid()}${discs}${layer}</div>${waiting}</div>`;
 }
 const moveAttrs = (action, focus) => `data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="${focus}"`;
 const uiAttrs = (payload, focus) => `data-action="mechanic-ui" data-ui='${JSON.stringify(payload)}' data-focus="${focus}"`;
 const button = (label, attrs, cls, enabled, hinted, extra = '') => `<button type="button" class="secondary tt-button ${cls}${hinted ? ' hinted' : ''}" ${attrs} ${enabled ? '' : 'disabled'} ${extra}>${label}</button>`;
 const TOLD = {middle: 'Not the same letter in the middle.', letters: 'Follow the same letters on both.', round: 'Same way round.', way: 'There is a way.'};
 
-function renderPair(p, a) {
-  const q = p.parameters, b = a.board, done = solved(p, b), st = ui(p);
-  const L = b.left, R = labelsOf(b.letters, b.at), ready = setupDone(q, b);
-  const canTrace = q.cant && ready && b.tried && !locked(b) && !done;
+// The two models of a claim: the other one still on its sun card (its outer
+// corners trace while tracing), yours turning. `setup(side, k)` gives a
+// set-up's corner controls while a set-up lasts.
+function claimPair(p, {L, R, at, key, labels, done, canTrace, claimed, act, setup = null, pending = {left: [], right: []}}) {
+  const st = ui(p);
   if (!canTrace) { st.tracing = false; st.trace = {left: [], right: []}; }
   const tracing = st.tracing, trace = st.trace;
-  const h = a.hintLevel >= 2 && !done ? hint(p, b) : null, act = h?.type === 'move' ? h.action : null;
-  const shown = b.claim && (b.claim.ok || b.told === b.claim.kind);
   const arrows = side => {
-    if (shown) return arrow(...b.claim[side], b.claim.ok ? 'ok' : 'off');
+    if (claimed) return arrow(...claimed[side], claimed.ok ? 'ok' : 'off');
     if (tracing && trace[side].length === 2) return arrow(...trace[side], 'drawing');
     return '';
   };
   const traceMark = (side, k) => (tracing && trace[side][0] === k && trace[side].length === 1 ? ' from' : '') + (act?.type === 'cant' && act[side].includes(k) ? ' hinted' : '');
-  const placing = (side, k, labels) => {
-    const s = setupOf(q, side);
+  const tracer = (side, k, list) => k === 0 ? null : {attrs: `data-tt-trace="${side}" data-at="${k}" data-focus="tt-${side[0]}${k}" aria-pressed="${trace[side].includes(k)}"`, label: `${list[k]}, ${WHERE[k]}. ${trace[side].length === 1 ? 'Draw the arrow to here' : 'Start an arrow here'}`, cls: traceMark(side, k).trim()};
+  const leftCorner = k => setup ? setup('left', k) : tracing ? tracer('left', k, L) : null;
+  const rightCorner = k => {
+    if (done) return null;
+    if (setup) return setup('right', k);
+    if (tracing) return tracer('right', k, R);
+    return {attrs: moveAttrs({type: 'turn', at: k}, `tt-r${k}`), label: `${R[k]}, ${WHERE[k]}. Turn the model round it`, cls: act?.type === 'turn' && act.card === undefined && act.at === k ? 'hinted' : ''};
+  };
+  const left = model({labels: L, stickers: ID, side: 'left', cls: 'tt-goal', label: `${labels[0]}: ${describe(L)}`, corners: leftCorner, over: arrows('left'), pending: pending.left});
+  const right = model({labels: R, stickers: at, key, at, side: 'right', label: `${labels[1]}: ${describe(R)}`, corners: rightCorner, over: arrows('right'), pending: pending.right});
+  // Can't hands the keys to the first corner to trace, and back to your model.
+  const cant = button('Can’t', uiAttrs({tracing: !tracing}, tracing ? 'tt-r1' : 'tt-l1'), 'tt-cant', canTrace, act?.type === 'cant', `aria-pressed="${tracing}" aria-label="Can’t match"`);
+  return {pair: `<div class="tt-pair">${left}${right}</div>`, cant, tracing};
+}
+
+function renderPair(p, a) {
+  const q = p.parameters, b = a.board, done = solved(p, b);
+  const L = b.left, R = labelsOf(b.letters, b.at), ready = setupDone(q, b);
+  const h = a.hintLevel >= 2 && !done ? hint(p, b) : null, act = h?.type === 'move' ? h.action : null;
+  const placing = (side, k) => {
+    const s = setupOf(q, side), labels = side === 'left' ? L : R;
     if (!s || b.placed[side] >= s.letters.length || labels[k] !== s.on) return null;
     const letter = s.letters[b.placed[side]];
     return {attrs: moveAttrs({type: 'place', side, at: k}, `tt-${side[0]}${k}`), label: `${sayLetter(labels[k])}, ${WHERE[k]}. Put ${letter} here`, cls: act?.type === 'place' && act.side === side && act.at === k ? 'hinted' : ''};
   };
-  const tracer = (side, k, labels) => k === 0 ? null : {attrs: `data-tt-trace="${side}" data-at="${k}" data-focus="tt-${side[0]}${k}" aria-pressed="${trace[side].includes(k)}"`, label: `${labels[k]}, ${WHERE[k]}. ${trace[side].length === 1 ? 'Draw the arrow to here' : 'Start an arrow here'}`, cls: traceMark(side, k).trim()};
-  const leftCorner = k => !ready ? placing('left', k, L) : tracing ? tracer('left', k, L) : null;
-  const rightCorner = k => {
-    if (done) return null;
-    if (!ready) return placing('right', k, R);
-    if (tracing) return tracer('right', k, R);
-    return {attrs: moveAttrs({type: 'turn', at: k}, `tt-r${k}`), label: `${R[k]}, ${WHERE[k]}. Turn the model round it`, cls: act?.type === 'turn' && act.at === k ? 'hinted' : ''};
-  };
   const pendingOf = side => { const s = setupOf(q, side); return s ? s.letters.slice(b.placed[side]) : []; };
-  const left = model({labels: L, stickers: ID, side: 'left', cls: 'tt-goal', label: `The other model: ${describe(L)}`, corners: leftCorner, over: arrows('left'), pending: pendingOf('left')});
-  const right = model({labels: R, stickers: b.at, key: `${p.id}:right`, at: b.at, side: 'right', label: `Your model: ${describe(R)}`, corners: rightCorner, over: arrows('right'), pending: pendingOf('right')});
-  // Under the models: the letters to merge, and Can't.
+  const canTrace = q.cant && ready && b.tried && !locked(b) && !done;
+  const {pair, cant, tracing} = claimPair(p, {L, R, at: b.at, key: `${p.id}:right`, labels: ['The other model', 'Your model'], done, canTrace, claimed: b.claim, act, setup: ready ? null : placing, pending: {left: pendingOf('left'), right: pendingOf('right')}});
+  // Under the models: the letters to merge, Can't, and a set-up's Start again.
   let bar = '';
   if (!done && q.merge && !b.merged) bar += chips(p, b, act);
-  // Can't hands the keys to the first corner to trace, and back to your model.
-  if (!done && q.cant) bar += button('Can’t', uiAttrs({tracing: !tracing}, tracing ? 'tt-r1' : 'tt-l1'), 'tt-cant', canTrace, act?.type === 'cant', `aria-pressed="${tracing}" aria-label="Can’t match"`);
-  const told = b.told ? TOLD[b.told] : '';
+  if (!done && q.cant) bar += cant;
+  if (!done && q.place) bar += button('Start again', moveAttrs({type: 'again'}, 'tt-again'), 'tt-again', b.placed.left + b.placed.right > 0, act?.type === 'again');
+  // A message gives way while the next claim is traced.
+  const told = b.told && !tracing ? TOLD[b.told] : '';
   const status = `Other model: ${describe(L)}. Your model: ${describe(R)}.${tracing ? ' Tap two letters round the middle of each model.' : ''}${told ? ` ${told}` : ''}${done && b.claim?.ok ? ' They can’t match: the arrows run opposite ways.' : ''}`;
-  return `<div class="tt-puzzle${done ? ' solved' : ''}${tracing ? ' tracing' : ''}" data-mechanic-wire="tetra"><div class="tt-pair">${left}${right}</div>${bar ? `<div class="tt-bar">${bar}</div>` : ''}${told ? `<p class="tt-told">${esc(told)}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="tt-puzzle${done ? ' solved' : ''}${tracing ? ' tracing' : ''}" data-mechanic-wire="tetra">${pair}${bar ? `<div class="tt-bar">${bar}</div>` : ''}${told ? `<p class="tt-told">${esc(told)}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 // Letter chips for a merge: tap the letter to change, then the letter it becomes.
 function chips(p, b, act) {
@@ -526,12 +650,15 @@ function renderMerges(p, a) {
   const left = model({labels: L, stickers: ID, side: 'left', cls: 'tt-goal', label: `The other model: ${describe(L)}`, corners: () => null});
   const right = model({labels: R, stickers: b.at, key: `${p.id}:right`, at: b.at, side: 'right', label: `Your model: ${describe(R)}`, corners: k => done ? null : {attrs: moveAttrs({type: 'turn', at: k}, `tt-r${k}`), label: `${R[k]}, ${WHERE[k]}. Turn the model round it`, cls: act?.type === 'turn' && act.at === k ? 'hinted' : ''}});
   if (done) st.lift = null;
-  const shelf = b.found.length ? `<div class="tt-shelf" role="list" aria-label="Pairs found">${b.found.map(pair => `<span class="tt-found${b.told?.kind === 'again' && b.told.pair === pair ? ' again' : ''}" role="listitem" aria-label="${pair[0]} and ${pair[1]}"><i>${pair[0]}</i>=<i>${pair[1]}</i></span>`).join('')}</div>` : '';
+  // The pair just found is marked until the next move; one found already pops.
+  const mark = pair => b.told?.pair === pair ? ` ${b.told.kind}` : '';
+  const shelf = b.found.length ? `<div class="tt-shelf" role="list" aria-label="Pairs found">${b.found.map(pair => `<span class="tt-found${mark(pair)}" role="listitem" aria-label="${pair[0]} and ${pair[1]}"><i>${pair[0]}</i>=<i>${pair[1]}</i></span>`).join('')}</div>` : '';
   const all = done ? '' : button('That’s all', moveAttrs({type: 'all'}, 'tt-all'), 'tt-all', b.found.length > 0 && b.refused !== b.found.length, act?.type === 'all');
   const bar = `${!done && !b.merged ? chips(p, b, act) : ''}${all}`;
   const told = b.told === 'more' ? 'There is another.' : b.told?.kind === 'again' ? 'Found already.' : '';
-  const status = `Other model: ${describe(L)}. Your model: ${describe(R)}.${b.found.length ? ` Found: ${b.found.map(x => `${x[0]} and ${x[1]}`).join('; ')}.` : ''}${told ? ` ${told}` : ''}`;
-  return `<div class="tt-puzzle${done ? ' solved' : ''}" data-mechanic-wire="tetra"><div class="tt-pair">${left}${right}</div>${bar ? `<div class="tt-bar">${bar}</div>` : ''}${shelf}${told ? `<p class="tt-told">${esc(told)}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  const shelved = b.told?.kind === 'new' ? ` ${b.told.pair[0]} and ${b.told.pair[1]} go on the shelf.` : '';
+  const status = `Other model: ${describe(L)}. Your model: ${describe(R)}.${shelved}${b.found.length ? ` Found: ${b.found.map(x => `${x[0]} and ${x[1]}`).join('; ')}.` : ''}${told ? ` ${told}` : ''}`;
+  return `<div class="tt-puzzle tt-merges${done ? ' solved' : ''}" data-mechanic-wire="tetra"><div class="tt-pair">${left}${right}</div>${bar ? `<div class="tt-bar">${bar}</div>` : ''}${told ? `<p class="tt-told">${esc(told)}</p>` : ''}${shelf}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 // A small picture of a card, for the row of cards.
 function mini(labels, key) {
@@ -542,21 +669,40 @@ function mini(labels, key) {
 function renderSort(p, a) {
   const q = p.parameters, b = a.board, done = solved(p, b), st = ui(p);
   if (!Number.isInteger(st.card) || st.card < 0 || st.card >= q.cards.length) st.card = 0;
-  const n = st.card, R = cardLabels(q, b, n);
   const h = a.hintLevel >= 2 && !done ? hint(p, b) : null, act = h?.type === 'move' ? h.action : null;
-  const bench = model({labels: R, stickers: b.cards[n], key: `${p.id}:card${n}`, at: b.cards[n], side: 'bench', label: `The chosen model: ${describe(R)}`, corners: k => done ? null : {attrs: moveAttrs({type: 'turn', card: n, at: k}, `tt-r${k}`), label: `${R[k]}, ${WHERE[k]}. Turn the model round it`, cls: act?.type === 'turn' && act.card === n && act.at === k ? 'hinted' : ''}});
-  const stacks = stacksOf(q, b);
+  const stacks = stacksOf(q, b), proof = b.proof;
+  let top, bar = '', tracing = false, compared = [], ask = '';
+  if (proof) {
+    // After a right That's all: the certificate for two stacks with the same
+    // letters, on one model of each.
+    const {n, m, L, R} = proofModels(q, b);
+    compared = [n, m];
+    const c = claimPair(p, {L, R, at: proof.at, key: `${p.id}:proof${proof.n}`, labels: ['A model from one stack', 'A model from the other stack'], done, canTrace: !done && proof.tried, claimed: proof.claim, act});
+    top = c.pair; tracing = c.tracing;
+    if (!done) { bar = c.cant; ask = 'Show with Can’t that these two can’t match.'; }
+  } else {
+    const n = st.card, R = cardLabels(q, b, n);
+    top = model({labels: R, stickers: b.cards[n], key: `${p.id}:card${n}`, at: b.cards[n], side: 'bench', label: `The chosen model: ${describe(R)}`, corners: k => done ? null : {attrs: moveAttrs({type: 'turn', card: n, at: k}, `tt-r${k}`), label: `${R[k]}, ${WHERE[k]}. Turn the model round it`, cls: act?.type === 'turn' && act.card === n && act.at === k ? 'hinted' : ''}});
+    const refused = Boolean(b.refused) && partitionKey(b.refused) === partitionKey(stacks);
+    if (!done) bar = button('That’s all', moveAttrs({type: 'all'}, 'tt-all'), 'tt-all', b.tried && !refused, act?.type === 'all');
+  }
+  const n = proof ? -1 : st.card, still = done || Boolean(proof);
   const cards = stacks.map(g => {
-    const top = g.includes(n) ? n : g.at(-1), chosen = g.includes(n), hinted = act?.type === 'turn' && g.includes(act.card) && !chosen;
+    const face = g.includes(n) ? n : g.at(-1), chosen = g.includes(n), hinted = act?.type === 'turn' && g.includes(act.card) && !chosen;
+    const pick = compared.some(k => g.includes(k)) ? ' compared' : '';
     const layers = g.map((m, i) => `<span class="tt-layer" style="--k:${g.length - 1 - i}">${mini(cardLabels(q, b, m), `${p.id}:card${m}`)}</span>`).join('');
-    const label = `${g.length === 1 ? 'A model' : `${g.length} models alike`}: ${describe(cardLabels(q, b, g[0]))}${chosen ? '. On the big board' : '. Put it on the big board'}`;
-    return `<button type="button" class="tt-stack${chosen ? ' chosen' : ''}${hinted ? ' hinted' : ''}" style="--n:${Math.min(g.length, 4)}" ${uiAttrs({card: top}, `tt-card-${g[0]}`)} aria-pressed="${chosen}" aria-label="${esc(label)}" ${done ? 'disabled' : ''}>${layers}</button>`;
+    const label = `${g.length === 1 ? 'A model' : `${g.length} models alike`}: ${describe(cardLabels(q, b, g[0]))}${chosen ? '. On the big board' : still ? '' : '. Put it on the big board'}`;
+    return `<button type="button" class="tt-stack${chosen ? ' chosen' : ''}${pick}${hinted ? ' hinted' : ''}" style="--n:${Math.min(g.length, 4)}" ${uiAttrs({card: face}, `tt-card-${g[0]}`)} aria-pressed="${chosen}" aria-label="${esc(label)}" ${still ? 'disabled' : ''}>${layers}</button>`;
   }).join('');
-  const locked = Boolean(b.refused) && partitionKey(b.refused) === partitionKey(stacks);
-  const all = done ? '' : button('That’s all', moveAttrs({type: 'all'}, 'tt-all'), 'tt-all', b.tried && !locked, act?.type === 'all');
-  const told = b.told === 'more' ? 'Some can still match.' : '';
-  const status = `On the big board: ${describe(R)}. ${stacks.length} ${stacks.length === 1 ? 'stack' : 'stacks'} of models that look alike.${told ? ` ${told}` : ''}`;
-  return `<div class="tt-puzzle tt-sorting${done ? ' solved' : ''}" data-mechanic-wire="tetra">${bench}<div class="tt-cards" role="group" aria-label="Models">${cards}</div>${all ? `<div class="tt-bar">${all}</div>` : ''}${told ? `<p class="tt-told">${esc(told)}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  const told = b.told === 'more' ? 'Some can still match.' : b.told && !tracing ? TOLD[b.told] : '';
+  const what = proof ? `Two stacks with the same letters: ${describe(proofModels(q, b).L)}, and ${describe(proofModels(q, b).R)}.${tracing ? ' Tap two letters round the middle of each model.' : ''}${done ? ' They can’t match: the arrows run opposite ways.' : ''}` : `On the big board: ${describe(cardLabels(q, b, st.card))}.`;
+  const status = `${what} ${stacks.length} ${stacks.length === 1 ? 'stack' : 'stacks'} of models that look alike.${told ? ` ${told}` : ''}`;
+  // The message sits by its button. While sorting, the small models come
+  // before That's all; during the proof they come last, as a reminder of the
+  // two stacks, below Can't.
+  const row = bar || told ? `<div class="tt-bar">${bar}${told ? `<p class="tt-told">${esc(told)}</p>` : ''}</div>` : '';
+  const shelf = `<div class="tt-cards" role="group" aria-label="Models">${cards}</div>`;
+  return `<div class="tt-puzzle tt-sorting${proof ? ' tt-proving' : ''}${done ? ' solved' : ''}${tracing ? ' tracing' : ''}" data-mechanic-wire="tetra">${ask ? `<p class="tt-ask">${esc(ask)}</p>` : ''}${top}${proof ? `${row}${shelf}` : `${shelf}${row}`}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 function renderPlay(p, a) {
   const b = a.board, st = ui(p), letters = st.tool === 'letters';
@@ -658,22 +804,30 @@ export const tetraMechanics = {
       if (['turn', 'letters'].includes(payload.tool)) st.tool = payload.tool;
     },
     reset: p => { uiState.delete(p.id); },
-    // Undo takes back moves, never a refusal: a wrong claim stays while the
-    // letters are the same, and the pairs found and a refused That's all stay.
+    // Undo takes back moves, never a refusal: the letters a wrong claim was
+    // made on stay locked, and the pairs found and a refused That's all stay.
     // Only the message goes, so an Undo straight after a refusal still
     // changes the screen. In a sort the model whose turn is taken back goes
     // on the big board.
     carry(p, from, to) {
       const q = p.parameters;
       if (!object(from) || !object(to)) return to;
-      if (q.mode === 'pair' && locked(from) && !to.claim && pairKey(from) === pairKey(to) && setupDone(q, to)) return {...to, claim: from.claim, told: null};
-      if (q.mode === 'merges' && Array.isArray(from.found)) return {...to, found: [...from.found], refused: from.refused ?? null, told: to.told === 'more' ? null : to.told, done: false};
+      if (q.mode === 'pair' && Array.isArray(from.wrong) && Array.isArray(to.wrong)) {
+        const next = {...to, wrong: [...new Set([...to.wrong, ...from.wrong])].sort()};
+        return locked(next) && (next.told === 'middle' || next.told === 'letters') ? {...next, told: null} : next;
+      }
+      if (q.mode === 'merges' && Array.isArray(from.found)) return {...to, found: [...from.found], refused: from.refused ?? null, told: to.told === 'more' || to.told?.kind === 'new' ? null : to.told, done: false};
       if (q.mode === 'sort' && Array.isArray(from.cards) && Array.isArray(to.cards)) {
         const n = from.cards.findIndex((at, i) => !same(at, to.cards[i] || []));
         if (n >= 0) ui(p).card = n;
         return from.refused ? {...to, refused: from.refused, told: null} : to;
       }
       return to;
+    },
+    // Restart keeps the locks too, so a refused claim is not had again by
+    // starting over.
+    carryOnRestart(p, from, to) {
+      return p.parameters.mode === 'pair' && object(from) && object(to) && Array.isArray(from.wrong) ? {...to, wrong: [...from.wrong]} : to;
     },
     noHint: p => p.parameters.mode === 'playground'
   }
@@ -682,7 +836,7 @@ export const tetraMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'tetra',
-  family: {id: 'tetra', symbol: '◬'},
+  family: {id: 'tetra', symbol: '⧖'},
   mechanics: tetraMechanics,
   pack: new URL('./tetra.json', import.meta.url).href,
   css: new URL('./tetra.css', import.meta.url).href,

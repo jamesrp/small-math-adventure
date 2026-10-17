@@ -19,9 +19,10 @@ const CONTROLS = {
   cant: 'If you think no turn can match them, press Can’t, then tap two letters round the middle of each model, the same two in the same order: an arrow goes from the first through the second. Both models need the same letter in the middle. Can’t opens once you have turned your model.',
   merge: 'Tap a letter under the models, then another: the first becomes the second on both models. That is your one change; Undo takes it back.',
   merges: 'Tap a letter under the models, then another: the first becomes the second on both models. When your model matches, that pair of letters goes on the shelf and both models start again. That’s all checks the shelf.',
-  blank: 'Tap a blank corner of your model to put the next letter there, A first. Once all four are on, taps turn it.',
-  change: 'Tap an A on each model to change it to D. Once both are changed, taps on your model turn it.',
-  sort: 'Tap a small model to put it on the big board, then tap the big board’s corners to turn it a third of the way round each. Models that look exactly alike stack together. That’s all checks that no two stacks could be turned to match.',
+  blank: 'Tap a blank corner of your model to put the next letter there, A first. Once all four are on, taps turn it. Start again takes the letters off.',
+  change: 'Tap an A on each model to change it to D. Once both are changed, taps on your model turn it. Start again changes them back.',
+  sort: 'Tap a small model to put it on the big board, then tap the big board’s corners to turn it a third of the way round each. Models that look exactly alike stack together. That’s all checks that no two stacks could be turned to match. If that is right, a model from each of two stacks with the same letters comes up as a pair, to show with Can’t that they can’t match.',
+  proof: 'Tap the corners of the second one to turn it (its stack stays as it is) until both have the same letter in the middle. Then press Can’t and tap two letters round the middle of each model, the same two in the same order: an arrow goes from the first through the second.',
   playground: 'Tap a corner of either model to turn it a third of the way round that corner. Letters switches to changing letters: each tap moves a corner on to the next letter. Press Letters again to turn.'
 };
 const RULES = {
@@ -47,7 +48,7 @@ const PREREQUISITES = {
   turn: 'Recognise four letters and compare two pictures corner by corner. No reading or arithmetic; a grown-up can read How to play.',
   cant: 'Recognise letters, compare two pictures, and follow three letters round a middle one to say which way they go. A grown-up can read How to play.',
   change: 'Recognise letters and compare two pictures; plan a change before turning.',
-  sort: 'Compare several small pictures with a large one and keep track of which already look alike. No arithmetic.'
+  sort: 'Compare several small pictures with a large one and keep track of which already look alike, then follow three letters round a middle one to say which way they go. No arithmetic.'
 };
 
 // The worksheet's models, read as the view from the apex A: its ABCD (A at
@@ -78,7 +79,7 @@ const PUZZLES = [
     provenance: 'Week 37 K–1 Problem 3 (“Change D to C on both models from Problem 2”).'},
   {number: 5, level: 'medium', title: 'Two As', kind: 'turn', cant: true, left: AABC, right: ABAC, check: {can: true, fewest: [1]},
     idea: 'With two As there is always a way: the second A lets a turn do what the first can’t.',
-    hints: ['Try every way to put an A in the middle of your model.', 'Try bringing the other A into the middle.', 'Tap the top corner once.'],
+    hints: ['Which letters can you bring into the middle?', 'Try bringing the other A into the middle.', 'Tap the top corner once.'],
     parent: {notice: 'Whether your child tries only turns round the middle A, decides it can’t be done and presses Can’t.', prompt: 'There are two As. Does it matter which one goes in the middle?', explanation: 'The two models look like mirror twins, and with A in the middle of both the other three go round opposite ways. But each has a second A, so the middle A can be matched with either. One tap on the top corner brings your right-hand A into the middle and sends your middle A to the left, and then every letter matches. In fact all twelve ways to put A, A, B and C on a model match each other: swapping the two As changes nothing, so any arrangement can be turned into any other.', extension: 'Can anyone make two A, A, B, C models that can’t be turned to match? (No.)', connection: 'The labelling A, A, B, C has a mirror symmetry, so its mirror image is itself.'},
     provenance: 'Week 37 K–1 Problem 4 and 2–3 Problem 5: the printed A, A, B, C pair.'},
   {number: 6, level: 'medium', title: 'Make two the same', kind: 'merge', left: MODEL, right: TWIN, hintMerge: ['D', 'C'], check: {can: false},
@@ -91,7 +92,7 @@ const PUZZLES = [
     hints: ['The models match now. Which A of yours lands on which A of the other?', 'Change the middle A on the left model and the right-hand A on yours.', 'Then tap the top corner once.'],
     parent: {notice: 'Whether your child changes two As at random and then tries turning, or first works out which As meet when the models match.', prompt: 'When the two models match, which of your As sits on the other model’s middle A?', explanation: 'Before the change, one tap on your top corner matches the models: your right-hand A goes to the middle, onto the other model’s middle A, and your middle A goes to the left, onto its left A. Changing two As that meet in that match keeps a match: the left model’s middle A with your right-hand A, or the left model’s left A with your middle A. The other two choices give four different letters arranged as mirror twins, which can never match (puzzle 10).', extension: 'Which changes make a pair that can’t match? (Both middle As, or the left model’s left A with your right-hand A.)', connection: 'Putting a fourth letter back makes the model chiral again, and either chirality can come out.'},
     provenance: 'Week 37 2–3 Problem 6, its first question (“Can you choose the changes to make a matching pair?”).'},
-  {number: 8, level: 'medium', title: 'Every pair', kind: 'merges', left: MODEL, right: TWIN, order: ['CD', 'BC', 'AB', 'BD', 'AC', 'AD'], check: {taps: {AB: 1, AC: 2, AD: 3, BC: 0, BD: 2, CD: 1}},
+  {number: 8, level: 'medium', title: 'Which pairs?', kind: 'merges', left: MODEL, right: TWIN, order: ['CD', 'BC', 'AB', 'BD', 'AC', 'AD'], check: {taps: {AB: 1, AC: 2, AD: 3, BC: 0, BD: 2, CD: 1}},
     idea: 'All six pairs work: two equal letters always make a model its own mirror image.',
     hints: ['Start with any two letters, then try a pair you haven’t tried.', 'Each pair goes on the shelf once, whichever letter the other becomes.', 'Make each pair the same in turn, match the models, and press That’s all when you have them all.'],
     parent: {notice: 'Whether your child expects some pairs, such as those with A in them, not to work.', prompt: 'Why does every pair work?', explanation: 'Whichever two letters are equal, the model has a mirror symmetry: the plane through the other two corners and the middle of the equal letters’ edge swaps the equal corners and changes nothing. Two reflections make a turn, so the mirror twin, which is the model reflected, is also the model reflected twice: the model turned. The fewest taps differ: none for B and C (they are in each other’s places), one for C and D or A and B, two for B and D or A and C, three for A and D.', extension: 'What if three letters were the same, A, A, A and B? (Still a match, for the same reason.)', connection: 'Equal labels at two vertices add a reflection to the labelled tetrahedron’s symmetry group.'},
@@ -99,22 +100,22 @@ const PUZZLES = [
   {number: 9, level: 'hard', title: 'Four blank corners', kind: 'blank', left: MODEL, right: '', check: {apart: 12, of: 24},
     idea: 'Of the 24 ways to put on four letters, 12 match the other model and 12 make its mirror twin.',
     hints: ['Think of a copy of the other model, then change it. What change can no turn undo?', 'Put A in the middle, as on the other, and put B and C in each other’s places.', 'Put A in the middle, D at the top, B on the right and C on the left; then turn round the middle and press Can’t.'],
-    parent: {notice: 'Whether your child places letters at random and checks by turning, or builds the mirror twin on purpose by swapping two letters of a copy.', prompt: 'If you swap two letters of a copy, can turning ever swap them back?', explanation: 'Half of the 24 placements can be turned to match the other model and half can’t. A copy with any two letters swapped is always one that can’t: seen from a letter in the same place on both, the swap reverses the way the others go round, and turns never reverse it. The arrows of Can’t show it.', extension: 'How many placements can’t match? (12 of the 24.)', connection: 'A swap is an odd permutation, and the rotations of the tetrahedron are exactly the even permutations of its corners.'},
+    parent: {notice: 'Whether your child places letters at random and checks by turning, or builds the mirror twin on purpose by swapping two letters of a copy.', prompt: 'If you swap two letters of a copy, can turning ever swap them back?', explanation: 'Half of the 24 placements can be turned to match the other model and half can’t. The ones that can’t are exactly the turned copies with two letters swapped: seen from a letter the swap leaves alone, the swap reverses the way the others go round, and turns never reverse it. The arrows of Can’t show it. A placement that matches is not a solve; Start again takes the letters off.', extension: 'How many placements can’t match? (12 of the 24.)', connection: 'A swap is an odd permutation, and the rotations of the tetrahedron are exactly the even permutations of its corners.'},
     provenance: 'Week 37 K–1 Problem 5 (“Make one pair that matches and one pair that you think cannot match”) and 2–3 Problem 3 (“Make another pair with A, B, C and D”), as a placement that can’t match the printed model.'},
   {number: 10, level: 'hard', title: 'A becomes D again', kind: 'change', goal: 'apart', left: AABC, right: ABAC, check: {match: [[0, 2], [3, 0]], apart: [[0, 0], [3, 2]]},
     idea: 'The other two changes give four different letters arranged as mirror twins.',
     hints: ['When the two models match, which A of yours lands on which A of the other?', 'Change the middle A on both models.', 'Change both middle As, turn round the middle once, then press Can’t.'],
     parent: {notice: 'Whether your child uses what puzzle 7 showed about which As meet.', prompt: 'Why do these changes give a pair that can’t match?', explanation: 'Changing both middle As, or the left model’s left A with your right-hand A, changes two As that don’t meet in the match. The result has four different letters, and the models are mirror twins: with the same letter in the middle of both, the other three go round opposite ways.', extension: 'Of the four ways to change one A on each, how many give a pair that can’t match? (Two.)', connection: 'Restoring distinct labels can land in either chirality class; which one depends on how the changed corners correspond under the match.'},
     provenance: 'Week 37 2–3 Problem 6, its second question (“Can you choose them to make a pair that will not match?”).'},
-  {number: 11, level: 'hard', title: 'Six models', kind: 'sort', cards: ['ADCB', 'ABCD', 'BCDA', 'CABD', 'DCAB', 'DBAC'], check: {classes: [[0, 2, 4], [1, 3, 5]]},
+  {number: 11, level: 'hard', title: 'Six models', kind: 'sort', cards: ['ADCB', 'ABCD', 'BCDA', 'CABD', 'DCAB', 'DBAC'], check: {classes: [[0, 2, 4], [1, 3, 5]], twins: [[0, 1]]},
     idea: 'Six models with A, B, C and D make only two stacks: every placement of four different letters matches one of two.',
-    hints: ['Choose one model and turn another to look exactly like it.', 'If a model can’t be made to look like the first, try the others.', 'Make every model look like one of two, then press That’s all.'],
-    parent: {notice: 'Whether your child expects more than two stacks, and how they decide that a model can’t join a stack.', prompt: 'Why can’t the last two stacks become one?', explanation: 'Twelve turns give each model twelve different looks, and the 24 ways to put on four different letters fall into two groups of twelve: on one, seen from A, the other three go round clockwise, and on the other anticlockwise. So six models make two stacks, and puzzle 3’s arrows show that the two can’t join.', extension: 'How many different models can be made with A, B, C and D if models that match count as the same? (Two.)', connection: 'The 24 labellings form two orbits of the tetrahedron’s rotation group A4, which has 12 elements: 24 ÷ 12 = 2.'},
+    hints: ['Choose one model and turn another to look exactly like it.', 'If a model can’t be made to look like the first, try the others.', 'Make every model look like one of two, press That’s all, then show with Can’t that the two can’t match.'],
+    parent: {notice: 'Whether your child expects more than two stacks, and how they decide that a model can’t join a stack.', prompt: 'Why can’t the last two stacks become one?', explanation: 'Twelve turns give each model twelve different looks, and the 24 ways to put on four different letters fall into two groups of twelve: on one, seen from A, the other three go round clockwise, and on the other anticlockwise. So six models make two stacks. After That’s all, the child shows with Can’t, as in puzzle 3, that the two can’t join: with the same letter in the middle of both, the arrows run opposite ways.', extension: 'How many different models can be made with A, B, C and D if models that match count as the same? (Two.)', connection: 'The 24 labellings form two orbits of the tetrahedron’s rotation group A4, which has 12 elements: 24 ÷ 12 = 2.'},
     provenance: 'Week 37 4–5 Problem 6 (“How many genuinely different models can be made if models that match by turning count as the same?”), as a sort of six of the 24 placements; the review card’s fix 8 fixes the letters as A, B, C and D.'},
-  {number: 12, level: 'hard', title: 'Eight models', kind: 'sort', cards: [AABC, 'ADCB', 'ABCD', ABAC, 'DCAB', 'BACA', 'CABD', 'BCDA'], check: {classes: [[0, 3, 5], [1, 4, 7], [2, 6]]},
+  {number: 12, level: 'hard', title: 'Eight models', kind: 'sort', cards: [AABC, 'ADCB', 'ABCD', ABAC, 'DCAB', 'BACA', 'CABD', 'BCDA'], check: {classes: [[0, 3, 5], [1, 4, 7], [2, 6]], twins: [[1, 2]]},
     idea: 'Models with two As all stack together, mirror-looking ones included; four different letters give two stacks.',
-    hints: ['Sort the models with two As apart from the ones with four different letters.', 'Two of the A, A, B, C models look like mirror twins. Try turning one to look like the other.', 'Make one stack of the A, A, B, C models and two of the others, then press That’s all.'],
-    parent: {notice: 'Whether your child gives the A, A, B, C mirror look-alikes separate stacks.', prompt: 'Why do all the A, A, B, C models stack, when the A, B, C, D ones make two stacks?', explanation: 'All twelve ways to put on A, A, B and C match each other (puzzle 5): swapping the two As changes nothing, so any arrangement can be turned into any other. The models with four different letters fall into two groups, as in puzzle 11. So the eight models make three stacks.', extension: 'What about A, A, B and B? (All of those stack together too.)', connection: 'A labelling with a repeated letter is its own mirror image, so its orbit under rotation is also its orbit under every symmetry.'},
+    hints: ['Sort the models with two As apart from the ones with four different letters.', 'Two of the A, A, B, C models look like mirror twins. Try turning one to look like the other.', 'Make one stack of the A, A, B, C models and two of the others, press That’s all, then show with Can’t that those two can’t match.'],
+    parent: {notice: 'Whether your child gives the A, A, B, C mirror look-alikes separate stacks.', prompt: 'Why do all the A, A, B, C models stack, when the A, B, C, D ones make two stacks?', explanation: 'All twelve ways to put on A, A, B and C match each other (puzzle 5): swapping the two As changes nothing, so any arrangement can be turned into any other. The models with four different letters fall into two groups, as in puzzle 11. So the eight models make three stacks. Only the two stacks of four different letters need the Can’t certificate after That’s all; stacks with different letters can never match.', extension: 'What about A, A, B and B? (All of those stack together too.)', connection: 'A labelling with a repeated letter is its own mirror image, so its orbit under rotation is also its orbit under every symmetry.'},
     provenance: 'New, after Week 37 4–5 Problem 6, with the A, A, B, C models of K–1 Problem 4 and 2–3 Problem 5.'}
 ];
 
@@ -141,9 +142,14 @@ const out = PUZZLES.map(item => {
     const classes = classesOf(cards);
     assert.deepEqual(classes, item.check.classes, `${id(item.number)}: classes`);
     for (const c of classes) assert.ok(c.every(n => bag(cards[n]) === bag(cards[c[0]])), `${id(item.number)}: a class keeps its letters`);
+    // The stacks that need the Can't certificate after That's all: two classes
+    // with the same letters, which are mirror twins.
+    const twins = classes.flatMap((c, i) => classes.slice(i + 1).flatMap((d, j) => bag(cards[c[0]]) === bag(cards[d[0]]) ? [[i, i + 1 + j]] : []));
+    assert.deepEqual(twins, item.check.twins, `${id(item.number)}: stacks to show apart`);
+    for (const [i, j] of twins) assert.ok(new Set(cards[classes[i][0]]).size === 4 && !canMatch(cards[classes[i][0]], cards[classes[j][0]]), `${id(item.number)}: twins with four different letters`);
     q = {mode: 'sort', cards};
-    solution = {classes, turns: classes.flatMap(c => c.slice(1).map(n => ({card: n, taps: tapsTo(cards[c[0]], cards[n])})))};
-    objective = OBJECTIVE.sort; controls = CONTROLS.sort; rules = [RULES.model, RULES.turn, RULES.sort]; prereq = PREREQUISITES.sort;
+    solution = {classes, turns: classes.flatMap(c => c.slice(1).map(n => ({card: n, taps: tapsTo(cards[c[0]], cards[n])}))), twins};
+    objective = OBJECTIVE.sort; controls = `${CONTROLS.sort} ${CONTROLS.proof}`; rules = [RULES.model, RULES.turn, RULES.sort, RULES.cant]; prereq = PREREQUISITES.sort;
   } else if (item.kind === 'merges') {
     const left = L(item.left), right = L(item.right);
     assert.equal(canMatch(left, right), false, `${id(item.number)}: the twins can't match before a change`);
@@ -187,6 +193,10 @@ const out = PUZZLES.map(item => {
       if (item.kind === 'blank') {
         assert.equal(apart.length, item.check.apart, `${id(item.number)}: placements that can't match`);
         assert.equal(all.length, item.check.of, `${id(item.number)}: every placement`);
+        // Exactly the turned copies of the other model with two letters swapped.
+        const left = L(item.left), swapped = new Set();
+        for (let i = 0; i < 4; i++) for (let j = i + 1; j < 4; j++) { const w = [...left]; [w[i], w[j]] = [w[j], w[i]]; for (const g of ROTATIONS) swapped.add(rotated(w, g).join('')); }
+        assert.deepEqual([...swapped].sort(), apart.map(s => s.right.join('')).sort(), `${id(item.number)}: the placements that can't match are the turned copies with a swap`);
         solution = {apart: apart.map(s => s.choice)};
         objective = OBJECTIVE.blank; controls = `${CONTROLS.blank} ${CONTROLS.turn} ${CONTROLS.cant}`; rules = [...rules, RULES.cant]; prereq = PREREQUISITES.cant;
       } else {

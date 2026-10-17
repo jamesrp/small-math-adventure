@@ -401,7 +401,7 @@
    "idea": "With two As there is always a way: the second A lets a turn do what the first can’t.",
    "prerequisites": "Recognise four letters and compare two pictures corner by corner. No reading or arithmetic; a grown-up can read How to play.",
    "hints": [
-    "Try every way to put an A in the middle of your model.",
+    "Which letters can you bring into the middle?",
     "Try bringing the other A into the middle.",
     "Tap the top corner once."
    ],
@@ -626,7 +626,7 @@
    "objective": "Change one A on each to D so they match.",
    "visibleObjective": "Change one A on each to D so they match.",
    "instruction": "Change one A on each to D so they match.",
-   "controls": "A model is a solid with a letter on each of its four corners. It is drawn from one corner: that corner is in the middle, nearest you, and the other three make the triangle behind it. Two models match when one can be turned so that every corner shows the same letter as the other model’s corner in that place. Tap an A on each model to change it to D. Once both are changed, taps on your model turn it. Tap a corner of your model, the right-hand one, to turn it a third of the way round that corner. With a keyboard, Tab to a corner and press Enter or Space. Undo takes back a turn.",
+   "controls": "A model is a solid with a letter on each of its four corners. It is drawn from one corner: that corner is in the middle, nearest you, and the other three make the triangle behind it. Two models match when one can be turned so that every corner shows the same letter as the other model’s corner in that place. Tap an A on each model to change it to D. Once both are changed, taps on your model turn it. Start again changes them back. Tap a corner of your model, the right-hand one, to turn it a third of the way round that corner. With a keyboard, Tab to a corner and press Enter or Space. Undo takes back a turn.",
    "rules": [
     "A model is a regular tetrahedron with a letter on each corner, drawn from one corner: that corner is in the middle, nearest you, and the other three are the triangle of the far face.",
     "A tap on a corner turns the model a third of the way round that corner. The corner stays put and the other three move one place round it. Turning never changes the letters.",
@@ -675,7 +675,7 @@
   {
    "id": "tetra-08",
    "number": 8,
-   "title": "Every pair",
+   "title": "Which pairs?",
    "difficulty_level": "medium",
    "familyTitle": "Mirror twins",
    "mechanic": "tetra",
@@ -798,7 +798,7 @@
    "objective": "Put on A, B, C and D so the two can’t match.",
    "visibleObjective": "Put on A, B, C and D so the two can’t match.",
    "instruction": "Put on A, B, C and D so the two can’t match.",
-   "controls": "A model is a solid with a letter on each of its four corners. It is drawn from one corner: that corner is in the middle, nearest you, and the other three make the triangle behind it. Two models match when one can be turned so that every corner shows the same letter as the other model’s corner in that place. Tap a blank corner of your model to put the next letter there, A first. Once all four are on, taps turn it. Tap a corner of your model, the right-hand one, to turn it a third of the way round that corner. With a keyboard, Tab to a corner and press Enter or Space. Undo takes back a turn. If you think no turn can match them, press Can’t, then tap two letters round the middle of each model, the same two in the same order: an arrow goes from the first through the second. Both models need the same letter in the middle. Can’t opens once you have turned your model.",
+   "controls": "A model is a solid with a letter on each of its four corners. It is drawn from one corner: that corner is in the middle, nearest you, and the other three make the triangle behind it. Two models match when one can be turned so that every corner shows the same letter as the other model’s corner in that place. Tap a blank corner of your model to put the next letter there, A first. Once all four are on, taps turn it. Start again takes the letters off. Tap a corner of your model, the right-hand one, to turn it a third of the way round that corner. With a keyboard, Tab to a corner and press Enter or Space. Undo takes back a turn. If you think no turn can match them, press Can’t, then tap two letters round the middle of each model, the same two in the same order: an arrow goes from the first through the second. Both models need the same letter in the middle. Can’t opens once you have turned your model.",
    "rules": [
     "A model is a regular tetrahedron with a letter on each corner, drawn from one corner: that corner is in the middle, nearest you, and the other three are the triangle of the far face.",
     "A tap on a corner turns the model a third of the way round that corner. The corner stays put and the other three move one place round it. Turning never changes the letters.",
@@ -815,7 +815,7 @@
    "parent": {
     "notice": "Whether your child places letters at random and checks by turning, or builds the mirror twin on purpose by swapping two letters of a copy.",
     "prompt": "If you swap two letters of a copy, can turning ever swap them back?",
-    "explanation": "Half of the 24 placements can be turned to match the other model and half can’t. A copy with any two letters swapped is always one that can’t: seen from a letter in the same place on both, the swap reverses the way the others go round, and turns never reverse it. The arrows of Can’t show it.",
+    "explanation": "Half of the 24 placements can be turned to match the other model and half can’t. The ones that can’t are exactly the turned copies with two letters swapped: seen from a letter the swap leaves alone, the swap reverses the way the others go round, and turns never reverse it. The arrows of Can’t show it. A placement that matches is not a solve; Start again takes the letters off.",
     "extension": "How many placements can’t match? (12 of the 24.)",
     "connection": "A swap is an odd permutation, and the rotations of the tetrahedron are exactly the even permutations of its corners.",
     "sourceIds": [
@@ -888,7 +888,7 @@
    "objective": "Change one A on each to D so they can’t match.",
    "visibleObjective": "Change one A on each to D so they can’t match.",
    "instruction": "Change one A on each to D so they can’t match.",
-   "controls": "A model is a solid with a letter on each of its four corners. It is drawn from one corner: that corner is in the middle, nearest you, and the other three make the triangle behind it. Two models match when one can be turned so that every corner shows the same letter as the other model’s corner in that place. Tap an A on each model to change it to D. Once both are changed, taps on your model turn it. Tap a corner of your model, the right-hand one, to turn it a third of the way round that corner. With a keyboard, Tab to a corner and press Enter or Space. Undo takes back a turn. If you think no turn can match them, press Can’t, then tap two letters round the middle of each model, the same two in the same order: an arrow goes from the first through the second. Both models need the same letter in the middle. Can’t opens once you have turned your model.",
+   "controls": "A model is a solid with a letter on each of its four corners. It is drawn from one corner: that corner is in the middle, nearest you, and the other three make the triangle behind it. Two models match when one can be turned so that every corner shows the same letter as the other model’s corner in that place. Tap an A on each model to change it to D. Once both are changed, taps on your model turn it. Start again changes them back. Tap a corner of your model, the right-hand one, to turn it a third of the way round that corner. With a keyboard, Tab to a corner and press Enter or Space. Undo takes back a turn. If you think no turn can match them, press Can’t, then tap two letters round the middle of each model, the same two in the same order: an arrow goes from the first through the second. Both models need the same letter in the middle. Can’t opens once you have turned your model.",
    "rules": [
     "A model is a regular tetrahedron with a letter on each corner, drawn from one corner: that corner is in the middle, nearest you, and the other three are the triangle of the far face.",
     "A tap on a corner turns the model a third of the way round that corner. The corner stays put and the other three move one place round it. Turning never changes the letters.",
@@ -983,23 +983,24 @@
    "objective": "Turn models so the ones that match stack together.",
    "visibleObjective": "Turn models so the ones that match stack together.",
    "instruction": "Turn models so the ones that match stack together.",
-   "controls": "A model is a solid with a letter on each of its four corners. It is drawn from one corner: that corner is in the middle, nearest you, and the other three make the triangle behind it. Two models match when one can be turned so that every corner shows the same letter as the other model’s corner in that place. Tap a small model to put it on the big board, then tap the big board’s corners to turn it a third of the way round each. Models that look exactly alike stack together. That’s all checks that no two stacks could be turned to match.",
+   "controls": "A model is a solid with a letter on each of its four corners. It is drawn from one corner: that corner is in the middle, nearest you, and the other three make the triangle behind it. Two models match when one can be turned so that every corner shows the same letter as the other model’s corner in that place. Tap a small model to put it on the big board, then tap the big board’s corners to turn it a third of the way round each. Models that look exactly alike stack together. That’s all checks that no two stacks could be turned to match. If that is right, a model from each of two stacks with the same letters comes up as a pair, to show with Can’t that they can’t match. Tap the corners of the second one to turn it (its stack stays as it is) until both have the same letter in the middle. Then press Can’t and tap two letters round the middle of each model, the same two in the same order: an arrow goes from the first through the second.",
    "rules": [
     "A model is a regular tetrahedron with a letter on each corner, drawn from one corner: that corner is in the middle, nearest you, and the other three are the triangle of the far face.",
     "A tap on a corner turns the model a third of the way round that corner. The corner stays put and the other three move one place round it. Turning never changes the letters.",
-    "Models that show the same letter in every place stack together."
+    "Models that show the same letter in every place stack together.",
+    "Can’t is a claim. With the same letter in the middle of both models, tap the same two letters round it on each; the arrows show which way each model goes round."
    ],
    "idea": "Six models with A, B, C and D make only two stacks: every placement of four different letters matches one of two.",
-   "prerequisites": "Compare several small pictures with a large one and keep track of which already look alike. No arithmetic.",
+   "prerequisites": "Compare several small pictures with a large one and keep track of which already look alike, then follow three letters round a middle one to say which way they go. No arithmetic.",
    "hints": [
     "Choose one model and turn another to look exactly like it.",
     "If a model can’t be made to look like the first, try the others.",
-    "Make every model look like one of two, then press That’s all."
+    "Make every model look like one of two, press That’s all, then show with Can’t that the two can’t match."
    ],
    "parent": {
     "notice": "Whether your child expects more than two stacks, and how they decide that a model can’t join a stack.",
     "prompt": "Why can’t the last two stacks become one?",
-    "explanation": "Twelve turns give each model twelve different looks, and the 24 ways to put on four different letters fall into two groups of twelve: on one, seen from A, the other three go round clockwise, and on the other anticlockwise. So six models make two stacks, and puzzle 3’s arrows show that the two can’t join.",
+    "explanation": "Twelve turns give each model twelve different looks, and the 24 ways to put on four different letters fall into two groups of twelve: on one, seen from A, the other three go round clockwise, and on the other anticlockwise. So six models make two stacks. After That’s all, the child shows with Can’t, as in puzzle 3, that the two can’t join: with the same letter in the middle of both, the arrows run opposite ways.",
     "extension": "How many different models can be made with A, B, C and D if models that match count as the same? (Two.)",
     "connection": "The 24 labellings form two orbits of the tetrahedron’s rotation group A4, which has 12 elements: 24 ÷ 12 = 2.",
     "sourceIds": [
@@ -1050,6 +1051,12 @@
        1
       ]
      }
+    ],
+    "twins": [
+     [
+      0,
+      1
+     ]
     ]
    },
    "provenance": "Week 37 4–5 Problem 6 (“How many genuinely different models can be made if models that match by turning count as the same?”), as a sort of six of the 24 placements; the review card’s fix 8 fixes the letters as A, B, C and D."
@@ -1120,23 +1127,24 @@
    "objective": "Turn models so the ones that match stack together.",
    "visibleObjective": "Turn models so the ones that match stack together.",
    "instruction": "Turn models so the ones that match stack together.",
-   "controls": "A model is a solid with a letter on each of its four corners. It is drawn from one corner: that corner is in the middle, nearest you, and the other three make the triangle behind it. Two models match when one can be turned so that every corner shows the same letter as the other model’s corner in that place. Tap a small model to put it on the big board, then tap the big board’s corners to turn it a third of the way round each. Models that look exactly alike stack together. That’s all checks that no two stacks could be turned to match.",
+   "controls": "A model is a solid with a letter on each of its four corners. It is drawn from one corner: that corner is in the middle, nearest you, and the other three make the triangle behind it. Two models match when one can be turned so that every corner shows the same letter as the other model’s corner in that place. Tap a small model to put it on the big board, then tap the big board’s corners to turn it a third of the way round each. Models that look exactly alike stack together. That’s all checks that no two stacks could be turned to match. If that is right, a model from each of two stacks with the same letters comes up as a pair, to show with Can’t that they can’t match. Tap the corners of the second one to turn it (its stack stays as it is) until both have the same letter in the middle. Then press Can’t and tap two letters round the middle of each model, the same two in the same order: an arrow goes from the first through the second.",
    "rules": [
     "A model is a regular tetrahedron with a letter on each corner, drawn from one corner: that corner is in the middle, nearest you, and the other three are the triangle of the far face.",
     "A tap on a corner turns the model a third of the way round that corner. The corner stays put and the other three move one place round it. Turning never changes the letters.",
-    "Models that show the same letter in every place stack together."
+    "Models that show the same letter in every place stack together.",
+    "Can’t is a claim. With the same letter in the middle of both models, tap the same two letters round it on each; the arrows show which way each model goes round."
    ],
    "idea": "Models with two As all stack together, mirror-looking ones included; four different letters give two stacks.",
-   "prerequisites": "Compare several small pictures with a large one and keep track of which already look alike. No arithmetic.",
+   "prerequisites": "Compare several small pictures with a large one and keep track of which already look alike, then follow three letters round a middle one to say which way they go. No arithmetic.",
    "hints": [
     "Sort the models with two As apart from the ones with four different letters.",
     "Two of the A, A, B, C models look like mirror twins. Try turning one to look like the other.",
-    "Make one stack of the A, A, B, C models and two of the others, then press That’s all."
+    "Make one stack of the A, A, B, C models and two of the others, press That’s all, then show with Can’t that those two can’t match."
    ],
    "parent": {
     "notice": "Whether your child gives the A, A, B, C mirror look-alikes separate stacks.",
     "prompt": "Why do all the A, A, B, C models stack, when the A, B, C, D ones make two stacks?",
-    "explanation": "All twelve ways to put on A, A, B and C match each other (puzzle 5): swapping the two As changes nothing, so any arrangement can be turned into any other. The models with four different letters fall into two groups, as in puzzle 11. So the eight models make three stacks.",
+    "explanation": "All twelve ways to put on A, A, B and C match each other (puzzle 5): swapping the two As changes nothing, so any arrangement can be turned into any other. The models with four different letters fall into two groups, as in puzzle 11. So the eight models make three stacks. Only the two stacks of four different letters need the Can’t certificate after That’s all; stacks with different letters can never match.",
     "extension": "What about A, A, B and B? (All of those stack together too.)",
     "connection": "A labelling with a repeated letter is its own mirror image, so its orbit under rotation is also its orbit under every symmetry.",
     "sourceIds": [
@@ -1197,6 +1205,12 @@
        3
       ]
      }
+    ],
+    "twins": [
+     [
+      1,
+      2
+     ]
     ]
    },
    "provenance": "New, after Week 37 4–5 Problem 6, with the A, A, B, C models of K–1 Problem 4 and 2–3 Problem 5."
