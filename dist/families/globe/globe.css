@@ -1,0 +1,99 @@
+/* Ball triangles: a paper ball with ink graticule, the triangle in sun with
+   ink sides (dashed where they run behind), true corners as small arcs (pine
+   squares for right angles), corners as lettered discs (dark when they stay
+   put, a pine ring when chosen, ochre when a hint points at them), lune pairs
+   in sky with their counts, corner cards with each corner's true size drawn
+   flat, and the sets of corners on a shelf. */
+[data-mechanic-wire="globe"]{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
+/* The ball keeps the sets, the corners and the turns on a short screen. */
+[data-mechanic-wire="globe"] .gl-ball{width:100%;max-width:min(360px,max(250px,calc(100svh - 330px)));touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;border-radius:50%;cursor:grab}
+[data-mechanic-wire="globe"].records .gl-ball{max-width:min(360px,max(250px,calc(100svh - 390px)))}
+[data-mechanic-wire="globe"] .gl-ball svg{display:block;width:100%;height:auto;aspect-ratio:1;overflow:visible}
+[data-mechanic-wire="globe"] .gl-ball:focus{outline:none}
+[data-mechanic-wire="globe"] .gl-ball:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:4px}
+[data-mechanic-wire="globe"] .gl-ball *{vector-effect:non-scaling-stroke}
+
+/* The ball. */
+[data-mechanic-wire="globe"] .gl-ball-face{fill:var(--b-paper,#f5f1e6)}
+[data-mechanic-wire="globe"] .gl-rim{fill:none;stroke:var(--b-ink,#294439);stroke-width:1.8px}
+[data-mechanic-wire="globe"] .gl-lines{fill:none;stroke:#c3cbb1;stroke-width:1px}
+[data-mechanic-wire="globe"] .gl-equator{fill:none;stroke:#93a184;stroke-width:1.6px}
+[data-mechanic-wire="globe"] .gl-dot{fill:#7f8d72}
+
+/* The triangle. */
+[data-mechanic-wire="globe"] .gl-region{fill:var(--b-sun,#efc76e);fill-opacity:.62;stroke:none}
+[data-mechanic-wire="globe"] .gl-region.faint{fill-opacity:.32}
+[data-mechanic-wire="globe"] .gl-side{fill:none;stroke:var(--b-ink,#294439);stroke-width:2.6px;stroke-linecap:round;stroke-linejoin:round}
+[data-mechanic-wire="globe"] .gl-back{fill:none;stroke:var(--b-ink,#294439);stroke-opacity:.55;stroke-width:1.6px;stroke-dasharray:5 5}
+[data-mechanic-wire="globe"] .gl-mark{fill:none;stroke:var(--b-ink,#294439);stroke-width:1.6px}
+[data-mechanic-wire="globe"] .gl-mark.right{stroke:var(--b-pine,#31533e);stroke-width:2.4px}
+
+/* Lune pairs and their counts. */
+[data-mechanic-wire="globe"] .gl-cell{fill:var(--b-sky,#9cc9de);fill-opacity:.42;stroke:none}
+[data-mechanic-wire="globe"] .gl-circle{fill:none;stroke:#5f8ea4;stroke-width:1.2px}
+[data-mechanic-wire="globe"] .gl-count{font-family:var(--b-display,Georgia,serif);font-size:12px;text-anchor:middle;fill:var(--b-ink,#294439);paint-order:stroke;stroke:var(--b-card,#fffdf5);stroke-width:3px;stroke-linejoin:round;pointer-events:none}
+
+/* Corners. */
+[data-mechanic-wire="globe"] .gl-corner .gl-halo{fill:transparent;stroke:none}
+[data-mechanic-wire="globe"] .gl-corner .gl-disc{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:1.8px}
+[data-mechanic-wire="globe"] .gl-corner text{font-family:var(--b-display,Georgia,serif);font-size:9.5px;text-anchor:middle;fill:var(--b-ink,#294439);pointer-events:none}
+[data-mechanic-wire="globe"] .gl-corner.locked .gl-disc{fill:var(--b-ink,#294439)}
+[data-mechanic-wire="globe"] .gl-corner.locked text{fill:var(--b-card,#fffdf5)}
+[data-mechanic-wire="globe"] .gl-corner.chosen .gl-halo{fill:none;stroke:var(--b-pine,#31533e);stroke-width:3px}
+[data-mechanic-wire="globe"] .gl-corner.hinted .gl-halo{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:3px;stroke-dasharray:4 3}
+[data-mechanic-wire="globe"] .gl-corner.behind{opacity:.4}
+[data-mechanic-wire="globe"] .gl-corner.behind .gl-disc{stroke-dasharray:3 2}
+[data-mechanic-wire="globe"] .gl-target{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:3px;stroke-dasharray:4 3}
+[data-mechanic-wire="globe"].solved .gl-ball{cursor:default}
+
+/* Turning and the corner cards. */
+[data-mechanic-wire="globe"] .gl-turns{display:flex;gap:.4rem}
+[data-mechanic-wire="globe"] .gl-turn{display:grid;place-items:center;width:44px;height:38px;min-height:0;padding:0;background:var(--b-card,#fffdf5);border:1px solid var(--b-line,#d0d6bd);border-radius:11px;box-shadow:0 2px 0 var(--b-line,#d0d6bd);color:var(--b-ink,#294439);cursor:pointer}
+[data-mechanic-wire="globe"] .gl-turn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.6px;stroke-linecap:round;stroke-linejoin:round}
+[data-mechanic-wire="globe"] .gl-cards{display:flex;justify-content:center;gap:.45rem;max-width:100%}
+[data-mechanic-wire="globe"] .gl-card{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:66px;min-height:0;margin:0;padding:4px 7px 5px;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd);font:inherit}
+[data-mechanic-wire="globe"] button.gl-card{cursor:pointer}
+[data-mechanic-wire="globe"] .gl-card[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+[data-mechanic-wire="globe"] .gl-card.hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
+[data-mechanic-wire="globe"] .gl-card-top{display:flex;align-items:flex-end;gap:3px}
+[data-mechanic-wire="globe"] .gl-letter{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1.8px solid var(--b-ink,#294439);background:var(--b-card,#fffdf5);font:400 .95rem/1 var(--b-display,Georgia,serif)}
+[data-mechanic-wire="globe"] .gl-card.locked .gl-letter{background:var(--b-ink,#294439);color:var(--b-card,#fffdf5)}
+[data-mechanic-wire="globe"] .gl-wedge{width:26px;height:23px;flex:none}
+[data-mechanic-wire="globe"] .gl-wedge-fill{fill:var(--b-sun,#efc76e);fill-opacity:.5}
+[data-mechanic-wire="globe"] .gl-wedge-ray{fill:none;stroke:var(--b-ink,#294439);stroke-width:1.8px;stroke-linecap:round;stroke-linejoin:round}
+[data-mechanic-wire="globe"] .gl-wedge-arc{fill:none;stroke:var(--b-ink,#294439);stroke-width:1.2px}
+[data-mechanic-wire="globe"] .gl-wedge-right{fill:none;stroke:var(--b-pine,#31533e);stroke-width:2px}
+[data-mechanic-wire="globe"] .gl-deg{font:400 1rem/1 var(--b-display,Georgia,serif);white-space:nowrap}
+[data-mechanic-wire="globe"] .gl-deg.approx{color:var(--b-muted,#5a6850);font-size:.9rem}
+[data-mechanic-wire="globe"] :is(.gl-card,.gl-turn,.gl-cant,.gl-record,.gl-pair):focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
+
+/* Sets of corners and Can't. */
+[data-mechanic-wire="globe"] .gl-shelf{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.4rem .5rem;max-width:100%}
+[data-mechanic-wire="globe"] .gl-records{display:flex;justify-content:center;gap:.35rem}
+[data-mechanic-wire="globe"] .gl-record{display:flex;gap:.3em;align-items:center;min-height:40px;margin:0;padding:4px 7px;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1.5px dashed #9aa88f;border-radius:11px;font:400 .95rem/1 var(--b-display,Georgia,serif);white-space:nowrap}
+[data-mechanic-wire="globe"] button.gl-record{border-style:solid;border-color:var(--b-ink,#294439);box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer}
+[data-mechanic-wire="globe"] .gl-record.made{border-style:solid;border-color:var(--b-pine,#31533e);background:var(--b-good-soft,#e2ecd6);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+[data-mechanic-wire="globe"] .gl-record.cant{border-style:solid;border-color:var(--b-ink,#294439);color:var(--b-muted,#5a6850);text-decoration:line-through;text-decoration-thickness:2px}
+[data-mechanic-wire="globe"] .gl-record.hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
+[data-mechanic-wire="globe"] .gl-cant{min-height:40px;padding:6px 14px;font-weight:600;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer}
+[data-mechanic-wire="globe"] .gl-cant[aria-pressed="true"]{background:#e9eddc;box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+[data-mechanic-wire="globe"] .gl-cant[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd);cursor:default}
+[data-mechanic-wire="globe"] .gl-cant.hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
+[data-mechanic-wire="globe"] .gl-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+
+/* The argument after a right Can't: corners side by side against a straight line. */
+[data-mechanic-wire="globe"] .gl-argument{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:.4rem 1.2rem}
+[data-mechanic-wire="globe"] .gl-fan{width:118px;height:auto}
+[data-mechanic-wire="globe"] .gl-fan-part{stroke:var(--b-ink,#294439);stroke-width:1.2px;stroke-linejoin:round}
+[data-mechanic-wire="globe"] .gl-fan-part.p0{fill:#f8e3b1}
+[data-mechanic-wire="globe"] .gl-fan-part.p1{fill:#d4e7ef}
+[data-mechanic-wire="globe"] .gl-fan-part.p2{fill:#f3d3c9}
+[data-mechanic-wire="globe"] .gl-fan-extra{fill:var(--b-sun,#efc76e);stroke:var(--b-ink,#294439);stroke-width:1.6px}
+[data-mechanic-wire="globe"] .gl-fan-name{font-family:var(--b-display,Georgia,serif);font-size:9px;text-anchor:middle;fill:var(--b-ink,#294439);pointer-events:none}
+[data-mechanic-wire="globe"] .gl-fan-line{fill:none;stroke:var(--b-ink,#294439);stroke-width:2.4px;stroke-linecap:round}
+
+/* The playground's lune pairs. */
+[data-mechanic-wire="globe"] .gl-pairs{display:flex;gap:.45rem}
+[data-mechanic-wire="globe"] .gl-pair{display:flex;align-items:center;gap:3px;min-height:42px;padding:4px 12px 4px 8px;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd);font:400 1rem/1 var(--b-display,Georgia,serif);cursor:pointer}
+[data-mechanic-wire="globe"] .gl-pair svg{width:20px;height:20px;fill:var(--b-sky,#9cc9de);stroke:var(--b-ink,#294439);stroke-width:1.6px}
+[data-mechanic-wire="globe"] .gl-pair[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e);background:#e8f1f5}
