@@ -19,7 +19,8 @@
 // faces. Erasing a line with two different spaces on its sides keeps every dot
 // joined and removes exactly one region; erasing one with the same space on
 // both sides cuts the drawing in two. Erasing down to a tree takes as many
-// erasures as there are regions, and a tree has one line fewer than dots, so
+// erasures as there are regions, and a tree has one line fewer than dots
+// (take off an end dot with its line until one dot is left), so
 // dots − lines + regions is 1 in the opened drawing and V − E + F is 2 on the
 // solid (worksheet Problem 7).
 import {esc} from '../../expansion-controls.js';
@@ -30,6 +31,7 @@ const keysAre = (b, list) => object(b) && Object.keys(b).sort().join() === [...l
 const isBool = v => typeof v === 'boolean';
 const f = n => Number(n.toFixed(2));
 const RAD = Math.PI / 180;
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 // --- Corners and rings ---------------------------------------------------------
 export const PIECES = {
@@ -58,6 +60,8 @@ export function canonOf(ring) {
 }
 export const sameRing = (a, b) => a.length === b.length && canonOf(a) === canonOf(b);
 const ringWords = ring => ring.map(c => PIECES[c].name).join(', ');
+// The fold a puzzle asks for: 'point' unless it says 'flat'.
+export const goalOf = q => q.goal || 'point';
 
 // Every ring a find-every puzzle asks for, as canonical strings: rings of the
 // menu's corners with the goal's fold (and the goal's number of corners).
@@ -79,17 +83,18 @@ export function answersOf(q) {
 export const smallestOf = q => q.menu.reduce((a, c) => PIECES[c].angle < PIECES[a].angle ? c : a);
 export const freeCount = q => q.count - q.locked.length;
 export const smallestRing = q => [...q.locked, ...Array(freeCount(q)).fill(smallestOf(q))];
-// The goal can be met exactly when it is met with the smallest corner in every
-// free place: a bigger corner only adds to the total.
-export const possible = q => foldOf(smallestRing(q)) === 'point';
-// The free corners (as sorted strings) that fold the ring to a point.
+// A pointed corner can be made exactly when it is made with the smallest
+// corner in every free place: a bigger corner only adds to the total. A flat
+// ring needs the total exactly, so it is found by trying the fillings.
+export const possible = q => goalOf(q) === 'point' ? foldOf(smallestRing(q)) === 'point' : fillsOf(q).length > 0;
+// The free corners (as sorted strings) that give the ring the goal's fold.
 const fillCache = new Map();
 export function fillsOf(q) {
-  const key = JSON.stringify([q.locked, q.count, q.menu]);
+  const key = JSON.stringify([q.locked, q.count, q.menu, goalOf(q)]);
   if (fillCache.has(key)) return fillCache.get(key);
   const out = new Set();
   (function grow(free) {
-    if (free.length === freeCount(q)) { if (foldOf([...q.locked, ...free]) === 'point') out.add([...free].sort().join('')); return; }
+    if (free.length === freeCount(q)) { if (foldOf([...q.locked, ...free]) === goalOf(q)) out.add([...free].sort().join('')); return; }
     for (const c of q.menu) grow([...free, c]);
   })([]);
   const list = [...out].sort();
@@ -98,46 +103,49 @@ export function fillsOf(q) {
 }
 
 // --- Rings: boards ---------------------------------------------------------------
-// every: {ring, fold, shelf, again, refused, shown, done}
+// every: {ring, fold, shelf, refused, shown, done}
 // make: {ring, fold, refused, shown, claimed}     playground: {ring, fold}
 // `fold` is what the last Fold did to this ring (cleared by any change).
-// `again` points at the shelf's copy of a ring kept twice. `refused` is a
-// claim's answer: That's all's {kind: 'off', index} (a kept ring that doesn't
-// belong) or {kind: 'more'}, or Can't's {kind: 'folds'} or {kind: 'smaller',
-// index}; it locks the claim until the shelf (That's all) or the ring (Can't)
-// changes. `shown` is whether its words are on the board: Undo clears the
-// words and keeps the lock.
+// `refused` is a claim's answer: That's all's {kind: 'off', index} (a kept
+// ring that doesn't belong), {kind: 'same', pair} (one ring kept twice) or
+// {kind: 'more'}, or Can't's {kind: 'no'} (the same on every ring that isn't
+// the proof, whether or not the puzzle can be done); it locks the claim until
+// the shelf (That's all) or the ring (Can't) changes. `shown` is whether its
+// words are on the board: Undo clears the words and keeps the lock.
 const MODES = ['every', 'make', 'playground'];
 const capOf = q => q.count || MAX_RING;
 const lockedOf = q => q.mode === 'make' ? q.locked.length : 0;
 function freshRing(p) {
   const q = p.parameters;
-  if (q.mode === 'every') return {ring: [], fold: null, shelf: [], again: null, refused: null, shown: false, done: false};
+  if (q.mode === 'every') return {ring: [], fold: null, shelf: [], refused: null, shown: false, done: false};
   if (q.mode === 'make') return {ring: [...q.locked], fold: null, refused: null, shown: false, claimed: false};
   return {ring: [], fold: null};
 }
 const isRing = (q, ring) => Array.isArray(ring) && ring.length <= capOf(q) && ring.every(c => q.menu.includes(c) || false);
 // That's all judges the whole shelf: the first kept ring that doesn't belong,
-// else whether one is missing.
+// else the first ring kept twice (turned or flipped), else whether one is
+// missing.
 export function judgeShelf(q, shelf) {
-  const answers = answersOf(q), index = shelf.findIndex(r => !answers.includes(canonOf(r)));
-  if (index >= 0) return {kind: 'off', index};
+  const answers = answersOf(q), keys = shelf.map(canonOf);
+  const off = keys.findIndex(k => !answers.includes(k));
+  if (off >= 0) return {kind: 'off', index: off};
+  const twice = keys.findIndex((k, j) => keys.indexOf(k) < j);
+  if (twice >= 0) return {kind: 'same', pair: [keys.indexOf(keys[twice]), twice]};
   return shelf.length < answers.length ? {kind: 'more'} : null;
 }
-// Can't is judged on the ring on the board: one that folds is refused; one
-// with a free corner bigger than the smallest on offer doesn't show that no
-// ring folds; a ring with the smallest corner in every free place that still
-// doesn't fold proves it.
-export function judgeCant(q, ring) {
-  if (foldOf(ring) === 'point') return {kind: 'folds'};
-  const small = smallestOf(q), index = ring.findIndex((c, i) => i >= q.locked.length && c !== small);
-  return index >= 0 ? {kind: 'smaller', index} : null;
-}
-const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+// Can't is judged on the ring on the board. Only the ring with the smallest
+// corner on offer in every free place, folded flat or overlapping, shows that
+// no ring like it folds to a point; every other ring gets the same refusal.
+export const isProof = (q, ring) => goalOf(q) === 'point' && ring.length === q.count && ring.every((c, i) => c === (i < q.locked.length ? q.locked[i] : smallestOf(q))) && foldOf(ring) !== 'point';
+export const judgeCant = (q, ring) => isProof(q, ring) ? null : {kind: 'no'};
+// Keep is off while the ring on the board is, corner for corner, the ring
+// just kept (so a second tap doesn't shelve it again). It says nothing about
+// rings that are the same after turning or flipping.
+const justKept = b => b.shelf.length > 0 && same(b.shelf.at(-1), b.ring);
 function validRing(p, b) {
   const q = p.parameters;
   if (!object(b) || !MODES.includes(q.mode)) return false;
-  const fields = q.mode === 'every' ? ['ring', 'fold', 'shelf', 'again', 'refused', 'shown', 'done'] : q.mode === 'make' ? ['ring', 'fold', 'refused', 'shown', 'claimed'] : ['ring', 'fold'];
+  const fields = q.mode === 'every' ? ['ring', 'fold', 'shelf', 'refused', 'shown', 'done'] : q.mode === 'make' ? ['ring', 'fold', 'refused', 'shown', 'claimed'] : ['ring', 'fold'];
   if (!keysAre(b, fields) || !isRing(q, b.ring)) return false;
   if (q.mode === 'make' && !q.locked.every((c, i) => b.ring[i] === c)) return false;
   // A fold belongs to a ring that can be folded: three corners or more, every place filled.
@@ -146,13 +154,11 @@ function validRing(p, b) {
   if (!isBool(b.shown) || (b.shown && b.refused === null)) return false;
   if (q.mode === 'make') {
     if (!isBool(b.claimed)) return false;
-    if (b.refused !== null && (b.refused.kind !== 'smaller' || b.ring.length !== q.count || !same(b.refused, judgeCant(q, b.ring)))) return false;
-    if (b.claimed && (b.refused !== null || b.ring.length !== q.count || b.fold === null || judgeCant(q, b.ring) !== null)) return false;
+    if (b.refused !== null && (b.ring.length !== q.count || b.fold === goalOf(q) || !same(b.refused, judgeCant(q, b.ring)))) return false;
+    if (b.claimed && (b.refused !== null || b.ring.length !== q.count || b.fold === null || !isProof(q, b.ring))) return false;
     return true;
   }
   if (!isBool(b.done) || !Array.isArray(b.shelf) || !b.shelf.every(r => isRing(q, r) && keepable(q, r))) return false;
-  if (new Set(b.shelf.map(canonOf)).size !== b.shelf.length) return false;
-  if (b.again !== null && !(Number.isInteger(b.again) && b.again >= 0 && b.again < b.shelf.length && sameRing(b.shelf[b.again], b.ring))) return false;
   if (b.refused !== null && (b.done || !b.shelf.length || !same(b.refused, judgeShelf(q, b.shelf)))) return false;
   if (b.done && (b.refused !== null || judgeShelf(q, b.shelf) !== null)) return false;
   return true;
@@ -163,13 +169,12 @@ function solvedRing(p, b) {
   const q = p.parameters;
   if (q.mode === 'playground' || !validRing(p, b)) return false;
   if (q.mode === 'every') return b.done;
-  return b.fold === 'point' || b.claimed;
+  return b.fold === goalOf(q) || b.claimed;
 }
-// A change to the ring clears its fold, a shelf copy pointer and (in make)
-// a Can't answer.
+// A change to the ring clears its fold and (in make) a Can't answer. A That's
+// all answer belongs to the shelf, so it stays.
 function withRing(q, b, ring) {
   const next = {...b, ring, fold: null};
-  if (q.mode === 'every') next.again = null;
   if (q.mode === 'make') { next.refused = null; next.shown = false; }
   return next;
 }
@@ -190,28 +195,24 @@ function moveRing(p, b, action) {
       return {...b, fold: foldOf(b.ring)};
     case 'unfold':
       return b.fold === 'point' || b.fold === 'flat' ? {...b, fold: null} : null;
-    case 'keep': {
-      if (q.mode !== 'every' || b.again !== null || !keepable(q, b.ring)) return null;
-      const at = b.shelf.findIndex(r => sameRing(r, b.ring));
-      if (at >= 0) return {...b, again: at};
-      return {...b, shelf: [...b.shelf, [...b.ring]], again: null, refused: null, shown: false};
-    }
+    case 'keep':
+      // Any ring of the right size goes on the shelf, a copy turned or flipped too: That's all judges.
+      if (q.mode !== 'every' || !keepable(q, b.ring) || justKept(b)) return null;
+      return {...b, shelf: [...b.shelf, [...b.ring]], refused: null, shown: false};
     case 'drop': {
       const i = action.index;
       if (q.mode !== 'every' || !Number.isInteger(i) || i < 0 || i >= b.shelf.length) return null;
-      return {...b, shelf: b.shelf.filter((_, j) => j !== i), again: null, refused: null, shown: false};
+      return {...b, shelf: b.shelf.filter((_, j) => j !== i), refused: null, shown: false};
     }
     case 'all': {
       if (q.mode !== 'every' || !b.shelf.length || b.refused !== null) return null;
       const verdict = judgeShelf(q, b.shelf);
-      return verdict ? {...b, refused: verdict, shown: true, again: null} : {...b, done: true, again: null};
+      return verdict ? {...b, refused: verdict, shown: true} : {...b, done: true};
     }
-    case 'cant': {
-      // Can't is pressed on a full ring that has been folded and didn't close.
+    case 'cant':
+      // Can't is pressed on a full ring that has been folded and didn't meet the goal.
       if (q.mode !== 'make' || b.refused !== null || b.ring.length !== q.count || b.fold === null) return null;
-      const verdict = judgeCant(q, b.ring);
-      return verdict ? {...b, refused: verdict, shown: true} : {...b, claimed: true};
-    }
+      return isProof(q, b.ring) ? {...b, claimed: true} : {...b, refused: judgeCant(q, b.ring), shown: true};
     default:
       return null;
   }
@@ -242,24 +243,25 @@ export function planToward(ring, targets, from = 0) {
   return {type: 'done'};
 }
 const a = c => PIECES[c].name === 'triangle' ? 'a triangle' : PIECES[c].name === 'square' ? 'a square' : 'a pentagon';
-// A step on the ring itself: taking out needs the ring laid flat first.
+// A step on the ring itself: taking out needs the ring laid flat first. The
+// words name a shape, not a place, so they make sense before the second hint
+// marks the corner.
 function ringStep(b, step) {
   if (step.type === 'take' && (b.fold === 'point' || b.fold === 'flat')) return {type: 'move', action: {type: 'unfold'}, text: 'Tap the folded corner to lay it flat.', mark: 'unfold'};
-  if (step.type === 'take') return {type: 'move', action: step, text: `Take out this ${PIECES[b.ring[step.index]].name}.`, mark: `take-${step.index}`};
+  if (step.type === 'take') return {type: 'move', action: step, text: `Take out ${a(b.ring[step.index])}.`, mark: `take-${step.index}`};
   return {type: 'move', action: step, text: `Add ${a(step.piece)}.`, mark: `add-${step.piece}`};
 }
-const goalWords = q => q.goal === 'flat' ? 'lies flat' : 'folds to a point';
-const notWords = ring => ({point: 'it folds to a point', flat: 'it lies flat', over: 'its corners overlap'})[foldOf(ring)];
+const goalWords = goal => goal === 'flat' ? 'lies flat' : 'folds to a point';
+const FOLD_WORDS = {point: 'folds to a point', flat: 'lies flat', over: 'overlaps'};
 function everyHint(q, b) {
   const answers = answersOf(q), kept = b.shelf.map(canonOf);
   const wrong = kept.findIndex(c => !answers.includes(c));
-  if (wrong >= 0) {
-    const r = b.shelf[wrong], why = keepable(q, r) && foldOf(r) !== q.goal ? `: ${notWords(r)}` : '';
-    return {type: 'move', action: {type: 'drop', index: wrong}, text: `Take this ring off the shelf${why}.`, mark: `shelf-${wrong}`};
-  }
+  if (wrong >= 0) return {type: 'move', action: {type: 'drop', index: wrong}, text: `One ring on the shelf ${FOLD_WORDS[foldOf(b.shelf[wrong])]}. Take it off.`, mark: `shelf-${wrong}`};
+  const twice = kept.findIndex((c, j) => kept.indexOf(c) < j);
+  if (twice >= 0) return {type: 'move', action: {type: 'drop', index: twice}, text: 'Two rings on the shelf are the same ring. Take one off.', mark: `shelf-${twice}`};
   const left = answers.filter(c => !kept.includes(c));
   if (!left.length) return {type: 'move', action: {type: 'all'}, text: 'Every ring is on the shelf. Press That’s all.', mark: 'all'};
-  if (keepable(q, b.ring) && left.includes(canonOf(b.ring)) && b.again === null) return {type: 'move', action: {type: 'keep'}, text: `This ring ${goalWords(q)} and isn’t on the shelf. Press Keep.`, mark: 'keep'};
+  if (keepable(q, b.ring) && left.includes(canonOf(b.ring))) return {type: 'move', action: {type: 'keep'}, text: `This ring ${goalWords(q.goal)} and isn’t on the shelf. Press Keep.`, mark: 'keep'};
   // The ring on the board is never a missing answer here (that would be Keep),
   // so the plan always has a step.
   return ringStep(b, planToward(b.ring, left));
@@ -267,7 +269,7 @@ function everyHint(q, b) {
 function makeHint(q, b) {
   const L = q.locked.length, free = b.ring.slice(L), small = smallestOf(q);
   if (possible(q)) {
-    // Toward the closing fill that keeps most of the child's free corners.
+    // Toward the filling that keeps most of the child's free corners.
     const fills = fillsOf(q).map(s => [...s]);
     const overlap = fill => { const pool = [...fill]; let n = 0; for (const c of free) { const j = pool.indexOf(c); if (j >= 0) { pool.splice(j, 1); n++; } } return n; };
     const fill = fills.reduce((top, s) => overlap(s) > overlap(top) ? s : top, fills[0]);
@@ -310,15 +312,25 @@ export function piecePoints(c, start, L = EDGE) {
 }
 export const startsOf = ring => { const out = []; let s = 0; for (const c of ring) { out.push(s); s += PIECES[c].angle; } return out; };
 const svgPts = (pts, k = 1, [dx, dy] = [0, 0]) => pts.map(([x, y]) => `${f(dx + x * k)},${f(dy - y * k)}`).join(' ');
+const onCircle = (r, t) => [f(r * Math.cos(t * RAD)), f(-r * Math.sin(t * RAD))];
 // The wedge of the turn from angle `from` to `to` (degrees, counterclockwise).
 const wedgePath = (r, from, to) => {
-  const large = to - from > 180 ? 1 : 0, [x1, y1] = [r * Math.cos(from * RAD), -r * Math.sin(from * RAD)], [x2, y2] = [r * Math.cos(to * RAD), -r * Math.sin(to * RAD)];
-  return `M0,0 L${f(x1)},${f(y1)} A${f(r)},${f(r)} 0 ${large} 0 ${f(x2)},${f(y2)} Z`;
+  const large = to - from > 180 ? 1 : 0, [x1, y1] = onCircle(r, from), [x2, y2] = onCircle(r, to);
+  return `M0,0 L${x1},${y1} A${f(r)},${f(r)} 0 ${large} 0 ${x2},${y2} Z`;
 };
-const arcPath = (r, from, to) => {
-  const large = to - from > 180 ? 1 : 0, [x1, y1] = [r * Math.cos(from * RAD), -r * Math.sin(from * RAD)], [x2, y2] = [r * Math.cos(to * RAD), -r * Math.sin(to * RAD)];
-  return `M${f(x1)},${f(y1)} A${f(r)},${f(r)} 0 ${large} 0 ${f(x2)},${f(y2)}`;
-};
+// The overlap past a whole turn, from the ray to the right: the first lap on
+// one circle and anything past a second whole turn on a circle just outside
+// it (eight pentagons go 504° past), each drawn in arcs of at most 180°.
+export function lapPath(over) {
+  let d = '';
+  for (let lap = 0; lap * TURN < over - 1e-9; lap++) {
+    const r = EDGE * 1.1 + lap * 5, end = Math.min(over, (lap + 1) * TURN);
+    let t = lap * TURN;
+    d += `${d ? ' ' : ''}M${onCircle(r, t).join(',')}`;
+    while (t < end - 1e-9) { const next = Math.min(end, t + 180); d += ` A${f(r)},${f(r)} 0 0 0 ${onCircle(r, next).join(',')}`; t = next; }
+  }
+  return d;
+}
 
 // The folded corner. Its edges are unit vectors e_i from the apex on a small
 // circle of angular radius r; neighbours are θ_i apart when the azimuths
@@ -350,40 +362,56 @@ const dot = (u, v) => u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
 const cross = (u, v) => [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]];
 const norm = u => { const l = Math.hypot(...u) || 1; return u.map(x => x / l); };
 const add3 = (u, v, k = 1) => u.map((x, i) => x + v[i] * k);
-// Rotate u about a unit axis by angle t (Rodrigues).
-const rotate = (u, axis, t) => { const c = Math.cos(t), s = Math.sin(t), k = dot(axis, u), x = cross(axis, u); return u.map((ui, i) => ui * c + x[i] * s + axis[i] * k * (1 - c)); };
-// The faces of the folded corner, oriented with the corner pointing up and its
-// first edge to the right, seen from above at `tilt` degrees above the
-// horizon. Each face: its corner letter, screen points (y down), whether its
-// outside faces the viewer, a shade and a depth.
-const coneCache = new Map();
-export function foldedFaces(ring, L = EDGE, tilt = 72) {
-  const key = `${ring.join('')}|${L}|${tilt}`;
-  if (coneCache.has(key)) return coneCache.get(key);
-  let {e} = coneOf(ring);
-  const n = ring.length;
-  // Turn the corner so the inside points straight down (a flat ring stays flat).
-  const inside = norm(e.reduce((s, v) => add3(s, v), [0, 0, 0])), down = [0, 0, -1];
-  if (Math.abs(dot(inside, down)) < 1 - 1e-9 && Math.hypot(inside[0], inside[1]) > 1e-9 && foldOf(ring) === 'point') {
-    const axis = norm(cross(inside, down)), t = Math.acos(Math.max(-1, Math.min(1, dot(inside, down))));
-    e = e.map(v => rotate(v, axis, t));
+// The reading of a ring that comes first in the alphabet, turning it only
+// (a flipped ring is drawn flipped), so a ring turned round is drawn alike.
+export const turnedOf = ring => { let best = ring; for (let k = 1; k < ring.length; k++) { const r = [...ring.slice(k), ...ring.slice(0, k)]; if (r.join('') < best.join('')) best = r; } return best; };
+// The direction to look from that shows every face as much as possible: the
+// centre of the smallest cap of the sphere holding the faces' outward
+// directions (fixed by two or three of them). Seen from there every face of a
+// pointed corner faces the viewer. For a ring of equal corners it is the
+// cone's axis; when the cone's centre falls outside the corner (as for a
+// pentagon and two triangles) the axis would hide a face, and this doesn't.
+function viewOf(N) {
+  const n = N.length, cands = [...N];
+  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+    cands.push(norm(add3(N[i], N[j])));
+    for (let k = j + 1; k < n; k++) { let d = norm(cross(add3(N[j], N[i], -1), add3(N[k], N[i], -1))); if (dot(d, N[i]) < 0) d = d.map(x => -x); cands.push(d); }
   }
-  const spin = -Math.atan2(e[0][1], e[0][0]);
-  e = e.map(v => rotate(v, [0, 0, 1], spin));
-  const w = [0, -Math.cos(tilt * RAD), Math.sin(tilt * RAD)], up = [0, Math.sin(tilt * RAD), Math.cos(tilt * RAD)];
-  const light = norm([-0.45, -0.35, 0.82]), centre = norm(e.reduce((s, v) => add3(s, v), [0, 0, 0]));
-  const faces = ring.map((c, i) => {
-    const u = e[i], v = e[(i + 1) % n], sides = PIECES[c].sides;
-    const w2 = norm(add3(v, u, -dot(u, v)));
-    // Walk the regular polygon in the plane of u and v.
-    const flat = piecePoints(c, 0, L), pts = flat.map(([x, y]) => add3(u.map(k => k * x), w2, y));
-    let nrm = norm(cross(u, v));
-    if (foldOf(ring) === 'point' ? dot(nrm, centre) > 0 : nrm[2] < 0) nrm = nrm.map(k => -k);
-    const outside = dot(nrm, w) > 0, lit = Math.max(0, dot(outside ? nrm : nrm.map(k => -k), light));
-    const screen = pts.map(p => [dot(p, [1, 0, 0]), -dot(p, up)]);
-    const depth = pts.reduce((s, p) => s + dot(p, w), 0) / sides;
-    return {c, i, screen, outside, shade: (outside ? 0.84 : 0.7) + 0.24 * lit, depth};
-  });
+  let best = N[0], top = -Infinity;
+  for (const d of cands) { const v = Math.min(...N.map(m => dot(m, d))); if (v > top + 1e-12) { top = v; best = d; } }
+  return best;
+}
+// The faces of the folded corner, seen from outside along that direction,
+// with the first face (in the turned reading) straight below the corner. Each
+// face: its corner letter, screen points (y down), whether its outside faces
+// the viewer, a shade and a depth.
+const coneCache = new Map();
+export function foldedFaces(ring, L = EDGE) {
+  const read = turnedOf(ring), key = `${read.join('')}|${L}`;
+  if (coneCache.has(key)) return coneCache.get(key);
+  const {e} = coneOf(read), n = read.length, flat = foldOf(read) === 'flat';
+  const inside = norm(e.reduce((s, v) => add3(s, v), [0, 0, 0]));
+  // Outward normals point away from the inside of the corner (up for a flat ring).
+  const normals = e.map((u, i) => { const m = norm(cross(u, e[(i + 1) % n])); return (flat ? m[2] < 0 : dot(m, inside) > 0) ? m.map(x => -x) : m; });
+  let view = flat ? [0, 0, 1] : viewOf(normals);
+  // Walk each regular polygon in the plane of its two edges.
+  const pts = read.map((c, i) => { const u = e[i], v = e[(i + 1) % n], w = norm(add3(v, u, -dot(u, v))); return piecePoints(c, 0, L).map(([x, y]) => add3(u.map(k => k * x), w, y)); });
+  const mid = pts[0].reduce((s, p) => add3(s, p, 1 / pts[0].length), [0, 0, 0]);
+  let up = norm(add3(mid, view, -dot(mid, view))).map(x => -x);
+  // Tip the view a little (at most 18°) so the corner looks raised, as far as
+  // every face still shows at least 22% of itself.
+  if (!flat) {
+    const least = d => Math.min(...normals.map(m => dot(m, d)));
+    const tipped = [18, 15, 12, 9, 6, 3].flatMap(deg => [-1, 1].map(s => norm(add3(view.map(x => x * Math.cos(deg * RAD)), up, s * Math.sin(deg * RAD))))).find(d => least(d) >= .22);
+    if (tipped) { view = tipped; up = norm(add3(up, view, -dot(up, view))); }
+  }
+  const right = cross(up, view);
+  const light = norm(add3(add3(view, up, .6), right, -.45));
+  const faces = read.map((c, i) => ({
+    c, i, screen: pts[i].map(p => [dot(p, right), -dot(p, up)]), outside: dot(normals[i], view) > 0,
+    shade: 0.8 + 0.26 * Math.max(0, dot(normals[i], light)), depth: pts[i].reduce((s, p) => s + dot(p, view), 0) / pts[i].length,
+    seen: dot(normals[i], view)
+  }));
   coneCache.set(key, faces);
   return faces;
 }
@@ -411,7 +439,7 @@ function flatSvg(q, b, opts) {
   // A pin on each fixed corner.
   const pins = ring.slice(0, L).map((c, i) => { const pts = piecePoints(c, starts[i]), [x, y] = pts.reduce(([sx, sy], [px, py]) => [sx + px / pts.length, sy + py / pts.length], [0, 0]); return `<circle class="cr-pin" cx="${f(x)}" cy="${f(-y)}" r="2.6"/>`; }).join('');
   const gap = ring.length && total < TURN ? `<path class="cr-gap" d="${wedgePath(EDGE, total, TURN)}"/>` : '';
-  const lap = over ? `<path class="cr-lap" d="${arcPath(EDGE * 1.1, 0, total - TURN)}"/><line class="cr-lap-ray" x1="0" y1="0" x2="${f(EDGE * 1.18)}" y2="0"/>` : '';
+  const lap = over ? `<path class="cr-lap" d="${lapPath(total - TURN)}"/><line class="cr-lap-ray" x1="0" y1="0" x2="${f(EDGE * 1.18)}" y2="0"/>` : '';
   return `<svg class="cr-board${over ? ' overlapping' : ''}${b.fold === 'over' ? ' refused' : ''}" viewBox="-52 -52 104 104" role="group" aria-label="Corners laid flat round the point">
 ${gap}<circle class="cr-turn" r="${EDGE}"/>${pieces}${pins}${lap}<circle class="cr-point" r="1.6"/></svg>`;
 }
@@ -433,13 +461,52 @@ function miniSvg(ring, folded) {
     return `<svg class="cr-mini" viewBox="-50 -50 100 100" aria-hidden="true">${[...faces].sort((u, v) => u.depth - v.depth).map(fc => `<polygon class="cr-face cr-${fc.c}" points="${fc.screen.map(([x, y]) => `${f(dx + x * k)},${f(dy + y * k)}`).join(' ')}" style="fill:${tint(fc.c, fc.shade)}"/>`).join('')}</svg>`;
   }
   const starts = startsOf(ring);
-  return `<svg class="cr-mini" viewBox="-50 -50 100 100" aria-hidden="true">${ring.map((c, i) => `<polygon class="cr-piece cr-${c}" points="${svgPts(piecePoints(c, starts[i], 30))}"/>`).join('')}<circle class="cr-point" r="2"/></svg>`;
+  return `<svg class="cr-mini" viewBox="-50 -50 100 100" aria-hidden="true">${ring.map((c, i) => `<polygon class="cr-piece cr-${c}${starts[i] + PIECES[c].angle > TURN + 1e-9 ? ' past' : ''}" points="${svgPts(piecePoints(c, starts[i], 30))}"/>`).join('')}<circle class="cr-point" r="2"/></svg>`;
 }
 const SAYS = {
-  over: 'They overlap.', flat: 'It lies flat.', again: 'Already on the shelf.', more: 'There is another.',
-  smaller: 'This corner could be smaller.'
+  over: 'They overlap.', flat: 'It lies flat.', more: 'There is another.', same: 'These two are the same ring.',
+  no: 'That ring doesn’t show it.'
 };
-function offWords(q, ring) { const fold = foldOf(ring); return fold === 'flat' ? 'This one lies flat.' : fold === 'over' ? 'This one overlaps.' : 'This one folds to a point.'; }
+const offWords = ring => `This one ${FOLD_WORDS[foldOf(ring)]}.`;
+// The solved shelf as the case check: one row for each number of corners,
+// the child's rings in order of their total, each row ending with the
+// smallest ring of its size too big for the goal (for a pointed corner the
+// first that reaches a whole turn, for a flat ring the first past one), so
+// every bigger ring of that size misses too; the last row is the first size
+// whose smallest ring is already too big.
+const failCache = new Map();
+export function firstMiss(q, n) {
+  const key = JSON.stringify([q.menu, q.goal, n]);
+  if (failCache.has(key)) return failCache.get(key);
+  let best = null;
+  (function grow(ring) {
+    if (ring.length === n) {
+      const fold = foldOf(ring), misses = q.goal === 'point' ? fold !== 'point' : fold === 'over', t = totalOf(ring), c = canonOf(ring);
+      if (misses && (!best || t < best.t || (t === best.t && c < best.c))) best = {t, c};
+      return;
+    }
+    for (const c of q.menu) grow([...ring, c]);
+  })([]);
+  const out = best ? [...best.c] : null;
+  failCache.set(key, out);
+  return out;
+}
+export function caseRows(q, shelf) {
+  const rows = [], sizes = q.count ? [q.count] : Array.from({length: MAX_RING - 2}, (_, i) => i + 3);
+  const order = (x, y) => totalOf(x) - totalOf(y) || canonOf(x).localeCompare(canonOf(y));
+  for (const n of sizes) {
+    const kept = shelf.filter(r => r.length === n).sort(order), small = Array(n).fill(smallestOf(q));
+    const last = q.goal === 'point' ? foldOf(small) !== 'point' : foldOf(small) === 'over';
+    if (!kept.length && !last) continue;
+    rows.push({n, kept, miss: firstMiss(q, n)});
+    if (last) break;
+  }
+  return rows;
+}
+const NUMBER_WORDS = ['', '', '', 'three', 'four', 'five', 'six', 'seven', 'eight'];
+function casesHtml(q, shelf) {
+  return `<section class="cr-shelf-box cr-cases" aria-label="Shelf, by number of corners">${caseRows(q, shelf).map(row => `<ul class="cr-row" aria-label="Rings of ${NUMBER_WORDS[row.n]} corners">${row.kept.map(r => `<li><span class="cr-shelf-item" role="img" aria-label="${esc(`Ring of ${ringWords(r)}`)}">${miniSvg(r, true)}</span></li>`).join('')}${row.miss ? `<li><span class="cr-shelf-item misses" role="img" aria-label="${esc(`Ring of ${ringWords(row.miss)}: it ${FOLD_WORDS[foldOf(row.miss)]}`)}">${miniSvg(row.miss, false)}</span></li>` : ''}</ul>`).join('')}</section>`;
+}
 function renderRing(p, att) {
   const q = p.parameters, b = att.board, done = solvedRing(p, b), live = !done;
   const hinted = att.hintLevel >= 2 && live && q.mode !== 'playground' ? hintRing(p, b) : null, mark = hinted?.mark || '';
@@ -451,27 +518,30 @@ function renderRing(p, att) {
   let actions = '';
   if (live) {
     actions += button('Fold', {type: 'fold'}, 'cr-move cr-fold', b.fold === null && foldable(q, b.ring), mark === 'fold');
-    if (q.mode === 'every') actions += button('Keep', {type: 'keep'}, 'cr-move cr-keep', b.again === null && keepable(q, b.ring), mark === 'keep') + button('That’s all', {type: 'all'}, 'cr-claim cr-all', b.shelf.length > 0 && b.refused === null, mark === 'all');
+    if (q.mode === 'every') actions += button('Keep', {type: 'keep'}, 'cr-move cr-keep', keepable(q, b.ring) && !justKept(b), mark === 'keep') + button('That’s all', {type: 'all'}, 'cr-claim cr-all', b.shelf.length > 0 && b.refused === null, mark === 'all');
     if (q.mode === 'make') actions += button('Can’t', {type: 'cant'}, 'cr-claim cr-cant', b.refused === null && b.ring.length === q.count && b.fold !== null, mark === 'cant');
   }
-  // Words only where the board can't say it.
+  // Words under the board are about the ring on the board; That's all's
+  // answer is about the shelf, so it sits on the shelf.
   let told = '';
-  if (b.fold === 'over') told = SAYS.over;
-  else if (b.fold === 'flat' && live) told = SAYS.flat;
-  if (q.mode === 'every' && b.again !== null) told = SAYS.again;
-  if (b.shown && b.refused) told = b.refused.kind === 'off' ? offWords(q, b.shelf[b.refused.index]) : SAYS[b.refused.kind];
+  if (live && b.fold === 'over') told = SAYS.over;
+  else if (live && b.fold === 'flat') told = SAYS.flat;
+  if (q.mode === 'make' && b.shown && b.refused) told = SAYS.no;
   if (q.mode === 'make' && b.claimed) told = `Even the smallest corners ${foldOf(b.ring) === 'flat' ? 'make a whole turn' : 'go past a whole turn'}.`;
-  const ringed = q.mode === 'make' && b.shown && b.refused?.kind === 'smaller' ? b.refused.index : null;
-  const boardHtml = ringed === null ? board : board.replace(`data-cr-take="${ringed}"`, `data-cr-take="${ringed}" data-ringed="1"`);
-  const shelf = q.mode === 'every' && b.shelf.length ? `<ul class="cr-shelf" aria-label="Shelf">${b.shelf.map((r, i) => {
-    const ring = (b.again === i) || (b.shown && b.refused?.kind === 'off' && b.refused.index === i);
-    const label = `Ring of ${ringWords(r)}${done ? '' : '. Take it off the shelf'}`;
-    return `<li>${done ? `<span class="cr-shelf-item" role="img" aria-label="${esc(label)}">${miniSvg(r, true)}</span>` : `<button type="button" class="cr-shelf-item${ring ? ' ringed' : ''}${mark === `shelf-${i}` ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'drop', index: i}))}" data-focus="cr-shelf-${i}" aria-label="${esc(label)}">${miniSvg(r, false)}</button>`}</li>`;
-  }).join('')}</ul>` : '';
+  const verdict = q.mode === 'every' && b.shown ? b.refused : null;
+  const shelfTold = !verdict ? '' : verdict.kind === 'off' ? offWords(b.shelf[verdict.index]) : SAYS[verdict.kind];
+  const marked = i => verdict?.kind === 'off' ? verdict.index === i : verdict?.kind === 'same' ? verdict.pair.includes(i) : false;
+  let shelf = '';
+  if (q.mode === 'every' && b.shelf.length) {
+    shelf = done ? casesHtml(q, b.shelf) : `<section class="cr-shelf-box" aria-label="Shelf">${shelfTold ? `<p class="cr-shelf-told">${esc(shelfTold)}</p>` : ''}<ul class="cr-shelf">${b.shelf.map((r, i) => {
+      const label = `Ring of ${ringWords(r)}${marked(i) ? ', marked' : ''}. Take it off the shelf`;
+      return `<li><button type="button" class="cr-shelf-item${marked(i) ? ' ringed' : ''}${mark === `shelf-${i}` ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'drop', index: i}))}" data-focus="cr-shelf-${i}" aria-label="${esc(label)}">${miniSvg(r, false)}</button></li>`;
+    }).join('')}</ul></section>`;
+  }
   const state = !b.ring.length ? 'No corners yet.' : `Corners: ${ringWords(b.ring)}. ${({point: 'They leave a gap.', flat: 'They make a whole turn.', over: 'They overlap.'})[foldOf(b.ring)]}${folded ? ` ${b.fold === 'flat' ? 'It lies flat.' : 'Folded to a point.'}` : ''}`;
-  const status = `${state}${q.mode === 'every' ? ` ${b.shelf.length ? `Shelf: ${b.shelf.map(r => ringWords(r)).join('; ')}.` : 'The shelf is empty.'}` : ''}${told ? ` ${told}` : ''}${done && q.mode === 'make' && b.claimed ? ' No ring like this folds to a point.' : ''}`;
+  const status = `${state}${q.mode === 'every' ? ` ${b.shelf.length ? `Shelf: ${b.shelf.map(r => ringWords(r)).join('; ')}.` : 'The shelf is empty.'}` : ''}${told ? ` ${told}` : ''}${shelfTold ? ` ${shelfTold}` : ''}${done && q.mode === 'make' && b.claimed ? ' No ring like this folds to a point.' : ''}`;
   const top = live ? `<div class="cr-bar cr-adds">${adds}${slots}</div>` : '';
-  return `<div class="cr-puzzle${done ? ' solved' : ''}" data-mechanic-wire="corners">${top}${boardHtml}${actions ? `<div class="cr-bar cr-actions">${actions}</div>` : ''}${told ? `<p class="cr-told">${esc(told)}</p>` : ''}${shelf}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="cr-puzzle${done ? ' solved' : ''}" data-mechanic-wire="corners">${top}${board}${actions ? `<div class="cr-bar cr-actions">${actions}</div>` : ''}${told ? `<p class="cr-told">${esc(told)}</p>` : ''}${shelf}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 function wireRing(root, p, api) {
   const act = el => {
@@ -491,8 +561,11 @@ function wireRing(root, p, api) {
 }
 
 // --- Trees: the opened drawing --------------------------------------------------
-// A map is {nodes: {id: [x%, y%]}, edges: [[u, v], …], aspect}. The board is
-// {erased: [edge indices, ascending]}.
+// A map is {nodes: {id: [x%, y%]}, edges: [[u, v], …], aspect}, with
+// `leaves: true` when the drawing is to be taken down to one dot. The board is
+// {erased: [edge indices, ascending]}, and with leaves also {gone: [[dot,
+// line], …]}: the end dots taken off once a tree is left, in order, each with
+// its one line.
 export const treeMap = q => graphOf({nodes: q.nodes, edges: q.edges, aspect: q.aspect, scale: .5});
 const present = (q, erased) => q.edges.map((_, i) => i).filter(i => !erased.includes(i));
 // Pieces of the drawing with the lines left: a piece number for every dot.
@@ -503,6 +576,7 @@ export function piecesOf(q, erased) {
   const roots = [...new Set(ids.map(find))];
   return {of: Object.fromEntries(ids.map(id => [id, roots.indexOf(find(id))])), count: roots.length};
 }
+const inPoly = (pos, [x, y], dots) => { let c = false; for (let a = 0, b = dots.length - 1; a < dots.length; b = a++) { const [xa, ya] = pos[dots[a]], [xb, yb] = pos[dots[b]]; if ((ya > y) !== (yb > y) && x < (xb - xa) * (y - ya) / (yb - ya) + xa) c = !c; } return c; };
 // The faces of the drawing by tracing: from a line walked u → v, turn at v to
 // the next line round v. Each walk goes round one region; a piece's outer walk
 // goes the other way round (negative area). Returns the walks with their
@@ -535,87 +609,164 @@ export function facesOf(q, erased) {
   const closed = walks.map((w, k) => w.area > 1e-9 ? k : -1).filter(k => k >= 0);
   // The space round a piece's outer walk: the smallest closed region of
   // another piece that holds it, else the outside.
-  const pieces = piecesOf(q, erased), inPoly = ([x, y], dots) => { let c = false; for (let a = 0, b = dots.length - 1; a < dots.length; b = a++) { const [xa, ya] = pos[dots[a]], [xb, yb] = pos[dots[b]]; if ((ya > y) !== (yb > y) && x < (xb - xa) * (y - ya) / (yb - ya) + xa) c = !c; } return c; };
+  const pieces = piecesOf(q, erased);
   const space = walks.map((w, k) => {
     if (w.area > 1e-9) return k;
-    const piece = pieces.of[w.dots[0]], holders = closed.filter(c => pieces.of[walks[c].dots[0]] !== piece && inPoly(pos[w.dots[0]], walks[c].dots));
+    const piece = pieces.of[w.dots[0]], holders = closed.filter(c => pieces.of[walks[c].dots[0]] !== piece && inPoly(pos, pos[w.dots[0]], walks[c].dots));
     return holders.length ? holders.reduce((s, c) => walks[c].area < walks[s].area ? c : s) : 'out';
   });
   const out = {walks, closed, sides: Object.fromEntries(lines.map(i => [i, side[i].map(k => space[k])])), walkSides: side};
   faceCache.set(key, out);
   return out;
 }
+// Each closed region's tint: the first face of the whole drawing that it
+// holds, so when two regions become one, one tint takes over. Every face of
+// these drawings is convex, so the middle of its corners is inside it.
+export const TINTS = 7;
+const tintCache = new Map();
+export function tintsOf(q, erased) {
+  const key = JSON.stringify([q.nodes, q.edges, erased]);
+  if (tintCache.has(key)) return tintCache.get(key);
+  const pos = treeMap(q).pos, start = facesOf(q, []), now = facesOf(q, erased), owner = {};
+  start.closed.forEach((k0, n) => {
+    const dots = [...new Set(start.walks[k0].dots)], c = dots.reduce(([x, y], id) => [x + pos[id][0] / dots.length, y + pos[id][1] / dots.length], [0, 0]);
+    const holders = now.closed.filter(k => inPoly(pos, c, now.walks[k].dots));
+    if (!holders.length) return;
+    const k = holders.reduce((s, h) => now.walks[h].area < now.walks[s].area ? h : s);
+    if (owner[k] === undefined || n < owner[k]) owner[k] = n;
+  });
+  tintCache.set(key, owner);
+  return owner;
+}
 // A line with the same walk on both sides holds a piece on: erasing it cuts.
 export const holdsOn = (faces, i) => faces.walkSides[i][0] === faces.walkSides[i][1];
 export const isTree = (q, erased) => piecesOf(q, erased).count === 1 && present(q, erased).length === Object.keys(q.nodes).length - 1;
 const validErased = (q, list) => Array.isArray(list) && list.every((i, k) => Number.isInteger(i) && i >= 0 && i < q.edges.length && (k === 0 || i > list[k - 1]));
-const freshTree = () => ({erased: []});
-const validTree = (p, b) => keysAre(b, ['erased']) && validErased(p.parameters, b.erased);
-const solvedTree = (p, b) => validTree(p, b) && isTree(p.parameters, b.erased);
+const freshTree = p => p.parameters.leaves ? {erased: [], gone: []} : {erased: []};
+const goneOf = b => b.gone || [];
+// The one line left at a dot that is still on the board, or null.
+export function endLine(q, b, id) {
+  if (!Object.hasOwn(q.nodes, id) || goneOf(b).some(([d]) => d === id)) return null;
+  const used = new Set([...b.erased, ...goneOf(b).map(([, line]) => line)]);
+  const at = q.edges.map((_, i) => i).filter(i => !used.has(i) && q.edges[i].includes(id));
+  return at.length === 1 ? at[0] : null;
+}
+function validTree(p, b) {
+  const q = p.parameters;
+  if (!keysAre(b, q.leaves ? ['erased', 'gone'] : ['erased']) || !validErased(q, b.erased)) return false;
+  if (!q.leaves) return true;
+  if (!Array.isArray(b.gone)) return false;
+  if (!b.gone.length) return true;
+  // End dots come off a tree, one at a time, each with its one line, and one dot stays.
+  if (!isTree(q, b.erased) || b.gone.length > Object.keys(q.nodes).length - 1) return false;
+  for (let k = 0; k < b.gone.length; k++) {
+    const item = b.gone[k];
+    if (!Array.isArray(item) || item.length !== 2 || endLine(q, {erased: b.erased, gone: b.gone.slice(0, k)}, item[0]) !== item[1]) return false;
+  }
+  return true;
+}
+const leftOf = (q, b) => Object.keys(q.nodes).length - goneOf(b).length;
+const solvedTree = (p, b) => validTree(p, b) && (p.parameters.leaves ? leftOf(p.parameters, b) === 1 : isTree(p.parameters, b.erased));
+// Taking dots off starts once a tree is left; from then on the lines stay as
+// they are (Undo goes back).
+const leafing = (q, b) => Boolean(q.leaves) && isTree(q, b.erased);
 function moveTree(p, b, action) {
   const q = p.parameters;
-  if (!validTree(p, b) || solvedTree(p, b) || !object(action) || action.type !== 'line') return null;
-  const i = action.line;
-  if (!Number.isInteger(i) || i < 0 || i >= q.edges.length) return null;
-  return {erased: b.erased.includes(i) ? b.erased.filter(j => j !== i) : [...b.erased, i].sort((x, y) => x - y)};
+  if (!validTree(p, b) || solvedTree(p, b) || !object(action)) return null;
+  if (action.type === 'line') {
+    const i = action.line;
+    if (leafing(q, b) || !Number.isInteger(i) || i < 0 || i >= q.edges.length) return null;
+    const erased = b.erased.includes(i) ? b.erased.filter(j => j !== i) : [...b.erased, i].sort((x, y) => x - y);
+    return q.leaves ? {erased, gone: []} : {erased};
+  }
+  if (action.type === 'dot') {
+    if (!leafing(q, b) || typeof action.id !== 'string') return null;
+    const line = endLine(q, b, action.id);
+    return line === null ? null : {erased: b.erased, gone: [...b.gone, [action.id, line]]};
+  }
+  return null;
 }
 // Hints: first draw back a line that joins two pieces; then erase a line
-// between the outside and a closed region, as the worksheet guide's route does.
+// between the outside and a closed region, as the worksheet guide's route
+// does; once a tree is left (with leaves), take off an end dot.
 function hintTree(p, b) {
   const q = p.parameters;
   if (!validTree(p, b) || solvedTree(p, b)) return {type: 'done'};
+  if (leafing(q, b)) {
+    const id = Object.keys(q.nodes).find(id => endLine(q, b, id) !== null);
+    return {type: 'move', action: {type: 'dot', id}, text: 'Take off an end dot with its line.', dot: id};
+  }
   const pieces = piecesOf(q, b.erased);
   if (pieces.count > 1) {
     const back = [...b.erased].reverse().find(i => { const [u, v] = q.edges[i]; return pieces.of[u] !== pieces.of[v]; });
-    return {type: 'move', action: {type: 'line', line: back}, text: 'Some dots are cut off. Draw this line back.', line: back};
+    return {type: 'move', action: {type: 'line', line: back}, text: 'Some dots are cut off. Draw a line back to join them.', line: back};
   }
   const faces = facesOf(q, b.erased);
   const peel = present(q, b.erased).find(i => !holdsOn(faces, i) && faces.sides[i].includes('out')) ?? present(q, b.erased).find(i => !holdsOn(faces, i));
   return {type: 'move', action: {type: 'line', line: peel}, text: 'Erase a line with the outside on one side and a shaded region on the other.', line: peel};
 }
 function renderTree(p, att) {
-  const q = p.parameters, b = att.board, g = treeMap(q), done = solvedTree(p, b);
+  const q = p.parameters, b = att.board, g = treeMap(q), done = solvedTree(p, b), taking = leafing(q, b);
   const hinted = att.hintLevel >= 2 && !done ? hintTree(p, b) : null;
-  const pieces = piecesOf(q, b.erased), faces = facesOf(q, b.erased);
+  const pieces = piecesOf(q, b.erased), faces = facesOf(q, b.erased), tints = tintsOf(q, b.erased), tree = isTree(q, b.erased);
+  const gone = new Set(goneOf(b).map(([id]) => id)), goneLines = new Set(goneOf(b).map(([, line]) => line));
   // The biggest piece is the drawing; dots in any other piece are cut off.
   const size = {};
   for (const id of Object.keys(q.nodes)) size[pieces.of[id]] = (size[pieces.of[id]] || 0) + 1;
   const main = Object.keys(size).map(Number).reduce((top, k) => size[k] > size[top] ? k : top, pieces.of[Object.keys(q.nodes)[0]]);
-  const regions = faces.closed.map(k => `<polygon class="ct-region" points="${faces.walks[k].dots.map(id => `${f(g.pos[id][0])},${f(g.pos[id][1])}`).join(' ')}"/>`).join('');
+  const regions = faces.closed.map(k => `<polygon class="ct-region ct-tint-${(tints[k] ?? 0) % TINTS}" points="${faces.walks[k].dots.map(id => `${f(g.pos[id][0])},${f(g.pos[id][1])}`).join(' ')}"/>`).join('');
   const sideWords = i => { const s = faces.sides[i]; return holdsOn(faces, i) ? ', the same space on both sides' : s.includes('out') ? ', between the outside and a shaded region' : ', between two shaded regions'; };
   const board = graphBoard(g, {
-    cls: `ct-map${done ? ' tree' : ''}`, label: 'Opened drawing',
+    cls: `ct-map${done ? ' tree' : ''}${taking && !done ? ' ct-leafing' : ''}`, label: 'Opened drawing',
     under: `<g class="ct-regions">${regions}</g>`,
-    node: id => ({text: '', cls: pieces.of[id] !== main ? 'cut' : '', label: `Dot ${id}${pieces.of[id] !== main ? ', cut off' : ''}`}),
+    node: id => {
+      if (gone.has(id)) return {text: '', cls: 'gone', label: `Dot ${id}, taken off`};
+      const end = taking && !done && endLine(q, b, id) !== null, cut = pieces.of[id] !== main;
+      return {text: '', cls: [cut ? 'cut' : '', hinted?.dot === id ? 'hinted' : ''].join(' '), act: taking && !done, label: `Dot ${id}${cut ? ', cut off' : ''}${end ? ', an end dot. Take it off with its line' : ''}`};
+    },
     edge: i => {
-      const gone = b.erased.includes(i), [u, v] = q.edges[i];
-      return {cls: [gone ? 'erased' : '', hinted?.line === i ? 'hinted' : ''].join(' '), act: !done, strokes: done && !gone ? ['tree'] : [], label: `Line from ${u} to ${v}${gone ? ', erased. Draw it back' : `${sideWords(i)}. Erase it`}`};
+      const erased = b.erased.includes(i), off = goneLines.has(i), [u, v] = q.edges[i];
+      if (off) return {cls: 'gone', act: false, label: `Line from ${u} to ${v}, taken off`};
+      return {cls: [erased ? 'erased' : '', hinted?.line === i ? 'hinted' : ''].join(' '), act: !done && !taking, strokes: tree && !erased ? ['tree'] : [], label: `Line from ${u} to ${v}${erased ? `, erased${taking ? '' : '. Draw it back'}` : taking ? '' : `${sideWords(i)}. Erase it`}`};
     }
   });
-  const status = `${faces.closed.length ? `${faces.closed.length} shaded ${faces.closed.length === 1 ? 'region' : 'regions'}.` : 'No shaded region.'} ${pieces.count === 1 ? 'Every dot is joined.' : 'Some dots are cut off.'}${done ? ' A tree.' : ''}`;
+  // The status names what is erased and taken off, so every move is heard; no counts.
+  const status = [
+    b.erased.length ? `Erased: ${b.erased.map(i => q.edges[i].join('')).join(', ')}.` : 'Nothing erased.',
+    gone.size ? `Taken off: ${goneOf(b).map(([id]) => id).join(', ')}.` : '',
+    pieces.count === 1 ? 'Every dot is joined.' : 'Some dots are cut off.',
+    faces.closed.length ? 'Some of the drawing is shaded.' : 'Nothing is shaded.',
+    tree ? 'A tree.' : '', done && q.leaves ? 'One dot is left.' : ''
+  ].filter(Boolean).join(' ');
   return `<div class="ct-puzzle${done ? ' solved' : ''}" data-mechanic-wire="corners">${board}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 // A tap anywhere on a line's wide hit area goes to the nearest line, so where
-// the hit areas of lines meeting at a dot overlap, the line under the finger wins.
-// Keys go to the focused line, as wireGraph does; a dot is not a control, so a
-// tap on it does nothing.
+// the hit areas of lines meeting at a dot overlap, the line under the finger
+// wins. Once end dots are being taken off, the lines are no longer controls
+// and a tap goes to the nearest dot left. Keys go to the focused line or dot.
 function wireTree(root, p, api) {
   const q = p.parameters, svg = root.querySelector('[data-gb-board]');
   if (!svg) return;
+  const at = e => { const m = svg.getScreenCTM?.(); if (!m || !e.clientX && !e.clientY) return null; const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse()); return [pt.x, pt.y]; };
   svg.addEventListener('click', e => {
+    if (svg.classList.contains('ct-leafing')) {
+      const point = at(e), left = [...svg.querySelectorAll('[data-gb-node]')].map(el => el.dataset.gbNode);
+      const id = point ? nearestDot(q, left, point) : e.target.closest?.('[data-gb-node]')?.dataset.gbNode;
+      // Focus the dot first, so focus stays on the board after the move.
+      if (id) { svg.querySelector(`[data-gb-node="${CSS.escape(id)}"]`)?.focus({preventScroll: true}); api.apply({type: 'dot', id}); }
+      return;
+    }
     const hit = e.target.closest?.('[data-gb-edge]');
     if (!hit || !svg.contains(hit)) return;
-    const m = svg.getScreenCTM?.();
-    if (!m || !e.clientX && !e.clientY) { api.apply({type: 'line', line: Number(hit.dataset.gbEdge)}); return; }
-    const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
-    api.apply({type: 'line', line: nearestLine(q, [pt.x, pt.y])});
+    const point = at(e);
+    api.apply({type: 'line', line: point ? nearestLine(q, point) : Number(hit.dataset.gbEdge)});
   });
   svg.addEventListener('keydown', e => {
     if (!['Enter', ' '].includes(e.key)) return;
-    const hit = e.target.closest?.('[data-gb-edge]');
-    if (!hit) return;
+    const control = e.target.closest?.('[data-gb-edge],[data-gb-node]');
+    if (!control) return;
     e.preventDefault();
-    api.apply({type: 'line', line: Number(hit.dataset.gbEdge)});
+    api.apply(control.dataset.gbNode !== undefined ? {type: 'dot', id: control.dataset.gbNode} : {type: 'line', line: Number(control.dataset.gbEdge)});
   });
 }
 // The line nearest a point of the board (in board units).
@@ -630,6 +781,13 @@ export function nearestLine(q, [x, y]) {
   });
   return best;
 }
+// The dot nearest a point among `ids`, within a fingertip (12 board units).
+export function nearestDot(q, ids, [x, y]) {
+  const g = treeMap(q);
+  let best = null, dist = 12;
+  for (const id of ids) { const d = Math.hypot(g.pos[id][0] - x, g.pos[id][1] - y); if (d < dist) { dist = d; best = id; } }
+  return best;
+}
 
 // --- Mechanics and the family seam ----------------------------------------------
 export const cornerMechanics = {
@@ -641,7 +799,7 @@ export const cornerMechanics = {
     carry(p, from, to) {
       const q = p.parameters;
       if (!object(from) || !object(to) || !from.refused || to.refused) return to;
-      if (q.mode === 'every' && same(from.shelf, to.shelf)) return {...to, refused: from.refused, shown: false, again: null};
+      if (q.mode === 'every' && same(from.shelf, to.shelf)) return {...to, refused: from.refused, shown: false};
       if (q.mode === 'make' && same(from.ring, to.ring)) return {...to, refused: from.refused, shown: false};
       return to;
     },
@@ -656,5 +814,5 @@ export default {
   mechanics: cornerMechanics,
   pack: new URL('./corners.json', import.meta.url).href,
   css: new URL('./corners.css', import.meta.url).href,
-  focus: '[data-mechanic-wire="corners"] button.cr-add:not([disabled]),[data-mechanic-wire="corners"] [data-cr-take],[data-mechanic-wire="corners"] [data-cr-unfold],[data-mechanic-wire="corners"] button.cr-move:not([disabled]),[data-mechanic-wire="corners"] .gb-hit'
+  focus: '[data-mechanic-wire="corners"] button.cr-add:not([disabled]),[data-mechanic-wire="corners"] [data-cr-take],[data-mechanic-wire="corners"] [data-cr-unfold],[data-mechanic-wire="corners"] button.cr-move:not([disabled]),[data-mechanic-wire="corners"] .gb-hit,[data-mechanic-wire="corners"] [data-gb-node]'
 };

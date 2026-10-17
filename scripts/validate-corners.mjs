@@ -10,21 +10,26 @@
 //   smallest filling decides;
 // - the folded corner of every ring that folds: each pair of neighbouring
 //   edges at its corner's angle, every face plane with all other edges on one
-//   side, and not flat;
+//   side, not flat, every face seen from outside and at least a fifth of it
+//   showing, and a ring turned round drawn alike;
 // - each opened drawing drawn without crossings, its regions counted by
 //   flooding a raster of the board (not by tracing faces), Euler's count
 //   dots − lines + regions = pieces on random states, and every erasure: a
-//   line on a loop takes one region and keeps the dots joined, any other cuts;
+//   line on a loop takes one region (one tint fewer) and keeps the dots
+//   joined, any other cuts; end dots taken off a tree leave a tree;
 // - witnesses played as moves; hint chains from fresh, after wrong moves and
 //   refused claims, and from random states; how often random fillings and
-//   random shelves pass a claim; Undo keeping claims and always changing the
-//   board; illegal moves; forged saves; the playground.
+//   random shelves pass a claim; that Can't's refusal is the same words with
+//   nothing marked on every ring of every Make puzzle, so following it solves
+//   nothing; that the first shape button in every place solves no Make
+//   puzzle; That's all with a ring kept twice; Undo keeping claims and always
+//   changing the board; illegal moves; forged saves; the playground.
 // Run: node scripts/validate-corners.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
-import {coneOf, foldedFaces, facesOf} from '../dist/families/corners/corners.js';
+import {coneOf, foldedFaces, facesOf, tintsOf} from '../dist/families/corners/corners.js';
 import {loadPack} from './packs.mjs';
 
 // --- Corners and rings, from first principles ------------------------------------
@@ -39,6 +44,10 @@ function bracelet(word) {
   for (const w of [word + word, rev + rev]) for (let k = 0; k < n; k++) { const s = w.slice(k, k + n); if (best === null || s < best) best = s; }
   return best;
 }
+// Every reading of a word: turned and flipped.
+const readings = word => { const n = word.length, out = new Set(); for (const w of [word, [...word].reverse().join('')]) for (let k = 0; k < n; k++) out.add(w.slice(k) + w.slice(0, k)); return [...out]; };
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const sameRing = (a, b) => a.length === b.length && bracelet(a.join('')) === bracelet(b.join(''));
 function* words(menu, n) {
   if (n === 0) { yield ''; return; }
   for (const w of words(menu, n - 1)) for (const c of menu) yield w + c;
@@ -62,14 +71,14 @@ const TABLE = {
   'corners-ring-02': {fills: ['T']},
   'corners-ring-03': {rings: ['PPP', 'PPS', 'PSS', 'SSS']},
   'corners-ring-04': {rings: ['SSSS', 'SSTTT', 'STSTT', 'TTTTTT']},
-  'corners-ring-05': {fills: ['TT']},
+  'corners-ring-05': {fills: ['SST'], goal: 'flat'},
   'corners-ring-06': {fills: [], certificate: 'SSTTT', fold: 'flat'},
   'corners-ring-07': {rings: ['PTTTT', 'STTTT', 'TTTTT']},
   'corners-ring-08': {fills: [], certificate: 'PSSS', fold: 'over'},
   'corners-ring-09': {rings: ['SSS', 'SST', 'SSST', 'SSTT', 'STST', 'STT', 'STTT', 'STTTT', 'TTT', 'TTTT', 'TTTTT']},
   'corners-tree-01': {counts: [4, 6, 3], faces: 4},
-  'corners-tree-02': {counts: [8, 12, 5], faces: 6},
-  'corners-tree-03': {counts: [6, 12, 7], faces: 8}
+  'corners-tree-02': {counts: [9, 13, 5], faces: 6},
+  'corners-tree-03': {counts: [6, 12, 7], faces: 8, leaves: true}
 };
 
 // --- Opened drawings, by geometry ------------------------------------------------
@@ -138,8 +147,17 @@ function checkCone(word) {
   assert.ok(worst < 1e-9, `${word}: face angles (off by ${worst})`);
   if (kind(word) === 'point') assert.ok(Math.abs(dot3(cross3(e[0], e[1]), e[2])) > 1e-6 || n > 3, `${word}: not flat`);
   const faces = foldedFaces(ring);
-  assert.deepEqual(faces.map(fc => fc.screen.length), ring.map(c => SIDES[c]), `${word}: each face drawn with its sides`);
-  return worst;
+  assert.deepEqual(faces.map(fc => fc.screen.length).sort(), ring.map(c => SIDES[c]).sort(), `${word}: each face drawn with its sides`);
+  // Every face is seen from outside, at least a fifth of it showing (its
+  // drawn area against a regular polygon of side 30), and a ring turned
+  // round is drawn alike.
+  const area = pts => Math.abs(pts.reduce((s, [x1, y1], i) => { const [x2, y2] = pts[(i + 1) % pts.length]; return s + x1 * y2 - x2 * y1; }, 0) / 2);
+  const full = c => SIDES[c] * 900 / (4 * Math.tan(Math.PI / SIDES[c]));
+  let least = Infinity;
+  for (const fc of faces) { assert.ok(fc.outside, `${word}: face ${fc.i} seen from outside`); least = Math.min(least, area(fc.screen) / full(fc.c)); }
+  assert.ok(least > .2, `${word}: every face shows (${least.toFixed(2)})`);
+  for (let k = 1; k < n; k++) assert.deepEqual(foldedFaces([...ring.slice(k), ...ring.slice(0, k)]), faces, `${word}: turned round, drawn alike`);
+  return {worst, least};
 }
 
 // --- Play ----------------------------------------------------------------------------
@@ -176,7 +194,10 @@ function hintSolve(p, start, why, limit = 200) {
 // A random legal move.
 function randomAction(p, a, rand) {
   const q = p.parameters, b = a.board;
-  if (p.mechanic === 'corner-trees') return {type: 'line', line: Math.floor(rand() * q.edges.length)};
+  if (p.mechanic === 'corner-trees') {
+    const legal = [...q.edges.map((_, line) => ({type: 'line', line})), ...Object.keys(q.nodes).map(id => ({type: 'dot', id}))].filter(x => move(p, a, x));
+    return legal.length ? legal[Math.floor(rand() * legal.length)] : null;
+  }
   const options = [...q.menu.map(piece => ({type: 'add', piece})), {type: 'fold'}, {type: 'unfold'}, {type: 'keep'}, {type: 'all'}, {type: 'cant'}];
   for (let i = 0; i < b.ring.length; i++) options.push({type: 'take', index: i});
   if (b.shelf) for (let i = 0; i < b.shelf.length; i++) options.push({type: 'drop', index: i});
@@ -231,12 +252,13 @@ export async function validateCorners() {
   }
 
   // Every ring that folds, folded.
-  let worstAngle = 0;
-  for (const w of [...counts.TSP.point, ...counts.TSP.flat]) worstAngle = Math.max(worstAngle, checkCone(w));
+  let worstAngle = 0, leastFace = Infinity;
+  for (const w of [...counts.TSP.point, ...counts.TSP.flat]) { const {worst, least} = checkCone(w); worstAngle = Math.max(worstAngle, worst); leastFace = Math.min(leastFace, least); }
 
   // One hint per puzzle first, so the timings below measure the code.
   for (const p of pack.puzzles) nextHint(p, freshAttempt(p));
-  const stats = {recipes, worstAngle, foldedRings: counts.TSP.point.length + counts.TSP.flat.length, claimShares: {}, hintSteps: {}, rasterStates: 0};
+  const stats = {recipes, worstAngle, leastFaceShown: Number(leastFace.toFixed(3)), foldedRings: counts.TSP.point.length + counts.TSP.flat.length, claimShares: {}, followers: {}, firstButton: {}, hintSteps: {}, rasterStates: 0};
+  const cantWords = new Set();
   for (const p of pack.puzzles) {
     assert.ok(p.id.startsWith('corners-'));
     for (const field of ['objective', 'controls', 'idea', 'prerequisites', 'provenance', 'familyTitle']) assert.ok(typeof p[field] === 'string' && p[field].length > 5, `${p.id}: ${field}`);
@@ -250,14 +272,21 @@ export async function validateCorners() {
     assert.ok(validBoard(p, fresh.board), `${p.id}: starts valid`);
     assert.ok(!isSolved(p, fresh.board), `${p.id}: starts unsolved`);
     if (p.band === 'playground') { checkPlayground(p, fresh); continue; }
-    if (p.mechanic === 'corners') checkRing(p, fresh, TABLE[p.id], stats);
+    if (p.mechanic === 'corners') checkRing(p, fresh, TABLE[p.id], stats, cantWords);
     else checkTree(p, fresh, TABLE[p.id], stats);
   }
+  // Can't's refusal: one sentence on every Make puzzle, possible or not.
+  assert.equal(cantWords.size, 1, `Can't refuses in the same words everywhere (${[...cantWords].join(' | ')})`);
+  stats.cantRefusal = [...cantWords][0];
   return stats;
 }
 
 // --- Rings ------------------------------------------------------------------------
-function checkRing(p, fresh, row, stats) {
+// The words under the board and on the shelf, and which corners and shelf rings are marked.
+const boardWords = h => h.match(/<p class="cr-told">([^<]*)<\/p>/)?.[1] ?? null;
+const shelfWords = h => h.match(/<p class="cr-shelf-told">([^<]*)<\/p>/)?.[1] ?? null;
+const ringedOnShelf = h => (h.match(/cr-shelf-item ringed/g) || []).length;
+function checkRing(p, fresh, row, stats, cantWords) {
   const q = p.parameters, rand = seeded(p.number * 7919);
   if (q.mode === 'every') {
     const answers = ringsOf(q.menu, q.goal, q.count || 0);
@@ -268,19 +297,41 @@ function checkRing(p, fresh, row, stats) {
     for (const w of answers) { a = build(p, a, w.slice(1) + w[0]); a = play(p, a, {type: 'keep'}); }
     a = play(p, a, {type: 'all'});
     assert.ok(isSolved(p, a.board), `${p.id}: the witness solves`);
-    // A turned or flipped copy is already on the shelf.
-    let b = build(p, fresh, answers[0]);
-    b = play(p, b, {type: 'keep'});
-    b = build(p, b, [...answers[0]].reverse().join(''));
-    b = play(p, b, {type: 'keep'});
-    assert.equal(b.board.again, 0, `${p.id}: a flipped ring is the same ring`);
-    assert.equal(b.board.shelf.length, 1);
-    assert.equal(move(p, b, {type: 'keep'}), null, `${p.id}: Keep is off until the ring changes`);
+    // The solved shelf is the case check: rows by number of corners, the
+    // child's rings in order of total, each row ending with the smallest ring
+    // of its size too big for the goal.
+    checkCases(p, a, answers);
+    // Keep judges nothing: a copy of a kept ring goes on the shelf, and Keep
+    // is off only while the ring is, corner for corner, the one just kept.
+    const kept = play(p, build(p, fresh, answers[0]), {type: 'keep'});
+    assert.equal(move(p, kept, {type: 'keep'}), null, `${p.id}: Keep is off until the ring changes`);
+    // A copy: another reading of a kept ring, else the ring itself kept again after another.
+    const reading = answers.flatMap(r => readings(r).filter(v => v !== r).map(v => [r, v]))[0];
+    const keepCopy = (b, r) => {
+      if (reading && r === reading[0]) return play(p, build(p, b, reading[1]), {type: 'keep'});
+      const between = answers.find(x => x !== r && !b.board.shelf.some(y => y.join('') === x));
+      const c = same(b.board.shelf.at(-1), [...r]) ? play(p, build(p, b, between), {type: 'keep'}) : b;
+      return play(p, build(p, c, r), {type: 'keep'});
+    };
+    const base = reading ? reading[0] : answers[0];
+    // "There is another.", then a copy kept: the words go, nothing is marked, and That's all finds the pair.
+    const one = play(p, play(p, build(p, fresh, base), {type: 'keep'}), {type: 'all'});
+    assert.deepEqual(one.board.refused, {kind: 'more'}, `${p.id}: There is another`);
+    assert.equal(shelfWords(html(p, one)), 'There is another.', `${p.id}: the answer sits on the shelf`);
+    assert.equal(boardWords(html(p, one)), null, `${p.id}: not under the board`);
+    assert.equal(ringedOnShelf(html(p, one)), 0, `${p.id}: nothing marked`);
+    const two = keepCopy(one, base);
+    assert.equal(shelfWords(html(p, two)), null, `${p.id}: keeping a copy clears the words`);
+    assert.equal(ringedOnShelf(html(p, two)), 0, `${p.id}: and marks nothing`);
+    const pair = play(p, two, {type: 'all'});
+    assert.equal(pair.board.refused.kind, 'same', `${p.id}: That's all finds the ring kept twice`);
+    assert.equal(shelfWords(html(p, pair)), 'These two are the same ring.');
+    assert.equal(ringedOnShelf(html(p, pair)), 2, `${p.id}: the pair is marked`);
+    assert.ok(pair.board.refused.pair.every(i => sameRing(pair.board.shelf[i], [...base])), `${p.id}: the pair is the ring kept twice`);
+    stats.hintSteps[`${p.id} after a ring kept twice`] = hintSolve(p, pair, 'after a ring kept twice').steps;
     // That's all: one short refusal, kept through Undo until the shelf changes.
-    const short = play(p, build(p, fresh, answers[0]), {type: 'keep'});
-    const told = play(p, short, {type: 'all'});
     if (answers.length > 1) {
-      assert.deepEqual(told.board.refused, {kind: 'more'}, `${p.id}: There is another`);
+      const told = one;
       assert.ok(!isSolved(p, told.board));
       assert.equal(move(p, told, {type: 'all'}), null, `${p.id}: That's all is off until the shelf changes`);
       const back = undoMove(p, told);
@@ -288,12 +339,17 @@ function checkRing(p, fresh, row, stats) {
       assert.equal(back.board.shown, false);
       assert.notEqual(html(p, back), html(p, told), `${p.id}: Undo changes the board`);
       assert.equal(move(p, back, {type: 'all'}), null, `${p.id}: still locked after Undo`);
-      const changed = play(p, build(p, back, answers[1]), {type: 'keep'});
+      // A ring changed on the board leaves the shelf's answer where it is.
+      const other = build(p, told, answers.find(r => r !== base));
+      assert.equal(shelfWords(html(p, other)), 'There is another.', `${p.id}: the shelf's answer stays while the board changes`);
+      const changed = play(p, other, {type: 'keep'});
       assert.equal(changed.board.refused, null, `${p.id}: a new shelf clears the lock`);
       const again = undoMove(p, undoMove(p, told));
       assert.equal(again.board.refused, null, `${p.id}: Undo past the shelf clears it`);
     }
-    // A wrong ring on the shelf: "This one …", ringed.
+    // A wrong ring on the shelf: "This one …", marked alone. A copy kept over
+    // that refusal clears it; That's all then names the wrong ring again, and
+    // with it gone, the pair.
     const wrongGoal = q.goal === 'point' ? 'flat' : 'point';
     const wrong = ringsOf(q.menu, wrongGoal, q.count || 0)[0] || ringsOf(q.menu, 'over', q.count || 0)[0];
     let w = fresh;
@@ -301,36 +357,63 @@ function checkRing(p, fresh, row, stats) {
     w = play(p, build(p, w, wrong), {type: 'keep'});
     w = play(p, w, {type: 'all'});
     assert.deepEqual(w.board.refused, {kind: 'off', index: answers.length}, `${p.id}: the wrong ring is named`);
-    assert.match(html(p, w), /This one (lies flat|overlaps|folds to a point)\./, `${p.id}: one short refusal`);
-    assert.ok(!/\d/.test(html(p, w).match(/<p class="cr-told">([^<]*)/)[1]), `${p.id}: the refusal prints no number`);
+    assert.match(shelfWords(html(p, w)) || '', /^This one (lies flat|overlaps|folds to a point)\.$/, `${p.id}: one short refusal`);
+    assert.equal(ringedOnShelf(html(p, w)), 1, `${p.id}: one ring marked`);
+    assert.ok(!/\d/.test(shelfWords(html(p, w))), `${p.id}: the refusal prints no number`);
     stats.hintSteps[p.id] = hintSolve(p, w, 'after a refused That’s all').steps;
+    const over = keepCopy(w, base);
+    assert.equal(shelfWords(html(p, over)), null, `${p.id}: a copy kept over a refusal clears its words`);
+    assert.equal(ringedOnShelf(html(p, over)), 0, `${p.id}: and its mark`);
+    const first = play(p, over, {type: 'all'});
+    assert.deepEqual(first.board.refused, {kind: 'off', index: answers.length}, `${p.id}: the wrong ring first`);
+    assert.equal(ringedOnShelf(html(p, first)), 1, `${p.id}: one thing marked at a time`);
+    const then = play(p, play(p, first, {type: 'drop', index: answers.length}), {type: 'all'});
+    assert.equal(then.board.refused.kind, 'same', `${p.id}: then the ring kept twice`);
+    assert.equal(ringedOnShelf(html(p, then)), 2);
     // Random shelves of the right size pass That's all how often?
     // Every ring a child can keep here: three to eight corners (or the count).
     const pool = ['point', 'flat', 'over'].flatMap(goal => ringsOf(q.menu, goal, q.count || 0));
-    let passed = 0;
+    let passed = 0, passedWith = 0;
     const tries = 400;
     for (let t = 0; t < tries; t++) {
       const shelf = [...pool];
       for (let i = shelf.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [shelf[i], shelf[j]] = [shelf[j], shelf[i]]; }
       shelf.length = answers.length;
       if (shelf.slice().sort().join() === answers.join()) passed++;
+      // Copies allowed: draw with replacement.
+      const loose = Array.from({length: answers.length}, () => pool[Math.floor(rand() * pool.length)]);
+      if (loose.slice().sort().join() === answers.join()) passedWith++;
     }
-    stats.claimShares[p.id] = `${passed}/${tries} random shelves of ${answers.length} from ${pool.length} rings pass`;
-    assert.ok(passed / tries < .1, `${p.id}: That's all can fail (${stats.claimShares[p.id]})`);
+    stats.claimShares[p.id] = `${passed}/${tries} random shelves of ${answers.length} different rings from ${pool.length} pass; ${passedWith}/${tries} with copies allowed`;
+    assert.ok(passed / tries < .1 && passedWith / tries < .1, `${p.id}: That's all can fail (${stats.claimShares[p.id]})`);
   } else {
-    const fillings = fillingsOf(q.locked, q.count, q.menu), folds = [...new Set(fillings.filter(w => kind(w) === 'point').map(w => [...w.slice(q.locked.length)].sort().join('')))].sort();
+    const goal = row.goal || 'point';
+    const fillings = fillingsOf(q.locked, q.count, q.menu), folds = [...new Set(fillings.filter(w => kind(w) === goal).map(w => [...w.slice(q.locked.length)].sort().join('')))].sort();
+    assert.equal(q.goal || 'point', goal, `${p.id}: the goal`);
     assert.deepEqual(folds, row.fills, `${p.id}: the fillings, by brute force`);
     assert.deepEqual(p.solution.fills, folds, `${p.id}: the pack's fillings`);
+    const small = q.locked.join('') + smallestCorner(q.menu).repeat(q.count - q.locked.length);
+    // Can't, after a fold, on every filling: the proof is accepted, and every
+    // other ring gets the same words with nothing marked.
+    let passed = 0, refusedCount = 0;
+    for (const w of fillings) {
+      const folded = play(p, build(p, fresh, w), {type: 'fold'});
+      if (isSolved(p, folded.board)) continue;
+      const c = play(p, folded, {type: 'cant'});
+      if (isSolved(p, c.board)) { passed++; assert.equal(w, small, `${p.id}: only the smallest filling proves it`); continue; }
+      refusedCount++;
+      assert.deepEqual(c.board.refused, {kind: 'no'}, `${p.id} ${w}: one refusal`);
+      const h = html(p, c);
+      cantWords.add(boardWords(h));
+      assert.ok(!/data-ringed|\bringed\b/.test(h), `${p.id} ${w}: nothing marked`);
+      assert.ok(!/\d/.test(boardWords(h)), `${p.id} ${w}: no number`);
+    }
     if (folds.length) {
       const a = play(p, build(p, fresh, q.locked.join('') + folds[0]), {type: 'fold'});
-      assert.ok(isSolved(p, a.board), `${p.id}: the witness folds`);
-      // Can't on a ring that could fold is refused.
-      const off = fillings.find(w => kind(w) !== 'point');
-      const c = play(p, build(p, fresh, off), {type: 'fold'}, {type: 'cant'});
-      assert.ok(!isSolved(p, c.board), `${p.id}: Can't is refused`);
-      assert.equal(c.board.refused.kind, 'smaller');
+      assert.ok(isSolved(p, a.board), `${p.id}: the witness ${goal === 'flat' ? 'lies flat' : 'folds'}`);
+      assert.equal(passed, 0, `${p.id}: Can't is never accepted when a ring can be made`);
+      if (goal === 'flat') assert.notEqual(kind(small), 'flat', `${p.id}: the smallest filling is not the answer`);
     } else {
-      const small = q.locked.join('') + smallestCorner(q.menu).repeat(q.count - q.locked.length);
       assert.equal(small, row.certificate, `${p.id}: the certificate`);
       assert.equal(kind(small), row.fold, `${p.id}: the certificate ${row.fold === 'flat' ? 'lies flat' : 'overlaps'}`);
       assert.deepEqual(p.solution.certificate.join(''), small);
@@ -339,16 +422,10 @@ function checkRing(p, fresh, row, stats) {
       const a = play(p, unfolded, {type: 'fold'}, {type: 'cant'});
       assert.ok(isSolved(p, a.board), `${p.id}: the certificate is accepted`);
       assert.match(html(p, a), /Even the smallest corners/, `${p.id}: the argument is drawn`);
-      // Every filling, folded, then Can't: how many pass?
-      let passed = 0;
-      for (const w of fillings) { const b = play(p, build(p, fresh, w), {type: 'fold'}, {type: 'cant'}); if (isSolved(p, b.board)) passed++; }
       assert.equal(passed, 1, `${p.id}: only the smallest filling proves it`);
-      stats.claimShares[p.id] = `${passed}/${fillings.length} fillings pass Can't`;
       // A refusal: kept through Undo, the board still changes, and a new ring clears it.
       const wrong = fillings.find(w => w !== small);
       const told = play(p, build(p, fresh, wrong), {type: 'fold'}, {type: 'cant'});
-      assert.equal(told.board.refused.kind, 'smaller');
-      assert.match(html(p, told), /This corner could be smaller\./);
       const back = undoMove(p, told);
       assert.deepEqual(back.board.refused, told.board.refused, `${p.id}: Undo keeps Can't's answer`);
       assert.notEqual(html(p, back), html(p, told), `${p.id}: Undo changes the board`);
@@ -356,7 +433,35 @@ function checkRing(p, fresh, row, stats) {
       assert.equal(move(p, play(p, back, {type: 'take', index: q.count - 1}), {type: 'add', piece: q.menu[0]}).board.refused, null, `${p.id}: a changed ring clears it`);
       stats.hintSteps[`${p.id} after a refused Can’t`] = hintSolve(p, told, 'after a refused Can’t').steps;
     }
-    // A Can't refusal on a possible puzzle uses the same words.
+    stats.claimShares[p.id] = `${passed}/${fillings.length} fillings pass Can't; ${refusedCount} refused alike`;
+    // The refusal follower: fold a random filling; if it isn't solved, press
+    // Can't, and on a refusal change the corner it marks for a smaller one
+    // and try again. Nothing is ever marked, so it solves only the fillings
+    // that needed no refusal.
+    const smaller = c => q.menu.filter(x => ANGLE[x] < ANGLE[c]);
+    let followed = 0, alone = 0;
+    for (let t = 0; t < 2000; t++) {
+      let a = build(p, fresh, q.locked.join('') + Array.from({length: q.count - q.locked.length}, () => q.menu[Math.floor(rand() * q.menu.length)]).join(''));
+      for (let presses = 0; presses < 20; presses++) {
+        a = play(p, a, {type: 'fold'});
+        if (!isSolved(p, a.board)) a = play(p, a, {type: 'cant'});
+        if (isSolved(p, a.board)) { followed++; if (!presses) alone++; break; }
+        const mark = html(p, a).match(/data-cr-take="(\d+)"[^>]*data-ringed/);
+        if (!mark) break;
+        const i = Number(mark[1]), pick = smaller(a.board.ring[i]);
+        if (!pick.length) break;
+        if (a.board.fold !== 'over') a = play(p, a, {type: 'unfold'});
+        a = play(p, a, {type: 'take', index: i}, {type: 'add', piece: pick[Math.floor(rand() * pick.length)]});
+      }
+    }
+    assert.equal(followed, alone, `${p.id}: following Can't's refusal solves nothing`);
+    stats.followers[p.id] = `${followed}/2000 random fillings solved, none by following a refusal`;
+    // Page order: the first shape button in every free place, Fold, Can't.
+    const first = q.locked.join('') + q.menu[0].repeat(q.count - q.locked.length);
+    let page = play(p, build(p, fresh, first), {type: 'fold'});
+    if (!isSolved(p, page.board)) page = play(p, page, {type: 'cant'});
+    assert.ok(!isSolved(p, page.board), `${p.id}: the first shape button everywhere doesn't solve`);
+    stats.firstButton[p.id] = `${q.menu.join('')}: ${first} ${kind(first)}, not solved; the smallest everywhere ${(folds.length ? kind(small) === goal : true) ? 'solves' : 'doesn’t solve'}`;
     for (const [action, why] of [[{type: 'take', index: 0}, 'a fixed corner']]) if (q.locked.length) assert.equal(move(p, fresh, action), null, `${p.id}: no taking ${why}`);
   }
   // Hints from fresh, after wrong moves and from random states.
@@ -376,14 +481,18 @@ function checkRing(p, fresh, row, stats) {
   if (q.mode === 'make') assert.equal(move(p, full, {type: 'keep'}), null, `${p.id}: no Keep`);
   if (q.mode === 'every') assert.equal(move(p, full, {type: 'cant'}), null, `${p.id}: no Can't`);
   // Forged saves.
+  const answers = q.mode === 'every' ? ringsOf(q.menu, q.goal, q.count || 0) : [];
+  const bigRing = q.mode === 'make' ? q.locked.join('') + [...q.menu].sort((x, y) => ANGLE[y] - ANGLE[x])[0].repeat(q.count - q.locked.length) : '';
   const forged = q.mode === 'every' ? [
     [{...b0.board, done: true}, 'done with nothing kept'],
-    [{...b0.board, shelf: [[...ringsOf(q.menu, q.goal, q.count || 0)[0]]], done: true}, 'done with one ring'],
-    [{...b0.board, shelf: [['T', 'T', 'T'], ['T', 'T', 'T']]}, 'a ring kept twice'],
+    [{...b0.board, shelf: [[...answers[0]]], done: true}, 'done with one ring'],
+    [{...b0.board, shelf: [...answers.map(r => [...r]), [...answers[0]]], done: true}, 'done with a ring kept twice'],
+    [{...b0.board, shelf: [[...answers[0]], [...answers[0]]], refused: {kind: 'more'}, shown: true}, 'a refusal That’s all wouldn’t give'],
+    [{...b0.board, shelf: [[...answers[0]], [...answers[0]]], refused: {kind: 'same', pair: [0, 0]}}, 'a pair that isn’t one'],
     [{...b0.board, shelf: [['T', 'T']]}, 'a ring of two'],
     [{...b0.board, shown: true}, 'words with no answer'],
     [{...b0.board, refused: {kind: 'more'}}, 'a refusal with nothing kept'],
-    [{...b0.board, again: 0}, 'a copy pointer with nothing kept'],
+    [{...b0.board, again: null}, 'an old field'],
     [{...b0.board, ring: ['H', 'T', 'T']}, 'a hexagon'],
     [{...b0.board, ring: ['T', 'T', 'T'], fold: 'flat'}, 'a fold that doesn’t match'],
     [{...b0.board, ring: ['T', 'T'], fold: 'point'}, 'a fold of two corners'],
@@ -391,9 +500,10 @@ function checkRing(p, fresh, row, stats) {
     [{ring: []}, 'missing fields']
   ] : [
     [{...b0.board, claimed: true}, 'a claim on a fresh board'],
-    [{...build(p, fresh, q.locked.join('') + q.menu.at(-1).repeat(q.count - q.locked.length)).board, claimed: true, fold: kind(q.locked.join('') + q.menu.at(-1).repeat(q.count - q.locked.length))}, 'a claim on a ring with bigger corners'],
+    [{...build(p, fresh, bigRing).board, claimed: true, fold: kind(bigRing)}, 'a claim on a ring with bigger corners'],
     [{...b0.board, ring: q.locked.length ? q.locked.slice(1) : ['T']}, 'a fixed corner taken out'],
-    [{...b0.board, refused: {kind: 'smaller', index: 0}}, 'a refusal on a part ring'],
+    [{...b0.board, refused: {kind: 'no'}}, 'a refusal on a part ring'],
+    [{...b0.board, refused: {kind: 'smaller', index: 0}}, 'an old refusal'],
     [{...b0.board, refused: {kind: 'folds'}}, 'a refusal Can’t never gives'],
     [{...b0.board, shown: true}, 'words with no answer'],
     [{...b0.board, extra: 1}, 'an extra field']
@@ -401,20 +511,47 @@ function checkRing(p, fresh, row, stats) {
   if (q.mode === 'make' && !p.solution.fills.length) {
     const small = build(p, fresh, p.solution.certificate.join(''));
     forged.push([{...small.board, claimed: true}, 'a claim with no fold']);
+    forged.push([{...small.board, fold: kind(p.solution.certificate.join('')), refused: {kind: 'no'}}, 'a refusal of the proof']);
   }
   if (q.mode === 'make' && p.solution.fills.length) {
     const ok = build(p, fresh, q.locked.join('') + p.solution.fills[0]);
-    forged.push([{...ok.board, fold: 'flat'}, 'a ring that folds saved as flat']);
+    forged.push([{...ok.board, fold: (q.goal || 'point') === 'flat' ? 'point' : 'flat'}, 'a ring saved with another fold']);
+    forged.push([{...ok.board, fold: q.goal || 'point', refused: {kind: 'no'}}, 'a refusal on a solved ring']);
   }
   for (const [board, why] of forged) {
     assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
     assert.equal(isSolved(p, board), false, `${p.id}: ${why} is no solve`);
   }
 }
+// The solved shelf, read back from the page.
+function checkCases(p, a, answers) {
+  const q = p.parameters, h = html(p, a);
+  assert.match(h, /cr-cases/, `${p.id}: the solved shelf is drawn as the case check`);
+  const rows = [...h.matchAll(/<ul class="cr-row" aria-label="Rings of (\w+) corners">(.*?)<\/ul>/g)];
+  const word = ['', '', '', 'three', 'four', 'five', 'six', 'seven', 'eight'];
+  const sizes = [...new Set(answers.map(r => r.length))].sort((x, y) => x - y);
+  for (const n of sizes) {
+    const r = rows.find(([, w]) => w === word[n]);
+    assert.ok(r, `${p.id}: a row of ${n}`);
+    assert.equal((r[2].match(/cr-shelf-item"/g) || []).length, answers.filter(x => x.length === n).length, `${p.id}: row ${n} holds its rings`);
+    // The ring that ends the row: the smallest of its size (by total) too big for the goal.
+    const misses = ['point', 'flat', 'over'].flatMap(g => ringsOf(q.menu, g, n)).filter(w => q.goal === 'point' ? kind(w) !== 'point' : kind(w) === 'over').sort((x, y) => sum(x) - sum(y) || (x < y ? -1 : 1));
+    assert.equal((r[2].match(/cr-shelf-item misses/g) || []).length, misses.length ? 1 : 0, `${p.id}: row ${n} ends with a ring that misses, if there is one`);
+    if (misses.length) assert.ok(r[2].includes(`Ring of ${[...misses[0]].map(c => ({T: 'triangle', S: 'square', P: 'pentagon'})[c]).join(', ')}: it`), `${p.id}: row ${n} ends with ${misses[0]}`);
+  }
+  // The last row: the first size whose smallest ring is already too big.
+  const last = rows.at(-1), n = word.indexOf(last[1]), small = smallestCorner(q.menu).repeat(n);
+  if (!q.count) {
+    assert.ok(q.goal === 'point' ? kind(small) !== 'point' : kind(small) === 'over', `${p.id}: the last row starts past the goal`);
+    assert.equal((last[2].match(/cr-shelf-item"/g) || []).length, 0, `${p.id}: and holds no ring`);
+  }
+}
 
 // --- Trees ------------------------------------------------------------------------
 function checkTree(p, fresh, row, stats) {
   const q = p.parameters, V = Object.keys(q.nodes).length, rand = seeded(p.number * 104729);
+  const boardOf = erased => q.leaves ? {erased, gone: []} : {erased};
+  assert.equal(Boolean(q.leaves), Boolean(row.leaves), `${p.id}: taken down to one dot or not`);
   checkPlane(q, p.id);
   const regions0 = rasterRegions(q, []);
   assert.deepEqual([V, q.edges.length, regions0], row.counts, `${p.id}: dots, lines and regions, by raster`);
@@ -424,52 +561,122 @@ function checkTree(p, fresh, row, stats) {
   // The witness route.
   let a = fresh;
   for (const line of p.solution.route) { a = play(p, a, {type: 'line', line}); }
-  assert.ok(isSolved(p, a.board) && treeOk(q, a.board.erased), `${p.id}: the route leaves a tree`);
+  assert.ok(treeOk(q, a.board.erased), `${p.id}: the route leaves a tree`);
+  if (q.leaves) {
+    assert.ok(!isSolved(p, a.board), `${p.id}: a tree is not yet one dot`);
+    a = takeLeaves(p, a, rand);
+  }
+  assert.ok(isSolved(p, a.board), `${p.id}: the route ${q.leaves ? 'and the end dots leave one dot' : 'leaves a tree'}`);
   // Euler's count and the erasure rule on random states, against the mechanic's regions.
   const states = [[]];
   for (let t = 0; t < 24; t++) { const k = Math.floor(rand() * q.edges.length); states.push([...new Set(Array.from({length: k}, () => Math.floor(rand() * q.edges.length)))].sort((x, y) => x - y)); }
   for (const erased of states) {
     const regions = rasterRegions(q, erased), pieces = piecesBfs(q, erased), lines = q.edges.length - erased.length;
     stats.rasterStates++;
-    assert.equal(facesOf(q, erased).closed.length, regions, `${p.id} ${erased}: the mechanic's regions match the raster`);
+    const faces = facesOf(q, erased), tints = tintsOf(q, erased), held = faces.closed.map(k => tints[k]);
+    assert.equal(faces.closed.length, regions, `${p.id} ${erased}: the mechanic's regions match the raster`);
     assert.equal(V - lines + regions, pieces, `${p.id} ${erased}: dots − lines + regions = pieces`);
+    assert.ok(held.every(Number.isInteger) && new Set(held).size === held.length, `${p.id} ${erased}: every region has its own tint`);
     q.edges.forEach((_, i) => {
       if (erased.includes(i)) return;
       const after = [...erased, i].sort((x, y) => x - y), r2 = rasterRegions(q, after), p2 = piecesBfs(q, after);
       stats.rasterStates++;
-      if (p2 === pieces) assert.equal(r2, regions - 1, `${p.id} ${erased} − ${i}: a line on a loop takes one region`);
-      else assert.ok(p2 === pieces + 1 && r2 === regions, `${p.id} ${erased} − ${i}: any other line cuts`);
+      const tintsAfter = facesOf(q, after).closed.map(k => tintsOf(q, after)[k]);
+      if (p2 === pieces) {
+        assert.equal(r2, regions - 1, `${p.id} ${erased} − ${i}: a line on a loop takes one region`);
+        // The merge shows: one tint fewer, and no new one.
+        assert.ok(tintsAfter.length === held.length - 1 && tintsAfter.every(t => held.includes(t)), `${p.id} ${erased} − ${i}: one tint goes`);
+      } else assert.ok(p2 === pieces + 1 && r2 === regions, `${p.id} ${erased} − ${i}: any other line cuts`);
       // The board says which: a cut line has the same space on both sides.
-      const faces = facesOf(q, erased), same = faces.walkSides[i][0] === faces.walkSides[i][1];
+      const same = faces.walkSides[i][0] === faces.walkSides[i][1];
       assert.equal(same, p2 > pieces, `${p.id} ${erased} − ${i}: the mechanic sees the cut`);
     });
   }
   // Hints from fresh, after wrong moves and from random states.
   const fromFresh = hintSolve(p, fresh, 'from fresh');
-  assert.equal(fromFresh.steps, row.counts[2], `${p.id}: hints erase one line per region`);
+  assert.equal(fromFresh.steps, row.counts[2] + (q.leaves ? V - 1 : 0), `${p.id}: hints erase one line per region${q.leaves ? ' and take off every dot but one' : ''}`);
   stats.hintSteps[p.id + ' fresh'] = fromFresh.steps;
   for (const erased of states) {
-    const b = {...fresh, board: {erased}};
+    const b = {...fresh, board: boardOf(erased)};
     assert.ok(validBoard(p, b.board));
     if (!isSolved(p, b.board)) hintSolve(p, b, `from ${erased}`);
+  }
+  for (let t = 0; t < 30; t++) {
+    let b = fresh;
+    const k = 1 + Math.floor(rand() * 16);
+    for (let i = 0; i < k && !isSolved(p, b.board); i++) { const x = randomAction(p, b, rand); if (!x) break; b = move(p, b, x); }
+    if (!isSolved(p, b.board)) hintSolve(p, b, `after ${k} random moves`);
   }
   // After a wrong move: a line that cuts dots off.
   const cutter = (() => { for (let k = 1; k <= p.solution.route.length; k++) { const erased = p.solution.route.slice(0, k).sort((x, y) => x - y); const i = q.edges.findIndex((_, j) => !erased.includes(j) && piecesBfs(q, [...erased, j]) > 1); if (i >= 0) return {erased, i}; } return null; })();
   assert.ok(cutter, `${p.id}: some line cuts`);
-  const cut = play(p, {...fresh, board: {erased: cutter.erased}}, {type: 'line', line: cutter.i});
+  const cut = play(p, {...fresh, board: boardOf(cutter.erased)}, {type: 'line', line: cutter.i});
   assert.match(html(p, cut), /gb-node cut/, `${p.id}: cut-off dots are marked`);
   const mended = hintSolve(p, cut, 'after a cut');
   assert.equal(nextHint(p, cut).action.line, cutter.i, `${p.id}: the first hint draws the cut line back`);
   assert.ok(mended.steps >= 1);
+  // The status names the change without a count.
+  assert.ok(!/\d/.test(html(p, cut).match(/role="status">([^<]*)/)[1]), `${p.id}: no number in the status`);
   // Illegal moves and forged saves.
-  for (const [action, why] of [[{type: 'line', line: q.edges.length}, 'a missing line'], [{type: 'line', line: -1}, 'a negative line'], [{type: 'line', line: 1.5}, 'half a line'], [{type: 'dot', id: 'A'}, 'a dot'], [null, 'no move']]) assert.equal(move(p, fresh, action), null, `${p.id}: refuses ${why}`);
+  for (const [action, why] of [[{type: 'line', line: q.edges.length}, 'a missing line'], [{type: 'line', line: -1}, 'a negative line'], [{type: 'line', line: 1.5}, 'half a line'], [{type: 'dot', id: Object.keys(q.nodes)[0]}, 'a dot before a tree'], [null, 'no move']]) assert.equal(move(p, fresh, action), null, `${p.id}: refuses ${why}`);
   assert.equal(move(p, a, {type: 'line', line: 0}), null, `${p.id}: no move after the solve`);
-  for (const [board, why] of [[{erased: [1, 0]}, 'lines out of order'], [{erased: [0, 0]}, 'a line twice'], [{erased: [q.edges.length]}, 'a missing line'], [{erased: [], done: true}, 'a forged done'], [{}, 'no field'], [{erased: 'all'}, 'not a list']]) {
+  for (const [board, why] of [[boardOf([1, 0]), 'lines out of order'], [boardOf([0, 0]), 'a line twice'], [boardOf([q.edges.length]), 'a missing line'], [{...boardOf([]), done: true}, 'a forged done'], [{}, 'no field'], [{...boardOf([]), erased: 'all'}, 'not a list']]) {
     assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
     assert.equal(isSolved(p, board), false, `${p.id}: ${why} is no solve`);
   }
+  if (q.leaves) checkLeaves(p, fresh, rand);
+  else assert.equal(validBoard(p, {erased: [], gone: []}), false, `${p.id}: no end dots to take off`);
   // Erasing every line is no tree.
-  assert.equal(isSolved(p, {erased: q.edges.map((_, i) => i)}), false, `${p.id}: no lines is no tree`);
+  assert.equal(isSolved(p, boardOf(q.edges.map((_, i) => i))), false, `${p.id}: no lines is no tree`);
+}
+// End dots off a tree, checked by search over the dots left (not by the mechanic's end-dot rule).
+function takeLeaves(p, start, rand) {
+  const q = p.parameters, ids = Object.keys(q.nodes);
+  let a = start;
+  while (!isSolved(p, a.board)) {
+    const gone = new Set(a.board.gone.map(([id]) => id)), used = new Set([...a.board.erased, ...a.board.gone.map(([, l]) => l)]);
+    const left = ids.filter(id => !gone.has(id)), lines = q.edges.map((e, i) => [e, i]).filter(([, i]) => !used.has(i));
+    // What is left is a tree: every dot joined and one line fewer than dots.
+    const sub = {nodes: Object.fromEntries(left.map(id => [id, q.nodes[id]])), edges: lines.map(([e]) => e)};
+    assert.equal(piecesBfs(sub, []), 1, `${p.id}: the dots left are joined`);
+    assert.equal(lines.length, left.length - 1, `${p.id}: one line fewer than dots`);
+    const ends = left.filter(id => lines.filter(([e]) => e.includes(id)).length === 1);
+    assert.ok(ends.length >= 2, `${p.id}: a tree of two dots or more has two end dots`);
+    for (const id of left.filter(id => !ends.includes(id))) assert.equal(move(p, a, {type: 'dot', id}), null, `${p.id}: dot ${id} isn't an end dot`);
+    assert.equal(move(p, a, {type: 'line', line: lines[0][1]}), null, `${p.id}: the lines stay once a tree is left`);
+    a = play(p, a, {type: 'dot', id: ends[Math.floor(rand() * ends.length)]});
+  }
+  assert.equal(a.board.gone.length, ids.length - 1, `${p.id}: one dot is left`);
+  return a;
+}
+function checkLeaves(p, fresh, rand) {
+  const q = p.parameters, ids = Object.keys(q.nodes), route = [...p.solution.route].sort((x, y) => x - y);
+  const tree = play(p, fresh, ...p.solution.route.map(line => ({type: 'line', line})));
+  const end = ids.find(id => q.edges.filter((e, i) => !route.includes(i) && e.includes(id)).length === 1);
+  const lineAt = id => q.edges.findIndex((e, i) => !route.includes(i) && e.includes(id));
+  const inner = ids.find(id => q.edges.filter((e, i) => !route.includes(i) && e.includes(id)).length > 1);
+  const one = play(p, tree, {type: 'dot', id: end});
+  assert.deepEqual(one.board.gone, [[end, lineAt(end)]], `${p.id}: the end dot comes off with its line`);
+  assert.match(html(p, one), /gb-node gone/, `${p.id}: the dot taken off is drawn faint`);
+  const back = undoMove(p, one);
+  assert.deepEqual(back.board.gone, [], `${p.id}: Undo puts it back`);
+  assert.ok(move(p, back, {type: 'dot', id: end}), `${p.id}: and it can come off again`);
+  for (const [board, why] of [
+    [{erased: [], gone: [[end, lineAt(end)]]}, 'a dot taken off before a tree'],
+    [{erased: route, gone: [[inner, lineAt(inner)]]}, 'a dot with two lines taken off'],
+    [{erased: route, gone: [[end, (lineAt(end) + 1) % q.edges.length]]}, 'a dot taken off with another line'],
+    [{erased: route, gone: [[end, lineAt(end)], [end, lineAt(end)]]}, 'a dot taken off twice'],
+    [{erased: route, gone: ids.map(id => [id, 0])}, 'every dot taken off'],
+    [{erased: route, gone: [end]}, 'a dot with no line'],
+    [{erased: route}, 'no list of dots taken off']
+  ]) {
+    assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
+    assert.equal(isSolved(p, board), false, `${p.id}: ${why} is no solve`);
+  }
+  // A tree alone is not the end, and the last dot stays.
+  assert.equal(isSolved(p, tree.board), false);
+  const last = takeLeaves(p, tree, rand);
+  assert.equal(move(p, last, {type: 'dot', id: ids.find(id => !last.board.gone.some(([g]) => g === id))}), null, `${p.id}: the last dot stays`);
 }
 
 // --- Playground ------------------------------------------------------------------

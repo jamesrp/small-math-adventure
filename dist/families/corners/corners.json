@@ -5,7 +5,7 @@
   {
    "id": "corners",
    "title": "Corners",
-   "mathematics": "Corners of regular polygons with the same side fit round a point side to side: a triangle’s corner is 60°, a square’s 90° and a pentagon’s 108°. Three or more fold into a pointed corner with no dent exactly when they make less than a whole turn (each angle is then less than the others together, so the corner exists); they lie flat at exactly a whole turn and overlap past it. The missing part of the turn is the corner’s gap. Up to turning and flipping, 11 rings of triangles and squares fold to a point (from 10 sets of corners) and 4 lie flat; pentagons add 14 pointed rings and no flat one. With some corners fixed, some filling of the free places folds exactly when the filling with the smallest corner everywhere folds, so that ring laid flat is the proof that none does. An opened drawing is a convex solid seen through one face that has been taken out: a connected plane drawing whose closed regions are the other faces. Erasing a line with different spaces on its two sides keeps every dot joined and removes one region; erasing a line with the same space on both sides cuts the drawing. A tree has one line fewer than dots, so erasing down to one takes one erasure per region and dots − lines + regions = 1 throughout: V − E + F = 2 on the solid.",
+   "mathematics": "Corners of regular polygons with the same side fit round a point side to side: a triangle’s corner is 60°, a square’s 90° and a pentagon’s 108°. Three or more fold into a pointed corner with no dent exactly when they make less than a whole turn (each angle is then less than the others together, so the corner exists); they lie flat at exactly a whole turn and overlap past it. The missing part of the turn is the corner’s gap. Up to turning and flipping, 11 rings of triangles and squares fold to a point (from 10 sets of corners) and 4 lie flat; pentagons add 14 pointed rings and no flat one. With some corners fixed, some filling of the free places folds exactly when the filling with the smallest corner everywhere folds, so that ring laid flat is the proof that none does. An opened drawing is a convex solid seen through one face that has been taken out: a connected plane drawing whose closed regions are the other faces. Erasing a line with different spaces on its two sides keeps every dot joined and removes one region; erasing a line with the same space on both sides cuts the drawing. A tree has one line fewer than dots (taking off an end dot with its one line leaves a tree, down to one dot), so erasing down to one takes one erasure per region and dots − lines + regions = 1 throughout: V − E + F = 2 on the solid.",
    "rules": [
     "Corners of triangles, squares and pentagons, all with the same side, lie flat round the point, side to side, in the order they are added.",
     "Fold joins the first corner’s free side to the last one’s. The corners fold to a point, lie flat or overlap.",
@@ -117,7 +117,7 @@
    "objective": "Find every ring that folds to a point, keep each one on the shelf, then press That’s all.",
    "visibleObjective": "Find every ring that folds to a point.",
    "instruction": "Find every ring that folds to a point, keep each one on the shelf, then press That’s all.",
-   "controls": "Corners of triangles lie flat round a point, side to side. Fold joins the first corner’s free side to the last one’s: the corners fold to a point, lie flat or overlap. Tap a shape to add its corner, and tap a corner on the board to take it out. Tap the folded corner to lay it flat again. Keep puts the ring on the shelf (a ring turned round or flipped over is the same ring); tap a ring on the shelf to take it off. Press That’s all when the shelf is complete. Undo keeps That’s all’s answer until the shelf changes.",
+   "controls": "Corners of triangles lie flat round a point, side to side. Fold joins the first corner’s free side to the last one’s: the corners fold to a point, lie flat or overlap. Tap a shape to add its corner, and tap a corner on the board to take it out. Tap the folded corner to lay it flat again. Keep puts the ring on the shelf; tap a ring on the shelf to take it off. A ring turned round or flipped over is the same ring, so keep each ring once. Press That’s all when the shelf is complete. Undo keeps That’s all’s answer until the shelf changes.",
    "rules": [
     "Corners of triangles lie flat round the point, side to side, in the order they are added.",
     "Fold joins the first corner’s free side to the last one’s. The corners fold to a point, lie flat or overlap.",
@@ -168,10 +168,11 @@
    "parameters": {
     "mode": "make",
     "menu": [
+     "P",
      "T",
-     "S",
-     "P"
+     "S"
     ],
+    "goal": "point",
     "locked": [
      "S",
      "S",
@@ -182,9 +183,9 @@
    "objective": "With the three squares fixed, fill the other places of a ring of 4 corners so that it folds to a point. If no ring like this does, press Can’t after folding a full ring.",
    "visibleObjective": "Fold a pointed corner.",
    "instruction": "With the three squares fixed, fill the other places of a ring of 4 corners so that it folds to a point. If no ring like this does, press Can’t after folding a full ring.",
-   "controls": "Corners of triangles, squares and pentagons, all with the same side, lie flat round a point, side to side. Fold joins the first corner’s free side to the last one’s: the corners fold to a point, lie flat or overlap. Tap a shape to add its corner, and tap a corner you added to take it out; the corners with a pin are fixed. Fold a full ring. Press Can’t, after a Fold, if no ring like this folds to a point. Undo keeps Can’t’s answer until the ring changes.",
+   "controls": "Corners of pentagons, triangles and squares, all with the same side, lie flat round a point, side to side. Fold joins the first corner’s free side to the last one’s: the corners fold to a point, lie flat or overlap. Tap a shape to add its corner, and tap a corner you added to take it out; the corners with a pin are fixed. Fold a full ring. Press Can’t, after a Fold, if no ring like this folds to a point. Undo keeps Can’t’s answer until the ring changes.",
    "rules": [
-    "Corners of triangles, squares and pentagons, all with the same side, lie flat round the point, side to side, in the order they are added.",
+    "Corners of pentagons, triangles and squares, all with the same side, lie flat round the point, side to side, in the order they are added.",
     "Fold joins the first corner’s free side to the last one’s. The corners fold to a point, lie flat or overlap.",
     "The ring has 4 places. The corners with a pin are fixed; fill the other places.",
     "Press Can’t, after folding a full ring, if no ring like this folds to a point."
@@ -245,7 +246,7 @@
    "objective": "Find every ring that folds to a point, keep each one on the shelf, then press That’s all.",
    "visibleObjective": "Find every ring that folds to a point.",
    "instruction": "Find every ring that folds to a point, keep each one on the shelf, then press That’s all.",
-   "controls": "Corners of squares and pentagons, all with the same side, lie flat round a point, side to side. Fold joins the first corner’s free side to the last one’s: the corners fold to a point, lie flat or overlap. Tap a shape to add its corner, and tap a corner on the board to take it out. Tap the folded corner to lay it flat again. Keep puts the ring on the shelf (a ring turned round or flipped over is the same ring); tap a ring on the shelf to take it off. Press That’s all when the shelf is complete. Undo keeps That’s all’s answer until the shelf changes.",
+   "controls": "Corners of squares and pentagons, all with the same side, lie flat round a point, side to side. Fold joins the first corner’s free side to the last one’s: the corners fold to a point, lie flat or overlap. Tap a shape to add its corner, and tap a corner on the board to take it out. Tap the folded corner to lay it flat again. Keep puts the ring on the shelf; tap a ring on the shelf to take it off. A ring turned round or flipped over is the same ring, so keep each ring once. Press That’s all when the shelf is complete. Undo keeps That’s all’s answer until the shelf changes.",
    "rules": [
     "Corners of squares and pentagons, all with the same side, lie flat round the point, side to side, in the order they are added.",
     "Fold joins the first corner’s free side to the last one’s. The corners fold to a point, lie flat or overlap.",
@@ -305,7 +306,7 @@
    "objective": "Find every ring that lies flat, keep each one on the shelf, then press That’s all.",
    "visibleObjective": "Find every ring that lies flat.",
    "instruction": "Find every ring that lies flat, keep each one on the shelf, then press That’s all.",
-   "controls": "Corners of triangles and squares, all with the same side, lie flat round a point, side to side. Fold joins the first corner’s free side to the last one’s: the corners fold to a point, lie flat or overlap. Tap a shape to add its corner, and tap a corner on the board to take it out. Tap the folded corner to lay it flat again. Keep puts the ring on the shelf (a ring turned round or flipped over is the same ring); tap a ring on the shelf to take it off. Press That’s all when the shelf is complete. Undo keeps That’s all’s answer until the shelf changes.",
+   "controls": "Corners of triangles and squares, all with the same side, lie flat round a point, side to side. Fold joins the first corner’s free side to the last one’s: the corners fold to a point, lie flat or overlap. Tap a shape to add its corner, and tap a corner on the board to take it out. Tap the folded corner to lay it flat again. Keep puts the ring on the shelf; tap a ring on the shelf to take it off. A ring turned round or flipped over is the same ring, so keep each ring once. Press That’s all when the shelf is complete. Undo keeps That’s all’s answer until the shelf changes.",
    "rules": [
     "Corners of triangles and squares, all with the same side, lie flat round the point, side to side, in the order they are added.",
     "Fold joins the first corner’s free side to the last one’s. The corners fold to a point, lie flat or overlap.",
@@ -345,7 +346,7 @@
   {
    "id": "corners-ring-05",
    "number": 5,
-   "title": "Two pentagons",
+   "title": "Two triangles",
    "difficulty_level": "medium",
    "familyTitle": "Corners",
    "libraryFamily": "corners",
@@ -357,39 +358,40 @@
    "parameters": {
     "mode": "make",
     "menu": [
-     "T",
      "S",
-     "P"
-    ],
-    "locked": [
      "P",
-     "P"
+     "T"
     ],
-    "count": 4
+    "goal": "flat",
+    "locked": [
+     "T",
+     "T"
+    ],
+    "count": 5
    },
-   "objective": "With the two pentagons fixed, fill the other places of a ring of 4 corners so that it folds to a point. If no ring like this does, press Can’t after folding a full ring.",
-   "visibleObjective": "Fold a pointed corner.",
-   "instruction": "With the two pentagons fixed, fill the other places of a ring of 4 corners so that it folds to a point. If no ring like this does, press Can’t after folding a full ring.",
-   "controls": "Corners of triangles, squares and pentagons, all with the same side, lie flat round a point, side to side. Fold joins the first corner’s free side to the last one’s: the corners fold to a point, lie flat or overlap. Tap a shape to add its corner, and tap a corner you added to take it out; the corners with a pin are fixed. Fold a full ring. Press Can’t, after a Fold, if no ring like this folds to a point. Undo keeps Can’t’s answer until the ring changes.",
+   "objective": "With the two triangles fixed, fill the other places of a ring of 5 corners so that it lies flat. If no ring like this does, press Can’t after folding a full ring.",
+   "visibleObjective": "Make a ring that lies flat.",
+   "instruction": "With the two triangles fixed, fill the other places of a ring of 5 corners so that it lies flat. If no ring like this does, press Can’t after folding a full ring.",
+   "controls": "Corners of squares, pentagons and triangles, all with the same side, lie flat round a point, side to side. Fold joins the first corner’s free side to the last one’s: the corners fold to a point, lie flat or overlap. Tap a shape to add its corner, and tap a corner you added to take it out; the corners with a pin are fixed. Fold a full ring. Press Can’t, after a Fold, if no ring like this lies flat. Undo keeps Can’t’s answer until the ring changes.",
    "rules": [
-    "Corners of triangles, squares and pentagons, all with the same side, lie flat round the point, side to side, in the order they are added.",
+    "Corners of squares, pentagons and triangles, all with the same side, lie flat round the point, side to side, in the order they are added.",
     "Fold joins the first corner’s free side to the last one’s. The corners fold to a point, lie flat or overlap.",
-    "The ring has 4 places. The corners with a pin are fixed; fill the other places.",
-    "Press Can’t, after folding a full ring, if no ring like this folds to a point."
+    "The ring has 5 places. The corners with a pin are fixed; fill the other places.",
+    "Press Can’t, after folding a full ring, if no ring like this lies flat."
    ],
-   "idea": "Two pentagons leave less than two squares’ room; only the two smallest corners fit.",
+   "idea": "A flat ring makes a whole turn exactly. Two triangles leave 240°: three more triangles fall short and fold up, three squares go past, and two squares with a triangle fill it, so the smallest corners everywhere are not the answer here.",
    "prerequisites": "Fold a ring and see whether it overlaps, lies flat or leaves a gap. The hints use degrees (60, 90 and 108).",
    "hints": [
-    "Fill both places and press Fold. If the corners overlap, which one could be smaller?",
-    "Two pentagon corners are 216°. Two more must make less than 144°: a square and a triangle make 150°, too much.",
-    "Add two triangles and press Fold."
+    "Fill the three places and press Fold. Does the ring fold up, lie flat or overlap?",
+    "Two triangles make 120°, so the other three corners must make exactly 240°. Three triangles make 180°, and each square in place of a triangle adds 30°.",
+    "Two squares and a triangle make 240°. Add them and press Fold."
    ],
    "parent": {
-    "notice": "Whether your child swaps one corner at a time after an overlap, or starts again.",
-    "prompt": "How did you know which corner to change?",
-    "explanation": "Two pentagons make 216°, so the other two corners must make less than 144°. Two triangles make 120° (total 336°) and fold; a triangle and a square make 150° (366°) and overlap; anything bigger overlaps more.",
-    "extension": "Which solid has two pentagons and two triangles at every corner, alternating? (The icosidodecahedron.)",
-    "connection": "The icosidodecahedron’s corner is triangle, pentagon, triangle, pentagon; here the pentagons sit side by side, which still folds.",
+    "notice": "Whether your child changes one corner at a time after a fold, and in which direction: a ring that folds up needs a bigger corner, one that overlaps a smaller one.",
+    "prompt": "The ring folded up. Which corner would you make bigger?",
+    "explanation": "Two triangle corners make 120°, so the three free corners must make exactly 240° for the ring to lie flat. Three triangles make 180° and fold up; each square in place of a triangle adds 30°, so two squares and a triangle make 240°. A pentagon never fits: with one, the other two would need 132°, and two of 60° and 90° make 120°, 150° or 180°. The smallest corners everywhere fold to a point, so in this puzzle the smallest filling is not the answer.",
+    "extension": "The three free corners go in three orders. Which of the rings you get are the same ring? (Triangle, triangle, square, square, triangle and triangle, triangle, triangle, square, square are one ring, with the squares side by side; triangle, triangle, square, triangle, square has a triangle between the squares. These are the two orders in Rings 4.)",
+    "connection": "Flat rings are the corners of floor tilings by squares and triangles; Rings 4 finds them all.",
     "sourceIds": [
      "corners-week56",
      "corners-card56",
@@ -399,16 +401,17 @@
    },
    "solution": {
     "fills": [
-     "TT"
+     "SST"
     ],
     "witness": [
-     "P",
-     "P",
      "T",
+     "T",
+     "S",
+     "S",
      "T"
     ]
    },
-   "provenance": "New, after Week 56 Problem 9’s pentagon corners."
+   "provenance": "New: Week 56 Grades 2–5 Problem 3 (“Which close flat with no gap?”) with two triangles fixed."
   },
   {
    "id": "corners-ring-06",
@@ -425,10 +428,11 @@
    "parameters": {
     "mode": "make",
     "menu": [
-     "T",
+     "P",
      "S",
-     "P"
+     "T"
     ],
+    "goal": "point",
     "locked": [
      "S",
      "S"
@@ -438,9 +442,9 @@
    "objective": "With the two squares fixed, fill the other places of a ring of 5 corners so that it folds to a point. If no ring like this does, press Can’t after folding a full ring.",
    "visibleObjective": "Fold a pointed corner.",
    "instruction": "With the two squares fixed, fill the other places of a ring of 5 corners so that it folds to a point. If no ring like this does, press Can’t after folding a full ring.",
-   "controls": "Corners of triangles, squares and pentagons, all with the same side, lie flat round a point, side to side. Fold joins the first corner’s free side to the last one’s: the corners fold to a point, lie flat or overlap. Tap a shape to add its corner, and tap a corner you added to take it out; the corners with a pin are fixed. Fold a full ring. Press Can’t, after a Fold, if no ring like this folds to a point. Undo keeps Can’t’s answer until the ring changes.",
+   "controls": "Corners of pentagons, squares and triangles, all with the same side, lie flat round a point, side to side. Fold joins the first corner’s free side to the last one’s: the corners fold to a point, lie flat or overlap. Tap a shape to add its corner, and tap a corner you added to take it out; the corners with a pin are fixed. Fold a full ring. Press Can’t, after a Fold, if no ring like this folds to a point. Undo keeps Can’t’s answer until the ring changes.",
    "rules": [
-    "Corners of triangles, squares and pentagons, all with the same side, lie flat round the point, side to side, in the order they are added.",
+    "Corners of pentagons, squares and triangles, all with the same side, lie flat round the point, side to side, in the order they are added.",
     "Fold joins the first corner’s free side to the last one’s. The corners fold to a point, lie flat or overlap.",
     "The ring has 5 places. The corners with a pin are fixed; fill the other places.",
     "Press Can’t, after folding a full ring, if no ring like this folds to a point."
@@ -448,7 +452,7 @@
    "idea": "The smallest corners in every free place decide it: two squares and three triangles already make a whole turn, so no ring like this folds.",
    "prerequisites": "Fold a ring and see whether it overlaps, lies flat or leaves a gap. The hints use degrees (60, 90 and 108).",
    "hints": [
-    "Fill the three places and press Fold. Could any corner be smaller?",
+    "Fill the three places and press Fold. Then change one corner and fold again.",
     "Triangles are the smallest corners. Two squares and three triangles make exactly 360° and lie flat.",
     "A bigger corner only adds more, so no ring like this folds to a point. Fold two squares and three triangles, then press Can’t."
    ],
@@ -504,7 +508,7 @@
    "objective": "Find every ring of 5 corners that folds to a point, keep each one on the shelf, then press That’s all.",
    "visibleObjective": "Find every ring of 5 corners that folds to a point.",
    "instruction": "Find every ring of 5 corners that folds to a point, keep each one on the shelf, then press That’s all.",
-   "controls": "Corners of triangles, squares and pentagons, all with the same side, lie flat round a point, side to side. Fold joins the first corner’s free side to the last one’s: the corners fold to a point, lie flat or overlap. Tap a shape to add its corner, and tap a corner on the board to take it out. Tap the folded corner to lay it flat again. Keep puts the ring on the shelf (a ring turned round or flipped over is the same ring); tap a ring on the shelf to take it off. Press That’s all when the shelf is complete. Undo keeps That’s all’s answer until the shelf changes.",
+   "controls": "Corners of triangles, squares and pentagons, all with the same side, lie flat round a point, side to side. Fold joins the first corner’s free side to the last one’s: the corners fold to a point, lie flat or overlap. Tap a shape to add its corner, and tap a corner on the board to take it out. Tap the folded corner to lay it flat again. Keep puts the ring on the shelf; tap a ring on the shelf to take it off. A ring turned round or flipped over is the same ring, so keep each ring once. Press That’s all when the shelf is complete. Undo keeps That’s all’s answer until the shelf changes.",
    "rules": [
     "Corners of triangles, squares and pentagons, all with the same side, lie flat round the point, side to side, in the order they are added.",
     "Fold joins the first corner’s free side to the last one’s. The corners fold to a point, lie flat or overlap.",
@@ -555,9 +559,10 @@
    "parameters": {
     "mode": "make",
     "menu": [
-     "S",
-     "P"
+     "P",
+     "S"
     ],
+    "goal": "point",
     "locked": [
      "P"
     ],
@@ -566,9 +571,9 @@
    "objective": "With the pentagon fixed, fill the other places of a ring of 4 corners so that it folds to a point. If no ring like this does, press Can’t after folding a full ring.",
    "visibleObjective": "Fold a pointed corner.",
    "instruction": "With the pentagon fixed, fill the other places of a ring of 4 corners so that it folds to a point. If no ring like this does, press Can’t after folding a full ring.",
-   "controls": "Corners of squares and pentagons, all with the same side, lie flat round a point, side to side. Fold joins the first corner’s free side to the last one’s: the corners fold to a point, lie flat or overlap. Tap a shape to add its corner, and tap a corner you added to take it out; the corners with a pin are fixed. Fold a full ring. Press Can’t, after a Fold, if no ring like this folds to a point. Undo keeps Can’t’s answer until the ring changes.",
+   "controls": "Corners of pentagons and squares, all with the same side, lie flat round a point, side to side. Fold joins the first corner’s free side to the last one’s: the corners fold to a point, lie flat or overlap. Tap a shape to add its corner, and tap a corner you added to take it out; the corners with a pin are fixed. Fold a full ring. Press Can’t, after a Fold, if no ring like this folds to a point. Undo keeps Can’t’s answer until the ring changes.",
    "rules": [
-    "Corners of squares and pentagons, all with the same side, lie flat round the point, side to side, in the order they are added.",
+    "Corners of pentagons and squares, all with the same side, lie flat round the point, side to side, in the order they are added.",
     "Fold joins the first corner’s free side to the last one’s. The corners fold to a point, lie flat or overlap.",
     "The ring has 4 places. The corners with a pin are fixed; fill the other places.",
     "Press Can’t, after folding a full ring, if no ring like this folds to a point."
@@ -576,7 +581,7 @@
    "idea": "With squares as the smallest corner, a pentagon and three squares already go past a whole turn.",
    "prerequisites": "Fold a ring and see whether it overlaps, lies flat or leaves a gap. The hints use degrees (60, 90 and 108).",
    "hints": [
-    "Fill the three places and press Fold. Could any corner be smaller?",
+    "Fill the three places and press Fold. Then change one corner and fold again.",
     "Squares are the smallest corners here. A pentagon and three squares make 378°, past a whole turn.",
     "A bigger corner only adds more, so no ring like this folds to a point. Fold a pentagon and three squares, then press Can’t."
    ],
@@ -629,7 +634,7 @@
    "objective": "Find every ring that folds to a point, keep each one on the shelf, then press That’s all.",
    "visibleObjective": "Find every ring that folds to a point.",
    "instruction": "Find every ring that folds to a point, keep each one on the shelf, then press That’s all.",
-   "controls": "Corners of triangles and squares, all with the same side, lie flat round a point, side to side. Fold joins the first corner’s free side to the last one’s: the corners fold to a point, lie flat or overlap. Tap a shape to add its corner, and tap a corner on the board to take it out. Tap the folded corner to lay it flat again. Keep puts the ring on the shelf (a ring turned round or flipped over is the same ring); tap a ring on the shelf to take it off. Press That’s all when the shelf is complete. Undo keeps That’s all’s answer until the shelf changes.",
+   "controls": "Corners of triangles and squares, all with the same side, lie flat round a point, side to side. Fold joins the first corner’s free side to the last one’s: the corners fold to a point, lie flat or overlap. Tap a shape to add its corner, and tap a corner on the board to take it out. Tap the folded corner to lay it flat again. Keep puts the ring on the shelf; tap a ring on the shelf to take it off. A ring turned round or flipped over is the same ring, so keep each ring once. Press That’s all when the shelf is complete. Undo keeps That’s all’s answer until the shelf changes.",
    "rules": [
     "Corners of triangles and squares, all with the same side, lie flat round the point, side to side, in the order they are added.",
     "Fold joins the first corner’s free side to the last one’s. The corners fold to a point, lie flat or overlap.",
@@ -819,11 +824,19 @@
      "H": [
       33,
       33
+     ],
+     "M": [
+      50,
+      94
      ]
     },
     "edges": [
      [
       "A",
+      "M"
+     ],
+     [
+      "M",
       "B"
      ],
      [
@@ -882,19 +895,19 @@
     "A tree is a drawing with every dot joined and no closed region.",
     "Erase lines until a tree is left. Dots cut off from the others turn red."
    ],
-   "idea": "Each erasure takes away one line and one region, so dots − lines + regions stays 8 − 12 + 5 = 1 all the way to the tree (8 − 7 + 0). Put the missing face back: V − E + F = 2.",
+   "idea": "Problem 6 redraws the cube with a dot along one edge. That dot has only two lines, so erasing both cuts it off, and it still takes one erasure per region: 9 − 13 + 5 = 1 before and 9 − 8 + 0 = 1 after. Put the missing face back: V − E + F = 2.",
    "prerequisites": "See whether every dot can still be reached along the lines, and whether a region is closed. Counting dots, lines and regions is for the grown-up conversation afterwards.",
    "hints": [
     "Try one outside line first. Which shaded region joins the outside? Keep every dot joined.",
-    "A line with the same white space on both sides is the only way between its dots now: leave it.",
-    "Erase the four lines of the outer square, then one line of the inner square."
+    "The dot on the bottom side has only two lines. Erase one of them at most.",
+    "Erase the left half of the bottom side, the other three sides of the outer square, then the bottom line of the inner square."
    ],
    "parent": {
-    "notice": "Whether your child erases a line that cuts dots off and then draws it back, and whether they peel from the outside or erase inner lines first.",
-    "prompt": "When you erase a line on a loop, what happens to the regions on its two sides?",
-    "explanation": "The opened cube has 8 dots, 12 lines and 5 shaded regions. A line with different spaces on its sides lies on a loop: erasing it joins the two spaces into one, so one region goes and every dot stays joined. A tree has no loop and one line fewer than dots, 7 here, so 5 erasures are needed and 1 = 8 − 12 + 5 throughout. Guide p. 7’s route erases AB, BC, CD, DA and then ab (here the inner square’s bottom line).",
+    "notice": "Whether your child erases both halves of the bottom side and sees the dot between them cut off, and whether they peel from the outside or erase inner lines first.",
+    "prompt": "The extra dot brought one more dot and one more line. Did it change how many lines you erased?",
+    "explanation": "Problem 6 puts a dot along one edge of the cube: 9 corners, 13 edges and 6 faces, still V − E + F = 2. Seen through one face, that is 9 dots, 13 lines and 5 shaded regions. A line with different spaces on its sides lies on a loop: erasing it joins the two spaces, so one region goes and every dot stays joined. The new dot has two lines on the same loop; once one is erased, the other is the only way to that dot. A tree on 9 dots has 8 lines, so 5 erasures are needed, one per region, and 9 − 13 + 5 = 1 throughout. Guide p. 7’s route (AB, BC, CD, DA, then ab) works with one half of AB.",
     "extension": "Erase only inner lines first. Does it still take five erasures? (Yes: every erasure on a loop removes one region, whichever two spaces it joins.)",
-    "connection": "The lines erased join the faces into a second tree (each face a dot, each erased line a link): F − 1 erased lines and V − 1 kept lines make E, which is Euler’s formula again.",
+    "connection": "Redrawing a surface changes its counts but not V − E + F (Problem 6); the erasures explain why, for every drawing.",
     "sourceIds": [
      "corners-week56",
      "corners-card56",
@@ -905,17 +918,17 @@
    "solution": {
     "route": [
      0,
-     1,
      2,
      3,
-     4
+     4,
+     5
     ],
     "erasures": 5,
-    "dots": 8,
-    "lines": 12,
+    "dots": 9,
+    "lines": 13,
     "regions": 5
    },
-   "provenance": "Week 56 Grades 4–5 Problem 7: the opened cube (“Can an opened drawing be changed into a tree while keeping all its vertices connected?”), with guide p. 7’s route."
+   "provenance": "Week 56 Grades 4–5 Problem 7: the opened cube, with Problem 6’s last change (one point along an edge, here the bottom side) and guide p. 7’s route."
   },
   {
    "id": "corners-tree-03",
@@ -1006,30 +1019,32 @@
       "F"
      ]
     ],
-    "aspect": 1.12
+    "aspect": 1.12,
+    "leaves": true
    },
-   "objective": "Erase lines of the opened drawing until a tree is left: every dot still joined and no shaded region.",
-   "visibleObjective": "Erase lines until a tree is left.",
-   "instruction": "Erase lines of the opened drawing until a tree is left: every dot still joined and no shaded region.",
-   "controls": "An opened drawing is a solid seen through one face that has been taken out: its shaded regions are the other faces. Erasing a line takes it away, and a tree has every dot joined with no closed region left. Tap a line to erase it, and tap an erased line to draw it back. Dots cut off from the others turn red.",
+   "objective": "Erase lines of the opened drawing until a tree is left, then take off end dots, each with its one line, until one dot is left.",
+   "visibleObjective": "Erase lines down to a tree, then take off end dots until one dot is left.",
+   "instruction": "Erase lines of the opened drawing until a tree is left, then take off end dots, each with its one line, until one dot is left.",
+   "controls": "An opened drawing is a solid seen through one face that has been taken out: its shaded regions are the other faces. Erasing a line takes it away, and a tree has every dot joined with no closed region left. Tap a line to erase it, and tap an erased line to draw it back. Dots cut off from the others turn red. Once a tree is left, tap an end dot to take it off with its line.",
    "rules": [
     "An opened drawing is a solid seen through one face that has been taken out. Its dots and lines are the solid’s corners and edges; its shaded regions are the other faces.",
     "A tree is a drawing with every dot joined and no closed region.",
-    "Erase lines until a tree is left. Dots cut off from the others turn red."
+    "Erase lines until a tree is left. Dots cut off from the others turn red.",
+    "An end dot has one line. Once a tree is left, the lines stay as they are: take off end dots, each with its line, until one dot is left."
    ],
-   "idea": "Seven regions and twelve lines, but the same rule: erase lines that lie on a loop. Six dots need five lines, so seven erasures, one per region.",
-   "prerequisites": "See whether every dot can still be reached along the lines, and whether a region is closed. Counting dots, lines and regions is for the grown-up conversation afterwards.",
+   "idea": "Erase down to a tree, one erasure per region, then take off end dots, each with its one line, until one dot is left: a tree has one line fewer than dots, and no step changes dots − lines + regions.",
+   "prerequisites": "See whether every dot can still be reached along the lines, whether a region is closed, and which dots have one line. Counting dots, lines and regions is for the grown-up conversation afterwards.",
    "hints": [
     "Peel from the outside: each line you erase should open one shaded region to the outside.",
-    "A line with the outside on both sides is the only way between its dots now: leave it.",
-    "Erase the three outside lines, then one line from each corner dot to the inner triangle, then one line of the inner triangle."
+    "A line with the outside on both sides is the only way between its dots now: leave it. Once a tree is left, look for a dot with one line.",
+    "Erase the three outside lines, one line from each corner dot to the inner triangle and one line of the inner triangle. Then take off end dots one at a time."
    ],
    "parent": {
-    "notice": "Whether your child keeps track of which dots are still joined as the drawing thins out.",
-    "prompt": "How many lines will be left when you are done?",
-    "explanation": "The octahedron has 6 corners, 12 edges and 8 faces; seen through one face, 6 dots, 12 lines and 7 shaded regions. A tree on 6 dots has 5 lines, so 7 lines must go, one for each region: 6 − 12 + 7 = 1 = 6 − 5 + 0.",
-    "extension": "Can a tree keep all three outside lines? (No: they make a loop.)",
-    "connection": "The card’s fix 3 adds this drawing, with the prism and the square pyramid, to Problem 7.",
+    "notice": "Whether your child keeps track of which dots are still joined as the drawing thins out, and whether they see that an end dot always comes off with exactly one line.",
+    "prompt": "When you take off an end dot, what happens to the dots and the lines?",
+    "explanation": "The octahedron has 6 corners, 12 edges and 8 faces; seen through one face, 6 dots, 12 lines and 7 shaded regions. Seven erasures, one per region, leave a tree with 5 lines. Taking off an end dot takes one dot and one line and leaves a tree, so dots and lines go down together until 1 dot and no line are left: a tree has one line fewer than dots. No step changes dots − lines + regions: 6 − 12 + 7 = 1 at the start and 1 − 0 + 0 = 1 at the end. With the missing face back, V − E + F = 2 (guide p. 7).",
+    "extension": "Why is there always an end dot to take off? (Walk along the tree’s lines without going back. With no loop you never come back to a dot, so the walk has to stop, and it stops at an end dot.) Can a tree keep all three outside lines? (No: they make a loop.)",
+    "connection": "Guide p. 7’s leaf argument for E = V − 1, on the drawing the card’s fix 3 adds.",
     "sourceIds": [
      "corners-week56",
      "corners-card56",
@@ -1050,9 +1065,10 @@
     "erasures": 7,
     "dots": 6,
     "lines": 12,
-    "regions": 7
+    "regions": 7,
+    "endDots": 5
    },
-   "provenance": "Week 56 card fix 3: the octahedron’s opened drawing (6 dots, 12 lines, 7 regions) after Problem 7."
+   "provenance": "Week 56 card fix 3: the octahedron’s opened drawing (6 dots, 12 lines, 7 regions) after Problem 7, then guide p. 7’s third hint and proof (remove leaf dots one by one with their single edges)."
   }
  ]
 }

@@ -3,9 +3,11 @@
    flat round a point with the turn's circle dashed, the gap left over shaded
    in pine, corners past a whole turn faded with a red edge and the overlap
    marked in red; the folded corner drawn in shaded faces; a shelf of small
-   rings under the board. The trees group shades the closed regions of an
-   opened drawing, fades erased lines, marks cut-off dots in red and draws the
-   final tree in pine. Every rule is scoped under the family's root. */
+   rings under the board, with That's all's answer on it, laid out in rows
+   once solved. The trees group tints each closed region of an opened drawing
+   on its own, fades erased lines, marks cut-off dots in red, draws a tree in
+   pine and greys the end dots taken off. Every rule is scoped under the
+   family's root. */
 [data-mechanic-wire="corners"]{--cr-sun:var(--b-sun,#efc76e);--cr-sky:var(--b-sky,#9cc9de);--cr-rose:#e7a28f;--cr-ink:var(--b-ink,#294439);--cr-pine:var(--b-pine,#31533e);--cr-ochre:var(--b-ochre,#b38840);--cr-bad:var(--b-bad,#a9503a);display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
 
 /* Buttons. */
@@ -53,8 +55,10 @@
 @media (prefers-reduced-motion:no-preference){[data-mechanic-wire="corners"] .cr-folded{animation:cr-fold .35s ease-out;transform-origin:center}}
 @keyframes cr-fold{from{opacity:.25;transform:scale(.88)}}
 
-/* The shelf: each kept ring a button that takes it off. */
-[data-mechanic-wire="corners"] .cr-shelf{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;max-width:min(100%,520px);margin:0;padding:0;list-style:none}
+/* The shelf: each kept ring a button that takes it off, in a box that holds That's all's answer. */
+[data-mechanic-wire="corners"] .cr-shelf-box{display:flex;flex-direction:column;align-items:center;gap:.45rem;box-sizing:border-box;max-width:min(100%,540px);padding:.5rem .6rem .6rem;border:1px solid var(--b-line,#d0d6bd);border-radius:14px;background:rgba(255,253,245,.55)}
+[data-mechanic-wire="corners"] .cr-shelf-told{margin:0;font-weight:600;color:var(--cr-bad);text-align:center}
+[data-mechanic-wire="corners"] .cr-shelf{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;max-width:100%;margin:0;padding:0;list-style:none}
 [data-mechanic-wire="corners"] .cr-shelf-item{display:block;width:62px;height:62px;padding:3px;border-radius:10px;background:var(--b-card,#fffdf5);border:1px solid var(--b-line,#d0d6bd);box-sizing:border-box}
 [data-mechanic-wire="corners"] button.cr-shelf-item{cursor:pointer;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
 [data-mechanic-wire="corners"] button.cr-shelf-item:focus-visible{outline:3px dashed var(--cr-ochre);outline-offset:2px}
@@ -64,13 +68,31 @@
 [data-mechanic-wire="corners"] .cr-mini .cr-piece{stroke-width:1.2px}
 [data-mechanic-wire="corners"] .cr-mini .cr-face{stroke-width:1px}
 [data-mechanic-wire="corners"].solved .cr-shelf-item{border-color:var(--cr-pine)}
+/* The solved shelf: a row for each number of corners, ending with the first ring that misses. */
+[data-mechanic-wire="corners"] .cr-cases{gap:0;padding-top:.3rem;padding-bottom:.3rem}
+[data-mechanic-wire="corners"] .cr-row{display:flex;flex-wrap:nowrap;align-self:stretch;justify-content:center;gap:4px;margin:0;padding:.3rem 0;list-style:none}
+[data-mechanic-wire="corners"] .cr-row + .cr-row{border-top:1px dashed var(--b-line,#d0d6bd)}
+[data-mechanic-wire="corners"] .cr-cases .cr-shelf-item{width:44px;height:44px;padding:2px}
+@media (min-width:520px){[data-mechanic-wire="corners"] .cr-cases .cr-shelf-item{width:58px;height:58px;padding:3px}[data-mechanic-wire="corners"] .cr-row{gap:6px}}
+[data-mechanic-wire="corners"].solved .cr-shelf-item.misses{border:1.6px dashed var(--cr-bad);opacity:.72;background:transparent}
 
 /* Trees: an opened drawing. */
 [data-mechanic-wire="corners"] .gb-board.ct-map{max-width:min(100%,340px);max-height:52vh}
-[data-mechanic-wire="corners"] .ct-region{fill:rgba(156,201,222,.42);stroke:none;pointer-events:none}
+[data-mechanic-wire="corners"] .ct-region{fill:rgba(156,201,222,.5);stroke:none;pointer-events:none}
+[data-mechanic-wire="corners"] .ct-region.ct-tint-1{fill:rgba(239,199,110,.5)}
+[data-mechanic-wire="corners"] .ct-region.ct-tint-2{fill:rgba(231,162,143,.5)}
+[data-mechanic-wire="corners"] .ct-region.ct-tint-3{fill:rgba(160,203,146,.55)}
+[data-mechanic-wire="corners"] .ct-region.ct-tint-4{fill:rgba(190,168,218,.5)}
+[data-mechanic-wire="corners"] .ct-region.ct-tint-5{fill:rgba(240,176,112,.5)}
+[data-mechanic-wire="corners"] .ct-region.ct-tint-6{fill:rgba(126,201,190,.5)}
 [data-mechanic-wire="corners"] .ct-map .gb-node .gb-dot{fill:var(--cr-ink);stroke:var(--cr-ink)}
 [data-mechanic-wire="corners"] .ct-map .gb-node.cut .gb-dot{fill:#f3d5cc;stroke:var(--cr-bad);stroke-width:3px}
 [data-mechanic-wire="corners"] .ct-map .gb-line{stroke:var(--cr-ink);stroke-width:3px}
 [data-mechanic-wire="corners"] .ct-map .gb-edge.erased .gb-line{stroke:#c9d0bb;stroke-width:2px;stroke-dasharray:3 5}
 [data-mechanic-wire="corners"] .ct-map .gb-edge.hinted .gb-line{stroke:var(--cr-ochre);stroke-width:6px;stroke-dasharray:7 5}
 [data-mechanic-wire="corners"] .ct-map .gb-stroke.tree{stroke:var(--cr-pine);stroke-width:7px}
+/* End dots taken off, with their lines, stay faint; the dots left are the controls. */
+[data-mechanic-wire="corners"] .ct-map .gb-edge.gone .gb-line{stroke:#dfe3d3;stroke-width:1.5px}
+[data-mechanic-wire="corners"] .ct-map .gb-node.gone .gb-dot{fill:#eef0e6;stroke:#d3d9c6;stroke-width:1.5px}
+[data-mechanic-wire="corners"] .ct-map.ct-leafing{cursor:pointer}
+[data-mechanic-wire="corners"] .ct-map .gb-node.hinted .gb-reach{stroke:var(--cr-ochre);stroke-width:3.5px}

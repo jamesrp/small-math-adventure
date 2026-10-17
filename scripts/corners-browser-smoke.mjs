@@ -2,13 +2,16 @@
 // corners by tapping shapes, taking one out by a tap and by Enter, a tap on
 // two overlapping corners going to the one on top, a tap on a pinned corner
 // doing nothing, Fold and laying the corner flat again, Keep shelving with no
-// verdict, That's all judging the shelf with its refusals kept through Undo,
-// a shelf ring taken off, Can't after a fold with its refusal kept through
-// Undo and then accepted on the smallest ring, hints up to Apply hint, the
-// opened drawings with taps near a dot going to the nearest line, a tap on a
-// dot doing nothing, Enter on a line, cut-off dots and a line drawn back, the
-// playground, where focus lands after moves and claims, the busiest board on
-// a 375 × 667 phone, and no page overflow. Same environment variables as the
+// verdict (a turned copy too), That's all judging the shelf with its answer
+// on the shelf, kept through Undo, marking one thing at a time and finding a
+// ring kept twice, a shelf ring taken off, the solved shelf in rows, Can't
+// after a fold with its one refusal (nothing marked) kept through Undo and
+// then accepted on the smallest ring, hints up to Apply hint, the opened
+// drawings with taps near a dot going to the nearest line, a tap on a dot
+// doing nothing, Enter on a line, cut-off dots and a line drawn back, end
+// dots taken off a tree by a tap near them and by Enter, the playground,
+// where focus lands after moves and claims, the busiest board on a 375 × 667
+// phone, and no page overflow. Same environment variables as the
 // other browser suites (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL,
 // TEST_PHONE=1 for a phone with touch); SHOTS_DIR moves the screenshots out
 // of test-results/corners/.
@@ -31,6 +34,9 @@ const open = async id => { await page.goto(`${base}/#play/${id}`); await page.lo
 const done = () => page.locator('#completion-heading').waitFor({timeout: 5000});
 const fit = async label => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `${label}: no page overflow`);
 const told = async () => (await page.locator('.cr-told').count()) ? page.locator('.cr-told').innerText() : null;
+const shelfTold = async () => (await page.locator('.cr-shelf-box .cr-shelf-told').count()) ? page.locator('.cr-shelf-box .cr-shelf-told').innerText() : null;
+const ringedCount = () => page.locator('.cr-shelf-item.ringed').count();
+const clearRing = async id => { if (await page.locator('[data-cr-unfold]').count()) await tap(page.locator('[data-cr-unfold]')); const ring = (await board(id)).ring; for (let i = ring.length - 1; i >= 0; i--) await tapAt(await pieceAt(i)); };
 const button = name => page.getByRole('button', {name, exact: true});
 const NAME = {T: 'triangle', S: 'square', P: 'pentagon'};
 const tapAt = async ([x, y]) => { if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); await page.waitForTimeout(phone ? 400 : 30); };
@@ -47,7 +53,7 @@ const focusOk = async label => {
   const f = await focused();
   assert.notEqual(f.tag, 'BODY', `${label}: focus is not on the page body`);
   assert.ok(!['That’s all', 'Can’t'].includes(f.text), `${label}: focus is not on a claim (${f.text})`);
-  assert.match(f.cls + f.focus, /cr-add|cr-move|cr-piece|cr-folded|cr-shelf|gb-hit|completion/, `${label}: focus on the board or a move control (${f.cls} ${f.focus})`);
+  assert.match(f.cls + f.focus, /cr-add|cr-move|cr-piece|cr-folded|cr-shelf|gb-hit|gb-node|completion/, `${label}: focus on the board or a move control (${f.cls} ${f.focus})`);
 };
 const undoButton = () => page.locator('[data-action="undo"]').click();
 try {
@@ -82,14 +88,18 @@ try {
   await button('Keep').click();
   assert.equal((await board(R1)).shelf.length, 1, 'Keep shelves the ring');
   assert.equal(await told(), null, 'with no verdict');
+  assert.equal(await shelfTold(), null);
+  assert.equal(await button('Keep').isDisabled(), true, 'Keep waits for the ring to change');
   await button('That’s all').click();
-  assert.equal(await told(), 'There is another.');
+  assert.equal(await shelfTold(), 'There is another.', 'the answer sits on the shelf');
+  assert.equal(await told(), null, 'not under the board');
+  assert.equal(await ringedCount(), 0);
   assert.equal(await button('That’s all').isDisabled(), true, 'That’s all waits for the shelf to change');
   await focusOk('after a refused That’s all');
   await shot('another');
   await undoButton();
   assert.deepEqual((await board(R1)).refused, {kind: 'more'}, 'Undo keeps the refusal');
-  assert.equal(await told(), null, 'and the words go, so the board changes');
+  assert.equal(await shelfTold(), null, 'and the words go, so the board changes');
   assert.equal(await button('That’s all').isDisabled(), true, 'still locked');
   // Enter on a corner takes it out.
   await page.locator('.cr-board [data-cr-take="2"]').focus(); await page.keyboard.press('Enter');
@@ -100,21 +110,47 @@ try {
   await add('T'); await button('Keep').click();
   assert.equal((await board(R1)).shelf.length, 4);
   await button('That’s all').click();
-  assert.equal(await told(), 'This one lies flat.');
-  assert.equal(await page.locator('.cr-shelf-item.ringed').count(), 1, 'the ring is marked on the shelf');
-  assert.ok(!/\d/.test(await told()), 'no numbers');
+  assert.equal(await shelfTold(), 'This one lies flat.');
+  assert.equal(await ringedCount(), 1, 'the ring is marked on the shelf');
+  assert.ok(!/\d/.test(await shelfTold()), 'no numbers');
   await tap(page.locator('.cr-shelf-item.ringed'));
   assert.equal((await board(R1)).shelf.length, 3, 'a tap takes a ring off the shelf');
   await focusOk('after taking a ring off');
   await button('That’s all').click();
   await done(); await fit('find every solved');
-  assert.equal(await page.locator('.cr-shelf .cr-face').count() > 0, true, 'the shelf drawn folded');
+  assert.equal(await page.locator('.cr-cases .cr-row').count(), 4, 'the solved shelf in rows: three, four, five and six corners');
+  assert.equal(await page.locator('.cr-cases .cr-face').count() > 0, true, 'its rings drawn folded');
+  assert.equal(await page.locator('.cr-cases .cr-shelf-item.misses').count(), 1, 'six triangles end it');
   await shot('every-solved');
 
   // Rings 9: a tap where two corners overlap goes to the one on top, and the
   // busiest board fits a phone.
   const R9 = 'corners-ring-09';
   await open(R9);
+  // The review's case: SSTT and SSSS kept, That's all, then TSST kept.
+  await add('SSTT'); await button('Keep').click();
+  await clearRing(R9); await add('SSSS'); await button('Keep').click();
+  await button('That’s all').click();
+  assert.equal(await shelfTold(), 'This one lies flat.');
+  assert.equal(await ringedCount(), 1);
+  await clearRing(R9);
+  assert.equal(await shelfTold(), 'This one lies flat.', 'the shelf’s answer stays while the board changes');
+  await add('TSST'); await button('Keep').click();
+  assert.equal((await board(R9)).shelf.length, 3, 'a turned copy goes on the shelf');
+  assert.equal(await shelfTold(), null, 'its answer goes with the old shelf');
+  assert.equal(await ringedCount(), 0, 'nothing marked');
+  await button('That’s all').click();
+  assert.equal(await shelfTold(), 'This one lies flat.');
+  assert.equal(await ringedCount(), 1, 'one ring marked');
+  await tap(page.locator('.cr-shelf-item.ringed'));
+  await button('That’s all').click();
+  assert.equal(await shelfTold(), 'These two are the same ring.');
+  assert.equal(await ringedCount(), 2, 'the pair marked');
+  await shot('same-ring');
+  await tap(page.locator('.cr-shelf-item.ringed').last());
+  await tap(page.locator('.cr-shelf-item').first());
+  assert.equal((await board(R9)).shelf.length, 0);
+  await clearRing(R9);
   await add('SSSTT');
   assert.equal(await page.locator('.cr-board .cr-piece.past').count(), 1, 'the corner past a whole turn is faded');
   // At 15° the last triangle lies over the first square.
@@ -148,12 +184,12 @@ try {
   await button('Fold').click();
   assert.equal(await told(), 'They overlap.');
   await button('Can’t').click();
-  assert.equal(await told(), 'This corner could be smaller.');
-  assert.equal(await page.locator('.cr-board [data-ringed]').count(), 1, 'the corner is marked');
+  assert.equal(await told(), 'That ring doesn’t show it.');
+  assert.equal(await page.locator('[data-ringed], .ringed').count(), 0, 'nothing is marked');
   await focusOk('after a refused Can’t');
-  await shot('smaller');
+  await shot('cant-refused');
   await undoButton();
-  assert.equal((await board(R6)).refused.kind, 'smaller', 'Undo keeps Can’t’s answer');
+  assert.deepEqual((await board(R6)).refused, {kind: 'no'}, 'Undo keeps Can’t’s answer');
   assert.equal(await told(), 'They overlap.', 'and the board changes');
   assert.equal(await button('Can’t').isDisabled(), true);
   await tapAt(await pieceAt(4)); await tapAt(await pieceAt(3));
@@ -167,12 +203,22 @@ try {
   assert.equal(await told(), 'Even the smallest corners make a whole turn.');
   await shot('cant');
 
-  // Rings 5: the first hint, then hints up to Apply hint.
+  // Rings 2: the same refusal where a ring can fold.
+  const R2 = 'corners-ring-02';
+  await open(R2);
+  await add('P'); await button('Fold').click(); await button('Can’t').click();
+  assert.equal(await told(), 'That ring doesn’t show it.', 'the same words on a puzzle that can be done');
+  assert.equal(await page.locator('[data-ringed]').count(), 0);
+
+  // Rings 5: a flat ring, the first hint, then hints up to Apply hint.
   const R5 = 'corners-ring-05';
   await open(R5);
+  assert.equal(await page.locator('.puzzle-goal').innerText(), 'Make a ring that lies flat.');
   await button('Hint').click();
   assert.equal(await page.locator('.hint-card').innerText(), byId(R5).hints[0], 'the first hint is the puzzle’s own');
   await add('SP');
+  await button('Hint').click();
+  assert.equal(await page.locator('.hint-card').innerText(), 'Take out a pentagon.', 'the words name a shape before anything is marked');
   for (let i = 0; i < 3 && !(await button('Apply hint').count()); i++) await button('Hint').click();
   assert.equal(await page.locator('.cr-board .cr-piece.hinted').count(), 1, 'the hint marks a corner to take out');
   for (let i = 0; i < 8 && !(await page.locator('#completion-heading').count()); i++) await button('Apply hint').click();
@@ -181,37 +227,65 @@ try {
   // Trees 2: taps near a dot go to the nearest line; a dot is not a control.
   const T2 = 'corners-tree-02', q = byId(T2).parameters, H = 100 / q.aspect, at = id => [q.nodes[id][0], q.nodes[id][1] * H / 100];
   await open(T2); await fit('tree');
+  const tints = async () => page.locator('.ct-region').evaluateAll(els => els.map(e => e.getAttribute('class')));
   assert.equal(await page.locator('.ct-region').count(), 5, 'five shaded regions');
+  assert.equal(new Set(await tints()).size, 5, 'each with its own tint');
   const [ax, ay] = at('A');
   await tapAt(await onScreen('.ct-map', [ax + 8, ay - 2.5]));
   assert.deepEqual((await board(T2)).erased, [0], 'a tap between the bottom line and a spoke goes to the nearer line');
   assert.equal(await page.locator('.ct-region').count(), 4, 'a region opens');
   await tapAt(await onScreen('.ct-map', [ax + 6, ay - 5.5]));
-  assert.deepEqual((await board(T2)).erased, [0, 8], 'a tap on the spoke near the dot');
+  assert.deepEqual((await board(T2)).erased, [0, 9], 'a tap on the spoke near the dot');
+  assert.equal(new Set(await tints()).size, 3, 'two regions became one: one tint fewer');
   await tapAt(await onScreen('.ct-map', at('E')));
-  assert.deepEqual((await board(T2)).erased, [0, 8], 'a tap on a dot does nothing');
-  await tap(page.locator('.ct-map [data-gb-edge="3"]'));
+  assert.deepEqual((await board(T2)).erased, [0, 9], 'a tap on a dot does nothing');
+  await tap(page.locator('.ct-map [data-gb-edge="4"]'));
   assert.equal(await page.locator('.ct-map .gb-node.cut').count(), 1, 'corner A is cut off');
-  await page.locator('.ct-map [data-gb-edge="3"]').focus(); await page.keyboard.press('Enter');
-  assert.deepEqual((await board(T2)).erased, [0, 8], 'Enter on a line draws it back');
+  await page.locator('.ct-map [data-gb-edge="4"]').focus(); await page.keyboard.press('Enter');
+  assert.deepEqual((await board(T2)).erased, [0, 9], 'Enter on a line draws it back');
   assert.equal(await page.locator('.ct-map .gb-node.cut').count(), 0);
   await focusOk('after Enter on a line');
-  for (const line of [1, 2, 4]) await tap(page.locator(`.ct-map [data-gb-edge="${line}"]`));
+  // The dot on the bottom side: erasing its other line cuts it off.
+  await tap(page.locator('.ct-map [data-gb-edge="1"]'));
+  assert.equal(await page.locator('.ct-map .gb-node.cut').count(), 1, 'the dot on the bottom side is cut off');
+  await tap(page.locator('.ct-map [data-gb-edge="1"]'));
+  for (const line of [2, 3, 5]) await tap(page.locator(`.ct-map [data-gb-edge="${line}"]`));
   await done(); await fit('tree solved');
-  assert.equal(await page.locator('.ct-map .gb-stroke.tree').count(), 7, 'the tree drawn');
+  assert.equal(await page.locator('.ct-map .gb-stroke.tree').count(), 8, 'the tree drawn');
   await shot('tree');
 
-  // Trees 3: the busiest drawing, cut and hinted.
-  const T3 = 'corners-tree-03';
+  // Trees 3: the busiest drawing, cut and hinted; then down to a tree and end dots taken off.
+  const T3 = 'corners-tree-03', q3 = byId(T3).parameters, H3 = 100 / q3.aspect, at3 = id => [q3.nodes[id][0], q3.nodes[id][1] * H3 / 100];
   await open(T3); await fit('octahedron');
+  assert.equal(new Set(await tints()).size, 7, 'seven regions, seven tints');
   for (const line of [0, 2, 6, 7]) await tap(page.locator(`.ct-map [data-gb-edge="${line}"]`));
   assert.equal(await page.locator('.ct-map .gb-node.cut').count(), 1, 'the top dot is cut off');
   await button('Hint').click(); await button('Hint').click();
   assert.equal(await page.locator('.ct-map .gb-edge.hinted').count(), 1, 'the hint marks a line to draw back');
   await shot('octahedron-cut');
-  await button('Hint').click();
-  for (let i = 0; i < 12 && !(await page.locator('#completion-heading').count()); i++) await button('Apply hint').click();
-  await done();
+  await page.locator('.ct-map [data-gb-edge="7"]').focus(); await page.keyboard.press('Enter');
+  assert.equal(await page.locator('.ct-map .gb-node.cut').count(), 0, 'drawn back');
+  for (const line of [1, 8, 11, 3]) await tap(page.locator(`.ct-map [data-gb-edge="${line}"]`));
+  assert.deepEqual((await board(T3)).erased, [0, 1, 2, 3, 6, 8, 11], 'the route’s tree');
+  assert.equal(await page.locator('.ct-map.ct-leafing').count(), 1, 'a tree: end dots can come off');
+  assert.equal(await page.locator('.ct-map .gb-hit').count(), 0, 'the lines are no longer controls');
+  assert.equal(await page.locator('#completion-heading').count(), 0, 'a tree is not the end here');
+  // Which dots are end dots now: A (AF), B (BE), C (CD).
+  await tapAt(await onScreen('.ct-map', at3('E')));
+  assert.deepEqual((await board(T3)).gone, [], 'a dot with more lines stays');
+  await tapAt(await onScreen('.ct-map', [at3('A')[0] + 3.5, at3('A')[1] + 2]));
+  assert.deepEqual((await board(T3)).gone, [['A', 7]], 'a tap near an end dot takes it off with its line');
+  assert.equal(await page.locator('.ct-map .gb-node.gone').count(), 1, 'drawn faint');
+  await focusOk('after taking a dot off');
+  await page.locator('.ct-map [data-gb-node="B"]').focus(); await page.keyboard.press('Enter');
+  assert.equal((await board(T3)).gone.length, 2, 'Enter on an end dot');
+  await shot('octahedron-leaves');
+  await undoButton();
+  assert.equal((await board(T3)).gone.length, 1, 'Undo puts a dot back');
+  await button('Hint').click(); await button('Hint').click(); await button('Hint').click();
+  for (let i = 0; i < 8 && !(await page.locator('#completion-heading').count()); i++) await button('Apply hint').click();
+  await done(); await fit('octahedron solved');
+  assert.equal(await page.locator('.ct-map .gb-node:not(.gone)').count(), 1, 'one dot left');
 
   // The playground.
   const G = 'corners-playground';
