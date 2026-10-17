@@ -1,0 +1,73 @@
+/* Mirror Couriers shortest routes: a grid card with the river (or wall) in
+   sky blue, routes in the couriers' rust and a second route in deep blue,
+   the folded side tinted, and a tap target over every usable grid point.
+   Uses the shared board palette from boards.css. Every rule is scoped to
+   the group's own root. */
+[data-mechanic-wire="folds"]{display:flex;flex-direction:column;align-items:center;gap:.6rem;width:100%;--fd-r0:#b15229;--fd-r1:#2f6c8f;--fd-river:#5f9fbf}
+[data-mechanic-wire="folds"] .fd-board{position:relative;width:min(100%,380px,calc(var(--cols) / var(--rows) * 430px));aspect-ratio:var(--cols) / var(--rows);margin:.2rem auto 0;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px;overflow:hidden;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+[data-mechanic-wire="folds"] .fd-board.drag{touch-action:none}
+[data-mechanic-wire="folds"] .fd-board svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+[data-mechanic-wire="folds"] .fd-grid{stroke:#e3e6d4;stroke-width:1}
+[data-mechanic-wire="folds"] .fd-far{fill:var(--b-sky,#9cc9de);opacity:.16}
+[data-mechanic-wire="folds"] .fd-river{stroke:var(--fd-river);stroke-width:6;stroke-linecap:round}
+[data-mechanic-wire="folds"] .fd-river.closed{stroke:#c3d3da;stroke-width:3;stroke-dasharray:2 7}
+[data-mechanic-wire="folds"] .fd-river.window{stroke-width:9}
+[data-mechanic-wire="folds"] .fd-wall{stroke:var(--b-ink,#294439);stroke-width:5;stroke-linecap:round}
+[data-mechanic-wire="folds"] .fd-wall.closed{stroke:#c9cfbd;stroke-width:3;stroke-dasharray:2 7}
+[data-mechanic-wire="folds"] .fd-wall.image{stroke:var(--b-ink,#294439);stroke-width:2;stroke-dasharray:6 6;opacity:.45}
+[data-mechanic-wire="folds"] .fd-end{stroke:var(--b-ink,#294439);stroke-width:2.5;stroke-linecap:round}
+[data-mechanic-wire="folds"] .fd-tick{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:1.5}
+[data-mechanic-wire="folds"] .fd-guess{fill:none;stroke:var(--b-ink,#294439);stroke-width:2.5;stroke-dasharray:7 6;stroke-linejoin:round;opacity:.5}
+[data-mechanic-wire="folds"] .fd-guess.marked{stroke:var(--b-bad,#a9503a);opacity:1;stroke-width:3.5}
+[data-mechanic-wire="folds"] .fd-route,[data-mechanic-wire="folds"] .fd-leg{fill:none;stroke-width:4.5;stroke-linejoin:round;stroke-linecap:round}
+[data-mechanic-wire="folds"] .r0{stroke:var(--fd-r0)}
+[data-mechanic-wire="folds"] .r1{stroke:var(--fd-r1)}
+[data-mechanic-wire="folds"] .fd-route.faint,[data-mechanic-wire="folds"] .fd-leg.faint{stroke-width:3;stroke-dasharray:5 6;opacity:.35}
+[data-mechanic-wire="folds"] .fd-leg.thin{stroke-width:2.5;opacity:.75}
+[data-mechanic-wire="folds"] .fd-route.kept{stroke-width:3.5;opacity:.45}
+[data-mechanic-wire="folds"] .fd-route.flipped{stroke-width:3.5;stroke-dasharray:8 6}
+[data-mechanic-wire="folds"] .fd-route.blocked{stroke:var(--b-bad,#a9503a);stroke-dasharray:4 6}
+[data-mechanic-wire="folds"] .fd-contact{stroke:var(--b-card,#fffdf5);stroke-width:2.5}
+[data-mechanic-wire="folds"] .fd-contact.r0{fill:var(--fd-r0)}
+[data-mechanic-wire="folds"] .fd-contact.r1{fill:var(--fd-r1)}
+[data-mechanic-wire="folds"] .fd-letter circle{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:2.5}
+[data-mechanic-wire="folds"] .fd-letter text{fill:var(--b-ink,#294439);font:700 19px var(--b-display,Georgia,serif);text-anchor:middle}
+[data-mechanic-wire="folds"] .fd-letter.moving circle{fill:var(--b-sun,#efc76e)}
+[data-mechanic-wire="folds"] .fd-letter.image circle{fill:#eef5f8;stroke-dasharray:4 4}
+[data-mechanic-wire="folds"] .fd-letter.image.other circle{fill:var(--b-card,#fffdf5);opacity:.85}
+[data-mechanic-wire="folds"] .fd-letter.mirrored circle{fill:#e6f0f4;stroke:var(--fd-r1)}
+[data-mechanic-wire="folds"] .fd-chosen{fill:none;stroke-width:3.5}
+[data-mechanic-wire="folds"] .fd-mark{fill:none;stroke:var(--b-bad,#a9503a);stroke-width:3.5;stroke-dasharray:5 4}
+[data-mechanic-wire="folds"] .fd-arc{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:2.5;stroke-dasharray:3 6}
+[data-mechanic-wire="folds"] .fd-straight{stroke:var(--b-ochre,#b38840);stroke-width:2.5;stroke-dasharray:9 6;stroke-linecap:round}
+[data-mechanic-wire="folds"] .fd-start{fill:var(--b-pine,#31533e);stroke:var(--b-card,#fffdf5);stroke-width:2.5}
+[data-mechanic-wire="folds"] .fd-pmark{fill:var(--b-sun,#efc76e);stroke:var(--b-ink,#294439);stroke-width:2.5}
+[data-mechanic-wire="folds"] .fd-p text{fill:var(--b-ink,#294439);font:700 18px var(--b-display,Georgia,serif);text-anchor:middle}
+[data-mechanic-wire="folds"] .fd-block{fill:#cfc8ac;stroke:var(--b-ink,#294439);stroke-width:2.5}
+[data-mechanic-wire="folds"] .fd-foldline{stroke:var(--b-ochre,#b38840);stroke-width:2.5;stroke-dasharray:9 6}
+[data-mechanic-wire="folds"] .fd-corner{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:2.5}
+[data-mechanic-wire="folds"] .fd-corner.on{fill:var(--b-sun,#efc76e)}
+[data-mechanic-wire="folds"] .fd-thumb-dot{fill:var(--b-ink,#294439)}
+/* A button covers its whole grid cell, so a tap goes to the nearest usable
+   point; the mark drawn in the picture shows what is there. */
+[data-mechanic-wire="folds"] .fd-pt{position:absolute;transform:translate(-50%,-50%);width:calc(100% / var(--cols));height:calc(100% / var(--rows));min-width:0;min-height:0;padding:0;margin:0;border:0;border-radius:50%;background:transparent;box-shadow:none;cursor:pointer;z-index:1}
+[data-mechanic-wire="folds"] .fd-pt::before{content:'';position:absolute;left:50%;top:50%;width:46%;height:46%;transform:translate(-50%,-50%);border-radius:50%;box-sizing:border-box}
+[data-mechanic-wire="folds"] .fd-pt.fd-free:hover::before,[data-mechanic-wire="folds"] .fd-pt.fd-on-line:hover::before{border:2px dashed var(--b-pine,#31533e)}
+[data-mechanic-wire="folds"] .fd-pt:focus-visible{outline:3px solid var(--b-pine,#31533e);outline-offset:-3px}
+[data-mechanic-wire="folds"] .fd-pt.hinted::before{border:3px dashed var(--b-ochre,#b38840);width:70%;height:70%}
+[data-mechanic-wire="folds"] .fd-pt.shake{animation:fd-shake .35s}
+@keyframes fd-shake{0%,100%{transform:translate(-50%,-50%)}25%{transform:translate(calc(-50% - 4px),-50%)}75%{transform:translate(calc(-50% + 4px),-50%)}}
+[data-mechanic-wire="folds"] .fd-tools{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:46px}
+[data-mechanic-wire="folds"] .fd-button{min-width:82px;min-height:46px}
+[data-mechanic-wire="folds"] .fd-button[aria-pressed="true"]{background:#e3ebd8;border-color:var(--b-pine,#31533e)}
+[data-mechanic-wire="folds"] .fd-button.hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:2px}
+[data-mechanic-wire="folds"] .fd-shelf{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:380px}
+[data-mechanic-wire="folds"] .fd-chip{width:76px;min-width:0;min-height:44px;padding:3px;margin:0;border:1.5px solid var(--b-line,#d0d6bd);border-radius:8px;background:var(--b-card,#fffdf5);box-shadow:none;cursor:pointer}
+[data-mechanic-wire="folds"] .fd-chip svg{display:block;width:100%;height:auto}
+[data-mechanic-wire="folds"] .fd-chip .fd-route{stroke-width:6}
+[data-mechanic-wire="folds"] .fd-chip.marked{border:2.5px solid var(--b-bad,#a9503a)}
+[data-mechanic-wire="folds"] .fd-chip.hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:2px}
+[data-mechanic-wire="folds"] .fd-chip:focus-visible{outline:3px solid var(--b-pine,#31533e);outline-offset:2px}
+[data-mechanic-wire="folds"] .fd-note{margin:0;text-align:center;color:var(--b-ink,#294439)}
+[data-mechanic-wire="folds"] .fd-note:empty{display:none}
+@media (prefers-reduced-motion:reduce){[data-mechanic-wire="folds"] .fd-pt.shake{animation:none}}
