@@ -21,7 +21,7 @@ Experiments come first: walk the robot on both floors with the same moves and se
 
 ## Where they appear
 
-**Puzzles → Octagon streets** (symbol ⊛) is a satchel family on the family seam ([Adding a family](../ADDING-A-FAMILY.md)), with a **Playground** button above Easy, Medium and Hard. The puzzles are grade-free (`band: "all"`). Moves are written L (left), S (straight) and R (right). "Two flowers" are the two rooms on either side of the road to the robot's left at home (the worksheet's two rooms of Problem 3, with home at one end of the shared wall); "corner flowers" are two rooms that meet only at a dot.
+**Puzzles → Octagon streets** (symbol ⊚) is a satchel family on the family seam ([Adding a family](../ADDING-A-FAMILY.md)), with a **Playground** button above Easy, Medium and Hard. The puzzles are grade-free (`band: "all"`). Moves are written L (left), S (straight) and R (right). "Two flowers" are the two rooms on either side of the road to the robot's left at home (the worksheet's two rooms of Problem 3, with home at one end of the shared wall); "corner flowers" are two rooms that meet only at a dot.
 
 | # | Level | Goal | Floors | Answer | Week 65 source |
 |---|---|---|---|---|---|

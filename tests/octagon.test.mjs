@@ -427,6 +427,6 @@ test('rendering: copy, budgets, record, tabs, focus targets and scoped styles', 
   for (const r of rules) for (const sel of r.slice(0, r.indexOf('{')).split(',')) assert.ok(sel.trim().startsWith('[data-mechanic-wire="octagon"]'), `scoped: ${sel.trim()}`);
   // The family symbol is unique.
   const symbols = FAMILIES.filter(m => m.family).map(m => m.family.symbol);
-  assert.equal(symbols.filter(s => s === '⊛').length, 1, 'a unique symbol');
-  assert.ok(!['▰', '⇄', '☀', '◷', '↗', '♧', '▦', '◐', '●', '◆', '♒', '⚖'].includes('⊛'));
+  assert.equal(symbols.filter(s => s === '⊚').length, 1, 'a unique symbol');
+  assert.ok(!['▰', '⇄', '☀', '◷', '↗', '♧', '▦', '◐', '●', '◆', '♒', '⚖'].includes('⊚'));
 });
