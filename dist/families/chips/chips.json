@@ -56,7 +56,7 @@
     "mode": "playground"
    },
    "objective": "Add chips and fire them on any board.",
-   "controls": "Choose a board. With Add, tap a circle to put a chip on it. With Fire, tap a glowing circle to fire it. Fire all keeps firing until no circle can; on the board with no sink it stops when a position repeats. On the big grid, tap a square to drop chips there: squares with four or more fire on their own, and chips that cross the edge fall into the sink.",
+   "controls": "A circle can fire when it has at least one chip for each line touching it: one chip leaves along each line. The sink keeps every chip it gets. Choose a board. With Add, tap a circle to put a chip on it. With Fire, tap a glowing circle to fire it. Fire all keeps firing until no circle can; on the board with no sink it stops when a position repeats. On the big grid, tap a square to drop chips there: squares with four or more fire on their own, and chips that cross the edge fall into the sink.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -109,7 +109,7 @@
    },
    "objective": "Find every order of firing until no circle can fire.",
    "instruction": "Find every order of firing until no circle can fire.",
-   "controls": "Tap a glowing circle to fire it. When no circle can fire, the order is saved. New run puts the starting chips back. Undo takes back one firing; saved orders stay. Press That’s all when every answer is saved.",
+   "controls": "A circle can fire when it has at least one chip for each line touching it: one chip leaves along each line. The sink keeps every chip it gets. Tap a glowing circle to fire it. When no circle can fire, the order is saved. New run puts the starting chips back. Undo takes back one firing; saved orders stay. Press That’s all when every answer is saved.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -154,7 +154,7 @@
    },
    "objective": "Find every finish you can reach with 4 chips.",
    "instruction": "Find every finish you can reach with 4 chips.",
-   "controls": "Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. New run clears the board. Undo takes back one step; saved answers stay. Press That’s all when every answer is saved.",
+   "controls": "A circle can fire when it has at least one chip for each line touching it: one chip leaves along each line. The sink keeps every chip it gets. Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. New run clears the board. Undo takes back one step; saved answers stay. Press That’s all when every answer is saved.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -203,7 +203,7 @@
    },
    "objective": "Find every order of firing until no circle can fire.",
    "instruction": "Find every order of firing until no circle can fire.",
-   "controls": "Tap a glowing circle to fire it. When no circle can fire, the order is saved. New run puts the starting chips back. Undo takes back one firing; saved orders stay. Press That’s all when every answer is saved.",
+   "controls": "A circle can fire when it has at least one chip for each line touching it: one chip leaves along each line. The sink keeps every chip it gets. Tap a glowing circle to fire it. When no circle can fire, the order is saved. New run puts the starting chips back. Undo takes back one firing; saved orders stay. Press That’s all when every answer is saved.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -252,7 +252,7 @@
    },
    "objective": "Find every order of firing until no circle can fire.",
    "instruction": "Find every order of firing until no circle can fire.",
-   "controls": "Tap a glowing circle to fire it. When no circle can fire, the order is saved. New run puts the starting chips back. Undo takes back one firing; saved orders stay. Press That’s all when every answer is saved.",
+   "controls": "A circle can fire when it has at least one chip for each line touching it: one chip leaves along each line. The sink keeps every chip it gets. Tap a glowing circle to fire it. When no circle can fire, the order is saved. New run puts the starting chips back. Undo takes back one firing; saved orders stay. Press That’s all when every answer is saved.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -301,7 +301,7 @@
    },
    "objective": "Find every start with 6 chips that finishes like the card.",
    "instruction": "Find every start with 6 chips that finishes like the card.",
-   "controls": "Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. New run clears the board. Undo takes back one step; saved answers stay. Press That’s all when every answer is saved.",
+   "controls": "A circle can fire when it has at least one chip for each line touching it: one chip leaves along each line. The sink keeps every chip it gets. Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. New run clears the board. Undo takes back one step; saved answers stay. Press That’s all when every answer is saved.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -352,7 +352,7 @@
    },
    "objective": "Find every order of firing until no circle can fire.",
    "instruction": "Find every order of firing until no circle can fire.",
-   "controls": "Tap a glowing circle to fire it. When no circle can fire, the order is saved. New run puts the starting chips back. Undo takes back one firing; saved orders stay. Press That’s all when every answer is saved.",
+   "controls": "A circle can fire when it has at least one chip for each line touching it: one chip leaves along each line. The sink keeps every chip it gets. Tap a glowing circle to fire it. When no circle can fire, the order is saved. New run puts the starting chips back. Undo takes back one firing; saved orders stay. Press That’s all when every answer is saved.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -397,7 +397,7 @@
    },
    "objective": "Build a board where no circle can fire, then add one chip that sets off 4 firings.",
    "instruction": "Build a board where no circle can fire, then add one chip that sets off 4 firings.",
-   "controls": "Tap circles to add chips. The first chip that lets a circle fire is the extra chip; then tap glowing circles to fire until none can. New run clears the board.",
+   "controls": "A circle can fire when it has at least one chip for each line touching it: one chip leaves along each line. The sink keeps every chip it gets. Tap circles to add chips. The first chip that lets a circle fire is the extra chip; then tap glowing circles to fire until none can. New run clears the board.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -444,7 +444,7 @@
    },
    "objective": "Find every finish you can reach with 4 chips.",
    "instruction": "Find every finish you can reach with 4 chips.",
-   "controls": "Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. New run clears the board. Undo takes back one step; saved answers stay. Press That’s all when every answer is saved.",
+   "controls": "A circle can fire when it has at least one chip for each line touching it: one chip leaves along each line. The sink keeps every chip it gets. Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. New run clears the board. Undo takes back one step; saved answers stay. Press That’s all when every answer is saved.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -494,7 +494,7 @@
    },
    "objective": "Find every start with 10 chips that finishes like the card.",
    "instruction": "Find every start with 10 chips that finishes like the card.",
-   "controls": "Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. New run clears the board. Undo takes back one step; saved answers stay. Press That’s all when every answer is saved.",
+   "controls": "A circle can fire when it has at least one chip for each line touching it: one chip leaves along each line. The sink keeps every chip it gets. Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. New run clears the board. Undo takes back one step; saved answers stay. Press That’s all when every answer is saved.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -541,7 +541,7 @@
    },
    "objective": "Place 6 chips so that 9 firings happen.",
    "instruction": "Place 6 chips so that 9 firings happen.",
-   "controls": "Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. New run clears the board. Undo takes back one step; saved answers stay.",
+   "controls": "A circle can fire when it has at least one chip for each line touching it: one chip leaves along each line. The sink keeps every chip it gets. Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. New run clears the board. Undo takes back one step; saved answers stay.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -591,7 +591,7 @@
    },
    "objective": "Find every order of firing until no circle can fire.",
    "instruction": "Find every order of firing until no circle can fire.",
-   "controls": "Tap a glowing circle to fire it. When no circle can fire, the order is saved. New run puts the starting chips back. Undo takes back one firing; saved orders stay. Press That’s all when every answer is saved.",
+   "controls": "A circle can fire when it has at least one chip for each line touching it: one chip leaves along each line. The sink keeps every chip it gets. Tap a glowing circle to fire it. When no circle can fire, the order is saved. New run puts the starting chips back. Undo takes back one firing; saved orders stay. Press That’s all when every answer is saved.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -636,7 +636,7 @@
    },
    "objective": "Place 3 chips so the firing never stops.",
    "instruction": "Place 3 chips so the firing never stops.",
-   "controls": "Tap circles to place the 3 chips, then tap glowing circles to fire. A board that comes back to an earlier position will repeat forever. New run clears the board.",
+   "controls": "A circle can fire when it has at least one chip for each line touching it: one chip leaves along each line. This board has no sink. Tap circles to place the 3 chips, then tap glowing circles to fire. A board that comes back to an earlier position will repeat forever. New run clears the board.",
    "rules": [
     "A circle can fire when it holds at least one chip for each line that touches it.",
     "Firing sends one chip along each of its lines. Extra chips stay.",
@@ -662,6 +662,106 @@
     ]
    },
    "provenance": "Week 11 return visit Problem 1 (the closed triangle: which starts stop, which repeat).",
+   "sourceDocument": "docs/chips/README.md"
+  },
+  {
+   "id": "chips-s01",
+   "number": 1,
+   "title": "Room for chips",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "chipstill",
+   "libraryFamily": "chips",
+   "group": "Still boards",
+   "familyTitle": "Chip firing",
+   "revision": 1,
+   "parameters": {
+    "mode": "capacity",
+    "board": "extra",
+    "most": 5
+   },
+   "objective": "Put as many chips on the circles as you can with nothing glowing.",
+   "instruction": "Put as many chips on the circles as you can with nothing glowing.",
+   "controls": "A circle can fire when it has at least one chip for each line touching it: one chip leaves along each line. The sink keeps every chip it gets. Tap a circle to add a chip, and tap a glowing circle to fire it. Press Most when you think no still board holds more chips. Undo takes back one step.",
+   "rules": [
+    "A circle can fire when it holds at least one chip for each line that touches it.",
+    "Firing sends one chip along each of its lines. Extra chips stay.",
+    "The sink keeps every chip it receives and never fires.",
+    "A board is still when no circle can fire.",
+    "Most is judged by the number of chips on the circles."
+   ],
+   "idea": "Each circle can hold one chip fewer than its lines before it must fire, so the most chips on a still board is the sum of those.",
+   "prerequisites": "Count to three and match chips to lines. No reading needed once a grown-up has read the goal.",
+   "hints": [
+    "Put chips on one circle until it glows.",
+    "Count the lines at each circle. How many chips can it keep?",
+    "Put 2 chips on A, 1 on B and 2 on C, then press Most."
+   ],
+   "parent": {
+    "notice": "A glows at its third chip, B at its second and C at its third: each circle glows when it has as many chips as lines.",
+    "prompt": "Could a different arrangement hold more chips without anything glowing?",
+    "explanation": "A circle can fire when it holds at least one chip per line, so a still circle holds at most one chip fewer than its lines: A and C have three lines and hold at most 2, B has two and holds at most 1. No still board holds more than 2 + 1 + 2 = 5, and A 2, B 1, C 2 is the only one that holds 5. The bound is a certificate: it covers every arrangement at once, so no search is needed. The square without the diagonal has every circle on two lines, so it holds at most 3 (the worksheet’s K–1 question “Can any of these ways use 4 chips?”).",
+    "extension": "How many still boards does this board have? (3 × 2 × 3 = 18.) Without the diagonal every circle has two lines: how many chips can that square hold?",
+    "connection": "The board with every circle one chip short of its lines is the maximal stable configuration. It is always recurrent, so it is one of the boards in the sandpile group (Levine and Propp).",
+    "sourceIds": [
+     "chips-week11",
+     "chips-hlmppw",
+     "chips-sandpile"
+    ]
+   },
+   "provenance": "Week 11 K–1 Problem 4 (stable placements and the capacity question “Can any of these ways use 4 chips?”), on the extra-line board of grades 2–3 and 4–5 Problem 4, with the facilitator guide’s further question on p. 12 (at most 5 chips, attained by (2, 1, 2)).",
+   "sourceDocument": "docs/chips/README.md"
+  },
+  {
+   "id": "chips-s02",
+   "number": 2,
+   "title": "Comes back",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "chipstill",
+   "libraryFamily": "chips",
+   "group": "Still boards",
+   "familyTitle": "Chip firing",
+   "revision": 1,
+   "parameters": {
+    "mode": "cycle",
+    "board": "triangle",
+    "at": "A",
+    "answers": 3
+   },
+   "objective": "Find every start that comes back as you keep adding chips at A.",
+   "instruction": "Find every start that comes back as you keep adding chips at A.",
+   "visibleObjective": "",
+   "controls": "A circle can fire when it has at least one chip for each line touching it: one chip leaves along each line. The sink keeps every chip it gets. A board is still when no circle can fire. Put chips on the circles for a still start (or none), then tap +A to add a chip at A and fire until the board is still again. Keep adding at A. Each still board joins the row; when one repeats, the run ends, and a start that came back is saved. That’s all: then tap two boards in the row that go to the same board. New run keeps what is saved.",
+   "rules": [
+    "A circle can fire when it holds at least one chip for each line that touches it.",
+    "Firing sends one chip along each of its lines. Extra chips stay.",
+    "The sink keeps every chip it receives and never fires.",
+    "A board is still when no circle can fire. A start must be still.",
+    "After each chip added at A, fire until the board is still. The run ends when a still board repeats.",
+    "That’s all is judged with two boards tapped in the row whose next boards are the same."
+   ],
+   "idea": "Adding a chip at A moves the still boards round a loop; a start comes back exactly when it is on the loop, and one that is not runs into the loop where two boards go to the same board.",
+   "prerequisites": "Fire small piles and compare two small boards. Keeping track of a row of boards helps; a grown-up can point along it.",
+   "hints": [
+    "Start with no chips and keep adding at A. Which boards come round again?",
+    "Try each still board as a start: no chips, one on A, one on B, one on each.",
+    "A 1 B 0, A 0 B 1 and A 1 B 1 come back. From no chips, A 0 B 0 and A 1 B 1 both go to A 1 B 0."
+   ],
+   "parent": {
+    "notice": "The still boards of the triangle are the four with at most one chip on each circle. Three of them take turns as chips are added at A; the empty board leads into that loop and never comes back.",
+    "prompt": "Can both circles ever be empty again once a chip has been added?",
+    "explanation": "Adding at A and firing until still sends A 0 B 0 → A 1 B 0 → A 0 B 1 → A 1 B 1 → A 1 B 0, so the run from no chips repeats A 1 B 0 without ever returning. A 1 B 0, A 0 B 1 and A 1 B 1 each come back after three chips. A 0 B 0 and A 1 B 1 both go to A 1 B 0: that is where the empty start joins the loop, and since every board on the loop already has the one before it on the loop, the run can never get back off it. A second reason: the last firing always leaves a chip on the other circle, so a board with chips never finishes empty. The three boards that come back are the recurrent configurations (the finishes of puzzle 2); adding a chip at A permutes them, and they form the sandpile group of the triangle, cyclic of order 3, with A as a generator.",
+    "extension": "Add at B instead. Do the same boards come back, and in which order? (The same three, in the opposite order.) On the square of puzzle 8, which still boards come back when you add at A?",
+    "connection": "A configuration is recurrent when adding chips can bring it back; the recurrent ones form the sandpile group, and the others are transient (Dhar; Levine and Propp).",
+    "sourceIds": [
+     "chips-week11",
+     "chips-hlmppw",
+     "chips-sandpile",
+     "chips-dhar"
+    ]
+   },
+   "provenance": "Week 11 K–1 Problem 6 (adding at A from empty; can both circles be empty again), grades 2–3 Problem 6 (which pairs the rule reaches) and grades 4–5 Problem 3 (which starts return to themselves; can two different starts give the same pair after one addition), with the facilitator guide’s state diagram on p. 7.",
    "sourceDocument": "docs/chips/README.md"
   }
  ]

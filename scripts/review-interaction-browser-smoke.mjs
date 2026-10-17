@@ -33,7 +33,7 @@ try {
   await chip('A'); await chip('B');
   await page.getByRole('button', {name: 'That’s all', exact: true}).click();
   assert.equal(await page.locator('#completion-heading').count(), 0);
-  assert.equal(await page.locator('.chip-feedback').innerText(), 'More orders remain.');
+  assert.equal(await page.locator('.chip-feedback').innerText(), 'There is another.');
   await page.getByRole('button', {name: 'New run', exact: true}).click();
   assert.deepEqual((await attempt('chips-01')).board.found, ['AB'], 'new run keeps the collection');
   await chip('B'); await chip('A');

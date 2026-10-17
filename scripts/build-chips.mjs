@@ -5,7 +5,7 @@
 // expansion importer is unchanged.
 // Design notes and worksheet sources: docs/chips/README.md.
 import {writeFile} from 'node:fs/promises';
-import {answers, boardInfo, stabilize} from '../dist/families/chips/chips.js';
+import {answers, boardInfo, stabilize, stillAnswers} from '../dist/families/chips/chips.js';
 
 const WEEK11 = 'https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-11';
 export const sources = [
@@ -28,11 +28,14 @@ export const family = {
 
 const RULES = family.rules;
 const NO_SINK = ['A circle can fire when it holds at least one chip for each line that touches it.', 'Firing sends one chip along each of its lines. Extra chips stay.', 'This board has no sink, so chips never leave.'];
+// How to play opens with the operation itself, then the gestures.
+const FIRING = 'A circle can fire when it has at least one chip for each line touching it: one chip leaves along each line. The sink keeps every chip it gets.';
+const FIRING_NO_SINK = 'A circle can fire when it has at least one chip for each line touching it: one chip leaves along each line. This board has no sink.';
 const CONTROLS = {
-  orders: 'Tap a glowing circle to fire it. When no circle can fire, the order is saved. New run puts the starting chips back. Undo takes back one firing; saved orders stay.',
-  place: 'Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. New run clears the board. Undo takes back one step; saved answers stay.',
-  avalanche: 'Tap circles to add chips. The first chip that lets a circle fire is the extra chip; then tap glowing circles to fire until none can. New run clears the board.',
-  loop: 'Tap circles to place the 3 chips, then tap glowing circles to fire. A board that comes back to an earlier position will repeat forever. New run clears the board.'
+  orders: `${FIRING} Tap a glowing circle to fire it. When no circle can fire, the order is saved. New run puts the starting chips back. Undo takes back one firing; saved orders stay.`,
+  place: `${FIRING} Tap circles to place the chips from the tray. Then tap glowing circles to fire until none can. New run clears the board. Undo takes back one step; saved answers stay.`,
+  avalanche: `${FIRING} Tap circles to add chips. The first chip that lets a circle fire is the extra chip; then tap glowing circles to fire until none can. New run clears the board.`,
+  loop: `${FIRING_NO_SINK} Tap circles to place the 3 chips, then tap glowing circles to fire. A board that comes back to an earlier position will repeat forever. New run clears the board.`
 };
 const ORDERS_RULE = 'A run ends when no circle can fire. Each different order of firing counts once.';
 
@@ -231,11 +234,53 @@ const authored = [
   }
 ];
 
+// Still boards: a group of the family with its own mechanic, `chipstill`.
+const STILL_GROUP = 'Still boards';
+const still = [
+  {
+    id: 'chips-s01', number: 1, difficulty_level: 'easy', title: 'Room for chips',
+    parameters: {mode: 'capacity', board: 'extra'},
+    objective: 'Put as many chips on the circles as you can with nothing glowing.',
+    controls: `${FIRING} Tap a circle to add a chip, and tap a glowing circle to fire it. Press Most when you think no still board holds more chips. Undo takes back one step.`,
+    rules: [...RULES, 'A board is still when no circle can fire.', 'Most is judged by the number of chips on the circles.'],
+    idea: 'Each circle can hold one chip fewer than its lines before it must fire, so the most chips on a still board is the sum of those.',
+    prerequisites: 'Count to three and match chips to lines. No reading needed once a grown-up has read the goal.',
+    hints: ['Put chips on one circle until it glows.', 'Count the lines at each circle. How many chips can it keep?', 'Put 2 chips on A, 1 on B and 2 on C, then press Most.'],
+    parent: {
+      notice: 'A glows at its third chip, B at its second and C at its third: each circle glows when it has as many chips as lines.',
+      prompt: 'Could a different arrangement hold more chips without anything glowing?',
+      explanation: 'A circle can fire when it holds at least one chip per line, so a still circle holds at most one chip fewer than its lines: A and C have three lines and hold at most 2, B has two and holds at most 1. No still board holds more than 2 + 1 + 2 = 5, and A 2, B 1, C 2 is the only one that holds 5. The bound is a certificate: it covers every arrangement at once, so no search is needed. The square without the diagonal has every circle on two lines, so it holds at most 3 (the worksheet’s K–1 question “Can any of these ways use 4 chips?”).',
+      extension: 'How many still boards does this board have? (3 × 2 × 3 = 18.) Without the diagonal every circle has two lines: how many chips can that square hold?',
+      connection: 'The board with every circle one chip short of its lines is the maximal stable configuration. It is always recurrent, so it is one of the boards in the sandpile group (Levine and Propp).'
+    },
+    provenance: 'Week 11 K–1 Problem 4 (stable placements and the capacity question “Can any of these ways use 4 chips?”), on the extra-line board of grades 2–3 and 4–5 Problem 4, with the facilitator guide’s further question on p. 12 (at most 5 chips, attained by (2, 1, 2)).'
+  },
+  {
+    id: 'chips-s02', number: 2, difficulty_level: 'medium', title: 'Comes back',
+    parameters: {mode: 'cycle', board: 'triangle', at: 'A'},
+    objective: 'Find every start that comes back as you keep adding chips at A.',
+    visibleObjective: '',
+    controls: `${FIRING} A board is still when no circle can fire. Put chips on the circles for a still start (or none), then tap +A to add a chip at A and fire until the board is still again. Keep adding at A. Each still board joins the row; when one repeats, the run ends, and a start that came back is saved. That’s all: then tap two boards in the row that go to the same board. New run keeps what is saved.`,
+    rules: [...RULES, 'A board is still when no circle can fire. A start must be still.', 'After each chip added at A, fire until the board is still. The run ends when a still board repeats.', 'That’s all is judged with two boards tapped in the row whose next boards are the same.'],
+    idea: 'Adding a chip at A moves the still boards round a loop; a start comes back exactly when it is on the loop, and one that is not runs into the loop where two boards go to the same board.',
+    prerequisites: 'Fire small piles and compare two small boards. Keeping track of a row of boards helps; a grown-up can point along it.',
+    hints: ['Start with no chips and keep adding at A. Which boards come round again?', 'Try each still board as a start: no chips, one on A, one on B, one on each.', 'A 1 B 0, A 0 B 1 and A 1 B 1 come back. From no chips, A 0 B 0 and A 1 B 1 both go to A 1 B 0.'],
+    parent: {
+      notice: 'The still boards of the triangle are the four with at most one chip on each circle. Three of them take turns as chips are added at A; the empty board leads into that loop and never comes back.',
+      prompt: 'Can both circles ever be empty again once a chip has been added?',
+      explanation: 'Adding at A and firing until still sends A 0 B 0 → A 1 B 0 → A 0 B 1 → A 1 B 1 → A 1 B 0, so the run from no chips repeats A 1 B 0 without ever returning. A 1 B 0, A 0 B 1 and A 1 B 1 each come back after three chips. A 0 B 0 and A 1 B 1 both go to A 1 B 0: that is where the empty start joins the loop, and since every board on the loop already has the one before it on the loop, the run can never get back off it. A second reason: the last firing always leaves a chip on the other circle, so a board with chips never finishes empty. The three boards that come back are the recurrent configurations (the finishes of puzzle 2); adding a chip at A permutes them, and they form the sandpile group of the triangle, cyclic of order 3, with A as a generator.',
+      extension: 'Add at B instead. Do the same boards come back, and in which order? (The same three, in the opposite order.) On the square of puzzle 8, which still boards come back when you add at A?',
+      connection: 'A configuration is recurrent when adding chips can bring it back; the recurrent ones form the sandpile group, and the others are transient (Dhar; Levine and Propp).'
+    },
+    provenance: 'Week 11 K–1 Problem 6 (adding at A from empty; can both circles be empty again), grades 2–3 Problem 6 (which pairs the rule reaches) and grades 4–5 Problem 3 (which starts return to themselves; can two different starts give the same pair after one addition), with the facilitator guide’s state diagram on p. 7.'
+  }
+];
+
 const playground = {
   id: 'chips-playground', number: 0, title: 'Chip firing playground', band: 'playground', difficulty_level: 'playground',
   parameters: {mode: 'playground'},
   objective: 'Add chips and fire them on any board.',
-  controls: 'Choose a board. With Add, tap a circle to put a chip on it. With Fire, tap a glowing circle to fire it. Fire all keeps firing until no circle can; on the board with no sink it stops when a position repeats. On the big grid, tap a square to drop chips there: squares with four or more fire on their own, and chips that cross the edge fall into the sink.',
+  controls: `${FIRING} Choose a board. With Add, tap a circle to put a chip on it. With Fire, tap a glowing circle to fire it. Fire all keeps firing until no circle can; on the board with no sink it stops when a position repeats. On the big grid, tap a square to drop chips there: squares with four or more fire on their own, and chips that cross the edge fall into the sink.`,
   rules: [...RULES, 'On the big grid every square has four lines, and the edge leads to the sink.'],
   idea: 'Free play on seven small boards and a 25 × 25 grid.',
   prerequisites: 'None. Grown-ups can suggest a question from the puzzles.',
@@ -271,10 +316,27 @@ const puzzles = authored.map(a => {
   return p;
 });
 const pg = {...playground, mechanic: 'chips', familyTitle: family.title, revision: 1, instruction: playground.objective, sourceDocument: 'docs/chips/README.md'};
+const stillPuzzles = still.map(a => {
+  const p = {
+    id: a.id, number: a.number, title: a.title, band: 'all', difficulty_level: a.difficulty_level,
+    mechanic: 'chipstill', libraryFamily: 'chips', group: STILL_GROUP, familyTitle: family.title, revision: 1,
+    parameters: {...a.parameters},
+    objective: a.objective, instruction: a.objective, ...(a.visibleObjective !== undefined ? {visibleObjective: a.visibleObjective} : {}),
+    controls: a.controls, rules: a.rules, idea: a.idea, prerequisites: a.prerequisites, hints: a.hints,
+    parent: {...a.parent, sourceIds: ['chips-week11', 'chips-hlmppw', 'chips-sandpile', ...(a.parent.connection.includes('Dhar') ? ['chips-dhar'] : [])]},
+    provenance: a.provenance, sourceDocument: 'docs/chips/README.md'
+  };
+  const found = stillAnswers(p);
+  if (a.parameters.mode === 'capacity') p.parameters.most = Number([...found.keys()][0].split(',').reduce((x, y) => x + Number(y), 0));
+  else p.parameters.answers = found.size;
+  if (!found.size) throw new Error(`${p.id}: no answer`);
+  return p;
+});
 
-const pack = {title: 'Chip firing', version: 1, families: [family], sources, puzzles: [pg, ...puzzles]};
+const pack = {title: 'Chip firing', version: 1, families: [family], sources, puzzles: [pg, ...puzzles, ...stillPuzzles]};
 if (process.argv[1] === new URL(import.meta.url).pathname) {
   await writeFile(new URL('../dist/families/chips/chips.json', import.meta.url), JSON.stringify(pack, null, 1) + '\n');
+  for (const p of stillPuzzles) console.log(`${p.id} ${p.parameters.mode} ${p.parameters.board} ${JSON.stringify(p.parameters)}: ${[...stillAnswers(p).keys()].join(' ')}`);
   for (const p of puzzles) {
     const q = p.parameters, g = boardInfo(q.board), list = [...answers(p).keys()];
     const finish = q.start ? stabilize(g, q.start).piles.join(',') : '';
