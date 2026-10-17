@@ -7,8 +7,10 @@
 // positions, steps, lifts and straight shots of any rational slope with
 // integer and rational arithmetic, draws both views as SVG, and wires taps,
 // keys and finger slides. It never knows a family's rules. Portal rooms
-// (Week 41) is the first user; Weeks 64, 70 and 75 can build on it. See
-// docs/portal-board.md.
+// (Week 41) is the first user; Weeks 64, 70 and 75 can build on it. A right
+// side may instead be glued turned over (a reversing seam, Week 38's Möbius
+// band); the room, lattice points, steps and corners follow it, the unrolled
+// view, lifts and straight shots don't. See docs/portal-board.md.
 import {esc} from './expansion-controls.js';
 
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -65,8 +67,11 @@ const BACK = {right: 'left', left: 'right', up: 'down', down: 'up'};
 //   n:       lattice steps along a square's side (default 1)
 //   lattice: 'cells' (points at the centres of the n × n small cells, the
 //            default) or 'crosses' (points where lattice lines cross)
-// A missing or null neighbour is a wall. Gluing is by translation only, so a
-// square's left and down neighbours follow from right and up.
+//   flip:    {id: true}  optional: square id's right side is glued to the left
+//            side of right[id] turned over, its top end to the other's bottom
+//            end (a reversing seam). Only right sides reverse.
+// A missing or null neighbour is a wall. Otherwise gluing is by translation,
+// so a square's left and down neighbours follow from right and up.
 export function validSurfaceSpec(spec) {
   if (!object(spec) || !object(spec.squares)) return false;
   const ids = Object.keys(spec.squares);
@@ -80,6 +85,7 @@ export function validSurfaceSpec(spec) {
     if (!targets.every(v => typeof v === 'string' && Object.hasOwn(spec.squares, v)) || new Set(targets).size !== targets.length) return false;
   }
   if (spec.n !== undefined && !(integer(spec.n) && spec.n >= 1 && spec.n <= 60)) return false;
+  if (spec.flip !== undefined && !(object(spec.flip) && Object.entries(spec.flip).every(([id, v]) => typeof v === 'boolean' && Object.hasOwn(spec.squares, id) && (!v || typeof spec.right?.[id] === 'string')))) return false;
   return spec.lattice === undefined || spec.lattice === 'cells' || spec.lattice === 'crosses';
 }
 
@@ -119,7 +125,12 @@ export function surfaceOf(spec) {
   const cs = ids.map(id => at[id][0]), rs = ids.map(id => at[id][1]);
   const box = [Math.min(...cs), Math.min(...rs), Math.max(...cs) + 1, Math.max(...rs) + 1];
   const glue = {right, up, left, down};
-  const s = {spec, ids, at, right, up, left, down, glue, n, lattice, byPos, box};
+  // Reversing seams, by side: flip.right[id] when id's right side is glued
+  // turned over, flip.left[id] for the left side it is glued to.
+  const flip = {right: {}, left: {}, up: {}, down: {}};
+  for (const id of ids) if (spec.flip?.[id] === true && right[id]) { flip.right[id] = true; flip.left[right[id]] = true; }
+  const flipped = Object.keys(flip.right).length > 0;
+  const s = {spec, ids, at, right, up, left, down, glue, n, lattice, byPos, box, flip, flipped};
   s.edges = roomEdges(s);
   s.marks = seamMarks(s);
   s.corners = cornerSets(s);
@@ -144,6 +155,8 @@ export function surfaceOf(spec) {
 // 1080 degrees. The first corner is the class's representative: a lower-left
 // corner when there is one (the square to the right of the point and above
 // it), then upper-left, lower-right, upper-right, in the order of `ids`.
+// Across a reversing seam a right side's lower corner meets the upper left
+// corner of the square there, and its upper corner the lower left one.
 const CORNERS = [[0, 0], [0, 1], [1, 0], [1, 1]];
 const cornerKey = (id, [cx, cy]) => `${id}:${cx}${cy}`;
 function cornerSets(s) {
@@ -153,7 +166,7 @@ function cornerSets(s) {
   for (const id of s.ids) for (const c of CORNERS) parent.set(cornerKey(id, c), cornerKey(id, c));
   for (const id of s.ids) {
     const r = s.right[id], u = s.up[id];
-    if (r) { join(cornerKey(id, [1, 0]), cornerKey(r, [0, 0])); join(cornerKey(id, [1, 1]), cornerKey(r, [0, 1])); }
+    if (r) { const t = s.flip.right[id] ? 1 : 0; join(cornerKey(id, [1, 0]), cornerKey(r, [0, t])); join(cornerKey(id, [1, 1]), cornerKey(r, [0, 1 - t])); }
     if (u) { join(cornerKey(id, [0, 1]), cornerKey(u, [0, 0])); join(cornerKey(id, [1, 1]), cornerKey(u, [1, 0])); }
   }
   const groups = new Map();
@@ -178,14 +191,15 @@ export const cornerClass = (surface, s, c) => surface.corners.classes[surface.co
 // The room's drawn edges. Each side of each square is one of: 'inner' (glued
 // to the square drawn next to it), 'wall' (glued to nothing) or 'seam' (glued
 // to a square drawn somewhere else, carrying a mark that its partner repeats).
+// A side glued turned over is always a seam, marked `reversed`.
 function roomEdges(s) {
   const out = [];
   for (const id of s.ids) {
     const [c, r] = s.at[id];
     for (const [side, [dx, dy]] of Object.entries(SIDES)) {
-      const glued = s.glue[side][id], drawn = s.byPos.get(`${c + dx},${r + dy}`) ?? null;
-      const kind = glued === null ? 'wall' : glued === drawn ? 'inner' : 'seam';
-      out.push({s: id, side, kind, partner: glued});
+      const glued = s.glue[side][id], drawn = s.byPos.get(`${c + dx},${r + dy}`) ?? null, turned = Boolean(s.flip[side][id]);
+      const kind = glued === null ? 'wall' : glued === drawn && !turned ? 'inner' : 'seam';
+      out.push(turned ? {s: id, side, kind, partner: glued, reversed: true} : {s: id, side, kind, partner: glued});
     }
   }
   return out;
@@ -196,7 +210,10 @@ function roomEdges(s) {
 // shape and a colour. The shape is drawn on the middle of each run (`along`
 // square widths from the start of its first square's side), and every seam
 // edge of the pair takes the colour (`edge.colour`), so matching marks show
-// the translation (nothing is ever turned over).
+// the translation. A reversed run's partners lie in the opposite order; its
+// shape sits a quarter of the way along it and three quarters along the
+// partner run, the point glued to it, so the pair of marks shows the turn
+// (both marks carry `reversed`).
 export const MARK_SHAPES = ['circle', 'diamond', 'triangle', 'square', 'bar', 'star'];
 export const MARK_COLOURS = ['sun', 'sky', 'rose', 'leaf'];
 function seamMarks(s) {
@@ -209,13 +226,13 @@ function seamMarks(s) {
     });
     for (const e of edges) {
       const last = runs.at(-1);
-      const pe = s.at[e.s], pg = s.at[e.partner];
-      if (last && last.side === side) {
+      const pe = s.at[e.s], pg = s.at[e.partner], turned = Boolean(e.reversed);
+      if (last && last.side === side && last.reversed === turned) {
         const le = s.at[last.squares.at(-1)], lg = s.at[last.partners.at(-1)];
-        const next = (p, q) => p[1 - along] === q[1 - along] && p[along] === q[along] + 1;
-        if (next(pe, le) && next(pg, lg)) { last.squares.push(e.s); last.partners.push(e.partner); continue; }
+        const next = (p, q, d = 1) => p[1 - along] === q[1 - along] && p[along] === q[along] + d;
+        if (next(pe, le) && next(pg, lg, turned ? -1 : 1)) { last.squares.push(e.s); last.partners.push(e.partner); continue; }
       }
-      runs.push({side, squares: [e.s], partners: [e.partner]});
+      runs.push({side, squares: [e.s], partners: [e.partner], reversed: turned});
     }
   }
   const marks = [];
@@ -226,7 +243,8 @@ function seamMarks(s) {
   runs.forEach((run, index) => {
     const k = s.spec.stableMarks ? slot(run) : index;
     const look = {k, shape: MARK_SHAPES[k % MARK_SHAPES.length], colour: MARK_COLOURS[k % MARK_COLOURS.length]}, along = run.squares.length / 2;
-    marks.push({...look, s: run.squares[0], side: run.side, along}, {...look, s: run.partners[0], side: BACK[run.side], along});
+    if (run.reversed) marks.push({...look, s: run.squares[0], side: run.side, along: along / 2, reversed: true}, {...look, s: run.partners.at(-1), side: BACK[run.side], along: along * 3 / 2, reversed: true});
+    else marks.push({...look, s: run.squares[0], side: run.side, along}, {...look, s: run.partners[0], side: BACK[run.side], along});
     for (const e of s.edges) {
       if (e.kind !== 'seam') continue;
       if ((e.side === run.side && run.squares.includes(e.s)) || (e.side === BACK[run.side] && run.partners.includes(e.s))) e.colour = look.colour;
@@ -245,9 +263,13 @@ const seamColour = (s, id, side) => s.edges.find(e => e.s === id && e.side === s
 // cell; on 'crosses' 0 <= i, j <= n, and a point on a glued edge is stored in
 // the square to its right or above (i = n or j = n only beside a wall). A
 // cross at a corner is stored as its corner class's representative, so every
-// point of the surface has exactly one form, even a cone point.
+// point of the surface has exactly one form, even a cone point. Across a
+// reversing seam the point's height is turned over: j becomes n - 1 - j on
+// cells and n - j on crosses.
 // A placed point also has X, Y: where its square lies in the plane, in
-// square units, with the portal room drawn at copy (0, 0).
+// square units, with the portal room drawn at copy (0, 0). Across a reversing
+// seam X still counts the sides crossed, but the plane copy there would be
+// turned over, which nothing here draws.
 const isCorner = (surface, pt) => surface.lattice === 'crosses' && (pt.i === 0 || pt.i === surface.n) && (pt.j === 0 || pt.j === surface.n);
 // The same corner point stored in another corner of its class, keeping its
 // place in the plane (a corner point stays put as the squares turn round it).
@@ -259,8 +281,8 @@ export function canonical(surface, pt) {
   let {s, i, j, X, Y} = pt;
   const n = surface.n, lim = surface.lattice === 'cells' ? n - 1 : n;
   for (let guard = 0; guard < 8; guard++) {
-    if (i > lim || (surface.lattice === 'crosses' && i === n && surface.right[s])) { if (!surface.right[s]) return null; s = surface.right[s]; i -= n; if (X !== undefined) X++; continue; }
-    if (i < 0) { if (!surface.left[s]) return null; s = surface.left[s]; i += n; if (X !== undefined) X--; continue; }
+    if (i > lim || (surface.lattice === 'crosses' && i === n && surface.right[s])) { if (!surface.right[s]) return null; if (surface.flip.right[s]) j = lim - j; s = surface.right[s]; i -= n; if (X !== undefined) X++; continue; }
+    if (i < 0) { if (!surface.left[s]) return null; if (surface.flip.left[s]) j = lim - j; s = surface.left[s]; i += n; if (X !== undefined) X--; continue; }
     if (j > lim || (surface.lattice === 'crosses' && j === n && surface.up[s])) { if (!surface.up[s]) return null; s = surface.up[s]; j -= n; if (Y !== undefined) Y++; continue; }
     if (j < 0) { if (!surface.down[s]) return null; s = surface.down[s]; j += n; if (Y !== undefined) Y--; continue; }
     const out = X === undefined ? {s, i, j} : {s, i, j, X, Y};
@@ -283,6 +305,10 @@ export const place = (surface, pt, copy = [0, 0]) => ({s: pt.s, i: pt.i, j: pt.j
 
 // One lattice step from a placed point along [dx, dy] (a unit step, or any
 // integer vector that stays within one square's width), or null at a wall.
+// The step is taken in the frame of the square the point is stored in; past a
+// reversing seam that frame is turned over from the one the trip came from, so
+// a later step up is the opposite of the trip's earlier up, and two corners of
+// one class can face opposite ways.
 // A step out of a corner leaves through a square the step goes into: the
 // corner given, when its square lies that way, otherwise the first such corner
 // of its class. At a cone point, where several squares lie each way, a family
@@ -308,7 +334,14 @@ export function step(surface, pt, [dx, dy]) {
 // torus the lift is still exact: it is built square by square as the trip
 // goes, from the gluing, never from a fixed tiling. `blocked` is the index of
 // the first step that runs into a wall (the lift stops there), or -1.
+// The unrolled view, lifts and straight shots are for translation surfaces:
+// on a surface with a reversing seam they throw rather than draw a plane
+// whose turned-over copies they don't know.
+function translationOnly(surface) {
+  if (surface.flipped) throw new RangeError('The unrolled view, lifts and straight shots do not follow a reversing seam');
+}
 export function lift(surface, start, steps, copy = [0, 0]) {
+  translationOnly(surface);
   let here = start.X === undefined ? place(surface, start, copy) : {...start};
   const points = [here];
   let blocked = -1;
@@ -353,6 +386,7 @@ function coneCorner(surface, s, x, y) {
 // where each piece lies in one square (local rational coordinates), `target`
 // is the index of the target reached, and t the length travelled.
 export function shoot(surface, from, dir, opts = {}) {
+  translationOnly(surface);
   const n = surface.n, [a, b] = dir;
   if (!integer(a) || !integer(b) || (a === 0 && b === 0)) throw new RangeError('A shot needs a nonzero integer direction');
   const toSpot = p => p.x !== undefined ? {s: p.s, x: Q(p.x), y: Q(p.y)} : (([x, y]) => ({s: p.s, x, y}))(spot(surface, p));
@@ -433,6 +467,7 @@ export const stepPieces = (surface, pt, dir) => shoot(surface, pt, dir, {length:
 // `spread: false` only the anchors are placed: the strip of squares a
 // straight shot crosses, like copies traced along one ruler line.
 export function develop(surface, anchors, box, {spread = true} = {}) {
+  translationOnly(surface);
   const [X0, Y0, X1, Y1] = box, placed = new Map(), queue = [];
   const inside = (X, Y) => X >= X0 && X <= X1 && Y >= Y0 && Y <= Y1;
   for (const {s, X, Y} of anchors) {
@@ -524,7 +559,7 @@ export function roomSpots(surface, pt) {
   if (isCorner(surface, pt)) out.splice(0, 1, ...cornerClass(surface, pt.s, [pt.i / n, pt.j / n]).corners.map(({s, c}) => [s, Q(c[0] * n), Q(c[1] * n)]));
   else if (surface.lattice === 'crosses') {
     const l = surface.left[pt.s], d = surface.down[pt.s];
-    if (pt.i === 0 && l) out.push([l, Q(n), y]);
+    if (pt.i === 0 && l) out.push([l, Q(n), surface.flip.left[pt.s] ? Q.sub(n, y) : y]);
     if (pt.j === 0 && d) out.push([d, x, Q(n)]);
   }
   const spots = out.map(([s, a, b]) => roomXY(surface, s, a, b));

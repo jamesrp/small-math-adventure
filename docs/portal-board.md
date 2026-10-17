@@ -1,6 +1,6 @@
 # The shared portal board
 
-`dist/portal-board.js` and `dist/portal-board.css` handle surfaces made of unit squares glued edge to edge by translations: a torus, a cylinder, or a few squares glued in an unusual way. The board draws a surface in two views and passes taps, keys and finger slides back to the family as moves:
+`dist/portal-board.js` and `dist/portal-board.css` handle surfaces made of unit squares glued edge to edge by translations: a torus, a cylinder, or a few squares glued in an unusual way. A right side may instead be glued turned over, for a Möbius band (see [A seam that reverses](#a-seam-that-reverses)). The board draws a surface in two views and passes taps, keys and finger slides back to the family as moves:
 
 - **The portal room** shows the squares where the family lays them out. Matching marks show which edges are glued together.
 - **The unrolled view** lays copies of the squares out in the plane, so a trip that crosses a seam goes straight on.
@@ -25,10 +25,11 @@ const S = surfaceOf({
   n: 1,                                                 // lattice steps along a square's side (default 1)
   lattice: 'cells',                                     // 'cells' (centres of the n × n small cells, the default) or 'crosses'
   stableMarks: true                                     // optional: each mark follows its side, not the order of the runs
+  // flip: {C: true}                                    // optional: C's right side glued turned over (a seam that reverses)
 });
 ```
 
-- The only gluing is by translation. A square's left and down neighbours follow from `right` and `up`, so a square is never turned over or rotated. `validSurfaceSpec(spec)` checks the shape of a spec: no two squares drawn in one place, and no two squares glued to the same side of a third.
+- Gluing is by translation, except a right side named in `flip` (see [A seam that reverses](#a-seam-that-reverses)). A square's left and down neighbours follow from `right` and `up`, so a square is never rotated. `validSurfaceSpec(spec)` checks the shape of a spec: no two squares drawn in one place, and no two squares glued to the same side of a third.
 - `surfaceOf` caches the 64 most recently used specs, so calling it in every render costs little, and a family that edits gluings (Week 64) doesn't keep every surface it has made. The result is `{spec, ids, at, right, up, left, down, glue, n, lattice, box, edges, marks, corners, abelian}`.
 - `edges` lists each side of each square as `inner` (glued to the square drawn beside it), `wall` (glued to nothing) or `seam` (glued to a square drawn somewhere else).
 - `marks` pairs each run of seam edges with its partner run. A run is consecutive seam edges along one drawn line whose partners lie along one drawn line in the same order. Each pair of runs gets one shape and colour. The shape is drawn halfway along both runs (`along`, in square widths), and every seam edge of the pair takes the colour (`edge.colour`), so matching marks show the translation. There are six shapes and four colours. By default the runs take the looks in order; with `stableMarks` a run's look comes from its first square and side, so when a family lets the child glue and unglue sides (Week 64) a run that is unchanged keeps its look. Two caveats: a new gluing can merge runs (glued sides of squares drawn side by side join one run, which takes the look of its first side), and the looks repeat every 12 slots, so with more than six squares two runs can share a look.
@@ -197,9 +198,19 @@ Taps on points and vertices are read from the pointer's press and release, becau
 - **Week 70, portal shields.** The one-square torus above, so S, T and the halfway points are all crosses. Shields are taps on points (`point`). A shot from S toward a copy of T is `shoot` with T and the shields as `targets`, and its pieces draw it in both views. The app can search directions [a, b] for a shot that escapes the shields, and draw the four corner-to-centre shots, which share no point, to show that four shields are the fewest.
 - **Week 75, twists on a cylinder.** The cylinder spec above, on a fine lattice, with each puzzle's fewest crossings checked on that lattice. Strands are words drawn with `roomTrail` and `planeTrail`; a strand's winding number is its lift's `endCopy[0]` divided by the width. A cylinder glued by translation has no gluing offset to change: a twist adds a lap round the cylinder at one end of every strand, so every winding goes up by one. Sliding a strand with its ends fixed uses `tripMoves`. The strip in the unrolled view is `develop` stopped by walls. Counting the places where two strands cross each other, and refusing a strand that crosses itself, are the family's logic; the board does neither.
 
+## A seam that reverses
+
+Week 38's [Seams](mobius/README.md) joins strips into Möbius bands, so a right side can be glued turned over: `flip: {id: true}` glues square id's right side to the left side of `right[id]` with its top end at the other's bottom end. Only right sides reverse; tops are always glued by translation. One square with its right side flipped onto itself is a Möbius band (with walls top and bottom) or a Klein bottle (with its top glued to its bottom). `validSurfaceSpec` checks that `flip` maps squares to booleans and that a true flag has a right neighbour. Without `flip` every function returns exactly what it did before.
+
+- `surfaceOf` adds `flip` (`flip.right[id]` and `flip.left[right[id]]` for each turned side) and `flipped` (whether any side is turned).
+- **Corners.** Across a turned right side, a square's lower right corner meets the upper left corner of the square there, and its upper right corner the lower left one. So the walls of a strip glued to itself turned over chain into one closed edge, and with a second turned seam into two again.
+- **Edges and marks.** A turned side is always a `seam` edge, even when the square across it is drawn beside it, and carries `reversed: true`. A run of turned sides pairs with a partner run in the opposite order. Its mark sits a quarter of the way along the run and three quarters along the partner run, the two points glued together, so the pair of marks shows the turn; both marks carry `reversed: true`.
+- **Points and steps.** `canonical` turns the height over across a turned side: j becomes n − 1 − j on `cells` and n − j on `crosses`. `step` follows it. Each step is taken in the frame of the square the point is stored in, so after a trip crosses a turned side, a step up is the opposite of up on the side it came from. `roomSpots` draws a cross on a turned seam at the turned height on the other side.
+- **Not followed.** The unrolled view, lifts and straight shots (`develop`, `planeBoard` through it, `lift` and `shoot`) assume the plane copies are translated, so on a surface with a turned side they throw a `RangeError` rather than draw it wrongly.
+
 ## Limits
 
-- Gluing is by translation only: no flips (a Klein bottle) and no rotations (a cube's net). Supporting those would mean storing a rotation with each glued side.
+- Gluing is by translation, except right sides glued turned over (`flip`); tops never reverse (a projective plane), and nothing rotates (a cube's net). Supporting those would mean storing a rotation with each glued side. The unrolled view, lifts and straight shots refuse a surface with a turned side.
 - A step changes a lattice coordinate by at most one square's width. Longer moves are several steps.
 - `develop` resolves a conflict on a non-abelian surface by placing the first square it reaches, so the unrolled view of the L depends on the anchors it is given. Straight shots are always drawn faithfully; a lattice trip that returns to a plane square in a different square is not (see [How a surface that isn't a torus unrolls](#steps-and-lifts)).
 - A shot that starts on a cone point stops at once, with `t = 0`.

@@ -1,0 +1,128 @@
+@import url('../../portal-board.css');
+/* Seams: paper strips on the shared portal board, with the worksheet's corner
+   marks (• and □) at each end and the seam's letter beside its right end.
+   Walls are the band's edges in ink; a lit closed edge glows in its lamp
+   colour (rose, leaf, lilac, teal, peach, sand), and dots on one closed edge
+   share that colour. Cuts are gaps in the paper with an edge on each side;
+   holes are paper taken away. The goal sits above the band: rings of dots,
+   or cards with a ring for each closed edge of a piece. Every rule is scoped
+   under the family's root. */
+[data-mechanic-wire="mobius"]{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%;
+  --mb-rose:#c46c55;--mb-leaf:#5f8a67;--mb-lilac:#8e72b0;--mb-teal:#3f8f8c;--mb-peach:#d98c4a;--mb-sand:#a89060;
+  --mb-sun:var(--b-sun,#efc76e);--mb-sky:var(--b-sky,#9cc9de);--mb-ink:var(--b-ink,#294439);--mb-card:var(--b-card,#fffdf5)}
+[data-mechanic-wire="mobius"] .mb-band{width:100%;max-width:440px;min-width:0}
+[data-mechanic-wire="mobius"] .mb-band.strips{max-width:400px}
+[data-mechanic-wire="mobius"] .mb-goal-row{display:flex;align-items:center;justify-content:center;gap:.8rem;min-height:44px;max-width:100%}
+[data-mechanic-wire="mobius"] .mb-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .8rem;max-width:100%}
+[data-mechanic-wire="mobius"] .mb-told{margin:0;font-weight:600;color:var(--b-bad,#a9503a);text-align:center}
+
+/* The board: the shared paper squares, with the inner grid and lines hidden;
+   the board's own seam marks give way to the corner marks. */
+[data-mechanic-wire="mobius"] .pb-grid,[data-mechanic-wire="mobius"] .pb-edge.inner,[data-mechanic-wire="mobius"] .pb-room .pb-marks{display:none}
+[data-mechanic-wire="mobius"] .pb-square{fill:#fbf6e6}
+[data-mechanic-wire="mobius"] .pb-edge.seam{stroke-width:2.6px}
+[data-mechanic-wire="mobius"] .mb-tint{stroke:none;pointer-events:none}
+[data-mechanic-wire="mobius"] .mb-tint.t0{fill:#f3e2b4}
+[data-mechanic-wire="mobius"] .mb-tint.t1{fill:#d6e8ef}
+[data-mechanic-wire="mobius"] .mb-tint.t2{fill:#f3d6cc}
+[data-mechanic-wire="mobius"] .mb-tint.t3{fill:#dce8d8}
+[data-mechanic-wire="mobius"] .mb-line{stroke:#8b977d;stroke-width:1.6px;stroke-dasharray:5 4;vector-effect:non-scaling-stroke;pointer-events:none}
+[data-mechanic-wire="mobius"] .mb-gap{fill:var(--mb-card);stroke:none;pointer-events:none}
+[data-mechanic-wire="mobius"] .mb-cut{stroke:var(--mb-ink);stroke-width:2.4px;stroke-linecap:round;vector-effect:non-scaling-stroke;pointer-events:none}
+[data-mechanic-wire="mobius"] .mb-lit{stroke-width:7px;stroke-linecap:round;opacity:.82;vector-effect:non-scaling-stroke;pointer-events:none}
+[data-mechanic-wire="mobius"] :is(.mb-lit,.mb-notch.lit).rose{stroke:var(--mb-rose)}
+[data-mechanic-wire="mobius"] :is(.mb-lit,.mb-notch.lit).leaf{stroke:var(--mb-leaf)}
+[data-mechanic-wire="mobius"] :is(.mb-lit,.mb-notch.lit).lilac{stroke:var(--mb-lilac)}
+[data-mechanic-wire="mobius"] :is(.mb-lit,.mb-notch.lit).teal{stroke:var(--mb-teal)}
+[data-mechanic-wire="mobius"] :is(.mb-lit,.mb-notch.lit).peach{stroke:var(--mb-peach)}
+[data-mechanic-wire="mobius"] :is(.mb-lit,.mb-notch.lit).sand{stroke:var(--mb-sand)}
+[data-mechanic-wire="mobius"] .mb-spot{fill:none;stroke:#8b977d;stroke-width:1.5px;stroke-dasharray:3 3;vector-effect:non-scaling-stroke;pointer-events:none}
+[data-mechanic-wire="mobius"] .mb-hole,[data-mechanic-wire="mobius"] .mb-notch-cut{fill:var(--mb-card);stroke:none;pointer-events:none}
+[data-mechanic-wire="mobius"] .mb-hole{stroke:var(--mb-ink);stroke-width:2.4px;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="mobius"] .mb-notch{fill:none;stroke:var(--mb-ink);stroke-width:3.2px;vector-effect:non-scaling-stroke;pointer-events:none}
+[data-mechanic-wire="mobius"] .mb-notch.lit{stroke-width:6px}
+
+/* Dots, fixed dots, Can't taps. */
+[data-mechanic-wire="mobius"] .mb-dot,[data-mechanic-wire="mobius"] .mb-mark{stroke:var(--mb-ink);stroke-width:1.6px;vector-effect:non-scaling-stroke;pointer-events:none}
+[data-mechanic-wire="mobius"] .mb-dot.plain{fill:#fffdf5}
+[data-mechanic-wire="mobius"] :is(.mb-dot,.mb-ring-dot).rose{fill:var(--mb-rose)}
+[data-mechanic-wire="mobius"] :is(.mb-dot,.mb-ring-dot).leaf{fill:var(--mb-leaf)}
+[data-mechanic-wire="mobius"] :is(.mb-dot,.mb-ring-dot).lilac{fill:var(--mb-lilac)}
+[data-mechanic-wire="mobius"] :is(.mb-dot,.mb-ring-dot).teal{fill:var(--mb-teal)}
+[data-mechanic-wire="mobius"] :is(.mb-dot,.mb-ring-dot).peach{fill:var(--mb-peach)}
+[data-mechanic-wire="mobius"] :is(.mb-dot,.mb-ring-dot).sand{fill:var(--mb-sand)}
+[data-mechanic-wire="mobius"] :is(.mb-mark,.mb-ring-dot).star{fill:var(--mb-ink);stroke:var(--mb-card);stroke-width:1.2px;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="mobius"] :is(.mb-mark,.mb-ring-dot).diamond{fill:var(--mb-card);stroke:var(--mb-ink);stroke-width:2px;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="mobius"] .mb-flag line{stroke:var(--mb-ink);stroke-width:1.8px;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="mobius"] .mb-flag polygon{fill:var(--b-ochre,#b38840);stroke:var(--mb-ink);stroke-width:1.2px;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="mobius"] .mb-flag{pointer-events:none}
+
+/* Ends: corner marks, strip numbers, the seam's letter and its padlock. */
+[data-mechanic-wire="mobius"] .mb-corner{fill:var(--mb-ink);stroke:none;pointer-events:none}
+[data-mechanic-wire="mobius"] .mb-corner.square{fill:var(--mb-card);stroke:var(--mb-ink);stroke-width:1.6px;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="mobius"] .mb-strip-number{font-family:var(--b-display,Georgia,serif);fill:#7d8a72;text-anchor:middle;pointer-events:none}
+[data-mechanic-wire="mobius"] .mb-seam{pointer-events:none}
+[data-mechanic-wire="mobius"] .mb-seam rect{fill:var(--mb-card);stroke:var(--b-pine,#31533e);stroke-width:1.8px;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="mobius"] .mb-seam.r rect{fill:#f6e3b0}
+[data-mechanic-wire="mobius"] .mb-seam.locked rect{stroke:var(--b-line,#d0d6bd);stroke-dasharray:3 2}
+[data-mechanic-wire="mobius"] .mb-seam text{font-family:var(--b-display,Georgia,serif);font-weight:700;fill:var(--mb-ink);text-anchor:middle}
+[data-mechanic-wire="mobius"] .mb-lock path{fill:none;stroke:#7d8a72;stroke-width:1.5px;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="mobius"] .mb-lock rect{fill:#7d8a72}
+[data-mechanic-wire="mobius"] .mb-scissors{pointer-events:none}
+[data-mechanic-wire="mobius"] .mb-scissors circle{fill:var(--mb-card);stroke:#8b977d;stroke-width:1.5px;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="mobius"] .mb-scissors.cut circle{fill:#f6e3b0;stroke:var(--mb-ink)}
+[data-mechanic-wire="mobius"] .mb-scissors text{fill:var(--mb-ink);text-anchor:middle;font-family:system-ui,sans-serif}
+
+/* The carried arrow: ink at the start, grey as it goes, pine when it comes
+   home the same way and rose when it comes home flipped. */
+[data-mechanic-wire="mobius"] .mb-carry{stroke:#9aa78f;stroke-width:1.5px;stroke-dasharray:2 4;vector-effect:non-scaling-stroke;pointer-events:none}
+[data-mechanic-wire="mobius"] .mb-arrow{pointer-events:none}
+[data-mechanic-wire="mobius"] .mb-arrow line{stroke:var(--mb-ink);stroke-width:3px;stroke-linecap:round;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="mobius"] .mb-arrow polygon{fill:var(--mb-ink)}
+[data-mechanic-wire="mobius"] .mb-arrow.carried line{stroke:#7d8a72}
+[data-mechanic-wire="mobius"] .mb-arrow.carried polygon{fill:#7d8a72}
+[data-mechanic-wire="mobius"] .mb-arrow.home line{stroke:var(--b-pine,#31533e);stroke-dasharray:4 2}
+[data-mechanic-wire="mobius"] .mb-arrow.home polygon{fill:var(--b-pine,#31533e)}
+[data-mechanic-wire="mobius"] .mb-arrow.home.flipped line{stroke:var(--mb-rose)}
+[data-mechanic-wire="mobius"] .mb-arrow.home.flipped polygon{fill:var(--mb-rose)}
+
+/* Controls: transparent until focused or hinted. */
+[data-mechanic-wire="mobius"] .mb-hit .pb-hit{fill:transparent;stroke:none}
+[data-mechanic-wire="mobius"] .mb-hit:hover .pb-hit{fill:rgba(134,166,140,.18)}
+[data-mechanic-wire="mobius"] .mb-hit:focus-visible .pb-hit{fill:rgba(179,136,64,.14);stroke:var(--b-ochre,#b38840);stroke-width:2.5px;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="mobius"] .mb-hit.hinted .pb-hit{fill:rgba(239,199,110,.5);stroke:var(--b-ochre,#b38840);stroke-width:2.5px;stroke-dasharray:5 4;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="mobius"].solved .mb-hit{cursor:default}
+
+/* The goal: rings of dots, or piece cards. */
+[data-mechanic-wire="mobius"] .mb-goal{display:block;height:44px;width:auto;max-width:100%}
+[data-mechanic-wire="mobius"] .mb-ring{fill:var(--mb-card);stroke:var(--mb-ink);stroke-width:1.8px;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="mobius"] .mb-ring:is(.rose,.leaf,.lilac,.teal,.peach,.sand){stroke-width:3.2px}
+[data-mechanic-wire="mobius"] .mb-ring.rose{stroke:var(--mb-rose)}
+[data-mechanic-wire="mobius"] .mb-ring.leaf{stroke:var(--mb-leaf)}
+[data-mechanic-wire="mobius"] .mb-ring.lilac{stroke:var(--mb-lilac)}
+[data-mechanic-wire="mobius"] .mb-ring.teal{stroke:var(--mb-teal)}
+[data-mechanic-wire="mobius"] .mb-ring.peach{stroke:var(--mb-peach)}
+[data-mechanic-wire="mobius"] .mb-ring.sand{stroke:var(--mb-sand)}
+[data-mechanic-wire="mobius"] .mb-ring.crossed{stroke:#9aa78f;stroke-dasharray:3 2}
+[data-mechanic-wire="mobius"] .mb-ring-dot{fill:var(--mb-ink);stroke:var(--mb-ink);stroke-width:1px;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="mobius"] .mb-ring-x{stroke:var(--b-bad,#a9503a);stroke-width:2.6px;stroke-linecap:round;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="mobius"] .mb-card{fill:#fbf6e6;stroke:var(--mb-ink);stroke-width:1.6px;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="mobius"] .mb-card.t0{fill:#f3e2b4}
+[data-mechanic-wire="mobius"] .mb-card.t1{fill:#d6e8ef}
+[data-mechanic-wire="mobius"] .mb-card.t2{fill:#f3d6cc}
+[data-mechanic-wire="mobius"] .mb-card.t3{fill:#dce8d8}
+[data-mechanic-wire="mobius"] .mb-card-ring{fill:none;stroke:var(--mb-ink);stroke-width:2px;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="mobius"] .mb-budget{display:flex;gap:5px}
+[data-mechanic-wire="mobius"] .mb-budget i{width:14px;height:14px;border-radius:50%;border:2px dashed #8b977d;background:transparent}
+[data-mechanic-wire="mobius"] .mb-budget i.used{border:2px solid var(--mb-ink);background:var(--mb-card)}
+
+/* Buttons. */
+[data-mechanic-wire="mobius"] .mb-button{min-height:44px;min-width:56px}
+[data-mechanic-wire="mobius"] .mb-button[aria-pressed="true"]{background:#f6e3b0;border-color:var(--b-pine,#31533e)}
+[data-mechanic-wire="mobius"] .mb-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+[data-mechanic-wire="mobius"] .mb-icon{display:block;width:24px;height:24px;fill:none;stroke:var(--mb-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+[data-mechanic-wire="mobius"] .mb-picks{display:flex;gap:.4rem}
+[data-mechanic-wire="mobius"] .mb-pick{padding:4px 6px;min-height:44px;width:76px}
+[data-mechanic-wire="mobius"] .mb-pick[aria-pressed="true"]{background:#f6e3b0;border-color:var(--b-pine,#31533e)}
+[data-mechanic-wire="mobius"] .mb-mini{width:100%;height:auto;max-height:40px}
+[data-mechanic-wire="mobius"] .mb-mini .pb-marks{display:none}
