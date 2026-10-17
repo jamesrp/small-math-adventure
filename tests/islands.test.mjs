@@ -53,47 +53,85 @@ test('a walk crosses a bridge once, and a double bridge is two bridges', () => {
   assert.equal(walkOf(bridgesOf(p.parameters), 'A', [0, 1]).at, 'A');
 });
 
-test('where can it start: Done judges the coloured islands as a whole', () => {
+// Put the token on `start` and cross the first bridge with a counter until
+// the walk can go no further.
+function stuck(p, a, start) {
+  a = play(p, a, {type: 'island', island: start});
+  for (let i = 0; i < 40; i++) {
+    const b = a.board, all = bridgesOf(p.parameters, b.added), w = walkOf(all, b.start, b.path);
+    const next = all.findIndex(([u, v], j) => !w.uses[j] && (u === w.at || v === w.at));
+    if (next < 0) return a;
+    a = play(p, a, {type: 'bridge', bridge: next});
+  }
+  throw new Error('a walk that never ends');
+}
+
+test('a walk counts as tried only once it ends', () => {
+  const p = byId(9);
+  let a = play(p, freshAttempt(p), {type: 'island', island: 'B'}, ...cross(p, ['B', 'A', 0], ['A', 'C', 0], ['C', 'D']));
+  assert.equal(a.board.tried, 0, 'three crossings with counters left at the token: not yet');
+  assert.equal(claims(p.parameters, a.board).noWalk, false, 'so No walk is still off');
+  a = play(p, a, ...cross(p, ['D', 'A'], ['A', 'B', 1], ['B', 'D']));
+  assert.equal(a.board.tried, 1, 'stuck at D: tried');
+  assert.equal(claims(p.parameters, a.board).noWalk, true);
+});
+
+test('where can it start: Done judges the colored islands as a whole, once per walk', () => {
   const p = byId(2);
   assert.equal(move(p, play(p, freshAttempt(p), {type: 'color', island: 'B'}), {type: 'done'}), null, 'Done waits for a walk');
   let a = play(p, freshAttempt(p), {type: 'island', island: 'B'}, ...cross(p, ['B', 'A', 0], ['A', 'B', 1], ['B', 'C']));
-  assert.deepEqual(a.board.colored, ['B'], 'a walk over every bridge colours its start');
+  assert.deepEqual(a.board.colored, ['B'], 'a walk over every bridge colors its start');
   a = play(p, a, {type: 'done'});
   assert.equal(a.board.told, 'other'); assert.ok(!isSolved(p, a.board));
   assert.match(view(p, a), /There is another\./);
   assert.doesNotMatch(view(p, a).replace(/<p class="sr-only"[^]*?<\/p>/, ''), /\d of \d|\d (starts|islands) (left|found)/, 'no count of starts');
-  assert.equal(move(p, a, {type: 'done'}), null, 'Done stays off until the colours change');
+  assert.equal(move(p, a, {type: 'done'}), null, 'Done waits for a new walk');
   const back = undoCarry(p, a);
   assert.equal(back.board.told, null, 'Undo takes the answer away');
-  assert.equal(move(p, back, {type: 'done'}), null, 'and keeps Done shut');
-  a = play(p, a, {type: 'again'}, {type: 'color', island: 'A'});
+  assert.equal(move(p, back, {type: 'done'}), null, 'and keeps Done locked');
+  // Recoloring alone doesn't reopen Done: probing one island at a time costs a walk each.
+  a = play(p, a, {type: 'again'}, {type: 'color', island: 'B'}, {type: 'color', island: 'A'});
+  assert.equal(move(p, a, {type: 'done'}), null, 'new colors, no new walk: still locked');
+  a = play(p, a, {type: 'island', island: 'A'}, ...cross(p, ['A', 'B', 0]));
+  assert.equal(move(p, a, {type: 'done'}), null, 'a walk under way is not yet tried');
+  a = play(p, a, ...cross(p, ['B', 'C']));
+  assert.equal(a.board.tried, 2, 'stuck at C');
   a = play(p, a, {type: 'done'});
   assert.equal(a.board.told, 'notall');
   assert.match(view(p, a), /One of these can’t start a walk\./);
-  a = play(p, a, {type: 'color', island: 'A'}, {type: 'color', island: 'C'}, {type: 'done'});
+  a = play(p, a, {type: 'color', island: 'A'}, {type: 'color', island: 'B'}, {type: 'color', island: 'C'});
+  assert.equal(move(p, a, {type: 'done'}), null);
+  a = stuck(p, play(p, a, {type: 'again'}), 'C');
+  a = play(p, a, {type: 'done'});
   assert.ok(isSolved(p, a.board));
   const html = view(p, a);
   assert.equal((html.match(/gb-node [^"]*\blit\b/g) || []).length, 2, 'the odd islands are lit');
   assert.match(html, /class="gb-badge"/, 'with their bridge counts');
 });
 
-test('No walk comes after a walk and is certified by the child’s taps', () => {
+test('No walk comes after a walk that ends and is certified by the child’s taps', () => {
   const p = byId(9), q = p.parameters, fresh = freshAttempt(p);
   assert.equal(claims(q, fresh.board).noWalk, false, 'not on a fresh board');
   assert.equal(move(p, fresh, {type: 'check', claim: 'none', picks: ['A', 'B', 'C', 'D']}), null);
-  let a = play(p, fresh, {type: 'island', island: 'B'}, ...cross(p, ['B', 'A', 0], ['A', 'C', 0], ['C', 'D']));
+  let a = stuck(p, fresh, 'B');
   assert.equal(claims(q, a.board).noWalk, true);
+  for (const picks of [['A', 'B', 'D'], ['A', 'B', 'C', 'D', 'A'].slice(0, 2), ['B']]) {
+    const told = move(p, a, {type: 'check', claim: 'none', picks});
+    assert.equal(told.board.told, 'wrong', `${picks}: one answer for any wrong set`);
+  }
   a = play(p, a, {type: 'check', claim: 'none', picks: ['A', 'B', 'D']});
-  assert.equal(a.board.told, 'missing'); assert.match(view(p, a), /There is another\./);
+  assert.match(view(p, a), /Not these islands\./);
   assert.equal(move(p, a, {type: 'check', claim: 'none', picks: ['A', 'B', 'C', 'D']}), null, 'locked until a new walk');
   a = play(p, a, {type: 'again'}, {type: 'island', island: 'D'}, ...cross(p, ['D', 'A']));
+  assert.equal(move(p, a, {type: 'check', claim: 'none', picks: ['A', 'B', 'C', 'D']}), null, 'a walk under way does not reopen it');
+  a = stuck(p, play(p, a, {type: 'again'}), 'D');
   a = play(p, a, {type: 'check', claim: 'none', picks: ['D', 'C', 'B', 'A']});
   assert.ok(isSolved(p, a.board));
   assert.deepEqual(a.board.done, {claim: 'none', picks: ['A', 'B', 'C', 'D']});
   assert.match(view(p, a), /A walk has only two ends\./);
   // A wrong No walk where a walk exists: one short refusal, no walk played back.
   const w = byId(6);
-  let b = play(w, freshAttempt(w), {type: 'island', island: 'B'}, ...cross(w, ['B', 'A']));
+  let b = stuck(w, freshAttempt(w), 'B');
   b = play(w, b, {type: 'check', claim: 'none', picks: ['D', 'F']});
   assert.equal(b.board.told, 'walk'); assert.match(view(w, b), /There is a walk\./);
   assert.ok(!/gb-node[^"]*lit/.test(view(w, b)), 'nothing lit');
@@ -147,7 +185,7 @@ test('the star delivery: 3 repeats, certified by the dead ends', () => {
   assert.equal(walkOf(bridgesOf(p.parameters), 'A', a.board.path).repeats, 3);
   assert.match(view(p, a), /×2/, 'each bridge shows it was crossed twice');
   a = play(p, a, {type: 'check', claim: 'fewest', picks: ['A', 'B', 'C', 'D']});
-  assert.equal(a.board.told, 'extra'); assert.match(view(p, a), /One of these isn’t a dead end\./);
+  assert.equal(a.board.told, 'wrong'); assert.match(view(p, a), /Not these islands\./);
   a = play(p, a, {type: 'again'}, {type: 'island', island: 'B'}, ...cross(p, ['B', 'A'], ['A', 'B'], ['B', 'C'], ['C', 'B'], ['B', 'D'], ['D', 'B']));
   a = play(p, a, {type: 'check', claim: 'fewest', picks: ['C', 'A', 'D']});
   assert.ok(isSolved(p, a.board));
@@ -203,7 +241,7 @@ test('the claim view: taps are view state, cleared by any move', () => {
 });
 
 test('forged saves are refused', () => {
-  const p = byId(5), a = play(p, freshAttempt(p), {type: 'island', island: 'A'}, {type: 'bridge', bridge: 0});
+  const p = byId(5), a = stuck(p, freshAttempt(p), 'A');
   for (const board of [
     {...freshAttempt(p).board, done: {claim: 'none', picks: ['A', 'C', 'D', 'F']}},
     {...a.board, done: {claim: 'none', picks: ['A', 'C']}},
@@ -211,8 +249,14 @@ test('forged saves are refused', () => {
     {...a.board, told: 'walk'},
     {...a.board, path: [0, 0]},
     {...a.board, colored: ['C', 'A']},
-    {...a.board, added: [['A', 'B']]}
+    {...a.board, added: [['A', 'B']]},
+    {...a.board, tried: 0},
+    {...a.board, lock: a.board.tried, done: {claim: 'none', picks: ['A', 'C', 'D', 'F']}},
+    {...a.board, told: 'wrong'},
+    {...a.board, extra: 1},
+    {...a.board, shut: null}
   ]) assert.equal(validBoard(p, board), false, JSON.stringify(board));
+  assert.equal(validBoard(p, {...a.board, told: 'wrong', lock: a.board.tried}), true, 'a refusal with its lock');
   assert.equal(validBoard(p, {...a.board, done: {claim: 'none', picks: ['A', 'C', 'D', 'F']}}), true);
 });
 

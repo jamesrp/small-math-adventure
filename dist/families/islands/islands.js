@@ -182,17 +182,21 @@ const capOf = q => q.mode === 'add' ? q.budget : q.mode === 'fewest' ? MAX_NEW :
 const pathCap = (q, all) => q.mode === 'deliver' ? all.length * 3 : all.length;
 
 // ---------------------------------------------------------------- the board
-// {added, start, path, tried, colored, told, lock, shut, done}
+// {added, start, path, tried, colored, told, lock, done}
 // - added: new bridges [u, v] (add and fewest); start and path: the walk on
-//   the board; tried: walks begun (each first crossing counts one).
-// - colored: the islands coloured as starts (starts puzzles).
+//   the board; tried: walks tried, each counted on the crossing that ends it
+//   (it picks up every counter or can go no further; a delivery route, once
+//   it is back home with every counter).
+// - colored: the islands colored as starts (starts puzzles).
 // - told: the answer to the last claim, until the next move: notall, other
-//   (Done); walk, extra, missing (No walk); fewer, extra, missing (Fewest).
-// - lock: No walk and Fewest wait for a new walk (tried > lock) after a
-//   refusal; shut: Done waits for the coloured islands to change.
+//   (Done); walk, wrong (No walk); fewer, wrong (Fewest).
+// - lock: after any refusal Done, No walk and Fewest wait for a new walk to
+//   end (tried > lock), so a claim can't be used to test islands one by one
+//   for the price of a few taps.
 // - done: an accepted claim, {claim: 'starts' | 'none' | 'fewest', picks}.
-const TOLD = {starts: ['notall', 'other', 'walk', 'extra', 'missing'], add: [], fewest: ['fewer', 'extra', 'missing'], deliver: ['fewer', 'extra', 'missing']};
-function fresh() { return {added: [], start: null, path: [], tried: 0, colored: [], told: null, lock: 0, shut: null, done: null}; }
+const TOLD = {starts: ['notall', 'other', 'walk', 'wrong'], add: [], fewest: ['fewer', 'wrong'], deliver: ['fewer', 'wrong']};
+const KEYS = ['added', 'start', 'path', 'tried', 'colored', 'told', 'lock', 'done'];
+function fresh() { return {added: [], start: null, path: [], tried: 0, colored: [], told: null, lock: 0, done: null}; }
 const keyOf = list => list.join(',');
 function stateOf(q, b) {
   const all = bridgesOf(q, b.added), walk = b.start === null ? {at: null, uses: all.map(() => 0), crossed: 0, repeats: 0} : walkOf(all, b.start, b.path);
@@ -206,34 +210,45 @@ function complete(q, all, b, walk) {
   if (closed && walk.at !== b.start) return false;
   return q.mode === 'deliver' ? walk.uses.every(n => n >= 1) : walk.uses.every(n => n === 1);
 }
+// Has the walk on the board ended: no bridge with its counter at the token
+// (it picked up every counter or is stuck), or a delivery back home with
+// every counter?
+function ended(q, all, b, walk) {
+  if (!walk || b.start === null || !b.path.length) return false;
+  if (q.mode === 'deliver') return complete(q, all, b, walk);
+  return !all.some(([u, v], i) => !walk.uses[i] && (u === walk.at || v === walk.at));
+}
 // What a claim should be certified by.
 const expected = q => q.mode === 'deliver' ? deadEnds(q) : oddIslands(q);
 const claimRight = (q, b, all, walk) => q.mode === 'deliver' ? walk.repeats === fewestRepeats(q) : b.added.length === fewestNew(q);
 
 function validBoard(q, b) {
-  if (!object(b) || !Array.isArray(b.added) || !Array.isArray(b.path) || !Array.isArray(b.colored)) return false;
+  if (!object(b) || Object.keys(b).length !== KEYS.length || !KEYS.every(k => Object.hasOwn(b, k))) return false;
+  if (!Array.isArray(b.added) || !Array.isArray(b.path) || !Array.isArray(b.colored)) return false;
   if (b.added.length > capOf(q) || !b.added.every(e => Array.isArray(e) && e.length === 2 && isIsland(q, e[0]) && isIsland(q, e[1]) && e[0] !== e[1])) return false;
   if (!integer(b.tried) || b.tried < 0 || b.tried > 999 || !integer(b.lock) || b.lock < 0 || b.lock > 999) return false;
   if (b.start === null ? b.path.length !== 0 : !isIsland(q, b.start)) return false;
+  // Adding a bridge has no claim to refuse, so nothing ever locks.
+  if (q.mode === 'add' && b.lock !== 0) return false;
   const {all, walk} = stateOf(q, b);
   if (!walk || b.path.length > pathCap(q, all) || (q.mode !== 'deliver' && walk.uses.some(n => n > 1))) return false;
-  if (b.path.length && b.tried < 1) return false;
+  if (ended(q, all, b, walk) && b.tried < 1) return false;
   if (new Set(b.colored).size !== b.colored.length || !b.colored.every(id => isIsland(q, id)) || keyOf(b.colored) !== keyOf(sortIslands(q, b.colored))) return false;
-  if (q.mode !== 'starts' && (b.colored.length || b.shut !== null)) return false;
-  if (b.shut !== null && (typeof b.shut !== 'string' || (b.shut !== '' && !b.shut.split(',').every(id => isIsland(q, id))))) return false;
+  if (q.mode !== 'starts' && b.colored.length) return false;
   if (b.told !== null) {
-    if (!TOLD[q.mode].includes(b.told) || b.tried < 1 || b.done !== null) return false;
+    // A refusal locks the claims at the walks tried so far.
+    if (!TOLD[q.mode].includes(b.told) || b.tried < 1 || b.lock !== b.tried || b.done !== null) return false;
     const starts = walkStarts(q);
     if (b.told === 'notall' && !b.colored.some(id => !starts.includes(id))) return false;
     if (b.told === 'other' && !(b.colored.every(id => starts.includes(id)) && b.colored.length < starts.length)) return false;
     if (b.told === 'walk' && !starts.length) return false;
-    if (q.mode === 'starts' && ['extra', 'missing'].includes(b.told) && starts.length) return false;
+    if (q.mode === 'starts' && b.told === 'wrong' && starts.length) return false;
     if (q.mode !== 'starts' && !complete(q, all, b, walk)) return false;
     if (b.told === 'fewer' && claimRight(q, b, all, walk)) return false;
-    if (q.mode !== 'starts' && ['extra', 'missing'].includes(b.told) && !claimRight(q, b, all, walk)) return false;
+    if (q.mode !== 'starts' && b.told === 'wrong' && !claimRight(q, b, all, walk)) return false;
   }
   if (b.done !== null) {
-    if (!object(b.done) || b.tried < 1 || q.mode === 'add') return false;
+    if (!object(b.done) || b.tried < 1 || b.tried <= b.lock || q.mode === 'add') return false;
     const picks = b.done.picks;
     if (b.done.claim === 'starts') return q.mode === 'starts' && picks === undefined && b.colored.length > 0 && sameSet(b.colored, walkStarts(q));
     if (!Array.isArray(picks) || !sameSet(picks, expected(q)) || new Set(picks).size !== picks.length) return false;
@@ -258,8 +273,10 @@ function walkMove(q, b, i) {
   if (u !== walk.at && v !== walk.at) return null;
   if (q.mode !== 'deliver' && walk.uses[i]) return null;
   if (b.path.length >= pathCap(q, all)) return null;
-  const next = {...b, path: [...b.path, i], tried: b.path.length ? b.tried : b.tried + 1, told: null};
-  // A walk that picks up every counter colours its start.
+  const next = {...b, path: [...b.path, i], told: null};
+  // The crossing that ends a walk counts it as tried.
+  if (!ended(q, all, b, walk)) { const after = stateOf(q, next); if (ended(q, after.all, next, after.walk)) next.tried = b.tried + 1; }
+  // A walk that picks up every counter colors its start.
   if (q.mode === 'starts' && next.path.length === all.length && !b.colored.includes(b.start)) next.colored = sortIslands(q, [...b.colored, b.start]);
   return next;
 }
@@ -296,16 +313,16 @@ function moveBoard(q, b, action) {
       return {...b, added: b.added.filter((e, j) => j !== k), start: null, path: [], told: null};
     }
     case 'done': {
-      if (q.mode !== 'starts' || !b.colored.length || b.tried < 1 || b.shut === keyOf(b.colored)) return null;
+      if (q.mode !== 'starts' || !b.colored.length || b.tried <= b.lock) return null;
       const starts = walkStarts(q);
       if (sameSet(b.colored, starts)) return {...b, told: null, done: {claim: 'starts'}};
-      return {...b, told: b.colored.some(id => !starts.includes(id)) ? 'notall' : 'other', shut: keyOf(b.colored)};
+      return {...b, told: b.colored.some(id => !starts.includes(id)) ? 'notall' : 'other', lock: b.tried};
     }
     case 'check': {
       const picks = action.picks;
       if (!Array.isArray(picks) || !picks.length || !picks.every(id => isIsland(q, id)) || new Set(picks).size !== picks.length || b.tried <= b.lock) return null;
-      const want = expected(q), sorted = sortIslands(q, picks);
-      const verdict = picks.some(id => !want.includes(id)) ? 'extra' : picks.length < want.length ? 'missing' : null;
+      // Judged as a set, with one answer for any wrong set.
+      const sorted = sortIslands(q, picks), verdict = sameSet(picks, expected(q)) ? null : 'wrong';
       if (action.claim === 'none') {
         if (q.mode !== 'starts' || b.colored.length) return null;
         if (walkStarts(q).length) return {...b, told: 'walk', lock: b.tried};
@@ -331,7 +348,7 @@ export function claims(q, b) {
   const {all, walk} = stateOf(q, b);
   return {
     noWalk: q.mode === 'starts' && !b.colored.length && b.tried > b.lock,
-    done: q.mode === 'starts' && b.colored.length > 0 && b.tried >= 1 && b.shut !== keyOf(b.colored),
+    done: q.mode === 'starts' && b.colored.length > 0 && b.tried > b.lock,
     fewest: ['fewest', 'deliver'].includes(q.mode) && complete(q, all, b, walk) && b.tried > b.lock
   };
 }
@@ -387,12 +404,12 @@ function hintFor(q, b) {
       // Walk until stuck; then the reason, and the claim.
       const next = b.start === null ? -1 : all.findIndex((e, i) => !walk.uses[i] && (e[0] === walk.at || e[1] === walk.at));
       if (next >= 0) return cross(all, walk.at, next);
-      if (can.noWalk) return claimHint(q, b, 'none', `Count the bridges: ${counted(q, odd)}. A walk can start or end only on an island with an odd number of bridges, and it has just two ends. Press No walk, tap ${list(odd)} and Check.`);
+      if (can.noWalk) return claimHint(q, b, 'none', `Count the bridges: ${counted(q, odd)}. A walk must start or end on every island with an odd number of bridges, and it has just two ends. Press No walk, tap ${list(odd)} and Check.`);
       return b.start === null ? place(odd[0]) : again('Press Again and try another walk.');
     }
     const missing = starts.filter(id => !b.colored.includes(id));
-    if (!missing.length && b.tried >= 1) return {type: 'move', action: {type: 'done'}, text: 'Every island a walk can start from is colored. Press Done.'};
-    // Done waits for a walk.
+    if (!missing.length && b.tried > b.lock) return {type: 'move', action: {type: 'done'}, text: 'Every island a walk can start from is colored. Press Done.'};
+    // Done waits for a walk to end.
     if (!missing.length) return walkHint(q, b, all, walk, false, starts);
     // A start in hand: the rest follow from the bridges.
     if (b.colored.length && b.start === null) {
@@ -471,16 +488,22 @@ function counterSpots(g) {
 const TOOLS = {starts: [['walk', 'Walk'], ['color', 'Color']], add: [['walk', 'Walk'], ['bridge', 'Bridge']], fewest: [['walk', 'Walk'], ['bridge', 'Bridge']], deliver: []};
 const SAY = {
   notall: 'One of these can’t start a walk.', other: 'There is another.',
-  walk: 'There is a walk.', missing: 'There is another.',
-  fewer: {fewest: 'Fewer new bridges can work.', deliver: 'Fewer repeats can work.'},
-  extra: {starts: 'A walk can pass through one of these.', fewest: 'One of these doesn’t need a new bridge.', deliver: 'One of these isn’t a dead end.'}
+  walk: 'There is a walk.', wrong: 'Not these islands.',
+  fewer: {fewest: 'Fewer new bridges can work.', deliver: 'Fewer repeats can work.'}
 };
-const PROMPT = {starts: 'Tap every island a walk would have to start or end on.', fewest: 'Tap every island that needs a new bridge.', deliver: 'Tap every dead end.'};
+const PROMPT = {starts: 'Tap every island a walk would have to start or end on.', fewest: 'Tap every island that needs a new bridge.', deliver: 'Tap every island where a route has to turn back.'};
 const CAPTION = {none: 'A walk has only two ends.', fewest: 'A new bridge has only two ends.', deliver: 'Each dead end’s bridge is crossed twice.'};
 const said = (q, kind) => { const s = SAY[kind]; return typeof s === 'string' ? s : s[q.mode]; };
 const button = (label, action, cls, enabled, extra = '') => `<button type="button" class="secondary isl-button ${cls}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="isl-${action.type}" ${enabled ? '' : 'disabled'} ${extra}>${label}</button>`;
 const uiButton = (label, payload, cls, enabled, extra = '') => `<button type="button" class="secondary isl-button ${cls}" data-action="mechanic-ui" data-ui="${esc(JSON.stringify(payload))}" data-focus="isl-${cls.split(' ')[0]}" ${enabled ? '' : 'disabled'} ${extra}>${label}</button>`;
 
+// Bridges between the same two islands get distinct names: "First bridge A
+// to B", "Second new bridge A to B".
+const ORDINAL = ['First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth'];
+function twinName(all, i) {
+  const [u, v] = all[i], twins = all.map((e, j) => j).filter(j => [all[j][0], all[j][1]].sort().join() === [u, v].sort().join());
+  return twins.length > 1 ? ORDINAL[twins.indexOf(i)] : '';
+}
 function render(p, a) {
   const q = p.parameters, b = a.board, done = solved(p, b), v = view(p, b);
   const {all, walk} = stateOf(q, b), can = claims(q, b), g = graphOf(specOf(q, all));
@@ -518,7 +541,8 @@ function render(p, a) {
   const edgeLook = i => {
     const [u, w] = all[i], used = walk.uses[i], isNew = i >= q.bridges.length;
     const cls = [used ? 'crossed' : '', isNew ? 'new' : '', (act.type === 'bridge' || act.type === 'remove') && act.bridge === i ? 'hinted' : ''].filter(Boolean).join(' ');
-    let control = false, label = `${isNew ? 'New bridge' : 'Bridge'} ${u} to ${w}${used ? (used > 1 ? `, crossed ${used} times` : ', crossed') : ''}`;
+    const twin = twinName(all, i), kind = isNew ? 'new bridge' : 'bridge';
+    let control = false, label = `${twin ? `${twin} ${kind}` : kind[0].toUpperCase() + kind.slice(1)} ${u} to ${w}${used ? (used > 1 ? `, crossed ${used} times` : ', crossed') : ''}`;
     if (!done && !claiming) {
       if (tool === 'bridge' && isNew) { control = true; label += '. Take it away'; }
       else if (tool === 'walk' && b.start !== null && (u === walk.at || w === walk.at) && (q.mode === 'deliver' || !used)) { control = true; label += '. Cross it'; }
@@ -531,11 +555,13 @@ function render(p, a) {
   const board = graphBoard(g, {cls: `isl-map mode-${q.mode}${claiming ? ' claiming' : ''}${done ? ' solved' : ''}`, label: 'Map of islands and bridges', node: nodeLook, edge: edgeLook, over: counters});
 
   const tools = !done && TOOLS[q.mode].length ? `<div class="isl-tools" role="group" aria-label="Tool">${TOOLS[q.mode].map(([id, name]) => uiButton(name, {tool: id}, `tool-${id}${tool !== id && ((id === 'color' && act.type === 'color') || (id === 'bridge' && ['add', 'remove'].includes(act.type)) || (id === 'walk' && ['island', 'bridge'].includes(act.type))) ? ' hinted' : ''}`, !claiming, `aria-pressed="${tool === id}"`)).join('')}</div>` : '';
+  // The claim button changes its focus key as it toggles, so focus moves on
+  // to the map (the module's focus fallback) rather than staying on it.
   const claimName = q.mode === 'starts' ? 'No walk' : 'Fewest', claimKind = q.mode === 'starts' ? 'none' : 'fewest';
   const hintClaim = act.type === 'check';
   const bar = done ? '' : `<div class="isl-bar">${
     claiming ? '' : button('<span aria-hidden="true">↺</span> Again', {type: 'again'}, `again${act.type === 'again' ? ' hinted' : ''}`, b.start !== null)
-  }${q.mode === 'add' ? '' : uiButton(claimName, {claim: claiming ? null : claimKind}, `claim${hintClaim && !claiming ? ' hinted' : ''}`, claiming || (q.mode === 'starts' ? can.noWalk : can.fewest), `aria-pressed="${Boolean(claiming)}"`)}${
+  }${q.mode === 'add' ? '' : uiButton(claimName, {claim: claiming ? null : claimKind}, `${claiming ? 'claiming' : 'claim'}${hintClaim && !claiming ? ' hinted' : ''}`, claiming || (q.mode === 'starts' ? can.noWalk : can.fewest), `aria-pressed="${Boolean(claiming)}"`)}${
     claiming ? button('Check', {type: 'check', claim: claimKind, picks: v.picks}, `check${hintClaim ? ' hinted' : ''}`, v.picks.length > 0) : q.mode === 'starts' ? button('Done', {type: 'done'}, `done${act.type === 'done' ? ' hinted' : ''}`, can.done) : ''
   }</div>`;
   let say = '';
@@ -581,12 +607,13 @@ function ui(p, payload) {
   if ('claim' in payload) Object.assign(v, {claiming: ['none', 'fewest'].includes(payload.claim) ? payload.claim : null, picks: [], first: null, key: v.seen});
 }
 
-// Undo takes back moves, never a claim's lock: No walk and Fewest still wait
-// for a new walk, and Done for a change of colors. The answer itself goes, so
-// the step Undo takes back is always visible.
+// Undo takes back moves, never a claim's lock: Done, No walk and Fewest still
+// wait for a new walk that ends (Undo doesn't carry the count of walks, so
+// taking back the crossing that ended a walk doesn't reopen them either). The
+// answer itself goes, so the step Undo takes back is always visible.
 function carry(p, from, to) {
   if (!object(from) || !object(to)) return to;
-  return {...to, lock: Math.max(to.lock, from.lock), shut: from.shut ?? to.shut, told: null};
+  return {...to, lock: Math.max(to.lock, from.lock), told: null};
 }
 
 export const islandMechanics = {

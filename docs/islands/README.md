@@ -49,20 +49,22 @@ The reason is a counting argument. An island in the middle of a walk is entered 
 | 1 | Easy | Where can it start | Two islands, three bridges | A and B | K–1 P3 town 2, asked as P2 |
 | 2 | Easy | Where can it start | A=B (double), B–C | B and C | K–1 P4 town 2, asked as P2 |
 | 3 | Easy | Add one bridge | Three-arm star | Any new bridge works (6 of 6) | K–1 P6 and 2–3 P4, town 1 |
-| 4 | Medium | Where can it start | Two squares, doubled middle rung | All six | K–1 P4 town 3, asked as P2 |
+| 4 | Medium | Where can it start | Two squares, doubled middle rung | All six | K–1 P4's fifth town (packet p. 6), asked as P2 |
 | 5 | Medium | Where can it start | Fan: hub D, five bridges, B–E | No walk. Certificate A, C, D, F | 2–3 P2 town 1 |
 | 6 | Medium | Where can it start | Ladder with two diagonals from B | D and F | 2–3 P2 town 3 |
 | 7 | Medium | Add one bridge | Square with both diagonals through C | Join two corners (6 of 10 work) | K–1 P6 town 2 |
 | 8 | Medium | Fewest new bridges, come back | House | 1 (B–C). Certificate B, C | 2–3 P5 town 1 |
 | 9 | Hard | Where can it start | Königsberg (A=B, A=C, A–D, B–D, C–D) | No walk. Certificate A, B, C, D | 4–5 P5 |
 | 10 | Hard | Fewest new bridges, come back | Königsberg | 2 (any pairing). Certificate A, B, C, D | 4–5 P5, last question |
-| 11 | Hard | Delivery route, fewest repeats | Three-arm star | 3. Certificate the dead ends A, C, D | 4–5 P10 town 2 and P11 |
+| 11 | Hard | Delivery route, fewest repeats | Three-arm star | 3. Certificate the dead ends A, C, D | 4–5 P10 town 2 (also 2–3 P10 town 2) |
 
 Islands are lettered in reading order, as the worksheet's towns are. The towns are the worksheet's own designs (`designs.py`, `towns.py`, `koenigsberg.py` in `source/week-10/src/`) redrawn on the graph board. Problems 1, 2 and 4 ask the K–1 Problem 2 question (every start) of towns the packet uses elsewhere. The packet's tracing pictures (P5, P7), building towns (K–1 P7, 2–3 P8–P9) and written explanations are not here: tracing needs a dot at every crossing, which the card flags, and building to a spec belongs with a shared graph editor.
 
 ## How a puzzle plays
 
-**Board.** Islands are labelled dots. Bridges are roads, and double and triple bridges curve apart. A gold counter sits on every bridge not yet crossed. The token's island is ringed in pine, and walked bridges turn pine. Tools sit above the map: Walk and Color, or Walk and Bridge. Buttons sit below it: Again, No walk or Fewest, and Done or Check.
+**Board.** Islands are labeled dots. Bridges are roads, and double and triple bridges curve apart. A gold counter sits on every bridge not yet crossed. The token's island is ringed in pine, and walked bridges turn pine. Tools sit above the map: Walk and Color, or Walk and Bridge. Buttons sit below it: Again, No walk or Fewest, and Done or Check.
+- Every bridge is a keyboard control. Bridges on one pair have distinct names: "First bridge A to B", "Second bridge A to B", "Third new bridge A to B".
+- A pressed tool or claim keeps its pine fill on hover. The app's `.secondary:hover` would otherwise turn it pale under pale text.
 
 **Walking.**
 1. Tap an island to put the token there.
@@ -70,20 +72,19 @@ Islands are lettered in reading order, as the worksheet's towns are. The towns a
 3. A bridge without its counter can't be crossed, except in a delivery.
 4. Again lifts the token and puts every counter back. Undo takes back one step.
 
-A walk begun counts as a try once it crosses a bridge.
+A walk counts as tried once it ends: it reaches an island with no counter left on its bridges, or, in a delivery, it has crossed every bridge and is back where it started. Only the crossing that ends it counts, once.
 
-**Where can it start (1, 2, 4, 5, 6, 9).** A walk that picks up every counter colours the island it started on. The Color tool colours or uncolours an island by hand.
-- **Done.** Done judges the coloured islands as a whole. It needs at least one walk tried, and it shows no count.
-  - Wrong: "One of these can't start a walk." (a coloured island is no start) or "There is another." (one is missing).
-  - Done then stays off until the colours change.
+**Where can it start (1, 2, 4, 5, 6, 9).** A walk that picks up every counter colors the island it started on. The Color tool colors or uncolors an island by hand.
+- **Done.** Done judges the colored islands as a whole. It needs a walk that has ended, and it shows no count.
+  - Wrong: "One of these can't start a walk." (a colored island is no start) or "There is another." (one is missing).
+  - Done then stays off until a new walk ends. Recoloring alone, or a walk still under way, doesn't reopen it.
   - Right: the puzzle is solved. The odd islands, if any, are lit in pine, and every island shows its number of bridges.
-- **No walk.** No walk is off until a walk has crossed a bridge, and while anything is coloured. Pressing it shows "Tap every island a walk would have to start or end on."
+- **No walk.** No walk is off until a walk has ended, and while anything is colored. Pressing it shows "Tap every island a walk would have to start or end on." Focus moves to the map, where the taps go.
   - The child taps islands (ochre rings, nothing else marked) and presses Check.
   - Right: the exact set of odd islands solves, they stay lit, and the board says "A walk has only two ends."
-  - Too many: "A walk can pass through one of these."
-  - Too few: "There is another."
-  - Where a walk exists: "There is a walk." No walk is not played back, because that would show both starts for free.
-  - Any refusal clears the taps. No walk then waits for a new walk.
+  - Any other set: "Not these islands." The answer is the same for too many, too few or a mix, so Check never says which island is wrong.
+  - Where a walk exists: "There is a walk." This answers the claim, not the taps: whatever is tapped, the claim is false. It is kept because it is the true reason, and the child can act on it by looking for the walk. Playing a walk back instead would hand over both starts.
+  - Any refusal clears the taps. No walk then waits for a new walk that ends.
 
 **Add a bridge (3, 7).** The Bridge tool starts selected.
 - Tap two islands to build a new bridge (dashed), or tap a new bridge to take it away.
@@ -94,13 +95,14 @@ A walk begun counts as a try once it crosses a bridge.
 **Fewest new bridges (8, 10).** This works like adding bridges, up to six, but the walk must end where it started.
 - Fewest is off until such a walk is on the board. Pressing it shows "Tap every island that needs a new bridge." Check judges the taps.
 - More new bridges than needed: "Fewer new bridges can work."
-- Wrong islands: "One of these doesn't need a new bridge." or "There is another."
+- Any other set of islands: "Not these islands."
+- After either refusal, Fewest waits for another finished walk.
 - Right: solves, and the board says "A new bridge has only two ends."
 
 **Delivery (11).** There are no tools.
 - Bridges can be crossed again. A bridge crossed twice shows ×2.
-- Fewest is off until the route has crossed every bridge and is back where it started. Pressing it shows "Tap every dead end."
-- More repeats than needed: "Fewer repeats can work."
+- Fewest is off until the route has crossed every bridge and is back where it started. Pressing it shows "Tap every island where a route has to turn back."
+- More repeats than needed: "Fewer repeats can work." Any other set of islands: "Not these islands." Either refusal waits for another finished route.
 - Right: solves, and the board says "Each dead end's bridge is crossed twice."
 
 **Copy.** The board shows one objective:
@@ -109,30 +111,33 @@ A walk begun counts as a try once it crosses a bridge.
 - "Add as few bridges as you can, then pick up every counter and end where you started."
 - "Pick up every counter and end where you started, crossing bridges again as few times as you can."
 
-How to play opens with what a walk is, then gives the gestures. No title, rule or first hint says "odd", "even" or "half", or names an answer. The fewest count is never shown as a budget.
+How to play opens with what a walk is, then gives the rules and gestures: a walk that can go no further has ended, and after a wrong answer the claims wait for another walk. No title, objective, rule or first hint says "odd", "even", "half" or "dead end", or names an answer; the validator checks this. The fewest count is never shown as a budget.
 
 **Hints.** Before any move, the first hint is the authored nudge, such as "Try a walk from each island." or "Walk first: where do you get stuck?". It is never a claim. After that, hints name one move at a time:
 - They walk a walk over every bridge from a start, then press Again.
-- In a town where one start is coloured, they colour the rest and give the reason ("B and C have an odd number of bridges, and a walk over every bridge runs from one of them to the other. Color C."), then "Press Done."
-- They uncolour a wrong island first.
-- In a no-walk town, they walk until stuck, then give the reason with the counts before the claim ("Count the bridges: A has 5 bridges, and B, C and D have 3 each. A walk can start or end only on an island with an odd number of bridges, and it has just two ends. Press No walk, tap A, B, C and D and Check."). No hint says only "Press No walk".
+- In a town where one start is colored, they color the rest and give the reason ("B and C have an odd number of bridges, and a walk over every bridge runs from one of them to the other. Color C."), then "Press Done."
+- They uncolor a wrong island first. After a refused Done, they walk until the walk ends before pressing Done again.
+- In a no-walk town, they walk until stuck, then give the reason with the counts before the claim ("Count the bridges: A has 5 bridges, and B, C and D have 3 each. A walk must start or end on every island with an odd number of bridges, and it has just two ends. Press No walk, tap A, B, C and D and Check."). No hint says only "Press No walk".
 - For new bridges, they take away a new bridge that doesn't help, add one between odd islands, and walk.
-- For the delivery, they follow a fewest-repeat route, then give the dead-end argument with the claim.
+- For the delivery, they follow a fewest-repeat route, then give the dead-end argument with the claim ("A, C and D are dead ends: a route must come back over each one's bridge, so 3 is the fewest.").
 
 The second level marks the island, bridge, tool or button on the board, and the third offers Apply hint. Hints alone finish every puzzle from a fresh start and after wrong moves and refused claims. They are memoised per board and timed in CPU time in the tests.
 
 ## Rules that keep the record honest
 
-- **The certificate is the child's.** No walk and Fewest are solved only by the child's taps of the certifying islands: the odd islands, or in the delivery the dead ends. The taps are judged once on Check as an exact set. Nothing marks which islands are right. In the validator, exactly one set of islands passes in every claim puzzle: 1 of 15 in Königsberg and the star, 1 of 31 in the house, 1 of 63 in the fan. Done likewise accepts one set of coloured islands, 1 of 63 for six islands. Puzzle 1 has only two islands, so its Done is a choice among 3 sets; it is the entry puzzle, where the second start is the point.
-- **Can't comes after an attempt.** No walk needs a walk that has crossed a bridge. Fewest needs a finished closed walk or route. A fresh-board claim is refused, and so is a Done before any walk.
-- **Refusals are kept.** A refused No walk or Fewest records a lock: the claim waits for a new walk, counted by walks tried. A refused Done records the coloured set it judged and waits for the colours to change.
-  - Undo never takes back a lock or a recorded Done.
+- **The certificate is the child's.** No walk and Fewest are solved only by the child's taps of the certifying islands: the odd islands, or in the delivery the dead ends. The taps are judged once on Check as an exact set, and every wrong set gets the same "Not these islands." Nothing marks which islands are right. In the validator, exactly one set of islands passes in every claim puzzle: 1 of 15 in the star, 1 of 31 in the house, 1 of 63 in the fan. Done likewise accepts one set of colored islands, 1 of 63 for six islands. Puzzle 1 has only two islands, so its Done is a choice among 3 sets; it is the entry puzzle, where the second start is the point.
+  - **Königsberg's limit.** In Königsberg (9, 10) every island is odd, so the one passing set is all four islands, and a child who taps every island passes. This is kept: the town is the point of the Hard level, the claim still needs a walk that has ended (9) or a finished walk with two new bridges (10), and the grown-up notes explain why it is all four.
+- **Can't comes after an attempt.** No walk and Done need a walk that has ended. Fewest needs a finished closed walk or route. A fresh-board claim is refused.
+- **Refusals are kept.** Every refusal (Done, No walk or Fewest) records a lock at the number of walks tried so far. All three claims then wait until a new walk ends. Recoloring, a walk still under way, or tapping a different set doesn't reopen them.
+  - Undo never takes back a lock, and it doesn't carry the count of walks. Undoing the crossing that ended a walk and crossing again therefore doesn't reopen a claim.
   - Undo does take back the answer line, so every Undo visibly changes the screen; the claim stays locked.
   - Refusals print no counts.
-- **Saves.** The save is the new bridges, the token's start, the bridges crossed in order, walks tried, coloured islands, the last answer, the lock, the judged colours and the accepted claim. Everything shown is derived from it.
+- **Why the lock.** Done's two answers ("One of these can't start a walk.", "There is another.") would otherwise let a child color one island, press Done, read the answer, and go on island by island. The validator plays that strategy. Under the first rules (any first crossing counted as a try, and recoloring reopened Done) it took 11, 14, 27 and 23 moves in puzzles 1, 2, 4 and 6: one crossing, then about three taps per island. Now every probe costs a walk that ends, at least 3 to 6 moves each, and the same strategy takes 21, 21, 64 and 53 moves. The validator asserts that every probe costs at least a shortest ended walk. Check has a single answer, so probing it tells nothing beyond right or wrong.
+- **Saves.** The save is the new bridges, the token's start, the bridges crossed in order, walks tried, colored islands, the last answer, the lock and the accepted claim. Everything shown is derived from it.
   - Saves are checked against all of this. A walk must follow bridges, cross none twice outside a delivery, and stay within the cap of new bridges.
-  - Colours are sorted and only in start puzzles. An answer must be one the board could have given.
-  - A claimed solve must be true for the board, and Done needs a walk tried. A forged `done` or answer fails.
+  - A save with any other key is refused. A walk that has ended needs a walk tried.
+  - Colors are sorted and only in start puzzles. An answer must be one the board could have given, with the lock at the walks tried. A puzzle that adds one bridge has no claim, so its lock stays 0.
+  - A claimed solve must be true for the board and made since the last refusal (`tried` above `lock`). A forged `done` or answer fails.
 - **Moves.** Only legal moves are accepted. A bridge must join the token's island and still carry its counter (outside the delivery). New bridges must join two different islands, only in puzzles that allow them. Done, No walk and Fewest follow the conditions above.
 - **Building and checking.** `scripts/build-islands.mjs` computes the answers with the mechanic's own search: memoised walks and Dijkstra over walk states. `scripts/validate-islands.mjs` checks them again by plain search over every walk, every set of new bridges and every route up to a length, and against Euler's parity rule.
 
@@ -148,22 +153,23 @@ The second level marks the island, bridge, tool or button on the board, and the 
 | File | Contents |
 |---|---|
 | `dist/families/islands/islands.js` | Towns, bends of new bridges, walks, starts, fewest new bridges and repeats, and the `islands` mechanic: moves, claims, hints, rendering, counters, taps and keys, view state and Undo's carry |
-| `dist/families/islands/islands.css` | The map (counters, walked and new bridges, coloured, token, tapped and lit islands), the tools, buttons and answer line. Scoped under `[data-mechanic-wire="islands"]` |
+| `dist/families/islands/islands.css` | The map (counters, walked and new bridges, colored, token, tapped and lit islands), the tools, buttons (pressed ones keep their fill on hover) and answer line. Scoped under `[data-mechanic-wire="islands"]` |
 | `dist/families/islands/islands.json` | The pack: 11 puzzles, a family record and 3 sources. It is generated: edit `scripts/build-islands.mjs` and run `node scripts/build-islands.mjs` |
 | `scripts/build-islands.mjs` | The authoring list. It computes answers and a witness for each puzzle, replays the witness, and writes `islands.json` |
-| `scripts/validate-islands.mjs` | The independent checks. Brute-force walks, starts, working new bridges, fewest new bridges, fewest repeats, and Euler's rule. The drawing (every bridge clear of other islands, double bridges apart). Witnesses. Hints from fresh and after 12 random wanderings per puzzle with refusals and Undo. Claims, locks and the one passing set per certificate. Illegal moves and forged saves. Run by `npm run build` |
-| `tests/islands.test.mjs` | Euler's rule on the towns, single crossings of double bridges, Done as a whole with no count, No walk and its refusals, adding and bending a bridge, Fewest refused and finished by hints, the star's repeats, CPU-timed hints, Undo, the claim view, saves, fresh and solved renders, and the quiet base dead end |
-| `scripts/islands-browser-smoke.mjs` | The interface in a browser. Taps on curved roads and at contested points between bridges of one pair, a keyboard crossing, focus after moves, Done, No walk refused and certified, three A–B bridges in Königsberg, a bent new bridge, the delivery, the board's fit, and the base route's quiet dead end. `TEST_PHONE=1` runs it at 375 px with touch |
+| `scripts/validate-islands.mjs` | The independent checks. Brute-force walks, starts, working new bridges, fewest new bridges, fewest repeats, and Euler's rule. The drawing (every bridge clear of other islands, double bridges apart). Witnesses. Hints from fresh and after 12 random wanderings per puzzle with refusals and Undo. Claims, locks, the one answer for every wrong set, the one passing set per certificate, and the cost of probing Done island by island. No theorem in the rules. Illegal moves and forged saves. Run by `npm run build` |
+| `tests/islands.test.mjs` | Euler's rule on the towns, single crossings of double bridges, a walk counted once it ends, Done as a whole with no count and locked until a new walk ends, No walk and its refusals, adding and bending a bridge, Fewest refused and finished by hints, the star's repeats, CPU-timed hints, Undo, the claim view, saves, fresh and solved renders, and the quiet base dead end |
+| `scripts/islands-browser-smoke.mjs` | The interface in a browser. Taps on curved roads and at contested points between bridges of one pair (on a phone the A–B bridges of puzzles 2 and 9 have one; at desktop size those of puzzle 2 meet only under the islands, and the run says so), a keyboard crossing, focus after moves and after No walk, Done locked until a walk ends, No walk refused and certified, three A–B bridges in Königsberg, a bent new bridge, the delivery and its prompt, pressed buttons on hover, the board's fit, and the base route's quiet dead end. `TEST_PHONE=1` runs it at 375 px with touch |
 | `docs/islands/README.md` | This spec |
 
 ## Not yet done
 
 - **Children's play.** No child has played these, and the worksheet is unpiloted. Testers should watch three things:
-  - Whether children find every start by walking from each island or begin to predict from the bridges. Colour by hand makes prediction possible; walking colours automatically.
+  - Whether children find every start by walking from each island or begin to predict from the bridges. Color by hand makes prediction possible; walking colors automatically.
+  - Whether waiting for a walk that ends after a wrong answer reads as fair or as a penalty.
   - Whether "Tap every island a walk would have to start or end on" makes sense to a child who has walked into dead ends, or reads as a riddle. The K–1 children may need an adult to read it.
   - Whether the star delivery's 3 lands as a surprise after "half the odd islands" in puzzles 8 and 10, or whether children just tap the obvious dead ends.
-- **"Tap every dead end."** The delivery's certificate names its class, so the tap is recognition. The argument is in the caption and the notes. A version that asks which bridges must be crossed twice would be harder to judge as a set.
-- **A route that may end anywhere.** 4–5 P10 also asks the fewest for a route that may end anywhere (2 for the star). K4 and the arc town of P10 are not here; K4 would contrast 2 repeats with the star's 3.
+- **"Tap every island where a route has to turn back."** The delivery's prompt describes the certifying islands by what a route does there rather than naming them "dead ends", so the child connects turning back with islands of one bridge. The name and the argument are in the caption, the later hints and the notes. A version that asks which bridges must be crossed twice would be harder to judge as a set.
+- **A route that may end anywhere.** 4–5 P10 also asks the fewest for a route that may end anywhere: 1 for the star (start on one dead end, finish on another, and go out and back only along the third arm). P10's other two towns, K4 and the ladder with two diagonals (puzzle 6's town), are not here as deliveries. K4 would contrast 2 repeats with the star's 3.
 - **The H town and the window.** The H town (2–3 P5 town 3) is left out, and base route-09 and route-12 already pair six odd junctions.
 - **Tracing pictures.** Tracing (K–1 P5, 2–3 P7, 4–5 P7) needs a dot at every crossing, while here a crossing without a dot is not a junction. A new diagonal bent around an island crosses another road with no junction there. This is only in puzzle 7, where it is the child's own bridge, and it is untested whether that confuses.
 - **Base routes.** The base routes still draw one straight road per pair. Moving them onto the graph board would let base towns have double bridges too, but it would change their saves.

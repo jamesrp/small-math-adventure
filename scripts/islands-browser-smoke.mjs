@@ -1,8 +1,9 @@
 // Plays Bridge Courier's Islands group through the real interface: walks by
 // tapping islands and curved bridges, taps at contested points between two
 // bridges of one pair (they go to the bridge drawn nearest), Done judged as a
-// whole, No walk with its certificate and refusal, a new bridge and Fewest on
-// Königsberg, the star delivery, keyboard focus, and the board's fit. Same
+// whole and locked after a refusal until a walk ends, No walk with its
+// certificate and its one refusal, a new bridge and Fewest on Königsberg, the
+// star delivery, keyboard focus, pressed buttons on hover, and the board's fit. Same
 // environment variables as the other browser suites (PLAYWRIGHT_MODULE,
 // BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a 375 px phone). Screenshots
 // go in SHOTS (default test-results/islands/).
@@ -40,23 +41,53 @@ const pointOn = (i, frac) => page.evaluate(([i, frac]) => {
   return [pt.x, pt.y];
 }, [i, frac]);
 const bridge = async (i, frac = .5) => tapAt(await pointOn(i, frac));
-const hitsAt = ([x, y]) => page.evaluate(([x, y]) => document.elementsFromPoint(x, y).filter(el => el.dataset?.gbEdge !== undefined).map(el => Number(el.dataset.gbEdge)), [x, y]);
-// A contested point: inside the tap areas of both bridges i and j, nearer to i,
-// and where j's area lies on top (j is drawn later), so the topmost target alone
-// would be wrong.
-async function contested(i, j) {
-  for (const frac of [.5, .4, .3, .2, .15, .1, .07, .05, .03]) {
-    const [a, b] = [await pointOn(i, frac), await pointOn(j, frac)], at = [a[0] + (b[0] - a[0]) * .3, a[1] + (b[1] - a[1]) * .3];
-    const hits = await hitsAt(at);
-    if (hits.includes(i) && hits.includes(j) && hits[0] === Math.max(i, j)) return at;
+// Points between bridges i and j (both drawn as roads), on a grid running
+// along both roads and across the gap, in whole pixels as a tap lands. For
+// each point in both tap areas: which road's tap area is on top (none, if an
+// island or its tap circle is on top or within 10 px, since a touch snaps to
+// a nearby island), and which road is nearer, by distance to the drawn road.
+const scan = (i, j) => page.evaluate(([i, j]) => {
+  const line = k => document.querySelector(`.isl-map .gb-edge[data-edge="${k}"] .gb-line`);
+  const screen = (l, len) => { const q = l.getPointAtLength(len), pt = new DOMPoint(q.x, q.y).matrixTransform(l.getScreenCTM()); return [pt.x, pt.y]; };
+  const trace = k => { const l = line(k), n = 240, L = l.getTotalLength(); return Array.from({length: n + 1}, (_, m) => screen(l, L * m / n)); };
+  const [ti, tj] = [trace(i), trace(j)], dist = (tr, [x, y]) => Math.min(...tr.map(([a, b]) => Math.hypot(a - x, b - y)));
+  const edgeAt = ([x, y]) => { const el = document.elementFromPoint(x, y); return el?.dataset?.gbEdge !== undefined ? Number(el.dataset.gbEdge) : null; };
+  const nodeNear = ([x, y]) => [[0, 0], [10, 0], [-10, 0], [0, 10], [0, -10], [7, 7], [-7, 7], [7, -7], [-7, -7]].some(([dx, dy]) => document.elementFromPoint(x + dx, y + dy)?.closest?.('[data-gb-node]'));
+  const out = [];
+  for (let f = 2; f <= 98; f += 2) for (let t = 5; t <= 95; t += 5) {
+    const a = ti[Math.round(f * 2.4)], b = tj[Math.round(f * 2.4)], at = [Math.round(a[0] + (b[0] - a[0]) * t / 100), Math.round(a[1] + (b[1] - a[1]) * t / 100)];
+    const hits = document.elementsFromPoint(...at).filter(el => el.dataset?.gbEdge !== undefined).map(el => Number(el.dataset.gbEdge));
+    if (!hits.includes(i) || !hits.includes(j)) continue;
+    const top = nodeNear(at) ? null : edgeAt(at), [di, dj] = [dist(ti, at), dist(tj, at)];
+    // Only i and j are under the finger, so the nearer of the two is the answer.
+    out.push({at, top: hits.every(k => k === i || k === j) ? top : null, near: Math.abs(di - dj) < 1.5 ? null : di < dj ? i : j});
   }
-  return null;
+  return out;
+}, [i, j]);
+// A contested point: in both tap areas and clearly nearer one road, with the
+// other road's tap area on top, so the topmost target alone would be wrong.
+// Returns the point and the nearer bridge, or null when there is none.
+async function contested(i, j) {
+  const found = (await scan(i, j)).find(pt => pt.near !== null && pt.top !== null && pt.top !== pt.near);
+  return found ? {at: found.at, near: found.near} : null;
 }
-const button = name => page.locator('.isl-puzzle .isl-button', {hasText: name});
+// By its whole name, case and all: "Walk" is not "No walk".
+const button = name => page.locator('.isl-puzzle .isl-button', {hasText: new RegExp(`(^|\\s)${name}\\s*$`)});
 const say = () => page.locator('.isl-say').innerText();
 const B = (id, u, v, k = 0) => bridgesOf(byId(id).parameters).map(([x, y], i) => [x, y, i]).filter(([x, y]) => (x === u && y === v) || (x === v && y === u))[k][2];
 const focusInBoard = () => page.evaluate(() => Boolean(document.activeElement?.closest('.isl-map') || document.activeElement?.matches('.isl-button.again')));
+// A pressed button keeps its pine fill on hover, with light text.
+async function pressedHover(locator, label) {
+  if (phone) return;
+  await locator.hover(); await page.waitForTimeout(250);
+  const [bg, fg] = await locator.evaluate(el => { const c = getComputedStyle(el); return [c.backgroundColor, c.color]; });
+  const rgb = c => c.match(/\d+/g).slice(0, 3).map(Number), lum = c => rgb(c).reduce((s, x) => s + x, 0) / 3;
+  assert.notEqual(bg, 'rgb(233, 237, 222)', `${label}: a pressed button on hover is not the pale hover color`);
+  assert.ok(lum(bg) < 110 && lum(fg) > 200, `${label}: dark fill and light text on hover (${bg}, ${fg})`);
+  await page.mouse.move(0, 0);
+}
 
+const contestedTaps = [];
 try {
   await mkdir(out, {recursive: true});
   await page.goto(base); await page.locator('#nickname').fill('Islands QA'); await page.locator('#profile-form button[type=submit]').click();
@@ -70,15 +101,23 @@ try {
   await open(T); await fit('two and one');
   assert.equal(await button('No walk').isDisabled(), true, 'no claim on a fresh board');
   assert.equal(await button('Done').isDisabled(), true);
+  await pressedHover(button('Walk'), 'Walk');
   await island('B');
   const [ab0, ab1] = [B(T, 'A', 'B', 0), B(T, 'A', 'B', 1)], near = await contested(ab0, ab1);
-  await tapAt(near || await pointOn(ab0, .5));
-  assert.deepEqual((await board(T)).path, [ab0], 'a tap crosses the bridge drawn under it, nearest where two tap areas meet');
+  // On a phone the two A–B tap areas overlap along the roads, and a tap where
+  // the later one lies on top goes to the nearer road. At desktop size they
+  // meet only under the islands or midway between the roads, so no tap there
+  // is contested and the middle of the road is tapped instead.
+  if (phone) assert.ok(near, 'the A–B bridges have a contested point on a phone');
+  if (near) assert.equal(near.near, ab0, 'the earlier bridge is the nearer one under the later tap area');
+  await tapAt(near ? near.at : await pointOn(ab0, .5));
+  assert.deepEqual((await board(T)).path, [ab0], near ? 'a contested tap crosses the bridge drawn nearest' : 'a tap crosses the bridge drawn under it');
+  contestedTaps.push(`two and one: ${near ? 'contested tap' : 'no contested point'}`);
   await island('B');
   assert.deepEqual((await board(T)).path, [ab0, ab1], 'tapping the island across crosses the bridge with its counter');
   assert.equal(await page.locator('.isl-counter').count(), 1, 'counters are picked up');
   await bridge(B(T, 'B', 'C'));
-  assert.deepEqual((await board(T)).colored, ['B'], 'a walk over every bridge colours its start');
+  assert.deepEqual((await board(T)).colored, ['B'], 'a walk over every bridge colors its start');
   await button('Done').click();
   assert.equal(await say(), 'There is another.');
   assert.equal(await button('Done').isDisabled(), true, 'Done waits for a change');
@@ -87,7 +126,16 @@ try {
   assert.equal(await page.locator('.isl-say').isHidden(), true, 'Undo takes the answer away');
   assert.equal(await button('Done').isDisabled(), true, 'and keeps Done shut');
   await button('Color').click();
+  await pressedHover(button('Color'), 'Color');
   await island('C');
+  assert.deepEqual((await board(T)).colored, ['B', 'C']);
+  assert.equal(await button('Done').isDisabled(), true, 'recoloring alone does not reopen Done');
+  await button('Walk').click(); await button('Again').click();
+  await island('A'); await island('B');
+  assert.equal(await button('Done').isDisabled(), true, 'nor does a walk under way');
+  await island('A');
+  assert.equal((await board(T)).tried, 2, 'a walk stuck at A counts');
+  assert.equal(await button('Done').isDisabled(), false, 'a walk that ends reopens Done');
   await button('Done').click();
   await done();
   assert.equal(await page.locator('.isl-map .gb-node.lit').count(), 2, 'the odd islands are lit');
@@ -98,8 +146,11 @@ try {
   await open(K); await fit('Königsberg fresh');
   assert.equal(await page.locator('.isl-map path.gb-line').count(), 4, 'two double bridges, drawn as four curves');
   await island('B');
-  await tapAt(await contested(B(K, 'A', 'B', 0), B(K, 'A', 'B', 1)) || await pointOn(B(K, 'A', 'B', 0), .3));
-  assert.deepEqual((await board(K)).path, [B(K, 'A', 'B', 0)], 'the A–B tap');
+  const kNear = await contested(B(K, 'A', 'B', 0), B(K, 'A', 'B', 1));
+  if (phone) assert.ok(kNear, 'the Königsberg A–B bridges have a contested point on a phone');
+  await tapAt(kNear ? kNear.at : await pointOn(B(K, 'A', 'B', 0), .3));
+  assert.deepEqual((await board(K)).path, [B(K, 'A', 'B', 0)], kNear ? 'a contested A–B tap crosses the nearer' : 'the A–B tap');
+  contestedTaps.push(`Königsberg: ${kNear ? 'contested tap' : 'no contested point'}`);
   await page.locator(`.gb-hit[data-gb-edge="${B(K, 'A', 'C', 1)}"]`).focus(); await page.keyboard.press('Enter');
   assert.deepEqual((await board(K)).path.at(-1), B(K, 'A', 'C', 1), 'Enter crosses a bridge');
   assert.ok(await focusInBoard(), 'focus stays on the map after a keyboard move');
@@ -109,19 +160,24 @@ try {
   await fit('Königsberg busiest'); await shot('koenigsberg-walked');
   await button('No walk').click();
   assert.match(await say(), /Tap every island a walk would have to start or end on\./);
+  assert.ok(await focusInBoard(), 'pressing No walk moves focus to the map');
   assert.equal(await page.locator('.isl-map .gb-node.hinted').count(), 0, 'nothing tinted for the certificate');
+  await pressedHover(button('No walk'), 'No walk');
   for (const id of ['A', 'B', 'D']) await island(id);
   assert.equal(await page.locator('.isl-map .gb-node.picked').count(), 3);
   await shot('koenigsberg-claim');
   await button('Check').click();
-  assert.equal(await say(), 'There is another.');
+  assert.equal(await say(), 'Not these islands.', 'one answer for any wrong set');
   assert.equal(await page.locator('.isl-map .gb-node.picked').count(), 0, 'a refusal clears the taps');
   assert.ok(await focusInBoard(), 'focus goes to the map, not to No walk');
   assert.equal(await button('No walk').isDisabled(), true, 'No walk waits for a new walk');
   await page.locator('[data-action="undo"]').click();
   assert.equal(await button('No walk').isDisabled(), true, 'Undo keeps the lock');
   await button('Again').click();
-  await island('D'); await island('C');
+  await island('D'); await island('C'); await island('A');
+  assert.equal(await button('No walk').isDisabled(), true, 'a walk under way does not reopen No walk');
+  await island('C');
+  assert.equal(await button('No walk').isDisabled(), false, 'a walk stuck at C reopens it');
   await button('No walk').click();
   for (const id of ['C', 'A', 'D', 'B']) await island(id);
   await button('Check').click();
@@ -145,15 +201,16 @@ try {
   assert.equal(abs.length, 3);
   await island('B');
   let checked = 0;
-  for (const [i, j] of [[abs[0], abs[2]], [abs[2], abs[1]], [abs[1], abs[2]]]) {
-    const at = await contested(i, j);
-    if (!at) continue;
+  for (const [i, j] of [[abs[0], abs[2]], [abs[1], abs[2]], [abs[0], abs[1]]]) {
+    const c = await contested(i, j);
+    if (!c) continue;
     checked++;
-    await tapAt(at);
-    assert.deepEqual((await board(F)).path, [i], `a contested tap between bridges ${i} and ${j} crosses ${i}, the nearer`);
+    await tapAt(c.at);
+    assert.deepEqual((await board(F)).path, [c.near], `a contested tap between bridges ${i} and ${j} crosses ${c.near}, the nearer`);
     await page.locator('[data-action="undo"]').click();
   }
   assert.ok(checked >= 2, `contested points were tapped (${checked})`);
+  contestedTaps.push(`three A–B bridges: ${checked} contested`);
   await button('Again').click();
   const route = finishOnce(all, 'A', 0, 'A');
   await island('A');
@@ -189,6 +246,7 @@ try {
   for (const id of ['A', 'B', 'C', 'B', 'D', 'B']) await island(id);
   assert.equal(await page.locator('.isl-map .gb-tag').count(), 3, 'every bridge crossed twice');
   await button('Fewest').click();
+  assert.equal(await say(), 'Tap every island where a route has to turn back.');
   for (const id of ['A', 'C', 'D']) await island(id);
   await fit('star busiest'); await shot('star-claim');
   await button('Check').click();
@@ -209,7 +267,7 @@ try {
   assert.match(await page.locator('.hint-card').innerText(), /cannot finish/, 'Hint tells it');
 
   assert.deepEqual(errors, [], 'no page errors');
-  console.log(`Islands browser smoke passed${phone ? ' (phone)' : ''}.`);
+  console.log(`Islands browser smoke passed${phone ? ' (phone)' : ''}; ${contestedTaps.join('; ')}.`);
 } finally {
   await browser.close();
 }

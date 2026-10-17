@@ -30,10 +30,10 @@ const ONCE = 'A bridge without its counter can’t be crossed.';
 const AGAIN = 'A bridge can be crossed again after its counter is gone; each crossing after the first is a repeat.';
 const WALKING = 'Tap an island to put the token there, then tap a bridge, or the island across it, to cross. Again lifts the token and puts every counter back; Undo takes back one step.';
 const CONTROLS = {
-  starts: `A walk starts on an island and crosses bridges one after another, picking up each bridge’s counter; a bridge without its counter can’t be crossed. ${WALKING} A walk that picks up every counter colours the island it started on, and Color colours or uncolours an island by hand. When every island where such a walk can start is coloured, press Done. If no walk can pick up every counter, try one, then press No walk, tap every island a walk would have to start or end on, and press Check.`,
+  starts: `A walk starts on an island and crosses bridges one after another, picking up each bridge’s counter; a bridge without its counter can’t be crossed. ${WALKING} A walk that picks up every counter colors the island it started on, and Color colors or uncolors an island by hand. When every island where such a walk can start is colored, press Done. If no walk can pick up every counter, try one until it can go no further, then press No walk, tap every island a walk would have to start or end on, and press Check. After a wrong answer, Done and No walk wait for another walk to go as far as it can.`,
   add: `A walk starts on an island and crosses bridges one after another, picking up each bridge’s counter; a bridge without its counter can’t be crossed. With Bridge, tap two islands to build a new bridge between them, or tap a new bridge to take it away. Then, with Walk: ${WALKING}`,
-  fewest: `A walk starts on an island and crosses bridges one after another, picking up each bridge’s counter; a bridge without its counter can’t be crossed. With Bridge, tap two islands to build a new bridge between them, or tap a new bridge to take it away. With Walk: ${WALKING} When your walk has picked up every counter and is back where it started, press Fewest if no smaller number of new bridges could work, tap every island that needs a new bridge, and press Check.`,
-  deliver: `A route starts on an island and crosses bridges one after another, picking up each bridge’s counter. A bridge can be crossed again after its counter is gone; each crossing after the first is a repeat, and the bridge shows how many times it was crossed. ${WALKING} When the route has picked up every counter and is back where it started, press Fewest if no route could repeat less, tap every dead end, and press Check.`
+  fewest: `A walk starts on an island and crosses bridges one after another, picking up each bridge’s counter; a bridge without its counter can’t be crossed. With Bridge, tap two islands to build a new bridge between them, or tap a new bridge to take it away. With Walk: ${WALKING} When your walk has picked up every counter and is back where it started, press Fewest if no smaller number of new bridges could work, tap every island that needs a new bridge, and press Check. After a wrong answer, Fewest waits for another such walk.`,
+  deliver: `A route starts on an island and crosses bridges one after another, picking up each bridge’s counter. A bridge can be crossed again after its counter is gone; each crossing after the first is a repeat, and the bridge shows how many times it was crossed. ${WALKING} When the route has picked up every counter and is back where it started, press Fewest if no route could repeat less, tap every island where a route has to turn back, and press Check. After a wrong answer, Fewest waits for another such route.`
 };
 
 // Islands in board units (the board is 100 wide and 100 / aspect high), turned
@@ -79,13 +79,13 @@ const authored = [
   {
     number: 3, difficulty_level: 'easy', title: 'Star',
     parameters: {mode: 'add', budget: 1, ...STAR},
-    idea: 'No walk crosses all three bridges of a star: two of its three dead ends would both have to be ends of the walk and the third too. One new bridge between any two islands removes the trouble.',
+    idea: 'All four islands of the star have an odd number of bridges (the three dead ends one each, the middle three), and a walk over every bridge has only two ends, so no walk exists. A new bridge between any two of them makes those two even and leaves two odd islands, so a walk runs between those.',
     prerequisites: 'None.',
     hints: ['Walk first: where do you get stuck?', 'A new bridge between two dead ends lets a walk go through them.', 'Add a bridge from A to C, then walk from B.'],
     parent: {
       notice: 'Whether your child walks first to find the problem, or adds a bridge at random.',
       prompt: 'Which island did your walk get stuck on? Which counters were left?',
-      explanation: 'A, C and D each have one bridge, so a walk can only begin or end at each; a walk has two ends, so one counter is always left. Any new bridge joins two of the four islands with an odd number of bridges, leaving two, and then a walk runs from one to the other.',
+      explanation: 'A, C and D each have one bridge, so a walk over every bridge must begin or end at each; a walk has two ends, so one counter is always left. Any new bridge joins two of the four islands with an odd number of bridges, leaving two, and then a walk runs from one to the other.',
       extension: 'Can you add the new bridge so that the walk ends where it started? (No: two islands still have an odd number of bridges.)',
       connection: 'Adding an edge between two odd vertices leaves two, and the graph gains an Euler trail.'
     },
@@ -104,17 +104,17 @@ const authored = [
       extension: 'Take away one of the B–E bridges. Where can a walk start now?',
       connection: 'With every degree even, an Euler circuit exists and passes through every vertex, so every vertex is a start (Euler; Hierholzer).'
     },
-    provenance: 'Week 10 K–1 Problem 4, town 3 (two squares with a doubled middle rung), asked as Problem 2’s question.'
+    provenance: 'Week 10 K–1 Problem 4, town 5 (packet p. 6: two squares with a doubled middle rung), asked as Problem 2’s question.'
   },
   {
     number: 5, difficulty_level: 'medium', title: 'Fan',
     parameters: {mode: 'starts', ...town(1.25, {A: [50, 7], B: [50 - 36 * S3, 22], C: [50 + 36 * S3, 22], D: [50, 40], E: [50 - 36 * S3, 58], F: [50 + 36 * S3, 58]}, [['D', 'A'], ['D', 'B'], ['D', 'C'], ['D', 'E'], ['D', 'F'], ['B', 'E']])},
     idea: 'Four islands have an odd number of bridges (D has five, A, C and F one), and a walk has only two ends, so there is no walk. The child taps those four.',
     prerequisites: 'Problem 2.',
-    hints: ['Try a few walks. Where do they get stuck?', 'A, C and F each have one bridge: a walk can only begin or end there.', 'Press No walk, tap A, C, D and F, and Check.'],
+    hints: ['Try a few walks. Where do they get stuck?', 'A, C and F each have one bridge: a walk over every bridge must begin or end on each of them.', 'Press No walk, tap A, C, D and F, and Check.'],
     parent: {
       notice: 'Whether your child keeps trying walks, or starts to argue that none can work.',
-      prompt: 'Which islands can a walk only start or end on?',
+      prompt: 'Which islands must a walk over every bridge start or end on?',
       explanation: 'A, C and F have one bridge each, so a walk must begin or end there; D has five. Four islands with an odd number of bridges would need four ends, and a walk has two. So no walk picks up every counter.',
       extension: 'Which one bridge could you add to make a walk possible?',
       connection: 'More than two odd vertices: no Euler trail (Euler, 1736).'
@@ -144,7 +144,7 @@ const authored = [
     hints: ['Walk first: where do you get stuck?', 'A new bridge to the middle island doesn’t help. Join two corners.', 'Add a bridge from A to B, then walk from D.'],
     parent: {
       notice: 'Whether your child tries the middle island first, and what they make of it not working.',
-      prompt: 'Which islands can a walk only start or end on?',
+      prompt: 'Which islands must a walk over every bridge start or end on?',
       explanation: 'Corners have three bridges, the middle four. A new bridge between two corners makes both even and leaves the other two corners as the ends of a walk. A new bridge from a corner to the middle makes the middle odd, so four odd islands remain. Six of the ten possible new bridges work.',
       extension: 'Can a new bridge make a walk that ends where it started?',
       connection: 'An edge changes the parity of exactly its two ends.'
@@ -206,10 +206,10 @@ const authored = [
       notice: 'Whether your child expects 2 repeats, as two new bridges would fix four odd islands, and what they make of needing 3.',
       prompt: 'How does a route leave a dead end?',
       explanation: 'Each of A, C and D has one bridge, so a route that visits it and comes back crosses that bridge twice. That is three repeats whichever island the route starts on, and B, A, B, C, B, D, B uses exactly three. New bridges could go anywhere; repeats must run along existing bridges, which is why the count is 3, not 2.',
-      extension: 'For a route that may end anywhere, what is the fewest? (Two: start on one dead end and finish on another.)',
+      extension: 'For a route that may end anywhere, what is the fewest? (One: start on one dead end, finish on another, and go out and back only along the third arm.)',
       connection: 'The Chinese postman problem: the fewest repeats pair the odd vertices along shortest paths (Edmonds and Johnson, 1973).'
     },
-    provenance: 'Week 10 grades 4–5 Problems 10–11, town 2 (the three-arm star as a delivery route).'
+    provenance: 'Week 10 grades 4–5 Problem 10, town 2 (also grades 2–3 Problem 10, town 2): the three-arm star as a delivery route.'
   }
 ];
 
@@ -230,9 +230,11 @@ function witness(q) {
   if (q.mode === 'starts') {
     const starts = walkStarts(q), all = bridgesOf(q);
     if (!starts.length) {
-      moves.push({type: 'island', island: oddIslands(q)[0]});
-      const at = oddIslands(q)[0], i = all.findIndex(([u, v]) => u === at || v === at);
-      moves.push({type: 'bridge', bridge: i});
+      // Walk until stuck, then the claim.
+      let at = oddIslands(q)[0];
+      const used = new Set();
+      moves.push({type: 'island', island: at});
+      for (let i; (i = all.findIndex(([u, v], j) => !used.has(j) && (u === at || v === at))) >= 0;) { used.add(i); at = all[i][0] === at ? all[i][1] : all[i][0]; moves.push({type: 'bridge', bridge: i}); }
       moves.push({type: 'check', claim: 'none', picks: oddIslands(q)});
       return moves;
     }

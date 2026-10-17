@@ -1,7 +1,7 @@
 @import url('../../graph-board.css');
 /* Bridge Courier islands: islands joined by bridges, a counter on every
    bridge not yet crossed, the walked bridges in pine, new bridges dashed,
-   coloured starts in sun, the token's island ringed in pine, and the
+   colored starts in sun, the token's island ringed in pine, and the
    islands tapped for a claim in ochre. */
 [data-mechanic-wire="islands"].isl-puzzle{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
 [data-mechanic-wire="islands"] .isl-tools,[data-mechanic-wire="islands"] .isl-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.4rem}
@@ -34,3 +34,6 @@
 /* Only the tap areas and the islands take taps, so a road drawn over another
    (a new bridge bent around an island) never hides the one beneath. */
 [data-mechanic-wire="islands"] .isl-map .gb-line,[data-mechanic-wire="islands"] .isl-map .gb-stroke{pointer-events:none}
+/* A pressed tool or claim keeps its pine on hover (the app's .secondary:hover
+   would otherwise put cream text on pale green). */
+[data-mechanic-wire="islands"] .isl-button[aria-pressed="true"]:hover:not(:disabled){background:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9);filter:brightness(1.12)}
