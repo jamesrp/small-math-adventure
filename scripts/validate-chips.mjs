@@ -118,7 +118,8 @@ function checkThatsAll(p) {
   assert.equal(back.board.claim, 'more', `${p.id}: Undo keeps the lock`);
   assert.equal(back.board.told, undefined, `${p.id}: Undo takes away the refusal's line, so the screen changes`);
   assert.equal(move(p, back, {type: 'all'}), null, `${p.id}: and That's all stays off after Undo`);
-  assert.equal(validBoard(p, {...back.board, told: true, claim: 'open'}), false, `${p.id}: a line needs a refusal`);
+  assert.equal(validBoard(p, {...back.board, told: 'yes'}), false, `${p.id}: a line is only ever true`);
+  assert.equal(validBoard(p, {...freshAttempt(p).board, told: true, claim: 'all'}), false, `${p.id}: no line on a solve`);
   let b = a;
   while (b.board.found.length === a.board.found.length) {
     const hint = nextHint(p, b);
@@ -136,9 +137,9 @@ function stillSim(boardName) {
   return {...s, settle, still};
 }
 // Plays a start and its additions at the drop circle with the mechanic's own moves.
-function playCycle(p, start, additions, random = null) {
+function playCycle(p, start, additions, random = null, from = null) {
   const q = p.parameters, ids = Object.keys(BOARDS[q.board].nodes);
-  let a = freshAttempt(p);
+  let a = from || freshAttempt(p);
   start.forEach((n, i) => { for (let k = 0; k < n; k++) a = play(p, a, [{type: 'add', node: ids[i]}]); });
   for (let k = 0; k < additions && !stillRun(p, a.board).ended; k++) {
     a = play(p, a, [{type: 'drop'}]);
@@ -183,7 +184,7 @@ function checkCapacity(p) {
   assert.ok(move(p, full, {type: 'fire', node: s.ids[0]}), `${p.id}: a glowing circle fires`);
   // Forged saves.
   const cap = (piles, claim = null, more = {}) => ({piles, sink: 0, claim, ...more});
-  for (const bad of [cap([2, 1, 2], 'more'), cap([1, 1, 0], 'most'), cap([3, 0, 0], 'more'), cap([0, 0, 0], 'more'), cap([1, 0, 0], null, {told: true}), cap([1, 0, 0], 'more', {told: 1}),
+  for (const bad of [cap([4, 0, 0]), cap([0, 0, 0], null, {sink: 5}), cap([1, 0, 0], null, {sink: 1}), cap([2, 1, 2], null, {sink: 3, told: true}),cap([2, 1, 2], 'more'), cap([1, 1, 0], 'most'), cap([3, 0, 0], 'more'), cap([0, 0, 0], 'more'), cap([1, 0, 0], null, {told: true}), cap([1, 0, 0], 'more', {told: 1}),
     cap([31, 0, 0]), cap([1, 0]), cap([1.5, 0, 0]), cap([1, 0, 0], null, {sink: -1}), cap([1, 0, 0], null, {sink: 2.5}), cap([1, 0, 0], null, {extra: 1}), cap([1, 0, 0], null, {steps: ''}), {piles: [1, 0, 0], claim: null}, {steps: 'aab', claim: null}])
     assert.equal(validBoard(p, bad), false, `${p.id}: rejects ${JSON.stringify(bad)}`);
   return {most, longGame: checkLongGame(p, 300)};
@@ -270,7 +271,8 @@ function checkCycle(p) {
   assert.equal(renewed.board.claim, 'open', `${p.id}: New run starts a new row`);
   const past = takeBack(p, renewed);
   assert.equal(past.board.claim, 'apart', `${p.id}: Undo back to the refused row keeps its lock`);
-  assert.equal(past.board.told, undefined, `${p.id}: but not its line`);
+  assert.equal(past.board.told, true, `${p.id}: and shows its line on the board the claim made`);
+  assert.equal(takeBack(p, past).board.told, undefined, `${p.id}: the next Undo takes the claim press back`);
   const more = play(p, b, [{type: 'claim', taps: right}]);
   assert.equal(more.board.claim, 'more', `${p.id}: a right pair with a start missing from the shelf is refused`);
   assert.equal(isSolved(p, more.board), false);
@@ -296,13 +298,24 @@ function checkCycle(p) {
     {...b.board, found: comesBack, claim: 'more', taps: []},
     {piles: zero, sink: 0, steps: '', found: [], claim: 'apart', taps: []},
     {piles: zero, sink: 0, steps: '', found: comesBack.slice(0, 1), claim: 'apart', taps: []},
-    {...b.board, claim: 'open', told: true},
+    {...b.board, told: 'yes'},
+    {...b.board, claim: 'all', told: true, taps: right, found: comesBack},
+    {piles: zero, sink: 3, steps: '', found: [], claim: 'open', taps: []},
     {...returner, found: []},
     {piles: [2, 0], sink: 0, steps: '+', found: [], claim: 'open', taps: []},
     {piles: zero, sink: 0, steps: 'a+a', found: [], claim: 'open', taps: []},
     {piles: zero, sink: 0, steps: '', found: [], claim: 'open', taps: [], extra: true},
     {steps: '', found: [], claim: 'open', taps: []}
   ]) assert.equal(validBoard(p, bad), false, `${p.id}: rejects ${JSON.stringify(bad)}`);
+  // A real solve with a sink that play can't give its start is rejected.
+  let solve = play(p, b, [{type: 'again'}]);
+  for (const k of comesBack) if (!solve.board.found.includes(k)) solve = play(p, playCycle(p, k.split(',').map(Number), 20, null, solve), [{type: 'again'}]);
+  const empty = s.ids.map(() => 0);
+  while (!stillRun(p, solve.board).ended) { const run = stillRun(p, solve.board); solve = play(p, solve, [run.ready.length ? {type: 'fire', node: ids[run.ready[0]]} : {type: 'drop'}]); }
+  assert.deepEqual(stillRun(p, solve.board).record[0], empty);
+  solve = play(p, solve, [{type: 'claim', taps: pair(stillRun(p, solve.board).record)}]);
+  assert.ok(isSolved(p, solve.board), `${p.id}: the solve`);
+  assert.equal(validBoard(p, {...solve.board, sink: 99}), false, `${p.id}: a solve whose empty start has chips in the sink`);
   return {comesBack: comesBack.length, merges: merges.length, certificateShare: Number(Math.max(...shares).toFixed(3)), longGame: checkLongGame(p, 300)};
 }
 // Hints alone solve from a fresh board, from random legal play, and after refusals.
@@ -334,6 +347,61 @@ function wander(p, seed, length) {
     if (random() < 0.15 && a.history.length) a = takeBack(p, a);
   }
   return a;
+}
+
+
+// Every Undo changes what the family draws: play a sequence, then Undo to the
+// start, comparing the family's own render before and after each step. Returns
+// the Undo numbers that changed nothing.
+function undoTrail(p, actions) {
+  const m = mechanicFor(p), view = a => m.render(p, {...a, hintLevel: 0}, {});
+  let a = play(p, freshAttempt(p), actions), shown = view(a);
+  const still = [];
+  for (let k = 1; a.history.length; k++) { a = takeBack(p, a); const now = view(a); if (now === shown) still.push(k); shown = now; }
+  return still;
+}
+function checkUndoTrails(byId) {
+  const f = node => ({type: 'fire', node}), add = node => ({type: 'add', node}), drop = {type: 'drop'}, again = {type: 'again'};
+  const empty = [drop, drop, f('A'), drop, drop, f('A'), f('B')];
+  const trails = {
+    'chips-03 A B A B, That’s all, New run': ['chips-03', [f('A'), f('B'), f('A'), f('B'), {type: 'all'}, again]],
+    'chips-03 a refusal, then a second order (shelf still short)': ['chips-03', [f('A'), f('B'), f('A'), f('B'), {type: 'all'}, again, f('A'), f('B'), f('B'), f('A')]],
+    'chips-s01 A, Most, add B': ['chips-s01', [add('A'), {type: 'most'}, add('B')]],
+    'chips-s02 a wrong pair, New run': ['chips-s02', [add('A'), drop, f('A'), drop, drop, f('A'), f('B'), again, ...empty, {type: 'claim', taps: [0, 1]}, again]],
+    'chips-s02 a right pair on a short shelf, New run': ['chips-s02', [add('A'), drop, f('A'), drop, drop, f('A'), f('B'), again, ...empty, {type: 'claim', taps: [0, 3]}, again]]
+  };
+  const report = {};
+  for (const [label, [id, actions]] of Object.entries(trails)) {
+    const still = undoTrail(byId(id), actions);
+    assert.deepEqual(still, [], `${label}: Undo ${still.join(', ')} changed nothing`);
+    report[label] = 'every Undo changes the board';
+  }
+  // Known gap (spec, Not yet done): a refusal, then the shelf completed, then
+  // Undo back over the claim press: the refusal no longer applies and nothing
+  // is drawn for it, so that one Undo shows no change. Recorded so a fix shows.
+  const gap = undoTrail(byId('chips-01'), [f('A'), f('B'), {type: 'all'}, again, f('B'), f('A')]);
+  assert.deepEqual(gap, [4], 'chips-01: only the Undo of a refused claim after the shelf was completed shows no change');
+  report['chips-01 refusal, then the shelf completed'] = `Undo ${gap.join(', ')} shows no change (known gap)`;
+  return report;
+}
+// Every board that play reaches (up to a small sink) is accepted when saved.
+function checkReachableSaves(p) {
+  const q = p.parameters, g = BOARDS[q.board], ids = Object.keys(g.nodes), m = mechanicFor(p), SINK = 8;
+  const base = q.mode === 'capacity' ? {claim: null} : {steps: '', found: [], claim: 'open', taps: []};
+  const start = {...freshAttempt(p).board};
+  const seen = new Set([JSON.stringify([start.piles, start.sink])]), queue = [start];
+  let n = 0;
+  while (queue.length) {
+    const b = queue.pop(); n++;
+    assert.ok(validBoard(p, {...b, ...base}), `${p.id}: reachable ${JSON.stringify(b)} is accepted`);
+    for (const node of ids) for (const type of ['add', 'fire']) {
+      const next = m.move(p, {...b, ...base}, {type, node});
+      if (!next || next.sink > SINK) continue;
+      const k = JSON.stringify([next.piles, next.sink]);
+      if (!seen.has(k)) { seen.add(k); queue.push({piles: next.piles, sink: next.sink}); }
+    }
+  }
+  return n;
 }
 
 export async function validateChips() {
@@ -402,6 +470,7 @@ export async function validateChips() {
   for (const p of group) {
     const started = cpu();
     groupReport[p.id] = p.parameters.mode === 'capacity' ? checkCapacity(p) : checkCycle(p);
+    groupReport[p.id].reachableSaves = checkReachableSaves(p);
     const starts = [freshAttempt(p), ...[1, 2, 3, 4, 5, 6, 7, 8].map(seed => wander(p, seed, 40))];
     if (p.parameters.mode === 'cycle') {
       // From each refusal: a wrong pair, and a right pair with the shelf incomplete.
@@ -450,7 +519,8 @@ export async function validateChips() {
     else assert.equal(a.board.loop, true, `${name}: 9 chips on a sinkless triangle repeat`);
     assert.equal(move(pg, a, {type: 'fire', node: 'Q'}), null);
   }
-  return {chipPuzzles: core.length, stillPuzzles: group.length, playground: 1, sources: chips.sources.length, hintSteps: steps, still: groupReport};
+  const undoTrails = checkUndoTrails(id => chips.puzzles.find(p => p.id === id));
+  return {chipPuzzles: core.length, stillPuzzles: group.length, playground: 1, sources: chips.sources.length, hintSteps: steps, still: groupReport, undoTrails};
 }
 export default validateChips;
 if (process.argv[1] === new URL(import.meta.url).pathname) console.log(JSON.stringify(await validateChips(), null, 2));

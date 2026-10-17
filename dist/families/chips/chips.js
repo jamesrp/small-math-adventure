@@ -174,7 +174,7 @@ function validPuzzleBoard(p, b) {
     if (b.placed.some((n, i) => n && !spots.has(i))) return false;
   }
   if (b.claim !== undefined && (!['open', 'more', 'all'].includes(b.claim) || !exhaustive(p) || b.claim === 'all' && b.found.length !== q.answers)) return false;
-  if (b.told !== undefined && !(b.told === true && b.claim === 'more')) return false;
+  if (b.told !== undefined && !(b.told === true && ['more', 'open'].includes(b.claim))) return false;
   return Boolean(runOf(p, b));
 }
 // Missing claim is the legacy count-based save format: preserve completed saves.
@@ -318,16 +318,25 @@ function movePlay(b, action) {
 //   different boards tapped in the row that go to the same board: where a
 //   start that never comes back runs into the loop.
 //
-// A refusal sets `told` only on the board the claim made; Undo and the next
-// move remove the line, while the lock (`claim`) stays until the board, row
-// or shelf changes.
+// A refusal sets `told` only on the board the claim made, and its line shows
+// only there: the next move or the Undo of the claim press removes it, while
+// the lock (`claim`) stays until the board, row or shelf changes. Undo back
+// onto that board shows the line again, so each Undo changes the screen.
+// A saved still board must also be one play can reach: if anything has fired
+// (the sink holds chips, or a circle holds more chips than lines, which adds
+// alone can't do), the circles next to the last circle that fired each still
+// hold a chip.
 const STILL_LIMIT = 30, STEP_LIMIT = 240, SINK_LIMIT = 1e6;
 const zeros = g => g.ids.map(() => 0);
 const untold = b => { const {told, ...rest} = b; return rest; };
+// Undo onto the board a refusal made keeps its line, while the claim it
+// carries is still that refusal or one the shelf has since grown past.
+const keepTold = (to, next) => to.told === true && (next.claim === to.claim || to.claim === 'more' && next.claim === 'open') ? {...next, told: true} : next;
+const reachable = (g, piles, sink) => !(sink > 0 || piles.some((n, i) => n > g.deg[i])) || g.ids.some((_, x) => g.nbr[x].every(j => piles[j] > 0));
 export function stillRun(p, b) {
   const q = p.parameters, g = boardInfo(q.board), cycle = q.mode === 'cycle';
   if (!g || !object(b) || !Array.isArray(b.piles) || b.piles.length !== g.ids.length || !b.piles.every(count) || sum(b.piles) > STILL_LIMIT) return null;
-  if (!count(b.sink) || b.sink > SINK_LIMIT || !g.sink && b.sink) return null;
+  if (!count(b.sink) || b.sink > SINK_LIMIT || !g.sink && b.sink || !reachable(g, b.piles, b.sink)) return null;
   const steps = cycle ? b.steps : '';
   if (typeof steps !== 'string' || steps.length > STEP_LIMIT) return null;
   let piles = [...b.piles], sink = b.sink, ended = false;
@@ -413,7 +422,7 @@ function validStill(p, b) {
   if (!object(b) || !STILL_KEYS[q.mode] || !keysAre(b, STILL_KEYS[q.mode])) return false;
   const run = stillRun(p, b);
   if (!run) return false;
-  if (b.told !== undefined && !(b.told === true && ['more', 'apart'].includes(b.claim))) return false;
+  if (b.told !== undefined && !(b.told === true && (q.mode === 'capacity' ? ['more'] : ['more', 'apart', 'open']).includes(b.claim))) return false;
   if (q.mode === 'capacity') {
     if (![null, 'more', 'most'].includes(b.claim)) return false;
     if (b.claim === null) return true;
@@ -579,7 +588,7 @@ function renderPuzzle(p, a, ctx = {}) {
     const piles = item.split(',').map(Number);
     return `<li class="chip-slot${fresh}">${miniBoard(g, piles, `${q.mode === 'finishes' ? 'Finish' : 'Start'}: ${describe(g, piles)}`)}</li>`;
   }).join('')}</ol>` : '';
-  const claim = exhaustive(p) && !solved ? `<button type="button" class="secondary chip-claim ${hint?.action?.type === 'all' ? 'hinted' : ''}" data-chip-move="${esc(JSON.stringify({type: 'all'}))}" data-focus="chip-all" ${claimOpen(p, b) ? '' : 'disabled'}>That’s all</button>${b.told && b.claim === 'more' && b.found.length < q.answers ? '<p class="chip-feedback" role="status">There is another.</p>' : ''}` : '';
+  const claim = exhaustive(p) && !solved ? `<button type="button" class="secondary chip-claim ${hint?.action?.type === 'all' ? 'hinted' : ''}" data-chip-move="${esc(JSON.stringify({type: 'all'}))}" data-focus="chip-all" ${claimOpen(p, b) ? '' : 'disabled'}>That’s all</button>${b.told && b.found.length < q.answers ? '<p class="chip-feedback" role="status">There is another.</p>' : ''}` : '';
   const board = chipBoard(g, run.piles, run.sink, {fire: !run.placing && !run.finished && !solved, add: i => run.placing && !solved && spots.has(i), hinted});
   const missed = run.finished && !run.item && !solved ? ' missed' : '';
   const status = run.placing ? `${run.left === null ? 'Add chips' : `${plural(run.left, 'chip')} to place`}. ${describe(g, run.piles)}.` : `${b.word ? `Fired ${[...b.word].join(' ')}. ` : ''}${describe(g, run.piles)}${g.sink ? `, sink ${run.sink}` : ''}.${run.looped ? ' The board repeated.' : run.finished ? ' No circle can fire.' : ''}`;
@@ -637,7 +646,8 @@ function renderStill(p, a) {
   const againButton = !fresh && !solved && !pick ? `<button type="button" class="primary chip-again ${act.type === 'again' ? 'hinted' : ''}" data-chip-move="${esc(JSON.stringify({type: 'again'}))}" data-focus="chip-again"><span aria-hidden="true">↺</span> New run</button>` : '';
   const claimButton = solved ? '' : `<button type="button" class="secondary chip-claim ${act.type === 'claim' ? 'hinted' : ''}" data-chip-pick="1" data-focus="chip-all" aria-pressed="${pick}" ${pickOpen(p, b, run) ? '' : 'disabled'}>That’s all</button>`;
   // One line of controls, then one line for a refusal or a pair that is one board twice.
-  const said = pick && ui(p).said === 'same' ? toldLine('Those are the same board.') : b.told && STILL_TOLD[b.claim] ? toldLine(STILL_TOLD[b.claim]) : '';
+  const refused = !b.told ? '' : b.claim === 'apart' ? STILL_TOLD.apart : b.found.length < q.answers ? STILL_TOLD.more : '';
+  const said = pick && ui(p).said === 'same' ? toldLine('Those are the same board.') : refused ? toldLine(refused) : '';
   const controls = dropButton || againButton || claimButton ? `<div class="chip-run">${dropButton}${againButton}${claimButton}</div>` : '';
   // The row: the start, then the still board after each chip added at A.
   const row = run.record.length ? `<ol class="chip-row" aria-label="Still boards in this run"${pick ? ' tabindex="-1" data-focus="chip-row"' : ''}>${run.record.map((piles, k) => {
@@ -796,7 +806,7 @@ export const chipMechanics = {
     reset: p => { uiState.delete(p.id); },
     // Undo takes back a move but never a discovery, and never a refused
     // That's all: the shelf is carried, so the claim about it stands.
-    carry: (p, from, to) => p.parameters.mode === 'playground' || !object(to) || !object(from) ? to : {...untold(to), found: [...from.found], ...(from.claim !== undefined ? {claim: from.claim} : {})},
+    carry: (p, from, to) => p.parameters.mode === 'playground' || !object(to) || !object(from) ? to : keepTold(to, {...untold(to), found: [...from.found], ...(from.claim !== undefined ? {claim: from.claim} : {})}),
     noHint: p => p.parameters.mode === 'playground'
   },
   chipstill: {
@@ -809,20 +819,21 @@ export const chipMechanics = {
     wire,
     ui: () => {},
     reset: p => { uiState.delete(p.id); },
-    // Undo keeps the shelf and every lock but takes away a refusal's line: a
+    // Undo keeps the shelf and every lock; a refusal's line goes with the
+    // Undo of the claim press and comes back on the board the claim made: a
     // refused Most stays off while the board is the same, a refused That's
     // all until the shelf grows, and a refused pair while Undo stays in its
     // row (or goes back to it past New run).
     carry(p, from, to) {
       if (!object(from) || !object(to)) return to;
       const base = untold(to), same = Array.isArray(from.piles) && Array.isArray(to.piles) && key(from.piles) === key(to.piles) && from.sink === to.sink;
-      if (p.parameters.mode === 'capacity') return from.claim === 'more' && same ? {...base, claim: 'more'} : base;
+      if (p.parameters.mode === 'capacity') return keepTold(to, from.claim === 'more' && same ? {...base, claim: 'more'} : base);
       // A refused pair stands while Undo stays in its row (a run already
       // started from the same start), and comes back with that row when Undo
       // goes back past New run.
       const sameRow = same && typeof to.steps === 'string' && to.steps.length > 0 && from.steps.startsWith(to.steps);
       const claim = from.claim === 'all' || from.claim === 'more' ? from.claim : from.claim === 'apart' ? (sameRow ? 'apart' : 'open') : to.claim === 'apart' && to.steps ? 'apart' : 'open';
-      return {...base, found: [...from.found], claim, taps: claim === 'all' ? [...from.taps] : []};
+      return keepTold(to, {...base, found: [...from.found], claim, taps: claim === 'all' ? [...from.taps] : []});
     }
   }
 };

@@ -320,12 +320,16 @@ test('the cycle: That’s all is judged with two boards that go to the same boar
   while (back.board.steps) { back = takeBackStill(p, back); if (back.board.steps) assert.equal(back.board.claim, 'apart'); }
   assert.equal(back.board.claim, 'open', 'Undo back to placing lifts the refused pair');
   assert.notEqual(nextHint(p, back).action.type, 'again', 'and the hint builds a start, with no call for New run');
-  // Undo past New run brings back the refused row with its lock, but not its line.
+  // Undo past New run lands on the board the claim made, lock and line; the
+  // next Undo takes back the claim press, so each Undo changes the screen.
   const again = run(wrong, [{type: 'again'}]);
   assert.equal(again.board.claim, 'open');
   const past = takeBackStill(p, again);
   assert.equal(past.board.claim, 'apart');
-  assert.doesNotMatch(view(past), /Those two don’t/);
+  assert.match(view(past), /Those two don’t go to the same board\./);
+  const before = takeBackStill(p, past);
+  assert.equal(before.board.claim, 'apart');
+  assert.doesNotMatch(view(before), /Those two don’t/);
   assert.ok(run(a, [{type: 'claim', taps: [3, 4]}]).board.claim === 'apart', 'the repeat at the end goes where A 1 B 0 goes, not where A 1 B 1 goes');
   const short = run(a, [{type: 'claim', taps: [3, 0]}]);
   assert.equal(short.board.claim, 'more', 'the right pair, but A 1 B 1 is not on the shelf');
