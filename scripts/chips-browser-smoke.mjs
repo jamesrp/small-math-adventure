@@ -1,11 +1,13 @@
 // Plays Chip firing through the real interface: That's all on a shelf puzzle
-// (off with nothing shelved, one refusal kept through Undo and New run, focus
-// off the claim), and the Still boards group: capacity (chips until a circle
-// glows, a glowing circle firing, Most refused and kept, the argument drawn
-// after a right claim) and the add-one cycle (a still start, chips added at A,
-// the row of still boards, a start that comes back shelved, That's all opening
-// the row, a wrong pair, There is another, taps at the edge of a board in the
-// row, the solve). Same environment variables as the other browser suites
+// (off with nothing shelved, one refusal whose line goes with Undo while That's
+// all stays off through Undo and New run, focus off the claim), and the Still
+// boards group: capacity (chips until a circle glows, a glowing circle firing,
+// Most refused and kept off, the argument drawn after a right claim) and the
+// add-one cycle (a still start, chips added at A, the row of still boards, a
+// start that comes back shelved, That's all opening the row, one board tapped
+// twice, a wrong pair, There is another, taps at the edge of a board in the
+// row, the solve). On the busiest states the card and the Undo row fit one
+// screen. Same environment variables as the other browser suites
 // (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone
 // with touch). Screenshots go in test-results/chips/, or SHOT_DIR.
 import assert from 'node:assert/strict';
@@ -34,6 +36,13 @@ const thatsAll = () => button('That’s all');
 const told = () => page.locator('.chip-feedback').innerText();
 const focused = () => page.evaluate(() => { const e = document.activeElement; return e === document.body || !e ? 'body' : (e.dataset.focus || e.className || e.tagName); });
 const undo = () => page.locator('[data-action="undo"]').click();
+// The puzzle card and the Undo row fit one screen together, so with the card
+// scrolled to the top the move controls are in view.
+const inReach = async label => {
+  const card = await page.locator('[data-mechanic-wire="chips"]').boundingBox(), row = await page.locator('[data-action="undo"]').boundingBox();
+  const vh = page.viewportSize().height;
+  assert.ok(row.y + row.height - card.y <= vh, `${label}: card and Undo span ${Math.round(row.y + row.height - card.y)} px of ${vh}`);
+};
 try {
   await mkdir(out, {recursive: true});
   await page.goto(base); await page.locator('#nickname').fill('Chips QA'); await page.locator('#profile-form button[type=submit]').click();
@@ -53,8 +62,8 @@ try {
   assert.notEqual(await focused(), 'chip-all', 'focus leaves That’s all');
   assert.notEqual(await focused(), 'body', 'focus lands on a control');
   await undo();
-  assert.equal(await told(), 'There is another.', 'Undo keeps the refusal');
-  assert.equal(await thatsAll().isDisabled(), true);
+  assert.equal(await page.locator('.chip-feedback').count(), 0, 'Undo takes away the refusal’s line');
+  assert.equal(await thatsAll().isDisabled(), true, 'and keeps That’s all off');
   await undo();
   assert.equal((await board(F)).word, 'ABA', 'Undo then takes back a firing');
   assert.equal(await thatsAll().isDisabled(), true);
@@ -74,25 +83,27 @@ try {
   await taps('A');
   assert.match(await circle('A').getAttribute('class'), /\bready\b/, 'A glows at its third chip');
   assert.equal(await button('Most').isDisabled(), true, 'no claim while a circle glows');
-  await shot('capacity-glowing'); await fit('capacity, glowing');
+  await shot('capacity-glowing'); await fit('capacity, glowing'); await inReach('capacity, glowing');
   await taps('A');
-  assert.equal((await board(C)).steps, 'aaaA', 'a tap on a glowing circle fires it');
+  assert.deepEqual(await board(C), {piles: [0, 1, 1], sink: 1, claim: null}, 'a tap on a glowing circle fires it');
   await circle('C').focus(); await page.keyboard.press('Enter');
-  assert.equal((await board(C)).steps, 'aaaAc', 'Enter on a circle adds a chip');
+  assert.deepEqual((await board(C)).piles, [0, 1, 2], 'Enter on a circle adds a chip');
   await button('Most').click();
   assert.equal(await told(), 'More chips fit.');
   assert.equal(await button('Most').isDisabled(), true, 'Most stays off on the same board');
   assert.notEqual(await focused(), 'chip-most'); assert.notEqual(await focused(), 'body');
+  await shot('capacity-refused'); await fit('capacity, refused'); await inReach('capacity, refused');
   await undo();
-  assert.equal(await told(), 'More chips fit.', 'Undo keeps a refused Most');
+  assert.equal(await page.locator('.chip-feedback').count(), 0, 'Undo takes away the line');
+  assert.equal(await button('Most').isDisabled(), true, 'and keeps Most off on the same board');
   await taps('A A');
-  assert.equal(await page.locator('.chip-feedback').count(), 0, 'a new board lifts it');
-  assert.deepEqual((await board(C)).steps, 'aaaAcaa');
+  assert.equal(await button('Most').isDisabled(), false, 'a new board lifts it');
+  assert.deepEqual((await board(C)).piles, [2, 1, 2]);
   await button('Most').click();
   await done(); await fit('capacity solved');
   assert.equal(await page.locator('.chip-end:not(.bare)').count(), 5, 'each chip waits at a line end');
   assert.equal(await page.locator('.chip-end.bare').count(), 3, 'one bare line end at each circle');
-  assert.equal(await page.locator('.chip-argued').innerText(), 'Every circle has one line with no chip.');
+  assert.equal(await page.locator('.chip-argued').innerText(), 'One more chip on any circle would make it glow.');
   await shot('capacity-solved');
 
   // Still boards 2: the add-one cycle on the triangle.
@@ -120,7 +131,7 @@ try {
   assert.deepEqual((await board(R)).found, ['0,1'], 'a start that doesn’t come back is not saved');
   assert.equal(await page.locator('.chip-rec[data-chip-tap]').count(), 0, 'the row is not tappable before That’s all');
   await thatsAll().click();
-  assert.equal(await page.locator('.chip-ask').innerText(), 'Tap two boards that go to the same board.');
+  assert.equal(await page.locator('.chip-ask').innerText(), 'Tap two different boards that go to the same board.');
   assert.equal(await page.locator('.chip-rec[data-chip-tap]').count(), 5);
   assert.equal(await page.locator('.chip-rec.tapped').count(), 0, 'nothing marks the boards before a tap');
   // A tap near the edge of a board in the row goes to that board, and a second tap on it takes it back.
@@ -128,13 +139,22 @@ try {
   assert.equal(await page.locator('.chip-rec.tapped').getAttribute('data-chip-tap'), '2');
   await tap(page.locator('.chip-rec[data-chip-tap="2"]'), 0.04, 0.5);
   assert.equal(await page.locator('.chip-rec.tapped').count(), 0);
+  // A 1 B 0 and its repeat at the end are one board: said so, and the picking goes on.
+  await tap(page.locator('.chip-rec[data-chip-tap="1"]'));
+  await tap(page.locator('.chip-rec[data-chip-tap="4"]'));
+  assert.equal(await told(), 'Those are the same board.');
+  assert.equal(await page.locator('.chip-rec[data-chip-tap]').count(), 5, 'still picking');
+  assert.equal(await page.locator('.chip-rec.tapped').count(), 0);
+  assert.equal((await board(R)).claim, 'open', 'no claim was made');
   await tap(page.locator('.chip-rec[data-chip-tap="0"]'));
+  assert.equal(await page.locator('.chip-feedback').count(), 0, 'the next tap clears it');
   await tap(page.locator('.chip-rec[data-chip-tap="1"]'));
   assert.equal(await told(), 'Those two don’t go to the same board.');
   assert.equal(await thatsAll().isDisabled(), true, 'one try per row');
   assert.equal(await focused(), 'chip-again', 'focus goes to New run');
   await undo();
-  assert.equal(await told(), 'Those two don’t go to the same board.', 'Undo keeps the refused pair');
+  assert.equal(await page.locator('.chip-feedback').count(), 0, 'Undo takes away the line');
+  assert.equal(await thatsAll().isDisabled(), true, 'and keeps the row locked');
   await button('New run').click();
   assert.equal(await page.locator('.chip-feedback').count(), 0, 'a new row can be tried');
   await taps('+ + A + + A B');
@@ -142,7 +162,7 @@ try {
   await tap(page.locator('.chip-rec[data-chip-tap="0"]')); await tap(page.locator('.chip-rec[data-chip-tap="3"]'));
   assert.equal(await told(), 'There is another.', 'a right pair, with starts missing from the shelf');
   assert.equal(await thatsAll().isDisabled(), true);
-  await shot('cycle-another'); await fit('cycle, another');
+  await shot('cycle-another'); await fit('cycle, another'); await inReach('cycle, another');
   // Shelve the other two, then claim from a row that runs into the loop.
   await button('New run').click(); await taps('A + A + + A B');
   await button('New run').click(); await taps('A B + A B + A +');
@@ -154,7 +174,7 @@ try {
   await page.keyboard.press('Tab');
   assert.equal(await focused(), 'chip-rec-0', 'Tab walks the row in order');
   await tap(page.locator('.chip-rec[data-chip-tap="3"]'));
-  await shot('cycle-picking'); await fit('cycle, picking');
+  await shot('cycle-picking'); await fit('cycle, picking'); await inReach('cycle, picking');
   await tap(page.locator('.chip-rec[data-chip-tap="0"]'));
   await done(); await fit('cycle solved');
   assert.equal(await page.locator('.chip-rec.merge').count(), 2, 'the two boards');

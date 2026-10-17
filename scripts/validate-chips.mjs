@@ -111,11 +111,14 @@ function checkThatsAll(p) {
   if (q.answers === 1) return;
   a = play(p, a, [{type: 'all'}]);
   assert.equal(a.board.claim, 'more', `${p.id}: an incomplete shelf is refused`);
+  assert.equal(a.board.told, true, `${p.id}: the refusal is shown`);
   assert.equal(isSolved(p, a.board), false);
   assert.equal(move(p, a, {type: 'all'}), null, `${p.id}: That's all stays off until the shelf changes`);
   const back = takeBack(p, a);
-  assert.equal(back.board.claim, 'more', `${p.id}: Undo keeps the refusal`);
+  assert.equal(back.board.claim, 'more', `${p.id}: Undo keeps the lock`);
+  assert.equal(back.board.told, undefined, `${p.id}: Undo takes away the refusal's line, so the screen changes`);
   assert.equal(move(p, back, {type: 'all'}), null, `${p.id}: and That's all stays off after Undo`);
+  assert.equal(validBoard(p, {...back.board, told: true, claim: 'open'}), false, `${p.id}: a line needs a refusal`);
   let b = a;
   while (b.board.found.length === a.board.found.length) {
     const hint = nextHint(p, b);
@@ -137,9 +140,9 @@ function playCycle(p, start, additions, random = null) {
   const q = p.parameters, ids = Object.keys(BOARDS[q.board].nodes);
   let a = freshAttempt(p);
   start.forEach((n, i) => { for (let k = 0; k < n; k++) a = play(p, a, [{type: 'add', node: ids[i]}]); });
-  for (let k = 0; k < additions && !stillRun(p, a.board.steps).ended; k++) {
+  for (let k = 0; k < additions && !stillRun(p, a.board).ended; k++) {
     a = play(p, a, [{type: 'drop'}]);
-    for (let run = stillRun(p, a.board.steps); run.ready.length; run = stillRun(p, a.board.steps)) {
+    for (let run = stillRun(p, a.board); run.ready.length; run = stillRun(p, a.board)) {
       const i = random ? run.ready[Math.floor(random() * run.ready.length)] : run.ready[0];
       a = play(p, a, [{type: 'fire', node: ids[i]}]);
     }
@@ -167,7 +170,9 @@ function checkCapacity(p) {
     if (total === most) { assert.ok(isSolved(p, a.board), `${p.id}: ${b} holds the most`); continue; }
     assert.equal(a.board.claim, 'more', `${p.id}: ${b} is refused`);
     assert.equal(move(p, a, {type: 'most'}), null, `${p.id}: Most stays off on the same board`);
-    assert.equal(takeBack(p, a).board.claim, 'more', `${p.id}: Undo keeps the refusal`);
+    assert.equal(a.board.told, true, `${p.id}: ${b} shows its refusal`);
+    assert.equal(takeBack(p, a).board.claim, 'more', `${p.id}: Undo keeps Most off`);
+    assert.equal(takeBack(p, a).board.told, undefined, `${p.id}: Undo takes away the line`);
     const short = b.findIndex((n, i) => n < s.lines(s.ids[i]).length - 1);
     assert.equal(play(p, a, [{type: 'add', node: s.ids[short]}]).board.claim, null, `${p.id}: a change of board lifts it`);
   }
@@ -177,9 +182,30 @@ function checkCapacity(p) {
   assert.equal(move(p, full, {type: 'add', node: s.ids[0]}), null, `${p.id}: no chip onto a glowing circle`);
   assert.ok(move(p, full, {type: 'fire', node: s.ids[0]}), `${p.id}: a glowing circle fires`);
   // Forged saves.
-  for (const bad of [{steps: 'aabcc', claim: 'more'}, {steps: 'ab', claim: 'most'}, {steps: 'aaa', claim: 'more'}, {steps: '', claim: 'more'}, {steps: 'aaaa', claim: null}, {steps: 'A', claim: null}, {steps: 'ab', claim: null, extra: 1}, {steps: 'z', claim: null}])
+  const cap = (piles, claim = null, more = {}) => ({piles, sink: 0, claim, ...more});
+  for (const bad of [cap([2, 1, 2], 'more'), cap([1, 1, 0], 'most'), cap([3, 0, 0], 'more'), cap([0, 0, 0], 'more'), cap([1, 0, 0], null, {told: true}), cap([1, 0, 0], 'more', {told: 1}),
+    cap([31, 0, 0]), cap([1, 0]), cap([1.5, 0, 0]), cap([1, 0, 0], null, {sink: -1}), cap([1, 0, 0], null, {sink: 2.5}), cap([1, 0, 0], null, {extra: 1}), cap([1, 0, 0], null, {steps: ''}), {piles: [1, 0, 0], claim: null}, {steps: 'aab', claim: null}])
     assert.equal(validBoard(p, bad), false, `${p.id}: rejects ${JSON.stringify(bad)}`);
-  return {most};
+  return {most, longGame: checkLongGame(p, 300)};
+}
+// Long games never run out of room: random legal taps (adds and fires, and in
+// the cycle only while placing a start) stay legal up to the chip cap, and
+// hints still solve afterwards.
+function checkLongGame(p, taps) {
+  const random = seeded(29), ids = Object.keys(BOARDS[p.parameters.board].nodes);
+  let a = freshAttempt(p), made = 0;
+  for (let k = 0; k < taps; k++) {
+    const run = stillRun(p, a.board), i = Math.floor(random() * ids.length);
+    const action = run.ready.includes(i) ? {type: 'fire', node: ids[i]} : {type: 'add', node: ids[i]};
+    const next = move(p, a, action);
+    if (next) { a = next; made++; continue; }
+    assert.ok(run.piles.reduce((x, y) => x + y, 0) >= 30, `${p.id}: tap ${k} (${JSON.stringify(action)}) refused below the chip cap on ${JSON.stringify(a.board)}`);
+  }
+  assert.ok(made >= taps * 0.9, `${p.id}: ${made} of ${taps} random taps were legal`);
+  assert.ok(JSON.stringify(a.board).length < 400, `${p.id}: the board stays small after ${made} moves`);
+  for (let n = 0; n < 200 && !isSolved(p, a.board); n++) a = play(p, a, [nextHint(p, a).action]);
+  assert.ok(isSolved(p, a.board), `${p.id}: hints solve after a long game`);
+  return made;
 }
 function checkCycle(p) {
   const q = p.parameters, s = stillSim(q.board), key = b => b.join(',');
@@ -202,20 +228,21 @@ function checkCycle(p) {
   for (const start of s.still) {
     const orbit = [key(start)];
     while (!orbit.slice(0, -1).includes(orbit.at(-1)) || orbit.length === 1) orbit.push(image.get(orbit.at(-1)));
-    const a = playCycle(p, start, 20, random), run = stillRun(p, a.board.steps);
+    const a = playCycle(p, start, 20, random), run = stillRun(p, a.board);
     assert.deepEqual(run.record.map(key), orbit, `${p.id}: the row from ${start}`);
     assert.equal(run.returned, comesBack.includes(key(start)), `${p.id}: ${start} comes back or not`);
     assert.deepEqual(a.board.found, run.returned ? [key(start)] : [], `${p.id}: only a start that came back is shelved`);
-    // The certificate: of all ordered pairs of boards in the row, how many would pass.
+    // The certificate: of all ordered pairs of different boards in the row
+    // (the same board twice is not a claim), how many would pass.
     const n = run.record.length;
     let pass = 0, pairs = 0;
-    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) if (i !== j) { pairs++; if (i < n - 1 && j < n - 1 && orbit[i] !== orbit[j] && orbit[i + 1] === orbit[j + 1]) pass++; }
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) if (orbit[i] !== orbit[j]) { pairs++; if (image.get(orbit[i]) === image.get(orbit[j])) pass++; }
     if (run.returned) assert.equal(pass, 0, `${p.id}: a row that comes back has no two boards that merge`);
     else { assert.ok(pass > 0, `${p.id}: a row that doesn't come back shows where it merges`); shares.push(pass / pairs); }
   }
   for (const share of shares) assert.ok(share <= 0.25, `${p.id}: a random pair of taps passes ${share}`);
   // Judging: a right pair with an incomplete shelf, a wrong pair, the full shelf.
-  const pair = r => { for (let i = 0; i < r.length - 1; i++) for (let j = i + 1; j < r.length - 1; j++) if (key(r[i]) !== key(r[j]) && key(r[i + 1]) === key(r[j + 1])) return [i, j]; };
+  const pair = r => { for (let i = 0; i < r.length; i++) for (let j = i + 1; j < r.length; j++) if (key(r[i]) !== key(r[j]) && image.get(key(r[i])) === image.get(key(r[j]))) return [i, j]; };
   // One start that comes back on the shelf, then a run from one that doesn't.
   const leak = s.still.find(b => !comesBack.includes(key(b)));
   let b = playCycle(p, s.still.find(b => comesBack.includes(key(b))), 20);
@@ -223,22 +250,32 @@ function checkCycle(p) {
   b = play(p, b, [{type: 'again'}]);
   const ids = s.ids;
   leak.forEach((n, i) => { for (let k = 0; k < n; k++) b = play(p, b, [{type: 'add', node: ids[i]}]); });
-  while (!stillRun(p, b.board.steps).ended) { const run = stillRun(p, b.board.steps); b = play(p, b, [run.ready.length ? {type: 'fire', node: ids[run.ready[0]]} : {type: 'drop'}]); }
-  const rec = stillRun(p, b.board.steps).record, right = pair(rec);
-  const wrong = [[0, 1], [1, 2], [0, 2]].find(([i, j]) => key(rec[i + 1]) !== key(rec[j + 1]));
+  while (!stillRun(p, b.board).ended) { const run = stillRun(p, b.board); b = play(p, b, [run.ready.length ? {type: 'fire', node: ids[run.ready[0]]} : {type: 'drop'}]); }
+  const rec = stillRun(p, b.board).record, right = pair(rec);
+  const wrong = [[0, 1], [1, 2], [0, 2]].find(([i, j]) => image.get(key(rec[i])) !== image.get(key(rec[j])));
   assert.equal(move(p, b, {type: 'claim', taps: [0, 0]}), null, `${p.id}: two taps on one board`);
+  const twice = rec.findIndex(x => key(x) === key(rec.at(-1)));
+  assert.equal(move(p, b, {type: 'claim', taps: [twice, rec.length - 1]}), null, `${p.id}: the same board twice in the row is not a pair (the interface says so)`);
   assert.equal(move(p, b, {type: 'claim', taps: [0, rec.length]}), null, `${p.id}: a tap off the row`);
   const apart = play(p, b, [{type: 'claim', taps: wrong}]);
   assert.equal(apart.board.claim, 'apart', `${p.id}: a wrong pair is refused`);
+  assert.equal(apart.board.told, true);
   assert.equal(move(p, apart, {type: 'claim', taps: right}), null, `${p.id}: no second try on the same row`);
-  assert.equal(takeBack(p, apart).board.claim, 'apart', `${p.id}: Undo keeps a refused pair`);
+  let back = takeBack(p, apart);
+  assert.equal(back.board.claim, 'apart', `${p.id}: Undo keeps a refused row locked`);
+  assert.equal(back.board.told, undefined, `${p.id}: and takes away its line`);
+  // The lock belongs to the row: it stands while Undo stays in the row, and goes with it.
+  while (back.board.steps) { back = takeBack(p, back); assert.equal(back.board.claim, back.board.steps ? 'apart' : 'open', `${p.id}: the refused pair at ${JSON.stringify(back.board.steps)}`); }
   const renewed = play(p, apart, [{type: 'again'}]);
   assert.equal(renewed.board.claim, 'open', `${p.id}: New run starts a new row`);
-  assert.equal(takeBack(p, renewed).board.claim, 'apart', `${p.id}: Undo back to the refused row keeps its refusal`);
+  const past = takeBack(p, renewed);
+  assert.equal(past.board.claim, 'apart', `${p.id}: Undo back to the refused row keeps its lock`);
+  assert.equal(past.board.told, undefined, `${p.id}: but not its line`);
   const more = play(p, b, [{type: 'claim', taps: right}]);
   assert.equal(more.board.claim, 'more', `${p.id}: a right pair with a start missing from the shelf is refused`);
   assert.equal(isSolved(p, more.board), false);
-  assert.equal(takeBack(p, more).board.claim, 'more', `${p.id}: Undo keeps There is another`);
+  assert.equal(takeBack(p, more).board.claim, 'more', `${p.id}: Undo keeps That's all off`);
+  assert.equal(takeBack(p, more).board.told, undefined, `${p.id}: and takes away There is another`);
   assert.equal(play(p, more, [{type: 'again'}]).board.claim, 'more', `${p.id}: New run keeps There is another`);
   // Illegal moves.
   const fresh = freshAttempt(p);
@@ -250,17 +287,23 @@ function checkCycle(p) {
   assert.equal(move(p, glowing, {type: 'fire', node: ids[1]}), null, `${p.id}: no firing a circle that can't`);
   assert.equal(move(p, b, {type: 'drop'}), null, `${p.id}: the run ends at a repeat`);
   // Forged saves.
+  const zero = s.ids.map(() => 0), returner = playCycle(p, s.still.find(x => comesBack.includes(key(x))), 20).board;
   for (const bad of [
-    {steps: '', found: ['0,0'], claim: 'open', taps: []},
-    {steps: '', found: comesBack.slice(0, 1), claim: 'all', taps: [0, 3]},
-    {steps: b.board.steps, found: comesBack, claim: 'all', taps: [0, 1]},
-    {steps: b.board.steps, found: comesBack, claim: 'more', taps: []},
-    {steps: '', found: [], claim: 'apart', taps: []},
-    {steps: playCycle(p, s.still.find(x => comesBack.includes(key(x))), 20).board.steps, found: [], claim: 'open', taps: []},
-    {steps: 'a+a', found: [], claim: 'open', taps: []},
-    {steps: '', found: [], claim: 'open', taps: [], extra: true}
+    {piles: zero, sink: 0, steps: '', found: ['0,0'], claim: 'open', taps: []},
+    {piles: zero, sink: 0, steps: '', found: comesBack.slice(0, 1), claim: 'all', taps: [0, 3]},
+    {...b.board, found: comesBack, claim: 'all', taps: [0, 1]},
+    {...b.board, found: comesBack, claim: 'all', taps: [twice, rec.length - 1]},
+    {...b.board, found: comesBack, claim: 'more', taps: []},
+    {piles: zero, sink: 0, steps: '', found: [], claim: 'apart', taps: []},
+    {piles: zero, sink: 0, steps: '', found: comesBack.slice(0, 1), claim: 'apart', taps: []},
+    {...b.board, claim: 'open', told: true},
+    {...returner, found: []},
+    {piles: [2, 0], sink: 0, steps: '+', found: [], claim: 'open', taps: []},
+    {piles: zero, sink: 0, steps: 'a+a', found: [], claim: 'open', taps: []},
+    {piles: zero, sink: 0, steps: '', found: [], claim: 'open', taps: [], extra: true},
+    {steps: '', found: [], claim: 'open', taps: []}
   ]) assert.equal(validBoard(p, bad), false, `${p.id}: rejects ${JSON.stringify(bad)}`);
-  return {comesBack: comesBack.length, merges: merges.length, certificateShare: Math.max(...shares)};
+  return {comesBack: comesBack.length, merges: merges.length, certificateShare: Number(Math.max(...shares).toFixed(3)), longGame: checkLongGame(p, 300)};
 }
 // Hints alone solve from a fresh board, from random legal play, and after refusals.
 function checkHints(p, starts) {
@@ -364,11 +407,13 @@ export async function validateChips() {
       // From each refusal: a wrong pair, and a right pair with the shelf incomplete.
       const ids = Object.keys(BOARDS[p.parameters.board].nodes);
       let a = play(p, freshAttempt(p), [{type: 'add', node: ids[1]}]);
-      while (!stillRun(p, a.board.steps).ended) { const run = stillRun(p, a.board.steps); a = play(p, a, [run.ready.length ? {type: 'fire', node: ids[run.ready[0]]} : {type: 'drop'}]); }
+      while (!stillRun(p, a.board).ended) { const run = stillRun(p, a.board); a = play(p, a, [run.ready.length ? {type: 'fire', node: ids[run.ready[0]]} : {type: 'drop'}]); }
       a = play(p, a, [{type: 'again'}]);
-      while (!stillRun(p, a.board.steps).ended) { const run = stillRun(p, a.board.steps); a = play(p, a, [run.ready.length ? {type: 'fire', node: ids[run.ready[0]]} : {type: 'drop'}]); }
-      starts.push(play(p, a, [{type: 'claim', taps: [0, 3]}]), play(p, a, [{type: 'claim', taps: [1, 2]}]));
-      assert.deepEqual(starts.slice(-2).map(x => x.board.claim), ['more', 'apart']);
+      while (!stillRun(p, a.board).ended) { const run = stillRun(p, a.board); a = play(p, a, [run.ready.length ? {type: 'fire', node: ids[run.ready[0]]} : {type: 'drop'}]); }
+      const more = play(p, a, [{type: 'claim', taps: [0, 3]}]), apart = play(p, a, [{type: 'claim', taps: [1, 2]}]);
+      assert.deepEqual([more, apart].map(x => x.board.claim), ['more', 'apart']);
+      // And after Undo from each, and Undo past New run back to a refused row.
+      starts.push(more, apart, takeBack(p, more), takeBack(p, apart), takeBack(p, takeBack(p, apart)), takeBack(p, play(p, apart, [{type: 'again'}])));
     }
     const hinted = checkHints(p, starts);
     steps += hinted;

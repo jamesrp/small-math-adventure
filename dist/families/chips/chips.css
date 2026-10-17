@@ -48,7 +48,7 @@
 @media (prefers-reduced-motion:no-preference){[data-mechanic-wire="chips"] .chip-slot.fresh{animation:chip-pop .35s ease-out}}
 @keyframes chip-pop{40%{transform:scale(1.06)}}
 [data-mechanic-wire="chips"] .chip-mini{width:76px;height:auto;overflow:visible}
-[data-mechanic-wire="chips"] .mode-orders .chip-mini{width:58px}
+[data-mechanic-wire="chips"].mode-orders .chip-mini{width:58px}
 [data-mechanic-wire="chips"] .chip-mini line{stroke:#9aa88f;stroke-width:2px;vector-effect:non-scaling-stroke}
 [data-mechanic-wire="chips"] .chip-mini circle{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:1.5px;vector-effect:non-scaling-stroke}
 [data-mechanic-wire="chips"] .chip-mini text{font-family:var(--b-display,Georgia,serif);font-size:19px;text-anchor:middle;fill:var(--b-ink,#294439)}
@@ -119,3 +119,22 @@
 [data-mechanic-wire="chips"].mode-cycle .chip-slot .chip-loop{font-size:1.15rem;margin:0}
 [data-mechanic-wire="chips"] .chip-rec.meet{border-color:var(--b-ochre,#b38840);border-style:dashed}
 [data-mechanic-wire="chips"].picking .chip-board{max-width:220px}
+[data-mechanic-wire="chips"] .chip-claims{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.4rem .8rem}
+/* Phones: the row of still boards fits one line, and the board leaves the
+   controls in reach. */
+@media (max-width:420px){
+[data-mechanic-wire="chips"].chips-still{gap:.5rem}
+[data-mechanic-wire="chips"].mode-capacity .chip-board{max-width:250px}
+[data-mechanic-wire="chips"].mode-cycle .chip-board{max-width:270px}
+[data-mechanic-wire="chips"].mode-cycle.picking .chip-board{max-width:200px}
+[data-mechanic-wire="chips"].mode-cycle .chip-run{gap:.45rem;min-height:0}
+[data-mechanic-wire="chips"].mode-cycle .chip-run>button{padding:6px 11px}
+[data-mechanic-wire="chips"] .chip-row{gap:2px 0}
+[data-mechanic-wire="chips"] .chip-row li{gap:0}
+[data-mechanic-wire="chips"] .chip-rec{padding:2px}
+[data-mechanic-wire="chips"] .chip-rec .chip-mini{width:42px}
+[data-mechanic-wire="chips"] .chip-arrow{font-size:.85rem}
+[data-mechanic-wire="chips"] .chip-row .chip-loop{font-size:1.1rem;margin-left:1px}
+[data-mechanic-wire="chips"].mode-cycle .chip-found{grid-template-columns:repeat(auto-fill,minmax(62px,1fr))}
+[data-mechanic-wire="chips"].mode-cycle .chip-found .chip-mini{width:46px}
+}

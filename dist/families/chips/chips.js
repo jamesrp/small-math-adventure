@@ -174,6 +174,7 @@ function validPuzzleBoard(p, b) {
     if (b.placed.some((n, i) => n && !spots.has(i))) return false;
   }
   if (b.claim !== undefined && (!['open', 'more', 'all'].includes(b.claim) || !exhaustive(p) || b.claim === 'all' && b.found.length !== q.answers)) return false;
+  if (b.told !== undefined && !(b.told === true && b.claim === 'more')) return false;
   return Boolean(runOf(p, b));
 }
 // Missing claim is the legacy count-based save format: preserve completed saves.
@@ -185,9 +186,11 @@ function record(p, b) {
 function movePuzzle(p, b, action) {
   if (!validPuzzleBoard(p, b) || solvedPuzzle(p, b) || !object(action)) return null;
   const q = p.parameters, g = boardInfo(q.board), run = runOf(p, b);
+  // A refusal's line shows only on the board the claim made.
+  b = untold(b);
   if (action.type === 'all') {
     if (!claimOpen(p, b)) return null;
-    return {...b, claim: b.found.length === q.answers ? 'all' : 'more'};
+    return b.found.length === q.answers ? {...b, claim: 'all'} : {...b, claim: 'more', told: true};
   }
   // A new run keeps the shelf and any refusal of it.
   if (action.type === 'again') {
@@ -301,47 +304,49 @@ function movePlay(b, action) {
 }
 
 // Still boards, a group of this family (mechanic `chipstill`): boards where no
-// circle can fire. A board's steps replay it: a lowercase letter adds a chip
-// to that circle, an uppercase letter fires it, and '+' adds a chip at the
-// puzzle's own circle (the cycle puzzle). The piles are always derived.
+// circle can fire. A board holds its piles and sink count as they are, so a
+// long game never runs out of room; in the cycle puzzle these are the start,
+// and `steps` replays the run from it: '+' adds a chip at the puzzle's own
+// circle and a capital letter fires that circle.
 //
 // capacity: the most chips with nothing glowing. Each circle holds at most one
 //   chip fewer than its lines, so the most is the sum of those; a right Most
 //   claim draws that argument on the board.
 // cycle: a still start, then a chip at A again and again, firing until still
 //   after each. Each still board joins the row; the run ends when one repeats.
-//   A start that comes back is shelved. That's all is judged with two boards
-//   tapped in the row that go to the same board: where a start that never
-//   comes back runs into the loop.
-const STILL_LIMIT = 30, STEP_LIMIT = 240;
-const isAdd = t => t !== t.toUpperCase();
-export function stillRun(p, steps) {
+//   A start that comes back is shelved. That's all is judged with two
+//   different boards tapped in the row that go to the same board: where a
+//   start that never comes back runs into the loop.
+//
+// A refusal sets `told` only on the board the claim made; Undo and the next
+// move remove the line, while the lock (`claim`) stays until the board, row
+// or shelf changes.
+const STILL_LIMIT = 30, STEP_LIMIT = 240, SINK_LIMIT = 1e6;
+const zeros = g => g.ids.map(() => 0);
+const untold = b => { const {told, ...rest} = b; return rest; };
+export function stillRun(p, b) {
   const q = p.parameters, g = boardInfo(q.board), cycle = q.mode === 'cycle';
-  if (!g || typeof steps !== 'string' || steps.length > STEP_LIMIT) return null;
-  let piles = g.ids.map(() => 0), sink = 0, started = false, ended = false;
-  const record = [], drop = cycle ? g.index[q.at] : -1;
+  if (!g || !object(b) || !Array.isArray(b.piles) || b.piles.length !== g.ids.length || !b.piles.every(count) || sum(b.piles) > STILL_LIMIT) return null;
+  if (!count(b.sink) || b.sink > SINK_LIMIT || !g.sink && b.sink) return null;
+  const steps = cycle ? b.steps : '';
+  if (typeof steps !== 'string' || steps.length > STEP_LIMIT) return null;
+  let piles = [...b.piles], sink = b.sink, ended = false;
+  const started = steps.length > 0, record = [], drop = cycle ? g.index[q.at] : -1;
   const still = () => !g.ids.some((_, i) => canFire(g, piles, i));
   const note = () => { const k = key(piles); ended = record.some(r => key(r) === k); record.push([...piles]); };
+  if (started) { if (!still()) return null; note(); }
   for (const t of steps) {
     if (ended) return null;
     if (t === '+') {
-      if (!cycle || !still()) return null;
-      if (!started) { started = true; note(); }
+      if (!still()) return null;
       piles[drop]++;
       if (still()) note();
       continue;
     }
-    const id = t.toUpperCase(), i = Object.hasOwn(g.index, id) ? g.index[id] : -1;
-    if (i < 0) return null;
-    if (isAdd(t)) {
-      if (started || canFire(g, piles, i) || sum(piles) >= STILL_LIMIT) return null;
-      piles[i]++;
-      continue;
-    }
-    const next = fireAt(g, piles, i);
+    const next = Object.hasOwn(g.index, t) ? fireAt(g, piles, g.index[t]) : null;
     if (!next) return null;
     piles = next.piles; sink += next.sink;
-    if (started && still()) note();
+    if (still()) note();
   }
   const ready = ended ? [] : readyIndices(g, piles);
   const returned = ended && key(record.at(-1)) === key(record[0]);
@@ -356,7 +361,8 @@ export function addAndSettle(g, piles, at) {
   const start = [...piles]; start[g.index[at]]++;
   return stabilize(g, start).piles;
 }
-// The still starts that come back, each with the steps of a run that shows it.
+// The still starts that come back (cycle), or the still boards with the most
+// chips (capacity), each with its piles.
 const stillCache = new Map();
 export function stillAnswers(p) {
   const q = p.parameters, cacheKey = `${p.id}|${JSON.stringify(q)}`;
@@ -379,75 +385,101 @@ export function stillAnswers(p) {
   stillCache.set(cacheKey, found);
   return found;
 }
-// Two different boards in the row whose next boards are the same.
-export const mergesAt = (record, i, j) => Number.isInteger(i) && Number.isInteger(j) && i !== j && i >= 0 && j >= 0 && i < record.length - 1 && j < record.length - 1 && key(record[i]) !== key(record[j]) && key(record[i + 1]) === key(record[j + 1]);
-function mergePair(record) {
-  for (let i = 0; i < record.length - 1; i++) for (let j = i + 1; j < record.length - 1; j++) if (mergesAt(record, i, j)) return [i, j];
+// Two boards in the row, tapped by position: the same board twice, or two
+// different boards whose next boards (a chip at A, then still) are the same.
+const sameBoard = (run, i, j) => key(run.record[i]) === key(run.record[j]);
+export function mergesAt(p, run, i, j) {
+  const n = run.record.length;
+  if (![i, j].every(k => Number.isInteger(k) && k >= 0 && k < n) || i === j || sameBoard(run, i, j)) return false;
+  const at = p.parameters.at;
+  return key(addAndSettle(run.g, run.record[i], at)) === key(addAndSettle(run.g, run.record[j], at));
+}
+function mergePair(p, run) {
+  for (let i = 0; i < run.record.length; i++) for (let j = i + 1; j < run.record.length; j++) if (mergesAt(p, run, i, j)) return [i, j];
   return null;
 }
-const freshStill = p => p.parameters.mode === 'capacity' ? {steps: '', claim: null} : {steps: '', found: [], claim: 'open', taps: []};
+const freshStill = p => {
+  const g = boardInfo(p.parameters.board);
+  return p.parameters.mode === 'capacity' ? {piles: zeros(g), sink: 0, claim: null} : {piles: zeros(g), sink: 0, steps: '', found: [], claim: 'open', taps: []};
+};
+const STILL_KEYS = {capacity: ['piles', 'sink', 'claim'], cycle: ['piles', 'sink', 'steps', 'found', 'claim', 'taps']};
+const keysAre = (b, list) => { const own = Object.keys(b).filter(k => k !== 'told'); return own.length === list.length && list.every(k => Object.hasOwn(b, k)); };
 // That's all (cycle) needs a finished run, something on the shelf and no
 // standing refusal; Most (capacity) needs a still board with chips on it.
 const pickOpen = (p, b, run) => p.parameters.mode === 'cycle' && b.claim === 'open' && b.found.length > 0 && run.ended;
 const mostOpen = (p, b, run) => p.parameters.mode === 'capacity' && b.claim === null && !run.ready.length && sum(run.piles) > 0;
 function validStill(p, b) {
   const q = p.parameters;
-  if (!object(b) || typeof b.steps !== 'string') return false;
-  const run = stillRun(p, b.steps);
+  if (!object(b) || !STILL_KEYS[q.mode] || !keysAre(b, STILL_KEYS[q.mode])) return false;
+  const run = stillRun(p, b);
   if (!run) return false;
+  if (b.told !== undefined && !(b.told === true && ['more', 'apart'].includes(b.claim))) return false;
   if (q.mode === 'capacity') {
-    if (Object.keys(b).length !== 2 || ![null, 'more', 'most'].includes(b.claim)) return false;
+    if (![null, 'more', 'most'].includes(b.claim)) return false;
     if (b.claim === null) return true;
     // A claim is only ever made on a still board, and judged by its total.
     return !run.ready.length && sum(run.piles) > 0 && (b.claim === 'most') === (sum(run.piles) === q.most);
   }
-  if (Object.keys(b).length !== 4 || !Array.isArray(b.found) || !b.found.every(k => typeof k === 'string') || new Set(b.found).size !== b.found.length) return false;
+  if (!Array.isArray(b.found) || !b.found.every(k => typeof k === 'string') || new Set(b.found).size !== b.found.length) return false;
   const answers = stillAnswers(p);
   if (b.found.length > q.answers || !b.found.every(k => answers.has(k))) return false;
   if (run.item && !b.found.includes(run.item)) return false;
   if (!['open', 'more', 'apart', 'all'].includes(b.claim) || !Array.isArray(b.taps)) return false;
   if (b.claim === 'more' && !(b.found.length > 0 && b.found.length < q.answers)) return false;
-  if (b.claim === 'apart' && !b.found.length) return false;
-  if (b.claim === 'all') return b.found.length === q.answers && run.ended && b.taps.length === 2 && mergesAt(run.record, ...b.taps);
+  // A refused pair belongs to its row: it stands only once a run has started.
+  if (b.claim === 'apart' && !(b.found.length && run.started)) return false;
+  if (b.claim === 'all') return b.found.length === q.answers && run.ended && b.taps.length === 2 && mergesAt(p, run, ...b.taps);
   return b.taps.length === 0;
 }
 const solvedStill = (p, b) => validStill(p, b) && (p.parameters.mode === 'capacity' ? b.claim === 'most' : b.claim === 'all');
-// A move to new steps; the cycle shelves a start that came back.
-function stepStill(p, b, steps) {
-  const run = stillRun(p, steps);
+// A move to a new board; capacity lifts a refused Most, and the cycle shelves
+// a start that came back.
+function stepStill(p, b, change) {
+  const next = {...untold(b), ...change}, run = stillRun(p, next);
   if (!run) return null;
-  if (p.parameters.mode === 'capacity') return {...b, steps, claim: null};
-  const grew = run.item && !b.found.includes(run.item);
-  return {...b, steps, found: grew ? [...b.found, run.item] : b.found, claim: grew ? 'open' : b.claim};
+  if (p.parameters.mode === 'capacity') return {...next, claim: null};
+  const grew = run.item && !next.found.includes(run.item);
+  return grew ? {...next, found: [...next.found, run.item], claim: 'open'} : next;
 }
 function moveStill(p, b, action) {
   if (!validStill(p, b) || solvedStill(p, b) || !object(action)) return null;
-  const q = p.parameters, run = stillRun(p, b.steps), g = run.g;
+  const q = p.parameters, run = stillRun(p, b), g = run.g;
   if (action.type === 'add' || action.type === 'fire') {
-    if (typeof action.node !== 'string' || !Object.hasOwn(g.index, action.node)) return null;
-    return stepStill(p, b, b.steps + (action.type === 'add' ? action.node.toLowerCase() : action.node));
+    const i = typeof action.node === 'string' && Object.hasOwn(g.index, action.node) ? g.index[action.node] : -1;
+    if (i < 0) return null;
+    if (action.type === 'add') {
+      if (run.started || canFire(g, run.piles, i) || sum(run.piles) >= STILL_LIMIT) return null;
+      const piles = [...b.piles]; piles[i]++;
+      return stepStill(p, b, {piles});
+    }
+    if (!run.ready.includes(i)) return null;
+    if (run.started) return stepStill(p, b, {steps: b.steps + g.ids[i]});
+    const next = fireAt(g, b.piles, i);
+    return stepStill(p, b, {piles: next.piles, sink: b.sink + next.sink});
   }
-  if (action.type === 'drop') return q.mode === 'cycle' ? stepStill(p, b, b.steps + '+') : null;
+  if (action.type === 'drop') return q.mode === 'cycle' && !run.ended && !run.ready.length ? stepStill(p, b, {steps: b.steps + '+'}) : null;
   if (action.type === 'most') {
     if (!mostOpen(p, b, run)) return null;
-    return {...b, claim: sum(run.piles) === q.most ? 'most' : 'more'};
+    return sum(run.piles) === q.most ? {...untold(b), claim: 'most'} : {...untold(b), claim: 'more', told: true};
   }
   if (q.mode !== 'cycle') return null;
-  // A new run keeps the shelf and a refusal of it; a refused pair of taps
-  // belonged to the old row.
-  if (action.type === 'again') return b.steps ? {...b, steps: '', claim: b.claim === 'apart' ? 'open' : b.claim} : null;
+  // A new run keeps the shelf and a refusal of it; a refused pair belonged to
+  // the old row.
+  if (action.type === 'again') return b.steps || sum(b.piles) || b.sink ? {...untold(b), piles: zeros(g), sink: 0, steps: '', claim: b.claim === 'apart' ? 'open' : b.claim} : null;
   if (action.type === 'claim') {
     const taps = action.taps;
-    if (!pickOpen(p, b, run) || !Array.isArray(taps) || taps.length !== 2 || !taps.every(k => Number.isInteger(k) && k >= 0 && k < run.record.length) || taps[0] === taps[1]) return null;
-    if (!mergesAt(run.record, taps[0], taps[1])) return {...b, claim: 'apart'};
-    if (b.found.length < q.answers) return {...b, claim: 'more'};
-    return {...b, claim: 'all', taps: [...taps]};
+    if (!pickOpen(p, b, run) || !Array.isArray(taps) || taps.length !== 2) return null;
+    const [i, j] = taps;
+    if (![i, j].every(k => Number.isInteger(k) && k >= 0 && k < run.record.length) || i === j || sameBoard(run, i, j)) return null;
+    if (!mergesAt(p, run, i, j)) return {...untold(b), claim: 'apart', told: true};
+    if (b.found.length < q.answers) return {...untold(b), claim: 'more', told: true};
+    return {...untold(b), claim: 'all', taps: [i, j]};
   }
   return null;
 }
 function hintStill(p, b) {
   if (solvedStill(p, b)) return {type: 'done'};
-  const q = p.parameters, run = stillRun(p, b.steps), g = run.g;
+  const q = p.parameters, run = stillRun(p, b), g = run.g;
   const fire = () => { const node = g.ids[run.ready[0]]; return {type: 'move', action: {type: 'fire', node}, text: `Fire ${node}.`}; };
   const add = (i, text = `Put a chip on ${g.ids[i]}.`) => ({type: 'move', action: {type: 'add', node: g.ids[i]}, text});
   if (q.mode === 'capacity') {
@@ -470,15 +502,15 @@ function hintStill(p, b) {
     return again(run.ended ? 'Press New run and try another start.' : 'This start is saved already. Press New run.');
   }
   // Every start that comes back is saved: show where one that doesn't joins the loop.
-  const pair = run.ended && b.claim === 'open' ? mergePair(run.record) : null;
-  if (pair) return {type: 'move', action: {type: 'claim', taps: pair}, text: 'Press That’s all, then tap the two boards that go to the same board.'};
+  const pair = run.ended && b.claim === 'open' ? mergePair(p, run) : null;
+  if (pair) return {type: 'move', action: {type: 'claim', taps: pair}, text: 'Press That’s all, then tap the two different boards that go to the same board.'};
   const empty = g.ids.map(() => 0);
   if (!run.started) return begin(empty);
   if (!run.ended && key(run.record[0]) === key(empty) && b.claim === 'open') return run.ready.length ? fire() : drop;
   return again('Press New run and start with no chips.');
 }
 const uiState = new Map();
-const ui = p => { if (!uiState.has(p.id)) uiState.set(p.id, {tool: 'add', amount: 100, cursor: Math.floor(GRID * GRID / 2), pick: null, taps: []}); return uiState.get(p.id); };
+const ui = p => { if (!uiState.has(p.id)) uiState.set(p.id, {tool: 'add', amount: 100, cursor: Math.floor(GRID * GRID / 2), pick: null, taps: [], said: null}); return uiState.get(p.id); };
 let pending = null;
 
 const chipDots = n => `<span class="chip-dots" aria-hidden="true">${Array.from({length: Math.min(n, 9)}, () => '<i></i>').join('')}${n > 9 ? '<b>+</b>' : ''}</span>`;
@@ -547,7 +579,7 @@ function renderPuzzle(p, a, ctx = {}) {
     const piles = item.split(',').map(Number);
     return `<li class="chip-slot${fresh}">${miniBoard(g, piles, `${q.mode === 'finishes' ? 'Finish' : 'Start'}: ${describe(g, piles)}`)}</li>`;
   }).join('')}</ol>` : '';
-  const claim = exhaustive(p) && !solved ? `<button type="button" class="secondary chip-claim ${hint?.action?.type === 'all' ? 'hinted' : ''}" data-chip-move="${esc(JSON.stringify({type: 'all'}))}" data-focus="chip-all" ${claimOpen(p, b) ? '' : 'disabled'}>That’s all</button>${b.claim === 'more' && b.found.length < q.answers ? '<p class="chip-feedback" role="status">There is another.</p>' : ''}` : '';
+  const claim = exhaustive(p) && !solved ? `<button type="button" class="secondary chip-claim ${hint?.action?.type === 'all' ? 'hinted' : ''}" data-chip-move="${esc(JSON.stringify({type: 'all'}))}" data-focus="chip-all" ${claimOpen(p, b) ? '' : 'disabled'}>That’s all</button>${b.told && b.claim === 'more' && b.found.length < q.answers ? '<p class="chip-feedback" role="status">There is another.</p>' : ''}` : '';
   const board = chipBoard(g, run.piles, run.sink, {fire: !run.placing && !run.finished && !solved, add: i => run.placing && !solved && spots.has(i), hinted});
   const missed = run.finished && !run.item && !solved ? ' missed' : '';
   const status = run.placing ? `${run.left === null ? 'Add chips' : `${plural(run.left, 'chip')} to place`}. ${describe(g, run.piles)}.` : `${b.word ? `Fired ${[...b.word].join(' ')}. ` : ''}${describe(g, run.piles)}${g.sink ? `, sink ${run.sink}` : ''}.${run.looped ? ' The board repeated.' : run.finished ? ' No circle can fire.' : ''}`;
@@ -581,26 +613,32 @@ function renderPlay(p, a) {
 // Still boards. Picking the two boards for That's all is view state, so the
 // claim is one move judged when the second board is tapped; it holds only
 // while the board it was opened on is unchanged.
-const pickSig = b => JSON.stringify([b.steps, b.found, b.claim]);
+const pickSig = b => JSON.stringify([b.piles, b.sink, b.steps, b.found, b.claim]);
 const picking = (p, b) => ui(p).pick === pickSig(b);
 const STILL_TOLD = {more: 'There is another.', apart: 'Those two don’t go to the same board.'};
+const toldLine = text => `<p class="chip-feedback" role="status">${text}</p>`;
 function renderStill(p, a) {
-  const b = a.board, q = p.parameters, run = stillRun(p, b.steps), g = run.g, solved = solvedStill(p, b);
+  const b = a.board, q = p.parameters, run = stillRun(p, b), g = run.g, solved = solvedStill(p, b);
   const hint = a.hintLevel >= 2 && !solved ? hintStill(p, b) : null, act = hint?.action || {};
   const hinted = act.node || null, total = sum(run.piles);
   if (q.mode === 'capacity') {
     const board = chipBoard(g, run.piles, run.sink, {fire: !solved, add: i => !solved && !canFire(g, run.piles, i) && total < STILL_LIMIT, hinted, marks: solved ? lineEnds(g, run.piles) : ''});
-    const most = solved ? '<p class="chip-argued">Every circle has one line with no chip.</p>' : `<button type="button" class="secondary chip-claim ${act.type === 'most' ? 'hinted' : ''}" data-chip-move="${esc(JSON.stringify({type: 'most'}))}" data-focus="chip-most" ${mostOpen(p, b, run) ? '' : 'disabled'}>Most</button>${b.claim === 'more' ? '<p class="chip-feedback" role="status">More chips fit.</p>' : ''}`;
+    const most = solved ? '<p class="chip-argued">One more chip on any circle would make it glow.</p>' : `<div class="chip-claims"><button type="button" class="secondary chip-claim ${act.type === 'most' ? 'hinted' : ''}" data-chip-move="${esc(JSON.stringify({type: 'most'}))}" data-focus="chip-most" ${mostOpen(p, b, run) ? '' : 'disabled'}>Most</button>${b.told && b.claim === 'more' ? toldLine('More chips fit.') : ''}</div>`;
     const status = `${describe(g, run.piles)}, sink ${run.sink}.${run.ready.length ? ` ${run.ready.map(i => g.ids[i]).join(' and ')} can fire.` : ''}`;
     return `<div class="chips-puzzle chips-still mode-capacity" data-mechanic-wire="chips">${board}${most}<p class="sr-only" role="status">${esc(status)}</p></div>`;
   }
   const pick = !solved && picking(p, b) && pickOpen(p, b, run), taps = pick ? ui(p).taps : solved ? b.taps : [];
   const hintTaps = act.type === 'claim' ? act.taps : [];
-  const ask = `<p class="chip-ask">${pick ? 'Tap two boards that go to the same board.' : esc(p.objective)}</p>`;
+  const ask = `<p class="chip-ask">${pick ? 'Tap two different boards that go to the same board.' : esc(p.objective)}</p>`;
   const board = chipBoard(g, run.piles, run.sink, {fire: !run.ended && !solved && !pick, add: i => !run.started && !solved && !pick && !canFire(g, run.piles, i) && total < STILL_LIMIT, hinted});
   const canDrop = !solved && !pick && !run.ended && !run.ready.length;
-  const dropButton = solved || run.ended ? '' : `<button type="button" class="secondary chip-drop ${act.type === 'drop' ? 'hinted' : ''}" data-chip-move="${esc(JSON.stringify({type: 'drop'}))}" data-focus="chip-drop" aria-label="Add a chip at ${q.at}" ${canDrop ? '' : 'disabled'}><span aria-hidden="true">+</span><span class="chip-dot-icon" aria-hidden="true"></span><span aria-hidden="true">${q.at}</span></button>`;
-  const againButton = b.steps && !solved && !pick ? `<button type="button" class="primary chip-again ${act.type === 'again' ? 'hinted' : ''}" data-chip-move="${esc(JSON.stringify({type: 'again'}))}" data-focus="chip-again"><span aria-hidden="true">↺</span> New run</button>` : '';
+  const dropButton = solved || pick || run.ended ? '' : `<button type="button" class="secondary chip-drop ${act.type === 'drop' ? 'hinted' : ''}" data-chip-move="${esc(JSON.stringify({type: 'drop'}))}" data-focus="chip-drop" aria-label="Add a chip at ${q.at}" ${canDrop ? '' : 'disabled'}><span aria-hidden="true">+</span><span class="chip-dot-icon" aria-hidden="true"></span><span aria-hidden="true">${q.at}</span></button>`;
+  const fresh = !b.steps && !total && !b.sink;
+  const againButton = !fresh && !solved && !pick ? `<button type="button" class="primary chip-again ${act.type === 'again' ? 'hinted' : ''}" data-chip-move="${esc(JSON.stringify({type: 'again'}))}" data-focus="chip-again"><span aria-hidden="true">↺</span> New run</button>` : '';
+  const claimButton = solved ? '' : `<button type="button" class="secondary chip-claim ${act.type === 'claim' ? 'hinted' : ''}" data-chip-pick="1" data-focus="chip-all" aria-pressed="${pick}" ${pickOpen(p, b, run) ? '' : 'disabled'}>That’s all</button>`;
+  // One line of controls, then one line for a refusal or a pair that is one board twice.
+  const said = pick && ui(p).said === 'same' ? toldLine('Those are the same board.') : b.told && STILL_TOLD[b.claim] ? toldLine(STILL_TOLD[b.claim]) : '';
+  const controls = dropButton || againButton || claimButton ? `<div class="chip-run">${dropButton}${againButton}${claimButton}</div>` : '';
   // The row: the start, then the still board after each chip added at A.
   const row = run.record.length ? `<ol class="chip-row" aria-label="Still boards in this run"${pick ? ' tabindex="-1" data-focus="chip-row"' : ''}>${run.record.map((piles, k) => {
     const label = `${k ? `After ${plural(k, 'chip')}` : 'Start'}: ${describe(g, piles)}`;
@@ -610,9 +648,9 @@ function renderStill(p, a) {
     return `<li>${k ? '<span class="chip-arrow" aria-hidden="true">→</span>' : ''}${cell}${k === run.record.length - 1 && run.ended ? '<span class="chip-loop" role="img" aria-label="The board repeated">↻</span>' : ''}</li>`;
   }).join('')}</ol>` : '';
   const shelf = b.found.length ? `<ol class="chip-found" aria-label="Starts that came back">${b.found.map(item => `<li class="chip-slot${item === run.item ? ' fresh' : ''}">${miniBoard(g, item.split(',').map(Number), `Comes back: ${describe(g, item.split(',').map(Number))}`)}<span class="chip-loop" aria-hidden="true">↻</span></li>`).join('')}</ol>` : '';
-  const claim = solved ? '<p class="chip-argued">The start runs into the loop and never comes back.</p>' : `<button type="button" class="secondary chip-claim ${act.type === 'claim' ? 'hinted' : ''}" data-chip-pick="1" data-focus="chip-all" aria-pressed="${pick}" ${pickOpen(p, b, run) ? '' : 'disabled'}>That’s all</button>${STILL_TOLD[b.claim] ? `<p class="chip-feedback" role="status">${STILL_TOLD[b.claim]}</p>` : ''}`;
+  const argued = solved ? '<p class="chip-argued">The start runs into the loop and never comes back.</p>' : '';
   const status = `${run.started ? `${plural(run.record.length - 1, 'chip')} added at ${q.at}. ` : ''}${describe(g, run.piles)}, sink ${run.sink}.${run.returned ? ' The start came back.' : run.ended ? ' The board repeated.' : ''}`;
-  return `<div class="chips-puzzle chips-still mode-cycle${pick ? ' picking' : ''}" data-mechanic-wire="chips">${ask}${board}${dropButton || againButton ? `<div class="chip-run">${dropButton}${againButton}</div>` : ''}${row}${shelf}${claim}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="chips-puzzle chips-still mode-cycle${pick ? ' picking' : ''}" data-mechanic-wire="chips">${ask}${board}${controls}${said}${row}${argued}${shelf}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 
 // Animation after a move: chips fly along the lines of each circle that fired.
@@ -687,7 +725,7 @@ function wire(root, p, api) {
     if (opener && root.contains(opener)) {
       if (opener.disabled) return;
       const board = api.attempt().board;
-      state.pick = state.pick === pickSig(board) ? null : pickSig(board); state.taps = [];
+      state.pick = state.pick === pickSig(board) ? null : pickSig(board); state.taps = []; state.said = null;
       api.ui({});
       // Focus moves to the row itself, not to a board in it: the first board
       // in a row from no chips is half of the answer.
@@ -697,7 +735,11 @@ function wire(root, p, api) {
     const entry = e.target.closest('[data-chip-tap]');
     if (entry && root.contains(entry)) {
       const k = Number(entry.dataset.chipTap), taps = state.taps.includes(k) ? state.taps.filter(t => t !== k) : [...state.taps, k];
+      state.said = null;
       if (taps.length < 2) { state.taps = taps; api.ui({}); return; }
+      // The same board twice is not a pair: say so and keep picking.
+      const run = stillRun(p, api.attempt().board);
+      if (run && sameBoard(run, ...taps)) { state.taps = []; state.said = 'same'; api.ui({}); return; }
       state.pick = null; state.taps = [];
       apply({type: 'claim', taps});
       return;
@@ -754,7 +796,7 @@ export const chipMechanics = {
     reset: p => { uiState.delete(p.id); },
     // Undo takes back a move but never a discovery, and never a refused
     // That's all: the shelf is carried, so the claim about it stands.
-    carry: (p, from, to) => p.parameters.mode === 'playground' || !object(to) || !object(from) ? to : {...to, found: [...from.found], ...(from.claim !== undefined ? {claim: from.claim} : {})},
+    carry: (p, from, to) => p.parameters.mode === 'playground' || !object(to) || !object(from) ? to : {...untold(to), found: [...from.found], ...(from.claim !== undefined ? {claim: from.claim} : {})},
     noHint: p => p.parameters.mode === 'playground'
   },
   chipstill: {
@@ -767,14 +809,20 @@ export const chipMechanics = {
     wire,
     ui: () => {},
     reset: p => { uiState.delete(p.id); },
-    // Undo keeps the shelf and never a refusal: a refused Most while the board
-    // is the same; a refused That's all for as long as it stood, and an old
-    // row's refused pair when Undo goes back to that row.
+    // Undo keeps the shelf and every lock but takes away a refusal's line: a
+    // refused Most stays off while the board is the same, a refused That's
+    // all until the shelf grows, and a refused pair while Undo stays in its
+    // row (or goes back to it past New run).
     carry(p, from, to) {
       if (!object(from) || !object(to)) return to;
-      if (p.parameters.mode === 'capacity') return from.claim === 'more' && from.steps === to.steps ? {...to, claim: 'more'} : to;
-      const claim = from.claim !== 'open' ? from.claim : to.claim === 'apart' && to.found.length === from.found.length ? 'apart' : 'open';
-      return {...to, found: [...from.found], claim, taps: claim === 'all' ? [...from.taps] : []};
+      const base = untold(to), same = Array.isArray(from.piles) && Array.isArray(to.piles) && key(from.piles) === key(to.piles) && from.sink === to.sink;
+      if (p.parameters.mode === 'capacity') return from.claim === 'more' && same ? {...base, claim: 'more'} : base;
+      // A refused pair stands while Undo stays in its row (a run already
+      // started from the same start), and comes back with that row when Undo
+      // goes back past New run.
+      const sameRow = same && typeof to.steps === 'string' && to.steps.length > 0 && from.steps.startsWith(to.steps);
+      const claim = from.claim === 'all' || from.claim === 'more' ? from.claim : from.claim === 'apart' ? (sameRow ? 'apart' : 'open') : to.claim === 'apart' && to.steps ? 'apart' : 'open';
+      return {...base, found: [...from.found], claim, taps: claim === 'all' ? [...from.taps] : []};
     }
   }
 };

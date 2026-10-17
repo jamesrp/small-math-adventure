@@ -211,7 +211,13 @@ test('That’s all is off with an empty shelf, and Undo never takes back a refus
   a = play(p, a, [fire('A'), fire('B'), fire('A'), fire('B'), {type: 'all'}]);
   assert.equal(a.board.claim, 'more');
   const takeBack = x => { const y = undo(x); return {...y, board: m.carry(p, x.board, y.board)}; };
-  for (let k = 0; k < 3; k++) { a = takeBack(a); assert.equal(a.board.claim, 'more', `Undo ${k + 1} keeps the refusal`); }
+  const view = x => playView(p, x, {pack, selected: null, message: ''});
+  assert.match(view(a), /There is another\./);
+  a = takeBack(a);
+  assert.equal(a.board.claim, 'more', 'Undo of the claim keeps That’s all off');
+  assert.doesNotMatch(view(a), /There is another\./, 'and takes away its line, so the screen changes');
+  assert.match(view(a), /data-focus="chip-all" disabled>That’s all/);
+  for (let k = 0; k < 2; k++) { a = takeBack(a); assert.equal(a.board.claim, 'more', `Undo ${k + 2} keeps the lock`); }
   assert.deepEqual(a.board.found, ['ABAB']);
   assert.equal(a.board.word, 'AB');
 });
@@ -223,49 +229,67 @@ const takeBackStill = (p, x) => { const y = undo(x); return {...y, board: mechan
 test('capacity: chips go on until a circle glows, and Most is judged by the total', () => {
   const p = still('chips-s01');
   let a = freshAttempt(p);
-  assert.deepEqual(a.board, {steps: '', claim: null});
+  assert.deepEqual(a.board, {piles: [0, 0, 0], sink: 0, claim: null});
   assert.equal(move(p, a, {type: 'most'}), null, 'Most needs chips on the board');
   a = play(p, a, [add2('A'), add2('A'), add2('A')]);
-  assert.deepEqual(stillRun(p, a.board.steps).ready, [0], 'A glows at its third chip: it has three lines');
+  assert.deepEqual(stillRun(p, a.board).ready, [0], 'A glows at its third chip: it has three lines');
   assert.equal(move(p, a, {type: 'most'}), null, 'no claim while a circle glows');
   assert.equal(move(p, a, add2('A')), null, 'a glowing circle fires rather than takes a chip');
   a = play(p, a, [fire('A')]);
-  assert.deepEqual(stillRun(p, a.board.steps).piles, [0, 1, 1]);
-  assert.equal(stillRun(p, a.board.steps).sink, 1);
+  assert.deepEqual(a.board, {piles: [0, 1, 1], sink: 1, claim: null}, 'the board holds its piles and sink as they are');
   a = play(p, a, [{type: 'most'}]);
   assert.equal(a.board.claim, 'more');
   assert.match(playView(p, a, {pack, selected: null, message: ''}), /More chips fit\./);
   assert.equal(move(p, a, {type: 'most'}), null, 'Most stays off until the board changes');
-  assert.equal(takeBackStill(p, a).board.claim, 'more', 'Undo keeps the refusal');
+  const back = takeBackStill(p, a);
+  assert.equal(back.board.claim, 'more', 'Undo keeps Most off');
+  assert.doesNotMatch(playView(p, back, {pack, selected: null, message: ''}), /More chips fit\./, 'and takes away the line');
+  assert.equal(play(p, a, [add2('B')]).board.told, undefined, 'the next move takes the line away too');
   a = play(p, a, [add2('A'), add2('A'), add2('C')]);
   assert.equal(a.board.claim, null);
-  assert.deepEqual(stillRun(p, a.board.steps).piles, [2, 1, 2]);
+  assert.deepEqual(stillRun(p, a.board).piles, [2, 1, 2]);
   a = play(p, a, [{type: 'most'}]);
   assert.ok(isSolved(p, a.board));
   const html = playView(p, a, {pack, selected: null, message: ''});
   assert.equal((html.match(/class="chip-end"/g) || []).length, 5, 'each chip waits at one line end');
   assert.equal((html.match(/class="chip-end bare"/g) || []).length, 3, 'and one line end at each circle has none');
-  assert.match(html, /Every circle has one line with no chip\./);
+  assert.match(html, /One more chip on any circle would make it glow\./);
+});
+
+test('capacity never runs out of room: 400 random taps stay legal and hints still solve', () => {
+  const p = still('chips-s01');
+  let a = freshAttempt(p), seed = 7;
+  const random = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let k = 0; k < 400; k++) {
+    const run = stillRun(p, a.board), ids = run.g.ids, i = Math.floor(random() * ids.length);
+    const action = run.ready.includes(i) ? fire(ids[i]) : add2(ids[i]);
+    const next = move(p, a, action);
+    if (next) a = next;
+    else assert.ok(stillRun(p, a.board).piles.reduce((x, y) => x + y) >= 30, `tap ${k} refused below the chip cap`);
+  }
+  assert.ok(a.moves > 300);
+  for (let n = 0; n < 120 && !isSolved(p, a.board); n++) a = move(p, a, nextHint(p, a).action);
+  assert.ok(isSolved(p, a.board), 'hints solve after a long game');
 });
 
 test('the cycle: a still start, chips added at A, and a start that comes back is shelved', () => {
   const p = still('chips-s02');
   let a = freshAttempt(p);
-  assert.deepEqual(a.board, {steps: '', found: [], claim: 'open', taps: []});
+  assert.deepEqual(a.board, {piles: [0, 0], sink: 0, steps: '', found: [], claim: 'open', taps: []});
   a = play(p, a, [add2('B'), drop]);
   assert.equal(move(p, a, add2('B')), null, 'placing ends with the first chip at A');
   a = play(p, a, [drop]);
-  assert.deepEqual(stillRun(p, a.board.steps).ready, [0]);
+  assert.deepEqual(stillRun(p, a.board).ready, [0]);
   assert.equal(move(p, a, drop), null, 'no chip at A while A glows');
   a = play(p, a, [fire('A'), fire('B'), drop, fire('A')]);
-  const run = stillRun(p, a.board.steps);
+  const run = stillRun(p, a.board);
   assert.deepEqual(run.record, [[0, 1], [1, 1], [1, 0], [0, 1]]);
   assert.ok(run.ended && run.returned);
   assert.deepEqual(a.board.found, ['0,1']);
   assert.equal(move(p, a, drop), null, 'the run ends at the repeat');
   // From no chips the row repeats A 1 B 0, not the start.
   a = play(p, a, [{type: 'again'}, drop, drop, fire('A'), drop, drop, fire('A'), fire('B')]);
-  const empty = stillRun(p, a.board.steps);
+  const empty = stillRun(p, a.board);
   assert.deepEqual(empty.record, [[0, 0], [1, 0], [0, 1], [1, 1], [1, 0]]);
   assert.ok(empty.ended && !empty.returned);
   assert.deepEqual(a.board.found, ['0,1'], 'a start that never comes back is not shelved');
@@ -282,11 +306,27 @@ test('the cycle: That’s all is judged with two boards that go to the same boar
   assert.deepEqual(a.board.found, ['1,0', '0,1']);
   a = run(a, [drop, drop, fire('A'), drop, drop, fire('A'), fire('B')]);
   assert.equal(move(p, a, {type: 'claim', taps: [0, 0]}), null);
+  assert.equal(move(p, a, {type: 'claim', taps: [1, 4]}), null, 'A 1 B 0 twice is one board, not a pair (the interface says so)');
   const wrong = run(a, [{type: 'claim', taps: [0, 1]}]);
   assert.equal(wrong.board.claim, 'apart');
-  assert.match(playView(p, wrong, {pack, selected: null, message: ''}), /Those two don’t go to the same board\./);
+  const view = x => playView(p, x, {pack, selected: null, message: ''});
+  assert.match(view(wrong), /Those two don’t go to the same board\./);
   assert.equal(move(p, wrong, {type: 'claim', taps: [0, 3]}), null, 'no second pair on the same row');
-  assert.equal(takeBackStill(p, wrong).board.claim, 'apart', 'Undo keeps the refused pair');
+  let back = takeBackStill(p, wrong);
+  assert.equal(back.board.claim, 'apart', 'Undo keeps the refused row locked');
+  assert.doesNotMatch(view(back), /Those two don’t/, 'and takes away the line');
+  // The lock belongs to its row: it stands while Undo stays in the row and
+  // goes once Undo leaves it for the placing of a start.
+  while (back.board.steps) { back = takeBackStill(p, back); if (back.board.steps) assert.equal(back.board.claim, 'apart'); }
+  assert.equal(back.board.claim, 'open', 'Undo back to placing lifts the refused pair');
+  assert.notEqual(nextHint(p, back).action.type, 'again', 'and the hint builds a start, with no call for New run');
+  // Undo past New run brings back the refused row with its lock, but not its line.
+  const again = run(wrong, [{type: 'again'}]);
+  assert.equal(again.board.claim, 'open');
+  const past = takeBackStill(p, again);
+  assert.equal(past.board.claim, 'apart');
+  assert.doesNotMatch(view(past), /Those two don’t/);
+  assert.ok(run(a, [{type: 'claim', taps: [3, 4]}]).board.claim === 'apart', 'the repeat at the end goes where A 1 B 0 goes, not where A 1 B 1 goes');
   const short = run(a, [{type: 'claim', taps: [3, 0]}]);
   assert.equal(short.board.claim, 'more', 'the right pair, but A 1 B 1 is not on the shelf');
   assert.match(playView(p, short, {pack, selected: null, message: ''}), /There is another\./);
