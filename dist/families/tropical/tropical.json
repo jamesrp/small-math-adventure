@@ -230,37 +230,37 @@
      "kind": "ray",
      "from": [
       8,
-      12
+      8
      ],
-     "dir": "N"
+     "dir": "E"
     },
     "start": [
      12,
      4
     ]
    },
-   "objective": "Move B so that the two lines share exactly the dashed stretch: every point of it, running on past the edge, and nothing else.",
-   "visibleObjective": "Make the two lines share exactly the dashed stretch.",
-   "instruction": "Move B so that the two lines share exactly the dashed stretch: every point of it, running on past the edge, and nothing else.",
-   "controls": "A line is three arms from one junction: right, up, and down to the left along the diagonal, each running on for ever. Every line is the same shape, moved without turning. Tap where grid lines cross to move B there, or drag it; arrow keys move it too. Press Check when you think the two lines share exactly the dashed stretch, all the way past the edge.",
+   "objective": "Move B so that the two lines share exactly the shaded stretch: every point of it, running on past the edge, and nothing else.",
+   "visibleObjective": "Make the two lines share exactly the shaded stretch.",
+   "instruction": "Move B so that the two lines share exactly the shaded stretch: every point of it, running on past the edge, and nothing else.",
+   "controls": "A line is three arms from one junction: right, up, and down to the left along the diagonal, each running on for ever. Every line is the same shape, moved without turning. Tap where grid lines cross to move B there, or drag it; arrow keys move it too. Press Check when you think the two lines share exactly the shaded stretch, all the way past the edge.",
    "rules": [
     "A line has a junction and three arms: one to the right, one up, and one down to the left along the diagonal. The arms go on for ever, past the edge of the board.",
     "Every line is this same shape, moved without turning.",
     "Points between grid dots count too.",
     "Two lines share a point when it is on both of them. Sharing a stretch means sharing every point along it, past the edge too."
    ],
-   "idea": "Two junctions in one column share the up arm from the higher one.",
+   "idea": "Two junctions in one row share the right arm of the right-hand one, so for the shared stretch to start at A, B goes left of A on its row.",
    "prerequisites": "Move a shape without turning it and look along its arms. No reading; a grown-up can read the goal.",
    "hints": [
-    "Where must B be for its up arm to lie along A’s?",
-    "Two junctions in one column share the up arm of the higher one.",
-    "Put B at the start of the dashed stretch."
+    "Which arm of B could lie along A’s right arm?",
+    "Two junctions in one row share the right arm of the right-hand one.",
+    "Put B on A’s row, left of A."
    ],
    "parent": {
-    "notice": "Whether your child puts B below A (then the lines share A’s whole up arm, from A) or above the start of the stretch, and what Check shows.",
-    "prompt": "If B were one square higher, where would the shared stretch start?",
-    "explanation": "The dashed stretch runs up from (4, 6). Two lines share an upward stretch only when their junctions are in one column, and then they share the up arm of the higher junction. The stretch starts at (4, 6), so B is at (4, 6), above A. B elsewhere in the column moves the start of the stretch; B off the column gives a single point.",
-    "extension": "Where can B go to share A’s whole up arm, starting at A? (Anywhere straight below A.)",
+    "notice": "Whether your child puts B on the shaded stretch, right of A. Then the lines share B’s right arm, which starts too late, and Check shows it.",
+    "prompt": "If B were right of A on the same row, where would the shared stretch start?",
+    "explanation": "The shaded stretch is A’s whole right arm, from (4, 4). Two lines share a stretch running right only when their junctions are on one row, and then they share the right arm of the right-hand junction. For that to be A’s, A is the right-hand one, so B is left of A on row 4: (0, 4), (1, 4), (2, 4) or (3, 4), 4 places. B right of A starts the shared stretch at B; B off the row gives a single point.",
+    "extension": "Where can B go to share A’s whole up arm instead? (Anywhere straight below A.)",
     "connection": "When the junctions share a column, a row or a rising diagonal, two tropical lines overlap along a ray: the one exception to meeting in a single point.",
     "sourceIds": [
      "tropical-week78",
@@ -272,12 +272,24 @@
    "solution": {
     "places": [
      [
-      4,
-      6
+      0,
+      4
+     ],
+     [
+      1,
+      4
+     ],
+     [
+      2,
+      4
+     ],
+     [
+      3,
+      4
      ]
     ]
    },
-   "provenance": "Week 78 Problem 1 (revised October 15): junction A at (4, 4), with B chosen so the lines overlap along a whole stretch; Problem 2’s pair (3, 2) and (3, 6) shares an up arm the same way."
+   "provenance": "Week 78 Problem 1 (revised October 15): junction A at (4, 4), with B chosen so the lines overlap along a whole stretch; Problem 2’s pair (2, 4) and (6, 4) shares a right arm the same way."
   },
   {
    "id": "tropical-03",
@@ -457,8 +469,8 @@
     "goal": {
      "kind": "ray",
      "from": [
-      4,
-      4
+      8,
+      8
      ],
      "dir": "SW"
     },
@@ -467,28 +479,28 @@
      4
     ]
    },
-   "objective": "Move B so that the two lines share exactly the dashed stretch: every point of it, running on past the edge, and nothing else.",
-   "visibleObjective": "Make the two lines share exactly the dashed stretch.",
-   "instruction": "Move B so that the two lines share exactly the dashed stretch: every point of it, running on past the edge, and nothing else.",
-   "controls": "A line is three arms from one junction: right, up, and down to the left along the diagonal, each running on for ever. Every line is the same shape, moved without turning. Tap where grid lines cross to move B there, or drag it; arrow keys move it too. Press Check when you think the two lines share exactly the dashed stretch, all the way past the edge.",
+   "objective": "Move B so that the two lines share exactly the shaded stretch: every point of it, running on past the edge, and nothing else.",
+   "visibleObjective": "Make the two lines share exactly the shaded stretch.",
+   "instruction": "Move B so that the two lines share exactly the shaded stretch: every point of it, running on past the edge, and nothing else.",
+   "controls": "A line is three arms from one junction: right, up, and down to the left along the diagonal, each running on for ever. Every line is the same shape, moved without turning. Tap where grid lines cross to move B there, or drag it; arrow keys move it too. Press Check when you think the two lines share exactly the shaded stretch, all the way past the edge.",
    "rules": [
     "A line has a junction and three arms: one to the right, one up, and one down to the left along the diagonal. The arms go on for ever, past the edge of the board.",
     "Every line is this same shape, moved without turning.",
     "Points between grid dots count too.",
     "Two lines share a point when it is on both of them. Sharing a stretch means sharing every point along it, past the edge too."
    ],
-   "idea": "Junctions on one rising diagonal share the slanting arm from the lower junction; the stretch between them is not shared.",
+   "idea": "Junctions on one rising diagonal share the slanting arm of the lower junction, and not the stretch between them; for the shared arm to be A’s, B goes up and to the right of A.",
    "prerequisites": "Move a shape without turning it and follow a diagonal. No reading; a grown-up can read the goal.",
    "hints": [
     "Which places for B put its slanting arm along A’s?",
     "Two junctions on one rising diagonal share the slanting arm of the lower one.",
-    "Put B at the start of the dashed stretch."
+    "Put B up and to the right of A, on its diagonal."
    ],
    "parent": {
-    "notice": "Whether your child puts B up the diagonal from A (then the shared stretch starts at A), and notices that the stretch between A and B is not shared.",
-    "prompt": "With B at (2, 2), is the point (3, 3) on B’s line?",
-    "explanation": "The dashed stretch runs down and to the left from (2, 2). Lines share a slanting stretch only when their junctions are on one rising diagonal, and then they share the slanting arm of the lower junction. So B is at (2, 2). The points between B and A, such as (3, 3), are on A’s line but not on B’s, whose arms go right, up and down-left from (2, 2).",
-    "extension": "Where could B go to share the slanting stretch from A itself? (Anywhere up and to the right of A on its diagonal.)",
+    "notice": "Whether your child puts B down and to the left of A on the diagonal (then the shared stretch starts at B, too low), and notices that the stretch between A and B is not shared.",
+    "prompt": "With B at (6, 6), is the point (5, 5) on both lines?",
+    "explanation": "The shaded stretch is A’s slanting arm, down and to the left from (4, 4). Lines share a slanting stretch only when their junctions are on one rising diagonal, and then they share the slanting arm of the lower junction. For that to be A’s, A is the lower one, so B is up and to the right of A on its diagonal: (5, 5), (6, 6), (7, 7) or (8, 8), 4 places. The points between A and B, such as (5, 5) with B at (6, 6), are on B’s line but not on A’s, whose arms go right, up and down to the left from (4, 4). B down and to the left of A starts the shared stretch at B.",
+    "extension": "Where must B go so that they share the slanting stretch from (2, 2) instead? (At (2, 2) itself.)",
     "connection": "When the junctions share a rising diagonal, two tropical lines overlap along a ray.",
     "sourceIds": [
      "tropical-week78",
@@ -500,12 +512,24 @@
    "solution": {
     "places": [
      [
-      2,
-      2
+      8,
+      8
+     ],
+     [
+      7,
+      7
+     ],
+     [
+      6,
+      6
+     ],
+     [
+      5,
+      5
      ]
     ]
    },
-   "provenance": "Week 78 Problem 2, fourth pair: junctions (2, 2) and (6, 6) share the slanting ray from (2, 2) and not the stretch between; here A is at (4, 4)."
+   "provenance": "Week 78 Problem 2, fourth pair: junctions (2, 2) and (6, 6) share the slanting ray from (2, 2) and not the stretch between; here the shared ray is A’s, so B goes above A, as in the guide’s answer menu for Problem 1, B = (6, 6) with A = (4, 4)."
   },
   {
    "id": "tropical-06",

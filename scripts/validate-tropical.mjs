@@ -26,10 +26,10 @@ import {judgeMarks} from '../dist/families/tropical/tropical.js';
 // The table in docs/tropical/README.md, in grid squares.
 const TABLE = {
   'tropical-01': {level: 'easy', mode: 'meet', places: [[6, 0], [6, 1], [6, 2], [6, 3], [7, 5], [8, 6]]},
-  'tropical-02': {level: 'easy', mode: 'meet', places: [[4, 6]]},
+  'tropical-02': {level: 'easy', mode: 'meet', places: [[0, 4], [1, 4], [2, 4], [3, 4]]},
   'tropical-03': {level: 'easy', mode: 'through', junction: [2, 2]},
   'tropical-04': {level: 'easy', mode: 'through', junction: [5, 5]},
-  'tropical-05': {level: 'medium', mode: 'meet', places: [[2, 2]]},
+  'tropical-05': {level: 'medium', mode: 'meet', places: [[5, 5], [6, 6], [7, 7], [8, 8]]},
   'tropical-06': {level: 'medium', mode: 'meet', places: [[0, 3], [1, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8]]},
   'tropical-07': {level: 'medium', mode: 'every', ray: {from: [2, 4], dir: [-1, 0]}},
   'tropical-08': {level: 'medium', mode: 'every', ray: {from: [3, 2], dir: [0, -1]}},
@@ -144,6 +144,18 @@ function hintsSolve(p, a, label) {
   assert.ok(isSolved(p, a.board), `${p.id} ${label}: hints alone solve`);
   return steps;
 }
+// How many Checks a child sweeping the board would make before the first
+// answer: in page order (top row first, left to right), bottom row first,
+// nearest the drawn goal first (ties in page order), and the mean over random
+// orders, (n + 1)/(k + 1) for k answers among n places. The start is not a place.
+function sweeps(q, places, right, goal) {
+  const start = Q2(q.start), list = places.filter(z => !L.same(z, start)), isRight = z => right.some(B => L.same(B, z));
+  const first = order => order.findIndex(isRight) + 1;
+  const page = [...list].sort((a, b) => b[1] - a[1] || a[0] - b[0]);
+  const bottom = [...list].sort((a, b) => a[1] - b[1] || a[0] - b[0]);
+  const near = page.map((z, i) => [z, (z[0] - goal[0]) ** 2 + (z[1] - goal[1]) ** 2, i]).sort((a, b) => a[1] - b[1] || a[2] - b[2]).map(x => x[0]);
+  return {places: list.length, answers: right.length, pageOrder: first(page), bottomUp: first(bottom), nearestGoal: first(near), randomMean: Number(((list.length + 1) / (right.length + 1)).toFixed(1))};
+}
 function random(seed) { let x = seed >>> 0 || 1; return () => { x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0; return x / 2 ** 32; }; }
 
 export async function validateTropical() {
@@ -153,7 +165,7 @@ export async function validateTropical() {
   for (const s of pack.sources) { assert.match(s.url, /^https:\/\//); assert.ok(s.title && s.kind); }
   assert.ok(pack.sources.some(s => s.url.endsWith('lowell-math-circle-year-2/week-78')), 'the worksheet week');
   assert.ok(pack.sources.some(s => s.url.endsWith('plans/review/week-78.md')), 'the review card');
-  const counts = {linePairs: 0, targetSets: 0, placesChecked: 0, junctionsChecked: 0, shelvesJudged: 0, hintSteps: 0, randomStates: 0};
+  const counts = {sweeps: {}, linePairs: 0, targetSets: 0, placesChecked: 0, junctionsChecked: 0, shelvesJudged: 0, hintSteps: 0, randomStates: 0};
   checkGeometry(counts);
 
   const puzzles = pack.puzzles.filter(p => p.mechanic === 'tropical' && p.difficulty_level !== 'playground');
@@ -187,8 +199,12 @@ export async function validateTropical() {
         const after = play(p, play(p, fresh, {type: 'put', at}), {type: 'check'});
         assert.equal(isSolved(p, after.board), right.some(x => L.same(x, B)), `${p.id}: Check with B at ${at}`);
       }
-      // The start is not an answer.
+      // The start is not an answer, and no answer is drawn on the board.
       assert.ok(!right.some(B => L.same(B, Q2(q.start))), `${p.id}: B starts off the answers`);
+      const drawn = q.goal.kind === 'point' ? q.goal.at : q.goal.from;
+      assert.ok(!right.some(B => L.same(B, Q2(drawn))) && !right.some(B => L.same(B, A)), `${p.id}: no answer is a drawn point`);
+      counts.sweeps[p.id] = sweeps(q, places, right, Q2(drawn));
+      assert.ok(counts.sweeps[p.id].nearestGoal >= 2, `${p.id}: the place nearest the goal is not an answer`);
     }
 
     if (q.mode === 'through') {
@@ -395,16 +411,26 @@ function checkPlay(p, fresh, places, row, counts) {
       const atJ = play(p, fresh, {type: 'put', at: J});
       const wrongPair = [[0, 1], [0, 2], [1, 2]].find(pk => pk.map(k => q.names[k]).join() !== cert.circles.join() && !row.cant.some(c => c.circles.join() === pk.map(k => q.names[k]).join() && L.same(c.junction.map(x => 2 * x), J)));
       const claim = play(p, atJ, {type: 'cant', picks: wrongPair});
-      assert.ok(!isSolved(p, claim.board) && claim.board.claimed, `${p.id}: a wrong pair is refused`);
-      const right = cert.circles.map(nm => q.names.indexOf(nm));
-      refuse(p, claim, {type: 'cant', picks: right}, 'a second claim in the same place');
+      assert.ok(!isSolved(p, claim.board), `${p.id}: a wrong pair is refused`);
+      assert.deepEqual(claim.board.claimed, [wrongPair], `${p.id}: the pair is refused at this place`);
+      // The same pair again changes nothing, here or after Undo: it stays refused.
+      assert.equal(JSON.stringify(move(p, claim, {type: 'cant', picks: [...wrongPair].reverse()}).board), JSON.stringify(claim.board), `${p.id}: the same pair again changes nothing`);
       const back = undoOnce(p, claim);
-      assert.ok(back.board.claimed, `${p.id}: Undo keeps the refused claim`);
+      assert.deepEqual(back.board.claimed, [wrongPair], `${p.id}: Undo keeps the refused pair`);
+      assert.equal(back.board.said, null, `${p.id}: and takes back its words`);
       assert.notEqual(view(p, back), view(p, claim), `${p.id}: Undo changes the board`);
-      refuse(p, back, {type: 'cant', picks: right}, 'a claim again after Undo');
+      const backAgain = play(p, back, {type: 'cant', picks: wrongPair});
+      assert.ok(!isSolved(p, backAgain.board) && backAgain.board.claimed.length === 1, `${p.id}: the refused pair after Undo only shows its words again`);
+      // The hint goes straight to the right pair: no stepping off and back.
+      assert.deepEqual(nextHint(p, claim).action, {type: 'cant', picks: cert.circles.map(nm => q.names.indexOf(nm))}, `${p.id}: the hint after a refused pair`);
       steps += hintsSolve(p, claim, 'after a refused Can’t');
-      const moved = play(p, play(p, claim, {type: 'put', at: [J[0] + q.step, J[1]]}), {type: 'put', at: J});
-      assert.ok(isSolved(p, play(p, moved, {type: 'cant', picks: right}).board), `${p.id}: moving away and back allows a new claim`);
+      const right = cert.circles.map(nm => q.names.indexOf(nm));
+      assert.ok(isSolved(p, play(p, claim, {type: 'cant', picks: right}).board), `${p.id}: another pair at the same place is a new claim`);
+      // Every pair refused at one place: all three stay refused across Undo.
+      const off = spots.find(z => !L.same(z, q.start) && !row.cant.some(c => L.same(c.junction.map(x => 2 * x), z)));
+      let all3 = play(p, fresh, {type: 'put', at: off});
+      for (const pk of [[0, 1], [0, 2], [1, 2]]) all3 = play(p, all3, {type: 'cant', picks: pk});
+      assert.deepEqual(undoOnce(p, undoOnce(p, all3)).board.claimed, [[0, 1], [0, 2], [1, 2]], `${p.id}: refused pairs kept across Undo`);
     } else {
       // Possible: every claim is refused, and the hint never says Can't.
       let b = fresh;
@@ -444,13 +470,14 @@ function checkForged(p, fresh, row) {
       forged.push([{...tried, at: J, checked: true}, 'a refused Check of the answer'], [{...tried, at: J, cert: [0, 1], done: true}, 'a certificate where a line exists']);
     }
     if (q.cant) {
-      forged.push([{...base, claimed: true}, 'a claim with no attempt'], [{...tried, cert: [0, 1], done: true}, 'a certificate in the wrong place'], [{...tried, cert: [0, 3], done: true}, 'a certificate with a missing circle']);
+      forged.push([{...base, claimed: [[0, 1]]}, 'a claim with no attempt'], [{...tried, cert: [0, 1], done: true}, 'a certificate in the wrong place'], [{...tried, cert: [0, 3], done: true}, 'a certificate with a missing circle'], [{...tried, claimed: true}, 'refused pairs that are not a list'], [{...tried, claimed: [[1, 2], [0, 1]]}, 'refused pairs out of order'], [{...tried, claimed: [[0, 1], [0, 1]]}, 'a pair refused twice'], [{...tried, claimed: [[1, 0]]}, 'a pair turned round'], [{...tried, claimed: [[0, 1]], said: [0, 2]}, 'words for a pair not refused']);
+      assert.ok(validBoard(p, {...tried, claimed: [[0, 1]], said: [0, 1]}), `${p.id}: a refused pair with its words is a valid save`);
       if (row.cant) {
         const c = row.cant[0], J = c.junction.map(x => 2 * x), picks = c.circles.map(nm => q.names.indexOf(nm));
         assert.ok(validBoard(p, {...tried, at: J, cert: picks, done: true}), `${p.id}: a certificate save is valid`);
-        forged.push([{...tried, at: J, cert: picks}, 'a certificate without done'], [{...tried, at: J, cert: picks, done: true, claimed: true}, 'a certificate and a refused claim'], [{...base, at: J, cert: picks, done: true}, 'a certificate with no attempt'], [{...tried, at: J, cert: [...picks].reverse(), done: true}, 'a certificate turned round'], [{...tried, at: J, claimed: true, said: picks}, 'a refusal of the certificate']);
+        forged.push([{...tried, at: J, cert: picks}, 'a certificate without done'], [{...tried, at: J, cert: picks, done: true, claimed: [picks]}, 'the certificate among the refused pairs'], [{...base, at: J, cert: picks, done: true}, 'a certificate with no attempt'], [{...tried, at: J, cert: [...picks].reverse(), done: true}, 'a certificate turned round'], [{...tried, at: J, claimed: [picks], said: picks}, 'a refusal of the certificate']);
       }
-    } else forged.push([{...base, at: other, tried: true, claimed: true}, 'a claim where there is no Can’t']);
+    } else forged.push([{...base, at: other, tried: true, claimed: [[0, 1]]}, 'a claim where there is no Can’t']);
   }
   if (q.mode === 'every') {
     const ray = {from: p.solution.ray.from.map(c => 2 * c), dir: p.solution.ray.dir};

@@ -71,6 +71,9 @@ export const certificatesOf = q => remember(`c|${JSON.stringify(q.targets)}`, ()
   }
   return out;
 });
+const samePair = (s, t) => s[0] === t[0] && s[1] === t[1];
+const pairOrder = (s, t) => s[0] - t[0] || s[1] - t[1];
+const addPair = (list, pk) => (list.some(x => samePair(x, pk)) ? list.map(x => [...x]) : [...list.map(x => [...x]), [...pk]].sort(pairOrder));
 const validPicks = (q, picks) => Array.isArray(picks) && picks.length === 2 && picks.every(Number.isInteger) && picks[0] >= 0 && picks[0] < picks[1] && picks[1] < q.targets.length;
 
 // --- Every --------------------------------------------------------------------
@@ -147,14 +150,15 @@ export function judgeMarks(q, marks) {
 // every:      {at, marks, lock, said, done}
 // playground: {a, b}
 // `said` is what the board shows about the last claim (Undo takes it back);
-// `refused`, `checked`, `claimed` and `lock` are the refusals themselves,
-// which Undo keeps (carry) until the junction moves or the marks change.
+// `refused`, `checked`, `claimed` (the pairs Can't has refused at this
+// place) and `lock` are the refusals themselves, which Undo keeps (carry)
+// until the junction moves or the marks change.
 const KEYS = {meet: 'at,done,refused,said', through: 'at,cert,checked,claimed,done,said,tried', every: 'at,done,lock,marks,said', playground: 'a,b'};
 function fresh(p) {
   const q = p.parameters;
   if (q.mode === 'playground') return {a: [...q.start[0]], b: [...q.start[1]]};
   if (q.mode === 'meet') return {at: [...q.start], refused: false, said: false, done: false};
-  if (q.mode === 'through') return {at: [...q.start], tried: false, checked: false, claimed: false, said: null, cert: null, done: false};
+  if (q.mode === 'through') return {at: [...q.start], tried: false, checked: false, claimed: [], said: null, cert: null, done: false};
   return {at: [...q.start], marks: [], lock: null, said: false, done: false};
 }
 function valid(p, b) {
@@ -170,18 +174,20 @@ function valid(p, b) {
     return !b.done || (right && !b.said);
   }
   if (q.mode === 'through') {
-    if (![b.tried, b.checked, b.claimed].every(isBool)) return false;
+    if (![b.tried, b.checked].every(isBool) || !Array.isArray(b.claimed)) return false;
     if (!b.tried && !L.same(b.at, q.start)) return false;
     const right = L.passesAll(b.at, q.targets);
     if (b.checked && right) return false;
-    if (b.claimed && (!q.cant || !b.tried)) return false;
+    // Refused pairs: real pairs, sorted, each one that does not certify here.
+    if (b.claimed.length && (!q.cant || !b.tried)) return false;
+    if (!b.claimed.every((pk, i) => validPicks(q, pk) && judgeClaim(q, pk, b.at).why !== 'ok' && (!i || pairOrder(b.claimed[i - 1], pk) < 0))) return false;
     if (b.said !== null) {
       if (b.done) return false;
       if (b.said === 'check') { if (!b.checked) return false; }
-      else if (!(b.claimed && validPicks(q, b.said) && judgeClaim(q, b.said, b.at).why !== 'ok')) return false;
+      else if (!(Array.isArray(b.said) && b.claimed.some(pk => samePair(pk, b.said)))) return false;
     }
     if (b.cert !== null) {
-      if (!q.cant || !b.done || !b.tried || b.claimed || !validPicks(q, b.cert) || judgeClaim(q, b.cert, b.at).why !== 'ok') return false;
+      if (!q.cant || !b.done || !b.tried || !validPicks(q, b.cert) || judgeClaim(q, b.cert, b.at).why !== 'ok') return false;
       return true;
     }
     return !b.done || right;
@@ -199,7 +205,7 @@ function solved(p, b) {
 
 // What the buttons may do now.
 export const canCheck = (q, b) => !b.done && !(q.mode === 'meet' ? b.refused : b.checked);
-export const canClaim = (q, b) => q.mode === 'through' && q.cant && !b.done && b.tried && !b.claimed;
+export const canClaim = (q, b) => q.mode === 'through' && q.cant && !b.done && b.tried;
 export const coveredAt = b => b.marks.some(m => covers(m, b.at));
 export const canAll = b => !b.done && b.marks.length > 0 && !(b.lock && sameMarks(b.lock, b.marks));
 
@@ -213,7 +219,7 @@ function move(p, b, action) {
   if (action.type === 'put') {
     if (!inWin(q, action.at) || L.same(action.at, b.at)) return null;
     if (q.mode === 'meet') return {at: [...action.at], refused: false, said: false, done: false};
-    if (q.mode === 'through') return {at: [...action.at], tried: true, checked: false, claimed: false, said: null, cert: null, done: false};
+    if (q.mode === 'through') return {at: [...action.at], tried: true, checked: false, claimed: [], said: null, cert: null, done: false};
     return {...b, at: [...action.at]};
   }
   if (q.mode === 'meet') {
@@ -229,7 +235,10 @@ function move(p, b, action) {
       if (!canClaim(q, b) || !Array.isArray(action.picks)) return null;
       const picks = [...action.picks].sort((x, y) => x - y);
       if (!validPicks(q, picks)) return null;
-      return judgeClaim(q, picks, b.at).why === 'ok' ? {...b, said: null, cert: picks, done: true} : {...b, claimed: true, said: picks};
+      if (judgeClaim(q, picks, b.at).why === 'ok') return {...b, said: null, cert: picks, done: true};
+      // A refused pair stays refused here; the same pair again only shows
+      // the same words.
+      return {...b, claimed: addPair(b.claimed, picks), said: picks};
     }
     return null;
   }
@@ -307,10 +316,6 @@ function throughHint(q, b) {
   // then give the reason with Can't.
   const certs = certificatesOf(q), here = certs.find(c => L.same(c.at, b.at));
   if (here && b.tried) {
-    if (b.claimed) {
-      const away = latticeOf(q).find(z => d2(z, b.at) === q.step * q.step);
-      return {action: {type: 'put', at: away}, text: 'Move the junction off this point, then back.'};
-    }
     const [i, j] = here.picks, others = q.targets.map((_, k) => k).filter(k => k !== i && k !== j && !L.onLine(q.targets[k], b.at));
     return {action: {type: 'cant', picks: here.picks}, text: `Only this junction’s line passes ${nameOf(q, i)} and ${nameOf(q, j)}, and it misses ${list(others.map(k => nameOf(q, k)))}. Press Can’t, then tap ${nameOf(q, i)} and ${nameOf(q, j)}.`};
   }
@@ -408,17 +413,19 @@ const status = text => `<p class="sr-only" role="status">${esc(text)}</p>`;
 const told = text => (text ? `<p class="tr-told">${esc(text)}</p>` : '');
 const moveButton = (label, action, enabled, hinted) => `<button type="button" class="secondary tr-button${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="tr-${action.type}" ${enabled ? '' : 'disabled'}>${label}</button>`;
 const bar = buttons => `<div class="tr-bar">${buttons.join('')}</div>`;
-const hintRing = act => (act?.type === 'put' ? ringAt(act.at, 'tr-hint') : act?.type === 'mark' ? `${ringAt(act.from, 'tr-hint')}${raySvg(act.q, act.from, act.dir, 'tr-hint-ray')}` : '');
+// A hint's ring is larger and dotted, unlike the dashed rings of a refusal.
+const hintAt = z => dot(z, 6, 'tr-ring tr-hint');
+const hintRing = act => (act?.type === 'put' ? hintAt(act.at) : act?.type === 'mark' ? `${hintAt(act.from)}${raySvg(act.q, act.from, act.dir, 'tr-hint-ray')}` : '');
 
 function renderMeet(p, a) {
   const q = p.parameters, b = a.board, done = solved(p, b);
   const act = a.hintLevel >= 2 && !done ? hint(p, b).action : null, m = L.meet(q.A, b.at);
-  const goal = q.goal.kind === 'point' ? ringAt(q.goal.at, 'tr-goal') : `<g class="tr-goal-ray">${raySvg(q, q.goal.from, q.goal.dir, 'tr-goal')}${dot(q.goal.from, 2.4, 'tr-goal-start')}</g>`;
+  const goal = q.goal.kind === 'point' ? ringAt(q.goal.at, 'tr-goal') : `<g class="tr-goal-ray">${raySvg(q, q.goal.from, q.goal.dir, 'tr-goal')}${L.same(q.goal.from, q.A) ? '' : dot(q.goal.from, 2.4, 'tr-goal-start')}</g>`;
   const result = done ? sharedSvg(q, m, q.A, 'good') : b.said ? sharedSvg(q, m, q.A, 'bad') : '';
   const inner = `${goal}${lineSvg(q, q.A, 'tr-a')}<g class="tr-mover">${lineSvg(q, b.at, 'tr-b')}</g>${result}${label(q.A, 'A', 'tr-a')}${label(b.at, 'B', 'tr-b tr-b-name')}${hintRing(act && {...act, q})}`;
   const svg = boardSvg(q, inner, {label: 'Two lines, A and B'});
   const word = b.said ? meetWords(q, m) : '';
-  const say = `A at ${placeWords(q.A)}. B at ${placeWords(b.at)}. ${q.goal.kind === 'point' ? `The ring is at ${placeWords(q.goal.at)}.` : `The dashed stretch starts at ${placeWords(q.goal.from)} and runs ${DIR_WORDS[q.goal.dir]}.`}${word ? ` ${word}` : ''}${act?.type === 'put' ? ` Hint: B to ${placeWords(act.at)}.` : ''}`;
+  const say = `A at ${placeWords(q.A)}. B at ${placeWords(b.at)}. ${q.goal.kind === 'point' ? `The ring is at ${placeWords(q.goal.at)}.` : `The shaded stretch starts at ${placeWords(q.goal.from)} and runs ${DIR_WORDS[q.goal.dir]}.`}${word ? ` ${word}` : ''}${act?.type === 'put' ? ` Hint: B to ${placeWords(act.at)}.` : ''}`;
   const buttons = done ? '' : bar([moveButton('Check', {type: 'check'}, canCheck(q, b), act?.type === 'check')]);
   return `<div class="tr-puzzle mode-meet${done ? ' solved' : ''}" data-mechanic-wire="tropical">${svg}${told(word)}${buttons}${status(say)}</div>`;
 }
@@ -438,7 +445,7 @@ function renderThrough(p, a) {
   else if (b.said === 'check') extra = q.targets.filter(T => !L.onLine(T, b.at)).map(T => ringAt(T, 'bad')).join('');
   else if (refused) extra = refused.map(k => ringAt(q.targets[k], 'bad')).join('');
   const picks = claiming ? q.targets.map((T, i) => `<g class="tr-pick${state.picks.includes(i) ? ' picked' : ''}" role="button" tabindex="0" data-pick="${i}" data-focus="tr-pick-${i}" aria-label="${esc(q.names[i])}${state.picks.includes(i) ? ', chosen' : ''}">${dot(T, 5.2, 'tr-pick-ring')}</g>`).join('') : '';
-  const hinted = act?.type === 'cant' ? act.picks.map(k => ringAt(q.targets[k], 'tr-hint')).join('') : hintRing(act && {...act, q});
+  const hinted = act?.type === 'cant' ? act.picks.map(k => hintAt(q.targets[k])).join('') : hintRing(act && {...act, q});
   const inner = `${extra}<g class="tr-mover">${lineSvg(q, b.at, `tr-j${done ? ' good' : ''}`)}</g>${q.targets.map((_, i) => targetSvg(q, i)).join('')}${hinted}${picks}`;
   const svg = boardSvg(q, inner, {label: 'Circles and a line'});
   const missed = q.targets.map((T, i) => (L.onLine(T, b.at) ? null : q.names[i])).filter(Boolean);
@@ -577,6 +584,16 @@ function onEnd(e) {
   }
   g.tap();
 }
+// On a short screen the board shrinks so that it, a line of words and the
+// buttons fit on the first screen below the header (CSS reads --tr-fit). The
+// board's top does not depend on its size, so one measure is enough.
+const GAP = 8.8, LINE = 22, SLACK = 6, SMALLEST = 220;
+function fitBoard(root, svg) {
+  if (typeof innerHeight !== 'number' || !svg.getBoundingClientRect) return;
+  const top = svg.getBoundingClientRect().top + (window.scrollY || 0), bar = root.querySelector('.tr-bar');
+  const below = GAP + LINE + (bar ? GAP + bar.getBoundingClientRect().height : 0) + SLACK;
+  root.style.setProperty('--tr-fit', `${Math.max(SMALLEST, Math.floor(innerHeight - top - below))}px`);
+}
 function wire(root, p, given) {
   const svg = root.querySelector('[data-tr-board]'), q = p.parameters;
   if (!svg) return;
@@ -585,6 +602,7 @@ function wire(root, p, given) {
   // On a phone the board reaches the panel's edges (CSS reads --tr-bleed).
   const panel = svg.closest('.board-panel');
   if (panel) root.style.setProperty('--tr-bleed', `${parseFloat(getComputedStyle(panel).paddingLeft) || 0}px`);
+  fitBoard(root, svg);
   if (!listening) {
     document.addEventListener('pointermove', onMove);
     for (const type of ['pointerup', 'pointercancel']) document.addEventListener(type, onEnd);
@@ -594,7 +612,8 @@ function wire(root, p, given) {
   const pick = i => {
     const state = ui(p), others = state.picks.filter(k => k !== i);
     if (state.picks.includes(i)) { api.ui({picks: others}); return; }
-    if (others.length === 1) { api.apply({type: 'cant', picks: [others[0], i]}); return; }
+    // The second tap is the claim: it is judged once, and the taps clear.
+    if (others.length === 1) { Object.assign(state, {claiming: false, picks: []}); api.apply({type: 'cant', picks: [others[0], i]}); return; }
     api.ui({picks: [i]});
   };
   // What a tap at the board point z does.
@@ -618,11 +637,14 @@ function wire(root, p, given) {
   };
   svg.addEventListener('pointerdown', e => {
     if (e.button > 0 || !e.isPrimary) return;
+    // preventDefault below keeps the board from taking focus by itself, so
+    // give it focus: arrow keys then move the junction after a tap.
+    svg.focus({preventScroll: true});
     const b = now();
     if (q.mode !== 'playground' && solved(p, b)) return;
     const z = boardAt(svg, e.clientX, e.clientY);
     if (!z) return;
-    const scale = svg.getScreenCTM?.()?.a || 4, lift = e.pointerType === 'touch' ? LIFT * SCALE * scale : 0;
+    const scale = svg.getScreenCTM?.()?.a || 4, lift = e.pointerType === 'touch' ? Math.max(36, LIFT * SCALE * scale) : 0;
     const base = {pointer: e.pointerId, svg, api, q, x: e.clientX, y: e.clientY, moved: false, tap: () => tapAt(z)};
     // A slide from a circle's letter starts at the circle.
     if (q.mode === 'every') { const k = labelTarget(q, z); gesture = {...base, kind: 'stroke', start: k >= 0 ? q.targets[k] : snap(q, z), lift: 0, stroke: null}; e.preventDefault(); return; }
@@ -675,7 +697,8 @@ export const tropicalMechanics = {
       if (q.mode === 'every') return from.lock && Array.isArray(to.marks) && sameMarks(from.lock, to.marks) ? {...to, lock: from.lock.map(makeMark)} : to;
       if (!Array.isArray(from.at) || !Array.isArray(to.at) || !L.same(from.at, to.at)) return to;
       if (q.mode === 'meet') return from.refused ? {...to, refused: true} : to;
-      return {...to, checked: to.checked || from.checked, claimed: to.claimed || from.claimed, tried: to.tried || from.claimed};
+      const claimed = Array.isArray(from.claimed) && Array.isArray(to.claimed) ? from.claimed.reduce(addPair, to.claimed) : to.claimed;
+      return {...to, checked: to.checked || from.checked, claimed, tried: to.tried || claimed.length > 0};
     },
     noHint: p => p.parameters.mode === 'playground'
   }
@@ -688,5 +711,5 @@ export default {
   mechanics: tropicalMechanics,
   pack: new URL('./tropical.json', import.meta.url).href,
   css: new URL('./tropical.css', import.meta.url).href,
-  focus: '.tr-board,.tr-button:not([disabled])'
+  focus: '[data-tr-board],.tr-button:not([disabled])'
 };

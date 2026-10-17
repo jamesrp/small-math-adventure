@@ -106,10 +106,20 @@ test('meet: B is judged only on Check; a point goal and a stretch goal', () => {
   assert.match(board(p, play(p, freshAttempt(p), put([0, 7]), check)), /They meet somewhere else\./);
 
   const s = byId('tropical-02');
-  assert.deepEqual(meetAnswers(s.parameters).map(U), [[4, 6]]);
-  assert.match(board(s, play(s, freshAttempt(s), put([4, 2]), check)), /They share a different stretch\./);
+  assert.deepEqual(meetAnswers(s.parameters).map(U).sort(), [[0, 4], [1, 4], [2, 4], [3, 4]]);
+  assert.match(board(s, play(s, freshAttempt(s), put([6, 4]), check)), /They share a different stretch\./, 'B right of A: the stretch starts at B');
   assert.match(board(s, play(s, freshAttempt(s), put([6, 7]), check)), /They share only one point\./);
-  assert.ok(isSolved(s, play(s, freshAttempt(s), put([4, 6]), check).board));
+  assert.ok(isSolved(s, play(s, freshAttempt(s), put([2, 4]), check).board));
+  // The slanting stretch from A: B above A on its diagonal, not below.
+  const d = byId('tropical-05');
+  assert.deepEqual(meetAnswers(d.parameters).map(U).sort(), [[5, 5], [6, 6], [7, 7], [8, 8]]);
+  assert.match(board(d, play(d, freshAttempt(d), put([2, 2]), check)), /They share a different stretch\./);
+  assert.ok(isSolved(d, play(d, freshAttempt(d), put([7, 7]), check).board));
+  // No answer is a point the board draws.
+  for (const m of [byId('tropical-01'), s, d, byId('tropical-06'), byId('tropical-10')]) {
+    const g = m.parameters.goal, drawn = g.kind === 'point' ? g.at : g.from;
+    assert.ok(!meetAnswers(m.parameters).some(B => L.same(B, drawn) || L.same(B, m.parameters.A)), `${m.id}: no answer drawn`);
+  }
   // Half-steps on Hard: B half a square left of the ring or below it.
   const h = byId('tropical-10');
   assert.deepEqual(meetAnswers(h.parameters).map(U).sort(), [[0, 0.5], [0.5, 0]]);
@@ -138,14 +148,17 @@ test('through: one junction through two circles; Can’t with two circles after 
   assert.match(claiming, /<p class="tr-told">Tap two circles\.<\/p>/);
   assert.equal((claiming.match(/class="tr-pick"/g) || []).length, 3);
   assert.doesNotMatch(claiming, /tr-hint|picked/);
-  // A wrong pair: one short refusal, kept across Undo.
+  M.ui(r, {claiming: false});
+  // A wrong pair: one short refusal; that pair stays refused here, also across Undo.
   const wrong = play(r, a, cant(1, 2));
   assert.match(board(r, wrong), /<p class="tr-told">The line misses R\.<\/p>/);
-  assert.equal(move(r, wrong, cant(0, 1)), null, 'one claim per place');
+  assert.deepEqual(wrong.board.claimed, [[1, 2]]);
+  assert.equal(JSON.stringify(move(r, wrong, cant(2, 1)).board), JSON.stringify(wrong.board), 'the same pair again changes nothing');
   const back = undoWithCarry(r, wrong);
-  assert.ok(back.board.claimed && back.board.said === null);
+  assert.ok(back.board.claimed.length === 1 && back.board.said === null);
   assert.notEqual(board(r, back), board(r, wrong));
-  assert.equal(move(r, back, cant(0, 1)), null, 'still refused after Undo');
+  assert.ok(!isSolved(r, play(r, back, cant(1, 2)).board), 'still refused after Undo');
+  assert.deepEqual(nextHint(r, wrong).action, cant(0, 1), 'the hint goes to the right pair, with no stepping off and back');
   // P and R allow a whole ray of junctions.
   assert.deepEqual(judgeClaim(q, [0, 2], H([6, 6])), {why: 'more'});
   assert.match(board(r, play(r, play(r, fresh, put([6, 6])), cant(0, 2))), /Other junctions pass P and R too\./);
@@ -261,6 +274,10 @@ test('every puzzle renders its board, arms past the frame, one short objective; 
   const help = M.help(byId('tropical-01'));
   assert.match(help, /data-mechanic-wire="tropical"/);
   assert.match(help, /P is on the line; Q is not\./);
+  // Focus is restored to the live board, never to a How to play picture.
+  assert.match(module.focus.split(',')[0], /^\[data-tr-board\]$/);
+  assert.doesNotMatch(help, /data-tr-board/, 'the pictures are not the board');
+  assert.match(board(byId('tropical-01'), freshAttempt(byId('tropical-01'))), /data-tr-board/);
 });
 
 test('the playground: two lines, both movable, what they share always drawn; never solved', () => {

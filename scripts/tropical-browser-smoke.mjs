@@ -43,6 +43,8 @@ const press = async name => { await page.locator(`.tr-puzzle button:has-text("${
 const button = name => page.locator(`.tr-puzzle button:has-text("${name}")`);
 const told = async () => ((await page.locator('.tr-told').count()) ? page.locator('.tr-told').innerText() : '');
 const undoButton = async () => { await page.locator('[data-action="undo"]').click(); await page.waitForTimeout(40); };
+// The board, its line of words and its buttons fit on the first screen.
+const onScreen = async label => assert.ok(await page.evaluate(() => [...document.querySelectorAll('[data-tr-board], .tr-puzzle .tr-told, .tr-puzzle .tr-bar')].every(e => e.getBoundingClientRect().bottom + scrollY <= innerHeight + 0.5)), `${label}: board, words and buttons on the first screen`);
 const focusedClass = () => page.evaluate(() => { const e = document.activeElement; return String(e?.className?.baseVal ?? e?.className ?? ''); });
 let cdp = null;
 // A drag between two board points (in squares). On a touch screen a dragged
@@ -65,7 +67,7 @@ async function drag(from, to, {lift = 0, check} = {}) {
   await touch('touchEnd', b);
   await page.waitForTimeout(40);
 }
-const LIFT = 1.2; // squares: the mechanic's 2.4 half-steps
+const LIFT = 1.2; // squares: the mechanic's 2.4 half-steps (at least 36 px)
 
 try {
   await mkdir(out, {recursive: true});
@@ -85,6 +87,11 @@ try {
   assert.match(await page.locator('body').innerText(), /Make the two lines share only the ringed point\./);
   await tap([2, 2]);
   assert.deepEqual((await board(P)).at, H([2, 2]), 'a tap moves B');
+  // The board takes focus from a click or a tap, so arrow keys move B next.
+  assert.match(await focusedClass(), /tr-board/, `after a ${phone ? 'tap' : 'click'}, focus is on the board`);
+  await page.keyboard.press('ArrowRight'); await page.waitForTimeout(40);
+  assert.deepEqual((await board(P)).at, H([3, 2]), 'ArrowRight after a tap moves B');
+  await page.keyboard.press('ArrowLeft'); await page.waitForTimeout(40);
   assert.equal(await page.locator('.tr-shared, .tr-ring.good, .tr-ring.bad').count(), 0, 'nothing judged while B moves');
   // A tap a little off a crossing goes to the nearest one.
   const [x0, y0] = await spot([3, 2]);
@@ -118,7 +125,7 @@ try {
   assert.equal(await page.locator('.tr-ring.good').count(), 1, 'the shared point is ringed');
   await shot('meet-solved');
 
-  // Puzzle 2: meet in a stretch, with the keyboard.
+  // Puzzle 2: share the stretch right from A, with the keyboard (around A, not through it).
   P = 'tropical-02';
   await open(P);
   await page.locator('[data-tr-board]').focus();
@@ -126,15 +133,19 @@ try {
   await page.waitForTimeout(40);
   assert.deepEqual((await board(P)).at, H([5, 4]), 'arrow keys move B a square at a time');
   assert.match(await focusedClass(), /tr-board/, 'focus stays on the board after a key move');
-  for (const k of ['ArrowLeft', 'ArrowUp', 'ArrowUp']) await page.keyboard.press(k);
+  for (const k of ['ArrowDown', 'ArrowLeft', 'ArrowLeft', 'ArrowUp']) await page.keyboard.press(k);
   await page.waitForTimeout(40);
-  assert.match(await page.locator('.tr-puzzle [role=status]').textContent(), /B at 4 across, 6 up\./);
+  assert.match(await page.locator('.tr-puzzle [role=status]').textContent(), /B at 3 across, 4 up\./);
   await button('Check').focus(); await page.keyboard.press('Enter'); await done();
 
   // Puzzle 12: three circles. A tap on a letter goes to its circle; Can't after an attempt.
   P = 'tropical-12';
-  await open(P); await fit('three circles');
+  await open(P); await fit('three circles'); await onScreen('three circles');
   assert.equal(await button('Can’t').isDisabled(), true, 'Can’t waits for an attempt');
+  await tap([5, 4]);
+  assert.match(await focusedClass(), /tr-board/, `after a ${phone ? 'tap' : 'click'} on puzzle 12, focus is on the board`);
+  await page.keyboard.press('ArrowUp'); await page.waitForTimeout(40);
+  assert.deepEqual((await board(P)).at, H([5, 5]), 'ArrowUp moves the junction, not the page');
   await tapAt(await centre('.tr-target[data-target="2"] .tr-name'));
   assert.deepEqual((await board(P)).at, H([6, 6]), 'a tap on R’s letter puts the junction on R');
   await tap([7, 5]);
@@ -149,20 +160,28 @@ try {
   assert.equal(await told(), 'Tap two circles.');
   assert.equal(await page.locator('.tr-pick').count(), 3, 'all three circles can be tapped');
   assert.equal(await page.locator('.tr-hint, .tr-pick.picked').count(), 0, 'none is marked');
+  await onScreen('Can’t pressed');
   await tapAt(await centre('.tr-target[data-target="1"] .tr-name'));
   assert.equal(await page.locator('.tr-pick.picked').count(), 1, 'a tap on Q’s letter picks Q');
   await tap([6, 6]);
   const refusedClaim = await board(P);
   assert.deepEqual(refusedClaim.said, [1, 2], 'Q and R: refused');
+  assert.deepEqual(refusedClaim.claimed, [[1, 2]], 'that pair is refused at this place');
   assert.equal(await told(), 'The line misses R.');
-  assert.equal(await button('Can’t').isDisabled(), true, 'one claim per place');
+  assert.equal(await page.locator('.tr-pick').count(), 0, 'the taps clear');
+  assert.equal(await button('Can’t').isDisabled(), false, 'another pair can still be claimed here');
   assert.notEqual(await page.evaluate(() => document.activeElement?.classList?.contains('tr-cant')), true, 'focus is not on Can’t');
+  await onScreen('a refused claim');
+  await shot('three-circles-refused');
+  // The same pair again only says the same thing.
+  await press('Can’t'); await tap([7, 5]); await tap([6, 6]);
+  assert.equal(await told(), 'The line misses R.');
+  assert.deepEqual((await board(P)).claimed, [[1, 2]]);
   await undoButton();
   assert.equal(await told(), '', 'Undo takes back the words');
-  assert.equal((await board(P)).claimed, true, 'and keeps the refused claim');
-  assert.equal(await button('Can’t').isDisabled(), true);
-  // Away and back (a move lets go of Can't and its taps), then the right
-  // pair, by keyboard for one of them.
+  assert.deepEqual((await board(P)).claimed, [[1, 2]], 'and keeps the refused pair');
+  // A move lets go of Can't and its taps; then the right pair, by keyboard
+  // for one of them.
   await tap([5, 4]);
   await press('Can’t');
   await tapAt(await centre('.tr-target[data-target="0"] .tr-name'));
@@ -217,6 +236,17 @@ try {
   assert.equal(await button('That’s all').isDisabled(), false);
   await press('That’s all'); await done();
   await shot('every-solved');
+
+  // Puzzle 8: a slide off the bottom edge marks the ray down; the buttons stay on the first screen.
+  P = 'tropical-08';
+  await open(P); await fit('upright'); await onScreen('upright');
+  await drag([3, 2], [3, 0]);
+  await press('That’s all');
+  assert.equal(await told(), 'There are more.');
+  await onScreen('upright, refused');
+  await drag([3, 2], [3, -1.2]);
+  assert.deepEqual((await board(P)).marks.at(-1), {from: H([3, 2]), dir: 'S'}, 'a slide off the bottom edge marks the ray down');
+  await press('That’s all'); await done();
 
   // Puzzle 9: half-steps and a slant; a wrong stretch, Shift and an arrow key.
   P = 'tropical-09';

@@ -5,9 +5,10 @@
    wrong. Drawn in half-steps scaled by 5, so strokes do not scale. Each
    coloured piece sets --tr-c and the shapes read it. */
 [data-mechanic-wire="tropical"].tr-puzzle{display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%}
-[data-mechanic-wire="tropical"] .tr-board{display:block;width:100%;max-width:380px;height:auto;aspect-ratio:1;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;cursor:pointer;border-radius:12px;background:var(--b-card,#fffdf5)}
-/* On a phone the board reaches the panel's edges (wire sets --tr-bleed to the panel's padding). */
-@media (max-width:560px){[data-mechanic-wire="tropical"].tr-puzzle .tr-board{width:calc(100% + 2 * var(--tr-bleed,0px));max-width:none;margin-inline:calc(-1 * var(--tr-bleed,0px));border-radius:0}}
+[data-mechanic-wire="tropical"] .tr-board{display:block;width:100%;max-width:380px;max-width:min(380px,var(--tr-fit,380px));height:auto;aspect-ratio:1;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;cursor:pointer;border-radius:12px;background:var(--b-card,#fffdf5)}
+/* On a phone the board reaches the panel's edges (wire sets --tr-bleed to the panel's padding), and on a
+   short screen it shrinks so the words and buttons below it stay on the first screen (wire sets --tr-fit). */
+@media (max-width:560px){[data-mechanic-wire="tropical"].tr-puzzle .tr-board{width:calc(100% + 2 * var(--tr-bleed,0px));width:min(calc(100% + 2 * var(--tr-bleed,0px)),var(--tr-fit,9999px));max-width:none;margin-inline:calc(-1 * var(--tr-bleed,0px));border-radius:0}}
 [data-mechanic-wire="tropical"] .tr-board:focus{outline:none}
 [data-mechanic-wire="tropical"] .tr-board:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:4px}
 [data-mechanic-wire="tropical"].solved .tr-board{cursor:default}
@@ -40,7 +41,7 @@
 [data-mechanic-wire="tropical"] .tr-ray.tr-off{stroke-width:2px;stroke-dasharray:4 4}
 [data-mechanic-wire="tropical"] .tr-ray.tr-fan-on{stroke-width:2.4px;stroke-dasharray:6 4}
 [data-mechanic-wire="tropical"] .tr-ray.tr-fan-off{stroke-width:1.6px;stroke-dasharray:3 4}
-[data-mechanic-wire="tropical"] .tr-ray.tr-hint-ray{stroke-width:3px;stroke-dasharray:5 3;pointer-events:none}
+[data-mechanic-wire="tropical"] .tr-ray.tr-hint-ray{stroke-width:3.4px;stroke-dasharray:0 6;stroke-linecap:round;pointer-events:none}
 [data-mechanic-wire="tropical"] .tr-line.chosen .tr-ray{stroke-width:3.4px}
 [data-mechanic-wire="tropical"] .tr-line.chosen .tr-junction{stroke:var(--b-ink,#294439);stroke-width:2px}
 [data-mechanic-wire="tropical"].mode-through.solved .tr-ray.tr-j,[data-mechanic-wire="tropical"].mode-through.solved .tr-ray.good{stroke-width:3.2px}
@@ -80,8 +81,8 @@
 [data-mechanic-wire="tropical"] .tr-pick:focus{outline:none}
 [data-mechanic-wire="tropical"] .tr-pick:focus-visible .tr-pick-ring{stroke:var(--b-ochre,#b38840);stroke-width:4px}
 
-/* Hints. */
-[data-mechanic-wire="tropical"] .tr-ring.tr-hint{stroke:var(--b-ochre,#b38840);stroke-width:3.5px;stroke-dasharray:5 3}
+/* Hints: larger rings and rays of round dots, never the dashes of a refusal. */
+[data-mechanic-wire="tropical"] .tr-ring.tr-hint{stroke:var(--b-ochre,#b38840);stroke-width:3.6px;stroke-dasharray:0 6;stroke-linecap:round}
 
 /* The bar: Check, Can't, Keep, Drop, That's all. */
 [data-mechanic-wire="tropical"] .tr-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .8rem;max-width:100%}
@@ -89,7 +90,7 @@
 [data-mechanic-wire="tropical"] .tr-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
 [data-mechanic-wire="tropical"] .tr-cant[aria-pressed="true"]{background:#e9eddc;box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
 [data-mechanic-wire="tropical"] .tr-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
-[data-mechanic-wire="tropical"] .tr-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+[data-mechanic-wire="tropical"] .tr-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;line-height:1.25;color:var(--b-ink,#294439);text-align:center}
 
 /* How to play pictures. */
 [data-mechanic-wire="tropical"].tr-help{display:flex;flex-wrap:wrap;gap:.8rem;justify-content:center;margin:.4rem 0}
