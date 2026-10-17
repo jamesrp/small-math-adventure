@@ -1,0 +1,736 @@
+{
+ "title": "Pebble Duel buckets",
+ "version": 1,
+ "families": [
+  {
+   "id": "buckets",
+   "title": "Pebble Duel: buckets",
+   "mathematics": "Buckets stand in a row, each holding some fish. A move takes one fish from a bucket and may add one fish to each bucket to its left; whoever takes the last fish wins. Every play ends, because the rightmost bucket never gains a fish (and then, by induction, the buckets to its left), even though the number of fish can grow. The second player wins exactly when every bucket holds an even number: a move from such a position makes the bucket it takes from odd, and from any other position exactly one move restores it, taking from the rightmost odd bucket and adding one to each odd bucket on its left. The same holds with no limit on what is added. In the encore a move takes 1, 2 or 3 fish and may add up to 3 to each bucket on the left, and the second player wins exactly when every bucket is a multiple of 4; with adds of only 1 or 2 that fails.",
+   "rules": [
+    "Players take turns. A move takes one fish from a bucket and may then add one fish to each bucket to its left, to some of them, or to none.",
+    "In the encore a move takes 1, 2 or 3 fish from one bucket and may add up to 3 fish to each bucket to its left.",
+    "Whoever takes the last fish wins. The app never misses a winning move."
+   ],
+   "sourceIds": [
+    "buckets-week81",
+    "buckets-card81",
+    "buckets-hamkins",
+    "buckets-ferguson"
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "id": "buckets-week81",
+   "title": "Bellingham Math Circle — Week 81: Buckets of Fish (student packet and adult guide, with its encore)",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-81",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "buckets-card81",
+   "title": "Week 81 review card and math check (App fit and Decision: a Pebble Duel group, the capped game and the take-1-to-3 encore)",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-81.md",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "buckets-hamkins",
+   "title": "Joel David Hamkins — Buckets of fish! (March 4, 2017): the game, why every play ends, and the parity strategy",
+   "url": "https://jdh.hamkins.org/buckets-of-fish/",
+   "kind": "research"
+  },
+  {
+   "id": "buckets-ferguson",
+   "title": "Thomas S. Ferguson — Game Theory, Part I: Impartial Combinatorial Games, §1 (P- and N-positions)",
+   "url": "https://www.math.ucla.edu/~tom/Game_Theory/comb.pdf",
+   "kind": "undergraduate"
+  }
+ ],
+ "puzzles": [
+  {
+   "id": "buckets-01",
+   "number": 1,
+   "title": "0, 0 and 1",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "buckets",
+   "libraryFamily": "nim",
+   "group": "Buckets",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "duel",
+    "start": [
+     0,
+     0,
+     1
+    ],
+    "cap": 1,
+    "takes": 1
+   },
+   "objective": "Take the last fish to win. You go first.",
+   "visibleObjective": "Take the last fish.",
+   "instruction": "Take the last fish to win. You go first.",
+   "controls": "A move takes one fish from a bucket and may add one fish to each bucket to its left. Whoever takes the last fish wins. Tap a bucket to take a fish from it, tap buckets to its left to add one to each, then End turn. Tap a bucket again to change it. I reply at once. Undo takes back your move and my reply.",
+   "rules": [
+    "Players take turns.",
+    "A move takes one fish from a bucket.",
+    "It may then add one fish to each bucket to its left, to some of them, or to none.",
+    "Whoever takes the last fish wins.",
+    "The app never misses a winning move.",
+    "You go first."
+   ],
+   "idea": "Adding fish is allowed, never required. From 0, 0 and 1, take the fish and add nothing: then I have no move.",
+   "prerequisites": "Count to 3. A grown-up can read how a move works.",
+   "hints": [
+    "After your move, what can I do?",
+    "If you leave me a fish, I can take it.",
+    "Take the fish from bucket 3, and add nothing."
+   ],
+   "parent": {
+    "notice": "Whether your child adds fish because the rule allows it, and changes course after I take a fish they gave me.",
+    "prompt": "Why did adding a fish lose?",
+    "explanation": "The only fish is in bucket 3, so the first move takes it and may add one fish to bucket 1, bucket 2, both or neither. Adding nothing leaves no fish, and the second player cannot move. Any addition leaves a bucket with one fish, which I take, and then you cannot move. Adding is a choice, and here the winning choice is none.",
+    "extension": "From 0, 1 and 0, which move wins?",
+    "connection": "A normal-play impartial game: a start is lost for the player to move exactly when every move reaches a start that is won (Ferguson, §1). Hamkins’s buckets of fish show a game whose positions grow yet every play ends, by an ordinal ω^(n−1)·a_n + … + a_1 that drops at every move; parity in each bucket decides who wins.",
+    "sourceIds": [
+     "buckets-week81",
+     "buckets-card81",
+     "buckets-hamkins",
+     "buckets-ferguson"
+    ]
+   },
+   "solution": {
+    "winningMoves": [
+     {
+      "from": 3,
+      "take": 1,
+      "add": [
+       0,
+       0,
+       0
+      ]
+     }
+    ],
+    "leaves": [
+     [
+      0,
+      0,
+      0
+     ]
+    ]
+   },
+   "provenance": "Week 81 Problem 1 (the start 0, 0 and 1: which starts let the first player win whatever the second player does?), as a duel against a perfect opponent.",
+   "proof": true,
+   "sourceDocument": "docs/buckets/README.md"
+  },
+  {
+   "id": "buckets-02",
+   "number": 2,
+   "title": "2, 1 and 1",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "buckets",
+   "libraryFamily": "nim",
+   "group": "Buckets",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "duel",
+    "start": [
+     2,
+     1,
+     1
+    ],
+    "cap": 1,
+    "takes": 1
+   },
+   "objective": "Take the last fish to win. You go first.",
+   "visibleObjective": "Take the last fish.",
+   "instruction": "Take the last fish to win. You go first.",
+   "controls": "A move takes one fish from a bucket and may add one fish to each bucket to its left. Whoever takes the last fish wins. Tap a bucket to take a fish from it, tap buckets to its left to add one to each, then End turn. Tap a bucket again to change it. I reply at once. Undo takes back your move and my reply.",
+   "rules": [
+    "Players take turns.",
+    "A move takes one fish from a bucket.",
+    "It may then add one fish to each bucket to its left, to some of them, or to none.",
+    "Whoever takes the last fish wins.",
+    "The app never misses a winning move.",
+    "You go first."
+   ],
+   "idea": "The winning move takes from bucket 3 and adds to bucket 2 but not to bucket 1, leaving 2, 2 and 0.",
+   "prerequisites": "Puzzle 1. Count to 6.",
+   "hints": [
+    "Try a move. When I win, Undo and look at what I left you each time.",
+    "Which buckets did I leave you when I won? Leave me buckets like those.",
+    "Take a fish from bucket 3 and add one to bucket 2 only."
+   ],
+   "parent": {
+    "notice": "Whether your child compares the buckets I leave after my moves, and tries leaving me something like them.",
+    "prompt": "Why does adding to bucket 1 as well lose?",
+    "explanation": "The second player wins exactly when every bucket holds an even number of fish. A move from such a position makes the bucket it takes from odd, so it always leaves an odd bucket. From any other position, take a fish from the rightmost odd bucket and add one to each odd bucket on its left (and none to the even ones): every bucket is even again, and this is the only move that does it. Every play ends (the rightmost bucket never gains a fish), so whoever keeps every bucket even takes the last fish. From 2, 1 and 1 the rightmost odd bucket is bucket 3, and bucket 2 is the only odd bucket on its left: take from 3 and add to 2, leaving 2, 2 and 0.",
+    "extension": "From 2, 2 and 2, would you rather go first or second?",
+    "connection": "A normal-play impartial game: a start is lost for the player to move exactly when every move reaches a start that is won (Ferguson, §1). Hamkins’s buckets of fish show a game whose positions grow yet every play ends, by an ordinal ω^(n−1)·a_n + … + a_1 that drops at every move; parity in each bucket decides who wins.",
+    "sourceIds": [
+     "buckets-week81",
+     "buckets-card81",
+     "buckets-hamkins",
+     "buckets-ferguson"
+    ]
+   },
+   "solution": {
+    "winningMoves": [
+     {
+      "from": 3,
+      "take": 1,
+      "add": [
+       0,
+       1,
+       0
+      ]
+     }
+    ],
+    "leaves": [
+     [
+      2,
+      2,
+      0
+     ]
+    ]
+   },
+   "provenance": "Week 81 Problem 1 (the start 2, 1 and 1), as a duel against a perfect opponent.",
+   "proof": true,
+   "sourceDocument": "docs/buckets/README.md"
+  },
+  {
+   "id": "buckets-03",
+   "number": 3,
+   "title": "Replies to 2 and 2",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "buckets",
+   "libraryFamily": "nim",
+   "group": "Buckets",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "replies",
+    "start": [
+     2,
+     2
+    ],
+    "cap": 1,
+    "takes": 1
+   },
+   "objective": "You go second from 2 and 2. I try each of my first moves in turn. Win every game.",
+   "visibleObjective": "Go second from 2 and 2. Win against each of my first moves.",
+   "instruction": "You go second from 2 and 2. I try each of my first moves in turn. Win every game.",
+   "controls": "A move takes one fish from a bucket and may add one fish to each bucket to its left. Whoever takes the last fish wins. You go second, and I try each first move in turn. Tap a bucket to take a fish from it, tap buckets to its left to add one to each, then End turn. Tap a bucket again to change it. After a win, Next first move starts the next game; after a loss, Try again replays the same first move.",
+   "rules": [
+    "Players take turns.",
+    "A move takes one fish from a bucket.",
+    "It may then add one fish to each bucket to its left, to some of them, or to none.",
+    "Whoever takes the last fish wins.",
+    "The app never misses a winning move.",
+    "You go second from 2 and 2, and I try each first move in turn. Win every game."
+   ],
+   "idea": "Going second from 2 and 2 wins against every first move: answer 1 and 2 with 0 and 2, answer 2 and 1 with 2 and 0, and answer 3 and 1 with 4 and 0.",
+   "prerequisites": "Puzzles 1 and 2.",
+   "hints": [
+    "After my first move, which buckets would you like to leave me?",
+    "You started from 2 and 2, a start you can win going second. Leave me something like it.",
+    "After each of my moves, make every bucket pair up again."
+   ],
+   "parent": {
+    "notice": "Whether your child answers each first move by restoring a position like the start, rather than by trying moves at random.",
+    "prompt": "Why can I never win from 2 and 2 if I go first?",
+    "explanation": "The second player wins exactly when every bucket holds an even number of fish. A move from such a position makes the bucket it takes from odd, so it always leaves an odd bucket. From any other position, take a fish from the rightmost odd bucket and add one to each odd bucket on its left (and none to the even ones): every bucket is even again, and this is the only move that does it. Every play ends (the rightmost bucket never gains a fish), so whoever keeps every bucket even takes the last fish. From 2 and 2 my three first moves leave 1 and 2, 2 and 1, or 3 and 1, and each has one winning reply: 0 and 2, 2 and 0, 4 and 0.",
+    "extension": "Is 2 and 4 a start you would rather hand over?",
+    "connection": "A normal-play impartial game: a start is lost for the player to move exactly when every move reaches a start that is won (Ferguson, §1). Hamkins’s buckets of fish show a game whose positions grow yet every play ends, by an ordinal ω^(n−1)·a_n + … + a_1 that drops at every move; parity in each bucket decides who wins.",
+    "sourceIds": [
+     "buckets-week81",
+     "buckets-card81",
+     "buckets-hamkins",
+     "buckets-ferguson"
+    ]
+   },
+   "solution": {
+    "replies": [
+     {
+      "first": {
+       "from": 1,
+       "take": 1,
+       "add": [
+        0,
+        0
+       ]
+      },
+      "leaves": [
+       1,
+       2
+      ],
+      "reply": {
+       "from": 1,
+       "take": 1,
+       "add": [
+        0,
+        0
+       ]
+      },
+      "then": [
+       0,
+       2
+      ]
+     },
+     {
+      "first": {
+       "from": 2,
+       "take": 1,
+       "add": [
+        0,
+        0
+       ]
+      },
+      "leaves": [
+       2,
+       1
+      ],
+      "reply": {
+       "from": 2,
+       "take": 1,
+       "add": [
+        0,
+        0
+       ]
+      },
+      "then": [
+       2,
+       0
+      ]
+     },
+     {
+      "first": {
+       "from": 2,
+       "take": 1,
+       "add": [
+        1,
+        0
+       ]
+      },
+      "leaves": [
+       3,
+       1
+      ],
+      "reply": {
+       "from": 2,
+       "take": 1,
+       "add": [
+        1,
+        0
+       ]
+      },
+      "then": [
+       4,
+       0
+      ]
+     }
+    ]
+   },
+   "provenance": "Week 81 Problem 2 (the card 2 and 2, a second-player start), as every reply: the app tries each of its three first moves, as the card’s App fit asks.",
+   "proof": true,
+   "sourceDocument": "docs/buckets/README.md"
+  },
+  {
+   "id": "buckets-04",
+   "number": 4,
+   "title": "Two buckets of 0 to 3",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "bucketsort",
+   "libraryFamily": "nim",
+   "group": "Buckets",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "kind": "sort"
+   },
+   "objective": "Mark every start where you would rather go second, then press That’s all.",
+   "visibleObjective": "Mark every start where you would rather go second.",
+   "instruction": "Mark every start where you would rather go second, then press That’s all.",
+   "controls": "A move takes one fish from a bucket and may add one fish to each bucket to its left. Whoever takes the last fish wins. Tap a card to mark it, and again to clear it. Play, then a card, tries a game from it against me. That’s all checks every mark at once. While a start is still missing, it says “There is another.” Once none is missing, it is final: if a marked start is one where the first player can win, I go first from it and win, and then the marks are cleared.",
+   "rules": [
+    "Players take turns.",
+    "A move takes one fish from a bucket.",
+    "It may then add one fish to each bucket to its left, to some of them, or to none.",
+    "Whoever takes the last fish wins.",
+    "The app never misses a winning move.",
+    "A start is a card with 0 to 3 fish in each of two buckets, not both empty.",
+    "While a start is still missing, That’s all says “There is another.”",
+    "Once none is missing, That’s all is final: if a marked start is one where the first player can win, I go first from it and win, and then the marks are cleared."
+   ],
+   "idea": "Of the fifteen cards, 2 and 0, 0 and 2, and 2 and 2 are the starts where you would rather go second.",
+   "prerequisites": "Puzzles 1–3. Count to 3.",
+   "hints": [
+    "Use Play to try a card both ways. Which cards can you win going second?",
+    "A start is one to mark when every move from it reaches a start that is not marked.",
+    "Start with the cards with the fewest fish."
+   ],
+   "parent": {
+    "notice": "Whether your child decides each card by playing it, starting from the cards with the fewest fish, or marks a guessed pattern.",
+    "prompt": "How do you know there is no other?",
+    "explanation": "The second player wins exactly when every bucket holds an even number of fish. A move from such a position makes the bucket it takes from odd, so it always leaves an odd bucket. From any other position, take a fish from the rightmost odd bucket and add one to each odd bucket on its left (and none to the even ones): every bucket is even again, and this is the only move that does it. Every play ends (the rightmost bucket never gains a fish), so whoever keeps every bucket even takes the last fish. So among the fifteen cards the second-player starts are 2 and 0, 0 and 2, and 2 and 2. While a start is missing, That’s all says only “There is another.”, with no count, even if a wrong card is marked too. Once none is missing, a wrong That’s all is final: the app goes first from the wrong card, wins, and clears the marks.",
+    "extension": "Which three-bucket starts with 0 to 3 fish would you rather hand over? (There are seven.)",
+    "connection": "A normal-play impartial game: a start is lost for the player to move exactly when every move reaches a start that is won (Ferguson, §1). Hamkins’s buckets of fish show a game whose positions grow yet every play ends, by an ordinal ω^(n−1)·a_n + … + a_1 that drops at every move; parity in each bucket decides who wins.",
+    "sourceIds": [
+     "buckets-week81",
+     "buckets-card81",
+     "buckets-hamkins",
+     "buckets-ferguson"
+    ]
+   },
+   "solution": {
+    "cards": [
+     2,
+     8,
+     10
+    ],
+    "starts": [
+     [
+      2,
+      0
+     ],
+     [
+      0,
+      2
+     ],
+     [
+      2,
+      2
+     ]
+    ],
+    "count": 15
+   },
+   "provenance": "Week 81 Problem 2 (sort the sixteen two-bucket cards into starts the first player can force and starts the second player can force); the empty card is left out.",
+   "proof": true,
+   "sourceDocument": "docs/buckets/README.md"
+  },
+  {
+   "id": "buckets-05",
+   "number": 5,
+   "title": "3, 3 and 1",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "buckets",
+   "libraryFamily": "nim",
+   "group": "Buckets",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "duel",
+    "start": [
+     3,
+     3,
+     1
+    ],
+    "cap": 1,
+    "takes": 1
+   },
+   "objective": "Take the last fish to win. You go first.",
+   "visibleObjective": "Take the last fish.",
+   "instruction": "Take the last fish to win. You go first.",
+   "controls": "A move takes one fish from a bucket and may add one fish to each bucket to its left. Whoever takes the last fish wins. Tap a bucket to take a fish from it, tap buckets to its left to add one to each, then End turn. Tap a bucket again to change it. I reply at once. Undo takes back your move and my reply.",
+   "rules": [
+    "Players take turns.",
+    "A move takes one fish from a bucket.",
+    "It may then add one fish to each bucket to its left, to some of them, or to none.",
+    "Whoever takes the last fish wins.",
+    "The app never misses a winning move.",
+    "You go first."
+   ],
+   "idea": "Here the winning move adds to two buckets: take from bucket 3 and add one to buckets 1 and 2, leaving 4, 4 and 0.",
+   "prerequisites": "Puzzles 2–4.",
+   "hints": [
+    "Which buckets would you like to leave me? Think of the starts where you would rather go second.",
+    "Leave me a start like 2 and 2, or 2, 2 and 2.",
+    "Take a fish from bucket 3 and add one to buckets 1 and 2."
+   ],
+   "parent": {
+    "notice": "Whether your child uses the starts found in Every start, and sees that the winning move has to add to both buckets.",
+    "prompt": "Is there another winning move?",
+    "explanation": "The second player wins exactly when every bucket holds an even number of fish. A move from such a position makes the bucket it takes from odd, so it always leaves an odd bucket. From any other position, take a fish from the rightmost odd bucket and add one to each odd bucket on its left (and none to the even ones): every bucket is even again, and this is the only move that does it. Every play ends (the rightmost bucket never gains a fish), so whoever keeps every bucket even takes the last fish. From 3, 3 and 1 all three buckets are odd: take from bucket 3 and add to buckets 1 and 2, leaving 4, 4 and 0.",
+    "extension": "From 1, 2 and 2, which move wins?",
+    "connection": "A normal-play impartial game: a start is lost for the player to move exactly when every move reaches a start that is won (Ferguson, §1). Hamkins’s buckets of fish show a game whose positions grow yet every play ends, by an ordinal ω^(n−1)·a_n + … + a_1 that drops at every move; parity in each bucket decides who wins.",
+    "sourceIds": [
+     "buckets-week81",
+     "buckets-card81",
+     "buckets-hamkins",
+     "buckets-ferguson"
+    ]
+   },
+   "solution": {
+    "winningMoves": [
+     {
+      "from": 3,
+      "take": 1,
+      "add": [
+       1,
+       1,
+       0
+      ]
+     }
+    ],
+    "leaves": [
+     [
+      4,
+      4,
+      0
+     ]
+    ]
+   },
+   "provenance": "Week 81 Problem 3 (the start 3, 3 and 1, whose winning move adds to two buckets), as a duel against a perfect opponent.",
+   "proof": true,
+   "sourceDocument": "docs/buckets/README.md"
+  },
+  {
+   "id": "buckets-06",
+   "number": 6,
+   "title": "Three buckets of 0 to 3",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "buckets",
+   "libraryFamily": "nim",
+   "group": "Buckets",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "streak",
+    "buckets": 3,
+    "max": 3,
+    "cap": 1,
+    "takes": 1,
+    "streak": 3
+   },
+   "objective": "Choose who starts, then take the last fish. Win 3 games in a row from new starts.",
+   "visibleObjective": "Win 3 games in a row.",
+   "instruction": "Choose who starts, then take the last fish. Win 3 games in a row from new starts.",
+   "controls": "A move takes one fish from a bucket and may add one fish to each bucket to its left. Whoever takes the last fish wins. Choose Me first or You first. Tap a bucket to take a fish from it, tap buckets to its left to add one to each, then End turn. Tap a bucket again to change it. I reply at once. Win 3 games in a row from new starts. After a loss, Same start again is practice and does not count.",
+   "rules": [
+    "Players take turns.",
+    "A move takes one fish from a bucket.",
+    "It may then add one fish to each bucket to its left, to some of them, or to none.",
+    "Whoever takes the last fish wins.",
+    "The app never misses a winning move.",
+    "Before each game, choose who starts.",
+    "Win 3 games in a row. Only games from a new start count; Same start again is for practice."
+   ],
+   "idea": "Let me start exactly when every bucket is even: 0, 0 and 2; 0, 2 and 0; 2, 0 and 0; 0, 2 and 2; 2, 0 and 2; 2, 2 and 0; 2, 2 and 2.",
+   "prerequisites": "Puzzles 1–5.",
+   "hints": [
+    "Lost a game? Same start again replays that start. Watch what I leave you.",
+    "When I won, look at the buckets I left you after each of my moves. What do they have in common?",
+    "Can the fish in every bucket I left you be paired up?"
+   ],
+   "parent": {
+    "notice": "Whether your child decides who starts by looking at the buckets before playing, rather than by who won last time.",
+    "prompt": "From which starts would you rather go second? How can you tell?",
+    "explanation": "The second player wins exactly when every bucket holds an even number of fish. A move from such a position makes the bucket it takes from odd, so it always leaves an odd bucket. From any other position, take a fish from the rightmost odd bucket and add one to each odd bucket on its left (and none to the even ones): every bucket is even again, and this is the only move that does it. Every play ends (the rightmost bucket never gains a fish), so whoever keeps every bucket even takes the last fish. Starts are drawn from every three-bucket start with 0 to 3 fish in each, except those one move from the end, half of them from the seven all-even starts, and the app never misses a win, so three wins in a row from new starts shows the rule is known, not guessed.",
+    "extension": "Does the rule change with four buckets?",
+    "connection": "A normal-play impartial game: a start is lost for the player to move exactly when every move reaches a start that is won (Ferguson, §1). Hamkins’s buckets of fish show a game whose positions grow yet every play ends, by an ordinal ω^(n−1)·a_n + … + a_1 that drops at every move; parity in each bucket decides who wins.",
+    "sourceIds": [
+     "buckets-week81",
+     "buckets-card81",
+     "buckets-hamkins",
+     "buckets-ferguson"
+    ]
+   },
+   "solution": {
+    "secondStarts": [
+     [
+      0,
+      0,
+      2
+     ],
+     [
+      0,
+      2,
+      0
+     ],
+     [
+      0,
+      2,
+      2
+     ],
+     [
+      2,
+      0,
+      0
+     ],
+     [
+      2,
+      0,
+      2
+     ],
+     [
+      2,
+      2,
+      0
+     ],
+     [
+      2,
+      2,
+      2
+     ]
+    ],
+    "pool": 60
+   },
+   "provenance": "Week 81 Problems 1 and 3 (play from three-bucket starts; can you find a rule for choosing a winning move?), as a who-starts round, as the card’s App fit asks (half the starts all-even).",
+   "proof": true,
+   "sourceDocument": "docs/buckets/README.md"
+  },
+  {
+   "id": "buckets-07",
+   "number": 7,
+   "title": "Up to 3: 3 and 6",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "buckets",
+   "libraryFamily": "nim",
+   "group": "Buckets",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "duel",
+    "start": [
+     3,
+     6
+    ],
+    "cap": 3,
+    "takes": 3
+   },
+   "objective": "Take the last fish to win. You go first. A move takes 1, 2 or 3 fish and adds up to 3 to each bucket to its left.",
+   "visibleObjective": "Take 1, 2 or 3 at a time, add up to 3 to each bucket on the left, and take the last fish.",
+   "instruction": "Take the last fish to win. You go first. A move takes 1, 2 or 3 fish and adds up to 3 to each bucket to its left.",
+   "controls": "A move takes 1, 2 or 3 fish from one bucket and may add up to 3 fish to each bucket to its left. Whoever takes the last fish wins. Tap a bucket to take a fish from it, and again to take more, up to 3; tap a bucket to its left to add a fish, and again to add more, up to 3; one more tap puts them back. Then End turn. I reply at once. Undo takes back your move and my reply.",
+   "rules": [
+    "Players take turns.",
+    "A move takes 1, 2 or 3 fish from one bucket.",
+    "It may then add up to 3 fish to each bucket to its left.",
+    "Whoever takes the last fish wins.",
+    "The app never misses a winning move.",
+    "You go first."
+   ],
+   "idea": "With takes of 1 to 3 and adds of up to 3, the starts to hand over are those where every bucket is a multiple of 4. From 3 and 6, take 2 from bucket 2 and add 1 to bucket 1, leaving 4 and 4.",
+   "prerequisites": "Puzzles 1–6. Counting in fours helps.",
+   "hints": [
+    "Try a move. When I win, Undo and look at what I left you.",
+    "When I won, how many fish did I leave in each bucket?",
+    "Take 2 from bucket 2 and add 1 to bucket 1, leaving 4 and 4."
+   ],
+   "parent": {
+    "notice": "Whether your child looks for a new kind of start to hand over, rather than keeping every bucket even.",
+    "prompt": "Why does 2 and 2 no longer win for the second player?",
+    "explanation": "With takes of 1, 2 or 3 and adds of up to 3, the second player wins exactly when every bucket is a multiple of 4. A move from such a position changes the bucket it takes from by 1 to 3, so it is no longer a multiple of 4. From any other position, take from the rightmost bucket that is not a multiple of 4 what is over the last multiple of 4, and add to each bucket on its left what it lacks of the next one (0 to 3): every bucket is a multiple of 4 again, and only that move does it. The adds of up to 3 matter: with adds of at most 1 or 2 the rule fails, already at 1 and 1. From 3 and 6, take 2 from bucket 2 (leaving 4) and add 1 to bucket 1 (making 4).",
+    "extension": "What if a move could take 1 to 4 and add up to 4?",
+    "connection": "A normal-play impartial game: a start is lost for the player to move exactly when every move reaches a start that is won (Ferguson, §1). Hamkins’s buckets of fish show a game whose positions grow yet every play ends, by an ordinal ω^(n−1)·a_n + … + a_1 that drops at every move; parity in each bucket decides who wins. The encore is the same argument with 4 in place of 2.",
+    "sourceIds": [
+     "buckets-week81",
+     "buckets-card81",
+     "buckets-hamkins",
+     "buckets-ferguson"
+    ]
+   },
+   "solution": {
+    "winningMoves": [
+     {
+      "from": 2,
+      "take": 2,
+      "add": [
+       1,
+       0
+      ]
+     }
+    ],
+    "leaves": [
+     [
+      4,
+      4
+     ]
+    ]
+   },
+   "provenance": "Week 81 guide, encore (take 1, 2 or 3 and refill up to 3 to the left; multiples of four as the new losing target), as a duel; the start is new.",
+   "proof": true,
+   "sourceDocument": "docs/buckets/README.md"
+  },
+  {
+   "id": "buckets-08",
+   "number": 8,
+   "title": "Up to 3: two buckets of 0 to 5",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "buckets",
+   "libraryFamily": "nim",
+   "group": "Buckets",
+   "familyTitle": "Pebble Duel",
+   "revision": 1,
+   "parameters": {
+    "mode": "streak",
+    "buckets": 2,
+    "max": 5,
+    "cap": 3,
+    "takes": 3,
+    "streak": 3
+   },
+   "objective": "Choose who starts, then take the last fish. A move takes 1, 2 or 3 fish and adds up to 3 to each bucket to its left. Win 3 games in a row from new starts.",
+   "visibleObjective": "Take 1, 2 or 3 at a time, add up to 3 to each bucket on the left, and win 3 games in a row.",
+   "instruction": "Choose who starts, then take the last fish. A move takes 1, 2 or 3 fish and adds up to 3 to each bucket to its left. Win 3 games in a row from new starts.",
+   "controls": "A move takes 1, 2 or 3 fish from one bucket and may add up to 3 fish to each bucket to its left. Whoever takes the last fish wins. Choose Me first or You first. Tap a bucket to take a fish from it, and again to take more, up to 3; tap a bucket to its left to add a fish, and again to add more, up to 3; one more tap puts them back. Then End turn. I reply at once. Win 3 games in a row from new starts. After a loss, Same start again is practice and does not count.",
+   "rules": [
+    "Players take turns.",
+    "A move takes 1, 2 or 3 fish from one bucket.",
+    "It may then add up to 3 fish to each bucket to its left.",
+    "Whoever takes the last fish wins.",
+    "The app never misses a winning move.",
+    "Before each game, choose who starts.",
+    "Win 3 games in a row. Only games from a new start count; Same start again is for practice."
+   ],
+   "idea": "Let me start exactly when every bucket is a multiple of 4: 4 and 0, 0 and 4, 4 and 4.",
+   "prerequisites": "Puzzle 7. Counting in fours helps.",
+   "hints": [
+    "Lost a game? Same start again replays that start. Watch what I leave you.",
+    "When I won, how many fish did I leave in each bucket?",
+    "Can the fish in every bucket I left you be shared into groups of four?"
+   ],
+   "parent": {
+    "notice": "Whether your child decides who starts by looking at the buckets before playing, rather than by who won last time.",
+    "prompt": "From which starts would you rather go second? How can you tell?",
+    "explanation": "With takes of 1, 2 or 3 and adds of up to 3, the second player wins exactly when every bucket is a multiple of 4. A move from such a position changes the bucket it takes from by 1 to 3, so it is no longer a multiple of 4. From any other position, take from the rightmost bucket that is not a multiple of 4 what is over the last multiple of 4, and add to each bucket on its left what it lacks of the next one (0 to 3): every bucket is a multiple of 4 again, and only that move does it. The adds of up to 3 matter: with adds of at most 1 or 2 the rule fails, already at 1 and 1. Starts are drawn from every two-bucket start with 0 to 5 fish in each, except those one move from the end, half of them from 4 and 0, 0 and 4, and 4 and 4.",
+    "extension": "Which three-bucket starts with 0 to 5 fish would you hand over?",
+    "connection": "A normal-play impartial game: a start is lost for the player to move exactly when every move reaches a start that is won (Ferguson, §1). Hamkins’s buckets of fish show a game whose positions grow yet every play ends, by an ordinal ω^(n−1)·a_n + … + a_1 that drops at every move; parity in each bucket decides who wins. The encore is the same argument with 4 in place of 2.",
+    "sourceIds": [
+     "buckets-week81",
+     "buckets-card81",
+     "buckets-hamkins",
+     "buckets-ferguson"
+    ]
+   },
+   "solution": {
+    "secondStarts": [
+     [
+      0,
+      4
+     ],
+     [
+      4,
+      0
+     ],
+     [
+      4,
+      4
+     ]
+    ],
+    "pool": 29
+   },
+   "provenance": "Week 81 guide, encore (multiples of four as the new losing target), as a who-starts round; the start range is new.",
+   "proof": true,
+   "sourceDocument": "docs/buckets/README.md"
+  }
+ ]
+}

@@ -1,0 +1,92 @@
+# Pebble Duel: Buckets
+
+October 17, 2026. Eight puzzles built from Week 81 of the Bellingham math circle (Buckets of Fish), added to Pebble Duel as one group, **Buckets**, as the Week 81 review card's Decision asks (`plans/review/week-81.md` in the worksheets repository, October 17, 2026): the capped game of Problems 1–3 and the guide's take-1-to-3 encore. Problems 4–5 (the longest game, and whether a game can go on forever) stay on paper. None of this has been played by children in the app; the Week 81 packet is unpiloted too.
+
+## The mathematics
+
+Buckets stand in a row, each holding some fish. A move takes one fish from a bucket and may add one fish to each bucket to its left: to all of them, some or none. Whoever takes the last fish wins.
+
+- **Every play ends,** although the number of fish can grow: the rightmost bucket never gains a fish, so it empties for good after finitely many moves, and then the bucket to its left can only lose fish, and so on (Hamkins). With adds of at most K, the longest game from a_1, …, a_n (bucket 1 on the left) has a_1 + a_2 (K + 1) + … + a_n (K + 1)^(n−1) moves: take one fish and add the most to every bucket on its left, every time. From 1, 1 and 1 with adds of 1 that is 7.
+- **The second player wins exactly when every bucket is even.** A move from an all-even position changes the bucket it takes from by one, so it leaves an odd bucket. From any other position, take a fish from the rightmost odd bucket and add one to each odd bucket on its left (none to the even ones): every bucket is even again. That repair is the only winning move, since every bucket left of it must change by exactly its parity and every bucket right of it cannot change. So a player who hands over all-even positions takes the last fish. The rule does not depend on the cap: it holds with adds of up to 3, or with no limit, though then the winning move is no longer unique.
+- **The encore: multiples of 4.** With takes of 1, 2 or 3 and adds of up to 3, the second player wins exactly when every bucket is a multiple of 4, by the same argument with 4 in place of 2: a move changes the bucket it takes from by 1 to 3, and from any other position the unique repair takes what is over the last multiple of 4 from the rightmost bucket that is not one, and tops up each bucket on its left to the next multiple. The adds of 3 matter: with adds of at most 1 or 2 the rule fails at once, since 1 and 1 is then a second-player start.
+
+What the app checks: in a duel, that the child wins against a perfect opponent; in every reply, that the child, going second, wins against each of my first moves; in a who-starts round, that the child chooses who starts and then wins, three games in a row from new starts; in Every start, that the marked cards are exactly the second-player starts. Why the rule holds stays with grown-ups, in the notes.
+
+What a child is meant to discover: that adding fish is a choice, and sometimes the winning one is none (0, 0 and 1) or two buckets (3, 3 and 1); which two-bucket starts to hand over (2 and 0, 0 and 2, 2 and 2); that every bucket even is the thing to leave me, and how to restore it after any move; and in the encore, that the target changes to fours.
+
+## Where they appear
+
+**Puzzles → Pebble Duel**: Proofs above the levels, then Easy, Medium and Hard, then Menus, Star race, Every start and **Buckets**. The group is grade-free (`band: "all"`), numbered from 1, and Next puzzle walks through it alone. It is not on the Lantern Road.
+
+| # | Level | Puzzle | Rules | Solve | Answer | Week 81 source |
+|---|---|---|---|---|---|---|
+| 1 | Easy | 0, 0 and 1 | adds of 1 | Go first and win | take the fish and add nothing | P1 |
+| 2 | Easy | 2, 1 and 1 | adds of 1 | Go first and win | take from bucket 3, add to bucket 2 only: 2, 2 and 0 | P1 |
+| 3 | Medium | Replies to 2 and 2 | adds of 1 | Go second and win against each of my three first moves | 1 and 2 → 0 and 2; 2 and 1 → 2 and 0; 3 and 1 → 4 and 0 | P2 (the card 2 and 2) |
+| 4 | Medium | Two buckets of 0 to 3 | adds of 1 | Mark every second-player card, That's all | 2 and 0, 0 and 2, 2 and 2 (of 15) | P2 |
+| 5 | Medium | 3, 3 and 1 | adds of 1 | Go first and win | take from bucket 3, add to buckets 1 and 2: 4, 4 and 0 | P3 |
+| 6 | Hard | Three buckets of 0 to 3 | adds of 1 | Choose who starts and win, 3 in a row from new starts | go second from the 7 all-even starts | P1, P3 |
+| 7 | Hard | Up to 3: 3 and 6 | takes 1–3, adds up to 3 | Go first and win | take 2 from bucket 2, add 1 to bucket 1: 4 and 4 | guide, encore (new start) |
+| 8 | Hard | Up to 3: two buckets of 0 to 5 | takes 1–3, adds up to 3 | Choose who starts and win, 3 in a row | go second from 4 and 0, 0 and 4, 4 and 4 | guide, encore (new range) |
+
+Each puzzle's `provenance` names its problems. The starts of puzzles 1, 2 and 5 and the cards of puzzle 4 are the worksheet's (its sixteen cards less the empty one, laid out as on page 3: left bucket by column, right bucket by row). Every reply, the who-starts rounds and the encore's starts are new forms the card's App fit asks for.
+
+## How a puzzle plays
+
+- **The board.** Buckets drawn as open paper jars with an ink rim, numbered underneath, fish inside in rows of two (four in the encore). The board is at most 380 px wide. With the most fish perfect play leaves on the child's turn (11 in one bucket, from 3, 3 and 3 or, in the encore, 5 and 5), End turn ends about 590 px down on a 375 × 667 phone (615 in the encore).
+- **A move.** On the child's turn every bucket with fish is a button. A tap takes a fish from it: the fish lifts (sun) and a dashed place for one fish appears in each bucket to its left. A tap on a bucket on the left adds a fish there (pine); a second tap takes it out again. In the encore a second and third tap on the taken bucket take more, up to 3, and taps on a bucket on the left add up to 3, one more tap putting them back. A tap on the bucket taken from, once it can take no more, puts the fish back and drops the move. **End turn** makes the move; **Cancel** drops it. Buckets right of the one taken from are not buttons, and a tap on one says the move is not allowed. So the controls only ever offer moves the rules allow: refills only on the left, at most one each (or three). The move being built is view-only, outside the save, until End turn.
+- **My reply** comes at once, with one line saying what I did ("I took 1 from bucket 3 and added 1 to buckets 1 and 2. Your turn"); the fish I took shows dashed and the fish I added carry an ochre ring, until the child starts a move.
+- **Duels** (1, 2, 5, 7). You go first. **Undo** takes back your move and my reply together, as one move. After a losing move Hint says, only when pressed, that I can now always win, and offers the rescue Undo; when the game ends my way, "I took the last fish."
+- **Every reply** (3). You go second from 2 and 2; I make my first moves in turn. Pips show the first moves answered. After a win, **Next first move**; after a loss, **Try again** replays the same first move. No Undo.
+- **Who-starts rounds** (6, 8). Before each game, **Me first** or **You first**, styled alike so neither looks like the default; the choice is final. Three pips fill with wins in a row; a loss empties them. After a loss, **Same start again** replays that start as practice that does not count ("Wins count from a new start."); **New start** draws a new one, half the time from the second-player starts and never the start just played. No start one move from the end is drawn: with adds of 1, those are the three single-fish starts, each a free win for Me first. No Undo.
+- **Every start** (4). Fifteen cards, each two small buckets of fish. Tap a card to mark it (pine) and again to clear it. **Play**, then a card, then Me first or You first, plays a practice game from it against me; Back returns to the marks, untouched. **That's all** judges every mark at once. While a second-player start is missing, it says "There is another." and stays off until the marks change, whatever else is marked. Once none is missing, it is final: if a marked card is one where whoever starts can win, I play it at once. The line above the board begins "Whoever starts from 1 and 1 can win. I go first.", and I go first and win against any reply (no Back until the game ends). Then the marks are cleared ("I took the last fish. The marks are cleared."), and Back returns to an empty set of cards. No count is ever shown.
+- **Hints.** In a duel or every reply, Hint before any move shows the puzzle's first authored hint; after a move, "Some move wins from here. Which buckets would you like to leave me?", with the winning move behind Apply hint on the third press. Its second and third authored hints are for grown-ups: the notes list them. In a who-starts round Hint shows the three authored nudges by level and never says who should start (after a win, "Try a new start."), as in Star race. In Every start Hint names the next step: take off a wrong mark, then add a missing card, then That's all; during a play-out, any move.
+
+## Certificates and claims
+
+- **Duels and every reply.** A win against a perfect opponent from the given start. The opponent never misses a winning move, so from a first-player start the child must find the one winning move whenever it is the child's turn, and from 2 and 2 must answer each first move.
+- **The opponent when it is losing** leaves the fewest winning replies, then the longest game, as the card asks, rather than moving at random. Here every move from a losing position leaves exactly one winning reply (the repair is unique), so the first rule always ties and the longest game decides: take one fish and add the most to every bucket on its left. Every such move shortens the longest game by exactly one, whichever bucket it takes from, so I take from a bucket chosen at random. Children therefore meet refills: I never make the game shorter than I must. With perfect play the longest game takes the child 11 moves (from 3, 3 and 3; 5 moves from 5 and 5 in the encore), and a bucket holds at most 12 fish.
+- **Who-starts rounds.** Three wins in a row against perfect play from new starts, as in Star race. Starts are drawn half from the second-player starts, so always choosing Me first passes about 1 time in 8 (the validator measures 13.5% on puzzle 6 and 12.5% on puzzle 8). The save keeps each won game of the streak (start, who went first, every turn), and validation replays each against the perfect opponent, so a full streak cannot be saved without three real wins. Like Star race, hints alone do not finish a round: the decision is who starts, and a hint that said so would make the wins certify nothing. The validator plays the rounds with a solver.
+- **Every start.** A find-every claim judged as a whole, as port-common asks, in Star race's order: a missing start first ("There is another.", locked until a change), then a wrong mark, played out with me first and the marks cleared, then solved. With every answer marked and nothing wrong it is solved. The validator plays the guessing strategies against the mechanic and counts taps (a mark, That's all, Back and End turn are one each; a move is one tap a fish taken or added, plus End turn):
+
+  | Knowing the answer | Playing every card second, perfectly | Mark everything, strip the wrong ones | Leave one out at a time |
+  |---|---|---|---|
+  | 4 | 110 | 174 (12 games lost) | 157 (11 lost) |
+
+  Random marks almost never pass: marking each card with chance ½ never passed in 20,000 tries, and with chance 3/15 passed 12 times.
+- **Nothing gives the answer away.** Titles name the start or the cards, How to play states the move and the taps, and first hints point at play. No title, How to play line, rule, objective or first hint says even, odd, pair, multiple or four (the validator checks each). The grown-ups' notes, which hold the answers, are left out of How to play (`"proof": true`, as in Star race); the Grown-ups catalog still lists them. Later hints may name more: a round's third hint asks whether the fish I left can be paired up.
+
+## Rules that keep the record honest
+
+- Only moves the rules allow are accepted: a take of 1 (1 to 3 in the encore) from a bucket that has fish, adds of 0 or 1 (0 to 3) only to buckets on its left, on the child's turn; a choice of who starts only before a game, and only once; Same start again only after a loss; Next first move only after a win and Try again only after a loss; nothing after a solve. In Every start, cards 1 to 15; That's all only with something marked and no standing "There is another."; Back from a play-out only after it ends; in a practice game, a card before the choice.
+- Saves are replayed from their start: turns alternate, every move is legal, every one of my moves from a winning position wins, and a game lasts no longer than the longest game from its start. Saves land before a choice, on the child's turn, or after a game. A duel starts from its start with you first; every reply's game begins with the first move of its round. A round's streak equals its list of won games, each a real win from a start in the pool and new after the one before; a loss empties it; practice games never add to it; a full streak ends on a fresh win. An Every start save keeps the marks sorted and distinct; "There is another." must be what That's all says about them; a play-out must start from the first-player card That's all named about the marks it holds, and once it ends the marks must be cleared; done only when they are right.
+
+## Files
+
+| File | Contents |
+|---|---|
+| `dist/families/buckets/buckets.js` | Moves (refills counted in base cap + 1), the search with its memo, the longest game, the perfect opponent, start drawing, the `buckets` and `bucketsort` mechanics with saves, hints, rendering and the move being built, and the module entry |
+| `dist/families/buckets/buckets.css` | The buckets, fish (lifted, added, places, my last move), the cards, pips and buttons; every rule scoped under its mechanic's root |
+| `dist/families/buckets/buckets.json` | The pack: 8 puzzles, the group's mathematics and 4 sources |
+| `scripts/build-buckets.mjs` | Authoring list; computes each answer and checks it against hand-worked answers; writes the pack |
+| `scripts/validate-buckets.mjs` | Every answer by the rule and by a separate game-tree search with its own move generator; the rule, the unique repair and the encore's failure with adds of 1 or 2 on 437 starts; the longest-game formula; the opponent from every position up to 4 (7 in the encore); the share of second-player draws; the solver's streaks; always-first's pass rate; hints alone from fresh, after each losing first move, after a wrong reply and in Every start; That's all's lock, play-outs over 30 seeds and the clearing; random-mark pass rates; the taps that guessing costs; the most fish; illegal moves; forged saves; CPU time per tap |
+| `tests/buckets.test.mjs` | The rule and repair, the opponent, a move built by taps from the rendered buttons with End turn, Cancel and Undo, stale and forged moves being built, the two duels that hinge on refills, every reply, rounds and the streak, Every start with its lock and play-out, the encore's taps, hints, saves, rendering, the satchel group, CPU time |
+| `scripts/buckets-browser-smoke.mjs` | Taps on buckets at varied points (take, add, End turn, Cancel), a refused tap on the right, Undo, focus after each kind of tap, every reply, rounds, Every start with There is another, practice and a play-out, the encore's taps, the controls in view without scrolling, and fit at phone and desktop sizes |
+
+To change a puzzle, edit `scripts/build-buckets.mjs`, then run `node scripts/build-buckets.mjs`, `node scripts/validate-buckets.mjs` and `npm test`.
+
+## Sources
+
+Week 81 packet and guide (W81-S-draft-v1 and its encore) and review card with its math check and `checks/week-81/card_appfit.py` (worksheets repository); Joel David Hamkins, "Buckets of fish!" (2017); Ferguson, *Game Theory*, Part I, §1. The starts of the duels and the sixteen cards follow the worksheet; the move controls, every reply, the rounds, That's all and the play-out, and the encore's starts are new.
+
+## Not yet done
+
+- **Children's play.** Nothing here has been tried by children. Things to watch first:
+  1. Whether children find the move gesture (tap to take, tap on the left to add, End turn), and whether they add fish by default because the rule allows it, as 0, 0 and 1 tests.
+  2. Whether the fish laid out in rows of two (four in the encore) make the rule visible before it is found. The worksheet's guide calls pairing the counters what makes the target visible; in the app it is there from the first game. A plain heap would hide it.
+  3. Whether children choose who starts by looking at the buckets, or fall back on Me first, and whether a lost Every start play-out teaches or only discourages.
+- **Problems 4 and 5** (the longest game from a refill of 10, 30 or 100, and whether a game can go on forever) stay on paper, as the Decision says: the first comes down to one number, the second is a claim about every play that no finite board checks.
+- **The uncapped game** (Hamkins's original, any number of fish added) is not built: its positions are unbounded, so it would need fish shown as numbers.
+- **A streak's starts are not proved random.** A hand-made save could hold three real wins from easy starts; only the wins themselves are checked.
+- **K–1.** The card notes that the worksheet has no K–1 route. The group is grade-free; its prerequisites say a grown-up can read how a move works.
+- **Story.** The group is not on the Lantern Road.
