@@ -1,0 +1,71 @@
+/* Snug spinners: a paper card with ink corners on sun discs, dashed gaps
+   and ink arcs while building; a sun shape between two ink rails while it
+   spins, with a dashed line where the top rail started. Pine marks the
+   chosen gap and a rail that never moved; ochre marks a compass that missed,
+   the band the top rail moved through, and hints. */
+[data-mechanic-wire="width"]{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
+[data-mechanic-wire="width"] .wd-bar{display:flex;justify-content:flex-end;gap:.4rem;width:100%;max-width:360px}
+[data-mechanic-wire="width"] .wd-bar.wd-shapes{justify-content:center;flex-wrap:wrap;gap:.3rem}
+[data-mechanic-wire="width"] .wd-bar.wd-turns{justify-content:center}
+[data-mechanic-wire="width"] .wd-spin{min-width:5.5rem}
+[data-mechanic-wire="width"] .wd-board{display:block;width:100%;max-width:360px;height:auto;aspect-ratio:1;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;cursor:pointer;overflow:hidden;border-radius:14px}
+[data-mechanic-wire="width"] .wd-board.wd-turnable{touch-action:none;cursor:grab}
+[data-mechanic-wire="width"] .wd-board:focus{outline:none}
+[data-mechanic-wire="width"] .wd-board:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px;border-radius:14px}
+[data-mechanic-wire="width"].solved .wd-board{cursor:default}
+[data-mechanic-wire="width"] .wd-paper{fill:var(--b-card,#fffdf5);stroke:rgba(41,68,57,.18);stroke-width:1.2px}
+
+/* Building: the shape so far, gaps, arcs and the chosen gap. */
+[data-mechanic-wire="width"] .wd-fill{fill:rgba(239,199,110,.16);stroke:none}
+[data-mechanic-wire="width"] .wd-fill.full{fill:rgba(239,199,110,.4)}
+[data-mechanic-wire="width"] .wd-chord{fill:none;stroke:var(--b-ink,#294439);stroke-width:2px;stroke-dasharray:6 5;stroke-linecap:round;opacity:.75}
+[data-mechanic-wire="width"] .wd-arc{fill:none;stroke:var(--b-ink,#294439);stroke-width:3px;stroke-linecap:round}
+[data-mechanic-wire="width"] .wd-glow{fill:none;stroke:var(--b-pine,#31533e);stroke-width:13px;stroke-linecap:round;opacity:.28}
+[data-mechanic-wire="width"] .wd-hint-gap{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:7px;stroke-linecap:round;stroke-dasharray:2 9;opacity:.9}
+[data-mechanic-wire="width"] .wd-hint-ring{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:3.5px}
+[data-mechanic-wire="width"] .wd-leg{fill:none;stroke:var(--b-ink,#294439);stroke-width:1.3px;stroke-dasharray:3 4;opacity:.6}
+[data-mechanic-wire="width"] .wd-miss{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:2.4px;stroke-dasharray:6 4;stroke-linecap:round}
+[data-mechanic-wire="width"] .wd-short{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:5px;stroke-linecap:round}
+
+/* Hit areas: wide invisible strokes along each gap or arc, and pads round
+   each corner and dot (the corners and dots sit on top). */
+[data-mechanic-wire="width"] .wd-hit{fill:none;stroke:transparent;stroke-width:22px;stroke-linecap:round;pointer-events:stroke}
+[data-mechanic-wire="width"] .wd-hit:focus{outline:none}
+[data-mechanic-wire="width"] .wd-hit:focus-visible{stroke:rgba(179,136,64,.3)}
+[data-mechanic-wire="width"] .wd-pt:focus{outline:none}
+[data-mechanic-wire="width"] .wd-pad{fill:transparent;stroke:none}
+[data-mechanic-wire="width"] .wd-pt:focus-visible .wd-pad{stroke:var(--b-ochre,#b38840);stroke-width:2.5px;stroke-dasharray:4 3}
+[data-mechanic-wire="width"] .wd-dot{fill:var(--b-ink,#294439);stroke:var(--b-card,#fffdf5);stroke-width:1.5px}
+[data-mechanic-wire="width"] .wd-pin.centre .wd-dot{fill:var(--b-pine,#31533e);stroke:var(--b-pine,#31533e);stroke-width:5px}
+[data-mechanic-wire="width"] .wd-pin.missed .wd-dot{fill:var(--b-ochre,#b38840);stroke:var(--b-ochre,#b38840);stroke-width:4px}
+[data-mechanic-wire="width"] .wd-disc{fill:var(--b-sun,#efc76e);stroke:var(--b-ink,#294439);stroke-width:2px}
+[data-mechanic-wire="width"] .wd-corner.end .wd-disc{stroke:var(--b-pine,#31533e);stroke-width:3.5px}
+[data-mechanic-wire="width"] .wd-corner.centre .wd-disc{fill:var(--b-pine,#31533e);stroke:var(--b-pine,#31533e)}
+[data-mechanic-wire="width"] .wd-corner.centre text{fill:var(--b-card,#fffdf5)}
+[data-mechanic-wire="width"] .wd-corner.missed .wd-disc{stroke:var(--b-ochre,#b38840);stroke-width:4px}
+[data-mechanic-wire="width"] .wd-corner.hinted .wd-disc{stroke:var(--b-ochre,#b38840);stroke-width:4.5px}
+[data-mechanic-wire="width"] .wd-corner text,[data-mechanic-wire="width"] .wd-letter,[data-mechanic-wire="width"] .wd-mark-label{font-family:Georgia,'Times New Roman',serif;font-weight:700;text-anchor:middle;dominant-baseline:central;fill:var(--b-ink,#294439);pointer-events:none}
+[data-mechanic-wire="width"] .wd-corner text{font-size:15px}
+
+/* Spinning: rails, the shape, where the top rail started, and the result. */
+[data-mechanic-wire="width"] .wd-rail{fill:var(--b-ink,#294439)}
+[data-mechanic-wire="width"] .wd-top.snug{fill:var(--b-pine,#31533e)}
+[data-mechanic-wire="width"] .wd-start{fill:none;stroke:var(--b-ink,#294439);stroke-width:1.5px;stroke-dasharray:6 5;opacity:.55}
+[data-mechanic-wire="width"] .wd-shape{fill:rgba(239,199,110,.75);stroke:var(--b-ink,#294439);stroke-width:2.5px;stroke-linejoin:round}
+[data-mechanic-wire="width"] .wd-ghost{fill:none;stroke:var(--b-ink,#294439);stroke-width:1.2px;stroke-dasharray:4 4;opacity:.35}
+[data-mechanic-wire="width"] .wd-band{fill:var(--b-ochre,#b38840);opacity:.38}
+[data-mechanic-wire="width"] .wd-band.soft{opacity:.2}
+[data-mechanic-wire="width"] .wd-touch{fill:var(--b-ochre,#b38840);stroke:var(--b-card,#fffdf5);stroke-width:1.5px}
+[data-mechanic-wire="width"] .wd-touch.snug{fill:var(--b-pine,#31533e)}
+[data-mechanic-wire="width"] .wd-letter{font-size:13px;paint-order:stroke;stroke:rgba(255,253,245,.85);stroke-width:3px}
+[data-mechanic-wire="width"].wd-anim .wd-final{display:none}
+[data-mechanic-wire="width"].wd-anim .wd-hit{pointer-events:none}
+
+/* Playground: shape picker, the mark O and the turn buttons. */
+[data-mechanic-wire="width"] .wd-pick{width:2.4rem;height:2.4rem;min-width:0;min-height:0;padding:.15rem;display:inline-flex;align-items:center;justify-content:center}
+[data-mechanic-wire="width"] .wd-pick[aria-pressed="true"]{opacity:1;background:rgba(239,199,110,.45);border-color:var(--b-ink,#294439);cursor:default}
+[data-mechanic-wire="width"] .wd-icon{width:100%;height:100%}
+[data-mechanic-wire="width"] .wd-icon path{fill:rgba(239,199,110,.75);stroke:var(--b-ink,#294439);stroke-width:1.4px;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="width"] .wd-mark{fill:var(--b-ink,#294439);stroke:var(--b-card,#fffdf5);stroke-width:1.5px}
+[data-mechanic-wire="width"] .wd-mark-label{font-size:13px;font-style:italic;font-weight:400}
+[data-mechanic-wire="width"] .wd-turn-button{min-width:3.2rem;font-size:1.25rem}
