@@ -149,7 +149,10 @@ try {
   assert.deepEqual((await board(R)).found, ['0,1', '1,0', '1,1']);
   assert.equal(await page.locator('.chip-feedback').count(), 0, 'the shelf changed');
   await button('New run').click(); await taps('+ + A + + A B');
-  await thatsAll().click();
+  await thatsAll().focus(); await page.keyboard.press('Enter');
+  assert.equal(await focused(), 'chip-row', 'focus moves to the row, not to a board in it');
+  await page.keyboard.press('Tab');
+  assert.equal(await focused(), 'chip-rec-0', 'Tab walks the row in order');
   await tap(page.locator('.chip-rec[data-chip-tap="3"]'));
   await shot('cycle-picking'); await fit('cycle, picking');
   await tap(page.locator('.chip-rec[data-chip-tap="0"]'));

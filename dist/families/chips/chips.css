@@ -97,6 +97,8 @@
 [data-mechanic-wire="chips"] .chip-drop.hinted,[data-mechanic-wire="chips"] .chip-claim.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
 [data-mechanic-wire="chips"] .chip-row{list-style:none;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 2px;margin:0;padding:0;max-width:460px}
 [data-mechanic-wire="chips"] .chip-row li{display:flex;align-items:center;gap:2px}
+[data-mechanic-wire="chips"] .chip-row:focus{outline:none}
+[data-mechanic-wire="chips"] .chip-row:focus-visible{outline:2px solid var(--b-ochre,#b38840);outline-offset:4px;border-radius:10px}
 [data-mechanic-wire="chips"] .chip-arrow{color:var(--b-muted,#5a6850);font-size:1.05rem}
 [data-mechanic-wire="chips"] .chip-rec{display:inline-grid;place-items:center;padding:3px;border:1.5px solid transparent;border-radius:10px;background:none}
 [data-mechanic-wire="chips"] .chip-rec .chip-mini{width:54px}

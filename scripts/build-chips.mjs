@@ -241,7 +241,7 @@ const still = [
     id: 'chips-s01', number: 1, difficulty_level: 'easy', title: 'Room for chips',
     parameters: {mode: 'capacity', board: 'extra'},
     objective: 'Put as many chips on the circles as you can with nothing glowing.',
-    controls: `${FIRING} Tap a circle to add a chip, and tap a glowing circle to fire it. Press Most when you think no still board holds more chips. Undo takes back one step.`,
+    controls: `${FIRING} Tap a circle to add a chip, and tap a glowing circle to fire it. Press Most when you think no board with nothing glowing holds more chips. Undo takes back one step.`,
     rules: [...RULES, 'A board is still when no circle can fire.', 'Most is judged by the number of chips on the circles.'],
     idea: 'Each circle can hold one chip fewer than its lines before it must fire, so the most chips on a still board is the sum of those.',
     prerequisites: 'Count to three and match chips to lines. No reading needed once a grown-up has read the goal.',
@@ -260,7 +260,7 @@ const still = [
     parameters: {mode: 'cycle', board: 'triangle', at: 'A'},
     objective: 'Find every start that comes back as you keep adding chips at A.',
     visibleObjective: '',
-    controls: `${FIRING} A board is still when no circle can fire. Put chips on the circles for a still start (or none), then tap +A to add a chip at A and fire until the board is still again. Keep adding at A. Each still board joins the row; when one repeats, the run ends, and a start that came back is saved. That’s all: then tap two boards in the row that go to the same board. New run keeps what is saved.`,
+    controls: `${FIRING} A board is still when no circle can fire. Put chips on the circles for a still start, or none. Then press + A again and again, firing until the board is still each time. Each still board joins the row; the run ends when one repeats, and a start that came back is saved. New run keeps what is saved.`,
     rules: [...RULES, 'A board is still when no circle can fire. A start must be still.', 'After each chip added at A, fire until the board is still. The run ends when a still board repeats.', 'That’s all is judged with two boards tapped in the row whose next boards are the same.'],
     idea: 'Adding a chip at A moves the still boards round a loop; a start comes back exactly when it is on the loop, and one that is not runs into the loop where two boards go to the same board.',
     prerequisites: 'Fire small piles and compare two small boards. Keeping track of a row of boards helps; a grown-up can point along it.',
@@ -268,7 +268,7 @@ const still = [
     parent: {
       notice: 'The still boards of the triangle are the four with at most one chip on each circle. Three of them take turns as chips are added at A; the empty board leads into that loop and never comes back.',
       prompt: 'Can both circles ever be empty again once a chip has been added?',
-      explanation: 'Adding at A and firing until still sends A 0 B 0 → A 1 B 0 → A 0 B 1 → A 1 B 1 → A 1 B 0, so the run from no chips repeats A 1 B 0 without ever returning. A 1 B 0, A 0 B 1 and A 1 B 1 each come back after three chips. A 0 B 0 and A 1 B 1 both go to A 1 B 0: that is where the empty start joins the loop, and since every board on the loop already has the one before it on the loop, the run can never get back off it. A second reason: the last firing always leaves a chip on the other circle, so a board with chips never finishes empty. The three boards that come back are the recurrent configurations (the finishes of puzzle 2); adding a chip at A permutes them, and they form the sandpile group of the triangle, cyclic of order 3, with A as a generator.',
+      explanation: 'Adding at A and firing until still sends A 0 B 0 → A 1 B 0 → A 0 B 1 → A 1 B 1 → A 1 B 0, so the run from no chips repeats A 1 B 0 without ever returning. A 1 B 0, A 0 B 1 and A 1 B 1 each come back after three chips. A 0 B 0 and A 1 B 1 both go to A 1 B 0: that is where the empty start joins the loop, and since every board on the loop already has the one before it on the loop, the run can never get back off it. A second reason: the last firing always leaves a chip on the other circle, so once a chip is added the board never settles empty. The three boards that come back are the recurrent configurations (the finishes of puzzle 2); adding a chip at A permutes them, and they form the sandpile group of the triangle, cyclic of order 3, with A as a generator.',
       extension: 'Add at B instead. Do the same boards come back, and in which order? (The same three, in the opposite order.) On the square of puzzle 8, which still boards come back when you add at A?',
       connection: 'A configuration is recurrent when adding chips can bring it back; the recurrent ones form the sandpile group, and the others are transient (Dhar; Levine and Propp).'
     },

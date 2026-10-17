@@ -453,7 +453,7 @@ function hintStill(p, b) {
   if (q.mode === 'capacity') {
     if (run.ready.length) return fire();
     const short = run.piles.findIndex((n, i) => n < g.deg[i] - 1);
-    return short >= 0 ? add(short) : {type: 'move', action: {type: 'most'}, text: 'Press Most.'};
+    return short >= 0 ? add(short) : {type: 'move', action: {type: 'most'}, text: 'Every circle has one chip fewer than its lines. Press Most.'};
   }
   const again = text => ({type: 'move', action: {type: 'again'}, text});
   const drop = {type: 'move', action: {type: 'drop'}, text: `Add a chip at ${q.at}.`};
@@ -602,7 +602,7 @@ function renderStill(p, a) {
   const dropButton = solved || run.ended ? '' : `<button type="button" class="secondary chip-drop ${act.type === 'drop' ? 'hinted' : ''}" data-chip-move="${esc(JSON.stringify({type: 'drop'}))}" data-focus="chip-drop" aria-label="Add a chip at ${q.at}" ${canDrop ? '' : 'disabled'}><span aria-hidden="true">+</span><span class="chip-dot-icon" aria-hidden="true"></span><span aria-hidden="true">${q.at}</span></button>`;
   const againButton = b.steps && !solved && !pick ? `<button type="button" class="primary chip-again ${act.type === 'again' ? 'hinted' : ''}" data-chip-move="${esc(JSON.stringify({type: 'again'}))}" data-focus="chip-again"><span aria-hidden="true">↺</span> New run</button>` : '';
   // The row: the start, then the still board after each chip added at A.
-  const row = run.record.length ? `<ol class="chip-row" aria-label="Still boards in this run">${run.record.map((piles, k) => {
+  const row = run.record.length ? `<ol class="chip-row" aria-label="Still boards in this run"${pick ? ' tabindex="-1" data-focus="chip-row"' : ''}>${run.record.map((piles, k) => {
     const label = `${k ? `After ${plural(k, 'chip')}` : 'Start'}: ${describe(g, piles)}`;
     const cls = `chip-rec${taps.includes(k) ? ' tapped' : ''}${solved && b.taps.includes(k) ? ' merge' : ''}${solved && b.taps.some(t => t + 1 === k) ? ' meet' : ''}${hintTaps.includes(k) ? ' hinted' : ''}`;
     const inner = miniBoard(g, piles, label);
@@ -689,6 +689,9 @@ function wire(root, p, api) {
       const board = api.attempt().board;
       state.pick = state.pick === pickSig(board) ? null : pickSig(board); state.taps = [];
       api.ui({});
+      // Focus moves to the row itself, not to a board in it: the first board
+      // in a row from no chips is half of the answer.
+      if (state.pick) document.querySelector('[data-mechanic-wire="chips"] .chip-row')?.focus({preventScroll: true});
       return;
     }
     const entry = e.target.closest('[data-chip-tap]');
