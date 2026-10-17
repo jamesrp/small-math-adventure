@@ -63,6 +63,8 @@ try {
 
   // The satchel: the family with its symbol, the playground and two flat groups.
   const family = page.locator('.satchel-family[data-view-key="family-corners"]');
+  // Only the newest family starts open, so open this one if a later family landed after it.
+  if (!(await family.evaluate(el => el.open))) await family.locator('summary').click();
   assert.equal(await family.locator('.family-ink-symbol').innerText(), '∡');
   assert.deepEqual(await family.locator('.library-band h2').allInnerTexts(), ['Rings', 'Trees'], 'two groups, Rings then Trees');
   assert.equal(await family.locator('.satchel-playground').count(), 1);
