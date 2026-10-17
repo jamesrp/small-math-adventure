@@ -20805,7 +20805,7 @@
         ],
         "nim_sum": 7
       },
-      "hint": "Split each pile into bundles of 4, 2 and 1, and compare them with the piles you left in the last puzzle.",
+      "hint": "Split each pile into bundles of 4, 2 and 1. When the opponent wins, Undo and look at what it left you each time.",
       "insight": "Binary balancing can require lower bits to turn on as a pile shrinks. Different piles can provide different valid balancing moves.",
       "prerequisites": "Count to 6; re-express a smaller pile in 4/2/1 bundles; tolerate multiple right answers.",
       "difficulty_reasoning": "Three winning moves remove different amounts from different piles. The advance is rebundling and multiple strategies, not a larger collection of rules.",
@@ -20827,7 +20827,7 @@
       ],
       "controls": "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. The app takes a winning move whenever one exists, otherwise a random legal move.",
       "hints": [
-        "Split each pile into bundles of 4, 2 and 1, and compare them with the piles you left in the last puzzle.",
+        "Split each pile into bundles of 4, 2 and 1. When the opponent wins, Undo and look at what it left you each time.",
         "Look at what your latest move changed. You can undo and try another choice.",
         "Ask for one next move from this position."
       ],
@@ -20999,7 +20999,7 @@
         ],
         "nim_sum": 2
       },
-      "hint": "Split 1, 3, 5 and 7 into bundles of 4, 2 and 1. Then look at the pile of 2.",
+      "hint": "Split each pile into bundles of 4, 2 and 1. Which piles would you like to leave the opponent?",
       "insight": "A whole collection can cancel even when no two piles match.",
       "prerequisites": "Compare piles and use 8/4/2/1 bundles; continue a strategy through a full game.",
       "difficulty_level": "medium",
@@ -21022,7 +21022,7 @@
       ],
       "controls": "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. The app takes a winning move whenever one exists, otherwise a random legal move.",
       "hints": [
-        "Split 1, 3, 5 and 7 into bundles of 4, 2 and 1. Then look at the pile of 2.",
+        "Split each pile into bundles of 4, 2 and 1. Which piles would you like to leave the opponent?",
         "Look at what your latest move changed. You can undo and try another choice.",
         "Ask for one next move from this position."
       ],
@@ -21189,7 +21189,7 @@
         ],
         "nim_sum": 9
       },
-      "hint": "Split each pile into bundles of 8, 4, 2 and 1. Which pile is the only one with an 8?",
+      "hint": "Split each pile into bundles of 8, 4, 2 and 1. When the opponent won, what piles did it leave you?",
       "insight": "Shrinking a pile across a power of two can switch several smaller binary columns on.",
       "prerequisites": "Compare piles and use 8/4/2/1 bundles; continue a strategy through a full game.",
       "difficulty_level": "hard",
@@ -21212,7 +21212,7 @@
       ],
       "controls": "Two players alternate. On a turn, remove any positive number of counters from exactly one pile; removing the whole pile is allowed. Take the last counter to win (normal play). Empty piles remain labeled but cannot be chosen. The app takes a winning move whenever one exists, otherwise a random legal move.",
       "hints": [
-        "Split each pile into bundles of 8, 4, 2 and 1. Which pile is the only one with an 8?",
+        "Split each pile into bundles of 8, 4, 2 and 1. When the opponent won, what piles did it leave you?",
         "Look at what your latest move changed. You can undo and try another choice.",
         "Ask for one next move from this position."
       ],

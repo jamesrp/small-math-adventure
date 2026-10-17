@@ -32,14 +32,14 @@ export const family = {
 const SLIDE = q => q.queen ? 'A turn slides the token straight left, straight down, or diagonally down and to the left, one or more squares' : 'A turn slides the token straight left or straight down, one or more squares';
 function controls(q) {
   if (q.kind === 'race') return `${SLIDE(q)}, and whoever moves it onto the star wins. Choose Me first or You first, then tap a dotted square to move the token there; I reply at once. Win 3 games in a row from new starts. After a loss, Same start again is practice and does not count.`;
-  if (q.kind === 'board') return `${SLIDE(q)}, and whoever moves it onto the star wins. Tap a square to mark it, and again to clear it. That’s all checks every mark at once. A marked start where the first player can win gets a ring, and Play it shows me going first from there.`;
-  return 'A turn takes one or more pebbles from one pile, and whoever takes the last pebble wins. The order of the piles does not matter. Tap a slot to set a pile, Keep to put the start on the shelf, and a kept start to take it off. Play tries the start against me. That’s all checks the whole shelf at once.';
+  if (q.kind === 'board') return `${SLIDE(q)}, and whoever moves it onto the star wins. Tap a square to mark it, and again to clear it. Play, then a square, tries a game from it against me. That’s all checks every mark at once: if a marked start is one where the first player can win, I go first from it and win, and then the marks are cleared.`;
+  return 'A turn takes one or more pebbles from one pile, and whoever takes the last pebble wins. The order of the piles does not matter. Tap a slot to set a pile, Keep to put the start on the shelf, and a kept start to take it off. Play tries the start against me. That’s all checks the whole shelf at once: if a kept start is one where the first player can win, I go first from it and win, and then the shelf is cleared.';
 }
 function rules(q) {
-  if (q.kind === 'piles') return ['Players take turns.', 'A turn takes one or more pebbles from one pile.', 'Whoever takes the last pebble wins.', `Each pile has 1 to ${q.max} pebbles, and the order of the piles does not matter.`, 'The app never misses a winning move.'];
+  if (q.kind === 'piles') return ['Players take turns.', 'A turn takes one or more pebbles from one pile.', 'Whoever takes the last pebble wins.', `Each pile has 1 to ${q.max} pebbles, and the order of the piles does not matter.`, 'The app never misses a winning move.', 'That’s all is final: if a kept start is one where the first player can win, I play it going first, and then the shelf is cleared.'];
   const out = ['Players take turns.', `${SLIDE(q)}.`, 'Whoever moves the token onto the star wins.'];
   if (q.kind === 'race') return [...out, 'Before each game, choose who starts. The app never misses a winning move.', 'Win 3 games in a row. Only games from a new start count; Same start again is for practice.'];
-  return [...out, 'A start is any square except the star.'];
+  return [...out, 'A start is any square except the star.', 'The app never misses a winning move.', 'That’s all is final: if a marked start is one where the first player can win, I play it going first, and then the marks are cleared.'];
 }
 
 const RACE_HINTS = queen => [
@@ -112,7 +112,7 @@ const authored = [
     idea: 'On the rook board the starts where you would rather go second are the diagonal.',
     prerequisites: 'Star race 1 or 2.',
     hints: ['Start near the star. From which squares can the first player reach the star at once?', 'A start is one to mark when every move from it reaches a square that is not marked.', 'Work outward from the star, one square at a time.'],
-    parent: {notice: 'Whether your child works outward from the star, deciding each square from the squares it can reach, or marks a guessed pattern.', prompt: 'Why is 1 right and 1 up a good square to hand over, and 2 right and 1 up not?', explanation: `${ROOK_EXPLANATION(6).split(' Starts are drawn')[0]} A wrong mark is refused with a ring, and Play it shows the app going first from that square and winning; a missing square gets only “There is another.”, with no count.`, extension: 'How do you know you have found them all?', connection: 'P-positions of two-pile Nim; marking works outward by backward induction (Ferguson, §1).'},
+    parent: {notice: 'Whether your child works outward from the star, deciding each square from the squares it can reach, or marks a guessed pattern.', prompt: 'Why is 1 right and 1 up a good square to hand over, and 2 right and 1 up not?', explanation: `${ROOK_EXPLANATION(6).split(' Starts are drawn')[0]} After a wrong That’s all the app goes first from the ringed wrong square, wins, and clears the marks; a missing square gets only “There is another.”, with no count.`, extension: 'How do you know you have found them all?', connection: 'P-positions of two-pile Nim; marking works outward by backward induction (Ferguson, §1).'},
     provenance: 'Week 8 K–1 Problem 4 (the open 6-by-6 board: colour every square you want to move the token to), as in grades 2–3 Problem 2 and grades 4–5 Problem 1 on 8-by-8.'
   },
   {
@@ -133,7 +133,7 @@ const authored = [
     visibleObjective: 'Find every start where you would rather go second.',
     idea: 'Four of the 56 starts: 1, 2, 3; 1, 4, 5; 2, 4, 6; 3, 5, 6. In each, every bundle size of 4, 2 and 1 appears an even number of times.',
     prerequisites: 'Every start 2. Patience with bookkeeping; piles split into bundles of 4, 2 and 1 help.',
-    hints: ['Look at the start you already know. Can a pile of 4 or more join a start like it?', 'Split each pile into bundles of 4, 2 and 1. Compare the starts you keep with the ones that get a ring.', 'If two piles are fixed, at most one size of third pile can work.'],
+    hints: ['Look at the start you already know. Can a pile of 4 or more join a start like it?', 'Split each pile into bundles of 4, 2 and 1. Compare the starts you keep with the ones I won from.', 'If two piles are fixed, at most one size of third pile can work.'],
     parent: {notice: 'Whether your child finds the starts by organised search (fix the smallest pile) or by a pattern, and whether they notice that two piles fix the third.', prompt: 'If two piles are 2 and 4, what must the third be?', explanation: 'Write each pile in bundles of 4, 2 and 1. The second player wins exactly when each bundle size appears an even number of times (the Nim-sum is 0). For any two piles a and b the third must be a ⊕ b, so a start is decided by its two smallest piles; within 1 to 6 that gives 1, 2, 3; 1, 4, 5; 2, 4, 6; 3, 5, 6.', extension: 'With piles up to 7, which three starts join these?', connection: 'Bouton’s theorem (Bouton 1902; Ferguson, §2).'},
     provenance: 'Week 8 grades 2–3 Problem 9 (all the starts with three piles of 1 to 6 where you would rather go second).'
   },
@@ -155,7 +155,7 @@ const authored = [
     visibleObjective: 'Find every start where you would rather go second.',
     idea: 'Seven of the 84 starts: the four for piles up to 6, and 1, 6, 7; 2, 5, 7; 3, 4, 7.',
     prerequisites: 'Every start 3.',
-    hints: ['Which starts from piles up to 6 still count? What can a pile of 7 join?', 'Split each pile into bundles of 4, 2 and 1. Compare the starts you keep with the ones that get a ring.', 'If two piles are fixed, at most one size of third pile can work.'],
+    hints: ['Which starts from piles up to 6 still count? What can a pile of 7 join?', 'Split each pile into bundles of 4, 2 and 1. Compare the starts you keep with the ones I won from.', 'If two piles are fixed, at most one size of third pile can work.'],
     parent: {notice: 'Whether your child reuses the answers for piles up to 6 and searches only the new starts with a 7.', prompt: 'Which piles go with a 7?', explanation: 'With 7 = 4 + 2 + 1, the other two piles must together hold each bundle size once: 1 and 6, 2 and 5, or 3 and 4. Together with 1, 2, 3; 1, 4, 5; 2, 4, 6; 3, 5, 6 that makes seven starts, and every one has Nim-sum 0.', extension: 'How many starts are there with piles of 1 to 15?', connection: 'Bouton’s theorem; the second-player starts with piles below 2^k are the triples a, b, a ⊕ b (Ferguson, §2).'},
     provenance: 'Week 8 grades 4–5 Problem 4 (all the starts with three piles of 1 to 7 where the second player can always win).'
   },
@@ -215,6 +215,9 @@ export const puzzles = authored.map(item => {
     parent: {...item.parent, sourceIds: ['rookrace-week08', 'rookrace-card08', 'rookrace-ferguson', ...(/Wythoff|Beatty/.test(item.parent.connection + item.idea) || q.queen ? ['rookrace-wythoff'] : []), ...(/Bouton/.test(item.parent.connection) ? ['rookrace-bouton'] : [])]},
     solution,
     provenance: item.provenance,
+    // As in Proofs, How to play leaves out the grown-ups' notes, which hold the
+    // answers; the Grown-ups catalog still lists them.
+    proof: true,
     sourceDocument: 'docs/rookrace/README.md'
   };
 });

@@ -295,9 +295,9 @@ for index,design in enumerate(code_designs):
 
 nim_designs=[
     ([2,2,3,5],'Piles of 2, 2, 3 and 5','If the two piles of 2 were not there, what would you leave the opponent?','Equal game components cancel even when other piles remain.','medium'),
-    ([1,3,5,7,2],'Piles of 1, 3, 5, 7 and 2','Split 1, 3, 5 and 7 into bundles of 4, 2 and 1. Then look at the pile of 2.','A whole collection can cancel even when no two piles match.','medium'),
+    ([1,3,5,7,2],'Piles of 1, 3, 5, 7 and 2','Split each pile into bundles of 4, 2 and 1. Which piles would you like to leave the opponent?','A whole collection can cancel even when no two piles match.','medium'),
     ([3,5,6,7],'Piles of 3, 5, 6 and 7','Split the first three piles into bundles of 4, 2 and 1. What do they make together?','A winning move can remove an entire pile while leaving three unequal piles.' ,'hard'),
-    ([2,4,7,8],'Piles of 2, 4, 7 and 8','Split each pile into bundles of 8, 4, 2 and 1. Which pile is the only one with an 8?','Shrinking a pile across a power of two can switch several smaller binary columns on.','hard'),
+    ([2,4,7,8],'Piles of 2, 4, 7 and 8','Split each pile into bundles of 8, 4, 2 and 1. When the opponent won, what piles did it leave you?','Shrinking a pile across a power of two can switch several smaller binary columns on.','hard'),
     ([1,4,6,9,11],'Piles of 1, 4, 6, 9 and 11','Split each pile into bundles of 8, 4, 2 and 1, and start with the biggest bundle.','More than one winning opening may exist; every opponent reply must still be balanced again.','hard'),
     ([3,5,8,10,12],'Piles of 3, 5, 8, 10 and 12','Split each pile into bundles of 8, 4, 2 and 1. Which piles have an 8?','Choosing among multiple reductions requires coordinating all binary columns across five components.','hard')]
 for piles,title,hint,insight,level in nim_designs:

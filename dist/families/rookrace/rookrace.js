@@ -109,9 +109,13 @@ const perfectTo = (q, from, to) => !squareWins(q, from) || !squareWins(q, to);
 const perfectTake = (from, to) => !pilesWin(from) || !pilesWin(to);
 // Starts are drawn half from squares where the first player loses, so always
 // choosing Me first fails. A new start differs from the last one when it can.
+// On boards up to 5 by 5, a start one move from the star is not drawn: on 4 by
+// 4 that is half the first-player squares, each won in one tap.
+export const NEAR_UP_TO = 5;
+export const oneMove = (q, s) => boardMoves(q, s).some(isStar);
 export function drawSquare(q, random = Math.random, previous = null) {
   const losing = random() < .5;
-  let pool = allSquares(q).filter(s => squareWins(q, s) !== losing);
+  let pool = allSquares(q).filter(s => squareWins(q, s) !== losing && !(q.size <= NEAR_UP_TO && oneMove(q, s)));
   if (previous && pool.length > 1) pool = pool.filter(s => !same(s, previous));
   return [...pick(pool, random)];
 }
@@ -130,7 +134,7 @@ const pileWords = piles => `${piles.slice(0, -1).join(', ')} and ${piles.at(-1)}
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 function stepWords(from, to) {
   const dx = from[0] - to[0], dy = from[1] - to[1];
-  if (dx && dy) return `${plural(dx, 'square')} diagonally`;
+  if (dx && dy) return `${dx} diagonally`;
   return dx ? `${dx} left` : `${dy} down`;
 }
 const PILE_NAMES = ['left', 'middle', 'right'];
@@ -269,8 +273,9 @@ function cell(q, s, look) {
   return `<span class="${classes}" ${at} role="img" aria-label="${esc(label)}">${content}</span>`;
 }
 // The board, top row first. `token` is the token's square or null; `from` the
-// square the opponent just left; `rings` squares to ring in ochre.
-function boardHTML(q, {token = null, from = null, targets = [], rings = [], marks = null, flag = null, hinted = null, live = false, label}) {
+// square the opponent just left; `rings` squares to ring in ochre; `marks` the
+// marked cells (live: tappable); `pick` makes every square a start to choose.
+function boardHTML(q, {token = null, from = null, targets = [], rings = [], marks = null, pick = false, flag = null, hinted = null, live = false, label}) {
   const rows = [];
   for (let y = q.size - 1; y >= 0; y--) for (let x = 0; x < q.size; x++) {
     const s = [x, y], cls = [];
@@ -288,6 +293,11 @@ function boardHTML(q, {token = null, from = null, targets = [], rings = [], mark
     if (flag && same(s, flag)) cls.push('flag');
     if (hinted && same(s, hinted)) cls.push('hinted');
     const content = isToken ? '<span class="rr-token" aria-hidden="true"></span>' : target ? '<span class="rr-dot" aria-hidden="true"></span>' : '';
+    if (pick) {
+      // A practice game on a board: tap the square to start from.
+      rows.push(cell(q, s, {cls, content, action: {type: 'start', cell: cellOf(q, s)}, pressed: Boolean(isToken), label: `${s[0]} right, ${s[1]} up`}));
+      continue;
+    }
     if (marks) {
       const on = marks.has(cellOf(q, s));
       if (on) cls.push('marked');
@@ -311,7 +321,7 @@ function raceRender(p, a) {
   const last = b.turns.at(-1), from = last?.player === 'opponent' ? (b.turns.length > 1 ? b.turns.at(-2).to : b.start) : null;
   const board = boardHTML(q, {token: b.at, from, targets: yourTurn ? boardMoves(q, b.at) : [], rings: a.hintLevel >= 2 && !done ? b.lost : [], label: `Board, ${q.size} by ${q.size}, star in the bottom-left corner`});
   const actions = done ? '' : b.first === null
-    ? `${moveButton('Me first', {type: 'choose', first: 'you'}, 'primary')}${moveButton('You first', {type: 'choose', first: 'opponent'}, 'secondary')}`
+    ? `${moveButton('Me first', {type: 'choose', first: 'you'}, 'secondary')}${moveButton('You first', {type: 'choose', first: 'opponent'}, 'secondary')}`
     : over ? `${raceWinner(b) === 'opponent' ? moveButton('Same start again', {type: 'again'}, 'secondary') : ''}${moveButton('New start', {type: 'new'}, 'primary')}` : '';
   return `<div class="rr-puzzle" data-mechanic-wire="rookrace">
     <div class="rr-roundbar">${moveKey(q)}<p class="rr-status" role="status" tabindex="-1" data-focus="rr-status">${esc(raceStatus(b))}</p>${pips(q.streak, b.streak)}</div>
@@ -336,36 +346,50 @@ function wireBoard(root, p, api) {
 // --- Every start ------------------------------------------------------------------
 // Boards: the marks (cells, ascending). Piles: the start being built, the shelf
 // (sorted keys such as "1,2,3", in order), and "Already on the shelf.". Both:
-// That's all's refusal ({wrong} names the first kept start the first player can
-// win from; {more} says one is missing), a game being played, and done. A game
-// is a practice try from the start being built (piles only; the child chooses
-// who starts) or the play-out of a refused start (the app goes first).
+// That's all's verdict ({more} says one is missing; {wrong}, given only when
+// none is, names the first kept start the first player can win from), a game
+// being played, and done. A game
+// is a practice try (from the start being built, or from a tapped square; the
+// child chooses who starts) or the play-out of a wrong That's all: I go first
+// from the wrong start and win, and when that game ends the marks or the shelf
+// are cleared, since a final choice is final. "There is another." only waits
+// for a change.
 const pilesKind = q => q.kind === 'piles';
 const answersOf = q => pilesKind(q) ? secondStarts(q).map(keyOf) : secondSquares(q).map(s => cellOf(q, s));
 const order = (q, list) => pilesKind(q) ? [...list].sort((a, b) => { const x = startOfKey(a), y = startOfKey(b); return x[0] - y[0] || x[1] - y[1] || x[2] - y[2]; }) : [...list].sort((a, b) => a - b);
 const keptOf = (q, b) => pilesKind(q) ? b.shelf : b.marked;
 const winsFrom = (q, candidate) => pilesKind(q) ? pilesWin(startOfKey(candidate)) : squareWins(q, squareOf(q, candidate));
-// That's all on this shelf: null (right), {wrong} or {more: true}.
+// That's all on this shelf: null (right), {more: true} or {wrong}. Whether
+// anything is missing is asked first, so a That's all with a few marks says
+// nothing about them; only a shelf holding every answer and something more has
+// a wrong start named (and played out). Asked the other way round, one mark and
+// That's all would be a cheap yes-or-no check on each start.
 export function judge(q, kept) {
+  if (!answersOf(q).every(c => kept.includes(c))) return {more: true};
   const wrong = order(q, kept).find(c => winsFrom(q, c));
-  if (wrong !== undefined) return {wrong};
-  return answersOf(q).every(c => kept.includes(c)) ? null : {more: true};
+  return wrong === undefined ? null : {wrong};
 }
 const isCandidate = (q, c) => pilesKind(q) ? typeof c === 'string' && pileStarts(q).some(s => keyOf(s) === c) : integer(c) && c >= 0 && c < q.size * q.size && c !== 0;
 const isOrdered = (q, list) => Array.isArray(list) && list.every((c, i) => isCandidate(q, c) && (!i || order(q, [list[i - 1], c])[0] === list[i - 1] && list[i - 1] !== c));
 const isBuild = (q, build) => Array.isArray(build) && build.length === 3 && build.every(n => integer(n) && n >= 1 && n <= q.max);
+const sameVerdict = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
-// The game of a play, replayed from its start: where it stands and whose turn it is.
+// The game of a play, replayed from its start: where it stands and whose turn
+// it is. A board try may still be choosing its start (start null).
 function playState(q, b) {
   const play = b.play;
-  if (!object(play)) return null;
-  const out = play.kind === 'out';
-  if (pilesKind(q)) {
-    if (!keysAre(play, ['kind', 'start', 'first', 'turns']) || !['try', 'out'].includes(play.kind) || !isBuild(q, play.start)) return null;
-    if (out ? !(b.refused?.wrong && keyOf(play.start) === b.refused.wrong && play.start.join() === b.refused.wrong && play.first === 'opponent') : play.start.join() !== b.build.join() || ![null, 'you', 'opponent'].includes(play.first)) return null;
-  } else if (!keysAre(play, ['kind', 'first', 'turns']) || play.kind !== 'out' || play.first !== 'opponent' || !integer(b.refused?.wrong)) return null;
+  if (!keysAre(play, ['kind', 'start', 'first', 'turns']) || !['try', 'out'].includes(play.kind) || ![null, 'you', 'opponent'].includes(play.first)) return null;
   if (!Array.isArray(play.turns) || play.turns.length > 64 || (play.first === null && play.turns.length)) return null;
-  let at = pilesKind(q) ? [...play.start] : squareOf(q, b.refused.wrong);
+  if (play.kind === 'out') {
+    const wrong = b.refused?.wrong;
+    if (play.first !== 'opponent' || wrong === undefined) return null;
+    if (pilesKind(q) ? !(isBuild(q, play.start) && play.start.join() === wrong) : play.start !== wrong) return null;
+  } else if (pilesKind(q)) {
+    if (!isBuild(q, play.start) || play.start.join() !== b.build.join()) return null;
+  } else if (play.start === null) {
+    return play.first === null ? {at: null, over: false, toMove: null, winner: null} : null;
+  } else if (!isCandidate(q, play.start)) return null;
+  let at = pilesKind(q) ? [...play.start] : squareOf(q, play.start);
   for (const [i, t] of play.turns.entries()) {
     const expected = (i % 2 === 0) === (play.first === 'you') ? 'you' : 'opponent';
     if (pilesKind(q)) {
@@ -391,16 +415,17 @@ function everyValid(p, b) {
   const kept = keptOf(q, b);
   if (!isOrdered(q, kept)) return false;
   if (pilesKind(q) && (!isBuild(q, b.build) || ![null, 'again'].includes(b.told) || (b.told === 'again' && !kept.includes(keyOf(b.build))))) return false;
-  // A refusal is exactly what That's all says about this shelf; done only when it is right.
-  const verdict = kept.length ? judge(q, kept) : undefined;
-  if (b.refused !== null && (b.done || verdict === undefined || JSON.stringify(b.refused) !== JSON.stringify(verdict))) return false;
-  if (b.done && verdict !== null) return false;
-  if (b.play !== null) {
-    if (b.done) return false;
-    const run = playState(q, b);
-    // Saves land before the choice, on the child's turn, or after the game.
-    if (!run || !(run.over || run.toMove === 'you' || b.play.first === null)) return false;
-  }
+  const run = b.play === null ? null : playState(q, b);
+  if (b.play !== null && !run) return false;
+  if (b.play?.kind === 'out') {
+    // A wrong That's all: the play-out runs on the marks it judged, and when it
+    // ends (I win, since I go first from a first-player start) they are cleared.
+    if (!keysAre(b.refused, ['wrong']) || !isCandidate(q, b.refused.wrong) || !winsFrom(q, b.refused.wrong)) return false;
+    if (run.over ? kept.length || run.winner !== 'opponent' : !kept.length || !sameVerdict(judge(q, kept), b.refused)) return false;
+  } else if (b.refused !== null && !(kept.length && keysAre(b.refused, ['more']) && sameVerdict(judge(q, kept), b.refused))) return false;
+  if (b.done && (b.play !== null || b.refused !== null || !kept.length || judge(q, kept) !== null)) return false;
+  // Saves land before a choice, on the child's turn, or after a game.
+  if (run && !(run.over || run.toMove === 'you' || b.play.first === null)) return false;
   return true;
 }
 const everySolved = (p, b) => everyValid(p, b) && b.done;
@@ -414,15 +439,32 @@ function playReply(q, b, random) {
   if (pilesKind(q)) b.play.turns.push({player: 'opponent', ...opponentTake(run.at, random)});
   else b.play.turns.push({player: 'opponent', to: opponentSquare(q, run.at, random)});
 }
+// When the play-out of a wrong That's all ends, the marks or the shelf are cleared.
+function settleOut(q, b) {
+  if (b.play?.kind !== 'out' || !playState(q, b)?.over) return;
+  if (pilesKind(q)) { b.shelf = []; b.told = null; } else b.marked = [];
+}
 function everyMove(p, b, action, random = Math.random) {
   const q = p.parameters;
   if (!everyValid(p, b) || b.done || !object(action)) return null;
   const next = clone(b);
   if (b.play) {
-    const run = playState(q, b);
-    if (action.type === 'back') { next.play = null; return next; }
+    const run = playState(q, b), out = b.play.kind === 'out';
+    if (action.type === 'back') {
+      // The play-out is played to the end; then Back returns to the cleared board.
+      if (out && !run.over) return null;
+      next.play = null;
+      if (out) next.refused = null;
+      return next;
+    }
+    if (action.type === 'start') {
+      const c = index(action.cell);
+      if (pilesKind(q) || out || b.play.first !== null || !isCandidate(q, c)) return null;
+      next.play.start = c;
+      return next;
+    }
     if (action.type === 'choose') {
-      if (b.play.first !== null || !['you', 'opponent'].includes(action.first)) return null;
+      if (out || b.play.first !== null || b.play.start === null || !['you', 'opponent'].includes(action.first)) return null;
       next.play.first = action.first;
       if (action.first === 'opponent') playReply(q, next, random);
       return next;
@@ -432,33 +474,34 @@ function everyMove(p, b, action, random = Math.random) {
       const m = {pile: index(action.pile), take: index(action.take)};
       if (!integer(m.pile) || m.pile < 1 || m.pile > 3 || !integer(m.take) || m.take < 1 || m.take > run.at[m.pile - 1]) return null;
       next.play.turns.push({player: 'you', ...m});
-      playReply(q, next, random);
-      return next;
-    }
-    if (!pilesKind(q) && action.type === 'move') {
+    } else if (!pilesKind(q) && action.type === 'move') {
       const to = Array.isArray(action.to) ? action.to.map(index) : null;
       if (!isSquare(q, to) || !legalTo(q, run.at, to)) return null;
       next.play.turns.push({player: 'you', to});
-      playReply(q, next, random);
-      return next;
-    }
-    return null;
+    } else return null;
+    playReply(q, next, random);
+    settleOut(q, next);
+    return next;
   }
-  // That's all judges the whole shelf; after a refusal it waits for a change.
+  // That's all judges the whole shelf. A wrong start is played out at once, I
+  // going first; a missing one is only "There is another.", until a change.
   if (action.type === 'all') {
     const kept = keptOf(q, b);
     if (!kept.length || b.refused) return null;
     const verdict = judge(q, kept);
-    if (verdict) { next.refused = verdict; if (pilesKind(q)) next.told = null; return next; }
-    next.done = true; next.refused = null;
     if (pilesKind(q)) next.told = null;
+    if (!verdict) { next.done = true; return next; }
+    next.refused = verdict;
+    if (verdict.wrong !== undefined) {
+      next.play = {kind: 'out', start: pilesKind(q) ? startOfKey(verdict.wrong) : verdict.wrong, first: 'opponent', turns: []};
+      playReply(q, next, random);
+      settleOut(q, next);
+    }
     return next;
   }
-  // The play-out of a refused start: the app goes first, and wins.
-  if (action.type === 'out') {
-    if (b.refused?.wrong === undefined) return null;
-    next.play = pilesKind(q) ? {kind: 'out', start: startOfKey(b.refused.wrong), first: 'opponent', turns: []} : {kind: 'out', first: 'opponent', turns: []};
-    playReply(q, next, random);
+  if (action.type === 'try') {
+    next.play = {kind: 'try', start: pilesKind(q) ? [...b.build] : null, first: null, turns: []};
+    if (pilesKind(q)) next.told = null;
     return next;
   }
   if (!pilesKind(q)) {
@@ -486,11 +529,12 @@ function everyMove(p, b, action, random = Math.random) {
     next.shelf = b.shelf.filter(k => k !== action.key); next.told = null; next.refused = null;
     return next;
   }
-  if (action.type === 'try') { next.play = {kind: 'try', start: [...b.build], first: null, turns: []}; next.told = null; return next; }
   return null;
 }
 // Hints move toward the answer: take off a wrong mark or start, then add a
 // missing one (on the piles, one pile at a time, then Keep), then That's all.
+// The child sees the puzzle's first authored hint before any tap; its second
+// and third are for grown-ups (How to play and the notes list them).
 function permutations(t) {
   return [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]].map(o => o.map(i => t[i]));
 }
@@ -498,7 +542,14 @@ export function everyHint(p, b) {
   const q = p.parameters;
   if (!everyValid(p, b)) return {type: 'deadend', text: 'Restart to clear the board.'};
   if (b.done) return {type: 'done'};
-  if (b.play) return {type: 'move', action: {type: 'back'}, text: pilesKind(q) ? 'Go back to the shelf.' : 'Go back to your marks.'};
+  if (b.play) {
+    const run = playState(q, b);
+    if (b.play.kind === 'out' && !run.over) {
+      const action = pilesKind(q) ? {type: 'take', ...pileMoves(run.at)[0]} : {type: 'move', to: boardMoves(q, run.at)[0]};
+      return {type: 'move', action, text: 'From here I can always win. Make any move.'};
+    }
+    return {type: 'move', action: {type: 'back'}, text: pilesKind(q) ? 'Go back to the shelf.' : 'Go back to your marks.'};
+  }
   const kept = keptOf(q, b), answers = answersOf(q);
   const wrong = order(q, kept).find(c => winsFrom(q, c));
   if (pilesKind(q)) {
@@ -530,32 +581,39 @@ function pilePebbles(sizes, ghost, live, lifted) {
   }).join('');
 }
 const button = (label, action, cls, enabled = true, hinted = false, extra = '') => `<button type="button" class="${cls} es-button${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="es-${esc(action.type)}${action.first ? `-${action.first}` : ''}" ${enabled ? '' : 'disabled'} ${extra}>${label}</button>`;
-function playPanel(p, b, state) {
-  const q = p.parameters, run = playState(q, b), play = b.play, last = play.turns.at(-1);
-  let status;
-  if (play.first === null) status = '';
-  else if (pilesKind(q)) {
+const BOARD_LABEL = q => `Board, ${q.size} by ${q.size}, star in the bottom-left corner`;
+function playPanel(p, b, state, act) {
+  const q = p.parameters, run = playState(q, b), play = b.play, last = play.turns.at(-1), out = play.kind === 'out';
+  const picking = !pilesKind(q) && play.first === null;
+  let status = '';
+  if (picking) status = play.start === null ? 'Tap a square to start from.' : '';
+  else if (play.first !== null && pilesKind(q)) {
     const took = last?.player === 'opponent' ? `I took ${last.take} from the ${PILE_NAMES[last.pile - 1]} pile. ` : '';
     status = run.over ? (run.winner === 'you' ? 'You took the last pebble.' : `${took}I took the last pebble.`) : `${took}Your turn`;
-  } else {
-    const before = play.turns.length > 1 ? play.turns.at(-2).to : squareOf(q, b.refused.wrong);
+  } else if (play.first !== null) {
+    const before = play.turns.length > 1 ? play.turns.at(-2).to : squareOf(q, play.start);
     status = run.over ? (run.winner === 'you' ? 'You reached the star.' : `I moved ${stepWords(before, run.at)} and reached the star.`) : `${last?.player === 'opponent' ? `I moved ${stepWords(before, run.at)}. ` : ''}Your turn`;
   }
   const yourTurn = play.first !== null && !run.over && run.toMove === 'you';
-  let field, controls = '';
+  const choose = play.first === null && play.start !== null ? `${button('Me first', {type: 'choose', first: 'you'}, 'secondary')}${button('You first', {type: 'choose', first: 'opponent'}, 'secondary')}` : '';
+  let field, controls = choose;
   if (pilesKind(q)) {
     const lifted = yourTurn && state.pick && state.pick.pile <= 3 && state.pick.from < run.at[state.pick.pile - 1] ? state.pick : null;
     if (!lifted) state.pick = null;
     field = `<div class="es-piles es-play-piles">${pilePebbles(run.at, last?.player === 'opponent' ? last : null, yourTurn, lifted)}</div>`;
     const takeCount = lifted ? run.at[lifted.pile - 1] - lifted.from : 0;
-    if (play.first === null) controls = `${button('Me first', {type: 'choose', first: 'you'}, 'primary')}${button('You first', {type: 'choose', first: 'opponent'}, 'secondary')}`;
-    else if (lifted) controls = `${button(`Take ${takeCount}`, {type: 'take', pile: lifted.pile, take: takeCount}, 'primary')}<button type="button" class="secondary es-button" data-action="mechanic-ui" data-ui="${esc(JSON.stringify({pick: null}))}" data-focus="es-cancel">Cancel</button>`;
+    if (lifted) controls = `${button(`Take ${takeCount}`, {type: 'take', pile: lifted.pile, take: takeCount}, 'primary')}<button type="button" class="secondary es-button" data-action="mechanic-ui" data-ui="${esc(JSON.stringify({pick: null}))}" data-focus="es-cancel">Cancel</button>`;
   } else {
-    const before = last?.player === 'opponent' ? (play.turns.length > 1 ? play.turns.at(-2).to : squareOf(q, b.refused.wrong)) : null;
-    field = boardHTML(q, {token: run.at, from: before, flag: squareOf(q, b.refused.wrong), targets: yourTurn ? boardMoves(q, run.at) : [], label: `Board, ${q.size} by ${q.size}, star in the bottom-left corner`});
+    const start = play.start === null ? null : squareOf(q, play.start);
+    const before = last?.player === 'opponent' ? (play.turns.length > 1 ? play.turns.at(-2).to : start) : null;
+    const hinted = act?.type === 'move' ? act.to : null;
+    field = boardHTML(q, {token: picking ? start : run.at, from: before, flag: out ? start : null, pick: picking, hinted, targets: yourTurn ? boardMoves(q, run.at) : [], label: BOARD_LABEL(q)});
   }
-  const back = button(pilesKind(q) ? 'Back to the shelf' : 'Back to the board', {type: 'back'}, run.over ? 'primary' : 'secondary');
-  const opening = play.kind === 'out' ? `<p class="es-label">${esc(pilesKind(q) ? `I go first from ${pileWords(play.start)}.` : 'I go first from the ringed square.')}</p>` : '';
+  // The play-out of a wrong That's all cannot be left before it ends.
+  const back = out && !run.over ? '' : button('Back', {type: 'back'}, run.over ? 'primary' : 'secondary');
+  // When the play-out ends, one line says what happened, including the clearing.
+  if (out && run.over) status += ` ${pilesKind(q) ? 'The shelf is' : 'The marks are'} cleared.`;
+  const opening = out && !run.over ? `<p class="es-label">${esc(`Whoever starts from ${pilesKind(q) ? pileWords(play.start) : 'the ringed square'} can win. I go first.`)}</p>` : '';
   return `${opening}<p class="es-status" role="status" tabindex="-1" data-focus="es-status">${esc(status)}</p>${field}<div class="es-actions">${controls}${back}</div>`;
 }
 const uiState = new Map();
@@ -563,28 +621,29 @@ const ui = p => { if (!uiState.has(p.id)) uiState.set(p.id, {pick: null}); retur
 function everyRender(p, a) {
   const q = p.parameters, b = a.board, done = b.done, state = ui(p);
   const shown = a.hintLevel >= 2 && !done ? everyHint(p, b) : null, act = shown?.type === 'move' ? shown.action : null;
-  if (b.play) return `<div class="es-puzzle${pilesKind(q) ? ' piles' : ' board'}" data-mechanic-wire="everystart">${playPanel(p, b, state)}</div>`;
-  const kept = keptOf(q, b), wrong = b.refused?.wrong;
-  const word = pilesKind(q) && b.told === 'again' ? 'Already on the shelf.' : wrong !== undefined ? (pilesKind(q) ? 'Whoever starts from the ringed start can win.' : 'Whoever starts from the ringed square can win.') : b.refused ? 'There is another.' : '';
-  const playIt = wrong !== undefined ? button('Play it', {type: 'out'}, 'secondary') : '';
+  if (b.play) return `<div class="es-puzzle${pilesKind(q) ? ' piles' : ' board'}" data-mechanic-wire="everystart">${playPanel(p, b, state, act)}</div>`;
+  const kept = keptOf(q, b);
+  const word = pilesKind(q) && b.told === 'again' ? 'Already on the shelf.' : b.refused?.more ? 'There is another.' : '';
   const note = `<p class="es-note" role="status">${esc(word)}</p>`;
   const all = done ? '' : button('That’s all', {type: 'all'}, 'primary', kept.length > 0 && !b.refused, act?.type === 'all');
+  const tryIt = done ? '' : button('Play', {type: 'try'}, 'secondary');
   if (!pilesKind(q)) {
-    // The key sits beside That's all, so the busiest board still fits a phone.
-    const board = boardHTML(q, {marks: new Set(b.marked), live: !done, flag: wrong !== undefined ? squareOf(q, wrong) : null, hinted: act?.type === 'mark' ? squareOf(q, act.cell) : null, label: `Board, ${q.size} by ${q.size}, star in the bottom-left corner`});
-    return `<div class="es-puzzle board" data-mechanic-wire="everystart">${board}<div class="es-actions">${moveKey(q)}${all}${playIt}</div>${note}</div>`;
+    // The key sits beside Play and That's all, so the busiest board still fits a phone.
+    const board = boardHTML(q, {marks: new Set(b.marked), live: !done, hinted: act?.type === 'mark' ? squareOf(q, act.cell) : null, label: BOARD_LABEL(q)});
+    return `<div class="es-puzzle board" data-mechanic-wire="everystart">${board}<div class="es-actions">${moveKey(q)}${tryIt}${all}</div>${note}</div>`;
   }
   const slots = b.build.map((n, i) => `<div class="es-builder-pile" role="group" aria-label="${PILE_NAMES[i]} pile, ${plural(n, 'pebble')}"><div class="es-slots">${Array.from({length: q.max}, (_, k) => {
     const size = k + 1, on = size <= n, hint = act?.type === 'set' && act.pile === i && act.n === size;
     return `<button type="button" class="es-slot${on ? ' on' : ''}${hint ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'set', pile: i, n: size}))}" data-focus="es-slot-${i}-${size}" aria-label="Make the ${PILE_NAMES[i]} pile ${size}" aria-pressed="${size === n}" ${done ? 'disabled' : ''}></button>`;
   }).join('')}</div><span class="es-count" aria-hidden="true">${n}</span></div>`).join('');
-  const shelf = kept.map(key => `<button type="button" class="es-chip${key === wrong ? ' flag' : ''}${act?.type === 'drop' && act.key === key ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'drop', key}))}" data-focus="es-chip-${key}" aria-label="Take ${pileWords(startOfKey(key))} off the shelf" ${done ? 'disabled' : ''}>${startOfKey(key).map(n => `<span>${n}</span>`).join('')}</button>`).join('');
-  const tools = done ? '' : `${button('Keep', {type: 'keep'}, 'secondary', true, act?.type === 'keep')}${button('Play', {type: 'try'}, 'secondary')}${all}`;
+  const shelf = kept.map(key => `<button type="button" class="es-chip${act?.type === 'drop' && act.key === key ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'drop', key}))}" data-focus="es-chip-${key}" aria-label="Take ${pileWords(startOfKey(key))} off the shelf" ${done ? 'disabled' : ''}>${startOfKey(key).map(n => `<span>${n}</span>`).join('')}</button>`).join('');
+  const tools = done ? '' : `${button('Keep', {type: 'keep'}, 'secondary', true, act?.type === 'keep')}${tryIt}${all}`;
+  // The line about That's all or Keep sits under the buttons, above a shelf that can grow long.
   return `<div class="es-puzzle piles" data-mechanic-wire="everystart">
     <div class="es-builder">${slots}</div>
     <div class="es-actions">${tools}</div>
+    ${note}
     <div class="es-shelf" role="group" aria-label="Shelf">${shelf}</div>
-    ${note}${playIt ? `<div class="es-actions">${playIt}</div>` : ''}
   </div>`;
 }
 
@@ -628,5 +687,5 @@ export default {
   mechanics: rookraceMechanics,
   pack: new URL('./rookrace.json', import.meta.url).href,
   css: new URL('./rookrace.css', import.meta.url).href,
-  focus: '[data-mechanic-wire] button.rr-cell.target,[data-mechanic-wire="everystart"] button.rr-cell,[data-mechanic-wire="everystart"] button.es-slot:not(:disabled),[data-mechanic-wire="everystart"] button.es-pebble:not(:disabled),[data-mechanic-wire] :is(.rr-actions,.es-actions) button.primary:not(:disabled)'
+  focus: '[data-mechanic-wire] button.rr-cell.target,[data-mechanic-wire="everystart"] button.rr-cell,[data-mechanic-wire="everystart"] button.es-slot:not(:disabled),[data-mechanic-wire="everystart"] button.es-pebble:not(:disabled),[data-mechanic-wire] :is(.rr-actions,.es-actions) button:not(:disabled)'
 };

@@ -7,14 +7,15 @@
 // that about half the drawn starts are second-player starts, so always going
 // first fails; that the solver wins every race and hints alone finish every
 // Every start puzzle, from a fresh start and after wrong marks, play-outs and
-// practice games; that That's all judges the whole shelf, locks until it
-// changes, and is hard to pass by chance; illegal moves; forged saves; and
-// CPU time per tap. Run: node scripts/validate-rookrace.mjs
+// practice games; that That's all judges the whole shelf, plays a wrong start
+// out at once and then clears the marks, locks after "There is another." until
+// a change, is hard to pass by chance, and costs far more to use as an oracle
+// than knowing the answer; illegal moves; forged saves; and CPU time per tap. Run: node scripts/validate-rookrace.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {freshAttempt, move, isSolved, nextHint, validBoard} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
-import {rookraceMechanics, raceSolve, everyHint, judge, opponentSquare, opponentTake, drawSquare, keyOf, cellOf, squareOf, STREAK} from '../dist/families/rookrace/rookrace.js';
+import {rookraceMechanics, raceSolve, everyHint, judge, opponentSquare, opponentTake, drawSquare, keyOf, cellOf, squareOf, squareWins, pilesWin, STREAK} from '../dist/families/rookrace/rookrace.js';
 import {loadPack} from './packs.mjs';
 
 const PHI = (1 + Math.sqrt(5)) / 2;
@@ -73,13 +74,153 @@ function boutonStarts(q) {
   return out;
 }
 
+// --- What guessing with That's all costs -----------------------------------------
+// Taps a child spends: a mark, a slot, Keep, That's all, Back and a board move
+// are one tap each; a pile take is two (lift, then Take). Three ways to solve:
+// knowing the answer (mark or keep it, then That's all); marking everything and
+// letting That's all strip the wrong starts one at a time; and asking That's
+// all about one start at a time. "before" counts the second and third under the
+// first design (a wrong start was named first and rung, so one tap took it off);
+// "after" plays them against the mechanic, where That's all says "There is
+// another." whenever an answer is missing, so one start alone learns nothing,
+// and a wrong start (named only when nothing is missing) is a game I win going
+// first, after which the marks or the shelf are cleared. "leaveOneOut" is the
+// cheapest test of a single start that is left.
+function slotTaps(build, key) {
+  const t = key.split(',').map(Number);
+  return Math.min(...[[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]].map(o => o.filter((i, k) => t[i] !== build[k]).length));
+}
+function guessCosts(p, candidates, answers) {
+  const q = p.parameters, piles = q.kind === 'piles', m = rookraceMechanics.everystart, N = candidates.length, A = answers.length;
+  // The before model: the same taps to keep a start; a wrong That's all then
+  // cost the tap that took the ringed start off.
+  let build = [1, 1, 1];
+  const keepTaps = c => { if (!piles) return 1; const taps = slotTaps(build, c) + 1; build = c.split(',').map(Number); return taps; };
+  const before = {stripping: 0, oneAtATime: 0};
+  for (const c of candidates) before.stripping += keepTaps(c);
+  before.stripping += 2 * (N - A) + 1;
+  build = [1, 1, 1];
+  let solved = false;
+  for (const c of candidates) {
+    before.oneAtATime += keepTaps(c) + 1;
+    if (A === 1 && answers.includes(c)) { solved = true; break; }
+    before.oneAtATime += 1;
+  }
+  if (!solved) { for (const c of answers) before.oneAtATime += keepTaps(c); before.oneAtATime += 1; }
+  // The after simulation, on the mechanic itself.
+  const run = strategy => {
+    const r = seeded(13);
+    let b = m.fresh(p), taps = 0, presses = 0;
+    const act = (action, n = 1) => { b = m.move(p, b, action, r); assert.ok(b, `${p.id}: ${JSON.stringify(action)}`); taps += n; if (action.type === 'all') presses++; };
+    const keep = c => {
+      if (!piles) return act({type: 'mark', cell: c});
+      const t = c.split(',').map(Number), order = [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]].map(o => o.map(i => t[i]));
+      const best = order.sort((x, y) => x.filter((n, k) => n !== b.build[k]).length - y.filter((n, k) => n !== b.build[k]).length)[0];
+      best.forEach((n, i) => { if (b.build[i] !== n) act({type: 'set', pile: i, n}); });
+      act({type: 'keep'});
+    };
+    const drop = c => act(piles ? {type: 'drop', key: c} : {type: 'mark', cell: c});
+    // A play-out, ended as fast as the child can: on a board, step next to the
+    // star; with piles, take the biggest pile away.
+    const playOut = () => {
+      for (let i = 0; i < 40 && b.play; i++) {
+        const turns = b.play.turns;
+        if (piles) {
+          const at = turns.reduce((x, t) => x.map((n, k) => k === t.pile - 1 ? n - t.take : n), b.play.start);
+          if (at.every(n => !n)) break;
+          const pile = at.indexOf(Math.max(...at));
+          act({type: 'take', pile: pile + 1, take: at[pile]}, 2);
+        } else {
+          const at = turns.at(-1)?.to ?? squareOf(q, b.play.start);
+          if (!at[0] && !at[1]) break;
+          const options = slides(q)(at);
+          act({type: 'move', to: options.find(s => slides(q)(s).some(t => !t[0] && !t[1])) || options[0]});
+        }
+      }
+      act({type: 'back'});
+    };
+    if (strategy === 'knowing') { for (const c of answers) keep(c); act({type: 'all'}); }
+    if (strategy === 'stripping') {
+      const known = new Set();
+      while (!b.done) {
+        for (const c of candidates) if (!known.has(c) && !keptOf(b).includes(c)) keep(c);
+        act({type: 'all'});
+        if (b.play) { known.add(b.refused.wrong); playOut(); }
+      }
+    }
+    // One start at a time: what does That's all say about each start alone?
+    if (strategy === 'oneAtATime') {
+      for (const c of candidates) {
+        keep(c); act({type: 'all'});
+        verdicts.add(b.done ? 'done' : b.play ? 'wrong' : 'more');
+        if (b.done) break;
+        if (b.play) playOut(); else drop(c);
+      }
+      if (!b.done) { for (const c of answers) keep(c); act({type: 'all'}); }
+    }
+    // The cheapest test of one start left: keep every start but that one (and
+    // those known to be wrong). "There is another." means it is an answer;
+    // otherwise a wrong start is named, played out and the shelf cleared.
+    if (strategy === 'leaveOneOut') {
+      const wrong = new Set();
+      for (let i = 0; i < candidates.length && !b.done; i++) {
+        const c = candidates[i];
+        if (wrong.has(c)) continue;
+        const target = candidates.filter(x => x !== c && !wrong.has(x));
+        for (const x of [...keptOf(b)]) if (!target.includes(x)) drop(x);
+        for (const x of target) if (!keptOf(b).includes(x)) keep(x);
+        act({type: 'all'});
+        if (b.play) { wrong.add(b.refused.wrong); playOut(); i--; }
+      }
+    }
+    // Solving by play: try every start in a practice game, letting me go first
+    // and playing perfectly, then keep the ones won and press That's all. A
+    // child who thinks plays far fewer games; this is the most play can cost.
+    if (strategy === 'byPlay') {
+      const won = [];
+      for (const c of candidates) {
+        if (piles) { const t = c.split(',').map(Number); t.forEach((n, i) => { if (b.build[i] !== n) act({type: 'set', pile: i, n}); }); act({type: 'try'}); }
+        else { act({type: 'try'}); act({type: 'start', cell: c}); }
+        act({type: 'choose', first: 'opponent'});
+        for (let k = 0; k < 40; k++) {
+          const turns = b.play.turns;
+          if (piles) {
+            const at = turns.reduce((x, t) => x.map((n, j) => j === t.pile - 1 ? n - t.take : n), b.play.start);
+            if (at.every(n => !n)) break;
+            const moves = at.flatMap((n, j) => Array.from({length: n}, (_, d) => ({pile: j + 1, take: d + 1})));
+            const best = moves.find(m => !pilesWin(at.map((n, j) => j === m.pile - 1 ? n - m.take : n))) || moves[0];
+            act({type: 'take', ...best}, 2);
+          } else {
+            const at = turns.at(-1)?.to ?? squareOf(q, b.play.start);
+            if (!at[0] && !at[1]) break;
+            const options = slides(q)(at);
+            act({type: 'move', to: options.find(t => !squareWins(q, t)) || options[0]});
+          }
+        }
+        if (b.play.turns.at(-1).player === 'you') won.push(c);
+        act({type: 'back'});
+      }
+      assert.deepEqual([...won].sort(), [...answers].sort(), `${p.id}: playing perfectly second wins exactly from the answers`);
+      for (const c of answers) keep(c);
+      act({type: 'all'});
+    }
+    assert.ok(b.done, `${p.id}: ${strategy} solves`);
+    return {taps, presses};
+  };
+  const keptOf = b => piles ? b.shelf : b.marked;
+  const verdicts = new Set();
+  const after = {stripping: run('stripping'), oneAtATime: run('oneAtATime'), leaveOneOut: run('leaveOneOut')};
+  after.oneAtATime.verdicts = [...verdicts].sort();
+  return {knowing: run('knowing').taps, byPlay: run('byPlay').taps, before, after};
+}
+
 const cpu = f => { const t = process.cpuUsage(); const out = f(); const u = process.cpuUsage(t); return {out, ms: (u.user + u.system) / 1000}; };
 const play = (p, b, ...actions) => actions.reduce((board, action) => { const next = rookraceMechanics[p.mechanic].move(p, board, action, seeded(7)); assert.ok(next, `${p.id}: ${JSON.stringify(action)} is legal`); return next; }, b);
 
 export default async function validateRookrace() {
   const json = JSON.parse(await readFile(new URL('../dist/families/rookrace/rookrace.json', import.meta.url), 'utf8'));
   const pack = await loadPack();
-  const report = {puzzles: json.puzzles.length, races: 0, everyStart: 0, raceGamesPlayed: 0, randomSolveShare: {}, alwaysFirstShare: {}, maxTapMs: 0};
+  const report = {puzzles: json.puzzles.length, races: 0, everyStart: 0, raceGamesPlayed: 0, randomSolveShare: {}, guessCost: {}, alwaysFirstShare: {}, maxTapMs: 0};
   assert.ok(json.puzzles.length >= 8 && json.puzzles.length <= 12);
   assert.equal(new Set(json.sources.map(s => s.id)).size, json.sources.length);
   for (const s of json.sources) assert.match(s.url, /^https:\/\//, s.id);
@@ -139,7 +280,14 @@ export default async function validateRookrace() {
       // About half the drawn starts are second-player starts; a new start differs from the last.
       const random = seeded(11);
       let losing = 0, prev = null;
-      for (let i = 0; i < 4000; i++) { const s = drawSquare(q, random, prev); if (prev) assert.notEqual(s.join(), prev.join(), `${p.id}: a new start is new`); if (second.has(s.join())) losing++; prev = s; }
+      for (let i = 0; i < 4000; i++) {
+        const s = drawSquare(q, random, prev);
+        if (prev) assert.notEqual(s.join(), prev.join(), `${p.id}: a new start is new`);
+        if (second.has(s.join())) losing++;
+        // On boards up to 5 by 5 no start is one move from the star.
+        if (q.size <= 5) assert.ok(!slides(q)(s).some(t => !t[0] && !t[1]), `${p.id}: ${s} is one move from the star`);
+        prev = s;
+      }
       assert.ok(losing / 4000 > .45 && losing / 4000 < .55, `${p.id}: half the starts are second-player starts (${losing / 4000})`);
       // The solver wins three in a row from fresh, for many seeds.
       for (let seed = 1; seed <= 25; seed++) {
@@ -230,6 +378,7 @@ export default async function validateRookrace() {
     assert.equal(judge(q, answers), null, `${p.id}: the answers pass`);
     assert.deepEqual(judge(q, answers.slice(1)), {more: true}, `${p.id}: a missing answer is “There is another.”`);
     assert.deepEqual(judge(q, [...answers, wrongs[0]]), {wrong: wrongs[0]}, `${p.id}: a wrong answer is named`);
+    assert.deepEqual(judge(q, [wrongs[0]]), {more: true}, `${p.id}: but only when nothing is missing`);
     // Hints alone, from fresh: every hint is a legal move and they finish.
     const follow = (a, label) => {
       for (let i = 0; i < 400 && !isSolved(p, a.board); i++) {
@@ -244,44 +393,65 @@ export default async function validateRookrace() {
       return a;
     };
     follow(freshAttempt(p), 'from fresh');
-    // After wrong moves: a wrong mark or start, That's all, a play-out and a practice game.
+    // After wrong moves: a wrong mark or start, then That's all, which plays it
+    // out at once (I go first and win against any reply) and then clears the
+    // marks or the shelf; and practice games.
     let a = freshAttempt(p);
     const add = (a, c) => q.kind === 'piles' ? [0, 1, 2].reduce((x, i) => move(p, x, {type: 'set', pile: i, n: Number(c.split(',')[i])}), a) : move(p, a, {type: 'mark', cell: c});
     a = add(a, wrongs.at(-1)); if (q.kind === 'piles') a = move(p, a, {type: 'keep'});
-    a = add(a, answers[0]); if (q.kind === 'piles') a = move(p, a, {type: 'keep'});
-    a = move(p, a, {type: 'all'});
-    assert.deepEqual(a.board.refused, {wrong: wrongs.at(-1)}, `${p.id}: That’s all names the wrong one`);
-    assert.equal(move(p, a, {type: 'all'}), null, `${p.id}: That’s all waits for a change`);
-    assert.ok(!isSolved(p, a.board));
-    // The play-out: the app goes first from the refused start and wins against any reply.
+    for (const c of answers) { a = add(a, c); if (q.kind === 'piles') a = move(p, a, {type: 'keep'}); }
+    const judged = a.board;
+    // With an answer missing, the same wrong start gets only "There is another.".
+    const partial = move(p, a, q.kind === 'piles' ? {type: 'drop', key: answers[0]} : {type: 'mark', cell: answers[0]});
+    const asked = move(p, partial, {type: 'all'});
+    assert.deepEqual(asked.board.refused, {more: true}, `${p.id}: missing comes first`);
+    assert.equal(asked.board.play, null);
     for (let seed = 1; seed <= 20; seed++) {
       const r = seeded(seed);
-      let b = rookraceMechanics.everystart.move(p, a.board, {type: 'out'}, r);
-      for (let step = 0; step < 60; step++) {
+      let b = rookraceMechanics.everystart.move(p, judged, {type: 'all'}, r);
+      assert.deepEqual(b.refused, {wrong: wrongs.at(-1)}, `${p.id}: That’s all names the wrong one`);
+      assert.equal(b.play.kind, 'out', `${p.id}: and plays it out at once`);
+      if ((q.kind === 'piles' ? b.shelf : b.marked).length) assert.equal(rookraceMechanics.everystart.move(p, b, {type: 'back'}), null, `${p.id}: the play-out cannot be left`);
+      for (let step = 0; step < 60 && b.play.turns.at(-1)?.player === 'opponent' && (q.kind === 'piles' ? b.shelf : b.marked).length; step++) {
         const run = b.play;
-        const lastPlayer = run.turns.at(-1)?.player;
-        const html = rookraceMechanics.everystart.render(p, {board: b, hintLevel: 0});
-        if (/reached the star|took the last pebble/.test(html)) break;
         const choices = q.kind === 'piles'
           ? (() => { const piles = run.turns.reduce((x, t) => x.map((n, i) => i === t.pile - 1 ? n - t.take : n), run.start); return piles.flatMap((n, i) => Array.from({length: n}, (_, k) => ({type: 'take', pile: i + 1, take: k + 1}))); })()
-          : (() => { const s = run.turns.reduce((s, t) => t.to, squareOf(q, a.board.refused.wrong)); return slides(q)(s).map(to => ({type: 'move', to})); })();
-        assert.equal(lastPlayer, 'opponent');
+          : (() => { const s = run.turns.reduce((s, t) => t.to, squareOf(q, run.start)); return slides(q)(s).map(to => ({type: 'move', to})); })();
         b = rookraceMechanics.everystart.move(p, b, choices[Math.floor(r() * choices.length)], r);
         assert.ok(b && validBoard(p, JSON.parse(JSON.stringify(b))), `${p.id}: play-out move`);
       }
-      assert.equal(b.play.turns.at(-1).player, 'opponent', `${p.id}: the app wins the play-out (seed ${seed})`);
+      assert.equal(b.play.turns.at(-1).player, 'opponent', `${p.id}: I win the play-out (seed ${seed})`);
+      assert.deepEqual(q.kind === 'piles' ? b.shelf : b.marked, [], `${p.id}: then the ${q.kind === 'piles' ? 'shelf' : 'marks'} are cleared`);
       assert.ok(validBoard(p, JSON.parse(JSON.stringify(b))));
+      b = rookraceMechanics.everystart.move(p, b, {type: 'back'});
+      assert.ok(b && b.play === null && b.refused === null && !b.done);
     }
-    a = move(p, a, {type: 'out'});
-    follow(a, 'after a wrong start and its play-out');
+    follow(move(p, a, {type: 'all'}, seeded(3)), 'during a play-out');
+    // A missing start: "There is another.", and That's all waits for a change.
+    if (answers.length > 1) {
+      let more = add(freshAttempt(p), answers[0]); if (q.kind === 'piles') more = move(p, more, {type: 'keep'});
+      more = move(p, more, {type: 'all'});
+      assert.deepEqual(more.board.refused, {more: true}); assert.equal(more.board.play, null);
+      assert.equal(move(p, more, {type: 'all'}), null, `${p.id}: That’s all waits for a change`);
+    }
+    // Practice games: from the start being built, or from a tapped square.
+    let practice = move(p, freshAttempt(p), {type: 'try'});
+    if (q.kind !== 'piles') { assert.equal(move(p, practice, {type: 'choose', first: 'you'}), null, `${p.id}: a start comes first`); practice = move(p, practice, {type: 'start', cell: wrongs[0]}); }
+    practice = move(p, practice, {type: 'choose', first: 'opponent'});
+    follow(practice, 'from a practice game');
     if (q.kind === 'piles') {
-      let t = move(p, freshAttempt(p), {type: 'try'});
-      t = move(p, t, {type: 'choose', first: 'opponent'});
-      follow(t, 'from a practice game');
       // Keeping a start twice says so, and changes nothing else.
       let k = move(p, freshAttempt(p), {type: 'keep'}); k = move(p, k, {type: 'keep'});
       assert.equal(k.board.told, 'again'); assert.deepEqual(k.board.shelf, ['1,1,1']);
     }
+    // Guessing with That's all now costs far more than knowing the answer.
+    const costs = guessCosts(p, candidates, answers);
+    report.guessCost[p.id] = costs;
+    assert.ok(costs.after.stripping.taps >= 3 * costs.before.stripping, `${p.id}: marking everything costs several times what it did`);
+    assert.ok(costs.after.leaveOneOut.taps >= 10 * costs.knowing, `${p.id}: testing one start at a time costs far more than knowing the answer`);
+    for (const way of ['stripping', 'leaveOneOut']) assert.ok(costs.after[way].taps > costs.byPlay, `${p.id}: ${way} costs more than playing every start`);
+    // One start alone: with more than one answer, That's all only ever says "There is another.".
+    if (answers.length > 1) assert.deepEqual(costs.after.oneAtATime.verdicts, ['more'], `${p.id}: one start alone learns nothing`);
     // Random shelves almost never pass: the claim can fail. Two guessers: each
     // start kept with chance 1/2, and with the chance that matches the answer count.
     const r = seeded(5), shares = {half: .5, matched: answers.length / candidates.length}, out = {};
@@ -295,8 +465,8 @@ export default async function validateRookrace() {
     // Illegal moves.
     const fresh = freshAttempt(p);
     const bad = q.kind === 'piles'
-      ? [{type: 'all'}, {type: 'out'}, {type: 'set', pile: 3, n: 1}, {type: 'set', pile: 0, n: 0}, {type: 'set', pile: 0, n: q.max + 1}, {type: 'drop', key: '1,2,3'}, {type: 'take', pile: 1, take: 1}, {type: 'back'}, {type: 'mark', cell: 4}]
-      : [{type: 'all'}, {type: 'out'}, {type: 'mark', cell: 0}, {type: 'mark', cell: q.size * q.size}, {type: 'mark', cell: -1}, {type: 'mark', cell: 1.5}, {type: 'move', to: [0, 0]}, {type: 'keep'}, {type: 'back'}];
+      ? [{type: 'all'}, {type: 'out'}, {type: 'set', pile: 3, n: 1}, {type: 'set', pile: 0, n: 0}, {type: 'set', pile: 0, n: q.max + 1}, {type: 'drop', key: '1,2,3'}, {type: 'take', pile: 1, take: 1}, {type: 'back'}, {type: 'mark', cell: 4}, {type: 'start', cell: 4}, {type: 'choose', first: 'you'}]
+      : [{type: 'all'}, {type: 'out'}, {type: 'mark', cell: 0}, {type: 'mark', cell: q.size * q.size}, {type: 'mark', cell: -1}, {type: 'mark', cell: 1.5}, {type: 'move', to: [0, 0]}, {type: 'keep'}, {type: 'back'}, {type: 'start', cell: 4}, {type: 'choose', first: 'you'}];
     for (const action of bad) assert.equal(move(p, fresh, action), null, `${p.id}: rejects ${JSON.stringify(action)}`);
     // Forged saves, including a forged done.
     const forged = q.kind === 'piles' ? [
@@ -312,6 +482,11 @@ export default async function validateRookrace() {
       {...fresh.board, play: {kind: 'out', start: [1, 1, 1], first: 'opponent', turns: []}},
       {...fresh.board, play: {kind: 'try', start: [1, 1, 1], first: 'you', turns: [{player: 'you', pile: 1, take: 1}]}},
       {...fresh.board, shelf: ['1,1,2'], refused: {wrong: '1,1,2'}, play: {kind: 'out', start: [1, 1, 2], first: 'opponent', turns: [{player: 'opponent', pile: 1, take: 1}]}},
+      {...fresh.board, shelf: ['1,1,2'], refused: {wrong: '1,1,2'}, play: {kind: 'out', start: [1, 1, 2], first: 'opponent', turns: [{player: 'opponent', pile: 3, take: 2}, {player: 'you', pile: 1, take: 1}, {player: 'opponent', pile: 2, take: 1}]}},
+      {...fresh.board, shelf: [], refused: {wrong: '1,1,2'}, play: {kind: 'out', start: [1, 1, 2], first: 'opponent', turns: [{player: 'opponent', pile: 3, take: 2}]}},
+      {...fresh.board, shelf: ['1,1,2'], refused: {wrong: '1,1,2'}, play: {kind: 'out', start: [1, 1, 2], first: 'you', turns: []}},
+      {...fresh.board, shelf: ['1,1,2'], refused: {wrong: '1,1,2'}, play: null},
+      {...fresh.board, play: {kind: 'try', start: [1, 1, 2], first: null, turns: []}},
       {...fresh.board, extra: 1}
     ] : [
       {...fresh.board, done: true},
@@ -321,9 +496,16 @@ export default async function validateRookrace() {
       {...fresh.board, marked: [answers[0], answers[0]]},
       {...fresh.board, marked: [answers[0]], refused: {wrong: answers[0]}},
       {...fresh.board, marked: [answers[0]], refused: {more: true}, done: true},
-      {...fresh.board, play: {kind: 'out', first: 'opponent', turns: []}},
-      {...fresh.board, marked: [1], refused: {wrong: 1}, play: {kind: 'out', first: 'opponent', turns: [{player: 'opponent', to: [0, 0]}, {player: 'you', to: [0, 0]}]}},
-      {...fresh.board, marked: [q.size + 2], refused: {wrong: q.size + 2}, play: {kind: 'out', first: 'opponent', turns: [{player: 'opponent', to: [2, 0]}]}},
+      {...fresh.board, play: {kind: 'out', start: 1, first: 'opponent', turns: []}},
+      {...fresh.board, marked: [1], refused: {wrong: 1}, play: {kind: 'out', start: 1, first: 'opponent', turns: [{player: 'opponent', to: [0, 0]}, {player: 'you', to: [0, 0]}]}},
+      {...fresh.board, marked: [q.size + 2], refused: {wrong: q.size + 2}, play: {kind: 'out', start: q.size + 2, first: 'opponent', turns: [{player: 'opponent', to: [2, 0]}]}},
+      {...fresh.board, marked: [1], refused: {wrong: 1}, play: {kind: 'out', start: 1, first: 'opponent', turns: [{player: 'opponent', to: [0, 0]}]}},
+      {...fresh.board, marked: [], refused: {wrong: q.size + 2}, play: {kind: 'out', start: q.size + 2, first: 'opponent', turns: [{player: 'opponent', to: [1, 1]}]}},
+      {...fresh.board, marked: [answers[0]], refused: {wrong: answers[0]}, play: {kind: 'out', start: answers[0], first: 'opponent', turns: []}},
+      {...fresh.board, marked: [1], refused: {wrong: 1}, play: null},
+      {...fresh.board, play: {kind: 'try', start: null, first: 'you', turns: []}},
+      {...fresh.board, play: {kind: 'try', start: 0, first: null, turns: []}},
+      {...fresh.board, play: {kind: 'try', first: null, turns: []}},
       {...fresh.board, told: null}
     ];
     for (const [i, board] of forged.entries()) assert.equal(validBoard(p, board), false, `${p.id}: rejects forged save ${i}`);

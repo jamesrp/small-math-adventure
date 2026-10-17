@@ -3,10 +3,12 @@
 // tap on a square the token cannot reach, a lost game, Same start again and
 // its practice win, the hint's rings on lost starts, three wins from new
 // starts on the rook and queen boards; marking squares on the 11-by-11 queen
-// board with That's all, its ring, its lock, Play it and There is another;
-// the pile builder, Keep, a second Keep, taking a start off the shelf, a
-// practice game with lifted pebbles, a refused start and its play-out; focus
-// after each kind of move; and fit at phone and tablet sizes. Same
+// board with That's all, There is another and its lock, a practice game from a
+// tapped square, and a wrong That's all played out at once and clearing the
+// marks; the pile builder, Keep, a second Keep, a practice game with lifted
+// pebbles, and a wrong That's all played out and clearing the shelf; focus
+// after each kind of move; the move controls in view without scrolling; and
+// fit at phone and tablet sizes. Same
 // environment variables as the other browser suites (PLAYWRIGHT_MODULE,
 // BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone with touch).
 // Screenshots go in test-results/rookrace/.
@@ -36,7 +38,9 @@ const press = name => page.getByRole('button', {name, exact: true});
 const tapAt = async (locator, fx = .5, fy = .5) => { await locator.scrollIntoViewIfNeeded(); const b = await locator.boundingBox(); const x = b.x + b.width * fx, y = b.y + b.height * fy; if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); await page.waitForTimeout(40); };
 const tap = locator => tapAt(locator);
 const focused = () => page.evaluate(() => { const e = document.activeElement; return {tag: e?.tagName, id: e?.id || '', cls: e?.className || '', focus: e?.dataset?.focus || ''}; });
-const onBoard = f => /rr-cell|primary/.test(f.cls) || f.focus === 'rr-status' || f.id === 'completion-heading';
+const onBoard = f => /rr-cell|rr-button|primary/.test(f.cls) || f.focus === 'rr-status' || f.id === 'completion-heading';
+// The move controls are in view without scrolling, from the top of the page.
+const inView = async (locator, label) => { await page.evaluate(() => scrollTo(0, 0)); const b = await locator.first().boundingBox(); const h = await page.evaluate(() => innerHeight); assert.ok(b && b.y >= 0 && b.y + b.height <= h, `${label}: the control is in view (${b && Math.round(b.y + b.height)} of ${h})`); };
 const message = () => page.locator('.feedback').innerText();
 const checks = [];
 
@@ -109,6 +113,7 @@ try {
   // Star race on the 8-by-8 queen board: a lost game, the hint's ring, then three wins.
   p = byId('rookrace-05');
   await open(p.id);
+  await inView(press('Me first'), 'queen race, fresh'); await inView(press('You first'), 'queen race, fresh');
   // Lose (going second) from first-player starts until a second-player start comes up.
   for (let i = 0; i < 12; i++) {
     b = await board(p.id);
@@ -123,6 +128,8 @@ try {
   for (let i = 0; i < 30; i++) { b = await board(p.id); if (b.at[0] === 0 && b.at[1] === 0) break; await tap(page.locator('.rr-cell.target').first()); }
   assert.equal((await board(p.id)).turns.at(-1).player, 'opponent', 'going first from a second-player square loses');
   assert.equal((await board(p.id)).streak, 0);
+  await inView(press('Same start again'), 'queen race, lost'); await inView(press('New start'), 'queen race, lost');
+  checks.push('the move controls are in view on the busiest boards');
   await tap(press('New start'));
   if ((await board(p.id)).first === null) await tap(press('Me first'));
   await press('Hint').click(); await press('Hint').click();
@@ -136,31 +143,46 @@ try {
   // Every start on the 11-by-11 queen board.
   p = byId('everystart-06');
   const q = p.parameters, answers = p.solution.secondSquares;
-  await open(p.id); await fit('queen marks, fresh');
+  await open(p.id); await fit('queen marks, fresh'); await inView(press('That’s all'), 'queen marks, fresh');
   // Mark a wrong square and three right ones, tapping near the edges where squares meet.
-  await tapAt(cell(4, 4), .9, .1);
+  await tapAt(cell(5, 2), .9, .1);
   for (const [i, [x, y]] of answers.slice(0, 3).entries()) await tapAt(cell(x, y), [.08, .92, .5][i], [.92, .08, .5][i]);
   assert.deepEqual((await board(p.id)).marked.length, 4, 'taps at a square’s edge mark that square');
   let f = await focused();
   assert.match(f.focus, /^rr-cell-/, 'focus stays on the marked square');
+  await inView(press('That’s all'), 'queen marks, marked');
+  // With squares missing, That's all says only "There is another.", wrong mark or not.
   await tap(press('That’s all'));
-  assert.deepEqual((await board(p.id)).refused, {wrong: 4 * q.size + 4});
-  assert.match(await page.locator('.es-note').innerText(), /Whoever starts from the ringed square can win\./);
-  assert.equal(await press('That’s all').isDisabled(), true, 'That’s all waits for a change');
-  await shot('queen-marks-refused'); await fit('queen marks refused');
-  await tap(press('Play it'));
-  assert.match(await page.locator('.es-label').innerText(), /I go first/);
-  for (let i = 0; i < 30; i++) { if (!await page.locator('.rr-cell.target').count()) break; await tap(page.locator('.rr-cell.target').last()); }
-  assert.match(await page.locator('.es-status').innerText(), /I moved .* and reached the star\./, 'the app wins the play-out');
-  await shot('queen-playout');
-  await tap(press('Back to the board'));
-  await tap(cell(4, 4));
-  await tap(press('That’s all'));
+  assert.deepEqual((await board(p.id)).refused, {more: true});
   assert.match(await page.locator('.es-note').innerText(), /^There is another\.$/);
+  assert.equal(await press('That’s all').isDisabled(), true, 'That’s all waits for a change');
   assert.doesNotMatch(await page.locator('[data-mechanic-wire]').innerText(), /\d+ (more|left)/, 'no count');
+  // A practice game: Play, tap the square to start from, You first.
+  await tap(press('Play'));
+  assert.match(await page.locator('.es-status').innerText(), /Tap a square to start from\./);
+  f = await focused(); assert.match(f.focus, /^rr-cell-/, `focus on a square to start from (${JSON.stringify(f)})`);
+  await tap(cell(6, 1));
+  await tap(press('You first'));
+  assert.match(await page.locator('.es-status').innerText(), /I moved .*\. Your turn/);
+  for (let i = 0; i < 30; i++) { if (!await page.locator('.rr-cell.target').count()) break; await tap(page.locator('.rr-cell.target').last()); }
+  await tap(press('Back'));
+  assert.equal((await board(p.id)).marked.length, 4, 'practice leaves the marks');
+  checks.push('queen marks: There is another, its lock, a practice game from a tapped square');
+  // Every answer marked, and the wrong one too: That's all plays it out at once, I win, and the marks are cleared.
   for (const [x, y] of answers.slice(3)) await tap(cell(x, y));
   await tap(press('That’s all'));
-  await done(); checks.push('queen marks: refusal, lock, play-out, There is another, solve');
+  assert.equal((await board(p.id)).play.kind, 'out');
+  assert.match(await page.locator('.es-label').innerText(), /^Whoever starts from the ringed square can win\. I go first\.$/);
+  assert.equal(await press('Back').count(), 0, 'the play-out cannot be left');
+  assert.equal(await cell(5, 2).evaluate(e => e.classList.contains('flag')), true, 'the wrong square is ringed');
+  await shot('queen-playout'); await fit('queen play-out');
+  for (let i = 0; i < 30; i++) { if (!await page.locator('.rr-cell.target').count()) break; await tap(page.locator('.rr-cell.target').last()); }
+  assert.match(await page.locator('.es-status').innerText(), /I moved .* and reached the star\. The marks are cleared\./, 'the app wins the play-out');
+  assert.deepEqual((await board(p.id)).marked, [], 'and the marks are cleared');
+  await tap(press('Back'));
+  for (const [x, y] of answers) await tap(cell(x, y));
+  await tap(press('That’s all'));
+  await done(); checks.push('queen marks: a wrong That’s all is played out and clears the marks; solve');
 
   // Every start with piles of 1 to 7.
   p = byId('everystart-05');
@@ -181,22 +203,28 @@ try {
   assert.match(await page.locator('.es-status').innerText(), /I took \d+ from the (left|middle|right) pile\./);
   f = await focused(); assert.ok(/es-pebble|primary/.test(f.cls) || f.focus === 'es-status', `focus after a take (${JSON.stringify(f)})`);
   await shot('piles-practice'); await fit('piles practice');
-  await tap(press('Back to the shelf'));
+  await tap(press('Back'));
+  await tap(press('That’s all'));
+  assert.deepEqual((await board(p.id)).refused, {more: true});
+  // Keep every answer as well: That's all plays 2, 2 and 5 out, and then the shelf is cleared.
+  for (const start of p.solution.secondStarts.slice(1)) { await setStart(start); await tap(press('Keep')); }
+  await shot('piles-full-shelf'); await fit('piles, full shelf');
+  const note = await page.locator('.es-note').boundingBox(), all = await press('That’s all').boundingBox(), shelf = await page.locator('.es-shelf').boundingBox();
+  assert.ok(note.y > all.y && note.y < shelf.y, 'the line about That’s all sits between the buttons and the shelf');
   await tap(press('That’s all'));
   assert.deepEqual((await board(p.id)).refused, {wrong: '2,2,5'});
-  await tap(press('Play it'));
+  assert.match(await page.locator('.es-label').innerText(), /^Whoever starts from 2, 2 and 5 can win\. I go first\.$/);
   for (let i = 0; i < 30; i++) {
     if (/took the last pebble/.test(await page.locator('.es-status').innerText())) break;
     await tap(page.locator('button.es-pebble:not([disabled])').last());
     const take = page.locator('[data-focus="es-take"]'); if (await take.count()) await tap(take);
   }
-  assert.match(await page.locator('.es-status').innerText(), /I took the last pebble\./, 'the app wins the play-out');
-  await tap(press('Back to the shelf'));
-  await tap(page.locator('[data-focus="es-chip-2,2,5"]'));
-  for (const start of p.solution.secondStarts.slice(1)) { await setStart(start); await tap(press('Keep')); }
-  await shot('piles-full-shelf'); await fit('piles, full shelf');
+  assert.match(await page.locator('.es-status').innerText(), /I took the last pebble\. The shelf is cleared\./, 'the app wins the play-out');
+  await tap(press('Back'));
+  assert.deepEqual((await board(p.id)).shelf, [], 'the shelf is cleared');
+  for (const start of p.solution.secondStarts) { await setStart(start); await tap(press('Keep')); }
   await tap(press('That’s all'));
-  await done(); checks.push('piles: keep, again, practice, refusal, play-out, solve');
+  await done(); checks.push('piles: keep, again, practice, There is another, play-out and clearing, solve');
 
   assert.deepEqual(errors, []);
   console.log(JSON.stringify({passed: true, phone, checks, errors}, null, 2));

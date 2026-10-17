@@ -122,6 +122,7 @@
     "starts": 15
    },
    "provenance": "Week 8 launch (a token on a 4-by-4 board) and K–1 Problems 1–2 (play many games from the dot; circle whether you would rather go first or second), as a choose-who-starts round on the Proofs duel engine.",
+   "proof": true,
    "sourceDocument": "docs/rookrace/README.md"
   },
   {
@@ -198,6 +199,7 @@
     "starts": 24
    },
    "provenance": "Week 8 grades 2–3 Problem 1 (a 5-by-5 board: would you rather go first or second from each start?).",
+   "proof": true,
    "sourceDocument": "docs/rookrace/README.md"
   },
   {
@@ -289,6 +291,7 @@
     "starts": 63
    },
    "provenance": "Week 8 K–1 Problem 7, grades 2–3 Problems 2–3 and grades 4–5 Problem 1 (the 8-by-8 board).",
+   "proof": true,
    "sourceDocument": "docs/rookrace/README.md"
   },
   {
@@ -367,6 +370,7 @@
     "starts": 35
    },
    "provenance": "Week 8 grades 4–5 Problem 8 (the token may also slide diagonally down and to the left), on a 6-by-6 board. New instance size.",
+   "proof": true,
    "sourceDocument": "docs/rookrace/README.md"
   },
   {
@@ -455,6 +459,7 @@
     "starts": 63
    },
    "provenance": "Week 8 grades 4–5 Problem 8 (the 8-by-8 queen board), as a choose-who-starts round.",
+   "proof": true,
    "sourceDocument": "docs/rookrace/README.md"
   },
   {
@@ -475,12 +480,14 @@
    "objective": "Mark every start where you would rather go second, then press That’s all.",
    "visibleObjective": "Mark every start where you would rather go second.",
    "instruction": "Mark every start where you would rather go second, then press That’s all.",
-   "controls": "A turn slides the token straight left or straight down, one or more squares, and whoever moves it onto the star wins. Tap a square to mark it, and again to clear it. That’s all checks every mark at once. A marked start where the first player can win gets a ring, and Play it shows me going first from there.",
+   "controls": "A turn slides the token straight left or straight down, one or more squares, and whoever moves it onto the star wins. Tap a square to mark it, and again to clear it. Play, then a square, tries a game from it against me. That’s all checks every mark at once: if a marked start is one where the first player can win, I go first from it and win, and then the marks are cleared.",
    "rules": [
     "Players take turns.",
     "A turn slides the token straight left or straight down, one or more squares.",
     "Whoever moves the token onto the star wins.",
-    "A start is any square except the star."
+    "A start is any square except the star.",
+    "The app never misses a winning move.",
+    "That’s all is final: if a marked start is one where the first player can win, I play it going first, and then the marks are cleared."
    ],
    "idea": "On the rook board the starts where you would rather go second are the diagonal.",
    "prerequisites": "Star race 1 or 2.",
@@ -492,7 +499,7 @@
    "parent": {
     "notice": "Whether your child works outward from the star, deciding each square from the squares it can reach, or marks a guessed pattern.",
     "prompt": "Why is 1 right and 1 up a good square to hand over, and 2 right and 1 up not?",
-    "explanation": "Square x columns right of the star and y rows up is the game with two piles x and y: a move left takes from one pile, a move down from the other. From a diagonal square (x = y) every move leaves the diagonal, and from any other square one move returns to it, so whoever moves the token onto the diagonal can keep it there (by copying) until it reaches the star. On this 6-by-6 board the 5 diagonal squares are the starts where you would rather go second. A wrong mark is refused with a ring, and Play it shows the app going first from that square and winning; a missing square gets only “There is another.”, with no count.",
+    "explanation": "Square x columns right of the star and y rows up is the game with two piles x and y: a move left takes from one pile, a move down from the other. From a diagonal square (x = y) every move leaves the diagonal, and from any other square one move returns to it, so whoever moves the token onto the diagonal can keep it there (by copying) until it reaches the star. On this 6-by-6 board the 5 diagonal squares are the starts where you would rather go second. After a wrong That’s all the app goes first from the ringed wrong square, wins, and clears the marks; a missing square gets only “There is another.”, with no count.",
     "extension": "How do you know you have found them all?",
     "connection": "P-positions of two-pile Nim; marking works outward by backward induction (Ferguson, §1).",
     "sourceIds": [
@@ -534,6 +541,7 @@
     "starts": 35
    },
    "provenance": "Week 8 K–1 Problem 4 (the open 6-by-6 board: colour every square you want to move the token to), as in grades 2–3 Problem 2 and grades 4–5 Problem 1 on 8-by-8.",
+   "proof": true,
    "sourceDocument": "docs/rookrace/README.md"
   },
   {
@@ -554,13 +562,14 @@
    "objective": "Find every start with three piles of 1 to 3 pebbles where you would rather go second, then press That’s all.",
    "visibleObjective": "Find every start where you would rather go second.",
    "instruction": "Find every start with three piles of 1 to 3 pebbles where you would rather go second, then press That’s all.",
-   "controls": "A turn takes one or more pebbles from one pile, and whoever takes the last pebble wins. The order of the piles does not matter. Tap a slot to set a pile, Keep to put the start on the shelf, and a kept start to take it off. Play tries the start against me. That’s all checks the whole shelf at once.",
+   "controls": "A turn takes one or more pebbles from one pile, and whoever takes the last pebble wins. The order of the piles does not matter. Tap a slot to set a pile, Keep to put the start on the shelf, and a kept start to take it off. Play tries the start against me. That’s all checks the whole shelf at once: if a kept start is one where the first player can win, I go first from it and win, and then the shelf is cleared.",
    "rules": [
     "Players take turns.",
     "A turn takes one or more pebbles from one pile.",
     "Whoever takes the last pebble wins.",
     "Each pile has 1 to 3 pebbles, and the order of the piles does not matter.",
-    "The app never misses a winning move."
+    "The app never misses a winning move.",
+    "That’s all is final: if a kept start is one where the first player can win, I play it going first, and then the shelf is cleared."
    ],
    "idea": "Of the ten starts with piles of 1 to 3, only 1, 2 and 3 is one where you would rather go second.",
    "prerequisites": "Two-pile copying (Pebble Duel easy puzzles or Duel 1). Count to 9.",
@@ -589,6 +598,7 @@
     "starts": 10
    },
    "provenance": "Week 8 grades 2–3 Problem 8 (every start with three piles of 1, 2 or 3 where you would rather go second; explain how you know you have found them all) and K–1 Problem 8.",
+   "proof": true,
    "sourceDocument": "docs/rookrace/README.md"
   },
   {
@@ -609,19 +619,20 @@
    "objective": "Find every start with three piles of 1 to 6 pebbles where you would rather go second, then press That’s all.",
    "visibleObjective": "Find every start where you would rather go second.",
    "instruction": "Find every start with three piles of 1 to 6 pebbles where you would rather go second, then press That’s all.",
-   "controls": "A turn takes one or more pebbles from one pile, and whoever takes the last pebble wins. The order of the piles does not matter. Tap a slot to set a pile, Keep to put the start on the shelf, and a kept start to take it off. Play tries the start against me. That’s all checks the whole shelf at once.",
+   "controls": "A turn takes one or more pebbles from one pile, and whoever takes the last pebble wins. The order of the piles does not matter. Tap a slot to set a pile, Keep to put the start on the shelf, and a kept start to take it off. Play tries the start against me. That’s all checks the whole shelf at once: if a kept start is one where the first player can win, I go first from it and win, and then the shelf is cleared.",
    "rules": [
     "Players take turns.",
     "A turn takes one or more pebbles from one pile.",
     "Whoever takes the last pebble wins.",
     "Each pile has 1 to 6 pebbles, and the order of the piles does not matter.",
-    "The app never misses a winning move."
+    "The app never misses a winning move.",
+    "That’s all is final: if a kept start is one where the first player can win, I play it going first, and then the shelf is cleared."
    ],
    "idea": "Four of the 56 starts: 1, 2, 3; 1, 4, 5; 2, 4, 6; 3, 5, 6. In each, every bundle size of 4, 2 and 1 appears an even number of times.",
    "prerequisites": "Every start 2. Patience with bookkeeping; piles split into bundles of 4, 2 and 1 help.",
    "hints": [
     "Look at the start you already know. Can a pile of 4 or more join a start like it?",
-    "Split each pile into bundles of 4, 2 and 1. Compare the starts you keep with the ones that get a ring.",
+    "Split each pile into bundles of 4, 2 and 1. Compare the starts you keep with the ones I won from.",
     "If two piles are fixed, at most one size of third pile can work."
    ],
    "parent": {
@@ -647,6 +658,7 @@
     "starts": 56
    },
    "provenance": "Week 8 grades 2–3 Problem 9 (all the starts with three piles of 1 to 6 where you would rather go second).",
+   "proof": true,
    "sourceDocument": "docs/rookrace/README.md"
   },
   {
@@ -668,12 +680,14 @@
    "objective": "Mark every start where you would rather go second, then press That’s all.",
    "visibleObjective": "Mark every start where you would rather go second.",
    "instruction": "Mark every start where you would rather go second, then press That’s all.",
-   "controls": "A turn slides the token straight left, straight down, or diagonally down and to the left, one or more squares, and whoever moves it onto the star wins. Tap a square to mark it, and again to clear it. That’s all checks every mark at once. A marked start where the first player can win gets a ring, and Play it shows me going first from there.",
+   "controls": "A turn slides the token straight left, straight down, or diagonally down and to the left, one or more squares, and whoever moves it onto the star wins. Tap a square to mark it, and again to clear it. Play, then a square, tries a game from it against me. That’s all checks every mark at once: if a marked start is one where the first player can win, I go first from it and win, and then the marks are cleared.",
    "rules": [
     "Players take turns.",
     "A turn slides the token straight left, straight down, or diagonally down and to the left, one or more squares.",
     "Whoever moves the token onto the star wins.",
-    "A start is any square except the star."
+    "A start is any square except the star.",
+    "The app never misses a winning move.",
+    "That’s all is final: if a marked start is one where the first player can win, I play it going first, and then the marks are cleared."
    ],
    "idea": "With the queen’s diagonal move the starts to mark are (1, 2), (2, 1), (3, 5), (5, 3), (4, 7) and (7, 4).",
    "prerequisites": "Every start 1; Star race 4 helps.",
@@ -733,6 +747,7 @@
     "starts": 63
    },
    "provenance": "Week 8 grades 4–5 Problem 8 (the 8-by-8 queen board: colour every square red if the second player can always win).",
+   "proof": true,
    "sourceDocument": "docs/rookrace/README.md"
   },
   {
@@ -753,19 +768,20 @@
    "objective": "Find every start with three piles of 1 to 7 pebbles where you would rather go second, then press That’s all.",
    "visibleObjective": "Find every start where you would rather go second.",
    "instruction": "Find every start with three piles of 1 to 7 pebbles where you would rather go second, then press That’s all.",
-   "controls": "A turn takes one or more pebbles from one pile, and whoever takes the last pebble wins. The order of the piles does not matter. Tap a slot to set a pile, Keep to put the start on the shelf, and a kept start to take it off. Play tries the start against me. That’s all checks the whole shelf at once.",
+   "controls": "A turn takes one or more pebbles from one pile, and whoever takes the last pebble wins. The order of the piles does not matter. Tap a slot to set a pile, Keep to put the start on the shelf, and a kept start to take it off. Play tries the start against me. That’s all checks the whole shelf at once: if a kept start is one where the first player can win, I go first from it and win, and then the shelf is cleared.",
    "rules": [
     "Players take turns.",
     "A turn takes one or more pebbles from one pile.",
     "Whoever takes the last pebble wins.",
     "Each pile has 1 to 7 pebbles, and the order of the piles does not matter.",
-    "The app never misses a winning move."
+    "The app never misses a winning move.",
+    "That’s all is final: if a kept start is one where the first player can win, I play it going first, and then the shelf is cleared."
    ],
    "idea": "Seven of the 84 starts: the four for piles up to 6, and 1, 6, 7; 2, 5, 7; 3, 4, 7.",
    "prerequisites": "Every start 3.",
    "hints": [
     "Which starts from piles up to 6 still count? What can a pile of 7 join?",
-    "Split each pile into bundles of 4, 2 and 1. Compare the starts you keep with the ones that get a ring.",
+    "Split each pile into bundles of 4, 2 and 1. Compare the starts you keep with the ones I won from.",
     "If two piles are fixed, at most one size of third pile can work."
    ],
    "parent": {
@@ -794,6 +810,7 @@
     "starts": 84
    },
    "provenance": "Week 8 grades 4–5 Problem 4 (all the starts with three piles of 1 to 7 where the second player can always win).",
+   "proof": true,
    "sourceDocument": "docs/rookrace/README.md"
   },
   {
@@ -815,12 +832,14 @@
    "objective": "Mark every start where you would rather go second, then press That’s all.",
    "visibleObjective": "Mark every start where you would rather go second.",
    "instruction": "Mark every start where you would rather go second, then press That’s all.",
-   "controls": "A turn slides the token straight left, straight down, or diagonally down and to the left, one or more squares, and whoever moves it onto the star wins. Tap a square to mark it, and again to clear it. That’s all checks every mark at once. A marked start where the first player can win gets a ring, and Play it shows me going first from there.",
+   "controls": "A turn slides the token straight left, straight down, or diagonally down and to the left, one or more squares, and whoever moves it onto the star wins. Tap a square to mark it, and again to clear it. Play, then a square, tries a game from it against me. That’s all checks every mark at once: if a marked start is one where the first player can win, I go first from it and win, and then the marks are cleared.",
    "rules": [
     "Players take turns.",
     "A turn slides the token straight left, straight down, or diagonally down and to the left, one or more squares.",
     "Whoever moves the token onto the star wins.",
-    "A start is any square except the star."
+    "A start is any square except the star.",
+    "The app never misses a winning move.",
+    "That’s all is final: if a marked start is one where the first player can win, I play it going first, and then the marks are cleared."
    ],
    "idea": "On the larger queen board a fourth mirror pair, (6, 10) and (10, 6), joins the three below it; the differences go 1, 2, 3, 4.",
    "prerequisites": "Every start 4.",
@@ -890,6 +909,7 @@
     "starts": 120
    },
    "provenance": "Week 8 grades 4–5 Problem 9 (mark all the red squares of the queen game on a 20-by-20 board; explain how you know you have found them all), on an 11-by-11 board that fits a phone.",
+   "proof": true,
    "sourceDocument": "docs/rookrace/README.md"
   }
  ]

@@ -15420,7 +15420,7 @@ ID: `nim-06`
 }
 ```
 
-**Hint:** Split each pile into bundles of 4, 2 and 1, and compare them with the piles you left in the last puzzle.
+**Hint:** Split each pile into bundles of 4, 2 and 1. When the opponent wins, Undo and look at what it left you each time.
 
 **Insight:** Binary balancing can require lower bits to turn on as a pile shrinks. Different piles can provide different valid balancing moves.
 
@@ -15575,7 +15575,7 @@ ID: `nim-08`
 }
 ```
 
-**Hint:** Split 1, 3, 5 and 7 into bundles of 4, 2 and 1. Then look at the pile of 2.
+**Hint:** Split each pile into bundles of 4, 2 and 1. Which piles would you like to leave the opponent?
 
 **Insight:** A whole collection can cancel even when no two piles match.
 
@@ -15757,7 +15757,7 @@ ID: `nim-10`
 }
 ```
 
-**Hint:** Split each pile into bundles of 8, 4, 2 and 1. Which pile is the only one with an 8?
+**Hint:** Split each pile into bundles of 8, 4, 2 and 1. When the opponent won, what piles did it leave you?
 
 **Insight:** Shrinking a pile across a power of two can switch several smaller binary columns on.
 

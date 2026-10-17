@@ -5,8 +5,10 @@
    and the duel's leaf pebbles. Shared by the two mechanics of the module. */
 :is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]){display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%}
 
-/* The board. */
-:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-board{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:1px;width:100%;max-width:380px;aspect-ratio:1;padding:2px;background:var(--b-line,#d0d6bd);border:2px solid var(--b-ink,#294439);border-radius:10px;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+/* The board: at most 380px, and short enough on a phone that the controls
+   under it stay in view (the page above it and the controls under it take up
+   to about 430px when the top bar wraps onto two lines). */
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-board{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:1px;width:100%;max-width:clamp(220px,calc(100vh - 430px),380px);max-width:clamp(220px,calc(100svh - 430px),380px);aspect-ratio:1;padding:2px;background:var(--b-line,#d0d6bd);border:2px solid var(--b-ink,#294439);border-radius:10px;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 :is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-cell{position:relative;display:grid;place-items:center;min-width:0;min-height:0;aspect-ratio:1;padding:0;margin:0;border:0;border-radius:0;box-shadow:none;font:inherit;color:var(--b-ink,#294439);background:var(--b-card,#fffdf5);-webkit-tap-highlight-color:transparent;cursor:default}
 :is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-cell.odd{background:#f3efe1}
 :is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-board .rr-cell:first-child{border-top-left-radius:7px}
@@ -80,5 +82,5 @@
 [data-mechanic-wire="everystart"] .es-pebble.lift{background:var(--b-sun,#efc76e);border-color:var(--b-ochre,#b38840);transform:translateY(-4px)}
 [data-mechanic-wire="everystart"] .es-pebble.gone{display:block;background:transparent;border:2px dashed #c9c3a8}
 @media (hover:hover){[data-mechanic-wire="everystart"] .es-pile button.es-pebble:not(:disabled):hover,[data-mechanic-wire="everystart"] .es-pile button.es-pebble:not(:disabled):hover~button.es-pebble{background:var(--b-sun,#efc76e);border-color:var(--b-ochre,#b38840)}}
-@media (max-width:420px){[data-mechanic-wire="everystart"] :is(.es-slot,.es-pebble){width:38px;min-width:38px;height:31px;min-height:31px}:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-key{width:44px;height:44px}:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) :is(.rr-status,.es-status,.es-note){font-size:1rem}}
+@media (max-width:420px){[data-mechanic-wire="everystart"] :is(.es-slot,.es-pebble){width:38px;min-width:38px;height:31px;min-height:31px}:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-key{width:44px;height:44px}:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) :is(.rr-status,.es-status,.es-note){font-size:1rem}[data-mechanic-wire="rookrace"] .rr-status{font-size:.95rem}}
 @media (prefers-reduced-motion:no-preference){[data-mechanic-wire="everystart"] .es-pebble{transition:transform .15s,background .15s}}

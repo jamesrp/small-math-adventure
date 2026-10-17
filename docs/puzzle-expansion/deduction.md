@@ -509,7 +509,7 @@ The first listed move is the stored canonical witness; every listed move is acce
 
 The first listed move is the stored canonical witness; every listed move is accepted.
 
-**Hint:** Split each pile into bundles of 4, 2 and 1, and compare them with the piles you left in the last puzzle.
+**Hint:** Split each pile into bundles of 4, 2 and 1. When the opponent wins, Undo and look at what it left you each time.
 
 **Insight:** Binary balancing can require lower bits to turn on as a pile shrinks. Different piles can provide different valid balancing moves.
 

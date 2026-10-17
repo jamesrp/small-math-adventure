@@ -2,7 +2,8 @@
 // second-player squares and starts, the perfect opponent, choosing who starts
 // and the streak with its replayed record of wins, practice games, lost starts
 // and their rings, marking and keeping starts, That's all and its lock, the
-// play-out of a refused start, practice games from the shelf, hints, saves,
+// play-out of a wrong That's all and the clearing after it, practice games from
+// a tapped square or the start being built, hints, saves,
 // rendering, the satchel groups, Duel 1's place in the Next flow and CPU time.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -11,7 +12,7 @@ import {freshAttempt, move, isSolved, nextHint, validBoard, restart} from '../di
 import {mechanicFor} from '../dist/expansion.js';
 import {playView} from '../dist/ui.js';
 import {libraryView} from '../dist/caravan-ui.js';
-import {rookraceMechanics as M, secondSquares, secondStarts, keyOf, squareWins, pilesWin, opponentSquare, raceSolve, everyHint, judge, cellOf} from '../dist/families/rookrace/rookrace.js';
+import {rookraceMechanics as M, secondSquares, secondStarts, keyOf, squareWins, pilesWin, opponentSquare, raceSolve, everyHint, judge, cellOf, drawSquare, oneMove} from '../dist/families/rookrace/rookrace.js';
 import {seeded} from '../scripts/validate-rookrace.mjs';
 import {loadPack} from '../scripts/packs.mjs';
 
@@ -119,37 +120,76 @@ test('race hints are the authored nudges; the second rings the starts lost after
   for (const h of p.hints) assert.doesNotMatch(h, /\bdiagonal\b|equal|copy/i, 'no hint names the rule');
 });
 
-test('every start on a board: marks, That’s all judges them all, waits for a change, and Play it shows the app winning', () => {
+test('every start on a board: marks, Play from a tapped square, That’s all; a wrong one is played out at once and clears the marks', () => {
   const p = byId('everystart-01'), q = p.parameters;
   let a = freshAttempt(p);
   assert.match(view(p, a), /That’s all<\/button>/);
   assert.match(M.everystart.render(p, a), /data-focus="es-all" disabled/, 'nothing marked, nothing to judge');
+  assert.equal(move(p, a, {type: 'all'}), null);
   for (const s of [[1, 1], [2, 2], [3, 1]]) a = move(p, a, {type: 'mark', cell: cellOf(q, s)});
   a = move(p, a, {type: 'mark', cell: cellOf(q, [2, 2])});
   assert.deepEqual(a.board.marked, [cellOf(q, [1, 1]), cellOf(q, [3, 1])], 'a second tap clears');
-  a = move(p, a, {type: 'all'});
-  assert.deepEqual(a.board.refused, {wrong: cellOf(q, [3, 1])});
-  assert.equal(move(p, a, {type: 'all'}), null, 'That’s all waits for a change');
-  const html = M.everystart.render(p, a);
-  assert.match(html, /Whoever starts from the ringed square can win\./);
+  // Practice: Play, tap the square to start from (and change it), then choose who starts.
+  let t = move(p, a, {type: 'try'});
+  assert.equal(t.board.play.start, null);
+  let html = M.everystart.render(p, t);
+  assert.match(html, /Tap a square to start from\./);
+  assert.equal([...html.matchAll(/<button type="button" class="rr-cell/g)].length, q.size ** 2 - 1, 'every square but the star is a start to tap');
+  assert.equal(move(p, t, {type: 'choose', first: 'you'}), null, 'a start comes first');
+  assert.equal(move(p, t, {type: 'start', cell: 0}), null, 'not the star');
+  t = move(p, t, {type: 'start', cell: cellOf(q, [4, 2])});
+  t = move(p, t, {type: 'start', cell: cellOf(q, [2, 2])});
+  assert.equal(t.board.play.start, cellOf(q, [2, 2]), 'the start can change before the choice');
+  t = move(p, t, {type: 'choose', first: 'opponent'}, seeded(2));
+  assert.equal(t.board.play.turns[0].player, 'opponent');
+  assert.equal(move(p, t, {type: 'start', cell: cellOf(q, [4, 2])}), null, 'not after the choice');
+  assert.match(M.everystart.render(p, t), /I moved \d+ (left|down)\. Your turn/);
+  t = move(p, t, {type: 'back'});
+  assert.deepEqual(t.board.marked, a.board.marked, 'practice leaves the marks');
+  // With a square missing, That's all says only "There is another.", even with a wrong mark.
+  const partial = move(p, a, {type: 'all'});
+  assert.deepEqual(partial.board.refused, {more: true});
+  assert.equal(partial.board.play, null);
+  // With every answer marked and a wrong one too: I go first from the wrong
+  // start at once and win; then the marks are cleared.
+  let full = a;
+  for (let k = 2; k < q.size; k++) full = move(p, full, {type: 'mark', cell: cellOf(q, [k, k])});
+  let w = move(p, full, {type: 'all'}, seeded(2));
+  assert.deepEqual(w.board.refused, {wrong: cellOf(q, [3, 1])});
+  assert.equal(w.board.play.kind, 'out');
+  assert.equal(w.board.play.turns[0].player, 'opponent', 'the app goes first');
+  html = M.everystart.render(p, w);
+  assert.match(html, /Whoever starts from the ringed square can win\. I go first\./);
   assert.match(html, /rr-cell[^"]*flag[^"]*" data-x="3" data-y="1"/);
-  assert.doesNotMatch(html, /\b[1-9] (more|left|to go)\b/, 'no count');
-  let out = move(p, a, {type: 'out'}, seeded(2));
-  assert.equal(out.board.play.turns[0].player, 'opponent', 'the app goes first');
-  assert.match(M.everystart.render(p, out), /I go first from the ringed square\./);
-  out = move(p, out, {type: 'back'});
-  assert.deepEqual(out.board.refused, a.board.refused, 'the refusal stays until the marks change');
+  assert.doesNotMatch(html, /data-focus="es-back"|Play it/, 'no way out of the play-out but to play it');
+  assert.equal(move(p, w, {type: 'back'}), null);
+  assert.deepEqual(w.board.marked, full.board.marked, 'the marks stay while the game is on');
+  for (let i = 0; i < 20 && w.board.marked.length; i++) w = move(p, w, everyHint(p, w.board).action, seeded(i));
+  assert.deepEqual(w.board.marked, [], 'when I win, the marks are cleared');
+  assert.equal(w.board.play.turns.at(-1).player, 'opponent');
+  assert.match(M.everystart.render(p, w), /reached the star\. The marks are cleared\./);
+  w = move(p, w, {type: 'back'});
+  assert.deepEqual(w.board, M.everystart.fresh(p), 'back to an empty board');
+  // A wrong mark one move from the star: the play-out ends at once.
+  const near = move(p, move(p, full, {type: 'mark', cell: cellOf(q, [3, 1])}), {type: 'mark', cell: cellOf(q, [0, 3])});
+  assert.deepEqual(judge(q, near.board.marked), {wrong: cellOf(q, [0, 3])});
+  const ended = move(p, near, {type: 'all'}, seeded(1));
+  assert.deepEqual(ended.board.marked, []);
+  assert.equal(ended.board.play.turns.length, 1);
+  // A missing start: "There is another.", until the marks change.
   a = move(p, a, {type: 'mark', cell: cellOf(q, [3, 1])});
-  assert.equal(a.board.refused, null);
   a = move(p, a, {type: 'all'});
   assert.deepEqual(a.board.refused, {more: true});
+  assert.equal(a.board.play, null);
+  assert.equal(move(p, a, {type: 'all'}), null, 'That’s all waits for a change');
   assert.match(M.everystart.render(p, a), /There is another\./);
+  assert.doesNotMatch(M.everystart.render(p, a), /\b[1-9] (more|left|to go)\b/, 'no count');
   for (let k = 2; k < q.size; k++) a = move(p, a, {type: 'mark', cell: cellOf(q, [k, k])});
   a = move(p, a, {type: 'all'});
   assert.ok(isSolved(p, a.board) && a.board.done);
 });
 
-test('every start with piles: set, Keep, a second Keep says so, take off, practise, and That’s all', () => {
+test('every start with piles: set, Keep, a second Keep says so, take off, practise, a wrong That’s all clears the shelf, and That’s all', () => {
   const p = byId('everystart-03');
   let a = freshAttempt(p);
   assert.deepEqual(a.board, {build: [1, 1, 1], shelf: [], told: null, refused: null, play: null, done: false});
@@ -159,12 +199,11 @@ test('every start with piles: set, Keep, a second Keep says so, take off, practi
   assert.deepEqual(a.board.shelf, ['1,2,3'], 'the order of the piles does not matter');
   a = move(p, a, {type: 'keep'});
   assert.equal(a.board.told, 'again');
-  assert.match(M.everystart.render(p, a), /Already on the shelf\./);
+  const shown = M.everystart.render(p, a);
+  assert.match(shown, /Already on the shelf\./);
+  assert.ok(shown.indexOf('es-note') < shown.indexOf('es-shelf'), 'the line sits above the shelf, by the buttons');
   a = move(p, a, {type: 'set', pile: 0, n: 2}); a = move(p, a, {type: 'set', pile: 1, n: 2});
   a = move(p, a, {type: 'keep'});
-  a = move(p, a, {type: 'all'});
-  assert.deepEqual(a.board.refused, {wrong: '1,2,2'});
-  assert.match(M.everystart.render(p, a), /es-chip flag/);
   // Practice from the start being built: choose who starts, and I play perfectly.
   let t = move(p, a, {type: 'try'});
   assert.deepEqual(t.board.play.start, [2, 2, 1]);
@@ -173,8 +212,25 @@ test('every start with piles: set, Keep, a second Keep says so, take off, practi
   assert.match(M.everystart.render(p, t), /I took \d from the (left|middle|right) pile\. Your turn/);
   assert.equal(move(p, t, {type: 'take', pile: 1, take: 9}), null);
   t = move(p, t, {type: 'back'});
-  a = move(p, t, {type: 'drop', key: '1,2,2'});
-  assert.equal(a.board.refused, null);
+  assert.deepEqual(t.board.shelf, a.board.shelf);
+  // With starts missing, That's all says only "There is another.".
+  assert.deepEqual(move(p, a, {type: 'all'}).board.refused, {more: true});
+  // With every answer kept and 1, 2 and 2 too: I go first from it and win; then the shelf is cleared.
+  let full = a;
+  for (const start of ['1,4,5', '2,4,6', '3,5,6']) {
+    start.split(',').forEach((n, i) => { full = move(p, full, {type: 'set', pile: i, n: Number(n)}); });
+    full = move(p, full, {type: 'keep'});
+  }
+  let w = move(p, full, {type: 'all'}, seeded(3));
+  assert.deepEqual(w.board.refused, {wrong: '1,2,2'});
+  assert.deepEqual(w.board.play.start, [1, 2, 2]);
+  assert.match(M.everystart.render(p, w), /Whoever starts from 1, 2 and 2 can win\. I go first\./);
+  for (let i = 0; i < 20 && w.board.shelf.length; i++) w = move(p, w, everyHint(p, w.board).action, seeded(i));
+  assert.deepEqual(w.board.shelf, []);
+  assert.match(M.everystart.render(p, w), /I took the last pebble\. The shelf is cleared\./);
+  w = move(p, w, {type: 'back'});
+  assert.deepEqual(w.board, {build: [3, 5, 6], shelf: [], told: null, refused: null, play: null, done: false}, 'the start being built stays');
+  a = move(p, a, {type: 'drop', key: '1,2,2'});
   for (const start of ['1,4,5', '2,4,6', '3,5,6']) {
     start.split(',').forEach((n, i) => { a = move(p, a, {type: 'set', pile: i, n: Number(n)}); });
     a = move(p, a, {type: 'keep'});
@@ -199,7 +255,8 @@ test('hints alone finish every Every start puzzle, quickly, and name a wrong sta
   const p = byId('everystart-04'), q = p.parameters;
   const a = move(p, freshAttempt(p), {type: 'mark', cell: cellOf(q, [1, 1])});
   assert.deepEqual(everyHint(p, a.board).action, {type: 'mark', cell: cellOf(q, [1, 1])});
-  assert.equal(judge(q, [cellOf(q, [1, 1])]).wrong, cellOf(q, [1, 1]));
+  assert.deepEqual(judge(q, [cellOf(q, [1, 1])]), {more: true}, 'a missing start is said first');
+  assert.equal(judge(q, [...p.solution.cells, cellOf(q, [1, 1])]).wrong, cellOf(q, [1, 1]));
 });
 
 test('saves: a fresh race and a finished shelf are valid; forged ones are not', () => {
@@ -210,11 +267,39 @@ test('saves: a fresh race and a finished shelf are valid; forged ones are not', 
   assert.ok(validBoard(every, {build: [1, 1, 1], shelf: ['1,2,3'], told: null, refused: null, play: null, done: true}));
   assert.equal(validBoard(every, {build: [1, 1, 1], shelf: ['1,1,1'], told: null, refused: null, play: null, done: true}), false);
   assert.equal(validBoard(every, {build: [1, 1, 1], shelf: [], told: null, refused: null, play: null, done: true}), false);
+  // A play-out keeps the shelf it judged until it ends, and only then clears it.
+  const out = (shelf, turns) => ({build: [1, 1, 1], shelf, told: null, refused: {wrong: '1,1,2'}, play: {kind: 'out', start: [1, 1, 2], first: 'opponent', turns}, done: false});
+  assert.ok(validBoard(every, out(['1,1,2', '1,2,3'], [{player: 'opponent', pile: 3, take: 2}])), 'I took 2: your turn');
+  assert.equal(validBoard(every, out(['1,1,2'], [{player: 'opponent', pile: 3, take: 2}])), false, 'a wrong start is named only when nothing is missing');
+  assert.ok(validBoard(every, out([], [{player: 'opponent', pile: 3, take: 2}, {player: 'you', pile: 1, take: 1}, {player: 'opponent', pile: 2, take: 1}])), 'over and cleared');
+  assert.equal(validBoard(every, out(['1,1,2', '1,2,3'], [{player: 'opponent', pile: 3, take: 2}, {player: 'you', pile: 1, take: 1}, {player: 'opponent', pile: 2, take: 1}])), false, 'over but not cleared');
+  assert.equal(validBoard(every, out([], [{player: 'opponent', pile: 3, take: 2}])), false, 'cleared before the end');
+  assert.equal(validBoard(every, out(['1,1,2', '1,2,3'], [{player: 'opponent', pile: 3, take: 1}])), false, 'I never miss a win');
+  assert.equal(validBoard(every, {...out(['1,2,3'], []), refused: {wrong: '1,2,3'}, play: {kind: 'out', start: [1, 2, 3], first: 'opponent', turns: []}}), false, 'only a first-player start is played out');
+  const board = byId('everystart-01');
+  assert.equal(validBoard(board, {marked: [7], refused: null, play: {kind: 'try', start: null, first: 'you', turns: []}, done: false}), false, 'a start before the choice');
+  assert.ok(validBoard(board, {marked: [7], refused: {more: true}, play: {kind: 'try', start: null, first: null, turns: []}, done: false}));
   // Restart deals a fresh board; there is no Undo.
   assert.equal(M.rookrace.noUndo(race), true);
   assert.equal(M.everystart.noUndo(every), true);
   const done = {...freshAttempt(every), board: {build: [1, 1, 1], shelf: ['1,2,3'], told: null, refused: null, play: null, done: true}};
   assert.deepEqual(restart(every, done).board, freshAttempt(every).board);
+});
+
+test('small boards draw no one-move starts, half the starts are second-player ones, and Me first and You first look alike', () => {
+  for (const id of ['rookrace-01', 'rookrace-02', 'rookrace-03']) {
+    const q = byId(id).parameters, r = seeded(9);
+    let losing = 0, near = 0;
+    for (let i = 0; i < 2000; i++) { const s = drawSquare(q, r); if (!squareWins(q, s)) losing++; if (oneMove(q, s)) near++; }
+    assert.ok(Math.abs(losing / 2000 - .5) < .05, `${id}: about half second-player starts`);
+    if (q.size <= 5) assert.equal(near, 0, `${id}: no start one move from the star`);
+    else assert.ok(near > 0, `${id}: one-move starts stay on bigger boards`);
+  }
+  const p = byId('rookrace-01'), html = M.rookrace.render(p, {board: M.rookrace.fresh(p, seeded(1)), hintLevel: 0});
+  const looks = [...html.matchAll(/<button type="button" class="([^"]*)"[^>]*data-focus="rr-choose-(?:you|opponent)"/g)].map(m => m[1]);
+  assert.equal(looks.length, 2);
+  assert.equal(looks[0], looks[1], 'neither choice looks like the default');
+  for (const q of json.puzzles) assert.equal(q.proof, true, `${q.id}: How to play leaves out the grown-ups’ notes, which hold the answer`);
 });
 
 test('rendering: compact boards, the move key, labels for every square, and no count anywhere', () => {
