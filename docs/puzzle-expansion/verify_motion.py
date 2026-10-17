@@ -168,6 +168,9 @@ def check_billiard(instance):
         end_y = sum(abs(b[1] - a[1]) for a, b in zip(path, path[1:]))
         a, b = int(end_x / p['width']), int(end_y / p['height'])
         assert a + b == bounces + 2
+        # The drawn line reaches a second copy corner (2a, 2b) inside the sheet,
+        # so the first crossing is a choice between two.
+        assert 2 * a <= p['sheet'][0] and 2 * b <= p['sheet'][1], (instance['id'], 'one crossing on the line')
         answers = [f'{a},{b}']
     assert sorted(answers) == sorted(s['answers']), (instance['id'], answers, s['answers'])
     return f"{mode}: {' '.join(answers) or 'impossible'}"

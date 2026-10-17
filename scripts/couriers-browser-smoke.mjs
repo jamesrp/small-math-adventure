@@ -51,6 +51,8 @@ async function press(points) {
 const tapAt = async ([x, y]) => { if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); };
 // The room board: grid point (w, h) of a cols × rows grid, 40 units a square.
 const corner = (rows, w, h) => screen('[data-cr-room]', w * 40, (rows - h) * 40);
+// Where the room's corner (the handle) is now, as [w, h].
+const handleAt = async () => (await page.locator('[data-room="handle"]').getAttribute('aria-valuetext')).match(/\d+/g).map(Number);
 async function drag(rows, from, to, check) {
   await page.locator('[data-cr-room]').scrollIntoViewIfNeeded();
   const release = await press([await corner(rows, ...from), await corner(rows, ...to)]);
@@ -79,6 +81,27 @@ try {
   // 1. Shape the room (top right after 2 bounces, 6 by 6 grid).
   await open('billiard-04');
   await boardFits('billiard-04 fresh'); await shot('04-fresh');
+  // Only the corner drags. A tap elsewhere on the board moves the corner
+  // there; on a phone a swipe that starts away from the corner scrolls the page.
+  await tapAt(await corner(6, 3, 3));
+  assert.deepEqual(await handleAt(), [3, 3], 'a tap on a grid point moves the corner');
+  await drag(6, [3, 3], [1, 1]);
+  assert.deepEqual(await handleAt(), [1, 1]);
+  if (phone) {
+    await page.evaluate(() => window.scrollTo(0, 0));
+    const before = await page.evaluate(() => window.scrollY);
+    const [x, y] = await corner(6, 4, 2);
+    const release = await press([[x, y], [x, y - 220]]); await release();
+    await page.waitForTimeout(400);
+    assert.ok(await page.evaluate(() => window.scrollY) > before + 40, 'a swipe on the board scrolls the page');
+    assert.deepEqual(await handleAt(), [1, 1], 'a swipe away from the corner leaves the room');
+    const top = await page.evaluate(() => window.scrollY);
+    await drag(6, [1, 1], [2, 3]);
+    assert.deepEqual(await handleAt(), [2, 3], 'a drag from the corner reshapes the room');
+    assert.ok(Math.abs(await page.evaluate(() => window.scrollY) - top) < 40, 'dragging the corner does not scroll the page');
+    await drag(6, [2, 3], [1, 1]);
+    await page.evaluate(() => window.scrollTo(0, 0));
+  }
   assert.equal(await page.locator('.cr-path').count(), 0, 'no path before Launch');
   await drag(6, [1, 1], [2, 2]);
   assert.equal(await page.locator('.cr-path').count(), 0, 'no path after a drag');
@@ -120,6 +143,7 @@ try {
   await drag(6, [3, 2], [3, 1]);
   await button('Launch').focus(); await page.keyboard.press('Enter');
   await solved();
+  assert.equal((await board('billiard-04')).launches, 2, 'two launches; the claim and its Undo are not launches');
   await page.waitForTimeout(2200); await shot('04-solved');
 
   // 2. An impossible target: top right after 3 bounces.
@@ -136,12 +160,13 @@ try {
   await tapDot('2,3'); await tapDot('1,1');
   await shot('17-claim');
   await button('That’s all').click();
-  assert.equal(await status(), 'This one isn’t 3 bounces.');
+  const refusal = 'Those aren’t exactly the corners where it stops after 3 bounces.';
+  assert.equal(await status(), refusal);
   assert.equal(await page.locator('.cr-dot.chosen').count(), 0, 'a refusal clears the taps');
-  assert.equal(await page.locator('.cr-dot.refused').count(), 1);
+  assert.equal(await page.locator('.cr-dot.refused').count(), 0, 'a refusal rings nothing');
   await page.getByRole('button', { name: /Undo/ }).click();
   assert.equal(await page.locator('.cr-dot.chosen').count(), 3, 'Undo brings the taps back');
-  assert.equal(await status(), 'This one isn’t 3 bounces.', 'with the refusal');
+  assert.equal(await status(), refusal, 'with the refusal');
   assert.equal(await button('That’s all').isDisabled(), true, 'That’s all waits for a change');
   await tapDot('1,1');
   // Keyboard: arrows move between dots, Enter taps.
@@ -171,9 +196,15 @@ try {
 
   // 4. Every one-bounce room: Keep, That's all, no counter.
   await open('billiard-15');
-  const keep = async (w, h) => { await drag(6, (await board('billiard-15')).room || [1, 1], [w, h]); await button('Keep').click(); };
+  const keep = async (w, h) => { await drag(6, await handleAt(), [w, h]); await button('Keep').click(); };
   await drag(6, [1, 1], [2, 1]); await button('Launch').click();
   assert.equal(await status(), 'Bottom right after 1 bounce.');
+  // The pin is drawn over the corner, so Keep and its Undo change the board.
+  await button('Keep').click();
+  assert.equal(await page.locator('.cr-pin').count(), 1);
+  assert.ok(await page.locator('.cr-pin').isVisible());
+  await page.getByRole('button', { name: /Undo/ }).click();
+  assert.equal(await page.locator('.cr-pin').count(), 0, 'Undo takes the pin off the board');
   for (const [w, h] of [[2, 1], [4, 2], [6, 3], [1, 2], [2, 4]]) await keep(w, h);
   assert.doesNotMatch(await page.locator('.board-panel').innerText(), /\d+\s*(of|\/)\s*\d+/, 'no found-count');
   await button('That’s all').click();
@@ -203,11 +234,14 @@ try {
 
   // 6. The first crossing.
   await open('billiard-13');
+  await boardFits('billiard-13 sheet');
   await tapDot('1,0');
   assert.equal(await status(), 'The line doesn’t go there.');
+  await tapDot('6,4');
+  assert.equal(await status(), 'It stops before that.', 'the line meets a second crossing');
   await tapDot('3,2');
   await solved();
-  await page.waitForTimeout(3000); await shot('13-solved');
+  await page.waitForTimeout(4500); await shot('13-solved');
 
   // 7. The busiest boards fit, with their controls on screen.
   await open('billiard-18');
@@ -217,6 +251,7 @@ try {
   await boardFits('billiard-18 map'); await shot('18-map');
   await open('billiard-03'); await drag(10, [1, 1], [10, 6]); await button('Launch').click(); await page.waitForTimeout(2200);
   await solved(); await boardFits('billiard-03 solved'); await shot('03-solved');
+  await open('billiard-14'); await boardFits('billiard-14 sheet'); await tapDot('3,4'); await solved(); await page.waitForTimeout(4800); await shot('14-solved');
   await open('billiard-11'); await tapDot('5,5'); await button('Launch').click();
   assert.equal(await status(), 'Top right after 0 bounces.', 'aiming past an earlier crossing stops there');
   await page.waitForTimeout(2600); await boardFits('billiard-11 launched'); await shot('11-early-corner');

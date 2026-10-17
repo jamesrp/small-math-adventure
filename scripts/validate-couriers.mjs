@@ -89,14 +89,14 @@ function legalActions(p, b) {
 export default async function validateCouriers() {
   const pack = JSON.parse(await readFile(new URL('../dist/puzzles.json', import.meta.url), 'utf8'));
   const puzzles = pack.puzzles.filter(p => p.mechanic === 'billiard');
-  stats = { puzzles: puzzles.length, launches: 0, impossible: [], certificates: {}, hintRuns: 0, refusedForgeries: 0, illegalMoves: 0 };
+  stats = { puzzles: puzzles.length, launches: 0, impossible: [], certificates: {}, oneRefusal: 0, hintRuns: 0, refusedForgeries: 0, illegalMoves: 0 };
   seed = 9;
   for (const p of puzzles) check(p);
   return stats;
 }
 
 function check(p) {
-  const q = p.parameters;
+  const q = p.parameters, forgedTold = [];
   // 1. Answers, by the lattice walk, match the catalog and the mechanic.
   const answers = answersOf(p);
   assert.deepEqual(answers, [...p.solution.answers].sort(), `${p.id}: answers`);
@@ -117,6 +117,22 @@ function check(p) {
       const after = billiard.move(p, fresh(p), { type: 'tap', at: [i, j] });
       assert.equal(after.done, answers[0] === `${i},${j}`, `${p.id}: tap ${i},${j}`);
     }
+    // The drawn 45° line (to the sheet's shorter side) meets at least two
+    // points where a side wall and an end wall of the copies cross.
+    let meets = 0;
+    for (let t = 1; t <= Math.min(q.sheet[0] * q.width, q.sheet[1] * q.height); t++) if (t % q.width === 0 && t % q.height === 0) meets++;
+    assert.ok(meets >= 2, `${p.id}: the line meets ${meets} crossing, so the first is no choice`);
+  }
+
+  // 1b. Every launch counts once, and Undo (the mechanic's carry) keeps the count.
+  if (q.mode !== 'cross') {
+    const launchesOf = list => list.map(c => (q.mode === 'aim' ? { type: 'launch', aim: c } : { type: 'launch', room: c }));
+    const misses = (q.mode === 'aim' ? rooms(...q.sheet).filter(c => !hits(aimWalk(q, c), q.target)) : rooms(q.cols, q.rows).filter(([w, h]) => q.mode === 'every' || !hits(walk(w, h, q.rise ?? 1, q.run ?? 1), q.target))).slice(0, 3);
+    let b = fresh(p);
+    const line = [b];
+    for (const action of launchesOf(misses)) { b = billiard.move(p, b, action); line.push(b); }
+    assert.equal(b.launches, misses.length, `${p.id}: one count per launch`);
+    for (let k = line.length - 2; k >= 0; k--) { b = billiard.carry(p, b, line[k]); assert.equal(b.launches, misses.length, `${p.id}: Undo keeps the launch count`); assert.ok(billiard.valid(p, b)); }
   }
 
   // 2. Impossible targets: no room up to 40 by 40 meets them, and the corner
@@ -147,6 +163,7 @@ function check(p) {
       for (const c of need) assert.equal(claim(need.filter(x => x !== c)), false, `${p.id}: a missing corner is refused`);
       const extra = map.find(c => bounces(c) !== q.target.bounces);
       assert.equal(claim([...need, extra]), false, `${p.id}: a corner off the line is refused`);
+      forgedTold.push({ code: 'wrong', sel: need });
       let wins = 0;
       const tries = 20000;
       for (let t = 0; t < tries; t++) {
@@ -170,6 +187,25 @@ function check(p) {
       stats.certificates[p.id] = `${wins} of ${tries} tap pairs`;
       assert.ok(wins / tries < .03, `${p.id}: random pairs solve the certificate too often`);
     }
+  }
+
+  // 2b. A wrong line claim always gets the same refusal, without a ring: one
+  // corner on the line and one corner off it are refused alike.
+  if (q.mode === 'shape' && q.target.bounces !== undefined) {
+    const map = rooms(...q.map), bounces = ([i, j]) => i + j - 2;
+    const refusal = taps => {
+      let b = play(p, fresh(p), [{ type: 'launch', room: rooms(q.cols, q.rows).find(([w, h]) => !hits(walk(w, h, q.rise ?? 1, q.run ?? 1), q.target)) }, { type: 'cant' }, ...taps.map(at => ({ type: 'tap', at }))]);
+      b = billiard.move(p, b, { type: 'done' });
+      assert.ok(b && !b.done && !b.way, `${p.id}: ${JSON.stringify(taps)} is refused`);
+      const html = billiard.render(p, { board: b, hintLevel: 0 });
+      assert.doesNotMatch(html, /refused/, `${p.id}: a refusal rings nothing`);
+      return { told: b.told, status: html.match(/<p class="cr-status[^"]*" role="status">([^<]*)<\/p>/)[1] };
+    };
+    const on = map.find(c => gcd(...c) === 1 && bounces(c) === q.target.bounces), off = map.find(c => bounces(c) !== q.target.bounces);
+    const a = refusal([on]), b = refusal([off]);
+    assert.deepEqual([a.told.code, b.told.code, Object.keys(a.told).sort().join()], ['wrong', 'wrong', 'code,sel'], `${p.id}: one refusal`);
+    assert.ok(a.status && a.status === b.status, `${p.id}: the refusal does not tell a missing corner from a wrong one`);
+    stats.oneRefusal++;
   }
 
   // 3. Hints solve from a fresh board, after wrong moves and from random states.
@@ -208,26 +244,32 @@ function check(p) {
   assert.ok(billiard.solved(p, solved));
   for (const action of legalActions(p, fresh(p)).slice(0, 5)) assert.equal(billiard.move(p, solved, action), null, `${p.id}: no move after the solve`);
 
-  // 5. Forged saves are refused, including a forged done.
+  // 5. Forged saves are refused, including a forged done and a forged count.
   const forged = [];
   const base = fresh(p);
   forged.push({ ...base, done: true });
   forged.push({ ...base, extra: 1 });
+  if (q.mode !== 'cross') forged.push({ ...base, launches: -1 }, { ...base, launches: 1.5 }, { ...base, launches: '1' }, { ...base, launches: 1e9 });
   if (q.mode === 'shape') {
     const miss = rooms(q.cols, q.rows).find(([w, h]) => !hits(walk(w, h, q.rise ?? 1, q.run ?? 1), q.target));
-    forged.push({ ...base, room: miss, done: true }, { ...base, cert: [] }, { ...base, way: true }, { ...base, room: [q.cols + 1, 1] }, { ...base, room: miss, cert: [[1, 1]], told: { code: 'another', sel: [[1, 1]] } });
+    forged.push({ ...base, room: miss, launches: 0 }, { ...base, room: miss, launches: 1, done: true }, { ...base, cert: [] }, { ...base, way: true }, { ...base, room: [q.cols + 1, 1], launches: 1 });
+    forged.push({ ...base, room: miss, launches: 1, cert: [[1, 1]], told: { code: 'another', sel: [[1, 1]] } }, { ...base, room: miss, launches: 1, cert: [], told: { code: 'off', at: [1, 1], sel: [[1, 1]] } });
+    for (const told of forgedTold) forged.push({ ...base, room: miss, launches: 1, cert: [], told });
     if (answers.length) {
       const [w, h] = answers[0].split('×').map(Number);
-      forged.push({ ...base, room: [w, h], done: false }, { ...base, room: [w, h], cert: [], done: true }, { ...base, room: miss, cert: [], way: false, done: true });
+      forged.push({ ...base, room: [w, h], launches: 1, done: false }, { ...base, room: [w, h], launches: 0, done: true }, { ...base, room: [w, h], launches: 1, cert: [], done: true }, { ...base, room: miss, launches: 1, cert: [], way: false, done: true });
     } else {
-      forged.push({ ...base, room: miss, way: true }, { ...base, room: miss, cert: [[1, 1]], done: true }, { ...base, room: miss, cert: [], done: true });
+      forged.push({ ...base, room: miss, launches: 1, way: true }, { ...base, room: miss, launches: 1, cert: [[1, 1]], done: true }, { ...base, room: miss, launches: 1, cert: [], done: true });
     }
   }
   if (q.mode === 'every') {
     const answerRooms = answers.map(a => a.split('×').map(Number));
-    forged.push({ ...base, kept: answerRooms.slice(1), done: true }, { ...base, kept: [...answerRooms, [1, 1]], done: true }, { ...base, kept: answerRooms, refused: [answerRooms.map(r => r.join(',')).sort().join(' ')] }, { ...base, told: { code: 'another' } }, { ...base, kept: [[1, 1], [1, 1]] });
+    forged.push({ ...base, room: [1, 1], launches: 0 }, { ...base, kept: answerRooms.slice(1), done: true }, { ...base, kept: [...answerRooms, [1, 1]], done: true }, { ...base, kept: answerRooms, refused: [answerRooms.map(r => r.join(',')).sort().join(' ')] }, { ...base, told: { code: 'another' } }, { ...base, kept: [[1, 1], [1, 1]] });
   }
-  if (q.mode === 'aim') forged.push({ aim: rooms(...q.sheet).find(c => !hits(aimWalk(q, c), q.target)), done: true }, { aim: null, done: true }, { aim: [0, 1], done: false });
+  if (q.mode === 'aim') {
+    const miss = rooms(...q.sheet).find(c => !hits(aimWalk(q, c), q.target)), hit = answers[0].split(',').map(Number);
+    forged.push({ aim: miss, done: true, launches: 1 }, { aim: null, done: true, launches: 1 }, { aim: [0, 1], done: false, launches: 1 }, { aim: hit, done: true, launches: 0 }, { aim: miss, done: false });
+  }
   if (q.mode === 'cross') forged.push({ tap: [1, 1], done: true }, { tap: [0, 0], done: false }, { tap: answers[0].split(',').map(Number), done: false });
   for (const board of forged) {
     assert.equal(billiard.valid(p, board), false, `${p.id}: forged ${JSON.stringify(board)}`);

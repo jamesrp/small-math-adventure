@@ -66,8 +66,7 @@
    bottom right = diamond. */
 [data-mechanic-wire="billiard"]{--cr-ink:var(--b-ink,#294439);--cr-pine:var(--b-pine,#31533e);--cr-ochre:var(--b-ochre,#b38840);--cr-bad:var(--b-bad,#a9503a);--cr-line:#e2e4d4;--cr-paper:#fbf4df;--cr-tl:#3f7f9e;--cr-tr:#b38840;--cr-br:#b5583f;display:grid;justify-items:center;gap:.55rem;max-width:380px;margin:0 auto}
 [data-mechanic-wire="billiard"] svg{display:block;width:100%;height:auto;overflow:visible;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-[data-mechanic-wire="billiard"] .cr-room-board{max-width:380px;touch-action:none}
-[data-mechanic-wire="billiard"] :is(.cr-map,.cr-sheet-board){max-width:380px;touch-action:manipulation}
+[data-mechanic-wire="billiard"] :is(.cr-room-board,.cr-map,.cr-sheet-board){max-width:380px;touch-action:manipulation}
 [data-mechanic-wire="billiard"] .cr-grid line{stroke:var(--cr-line);stroke-width:1.2}
 [data-mechanic-wire="billiard"] .cr-room{fill:var(--cr-paper);fill-opacity:.85;stroke:var(--cr-ink);stroke-width:3.5}
 [data-mechanic-wire="billiard"] .cr-room-board .cr-room{fill-opacity:.65}
@@ -82,10 +81,12 @@
 [data-mechanic-wire="billiard"] .cr-target{fill:none;stroke:var(--cr-ochre);stroke-width:3;stroke-dasharray:6 4}
 [data-mechanic-wire="billiard"] .cr-handle{cursor:grab;outline:none}
 [data-mechanic-wire="billiard"] .cr-handle circle{fill:var(--cr-pine);stroke:#fffdf5;stroke-width:3}
+[data-mechanic-wire="billiard"] .cr-handle circle.cr-handle-hit{fill:transparent;stroke:none}
 [data-mechanic-wire="billiard"] .cr-handle path{stroke:#fff8d9;stroke-width:2.5;stroke-linecap:round}
-[data-mechanic-wire="billiard"] .cr-handle:focus-visible circle{stroke:var(--cr-ochre);stroke-width:5}
+[data-mechanic-wire="billiard"] .cr-handle:focus-visible circle:not(.cr-handle-hit){stroke:var(--cr-ochre);stroke-width:5}
 [data-mechanic-wire="billiard"] .cr-hinted{fill:none;stroke:var(--cr-ochre);stroke-width:3;stroke-dasharray:3 4}
-[data-mechanic-wire="billiard"] .cr-pin{fill:var(--cr-pine);stroke:#fffdf5;stroke-width:2}
+[data-mechanic-wire="billiard"] .cr-pins{pointer-events:none}
+[data-mechanic-wire="billiard"] .cr-pin{fill:var(--cr-pine);stroke:#fffdf5;stroke-width:2.5}
 [data-mechanic-wire="billiard"] .cr-pin.refused{fill:var(--cr-bad)}
 [data-mechanic-wire="billiard"] .cr-twice line{stroke:var(--cr-pine);stroke-width:2;stroke-dasharray:5 5}
 [data-mechanic-wire="billiard"] .cr-mark{stroke:var(--cr-ink);stroke-width:1.4}

@@ -219,9 +219,10 @@ const savedDefinition = (p, a) => p?.revision === 2 && p.tileShape === 'l-tromin
 const readableBoard = (p, board) => validBoard(p, board) || p.mechanic === 'nim' && legacyNimBoard(p, board);
 // A Mirror Couriers save from revision 1 (the predict-and-launch menus) is a
 // prediction or a menu setting; revision 2 starts that puzzle afresh and keeps
-// what was earned, as the L-tromino gardens do.
+// what was earned, as the L-tromino gardens do. The old hint level would name
+// the new puzzle's answer at once, so it starts at 0 (helpUsed stays).
 const legacyCourier = (p, a) => p?.mechanic === 'billiard' && p.revision === 2 && a?.revision === 1 && legacyBilliardBoard(a.board) && Array.isArray(a.history) && a.history.every(h => legacyBilliardBoard(h?.board));
-const courierAttempt = (p, a) => legacyCourier(p, a) ? {...a, revision:p.revision, board:freshAttempt(p).board, history:[], moves:0} : a;
+const courierAttempt = (p, a) => legacyCourier(p, a) ? {...a, revision:p.revision, board:freshAttempt(p).board, history:[], moves:0, hintLevel:0} : a;
 function restoredAttempt(p, a) {
   a = courierAttempt(p, a);
   const saved = {revision:a.revision,board:clone(a.board),history:clone(a.history),moves:a.moves,hintLevel:a.hintLevel,helpUsed:a.helpUsed,completed:a.completed,lastPlayed:a.lastPlayed};

@@ -305,6 +305,8 @@ export function scoreOf(p, attempt) {
     case 'route': return routeInfo(p, attempt.board)?.cost ?? Infinity;
     case 'code': return truncated ? Infinity : line.filter(b => b.submitted).length;
     case 'color': return truncated ? Infinity : line.slice(1).filter((b, i) => b.colors.join() !== line[i].colors.join()).length;
+    // Mirror Couriers keeps its own launch tally, which Undo does not take back.
+    case 'billiard': return Number.isSafeInteger(attempt.board.launches) ? attempt.board.launches : attempt.moves;
     default: return attempt.moves;
   }
 }

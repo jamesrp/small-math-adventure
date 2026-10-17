@@ -136,12 +136,13 @@ export function reachable(target) {
 // With a bounce count n: every copy corner where a ball stops after n bounces
 // is n + 2 rooms away (across + up), and none of them folds onto the target.
 // The child taps those corners; corners on the line that are not first on
-// their own line (the ball stops earlier) may be tapped or left out.
+// their own line (the ball stops earlier) may be tapped or left out. Any
+// wrong set gets the same one verdict, so a refusal never says which corner
+// is wrong or whether one is missing.
 export const lineOf = (q, n = q.target.bounces) => cornerMap(...q.map).filter(c => c.bounces === n);
+const offLine = (q, taps) => taps.find(([i, j]) => bouncesAt(i, j) !== q.target.bounces);
 export function judgeLine(q, taps) {
-  const n = q.target.bounces, off = taps.find(([i, j]) => bouncesAt(i, j) !== n);
-  if (off) return { code: 'off', at: off };
-  if (lineOf(q).some(c => c.first && !taps.some(t => same(t, c.at)))) return { code: 'another' };
+  if (offLine(q, taps) || lineOf(q).some(c => c.first && !taps.some(t => same(t, c.at)))) return { code: 'wrong' };
   return { code: reachable(q.target) ? 'way' : 'accept' };
 }
 // Without a bounce count (only the start corner is impossible): a copy corner
@@ -157,12 +158,16 @@ export function judgeHalf(q, [first, second]) {
 
 /* ------------------------------------------------------------------ *
  * Saves.
- *   shape: {room, cert, told, way, done}   aim: {aim, done}
- *   cross: {tap, done}                     every: {room, kept, told, refused, done}
+ *   shape: {room, cert, told, way, done, launches}   aim: {aim, done, launches}
+ *   cross: {tap, done}                     every: {room, kept, told, refused, done, launches}
  * room is the last launched room [w, h]; cert the corners tapped after Can't;
- * told the refusal of the latest claim; way the lock after "There is a way."
+ * told the refusal of the latest claim; way the lock after "There is a way.";
+ * launches every Launch so far, kept through Undo (the road counts it).
  * ------------------------------------------------------------------ */
-const KEYS = { shape: ['room', 'cert', 'told', 'way', 'done'], aim: ['aim', 'done'], cross: ['tap', 'done'], every: ['room', 'kept', 'told', 'refused', 'done'] };
+const KEYS = { shape: ['room', 'cert', 'told', 'way', 'done', 'launches'], aim: ['aim', 'done', 'launches'], cross: ['tap', 'done'], every: ['room', 'kept', 'told', 'refused', 'done', 'launches'] };
+const MAX_LAUNCHES = 100000;
+// A launch tally is a whole number, at least 1 once something was launched.
+const validLaunches = (n, launched) => integer(n) && n >= (launched ? 1 : 0) && n <= MAX_LAUNCHES;
 const halfMode = q => q.target.bounces === undefined;
 const inGrid = (q, r) => pair(r) && r[0] >= 1 && r[1] >= 1 && r[0] <= q.cols && r[1] <= q.rows;
 const inMap = (q, c) => pair(c) && c[0] >= 1 && c[1] >= 1 && c[0] <= q.map[0] && c[1] <= q.map[1];
@@ -190,16 +195,15 @@ function validTold(q, b) {
     if (!same(Object.keys(t).sort(), ['code', 'pair']) || !['goal', 'path'].includes(t.code) || !Array.isArray(t.pair) || t.pair.length !== 2 || !t.pair.every(c => inMap(q, c)) || same(t.pair[0], t.pair[1])) return false;
     return same(b.cert, []) && judgeHalf(q, t.pair).code === t.code;
   }
-  if (!['off', 'another'].includes(t.code) || !Array.isArray(t.sel) || !t.sel.length || !t.sel.every(c => inMap(q, c)) || !distinct(t.sel)) return false;
-  if (!same(Object.keys(t).sort(), t.code === 'off' ? ['at', 'code', 'sel'] : ['code', 'sel'])) return false;
-  const verdict = judgeLine(q, t.sel);
-  if (verdict.code !== t.code || (t.code === 'off' && !same(verdict.at, t.at))) return false;
+  if (!same(Object.keys(t).sort(), ['code', 'sel']) || t.code !== 'wrong' || !Array.isArray(t.sel) || !t.sel.length || !t.sel.every(c => inMap(q, c)) || !distinct(t.sel)) return false;
+  if (judgeLine(q, t.sel).code !== 'wrong') return false;
   // A refusal clears the taps; Undo can bring the same taps back with it.
   return same(b.cert, []) || same(b.cert, t.sel);
 }
 
 function validShape(q, b) {
   if (b.room !== null && !inGrid(q, b.room)) return false;
+  if (!validLaunches(b.launches, b.room !== null)) return false;
   if (typeof b.way !== 'boolean' || typeof b.done !== 'boolean') return false;
   if (b.cert !== null && (!Array.isArray(b.cert) || b.cert.length > q.map[0] * q.map[1] || !b.cert.every(c => inMap(q, c)) || !distinct(b.cert))) return false;
   // Can't comes after a launch.
@@ -217,6 +221,7 @@ function validShape(q, b) {
 
 function validEvery(q, b) {
   if (b.room !== null && !inGrid(q, b.room)) return false;
+  if (!validLaunches(b.launches, b.room !== null)) return false;
   if (typeof b.done !== 'boolean' || !Array.isArray(b.kept) || !b.kept.every(r => inGrid(q, r)) || !distinct(b.kept)) return false;
   if (!Array.isArray(b.refused) || b.refused.length > 400 || !b.refused.every(k => typeof k === 'string') || new Set(b.refused).size !== b.refused.length) return false;
   // Every refused shelf really was a wrong claim.
@@ -238,7 +243,7 @@ export function validCourier(p, b) {
   if (q.mode === 'shape') return validShape(q, b);
   if (q.mode === 'every') return validEvery(q, b);
   if (typeof b.done !== 'boolean') return false;
-  if (q.mode === 'aim') return (b.aim === null ? !b.done : inSheet(q, b.aim) && b.done === aimMeets(q, b.aim));
+  if (q.mode === 'aim') return validLaunches(b.launches, b.aim !== null) && (b.aim === null ? !b.done : inSheet(q, b.aim) && b.done === aimMeets(q, b.aim));
   return b.tap === null ? !b.done : inCrossing(q, b.tap) && b.done === same(b.tap, crossAnswer(q));
 }
 
@@ -261,16 +266,16 @@ export function legacyBilliardBoard(board) {
  * ------------------------------------------------------------------ */
 function fresh(p) {
   const q = p.parameters;
-  if (q.mode === 'shape') return { room: null, cert: null, told: null, way: false, done: false };
-  if (q.mode === 'every') return { room: null, kept: [], told: null, refused: [], done: false };
-  if (q.mode === 'aim') return { aim: null, done: false };
+  if (q.mode === 'shape') return { room: null, cert: null, told: null, way: false, done: false, launches: 0 };
+  if (q.mode === 'every') return { room: null, kept: [], told: null, refused: [], done: false, launches: 0 };
+  if (q.mode === 'aim') return { aim: null, done: false, launches: 0 };
   return { tap: null, done: false };
 }
 
 function moveShape(q, b, action) {
   if (action.type === 'launch') {
     if (!inGrid(q, action.room)) return null;
-    return { room: [...action.room], cert: null, told: null, way: false, done: meets(roomOutcome(q, action.room), q.target) };
+    return { room: [...action.room], cert: null, told: null, way: false, done: meets(roomOutcome(q, action.room), q.target), launches: b.launches + 1 };
   }
   if (action.type === 'cant') {
     // After "There is a way." the map can still be closed, not reopened.
@@ -296,14 +301,14 @@ function moveShape(q, b, action) {
     const verdict = judgeLine(q, b.cert);
     if (verdict.code === 'accept') return { ...b, told: null, done: true };
     if (verdict.code === 'way') return { ...b, cert: null, told: null, way: true };
-    // The refusal clears the taps; Undo brings them back with it.
-    return { ...b, cert: [], told: verdict.code === 'off' ? { code: 'off', at: verdict.at, sel: b.cert } : { code: 'another', sel: b.cert } };
+    // One refusal for any wrong set; it clears the taps, and Undo brings them back with it.
+    return { ...b, cert: [], told: { code: 'wrong', sel: b.cert } };
   }
   return null;
 }
 
 function moveEvery(q, b, action) {
-  if (action.type === 'launch') return inGrid(q, action.room) ? { ...b, room: [...action.room] } : null;
+  if (action.type === 'launch') return inGrid(q, action.room) ? { ...b, room: [...action.room], launches: b.launches + 1 } : null;
   if (action.type === 'keep') {
     if (!inGrid(q, action.room)) return null;
     const has = b.kept.some(r => same(r, action.room));
@@ -323,15 +328,18 @@ function move(p, b, action) {
   if (!validCourier(p, b) || !object(action) || b.done) return null;
   if (q.mode === 'shape') return moveShape(q, b, action);
   if (q.mode === 'every') return moveEvery(q, b, action);
-  if (q.mode === 'aim') return action.type === 'launch' && inSheet(q, action.aim) ? { aim: [...action.aim], done: aimMeets(q, action.aim) } : null;
+  if (q.mode === 'aim') return action.type === 'launch' && inSheet(q, action.aim) ? { aim: [...action.aim], done: aimMeets(q, action.aim), launches: b.launches + 1 } : null;
   return action.type === 'tap' && inCrossing(q, action.at) ? { tap: [...action.at], done: same(action.at, crossAnswer(q)) } : null;
 }
 
-// Undo keeps a lock or a refusal: "There is a way." while the launched room is
-// the same, a refused claim while the same corners (or shelf) come back.
+// Undo takes back a move but keeps the launch tally, a lock and a refusal:
+// "There is a way." while the launched room is the same, a refused claim while
+// the same corners (or shelf) come back.
 function carry(p, from, to) {
   const q = p.parameters;
-  if (!object(from) || !object(to) || to.done) return to;
+  if (!object(from) || !object(to)) return to;
+  if (integer(from.launches) && integer(to.launches) && from.launches > to.launches) to = { ...to, launches: from.launches };
+  if (to.done) return to;
   if (q.mode === 'every') return Array.isArray(from.refused) && Array.isArray(to.refused) ? { ...to, refused: [...new Set([...to.refused, ...from.refused])] } : to;
   if (q.mode !== 'shape') return to;
   if (from.way && same(from.room, to.room)) return { ...to, way: true, told: null };
@@ -367,12 +375,12 @@ function hintShape(q, b) {
   if (halfMode(q)) {
     const first = b.cert[0];
     if (first && foldCorner(...first) !== HOME) return { type: 'move', action: { type: 'tap', at: first }, text: `Tap the corner ${cornerWords(first)} again to let it go.` };
-    if (!first) return { type: 'move', action: { type: 'tap', at: [2, 2] }, text: `Tap the start corner ${cornerWords([2, 2])}.` };
+    if (!first) return { type: 'move', action: { type: 'tap', at: [2, 2] }, text: `Tap the copy of the start ${cornerWords([2, 2])}.` };
     const half = first.map(v => v / 2);
     return { type: 'move', action: { type: 'tap', at: half }, text: `Tap the crossing halfway to it, ${cornerWords(half)}.` };
   }
-  const verdict = judgeLine(q, b.cert);
-  if (verdict.code === 'off') return { type: 'move', action: { type: 'tap', at: verdict.at }, text: `Tap the corner ${cornerWords(verdict.at)} to let it go: a ball stopping there bounced ${plural(bouncesAt(...verdict.at), 'time')}.` };
+  const off = offLine(q, b.cert);
+  if (off) return { type: 'move', action: { type: 'tap', at: off }, text: `Tap the corner ${cornerWords(off)} to let it go: a ball stopping there bounced ${plural(bouncesAt(...off), 'time')}.` };
   const missing = lineOf(q).find(c => c.first && !b.cert.some(t => same(t, c.at)));
   if (missing) return { type: 'move', action: { type: 'tap', at: missing.at }, text: `Tap the corner ${cornerWords(missing.at)}: a ball stopping there bounced ${plural(q.target.bounces, 'time')}.` };
   return { type: 'move', action: { type: 'done' }, text: 'Press That’s all.' };
@@ -429,6 +437,9 @@ const reset = p => { views.delete(p.id); };
  * Drawing.
  * ------------------------------------------------------------------ */
 const U = 40, PAD = 22;
+// A drag starts only on the room's corner, within this many board units; the
+// rest of the board lets the page scroll, and a tap there moves the corner.
+const HANDLE_REACH = 30;
 const num = value => Math.round(value * 100) / 100;
 const CORNER_KIND = { 'top-left': 'tl', 'top-right': 'tr', 'bottom-left': 'home', 'bottom-right': 'br' };
 // A copy corner's mark: its room corner's colour and shape (circle, square,
@@ -463,7 +474,9 @@ function roomBoard(p, b, v, attempt) {
   const ring = target ? `<circle class="cr-target k-${CORNER_KIND[target]}" data-room="target" cx="${X(tx)}" cy="${Y(ty)}" r="17"/>` : '';
   const norm = Math.hypot(run, rise), arrowLen = 30;
   const arrow = `<g class="cr-arrow"><line x1="${X(0)}" y1="${Y(0)}" x2="${num(X(0) + arrowLen * run / norm)}" y2="${num(Y(0) - arrowLen * rise / norm)}"/><path d="M${num(X(0) + (arrowLen + 9) * run / norm)} ${num(Y(0) - (arrowLen + 9) * rise / norm)}L${num(X(0) + arrowLen * run / norm - 6 * rise / norm)} ${num(Y(0) - arrowLen * rise / norm - 6 * run / norm)}L${num(X(0) + arrowLen * run / norm + 6 * rise / norm)} ${num(Y(0) - arrowLen * rise / norm + 6 * run / norm)}Z"/></g>`;
-  const pins = q.mode === 'every' ? b.kept.map(r => `<rect class="cr-pin${b.told?.code === 'off' && same(b.told.at, r) ? ' refused' : ''}" x="${X(r[0]) - 7}" y="${Y(r[1]) - 7}" width="14" height="14" rx="3"/>`).join('') : '';
+  // The shelf's pins are drawn over the corner handle, so keeping the current
+  // room (or its Undo) visibly changes the board.
+  const pins = q.mode === 'every' ? `<g class="cr-pins" aria-hidden="true">${b.kept.map(r => `<rect class="cr-pin${b.told?.code === 'off' && same(b.told.at, r) ? ' refused' : ''}" x="${X(r[0]) - 7}" y="${Y(r[1]) - 7}" width="14" height="14" rx="3"/>`).join('')}</g>` : '';
   // One bounce: one side twice the other, the two lines through the shelf.
   const proof = q.mode === 'every' && b.done && q.bounces === 1 ? `<g class="cr-twice"><line x1="${X(0)}" y1="${Y(0)}" x2="${X(Math.min(W, H / 2))}" y2="${Y(Math.min(H, 2 * W))}"/><line x1="${X(0)}" y1="${Y(0)}" x2="${X(Math.min(W, 2 * H))}" y2="${Y(Math.min(H, W / 2))}"/></g>` : '';
   const hinted = attempt.hintLevel >= 2 && !b.done ? hint(p, b) : null;
@@ -472,8 +485,8 @@ function roomBoard(p, b, v, attempt) {
   return `<svg class="cr-room-board" data-cr-room viewBox="${-PAD} ${-PAD} ${W * U + 2 * PAD} ${H * U + 2 * PAD}" role="group" aria-label="${esc(label)}">
 <g class="cr-grid">${grid}</g>${proof}
 <rect class="cr-room" data-room="rect" x="0" y="${Y(h)}" width="${X(w)}" height="${h * U}"/>
-${pins}${path}${ring}${stop}${arrow}<circle class="cr-start" cx="0" cy="${Y(0)}" r="7"/>${mark}
-<g class="cr-handle" data-room="handle" transform="translate(${X(w)} ${Y(h)})" role="slider" tabindex="0" data-focus="cr-corner" aria-label="Room corner" aria-valuetext="${w} wide, ${h} high" aria-valuenow="${w}" aria-valuemin="1" aria-valuemax="${W}"><circle r="15"/><path d="M-6 0h12M0 -6v12"/></g>
+${path}${ring}${stop}${arrow}<circle class="cr-start" cx="0" cy="${Y(0)}" r="7"/>${mark}
+<g class="cr-handle" data-room="handle" transform="translate(${X(w)} ${Y(h)})" role="slider" tabindex="0" data-focus="cr-corner" aria-label="Room corner" aria-valuetext="${w} wide, ${h} high" aria-valuenow="${w}" aria-valuemin="1" aria-valuemax="${W}"><circle class="cr-handle-hit" r="${HANDLE_REACH}"/><circle r="15"/><path d="M-6 0h12M0 -6v12"/></g>${pins}
 </svg>`;
 }
 
@@ -488,7 +501,7 @@ function mapBoard(p, b, v, attempt) {
   const mine = b.room ? firstCrossing(b.room[0], b.room[1], q.rise ?? 1, q.run ?? 1) : null;
   const hinted = attempt.hintLevel >= 2 && !done ? hint(p, b) : null;
   const cursor = mapCursor(q, v, taps);
-  const ringed = told?.code === 'off' ? told.at : told?.pair ? told.pair[1] : null;
+  const ringed = told?.pair ? told.pair[1] : null;
   const marks = cornerMap(I, J).map(c => {
     const [i, j] = c.at, x = X(i), y = Y(j), chosen = taps.some(t => same(t, c.at)), here = same(cursor, c.at);
     const cls = `cr-dot${chosen ? ' chosen' : ''}${ringed && same(ringed, c.at) ? ' refused' : ''}${hinted?.action?.at && same(hinted.action.at, c.at) ? ' hinted' : ''}`;
@@ -578,8 +591,7 @@ function told(q, b) {
     if (b.way) return 'There is a way.';
     const t = b.told;
     if (!t) return '';
-    if (t.code === 'off') return `This one isn’t ${plural(q.target.bounces, 'bounce')}.`;
-    if (t.code === 'another') return 'There is another.';
+    if (t.code === 'wrong') return `Those aren’t exactly the corners where it stops after ${plural(q.target.bounces, 'bounce')}.`;
     if (t.code === 'goal') return `That corner folds to the ${legendCorner(foldCorner(...t.pair[0]))}.`;
     return 'That isn’t on the way there.';
   }
@@ -668,8 +680,10 @@ function wire(root, p, api) {
 
 function wireRoom(svg, p, api) {
   const q = p.parameters, W = q.cols, H = q.rows;
-  const snap = (x, y) => { const at = svgPoint(svg, x, y); return at && [Math.max(1, Math.min(W, Math.round(at[0] / U))), Math.max(1, Math.min(H, Math.round(H - at[1] / U)))]; };
+  const local = (x, y) => svgPoint(svg, x, y);
+  const snapAt = at => at && [Math.max(1, Math.min(W, Math.round(at[0] / U))), Math.max(1, Math.min(H, Math.round(H - at[1] / U)))];
   const busy = () => api.attempt().board.done;
+  const current = () => views.get(p.id)?.room || q.start;
   // While dragging, the room follows the finger and the old path hides; the
   // path is drawn only by Launch.
   const show = ([w, h]) => {
@@ -680,27 +694,48 @@ function wireRoom(svg, p, api) {
     const target = svg.querySelector('[data-room="target"]');
     if (target && q.target) { const [tx, ty] = { 'top-left': [0, h], 'top-right': [w, h], 'bottom-right': [w, 0], 'bottom-left': [0, 0] }[q.target.corner]; target.setAttribute('cx', tx * U); target.setAttribute('cy', (H - ty) * U); }
   };
-  let drag = null;
+  // A press on the corner drags it; a press elsewhere is a tap that moves the
+  // corner there, unless the finger moves, which scrolls the page instead. The
+  // board allows panning, so a touch on the corner cancels it in touchstart
+  // (SVG children do not take touch-action of their own).
+  const onHandle = (x, y) => {
+    const at = local(x, y);
+    if (!at) return false;
+    const [w, h] = current();
+    return Math.hypot(at[0] - w * U, at[1] - (H - h) * U) <= HANDLE_REACH;
+  };
+  let drag = null, press = null;
+  svg.addEventListener('touchstart', e => { if (e.touches.length === 1 && !busy() && onHandle(e.touches[0].clientX, e.touches[0].clientY)) e.preventDefault(); }, { passive: false });
+  svg.addEventListener('touchmove', e => { if (drag) e.preventDefault(); }, { passive: false });
   svg.addEventListener('pointerdown', e => {
     if (e.button > 0 || !e.isPrimary || busy()) return;
-    const at = snap(e.clientX, e.clientY);
-    if (!at) return;
-    drag = { id: e.pointerId, at };
-    svg.setPointerCapture?.(e.pointerId);
-    show(at);
-    e.preventDefault();
+    const [w, h] = current();
+    if (onHandle(e.clientX, e.clientY)) {
+      drag = { id: e.pointerId, at: [w, h], moved: false };
+      svg.setPointerCapture?.(e.pointerId);
+      e.preventDefault();
+    } else press = { id: e.pointerId, x: e.clientX, y: e.clientY };
   });
   svg.addEventListener('pointermove', e => {
     if (!drag || e.pointerId !== drag.id) return;
-    const at = snap(e.clientX, e.clientY);
-    if (at && !same(at, drag.at)) { drag.at = at; show(at); }
+    const at = snapAt(local(e.clientX, e.clientY));
+    if (at && !same(at, drag.at)) { drag.at = at; drag.moved = true; show(at); }
   });
   const end = e => {
-    if (!drag || e.pointerId !== drag.id) return;
-    const at = drag.at;
-    drag = null;
-    if (e.type === 'pointercancel') { api.ui({}); return; }
-    api.ui({ room: at });
+    if (drag && e.pointerId === drag.id) {
+      const { at, moved } = drag;
+      drag = null;
+      if (e.type === 'pointercancel') { api.ui({}); return; }
+      if (moved) api.ui({ room: at });
+      return;
+    }
+    if (press && e.pointerId === press.id) {
+      const { x, y } = press;
+      press = null;
+      if (e.type === 'pointercancel' || Math.hypot(e.clientX - x, e.clientY - y) > 10 || busy()) return;
+      const at = snapAt(local(e.clientX, e.clientY));
+      if (at) { e.preventDefault(); api.ui({ room: at }); }
+    }
   };
   svg.addEventListener('pointerup', end);
   svg.addEventListener('pointercancel', end);
@@ -709,7 +744,7 @@ function wireRoom(svg, p, api) {
     const step = { ArrowRight: [1, 0], ArrowLeft: [-1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] }[e.key];
     if (!step) return;
     e.preventDefault();
-    const v = views.get(p.id), [w, h] = v?.room || q.start;
+    const [w, h] = current();
     api.ui({ room: [Math.max(1, Math.min(W, w + step[0])), Math.max(1, Math.min(H, h + step[1]))] });
   });
 }

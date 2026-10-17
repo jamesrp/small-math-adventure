@@ -13135,7 +13135,7 @@
           "4×3"
         ]
       },
-      "hint": "Try a room that is wider than it is tall.",
+      "hint": "Launch a few rooms of different shapes. Which ones come back down to the bottom?",
       "insight": "The ball can come back down: it stops at the bottom right when the room, in lowest terms, is an odd number of squares high and an even number wide.",
       "difficulty_step": "Same move as the first puzzle, a corner that needs a less obvious room.",
       "prerequisites": "Drag a corner; tell the four corners apart.",
@@ -13162,7 +13162,7 @@
       ],
       "controls": "The ball rolls straight from the bottom-left corner, bounces off each wall like light in a mirror and stops at the first corner it reaches. Shape the room or aim the ball to send it where it should go.",
       "hints": [
-        "Try a room that is wider than it is tall.",
+        "Launch a few rooms of different shapes. Which ones come back down to the bottom?",
         "Look at what your latest move changed. You can undo and try another choice.",
         "Ask for one next move from this position."
       ],
@@ -13219,7 +13219,7 @@
           "6×10"
         ]
       },
-      "hint": "Find a smaller room first. What happens when you double both sides?",
+      "hint": "Launch a few rooms and count the bounces. Which ones reach the top right?",
       "insight": "A room behaves like its sides divided by their common factor: 6 by 10 does what 3 by 5 does. Rooms in lowest terms p wide and q high with p + q = 8, both odd, are the answers.",
       "difficulty_step": "A larger grid and an exact bounce count; doubling a room keeps its corner and bounces.",
       "prerequisites": "Count bounces; notice a room and its double behave alike.",
@@ -13246,7 +13246,7 @@
       ],
       "controls": "The ball rolls straight from the bottom-left corner, bounces off each wall like light in a mirror and stops at the first corner it reaches. Shape the room or aim the ball to send it where it should go.",
       "hints": [
-        "Find a smaller room first. What happens when you double both sides?",
+        "Launch a few rooms and count the bounces. Which ones reach the top right?",
         "Look at what your latest move changed. You can undo and try another choice.",
         "Ask for one next move from this position."
       ],
@@ -13301,7 +13301,7 @@
           "2×6"
         ]
       },
-      "hint": "Launch a long, thin room and count its bounces. Then make it longer or shorter.",
+      "hint": "Launch a few rooms that stop at the top right and count the bounces of each.",
       "insight": "Top right after two bounces needs one side three times the other.",
       "difficulty_step": "An exact bounce count on the 6 by 6 grid of the worksheet.",
       "prerequisites": "Count bounces up to a few.",
@@ -13329,7 +13329,7 @@
       ],
       "controls": "The ball rolls straight from the bottom-left corner, bounces off each wall like light in a mirror and stops at the first corner it reaches. Shape the room or aim the ball to send it where it should go.",
       "hints": [
-        "Launch a long, thin room and count its bounces. Then make it longer or shorter.",
+        "Launch a few rooms that stop at the top right and count the bounces of each.",
         "Look at what your latest move changed. You can undo and try another choice.",
         "Ask for one next move from this position."
       ],
@@ -13542,7 +13542,7 @@
           "3×5"
         ]
       },
-      "hint": "The ball now goes two squares up for every square across. Try a room wider than it is tall.",
+      "hint": "The ball now starts two squares up for every square across. Launch a few rooms and count bounces.",
       "insight": "A steeper start rescales one side: with 2 up for 1 across, a w by h room acts like a 2w by h room at 45°.",
       "difficulty_step": "A steeper launch: the 45° rule no longer applies directly.",
       "prerequisites": "Count bounces up to ten; compare a room with its double.",
@@ -13568,7 +13568,7 @@
       ],
       "controls": "The ball rolls straight from the bottom-left corner, bounces off each wall like light in a mirror and stops at the first corner it reaches. Shape the room or aim the ball to send it where it should go.",
       "hints": [
-        "The ball now goes two squares up for every square across. Try a room wider than it is tall.",
+        "The ball now starts two squares up for every square across. Launch a few rooms and count bounces.",
         "Look at what your latest move changed. You can undo and try another choice.",
         "Ask for one next move from this position."
       ],
@@ -13697,7 +13697,7 @@
           "3,5"
         ]
       },
-      "hint": "A top-right copy corner is an odd number of rooms across and an odd number up.",
+      "hint": "Aim at a few crossings and Launch. Which ones stop at the top right, and after how many bounces?",
       "insight": "Top right after six bounces: copy corners 3 across and 5 up, or 5 across and 3 up.",
       "difficulty_step": "More bounces, two answers on the sheet.",
       "prerequisites": "Odd and even; count rooms on the sheet.",
@@ -13725,7 +13725,7 @@
       ],
       "controls": "The ball rolls straight from the bottom-left corner, bounces off each wall like light in a mirror and stops at the first corner it reaches. Shape the room or aim the ball to send it where it should go.",
       "hints": [
-        "A top-right copy corner is an odd number of rooms across and an odd number up.",
+        "Aim at a few crossings and Launch. Which ones stop at the top right, and after how many bounces?",
         "Look at what your latest move changed. You can undo and try another choice.",
         "Ask for one next move from this position."
       ],
@@ -13784,7 +13784,7 @@
           "4×8"
         ]
       },
-      "hint": "Try rooms twice as tall as they are wide, and count the bounces.",
+      "hint": "Launch a few rooms and count bounces. Which ones reach the top left?",
       "insight": "With 3 up for 2 across, a w by h room acts like a 3w by 2h room at 45°; top left after five bounces comes from 5 by 3 and from every room twice as tall as wide.",
       "difficulty_step": "A steeper start and a bounce count: both the room’s shape and the direction matter.",
       "prerequisites": "Count bounces; compare rooms with a common shape.",
@@ -13810,7 +13810,7 @@
       ],
       "controls": "The ball rolls straight from the bottom-left corner, bounces off each wall like light in a mirror and stops at the first corner it reaches. Shape the room or aim the ball to send it where it should go.",
       "hints": [
-        "Try rooms twice as tall as they are wide, and count the bounces.",
+        "Launch a few rooms and count bounces. Which ones reach the top left?",
         "Look at what your latest move changed. You can undo and try another choice.",
         "Ask for one next move from this position."
       ],
@@ -13936,7 +13936,7 @@
           "5,6"
         ]
       },
-      "hint": "A bottom-right copy corner is an odd number of rooms across and an even number up.",
+      "hint": "Aim at a few crossings and Launch. Count the bounces of the ones that stop at the bottom right.",
       "insight": "Bottom right after nine bounces: copy corners across + up = 11 with across odd, such as 5 across and 6 up.",
       "difficulty_step": "The largest sheet; several crossings fold onto the right corner with the wrong count.",
       "prerequisites": "Odd and even; add across and up.",
@@ -13964,7 +13964,7 @@
       ],
       "controls": "The ball rolls straight from the bottom-left corner, bounces off each wall like light in a mirror and stops at the first corner it reaches. Shape the room or aim the ball to send it where it should go.",
       "hints": [
-        "A bottom-right copy corner is an odd number of rooms across and an even number up.",
+        "Aim at a few crossings and Launch. Count the bounces of the ones that stop at the bottom right.",
         "Look at what your latest move changed. You can undo and try another choice.",
         "Ask for one next move from this position."
       ],
@@ -13991,8 +13991,8 @@
         "width": 2,
         "height": 3,
         "sheet": [
-          4,
-          3
+          6,
+          4
         ]
       },
       "solution": {
@@ -14017,14 +14017,14 @@
       },
       "hint": "Follow the line. It crosses many walls; find where it meets two at once.",
       "insight": "The ball’s straight line through the copies stops where it first meets a corner of the copies: 3 rooms across and 2 up for the 2 by 3 room. The rooms it passed fold into the path.",
-      "difficulty_step": "The unfolding as a move: a crossing of one wall is not a corner.",
+      "difficulty_step": "The unfolding as a move: a crossing of one wall is not a corner, and the line meets two corners of the copies; the ball stops at the first.",
       "prerequisites": "Follow a straight line on a grid.",
       "source_refs": [
         "B-U",
         "B-M",
         "B-R"
       ],
-      "provenance": "Week 9 4–5 Problem 3: the 2 by 3 table on a sheet of 4 by 3 copies; the line first meets a crossing 3 across and 2 up (facilitator answer). The fold replaces cutting and folding paper.",
+      "provenance": "Week 9 4–5 Problem 3: the 2 by 3 table on a sheet of copies; the line first meets a crossing 3 across and 2 up (facilitator answer). The worksheet’s 4 by 3 sheet became 6 by 4, so the line also meets the crossing 6 across and 4 up and choosing the first is a real choice. The fold replaces cutting and folding paper.",
       "difficulty_level": "easy",
       "band": "all",
       "mechanic": "billiard",
@@ -14052,7 +14052,7 @@
         "prompt": "The ball’s straight line through the copies stops where it first meets a corner of the copies: 3 rooms across and 2 up for the 2 by 3 room. The rooms it passed fold into the path.",
         "explanation": "Unfold the room into mirror copies and the bouncing path becomes a straight line. From the bottom-left corner of a w × h room, going one square right per square up, the line first meets a copy corner q = h/g rooms across and p = w/g rooms up, where g = gcd(w, h). That corner folds onto the right wall exactly when q is odd and onto the top exactly when p is odd, and the ball has bounced p + q − 2 times. So a top-right stop takes an even number of bounces, a top-left or bottom-right stop an odd number, a single bounce means one side is twice the other, and the start corner is never reached: every copy of it is an even number of rooms across and up, and halfway there is a copy corner the ball reaches first. A steeper start (rise up for run across) only rescales: q = run·h/g′ and p = rise·w/g′ with g′ = gcd(run·h, rise·w). This is the unfolding used for billiards in rectangles and on the flat torus; the app makes no claim about irrational directions or ergodicity.",
         "extension": "Vary the target corner and bounce count, the grid a room may fill, and the starting direction; aim by tapping a copy corner in the sheet of copies; ask for every room with a given bounce count; include one impossible target per set, answered with Can’t and a tapped certificate on the corner map.",
-        "connection": "The unfolding as a move: a crossing of one wall is not a corner.",
+        "connection": "The unfolding as a move: a crossing of one wall is not a corner, and the line meets two corners of the copies; the ball stops at the first.",
         "sourceIds": [
           "expansion-billiard-3",
           "expansion-billiard-2",
@@ -14070,8 +14070,8 @@
         "width": 4,
         "height": 3,
         "sheet": [
-          4,
-          5
+          6,
+          8
         ]
       },
       "solution": {
@@ -14096,13 +14096,13 @@
       },
       "hint": "Count the squares along the line until it reaches a corner of a copy.",
       "insight": "For a 4 by 3 room the line first meets a corner 3 rooms across and 4 up: the ball stops at the bottom right after 5 bounces.",
-      "difficulty_step": "A wider room makes the first crossing farther away.",
+      "difficulty_step": "A wider room makes the first crossing farther away; the line also meets the corner 6 across and 8 up.",
       "prerequisites": "Follow a straight line; count rooms.",
       "source_refs": [
         "B-U",
         "B-F"
       ],
-      "provenance": "Week 9 4–5 Problem 4 (the 4 by 3 table: 3 across, 4 up, bottom right after 5), with the copy walls drawn; placing them is in the spec’s “Not yet done”.",
+      "provenance": "Week 9 4–5 Problem 4 (the 4 by 3 table: 3 across, 4 up, bottom right after 5), with the copy walls drawn on a sheet of 6 by 8 copies so the line meets two crossings; placing the walls is in the spec’s “Not yet done”.",
       "difficulty_level": "medium",
       "band": "all",
       "mechanic": "billiard",
@@ -14130,7 +14130,7 @@
         "prompt": "For a 4 by 3 room the line first meets a corner 3 rooms across and 4 up: the ball stops at the bottom right after 5 bounces.",
         "explanation": "Unfold the room into mirror copies and the bouncing path becomes a straight line. From the bottom-left corner of a w × h room, going one square right per square up, the line first meets a copy corner q = h/g rooms across and p = w/g rooms up, where g = gcd(w, h). That corner folds onto the right wall exactly when q is odd and onto the top exactly when p is odd, and the ball has bounced p + q − 2 times. So a top-right stop takes an even number of bounces, a top-left or bottom-right stop an odd number, a single bounce means one side is twice the other, and the start corner is never reached: every copy of it is an even number of rooms across and up, and halfway there is a copy corner the ball reaches first. A steeper start (rise up for run across) only rescales: q = run·h/g′ and p = rise·w/g′ with g′ = gcd(run·h, rise·w). This is the unfolding used for billiards in rectangles and on the flat torus; the app makes no claim about irrational directions or ergodicity.",
         "extension": "Vary the target corner and bounce count, the grid a room may fill, and the starting direction; aim by tapping a copy corner in the sheet of copies; ask for every room with a given bounce count; include one impossible target per set, answered with Can’t and a tapped certificate on the corner map.",
-        "connection": "A wider room makes the first crossing farther away.",
+        "connection": "A wider room makes the first crossing farther away; the line also meets the corner 6 across and 8 up.",
         "sourceIds": [
           "expansion-billiard-3",
           "expansion-billiard-4"
@@ -14209,7 +14209,7 @@
           "3×6"
         ]
       },
-      "hint": "Start with rooms one square high. Which one bounces once?",
+      "hint": "Launch a few small rooms and count bounces. Keep each one that bounces once.",
       "insight": "The ball bounces once exactly when one side is twice the other: six rooms up to 6 by 6.",
       "difficulty_step": "Find every: the list is judged as a whole, so its completeness is the puzzle.",
       "prerequisites": "Count one bounce; doubling.",
@@ -14237,7 +14237,7 @@
       ],
       "controls": "The ball rolls straight from the bottom-left corner, bounces off each wall like light in a mirror and stops at the first corner it reaches. Shape the room or aim the ball to send it where it should go.",
       "hints": [
-        "Start with rooms one square high. Which one bounces once?",
+        "Launch a few small rooms and count bounces. Keep each one that bounces once.",
         "Look at what your latest move changed. You can undo and try another choice.",
         "Ask for one next move from this position."
       ],
@@ -14537,7 +14537,7 @@
         "answers": [],
         "certificate": "9,1 7,3 3,7 1,9"
       },
-      "hint": "Count the bounces of rooms that stop at the bottom right. Are they ever even?",
+      "hint": "Launch rooms that stop at the bottom right and count their bounces.",
       "insight": "A bottom-right copy corner is odd across and even up, so across + up − 2 is odd: no room stops there after 8 bounces.",
       "difficulty_step": "The impossible target of the hard set, on the largest map; corners on the line that are not first on their own line may be tapped or left.",
       "prerequisites": "Odd and even; add across and up.",
@@ -14565,7 +14565,7 @@
       ],
       "controls": "The ball rolls straight from the bottom-left corner, bounces off each wall like light in a mirror and stops at the first corner it reaches. Shape the room or aim the ball to send it where it should go.",
       "hints": [
-        "Count the bounces of rooms that stop at the bottom right. Are they ever even?",
+        "Launch rooms that stop at the bottom right and count their bounces.",
         "Look at what your latest move changed. You can undo and try another choice.",
         "Ask for one next move from this position."
       ],

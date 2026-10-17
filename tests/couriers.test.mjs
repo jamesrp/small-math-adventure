@@ -145,6 +145,8 @@ for (const p of puzzles) test(`${p.id}: witness, hints from fresh and after a wr
   // The authored first hint names no answer.
   for (const answer of p.solution.answers) assert.ok(!p.hints[0].includes(answer.replace('×', ' by ')) && !p.hints[0].includes(answer), `${p.id}: first hint`);
   assert.doesNotMatch(p.hints[0], /Can.t/, `${p.id}: the first hint never says Can't`);
+  // Nor the deciding condition: parity, doubling or a room's proportions.
+  assert.doesNotMatch(p.hints[0], /\b(odd|even|twice|double|half|wider|taller|thin|three times)\b/i, `${p.id}: the first hint is a nudge toward an attempt`);
 });
 
 test('Can’t comes after a launch, and its claim on the corner map is judged when the last tap is in', () => {
@@ -156,20 +158,27 @@ test('Can’t comes after a launch, and its claim on the corner map is judged wh
   b = play(p, b, [{ type: 'tap', at: [1, 4] }, { type: 'tap', at: [2, 3] }]);
   assert.equal(b.told, null);
   assert.doesNotMatch(billiard.render(p, { board: b, hintLevel: 0 }), /hinted|cr-bounces/);
-  // A corner off the line: one short refusal, taps cleared, that corner ringed.
+  // Any wrong set gets one refusal that clears the taps and rings nothing: a
+  // corner off the line and a missing corner are refused alike, so tapping
+  // one corner and pressing That's all is not a yes/no oracle.
+  const refusal = 'Those aren’t exactly the corners where it stops after 3 bounces.';
   let c = play(p, b, [{ type: 'tap', at: [1, 1] }, { type: 'done' }]);
   assert.deepEqual(c.cert, []);
-  assert.deepEqual(c.told, { code: 'off', at: [1, 1], sel: [[1, 4], [2, 3], [1, 1]] });
-  assert.match(billiard.render(p, { board: c }), /This one isn’t 3 bounces\./);
-  // Missing a corner: "There is another."
+  assert.deepEqual(c.told, { code: 'wrong', sel: [[1, 4], [2, 3], [1, 1]] });
+  assert.ok(billiard.render(p, { board: c }).includes(refusal));
+  assert.doesNotMatch(billiard.render(p, { board: c }), /refused/);
   c = play(p, b, [{ type: 'done' }]);
-  assert.equal(c.told.code, 'another');
-  assert.match(billiard.render(p, { board: c }), /There is another\./);
+  assert.deepEqual(c.told, { code: 'wrong', sel: [[1, 4], [2, 3]] });
+  assert.ok(billiard.render(p, { board: c }).includes(refusal));
+  for (const at of [[1, 4], [1, 1], [5, 5]]) {
+    const one = play(p, fresh(p), [{ type: 'launch', room: [2, 3] }, { type: 'cant' }, { type: 'tap', at }, { type: 'done' }]);
+    assert.deepEqual(one.told, { code: 'wrong', sel: [at] }, `one corner ${at}`);
+  }
   // Undo brings the taps back with the refusal, and That's all stays off until they change.
   const restored = billiard.carry(p, c, b);
   assert.deepEqual(restored.told, c.told);
   assert.equal(billiard.move(p, restored, { type: 'done' }), null);
-  assert.match(billiard.render(p, { board: restored }), /There is another\./);
+  assert.ok(billiard.render(p, { board: restored }).includes(refusal));
   assert.match(billiard.render(p, { board: restored }), /data-move="[^"]*done[^"]*"[^>]*disabled/);
   // The full line: accepted, then the argument is drawn with every bounce count.
   const done = play(p, b, [{ type: 'tap', at: [3, 2] }, { type: 'tap', at: [4, 1] }, { type: 'done' }]);
@@ -243,6 +252,13 @@ test('find every: Keep without a verdict, That’s all judges the shelf, refusal
   const off = billiard.move(p, play(p, b, [{ type: 'keep', room: [1, 1] }]), { type: 'done' });
   assert.deepEqual(off.told, { code: 'off', at: [1, 1] });
   assert.match(billiard.render(p, { board: off }), /This one doesn’t bounce once\./);
+  // The pins are drawn over the corner handle: keeping the current room, and
+  // its Undo, visibly change the board, not only the Keep button.
+  const launched = play(p, fresh(p), [{ type: 'launch', room: [2, 1] }]);
+  const plain = html => html.replace(/aria-pressed="(true|false)"/g, '');
+  const unkept = billiard.render(p, { board: launched }), kept = billiard.render(p, { board: billiard.move(p, launched, { type: 'keep', room: [2, 1] }) });
+  assert.notEqual(plain(kept), plain(unkept));
+  assert.ok(kept.indexOf('class="cr-pins"') > kept.indexOf('class="cr-handle"'), 'pins on top of the handle');
   const all = play(p, fresh(p), [...answers.map(room => ({ type: 'keep', room })), { type: 'done' }]);
   assert.equal(billiard.solved(p, all), true);
   assert.match(billiard.render(p, { board: all }), /class="cr-twice"/);
@@ -276,14 +292,26 @@ test('the path draws on Launch, never while the room changes; drags and aims are
   billiard.reset(a);
 });
 
-test('cross: a tap on the line past the first crossing, or off it, is told apart', () => {
+test('cross: the line meets two crossings; a tap past the first, or off the line, is told apart', () => {
   const p = byId('billiard-13');
   assert.match(billiard.render(p, { board: billiard.move(p, fresh(p), { type: 'tap', at: [1, 0] }) }), /The line doesn’t go there\./);
-  // 2 by 3 rooms: the diagonal passes the crossing 3 across, 2 up first.
+  // 2 by 3 rooms on a 6 by 4 sheet: the diagonal passes the crossings 3 across,
+  // 2 up and 6 across, 4 up; the ball stops at the first.
+  assert.deepEqual(p.parameters.sheet, [6, 4]);
   assert.equal(billiard.move(p, fresh(p), { type: 'tap', at: [3, 2] }).done, true);
+  const later = billiard.move(p, fresh(p), { type: 'tap', at: [6, 4] });
+  assert.equal(later.done, false);
+  assert.match(billiard.render(p, { board: later }), /It stops before that\./);
   const tall = byId('billiard-14');
+  assert.deepEqual(tall.parameters.sheet, [6, 8]);
   assert.equal(billiard.move(tall, fresh(tall), { type: 'tap', at: [3, 4] }).done, true);
+  assert.equal(billiard.move(tall, fresh(tall), { type: 'tap', at: [6, 8] }).done, false);
   assert.equal(billiard.move(tall, fresh(tall), { type: 'tap', at: [1, 1] }).done, false);
+  // Both crossings are drawn as tappable points on the sheet.
+  for (const [q, at] of [[p, ['3,2', '6,4']], [tall, ['3,4', '6,8']]]) {
+    const html = billiard.render(q, { board: fresh(q), hintLevel: 0 });
+    for (const c of at) assert.match(html, new RegExp(`class="cr-crossing[^"]*" data-at="${c}"`));
+  }
 });
 
 test('copy: How to play opens with the mathematics; the visible objective adds only what the board lacks', () => {
@@ -319,7 +347,7 @@ test('saves: revision 1 boards migrate to a fresh reworked puzzle, keeping what 
     assert.equal(a.moves, 0);
     assert.equal(a.completed, id !== 'billiard-02');
     assert.equal(a.helpUsed, true);
-    assert.equal(a.hintLevel, 2);
+    assert.equal(a.hintLevel, 0, 'the old hint level would show the new answer at once');
   }
   assert.deepEqual(migrated.profiles[0].attempts[current.id].board.kept, [[2, 1]]);
   assert.deepEqual(validateStore(migrated, pack), migrated, 'a migrated store is a current store');
@@ -333,8 +361,8 @@ test('saves: revision 1 boards migrate to a fresh reworked puzzle, keeping what 
     corrupt(bad.profiles[0].attempts['billiard-01']);
     assert.throws(() => parseBackup(JSON.stringify(bad), pack));
   }
-  // A forged done on a current board is refused.
-  for (const board of [{ room: null, cert: null, told: null, way: false, done: true }, { room: [1, 1], cert: null, told: null, way: false, done: true }]) {
+  // A forged done, or a forged launch count, on a current board is refused.
+  for (const board of [{ room: null, cert: null, told: null, way: false, done: true, launches: 1 }, { room: [1, 1], cert: null, told: null, way: false, done: true, launches: 1 }, { room: [2, 4], cert: null, told: null, way: false, done: true, launches: 0 }, { room: [2, 4], cert: null, told: null, way: false, done: true }]) {
     const bad = store();
     bad.profiles[0].attempts['billiard-01'] = { revision: 2, board, history: [], moves: 1, hintLevel: 0, helpUsed: false, completed: true, lastPlayed: 1 };
     assert.throws(() => parseBackup(JSON.stringify(bad), pack));
@@ -357,10 +385,30 @@ test('the road’s Mirror room keeps its picks and counts launches; dragging is 
     assert.ok(isSolved(p, a.board));
     assert.equal(scoreOf(p, a), 1, 'one launch');
     assert.equal(starsFor(e, p, a), 3);
-    const twice = move(p, move(p, freshAttempt(p), q.mode === 'aim' ? { type: 'launch', aim: [1, 1] } : { type: 'launch', room: [1, 1] }), q.mode === 'aim' ? { type: 'launch', aim: answer } : { type: 'launch', room: answer });
+    const miss = q.mode === 'aim' ? { type: 'launch', aim: [1, 1] } : { type: 'launch', room: [1, 1] }, hit = q.mode === 'aim' ? { type: 'launch', aim: answer } : { type: 'launch', room: answer };
+    const twice = move(p, move(p, freshAttempt(p), miss), hit);
     assert.equal(scoreOf(p, twice), 2);
+    // Launch, read where it stopped, Undo, launch again: still two launches.
+    const tried = move(p, freshAttempt(p), miss), back = undo(tried);
+    const undone = { ...back, board: billiard.carry(p, tried.board, back.board) };
+    assert.equal(undone.moves, 0);
+    assert.equal(scoreOf(p, undone), 1, 'Undo does not take back a launch');
+    const again = move(p, undone, hit);
+    assert.ok(isSolved(p, again.board));
+    assert.equal(scoreOf(p, again), 2);
+    assert.equal(starsFor(e, p, again), 2, 'one launch more than Plume');
+    // Opening the corner map and tapping are not launches.
+    if (q.mode === 'shape') {
+      let looked = move(p, freshAttempt(p), miss);
+      for (const action of [{ type: 'cant' }, { type: 'tap', at: [1, 1] }, { type: 'tap', at: [1, 1] }, { type: 'cant' }]) looked = move(p, looked, action);
+      assert.equal(scoreOf(p, move(p, looked, hit)), 2);
+    }
     billiard.reset(p);
   }
+  // Only billiard reads a tally; another mechanic still counts its moves.
+  const swap = pack.find(p => p.mechanic === 'swap');
+  const swapped = move(swap, freshAttempt(swap), swap.solution[0]);
+  assert.equal(scoreOf(swap, swapped), swapped.moves);
   assert.equal(motionMechanics.billiard, billiard);
 });
 
@@ -384,10 +432,10 @@ test('undo through the engine carries refusals; a refused claim is not lost', ()
   const p = byId('billiard-18');
   let a = freshAttempt(p);
   for (const action of [{ type: 'launch', room: [1, 1] }, { type: 'cant' }, { type: 'tap', at: [1, 9] }, { type: 'done' }]) a = move(p, a, action);
-  assert.equal(a.board.told.code, 'another');
+  assert.equal(a.board.told.code, 'wrong');
   const back = undo(a), carried = { ...back, board: billiard.carry(p, a.board, back.board) };
   assert.deepEqual(carried.board.cert, [[1, 9]]);
-  assert.equal(carried.board.told.code, 'another');
+  assert.equal(carried.board.told.code, 'wrong');
   assert.equal(move(p, carried, { type: 'done' }), null);
   assert.ok(move(p, carried, { type: 'tap', at: [3, 7] }));
   assert.ok(roomsFor(p.parameters).length === 0);
