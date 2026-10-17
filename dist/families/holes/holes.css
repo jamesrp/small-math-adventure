@@ -1,0 +1,66 @@
+/* Holes, a group in Lantern Wires: one board of triangles, some with tiles
+   and some with a hole, wires along their sides, lit wires drawn as a glowing
+   line on an ink one, and below it Can't (and Check in a race) or the tile
+   track. The shared board palette is in boards.css; every rule here sits
+   under the group's own root. */
+@import url('../../tri-grid.css');
+
+[data-mechanic-wire="holes"]{display:grid;justify-items:center;gap:.6rem;width:100%}
+[data-mechanic-wire="holes"] .hl-svg{width:min(100%,calc(var(--hl-units,4) * 80px));max-width:380px;max-height:none;margin:.2rem auto 0;padding:0;box-sizing:border-box;background:var(--b-paper,#f5f1e6);border:1.5px dashed var(--b-line,#d0d6bd);border-radius:14px}
+[data-mechanic-wire="holes"] .hl-svg.solved{background:var(--b-good-soft,#e2ecd6);border:1.5px solid var(--b-good,#3c7a4a)}
+
+/* Triangles: an empty triangle is paper; a tile is green; a hole is cut out. */
+[data-mechanic-wire="holes"] .hl-tri{fill:var(--b-card,#fffdf5);stroke:none}
+[data-mechanic-wire="holes"] .hl-tri.filled{fill:#b9d0b0}
+[data-mechanic-wire="holes"] .hl-tri.ready{fill:#f4ead0}
+[data-mechanic-wire="holes"] .hl-hole{fill:url(#hl-hatch);stroke:none}
+[data-mechanic-wire="holes"] .hl-hatch-bg{fill:#d6d3c2}
+[data-mechanic-wire="holes"] .hl-hatch-line{stroke:#b9b49c;stroke-width:1.2px;vector-effect:non-scaling-stroke}
+
+/* Wires: every wire in is a thin ink line; a dashed line is a place for one. */
+[data-mechanic-wire="holes"] .hl-wire{stroke:var(--b-ink,#294439);stroke-width:1.6px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+[data-mechanic-wire="holes"] .hl-place{stroke:#8f9a80;stroke-width:1.6px;vector-effect:non-scaling-stroke;stroke-dasharray:4 4;stroke-linecap:round}
+[data-mechanic-wire="holes"] .hl-dot{fill:var(--b-ink,#294439);pointer-events:none}
+
+/* A lit loop glows yellow (or pink) on a dark line; a loop that went out
+   leaves a faint dashed trace. */
+[data-mechanic-wire="holes"] .hl-glow-under{stroke:#5c4410;stroke-width:8px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+[data-mechanic-wire="holes"] .hl-glow{stroke-width:5px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+[data-mechanic-wire="holes"] .hl-glow-under.thin{stroke-width:6px}
+[data-mechanic-wire="holes"] .hl-glow.thin{stroke-width:3.4px}
+[data-mechanic-wire="holes"] .hl-glow.sun{stroke:#ffd653}
+[data-mechanic-wire="holes"] .hl-glow.rose{stroke:#f08db0}
+[data-mechanic-wire="holes"] .hl-out{stroke:#9b8f6a;stroke-width:2.6px;vector-effect:non-scaling-stroke;stroke-dasharray:2 5;stroke-linecap:round}
+
+/* A right claim: the faces inside the loop shaded, the one tapped ringed. */
+[data-mechanic-wire="holes"] .hl-shade{fill:rgba(239,199,110,.35);pointer-events:none}
+[data-mechanic-wire="holes"] .hl-ring{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:4px;vector-effect:non-scaling-stroke;stroke-linejoin:round;pointer-events:none}
+/* Tiles tapped after Can't in a race, and hinted faces and wires. */
+[data-mechanic-wire="holes"] .hl-pick{fill:rgba(49,83,62,.18);stroke:var(--b-pine,#31533e);stroke-width:3px;vector-effect:non-scaling-stroke;stroke-linejoin:round;pointer-events:none}
+[data-mechanic-wire="holes"] .hl-mark{fill:rgba(239,199,110,.4);stroke:var(--b-ochre,#b38840);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-dasharray:5 4;pointer-events:none}
+[data-mechanic-wire="holes"] .hl-mark-place{stroke:var(--b-ochre,#b38840);stroke-width:6px;vector-effect:non-scaling-stroke;stroke-dasharray:5 4;stroke-linecap:round;opacity:.8;pointer-events:none}
+
+/* Controls: each triangle and hole is a button its own shape; a dashed wire
+   place is a wide invisible line over it. After Can't every face is a
+   button, so the board gets a dashed ochre edge. */
+[data-mechanic-wire="holes"] .hl-place-hit{stroke-width:18px}
+[data-mechanic-wire="holes"].pointing .hl-svg{border:2px dashed var(--b-ochre,#b38840)}
+
+/* Can't and Check. */
+[data-mechanic-wire="holes"] .hl-tools{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
+[data-mechanic-wire="holes"] .hl-tools:empty{display:none}
+[data-mechanic-wire="holes"] .hl-tool{min-width:96px;min-height:46px}
+[data-mechanic-wire="holes"] .hl-tool[aria-pressed="true"]{background:#f6e3b0;border-color:var(--b-ochre,#b38840);box-shadow:inset 0 2px 0 rgba(0,0,0,.08)}
+[data-mechanic-wire="holes"] .hl-tool.hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
+[data-mechanic-wire="holes"] .hl-note{margin:0;font-size:.95rem;color:var(--b-ink,#294439);text-align:center}
+
+/* The tile track: one outline for each tile up to the marked one. */
+[data-mechanic-wire="holes"] .hl-track{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;list-style:none;margin:0;padding:0}
+[data-mechanic-wire="holes"] .hl-slot{position:relative;width:34px;height:34px;box-sizing:border-box;border:1.5px dashed var(--b-line,#d0d6bd);border-radius:8px;background:var(--b-card,#fffdf5)}
+[data-mechanic-wire="holes"] .hl-slot.filled{border-style:solid;border-color:#8fae86}
+[data-mechanic-wire="holes"] .hl-slot.target{border:2px solid var(--b-ochre,#b38840)}
+[data-mechanic-wire="holes"] .hl-slot.out{background:#efe7cc}
+[data-mechanic-wire="holes"].solved .hl-slot.out{background:var(--b-good-soft,#e2ecd6);border-color:var(--b-good,#3c7a4a)}
+[data-mechanic-wire="holes"] .hl-glyph{position:absolute;inset:3px;width:calc(100% - 6px);height:calc(100% - 6px)}
+[data-mechanic-wire="holes"] .hl-glyph-tile{fill:#b9d0b0;stroke:none}
+[data-mechanic-wire="holes"] .hl-glyph-loop{fill:none;stroke:var(--b-ink,#294439);stroke-width:2px;stroke-linejoin:round}
