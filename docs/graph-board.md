@@ -1,6 +1,6 @@
 # The shared graph board
 
-`dist/graph-board.js` and `dist/graph-board.css` draw a map of places joined by links or one-way arrows, make each place and link a control, and pass taps, keys and finger slides back to the family as moves. They never know a family's rules. Routes and roadblocks ([flow](flow/README.md), Week 13), Cheapest networks ([mst](mst/README.md), Week 53), Road detours ([detours](detours/README.md), Week 39) and Bracing frames ([braces](braces/README.md), Week 52) use it. Scheduling as colouring (62) can build on the same board. See [the plan](plan/README.md), Wave 2.
+`dist/graph-board.js` and `dist/graph-board.css` draw a map of places joined by links or one-way arrows, make each place and link a control, and pass taps, keys and finger slides back to the family as moves. They never know a family's rules. Routes and roadblocks ([flow](flow/README.md), Week 13), Cheapest networks ([mst](mst/README.md), Week 53), Road detours ([detours](detours/README.md), Week 39), Bracing frames ([braces](braces/README.md), Week 52) and Bridge Courier's Islands group ([islands](islands/README.md), Week 10) use it. Scheduling as colouring (62) can build on the same board. See [the plan](plan/README.md), Wave 2.
 
 The module imports only `expansion-controls.js`, so a family module can import it without reaching back to `families.js`.
 
@@ -13,7 +13,7 @@ import {graphOf, graphBoard, wireGraph} from '../../graph-board.js';
 
 const g = graphOf({
   nodes: {s: [7, 50], A: [50, 14], B: [50, 86], t: [93, 50]}, // [x, y] as % of the board box
-  edges: [['s', 'A'], ['A', 't'], ['s', 'B', 3], ['B', 't', 2]], // [u, v] or [u, v, weight]
+  edges: [['s', 'A'], ['A', 't'], ['s', 'B', 3], ['B', 't', 2]], // [u, v], [u, v, weight] or [u, v, weight, bend]
   aspect: 1.7,      // width / height; default 1.4
   directed: true,   // draw every edge as an arrow from u to v
   scale: .85        // shrink dots, arrowheads and tags on a crowded map; default 1
@@ -23,9 +23,10 @@ const g = graphOf({
 - Positions are percentages of the board's width and height, as in Chip firing, so a map is easy to author by eye. The board is 100 units wide and `100 / aspect` high.
 - Edge `i` is the `i`th entry of `edges`. Families store moves and saves by edge index and node id, never by drawn position, so a map can be redrawn without breaking saves.
 - `graphOf` caches by its spec, so calling it in every render costs nothing.
-- `validGraphSpec(spec)` checks a spec's shape (positions are number pairs, edges join known nodes, no edge joins a node to itself). A family's `valid` hook still checks its own board.
+- `validGraphSpec(spec)` checks a spec's shape (positions are number pairs, edges join known nodes, no edge joins a node to itself, a bend is a number). A family's `valid` hook still checks its own board.
+- A fourth entry `bend` (board units; `null` weight for none) draws the edge as a quadratic curve whose control point sits `bend` from the straight edge's middle along its normal. The normal points to the right of the direction from `u` to `v` as seen on screen (`[A, B, null, 12]` with A left of B bulges downward), so `[u, v, null, b]` and `[v, u, null, -b]` are the same curve. Two or three edges between one pair, at bends such as `14`, `0` and `-14`, draw as separate roads; Islands draws Königsberg's double bridges this way. A bend of `0` or none is a straight edge, drawn exactly as before.
 
-The result is `{ids, index, pos, edges: [{i, u, v, w}], directed, aspect, height, k}`.
+The result is `{ids, index, pos, edges: [{i, u, v, w, bend?}], directed, aspect, height, k}`.
 
 ## Drawing
 
@@ -57,7 +58,7 @@ Helpers for the `under` and `over` layers:
 
 - `pathThrough(g, nodes, cls)` draws a polyline through node centres (a leak, a loop, a path being reduced).
 - `graphMini(g, {label, edge, cls})` draws a small picture of the map, every link thin and the links `edge(i)` gives a class (such as `on`) drawn over them, for a row of answers already found. It is a picture (`role="img"`), never a control.
-- `edgeGeometry(g, e)` gives an edge's ends (pulled back from the dots), midpoint, direction, normal and length, for families that draw their own marks.
+- `edgeGeometry(g, e)` gives an edge's ends (pulled back from the dots), midpoint, direction, normal and length, for families that draw their own marks. For a curved edge it also gives the control point `c` and `bend`; `m` is then the curve's midpoint, `d` the chord's direction (also the curve's direction at `m`, where `tag` and `bar` sit), and a point at `t` along it is `(1-t)²a + 2t(1-t)c + t²b`.
 - `NODE_R` is the dot radius before `scale`.
 
 Link hit areas are 30 pixels wide whatever the board's size, so a link is easy to tap on a phone. `slide: true` turns off touch scrolling on the whole board (`touch-action: none`), so a finger sliding from dot to dot draws instead of scrolling the page. Browsers ignore `touch-action` on shapes inside an svg, so it cannot be limited to the dots; pass `slide` only while sliding means something (flow passes it in the Routes tool, not the Roadblocks tool).
@@ -69,13 +70,15 @@ wire(root, p, api) {
   wireGraph(root, {
     node: id => /* an action or null */,
     edge: i => /* an action or null */,
-    stroke: true   // optional: a press on a dot followed by a slide across others
+    stroke: true,  // optional: a press on a dot followed by a slide across others
+    nearest: true  // optional: where link hit areas overlap, a tap goes to the nearest link
   }, api.apply);
 }
 ```
 
 - A tap, Enter or Space on a control calls `node(id)` or `edge(i)`; a non-null result goes to `api.apply` as a move.
 - With `stroke: true`, pressing a dot and sliding sends `node(id)` for the pressed dot and then for each dot entered, one move at a time, so Undo takes a slide back step by step. The click that ends a slide is ignored. Handlers are re-read on every render, so a slide keeps working while the board redraws under the finger.
+- With `nearest: true`, a pointer tap on a link checks every link hit area under the finger and goes to the one whose drawn road is nearest, rather than the one drawn last. Curved roads between one pair of places lie closer than the 30-pixel hit areas, so without it the later road would take every tap in the overlap. Keyboard Enter and Space still act on the focused link. A family that lets roads cross over others should also set `pointer-events: none` on its `.gb-line` and `.gb-stroke`, as Islands does, so a road drawn on top never swallows a tap meant for the hit area beneath.
 - The board has no modes of its own. A family with tools keeps the chosen tool in view state (`ui` and `reset` hooks, see [Adding a family](ADDING-A-FAMILY.md)) and reads it in its handlers, as flow does with Routes and Roadblocks.
 
 ## Styles
@@ -94,8 +97,8 @@ What exists now covers each theme's core move. The notes are proposals, not deci
 | 52 | Bracing frames | The hinged grid is the family's own SVG; the board draws only the row-column graph beside it, not interactive, with `cls` tinting dots and links by piece. Links and tints show after a push | Done ([braces](braces/README.md)) |
 | 62 | Scheduling as colouring | Dots coloured by `cls`, tapped to cycle a slot; links between clashing neighbours marked with `bar` or a stroke | Wave 1 is adding it as a group in Neighbor Lanterns, which has its own board; moving onto this board is optional |
 
-Known limits, each addable without breaking existing maps: two arrows between the same pair of dots in opposite directions draw on top of each other (a per-edge `bend` would curve them); there are no self-loops; there is no dragging of dots, because no family needs to move a map and the plan rules out make-a-puzzle editors until that is decided.
+Known limits, each addable without breaking existing maps: two arrows between the same pair of dots in opposite directions draw on top of each other unless the family gives them a `bend`; a curve is one quadratic, so it can bend around a dot but not loop round a square, and a long bend may cross another road (Islands moves a road's counter off such a crossing); there are no self-loops; there is no dragging of dots, because no family needs to move a map and the plan rules out make-a-puzzle editors until that is decided.
 
 ## Tests
 
-`tests/graph-board.test.mjs` checks positions, edge geometry, which controls are marked, tags, bars, strokes and arrowheads. Each family tests its own rules, and `node scripts/families-browser-smoke.mjs` opens every puzzle and solves it through hints. `node scripts/flow-browser-smoke.mjs` plays flow through real taps, keys, mouse drags and (with `TEST_PHONE=1`) touch slides; a new family on the board should copy its `tap` and `slide` helpers, which tap at a control's centre because a straight vertical or horizontal link has a zero-width box that Playwright treats as hidden.
+`tests/graph-board.test.mjs` checks positions, edge geometry (straight and curved), which controls are marked, tags, bars, strokes and arrowheads. `node scripts/islands-browser-smoke.mjs` taps curved roads at points along them and at contested points where two roads' hit areas overlap. Each family tests its own rules, and `node scripts/families-browser-smoke.mjs` opens every puzzle and solves it through hints. `node scripts/flow-browser-smoke.mjs` plays flow through real taps, keys, mouse drags and (with `TEST_PHONE=1`) touch slides; a new family on the board should copy its `tap` and `slide` helpers, which tap at a control's centre because a straight vertical or horizontal link has a zero-width box that Playwright treats as hidden.
