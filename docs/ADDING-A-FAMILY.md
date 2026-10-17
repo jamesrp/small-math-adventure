@@ -62,7 +62,7 @@ Every mechanic has these:
 | `valid(p, board)` | `true` only for a well-formed board; saves are checked with it |
 | `solved(p, board)` | Whether the board is a solve |
 | `move(p, board, action, random)` | The next board, or `null` for an illegal move |
-| `hint(p, board)` | `{type: 'move', action, text}`, `{type: 'deadend', text}`, `{type: 'done'}`, or `{type: 'note'}` to show the authored hints by level and never an answer |
+| `hint(p, board)` | `{type: 'move', action, text}`, `{type: 'deadend', text}` (shown unasked under the board; add `quiet: true` to tell it only behind Hint), `{type: 'done'}`, or `{type: 'note'}` to show the authored hints by level and never an answer |
 | `render(p, attempt, ctx)` | The board's HTML. Buttons with `data-action="expansion-move"` and a JSON `data-move` make moves; `data-action="mechanic-ui"` with `data-ui` changes view-only state |
 
 These are optional:
