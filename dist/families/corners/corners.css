@@ -1,0 +1,76 @@
+@import url('../../graph-board.css');
+/* Corners: corners of triangles (sun), squares (sky) and pentagons (rose) laid
+   flat round a point with the turn's circle dashed, the gap left over shaded
+   in pine, corners past a whole turn faded with a red edge and the overlap
+   marked in red; the folded corner drawn in shaded faces; a shelf of small
+   rings under the board. The trees group shades the closed regions of an
+   opened drawing, fades erased lines, marks cut-off dots in red and draws the
+   final tree in pine. Every rule is scoped under the family's root. */
+[data-mechanic-wire="corners"]{--cr-sun:var(--b-sun,#efc76e);--cr-sky:var(--b-sky,#9cc9de);--cr-rose:#e7a28f;--cr-ink:var(--b-ink,#294439);--cr-pine:var(--b-pine,#31533e);--cr-ochre:var(--b-ochre,#b38840);--cr-bad:var(--b-bad,#a9503a);display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
+
+/* Buttons. */
+[data-mechanic-wire="corners"] .cr-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.45rem .6rem;max-width:100%}
+[data-mechanic-wire="corners"] .cr-button{min-height:46px;padding:6px 14px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--cr-ink);border:1px solid var(--cr-pine);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+[data-mechanic-wire="corners"] .cr-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+[data-mechanic-wire="corners"] .cr-button.hinted{outline:4px dashed var(--cr-ochre);outline-offset:4px}
+[data-mechanic-wire="corners"] .cr-add{display:inline-flex;align-items:center;justify-content:center;min-width:52px;padding:6px 10px}
+[data-mechanic-wire="corners"] .cr-icon{width:28px;height:28px;stroke:var(--cr-ink);stroke-width:1.6;stroke-linejoin:round}
+[data-mechanic-wire="corners"] .cr-icon.cr-T{fill:var(--cr-sun)}
+[data-mechanic-wire="corners"] .cr-icon.cr-S{fill:var(--cr-sky)}
+[data-mechanic-wire="corners"] .cr-icon.cr-P{fill:var(--cr-rose)}
+[data-mechanic-wire="corners"] .cr-slots{display:inline-flex;gap:4px;padding-left:.2rem}
+[data-mechanic-wire="corners"] .cr-slots i{width:11px;height:11px;border-radius:50%;border:1.6px solid var(--cr-ink);box-sizing:border-box}
+[data-mechanic-wire="corners"] .cr-slots i.on{background:var(--cr-ink)}
+[data-mechanic-wire="corners"] .cr-slots i.fixed{background:var(--cr-pine);border-color:var(--cr-pine)}
+[data-mechanic-wire="corners"] .cr-told{margin:0;font-weight:600;color:var(--cr-ink);text-align:center}
+
+/* The board: corners laid flat round the point. */
+[data-mechanic-wire="corners"] .cr-board{display:block;width:min(100%,300px,44vh);min-width:220px;height:auto;aspect-ratio:1;margin:0 auto;overflow:visible;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;border-radius:12px;background:var(--b-card,#fffdf5);box-shadow:inset 0 0 0 1px var(--b-line,#d0d6bd)}
+[data-mechanic-wire="corners"] .cr-board *{vector-effect:non-scaling-stroke}
+[data-mechanic-wire="corners"] .cr-turn{fill:none;stroke:#b9c2ae;stroke-width:1.4px;stroke-dasharray:3 3}
+[data-mechanic-wire="corners"] .cr-gap{fill:rgba(49,83,62,.13);stroke:none;pointer-events:none}
+[data-mechanic-wire="corners"] .cr-point,[data-mechanic-wire="corners"] .cr-apex{fill:var(--cr-ink);pointer-events:none}
+[data-mechanic-wire="corners"] .cr-piece{stroke:var(--cr-ink);stroke-width:1.8px;stroke-linejoin:round}
+[data-mechanic-wire="corners"] .cr-piece.cr-T{fill:var(--cr-sun)}
+[data-mechanic-wire="corners"] .cr-piece.cr-S{fill:var(--cr-sky)}
+[data-mechanic-wire="corners"] .cr-piece.cr-P{fill:var(--cr-rose)}
+[data-mechanic-wire="corners"] .cr-piece.locked{stroke:var(--cr-pine);stroke-width:2.4px}
+[data-mechanic-wire="corners"] .cr-pin{fill:var(--cr-pine);stroke:var(--b-card,#fffdf5);stroke-width:1.4px;pointer-events:none}
+[data-mechanic-wire="corners"] .cr-piece.past{fill-opacity:.55;stroke:var(--cr-bad);stroke-dasharray:4 2.5}
+[data-mechanic-wire="corners"] .cr-piece[role="button"]{cursor:pointer;outline:none}
+[data-mechanic-wire="corners"] .cr-piece[role="button"]:hover{stroke-width:2.6px}
+[data-mechanic-wire="corners"] .cr-piece[role="button"]:focus-visible{stroke:var(--cr-ochre);stroke-width:3.4px;stroke-dasharray:5 3}
+[data-mechanic-wire="corners"] .cr-piece.hinted{stroke:var(--cr-ochre);stroke-width:3.6px;stroke-dasharray:6 3}
+[data-mechanic-wire="corners"] .cr-piece[data-ringed]{stroke:var(--cr-bad);stroke-width:3.6px;stroke-dasharray:none}
+[data-mechanic-wire="corners"] .cr-lap{fill:none;stroke:var(--cr-bad);stroke-width:3.4px;stroke-linecap:round;pointer-events:none}
+[data-mechanic-wire="corners"] .cr-lap-ray{stroke:var(--cr-bad);stroke-width:1.6px;pointer-events:none}
+
+/* The folded corner. */
+[data-mechanic-wire="corners"] .cr-folded-board[role="button"]{cursor:pointer;outline:none}
+[data-mechanic-wire="corners"] .cr-folded-board[role="button"]:focus-visible,[data-mechanic-wire="corners"] .cr-folded-board.hinted{box-shadow:inset 0 0 0 3px var(--cr-ochre)}
+[data-mechanic-wire="corners"] .cr-face{stroke:var(--cr-ink);stroke-width:1.5px;stroke-linejoin:round}
+[data-mechanic-wire="corners"] .cr-face.inner{stroke-opacity:.75}
+@media (prefers-reduced-motion:no-preference){[data-mechanic-wire="corners"] .cr-folded{animation:cr-fold .35s ease-out;transform-origin:center}}
+@keyframes cr-fold{from{opacity:.25;transform:scale(.88)}}
+
+/* The shelf: each kept ring a button that takes it off. */
+[data-mechanic-wire="corners"] .cr-shelf{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;max-width:min(100%,520px);margin:0;padding:0;list-style:none}
+[data-mechanic-wire="corners"] .cr-shelf-item{display:block;width:62px;height:62px;padding:3px;border-radius:10px;background:var(--b-card,#fffdf5);border:1px solid var(--b-line,#d0d6bd);box-sizing:border-box}
+[data-mechanic-wire="corners"] button.cr-shelf-item{cursor:pointer;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+[data-mechanic-wire="corners"] button.cr-shelf-item:focus-visible{outline:3px dashed var(--cr-ochre);outline-offset:2px}
+[data-mechanic-wire="corners"] .cr-shelf-item.ringed{outline:3px solid var(--cr-bad);outline-offset:2px}
+[data-mechanic-wire="corners"] .cr-shelf-item.hinted{outline:4px dashed var(--cr-ochre);outline-offset:3px}
+[data-mechanic-wire="corners"] .cr-mini{display:block;width:100%;height:100%}
+[data-mechanic-wire="corners"] .cr-mini .cr-piece{stroke-width:1.2px}
+[data-mechanic-wire="corners"] .cr-mini .cr-face{stroke-width:1px}
+[data-mechanic-wire="corners"].solved .cr-shelf-item{border-color:var(--cr-pine)}
+
+/* Trees: an opened drawing. */
+[data-mechanic-wire="corners"] .gb-board.ct-map{max-width:min(100%,340px);max-height:52vh}
+[data-mechanic-wire="corners"] .ct-region{fill:rgba(156,201,222,.42);stroke:none;pointer-events:none}
+[data-mechanic-wire="corners"] .ct-map .gb-node .gb-dot{fill:var(--cr-ink);stroke:var(--cr-ink)}
+[data-mechanic-wire="corners"] .ct-map .gb-node.cut .gb-dot{fill:#f3d5cc;stroke:var(--cr-bad);stroke-width:3px}
+[data-mechanic-wire="corners"] .ct-map .gb-line{stroke:var(--cr-ink);stroke-width:3px}
+[data-mechanic-wire="corners"] .ct-map .gb-edge.erased .gb-line{stroke:#c9d0bb;stroke-width:2px;stroke-dasharray:3 5}
+[data-mechanic-wire="corners"] .ct-map .gb-edge.hinted .gb-line{stroke:var(--cr-ochre);stroke-width:6px;stroke-dasharray:7 5}
+[data-mechanic-wire="corners"] .ct-map .gb-stroke.tree{stroke:var(--cr-pine);stroke-width:7px}
