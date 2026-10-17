@@ -6,13 +6,17 @@
 // coincides with another only when centre and matrix agree. Then: every cell
 // (or every arrangement of the starting Fs) is searched for each build;
 // shortest slides and glides, centres and the absence of every off-strip,
-// off-axis or off-grid move are checked; every claim tap is judged by the
-// validator's own reading of the certificate and compared with the app's,
-// with the share of random taps that pass; true claims that can't be shown
-// are counted (none); witnesses are played as moves; hints solve from fresh,
-// after wrong edits and copy moves, after a refused claim, after Undo and
-// after Restart; illegal moves and forged saves are refused; and the
-// playground. Run: node scripts/validate-friezes.mjs
+// off-axis or off-grid move are checked; on a border with a row empty no
+// claim can be made; every claim tap (gaps too) is judged by the validator's
+// own reading of the certificate and compared with the app's, with the share
+// of random taps that pass, and taps in page order and keyboard order fail;
+// true claims that can't be shown are counted (none on an answer); witnesses
+// are played as moves; refusals stay through edits and back, slides and
+// back, and Undo, and Restart clears them; hints solve from fresh, after
+// wrong edits and copy moves, after a refused claim, after Undo and after
+// Restart, and say Restart when every way left is refused; illegal moves and
+// forged saves are refused; and the playground.
+// Run: node scripts/validate-friezes.mjs
 import assert from 'node:assert/strict';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo, restart} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
@@ -161,6 +165,8 @@ function certOk(q, cell, goal, pick, dist) {
 
 // --- Playing ----------------------------------------------------------------
 const play = (p, a, action) => { const next = move(p, a, action); assert.ok(next && next !== a, `${p.id}: ${JSON.stringify(action)} is legal`); return next; };
+const sameBoardCell = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const bothRowsOf = cell => cell.every(row => row.some(v => v !== null));
 const refuse = (p, a, action, why) => assert.equal(move(p, a, action), null, `${p.id}: refuses ${why}`);
 function hintsSolve(p, a, label) {
   let steps = 0;
@@ -177,18 +183,49 @@ function hintsSolve(p, a, label) {
 function untilClaim(p, a, types) {
   for (let k = 0; k < 80 && !isSolved(p, a.board); k++) {
     const h = nextHint(p, a);
+    if (h.type !== 'move') return {a, h: null};
     if (types.includes(h.action.type)) return {a, h};
     a = play(p, a, h.action);
   }
   return {a, h: null};
 }
-// Every tap a claim could be made with, in the board's window.
+// Every tap a claim could be made with, in the board's window: any place
+// first (a gap too), then any other place, or one of the four forms.
 function tapSpace(q, cell, goal) {
-  const P = cell[0].length, {from, to} = M.windowOf(P), places = [], feet = [];
-  for (let c = from; c < to; c++) for (let r = 0; r < 2; r++) { places.push([c, r]); if (instanceAt(cell, c, r)) feet.push([c, r]); }
+  const P = cell[0].length, {from, to} = M.windowOf(P), places = [];
+  for (let c = from; c < to; c++) for (let r = 0; r < 2; r++) places.push([c, r]);
   if (goal.type === 'centre') return Array.from({length: 2 * (to - from) - 1}, (_, k) => 2 * from + 1 + k);
-  const second = goal.type === 'cant' && (goal.move === 'turn' || goal.move === 'mirror') ? M.FORMS : goal.type === 'shortest' ? feet : places;
-  return feet.flatMap(X => second.filter(Y => !(Array.isArray(Y) && Y[0] === X[0] && Y[1] === X[1])).map(Y => [X, Y]));
+  const second = goal.type === 'cant' && (goal.move === 'turn' || goal.move === 'mirror') ? M.FORMS : places;
+  return places.flatMap(X => second.filter(Y => !(Array.isArray(Y) && Y[0] === X[0] && Y[1] === X[1])).map(Y => [X, Y]));
+}
+// The taps a child makes by going down the page: the targets in the order
+// the rendered page has them (the order Tab goes), and the form buttons.
+function pageOrder(p, mech, board, i) {
+  mech.reset(p);
+  mech.ui(p, {claim: i});
+  const html = mech.render(p, {board, hintLevel: 0, moves: 1});
+  mech.reset(p);
+  const slots = [...html.matchAll(/data-fz-slot="(-?\d+),(\d)"/g)].map(m => [Number(m[1]), Number(m[2])]);
+  const points = [...html.matchAll(/data-fz-point="(-?\d+)"/g)].map(m => Number(m[1]));
+  return {slots, points, forms: M.FORMS};
+}
+// Two naive orders: page order (the first F, then the next target, the next
+// F for a Shortest, or the first form) and keyboard order (Enter on the first
+// target and then on the next, or on the first form).
+function orderPicks(q, cell, goal, order) {
+  const has = ([c, r]) => instanceAt(cell, c, r) !== null;
+  if (goal.type === 'centre') return {page: order.points[0], keys: order.points[0]};
+  const k = order.slots.findIndex(has), X = order.slots[k];
+  if (goal.type === 'cant' && M.isFamily(goal)) return {page: [X, order.forms[0]], keys: [order.slots[0], order.forms[0]]};
+  const next = goal.type === 'shortest' ? order.slots.slice(k + 1).find(has) : order.slots[k + 1];
+  return {page: [X, next], keys: [order.slots[0], order.slots[1]]};
+}
+// A board ready for every claim on this cell: each attempt and each match on
+// record, the copy home.
+function readyBoard(q, cell) {
+  const tried = new Set();
+  q.goals.forEach(g => { if (g.type === 'match') tried.add(M.showKey(g)); if (g.type === 'cant') tried.add(M.tryKey(g)); });
+  return {cell, copy: {...M.HOME}, tried: [...tried].sort(), shown: q.goals.flatMap((g, i) => (g.type === 'match' && M.matchable(cell, g) ? [i] : [])), done: [], refused: [], last: null};
 }
 
 // The table in docs/friezes/README.md.
@@ -210,7 +247,7 @@ async function validateFriezes() {
   const pack = await loadPack();
   const puzzles = pack.puzzles.filter(p => p.mechanic === 'friezes');
   assert.ok(outlineHasNoSymmetry(), 'the F has no symmetry: no flip or half-turn maps it onto itself');
-  const report = {puzzles: puzzles.length - 1, cellsSearched: 0, mechanicChecks: 0, tapShares: {}, hintSteps: {}};
+  const report = {puzzles: puzzles.length - 1, cellsSearched: 0, mechanicChecks: 0, tapShares: {}, orders: {}, hintSteps: {}, oneRowBoards: 0, trueWithoutCertificate: {}};
   assert.ok(puzzles.length - 1 >= 8 && puzzles.length - 1 <= 12, 'eight to twelve puzzles');
   for (const level of ['easy', 'medium', 'hard']) assert.ok(puzzles.some(p => p.difficulty_level === level), `a ${level} puzzle`);
   const ids = new Set(pack.sources.map(s => s.id));
@@ -275,7 +312,7 @@ async function validateFriezes() {
       let unshown = 0;
       const visit = cell => { report.cellsSearched++; const v = answerBy(q, cell); if (v.ok) found.push(show(cell)); if (v.unshown) unshown++; };
       if (q.edit === 'move') everyArrangement(q.cell, visit); else everyCell(P, visit);
-      assert.equal(unshown, 0, `${p.id}: every true claim can be shown`);
+      assert.equal(unshown, 0, `${p.id}: every true claim on an answer can be shown`);
       assert.equal(found.length, row.count, `${p.id}: how many borders work`);
       assert.deepEqual(M.answerCells(p).map(show).sort(), [...found].sort(), `${p.id}: the app finds the same borders`);
       assert.ok(!found.includes(show(q.cell)), `${p.id}: the start is not an answer`);
@@ -319,9 +356,42 @@ async function validateFriezes() {
       }
       assert.ok(pass > 0, `${p.id}: the claim can be shown`);
       shares.push(`${goal.type}${goal.move ? ` ${goal.move}` : ''}: ${pass}/${space.length}`);
+      // Down the page or by Tab and Enter, the taps fail (a family claim's
+      // first form is right by chance on some borders; counted below).
+      const naive = orderPicks(q, at.board.cell, goal, pageOrder(p, mech, at.board, h.action.goal));
+      for (const [how, pick] of Object.entries(naive)) {
+        assert.ok(pick !== undefined && (goal.type === 'centre' || pick.every(x => x !== undefined)), `${p.id}: a ${how}-order pick exists`);
+        const next = move(p, at, {type: goal.type, goal: h.action.goal, pick});
+        const right = !!next && next.board.done.some(d => d.goal === h.action.goal);
+        assert.equal(right, certOk(q, at.board.cell, goal, pick, dist), `${p.id}: ${how} order judged as the plane does`);
+        if (!M.isFamily(goal)) assert.equal(right, false, `${p.id}: the ${goal.type} claim in ${how} order fails`);
+      }
       b = play(p, at, h.action);
     }
     report.tapShares[p.id] = shares;
+    // Over every answer (a build) or the border (fixed): how often page order
+    // and keyboard order would pass each claim.
+    const orders = [];
+    const cellsFor = pool ? pool.map(t => t.split('/').map(r => [...r].map(ch => (ch === '·' ? null : 'AVHR'.indexOf(ch))))) : [q.cell];
+    q.goals.forEach((goal, i) => {
+      if (goal.type === 'match') return;
+      let page = 0, keys = 0, n = 0;
+      for (const cell of cellsFor) {
+        let board = readyBoard(q, cell);
+        if (goal.type === 'shortest') { const d = M.shortestOf(cell, goal.move); board = {...board, copy: {s: 1, f: goal.move === 'slide' ? 1 : -1, u: d}, tried: [...new Set([...board.tried, goal.move, `${goal.move}:${d}`])].sort()}; }
+        assert.ok(validBoard(p, board) && M.canClaim(q, board, i), `${p.id}: a board ready for claim ${i} on ${show(cell)}`);
+        const naive = orderPicks(q, cell, goal, pageOrder(p, mech, board, i)), dist = goal.type === 'shortest' ? Math.abs(board.copy.u) : undefined;
+        assert.ok([naive.page, naive.keys].every(pick => pick !== undefined && (goal.type === 'centre' || pick.every(x => x !== undefined))), `${p.id}: order picks exist on ${show(cell)}`);
+        const judged = pick => { const next = mech.move(p, board, {type: goal.type, goal: i, pick}); assert.equal(!!next && next.done.some(d => d.goal === i), certOk(q, cell, goal, pick, dist), `${p.id}: ${JSON.stringify(pick)} judged as the plane does`); return certOk(q, cell, goal, pick, dist); };
+        if (judged(naive.page)) page++;
+        if (judged(naive.keys)) keys++;
+        n++;
+      }
+      if (!M.isFamily(goal)) assert.ok(page === 0 && keys === 0, `${p.id}: claim ${i} never passes in page or keyboard order`);
+      else assert.ok(page <= n / 4 && keys <= n / 4, `${p.id}: the family claim's first form passes no more than by chance`);
+      orders.push(`${goal.type}${goal.move ? ` ${goal.move}` : ''}: page ${page}/${n}, keys ${keys}/${n}`);
+    });
+    report.orders[p.id] = orders;
     for (const s of shares) { const [n, d] = s.split(': ')[1].split('/').map(Number); assert.ok(n / d <= (/^(centre|cant turn|cant mirror|shortest)/.test(s) ? 0.25 : 0.2), `${p.id}: few random taps pass (${s})`); }
 
     // Hints after wrong moves: a stray edit or a stray slide first.
@@ -331,26 +401,82 @@ async function validateFriezes() {
     w = play(p, w, {type: 'slide', by: 1});
     if (q.tools.includes('flip')) w = play(p, w, {type: 'flip'});
     hintsSolve(p, w, 'after wrong moves');
-    // A refused claim, Undo and Restart: the refusal stays, and hints still solve.
+    // A refused claim: it stays through an edit and back, a slide and back,
+    // and Undo (each puts the same board back, and the claim stays off);
+    // Restart clears it; hints solve after each.
     const {a: before, h} = untilClaim(p, fresh, ['cant', 'shortest', 'centre']);
     if (h) {
-      const goal = q.goals[h.action.goal], dist = goal.type === 'shortest' ? Math.abs(before.board.copy.u) : undefined;
+      const i = h.action.goal, goal = q.goals[i], dist = goal.type === 'shortest' ? Math.abs(before.board.copy.u) : undefined;
       const wrong = tapSpace(q, before.board.cell, goal).find(pick => !certOk(q, before.board.cell, goal, pick, dist));
-      const refused = play(p, before, {type: goal.type, goal: h.action.goal, pick: wrong});
-      assert.ok(refused.board.refused.some(r => r.goal === h.action.goal) && refused.board.last?.ok === false, `${p.id}: the wrong claim is refused`);
+      const refused = play(p, before, {type: goal.type, goal: i, pick: wrong});
+      assert.ok(refused.board.refused.some(r => r.goal === i) && refused.board.last?.ok === false, `${p.id}: the wrong claim is refused`);
       hintsSolve(p, refused, 'after a refused claim');
       let back = undo(refused);
       back = {...back, board: mech.carry(p, refused.board, back.board)};
       assert.ok(validBoard(p, back.board), `${p.id}: Undo keeps a valid board`);
-      assert.ok(back.board.refused.some(r => r.goal === h.action.goal), `${p.id}: Undo keeps the refusal`);
+      assert.ok(back.board.refused.some(r => r.goal === i), `${p.id}: Undo keeps the refusal`);
       assert.notDeepEqual(back.board, refused.board, `${p.id}: Undo changes the board`);
       refuse(p, back, h.action, 'a claim the refusal still holds after Undo');
       hintsSolve(p, back, 'after Undo');
+      // Away and back: an edit undone by hand, or the copy slid away and back.
+      let round = refused;
+      if (q.edit === 'free') { const gap = [...Array(2 * P).keys()].map(s => [s >> 1, s & 1]).find(([c, r]) => round.board.cell[r][c] === null); round = play(p, play(p, round, {type: 'put', c: gap[0], r: gap[1], form: 0}), {type: 'clear', c: gap[0], r: gap[1]}); }
+      if (q.edit === 'move') { const [f0] = M.footprints(round.board.cell), gap = [...Array(2 * P).keys()].map(s => [s >> 1, s & 1]).find(([c, r]) => round.board.cell[r][c] === null); round = play(p, play(p, round, {type: 'shift', from: [f0.c, f0.r], to: gap}), {type: 'shift', from: gap, to: [f0.c, f0.r]}); }
+      if (q.edit === 'none') round = play(p, play(p, round, {type: 'slide', by: round.board.copy.u > 0 ? -1 : 1}), {type: 'slide', by: round.board.copy.u > 0 ? 1 : -1});
+      assert.ok(sameBoardCell(round.board.cell, refused.board.cell) && M.sameCopy(round.board.copy, refused.board.copy), `${p.id}: back to the same board`);
+      assert.equal(M.canClaim(q, round.board, i), false, `${p.id}: the claim stays off on the same board`);
+      if (q.edit !== 'none') {
+        // The edit started the attempts again: the copy where it is doesn't count.
+        assert.ok(round.board.tried.every(k => M.keysOf(round.board.copy).includes(k)) && (M.fits(round.board.cell, round.board.copy) || round.board.tried.length === 0), `${p.id}: after an edit only a match of the copy where it is counts`);
+      }
+      hintsSolve(p, round, 'after going away and back');
       let again = restart(p, refused);
       again = {...again, board: mech.carryOnRestart(p, refused.board, again.board)};
       assert.ok(validBoard(p, again.board), `${p.id}: Restart keeps a valid board`);
-      if (JSON.stringify(again.board.cell) === JSON.stringify(refused.board.cell) && goal.type !== 'shortest') assert.ok(again.board.refused.some(r => r.goal === h.action.goal), `${p.id}: Restart keeps a refusal on the same border`);
+      assert.deepEqual(again.board.refused, [], `${p.id}: Restart clears refusals`);
       hintsSolve(p, again, 'after Restart');
+      // A Shortest refused at both places it can be claimed: the hint says
+      // Restart, and after Restart the hints solve.
+      if (goal.type === 'shortest') {
+        let two = refused;
+        for (let k = 0; k < 4 && nextHint(p, two).type === 'move' && nextHint(p, two).action.type !== 'shortest'; k++) two = play(p, two, nextHint(p, two).action);
+        const at2 = two.board, d2 = Math.abs(at2.copy.u), wrong2 = tapSpace(q, at2.cell, goal).find(pick => !certOk(q, at2.cell, goal, pick, d2));
+        two = play(p, two, {type: 'shortest', goal: i, pick: wrong2});
+        assert.equal(nextHint(p, two).type, 'stuck', `${p.id}: refused both ways, the hint says Restart`);
+        assert.match(nextHint(p, two).text, /Restart/);
+        const fresh2 = {...restart(p, two), board: mech.carryOnRestart(p, two.board, freshAttempt(p).board)};
+        hintsSolve(p, fresh2, 'after Restart from stuck');
+        report.stuck = [...(report.stuck || []), p.id];
+      }
+    }
+
+    // A border with a row empty: every claim is off and nothing is solved,
+    // even with every attempt made (the judgement would be about the copy's
+    // moves, not every symmetry; see oneRowWithMore).
+    if (q.edit !== 'none') {
+      const oneRow = [];
+      if (q.edit === 'move') everyArrangement(q.cell, c => { if (!bothRowsOf(c)) oneRow.push(c); });
+      else everyCell(P, c => { if (!bothRowsOf(c) && placed(c).length) oneRow.push(c); });
+      for (const cell of oneRow) {
+        const board = readyBoard(q, cell);
+        assert.ok(validBoard(p, board), `${p.id}: ${show(cell)} with every attempt made is a board`);
+        assert.equal(isSolved(p, board), false, `${p.id}: ${show(cell)} is not solved`);
+        q.goals.forEach((goal, i) => {
+          if (goal.type === 'match') return;
+          assert.equal(M.canClaim(q, board, i), false, `${p.id}: no claim on ${show(cell)}`);
+          for (const pick of tapSpace(q, cell, goal).slice(0, 40)) assert.equal(mech.move(p, board, {type: goal.type, goal: i, pick}), null, `${p.id}: no claim judged on ${show(cell)}`);
+        });
+        report.oneRowBoards++;
+      }
+      // Two-row borders where a family claim is true but no one F shows it:
+      // its refusal must not say the claim is false (one text for every
+      // wrong pick). None is an answer.
+      q.goals.forEach(goal => {
+        if (!M.isFamily(goal) || q.edit !== 'free') return;
+        let n = 0;
+        everyCell(P, c => { if (bothRowsOf(c) && M.claimTrue(c, goal) && !familyShown(c, goal.move)) n++; });
+        report.trueWithoutCertificate[`${p.id} no ${goal.move}`] = n;
+      });
     }
 
     checkIllegal(p, fresh, a);
@@ -406,15 +532,33 @@ function checkForged(p, fresh, solvedAttempt) {
   reject({...b, cell: b.cell.map(row => row.map(() => 7))}, 'an unknown form');
   if (q.edit === 'none') reject({...b, cell: b.cell.map((row, r) => row.map((v, c) => (r === 0 && c === 0 ? (v === null ? 0 : null) : v)))}, 'a changed border');
   if (q.edit === 'move') reject({...b, cell: b.cell.map((row, r) => row.map((v, c) => (r === 0 && c === 0 ? (v === null ? 2 : null) : v)))}, 'an F more or less');
-  reject({...b, copy: {s: 1, f: 1, u: 1}}, 'a copy slid but not tried');
+  if (q.edit === 'none') reject({...b, copy: {s: 1, f: 1, u: 1}}, 'a copy slid but not tried');
   reject({...b, tried: ['teleport']}, 'an unknown attempt');
   reject({...b, tried: ['flip', 'flip']}, 'an attempt twice');
   q.goals.forEach((goal, i) => {
-    if (goal.type === 'match') { if (!M.matchable(b.cell, goal)) reject({...b, shown: [i]}, `goal ${i} shown on a border where it can’t be`); return; }
+    if (goal.type === 'match') { if (!M.matchable(b.cell, goal)) reject({...b, shown: [i], tried: [M.showKey(goal)]}, `goal ${i} shown on a border where it can’t be`); return; }
     const pick = goal.type === 'centre' ? P : [[0, 0], M.isFamily(goal) ? 3 : [0, 1]];
     reject({...b, done: [{goal: i, pick}]}, `a forged done for goal ${i}`);
-    reject({...b, refused: [{goal: i, pick, why: 'nearer'}, {goal: i, pick, why: 'nearer'}], last: {goal: i, ok: false}}, `a forged refusal for goal ${i}`);
+    const r = {goal: i, pick, why: 'nearer', cell: b.cell, ...(goal.type === 'shortest' ? {copy: b.copy} : {})};
+    reject({...b, refused: [r, r], last: {goal: i, ok: false}}, `a forged refusal for goal ${i}`);
   });
+  // A solved board with the attempts behind it taken away: none at all, a
+  // shown move's own, or a Shortest's slide or glide by its length.
+  reject({...s, tried: []}, 'a solve with nothing tried');
+  q.goals.forEach((goal, i) => {
+    if (goal.type === 'match') reject({...s, tried: s.tried.filter(k => k !== M.showKey(goal))}, `goal ${i} shown without its attempt`);
+    if (goal.type === 'shortest') { const key = `${goal.move}:${M.shortestOf(s.cell, goal.move)}`; reject({...s, tried: s.tried.filter(k => k !== key)}, `a Shortest done without the copy going that far (goal ${i})`); }
+  });
+  if (M.fits(s.cell, s.copy)) reject({...s, tried: s.tried.filter(k => !M.keysOf(s.copy).includes(k))}, 'a matching copy whose own attempt is not on record');
+  // Refusals: each about a board the puzzle can have, judged again on it.
+  const claimIndex = q.goals.findIndex(g => g.type !== 'match');
+  if (claimIndex >= 0) {
+    const goal = q.goals[claimIndex], one = [Array(P).fill(0), Array(P).fill(null)];
+    const pick = goal.type === 'centre' ? P : [[0, 0], M.isFamily(goal) ? 3 : [0, 1]];
+    if (q.edit === 'free') reject({...b, refused: [{goal: claimIndex, pick, why: 'gap', cell: one}]}, 'a refusal on a border with a row empty');
+    reject({...b, refused: [{goal: claimIndex, pick, why: 'there', cell: [[7], [7]]}]}, 'a refusal on a cell that can’t be');
+    if (goal.type === 'shortest') reject({...b, refused: [{goal: claimIndex, pick: [[0, 0], [1, 0]], why: 'class', cell: b.cell}]}, 'a Shortest refusal without its copy');
+  }
   // The solved board with one claim's pick or attempt taken away.
   for (const d of s.done) {
     const goal = q.goals[d.goal];
@@ -425,6 +569,15 @@ function checkForged(p, fresh, solvedAttempt) {
   reject({...s, last: {goal: 0, ok: false}}, 'a last claim refused that wasn’t');
   if (s.done.length) reject({...s, done: [...s.done, ...s.done]}, 'a claim done twice');
   if (q.goals.some(g => g.type === 'match')) assert.equal(isSolved(p, {...s, shown: []}), false, `${p.id}: no solve with nothing shown`);
+  // The review's forged saves (October 17).
+  const forged = {
+    'friezes-02': [{...b, done: [{goal: 0, pick: [[0, 0], [2, 0]]}], last: null}],
+    'friezes-07': [{...b, done: [{goal: 0, pick: [[0, 0], [4, 0]]}, {goal: 1, pick: [[0, 0], [2, 1]]}], last: null}],
+    'friezes-11': [{...b, done: [{goal: 0, pick: [[4, 0], [-2, 0]]}, {goal: 1, pick: [[4, 0], [7, 1]]}], last: null}],
+    'friezes-03': [{...b, cell: [[0, null], [null, 2]], copy: {s: 1, f: -1, u: 0}, tried: ['flip'], shown: [0], done: [{goal: 1, pick: [[0, 0], [0, 1]]}], refused: [], last: null}],
+    'friezes-10': [{...b, cell: [[null, 1, 0, null], [null, 3, 2, null]], copy: {s: 1, f: 1, u: 0}, tried: [], shown: [0, 1], done: [{goal: 2, pick: 4}], refused: [], last: null}]
+  }[p.id] || [];
+  for (const board of forged) { reject(board, 'the review’s forged save'); assert.equal(isSolved(p, board), false, `${p.id}: the review’s forged save is not solved`); }
   // A solved board made of forged claims on a border that isn't an answer.
   if (q.edit !== 'none') {
     const shown = q.goals.flatMap((g, i) => (g.type === 'match' ? [i] : []));

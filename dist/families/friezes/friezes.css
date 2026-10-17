@@ -44,6 +44,7 @@
 [data-mechanic-wire="friezes"] .fz-point{stroke:var(--b-card,#fffdf5);stroke-width:1.5px}
 [data-mechanic-wire="friezes"] .fz-point.good{fill:var(--b-pine,#31533e)}
 [data-mechanic-wire="friezes"] .fz-point.bad{fill:var(--b-bad,#a9503a)}
+[data-mechanic-wire="friezes"] .fz-cand{fill:var(--b-ink,#294439);opacity:.55}
 [data-mechanic-wire="friezes"] .fz-fade{pointer-events:none}
 [data-mechanic-wire="friezes"] .fz-hit{fill:transparent;cursor:pointer}
 [data-mechanic-wire="friezes"] .fz-hit:focus{outline:none}
@@ -79,9 +80,17 @@
 
 /* Words that answer a claim, or say what to tap for one. */
 [data-mechanic-wire="friezes"] .fz-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+[data-mechanic-wire="friezes"] .fz-told.fz-quiet{font-size:.95rem;opacity:.8}
+/* A phone: the copy's buttons and the forms share one row, so the busiest
+   board (puzzle 10) keeps Undo, Restart and Hint on a 375 × 667 screen. */
 @media (max-width:420px){
-  [data-mechanic-wire="friezes"] .fz-move-icon{width:46px;height:32px}
-  [data-mechanic-wire="friezes"] .fz-goal{padding:2px 6px}
-  [data-mechanic-wire="friezes"] .fz-tools{gap:.4rem .5rem}
+  [data-mechanic-wire="friezes"]{gap:.45rem}
+  [data-mechanic-wire="friezes"] .fz-move-icon{width:42px;height:30px}
+  [data-mechanic-wire="friezes"] .fz-goal{padding:2px 6px;min-height:44px}
+  [data-mechanic-wire="friezes"] .fz-tools{gap:.3rem .45rem}
+  [data-mechanic-wire="friezes"] :is(.fz-copy-tools,.fz-forms){gap:.3rem;flex-wrap:nowrap}
   [data-mechanic-wire="friezes"] .fz-button{min-width:44px;min-height:44px}
+  [data-mechanic-wire="friezes"] .fz-tool{padding:2px 2px}
+  [data-mechanic-wire="friezes"] .fz-form{padding:2px 3px}
+  [data-mechanic-wire="friezes"] .fz-icon{width:30px;height:27px}
 }

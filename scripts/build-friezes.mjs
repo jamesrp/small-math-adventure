@@ -18,8 +18,11 @@ export const show = cell => cell.map(row => row.map(v => (v === null ? '·' : 'A
 const parse = text => text.split('/').map(row => [...row].map(ch => (ch === '·' ? null : 'AVHR'.indexOf(ch))));
 
 const MATH = 'A border repeats its framed cell forever both ways. The blue copy matches when every F in it lands on an F facing exactly the same way.';
+// The moves, named with the buttons: a glide is defined where a puzzle asks
+// for one.
+const GLIDE = 'A glide is the flip over the middle line and then a slide.';
 const SLIDE = 'Drag the copy to slide it, or use the arrow keys.';
-const TOOL_WORDS = {flip: 'flip it over the middle line', mirror: 'flip it end to end', turn: 'turn it halfway round'};
+const TOOL_WORDS = {flip: 'flip it over the middle line', mirror: 'flip it across', turn: 'turn it halfway round'};
 const toolsSentence = tools => (tools.length === 1 ? `The button below will ${TOOL_WORDS[tools[0]]} where it is.` : `The buttons below ${tools.slice(0, -1).map(t => TOOL_WORDS[t]).join(', ')} or ${TOOL_WORDS[tools.at(-1)]}, where it is.`).replace('will flip it', 'flips it');
 const EDIT = {
   free: 'Choose an F below, then tap a place to put it there; tap it again to take it away.',
@@ -27,18 +30,19 @@ const EDIT = {
 };
 const CLAIM = {
   cant: 'A crossed-out move must not match. Once the copy has tried it, press its Can’t, then tap an F and the place that move puts it, which has no F like it.',
-  family: 'A crossed-out half-turn or flip across must fail everywhere. Once the copy has tried it, press its Can’t, tap an F, then the F it would become, which the row it lands in lacks.',
+  family: 'A crossed-out half-turn or flip across must fail everywhere. Once the copy has tried it, press its Can’t, tap an F, then the F it would become.',
   shortest: 'Once the copy matches, press Shortest, then tap an F and the nearest F it could land on, as far as the copy went.',
   centre: 'Then press Turn here and tap the point a half-turn goes round.'
 };
 const RULES = [
   'The border repeats its cell forever both ways. Only the Fs count, not the strip’s ends or the lines.',
+  'A border has Fs in both rows: while a row is empty, no claim can be made and nothing is solved.',
   'A match needs every F of the copy on an F facing the same way.',
   'A slide must move the copy. A glide is the flip over the middle line followed by a slide along it.',
   'The copy stays on the strip: a half-turn goes round a point of the middle line, and a flip across goes over a line straight across the strip.'
 ];
 function controlsOf(q) {
-  const parts = [MATH, SLIDE];
+  const parts = [MATH, ...(q.goals.some(g => g.move === 'glide') ? [GLIDE] : []), SLIDE];
   if (q.tools.length) parts.push(toolsSentence(q.tools));
   if (q.edit !== 'none') parts.push(EDIT[q.edit]);
   if (q.goals.some(g => g.type === 'cant' && !F.isFamily(g))) parts.push(CLAIM.cant);
@@ -98,12 +102,12 @@ const PUZZLES = [
   {number: 6, level: 'medium', title: 'Flip, no turn',
     q: {cell: E(2), edit: 'free', tools: ['flip', 'turn'], goals: [{type: 'match', move: 'flip'}, {type: 'cant', move: 'turn'}], witnesses: [parse('A·/H·')]},
     check: {count: 20},
-    objective: 'Make a border that matches after the flip but never after a half-turn, round any point, then press Can’t and show an F a half-turn can’t place.', visible: 'Make a border that matches after the flip but never after a half-turn.',
-    idea: 'One F whose half-turned form the other row never has rules out a half-turn round every point at once.',
+    objective: 'Make a border that matches after the flip but never after a half-turn, round any point of the middle line, then press Can’t and show an F a half-turn can’t place.', visible: 'Make a border that matches after the flip but never after a half-turn.',
+    idea: 'One F whose half-turned form the other row never has rules out a half-turn round every point of the middle line at once.',
     prereq: `${SEE} No reading: a grown-up can read the goal.`,
     hints: ['Make a border that matches after the flip first, then try turning the copy at a few places.', 'Turned halfway, an as-drawn F becomes a half-turned F in the other row. Can you keep every half-turned F out of that row?', 'One answer: an as-drawn F in the top row, place 1, and a flipped-down F below it. Turn the copy, then press Can’t, tap the as-drawn F, then the half-turned F.'],
-    parent: {notice: 'Whether your child tests the turn round one or two points and stops, or looks for a reason that covers every point.', prompt: 'Wherever the turn goes round, which F would this one have to land on?', explanation: 'A half-turn round any point of the middle line carries an F to the other row, half-turned. So if the other row never holds the half-turned form of some F, no half-turn round any point can match: that F has nowhere to land. The guide’s Border H, an as-drawn F above a flipped-down one, has the flip and no half-turn: a turned as-drawn F needs a half-turned F in the bottom row, and there is none. One F and the form it turns into are the certificate. With a 2-place cell, 20 borders work, and every one has such an F.', extension: 'Can a border have the flip and the flip across, but no half-turn? (No: the two flips make a half-turn; see puzzle 10.)', connection: 'Week 35 grades 2–3 Problem 4, and the guide’s note that failure round one chosen centre does not rule out every half-turn.'},
-    provenance: 'Week 35 grades 2–3 Problem 4 and K–1 Problem 6 (no half-turn round any point); the guide’s Border H is one answer.'},
+    parent: {notice: 'Whether your child tests the turn round one or two points and stops, or looks for a reason that covers every point of the middle line.', prompt: 'Wherever on the middle line the turn goes round, which F would this one have to land on?', explanation: 'A half-turn round any point of the middle line carries an F to the other row, half-turned. So if the other row never holds the half-turned form of some F, no half-turn round any point of the middle line can match: that F has nowhere to land. The guide’s Border H, an as-drawn F above a flipped-down one, has the flip and no half-turn: a turned as-drawn F needs a half-turned F in the bottom row, and there is none. One F and the form it turns into are the certificate. With a 2-place cell, 20 borders work, and every one has such an F.', extension: 'Can a border have the flip and the flip across, but no half-turn? (No: the two flips make a half-turn; see puzzle 10.)', connection: 'Week 35 grades 2–3 Problem 4, and the guide’s note that failure round one chosen centre does not rule out every half-turn.'},
+    provenance: 'Week 35 grades 2–3 Problem 4 and K–1 Problem 6 (no half-turn round any point; here, any point of the middle line, with Fs in both rows); the guide’s Border H is one answer.'},
   {number: 7, level: 'medium', title: 'Slide and glide',
     q: {cell: parse('AV··/··HR'), edit: 'none', tools: ['flip'], goals: [{type: 'shortest', move: 'slide'}, {type: 'shortest', move: 'glide'}]},
     check: {shortest: {slide: 4, glide: 2}},
@@ -135,10 +139,10 @@ const PUZZLES = [
     q: {cell: E(4), edit: 'free', crossing: true, tools: ['flip', 'mirror'], goals: [{type: 'match', move: 'flip'}, {type: 'match', move: 'mirror', line: true}, {type: 'centre'}], witnesses: [parse('·VA·/·RH·')]},
     check: {count: 24, centre: 4},
     objective: 'Make a border that matches after the flip over the middle line and after the flip across the crossing line, then tap the point a half-turn goes round.', visible: 'Make both flips match, then show where a half-turn goes round.',
-    idea: 'Two flips over crossing lines at right angles make the half-turn round their crossing, so it matches without being tried.',
-    prereq: `${SEE} Picture a turn without trying it. A grown-up can read the goal.`,
+    idea: 'Two flips over lines crossing at right angles make the half-turn round the crossing: one flip and then the other turns the copy halfway, so a border with both flips has that half-turn.',
+    prereq: `${SEE} Picture two flips one after the other. A grown-up can read the goal.`,
     hints: ['Make a border that matches after the flip over the middle line first.', 'Flipped across the crossing line, each F lands in its row, flipped across, as far on the other side. Build the Fs in fours.', 'One answer: in the top row a flipped-across F in place 2 and an as-drawn F in place 3, and below them a half-turned F and a flipped-down F. Then tap where the two lines cross.'],
-    parent: {notice: 'Whether your child taps the crossing straight away, or first looks for a point where a turned copy might fit.', prompt: 'Flip this F over the middle line, then across the crossing line. Where does it end up, and which way is it facing?', explanation: 'The flip over the middle line takes (x, y) to (x, −y), and the flip across the crossing line takes (x, y) to (−x, y), measuring from the crossing. One after the other they take (x, y) to (−x, −y): the half-turn round the crossing. So any border with both flips matches after that half-turn, untried. Every answer has its Fs in fours like the guide’s Border E: an F, its flipped-across twin opposite the crossing line, and both flipped down below. Other centres work too, one every half of the shortest slide along the middle line, because a half-turn followed by a slide is another half-turn.', extension: 'Which other points does a half-turn go round? (Here, every 2 places along from the crossing; every place for a border that repeats every 2.)', connection: 'Reflections in two perpendicular lines compose to the half-turn about their crossing; Gallian’s pattern VII has both reflections and hence the half-turns.'},
+    parent: {notice: 'Whether your child taps the crossing straight away, presses both flips to see the copy turned, or looks among the dots for another point a turned copy fits.', prompt: 'Flip this F over the middle line, then across the crossing line. Where does it end up, and which way is it facing?', explanation: 'The flip over the middle line takes (x, y) to (x, −y), and the flip across the crossing line takes (x, y) to (−x, y), measuring from the crossing. One after the other they take (x, y) to (−x, −y): the half-turn round the crossing. So any border with both flips matches after that half-turn; pressing one flip and then the other turns the copy halfway and shows it. Every answer has its Fs in fours like the guide’s Border E: an F, its flipped-across twin opposite the crossing line, and both flipped down below. Other centres work too, one every half of the shortest slide along the middle line, because a half-turn followed by a slide is another half-turn.', extension: 'Which other points does a half-turn go round? (Here, every 2 places along from the crossing; every place for a border that repeats every 2.)', connection: 'Reflections in two perpendicular lines compose to the half-turn about their crossing; Gallian’s pattern VII has both reflections and hence the half-turns.'},
     provenance: 'Week 35 grades 4–5 Problem 4 (flips over two crossing lines, and the motions they force), with its printed crossing line; the guide’s Border E is the model.'},
   {number: 11, level: 'hard', title: 'A longer border',
     q: {cell: parse('A·A·V·/·R·H·H'), edit: 'none', tools: ['flip'], goals: [{type: 'shortest', move: 'slide'}, {type: 'shortest', move: 'glide'}]},
@@ -214,7 +218,7 @@ const playground = {
   parameters: {mode: 'playground', start: 3},
   objective: 'Make a border, and try every move of the copy on it.', visibleObjective: '',
   instruction: 'Make a border, and try every move of the copy on it.',
-  controls: `${MATH} ${SLIDE} ${toolsSentence(['flip', 'mirror', 'turn'])} ${EDIT.free} The numbers set how many places the cell has.`,
+  controls: `${MATH} ${GLIDE} ${SLIDE} ${toolsSentence(['flip', 'mirror', 'turn'])} ${EDIT.free} The numbers set how many places the cell has.`,
   rules: RULES,
   idea: 'Free play: build a border in a cell of 2 to 6 places and test slides, the flip, glides, flips across and half-turns.',
   prerequisites: 'None. A grown-up can suggest what to try.',
@@ -226,7 +230,7 @@ const playground = {
 const json = {
   title: 'Footprint borders',
   version: 1,
-  families: [{id: 'friezes', title: 'Footprint borders', mathematics: 'A border is one cell of footprints repeated forever along a strip, each footprint a notched F in one of four forms: as drawn, flipped across, flipped down and half-turned. A move of the copy that keeps the strip on itself is a slide, the flip over the middle line, a glide (the flip and a slide), a flip across a line straight across the strip, or a half-turn round a point of the middle line, and it matches when every F lands on an F of the form the move makes it. Since the F has no symmetry, where one F lands decides a move, so one F that lands on a gap or a different F rules a move out, and one F whose turned or flipped-across form a row never has rules out every half-turn or every flip across at once. A glide done twice is a slide, so when the flip alone fails the shortest glide is half the shortest slide; two flips over perpendicular lines make the half-turn round their crossing. These are the moves of frieze groups, which come in seven kinds.', rules: RULES, sourceIds: sources}],
+  families: [{id: 'friezes', title: 'Footprint borders', mathematics: 'A border is one cell of footprints repeated forever along a strip, each footprint a notched F in one of four forms: as drawn, flipped across, flipped down and half-turned. A move of the copy that keeps the strip on itself is a slide, the flip over the middle line, a glide (the flip and a slide), a flip across a line straight across the strip, or a half-turn round a point of the middle line, and it matches when every F lands on an F of the form the move makes it. Since the F has no symmetry, where one F lands decides a move, so one F that lands on a gap or a different F rules a move out, and one F whose turned or flipped-across form a row never has rules out every half-turn or every flip across at once. A border has Fs in both rows, so every symmetry keeps the middle line and these moves are all of them. A glide done twice is a slide, so when the flip alone fails the shortest glide is half the shortest slide; two flips over perpendicular lines make the half-turn round their crossing. These are the moves of frieze groups, which come in seven kinds.', rules: RULES, sourceIds: sources}],
   sources: [
     {id: 'friezes-week35', title: 'Bellingham Math Circle — Week 35: Footprint borders (K–1, grades 2–3 and grades 4–5 packets and adult guide)', url: 'https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-35', kind: 'local curriculum'},
     {id: 'friezes-card35', title: 'Week 35 review card (revise; App fit: one cell tiled endlessly, a translucent copy, certificates for no half-turn, no flip and shortest)', url: 'https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-35.md', kind: 'local curriculum'},

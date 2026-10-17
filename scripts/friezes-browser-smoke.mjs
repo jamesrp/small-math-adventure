@@ -2,10 +2,13 @@
 // live preview, one move on release), arrow keys, Undo; putting and taking
 // away Fs, including taps on a repeat and taps just either side of the middle
 // line; the copy's buttons and where focus lands after them; moving Fs;
-// Can't with its two taps, a refusal that stays through Undo, and a right
-// claim with its argument; Can't for every half-turn with the forms; Shortest
-// with a wrong and a right pair; the half-turn's point between two others;
-// and the playground's lengths. Same environment variables as the other
+// Can't with its two taps, a refusal that stays through Undo and through an
+// edit and back, and a right claim with its argument on another border;
+// Can't by Tab and Enter down the page, refused, then Restart; no claim with
+// a row empty; Can't for every half-turn with the forms; Shortest refused,
+// kept after a slide away and back, and right the other way; the half-turn's
+// point among drawn dots, and Restart after a wrong one; and the playground's
+// lengths. Same environment variables as the other
 // browser suites (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1
 // for a phone with touch). Screenshots go in test-results/friezes/.
 import assert from 'node:assert/strict';
@@ -53,6 +56,7 @@ const button = name => page.getByRole('button', {name, exact: true});
 const press = async name => { await button(name).click(); };
 const form = name => page.locator(`.fz-form[aria-label="${name} F"]`);
 const undoButton = () => page.locator('[data-action="undo"]').click();
+const restartButton = () => page.locator('[data-action="restart"]').click();
 
 try {
   await mkdir(out, {recursive: true});
@@ -88,7 +92,10 @@ try {
   await page.locator('[data-fz-slot="4,0"]').focus(); await page.keyboard.press('Enter');
   assert.equal(await told(), 'There’s a nearer one.');
   assert.equal(await focused(), 'fz-board', 'after a refused claim, focus is on the board');
-  assert.equal(await page.getByRole('button', {name: 'Shortest'}).isDisabled(), true, 'Shortest waits for the copy to move');
+  assert.equal(await page.getByRole('button', {name: 'Shortest'}).isDisabled(), true, 'Shortest is off with the copy here');
+  await page.keyboard.press('ArrowLeft'); await page.keyboard.press('ArrowRight');
+  assert.equal(await page.getByRole('button', {name: 'Shortest'}).isDisabled(), true, 'slid away and back, it is off again');
+  assert.equal(await told(), 'Shortest was refused with the copy here.');
   await page.keyboard.press('ArrowLeft'); await page.keyboard.press('ArrowLeft');
   await page.getByRole('button', {name: 'Shortest'}).click();
   await page.locator('[data-fz-slot="0,0"]').focus(); await page.keyboard.press('Enter');
@@ -128,12 +135,18 @@ try {
   await undoButton();
   assert.equal((await board(P3)).refused.length, 1, 'Undo keeps the refusal');
   assert.equal(await button('Can’t').isDisabled(), true, 'and Can’t stays off');
-  assert.equal(await page.locator('.fz-told').count(), 0, 'Undo takes the words away');
-  // A changed border clears it: put an F and take it away again.
+  assert.equal(await told(), 'A claim was refused on this border.', 'Undo takes the refusal’s words away and says why Can’t is off');
+  // Changing the border and changing it back brings the refusal back with it.
   await tapPlace(1, 0); await tapPlace(1, 0);
-  assert.deepEqual((await board(P3)).refused, [], 'a changed border clears the refusal');
-  await drag(-1); // the flip alone again
-  await drag(1);
+  assert.equal((await board(P3)).refused.length, 1, 'the refusal is kept with its border');
+  await drag(-1); await drag(1);
+  assert.equal(await button('Can’t').isDisabled(), true, 'back on that border, with the flip tried again, Can’t stays off');
+  // Another border that works: an F of each other form beside them.
+  await form('flipped-across').click(); await tapPlace(1, 0);
+  await form('half-turned').click(); await tapPlace(0, 1);
+  assert.deepEqual((await board(P3)).cell, [[0, 1], [3, 2]]);
+  assert.deepEqual((await board(P3)).shown, [0], 'the copy, gliding where it was, matches the new border');
+  await drag(-1); // the flip alone, on this border
   await press('Can’t');
   await tapPlace(2, 0); // the repeat of the as-drawn F, one cell along
   await tapPlace(2, 1, 0, -12);
@@ -149,6 +162,19 @@ try {
   await tapPlace(1, 0);
   assert.deepEqual((await board(P4)).cell, [[null, 0], [2, null]], 'it moves');
   await page.locator('.fz-tool.fz-flip').click();
+  await page.locator('.fz-board').focus(); await page.keyboard.press('ArrowRight');
+  // Down the page by keyboard: Can't, then Tab and Enter on the first two
+  // places. The place after an F is beside it, not where the flip puts it.
+  await press('Can’t');
+  await page.keyboard.press('Tab'); await page.keyboard.press('Tab'); await page.keyboard.press('Enter');
+  await page.keyboard.press('Tab'); await page.keyboard.press('Enter');
+  assert.equal(await page.locator('#completion-heading').count(), 0, 'page order does not solve it');
+  assert.equal((await board(P4)).refused.length, 1, 'it is judged and refused');
+  // Restart clears the refusal; then the right claim.
+  await restartButton();
+  assert.deepEqual((await board(P4)).refused, [], 'Restart clears it');
+  await tapPlace(0, 0); await tapPlace(1, 0);
+  await page.locator('.fz-tool.fz-flip').click();
   await drag(1);
   await press('Can’t');
   await tapPlace(1, 0); await tapPlace(1, 1);
@@ -157,7 +183,13 @@ try {
   // Puzzle 6: no half-turn, by one F and the form it becomes.
   const P6 = 'friezes-06';
   await open(P6);
-  await tapPlace(0, 0); await form('flipped-down').click(); await tapPlace(0, 1);
+  // Fs in one row: the turn is tried, and Can't stays off.
+  await tapPlace(0, 0); await form('half-turned').click(); await tapPlace(1, 0);
+  await page.locator('.fz-tool.fz-turn').click();
+  assert.equal(await button('Can’t').isDisabled(), true, 'no claim with a row empty');
+  assert.equal(await told(), 'A border needs an F in each row.');
+  await page.locator('.fz-tool.fz-turn').click(); await tapPlace(1, 0);
+  await form('flipped-down').click(); await tapPlace(0, 1);
   await page.locator('.fz-tool.fz-flip').click();
   assert.deepEqual((await board(P6)).shown, [0]);
   await page.locator('.fz-tool.fz-flip').click();
@@ -168,12 +200,20 @@ try {
   await tapPlace(0, 0);
   assert.equal(await told(), 'Tap an F, then what it becomes.');
   await form('flipped-across').click();
-  assert.equal(await told(), 'That isn’t what it turns into.');
+  assert.equal(await told(), 'That doesn’t rule out every half-turn.');
   assert.match(String(await focused()), /^fz-(form|board|flip|turn)/, 'focus on the board or its controls');
   await shot('family-refused');
   await tapPlace(1, 1); await tapPlace(1, 1); // put and take away: a changed border, then the same one
   await page.locator('.fz-tool.fz-turn').click(); await page.locator('.fz-tool.fz-flip').click();
   assert.deepEqual((await board(P6)).shown, [0], 'the flip again');
+  await page.locator('.fz-tool.fz-flip').click(); await page.locator('.fz-tool.fz-turn').click();
+  assert.equal(await button('Can’t').isDisabled(), true, 'back on the refused border, Can’t stays off');
+  // Another answer: a second column like the first.
+  await form('as-drawn').click(); await tapPlace(1, 0);
+  await form('flipped-down').click(); await tapPlace(1, 1);
+  await page.locator('.fz-tool.fz-turn').click(); await page.locator('.fz-tool.fz-flip').click();
+  assert.deepEqual((await board(P6)).shown, [0], 'the flip on the new border');
+  await page.locator('.fz-tool.fz-flip').click(); await page.locator('.fz-tool.fz-turn').click();
   await press('Can’t');
   await tapPlace(0, 0); await form('half-turned').click();
   await done(); await fit('flip, no turn');
@@ -186,15 +226,20 @@ try {
   assert.deepEqual((await board(P7)).copy, {s: 1, f: 1, u: 4});
   await page.getByRole('button', {name: 'Shortest'}).first().click();
   await tapPlace(0, 0); await tapPlace(1, 0);
-  assert.equal(await told(), 'It can’t land on that one.');
+  assert.equal(await told(), 'It can’t land there.');
   await drag(-1); await drag(1);
+  assert.equal(await page.getByRole('button', {name: 'Shortest'}).first().isDisabled(), true, 'back where it was refused, Shortest is off');
+  await page.locator('.fz-board').focus();
+  for (let k = 0; k < 8; k++) await page.keyboard.press('ArrowLeft');
+  assert.deepEqual((await board(P7)).copy, {s: 1, f: 1, u: -4});
   await page.getByRole('button', {name: 'Shortest'}).first().click();
   await tapPlace(0, 0); await tapPlace(4, 0, -12);
   assert.equal((await board(P7)).done.length, 1, 'the slide is shown shortest');
   await page.locator('.fz-tool.fz-flip').click();
-  await drag(-2);
+  await drag(2);
+  assert.deepEqual((await board(P7)).copy, {s: 1, f: -1, u: -2});
   await page.getByRole('button', {name: 'Shortest'}).click();
-  await tapPlace(0, 0); await tapPlace(2, 1);
+  await tapPlace(0, 0); await tapPlace(-2, 1);
   await done(); await fit('slide and glide solved');
   await shot('shortest-solved');
 
@@ -210,12 +255,20 @@ try {
   assert.deepEqual((await board(P10)).shown, [0, 1]);
   await press('Turn here');
   assert.equal(await told(), 'Tap the point.');
+  assert.equal(await page.locator('.fz-cand').count(), 15, 'every point along the middle line is drawn as a choice');
+  await fit('turn here'); await shot('centre-choosing');
   await tapAt([2.5 * SW + 4, 2]);
   assert.equal(await told(), 'That turn doesn’t match.', 'a point half a place off');
   assert.equal(await page.locator('.fz-point.bad').count(), 1);
   await shot('centre-refused');
-  await form('as-drawn').click(); await tapPlace(0, 0); await tapPlace(0, 0);
-  await page.locator('.fz-tool.fz-mirror').click(); await page.locator('.fz-tool.fz-flip').click();
+  // Restart clears the refusal; build again.
+  await restartButton();
+  await form('flipped-across').click(); await tapPlace(1, 0);
+  await form('as-drawn').click(); await tapPlace(2, 0);
+  await form('half-turned').click(); await tapPlace(1, 1);
+  await form('flipped-down').click(); await tapPlace(2, 1);
+  await page.locator('.fz-tool.fz-flip').click(); await page.locator('.fz-tool.fz-flip').click();
+  await page.locator('.fz-tool.fz-mirror').click();
   assert.deepEqual((await board(P10)).shown, [0, 1], 'both flips again');
   await press('Turn here');
   await tapAt([2 * SW + 6, -3]); // nearer the crossing than the half places either side

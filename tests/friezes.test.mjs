@@ -1,8 +1,10 @@
 // Footprint borders: the four forms and the copy's moves, matches on the
 // guide's witness borders, shortest slides and glides, forced half-turns,
-// building and moving Fs, attempts before Can't, certificates right and
-// wrong, refusals kept through Undo and Restart, hints (quick, in CPU time,
-// and solving from fresh), saves, rendering and the family's symbol.
+// building and moving Fs, attempts before Can't, Fs in both rows before any
+// claim, certificates right and wrong (gaps too), refusals kept with their
+// board through edits, slides and Undo and cleared by Restart, hints (quick,
+// in CPU time, and solving from fresh), saves, rendering and the family's
+// symbol.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -52,6 +54,8 @@ test('moves of the copy: slides, the three buttons, and what each counts as', ()
   assert.equal(F.kindOf(F.HOME), 'home');
   assert.deepEqual(['slide', 'flip', 'glide', 'mirror', 'turn'].map(k => F.kindOf({slide: at(slide, 2), flip: at(flip, 0), glide: at(flip, -1), mirror: at(mirror, 3), turn: at(turn, 1)}[k])), ['slide', 'flip', 'glide', 'mirror', 'turn']);
   assert.deepEqual(F.keysOf(at(slide, -2)), ['slide', 'slide:2']);
+  assert.deepEqual(F.keysOf(at(flip, 3)), ['glide', 'glide:3']);
+  assert.deepEqual([F.keysOf(at(mirror, 0)), F.keysOf(at(mirror, 1))], [['mirror', 'mirror:0'], ['mirror']], 'the flip across the crossing line is its own attempt');
   // Image places: the turned copy of a 2-place cell at u = 0 turns round the cell's middle.
   assert.deepEqual(F.imageOf(2, at(turn, 0), 0, 0), {c: 1, r: 1});
   assert.equal(F.axis2Of(2, at(turn, 0)), 2);
@@ -59,7 +63,7 @@ test('moves of the copy: slides, the three buttons, and what each counts as', ()
   let a = freshAttempt(p);
   a = play(p, a, {type: 'slide', by: 2}, {type: 'flip'});
   assert.deepEqual(a.board.copy, at(flip, 2));
-  assert.deepEqual(a.board.tried, ['glide', 'slide', 'slide:2'], 'every attempt is kept');
+  assert.deepEqual(a.board.tried, ['glide', 'glide:2', 'slide', 'slide:2'], 'every attempt is kept');
   assert.equal(move(p, a, {type: 'turn'}), null, 'a button the puzzle doesn’t have');
   assert.equal(move(p, a, {type: 'slide', by: 3}), null, 'no further than a cell');
 });
@@ -71,7 +75,10 @@ test('building: free places, moving Fs, and an edit starts the attempts again', 
   a = play(p, a, {type: 'slide', by: 1});
   assert.deepEqual(a.board.shown, [0], 'the glide is shown');
   a = play(p, a, {type: 'clear', c: 1, r: 1});
-  assert.deepEqual([a.board.tried, a.board.shown], [['glide', 'slide', 'slide:1'].filter(k => F.keysOf(a.board.copy).includes(k)), []], 'an edit clears what was shown and tried, but the copy where it is counts');
+  assert.deepEqual([a.board.tried, a.board.shown], [[], []], 'an edit clears what was shown and tried, and the copy where it is, missing, is no attempt');
+  a = play(p, a, {type: 'put', c: 1, r: 1, form: H});
+  assert.deepEqual([a.board.tried, a.board.shown], [['glide', 'glide:1'], [0]], 'a match the copy makes after an edit is shown, with its attempt');
+  assert.equal(F.canClaim(p.parameters, a.board, 1), false, 'the flip alone is tried again before Can’t');
   const m = byId(4);
   let b = play(m, freshAttempt(m), {type: 'shift', from: [0, 0], to: [1, 0]});
   assert.equal(F.inventory(b.board.cell), F.inventory(m.parameters.cell));
@@ -87,16 +94,24 @@ test('Can’t comes after the attempt, and the certificate can be wrong', () => 
   a = play(p, a, {type: 'flip'});
   assert.equal(F.judgeSpecific(a.board.cell, {type: 'cant', move: 'flip'}, [0, 0], [1, 1]), 'there', 'the flip doesn’t take it there');
   const wrong = play(p, a, {type: 'cant', goal: 1, pick: [[0, 0], [1, 1]]});
-  assert.deepEqual(wrong.board.refused, [{goal: 1, pick: [[0, 0], [1, 1]], why: 'there'}]);
+  assert.deepEqual(wrong.board.refused, [{goal: 1, pick: [[0, 0], [1, 1]], why: 'there', cell: cellOf('A·/·H')}]);
   assert.match(view(p, wrong), /It doesn’t land there\./);
   assert.equal(move(p, wrong, {type: 'cant', goal: 1, pick: [[0, 0], [0, 1]]}), null, 'the refusal stands');
-  // Undo and Restart keep it while the border is the same.
+  // A first tap on a gap is judged too.
+  const gap = play(p, a, {type: 'cant', goal: 1, pick: [[1, 0], [1, 1]]});
+  assert.equal(gap.board.refused[0].why, 'gap');
+  assert.match(view(p, gap), /There’s no F there\./);
+  // Undo keeps it; so does changing the border and changing it back.
   let back = undo(wrong);
   back = {...back, board: mech.carry(p, wrong.board, back.board)};
   assert.ok(validBoard(p, back.board) && back.board.refused.length === 1, 'Undo keeps the refusal');
   assert.doesNotMatch(view(p, back), /It doesn’t land there/, 'Undo takes away the words');
+  assert.match(view(p, back), /A claim was refused on this border\./, 'and says why Can’t is off');
+  const round = play(p, wrong, {type: 'put', c: 1, r: 0, form: V}, {type: 'clear', c: 1, r: 0}, {type: 'flip'}, {type: 'flip'});
+  assert.ok(round.board.tried.includes('flip') && F.canClaim(p.parameters, round.board, 1) === false, 'back on the same border, with the flip tried again, Can’t stays off');
+  // Restart is the way to clear it.
   const again = {...restart(p, wrong), board: mech.carryOnRestart(p, wrong.board, freshAttempt(p).board)};
-  assert.deepEqual(again.board.refused, [], 'Restart goes back to an empty cell, so the refusal goes');
+  assert.deepEqual(again.board.refused, [], 'Restart clears refusals');
   // Right: the as-drawn F and the gap below it.
   const right = play(p, a, {type: 'slide', by: 1}, {type: 'cant', goal: 1, pick: [[0, 0], [0, 1]]});
   assert.ok(isSolved(p, right.board));
@@ -110,9 +125,18 @@ test('no half-turn anywhere: one F and the form it becomes', () => {
   assert.equal(F.judgeFamily(a.board.cell, p.parameters.goals[1], [0, 0], V), 'form', 'turned, an A is not flipped across');
   assert.equal(F.judgeFamily(a.board.cell, p.parameters.goals[1], [0, 0], R), 'ok');
   const wrong = play(p, a, {type: 'cant', goal: 1, pick: [[0, 0], V]});
-  assert.match(view(p, wrong), /That isn’t what it turns into\./);
+  assert.match(view(p, wrong), /That doesn’t rule out every half-turn\./);
   const b = play(p, a, {type: 'put', c: 1, r: 1, form: R});
   assert.equal(F.judgeFamily(b.board.cell, p.parameters.goals[1], [0, 0], R), 'present', 'with a half-turned F below, the A no longer shows it');
+  const present = play(p, b, {type: 'turn'}, {type: 'turn'}, {type: 'cant', goal: 1, pick: [[0, 0], R]});
+  assert.match(view(p, present), /That doesn’t rule out every half-turn\./, 'one text whether the F or the form was wrong');
+  // Fs in one row: a half-turn round a point of that row's own line can
+  // match, so no claim is made there.
+  let one = play(p, freshAttempt(p), {type: 'put', c: 0, r: 0, form: A}, {type: 'put', c: 1, r: 0, form: R}, {type: 'turn'});
+  assert.ok(one.board.tried.includes('turn') && F.claimTrue(one.board.cell, p.parameters.goals[1]) === false);
+  assert.equal(F.canClaim(p.parameters, one.board, 1), false, 'no claim with a row empty');
+  assert.equal(move(p, one, {type: 'cant', goal: 1, pick: [[0, 0], R]}), null);
+  assert.match(view(p, one), /A border needs an F in each row\./);
 });
 
 test('shortest: the nearest F of the form the move needs, as far as the copy went', () => {
@@ -122,11 +146,18 @@ test('shortest: the nearest F of the form the move needs, as far as the copy wen
   assert.ok(near.board.done.some(d => d.goal === 0));
   const far = play(p, a, {type: 'shortest', goal: 0, pick: [[0, 0], [1, 0]]});
   assert.equal(far.board.refused[0].why, 'class', 'a flipped-across F can’t be where an A lands');
-  assert.match(view(p, far), /It can’t land on that one\./);
-  // A refused Shortest waits until the copy moves.
+  assert.match(view(p, far), /It can’t land there\./);
+  assert.equal(play(p, a, {type: 'shortest', goal: 0, pick: [[0, 0], [2, 0]]}).board.refused[0].why, 'class', 'nor can a gap');
+  // A refused Shortest stays with the copy where it was: away and back, it
+  // is off again; the other way, it is on.
   assert.equal(move(p, far, {type: 'shortest', goal: 0, pick: [[0, 0], [4, 0]]}), null);
+  const backAgain = play(p, far, {type: 'slide', by: -1}, {type: 'slide', by: 1});
+  assert.equal(F.canClaim(p.parameters, backAgain.board, 0), false, 'slid away and back, the refusal stands');
   const moved = play(p, far, {type: 'slide', by: -8});
-  assert.deepEqual(moved.board.refused, [], 'moving the copy clears it');
+  assert.ok(moved.board.refused.length === 1 && F.canClaim(p.parameters, moved.board, 0), 'slid the other way, Shortest is on');
+  const twice = play(p, moved, {type: 'shortest', goal: 0, pick: [[0, 0], [1, 0]]});
+  assert.equal(nextHint(p, twice).type, 'stuck', 'refused both ways: nothing to apply');
+  assert.equal(nextHint(p, twice).text, F.STUCK);
   // The glide: half the slide.
   let g = play(p, near, {type: 'flip'}, {type: 'slide', by: -2});
   assert.equal(g.board.copy.u, 2);
@@ -144,6 +175,14 @@ test('two crossing flips: tap the point the half-turn goes round', () => {
   assert.equal(move(p, a, {type: 'centre', goal: 2, pick: 4}), null, 'the flips first');
   a = play(p, a, {type: 'flip'}, {type: 'flip'}, {type: 'mirror'});
   assert.deepEqual(a.board.shown, [0, 1]);
+  const both = play(p, a, {type: 'flip'});
+  assert.doesNotMatch(view(p, both), /turned halfway/, 'the copy flipped both ways is not said to be turned');
+  assert.match(view(p, both), /flipped over the middle line and flipped across\. It matches\./);
+  mech.reset(p);
+  mech.ui(p, {claim: 2});
+  const choosing = view(p, a, true);
+  assert.equal((choosing.match(/class="fz-cand"/g) || []).length, (choosing.match(/data-fz-point=/g) || []).length, 'every point is drawn as a choice');
+  assert.equal((choosing.match(/data-fz-point=/g) || []).length, 15);
   const wrong = play(p, a, {type: 'centre', goal: 2, pick: 3});
   assert.match(view(p, wrong), /That turn doesn’t match\./);
   assert.match(view(p, wrong), /fz-point bad/);
@@ -179,7 +218,12 @@ test('saves: forged claims, attempts and borders are refused', () => {
   assert.equal(validBoard(p, {...b, last: {goal: 1, ok: true}}), false, 'a claim said right that wasn’t made');
   const q = byId(2), c = freshAttempt(q).board;
   assert.equal(validBoard(q, {...c, copy: at(slide, 2), tried: ['slide', 'slide:2'], done: [{goal: 0, pick: [[0, 0], [2, 0]]}]}), true, 'a right Shortest');
-  assert.equal(validBoard(q, {...c, copy: at(slide, 4), tried: ['slide', 'slide:4'], refused: [{goal: 0, pick: [[0, 0], [2, 0]], why: 'nearer'}], last: null}), false, 'a refusal with the wrong reason');
+  assert.equal(validBoard(q, {...c, copy: at(slide, 4), tried: ['slide', 'slide:4'], refused: [{goal: 0, pick: [[0, 0], [2, 0]], why: 'nearer', cell: c.cell, copy: at(slide, 4)}], last: null}), false, 'a refusal with the wrong reason');
+  assert.equal(validBoard(q, {...c, copy: at(slide, 4), tried: ['slide', 'slide:4'], refused: [{goal: 0, pick: [[0, 0], [4, 0]], why: 'nearer', cell: c.cell, copy: at(slide, 4)}], last: null}), true, 'a refusal judged again to its reason');
+  assert.equal(validBoard(q, {...c, done: [{goal: 0, pick: [[0, 0], [2, 0]]}]}), false, 'a Shortest with the copy never moved');
+  assert.equal(validBoard(q, {...c, copy: at(slide, 4), tried: ['slide', 'slide:4'], done: [{goal: 0, pick: [[0, 0], [2, 0]]}]}), false, 'a Shortest without the 2-place slide tried');
+  const r = byId(3), d = freshAttempt(r).board;
+  assert.equal(validBoard(r, {...d, cell: cellOf('A·/·H'), copy: at(flip, 0), tried: ['flip'], shown: [0]}), false, 'a glide shown with only the flip tried');
 });
 
 test('render: one board, goal chips with their claims, tools, and no empty containers', () => {
@@ -193,12 +237,14 @@ test('render: one board, goal chips with their claims, tools, and no empty conta
   assert.match(v3, /aria-label="as-drawn F"[^>]*aria-pressed="true"|aria-pressed="true"[^>]*aria-label="as-drawn F"/, 'the as-drawn F is chosen');
   assert.equal((v3.match(/data-fz-slot=/g) || []).length, 4, 'every place in the cell is a tap target');
   // Claim mode: every place in the window, the copy hidden, the prompt.
-  let a = play(p3, a3, {type: 'put', c: 0, r: 0, form: A}, {type: 'flip'});
+  let a = play(p3, a3, {type: 'put', c: 0, r: 0, form: A}, {type: 'put', c: 1, r: 1, form: H}, {type: 'flip'});
   mech.reset(p3);
   mech.ui(p3, {claim: 1});
   const claiming = view(p3, a, true);
   const {from, to} = F.windowOf(2);
   assert.equal((claiming.match(/data-fz-slot=/g) || []).length, 2 * (to - from));
+  const order = [...claiming.matchAll(/data-fz-slot="(-?\d+),(\d)"/g)].map(m => `${m[1]},${m[2]}`);
+  assert.deepEqual(order.slice(0, 2), [`${from},0`, `${from + 1},0`], 'row by row: the next target after an F is beside it, not below');
   assert.match(claiming, /Tap an F, then where it lands\./);
   assert.match(claiming, /data-fz-copy><\/g>/, 'the copy is hidden while pointing');
   const p10 = byId(10);

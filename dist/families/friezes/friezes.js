@@ -18,6 +18,11 @@
 // move is ruled out by one footprint whose image lands where the border lacks
 // it (a gap or another form), or, for every half-turn or every flip across at
 // once, by one footprint whose image needs a form its row never has.
+//
+// A border has Fs in both rows (a rule of the puzzles, stated in How to play):
+// then every symmetry keeps the middle line, so the copy's moves are all of
+// them. With one row empty a border can have more (a half-turn round a point
+// of that row's own line), so no claim is made and nothing is solved then.
 import {esc} from '../../expansion-controls.js';
 
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -34,6 +39,7 @@ const mod = (n, P) => ((n % P) + P) % P;
 export const periodOf = cell => cell[0].length;
 export const at = (cell, c, r) => cell[r][mod(c, periodOf(cell))];
 export const empty = cell => cell.every(row => row.every(v => v === null));
+export const bothRows = cell => cell.every(row => row.some(v => v !== null));
 export const footprints = cell => cell.flatMap((row, r) => row.flatMap((F, c) => (F === null ? [] : [{c, r, F}])));
 // How many places each side of the cell the board shows: 8 to 10 places in all.
 export const marginOf = P => Math.max(2, Math.ceil((8 - P) / 2));
@@ -61,8 +67,16 @@ export function fits(cell, g) {
   const P = periodOf(cell), L = linearOf(g);
   return footprints(cell).every(({c, r, F}) => { const im = imageOf(P, g, c, r); return at(cell, im.c, im.r) === (F ^ L); });
 }
-// What the attempts a copy state counts as: its kind, and a slide's length.
-export const keysOf = g => { const k = kindOf(g); return k === 'home' ? [] : k === 'slide' ? ['slide', `slide:${Math.abs(g.u)}`] : [k]; };
+// What the attempts a copy state counts as: its kind, a slide's or a glide's
+// length, and the flip across the crossing line (mirror:0, the copy's own
+// place).
+export function keysOf(g) {
+  const k = kindOf(g);
+  if (k === 'home') return [];
+  if (k === 'slide' || k === 'glide') return [k, `${k}:${Math.abs(g.u)}`];
+  return k === 'mirror' && g.u === 0 ? ['mirror', 'mirror:0'] : [k];
+}
+const TRIED = /^(slide|flip|glide|mirror|turn|(slide|glide):[1-9]\d*|mirror:0)$/;
 
 // --- Goals ------------------------------------------------------------------
 // {type: 'match', move, line?}: show a move of this kind with the copy (line:
@@ -80,9 +94,12 @@ export function cantStates(P, goal) {
   return copyStates(P).filter(g => kindOf(g) === goal.move);
 }
 export const tryKey = goal => (goal.move === 'slide' ? `slide:${goal.by}` : goal.move);
+// The attempt a match goal needs on record before it counts as shown.
+export const showKey = goal => (goal.line ? 'mirror:0' : goal.move);
+const showsGoal = (goal, g) => goal.type === 'match' && kindOf(g) === goal.move && (!goal.line || g.u === 0);
 export const isFamily = goal => goal.type === 'cant' && (goal.move === 'turn' || goal.move === 'mirror');
 export const matchable = (cell, goal) => matchStates(periodOf(cell), goal).some(g => fits(cell, g));
-export const claimTrue = (cell, goal) => !empty(cell) && !cantStates(periodOf(cell), goal).some(g => fits(cell, g));
+export const claimTrue = (cell, goal) => bothRows(cell) && !cantStates(periodOf(cell), goal).some(g => fits(cell, g));
 const shortMoves = {slide: {s: 1, f: 1}, glide: {s: 1, f: -1}};
 export function shortestOf(cell, move) {
   const P = periodOf(cell);
@@ -98,7 +115,7 @@ const isPlace = (P, x) => Array.isArray(x) && x.length === 2 && Number.isInteger
 // image form (a gap or another form).
 export function judgeSpecific(cell, goal, X, Y) {
   const P = periodOf(cell), F = at(cell, X[0], X[1]);
-  if (F === null) return 'none';
+  if (F === null) return 'gap';
   const g = cantStates(P, goal).find(h => { const im = imageOf(P, h, X[0], X[1]); return im.c === Y[0] && im.r === Y[1]; });
   if (!g) return 'there';
   return at(cell, Y[0], Y[1]) === (F ^ linearOf(g)) ? 'fits' : 'ok';
@@ -108,13 +125,14 @@ export function judgeSpecific(cell, goal, X, Y) {
 export const neededRow = (goal, r) => (goal.move === 'turn' ? 1 - r : r);
 export function judgeFamily(cell, goal, X, Z) {
   const F = at(cell, X[0], X[1]);
-  if (F === null) return 'none';
+  if (F === null) return 'gap';
   if (Z !== (F ^ (goal.move === 'turn' ? 3 : 1))) return 'form';
   return cell[neededRow(goal, X[1])].includes(Z) ? 'present' : 'ok';
 }
 // Shortest: Y is of the form X needs (its own, in its row, for a slide; the
 // flipped-down one in the other row for a glide), no such footprint is
-// nearer to X, and Y is as far as the copy went.
+// nearer to X, and Y is as far as the copy went. A gap for Y is the wrong
+// kind ('class').
 export const neededOf = (move, r, F) => (move === 'slide' ? {r, F} : {r: 1 - r, F: F ^ 2});
 export function nearestOf(cell, move, X) {
   const P = periodOf(cell), F = at(cell, X[0], X[1]), need = neededOf(move, X[1], F);
@@ -124,7 +142,7 @@ export function nearestOf(cell, move, X) {
 }
 export function judgeShortest(cell, goal, X, Y, dist) {
   const F = at(cell, X[0], X[1]);
-  if (F === null) return 'none';
+  if (F === null) return 'gap';
   const need = neededOf(goal.move, X[1], F), d = Math.abs(Y[0] - X[0]);
   if (Y[1] !== need.r || at(cell, Y[0], Y[1]) !== need.F || d === 0) return 'class';
   if (d > nearestOf(cell, goal.move, X)) return 'nearer';
@@ -162,15 +180,21 @@ export function answers(q, cell) {
 
 // --- Boards -----------------------------------------------------------------
 // Puzzle: {cell, copy, tried, shown, done, refused, last}.
-//   tried: the attempt keys the copy has made on this cell (a Can't needs one).
+//   tried: the attempt keys the copy has made on this cell (a Can't needs one,
+//     a shown move needs its own, and a Shortest the slide or glide by its
+//     length). An edit starts it again: the copy's state then counts only if
+//     it matches the new cell.
 //   shown: the match goals the copy has matched on this cell.
 //   done: the claims judged right on this cell, [{goal, pick}].
-//   refused: the claims judged wrong, [{goal, pick, why}] in the order made,
-//     one per goal, each kept until the cell changes (a shortest refusal
-//     only until the copy moves); that claim waits until then.
+//   refused: the claims judged wrong, in the order made, [{goal, pick, why,
+//     cell}] with the copy too for a Shortest. Each is about the board it was
+//     made on: while the cell (and, for a Shortest, the copy) is that again,
+//     the claim stays off. Edits, copy moves and Undo never clear one;
+//     Restart does. At most REFUSALS are kept, the oldest dropped first.
 //   last: the claim just judged, {goal, ok}: its argument or refusal shows.
 // Playground: {cell, copy}.
 const PUZZLE_KEYS = 'cell,copy,done,last,refused,shown,tried';
+const REFUSALS = 64;
 const blankCell = P => [Array(P).fill(null), Array(P).fill(null)];
 const cloneCell = cell => cell.map(row => [...row]);
 const sameCell = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -183,30 +207,51 @@ function fresh(p) {
   if (q.mode === 'playground') return {cell: blankCell(q.start), copy: {...HOME}};
   return record(q, {cell: cloneCell(q.cell), copy: {...HOME}, tried: [], shown: [], done: [], refused: [], last: null});
 }
-// After any move: the copy's attempt and any match it makes are recorded.
-function record(q, b) {
-  const tried = [...new Set([...b.tried, ...keysOf(b.copy)])].sort();
-  const shown = [...new Set([...b.shown, ...q.goals.flatMap((goal, i) => goal.type === 'match' && kindOf(b.copy) === goal.move && (!goal.line || b.copy.u === 0) && fits(b.cell, b.copy) ? [i] : [])])].sort((x, y) => x - y);
+// After a copy move (moved) its attempt is recorded; after any move, a match
+// the copy makes now is recorded, with its attempt.
+function record(q, b, moved = false) {
+  const now = fits(b.cell, b.copy);
+  const tried = moved || now ? [...new Set([...b.tried, ...keysOf(b.copy)])].sort() : b.tried;
+  const shown = now ? [...new Set([...b.shown, ...q.goals.flatMap((goal, i) => (showsGoal(goal, b.copy) ? [i] : []))])].sort((x, y) => x - y) : b.shown;
   return {...b, tried, shown};
 }
 const isDone = (b, i) => b.done.some(d => d.goal === i);
+// Is a refusal about this board (its cell, and its copy for a Shortest)?
+const refusalOn = (q, r, cell, copy) => sameCell(r.cell, cell) && (q.goals[r.goal].type !== 'shortest' || sameCopy(r.copy, copy));
+export const lockedOn = (q, b, i) => b.refused.some(r => r.goal === i && refusalOn(q, r, b.cell, b.copy));
+const samePlace = (X, Y) => X[0] === Y[0] && X[1] === Y[1];
+// A claim's taps judged: 'ok', a reason it is wrong, or 'bad' for taps that
+// aren't a claim at all (off the board, a form that isn't one, the same place
+// twice). A first tap on a gap is judged too ('gap').
 function judge(q, cell, goal, pick, dist) {
   const P = periodOf(cell);
-  if (goal.type === 'centre') return pointOk(P, pick) ? judgeCentre(cell, pick) : 'none';
-  if (!Array.isArray(pick) || pick.length !== 2 || !isPlace(P, pick[0])) return 'none';
-  if (isFamily(goal)) return FORMS.includes(pick[1]) ? judgeFamily(cell, goal, pick[0], pick[1]) : 'none';
-  if (!isPlace(P, pick[1])) return 'none';
+  if (goal.type === 'centre') return pointOk(P, pick) ? judgeCentre(cell, pick) : 'bad';
+  if (!Array.isArray(pick) || pick.length !== 2 || !isPlace(P, pick[0])) return 'bad';
+  if (isFamily(goal)) return FORMS.includes(pick[1]) ? judgeFamily(cell, goal, pick[0], pick[1]) : 'bad';
+  if (!isPlace(P, pick[1]) || samePlace(pick[0], pick[1])) return 'bad';
   return goal.type === 'cant' ? judgeSpecific(cell, goal, pick[0], pick[1]) : judgeShortest(cell, goal, pick[0], pick[1], dist);
 }
 // The shortest claim's distance: how far the copy went (it must match now).
-const claimDist = (q, b, goal) => (kindOf(b.copy) === goal.move && fits(b.cell, b.copy) ? Math.abs(b.copy.u) : null);
-// May this claim be made now? It comes after an attempt.
+const claimDist = (cell, copy, goal) => (kindOf(copy) === goal.move && fits(cell, copy) ? Math.abs(copy.u) : null);
+// May this claim be made now? It comes after an attempt, on a border with Fs
+// in both rows, and not while a refusal stands on this board.
 export function canClaim(q, b, i) {
   const goal = q.goals[i];
-  if (!goal || goal.type === 'match' || isDone(b, i) || b.refused.some(r => r.goal === i)) return false;
+  if (!goal || goal.type === 'match' || isDone(b, i) || !bothRows(b.cell) || lockedOn(q, b, i)) return false;
   if (goal.type === 'cant') return b.tried.includes(tryKey(goal));
-  if (goal.type === 'shortest') return claimDist(q, b, goal) !== null;
+  if (goal.type === 'shortest') return claimDist(b.cell, b.copy, goal) !== null;
   return q.goals.every((g, k) => g.type !== 'match' || b.shown.includes(k));
+}
+function validRefusal(q, P, r) {
+  const goal = q.goals[r?.goal];
+  if (!object(r) || !goal || goal.type === 'match') return false;
+  const shortest = goal.type === 'shortest';
+  if (Object.keys(r).sort().join() !== (shortest ? 'cell,copy,goal,pick,why' : 'cell,goal,pick,why') || !validCell(r.cell, P) || !bothRows(r.cell)) return false;
+  if (q.edit === 'none' && !sameCell(r.cell, q.cell)) return false;
+  if (q.edit === 'move' && inventory(r.cell) !== inventory(q.cell)) return false;
+  if (shortest && !(validCopy(P, r.copy) && claimDist(r.cell, r.copy, goal) !== null)) return false;
+  const why = judge(q, r.cell, goal, r.pick, shortest ? claimDist(r.cell, r.copy, goal) : undefined);
+  return why !== 'ok' && why !== 'bad' && why === r.why;
 }
 function valid(p, b) {
   const q = p.parameters;
@@ -216,31 +261,32 @@ function valid(p, b) {
   if (Object.keys(b).sort().join() !== PUZZLE_KEYS || !validCell(b.cell, P) || !validCopy(P, b.copy)) return false;
   if (q.edit === 'none' && !sameCell(b.cell, q.cell)) return false;
   if (q.edit === 'move' && inventory(b.cell) !== inventory(q.cell)) return false;
-  if (!Array.isArray(b.tried) || !b.tried.every(k => typeof k === 'string' && /^(slide|flip|glide|mirror|turn|slide:[1-9]\d*)$/.test(k)) || new Set(b.tried).size !== b.tried.length) return false;
-  if (!keysOf(b.copy).every(k => b.tried.includes(k))) return false;
-  if (!Array.isArray(b.shown) || !b.shown.every((i, k) => Number.isInteger(i) && q.goals[i]?.type === 'match' && matchable(b.cell, q.goals[i]) && (k === 0 || b.shown[k - 1] < i))) return false;
+  if (!Array.isArray(b.tried) || !b.tried.every(k => typeof k === 'string' && TRIED.test(k)) || new Set(b.tried).size !== b.tried.length) return false;
+  // The copy's own attempt is on record: always on a fixed border (only copy
+  // moves happen there), and wherever it matches now.
+  const now = fits(b.cell, b.copy);
+  if ((q.edit === 'none' || now) && !keysOf(b.copy).every(k => b.tried.includes(k))) return false;
+  // A move is shown only where it can be, after its own attempt.
+  if (!Array.isArray(b.shown) || !b.shown.every((i, k) => Number.isInteger(i) && q.goals[i]?.type === 'match' && matchable(b.cell, q.goals[i]) && b.tried.includes(showKey(q.goals[i])) && (k === 0 || b.shown[k - 1] < i))) return false;
   // A match the copy makes now is recorded.
-  if (!q.goals.every((goal, i) => goal.type !== 'match' || b.shown.includes(i) || !(kindOf(b.copy) === goal.move && (!goal.line || b.copy.u === 0) && fits(b.cell, b.copy)))) return false;
+  if (now && !q.goals.every((goal, i) => b.shown.includes(i) || !showsGoal(goal, b.copy))) return false;
   if (!Array.isArray(b.done) || !b.done.every((d, k) => object(d) && Object.keys(d).sort().join() === 'goal,pick' && Number.isInteger(d.goal) && q.goals[d.goal] && q.goals[d.goal].type !== 'match' && (k === 0 || b.done[k - 1].goal < d.goal))) return false;
+  if (b.done.length && !bothRows(b.cell)) return false;
   for (const d of b.done) {
     const goal = q.goals[d.goal];
     if (goal.type === 'cant' && !(b.tried.includes(tryKey(goal)) && claimTrue(b.cell, goal) && judge(q, b.cell, goal, d.pick) === 'ok')) return false;
-    if (goal.type === 'shortest' && judge(q, b.cell, goal, d.pick, shortestOf(b.cell, goal.move)) !== 'ok') return false;
+    if (goal.type === 'shortest') { const dist = shortestOf(b.cell, goal.move); if (!(dist !== null && b.tried.includes(`${goal.move}:${dist}`) && judge(q, b.cell, goal, d.pick, dist) === 'ok')) return false; }
     if (goal.type === 'centre' && !(q.goals.every((g, k) => g.type !== 'match' || b.shown.includes(k)) && judge(q, b.cell, goal, d.pick) === 'ok')) return false;
   }
-  if (!Array.isArray(b.refused) || new Set(b.refused.map(r => r?.goal)).size !== b.refused.length) return false;
-  for (const r of b.refused) {
-    const goal = q.goals[r?.goal];
-    if (!object(r) || !goal || goal.type === 'match' || isDone(b, r.goal) || Object.keys(r).sort().join() !== 'goal,pick,why') return false;
-    const why = judge(q, b.cell, goal, r.pick, goal.type === 'shortest' ? claimDist(q, b, goal) : undefined);
-    if (why === 'ok' || why === 'none' || why !== r.why || (goal.type === 'shortest' && claimDist(q, b, goal) === null)) return false;
-  }
-  if (b.last !== null && !(object(b.last) && Object.keys(b.last).sort().join() === 'goal,ok' && (b.last.ok === true ? isDone(b, b.last.goal) : b.last.ok === false && b.refused.at(-1)?.goal === b.last.goal))) return false;
+  if (!Array.isArray(b.refused) || b.refused.length > REFUSALS || !b.refused.every(r => validRefusal(q, P, r))) return false;
+  const key = r => JSON.stringify([r.goal, r.cell, r.copy || null]);
+  if (new Set(b.refused.map(key)).size !== b.refused.length) return false;
+  if (b.last !== null && !(object(b.last) && Object.keys(b.last).sort().join() === 'goal,ok' && (b.last.ok === true ? isDone(b, b.last.goal) : b.last.ok === false && b.refused.at(-1)?.goal === b.last.goal && refusalOn(q, b.refused.at(-1), b.cell, b.copy)))) return false;
   return true;
 }
 function solved(p, b) {
   const q = p.parameters;
-  if (q.mode === 'playground' || !valid(p, b)) return false;
+  if (q.mode === 'playground' || !valid(p, b) || !bothRows(b.cell)) return false;
   return q.goals.every((goal, i) => (goal.type === 'match' ? b.shown.includes(i) : isDone(b, i)));
 }
 
@@ -282,14 +328,14 @@ function move(p, b, action) {
     else { const cell = editMove(q, b.cell, action); next = cell && {...b, cell}; }
   } else if (['put', 'clear', 'shift'].includes(action.type)) {
     const cell = editMove(q, b.cell, action);
-    next = cell && record(q, {...b, cell, tried: [], shown: [], done: [], refused: [], last: null});
+    next = cell && record(q, {...b, cell, tried: [], shown: [], done: [], last: null});
   } else if (['slide', ...TOOLS].includes(action.type)) {
     const copy = copyMove(q, periodOf(b.cell), b.copy, action);
-    next = copy && record(q, {...b, copy, last: null, refused: b.refused.filter(r => q.goals[r.goal].type !== 'shortest')});
+    next = copy && record(q, {...b, copy, last: null}, true);
   } else if (['cant', 'shortest', 'centre'].includes(action.type) && Number.isInteger(action.goal) && q.goals[action.goal]?.type === action.type && canClaim(q, b, action.goal)) {
-    const goal = q.goals[action.goal], why = judge(q, b.cell, goal, action.pick, goal.type === 'shortest' ? claimDist(q, b, goal) : undefined);
+    const goal = q.goals[action.goal], shortest = goal.type === 'shortest', why = judge(q, b.cell, goal, action.pick, shortest ? claimDist(b.cell, b.copy, goal) : undefined);
     if (why === 'ok') next = {...b, done: [...b.done, {goal: action.goal, pick: action.pick}].sort((x, y) => x.goal - y.goal), last: {goal: action.goal, ok: true}};
-    else if (why !== 'none') next = {...b, refused: [...b.refused, {goal: action.goal, pick: action.pick, why}], last: {goal: action.goal, ok: false}};
+    else if (why !== 'bad') next = {...b, refused: [...b.refused, {goal: action.goal, pick: action.pick, why, cell: cloneCell(b.cell), ...(shortest ? {copy: {...b.copy}} : {})}].slice(-REFUSALS), last: {goal: action.goal, ok: false}};
   }
   if (next) Object.assign(ui(p), {claim: null, picks: [], held: null});
   return next;
@@ -297,8 +343,11 @@ function move(p, b, action) {
 
 // --- Hints ------------------------------------------------------------------
 // Edit puzzles aim at the nearest answer border (fewest places changed, or
-// fewest footprints moved); then the copy shows each match; then each claim:
-// an attempt with the copy first, then the reason and the claim.
+// fewest footprints moved) on which no claim has been refused; then the copy
+// shows each match; then each claim: an attempt with the copy first, then
+// the reason and the claim. When every way left is refused (a Shortest
+// refused both ways, or every answer border refused), the hint says to
+// Restart, which clears refusals.
 const memo = new Map();
 const remember = (key, make) => { if (!memo.has(key)) { if (memo.size > 4000) memo.clear(); memo.set(key, make()); } return memo.get(key); };
 // Candidate borders: every cell when there are few; for larger free cells,
@@ -424,6 +473,7 @@ function copyStep(q, g, h) {
 }
 function nearestState(q, g, states) {
   return states.reduce((best, h) => {
+    if (sameCopy(g, h)) return best;
     const k = [routeCost(q, g, h), Math.abs(h.u - g.u), Math.abs(h.u)];
     return !best || k[0] < best.k[0] || (k[0] === best.k[0] && (k[1] < best.k[1] || (k[1] === best.k[1] && k[2] < best.k[2]))) ? {h, k} : best;
   }, null)?.h;
@@ -450,11 +500,16 @@ function bestCert(cell, goal, dist) {
   const inside = list.filter(([X]) => X[0] >= 0 && X[0] < P);
   return (inside.length ? inside : list).sort((a, b) => (Array.isArray(a[1]) ? Math.abs(a[1][0] - a[0][0]) : 0) - (Array.isArray(b[1]) ? Math.abs(b[1][0] - b[0][0]) : 0))[0];
 }
+export const STUCK = 'Every way left to finish has a refused claim. Restart to try again.';
 function plan(p, b) {
   const q = p.parameters, cell = b.cell, P = periodOf(cell);
-  const locked = b.refused.some(r => q.goals[r.goal].type !== 'shortest');
-  if (q.edit !== 'none' && (!answers(q, cell) || locked)) {
-    const list = answerCells(p).filter(w => !(locked && sameCell(w, cell)));
+  // A border with a refused Can't or Turn here can't be finished: its claim
+  // stays off there, and coming back to it clears what was done.
+  const refusedOn = w => b.refused.some(r => q.goals[r.goal].type !== 'shortest' && sameCell(r.cell, w));
+  const blocked = q.goals.some((goal, i) => goal.type !== 'shortest' && !isDone(b, i) && lockedOn(q, b, i));
+  if (q.edit !== 'none' && (!answers(q, cell) || blocked)) {
+    const list = answerCells(p).filter(w => !refusedOn(w) && !sameCell(w, cell));
+    if (!list.length) return {stuck: true, text: STUCK};
     const target = list.reduce((best, w) => (!best || changes(q, cell, w) < changes(q, cell, best) ? w : best), null);
     return editHint(q, b, target);
   }
@@ -467,7 +522,11 @@ function plan(p, b) {
     if (isDone(b, i)) continue;
     if (goal.type === 'cant') {
       if (!b.tried.includes(tryKey(goal))) {
-        const step = copyStep(q, b.copy, nearestState(q, b.copy, cantStates(P, goal))), next = copyMove(q, P, b.copy, step.action);
+        // The attempt: the nearest state of that move other than where the
+        // copy is (after an edit it may be there untried); for the flip, the
+        // only one, by way of home.
+        const to = nearestState(q, b.copy, cantStates(P, goal)) || HOME;
+        const step = copyStep(q, b.copy, to), next = copyMove(q, P, b.copy, step.action);
         const lead = {flip: 'Try the flip alone', slide: `Try a slide of ${goal.by} places`, turn: 'Try a half-turn', mirror: 'Try a flip across'}[goal.move];
         return next && keysOf(next).includes(tryKey(goal)) ? {...step, text: `${lead}: ${step.text[0].toLowerCase()}${step.text.slice(1)}`} : step;
       }
@@ -475,12 +534,10 @@ function plan(p, b) {
       return {action: {type: 'cant', goal: i, pick: cert}, text: claimWords(q, cell, goal, cert), slots: [cert[0], ...(Array.isArray(cert[1]) ? [cert[1]] : [])], form: isFamily(goal) ? cert[1] : null, button: `claim-${i}`};
     }
     if (goal.type === 'shortest') {
-      const d = shortestOf(cell, goal.move), now = claimDist(q, b, goal);
-      const refusedHere = b.refused.some(r => r.goal === i);
-      if (now !== d || refusedHere) {
-        const states = [d, -d].map(u => ({...shortMoves[goal.move], u})).filter(g => !(refusedHere && sameCopy(g, b.copy)));
-        return copyStep(q, b.copy, nearestState(q, b.copy, states));
-      }
+      const d = shortestOf(cell, goal.move), now = claimDist(cell, b.copy, goal);
+      const open = [d, -d].map(u => ({...shortMoves[goal.move], u})).filter(g => !b.refused.some(r => r.goal === i && refusalOn(q, r, cell, g)));
+      if (!open.length) return {stuck: true, text: STUCK};
+      if (now !== d || lockedOn(q, b, i)) return copyStep(q, b.copy, nearestState(q, b.copy, open));
       const cert = bestCert(cell, goal, d);
       return {action: {type: 'shortest', goal: i, pick: cert}, text: claimWords(q, cell, goal, cert, d), slots: cert, button: `claim-${i}`};
     }
@@ -489,10 +546,13 @@ function plan(p, b) {
   }
   return {action: {type: 'slide', by: 1}, text: ''};
 }
+// A stuck board's hint is a note to Restart, not a move: there is nothing to
+// apply, and it isn't a dead end for the shared rescue Undo, which would take
+// refusals back.
 function hint(p, b) {
   const q = p.parameters;
   if (q.mode === 'playground' || !valid(p, b) || solved(p, b)) return {type: 'done'};
-  return remember(`h|${p.id}|${JSON.stringify(b)}`, () => { const h = plan(p, b); return {type: 'move', ...h}; });
+  return remember(`h|${p.id}|${JSON.stringify(b)}`, () => { const h = plan(p, b); return h.stuck ? {type: 'stuck', text: h.text} : {type: 'move', ...h}; });
 }
 
 // --- View state -------------------------------------------------------------
@@ -564,21 +624,28 @@ function describeCell(cell) {
   for (let r = 0; r < 2; r++) parts.push(`${ROWS[r]} row: ${cell[r].map((F, c) => `place ${c + 1} ${F === null ? 'empty' : FORM_WORDS[F]}`).join(', ')}`);
   return `The border repeats every ${P} places. ${parts.join('; ')}.`;
 }
-function describeCopy(cell, g) {
+// The copy, said by the buttons the puzzle has: without Turn (puzzle 10), a
+// copy flipped both ways is said to be that, not turned, so the status line
+// never names the half-turn the child is to find.
+function describeCopy(q, cell, g) {
   const k = kindOf(g);
   if (k === 'home') return 'The copy is home.';
   const n = Math.abs(g.u), dir = g.u > 0 ? 'right' : 'left', by = n ? `, then slid ${n} ${n === 1 ? 'place' : 'places'} ${dir}` : '';
-  const what = {slide: `slid ${n} ${n === 1 ? 'place' : 'places'} ${dir}`, flip: 'flipped over the middle line', glide: `flipped over the middle line${by}`, mirror: `flipped across${by}`, turn: `turned halfway${by}`}[k];
+  const turned = q.mode === 'playground' || q.tools.includes('turn') ? 'turned halfway' : 'flipped over the middle line and flipped across';
+  const what = {slide: `slid ${n} ${n === 1 ? 'place' : 'places'} ${dir}`, flip: 'flipped over the middle line', glide: `flipped over the middle line${by}`, mirror: `flipped across${by}`, turn: `${turned}${by}`}[k];
   const P = periodOf(cell), L = linearOf(g), misses = footprints(cell).filter(({c, r, F}) => { const im = imageOf(P, g, c, r); return at(cell, im.c, im.r) !== (F ^ L); }).length;
   return `The copy is ${what}. ${fits(cell, g) ? 'It matches.' : `${misses} of the ${footprints(cell).length} Fs in each repeat miss.`}`;
 }
+// One short refusal per wrong claim. A family claim has one text whatever
+// was wrong (the F or the form), and it never says the claim is false: some
+// true claims have no one-F certificate (see the spec).
 const WHY = {
-  there: 'It doesn’t land there.', fits: 'It lands on one like it.',
-  form: {turn: 'That isn’t what it turns into.', mirror: 'That isn’t what it flips into.'}, present: {turn: 'The other row has one.', mirror: 'Its row has one.'},
-  class: 'It can’t land on that one.', nearer: 'There’s a nearer one.', short: 'That one is nearer than the copy went.',
+  gap: 'There’s no F there.', there: 'It doesn’t land there.', fits: 'It lands on one like it.',
+  class: 'It can’t land there.', nearer: 'There’s a nearer one.', short: 'That one is nearer than the copy went.',
   miss: 'That turn doesn’t match.'
 };
-const whyText = (goal, why) => (typeof WHY[why] === 'object' ? WHY[why][goal.move] : WHY[why]);
+const FAMILY_WHY = {turn: 'That doesn’t rule out every half-turn.', mirror: 'That doesn’t rule out every flip across.'};
+export const whyText = (goal, why) => (isFamily(goal) ? FAMILY_WHY[goal.move] : WHY[why]);
 
 const button = (label, action, cls, opt = {}) => `<button type="button" class="secondary fz-button ${cls}${opt.hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="${opt.focus || `fz-${action.type}`}"${opt.aria ? ` aria-label="${esc(opt.aria)}"` : ''}${opt.enabled === false ? ' disabled' : ''}>${label}</button>`;
 const uiButton = (label, payload, cls, opt = {}) => `<button type="button" class="secondary fz-button ${cls}${opt.hinted ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify(payload)}' data-focus="${opt.focus}"${opt.aria ? ` aria-label="${esc(opt.aria)}"` : ''}${opt.pressed !== undefined ? ` aria-pressed="${opt.pressed}"` : ''}${opt.enabled === false ? ' disabled' : ''}>${label}</button>`;
@@ -623,15 +690,22 @@ function render(p, a) {
   }
   // Tap targets: the cell's places when editing (taps on repeats edit the
   // cell too, by position), every place when pointing at a claim, and points
-  // of the middle line for a turning point.
+  // of the middle line for a turning point, each drawn as a dot so the
+  // crossing is one choice among many. Places go row by row (the top row,
+  // then the bottom), so the tab stop after an F is never where the flip
+  // puts it; each place's target runs the full height of its half of the
+  // board.
   let hits = '';
   if (goal?.type === 'centre') {
-    for (let m2 = 2 * from + 1; m2 < 2 * to; m2++) hits += `<rect class="fz-hit point" x="${m2 / 2 * SW - SW / 4}" y="-8" width="${SW / 2}" height="16" data-fz-point="${m2}" data-focus="fz-point-${m2}" role="button" tabindex="0" aria-label="Turn round the point ${m2 % 2 ? `in the middle of place ${mod((m2 - 1) / 2, P) + 1}` : `between places ${mod(m2 / 2 - 1, P) + 1} and ${mod(m2 / 2, P) + 1}`}"/>`;
+    for (let m2 = 2 * from + 1; m2 < 2 * to; m2++) {
+      marks += `<circle class="fz-cand" cx="${m2 / 2 * SW}" cy="0" r="2.6"/>`;
+      hits += `<rect class="fz-hit point" x="${m2 / 2 * SW - SW / 4}" y="${-HALF}" width="${SW / 2}" height="${2 * HALF}" data-fz-point="${m2}" data-focus="fz-point-${m2}" role="button" tabindex="0" aria-label="Turn round the point ${m2 % 2 ? `in the middle of place ${mod((m2 - 1) / 2, P) + 1}` : `between places ${mod(m2 / 2 - 1, P) + 1} and ${mod(m2 / 2, P) + 1}`}"/>`;
+    }
   } else if (claim !== null || (!done && editMode !== 'none')) {
     const lo = claim !== null ? from : 0, hi = claim !== null ? to : P;
-    for (let c = lo; c < hi; c++) for (let r = 0; r < 2; r++) {
+    for (let r = 0; r < 2; r++) for (let c = lo; c < hi; c++) {
       const F = at(cell, c, r), name = `${placeWords(mod(c, P), r)}${c < 0 || c >= P ? `, ${c < 0 ? 'a repeat to the left' : 'a repeat to the right'}` : ''}: ${F === null ? 'empty' : formWords(F)}`;
-      hits += `<rect class="fz-hit" x="${c * SW}" y="${r === 0 ? -HALF : 0}" width="${SW}" height="${HALF}" data-fz-slot="${c},${r}" data-focus="fz-slot-${c}-${r}" role="button" tabindex="0" aria-label="${esc(name)}"/>`;
+      hits += `<rect class="fz-hit" x="${c * SW}" y="${r === 0 ? -36 : 0}" width="${SW}" height="36" data-fz-slot="${c},${r}" data-focus="fz-slot-${c}-${r}" role="button" tabindex="0" aria-label="${esc(name)}"/>`;
     }
   }
   const svg = boardSvg(p, b, {label: 'Border and its copy', edit: !done && editMode !== 'none', marks, argument, hits, copyHidden: claim !== null || copyOpt.copyHidden});
@@ -641,7 +715,7 @@ function render(p, a) {
     goals = `<div class="fz-goals">${q.goals.map((g, i) => {
       const ok = g.type === 'match' ? b.shown.includes(i) : isDone(b, i);
       const icon = moveIcon(g.type === 'centre' ? 'turn' : g.move, g.type === 'cant', g.type === 'cant' && g.move === 'slide' ? g.by : null);
-      const name = g.type === 'match' ? `${MOVE_WORDS[g.move]}${g.line ? ' across the crossing line' : ''}` : g.type === 'cant' ? `No ${g.move === 'slide' ? `slide of ${g.by}` : MOVE_WORDS[g.move].toLowerCase()}${isFamily(g) ? ' anywhere' : ''}` : g.type === 'shortest' ? `Shortest ${g.move}` : 'Where the half-turn goes round';
+      const name = g.type === 'match' ? (g.line ? 'Flip across the crossing line' : MOVE_WORDS[g.move]) : g.type === 'cant' ? `No ${g.move === 'slide' ? `slide of ${g.by}` : MOVE_WORDS[g.move].toLowerCase()}${isFamily(g) ? ' anywhere' : ''}` : g.type === 'shortest' ? `Shortest ${g.move}` : 'Where the half-turn goes round';
       const label = {cant: 'Can’t', shortest: 'Shortest', centre: 'Turn here'}[g.type];
       const btn = g.type === 'match' || ok || done ? '' : uiButton(label, {claim: claim === i ? null : i}, 'fz-claim', {focus: `fz-claim-${i}`, pressed: claim === i, enabled: canClaim(q, b, i), hinted: hinted?.button === `claim-${i}` && claim !== i});
       return `<div class="fz-goal${ok ? ' done' : ''}${g.type === 'cant' ? ' no' : ''}" role="group" aria-label="${esc(`${name}${ok ? ', done' : ''}`)}">${icon}${btn}</div>`;
@@ -667,8 +741,16 @@ function render(p, a) {
   }
   const told = said && claim === null ? whyText(q.goals[said.goal], said.why) : '';
   const prompt = goal ? (goal.type === 'centre' ? 'Tap the point.' : isFamily(goal) ? 'Tap an F, then what it becomes.' : goal.type === 'cant' ? 'Tap an F, then where it lands.' : 'Tap an F, then the nearest one it can land on.') : '';
-  const note = told || prompt ? `<p class="fz-told">${esc(told || prompt)}</p>` : '';
-  const status = `${describeCell(cell)} ${claim === null ? describeCopy(cell, b.copy) : prompt}${told ? ` ${told}` : ''}${hinted?.text && a.hintLevel >= 2 ? ` Hint: ${hinted.text}` : ''}`;
+  // Why a claim is off when nothing else is said: a row is empty, or a
+  // refusal stands on this board (after Undo, or coming back to it).
+  let why = '';
+  if (!play && !done && !told && !prompt) {
+    const waiting = q.goals.map((g, i) => i).filter(i => q.goals[i].type !== 'match' && !isDone(b, i));
+    if (!bothRows(cell) && waiting.some(i => q.goals[i].type === 'cant' && b.tried.includes(tryKey(q.goals[i])))) why = 'A border needs an F in each row.';
+    else if (waiting.some(i => lockedOn(q, b, i))) why = waiting.some(i => lockedOn(q, b, i) && q.goals[i].type === 'shortest') ? 'Shortest was refused with the copy here.' : 'A claim was refused on this border.';
+  }
+  const note = told || prompt || why ? `<p class="fz-told${why && !told && !prompt ? ' fz-quiet' : ''}">${esc(told || prompt || why)}</p>` : '';
+  const status = `${describeCell(cell)} ${claim === null ? describeCopy(q, cell, b.copy) : prompt}${told ? ` ${told}` : ''}${why ? ` ${why}` : ''}${hinted?.text && a.hintLevel >= 2 ? ` Hint: ${hinted.text}` : ''}`;
   return `<div class="fz-puzzle${done ? ' solved' : ''}${claim !== null ? ' claiming' : ''}${editMode !== 'none' && !done ? ' editing' : ''}" data-mechanic-wire="friezes">${goals}${svg}${note}${tools}<p class="sr-only" role="status">${esc(status.trim())}</p></div>`;
 }
 
@@ -711,14 +793,14 @@ function tap(p, api, [x, y]) {
     const goal = q.goals[state.claim];
     if (goal.type === 'centre') { const m2 = Math.max(2 * from + 1, Math.min(2 * to - 1, Math.round(x / (SW / 2)))); api.apply({type: 'centre', goal: state.claim, pick: m2}); return; }
     if (c < from || c >= to) return;
+    // Any place is a tap, an F or a gap; the claim is judged when the last
+    // tap is in. Tapping the first place again takes it back.
     const first = state.picks[0];
     if (!first || isFamily(goal)) {
-      if (at(b.cell, c, r) === null) return;
       api.ui({picks: first && first[0] === c && first[1] === r ? [] : [[c, r]]});
       return;
     }
     if (first[0] === c && first[1] === r) { api.ui({picks: []}); return; }
-    if (goal.type === 'shortest' && at(b.cell, c, r) === null) return;
     api.apply({type: goal.type, goal: state.claim, pick: [first, [c, r]]});
     return;
   }
@@ -767,13 +849,19 @@ function wire(root, p, api) {
   });
 }
 
+// Undo takes back a move, never a refusal: the board Undo goes back to gets
+// every refusal made since (each is about its own board, so they all stay
+// true), and the words of a refusal go.
 function keepRefusals(p, from, to) {
   const q = p.parameters;
   Object.assign(ui(p), {claim: null, picks: [], held: null});
   if (q.mode === 'playground' || !object(from) || !object(to) || !Array.isArray(from.refused) || !Array.isArray(to.refused)) return to;
-  const keep = from.refused.filter(r => sameCell(from.cell, to.cell) && !(q.goals[r.goal].type === 'shortest' && !sameCopy(from.copy, to.copy)) && !to.done.some(d => d.goal === r.goal) && !to.refused.some(x => x.goal === r.goal));
-  return keep.length ? {...to, refused: [...to.refused, ...keep], last: null} : to;
+  if (JSON.stringify(from.refused) === JSON.stringify(to.refused)) return to;
+  return {...to, refused: from.refused.map(r => ({...r})), last: to.last?.ok === true ? to.last : null};
 }
+// Restart starts the attempt over, refusals and all: the one way to clear a
+// refusal, at the price of everything shown and claimed.
+function restartClean(p) { Object.assign(ui(p), {claim: null, picks: [], held: null}); }
 export const friezeMechanics = {
   friezes: {
     fresh, valid, solved, move, hint, render, wire,
@@ -786,10 +874,8 @@ export const friezeMechanics = {
       if (Array.isArray(payload.picks)) state.picks = payload.picks;
     },
     reset: p => { uiState.delete(p.id); },
-    // Undo and Restart keep a refused claim while the border it was about is
-    // the same (and a refused Shortest while the copy is where it was).
     carry: keepRefusals,
-    carryOnRestart: keepRefusals,
+    carryOnRestart: (p, from, to) => { restartClean(p); return to; },
     noHint: p => p.parameters.mode === 'playground'
   }
 };
