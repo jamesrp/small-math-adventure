@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
 import {playView} from '../dist/ui.js';
-import {cornerMechanics, totalOf, foldOf, canonOf, sameRing, answersOf, fillsOf, possible, smallestRing, judgeShelf, judgeCant, isProof, planToward, coneOf, foldedFaces, piecePoints, startsOf, lapPath, caseRows, piecesOf, facesOf, tintsOf, holdsOn, isTree, endLine, nearestLine, nearestDot, treeMap} from '../dist/families/corners/corners.js';
+import {cornerMechanics, totalOf, foldOf, canonOf, sameRing, answersOf, fillsOf, possible, smallestRing, judgeShelf, judgeCant, isProof, planToward, coneOf, foldedFaces, piecePoints, startsOf, lapPath, caseRows, piecesOf, facesOf, tintsOf, holdsOn, isTree, endLine, leafTap, TREE_NOTE, nearestLine, nearestDot, treeMap} from '../dist/families/corners/corners.js';
 import corners from '../dist/families/corners/corners.js';
 import {loadPack} from '../scripts/packs.mjs';
 
@@ -346,6 +346,46 @@ test('trees: end dots come off a tree with their lines, down to one dot', () => 
   const g = treeMap(q);
   assert.equal(nearestDot(q, ['A', 'B'], [g.pos.A[0] + 3, g.pos.A[1] + 2]), 'A');
   assert.equal(nearestDot(q, ['A'], [50, 50]), null, 'too far from any dot');
+});
+
+test('trees: a tap that takes no end dot off says the rule, until the board changes', () => {
+  const p = tree(3), q = p.parameters, g = treeMap(q), trees = cornerMechanics['corner-trees'];
+  const a = play(p, freshAttempt(p), ...p.solution.route.map(line => ({type: 'line', line})));
+  const ends = Object.keys(q.nodes).filter(id => endLine(q, a.board, id) !== null), inner = Object.keys(q.nodes).find(id => !ends.includes(id));
+  // Where a tap in the end-dot stage goes: an end dot comes off; a dot with
+  // more lines, or a line away from the dots, is refused; elsewhere, nothing.
+  assert.deepEqual(leafTap(q, a.board, g.pos[ends[0]]), {dot: ends[0]});
+  assert.deepEqual(leafTap(q, a.board, [g.pos[inner][0] + 3, g.pos[inner][1] - 2]), {refuse: inner});
+  const af = q.edges.findIndex(([u, v]) => u === 'A' && v === 'F'), mid = [0, 1].map(k => (g.pos.A[k] + g.pos.F[k]) / 2);
+  assert.ok(!a.board.erased.includes(af) && nearestDot(q, Object.keys(q.nodes), mid) === null, 'a line’s middle, away from the dots');
+  assert.deepEqual(leafTap(q, a.board, mid), {refuse: null}, 'a tap on a line is refused');
+  assert.equal(leafTap(q, a.board, [2, 2]), null, 'a tap on neither does nothing');
+  // The words state the rule and mark nothing.
+  assert.equal(TREE_NOTE, 'Only an end dot comes off.');
+  trees.reset(p);
+  assert.equal(told(view(p, a)), null, 'nothing said before a tap');
+  trees.ui(p, {note: 'end', at: JSON.stringify(a.board)});
+  const html = view(p, a);
+  assert.equal(told(html), TREE_NOTE);
+  assert.match(html, /role="status">[^<]*Only an end dot comes off\./, 'heard as well');
+  assert.doesNotMatch(html, /gb-node[^"]*hinted/, 'no dot marked');
+  assert.equal(told(view(p, a)), TREE_NOTE, 'said while the board is the same');
+  // Cleared by the next move, and it doesn't come back with the board.
+  const b = play(p, a, {type: 'dot', id: ends[0]});
+  assert.equal(told(view(p, b)), null, 'the next move clears it');
+  assert.equal(told(view(p, a)), null, 'and it is gone');
+  // Cleared by Undo, by a restart and by any other ui payload.
+  trees.ui(p, {note: 'end', at: JSON.stringify(b.board)});
+  assert.equal(told(view(p, b)), TREE_NOTE);
+  assert.equal(told(view(p, undo(b))), null, 'Undo clears it');
+  trees.ui(p, {note: 'end', at: JSON.stringify(a.board)}); trees.reset(p);
+  assert.equal(told(view(p, a)), null, 'a restart clears it');
+  trees.ui(p, {note: 'end', at: JSON.stringify(a.board)}); trees.ui(p, {note: 'other'});
+  assert.equal(told(view(p, a)), null, 'an unknown note clears it');
+  // Not said before a tree is left or once one dot is left.
+  trees.ui(p, {note: 'end', at: JSON.stringify(freshAttempt(p).board)});
+  assert.equal(told(view(p, freshAttempt(p))), null, 'not while lines are erased');
+  trees.reset(p);
 });
 
 test('trees: taps go to the nearest line', () => {

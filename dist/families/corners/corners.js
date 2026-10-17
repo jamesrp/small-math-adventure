@@ -705,8 +705,30 @@ function hintTree(p, b) {
   const peel = present(q, b.erased).find(i => !holdsOn(faces, i) && faces.sides[i].includes('out')) ?? present(q, b.erased).find(i => !holdsOn(faces, i));
   return {type: 'move', action: {type: 'line', line: peel}, text: 'Erase a line with the outside on one side and a shaded region on the other.', line: peel};
 }
+// Why a tap in the end-dot stage took nothing off, said until the board
+// changes (the next move, Undo or Apply hint) or the puzzle starts again. It
+// states the rule, not which dots are end dots, and is not saved.
+const treeNotes = new Map();
+export const TREE_NOTE = 'Only an end dot comes off.';
+const noteOf = (p, b) => {
+  const n = treeNotes.get(p.id);
+  if (n && n.at === JSON.stringify(b)) return TREE_NOTE;
+  treeNotes.delete(p.id);
+  return null;
+};
+// What a tap at a board point does in the end-dot stage: the nearest dot left
+// within a fingertip comes off if it is an end dot ({dot}), else is refused
+// ({refuse}); a tap on a line, away from the dots, is refused too; a tap on
+// neither does nothing (null).
+export function leafTap(q, b, point) {
+  const gone = new Set(goneOf(b).map(([id]) => id));
+  const id = nearestDot(q, Object.keys(q.nodes).filter(d => !gone.has(d)), point);
+  if (id !== null) return endLine(q, b, id) !== null ? {dot: id} : {refuse: id};
+  return q.edges.some((_, i) => lineDistance(q, i, point) < 9) ? {refuse: null} : null;
+}
 function renderTree(p, att) {
   const q = p.parameters, b = att.board, g = treeMap(q), done = solvedTree(p, b), taking = leafing(q, b);
+  const said = taking && !done ? noteOf(p, b) : null;
   const hinted = att.hintLevel >= 2 && !done ? hintTree(p, b) : null;
   const pieces = piecesOf(q, b.erased), faces = facesOf(q, b.erased), tints = tintsOf(q, b.erased), tree = isTree(q, b.erased);
   const gone = new Set(goneOf(b).map(([id]) => id)), goneLines = new Set(goneOf(b).map(([, line]) => line));
@@ -736,24 +758,32 @@ function renderTree(p, att) {
     gone.size ? `Taken off: ${goneOf(b).map(([id]) => id).join(', ')}.` : '',
     pieces.count === 1 ? 'Every dot is joined.' : 'Some dots are cut off.',
     faces.closed.length ? 'Some of the drawing is shaded.' : 'Nothing is shaded.',
-    tree ? 'A tree.' : '', done && q.leaves ? 'One dot is left.' : ''
+    tree ? 'A tree.' : '', done && q.leaves ? 'One dot is left.' : '', said || ''
   ].filter(Boolean).join(' ');
-  return `<div class="ct-puzzle${done ? ' solved' : ''}" data-mechanic-wire="corners">${board}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="ct-puzzle${done ? ' solved' : ''}" data-mechanic-wire="corners">${board}${said ? `<p class="cr-told">${esc(said)}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 // A tap anywhere on a line's wide hit area goes to the nearest line, so where
 // the hit areas of lines meeting at a dot overlap, the line under the finger
 // wins. Once end dots are being taken off, the lines are no longer controls
-// and a tap goes to the nearest dot left. Keys go to the focused line or dot.
+// and a tap goes to the nearest dot left; a tap on a dot that isn't an end
+// dot, or on a line, says the rule. Keys go to the focused line or dot.
 function wireTree(root, p, api) {
   const q = p.parameters, svg = root.querySelector('[data-gb-board]');
   if (!svg) return;
   const at = e => { const m = svg.getScreenCTM?.(); if (!m || !e.clientX && !e.clientY) return null; const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse()); return [pt.x, pt.y]; };
+  // Focus the dot first (a dot left, for a tap on a line), so focus stays on
+  // the board after the move or the words.
+  const takeOff = (id, refuse) => {
+    const b = api.attempt().board;
+    svg.querySelector(id ? `[data-gb-node="${CSS.escape(id)}"]` : '[data-gb-node]')?.focus({preventScroll: true});
+    if (!refuse && endLine(q, b, id) !== null) { treeNotes.delete(p.id); api.apply({type: 'dot', id}); }
+    else api.ui({note: 'end', at: JSON.stringify(b)});
+  };
   svg.addEventListener('click', e => {
     if (svg.classList.contains('ct-leafing')) {
-      const point = at(e), left = [...svg.querySelectorAll('[data-gb-node]')].map(el => el.dataset.gbNode);
-      const id = point ? nearestDot(q, left, point) : e.target.closest?.('[data-gb-node]')?.dataset.gbNode;
-      // Focus the dot first, so focus stays on the board after the move.
-      if (id) { svg.querySelector(`[data-gb-node="${CSS.escape(id)}"]`)?.focus({preventScroll: true}); api.apply({type: 'dot', id}); }
+      const point = at(e), id = e.target.closest?.('[data-gb-node]')?.dataset.gbNode;
+      const tapped = point ? leafTap(q, api.attempt().board, point) : id ? {dot: id} : null;
+      if (tapped) takeOff(tapped.dot ?? tapped.refuse, 'refuse' in tapped);
       return;
     }
     const hit = e.target.closest?.('[data-gb-edge]');
@@ -766,19 +796,20 @@ function wireTree(root, p, api) {
     const control = e.target.closest?.('[data-gb-edge],[data-gb-node]');
     if (!control) return;
     e.preventDefault();
-    api.apply(control.dataset.gbNode !== undefined ? {type: 'dot', id: control.dataset.gbNode} : {type: 'line', line: Number(control.dataset.gbEdge)});
+    if (control.dataset.gbNode !== undefined) takeOff(control.dataset.gbNode, false);
+    else api.apply({type: 'line', line: Number(control.dataset.gbEdge)});
   });
 }
-// The line nearest a point of the board (in board units).
-export function nearestLine(q, [x, y]) {
-  const g = treeMap(q);
+// How far a point of the board is from line i (in board units).
+function lineDistance(q, i, [x, y]) {
+  const g = treeMap(q), [u, v] = q.edges[i], [x1, y1] = g.pos[u], [x2, y2] = g.pos[v], dx = x2 - x1, dy = y2 - y1;
+  const t = Math.max(0, Math.min(1, ((x - x1) * dx + (y - y1) * dy) / (dx * dx + dy * dy || 1)));
+  return Math.hypot(x - x1 - t * dx, y - y1 - t * dy);
+}
+// The line nearest a point of the board.
+export function nearestLine(q, point) {
   let best = 0, dist = Infinity;
-  q.edges.forEach(([u, v], i) => {
-    const [x1, y1] = g.pos[u], [x2, y2] = g.pos[v], dx = x2 - x1, dy = y2 - y1;
-    const t = Math.max(0, Math.min(1, ((x - x1) * dx + (y - y1) * dy) / (dx * dx + dy * dy || 1)));
-    const d = Math.hypot(x - x1 - t * dx, y - y1 - t * dy);
-    if (d < dist) { dist = d; best = i; }
-  });
+  q.edges.forEach((_, i) => { const d = lineDistance(q, i, point); if (d < dist) { dist = d; best = i; } });
   return best;
 }
 // The dot nearest a point among `ids`, within a fingertip (12 board units).
@@ -805,7 +836,16 @@ export const cornerMechanics = {
     },
     noHint: p => p.parameters.mode === 'playground'
   },
-  'corner-trees': {fresh: freshTree, valid: validTree, solved: solvedTree, move: moveTree, hint: hintTree, render: renderTree, wire: wireTree}
+  'corner-trees': {
+    fresh: freshTree, valid: validTree, solved: solvedTree, move: moveTree, hint: hintTree, render: renderTree, wire: wireTree,
+    // The end-dot stage's words: set by a refused tap with the board it was
+    // said on, anything else clears them.
+    ui(p, payload) {
+      if (object(payload) && payload.note === 'end' && typeof payload.at === 'string') treeNotes.set(p.id, {at: payload.at});
+      else treeNotes.delete(p.id);
+    },
+    reset: p => { treeNotes.delete(p.id); }
+  }
 };
 
 export default {

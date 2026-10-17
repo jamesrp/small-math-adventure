@@ -270,15 +270,35 @@ try {
   assert.equal(await page.locator('.ct-map.ct-leafing').count(), 1, 'a tree: end dots can come off');
   assert.equal(await page.locator('.ct-map .gb-hit').count(), 0, 'the lines are no longer controls');
   assert.equal(await page.locator('#completion-heading').count(), 0, 'a tree is not the end here');
-  // Which dots are end dots now: A (AF), B (BE), C (CD).
+  // Which dots are end dots now: A (AF), B (BE), C (CD). A tap that takes
+  // nothing off says the rule (not which dots are end dots), is not a move,
+  // and goes at the next move.
+  const RULE = 'Only an end dot comes off.';
+  const moves3 = () => page.evaluate(([k, id]) => JSON.parse(localStorage.getItem(k)).profiles[0].attempts[id]?.moves, [key, T3]);
+  const before3 = await moves3(), marked3 = () => page.locator('.ct-map .gb-node.hinted, .ct-map .gb-node.ringed').count(), marks3 = await marked3();
   await tapAt(await onScreen('.ct-map', at3('E')));
   assert.deepEqual((await board(T3)).gone, [], 'a dot with more lines stays');
+  assert.equal(await told(), RULE, 'a tap on a dot with more lines says the rule');
+  assert.equal(await moves3(), before3, 'a refused tap is not a move');
+  assert.equal(await marked3(), marks3, 'and marks no dot (beyond the hint already showing)');
+  await focusOk('after a refused dot');
   await tapAt(await onScreen('.ct-map', [at3('A')[0] + 3.5, at3('A')[1] + 2]));
   assert.deepEqual((await board(T3)).gone, [['A', 7]], 'a tap near an end dot takes it off with its line');
+  assert.equal(await told(), null, 'the next move clears the words');
   assert.equal(await page.locator('.ct-map .gb-node.gone').count(), 1, 'drawn faint');
   await focusOk('after taking a dot off');
+  // A tap on a line, between E and F away from the dots, says the rule too.
+  await tapAt(await onScreen('.ct-map', [0, 1].map(k => (at3('E')[k] + at3('F')[k]) / 2)));
+  assert.equal(await told(), RULE, 'a tap on a line says the rule');
+  assert.equal((await board(T3)).gone.length, 1, 'and takes nothing off');
+  await focusOk('after a refused line');
+  await page.locator('.ct-map [data-gb-node="D"]').focus(); await page.keyboard.press('Enter');
+  assert.equal(await told(), RULE, 'Enter on a dot with more lines says the rule');
+  assert.equal((await board(T3)).gone.length, 1);
+  await focusOk('after Enter on a refused dot');
   await page.locator('.ct-map [data-gb-node="B"]').focus(); await page.keyboard.press('Enter');
   assert.equal((await board(T3)).gone.length, 2, 'Enter on an end dot');
+  assert.equal(await told(), null, 'and the words go');
   await shot('octahedron-leaves');
   await undoButton();
   assert.equal((await board(T3)).gone.length, 1, 'Undo puts a dot back');
