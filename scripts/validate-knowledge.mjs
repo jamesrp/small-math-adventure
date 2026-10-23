@@ -116,7 +116,10 @@ const refuse = (p, a, action, why) => assert.equal(move(p, a, action), null, `${
 const takeBack = (p, a) => undo(a);
 function seeded(seed) { let x = seed >>> 0; return () => { x = (x * 1664525 + 1013904223) >>> 0; return x / 2 ** 32; }; }
 const view = (p, a) => mechanicFor(p).render(p, {...a, hintLevel: 0}, {});
+const same = (x, y) => JSON.stringify(x) === JSON.stringify(y);
 const movesOf = html => [...html.matchAll(/data-move="([^"]+)"/g)].map(x => JSON.parse(x[1].replace(/&quot;/g, '"')));
+// The moves of the controls a child can press (enabled buttons).
+const liveMovesOf = html => [...html.matchAll(/<button\b[^>]*>/g)].map(x => x[0]).filter(tag => !/\sdisabled[\s>]/.test(tag) && /data-move="/.test(tag)).map(tag => JSON.parse(tag.match(/data-move="([^"]+)"/)[1].replace(/&quot;/g, '"')));
 // The refusal a control would give: the ui payload of the button with this class.
 function refusalOn(html, cls) {
   const m = html.match(new RegExp(`class="[^"]*${cls}[^"]*" data-action="mechanic-ui" data-ui='([^']+)'`));
@@ -135,9 +138,12 @@ function hintSolve(p, a, limit = 200) {
   return k;
 }
 // Random legal play: any control the board offers, as a child might tap.
+// Every enabled control is a legal move (none answers "That move is not allowed").
 function wander(p, a, rnd, steps) {
   for (let s = 0; s < steps && !isSolved(p, a.board); s++) {
-    const live = movesOf(view(p, a)).map(action => move(p, a, action)).filter(Boolean);
+    const html = view(p, a);
+    for (const action of liveMovesOf(html)) assert.ok(move(p, a, action), `${p.id}: the enabled control ${JSON.stringify(action)} is legal on ${JSON.stringify(a.board)}`);
+    const live = movesOf(html).map(action => move(p, a, action)).filter(Boolean);
     if (!live.length) break;
     const next = live[Math.floor(rnd() * live.length)];
     if (!isSolved(p, next.board)) a = next;
@@ -192,6 +198,7 @@ export default async function validateKnowledge() {
     }
     checkUndoPresses(p);
   }
+  checkRefusalLifetime(pack);
   assert.equal(pack.puzzles.filter(p => p.parameters.mode !== 'playground').length, 13);
   return report;
 }
@@ -257,22 +264,50 @@ function checkWitnessAndRefusals(p) {
   const removeStep = (table, keep) => {
     const off = table.filter(w => !keep.includes(w)).map(w => name(kind, n, w)), on = keep.map(w => name(kind, n, w));
     // Every single slip: one card wrongly kept, or one fitting card removed.
+    // A card the child changed since the last Next press is marked; one never
+    // touched is not (the line says only that a card left should go), so a
+    // refusal never does the card-by-card check for the child.
+    const tap = cards => cards.map(card => ({type: 'card', card}));
+    const press = b => { const told = refusalOn(view(p, b), 'wk-next'); m.ui(p, told); return told.told; };
     for (const slip of off) {
-      const b = play(p, a, off.filter(x => x !== slip).map(card => ({type: 'card', card})));
+      const b = play(p, a, tap(off.filter(x => x !== slip)));
       refuse(p, b, {type: 'next'}, `Next with ${slip} kept`);
       m.reset(p);
       const told = refusalOn(view(p, b), 'wk-next');
-      assert.ok(told && told.told.why === 'kept' && told.told.cards[0] === slip, `${p.id}: the refusal names ${slip}`);
+      assert.ok(told && told.told.why === 'kept' && told.told.cards.length === 0, `${p.id}: an untouched ${slip} is not named`);
+      if (on.length) {
+        // Taken off with a fitting card, pressed, then both put back: now the slip is the child's change.
+        m.reset(p);
+        let c = play(p, a, tap([...off, on[0]]));
+        assert.deepEqual(press(c), {why: 'removed', cards: [on[0]]}, `${p.id}: the fitting card taken off is named`);
+        c = play(p, c, tap([on[0], slip]));
+        const again = refusalOn(view(p, c), 'wk-next');
+        assert.ok(again && again.told.why === 'kept' && same(again.told.cards, [slip]), `${p.id}: ${slip}, put back after a press, is named`);
+      }
       refused++;
     }
     for (const slip of on) {
-      const b = play(p, a, [...off, slip].map(card => ({type: 'card', card})));
+      const b = play(p, a, tap([...off, slip]));
       refuse(p, b, {type: 'next'}, `Next with ${slip} removed`);
       m.reset(p);
       const told = refusalOn(view(p, b), 'wk-next');
-      assert.ok(told && told.told.why === 'removed' && told.told.cards[0] === slip, `${p.id}: the refusal names ${slip}`);
+      assert.ok(told && told.told.why === 'removed' && same(told.told.cards, [slip]), `${p.id}: the refusal names ${slip}`);
       refused++;
     }
+    // Taking every card off, then Next and tapping the marked card, names one
+    // card only: the next press says a card taken off fits, without naming it.
+    m.reset(p);
+    let all = play(p, a, tap(table.map(w => name(kind, n, w))));
+    if (on.length) {
+      const first = press(all);
+      assert.ok(first.why === 'removed' && first.cards.length === 1 && on.includes(first.cards[0]), `${p.id}: one fitting card named`);
+      assert.match(view(p, all), /class="primary wk-button wk-next[^"]*"[^>]*disabled/, `${p.id}: Next waits for a change after a refusal`);
+      all = play(p, all, tap(first.cards));
+      const second = refusalOn(view(p, all), 'wk-next')?.told;
+      if (on.length > 1) assert.deepEqual(second, {why: 'removed', cards: []}, `${p.id}: the second press names no card`);
+      else assert.equal(second, undefined, `${p.id}: the removal is right`);
+    }
+    m.reset(p);
     a = play(p, a, [...off.map(card => ({type: 'card', card})), {type: 'next'}]);
   };
   if (q.mode === 'fit') {
@@ -393,11 +428,43 @@ function checkUndoPresses(p) {
   }
 }
 
+// A refusal lasts until the next move of any kind: a card, Undo or Again.
+// (lastPlayed: 0 stands for the time passing between a move and a press.)
+function checkRefusalLifetime(pack) {
+  const byId = id => pack.puzzles.find(x => x.id === id);
+  const p = byId('knowledge-05'), m = mechanicFor(p), line = 'A card on the table gives another answer.';
+  m.reset(p);
+  const a = {...freshAttempt(p), lastPlayed: 0};
+  m.ui(p, refusalOn(view(p, a), 'wk-next'));
+  assert.ok(view(p, a).includes(line), 'knowledge-05: the refusal shows');
+  assert.ok(view(p, {...a, hintLevel: 1}).includes(line), 'knowledge-05: a Hint press keeps it');
+  const b = play(p, a, [{type: 'card', card: 'NYY'}]);
+  assert.ok(!view(p, b).includes(line), 'knowledge-05: a card takes it away');
+  assert.ok(!view(p, undo(b)).includes(line), 'knowledge-05: Undo does not bring it back');
+  assert.ok(!view(p, play(p, b, [{type: 'card', card: 'NYY'}])).includes(line), 'knowledge-05: nor does tapping the card again');
+  const d = byId('knowledge-09'), md = mechanicFor(d), cannot = 'No deal gives that answer.';
+  md.reset(d);
+  const e = {...freshAttempt(d), lastPlayed: 0};
+  md.ui(d, refusalOn(view(d, e), 'wk-r-yes'));
+  assert.ok(view(d, e).includes(cannot), 'knowledge-09: the refusal shows');
+  const t = cafeTables(3, ['no', 'no', 'no']);
+  const f = play(d, e, [{type: 'say', reply: 'no'}, ...t[0].filter(w => !t[1].includes(w)).map(w => ({type: 'card', card: name('cafe', 3, w)})), {type: 'next'}, {type: 'say', reply: 'no'}, {type: 'next'}, {type: 'say', reply: 'no'}, {type: 'next'}, {type: 'again'}]);
+  assert.deepEqual(f.board, e.board, 'knowledge-09: Again returns to the fresh board');
+  assert.ok(!view(d, f).includes(cannot), 'knowledge-09: Again does not bring the refusal back');
+}
+
 function checkPlayground(p) {
   const m = mechanicFor(p);
   assert.equal(m.noHint(p), true, `${p.id}: no Hint`);
   let a = freshAttempt(p);
   assert.equal(nextHint(p, a).type, 'done');
+  // The chosen number of dolls is inert; every set-up control is legal.
+  for (const n of [2, 3, 4]) {
+    const s = n === a.board.n ? a : play(p, a, [{type: 'size', n}]), html = view(p, s);
+    assert.ok(!movesOf(html).some(x => x.type === 'size' && x.n === n), `${p.id}: ${n} dolls chosen, its button is not a move`);
+    assert.match(html, new RegExp(`class="wk-size" data-action="mechanic-ui"[^>]*aria-pressed="true" aria-label="${n} dolls"`), `${p.id}: the chosen count does nothing`);
+    for (const action of liveMovesOf(html)) assert.ok(move(p, s, action), `${p.id}: set-up control ${JSON.stringify(action)} is legal`);
+  }
   // Every deal of two to four dolls, with and without the announcement, played to its end.
   for (const n of [2, 3, 4]) {
     if (a.board.n !== n) a = play(p, a, [{type: 'size', n}]);

@@ -6,9 +6,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {freshAttempt, move, isSolved, nextHint, validBoard} from '../dist/engine.js';
+import {freshAttempt, move, isSolved, nextHint, validBoard, undo as engineUndo} from '../dist/engine.js';
 import {playView} from '../dist/ui.js';
-import knowledgeModule, {knowledgeMechanics, worlds, cafeReply, dollReply, roundOf, after, ruledOut, fault, runOf, conversations, coachRun, fitTables, claimable} from '../dist/families/knowledge/knowledge.js';
+import knowledgeModule, {knowledgeMechanics, worlds, cafeReply, dollReply, roundOf, after, ruledOut, fault, nextRefusal, runOf, conversations, coachRun, fitTables, claimable} from '../dist/families/knowledge/knowledge.js';
 import {loadPack} from '../scripts/packs.mjs';
 
 const own = JSON.parse(await readFile(new URL('../dist/families/knowledge/knowledge.json', import.meta.url), 'utf8'));
@@ -117,17 +117,25 @@ test('Problems 2–4: k blue dolls prove in round k; no announcement, never', ()
   assert.equal(coachRun({n: 4, deal: 'BBBR', least: 2}).proved, 2);
 });
 
-test('removing cards and Next: a card wrongly kept or removed is refused with its answers', () => {
+test('removing cards and Next: a refusal marks only a card the child changed, and Next waits for a change', () => {
   const p = byId('knowledge-05');
-  let a = freshAttempt(p);
+  mech.reset(p);
+  // lastPlayed: 0 stands for the time between the last move and the press.
+  let a = {...freshAttempt(p), lastPlayed: 0};
   assert.equal(move(p, a, {type: 'next'}), null, 'Next with nothing removed');
   let html = board(p, a);
-  assert.deepEqual(uiOf(html, 'wk-next').told, {why: 'kept', cards: ['NYY']});
+  assert.deepEqual(uiOf(html, 'wk-next').told, {why: 'kept', cards: []}, 'no card is named: none was touched');
+  mech.ui(p, uiOf(html, 'wk-next'));
+  html = board(p, a);
+  assert.match(html, /A card on the table gives another answer\./);
+  assert.ok(!html.includes('marked') && !html.includes('wk-whatif'), 'nothing marked, no answers row');
+  assert.match(html, /class="primary wk-button wk-next"[^>]*disabled/, 'Next waits for a change');
   a = play(p, a, ...remove('NYY', 'NYN', 'NNY', 'NNN', 'YYY'));
+  assert.ok(!board(p, a).includes('A card on the table'), 'the refusal went with the move');
   assert.deepEqual(fault(runOf(p.parameters, a.board).S, {type: 'say', who: 0, reply: N}, a.board.out), {why: 'removed', card: 'YYY'});
-  mech.ui(p, {...uiOf(board(p, a), 'wk-next'), at: JSON.stringify(a.board)});
-  html = mech.render(p, {...a, hintLevel: 0}, {});
-  assert.match(html, /This card gives the same answer\./);
+  mech.ui(p, uiOf(board(p, a), 'wk-next'));
+  html = board(p, a);
+  assert.match(html, /This card gives the same answer\./, 'YYY was taken off since the last press');
   assert.match(html, /wk-whatif-line/, 'the card’s own answer is shown');
   assert.match(html, /class="wk-card out marked"/);
   a = play(p, a, ...remove('YYY'));
@@ -139,6 +147,51 @@ test('removing cards and Next: a card wrongly kept or removed is refused with it
   assert.match(board(p, a), />That’s all</, 'the last answer is checked by That’s all');
   a = play(p, a, {type: 'next'});
   assert.ok(isSolved(p, a.board));
+});
+
+test('a refused Next: only a card changed since the last press is marked, so Next and the ring cannot finish a step', () => {
+  const p = byId('knowledge-05'), S = worlds('cafe', 3), ev = {type: 'say', who: 0, reply: N};
+  const stay = ['YYY', 'YYN', 'YNY', 'YNN'], go = ['NYY', 'NYN', 'NNY', 'NNN'];
+  assert.deepEqual(ruledOut(S, ev), go);
+  assert.deepEqual(nextRefusal(S, ev, []), {why: 'kept', cards: []}, 'nothing touched, nothing named');
+  assert.deepEqual(nextRefusal(S, ev, S), {why: 'removed', cards: ['YYY']}, 'all taken off: one fitting card named');
+  assert.deepEqual(nextRefusal(S, ev, S.filter(w => w !== 'YYY'), S), {why: 'removed', cards: []}, 'then put back: the rest are not named');
+  assert.deepEqual(nextRefusal(S, ev, ['NYN', 'NNY', 'NNN', 'YYN'], [...go, 'YYN']), {why: 'kept', cards: ['NYY']}, 'a card put back since the press is named');
+  assert.equal(nextRefusal(S, ev, go, []), null);
+  // The loop the review found: Next, tap the ring, Next ... names one card, then none.
+  mech.reset(p);
+  let a = {...freshAttempt(p), lastPlayed: 0}, named = 0;
+  a = play(p, a, ...remove(...S));
+  for (let k = 0; k < 6; k++) {
+    const u = uiOf(board(p, a), 'wk-next');
+    if (!u) break;
+    mech.ui(p, u);
+    if (!u.told.cards.length) break;
+    named++;
+    a = {...play(p, a, ...remove(...u.told.cards)), lastPlayed: 0};
+  }
+  assert.equal(named, 1, 'one card named, then only the line');
+  assert.match(board(p, a), /A card you took off gives the same answer\./);
+});
+
+test('a refusal goes with the next move: a card, Undo or Again', () => {
+  const p = byId('knowledge-05'), line = 'A card on the table gives another answer.';
+  mech.reset(p);
+  const a = {...freshAttempt(p), lastPlayed: 0};
+  mech.ui(p, uiOf(board(p, a), 'wk-next'));
+  assert.ok(board(p, a).includes(line));
+  const b = play(p, a, ...remove('NYY'));
+  assert.ok(!board(p, b).includes(line));
+  assert.ok(!board(p, engineUndo(b)).includes(line), 'Undo does not bring it back');
+  assert.ok(!board(p, play(p, b, ...remove('NYY'))).includes(line), 'nor does tapping the card again');
+  const d = byId('knowledge-09'), cannot = 'No deal gives that answer.';
+  mech.reset(d);
+  const e = {...freshAttempt(d), lastPlayed: 0};
+  mech.ui(d, uiOf(board(d, e), 'wk-r-yes'));
+  assert.ok(board(d, e).includes(cannot));
+  const f = play(d, e, {type: 'say', reply: 'no'}, ...remove('YYY', 'YYN', 'YNY', 'YNN'), {type: 'next'}, {type: 'say', reply: 'no'}, {type: 'next'}, {type: 'say', reply: 'no'}, {type: 'next'}, {type: 'again'});
+  assert.deepEqual(f.board, e.board);
+  assert.ok(!board(d, f).includes(cannot), 'Again does not bring it back');
 });
 
 test('replies: the coached doll’s headband is hidden; Show refuses a wrong reply with the cards', () => {
@@ -153,9 +206,9 @@ test('replies: the coached doll’s headband is hidden; Show refuses a wrong rep
   assert.match(board(p, a), /aria-label="Doll 2, headband hidden"/, 'the next doll is coached');
   a = play(p, a, ...replies(P, N, N).slice(1));
   assert.equal(move(p, a, {type: 'show'}), null);
-  const told = uiOf(board(p, a), 'wk-show').told;
-  assert.deepEqual(told, {why: 'could', doll: 0, cards: ['RBR']});
-  mech.ui(p, {told, at: JSON.stringify(a.board)});
+  const shown = uiOf(board(p, a), 'wk-show');
+  assert.deepEqual(shown.told, {why: 'could', doll: 0, cards: ['RBR']});
+  mech.ui(p, shown);
   assert.match(mech.render(p, {...a, hintLevel: 0}, {}), /Doll 1 could be red\./);
   // Tapping a doll coaches it.
   mech.ui(p, {coach: 2, at: JSON.stringify(a.board)});
@@ -273,6 +326,7 @@ test('rendering: the café question, one objective line, no counts', () => {
   assert.match(html, /Remove every deal that doesn’t fit\./);
   assert.ok(!/\d+ (deals|cards) left|of 8/.test(html), 'no count of the cards left');
   assert.equal((html.match(/<button type="button" class="wk-card"/g) || []).length, 8, 'every card is a button');
+  assert.match(html, /aria-label="no, yes, no"><span class="wk-yn wk-N">N<\/span><span class="wk-yn wk-Y">Y<\/span><span class="wk-yn wk-N">N<\/span>/, 'café cards show a letter per person');
   const coach = byId('knowledge-03');
   assert.match(view(coach, freshAttempt(coach)), /Keep going until every blue doll proves blue\./);
   assert.match(view(coach, freshAttempt(coach)), /At least one is blue\./);
@@ -283,7 +337,11 @@ test('the playground: set-up until the first move, never solved, no hints', () =
   let a = freshAttempt(p);
   assert.equal(mech.noHint(p), true);
   assert.equal(nextHint(p, a).type, 'done');
+  assert.match(board(p, a), /class="wk-size" data-action="mechanic-ui"[^>]*aria-pressed="true" aria-label="3 dolls"/, 'the chosen count is not a move');
+  mech.ui(p, {noop: true});
+  assert.equal(move(p, a, {type: 'size', n: 3}), null);
   a = play(p, a, {type: 'size', n: 4}, {type: 'flip', doll: 2}, {type: 'flip', doll: 3});
+  assert.match(board(p, a), /class="wk-size" data-action="expansion-move" data-move="[^"]*&quot;n&quot;:3\}"/, '3 dolls is a move again');
   assert.equal(a.board.deal, 'BBBB');
   a = play(p, a, ...remove('RRRR'));
   assert.equal(move(p, a, {type: 'flip', doll: 0}), null, 'set-up locks once play starts');

@@ -1,7 +1,7 @@
 /* Who knows: a box of figures (café people holding a face-down card, dolls
    with blue or red headbands) above rows of what was heard; possibility cards
-   on a paper table below. Blue and red headbands carry their letter; YES and
-   NO are words. Ochre marks the doll being coached, the step being checked and
+   on a paper table below. Every card letter (Y and N, B and R) is at least
+   13 px, so the letter, not only the colour, can be read. Ochre marks the doll being coached, the step being checked and
    what a refusal or hint points at; pine ticks steps that are done. */
 .wk-puzzle{display:flex;flex-direction:column;align-items:center;gap:.7rem;width:100%;max-width:600px;margin:0 auto;--blue:#3c74b4;--red:#b9473a}
 .wk-question{margin:0;font:400 1.15rem/1.3 var(--b-display,Georgia,serif);color:var(--b-ink,#294439);text-align:center}
@@ -23,8 +23,8 @@
 .wk-band-b{fill:var(--blue);stroke:var(--b-ink,#294439);stroke-width:1.2}
 .wk-band-r{fill:var(--red);stroke:var(--b-ink,#294439);stroke-width:1.2}
 .wk-band-hidden{fill:#eceee3;stroke:var(--b-ink,#294439);stroke-width:1.2;stroke-dasharray:2 1.6}
-.wk-band-letter{font:700 9px/1 system-ui,sans-serif;fill:#fff;text-anchor:middle;dominant-baseline:central}
-.wk-band-hidden+.wk-band-letter{fill:var(--b-ink,#294439);font-size:10px}
+.wk-band-letter{font:700 12px/1 system-ui,sans-serif;fill:#fff;text-anchor:middle;dominant-baseline:central}
+.wk-band-hidden+.wk-band-letter{fill:var(--b-ink,#294439);font-size:12px}
 .wk-held{fill:#cfd3c2;stroke:var(--b-ink,#294439);stroke-width:1.2}
 .wk-held-q{font:700 9px/1 system-ui,sans-serif;fill:var(--b-ink,#294439);text-anchor:middle;dominant-baseline:central}
 .wk-num{font:400 .95rem/1 var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850)}
@@ -63,7 +63,7 @@
 
 /* The table of possibility cards. */
 .wk-table{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:8px;width:100%;max-width:520px;padding:10px;box-sizing:border-box;background:#efe9d6;border-radius:14px;--d:24px}
-.wk-n4 .wk-table{--d:19px}
+.wk-n4 .wk-table{--d:22px}
 .wk-card{position:relative;display:flex;align-items:center;justify-content:center;gap:3px;box-sizing:border-box;min-width:0;min-height:calc(var(--d) + 20px);margin:0;padding:6px 3px;background:var(--b-card,#fffdf5);border:2px solid var(--b-ink,#294439);border-radius:10px;box-shadow:0 3px 0 rgba(41,68,57,.3);color:var(--b-ink,#294439);font:inherit}
 .wk-puzzle button.wk-card{cursor:pointer}
 .wk-puzzle button.wk-card:hover{background:#fbf4dc}
@@ -74,15 +74,16 @@
 .wk-card.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
 .wk-card.deal{border-color:var(--b-pine,#31533e);box-shadow:0 0 0 3px var(--b-pine,#31533e)}
 .wk-card:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px;z-index:1}
-.wk-hb{display:inline-grid;place-items:center;box-sizing:border-box;width:var(--d,24px);height:var(--d,24px);border-radius:50%;border:1.5px solid var(--b-ink,#294439);font:700 calc(var(--d,24px) * .52)/1 system-ui,sans-serif;color:#fff;flex:none}
+.wk-hb{display:inline-grid;place-items:center;box-sizing:border-box;width:var(--d,24px);height:var(--d,24px);border-radius:50%;border:1.5px solid var(--b-ink,#294439);font:700 max(13px, calc(var(--d,24px) * .7))/1 system-ui,sans-serif;color:#fff;flex:none}
 .wk-hb.wk-B{background:var(--blue)}
 .wk-hb.wk-R{background:var(--red)}
-.wk-yn{display:inline-grid;place-items:center;box-sizing:border-box;min-width:1.9em;padding:3px 2px;border-radius:5px;border:1.2px solid var(--b-ink,#294439);font:700 .64rem/1 system-ui,sans-serif;letter-spacing:.02em;flex:none}
+.wk-cafe .wk-table{--d:28px}
+.wk-yn{display:inline-grid;place-items:center;box-sizing:border-box;width:var(--d,24px);height:var(--d,24px);border-radius:6px;border:1.5px solid var(--b-ink,#294439);font:700 max(14px, calc(var(--d,24px) * .66))/1 system-ui,sans-serif;color:var(--b-ink,#294439);flex:none}
 .wk-yn.wk-Y{background:#dfeacf}
 .wk-yn.wk-N{background:var(--b-bad-soft,#f5e3d9)}
 .wk-hb.focus,.wk-yn.focus{outline:2.5px solid var(--b-ochre,#b38840);outline-offset:1.5px}
 .wk-mini{display:inline-flex;gap:2px;padding:3px 4px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-ochre,#b38840);border-radius:6px;--d:15px}
-.wk-mini .wk-yn{font-size:.56rem;min-width:1.7em}
+.wk-mini .wk-yn{--d:18px}
 
 /* The playground's set-up. */
 .wk-setup{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .9rem}
@@ -105,12 +106,13 @@
   .wk-chip{padding:3px 4px;font-size:.72rem}
   .wk-label{font-size:.75rem}
   .wk-table{gap:6px;padding:8px;--d:20px}
-  .wk-n4 .wk-table{--d:15px}
+  .wk-n4 .wk-table{--d:16px}
+  .wk-cafe .wk-table{--d:21px}
   .wk-card{gap:2px;padding:5px 2px}
   .wk-n4 .wk-table{gap:5px;padding:7px}
   .wk-n4 .wk-card{gap:1px;padding:4px 1px}
+  .wk-n4 .wk-table .wk-hb{border-width:1px}
   .wk-cafe .wk-card{gap:1px;padding:5px 1px}
-  .wk-yn{font-size:.5rem;min-width:1.6em;padding:3px 1px;border-width:1px}
   .wk-puzzle .wk-button{padding:6px 12px}
 }
 @media (prefers-reduced-motion: reduce){.wk-puzzle *{transition:none!important;animation:none!important}}

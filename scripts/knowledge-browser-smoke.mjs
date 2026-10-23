@@ -1,10 +1,12 @@
 // Plays Who knows through the real interface: removing and putting back
-// cards, a refused Next with the marked card's own answers drawn under the
-// ones heard, That's all, a solve by keyboard, coaching dolls with the
+// cards, a refused Next (a line only for cards never touched; a card taken off
+// or put back since the last press marked, with its own answers drawn under
+// the ones heard; Next waiting for a change; the line gone with the next move,
+// Undo and Again included), That's all, a solve by keyboard, coaching dolls with the
 // coached doll's headband hidden, a refused Show, Can't refused while cards
 // still leave and accepted once the table stops changing, the design's
 // refused answer, a missed goal and Again, the onlookers' reveal, Undo,
-// Apply hint, the playground's set-up, and no page overflow.
+// Apply hint, the playground's set-up (the chosen count inert), and no page overflow.
 // Same environment variables as the other browser suites (PLAYWRIGHT_MODULE,
 // BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone with touch).
 // SHOTS=<dir> also saves tablet (1024 px) and phone (375 px) screenshots.
@@ -29,6 +31,7 @@ const cards = async (...ws) => { for (const w of ws) await tap(card(w)); };
 const button = name => page.getByRole('button', {name, exact: true});
 const press = async name => tap(button(name).first());
 const told = () => page.locator('.wk-told').innerText();
+const noTold = async why => assert.equal(await page.locator('.wk-told').count(), 0, why);
 // Marked cards by their letters, whether they are buttons or drawn only.
 const LETTER = {yes: 'Y', no: 'N', blue: 'B', red: 'R'};
 const marked = () => page.locator('.wk-card.marked').evaluateAll((es, L) => es.map(e => e.getAttribute('aria-label').split(', taken off')[0].split(', ').map(x => L[x]).join('')), LETTER);
@@ -40,21 +43,28 @@ try {
   await page.locator('.caravan-nav [data-action=library]').click();
   assert.equal(await page.locator('.satchel-family[data-view-key="family-knowledge"] .family-ink-symbol').innerText(), '⊨');
 
-  // Puzzle 1: a refused Next names a card and draws its own answer.
+  // Puzzle 1: a refused Next on untouched cards names none; a card taken off is
+  // named with its own answer; Next waits for a change; the line goes with the
+  // next move and Undo does not bring it back.
   await open('knowledge-01'); await fit('knowledge-01');
   assert.equal(await page.locator('.wk-question').innerText(), 'Does everyone want a cup?');
   assert.equal(await page.locator('button.wk-card').count(), 4);
+  assert.equal(await page.locator('.wk-table .wk-yn').first().innerText(), 'Y', 'café cards show letters');
   await press('Next');
-  assert.equal(await told(), 'This card gives another answer.');
-  assert.deepEqual(await marked(), ['NY'], 'the first card that should go is marked');
-  assert.equal(await page.locator('.wk-whatif-line .wk-chip.differ').innerText(), 'No', 'NO, YES would make person 1 say NO');
-  assert.equal((await board('knowledge-01')).steps, 0, 'a refused Next changes nothing');
+  assert.equal(await told(), 'A card on the table gives another answer.');
+  assert.deepEqual(await marked(), [], 'no card touched, none marked');
+  assert.equal(await page.locator('.wk-whatif').count(), 0);
+  assert.ok(await button('Next').isDisabled(), 'Next waits for a change');
+  assert.equal((await board('knowledge-01'))?.steps ?? 0, 0, 'a refused Next changes nothing');
+  await tap(card('NY')); await noTold('the refusal went with the move');
+  await page.locator('[data-action=undo]').click(); await noTold('Undo does not bring the refusal back');
+  assert.equal(await button('Next').isEnabled(), true, 'Next is back after a change');
   await cards('NY', 'NN', 'YY');
-  assert.equal(await page.locator('.wk-told').count(), 0, 'the refusal went with the board');
   assert.equal(await card('YY').getAttribute('aria-pressed'), 'true');
   await press('Next');
   assert.equal(await told(), 'This card gives the same answer.');
-  assert.deepEqual(await marked(), ['YY']);
+  assert.deepEqual(await marked(), ['YY'], 'the card taken off since the last press is named');
+  assert.equal(await page.locator('.wk-whatif-line .wk-chip.differ').count(), 0, 'its answer is the same');
   await tap(card('YY'));
   assert.equal(await card('YY').getAttribute('aria-pressed'), 'false', 'tapping again puts the card back');
   await press('Next');
@@ -76,8 +86,8 @@ try {
   await open('knowledge-03'); await fit('knowledge-03');
   assert.equal(await page.locator('.puzzle-goal').innerText(), 'Keep going until every blue doll proves blue.');
   await press('Next');
-  assert.equal(await told(), 'No headband is blue on this card.');
-  assert.deepEqual(await marked(), ['RR']);
+  assert.equal(await told(), 'A card on the table has no blue.');
+  assert.deepEqual(await marked(), []);
   await tap(card('RR')); await press('Next');
   assert.equal(await page.locator('button.wk-card').count(), 0, 'cards are only tapped between rounds');
   assert.equal(await page.locator('.wk-who.coached').getAttribute('aria-label'), 'Doll 1, headband hidden');
@@ -108,10 +118,11 @@ try {
   assert.ok(await button('Can’t').isDisabled(), 'Can’t waits for a round');
   await coach('Not yet', 'Not yet', 'Not yet'); await press('Show');
   assert.equal(await page.locator('.wk-label').filter({hasText: 'Round 1'}).count(), 1);
-  await press('Next');
-  assert.equal(await told(), 'This card gives other replies.');
+  await cards('BRR', 'RBR', 'RRB', 'BBR'); await press('Next');
+  assert.equal(await told(), 'This card gives the same replies.');
+  assert.deepEqual(await marked(), ['BBR']);
   assert.equal(await page.locator('.wk-label.wk-whatif').count(), 1, 'the marked card’s replies sit under round 1');
-  await cards('BRR', 'RBR', 'RRB'); await press('Next');
+  await tap(card('BBR')); await press('Next');
   await press('Can’t');
   assert.equal(await told(), 'Cards left the table last round.');
   // Apply hint chooses the first reply.
@@ -141,6 +152,7 @@ try {
   assert.equal(await page.locator('.wk-puzzle.missed').count(), 1, 'four deals fit, not two');
   await press('Again');
   assert.deepEqual((await board('knowledge-09')).said, []);
+  await noTold('Again does not bring back the first refusal');
   await press('Not yet'); await cards('NYY', 'NYN', 'NNY', 'NNN'); await press('Next');
   await press('No'); await cards('YYY', 'YYN'); await press('Next');
   await press('No'); await press('That’s all'); await done();
@@ -151,8 +163,8 @@ try {
   await tap(card('RRR')); await press('Next');
   await cards('BRR', 'RBR', 'RRB'); await press('Next');
   await cards('BBR', 'RBB'); await press('That’s all');
-  assert.equal(await told(), 'This card gives other replies.');
-  assert.deepEqual(await marked(), ['BBB']);
+  assert.equal(await told(), 'A card on the table gives other replies.');
+  assert.deepEqual(await marked(), [], 'BBB was never touched, so it is not named');
   await tap(card('BBB')); await press('That’s all'); await done();
   assert.equal(await page.locator('.wk-card.deal').count(), 1);
   assert.equal(await page.locator('.wk-who[aria-label="Doll 2, red"]').count(), 1, 'the headbands show once one card is left');
@@ -160,6 +172,9 @@ try {
   // The playground: set-up until the first move.
   await open('knowledge-playground'); await fit('knowledge-playground');
   assert.equal(await button('Hint').count(), 0);
+  await tap(page.getByRole('button', {name: '3 dolls'}));
+  assert.equal(await page.getByText('That move is not allowed', {exact: false}).count(), 0, 'the chosen count does nothing');
+  assert.equal((await board('knowledge-playground'))?.n ?? 3, 3);
   await tap(page.getByRole('button', {name: '4 dolls'}));
   assert.equal((await board('knowledge-playground')).deal, 'BBRR');
   await tap(page.getByRole('button', {name: 'Doll 3: red'}));

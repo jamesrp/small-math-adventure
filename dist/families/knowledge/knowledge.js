@@ -73,6 +73,21 @@ export function fault(S, ev, out) {
   const wrong = S.find(w => off.has(w) && !gone.has(w));
   return wrong ? {why: 'removed', card: wrong} : null;
 }
+// What a refused Next shows. A card the child changed since the last Next
+// press in this step (taken off, or put back), if it is wrong, is marked with
+// the answers it would give; otherwise the line says only whether a card left
+// should go or a card taken off should stay, so checking the cards stays the
+// child's work (Hint level 2 marks a card). `base` is the cards that were off
+// at the last press; the first press of a step compares with none.
+export function nextRefusal(S, ev, out, base = []) {
+  const gone = new Set(ruledOut(S, ev)), off = new Set(out), was = new Set(base);
+  const wrong = w => gone.has(w) !== off.has(w);
+  const mine = S.find(w => off.has(w) !== was.has(w) && wrong(w));
+  if (mine) return {why: off.has(mine) ? 'removed' : 'kept', cards: [mine]};
+  if (S.some(w => wrong(w) && !off.has(w))) return {why: 'kept', cards: []};
+  if (S.some(w => wrong(w) && off.has(w))) return {why: 'removed', cards: []};
+  return null;
+}
 // A café answer can be given only if some card on the table gives it.
 export const possible = (S, who, reply) => S.some(w => cafeReply(S, who, w) === reply);
 
@@ -331,10 +346,13 @@ function hint(p, b) {
 }
 
 // --- View state (outside the save) ------------------------------------------------------------
-// `told` is a refusal and the cards that explain it; `coach` is the doll whose
-// reply is being chosen. Both belong to the board they were made on.
+// `told` is a refusal and the cards that explain it; it lasts until the next
+// move of any kind (a card, Undo, Again), so it is keyed to the attempt's move
+// count and time as well as the board. `coach` is the doll whose reply is
+// being chosen, kept for the board it was chosen on. `base` is the cards off
+// the table at the last refused Next (see nextRefusal).
 const uiState = new Map();
-function ui(p) { if (!uiState.has(p.id)) uiState.set(p.id, {told: null, coach: null}); return uiState.get(p.id); }
+function ui(p) { if (!uiState.has(p.id)) uiState.set(p.id, {told: null, coach: null, base: null}); return uiState.get(p.id); }
 // A doll tapped on this board stays coached. Otherwise: a new round starts at
 // doll 1, a reply moves on to the first doll without one, and once every doll
 // has one the last doll tapped (or the last doll) stays.
@@ -347,8 +365,12 @@ function coachedDoll(state, b, drawn) {
   return mine !== null && b.replies[mine] === null ? mine : open;
 }
 const TOLD = {
-  kept: (q, ev) => (ev.type === 'announce' ? (ev.least === 1 ? 'No headband is blue on this card.' : 'Fewer than two are blue on this card.') : ev.type === 'say' ? 'This card gives another answer.' : 'This card gives other replies.'),
-  removed: (q, ev) => (ev.type === 'announce' ? (ev.least === 1 ? 'This card has a blue.' : 'This card has two blues.') : ev.type === 'say' ? 'This card gives the same answer.' : 'This card gives the same replies.'),
+  kept: (q, ev, t) => (t.cards.length
+    ? (ev.type === 'announce' ? (ev.least === 1 ? 'No headband is blue on this card.' : 'Fewer than two are blue on this card.') : ev.type === 'say' ? 'This card gives another answer.' : 'This card gives other replies.')
+    : (ev.type === 'announce' ? (ev.least === 1 ? 'A card on the table has no blue.' : 'A card on the table has fewer than two blues.') : ev.type === 'say' ? 'A card on the table gives another answer.' : 'A card on the table gives other replies.')),
+  removed: (q, ev, t) => (t.cards.length
+    ? (ev.type === 'announce' ? (ev.least === 1 ? 'This card has a blue.' : 'This card has two blues.') : ev.type === 'say' ? 'This card gives the same answer.' : 'This card gives the same replies.')
+    : (ev.type === 'announce' ? (ev.least === 1 ? 'A card you took off has a blue.' : 'A card you took off has two blues.') : ev.type === 'say' ? 'A card you took off gives the same answer.' : 'A card you took off gives the same replies.')),
   can: (q, ev, t) => `Doll ${t.doll + 1} can prove blue.`,
   could: (q, ev, t) => `Doll ${t.doll + 1} could be red.`,
   never: () => 'Cards left the table last round.',
@@ -356,11 +378,11 @@ const TOLD = {
 };
 
 // --- Drawing ------------------------------------------------------------------------------------
-let drawnFor = '';
-const uiAttr = payload => `data-ui='${esc(JSON.stringify({...payload, at: drawnFor}))}'`;
+let drawnFor = '', moment = '';
+const uiAttr = payload => `data-ui='${esc(JSON.stringify({...payload, at: drawnFor, seen: moment}))}'`;
 const moveAttr = action => `data-action="expansion-move" data-move="${esc(JSON.stringify(action))}"`;
-const button = (label, action, cls, {enabled = true, hinted = false, primary = false, pressed = null, told = null, aria = ''} = {}) =>
-  `<button type="button" class="${primary ? 'primary' : 'secondary'} wk-button ${cls}${hinted ? ' hinted' : ''}" ${told ? `data-action="mechanic-ui" ${uiAttr({told})}` : moveAttr(action)} data-focus="${cls}"${pressed === null ? '' : ` aria-pressed="${pressed}"`}${aria ? ` aria-label="${esc(aria)}"` : ''}${enabled ? '' : ' disabled'}>${label}</button>`;
+const button = (label, action, cls, {enabled = true, hinted = false, primary = false, pressed = null, told = null, extra = {}, aria = ''} = {}) =>
+  `<button type="button" class="${primary ? 'primary' : 'secondary'} wk-button ${cls}${hinted ? ' hinted' : ''}" ${told ? `data-action="mechanic-ui" ${uiAttr({told, ...extra})}` : moveAttr(action)} data-focus="${cls}"${pressed === null ? '' : ` aria-pressed="${pressed}"`}${aria ? ` aria-label="${esc(aria)}"` : ''}${enabled ? '' : ' disabled'}>${label}</button>`;
 
 // A figure: a doll with its headband (B, R or ? when hidden), or a café person
 // holding a face-down card.
@@ -371,11 +393,14 @@ function figure(kind, k, colour) {
   if (kind === 'cafe') {
     return `<svg class="wk-figure" viewBox="0 0 48 60" aria-hidden="true">${body}${head}<rect class="wk-held" x="16" y="42" width="16" height="13" rx="2"/><text class="wk-held-q" x="24" y="48.8">?</text></svg>`;
   }
-  return `<svg class="wk-figure" viewBox="0 0 48 60" aria-hidden="true">${body}${head}<path class="${band}" d="M9.3 15.5 Q24 6.5 38.7 15.5 L39 22.5 Q24 14 9 22.5 Z"/><text class="wk-band-letter" x="24" y="16.2">${colour || '?'}</text></svg>`;
+  return `<svg class="wk-figure" viewBox="0 0 48 60" aria-hidden="true">${body}${head}<path class="${band}" d="M8.6 14 Q24 3.5 39.4 14 L39.8 24 Q24 14.5 8.2 24 Z"/><text class="wk-band-letter" x="24" y="14.6">${colour || '?'}</text></svg>`;
 }
 const chip = (reply, extra = '') => `<span class="wk-chip wk-${reply}${extra}">${SAY[reply]}</span>`;
+// A card's face: one letter per person, Y or N on a green or rose tile in the
+// café, B or R in a blue or red disc for the dolls (the letter, not only the
+// colour, carries it).
 function cardFace(w, {focus = -1} = {}) {
-  return [...w].map((c, i) => (/[YN]/.test(c) ? `<span class="wk-yn wk-${c}${i === focus ? ' focus' : ''}">${c === 'Y' ? 'YES' : 'NO'}</span>` : `<span class="wk-hb wk-${c}${i === focus ? ' focus' : ''}">${c}</span>`)).join('');
+  return [...w].map((c, i) => `<span class="${/[YN]/.test(c) ? 'wk-yn' : 'wk-hb'} wk-${c}${i === focus ? ' focus' : ''}">${c}</span>`).join('');
 }
 const miniCard = w => `<span class="wk-mini" role="img" aria-label="${esc(`Card ${cardWords(w)}`)}">${cardFace(w)}</span>`;
 
@@ -440,7 +465,7 @@ function boxHTML(q, b, run, {coachK, told, hintedDoll, setup}) {
     }).join(''));
   }
   // A refused Next: the marked card's own answers, under the ones heard.
-  if (told && (told.why === 'kept' || told.why === 'removed') && run.event.type !== 'announce') {
+  if (told && (told.why === 'kept' || told.why === 'removed') && told.cards.length && run.event.type !== 'announce') {
     const w = told.cards[0], g = gives(run.S, run.event, w);
     if (run.event.type === 'say') {
       cells.push(`<span class="wk-whatif wk-whatif-line" style="grid-column:1 / -1">${miniCard(w)}<span class="wk-arrow" aria-hidden="true">→</span><span class="wk-sr">${esc(who(q, run.event.who))}:</span>${chip(g, g !== run.event.reply ? ' differ' : '')}</span>`);
@@ -465,7 +490,8 @@ function statusOf(q, b, run, note) {
 function render(p, a) {
   const q = p.parameters, b = a.board, run = runOf(q, b), done = solved(p, b), state = ui(p);
   drawnFor = JSON.stringify(b);
-  const told = !done && state.told && state.told.at === drawnFor ? state.told : null;
+  moment = `${a.lastPlayed ?? ''}|${a.moves ?? ''}|${drawnFor}`;
+  const told = !done && state.told && state.told.seen === moment ? state.told : null;
   const h = a.hintLevel >= 2 && !done && q.mode !== 'playground' ? hint(p, b) : null, act = h?.type === 'move' ? h.action : null;
   const coachK = coaching(q) && run.phase === 'reply' ? coachedDoll(state, b, drawnFor) : -1;
   const setup = q.mode === 'playground' && pristine(b);
@@ -477,7 +503,7 @@ function render(p, a) {
   // The playground's set-up: how many dolls, their headbands and the
   // announcement, until the first move.
   if (setup) {
-    const sizes = SIZES.map(n => `<button type="button" class="wk-size" ${moveAttr({type: 'size', n})} data-focus="wk-size-${n}" aria-pressed="${n === b.n}" aria-label="${n} dolls">${'<i></i>'.repeat(n)}</button>`).join('');
+    const sizes = SIZES.map(n => `<button type="button" class="wk-size" ${n === b.n ? `data-action="mechanic-ui" ${uiAttr({noop: true})}` : moveAttr({type: 'size', n})} data-focus="wk-size-${n}" aria-pressed="${n === b.n}" aria-label="${n} dolls">${'<i></i>'.repeat(n)}</button>`).join('');
     const bands = [...b.deal].map((c, k) => `<button type="button" class="wk-hb wk-${c} wk-flip" ${moveAttr({type: 'flip', doll: k})} data-focus="wk-flip-${k}" aria-label="${esc(`Doll ${k + 1}: ${WORD[c]}`)}"${b.least && c === 'B' && blues(b.deal) === 1 ? ' disabled' : ''}>${c}</button>`).join('');
     parts.push(`<div class="wk-setup" role="group" aria-label="Set up"><span class="wk-group">${sizes}</span><span class="wk-group">${bands}</span></div>`);
   }
@@ -500,8 +526,10 @@ function render(p, a) {
   // The bar.
   const bar = [];
   if (!done && run.phase === 'remove') {
-    const f = fault(run.S, run.event, b.out);
-    bar.push(button(lastStep ? 'That’s all' : 'Next', {type: 'next'}, 'wk-next', {primary: true, hinted: act?.type === 'next', told: f ? {why: f.why, cards: [f.card]} : null}));
+    // After a refusal Next waits for a change; the press records what was off.
+    const evKey = JSON.stringify(run.event), base = state.base && state.base.steps === b.steps && state.base.event === evKey ? state.base.out : [];
+    const f = nextRefusal(run.S, run.event, b.out, base), waiting = told?.why === 'kept' || told?.why === 'removed';
+    bar.push(button(lastStep ? 'That’s all' : 'Next', {type: 'next'}, 'wk-next', {primary: true, enabled: !waiting, hinted: act?.type === 'next', told: f, extra: {base: {steps: b.steps, event: evKey, out: b.out}}}));
   }
   if (!done && run.phase === 'reply') {
     const f = replyFault(run, b.replies), ready = b.replies.every(r => r !== null);
@@ -525,11 +553,12 @@ export const knowledgeMechanics = {
   knowledge: {
     fresh, valid, solved, move, hint, render,
     ui(p, payload) {
-      if (!object(payload)) return;
+      if (!object(payload) || payload.noop) return;
       const state = ui(p);
       if (Number.isInteger(payload.coach)) { state.coach = {doll: payload.coach, at: payload.at}; state.told = null; return; }
       const t = payload.told;
-      state.told = object(t) && TOLD[t.why] && Array.isArray(t.cards) ? {...t, at: payload.at} : null;
+      state.told = object(t) && TOLD[t.why] && Array.isArray(t.cards) ? {...t, seen: payload.seen} : null;
+      if (state.told && object(payload.base) && Array.isArray(payload.base.out)) state.base = payload.base;
     },
     reset: p => { uiState.delete(p.id); },
     noHint: p => p.parameters.mode === 'playground'
