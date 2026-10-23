@@ -5,7 +5,7 @@ import {freshAttempt, move, isSolved, nextHint, validBoard, undo, undoPress} fro
 import {mechanicFor} from '../dist/expansion.js';
 import {loadPack} from '../scripts/packs.mjs';
 import {libraryView} from '../dist/caravan-ui.js';
-import calibrateModule, {machinesOf, requestsOf, requestLengths, needed, answer, play, winningRequest, buildAnswers, everyAnswers, repairAnswers, stretchExtremes, fmt} from '../dist/families/calibrate/calibrate.js';
+import calibrateModule, {machinesOf, requestsOf, requestLengths, needed, answer, play, winningRequest, buildAnswers, everyAnswers, repairAnswers, stretchExtremes, fmt, fmtHtml} from '../dist/families/calibrate/calibrate.js';
 
 const pack = JSON.parse(await readFile(new URL('../dist/families/calibrate/calibrate.json', import.meta.url), 'utf8'));
 const byId = id => pack.puzzles.find(p => p.id === id);
@@ -50,6 +50,9 @@ test('a request round: send, set the dials, name; a lost round shows two machine
   assert.deepEqual(a.board.dials, {c: null, e: null}, 'the dials start unset');
   assert.doesNotMatch(view(p, a), /class="cb-tick"/);
   assert.equal(move(p, a, {type: 'name'}), null, 'no naming with unset dials');
+  const miss = go(p, a, [{type: 'dial', which: 'c', value: 3}, {type: 'dial', which: 'e', value: 5}]);
+  assert.equal(move(p, miss, {type: 'name'}), null, 'no naming dials that miss a report');
+  assert.match(view(p, miss), /disabled>That’s the machine</);
   a = go(p, a, [{type: 'dial', which: 'c', value: 1}, {type: 'dial', which: 'e', value: 6}]);
   assert.equal((view(p, a).match(/class="cb-tick"/g) || []).length, 2, 'the dials are compared with every report');
   a = go(p, a, [{type: 'name'}]);
@@ -57,10 +60,14 @@ test('a request round: send, set the dials, name; a lost round shows two machine
   let lost = go(p, freshAttempt(p), [...send('A'), ...send('A')]);
   assert.equal(lost.board.named, null, 'the round is over by itself');
   assert.match(view(p, lost), /These both fit every report:/);
+  assert.equal((view(p, lost).match(/<figcaption class="cb-item">/g) || []).length, 2, 'two machines, each drawn');
+  assert.equal((view(p, lost).match(/class="cb-tick"/g) || []).length, 4, 'each on both report rows, every row ticked');
   assert.equal(move(p, lost, {type: 'name'}), null);
   assert.deepEqual(go(p, lost, [{type: 'again'}]).board, freshAttempt(p).board);
-  lost = go(p, freshAttempt(p), [{type: 'dial', which: 'c', value: 2}, {type: 'dial', which: 'e', value: 3}, {type: 'name'}]);
-  assert.equal(lost.board.named, 'lost');
+  assert.equal(move(p, go(p, freshAttempt(p), [{type: 'dial', which: 'c', value: 2}, {type: 'dial', which: 'e', value: 3}]), {type: 'name'}), null, 'no naming before a request');
+  const [c, e] = play(p.parameters, [['A']]).alive[0];
+  lost = go(p, freshAttempt(p), [...send('A'), {type: 'dial', which: 'c', value: c}, {type: 'dial', which: 'e', value: e}, {type: 'name'}]);
+  assert.equal(lost.board.named, 'lost', 'a machine that fits, named while another fits too');
   assert.equal(undo(lost), lost);
 });
 
@@ -103,6 +110,9 @@ test('machines that fit a report, repairs and stretches', () => {
   const e = stretchExtremes(byId('calibrate-11').parameters);
   assert.deepEqual([fmt(e.lo), fmt(e.hi)], ['1¾', '2¼']);
   assert.equal(fmt(33 / 16), '2 1/16');
+  assert.equal(fmtHtml(33 / 16), '2<span class="cb-frac"><sup>1</sup>⁄<sub>16</sub></span>', 'a readout draws sixteenths small, like ¼');
+  assert.equal(fmtHtml(9 / 4), '2¼');
+  assert.equal(fmtHtml(3 / 8), '<span class="cb-frac"><sup>3</sup>⁄<sub>8</sub></span>');
   const p = byId('calibrate-09'), a = go(p, freshAttempt(p), [{type: 'pick', row: 2}, {type: 'step', by: -1}, {type: 'step', by: -1}]);
   assert.deepEqual(a.board.found, ['2:15']);
   assert.match(view(p, a), /class="cb-line"/, 'the line shows when the three points fit');

@@ -71,7 +71,7 @@
    "objective": "Send one strip from the kit to the machine, then set the extra and press That’s the machine.",
    "visibleObjective": "Find the machine’s extra.",
    "instruction": "Send one strip from the kit to the machine, then set the extra and press That’s the machine.",
-   "controls": "Tap kit strips to put them in the tray (tap again to take one out), then press Send. Tap the dial numbers to set the machine. Press That’s the machine to name it; after a lost round, Again starts a new one.",
+   "controls": "Tap kit strips to put them in the tray (tap again to take one out), then press Send. Tap the dial numbers to set the machine. Once every row has a tick, press That’s the machine to name it; after a lost round, Again starts a new one.",
    "rules": [
     "The machine adds the same extra, 1 to 6 units, to any strip: with extra 3, a strip 4 long reports 7.",
     "Send a strip from the kit to the machine; the empty rows are the requests you have.",
@@ -355,7 +355,7 @@
     "ruler": 12
    },
    "objective": "Change one report so that one machine, adding one extra, made all three. Find every way, then press That’s all.",
-   "visibleObjective": "Change one report so one machine fits all three. Find every way.",
+   "visibleObjective": "Find every way to change one report so one machine fits all three.",
    "instruction": "Change one report so that one machine, adding one extra, made all three. Find every way, then press That’s all.",
    "controls": "Tap a report to change it, then press − or +. Press That’s all when you have every repair. Undo takes back the last move.",
    "rules": [
@@ -425,7 +425,7 @@
    "objective": "Send two requests, then set the copies and the extra and press That’s the machine.",
    "visibleObjective": "Find the copies and the extra with two requests.",
    "instruction": "Send two requests, then set the copies and the extra and press That’s the machine.",
-   "controls": "Tap kit strips to put them in the tray (tap again to take one out), then press Send. Tap the dial numbers to set the machine. Press That’s the machine to name it; after a lost round, Again starts a new one.",
+   "controls": "Tap kit strips to put them in the tray (tap again to take one out), then press Send. Tap the dial numbers to set the machine. Once every row has a tick, press That’s the machine to name it; after a lost round, Again starts a new one.",
    "rules": [
     "The machine makes 1, 2 or 3 copies of a strip end to end, then adds an extra of 0 to 6 units: copies 2 and extra 3 turn a strip 4 long into 4 + 4 + 3 = 11.",
     "Put strips in the tray end to end, then Send; the empty rows are the requests you have.",
@@ -562,7 +562,7 @@
    "objective": "Send one request, then set the copies and the extra and press That’s the machine.",
    "visibleObjective": "Find the copies and the extra with one request.",
    "instruction": "Send one request, then set the copies and the extra and press That’s the machine.",
-   "controls": "Tap kit strips to put them in the tray (tap again to take one out), then press Send. Tap the dial numbers to set the machine. Press That’s the machine to name it; after a lost round, Again starts a new one.",
+   "controls": "Tap kit strips to put them in the tray (tap again to take one out), then press Send. Tap the dial numbers to set the machine. Once every row has a tick, press That’s the machine to name it; after a lost round, Again starts a new one.",
    "rules": [
     "The machine makes 1, 2 or 3 copies of a strip end to end, then adds an extra of 0 to 6 units: copies 2 and extra 3 turn a strip 4 long into 4 + 4 + 3 = 11.",
     "Put strips in the tray end to end, then Send; the empty rows are the requests you have.",
@@ -630,7 +630,7 @@
     "ymax": 24
    },
    "objective": "Change one report so the three points lie on one line going up. Find every way, then press That’s all.",
-   "visibleObjective": "Change one report so the three points line up. Find every way.",
+   "visibleObjective": "Find every way to change one report so the three points line up.",
    "instruction": "Change one report so the three points lie on one line going up. Find every way, then press That’s all.",
    "controls": "Tap a report to change it, then press − or +. Press That’s all when you have every repair. Undo takes back the last move.",
    "rules": [
@@ -700,7 +700,7 @@
    "instruction": "Each true report is within 1 of its display. Pin the steepest and the shallowest line through the two bars.",
    "controls": "Press ▲ or ▼ to move a true report inside its bar, then Pin. Pin the steepest line and the shallowest. Undo takes back the last move.",
    "rules": [
-    "A stretch-and-shift machine’s reports lie on a line. The display can be up to 1 above or below the true report: the gray bar.",
+    "A stretch-and-shift machine’s reports lie on a line. Each display can be up to 1 above or below its true report, so the true report is somewhere in its bar.",
     "Move each true report inside its bar, by halves. The line through them shows the stretch: how much the report grows for each unit of length.",
     "Pin the steepest and the shallowest line. The two pins are checked together."
    ],
@@ -763,7 +763,7 @@
    "instruction": "Each true report is within 1 of its display. Pin the steepest and the shallowest line through the two bars.",
    "controls": "Press ▲ or ▼ to move a true report inside its bar, then Pin. Pin the steepest line and the shallowest. Undo takes back the last move.",
    "rules": [
-    "A stretch-and-shift machine’s reports lie on a line. The display can be up to 1 above or below the true report: the gray bar.",
+    "A stretch-and-shift machine’s reports lie on a line. Each display can be up to 1 above or below its true report, so the true report is somewhere in its bar.",
     "Move each true report inside its bar, by halves. The line through them shows the stretch: how much the report grows for each unit of length.",
     "Pin the steepest and the shallowest line. The two pins are checked together."
    ],

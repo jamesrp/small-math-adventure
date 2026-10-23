@@ -422,7 +422,8 @@ function drawBoard(p, b, view) {
   // Each marker's path: a line from its start through its place after each move.
   for (const [u, cls] of markersOf(q, b)) {
     const pts = pathOf(u, n), xy = [[SX(q, u), mid], ...pts.slice(1).map((v, k) => [X(v), L.rows[k] + ROW_H / 2])];
-    if (zoomed(q)) xy.splice(1, 0, [X(u), L.rows[0] - 3]);
+    // On a widest board the path drops through the enlarged ruler, then joins the track.
+    if (zoomed(q)) xy.splice(1, 0, [SX(q, u), L.zoom + 11.5], [X(u), L.rows[0] - 3]);
     parts.push(`<polyline class="tn-path ${cls}" points="${xy.map(([x, y]) => `${f(x)},${f(y)}`).join(' ')}"/>`);
     pts.slice(1).forEach((v, k) => {
       const bad = q.window && (q.mode === 'widest' || k === n - 1) && outside(q, v);
@@ -530,8 +531,8 @@ function render(p, a) {
   let note = '';
   if (done) note = '';
   else if (b.told) note = TOLD_WORDS[b.told];
-  else if (q.mode === 'break' && b.cant && !b.pins.length) note = 'Pin the lowest and the highest landing.';
-  else if (q.mode === 'widest' && b.claim && !b.pins.length) note = 'Pin the start that lands farthest.';
+  else if (q.mode === 'break' && b.cant) note = 'Pin the lowest and the highest landing.';
+  else if (q.mode === 'widest' && b.claim) note = 'Pin the start that lands farthest.';
   // The pair or band just kept is ringed on the shelf.
   const now = q.mode === 'pairs' ? (b.at[0] !== b.at[1] && tent(b.at[0]) === tent(b.at[1]) ? pairKey([...b.at].sort((s, t) => s - t)) : null) : q.mode === 'pieces' && b.found.includes(b.lo) ? b.lo : null;
   return `<div class="tn-puzzle mode-${q.mode}${done ? ' solved' : ''}" data-mechanic-wire="tent">${goalsView(q, b)}${svg}${bar ? `<div class="tn-bar">${bar}</div>` : ''}${note ? `<p class="tn-note">${esc(note)}</p>` : ''}${shelfView(q, b, now)}<p class="sr-only" role="status">${esc(describe(q, b, done))}</p></div>`;

@@ -316,14 +316,13 @@
     "width": 32,
     "rows": 6,
     "goals": [
-     4,
      5
     ],
     "start": 224
    },
-   "objective": "Place the band so the whole track is first full on move 4, and so it is first full on move 5.",
+   "objective": "Place the band so the whole track is first full on move 5.",
    "visibleObjective": "",
-   "instruction": "Place the band so the whole track is first full on move 4, and so it is first full on move 5.",
+   "instruction": "Place the band so the whole track is first full on move 5.",
    "controls": "Drag the band along the top row, or tap where it should go. Arrow keys move it half a unit. Undo takes back the last move.",
    "rules": [
     "One move takes a marker to twice its distance from the nearer end of the track: 13 is 3 from 16, so it moves to 6.",
@@ -353,24 +352,6 @@
    "solution": {
     "goals": [
      [
-      0,
-      32,
-      64,
-      96,
-      128,
-      160,
-      192,
-      224,
-      256,
-      288,
-      320,
-      352,
-      384,
-      416,
-      448,
-      480
-     ],
-     [
       16,
       48,
       80,
@@ -389,7 +370,7 @@
      ]
     ]
    },
-   "provenance": "Week 92 Problem 3 (move a band until every place is possible; [1, 2] and the wider [7, 9] both take four moves), with the band width fixed and its place chosen."
+   "provenance": "Week 92 Problem 3 (move a band until every place is possible; [1, 2] and the wider [7, 9] both take four moves), with the band width fixed and its place chosen: the start, 7 to 8, is first full on move 4."
   },
   {
    "id": "tent-06",
@@ -683,7 +664,7 @@
     "notice": "Whether your child shrinks the band one step at a time or halves it.",
     "prompt": "Why 1/4?",
     "explanation": "Starts near 0 stay near 0 for a while, and there each move doubles: 1/4 lands on 1/2, 1 and 2. A band from 0 to 1/4 stays from 0 to 2 for three moves, and any wider band has a start that doubles three times to more than 2.",
-    "extension": "How wide for four moves? (1/8.) For five? (1/16.)",
+    "extension": "How wide for four moves? (1/8.) For six? (1/32.)",
     "connection": "While 2^(k−1)·q ≤ 8 the band [0, q] lands on [0, 2^k·q], so it stays in [0, 2] for n moves exactly when q ≤ 2/2^n.",
     "sourceIds": [
      "tent-week92",
@@ -712,16 +693,16 @@
     "mode": "widest",
     "step": 1,
     "zoom": 32,
-    "moves": 6,
+    "moves": 5,
     "window": [
      0,
      64
     ],
     "start": 8
    },
-   "objective": "Make the band from 0 as wide as you can while every start stays from 0 to 2 for six moves, then press Widest and pin the start that lands farthest.",
-   "visibleObjective": "Make the widest band from 0 that stays from 0 to 2 for six moves.",
-   "instruction": "Make the band from 0 as wide as you can while every start stays from 0 to 2 for six moves, then press Widest and pin the start that lands farthest.",
+   "objective": "Make the band from 0 as wide as you can while every start stays from 0 to 2 for five moves, then press Widest and pin the start that lands farthest.",
+   "visibleObjective": "Make the widest band from 0 that stays from 0 to 2 for five moves.",
+   "instruction": "Make the band from 0 as wide as you can while every start stays from 0 to 2 for five moves, then press Widest and pin the start that lands farthest.",
    "controls": "Drag the band’s right end, or tap near it. Arrow keys move it one step. Press Widest, then move the marker and press Pin for the start that lands farthest. Undo takes back the last move.",
    "rules": [
     "One move takes a marker to twice its distance from the nearer end of the track: 13 is 3 from 16, so it moves to 6.",
@@ -734,13 +715,13 @@
    "prerequisites": "Halve and double fractions such as 1/4 and 1/8, read from the enlarged ruler. Reading: one goal sentence.",
    "hints": [
     "For three moves the widest band was 0 to 1/4. What does each extra move do?",
-    "Halve 1/4 three times.",
-    "Move the band’s right end to 1/32."
+    "Halve 1/4 twice.",
+    "Move the band’s right end to 1/16."
    ],
    "parent": {
     "notice": "Whether your child uses puzzle 9’s answer, halving it once for each extra move.",
     "prompt": "Is there a band, however narrow, that stays from 0 to 2 for every number of moves?",
-    "explanation": "Six doublings stretch 1/32 to 2, so the band from 0 to 1/32 is the widest that stays from 0 to 2 for six moves. For any named number n of moves the band from 0 to 2/2^n works, but no band with any width works forever: its right end doubles past 2 eventually.",
+    "explanation": "Five doublings stretch 1/16 to 2, so the band from 0 to 1/16 is the widest that stays from 0 to 2 for five moves. The ruler’s smallest step, 1/32, is the widest band for six moves, so shrinking the band as far as it goes is too narrow here. For any named number n of moves the band from 0 to 2/2^n works, but no band with any width works forever: its right end doubles past 2 eventually.",
     "extension": "Explain why no band with width works for every number of moves.",
     "connection": "The order of “for every n there is a band” and “there is a band for every n” matters: sensitive dependence on starting places, made exact.",
     "sourceIds": [
@@ -750,9 +731,9 @@
     ]
    },
    "solution": {
-    "widest": 1
+    "widest": 2
    },
-   "provenance": "Week 92 Problems 6 (six moves) and 7 (a band for any named number of moves)."
+   "provenance": "Week 92 Problems 6 (three, four and six moves; five here, since 1/32 is the app’s finest step) and 7 (a band for any named number of moves)."
   },
   {
    "id": "tent-11",

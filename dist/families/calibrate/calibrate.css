@@ -28,12 +28,17 @@
 .cb-was{fill:none;stroke:var(--b-muted,#5a6850);stroke-width:.6;stroke-dasharray:1 .8}
 .cb-line{stroke:var(--b-ink,#294439);stroke-width:.8}
 .cb-pinned{stroke:var(--b-pine,#31533e);stroke-width:1.1;stroke-dasharray:2.4 1.2}
-.cb-bar{fill:#f3e2b8;stroke:none}
-.cb-cap{stroke:var(--b-ochre,#b38840);stroke-width:1}
+.cb-bar{fill:#f3e2b8;stroke:var(--b-ochre,#b38840);stroke-width:.5}
+.cb-cap{stroke:var(--b-ochre,#b38840);stroke-width:1.8;stroke-linecap:round}
+.cb-notch{stroke:var(--b-ochre,#b38840);stroke-width:.6}
 .cb-point.true{fill:var(--b-ink,#294439);stroke:none}
 .cb-shown{stroke:var(--b-muted,#5a6850);stroke-width:.7}
 .cb-kit,.cb-dial,.cb-bar-buttons,.cb-trayline{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.35rem}
 .cb-dial-name{font-weight:600;color:var(--b-ink,#294439);margin-right:.2rem}
+.cb-chips{display:grid;grid-template-columns:repeat(var(--cols),minmax(44px,auto));gap:.35rem;justify-content:center}
+@media (max-width:720px){.cb-chips{grid-template-columns:repeat(var(--narrow),minmax(44px,auto))}}
+.cb-ref .cb-dial-name{min-width:5.4em;text-align:right;font-variant-numeric:tabular-nums}
+.cb-frac{white-space:nowrap}.cb-frac sup,.cb-frac sub{font-size:.68em;line-height:0}
 .cb-puzzle .cb-chip{min-width:44px;min-height:44px;padding:4px 8px;font-weight:600;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-line,#d0d6bd);border-radius:10px}
 .cb-puzzle .cb-chip[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:0 0 0 2px var(--b-pine,#31533e);background:var(--b-good-soft,#e2ecd6)}
 .cb-puzzle .cb-chip[disabled]{opacity:.5}
@@ -51,4 +56,6 @@
 .cb-shelf{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;margin:0;padding:0;list-style:none;max-width:640px}
 .cb-item{padding:3px 10px;border:1px solid var(--b-line,#d0d6bd);border-radius:10px;background:var(--b-card,#fffdf5);font-weight:600;color:var(--b-ink,#294439)}
 .cb-item.now{border-color:var(--b-pine,#31533e);box-shadow:0 0 0 2px var(--b-pine,#31533e)}
+.cb-lost{display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem 1rem;width:100%}
+.cb-machine{margin:0;flex:1 1 260px;max-width:420px;display:flex;flex-direction:column;align-items:center;gap:.3rem}
 .cb-lost .cb-item{border-color:var(--b-ochre,#b38840)}

@@ -12,7 +12,8 @@
 .tn-ruler{stroke:var(--b-ink,#294439);stroke-width:.8}
 .tn-tick{stroke:var(--b-ink,#294439);stroke-width:.6}
 .tn-tick.minor{stroke-width:.35}
-.tn-mark{font:400 5.6px var(--b-display,Georgia,serif);fill:var(--b-muted,#5a6850);text-anchor:middle}
+.tn-mark{font:400 5.6px var(--b-display,Georgia,serif);fill:var(--b-muted,#5a6850);text-anchor:middle;paint-order:stroke;stroke:var(--b-card,#fffdf5);stroke-width:1.6px;stroke-linejoin:round}
+.tn-puzzle.solved .tn-mark{stroke:var(--b-good-soft,#e2ecd6)}
 .tn-rowlabel{font:600 5.4px var(--b-display,Georgia,serif);fill:var(--b-muted,#5a6850);text-anchor:end}
 .tn-split{stroke:var(--b-line,#d0d6bd);stroke-width:.8;stroke-dasharray:2 1.5}
 .tn-link{fill:none;stroke:var(--b-muted,#5a6850);stroke-width:.5;stroke-dasharray:1.4 1.2}

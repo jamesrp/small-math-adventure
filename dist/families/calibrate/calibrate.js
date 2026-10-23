@@ -147,6 +147,9 @@ const startDials = q => ({c: q.copies[0], e: q.extras[0]});
 const freshDials = q => ({c: q.copies.length === 1 ? q.copies[0] : null, e: null});
 const dialOk = (q, d) => (d.c === null || q.copies.includes(d.c)) && (d.e === null || (Number.isInteger(d.e) && d.e >= q.extras[0] && d.e <= q.extras[1]));
 const dialsSet = d => d.c !== null && d.e !== null;
+// The dials can be named only when they meet every report, and there is at least one:
+// a loss then always means a machine that fits was named while another fits too.
+const dialsFitReports = (q, b) => b.requests.length > 0 && dialsSet(b.dials) && play(q, b.requests).alive.some(m => keyOf(m) === keyOf([b.dials.c, b.dials.e]));
 function credit(q, b) {
   let key = null;
   if (q.mode === 'every' && fitsGiven(q, [b.dials.c, b.dials.e])) key = keyOf([b.dials.c, b.dials.e]);
@@ -188,7 +191,7 @@ function valid(p, b) {
     const strips = list => Array.isArray(list) && list.every(s => Object.hasOwn(q.kit, s)) && new Set(list).size === list.length && list.length <= q.tray;
     if (!strips(b.tray) || !Array.isArray(b.requests) || b.requests.length > q.budget || !b.requests.every(r => strips(r) && r.length > 0)) return false;
     if (b.named === null) return b.requests.length < q.budget || b.tray.length === 0;
-    if (!['won', 'lost'].includes(b.named) || b.tray.length || !dialsSet(b.dials)) return false;
+    if (!['won', 'lost'].includes(b.named) || b.tray.length || !dialsFitReports(q, b)) return false;
     return b.named === verdict(q, b);
   }
   if (q.mode === 'every') return sameKeys(b, {dials: 0, found: 0, told: 0, done: 0}) && object(b.dials) && sameKeys(b.dials, {c: 0, e: 0}) && dialsFit(q, b.dials) && validShelf(q, b);
@@ -246,7 +249,7 @@ function move(p, b, action) {
       const dials = {...b.dials, [action.which]: action.value};
       return ['c', 'e'].includes(action.which) && action.value !== null && dialOk(q, dials) && dials[action.which] !== b.dials[action.which] ? {...b, dials} : null;
     }
-    if (type === 'name') { if (!dialsSet(b.dials)) return null; const next = {...b, tray: []}; return {...next, named: verdict(q, next)}; }
+    if (type === 'name') { if (!dialsFitReports(q, b)) return null; const next = {...b, tray: []}; return {...next, named: verdict(q, next)}; }
     return null;
   }
   if (type === 'all' && catalog(q)) {
@@ -299,6 +302,11 @@ export function fmt(v) {
   for (let d = 2; d <= 64; d++) { const n = Math.round(r * d); if (Math.abs(n / d - r) < 1e-9) return w ? `${w} ${n}/${d}` : `${n}/${d}`; }
   return String(v);
 }
+// The same number in a line of text: a fraction such as 1/16 drawn small, in the style of ½.
+export function fmtHtml(v) {
+  const s = fmt(v), m = s.match(/^(?:(\d+) )?(\d+)\/(\d+)$/);
+  return m ? `${m[1] || ''}<span class="cb-frac"><sup>${m[2]}</sup>⁄<sub>${m[3]}</sub></span>` : esc(s);
+}
 export const machineWords = (q, [c, e]) => q.copies.length > 1 ? `copies ${c}, extra ${e}` : `extra ${e}`;
 const COLORS = {A: 'sun', B: 'sky', C: 'rose', D: 'sage', P: 'lilac', Q: 'mint', K: 'sun'};
 
@@ -343,7 +351,7 @@ function plan(p, b) {
     const missing = repairAnswers(q).filter(x => !b.found.includes(repairKey(x)));
     if (!missing.length) return {type: 'move', action: {type: 'all'}, text: 'Every repair is on the shelf.'};
     const [i, v] = missing.find(([j]) => j === b.pick) || missing[0];
-    if (b.pick !== i) return {type: 'move', action: {type: 'pick', row: i}, text: `Change the report for ${fmt(q.rows[i][0])} units.`};
+    if (b.pick !== i) return {type: 'move', action: {type: 'pick', row: i}, text: `Change the ${fmt(q.rows[i][0])} → ${fmt(q.rows[i][1])} report.`};
     const by = v > b.value ? 1 : -1;
     return {type: 'move', action: {type: 'step', by}, text: `Make it ${by > 0 ? 'bigger' : 'smaller'}: ${fmt(v)}.`};
   }
@@ -357,7 +365,7 @@ function plan(p, b) {
   const target = first === null ? nearer : first === e.hi ? flat : first === e.lo ? steep : steep;
   const told = first !== null && first !== e.hi && first !== e.lo ? 'The two pins are checked together. ' : '';
   const i = b.t.findIndex((v, k) => v !== target[k]);
-  if (i >= 0) { const by = target[i] > b.t[i] ? 1 : -1; return {type: 'move', action: {type: 'step', ref: i, by}, text: `${told}Move the report for ${fmt(q.refs[i][0])} units ${by > 0 ? 'up' : 'down'}.`}; }
+  if (i >= 0) { const by = target[i] > b.t[i] ? 1 : -1; return {type: 'move', action: {type: 'step', ref: i, by}, text: `${told}Move the ${fmt(q.refs[i][0])} → ${fmt(b.t[i])} report ${by > 0 ? 'up' : 'down'}.`}; }
   return {type: 'move', action: {type: 'pin'}, text: `This is the ${target === steep ? 'steepest' : 'shallowest'} line: stretch ${fmt(stretchOf(q, target))}.`};
 }
 function hint(p, b) {
@@ -381,7 +389,7 @@ function piecesRow(pieces, y, U) {
 }
 const markAt = (v, y, U, cls = '') => `<g class="cb-mark ${cls}"><line x1="${f(LEFT + v * U)}" y1="${y}" x2="${f(LEFT + v * U)}" y2="${y + ROW_H - 1}"/></g>`;
 // The rows of a bars board: [label, pieces, report, state] with state 'fit', 'off' or ''.
-function barRows(q, b) {
+function barRows(q, b, spare = true) {
   if (q.mode === 'find' || q.mode === 'every') {
     const reqs = q.mode === 'find' ? b.requests.map((strips, k) => [strips, play(q, b.requests.slice(0, k + 1)).reports[k]]) : q.given.map(([L, r]) => [[{w: L}], r]);
     const rows = reqs.map(([strips, r]) => {
@@ -392,7 +400,7 @@ function barRows(q, b) {
       const end = pieces.reduce((t, x) => t + x.w, 0);
       return {pieces, report: r, state: dialsSet(b.dials) && end === r ? 'fit' : dialsSet(b.dials) ? 'off' : '', name: q.mode === 'find' && !pieces.length ? strips.join('') : undefined};
     });
-    if (q.mode === 'find') for (let k = b.requests.length; k < q.budget; k++) rows.push({pieces: [], report: null, state: 'empty'});
+    if (q.mode === 'find' && spare) for (let k = b.requests.length; k < q.budget; k++) rows.push({pieces: [], report: null, state: 'empty'});
     return rows;
   }
   if (q.mode === 'build') {
@@ -410,8 +418,8 @@ function barRows(q, b) {
     return {pieces: [{w: x, cls: 's-sun', label: ''}, ...(v > x ? [{w: v - x, cls: 'cb-extra', label: ''}] : [])], report: v, state: i === b.pick ? 'picked' : ''};
   });
 }
-function barsBoard(q, b) {
-  const rows = barRows(q, b), U = BAR_W / q.ruler, W = LEFT + BAR_W + RIGHT, top = 4, bottom = top + rows.length * ROW_H + 3, H = bottom + RULER_H;
+function barsBoard(q, b, spare = true) {
+  const rows = barRows(q, b, spare), U = BAR_W / q.ruler, W = LEFT + BAR_W + RIGHT, top = 4, bottom = top + rows.length * ROW_H + 3, H = bottom + RULER_H;
   const parts = [];
   for (let v = 0; v <= q.ruler; v++) parts.push(`<line class="cb-grid" x1="${f(LEFT + v * U)}" y1="${top}" x2="${f(LEFT + v * U)}" y2="${bottom}"/>`);
   rows.forEach((row, k) => {
@@ -435,7 +443,7 @@ function describeBars(q, b, rows) {
 }
 // A plot: lengths across from 0 to q.xmax, reports up from 0 to q.ymax.
 function plotBoard(q, b) {
-  const W = 180, H = 186, L = 18, B = 168, PW = W - L - 8, PH = B - 8;
+  const W = 180, H = 206, L = 18, B = 188, PW = W - L - 8, PH = B - 8;
   const px = x => L + x / q.xmax * PW, py = y => B - y / q.ymax * PH, parts = [];
   for (let x = 0; x <= q.xmax; x++) parts.push(`<line class="cb-grid" x1="${f(px(x))}" y1="${f(py(q.ymax))}" x2="${f(px(x))}" y2="${B}"/>`);
   for (let y = 0; y <= q.ymax; y += 2) parts.push(`<line class="cb-grid" x1="${L}" y1="${f(py(y))}" x2="${f(px(q.xmax))}" y2="${f(py(y))}"/>`);
@@ -459,19 +467,27 @@ function plotBoard(q, b) {
     });
   } else {
     // Each bar: every place the true report can be, with caps at its ends and the display across it.
-    q.refs.forEach(([x, d]) => parts.push(`<rect class="cb-bar" x="${f(px(x) - 4)}" y="${f(py(d + q.err))}" width="8" height="${f(py(d - q.err) - py(d + q.err))}" rx="1.5"/>${[d - q.err, d + q.err].map(v => `<line class="cb-cap" x1="${f(px(x) - 5)}" y1="${f(py(v))}" x2="${f(px(x) + 5)}" y2="${f(py(v))}"/>`).join('')}<line class="cb-shown" x1="${f(px(x) - 4)}" y1="${f(py(d))}" x2="${f(px(x) + 4)}" y2="${f(py(d))}"/>`));
+    // Each bar is 14 wide, with a notch at every place the true report can stop.
+    q.refs.forEach(([x, d]) => {
+      const notches = range(d - q.err + q.step, d + q.err - q.step, q.step).map(v => `<line class="cb-notch" x1="${f(px(x) - 7)}" y1="${f(py(v))}" x2="${f(px(x) - 4.5)}" y2="${f(py(v))}"/><line class="cb-notch" x1="${f(px(x) + 4.5)}" y1="${f(py(v))}" x2="${f(px(x) + 7)}" y2="${f(py(v))}"/>`).join('');
+      parts.push(`<rect class="cb-bar" x="${f(px(x) - 7)}" y="${f(py(d + q.err))}" width="14" height="${f(py(d - q.err) - py(d + q.err))}" rx="2"/>${notches}${[d - q.err, d + q.err].map(v => `<line class="cb-cap" x1="${f(px(x) - 9)}" y1="${f(py(v))}" x2="${f(px(x) + 9)}" y2="${f(py(v))}"/>`).join('')}<line class="cb-shown" x1="${f(px(x) - 7)}" y1="${f(py(d))}" x2="${f(px(x) + 7)}" y2="${f(py(d))}"/>`);
+    });
     b.pins.forEach(t => parts.push(line(q.refs.map(([x], i) => [x, t[i]]), 'cb-pinned')));
     parts.push(line(q.refs.map(([x], i) => [x, b.t[i]]), 'cb-line'));
-    q.refs.forEach(([x], i) => parts.push(`<circle class="cb-point true" cx="${f(px(x))}" cy="${f(py(b.t[i]))}" r="1.8"/>`));
+    q.refs.forEach(([x], i) => parts.push(`<circle class="cb-point true" cx="${f(px(x))}" cy="${f(py(b.t[i]))}" r="2.6"/>`));
   }
   const words = q.mode === 'repair' ? q.rows.map(([x, y], i) => `${fmt(x)} units: ${fmt(i === b.pick ? b.value : y)}`).join('; ') : `true reports ${b.t.map(fmt).join(' and ')}, stretch ${fmt(stretchOf(q, b.t))}`;
   return `<svg class="cb-board cb-plot" viewBox="0 0 ${W} ${H}" style="--cb-aspect:${f(W / H)}" role="img" aria-label="${esc(words)}">${parts.join('')}</svg>`;
 }
 const button = (label, action, {on = true, hinted = false, pressed = null, cls = 'secondary', aria = null} = {}) => `<button type="button" class="${cls} cb-button${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="cb-${esc(JSON.stringify(action))}"${pressed === null ? '' : ` aria-pressed="${pressed}"`}${aria ? ` aria-label="${esc(aria)}"` : ''} ${on ? '' : 'disabled'}>${label}</button>`;
 const same = (x, y) => x && y && JSON.stringify(x) === JSON.stringify(y);
+// A row of chips beside its name, or under it when they don't fit: one line
+// where it fits, and on a narrow screen seven or more in two balanced lines
+// (4 and 3, 5 and 4, 6 and 5), so no chip is left alone.
+const chipRow = (name, chips, cls = '', aria = name) => `<div class="cb-dial${cls}" role="group" aria-label="${esc(aria)}"><span class="cb-dial-name">${name}</span><span class="cb-chips" style="--cols:${chips.length};--narrow:${chips.length <= 6 ? chips.length : Math.ceil(chips.length / 2)}">${chips.join('')}</span></div>`;
 function dialRow(q, b, which, values, shown, live) {
   const name = which === 'c' ? 'Copies' : 'Extra';
-  return `<div class="cb-dial" role="group" aria-label="${name}"><span class="cb-dial-name">${name}</span>${values.map(v => button(String(v), {type: 'dial', which, value: v}, {on: live, pressed: b.dials[which] === v, hinted: same(shown, {type: 'dial', which, value: v}), cls: 'cb-chip'})).join('')}</div>`;
+  return chipRow(name, values.map(v => button(String(v), {type: 'dial', which, value: v}, {on: live, pressed: b.dials[which] === v, hinted: same(shown, {type: 'dial', which, value: v}), cls: 'cb-chip'})));
 }
 function stripChip(q, s, inTray, live, hinted) {
   const w = q.kit[s] * 9;
@@ -486,19 +502,21 @@ function controls(p, b, shown) {
     return `<div class="cb-kit">${Object.keys(q.kit).map(s => stripChip(q, s, b.tray.includes(s), live, same(shown, {type: 'strip', strip: s}))).join('')}</div>`
       + `<div class="cb-trayline"><div class="cb-tray${b.tray.length ? '' : ' empty'}" aria-label="Tray">${tray}</div>${button('Send', {type: 'send'}, {on: b.tray.length > 0 && live, hinted: same(shown, {type: 'send'}), cls: 'primary'})}</div>`
       + (q.copies.length > 1 ? dialRow(q, b, 'c', q.copies, shown, true) : '') + dialRow(q, b, 'e', range(q.extras[0], q.extras[1]), shown, true)
-      + `<div class="cb-bar-buttons">${button('That’s the machine', {type: 'name'}, {on: dialsSet(b.dials), hinted: same(shown, {type: 'name'})})}</div>`;
+      + `<div class="cb-bar-buttons">${button('That’s the machine', {type: 'name'}, {on: dialsFitReports(q, b), hinted: same(shown, {type: 'name'})})}</div>`;
   }
   if (done) return '';
   if (q.mode === 'every') return (q.copies.length > 1 ? dialRow(q, b, 'c', q.copies, shown, true) : '') + dialRow(q, b, 'e', range(q.extras[0], q.extras[1]), shown, true);
   if (q.mode === 'build') {
-    const row = (which, label, values, now) => `<div class="cb-dial" role="group" aria-label="${label}"><span class="cb-dial-name">${label}</span>${values.map(v => button(String(v), {type: 'set', which, value: v}, {pressed: now === v, hinted: same(shown, {type: 'set', which, value: v}), cls: 'cb-chip'})).join('')}</div>`;
+    const row = (which, label, values, now) => chipRow(label, values.map(v => button(String(v), {type: 'set', which, value: v}, {pressed: now === v, hinted: same(shown, {type: 'set', which, value: v}), cls: 'cb-chip'})));
     return hidden(q).map(n => row(n, n, range(1, q.longest), b.len[n])).join('') + row('e', 'Extra', range(q.extras[0], q.extras[1]), b.e);
   }
   if (q.mode === 'repair') {
     return `<div class="cb-dial" role="group" aria-label="Reports">${q.rows.map(([x, y], i) => button(`${fmt(x)} → ${fmt(i === b.pick ? b.value : y)}`, {type: 'pick', row: i}, {pressed: b.pick === i, hinted: same(shown, {type: 'pick', row: i}), cls: 'cb-chip cb-pair'})).join('')}</div>`
       + (b.pick === null ? '' : `<div class="cb-dial">${button('−', {type: 'step', by: -1}, {hinted: same(shown, {type: 'step', by: -1}), cls: 'cb-chip', aria: 'Smaller report'})}${button('+', {type: 'step', by: 1}, {hinted: same(shown, {type: 'step', by: 1}), cls: 'cb-chip', aria: 'Bigger report'})}</div>`);
   }
-  return `<p class="cb-readout">Stretch ${fmt(stretchOf(q, b.t))}${b.pins.length ? ` · pinned ${fmt(stretchOf(q, b.pins[0]))}` : ''}</p><div class="cb-dial">${q.refs.map(([x], i) => `<span class="cb-dial-name">${fmt(x)} → ${fmt(b.t[i])}</span>${button('▼', {type: 'step', ref: i, by: -1}, {hinted: same(shown, {type: 'step', ref: i, by: -1}), cls: 'cb-chip', aria: `Report for ${fmt(x)} units down`})}${button('▲', {type: 'step', ref: i, by: 1}, {hinted: same(shown, {type: 'step', ref: i, by: 1}), cls: 'cb-chip', aria: `Report for ${fmt(x)} units up`})}`).join('')}</div>`
+  // One row per reference, its name and both arrows together.
+  const arrows = (x, i) => [button('▼', {type: 'step', ref: i, by: -1}, {hinted: same(shown, {type: 'step', ref: i, by: -1}), cls: 'cb-chip', aria: `Lower the report for length ${fmt(x)}`}), button('▲', {type: 'step', ref: i, by: 1}, {hinted: same(shown, {type: 'step', ref: i, by: 1}), cls: 'cb-chip', aria: `Raise the report for length ${fmt(x)}`})];
+  return `<p class="cb-readout">Stretch ${fmtHtml(stretchOf(q, b.t))}${b.pins.length ? ` · pinned ${fmtHtml(stretchOf(q, b.pins[0]))}` : ''}</p>${q.refs.map(([x], i) => chipRow(`${fmt(x)} → ${fmt(b.t[i])}`, arrows(x, i), ' cb-ref', `Length ${fmt(x)}, report ${fmt(b.t[i])}`)).join('')}`
     + `<div class="cb-bar-buttons">${button('Pin', {type: 'pin'}, {hinted: same(shown, {type: 'pin'})})}</div>`;
 }
 function shelf(q, b, now) {
@@ -516,14 +534,15 @@ function render(p, a) {
   const q = p.parameters, b = a.board, done = solved(p, b);
   const shown = a.hintLevel >= 2 && !done ? plan(p, b)?.action : null;
   const board = q.mode === 'stretch' || (q.mode === 'repair' && q.machine === 'line') ? plotBoard(q, b) : barsBoard(q, b);
-  let note = '', after = '';
+  let note = '', after = '', lost = '';
   if (q.mode === 'find' && lostRound(q, b)) {
-    // The certificate: two machines that fit every report (the named one first
-    // when it fits), or the one that fits when another was named.
+    // The certificate: two machines that fit every report (the named one
+    // first), each drawn on the report rows with its ticks, in place of the board.
     const {alive} = play(q, b.requests), mine = alive.find(m => keyOf(m) === keyOf([b.dials.c, b.dials.e])) || alive[0];
-    const shownMachines = alive.length >= 2 ? [mine, alive.find(m => m !== mine)] : alive;
-    note = alive.length >= 2 ? 'These both fit every report:' : 'This machine fits every report:';
-    after = `<ul class="cb-shelf cb-lost">${shownMachines.map(m => `<li class="cb-item">${esc(machineWords(q, m))}</li>`).join('')}</ul><div class="cb-bar-buttons">${button('Again', {type: 'again'}, {cls: 'primary', hinted: same(shown, {type: 'again'})})}</div>`;
+    const pair = alive.length >= 2 ? [mine, alive.find(m => m !== mine)] : alive;
+    note = pair.length >= 2 ? 'These both fit every report:' : 'This machine fits every report:';
+    lost = `<div class="cb-lost">${pair.map(([c, e]) => `<figure class="cb-machine"><figcaption class="cb-item">${esc(machineWords(q, [c, e]))}</figcaption>${barsBoard(q, {...b, dials: {c, e}}, false)}</figure>`).join('')}</div>`;
+    after = `<div class="cb-bar-buttons">${button('Again', {type: 'again'}, {cls: 'primary', hinted: same(shown, {type: 'again'})})}</div>`;
   } else if (b.told) note = TOLD[b.told];
   else if (q.mode === 'stretch' && b.pins.length === 1 && !done) note = '';
   const all = catalog(q) && !done ? `<div class="cb-bar-buttons">${button('That’s all', {type: 'all'}, {on: b.found.length > 0 && !b.told, hinted: same(shown, {type: 'all'})})}</div>` : '';
@@ -534,7 +553,8 @@ function render(p, a) {
     return null;
   })();
   const status = q.mode === 'find' ? `${b.requests.length} of ${q.budget} requests used.${b.named ? ` Named ${machineWords(q, [b.dials.c, b.dials.e])}: ${b.named === 'won' ? 'right' : 'another fits too'}.` : ''}` : q.mode === 'stretch' ? `Stretch ${fmt(stretchOf(q, b.t))}.${b.pins.length ? ` Pinned ${b.pins.map(t => fmt(stretchOf(q, t))).join(' and ')}.` : ''}` : `${catalog(q) ? `${b.found.length} found.` : ''}`;
-  return `<div class="cb-puzzle mode-${q.mode}${done ? ' solved' : ''}">${board}${controls(p, b, shown)}${all}${note ? `<p class="cb-note">${esc(note)}</p>` : ''}${after}${shelf(q, b, now)}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  const top = lost ? `<p class="cb-note">${esc(note)}</p>${lost}` : `${board}${controls(p, b, shown)}${all}${note ? `<p class="cb-note">${esc(note)}</p>` : ''}`;
+  return `<div class="cb-puzzle mode-${q.mode}${done ? ' solved' : ''}">${top}${after}${shelf(q, b, now)}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 
 export const calibrateMechanics = {

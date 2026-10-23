@@ -137,7 +137,7 @@ function checkAnswers(p) {
   if (q.mode === 'fill' || q.mode === 'pieces') {
     const w = units(q.width), byK = new Map();
     for (const lo of gridOf(0, 16 - w, step)) { const k = firstFull(lo, lo + w, q.rows); byK.set(k, [...(byK.get(k) || []), ticks(lo)]); }
-    if (q.mode === 'fill') { q.goals.forEach((k, i) => assert.deepEqual(s.goals[i], byK.get(k), `${p.id}: bands first full on move ${k}`)); assert.equal(fresh(p).reached.length, 1, `${p.id}: the start meets one goal`); }
+    if (q.mode === 'fill') { q.goals.forEach((k, i) => assert.deepEqual(s.goals[i], byK.get(k), `${p.id}: bands first full on move ${k}`)); assert.equal(fresh(p).reached.length, 0, `${p.id}: the start meets no goal`); }
     else { assert.deepEqual(s.answers, byK.get(q.on), `${p.id}: every band first full on move ${q.on}`); assert.equal(s.count, s.answers.length); }
   }
   if (q.mode === 'widest') {

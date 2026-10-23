@@ -88,6 +88,9 @@ try {
   assert.equal(await page.locator('.feedback').innerText(), '', 'one pin is not judged');
   await tapAt(13); await button('Pin').click();
   assert.equal(await note(), 'A start lands lower.');
+  await tapAt(12); await button('Pin').click();
+  assert.equal(await note(), 'Pin the lowest and the highest landing.', 'the line comes back once a new pin replaces the refusal');
+  await page.locator('[data-action=undo]').click();
   await tapAt(15); await button('Pin').click(); await tapAt(10); await button('Pin').click();
   await done();
   assert.equal(await page.locator('.tn-span').count(), 1);
@@ -105,9 +108,9 @@ try {
   await page.locator('.tn-knob').focus(); await page.keyboard.press('End');
   await button('Pin').click(); await done();
 
-  // Puzzle 5: a goal met at the start, the other by dragging the band half a unit.
+  // Puzzle 5: no goal met at the start; dragging the band half a unit meets it.
   await open('tent-05'); await fit('tent-05');
-  assert.equal(await page.locator('.tn-goal.met').count(), 1);
+  assert.equal(await page.locator('.tn-goal.met').count(), 0);
   await drag(7.5, 8);
   assert.equal((await board('tent-05')).lo, 240, 'the band dragged by half a unit');
   await done();

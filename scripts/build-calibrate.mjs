@@ -21,10 +21,10 @@ const RULES = {
   buildEvery: ['Every pair of lengths that fits goes on the shelf. That’s all says whether one is missing.'],
   repairExtra: ['One machine, adding the same extra of 1 to 6 units, made all three reports, but one of them may be wrong. Each row shows a length and the extra up to its report.', 'Change one report at a time. Every repair that makes the three fit one machine goes on the shelf. That’s all says whether one is missing.'],
   repairLine: ['A stretch-and-shift machine multiplies every length by the same number and adds the same amount, so its reports lie on one line going up. One of these three reports may be wrong.', 'Change one report at a time, by halves. Every repair that puts the three points on one line going up goes on the shelf. That’s all says whether one is missing.'],
-  stretch: ['A stretch-and-shift machine’s reports lie on a line. The display can be up to 1 above or below the true report: the gray bar.', 'Move each true report inside its bar, by halves. The line through them shows the stretch: how much the report grows for each unit of length.', 'Pin the steepest and the shallowest line. The two pins are checked together.']
+  stretch: ['A stretch-and-shift machine’s reports lie on a line. Each display can be up to 1 above or below its true report, so the true report is somewhere in its bar.', 'Move each true report inside its bar, by halves. The line through them shows the stretch: how much the report grows for each unit of length.', 'Pin the steepest and the shallowest line. The two pins are checked together.']
 };
 const CONTROLS = {
-  find: 'Tap kit strips to put them in the tray (tap again to take one out), then press Send. Tap the dial numbers to set the machine. Press That’s the machine to name it; after a lost round, Again starts a new one.',
+  find: 'Tap kit strips to put them in the tray (tap again to take one out), then press Send. Tap the dial numbers to set the machine. Once every row has a tick, press That’s the machine to name it; after a lost round, Again starts a new one.',
   every: 'Tap the dial numbers. A machine that fits goes on the shelf. Press That’s all when you have every one. Undo takes back the last move.',
   build: 'Tap a number in each row of numbers to set that length or the extra. Undo takes back the last move.',
   repair: 'Tap a report to change it, then press − or +. Press That’s all when you have every repair. Undo takes back the last move.',
@@ -77,7 +77,7 @@ const PUZZLES = [
   {number: 5, level: 'medium', title: 'One wrong report', rules: 'repairExtra', prereq: 'repair',
     parameters: {mode: 'repair', machine: 'extra', rows: [[2, 5], [4, 7], [6, 10]], extras: [1, 6], lo: 0, hi: 12, step: 1, ruler: 12},
     check: q => assert.deepEqual(repairAnswers(q), [[2, 9]]),
-    objective: 'Change one report so that one machine, adding one extra, made all three. Find every way, then press That’s all.', visible: 'Change one report so one machine fits all three. Find every way.',
+    objective: 'Change one report so that one machine, adding one extra, made all three. Find every way, then press That’s all.', visible: 'Find every way to change one report so one machine fits all three.',
     idea: 'Two reports that agree on the extra outvote the third: there is one repair.',
     hints: ['Compare the three extras: how far each report goes past its strip.', 'Two of the extras agree.', 'The report for 6 should be 9.'],
     parent: {notice: 'Whether your child looks for more repairs after finding one, and how they decide there are none.', prompt: 'Why can’t you repair it by changing the report for 2?', explanation: 'The extras are 3, 3 and 4. Changing the report for 2 or for 4 leaves a 3 and a 4 among the other two, so no one extra fits. Only changing 10 to 9 works. With an extra-only machine and one wrong report out of three, the two right reports always agree, so there is always exactly one repair.', extension: 'Make a list of three with one wrong report for a partner to repair.', connection: 'Redundant measurements against one offset detect and correct a single error, as a majority vote does.'},
@@ -114,7 +114,7 @@ const PUZZLES = [
   {number: 9, level: 'hard', title: 'Repair a line', rules: 'repairLine', prereq: 'line',
     parameters: {mode: 'repair', machine: 'line', rows: [[2, 7], [4, 11], [6, 16]], lo: 0, hi: 24, step: 0.5, xmax: 8, ymax: 24},
     check: q => assert.deepEqual(repairAnswers(q), [[0, 6], [1, 11.5], [2, 15]]),
-    objective: 'Change one report so the three points lie on one line going up. Find every way, then press That’s all.', visible: 'Change one report so the three points line up. Find every way.',
+    objective: 'Change one report so the three points lie on one line going up. Find every way, then press That’s all.', visible: 'Find every way to change one report so the three points line up.',
     idea: 'Any two points make a line, so each point can be the wrong one.',
     hints: ['Pick a point and move it until all three line up.', 'After one repair, try moving a different point.', 'There is a repair for each point: 6, 11½ and 15.'],
     parent: {notice: 'Whether your child stops after one repair, as in puzzle 5, or keeps looking.', prompt: 'Why does this machine have more repairs than puzzle 5’s?', explanation: 'Any two of the points fix a line going up, and the third can be moved onto it: the line through (4, 11) and (6, 16) gives 6 for length 2; through (2, 7) and (6, 16), 11½ for length 4 (halfway between 7 and 16); through (2, 7) and (4, 11), 15 for length 6. An extra-only machine has only one free number, so two reports already overrule the third.', extension: 'Is there a list of three reports with no repair at all? (Not for a line that may go up any amount: there is always one per point, unless a line would go down.)', connection: 'With a two-parameter model, three readings can detect an error but not say which reading is wrong.'},

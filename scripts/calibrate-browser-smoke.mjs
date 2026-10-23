@@ -28,6 +28,19 @@ const strip = s => page.locator(`.cb-strip-chip[aria-label^="${s},"]`);
 const dial = (group, v) => page.locator(`.cb-dial[aria-label="${group}"] button`, {hasText: new RegExp(`^${v}$`)});
 const note = () => page.locator('.cb-note').innerText();
 const ticks = () => page.locator('.cb-board .cb-tick').count();
+// Chip rows never leave one chip alone on a line, and a reference's arrows stay on one line.
+async function noOrphans(label) {
+  const bad = await page.evaluate(() => {
+    const out = [];
+    for (const row of document.querySelectorAll('.cb-chips')) {
+      const lines = new Map();
+      for (const chip of row.children) { const top = Math.round(chip.getBoundingClientRect().top); lines.set(top, (lines.get(top) || 0) + 1); }
+      if (lines.size > 1 && [...lines.values()].some(n => n < 2)) out.push(row.parentElement.getAttribute('aria-label'));
+    }
+    return out;
+  });
+  assert.deepEqual(bad, [], `${label}: no chip alone on a line`);
+}
 
 try {
   await page.goto(base); await page.locator('#nickname').fill('Machines QA'); await page.locator('#profile-form button[type=submit]').click();
@@ -50,6 +63,8 @@ try {
   assert.ok(await strip('C').isDisabled(), 'the kit is off once every request is used');
   assert.equal(await ticks(), 0);
   assert.ok(await button('That’s the machine').isDisabled(), 'the dials start unset');
+  await tap(dial('Copies', 3)); await tap(dial('Extra', 5));
+  assert.ok(await button('That’s the machine').isDisabled(), 'off while a row has no tick');
   await tap(dial('Copies', 1)); await tap(dial('Extra', 6));
   assert.equal(await ticks(), 2, 'copies 1 and extra 6 meet both reports');
   assert.ok(await page.evaluate(() => document.activeElement?.classList.contains('cb-chip')), 'focus stays on a dial after a move');
@@ -60,6 +75,7 @@ try {
   await tap(strip('B')); await tap(button('Send')); await tap(strip('B')); await tap(button('Send'));
   assert.equal(await note(), 'These both fit every report:');
   assert.equal(await page.locator('.cb-lost .cb-item').count(), 2);
+  assert.equal(await page.locator('.cb-lost .cb-board .cb-tick').count(), 4, 'both machines drawn on both report rows, every row ticked');
   assert.equal(await button('That’s the machine').count(), 0, 'the round is over');
   await tap(button('Again'));
   assert.deepEqual((await board('calibrate-06')).requests, [], 'Again starts a new round');
@@ -100,9 +116,9 @@ try {
   const step = async (name, n) => { for (let k = 0; k < n; k++) await tap(page.getByRole('button', {name})); };
   await tap(button('Pin'));
   assert.equal(await page.locator('.feedback').innerText(), '', 'one pin is not judged');
-  await step('Report for 2 units down', 2); await step('Report for 4 units up', 2); await tap(button('Pin'));
+  await step('Lower the report for length 2', 2); await step('Raise the report for length 4', 2); await tap(button('Pin'));
   assert.equal(await note(), 'A line can be shallower.');
-  await tap(button('Pin')); await step('Report for 2 units up', 4); await step('Report for 4 units down', 4); await tap(button('Pin'));
+  await tap(button('Pin')); await step('Raise the report for length 2', 4); await step('Lower the report for length 4', 4); await tap(button('Pin'));
   await done();
   assert.equal(await page.locator('.cb-pinned').count(), 2);
 
@@ -121,8 +137,8 @@ try {
         if (id === 'calibrate-04') { await tap(dial('Extra', 4)); }
         if (id === 'calibrate-05') { await tap(page.locator('.cb-pair').first()); }
         if (id === 'calibrate-07') { await tap(dial('Extra', 4)); }
-        if (id === 'calibrate-11') { await tap(page.getByRole('button', {name: 'Report for 2 units down'})); await tap(button('Pin')); }
-        await fit(`${id}, ${tag}`);
+        if (id === 'calibrate-11') { await tap(page.getByRole('button', {name: 'Lower the report for length 2'})); await tap(button('Pin')); }
+        await fit(`${id}, ${tag}`); await noOrphans(`${id}, ${tag}`);
         await page.screenshot({path: `${dir}${id}-${tag}.png`, fullPage: true});
       }
     }

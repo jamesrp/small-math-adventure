@@ -307,8 +307,9 @@ function checkRefusals(p) {
       assert.ok(!isSolved(p, a.board));
       const html = view(p, a), {alive, reports} = keeperPlay(q, a.board.requests);
       assert.ok(alive.length >= 2 && html.includes('These both fit every report:'), `${p.id}: a lost round shows two machines`);
-      const named = [...html.matchAll(/<li class="cb-item">([^<]*)<\/li>/g)].map(m => m[1]);
+      const named = [...html.matchAll(/<figcaption class="cb-item">([^<]*)<\/figcaption>/g)].map(m => m[1]);
       assert.equal(named.length, 2);
+      assert.equal((html.match(/class="cb-tick"/g) || []).length, 2 * a.board.requests.length, `${p.id}: both machines are drawn on every report row, each row ticked`);
       for (const words of named) {
         const nums = words.match(/\d+/g).map(Number), m = nums.length === 2 ? nums : [1, nums[0]];
         assert.ok(a.board.requests.every((r, k) => out(m, lengthFor(q, r)) === reports[k]), `${p.id}: ${words} fits every report`);
@@ -317,10 +318,19 @@ function checkRefusals(p) {
       assert.deepEqual(play(p, a, [{type: 'again'}]).board, freshAttempt(p).board, `${p.id}: Again starts a new round`);
       n++;
     }
-    // Naming with no request loses, and shows two machines.
-    const early = play(p, freshAttempt(p), [...(q.copies.length > 1 ? [{type: 'dial', which: 'c', value: q.copies[0]}] : []), {type: 'dial', which: 'e', value: q.extras[0]}, {type: 'name'}]);
-    assert.equal(early.board.named, 'lost'); assert.ok(view(p, early).includes('These both fit every report:')); n++;
-    assert.equal(undo(early), early, `${p.id}: a request round keeps no Undo`);
+    // That’s the machine needs a report, and dials that meet every report.
+    const dialsTo = ([c, e]) => [...(q.copies.length > 1 ? [{type: 'dial', which: 'c', value: c}] : []), {type: 'dial', which: 'e', value: e}];
+    refuse(p, play(p, freshAttempt(p), dialsTo([q.copies[0], q.extras[0]])), {type: 'name'}, 'naming before any request'); n++;
+    const first = play(p, freshAttempt(p), [{type: 'strip', strip: 'A'}, {type: 'send'}]), r0 = keeperPlay(q, first.board.requests).reports[0];
+    const fits = machinesFor(q).filter(m => out(m, q.kit.A) === r0), miss = machinesFor(q).find(m => out(m, q.kit.A) !== r0);
+    const over = first.board.requests.length === q.budget && fits.length > 1;
+    if (miss && !over) { refuse(p, play(p, first, dialsTo(miss)), {type: 'name'}, 'naming dials that miss a report'); n++; }
+    // Naming a machine that fits, while another fits too, loses and shows both.
+    if (fits.length >= 2 && first.board.requests.length < q.budget) {
+      const early = play(p, first, [...dialsTo(fits[0]), {type: 'name'}]);
+      assert.equal(early.board.named, 'lost'); assert.ok(view(p, early).includes('These both fit every report:')); n++;
+      assert.equal(undo(early), early, `${p.id}: a request round keeps no Undo`);
+    }
   }
   return n;
 }
@@ -333,7 +343,7 @@ function checkSaves(p) {
     const tooMany = [...Array(q.budget + 1)].map(() => ['A']);
     forged.push([{...b, requests: tooMany}, 'more requests than the budget'], [{...b, requests: [['Z']]}, 'a strip not in the kit'], [{...b, named: 'won'}, 'a win with no request'],
       [{...b, tray: ['A'], named: 'lost'}, 'a named round with strips in the tray'], [{...b, dials: {c: 9, e: 0}}, 'copies off the dial'], [{...b, requests: [[]]}, 'an empty request'],
-      [{...b, requests: [['A', 'A']]}, 'a strip twice in a request'], [{...b, named: 'maybe'}, 'an unknown verdict'], [{...b, named: 'lost'}, 'named with unset dials']);
+      [{...b, requests: [['A', 'A']]}, 'a strip twice in a request'], [{...b, named: 'maybe'}, 'an unknown verdict'], [{...b, named: 'lost'}, 'named with unset dials'], [{...b, dials: {c: q.copies[0], e: q.extras[0]}, named: 'lost'}, 'named with no request']);
     if (q.copies.length === 1) forged.push([{...b, dials: {c: null, e: null}}, 'copies unset when there is one choice']);
     if (q.tray === 1) forged.push([{...b, tray: ['A', 'B']}, 'two strips in a one-strip tray']);
   }

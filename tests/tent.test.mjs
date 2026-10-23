@@ -42,7 +42,7 @@ test('the pack’s answers', () => {
   assert.deepEqual([e.lo, e.hi].map(fmt), ['0', '12']);
   assert.deepEqual(ratioBands(byId('tent-06').parameters, [2, 3]).map(b => b.map(fmt).join('-')), ['2-10', '5-9', '6-14', '7-11']);
   assert.equal(widestEnd(byId('tent-09').parameters), u(1 / 4));
-  assert.equal(widestEnd(byId('tent-10').parameters), u(1 / 32));
+  assert.equal(widestEnd(byId('tent-10').parameters), u(1 / 16), 'five moves: wider than the finest step, 1/32');
   assert.deepEqual(fillStarts(byId('tent-11').parameters, 3).map(fmt), ['0', '2', '4', '6', '8', '10', '12', '14']);
 });
 
@@ -122,8 +122,8 @@ test('width and fill goals: met as they happen, kept through Undo, and the last 
   assert.deepEqual(b.board.reached, [0]);
   const f = byId('tent-05');
   let c = freshAttempt(f);
-  assert.deepEqual(c.board.reached, [4], 'the start meets one goal, which explains the goals');
-  assert.match(view(f, c), /First full on move 4<span class="tn-check"/);
+  assert.deepEqual(c.board.reached, [], 'the start (first full on move 4) meets no goal');
+  assert.match(view(f, c), /First full on move 5<\/div>/);
   c = play(f, c, [{type: 'slide', at: u(3)}]);
   assert.ok(!isSolved(f, c.board));
   c = play(f, c, [{type: 'slide', at: u(3.5)}]);
