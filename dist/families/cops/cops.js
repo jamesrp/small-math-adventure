@@ -413,8 +413,14 @@ export function glide(root, id) {
   }
 }
 
+// A quick double tap would put a piece down (or move it) and then count the
+// second tap, on the piece's new dot, as staying: a move spent by accident.
+// A tap on the moving piece's own dot just after a move is ignored.
+const QUICK = 500, lastMove = new Map();
+const quick = id => Date.now() - (lastMove.get(id) || 0) < QUICK;
 function wire(root, p, api) {
   const now = () => api.attempt().board;
+  const apply = action => { lastMove.set(p.id, Date.now()); api.apply(action); };
   wireGraph(root, {
     node: x => {
       const b = now();
@@ -427,6 +433,8 @@ function wire(root, p, api) {
         else api.ui({pick: r.pick, at: JSON.stringify(b)});
         return null;
       }
+      const own = s.role === 'robber' ? s.robber : s.cop;
+      if (own !== null && s.G.index[x] === own && quick(p.id)) return null;
       return s.taps.get(s.G.index[x]) || null;
     },
     edge: i => {
@@ -439,7 +447,7 @@ function wire(root, p, api) {
       const end = s.G.ids[from] === u ? v : s.G.ids[from] === v ? u : null;
       return end === null ? null : s.taps.get(s.G.index[end]) || null;
     }
-  }, api.apply);
+  }, apply);
   glide(root, p.id);
 }
 
@@ -451,7 +459,9 @@ export const copsMechanic = {
     if (payload.full) ui(p).full = {value: true, at: payload.at};
   },
   reset: p => { uiState.delete(p.id); lastDrawn.delete(p.id); },
-  noHint: p => p.parameters.mode === 'playground'
+  noHint: p => p.parameters.mode === 'playground',
+  // After Can't the child plays R, so the line above the board says so.
+  objective: (p, b) => ['catch', 'roads'].includes(p.parameters.mode) && object(b) && Array.isArray(b.cant) ? 'Keep R away from C forever.' : undefined
 };
 
 // --- Folds (copsfold) ---------------------------------------------------------
@@ -542,7 +552,8 @@ function foldWire(root, p, api) {
       const r = foldTap(p.parameters, b, fcurrent(p, b, 'pick'), x);
       if (!r) return null;
       if (r.move) return r.move;
-      api.ui({...(r.told ? {told: r.told, pick: r.told.v} : {pick: r.pick}), at: JSON.stringify(b)});
+      // A refused fold lets the chosen dot go; the line and rings stay until the next tap.
+      api.ui({...(r.told ? {told: r.told, pick: null} : {pick: r.pick}), at: JSON.stringify(b)});
       return null;
     }
   }, api.apply);
@@ -641,13 +652,17 @@ function twoRender(p, a) {
   const status = `C1 on ${id(t.a)}, C2 on ${id(t.c)}, R on ${id(t.r)}.${plan.C1 || plan.C2 ? ` Planned: ${['C1', 'C2'].filter(k => plan[k]).map(k => `${k} to ${plan[k]}`).join(', ')}.` : ''} ${t.used} of ${q.budget} moves used.${line ? ` ${line}` : ''}`;
   return `<div class="cp-puzzle${done ? ' solved' : ''}" data-mechanic-wire="copstwo">${bar}${board}${line ? `<p class="cp-told">${esc(line)}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
+const lastPlan = new Map();
 function twoWire(root, p, api) {
   wireGraph(root, {
     node: x => {
       const b = api.attempt().board, q = p.parameters;
       if (twoSolved(p, b) || b.moves.length >= q.budget) return null;
+      // A quick second tap on the dot just planned would plan the other cop there too.
+      const last = lastPlan.get(p.id);
+      if (last && last.x === x && Date.now() - last.at < QUICK) return null;
       const G = gameOf(q), r = twoTap(G, twoChase(G, q.start, b.moves), tui(p).chosen, planFor(p, b), x);
-      if (r) api.ui({plan: r.plan, chosen: r.chosen, at: JSON.stringify(b)});
+      if (r) { lastPlan.set(p.id, {x, at: Date.now()}); api.ui({plan: r.plan, chosen: r.chosen, at: JSON.stringify(b)}); }
       return null;
     }
   }, api.apply);

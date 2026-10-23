@@ -312,17 +312,25 @@ export default async function validateCops() {
       (function choose(from, set) { sets.push(set); if (set.length === q.add) return; for (let i = from; i < cand.length; i++) choose(i + 1, [...set, cand[i]]); })(0, []);
       const good = sets.filter(set => { const N = model({...q, roads: [...q.roads, ...set]}); return best(N, rounds(N)) <= q.budget; });
       assert.equal(sets.filter(set => set.length < q.add && good.includes(set)).length, 0, `${p.id}: fewer roads never work`);
-      for (const set of good) { const N = model({...q, roads: [...q.roads, ...set]}), v = rounds(N); assert.ok(N.ids.every((_, c) => startValue(N, v, c) <= q.budget), `${p.id}: every start works on a good set`); }
+      // With roads that work, the budget is the fewest moves from the best
+      // start, so one fewer never works, and some start fails: the roads and
+      // the start are both decisions.
+      if (good.length) {
+        const values = good.map(set => { const N = model({...q, roads: [...q.roads, ...set]}), v = rounds(N); return N.ids.map((_, c) => startValue(N, v, c)); });
+        assert.equal(Math.min(...values.flat()), q.budget, `${p.id}: the budget is the fewest moves`);
+        assert.ok(values.some(vs => vs.some(x => x > q.budget)), `${p.id}: some start fails with roads that work`);
+        assert.ok(sets.some(set => set.length === q.add && !good.includes(set)), `${p.id}: some roads fail`);
+      }
       if (q.cant) {
         const full = sets.filter(s => s.length === q.add).map(s => model({...q, roads: [...q.roads, ...s]}));
         assert.ok(full.every(F => isomorphic(full[0], F)), `${p.id}: every full set of roads gives the same map, so Can’t on the child’s roads speaks for all`);
       }
-      // A crossing pair, or a wrong road, then hints.
-      if (q.add === 2) {
-        const crossing = sets.find(s => s.length === 2 && !good.includes(s));
-        let b = play(one, p, one.fresh(p), [{type: 'add', road: crossing[0]}, {type: 'add', road: crossing[1]}, {type: 'play'}]);
-        hintsSolve(one, p, b, 'after a crossing pair');
-        assert.equal(one.move(p, b, {type: 'cant'}), null, `${p.id}: no Can’t without Can’t offered`);
+      // Roads that fail (a crossing pair, or a road that leaves a ring), then hints.
+      if (good.length) {
+        const wrong = sets.find(s => s.length === q.add && !good.includes(s));
+        let b = play(one, p, one.fresh(p), [...wrong.map(road => ({type: 'add', road})), {type: 'play'}]);
+        hintsSolve(one, p, b, 'after roads that fail');
+        if (!q.cant) assert.equal(one.move(p, b, {type: 'cant'}), null, `${p.id}: no Can’t without Can’t offered`);
       }
     }
     // Escape certificates on the solves the hints make, and random children.

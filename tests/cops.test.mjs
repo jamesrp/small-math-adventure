@@ -138,9 +138,33 @@ test('roads: two taps add a road, a tap takes it away, slots are a limit, Play a
   assert.deepEqual(a.board, {added: [['a', 'c']], play: false, start: null, moves: [], cant: null}, 'Roads keeps the roads and clears the game');
   a = solveByHints(p, a);
   assert.ok(isSolved(p, a.board));
-  // A wrong Can't on the square with a diagonal: C catches R.
-  let b = play(p, freshAttempt(p), {type: 'add', road: ['a', 'c']}, {type: 'cant'});
-  assert.equal(nextHint(p, b).type, 'deadend');
+  // No Can't here: two of the nine roads work.
+  assert.equal(move(p, play(p, freshAttempt(p), {type: 'add', road: ['e', 'f']}), {type: 'cant'}), null, 'no Can’t on the square with two tails');
+  assert.deepEqual(goodSets(q).map(s => s[0].join('-')).sort(), ['a-c', 'b-d']);
+  // With b–d, a corner with a tail is too far from the other tail.
+  let b = play(p, freshAttempt(p), {type: 'add', road: ['b', 'd']}, {type: 'play'}, {type: 'start', at: 'a'});
+  assert.equal(nextHint(p, b).type, 'deadend', 'from a, the far tail is three moves away');
+  b = play(p, freshAttempt(p), {type: 'add', road: ['e', 'f']}, {type: 'play'}, {type: 'start', at: 'a'});
+  assert.deepEqual(nextHint(p, b).action, {type: 'edit'}, 'joining the tails leaves R a ring: back to Roads');
+});
+
+test('two roads on the pentagon: one move, from the end the roads share', () => {
+  const p = byId('cops-11');
+  assert.equal(p.parameters.budget, 1);
+  let a = play(p, freshAttempt(p), {type: 'add', road: ['a', 'c']}, {type: 'add', road: ['a', 'd']}, {type: 'play'}, {type: 'start', at: 'b'});
+  assert.equal(nextHint(p, a).type, 'deadend', 'from b one move is not enough');
+  a = play(p, freshAttempt(p), {type: 'add', road: ['a', 'c']}, {type: 'add', road: ['a', 'd']}, {type: 'play'}, {type: 'start', at: 'a'});
+  a = solveByHints(p, a);
+  assert.equal(a.board.moves.length, 1);
+});
+
+test('after Can’t, the line says the child now keeps R away', () => {
+  const p = byId('cops-08');
+  assert.equal(copsMechanics.cops.objective(p, freshAttempt(p).board), undefined);
+  const a = play(p, freshAttempt(p), {type: 'cant'});
+  assert.equal(copsMechanics.cops.objective(p, a.board), 'Keep R away from C forever.');
+  assert.match(view(p, a), /<h1 class="puzzle-goal">Keep R away from C forever\.<\/h1>/);
+  assert.match(view(p, freshAttempt(p)), /<h1 class="puzzle-goal">Catch R, or press Can’t if R can always get away\.<\/h1>/);
 });
 
 test('one road on the pentagon: Can’t on the child’s own road; two crossing roads still lose', () => {
@@ -239,7 +263,7 @@ test('forged saves are rejected', () => {
   assert.equal(validBoard(byId('cops-04'), {answers: ['c', 'b']}), false, 'R onto C');
   assert.equal(validBoard(byId('cops-04'), {answers: ['c', 'd', 'd', 'd']}), false, 'answers after the end');
   assert.equal(validBoard(byId('cops-09'), {added: [['a', 'b']], play: false, start: null, moves: [], cant: null}), false, 'a road already there');
-  assert.equal(validBoard(byId('cops-09'), {added: [], play: false, start: null, moves: [], cant: []}), false, 'Can’t before the new road');
+  assert.equal(validBoard(byId('cops-09'), {added: [], play: false, start: null, moves: [], cant: []}), false, 'Can’t where none is offered');
   assert.equal(validBoard(byId('cops-fold-02'), {folds: [], claim: 'stuck'}), false, 'stuck with a fold left');
   assert.equal(validBoard(byId('cops-two-01'), {moves: [['c', 'a']]}), false, 'a cop two roads at once');
 });

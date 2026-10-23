@@ -37,6 +37,9 @@ export const MAPS = {
   D1: {...place({a: [0, 0.577], b: [0, -0.577], c: [1, 0], d: [2, 0], e: [3, 0], f: [4, 0]}, 9), roads: roadList('a-b b-c c-a c-d d-e e-f')},
   // A square with a roof: the roof folds away and leaves the square.
   house: {...place({a: [0, 1], b: [1, 1], c: [1, 0], d: [0, 0], e: [0.5, 1.75]}, 16), roads: roadList('a-b b-c c-d d-a e-a e-b')},
+  // A square with a tail at two opposite corners, a and c: of the nine roads
+  // that can be added, only the two across the square let C win.
+  tails: {...place({a: [0, 1], b: [1, 1], c: [1, 0], d: [0, 0], e: [-0.75, 1.75], f: [1.75, -0.75]}, 10), roads: roadList('a-b b-c c-d d-a a-e c-f')},
   // Worksheet materials p. 1: F1 is the triangle a–b–c with tail c–d–e and stalk a–f.
   F1: {...place({a: [0, 0], b: [1, 1], c: [2, 0], d: [3, 0], e: [4, 0], f: [0, -1]}, 9), roads: roadList('a-b b-c c-a c-d d-e a-f')},
   // Materials p. 2: F2 is the pentagon with the chord a–c.
@@ -126,23 +129,23 @@ const ITEMS = [
     hints: ['Try to catch R. Where does R keep going?', 'When C climbs onto the roof, which square dots can it reach next?', 'R stays on the square: C on the roof reaches only what a top corner reaches.'],
     parent: {notice: 'Whether your child tries starts for a while, then switches to escaping, and whether the roof is used as a hiding place (it isn’t one: the roof is next to C whenever C is on a top corner).', prompt: 'Is the roof ever useful to R? Is it useful to C?', explanation: 'The roof e reaches only a and b, and a reaches those too, so e folds into a; what is left is a bare square, where R stays across from C. On the house R plays the square strategy, pretending C on the roof stands on a: from there C reaches nothing the corner a doesn’t. So C never catches R, and Can’t is right. In Can’t, the app’s C tries its three kinds of start (a top corner, a bottom corner, the roof) and every move.', extension: 'Add the road a–c. Who wins now? (C: a is next to every dot.)', connection: 'A fold never changes who wins (Nowakowski and Winkler): the house folds to a square, which is robber-win, so the house is robber-win.'},
     provenance: 'New instance for the classification, in the spirit of upper Problem 3 (design a robber-win map with a cycle).'},
-  {number: 9, level: 'hard', title: 'Square and a new road', map: 'R4', mode: 'roads', add: 1, cant: true, budget: 2,
-    check: {good: [['a-c'], ['b-d']]},
-    idea: 'One road across the square makes its ends next to every dot, so R has nowhere to hide.', prereq: 'roads',
-    hints: ['Add a road where it removes R’s hiding place.', 'R hides across from C. Can a new road make every dot near one corner?', 'Add a road across the square, then start C at one of its ends.'],
-    parent: {notice: 'Whether your child adds a road and then remembers the square strategy to test it.', prompt: 'After your new road, is any dot more than one road from every corner?', explanation: 'Either diagonal makes its two ends next to all four dots. C starts at an end and catches R in one move, or from elsewhere in two (step to an end of the diagonal, then onto R). No road leaves the bare square, where R escapes, so one road is the fewest. Can’t is wrong here: the app’s C catches R on a square with a diagonal.', extension: 'Add both diagonals. (Every dot is next to every other: C catches on its first move from anywhere.)', connection: 'Adding a road can help C by taking away a hiding place.'},
-    provenance: 'Week 86 upper Problem 2, board E4 (“Add as few roads as possible to each ring so C can always catch R”).'},
+  {number: 9, level: 'hard', title: 'Square with two tails', map: 'tails', mode: 'roads', add: 1, budget: 2,
+    check: {good: [['a-c'], ['b-d']], roadStarts: {'a-c': {a: 2, b: 2, c: 2, d: 2, e: 3, f: 3}, 'b-d': {a: 3, b: 2, c: 3, d: 2, e: 4, f: 4}}},
+    idea: 'Only a road across the square takes away R’s escape, and the one joining the two corners with tails lets C start on any corner.', prereq: 'roads',
+    hints: ['Add a road and play. Where does R run?', 'A road across the square takes away R’s ring. Which one is next to both tails?', 'Add the road a–c, then start C on a corner of the square.'],
+    parent: {notice: 'Whether your child joins the two tails first (a natural try: R still escapes), and whether both roads across the square are tried, and from which starts.', prompt: 'After your road, where can R hide? Where should C start?', explanation: 'Of the nine roads that can be added, seven leave a map where R escapes forever (the app checks all nine by search): joining the tails, or a tail to a corner, still leaves R a ring to run around. A road across the square works. With a–c, the corners a and c are next to every corner and to their own tails, and C catches R within two moves from any corner of the square (a tail end needs three). With b–d, only b and d manage two: from a, R waits on the far tail f, three moves away.', extension: 'With the road b–d, which starts catch R within two moves? (Only b and d.)', connection: 'Adding a road helps C only when it takes away every place R can run; which road matters, not how many.'},
+    provenance: 'Week 86 upper Problem 2 (“Add as few roads as possible to each ring so C can always catch R”) on a new map chosen by search so that the road matters: 2 of 9 single roads work. It replaces the board E4 square, where both roads work and every start catches in two.'},
   {number: 10, level: 'hard', title: 'Pentagon and a new road', map: 'R5', mode: 'roads', add: 1, cant: true, budget: 2,
     check: {good: []},
     idea: 'Any one road across the pentagon cuts off a triangle and leaves a square that R runs around; C on the cut-off dot is no better off than on a corner next to it.', prereq: 'roads',
     hints: ['Add a road and play. Where does R run?', 'Look for four dots joined in a ring that avoids the dot your road cuts off.', 'Every single road is the same map turned: if R escapes with yours, it escapes with any. Press Can’t and keep R on the square.'],
     parent: {notice: 'Whether your child tries one road, loses, and then thinks of trying them all; and whether they see that all five roads give the same map turned.', prompt: 'Does it matter which road you add?', explanation: 'With the road a–c, the dot b reaches only a, b and c, and a reaches those too: b folds into a and leaves the square a–c–d–e. R stays on that square, pretending C on b stands on a, so C never catches it. Every one of the five possible roads gives the same map turned, so this answers them all: one road is not enough. Can’t is a claim about your own road, and the app’s C tries every start and move against it.', extension: 'Which roads would you add if you could add two? (Puzzle 11.)', connection: 'The projection b ↦ a is a retraction onto the square; a retract of a cop-win graph is cop-win, so a robber-win retract proves the whole map robber-win.'},
     provenance: 'Week 86 upper Problem 2, board E5, its one-chord impossibility; the guide’s projection proof and the second card run’s “one pentagon chord can’t … since all five chords give one map turned”.'},
-  {number: 11, level: 'hard', title: 'Pentagon and two new roads', map: 'R5', mode: 'roads', add: 2, budget: 2,
+  {number: 11, level: 'hard', title: 'Pentagon and two new roads', map: 'R5', mode: 'roads', add: 2, budget: 1,
     check: {good: [['a-c', 'a-d'], ['a-c', 'c-e'], ['a-d', 'b-d'], ['b-d', 'b-e'], ['b-e', 'c-e']]},
-    idea: 'Two roads from one dot make it next to every dot. Two roads that cross leave a square R can still run around.', prereq: 'roads',
+    idea: 'Two roads from one dot make it next to every dot, so C starts there and catches R at once. Two roads that cross leave a square R can still run around.', prereq: 'roads',
     hints: ['Try two roads that cross. Who wins?', 'With two crossing roads, look for a square that R can run around.', 'Add two roads from the same dot, then start C there.'],
-    parent: {notice: 'Whether your child adds two crossing roads (the natural first try), finds R still escapes, and looks for why.', prompt: 'Do your two roads share a dot?', explanation: 'Of the ten pairs of roads, exactly the five that share an end work: that end is next to every dot, and C catches from anywhere within two moves. The five crossing pairs, such as a–c with b–d, still lose: b and c then reach the same dots, b folds into c, and the square a–c–d–e is left. The worksheet’s guide adds this check for adults.', extension: 'Is a map with more roads always better for C? (No: the pentagon with two crossing roads has seven roads and R escapes, while a tree on five dots has four and C wins.)', connection: 'Cop-win graphs are exactly the dismantlable graphs; the number of roads alone does not decide.'},
+    parent: {notice: 'Whether your child adds two crossing roads (the natural first try), finds R still escapes, and looks for why.', prompt: 'Do your two roads share a dot?', explanation: 'Of the ten pairs of roads, exactly the five that share an end work: that end is next to every dot, so C starts there and catches R on the first move. From any other start one move is not enough. The five crossing pairs, such as a–c with b–d, still lose: b and c then reach the same dots, b folds into c, and the square a–c–d–e is left. The worksheet’s guide adds this check for adults.', extension: 'Is a map with more roads always better for C? (No: the pentagon with two crossing roads has seven roads and R escapes, while a tree on five dots has four and C wins.)', connection: 'Cop-win graphs are exactly the dismantlable graphs; the number of roads alone does not decide.'},
     provenance: 'Week 86 upper Problem 2, board E5, with the math check’s finding that the five crossing pairs lose.'}
 ];
 const FOLDS = [
@@ -179,12 +182,12 @@ const id = n => `cops-${String(n).padStart(2, '0')}`;
 const OBJECTIVE = {
   catch: item => `${item.start ? 'C starts on the dot shown.' : 'Choose where C starts.'} Catch R within ${item.budget} moves.${item.cant ? ' If you think R can always get away, press Can’t and keep R away from C forever.' : ''}`,
   escape: () => 'Put R down after C, then answer every C move so that C never catches R.',
-  roads: item => `Add ${item.add === 1 ? 'one road' : `${item.add} roads`}, then catch R within ${item.budget} moves.${item.cant ? ' If no road works, press Can’t and keep R away from C forever.' : ''}`
+  roads: item => `Add ${item.add === 1 ? 'one road' : `${item.add} roads`}, then catch R within ${item.budget === 1 ? 'one move' : `${item.budget} moves`}.${item.cant ? ' If no road works, press Can’t and keep R away from C forever.' : ''}`
 };
 const VISIBLE = {
   catch: item => item.cant ? 'Catch R, or press Can’t if R can always get away.' : 'Catch R.',
   escape: () => 'Keep R away from C forever.',
-  roads: item => item.cant ? 'Add a road, then catch R, or press Can’t if no road works.' : 'Add two roads, then catch R.'
+  roads: item => item.cant ? 'Add a road, then catch R, or press Can’t if no road works.' : `Add ${item.add === 1 ? 'a road' : 'two roads'}, then catch R.`
 };
 const mech = copsMechanics.cops, foldMech = copsMechanics.copsfold, twoMech = copsMechanics.copstwo;
 // A witness: the mechanic's own hints played from a fresh board.
@@ -213,7 +216,10 @@ const out = ITEMS.map(item => {
   if (c.robberWin) assert.equal(bestValue(G), game.INF, `${id(item.number)}: robber-win`);
   if (item.mode === 'catch' && !c.robberWin) assert.ok(bestValue(G) <= item.budget, `${id(item.number)}: catchable within the budget`);
   if (item.mode === 'roads') {
-    assert.equal(bestValue(G), game.INF, `${id(item.number)}: the bare ring is robber-win`);
+    assert.equal(bestValue(G), game.INF, `${id(item.number)}: the map without new roads is robber-win`);
+    // The budget is the fewest moves with the best roads from the best start.
+    if (c.good.length) assert.equal(Math.min(...goodSets(q).map(set => bestValue(gameOf({...q, roads: [...q.roads, ...set]})))), item.budget, `${id(item.number)}: the budget is the optimum`);
+    for (const [road, want] of Object.entries(c.roadStarts || {})) assert.deepEqual(starts(gameOf({...q, roads: [...q.roads, road.split('-')]}), Object.keys(want)), want, `${id(item.number)}: every start with ${road}`);
     assert.deepEqual(goodSets(q).map(set => set.map(r => r.join('-')).sort()).sort(), c.good.map(s => [...s].sort()).sort(), `${id(item.number)}: the road sets that work`);
     // Can't is judged on the child's own roads, so it is offered only where
     // every full set of roads gives the same map up to relabelling.

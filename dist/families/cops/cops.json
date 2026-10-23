@@ -1379,7 +1379,7 @@
   {
    "id": "cops-09",
    "number": 9,
-   "title": "Square and a new road",
+   "title": "Square with two tails",
    "difficulty_level": "hard",
    "familyTitle": "Cops and robbers",
    "mechanic": "cops",
@@ -1391,20 +1391,28 @@
     "aspect": 1,
     "nodes": {
      "a": [
-      50,
-      14
+      34,
+      34
      ],
      "b": [
-      86,
-      50
+      66,
+      34
      ],
      "c": [
-      50,
-      86
+      66,
+      66
      ],
      "d": [
-      14,
-      50
+      34,
+      66
+     ],
+     "e": [
+      10,
+      10
+     ],
+     "f": [
+      90,
+      90
      ]
     },
     "roads": [
@@ -1423,37 +1431,43 @@
      [
       "d",
       "a"
+     ],
+     [
+      "a",
+      "e"
+     ],
+     [
+      "c",
+      "f"
      ]
     ],
     "budget": 2,
-    "cant": true,
     "add": 1
    },
-   "objective": "Add one road, then catch R within 2 moves. If no road works, press Can’t and keep R away from C forever.",
-   "visibleObjective": "Add a road, then catch R, or press Can’t if no road works.",
-   "instruction": "Add one road, then catch R within 2 moves. If no road works, press Can’t and keep R away from C forever.",
-   "controls": "Tap two dots to add a road between them, and tap a new road to take it away. The slots show how many you may add. Press Play, then put C down and catch R. Roads goes back to change them. If you think R can always get away, press Can’t: then you play R, and C tries every move against you.",
+   "objective": "Add one road, then catch R within 2 moves.",
+   "visibleObjective": "Add a road, then catch R.",
+   "instruction": "Add one road, then catch R within 2 moves.",
+   "controls": "Tap two dots to add a road between them, and tap a new road to take it away. The slots show how many you may add. Press Play, then put C down and catch R. Roads goes back to change them.",
    "rules": [
     "C chooses a dot first, then R chooses another.",
     "C moves first. On a turn a piece stays or takes one road to the next dot.",
     "C catches R by landing on R’s dot. R never steps onto C.",
     "The app plays the other piece as well as it can.",
-    "A new road joins two dots. Where two roads cross there is no dot.",
-    "Keeping R away: C tries every start and every move it has, and goes back to try another when it needs to. A position like one you have already answered, after turning or flipping the map, is not asked again. When C has tried everything and never caught R, R gets away forever."
+    "A new road joins two dots. Where two roads cross there is no dot."
    ],
-   "idea": "One road across the square makes its ends next to every dot, so R has nowhere to hide.",
+   "idea": "Only a road across the square takes away R’s escape, and the one joining the two corners with tails lets C start on any corner.",
    "prerequisites": "Play catching and escaping first (Easy and Medium). Reading: none beyond the buttons.",
    "hints": [
-    "Add a road where it removes R’s hiding place.",
-    "R hides across from C. Can a new road make every dot near one corner?",
-    "Add a road across the square, then start C at one of its ends."
+    "Add a road and play. Where does R run?",
+    "A road across the square takes away R’s ring. Which one is next to both tails?",
+    "Add the road a–c, then start C on a corner of the square."
    ],
    "parent": {
-    "notice": "Whether your child adds a road and then remembers the square strategy to test it.",
-    "prompt": "After your new road, is any dot more than one road from every corner?",
-    "explanation": "Either diagonal makes its two ends next to all four dots. C starts at an end and catches R in one move, or from elsewhere in two (step to an end of the diagonal, then onto R). No road leaves the bare square, where R escapes, so one road is the fewest. Can’t is wrong here: the app’s C catches R on a square with a diagonal.",
-    "extension": "Add both diagonals. (Every dot is next to every other: C catches on its first move from anywhere.)",
-    "connection": "Adding a road can help C by taking away a hiding place.",
+    "notice": "Whether your child joins the two tails first (a natural try: R still escapes), and whether both roads across the square are tried, and from which starts.",
+    "prompt": "After your road, where can R hide? Where should C start?",
+    "explanation": "Of the nine roads that can be added, seven leave a map where R escapes forever (the app checks all nine by search): joining the tails, or a tail to a corner, still leaves R a ring to run around. A road across the square works. With a–c, the corners a and c are next to every corner and to their own tails, and C catches R within two moves from any corner of the square (a tail end needs three). With b–d, only b and d manage two: from a, R waits on the far tail f, three moves away.",
+    "extension": "With the road b–d, which starts catch R within two moves? (Only b and d.)",
+    "connection": "Adding a road helps C only when it takes away every place R can run; which road matters, not how many.",
     "sourceIds": [
      "cops-week86",
      "cops-card86",
@@ -1480,11 +1494,15 @@
      },
      {
       "type": "move",
-      "to": "b"
+      "to": "c"
+     },
+     {
+      "type": "move",
+      "to": "f"
      }
     ]
    },
-   "provenance": "Week 86 upper Problem 2, board E4 (“Add as few roads as possible to each ring so C can always catch R”)."
+   "provenance": "Week 86 upper Problem 2 (“Add as few roads as possible to each ring so C can always catch R”) on a new map chosen by search so that the road matters: 2 of 9 single roads work. It replaces the board E4 square, where both roads work and every start catches in two."
   },
   {
    "id": "cops-10",
@@ -1693,12 +1711,12 @@
       "a"
      ]
     ],
-    "budget": 2,
+    "budget": 1,
     "add": 2
    },
-   "objective": "Add 2 roads, then catch R within 2 moves.",
+   "objective": "Add 2 roads, then catch R within one move.",
    "visibleObjective": "Add two roads, then catch R.",
-   "instruction": "Add 2 roads, then catch R within 2 moves.",
+   "instruction": "Add 2 roads, then catch R within one move.",
    "controls": "Tap two dots to add a road between them, and tap a new road to take it away. The slots show how many you may add. Press Play, then put C down and catch R. Roads goes back to change them.",
    "rules": [
     "C chooses a dot first, then R chooses another.",
@@ -1707,7 +1725,7 @@
     "The app plays the other piece as well as it can.",
     "A new road joins two dots. Where two roads cross there is no dot."
    ],
-   "idea": "Two roads from one dot make it next to every dot. Two roads that cross leave a square R can still run around.",
+   "idea": "Two roads from one dot make it next to every dot, so C starts there and catches R at once. Two roads that cross leave a square R can still run around.",
    "prerequisites": "Play catching and escaping first (Easy and Medium). Reading: none beyond the buttons.",
    "hints": [
     "Try two roads that cross. Who wins?",
@@ -1717,7 +1735,7 @@
    "parent": {
     "notice": "Whether your child adds two crossing roads (the natural first try), finds R still escapes, and looks for why.",
     "prompt": "Do your two roads share a dot?",
-    "explanation": "Of the ten pairs of roads, exactly the five that share an end work: that end is next to every dot, and C catches from anywhere within two moves. The five crossing pairs, such as a–c with b–d, still lose: b and c then reach the same dots, b folds into c, and the square a–c–d–e is left. The worksheet’s guide adds this check for adults.",
+    "explanation": "Of the ten pairs of roads, exactly the five that share an end work: that end is next to every dot, so C starts there and catches R on the first move. From any other start one move is not enough. The five crossing pairs, such as a–c with b–d, still lose: b and c then reach the same dots, b folds into c, and the square a–c–d–e is left. The worksheet’s guide adds this check for adults.",
     "extension": "Is a map with more roads always better for C? (No: the pentagon with two crossing roads has seven roads and R escapes, while a tree on five dots has four and C wins.)",
     "connection": "Cop-win graphs are exactly the dismantlable graphs; the number of roads alone does not decide.",
     "sourceIds": [

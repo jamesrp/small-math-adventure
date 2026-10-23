@@ -47,16 +47,20 @@ const focusOk = async label => {
 };
 const inView = async (locator, label) => { await page.evaluate(() => scrollTo(0, 0)); const b = await locator.first().boundingBox(); const h = await page.evaluate(() => innerHeight); assert.ok(b && b.y >= 0 && b.y + b.height <= h, `${label}: in view without scrolling (${b && Math.round(b.y + b.height)} of ${h})`); };
 const checks = [];
+const settle = () => page.waitForTimeout(600);
 
 // One step of the app's own hint, made by taps on the board and buttons.
 async function step(p, label) {
   const b = await board(p.id), h = copsMechanics[p.mechanic].hint(p, b);
   if (h.type !== 'move') return h;
   const a = h.action;
+  // A tap on the piece's own dot (a stay) just after a move is ignored as a
+  // double tap, so a stay waits a moment, as a child's would.
+  if (['move', 'r'].includes(a.type) && p.mechanic === 'cops') { const s = sceneOf(p, b), own = a.type === 'r' ? s.robber : s.cop; if (own !== null && s.G.ids[own] === (a.at ?? a.to)) await settle(); }
   if (['start', 'move', 'r'].includes(a.type)) await tap(dot(a.at ?? a.to));
   else if (['add', 'remove'].includes(a.type)) { await tap(dot(a.road[0])); await tap(dot(a.road[1])); }
   else if (a.type === 'fold') { await tap(dot(a.v)); await tap(dot(a.u)); }
-  else if (a.type === 'go') { await tap(chip('C1')); await tap(dot(a.c1)); await tap(chip('C2')); await tap(dot(a.c2)); await tap(press('Go')); }
+  else if (a.type === 'go') { await tap(chip('C1')); await tap(dot(a.c1)); await tap(chip('C2')); if (a.c2 === a.c1) await settle(); await tap(dot(a.c2)); await tap(press('Go')); }
   else await tap(press({play: 'Play', edit: 'Roads', cant: 'Can’t'}[a.type]));
   await focusOk(`${label}: ${a.type}`);
   assert.notDeepEqual(await board(p.id), b, `${label}: the ${a.type} tap made a move`);
@@ -93,19 +97,26 @@ try {
   assert.equal(await at('C'), 'a'); assert.equal(await at('R'), 'e', 'R starts as far away as it can');
   await page.locator('[data-action="undo"]').click();
   assert.deepEqual(await board(p.id), {start: null, moves: [], cant: null}, 'Undo takes C back up');
+  // A quick double tap puts C down once; it does not also stay.
+  { const at = await dot('c').boundingBox(), x = at.x + at.width / 2, y = at.y + at.height / 2;
+    for (let k = 0; k < 2; k++) { if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); await page.waitForTimeout(90); } }
+  await page.waitForTimeout(200);
+  assert.deepEqual(await board(p.id), {start: 'c', moves: [], cant: null}, 'a double tap is one tap');
+  await page.locator('[data-action="undo"]').click();
+  assert.deepEqual(await board(p.id), {start: null, moves: [], cant: null});
   await tap(dot('c'));
   assert.equal(await at('R'), 'a', 'from the middle, R takes an end');
   await tap(dot('b')); assert.equal(await at('C'), 'b');
   await shot('catch-moving'); await fit('path of five, moving');
   await tap(dot('a')); await done();
   assert.match(await told(), /^C caught R\.$/);
-  await shot('catch-solved'); checks.push('path of five: Undo of a start, catch in two');
+  await shot('catch-solved'); checks.push('path of five: Undo of a start, a double tap is one tap, catch in two');
 
   // Path of seven: C stays by a tap on its own dot; Undo; the catch.
   p = byId('cops-02');
   await open(p.id); await tap(dot('d'));
   const r0 = await at('R');
-  await tap(dot('d'));
+  await settle(); await tap(dot('d'));
   assert.equal(await page.locator('.cp-token.cC.stayed').count(), 1, 'C stays and shows it');
   assert.deepEqual((await board(p.id)).moves, ['d']);
   assert.equal(await page.locator('.cp-pips i.on').count(), 1, 'staying uses a move');
@@ -138,7 +149,9 @@ try {
   p = byId('cops-08');
   await open(p.id); await inView(press('Can’t'), 'house, Can’t');
   await shot('cant-fresh');
+  assert.match(await page.locator('.puzzle-goal').innerText(), /^Catch R, or press Can’t if R can always get away\.$/);
   await tap(press('Can’t')); await focusOk('after Can’t');
+  assert.match(await page.locator('.puzzle-goal').innerText(), /^Keep R away from C forever\.$/, 'after Can’t the line says what the child now does');
   assert.equal(await page.locator('.cp-tray.cR').count(), 1, 'after Can’t the child plays R');
   let jumped = false;
   const jump = async () => { if (/^C tries another move\.$/.test(await told())) { if (!jumped) await shot('escape-jump'); jumped = true; } };
@@ -152,6 +165,7 @@ try {
   await open(p.id); await tap(press('Can’t'));
   for (let i = 0; i < 12 && !/^C caught R\.$/.test(await told()); i++) {
     const s = sceneOf(p, await board(p.id)), x = [...s.taps.values()].at(-1).at;
+    if (s.robber !== null && s.G.ids[s.robber] === x) await settle();
     await tap(dot(x));
   }
   assert.match(await told(), /^C caught R\.$/);
@@ -162,7 +176,7 @@ try {
   assert.deepEqual(await board(p.id), {start: null, moves: [], cant: null});
   await finish(p, 'triangle with a tail'); checks.push('triangle with a tail: a wrong Can’t caught, Restart, catch');
 
-  // Square and a new road: add, take away by tapping the road, refuse a second, Play, catch.
+  // Square with two tails: add, take away by tapping the road, refuse a second, Play, catch.
   p = byId('cops-09');
   await open(p.id); await fit('roads, fresh');
   await tap(dot('a')); assert.equal(await page.locator('.gb-node.picked').count(), 1, 'a dot is chosen');
@@ -172,9 +186,9 @@ try {
   assert.match(await told(), /^No more new roads\.$/); assert.equal((await board(p.id)).added.length, 1);
   await tap(page.locator('[data-mechanic-wire] .gb-hit').first()); await focusOk('road taken away');
   assert.deepEqual((await board(p.id)).added, [], 'a tap on the new road takes it away');
-  await finish(p, 'square and a road');
+  await finish(p, 'square with two tails');
   assert.equal((await board(p.id)).play, true);
-  checks.push('square and a road: add, refuse, take away, Play, catch');
+  checks.push('square with two tails: add, refuse, take away, Play, catch');
 
   // Pentagon and a new road: a road, then Can't, then R answers.
   p = byId('cops-10');
@@ -191,8 +205,12 @@ try {
   await open(p.id); await fit('folds, fresh');
   await tap(dot('a')); await tap(dot('b'));
   assert.match(await told(), /^b can’t reach f\.$/); assert.deepEqual((await board(p.id)).folds, []);
+  assert.equal(await page.locator('.gb-node.picked').count(), 0, 'a refused fold lets the chosen dot go');
   await shot('fold-refused');
-  await tap(dot('a'));
+  await tap(dot('d'));
+  assert.equal(await page.locator('.gb-node.picked').count(), 1, 'the next tap chooses a new dot');
+  assert.equal(await told(), '', 'and the line goes');
+  await tap(dot('d'));
   assert.equal(await page.locator('.gb-node.picked').count(), 0, 'a second tap lets the dot go');
   await finish(p, 'folds');
   assert.equal(await page.locator('.gb-node.gone').count(), 5); await shot('fold-solved');
@@ -241,7 +259,9 @@ try {
   await tap(dot(Gt.ids[ct]));
   for (let i = 0; i < 20 && !/^C caught R\.$/.test(await told()); i++) {
     const s = sceneOf(p, await board(p.id));
-    await tap(dot(Gt.ids[game.copMoves(Gt, s.cop, s.robber)[0]]));
+    const c2 = game.copMoves(Gt, s.cop, s.robber)[0];
+    if (c2 === s.cop) await settle();
+    await tap(dot(Gt.ids[c2]));
   }
   assert.match(await told(), /^C caught R\.$/); await shot('playground-caught');
   checks.push('playground: maps in a row, R on the ring, C catches on the tree');
