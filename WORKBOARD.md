@@ -79,3 +79,5 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Week 98 Growing from a few seeds on the square grid (Wave 10, card fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-preview-ntxcu3` | in progress |
 | Weeks 92 and 94 as Ruler strips groups or their own mechanic, per their cards (Wave 10, fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-taquin-ntxcu3` | in progress |
 | Week 93 Squaring a rectangle as a grid-cuts group (Wave 10, card fit B, size S) | Claude, Autonomous worksheet improvement thread | `claude/app-cuts93-ntxcu3` | in progress |
+| Week 84 Public knowledge (Wave 10, card fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-knowledge-ntxcu3` | in progress |
+| Week 96 Prime bags and divisor builders (Wave 10, card fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-primebags-ntxcu3` | in progress |
