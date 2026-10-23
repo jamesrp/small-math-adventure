@@ -77,8 +77,8 @@
 /* The number line: one column per spot, voters stacked over the tick. */
 .vt-line{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));align-items:end;width:100%;padding:6px 2px 0;border-radius:14px;background:var(--b-paper,#f5f1e6);box-sizing:border-box}
 .vt-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:0}
-.vt-stack{display:flex;flex-direction:column-reverse;align-items:center;gap:3px;min-height:96px;justify-content:flex-start;padding-bottom:4px}
-.vt-puzzle .vt-voter{display:grid;place-items:center;width:30px;height:30px;margin:0;padding:0;border-radius:50%;background:var(--b-sky,#9cc9de);border:2px solid var(--b-ink,#294439);box-shadow:none;font:700 .66rem/1 system-ui,sans-serif;color:var(--b-ink,#294439);touch-action:none;user-select:none;-webkit-user-select:none;box-sizing:border-box}
+.vt-stack{display:flex;flex-direction:column-reverse;align-items:center;gap:3px;min-height:112px;justify-content:flex-start;padding-bottom:4px}
+.vt-puzzle .vt-voter{display:grid;place-items:center;width:34px;height:34px;min-width:0;min-height:0;margin:0;padding:0;border-radius:50%;background:var(--b-sky,#9cc9de);border:2px solid var(--b-ink,#294439);box-shadow:none;font:700 .66rem/1 system-ui,sans-serif;color:var(--b-ink,#294439);touch-action:none;user-select:none;-webkit-user-select:none;box-sizing:border-box}
 .vt-puzzle button.vt-voter{cursor:grab}
 .vt-puzzle .vt-voter.moved{background:var(--b-leaf,#86a68c)}
 .vt-puzzle .vt-voter.extra{background:var(--b-rose,#e7a28f)}
@@ -106,7 +106,7 @@
   .vt-puzzle .vt-l{width:36px;height:32px}
   .vt-ko{gap:8px;padding:6px}
   .vt-side{min-width:76px;padding:2px 4px}
-  .vt-puzzle .vt-voter{width:26px;height:26px;font-size:.6rem}
+  .vt-puzzle .vt-voter{width:28px;height:28px;font-size:.6rem}
   .vt-puzzle .vt-tick{font-size:.88rem}
-  .vt-stack{min-height:84px}
+  .vt-stack{min-height:92px}
 }
