@@ -87,3 +87,4 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Week 100 Distance in nested worlds (Wave 10, card fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-nested-ntxcu3` | in progress |
 | Week 97 Square remainders (Wave 10, card fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-remainders-ntxcu3` | in progress |
 | Week 89 Growing shapes and totals, discrete calculus (Wave 10, card fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-totals-ntxcu3` | in progress |
+| Week 85 Drawing machines, pantographs (Wave 10, card fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-pantograph-ntxcu3` | in progress |
