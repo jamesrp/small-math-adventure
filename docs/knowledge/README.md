@@ -1,0 +1,92 @@
+# Who knows
+
+October 23, 2026. Thirteen puzzles and a playground built from Week 84 of the Bellingham math circle (public knowledge: the Logic Café and the headband dolls). They are in the puzzle satchel only, not on the Lantern Road. Nothing here has been played by children, and the Week 84 packet is unpiloted. The theme's [review card](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-84.md) says revise (its must, Problem 3's wording, is fixed in packet v3), App fit B: the screen hides a doll's own headband, which paper cannot; the solve is the removal, and a wrong removal or a card wrongly kept is refused with the replies that card would give; tap the fitting deals and declare done with no counter; design a conversation that exactly two deals fit; four dolls and "at least two are blue" vary it; Problem 4's unchanged set certifies Can't; avoid "which round will they prove?" and automatic removal.
+
+## The mathematics
+
+The cards on the table are **possible worlds**: every deal of YES/NO cards in the café, every arrangement of blue and red headbands for the dolls. A person **knows** a fact when every card on the table that fits what they can see agrees on it. Café person i sees their own card; doll k sees every headband but its own. An answer everyone hears is a **public announcement**: it removes every card on which that person would have answered differently, so the table is always exactly the worlds consistent with everything said so far. "Not yet" is evidence too.
+
+- **The café.** People 1, …, n answer "Does everyone want a cup?" in turn: YES or NO when their card and the earlier answers settle it, NOT YET otherwise. A NO card answers NO at once, so a first NOT YET proves a YES card. After the first NO everyone knows the answer and says NO whatever their card, so later answers remove nothing. With three people only four conversations can happen, and the eight deals split 1 + 1 + 2 + 4: NOT YET, NOT YET, YES (one deal); NOT YET, NOT YET, NO (one); NOT YET, NO, NO (two); NO, NO, NO (four). Exactly two deals fit only when person 2 says the first NO (puzzle 9); with four people, only when person 3 does.
+- **The dolls (the muddy children puzzle).** Everyone hears "at least one headband is blue", which removes the all-red card. Each round every doll shows Prove blue exactly when every card that matches what it sees gives it blue, and Not yet otherwise; the replies are chosen from the unchanged table and shown together, then every card that would have given different replies leaves. **Theorem:** with k blue headbands, the blue dolls first prove blue in round k, all together, and red dolls never prove anything. By induction: a lone blue sees no blue and proves at once; if k − 1 blues would prove in round k − 1, then a blue doll seeing k − 1 blues learns from their silence that it is blue. With "at least m are blue" the blues prove in round k − m + 1 (puzzle 13).
+- **Without the announcement no doll ever proves.** With every card on the table, every doll on every card still has a card where it is red, so every reply is Not yet, a round removes nothing, and every later round is the same: a fixed point. With two or more blues every doll already sees a blue, so the announcement tells no doll anything new about the headbands. What it changes is that everyone heard it and knows everyone heard it (common knowledge), so the all-red card leaves the shared table and silence becomes evidence (puzzle 12).
+- **Onlookers.** Someone who sees no headband but watches the replies knows the deal once one card is left; with three dolls every deal is told apart by round 2, comparing each doll's reply (puzzle 11). Comparing only which replies appear, the three one-blue deals never separate (the card's fixed second reading of Problem 3).
+- **Simultaneous, not sequential.** Removing cards after each doll's reply, one at a time, would leak information: in BBR, doll 1's Not yet alone removes BRR, and doll 2 would then prove in round 1. That is why replies are chosen from an unchanged table and Show reveals them together.
+
+Experiments come first: removing cards, choosing replies with the headband hidden, watching a silent round remove cards. Conjectures come from the puzzles in order (one blue proves in round 1, two in round 2, three in round 3; no announcement, nothing moves). Explanations are grown-up conversations in each puzzle's notes; the app checks every removal and reply against the definitions, never the child's confidence or speed.
+
+## Why a new family
+
+The closest families keep possibilities that fit clues: **Slippery secrets** in Signal Lanterns (Week 6: tests against a secret that keeps the most doubt), **Towers** in Symbol Orchard (Week 5: cities that fit the clues) and **Hidden sides** (Week 45: conditioning by sorting sides). None has private views, or answers whose meaning depends on what each speaker can see, or public announcements that change everyone's knowledge at once, which is the object here (a Kripke model with public announcements). So Who knows is its own family on the seam, symbol ⊨ (the logician's "satisfies", read "knows" in epistemic logic).
+
+## Where they appear
+
+**Puzzles → Who knows** (symbol ⊨) is a satchel family on the family seam ([Adding a family](../ADDING-A-FAMILY.md)), with a **Playground** button above Easy, Medium and Hard. The puzzles are grade-free (`band: "all"`); the notes give prerequisites. Cards are written as letters: YNN is YES, NO, NO; BBR is blue, blue, red.
+
+| # | Level | Title | Kind | Set-up | Answer | Week 84 source |
+|---|---|---|---|---|---|---|
+| 1 | Easy | Two at the café | Deals that fit | Two people: NOT YET, YES | YY | p. 1 example; guide's K–1 route |
+| 2 | Easy | A first NO | Deals that fit | Two people: NO, NO | NY, NN (the second NO removes nothing) | p. 1 example; guide's K–1 route |
+| 3 | Easy | Two dolls | Coach | RB, at least one blue | Round 1 | p. 2 worked example |
+| 4 | Easy | Two blue dolls | Coach | BB, at least one blue | Round 2 | New |
+| 5 | Medium | Three at the café | Deals that fit | NOT YET, NOT YET, NO | YYN | Problem 1, Conversation 1 |
+| 6 | Medium | NO, NO, NO | Deals that fit | NO, NO, NO | NYY, NYN, NNY, NNN | Problem 1, Conversation 2 |
+| 7 | Medium | One blue | Coach, with Can't | BRR | Round 1 | Problem 2, Deal 1 |
+| 8 | Medium | Two blue | Coach, with Can't | BBR | Round 2 | Problem 2, Deal 2 |
+| 9 | Hard | Exactly two | Design a conversation | Three people, two deals | NOT YET, NO, NO (YNY, YNN) | Card's App fit; guide's encore |
+| 10 | Hard | Three blue | Coach, with Can't | BBB | Round 3 | Problem 2, Deal 3 |
+| 11 | Hard | Which deal? | Deal from replies (onlookers) | Rounds: three Not yet; then Prove, Not yet, Prove | BRB | Problem 3 |
+| 12 | Hard | No announcement | Coach, with Can't | BBB, no announcement | Can't: round 1 removes nothing | Problem 4 |
+| 13 | Hard | Four dolls | Coach, with Can't | BBBR, at least two blue | Round 2 | Card's App fit; guide's four-doll return visit |
+
+The worksheets are in [math-circle-worksheets, week 84](https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-84); each puzzle's `provenance` names its problem. Problem 1's Conversation 4 (NOT YET, NOT YET, YES: one deal, YYY) is in puzzle 5's notes rather than a puzzle of its own, since it plays like Conversation 1. The guide's optional bounded hidden-number grid is not ported.
+
+## How a puzzle plays
+
+- **The box.** People or dolls stand in a row, numbered. Café people hold a face-down card; dolls wear a headband with its letter. Under them is what everyone has heard: the announcement, then the café answers in one row, or one row of replies per round. The step being worked on is shaded; steps done get a ✓. The café puzzles show their question, "Does everyone want a cup?", above the box.
+- **The table.** Every card is drawn from the start, all YES or all blue first, in a fixed grid (4 for two people or dolls, 8 for three, 16 for four). Tap a card to take it off the table (it turns dashed and struck through); tap it again to put it back. **Next** checks the step: it goes on only when exactly the cards that step rules out are off. Otherwise it refuses and marks one card, a card wrongly kept first: "This card gives other replies." or "This card gives the same replies." (the café says answer), or for the announcement "No headband is blue on this card." / "This card has a blue.". For an answer or a round, a row under the box shows the marked card and the answers it would have given, with those that differ ringed. Cards that left in earlier steps stay as empty dashed places. In the café and onlooker puzzles the last step's button reads **That's all**. Nothing ever removes a card by itself, and nothing counts the cards.
+- **Coaching (dolls).** After the announcement, each round starts with the replies. One doll is coached at a time, ringed in ochre: its own headband shows "?" and its place is ringed on every card. Tap **Not yet** or **Prove blue**; coaching moves to the next doll without a reply. Tap any doll to coach it instead. **Show** (once every doll has a reply) reveals the replies together, and is refused with a certificate if one is wrong: "Doll 1 could be red." with the matching card where it is red marked, or "Doll 2 can prove blue." with every matching card marked (all blue for that doll). Then every headband shows, and the child removes the cards the replies rule out, with Next as above. The puzzle is solved when Show reveals a round in which every blue doll proves blue.
+- **Can't** (puzzles 7, 8, 10, 12, 13) says the blue dolls will never all prove blue. It is off until a round is done, refused with "Cards left the table last round." while the table is still changing, and accepted after a round that removed no card, which is the certificate: the same table gives the same replies for ever. It is right only in puzzle 12; the other four are there so Can't is a claim, not a giveaway. The two-doll puzzles have no Can't.
+- **The onlookers' puzzle** (11) hides every headband; the replies of both rounds are given, and the child removes cards step by step. When one card is left the dolls' headbands are revealed and the card is ringed in pine.
+- **The design** (9). The child chooses each person's answer (Yes, No or Not yet) in turn, and removes the cards it rules out. An answer no card on the table gives is refused: "No deal gives that answer." After the third person, two cards left solve it; otherwise the box turns red and **Again** starts a new conversation.
+- **Copy.** One objective line: "Remove every deal that doesn't fit." (café and onlookers), "Keep going until every blue doll proves blue." (coaching), "Make answers that exactly two deals fit." (design). How to play has the rules and controls.
+- **Hints.** Before any move, the first hint is the authored nudge. Then hints name one move: "Remove R, R, R.", "Put back B, B, B.", "Press Next.", "Every card left fits." (at That's all), "Doll 1: Not yet.", "Press Show.", "Person 2 says No." or "Press Again." (design); in puzzle 12, after the unchanged round, "No card left the table last round, so every round will be the same." with Can't as the move. No hint begins "Press Can't". Level 2 marks the card, doll or button, and level 3 offers Apply hint. Hints alone finish every puzzle from a fresh start, after random play and after Undo.
+- **Keyboard and screen readers.** Every card, doll and reply is a button with a spoken label ("blue, blue, red, taken off"; "Doll 1, headband hidden"); a status line reads what was heard and the cards on the table.
+
+## The playground
+
+Two to four dolls, any headbands, with or without "at least one is blue". Before the first move, buttons above the box choose the number of dolls and change each headband (the announcement can't be on with no blue), and the announcement row is a switch. Then rounds play as in the puzzles, without hints, until every blue doll proves or eight rounds have passed; **Again** starts over with the same dolls. It is never solved. It is the place for four blue dolls (round 4) and for any deal with the announcement off (never).
+
+## Rules that keep the record honest
+
+- The save holds the number of steps checked, the cards off the table in the current step, and per kind: the chosen replies and whether they were shown (and a Can't claim) for coaching; the answers said for the design; the dolls, deal and announcement for the playground. Every table is recomputed from these by the definitions, so a save with a wrong removal, a wrong shown reply, an answer no card gives or a Can't while the table is changing cannot load.
+- Only legal moves are accepted: a card on the table, only while removing; Next only when the removal is exactly right; replies only before Show, for dolls that exist; Show only with every reply right; Can't only in its puzzles after an unchanged round; an answer only if some card gives it; Again only in the design and the playground once something has happened; set-up only in the playground before the first move; nothing after a solve.
+- Refusals (a wrong Next, Show, Can't or answer) are view-only: they mark their cards on the board they were made on and go with the next move. Undo takes back the last move, a card, a reply, a Show or a Next, and every press changes the screen (checked by the validator).
+- The answers are computed by `scripts/build-knowledge.mjs` with the mechanic's own helpers and checked again by `scripts/validate-knowledge.mjs` with a separate model.
+
+## Files
+
+| File | Contents |
+|---|---|
+| `dist/families/knowledge/knowledge.js` | Worlds, café answers and doll replies, events and the tables they leave, the run replayed from the save, the `knowledge` mechanic (moves, hints, refusals, rendering) and the family entry |
+| `dist/families/knowledge/knowledge.css` | The box of figures and replies, the card table, reply buttons and the playground's set-up, in the shared board look (prefix `wk-`) |
+| `dist/families/knowledge/knowledge.json` | The pack: a playground, 13 puzzles, 1 family and 3 sources |
+| `scripts/build-knowledge.mjs` | Authoring list; computes every table, the proving rounds and the café's conversations, checks the playground's claim for every deal of two to four dolls, and writes `knowledge.json` |
+| `scripts/validate-knowledge.mjs` | A separate model: worlds as bit masks, each agent's view a partition of the table, every world's whole history simulated from scratch. The theorem (round k − m + 1, red never, never without the announcement) for every deal of one to five dolls; the café's conversations for two to four people; the notes' claims (the sequential leak, seven histories by round 2, BBB after two silent rounds, 16, 11 and 5 cards for puzzle 13); every puzzle's tables and answers; the witness through the engine; every single wrong removal at every step and every wrong reply in every round refused with a true certificate; Can't refused while cards leave; illegal moves; forged saves; copy that gives no count away; hint chains from fresh, after random play and after Undo; every Undo press changing the screen; the playground on every deal of two to four dolls, with and without the announcement. Run by `npm run build` |
+| `tests/knowledge.test.mjs` | Every puzzle's tables, replies and proving round by exhaustive search from the definition of knowing; the worksheet's worked examples and Problems 1–4; removal and Next with both refusals; replies with the coached headband hidden and Show's refusals; Can't; the design; the onlookers' reveal; Undo; hints; saves; rendering; the playground |
+| `scripts/knowledge-browser-smoke.mjs` | The interface in a browser: removing and putting back cards, a refused Next with its marked card and answers row, coaching with the headband hidden, a refused Show, Can't refused and accepted, the design's refused answer and Again, the onlookers' reveal, Apply hint, Undo, keyboard play, the playground's set-up and no page overflow. `TEST_PHONE=1` for touch on a phone; `SHOTS=<dir>` saves tablet and phone screenshots |
+
+To change a puzzle, edit `scripts/build-knowledge.mjs`, then run `node scripts/build-knowledge.mjs`, `npm test` and `npm run build`.
+
+## Sources
+
+- Bellingham Math Circle, Week 84: Public knowledge, student packet W84-PK-draft-v3 (worked examples on pages 1–2, Problems 1–4) and adult guide; unpiloted.
+- The Week 84 review card and math check (October 23, 2026), its App fit and pitfalls.
+- Joel David Hamkins, "I know that you know that I know that you know" (Oxford, October 2019), where the Logic Café and the blue-eyed islanders appear as classic puzzles, as the guide cites. The muddy children puzzle and its round-k theorem are classical (for example Fagin, Halpern, Moses and Vardi, *Reasoning About Knowledge*, Chapter 1). Puzzles 4 and 13 and the two-person café as puzzles are new; the deals and conversations of puzzles 3, 5–8 and 10–12 are the worksheet's.
+
+## Not yet done
+
+- **Children's play.** Nothing here has been tried by children. Three things to watch: whether children choose a doll's reply from the cards with its headband hidden, or from the deal they saw a moment before (the card's predicted lamp failure, now that the screen hides the headband); whether they check every card for a removal, or tap until Next stops refusing and let the marked card and its answers row do the thinking; and whether Can't in puzzle 12 is reasoned from the unchanged table or guessed after a few identical rounds, and whether puzzles 7, 8, 10 and 13 make them wary of it.
+- **Reading and K–1.** The worksheet gives K–1 nothing; the card's K–1 route is the two-person café, which puzzles 1–2 follow, with a grown-up reading. Puzzles 3–4 need only "blue or red?", but whether young children follow simultaneous replies is untested.
+- **Bookkeeping.** A round on eight cards means checking each card's three replies (the card's 21 private-view checks for BBR's first removal); on sixteen cards (puzzle 13) it is long. Whether the per-step check helps or the refusals become a crutch is a playtest question.
+- **The hidden-number grid.** The guide's optional bounded grid (Alice and Bob saying who is larger) is not ported; it would fit the same mechanic with rows and columns as views.
+- **Story.** Not on the Lantern Road; no keeper lines. Stars come only once a road stop uses it.
