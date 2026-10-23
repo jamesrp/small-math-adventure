@@ -16,9 +16,19 @@
 .rs-puzzle .rs-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
 .rs-note{margin:0;font-weight:600;color:var(--b-bad,#a9503a)}
 
-/* The board: small boards get big squares; big ones use the width. */
-.rs-stage{width:100%;max-width:min(560px, calc(var(--rs-cols) * 56px + 70px))}
-.rs-puzzle .rs-board{max-width:none;max-height:72vh}
+/* Two boards, the start shape above the grid, each scaled to fit the
+   width on its own, so a wide start shape does not shrink the grid on a
+   phone; the start shape's squares are never bigger than the grid's.
+   Squares are at most 56px, and together the boards take at most 70vh,
+   shared by their heights, so where height is short both have the same
+   squares. Sizes in squares, side numerals included: --rs-w a board's
+   width, --rs-mw the grid's, --rs-hh and --rs-hm the heights. */
+.rs-stage{width:100%;display:flex;flex-direction:column;align-items:center;gap:.25rem}
+.rs-wrap{width:100%;max-width:calc(var(--rs-w) * 56px)}
+.rs-home-wrap{max-width:min(calc(var(--rs-w) * 56px), calc(100% * var(--rs-w) / var(--rs-mw)))}
+.rs-puzzle .rs-board{max-width:none;margin:0 auto}
+.rs-puzzle .rs-home-board{max-height:calc(70vh * var(--rs-hh) / (var(--rs-hh) + var(--rs-hm)))}
+.rs-puzzle .rs-mat-board{max-height:calc(70vh * var(--rs-hm) / (var(--rs-hh) + var(--rs-hm)))}
 .rs-board .sg-cell.rs-home{fill:#fbf8ec}
 .rs-board .sg-cell.rs-home.away{fill:#efece0;stroke:#d9d6c4}
 .rs-board .sg-cell.rs-mat{fill:#fffdf5}

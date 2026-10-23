@@ -12,7 +12,7 @@
 //   rectangle you can from all the pieces, then That's all.
 // The mathematics is in cutmath.js and docs/reshape/README.md.
 import {esc} from '../../expansion-controls.js';
-import {gridOf, squareBoard, wireSquare, UNIT} from '../../sq-grid.js';
+import {gridOf, squareBoard, wireSquare, cellAt, UNIT} from '../../sq-grid.js';
 import {
   cellKey, turnCells, canonTurn, sizeOf, rectOf, rectCells, rectKey, keyRect, startCells,
   splitBy, linesOf, lineSpan, cutReachable, cover, partitions, shareable, apart
@@ -39,8 +39,13 @@ export function geometry(q) {
   const hole = q.hole ? rectCells(q.hole[0], q.hole[1], q.hole[2], q.hole[2]) : [];
   const holeSet = new Set(hole.map(cellKey));
   const region = rectCells(0, 0, q.mat.cols, q.mat.rows).filter(c => !holeSet.has(cellKey(c)));
+  // The start shape and the grid are drawn as two boards, each scaled to
+  // fit on its own (gh, gm); `g` numbers the squares of both for taps and
+  // slides. A square of gh has the number of its home square.
+  const gh = gridOf({cols: q.home.w, rows: q.home.h, cells: home.map(c => [c[0], c[1]])});
+  const gm = gridOf({cols: q.mat.cols, rows: q.mat.rows});
   const G = {
-    home, W, hx, mx, my, g, where, hole, holeSet, region,
+    home, W, hx, mx, my, g, gh, gm, where, hole, holeSet, region,
     ofHome: i => g.at(hx + home[i][0], home[i][1]),
     ofMat: ([x, y]) => g.at(mx + x, my + y)
   };
@@ -223,18 +228,44 @@ export function turnSpot(q, G, b, piece) {
   }
   return null;
 }
+// Turn for a piece at the top: it comes onto the grid turned a quarter, at
+// the first place (reading order) where it fits turned.
+export function homeTurnSpot(q, G, b, piece) {
+  if (!piece || piece.at) return null;
+  const shape = shapeOf(G, piece), r = canonTurn(shape, 1);
+  if (r === 0) return null;
+  const [w, h] = sizeOf(turnCells(shape, r));
+  for (let y = 0; y + h <= q.mat.rows; y++) for (let x = 0; x + w <= q.mat.cols; x++) if (fitsAt(q, G, b, piece, [x, y, r])) return [x, y, r];
+  return null;
+}
 // A slide from a square of a piece to a square of the board: the square
-// held lands under the finger, the piece turned as it is. Released over the
-// start shape, a piece on the grid goes home.
+// held lands under the finger, the piece turned as it is. When it fits only
+// turned another way round, it turns; turning moves the square held within
+// the piece, so it goes where it covers the square under the finger, with
+// the square held as near it as can be (on it when that fits). Released
+// over the start shape, a piece on the grid goes home.
 export function slideMove(q, G, b, fromCell, toCell) {
   const piece = pieceAtCell(G, b, fromCell), to = G.where[toCell];
   if (!piece) return null;
   if (to.home !== undefined) return piece.at ? {type: 'home', piece: piece.cells[0]} : null;
-  const frame = piece.at ? footprint(G, piece) : shapeOf(G, piece), from = G.where[fromCell];
+  const shape = shapeOf(G, piece), frame = piece.at ? footprint(G, piece) : shape, from = G.where[fromCell];
   const held = piece.at ? piece.cells.findIndex((_, j) => same(frame[j], from.mat)) : piece.cells.indexOf(from.home);
-  const r = piece.at ? piece.at[2] : 0, turned = turnCells(shapeOf(G, piece), r)[held];
-  const at = [to.mat[0] - turned[0], to.mat[1] - turned[1], r];
-  return {type: 'put', piece: piece.cells[0], x: at[0], y: at[1], r};
+  const r = piece.at ? piece.at[2] : 0;
+  const spot = t => { const turned = turnCells(shape, t)[held]; return [to.mat[0] - turned[0], to.mat[1] - turned[1], t]; };
+  let at = spot(r);
+  if (!fitsAt(q, G, b, piece, at)) {
+    let best = null;
+    for (const t of [1, 2, 3].map(k => canonTurn(shape, r + k))) {
+      if (t === r) continue;
+      const turned = turnCells(shape, t), [hx, hy] = turned[held];
+      for (const [cx, cy] of turned) {
+        const other = [to.mat[0] - cx, to.mat[1] - cy, t], d = (hx - cx) ** 2 + (hy - cy) ** 2;
+        if ((!best || d < best.d) && fitsAt(q, G, b, piece, other) && !same(other, piece.at)) best = {at: other, d};
+      }
+    }
+    if (best) at = best.at;
+  }
+  return {type: 'put', piece: piece.cells[0], x: at[0], y: at[1], r: at[2]};
 }
 // The piece drawn on a square of the board: a piece at home on its home
 // square, a placed piece on the grid.
@@ -409,9 +440,17 @@ const f = n => Number(n.toFixed(2));
 const U = UNIT;
 const COLOURS = 7;
 const colourOf = piece => `c${piece.cells[0] % COLOURS}`;
-const sideSize = G => Math.max(5.2, .5 * Math.max(G.W, G.g.rows) + 1);
+const sideSize = (cols, rows) => Math.max(5.2, .5 * Math.max(cols, rows) + 1);
 // Side lengths across the top and down the left of a box in board squares.
 const sides = ([x, y, w, h], size, cls = '') => `<text class="rs-side ${cls}" x="${f((x + w / 2) * U)}" y="${f(y * U - size * .5)}" style="font-size:${f(size)}px">${w}</text><text class="rs-side rs-side-left ${cls}" x="${f(x * U - size * .5)}" y="${f((y + h / 2) * U)}" style="font-size:${f(size)}px">${h}</text>`;
+// Room round a board for the side numerals at the top and left, and only a
+// little at the bottom and right, so the two boards sit close together.
+// The frame's width and height are in board units (U to a square).
+const frameOf = (g, size, rows) => {
+  const [x, y, w, h] = g.box, left = size * (.5 + .62 * String(rows).length) + 2, top = size * 1.25 + 1, edge = 2.5;
+  return {x: x - left, y: y - top, W: w + left + edge, H: h + top + edge};
+};
+const framed = (svg, {x, y, W, H}) => svg.replace(/viewBox="[^"]*"/, `viewBox="${f(x)} ${f(y)} ${f(W)} ${f(H)}"`).replace(/--sg-aspect:[\d.]+/, `--sg-aspect:${f(W / H)}`);
 const boxRect = ([x, y, w, h], cls) => `<rect class="${cls}" x="${f(x * U)}" y="${f(y * U)}" width="${f(w * U)}" height="${f(h * U)}"/>`;
 const scissors = on => `<svg class="rs-snip${on ? ' on' : ''}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6.5" cy="18" r="3.4"/><circle cx="17.5" cy="18" r="3.4"/><path d="M8.6 15.4 18.5 2.5M15.4 15.4 5.5 2.5"/></svg>`;
 const button = (label, action, cls, enabled, hinted) => `<button type="button" class="secondary rs-button ${cls}${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="${cls}" ${enabled ? '' : 'disabled'}>${label}</button>`;
@@ -422,7 +461,7 @@ function mini(key, here) {
 }
 
 function render(p, a) {
-  const q = p.parameters, G = geometry(q), g = G.g, b = a.board, done = solved(p, b), state = ui(p, b);
+  const q = p.parameters, G = geometry(q), b = a.board, done = solved(p, b), state = ui(p, b);
   const claiming = q.mode === 'square' && q.cant && !done && state.claiming && tried(b), live = !done;
   const h = a.hintLevel >= 2 && !done ? hint(p, b) : null, act = h?.action;
   const chosen = live && !claiming ? chosenOf(p, b) : null;
@@ -448,42 +487,43 @@ function render(p, a) {
     const label = `Row ${y + 1}, column ${x + 1}${owner ? `, ${article(pieceName(shapeOf(G, owner)), names)}` : ''}${pickSet.has(i) ? ', picked' : ''}`;
     return {cls, act: live && (claiming ? !hole : !hole || Boolean(owner)), label};
   };
-  const pieces = b.pieces.map(piece => {
-    const cells = piece.at ? footprint(G, piece).map(c => G.ofMat(c)) : piece.cells.map(i => G.ofHome(i));
-    return {cells, key: String(piece.cells[0]), cls: `rs-piece ${colourOf(piece)}${chosen === piece ? ' chosen' : ''}${chosen === piece && state.shake ? ` shake${state.shake % 2}` : ''}${hintPiece === piece.cells[0] ? ' hinted' : ''}`};
-  });
-  const size = sideSize(G);
+  const pieceCls = piece => `rs-piece ${colourOf(piece)}${chosen === piece ? ' chosen' : ''}${chosen === piece && state.shake ? ` shake${state.shake % 2}` : ''}${hintPiece === piece.cells[0] ? ' hinted' : ''}`;
+  const matIndex = ([x, y]) => y * q.mat.cols + x;
+  // The start shape: pieces at home, the shape's sides, and cut lines.
+  const hs = sideSize(q.home.w, q.home.h);
+  let homeOver = sides([0, 0, q.home.w, q.home.h], hs);
+  const homePieces = b.pieces.filter(piece => !piece.at).map(piece => ({cells: piece.cells, key: String(piece.cells[0]), cls: pieceCls(piece)}));
+  // The grid: pieces on it, the marked square, the square's sides.
+  const ms = sideSize(q.mat.cols, q.mat.rows);
   let over = '';
-  // The marked square, and the side lengths of the shape and the grid.
-  if (q.hole) over += boxRect([G.mx + q.hole[0], G.my + q.hole[1], q.hole[2], q.hole[2]], 'rs-mark-box');
-  over += sides([G.hx, 0, q.home.w, q.home.h], size);
-  if (q.mode === 'square') over += sides([G.mx, G.my, q.mat.cols, q.mat.rows], size);
+  const matPieces = b.pieces.filter(piece => piece.at).map(piece => ({cells: footprint(G, piece).map(matIndex), key: String(piece.cells[0]), cls: pieceCls(piece)}));
+  if (q.hole) over += boxRect([q.hole[0], q.hole[1], q.hole[2], q.hole[2]], 'rs-mark-box');
+  if (q.mode === 'square') over += sides([0, 0, q.mat.cols, q.mat.rows], ms);
   // A solve: the square left uncovered, ringed, with its side.
   if (q.mode === 'square' && done && !b.claim) {
     const r = rectOf(uncovered(q, G, b));
-    over += boxRect([G.mx + r[0], G.my + r[1], r[2], r[3]], 'rs-hole-ring') + `<text class="rs-hole-num" x="${f((G.mx + r[0] + r[2] / 2) * U)}" y="${f((G.my + r[1] + r[3] / 2) * U)}" style="font-size:${f(Math.min(4 + 2.2 * r[2], 16))}px">${r[2]}</text>`;
+    over += boxRect(r, 'rs-hole-ring') + `<text class="rs-hole-num" x="${f((r[0] + r[2] / 2) * U)}" y="${f((r[1] + r[3] / 2) * U)}" style="font-size:${f(Math.min(4 + 2.2 * r[2], 16))}px">${r[2]}</text>`;
   }
   // Rebuild: a rectangle made, outlined with its sides.
   const made = q.mode === 'rebuild' ? madeRect(G, b) : null;
   if (made) {
     const r = rectOf(b.pieces.flatMap(piece => footprint(G, piece)));
-    over += boxRect([G.mx + r[0], G.my + r[1], r[2], r[3]], 'rs-made') + sides([G.mx + r[0], G.my + r[1], r[2], r[3]], size, 'rs-made-side');
+    over += boxRect(r, 'rs-made') + sides(r, ms, 'rs-made-side');
   }
   // Squares picked for Can't.
-  if (picks.length) over += picks.map(c => `<circle class="rs-pick${done ? ' kept' : ''}" cx="${f((G.mx + c[0] + .5) * U)}" cy="${f((G.my + c[1] + .5) * U)}" r="${f(U * .26)}"/>`).join('');
-  let svg = squareBoard(g, {cls: `rs-board mode-${q.mode}${done ? ' solved' : ''}${claiming ? ' claiming' : ''}`, label: q.mode === 'square' ? `${q.home.w} by ${q.home.h} rectangle above a ${q.mat.cols} by ${q.mat.rows} square` : `Square with a corner missing above a grid`, cell, pieces, over, stroke: live && !claiming, pad: Math.max(1.2, size * 1.5 / U)});
+  if (picks.length) over += picks.map(c => `<circle class="rs-pick${done ? ' kept' : ''}" cx="${f((c[0] + .5) * U)}" cy="${f((c[1] + .5) * U)}" r="${f(U * .26)}"/>`).join('');
   // Cut lines across the chosen piece at the top (and the hinted one), on
   // top of the squares; a tap near one reaches the square under it.
   const lineHtml = [];
   const addLines = (piece, only = null) => {
     if (piece.at) return;
-    const frame = shapeOf(G, piece), [ox, oy] = [G.hx, 0];
+    const frame = shapeOf(G, piece);
     for (const {dir, k} of linesOf(frame)) {
       if (only && !(only.dir === dir && only.k === k)) continue;
       const [x1, y1, x2, y2] = lineSpan(frame, dir, k), [ia, ib] = splitBy(frame, dir, k);
       const label = `Cut into ${pieceName(ia.map(j => frame[j]))} and ${pieceName(ib.map(j => frame[j]))}`;
       const lit = act?.type === 'cut' && act.piece === piece.cells[0] && act.dir === dir && act.k === k;
-      const coords = `x1="${f((ox + x1) * U)}" y1="${f((oy + y1) * U)}" x2="${f((ox + x2) * U)}" y2="${f((oy + y2) * U)}"`;
+      const coords = `x1="${f(x1 * U)}" y1="${f(y1 * U)}" x2="${f(x2 * U)}" y2="${f(y2 * U)}"`;
       lineHtml.push(`<g class="rs-cut${lit ? ' hinted' : ''}" role="button" tabindex="0" aria-label="${esc(label)}" data-rs-cut="${piece.cells[0]}:${dir}:${k}" data-focus="rs-cut-${piece.cells[0]}-${dir}-${k}"><line class="rs-cut-hit" ${coords}/><line class="rs-cut-line" ${coords}/></g>`);
     }
   };
@@ -491,33 +531,39 @@ function render(p, a) {
     if (chosen) addLines(chosen);
     if (act?.type === 'cut' && act.piece !== chosen?.cells[0]) { const piece = pieceById(b, act.piece); if (piece) addLines(piece, act); }
   }
-  if (lineHtml.length) svg = svg.replace(/<\/svg>$/, `<g class="rs-cuts">${lineHtml.join('')}</g></svg>`);
+  if (lineHtml.length) homeOver += `<g class="rs-cuts">${lineHtml.join('')}</g>`;
+  const stroke = live && !claiming, mode = `mode-${q.mode}${done ? ' solved' : ''}${claiming ? ' claiming' : ''}`;
+  // Each board names its focus targets apart, since both number from 0.
+  const own = (svg, tag) => svg.replace(/data-focus="sg-/g, `data-focus="rs-${tag}-`);
+  const hf = frameOf(G.gh, hs, q.home.h), mf = frameOf(G.gm, ms, q.mat.rows);
+  const homeSvg = own(framed(squareBoard(G.gh, {cls: `rs-board rs-home-board ${mode}`, label: q.mode === 'square' ? `${q.home.w} by ${q.home.h} rectangle` : 'Square with a corner missing', cell: j => cell(G.ofHome(j)), pieces: homePieces, over: homeOver, stroke}), hf), 'home');
+  const matSvg = own(framed(squareBoard(G.gm, {cls: `rs-board rs-mat-board ${mode}`, label: q.mode === 'square' ? `${q.mat.cols} by ${q.mat.rows} square` : `Grid ${q.mat.cols} by ${q.mat.rows}`, cell: k => cell(G.ofMat(G.gm.cells[k])), pieces: matPieces, over, stroke}), mf), 'mat');
   // The bar: the scissors (cuts left), then the buttons.
   const snips = `<span class="rs-snips" role="img" aria-label="${left} ${left === 1 ? 'cut' : 'cuts'} left of ${q.cuts}">${Array.from({length: q.cuts}, (_, k) => scissors(k < left)).join('')}</span>`;
   const buttons = [];
   if (live) {
-    const spin = chosen?.at ? turnSpot(q, G, b, chosen) : null;
+    const spin = chosen ? (chosen.at ? turnSpot(q, G, b, chosen) : homeTurnSpot(q, G, b, chosen)) : null;
     buttons.push(button('Turn', spin ? {type: 'put', piece: chosen.cells[0], x: spin[0], y: spin[1], r: spin[2]} : {type: 'put'}, 'rs-turn', Boolean(spin) && !claiming, false));
     buttons.push(button('Tape', {type: 'tape'}, 'rs-tape', tried(b) && !claiming, act?.type === 'tape'));
     if (q.mode === 'square' && q.cant) buttons.push(`<button type="button" class="secondary rs-button rs-cant${act?.type === 'cant' && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="rs-cant" aria-pressed="${claiming}" ${tried(b) ? '' : 'disabled'}>Can’t</button>`);
     if (q.mode === 'rebuild') buttons.push(button('That’s all', {type: 'all'}, 'rs-all', b.found.length > 0 && !b.no, act?.type === 'all'));
   }
   const bar = `<div class="rs-bar">${snips}${buttons.length ? `<span class="rs-buttons">${buttons.join('')}</span>` : ''}</div>`;
-  const note = claiming && state.said ? state.said : q.mode === 'rebuild' && b.no && !done ? 'There’s another.' : '';
+  const note = claiming && state.said ? state.said : q.mode === 'rebuild' && b.no && !done ? 'There is another.' : '';
   const shelf = q.mode === 'rebuild' && b.found.length ? `<ol class="rs-shelf" aria-label="Rectangles made">${b.found.map(k => mini(k, k === made)).join('')}</ol>` : '';
   // What a screen reader hears: the pieces and where they are.
   const where = b.pieces.map(piece => `${pieceName(shapeOf(G, piece))} ${piece.at ? 'on the grid' : 'at home'}`).join(', ');
   const status = `${where}. ${left} ${left === 1 ? 'cut' : 'cuts'} left.${chosen ? ` Chosen: ${pieceName(shapeOf(G, chosen))}.` : ''}${made ? ` A ${keyRect(made).join(' by ')} rectangle.` : ''}${claiming ? ` Picked ${picks.length}.` : ''}${note ? ` ${note}` : ''}`;
-  return `<div class="rs-puzzle mode-${q.mode}${done ? ' solved' : ''}" data-mechanic-wire="reshape">${bar}<div class="rs-stage" style="--rs-cols:${G.W}">${svg}</div>${note ? `<p class="rs-note">${esc(note)}</p>` : ''}${shelf}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="rs-puzzle mode-${q.mode}${done ? ' solved' : ''}" data-mechanic-wire="reshape">${bar}<div class="rs-stage" style="--rs-hh:${f(hf.H / U)};--rs-hm:${f(mf.H / U)};--rs-mw:${f(mf.W / U)}"><div class="rs-wrap rs-home-wrap" style="--rs-w:${f(hf.W / U)}">${homeSvg}</div><div class="rs-wrap rs-mat-wrap" style="--rs-w:${f(mf.W / U)}">${matSvg}</div></div>${note ? `<p class="rs-note">${esc(note)}</p>` : ''}${shelf}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 
 /* --------------------------------------------------------------------- *
  * Taps, slides and keys
  * --------------------------------------------------------------------- */
-// The cut line of a piece at home nearest a point of the board (in board
-// squares), if the point is within `reach` of it.
-export function lineNear(G, piece, [px, py], reach = .3) {
-  const frame = shapeOf(G, piece), u = px - G.hx;
+// The cut line of a piece at home nearest a point of the start shape's
+// board (in its squares), if the point is within `reach` of it.
+export function lineNear(G, piece, [u, py], reach = .3) {
+  const frame = shapeOf(G, piece);
   let best = null, bestD = reach;
   for (const {dir, k} of linesOf(frame)) {
     const [x1, y1, x2, y2] = lineSpan(frame, dir, k);
@@ -526,9 +572,15 @@ export function lineNear(G, piece, [px, py], reach = .3) {
   }
   return best;
 }
+// How near a dashed line a tap must fall to cut there, in squares: a third
+// of a square, widened to about 12 pixels when squares are small (never so
+// far that the middle of a square cuts).
+export const reachFor = px => Math.min(.4, Math.max(.3, px > 0 ? 12 / px : .3));
 // What a tap on a square of the board does: a move, or a change of view.
-// `point` is where the tap fell, in board squares (null from a key): a tap
-// near a dashed line of the chosen piece at the top cuts there.
+// `point` is where the tap fell on the start shape, [x, y] in its squares
+// with the size of a square in pixels (null from a key or on the grid): a
+// tap near a dashed line of the chosen piece at the top cuts there, and a
+// tap elsewhere on it turns it onto the grid, as Turn does.
 export function tapSquare(p, b, i, point = null) {
   const q = p.parameters, G = geometry(q), state = ui(p, b), w = G.where[i];
   if (solved(p, b)) return null;
@@ -542,8 +594,10 @@ export function tapSquare(p, b, i, point = null) {
   if (owner) {
     if (owner !== chosen) return {ui: {chosen: owner.cells[0], shake: 0}};
     if (!owner.at) {
-      const line = point && cutsLeft(q, b) > 0 ? lineNear(G, owner, point) : null;
-      return line ? {move: {type: 'cut', piece: owner.cells[0], ...line}} : {ui: {chosen: null}};
+      const line = point && cutsLeft(q, b) > 0 ? lineNear(G, owner, point, reachFor(point[2])) : null;
+      if (line) return {move: {type: 'cut', piece: owner.cells[0], ...line}};
+      const spin = homeTurnSpot(q, G, b, owner);
+      return spin ? {move: {type: 'put', piece: owner.cells[0], x: spin[0], y: spin[1], r: spin[2]}} : {ui: {shake: state.shake + 1}};
     }
     const spin = turnSpot(q, G, b, owner);
     return spin ? {move: {type: 'put', piece: owner.cells[0], x: spin[0], y: spin[1], r: spin[2]}} : {ui: {shake: state.shake + 1}};
@@ -556,40 +610,99 @@ export function tapSquare(p, b, i, point = null) {
   const away = b.pieces.find(piece => piece.cells.includes(w.home));
   return away?.at ? {move: {type: 'home', piece: away.cells[0]}} : null;
 }
+// A slide across both boards: the square pressed, then the square under the
+// finger (through its middle), ending on release. One slide at a time, with
+// the listeners on the document added once.
+let slide = null, slideListening = false;
+function slideCell(s, x, y) {
+  for (const svg of s.boards) {
+    const box = svg.getBoundingClientRect();
+    if (x < box.left || x > box.right || y < box.top || y > box.bottom) continue;
+    const m = svg.getScreenCTM?.();
+    if (!m) return null;
+    const pt = svg.createSVGPoint();
+    pt.x = x; pt.y = y;
+    const at = pt.matrixTransform(m.inverse()), home = svg.classList.contains('rs-home-board');
+    const k = cellAt(home ? s.G.gh : s.G.gm, at.x, at.y, .6);
+    return k === null ? null : home ? s.G.ofHome(k) : s.G.ofMat(s.G.gm.cells[k]);
+  }
+  return null;
+}
+function slidePaint(s, show = [], blocked = false) {
+  s.root.querySelectorAll('.sg-hit.in-stroke').forEach(el => el.classList.remove('in-stroke', 'blocked'));
+  for (const i of show) {
+    const w = s.G.where[i], el = w.home !== undefined ? s.root.querySelector(`.rs-home-board [data-sg-cell="${w.home}"]`) : s.root.querySelector(`.rs-mat-board [data-sg-cell="${w.mat[1] * s.G.gm.cols + w.mat[0]}"]`);
+    el?.classList.add('in-stroke', ...(blocked ? ['blocked'] : []));
+  }
+}
+function slideMoveEvent(e) {
+  const s = slide;
+  if (!s || e.pointerId !== s.pointer) return;
+  const i = slideCell(s, e.clientX, e.clientY);
+  if (i === null || i === s.last) return;
+  s.last = i;
+  if (i === s.start) { slidePaint(s); return; }
+  const out = s.preview(s.start, i);
+  slidePaint(s, out.show, out.blocked);
+}
+function slideEndEvent(e) {
+  const s = slide;
+  if (!s || e.pointerId !== s.pointer) return;
+  slide = null;
+  slidePaint(s);
+  // A press that hardly moved is a tap (the shared grid reads it).
+  if (e.type !== 'pointerup' || s.last === s.start || Math.hypot(e.clientX - s.x, e.clientY - s.y) < 12) return;
+  s.release(s.start, s.last);
+}
 function wire(root, p, api) {
   const q = p.parameters, G = geometry(q), board = () => api.attempt().board;
   const run = out => { if (!out) return null; if (out.ui) { api.ui(out.ui); return null; } return out.move; };
-  // Where the last press fell, in board squares, so a tap near a dashed line
-  // cuts; a key press forgets it.
-  const svg = root.querySelector('[data-sg-board]');
+  const homeSvg = root.querySelector('.rs-home-board'), boards = [...root.querySelectorAll('.rs-board[data-sg-board]')];
+  // Where the last press on the start shape fell, in its squares, and how
+  // big a square is on screen, so a tap near a dashed line cuts; a key press
+  // forgets it.
   let press = null;
-  svg?.addEventListener('pointerdown', e => {
-    const m = svg.getScreenCTM?.();
+  homeSvg?.addEventListener('pointerdown', e => {
+    const m = homeSvg.getScreenCTM?.();
     if (!m) { press = null; return; }
-    const pt = svg.createSVGPoint();
+    const pt = homeSvg.createSVGPoint();
     pt.x = e.clientX; pt.y = e.clientY;
     const at = pt.matrixTransform(m.inverse());
-    press = [at.x / UNIT, at.y / UNIT];
+    press = [at.x / UNIT, at.y / UNIT, Math.hypot(m.a, m.b) * UNIT];
   }, true);
-  svg?.addEventListener('keydown', () => { press = null; }, true);
-  wireSquare(root, G.g, {
-    cell: i => { const point = press; press = null; return run(tapSquare(p, board(), i, point)); },
-    preview: cells => {
-      const b = board(), action = slideMove(q, G, b, cells[0], cells.at(-1));
-      if (!action) return {show: [], blocked: true};
-      const piece = pieceById(b, action.piece);
-      if (action.type === 'home') return {show: piece.cells.map(i => G.ofHome(i))};
-      const spot = footprint(G, piece, [action.x, action.y, action.r]);
-      return {show: spot.filter(c => inMat(q, c)).map(c => G.ofMat(c)), blocked: !fitsAt(q, G, b, piece, [action.x, action.y, action.r])};
-    },
-    stroke: cells => {
-      const b = board(), action = slideMove(q, G, b, cells[0], cells.at(-1));
-      if (!action) return null;
-      const piece = pieceById(b, action.piece);
-      if (action.type === 'put' && (!fitsAt(q, G, b, piece, [action.x, action.y, action.r]) || same(piece.at, [action.x, action.y, action.r]))) { api.ui({chosen: piece.cells[0], shake: ui(p, b).shake + 1}); return null; }
-      return action;
-    }
-  }, api.apply);
+  homeSvg?.addEventListener('keydown', () => { press = null; }, true);
+  // Taps and keys on each board's squares.
+  wireSquare(root.querySelector('.rs-home-wrap'), G.gh, {cell: j => { const point = press; press = null; return run(tapSquare(p, board(), G.ofHome(j), point)); }}, api.apply);
+  wireSquare(root.querySelector('.rs-mat-wrap'), G.gm, {cell: k => run(tapSquare(p, board(), G.ofMat(G.gm.cells[k])))}, api.apply);
+  // Slides from a piece, across both boards.
+  const preview = (from, to) => {
+    const b = board(), action = slideMove(q, G, b, from, to);
+    if (!action) return {show: [], blocked: true};
+    const piece = pieceById(b, action.piece);
+    if (action.type === 'home') return {show: piece.cells.map(i => G.ofHome(i))};
+    const spot = footprint(G, piece, [action.x, action.y, action.r]);
+    return {show: spot.filter(c => inMat(q, c)).map(c => G.ofMat(c)), blocked: !fitsAt(q, G, b, piece, [action.x, action.y, action.r])};
+  };
+  const release = (from, to) => {
+    const b = board(), action = slideMove(q, G, b, from, to);
+    if (!action) return;
+    const piece = pieceById(b, action.piece);
+    if (action.type === 'put' && (!fitsAt(q, G, b, piece, [action.x, action.y, action.r]) || same(piece.at, [action.x, action.y, action.r]))) { api.ui({chosen: piece.cells[0], shake: ui(p, b).shake + 1}); return; }
+    api.apply(action);
+  };
+  if (!slideListening) {
+    document.addEventListener('pointermove', slideMoveEvent);
+    for (const type of ['pointerup', 'pointercancel']) document.addEventListener(type, slideEndEvent);
+    slideListening = true;
+  }
+  for (const svg of boards) svg.addEventListener('pointerdown', e => {
+    if (e.button > 0 || !e.isPrimary || !svg.classList.contains('sg-stroking')) return;
+    const control = e.target.closest('[data-sg-cell]');
+    if (!control) return;
+    const k = Number(control.dataset.sgCell), start = svg.classList.contains('rs-home-board') ? G.ofHome(k) : G.ofMat(G.gm.cells[k]);
+    if (!pieceAtCell(G, board(), start)) { slide = null; return; }
+    slide = {pointer: e.pointerId, x: e.clientX, y: e.clientY, start, last: start, root, boards, G, preview, release};
+  });
   // Keys: Enter or Space on a focused cut line cuts there (a finger taps near
   // the line instead, so a drag from anywhere on a piece moves it).
   const cut = el => { const [piece, dir, k] = el.dataset.rsCut.split(':'); api.apply({type: 'cut', piece: Number(piece), dir, k: Number(k)}); };

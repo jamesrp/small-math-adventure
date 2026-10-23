@@ -9,7 +9,7 @@ import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/
 import {playView} from '../dist/ui.js';
 import {libraryView} from '../dist/caravan-ui.js';
 import {startCells, turnCells, canonTurn, splitBy, lineSpan, linesOf, cutReachable, cover, partitions, rectCells, apart, mostApart} from '../dist/families/reshape/cutmath.js';
-import {reshapeMechanics, geometry, spotFor, turnSpot, slideMove, lineNear, tapSquare, pickSquare, ONE_PIECE} from '../dist/families/reshape/reshape.js';
+import {reshapeMechanics, geometry, spotFor, turnSpot, homeTurnSpot, slideMove, lineNear, reachFor, tapSquare, pickSquare, ONE_PIECE} from '../dist/families/reshape/reshape.js';
 import {loadPack} from '../scripts/packs.mjs';
 
 const reshape = JSON.parse(await readFile(new URL('../dist/families/reshape/reshape.json', import.meta.url), 'utf8'));
@@ -100,7 +100,7 @@ test('a rebuild: the shelf, a refused That’s all kept through Undo, and both r
   assert.deepEqual(a.board.found, ['6x2']);
   a = play(p, a, {type: 'all'});
   assert.equal(a.board.no, true, 'there’s another');
-  assert.match(view(p, a), /There’s another\./);
+  assert.match(view(p, a), /There is another\./);
   assert.equal(move(p, a, {type: 'all'}), null, 'not twice for the same shelf');
   const back = undoCarry(p, undoCarry(p, a));
   assert.deepEqual([back.board.found, back.board.no], [['6x2'], true], 'Undo keeps the rectangle and the refusal');
@@ -116,13 +116,16 @@ test('taps: choose, cut near a line, put, turn, take back; slides', () => {
   const p = byId('reshape-02'), q = p.parameters, G = geometry(q), fresh = freshAttempt(p);
   mech.reset(p);
   const home = (x, y) => G.ofHome(G.home.findIndex(c => c[0] === x && c[1] === y)), mat = (x, y) => G.ofMat([x, y]);
-  // The lone piece is chosen: a tap near the line x = 2 cuts there; a tap in
-  // the middle of a square, or from a key, lets it go.
-  assert.deepEqual(lineNear(G, fresh.board.pieces[0], [G.hx + 1.92, .5]), {dir: 'v', k: 2});
-  assert.equal(lineNear(G, fresh.board.pieces[0], [G.hx + 1.5, .5]), null);
-  assert.deepEqual(tapSquare(p, fresh.board, home(1, 0), [G.hx + 1.92, .5]), {move: cut(0, 'v', 2)});
-  assert.deepEqual(tapSquare(p, fresh.board, home(1, 0), [G.hx + 1.5, .7]), {ui: {chosen: null}});
-  assert.deepEqual(tapSquare(p, fresh.board, home(1, 0)), {ui: {chosen: null}});
+  // The lone piece is chosen: a tap near the line x = 2 cuts there. A tap in
+  // the middle of a square, or from a key, turns it onto the grid, and the
+  // whole 6 by 2 fits nowhere, so it only shakes.
+  assert.deepEqual(lineNear(G, fresh.board.pieces[0], [1.92, .5]), {dir: 'v', k: 2});
+  assert.equal(lineNear(G, fresh.board.pieces[0], [1.5, .5]), null);
+  assert.deepEqual(tapSquare(p, fresh.board, home(1, 0), [1.92, .5, 50]), {move: cut(0, 'v', 2)});
+  assert.deepEqual(tapSquare(p, fresh.board, home(1, 0), [1.62, .5, 28]), {move: cut(0, 'v', 2)}, 'small squares: a wider reach');
+  assert.deepEqual(tapSquare(p, fresh.board, home(1, 0), [1.62, .5, 56]), {ui: {shake: 1}}, 'big squares: a third of a square');
+  assert.deepEqual(tapSquare(p, fresh.board, home(1, 0)), {ui: {shake: 1}});
+  assert.deepEqual([reachFor(56), reachFor(30), reachFor(0)], [.3, .4, .3]);
   let a = play(p, fresh, cut(0, 'v', 2));
   assert.deepEqual(tapSquare(p, a.board, home(3, 1)), {ui: {chosen: 2, shake: 0}}, 'a tap chooses');
   mech.ui(p, {chosen: 2});
@@ -138,6 +141,36 @@ test('taps: choose, cut near a line, put, turn, take back; slides', () => {
   assert.deepEqual(slideMove(q, G, a.board, home(1, 1), mat(3, 1)), put(0, 2, 0, 0));
   assert.deepEqual(slideMove(q, G, a.board, mat(2, 3), home(5, 0)), {type: 'home', piece: 2});
   assert.equal(slideMove(q, G, a.board, home(1, 1), home(0, 0)), null, 'a piece at the top stays');
+});
+
+test('a piece at the top turns: Turn and a second tap bring it onto the grid turned; a drop turns it when only that fits', () => {
+  const p = byId('reshape-01'), q = p.parameters, G = geometry(q);
+  const home = (x, y) => G.ofHome(G.home.findIndex(c => c[0] === x && c[1] === y)), mat = (x, y) => G.ofMat([x, y]);
+  const a = play(p, freshAttempt(p), cut(0, 'v', 1), put(1, 0, 1));
+  const post = a.board.pieces[0];
+  assert.deepEqual(homeTurnSpot(q, G, a.board, post), [0, 0, 1], 'the first place it fits turned');
+  mech.reset(p);
+  mech.ui(p, {chosen: 0});
+  assert.match(view(p, a, true), /data-move="\{&quot;type&quot;:&quot;put&quot;,&quot;piece&quot;:0,&quot;x&quot;:0,&quot;y&quot;:0,&quot;r&quot;:1\}"[^>]*data-focus="rs-turn"\s*>/, 'Turn is on for the chosen piece at the top');
+  assert.deepEqual(tapSquare(p, a.board, home(0, 0), [.5, .5, 50]), {move: put(0, 0, 0, 1)}, 'a second tap in the middle turns it onto the grid');
+  // Dragged by its top square to the top right: upright it would overlap,
+  // turned it fits, with the held square under the finger.
+  const drop = slideMove(q, G, a.board, home(0, 0), mat(2, 0));
+  assert.deepEqual(drop, put(0, 1, 0, 1));
+  assert.ok(isSolved(p, play(p, a, drop).board), 'and that solves it');
+  assert.deepEqual(slideMove(q, G, a.board, home(0, 1), mat(0, 0)), put(0, 0, 0, 1), 'dragged by its bottom square to the top corner: only turned it fits');
+  assert.deepEqual(slideMove(q, G, a.board, home(0, 1), mat(0, 2)), put(0, 0, 1, 0), 'a drop that fits no way round stays as it is (and is refused)');
+  assert.equal(homeTurnSpot(q, G, a.board, a.board.pieces[1]), null, 'a piece on the grid uses turnSpot');
+  // Puzzle 6: the 2 by 3 fits only turned, along the bottom. Turning moves
+  // the square held, so a drop puts it over the square under the finger.
+  const six = byId('reshape-06'), q6 = six.parameters, G6 = geometry(q6);
+  const h6 = (x, y) => G6.ofHome(G6.home.findIndex(c => c[0] === x && c[1] === y));
+  const b6 = play(six, freshAttempt(six), cut(0, 'v', 5), put(0, 0, 0)).board;
+  assert.deepEqual(slideMove(q6, G6, b6, h6(5, 0), G6.ofMat([2, 3])), put(5, 0, 3, 1), 'held square under the finger, turned');
+  assert.deepEqual(slideMove(q6, G6, b6, h6(5, 0), G6.ofMat([0, 3])), put(5, 0, 3, 1), 'held by its top-left, dropped at the corner of the space');
+  assert.deepEqual(slideMove(q6, G6, b6, h6(6, 2), G6.ofMat([4, 4])), put(5, 2, 3, 1), 'held by its bottom-right, dropped at the far corner');
+  const sq = byId('reshape-02'), s2 = play(sq, freshAttempt(sq), cut(0, 'v', 2));
+  assert.equal(homeTurnSpot(sq.parameters, geometry(sq.parameters), s2.board, s2.board.pieces[0]), null, 'a square looks the same turned');
 });
 
 test('hints: from fresh they solve each puzzle in well under 100 ms, and say what to do', () => {
@@ -196,6 +229,22 @@ test('drawing: cut lines on the chosen piece at the top only; buttons as they ap
   html = view(r, freshAttempt(r));
   assert.match(html, /rs-all"[^>]*disabled/, 'That’s all waits for a rectangle');
   assert.doesNotMatch(html, /rs-shelf/);
+});
+
+test('two boards: the start shape and the grid are scaled apart, with their own focus names', () => {
+  const p = byId('reshape-08'), html = view(p, freshAttempt(p));
+  assert.equal((html.match(/<svg class="sg-board[^"]*rs-board/g) || []).length, 2);
+  // Each board's width in squares, side numerals included: the 7 by 7 grid
+  // is not drawn at the scale of the 10-wide start shape.
+  const width = which => Number(html.match(new RegExp(`rs-${which}-wrap" style="--rs-w:([\\d.]+)"`))[1]);
+  assert.ok(width('home') > 10.5 && width('home') < 11.5, `start shape ${width('home')} squares wide`);
+  assert.ok(width('mat') > 7.5 && width('mat') < 8.5, `grid ${width('mat')} squares wide`);
+  assert.match(html, /rs-stage" style="--rs-hh:5\.1;--rs-hm:8;--rs-mw:8\.03"/, 'the boards share the height budget by their heights');
+  assert.match(html, /data-focus="rs-home-cell-0"/);
+  assert.match(html, /data-focus="rs-mat-cell-0"/);
+  assert.doesNotMatch(html, /data-focus="sg-cell-/);
+  const G = geometry(p.parameters);
+  assert.deepEqual(G.gh.cells, G.home, 'the start shape’s board numbers its squares as the shape does');
 });
 
 test('the group sits in Tile gardens, with no playground of its own', () => {

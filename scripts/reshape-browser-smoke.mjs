@@ -1,9 +1,12 @@
 // Plays Missing square (a group in Tile gardens) through the real interface
 // on the shared square grid: the group in the satchel; the lone shape chosen
 // with its cut lines; a cut by a tap and by Enter; pieces dragged onto the
-// grid, put by a tap and turned by a second tap and by Turn; a blocked tap
-// that only shakes; a piece dragged home and one brought back by its empty
-// place; a wrong cut, Tape and Undo; a rebuild with the shelf, a refused
+// grid, put by a tap and turned by a second tap and by Turn; a piece at the
+// top turned onto the grid by Turn, and one turned by a drop when only the
+// turned piece fits; the start shape and the grid scaled separately, with
+// big enough squares on a phone and a cut from a tap 10 px from a line; a
+// blocked tap that only shakes; a piece dragged home and one brought back by
+// its empty place; a wrong cut, Tape and Undo; a rebuild with the shelf, a refused
 // That's all kept through Undo, Tape and the second rectangle; Can't off
 // until a try, its refusal and the claim; arrow keys; focus after moves;
 // and no page overflow. Same environment variables as the other browser
@@ -32,15 +35,19 @@ const done = () => page.locator('#completion-heading').waitFor({timeout: 5000});
 const fit = async label => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `${label}: no page overflow`);
 // Board squares: [x, y] of the start shape (home) or of the grid (mat).
 const homeIndex = ([x, y]) => G.home.findIndex(c => c[0] === x && c[1] === y);
-const at = (where, xy) => where === 'home' ? G.ofHome(homeIndex(xy)) : G.ofMat(xy);
-const cell = (where, xy) => page.locator(`.rs-board polygon.sg-cell[data-cell="${at(where, xy)}"]`);
+const cell = (where, xy) => where === 'home' ? page.locator(`.rs-home-board polygon.sg-cell[data-cell="${homeIndex(xy)}"]`) : page.locator(`.rs-mat-board polygon.sg-cell[data-cell="${xy[1] * G.gm.cols + xy[0]}"]`);
+// Both boards in view, as a child scrolls them (a 7 by 7 grid below a
+// three-line goal reaches under the fold on a 375 by 812 phone).
+const inView = () => page.locator('.rs-stage').evaluate(e => e.scrollIntoView({block: 'nearest'}));
 async function tapAt(locator) {
+  await inView();
   const b = await locator.boundingBox(), px = b.x + b.width / 2, py = b.y + b.height / 2;
   if (phone) await page.touchscreen.tap(px, py); else await page.mouse.click(px, py);
 }
 const tap = (where, xy) => tapAt(cell(where, xy));
 let cdp = null;
 async function slide(from, to) {
+  await inView();
   const a = await cell(...from).boundingBox(), b = await cell(...to).boundingBox();
   const p = [a.x + a.width / 2, a.y + a.height / 2], q = [b.x + b.width / 2, b.y + b.height / 2];
   if (!phone) {
@@ -56,12 +63,14 @@ async function slide(from, to) {
   await touch('touchEnd', q);
 }
 const cutLine = (piece, dir, k) => page.locator(`.rs-cut[data-rs-cut="${piece}:${dir}:${k}"]`);
-// A tap a little inside the first square along a cut line, about a tenth of
-// a square from the line: the board reads the press point and cuts there.
-async function tapCut(piece, dir, k) {
+// A tap a little inside the first square along a cut line, a tenth of a
+// square (or `off` pixels) from the line: the board reads the press point
+// and cuts there.
+async function tapCut(piece, dir, k, off = null) {
   const cells = (await board(current)).pieces.find(p => p.cells[0] === piece).cells.map(i => G.home[i]);
+  await inView();
   const [x1, y1] = lineSpan(cells, dir, k), b = await cell('home', dir === 'h' ? [x1, k] : [k, y1]).boundingBox();
-  const px = b.x + b.width * (dir === 'v' ? .1 : .5), py = b.y + b.height * (dir === 'h' ? .1 : .5);
+  const px = b.x + (dir === 'v' ? off ?? b.width * .1 : b.width * .5), py = b.y + (dir === 'h' ? off ?? b.height * .1 : b.height * .5);
   if (phone) await page.touchscreen.tap(px, py); else await page.mouse.click(px, py);
 }
 const undoButton = () => page.locator('[data-action="undo"]').click();
@@ -151,6 +160,37 @@ try {
   await undoButton();
   assert.equal((await board('reshape-01')).pieces.length, 2, 'Undo takes Tape back');
 
+  /* ----- Puzzle 6, 7 by 3: a drop turns a piece that fits only turned. */
+  const T = 'reshape-06';
+  await open(T);
+  await tapCut(0, 'v', 5);
+  await slide(['home', [0, 0]], ['mat', [0, 0]]);
+  // The 2 by 3, held by its top-left square, dropped at the left of the space.
+  await slide(['home', [5, 0]], ['mat', [0, 3]]);
+  assert.deepEqual((await placed(T)).sort(), [[0, 0, 0, 0], [5, 0, 3, 1]], 'a drop turns a piece that fits only turned');
+  await done();
+
+  /* ----- Puzzle 8, 10 by 4: two boards, each scaled to fit; Turn at the top. */
+  const E = 'reshape-08';
+  await open(E); await fit('10 by 4');
+  const size = where => cell(where, [0, 0]).evaluate(e => e.getBoundingClientRect().width);
+  const homePx = await size('home'), matPx = await size('mat');
+  // Where height is short both boards share one size of square; on a phone
+  // the 7 by 7 grid is not shrunk to the 10-wide start shape.
+  assert.ok(matPx >= homePx - .5, `the grid's squares are at least the start shape's (${matPx.toFixed(1)} px, ${homePx.toFixed(1)} px)`);
+  if (phone) assert.ok(matPx >= 38 && matPx > homePx + 5, `grid squares are big enough to tap on a phone (${matPx.toFixed(1)} px, start shape ${homePx.toFixed(1)} px)`);
+  console.log(JSON.stringify({squares: {home: +homePx.toFixed(1), grid: +matPx.toFixed(1)}}));
+  await shot('square-8');
+  await tapCut(0, 'v', 7, phone ? 11 : null);
+  assert.equal((await board(E)).pieces.length, 2, phone ? 'a tap 11 px from a line cuts on a phone' : 'a tap near a line cuts');
+  await slide(['home', [0, 0]], ['mat', [0, 0]]);
+  await tap('home', [7, 0]);
+  assert.ok(!(await page.locator('.rs-turn').isDisabled()), 'Turn is on for a chosen piece at the top that fits turned');
+  await page.locator('.rs-turn').click();
+  assert.deepEqual((await placed(E)).sort((u, v) => u[0] - v[0]), [[0, 0, 0, 0], [7, 0, 4, 1]], 'Turn puts it on the grid turned, where it fits');
+  await done(); await fit('10 by 4 solved');
+  await shot('square-8-solved');
+
   /* ----- Puzzle 7: rebuild, the shelf, a refused That's all, Tape, the second rectangle. */
   const R = 'reshape-07';
   await open(R); await fit('rebuild');
@@ -163,7 +203,7 @@ try {
   assert.equal(await page.locator('.rs-made').count(), 1, 'outlined with its sides');
   await shot('rebuild-made');
   await page.locator('.rs-all').click();
-  assert.equal(await note(), 'There’s another.');
+  assert.equal(await note(), 'There is another.');
   assert.ok(await page.locator('.rs-all').isDisabled(), 'That’s all waits for a new rectangle');
   await undoButton();
   assert.equal((await board(R)).no, true, 'Undo keeps the refusal');

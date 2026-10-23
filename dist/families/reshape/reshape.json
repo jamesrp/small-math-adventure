@@ -67,23 +67,23 @@
    "objective": "Cut the rectangle (one cut at most) and fit every piece in the square so that what is left uncovered is one square.",
    "visibleObjective": "Fit every piece in the square, leaving one square uncovered.",
    "instruction": "Cut the rectangle (one cut at most) and fit every piece in the square so that what is left uncovered is one square.",
-   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes. Tap a chosen piece on the grid, or press Turn, to turn it. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together.",
+   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes; it turns if it fits only turned. Tap a chosen piece again, or press Turn, to turn it; from the top it comes onto the grid turned. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together.",
    "rules": [
     "Cut only along the grid lines, straight across a piece, at most once. The scissors show the cuts left.",
     "Every piece goes in the square, on the grid, with no overlaps; pieces may be turned.",
     "Solved when the part left uncovered is one square."
    ],
-   "idea": "The square’s side, 3, is the average of 4 and 2. Cut 3 off the long side: the 3 by 2 lies across the square and the turned 1 by 2 leaves a 1 by 1 square, half of 4 − 2.",
+   "idea": "The square’s side, 3, is the average of 4 and 2. Cut 3 off the long side: the 3 by 2 lies across the square and the turned 2 by 1 leaves a 1 by 1 square, half of 4 − 2.",
    "prerequisites": "None to start: cutting, dragging and turning are taps. Counting squares to about 10; halving and taking away explain the size of the square left over.",
    "hints": [
     "Which piece could lie right across the square?",
     "A piece as long as the square is wide fits across it.",
-    "Cut the 4 by 2 into a 3 by 2 and a 1 by 2, then turn the small piece."
+    "Cut the 4 by 2 into a 3 by 2 and a 2 by 1, then turn the small piece."
    ],
    "parent": {
     "notice": "Whether your child cuts in the middle first, and sees why two 2 by 2 pieces can’t both fit in a 3 by 3 square.",
     "prompt": "Why does the square’s side, 3, suit this rectangle so well?",
-    "explanation": "3 is halfway between 2 and 4. Cut 3 off the long side: the 3 by 2 piece lies across the square and leaves a 3 by 1 row, and the 1 by 2 piece, turned, covers two of its squares and leaves one. The areas agree: 9 − 8 = 1. Cutting in the middle fails, because two 2 by 2 pieces in a 3 by 3 square would both need its middle square.",
+    "explanation": "3 is halfway between 2 and 4. Cut 3 off the long side: the 3 by 2 piece lies across the square and leaves a 3 by 1 row, and the 2 by 1 piece, turned, covers two of its squares and leaves one. The areas agree: 9 − 8 = 1. Cutting in the middle fails, because two 2 by 2 pieces in a 3 by 3 square would both need its middle square.",
     "extension": "What would be left uncovered from a 6 by 2 in a 4 by 4 square? (Puzzle 2.)",
     "connection": "The square whose side is the average of a rectangle’s sides holds the rectangle with one square left over, of side half the difference.",
     "sourceIds": [
@@ -145,7 +145,7 @@
    "objective": "Cut the rectangle (one cut at most) and fit every piece in the square so that what is left uncovered is one square.",
    "visibleObjective": "Fit every piece in the square, leaving one square uncovered.",
    "instruction": "Cut the rectangle (one cut at most) and fit every piece in the square so that what is left uncovered is one square.",
-   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes. Tap a chosen piece on the grid, or press Turn, to turn it. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together.",
+   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes; it turns if it fits only turned. Tap a chosen piece again, or press Turn, to turn it; from the top it comes onto the grid turned. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together.",
    "rules": [
     "Cut only along the grid lines, straight across a piece, at most once. The scissors show the cuts left.",
     "Every piece goes in the square, on the grid, with no overlaps; pieces may be turned.",
@@ -223,7 +223,7 @@
    "objective": "Cut the rectangle (one cut at most) and fit every piece in the square so that what is left uncovered is one square.",
    "visibleObjective": "Fit every piece in the square, leaving one square uncovered.",
    "instruction": "Cut the rectangle (one cut at most) and fit every piece in the square so that what is left uncovered is one square.",
-   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes. Tap a chosen piece on the grid, or press Turn, to turn it. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together.",
+   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes; it turns if it fits only turned. Tap a chosen piece again, or press Turn, to turn it; from the top it comes onto the grid turned. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together.",
    "rules": [
     "Cut only along the grid lines, straight across a piece, at most once. The scissors show the cuts left.",
     "Every piece goes in the square, on the grid, with no overlaps; pieces may be turned.",
@@ -304,7 +304,7 @@
    "objective": "Cut the shape (one cut at most) and make every rectangle you can from all of its pieces, then press That’s all.",
    "visibleObjective": "Make every rectangle you can from all the pieces.",
    "instruction": "Cut the shape (one cut at most) and make every rectangle you can from all of its pieces, then press That’s all.",
-   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes. Tap a chosen piece on the grid, or press Turn, to turn it. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together. Every rectangle made goes on the shelf below; press That’s all when you think every one is there.",
+   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes; it turns if it fits only turned. Tap a chosen piece again, or press Turn, to turn it; from the top it comes onto the grid turned. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together. Every rectangle made goes on the shelf below; press That’s all when you think every one is there.",
    "rules": [
     "Cut only along the grid lines, straight across a piece, at most once. The scissors show the cuts left.",
     "A rectangle uses every piece, side to side, with no gaps or overlaps. A rectangle turned round is the same one.",
@@ -388,7 +388,7 @@
    "objective": "Cut the rectangle (one cut at most) and fit every piece in the square so that what is left uncovered is one square.",
    "visibleObjective": "Fit every piece in the square, leaving one square uncovered.",
    "instruction": "Cut the rectangle (one cut at most) and fit every piece in the square so that what is left uncovered is one square.",
-   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes. Tap a chosen piece on the grid, or press Turn, to turn it. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together.",
+   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes; it turns if it fits only turned. Tap a chosen piece again, or press Turn, to turn it; from the top it comes onto the grid turned. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together.",
    "rules": [
     "Cut only along the grid lines, straight across a piece, at most once. The scissors show the cuts left.",
     "Every piece goes in the square, on the grid, with no overlaps; pieces may be turned.",
@@ -466,7 +466,7 @@
    "objective": "Cut the rectangle (one cut at most) and fit every piece in the square so that what is left uncovered is one square.",
    "visibleObjective": "Fit every piece in the square, leaving one square uncovered.",
    "instruction": "Cut the rectangle (one cut at most) and fit every piece in the square so that what is left uncovered is one square.",
-   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes. Tap a chosen piece on the grid, or press Turn, to turn it. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together.",
+   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes; it turns if it fits only turned. Tap a chosen piece again, or press Turn, to turn it; from the top it comes onto the grid turned. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together.",
    "rules": [
     "Cut only along the grid lines, straight across a piece, at most once. The scissors show the cuts left.",
     "Every piece goes in the square, on the grid, with no overlaps; pieces may be turned.",
@@ -476,13 +476,13 @@
    "prerequisites": "None to start: cutting, dragging and turning are taps. Counting squares to about 10; halving and taking away explain the size of the square left over.",
    "hints": [
     "Cut a piece as long as the square is wide.",
-    "Cut the 7 by 3 into a 5 by 3 and a 2 by 3.",
+    "Cut the 7 by 3 into a 5 by 3 and a 3 by 2.",
     "Put the 5 by 3 across the bottom, then turn the small piece to fit the band above."
    ],
    "parent": {
     "notice": "Whether your child expects the same square left over as in puzzle 5, since the square is the same.",
     "prompt": "Puzzles 5 and 6 both fill a 5 by 5 square. Why are the squares left over different?",
-    "explanation": "The 5 by 3 lies across the square and leaves a 5 by 2 band; the 2 by 3, turned, covers three of its columns and leaves a 2 by 2 square. 25 − 21 = 4. The square’s side is the average, 5, for both 8 by 2 and 7 by 3; the side left over is half the difference, 3 for 8 by 2 and 2 for 7 by 3. A rectangle nearer to a square leaves a smaller square over.",
+    "explanation": "The 5 by 3 lies across the square and leaves a 5 by 2 band; the 3 by 2, turned, covers three of its columns and leaves a 2 by 2 square. 25 − 21 = 4. The square’s side is the average, 5, for both 8 by 2 and 7 by 3; the side left over is half the difference, 3 for 8 by 2 and 2 for 7 by 3. A rectangle nearer to a square leaves a smaller square over.",
     "extension": "Which rectangle with sides adding to 10 leaves the smallest square over? (6 by 4 leaves a 1 by 1.)",
     "connection": "Week 93 Problem 6: the extra area is ((b − a)/2)², so the closer the sides, the smaller the square left over.",
     "sourceIds": [
@@ -548,7 +548,7 @@
    "objective": "Cut the shape (one cut at most) and make every rectangle you can from all of its pieces, then press That’s all.",
    "visibleObjective": "Make every rectangle you can from all the pieces.",
    "instruction": "Cut the shape (one cut at most) and make every rectangle you can from all of its pieces, then press That’s all.",
-   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes. Tap a chosen piece on the grid, or press Turn, to turn it. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together. Every rectangle made goes on the shelf below; press That’s all when you think every one is there.",
+   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes; it turns if it fits only turned. Tap a chosen piece again, or press Turn, to turn it; from the top it comes onto the grid turned. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together. Every rectangle made goes on the shelf below; press That’s all when you think every one is there.",
    "rules": [
     "Cut only along the grid lines, straight across a piece, at most once. The scissors show the cuts left.",
     "A rectangle uses every piece, side to side, with no gaps or overlaps. A rectangle turned round is the same one.",
@@ -657,23 +657,23 @@
    "objective": "Cut the rectangle (one cut at most) and fit every piece in the square so that what is left uncovered is one square.",
    "visibleObjective": "Fit every piece in the square, leaving one square uncovered.",
    "instruction": "Cut the rectangle (one cut at most) and fit every piece in the square so that what is left uncovered is one square.",
-   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes. Tap a chosen piece on the grid, or press Turn, to turn it. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together.",
+   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes; it turns if it fits only turned. Tap a chosen piece again, or press Turn, to turn it; from the top it comes onto the grid turned. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together.",
    "rules": [
     "Cut only along the grid lines, straight across a piece, at most once. The scissors show the cuts left.",
     "Every piece goes in the square, on the grid, with no overlaps; pieces may be turned.",
     "Solved when the part left uncovered is one square."
    ],
-   "idea": "Half of 10 − 4 is 3. Cut 7 off the 10, lay the 7 by 4 across, and turn the 3 by 4 into the band above.",
+   "idea": "Half of 10 − 4 is 3. Cut 7 off the 10, lay the 7 by 4 across, and turn the 4 by 3 into the band above.",
    "prerequisites": "None to start: cutting, dragging and turning are taps. Counting squares to about 10; halving and taking away explain the size of the square left over.",
    "hints": [
     "How wide is the square?",
     "Cut a piece 7 long.",
-    "Cut the 10 by 4 into a 7 by 4 and a 3 by 4, then turn the 3 by 4."
+    "Cut the 10 by 4 into a 7 by 4 and a 4 by 3, then turn the 4 by 3."
    ],
    "parent": {
     "notice": "Whether your child says how big the square left over will be before fitting.",
     "prompt": "What will be left uncovered, and why?",
-    "explanation": "7 is the average of 10 and 4. The 7 by 4 lies across the square and leaves a 7 by 3 band; the 3 by 4, turned, covers four of its columns and leaves a 3 by 3 square. 49 − 40 = 9.",
+    "explanation": "7 is the average of 10 and 4. The 7 by 4 lies across the square and leaves a 7 by 3 band; the 4 by 3, turned, covers four of its columns and leaves a 3 by 3 square. 49 − 40 = 9.",
     "extension": "Leave the uncovered square in the middle instead (puzzles 10 and 11).",
     "connection": "For any a by b, the piece as long as the average side lies across the square and leaves a band (b − a)/2 tall, and the other piece fills it except one square of that side: Week 93 Problem 6’s picture, for every rectangle.",
     "sourceIds": [
@@ -741,13 +741,13 @@
    "objective": "Cut the rectangle (2 cuts at most) and fit every piece in the square around the dashed square, or press Can’t and tap squares that each need a piece of their own, more than the cuts can make.",
    "visibleObjective": "Fit every piece in the square, leaving the dashed square uncovered.",
    "instruction": "Cut the rectangle (2 cuts at most) and fit every piece in the square around the dashed square, or press Can’t and tap squares that each need a piece of their own, more than the cuts can make.",
-   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes. Tap a chosen piece on the grid, or press Turn, to turn it. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together. Once a piece is cut or moved, Can’t lets you tap squares of the grid that each need a piece of their own; tap one again to drop it.",
+   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes; it turns if it fits only turned. Tap a chosen piece again, or press Turn, to turn it; from the top it comes onto the grid turned. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together. Once a piece is cut or moved, Can’t lets you tap squares of the grid that each need a piece of their own; tap one again to drop it.",
    "rules": [
     "Cut only along the grid lines, straight across a piece, at most 2 times. The scissors show the cuts left.",
     "Every piece goes in the square, on the grid, with no overlaps; pieces may be turned. The dashed square stays uncovered.",
     "Can’t: tap squares no one piece could cover two of, more of them than the cuts make pieces. A piece is a rectangle, so two squares can share one only when the rectangle between them misses the dashed square."
    ],
-   "idea": "The dashed square in the middle of the top edge leaves a post on each side and a base below: three pieces, a 4 by 2 base and the 2 by 2 cut into two 1 by 2 posts.",
+   "idea": "The dashed square in the middle of the top edge leaves a post on each side and a base below: three pieces, a 4 by 2 base and the 2 by 2 cut into two 2 by 1 posts.",
    "prerequisites": "The earlier Missing square puzzles. Reading the Can’t rule with a grown-up the first time.",
    "hints": [
     "What shapes are the spaces round the dashed square?",
@@ -757,7 +757,7 @@
    "parent": {
     "notice": "Whether your child plans the pieces from the space to fill, rather than cutting first.",
     "prompt": "Why can’t two pieces do it?",
-    "explanation": "The top-left square, the top-right square and the square under the dashed one can’t share pieces: every piece is a rectangle, and a rectangle holding two of them covers part of the dashed square. So three pieces are needed, and two cuts make three: a 4 by 2 base and two 1 by 2 posts. With one cut the square left over is always in a corner.",
+    "explanation": "The top-left square, the top-right square and the square under the dashed one can’t share pieces: every piece is a rectangle, and a rectangle holding two of them covers part of the dashed square. So three pieces are needed, and two cuts make three: a 4 by 2 base and two 2 by 1 posts. With one cut the square left over is always in a corner.",
     "extension": "Can the dashed square be in the very middle with two cuts? (Puzzle 10.)",
     "connection": "Squares that pairwise can’t share a piece give a lower bound on the number of pieces; Can’t asks for such squares.",
     "sourceIds": [
@@ -857,7 +857,7 @@
    "objective": "Cut the rectangle (2 cuts at most) and fit every piece in the square around the dashed square, or press Can’t and tap squares that each need a piece of their own, more than the cuts can make.",
    "visibleObjective": "Fit every piece in the square, leaving the dashed square uncovered.",
    "instruction": "Cut the rectangle (2 cuts at most) and fit every piece in the square around the dashed square, or press Can’t and tap squares that each need a piece of their own, more than the cuts can make.",
-   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes. Tap a chosen piece on the grid, or press Turn, to turn it. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together. Once a piece is cut or moved, Can’t lets you tap squares of the grid that each need a piece of their own; tap one again to drop it.",
+   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes; it turns if it fits only turned. Tap a chosen piece again, or press Turn, to turn it; from the top it comes onto the grid turned. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together. Once a piece is cut or moved, Can’t lets you tap squares of the grid that each need a piece of their own; tap one again to drop it.",
    "rules": [
     "Cut only along the grid lines, straight across a piece, at most 2 times. The scissors show the cuts left.",
     "Every piece goes in the square, on the grid, with no overlaps; pieces may be turned. The dashed square stays uncovered.",
@@ -938,7 +938,7 @@
    "objective": "Cut the rectangle (3 cuts at most) and fit every piece in the square around the dashed square, or press Can’t and tap squares that each need a piece of their own, more than the cuts can make.",
    "visibleObjective": "Fit every piece in the square, leaving the dashed square uncovered.",
    "instruction": "Cut the rectangle (3 cuts at most) and fit every piece in the square around the dashed square, or press Can’t and tap squares that each need a piece of their own, more than the cuts can make.",
-   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes. Tap a chosen piece on the grid, or press Turn, to turn it. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together. Once a piece is cut or moved, Can’t lets you tap squares of the grid that each need a piece of their own; tap one again to drop it.",
+   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes; it turns if it fits only turned. Tap a chosen piece again, or press Turn, to turn it; from the top it comes onto the grid turned. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together. Once a piece is cut or moved, Can’t lets you tap squares of the grid that each need a piece of their own; tap one again to drop it.",
    "rules": [
     "Cut only along the grid lines, straight across a piece, at most 3 times. The scissors show the cuts left.",
     "Every piece goes in the square, on the grid, with no overlaps; pieces may be turned. The dashed square stays uncovered.",
@@ -1046,7 +1046,7 @@
    "objective": "Cut the shape (2 cuts at most) and make every rectangle you can from all of its pieces, then press That’s all.",
    "visibleObjective": "Make every rectangle you can from all the pieces.",
    "instruction": "Cut the shape (2 cuts at most) and make every rectangle you can from all of its pieces, then press That’s all.",
-   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes. Tap a chosen piece on the grid, or press Turn, to turn it. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together. Every rectangle made goes on the shelf below; press That’s all when you think every one is there.",
+   "controls": "Pieces are cut at the top, before they go on the grid. Tap a piece there to choose it: dashed lines cross it where it can be cut, and a tap on a line cuts there. Drag a piece onto the grid below, or tap the grid where its top-left corner goes; it turns if it fits only turned. Tap a chosen piece again, or press Turn, to turn it; from the top it comes onto the grid turned. Drag a piece back up, or tap its empty place, to take it back. Tape joins every piece back together. Every rectangle made goes on the shelf below; press That’s all when you think every one is there.",
    "rules": [
     "Cut only along the grid lines, straight across a piece, at most 2 times. The scissors show the cuts left.",
     "A rectangle uses every piece, side to side, with no gaps or overlaps. A rectangle turned round is the same one.",
@@ -1062,7 +1062,7 @@
    "parent": {
     "notice": "Whether your child looks for a square once the 8 by 2 is found, and connects 16 with 4 by 4.",
     "prompt": "The reshaping move never makes a square. How did cutting make one?",
-    "explanation": "One cut along a line from the missing corner gives a 2 by 3 and a 5 by 2, which make the 8 by 2. Two cuts can give a 2 by 1, a 2 by 4 and a 3 by 2, which make a 4 by 4, since 16 is a square number. The reshaping move (8 by 2, then 5 by 16/5, …) always keeps one side the average and closes in on 4 without reaching it; cutting freely reaches a square whenever the area is a square number. No other rectangle comes from two cuts.",
+    "explanation": "One cut along a line from the missing corner gives a 3 by 2 and a 5 by 2, which make the 8 by 2. Two cuts can give a 2 by 1, a 4 by 2 and a 3 by 2, which make a 4 by 4, since 16 is a square number. The reshaping move (8 by 2, then 5 by 16/5, …) always keeps one side the average and closes in on 4 without reaching it; cutting freely reaches a square whenever the area is a square number. No other rectangle comes from two cuts.",
     "extension": "Which rectangles can the 4 by 4 with a 2 by 2 corner gone make with two cuts? (Still only 6 by 2 and 4 by 3.)",
     "connection": "Any two shapes of the same area made of squares can be cut into each other (into single squares, if nothing else); the question is how few cuts are enough.",
     "sourceIds": [
