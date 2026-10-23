@@ -207,6 +207,9 @@ export default async function validateTotals() {
     assert.equal(sim([0, 0, 0], Array(6).fill(2)), 112, 'six 2s');
     assert.equal(sim([3], [4, 3, 2, 1, 0]), 13, 'one tray from 3 makes 13');
     assert.equal(byTitle('Any order').parameters.target, 12);
+    // The Easy two-tray decks: every order makes a different total, so the order is a decision.
+    for (const t of ['Two trays', 'A zero turn']) { const q = byTitle(t).parameters; assert.equal(table(q.start, q.cards).size, 6, `${t}: six orders, six totals`); }
+    assert.deepEqual([...table(z, [3, 1, 0]).keys()].sort((a, b) => a - b), [5, 6, 7, 9, 10, 11]);
   }
 
   // --- Witnesses, hints and play ---------------------------------------------
@@ -288,7 +291,8 @@ export default async function validateTotals() {
     assert.equal(c.board.refused, false);
     c = play(p, c, {type: 'cant'});
     assert.ok(isSolved(p, c.board)); assert.equal(c.board.claim, 'most');
-    assert.match(draw(p)(c), /Biggest first makes the most: 21\./);
+    assert.match(draw(p)(c), /21 is the most\./);
+    assert.doesNotMatch(draw(p)(c), /tt-note[^>]*>[^<]*[Bb]iggest/, 'the line after a right Can’t leaves the reason to the child');
     // Hints after a refusal reach the claim.
     hintsSolve(p, a, 'after a refusal');
     const l = byTitle('Below the least');

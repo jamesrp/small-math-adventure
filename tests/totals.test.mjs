@@ -71,15 +71,28 @@ test('Can’t reasons', () => {
 
 test('make: cards, the hand, a solve and nothing after it', () => {
   const p = byId('totals-03');
-  let a = play(p, freshAttempt(p), put(0, 1), put(1, 2));
-  assert.ok(!isSolved(p, a.board), '1, 2 makes 4');
+  let a = play(p, freshAttempt(p), put(0, 3), put(1, 1), put(2, 0));
+  assert.ok(!isSolved(p, a.board), '3, 1, 0 makes 11');
+  assert.equal(finalOf([0, 0], a.board.lane), 11);
   assert.match(view(p, a), /tt-cell last bad/, 'a missed total is marked');
-  assert.equal(move(p, a, put(0, 2)), null, 'turn 1 is full');
+  assert.equal(move(p, a, put(0, 1)), null, 'turn 1 is full');
   a = play(p, a, {type: 'swap', a: 0, b: 1});
-  assert.ok(isSolved(p, a.board));
+  assert.ok(isSolved(p, a.board), '1, 3, 0 makes 9');
   assert.match(view(p, a), /tt-cell last good/);
   assert.equal(move(p, a, {type: 'take', slot: 0}), null, 'nothing after a solve');
   assert.doesNotMatch(board(view(p, a)), /data-action="expansion-move"/, 'a solved board offers no moves');
+});
+
+test('the Easy two-tray decks: every order makes a different total', () => {
+  for (const id of ['totals-03', 'totals-04']) {
+    const q = byId(id).parameters;
+    assert.equal(reach(q).size, orders(q.cards).length, `${id}: six orders, six totals`);
+    assert.equal(byId(id).revision, 2, `${id}: a new definition`);
+  }
+  assert.deepEqual([...reach(byId('totals-04').parameters).keys()].sort((x, y) => x - y), [7, 8, 9, 11, 12, 13]);
+  const z = byId('totals-04');
+  const a = play(z, freshAttempt(z), put(0, 3), put(1, 0));
+  assert.deepEqual(columns([0, 0], a.board.lane), [[0, 3, 3, null], [0, 3, 6, null]], 'the 0 turn still adds 3 to tray 2');
 });
 
 test('taps: a card goes to the first empty turn; a picked turn takes a card, trades or gives its card back', () => {
@@ -139,7 +152,7 @@ test('Can’t: refused, locked until the lane changes, kept by Undo; then accept
   assert.deepEqual(nextHint(p, a).action, {type: 'cant'});
   a = play(p, a, {type: 'cant'});
   assert.ok(isSolved(p, a.board));
-  assert.match(view(p, a), /Biggest first makes the most: 21\./);
+  assert.match(view(p, a), /tt-note">21 is the most\./);
 });
 
 test('hints: the first empty turn, a change, a swap, a start and That’s all', () => {

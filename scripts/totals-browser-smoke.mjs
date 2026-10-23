@@ -43,16 +43,16 @@ try {
 
   // Make: cards go into the next empty turn; a picked turn trades with another; a solve.
   await open('totals-03'); await fit('totals-03');
-  await tap(card(1)); await tap(card(2));
-  assert.deepEqual((await board('totals-03')).lane, [1, 2]);
-  assert.deepEqual(await lastRow(), ['1', '4'], 'tray 2 reads 1, 4');
+  await tap(card(3)); await tap(card(1)); await tap(card(0));
+  assert.deepEqual((await board('totals-03')).lane, [3, 1, 0]);
+  assert.deepEqual(await lastRow(), ['3', '7', '11'], 'tray 2 reads 3, 7, 11');
   assert.equal(await page.locator('.tt-cell.last.bad').count(), 1, 'the missed total is marked');
   await shot('make');
   await tap(slot(0));
   assert.equal(await slot(0).getAttribute('aria-pressed'), 'true', 'a tapped turn is picked');
   await tap(slot(1));
   await done();
-  assert.deepEqual((await board('totals-03')).lane, [2, 1]);
+  assert.deepEqual((await board('totals-03')).lane, [1, 3, 0]);
 
   // Keys and drags: Enter on a focused card, then a card dragged onto a turn, between turns and back.
   await open('totals-05'); await fit('totals-05');
@@ -95,11 +95,17 @@ try {
   await tap(page.locator('.tt-cant'));
   await done();
   assert.equal((await board('totals-07')).claim, 'most');
-  assert.match(await page.locator('.tt-note').innerText(), /Biggest first makes the most: 21\./);
+  assert.equal(await page.locator('.tt-note').innerText(), '21 is the most.');
   await shot('cant-done');
 
   // Every: a start, its cards, There is another, then every start and That's all.
   await open('totals-08'); await fit('totals-08');
+  // The start buttons are at least 44 px, in at most two rows.
+  const chips = await page.locator('.tt-chip').evaluateAll(els => els.map(el => { const r = el.getBoundingClientRect(); return {w: r.width, h: r.height, top: Math.round(r.top)}; }));
+  assert.equal(chips.length, 9);
+  assert.ok(chips.every(c => c.w >= 43.5 && c.h >= 43.5), 'start buttons are 44 px');
+  assert.ok(new Set(chips.map(c => c.top)).size <= 2, 'start buttons in at most two rows');
+  if (phone) assert.equal(new Set(chips.map(c => c.top)).size, 2, 'two rows on a phone');
   await tap(page.locator('.tt-chip', {hasText: '4'}));
   for (const v of [0, 3, 0, 5]) await tap(card(v));
   assert.deepEqual((await board('totals-08')).found, [4]);

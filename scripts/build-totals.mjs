@@ -62,16 +62,19 @@ const PUZZLES = [
     hints: ['Play the cards in one order. Then try another order.', 'The tray keeps every card it gets, so the last total is the start plus all the cards.', 'Every order makes 3 + 0 + 1 + 2 + 3 + 4 = 13.'],
     parent: {notice: 'The totals along the way change with the order, but the last one is always 13.', prompt: 'Could some clever order reach 12?', explanation: 'A single tray only ever adds. Whatever order the cards come in, the last total is the start plus every card, 3 + 10 = 13. So 12 can’t be made, and one full lane is the whole argument, because every order gives the same total. Can’t is accepted after any full lane.', extension: 'What start would make 12 with these cards? (2.) Does the order ever matter with one tray? (Only for the totals along the way.)', connection: 'A sum does not depend on the order of its terms. The next puzzles add a second tray, and there the order starts to matter.'},
     provenance: 'Week 89, Problem 7 (cards 0 to 4, a tray starting at 3), with a target it cannot reach.'},
-  {number: 3, level: 'easy', title: 'Two trays', q: make(2, [2, 1], 5), claim: {order: [2, 1]},
-    idea: 'With two trays the first card counts twice: tray 2 gets it on its own turn and again on the next.',
-    hints: ['Try both orders and watch tray 2.', 'Tray 2 gains tray 1’s new total every turn, so the first card is counted on both turns.', 'Play 2 first, then 1.'],
-    parent: {notice: '1 then 2 makes 4; 2 then 1 makes 5.', prompt: 'Why does the bigger card first make more?', explanation: 'Turn 1 puts the first card in tray 1, and tray 2 gains it. Turn 2 adds the second card to tray 1, and tray 2 gains the new total, which still holds the first card. So tray 2 ends with 2 × the first card + the second: 2 × 2 + 1 = 5, but 2 × 1 + 2 = 4.', extension: 'With cards 3 and 1, what can tray 2 make? (7 or 5.)', connection: 'Tray 2 holds the running total of the running totals, and each card counts once for every turn left, its own included.'},
-    provenance: 'Week 89, the two-tray rule and its worked turn (before Problem 11), with two cards.'},
-  {number: 4, level: 'easy', title: 'A zero turn', q: make(2, [2, 0], 4), claim: {order: [2, 0]},
+  // Puzzles 3 and 4 have three cards whose six orders all make different
+  // totals, so the order is a decision, not a coin flip (revision 2, after
+  // the app critic's review of October 23, 2026; revision 1 had two cards).
+  {number: 3, level: 'easy', title: 'Two trays', revision: 2, q: make(2, [3, 1, 0], 9), claim: {order: [1, 3, 0], distinct: true},
+    idea: 'With two trays the first card counts three times, the second twice and the last once.',
+    hints: ['Try an order and watch tray 2.', 'Tray 2 gains tray 1’s new total every turn, so the first card is counted on all three turns, the second on two and the last on one.', 'Play 1, 3, 0.'],
+    parent: {notice: 'Every order makes a different total: 11, 10, 9, 7, 6 or 5. Only 1, 3, 0 makes 9.', prompt: 'Why does 3, 1, 0 make more than 1, 3, 0?', explanation: 'Turn 1 puts the first card in tray 1, and tray 2 gains it. Every later turn tray 2 gains tray 1’s new total, which still holds the first card. So tray 2 ends with 3 × the first card + 2 × the second + the third. 1, 3, 0 gives 3 + 6 + 0 = 9; 3, 1, 0 gives 9 + 2 = 11, the most; 0, 1, 3 gives 2 + 3 = 5, the least.', extension: 'With only the cards 2 and 1, what can tray 2 make? (5 from 2, 1 or 4 from 1, 2.)', connection: 'Tray 2 holds the running total of the running totals, and each card counts once for every turn left, its own included.'},
+    provenance: 'Week 89, the two-tray rule and its worked turn (before Problem 11), with three cards whose six orders all make different totals (the app critic’s deck 3, 1, 0).'},
+  {number: 4, level: 'easy', title: 'A zero turn', revision: 2, q: make(2, [3, 2, 0], 11), claim: {order: [3, 0, 2], distinct: true},
     idea: 'A 0 card adds nothing to tray 1, but tray 2 still gains tray 1’s total on that turn.',
-    hints: ['Where should the 0 go: first or second?', 'On a 0 turn tray 1 stays the same, but tray 2 still adds it on.', 'Play 2 first, then 0.'],
-    parent: {notice: 'After 2 then 0, tray 2 has gained 2 twice.', prompt: 'Why does a 0 card still change tray 2?', explanation: 'Every turn adds tray 1’s new total to tray 2, even when the card is 0. Playing 2 then 0, tray 1 reads 2, 2 and tray 2 reads 2, 4. Playing 0 then 2, tray 1 reads 0, 2 and tray 2 reads 0, 2. So the 0 is worth putting last.', extension: 'With cards 2, 0 and 0, what is the most tray 2 can make? (6.) The least? (2.)', connection: 'A zero input is still a step: the running total of a running total keeps growing while the first total stands still.'},
-    provenance: 'Week 89, Problem 12’s rule that a zero input is a whole turn.'},
+    hints: ['Where should the 0 go: first, in the middle or last?', 'On a 0 turn tray 1 stays the same, but tray 2 still adds it on.', 'Play 3, 0, 2.'],
+    parent: {notice: 'After 3 then 0, tray 1 reads 3, 3 and tray 2 reads 3, 6: the 0 turn still added 3.', prompt: 'Why does a 0 card still change tray 2?', explanation: 'Every turn adds tray 1’s new total to tray 2, even when the card is 0. Tray 2 ends with 3 × the first card + 2 × the second + the third, so where the 0 goes decides which turns the 3 and the 2 get. 3, 0, 2 gives 9 + 0 + 2 = 11. The six orders make 13, 12, 11, 9, 8 and 7, all different.', extension: 'Where should the 0 go to make the most, and the least? (Last: 3, 2, 0 makes 13. First: 0, 2, 3 makes 7.)', connection: 'A zero input is still a step: the running total of a running total keeps growing while the first total stands still.'},
+    provenance: 'Week 89, Problem 12’s rule that a zero input is a whole turn, with three cards whose six orders all make different totals.'},
   {number: 5, level: 'medium', title: 'Where the zeros go', q: make(2, [3, 1, 0, 0], 9), claim: {order: [0, 1, 3, 0]},
     idea: 'Each card counts once for every turn left, its own included: 4, 3, 2 and 1 times.',
     hints: ['Play the cards and compare the last total with 9. Too big or too small?', 'A card counts more the earlier it is played: four times on turn 1, once on turn 4.', 'Play 0, 1, 3, 0.'],
@@ -148,6 +151,7 @@ const out = PUZZLES.map(item => {
     }
     if (c.gaps) assert.deepEqual(Array.from({length: most - least + 1}, (_, i) => least + i).filter(t => !reach(q).has(t)), c.gaps, `${item.title}: the gaps`);
     if (c.count) assert.equal(reach(q).size, c.count, `${item.title}: ${c.count} totals`);
+    if (c.distinct) assert.equal(reach(q).size, orders(q.cards).length, `${item.title}: every order makes a different total`);
   }
   if (q.mode === 'match') {
     assert.deepEqual(inputsFor(q.start, q.goal), c.inputs, `${item.title}: the cards`);
@@ -160,7 +164,7 @@ const out = PUZZLES.map(item => {
   }
   const id = `totals-${String(item.number).padStart(2, '0')}`, objective = OBJECTIVES[q.mode](q);
   return {
-    id, number: item.number, title: item.title, band: 'all', difficulty_level: item.level, mechanic: 'totals', familyTitle: 'Running totals', revision: 1,
+    id, number: item.number, title: item.title, band: 'all', difficulty_level: item.level, mechanic: 'totals', familyTitle: 'Running totals', revision: item.revision ?? 1,
     parameters: q,
     objective, visibleObjective: VISIBLE[q.mode](q), instruction: objective,
     controls: CONTROLS[q.mode], rules: [...TURN[q.trays], GOAL[q.mode]],

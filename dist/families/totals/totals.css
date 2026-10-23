@@ -44,9 +44,9 @@
 .tt-board .tt-over{outline:3px solid var(--tt-pine);outline-offset:2px}
 .tt-hand.tt-over{border-color:var(--tt-pine);outline:none}
 /* Starts to choose from (every). */
-.tt-starts{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.35rem;max-width:100%}
-.tt-starts .tt-hs{margin-right:.2rem}
-.tt-board .tt-chip{display:inline-flex;align-items:center;justify-content:center;width:2.4rem;height:2.4rem;min-width:0;min-height:0;margin:0;padding:0;border-radius:50%;border:1.5px solid var(--b-line,#b9c2a5);background:var(--b-card,#fffdf5);box-shadow:none;font:400 1.05rem/1 var(--b-display,Georgia,serif);color:var(--tt-ink)}
+.tt-starts{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.35rem .5rem;max-width:100%}
+.tt-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem}
+.tt-board .tt-chip{display:inline-flex;align-items:center;justify-content:center;width:2.75rem;height:2.75rem;min-width:0;min-height:0;margin:0;padding:0;border-radius:50%;border:1.5px solid var(--b-line,#b9c2a5);background:var(--b-card,#fffdf5);box-shadow:none;font:400 1.05rem/1 var(--b-display,Georgia,serif);color:var(--tt-ink)}
 .tt-board button.tt-chip{cursor:pointer}
 .tt-board .tt-chip.found{background:var(--b-good-soft,#dfeccf);border:2px solid var(--b-good,#3c7a4a)}
 .tt-board .tt-chip.on{outline:3px solid var(--tt-ink);outline-offset:1px;font-weight:700}
@@ -62,4 +62,4 @@
 .tt-board .pop{animation:tt-pop .38s ease-out both;animation-delay:calc(var(--d,0) * .22s)}
 @keyframes tt-pop{0%{transform:scale(.7);opacity:.2}70%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.tt-board .pop{animation:none}}
-@media (max-width:420px){.tt-board{--tt-cell:2.7rem}.tt-grid{gap:3px;padding:.45rem .35rem;grid-template-columns:1.35rem minmax(0,var(--tt-cell)) repeat(var(--n),minmax(0,var(--tt-cell)))}.tt-board .tt-slot{height:3.1rem}.tt-num{font-size:1.15rem}.tt-cell{height:2.05rem;font-size:.98rem}.tt-hs{font-size:.62rem}.tt-lab-tray{width:1.15rem}.tt-board .tt-card{width:2.6rem;height:3.3rem}.tt-board .tt-chip{width:2.2rem;height:2.2rem}}
+@media (max-width:420px){.tt-board{--tt-cell:2.7rem}.tt-grid{gap:3px;padding:.45rem .35rem;grid-template-columns:1.35rem minmax(0,var(--tt-cell)) repeat(var(--n),minmax(0,var(--tt-cell)))}.tt-board .tt-slot{height:3.1rem}.tt-num{font-size:1.15rem}.tt-cell{height:2.05rem;font-size:.98rem}.tt-hs{font-size:.62rem}.tt-lab-tray{width:1.15rem}.tt-board .tt-card{width:2.6rem;height:3.3rem}.tt-starts{flex-direction:column}.tt-chips{display:grid;grid-template-columns:repeat(var(--cols),2.75rem)}}

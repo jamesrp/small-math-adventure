@@ -329,7 +329,8 @@ function render(p, a) {
       if (done || b.start === s) return `<span class="${look}" role="img" aria-label="${esc(label)}">${s}</span>`;
       return `<button type="button" class="${look}" ${moveAttrs({type: 'start', value: s}, `tt-st${s}`)} aria-label="${esc(label)}">${s}</button>`;
     });
-    starts = `<div class="tt-starts" role="group" aria-label="Start"><span class="tt-hs" aria-hidden="true">start</span>${chips.join('')}</div>`;
+    // On a phone the start buttons stand in two even rows.
+    starts = `<div class="tt-starts" role="group" aria-label="Start"><span class="tt-hs" aria-hidden="true">start</span><span class="tt-chips" style="--cols:${Math.ceil(chips.length / 2)}">${chips.join('')}</span></div>`;
   }
   // The hand.
   let handHtml = '';
@@ -359,11 +360,12 @@ function render(p, a) {
       : `<button type="button" class="tt-trayn" ${moveAttrs({type: 'trays', n: m}, `tt-n${m}`)} aria-label="${m} ${m === 1 ? 'tray' : 'trays'}"><span class="tt-lab tt-lab-tray">${m}</span></button>`);
     tools = `<div class="tt-tools tt-trays" role="group" aria-label="Trays">${buttons.join('')}</div>`;
   }
-  // The line under the board.
+  // The line under the board. After a right Can't it states the fact; the
+  // reason (the sorted lane) is the child's, and the hints' and notes'.
   const {most, least} = q.mode === 'make' ? extremes(q) : {};
   const note = q.mode === 'make' && b.refused ? 'That doesn’t rule it out.'
-    : b.claim === 'most' ? `Biggest first makes the most: ${most}.`
-      : b.claim === 'least' ? `Smallest first makes the least: ${least}.`
+    : b.claim === 'most' ? `${most} is the most.`
+      : b.claim === 'least' ? `${least} is the least.`
         : b.claim === 'same' ? `Every order makes ${most}.`
           : q.mode === 'every' && b.told === 'more' ? 'There is another.' : '';
   const bad = (q.mode === 'make' && b.refused) || (q.mode === 'every' && b.told === 'more');
