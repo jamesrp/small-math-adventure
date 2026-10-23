@@ -1,0 +1,65 @@
+/* Running totals: the worksheet's table as a grid. Turn numbers across the
+   top; the lane of cards (dashed slots, sun cards with a numeral and pips);
+   a row for each tray with its start and its total after each turn; the
+   goal totals in pine under the last tray. A last-tray total turns green
+   when it meets its goal and ochre when it misses. The hand of cards sits
+   below, then the tools. */
+.tt-board{--tt-sun:var(--b-sun,#efc76e);--tt-ink:var(--b-ink,#294439);--tt-pine:var(--b-pine,#31533e);--tt-cell:3.6rem;display:flex;flex-direction:column;align-items:center;gap:.8rem;width:100%}
+.tt-grid{display:grid;grid-template-columns:1.8rem minmax(0,var(--tt-cell)) repeat(var(--n),minmax(0,var(--tt-cell)));gap:4px;align-items:center;justify-items:stretch;max-width:100%;padding:.55rem .6rem;border-radius:14px;background:var(--b-paper,#f5f1e6);border:1.5px solid var(--b-line,#d0d6bd)}
+.tt-board.solved .tt-grid{border:2px solid var(--b-good,#3c7a4a);background:var(--b-good-soft,#e2ecd6)}
+.tt-h{text-align:center;font-size:.78rem;color:var(--b-muted,#5a6850);line-height:1.1}
+.tt-hs{font-size:.7rem;letter-spacing:.01em;color:var(--b-muted,#5a6850)}
+.tt-gap{display:block}
+/* Row glyphs: a card, numbered trays and a flag. */
+.tt-lab{display:inline-flex;align-items:center;justify-content:center;justify-self:center;font:400 .8rem/1 var(--b-display,Georgia,serif);color:var(--tt-ink)}
+.tt-lab-card{width:.95rem;height:1.25rem;border:1.5px solid var(--tt-ink);border-radius:3px;background:var(--tt-sun)}
+.tt-lab-tray{width:1.45rem;height:1.05rem;border:1.5px solid var(--tt-ink);border-top-width:0;border-radius:0 0 6px 6px;background:var(--b-card,#fffdf5);padding-top:2px}
+.tt-lab-goal{color:var(--tt-pine);font-size:1.05rem}
+/* The lane. */
+.tt-board .tt-slot{display:flex;align-items:center;justify-content:center;height:3.7rem;min-width:0;min-height:0;margin:0;padding:0;border-radius:8px;border:2px dashed var(--b-muted,#8a957a);background:transparent;box-shadow:none;color:var(--tt-ink);font:inherit;touch-action:none;user-select:none;-webkit-user-select:none}
+.tt-board .tt-slot.filled{border:2px solid var(--tt-ink);background:var(--tt-sun);box-shadow:0 2px 0 rgba(41,68,57,.35)}
+.tt-board button.tt-slot{cursor:pointer}
+.tt-board .tt-slot.sel{outline:3px solid var(--tt-pine);outline-offset:2px}
+.tt-board.picking .tt-slot.empty{border-color:var(--tt-pine)}
+.tt-face{display:flex;flex-direction:column;align-items:center;gap:2px;pointer-events:none}
+.tt-num{font:400 1.35rem/1 var(--b-display,Georgia,serif)}
+.tt-pips{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;max-width:2.1rem;min-height:5px}
+.tt-pips b{display:block;width:5px;height:5px;border-radius:50%;background:var(--tt-ink)}
+/* The trays. */
+.tt-cell{display:flex;align-items:center;justify-content:center;height:2.5rem;min-width:0;border-radius:6px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);font:400 1.1rem/1 var(--b-display,Georgia,serif);color:var(--tt-ink)}
+.tt-cell.none{background:transparent;border-style:dashed}
+.tt-cell.tt-start{background:#ebe8da;border-color:transparent;color:var(--b-muted,#5a6850)}
+.tt-cell.tt-start.unknown{border:1.5px dashed var(--b-muted,#8a957a);background:transparent}
+.tt-cell.last:not(.none){font-weight:700;border-color:var(--tt-ink)}
+.tt-cell.good{background:var(--b-good-soft,#dfeccf);border-color:var(--b-good,#3c7a4a);color:var(--b-good,#2f6a3c)}
+.tt-cell.bad{background:#f6e7c3;border-color:var(--b-ochre,#b38840)}
+.tt-goal{display:flex;align-items:center;justify-content:center;height:1.9rem;min-width:0;border-radius:6px;background:var(--tt-pine);font:400 1.05rem/1 var(--b-display,Georgia,serif);color:#fff}
+.tt-goal.none{background:transparent}
+/* The hand. */
+.tt-hand{display:flex;flex-wrap:wrap;justify-content:center;gap:.45rem;min-height:3.8rem;min-width:12rem;max-width:100%;padding:.35rem .5rem;border-radius:12px;border:1.5px dashed transparent}
+.tt-board .tt-card{display:flex;align-items:center;justify-content:center;width:2.9rem;height:3.6rem;min-width:0;min-height:0;margin:0;padding:0;border-radius:8px;border:2px solid var(--tt-ink);background:var(--tt-sun);box-shadow:0 2px 0 rgba(41,68,57,.35);color:var(--tt-ink);font:inherit;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}
+.tt-board .tt-card:disabled{opacity:.55;cursor:default}
+.tt-board .tt-card:hover:not(:disabled),.tt-board button.tt-slot:hover{filter:brightness(.96)}
+.tt-board .dragging{pointer-events:none;z-index:5;opacity:.9;position:relative}
+.tt-board .tt-over{outline:3px solid var(--tt-pine);outline-offset:2px}
+.tt-hand.tt-over{border-color:var(--tt-pine);outline:none}
+/* Starts to choose from (every). */
+.tt-starts{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.35rem;max-width:100%}
+.tt-starts .tt-hs{margin-right:.2rem}
+.tt-board .tt-chip{display:inline-flex;align-items:center;justify-content:center;width:2.4rem;height:2.4rem;min-width:0;min-height:0;margin:0;padding:0;border-radius:50%;border:1.5px solid var(--b-line,#b9c2a5);background:var(--b-card,#fffdf5);box-shadow:none;font:400 1.05rem/1 var(--b-display,Georgia,serif);color:var(--tt-ink)}
+.tt-board button.tt-chip{cursor:pointer}
+.tt-board .tt-chip.found{background:var(--b-good-soft,#dfeccf);border:2px solid var(--b-good,#3c7a4a)}
+.tt-board .tt-chip.on{outline:3px solid var(--tt-ink);outline-offset:1px;font-weight:700}
+/* Tools and the line under the board. */
+.tt-tools{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem}
+.tt-board .tt-trayn{display:inline-flex;align-items:center;justify-content:center;width:3rem;height:2.6rem;min-width:0;min-height:0;margin:0;padding:0;border-radius:8px;border:1.5px solid var(--b-line,#b9c2a5);background:var(--b-card,#fffdf5);box-shadow:none}
+.tt-board button.tt-trayn{cursor:pointer}
+.tt-board .tt-trayn.on{border:2px solid var(--tt-ink);background:var(--tt-sun)}
+.tt-note{margin:0;font-weight:600;text-align:center}
+.tt-note.bad{color:var(--b-bad,#a9503a)}
+.tt-board .hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:2px}
+/* What a move changed pops in order: the card, then tray 1, 2, 3. */
+.tt-board .pop{animation:tt-pop .38s ease-out both;animation-delay:calc(var(--d,0) * .22s)}
+@keyframes tt-pop{0%{transform:scale(.7);opacity:.2}70%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.tt-board .pop{animation:none}}
+@media (max-width:420px){.tt-board{--tt-cell:2.7rem}.tt-grid{gap:3px;padding:.45rem .35rem;grid-template-columns:1.35rem minmax(0,var(--tt-cell)) repeat(var(--n),minmax(0,var(--tt-cell)))}.tt-board .tt-slot{height:3.1rem}.tt-num{font-size:1.15rem}.tt-cell{height:2.05rem;font-size:.98rem}.tt-hs{font-size:.62rem}.tt-lab-tray{width:1.15rem}.tt-board .tt-card{width:2.6rem;height:3.3rem}.tt-board .tt-chip{width:2.2rem;height:2.2rem}}

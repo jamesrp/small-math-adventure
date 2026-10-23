@@ -1,0 +1,941 @@
+{
+ "title": "Running totals",
+ "version": 1,
+ "families": [
+  {
+   "id": "totals",
+   "title": "Running totals",
+   "mathematics": "Cards go into a lane, one a turn. Each turn adds the card to tray 1, then tray 1’s new total to tray 2, and tray 2’s new total to tray 3. The last of k trays after N turns holds what its starts give plus the cards weighted C(N − i + k − 1, k − 1): 5, 4, 3, 2, 1 for two trays and five turns, 15, 10, 6, 3, 1 for three. With one tray every order ties. With two or more the weights fall strictly, so swapping a smaller card ahead of a bigger one raises the total: biggest first is the only order that makes the most, smallest first the only order that makes the least, and that sorted lane certifies Can’t past either end. Between the ends some totals may be missing. Going back, differences undo totals, but only once the start is known, and limits on the cards decide which starts are possible.",
+   "rules": [
+    "Each turn uses one card. First add the card to tray 1’s total.",
+    "Then add tray 1’s new total to tray 2’s total. Both trays keep what they had.",
+    "Use every card once. Make the last tray finish on the flag’s total, or press Can’t if no order of these cards can."
+   ],
+   "sourceIds": [
+    "totals-week89",
+    "totals-card89",
+    "totals-alper",
+    "totals-gkp"
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "id": "totals-week89",
+   "title": "Bellingham Math Circle — Week 89: Growing shapes and totals (worksheets, materials and facilitator guide)",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-89",
+   "kind": "worksheet"
+  },
+  {
+   "id": "totals-card89",
+   "title": "Bellingham Math Circle — Week 89 review card (Growing shapes and totals), October 23, 2026",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-89.md",
+   "kind": "worksheet"
+  },
+  {
+   "id": "totals-alper",
+   "title": "Ted Alper — Computer Programming in the 18th Century (OK, really, finite differences), Berkeley Math Circle, December 4, 2012",
+   "url": "https://mathcircle.berkeley.edu/sites/default/files/archivedocs/2012_2013/lectures/1213lecturespdf/BMC_Int_Dec4_2012_ComputerProgramming18thCentury.pdf",
+   "kind": "exposition"
+  },
+  {
+   "id": "totals-gkp",
+   "title": "Ronald L. Graham, Donald E. Knuth and Oren Patashnik — Concrete Mathematics, 2nd ed., §2.6 (finite and infinite calculus) and §5.1 (binomial coefficients)",
+   "url": "https://www-cs-faculty.stanford.edu/~knuth/gkp.html",
+   "kind": "undergraduate"
+  }
+ ],
+ "puzzles": [
+  {
+   "id": "totals-playground",
+   "number": 0,
+   "title": "Running totals playground",
+   "band": "playground",
+   "difficulty_level": "playground",
+   "mechanic": "totals",
+   "familyTitle": "Running totals",
+   "revision": 1,
+   "parameters": {
+    "mode": "playground",
+    "supply": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ]
+   },
+   "objective": "Play cards and watch the trays.",
+   "visibleObjective": "",
+   "instruction": "Play cards and watch the trays.",
+   "controls": "Choose 1, 2 or 3 trays with the tray buttons. Tap a card to play it in the next empty turn, or drag it onto a turn. Tap a turn to pick it: then tap a card to put it there, or another turn to swap the two. Tap a picked turn again, or drag its card back to the cards, to take it out. The grid shows each tray’s total after every turn: each total is the one to its left plus the one above it. Undo takes back a card.",
+   "rules": [
+    "Each turn uses one card: add it to tray 1, then add tray 1’s new total to tray 2, and tray 2’s new total to tray 3.",
+    "Cards come from an endless supply, 0 to 5, and every tray starts at 0."
+   ],
+   "idea": "Free play with one, two and three trays.",
+   "prerequisites": "Adding. None for watching the trays fill.",
+   "hints": [
+    "Play six 1s with three trays. What does each tray show?",
+    "Play the same cards in two orders and compare the last tray.",
+    "Try a 0 card first, and then last."
+   ],
+   "parent": {
+    "notice": "With all 1s the three trays show 1 to 6, the triangle numbers 1, 3, 6, 10, 15, 21, and the corner-pile numbers 1, 4, 10, 20, 35, 56.",
+    "prompt": "Which tray changes most when you move a card one turn earlier?",
+    "explanation": "The playground has no goal and never counts as solved. With a 1 every turn, the three trays hold n, n(n + 1)/2 and n(n + 1)(n + 2)/6 after n turns (Problem 18): 6, 21 and 56 after six turns. Moving a card one turn earlier raises every tray after the first.",
+    "extension": "Predict tray 3 after six turns of 2s, then play it. (112, twice 56.)",
+    "connection": "Running totals of a constant, taken again and again, give the counting numbers, the triangle numbers and the tetrahedral numbers.",
+    "sourceIds": [
+     "totals-week89",
+     "totals-card89",
+     "totals-alper",
+     "totals-gkp"
+    ]
+   },
+   "provenance": "Week 89, Problem 18 (three trays with input 1 for six turns).",
+   "sourceDocument": "docs/totals/README.md"
+  },
+  {
+   "id": "totals-01",
+   "number": 1,
+   "title": "Missing cards",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "totals",
+   "familyTitle": "Running totals",
+   "revision": 1,
+   "parameters": {
+    "mode": "match",
+    "trays": 1,
+    "start": [
+     2
+    ],
+    "goal": [
+     5,
+     5,
+     9,
+     12
+    ],
+    "supply": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "witness": {
+     "lane": [
+      3,
+      0,
+      4,
+      3
+     ]
+    }
+   },
+   "objective": "Choose cards so the last tray’s totals match the flags.",
+   "visibleObjective": "",
+   "instruction": "Choose cards so the last tray’s totals match the flags.",
+   "controls": "Tap a card to play it in the next empty turn, or drag it onto a turn. Tap a turn to pick it: then tap a card to put it there, or another turn to swap the two. Tap a picked turn again, or drag its card back to the cards, to take it out. The grid shows each tray’s total after every turn: each total is the one to its left plus the one above it. A last-tray total turns green when it matches its flag. Undo takes back a card.",
+   "rules": [
+    "Each turn uses one card: add it to the tray’s total. The tray keeps what it had.",
+    "Cards come from an endless supply, 0 to 5. Make the last tray’s totals match the flags under every turn."
+   ],
+   "idea": "Each card is how much the tray went up: the difference between one total and the next.",
+   "prerequisites": "Subtract small numbers, to 12: how much did the tray go up? K–1 with a grown-up reading, grades 2–3 alone.",
+   "hints": [
+    "How much did the tray go up on the first turn?",
+    "The tray starts at 2 and is 5 after turn 1, so the first card is 3. A turn where the total stays the same used a 0.",
+    "Play 3, 0, 4 and 3."
+   ],
+   "parent": {
+    "notice": "The second total equals the first, so that turn’s card is 0: a 0 card is still a turn.",
+    "prompt": "How can you tell a card from two totals next to each other?",
+    "explanation": "A tray keeps what it had and adds the card, so each card is the new total minus the old one: 5 − 2 = 3, 5 − 5 = 0, 9 − 5 = 4 and 12 − 9 = 3. The cards add up to 10, the last total minus the start (12 − 2): differences undo running totals.",
+    "extension": "Start at 0 instead of 2 with the same cards. What are the totals now? (3, 3, 7, 10: every total is 2 less.)",
+    "connection": "Differences and running totals undo each other, the discrete form of the fundamental theorem of calculus: adding up the changes gives the total change.",
+    "sourceIds": [
+     "totals-week89",
+     "totals-card89",
+     "totals-alper",
+     "totals-gkp"
+    ]
+   },
+   "provenance": "Week 89, Problem 8 (start 2, totals 5, 5, 9, 12).",
+   "sourceDocument": "docs/totals/README.md"
+  },
+  {
+   "id": "totals-02",
+   "number": 2,
+   "title": "Any order",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "totals",
+   "familyTitle": "Running totals",
+   "revision": 1,
+   "parameters": {
+    "mode": "make",
+    "trays": 1,
+    "cards": [
+     0,
+     1,
+     2,
+     3,
+     4
+    ],
+    "start": [
+     3
+    ],
+    "target": 12,
+    "cant": true,
+    "witness": {
+     "lane": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ],
+     "cant": "same"
+    }
+   },
+   "objective": "Use every card once so the last tray finishes on 12.",
+   "visibleObjective": "",
+   "instruction": "Use every card once so the last tray finishes on 12.",
+   "controls": "Tap a card to play it in the next empty turn, or drag it onto a turn. Tap a turn to pick it: then tap a card to put it there, or another turn to swap the two. Tap a picked turn again, or drag its card back to the cards, to take it out. The grid shows each tray’s total after every turn: each total is the one to its left plus the one above it. Can’t works once every card is down, and the cards on the board are your reason. Undo takes back a card.",
+   "rules": [
+    "Each turn uses one card: add it to the tray’s total. The tray keeps what it had.",
+    "Use every card once. Make the last tray finish on the flag’s total, or press Can’t if no order of these cards can."
+   ],
+   "idea": "One tray keeps every card it gets, so every order of the cards makes the same last total.",
+   "prerequisites": "Add numbers to about 15. A grown-up can read the rule aloud with K–1 children.",
+   "hints": [
+    "Play the cards in one order. Then try another order.",
+    "The tray keeps every card it gets, so the last total is the start plus all the cards.",
+    "Every order makes 3 + 0 + 1 + 2 + 3 + 4 = 13."
+   ],
+   "parent": {
+    "notice": "The totals along the way change with the order, but the last one is always 13.",
+    "prompt": "Could some clever order reach 12?",
+    "explanation": "A single tray only ever adds. Whatever order the cards come in, the last total is the start plus every card, 3 + 10 = 13. So 12 can’t be made, and one full lane is the whole argument, because every order gives the same total. Can’t is accepted after any full lane.",
+    "extension": "What start would make 12 with these cards? (2.) Does the order ever matter with one tray? (Only for the totals along the way.)",
+    "connection": "A sum does not depend on the order of its terms. The next puzzles add a second tray, and there the order starts to matter.",
+    "sourceIds": [
+     "totals-week89",
+     "totals-card89",
+     "totals-alper",
+     "totals-gkp"
+    ]
+   },
+   "provenance": "Week 89, Problem 7 (cards 0 to 4, a tray starting at 3), with a target it cannot reach.",
+   "sourceDocument": "docs/totals/README.md"
+  },
+  {
+   "id": "totals-03",
+   "number": 3,
+   "title": "Two trays",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "totals",
+   "familyTitle": "Running totals",
+   "revision": 1,
+   "parameters": {
+    "mode": "make",
+    "trays": 2,
+    "cards": [
+     2,
+     1
+    ],
+    "start": [
+     0,
+     0
+    ],
+    "target": 5,
+    "cant": true,
+    "witness": {
+     "lane": [
+      2,
+      1
+     ]
+    }
+   },
+   "objective": "Use every card once so the last tray finishes on 5.",
+   "visibleObjective": "",
+   "instruction": "Use every card once so the last tray finishes on 5.",
+   "controls": "Tap a card to play it in the next empty turn, or drag it onto a turn. Tap a turn to pick it: then tap a card to put it there, or another turn to swap the two. Tap a picked turn again, or drag its card back to the cards, to take it out. The grid shows each tray’s total after every turn: each total is the one to its left plus the one above it. Can’t works once every card is down, and the cards on the board are your reason. Undo takes back a card.",
+   "rules": [
+    "Each turn uses one card. First add the card to tray 1’s total.",
+    "Then add tray 1’s new total to tray 2’s total. Both trays keep what they had.",
+    "Use every card once. Make the last tray finish on the flag’s total, or press Can’t if no order of these cards can."
+   ],
+   "idea": "With two trays the first card counts twice: tray 2 gets it on its own turn and again on the next.",
+   "prerequisites": "Add numbers to about 25; the grid keeps both running totals. Grades 2–3 and up, or younger children with a grown-up reading the rule.",
+   "hints": [
+    "Try both orders and watch tray 2.",
+    "Tray 2 gains tray 1’s new total every turn, so the first card is counted on both turns.",
+    "Play 2 first, then 1."
+   ],
+   "parent": {
+    "notice": "1 then 2 makes 4; 2 then 1 makes 5.",
+    "prompt": "Why does the bigger card first make more?",
+    "explanation": "Turn 1 puts the first card in tray 1, and tray 2 gains it. Turn 2 adds the second card to tray 1, and tray 2 gains the new total, which still holds the first card. So tray 2 ends with 2 × the first card + the second: 2 × 2 + 1 = 5, but 2 × 1 + 2 = 4.",
+    "extension": "With cards 3 and 1, what can tray 2 make? (7 or 5.)",
+    "connection": "Tray 2 holds the running total of the running totals, and each card counts once for every turn left, its own included.",
+    "sourceIds": [
+     "totals-week89",
+     "totals-card89",
+     "totals-alper",
+     "totals-gkp"
+    ]
+   },
+   "provenance": "Week 89, the two-tray rule and its worked turn (before Problem 11), with two cards.",
+   "sourceDocument": "docs/totals/README.md"
+  },
+  {
+   "id": "totals-04",
+   "number": 4,
+   "title": "A zero turn",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "totals",
+   "familyTitle": "Running totals",
+   "revision": 1,
+   "parameters": {
+    "mode": "make",
+    "trays": 2,
+    "cards": [
+     2,
+     0
+    ],
+    "start": [
+     0,
+     0
+    ],
+    "target": 4,
+    "cant": true,
+    "witness": {
+     "lane": [
+      2,
+      0
+     ]
+    }
+   },
+   "objective": "Use every card once so the last tray finishes on 4.",
+   "visibleObjective": "",
+   "instruction": "Use every card once so the last tray finishes on 4.",
+   "controls": "Tap a card to play it in the next empty turn, or drag it onto a turn. Tap a turn to pick it: then tap a card to put it there, or another turn to swap the two. Tap a picked turn again, or drag its card back to the cards, to take it out. The grid shows each tray’s total after every turn: each total is the one to its left plus the one above it. Can’t works once every card is down, and the cards on the board are your reason. Undo takes back a card.",
+   "rules": [
+    "Each turn uses one card. First add the card to tray 1’s total.",
+    "Then add tray 1’s new total to tray 2’s total. Both trays keep what they had.",
+    "Use every card once. Make the last tray finish on the flag’s total, or press Can’t if no order of these cards can."
+   ],
+   "idea": "A 0 card adds nothing to tray 1, but tray 2 still gains tray 1’s total on that turn.",
+   "prerequisites": "Add numbers to about 25; the grid keeps both running totals. Grades 2–3 and up, or younger children with a grown-up reading the rule.",
+   "hints": [
+    "Where should the 0 go: first or second?",
+    "On a 0 turn tray 1 stays the same, but tray 2 still adds it on.",
+    "Play 2 first, then 0."
+   ],
+   "parent": {
+    "notice": "After 2 then 0, tray 2 has gained 2 twice.",
+    "prompt": "Why does a 0 card still change tray 2?",
+    "explanation": "Every turn adds tray 1’s new total to tray 2, even when the card is 0. Playing 2 then 0, tray 1 reads 2, 2 and tray 2 reads 2, 4. Playing 0 then 2, tray 1 reads 0, 2 and tray 2 reads 0, 2. So the 0 is worth putting last.",
+    "extension": "With cards 2, 0 and 0, what is the most tray 2 can make? (6.) The least? (2.)",
+    "connection": "A zero input is still a step: the running total of a running total keeps growing while the first total stands still.",
+    "sourceIds": [
+     "totals-week89",
+     "totals-card89",
+     "totals-alper",
+     "totals-gkp"
+    ]
+   },
+   "provenance": "Week 89, Problem 12’s rule that a zero input is a whole turn.",
+   "sourceDocument": "docs/totals/README.md"
+  },
+  {
+   "id": "totals-05",
+   "number": 5,
+   "title": "Where the zeros go",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "totals",
+   "familyTitle": "Running totals",
+   "revision": 1,
+   "parameters": {
+    "mode": "make",
+    "trays": 2,
+    "cards": [
+     3,
+     1,
+     0,
+     0
+    ],
+    "start": [
+     0,
+     0
+    ],
+    "target": 9,
+    "cant": true,
+    "witness": {
+     "lane": [
+      0,
+      1,
+      3,
+      0
+     ]
+    }
+   },
+   "objective": "Use every card once so the last tray finishes on 9.",
+   "visibleObjective": "",
+   "instruction": "Use every card once so the last tray finishes on 9.",
+   "controls": "Tap a card to play it in the next empty turn, or drag it onto a turn. Tap a turn to pick it: then tap a card to put it there, or another turn to swap the two. Tap a picked turn again, or drag its card back to the cards, to take it out. The grid shows each tray’s total after every turn: each total is the one to its left plus the one above it. Can’t works once every card is down, and the cards on the board are your reason. Undo takes back a card.",
+   "rules": [
+    "Each turn uses one card. First add the card to tray 1’s total.",
+    "Then add tray 1’s new total to tray 2’s total. Both trays keep what they had.",
+    "Use every card once. Make the last tray finish on the flag’s total, or press Can’t if no order of these cards can."
+   ],
+   "idea": "Each card counts once for every turn left, its own included: 4, 3, 2 and 1 times.",
+   "prerequisites": "Add numbers to about 25; the grid keeps both running totals. Grades 2–3 and up, or younger children with a grown-up reading the rule.",
+   "hints": [
+    "Play the cards and compare the last total with 9. Too big or too small?",
+    "A card counts more the earlier it is played: four times on turn 1, once on turn 4.",
+    "Play 0, 1, 3, 0."
+   ],
+   "parent": {
+    "notice": "Only one order makes 9: 0, 1, 3, 0.",
+    "prompt": "How do the zeros change the total when they add nothing?",
+    "explanation": "Tray 2 ends with 4 × the first card + 3 × the second + 2 × the third + the fourth. A 0 turn still adds tray 1’s total to tray 2, so where the zeros go decides how often the 1 and the 3 count. 0, 1, 3, 0 gives 3 + 6 = 9. With the 1 before the 3, zeros last (1, 3, 0, 0) make 13 and zeros first (0, 0, 1, 3) make 5.",
+    "extension": "Which totals from 5 to 15 can these cards make? (All but 8 and 12: 3 × one weight + another weight can never be 3 × 2 + 2 or 3 × 3 + 3, because the cards sit on different turns.)",
+    "connection": "The weights 4, 3, 2, 1 are the turns left, and tray 2 is a weighted sum of the cards.",
+    "sourceIds": [
+     "totals-week89",
+     "totals-card89",
+     "totals-alper",
+     "totals-gkp"
+    ]
+   },
+   "provenance": "Week 89, Problem 12 (cards 1, 3, 0, 0: zeros last make 13 and zeros first 5), with a target between them.",
+   "sourceDocument": "docs/totals/README.md"
+  },
+  {
+   "id": "totals-06",
+   "number": 6,
+   "title": "The most",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "totals",
+   "familyTitle": "Running totals",
+   "revision": 1,
+   "parameters": {
+    "mode": "make",
+    "trays": 2,
+    "cards": [
+     2,
+     2,
+     1,
+     0,
+     0
+    ],
+    "start": [
+     0,
+     0
+    ],
+    "target": 21,
+    "cant": true,
+    "witness": {
+     "lane": [
+      2,
+      2,
+      1,
+      0,
+      0
+     ]
+    }
+   },
+   "objective": "Use every card once so the last tray finishes on 21.",
+   "visibleObjective": "",
+   "instruction": "Use every card once so the last tray finishes on 21.",
+   "controls": "Tap a card to play it in the next empty turn, or drag it onto a turn. Tap a turn to pick it: then tap a card to put it there, or another turn to swap the two. Tap a picked turn again, or drag its card back to the cards, to take it out. The grid shows each tray’s total after every turn: each total is the one to its left plus the one above it. Can’t works once every card is down, and the cards on the board are your reason. Undo takes back a card.",
+   "rules": [
+    "Each turn uses one card. First add the card to tray 1’s total.",
+    "Then add tray 1’s new total to tray 2’s total. Both trays keep what they had.",
+    "Use every card once. Make the last tray finish on the flag’s total, or press Can’t if no order of these cards can."
+   ],
+   "idea": "The biggest cards go first, where they count the most times.",
+   "prerequisites": "Add numbers to about 25; the grid keeps both running totals. Grades 2–3 and up, or younger children with a grown-up reading the rule.",
+   "hints": [
+    "Which turn counts its card the most times?",
+    "Turn 1’s card counts 5 times, turn 2’s 4 times, down to turn 5’s once.",
+    "Play 2, 2, 1, 0, 0."
+   ],
+   "parent": {
+    "notice": "21 is the most these cards can make, and only the biggest-first order makes it.",
+    "prompt": "How do you know nothing beats 21?",
+    "explanation": "Tray 2 ends with 5, 4, 3, 2 and 1 times the cards in turn order. If a smaller card comes just before a bigger one, swapping them gives the bigger card the turn that counts one more time and raises the total by their difference. So any order that is not biggest first can be beaten, and 2, 2, 1, 0, 0 makes the most: 10 + 8 + 3 = 21.",
+    "extension": "What is the least these cards can make, and in which order? (9, from 0, 0, 1, 2, 2.)",
+    "connection": "The rearrangement inequality: pairing the largest weights with the largest numbers gives the largest sum. The swap of two neighbours is a proof children can act out.",
+    "sourceIds": [
+     "totals-week89",
+     "totals-card89",
+     "totals-alper",
+     "totals-gkp"
+    ]
+   },
+   "provenance": "Week 89, Problems 11 and 13 (cards 2, 2, 1, 0, 0: the largest is 21, and why it cannot be beaten).",
+   "sourceDocument": "docs/totals/README.md"
+  },
+  {
+   "id": "totals-07",
+   "number": 7,
+   "title": "Past the most",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "totals",
+   "familyTitle": "Running totals",
+   "revision": 1,
+   "parameters": {
+    "mode": "make",
+    "trays": 2,
+    "cards": [
+     2,
+     2,
+     1,
+     0,
+     0
+    ],
+    "start": [
+     0,
+     0
+    ],
+    "target": 22,
+    "cant": true,
+    "witness": {
+     "lane": [
+      2,
+      2,
+      1,
+      0,
+      0
+     ],
+     "cant": "most"
+    }
+   },
+   "objective": "Use every card once so the last tray finishes on 22.",
+   "visibleObjective": "",
+   "instruction": "Use every card once so the last tray finishes on 22.",
+   "controls": "Tap a card to play it in the next empty turn, or drag it onto a turn. Tap a turn to pick it: then tap a card to put it there, or another turn to swap the two. Tap a picked turn again, or drag its card back to the cards, to take it out. The grid shows each tray’s total after every turn: each total is the one to its left plus the one above it. Can’t works once every card is down, and the cards on the board are your reason. Undo takes back a card.",
+   "rules": [
+    "Each turn uses one card. First add the card to tray 1’s total.",
+    "Then add tray 1’s new total to tray 2’s total. Both trays keep what they had.",
+    "Use every card once. Make the last tray finish on the flag’s total, or press Can’t if no order of these cards can."
+   ],
+   "idea": "Biggest first makes the most, so a bigger target needs no search: the sorted lane, played, is the proof.",
+   "prerequisites": "Add numbers to about 25; the grid keeps both running totals. Grades 2–3 and up, or younger children with a grown-up reading the rule.",
+   "hints": [
+    "What is the most these cards can make?",
+    "Biggest first makes the most, and it makes 21.",
+    "Play 2, 2, 1, 0, 0. Can any order beat it?"
+   ],
+   "parent": {
+    "notice": "Can’t is accepted only with the biggest-first lane down: that lane is the reason.",
+    "prompt": "Why is one lane enough to show that 22 is impossible?",
+    "explanation": "Every order makes at most 21: an order with a smaller card just before a bigger one can be raised by swapping them, and the only order with no such pair is 2, 2, 1, 0, 0, which makes 21. The app accepts Can’t when the lane makes the most and the target is more, or makes the least and the target is less. Any other lane is refused, because it doesn’t rule the target out.",
+    "extension": "Which totals from 9 to 21 can these cards make? (All of them, in 30 orders, so with these cards an exact target can be found by trying.)",
+    "connection": "A certificate: an extreme example together with a reason it is extreme. Here the reason is the swap argument, and the example is played.",
+    "sourceIds": [
+     "totals-week89",
+     "totals-card89",
+     "totals-alper",
+     "totals-gkp"
+    ]
+   },
+   "provenance": "Week 89, the review card’s App fit: Can’t past the maximum, certified by the sorted order.",
+   "sourceDocument": "docs/totals/README.md"
+  },
+  {
+   "id": "totals-08",
+   "number": 8,
+   "title": "Hidden start",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "totals",
+   "familyTitle": "Running totals",
+   "revision": 1,
+   "parameters": {
+    "mode": "every",
+    "trays": 1,
+    "goal": [
+     4,
+     7,
+     7,
+     12
+    ],
+    "supply": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "startCap": 8,
+    "witness": {
+     "starts": [
+      {
+       "start": 0,
+       "lane": [
+        4,
+        3,
+        0,
+        5
+       ]
+      },
+      {
+       "start": 1,
+       "lane": [
+        3,
+        3,
+        0,
+        5
+       ]
+      },
+      {
+       "start": 2,
+       "lane": [
+        2,
+        3,
+        0,
+        5
+       ]
+      },
+      {
+       "start": 3,
+       "lane": [
+        1,
+        3,
+        0,
+        5
+       ]
+      },
+      {
+       "start": 4,
+       "lane": [
+        0,
+        3,
+        0,
+        5
+       ]
+      }
+     ]
+    }
+   },
+   "objective": "Find every start that makes these totals.",
+   "visibleObjective": "Find every start that makes these totals.",
+   "instruction": "Find every start that makes these totals.",
+   "controls": "Tap a start number to choose the tray’s start. Tap a card to play it in the next empty turn, or drag it onto a turn. Tap a turn to pick it: then tap a card to put it there, or another turn to swap the two. Tap a picked turn again, or drag its card back to the cards, to take it out. The grid shows each tray’s total after every turn: each total is the one to its left plus the one above it. The starts you have found turn green. Undo takes back a card or a start.",
+   "rules": [
+    "Each turn uses one card: add it to the tray’s total. The tray keeps what it had.",
+    "Choose the tray’s start, then use cards 0 to 5 to make its totals match the flags. Find every start that works, then press That’s all."
+   ],
+   "idea": "Cards run from 0 to 5, so the first card, 4 minus the start, decides which starts work.",
+   "prerequisites": "Subtract to 12 and keep track of which starts were tried. Grades 2–3 and up.",
+   "hints": [
+    "Choose a start and find the cards. Then try another start.",
+    "Only the first card depends on the start: it is 4 minus the start. The other cards are 3, 0 and 5 every time.",
+    "Starts 0, 1, 2, 3 and 4 all work."
+   ],
+   "parent": {
+    "notice": "Starts 5 to 8 fail: the first card would have to take counters away.",
+    "prompt": "How do you know you have found every start?",
+    "explanation": "Turns 2 to 4 need cards 3, 0 and 5 whatever the start (7 − 4, 7 − 7 and 12 − 7). Turn 1’s card is 4 minus the start. Cards run from 0 to 5, so the start can be 0, 1, 2, 3 or 4 (cards 4, 3, 2, 1, 0), and a start of 5 or more would need a card below 0. That makes five starts.",
+    "extension": "If cards went up to 9, would more starts work? (No: a start above 4 still needs a card below 0.)",
+    "connection": "Differences forget the start: totals with the same changes differ by a constant. Here the limits on the cards decide which constants are possible.",
+    "sourceIds": [
+     "totals-week89",
+     "totals-card89",
+     "totals-alper",
+     "totals-gkp"
+    ]
+   },
+   "provenance": "Week 89, Problem 9 (totals 4, 7, 7, 12 with inputs 0 to 5: exactly five starts).",
+   "sourceDocument": "docs/totals/README.md"
+  },
+  {
+   "id": "totals-09",
+   "number": 9,
+   "title": "Gaps",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "totals",
+   "familyTitle": "Running totals",
+   "revision": 1,
+   "parameters": {
+    "mode": "make",
+    "trays": 2,
+    "cards": [
+     4,
+     1,
+     0,
+     0,
+     0
+    ],
+    "start": [
+     0,
+     0
+    ],
+    "target": 14,
+    "cant": true,
+    "witness": {
+     "lane": [
+      0,
+      0,
+      4,
+      1,
+      0
+     ]
+    }
+   },
+   "objective": "Use every card once so the last tray finishes on 14.",
+   "visibleObjective": "",
+   "instruction": "Use every card once so the last tray finishes on 14.",
+   "controls": "Tap a card to play it in the next empty turn, or drag it onto a turn. Tap a turn to pick it: then tap a card to put it there, or another turn to swap the two. Tap a picked turn again, or drag its card back to the cards, to take it out. The grid shows each tray’s total after every turn: each total is the one to its left plus the one above it. Can’t works once every card is down, and the cards on the board are your reason. Undo takes back a card.",
+   "rules": [
+    "Each turn uses one card. First add the card to tray 1’s total.",
+    "Then add tray 1’s new total to tray 2’s total. Both trays keep what they had.",
+    "Use every card once. Make the last tray finish on the flag’s total, or press Can’t if no order of these cards can."
+   ],
+   "idea": "With one 4 and one 1 the total is 4 × the 4’s weight + the 1’s weight, and some totals between the least and the most can’t be made.",
+   "prerequisites": "Add numbers to about 25; the grid keeps both running totals. Grades 2–3 and up, or younger children with a grown-up reading the rule.",
+   "hints": [
+    "Try the 4 on different turns. How much does it add each time?",
+    "The 4 counts 5, 4, 3, 2 or 1 times, so it adds 20, 16, 12, 8 or 4. The 1 adds its own turn’s weight, which must be a different one.",
+    "Play 0, 0, 4, 1, 0."
+   ],
+   "parent": {
+    "notice": "Only one order makes 14. The totals 10, 15 and 20 can’t be made at all, though they lie between the least, 6, and the most, 24.",
+    "prompt": "Why can’t these cards make 15?",
+    "explanation": "The 4 sits on a turn that counts a times and the 1 on a different turn that counts b times, with a and b from 5, 4, 3, 2 and 1. The total is 4a + b. 14 = 4 × 3 + 2: the 4 on turn 3 and the 1 on turn 4. 15 would need 4 × 3 + 3, both cards on turn 3, and 10 and 20 would need a = b too. Sorting finds the two ends, but not every total between them.",
+    "extension": "Which totals from 6 to 24 can these cards make? (All but 10, 15 and 20.)",
+    "connection": "A weighted sum of a fixed set of cards can skip values; which values a set of weights can make is a small subset-sum question.",
+    "sourceIds": [
+     "totals-week89",
+     "totals-card89",
+     "totals-alper",
+     "totals-gkp"
+    ]
+   },
+   "provenance": "Week 89, the review card’s App fit (the deck 4, 1, 0, 0, 0 misses 10, 15 and 20).",
+   "sourceDocument": "docs/totals/README.md"
+  },
+  {
+   "id": "totals-10",
+   "number": 10,
+   "title": "Three trays",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "totals",
+   "familyTitle": "Running totals",
+   "revision": 1,
+   "parameters": {
+    "mode": "make",
+    "trays": 3,
+    "cards": [
+     2,
+     2,
+     1,
+     0,
+     0
+    ],
+    "start": [
+     0,
+     0,
+     0
+    ],
+    "target": 41,
+    "cant": true,
+    "witness": {
+     "lane": [
+      1,
+      2,
+      0,
+      2,
+      0
+     ]
+    }
+   },
+   "objective": "Use every card once so the last tray finishes on 41.",
+   "visibleObjective": "",
+   "instruction": "Use every card once so the last tray finishes on 41.",
+   "controls": "Tap a card to play it in the next empty turn, or drag it onto a turn. Tap a turn to pick it: then tap a card to put it there, or another turn to swap the two. Tap a picked turn again, or drag its card back to the cards, to take it out. The grid shows each tray’s total after every turn: each total is the one to its left plus the one above it. Can’t works once every card is down, and the cards on the board are your reason. Undo takes back a card.",
+   "rules": [
+    "Each turn uses one card. First add the card to tray 1’s total.",
+    "Then add tray 1’s new total to tray 2’s, and tray 2’s new total to tray 3’s. Every tray keeps what it had.",
+    "Use every card once. Make the last tray finish on the flag’s total, or press Can’t if no order of these cards can."
+   ],
+   "idea": "With three trays the cards count 15, 10, 6, 3 and 1 times, and most totals between 14 and 56 can’t be made.",
+   "prerequisites": "Add numbers to about 60, with the grid doing the bookkeeping. Saying why a sorted order makes the most or least is grades 4–5 work, with a grown-up.",
+   "hints": [
+    "Watch how much tray 3 changes when you swap two cards.",
+    "Turn 1’s card counts 15 times, turn 2’s 10, turn 3’s 6, turn 4’s 3 and turn 5’s once. 41 is odd, so the 1 card needs a turn with an odd count: 15, 3 or 1.",
+    "Play 1, 2, 0, 2, 0."
+   ],
+   "parent": {
+    "notice": "Only one order makes 41, and only 25 of the totals from 14 to 56 can be made at all.",
+    "prompt": "How can you find the order without trying all 30?",
+    "explanation": "Tray 3 ends with 15, 10, 6, 3 and 1 times the cards in turn order. The two 2s add twice their weights, an even number, so the 1 must sit on an odd weight: 15, 3 or 1. With the 1 on turn 1 (15), the 2s need weights adding to 13, which is 10 + 3: so 1, 2, 0, 2, 0. With the 1 on turn 4 or turn 5, the 2s would need weights adding to 19 or 20, and no two of the others do.",
+    "extension": "What is the most these cards can make with three trays, and the least? (56 biggest first, 14 smallest first.)",
+    "connection": "The weights are the triangle numbers 15, 10, 6, 3, 1 read backwards: each new tray makes the weights the running totals of the last tray’s weights (1, 2, 3, 4, 5 → 1, 3, 6, 10, 15).",
+    "sourceIds": [
+     "totals-week89",
+     "totals-card89",
+     "totals-alper",
+     "totals-gkp"
+    ]
+   },
+   "provenance": "Week 89, Problem 18 (a third tray) and the review card’s App fit (three trays with 2, 2, 1, 0, 0 make only 25 of the values 14 to 56).",
+   "sourceDocument": "docs/totals/README.md"
+  },
+  {
+   "id": "totals-11",
+   "number": 11,
+   "title": "Below the least",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "totals",
+   "familyTitle": "Running totals",
+   "revision": 1,
+   "parameters": {
+    "mode": "make",
+    "trays": 3,
+    "cards": [
+     2,
+     2,
+     1,
+     0,
+     0
+    ],
+    "start": [
+     0,
+     0,
+     0
+    ],
+    "target": 13,
+    "cant": true,
+    "witness": {
+     "lane": [
+      0,
+      0,
+      1,
+      2,
+      2
+     ],
+     "cant": "least"
+    }
+   },
+   "objective": "Use every card once so the last tray finishes on 13.",
+   "visibleObjective": "",
+   "instruction": "Use every card once so the last tray finishes on 13.",
+   "controls": "Tap a card to play it in the next empty turn, or drag it onto a turn. Tap a turn to pick it: then tap a card to put it there, or another turn to swap the two. Tap a picked turn again, or drag its card back to the cards, to take it out. The grid shows each tray’s total after every turn: each total is the one to its left plus the one above it. Can’t works once every card is down, and the cards on the board are your reason. Undo takes back a card.",
+   "rules": [
+    "Each turn uses one card. First add the card to tray 1’s total.",
+    "Then add tray 1’s new total to tray 2’s, and tray 2’s new total to tray 3’s. Every tray keeps what it had.",
+    "Use every card once. Make the last tray finish on the flag’s total, or press Can’t if no order of these cards can."
+   ],
+   "idea": "Smallest first makes the least, so a smaller target is ruled out by one sorted lane.",
+   "prerequisites": "Add numbers to about 60, with the grid doing the bookkeeping. Saying why a sorted order makes the most or least is grades 4–5 work, with a grown-up.",
+   "hints": [
+    "What is the least these cards can make?",
+    "Smallest first makes the least: the turns that count the most times get the 0s.",
+    "Play 0, 0, 1, 2, 2. Can any order make less?"
+   ],
+   "parent": {
+    "notice": "The least is 14, from 0, 0, 1, 2, 2, and Can’t needs that lane down.",
+    "prompt": "Why can’t any order make less than 14?",
+    "explanation": "Swapping a bigger card that comes just before a smaller one lowers the total by their difference times the drop in weight, so any order that is not smallest first can be lowered. The only order left is 0, 0, 1, 2, 2, which makes 6 + 6 + 2 = 14. 13 is less, so no order makes it.",
+    "extension": "Does the same argument work for any cards and any number of trays? (Yes, with two or more trays, where the weights fall strictly. With one tray every order ties.)",
+    "connection": "The rearrangement inequality for the smallest sum: weights and cards sorted opposite ways give the least.",
+    "sourceIds": [
+     "totals-week89",
+     "totals-card89",
+     "totals-alper",
+     "totals-gkp"
+    ]
+   },
+   "provenance": "Week 89, Problems 13 and 18: the smallest total, with three trays.",
+   "sourceDocument": "docs/totals/README.md"
+  },
+  {
+   "id": "totals-12",
+   "number": 12,
+   "title": "Twice back",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "totals",
+   "familyTitle": "Running totals",
+   "revision": 1,
+   "parameters": {
+    "mode": "match",
+    "trays": 2,
+    "start": [
+     0,
+     0
+    ],
+    "goal": [
+     2,
+     5,
+     8,
+     14
+    ],
+    "supply": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "witness": {
+     "lane": [
+      2,
+      1,
+      0,
+      3
+     ]
+    }
+   },
+   "objective": "Choose cards so the last tray’s totals match the flags.",
+   "visibleObjective": "",
+   "instruction": "Choose cards so the last tray’s totals match the flags.",
+   "controls": "Tap a card to play it in the next empty turn, or drag it onto a turn. Tap a turn to pick it: then tap a card to put it there, or another turn to swap the two. Tap a picked turn again, or drag its card back to the cards, to take it out. The grid shows each tray’s total after every turn: each total is the one to its left plus the one above it. A last-tray total turns green when it matches its flag. Undo takes back a card.",
+   "rules": [
+    "Each turn uses one card. First add the card to tray 1’s total.",
+    "Then add tray 1’s new total to tray 2’s total. Both trays keep what they had.",
+    "Cards come from an endless supply, 0 to 5. Make the last tray’s totals match the flags under every turn."
+   ],
+   "idea": "Tray 2’s changes are tray 1’s totals, and tray 1’s changes are the cards: take differences twice.",
+   "prerequisites": "Subtract twice: tray 2’s change is tray 1’s total. Grades 4–5, or keen younger children with a grown-up.",
+   "hints": [
+    "How much does tray 2 go up each turn? That is tray 1’s new total.",
+    "Tray 2 goes up 2, 3, 3 and 6, so tray 1 reads 2, 3, 3, 6. Now find the cards that make tray 1.",
+    "Play 2, 1, 0, 3."
+   ],
+   "parent": {
+    "notice": "A turn where tray 1 stays the same (a 0 card) still raises tray 2.",
+    "prompt": "How do you undo two trays?",
+    "explanation": "Tray 2 gains tray 1’s new total each turn, so tray 1 after each turn is tray 2’s change: 2 − 0, 5 − 2, 8 − 5 and 14 − 8 give 2, 3, 3, 6. Tray 1 gains the card, so the cards are tray 1’s changes: 2, 1, 0, 3. Taking differences twice undoes two running totals, and only these cards work.",
+    "extension": "Find the cards for tray 2 totals 1, 3, 6, 10. (1, 1, 1, 1: the triangle numbers come from all ones.)",
+    "connection": "Second differences undo a double sum. A constant second difference gives a quadratic, as the triangle numbers do.",
+    "sourceIds": [
+     "totals-week89",
+     "totals-card89",
+     "totals-alper",
+     "totals-gkp"
+    ]
+   },
+   "provenance": "Week 89, Problems 8 and 10 (differences undo totals, and the start must be known), carried to two trays.",
+   "sourceDocument": "docs/totals/README.md"
+  }
+ ]
+}
