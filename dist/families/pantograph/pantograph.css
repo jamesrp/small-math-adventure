@@ -1,0 +1,73 @@
+/* Drawing machines: a cream sheet of dot paper. The machine is four wooden
+   bars with small pivots, a pine pin, a yellow knob (the handle) and a dark
+   pencil tip. What a puzzle asks for is pale: sun rings for dots, a wide sun
+   band for an outline, a dashed box. The pencil's lines are ink, green on the
+   outline and red off it; the knob's path is a dashed grey line. The green
+   shape is leaf. An earlier sheet fades. */
+.pg-puzzle{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%;min-width:0}
+.pg-board{display:block;width:100%;max-width:640px;height:auto;overflow:hidden;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.pg-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.45rem .8rem;max-width:100%;min-height:30px}
+.pg-puzzle .pg-button{min-height:44px;padding:8px 16px}
+.pg-puzzle .pg-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:2px}
+.pg-kinds{display:inline-flex;gap:.35rem}
+.pg-puzzle .pg-kind{min-width:56px;min-height:44px;padding:6px 12px;font:400 1.2rem/1 var(--b-display,Georgia,serif)}
+.pg-puzzle .pg-kind[aria-pressed="true"]{background:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9);border-color:var(--b-pine,#31533e);opacity:1}
+.pg-told{margin:0;font-family:var(--b-display,Georgia,serif);color:var(--b-bad,#a9503a)}
+
+/* Paper and what it asks for. */
+.pg-paper{fill:var(--b-card,#fffdf5);stroke:var(--b-line,#d0d6bd);stroke-width:1.2px;vector-effect:non-scaling-stroke}
+.pg-dots circle{fill:#aab49c}
+.pg-target{fill:none;stroke:#f3dca0;stroke-width:3.4;stroke-linejoin:round;stroke-linecap:round}
+.pg-board.done .pg-target{stroke:var(--b-good-soft,#e2ecd6)}
+.pg-target-dot{fill:var(--b-card,#fffdf5);stroke:var(--b-ochre,#b38840);stroke-width:1.6px;vector-effect:non-scaling-stroke}
+.pg-target-dot.hit{fill:var(--b-leaf,#86a68c);stroke:var(--b-pine,#31533e)}
+.pg-box{fill:#fbf1d3;stroke:var(--b-ink,#294439);stroke-width:1.5px;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}
+.pg-mark.in{fill:var(--b-leaf,#86a68c);stroke:var(--b-pine,#31533e);stroke-width:1.2px;vector-effect:non-scaling-stroke}
+.pg-mark.out{fill:none;stroke:var(--b-bad,#a9503a);stroke-width:1.6px;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.pg-stencil{fill:var(--b-leaf,#86a68c);fill-opacity:.32;stroke:#5f8a68;stroke-width:1.8px;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.pg-stencil.movable{cursor:grab;touch-action:none}
+.pg-stencil.preview{fill-opacity:.45;stroke-dasharray:4 3}
+.pg-stencil.preview.refused{fill:var(--b-bad,#a9503a);stroke:var(--b-bad,#a9503a)}
+.pg-board.drag-stencil .pg-stencil:not(.preview){fill-opacity:.12;stroke-opacity:.35}
+.pg-ghost{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:2px;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}
+.pg-ghost-pin circle{fill:none;stroke:var(--b-pine,#31533e);stroke-width:1.5px;stroke-dasharray:2.5 2;vector-effect:non-scaling-stroke}
+
+/* Lines. */
+.pg-track{stroke:#8d978a;stroke-width:1.4px;stroke-dasharray:3 2.4;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.pg-track.off{stroke:var(--b-bad,#a9503a)}
+.pg-midline{stroke:#9aa392;stroke-width:1.6px;stroke-dasharray:1.2 2.4;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.pg-ink{stroke:var(--b-ink,#294439);stroke-width:3.4px;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.pg-ink.on{stroke:var(--b-good,#3c7a4a)}
+.pg-ink.off{stroke:var(--b-bad,#a9503a)}
+.pg-sheet.faded{opacity:.28}
+.pg-live .preview{opacity:.75}
+
+/* The machine: wood for one machine; a second machine is blue-grey. */
+.pg-rod{stroke:#c9a46a;stroke-width:2.2;stroke-linecap:round}
+.pg-rod.short{stroke:#bb9256}
+.pg-frame.m1 .pg-rod{stroke:#9db6c4}
+.pg-frame.m1 .pg-rod.short{stroke:#88a5b6}
+.pg-frame{opacity:.85}
+.pg-pivot{fill:var(--b-card,#fffdf5);stroke:#8a6a3a;stroke-width:1px;vector-effect:non-scaling-stroke}
+.pg-frame.m1 .pg-pivot{stroke:#5d7c8e}
+.pg-pin-head{fill:var(--b-pine,#31533e);stroke:var(--b-card,#fffdf5);stroke-width:1px;vector-effect:non-scaling-stroke}
+.pg-pin.m1 .pg-pin-head{fill:#3f6275}
+.pg-pin-point{fill:var(--b-card,#fffdf5)}
+.pg-pin-mark{font:700 4.4px var(--b-display,Georgia,serif);fill:var(--b-on-pine,#fff8d9);text-anchor:middle}
+.pg-pin.movable{cursor:grab;touch-action:none}
+.pg-mid{fill:#8d978a;stroke:var(--b-card,#fffdf5);stroke-width:1px;vector-effect:non-scaling-stroke}
+.pg-pencil-ring{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:1.3px;vector-effect:non-scaling-stroke}
+.pg-lead{fill:var(--b-ink,#294439)}
+.pg-knob{cursor:grab;touch-action:none}
+.pg-knob-disc{fill:var(--b-sun,#efc76e);stroke:var(--b-ink,#294439);stroke-width:1.8px;vector-effect:non-scaling-stroke}
+.pg-knob-hub{fill:var(--b-ink,#294439)}
+.pg-hit{fill:transparent}
+.pg-board [role="button"]:focus{outline:none}
+.pg-board [role="button"]:focus-visible .pg-knob-disc,.pg-board [role="button"]:focus-visible .pg-pin-head{stroke:var(--b-ochre,#b38840);stroke-width:3.2px}
+.pg-board .pg-stencil[role="button"]:focus-visible{stroke:var(--b-ochre,#b38840);stroke-width:3.2px}
+.pg-board.dragging .pg-machine{visibility:hidden}
+.pg-board.drag-stencil .pg-machine{visibility:visible}
+.pg-refuse{fill:none;stroke:var(--b-bad,#a9503a);stroke-width:2px;stroke-dasharray:3 2;vector-effect:non-scaling-stroke}
+.pg-hint{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:2.6px;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}
+.pg-board.done .pg-knob{cursor:default}
+@media (prefers-reduced-motion:no-preference){.pg-target-dot,.pg-ink{transition:fill .2s,stroke .2s}}
