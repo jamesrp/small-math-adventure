@@ -1,0 +1,76 @@
+/* Hackenbush stalks: blue and red segments standing on an ink ground line,
+   each a rounded bar with a joint at its top; red bars carry a light centre
+   stripe so the colours differ by more than hue. The child's segments are
+   buttons on the child's turn; the pieces my last cut sent down are dashed
+   above their stalk; a hinted stalk is ringed in ochre. A build's spots are
+   dashed outlines with + buttons above what is built. Every rule is scoped
+   under the two mechanics' roots. */
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]){--hb-blue:#3b6797;--hb-red:#c2452f;--hb-red-light:#f3cfc4;--hb-seg-w:52px;--hb-seg-h:54px;--hb-bar:17px;display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%}
+
+/* The round bar: the line about the game, who plays which colour, and progress. */
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-roundbar{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px 14px;width:100%;max-width:420px}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-status{flex:1 1 100%;margin:0;text-align:center;font-family:var(--b-display,Georgia,serif);font-size:1.08rem;line-height:1.35;min-height:2.7em;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0 .3em}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-status:focus{outline:none}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-label{color:var(--b-muted,#5a6850)}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-key{display:inline-flex;gap:12px;font-weight:600;color:var(--b-ink,#294439)}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-who{display:inline-flex;align-items:center;gap:5px}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-swatch{display:inline-block;width:14px;height:22px;border-radius:7px;background:var(--hb-blue);flex:none}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-swatch.R{background:linear-gradient(90deg,var(--hb-red) 0 30%,var(--hb-red-light) 30% 70%,var(--hb-red) 70%)}
+[data-mechanic-wire="stalks"] .hb-pips{display:inline-flex;gap:8px}
+[data-mechanic-wire="stalks"] .hb-pips span{width:16px;height:16px;border-radius:50%;border:2px solid var(--b-ink,#294439);background:var(--b-card,#fffdf5)}
+[data-mechanic-wire="stalks"] .hb-pips span.on{background:var(--b-pine,#31533e);border-color:var(--b-pine,#31533e)}
+
+/* The board: stalks from the ground up. */
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-board{position:relative;display:flex;justify-content:center;align-items:flex-end;gap:clamp(4px,3vw,22px);box-sizing:border-box;width:100%;max-width:440px;min-height:calc(var(--tall) * var(--hb-seg-h) + 22px);padding:0 10px;border-bottom:6px solid var(--b-ink,#294439);border-radius:0 0 4px 4px;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-stalk{display:flex;flex-direction:column-reverse;align-items:center;width:var(--hb-seg-w);border-radius:12px 12px 0 0}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-stalk.hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-seg{position:relative;display:block;flex:none;box-sizing:border-box;width:var(--hb-seg-w);height:var(--hb-seg-h);margin:0;padding:0;border:0;border-radius:10px;background:transparent;box-shadow:none;color:inherit;font:inherit;-webkit-tap-highlight-color:transparent;cursor:default}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-seg::before{content:"";position:absolute;left:50%;top:calc(var(--hb-bar) / 2 - 1px);bottom:0;width:var(--hb-bar);transform:translateX(-50%);border-radius:calc(var(--hb-bar) / 2);background:var(--hb-blue)}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-seg.R::before{background:linear-gradient(90deg,var(--hb-red) 0 30%,var(--hb-red-light) 30% 70%,var(--hb-red) 70%)}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-seg::after{content:"";position:absolute;left:50%;top:0;width:calc(var(--hb-bar) - 2px);height:calc(var(--hb-bar) - 2px);transform:translateX(-50%);border-radius:50%;background:var(--b-ink,#294439)}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) button.hb-seg{cursor:pointer}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) button.hb-seg:hover{background:#e9eddc;filter:none}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) button.hb-seg:active{transform:none}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) button.hb-seg:hover::before{width:calc(var(--hb-bar) + 4px)}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-seg:focus{outline:none}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-seg:focus-visible{outline:3px solid var(--b-ochre,#b38840);outline-offset:1px}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-seg.hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:1px}
+/* What my last cut sent down: dashed, the cut segment lowest. */
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-seg.fell::before{background:none;border:2px dashed var(--hb-blue);opacity:.75}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-seg.fell.R::before{border-color:var(--hb-red)}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-seg.fell::after{background:none;border:2px dashed #9aa08a;box-sizing:border-box}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-seg.fell.cut::before{bottom:6px}
+
+/* A build's spots: a dashed outline as tall as a spot may grow, with room
+   while building for its + buttons (three segments and two buttons; four
+   segments leave no buttons). */
+[data-mechanic-wire="stalkbuild"] .hb-stalk.slot{width:calc(var(--hb-seg-w) + 6px);min-height:calc(var(--tall) * var(--hb-seg-h) + 8px);border:2px dashed var(--b-line,#c4cbb0);border-bottom:0;justify-content:flex-start}
+[data-mechanic-wire="stalkbuild"] .hb-board.building{min-height:calc((var(--tall) - 1) * var(--hb-seg-h) + 96px)}
+[data-mechanic-wire="stalkbuild"] .hb-board.building .hb-stalk.slot{min-height:calc((var(--tall) - 1) * var(--hb-seg-h) + 86px)}
+[data-mechanic-wire="stalkbuild"] .hb-adds{display:flex;flex-direction:column-reverse;gap:4px;padding:4px 0}
+[data-mechanic-wire="stalkbuild"] .hb-add{width:42px;height:34px;min-height:0;margin:0;padding:0;border:0;border-radius:10px;background:var(--hb-blue);color:#fff;font:700 1.35rem/1 var(--b-display,Georgia,serif);box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer}
+[data-mechanic-wire="stalkbuild"] .hb-add.R{background:var(--hb-red)}
+[data-mechanic-wire="stalkbuild"] .hb-add:hover{filter:brightness(1.1)}
+[data-mechanic-wire="stalkbuild"] .hb-add:focus{outline:none}
+[data-mechanic-wire="stalkbuild"] .hb-add:focus-visible{outline:3px solid var(--b-ochre,#b38840);outline-offset:2px}
+[data-mechanic-wire="stalkbuild"] .hb-add.hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:2px}
+
+/* The buttons under the board. */
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-actions{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.5rem;min-height:46px}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-actions:empty{min-height:0}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-button{min-height:46px;padding:8px 16px;white-space:nowrap}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-button.secondary{background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd);font-weight:600}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-claim{display:inline-flex;align-items:center;gap:8px}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-claim .hb-swatch{height:20px}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-button[disabled]{opacity:.5;box-shadow:none}
+:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+
+@media (max-width:420px){
+  :is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]){--hb-seg-w:42px;--hb-seg-h:40px;--hb-bar:14px}
+  :is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-status{font-size:1rem}
+  :is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-board{padding:0 4px}
+  [data-mechanic-wire="stalkbuild"] .hb-add{width:40px;height:32px}
+}
+@media (max-width:350px){
+  :is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]){--hb-seg-w:38px;--hb-seg-h:36px;--hb-bar:12px}
+}
