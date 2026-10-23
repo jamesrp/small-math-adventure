@@ -1,0 +1,60 @@
+/* Prime bags: round prime tokens in ink outline on a paper bag, pine when
+   chosen; square sun cards that split; a keypad of small cards; the tray of
+   kept values as Georgia numerals over their tiny tokens; ochre for what a
+   hint or refusal points at. */
+.pb-puzzle{display:flex;flex-direction:column;align-items:center;gap:.7rem;width:100%;max-width:560px;margin:0 auto;--tok:clamp(42px,12vw,56px)}
+.pb-puzzle .pb-token{box-sizing:border-box;display:inline-grid;place-items:center;width:var(--tok);height:var(--tok);min-width:0;min-height:0;margin:0;padding:0;border-radius:50%;background:var(--b-card,#fffdf5);border:2.5px solid var(--b-ink,#294439);box-shadow:0 3px 0 rgba(41,68,57,.3);font:400 1.55rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439);transition:transform .12s ease,background .12s ease}
+.pb-puzzle button.pb-token{cursor:pointer}
+.pb-puzzle .pb-token.chosen{background:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9);border-color:var(--b-pine,#31533e);transform:translateY(-6px);box-shadow:0 7px 0 rgba(41,68,57,.25)}
+.pb-puzzle .pb-token.hinted,.pb-puzzle .pb-card.hinted,.pb-puzzle .pb-key.hinted,.pb-puzzle .pb-drop.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.pb-puzzle .pb-token:focus-visible,.pb-puzzle .pb-card:focus-visible,.pb-puzzle .pb-key:focus-visible,.pb-puzzle .pb-drop:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:4px}
+
+/* The bag and its value. */
+.pb-bagrow{display:flex;align-items:center;justify-content:center;gap:.6rem;max-width:100%}
+.pb-bag{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;min-width:calc(var(--tok) * 1.6);min-height:calc(var(--tok) + 10px);padding:14px 16px 10px;border:2.5px solid var(--b-ink,#294439);border-radius:22px 22px 28px 28px;background:var(--b-paper,#f5f1e6)}
+.pb-bag.empty{border-style:dashed;border-color:#9aa88e}
+.pb-total{font:400 1.35rem/1 var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850);white-space:nowrap}
+
+/* The supply: one stack per prime, + by tapping the token, − beneath. */
+.pb-supply{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 16px}
+.pb-stock{display:flex;flex-direction:column;align-items:center;gap:4px}
+.pb-puzzle .pb-add{position:relative;background:#eef3e6;border-color:var(--b-leaf,#86a68c);border-style:solid;box-shadow:0 3px 0 rgba(84,120,92,.35)}
+.pb-puzzle .pb-add::after{content:'+';position:absolute;top:-5px;right:-5px;width:19px;height:19px;border-radius:50%;background:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9);font:700 15px/19px system-ui,sans-serif;text-align:center}
+.pb-puzzle .pb-add[disabled],.pb-puzzle .pb-drop[disabled]{opacity:.4;box-shadow:none;cursor:default}
+.pb-puzzle .pb-drop{min-width:46px;min-height:34px;padding:0 10px;border:1px solid var(--b-line,#d0d6bd);border-radius:9px;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);font:700 1.15rem/1 system-ui,sans-serif;box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer}
+
+/* What is chosen, its value, and Keep. */
+.pb-choice{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.4rem .7rem;min-height:52px}
+.pb-expr{font:400 1.2rem/1 var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850)}
+.pb-value{min-width:2.2ch;padding:4px 12px;border-radius:12px;background:var(--b-sun,#efc76e);border:2px solid var(--b-ink,#294439);font:400 1.7rem/1.1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439);text-align:center}
+.pb-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .8rem}
+.pb-puzzle .pb-button{min-height:46px;padding:6px 18px;font-weight:600;white-space:nowrap;border-radius:12px}
+.pb-puzzle .pb-button.secondary{background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.pb-puzzle .pb-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+.pb-puzzle .pb-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+.pb-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+
+/* The tray of kept values, smallest first. */
+.pb-tray,.pb-shelf{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;width:100%;margin:0;padding:0;list-style:none}
+.pb-item{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:44px;padding:5px 7px 6px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:10px}
+.pb-item b{font:400 1.25rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
+.pb-item.now,.pb-run.now{border-color:var(--b-ochre,#b38840);box-shadow:0 0 0 3px var(--b-ochre,#b38840)}
+.pb-mini{display:flex;gap:2px}
+.pb-mini i{display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;border:1.2px solid var(--b-ink,#294439);background:var(--b-card,#fffdf5);font:400 9px/1 var(--b-display,Georgia,serif);font-style:normal;color:var(--b-ink,#294439)}
+.pb-mini i.none{border-style:dashed;border-color:#9aa88e}
+
+/* Splitting: square cards, round primes, the keypad. */
+.pb-cards{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;min-height:calc(var(--tok) + 16px);padding:6px}
+.pb-puzzle .pb-card{box-sizing:border-box;display:inline-grid;place-items:center;min-width:calc(var(--tok) * 1.15);height:calc(var(--tok) * 1.15);padding:0 10px;margin:0;border-radius:10px;background:var(--b-sun,#efc76e);border:2.5px solid var(--b-ink,#294439);box-shadow:0 3px 0 rgba(41,68,57,.35);font:400 1.7rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
+.pb-puzzle button.pb-card{cursor:pointer}
+.pb-puzzle .pb-card.selected{box-shadow:0 3px 0 rgba(41,68,57,.35),0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-pine,#31533e)}
+.pb-pad{display:flex;align-items:center;justify-content:center;gap:.6rem}
+.pb-eq{font:400 1.45rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439);white-space:nowrap}
+.pb-keys{display:grid;grid-template-columns:repeat(4,minmax(42px,50px));gap:6px}
+.pb-puzzle .pb-key{min-height:46px;margin:0;padding:0;border-radius:9px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-ink,#294439);box-shadow:0 2px 0 var(--b-line,#d0d6bd);font:400 1.35rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439);cursor:pointer}
+.pb-puzzle .pb-key[disabled]{opacity:.35;box-shadow:none;border-color:var(--b-line,#d0d6bd);cursor:default}
+.pb-puzzle .pb-key.marked{outline:4px solid var(--b-bad,#a9503a);outline-offset:2px}
+.pb-run{display:flex;align-items:center;gap:6px;padding:5px 9px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:10px}
+.pb-pair{font:400 1.15rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439);white-space:nowrap}
+.pb-arrow{font:400 1rem/1 var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850)}
+@media (prefers-reduced-motion: reduce){.pb-puzzle *{transition:none!important;animation:none!important}.pb-puzzle .pb-token.chosen{transform:none}}

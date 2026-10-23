@@ -1,0 +1,984 @@
+{
+ "title": "Prime bags",
+ "version": 1,
+ "families": [
+  {
+   "id": "primes",
+   "title": "Prime bags",
+   "mathematics": "A number card splits into two whole numbers greater than 1 that multiply to it, until every card is prime; every route of a number ends in the same bag of primes (unique factorization). Choosing some tokens of a bag makes a value, and the values are exactly the divisors of the bag’s value, because the tokens left behind make the quotient and tokens with the same number are the same; a bag with e₁, …, e_r copies of its primes makes (e₁ + 1)⋯(e_r + 1) values. The least number with a given count of divisors puts the largest counts on the smallest primes: 6, 12, 24, 36, 48, 60 for 4, 6, 8, 9, 10, 12. The puzzles ask for every first split of a card, every value of a bag, and a bag with exactly k values, then the smallest one.",
+   "rules": [
+    "A card splits into two whole numbers greater than 1 that multiply to it. A number that cannot split is prime; it becomes a round token.",
+    "Choose some tokens from a bag, each at most once. They multiply to a value; choosing none makes 1.",
+    "Tokens with the same number are the same: choosing a different one of them makes the same value."
+   ],
+   "sourceIds": [
+    "primes-week96",
+    "primes-card96",
+    "primes-conrad"
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "id": "primes-week96",
+   "title": "Bellingham Math Circle — Week 96: Prime bags and divisor builders (grades 2–3 and 4–5 packets, adult guide)",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-96",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "primes-card96",
+   "title": "Week 96 review card (App fit: split by entering a factor, collect every value with That’s all and no count, build a bag with exactly k values, then the smallest)",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-96.md",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "primes-conrad",
+   "title": "Keith Conrad — Unique Factorization in Z and F[T], Theorems 1.1, 2.1, 2.3 and Lemma 2.2, as the Week 96 guide cites",
+   "url": "https://kconrad.math.uconn.edu/blurbs/ugradnumthy/uniquefactnZF%5BT%5D.pdf",
+   "kind": "research"
+  }
+ ],
+ "puzzles": [
+  {
+   "id": "primes-playground",
+   "number": 0,
+   "title": "Prime bags playground",
+   "difficulty_level": "playground",
+   "familyTitle": "Prime bags",
+   "mechanic": "primes",
+   "band": "playground",
+   "revision": 1,
+   "sourceDocument": "docs/primes/README.md",
+   "parameters": {
+    "mode": "playground"
+   },
+   "objective": "Build any bag, choose tokens and keep the values they make.",
+   "visibleObjective": "",
+   "instruction": "Build any bag, choose tokens and keep the values they make.",
+   "controls": "Tap 2, 3, 5 or 7 to put a token in the bag, and − under it to take one out. Tap tokens in the bag to choose them; Keep puts their value in the tray.",
+   "rules": [
+    "A card splits into two whole numbers greater than 1 that multiply to it. A number that cannot split is prime; it becomes a round token.",
+    "Choose some tokens from a bag, each at most once. They multiply to a value; choosing none makes 1.",
+    "Tokens with the same number are the same: choosing a different one of them makes the same value.",
+    "Kept values stay while the bag can still make them."
+   ],
+   "idea": "Free play with bags: add and take out tokens, and see which kept values stay.",
+   "prerequisites": "None; the app multiplies. A grown-up can set a challenge: a bag that makes exactly ten values.",
+   "hints": [
+    "Build a bag and keep its values.",
+    "Add a token: do the values you kept stay?",
+    "Take a token out: which kept values go?"
+   ],
+   "parent": {
+    "notice": "Whether your child notices that adding a token keeps every value and adds new ones.",
+    "prompt": "When you add a 3, which new values can you make?",
+    "explanation": "Adding a token keeps every value the bag could already make, and the new values are old values times the new token. Taking a token out removes the values that needed it. The bag holds at most 7 tokens.",
+    "extension": "Build the smallest bags that make nine and ten values. (36 and 48.)",
+    "connection": "The divisors of n · p contain the divisors of n, and the new ones are p times divisors of n with one more copy of p.",
+    "sourceIds": [
+     "primes-week96",
+     "primes-card96",
+     "primes-conrad"
+    ]
+   },
+   "provenance": "New, from the Week 96 prime tokens 2, 3, 5 and 7 (the guide’s kit)."
+  },
+  {
+   "id": "primes-01",
+   "number": 1,
+   "title": "Two tokens",
+   "difficulty_level": "easy",
+   "familyTitle": "Prime bags",
+   "mechanic": "primes",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/primes/README.md",
+   "parameters": {
+    "mode": "every",
+    "bag": [
+     1,
+     1,
+     0,
+     0
+    ]
+   },
+   "objective": "Choose tokens from the bag to make values, and keep each different value. Press That’s all when none is left.",
+   "visibleObjective": "Keep every value the bag can make.",
+   "instruction": "Choose tokens from the bag to make values, and keep each different value. Press That’s all when none is left.",
+   "controls": "Tap tokens to choose them; Keep puts their value in the tray. Press That’s all when every value is kept. Undo takes back the last move.",
+   "rules": [
+    "A card splits into two whole numbers greater than 1 that multiply to it. A number that cannot split is prime; it becomes a round token.",
+    "Choose some tokens from a bag, each at most once. They multiply to a value; choosing none makes 1.",
+    "Tokens with the same number are the same: choosing a different one of them makes the same value.",
+    "That’s all says whether a value is missing."
+   ],
+   "idea": "Choosing none makes 1 and choosing all makes the bag’s value; each token is in or out, so two different tokens make four values.",
+   "prerequisites": "Read numbers to 10 and tap; the app multiplies. No reading needed once a grown-up has read the goal line.",
+   "hints": [
+    "Tap tokens to choose them, then Keep the value.",
+    "What value do you make if you choose no tokens at all?",
+    "Each token is chosen or not. Try every way."
+   ],
+   "parent": {
+    "notice": "Whether your child keeps 1 (nothing chosen) and 6 (everything chosen) without being told.",
+    "prompt": "Why does choosing nothing make 1?",
+    "explanation": "The values are 1, 2, 3 and 6: each token is in or out, 2 × 2 = 4 ways, and each makes a different value. They are exactly the numbers that divide 6, because the tokens left behind always multiply to 6 divided by the value chosen. Choosing nothing makes 1, the number that changes nothing when you multiply by it.",
+    "extension": "Which numbers divide 6 with nothing left over? Compare them with the tray.",
+    "connection": "The values of a bag are the divisors of its value; the empty product is 1.",
+    "sourceIds": [
+     "primes-week96",
+     "primes-card96",
+     "primes-conrad"
+    ]
+   },
+   "solution": {
+    "values": [
+     1,
+     2,
+     3,
+     6
+    ],
+    "count": 4
+   },
+   "provenance": "New instance, after the choosing rules and worked example shared by both Week 96 packets (the 2, 2, 5 bag, choosing 2 and 5 to make 10)."
+  },
+  {
+   "id": "primes-02",
+   "number": 2,
+   "title": "Three twos",
+   "difficulty_level": "easy",
+   "familyTitle": "Prime bags",
+   "mechanic": "primes",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/primes/README.md",
+   "parameters": {
+    "mode": "every",
+    "bag": [
+     3,
+     0,
+     0,
+     0
+    ]
+   },
+   "objective": "Choose tokens from the bag to make values, and keep each different value. Press That’s all when none is left.",
+   "visibleObjective": "Keep every value the bag can make.",
+   "instruction": "Choose tokens from the bag to make values, and keep each different value. Press That’s all when none is left.",
+   "controls": "Tap tokens to choose them; Keep puts their value in the tray. Press That’s all when every value is kept. Undo takes back the last move.",
+   "rules": [
+    "A card splits into two whole numbers greater than 1 that multiply to it. A number that cannot split is prime; it becomes a round token.",
+    "Choose some tokens from a bag, each at most once. They multiply to a value; choosing none makes 1.",
+    "Tokens with the same number are the same: choosing a different one of them makes the same value.",
+    "That’s all says whether a value is missing."
+   ],
+   "idea": "Tokens with the same number are the same: only how many 2s you choose matters, so three 2s make four values, not eight.",
+   "prerequisites": "Read numbers to 10 and tap; the app multiplies. No reading needed once a grown-up has read the goal line.",
+   "hints": [
+    "Choose some 2s and Keep the value.",
+    "Does choosing a different 2 make a different value?",
+    "You can choose no 2s, one, two or three."
+   ],
+   "parent": {
+    "notice": "Whether your child expects another 2 to make a new value, and what they say when Keep stays off and the tray rings the value they already have.",
+    "prompt": "Puzzle 1 had two tokens and this bag has three. Why do they make the same number of values?",
+    "explanation": "1, 2, 4 and 8. Choosing the first 2 or the third makes the same value, so what counts is how many 2s: none, one, two or three, four values. Three different tokens (puzzle 7) make eight.",
+    "extension": "How many values would five 2s make? (Six: 1, 2, 4, 8, 16, 32.)",
+    "connection": "A prime power pᵉ has e + 1 divisors: 1, p, …, pᵉ.",
+    "sourceIds": [
+     "primes-week96",
+     "primes-card96",
+     "primes-conrad"
+    ]
+   },
+   "solution": {
+    "values": [
+     1,
+     2,
+     4,
+     8
+    ],
+    "count": 4
+   },
+   "provenance": "New instance: the Week 96 guide’s check that five 2s make six values, not five or 2⁵ (grades 4–5 Problem 4), on three 2s; the packets’ rule that tokens with the same number are the same."
+  },
+  {
+   "id": "primes-03",
+   "number": 3,
+   "title": "Split 12",
+   "difficulty_level": "easy",
+   "familyTitle": "Prime bags",
+   "mechanic": "primes",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/primes/README.md",
+   "parameters": {
+    "mode": "split",
+    "card": 12
+   },
+   "objective": "Split the card into two numbers that multiply to it, and keep splitting until every card is prime. Start a different way each run. Press That’s all when every first split is on the shelf.",
+   "visibleObjective": "Start the split every way you can, and split to the end each time.",
+   "instruction": "Split the card into two numbers that multiply to it, and keep splitting until every card is prime. Start a different way each run. Press That’s all when every first split is on the shelf.",
+   "controls": "The chosen card is ringed; tap another card to choose it. Tap a key to split the card: 4 splits 20 into 4 × 5. New run starts the card again. Press That’s all when every first split is on the shelf. Undo takes back the last move.",
+   "rules": [
+    "A card splits into two whole numbers greater than 1 that multiply to it. A number that cannot split is prime; it becomes a round token.",
+    "Choose some tokens from a bag, each at most once. They multiply to a value; choosing none makes 1.",
+    "Tokens with the same number are the same: choosing a different one of them makes the same value.",
+    "That’s all says whether a first split is missing."
+   ],
+   "idea": "Different first splits of 12 finish in the same bag of primes.",
+   "prerequisites": "Multiplication facts to 10 × 10, or trying keys one at a time (a wrong key is refused). Equal rows of counters help.",
+   "hints": [
+    "Tap a key that makes 12 when you multiply it by something. Keep splitting until every card is a round token.",
+    "12 is 2 rows of 6. Is it some other number of equal rows too?",
+    "Press New run and try a different key first."
+   ],
+   "parent": {
+    "notice": "Whether your child is surprised that the second route ends in the same tokens.",
+    "prompt": "Could a different start ever end with different tokens?",
+    "explanation": "12 splits first as 2 × 6 or 3 × 4 (6 × 2 and 4 × 3 are the same splits). Then 6 becomes 2 × 3, or 4 becomes 2 × 2, and both routes finish with 2, 2, 3. Every route of every number finishes in one bag: unique factorization. Two routes are evidence, not proof; the proof through the fact that a prime dividing a product divides one of its factors is on p. 6 of the Week 96 guide.",
+    "extension": "Make 12 counters into rectangles: 2 rows of 6 and 3 rows of 4 are the first splits.",
+    "connection": "Unique factorization of whole numbers (the fundamental theorem of arithmetic).",
+    "sourceIds": [
+     "primes-week96",
+     "primes-card96",
+     "primes-conrad"
+    ]
+   },
+   "solution": {
+    "splits": [
+     [
+      2,
+      6
+     ],
+     [
+      3,
+      4
+     ]
+    ],
+    "count": 2,
+    "bag": [
+     2,
+     2,
+     3
+    ]
+   },
+   "provenance": "Week 96 grades 2–3 Problem 1 (card 12, two splitting routes), as a find-every: every first split."
+  },
+  {
+   "id": "primes-04",
+   "number": 4,
+   "title": "The bag of 12",
+   "difficulty_level": "easy",
+   "familyTitle": "Prime bags",
+   "mechanic": "primes",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/primes/README.md",
+   "parameters": {
+    "mode": "every",
+    "bag": [
+     2,
+     1,
+     0,
+     0
+    ]
+   },
+   "objective": "Choose tokens from the bag to make values, and keep each different value. Press That’s all when none is left.",
+   "visibleObjective": "Keep every value the bag can make.",
+   "instruction": "Choose tokens from the bag to make values, and keep each different value. Press That’s all when none is left.",
+   "controls": "Tap tokens to choose them; Keep puts their value in the tray. Press That’s all when every value is kept. Undo takes back the last move.",
+   "rules": [
+    "A card splits into two whole numbers greater than 1 that multiply to it. A number that cannot split is prime; it becomes a round token.",
+    "Choose some tokens from a bag, each at most once. They multiply to a value; choosing none makes 1.",
+    "Tokens with the same number are the same: choosing a different one of them makes the same value.",
+    "That’s all says whether a value is missing."
+   ],
+   "idea": "The values of the bag that 12 splits into are the numbers that divide 12.",
+   "prerequisites": "Read numbers to 30; the app multiplies. Knowing which numbers divide the bag’s value helps to check the tray.",
+   "hints": [
+    "Keep a value, then change one token and keep the next.",
+    "Choose the 3 or leave it out; with each, choose no 2s, one or two.",
+    "Did you keep 1 and 12?"
+   ],
+   "parent": {
+    "notice": "Whether your child works in an order (everything with the 3, everything without) or at random.",
+    "prompt": "Is every number that divides 12 in your tray?",
+    "explanation": "1, 2, 3, 4, 6 and 12, every divisor of 12. Without the 3 there are 1, 2 and 4; with it, 3, 6 and 12: no, one or two 2s each time, 3 × 2 = 6. A value chosen and the tokens left behind multiply to 12, so every value divides 12, and every divisor of 12 has its own tokens in the bag.",
+    "extension": "Pair each value with the tokens left behind: 1 with 12, 2 with 6, 3 with 4.",
+    "connection": "The divisors of a number are the sub-bags of its prime factorization.",
+    "sourceIds": [
+     "primes-week96",
+     "primes-card96",
+     "primes-conrad"
+    ]
+   },
+   "solution": {
+    "values": [
+     1,
+     2,
+     3,
+     4,
+     6,
+     12
+    ],
+    "count": 6
+   },
+   "provenance": "Week 96 grades 2–3 Problem 2 (the 2, 2, 3 bag, value 12)."
+  },
+  {
+   "id": "primes-05",
+   "number": 5,
+   "title": "The bag of 18",
+   "difficulty_level": "medium",
+   "familyTitle": "Prime bags",
+   "mechanic": "primes",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/primes/README.md",
+   "parameters": {
+    "mode": "every",
+    "bag": [
+     1,
+     2,
+     0,
+     0
+    ]
+   },
+   "objective": "Choose tokens from the bag to make values, and keep each different value. Press That’s all when none is left.",
+   "visibleObjective": "Keep every value the bag can make.",
+   "instruction": "Choose tokens from the bag to make values, and keep each different value. Press That’s all when none is left.",
+   "controls": "Tap tokens to choose them; Keep puts their value in the tray. Press That’s all when every value is kept. Undo takes back the last move.",
+   "rules": [
+    "A card splits into two whole numbers greater than 1 that multiply to it. A number that cannot split is prime; it becomes a round token.",
+    "Choose some tokens from a bag, each at most once. They multiply to a value; choosing none makes 1.",
+    "Tokens with the same number are the same: choosing a different one of them makes the same value.",
+    "That’s all says whether a value is missing."
+   ],
+   "idea": "Two of one prime and one of another, like 12’s bag, make the same number of values, whichever primes they are.",
+   "prerequisites": "Read numbers to 30; the app multiplies. Knowing which numbers divide the bag’s value helps to check the tray.",
+   "hints": [
+    "Keep the values you can make, one at a time.",
+    "Choose the 2 or leave it out; with each, choose no 3s, one or two.",
+    "Did you keep 9?"
+   ],
+   "parent": {
+    "notice": "Whether your child predicts the tray will be as long as puzzle 4’s, and checks.",
+    "prompt": "What do 12’s bag and 18’s bag have in common?",
+    "explanation": "1, 2, 3, 6, 9 and 18. Like 12’s bag it has two copies of one prime and one of another, so it makes 3 × 2 = 6 values: the count depends on how many copies, not on which primes.",
+    "extension": "Find a bag with a 5 that makes six values. (5, 5, 2, value 50, is one.)",
+    "connection": "The number of divisors depends only on the exponents of the prime factorization.",
+    "sourceIds": [
+     "primes-week96",
+     "primes-card96",
+     "primes-conrad"
+    ]
+   },
+   "solution": {
+    "values": [
+     1,
+     2,
+     3,
+     6,
+     9,
+     18
+    ],
+    "count": 6
+   },
+   "provenance": "Week 96 grades 2–3 Problem 2 (the 2, 3, 3 bag, value 18)."
+  },
+  {
+   "id": "primes-06",
+   "number": 6,
+   "title": "Four tokens",
+   "difficulty_level": "medium",
+   "familyTitle": "Prime bags",
+   "mechanic": "primes",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/primes/README.md",
+   "parameters": {
+    "mode": "every",
+    "bag": [
+     3,
+     1,
+     0,
+     0
+    ]
+   },
+   "objective": "Choose tokens from the bag to make values, and keep each different value. Press That’s all when none is left.",
+   "visibleObjective": "Keep every value the bag can make.",
+   "instruction": "Choose tokens from the bag to make values, and keep each different value. Press That’s all when none is left.",
+   "controls": "Tap tokens to choose them; Keep puts their value in the tray. Press That’s all when every value is kept. Undo takes back the last move.",
+   "rules": [
+    "A card splits into two whole numbers greater than 1 that multiply to it. A number that cannot split is prime; it becomes a round token.",
+    "Choose some tokens from a bag, each at most once. They multiply to a value; choosing none makes 1.",
+    "Tokens with the same number are the same: choosing a different one of them makes the same value.",
+    "That’s all says whether a value is missing."
+   ],
+   "idea": "With repeated 2s, four tokens make eight values.",
+   "prerequisites": "Read numbers to 30; the app multiplies. Knowing which numbers divide the bag’s value helps to check the tray.",
+   "hints": [
+    "Keep a value, then change one token.",
+    "Choose the 3 or leave it out; with each, choose no 2s up to three 2s.",
+    "Did you keep 8 and 24?"
+   ],
+   "parent": {
+    "notice": "Whether your child organizes the tray by the 3 (with it, without it).",
+    "prompt": "How do you know none is missing?",
+    "explanation": "1, 2, 3, 4, 6, 8, 12 and 24: no 2s, one, two or three, with or without the 3, 4 × 2 = 8 values, every divisor of 24.",
+    "extension": "Puzzle 7 has one token fewer. Will it make fewer values?",
+    "connection": "Divisors of 2³ · 3: one choice of exponent for each prime.",
+    "sourceIds": [
+     "primes-week96",
+     "primes-card96",
+     "primes-conrad"
+    ]
+   },
+   "solution": {
+    "values": [
+     1,
+     2,
+     3,
+     4,
+     6,
+     8,
+     12,
+     24
+    ],
+    "count": 8
+   },
+   "provenance": "Week 96 grades 2–3 Problem 3 and grades 4–5 Problem 2 (the 2, 2, 2, 3 bag, value 24)."
+  },
+  {
+   "id": "primes-07",
+   "number": 7,
+   "title": "Three different tokens",
+   "difficulty_level": "medium",
+   "familyTitle": "Prime bags",
+   "mechanic": "primes",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/primes/README.md",
+   "parameters": {
+    "mode": "every",
+    "bag": [
+     1,
+     1,
+     1,
+     0
+    ]
+   },
+   "objective": "Choose tokens from the bag to make values, and keep each different value. Press That’s all when none is left.",
+   "visibleObjective": "Keep every value the bag can make.",
+   "instruction": "Choose tokens from the bag to make values, and keep each different value. Press That’s all when none is left.",
+   "controls": "Tap tokens to choose them; Keep puts their value in the tray. Press That’s all when every value is kept. Undo takes back the last move.",
+   "rules": [
+    "A card splits into two whole numbers greater than 1 that multiply to it. A number that cannot split is prime; it becomes a round token.",
+    "Choose some tokens from a bag, each at most once. They multiply to a value; choosing none makes 1.",
+    "Tokens with the same number are the same: choosing a different one of them makes the same value.",
+    "That’s all says whether a value is missing."
+   ],
+   "idea": "Three different tokens make as many values as puzzle 6’s four: more tokens need not mean more values.",
+   "prerequisites": "Read numbers to 30; the app multiplies. Knowing which numbers divide the bag’s value helps to check the tray.",
+   "hints": [
+    "Keep a value, then change one token.",
+    "Each of the three tokens is chosen or not.",
+    "Did you keep 15?"
+   ],
+   "parent": {
+    "notice": "Whether your child expected fewer values than puzzle 6’s bag, and what they say when the trays are the same length.",
+    "prompt": "Does the bag with more tokens make more values?",
+    "explanation": "1, 2, 3, 5, 6, 10, 15 and 30: each token in or out, 2 × 2 × 2 = 8, the same as 24’s four tokens. Repeated tokens give fewer choices than different ones.",
+    "extension": "Find a bag with four tokens that makes more than eight values. (2, 2, 3, 5 makes twelve: puzzle 11.)",
+    "connection": "Squarefree numbers with k primes have 2ᵏ divisors, the subsets of their primes (Week 19’s subset cards).",
+    "sourceIds": [
+     "primes-week96",
+     "primes-card96",
+     "primes-conrad"
+    ]
+   },
+   "solution": {
+    "values": [
+     1,
+     2,
+     3,
+     5,
+     6,
+     10,
+     15,
+     30
+    ],
+    "count": 8
+   },
+   "provenance": "Week 96 grades 2–3 Problem 3 (does the bag with more tokens make more values?) and grades 4–5 Problem 2 (the 2, 3, 5 bag, value 30)."
+  },
+  {
+   "id": "primes-08",
+   "number": 8,
+   "title": "Split 36",
+   "difficulty_level": "medium",
+   "familyTitle": "Prime bags",
+   "mechanic": "primes",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/primes/README.md",
+   "parameters": {
+    "mode": "split",
+    "card": 36
+   },
+   "objective": "Split the card into two numbers that multiply to it, and keep splitting until every card is prime. Start a different way each run. Press That’s all when every first split is on the shelf.",
+   "visibleObjective": "Start the split every way you can, and split to the end each time.",
+   "instruction": "Split the card into two numbers that multiply to it, and keep splitting until every card is prime. Start a different way each run. Press That’s all when every first split is on the shelf.",
+   "controls": "The chosen card is ringed; tap another card to choose it. Tap a key to split the card: 4 splits 20 into 4 × 5. New run starts the card again. Press That’s all when every first split is on the shelf. Undo takes back the last move.",
+   "rules": [
+    "A card splits into two whole numbers greater than 1 that multiply to it. A number that cannot split is prime; it becomes a round token.",
+    "Choose some tokens from a bag, each at most once. They multiply to a value; choosing none makes 1.",
+    "Tokens with the same number are the same: choosing a different one of them makes the same value.",
+    "That’s all says whether a first split is missing."
+   ],
+   "idea": "36 starts four ways, and every way finishes with two 2s and two 3s.",
+   "prerequisites": "Multiplication facts to 10 × 10, or trying keys one at a time (a wrong key is refused). Equal rows of counters help.",
+   "hints": [
+    "Split 36, keep splitting until every card is a round token, then press New run and start another way.",
+    "Which keys make 36 when multiplied by something?",
+    "One split of 36 uses the same number twice."
+   ],
+   "parent": {
+    "notice": "Whether your child finds 6 × 6, and whether they keep splitting to the end each run.",
+    "prompt": "Why does every route end with the same four tokens?",
+    "explanation": "2 × 18, 3 × 12, 4 × 9 and 6 × 6 (9 × 4 is 4 × 9 again). Every route finishes with 2, 2, 3, 3. With 1 × 36, the splits pair up the divisors of 36: 1 with 36, 2 with 18, 3 with 12, 4 with 9, and 6 with itself, which is why 36 has an odd number of divisors.",
+    "extension": "Count the values of the bag 2, 2, 3, 3 (puzzle 10). How do they match these splits?",
+    "connection": "A first split is a divisor d with d ≤ n ÷ d; a square has one split of a number by itself.",
+    "sourceIds": [
+     "primes-week96",
+     "primes-card96",
+     "primes-conrad"
+    ]
+   },
+   "solution": {
+    "splits": [
+     [
+      2,
+      18
+     ],
+     [
+      3,
+      12
+     ],
+     [
+      4,
+      9
+     ],
+     [
+      6,
+      6
+     ]
+    ],
+    "count": 4,
+    "bag": [
+     2,
+     2,
+     3,
+     3
+    ]
+   },
+   "provenance": "Week 96 Problem 1 (card 36, in both packets), as a find-every: every first split."
+  },
+  {
+   "id": "primes-09",
+   "number": 9,
+   "title": "Exactly six",
+   "difficulty_level": "medium",
+   "familyTitle": "Prime bags",
+   "mechanic": "primes",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/primes/README.md",
+   "parameters": {
+    "mode": "design",
+    "goal": 6,
+    "least": false
+   },
+   "objective": "Put tokens in the bag so it makes exactly 6 values. Keep every value it makes, then press That’s all.",
+   "visibleObjective": "Build a bag that makes exactly 6 values, and keep them all.",
+   "instruction": "Put tokens in the bag so it makes exactly 6 values. Keep every value it makes, then press That’s all.",
+   "controls": "Tap 2, 3, 5 or 7 to put a token in the bag, and − under it to take one out. Tap tokens in the bag to choose them; Keep puts their value in the tray. Press That’s all when every value is kept. Undo takes back the last move.",
+   "rules": [
+    "A card splits into two whole numbers greater than 1 that multiply to it. A number that cannot split is prime; it becomes a round token.",
+    "Choose some tokens from a bag, each at most once. They multiply to a value; choosing none makes 1.",
+    "Tokens with the same number are the same: choosing a different one of them makes the same value.",
+    "That’s all says whether a value is missing.",
+    "Kept values stay while the bag can still make them."
+   ],
+   "idea": "A bag’s count of values comes from how many copies of each prime it has: two of one and one of another make six.",
+   "prerequisites": "Multiplication with the app’s help, and planning a bag from earlier puzzles, perhaps by trying and adjusting.",
+   "hints": [
+    "Put tokens in the bag, keep every value it makes, and press That’s all.",
+    "Puzzles 4 and 5 had bags that made this many values.",
+    "Try two of one number and one of another."
+   ],
+   "parent": {
+    "notice": "Whether your child reuses a bag from puzzle 4 or 5, or builds and tests new ones.",
+    "prompt": "Which other bags make six values?",
+    "explanation": "Two copies of one prime and one of another make 3 × 2 = 6 values (12, 18, 20, 28, 45, 50, …), and so do five copies of one prime (32 = 2 × 2 × 2 × 2 × 2). No other bag does, because 6 is only 3 × 2 or 6. Any of these 16 bags solves it.",
+    "extension": "What is the smallest bag that makes six values? (12.)",
+    "connection": "τ(n) = 6 exactly for n = p²q or p⁵.",
+    "sourceIds": [
+     "primes-week96",
+     "primes-card96",
+     "primes-conrad"
+    ]
+   },
+   "solution": {
+    "bags": 16,
+    "least": [
+     2,
+     1,
+     0,
+     0
+    ],
+    "leastValue": 12,
+    "witness": [
+     2,
+     1,
+     0,
+     0
+    ]
+   },
+   "provenance": "Week 96 grades 2–3 Problem 4 (build a bag that makes exactly 4, 6 and 8 values), the six."
+  },
+  {
+   "id": "primes-10",
+   "number": 10,
+   "title": "Two 2s and two 3s",
+   "difficulty_level": "hard",
+   "familyTitle": "Prime bags",
+   "mechanic": "primes",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/primes/README.md",
+   "parameters": {
+    "mode": "every",
+    "bag": [
+     2,
+     2,
+     0,
+     0
+    ]
+   },
+   "objective": "Choose tokens from the bag to make values, and keep each different value. Press That’s all when none is left.",
+   "visibleObjective": "Keep every value the bag can make.",
+   "instruction": "Choose tokens from the bag to make values, and keep each different value. Press That’s all when none is left.",
+   "controls": "Tap tokens to choose them; Keep puts their value in the tray. Press That’s all when every value is kept. Undo takes back the last move.",
+   "rules": [
+    "A card splits into two whole numbers greater than 1 that multiply to it. A number that cannot split is prime; it becomes a round token.",
+    "Choose some tokens from a bag, each at most once. They multiply to a value; choosing none makes 1.",
+    "Tokens with the same number are the same: choosing a different one of them makes the same value.",
+    "That’s all says whether a value is missing."
+   ],
+   "idea": "No 2s to two 2s, times no 3s to two 3s: nine values.",
+   "prerequisites": "Fluent multiplication and an organized list of 9 to 12 values; counting choices for each number of the bag shortens the work.",
+   "hints": [
+    "Keep a value, then change one token.",
+    "Fix how many 3s you choose, and choose every number of 2s with it.",
+    "Did you keep 9 and 18?"
+   ],
+   "parent": {
+    "notice": "Whether your child organizes by one prime, or finds the count before the last values.",
+    "prompt": "How many values will there be, before you finish?",
+    "explanation": "1, 2, 3, 4, 6, 9, 12, 18 and 36: three choices for the 2s and three for the 3s, 3 × 3 = 9. The odd count goes with the 6 × 6 split of puzzle 8.",
+    "extension": "Seven 2s and four 3s: how many values, without listing? (8 × 5 = 40.)",
+    "connection": "τ(p₁^e₁ ⋯ p_r^e_r) = (e₁ + 1) ⋯ (e_r + 1).",
+    "sourceIds": [
+     "primes-week96",
+     "primes-card96",
+     "primes-conrad"
+    ]
+   },
+   "solution": {
+    "values": [
+     1,
+     2,
+     3,
+     4,
+     6,
+     9,
+     12,
+     18,
+     36
+    ],
+    "count": 9
+   },
+   "provenance": "Week 96 grades 4–5 Problem 3 (36, counted without listing), here as a collection; Problem 4’s forty in the extension."
+  },
+  {
+   "id": "primes-11",
+   "number": 11,
+   "title": "Four tokens again",
+   "difficulty_level": "hard",
+   "familyTitle": "Prime bags",
+   "mechanic": "primes",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/primes/README.md",
+   "parameters": {
+    "mode": "every",
+    "bag": [
+     2,
+     1,
+     1,
+     0
+    ]
+   },
+   "objective": "Choose tokens from the bag to make values, and keep each different value. Press That’s all when none is left.",
+   "visibleObjective": "Keep every value the bag can make.",
+   "instruction": "Choose tokens from the bag to make values, and keep each different value. Press That’s all when none is left.",
+   "controls": "Tap tokens to choose them; Keep puts their value in the tray. Press That’s all when every value is kept. Undo takes back the last move.",
+   "rules": [
+    "A card splits into two whole numbers greater than 1 that multiply to it. A number that cannot split is prime; it becomes a round token.",
+    "Choose some tokens from a bag, each at most once. They multiply to a value; choosing none makes 1.",
+    "Tokens with the same number are the same: choosing a different one of them makes the same value.",
+    "That’s all says whether a value is missing."
+   ],
+   "idea": "Four tokens like puzzle 10’s, but with three different numbers: twelve values.",
+   "prerequisites": "Fluent multiplication and an organized list of 9 to 12 values; counting choices for each number of the bag shortens the work.",
+   "hints": [
+    "Keep a value, then change one token.",
+    "Fix the 3 and the 5 (in or out), and choose every number of 2s with them.",
+    "Did you keep 20 and 30?"
+   ],
+   "parent": {
+    "notice": "Whether your child expects nine values, like puzzle 10’s four tokens.",
+    "prompt": "Both bags have four tokens. Why does this one make more?",
+    "explanation": "1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30 and 60: three choices for the 2s, two for the 3 and two for the 5, 3 × 2 × 2 = 12. Puzzle 10’s four tokens make 3 × 3 = 9.",
+    "extension": "Find a bag with five tokens that also makes twelve values. (2, 2, 2, 3, 3, value 72.)",
+    "connection": "Equal numbers of prime factors, different divisor counts: 36 and 60 (and 60 and 72 tie with four and five tokens).",
+    "sourceIds": [
+     "primes-week96",
+     "primes-card96",
+     "primes-conrad"
+    ]
+   },
+   "solution": {
+    "values": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     10,
+     12,
+     15,
+     20,
+     30,
+     60
+    ],
+    "count": 12
+   },
+   "provenance": "Week 96 grades 4–5 Problem 3 (36, 60 and 72), here as a collection."
+  },
+  {
+   "id": "primes-12",
+   "number": 12,
+   "title": "Split 60",
+   "difficulty_level": "hard",
+   "familyTitle": "Prime bags",
+   "mechanic": "primes",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/primes/README.md",
+   "parameters": {
+    "mode": "split",
+    "card": 60
+   },
+   "objective": "Split the card into two numbers that multiply to it, and keep splitting until every card is prime. Start a different way each run. Press That’s all when every first split is on the shelf.",
+   "visibleObjective": "Start the split every way you can, and split to the end each time.",
+   "instruction": "Split the card into two numbers that multiply to it, and keep splitting until every card is prime. Start a different way each run. Press That’s all when every first split is on the shelf.",
+   "controls": "The chosen card is ringed; tap another card to choose it. Tap a key to split the card: 4 splits 20 into 4 × 5. New run starts the card again. Press That’s all when every first split is on the shelf. Undo takes back the last move.",
+   "rules": [
+    "A card splits into two whole numbers greater than 1 that multiply to it. A number that cannot split is prime; it becomes a round token.",
+    "Choose some tokens from a bag, each at most once. They multiply to a value; choosing none makes 1.",
+    "Tokens with the same number are the same: choosing a different one of them makes the same value.",
+    "That’s all says whether a first split is missing."
+   ],
+   "idea": "Five first splits, many routes after them, and one bag at the end.",
+   "prerequisites": "Multiplication facts to 10 × 10, or trying keys one at a time (a wrong key is refused). Equal rows of counters help.",
+   "hints": [
+    "Split 60 to the end, then press New run and start another way.",
+    "Which of the keys 2 to 9 divide 60?",
+    "Count up from 2: which keys make a split?"
+   ],
+   "parent": {
+    "notice": "Whether your child tries the keys in order, and whether the repeated bag stops surprising them.",
+    "prompt": "How do you know you have every first split?",
+    "explanation": "2 × 30, 3 × 20, 4 × 15, 5 × 12 and 6 × 10: the keys that divide 60 are 2, 3, 4, 5 and 6, and every split has a part of 7 or less because 8 × 8 is more than 60. Every route finishes with 2, 2, 3, 5.",
+    "extension": "Pair the values of the bag 2, 2, 3, 5 (puzzle 11) the way the splits do: 1 with 60, 2 with 30, and so on. How many pairs? (Six: the five splits and 1 × 60.)",
+    "connection": "Divisor pairs d · (n ÷ d) with d < √n: a non-square n has τ(n) ÷ 2 of them, one of them 1 × n.",
+    "sourceIds": [
+     "primes-week96",
+     "primes-card96",
+     "primes-conrad"
+    ]
+   },
+   "solution": {
+    "splits": [
+     [
+      2,
+      30
+     ],
+     [
+      3,
+      20
+     ],
+     [
+      4,
+      15
+     ],
+     [
+      5,
+      12
+     ],
+     [
+      6,
+      10
+     ]
+    ],
+    "count": 5,
+    "bag": [
+     2,
+     2,
+     3,
+     5
+    ]
+   },
+   "provenance": "Week 96 grades 4–5 Problem 1 (cards 36, 48 and 60), as a find-every on 60."
+  },
+  {
+   "id": "primes-13",
+   "number": 13,
+   "title": "Smallest with eight",
+   "difficulty_level": "hard",
+   "familyTitle": "Prime bags",
+   "mechanic": "primes",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/primes/README.md",
+   "parameters": {
+    "mode": "design",
+    "goal": 8,
+    "least": true
+   },
+   "objective": "Build the smallest bag that makes exactly 8 values. Keep every value it makes, then press That’s all.",
+   "visibleObjective": "Build the smallest bag that makes exactly 8 values, and keep them all.",
+   "instruction": "Build the smallest bag that makes exactly 8 values. Keep every value it makes, then press That’s all.",
+   "controls": "Tap 2, 3, 5 or 7 to put a token in the bag, and − under it to take one out. Tap tokens in the bag to choose them; Keep puts their value in the tray. Press That’s all when every value is kept. Undo takes back the last move.",
+   "rules": [
+    "A card splits into two whole numbers greater than 1 that multiply to it. A number that cannot split is prime; it becomes a round token.",
+    "Choose some tokens from a bag, each at most once. They multiply to a value; choosing none makes 1.",
+    "Tokens with the same number are the same: choosing a different one of them makes the same value.",
+    "That’s all says whether a value is missing.",
+    "Kept values stay while the bag can still make them."
+   ],
+   "idea": "Put the extra copies on the smallest prime: three 2s and a 3 (24) beat 2, 3, 5 (30).",
+   "prerequisites": "Fluent multiplication; comparing bags that make the same count, and the idea that a count of values comes from how many copies of each prime the bag has.",
+   "hints": [
+    "Build a bag that makes exactly eight values, keep them all, and press That’s all.",
+    "Puzzles 6 and 7 both made eight values. Which bag was smaller?",
+    "Three copies of one prime and one of another make eight too."
+   ],
+   "parent": {
+    "notice": "Whether your child compares 24 and 30 from puzzles 6 and 7, or builds from scratch.",
+    "prompt": "How do you know no smaller bag makes eight values?",
+    "explanation": "Eight values come from three different primes (2 × 2 × 2), three of one prime and one of another (4 × 2), or seven of one (8). The smallest bag of each kind is 2 · 3 · 5 = 30, 2 · 2 · 2 · 3 = 24 and 2⁷ = 128, so 24. Checking every number below 24 confirms it.",
+    "extension": "Why is 2, 2, 2, 3 (24) smaller than 2, 3, 3, 3 (54)? Swap the extra copies onto the smaller prime.",
+    "connection": "The least number with a given divisor count uses the smallest primes with exponents in decreasing order.",
+    "sourceIds": [
+     "primes-week96",
+     "primes-card96",
+     "primes-conrad"
+    ]
+   },
+   "solution": {
+    "bags": 20,
+    "least": [
+     3,
+     1,
+     0,
+     0
+    ],
+    "leastValue": 24,
+    "witness": [
+     3,
+     1,
+     0,
+     0
+    ]
+   },
+   "provenance": "Week 96 grades 2–3 Problem 4 (the eight, how small) and grades 4–5 Problem 6 (the least number with 8 divisors)."
+  },
+  {
+   "id": "primes-14",
+   "number": 14,
+   "title": "Smallest with twelve",
+   "difficulty_level": "hard",
+   "familyTitle": "Prime bags",
+   "mechanic": "primes",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/primes/README.md",
+   "parameters": {
+    "mode": "design",
+    "goal": 12,
+    "least": true
+   },
+   "objective": "Build the smallest bag that makes exactly 12 values. Keep every value it makes, then press That’s all.",
+   "visibleObjective": "Build the smallest bag that makes exactly 12 values, and keep them all.",
+   "instruction": "Build the smallest bag that makes exactly 12 values. Keep every value it makes, then press That’s all.",
+   "controls": "Tap 2, 3, 5 or 7 to put a token in the bag, and − under it to take one out. Tap tokens in the bag to choose them; Keep puts their value in the tray. Press That’s all when every value is kept. Undo takes back the last move.",
+   "rules": [
+    "A card splits into two whole numbers greater than 1 that multiply to it. A number that cannot split is prime; it becomes a round token.",
+    "Choose some tokens from a bag, each at most once. They multiply to a value; choosing none makes 1.",
+    "Tokens with the same number are the same: choosing a different one of them makes the same value.",
+    "That’s all says whether a value is missing.",
+    "Kept values stay while the bag can still make them."
+   ],
+   "idea": "Twelve is 3 × 2 × 2, 4 × 3, 6 × 2 or 12: compare the smallest bag of each pattern.",
+   "prerequisites": "Fluent multiplication; comparing bags that make the same count, and the idea that a count of values comes from how many copies of each prime the bag has.",
+   "hints": [
+    "Build a bag that makes exactly twelve values, keep them all, and press That’s all.",
+    "Puzzle 11’s bag made twelve values. Is there a smaller one?",
+    "Twelve is 3 × 2 × 2: two of one prime, one each of two others."
+   ],
+   "parent": {
+    "notice": "Whether your child tries 72 (puzzle 11’s extension) before 60, and why they move on.",
+    "prompt": "Why can’t a bag smaller than 60 make twelve values?",
+    "explanation": "The patterns are two copies of one prime and one each of two others (smallest 2 · 2 · 3 · 5 = 60), three and two (2 · 2 · 2 · 3 · 3 = 72), five and one (2⁵ · 3 = 96), and eleven of one (2¹¹, more tokens than the bag holds). So 60, and every number below 60 has a different count.",
+    "extension": "Find the smallest bags with nine and ten values. (36 and 48.)",
+    "connection": "Highly composite numbers: 60 has more divisors than any smaller number.",
+    "sourceIds": [
+     "primes-week96",
+     "primes-card96",
+     "primes-conrad"
+    ]
+   },
+   "solution": {
+    "bags": 36,
+    "least": [
+     2,
+     1,
+     1,
+     0
+    ],
+    "leastValue": 60,
+    "witness": [
+     2,
+     1,
+     1,
+     0
+    ]
+   },
+   "provenance": "Week 96 grades 4–5 Problems 5 and 6 (every pattern for 12 divisors; the least number with 12)."
+  }
+ ]
+}
