@@ -220,6 +220,52 @@ try {
     checks.push('video reaction plays once and hands over to the idle loop'); await context.close();
   }
 
+  // Talk means speaking now: a new line shows the talk still for a beat as
+  // long as the line, then idle; the talk loop plays only while a voice is
+  // heard (a recording, then the browser voice) and idle follows when it stops.
+  {
+    const fixture = name => readFile(new URL(`../tests/fixtures/art/${name}`, import.meta.url));
+    // Two seconds of silence as an 8-bit WAV: the recorded line.
+    const wav = (rate = 8000, n = 16000) => { const b = Buffer.alloc(44 + n, 128); b.write('RIFF', 0); b.writeUInt32LE(36 + n, 4); b.write('WAVEfmt ', 8); b.writeUInt32LE(16, 16); b.writeUInt16LE(1, 20); b.writeUInt16LE(1, 22); b.writeUInt32LE(rate, 24); b.writeUInt32LE(rate, 28); b.writeUInt16LE(1, 32); b.writeUInt16LE(8, 34); b.write('data', 36); b.writeUInt32LE(n, 40); return b; };
+    const context = await browser.newContext({ viewport: { width: 1024, height: 768 }, serviceWorkers: 'block' }), page = await context.newPage(), ui = wire(page);
+    // A browser voice that starts at once and ends when the suite says.
+    await context.addInitScript(() => {
+      const voice = { speaking: null, speak(u) { this.speaking = u; setTimeout(() => u.onstart?.(), 0); }, cancel() { const u = this.speaking; this.speaking = null; u?.onerror?.({ error: 'canceled' }); }, getVoices: () => [] };
+      Object.defineProperty(window, 'speechSynthesis', { value: voice, configurable: true });
+      window.SpeechSynthesisUtterance = function (text) { this.text = text; };
+      window.endVoice = () => { const u = voice.speaking; voice.speaking = null; u?.onend?.(); };
+    });
+    await page.route('**/art/manifest.json', route => route.fulfill({ json: { version: 1, assets: { 'keeper/snooze/idle': { status: 'ready', image: 'k/still.png', video: 'k/idle.webm' }, 'keeper/snooze/talk': { status: 'ready', image: 'k/talk.png', video: 'k/talk.webm' }, 'voice/ferry-seats/open': { status: 'ready', audio: 'k/line.wav' } } } }));
+    for (const [name, file, type] of [['still.png', 'still.png', 'image/png'], ['talk.png', 'still.png', 'image/png'], ['idle.webm', 'idle.webm', 'video/webm'], ['talk.webm', 'idle.webm', 'video/webm']]) await page.route(`**/art/k/${name}`, async route => route.fulfill({ body: await fixture(file), contentType: type }));
+    await page.route('**/art/k/line.wav', route => route.fulfill({ body: wav(), contentType: 'audio/wav' }));
+    const shown = () => page.locator('.lr-keeper > .art-slot').evaluate(n => n.dataset.artSrc.replace(/^.*\/art\//, ''));
+    const until = src => page.waitForFunction(want => document.querySelector('.lr-keeper > .art-slot')?.dataset.artSrc.endsWith(want), src, { timeout: 8000 });
+    await page.goto(base); await page.locator('#nickname').fill('Talk'); await page.locator('#profile-form button[type=submit]').click(); await page.locator('.lr-overview').waitFor();
+    await ui.action('start-journey').click(); await page.locator('.board-panel').waitFor();
+    const opened = Date.now();
+    assert.equal(await shown(), 'k/talk.png', 'a new line: the talk still, not the loop');
+    await until('k/idle.webm');
+    const beat = Date.now() - opened;
+    assert.ok(beat > 2000 && beat < 6000, `then idle after a beat as long as the line (${beat} ms)`);
+    await ui.action('hear-story').click();
+    await until('k/talk.webm');
+    assert.equal(await page.locator('.lr-keeper video').evaluate(v => v.loop), true, 'the talk loop while the recording plays');
+    await until('k/idle.webm');
+    checks.push(`talk: a ${beat} ms beat for the opening, the loop while its recording plays`);
+    await page.locator('[data-action=hint]:visible').first().click();
+    assert.equal(await shown(), 'k/talk.png', 'a hint is a new line');
+    await ui.action('hear-story').click();
+    await until('k/talk.webm');
+    await page.evaluate(() => window.endVoice());
+    await until('k/idle.webm');
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await ui.action('hear-story').click();
+    await until('k/talk.png');
+    await page.evaluate(() => window.endVoice());
+    await until('k/still.png');
+    checks.push('talk: the browser voice, and stills with reduced motion'); await context.close();
+  }
+
   assert.deepEqual(errors, []);
   await writeFile(new URL('results.json', output), JSON.stringify({ passed: true, bands, checks, results, errors }, null, 2));
   console.log(JSON.stringify({ passed: true, bands, checks }, null, 2));

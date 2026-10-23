@@ -6,7 +6,7 @@ Work in two stages with a stop between them: auditions, then James picks, then a
 
 ## Where the lines play
 
-On every road puzzle the keeper (or Plume) has a speech bubble with a Listen button. Tapping it plays that line's recording, or the browser's voice if there is none. When a player has turned sound on, the opening line plays by itself as the puzzle opens. Every other line (a mistake, a hint, a solve, Plume's verdict, a locked side puzzle) plays only on Listen.
+On every road puzzle the keeper (or Plume) has a speech bubble with a Listen button. Tapping it plays that line's recording, or the browser's voice if there is none. When a player has turned sound on, the opening line plays by itself as the puzzle opens. Every other line (a mistake, a hint, a solve, Plume's verdict, a locked side puzzle) plays only on Listen. The keeper's portrait talks from the moment the recording starts until it ends, so trimmed silence matters to the picture too ([ROADMAP](../art/ROADMAP.md), “When `talk` shows”).
 
 `node scripts/check-art.mjs --voices` lists all 85 lines with their IDs and speakers. That list is the script. The text comes from `dist/road.js` (each puzzle's `open`, `win`, `locked`) and `dist/road-cast.js` (each character's `hint`, `oops` and Plume's `beat`, `tie`, `lose`, `gloat`).
 

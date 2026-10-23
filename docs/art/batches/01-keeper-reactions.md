@@ -55,5 +55,5 @@ The fourteen slots have clips, the checks pass, the review page exists, and the 
 
 ## Not in this batch
 
-- **Idle and talk loops.** `talk` shows from the moment a puzzle opens until the first move, with or without sound, so a talking loop would move its mouth in silence. Claude will decide how `talk` should behave before those loops are briefed.
+- **Idle and talk loops.** Decided October 23: `talk` shows only while the keeper is saying a line, the talk still for a beat as long as the line when no voice plays and the talk loop only while a recording or the browser voice is heard, then idle (ROADMAP, “When `talk` shows”). A reaction clip here still ends on the idle still; a talk loop never follows it unless Listen plays the line. The loops are briefed in ROADMAP's Keeper poses and wait for their own batch.
 - Scene loops and change clips are [batch 2](02-scene-motion.md).

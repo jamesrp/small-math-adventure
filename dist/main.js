@@ -8,7 +8,7 @@ import { SAVE_KEY,BACKUP_KEY,emptyStore,loadStore,persistStore,parseBackup,impor
 import { esc,playView,parentView,notesHTML } from './ui.js';
 import { getProgress, getEncounter, startJourney, beginEncounter, recordSolve, continueAfter, withCampaignPuzzles, resolvePuzzle, canVisitEncounter, stopOf, BAND_KEYS } from './road.js';
 import { caravanHeader, caravanProfiles, libraryView } from './caravan-ui.js';
-import { roadMapView, journalView, finaleView, stopSheet, trailOptions } from './road-ui.js';
+import { roadMapView, journalView, finaleView, stopSheet, trailOptions, wireKeeper, sayLine, startTalk, stopTalk, resetTalk } from './road-ui.js';
 import { loadArt, keepMedia, asset, artUrl } from './art.js';
 import { createClockTimeline } from './clock-playback.js';
 import { clockJumpArc, clockJumpFromPlace, clockPlaceAtPoint, clockStepJump } from './clock-geometry.js';
@@ -84,6 +84,7 @@ function render(){
       if(old&&old.keepHtml===html)node.replaceWith(old);else node.keepHtml=html;
     }
   });
+  wireKeeper(app);
   glide(flips);
   if(encounter&&isSolved(p,attempt(p).board)){
     app.querySelectorAll(':is(.board-panel,.lr-stage) :is(button,input,select)').forEach(control=>{control.disabled=true;});
@@ -250,15 +251,22 @@ function speak(p){
   window.speechSynthesis.speak(utterance);
 }
 // A recorded line plays when the art manifest has one; otherwise the browser voice reads it.
-let voiceClip=null;
-function narrate(text,voiceId){
-  window.speechSynthesis?.cancel();voiceClip?.pause();
+// The keeper's portrait (`line`) talks for the line's beat and, once a voice
+// is heard, until it stops (road-ui.js, "The keeper's talk pose").
+let voiceClip=null,utterance=null;
+function hush(){
+  if(voiceClip){voiceClip.onplaying=voiceClip.onended=voiceClip.onpause=voiceClip.onerror=null;voiceClip.pause();voiceClip=null;}
+  if(utterance){utterance.onstart=utterance.onend=utterance.onerror=null;utterance=null;}
+  window.speechSynthesis?.cancel();
+}
+function narrate(text,voiceId,line=null){
+  hush();sayLine(line,text);
   const recorded=voiceId&&asset(voiceId)?.audio;
-  if(recorded){voiceClip=new Audio(artUrl(recorded));voiceClip.play().catch(()=>{voiceClip=null;narrate(text);});return;}
+  if(recorded){const clip=voiceClip=new Audio(artUrl(recorded));let token=0;clip.onplaying=()=>{token=startTalk(line);};clip.onended=clip.onpause=clip.onerror=()=>stopTalk(token);clip.play().catch(()=>{if(voiceClip===clip)narrate(text,null,line);});return;}
   if(!('speechSynthesis' in window)){dialog('Read it together',`<p>${esc(text)}</p>`);return;}
-  window.speechSynthesis.cancel();
-  const voice=new SpeechSynthesisUtterance(text);voice.rate=.86;
-  voice.onerror=event=>{if(!['interrupted','canceled'].includes(event.error))dialog('Read it together',`<p>${esc(text)}</p>`);};
+  const voice=utterance=new SpeechSynthesisUtterance(text);voice.rate=.86;let token=0;
+  voice.onstart=()=>{token=startTalk(line);};voice.onend=()=>stopTalk(token);
+  voice.onerror=event=>{stopTalk(token);if(!['interrupted','canceled'].includes(event.error))dialog('Read it together',`<p>${esc(text)}</p>`);};
   window.speechSynthesis.speak(voice);
 }
 function openPuzzle(id){const p=puzzles.find(p=>p.id===id);if(!p||p.campaignOnly||!profile())return;if(!profile().attempts[id])profile().attempts[id]=freshAttempt(p);save();go(`play/${id}`);}
@@ -301,7 +309,7 @@ document.addEventListener('click',event=>{
   else if(action==='stop-sheet'&&profile()){const stop=stopOf(control.dataset.id);if(stop)dialog(stop.title,stopSheet(stop.id,profile(),puzzles),[{label:'Done'}]);}
   else if(action==='finale'&&profile())go('finale');
   else if(action==='switch-band'&&profile()&&BAND_KEYS.includes(control.dataset.id)){profile().band=control.dataset.id;save();go('map');}
-  else if(action==='hear-story'&&profile()&&control.dataset.text)narrate(control.dataset.text,control.dataset.voice);
+  else if(action==='hear-story'&&profile()&&control.dataset.text)narrate(control.dataset.text,control.dataset.voice,control.closest('.lr-keeper')?.dataset.line);
   else if(action==='families')document.querySelector('.family-adventures')?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
   else if(action==='choose-profile'){state.activeProfileId=control.dataset.id;sessionCompleted=new Set();save();go('map');}
   else if(action==='open-puzzle')openPuzzle(control.dataset.id);
@@ -331,7 +339,7 @@ document.addEventListener('click',event=>{
   else if(action==='clear')dialog('Clear all adventure saves?','<p>This removes every explorer and their progress here, including the recovery copy. Other websites’ data is untouched. Export first if you want a backup.</p>',[{label:'Keep my saves'},{label:'Clear adventure data',danger:true,run:()=>{try{storage.removeItem(SAVE_KEY);storage.removeItem(BACKUP_KEY);state=emptyStore();warning='';sessionCompleted=new Set();go('profiles');}catch{warning='This browser did not allow data to be cleared.';render();}}}]);
   else if(action==='print')window.print();
 });
-function navigate(){if(!state||viewState.isCurrent())return;focusDone=false;selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';reaction=null;if(solveResult?.key!==location.hash)solveResult=null;window.speechSynthesis?.cancel();voiceClip?.pause();render();const heading=document.querySelector('#completion-heading')||document.querySelector('#main h1');heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});if(route()[0]==='play'&&profile()?.sound&&puzzle()){const line=document.querySelector('.lr-listen');if(line)narrate(line.dataset.text,line.dataset.voice);else speak(puzzle());}}
+function navigate(){if(!state||viewState.isCurrent())return;focusDone=false;selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';reaction=null;if(solveResult?.key!==location.hash)solveResult=null;hush();resetTalk();render();const heading=document.querySelector('#completion-heading')||document.querySelector('#main h1');heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});if(route()[0]==='play'&&profile()?.sound&&puzzle()){const line=document.querySelector('.lr-listen');if(line)narrate(line.dataset.text,line.dataset.voice,line.closest('.lr-keeper')?.dataset.line);else speak(puzzle());}}
 // Restore on popstate before native history scrolling; hashchange also covers
 // direct hash edits. A traversal can fire both, so render each entry only once.
 window.addEventListener('popstate',navigate);

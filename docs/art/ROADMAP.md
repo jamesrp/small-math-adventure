@@ -81,7 +81,7 @@ Files go in `dist/art/` at the slot’s path: `scene/ferry/0` becomes `dist/art/
 | Travelers | `party/pip` … `party/tumble` | 256×256, transparent, full body | — |
 | Scenes | `scene/<stop>/<0–3>` (28) | 1800×690 | loop 4–6 s (ambient) |
 | Scene changes | `scene/<stop>/<n-1>-<n>` (21) | 1800×690 (poster) | one-shot 2–4 s, from stage n-1 to stage n |
-| Keepers | `keeper/<id>/idle`, `talk` | 512×512 | loop 3–6 s |
+| Keepers | `keeper/<id>/idle`, `talk` | 512×512 | loop: idle 3–6 s, talk 2–4 s (plays only while a voice speaks) |
 | Keeper reactions | `keeper/<id>/happy`, `oops` | 512×512 | one-shot 1.5–3 s that ends on the idle pose |
 | Finale | `finale/fair` | 1800×780 | loop 8–10 s |
 | Stages | `stage/ferry/asleep`, `stage/ferry/awake`, `stage/marsh/night` | 1600×900 | optional loop, nothing moving where pieces go |
@@ -89,7 +89,7 @@ Files go in `dist/art/` at the slot’s path: `scene/ferry/0` becomes `dist/art/
 
 Stops are `ferry, marsh, ridge, hollow, workshop, lighthouse, fair`. Keepers are `snooze, hops, billie, rattle, sprocket, wick, plume`.
 
-**How the game uses them.** The scene shows the stop’s stage: the number of its three puzzles solved on this trail. Solving a puzzle plays the change clip, which then hands over to the next stage’s loop. The keeper portrait loops `idle` or `talk`. After a mistake it plays `oops`, and on a solve it plays `happy`, then returns to idle. Plume’s small card uses Plume’s poses: `happy` when Plume wins, `oops` when you beat or tie him. Reduced-motion settings show stills only.
+**How the game uses them.** The scene shows the stop’s stage: the number of its three puzzles solved on this trail. Solving a puzzle plays the change clip, which then hands over to the next stage’s loop. The keeper portrait rests on `idle` and shows `talk` only while the keeper is saying a line (see “When `talk` shows” below). After a mistake it plays `oops`, and on a solve it plays `happy`, then returns to idle. Plume’s small card uses Plume’s poses: `happy` when Plume wins, `oops` when you beat or tie him. Reduced-motion settings show stills only.
 
 A **stage** replaces the scene for the four puzzles played inside the picture: the Turtle Ferry's seats, bell and lamps, and the marsh boardwalks. The game draws the puzzle's pieces (seats, travelers, bell wheels, lamps, boardwalks, Hops) on the stage at fixed spots, so a stage is the place and nothing else. Snooze's bath and Glowworm Marsh's lilies keep their scenes. [Batch 3](batches/03-stage-boards.md) has the layout.
 
@@ -162,11 +162,21 @@ Loops: the Ferris wheel turning, lights twinkling, fireworks.
 | Pose | Loop or once | Motion |
 |---|---|---|
 | idle | loop 3–6 s | Breathing, blinking and one in-character habit: Snooze dozes (slow zzz); Mr. Hops polishes his pole; Billie’s scarf flaps; Rattle sways and clacks his jaw; Sprocket fiddles with a wrench; Wick blinks slowly as rain drips off his hat; Plume preens and fans his tail. |
-| talk | loop 2–4 s | Speaking: mouth or beak moving, one small gesture. |
+| talk | loop 2–4 s | Speaking: mouth or beak moving, one small gesture. Plays only while a voice is heard (below). |
 | happy | once 1.5–3 s, ending on the idle pose | Snooze stretches and smiles; Mr. Hops tips his hat; Billie hops and bleats; Rattle does a rattly jig; Sprocket tosses a wrench and catches it; Wick hoots and flaps once; Plume laughs smugly. |
 | oops | once 1.5–3 s, ending on the idle pose | Snooze startles awake; Mr. Hops tuts; Billie laughs; Rattle jumps with a “boo!”; Sprocket ducks a clank; Wick tilts his head; Plume gapes, shocked. |
 
 For Plume, `happy` is used when the player loses to him, and `oops` when the player beats him.
+
+**When `talk` shows** (decided by Claude, October 23, 2026). `talk` means speaking now, and a mouth moves only while a voice is heard.
+
+- A line that appears in the bubble (a puzzle's opening line, a hint, a locked side puzzle) is said once: the portrait shows the **talk still** for a beat about as long as the line takes to say (600 ms plus 350 ms a word, a `…` counting as a word, between 1.2 and 4.5 seconds), then settles to idle, whether or not the child has moved.
+- While the line's recording or the browser voice plays (the opening line by itself when sound is on, any line on Listen), the portrait plays the **talk loop** from the moment the voice starts until it stops, then idle. The loop never plays without a voice: with sound off, before a recording loads and if it never starts, the talk still stands in for it.
+- A mistake or a solve shows `oops` or `happy` first; the portrait talks for that line only when Listen plays it, and afterwards rests on idle rather than replaying the reaction.
+- Reduced motion shows the talk and idle stills at the same moments. The game cannot tell when a device's volume is down or muted, so there the loop plays unheard, for the length of the line and no longer.
+- `dist/road-ui.js` (“The keeper's talk pose”) holds the timing; `tests/road.test.mjs` and `scripts/road-browser-smoke.mjs` check it.
+
+**Brief for the idle and talk loops (not yet made).** Idle: as the table says, an endless rest that can run for minutes; keep its motion small. Talk: start from the talk still and loop the mouth or beak with one small gesture; it plays for one line at a time (about 1 to 5 seconds), cut short when the voice stops, and the game cuts straight to idle, so keep the gesture close to the still and avoid a big movement that would look interrupted. No sound in the video; the voice comes from the recordings in `docs/voice-casting/`.
 
 ## Making them
 
@@ -211,7 +221,7 @@ Steps 0–4's stills were all made on October 3 (`artwork/road4/NOTES.md`): ever
 5. Scene loops and change clips, then map and finale loops: [batch 2](batches/02-scene-motion.md).
 6. Stages for the ferry and the marsh, where four puzzles are now played in the picture: [batch 3](batches/03-stage-boards.md). Five new slots, placeholders until then.
 
-Keeper `idle` and `talk` loops wait until Claude settles how `talk` behaves (batch 1 explains why). Region and family icons, the lantern tree, and scenes and keepers for a second road come later, each with a brief from Claude.
+Keeper `idle` and `talk` loops can now be briefed as their own batch: “When `talk` shows” and the loop brief under Keeper poses say how the game uses them. Region and family icons, the lantern tree, and scenes and keepers for a second road come later, each with a brief from Claude.
 
 After each batch: `node scripts/check-art.mjs`, `npm run build`, `npm test`, `node scripts/road-browser-smoke.mjs`, look in the app at phone and iPad sizes, and commit the art with its prompts in `artwork/road4/prompts.json` (prompt, tool, date, source file, slot).
 

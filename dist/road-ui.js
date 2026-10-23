@@ -19,10 +19,75 @@ export function starRow(earned, max, cls = '') {
 // Idle and talk loop; happy and oops play once and settle back to idle.
 // A pose without finished art borrows talk or idle art before falling back to
 // the drawn placeholder, so real and placeholder art never mix in one portrait.
-const keeperPortrait = (id, wanted, key = 'keeper', nonce = '') => {
+// Talk's loop plays only while a voice is heard (`heard`); otherwise, and when
+// another pose borrows it, talk shows its still.
+const keeperPortrait = (id, wanted, key = 'keeper', nonce = '', heard = false) => {
   const pose = [wanted, ...(wanted === 'talk' ? [] : ['talk']), 'idle'].find(p => asset(slots.keeper(id, p))) || wanted, once = pose === 'happy' || pose === 'oops';
-  return media(slots.keeper(id, pose), keeperArt(id, pose, CAST[id]?.color), { key, cls: 'lr-portrait', then: once ? slots.keeper(id, 'idle') : null, loop: !once, nonce: once ? nonce : '' });
+  return media(slots.keeper(id, pose), keeperArt(id, pose, CAST[id]?.color), { key, cls: 'lr-portrait', then: once ? slots.keeper(id, 'idle') : null, loop: !once, nonce: once ? nonce : '', motion: pose !== 'talk' || (wanted === 'talk' && heard) });
 };
+
+// The keeper's talk pose ----------------------------------------------------------
+// Talk means speaking now (docs/art/ROADMAP.md, "Keeper poses"). A line that
+// appears in the bubble (an opening, a hint, a locked side puzzle) is said
+// once: the portrait talks for a beat about as long as the line (talkBeat),
+// then settles to idle, whether or not the child has moved. While the line's
+// recording or the browser voice plays, it talks until the voice stops; only
+// then may a talk loop move the mouth, so a mouth never moves in silence. A
+// reaction (oops, happy) shows its own face and talks only when Listen plays
+// its line. dist/main.js calls wireKeeper after each render, sayLine and
+// startTalk/stopTalk around a voice, and resetTalk on each new screen.
+const talk = { line: null, on: false, heard: false, token: 0, timer: null, root: null };
+export const talkBeat = text => {
+  const words = String(text ?? '').split(/\s+/).filter(Boolean).length, pauses = (String(text ?? '').match(/…/g) || []).length;
+  return Math.min(4500, Math.max(1200, 600 + 350 * (words + pauses)));
+};
+// The pose for the bubble's line: a line not yet said shows the pose it asks for.
+export function talkPose(line, wanted) {
+  if (talk.line !== line) return { pose: wanted, heard: false };
+  return talk.on ? { pose: 'talk', heard: talk.heard } : { pose: 'idle', heard: false };
+}
+const portrait = (speaker, line, wanted, nonce) => { const { pose, heard } = talkPose(line, wanted); return keeperPortrait(speaker, pose, 'keeper', nonce, heard); };
+function redrawKeeper() {
+  const keeper = talk.root?.querySelector?.('.lr-keeper[data-line]'), slot = keeper?.querySelector(':scope > .art-slot');
+  if (!slot) return;
+  const template = document.createElement('template');
+  template.innerHTML = portrait(keeper.dataset.speaker, keeper.dataset.line, keeper.dataset.pose, keeper.dataset.nonce);
+  const next = template.content.firstElementChild;
+  if (!next || next.dataset.artSrc === slot.dataset.artSrc) return;
+  slot.replaceWith(next);
+  next.querySelector('video')?.play?.().catch(() => {});
+}
+// A line is said: talk for its beat. A voice that starts takes over (startTalk).
+export function sayLine(line, text) {
+  if (!line) return;
+  const token = ++talk.token;
+  clearTimeout(talk.timer);
+  Object.assign(talk, { line, on: true, heard: false });
+  talk.timer = setTimeout(() => { if (talk.token === token) { talk.on = false; redrawKeeper(); } }, talkBeat(text));
+  redrawKeeper();
+}
+export function startTalk(line) {
+  if (!line) return 0;
+  clearTimeout(talk.timer);
+  Object.assign(talk, { line, on: true, heard: true, token: talk.token + 1 });
+  redrawKeeper();
+  return talk.token;
+}
+export function stopTalk(token) {
+  if (!token || token !== talk.token) return;
+  Object.assign(talk, { on: false, heard: false });
+  redrawKeeper();
+}
+export function resetTalk() {
+  clearTimeout(talk.timer);
+  Object.assign(talk, { line: null, on: false, heard: false, token: talk.token + 1 });
+}
+// After a render: a new line in the bubble that asks to talk is said now.
+export function wireKeeper(root) {
+  talk.root = root;
+  const keeper = root?.querySelector?.('.lr-keeper[data-line]');
+  if (keeper && keeper.dataset.pose === 'talk' && keeper.dataset.line !== talk.line) sayLine(keeper.dataset.line, keeper.querySelector('.lr-listen')?.dataset.text);
+}
 
 // Map -------------------------------------------------------------------------
 // The map carries no place names: each stop is a tappable region over its
@@ -68,7 +133,7 @@ export function encounterLine(e, p, attempt, reaction, held = false) {
   if (reaction?.kind === 'oops') return { ...from('oops', cast.oops, reaction.n), pose: 'oops' };
   if (reaction?.kind === 'hint') return { text: cast.hint, pose: 'talk', voice: `${e.speaker}/hint` };
   if (e.side && p.missingAbility) return { text: e.lines.locked, pose: 'talk', voice: `${e.id}/locked` };
-  return { text: e.lines.open, pose: attempt.moves ? 'idle' : 'talk', voice: `${e.id}/open` };
+  return { text: e.lines.open, pose: 'talk', voice: `${e.id}/open` };
 }
 // `board` draws a staged puzzle (dist/road-stage.js) in place of the scene picture.
 export function encounterScene(e, profile, p, attempt, { reaction = null, changed = false, held = false, board = null } = {}) {
@@ -77,13 +142,15 @@ export function encounterScene(e, profile, p, attempt, { reaction = null, change
   // The scene shows the stop's state; a just-solved main puzzle plays the change.
   const stage = e.side ? done : Math.min(stop.encounters.length, Math.max(done, e.step + (solved ? 1 : 0)));
   const sceneSlot = changed && !e.side && stage > 0 && asset(slots.sceneChange(stop.id, stage)) ? slots.sceneChange(stop.id, stage) : slots.scene(stop.id, stage);
-  const said = encounterLine(e, p, attempt, reaction, held);
+  const said = encounterLine(e, p, attempt, reaction, held), nonce = reaction?.n ?? '';
+  // Each line the keeper says, including each hint press and each mistake.
+  const line = [e.id, said.voice, reaction?.kind ?? '', nonce].join('|');
   const rival = rivalScore(e, p), unit = SCORE_UNITS[p.mechanic];
   const verdict = solved ? rivalVerdict(e, p, attempt) : null;
   const plumeCard = rival === null ? '' : `<div class="lr-rival ${verdict ? `is-${verdict.result}` : ''}" role="group" aria-label="Plume’s score: ${plural(rival, unit)}">${keeperPortrait('plume', verdict ? (verdict.result === 'lose' ? 'happy' : 'oops') : 'idle', 'rival')}<div><strong>${esc(plural(rival, unit))}</strong>${verdict ? `<span>${esc(pick(CAST.plume[verdict.result], verdict.mine + verdict.rival))}</span>` : ''}</div></div>`;
   return `<section class="lr-scene mood-${stop.id} ${board ? 'is-staged' : ''}" data-stop="${stop.id}" data-stage="${stage}" aria-label="${esc(stop.title)}">
     ${board ? board(stage) : media(sceneSlot, sceneArt(stop.id, stage), { key: 'scene', cls: 'lr-scene-art', then: sceneSlot !== slots.scene(stop.id, stage) ? slots.scene(stop.id, stage) : null, loop: sceneSlot === slots.scene(stop.id, stage) })}
-    <div class="lr-keeper">${keeperPortrait(e.speaker, said.pose, 'keeper', reaction?.n ?? '')}<p class="lr-bubble" role="status" aria-live="polite" data-keep="bubble"><span class="lr-speaker">${esc(cast.name)}</span> ${esc(said.text)} <button type="button" class="lr-listen" data-action="hear-story" data-text="${esc(said.text)}" data-voice="voice/${esc(said.voice)}" aria-label="Listen to ${esc(cast.name)}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M11 4 6 8H3v8h3l5 4V4Z"/><path d="M15 8a6 6 0 0 1 0 8"/></svg></button></p></div>
+    <div class="lr-keeper" data-line="${esc(line)}" data-speaker="${esc(e.speaker)}" data-pose="${esc(said.pose)}" data-nonce="${esc(nonce)}">${portrait(e.speaker, line, said.pose, nonce)}<p class="lr-bubble" role="status" aria-live="polite" data-keep="bubble"><span class="lr-speaker">${esc(cast.name)}</span> ${esc(said.text)} <button type="button" class="lr-listen" data-action="hear-story" data-text="${esc(said.text)}" data-voice="voice/${esc(said.voice)}" aria-label="Listen to ${esc(cast.name)}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M11 4 6 8H3v8h3l5 4V4Z"/><path d="M15 8a6 6 0 0 1 0 8"/></svg></button></p></div>
     ${plumeCard}
   </section>`;
 }

@@ -7,7 +7,7 @@ import { clockPeriod } from '../dist/motion.js';
 import { STOPS, SIDE, MAIN, CAST, TOOLS, BAND_KEYS, SCORE_UNITS, freshJourney, getEncounter, getProgress, startJourney, beginEncounter, recordSolve, validateJourney, withCampaignPuzzles, resolvePuzzle, canVisitEncounter, campaignId, trailFor, hasTool, medals, scoreOf, optimumOf, rivalScore, starsFor, maxStars, rivalVerdict, stopReached } from '../dist/road.js';
 import { emptyStore, validateStore, parseBackup } from '../dist/storage.js';
 import { playView } from '../dist/ui.js';
-import { roadMapView, journalView, encounterLine, finaleView } from '../dist/road-ui.js';
+import { roadMapView, journalView, encounterLine, encounterScene, finaleView, talkBeat, sayLine, startTalk, stopTalk, resetTalk } from '../dist/road-ui.js';
 import { setManifest, media, asset } from '../dist/art.js';
 
 const pack = JSON.parse(await readFile(new URL('../dist/puzzles.json', import.meta.url), 'utf8'));
@@ -324,6 +324,67 @@ test('a stage only takes boards it can draw, and road routes hint at repeats rat
     assert.match(p.hints[0], /twice/, p.id);
     assert.equal(p.hint, p.hints[0]);
   }
+});
+
+test('the keeper talks while a line is said: its still for a beat, its loop only while a voice plays, then idle', t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  resetTalk();
+  const pr = profile(); startJourney(pr);
+  const { puzzle, encounter } = beginEncounter(pr, puzzles), a = freshAttempt(puzzle);
+  const art = pose => ({ status: 'ready', image: `keeper/snooze/${pose}.webp`, video: `keeper/snooze/${pose}.mp4` });
+  setManifest({ version: 1, assets: Object.fromEntries(['idle', 'talk', 'oops'].map(pose => [`keeper/snooze/${pose}`, art(pose)])) });
+  const scene = (b, reaction = null) => encounterScene(encounter, pr, puzzle, b, { reaction });
+  const portraitOf = html => html.match(/<div class="lr-keeper"[^>]*>(.*?)<p class="lr-bubble"/s)[1];
+  const lineOf = html => html.match(/<div class="lr-keeper" data-line="([^"]+)"/)[1];
+  const still = pose => new RegExp(`<img src="\\./art/keeper/snooze/${pose}\\.webp"`), loop = pose => new RegExp(`<video src="\\./art/keeper/snooze/${pose}\\.mp4"`);
+  try {
+    // A new opening line: the talk still, never the talk loop without a voice.
+    const open = scene(a), line = lineOf(open), text = encounter.lines.open;
+    assert.match(portraitOf(open), still('talk'));
+    sayLine(line, text);
+    t.mock.timers.tick(talkBeat(text) - 1);
+    assert.match(portraitOf(scene(a)), still('talk'), 'talking for the beat');
+    t.mock.timers.tick(1);
+    assert.match(portraitOf(scene(a)), loop('idle'), 'then idle, before any move');
+    const moved = move(puzzle, a, step(puzzle, a));
+    assert.ok(moved && !isSolved(puzzle, moved.board));
+    assert.equal(encounterLine(encounter, puzzle, moved, null).pose, 'talk', 'the line asks to talk whatever the moves');
+    assert.match(portraitOf(scene(moved)), loop('idle'), 'a line already said stays idle');
+    // Listen: the loop plays while the voice is heard, and idle when it stops.
+    const token = startTalk(line);
+    assert.match(portraitOf(scene(moved)), loop('talk'));
+    globalThis.matchMedia = () => ({ matches: true });
+    try { assert.match(portraitOf(scene(moved)), still('talk'), 'reduced motion: the talk still'); } finally { delete globalThis.matchMedia; }
+    stopTalk(token);
+    assert.match(portraitOf(scene(moved)), loop('idle'));
+    // A mistake shows its own face; Listen on it talks, then settles to idle.
+    const oops = scene(moved, { kind: 'oops', n: 1 }), oopsLine = lineOf(oops);
+    assert.notEqual(oopsLine, line);
+    assert.match(portraitOf(oops), /<video src="\.\/art\/keeper\/snooze\/oops\.mp4"[^>]*data-then-video/);
+    const heard = startTalk(oopsLine);
+    assert.match(portraitOf(scene(moved, { kind: 'oops', n: 1 })), loop('talk'));
+    stopTalk(heard);
+    assert.match(portraitOf(scene(moved, { kind: 'oops', n: 1 })), loop('idle'), 'not the reaction again');
+    // A voice that stops after another line began changes nothing.
+    const old = startTalk(oopsLine);
+    sayLine(line, text); stopTalk(old);
+    assert.match(portraitOf(scene(moved)), still('talk'));
+    t.mock.timers.tick(talkBeat(text));
+    assert.match(portraitOf(scene(moved)), loop('idle'));
+    // Each hint press is a new line; a new screen says the opening again.
+    assert.match(portraitOf(scene(moved, { kind: 'hint', n: 1 })), still('talk'));
+    resetTalk();
+    assert.match(portraitOf(scene(moved)), still('talk'));
+    // A pose that borrows talk shows its still.
+    setManifest({ version: 1, assets: { 'keeper/snooze/talk': art('talk') } });
+    sayLine(line, text); t.mock.timers.tick(talkBeat(text));
+    assert.match(portraitOf(scene(moved)), still('talk'), 'idle borrowing talk: no moving mouth');
+    // The beat follows the line's length, with its pauses, between 1.2 and 4.5 seconds.
+    assert.equal(talkBeat('Hm.'), 1200);
+    assert.equal(talkBeat('word '.repeat(20)), 4500);
+    assert.ok(talkBeat('Zzz… only the right bell wakes me… zzz…') > talkBeat('Zzz only the right bell wakes me zzz'));
+    assert.ok(talkBeat(CAST.snooze.hint) < talkBeat(text));
+  } finally { setManifest(null); resetTalk(); }
 });
 
 test('a keeper reaction shows its own face as a still and settles on idle after its clip', () => {
