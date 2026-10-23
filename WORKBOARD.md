@@ -85,3 +85,4 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Week 95 Count the unseen (Wave 10, card fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-unseen-ntxcu3` | in progress |
 | Week 87 Voting and agendas (Wave 10, card fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-voting-ntxcu3` | in progress |
 | Week 100 Distance in nested worlds (Wave 10, card fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-nested-ntxcu3` | in progress |
+| Week 97 Square remainders (Wave 10, card fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-remainders-ntxcu3` | in progress |
