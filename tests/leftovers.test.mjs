@@ -8,7 +8,7 @@ import {readFile} from 'node:fs/promises';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undoPress} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
 import {playView} from '../dist/ui.js';
-import leftoversModule, {leftover, nextBundle, bundleOk, finished, looseOf, loopsOf, matchOf, tells, workingChoices, shownCard, inHand, cantReason} from '../dist/families/leftovers/leftovers.js';
+import leftoversModule, {leftover, nextBundle, bundleOk, finished, looseOf, loopsOf, matchOf, tells, workingChoices, shownCard, inHand, cantReason, slid, gridFor} from '../dist/families/leftovers/leftovers.js';
 import {loadPack, FAMILIES} from '../scripts/packs.mjs';
 
 const pack = JSON.parse(await readFile(new URL('../dist/families/leftovers/leftovers.json', import.meta.url), 'utf8'));
@@ -41,6 +41,20 @@ test('squares and bundles', () => {
   assert.deepEqual(loopsOf([[4, [0, 1, 2, 4, 5, 6]]], 4, 3), [[0, 1, 2], [4, 5, 6]], 'each bundle is its own loop');
 });
 
+test('a slide: the rectangle when it is whole bundles, else the counters slid over', () => {
+  const all = cells => cells;
+  // 4 by 4 with bundles of 3: a 4 by 3 strip is four bundles.
+  assert.equal(slid(gridFor(4), all, [0, 1, 2, 6, 10, 14], 3).length, 12);
+  // 4 by 4 with bundles of 5: no rectangle is whole bundles, so a lasso of five is chosen.
+  assert.deepEqual(slid(gridFor(4), all, [0, 1, 2, 3, 7], 5), [0, 1, 2, 3, 7]);
+  // A stroke that doubles back counts each counter once.
+  assert.deepEqual(slid(gridFor(4), all, [0, 1, 0], 5), [0, 1]);
+  // Bundled counters are never chosen again.
+  assert.deepEqual(slid(gridFor(4), cells => cells.filter(i => i > 0), [0, 1, 2, 3, 7, 11], 5), [1, 2, 3, 7, 11]);
+  // ...and a rectangle whose loose counters are whole bundles is taken whole.
+  assert.deepEqual(slid(gridFor(4), cells => cells.filter(i => i > 0), [0, 1, 2, 6], 5), [1, 2, 4, 5, 6]);
+});
+
 test('telling cards apart', () => {
   assert.deepEqual(matchOf(5, [7]), [3, 4]);
   assert.deepEqual(matchOf(5, [12]), [2, 4]);
@@ -68,7 +82,8 @@ test('a sort: the card in hand, bundling and the early stop', () => {
   assert.equal((html.match(/class="lo-counter"/g) || []).length, 9, 'nine loose counters');
   // Choosing three counters and pressing Bundle says the size; the view keeps the choice.
   mech.ui(p, {show: 3, chosen: [0, 1, 2], told: 'size'});
-  assert.match(view(p, a), /Bundles of 4\.<\/p>/);
+  assert.match(view(p, a), /Not whole bundles\.<\/p>/);
+  assert.match(view(p, a), /lo-bundle hinted/, 'Bundle is outlined after a refused choice');
   assert.equal((view(p, a).match(/lo-counter chosen/g) || []).length, 3);
   // A bundle (a move) clears the view state, and the card bundled stays in hand.
   a = play(p, a, {type: 'bundle', side: 3, cells: [0, 1, 3, 4]});
@@ -120,7 +135,8 @@ test('a find: every card, no slots, and the two refusals', () => {
   assert.equal((html.match(/class="lo-bin[ "]/g) || []).length, 1, 'one bin');
   assert.doesNotMatch(html, /lo-slot/, 'no slot per answer');
   a = play(p, a, {type: 'place', side: 1, bin: 1}, {type: 'place', side: 14, bin: 1}, {type: 'claim'});
-  assert.match(view(p, a), /There’s another\./);
+  assert.match(view(p, a), /Not yet\./);
+  assert.doesNotMatch(view(p, a), /another|belong/, 'the line doesn’t say what is wrong');
   // Taking a card out uses the empty place at the end of the row.
   mech.ui(p, {card: 14});
   assert.match(view(p, a), /lo-row-drop"[^>]*data-lo-bin="row"[^>]*aria-label="Take card 14 out of its bin"/);
@@ -149,6 +165,20 @@ test('tell: tries, the matching pair, Can’t refused and right, Again', () => {
   assert.ok(isSolved(p, a.board));
   assert.equal((view(p, a).match(/class="lo-sig"/g) || []).length, 7, 'every card shows its leftover after the win, behind the key');
   assert.match(view(p, a), /lo-card lo-key/);
+  // Again keeps the round's failed tries, faded, and Undo of Again brings the round back.
+  const r = byId('leftovers-12');
+  let c2 = freshAttempt(r);
+  for (const pair of [[2, 3], [2, 4], [3, 4], [2, 5]]) c2 = play(r, c2, ...c2.board.chosen.map(size => ({type: 'size', size})), ...pair.map(size => ({type: 'size', size})), {type: 'try'});
+  c2 = play(r, c2, {type: 'again'});
+  assert.deepEqual(c2.board.past, [[2, 3], [2, 4], [3, 4], [2, 5]]);
+  assert.equal((view(r, c2).match(/<li class="past"/g) || []).length, 4, 'four faded records');
+  c2 = play(r, c2, {type: 'size', size: 2}, {type: 'size', size: 3}, {type: 'try'});
+  assert.equal((view(r, c2).match(/<li class="past"/g) || []).length, 3, 'a record tried again shows once, in this round');
+  assert.ok(validBoard(r, JSON.parse(JSON.stringify(c2.board))));
+  const back2 = undoPress(r, c2, b => view(r, b), view(r, c2));
+  assert.deepEqual(back2.board.past, [[2, 3], [2, 4], [3, 4], [2, 5]], 'Undo keeps the earlier rounds');
+  assert.ok(!validBoard(r, {...c2.board, past: [[10, 11]]}), 'a working choice is never a past failure');
+  assert.ok(!validBoard(r, {...c2.board, past: [[2, 3], [2, 3]]}), 'each once');
   const q = byId('leftovers-11');
   let c = play(q, freshAttempt(q), {type: 'size', size: 12}, {type: 'try'}, {type: 'cant'});
   assert.ok(isSolved(q, c.board));

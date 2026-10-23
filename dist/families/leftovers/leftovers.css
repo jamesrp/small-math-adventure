@@ -75,7 +75,7 @@ button.lo-card:focus-visible{outline:3px solid var(--b-ochre,#b38840);outline-of
 .lo-sig i{font-style:normal;font-size:.9rem;line-height:1.2;text-align:center;border-top:1px solid var(--b-line,#d0d6bd)}
 .lo-tell .lo-card.lo-key{border-color:transparent;background:transparent;color:var(--b-muted,#5a6850)}
 .lo-key .lo-sig i{display:grid;place-items:center;box-sizing:border-box;width:1.2rem;height:calc(.9rem * 1.2 + 1px);margin:0 auto;border:0;border-radius:50%;background:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9);font-size:.7rem;line-height:1}
-.lo-sizes{display:flex;flex-wrap:wrap;justify-content:center;gap:.45rem;max-width:560px}
+.lo-sizes{display:grid;grid-template-columns:repeat(6,48px);justify-content:center;gap:.45rem}
 .lo-size-button{width:48px;height:48px;padding:0;border:2px solid var(--b-ink,#294439);border-radius:50%;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);font-family:var(--b-display,Georgia,serif);font-weight:700;font-size:1.15rem;cursor:pointer}
 .lo-size-button.on{background:var(--b-pine,#31533e);border-color:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9)}
 .lo-size-button[disabled]{cursor:default;opacity:.45}
@@ -90,6 +90,7 @@ button.lo-card:focus-visible{outline:3px solid var(--b-ochre,#b38840);outline-of
 .lo-mini{display:grid;place-items:center;min-width:1.5rem;height:1.8rem;padding:0 .15rem;box-sizing:border-box;border:1.5px solid var(--b-bad,#a9503a);border-radius:5px;font-family:var(--b-display,Georgia,serif);font-weight:700;font-size:.95rem;color:var(--b-ink,#294439)}
 .lo-to{color:var(--b-bad,#a9503a);font-size:.95rem;white-space:nowrap}
 .lo-tries .ok{color:var(--b-pine,#31533e);font-weight:700;padding:0 .2rem}
+.lo-tries li.past{opacity:.5;border-style:dashed}
 
 /* The playground. */
 .lo-steppers{display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem 1.4rem}
@@ -104,5 +105,6 @@ button.lo-card:focus-visible{outline:3px solid var(--b-ochre,#b38840);outline-of
   .lo-bin{min-width:58px}
   .lo-tell-cards{gap:.25rem}
   .lo-tell .lo-card{min-width:34px;padding:.25rem .1rem}
-  .lo-size-button{min-width:44px;height:44px}
+  .lo-sizes{grid-template-columns:repeat(6,44px)}
+  .lo-size-button{width:44px;height:44px}
 }

@@ -6,8 +6,8 @@
 //     side can leave (sides up to five times the size), the strips rule, the
 //     prime count (p + 1)/2 and the composite exceptions;
 //   - every find answer, and every That's all over all 2^k sets of cards in
-//     the bin: exactly the answer is accepted, a part of it is told "There's
-//     another." and anything else "A card here doesn't belong.";
+//     the bin: exactly the answer is accepted and every other set is told
+//     the same "Not yet.", so one card alone learns nothing;
 //   - every tell claim over every choice of sizes (all 11 single sizes, all 55
 //     pairs), and Can't against the same search;
 //   - witnesses and hint chains played through the move rules, from fresh and
@@ -157,7 +157,7 @@ export default async function validateLeftovers() {
         const right = inBin.length === answer.length && inBin.every(n => answer.includes(n)), part = !right && inBin.every(n => answer.includes(n));
         assert.equal(a.board.claimed, right, `${p.id}: {${inBin}} ${right ? 'accepted' : 'refused'}`);
         // The line itself is drawn for every set of the smaller puzzle and a sample of the larger.
-        if (!right && (q.sides.length <= 8 || mask % 61 === 0 || part)) assert.match(draw(p)(a), part ? /There’s another\./ : /A card here doesn’t belong\./, `${p.id}: {${inBin}} told why`);
+        if (!right && (q.sides.length <= 8 || mask % 61 === 0 || part || inBin.length === 1)) { const html = draw(p)(a); assert.match(html, /Not yet\./, `${p.id}: {${inBin}} is told Not yet.`); assert.doesNotMatch(html, /another|belong/, `${p.id}: {${inBin}}: the line doesn’t say which`); }
         if (!right) assert.equal(mechanicFor(p).valid(p, a.board) && a.board.shut.length, 1, `${p.id}: {${inBin}} is locked`);
       }
     }
@@ -261,13 +261,13 @@ export default async function validateLeftovers() {
     let a = freshAttempt(p);
     a = play(p, a, {type: 'place', side: 3, bin: 2});
     a = play(p, a, {type: 'claim'});
-    assert.match(draw(p)(a), /There’s another\./);
+    assert.match(draw(p)(a), /Not yet\./);
     a = play(p, a, {type: 'place', side: 5, bin: 2});
     a = play(p, a, {type: 'claim'});
-    assert.match(draw(p)(a), /A card here doesn’t belong\./);
+    assert.match(draw(p)(a), /Not yet\./, 'the same line for a card that doesn’t belong');
     a = play(p, a, {type: 'place', side: 5, bin: null});
     refuse(p, a, {type: 'claim'}, 'back to a refused set');
-    assert.match(draw(p)(a), /There’s another\./);
+    assert.match(draw(p)(a), /Not yet\./);
     a = play(p, play(p, a, {type: 'place', side: 4, bin: 2}), {type: 'claim'});
     assert.ok(isSolved(p, a.board));
   }
@@ -298,7 +298,9 @@ export default async function validateLeftovers() {
     assert.equal(a.board.tries.length, 3);
     refuse(p, a, {type: 'size', size: 9}, 'no sizes when the tries are used up');
     a = play(p, a, {type: 'again'});
-    assert.deepEqual(a.board, {chosen: [], tries: [], cant: 'refused'}, 'Again starts over and keeps the refused Can’t');
+    assert.deepEqual(a.board, {chosen: [], tries: [], cant: 'refused', past: [[7], [12], [9]]}, 'Again starts over, keeps the refused Can’t and keeps the failed tries as past records');
+    assert.equal((draw(p)(a).match(/<li class="past"/g) || []).length, 3, 'the three past tries show faded');
+    assert.ok(validBoard(p, a.board), 'a board with past tries is valid');
     a = play(p, play(p, a, {type: 'size', size: 11}), {type: 'try'});
     assert.ok(isSolved(p, a.board), '11 works');
     assert.match(draw(p)(a), /lo-sig/, 'every card shows its leftover after the win');

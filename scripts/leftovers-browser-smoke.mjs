@@ -3,9 +3,10 @@
 // counters (a mouse drag, or a touch drag with TEST_PHONE=1), a wrong-size
 // choice and an early stop answered on the board, placing by tapping a bin and
 // by dragging a card, That's all refused and locked through Undo and then
-// accepted with the empty bins marked, a find with "There's another." and a
-// card taken back out, the tell puzzles with a failed Try, a refused and a
-// right Can't and a win, and the playground. Same environment variables as
+// accepted with the empty bins marked, a find refused with "Not yet." and a
+// card taken back out, a bent slide and "Not whole bundles." for bundles of
+// 11, the tell puzzles with a failed Try, a refused and a right Can't, Again
+// keeping the earlier records faded, and a win, and the playground. Same environment variables as
 // the other browser suites (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL,
 // TEST_PHONE=1 for a phone viewport). Screenshots go in test-results/leftovers/.
 import assert from 'node:assert/strict';
@@ -35,19 +36,19 @@ const count = selector => page.locator(selector).count();
 const text = () => page.locator('.lo-puzzle').innerText();
 // A drag through the given points: a real touch drag on a phone, a mouse drag on a desktop.
 let cdp = null;
-async function drag(points) {
+async function drag(points, steps = 10) {
   if (!phone) {
     await page.mouse.move(...points[0]); await page.mouse.down();
-    for (const p of points.slice(1)) await page.mouse.move(...p, {steps: 10});
+    for (const p of points.slice(1)) await page.mouse.move(...p, {steps});
     await page.mouse.up();
     return;
   }
   cdp ||= await context.newCDPSession(page);
   const touch = (type, [x, y]) => cdp.send('Input.dispatchTouchEvent', {type, touchPoints: type === 'touchEnd' ? [] : [{x, y}]});
   await touch('touchStart', points[0]);
-  for (let k = 1; k < points.length; k++) for (let s = 1; s <= 10; s++) {
+  for (let k = 1; k < points.length; k++) for (let s = 1; s <= steps; s++) {
     const [x1, y1] = points[k - 1], [x2, y2] = points[k];
-    await touch('touchMove', [x1 + (x2 - x1) * s / 10, y1 + (y2 - y1) * s / 10]);
+    await touch('touchMove', [x1 + (x2 - x1) * s / steps, y1 + (y2 - y1) * s / steps]);
   }
   // The finger rests before lifting, so Chromium does not start a fling.
   await page.waitForTimeout(150); await touch('touchEnd', points.at(-1));
@@ -78,7 +79,7 @@ try {
   await tap(counter(0)); await tap(counter(1)); await tap(counter(2));
   assert.equal(await count('.lo-counter.chosen'), 3, 'three counters chosen by taps');
   await bundle();
-  assert.match(await text(), /Bundles of 4\./);
+  assert.match(await text(), /Not whole bundles\./);
   assert.equal(await count('.lo-counter.taken'), 0, 'nothing bundled');
   // A slide from counter 0 to counter 4 chooses the 2 by 2 square: one bundle.
   await slide(0, 4);
@@ -114,18 +115,27 @@ try {
   // Bundles of 11: the biggest board of bins.
   await open('leftovers-10'); await fit('bundles of 11');
   assert.equal(await count('.lo-bin'), 11);
-  // No rectangle inside a 10 by 10 square is whole bundles of 11.
+  // No rectangle inside a 10 by 10 square is whole bundles of 11, so a slide
+  // chooses the counters it passes over: along the top row and one down is 11.
+  // Fine steps, as a finger moves, so no counter on the way is skipped.
   await tap(card(10));
-  await slide(0, 99);
-  assert.equal(await count('.lo-counter.chosen'), 100, 'the whole square is chosen');
+  await page.locator('.lo-work svg').scrollIntoViewIfNeeded();
+  await drag([await center(counter(0)), await center(counter(9)), await center(counter(19))], 40);
+  assert.equal(await count('.lo-counter.chosen'), 11, 'the counters slid over are chosen');
   await bundle();
-  assert.match(await text(), /Bundles of 11\./);
+  assert.equal(await count('.lo-counter.taken'), 11, 'a lasso of 11 is a bundle');
+  // A choice that isn't whole bundles is let go, and Bundle is outlined.
+  await tap(counter(20)); await tap(counter(21)); await tap(counter(22));
+  assert.equal(await count('.lo-counter.chosen'), 3);
+  await bundle();
+  assert.match(await text(), /Not whole bundles\./);
   assert.equal(await count('.lo-counter.chosen'), 0, 'the choice is let go');
-  await bundle(); await bundle();
-  assert.equal(await count('.lo-counter.taken'), 22, 'Bundle takes the next bundle');
+  assert.equal(await count('.lo-bundle.hinted'), 1, 'Bundle is outlined');
+  await bundle();
+  assert.equal(await count('.lo-counter.taken'), 22, 'Bundle with nothing chosen takes the next bundle');
   await shot('sort-eleven');
 
-  // Bundles of 15, find leftover 1: one bin, "There's another.", taking a card out.
+  // Bundles of 15, find leftover 1: one bin, "Not yet.", taking a card out.
   const F = 'leftovers-09';
   await open(F); await fit('find');
   assert.equal(await page.locator('h1.puzzle-goal').innerText(), 'Find every card that leaves 1.');
@@ -133,13 +143,13 @@ try {
   await tap(card(1)); await tap(bin(1));
   await tap(card(14)); await tap(bin(1));
   await claim();
-  assert.match(await text(), /There’s another\./);
+  assert.match(await text(), /Not yet\./);
   await tap(card(13)); await tap(bin(1));
   await claim();
-  assert.match(await text(), /A card here doesn’t belong\./);
+  assert.match(await text(), /Not yet\./);
   await tap(card(13)); await tap(page.locator('.lo-row-drop'));
   assert.equal((await board(F)).where[13], null, 'card 13 back in the row');
-  assert.match(await text(), /There’s another\./, 'this set was refused already');
+  assert.match(await text(), /Not yet\./, 'this set was refused already');
   assert.equal(await page.locator('.lo-claim').isDisabled(), true);
   await shot('find-another');
   await tap(card(4)); await tap(bin(1)); await tap(card(11)); await tap(bin(1));
@@ -173,15 +183,21 @@ try {
   assert.equal(await count('.lo-catalog li'), 11);
   await shot('tell-cant');
 
-  // Two sizes: a failed pair, then 10 and 11.
+  // Two sizes: four failed pairs, Again keeps their records faded, then 10 and 11.
   const W = 'leftovers-12';
+  const size = m => tap(page.locator('.lo-size-button', {hasText: new RegExp(`^${m}$`)}));
   await open(W); await fit('two sizes');
-  for (const m of [2, 3]) await tap(page.locator('.lo-size-button', {hasText: new RegExp(`^${m}$`)}));
+  for (const m of [2, 3]) await size(m);
   assert.equal(await page.locator('.lo-size-button', {hasText: /^4$/}).isDisabled(), true, 'two sizes at most');
   await tap(page.locator('.lo-try'));
   assert.equal(await count('.lo-card.pair'), 2);
   await shot('tell-two');
-  for (const m of [2, 3, 10, 11]) await tap(page.locator('.lo-size-button', {hasText: new RegExp(`^${m}$`)}));
+  for (const [off, on] of [[3, 4], [4, 5], [5, 6]]) { await size(off); await size(on); await tap(page.locator('.lo-try')); }
+  await tap(page.locator('.lo-again'));
+  assert.equal(await count('.lo-tries li.past'), 4, 'Again keeps the four failed tries, faded');
+  await fit('past tries');
+  await shot('tell-again');
+  for (const m of [10, 11]) await size(m);
   await tap(page.locator('.lo-try'));
   await done();
 

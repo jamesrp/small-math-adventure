@@ -675,7 +675,7 @@
     "Cards 3 and 4 both leave 2."
    ],
    "parent": {
-    "notice": "A child who finds card 3 and presses That’s all is told there is another.",
+    "notice": "A child who finds card 3 and presses That’s all is told “Not yet.”: the same line as for a card that doesn’t belong, so That’s all can’t judge cards one at a time and bundling is the way to check.",
     "prompt": "If a friend says their square left 2, which cards could it be?",
     "explanation": "9 = 7 + 2 and 16 = 14 + 2. The other squares leave 0 (card 0 only), 1 (cards 1 and 6: 36 = 35 + 1) and 4 (cards 2 and 5: 25 = 21 + 4). With bundles of 7 every leftover but 0 hides exactly two cards, x and 7 − x.",
     "extension": "Play the worksheet’s secret game: one player chooses a card and says only its leftover with bundles of 7, and the other names every card it could be.",
@@ -2282,7 +2282,7 @@
     "Cards 1, 4, 11 and 14 leave 1."
    ],
    "parent": {
-    "notice": "A child who expects pairs may stop at 1 and 14; That’s all then says there is another.",
+    "notice": "A child who expects pairs may stop at 1 and 14; That’s all then says “Not yet.”, the same line it gives for a card that doesn’t belong.",
     "prompt": "Could another leftover hide even more cards?",
     "explanation": "1 = 1, 16 = 15 + 1, 121 = 120 + 1 and 196 = 195 + 1. Card 4 matches card 1 because the L between 1 by 1 and 4 by 4 re-forms as a 3 by 5 rectangle, one whole bundle; 11 and 14 are 15 − 4 and 15 − 1. Leftover 4 also hides four cards (2, 7, 8 and 13), while leftover 0 hides only card 0, as at a prime.",
     "extension": "Which leftovers occur with 15? (0, 1, 4, 6, 9 and 10: six.)",
@@ -2933,8 +2933,8 @@
    "idea": "Six leftovers, (11 + 1)/2: card 0 alone, and pairs that add to 11.",
    "prerequisites": "Count up to about 10 counters, and press Bundle until fewer than a bundle is left; the app does the taking away. No reading once a grown-up has read How to play. Saying why a bin stays empty is for older children with a grown-up.",
    "hints": [
-    "Cards that add to 11 land in the same bin.",
-    "5 by 5 is 25 = 22 + 3, so cards 5 and 6 go in bin 3.",
+    "Bundle card 5 and card 6.",
+    "25 = 22 + 3 and 36 = 33 + 3: cards 5 and 6 both go in bin 3. Which other cards add up to 11?",
     "Bin 0: 0. Bin 1: 1 and 10. Bin 3: 5 and 6. Bin 4: 2 and 9. Bin 5: 4 and 7. Bin 9: 3 and 8."
    ],
    "parent": {

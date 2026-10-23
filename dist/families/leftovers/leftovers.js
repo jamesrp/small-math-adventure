@@ -107,11 +107,14 @@ function refusable(q, key) {
   try { where = JSON.parse(key); } catch { return false; }
   return validWhere(q, where) && claimable(q, where) && verdict(q, where) !== null;
 }
-const TOLD = {wrong: q => q.mode === 'sort' ? 'A card is in the wrong bin.' : 'A card here doesn’t belong.', more: () => 'There’s another.'};
+// A find's refusal is the same whether a card doesn't belong or one is
+// missing, so That's all on one card at a time can't judge cards one by one.
+const TOLD = {wrong: q => q.mode === 'sort' ? 'A card is in the wrong bin.' : 'Not yet.', more: () => 'Not yet.'};
 
 // --- Boards ------------------------------------------------------------------
 // sort, find:  {bundles, where, shut, claimed}
-// tell:        {chosen, tries, cant}      cant: null, 'refused' or 'right'
+// tell:        {chosen, tries, cant, past?}  cant: null, 'refused' or 'right';
+//               past: failed tries from rounds before Again (kept, faded)
 // playground:  {side, size, bundles}
 // `where` lists each card's bin (null in the row), in the order of q.sides.
 // `shut` lists the arrangements a That's all refused; they stay refused
@@ -139,7 +142,12 @@ function valid(p, b) {
     return int(b.side) && b.side >= 0 && b.side <= q.maxSide && q.sizes.includes(b.size) && validBundles(b.bundles, [b.side], b.size) && Object.keys(b).length === 3;
   }
   if (q.mode === 'tell') {
-    if (!validChoice(q, b.chosen) || !Array.isArray(b.tries) || b.tries.length > q.budget || ![null, 'refused', 'right'].includes(b.cant) || Object.keys(b).length !== 3) return false;
+    if (!validChoice(q, b.chosen) || !Array.isArray(b.tries) || b.tries.length > q.budget || ![null, 'refused', 'right'].includes(b.cant) || Object.keys(b).length !== (Object.hasOwn(b, 'past') ? 4 : 3)) return false;
+    // Earlier rounds' tries: full choices that failed, each once.
+    if (Object.hasOwn(b, 'past')) {
+      const past = b.past;
+      if (!Array.isArray(past) || past.length > MAX_LOCKS || !past.every(c => validChoice(q, c) && c.length === q.k && !tells(q.top, c)) || new Set(past.map(c => c.join())).size !== past.length) return false;
+    }
     const keys = b.tries.map(c => c.join());
     if (!b.tries.every(c => validChoice(q, c) && c.length === q.k) || new Set(keys).size !== keys.length) return false;
     // Nothing is tried after a choice that works, and Can't is right only when
@@ -188,7 +196,7 @@ function move(p, b, action) {
     }
     if (action.type === 'try') return canTry(p, b) ? {...b, tries: [...b.tries, [...b.chosen]]} : null;
     if (action.type === 'cant') return canCant(p, b) ? {...b, cant: possible(q) ? 'refused' : 'right'} : null;
-    if (action.type === 'again') return outOfTries(p, b) ? {chosen: [], tries: [], cant: b.cant} : null;
+    if (action.type === 'again') return outOfTries(p, b) ? {chosen: [], tries: [], cant: b.cant, past: [...(b.past || []), ...b.tries.filter(c => !(b.past || []).some(t => t.join() === c.join()))]} : null;
     return null;
   }
   if (action.type === 'bundle') {
@@ -297,7 +305,7 @@ export function shownCard(p, b) {
   if (s.show !== null && q.sides.includes(s.show)) return s.show;
   return inHand(q, b);
 }
-const VIEW_TOLD = {size: m => `Bundles of ${m}.`, more: () => 'Another bundle fits.'};
+const VIEW_TOLD = {size: () => 'Not whole bundles.', more: () => 'Another bundle fits.'};
 
 // --- Drawing -----------------------------------------------------------------
 const f = n => Number(n.toFixed(2));
@@ -349,7 +357,7 @@ function renderSort(p, a) {
     const chosen = s.show === shown || s.show === null ? s.chosen : [];
     const canBundle = chosen.length > 0 || !finished(b.bundles, shown, m);
     const line = s.told ? VIEW_TOLD[s.told](m) : '';
-    work = `<div class="lo-work"><div class="lo-bar">${cardHtml(shown, {label: `Card ${shown}`})}<span class="lo-size">Bundles of ${m}</span><button type="button" class="secondary lo-button lo-bundle${hinted?.bundle && hinted.card === shown ? ' hinted' : ''}" data-lo-bundle="${shown}" data-focus="lo-bundle" ${canBundle ? '' : 'disabled'}>Bundle</button></div>${squareHtml(shown, m, b.bundles, {live: true, chosen, label: `Card ${shown}: ${shown} by ${shown} counters`})}${line ? `<p class="lo-told" role="status">${line}</p>` : ''}</div>`;
+    work = `<div class="lo-work"><div class="lo-bar">${cardHtml(shown, {label: `Card ${shown}`})}<span class="lo-size">Bundles of ${m}</span><button type="button" class="secondary lo-button lo-bundle${(hinted?.bundle && hinted.card === shown) || s.told === 'size' ? ' hinted' : ''}" data-lo-bundle="${shown}" data-focus="lo-bundle" ${canBundle ? '' : 'disabled'}>Bundle</button></div>${squareHtml(shown, m, b.bundles, {live: true, chosen, label: `Card ${shown}: ${shown} by ${shown} counters`})}${line ? `<p class="lo-told" role="status">${line}</p>` : ''}</div>`;
   }
   const claim = done ? '' : `<button type="button" class="secondary lo-button lo-claim${hinted?.claim ? ' hinted' : ''}" ${moveAttrs({type: 'claim'}, 'lo-claim')} ${canClaim(p, b) ? '' : 'disabled'}>That’s all</button>`;
   const status = `${done ? 'Solved.' : shown !== null ? `Card ${shown} in hand: ${plural(looseOf(b.bundles, shown), 'counter')} not in a bundle.` : ''} ${q.bins.map(r => `Bin ${r}: ${andList(q.sides.filter((n, i) => b.where[i] === r).map(String)) || 'empty'}.`).join(' ')}${told ? ` ${told}` : ''}`;
@@ -373,7 +381,9 @@ function renderTell(p, a) {
   const sizeButtons = q.sizes.map(m => `<button type="button" class="lo-size-button${b.chosen.includes(m) ? ' on' : ''}${hinted?.size === m ? ' hinted' : ''}" ${moveAttrs({type: 'size', size: m}, `lo-size-${m}`)} aria-pressed="${b.chosen.includes(m)}" ${done || outOfTries(p, b) || (!b.chosen.includes(m) && b.chosen.length >= q.k && q.k > 1) ? 'disabled' : ''} aria-label="Bundles of ${m}">${m}</button>`).join('');
   // Each try: its sizes, then the two cards that still match and what they leave, or a tick.
   const record = (c, tag = 'li') => { const mt = matchOf(q.top, c), said = mt ? `Bundles of ${andList(c.map(String))}: cards ${mt[0]} and ${mt[1]} both leave ${andList(signature(mt[0], c).map(String))}.` : `Bundles of ${andList(c.map(String))}: all different.`; return `<${tag} aria-label="${esc(said)}"><span class="lo-try-sizes" aria-hidden="true">${c.map(m => `<i>${m}</i>`).join('')}</span>${mt ? `<span class="lo-mini" aria-hidden="true">${mt[0]}</span><span class="lo-mini" aria-hidden="true">${mt[1]}</span><span class="lo-to" aria-hidden="true">→ ${signature(mt[0], c).join(' · ')}</span>` : '<span class="ok" aria-hidden="true">✓</span>'}</${tag}>`; };
-  const triesList = b.tries.length ? `<ol class="lo-tries" aria-label="Tries">${b.tries.map(c => record(c)).join('')}</ol>` : '';
+  // Earlier rounds' records stay, faded, before this round's.
+  const past = (b.past || []).filter(c => !tried(b, c));
+  const triesList = b.tries.length || past.length ? `<ol class="lo-tries" aria-label="Tries">${past.map(c => record(c).replace('<li ', '<li class="past" ')).join('')}${b.tries.map(c => record(c)).join('')}</ol>` : '';
   const btn = (label, action, cls, ok) => `<button type="button" class="secondary lo-button ${cls}" ${moveAttrs(action, `lo-${action.type}`)} ${ok ? '' : 'disabled'}>${label}</button>`;
   const actions = done ? '' : `<div class="lo-actions">${pipsHtml(b.tries.length, q.budget)}${outOfTries(p, b) ? btn('Again', {type: 'again'}, `lo-again${hinted?.again ? ' hinted' : ''}`, true) : btn('Try', {type: 'try'}, `lo-try${hinted?.tryIt ? ' hinted' : ''}`, canTry(p, b))}${btn('Can’t', {type: 'cant'}, `lo-cant${hinted?.cant ? ' hinted' : ''}`, canCant(p, b))}</div>`;
   const told = b.cant === 'refused' && !done ? 'There is a way.' : '';
@@ -389,7 +399,7 @@ function renderPlayground(p, a) {
   const controls = `<div class="lo-steppers"><span class="lo-stepper" role="group" aria-label="Side">${step('Fewer rows', {type: 'side', side: n - 1}, n > 0, 'lo-side-down')}${cardHtml(n, {label: `Card ${n}`})}${step('More rows', {type: 'side', side: n + 1}, n < q.maxSide, 'lo-side-up')}</span><span class="lo-stepper" role="group" aria-label="Bundle size"><span class="lo-size">Bundles of</span>${step('Smaller bundles', {type: 'size', size: q.sizes[i - 1]}, i > 0, 'lo-size-down')}<b>${m}</b>${step('More in a bundle', {type: 'size', size: q.sizes[i + 1]}, i < q.sizes.length - 1, 'lo-size-up')}</span></div>`;
   const canBundle = s.chosen.length > 0 || !finished(b.bundles, n, m);
   const line = s.told ? VIEW_TOLD[s.told](m) : '';
-  const bar = `<div class="lo-bar"><button type="button" class="secondary lo-button lo-bundle" data-lo-bundle="${n}" data-focus="lo-bundle" ${canBundle ? '' : 'disabled'}>Bundle</button><button type="button" class="secondary lo-button lo-clear" ${moveAttrs({type: 'clear'}, 'lo-clear')} ${b.bundles.length ? '' : 'disabled'}>Clear</button></div>`;
+  const bar = `<div class="lo-bar"><button type="button" class="secondary lo-button lo-bundle${s.told === 'size' ? ' hinted' : ''}" data-lo-bundle="${n}" data-focus="lo-bundle" ${canBundle ? '' : 'disabled'}>Bundle</button><button type="button" class="secondary lo-button lo-clear" ${moveAttrs({type: 'clear'}, 'lo-clear')} ${b.bundles.length ? '' : 'disabled'}>Clear</button></div>`;
   return `<div class="lo-puzzle lo-playground" data-mechanic-wire="leftovers">${controls}<div class="lo-work">${bar}${squareHtml(n, m, b.bundles, {live: true, chosen: s.chosen, label: `${n} by ${n} counters`})}${line ? `<p class="lo-told" role="status">${line}</p>` : ''}</div><p class="sr-only" role="status">${esc(`${n} by ${n}, bundles of ${m}: ${plural(looseOf(b.bundles, n), 'counter')} not in a bundle.`)}</p></div>`;
 }
 const render = (p, a) => p.parameters.mode === 'tell' ? renderTell(p, a) : p.parameters.mode === 'playground' ? renderPlayground(p, a) : renderSort(p, a);
@@ -405,6 +415,14 @@ const rect = (g, from, to) => {
   for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) out.push(g.at(x, y));
   return out;
 };
+// A slide chooses the rectangle between its first and last counters when
+// that is whole bundles (a strip, as in Problem 5), and otherwise the counters
+// it passed over, so a lasso of m counters is a bundle even when no rectangle
+// in the square is (bundles of 5 on a 4 by 4 square).
+export function slid(g, free, cells, m) {
+  const box = free(rect(g, cells[0], cells.at(-1)));
+  return box.length && box.length % m === 0 ? box : free([...new Set(cells)]);
+}
 let drag = null, listening = false;
 function wire(root, p, api) {
   const q = p.parameters;
@@ -417,15 +435,16 @@ function wire(root, p, api) {
     const free = cells => { const taken = takenOf(now().b.bundles, n); return cells.filter(i => !taken.has(i)); };
     if (work) wireSquare(work, g, {
       cell: i => { const s = ui(p), chosen = s.chosen.includes(i) ? s.chosen.filter(k => k !== i) : [...s.chosen, i]; api.ui({show: n, chosen, told: null}); return null; },
-      stroke: cells => { api.ui({show: n, chosen: free(rect(g, cells[0], cells.at(-1))), told: null}); return null; },
-      preview: cells => ({show: free(rect(g, cells[0], cells.at(-1)))})
+      stroke: cells => { api.ui({show: n, chosen: slid(g, free, cells, sizeOf(now().b)), told: null}); return null; },
+      preview: cells => ({show: slid(g, free, cells, sizeOf(now().b))})
     }, api.apply);
   }
   root.querySelectorAll('[data-lo-bundle]').forEach(button => button.addEventListener('click', () => {
     const {b} = now(), side = Number(button.dataset.loBundle), m = sizeOf(b), s = ui(p);
     if (s.chosen.length) {
       const cells = [...s.chosen].sort((x, y) => x - y);
-      // Not whole bundles: the board says the size and lets go of the choice.
+      // Not whole bundles: the board says so, lets go of the choice and
+      // outlines Bundle, which with nothing chosen takes the next bundle.
       if (cells.length % m) { api.ui({show: q.mode === 'playground' ? null : side, chosen: [], told: 'size'}); return; }
       api.apply({type: 'bundle', side, cells});
       return;
@@ -506,7 +525,15 @@ export const leftoverMechanics = {
       if (!object(from) || !object(to)) return to;
       if ((q.mode === 'sort' || q.mode === 'find') && Array.isArray(from.shut) && Array.isArray(to.shut)) return {...to, shut: [...to.shut, ...from.shut.filter(k => !to.shut.includes(k))]};
       // A winning Try or a right Can't is a move like any other and is taken back.
-      if (q.mode === 'tell' && Array.isArray(from.tries) && Array.isArray(to.tries)) return {...to, tries: (from.tries.length >= to.tries.length ? from.tries : to.tries).filter(c => Array.isArray(c) && !tells(q.top, c)), cant: from.cant === 'refused' ? 'refused' : to.cant};
+      if (q.mode === 'tell' && Array.isArray(from.tries) && Array.isArray(to.tries)) {
+        // Undo of Again brings that round's tries back, with the rounds before it.
+        const fromLonger = from.tries.length >= to.tries.length;
+        const tries = (fromLonger ? from.tries : to.tries).filter(c => Array.isArray(c) && !tells(q.top, c));
+        const fromPast = Array.isArray(from.past) ? from.past : [], toPast = Array.isArray(to.past) ? to.past : [];
+        const past = fromLonger && fromPast.length >= toPast.length ? fromPast : toPast;
+        const {past: _, ...rest} = to;
+        return {...rest, tries, cant: from.cant === 'refused' ? 'refused' : to.cant, ...(past.length || Object.hasOwn(to, 'past') ? {past} : {})};
+      }
       return to;
     },
     noHint: p => p.parameters.mode === 'playground'
