@@ -73,7 +73,7 @@
     "notice": "Whether your child notices that adding a token keeps every value and adds new ones.",
     "prompt": "When you add a 3, which new values can you make?",
     "explanation": "Adding a token keeps every value the bag could already make, and the new values are old values times the new token. Taking a token out removes the values that needed it. The bag holds at most 7 tokens.",
-    "extension": "Build the smallest bags that make nine and ten values. (36 and 48.)",
+    "extension": "Build the bags with the smallest = numbers that make nine and ten values. (36 and 48.)",
     "connection": "The divisors of n · p contain the divisors of n, and the new ones are p times divisors of n with one more copy of p.",
     "sourceIds": [
      "primes-week96",
@@ -216,7 +216,7 @@
     "card": 12
    },
    "objective": "Split the card into two numbers that multiply to it, and keep splitting until every card is prime. Start a different way each run. Press That’s all when every first split is on the shelf.",
-   "visibleObjective": "Start the split every way you can, and split to the end each time.",
+   "visibleObjective": "Split 12 every way you can, down to round tokens.",
    "instruction": "Split the card into two numbers that multiply to it, and keep splitting until every card is prime. Start a different way each run. Press That’s all when every first split is on the shelf.",
    "controls": "The chosen card is ringed; tap another card to choose it. Tap a key to split the card: 4 splits 20 into 4 × 5. New run starts the card again. Press That’s all when every first split is on the shelf. Undo takes back the last move.",
    "rules": [
@@ -527,7 +527,7 @@
     "card": 36
    },
    "objective": "Split the card into two numbers that multiply to it, and keep splitting until every card is prime. Start a different way each run. Press That’s all when every first split is on the shelf.",
-   "visibleObjective": "Start the split every way you can, and split to the end each time.",
+   "visibleObjective": "Split 36 every way you can, down to round tokens.",
    "instruction": "Split the card into two numbers that multiply to it, and keep splitting until every card is prime. Start a different way each run. Press That’s all when every first split is on the shelf.",
    "controls": "The chosen card is ringed; tap another card to choose it. Tap a key to split the card: 4 splits 20 into 4 × 5. New run starts the card again. Press That’s all when every first split is on the shelf. Undo takes back the last move.",
    "rules": [
@@ -621,7 +621,7 @@
     "notice": "Whether your child reuses a bag from puzzle 4 or 5, or builds and tests new ones.",
     "prompt": "Which other bags make six values?",
     "explanation": "Two copies of one prime and one of another make 3 × 2 = 6 values (12, 18, 20, 28, 45, 50, …), and so do five copies of one prime (32 = 2 × 2 × 2 × 2 × 2). No other bag does, because 6 is only 3 × 2 or 6. Any of these 16 bags solves it.",
-    "extension": "What is the smallest bag that makes six values? (12.)",
+    "extension": "Which bag that makes six values has the smallest = number? (12.)",
     "connection": "τ(n) = 6 exactly for n = p²q or p⁵.",
     "sourceIds": [
      "primes-week96",
@@ -793,7 +793,7 @@
     "card": 60
    },
    "objective": "Split the card into two numbers that multiply to it, and keep splitting until every card is prime. Start a different way each run. Press That’s all when every first split is on the shelf.",
-   "visibleObjective": "Start the split every way you can, and split to the end each time.",
+   "visibleObjective": "Split 60 every way you can, down to round tokens.",
    "instruction": "Split the card into two numbers that multiply to it, and keep splitting until every card is prime. Start a different way each run. Press That’s all when every first split is on the shelf.",
    "controls": "The chosen card is ringed; tap another card to choose it. Tap a key to split the card: 4 splits 20 into 4 × 5. New run starts the card again. Press That’s all when every first split is on the shelf. Undo takes back the last move.",
    "rules": [
@@ -869,9 +869,9 @@
     "goal": 8,
     "least": true
    },
-   "objective": "Build the smallest bag that makes exactly 8 values. Keep every value it makes, then press That’s all.",
-   "visibleObjective": "Build the smallest bag that makes exactly 8 values, and keep them all.",
-   "instruction": "Build the smallest bag that makes exactly 8 values. Keep every value it makes, then press That’s all.",
+   "objective": "Build a bag that makes exactly 8 values, with its = number as small as you can. Keep every value it makes, then press That’s all.",
+   "visibleObjective": "Build a bag that makes exactly 8 values, with its = number as small as you can, and keep them all.",
+   "instruction": "Build a bag that makes exactly 8 values, with its = number as small as you can. Keep every value it makes, then press That’s all.",
    "controls": "Tap 2, 3, 5 or 7 to put a token in the bag, and − under it to take one out. Tap tokens in the bag to choose them; Keep puts their value in the tray. Press That’s all when every value is kept. Undo takes back the last move.",
    "rules": [
     "A card splits into two whole numbers greater than 1 that multiply to it. A number that cannot split is prime; it becomes a round token.",
@@ -884,12 +884,12 @@
    "prerequisites": "Fluent multiplication; comparing bags that make the same count, and the idea that a count of values comes from how many copies of each prime the bag has.",
    "hints": [
     "Build a bag that makes exactly eight values, keep them all, and press That’s all.",
-    "Puzzles 6 and 7 both made eight values. Which bag was smaller?",
+    "Puzzles 6 and 7 both made eight values. Which bag had the smaller = number?",
     "Three copies of one prime and one of another make eight too."
    ],
    "parent": {
     "notice": "Whether your child compares 24 and 30 from puzzles 6 and 7, or builds from scratch.",
-    "prompt": "How do you know no smaller bag makes eight values?",
+    "prompt": "How do you know no bag with a smaller = number makes eight values?",
     "explanation": "Eight values come from three different primes (2 × 2 × 2), three of one prime and one of another (4 × 2), or seven of one (8). The smallest bag of each kind is 2 · 3 · 5 = 30, 2 · 2 · 2 · 3 = 24 and 2⁷ = 128, so 24. Checking every number below 24 confirms it.",
     "extension": "Why is 2, 2, 2, 3 (24) smaller than 2, 3, 3, 3 (54)? Swap the extra copies onto the smaller prime.",
     "connection": "The least number with a given divisor count uses the smallest primes with exponents in decreasing order.",
@@ -932,9 +932,9 @@
     "goal": 12,
     "least": true
    },
-   "objective": "Build the smallest bag that makes exactly 12 values. Keep every value it makes, then press That’s all.",
-   "visibleObjective": "Build the smallest bag that makes exactly 12 values, and keep them all.",
-   "instruction": "Build the smallest bag that makes exactly 12 values. Keep every value it makes, then press That’s all.",
+   "objective": "Build a bag that makes exactly 12 values, with its = number as small as you can. Keep every value it makes, then press That’s all.",
+   "visibleObjective": "Build a bag that makes exactly 12 values, with its = number as small as you can, and keep them all.",
+   "instruction": "Build a bag that makes exactly 12 values, with its = number as small as you can. Keep every value it makes, then press That’s all.",
    "controls": "Tap 2, 3, 5 or 7 to put a token in the bag, and − under it to take one out. Tap tokens in the bag to choose them; Keep puts their value in the tray. Press That’s all when every value is kept. Undo takes back the last move.",
    "rules": [
     "A card splits into two whole numbers greater than 1 that multiply to it. A number that cannot split is prime; it becomes a round token.",
@@ -947,14 +947,14 @@
    "prerequisites": "Fluent multiplication; comparing bags that make the same count, and the idea that a count of values comes from how many copies of each prime the bag has.",
    "hints": [
     "Build a bag that makes exactly twelve values, keep them all, and press That’s all.",
-    "Puzzle 11’s bag made twelve values. Is there a smaller one?",
+    "Puzzle 11’s bag made twelve values. Is there one with a smaller = number?",
     "Twelve is 3 × 2 × 2: two of one prime, one each of two others."
    ],
    "parent": {
     "notice": "Whether your child tries 72 (puzzle 11’s extension) before 60, and why they move on.",
-    "prompt": "Why can’t a bag smaller than 60 make twelve values?",
+    "prompt": "Why can’t a bag with an = number below 60 make twelve values?",
     "explanation": "The patterns are two copies of one prime and one each of two others (smallest 2 · 2 · 3 · 5 = 60), three and two (2 · 2 · 2 · 3 · 3 = 72), five and one (2⁵ · 3 = 96), and eleven of one (2¹¹, more tokens than the bag holds). So 60, and every number below 60 has a different count.",
-    "extension": "Find the smallest bags with nine and ten values. (36 and 48.)",
+    "extension": "Find the bags with the smallest = numbers that make nine and ten values. (36 and 48.)",
     "connection": "Highly composite numbers: 60 has more divisors than any smaller number.",
     "sourceIds": [
      "primes-week96",

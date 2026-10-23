@@ -1,10 +1,11 @@
 // Plays Prime bags through the real interface: choosing tokens and keeping
 // values, Keep off with the kept value ringed when the other 2 is chosen,
 // That's all refused and kept through Undo, a solve; splitting with a refused
-// key, keys off from the card up, the shelf and New run; a design with "There
-// is a smaller bag.", a token taken out dropping kept values and Undo giving
-// them back, a solve; keyboard play, Apply hint, the playground and no page
-// overflow.
+// key, keys off from the card up, the shelf, a quick second tap on the key
+// that finishes a run landing on nothing, and New run; a design with "A bag
+// with a smaller = number makes 8 values.", 44 px − buttons, a token taken out
+// dropping kept values and Undo giving them back, a solve; keyboard play,
+// Apply hint, the playground, readable tray tokens and no page overflow.
 // Same environment variables as the other browser suites (PLAYWRIGHT_MODULE,
 // BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone with touch).
 // SHOTS=<dir> also saves tablet (1024 px) and phone (375 px) screenshots.
@@ -75,9 +76,17 @@ try {
   assert.deepEqual(await page.locator('.pb-cards > *').allInnerTexts(), ['3', '4']);
   assert.equal(await page.locator('.pb-cards .pb-prime').count(), 1, '3 is a round token');
   assert.ok(await key(4).isDisabled(), 'keys from the card up are off');
+  const last = await key(2).boundingBox();
   await tap(key(2));
+  // A quick second tap where the finishing key was lands on nothing: New run
+  // stays where it was instead of rising into the keypad's place.
+  if (phone) await page.touchscreen.tap(last.x + last.width / 2, last.y + last.height / 2); else await page.mouse.click(last.x + last.width / 2, last.y + last.height / 2);
+  assert.equal((await board('primes-03')).steps.length, 2, 'a second tap on the finishing key changes nothing');
+  assert.deepEqual(await page.locator('.pb-cards > *').allInnerTexts(), ['3', '2', '2'], 'the finished tokens stay');
   assert.equal(await page.locator('.pb-run').count(), 1);
   assert.equal(await page.locator('.pb-run .pb-pair').innerText(), '3 × 4');
+  const mini = await page.locator('.pb-run .pb-mini i').first().boundingBox();
+  assert.ok(mini.width >= 21 && mini.height >= 21, `shelf tokens are readable (${mini.width} px)`);
   assert.equal(await page.locator('.pb-run.now').count(), 1);
   await button('That’s all').click();
   assert.equal(await told(), 'There is another.');
@@ -99,19 +108,20 @@ try {
 
   // Puzzle 13: a design refused as not the smallest, a token out and Undo, a solve.
   await open('primes-13'); await fit('primes-13');
-  assert.equal(await page.locator('.puzzle-goal').innerText(), 'Build the smallest bag that makes exactly 8 values, and keep them all.');
+  assert.equal(await page.locator('.puzzle-goal').innerText(), 'Build a bag that makes exactly 8 values, with its = number as small as you can, and keep them all.');
   for (const x of [2, 3, 5]) await tap(page.getByRole('button', {name: `Put a ${x} in the bag`}));
   assert.equal(await page.locator('.pb-total').innerText(), '= 30');
+  for (const box of await page.locator('.pb-drop').evaluateAll(list => list.map(x => x.getBoundingClientRect()).map(r => [r.width, r.height]))) assert.ok(box[0] >= 44 && box[1] >= 44, `− buttons are at least 44 px (${box})`);
   for (const places of [[], [0], [1], [2], [0, 1], [0, 2], [1, 2], [0, 1, 2]]) await keepChoice(places);
   assert.deepEqual(await tray(), ['1', '2', '3', '5', '6', '10', '15', '30']);
   await button('That’s all').click();
-  assert.equal(await told(), 'There is a smaller bag.');
+  assert.equal(await told(), 'A bag with a smaller = number makes 8 values.');
   await tap(page.getByRole('button', {name: 'Take a 5 out of the bag'}));
   assert.deepEqual(await tray(), ['1', '2', '3', '6'], 'values that need the 5 go');
   assert.equal(await page.locator('.pb-told').count(), 0);
   await page.locator('[data-action=undo]').click();
   assert.deepEqual(await tray(), ['1', '2', '3', '5', '6', '10', '15', '30'], 'Undo gives them back');
-  assert.equal(await told(), 'There is a smaller bag.', 'with the refusal');
+  assert.equal(await told(), 'A bag with a smaller = number makes 8 values.', 'with the refusal');
   await tap(page.getByRole('button', {name: 'Take a 5 out of the bag'}));
   await tap(page.getByRole('button', {name: 'Put a 2 in the bag'})); await tap(page.getByRole('button', {name: 'Put a 2 in the bag'}));
   assert.equal(await page.locator('.pb-total').innerText(), '= 24');

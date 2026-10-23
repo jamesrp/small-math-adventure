@@ -77,7 +77,7 @@ const PUZZLES = [
   {number: 9, level: 'medium', title: 'Exactly six', mode: 'design', goal: 6, least: false, check: {bags: 16}, prereq: 'design',
     idea: 'A bag’s count of values comes from how many copies of each prime it has: two of one and one of another make six.',
     hints: ['Put tokens in the bag, keep every value it makes, and press That’s all.', 'Puzzles 4 and 5 had bags that made this many values.', 'Try two of one number and one of another.'],
-    parent: {notice: 'Whether your child reuses a bag from puzzle 4 or 5, or builds and tests new ones.', prompt: 'Which other bags make six values?', explanation: 'Two copies of one prime and one of another make 3 × 2 = 6 values (12, 18, 20, 28, 45, 50, …), and so do five copies of one prime (32 = 2 × 2 × 2 × 2 × 2). No other bag does, because 6 is only 3 × 2 or 6. Any of these 16 bags solves it.', extension: 'What is the smallest bag that makes six values? (12.)', connection: 'τ(n) = 6 exactly for n = p²q or p⁵.'},
+    parent: {notice: 'Whether your child reuses a bag from puzzle 4 or 5, or builds and tests new ones.', prompt: 'Which other bags make six values?', explanation: 'Two copies of one prime and one of another make 3 × 2 = 6 values (12, 18, 20, 28, 45, 50, …), and so do five copies of one prime (32 = 2 × 2 × 2 × 2 × 2). No other bag does, because 6 is only 3 × 2 or 6. Any of these 16 bags solves it.', extension: 'Which bag that makes six values has the smallest = number? (12.)', connection: 'τ(n) = 6 exactly for n = p²q or p⁵.'},
     provenance: 'Week 96 grades 2–3 Problem 4 (build a bag that makes exactly 4, 6 and 8 values), the six.'},
   {number: 10, level: 'hard', title: 'Two 2s and two 3s', mode: 'every', bag: bag([2, 2, 3, 3]), check: {values: [1, 2, 3, 4, 6, 9, 12, 18, 36]}, prereq: 'upper',
     idea: 'No 2s to two 2s, times no 3s to two 3s: nine values.',
@@ -96,24 +96,24 @@ const PUZZLES = [
     provenance: 'Week 96 grades 4–5 Problem 1 (cards 36, 48 and 60), as a find-every on 60.'},
   {number: 13, level: 'hard', title: 'Smallest with eight', mode: 'design', goal: 8, least: true, check: {least: 24}, prereq: 'least',
     idea: 'Put the extra copies on the smallest prime: three 2s and a 3 (24) beat 2, 3, 5 (30).',
-    hints: ['Build a bag that makes exactly eight values, keep them all, and press That’s all.', 'Puzzles 6 and 7 both made eight values. Which bag was smaller?', 'Three copies of one prime and one of another make eight too.'],
-    parent: {notice: 'Whether your child compares 24 and 30 from puzzles 6 and 7, or builds from scratch.', prompt: 'How do you know no smaller bag makes eight values?', explanation: 'Eight values come from three different primes (2 × 2 × 2), three of one prime and one of another (4 × 2), or seven of one (8). The smallest bag of each kind is 2 · 3 · 5 = 30, 2 · 2 · 2 · 3 = 24 and 2⁷ = 128, so 24. Checking every number below 24 confirms it.', extension: 'Why is 2, 2, 2, 3 (24) smaller than 2, 3, 3, 3 (54)? Swap the extra copies onto the smaller prime.', connection: 'The least number with a given divisor count uses the smallest primes with exponents in decreasing order.'},
+    hints: ['Build a bag that makes exactly eight values, keep them all, and press That’s all.', 'Puzzles 6 and 7 both made eight values. Which bag had the smaller = number?', 'Three copies of one prime and one of another make eight too.'],
+    parent: {notice: 'Whether your child compares 24 and 30 from puzzles 6 and 7, or builds from scratch.', prompt: 'How do you know no bag with a smaller = number makes eight values?', explanation: 'Eight values come from three different primes (2 × 2 × 2), three of one prime and one of another (4 × 2), or seven of one (8). The smallest bag of each kind is 2 · 3 · 5 = 30, 2 · 2 · 2 · 3 = 24 and 2⁷ = 128, so 24. Checking every number below 24 confirms it.', extension: 'Why is 2, 2, 2, 3 (24) smaller than 2, 3, 3, 3 (54)? Swap the extra copies onto the smaller prime.', connection: 'The least number with a given divisor count uses the smallest primes with exponents in decreasing order.'},
     provenance: 'Week 96 grades 2–3 Problem 4 (the eight, how small) and grades 4–5 Problem 6 (the least number with 8 divisors).'},
   {number: 14, level: 'hard', title: 'Smallest with twelve', mode: 'design', goal: 12, least: true, check: {least: 60}, prereq: 'least',
     idea: 'Twelve is 3 × 2 × 2, 4 × 3, 6 × 2 or 12: compare the smallest bag of each pattern.',
-    hints: ['Build a bag that makes exactly twelve values, keep them all, and press That’s all.', 'Puzzle 11’s bag made twelve values. Is there a smaller one?', 'Twelve is 3 × 2 × 2: two of one prime, one each of two others.'],
-    parent: {notice: 'Whether your child tries 72 (puzzle 11’s extension) before 60, and why they move on.', prompt: 'Why can’t a bag smaller than 60 make twelve values?', explanation: 'The patterns are two copies of one prime and one each of two others (smallest 2 · 2 · 3 · 5 = 60), three and two (2 · 2 · 2 · 3 · 3 = 72), five and one (2⁵ · 3 = 96), and eleven of one (2¹¹, more tokens than the bag holds). So 60, and every number below 60 has a different count.', extension: 'Find the smallest bags with nine and ten values. (36 and 48.)', connection: 'Highly composite numbers: 60 has more divisors than any smaller number.'},
+    hints: ['Build a bag that makes exactly twelve values, keep them all, and press That’s all.', 'Puzzle 11’s bag made twelve values. Is there one with a smaller = number?', 'Twelve is 3 × 2 × 2: two of one prime, one each of two others.'],
+    parent: {notice: 'Whether your child tries 72 (puzzle 11’s extension) before 60, and why they move on.', prompt: 'Why can’t a bag with an = number below 60 make twelve values?', explanation: 'The patterns are two copies of one prime and one each of two others (smallest 2 · 2 · 3 · 5 = 60), three and two (2 · 2 · 2 · 3 · 3 = 72), five and one (2⁵ · 3 = 96), and eleven of one (2¹¹, more tokens than the bag holds). So 60, and every number below 60 has a different count.', extension: 'Find the bags with the smallest = numbers that make nine and ten values. (36 and 48.)', connection: 'Highly composite numbers: 60 has more divisors than any smaller number.'},
     provenance: 'Week 96 grades 4–5 Problems 5 and 6 (every pattern for 12 divisors; the least number with 12).'}
 ];
 
 const id = n => `primes-${String(n).padStart(2, '0')}`;
-const VISIBLE = {every: 'Keep every value the bag can make.', split: 'Start the split every way you can, and split to the end each time.'};
+const VISIBLE = {every: () => 'Keep every value the bag can make.', split: item => `Split ${item.card} every way you can, down to round tokens.`};
 const FULL = {
   every: 'Choose tokens from the bag to make values, and keep each different value. Press That’s all when none is left.',
   split: 'Split the card into two numbers that multiply to it, and keep splitting until every card is prime. Start a different way each run. Press That’s all when every first split is on the shelf.'
 };
-const design = item => item.least ? `Build the smallest bag that makes exactly ${item.goal} values, and keep them all.` : `Build a bag that makes exactly ${item.goal} values, and keep them all.`;
-const designFull = item => `${item.least ? `Build the smallest bag that makes exactly ${item.goal} values.` : `Put tokens in the bag so it makes exactly ${item.goal} values.`} Keep every value it makes, then press That’s all.`;
+const design = item => item.least ? `Build a bag that makes exactly ${item.goal} values, with its = number as small as you can, and keep them all.` : `Build a bag that makes exactly ${item.goal} values, and keep them all.`;
+const designFull = item => `${item.least ? `Build a bag that makes exactly ${item.goal} values, with its = number as small as you can.` : `Put tokens in the bag so it makes exactly ${item.goal} values.`} Keep every value it makes, then press That’s all.`;
 
 const out = PUZZLES.map(item => {
   let q, solution;
@@ -144,7 +144,7 @@ const out = PUZZLES.map(item => {
   const rules = [...RULES, kind === 'split' ? SPLIT_RULE : ALL_RULE, ...(kind === 'design' ? [DESIGN_RULE] : [])];
   return {
     id: id(item.number), number: item.number, title: item.title, difficulty_level: item.level, familyTitle: 'Prime bags', mechanic: 'primes', band: 'all', revision: 1, sourceDocument: 'docs/primes/README.md',
-    parameters: q, objective, visibleObjective: kind === 'design' ? design(item) : VISIBLE[kind], instruction: objective, controls: CONTROLS[kind], rules,
+    parameters: q, objective, visibleObjective: kind === 'design' ? design(item) : VISIBLE[kind](item), instruction: objective, controls: CONTROLS[kind], rules,
     idea: item.idea, prerequisites: PREREQ[item.prereq], hints: item.hints, parent: {...item.parent, sourceIds: sources}, solution, provenance: item.provenance
   };
 });
@@ -159,7 +159,7 @@ const playground = {
   idea: 'Free play with bags: add and take out tokens, and see which kept values stay.',
   prerequisites: 'None; the app multiplies. A grown-up can set a challenge: a bag that makes exactly ten values.',
   hints: ['Build a bag and keep its values.', 'Add a token: do the values you kept stay?', 'Take a token out: which kept values go?'],
-  parent: {notice: 'Whether your child notices that adding a token keeps every value and adds new ones.', prompt: 'When you add a 3, which new values can you make?', explanation: `Adding a token keeps every value the bag could already make, and the new values are old values times the new token. Taking a token out removes the values that needed it. The bag holds at most ${LIMIT} tokens.`, extension: 'Build the smallest bags that make nine and ten values. (36 and 48.)', connection: 'The divisors of n · p contain the divisors of n, and the new ones are p times divisors of n with one more copy of p.', sourceIds: sources},
+  parent: {notice: 'Whether your child notices that adding a token keeps every value and adds new ones.', prompt: 'When you add a 3, which new values can you make?', explanation: `Adding a token keeps every value the bag could already make, and the new values are old values times the new token. Taking a token out removes the values that needed it. The bag holds at most ${LIMIT} tokens.`, extension: 'Build the bags with the smallest = numbers that make nine and ten values. (36 and 48.)', connection: 'The divisors of n · p contain the divisors of n, and the new ones are p times divisors of n with one more copy of p.', sourceIds: sources},
   provenance: 'New, from the Week 96 prime tokens 2, 3, 5 and 7 (the guide’s kit).'
 };
 

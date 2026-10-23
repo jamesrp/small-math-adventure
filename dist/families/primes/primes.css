@@ -21,7 +21,7 @@
 .pb-puzzle .pb-add{position:relative;background:#eef3e6;border-color:var(--b-leaf,#86a68c);border-style:solid;box-shadow:0 3px 0 rgba(84,120,92,.35)}
 .pb-puzzle .pb-add::after{content:'+';position:absolute;top:-5px;right:-5px;width:19px;height:19px;border-radius:50%;background:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9);font:700 15px/19px system-ui,sans-serif;text-align:center}
 .pb-puzzle .pb-add[disabled],.pb-puzzle .pb-drop[disabled]{opacity:.4;box-shadow:none;cursor:default}
-.pb-puzzle .pb-drop{min-width:46px;min-height:34px;padding:0 10px;border:1px solid var(--b-line,#d0d6bd);border-radius:9px;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);font:700 1.15rem/1 system-ui,sans-serif;box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer}
+.pb-puzzle .pb-drop{min-width:48px;min-height:44px;padding:0 12px;border:1px solid var(--b-line,#d0d6bd);border-radius:9px;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);font:700 1.15rem/1 system-ui,sans-serif;box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer}
 
 /* What is chosen, its value, and Keep. */
 .pb-choice{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.4rem .7rem;min-height:52px}
@@ -39,8 +39,8 @@
 .pb-item{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:44px;padding:5px 7px 6px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:10px}
 .pb-item b{font:400 1.25rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
 .pb-item.now,.pb-run.now{border-color:var(--b-ochre,#b38840);box-shadow:0 0 0 3px var(--b-ochre,#b38840)}
-.pb-mini{display:flex;gap:2px}
-.pb-mini i{display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;border:1.2px solid var(--b-ink,#294439);background:var(--b-card,#fffdf5);font:400 9px/1 var(--b-display,Georgia,serif);font-style:normal;color:var(--b-ink,#294439)}
+.pb-mini{display:flex;flex-wrap:wrap;justify-content:center;gap:3px}
+.pb-mini i{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--b-ink,#294439);background:var(--b-card,#fffdf5);font:400 13px/1 var(--b-display,Georgia,serif);font-style:normal;color:var(--b-ink,#294439)}
 .pb-mini i.none{border-style:dashed;border-color:#9aa88e}
 
 /* Splitting: square cards, round primes, the keypad. */
@@ -53,6 +53,7 @@
 .pb-keys{display:grid;grid-template-columns:repeat(4,minmax(42px,50px));gap:6px}
 .pb-puzzle .pb-key{min-height:46px;margin:0;padding:0;border-radius:9px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-ink,#294439);box-shadow:0 2px 0 var(--b-line,#d0d6bd);font:400 1.35rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439);cursor:pointer}
 .pb-puzzle .pb-key[disabled]{opacity:.35;box-shadow:none;border-color:var(--b-line,#d0d6bd);cursor:default}
+.pb-rest{visibility:hidden}
 .pb-puzzle .pb-key.marked{outline:4px solid var(--b-bad,#a9503a);outline-offset:2px}
 .pb-run{display:flex;align-items:center;gap:6px;padding:5px 9px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:10px}
 .pb-pair{font:400 1.15rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439);white-space:nowrap}

@@ -280,7 +280,8 @@ function checkDesign(p) {
   c = play(p, c, [{type: 'all'}]);
   assert.equal(c.board.said, q.least ? 'smaller' : 'short');
   const html = mechanicFor(p).render(p, {...c, hintLevel: 0}, {});
-  assert.ok(html.includes(q.least ? 'There is a smaller bag.' : `Every value is here, but not ${q.goal}.`), `${p.id}: the refusal says so`);
+  assert.ok(html.includes(q.least ? `A bag with a smaller = number makes ${q.goal} values.` : `This bag makes ${tau(off)} values, not ${q.goal}.`), `${p.id}: the refusal says so`);
+  if (q.least) assert.ok(!html.includes(`= ${least}<`) && !html.includes(` ${least} `), `${p.id}: the refusal does not show the smallest bag`);
   refuse(p, c, {type: 'all'}, 'That’s all twice on one bag and tray');
   refuse(p, c, {type: 'keep'}, 'Keep with every value kept');
   assert.equal(takeBack(p, play(p, c, [{type: 'pick', token: 0}])).board.said, c.board.said, `${p.id}: Undo of a choice keeps the refusal`);
@@ -294,7 +295,8 @@ function checkCopy(p) {
     assert.ok(p.visibleObjective.includes(String(q.goal)), `${p.id}: the goal is shown`);
     return;
   }
-  for (const text of [p.objective, p.visibleObjective]) assert.ok(!/\d/.test(text), `${p.id}: no number in "${text}"`);
+  // A split names its card ("Split 12 …"), which is on the board anyway.
+  for (const text of [p.objective, p.visibleObjective]) assert.ok(!/\d/.test(text.replace(/^Split \d+ /, '')), `${p.id}: no number in "${text}"`);
   const word = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'][p.solution.count];
   // "Two numbers" is the rule of a split, not an answer.
   for (const text of [p.title, p.objective, p.visibleObjective, p.hints[0]].map(t => t.replace(/two (whole )?numbers/g, ''))) {

@@ -239,7 +239,10 @@ function hint(p, b) {
 // them away.
 const uiState = new Map();
 function view(p) { if (!uiState.has(p.id)) uiState.set(p.id, {sel: null, told: null}); return uiState.get(p.id); }
-const SAID = {more: () => 'There is another.', short: q => `Every value is here, but not ${q.goal}.`, smaller: () => 'There is a smaller bag.'};
+// A wrong count names the bag's count, which the full tray already shows; a
+// bag that is not the smallest is answered without showing the smaller one.
+const values = n => `${n} value${n === 1 ? '' : 's'}`;
+const SAID = {more: () => 'There is another.', short: (q, bag) => `This bag makes ${values(countOf(bag))}, not ${q.goal}.`, smaller: q => `A bag with a smaller = number makes ${q.goal} values.`};
 
 // --- Drawing ----------------------------------------------------------------------
 let drawnFor = '';
@@ -284,7 +287,7 @@ function renderBag(p, a) {
   const keep = live ? button('Keep', {type: 'keep'}, 'pb-keep', {enabled: !kept, hinted: sameAction(act, {type: 'keep'}), primary: !kept, aria: `Keep ${valueOf(now)}`}) : '';
   const choice = `<div class="pb-choice">${expr}<span class="pb-value" aria-label="${esc(`Chosen ${chosenWords(now)}, value ${valueOf(now)}`)}">${valueOf(now)}</span>${keep}</div>`;
   const all = q.mode !== 'playground' && live ? `<div class="pb-bar">${button('That’s all', {type: 'all'}, 'pb-all', {enabled: b.tray.length > 0 && !b.said, hinted: sameAction(act, {type: 'all'})})}</div>` : '';
-  const note = q.mode !== 'playground' && b.said && live ? SAID[b.said](q) : '';
+  const note = q.mode !== 'playground' && b.said && live ? SAID[b.said](q, bag) : '';
   const status = `Bag ${toks.length ? words(toks) : 'empty'}, value ${valueOf(bag)}. Chosen ${chosenWords(now)}, value ${valueOf(now)}${kept ? ', kept' : ''}. Kept ${b.tray.length ? words(b.tray.map(valueOf)) : 'nothing'}.${note ? ` ${note}` : ''}`;
   return `<div class="pb-puzzle pb-${q.mode}${done ? ' solved' : ''}">${supply}${bagHTML}${choice}${all}${note ? `<p class="pb-told">${esc(note)}</p>` : ''}${trayHTML(b.tray, live ? now : null)}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
@@ -302,7 +305,9 @@ function renderSplit(p, a) {
     const cls = `pb-card${i === sel ? ' selected' : ''}${act?.type === 'split' && act.card === i ? ' hinted' : ''}`;
     return live ? `<button type="button" class="${cls}" ${uiAttr({sel: i})} data-focus="pb-card-${i}" aria-pressed="${i === sel}" aria-label="${c}">${c}</button>` : `<span class="${cls}" aria-hidden="true">${c}</span>`;
   }).join('');
-  let pad = '';
+  // A finished run keeps the keypad's room, so a quick second tap on the last
+  // key lands on nothing instead of on New run rising into its place.
+  let pad = live && over ? `<div class="pb-pad pb-rest" aria-hidden="true"><span class="pb-keys">${KEYS.map(() => '<span class="pb-key"></span>').join('')}</span></div>` : '';
   if (live && sel !== null) {
     const c = cards[sel];
     pad = `<div class="pb-pad" role="group" aria-label="Split ${c}"><span class="pb-eq" aria-hidden="true">${c} =</span><span class="pb-keys">${KEYS.map(d => {

@@ -98,7 +98,7 @@ test('design: tokens in and out, kept values pruned and given back, the refusals
   assert.deepEqual(a.board.tray.map(valueOf), [1, 2, 3, 5, 6, 10, 15, 30]);
   a = play(p, a, all);
   assert.equal(a.board.said, 'smaller', 'eight values, but 30 is not the smallest');
-  assert.match(draw(p, a), /There is a smaller bag\./);
+  assert.match(draw(p, a), /A bag with a smaller = number makes 8 values\./);
   assert.doesNotMatch(draw(p, a), /24/, 'the refusal does not show the smaller bag');
   let b = play(p, a, drop(5));
   assert.deepEqual(b.board.tray.map(valueOf), [1, 2, 3, 6], 'taking out the 5 drops the values that need it');
@@ -120,7 +120,8 @@ test('design: tokens in and out, kept values pruned and given back, the refusals
   const six = byId('primes-09');
   let c = play(six, freshAttempt(six), ...add(2, 3), keep, ...pick(0), keep, ...pick(1), keep, ...pick(0), keep, all);
   assert.equal(c.board.said, 'short');
-  assert.match(draw(six, c), /Every value is here, but not 6\./);
+  assert.match(draw(six, c), /This bag makes 4 values, not 6\./, 'the count is the full tray’s');
+  assert.equal(c.board.tray.length, 4);
   // The bag holds at most seven tokens.
   const full = play(six, freshAttempt(six), ...add(...Array(LIMIT).fill(7)));
   assert.equal(move(six, full, {type: 'add', prime: 2}), null);
