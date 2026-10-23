@@ -267,6 +267,14 @@ function checkHalve(p, row, all) {
     assert.deepEqual(kept.board.told, c.board.told, `${p.id}: Undo keeps a refused Can’t`);
     assert.ok(validBoard(p, kept.board), `${p.id}: and the board stays valid`);
     refuse(p, kept, {type: 'cant', pairs}, 'Can’t again after Undo');
+    // After a refused Fair on the same cards, Undo still keeps the Can't.
+    const fair = move(p, a, {type: 'fair'});
+    if (fair && fair.board.told?.kind === 'swap') {
+      const c2 = play(p, fair, {type: 'cant', pairs}), kept2 = carry(c2, undo(c2));
+      assert.deepEqual(kept2.board.told, c.board.told, `${p.id}: ${key}: Undo keeps a refused Can’t over a refused Fair`);
+      assert.ok(validBoard(p, kept2.board), `${p.id}: ${key}: and the board stays valid`);
+      refuse(p, kept2, {type: 'cant', pairs}, 'Can’t again after Undo past a refused Fair');
+    }
     if (pairs.length) assert.equal(play(p, c, {type: 'put', good: pairs[0][0], to: V}).board.told, null, `${p.id}: a card moving clears it`);
     if (over === 4 || over === 0) steps += hintsSolve(p, c, `after a refused Can’t (${over})`);
   }

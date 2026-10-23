@@ -819,7 +819,9 @@ export const shareMechanics = {
       if (q.mode === 'every' && from.told && !to.told && same(from.shelf, to.shelf)) return {...to, told: from.told};
       if (q.mode === 'halve') {
         if (from.claim && !to.claim) return {...to, claim: from.claim, told: to.told?.kind === 'over' ? null : to.told};
-        if (from.told?.kind === 'over' && !to.told && !to.claim && same(from.at, to.at)) return {...to, told: from.told};
+        // A refused Can't stands while the cards stay, over a refused Fair's
+        // line on the same cards too (that Fair is not a lock).
+        if (from.told?.kind === 'over' && !to.claim && same(from.at, to.at)) return {...to, told: from.told};
       }
       // A refused group stands until a shape moves.
       if (q.mode === 'favourites' && from.told && !to.told && !to.group && same(from.at, to.at)) return {...to, told: from.told, tried: true};

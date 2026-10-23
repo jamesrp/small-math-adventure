@@ -6,7 +6,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
+import {freshAttempt, move, isSolved, nextHint, validBoard, undo, undoPress} from '../dist/engine.js';
 import {playView} from '../dist/ui.js';
 import {shareMechanics, fairKeys, envious, enviousAll, goodsNow, matchings, shortestGroup, likedBy, equalCuts, theyTake, theirCut, stripWorth, pairingLeft} from '../dist/families/shares/shares.js';
 import {loadPack} from '../scripts/packs.mjs';
@@ -144,6 +144,29 @@ test('four reds: Can’t is refused with the even number left over, and the refu
   assert.match(view(p, even), /They pair up\./);
   assert.ok(isSolved(p, play(p, even, {type: 'fair'}).board), 'two each is fair');
   assert.equal(move(p, play(p, freshAttempt(p), ...put('R1:U R2:U R3:U R4:U')), {type: 'halve', good: 'R1'}), null, 'no cut without a right Can’t');
+});
+
+test('four reds: a refused Can’t after a refused Fair on the same cards stays through Undo', () => {
+  const p = byId('03');
+  const placed = play(p, freshAttempt(p), ...put('R1:U R2:U R3:U R4:V'));
+  const fair = play(p, placed, {type: 'fair'});
+  assert.deepEqual(fair.board.told, {kind: 'swap', who: ['V']});
+  const c = play(p, fair, {type: 'cant', pairs: [['R1', 'R4']]});
+  assert.deepEqual(c.board.told, {kind: 'over', n: 2});
+  // One step back, Fair's line gives way to the refusal.
+  const back = carried(p, c);
+  assert.deepEqual(back.board.told, {kind: 'over', n: 2}, 'Undo keeps the refused Can’t');
+  assert.ok(validBoard(p, back.board));
+  assert.equal(move(p, back, {type: 'cant', pairs: [['R1', 'R4']]}), null, 'no second Can’t on the same cards');
+  assert.match(view(p, back), /sh-cant[^>]*disabled/);
+  // One press as the app takes it goes on past the steps that draw the same,
+  // to the board before R4 moved: where Undo lands without the Fair.
+  const press = a => { view(p, a); return undoPress(p, a, b => view(p, b, true)); };
+  const landed = press(c);
+  assert.equal(landed.history.length, 3);
+  assert.equal(landed.board.at.R4, null);
+  assert.equal(landed.board.told, null);
+  assert.deepEqual(landed.board, press(play(p, placed, {type: 'cant', pairs: [['R1', 'R4']]})).board);
 });
 
 test('favourites: giving swaps, Can’t needs a short group and shuts after a refusal', () => {

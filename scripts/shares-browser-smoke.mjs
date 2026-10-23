@@ -157,6 +157,21 @@ try {
   assert.equal(await page.locator('.sh-told').innerText(), '2 left over.', 'an even number left over is refused');
   assert.equal(await button('Can’t').isDisabled(), true, 'until a card moves');
   await shot('four-reds');
+  // A refused Fair, then a refused Can't on the same cards: one Undo keeps the
+  // Can't, so Fair's line goes too and the press lands before R4 moved.
+  await drag(card('R4'), tray('U')); await drag(card('R4'), tray('V'));
+  assert.equal(await button('Can’t').isDisabled(), false, 'a card moved');
+  await button('Fair').click();
+  assert.equal(await page.locator('.sh-told').innerText(), 'V would swap.');
+  await button('Can’t').click();
+  await tap(card('R1')); await tap(card('R4'));
+  assert.equal(await page.locator('.sh-told').innerText(), '2 left over.');
+  await page.locator('[data-action="undo"]').click();
+  assert.deepEqual((await board(P)).at, {R1: 'U', R2: 'U', R3: 'U', R4: 'U'}, 'one press takes back Can’t, Fair and the move before');
+  assert.equal(await page.locator('.sh-told').count(), 0, 'no line left on the board');
+  await page.locator('[data-action="undo"]').click();
+  assert.equal(await page.locator('.sh-told').innerText(), '2 left over.', 'the first refusal still stands on its cards');
+  assert.equal(await button('Can’t').isDisabled(), true);
   await drag(card('R3'), tray('V'));
   await button('Fair').click(); await done();
 
