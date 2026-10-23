@@ -129,7 +129,7 @@ try{
  }
  await page.setViewportSize({width:768,height:1024});await reset(l);
  assert.equal(await page.locator('.tile-piece-picture').getAttribute('aria-label'),'L-tromino, 3 squares');
- assert.equal((await page.locator('.tile-piece-guide').innerText()).trim(),'Drag across 3 squares');
+ assert.equal((await page.locator('.tile-piece-guide').innerText()).trim(),'Tap or drag 3 squares');
  assert.ok((await page.locator('.tile-piece-guide').boundingBox()).height<=46,'iPad L guide stays compact');
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'iPad L layout fits width');
  await page.screenshot({path:new URL('../test-results/l-tile-ipad.png',import.meta.url).pathname,fullPage:true});
