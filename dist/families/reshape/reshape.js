@@ -654,8 +654,25 @@ function slideEndEvent(e) {
   if (e.type !== 'pointerup' || s.last === s.start || Math.hypot(e.clientX - s.x, e.clientY - s.y) < 12) return;
   s.release(s.start, s.last);
 }
+// On a phone, the grid is kept short enough to show whole below the start
+// shape without scrolling, however tall the app's header is above it, but
+// never with squares under 32px. Measured after each drawing and on resize.
+let fitListening = false;
+function fitGrid(root) {
+  const stage = root.querySelector('.rs-stage'), home = root.querySelector('.rs-home-board');
+  if (!stage || !home) return;
+  if (!globalThis.matchMedia?.('(max-width: 600px)').matches) { stage.style.removeProperty('--rs-fit'); return; }
+  const top = stage.getBoundingClientRect().top + scrollY, rows = Number(stage.style.getPropertyValue('--rs-hm')) || 8;
+  const room = innerHeight - top - home.getBoundingClientRect().height - 12;
+  stage.style.setProperty('--rs-fit', `${Math.round(Math.max(32 * rows, room))}px`);
+}
 function wire(root, p, api) {
   const q = p.parameters, G = geometry(q), board = () => api.attempt().board;
+  fitGrid(root);
+  if (!fitListening) {
+    addEventListener('resize', () => document.querySelectorAll('.rs-puzzle').forEach(fitGrid));
+    fitListening = true;
+  }
   const run = out => { if (!out) return null; if (out.ui) { api.ui(out.ui); return null; } return out.move; };
   const homeSvg = root.querySelector('.rs-home-board'), boards = [...root.querySelectorAll('.rs-board[data-sg-board]')];
   // Where the last press on the start shape fell, in its squares, and how

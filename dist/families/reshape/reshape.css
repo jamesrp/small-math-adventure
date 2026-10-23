@@ -14,6 +14,16 @@
 .rs-puzzle .rs-button[disabled]{opacity:.5;box-shadow:none}
 .rs-puzzle .rs-button[aria-pressed="true"]{background:#e9eddc;border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
 .rs-puzzle .rs-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+/* On a phone the scissors and the buttons stay on one line (three cuts with
+   Turn, Tape and Can't), so the whole 7 by 7 grid shows on a 375 by 812
+   screen; the buttons keep their 46px height. */
+@media (max-width:420px){
+  .rs-bar{column-gap:.55rem}
+  .rs-snips{gap:2px}
+  .rs-snip{width:24px;height:24px}
+  .rs-buttons{gap:.3rem}
+  .rs-puzzle .rs-button{padding:6px 11px}
+}
 .rs-note{margin:0;font-weight:600;color:var(--b-bad,#a9503a)}
 
 /* Two boards, the start shape above the grid, each scaled to fit the
@@ -22,13 +32,15 @@
    Squares are at most 56px, and together the boards take at most 70vh,
    shared by their heights, so where height is short both have the same
    squares. Sizes in squares, side numerals included: --rs-w a board's
-   width, --rs-mw the grid's, --rs-hh and --rs-hm the heights. */
+   width, --rs-mw the grid's, --rs-hh and --rs-hm the heights. On a phone
+   the wiring sets --rs-fit, the room left for the grid below the start
+   shape, so the whole grid shows without scrolling. */
 .rs-stage{width:100%;display:flex;flex-direction:column;align-items:center;gap:.25rem}
 .rs-wrap{width:100%;max-width:calc(var(--rs-w) * 56px)}
 .rs-home-wrap{max-width:min(calc(var(--rs-w) * 56px), calc(100% * var(--rs-w) / var(--rs-mw)))}
 .rs-puzzle .rs-board{max-width:none;margin:0 auto}
 .rs-puzzle .rs-home-board{max-height:calc(70vh * var(--rs-hh) / (var(--rs-hh) + var(--rs-hm)))}
-.rs-puzzle .rs-mat-board{max-height:calc(70vh * var(--rs-hm) / (var(--rs-hh) + var(--rs-hm)))}
+.rs-puzzle .rs-mat-board{max-height:min(calc(70vh * var(--rs-hm) / (var(--rs-hh) + var(--rs-hm))), var(--rs-fit, 100vh))}
 .rs-board .sg-cell.rs-home{fill:#fbf8ec}
 .rs-board .sg-cell.rs-home.away{fill:#efece0;stroke:#d9d6c4}
 .rs-board .sg-cell.rs-mat{fill:#fffdf5}

@@ -36,8 +36,7 @@ const fit = async label => assert.equal(await page.evaluate(() => document.docum
 // Board squares: [x, y] of the start shape (home) or of the grid (mat).
 const homeIndex = ([x, y]) => G.home.findIndex(c => c[0] === x && c[1] === y);
 const cell = (where, xy) => where === 'home' ? page.locator(`.rs-home-board polygon.sg-cell[data-cell="${homeIndex(xy)}"]`) : page.locator(`.rs-mat-board polygon.sg-cell[data-cell="${xy[1] * G.gm.cols + xy[0]}"]`);
-// Both boards in view, as a child scrolls them (a 7 by 7 grid below a
-// three-line goal reaches under the fold on a 375 by 812 phone).
+// Both boards in view, as a child would scroll them on a short screen.
 const inView = () => page.locator('.rs-stage').evaluate(e => e.scrollIntoView({block: 'nearest'}));
 async function tapAt(locator) {
   await inView();
@@ -178,7 +177,7 @@ try {
   // Where height is short both boards share one size of square; on a phone
   // the 7 by 7 grid is not shrunk to the 10-wide start shape.
   assert.ok(matPx >= homePx - .5, `the grid's squares are at least the start shape's (${matPx.toFixed(1)} px, ${homePx.toFixed(1)} px)`);
-  if (phone) assert.ok(matPx >= 38 && matPx > homePx + 5, `grid squares are big enough to tap on a phone (${matPx.toFixed(1)} px, start shape ${homePx.toFixed(1)} px)`);
+  if (phone) assert.ok(matPx >= 32 && matPx > homePx + 4, `grid squares are big enough to tap on a phone (${matPx.toFixed(1)} px, start shape ${homePx.toFixed(1)} px)`);
   console.log(JSON.stringify({squares: {home: +homePx.toFixed(1), grid: +matPx.toFixed(1)}}));
   await shot('square-8');
   await tapCut(0, 'v', 7, phone ? 11 : null);
@@ -245,6 +244,8 @@ try {
   /* ----- Puzzle 11: a pinwheel by keys and drags; arrow keys. */
   const P = 'reshape-11';
   await open(P); await fit('pinwheel');
+  assert.equal(await page.locator('.rs-bar').evaluate(e => e.getBoundingClientRect().height < 60), true, 'the scissors and three buttons on one line');
+  if (phone) assert.ok(await page.locator('.rs-mat-board').evaluate(e => e.getBoundingClientRect().bottom + scrollY <= innerHeight), 'the whole grid shows on a 375 by 812 phone without scrolling, below a header of three rows');
   await tapCut(0, 'h', 2);
   await tap('home', [0, 0]); await tapCut(0, 'v', 5);
   await tap('home', [0, 2]); await tapCut(20, 'v', 5);
