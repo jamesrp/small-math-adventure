@@ -2,13 +2,13 @@
 // search against the stalks' numbers, the perfect opponent, a cut by one tap
 // and everything above it falling, Undo taking back a cut with my reply, the
 // duels that hinge on one cut, every reply, boards with a choice of colour or
-// Me second (and the start I may give for each), rounds and their streak,
+// Go second (and the start I may give for each), rounds and their streak,
 // building a balance with Check, its play-out and its lock, hints, saves,
 // rendering, the satchel group and CPU time.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {freshAttempt, move, isSolved, nextHint, validBoard, undo, restart} from '../dist/engine.js';
+import {freshAttempt, move, isSolved, nextHint, validBoard, undo, undoPress, restart} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
 import {playView} from '../dist/ui.js';
 import {libraryView} from '../dist/caravan-ui.js';
@@ -101,11 +101,11 @@ test('BR and R, and BRR and RB: as Red first, only the cut that leaves a balance
   }
 });
 
-test('four boards: Blue or Red lets me choose who starts, Me second lets me choose my colour; win on each board', () => {
+test('four boards: Blue or Red lets me choose who starts, Go second lets me choose my colour; win on each board', () => {
   const p = byId('hackenbush-02');
   assert.deepEqual(assignments(['B', 'R'], 'B'), [{colour: 'B', first: 'you'}], 'Blue on a balanced board: you start');
   assert.deepEqual(assignments(['B', 'R'], 'second'), [{colour: 'B', first: 'opponent'}, {colour: 'R', first: 'opponent'}]);
-  assert.deepEqual(assignments(['BB', 'R'], 'second'), [{colour: 'R', first: 'opponent'}], 'Me second: I take the colour that wins going first');
+  assert.deepEqual(assignments(['BB', 'R'], 'second'), [{colour: 'R', first: 'opponent'}], 'Go second: I take the colour that wins going first');
   assert.deepEqual(assignments(['BB', 'R'], 'B').map(x => x.first).sort(), ['opponent', 'you'], 'Blue wins both ways: either start');
   assert.deepEqual(p.parameters.boards.map(bestClaim), ['B', 'R', 'second', 'B']);
   let a = freshAttempt(p);
@@ -190,9 +190,16 @@ test('building a balance: add and take off segments, Check; a board that does no
   assert.deepEqual(a.board, {built: ['', ''], play: null, checked: false, done: false});
   let html = m.render(p, a);
   assert.equal([...html.matchAll(/class="hb-add [BR]/g)].length, 4, 'two + buttons a spot');
+  const addRow = html.slice(html.indexOf('<div class="hb-addrow"'));
+  assert.equal([...addRow.matchAll(/class="hb-add [BR]/g)].length, 4, 'the + buttons are in their own row under the ground, not on the stacks');
+  assert.equal([...addRow.matchAll(/class="hb-adds given"/g)].length, 1, 'a blank cell under the given stalk keeps the columns lined up');
+  assert.equal(M.stalkbuild.noUndo, undefined, 'builds have Undo');
   assert.deepEqual(segments(html).map(s => `${s.colour}${s.button ? '!' : ''}`), ['B', 'R', 'B'], 'the given stalk is fixed');
   for (const c of 'RBRB') a = move(p, a, {type: 'add', slot: 0, colour: c});
   assert.equal(move(p, a, {type: 'add', slot: 0, colour: 'R'}), null, 'a spot holds four');
+  assert.equal([...m.render(p, a).matchAll(/data-focus="hb-add-0-[BR]"[^>]*disabled/g)].length, 2, 'a full spot keeps its + buttons, off');
+  assert.equal(a.history.length, 4, 'each add is a step for Undo');
+  assert.deepEqual(undo(a).board.built, ['RBR', ''], 'Undo takes back the last add');
   a = move(p, a, {type: 'cut', stalk: 1, at: 3});
   assert.deepEqual(a.board.built, ['RBR', '']);
   a = move(p, a, {type: 'cut', stalk: 1, at: 1});
@@ -207,9 +214,18 @@ test('building a balance: add and take off segments, Check; a board that does no
   assert.match(html, /aria-label="You are Blue\. I am Red\."/);
   for (let i = 0; i < 6 && !/Back/.test(m.render(p, a)); i++) a = move(p, a, buildHint(p, a.board).action, seeded(i));
   assert.match(status(m.render(p, a)), /^You have nothing to cut\. I win\./);
+  const over = a;
   a = move(p, a, {type: 'back'});
   assert.deepEqual(a.board, {built: ['R', ''], play: null, checked: true, done: false});
   assert.equal(actions(m.render(p, a)).find(x => x.action.type === 'check').disabled, true, 'Check waits for a change');
+  assert.deepEqual(undoPress(p, a, x => view(p, x)).board, over.board, 'Undo takes back Back');
+  // Undo through the play-out back to the board as checked keeps Check off.
+  let u = over;
+  while (u.board.play) u = undoPress(p, u, x => view(p, x));
+  assert.deepEqual(u.board, {built: ['R', ''], play: null, checked: true, done: false}, 'Undo past Check keeps Check waiting');
+  assert.ok(validBoard(p, u.board));
+  u = undoPress(p, u, x => view(p, x));
+  assert.deepEqual(u.board, {built: ['RBR', ''], play: null, checked: false, done: false}, 'and the take-off before it is a change');
   assert.equal(move(p, a, {type: 'check'}), null);
   a = move(p, a, {type: 'add', slot: 1, colour: 'B'});
   for (const c of 'RR') a = move(p, a, {type: 'add', slot: 1, colour: c});

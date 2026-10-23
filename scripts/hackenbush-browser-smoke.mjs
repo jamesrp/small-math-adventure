@@ -3,7 +3,8 @@
 // taking back the cut and my reply as one, and the win; four boards with a
 // wrong choice, Try again and the right choices; every reply to my three
 // first cuts with a lost one and Try again; rounds with three wins from new
-// boards; building a balance with +, taking a segment off, a Check that is
+// boards; building a balance with +, repeated and double taps on one + that
+// stays put, Undo one step at a time, taking a segment off, a Check that is
 // played out, Back, Check waiting, and the solve; the two-spot build; focus
 // after each kind of tap; the controls in view without scrolling; and fit at
 // phone and tablet sizes. Same environment variables as the other browser
@@ -93,7 +94,7 @@ try {
   // Four boards: a wrong choice, Try again, then the right choices.
   p = byId('hackenbush-02');
   await open(p.id); await fit('four boards, fresh');
-  await inView(press('Me second'), 'four boards, the choices');
+  await inView(press('Go second'), 'four boards, the choices');
   await shot('boards-choice');
   await tap(page.locator('[data-focus="hb-claim-R"]'));
   let f = await focused(); assert.ok(onBoard(f), `focus after a choice (${JSON.stringify(f)})`);
@@ -143,6 +144,23 @@ try {
   p = byId('hackenbush-06');
   await open(p.id); await fit('build, fresh');
   await inView(press('Check'), 'build, fresh');
+  // The + buttons stay put: three taps at one point make three reds, a quick
+  // double tap makes two blues, and Undo takes them back one at a time.
+  const at = async locator => { await locator.scrollIntoViewIfNeeded(); const b = await locator.boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
+  const [rx, ry] = await at(page.locator('[data-focus="hb-add-0-R"]'));
+  for (let k = 0; k < 3; k++) { if (phone) await page.touchscreen.tap(rx, ry); else await page.mouse.click(rx, ry); await page.waitForTimeout(40); }
+  assert.deepEqual((await board(p.id)).built, ['RRR', ''], 'three taps at one point on red + make three reds');
+  const [bx, by] = await at(page.locator('[data-focus="hb-add-1-B"]'));
+  if (phone) { await page.touchscreen.tap(bx, by); await page.touchscreen.tap(bx, by); } else await page.mouse.click(bx, by, {clickCount: 2});
+  await page.waitForTimeout(80);
+  assert.deepEqual((await board(p.id)).built, ['RRR', 'BB'], 'a double tap on blue + makes two blues');
+  await shot('build-repeat');
+  const undoButton = page.locator('[data-action="undo"]');
+  for (const want of [['RRR', 'B'], ['RRR', ''], ['RR', ''], ['R', ''], ['', '']]) {
+    await tap(undoButton);
+    assert.deepEqual((await board(p.id)).built, want, `Undo back to ${want.join(' and ')}`);
+  }
+  assert.equal(await undoButton.isDisabled(), true, 'nothing left to undo');
   await tap(page.locator('[data-focus="hb-add-0-R"]'));
   f = await focused(); assert.ok(onBoard(f), `focus after + (${JSON.stringify(f)})`);
   await tap(page.locator('[data-focus="hb-add-0-B"]'));
@@ -164,11 +182,14 @@ try {
   await tap(press('Back'));
   assert.deepEqual((await board(p.id)).built, ['R', ''], 'Back keeps the built stalks');
   assert.equal(await press('Check').isDisabled(), true, 'Check waits for a change');
+  await tap(page.locator('[data-action="undo"]'));
+  assert.ok(await press('Back').count(), 'Undo takes back Back');
+  await tap(press('Back'));
   for (const c of 'BRR') await tap(page.locator(`[data-focus="hb-add-1-${c}"]`));
   assert.equal(await press('Check').isDisabled(), false);
   await shot('build-balanced');
   await tap(press('Check'));
-  await done(); checks.push('build: +, take off, a Check played out, Back, Check waits, R and BRR balance BRB');
+  await done(); checks.push('build: + stays put under repeated and double taps, Undo, take off, a Check played out, Back and its Undo, Check waits, R and BRR balance BRB');
 
   // Two spots for four stalks: R and RB.
   p = byId('hackenbush-09');

@@ -31,10 +31,10 @@ export const family = {
 // How to play opens with the move, then the taps.
 const MOVE = 'Blue cuts one blue segment and Red one red segment; everything above a cut falls off. Whoever has nothing to cut loses.';
 const TAP = 'Tap one of your segments to cut it.';
-const CHOOSE = 'Choose Blue or Red, and I choose who starts; or choose Me second, and I choose my colour and go first. The choice is final for that game.';
+const CHOOSE = 'Choose Blue or Red, and I choose who starts; or choose Go second, and I choose my colour and go first. The choice is final for that game.';
 const NAMES = {B: 'Blue', R: 'Red'};
 function controls(q) {
-  if (q.kind === 'build') return `${MOVE} Tap + to add a blue or red segment to a spot, and tap a segment you added to take it off with everything above it. Check tests the whole board. If whoever goes second can always win, whichever colour starts, it balances and you are done. If not, I take the colour that can win going first, go first and win; then Back returns to your board, and Check waits for a change.`;
+  if (q.kind === 'build') return `${MOVE} Tap a + under a spot to add a blue or red segment to it, and tap a segment you added to take it off with everything above it. Check tests the whole board. If whoever goes second can always win, whichever colour starts, it balances and you are done. If not, I take the colour that can win going first, go first and win; then Back returns to your board, and Check waits for a change. Undo takes back one step at a time.`;
   if (q.mode === 'duel') return `${MOVE} You are ${NAMES[q.colour]}, and you go first. ${TAP} I reply at once. Undo takes back your cut and my reply.`;
   if (q.mode === 'replies') return `${MOVE} You go second, and I try each first cut in turn, in either colour; you play the other colour. ${TAP} After a win, Next first cut starts the next game; after a loss, Try again replays the same first cut.`;
   if (q.mode === 'boards') return `${MOVE} On each board: ${CHOOSE} ${TAP} After a win, Next board; after a loss, Try again.`;
@@ -46,7 +46,7 @@ function rules(q) {
   if (q.kind === 'build') return [...out, `The board starts as ${words(q.given)}, with ${q.slots} empty spots of up to ${q.height} segments.`, 'A board balances when whoever goes second can always win, whichever colour starts.', 'Check is final for that board: if it does not balance, I take the colour that can win going first, go first and win.'];
   if (q.mode === 'duel') return [...out, `You are ${NAMES[q.colour]} and go first.`];
   if (q.mode === 'replies') return [...out, `You go second from ${words(q.start)}, and I try each first cut in turn. Win every game.`];
-  return [...out, 'Before each game, choose Blue or Red (I choose who starts) or Me second (I choose my colour and go first).', q.mode === 'boards' ? 'Win on every board.' : 'Win 3 games in a row. Only games from a new board count; Same board again is for practice.'];
+  return [...out, 'Before each game, choose Blue or Red (I choose who starts) or Go second (I choose my colour and go first).', q.mode === 'boards' ? 'Win on every board.' : 'Win 3 games in a row. Only games from a new board count; Same board again is for practice.'];
 }
 
 const CONNECTION = 'Red–blue Hackenbush is a partizan game: Blue and Red have different moves. Conway showed that every board is a number, that boards side by side add, and that a board is won by whoever moves second exactly when its number is zero (Winning Ways, Chapters 1–2). A stalk’s number comes from its colours by sign expansion: the first run of one colour counts whole units, and each later segment half the one below it.';
@@ -69,13 +69,13 @@ const authored = [
   {
     number: 2, difficulty_level: 'easy', title: 'Four boards',
     parameters: {mode: 'boards', boards: [['B'], ['R'], ['B', 'R'], ['BB', 'R']]},
-    objective: 'On each board, choose Blue or Red (I choose who starts) or Me second (I choose my colour and go first), then win. Win on every board.',
+    objective: 'On each board, choose Blue or Red (I choose who starts) or Go second (I choose my colour and go first), then win. Win on every board.',
     visibleObjective: 'Choose, then win on every board.',
     idea: 'On B, Blue wins whoever starts; on R, Red; on B and R, whoever goes second; on BB and R, Blue.',
     prerequisites: 'Puzzle 1.',
-    hints: ['Try a choice. Which one can you win with, whatever I do?', 'On B and R, what happens to whoever cuts first?', 'Choose Blue on B and on BB and R, Red on R, and Me second on B and R.'],
-    parent: {notice: 'Whether your child chooses by looking at the board, and notices on B and R that whoever cuts first loses.', prompt: 'On which boards can one colour always win? On which does the second player win?', explanation: 'On B, Blue wins whoever starts, since Red has nothing to cut; R is the same for Red. On B and R whoever moves first must cut their only segment, and then the other cuts theirs: the second player wins. On BB and R Blue wins whoever starts, provided Blue, moving first, cuts the top B. Choosing a colour lets me choose who starts, so it wins only when that colour wins both ways; Me second lets me choose my colour and go first, so it wins only when the second player always wins.', extension: 'Can you find a board where whoever goes first always wins, whichever colour starts? (There is none in this game.)', connection: CONNECTION},
-    provenance: 'Week 83 Problem 1 (boards A–D: play each with Blue starting, then with Red; on which can one colour always win?), as choices that are then played out: a colour with me choosing who starts, or Me second.'
+    hints: ['Try a choice. Which one can you win with, whatever I do?', 'On B and R, what happens to whoever cuts first?', 'Choose Blue on B and on BB and R, Red on R, and Go second on B and R.'],
+    parent: {notice: 'Whether your child chooses by looking at the board, and notices on B and R that whoever cuts first loses.', prompt: 'On which boards can one colour always win? On which does the second player win?', explanation: 'On B, Blue wins whoever starts, since Red has nothing to cut; R is the same for Red. On B and R whoever moves first must cut their only segment, and then the other cuts theirs: the second player wins. On BB and R Blue wins whoever starts, provided Blue, moving first, cuts the top B. Choosing a colour lets me choose who starts, so it wins only when that colour wins both ways; Go second lets me choose my colour and go first, so it wins only when the second player always wins.', extension: 'Can you find a board where whoever goes first always wins, whichever colour starts? (There is none in this game.)', connection: CONNECTION},
+    provenance: 'Week 83 Problem 1 (boards A–D: play each with Blue starting, then with Red; on which can one colour always win?), as choices that are then played out: a colour with me choosing who starts, or Go second.'
   },
   {
     number: 3, difficulty_level: 'easy', title: 'BR and R',
@@ -129,11 +129,11 @@ const authored = [
   {
     number: 8, difficulty_level: 'hard', title: 'Drawn boards',
     parameters: {mode: 'streak', pieces: ['B', 'R', 'BB', 'RR', 'BR', 'RB', 'BRR', 'RBB', 'BRB', 'RBR'], least: 3, most: 8, streak: STREAK},
-    idea: 'Choose Blue when Blue wins whoever starts (the board’s number is positive), Red when it is negative, and Me second when it is zero. No board is won by whoever goes first, so one of the three always wins.',
+    idea: 'Choose Blue when Blue wins whoever starts (the board’s number is positive), Red when it is negative, and Go second when it is zero. No board is won by whoever goes first, so one of the three always wins.',
     prerequisites: 'Puzzles 1–7.',
     hints: STREAK_HINTS,
-    parent: {notice: 'Whether your child decides by reading the board before playing, rather than by what won last time.', prompt: 'How do you decide what to choose?', explanation: 'Blue wins whoever starts when the board’s number is positive, Red when it is negative, and whoever goes second when it is zero. A colour lets me choose who starts, so it wins only when that colour wins both ways; Me second lets me choose my colour and go first, so it wins only on a zero board; no board is a first-player win, so one choice always wins. Boards are drawn from every set of 2 to 4 stalks from B, R, BB, RR, BR, RB, BRR, RBB, BRB and RBR with 3 to 8 segments, both colours and a stalk of both colours; each draw is Blue’s, Red’s or balanced with equal chance, and the app never misses a win, so three wins in a row from new boards shows the choice is known, not guessed.', extension: 'Make a board of three stalks that balances, with no stalk the colour swap of another.', connection: CONNECTION},
-    provenance: 'Week 83 Problems 2 and 3 (which boards balance; find a way for the winning colour to win), as rounds choosing a colour or Me second, three wins in a row from new boards, in place of “which balance?”, as the card’s App fit asks.'
+    parent: {notice: 'Whether your child decides by reading the board before playing, rather than by what won last time.', prompt: 'How do you decide what to choose?', explanation: 'Blue wins whoever starts when the board’s number is positive, Red when it is negative, and whoever goes second when it is zero. A colour lets me choose who starts, so it wins only when that colour wins both ways; Go second lets me choose my colour and go first, so it wins only on a zero board; no board is a first-player win, so one choice always wins. Boards are drawn from every set of 2 to 4 stalks from B, R, BB, RR, BR, RB, BRR, RBB, BRB and RBR with 3 to 8 segments, both colours and a stalk of both colours; each draw is Blue’s, Red’s or balanced with equal chance, and the app never misses a win, so three wins in a row from new boards shows the choice is known, not guessed.', extension: 'Make a board of three stalks that balances, with no stalk the colour swap of another.', connection: CONNECTION},
+    provenance: 'Week 83 Problems 2 and 3 (which boards balance; find a way for the winning colour to win), as rounds choosing a colour or Go second, three wins in a row from new boards, in place of “which balance?”, as the card’s App fit asks.'
   },
   {
     number: 9, difficulty_level: 'hard', title: 'Two spots for four stalks',
@@ -161,7 +161,7 @@ const EXPECTED = {
   'hackenbush-09': {builds: 10, includes: ['R|RB', '|RRB'], value: 1.5}
 };
 const cutKey = m => `${m.stalk}:${m.at}`;
-const OBJECTIVE = {duel: 'Leave me nothing to cut. You go first.', streak: 'Choose Blue or Red (I choose who starts) or Me second (I choose my colour and go first), then win. Win 3 games in a row from new boards.'};
+const OBJECTIVE = {duel: 'Leave me nothing to cut. You go first.', streak: 'Choose Blue or Red (I choose who starts) or Go second (I choose my colour and go first), then win. Win 3 games in a row from new boards.'};
 const VISIBLE = {duel: 'Leave me nothing to cut.', streak: 'Win 3 games in a row.'};
 const BUILD_OBJECTIVE = 'Add stalks so that whoever goes second can always win, whichever colour starts. Then press Check.';
 const BUILD_VISIBLE = 'Add stalks so the second player can always win, whichever colour starts.';

@@ -9,7 +9,7 @@
 //
 // Mechanic `stalks`: duels (you go first in a given colour and must find the
 // winning cut), every reply (go second from a balanced board and win against
-// each first cut), boards (choose Blue, Red or Me second on each of a few
+// each first cut), boards (choose Blue, Red or Go second on each of a few
 // boards, then win) and rounds (the same choice on drawn boards, three wins in
 // a row from new boards). Mechanic `stalkbuild`: add stalks to a board until
 // it balances; Check is final for that board: if it does not balance, I take
@@ -128,7 +128,7 @@ export function assignments(start, claim) {
   return [];
 }
 // The choice that wins against any start and colour I give: the colour that
-// wins whoever starts, or Me second on a board that balances.
+// wins whoever starts, or Go second on a board that balances.
 export const bestClaim = start => ({B: 'B', R: 'R', second: 'second', first: 'B'})[outcome(start)];
 
 // --- Boards for rounds ---------------------------------------------------------------
@@ -174,8 +174,11 @@ export function firstCuts(start) {
 // The board: stalks on a ground line, segments from the ground up. On the
 // child's turn the child's segments are buttons that cut; the rest are drawn
 // only (a tap on one is refused by wire). My last cut is drawn as the dashed
-// pieces that fell. `slots` adds the spots of a build, whose segments can be
-// taken off and whose + buttons add one.
+// pieces that fell. `build` adds the spots of a build, whose segments can be
+// taken off, and a row under the ground line with each spot's two + buttons.
+// The + buttons stay in that row whatever is built (a full spot's are off), so
+// tapping one again and again adds again and again instead of landing on the
+// segment it just added.
 const moveData = action => `data-action="expansion-move" data-move="${esc(JSON.stringify(action))}"`;
 const button = (label, action, cls, enabled = true, hinted = false, focus = '') => `<button type="button" class="${cls} hb-button${hinted ? ' hinted' : ''}" ${moveData(action)} data-focus="${focus || `hb-${esc(action.type)}${action.claim ? `-${esc(action.claim)}` : ''}`}" ${enabled ? '' : 'disabled'}>${label}</button>`;
 function stalksHTML(pos, {live = null, fallen = null, hinted = -1, ring = null, label = 'Stalks', tall = 3, given = pos.length, build = null}) {
@@ -190,11 +193,13 @@ function stalksHTML(pos, {live = null, fallen = null, hinted = -1, ring = null, 
         : `<span class="${cls}" data-s="${i}" data-k="${k}" role="img" aria-label="${esc(name)}"></span>`);
     }
     if (fallen && fallen.stalk === i) for (const [k, c] of [...fallen.pieces].entries()) segs.push(`<span class="hb-seg ${c} fell${k === 0 ? ' cut' : ''}" aria-hidden="true"></span>`);
-    if (build && slot && s.length < build.height) segs.push(`<span class="hb-adds">${COLOURS.map(c => `<button type="button" class="hb-add ${c}${build.hinted && build.hinted.slot === i - given && build.hinted.colour === c ? ' hinted' : ''}" ${moveData({type: 'add', slot: i - given, colour: c})} data-focus="hb-add-${i - given}-${c}" aria-label="${esc(`Spot ${i - given + 1}: add a ${NAME[c]} segment`)}">+</button>`).join('')}</span>`);
     const cls = ['hb-stalk', slot ? 'slot' : '', i === hinted ? 'hinted' : ''].filter(Boolean).join(' ');
     return `<div class="${cls}" data-stalk="${i}">${segs.join('')}</div>`;
   }).join('');
-  return `<div class="hb-board${build ? ' building' : ''}" role="group" aria-label="${esc(label)}" style="--n:${pos.length};--tall:${tall}">${columns}</div>`;
+  const board = `<div class="hb-board${build ? ' building' : ''}" role="group" aria-label="${esc(label)}" style="--n:${pos.length};--tall:${tall}">${columns}</div>`;
+  if (!build) return board;
+  const adds = pos.map((s, i) => i < given ? '<span class="hb-adds given" aria-hidden="true"></span>' : `<span class="hb-adds">${COLOURS.map(c => `<button type="button" class="hb-add ${c}${build.hinted && build.hinted.slot === i - given && build.hinted.colour === c ? ' hinted' : ''}" ${moveData({type: 'add', slot: i - given, colour: c})} data-focus="hb-add-${i - given}-${c}" aria-label="${esc(`Spot ${i - given + 1}: add a ${NAME[c]} segment`)}" ${s.length < build.height ? '' : 'disabled'}>+</button>`).join('')}</span>`).join('');
+  return `${board}<div class="hb-addrow" role="group" aria-label="Add segments">${adds}</div>`;
 }
 // You and me, in our colours.
 const key = colour => `<span class="hb-key" role="img" aria-label="${esc(`You are ${TITLE[colour]}. I am ${TITLE[other(colour)]}.`)}"><span class="hb-who"><span class="hb-swatch ${colour}"></span>You</span><span class="hb-who"><span class="hb-swatch ${other(colour)}"></span>Me</span></span>`;
@@ -393,7 +398,7 @@ function gameRender(p, a) {
   const board = stalksHTML(b.pos, {live: yourTurn ? b.colour : null, fallen: fallenOf(b), hinted, tall: tallest(q)});
   const claimHint = q.mode === 'boards' && b.first === null && a.hintLevel >= 2 ? bestClaim(b.start) : null;
   let controls = '';
-  if (!done && b.first === null) controls = ['B', 'R', 'second'].map(c => button(c === 'second' ? 'Me second' : `<span class="hb-swatch ${c}" aria-hidden="true"></span>${TITLE[c]}`, {type: 'claim', claim: c}, `secondary hb-claim${c === 'second' ? '' : ` ${c}`}`, true, claimHint === c)).join('');
+  if (!done && b.first === null) controls = ['B', 'R', 'second'].map(c => button(c === 'second' ? 'Go second' : `<span class="hb-swatch ${c}" aria-hidden="true"></span>${TITLE[c]}`, {type: 'claim', claim: c}, `secondary hb-claim${c === 'second' ? '' : ` ${c}`}`, true, claimHint === c)).join('');
   else if (!done && run.over && q.mode === 'streak') controls = `${run.winner === 'opponent' ? button('Same board again', {type: 'again'}, 'secondary') : ''}${button('New board', {type: 'new'}, 'primary')}`;
   else if (!done && run.over && q.mode === 'replies') controls = run.winner === 'you' ? button('Next first cut', {type: 'next'}, 'primary') : button('Try again', {type: 'again'}, 'primary');
   else if (!done && run.over && q.mode === 'boards') controls = run.winner === 'you' ? button('Next board', {type: 'next'}, 'primary') : button('Try again', {type: 'again'}, 'primary');
@@ -445,6 +450,10 @@ function buildValid(p, b) {
   return Boolean(run) && (run.over || run.toMove === 'you');
 }
 const buildSolved = (p, b) => buildValid(p, b) && b.done;
+// Undo takes back an add, a take-off, a Check or a cut in its play-out, one
+// at a time. Check waits for a change, so Undo back to the same built stalks
+// keeps it off, as Back does.
+const buildCarry = (p, from, to) => from.checked && !to.checked && !to.done && from.built.join() === to.built.join() ? {...to, checked: true} : to;
 const buildFresh = p => ({built: Array.from({length: p.parameters.slots}, () => ''), play: null, checked: false, done: false});
 function buildMove(p, b, action, random = Math.random) {
   const q = p.parameters;
@@ -580,7 +589,7 @@ export const hackenbushMechanics = {
     hint: buildHint,
     render: buildRender,
     wire: wireStalks,
-    noUndo: () => true
+    carry: buildCarry
   }
 };
 
@@ -593,5 +602,5 @@ export default {
   css: new URL('./hackenbush.css', import.meta.url).href,
   // Segments and spots first, then the controls; the status line only when
   // the board has no control left (a lost duel).
-  focus: ':is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) :is(button.hb-seg,button.hb-add,.hb-actions button:not(:disabled)),:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]):not(:has(button:not(:disabled))) .hb-status'
+  focus: ':is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) :is(button.hb-seg,button.hb-add:not(:disabled),.hb-actions button:not(:disabled)),:is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]):not(:has(button:not(:disabled))) .hb-status'
 };

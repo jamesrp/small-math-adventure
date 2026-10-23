@@ -3,7 +3,7 @@
    stripe so the colours differ by more than hue. The child's segments are
    buttons on the child's turn; the pieces my last cut sent down are dashed
    above their stalk; a hinted stalk is ringed in ochre. A build's spots are
-   dashed outlines with + buttons above what is built. Every rule is scoped
+   dashed outlines, with their + buttons in a fixed row under the ground. Every rule is scoped
    under the two mechanics' roots. */
 :is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]){--hb-blue:#3b6797;--hb-red:#c2452f;--hb-red-light:#f3cfc4;--hb-seg-w:52px;--hb-seg-h:54px;--hb-bar:17px;display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%}
 
@@ -41,16 +41,18 @@
 :is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-seg.fell::after{background:none;border:2px dashed #9aa08a;box-sizing:border-box}
 :is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-seg.fell.cut::before{bottom:6px}
 
-/* A build's spots: a dashed outline as tall as a spot may grow, with room
-   while building for its + buttons (three segments and two buttons; four
-   segments leave no buttons). */
+/* A build's spots: a dashed outline as tall as a spot may grow. Under the
+   ground, a row as wide as the board holds each spot's two + buttons in the
+   spot's column, so they never move as the spot grows. */
 [data-mechanic-wire="stalkbuild"] .hb-stalk.slot{width:calc(var(--hb-seg-w) + 6px);min-height:calc(var(--tall) * var(--hb-seg-h) + 8px);border:2px dashed var(--b-line,#c4cbb0);border-bottom:0;justify-content:flex-start}
-[data-mechanic-wire="stalkbuild"] .hb-board.building{min-height:calc((var(--tall) - 1) * var(--hb-seg-h) + 96px)}
-[data-mechanic-wire="stalkbuild"] .hb-board.building .hb-stalk.slot{min-height:calc((var(--tall) - 1) * var(--hb-seg-h) + 86px)}
-[data-mechanic-wire="stalkbuild"] .hb-adds{display:flex;flex-direction:column-reverse;gap:4px;padding:4px 0}
-[data-mechanic-wire="stalkbuild"] .hb-add{width:42px;height:34px;min-height:0;margin:0;padding:0;border:0;border-radius:10px;background:var(--hb-blue);color:#fff;font:700 1.35rem/1 var(--b-display,Georgia,serif);box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer}
+[data-mechanic-wire="stalkbuild"] .hb-board.building{min-height:calc(var(--tall) * var(--hb-seg-h) + 10px)}
+[data-mechanic-wire="stalkbuild"] .hb-addrow{display:flex;justify-content:center;align-items:flex-start;gap:clamp(4px,3vw,22px);box-sizing:border-box;width:100%;max-width:440px;margin-top:-.3rem;padding:0 10px;touch-action:manipulation}
+[data-mechanic-wire="stalkbuild"] .hb-adds{display:flex;flex-direction:column;align-items:center;gap:6px;width:calc(var(--hb-seg-w) + 6px)}
+[data-mechanic-wire="stalkbuild"] .hb-adds.given{width:var(--hb-seg-w)}
+[data-mechanic-wire="stalkbuild"] .hb-add{width:100%;height:44px;min-height:0;margin:0;padding:0;border:0;border-radius:10px;background:var(--hb-blue);color:#fff;font:700 1.35rem/1 var(--b-display,Georgia,serif);box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer}
 [data-mechanic-wire="stalkbuild"] .hb-add.R{background:var(--hb-red)}
-[data-mechanic-wire="stalkbuild"] .hb-add:hover{filter:brightness(1.1)}
+[data-mechanic-wire="stalkbuild"] .hb-add[disabled]{opacity:.35;box-shadow:none;cursor:default;filter:none}
+[data-mechanic-wire="stalkbuild"] .hb-add:not([disabled]):hover{filter:brightness(1.1)}
 [data-mechanic-wire="stalkbuild"] .hb-add:focus{outline:none}
 [data-mechanic-wire="stalkbuild"] .hb-add:focus-visible{outline:3px solid var(--b-ochre,#b38840);outline-offset:2px}
 [data-mechanic-wire="stalkbuild"] .hb-add.hinted{outline:3px dashed var(--b-ochre,#b38840);outline-offset:2px}
@@ -68,8 +70,9 @@
 @media (max-width:420px){
   :is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]){--hb-seg-w:42px;--hb-seg-h:40px;--hb-bar:14px}
   :is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-status{font-size:1rem}
-  :is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-board{padding:0 4px}
-  [data-mechanic-wire="stalkbuild"] .hb-add{width:40px;height:32px}
+  :is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]) .hb-board,[data-mechanic-wire="stalkbuild"] .hb-addrow{padding:0 4px}
+  [data-mechanic-wire="stalkbuild"] .hb-adds{gap:4px}
+  [data-mechanic-wire="stalkbuild"] .hb-add{height:40px}
 }
 @media (max-width:350px){
   :is([data-mechanic-wire="stalks"],[data-mechanic-wire="stalkbuild"]){--hb-seg-w:38px;--hb-seg-h:36px;--hb-bar:12px}

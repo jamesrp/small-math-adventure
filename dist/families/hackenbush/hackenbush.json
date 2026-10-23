@@ -146,16 +146,16 @@
      ]
     ]
    },
-   "objective": "On each board, choose Blue or Red (I choose who starts) or Me second (I choose my colour and go first), then win. Win on every board.",
+   "objective": "On each board, choose Blue or Red (I choose who starts) or Go second (I choose my colour and go first), then win. Win on every board.",
    "visibleObjective": "Choose, then win on every board.",
-   "instruction": "On each board, choose Blue or Red (I choose who starts) or Me second (I choose my colour and go first), then win. Win on every board.",
-   "controls": "Blue cuts one blue segment and Red one red segment; everything above a cut falls off. Whoever has nothing to cut loses. On each board: Choose Blue or Red, and I choose who starts; or choose Me second, and I choose my colour and go first. The choice is final for that game. Tap one of your segments to cut it. After a win, Next board; after a loss, Try again.",
+   "instruction": "On each board, choose Blue or Red (I choose who starts) or Go second (I choose my colour and go first), then win. Win on every board.",
+   "controls": "Blue cuts one blue segment and Red one red segment; everything above a cut falls off. Whoever has nothing to cut loses. On each board: Choose Blue or Red, and I choose who starts; or choose Go second, and I choose my colour and go first. The choice is final for that game. Tap one of your segments to cut it. After a win, Next board; after a loss, Try again.",
    "rules": [
     "Blue cuts one blue segment; Red cuts one red segment.",
     "Everything above a cut falls off.",
     "Players take turns. Whoever has nothing to cut loses.",
     "The app never misses a winning cut.",
-    "Before each game, choose Blue or Red (I choose who starts) or Me second (I choose my colour and go first).",
+    "Before each game, choose Blue or Red (I choose who starts) or Go second (I choose my colour and go first).",
     "Win on every board."
    ],
    "idea": "On B, Blue wins whoever starts; on R, Red; on B and R, whoever goes second; on BB and R, Blue.",
@@ -163,12 +163,12 @@
    "hints": [
     "Try a choice. Which one can you win with, whatever I do?",
     "On B and R, what happens to whoever cuts first?",
-    "Choose Blue on B and on BB and R, Red on R, and Me second on B and R."
+    "Choose Blue on B and on BB and R, Red on R, and Go second on B and R."
    ],
    "parent": {
     "notice": "Whether your child chooses by looking at the board, and notices on B and R that whoever cuts first loses.",
     "prompt": "On which boards can one colour always win? On which does the second player win?",
-    "explanation": "On B, Blue wins whoever starts, since Red has nothing to cut; R is the same for Red. On B and R whoever moves first must cut their only segment, and then the other cuts theirs: the second player wins. On BB and R Blue wins whoever starts, provided Blue, moving first, cuts the top B. Choosing a colour lets me choose who starts, so it wins only when that colour wins both ways; Me second lets me choose my colour and go first, so it wins only when the second player always wins.",
+    "explanation": "On B, Blue wins whoever starts, since Red has nothing to cut; R is the same for Red. On B and R whoever moves first must cut their only segment, and then the other cuts theirs: the second player wins. On BB and R Blue wins whoever starts, provided Blue, moving first, cuts the top B. Choosing a colour lets me choose who starts, so it wins only when that colour wins both ways; Go second lets me choose my colour and go first, so it wins only when the second player always wins.",
     "extension": "Can you find a board where whoever goes first always wins, whichever colour starts? (There is none in this game.)",
     "connection": "Red–blue Hackenbush is a partizan game: Blue and Red have different moves. Conway showed that every board is a number, that boards side by side add, and that a board is won by whoever moves second exactly when its number is zero (Winning Ways, Chapters 1–2). A stalk’s number comes from its colours by sign expansion: the first run of one colour counts whole units, and each later segment half the one below it.",
     "sourceIds": [
@@ -216,7 +216,7 @@
      }
     ]
    },
-   "provenance": "Week 83 Problem 1 (boards A–D: play each with Blue starting, then with Red; on which can one colour always win?), as choices that are then played out: a colour with me choosing who starts, or Me second.",
+   "provenance": "Week 83 Problem 1 (boards A–D: play each with Blue starting, then with Red; on which can one colour always win?), as choices that are then played out: a colour with me choosing who starts, or Go second.",
    "proof": true,
    "sourceDocument": "docs/hackenbush/README.md"
   },
@@ -525,7 +525,7 @@
    "objective": "Add stalks so that whoever goes second can always win, whichever colour starts. Then press Check.",
    "visibleObjective": "Add stalks so the second player can always win, whichever colour starts.",
    "instruction": "Add stalks so that whoever goes second can always win, whichever colour starts. Then press Check.",
-   "controls": "Blue cuts one blue segment and Red one red segment; everything above a cut falls off. Whoever has nothing to cut loses. Tap + to add a blue or red segment to a spot, and tap a segment you added to take it off with everything above it. Check tests the whole board. If whoever goes second can always win, whichever colour starts, it balances and you are done. If not, I take the colour that can win going first, go first and win; then Back returns to your board, and Check waits for a change.",
+   "controls": "Blue cuts one blue segment and Red one red segment; everything above a cut falls off. Whoever has nothing to cut loses. Tap a + under a spot to add a blue or red segment to it, and tap a segment you added to take it off with everything above it. Check tests the whole board. If whoever goes second can always win, whichever colour starts, it balances and you are done. If not, I take the colour that can win going first, go first and win; then Back returns to your board, and Check waits for a change. Undo takes back one step at a time.",
    "rules": [
     "Blue cuts one blue segment; Red cuts one red segment.",
     "Everything above a cut falls off.",
@@ -852,19 +852,19 @@
     "most": 8,
     "streak": 3
    },
-   "objective": "Choose Blue or Red (I choose who starts) or Me second (I choose my colour and go first), then win. Win 3 games in a row from new boards.",
+   "objective": "Choose Blue or Red (I choose who starts) or Go second (I choose my colour and go first), then win. Win 3 games in a row from new boards.",
    "visibleObjective": "Win 3 games in a row.",
-   "instruction": "Choose Blue or Red (I choose who starts) or Me second (I choose my colour and go first), then win. Win 3 games in a row from new boards.",
-   "controls": "Blue cuts one blue segment and Red one red segment; everything above a cut falls off. Whoever has nothing to cut loses. Before each game: Choose Blue or Red, and I choose who starts; or choose Me second, and I choose my colour and go first. The choice is final for that game. Tap one of your segments to cut it. Win 3 games in a row from new boards. After a loss, Same board again is practice and does not count.",
+   "instruction": "Choose Blue or Red (I choose who starts) or Go second (I choose my colour and go first), then win. Win 3 games in a row from new boards.",
+   "controls": "Blue cuts one blue segment and Red one red segment; everything above a cut falls off. Whoever has nothing to cut loses. Before each game: Choose Blue or Red, and I choose who starts; or choose Go second, and I choose my colour and go first. The choice is final for that game. Tap one of your segments to cut it. Win 3 games in a row from new boards. After a loss, Same board again is practice and does not count.",
    "rules": [
     "Blue cuts one blue segment; Red cuts one red segment.",
     "Everything above a cut falls off.",
     "Players take turns. Whoever has nothing to cut loses.",
     "The app never misses a winning cut.",
-    "Before each game, choose Blue or Red (I choose who starts) or Me second (I choose my colour and go first).",
+    "Before each game, choose Blue or Red (I choose who starts) or Go second (I choose my colour and go first).",
     "Win 3 games in a row. Only games from a new board count; Same board again is for practice."
    ],
-   "idea": "Choose Blue when Blue wins whoever starts (the board’s number is positive), Red when it is negative, and Me second when it is zero. No board is won by whoever goes first, so one of the three always wins.",
+   "idea": "Choose Blue when Blue wins whoever starts (the board’s number is positive), Red when it is negative, and Go second when it is zero. No board is won by whoever goes first, so one of the three always wins.",
    "prerequisites": "Puzzles 1–7.",
    "hints": [
     "Lost a game? Same board again replays it. Which choice would have won?",
@@ -874,7 +874,7 @@
    "parent": {
     "notice": "Whether your child decides by reading the board before playing, rather than by what won last time.",
     "prompt": "How do you decide what to choose?",
-    "explanation": "Blue wins whoever starts when the board’s number is positive, Red when it is negative, and whoever goes second when it is zero. A colour lets me choose who starts, so it wins only when that colour wins both ways; Me second lets me choose my colour and go first, so it wins only on a zero board; no board is a first-player win, so one choice always wins. Boards are drawn from every set of 2 to 4 stalks from B, R, BB, RR, BR, RB, BRR, RBB, BRB and RBR with 3 to 8 segments, both colours and a stalk of both colours; each draw is Blue’s, Red’s or balanced with equal chance, and the app never misses a win, so three wins in a row from new boards shows the choice is known, not guessed.",
+    "explanation": "Blue wins whoever starts when the board’s number is positive, Red when it is negative, and whoever goes second when it is zero. A colour lets me choose who starts, so it wins only when that colour wins both ways; Go second lets me choose my colour and go first, so it wins only on a zero board; no board is a first-player win, so one choice always wins. Boards are drawn from every set of 2 to 4 stalks from B, R, BB, RR, BR, RB, BRR, RBB, BRB and RBR with 3 to 8 segments, both colours and a stalk of both colours; each draw is Blue’s, Red’s or balanced with equal chance, and the app never misses a win, so three wins in a row from new boards shows the choice is known, not guessed.",
     "extension": "Make a board of three stalks that balances, with no stalk the colour swap of another.",
     "connection": "Red–blue Hackenbush is a partizan game: Blue and Red have different moves. Conway showed that every board is a number, that boards side by side add, and that a board is won by whoever moves second exactly when its number is zero (Winning Ways, Chapters 1–2). A stalk’s number comes from its colours by sign expansion: the first run of one colour counts whole units, and each later segment half the one below it.",
     "sourceIds": [
@@ -988,7 +988,7 @@
      ]
     ]
    },
-   "provenance": "Week 83 Problems 2 and 3 (which boards balance; find a way for the winning colour to win), as rounds choosing a colour or Me second, three wins in a row from new boards, in place of “which balance?”, as the card’s App fit asks.",
+   "provenance": "Week 83 Problems 2 and 3 (which boards balance; find a way for the winning colour to win), as rounds choosing a colour or Go second, three wins in a row from new boards, in place of “which balance?”, as the card’s App fit asks.",
    "proof": true,
    "sourceDocument": "docs/hackenbush/README.md"
   },
@@ -1017,7 +1017,7 @@
    "objective": "Add stalks so that whoever goes second can always win, whichever colour starts. Then press Check.",
    "visibleObjective": "Add stalks so the second player can always win, whichever colour starts.",
    "instruction": "Add stalks so that whoever goes second can always win, whichever colour starts. Then press Check.",
-   "controls": "Blue cuts one blue segment and Red one red segment; everything above a cut falls off. Whoever has nothing to cut loses. Tap + to add a blue or red segment to a spot, and tap a segment you added to take it off with everything above it. Check tests the whole board. If whoever goes second can always win, whichever colour starts, it balances and you are done. If not, I take the colour that can win going first, go first and win; then Back returns to your board, and Check waits for a change.",
+   "controls": "Blue cuts one blue segment and Red one red segment; everything above a cut falls off. Whoever has nothing to cut loses. Tap a + under a spot to add a blue or red segment to it, and tap a segment you added to take it off with everything above it. Check tests the whole board. If whoever goes second can always win, whichever colour starts, it balances and you are done. If not, I take the colour that can win going first, go first and win; then Back returns to your board, and Check waits for a change. Undo takes back one step at a time.",
    "rules": [
     "Blue cuts one blue segment; Red cuts one red segment.",
     "Everything above a cut falls off.",

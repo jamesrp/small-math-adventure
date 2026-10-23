@@ -305,7 +305,7 @@ export default async function validateHackenbush() {
         const mine = cutsOf(toCodes(s), SIDE.R)[0], turns = [{player: 'opponent', stalk: mine.stalk, at: mine.at}];
         const forgedGame = {start: s, pos: standing(s, turns), claim: 'B', colour: 'B', first: 'opponent', turns, round: 0, won: []};
         assert.equal(validBoard(solo, forgedGame), false, `${p.id}: Blue on a balanced board means you start`);
-        assert.ok(validBoard(solo, {...forgedGame, claim: 'second'}), `${p.id}: the same game is honest after Me second`);
+        assert.ok(validBoard(solo, {...forgedGame, claim: 'second'}), `${p.id}: the same game is honest after Go second`);
       }
     } else {
       report.rounds++;
