@@ -218,6 +218,7 @@ export default async function validatePiles() {
     let x = moves(placed('0134'), [['0', '1'], ['1', '2'], ['1', '2'], ['3', '2'], ['4', '3'], ['3', '2'], ['2', '1'], ['1', '2']]);
     assert.ok(!isSolved(p, x.board), 'eight moves are not a solve');
     assert.match(draw(p)(x), /pl-pip over/, 'extra moves turn red');
+    assert.match(draw(p)(x), /Too many moves\./, 'and the filled rings say too many');
     // 0113 needs 5: matched in exactly 7 with an out-and-back is not a solve, and the board says so.
     const c = moves(placed('0113'), [['3', '4'], ['4', '3'], ['3', '2'], ['1', '2'], ['1', '2'], ['0', '1'], ['1', '2']]);
     assert.equal(bfs(m, pilesOf(m, '0113'), p.parameters.target), 5);

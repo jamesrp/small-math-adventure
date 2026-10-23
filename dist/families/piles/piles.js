@@ -422,10 +422,14 @@ function render(p, a) {
     const role = b.pair[0] === k ? ' start' : b.pair[1] === k ? ' target' : '', hint = hinted?.card === k ? ' hinted' : '';
     return `<button type="button" class="pl-card${role}${hint}" data-action="expansion-move" data-move='${JSON.stringify({type: 'card', card: k})}' data-focus="pl-card-${k}" ${done ? 'disabled' : ''} aria-pressed="${Boolean(role)}" aria-label="Card ${pileWords(m, c)}${role === ' start' ? ', the counters' : role === ' target' ? ', the rings' : ''}">${cardArt(c)}</button>`;
   }).join('')}</div>` : '';
-  // A line only for a refused claim, or a design whose moves fit but whose
-  // start needs fewer.
-  const fewer = q.mode === 'design' && !done && matched(st) && st.work === q.exact;
-  const told = b.told === 'less' || fewer ? 'Fewer moves would do.' : b.told === 'farther' ? 'Another pair takes more moves.' : '';
+  // A line only for a refused claim, for rings filled with more moves than
+  // the dots (the budget is the least work, so a move puzzle can say fewer
+  // would do; a design's start may need more, so it says only too many), or
+  // for a design whose moves fit but whose start needs fewer.
+  const filled = !done && (q.mode === 'move' || q.mode === 'design') && matched(st);
+  const fewer = filled && (q.mode === 'design' ? st.work === q.exact : st.work > q.budget);
+  const tooMany = filled && q.mode === 'design' && st.work > q.exact;
+  const told = b.told === 'less' || fewer ? 'Fewer moves would do.' : tooMany ? 'Too many moves.' : b.told === 'farther' ? 'Another pair takes more moves.' : '';
   const status = `${picking ? (b.pair.length ? 'Pick the card for the rings.' : 'Pick a card for the counters.') : `Counters: ${pileWords(m, now)}.${st.target ? ` Rings: ${pileWords(m, rings)}.` : ''}`} ${plural(st.work, 'move')}.${pick !== null ? ` ${pick} is picked.` : ''}${told ? ` ${told}` : ''}`;
   return `<div class="pl-puzzle${done ? ' solved' : ''}" data-mechanic-wire="piles">${maps}${cards}${bar}${board}${told ? `<p class="pl-told">${told}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }

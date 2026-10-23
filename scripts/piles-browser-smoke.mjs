@@ -1,7 +1,7 @@
 // Plays Moving piles through the real interface on the shared graph board:
 // picking a pile and moving by taps and by keyboard, where a picked pile can
 // go, a slide that carries a counter several roads (a mouse drag, or a touch
-// drag with TEST_PHONE=1), red move dots and Undo, the marks after a solve,
+// drag with TEST_PHONE=1), red move dots with "Fewer moves would do." and Undo, the marks after a solve,
 // placing a design and "Fewer moves would do.", the cards with both refused
 // Bests kept off through Undo and the right claim, the ring, and the
 // playground's maps and tools. Same environment variables as the other
@@ -89,6 +89,7 @@ try {
   assert.equal((await board(N)).log.length, 6, 'a slide is one move a road');
   assert.equal(await count('.pl-pip.over'), 2, 'two red dots');
   assert.equal(await page.locator('#completion-heading').count(), 0, 'not solved');
+  assert.equal(await page.locator('.pl-told').innerText(), 'Fewer moves would do.', 'filled over the budget, the board says so');
   await shot('nearest-over');
   for (let k = 6; k > 0; k--) { const before = await panel(); await undo(); assert.notEqual(await panel(), before, 'each Undo changes the board'); }
   assert.deepEqual((await board(N)).log, []);

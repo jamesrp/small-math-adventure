@@ -55,6 +55,8 @@ test('a move puzzle: budget, red dots and the solve', () => {
   const crossed = play(p, a, go('1', '2'), go('3', '2'), go('2', '1'));
   assert.ok(!isSolved(p, crossed.board), 'four moves are over the budget');
   assert.match(view(p, crossed), /pl-pip over/);
+  assert.match(view(p, crossed), /<p class="pl-told">Fewer moves would do\.<\/p>/, 'rings filled over the budget say so unasked');
+  assert.doesNotMatch(view(p, play(p, a, go('1', '2'))), /pl-told/, 'no line while rings are still empty');
   assert.deepEqual(nextHint(p, play(p, a, go('1', '2'))), {type: 'deadend', quiet: true, text: 'There aren’t enough moves left. Undo.'});
   a = play(p, a, go('3', '2'));
   assert.ok(isSolved(p, a.board));
