@@ -76,3 +76,4 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Week 99 Moving piles (card fit A, size S) | Claude, Autonomous worksheet improvement thread | `claude/app-piles-ntxcu3` | in progress |
 | Week 86 Pursuit and escape (Wave 10, card fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-pursuit-ntxcu3` | in progress |
 | Week 90 Sliding number arrays, jeu de taquin (Wave 10, card fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-taquin-ntxcu3` | in progress |
+| Week 98 Growing from a few seeds on the square grid (Wave 10, card fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-preview-ntxcu3` | in progress |
