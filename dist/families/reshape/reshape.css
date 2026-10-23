@@ -1,0 +1,81 @@
+@import url('../../sq-grid.css');
+/* Missing square in Tile gardens: a paper shape above a grid on the shared
+   square grid. Pieces are tinted card with ink outlines, the chosen one
+   ringed in pine; cut lines are dashed ink; the marked square and the
+   square left over are ochre; Georgia numerals give the sides. */
+.rs-puzzle{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
+.rs-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem 1rem;max-width:100%;min-height:46px}
+.rs-snips{display:inline-flex;gap:4px;align-items:center}
+.rs-snip{width:26px;height:26px;opacity:.22}
+.rs-snip.on{opacity:1}
+.rs-snip circle,.rs-snip path{fill:none;stroke:var(--b-ink,#294439);stroke-width:2;stroke-linecap:round}
+.rs-buttons{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem}
+.rs-puzzle .rs-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.rs-puzzle .rs-button[disabled]{opacity:.5;box-shadow:none}
+.rs-puzzle .rs-button[aria-pressed="true"]{background:#e9eddc;border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.rs-puzzle .rs-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.rs-note{margin:0;font-weight:600;color:var(--b-bad,#a9503a)}
+
+/* The board: small boards get big squares; big ones use the width. */
+.rs-stage{width:100%;max-width:min(560px, calc(var(--rs-cols) * 56px + 70px))}
+.rs-puzzle .rs-board{max-width:none;max-height:72vh}
+.rs-board .sg-cell.rs-home{fill:#fbf8ec}
+.rs-board .sg-cell.rs-home.away{fill:#efece0;stroke:#d9d6c4}
+.rs-board .sg-cell.rs-mat{fill:#fffdf5}
+.rs-board .sg-cell.mark{fill:#f7ead0}
+.rs-board .sg-cell.picked{fill:#f6e3b0}
+.rs-board .sg-cell.clash{fill:#f5d9cf;stroke:var(--b-bad,#a9503a);stroke-width:2.5px}
+.rs-side{font-family:var(--b-display,Georgia,serif);fill:var(--b-muted,#5a6850);text-anchor:middle;pointer-events:none}
+.rs-side-left{text-anchor:end;dominant-baseline:central}
+.rs-made-side{fill:var(--b-pine,#31533e);font-weight:700}
+
+/* Pieces, tinted so neighbours differ; the chosen one in pine. */
+.rs-board .sg-piece{stroke:var(--b-ink,#294439);stroke-width:1.8px}
+.rs-board .c0{fill:#efc76e}
+.rs-board .c1{fill:#9cc9de}
+.rs-board .c2{fill:#a9c79a}
+.rs-board .c3{fill:#e7a28f}
+.rs-board .c4{fill:#bfc0f1}
+.rs-board .c5{fill:#d9b8e0}
+.rs-board .c6{fill:#f3e0a8}
+.rs-board .sg-piece.chosen{stroke:var(--b-pine,#31533e);stroke-width:4px}
+.rs-board .sg-piece.hinted{stroke:var(--b-ochre,#b38840);stroke-width:3.5px;stroke-dasharray:5 4}
+.rs-board.claiming .sg-piece{opacity:.35}
+@media (prefers-reduced-motion:no-preference){
+  .rs-board .sg-piece.shake0,.rs-board .sg-piece.shake1{transform-box:fill-box;transform-origin:center}
+  .rs-board .sg-piece.shake0{animation:rs-shake0 .32s ease-in-out}
+  .rs-board .sg-piece.shake1{animation:rs-shake1 .32s ease-in-out}
+}
+@keyframes rs-shake0{25%{transform:translateX(-3%)}75%{transform:translateX(3%)}}
+@keyframes rs-shake1{25%{transform:translateX(-3%)}75%{transform:translateX(3%)}}
+
+/* Cut lines across the chosen piece at the top: dashed ink. A tap near a
+   line reaches the square under it, which cuts there; the lines themselves
+   take only keyboard focus, so every drag still moves a piece. */
+.rs-cut{outline:none;pointer-events:none}
+.rs-cut-hit{stroke:transparent;stroke-width:16px;vector-effect:non-scaling-stroke;stroke-linecap:round;pointer-events:none}
+.rs-cut-line{stroke:var(--b-ink,#294439);stroke-width:2px;stroke-dasharray:4 3;vector-effect:non-scaling-stroke;stroke-linecap:round;pointer-events:none}
+.rs-cut:focus-visible .rs-cut-hit{stroke:rgba(179,136,64,.45)}
+.rs-cut.hinted .rs-cut-line{stroke:var(--b-ochre,#b38840);stroke-width:3.5px}
+
+/* The marked square, the square left over, a rectangle made. */
+.rs-mark-box{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:2.5px;stroke-dasharray:6 4;vector-effect:non-scaling-stroke;pointer-events:none}
+.rs-hole-ring{fill:rgba(239,199,110,.25);stroke:var(--b-ochre,#b38840);stroke-width:4.5px;vector-effect:non-scaling-stroke;pointer-events:none}
+.rs-hole-num{font-family:var(--b-display,Georgia,serif);fill:var(--b-ink,#294439);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.rs-made{fill:none;stroke:var(--b-pine,#31533e);stroke-width:3.5px;vector-effect:non-scaling-stroke;pointer-events:none}
+
+/* Can't: squares picked. */
+.rs-pick{fill:var(--b-ochre,#b38840);stroke:var(--b-card,#fffdf5);stroke-width:1.5px;vector-effect:non-scaling-stroke;pointer-events:none}
+.rs-pick.kept{fill:var(--b-pine,#31533e)}
+
+/* Rectangles made. */
+.rs-shelf{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem;margin:0;padding:0;list-style:none}
+.rs-slot{display:grid;place-items:center;min-width:78px;height:78px;padding:5px 8px;background:#fbf4dc;border:1.5px solid #ead9a4;border-radius:12px;box-sizing:border-box}
+.rs-slot.here{box-shadow:0 0 0 3px var(--b-sun,#efc76e)}
+.rs-mini{display:block;width:auto;height:100%;max-width:120px}
+.rs-mini-rect{fill:#efc76e;stroke:var(--b-ink,#294439);stroke-width:1.2}
+.rs-mini-grid{stroke:rgba(41,68,57,.3);stroke-width:.6;fill:none}
+.rs-mini-side{font-family:var(--b-display,Georgia,serif);font-size:6.5px;fill:var(--b-ink,#294439);text-anchor:middle}
+.rs-mini-left{text-anchor:end;dominant-baseline:central}
+@media (prefers-reduced-motion:no-preference){.rs-slot.here{animation:rs-pop .35s ease-out}}
+@keyframes rs-pop{from{transform:scale(.85)}to{transform:scale(1)}}
