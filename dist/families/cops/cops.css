@@ -1,0 +1,76 @@
+@import url('../../graph-board.css');
+/* Cops and robbers: C in sky and R in rose, standing on the dots of the shared
+   graph board; a ring in pine on the piece the child moves; a soft stroke on
+   the road a piece just took; pips for the moves; new roads in pine. */
+.cp-puzzle{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
+.cp-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .9rem;max-width:100%;min-height:46px}
+.cp-puzzle .cp-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.cp-puzzle .cp-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+.cp-puzzle :is(.cp-button,.cp-chip).hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+
+/* Moves left, and the slots for new roads. */
+.cp-pips{display:inline-flex;gap:7px}
+.cp-pips i{width:16px;height:16px;border-radius:50%;border:2px solid var(--b-ink,#294439);box-sizing:border-box;background:var(--b-card,#fffdf5)}
+.cp-pips i.on{background:#c9d0bb;border-color:#9aa88f}
+.cp-pips.roads i{width:28px;height:12px;border-radius:6px;border:2px dashed #9aa88f}
+.cp-pips.roads i.on{border:0;background:var(--b-pine,#31533e)}
+
+/* The piece waiting to be put down. */
+.cp-tray{display:inline-block;width:46px;height:46px}
+.cp-tray svg{display:block;width:100%;height:100%}
+.cp-tray circle{stroke:var(--b-ink,#294439);stroke-width:1px}
+.cp-tray.cC circle{fill:var(--b-sky,#9cc9de)}
+.cp-tray.cR circle{fill:var(--b-rose,#e7a28f)}
+.cp-tray text{font:400 6.4px var(--b-display,Georgia,serif);text-anchor:middle;fill:var(--b-ink,#294439)}
+@media (prefers-reduced-motion:no-preference){.cp-tray{animation:cp-bob 1.6s ease-in-out infinite}}
+@keyframes cp-bob{50%{transform:translateY(-4px)}}
+
+/* The map. */
+.cp-map{max-width:440px}
+.cp-map.small{max-width:330px}
+.cp-map .gb-node .gb-dot{stroke-width:2px}
+.cp-map .gb-node.can-go .gb-dot{fill:var(--b-good-soft,#e2ecd6)}
+.cp-map .gb-node.picked .gb-reach{fill:none;stroke:var(--b-pine,#31533e);stroke-width:4px;vector-effect:non-scaling-stroke}
+.cp-map .gb-edge.added .gb-line{stroke:var(--b-pine,#31533e);stroke-width:4px}
+.cp-map .gb-label{font-size:5.6px}
+
+/* Pieces, the roads they just took, and a planned move. */
+.cp-top{pointer-events:none}
+.cp-token circle{stroke:var(--b-ink,#294439);stroke-width:2px;vector-effect:non-scaling-stroke}
+.cp-token.cC circle{fill:var(--b-sky,#9cc9de)}
+.cp-token.cR circle{fill:var(--b-rose,#e7a28f)}
+.cp-token text{font-size:6.4px;fill:var(--b-ink,#294439)}
+.cp-token text.two{font-size:4.6px}
+.cp-token.mine circle{stroke:var(--b-pine,#31533e);stroke-width:4.5px}
+.cp-token.ghost circle{fill:var(--b-card,#fffdf5);stroke-dasharray:3 3;opacity:.9}
+.cp-token.ghost text{fill:var(--b-muted,#5a6850)}
+.cp-token.caught circle{stroke:var(--b-bad,#a9503a);stroke-width:4px}
+@media (prefers-reduced-motion:no-preference){.cp-token.stayed circle{animation:cp-stay .9s ease-out .3s 1 both}}
+@keyframes cp-stay{0%{stroke-width:2px}40%{stroke-width:7px}100%{stroke-width:2px}}
+.cp-trail{stroke-width:9px;vector-effect:non-scaling-stroke;stroke-linecap:round;opacity:.45;pointer-events:none}
+.cp-trail.cC{stroke:var(--b-sky,#9cc9de)}
+.cp-trail.cR{stroke:var(--b-rose,#e7a28f)}
+.cp-trail.plan{stroke:var(--b-pine,#31533e);stroke-width:3px;stroke-dasharray:6 5;opacity:.8}
+
+/* Folds: folded dots stay faint where they were; a refused fold rings the
+   dot the second dot can't reach. */
+.cp-folds .gb-node.gone .gb-dot{fill:none;stroke:#c9d0bb;stroke-dasharray:3 3}
+.cp-folds .gb-node.gone .gb-label{fill:#b3bca5}
+.cp-folds .gb-edge.gone .gb-line{stroke:#dfe3d3;stroke-dasharray:3 5}
+.cp-folds .gb-node.tried .gb-dot{stroke:var(--b-ink,#294439);stroke-width:3.5px}
+.cp-folds .gb-node.missed .gb-reach{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:4px;vector-effect:non-scaling-stroke}
+
+/* Choosing a cop, a side or a map. */
+.cp-chips,.cp-sides{display:flex;gap:.45rem}
+.cp-puzzle :is(.cp-chip,.cp-side){display:grid;place-items:center;width:46px;height:46px;min-height:0;padding:0;border-radius:50%;border:2px solid var(--b-ink,#294439);color:var(--b-ink,#294439);font:400 1.15rem/1 var(--b-display,Georgia,serif);box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer}
+.cp-puzzle .cp-chip{font-size:.95rem}
+.cp-puzzle :is(.cp-chip,.cp-side).cC{background:var(--b-sky,#9cc9de)}
+.cp-puzzle :is(.cp-chip,.cp-side).cR{background:var(--b-rose,#e7a28f)}
+.cp-puzzle :is(.cp-chip,.cp-side)[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-pine,#31533e)}
+.cp-puzzle :is(.cp-chip,.cp-side):focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:6px}
+.cp-maps{display:flex;flex-wrap:wrap;gap:.35rem;justify-content:center}
+.cp-puzzle .cp-pick{width:56px;min-height:46px;padding:3px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px}
+.cp-puzzle .cp-pick[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 2px var(--b-pine,#31533e)}
+
+/* Words under the board. */
+.cp-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
