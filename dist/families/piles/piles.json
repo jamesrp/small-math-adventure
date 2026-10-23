@@ -1,0 +1,1934 @@
+{
+ "title": "Moving piles",
+ "version": 1,
+ "families": [
+  {
+   "id": "piles",
+   "title": "Moving piles",
+   "mathematics": "Counters sit in piles on the places of a map, and rings mark a fixed target with the same number of places. A move carries one counter along one road and costs 1; the least work is the earth mover’s distance between the two piles. On a line every road must carry, net, the counters minus the rings to its left, so the sum of those counts is a lower bound, and matching counters to rings in order meets every count at once; nearest-first can fail. On a tree each road carries the imbalance on one side of it, exactly. Least work is a distance: equal position totals can still be far apart (two on 0 and two on 4 against four on 2, 8 moves). On a ring no single road is forced, and the best plan takes the median constant circulation off the line’s counts.",
+   "rules": [
+    "Move one counter at a time along a road to the next place. Each move costs 1.",
+    "Places hold any number of counters, and counters may pass through any place. Any counter can fill any ring.",
+    "Fill every ring, with no counter left over, using no more moves than the dots show."
+   ],
+   "sourceIds": [
+    "piles-week99",
+    "piles-card99",
+    "piles-peyre-cuturi"
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "id": "piles-week99",
+   "title": "Bellingham Math Circle — Week 99: Moving piles (worksheets, materials and facilitator guide)",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-99",
+   "kind": "worksheet"
+  },
+  {
+   "id": "piles-card99",
+   "title": "Bellingham Math Circle — Week 99 review card (Moving piles), October 23, 2026",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-99.md",
+   "kind": "worksheet"
+  },
+  {
+   "id": "piles-peyre-cuturi",
+   "title": "Gabriel Peyré and Marco Cuturi — Computational Optimal Transport, §2.6 (one-dimensional transport) and §6.3 (transport on graphs)",
+   "url": "https://arxiv.org/abs/1803.00567",
+   "kind": "research"
+  }
+ ],
+ "puzzles": [
+  {
+   "id": "piles-playground",
+   "number": 0,
+   "title": "Moving piles playground",
+   "band": "playground",
+   "difficulty_level": "playground",
+   "mechanic": "piles",
+   "familyTitle": "Moving piles",
+   "revision": 1,
+   "parameters": {
+    "mode": "playground",
+    "maps": {
+     "line": {
+      "title": "Line",
+      "shape": "line",
+      "word": "bin",
+      "aspect": 2.57,
+      "nodes": {
+       "0": [
+        8,
+        81.34
+       ],
+       "1": [
+        24.8,
+        81.34
+       ],
+       "2": [
+        41.6,
+        81.34
+       ],
+       "3": [
+        58.4,
+        81.34
+       ],
+       "4": [
+        75.2,
+        81.34
+       ],
+       "5": [
+        92,
+        81.34
+       ]
+      },
+      "roads": [
+       [
+        "0",
+        "1"
+       ],
+       [
+        "1",
+        "2"
+       ],
+       [
+        "2",
+        "3"
+       ],
+       [
+        "3",
+        "4"
+       ],
+       [
+        "4",
+        "5"
+       ]
+      ]
+     },
+     "star": {
+      "title": "Star",
+      "shape": "star",
+      "word": "",
+      "aspect": 1.13,
+      "nodes": {
+       "A": [
+        27.48,
+        19.77
+       ],
+       "O": [
+        50,
+        34.46
+       ],
+       "B": [
+        72.52,
+        19.77
+       ],
+       "C": [
+        50,
+        63.84
+       ]
+      },
+      "out": {
+       "A": 150,
+       "O": 90,
+       "B": 30,
+       "C": 270
+      },
+      "roads": [
+       [
+        "O",
+        "A"
+       ],
+       [
+        "O",
+        "B"
+       ],
+       [
+        "O",
+        "C"
+       ]
+      ]
+     },
+     "ring": {
+      "title": "Ring",
+      "shape": "ring",
+      "word": "bin",
+      "aspect": 1.14,
+      "nodes": {
+       "0": [
+        31,
+        50
+       ],
+       "1": [
+        40.5,
+        31.24
+       ],
+       "2": [
+        59.5,
+        31.24
+       ],
+       "3": [
+        69,
+        50
+       ],
+       "4": [
+        59.5,
+        68.76
+       ],
+       "5": [
+        40.5,
+        68.76
+       ]
+      },
+      "out": {
+       "0": 180,
+       "1": 120,
+       "2": 60,
+       "3": 0,
+       "4": 300,
+       "5": 240
+      },
+      "roads": [
+       [
+        "0",
+        "1"
+       ],
+       [
+        "1",
+        "2"
+       ],
+       [
+        "2",
+        "3"
+       ],
+       [
+        "3",
+        "4"
+       ],
+       [
+        "4",
+        "5"
+       ],
+       [
+        "5",
+        "0"
+       ]
+      ]
+     }
+    }
+   },
+   "objective": "Put down counters and rings, then fill the rings and count the moves.",
+   "visibleObjective": "",
+   "instruction": "Put down counters and rings, then fill the rings and count the moves.",
+   "controls": "Choose a map. With Counters, tap a place to add a counter; with Rings, tap a place to add a ring; with Move, tap a pile and then a place joined to it, or slide a counter along the roads. The dots count the moves since anything was last added. Clear empties the map.",
+   "rules": [
+    "Each move carries one counter along one road.",
+    "A place holds up to 6 counters and 6 rings, and the map up to 12 of each."
+   ],
+   "idea": "Free play with piles, rings and moves on a line, a star and a ring.",
+   "prerequisites": "None. A grown-up can set up a pair from the worksheet or the puzzles.",
+   "hints": [
+    "Put down two counters and two rings, then fill the rings.",
+    "Try the same piles on the line and on the ring.",
+    "Play the partner game: one player puts down rings, the other counters that need exactly 5 moves."
+   ],
+   "parent": {
+    "notice": "The move dots let children check a claimed least work by playing it out.",
+    "prompt": "Can you fill these rings in fewer moves?",
+    "explanation": "The playground has no goal and never counts as solved. It holds the worksheet’s exactly-5 partner game (Grades 2–3 Problem 6): one child sets four rings, the other places four counters that need exactly 5, and the moves check it; the least is found by matching counters to rings in order on the line, by leaf imbalances on the star, and with the best constant circulation on the ring.",
+    "extension": "Make three arrangements A, B and C. Is the least work from A to B plus B to C ever less than straight from A to C? (Never: least work obeys the triangle rule; Grades 4–5 Problem 6.)",
+    "connection": "Least work between piles is the earth mover’s distance on the map’s roads.",
+    "sourceIds": [
+     "piles-week99",
+     "piles-card99",
+     "piles-peyre-cuturi"
+    ]
+   },
+   "provenance": "Week 99 materials: the line mat and the star board, with the review card’s ring.",
+   "sourceDocument": "docs/piles/README.md"
+  },
+  {
+   "id": "piles-01",
+   "number": 1,
+   "title": "Two counters",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "piles",
+   "familyTitle": "Moving piles",
+   "revision": 1,
+   "parameters": {
+    "mode": "move",
+    "map": {
+     "title": "Line",
+     "shape": "line",
+     "word": "bin",
+     "aspect": 3.7,
+     "slots": 2,
+     "nodes": {
+      "0": [
+       8,
+       73.45
+      ],
+      "1": [
+       24.8,
+       73.45
+      ],
+      "2": [
+       41.6,
+       73.45
+      ],
+      "3": [
+       58.4,
+       73.45
+      ],
+      "4": [
+       75.2,
+       73.45
+      ],
+      "5": [
+       92,
+       73.45
+      ]
+     },
+     "roads": [
+      [
+       "0",
+       "1"
+      ],
+      [
+       "1",
+       "2"
+      ],
+      [
+       "2",
+       "3"
+      ],
+      [
+       "3",
+       "4"
+      ],
+      [
+       "4",
+       "5"
+      ]
+     ]
+    },
+    "start": [
+     1,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    "target": [
+     0,
+     1,
+     1,
+     0,
+     0,
+     0
+    ],
+    "budget": 2,
+    "witness": [
+     [
+      "0",
+      "1"
+     ],
+     [
+      "3",
+      "2"
+     ]
+    ]
+   },
+   "objective": "Fill the rings in 2 moves.",
+   "visibleObjective": "",
+   "instruction": "Fill the rings in 2 moves.",
+   "controls": "Tap a pile to pick up a counter, then tap a place joined to it to move the counter there. Or slide a counter along the roads: each road it crosses is one move. The dots show how many moves you have; extra moves turn red. Undo takes back one move.",
+   "rules": [
+    "Move one counter at a time along a road to the next place. Each move costs 1.",
+    "Places hold any number of counters, and counters may pass through any place. Any counter can fill any ring.",
+    "Fill every ring, with no counter left over, using no more moves than the dots show."
+   ],
+   "idea": "Each counter can take the ring next to it; sending them past each other wastes moves.",
+   "prerequisites": "Count to about 10 and compare. The move dots do the counting; a grown-up can count moves aloud with K–1 children. Saying why no plan uses fewer is for older children with a grown-up.",
+   "hints": [
+    "Which ring is nearest each counter?",
+    "The counter on 0 can fill ring 1, and the counter on 3 can fill ring 2.",
+    "Move a counter from 0 to 1 and from 3 to 2."
+   ],
+   "parent": {
+    "notice": "Sending the counter on 0 to ring 2 and the counter on 3 to ring 1 also fills the rings, but takes 4 moves.",
+    "prompt": "Why do two moves fill these rings, and why can’t one?",
+    "explanation": "Counters are interchangeable, so a counter fills whichever ring it reaches. 0 → 1 and 3 → 2 cost 1 each. The crossed plan, 0 → 2 and 3 → 1, costs 4: both counters cross the road between 1 and 2, in opposite directions, and those two crossings achieve nothing. One move cannot do it, because two places hold a counter and no ring.",
+    "extension": "Put both counters on 0 and the rings on 2 and 4. How few moves now? (6.)",
+    "connection": "Least work is the earth mover’s distance between two piles. Crossing traffic is always wasted, which is why matching counters to rings in order, first to first, is best on a line.",
+    "sourceIds": [
+     "piles-week99",
+     "piles-card99",
+     "piles-peyre-cuturi"
+    ]
+   },
+   "provenance": "Week 99, Grades 2–3 Problem 1, second pair (03 → 12).",
+   "sourceDocument": "docs/piles/README.md"
+  },
+  {
+   "id": "piles-02",
+   "number": 2,
+   "title": "Three from one end",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "piles",
+   "familyTitle": "Moving piles",
+   "revision": 1,
+   "parameters": {
+    "mode": "move",
+    "map": {
+     "title": "Line",
+     "shape": "line",
+     "word": "bin",
+     "aspect": 2.57,
+     "nodes": {
+      "0": [
+       8,
+       81.34
+      ],
+      "1": [
+       24.8,
+       81.34
+      ],
+      "2": [
+       41.6,
+       81.34
+      ],
+      "3": [
+       58.4,
+       81.34
+      ],
+      "4": [
+       75.2,
+       81.34
+      ],
+      "5": [
+       92,
+       81.34
+      ]
+     },
+     "roads": [
+      [
+       "0",
+       "1"
+      ],
+      [
+       "1",
+       "2"
+      ],
+      [
+       "2",
+       "3"
+      ],
+      [
+       "3",
+       "4"
+      ],
+      [
+       "4",
+       "5"
+      ]
+     ]
+    },
+    "start": [
+     3,
+     0,
+     0,
+     0,
+     0,
+     1
+    ],
+    "target": [
+     0,
+     1,
+     1,
+     1,
+     1,
+     0
+    ],
+    "budget": 7,
+    "witness": [
+     [
+      "0",
+      "1"
+     ],
+     [
+      "1",
+      "2"
+     ],
+     [
+      "2",
+      "3"
+     ],
+     [
+      "0",
+      "1"
+     ],
+     [
+      "1",
+      "2"
+     ],
+     [
+      "0",
+      "1"
+     ],
+     [
+      "5",
+      "4"
+     ]
+    ]
+   },
+   "objective": "Fill the rings in 7 moves.",
+   "visibleObjective": "",
+   "instruction": "Fill the rings in 7 moves.",
+   "controls": "Tap a pile to pick up a counter, then tap a place joined to it to move the counter there. Or slide a counter along the roads: each road it crosses is one move. The dots show how many moves you have; extra moves turn red. Undo takes back one move.",
+   "rules": [
+    "Move one counter at a time along a road to the next place. Each move costs 1.",
+    "Places hold any number of counters, and counters may pass through any place. Any counter can fill any ring.",
+    "Fill every ring, with no counter left over, using no more moves than the dots show."
+   ],
+   "idea": "Three counters must leave bin 0, and the counter on 5 needs to go only one step.",
+   "prerequisites": "Count to about 10 and compare. The move dots do the counting; a grown-up can count moves aloud with K–1 children. Saying why no plan uses fewer is for older children with a grown-up.",
+   "hints": [
+    "How many counters must cross the road from 0 to 1?",
+    "Three of the rings are to the right of 0, and bin 5 has a counter but no ring.",
+    "Send the counters on 0 to 1, 2 and 3, and the counter on 5 to 4."
+   ],
+   "parent": {
+    "notice": "Three counters must cross the first road, two the second, one the third, none the fourth, and one the last, going left.",
+    "prompt": "Could any plan use fewer than 7 moves? How do you know?",
+    "explanation": "Cover everything right of a road and compare. Left of the road from 0 to 1 there are 3 counters and no ring, so at least 3 counters must cross it to the right. The same count gives 2, 1, 0 and 1 (to the left) for the other roads, so every plan needs at least 3 + 2 + 1 + 0 + 1 = 7 moves. Sending 0 → 1, 0 → 2, 0 → 3 and 5 → 4 costs 1 + 2 + 3 + 1 = 7, so 7 is the least.",
+    "extension": "Is there a different best plan, not just the same trips in another order? (No: here the best matching is the only one.)",
+    "connection": "The gap bound: on a line the net number of counters crossing each road is forced (counters minus rings to its left), so the sum is a lower bound, and matching in order meets every road’s count at once. The bound and the plan together certify the least work.",
+    "sourceIds": [
+     "piles-week99",
+     "piles-card99",
+     "piles-peyre-cuturi"
+    ]
+   },
+   "provenance": "Week 99, Grades 2–3 Problem 2 first pair and Grades 4–5 Problem 1 first pair (0005 → 1234).",
+   "sourceDocument": "docs/piles/README.md"
+  },
+  {
+   "id": "piles-03",
+   "number": 3,
+   "title": "Nearest first",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "piles",
+   "familyTitle": "Moving piles",
+   "revision": 1,
+   "parameters": {
+    "mode": "move",
+    "map": {
+     "title": "Line",
+     "shape": "line",
+     "word": "bin",
+     "aspect": 3.7,
+     "slots": 2,
+     "nodes": {
+      "0": [
+       8,
+       73.45
+      ],
+      "1": [
+       24.8,
+       73.45
+      ],
+      "2": [
+       41.6,
+       73.45
+      ],
+      "3": [
+       58.4,
+       73.45
+      ],
+      "4": [
+       75.2,
+       73.45
+      ],
+      "5": [
+       92,
+       73.45
+      ]
+     },
+     "roads": [
+      [
+       "0",
+       "1"
+      ],
+      [
+       "1",
+       "2"
+      ],
+      [
+       "2",
+       "3"
+      ],
+      [
+       "3",
+       "4"
+      ],
+      [
+       "4",
+       "5"
+      ]
+     ]
+    },
+    "start": [
+     1,
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    "target": [
+     0,
+     0,
+     1,
+     0,
+     0,
+     1
+    ],
+    "budget": 4,
+    "witness": [
+     [
+      "0",
+      "1"
+     ],
+     [
+      "1",
+      "2"
+     ],
+     [
+      "3",
+      "4"
+     ],
+     [
+      "4",
+      "5"
+     ]
+    ]
+   },
+   "objective": "Fill the rings in 4 moves.",
+   "visibleObjective": "",
+   "instruction": "Fill the rings in 4 moves.",
+   "controls": "Tap a pile to pick up a counter, then tap a place joined to it to move the counter there. Or slide a counter along the roads: each road it crosses is one move. The dots show how many moves you have; extra moves turn red. Undo takes back one move.",
+   "rules": [
+    "Move one counter at a time along a road to the next place. Each move costs 1.",
+    "Places hold any number of counters, and counters may pass through any place. Any counter can fill any ring.",
+    "Fill every ring, with no counter left over, using no more moves than the dots show."
+   ],
+   "idea": "The shortest single trip, 3 to 2, is a trap: it leaves the counter on 0 to go all the way to 5.",
+   "prerequisites": "Count to about 10 and compare. The move dots do the counting; a grown-up can count moves aloud with K–1 children. Saying why no plan uses fewer is for older children with a grown-up.",
+   "hints": [
+    "Try a plan and watch the dots. Does the quickest first trip help?",
+    "If the counter on 3 takes ring 2, the counter on 0 must go all the way to 5.",
+    "Move the counter on 0 to 2 and the counter on 3 to 5."
+   ],
+   "parent": {
+    "notice": "Filling the nearest ring first (3 → 2, one move) leaves 0 → 5, five moves: 6 in all.",
+    "prompt": "The rule “always make the shortest trip” used 6 moves here. What went wrong?",
+    "explanation": "The trips 0 → 2 and 3 → 5 cost 2 + 2 = 4. Nearest first takes 3 → 2 (1 move) and then has only 0 → 5 left (5 moves), 6 in all. Left of the road from 2 to 3 there is one counter and one ring, so no counter needs to cross it, yet the rule sends one across. The road counts 1, 1, 0, 1, 1 add to 4.",
+    "extension": "With counters on 0 and 4 and rings on 2 and 5, does nearest first work? (Yes: 4 → 5, then 0 → 2, 3 moves, the least.)",
+    "connection": "Greedy choices can fail in transport problems; on a line, matching in sorted order is always optimal.",
+    "sourceIds": [
+     "piles-week99",
+     "piles-card99",
+     "piles-peyre-cuturi"
+    ]
+   },
+   "provenance": "Week 99, Problem 3 in both bands (03 → 25 and the shortest-delivery rule).",
+   "sourceDocument": "docs/piles/README.md"
+  },
+  {
+   "id": "piles-04",
+   "number": 4,
+   "title": "Star roads",
+   "band": "all",
+   "difficulty_level": "easy",
+   "mechanic": "piles",
+   "familyTitle": "Moving piles",
+   "revision": 1,
+   "parameters": {
+    "mode": "move",
+    "map": {
+     "title": "Star",
+     "shape": "star",
+     "word": "",
+     "aspect": 1.13,
+     "nodes": {
+      "A": [
+       27.48,
+       19.77
+      ],
+      "O": [
+       50,
+       34.46
+      ],
+      "B": [
+       72.52,
+       19.77
+      ],
+      "C": [
+       50,
+       63.84
+      ]
+     },
+     "out": {
+      "A": 150,
+      "O": 90,
+      "B": 30,
+      "C": 270
+     },
+     "roads": [
+      [
+       "O",
+       "A"
+      ],
+      [
+       "O",
+       "B"
+      ],
+      [
+       "O",
+       "C"
+      ]
+     ]
+    },
+    "start": [
+     2,
+     0,
+     0,
+     1
+    ],
+    "target": [
+     0,
+     1,
+     2,
+     0
+    ],
+    "budget": 5,
+    "witness": [
+     [
+      "A",
+      "O"
+     ],
+     [
+      "O",
+      "B"
+     ],
+     [
+      "A",
+      "O"
+     ],
+     [
+      "O",
+      "B"
+     ],
+     [
+      "C",
+      "O"
+     ]
+    ]
+   },
+   "objective": "Fill the rings in 5 moves.",
+   "visibleObjective": "",
+   "instruction": "Fill the rings in 5 moves.",
+   "controls": "Tap a pile to pick up a counter, then tap a place joined to it to move the counter there. Or slide a counter along the roads: each road it crosses is one move. The dots show how many moves you have; extra moves turn red. Undo takes back one move.",
+   "rules": [
+    "Move one counter at a time along a road to the next place. Each move costs 1.",
+    "Places hold any number of counters, and counters may pass through any place. Any counter can fill any ring.",
+    "Fill every ring, with no counter left over, using no more moves than the dots show."
+   ],
+   "idea": "On a star, each road must carry the difference between the counters and the rings at its leaf.",
+   "prerequisites": "Count to about 10 and compare. The move dots do the counting; a grown-up can count moves aloud with K–1 children. Saying why no plan uses fewer is for older children with a grown-up.",
+   "hints": [
+    "Look at each leaf. How many counters must leave it, or arrive?",
+    "A has two counters and no ring, B needs two, and C has a counter and no ring.",
+    "Move both counters from A through O to B, and the counter on C to O."
+   ],
+   "parent": {
+    "notice": "Two counters must leave A, two must reach B and one must leave C, and each crosses its own leaf’s road.",
+    "prompt": "Why can’t 4 moves be enough?",
+    "explanation": "Each leaf hangs on one road. Two counters must cross A’s road (two counters, no ring), two must cross B’s (two rings, no counter) and one must cross C’s: at least 2 + 2 + 1 = 5 moves. Moving both A counters to B through O (4) and C’s counter to O (1) uses exactly 5.",
+    "extension": "Draw a start and rings with three counters each that need 6 moves. Why is 6 the most?",
+    "connection": "On a tree, removing a road splits the places in two, and the imbalance on one side must cross it; the sum over the roads is the exact least work.",
+    "sourceIds": [
+     "piles-week99",
+     "piles-card99",
+     "piles-peyre-cuturi"
+    ]
+   },
+   "provenance": "Week 99, Grades 2–3 Problem 5 first pair and Grades 4–5 Problem 5 first pair (A2 C1 → O1 B2).",
+   "sourceDocument": "docs/piles/README.md"
+  },
+  {
+   "id": "piles-05",
+   "number": 5,
+   "title": "Both ways",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "piles",
+   "familyTitle": "Moving piles",
+   "revision": 1,
+   "parameters": {
+    "mode": "move",
+    "map": {
+     "title": "Line",
+     "shape": "line",
+     "word": "bin",
+     "aspect": 2.57,
+     "nodes": {
+      "0": [
+       8,
+       81.34
+      ],
+      "1": [
+       24.8,
+       81.34
+      ],
+      "2": [
+       41.6,
+       81.34
+      ],
+      "3": [
+       58.4,
+       81.34
+      ],
+      "4": [
+       75.2,
+       81.34
+      ],
+      "5": [
+       92,
+       81.34
+      ]
+     },
+     "roads": [
+      [
+       "0",
+       "1"
+      ],
+      [
+       "1",
+       "2"
+      ],
+      [
+       "2",
+       "3"
+      ],
+      [
+       "3",
+       "4"
+      ],
+      [
+       "4",
+       "5"
+      ]
+     ]
+    },
+    "start": [
+     0,
+     2,
+     0,
+     0,
+     2,
+     0
+    ],
+    "target": [
+     1,
+     0,
+     2,
+     0,
+     0,
+     1
+    ],
+    "budget": 5,
+    "witness": [
+     [
+      "1",
+      "0"
+     ],
+     [
+      "1",
+      "2"
+     ],
+     [
+      "4",
+      "3"
+     ],
+     [
+      "3",
+      "2"
+     ],
+     [
+      "4",
+      "5"
+     ]
+    ]
+   },
+   "objective": "Fill the rings in 5 moves.",
+   "visibleObjective": "",
+   "instruction": "Fill the rings in 5 moves.",
+   "controls": "Tap a pile to pick up a counter, then tap a place joined to it to move the counter there. Or slide a counter along the roads: each road it crosses is one move. The dots show how many moves you have; extra moves turn red. Undo takes back one move.",
+   "rules": [
+    "Move one counter at a time along a road to the next place. Each move costs 1.",
+    "Places hold any number of counters, and counters may pass through any place. Any counter can fill any ring.",
+    "Fill every ring, with no counter left over, using no more moves than the dots show."
+   ],
+   "idea": "Counters in one pile can go different ways: from each pile one goes left and one goes right.",
+   "prerequisites": "Count to about 10 and compare. The move dots do the counting; a grown-up can count moves aloud with K–1 children. Saying why no plan uses fewer is for older children with a grown-up.",
+   "hints": [
+    "Which rings will the two counters on 1 fill?",
+    "Match in order: the first counter to the first ring, the second to the second, and so on.",
+    "Move 1 to 0, 1 to 2, 4 to 2 and 4 to 5."
+   ],
+   "parent": {
+    "notice": "Each road is crossed exactly once: left, right, left, left, right.",
+    "prompt": "Why should the two counters on 1 split up?",
+    "explanation": "Match counters to rings in order: 1 → 0, 1 → 2, 4 → 2, 4 → 5, costing 1 + 1 + 2 + 1 = 5. Counters minus rings to the left of each road are −1, 1, −1, −1, 1, so every road must be crossed at least once and 5 is the least. Sending both counters on 1 to the right means a counter from 4 must come back to 0, crossing roads that other counters cross the other way.",
+    "extension": "Find the least work from 2222 to 0134. (6.)",
+    "connection": "Matching in order never sends two counters across one road in opposite directions, so it meets every forced road count.",
+    "sourceIds": [
+     "piles-week99",
+     "piles-card99",
+     "piles-peyre-cuturi"
+    ]
+   },
+   "provenance": "Week 99, Grades 2–3 Problem 2 second pair and Grades 4–5 Problem 1 second pair (1144 → 0225).",
+   "sourceDocument": "docs/piles/README.md"
+  },
+  {
+   "id": "piles-06",
+   "number": 6,
+   "title": "All to the middle",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "piles",
+   "familyTitle": "Moving piles",
+   "revision": 1,
+   "parameters": {
+    "mode": "design",
+    "map": {
+     "title": "Line",
+     "shape": "line",
+     "word": "bin",
+     "aspect": 2.57,
+     "nodes": {
+      "0": [
+       8,
+       81.34
+      ],
+      "1": [
+       24.8,
+       81.34
+      ],
+      "2": [
+       41.6,
+       81.34
+      ],
+      "3": [
+       58.4,
+       81.34
+      ],
+      "4": [
+       75.2,
+       81.34
+      ],
+      "5": [
+       92,
+       81.34
+      ]
+     },
+     "roads": [
+      [
+       "0",
+       "1"
+      ],
+      [
+       "1",
+       "2"
+      ],
+      [
+       "2",
+       "3"
+      ],
+      [
+       "3",
+       "4"
+      ],
+      [
+       "4",
+       "5"
+      ]
+     ]
+    },
+    "target": [
+     0,
+     0,
+     4,
+     0,
+     0,
+     0
+    ],
+    "count": 4,
+    "exact": 7,
+    "starts": 19,
+    "witness": {
+     "placed": [
+      "0",
+      "0",
+      "0",
+      "1"
+     ],
+     "plan": [
+      [
+       "0",
+       "1"
+      ],
+      [
+       "1",
+       "2"
+      ],
+      [
+       "0",
+       "1"
+      ],
+      [
+       "1",
+       "2"
+      ],
+      [
+       "0",
+       "1"
+      ],
+      [
+       "1",
+       "2"
+      ],
+      [
+       "1",
+       "2"
+      ]
+     ]
+    }
+   },
+   "objective": "Start the counters where filling the rings takes 7 moves and no fewer.",
+   "visibleObjective": "Start the counters where filling the rings takes 7 moves and no fewer.",
+   "instruction": "Start the counters where filling the rings takes 7 moves and no fewer.",
+   "controls": "Tap places to put the counters down; the row shows how many are left. Then move them: tap a pile to pick up a counter, then tap a place joined to it to move the counter there. Or slide a counter along the roads: each road it crosses is one move. The dots show how many moves the start must need. Undo takes back a move or a counter.",
+   "rules": [
+    "Put every counter on the map first. Then move counters one at a time along the roads to fill the rings.",
+    "Places hold any number of counters. Any counter can fill any ring.",
+    "Solved when filling the rings takes exactly the moves the dots show, and no plan from your start could take fewer."
+   ],
+   "idea": "With every ring on 2, the least work is the distance of each counter from 2, added up.",
+   "prerequisites": "Count small distances and add them; plan before moving. Grades 2–3 and up, or younger children with a grown-up.",
+   "hints": [
+    "How far is each bin from 2?",
+    "A counter on 0 is 2 moves from bin 2, and a counter on 5 is 3; make the distances add to 7.",
+    "For example, put three counters on 0 and one on 3."
+   ],
+   "parent": {
+    "notice": "Any start whose distances to bin 2 add to 7 works: 19 starts do.",
+    "prompt": "How can you tell the least work before you move anything?",
+    "explanation": "Every counter must reach bin 2, and a counter on bin x needs at least |x − 2| moves however the others go. So the least work is the sum of the distances, and any start whose distances add to 7 works, such as 0003 (2 + 2 + 2 + 1) or 0115 (2 + 1 + 1 + 3). Of the 126 four-counter starts, 19 need exactly 7 and 16 need exactly 4.",
+    "extension": "Find a start that needs exactly 4. What is the most a start can need? (12, all four on 5.)",
+    "connection": "With every ring in one place, transport cost is the sum of distances to that place.",
+    "sourceIds": [
+     "piles-week99",
+     "piles-card99",
+     "piles-peyre-cuturi"
+    ]
+   },
+   "provenance": "Week 99, Grades 2–3 Problem 4 (a fixed 2222 target; starts with least work 4 and 7).",
+   "sourceDocument": "docs/piles/README.md"
+  },
+  {
+   "id": "piles-07",
+   "number": 7,
+   "title": "Three on A",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "piles",
+   "familyTitle": "Moving piles",
+   "revision": 1,
+   "parameters": {
+    "mode": "move",
+    "map": {
+     "title": "Star",
+     "shape": "star",
+     "word": "",
+     "aspect": 1.13,
+     "nodes": {
+      "A": [
+       27.48,
+       19.77
+      ],
+      "O": [
+       50,
+       34.46
+      ],
+      "B": [
+       72.52,
+       19.77
+      ],
+      "C": [
+       50,
+       63.84
+      ]
+     },
+     "out": {
+      "A": 150,
+      "O": 90,
+      "B": 30,
+      "C": 270
+     },
+     "roads": [
+      [
+       "O",
+       "A"
+      ],
+      [
+       "O",
+       "B"
+      ],
+      [
+       "O",
+       "C"
+      ]
+     ]
+    },
+    "start": [
+     3,
+     0,
+     1,
+     0
+    ],
+    "target": [
+     1,
+     1,
+     0,
+     2
+    ],
+    "budget": 5,
+    "witness": [
+     [
+      "A",
+      "O"
+     ],
+     [
+      "O",
+      "C"
+     ],
+     [
+      "A",
+      "O"
+     ],
+     [
+      "O",
+      "C"
+     ],
+     [
+      "B",
+      "O"
+     ]
+    ]
+   },
+   "objective": "Fill the rings in 5 moves.",
+   "visibleObjective": "",
+   "instruction": "Fill the rings in 5 moves.",
+   "controls": "Tap a pile to pick up a counter, then tap a place joined to it to move the counter there. Or slide a counter along the roads: each road it crosses is one move. The dots show how many moves you have; extra moves turn red. Undo takes back one move.",
+   "rules": [
+    "Move one counter at a time along a road to the next place. Each move costs 1.",
+    "Places hold any number of counters, and counters may pass through any place. Any counter can fill any ring.",
+    "Fill every ring, with no counter left over, using no more moves than the dots show."
+   ],
+   "idea": "Two counters must leave A, one must leave B, and two must reach C: 2 + 1 + 2.",
+   "prerequisites": "Count to about 10 and compare. The move dots do the counting; a grown-up can count moves aloud with K–1 children. Saying why no plan uses fewer is for older children with a grown-up.",
+   "hints": [
+    "Which leaves have too many counters, and which too few?",
+    "A has two extra, B one extra, and C needs two.",
+    "Move a counter from A to O, another from A through O to C, and the counter on B through O to C."
+   ],
+   "parent": {
+    "notice": "The leaves’ imbalances are 2 at A, 1 at B and 2 at C, and they add to 5.",
+    "prompt": "Can you know the least work before moving?",
+    "explanation": "Each leaf’s road must carry the leaf’s extra counters out, or its missing counters in: 2 across A’s road, 1 across B’s and 2 across C’s. So at least 5 moves are needed, and A → O, A → O → C and B → O → C use exactly 5. O needs no count of its own: whatever crosses into O either stays to fill its ring or goes on along another road.",
+    "extension": "Does adding the leaves’ imbalances give the least work for every start and target on these roads? (Yes, whenever the totals are equal.)",
+    "connection": "The cut formula on a tree: removing a road splits the tree, and the imbalance on one side is exactly what that road carries in a best plan.",
+    "sourceIds": [
+     "piles-week99",
+     "piles-card99",
+     "piles-peyre-cuturi"
+    ]
+   },
+   "provenance": "Week 99, Grades 4–5 Problem 5 second pair (A3 B1 → A1 O1 C2).",
+   "sourceDocument": "docs/piles/README.md"
+  },
+  {
+   "id": "piles-08",
+   "number": 8,
+   "title": "The longest trips",
+   "band": "all",
+   "difficulty_level": "medium",
+   "mechanic": "piles",
+   "familyTitle": "Moving piles",
+   "revision": 1,
+   "parameters": {
+    "mode": "design",
+    "map": {
+     "title": "Star",
+     "shape": "star",
+     "word": "",
+     "aspect": 1.13,
+     "nodes": {
+      "A": [
+       27.48,
+       19.77
+      ],
+      "O": [
+       50,
+       34.46
+      ],
+      "B": [
+       72.52,
+       19.77
+      ],
+      "C": [
+       50,
+       63.84
+      ]
+     },
+     "out": {
+      "A": 150,
+      "O": 90,
+      "B": 30,
+      "C": 270
+     },
+     "roads": [
+      [
+       "O",
+       "A"
+      ],
+      [
+       "O",
+       "B"
+      ],
+      [
+       "O",
+       "C"
+      ]
+     ]
+    },
+    "target": [
+     0,
+     0,
+     2,
+     1
+    ],
+    "count": 3,
+    "exact": 6,
+    "starts": 1,
+    "witness": {
+     "placed": [
+      "A",
+      "A",
+      "A"
+     ],
+     "plan": [
+      [
+       "A",
+       "O"
+      ],
+      [
+       "O",
+       "B"
+      ],
+      [
+       "A",
+       "O"
+      ],
+      [
+       "O",
+       "B"
+      ],
+      [
+       "A",
+       "O"
+      ],
+      [
+       "O",
+       "C"
+      ]
+     ]
+    }
+   },
+   "objective": "Start the counters where filling the rings takes 6 moves and no fewer.",
+   "visibleObjective": "Start the counters where filling the rings takes 6 moves and no fewer.",
+   "instruction": "Start the counters where filling the rings takes 6 moves and no fewer.",
+   "controls": "Tap places to put the counters down; the row shows how many are left. Then move them: tap a pile to pick up a counter, then tap a place joined to it to move the counter there. Or slide a counter along the roads: each road it crosses is one move. The dots show how many moves the start must need. Undo takes back a move or a counter.",
+   "rules": [
+    "Put every counter on the map first. Then move counters one at a time along the roads to fill the rings.",
+    "Places hold any number of counters. Any counter can fill any ring.",
+    "Solved when filling the rings takes exactly the moves the dots show, and no plan from your start could take fewer."
+   ],
+   "idea": "Six is the most three counters can need: each crosses two roads, so each must start on a leaf without a ring.",
+   "prerequisites": "Count small distances and add them; plan before moving. Grades 2–3 and up, or younger children with a grown-up.",
+   "hints": [
+    "How many roads can one counter need to cross on this star?",
+    "Each counter crosses at most two roads, so all three must go from leaf to leaf.",
+    "Put all three counters on A."
+   ],
+   "parent": {
+    "notice": "Only one start works: all three counters on A.",
+    "prompt": "Why can’t a counter start on O, B or C?",
+    "explanation": "Any two places on the star are at most two roads apart, so three counters need at most 6 moves, and exactly 6 only if every counter crosses two roads: each starts on a leaf and ends on another leaf, and none starts on O. A counter on B could stay and fill a ring there, and a counter on C could too, so they would need fewer. That leaves A: A3 → B2 C1 needs 2 + 2 + 2 = 6.",
+    "extension": "Choose your own rings for three counters and find every start that needs 6. (Rings on three different places allow none; rings all on one leaf allow four starts.)",
+    "connection": "The star’s diameter is 2, so n counters need at most 2n moves; equality forces every counter onto a leaf-to-leaf path.",
+    "sourceIds": [
+     "piles-week99",
+     "piles-card99",
+     "piles-peyre-cuturi"
+    ]
+   },
+   "provenance": "Week 99, Grades 2–3 Problem 5’s invention (three counters needing 6), with the rings fixed so that the start is unique.",
+   "sourceDocument": "docs/piles/README.md"
+  },
+  {
+   "id": "piles-09",
+   "number": 9,
+   "title": "Exactly five",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "piles",
+   "familyTitle": "Moving piles",
+   "revision": 1,
+   "parameters": {
+    "mode": "design",
+    "map": {
+     "title": "Line",
+     "shape": "line",
+     "word": "bin",
+     "aspect": 2.57,
+     "nodes": {
+      "0": [
+       8,
+       81.34
+      ],
+      "1": [
+       24.8,
+       81.34
+      ],
+      "2": [
+       41.6,
+       81.34
+      ],
+      "3": [
+       58.4,
+       81.34
+      ],
+      "4": [
+       75.2,
+       81.34
+      ],
+      "5": [
+       92,
+       81.34
+      ]
+     },
+     "roads": [
+      [
+       "0",
+       "1"
+      ],
+      [
+       "1",
+       "2"
+      ],
+      [
+       "2",
+       "3"
+      ],
+      [
+       "3",
+       "4"
+      ],
+      [
+       "4",
+       "5"
+      ]
+     ]
+    },
+    "target": [
+     0,
+     0,
+     1,
+     1,
+     1,
+     1
+    ],
+    "count": 4,
+    "exact": 5,
+    "starts": 14,
+    "witness": {
+     "placed": [
+      "0",
+      "0",
+      "4",
+      "5"
+     ],
+     "plan": [
+      [
+       "0",
+       "1"
+      ],
+      [
+       "1",
+       "2"
+      ],
+      [
+       "2",
+       "3"
+      ],
+      [
+       "0",
+       "1"
+      ],
+      [
+       "1",
+       "2"
+      ]
+     ]
+    }
+   },
+   "objective": "Start the counters where filling the rings takes 5 moves and no fewer.",
+   "visibleObjective": "Start the counters where filling the rings takes 5 moves and no fewer.",
+   "instruction": "Start the counters where filling the rings takes 5 moves and no fewer.",
+   "controls": "Tap places to put the counters down; the row shows how many are left. Then move them: tap a pile to pick up a counter, then tap a place joined to it to move the counter there. Or slide a counter along the roads: each road it crosses is one move. The dots show how many moves the start must need. Undo takes back a move or a counter.",
+   "rules": [
+    "Put every counter on the map first. Then move counters one at a time along the roads to fill the rings.",
+    "Places hold any number of counters. Any counter can fill any ring.",
+    "Solved when filling the rings takes exactly the moves the dots show, and no plan from your start could take fewer."
+   ],
+   "idea": "Least work matches counters to rings in order, so a counter far from one ring may still have a near one.",
+   "prerequisites": "Count small distances and add them; plan before moving. Grades 2–3 and up, or younger children with a grown-up.",
+   "hints": [
+    "Place the counters, then fill the rings first counter to first ring, second to second.",
+    "Counters on 0 and 0 would fill rings 2 and 3 for 2 + 3 moves.",
+    "For example, put counters on 0, 0, 4 and 5."
+   ],
+   "parent": {
+    "notice": "A counter on 0 does not have to travel to 5: in order it takes ring 2, and the counters to its right move along one ring each.",
+    "prompt": "You put a counter far away, and the app said fewer moves would do. Why?",
+    "explanation": "The least work from any start comes from matching counters to rings in order. With rings on 2, 3, 4 and 5, the start 0045 needs 2 + 3 + 0 + 0 = 5. A start such as 0345 looks like one trip of 5 (0 to 5), but in order it is 0 → 2 and nothing else: 2 moves. 14 starts need exactly 5.",
+    "extension": "Play it as the worksheet’s partner game: one player sets four rings, the other places counters that need exactly 5. Can a target make it impossible? (No: every target has between 6 and 28 such starts.)",
+    "connection": "On a line the earth mover’s distance is the area between the two running totals, and sorted matching attains it, so least work is computed, not searched for.",
+    "sourceIds": [
+     "piles-week99",
+     "piles-card99",
+     "piles-peyre-cuturi"
+    ]
+   },
+   "provenance": "Week 99, Grades 2–3 Problem 6 (the exactly-5 partner game), with the rings fixed on 2, 3, 4 and 5.",
+   "sourceDocument": "docs/piles/README.md"
+  },
+  {
+   "id": "piles-10",
+   "number": 10,
+   "title": "Farthest cards",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "piles",
+   "familyTitle": "Moving piles",
+   "revision": 1,
+   "parameters": {
+    "mode": "cards",
+    "map": {
+     "title": "Line",
+     "shape": "line",
+     "word": "bin",
+     "aspect": 2.57,
+     "nodes": {
+      "0": [
+       10,
+       81.34
+      ],
+      "1": [
+       30,
+       81.34
+      ],
+      "2": [
+       50,
+       81.34
+      ],
+      "3": [
+       70,
+       81.34
+      ],
+      "4": [
+       90,
+       81.34
+      ]
+     },
+     "roads": [
+      [
+       "0",
+       "1"
+      ],
+      [
+       "1",
+       "2"
+      ],
+      [
+       "2",
+       "3"
+      ],
+      [
+       "3",
+       "4"
+      ]
+     ]
+    },
+    "cards": [
+     [
+      2,
+      0,
+      0,
+      0,
+      2
+     ],
+     [
+      1,
+      1,
+      0,
+      1,
+      1
+     ],
+     [
+      1,
+      0,
+      2,
+      0,
+      1
+     ],
+     [
+      1,
+      0,
+      1,
+      2,
+      0
+     ],
+     [
+      0,
+      2,
+      1,
+      0,
+      1
+     ],
+     [
+      0,
+      2,
+      0,
+      2,
+      0
+     ],
+     [
+      0,
+      1,
+      2,
+      1,
+      0
+     ],
+     [
+      0,
+      0,
+      4,
+      0,
+      0
+     ]
+    ],
+    "best": 8,
+    "witness": {
+     "pair": [
+      0,
+      7
+     ],
+     "plan": [
+      [
+       "0",
+       "1"
+      ],
+      [
+       "1",
+       "2"
+      ],
+      [
+       "0",
+       "1"
+      ],
+      [
+       "1",
+       "2"
+      ],
+      [
+       "4",
+       "3"
+      ],
+      [
+       "3",
+       "2"
+      ],
+      [
+       "4",
+       "3"
+      ],
+      [
+       "3",
+       "2"
+      ]
+     ]
+    }
+   },
+   "objective": "Which two cards are the most moves apart?",
+   "visibleObjective": "Which two cards are the most moves apart?",
+   "instruction": "Which two cards are the most moves apart?",
+   "controls": "Tap a card for the counters, then another for the rings; tap a card again to start a new pair. Tap a pile to pick up a counter, then tap a place joined to it to move the counter there. Or slide a counter along the roads: each road it crosses is one move. The dots count your moves. Press Best to claim the pair.",
+   "rules": [
+    "Each card has four counters on bins 0 to 4, and their bin numbers add to 8.",
+    "Tap one card for the counters and another for the rings, then fill the rings, one counter along one road at a time.",
+    "Press Best when you think no two cards take more moves. Best checks that you used the fewest moves for your pair, and that no other pair needs more."
+   ],
+   "idea": "On these cards at most two counters ever need to cross a road, so no pair can need more than 4 × 2 = 8.",
+   "prerequisites": "Compare several pairs and keep track of which were tried. Grades 4–5, or keen younger children with a grown-up.",
+   "hints": [
+    "Try a pair and watch the dots. Which cards look most different?",
+    "A spread-out card and a bunched-up card are far apart.",
+    "Pick the card with two counters on 0 and two on 4, and the card with all four on 2."
+   ],
+   "parent": {
+    "notice": "Only one pair needs 8: two on 0 and two on 4, against four on 2.",
+    "prompt": "How do you know no pair needs more than 8?",
+    "explanation": "On every card, bins 0 and 1 together hold 0 to 2 counters, and bins 0 to 2 (and 0 to 3) hold 2 to 4. So between two cards the counters left of any road differ by at most 2, and at most 2 must cross it: a pair needs at most 4 × 2 = 8. 0044 → 2222 sends two counters right across the first two roads and two left across the last two, 8 moves, and it is the only one of the 28 pairs that reaches 8. Both cards have the same position total, so equal totals do not make piles close.",
+    "extension": "Which pairs need only 2? Which card is closest to all the others?",
+    "connection": "Least work is a distance on piles (the Wasserstein-1 distance times the number of counters): zero only for equal piles, symmetric, and obeying the triangle rule. Equal centres of mass can still be far apart.",
+    "sourceIds": [
+     "piles-week99",
+     "piles-card99",
+     "piles-peyre-cuturi"
+    ]
+   },
+   "provenance": "Week 99, Grades 4–5 Problem 4 (the eight cards with position total 8; which two need the most work), with the review card’s prefix-count bound (fix 11).",
+   "sourceDocument": "docs/piles/README.md"
+  },
+  {
+   "id": "piles-11",
+   "number": 11,
+   "title": "Round the ring",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "piles",
+   "familyTitle": "Moving piles",
+   "revision": 1,
+   "parameters": {
+    "mode": "move",
+    "map": {
+     "title": "Ring",
+     "shape": "ring",
+     "word": "bin",
+     "aspect": 1.14,
+     "nodes": {
+      "0": [
+       31,
+       50
+      ],
+      "1": [
+       40.5,
+       31.24
+      ],
+      "2": [
+       59.5,
+       31.24
+      ],
+      "3": [
+       69,
+       50
+      ],
+      "4": [
+       59.5,
+       68.76
+      ],
+      "5": [
+       40.5,
+       68.76
+      ]
+     },
+     "out": {
+      "0": 180,
+      "1": 120,
+      "2": 60,
+      "3": 0,
+      "4": 300,
+      "5": 240
+     },
+     "roads": [
+      [
+       "0",
+       "1"
+      ],
+      [
+       "1",
+       "2"
+      ],
+      [
+       "2",
+       "3"
+      ],
+      [
+       "3",
+       "4"
+      ],
+      [
+       "4",
+       "5"
+      ],
+      [
+       "5",
+       "0"
+      ]
+     ]
+    },
+    "start": [
+     4,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "target": [
+     0,
+     1,
+     1,
+     0,
+     1,
+     1
+    ],
+    "budget": 6,
+    "witness": [
+     [
+      "0",
+      "1"
+     ],
+     [
+      "1",
+      "2"
+     ],
+     [
+      "0",
+      "1"
+     ],
+     [
+      "0",
+      "5"
+     ],
+     [
+      "5",
+      "4"
+     ],
+     [
+      "0",
+      "5"
+     ]
+    ]
+   },
+   "objective": "Fill the rings in 6 moves.",
+   "visibleObjective": "",
+   "instruction": "Fill the rings in 6 moves.",
+   "controls": "Tap a pile to pick up a counter, then tap a place joined to it to move the counter there. Or slide a counter along the roads: each road it crosses is one move. The dots show how many moves you have; extra moves turn red. Undo takes back one move.",
+   "rules": [
+    "Move one counter at a time along a road to the next place. Each move costs 1.",
+    "Places hold any number of counters, and counters may pass through any place. Any counter can fill any ring.",
+    "Fill every ring, with no counter left over, using no more moves than the dots show."
+   ],
+   "idea": "On a ring a counter can go either way round: rings 5 and 4 are close to 0 going backwards.",
+   "prerequisites": "Count to about 10 and compare. The move dots do the counting; a grown-up can count moves aloud with K–1 children. Saying why no plan uses fewer is for older children with a grown-up.",
+   "hints": [
+    "Which rings are nearest bin 0 if you go the other way round?",
+    "From 0, ring 5 is one step back and ring 4 two.",
+    "Move counters from 0 to 1, to 2, back to 5 and back to 4."
+   ],
+   "parent": {
+    "notice": "On a line the same piles need 12 moves; on the ring, 6.",
+    "prompt": "Why can the ring do it in half the moves?",
+    "explanation": "On the ring 0 is next to both 1 and 5. Sending counters 0 → 1, 0 → 2, 0 → 5 and 0 → 4 costs 1 + 2 + 1 + 2 = 6. On a line from 0 the trips are 1 + 2 + 4 + 5 = 12. No counter needs more than its distance to the nearest ring left for it, and here every trip goes the short way round.",
+    "extension": "Where could four rings go so that four counters on 0 need the most moves? (All on 3: 12.)",
+    "connection": "On a cycle no single road has a forced count, since counters could circle round. The least work is the line’s road counts with the best constant taken off every road, and the best constant is a median of the counts (here the counts 4, 3, 2, 2, 1, 0 give 6 with 2 taken off).",
+    "sourceIds": [
+     "piles-week99",
+     "piles-card99",
+     "piles-peyre-cuturi"
+    ]
+   },
+   "provenance": "Week 99, the review card’s App fit (a six-bin ring, 0000 → 1245, 6 against 12 on the line) and the guide’s closing remark that cycles need a different argument.",
+   "sourceDocument": "docs/piles/README.md"
+  },
+  {
+   "id": "piles-12",
+   "number": 12,
+   "title": "Halfway round",
+   "band": "all",
+   "difficulty_level": "hard",
+   "mechanic": "piles",
+   "familyTitle": "Moving piles",
+   "revision": 1,
+   "parameters": {
+    "mode": "move",
+    "map": {
+     "title": "Ring",
+     "shape": "ring",
+     "word": "bin",
+     "aspect": 1.14,
+     "nodes": {
+      "0": [
+       31,
+       50
+      ],
+      "1": [
+       40.5,
+       31.24
+      ],
+      "2": [
+       59.5,
+       31.24
+      ],
+      "3": [
+       69,
+       50
+      ],
+      "4": [
+       59.5,
+       68.76
+      ],
+      "5": [
+       40.5,
+       68.76
+      ]
+     },
+     "out": {
+      "0": 180,
+      "1": 120,
+      "2": 60,
+      "3": 0,
+      "4": 300,
+      "5": 240
+     },
+     "roads": [
+      [
+       "0",
+       "1"
+      ],
+      [
+       "1",
+       "2"
+      ],
+      [
+       "2",
+       "3"
+      ],
+      [
+       "3",
+       "4"
+      ],
+      [
+       "4",
+       "5"
+      ],
+      [
+       "5",
+       "0"
+      ]
+     ]
+    },
+    "start": [
+     1,
+     1,
+     1,
+     0,
+     0,
+     0
+    ],
+    "target": [
+     0,
+     0,
+     0,
+     1,
+     1,
+     1
+    ],
+    "budget": 5,
+    "witness": [
+     [
+      "0",
+      "5"
+     ],
+     [
+      "5",
+      "4"
+     ],
+     [
+      "1",
+      "0"
+     ],
+     [
+      "0",
+      "5"
+     ],
+     [
+      "2",
+      "3"
+     ]
+    ]
+   },
+   "objective": "Fill the rings in 5 moves.",
+   "visibleObjective": "",
+   "instruction": "Fill the rings in 5 moves.",
+   "controls": "Tap a pile to pick up a counter, then tap a place joined to it to move the counter there. Or slide a counter along the roads: each road it crosses is one move. The dots show how many moves you have; extra moves turn red. Undo takes back one move.",
+   "rules": [
+    "Move one counter at a time along a road to the next place. Each move costs 1.",
+    "Places hold any number of counters, and counters may pass through any place. Any counter can fill any ring.",
+    "Fill every ring, with no counter left over, using no more moves than the dots show."
+   ],
+   "idea": "Sliding the whole pile three places round costs 9; sending the end counters opposite ways costs 5.",
+   "prerequisites": "Count to about 10 and compare. The move dots do the counting; a grown-up can count moves aloud with K–1 children. Saying why no plan uses fewer is for older children with a grown-up.",
+   "hints": [
+    "Which ring is nearest the counter on 0? And the counter on 2?",
+    "The counter on 0 can go back to 5 and the counter on 2 forward to 3.",
+    "Move 0 to 5, 2 to 3, and the counter on 1 three steps to 4."
+   ],
+   "parent": {
+    "notice": "The counters go both ways round the ring.",
+    "prompt": "Why is sliding all three counters round by three a waste?",
+    "explanation": "Moving each counter three places costs 9. The ends can go the short way, 0 → 5 and 2 → 3 for 1 each, and the middle counter goes three places to 4, either way round: 5 in all. Several plans tie at 5. To see that 5 is least, take the line’s road counts (counters minus rings to the left): 1, 2, 3, 2, 1 and 0 on the road from 5 back to 0. On a ring any constant can be taken off every road, since counters could circle the other way; taking off 1 leaves 0, 1, 2, 1, 0, 1, and taking off 2 leaves 1, 0, 1, 0, 1, 2. Both total 5, and no constant gives less.",
+    "extension": "With all three rings on 3, how many moves? (3 + 2 + 1 = 6.)",
+    "connection": "Transport on a circle: the least work is the smallest total of |count − c| over a constant circulation c, attained at a median of the line’s road counts.",
+    "sourceIds": [
+     "piles-week99",
+     "piles-card99",
+     "piles-peyre-cuturi"
+    ]
+   },
+   "provenance": "New, for the review card’s ring: three counters halfway round (9 by sliding the pile, 5 by splitting it).",
+   "sourceDocument": "docs/piles/README.md"
+  }
+ ]
+}

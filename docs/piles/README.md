@@ -1,0 +1,92 @@
+# Moving piles
+
+October 23, 2026. Twelve puzzles and a playground built from Week 99 of the Bellingham math circle (moving piles with the least work). They are in the puzzle satchel only, not on the Lantern Road. Nothing here has been played by children, and the Week 99 worksheets are unpiloted. The theme's [review card](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-99.md) proposed this port (fit A, size S) and shaped it: counters moved one place at a time to a fixed target on the shared graph board; puzzles that meet a least-work budget, design a start at an exact work, and find the farthest pair of cards; a six-bin ring for hard puzzles; and no counter labels, live gap counts or predict-the-work screens. Grades 4–5 Problem 6 (the triangle rule) and "Can a target make this impossible?" are claims about every case and stay on paper.
+
+## The mathematics
+
+Counters sit in piles on the places of a small map, and rings mark a fixed target with as many places as there are counters. A move carries one counter along one road and costs 1. Places hold any number of counters, counters pass through occupied places, and any counter may fill any ring. The **least work** from a start to the target is the fewest moves that make the piles match the rings: the earth mover's distance on the map, or N times the Wasserstein-1 distance between the two piles as distributions of N counters.
+
+- **On a line every road has a forced count, and matching in order meets them all.** Number the bins 0 to 5. Across the road after bin i, rightward crossings minus leftward crossings must equal S_i, the counters minus the rings in bins 0 to i, however the moves are made. So every plan needs at least Σ|S_i| moves. Pairing the counters with the rings in order (first counter to first ring, second to second) never sends two counters across one road in opposite directions, so it crosses each road exactly |S_i| times and costs exactly Σ|S_i|. The plan and the road counts certify each other: that is the solve's certificate, drawn after every solve as each road's count with an arrowhead. Different orders of the same trips cost the same; the best matching need not be unique in general, but it is in every line puzzle here.
+- **Nearest first can fail.** Counters on 0 and 3 with rings on 2 and 5: the shortest single trip is 3 → 2 (one move), and then 0 → 5 costs five, 6 in all, while 0 → 2 and 3 → 5 cost 4 (puzzle 3). Left of the road from 2 to 3 the counters and rings already balance, yet nearest first sends a counter across.
+- **On a tree each road carries exactly its imbalance.** Removing a road splits a tree in two, and the counters minus rings on one side must cross it. The sum over roads is a lower bound, and it is met: orient each road's required flow toward its deficit side, and since a tree has no loops these flows split into trips from surplus to deficit. On the worksheet's star (leaves A, B, C joined to O) the least work is the sum of the leaves' imbalances (puzzles 4 and 7). Any two places on the star are at most two roads apart, so n counters need at most 2n moves, with equality only when every counter goes leaf to leaf (puzzle 8, where the rings force the unique start A3).
+- **With every ring on one place, least work is a sum of distances.** With four rings on bin 2, a counter on bin x needs |x − 2| moves whatever the others do, so a start's least work is the sum of its distances to 2 (puzzle 6: 19 of the 126 starts need exactly 7, 16 need exactly 4).
+- **Least work is a distance between piles.** It is zero only for equal piles, the same both ways (reverse the moves), and obeys the triangle rule (follow one plan with another). Equal position totals do not make piles close: of the eight four-counter cards on bins 0 to 4 whose bin numbers add to 8, two on 0 and two on 4 against four on 2 need 8 moves, the most, and no other pair does (puzzle 10). On every card bins 0 and 1 hold 0 to 2 counters and bins 0 to 2 (and 0 to 3) hold 2 to 4, so between two cards at most 2 counters must cross any of the four roads, and no pair can need more than 8. That bound is the certificate for Best.
+- **On a ring no single road is forced.** Counters could circle round, so any constant c can be taken off every road's line count: the least work on a cycle is the smallest Σ|S_i − c| over the six roads (including the road from 5 back to 0), attained when c is a median of the S_i. This is derived here directly and checked by exhaustive search against every pair of piles of up to four counters. 0000 → 1245 needs 6 on the ring and 12 on a line (puzzle 11); 012 → 345 needs 5 on the ring, by sending the end counters opposite ways, against 9 for sliding the pile round (puzzle 12).
+
+Experiments come first: a child moves counters and watches the move dots. Conjectures follow ("the nearest ring first", "match them in order", "add up the leaves"), and explanations are for older children with a grown-up: cover everything right of a road and compare counters with rings. No puzzle asks for a written proof. The assumptions are explicit: equal totals, unlimited room in a place, every road costs 1, and the target stays fixed. Nothing here claims anything about unequal totals, road capacities or squared distances.
+
+## Where the puzzles appear
+
+**Puzzles → Moving piles** (symbol ⁖) is a satchel family on the family seam ([Adding a family](../ADDING-A-FAMILY.md)), with a **Playground** button above Easy, Medium and Hard. The puzzles are grade-free (`band: "all"`). Piles are written by position, one digit per counter: 0005 means three counters on bin 0 and one on bin 5.
+
+| # | Level | Kind | Map | Start → rings | Least work | Week 99 source |
+|---|---|---|---|---|---|---|
+| 1 | Easy | Move | Line | 03 → 12 | 2 | 2–3 P1, second pair |
+| 2 | Easy | Move | Line | 0005 → 1234 | 7 | 2–3 P2 / 4–5 P1, first pair |
+| 3 | Easy | Move | Line | 03 → 25 | 4 (nearest first: 6) | P3, both bands |
+| 4 | Easy | Move | Star | A2 C1 → O1 B2 | 5 | 2–3 P5 / 4–5 P5, first pair |
+| 5 | Medium | Move | Line | 1144 → 0225 | 5 | 2–3 P2 / 4–5 P1, second pair |
+| 6 | Medium | Design | Line | ? → 2222, exactly 7 | 19 starts, e.g. 0003 | 2–3 P4 |
+| 7 | Medium | Move | Star | A3 B1 → A1 O1 C2 | 5 | 4–5 P5, second pair |
+| 8 | Medium | Design | Star | ? → B2 C1, three counters, exactly 6 | only A3 | 2–3 P5's invention |
+| 9 | Hard | Design | Line | ? → 2345, exactly 5 | 14 starts, e.g. 0045 | 2–3 P6 (the exactly-5 game) |
+| 10 | Hard | Cards | Line 0–4 | two of the eight total-8 cards | 8, only 0044 and 2222 | 4–5 P4 |
+| 11 | Hard | Move | Ring | 0000 → 1245 | 6 (line: 12) | the card's ring |
+| 12 | Hard | Move | Ring | 012 → 345 | 5 (sliding: 9) | new, for the card's ring |
+
+The worksheets are in [math-circle-worksheets, week 99](https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-99), with the editable problem files in `source/week-99/problems/`. Each puzzle's `provenance` names its problem; the instances of puzzles 1–7 and 10–11 are the worksheet's or the card's, puzzles 8 and 9 fix the rings of a worksheet invention, and puzzle 12 is new.
+
+### Why its own family
+
+Week 99 is ported as its own family, not as a group in an existing one. Its object (a pile distribution compared with a fixed target) and its move (one counter along one road, cost 1, toward a least total) belong to no family in the app. [Chip firing](../chips/README.md) also moves chips along a graph's lines, but its move fires a whole circle at once and its questions are about order independence and stable boards; a group there would teach the wrong move. [Gap rings](../diffs/README.md) is Ducci's map on four numbers, not transport, and [Pairs that stay](../matching/README.md) and [Fair shares](../shares/README.md) match by preferences and values, not by distance. Transport has its own theorem, certificate and progression (line, tree, ring), which is what a family is for.
+
+## How a puzzle plays
+
+- **The board.** The places are the shared graph board's dots, joined by roads. Each place's pile stacks away from its dot as sun counters; the rings stack in the same places as dashed circles, which turn solid pine when a counter fills them. A counter with no ring under it is extra. Bins on the line and ring are numbered 0 to 5; the star's places are A, O, B and C, as on the worksheet.
+- **Moving.** Tap a pile to pick up a counter (the place turns pine and its top counter lifts; the places joined to it turn pale green), then tap a joined place to move one counter there. Tapping the picked pile again lets go, and tapping another pile picks that one. A press on a pile that slides on carries a counter from place to place, one move for each road it crosses, so a long slide costs its length. Each step is one Undo. Taps anywhere along a pile's stack count as taps on its place, and every place is a control, so a slide can enter an empty one.
+- **Move dots.** Above the board a row of empty dots shows the budget (move puzzles) or the exact work (design puzzles); each move fills one in pine, and moves past the budget add red dots. The cards and the playground show only the moves made. The dots are the only number on the play screen, and nothing else counts live: there are no per-road counts while playing.
+- **Move puzzles** are solved when every ring is filled with no counter left over, within the dots. The budget is always the least work, so a solve is a best plan. The play screen shows no objective; How to play says "Fill the rings in N moves."
+- **Design puzzles** start with the counters in a tray above the board. Tap places to put them down (Undo picks one up again); once all are down, move them to the rings. A solve needs the rings filled in exactly the dotted number of moves, from a start whose least work is that number. If the rings fill in exactly that many moves but the start needs fewer, the board says "Fewer moves would do." (on a line or star the difference is always even, so it comes from an out-and-back). One objective line is shown, because the board can't say "no fewer": "Start the counters where filling the rings takes 7 moves and no fewer."
+- **Cards** shows the eight cards above the board, as pictures. Tap one for the counters (pine) and another for the rings (dashed ochre); tapping a card again starts a new pair. Fill the rings, then press **Best** to claim that no two cards are more moves apart. Best is off until the rings are filled. A plan with more moves than the pair needs gets "Fewer moves would do."; a pair that isn't the farthest gets "Another pair takes more moves." Either way Best stays off for that plan or that pair, through Undo and new pairs, until Restart; the line shows only on the board the claim made, so the Undo of the claim takes it away and Undo back onto that board shows it again. The objective line asks "Which two cards are the most moves apart?"
+- **After a solve** each road that was crossed shows how many counters crossed it, in a small card beside the road, with an arrowhead on the road for the way they went. On the line and the star these are the forced counts that prove the plan is best; on the ring they are the plan's own traffic (no single road is forced there).
+- **Hints.** Before any move the first hint is the authored nudge. Then hints name a best next move ("Move a counter from bin 0 to bin 1."), carrying the same counter on where they can; design hints first place counters toward a start that works ("Put a counter on bin 0."), and card hints name the card to tap. Level 2 marks the places, the road, the card or Best; level 3 offers Apply hint. When the moves left can't finish within the dots, or a design's start can't need exactly the number, the dead end is told only behind Hint, with Undo back to a board that can still be solved. Hints alone solve every puzzle from fresh and from random play.
+
+## The playground
+
+The playground has no goal, no Hint and never counts as solved. Three maps (line, star, ring) are chosen by small pictures; three tools are chosen by icons: **Counters** (tap a place to add one), **Rings** (add a ring) and **Move** (tap or slide, as in the puzzles). The dots count the moves since anything was last added; **Clear** empties the map. A place holds up to 6 counters and 6 rings, and the map up to 12 of each. The worksheet's exactly-5 partner game (Grades 2–3 Problem 6) plays here: one child sets four rings, the other places four counters that should need exactly 5, and the moves check it.
+
+## Rules that keep the record honest
+
+- Only legal moves are accepted: a move needs a counter at its start and a road to its end; no moves while counters are still to be placed or before a pair is chosen; no more counters than the tray holds; Best only with the rings filled and the claim not already refused; nothing after a solve. A record holds at most 40 moves.
+- Saves hold only what was done: a move puzzle's record of steps; a design's places tapped and steps; the cards' pair, steps, refusal line, refused claims and whether Best was accepted; the playground's piles, rings and move count. Piles are always replayed from the record and checked: every step legal, at most the tray's counters, no steps before the start is complete, Best accepted only on the farthest pair in its least work, a refusal line only with its own refused claim, and every refused claim one the app would refuse.
+- Undo keeps every refused Best refused through the `carry` hook. The picked pile is view state belonging to the board it was picked on (as in Pairs that stay), so any move or Undo lets go of it, and the same board always draws the same.
+
+## Files
+
+| File | Contents |
+|---|---|
+| `dist/families/piles/piles.js` | Maps, least work (a search over sets of filled rings, by road distance), replaying a record, road traffic, best next steps, design starts and the farthest cards; the `piles` mechanic (moves, hints, the board with its stacks and solve marks, the cards, the tray and dots, taps, slides and keys) and the playground |
+| `dist/families/piles/piles.css` | Styles in the shared board palette, scoped under the board's `pl-` classes, importing `graph-board.css` |
+| `dist/families/piles/piles.json` | The pack: 12 puzzles, the playground, 1 family and 3 sources |
+| `scripts/build-piles.mjs` | Authoring list: lays out the maps, checks every budget, design count and the farthest pair with the mechanic, records a witness plan for each puzzle, and writes the pack |
+| `scripts/validate-piles.mjs` | Recomputes every least work by breadth-first search over whole pile states; checks the line's gap sum, sorted matching, the star's leaf imbalances and the ring's median circulation against that search (and the mechanic) for all 40,719 equal-total pairs of 1 to 4 counters on the three maps; every budget, design count and card claim, the cards as the complete set and their prefix bound, the ring against the line, and nearest-first on puzzle 3; witnesses; hints from fresh and from 25 random plays per puzzle; every Undo changing the board; refusals and their locks; illegal moves and forged saves; the playground. Run by `npm run build` |
+| `tests/piles.test.mjs` | Least work on the worksheet's pairs, the record, budgets and red dots, designing, hints, the cards with both refusals and their locks through Undo, the ring, the playground, the picked pile, saves, rendering and hint timing |
+| `scripts/piles-browser-smoke.mjs` | The interface in a browser: tap moves, the picked pile and where it can go, a slide (mouse, or touch with `TEST_PHONE=1`), Enter on a place, red dots, Undo, the solve marks, placing a design and "Fewer moves would do.", the cards with both refusals, Best kept off through Undo, the right claim, the ring, the playground's maps and tools, no page overflow, and screenshots in `test-results/piles/` |
+
+To change a puzzle, edit `scripts/build-piles.mjs`, then run `node scripts/build-piles.mjs`, `npm test` and `npm run build`.
+
+## Sources
+
+- The Week 99 worksheets (Grades 2–3 and 4–5), materials and facilitator guide, and the review card of October 23, 2026, with its math check (`plans/review/week-99.md`, `week-99-math.md`).
+- Gabriel Peyré and Marco Cuturi, *Computational Optimal Transport*, §2.6 (transport on the line: sorted matching and cumulative counts) and §6.3 (transport on graphs), as the worksheet's own sources cite. The ring's median formula is derived here and checked by exhaustive search, not taken from a source.
+
+## Not yet done
+
+- **Children's play.** Nothing here has been tried by children. Things to watch:
+  1. whether children find the two-tap move (pick a pile, then a joined place) without help, and whether the slide is discovered or causes stray moves when a child means to scroll on a phone (the board takes touch slides while a puzzle is live). In Chromium's touch emulation, a slide lifted while the finger is still moving fast swallows the next tap; watch for a pick that seems to need a second tap straight after a quick slide;
+  2. whether the move dots read as a budget, so that children notice an extra red dot as "too many" rather than carrying on, and whether "Fewer moves would do." in a design puzzle is understood as "this start is too close", not "you moved badly";
+  3. on the cards, whether children compare pairs on purpose or press Best on the first pair they finish, and whether a refused pair staying refused is clear.
+- **Line puzzles repeat once matching in order is found** (the card's pitfall). There are four move puzzles on the line; more would add little.
+- **Not built from the card.** Grades 4–5 Problem 6 (the triangle rule over every triple) and "Can a target make this impossible?" (Grades 2–3 Problem 6, about every target) stay on paper, as the card decided. The worksheet's two-best-records question was dropped from the worksheets themselves. No puzzle asks children to point at a road's forced count as a certificate; the counts are drawn after a solve.
+- **The ring's certificate.** After a ring solve the roads show the plan's own traffic. A child-sized certificate for the ring (the median circulation, or a 1-Lipschitz height function as the dual) is left to the grown-up notes.
+- **Story and grade trails.** Moving piles is off the Lantern Road and has no keeper lines; the family is grade-free and in no K–1, 2–3 or 4–5 trail.

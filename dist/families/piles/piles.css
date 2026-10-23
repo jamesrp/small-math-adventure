@@ -1,0 +1,69 @@
+@import url('../../graph-board.css');
+/* Moving piles: places are the shared graph board's dots, each with its pile
+   stacked away from it. Counters are sun discs with ink outlines; the target's
+   rings are dashed ink circles, solid pine once a counter fills them. A picked
+   pile is pine and its top counter lifts; the places it can move to get a
+   pale pine fill. After a solve each road shows how many counters crossed it,
+   with an arrowhead for the way they went. Move dots sit above the board. */
+.pl-puzzle{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
+.pl-map{max-width:540px}
+.pl-map.pl-shape-line{max-width:660px}
+
+/* Places. */
+.pl-map .gb-node .gb-label{font-size:5px}
+.pl-map .gb-node.picked .gb-dot{fill:var(--b-pine,#31533e);stroke:var(--b-pine,#31533e)}
+.pl-map .gb-node.picked .gb-label{fill:var(--b-on-pine,#fff8d9)}
+.pl-map .gb-node.can-go .gb-dot{fill:#e2ecd6;stroke:var(--b-pine,#31533e)}
+.pl-map .gb-node.full .gb-dot{stroke:var(--b-pine,#31533e)}
+
+/* Piles and rings. */
+.pl-map .pl-col{cursor:pointer}
+.pl-map .pl-hit{stroke:transparent;stroke-width:8.5;stroke-linecap:round}
+.pl-map .pl-counter,.pl-tool-icon .pl-counter{fill:var(--b-sun,#efc76e);stroke:var(--b-ink,#294439);stroke-width:1.6px;vector-effect:non-scaling-stroke}
+.pl-map .pl-ring,.pl-tool-icon .pl-ring{fill:none;stroke:var(--b-ink,#294439);stroke-width:1.5px;stroke-dasharray:2.6 2;vector-effect:non-scaling-stroke}
+.pl-map .pl-ring.full{stroke:var(--b-pine,#31533e);stroke-width:2.4px;stroke-dasharray:none}
+.pl-map .pl-col.picked .pl-counter{stroke:var(--b-pine,#31533e);stroke-width:2.4px}
+.pl-map .pl-col .pl-counter,.pl-map .pl-col .pl-ring{pointer-events:none}
+
+/* After a solve: what each road carried. */
+.pl-map .gb-edge.used .gb-line{stroke:var(--b-pine,#31533e);stroke-width:4px}
+.pl-map .pl-flow polygon{fill:var(--b-pine,#31533e)}
+.pl-map .pl-flow rect{fill:var(--b-card,#fffdf5);stroke:var(--b-pine,#31533e);stroke-width:1.6px;vector-effect:non-scaling-stroke}
+.pl-map .pl-flow text{font-size:4.6px;fill:var(--b-pine,#31533e)}
+
+/* The bar: tools, counters to place, move dots and buttons. */
+.pl-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.45rem .8rem;max-width:100%;min-height:30px}
+.pl-pips,.pl-tray{display:inline-flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:320px}
+.pl-pip{width:18px;height:18px;border-radius:50%;border:2px solid #b9c2ae;background:var(--b-card,#fffdf5);box-sizing:border-box}
+.pl-pip.used{background:var(--b-pine,#31533e);border:2px solid var(--b-pine,#31533e)}
+.pl-pip.over{background:var(--b-bad,#a9503a);border:2px solid var(--b-bad,#a9503a)}
+.pl-tray-dot{width:22px;height:22px;border-radius:50%;background:var(--b-sun,#efc76e);border:1.6px solid var(--b-ink,#294439);box-sizing:border-box}
+.pl-tray{padding-right:.6rem;border-right:1.5px solid var(--b-line,#d0d6bd)}
+.pl-puzzle .pl-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.pl-puzzle .pl-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+.pl-puzzle .pl-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+
+/* Cards. */
+.pl-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.45rem;width:100%;max-width:460px}
+.pl-puzzle .pl-card{min-height:46px;padding:4px 6px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:10px;box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer}
+.pl-puzzle .pl-card.start{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 2px var(--b-pine,#31533e);background:#e9eddc}
+.pl-puzzle .pl-card.target{border:2px dashed var(--b-ochre,#b38840);box-shadow:none;background:#f7efdc}
+.pl-puzzle .pl-card.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:2px}
+.pl-puzzle .pl-card[disabled]{cursor:default}
+.pl-card-art{display:block;width:100%;height:auto}
+.pl-card-bin{stroke:var(--b-ink,#294439);stroke-width:1.6px;stroke-linecap:round}
+.pl-card-dot{fill:var(--b-sun,#efc76e);stroke:var(--b-ink,#294439);stroke-width:1px}
+
+/* Playground: maps and tools. */
+.pl-maps,.pl-tools{display:flex;gap:.4rem;justify-content:center}
+.pl-puzzle .pl-map-button,.pl-puzzle .pl-tool{min-width:46px;min-height:46px;padding:4px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.pl-puzzle .pl-map-button{width:64px}
+.pl-puzzle .pl-map-button[aria-pressed="true"],.pl-puzzle .pl-tool[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 2px var(--b-pine,#31533e);background:#e9eddc}
+.pl-map-icon{display:block;width:100%;height:auto;max-height:40px}
+.pl-map-icon .pl-map-roads line{stroke:#9aa88f;stroke-width:6px}
+.pl-map-icon circle{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:4px}
+.pl-tool-icon{display:block;width:26px;height:26px;margin:auto}
+.pl-tool-icon .pl-tool-arrow{fill:none;stroke:var(--b-pine,#31533e);stroke-width:2.4px;stroke-linecap:round;stroke-linejoin:round}
+
+.pl-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+@media (prefers-reduced-motion:no-preference){.pl-map .pl-ring.full{transition:stroke .2s}}
