@@ -1,0 +1,81 @@
+@import url('../../cases.css');
+/* Catch and mark: lettered paper tiles in a bag; an ink dot marks the first
+   catch; a pine frame and a leaf-green fill show the second catch; two trays
+   of slots, one per catch; a goal drawn as the second catch's squares; the
+   shelf, bins and catalogs are the case engine's; ochre for hints. */
+.ct-puzzle{display:flex;flex-direction:column;align-items:center;gap:.7rem;width:100%;max-width:560px;margin:0 auto;--tile:clamp(40px,11.8vw,58px)}
+.ct-bag{display:grid;grid-template-columns:repeat(var(--cols),var(--tile));grid-auto-rows:var(--tile);gap:6px;justify-content:center;padding:10px 12px;border:2px solid var(--b-line,#d0d6bd);border-radius:18px 18px 26px 26px;background:#f3eedf}
+.ct-puzzle .ct-tile{position:relative;box-sizing:border-box;width:100%;height:100%;min-width:0;min-height:0;margin:0;padding:0;display:grid;place-items:center;border:2px solid var(--b-ink,#294439);border-radius:10px;background:var(--b-card,#fffdf5);box-shadow:0 3px 0 rgba(41,68,57,.3);font:400 1.5rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
+.ct-puzzle button.ct-tile{cursor:pointer}
+.ct-puzzle button.ct-tile:hover{background:#fbf4dc}
+.ct-puzzle .ct-tile.caught{background:var(--b-good-soft,#e2ecd6);border:3px solid var(--b-pine,#31533e);box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 5px var(--b-pine,#31533e)}
+.ct-puzzle button.ct-tile[disabled]{cursor:default;opacity:.5;box-shadow:none}
+.ct-puzzle .ct-tile.hinted,.ct-puzzle .ct-slot.hinted,.ct-puzzle .ct-bag-chip.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.ct-puzzle .ct-tile:focus-visible,.ct-puzzle .ct-slot:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:4px;z-index:1}
+.ct-dot{position:absolute;top:4px;right:4px;width:30%;max-width:15px;aspect-ratio:1;border-radius:50%;background:var(--b-ink,#294439)}
+.ct-puzzle .ct-tile.proof,.ct-puzzle .ct-slot.proof{box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-good,#3c7a4a)}
+
+/* Trays: the catches, one slot per tile. */
+.ct-trays{display:flex;flex-direction:column;align-items:stretch;gap:.45rem}
+.ct-tray{display:flex;align-items:center;gap:.6rem;padding:6px 10px;border:2px dashed var(--b-line,#d0d6bd);border-radius:14px}
+.ct-tray.active{border:2px solid var(--b-pine,#31533e);background:#eef2e4}
+.ct-tray-tag{flex:0 0 4.6rem;font:600 .9rem/1.1 var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850)}
+.ct-slots{display:flex;flex-wrap:wrap;gap:5px}
+.ct-puzzle .ct-slot{position:relative;box-sizing:border-box;width:calc(var(--tile) * .78);height:calc(var(--tile) * .78);min-width:0;min-height:0;margin:0;padding:0;display:grid;place-items:center;border:2px solid var(--b-ink,#294439);border-radius:8px;background:var(--b-card,#fffdf5);font:400 1.2rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439);box-shadow:none}
+.ct-puzzle button.ct-slot{cursor:pointer}
+.ct-puzzle .ct-slot.empty{border:2px dashed #aab69b;background:transparent}
+.ct-tray:nth-child(2) .ct-slot:not(.empty){background:var(--b-good-soft,#e2ecd6);border-color:var(--b-pine,#31533e)}
+.ct-slot .ct-dot{top:3px;right:3px}
+/* On a phone the tag sits above its slots, so six slots fit on one line. */
+@media (max-width:480px){.ct-tray{flex-direction:column;align-items:flex-start;gap:.3rem;padding:5px 9px 8px}.ct-tray-tag{flex:none}}
+
+/* The goal: the second catch's squares, dotted as it should be. */
+.ct-goal{position:relative;display:flex;align-items:center;justify-content:center;padding:22px 16px 10px;border:2px dashed var(--b-leaf,#86a68c);border-radius:12px;background:#f1f5ea}
+.ct-goal.met,.ct-goal.cant{border-style:solid;border-color:var(--b-good,#3c7a4a)}
+.ct-tag{position:absolute;top:3px;left:10px;font:600 .78rem/1 var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850)}
+.ct-pattern{display:inline-flex;gap:4px;vertical-align:middle}
+.ct-p{position:relative;display:inline-block;width:20px;height:20px;box-sizing:border-box;border:1.5px solid var(--b-pine,#31533e);border-radius:5px;background:var(--b-good-soft,#e2ecd6)}
+.ct-p.dot::after{content:'';position:absolute;top:2px;right:2px;width:7px;height:7px;border-radius:50%;background:var(--b-ink,#294439)}
+.ct-goal .ct-p{width:30px;height:30px;border-radius:7px}
+.ct-goal .ct-p.dot::after{width:10px;height:10px;top:3px;right:3px}
+.case-bin-label .ct-p{width:15px;height:15px;border-radius:4px}
+.case-bin-label .ct-p.dot::after{width:5px;height:5px;top:2px;right:2px}
+
+/* Bags to choose from. */
+.ct-bags{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+.ct-puzzle .ct-bag-chip{position:relative;display:inline-grid;place-items:center;min-width:52px;min-height:46px;padding:4px 10px;border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px;background:var(--b-card,#fffdf5);box-shadow:0 2px 0 var(--b-line,#d0d6bd);font:400 1.3rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
+.ct-puzzle button.ct-bag-chip{cursor:pointer}
+.ct-puzzle .ct-bag-chip[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 2px var(--b-pine,#31533e);background:#e9eddc}
+.ct-puzzle .ct-bag-chip.found{background:var(--b-good-soft,#e2ecd6)}
+.ct-puzzle .ct-bag-chip.no{opacity:.4;border-style:dashed;box-shadow:none}
+.ct-tick{position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;background:var(--b-good,#3c7a4a);color:#fff;font:700 .78rem/20px system-ui,sans-serif;text-align:center}
+
+/* Buttons and notes. */
+.ct-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .8rem}
+.ct-puzzle .ct-button{min-height:46px;padding:6px 18px;font-weight:600;white-space:nowrap;border-radius:12px;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.ct-puzzle .ct-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+.ct-puzzle .ct-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+.ct-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+
+/* Kept catches. */
+.ct-mini{display:inline-flex;gap:2px}
+.ct-m{position:relative;display:inline-grid;place-items:center;width:1.6em;height:1.55em;padding-right:.15em;box-sizing:border-box;border:1px solid var(--b-pine,#31533e);border-radius:4px;background:var(--b-good-soft,#e2ecd6);font:400 .85rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
+.ct-m.dot::after{content:'';position:absolute;top:1px;right:1px;width:4px;height:4px;border-radius:50%;background:var(--b-ink,#294439)}
+.ct-shelf .case-kept,.ct-catalog .case-kept{padding:.35rem .45rem}
+
+/* The playground. */
+.ct-steppers{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem .9rem}
+.ct-stepper{display:flex;align-items:center;gap:.35rem}
+.ct-step-tag{font:600 .9rem/1 var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850)}
+.ct-puzzle .ct-step{min-width:44px;min-height:44px;padding:0;border:1px solid var(--b-line,#d0d6bd);border-radius:11px;background:var(--b-card,#fffdf5);box-shadow:0 2px 0 var(--b-line,#d0d6bd);font:600 1.3rem/1 system-ui,sans-serif;color:var(--b-ink,#294439);cursor:pointer}
+.ct-puzzle .ct-step[disabled]{opacity:.4;box-shadow:none;cursor:default}
+.ct-step-value{min-width:1.6em;text-align:center;font:400 1.35rem/1 var(--b-display,Georgia,serif)}
+.ct-piles{display:flex;align-items:flex-end;justify-content:center;gap:6px;width:100%;min-height:7rem;padding:6px 4px 0;border-bottom:2px solid var(--b-line,#d0d6bd)}
+.ct-pile{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;width:clamp(30px,9vw,48px)}
+.ct-pile-count{font:600 .85rem/1 var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850);min-height:.9rem}
+.ct-pebbles{display:flex;flex-wrap:wrap-reverse;justify-content:center;gap:2px;width:100%}
+.ct-pebbles i{display:block;width:8px;height:8px;border-radius:50%;background:var(--b-pine,#31533e)}
+.ct-pile-tag{position:relative;display:inline-grid;place-items:center;width:28px;height:28px;margin-top:3px;margin-bottom:-16px;border:1.5px solid var(--b-pine,#31533e);border-radius:6px;background:var(--b-good-soft,#e2ecd6);font:400 1rem/1 var(--b-display,Georgia,serif);transform:translateY(-2px)}
+.ct-playground .ct-piles{margin-bottom:18px}
+.ct-puzzle.solved .ct-bag{opacity:.97}
+@media (prefers-reduced-motion: reduce){.ct-puzzle *{transition:none!important;animation:none!important}}
