@@ -24,7 +24,7 @@
 // bundles show it, and the sorting is judged only by That's all. The
 // playground is one square with any side and bundle size.
 import {esc} from '../../expansion-controls.js';
-import {gridOf, squareBoard, wireSquare, pathOf} from '../../sq-grid.js';
+import {gridOf, squareBoard, wireSquare} from '../../sq-grid.js';
 
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const int = value => Number.isInteger(value);
@@ -456,6 +456,10 @@ function wire(root, p, api) {
       if (!drag.ghost && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 10) return;
       if (!drag.ghost) { drag.ghost = drag.el.cloneNode(true); drag.ghost.classList.add('lo-ghost'); drag.ghost.removeAttribute('data-lo-card'); document.body.append(drag.ghost); }
       drag.ghost.style.left = `${e.clientX}px`; drag.ghost.style.top = `${e.clientY}px`;
+      // The bin under the finger lights up.
+      const over = document.elementFromPoint(e.clientX, e.clientY)?.closest('.lo-bin');
+      document.querySelectorAll('.lo-bin.drop-over').forEach(el => { if (el !== over) el.classList.remove('drop-over'); });
+      over?.classList.add('drop-over');
     });
     const end = e => {
       if (!drag || e.pointerId !== drag.pointer) return;
@@ -463,6 +467,7 @@ function wire(root, p, api) {
       drag = null;
       if (!d.ghost) return;
       d.ghost.remove();
+      document.querySelectorAll('.lo-bin.drop-over').forEach(el => el.classList.remove('drop-over'));
       if (e.type !== 'pointerup') return;
       // A click after a drag lands on the card and the bin's shared parent,
       // which has no action, so it needs no guard.

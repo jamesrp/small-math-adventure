@@ -52,7 +52,7 @@ button.lo-card:focus-visible{outline:3px solid var(--b-ochre,#b38840);outline-of
 .lo-bins.one .lo-bin{min-width:200px}
 /* A bin's label is a sun counter with its leftover, so it never looks like a card. */
 .lo-bin-drop{display:grid;place-items:center;width:100%;min-width:56px;height:46px;padding:0;border:0;border-radius:9px;background:transparent;color:var(--b-ink,#294439);font:inherit;cursor:pointer}
-.lo-bin-drop[disabled]{cursor:default}
+.lo-puzzle .lo-bin-drop[disabled]{cursor:default;opacity:1;color:var(--b-ink,#294439)}
 .lo-bin-drop:focus-visible{outline:3px solid var(--b-ochre,#b38840);outline-offset:1px}
 .lo-bin-n{display:grid;place-items:center;width:40px;height:40px;box-sizing:border-box;border:2px solid var(--b-ink,#294439);border-radius:50%;background:var(--b-sun,#efc76e);font-family:var(--b-display,Georgia,serif);font-weight:700;font-size:1.2rem}
 .lo-bin-drop:not([disabled]):hover .lo-bin-n{box-shadow:0 0 0 4px rgba(49,83,62,.18)}
