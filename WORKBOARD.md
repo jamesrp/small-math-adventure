@@ -82,3 +82,4 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Week 84 Public knowledge (Wave 10, card fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-knowledge-ntxcu3` | in progress |
 | Week 96 Prime bags and divisor builders (Wave 10, card fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-primebags-ntxcu3` | in progress |
 | Week 91 Rotor-router machines (Wave 10, card fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-rotor-ntxcu3` | in progress |
+| Week 95 Count the unseen (Wave 10, card fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-unseen-ntxcu3` | in progress |
