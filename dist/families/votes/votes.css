@@ -1,0 +1,112 @@
+/* Voting and agendas: paper voter cards with the favourite at the top, sun
+   letter tokens in Georgia, the knockout mat as rows of votes with dots for
+   each voter, a crown on the final slot, pine for what a voter picks and for
+   the survivor, ochre for attention, and a number line of spots 0 to 10 with
+   voter tokens stacked over them. */
+.vt-puzzle{display:flex;flex-direction:column;align-items:center;gap:.65rem;width:100%;max-width:560px;margin:0 auto}
+.vt-puzzle .vt-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .7rem}
+.vt-puzzle .vt-button{min-height:46px;padding:6px 16px;font-weight:650;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.vt-puzzle .vt-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+.vt-puzzle .vt-button[aria-pressed="true"]{background:#e9eddc;box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.vt-puzzle .hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.vt-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+.vt-why{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1rem;color:var(--b-pine,#31533e);text-align:center}
+
+/* Letter tokens. */
+.vt-tok{display:inline-grid;place-items:center;min-width:34px;height:34px;padding:0 4px;border-radius:17px;background:var(--b-sun,#efc76e);border:2px solid var(--b-ink,#294439);font:400 1.15rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439);box-sizing:border-box}
+.vt-tok.small{min-width:26px;height:26px;font-size:.92rem;border-width:1.5px}
+.vt-tok.big{min-width:46px;height:46px;border-radius:23px;font-size:1.45rem}
+.vt-tok.empty{background:transparent;border:2px dashed var(--b-line,#d0d6bd)}
+.vt-tok.ghost{background:transparent;border:2px dashed var(--b-ochre,#b38840);color:var(--b-ochre,#b38840)}
+.vt-tok.win{background:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9);border-color:var(--b-pine,#31533e)}
+
+/* Voter cards: the voter, then the letters top (favourite) to bottom. */
+.vt-cards{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.vt-puzzle .vt-card{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:52px;margin:0;padding:5px 6px 7px;border-radius:10px;background:var(--b-paper,#f5f1e6);border:1.5px solid var(--b-ink,#294439);box-shadow:0 2px 0 rgba(41,68,57,.3);color:var(--b-ink,#294439);font:inherit}
+.vt-puzzle .vt-card.blank{border-style:dashed;background:var(--b-card,#fffdf5)}
+.vt-puzzle .vt-card.active{border:2px solid var(--b-pine,#31533e);background:#eef1e1}
+.vt-puzzle button.vt-card{cursor:pointer}
+.vt-puzzle .vt-card.chosen,.vt-puzzle .vt-card.ringed{box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-ochre,#b38840)}
+.vt-who{font-size:.72rem;font-weight:700;letter-spacing:.02em;color:var(--b-muted,#5a6850)}
+.vt-ls{display:flex;flex-direction:column;gap:3px}
+.vt-puzzle .vt-l{display:grid;place-items:center;width:40px;height:34px;min-width:0;min-height:0;box-sizing:border-box;margin:0;padding:0;border-radius:7px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);box-shadow:none;font:400 1.1rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439);transition:opacity .15s}
+.vt-puzzle .vt-l.pick{background:var(--b-pine,#31533e);border-color:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9)}
+.vt-puzzle .vt-l.skip{border:1.5px dashed var(--b-ink,#294439)}
+.vt-puzzle .vt-l.fade{opacity:.35}
+.vt-puzzle .vt-l.ring{box-shadow:0 0 0 2px var(--b-ochre,#b38840);border-color:var(--b-ochre,#b38840)}
+.vt-puzzle .vt-l.slot{background:transparent;border:1.5px dashed var(--b-line,#d0d6bd)}
+.vt-puzzle .vt-l.next{cursor:pointer;border-color:var(--b-muted,#5a6850)}
+.vt-puzzle .vt-l.next.on{border:2px solid var(--b-pine,#31533e);background:var(--b-good-soft,#e2ecd6)}
+.vt-puzzle .vt-l.written{cursor:pointer;border-color:var(--b-ink,#294439)}
+
+/* The knockout mat. */
+.vt-ko{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:8px 10px;border-radius:14px;background:var(--b-paper,#f5f1e6);border:1.5px dashed var(--b-line,#d0d6bd);box-sizing:border-box}
+.vt-rounds{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.vt-rounds:empty{display:none}
+.vt-rounds:empty+.vt-final{border-left:0}
+.vt-round{display:flex;align-items:center;gap:8px}
+.vt-side{display:flex;align-items:center;gap:4px;min-width:88px;padding:3px 6px;border-radius:20px;border:1.5px solid transparent}
+.vt-side:last-child{flex-direction:row-reverse}
+.vt-side.win{border-color:var(--b-pine,#31533e);background:var(--b-good-soft,#e2ecd6)}
+.vt-side.lose{opacity:.55}
+.vt-side.lose .vt-tok{background:transparent}
+.vt-side small{font:400 .95rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
+.vt-votes{display:inline-flex;flex-wrap:wrap;max-width:34px;gap:2px}
+.vt-votes i{width:7px;height:7px;border-radius:50%;background:var(--b-ink,#294439)}
+.vt-vs{font-size:.8rem;color:var(--b-muted,#5a6850)}
+.vt-final{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;border-left:1.5px solid var(--b-line,#d0d6bd)}
+.vt-crown{width:30px;height:20px;fill:var(--b-card,#fffdf5);stroke:var(--b-ochre,#b38840);stroke-width:1.6;stroke-linejoin:round}
+.vt-final.won .vt-crown{fill:var(--b-sun,#efc76e)}
+.vt-final.won .vt-tok{background:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9);border-color:var(--b-pine,#31533e)}
+.vt-final.miss .vt-crown{fill:var(--b-line,#d0d6bd)}
+
+/* Letters to play or write, and groups for Can't. */
+.vt-letters{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+.vt-puzzle .vt-letter{display:grid;place-items:center;width:52px;height:52px;margin:0;padding:0;border-radius:26px;background:var(--b-sun,#efc76e);border:2px solid var(--b-ink,#294439);box-shadow:0 2px 0 var(--b-line,#d0d6bd);font:400 1.4rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439);cursor:pointer}
+.vt-puzzle .vt-letter.used,.vt-puzzle .vt-letter[disabled]{background:transparent;border-style:dashed;border-color:var(--b-line,#d0d6bd);color:var(--b-muted,#5a6850);box-shadow:none;cursor:default}
+.vt-puzzle.claiming .vt-letter{background:var(--b-card,#fffdf5)}
+.vt-puzzle .vt-letter.chosen{background:var(--b-sun,#efc76e);box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-ochre,#b38840)}
+.vt-pairs,.vt-table{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 10px;margin:0;padding:0;list-style:none}
+.vt-pairs li,.vt-table li{display:flex;align-items:center;gap:5px;padding:4px 8px;border-radius:10px;background:var(--b-good-soft,#e2ecd6);border:1px solid var(--b-pine,#31533e);font-size:.9rem;color:var(--b-ink,#294439)}
+.vt-pairs small{font-family:var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850)}
+.vt-table .vt-first{display:flex;gap:2px}
+.vt-table .vt-crown{width:20px;height:14px;fill:var(--b-sun,#efc76e)}
+.vt-arrow{color:var(--b-muted,#5a6850)}
+.vt-sizes{display:flex;gap:8px;justify-content:center}
+
+/* The number line: one column per spot, voters stacked over the tick. */
+.vt-line{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));align-items:end;width:100%;padding:6px 2px 0;border-radius:14px;background:var(--b-paper,#f5f1e6);box-sizing:border-box}
+.vt-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:0}
+.vt-stack{display:flex;flex-direction:column-reverse;align-items:center;gap:3px;min-height:96px;justify-content:flex-start;padding-bottom:4px}
+.vt-puzzle .vt-voter{display:grid;place-items:center;width:30px;height:30px;margin:0;padding:0;border-radius:50%;background:var(--b-sky,#9cc9de);border:2px solid var(--b-ink,#294439);box-shadow:none;font:700 .66rem/1 system-ui,sans-serif;color:var(--b-ink,#294439);touch-action:none;user-select:none;-webkit-user-select:none;box-sizing:border-box}
+.vt-puzzle button.vt-voter{cursor:grab}
+.vt-puzzle .vt-voter.moved{background:var(--b-leaf,#86a68c)}
+.vt-puzzle .vt-voter.extra{background:var(--b-rose,#e7a28f)}
+.vt-puzzle .vt-voter.ghost{background:transparent;border:2px dashed var(--b-line,#d0d6bd);color:var(--b-muted,#5a6850)}
+.vt-puzzle .vt-voter.picked{box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-pine,#31533e)}
+.vt-puzzle .vt-voter.chosen{box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-ochre,#b38840)}
+.vt-puzzle .vt-voter.dragging{pointer-events:none;z-index:5;opacity:.9}
+.vt-puzzle .vt-tick{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;width:100%;min-width:0;min-height:46px;margin:0;padding:6px 0 4px;border:0;border-top:3px solid var(--b-ink,#294439);border-radius:0;background:transparent;box-shadow:none;font:400 1rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
+.vt-puzzle .vt-tick::before{content:'';position:absolute;top:-9px;left:50%;width:2px;height:9px;margin-left:-1px;background:var(--b-ink,#294439)}
+.vt-puzzle button.vt-tick{cursor:pointer;background:#eef1e1}
+.vt-puzzle .vt-tick.over{background:var(--b-good-soft,#e2ecd6)}
+.vt-puzzle .vt-tick.goal span{font-weight:700;color:var(--b-pine,#31533e)}
+.vt-puzzle .vt-tick .vt-crown{order:2;width:22px;height:15px;margin-top:2px}
+.vt-puzzle .vt-tick.crowned .vt-crown{fill:var(--b-sun,#efc76e)}
+.vt-puzzle .vt-tick.won span{display:grid;place-items:center;width:24px;height:24px;margin-top:-3px;border-radius:50%;box-shadow:0 0 0 2.5px var(--b-ochre,#b38840)}
+.vt-puzzle .vt-tick.hinted{outline-offset:-2px}
+.vt-tray{display:flex;justify-content:center;padding:4px 10px;border-radius:12px;border:1.5px dashed var(--b-line,#d0d6bd)}
+.vt-pips{display:inline-flex;gap:5px;align-items:center}
+.vt-pips i{width:12px;height:12px;border-radius:50%;border:2px solid var(--b-pine,#31533e);box-sizing:border-box}
+.vt-pips i.used{background:var(--b-pine,#31533e)}
+.vt-pips i.over{background:var(--b-bad,#a9503a);border-color:var(--b-bad,#a9503a)}
+
+@media (max-width:420px){
+  .vt-puzzle .vt-card{min-width:44px;padding:4px 4px 6px}
+  .vt-puzzle .vt-l{width:36px;height:32px}
+  .vt-ko{gap:8px;padding:6px}
+  .vt-side{min-width:76px;padding:2px 4px}
+  .vt-puzzle .vt-voter{width:26px;height:26px;font-size:.6rem}
+  .vt-puzzle .vt-tick{font-size:.88rem}
+  .vt-stack{min-height:84px}
+}
