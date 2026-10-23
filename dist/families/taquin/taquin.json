@@ -1,0 +1,993 @@
+{
+ "title": "Sliding numbers",
+ "version": 1,
+ "families": [
+  {
+   "id": "taquin",
+   "title": "Sliding numbers",
+   "mathematics": "A board is a skew shape: a Young diagram with a smaller one missing from its top-left corner. A start fills it with 1, …, n so rows and columns grow. A slide (jeu de taquin) opens a corner of the missing squares and moves the smaller of the right and lower neighbours into the hole until it leaves the board; order and the numbers are kept, and each slide ends. Sliding until nothing is missing gives a standard Young tableau that does not depend on the order of corners (the first fundamental theorem of jeu de taquin, Schützenberger). The number of starts of a finished tableau depends only on the shapes: it is a Littlewood–Richardson coefficient. The puzzles ask for a start that finishes in a goal, every start of a finish, every finished shape, every start sorted by its finished shape, and every order of opening the corners.",
+   "rules": [
+    "Numbers grow to the right and down.",
+    "Gray squares are missing. A gray corner, with no gray square right of it or below it, can open: it becomes the ring.",
+    "The smaller of the numbers right of the ring and below it slides into the ring, and the ring moves to where it was. With only one, that one slides.",
+    "When no number is right of the ring or below it, that square leaves the board. Then open another gray corner, until no gray is left."
+   ],
+   "sourceIds": [
+    "taquin-week90",
+    "taquin-card90",
+    "taquin-ryy"
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "id": "taquin-week90",
+   "title": "Bellingham Math Circle — Week 90: Sliding number arrays (student packet, materials and adult guide)",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/tree/main/lowell-math-circle-year-2/week-90",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "taquin-card90",
+   "title": "Week 90 review card and math check (App fit: tap tiles into the hole, place 1–n to reach a target, every start of a finish)",
+   "url": "https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-90.md",
+   "kind": "local curriculum"
+  },
+  {
+   "id": "taquin-ryy",
+   "title": "Colleen Robichaux, Harshit Yadav and Alexander Yong — Equivariant cohomology, Schubert calculus, and edge labeled tableaux, §3 (slides J1/J2, Theorem 3.1 and Example 3.2, Theorem 3.3 and Example 3.4)",
+   "url": "https://arxiv.org/abs/1908.11224",
+   "kind": "research"
+  }
+ ],
+ "puzzles": [
+  {
+   "id": "taquin-playground",
+   "number": 0,
+   "title": "Sliding numbers playground",
+   "difficulty_level": "playground",
+   "familyTitle": "Sliding numbers",
+   "mechanic": "taquin",
+   "band": "playground",
+   "revision": 1,
+   "sourceDocument": "docs/taquin/README.md",
+   "parameters": {
+    "mode": "playground",
+    "shapes": [
+     {
+      "outer": [
+       3,
+       2
+      ],
+      "inner": [
+       1
+      ]
+     },
+     {
+      "outer": [
+       3,
+       2,
+       1
+      ],
+      "inner": [
+       2,
+       1
+      ]
+     },
+     {
+      "outer": [
+       3,
+       3,
+       2
+      ],
+      "inner": [
+       2,
+       1
+      ]
+     },
+     {
+      "outer": [
+       3,
+       2,
+       1
+      ],
+      "inner": [
+       1
+      ]
+     },
+     {
+      "outer": [
+       4,
+       2,
+       1
+      ],
+      "inner": [
+       2,
+       1
+      ]
+     },
+     {
+      "outer": [
+       4,
+       3,
+       1
+      ],
+      "inner": [
+       3,
+       1
+      ]
+     },
+     {
+      "outer": [
+       3,
+       3,
+       3
+      ],
+      "inner": [
+       2,
+       1
+      ]
+     }
+    ]
+   },
+   "objective": "Choose a board, fill it and slide in any order you like.",
+   "visibleObjective": "",
+   "instruction": "Choose a board, fill it and slide in any order you like.",
+   "controls": "Tap a board picture to choose a board. Tap a white square to put the next number there, then open gray corners and tap the number that slides. New run empties the board.",
+   "rules": [
+    "Numbers grow to the right and down.",
+    "Gray squares are missing. A gray corner, with no gray square right of it or below it, can open: it becomes the ring.",
+    "The smaller of the numbers right of the ring and below it slides into the ring, and the ring moves to where it was. With only one, that one slides.",
+    "When no number is right of the ring or below it, that square leaves the board. Then open another gray corner, until no gray is left.",
+    "Fill the white squares with 1, 2, 3, … in order; a number goes where the squares above it and left of it already hold numbers. Sliding starts when every number is placed."
+   ],
+   "idea": "Free play with sliding: any board, any start, any order of corners.",
+   "prerequisites": "None. A grown-up can set a challenge: make the same finish from two starts.",
+   "hints": [
+    "Fill a board and slide it two ways.",
+    "Try the last board: three by three with three gray squares.",
+    "Does any start on that board finish in a new shape?"
+   ],
+   "parent": {
+    "notice": "Whether your child tries the same start in different orders, or different starts on one board.",
+    "prompt": "On the three-by-three board, what shape does every start finish in?",
+    "explanation": "On the 3 × 3 board with three gray squares, all 16 starts finish in the staircase 3, 2, 1, and each of its 16 standard arrays exactly once: in a rectangle the finish is always the white squares turned upside down.",
+    "extension": "Make two starts on the D board that finish the same way.",
+    "connection": "Rectification by jeu de taquin is well defined (the first fundamental theorem) and gives Littlewood–Richardson coefficients as counts of starts.",
+    "sourceIds": [
+     "taquin-week90",
+     "taquin-card90",
+     "taquin-ryy"
+    ]
+   },
+   "provenance": "The boards of Week 90 (A, B, D) and of the puzzles here, with a 3 × 3 board added."
+  },
+  {
+   "id": "taquin-01",
+   "number": 1,
+   "title": "A goal shape",
+   "difficulty_level": "easy",
+   "familyTitle": "Sliding numbers",
+   "mechanic": "taquin",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/taquin/README.md",
+   "parameters": {
+    "mode": "design",
+    "outer": [
+     3,
+     2
+    ],
+    "inner": [
+     1
+    ],
+    "targets": [
+     {
+      "outline": [
+       2,
+       2
+      ]
+     }
+    ]
+   },
+   "objective": "Fill the board and slide so the numbers finish in the goal shape.",
+   "visibleObjective": "",
+   "instruction": "Fill the board and slide so the numbers finish in the goal shape.",
+   "controls": "Tap a white square to put the next number there. Then tap a gray corner to open it, and tap the number that slides into the ring. New run empties the board. Undo takes back the last move.",
+   "rules": [
+    "Numbers grow to the right and down.",
+    "Gray squares are missing. A gray corner, with no gray square right of it or below it, can open: it becomes the ring.",
+    "The smaller of the numbers right of the ring and below it slides into the ring, and the ring moves to where it was. With only one, that one slides.",
+    "When no number is right of the ring or below it, that square leaves the board. Then open another gray corner, until no gray is left.",
+    "Fill the white squares with 1, 2, 3, … in order; a number goes where the squares above it and left of it already hold numbers. Sliding starts when every number is placed."
+   ],
+   "idea": "The ring leaves the board where its path ends, so the start decides which corner of the board is lost.",
+   "prerequisites": "Compare numbers to 5 and tap. No reading; a grown-up can read How to play.",
+   "hints": [
+    "Put 1, 2, 3 and 4 so numbers grow right and down, then slide.",
+    "For this shape the top-right square must leave. Which way must the ring travel?",
+    "Put 1 in the top row and 4 at the bottom right."
+   ],
+   "parent": {
+    "notice": "Whether your child places numbers at random or starts to aim the ring along the top row.",
+    "prompt": "Which square leaves the board, and why that one?",
+    "explanation": "The ring starts at the gray square and always takes the smaller neighbour, right or below. The goal keeps two rows of two, so the square that leaves is the top-right one: the ring must move right twice. That happens exactly when 1 is in the top row and 4 is at the bottom right, so two starts do it: 1 2 over 3 4 and 1 3 over 2 4.",
+    "extension": "Make the other finished shape, three on top and one below. (Three starts make it.)",
+    "connection": "With one gray square the finish is always the board with one outer corner gone, the simplest case of the Pieri rule.",
+    "sourceIds": [
+     "taquin-week90",
+     "taquin-card90",
+     "taquin-ryy"
+    ]
+   },
+   "solution": {
+    "witnesses": [
+     [
+      1,
+      2,
+      3,
+      4
+     ]
+    ],
+    "starts": 2
+   },
+   "provenance": "Week 90 Problem 1 (the A board, its two finished outlines), as a design: fill the board to reach a goal outline (Problem 4’s question on the A board)."
+  },
+  {
+   "id": "taquin-02",
+   "number": 2,
+   "title": "Every start",
+   "difficulty_level": "easy",
+   "familyTitle": "Sliding numbers",
+   "mechanic": "taquin",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/taquin/README.md",
+   "parameters": {
+    "mode": "fillings",
+    "outer": [
+     3,
+     2
+    ],
+    "inner": [
+     1
+    ]
+   },
+   "objective": "Fill the board every way you can so numbers grow right and down, and slide each start until no gray is left. Press That’s all when none is left.",
+   "visibleObjective": "Fill the board every way you can.",
+   "instruction": "Fill the board every way you can so numbers grow right and down, and slide each start until no gray is left. Press That’s all when none is left.",
+   "controls": "Tap a white square to put the next number there. Then tap a gray corner to open it, and tap the number that slides into the ring. New run empties the board. Undo takes back the last move.",
+   "rules": [
+    "Numbers grow to the right and down.",
+    "Gray squares are missing. A gray corner, with no gray square right of it or below it, can open: it becomes the ring.",
+    "The smaller of the numbers right of the ring and below it slides into the ring, and the ring moves to where it was. With only one, that one slides.",
+    "When no number is right of the ring or below it, that square leaves the board. Then open another gray corner, until no gray is left.",
+    "Fill the white squares with 1, 2, 3, … in order; a number goes where the squares above it and left of it already hold numbers. Sliding starts when every number is placed.",
+    "That’s all says whether one is missing."
+   ],
+   "idea": "A catalog is complete when it is organized: 1 can only go in two squares.",
+   "prerequisites": "Compare numbers to 6 and keep track of which starts are on the shelf. A grown-up can read the goal line.",
+   "hints": [
+    "Fill the board, slide it, then press New run and fill it another way.",
+    "Where can 1 go? Only where nothing is above it or left of it.",
+    "With 1 in the top row there are three starts; with 1 in the bottom row, two."
+   ],
+   "parent": {
+    "notice": "Whether your child varies one start a little at a time, or starts afresh each run.",
+    "prompt": "How do you know none is missing?",
+    "explanation": "Call the top numbers a, b and the bottom ones c, d. Rows and columns grow, so a < b, a < d and c < d, and 1 is a or c. If a = 1, the other three can be placed with c < d in three ways; if c = 1, then a = 2 and b, d are 3, 4 either way: 3 + 2 = 5 starts. Sorted by finish: two keep two rows of two, three finish three over one. All five finishes differ.",
+    "extension": "Why is the finish never one row of four? (One slide takes away one outer corner of the board, and a row of four does not fit in the board.)",
+    "connection": "The five starts are the standard fillings of the skew shape (3, 2)/(1); their finishes are the standard tableaux of (2, 2) and (3, 1), each once.",
+    "sourceIds": [
+     "taquin-week90",
+     "taquin-card90",
+     "taquin-ryy"
+    ]
+   },
+   "solution": {
+    "answers": [
+     [
+      1,
+      2,
+      3,
+      4
+     ],
+     [
+      1,
+      3,
+      2,
+      4
+     ],
+     [
+      1,
+      4,
+      2,
+      3
+     ],
+     [
+      2,
+      3,
+      1,
+      4
+     ],
+     [
+      2,
+      4,
+      1,
+      3
+     ]
+    ],
+    "count": 5
+   },
+   "provenance": "Week 90 Problem 2 (sort the five A cards by finished outline; is the collection complete?)."
+  },
+  {
+   "id": "taquin-03",
+   "number": 3,
+   "title": "Which corner first",
+   "difficulty_level": "easy",
+   "familyTitle": "Sliding numbers",
+   "mechanic": "taquin",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/taquin/README.md",
+   "parameters": {
+    "mode": "orders",
+    "outer": [
+     3,
+     2,
+     1
+    ],
+    "inner": [
+     2,
+     1
+    ],
+    "start": [
+     1,
+     3,
+     2
+    ]
+   },
+   "objective": "Find every order of opening the gray squares, sliding until no gray is left each time. Press That’s all when none is left.",
+   "visibleObjective": "Find every order to open the gray squares.",
+   "instruction": "Find every order of opening the gray squares, sliding until no gray is left each time. Press That’s all when none is left.",
+   "controls": "Tap a gray corner to open it, then tap the number that slides into the ring. New run puts the start back. Undo takes back the last move.",
+   "rules": [
+    "Numbers grow to the right and down.",
+    "Gray squares are missing. A gray corner, with no gray square right of it or below it, can open: it becomes the ring.",
+    "The smaller of the numbers right of the ring and below it slides into the ring, and the ring moves to where it was. With only one, that one slides.",
+    "When no number is right of the ring or below it, that square leaves the board. Then open another gray corner, until no gray is left.",
+    "That’s all says whether one is missing."
+   ],
+   "idea": "Different orders of opening the corners take different paths and end at the same array.",
+   "prerequisites": "Compare numbers to 5 and remember which corner was opened first. A grown-up can read the goal line.",
+   "hints": [
+    "Open a gray corner and slide until no gray is left. Then press New run and open the other corner first.",
+    "At the start two gray squares are corners. After the first slide, which can open?",
+    "Compare the two finished arrays on the shelf."
+   ],
+   "parent": {
+    "notice": "Whether your child expects the two orders to finish differently, and what they say when they match.",
+    "prompt": "Could a third order exist?",
+    "explanation": "The gray squares form a small staircase: top-left, top-middle and middle-left. Either the top-middle or the middle-left opens first; the other must follow, and the top-left always opens last. So there are exactly two orders, and both finish with 1 3 over 2. The paths of the ring differ, but the finish does not.",
+    "extension": "Try a start of your own in the playground on this board. Does the order ever matter?",
+    "connection": "The first fundamental theorem of jeu de taquin: sliding until no gray is left gives the same array whatever corner each slide opens.",
+    "sourceIds": [
+     "taquin-week90",
+     "taquin-card90",
+     "taquin-ryy"
+    ]
+   },
+   "solution": {
+    "answers": [
+     [
+      1,
+      2,
+      0
+     ],
+     [
+      2,
+      1,
+      0
+     ]
+    ],
+    "count": 2,
+    "finish": [
+     [
+      1,
+      3
+     ],
+     [
+      2
+     ]
+    ]
+   },
+   "provenance": "Week 90 Problem 3 (each D card finished twice, upper corner first and lower corner first), on card D2."
+  },
+  {
+   "id": "taquin-04",
+   "number": 4,
+   "title": "Same finish",
+   "difficulty_level": "medium",
+   "familyTitle": "Sliding numbers",
+   "mechanic": "taquin",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/taquin/README.md",
+   "parameters": {
+    "mode": "starts",
+    "outer": [
+     3,
+     2,
+     1
+    ],
+    "inner": [
+     2,
+     1
+    ],
+    "target": [
+     [
+      1,
+      3
+     ],
+     [
+      2
+     ]
+    ]
+   },
+   "objective": "Find every start that slides to exactly the goal. Press That’s all when none is left.",
+   "visibleObjective": "Find every start that finishes like the goal.",
+   "instruction": "Find every start that slides to exactly the goal. Press That’s all when none is left.",
+   "controls": "Tap a white square to put the next number there. Then tap a gray corner to open it, and tap the number that slides into the ring. New run empties the board. Undo takes back the last move.",
+   "rules": [
+    "Numbers grow to the right and down.",
+    "Gray squares are missing. A gray corner, with no gray square right of it or below it, can open: it becomes the ring.",
+    "The smaller of the numbers right of the ring and below it slides into the ring, and the ring moves to where it was. With only one, that one slides.",
+    "When no number is right of the ring or below it, that square leaves the board. Then open another gray corner, until no gray is left.",
+    "Fill the white squares with 1, 2, 3, … in order; a number goes where the squares above it and left of it already hold numbers. Sliding starts when every number is placed.",
+    "That’s all says whether one is missing."
+   ],
+   "idea": "A finish does not always tell you its start: two starts can slide to the same array.",
+   "prerequisites": "Compare numbers to 6 and keep track of which starts are on the shelf. A grown-up can read the goal line.",
+   "hints": [
+    "Fill the board, slide it and compare the finish with the goal.",
+    "The three numbers sit in different rows and columns, so any order is a start.",
+    "Try 1 at the top, then 1 in the middle."
+   ],
+   "parent": {
+    "notice": "Whether your child is surprised that a second start works once one is found.",
+    "prompt": "Can a finished array tell you which start made it?",
+    "explanation": "On this board the three squares share no row or column, so all six orders of 1, 2, 3 are starts. Two of them finish as 1 3 over 2 (reading top to bottom, 1 3 2 and 3 1 2); two finish as 1 2 over 3; the row 1 2 3 and the column 1, 2, 3 have one start each. So no: here a finish of this shape has two starts.",
+    "extension": "Find the two starts of 1 2 over 3. Is it a coincidence that it also has two? (No: puzzle 7 shows it again.)",
+    "connection": "The number of starts of a finish depends only on the shapes: it is the Littlewood–Richardson coefficient, here c of (3, 2, 1) over (2, 1) and (2, 1), which is 2.",
+    "sourceIds": [
+     "taquin-week90",
+     "taquin-card90",
+     "taquin-ryy"
+    ]
+   },
+   "solution": {
+    "answers": [
+     [
+      1,
+      3,
+      2
+     ],
+     [
+      3,
+      1,
+      2
+     ]
+    ],
+    "count": 2
+   },
+   "provenance": "Week 90 Problem 6 (find every D start that reaches each target; can a finish tell the start?), target 13/2."
+  },
+  {
+   "id": "taquin-05",
+   "number": 5,
+   "title": "Goal shapes",
+   "difficulty_level": "medium",
+   "familyTitle": "Sliding numbers",
+   "mechanic": "taquin",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/taquin/README.md",
+   "parameters": {
+    "mode": "design",
+    "outer": [
+     3,
+     3,
+     2
+    ],
+    "inner": [
+     2,
+     1
+    ],
+    "targets": [
+     {
+      "outline": [
+       3,
+       2
+      ]
+     },
+     {
+      "outline": [
+       3,
+       1,
+       1
+      ]
+     },
+     {
+      "outline": [
+       2,
+       2,
+       1
+      ]
+     }
+    ]
+   },
+   "objective": "Fill the board and slide so the numbers finish in each goal shape.",
+   "visibleObjective": "",
+   "instruction": "Fill the board and slide so the numbers finish in each goal shape.",
+   "controls": "Tap a white square to put the next number there. Then tap a gray corner to open it, and tap the number that slides into the ring. New run empties the board. Undo takes back the last move.",
+   "rules": [
+    "Numbers grow to the right and down.",
+    "Gray squares are missing. A gray corner, with no gray square right of it or below it, can open: it becomes the ring.",
+    "The smaller of the numbers right of the ring and below it slides into the ring, and the ring moves to where it was. With only one, that one slides.",
+    "When no number is right of the ring or below it, that square leaves the board. Then open another gray corner, until no gray is left.",
+    "Fill the white squares with 1, 2, 3, … in order; a number goes where the squares above it and left of it already hold numbers. Sliding starts when every number is placed."
+   ],
+   "idea": "Which corners of the board leave depends on where the small numbers sit near the gray squares.",
+   "prerequisites": "Compare numbers to 5 and plan a start from a goal, perhaps by trying and adjusting.",
+   "hints": [
+    "Fill the board, slide, and see which goal the finish matches.",
+    "The bottom row keeps its two squares only if the ring never ends there.",
+    "Change where 1 and 2 sit, and watch which squares leave."
+   ],
+   "parent": {
+    "notice": "Whether your child plans the next start from the last finish or tries at random.",
+    "prompt": "Is there a start that finishes in some other shape?",
+    "explanation": "All 16 starts on this board finish in one of these three shapes: 5 starts finish as 3 over 2, 6 as 3, 1, 1 and 5 as 2, 2, 1. Each finished array appears exactly once, so 5 + 6 + 5 = 16 counts the standard arrays of the three shapes.",
+    "extension": "Can two different starts on this board ever finish as exactly the same array? (No: every finish here has one start.)",
+    "connection": "The board (3, 3, 2) with (2, 1) missing has every Littlewood–Richardson coefficient 0 or 1.",
+    "sourceIds": [
+     "taquin-week90",
+     "taquin-card90",
+     "taquin-ryy"
+    ]
+   },
+   "solution": {
+    "witnesses": [
+     [
+      2,
+      1,
+      5,
+      3,
+      4
+     ],
+     [
+      1,
+      2,
+      5,
+      3,
+      4
+     ],
+     [
+      1,
+      2,
+      3,
+      4,
+      5
+     ]
+    ],
+    "starts": 16
+   },
+   "provenance": "Week 90 Problem 4 (arrange 1–5 on the blank B start to finish with each outline)."
+  },
+  {
+   "id": "taquin-06",
+   "number": 6,
+   "title": "One gray square",
+   "difficulty_level": "medium",
+   "familyTitle": "Sliding numbers",
+   "mechanic": "taquin",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/taquin/README.md",
+   "parameters": {
+    "mode": "outlines",
+    "outer": [
+     3,
+     2,
+     1
+    ],
+    "inner": [
+     1
+    ]
+   },
+   "objective": "Find every shape a start on this board can finish in. Press That’s all when none is left.",
+   "visibleObjective": "Find every shape the numbers can finish in.",
+   "instruction": "Find every shape a start on this board can finish in. Press That’s all when none is left.",
+   "controls": "Tap a white square to put the next number there. Then tap a gray corner to open it, and tap the number that slides into the ring. New run empties the board. Undo takes back the last move.",
+   "rules": [
+    "Numbers grow to the right and down.",
+    "Gray squares are missing. A gray corner, with no gray square right of it or below it, can open: it becomes the ring.",
+    "The smaller of the numbers right of the ring and below it slides into the ring, and the ring moves to where it was. With only one, that one slides.",
+    "When no number is right of the ring or below it, that square leaves the board. Then open another gray corner, until no gray is left.",
+    "Fill the white squares with 1, 2, 3, … in order; a number goes where the squares above it and left of it already hold numbers. Sliding starts when every number is placed.",
+    "That’s all says whether one is missing."
+   ],
+   "idea": "With one gray square, one slide finishes the run and takes exactly one outer corner away.",
+   "prerequisites": "Compare numbers to 6 and keep track of which starts are on the shelf. A grown-up can read the goal line.",
+   "hints": [
+    "Fill the board and slide. Then press New run and try to finish in a new shape.",
+    "Which square left the board? Could another one leave instead?",
+    "The board has three outer corners."
+   ],
+   "parent": {
+    "notice": "Whether your child connects the finished shape with the square that left the board.",
+    "prompt": "Why can’t the finish be a long row of five?",
+    "explanation": "There is one gray square, so there is one slide, and it removes one square of the outside edge where the ring stops. The ring can only stop where nothing is right of it or below it: an outer corner. The board 3, 2, 1 has three outer corners, so three shapes: 3 over 2, 3, 1, 1 and 2, 2, 1. Each is reached; a row of five does not even fit in the board.",
+    "extension": "How many starts finish in each shape? (5, 6 and 5 of the 16.)",
+    "connection": "The Pieri rule for one box: sliding a single box out gives the board minus one outer corner.",
+    "sourceIds": [
+     "taquin-week90",
+     "taquin-card90",
+     "taquin-ryy"
+    ]
+   },
+   "solution": {
+    "answers": [
+     [
+      2,
+      2,
+      1
+     ],
+     [
+      3,
+      1,
+      1
+     ],
+     [
+      3,
+      2
+     ]
+    ],
+    "count": 3
+   },
+   "provenance": "New, after Week 90 Problem 4 (which finished outlines can a board reach?), on a one-gray board."
+  },
+  {
+   "id": "taquin-07",
+   "number": 7,
+   "title": "Another finish",
+   "difficulty_level": "medium",
+   "familyTitle": "Sliding numbers",
+   "mechanic": "taquin",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/taquin/README.md",
+   "parameters": {
+    "mode": "starts",
+    "outer": [
+     4,
+     2,
+     1
+    ],
+    "inner": [
+     2,
+     1
+    ],
+    "target": [
+     [
+      1,
+      2,
+      4
+     ],
+     [
+      3
+     ]
+    ]
+   },
+   "objective": "Find every start that slides to exactly the goal. Press That’s all when none is left.",
+   "visibleObjective": "Find every start that finishes like the goal.",
+   "instruction": "Find every start that slides to exactly the goal. Press That’s all when none is left.",
+   "controls": "Tap a white square to put the next number there. Then tap a gray corner to open it, and tap the number that slides into the ring. New run empties the board. Undo takes back the last move.",
+   "rules": [
+    "Numbers grow to the right and down.",
+    "Gray squares are missing. A gray corner, with no gray square right of it or below it, can open: it becomes the ring.",
+    "The smaller of the numbers right of the ring and below it slides into the ring, and the ring moves to where it was. With only one, that one slides.",
+    "When no number is right of the ring or below it, that square leaves the board. Then open another gray corner, until no gray is left.",
+    "Fill the white squares with 1, 2, 3, … in order; a number goes where the squares above it and left of it already hold numbers. Sliding starts when every number is placed.",
+    "That’s all says whether one is missing."
+   ],
+   "idea": "Starts of one finish can differ in where the small numbers sit, yet slide together.",
+   "prerequisites": "Compare numbers to 6 and keep track of which starts are on the shelf. A grown-up can read the goal line.",
+   "hints": [
+    "Fill the board, slide and compare the finish with the goal.",
+    "Numbers in the top row only move left, so they stay in the top row.",
+    "Try 2 and 4 in the top row."
+   ],
+   "parent": {
+    "notice": "Whether your child reasons from the goal (which numbers can sit where) or only tries.",
+    "prompt": "What do the two starts have in common?",
+    "explanation": "Both starts have 2 and 4 in the top row; 1 and 3 swap between the middle and bottom squares. Of the twelve starts on this board, each of the three finishes three over one has two starts, and the other six finishes have one each: 3 · 2 + 2 + 3 + 1 = 12.",
+    "extension": "Find the two starts of 1 3 4 over 2.",
+    "connection": "Here c of (4, 2, 1) over (2, 1) and (3, 1) is 2: the count is the same for every finish of that shape.",
+    "sourceIds": [
+     "taquin-week90",
+     "taquin-card90",
+     "taquin-ryy"
+    ]
+   },
+   "solution": {
+    "answers": [
+     [
+      2,
+      4,
+      1,
+      3
+     ],
+     [
+      2,
+      4,
+      3,
+      1
+     ]
+    ],
+    "count": 2
+   },
+   "provenance": "New, extends Week 90 Problem 6 (D’s shared finishes) to a four-number board."
+  },
+  {
+   "id": "taquin-08",
+   "number": 8,
+   "title": "Three gray squares",
+   "difficulty_level": "hard",
+   "familyTitle": "Sliding numbers",
+   "mechanic": "taquin",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/taquin/README.md",
+   "parameters": {
+    "mode": "outlines",
+    "outer": [
+     4,
+     2,
+     1
+    ],
+    "inner": [
+     2,
+     1
+    ]
+   },
+   "objective": "Find every shape a start on this board can finish in. Press That’s all when none is left.",
+   "visibleObjective": "Find every shape the numbers can finish in.",
+   "instruction": "Find every shape a start on this board can finish in. Press That’s all when none is left.",
+   "controls": "Tap a white square to put the next number there. Then tap a gray corner to open it, and tap the number that slides into the ring. New run empties the board. Undo takes back the last move.",
+   "rules": [
+    "Numbers grow to the right and down.",
+    "Gray squares are missing. A gray corner, with no gray square right of it or below it, can open: it becomes the ring.",
+    "The smaller of the numbers right of the ring and below it slides into the ring, and the ring moves to where it was. With only one, that one slides.",
+    "When no number is right of the ring or below it, that square leaves the board. Then open another gray corner, until no gray is left.",
+    "Fill the white squares with 1, 2, 3, … in order; a number goes where the squares above it and left of it already hold numbers. Sliding starts when every number is placed.",
+    "That’s all says whether one is missing."
+   ],
+   "idea": "Some shapes never appear; the top row’s two numbers always grow.",
+   "prerequisites": "Compare numbers to 6 and keep track of which starts are on the shelf. A grown-up can read the goal line.",
+   "hints": [
+    "Fill the board and slide. Then try for a shape you have not made.",
+    "A row of four needs every number to finish in the top row. Can it?",
+    "Can the four numbers ever finish in one column?"
+   ],
+   "parent": {
+    "notice": "Whether your child tries hard for a column of four before pressing That’s all.",
+    "prompt": "Why can’t the finish be one column of four?",
+    "explanation": "Four shapes appear: a row of four, 3 over 1, 2 over 2 and 2, 1, 1. A column of four never does. Read the numbers row by row from the bottom row up: the finish has as many rows as the longest sequence in that list that keeps falling, taking numbers in order but not necessarily side by side (Greene’s theorem). The top row’s two numbers always rise, so no such sequence falls four times.",
+    "extension": "Which start finishes as a row of four? (Only 3 4 on top, 2 in the middle, 1 at the bottom.)",
+    "connection": "The shapes that appear are those with a nonzero Littlewood–Richardson coefficient c of (4, 2, 1) over (2, 1) and the shape.",
+    "sourceIds": [
+     "taquin-week90",
+     "taquin-card90",
+     "taquin-ryy"
+    ]
+   },
+   "solution": {
+    "answers": [
+     [
+      2,
+      1,
+      1
+     ],
+     [
+      2,
+      2
+     ],
+     [
+      3,
+      1
+     ],
+     [
+      4
+     ]
+    ],
+    "count": 4
+   },
+   "provenance": "New, after Week 90 Problems 4 and 5 (which outlines a board reaches), on a board that misses one shape."
+  },
+  {
+   "id": "taquin-09",
+   "number": 9,
+   "title": "Many ways to open",
+   "difficulty_level": "hard",
+   "familyTitle": "Sliding numbers",
+   "mechanic": "taquin",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/taquin/README.md",
+   "parameters": {
+    "mode": "orders",
+    "outer": [
+     4,
+     3,
+     1
+    ],
+    "inner": [
+     3,
+     1
+    ],
+    "start": [
+     1,
+     3,
+     4,
+     2
+    ]
+   },
+   "objective": "Find every order of opening the gray squares, sliding until no gray is left each time. Press That’s all when none is left.",
+   "visibleObjective": "Find every order to open the gray squares.",
+   "instruction": "Find every order of opening the gray squares, sliding until no gray is left each time. Press That’s all when none is left.",
+   "controls": "Tap a gray corner to open it, then tap the number that slides into the ring. New run puts the start back. Undo takes back the last move.",
+   "rules": [
+    "Numbers grow to the right and down.",
+    "Gray squares are missing. A gray corner, with no gray square right of it or below it, can open: it becomes the ring.",
+    "The smaller of the numbers right of the ring and below it slides into the ring, and the ring moves to where it was. With only one, that one slides.",
+    "When no number is right of the ring or below it, that square leaves the board. Then open another gray corner, until no gray is left.",
+    "That’s all says whether one is missing."
+   ],
+   "idea": "Four gray squares open in several orders, the squares leave the board in different orders, and the finish never changes.",
+   "prerequisites": "Compare numbers to 5 and remember which corner was opened first. A grown-up can read the goal line.",
+   "hints": [
+    "Open a gray corner, slide, and keep going until no gray is left. Then press New run and choose differently.",
+    "Which gray squares can open first? Which must wait?",
+    "The top-left square always opens last."
+   ],
+   "parent": {
+    "notice": "Whether your child records which corner came first, or keeps repeating an order.",
+    "prompt": "Why does the top-left square always open last?",
+    "explanation": "The gray squares are three in the top row and one below. A square opens only when no gray is right of it or below it, so the top-right square or the lower one goes first, and the top-left always last. That gives three orders: right, middle, lower, left; right, lower, middle, left; lower, right, middle, left. The squares leave the board in a different order each time, yet every order finishes 1 3 4 over 2.",
+    "extension": "How many orders would a staircase of three, two and one gray squares have? (16.)",
+    "connection": "The orders are the standard fillings of the gray shape read backwards; the theorem says each gives the same rectification.",
+    "sourceIds": [
+     "taquin-week90",
+     "taquin-card90",
+     "taquin-ryy"
+    ]
+   },
+   "solution": {
+    "answers": [
+     [
+      2,
+      1,
+      3,
+      0
+     ],
+     [
+      2,
+      3,
+      1,
+      0
+     ],
+     [
+      3,
+      2,
+      1,
+      0
+     ]
+    ],
+    "count": 3,
+    "finish": [
+     [
+      1,
+      3,
+      4
+     ],
+     [
+      2
+     ]
+    ]
+   },
+   "provenance": "New, extends Week 90 Problem 3 to four gray squares (three orders)."
+  },
+  {
+   "id": "taquin-10",
+   "number": 10,
+   "title": "Exactly this finish",
+   "difficulty_level": "hard",
+   "familyTitle": "Sliding numbers",
+   "mechanic": "taquin",
+   "band": "all",
+   "revision": 1,
+   "sourceDocument": "docs/taquin/README.md",
+   "parameters": {
+    "mode": "design",
+    "outer": [
+     3,
+     3,
+     2
+    ],
+    "inner": [
+     2,
+     1
+    ],
+    "targets": [
+     {
+      "finish": [
+       [
+        1,
+        2,
+        4
+       ],
+       [
+        3,
+        5
+       ]
+      ]
+     }
+    ]
+   },
+   "objective": "Fill the board and slide so the numbers finish exactly like the goal.",
+   "visibleObjective": "",
+   "instruction": "Fill the board and slide so the numbers finish exactly like the goal.",
+   "controls": "Tap a white square to put the next number there. Then tap a gray corner to open it, and tap the number that slides into the ring. New run empties the board. Undo takes back the last move.",
+   "rules": [
+    "Numbers grow to the right and down.",
+    "Gray squares are missing. A gray corner, with no gray square right of it or below it, can open: it becomes the ring.",
+    "The smaller of the numbers right of the ring and below it slides into the ring, and the ring moves to where it was. With only one, that one slides.",
+    "When no number is right of the ring or below it, that square leaves the board. Then open another gray corner, until no gray is left.",
+    "Fill the white squares with 1, 2, 3, … in order; a number goes where the squares above it and left of it already hold numbers. Sliding starts when every number is placed."
+   ],
+   "idea": "On this board every finish has exactly one start, so the goal tells you the start, if you can work backwards.",
+   "prerequisites": "Compare numbers to 5 and plan a start from a goal, perhaps by trying and adjusting.",
+   "hints": [
+    "Fill the board, slide and compare with the goal.",
+    "Undo a slide in your head: the last square to leave was the end of a ring’s path.",
+    "In the start, 1 is in the bottom row."
+   ],
+   "parent": {
+    "notice": "Whether your child works backwards from the goal or tries many starts.",
+    "prompt": "How do you know there is only one start?",
+    "explanation": "The 16 starts on this board finish as 16 different arrays (puzzle 5), so each finish has one start. For 1 2 4 over 3 5 it is gray, gray, 4 over gray, 2, 5 over 1, 3. A slide can be undone: put the ring back where the square left and slide the larger number above it or left of it in, until it reaches the gray square it started from.",
+    "extension": "Find the start of 1 3 4 over 2 5.",
+    "connection": "Undoing slides (reverse jeu de taquin) recovers a start from its finish once the squares that left are known; with one start per finish, the finish alone is enough.",
+    "sourceIds": [
+     "taquin-week90",
+     "taquin-card90",
+     "taquin-ryy"
+    ]
+   },
+   "solution": {
+    "witnesses": [
+     [
+      4,
+      2,
+      5,
+      1,
+      3
+     ]
+    ],
+    "starts": 1
+   },
+   "provenance": "Week 90 Problem 6’s last question (can two B starts reach the same arrangement?) and Problem 7 (undoing a slide), as a design: reach one exact finish."
+  }
+ ]
+}

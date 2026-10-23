@@ -75,5 +75,5 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Week 83 Hackenbush balances as a Pebble Duel group (card fit A); the tile browser suite's stale copy | Claude, Autonomous worksheet improvement thread | `claude/app-talk-shares-ntxcu3` | in progress |
 | Week 99 Moving piles (card fit A, size S) | Claude, Autonomous worksheet improvement thread | `claude/app-piles-ntxcu3` | in progress |
 | Week 86 Pursuit and escape (Wave 10, card fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-pursuit-ntxcu3` | in progress |
-| Week 90 Sliding number arrays, jeu de taquin (Wave 10, card fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-taquin-ntxcu3` | in progress |
+| Week 90 Sliding number arrays, jeu de taquin (Wave 10, card fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-taquin-ntxcu3` | done, not deployed: a new family, Sliding numbers ([docs/taquin/README.md](docs/taquin/README.md)), ten puzzles and a playground in the satchel; answers checked by Schensted insertion. Left: no child play; backward slides and the larger rule stay on paper |
 | Week 98 Growing from a few seeds on the square grid (Wave 10, card fit B) | Claude, Autonomous worksheet improvement thread | `claude/app-preview-ntxcu3` | in progress |

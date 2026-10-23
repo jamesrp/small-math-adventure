@@ -81,7 +81,8 @@ const paths = [
   './families/friezes/friezes.js',
   './families/corners/corners.js',
   './families/tetra/tetra.js',
-  './families/buckets/buckets.js'
+  './families/buckets/buckets.js',
+  './families/taquin/taquin.js'
 ];
 
 export const FAMILIES = await Promise.all(paths.map(path => import(path).then(module => module.default)));
