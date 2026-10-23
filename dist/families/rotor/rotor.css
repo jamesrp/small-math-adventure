@@ -13,6 +13,9 @@
 
 /* Switches and exits. */
 .rr-map .gb-node.sw .gb-dot{fill:transparent}
+/* On the eight-exit tree the switches are drawn smaller; their tap area (and
+   rings) stay about 44 px across on a phone. The exits are not controls. */
+.rr-map.rr-depth-3 .gb-node.sw .gb-reach{r:9.4px}
 .rr-map .gb-node.sw[role="button"]:hover .gb-dot{fill:rgba(246,240,220,.45)}
 .rr-map .gb-node.sw.unset .gb-dot{stroke-dasharray:3 2.6}
 .rr-map .rr-card-face{fill:var(--b-card,#fffdf5)}

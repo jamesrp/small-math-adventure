@@ -1,9 +1,11 @@
 // Plays Flip switches through the real interface on the shared graph board:
-// setting switches by tapping them, by tapping a road and by Enter, Send kept
-// off until every switch is set, a red letter and Undo, Can't through taps of
-// a switch and two letters with its refusal lines, "There is a way." keeping
-// Can't off through Undo, a right proof, Keep and That's all with "There is
-// another.", and the playground's trees, cap and Clear. Same environment
+// setting switches by tapping them, by tapping a road and by Enter, a second
+// tap on the chosen road or tree doing nothing, Send kept off until every
+// switch is set, a red letter and Undo, Can't through taps of a switch and two
+// letters with its refusal lines (the same kind of answer on a target that
+// can be made, with Can't staying on), a right proof, 44 px switches on the
+// eight-exit tree on a phone, Keep and That's all with "There is another.",
+// and the playground's trees, cap and Clear. Same environment
 // variables as the other browser suites (PLAYWRIGHT_MODULE,
 // BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone viewport with touch
 // taps). Screenshots go in test-results/rotor/.
@@ -38,6 +40,7 @@ const undo = () => page.locator('[data-action="undo"]').click();
 const panel = () => page.locator('.rr-puzzle').innerHTML();
 const told = async () => (await page.locator('.rr-told').count()) ? page.locator('.rr-told').innerText() : '';
 const count = selector => page.locator(selector).count();
+const refusedMove = async () => (await page.locator('.feedback').count()) && /not allowed/.test(await page.locator('.feedback').first().innerText());
 try {
   await mkdir(out, {recursive: true});
   await page.goto(base); await page.locator('#nickname').fill('Rotor QA'); await page.locator('#profile-form button[type=submit]').click();
@@ -63,6 +66,11 @@ try {
   await open(F); await fit('four exits');
   await tap(road(1));
   assert.deepEqual((await board(F)).start, ['R', null, null], 'a road tap points its switch that way');
+  const chosen = await panel();
+  await tap(road(1));
+  assert.equal(await refusedMove(), false, 'a second tap on the chosen road shows no error');
+  assert.equal(await panel(), chosen, 'and changes nothing');
+  assert.equal(await road(1).getAttribute('aria-label'), 'Road from the top switch to the right, the next road');
   await tap(node('s1')); await tap(node('s2'));
   assert.equal(await button('send').isDisabled(), false, 'Send once every switch is set');
   await send(1);
@@ -70,22 +78,24 @@ try {
   assert.equal(await count('.rr-trail'), 1, 'the trip glows');
   assert.equal(await count('.gb-node.sw[role="button"]'), 0, 'switches are fixed after the first counter');
   await shot('four-wrong');
-  // Claiming Can't on a target that can be made: "There is a way." keeps it off.
+  // Can't on a target that can be made: the claim gets its own verdict, as on
+  // an impossible target, and Can't stays on.
   await tap(button('cant'));
   assert.equal(await count('.rr-puzzle.claiming'), 1);
   await tap(node('s0')); await tap(slot(0)); await tap(slot(1));
-  assert.equal(await told(), 'There is a way.');
-  assert.equal(await button('cant').isDisabled(), true, 'Can’t is off after There is a way.');
-  await shot('four-way');
-  const before = await panel(); await undo();
+  assert.equal(await told(), 'Those two go different ways there.');
+  assert.equal(await button('cant').isDisabled(), false, 'Can’t stays on');
+  await shot('four-refused');
+  let before = await panel(); await undo();
   assert.notEqual(await panel(), before, 'Undo changes the screen');
+  assert.equal(await told(), '', 'Undo takes the line away');
+  assert.equal((await board(F)).sent, 1, 'and only the line');
+  before = await panel(); await undo();
+  assert.notEqual(await panel(), before);
   assert.equal((await board(F)).sent, 0, 'Undo takes back the counter');
-  assert.equal((await board(F)).told, 'way', 'and keeps There is a way.');
   await tap(node('s0'));
   assert.deepEqual((await board(F)).start, ['L', 'L', 'L']);
-  await send(1);
-  assert.equal(await button('cant').isDisabled(), true, 'Can’t stays off through Undo');
-  await send(3);
+  await send(4);
   await done();
 
   // ABCD can't be made: a wrong proof is told and Can't stays on; the right one solves.
@@ -112,6 +122,7 @@ try {
   // Eight exits: another counter between them; the switch below the top is the proof.
   const E = 'rotor-11';
   await open(E); await fit('eight exits');
+  if (phone) for (const box of await page.locator('.gb-node.sw .gb-reach').evaluateAll(els => els.map(e => e.getBoundingClientRect().width))) assert.ok(box >= 44, `a switch’s tap area is 44 px or more (${box.toFixed(1)})`);
   for (let i = 0; i < 7; i++) await tap(node(`s${i}`));
   await send(3);
   await tap(button('cant')); await tap(node('s0')); await tap(slot(0)); await tap(slot(2));
@@ -152,6 +163,9 @@ try {
   await open(G); await fit('playground');
   assert.equal(await page.getByRole('button', {name: 'Hint', exact: true}).count(), 0, 'no Hint');
   assert.equal(await count('.rr-tree-button'), 3);
+  await tap(page.locator('.rr-tree-button').nth(0));
+  assert.equal(await refusedMove(), false, 'a tap on the chosen tree shows no error');
+  assert.equal((await board(G))?.depth ?? 1, 1);
   await tap(page.locator('.rr-tree-button').nth(2));
   assert.equal(await count('.gb-node.sw'), 7, 'the eight-exit tree');
   await fit('playground, eight exits');

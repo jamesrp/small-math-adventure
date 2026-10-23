@@ -93,21 +93,25 @@ export function sideAt(d, i, k) {
 }
 export const exitsBelow = (d, i) => Array.from({length: exitCount(d)}, (_, k) => k).filter(k => sideAt(d, i, k) !== null);
 // A claim that the target is impossible: switch i and the target's slots a
-// and b. It holds when both letters pass switch i on the same side and no
-// letter between them passes it, so the two would be consecutive visits that
-// leave the same way. Otherwise it names what fails: 'off' (a letter never
-// passes the switch, or a slot is open), 'apart' (they leave on different
-// sides) or 'between' (another counter passes the switch between them).
+// and b. It holds when both letters pass switch i on the same side and every
+// slot between them is a letter that doesn't pass it, so the two would be
+// consecutive visits that leave the same way. Otherwise it names what fails:
+// 'open' (a chosen slot is open), 'off' (a letter never passes the switch),
+// 'apart' (they leave on different sides) or 'between' (a counter between
+// them passes the switch, or an open slot's counter might). A claim can hold
+// only when no start makes the target, so on a target some start can make
+// every claim gets one of these, and Can't gives nothing away.
 export function certify(d, target, i, a, b) {
   const [x, y] = a < b ? [a, b] : [b, a];
   const lx = target[x], ly = target[y];
-  if (lx === null || ly === null) return 'off';
+  if (lx === null || ly === null) return 'open';
   const sx = sideAt(d, i, leafOf(lx)), sy = sideAt(d, i, leafOf(ly));
   if (sx === null || sy === null) return 'off';
   if (sx !== sy) return 'apart';
-  for (let k = x + 1; k < y; k++) if (target[k] !== null && sideAt(d, i, leafOf(target[k])) !== null) return 'between';
+  for (let k = x + 1; k < y; k++) if (target[k] === null || sideAt(d, i, leafOf(target[k])) !== null) return 'between';
   return 'ok';
 }
+export const VERDICTS = ['open', 'off', 'apart', 'between'];
 // Every valid claim, earliest proof first (by its later slot, then by switch).
 export function certificates(d, target) {
   const out = [];
@@ -127,9 +131,9 @@ const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 // playground: {depth, start, sent}
 // `start` holds each switch's first side (null until set); switches can be set
 // only before the first counter. In make, `told` is the line a refused Can't
-// leaves ('way' when a start can make the order, kept through Undo; 'off',
-// 'apart' or 'between' for a claim that doesn't prove it), and `claim` is the
-// accepted claim. In every, `kept` is the shelf of orders and `told` 'more'
+// leaves (its verdict: 'open', 'off', 'apart' or 'between', the same kind of
+// answer whether or not some start can make the order; the next move takes it
+// away), and `claim` is the accepted claim. In every, `kept` is the shelf of orders and `told` 'more'
 // is a refused That's all, kept while the shelf is the same.
 const depthOf = (p, b) => p.parameters.mode === 'playground' ? b.depth : p.parameters.depth;
 const lengthOf = (p, b) => p.parameters.mode === 'playground' ? playCap(b.depth) : p.parameters.target.length;
@@ -146,6 +150,12 @@ function fresh(p) {
   if (q.mode === 'every') return {start, sent: 0, kept: [], told: null, done: false};
   return {start, sent: 0, told: null, claim: null};
 }
+// Whether some claim on this target gets this verdict (a saved line must be one
+// the app could have given).
+const someClaim = (q, verdict) => {
+  for (let i = 0; i < switchCount(q.depth); i++) for (let a = 0; a < q.target.length; a++) for (let b = a + 1; b < q.target.length; b++) if (certify(q.depth, q.target, i, a, b) === verdict) return true;
+  return false;
+};
 const isOrder = (q, word) => typeof word === 'string' && word.length === q.target.length && ordersFitting(q.depth, q.target).includes(word);
 function valid(p, b) {
   const q = p.parameters;
@@ -162,12 +172,9 @@ function valid(p, b) {
     if (b.done) return b.told === null && b.kept.length === all;
     return b.told !== 'more' || (b.kept.length > 0 && b.kept.length < all);
   }
-  if (![null, 'way', 'off', 'apart', 'between'].includes(b.told)) return false;
-  const can = possible(q.depth, q.target);
-  if (b.told === 'way' && !can) return false;
-  if (['off', 'apart', 'between'].includes(b.told) && (can || b.sent === 0)) return false;
+  if (b.told !== null && (!VERDICTS.includes(b.told) || b.sent === 0 || b.claim !== null || !someClaim(q, b.told))) return false;
   if (b.claim === null) return true;
-  if (!object(b.claim) || b.told !== null || b.sent === 0 || can) return false;
+  if (!object(b.claim) || b.sent === 0) return false;
   const {node, at} = b.claim, i = switchIndex(node);
   return i >= 0 && i < switchCount(q.depth) && Array.isArray(at) && at.length === 2 && at.every(k => Number.isInteger(k) && k >= 0 && k < q.target.length) && at[0] < at[1] && certify(q.depth, q.target, i, at[0], at[1]) === 'ok';
 }
@@ -179,13 +186,13 @@ function solved(p, b) {
   const st = stateOf(p, b);
   return b.sent === q.target.length && fits(q.target, st.letters);
 }
-export const cantOpen = (p, b) => p.parameters.mode === 'make' && b.sent > 0 && b.told !== 'way' && !b.claim;
+export const cantOpen = (p, b) => p.parameters.mode === 'make' && b.sent > 0 && !b.claim;
 const settable = (p, b) => b.sent === 0 && !solved(p, b);
 function move(p, b, action) {
   const q = p.parameters;
   if (!valid(p, b) || solved(p, b) || !object(action)) return null;
   const d = depthOf(p, b), n = switchCount(d);
-  const keep = q.mode === 'make' ? {told: b.told === 'way' ? 'way' : null} : q.mode === 'every' ? {told: b.told} : {};
+  const keep = q.mode === 'make' ? {told: null} : q.mode === 'every' ? {told: b.told} : {};
   if (action.type === 'flip' || action.type === 'set') {
     const i = switchIndex(action.node);
     if (!settable(p, b) || i < 0 || i >= n) return null;
@@ -202,7 +209,6 @@ function move(p, b, action) {
   if (q.mode === 'make' && action.type === 'cant') {
     const i = switchIndex(action.node), at = action.at;
     if (!cantOpen(p, b) || i < 0 || i >= n || !Array.isArray(at) || at.length !== 2 || !at.every(k => Number.isInteger(k) && k >= 0 && k < q.target.length) || at[0] === at[1]) return null;
-    if (possible(d, q.target)) return {...b, told: 'way'};
     const pair = [Math.min(...at), Math.max(...at)], verdict = certify(d, q.target, i, pair[0], pair[1]);
     return verdict === 'ok' ? {...b, told: null, claim: {node: switchId(i), at: pair}} : {...b, told: verdict};
   }
@@ -342,7 +348,7 @@ function treeIcon(d) {
   return `<svg class="rr-tree-icon" viewBox="-4 ${f(t.entry[1] + 6)} 108 ${f(g.pos[letterOf(0)][1] - t.entry[1])}" aria-hidden="true"><g class="rr-icon-roads">${lines}</g>${g.ids.map(id => `<circle cx="${f(g.pos[id][0])}" cy="${f(g.pos[id][1])}" r="${f(NODE_R * t.k)}"/>`).join('')}</svg>`;
 }
 const TOLD = {
-  way: 'There is a way.',
+  open: 'That slot could be any exit.',
   off: 'Both counters must pass that switch.',
   apart: 'Those two go different ways there.',
   between: 'Another counter passes that switch between them.',
@@ -379,7 +385,7 @@ function render(p, a) {
       const i = Math.floor(e / 2), side = e % 2 ? 'R' : 'L', next = st.now[i] === side;
       const onClaim = final && i === finalSwitch && sideAt(d, i, leafOf(target[final.at[0]])) === side;
       const hinted = shownAction?.type === 'set' && switchIndex(shownAction.node) === i && shownAction.side === side;
-      return {cls: [next ? 'next' : '', onClaim ? 'claimed' : '', hinted ? 'hinted' : ''].filter(Boolean).join(' '), strokes: [next ? 'rr-next' : '', onClaim ? 'rr-claim' : ''].filter(Boolean), act: canSet, label: `Road from ${switchName(d, i)} to the ${sideWord(side)}${next ? ', the next road' : ''}${canSet ? `. Point ${switchName(d, i)} this way` : ''}`};
+      return {cls: [next ? 'next' : '', onClaim ? 'claimed' : '', hinted ? 'hinted' : ''].filter(Boolean).join(' '), strokes: [next ? 'rr-next' : '', onClaim ? 'rr-claim' : ''].filter(Boolean), act: canSet, label: `Road from ${switchName(d, i)} to the ${sideWord(side)}${next ? ', the next road' : ''}${canSet && !next ? `. Point ${switchName(d, i)} this way` : ''}`};
     },
     under: (st.last ? `<polyline class="rr-trail" points="${[tree.entry, ...st.last.map(k => g.pos[k < n ? switchId(k) : letterOf(k - n)])].map(pt).join(' ')}"/>` : '') + `<line class="rr-entry" x1="50" y1="${f(tree.entry[1])}" x2="50" y2="${f(g.pos.s0[1] - NODE_R * tree.k - 1)}"/>`,
     over: Array.from({length: n}, (_, i) => card(tree, switchId(i), st.now[i])).join('') + Array.from({length: exitCount(d)}, (_, k) => stack(tree, letterOf(k), counts[k])).join('') + (b.sent < st.length && !done ? `<circle class="rr-counter rr-waiting" cx="50" cy="${f(tree.entry[1])}" r="${f(2.6 * tree.k * 1.15)}"/>` : '')
@@ -408,7 +414,8 @@ function render(p, a) {
     const word = st.letters.join(''), keepOk = b.sent === q.target.length && isOrder(q, word) && !b.kept.includes(word);
     claims = moveButton('Keep', {type: 'keep'}, `rr-keep${shownAction?.type === 'keep' ? ' hinted' : ''}`, keepOk) + moveButton('That’s all', {type: 'all'}, `rr-all${shownAction?.type === 'all' ? ' hinted' : ''}`, b.kept.length > 0 && b.told !== 'more');
   }
-  const trees = play ? `<div class="rr-trees" role="group" aria-label="Trees">${DEPTHS.map(k => `<button type="button" class="secondary rr-tree-button" data-action="expansion-move" data-move='${JSON.stringify({type: 'tree', depth: k})}' data-focus="rr-tree-${k}" aria-pressed="${b.depth === k}" aria-label="${exitCount(k)} exits">${treeIcon(k)}</button>`).join('')}</div>` : '';
+  // The chosen tree's button does nothing when tapped again.
+  const trees = play ? `<div class="rr-trees" role="group" aria-label="Trees">${DEPTHS.map(k => `<button type="button" class="secondary rr-tree-button"${b.depth === k ? '' : ` data-action="expansion-move" data-move='${JSON.stringify({type: 'tree', depth: k})}'`} data-focus="rr-tree-${k}" aria-pressed="${b.depth === k}" aria-label="${exitCount(k)} exits">${treeIcon(k)}</button>`).join('')}</div>` : '';
   const clear = play ? moveButton('Clear', {type: 'clear'}, 'rr-clear', b.sent > 0) : '';
   const bar = `<div class="rr-bar">${tray}${send}${claims}${clear}</div>`;
   const shelf = q.mode === 'every' && b.kept.length ? `<div class="rr-shelf" role="list" aria-label="Kept orders">${b.kept.map(w => `<span class="rr-kept" role="listitem" aria-label="${esc(w.split('').join(', '))}">${w.split('').map(x => `<i>${x}</i>`).join('')}</span>`).join('')}</div>` : '';
@@ -419,7 +426,8 @@ function render(p, a) {
 
 // --- Taps --------------------------------------------------------------------------------------
 // Before the first counter, a tap on a switch flips it (an unset switch points
-// left first) and a tap on a road points its switch down that road. After
+// left first) and a tap on a road points its switch down that road; a tap on
+// the road a switch already points down does nothing. After
 // Can't, taps choose a switch and two slots of the order; the third choice
 // makes the claim.
 function wire(root, p, api) {
@@ -447,7 +455,10 @@ function wire(root, p, api) {
       if (claimOf(p, a)) return pickNode(id);
       return switchIndex(id) >= 0 ? {type: 'flip', node: id} : null;
     },
-    edge: e => ({type: 'set', node: switchId(Math.floor(e / 2)), side: e % 2 ? 'R' : 'L'})
+    edge: e => {
+      const i = Math.floor(e / 2), side = e % 2 ? 'R' : 'L';
+      return api.attempt()?.board.start?.[i] === side ? null : {type: 'set', node: switchId(i), side};
+    }
   }, api.apply);
 }
 
@@ -463,12 +474,10 @@ export const rotorMechanics = {
       if (Array.isArray(payload.at) && payload.at.length <= 2 && payload.at.every(Number.isInteger)) v.at = [...payload.at];
     },
     reset: p => { uiState.delete(p.id); },
-    // Undo keeps a refused Can't on an order some start can make, and a
-    // refused That's all while the shelf is the same.
+    // Undo keeps a refused That's all while the shelf is the same.
     carry(p, from, to) {
       if (!object(from) || !object(to)) return to;
       const q = p.parameters;
-      if (q.mode === 'make' && from.told === 'way' && !to.claim) return {...to, told: 'way'};
       if (q.mode === 'every' && from.told === 'more' && !to.done && Array.isArray(from.kept) && Array.isArray(to.kept) && from.kept.length === to.kept.length && from.kept.every((w, i) => w === to.kept[i])) return {...to, told: 'more'};
       return to;
     },

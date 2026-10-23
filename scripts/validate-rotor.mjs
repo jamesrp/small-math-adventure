@@ -8,9 +8,13 @@
 //     made by some start of the linked tree, taking turns at every switch
 //     (read from each switch's range of letters), and having no Can't claim
 //     the mechanic accepts; every start makes its own order (2, 8 and 128);
-//   - every claim (switch and two slots) on every puzzle's order, accepted
-//     exactly when it is a proof here, and each accepted claim sound: no
-//     start agrees with the order up to the claim's later slot;
+//   - every claim (switch and two slots) on every make puzzle's order, makeable
+//     or not, answered with the verdict worked out here (so Can't answers a
+//     claim on its own and never says whether the order can be made), accepted
+//     exactly when it is a proof here, and each accepted claim sound: no start
+//     agrees with the order up to the claim's later slot; and soundness over
+//     every pattern with open slots on one switch and four exits, and 20,000
+//     patterns on eight;
 //   - every That's-all set against all starts of the linked tree, and That's
 //     all judged on every part of each shelf;
 //   - witnesses and hint chains from fresh and messy boards, Can't refusals
@@ -66,14 +70,20 @@ function takesTurns(d, word) {
     return sides.every((side, i) => i === 0 || side !== sides[i - 1]);
   });
 }
-// A claim proves the word impossible: both slots' letters below switch s, on
-// one side, with no letter below s in the slots between.
-function proves(d, word, s, a, b) {
+// What a claim (switch s, slots a < b) gets: 'open' when a chosen slot is
+// open, 'off' when a letter isn't below s, 'apart' when the two are on
+// different sides, 'between' when a slot between them holds a letter below s
+// or is open (its counter might pass s), and 'ok' when it proves the word
+// impossible: two consecutive visits to s that leave the same way.
+function verdictOf(d, word, s, a, b) {
   const sw = levels(build(0, 2 ** d - 1))[s], below = k => k >= sw.lo && k <= sw.hi, ks = [...word].map(x => x === '_' ? null : LETTERS.indexOf(x));
-  if (ks[a] === null || ks[b] === null || !below(ks[a]) || !below(ks[b]) || (ks[a] < sw.mid) !== (ks[b] < sw.mid)) return false;
-  for (let k = a + 1; k < b; k++) if (ks[k] !== null && below(ks[k])) return false;
-  return true;
+  if (ks[a] === null || ks[b] === null) return 'open';
+  if (!below(ks[a]) || !below(ks[b])) return 'off';
+  if ((ks[a] < sw.mid) !== (ks[b] < sw.mid)) return 'apart';
+  for (let k = a + 1; k < b; k++) if (ks[k] === null || below(ks[k])) return 'between';
+  return 'ok';
 }
+const proves = (d, word, s, a, b) => verdictOf(d, word, s, a, b) === 'ok';
 function permutations(list) {
   if (list.length <= 1) return [list];
   return list.flatMap((x, i) => permutations([...list.slice(0, i), ...list.slice(i + 1)]).map(rest => [x, ...rest]));
@@ -151,6 +161,24 @@ export default async function validateRotor() {
   assert.deepEqual(startsOf(2).map(s => orderFrom(2, s, 4)), ['ACBD', 'ADBC', 'BCAD', 'BDAC', 'CADB', 'DACB', 'CBDA', 'DBCA'], 'the guide’s four-exit key');
   assert.equal(orderFrom(3, Array(7).fill('L'), 8), 'AECGBFDH', 'all left: bit reversal');
   assert.equal(orderFrom(3, Array(7).fill('R'), 8), 'HDFBGCEA', 'all right');
+  // Claims on patterns with open slots: every claim gets the verdict worked
+  // out here, and an accepted one means no start fits the pattern (so on a
+  // pattern some start fits, no claim is accepted).
+  let patterns = 0;
+  for (const d of [1, 2, 3]) {
+    const n = d === 1 ? 4 : 2 ** d, orders = startsOf(d).map(s => orderFrom(d, s, n)), alphabet = LETTERS.slice(0, 2 ** d) + '_';
+    const rand = rng(91 + d), list = d < 3 ? words(alphabet, n) : Array.from({length: 20000}, () => Array.from({length: n}, () => alphabet[Math.floor(rand() * alphabet.length)]).join(''));
+    for (const w of list) {
+      const target = [...w].map(x => x === '_' ? null : x), fit = orders.some(o => [...o].every((x, i) => target[i] === null || target[i] === x));
+      for (let s = 0; s < 2 ** d - 1; s++) for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) {
+        const v = certify(d, target, s, a, b);
+        assert.equal(v, verdictOf(d, w, s, a, b), `depth ${d}, ${w}: claim s${s} ${a},${b}`);
+        if (v === 'ok') assert.ok(!fit, `depth ${d}, ${w}: an accepted claim on a pattern some start fits`);
+      }
+      patterns++;
+    }
+  }
+  assert.equal(certify(1, ['A', null, 'A', null], 0, 0, 2), 'between', 'A _ A _: the open slot’s counter might pass the switch');
   // Every block of 2^d reaches each exit once, and the switches return.
   for (const d of [1, 2, 3]) for (const s of startsOf(d)) {
     const n = 2 ** d, m = machine(d, s), w = Array.from({length: 3 * n}, () => m.drop()).join('');
@@ -173,11 +201,19 @@ export default async function validateRotor() {
       assert.equal(fitting.length > 0, want.possible, `${p.id}: possible or not`);
       if (want.possible) assert.equal(fitting.length, want.starts, `${p.id}: ${want.starts} starts`);
       assert.equal(startsFitting(d, q.target).length, fitting.length, `${p.id}: the mechanic’s starts`);
-      // Every claim on this order: accepted exactly when it proves, and sound.
+      // Every claim on this order, played after one counter: answered with its
+      // own verdict whether or not the order can be made, accepted exactly
+      // when it proves, and sound.
+      let after = freshAttempt(p);
+      for (let i = 0; i < 2 ** d - 1; i++) after = play(p, after, {type: 'flip', node: `s${i}`});
+      after = play(p, after, {type: 'send'});
       for (let s = 0; s < 2 ** d - 1; s++) for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) {
-        const ok = certify(d, q.target, s, a, b) === 'ok';
-        assert.equal(ok, proves(d, word, s, a, b), `${p.id}: claim s${s} ${a},${b}`);
-        if (ok) assert.ok(startsOf(d).every(st => [...orderFrom(d, st, b + 1)].some((x, i) => x !== q.target[i])), `${p.id}: no start agrees up to slot ${b}`);
+        const v = verdictOf(d, word, s, a, b), ok = v === 'ok';
+        assert.equal(certify(d, q.target, s, a, b), v, `${p.id}: claim s${s} ${a},${b}`);
+        const claimed = play(p, after, {type: 'cant', node: `s${s}`, at: [b, a]}).board;
+        assert.equal(isSolved(p, claimed), ok, `${p.id}: claim s${s} ${a},${b} accepted exactly when it proves`);
+        assert.equal(claimed.told, ok ? null : v, `${p.id}: claim s${s} ${a},${b} answered with its own verdict`);
+        if (ok) assert.ok(!want.possible && startsOf(d).every(st => [...orderFrom(d, st, b + 1)].some((x, i) => x !== q.target[i])), `${p.id}: no start agrees up to slot ${b}`);
         claimsChecked++;
       }
     } else {
@@ -249,20 +285,31 @@ export default async function validateRotor() {
     assert.ok(isSolved(p, play(p, a, {type: 'cant', node: 's2', at: [1, 3]}).board), 'E and F at the switch above E to H');
   }
   {
-    // A Can't on an order some start makes: refused for good, through Undo.
-    const p = byId('rotor-04');
+    // A Can't on an order some start makes gets the claim's own verdict, as on
+    // an impossible order, and Can't stays on; Undo takes the line away.
+    const p = byId('rotor-04'); // A C B D.
     let a = freshAttempt(p);
     for (const s of ['s0', 's1', 's2']) a = play(p, a, {type: 'flip', node: s});
     a = play(p, a, {type: 'send'});
-    const way = play(p, a, {type: 'cant', node: 's0', at: [0, 1]});
-    assert.equal(way.board.told, 'way');
-    assert.match(draw(p)(way), /There is a way\./);
-    refuse(p, way, {type: 'cant', node: 's0', at: [1, 2]}, 'Can’t stays off');
-    const back = undoPress(p, way, draw(p), draw(p)(way));
-    assert.equal(back.board.told, 'way', 'Undo keeps it');
-    assert.equal(back.board.sent, 0, 'and that press also takes back the counter before it');
-    assert.equal(play(p, back, {type: 'flip', node: 's0'}).board.told, 'way', 'moves keep it');
-    assert.ok(isSolved(p, hintsSolve(p, back).board), 'hints still solve it');
+    const told = play(p, a, {type: 'cant', node: 's0', at: [0, 1]});
+    assert.equal(told.board.told, 'apart', 'A and C go different ways at the top switch');
+    assert.match(draw(p)(told), /Those two go different ways there\./);
+    assert.doesNotMatch(draw(p)(told), /There is a way/);
+    assert.equal(play(p, told, {type: 'cant', node: 's1', at: [0, 2]}).board.told, 'apart', 'A and B part at the switch above them');
+    assert.equal(play(p, told, {type: 'cant', node: 's0', at: [0, 2]}).board.told, 'between', 'C passes the top switch between A and B');
+    assert.equal(play(p, told, {type: 'cant', node: 's2', at: [0, 1]}).board.told, 'off');
+    const back = undoPress(p, told, draw(p), draw(p)(told));
+    assert.equal(back.board.told, null, 'Undo takes the line away');
+    assert.equal(back.board.sent, 1, 'and only the line');
+    assert.ok(isSolved(p, hintsSolve(p, told).board), 'hints still solve it');
+    // An open slot can't be one of the two.
+    const o = byId('rotor-03'); // D _ _ _.
+    let c = freshAttempt(o);
+    for (const s of ['s0', 's1', 's2']) c = play(o, c, {type: 'set', node: s, side: 'L'});
+    c = play(o, c, {type: 'send'});
+    const open = play(o, c, {type: 'cant', node: 's0', at: [0, 1]});
+    assert.equal(open.board.told, 'open');
+    assert.match(draw(o)(open), /That slot could be any exit\./);
   }
   {
     // That's all refused: kept while the shelf is the same.
@@ -310,13 +357,17 @@ export default async function validateRotor() {
     forge(p, {...f, sent: 1}, 'a counter before the switches are set');
     forge(p, {...f, start: ['L', 'L', 'L'], sent: 5}, 'more counters than the order');
     forge(p, {...f, start: ['L', 'L', 'L'], sent: 1, claim: {node: 's0', at: [0, 1]}}, 'a claim on a possible order');
-    forge(p, {...f, start: ['L', 'L', 'L'], sent: 1, told: 'apart'}, 'a refused proof on a possible order');
+    assert.ok(validBoard(p, {...f, start: ['L', 'L', 'L'], sent: 1, told: 'apart'}), 'a refused claim on a possible order');
+    forge(p, {...f, start: ['L', 'L', 'L'], sent: 0, told: 'apart'}, 'a refused claim before any counter');
+    forge(p, {...f, start: ['L', 'L', 'L'], sent: 1, told: 'open'}, 'a line no claim here gets (no slot is open)');
+    forge(p, {...f, start: ['L', 'L', 'L'], sent: 1, told: 'way'}, 'a line the app doesn’t give');
     forge(p, {...f, start: ['L', 'X', 'L']}, 'a switch with no side');
     forge(p, {...f, start: ['L', 'L']}, 'too few switches');
   }
   {
     const p = byId('rotor-05'), f = freshAttempt(p).board;
-    forge(p, {...f, told: 'way'}, 'There is a way on an impossible order');
+    forge(p, {...f, start: ['L', 'L', 'L'], sent: 1, told: 'way'}, 'a line the app doesn’t give');
+    forge(p, {...f, start: ['L', 'L', 'L'], sent: 1, told: 'off', claim: {node: 's0', at: [0, 1]}}, 'a line beside an accepted claim');
     forge(p, {...f, start: ['L', 'L', 'L'], sent: 1, claim: {node: 's1', at: [0, 1]}}, 'a claim that proves nothing');
     forge(p, {...f, start: ['L', 'L', 'L'], sent: 0, claim: {node: 's0', at: [0, 1]}}, 'a claim before any counter');
     assert.ok(validBoard(p, {...f, start: ['L', 'L', 'L'], sent: 1, claim: {node: 's0', at: [0, 1]}}), 'a true claim');
@@ -348,10 +399,12 @@ export default async function validateRotor() {
     for (let k = 0; k < 16; k++) a = play(g, a, {type: 'send'});
     refuse(g, a, {type: 'send'}, 'two blocks of eight');
     refuse(g, a, {type: 'tree', depth: 3}, 'the same tree');
+    assert.doesNotMatch(draw(g)(a).match(/<button[^>]*data-focus="rr-tree-3"[^>]*>/)[0], /data-move/, 'the chosen tree’s button does nothing');
+    assert.match(draw(g)(a).match(/<button[^>]*data-focus="rr-tree-2"[^>]*>/)[0], /data-move/, 'another tree’s button chooses it');
     forge(g, {...a.board, depth: 4}, 'a tree that isn’t offered');
     assert.ok(!isSolved(g, a.board), 'the playground is never solved');
   }
-  return {puzzles: pack.puzzles.length, orders: counts, claimsChecked};
+  return {puzzles: pack.puzzles.length, orders: counts, claimsChecked, patterns};
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) console.log(await validateRotor());

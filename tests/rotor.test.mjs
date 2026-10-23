@@ -64,6 +64,9 @@ test('switches are set before the first counter, then Send', () => {
   a = play(p, a, {type: 'flip', node: 's0'});
   assert.equal(a.board.start[0], 'R', 'then flips');
   assert.equal(move(p, a, {type: 'set', node: 's0', side: 'R'}), null, 'pointing it the way it points changes nothing');
+  const html = view(p, a);
+  assert.match(html, /aria-label="Road from the top switch to the right, the next road"/, 'the chosen road doesn’t offer to point the switch that way');
+  assert.match(html, /aria-label="Road from the top switch to the left\. Point the top switch this way"/);
   a = play(p, a, ...set('L', 'L', 'L'), {type: 'send'});
   assert.equal(move(p, a, {type: 'flip', node: 's1'}), null, 'no flips after the first counter');
   assert.equal(move(p, a, {type: 'set', node: 's1', side: 'R'}), null);
@@ -84,7 +87,7 @@ test('wrong letters show red, and the hint says to undo', () => {
   assert.ok(!isSolved(p, play(p, a, ...sends(2)).board));
 });
 
-test('Can’t: proofs, refusals and There is a way', () => {
+test('Can’t: proofs and refusals, each claim answered on its own whether or not the order can be made', () => {
   const p = byId('rotor-05'), m = mechanicFor(p);
   let a = freshAttempt(p);
   assert.match(view(p, a), /rr-cant"[^>]*disabled/, 'Can’t waits for a counter');
@@ -101,16 +104,27 @@ test('Can’t: proofs, refusals and There is a way', () => {
   assert.match(html, /gb-node sw [lr] claimed/, 'the switch is ringed');
   assert.equal((html.match(/rr-slot want claimed/g) || []).length, 2, 'and the two letters');
   assert.match(html, /rr-claim/, 'with the road they share');
-  // On an order some start makes, Can't is refused for good.
+  // On an order some start makes (C B D A), a claim gets its own verdict, the
+  // same kinds of line as above, and Can't stays on.
   const q = byId('rotor-07');
   let b = play(q, freshAttempt(q), ...set('L', 'L', 'L'), {type: 'send'});
+  const lines = new Set();
+  for (let s = 0; s < 3; s++) for (let x = 0; x < 4; x++) for (let y = x + 1; y < 4; y++) {
+    const c = play(q, b, {type: 'cant', node: `s${s}`, at: [x, y]});
+    assert.ok(!isSolved(q, c.board), 'no claim proves an order that can be made');
+    assert.equal(c.board.told, certify(2, q.parameters.target, s, x, y));
+    lines.add(c.board.told);
+    assert.doesNotMatch(view(q, c), /There is a way/);
+    assert.doesNotMatch(view(q, c), /rr-cant"[^>]*disabled/, 'Can’t stays on');
+  }
+  assert.deepEqual([...lines].sort(), ['apart', 'between', 'off'], 'the same three lines as on an impossible order');
   b = play(q, b, {type: 'cant', node: 's0', at: [0, 1]});
-  assert.equal(b.board.told, 'way');
-  assert.match(view(q, b), /There is a way\./);
-  assert.equal(move(q, b, {type: 'cant', node: 's0', at: [0, 1]}), null);
   const back = undoPress(q, b, att => view(q, att), view(q, b));
-  assert.equal(back.board.told, 'way', 'Undo keeps it');
-  assert.equal(back.board.sent, 0, 'one press takes back the counter too, since the claim alone shows nothing new');
+  assert.equal(back.board.told, null, 'Undo takes the line away');
+  assert.equal(back.board.sent, 1, 'and only the line');
+  // A claim across an open slot is not a proof: its counter might pass the switch.
+  assert.equal(certify(1, ['A', null, 'A', null], 0, 0, 2), 'between');
+  assert.equal(certify(2, ['D', null, null, null], 0, 0, 1), 'open');
   m.reset(p);
 });
 
@@ -170,7 +184,9 @@ test('saves: forged boards are rejected', () => {
   const p = byId('rotor-04');
   assert.ok(validBoard(p, {start: ['L', 'L', 'L'], sent: 2, told: null, claim: null}));
   assert.ok(!validBoard(p, {start: ['L', null, 'L'], sent: 1, told: null, claim: null}), 'a counter with a switch unset');
-  assert.ok(!validBoard(p, {start: ['L', 'L', 'L'], sent: 2, told: 'apart', claim: null}), 'a refused proof on a possible order');
+  assert.ok(validBoard(p, {start: ['L', 'L', 'L'], sent: 2, told: 'apart', claim: null}), 'a refused claim on a possible order');
+  assert.ok(!validBoard(p, {start: ['L', 'L', 'L'], sent: 2, told: 'way', claim: null}), 'a line the app doesn’t give');
+  assert.ok(!validBoard(p, {start: ['L', 'L', 'L'], sent: 2, told: 'open', claim: null}), 'no slot here is open');
   assert.ok(!validBoard(p, {start: ['L', 'L', 'L'], sent: 2, told: null, claim: {node: 's0', at: [0, 1]}}), 'a claim on a possible order');
   assert.ok(!validBoard(p, null));
   const e = byId('rotor-06');
