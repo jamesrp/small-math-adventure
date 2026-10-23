@@ -2,6 +2,7 @@
 .sites-runtime/
 node_modules/
 test-results/
+previews/
 
 # Source game discs and locally extracted third-party research assets.
 *.iso

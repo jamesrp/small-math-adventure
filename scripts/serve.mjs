@@ -1,14 +1,19 @@
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { resolve, sep } from 'node:path';
-const root = resolve(import.meta.dirname, '../dist');
+// SERVE_ROOT serves another folder, such as one laid out like gh-pages. By
+// default dist/ is the app and previews/ (npm run preview -- <item>) is served
+// under /preview/, as on gh-pages.
+const root = resolve(process.env.SERVE_ROOT || resolve(import.meta.dirname, '../dist'));
+const previews = process.env.SERVE_ROOT ? null : resolve(import.meta.dirname, '../previews');
 const types = { html: 'text/html', js: 'text/javascript', css: 'text/css', json: 'application/json', webmanifest: 'application/manifest+json', svg: 'image/svg+xml', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', mp4: 'video/mp4', webm: 'video/webm', mp3: 'audio/mpeg', m4a: 'audio/mp4' };
 const port = Number(process.env.PORT || 4187);
 http.createServer(async (req, res) => {
   try {
-    const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
-    const file = resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
-    if (!file.startsWith(root + sep)) throw new Error('Invalid path');
+    let pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname), base = root;
+    if (previews && pathname.startsWith('/preview/')) { base = previews; pathname = pathname.slice('/preview'.length); }
+    const file = resolve(base, '.' + (pathname.endsWith('/') ? pathname + 'index.html' : pathname));
+    if (!file.startsWith(base + sep)) throw new Error('Invalid path');
     const body = await readFile(file), type = types[file.split('.').at(-1)] || 'application/octet-stream';
     // Safari plays video only from servers that answer byte-range requests.
     const range = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || '');

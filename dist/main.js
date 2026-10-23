@@ -5,6 +5,7 @@ import {FAMILIES,mergePacks} from './families.js';
 import {puzzleObjective} from './puzzle-copy.js';
 import { BANDS,freshAttempt,resumeAttempt,isSolved,nextHint,move,removeTile,undoPress,restart,undoToSolvable } from './engine.js';
 import { SAVE_KEY,BACKUP_KEY,emptyStore,loadStore,persistStore,parseBackup,importProfiles } from './storage.js';
+import { PREVIEW } from './preview.js';
 import { esc,playView,parentView,notesHTML } from './ui.js';
 import { getProgress, getEncounter, startJourney, beginEncounter, recordSolve, continueAfter, withCampaignPuzzles, resolvePuzzle, canVisitEncounter, stopOf, BAND_KEYS } from './road.js';
 import { caravanHeader, caravanProfiles, libraryView } from './caravan-ui.js';
@@ -347,6 +348,8 @@ window.addEventListener('hashchange',navigate);
 window.addEventListener('storage',event=>{if(event.key===SAVE_KEY||event.key===null){clockTimeline.leave();const loaded=loadStore(storage,puzzles);state=loaded.store;warning=loaded.warning;selected=null;highlighted=null;activePlay=null;render();}});
 function setOfflineMessage(text){pwaMessage=text;const node=document.querySelector('#offline-status');if(node)node.textContent=text;}
 async function setupOffline(){
+  // A preview copy sits inside the live app's service-worker scope and registers no worker of its own.
+  if(PREVIEW){setOfflineMessage('Preview copy · online only');return;}
   if(!window.isSecureContext||!('serviceWorker'in navigator)){setOfflineMessage('Offline install needs HTTPS');return;}
   try{const registration=await navigator.serviceWorker.register('./sw.js',{scope:'./'});await navigator.serviceWorker.ready;if(registration.waiting)setOfflineMessage('Update ready · close every app tab and reopen');const worker=registration.active;if(worker){const channel=new MessageChannel();channel.port1.onmessage=e=>setOfflineMessage(registration.waiting?'Update ready · close every app tab and reopen':e.data?.ready?'Ready for offline play':'Offline copy is still preparing');worker.postMessage({type:'CHECK_READY'},[channel.port2]);}registration.addEventListener('updatefound',()=>{const worker=registration.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)setOfflineMessage('Update ready · close every app tab and reopen');});});}catch{setOfflineMessage('Offline setup unavailable · online play works');}
 }

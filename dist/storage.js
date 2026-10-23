@@ -6,8 +6,14 @@ import { validateJourney, freshJourney, withCampaignPuzzles, resolvePuzzle, camp
 import { validateJourney as validateRoad3Journey } from './caravan-road3.js';
 import { validateJourney as validateCaravanJourney } from './caravan-legacy.js';
 import { validateJourney as validateRescueJourney, resolvePuzzle as resolveRescuePuzzle } from './caravan-rescue.js';
-export const SAVE_KEY = 'small-math-adventure:saves:v1';
-export const BACKUP_KEY = 'small-math-adventure:previous:v1';
+import { PREVIEW } from './preview.js';
+// A preview copy shares the live app's origin, so it keeps its saves under its
+// own keys: neither copy reads, overwrites or clears the other's.
+export const saveKeys = preview => preview
+  ? { save:`small-math-adventure:preview:${preview}:saves:v1`, backup:`small-math-adventure:preview:${preview}:previous:v1` }
+  : { save:'small-math-adventure:saves:v1', backup:'small-math-adventure:previous:v1' };
+export const SAVE_KEY = saveKeys(PREVIEW).save;
+export const BACKUP_KEY = saveKeys(PREVIEW).backup;
 export const emptyStore = () => ({ schemaVersion: 1, contentVersion: CONTENT_VERSION, activeProfileId: null, profiles: [] });
 // Only these revision-1 definitions may migrate to the L-only revision 2.
 const legacyGardens = {

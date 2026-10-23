@@ -34,9 +34,10 @@ try {
   checkout = mkdtempSync(join(tmpdir(), 'small-math-adventure-deploy-'));
   run('git', ['clone', '--quiet', '--single-branch', '--branch', branch, remote, checkout]);
   // This is a fresh deployment checkout. Remove obsolete app files while keeping
-  // repository metadata and hosting configuration that do not belong to dist.
+  // repository metadata, hosting configuration and testers' preview copies
+  // (scripts/preview.mjs) that do not belong to dist.
   run('rsync', ['-a', '--delete',
-    '--exclude=/.git/', '--exclude=/.github/', '--exclude=/README.md',
+    '--exclude=/.git/', '--exclude=/.github/', '--exclude=/README.md', '--exclude=/preview/',
     '--exclude=/CNAME', '--exclude=/.gitignore', '--exclude=/.gitattributes',
     '--exclude=/LICENSE', '--exclude=/LICENSE.md',
     join(root, 'dist') + '/', checkout + '/']);

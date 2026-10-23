@@ -23,7 +23,7 @@ exe.dev has no lane.
 - **A work board per repo.** `WORKBOARD.md` has one line per item: owner, branch and state. An agent claims an item by pushing that line to `main` before starting. A rejected push means someone else moved first, so fetch, re-read the board and choose again.
 - **One item, one branch, one session,** under the integration rules already in both `AGENTS.md` files. A claimed item's files belong to its owner until it merges.
 - **Reviews.** Any model can review anything.
-- **Testers.** Every finished item arrives with a tester link and three things to watch for. A preview copy anywhere on `jamesrp.github.io` shares the live app's saves, and under the app's path its service worker too, so previews today need a hand-built Artifact. Giving preview copies their own save key, and keeping the live service worker out of their path, makes `…/preview/<item>/` safe.
+- **Testers.** Every finished item arrives with a tester link and three things to watch for. `npm run preview -- <item> --publish` puts a copy of the checked-out app at `…/preview/<item>/` on `gh-pages`, and `--remove` takes it down ([README](../../README.md#preview-links-for-testers)). The copy keeps its saves under its own keys and registers no service worker, and the live worker passes `preview/` through to the network, so a tester's play there never touches the live saves or offline copy. The pass-through reaches testers' devices with the next production deploy; until then a device that has the live app opens a preview in the live page shell, still with the preview's own code and saves.
 
 ## Track A: story, UI, art, voice and video
 
@@ -76,7 +76,7 @@ Items 1–3 can run at once.
 2. **Family seam and recipe,** with Chip firing moved onto the seam to show it works. `npm test`, `npm run build` and every browser suite must pass.
 3. **Calibration review cards** for Weeks 1, 2 and 15, then cards for the wave-1 themes.
 4. **Port wave 1** once items 2 and 3 have merged.
-5. **Safe preview links** for testers.
+5. **Safe preview links** for testers. Done October 23: `scripts/preview.mjs` builds, publishes and removes `…/preview/<item>/`, and `scripts/preview-browser-smoke.mjs` checks the isolation. No preview has been published yet, and the live worker's pass-through ships with the next deploy.
 6. **Dot/Codex handoff:** the Road 1 keeper reactions and the rewritten voice-casting brief.
 
 ## Decisions

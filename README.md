@@ -69,6 +69,20 @@ npm run deploy -- "Update puzzles"
 
 The existing SSH key must be available to Git. If it is locked, run `ssh-add --apple-use-keychain ~/.ssh/id_ed25519` in your own Terminal and enter its passphrase there. `ssh -T git@github.com` should identify you as `jamesrp` (GitHub returns exit status 1 even on success). The deployment script uses `git@github.com:jamesrp/small-math-adventure.git` and targets only `gh-pages`; `PAGES_REMOTE` can override the repository for testing against a local bare repository that has that branch.
 
+## Preview links for testers
+
+A preview is a copy of the app at `https://jamesrp.github.io/small-math-adventure/preview/<item>/`, built from whatever is checked out. It keeps its saves under its own keys, so play there never reads, changes or clears the live saves (and the live app never sees the preview's). It registers no service worker and so works online only; the live worker passes everything under `preview/` straight to the network. To carry progress across, export saves in one copy's Grown-ups and import them in the other.
+
+```sh
+npm run preview -- shares-fix                      # build previews/shares-fix/; npm start serves it at /preview/shares-fix/
+npm run preview -- shares-fix --publish --dry-run  # show what would change on gh-pages
+npm run preview -- shares-fix --publish "Undo after Can't"
+npm run preview -- --list                          # published previews and when each was last updated
+npm run preview -- shares-fix --remove             # take the link down
+```
+
+`--publish` runs the tests and build, then commits only `preview/<item>/` on `gh-pages` (a regular push, so a concurrent update stops it). `--remove` deletes only that folder. Both push over SSH like the deploy; `PAGES_REMOTE` names another remote. `npm run deploy` leaves `preview/` alone, and nothing publishes a preview by itself. Names are lowercase letters, digits and dashes. Until a production deploy carries the worker's pass-through, a device that already has the live app opens a preview inside the live page shell; the preview's code and saves are still its own. An open preview tab also holds back a waiting live update, like any other app tab. `node scripts/preview-browser-smoke.mjs` checks all of this in a folder laid out like `gh-pages`.
+
 ## Shared source and local resources
 
 GitHub `main` is the durable source of truth. Local and cloud coding sessions use their own checkouts or worktrees and follow [AGENTS.md](AGENTS.md) to integrate. Chat attachments and private resource downloads are inputs, not an automatic two-way sync with this repository.
@@ -158,6 +172,7 @@ Updates wait until existing app tabs close, avoiding replacement of a live board
 | `scripts/import-expansion.mjs` | Reproducible adapter from the 150 checked authoring instances into the shipped pack |
 | `dist/sw.js` | Atomic precache and versioned offline shell |
 | `scripts/release.mjs` | Validation and asset-derived offline cache version |
+| `scripts/preview.mjs`, `dist/preview.js` | Preview copies for testers: build, publish and remove `preview/<item>/` on `gh-pages`; a preview's own save keys and no worker |
 
 No database, purchase system, child accounts, analytics, cloud sync, or data collection is implemented. The parent entry is an adult-oriented UI transition, not authentication. The prototype uses browser voices and a brief visual demonstration instead of recorded narration. It includes generated storybook illustrations, original vector companion portraits and UI icons, responsive layouts, and reduced-motion support. Story narration uses the device’s browser voice; it is not recorded character dialogue.
 
