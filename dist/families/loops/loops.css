@@ -1,0 +1,67 @@
+/* Loop worlds: paper cards with an ink shape and letter; loops as ink boxes
+   with their number in a tag on the top edge (2 in sun, 4 in leaf, the frame
+   8 in paper); chosen cards ringed in pine; clues lit in pine when they hold;
+   ochre for attention. */
+.lp-puzzle{display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%}
+.lp-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .8rem;max-width:100%;min-height:46px}
+.lp-puzzle .lp-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.lp-puzzle .lp-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+.lp-puzzle .lp-button[aria-pressed="true"]{background:var(--b-pine,#31533e);color:var(--b-on-pine,#fffdf5)}
+.lp-puzzle :is(.lp-button,.lp-label,.lp-clue).hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+
+/* The loop numbers. */
+.lp-puzzle .lp-label{display:grid;place-items:center;width:48px;height:48px;min-height:0;padding:0;border-radius:50%;border:2px solid var(--b-ink,#294439);color:var(--b-ink,#294439);font:400 1.4rem/1 var(--b-display,Georgia,serif);box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer}
+.lp-puzzle .lp-label.l2{background:var(--b-sun,#f3d27a)}
+.lp-puzzle .lp-label.l4{background:var(--b-leaf,#b9d39a)}
+.lp-puzzle .lp-label[disabled]{opacity:.45;box-shadow:none;cursor:default}
+.lp-puzzle .lp-label:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:5px}
+
+/* Clues: two small cards and a number; lit in pine when they hold. */
+.lp-clues,.lp-found{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;max-width:min(100%,560px)}
+.lp-clue{display:inline-flex;align-items:center;gap:2px;min-height:40px;padding:3px 9px 3px 5px;border:2px solid var(--b-line,#d0d6bd);border-radius:10px;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);font:inherit}
+button.lp-clue{cursor:pointer;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.lp-clue b{min-width:1.1em;margin-left:5px;font:400 1.35rem/1 var(--b-display,Georgia,serif);text-align:center}
+.lp-clue .lp-dash{font-style:normal;color:var(--b-muted,#6c7a6c)}
+.lp-icon{width:26px;height:26px;display:block}
+.lp-clue.lit{border-color:var(--b-pine,#31533e);background:var(--b-good-soft,#e2ecd6)}
+.lp-clue.lit b{color:var(--b-pine,#31533e)}
+.lp-clue.chosen{border-color:var(--b-ochre,#b38840);box-shadow:0 0 0 3px var(--b-ochre,#b38840)}
+.lp-clue.changed{border:2px dashed var(--b-ochre,#b38840)}
+.lp-clue.changed b{color:var(--b-ochre,#8a6428)}
+.lp-found .lp-clue{min-height:34px;border-style:solid;border-color:var(--b-pine,#31533e)}
+.lp-found .lp-icon{width:20px;height:20px}
+.lp-clue:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
+
+/* Pips for the clues of a pin. */
+.lp-pips{display:inline-flex;gap:7px}
+.lp-pips i{width:16px;height:16px;border-radius:50%;border:2px solid var(--b-ink,#294439);box-sizing:border-box;background:var(--b-card,#fffdf5)}
+.lp-pips i.on{background:var(--b-pine,#31533e);border-color:var(--b-pine,#31533e)}
+
+/* The world. */
+.lp-world{display:block;width:100%;max-width:min(100%,calc(var(--lp-w) * 1.45px));height:auto;overflow:visible;-webkit-tap-highlight-color:transparent}
+.lp-world.mini{max-width:min(100%,calc(var(--lp-w) * .8px))}
+.lp-loop-line{fill:none;stroke:var(--b-ink,#294439);stroke-width:1.6px;vector-effect:non-scaling-stroke}
+.lp-frame .lp-loop-line{stroke-width:2.2px;fill:rgba(255,253,245,.55)}
+.lp-loop.l2 .lp-loop-line{fill:rgba(243,210,122,.16)}
+.lp-loop.l4 .lp-loop-line{fill:rgba(185,211,154,.18)}
+.lp-loop.refused .lp-loop-line,.lp-loop.hinted .lp-loop-line{stroke:var(--b-ochre,#b38840);stroke-width:3.4px;stroke-dasharray:7 5}
+.lp-badge .lp-hit{fill:transparent}
+.lp-badge .lp-tag{stroke:var(--b-ink,#294439);stroke-width:1.6px;vector-effect:non-scaling-stroke;fill:var(--b-card,#fffdf5)}
+.lp-badge.l2 .lp-tag{fill:var(--b-sun,#f3d27a)}
+.lp-badge.l4 .lp-tag{fill:var(--b-leaf,#b9d39a)}
+.lp-badge text{font:400 13px var(--b-display,Georgia,serif);text-anchor:middle;fill:var(--b-ink,#294439);pointer-events:none}
+.lp-badge[role=button]{cursor:pointer}
+.lp-badge.hinted .lp-tag,.lp-badge.refused .lp-tag{stroke:var(--b-ochre,#b38840);stroke-width:3.4px}
+.lp-face{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:1.4px;vector-effect:non-scaling-stroke}
+.lp-shape{fill:none;stroke:var(--b-muted,#6c7a6c);stroke-width:1.3px;vector-effect:non-scaling-stroke}
+.lp-letter{font-family:var(--b-display,Georgia,serif);text-anchor:middle;fill:var(--b-ink,#294439);pointer-events:none}
+.lp-card[role=button]{cursor:pointer}
+.lp-card.picked .lp-face{stroke:var(--b-pine,#31533e);stroke-width:4px;fill:var(--b-good-soft,#e2ecd6)}
+.lp-card.hinted .lp-face{stroke:var(--b-ochre,#b38840);stroke-width:3.4px;stroke-dasharray:6 4}
+.lp-card:focus,.lp-badge:focus{outline:none}
+.lp-card:focus-visible .lp-face,.lp-badge:focus-visible .lp-tag{stroke:var(--b-ochre,#b38840);stroke-width:3.6px}
+
+/* Lines under the board, and a second world. */
+.lp-told{margin:0;font:400 1.05rem/1.35 var(--b-display,Georgia,serif);color:var(--b-ink,#294439);text-align:center}
+.lp-other{display:flex;justify-content:center;width:100%;padding-top:.15rem}
+.lp-puzzle.solved .lp-clue.lit{border-color:var(--b-pine,#31533e)}
