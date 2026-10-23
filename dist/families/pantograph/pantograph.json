@@ -1389,24 +1389,24 @@
    "objective": "Move the green shape, then trace it.",
    "visibleObjective": "Move the green shape, then trace it.",
    "instruction": "Move the green shape, then trace it.",
-   "controls": "The pin stays where it is; the dashed ring is where it used to be. Drag the green shape, or use the arrow keys on it; each new place starts a fresh sheet. Drag the knob (the yellow disc) to another dot: as it slides in a straight line, the pencil draws. Tap a dot to lift the knob and put it down there without drawing. On the knob, arrow keys draw one step and Shift with an arrow moves it without drawing. Undo takes back one move. Trace the green shape with the knob.",
+   "controls": "The pin stays where it is. Drag the green shape, or use the arrow keys on it; each new place starts a fresh sheet. Drag the knob (the yellow disc) to another dot: as it slides in a straight line, the pencil draws. Tap a dot to lift the knob and put it down there without drawing. On the knob, arrow keys draw one step and Shift with an arrow moves it without drawing. Undo takes back one move. Trace the green shape with the knob.",
    "rules": [
     "The pin stays still. Move the green shape first.",
     "Then trace it with the knob, so that the pencil draws the pale outline and no other lines.",
     "The knob, the pencils and the pins stay on the paper, and a knob never goes onto its pin."
    ],
-   "idea": "Moving the pin by d moves the copy by −d; moving the picture by half of d puts it back.",
+   "idea": "Moving the picture by m moves its copy by 2m, the same way; so the picture moves half as far as the copy has to.",
    "prerequisites": "Comparing two pins and two copies and seeing how far and which way each moved. Grades 4–5.",
    "hints": [
-    "Trace the green shape where it is. Where does the copy land now?",
-    "The pin moved 2 right and 2 up. Which way did the copy move?",
+    "Trace the green shape where it is. Where does the copy land?",
+    "Moving the green shape one dot moves the copy two dots, the same way.",
     "Move the green shape 1 right and 1 up."
    ],
    "parent": {
-    "notice": "Traced in place, the copy lands 2 left and 2 down of the outline: opposite to the pin’s move.",
-    "prompt": "Why does the picture move only half as far as the pin did?",
-    "explanation": "The old pin (0, 0) put the copy at 2M. The new pin O′ = (2, 2) puts it at 2M − O′, which is 2 left and 2 down. Moving the picture by m moves the copy by 2m, so m = (1, 1), half the pin’s move, the same way. Searching every place of the green shape finds only this one.",
-    "extension": "If the pin had moved 4 right instead, how should the picture move? (2 right.)",
+    "notice": "Traced in place, the copy lands 2 left and 2 down of the outline.",
+    "prompt": "Why does the picture move only half as far as the copy has to?",
+    "explanation": "With the pin O at (2, 2) the copy of a corner M is 2M − O, so moving the picture by m moves the copy by 2m. Traced in place the copy is 2 left and 2 down of the outline, so m = (1, 1): each green corner is then halfway between the pin and its outline corner. Searching every place of the green shape finds only this one. On the worksheet the outline is the copy made with the pin at (0, 0): moving the pin 2 right and 2 up moved the copy 2 left and 2 down, and the picture moves half the pin’s move, the same way.",
+    "extension": "If the outline were 2 dots further left, where should the green shape go? (1 dot further left than the answer: half as far.)",
     "connection": "A dilation about a moved centre is the old dilation followed by a translation: 2(T − O′) + O′ = 2(T − O) + O − (O′ − O).",
     "sourceIds": [
      "pantograph-week85",
@@ -1438,40 +1438,40 @@
     ],
     "pins": [
      [
+      8,
+      4
+     ],
+     [
+      2,
+      0
+     ]
+    ],
+    "tracer": [
+     4,
+     2
+    ],
+    "stencil": [
+     [
+      4,
+      2
+     ],
+     [
       6,
       2
      ],
      [
       6,
-      6
-     ]
-    ],
-    "tracer": [
-     4,
-     3
-    ],
-    "stencil": [
-     [
-      4,
-      3
-     ],
-     [
-      5,
-      3
-     ],
-     [
-      5,
       5
      ]
     ],
     "target": [
      [
-      2,
-      5
+      1,
+      4
      ],
      [
       3,
-      5
+      4
      ],
      [
       3,
@@ -1479,7 +1479,7 @@
      ]
     ],
     "slide": [
-     -2,
+     -3,
      2
     ],
     "movable": {
@@ -1490,12 +1490,12 @@
     },
     "solution": [
      [
-      6,
-      2
+      8,
+      4
      ],
      [
       2,
-      6
+      8
      ]
     ],
     "witness": [
@@ -1504,20 +1504,20 @@
       "k": 1,
       "to": [
        2,
-       6
+       8
       ]
      },
      {
       "type": "draw",
       "to": [
-       5,
-       3
+       6,
+       2
       ]
      },
      {
       "type": "draw",
       "to": [
-       5,
+       6,
        5
       ]
      },
@@ -1525,7 +1525,7 @@
       "type": "draw",
       "to": [
        4,
-       3
+       2
       ]
      }
     ]
@@ -1544,12 +1544,12 @@
    "hints": [
     "Trace the green shape and watch both pencils.",
     "The copy is the same size as the green shape. How far did it slide, and how far apart are the pins?",
-    "Put the second pin at (2, 6)."
+    "Put the second pin at (2, 8)."
    ],
    "parent": {
     "notice": "The middle pencil draws a big copy, and the last pencil a copy the same size as the green shape.",
     "prompt": "How far does the copy slide when the second pin moves one dot?",
-    "explanation": "The first machine draws 2T − O₁ and the second halves it towards O₂: (2T − O₁ + O₂)/2 = T + (O₂ − O₁)/2. So the copy is the green shape slid by half the gap between the pins. The outline is 2 left and 2 up, so O₂ = O₁ + (−4, 4) = (2, 6). Searching every dot finds no other second pin.",
+    "explanation": "The first machine draws 2T − O₁ and the second halves it towards O₂: (2T − O₁ + O₂)/2 = T + (O₂ − O₁)/2. So the copy is the green shape slid by half the gap between the pins. The outline is 3 left and 2 up, so O₂ = O₁ + (−6, 4) = (2, 8). Searching every dot finds no other second pin.",
     "extension": "Where should the second pin go to put the copy right on the green shape? (On the first pin: then the two machines undo each other.)",
     "connection": "Two dilations with factors 2 and ½ compose to a translation (Week 85 guide).",
     "sourceIds": [
@@ -1586,12 +1586,12 @@
       6
      ],
      [
-      5,
-      7
+      8,
+      2
      ]
     ],
     "tracer": [
-     3,
+     5,
      3
     ],
     "stencil": [
@@ -1604,8 +1604,8 @@
       3
      ],
      [
-      3,
-      4
+      5,
+      6
      ]
     ],
     "target": [
@@ -1618,8 +1618,8 @@
       4
      ],
      [
-      6,
-      5
+      8,
+      7
      ]
     ],
     "slide": [
@@ -1634,30 +1634,37 @@
     },
     "solution": [
      [
-      3,
-      0
+      1,
+      4
      ],
      [
-      9,
-      2
+      7,
+      6
      ]
     ],
-    "count": 30,
+    "count": 14,
     "witness": [
      {
       "type": "pin",
       "k": 0,
       "to": [
-       3,
-       0
+       1,
+       4
       ]
      },
      {
       "type": "pin",
       "k": 1,
       "to": [
-       9,
-       2
+       7,
+       6
+      ]
+     },
+     {
+      "type": "hop",
+      "to": [
+       3,
+       3
       ]
      },
      {
@@ -1670,8 +1677,8 @@
      {
       "type": "draw",
       "to": [
-       3,
-       4
+       5,
+       6
       ]
      },
      {
@@ -1697,13 +1704,13 @@
    "hints": [
     "Trace the green shape and see where the copy lands.",
     "The copy slides half as far as the second pin is from the first.",
-    "Put the first pin at (3, 0) and the second at (9, 2)."
+    "Put the first pin at (1, 4) and the second at (7, 6)."
    ],
    "parent": {
     "notice": "Different children can solve it with different pins; compare the gaps.",
     "prompt": "Your pins are in a different place from mine, and both work. What is the same?",
-    "explanation": "The copy is T + (O₂ − O₁)/2, so any pins with O₂ − O₁ = (6, 2) slide the green shape 3 right and 1 up onto the outline. Searching every pair of dots finds 30 pairs that work, and every one has that gap. The 5 other pairs with that gap fold a machine shut at a corner of the green shape: the knob would sit on the first pin, or the middle pencil on the second.",
-    "extension": "Put the first pin on a corner of the green shape, with the second pin 6 right and 2 up from it. What goes wrong? (The knob can’t rest on that corner, so the shape can’t be traced.)",
+    "explanation": "The copy is T + (O₂ − O₁)/2, so any pins with O₂ − O₁ = (6, 2) slide the green shape 3 right and 1 up onto the outline. Searching every pair of dots finds 14 pairs that work, and every one has that gap. Of the 21 other pairs with that gap, 20 send the middle pencil off the paper at a corner of the green shape (it draws a copy twice as big, twice as far from the first pin), and one folds the second machine shut: at a corner the middle pencil would sit on the second pin.",
+    "extension": "Put the first pin at (2, 0) and the second at (8, 2): the gap is right. Why can’t the shape be traced? (The middle pencil draws a copy twice as big and twice as far from the first pin, and at the top corner it would be off the top of the paper.)",
     "connection": "The composite of dilations by 2 and ½ about different centres is a translation by half the difference of the centres; with equal centres it is the identity.",
     "sourceIds": [
      "pantograph-week85",

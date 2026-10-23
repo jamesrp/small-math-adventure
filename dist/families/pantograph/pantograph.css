@@ -30,7 +30,6 @@
 .pg-stencil.preview.refused{fill:var(--b-bad,#a9503a);stroke:var(--b-bad,#a9503a)}
 .pg-board.drag-stencil .pg-stencil:not(.preview){fill-opacity:.12;stroke-opacity:.35}
 .pg-ghost{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:2px;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}
-.pg-ghost-pin circle{fill:none;stroke:var(--b-pine,#31533e);stroke-width:1.5px;stroke-dasharray:2.5 2;vector-effect:non-scaling-stroke}
 
 /* Lines. */
 .pg-track{stroke:#8d978a;stroke-width:1.4px;stroke-dasharray:3 2.4;stroke-linecap:round;vector-effect:non-scaling-stroke}

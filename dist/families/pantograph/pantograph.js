@@ -124,8 +124,9 @@ function valid(p, b) {
     if (!exactKeys(b, ['log', 'shut', 'claimed']) || typeof b.claimed !== 'boolean') return false;
     if (b.shut !== null && (!Array.isArray(b.shut) || b.shut.length > lattice(q).length || new Set(b.shut).size !== b.shut.length || !b.shut.every(k => { const pt = keyPoint(k); return pt && latticeOnPaper(q, pt); }))) return false;
     if (stateOf(p, b) === null) return false;
-    // A refusal must have been right: some box dot was missing from it.
-    if (b.shut && insideDots(q).every(k => b.shut.includes(k))) return false;
+    // A refusal must have been right and possible: some box dot was missing
+    // from it, and at least one was found (That's all is off before then).
+    if (b.shut && (insideDots(q).every(k => b.shut.includes(k)) || !insideDots(q).some(k => b.shut.includes(k)))) return false;
     if (b.claimed && (!complete(p, b) || refused(p, b))) return false;
     return true;
   }
@@ -152,7 +153,9 @@ function clean(action) {
   if ((action.type === 'tips' || action.type === 'clear' || action.type === 'all') && exactKeys(action, ['type'])) return {type: action.type};
   return null;
 }
-export const canClaim = (p, b) => p.parameters.mode === 'region' && !b.claimed && !refused(p, b);
+// That's all opens once a leaf dot is on the board: with none found it can never be right.
+const anyLeaf = (p, b) => { const inside = insideDots(p.parameters); return [...found(p, b)].some(k => inside.includes(k)); };
+export const canClaim = (p, b) => p.parameters.mode === 'region' && !b.claimed && !refused(p, b) && anyLeaf(p, b);
 function move(p, b, raw) {
   const q = p.parameters, action = clean(raw);
   if (!action || !valid(p, b) || solved(p, b)) return null;
@@ -230,7 +233,7 @@ function setUp(q, st) {
   return null;
 }
 function hintFor(q, action) {
-  if (action.type === 'stencil') return {type: 'move', action, text: 'Move the green shape half as far as the pin moved, the same way.', ghost: action.to};
+  if (action.type === 'stencil') return {type: 'move', action, text: 'Move the green shape half as far as the copy has to move, the same way.', ghost: action.to};
   const words = q.mode === 'chain'
     ? (action.k === 0 ? 'Move the first pin.' : 'The copy slides half as far as the second pin is from the first.')
     : half(q.machines) ? 'Each outline corner must be halfway between the pin and its green corner.' : 'Each green corner must be halfway between the pin and its outline corner.';
@@ -346,7 +349,6 @@ export function boardArt(p, b, opts = {}) {
     under += `<g class="pg-marks" aria-hidden="true">${[...seen].map(k => { const [x, y] = keyPoint(k); return inside.has(k) ? `<circle class="pg-mark in" cx="${x * U}" cy="${(H - y) * U}" r="2.3"/>` : `<path class="pg-mark out" d="M${x * U - 1.8} ${(H - y) * U - 1.8}l3.6 3.6m0 -3.6l-3.6 3.6"/>`; }).join('')}</g>`;
   }
   if (q.target) under += `<polygon class="pg-target" points="${poly(q, q.target)}"/>`;
-  if (q.ghostPin) under += `<g class="pg-ghost-pin" aria-hidden="true"><circle cx="${q.ghostPin[0] * U}" cy="${(H - q.ghostPin[1]) * U}" r="3.4"/></g>`;
   if (q.stencil && !play) {
     const movable = q.movable?.stencil && !done;
     under += `<polygon class="pg-stencil${movable ? ' movable' : ''}" data-pg="stencil" points="${poly(q, stencilAt(q, st.at))}"${movable ? ` role="button" tabindex="0" data-focus="pg-stencil" aria-label="Green shape. Drag it, or use the arrow keys."` : ' aria-hidden="true"'}/>`;

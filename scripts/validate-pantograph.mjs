@@ -303,11 +303,16 @@ export default async function validatePantograph() {
         assert.ok(found.every(s => s.pins[1][0] - s.pins[0][0] === 2 * q.slide[0] && s.pins[1][1] - s.pins[0][1] === 2 * q.slide[1]), `${p.id}: every answer has the gap twice the slide`);
         if (q.movable.pins[0]) {
           assert.equal(found.length, q.count, `${p.id}: ${q.count} pairs of pins`);
-          // The other pairs with the right gap fold a machine shut at a corner.
+          // The other pairs with the right gap: 20 put the middle pencil off the
+          // sheet at a corner, and the one left folds a machine shut at a corner.
           const gap = dots(q).map(o1 => [o1, [o1[0] + 2 * q.slide[0], o1[1] + 2 * q.slide[1]]]).filter(([, o2]) => onSheet(q, pt(o2)));
           const failing = gap.filter(([o1, o2]) => !found.some(s => String(s.pins) === String([o1, o2])));
-          assert.ok(failing.every(([o1, o2]) => q.stencil.some(c => { const tips = tipsOf(kinds, [pt(o1), pt(o2)], pt(c)); return tips.every(x => onSheet(q, x)) && (peq(tips[0], pt(o1)) || peq(tips[1], pt(o2))); })), `${p.id}: the others fold shut at a corner, on the sheet`);
-          assert.equal(failing.length, 5, `${p.id}: 5 pairs with the gap fold shut`);
+          const offSheet = failing.filter(([o1, o2]) => q.stencil.some(c => !tipsOf(kinds, [pt(o1), pt(o2)], pt(c)).every(x => onSheet(q, x))));
+          const shut = failing.filter(f => !offSheet.includes(f));
+          assert.ok(shut.every(([o1, o2]) => q.stencil.some(c => { const tips = tipsOf(kinds, [pt(o1), pt(o2)], pt(c)); return tips.every(x => onSheet(q, x)) && (peq(tips[0], pt(o1)) || peq(tips[1], pt(o2))); })), `${p.id}: the rest fold shut at a corner, on the sheet`);
+          assert.ok(offSheet.every(([o1, o2]) => q.stencil.some(c => !onSheet(q, tipsOf(kinds, [pt(o1), pt(o2)], pt(c))[1]))), `${p.id}: off the sheet means the middle pencil`);
+          assert.deepEqual([failing.length, offSheet.length, shut.length], [21, 20, 1], `${p.id}: 21 pairs with the gap fail, 20 off the sheet and 1 shut`);
+          assert.deepEqual(shut[0], [[2, 5], [8, 7]]);
         } else {
           assert.equal(found.length, 1, `${p.id}: one second pin`);
           assert.deepEqual(found[0].pins, q.solution);
@@ -336,7 +341,10 @@ export default async function validatePantograph() {
     const ch = byTitle('Two machines').parameters;
     assert.ok(ch.stencil.every(c => peq(tipsOf(ch.machines, [pt(ch.pins[0]), pt(ch.pins[0])], pt(c)).at(-1), pt(c))), 'equal pins: the copy is the shape');
     const sh = byTitle('Move the picture').parameters;
-    assert.ok(copies(sh, sh.machines, [pt([sh.ghostPin[0] + 4, sh.ghostPin[1]])], [2, 0]), 'a pin 4 right asks the picture 2 right');
+    assert.ok(copies({...sh, target: sh.target.map(([x, y]) => [x - 2, y])}, sh.machines, sh.pins.map(pt), [sh.solution[0] - 1, sh.solution[1]]), 'an outline 2 left asks the picture 1 further left');
+    const bp = byTitle('Both pins').parameters, top = bp.stencil.reduce((a, c) => c[1] > a[1] ? c : a);
+    assert.ok(!copies(bp, bp.machines, [pt([2, 0]), pt([8, 2])], [0, 0]), 'the pins (2, 0) and (8, 2) do not work');
+    assert.ok(!fle(tipsOf(bp.machines, [pt([2, 0]), pt([8, 2])], pt(top))[1][1], F(bp.paper[1])), 'their middle pencil is off the top at the top corner');
   }
 
   // --- Witnesses, hints and play ---------------------------------------------
@@ -400,8 +408,15 @@ export default async function validatePantograph() {
     assert.ok(isSolved(p, a.board), 'pieces, repeats and any order');
   }
   {
-    // That's all: refused early, and the refusal holds through Undo while the dots found are the same.
+    // That's all: off until a leaf dot is found (crosses alone do not open it),
+    // refused early, and the refusal holds through Undo while the dots found are the same.
     const p = byTitle('Keep it in the box');
+    refuse(p, freshAttempt(p), {type: 'all'}, 'That’s all is off before any leaf dot');
+    assert.match(draw(p)(freshAttempt(p)), /pg-all"[^>]*disabled/, 'the button is off on a fresh board');
+    const crosses = play(p, freshAttempt(p), {type: 'hop', to: [2, 0]});
+    const crossHTML = draw(p)(crosses);
+    assert.ok(!boxDots(p.parameters).includes('2,0') && !boxDots(p.parameters).includes('1,2') && !/pg-mark in/.test(crossHTML) && (crossHTML.match(/pg-mark out/g) || []).length === 2, 'two crosses, no leaf dot');
+    refuse(p, crosses, {type: 'all'}, 'crosses alone leave That’s all off');
     let a = play(p, freshAttempt(p), {type: 'hop', to: [2, 1]});
     a = play(p, a, {type: 'all'});
     assert.ok(Array.isArray(a.board.shut) && !a.board.claimed);
@@ -444,7 +459,8 @@ export default async function validatePantograph() {
     assert.ok(!validBoard(r, {...rf, claimed: true}), 'a claim before every dot is found');
     assert.ok(!validBoard(r, {...rf, shut: boxDots(r.parameters)}), 'a refusal that found every dot');
     assert.ok(!validBoard(r, {...rf, shut: ['99,1']}), 'a refusal off the sheet');
-    assert.ok(validBoard(r, {...rf, shut: ['1,2']}), 'a real refusal');
+    assert.ok(!validBoard(r, {...rf, shut: ['1,2']}), 'a refusal before any leaf dot');
+    assert.ok(validBoard(r, {...rf, shut: ['1,2', '2,1']}), 'a real refusal, kept through Undo');
     const g = playground, gf = freshAttempt(g).board;
     assert.ok(!validBoard(g, {...gf, kind: 'triple'}), 'no such machine');
     assert.ok(!validBoard(g, {...gf, pins: [[2, 2], [3, 3]]}), 'one pin in the playground');

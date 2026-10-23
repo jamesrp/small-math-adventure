@@ -159,8 +159,10 @@ try {
 
   // The box: a refused That's all, kept through Undo.
   p = byId('pantograph-05'); await open(p.id); await shot('05-fresh');
+  assert.ok(await press('That’s all').isDisabled(), 'That’s all is off before any leaf dot');
   await tapAt(await at([3, 2]));
   assert.equal(await page.locator('.pg-mark.in').count(), 1);
+  assert.ok(!(await press('That’s all').isDisabled()), 'a leaf dot turns it on');
   await press('That’s all').click();
   assert.equal(await page.locator('.pg-told').innerText(), 'There are more.');
   assert.ok(await press('That’s all').isDisabled(), 'That’s all is off');
@@ -169,7 +171,7 @@ try {
   assert.equal(await page.locator('.pg-told').count(), 1, 'Undo keeps the refusal');
   assert.equal(await page.locator('.pg-mark.in').count(), 0, 'and takes back the dot before it');
   await finish(p, 'box'); await shot('05-solved');
-  checks.push('box: marks, refused That’s all through Undo, claimed');
+  checks.push('box: That’s all off until a leaf dot, marks, refused through Undo, claimed');
 
   for (const id of ['pantograph-06', 'pantograph-07']) { p = byId(id); await open(id); await shot(`${id.slice(-2)}-fresh`); await fit(id); await finish(p, id); }
   checks.push('swap the tips, small box');
@@ -191,6 +193,7 @@ try {
 
   // Move the picture: the green shape dragged.
   p = byId('pantograph-10'); await open(p.id); await shot('10-fresh');
+  assert.equal(await page.locator('.pg-ghost-pin, .pg-ghost').count(), 0, 'no old pin on the board');
   const g = await stencilGrip(p);
   await drag(await at(g), await at([g[0] + 2, g[1] + 1]));
   assert.deepEqual((await board(p.id)).log, [{type: 'stencil', to: [2, 1]}], 'the shape moves by the drag');

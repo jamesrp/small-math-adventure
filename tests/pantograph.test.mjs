@@ -96,8 +96,11 @@ test('swapped tips: the knob goes twice as far', () => {
 test('the box: marks, That’s all refused, kept through Undo, then claimed', () => {
   const p = byId('pantograph-05'), q = p.parameters;
   assert.equal(insideDots(q).length, 12);
+  assert.match(view(p, freshAttempt(p)), /pg-all"[^>]*disabled/, 'That’s all is off before any leaf dot');
+  assert.equal(move(p, play(p, freshAttempt(p), hop([2, 0])), {type: 'all'}), null, 'crosses alone leave it off');
   let a = play(p, freshAttempt(p), hop([2, 1]));
   let html = view(p, a);
+  assert.doesNotMatch(html, /pg-all"[^>]*disabled/, 'a leaf dot turns it on');
   assert.match(html, /pg-mark in/); assert.match(html, /pg-mark out/, 'the start knob dot is outside');
   a = play(p, a, {type: 'all'});
   assert.match(view(p, a), /There are more\./);
@@ -127,14 +130,15 @@ test('pins and the green shape: a fresh sheet each time, the old one faded', () 
   const h = nextHint(s, freshAttempt(s));
   assert.deepEqual(h.action, {type: 'stencil', to: [1, 1]});
   assert.match(view(s, {...freshAttempt(s), hintLevel: 2}), /pg-ghost"/, 'the hint shows where the shape goes');
-  assert.match(view(s, freshAttempt(s)), /pg-ghost-pin/, 'the old pin is a dashed ring');
+  assert.doesNotMatch(view(s, freshAttempt(s)), /pg-ghost/, 'no old pin and no ghost before a hint');
+  assert.match(h.text, /half as far as the copy has to move/);
 });
 
 test('two machines: the copy slides by half the gap between the pins', () => {
   const p = byId('pantograph-12'), q = p.parameters;
-  assert.equal(solutions(q).length, 30);
+  assert.equal(solutions(q).length, 14);
   assert.ok(solutions(q).every(s => s.pins[1][0] - s.pins[0][0] === 6 && s.pins[1][1] - s.pins[0][1] === 2));
-  let a = play(p, freshAttempt(p), {type: 'pin', k: 0, to: [1, 1]}, {type: 'pin', k: 1, to: [7, 3]}, draw([5, 3]), draw([3, 4]), draw([3, 3]));
+  let a = play(p, freshAttempt(p), {type: 'pin', k: 0, to: [3, 6]}, {type: 'pin', k: 1, to: [9, 8]}, draw([5, 6]), draw([3, 3]), draw([5, 3]));
   assert.ok(isSolved(p, a.board), 'a pair the authors did not pick');
   const html = view(p, freshAttempt(p));
   assert.match(html, /pg-frame m1/); assert.match(html, /pg-mid/);
