@@ -1,0 +1,78 @@
+@import url('../../sq-grid.css');
+/* Seed plots: soil squares, a brown seed on each planted square, leaf green
+   for every filled square, and the wooden fence of Garden fences along every
+   side of a filled square with no filled square beside it. The squares that
+   let the newest square grow glow for a moment. Rocks are grey stones that
+   are not part of the plot. */
+.sd-puzzle{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
+.sd-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem 1rem;max-width:100%}
+.sd-buttons{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem}
+.sd-puzzle .sd-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.sd-puzzle .sd-claim:not([disabled]){border-color:var(--b-pine,#31533e)}
+.sd-puzzle .sd-button[disabled]{opacity:.5;box-shadow:none}
+.sd-puzzle .sd-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+
+/* Counters: the tray of seeds still to plant (or the seeds planted), and the
+   fence beside the plot's own fence. */
+.sd-tray{display:inline-flex;flex-wrap:wrap;gap:5px;max-width:220px;justify-content:center}
+.sd-tray i{width:14px;height:18px;border-radius:50%;border:1.5px dashed #b9a77f;box-sizing:border-box}
+.sd-tray i.on{background:#8a5a32;border:1.5px solid #5e3c1f}
+@media (prefers-reduced-motion:no-preference){.sd-tray.nudge{animation:sd-nudge .35s ease-in-out}.sd-board .sg-cell.nudge{animation:sd-flash .4s ease-in-out}}
+@keyframes sd-nudge{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@keyframes sd-flash{50%{fill:#ecc9b8}}
+.sd-count{display:inline-flex;align-items:center;gap:.3rem;font-family:var(--b-display,Georgia,serif);font-size:1.35rem;color:var(--b-ink,#294439)}
+.sd-count b{font-weight:400;min-width:1.4em;text-align:center}
+.sd-count small{font-size:1rem;color:var(--b-muted,#5a6850)}
+.sd-icon{width:26px;height:22px}
+.sd-icon-seed{fill:#8a5a32;stroke:#5e3c1f;stroke-width:1.4}
+.sd-icon-sprout{fill:none;stroke:#4d6b47;stroke-width:1.8;stroke-linecap:round}
+.sd-icon-rail{stroke:#9b7448;stroke-width:2.2;fill:none}
+.sd-icon-post{stroke:#6b4f2e;stroke-width:3;stroke-linecap:round;fill:none}
+
+/* The plot. */
+.sd-stage{width:100%;max-width:min(400px, calc(var(--sd-cols) * 66px + 30px))}
+.sd-board .sg-cell{fill:#f3ecd9;stroke:#dccfae}
+.sd-board .sg-cell.filled{fill:#8fb07f;stroke:#6f9562}
+.sd-board .sg-cell.faded{fill:#dfe6cf;stroke:#c8d2b4}
+.sd-board .sg-cell.support{fill:#bcd59a}
+.sd-board .sg-cell.just{fill:#7aa36b}
+.sd-board .sg-cell.hinted{fill:#f6e3b0;stroke:var(--b-ochre,#b38840);stroke-width:3px;stroke-dasharray:5 4}
+.sd-board .sg-cell.filled.hinted{fill:#b9cf8e}
+.sd-board .sg-dot.seed-dot{fill:#8a5a32;stroke:#5e3c1f;stroke-width:1px;vector-effect:non-scaling-stroke;r:2.3px}
+.sd-board .sg-rim{stroke:#b9a77f;stroke-width:1.6px}
+.sd-board .sg-edge.fence{stroke:#9b7448;stroke-width:4.5px}
+.sd-board.solved .sg-edge.fence{stroke:#7a5530}
+.sd-rock rect{fill:#e4dfd2;stroke:none}
+.sd-rock path{fill:#a8a496;stroke:#7d7a6e;stroke-width:1px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+@media (prefers-reduced-motion:no-preference){.sd-board .sg-cell{transition:fill .2s}}
+
+/* The plot's sizes in the playground. */
+.sd-sizes{display:flex;gap:.4rem}
+.sd-puzzle .sd-size{min-height:46px;min-width:46px;padding:5px;background:var(--b-card,#fffdf5);border:1px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.sd-puzzle .sd-size[aria-pressed="true"]{background:#e9eddc;border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e)}
+.sd-size-icon{width:30px;height:30px;display:block}
+.sd-size-icon rect{fill:#f3ecd9;stroke:#b9a77f;stroke-width:.6}
+
+/* A told answer; the certificate after a right Can't. */
+.sd-note{margin:0;font-weight:600;color:var(--b-bad,#a9503a);text-align:center}
+.sd-note.proof{color:var(--b-pine,#31533e)}
+
+/* Numbers of squares found. */
+.sd-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;margin:0;padding:0;list-style:none}
+.sd-chips li{display:grid;place-items:center;min-width:44px;height:44px;padding:0 8px;border-radius:22px;background:#dfe9cf;border:2px solid #6f9562;font-family:var(--b-display,Georgia,serif);font-size:1.2rem;color:var(--b-ink,#294439);box-sizing:border-box}
+.sd-chips li.here{box-shadow:0 0 0 3px var(--b-sun,#efc76e)}
+
+/* The plot without each seed. */
+.sd-minis{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem;margin:0;padding:0;list-style:none;max-width:460px}
+.sd-minis li{display:flex;flex-direction:column;align-items:center;width:64px;padding:4px;background:#fbf4dc;border:1.5px solid #ead9a4;border-radius:12px;box-sizing:border-box;font-family:var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
+.sd-minis li.full{border-color:var(--b-bad,#a9503a);box-shadow:0 0 0 2px #ecc9b8}
+.sd-mini{display:block;width:100%;height:auto;max-height:none;margin:0}
+.sd-mini .sg-cell{fill:#f3ecd9;stroke:#dccfae}
+.sd-mini .sg-cell.filled{fill:#8fb07f;stroke:#6f9562}
+.sd-mini .sg-cell.gone{fill:#f3ecd9}
+.sd-mini .sg-rim{stroke:#b9a77f;stroke-width:1px}
+.sd-mini .sg-dot.seed-dot{fill:#8a5a32}
+.sd-mini .sg-dot.gone-dot{fill:none;stroke:#8a5a32;stroke-width:1px;vector-effect:non-scaling-stroke;stroke-dasharray:2 1.5}
+.sd-mini .sd-rock rect{fill:#e4dfd2}
+/* A seed the plot doesn't need, ringed. */
+.sd-board .sg-dot.spare-dot{stroke:var(--b-bad,#a9503a);stroke-width:3px;stroke-dasharray:3 2}

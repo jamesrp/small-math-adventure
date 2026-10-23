@@ -1,6 +1,6 @@
 # The shared square grid
 
-`dist/sq-grid.js` and `dist/sq-grid.css` cut boards from the grid of unit squares. They draw a board as one SVG, make any square, grid line, grid point or piece a control, and pass taps, keys and finger strokes back to the family as moves. They also know the geometry families keep needing on squares: neighbours, the boundary of a set of squares, its pieces and holes, outlines, and shapes up to turns and flips. They never know a family's rules. Garden fences ([fences](fences/README.md), Week 26) is the first user. The module imports only `expansion-controls.js`, so a family module can import it without reaching back to `families.js`.
+`dist/sq-grid.js` and `dist/sq-grid.css` cut boards from the grid of unit squares. They draw a board as one SVG, make any square, grid line, grid point or piece a control, and pass taps, keys and finger strokes back to the family as moves. They also know the geometry families keep needing on squares: neighbours, the boundary of a set of squares, its pieces and holes, outlines, and shapes up to turns and flips. They never know a family's rules. Garden fences ([fences](fences/README.md), Week 26) is the first user; Seed plots ([seeds](seeds/README.md), Week 98) also uses it. The module imports only `expansion-controls.js`, so a family module can import it without reaching back to `families.js`.
 
 ## Coordinates
 
