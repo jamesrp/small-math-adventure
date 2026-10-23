@@ -22,14 +22,14 @@
 button.lp-clue{cursor:pointer;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
 .lp-clue b{min-width:1.1em;margin-left:5px;font:400 1.35rem/1 var(--b-display,Georgia,serif);text-align:center}
 .lp-clue .lp-dash{font-style:normal;color:var(--b-muted,#6c7a6c)}
-.lp-icon{width:26px;height:26px;display:block}
+.lp-icon{width:34px;height:34px;display:block}
 .lp-clue.lit{border-color:var(--b-pine,#31533e);background:var(--b-good-soft,#e2ecd6)}
 .lp-clue.lit b{color:var(--b-pine,#31533e)}
 .lp-clue.chosen{border-color:var(--b-ochre,#b38840);box-shadow:0 0 0 3px var(--b-ochre,#b38840)}
 .lp-clue.changed{border:2px dashed var(--b-ochre,#b38840)}
 .lp-clue.changed b{color:var(--b-ochre,#8a6428)}
 .lp-found .lp-clue{min-height:34px;border-style:solid;border-color:var(--b-pine,#31533e)}
-.lp-found .lp-icon{width:20px;height:20px}
+.lp-found .lp-icon{width:28px;height:28px}
 .lp-clue:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
 
 /* Pips for the clues of a pin. */
@@ -40,6 +40,9 @@ button.lp-clue{cursor:pointer;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
 /* The world. */
 .lp-world{display:block;width:100%;max-width:min(100%,calc(var(--lp-w) * 1.45px));height:auto;overflow:visible;-webkit-tap-highlight-color:transparent}
 .lp-world.mini{max-width:min(100%,calc(var(--lp-w) * .8px))}
+/* On a phone the world borrows most of the panel's side padding, so a row of
+   six cards stays at 40 px or more. */
+@media (max-width:480px){.lp-puzzle>.lp-world:not(.mini){width:calc(100% + 16px);max-width:min(calc(100% + 16px),calc(var(--lp-w) * 1.45px));margin-inline:-8px}}
 .lp-loop-line{fill:none;stroke:var(--b-ink,#294439);stroke-width:1.6px;vector-effect:non-scaling-stroke}
 .lp-frame .lp-loop-line{stroke-width:2.2px;fill:rgba(255,253,245,.55)}
 .lp-loop.l2 .lp-loop-line{fill:rgba(243,210,122,.16)}

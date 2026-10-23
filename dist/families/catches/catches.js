@@ -207,7 +207,9 @@ function move(p, b, action, random = Math.random) {
   } else if (t === 'size') {
     if (q.mode !== 'sizes' || keys(action) !== 'size,type' || !q.bags.includes(action.size) || action.size === b.bag) return null;
     const N = action.size;
-    next = {...b, bag: N, first: b.first.filter(x => x < N), second: b.second.filter(x => x < N)};
+    // A new bag keeps the first catch's tiles that are in it but starts the
+    // second catch afresh, so each bag is tried with catches of its own.
+    next = {...b, bag: N, first: b.first.filter(x => x < N), second: []};
   } else if (t === 'cant') {
     if (q.mode !== 'arrange' || keys(action) !== 'type' || !s.full || b.refused) return null;
     return cantHolds(q, s) ? {...b, cant: true} : {...b, refused: true};

@@ -94,8 +94,8 @@ The shelf, the bins and the catalogs come from the shared case engine ([cases.md
   - **That's all** is the claim. If an overlap is missing it says "There is another." and stays greyed until something new is kept.
   - After a solve, every overlap from none to the most is drawn, with the impossible ones faded.
 - **Every bag (6 and 10).**
-  - The candidate bags are chips above the board, starting on a middle one. Changing the bag keeps the tiles that are still in it; tiles beyond the new size leave the catches.
-  - Catches that match the goal tick the bag at once, so one arrangement in a big bag ticks every bigger bag as the child moves up.
+  - The candidate bags are chips above the board, starting on a middle one. Changing the bag keeps the first catch's tiles that are still in it, and the second catch starts again, so every bag needs a catch of its own. (Until October 23 the second catch carried over too, and one arrangement ticked every bigger bag with no taps; a play-through review found that left only the decision when to stop.)
+  - Full catches that match the goal tick the bag.
   - In a bag that is too small, no arrangement matches.
   - That's all judges the ticks. After a solve, the bags that can't fit are faded.
 - **Every catch (7 and 11).**

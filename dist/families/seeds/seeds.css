@@ -31,6 +31,9 @@
 
 /* The plot. */
 .sd-stage{width:100%;max-width:min(400px, calc(var(--sd-cols) * 66px + 30px))}
+/* On a phone the plot borrows most of the panel's side padding, so the 8 by 8
+   playground's squares stay at 40 px or more. */
+@media (max-width:480px){.sd-stage{width:calc(100% + 20px);max-width:min(calc(100% + 20px), calc(var(--sd-cols) * 66px + 30px));margin-inline:-10px}}
 .sd-board .sg-cell{fill:#f3ecd9;stroke:#dccfae}
 .sd-board .sg-cell.filled{fill:#8fb07f;stroke:#6f9562}
 .sd-board .sg-cell.faded{fill:#dfe6cf;stroke:#c8d2b4}

@@ -123,25 +123,26 @@ test('every overlap: full catches join the shelf; That’s all judges it once; U
   assert.equal((view(p, a).match(/case-kept no/g) || []).length, 3, 'the catalog fades 0, 1 and 2');
 });
 
-test('bags: a size change keeps the catches that fit; a matching record ticks the bag', () => {
+test('bags: a size change keeps the first catch and empties the second; a matching record ticks the bag', () => {
   const p = byId('catches-06');
   let a = freshAttempt(p);
   assert.equal(a.board.bag, 8);
   a = play(p, a, ...tap(A, B, C, D, E), ...tap(A, B, C, F, G));
   assert.deepEqual(a.board.kept, ['8']);
   a = play(p, a, {type: 'size', size: 20});
-  assert.deepEqual(a.board.kept, ['8', '20'], 'the same catches fit a bigger bag at once');
-  a = play(p, a, {type: 'size', size: 7});
-  assert.deepEqual(a.board.kept, ['8', '20', '7']);
+  assert.deepEqual(a.board.first, [A, B, C, D, E], 'the first catch stays');
+  assert.deepEqual(a.board.second, [], 'the second catch starts again');
+  assert.deepEqual(a.board.kept, ['8'], 'a new bag needs its own catch');
+  a = play(p, a, ...tap(A, B, C, F, G));
+  assert.deepEqual(a.board.kept, ['8', '20']);
   a = play(p, a, {type: 'size', size: 6});
-  assert.deepEqual(a.board.second, [A, B, C, F], 'G leaves with the bag of 6');
   assert.equal(move(p, a, {type: 'tap', tile: G}), null, 'no G in a bag of 6');
-  a = play(p, a, ...tap(D));
-  assert.deepEqual(a.board.kept, ['8', '20', '7'], 'four dots: the bag of 6 can’t match');
+  a = play(p, a, ...tap(A, B, C, F, D));
+  assert.deepEqual(a.board.kept, ['8', '20'], 'four dots: the bag of 6 can’t match');
   assert.match(view(p, a), /aria-pressed="true" aria-label="Bag of 6"/);
-  a = play(p, a, {type: 'size', size: 12});
-  assert.deepEqual(a.board.kept, ['8', '20', '7'], 'four dots in the bag of 12 match nothing');
-  a = play(p, a, {type: 'out', which: 2, tile: D}, ...tap(G), {type: 'all'});
+  for (const N of [7, 12]) a = play(p, a, {type: 'size', size: N}, ...tap(A, B, C, F, G));
+  assert.deepEqual(a.board.kept, ['8', '20', '7', '12']);
+  a = play(p, a, {type: 'all'});
   assert.ok(isSolved(p, a.board));
   assert.match(view(p, a), /ct-bag-chip no/);
 });

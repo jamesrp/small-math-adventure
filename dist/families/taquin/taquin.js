@@ -350,9 +350,15 @@ const actAttrs = act => (act.move ? `data-action="expansion-move" data-move="${e
 const moveButton = (label, action, cls, {enabled = true, hinted = false, primary = false} = {}) =>
   `<button type="button" class="${primary ? 'primary' : 'secondary'} tq-button ${cls}${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="${cls}"${enabled ? '' : ' disabled'}>${label}</button>`;
 // A small picture of squares: {r, c, kind: 'num' | 'gray' | 'blank' | 'step', text}.
+// A step's number (the order a gray square opened) sits in a small pine disc,
+// so it does not read as a tile number.
 export function mini(cells, label, cls = '', px = 22) {
   const u = 12, w = Math.max(...cells.map(x => x.c)) + 1, h = Math.max(...cells.map(x => x.r)) + 1;
-  const body = cells.map(({r, c, kind, text}) => `<rect class="tq-m-${kind}" x="${c * u + 0.6}" y="${r * u + 0.6}" width="${u - 1.2}" height="${u - 1.2}" rx="1.6"/>${text === undefined ? '' : `<text x="${c * u + u / 2}" y="${r * u + u / 2}">${esc(text)}</text>`}`).join('');
+  const body = cells.map(({r, c, kind, text}) => {
+    const x = c * u + u / 2, y = r * u + u / 2;
+    const mark = text === undefined ? '' : kind === 'step' ? `<circle class="tq-m-disc" cx="${x}" cy="${y}" r="4.2"/><text class="tq-m-order" x="${x}" y="${y}">${esc(text)}</text>` : `<text x="${x}" y="${y}">${esc(text)}</text>`;
+    return `<rect class="tq-m-${kind}" x="${c * u + 0.6}" y="${r * u + 0.6}" width="${u - 1.2}" height="${u - 1.2}" rx="1.6"/>${mark}`;
+  }).join('');
   return `<svg class="tq-mini ${cls}" viewBox="0 0 ${w * u} ${h * u}" width="${w * px}" height="${h * px}" role="img" aria-label="${esc(label)}">${body}</svg>`;
 }
 const rowsWords = rows => rows.map(row => row.join(' ')).join(', then ');

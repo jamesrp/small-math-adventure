@@ -45,7 +45,8 @@
 .tq-mini .tq-m-gray{fill:#cfd3c2;stroke:#a7ae98}
 .tq-mini .tq-m-step{fill:#dde0d1;stroke:#a7ae98}
 .tq-mini text{font:400 8px/1 var(--b-display,Georgia,serif);fill:var(--b-ink,#294439);text-anchor:middle;dominant-baseline:central}
-.tq-mini .tq-m-step+text{font-style:italic;fill:var(--b-pine,#31533e)}
+.tq-mini .tq-m-disc{fill:var(--b-pine,#31533e)}
+.tq-mini .tq-m-order{font:700 6px/1 system-ui,-apple-system,'Segoe UI',sans-serif;fill:var(--b-on-pine,#fff8d9)}
 .tq-goals .tq-mini{width:auto;height:auto;transform-origin:center}
 .tq-goals .tq-mini rect{stroke-width:.6}
 .tq-shelf{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:6px;width:100%}

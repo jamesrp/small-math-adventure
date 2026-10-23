@@ -98,12 +98,15 @@ try {
   await taps(A, B, C, D, E, A, B, C, F, G);
   assert.equal(await page.locator('.ct-bag-chip.found').count(), 1);
   await button('Bag of 20').click();
-  assert.equal(await page.locator('.ct-bag-chip.found').count(), 2, 'the same catches tick the bag of 20');
   assert.equal(await page.locator('.ct-bag .ct-tile').count(), 20);
+  assert.deepEqual((await board('catches-06')).second, [], 'a new bag starts the second catch again');
+  assert.equal(await page.locator('.ct-bag-chip.found').count(), 1, 'no tick without a catch of its own');
+  await taps(A, B, C, F, G);
+  assert.equal(await page.locator('.ct-bag-chip.found').count(), 2);
   await button('Bag of 6').click();
   assert.equal(await page.locator('.ct-bag .ct-tile').count(), 6);
-  assert.deepEqual((await board('catches-06')).second, [A, B, C, F], 'G left with the bag of 7');
-  for (let k = 0; k < 6 && !(await page.locator('#completion-heading').count()); k++) { for (let j = 0; j < 3; j++) await button('Hint').click(); await button('Apply hint').click(); }
+  assert.deepEqual((await board('catches-06')).first, [A, B, C, D, E], 'the first catch stays');
+  for (let k = 0; k < 40 && !(await page.locator('#completion-heading').count()); k++) { for (let j = 0; j < 3; j++) await button('Hint').click(); await button('Apply hint').click(); }
   await done();
   assert.equal(await page.locator('.ct-bag-chip.no').count(), 1, 'the bag of 6 is faded');
 
