@@ -324,9 +324,9 @@
     ]
    },
    "objective": "Move one voter so that 7 wins.",
-   "visibleObjective": "",
+   "visibleObjective": "Move one voter so that 7 wins.",
    "instruction": "Move one voter so that 7 wins.",
-   "controls": "Tap a voter, then a spot, or drag the voter there; arrow keys move a picked voter. A moved voter leaves a faint mark where it started, and the dots count the voters moved. Vote finds the spot that beats every other spot.",
+   "controls": "Tap a voter, then tap anywhere above a spot, or drag the voter there; arrow keys move a picked voter. A moved voter leaves a faint mark where it started, and the dots count the voters moved. Vote finds the spot that beats every other spot.",
    "rules": [
     "Each voter picks the nearer of two spots. If both are the same distance away, that voter doesn’t vote.",
     "A spot wins when it beats every other spot.",
@@ -580,9 +580,9 @@
     ]
    },
    "objective": "Move one voter so that 5 wins.",
-   "visibleObjective": "",
+   "visibleObjective": "Move one voter so that 5 wins.",
    "instruction": "Move one voter so that 5 wins.",
-   "controls": "Tap a voter, then a spot, or drag the voter there; arrow keys move a picked voter. A moved voter leaves a faint mark where it started, and the dots count the voters moved. Vote finds the spot that beats every other spot.",
+   "controls": "Tap a voter, then tap anywhere above a spot, or drag the voter there; arrow keys move a picked voter. A moved voter leaves a faint mark where it started, and the dots count the voters moved. Vote finds the spot that beats every other spot.",
    "rules": [
     "Each voter picks the nearer of two spots. If both are the same distance away, that voter doesn’t vote.",
     "A spot wins when it beats every other spot.",
@@ -644,7 +644,7 @@
    "objective": "Add a voter so that 5 wins, or show that it can’t.",
    "visibleObjective": "",
    "instruction": "Add a voter so that 5 wins, or show that it can’t.",
-   "controls": "Tap a spot to put the new voter there; tap the new voter and a spot to move it. Vote finds the spot that beats every other spot. Can’t: press it, tap voters, then press Check.",
+   "controls": "Tap anywhere above a spot to put the new voter there, or drag it; tap the new voter and a spot to move it. Vote finds the spot that beats every other spot. Can’t: press it, tap voters, then press Check.",
    "rules": [
     "Each voter picks the nearer of two spots. If both are the same distance away, that voter doesn’t vote.",
     "A spot wins when it beats every other spot.",
@@ -1001,9 +1001,9 @@
     ]
    },
    "objective": "Move two voters so that 8 wins.",
-   "visibleObjective": "",
+   "visibleObjective": "Move two voters so that 8 wins.",
    "instruction": "Move two voters so that 8 wins.",
-   "controls": "Tap a voter, then a spot, or drag the voter there; arrow keys move a picked voter. A moved voter leaves a faint mark where it started, and the dots count the voters moved. Vote finds the spot that beats every other spot.",
+   "controls": "Tap a voter, then tap anywhere above a spot, or drag the voter there; arrow keys move a picked voter. A moved voter leaves a faint mark where it started, and the dots count the voters moved. Vote finds the spot that beats every other spot.",
    "rules": [
     "Each voter picks the nearer of two spots. If both are the same distance away, that voter doesn’t vote.",
     "A spot wins when it beats every other spot.",
@@ -1065,7 +1065,7 @@
    "objective": "Add a voter so that 8 wins, or show that it can’t.",
    "visibleObjective": "",
    "instruction": "Add a voter so that 8 wins, or show that it can’t.",
-   "controls": "Tap a spot to put the new voter there; tap the new voter and a spot to move it. Vote finds the spot that beats every other spot. Can’t: press it, tap voters, then press Check.",
+   "controls": "Tap anywhere above a spot to put the new voter there, or drag it; tap the new voter and a spot to move it. Vote finds the spot that beats every other spot. Can’t: press it, tap voters, then press Check.",
    "rules": [
     "Each voter picks the nearer of two spots. If both are the same distance away, that voter doesn’t vote.",
     "A spot wins when it beats every other spot.",

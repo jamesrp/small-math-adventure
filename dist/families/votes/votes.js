@@ -576,7 +576,10 @@ function renderLine(p, a) {
     const cls = `vt-tick${goal ? ' goal' : ''}${wonAt === x ? ' won' : ''}${done && goal ? ' crowned' : ''}${hintedTick ? ' hinted' : ''}`;
     const label = `${x}${goal ? ', the spot to win' : ''}${here.length ? `, ${listWords(here.map(voterName))}` : ''}`;
     const tick = can ? `<button type="button" class="${cls}" data-vt-tick="${x}" ${moveAttrs({type: 'put', voter: pick, to: x}, `vt-tick-${x}`)} aria-label="${esc(`Put ${voterName(pick)} on ${label}`)}">${goal ? CROWN : ''}<span>${x}</span></button>` : `<span class="${cls}" data-vt-tick="${x}" aria-label="${esc(label)}" role="img">${goal ? CROWN : ''}<span>${x}</span></span>`;
-    return `<div class="vt-col"><div class="vt-stack">${stack}</div>${tick}</div>`;
+    // While a voter is picked, the whole column is the place to tap: a tap
+    // anywhere over a spot puts it there, and over its own spot lets it go.
+    const col = can ? ` can" ${moveAttrs({type: 'put', voter: pick, to: x}, `vt-tick-${x}`)}` : pick !== null && !waiting ? ` home" ${uiAttrs({pick: null, at: a.moves}, `vt-voter-${pick}`)}` : '"';
+    return `<div class="vt-col${col} data-vt-spot="${x}"><div class="vt-stack">${stack}</div>${tick}</div>`;
   }).join('');
   const tray = waiting ? `<div class="vt-tray">${voter(n)}</div>` : '';
   const used = q.add ? 0 : movedOf(q, b.at);
@@ -619,7 +622,12 @@ function render(p, a) {
 }
 
 // --- Gestures on the line ----------------------------------------------------
-// A voter can be dragged to a tick; arrow keys move a picked voter one spot.
+// A voter can be dragged to a spot; arrow keys move a picked voter one spot.
+// The drop is forgiving: anywhere over a column, or a little beside, above
+// or below the line, counts for the nearest column, and on a touch screen the
+// voter rides LIFT pixels above the finger with its whole column lit, so the
+// finger hides neither.
+export const LIFT = 34;
 function wire(root, p, api) {
   if (p.parameters.mode !== 'line') return;
   const board = root.matches('.vt-puzzle') ? root : root.querySelector('.vt-puzzle');
@@ -629,27 +637,34 @@ function wire(root, p, api) {
   board.addEventListener('pointerdown', e => {
     const el = e.target.closest('button[data-vt-voter]');
     if (!el || e.button > 0) return;
-    drag = {el, id: e.pointerId, x: e.clientX, y: e.clientY, voter: Number(el.dataset.vtVoter), moved: false};
+    drag = {el, id: e.pointerId, x: e.clientX, y: e.clientY, voter: Number(el.dataset.vtVoter), moved: false, lift: e.pointerType === 'touch' ? LIFT : 0};
   });
-  const tickAt = e => { const z = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-vt-tick]'); return z && board.contains(z) ? Number(z.dataset.vtTick) : null; };
+  const spotAt = e => {
+    const line = board.querySelector('.vt-line'), r = line?.getBoundingClientRect();
+    if (!r || e.clientY < r.top - 24 || e.clientY > r.bottom + 24 || e.clientX < r.left - 16 || e.clientX > r.right + 16) return null;
+    const cols = [...line.querySelectorAll('[data-vt-spot]')];
+    let best = null, gap = Infinity;
+    for (const c of cols) { const cr = c.getBoundingClientRect(), d = Math.abs(e.clientX - (cr.left + cr.right) / 2); if (d < gap) { gap = d; best = Number(c.dataset.vtSpot); } }
+    return best;
+  };
+  const light = x => board.querySelectorAll('[data-vt-spot]').forEach(c => c.classList.toggle('over', Number(c.dataset.vtSpot) === x));
   board.addEventListener('pointermove', e => {
     if (!drag || e.pointerId !== drag.id) return;
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
     if (!drag.moved && Math.hypot(dx, dy) < 8) return;
     if (!drag.moved) { drag.moved = true; drag.el.classList.add('dragging'); }
-    drag.el.style.transform = `translate(${dx}px,${dy}px)`;
-    board.querySelectorAll('.vt-tick.over').forEach(z => z.classList.remove('over'));
-    const x = tickAt(e);
-    if (x !== null) board.querySelector(`[data-vt-tick="${x}"]`)?.classList.add('over');
+    drag.el.style.transform = `translate(${dx}px,${dy - drag.lift}px)`;
+    light(spotAt(e));
   });
   const end = e => {
     if (!drag || e.pointerId !== drag.id) return;
     const d = drag;
     drag = null;
     if (!d.moved) return;
-    const x = e.type === 'pointerup' ? tickAt(e) : null;
+    const x = e.type === 'pointerup' ? spotAt(e) : null;
     d.el.classList.remove('dragging');
     d.el.style.transform = '';
+    light(null);
     dragged = true;
     setTimeout(() => { dragged = false; if (x !== null && api.attempt().board.at[d.voter] !== x) api.apply({type: 'put', voter: d.voter, to: x}); }, 0);
   };

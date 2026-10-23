@@ -38,8 +38,8 @@ const CONTROLS = {
   cards: 'Tap a letter to write it in the next space on the blank card, top first; tap a written letter to take it off. Vote plays every knockout on the cards.',
   cardsMany: 'Tap a letter to write it in the next space on a blank card, top first; tap a card’s next space to write on that card, and tap a written letter to take it off. Vote plays every knockout on the cards.',
   cant: ' Can’t: press it, tap cards, then press Check.',
-  line: 'Tap a voter, then a spot, or drag the voter there; arrow keys move a picked voter. A moved voter leaves a faint mark where it started, and the dots count the voters moved. Vote finds the spot that beats every other spot.',
-  add: 'Tap a spot to put the new voter there; tap the new voter and a spot to move it. Vote finds the spot that beats every other spot. Can’t: press it, tap voters, then press Check.',
+  line: 'Tap a voter, then tap anywhere above a spot, or drag the voter there; arrow keys move a picked voter. A moved voter leaves a faint mark where it started, and the dots count the voters moved. Vote finds the spot that beats every other spot.',
+  add: 'Tap anywhere above a spot to put the new voter there, or drag it; tap the new voter and a spot to move it. Vote finds the spot that beats every other spot. Can’t: press it, tap voters, then press Check.',
   play: 'Choose 3 or 5 voters. Write each card by tapping letters, top first; tap a card’s next space to write there, and a written letter to take it off. When every card is full, tap letters to run a knockout. Again clears the knockout.'
 };
 const PRE = {
@@ -216,7 +216,7 @@ const out = PUZZLES.map(item => {
   return {
     id: `votes-${n}`, number: item.number, title: item.title, band: 'all', difficulty_level: item.level, mechanic: 'votes', familyTitle: FAMILY, revision: 1,
     parameters: {...q, witness},
-    objective, visibleObjective: item.visible ?? '', instruction: objective, controls, rules,
+    objective, visibleObjective: item.visible ?? (q.mode === 'line' && !q.add ? objective : ''), instruction: objective, controls, rules,
     idea: item.idea, prerequisites: item.pre, hints: item.hints,
     parent: {...item.parent, sourceIds: SOURCES}, provenance: item.provenance, sourceDocument: 'docs/votes/README.md'
   };

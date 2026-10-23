@@ -206,6 +206,15 @@ test('view state: Can’t rings, a refusal clears the taps, a pick belongs to it
   let b = freshAttempt(q);
   mech.ui(q, {pick: 2, at: b.moves});
   assert.match(board(q, b), /data-vt-tick="7" data-action="expansion-move"/, 'with V3 picked, the ticks are buttons');
+  // The whole column is the place to tap: every other spot puts V3 there, its own spot lets go.
+  const cols = [...board(q, b).matchAll(/<div class="vt-col([^"]*)"([^>]*)>/g)];
+  assert.equal(cols.length, 11);
+  cols.forEach(([, cls, attrs], x) => {
+    const spot = Number(attrs.match(/data-vt-spot="(\d+)"/)[1]);
+    assert.equal(spot, x);
+    if (x === q.parameters.start[2]) { assert.equal(cls, ' home'); assert.match(attrs, /data-action="mechanic-ui"[^>]*&quot;pick&quot;:null/); }
+    else { assert.equal(cls, ' can'); assert.ok(attrs.includes(`data-move="${JSON.stringify({type: 'put', voter: 2, to: x}).replaceAll('"', '&quot;')}"`), `column ${x} puts V3 there`); }
+  });
   b = play(q, b, {type: 'put', voter: 0, to: 1});
   assert.doesNotMatch(board(q, b), /data-vt-tick="7" data-action/, 'a move lets go');
   mech.reset(p); mech.reset(q);

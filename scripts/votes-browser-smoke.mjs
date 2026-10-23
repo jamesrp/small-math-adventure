@@ -31,17 +31,18 @@ const told = () => page.locator('.vt-told').innerText();
 const count = selector => page.locator(selector).count();
 const undo = () => page.locator('[data-action="undo"]').click();
 let cdp = null;
-// A drag from one element's centre to another's, by mouse or by touch.
-async function drag(from, to) {
+// A drag from one element's centre to another's (or to a point), by mouse or
+// by touch; `mid` runs with the finger down near the end.
+async function drag(from, to, mid = null) {
   await from.scrollIntoViewIfNeeded();
-  const a = await center(from), b = await center(to);
+  const a = await center(from), b = Array.isArray(to) ? to : await center(to);
   // The drop applies after the release, so wait a moment before reading the save.
-  if (!phone) { await page.mouse.move(...a); await page.mouse.down(); await page.mouse.move(...b, {steps: 10}); await page.mouse.up(); await page.waitForTimeout(100); return; }
+  if (!phone) { await page.mouse.move(...a); await page.mouse.down(); await page.mouse.move(...b, {steps: 10}); if (mid) await mid(b); await page.mouse.up(); await page.waitForTimeout(100); return; }
   cdp ||= await context.newCDPSession(page);
   const touch = (type, [x, y]) => cdp.send('Input.dispatchTouchEvent', {type, touchPoints: type === 'touchEnd' ? [] : [{x, y}]});
   await touch('touchStart', a);
   for (let s = 1; s <= 10; s++) await touch('touchMove', [a[0] + (b[0] - a[0]) * s / 10, a[1] + (b[1] - a[1]) * s / 10]);
-  await page.waitForTimeout(150); await touch('touchEnd', b); await page.waitForTimeout(100);
+  await page.waitForTimeout(150); if (mid) await mid(b); await touch('touchEnd', b); await page.waitForTimeout(100);
 }
 try {
   await mkdir(out, {recursive: true});
@@ -86,6 +87,7 @@ try {
   await tap(page.locator('.vt-check'));
   await done();
   assert.equal(await count('.vt-pairs li'), 6, 'A, B and C each beat D and E');
+  assert.ok(await page.locator('.vt-pairs small').first().evaluate(e => parseFloat(getComputedStyle(e).fontSize)) >= 15, 'the counts read at body size');
   await shot('group-solved');
 
   // Cards: write, take off, Vote and its line, then the table.
@@ -111,17 +113,32 @@ try {
 
   // The line: tap a voter and a spot, a drag, arrow keys, the dots and Vote.
   await open('votes-04'); await fit('move one favourite');
+  assert.equal(await page.locator('.puzzle-goal').innerText(), 'Move one voter so that 7 wins.', 'the allowance in words');
   assert.equal(await count('.vt-pips i'), 1);
+  // A voter takes taps beyond its disc: 44 px on a tablet, 28 by 39 on a phone.
+  const reach = await voter(1).evaluate((el, phone) => { const r = el.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2, at = (dx, dy) => document.elementFromPoint(x + dx, y + dy)?.closest('[data-vt-voter]') === el; return phone ? at(0, -18) && at(0, 16) : at(-20, 0) && at(20, 0) && at(0, -20) && at(0, 20); }, phone);
+  assert.ok(reach, 'the voter answers taps beyond its disc');
   await tap(page.locator('.vt-vote'));
   assert.equal(await told(), '4 wins.');
   assert.equal(await count('.vt-tick.won'), 1, 'the winner is ringed');
   await tap(voter(0));
   assert.equal(await count('.vt-voter.picked'), 1);
-  await tap(tick(8));
-  assert.deepEqual((await board('votes-04')).at, [8, 2, 4, 7, 10]);
+  assert.equal(await count('.vt-col.can'), 10, 'every other column takes the voter');
+  assert.equal(await count('.vt-col.home'), 1);
+  // Tap the empty space high over spot 8, where voters stand.
+  const col = x => page.locator(`.vt-col[data-vt-spot="${x}"]`);
+  { const r = await col(8).boundingBox(); const at = [r.x + r.width / 2, r.y + 12]; if (phone) await page.touchscreen.tap(...at); else await page.mouse.click(...at); }
+  assert.deepEqual((await board('votes-04')).at, [8, 2, 4, 7, 10], 'a tap above a spot moves the picked voter');
   assert.equal(await count('.vt-voter.ghost'), 1, 'a mark where V1 started');
-  await drag(voter(1), tick(7));
-  assert.deepEqual((await board('votes-04')).at, [8, 7, 4, 7, 10], 'a drag moves V2');
+  // Slide V2 sideways along the line: the finger never reaches the number row.
+  { const v = await center(voter(1)), r = await col(7).boundingBox();
+    await drag(voter(1), [r.x + r.width / 2, v[1]], async () => {
+      assert.equal(await count('.vt-col.over'), 1, 'the column it will land in lights');
+      assert.equal(await page.locator('.vt-col.over').getAttribute('data-vt-spot'), '7');
+      if (phone) { const d = await center(page.locator('.vt-voter.dragging')); assert.ok(v[1] - d[1] > 25, 'the voter rides above the finger'); }
+    }); }
+  assert.deepEqual((await board('votes-04')).at, [8, 7, 4, 7, 10], 'a sideways drag moves V2');
+  assert.equal(await count('.vt-col.over'), 0);
   assert.equal(await count('.vt-pips i.over'), 1, 'a red dot past the allowance');
   await shot('line');
   await tap(page.locator('.vt-vote'));
@@ -137,6 +154,7 @@ try {
   // Adding a voter, and Can't on the line.
   await open('votes-09'); await fit('a fifth voter');
   assert.equal(await count('.vt-tray .vt-voter'), 1, 'V5 waits above the line');
+  assert.equal(await page.locator('.vt-tray .vt-voter').evaluate(e => getComputedStyle(e).backgroundColor), 'rgb(239, 199, 110)', 'V5 in sun, not the error rose');
   await tap(tick(6)); await tap(page.locator('.vt-vote'));
   assert.equal(await told(), '6 wins.');
   await tap(voter(4)); await tap(tick(5)); await tap(page.locator('.vt-vote'));
@@ -146,6 +164,11 @@ try {
   for (const i of [1, 2, 3]) await tap(voter(i));
   await tap(page.locator('.vt-check'));
   assert.equal(await told(), 'They aren’t all on one side of 8.');
+  // Drag V5 from the tray and let go a little below the line: it lands on the nearest spot.
+  { const r = await col(2).boundingBox(); await drag(page.locator('.vt-tray .vt-voter'), [r.x + r.width / 2, r.y + r.height + 12]); }
+  assert.equal((await board('votes-15')).at[4], 2, 'a drop just below the line counts');
+  await undo();
+  assert.equal((await board('votes-15')).at[4], null);
   await tap(page.locator('.vt-cant'));
   for (const i of [0, 1, 2]) await tap(voter(i));
   await tap(page.locator('.vt-check'));

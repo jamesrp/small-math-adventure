@@ -68,7 +68,7 @@
 .vt-puzzle .vt-letter.chosen{background:var(--b-sun,#efc76e);box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-ochre,#b38840)}
 .vt-pairs,.vt-table{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 10px;margin:0;padding:0;list-style:none}
 .vt-pairs li,.vt-table li{display:flex;align-items:center;gap:5px;padding:4px 8px;border-radius:10px;background:var(--b-good-soft,#e2ecd6);border:1px solid var(--b-pine,#31533e);font-size:.9rem;color:var(--b-ink,#294439)}
-.vt-pairs small{font-family:var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850)}
+.vt-pairs small{font:400 1rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
 .vt-table .vt-first{display:flex;gap:2px}
 .vt-table .vt-crown{width:20px;height:14px;fill:var(--b-sun,#efc76e)}
 .vt-arrow{color:var(--b-muted,#5a6850)}
@@ -76,20 +76,28 @@
 
 /* The number line: one column per spot, voters stacked over the tick. */
 .vt-line{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));align-items:end;width:100%;padding:6px 2px 0;border-radius:14px;background:var(--b-paper,#f5f1e6);box-sizing:border-box}
-.vt-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:0}
-.vt-stack{display:flex;flex-direction:column-reverse;align-items:center;gap:3px;min-height:112px;justify-content:flex-start;padding-bottom:4px}
+.vt-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:0;border-radius:10px}
+/* A picked voter: every other column is the place to tap; dragging lights the column it will land in. */
+.vt-col.can,.vt-col.home{cursor:pointer}
+.vt-col.can{background:#eef1e1;border-radius:0}
+.vt-col.can:first-child{border-radius:14px 0 0 14px}
+.vt-col.can:last-child{border-radius:0 14px 14px 0}
+.vt-col.over{background:var(--b-good-soft,#e2ecd6);box-shadow:inset 0 0 0 2px var(--b-pine,#31533e)}
+.vt-stack{display:flex;flex-direction:column-reverse;align-items:center;gap:5px;min-height:112px;justify-content:flex-start;padding-bottom:4px}
 .vt-puzzle .vt-voter{display:grid;place-items:center;width:34px;height:34px;min-width:0;min-height:0;margin:0;padding:0;border-radius:50%;background:var(--b-sky,#9cc9de);border:2px solid var(--b-ink,#294439);box-shadow:none;font:700 .66rem/1 system-ui,sans-serif;color:var(--b-ink,#294439);touch-action:none;user-select:none;-webkit-user-select:none;box-sizing:border-box}
-.vt-puzzle button.vt-voter{cursor:grab}
+.vt-puzzle button.vt-voter{position:relative;cursor:grab}
+/* A bigger place to grab than the disc (the inset counts from inside the
+   border): 44 px where the columns allow it, 28 by 39 px on a phone. */
+.vt-puzzle button.vt-voter::after{content:'';position:absolute;inset:-7px}
 .vt-puzzle .vt-voter.moved{background:var(--b-leaf,#86a68c)}
-.vt-puzzle .vt-voter.extra{background:var(--b-rose,#e7a28f)}
+.vt-puzzle .vt-voter.extra{background:var(--b-sun,#efc76e)}
 .vt-puzzle .vt-voter.ghost{background:transparent;border:2px dashed var(--b-line,#d0d6bd);color:var(--b-muted,#5a6850)}
 .vt-puzzle .vt-voter.picked{box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-pine,#31533e)}
 .vt-puzzle .vt-voter.chosen{box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-ochre,#b38840)}
 .vt-puzzle .vt-voter.dragging{pointer-events:none;z-index:5;opacity:.9}
 .vt-puzzle .vt-tick{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;width:100%;min-width:0;min-height:46px;margin:0;padding:6px 0 4px;border:0;border-top:3px solid var(--b-ink,#294439);border-radius:0;background:transparent;box-shadow:none;font:400 1rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
-.vt-puzzle .vt-tick::before{content:'';position:absolute;top:-9px;left:50%;width:2px;height:9px;margin-left:-1px;background:var(--b-ink,#294439)}
-.vt-puzzle button.vt-tick{cursor:pointer;background:#eef1e1}
-.vt-puzzle .vt-tick.over{background:var(--b-good-soft,#e2ecd6)}
+.vt-puzzle .vt-tick::before{content:'';position:absolute;top:-9px;left:50%;width:2px;height:9px;margin-left:-1px;background:var(--b-ink,#294439);pointer-events:none}
+.vt-puzzle button.vt-tick{cursor:pointer}
 .vt-puzzle .vt-tick.goal span{font-weight:700;color:var(--b-pine,#31533e)}
 .vt-puzzle .vt-tick .vt-crown{order:2;width:22px;height:15px;margin-top:2px}
 .vt-puzzle .vt-tick.crowned .vt-crown{fill:var(--b-sun,#efc76e)}
@@ -107,6 +115,8 @@
   .vt-ko{gap:8px;padding:6px}
   .vt-side{min-width:76px;padding:2px 4px}
   .vt-puzzle .vt-voter{width:28px;height:28px;font-size:.6rem}
+  .vt-puzzle button.vt-voter::after{inset:-9px -2px -6px}
+  .vt-stack{gap:4px}
   .vt-puzzle .vt-tick{font-size:.88rem}
   .vt-stack{min-height:92px}
 }

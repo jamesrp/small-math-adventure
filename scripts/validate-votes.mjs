@@ -120,9 +120,11 @@ export default async function validateVotes() {
     const q = p.parameters;
     assert.ok(p.id.startsWith('votes-') && p.familyTitle === pack.families[0].title);
     assert.ok(p.objective && p.controls && p.rules.length && p.hints.length === 3 && p.parent.explanation && p.provenance && p.prerequisites);
-    // The board shows the goal of a knockout and the line; the cards need one sentence.
-    if (q.mode === 'cards') assert.ok(p.visibleObjective && p.visibleObjective.split('. ').length === 1, `${p.id}: one short sentence`);
+    // The board shows the goal of a knockout and of adding a voter; the cards
+    // ("every knockout") and the allowance on the line need one sentence.
+    if (q.mode === 'cards' || (q.mode === 'line' && !q.add)) assert.ok(p.visibleObjective && p.visibleObjective.split('. ').length === 1, `${p.id}: one short sentence`);
     else assert.equal(p.visibleObjective, '', `${p.id}: no objective copy`);
+    if (q.mode === 'line' && !q.add) assert.equal(p.visibleObjective, `Move ${q.budget === 1 ? 'one voter' : 'two voters'} so that ${q.goal} wins.`, `${p.id}: the allowance in words`);
     // The witness solves it.
     let w = freshAttempt(p);
     for (const action of q.witness) w = play(p, w, action);
