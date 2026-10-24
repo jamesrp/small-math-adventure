@@ -17,12 +17,17 @@ import {geometry} from './surd.js';
 
 const TAU = 2 * Math.PI;
 const SIZE = 360, MID = 180, FLOOR = 334, RAIL = 7, REACH = 154;
-// Drawn radius and tap radius of each kind of point. A tap inside a point's
-// tap radius goes to the point; a little further out it goes to the point only
-// when it is nearer the point's drawn edge than any gap's line. A spot's tap
-// radius is its drawn ring, so a gap's line beside a spot keeps its taps.
+// Drawn radius of each kind of point. What a tap reaches is drawn too, as
+// invisible shapes, and a tap goes to the shape under it (wire): each point
+// has a pad of radius PAD_R (about 45 px across on a 375 px phone, where the
+// board is drawn at about 0.86), cut halfway to any nearer point and 2 units
+// short of any gap's line it is not on, so a line beside a spot keeps its
+// taps; each gap has its part of the board, the sector between the rays from
+// the centre through its two corners, from GAP_IN inside its line out to the
+// board's edge (in the spin, SPIN_OUT units past the arc). Points sit on top
+// of gaps.
 const MARK = {corner: [12.5, 14], dot: [5.5, 9], spot: [8, 8]};
-const POINT_REACH = 17, GAP_REACH = 22;
+const PAD_R = 26, GAP_IN = 25, SPIN_OUT = 30;
 const STEPS = 720;
 
 const object = value => Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -319,7 +324,44 @@ function hint(p, b) {
 const nameOf = (p, id) => p.parameters.names?.[id] || `Corner ${id}`;
 const shortName = (p, id) => nameOf(p, id).replace(/^Corner /, '');
 const gapName = (p, i) => { const {a, b} = exactOf(p).gaps[i]; return `${a} to ${b}`; };
-const pointSvg = (cls, id, kind, [x, y], label, inner) => `<g class="wd-pt ${cls}" role="button" tabindex="0" data-pt="${esc(id)}" data-r="${MARK[kind][0]}" data-hit="${MARK[kind][1]}" data-focus="wd-pt-${esc(id)}" aria-label="${esc(label)}"><circle class="wd-pad" cx="${fix(x)}" cy="${fix(y)}" r="${MARK[kind][1]}"/>${inner}</g>`;
+const pointSvg = (cls, id, kind, [x, y], label, inner, pad) => `<g class="wd-pt ${cls}" role="button" tabindex="0" data-pt="${esc(id)}" data-x="${fix(x)}" data-y="${fix(y)}" data-r="${MARK[kind][0]}" data-hit="${PAD_R}" data-focus="wd-pt-${esc(id)}" aria-label="${esc(label)}"><path class="wd-pad" d="${pad}"/>${inner}</g>`;
+// A point's pad on the board: a disc PAD_R across, cut halfway to every other
+// point and 2 units short of every line it is not on.
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1]], dot = (a, b) => a[0] * b[0] + a[1] * b[1];
+function clipHalf(poly, u, off) {
+  const out = [];
+  poly.forEach((p1, k) => {
+    const p2 = poly[(k + 1) % poly.length], d1 = dot(p1, u) - off, d2 = dot(p2, u) - off;
+    if (d1 <= 0) out.push(p1);
+    if (d1 * d2 < 0) { const t = d1 / (d1 - d2); out.push([p1[0] + (p2[0] - p1[0]) * t, p1[1] + (p2[1] - p1[1]) * t]); }
+  });
+  return out;
+}
+const nearestOnSegment = (c, a, b) => { const ab = sub(b, a), t = Math.max(0, Math.min(1, dot(sub(c, a), ab) / (dot(ab, ab) || 1))); return [a[0] + ab[0] * t, a[1] + ab[1] * t]; };
+function padPath(c, others, lines) {
+  const n = 32, R = PAD_R / Math.cos(Math.PI / n);
+  let poly = Array.from({length: n}, (_, k) => [c[0] + R * Math.cos(TAU * k / n), c[1] + R * Math.sin(TAU * k / n)]);
+  for (const o of others) {
+    const d = Math.hypot(o[0] - c[0], o[1] - c[1]);
+    if (d > 0.01 && d < 2 * PAD_R) { const u = [(o[0] - c[0]) / d, (o[1] - c[1]) / d]; poly = clipHalf(poly, u, dot(c, u) + d / 2); }
+  }
+  for (const [a, b] of lines) {
+    const qn = nearestOnSegment(c, a, b), d = Math.hypot(qn[0] - c[0], qn[1] - c[1]);
+    if (d > 0.5 && d < PAD_R + 2) { const u = [(qn[0] - c[0]) / d, (qn[1] - c[1]) / d]; poly = clipHalf(poly, u, dot(c, u) + d - 2); }
+  }
+  return `M${poly.map(P).join('L')}Z`;
+}
+// A gap's part of the board: from GAP_IN inside its line, between the rays
+// from the centre g through its corners a and b, out to the board's edge
+// (or, given `out`, that many units beyond its line, so empty paper in the
+// spin stays empty).
+function gapArea(g, a, b, out) {
+  const ab = sub(b, a), len = Math.hypot(ab[0], ab[1]) || 1, depth = Math.abs((g[0] - a[0]) * ab[1] - (g[1] - a[1]) * ab[0]) / len;
+  const t = Math.min(0.6, GAP_IN / (depth || 1)), far = out == null ? -4 : -out / (depth || 1), toward = (p, f) => [p[0] + (g[0] - p[0]) * f, p[1] + (g[1] - p[1]) * f];
+  let poly = [toward(a, t), toward(b, t), toward(b, far), toward(a, far)];
+  for (const [u, off] of [[[1, 0], SIZE], [[-1, 0], 0], [[0, 1], SIZE], [[0, -1], 0]]) poly = clipHalf(poly, u, off);
+  return `M${poly.map(P).join('L')}Z`;
+}
 
 // A compass round `at` that misses: drawn from the corner that stays put
 // (the gap's first corner, or its other corner when the first is the one
@@ -362,26 +404,37 @@ function buildSvg(p, a, hinted) {
   }
   const miss = missed ? missSvg(p, e, xy, at, missed.gap, missed.at) : null;
   if (miss) parts.push(miss.svg);
-  // Hit areas for the gaps, under the points.
+  // Each gap's part of the board, under the points; its line (invisible)
+  // carries the focus ring.
+  const g0 = at(L.G);
   e.gaps.forEach((gap, i) => {
     if (!gap.live) return;
     const label = `${arcs[i] ? `Arc from ${gapName(p, i)}, centred on ${shortName(p, b.arcs[i])}` : `Gap from ${gapName(p, i)}`}${sel === i ? ', chosen' : ''}`;
-    parts.push(`<path class="wd-hit wd-gap" role="button" tabindex="0" data-gap="${i}" data-focus="wd-gap-${i}" aria-pressed="${sel === i}" aria-label="${esc(label)}" d="${piece(arcs[i], xy[gap.a], xy[gap.b], at, s)}"/>`);
+    parts.push(`<g class="wd-hit wd-gap" role="button" tabindex="0" data-gap="${i}" data-focus="wd-gap-${i}" aria-pressed="${sel === i}" aria-label="${esc(label)}"><path class="wd-gap-area" d="${gapArea(g0, at(xy[gap.a]), at(xy[gap.b]))}"/><path class="wd-gap-line" d="${piece(arcs[i], xy[gap.a], xy[gap.b], at, s)}"/></g>`);
   });
   const centre = sel != null ? b.arcs[sel] : null, ends = sel != null ? [e.gaps[sel].a, e.gaps[sel].b] : [];
+  // Every point drawn now, and every line, for the pads.
+  const shown = [...Object.keys(q.pins || {}), ...Object.keys(q.spots || {}).filter(id => id !== e.spot), ...e.order.filter(id => xy[id])].map(id => [id, at(xy[id])]);
+  // Each line as drawn (a chord, or an arc as short chords), with its ends.
+  const lines = e.gaps.flatMap((gap, i) => {
+    if (!gap.live) return [];
+    const pts = arcs[i] ? arcSamples(arcs[i]).map(at) : [at(xy[gap.a]), at(xy[gap.b])];
+    return pts.slice(1).map((pt, k) => ({ends: [gap.a, gap.b], seg: [pts[k], pt]}));
+  });
+  const pad = (id, pt) => padPath(pt, shown.filter(([o]) => o !== id).map(([, xyo]) => xyo), lines.filter(l => !l.ends.includes(id)).map(l => l.seg));
   for (const id of Object.keys(q.pins || {})) {
     const pt = at(xy[id]);
-    parts.push(pointSvg(['wd-pin', id === centre ? 'centre' : '', missed?.at === id ? 'missed' : ''].join(' '), id, 'dot', pt, nameOf(p, id), `<circle class="wd-dot" cx="${fix(pt[0])}" cy="${fix(pt[1])}" r="${MARK.dot[0]}"/>`));
+    parts.push(pointSvg(['wd-pin', id === centre ? 'centre' : '', missed?.at === id ? 'missed' : ''].join(' '), id, 'dot', pt, nameOf(p, id), `<circle class="wd-dot" cx="${fix(pt[0])}" cy="${fix(pt[1])}" r="${MARK.dot[0]}"/>`, pad(id, pt)));
   }
   for (const id of Object.keys(q.spots || {})) {
     if (id === e.spot) continue;
     const pt = at(xy[id]);
-    parts.push(pointSvg(['wd-spot', id === hintSpot ? 'hinted' : ''].join(' '), id, 'spot', pt, nameOf(p, id), `<circle class="wd-ring" cx="${fix(pt[0])}" cy="${fix(pt[1])}" r="${MARK.spot[0]}"/>`));
+    parts.push(pointSvg(['wd-spot', id === hintSpot ? 'hinted' : ''].join(' '), id, 'spot', pt, nameOf(p, id), `<circle class="wd-ring" cx="${fix(pt[0])}" cy="${fix(pt[1])}" r="${MARK.spot[0]}"/>`, pad(id, pt)));
   }
   for (const id of e.order) {
     if (!xy[id]) continue;
     const pt = at(xy[id]), label = id === q.open ? `Corner ${id}, on ${nameOf(p, e.spot).replace(/^Spot/, 'spot')}` : nameOf(p, id);
-    parts.push(pointSvg(['wd-corner', id === centre ? 'centre' : '', ends.includes(id) ? 'end' : '', missed?.at === id ? 'missed' : '', hintArc?.action.at === id ? 'hinted' : ''].join(' '), id, 'corner', pt, label, `<circle class="wd-disc" cx="${fix(pt[0])}" cy="${fix(pt[1])}" r="${MARK.corner[0]}"/><text x="${fix(pt[0])}" y="${fix(pt[1])}">${esc(id)}</text>`));
+    parts.push(pointSvg(['wd-corner', id === centre ? 'centre' : '', ends.includes(id) ? 'end' : '', missed?.at === id ? 'missed' : '', hintArc?.action.at === id ? 'hinted' : ''].join(' '), id, 'corner', pt, label, `<circle class="wd-disc" cx="${fix(pt[0])}" cy="${fix(pt[1])}" r="${MARK.corner[0]}"/><text x="${fix(pt[0])}" y="${fix(pt[1])}">${esc(id)}</text>`, pad(id, pt)));
   }
   return {svg: `<svg class="wd-board" data-view="build" viewBox="0 0 ${SIZE} ${SIZE}" role="group" aria-label="Corners and gaps">${parts.join('')}</svg>`, sel, miss};
 }
@@ -413,9 +466,13 @@ function spinSvg(p, a, hinted) {
     parts.push(`<g class="wd-final"><path class="wd-hint-gap" d="${piece(shape.arcs[hinted.gap], xy[gap.a], xy[gap.b], end.at, s)}"/><circle class="wd-hint-ring" cx="${fix(x)}" cy="${fix(y)}" r="13"/></g>`);
   }
   e.order.forEach(id => { const [x, y] = inward(end.at, G, xy[id]); parts.push(`<text class="wd-letter" data-letter="${esc(id)}" x="${fix(x)}" y="${fix(y)}">${esc(id)}</text>`); });
-  // Tap an arc to change it.
+  // Tap an arc, or beside it, to change it: each arc's part of the board
+  // reaches SPIN_OUT units past its bulge.
+  const g0 = end.at(G);
   e.gaps.forEach((gap, i) => {
-    parts.push(`<path class="wd-hit wd-gap" role="button" tabindex="0" data-gap="${i}" data-focus="wd-gap-${i}" aria-label="${esc(`Arc from ${gapName(p, i)}, centred on ${shortName(p, b.arcs[i])}`)}" d="${piece(shape.arcs[i], xy[gap.a], xy[gap.b], end.at, s)}"/>`);
+    const a0 = end.at(xy[gap.a]), b0 = end.at(xy[gap.b]), ab = sub(b0, a0), len = Math.hypot(ab[0], ab[1]) || 1, side = Math.sign(dot(sub(a0, g0), [ab[1], -ab[0]])) || 1;
+    const bulge = Math.max(0, ...arcSamples(shape.arcs[i]).map(end.at).map(q => side * dot(sub(q, a0), [ab[1], -ab[0]]) / len));
+    parts.push(`<g class="wd-hit wd-gap" role="button" tabindex="0" data-gap="${i}" data-focus="wd-gap-${i}" aria-label="${esc(`Arc from ${gapName(p, i)}, centred on ${shortName(p, b.arcs[i])}`)}"><path class="wd-gap-area" d="${gapArea(g0, a0, b0, bulge + SPIN_OUT)}"/><path class="wd-gap-line" d="${piece(shape.arcs[i], xy[gap.a], xy[gap.b], end.at, s)}"/></g>`);
   });
   return `<svg class="wd-board" data-view="spin" viewBox="0 0 ${SIZE} ${SIZE}" role="group" aria-label="The shape between two rails">${parts.join('')}</svg>`;
 }
@@ -499,11 +556,10 @@ function renderPlay(p, a) {
 
 
 // ---------------------------------------------------------------------------
-// Gestures. A tap inside a corner's disc, a dot or a spot (with a small
-// margin) goes to it; a little further out it goes to the point only when the
-// tap is nearer the point's edge than any gap's line; otherwise it goes to
-// the nearest gap or arc within reach. The spin plays once for each new full
-// shape, and again on Spin; a tap or key during it ends it on its last frame.
+// Gestures. A tap goes to what is drawn under it: a point's pad (on top), or
+// a gap's part of the board (an arc's wide stroke in the spin). The spin
+// plays once for each new full shape, and again on Spin; a tap or key during
+// it ends it on its last frame.
 
 let seen = null, running = null;
 const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -513,27 +569,11 @@ function toBoard(svg, x, y) {
   const pt = new DOMPoint(x, y).matrixTransform(m.inverse());
   return [pt.x, pt.y];
 }
-function nearest(svg, at, view) {
-  let point = null;
-  if (view === 'build') for (const el of svg.querySelectorAll('.wd-pt')) {
-    const c = el.querySelector('.wd-pad'), d = Math.hypot(at[0] - Number(c.getAttribute('cx')), at[1] - Number(c.getAttribute('cy')));
-    const edge = d - Number(el.dataset.r), inside = d <= Number(el.dataset.hit);
-    // A point whose tap radius holds the tap beats one that only has it in reach.
-    if ((inside || d <= POINT_REACH) && (!point || inside > point.inside || (inside === point.inside && edge < point.edge))) point = {pt: el.dataset.pt, edge, inside};
-  }
-  if (point?.inside) return {pt: point.pt};
-  // The distance to each gap's line or arc: sampled every 2 units, then
-  // refined round the nearest sample.
-  let gap = null, near = GAP_REACH;
-  for (const el of svg.querySelectorAll('.wd-gap')) {
-    const len = el.getTotalLength?.() || 0, k = Math.max(16, Math.ceil(len / 2)), dist = t => { const q = el.getPointAtLength(Math.min(len, Math.max(0, t))); return Math.hypot(at[0] - q.x, at[1] - q.y); };
-    let best = 0, d0 = Infinity;
-    for (let j = 0; j <= k; j++) { const d = dist(len * j / k); if (d < d0) { d0 = d; best = len * j / k; } }
-    for (let j = -16; j <= 16; j++) d0 = Math.min(d0, dist(best + j * len / k / 16));
-    if (d0 < near) { near = d0; gap = Number(el.dataset.gap); }
-  }
-  if (point && (gap == null || point.edge < near)) return {pt: point.pt};
-  return gap == null ? null : {gap};
+function targetOf(svg, el, view) {
+  const t = el?.closest?.('[data-pt],[data-gap]');
+  if (!t || !svg.contains(t)) return null;
+  if (t.dataset.pt) return view === 'build' ? {pt: t.dataset.pt} : null;
+  return {gap: Number(t.dataset.gap)};
 }
 function act(p, api, target) {
   const a = api.attempt(), b = a.board, q = p.parameters, spot = spotOf(p, b), u = ui(p), key = keyOf(b), view = viewOf(p, a);
@@ -611,8 +651,7 @@ function wirePuzzle(root, p, api) {
   svg.addEventListener('pointerdown', () => { swallow = false; if (running?.svg === svg) { running.finish(); swallow = true; } }, {capture: true});
   svg.addEventListener('click', e => {
     if (swallow) { swallow = false; return; }
-    const at = toBoard(svg, e.clientX, e.clientY);
-    if (at) act(p, api, nearest(svg, at, view));
+    act(p, api, targetOf(svg, e.target, view));
   });
   svg.addEventListener('keydown', e => {
     if (!['Enter', ' '].includes(e.key) || e.altKey || e.ctrlKey || e.metaKey) return;

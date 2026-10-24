@@ -1,12 +1,13 @@
 // Plays Snug spinners through the real interface: the first gap chosen on a
 // fresh board, a compass that misses (nothing saved), a tap on a gap's own
 // end (ignored), a dot that sits on a gap's dashed line (the dot wins), a tap
-// on the line just beside that dot (the gap wins), a tap on a gap's line
+// on the line clear of that dot's pad (the gap wins), a tap on a gap's line
 // between dots (the gap wins), a corner at the end of the chosen gap tapped
-// through its disc, taps along every short gap just outside the discs at its
-// ends (the gap wins), Enter on a corner, the spin of a full shape that is
+// through its disc, taps beside every short gap outside the shape and on its
+// line between the pads (the gap wins), 40 px pads and gap areas on a phone,
+// Enter on a corner, the spin of a full shape that is
 // not snug (the band and the dashed start line), a tap during the spin (it
-// ends the spin and does nothing else), tapping an arc in the spin to change
+// ends the spin and does nothing else), a tap inside the spun shape (nothing), tapping an arc in the spin to change
 // it, a solve, Undo back to a full shape, Spin again, Spin with reduced
 // motion, hints with Apply hint, a repair puzzle, the busiest board on a
 // small phone, a missing corner (no gap chosen until it is placed, spots, a
@@ -40,7 +41,10 @@ const fit = async label => assert.equal(await page.evaluate(() => document.docum
 const view = () => page.locator('.wd-puzzle').getAttribute('data-view');
 // The spin animation runs once per new full shape; wait for its end.
 const settled = () => page.waitForFunction(() => !document.querySelector('.wd-puzzle.wd-anim'), null, {timeout: 8000});
-const point = id => page.locator(`.wd-pt[data-pt="${id}"] .wd-pad`);
+// A point's drawn mark (its pad, clipped by its neighbours, may not be centred on it).
+const point = id => page.locator(`.wd-pt[data-pt="${id}"] circle`);
+// A gap's line or arc (invisible; its element also holds the gap's part of the board).
+const LINE = gap => `.wd-gap[data-gap="${gap}"] .wd-gap-line`;
 // Scroll the board into view before reading positions (the phone is short).
 const show = () => page.locator('svg.wd-board').evaluate(el => el.scrollIntoView({block: 'nearest'}));
 const centre = async locator => { await show(); const b = await locator.boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
@@ -48,52 +52,79 @@ const tapAt = async ([x, y]) => { if (phone) await page.touchscreen.tap(x, y); e
 const tap = async locator => tapAt(await centre(locator));
 // A point a fraction of the way along a gap's line or arc, in page pixels.
 const along = async (gap, f) => { await show(); return page.evaluate(([gap, f]) => {
-  const el = document.querySelector(`.wd-gap[data-gap="${gap}"]`), q = el.getPointAtLength(el.getTotalLength() * f), m = el.getScreenCTM();
+  const el = document.querySelector(`.wd-gap[data-gap="${gap}"] .wd-gap-line`), q = el.getPointAtLength(el.getTotalLength() * f), m = el.getScreenCTM();
   const pt = new DOMPoint(q.x, q.y).matrixTransform(m);
   return [pt.x, pt.y];
 }, [gap, f]); };
-// The point of a gap's line or arc furthest from every corner and dot.
+// A place a tap chooses the gap: the point of its line or arc furthest from
+// every corner and dot when no pad covers it, else beside the line outside
+// the shape (a short gap's line can be all pads).
 const clear = async gap => { await show(); return page.evaluate(gap => {
-  const el = document.querySelector(`.wd-gap[data-gap="${gap}"]`), len = el.getTotalLength(), m = el.getScreenCTM();
-  const pads = [...document.querySelectorAll('.wd-pad')].map(c => [Number(c.getAttribute('cx')), Number(c.getAttribute('cy'))]);
-  let best = null, far = -1;
-  for (let k = 1; k < 40; k++) {
-    const q = el.getPointAtLength(len * k / 40), d = Math.min(...pads.map(([x, y]) => Math.hypot(q.x - x, q.y - y)));
-    if (d > far) { far = d; best = q; }
-  }
-  const pt = new DOMPoint(best.x, best.y).matrixTransform(m);
-  return [pt.x, pt.y];
+  const el = document.querySelector(`.wd-gap[data-gap="${gap}"] .wd-gap-line`), len = el.getTotalLength(), m = el.getScreenCTM();
+  const pads = [...document.querySelectorAll('.wd-pt')].map(g => [Number(g.dataset.x), Number(g.dataset.y)]);
+  const lands = q => { const pt = new DOMPoint(q.x, q.y).matrixTransform(m); return document.elementFromPoint(pt.x, pt.y)?.closest('[data-gap]')?.dataset.gap === String(gap) ? [pt.x, pt.y] : null; };
+  const onLine = Array.from({length: 39}, (_, k) => el.getPointAtLength(len * (k + 1) / 40)).sort((a, b) => Math.min(...pads.map(([x, y]) => Math.hypot(b.x - x, b.y - y))) - Math.min(...pads.map(([x, y]) => Math.hypot(a.x - x, a.y - y))));
+  const cx = pads.reduce((t, [x]) => t + x, 0) / pads.length, cy = pads.reduce((t, [, y]) => t + y, 0) / pads.length, mid = el.getPointAtLength(len / 2);
+  const out = [30, 45, 20].map(d => { const n = Math.hypot(mid.x - cx, mid.y - cy) || 1; return {x: mid.x + (mid.x - cx) / n * d, y: mid.y + (mid.y - cy) / n * d}; });
+  for (const q of [...onLine, ...out]) { const hit = lands(q); if (hit) return hit; }
+  return null;
 }, gap); };
+// A point beside a gap outside the shape, `d` board units out from its line
+// at a fraction f along it, in page pixels.
+const beside = async (gap, f, d) => { await show(); return page.evaluate(([gap, f, d]) => {
+  const el = document.querySelector(`.wd-gap[data-gap="${gap}"] .wd-gap-line`), len = el.getTotalLength(), m = el.getScreenCTM();
+  const pads = [...document.querySelectorAll('.wd-corner')].map(g => [Number(g.dataset.x), Number(g.dataset.y)]);
+  const cx = pads.reduce((t, [x]) => t + x, 0) / pads.length, cy = pads.reduce((t, [, y]) => t + y, 0) / pads.length;
+  const q = el.getPointAtLength(len * f), a = el.getPointAtLength(0), b = el.getPointAtLength(len), l = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+  let n = [(b.y - a.y) / l, -(b.x - a.x) / l];
+  if (n[0] * (q.x - cx) + n[1] * (q.y - cy) < 0) n = [-n[0], -n[1]];
+  const pt = new DOMPoint(q.x + n[0] * d, q.y + n[1] * d).matrixTransform(m);
+  return [pt.x, pt.y];
+}, [gap, f, d]); };
 // A point at `d` board units along a gap's line or arc from its start (or
 // from its end when d is negative), in page pixels.
 const fromEnd = async (gap, d) => { await show(); return page.evaluate(([gap, d]) => {
-  const el = document.querySelector(`.wd-gap[data-gap="${gap}"]`), len = el.getTotalLength(), q = el.getPointAtLength(d >= 0 ? d : len + d), m = el.getScreenCTM();
+  const el = document.querySelector(`.wd-gap[data-gap="${gap}"] .wd-gap-line`), len = el.getTotalLength(), q = el.getPointAtLength(d >= 0 ? d : len + d), m = el.getScreenCTM();
   const pt = new DOMPoint(q.x, q.y).matrixTransform(m);
   return [pt.x, pt.y];
 }, [gap, d]); };
 // Gaps (as drawn now) shorter than `most` board units, with their lengths.
-const shortGaps = most => page.evaluate(most => [...document.querySelectorAll('.wd-gap')].map(el => [Number(el.dataset.gap), el.getTotalLength()]).filter(([, len]) => len < most), most);
-// Tap along a gap just outside the discs at its ends, and between them:
-// each tap chooses the gap and changes nothing else.
+const shortGaps = most => page.evaluate(most => [...document.querySelectorAll('.wd-gap .wd-gap-line')].map(el => [Number(el.closest('.wd-gap').dataset.gap), el.getTotalLength()]).filter(([, len]) => len < most), most);
+// Tap beside a gap outside the shape (near each end, and at its middle) and
+// on its line wherever no pad covers it: each tap chooses the gap and changes
+// nothing else.
 const swept = [];
 async function sweepGap(id, gap, len) {
   const before = JSON.stringify(await board(id));
-  // Distances along the line, leaving out any that fall on another corner or dot.
-  const spots = await page.evaluate(([gap, list]) => {
-    const el = document.querySelector(`.wd-gap[data-gap="${gap}"]`), len = el.getTotalLength(), ends = [el.getPointAtLength(0), el.getPointAtLength(len)];
-    const others = [...document.querySelectorAll('.wd-pt')].map(g => { const c = g.querySelector('.wd-pad'); return [Number(c.getAttribute('cx')), Number(c.getAttribute('cy')), Number(g.dataset.hit)]; }).filter(([x, y]) => ends.every(e => Math.hypot(e.x - x, e.y - y) > 0.5));
-    return list.filter(d => Math.abs(d) < len - 16).filter(d => { const q = el.getPointAtLength(d >= 0 ? d : len + d); return others.every(([x, y, hit]) => Math.hypot(q.x - x, q.y - y) > hit + 2); });
-  }, [gap, [16, 18, 21, -16, -18, -21, len / 2]]);
-  swept.push(`${id} gap ${gap} (${len.toFixed(0)} units): ${spots.length} taps`);
-  for (const d of spots) {
+  const free = await page.evaluate(gap => {
+    const el = document.querySelector(`.wd-gap[data-gap="${gap}"] .wd-gap-line`), len = el.getTotalLength(), pads = [...document.querySelectorAll('.wd-pad')];
+    const ring = q => [[0, 0], ...Array.from({length: 8}, (_, k) => [4 * Math.cos(k * Math.PI / 4), 4 * Math.sin(k * Math.PI / 4)])].map(([dx, dy]) => new DOMPoint(q.x + dx, q.y + dy));
+    return Array.from({length: 19}, (_, k) => len * (k + 1) / 20).filter(d => ring(el.getPointAtLength(d)).every(at => pads.every(pad => !pad.isPointInFill(at))));
+  }, gap);
+  const taps = [await beside(gap, 0.2, 30), await beside(gap, 0.5, 30), await beside(gap, 0.8, 30), ...await Promise.all(free.map(d => fromEnd(gap, d)))];
+  swept.push(`${id} gap ${gap} (${len.toFixed(0)} units): ${taps.length} taps (${free.length} on the line)`);
+  for (const at of taps) {
     const other = await page.evaluate(gap => [...document.querySelectorAll('.wd-gap')].map(el => Number(el.dataset.gap)).find(g => g !== gap), gap);
-    await page.locator(`.wd-gap[data-gap="${other}"]`).focus(); await page.keyboard.press('Enter');
+    // Without scrolling: the taps were measured with the board where it is.
+    await page.evaluate(other => document.querySelector(`.wd-gap[data-gap="${other}"]`).focus({preventScroll: true}), other); await page.keyboard.press('Enter');
     assert.equal(await selected(), other, `${id}: another gap chosen first`);
-    await tapAt(await fromEnd(gap, d));
-    assert.equal(await selected(), gap, `${id}: a tap ${d} units along gap ${gap} (${len.toFixed(0)} long) chooses the gap`);
+    await tapAt(at);
+    assert.equal(await selected(), gap, `${id}: a tap at ${at.map(Math.round)} beside or on gap ${gap} (${len.toFixed(0)} long) chooses the gap`);
     assert.equal(await page.locator('.wd-miss').count(), 0, `${id}: no compass drawn by a tap on gap ${gap}`);
     assert.equal(JSON.stringify(await board(id)), before, `${id}: a tap on gap ${gap} is not a move`);
   }
+}
+// On a phone every point's pad and every gap's area is 40 px or more where
+// no other point is within 44 board units (the hard puzzles' spots may be
+// nearer each other; their pads split the room halfway).
+async function phonePads(label) {
+  if (!phone) return;
+  const z = await page.evaluate(() => {
+    const scale = document.querySelector('svg.wd-board').getScreenCTM().a, pts = [...document.querySelectorAll('.wd-pt')].map(g => [g, Number(g.dataset.x), Number(g.dataset.y)]);
+    const pads = pts.filter(([g, x, y]) => pts.every(([h, u, v]) => h === g || Math.hypot(u - x, v - y) >= 44)).map(([g]) => { const b = g.querySelector('.wd-pad').getBoundingClientRect(); return Math.min(b.width, b.height); });
+    return {scale, pads, areas: [...document.querySelectorAll('.wd-gap-area')].length};
+  });
+  assert.ok(z.pads.length && Math.min(...z.pads) >= 40, `${label}: pads 40 px or more (${Math.round(Math.min(...z.pads))} at ${z.scale.toFixed(2)} px a unit)`);
 }
 const selected = () => page.evaluate(() => Number(document.querySelector('.wd-gap[aria-pressed="true"]')?.dataset.gap ?? -1));
 // Taps along the middle of every line drawn now (away from the corners):
@@ -103,10 +134,13 @@ async function probeLines(id) {
   const before = JSON.stringify(await board(id));
   await show();
   const targets = await page.evaluate(() => {
-    const corners = [...document.querySelectorAll('.wd-corner .wd-pad')].map(c => [Number(c.getAttribute('cx')), Number(c.getAttribute('cy'))]);
-    return [...document.querySelectorAll('.wd-gap')].flatMap(el => {
-      const len = el.getTotalLength(), m = el.getScreenCTM(), gap = Number(el.dataset.gap);
-      return Array.from({length: 9}, (_, k) => el.getPointAtLength(len * (0.2 + 0.075 * k))).filter(q => corners.every(([x, y]) => Math.hypot(q.x - x, q.y - y) > 17)).map(q => { const pt = new DOMPoint(q.x, q.y).matrixTransform(m); return [gap, pt.x, pt.y]; });
+    // Points on a line inside a corner's or a dot's pad go to that point, and
+    // so may a touch within a few units of its edge; a spot's pad never reaches a line.
+    const pads = [...document.querySelectorAll('.wd-corner .wd-pad, .wd-pin .wd-pad')];
+    const ring = q => [[0, 0], ...Array.from({length: 8}, (_, k) => [4 * Math.cos(k * Math.PI / 4), 4 * Math.sin(k * Math.PI / 4)])].map(([dx, dy]) => new DOMPoint(q.x + dx, q.y + dy));
+    return [...document.querySelectorAll('.wd-gap .wd-gap-line')].flatMap(el => {
+      const len = el.getTotalLength(), m = el.getScreenCTM(), gap = Number(el.closest('.wd-gap').dataset.gap);
+      return Array.from({length: 9}, (_, k) => el.getPointAtLength(len * (0.2 + 0.075 * k))).filter(q => ring(q).every(at => pads.every(pad => !pad.isPointInFill(at)))).map(q => { const pt = new DOMPoint(q.x, q.y).matrixTransform(m); return [gap, pt.x, pt.y]; });
     });
   });
   for (const [gap, x, y] of targets) {
@@ -132,6 +166,7 @@ try {
   const box = await page.locator('svg.wd-board').boundingBox();
   assert.ok(box.width <= 381 && box.height <= 381, `compact board (${box.width}×${box.height})`);
   await fit('fresh triangle');
+  await phonePads('fresh triangle');
   // A dot halfway along another side is not the same distance from A and B:
   // the compass misses, and nothing is saved.
   await tap(point('mBC'));
@@ -149,11 +184,11 @@ try {
   await page.waitForFunction(() => document.querySelector('.wd-arc'));
   assert.deepEqual((await board('width-01')).arcs, ['mAB', null, null], 'the dot on the line centres the arc');
   assert.equal(await selected(), 1, 'the next empty gap is chosen');
-  // A tap on the line from B to C just beside its dot (outside the dot) chooses the gap, not the dot.
+  // A tap on the line from B to C clear of its dot's pad chooses the gap, not the dot.
   await page.locator('.wd-gap[data-gap="0"]').focus(); await page.keyboard.press('Enter');
-  const besideDot = await page.evaluate(() => { const el = document.querySelector('.wd-gap[data-gap="1"]'), len = el.getTotalLength(), q = el.getPointAtLength(len / 2 + 11), pt = new DOMPoint(q.x, q.y).matrixTransform(el.getScreenCTM()); return [pt.x, pt.y]; });
+  const besideDot = await page.evaluate(() => { const el = document.querySelector('.wd-gap[data-gap="1"] .wd-gap-line'), len = el.getTotalLength(), q = el.getPointAtLength(len / 2 + 30), pt = new DOMPoint(q.x, q.y).matrixTransform(el.getScreenCTM()); return [pt.x, pt.y]; });
   await tapAt(besideDot);
-  assert.equal(await selected(), 1, 'a tap on the line just beside a dot chooses the gap');
+  assert.equal(await selected(), 1, 'a tap on the line clear of a dot’s pad chooses the gap');
   assert.deepEqual((await board('width-01')).arcs, ['mAB', null, null], 'and is not a move');
   // A tap on the line from C to A between its corner and its dot chooses that gap.
   await tapAt(await along(2, 0.22));
@@ -191,6 +226,11 @@ try {
   assert.deepEqual((await board('width-01')).arcs, ['mAB', 'mBC', 'B'], 'the tap is not a move');
   await undo();
   await settled();
+  // A tap in the middle of the shape, away from its arcs, does nothing.
+  await show();
+  const middle = await page.evaluate(() => { const r = [...document.querySelectorAll('.wd-letter')].map(t => t.getBoundingClientRect()); return [r.reduce((s, b) => s + b.x + b.width / 2, 0) / r.length, r.reduce((s, b) => s + b.y + b.height / 2, 0) / r.length]; });
+  await tapAt(middle);
+  assert.equal(await view(), 'spin', 'a tap in the middle of the spun shape changes nothing');
   // Tap the half circle in the spin to change it.
   await tapAt(await along(0, 0.5));
   await page.waitForFunction(() => document.querySelector('.wd-puzzle')?.dataset.view === 'build');
@@ -259,7 +299,7 @@ try {
   }
   await done();
 
-  // ---- Short gaps: taps just outside the discs choose the gap.
+  // ---- Short gaps: taps beside them outside the shape, and on their lines between the pads, choose the gap.
   for (const id of ['width-04', 'width-05', 'width-06']) {
     await open(id);
     const gaps = await shortGaps(110);
@@ -272,14 +312,15 @@ try {
   await tap(point(p6.parameters.order[2]));
   await page.locator('.wd-miss').waitFor();
   await fit('long and short with a miss');
+  await phonePads('long and short');
   const b6 = await page.locator('svg.wd-board').boundingBox(), spin6 = await page.locator('.wd-spin').boundingBox();
   assert.ok(b6.width <= 381, 'compact board');
   if (phone) assert.ok(b6.height + spin6.height < 667, 'the board and Spin fit a small phone');
   await shot('06-miss');
-  // Solve by tapping, in a mixed order, choosing the short gap EB on its line next to E.
+  // Solve by tapping, in a mixed order, choosing the short gap EB beside it, outside the shape.
   for (const gap of [eb, 4, 0, 3, 1, 2].filter((g, i, all) => all.indexOf(g) === i)) {
     if (await view() === 'spin') { await settled(); await tapAt(await along(gap, 0.5)); }
-    if (await selected() !== gap) await tapAt(gap === eb ? await fromEnd(gap, 16) : await clear(gap));
+    if (await selected() !== gap) await tapAt(gap === eb ? await beside(gap, 0.5, 30) : await clear(gap));
     assert.equal(await selected(), gap);
     await tap(point(p6.solution.arcs[gap]));
   }
@@ -296,6 +337,7 @@ try {
   assert.equal(await page.locator('.wd-open').count(), 1, 'a dotted line where the corner goes');
   assert.equal(await page.locator('.wd-spin').isDisabled(), true);
   await shot('07-fresh');
+  await phonePads('missing corner');
   // A wrong spot on the circle round the corner whose arc reaches X from
   // before it: that arc draws, the one after X misses, and the miss is not saved.
   const wrong = spots.find(s => s !== right && joinable(p7, gPrev, k7(2), s) && !joinable(p7, gx, k7(3), s));
@@ -427,7 +469,7 @@ try {
 
   assert.deepEqual(errors, [], 'no page errors');
   assert.ok(swept.some(line => line.startsWith('width-06')), 'puzzle 6’s short gap was swept');
-  console.log(`Short gaps tapped just outside their discs:\n  ${swept.join('\n  ')}`);
+  console.log(`Short gaps tapped beside the shape and on their lines between the pads:\n  ${swept.join('\n  ')}`);
   console.log(`Hard puzzles, taps along the middle of every line with the corner off the board, on each spot, and on the right spot with two arcs:\n  ${probed.join('\n  ')}`);
   console.log(`Snug spinners browser smoke passed (${phone ? 'phone' : 'desktop'}).`);
 } finally {

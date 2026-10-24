@@ -700,9 +700,21 @@ function ray(f, P, Q, cls) {
   if (dy > 0) t = Math.min(t, (y1 + .5 - P[1]) / dy); if (dy < 0) t = Math.min(t, (y0 - .5 - P[1]) / dy);
   return seg(f, P, [P[0] + t * dx, P[1] + t * dy], cls);
 }
-const button = (f, pt, attrs, label, cls = '') => `<button type="button" class="fd-pt ${cls}" style="left:${f.left(pt[0])};top:${f.top(pt[1])}" ${attrs} aria-label="${esc(label)}"></button>`;
+// A button covers its grid cell. `span` makes it w × h cells with its centre
+// dx, dy cells (across, up) from the point; the ring drawn on hover or for a
+// hint stays on the point.
+const button = (f, pt, attrs, label, cls = '', [w, h, dx, dy] = [1, 1, 0, 0]) => `<button type="button" class="fd-pt ${cls}" style="left:${f.left(pt[0] + dx)};top:${f.top(pt[1] + dy)}${w === 1 && h === 1 ? '' : `;--w:${w};--h:${h};--dx:${dx};--dy:${dy}`}" ${attrs} aria-label="${esc(label)}"></button>`;
+// A point on a river or wall: one cell along the line and two across it,
+// reaching a whole cell into the far side (where nothing else is tapped) and
+// half a cell toward the near side. `far` is the far side's sign.
+const across2 = (line, far) => line.dir === 'h' ? [1, 2, 0, far / 2] : [2, 1, far / 2, 0];
+// The block's corners are at least three cells apart: two cells square.
+const CORNER_SPAN = [2, 2, 0, 0];
+// Letters and P stay 13 px or more on a 375 px phone, where the board is at
+// most 313 px wide (and no taller than 430 px), and fit their discs.
+const textPx = f => Math.min(.62 * U, Math.max(19, 13.2 * f.cols * U / Math.min(313, f.cols / f.rows * 430))).toFixed(1);
 const placeWords = (f, [x, y]) => `${x - f.view[0]} across, ${y - f.view[1]} up`;
-const boardHtml = (f, svg, buttons, label, cls = '') => `<div class="fd-board${cls ? ` ${cls}` : ''}" data-fd-board style="--cols:${f.cols};--rows:${f.rows}" role="group" aria-label="${esc(label)}"><svg viewBox="0 0 ${f.cols * U} ${f.rows * U}" aria-hidden="true">${svg}</svg>${buttons}</div>`;
+const boardHtml = (f, svg, buttons, label, cls = '') => `<div class="fd-board${cls ? ` ${cls}` : ''}" data-fd-board style="--cols:${f.cols};--rows:${f.rows}" role="group" aria-label="${esc(label)}"><svg viewBox="0 0 ${f.cols * U} ${f.rows * U}" style="--fd-text:${textPx(f)}px" aria-hidden="true">${svg}</svg>${buttons}</div>`;
 const moveAttr = action => `data-fd-move="${esc(JSON.stringify(action))}"`;
 const hinted = (h, test) => h && h.type === 'move' && test(h.action);
 const control = (label, action, enabled, h, extra = '', focus = `fd-${action.type}`) => `<button type="button" class="secondary fd-button${hinted(h, a => a.type === action.type && (a.route === undefined || a.route === action.route)) ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="${focus}" ${enabled ? '' : 'disabled'} ${extra}>${esc(label)}</button>`;
@@ -756,7 +768,7 @@ function renderRoute(p, a) {
   if (!done && !lost) {
     for (const k of contacts(line)) {
       const pt = pointOn(line, k), mine = q.routes.map((_, i) => b.contacts[i] === k ? routeName(q, i) : null).filter(Boolean);
-      buttons.push(button(f, pt, `${moveAttr({type: 'touch', route: sel, at: k})} data-focus="fd-c-${k}"`, `${NAMES[line.dir]} at ${across(q, k)}${mine.length ? `, route ${mine.join(' and ')} touches here` : ''}`, `fd-on-line${hintedAt?.at === k && hintedAt.route === sel ? ' hinted' : ''}`));
+      buttons.push(button(f, pt, `${moveAttr({type: 'touch', route: sel, at: k})} data-focus="fd-c-${k}"`, `${NAMES[line.dir]} at ${across(q, k)}${mine.length ? `, route ${mine.join(' and ')} touches here` : ''}`, `fd-on-line${hintedAt?.at === k && hintedAt.route === sel ? ' hinted' : ''}`, across2(line, -side(line, dots.A))));
     }
     if (q.routes.length > 1) q.routes.forEach((r, i) => {
       const others = q.routes.filter((_, j) => j !== i);
@@ -825,7 +837,7 @@ function renderWalls(p, a) {
   const buttons = [], hintedAt = hinted(h, x => x.type === 'touch') ? h.action : null;
   if (!done && !b.lost) for (const w of ['lower', 'upper']) for (let k = q.walls.from; k <= q.walls.to; k++) {
     const pt = pointOn(wallLine(q, w), k), i = t.findIndex(x => x.wall === w && x.at === k);
-    buttons.push(button(f, pt, `${moveAttr({type: 'touch', wall: w, at: k})} data-focus="fd-${w}-${k}"`, `${w === 'lower' ? 'Lower' : 'Upper'} wall at ${k - f.view[0]}${i >= 0 ? `, touched ${i ? 'second' : 'first'}` : ''}`, `fd-on-line${hintedAt && hintedAt.wall === w && hintedAt.at === k ? ' hinted' : ''}`));
+    buttons.push(button(f, pt, `${moveAttr({type: 'touch', wall: w, at: k})} data-focus="fd-${w}-${k}"`, `${w === 'lower' ? 'Lower' : 'Upper'} wall at ${k - f.view[0]}${i >= 0 ? `, touched ${i ? 'second' : 'first'}` : ''}`, `fd-on-line${hintedAt && hintedAt.wall === w && hintedAt.at === k ? ' hinted' : ''}`, across2(wallLine(q, w), w === 'lower' ? -1 : 1)));
   }
   const tools = done ? '' : b.lost ? `<div class="fd-tools">${control('Again', {type: 'again'}, true, h)}</div>`
     : `<div class="fd-tools">${foldButton(b, h)}${b.folded ? control('Shortest', {type: 'claim'}, claimable(q, b), h) : ''}</div>`;
@@ -877,7 +889,7 @@ function renderBlock(p, a) {
   for (const [i, c] of corners.entries()) parts.push(dot(f, c, `fd-corner${b.path.includes(i) ? ' on' : ''}`, .14));
   parts.push(letter(f, 'A', q.dots.A), letter(f, 'B', q.dots.B));
   const buttons = [], hintedAt = hinted(h, x => x.type === 'corner') ? h.action.i : null;
-  if (!over) for (const [i, c] of corners.entries()) buttons.push(button(f, c, `${moveAttr({type: 'corner', i})} data-focus="fd-k-${i}"`, `Corner ${['bottom left', 'bottom right', 'top right', 'top left'][i]}${b.path.includes(i) ? `, bend ${b.path.indexOf(i) + 1}` : ''}`, `fd-on-line${hintedAt === i ? ' hinted' : ''}`));
+  if (!over) for (const [i, c] of corners.entries()) buttons.push(button(f, c, `${moveAttr({type: 'corner', i})} data-focus="fd-k-${i}"`, `Corner ${['bottom left', 'bottom right', 'top right', 'top left'][i]}${b.path.includes(i) ? `, bend ${b.path.indexOf(i) + 1}` : ''}`, `fd-on-line${hintedAt === i ? ' hinted' : ''}`, CORNER_SPAN));
   const shelf = b.shelf.length ? `<div class="fd-shelf" role="group" aria-label="Kept routes">${b.shelf.map((path, i) => thumb(q, path, i, over, h)).join('')}</div>` : '';
   const keepable = b.path.length > 0 && legal && !b.shelf.some(r => eq(r, b.path));
   const tools = done ? '' : lost ? `<div class="fd-tools">${control('Again', {type: 'again'}, true, h)}</div>`
@@ -895,7 +907,7 @@ function renderPlayground(p, a) {
   if (held) parts.push(ring(f, b.dots[held], 'fd-chosen r0'));
   parts.push(letter(f, 'A', A), letter(f, 'B', B), letter(f, 'C', C, 'mirrored'));
   const buttons = [];
-  for (const k of contacts(line)) buttons.push(button(f, pointOn(line, k), `${moveAttr({type: 'touch', at: k})} data-fd-drag data-focus="fd-c-${k}"`, `River at ${across(q, k)}${k === b.at ? ', the routes touch here' : ''}`, `fd-on-line${k === b.at ? ' on' : ''}`));
+  for (const k of contacts(line)) buttons.push(button(f, pointOn(line, k), `${moveAttr({type: 'touch', at: k})} data-fd-drag data-focus="fd-c-${k}"`, `River at ${across(q, k)}${k === b.at ? ', the routes touch here' : ''}`, `fd-on-line${k === b.at ? ' on' : ''}`, across2(line, -1)));
   for (const name of ['A', 'B']) buttons.push(button(f, b.dots[name], `data-fd-hold="${name}" data-focus="fd-l-${name}" aria-pressed="${held === name}"`, `${name}: pick up to move`, 'fd-on-letter'));
   if (held) for (let x = q.place[0]; x <= q.place[2]; x++) for (let y = q.place[1]; y <= q.place[3]; y++) {
     const pt = [x, y];

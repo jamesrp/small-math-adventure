@@ -179,7 +179,7 @@ test('tabs: Can’t on a stock that works is refused and kept through Undo', () 
   assert.deepEqual(back.board.pick, ['odd', 'odd', 'odd']);
   assert.equal(move(p, back, CHECK), null);
   const html = view(p, play(p, freshAttempt(p), tab(0, 1, 'V'), tab(0, 3, 'V'), tab(1, 2, 'M'), tab(1, 3, 'V'), tab(2, 1, 'M'), tab(2, 3, 'V'), FOLD));
-  assert.ok(html.includes('class="cr-disk small ok"'), 'a disk that folds has a green rim');
+  assert.ok(html.includes('class="cr-disk cr-small ok"'), 'a disk that folds has a green rim');
 });
 
 test('ray: the new ray goes on a free tick, and only one tick closes', () => {

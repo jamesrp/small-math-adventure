@@ -8,10 +8,11 @@
 // the new ray dragged, stepped by a tap on the knob, moved by keys and by
 // the rim band, and left alone by a tap inside that letters a ray, the
 // playground (add, letter, press and hold to remove, keys, Clear), focus
-// after moves, and no page overflow. Same environment variables as the other
-// browser suites (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL,
-// TEST_PHONE=1 for a phone with touch). Screenshots go in
-// test-results/creases/.
+// after moves, no page overflow, and on a phone chips that reach 40 px or
+// more (a tap beside a chip, outside the rim, letters its ray). Same
+// environment variables as the other browser suites (PLAYWRIGHT_MODULE,
+// BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone with touch).
+// Screenshots go in test-results/creases/.
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
 const {chromium} = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
@@ -53,6 +54,20 @@ async function diskPoint(svg, deg, r) {
 const tapDisk = async (svg, deg, r) => tapXY(await diskPoint(svg, deg, r));
 const disk = (n = 0) => page.locator('svg.cr-disk').nth(n);
 const chip = (k, prefix = 'cr') => page.locator(`[data-focus="${prefix}-c${k}"]`);
+// A tap on a chip's drawn circle (its reach runs on over its ray, where the
+// new ray's knob may lie on top).
+const tapChip = (k, prefix) => tap(chip(k, prefix).locator('circle'));
+// On a phone: every chip that takes taps, and the knob, reach 40 px or more
+// each way, and the chips' letters and the ray numbers are 13 px or more.
+async function phoneSizes(label) {
+  if (!phone) return;
+  const z = await page.evaluate(() => ({
+    targets: [...document.querySelectorAll('[data-mechanic-wire="creases"] :is(g.cr-chip[role="button"], .cr-knob)')].map(g => { const b = g.getBoundingClientRect(); return [g.getAttribute('aria-label'), Math.round(Math.min(b.width, b.height))]; }),
+    text: [...document.querySelectorAll('[data-mechanic-wire="creases"] :is(.cr-chip text, .cr-num)')].filter(t => t.textContent).map(t => parseFloat(getComputedStyle(t).fontSize) * t.getScreenCTM().a)
+  }));
+  for (const [name, min] of z.targets) assert.ok(min >= 40, `${label}: ${name} reaches ${min} px`);
+  if (z.text.length) assert.ok(Math.min(...z.text) >= 12.9, `${label}: chip letters and ray numbers 13 px or more (${Math.min(...z.text).toFixed(1)})`);
+}
 const wedge = k => page.locator(`[data-focus="cr-w${k}"]`);
 // A tap in the middle of wedge k of a disk with these angles.
 const tapWedge = (angles, k) => tapDisk(disk(), angles.slice(0, k).reduce((a, b) => a + b, 0) + angles[k] / 2, 65);
@@ -104,6 +119,13 @@ try {
   await tapDisk(disk(), 175, 60);
   await tapDisk(disk(), 2, 60);
   assert.equal((await board(P)).labels[0], 'M', 'a tap near a printed ray changes nothing');
+  // Outside the rim, beside a chip but off its circle, a tap still letters its ray.
+  await phoneSizes('fold');
+  const was = (await board(P)).labels[2];
+  await tapDisk(disk(), 192, 137);
+  assert.equal((await board(P)).labels[2], was === 'M' ? 'V' : 'M', 'a tap beside chip 3, outside the rim, letters ray 3');
+  await tapDisk(disk(), 168, 137);
+  assert.equal((await board(P)).labels[2], was, 'and from its other side');
   await chip(3).focus(); await page.keyboard.press('Enter'); await settle();
   assert.equal((await board(P)).labels[3], 'M', 'Enter on a chip');
   assert.equal((await active()).focus, 'cr-c3', 'focus stays on the chip');
@@ -128,7 +150,7 @@ try {
   assert.equal(await button('Check').isDisabled(), true, 'Check stays off');
   await tap(button('Can’t'));
   assert.equal((await board(P)).paint, null, 'Can’t puts the colours away');
-  await tap(chip(3));
+  await tapChip(3);
   assert.equal((await board(P)).told, null, 'a new letter clears the refusal');
   await tap(button('Fold'));
   await done();
@@ -149,7 +171,7 @@ try {
   assert.equal((await board(P)).labels[7], 'M', 'near the centre, still the nearest ray');
   await tapDisk(disk(), 120, 70);
   assert.deepEqual((await board(P)).labels, ['V', 'V', 'M', null, 'M', null, null, 'M'], 'mid-wedge, 30° from both rays: nothing');
-  await tap(chip(3)); await tap(chip(5)); await tap(chip(6)); await tap(chip(6));
+  await tapChip(3); await tapChip(5); await tapChip(6); await tapChip(6);
   assert.deepEqual((await board(P)).labels, [...'VVMMMMVM'], 'chips');
   await fit('eight rays');
   await tap(button('Fold'));
@@ -162,7 +184,7 @@ try {
   // words that don't state the rule, and cleared; one clash.
   P = 'creases-04';
   await open(P);
-  for (const k of [1, 2, 4, 5, 6]) await tap(chip(k));
+  for (const k of [1, 2, 4, 5, 6]) await tapChip(k);
   await tap(button('Fold'));
   await page.locator('svg.cr-stack.clash').waitFor();
   await tap(button('Can’t'));
@@ -182,7 +204,7 @@ try {
   // Puzzle 8: the fans of an even disk.
   P = 'creases-08';
   await open(P);
-  for (let k = 0; k < 4; k++) await tap(chip(k));
+  for (let k = 0; k < 4; k++) await tapChip(k);
   await tap(button('Fold'));
   await page.locator('svg.cr-stack.gap').waitFor();
   await tap(button('Can’t'));
@@ -230,8 +252,9 @@ try {
   // reachable on a phone.
   P = 'creases-11';
   await open(P);
+  await phoneSizes('busiest tabs');
   const fixed = ['MM??', 'V?V?', 'M?V?', '?M?V'];
-  for (let i = 0; i < 4; i++) for (let k = 0; k < 4; k++) if (fixed[i][k] === '?') await tap(chip(k, `cr-d${i}`));
+  for (let i = 0; i < 4; i++) for (let k = 0; k < 4; k++) if (fixed[i][k] === '?') await tapChip(k, `cr-d${i}`);
   await tap(button('Fold'));
   await page.waitForTimeout(1200);
   await fit('four disks');
@@ -247,6 +270,7 @@ try {
   // new ray where it is.
   P = 'creases-12';
   await open(P);
+  await phoneSizes('ray');
   const knob = page.locator('.cr-knob');
   await drag(await centre(knob), await diskPoint(disk(), 330, 89));
   assert.equal((await board(P)).at, 330, 'dragged to 330°');
@@ -264,7 +288,7 @@ try {
   assert.equal((await board(P)).at, 300, 'a tap in the rim band moves the new ray there');
   await tapDisk(disk(), 333, 95);
   assert.equal((await board(P)).at, 330, 'a rim tap 3° from a tick, 33° from the new ray, moves it');
-  for (const [pos, times] of [[0, 1], [2, 1], [3, 2], [4, 1], [5, 2]]) for (let t = 0; t < times; t++) await tap(chip(pos));
+  for (const [pos, times] of [[0, 1], [2, 1], [3, 2], [4, 1], [5, 2]]) for (let t = 0; t < times; t++) await tapChip(pos);
   assert.deepEqual((await board(P)).labels, ['M', 'M', 'M', 'V', 'M', 'V'], 'the new ray’s letter is last');
   await tap(button('Fold'));
   await done();
@@ -274,6 +298,7 @@ try {
   // The playground: add, remove, keys, Clear.
   P = 'creases-playground';
   await open(P);
+  await phoneSizes('playground');
   await tapDisk(disk(), 46, 60);
   assert.deepEqual((await board(P)).rays, [0, 45, 90, 180, 270], 'a tap between rays adds one');
   await tapDisk(disk(), 90, 96);
@@ -289,7 +314,7 @@ try {
   assert.equal((await active()).focus, 'cr-knob', 'focus stays on the knob');
   await chip(1).focus(); await page.keyboard.press('Delete'); await settle();
   assert.deepEqual((await board(P)).rays, [0, 45, 180, 270], 'Delete on a chip removes its ray');
-  for (let k = 0; k < 4; k++) await tap(chip(k));
+  for (let k = 0; k < 4; k++) await tapChip(k);
   await tap(button('Fold'));
   await page.locator('svg.cr-stack').waitFor();
   await page.waitForTimeout(1200);

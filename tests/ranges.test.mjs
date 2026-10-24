@@ -147,6 +147,12 @@ test('a press goes to the nearest control in its row; drags are held inside what
   assert.equal(nearestTarget(q, b, 'A', 3.1, 0.6).kind, 'set', 'lower in the row, the strip’s end is nearer');
   assert.equal(nearestTarget(q, b, 'B', 4.9, 0.2).end, 'hi');
   assert.equal(nearestTarget(q, b, 'B', 4.2, 0.55).kind, 'set');
+  // A row with handles has the band's lane on top and the strip's below, so a
+  // strip end on its band's end is still easy to tell from the handle.
+  const met = {cards: {A: [2, 4], B: [3, 5]}, len: {A: 4, B: 4}};
+  assert.equal(nearestTarget(q, met, 'A', 4, 0.8).kind, 'set', 'the strip’s lane: its end, though the band’s end is on the same unit');
+  assert.equal(nearestTarget(q, met, 'A', 4, 0.2).end, 'hi', 'the band’s lane: the band’s right end');
+  assert.equal(nearestTarget(q, met, 'A', 1.2, 0.8).kind, 'set', 'anywhere in the strip’s lane');
   const p5 = byId('ranges-05'), f5 = freshAttempt(p5).board;
   assert.equal(nearestTarget(p5.parameters, f5, 'B', 6.6, 0.5).end, 'hi', 'before Widest only the band’s ends move');
   assert.equal(nearestTarget(p5.parameters, f5, 'A', 3, 0.5), null, 'A is the app’s before Widest');

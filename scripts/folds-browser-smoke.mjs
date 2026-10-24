@@ -7,8 +7,9 @@
 // Undo off, focus on Again and Again; moving a letter; every start with
 // That's all; two walls, whose Shortest waits for both orders and whose
 // board grows when folded; the block's shelf, whose wrong That's all ends
-// the try; keyboard taps and the focus after them; and the playground's
-// slide and arrow keys.
+// the try; keyboard taps and the focus after them; the playground's slide
+// and arrow keys; and, on a phone, the size of the buttons on the river, the
+// walls and the block's corners, and of the letters.
 // Checks that nothing overflows a 375-pixel phone and that the busiest
 // boards fit one screen with their controls. Same environment variables as
 // the other browser suites (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL,
@@ -48,6 +49,20 @@ async function fitsScreen(label) {
   if (tools) assert.ok(tools.y + tools.height - top.y <= 667, `${label}: board and controls fit one screen (${tools.y + tools.height - top.y})`);
   else assert.ok(top.height <= 667, `${label}: the board fits one screen`);
 }
+// On a phone: a river or wall point's button is its whole cell along the
+// line and 44 px or more across it; the block's corners are 40 px or more
+// each way; letters and P are 13 px or more.
+async function phoneSizes(label) {
+  if (!phone) return;
+  const z = await page.evaluate(() => {
+    const board = document.querySelector('[data-mechanic-wire="folds"] .fd-board'), cell = board.getBoundingClientRect().width / Number(board.style.getPropertyValue('--cols'));
+    const boxes = sel => [...board.querySelectorAll(sel)].map(el => el.getBoundingClientRect());
+    const scale = board.querySelector('svg').getScreenCTM().a;
+    return {cell, line: boxes('.fd-pt.fd-on-line').map(b => [Math.min(b.width, b.height), Math.max(b.width, b.height)]), text: [...board.querySelectorAll('.fd-letter text, .fd-p text')].map(t => parseFloat(getComputedStyle(t).fontSize) * scale)};
+  });
+  for (const [thin, wide] of z.line) assert.ok(thin >= z.cell - 1 && wide >= 44, `${label}: a point on the line is its cell along it and 44 px across (${thin.toFixed(1)}×${wide.toFixed(1)}, cell ${z.cell.toFixed(1)})`);
+  assert.ok(Math.min(...z.text) >= 12.9, `${label}: letters 13 px or more (${Math.min(...z.text).toFixed(1)})`);
+}
 
 try {
   await mkdir(out, {recursive: true});
@@ -62,6 +77,7 @@ try {
   // Puzzle 2: touch, a tap beside a point, Fold, a refusal, Undo, a solve.
   let P = 'folds-02';
   await open(P); await fit('shortest');
+  await phoneSizes('shortest');
   assert.equal(await button('Shortest').count(), 0, 'no claim before Fold');
   assert.equal(await page.locator('[data-mechanic-wire="folds"] .fd-letter.image').count(), 0, 'no fold before Fold');
   await tap(pt('fd-c-5'));
@@ -133,6 +149,7 @@ try {
   // Puzzle 5: every start, judged as a whole.
   P = 'folds-05';
   await open(P); await fit('every');
+  await phoneSizes('every');
   await tap(pt('fd-s-4_1')); await tap(pt('fd-s-2_2'));
   assert.equal(await pt('fd-s-4_1').getAttribute('aria-pressed'), 'true');
   await press('Fold'); await press('That’s all');
@@ -146,6 +163,7 @@ try {
   // Puzzle 10: two walls; the board grows when folded, and still fits.
   P = 'folds-10';
   await open(P); await fit('walls');
+  await phoneSizes('walls');
   await tap(pt('fd-lower-3')); await tap(pt('fd-upper-9'));
   assert.deepEqual((await board(P)).touches, [{wall: 'lower', at: 3}, {wall: 'upper', at: 9}]);
   const small = (await page.locator('[data-mechanic-wire="folds"] .fd-board').boundingBox()).height;
@@ -168,6 +186,8 @@ try {
   // Puzzle 12: the block, the shelf, and That's all as a final choice.
   P = 'folds-12';
   await open(P); await fit('block');
+  await phoneSizes('block');
+  if (phone) for (const b of await page.locator('[data-mechanic-wire="folds"] [data-focus^="fd-k-"]').evaluateAll(els => els.map(el => el.getBoundingClientRect()).map(r => [r.width, r.height]))) assert.ok(Math.min(...b) >= 40, `block corners 40 px or more (${b})`);
   const keepUnder = async () => {
     await tap(pt('fd-k-0')); await tap(pt('fd-k-1'));
     assert.deepEqual((await board(P)).path, [0, 1]);
@@ -199,8 +219,13 @@ try {
   await shot('block-solved');
 
   // The playground: slide along the river, arrow keys, move a letter.
+  // The widest board: thirteen columns.
+  await open('folds-08'); await fit('windows');
+  await phoneSizes('windows');
+
   P = 'folds-playground';
   await open(P); await fit('playground');
+  await phoneSizes('playground');
   const from = await center(pt('fd-c-4')), to = await center(pt('fd-c-8'));
   if (phone) {
     const cdp = await context.newCDPSession(page);

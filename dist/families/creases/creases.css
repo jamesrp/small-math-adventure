@@ -28,7 +28,7 @@
 [data-mechanic-wire="creases"] .cr-ray.open{stroke-width:2px;stroke-dasharray:1.5 5;opacity:.75}
 [data-mechanic-wire="creases"] .cr-ray.new{stroke:#7a5a1f}
 [data-mechanic-wire="creases"] .cr-ray.jam{stroke:var(--cr-bad);stroke-width:4px}
-[data-mechanic-wire="creases"] .cr-num{font:11px var(--b-display,Georgia,serif);fill:var(--cr-ink);opacity:.7;text-anchor:middle}
+[data-mechanic-wire="creases"] .cr-num{font:13.5px var(--b-display,Georgia,serif);fill:var(--cr-ink);opacity:.7;text-anchor:middle}
 [data-mechanic-wire="creases"] .cr-centre{fill:var(--cr-ink)}
 [data-mechanic-wire="creases"] .cr-deg{font:600 13px system-ui,sans-serif;fill:var(--cr-ink);text-anchor:middle;pointer-events:none}
 [data-mechanic-wire="creases"] .cr-clash{fill:none;stroke:var(--cr-bad);stroke-width:3.5px}
@@ -37,6 +37,8 @@
 /* Chips: open (dashed), the child's letters (paper), printed letters (dark). */
 [data-mechanic-wire="creases"] .cr-chip circle{fill:var(--cr-paper);stroke:var(--cr-ink);stroke-width:2px}
 [data-mechanic-wire="creases"] .cr-chip text{font:700 15px system-ui,sans-serif;fill:var(--cr-ink);text-anchor:middle;pointer-events:none}
+/* A chip's reach: the part of the disk round its ray that a tap gives it (see REACH). */
+[data-mechanic-wire="creases"] .cr-chip .cr-reach{fill:transparent;stroke:none}
 [data-mechanic-wire="creases"] .cr-chip.open circle{stroke-dasharray:4 3;stroke-width:1.6px}
 [data-mechanic-wire="creases"] .cr-chip.fixed circle{fill:var(--cr-ink);stroke:var(--cr-ink)}
 [data-mechanic-wire="creases"] .cr-chip.fixed text{fill:var(--b-on-pine,#fff8d9)}
@@ -93,8 +95,8 @@
 [data-mechanic-wire="creases"] .cr-tab-disk .cr-disk{max-width:200px}
 [data-mechanic-wire="creases"] .cr-tab-disk .cr-stack{max-width:200px}
 [data-mechanic-wire="creases"] .cr-disk-letter{font:30px var(--b-display,Georgia,serif);fill:var(--cr-ink)}
-[data-mechanic-wire="creases"] .cr-disk.small .cr-chip text{font-size:21px}
-[data-mechanic-wire="creases"] .cr-disk.small .cr-ray{stroke-width:4px}
+[data-mechanic-wire="creases"] .cr-disk.cr-small .cr-chip text{font-size:28px}
+[data-mechanic-wire="creases"] .cr-disk.cr-small .cr-ray{stroke-width:4px}
 [data-mechanic-wire="creases"] button.cr-disk-pick{width:100%;min-height:44px;margin:0;border:2px dashed var(--b-line,#d0d6bd);background:var(--cr-paper);color:var(--cr-ink);box-shadow:none;cursor:pointer;font:inherit}
 [data-mechanic-wire="creases"] button.cr-disk-pick .cr-disk{pointer-events:none}
 [data-mechanic-wire="creases"] button.cr-disk-pick.marked{border:2px solid var(--cr-ink)}
@@ -114,7 +116,7 @@
 [data-mechanic-wire="creases"] .cr-tool.hinted{outline:4px dashed var(--cr-hint);outline-offset:2px}
 [data-mechanic-wire="creases"] .cr-told{margin:0;color:var(--cr-bad);font-weight:600}
 [data-mechanic-wire="creases"].solved .cr-rim,[data-mechanic-wire="creases"] .cr-disk.ok .cr-rim{stroke:var(--cr-good);stroke-width:3px}
-[data-mechanic-wire="creases"] .cr-disk.small.ok .cr-rim{stroke-width:5px}
+[data-mechanic-wire="creases"] .cr-disk.cr-small.ok .cr-rim{stroke-width:5px}
 
 @media (max-width:420px){
   [data-mechanic-wire="creases"] .cr-disk-wrap,[data-mechanic-wire="creases"] .cr-panel{max-width:280px}

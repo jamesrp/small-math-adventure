@@ -7,10 +7,10 @@
 // a band by its handles against the app's attack, a tap taking a band's right
 // end down onto its left end, gaps pinned (the cross pairing, the same A
 // twice), A twice in a join, a locked total stopping a drag, contested presses
-// where a band's ends meet the strip's end in the playground, and no
-// overflow. Same environment variables as the other browser suites
-// (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone
-// with touch). Screenshots go in test-results/ranges/.
+// where a band's ends meet the strip's end in the playground, no overflow,
+// and on a phone 44 px reaches and 13 px numbers. Same environment variables
+// as the other browser suites (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE,
+// TEST_URL, TEST_PHONE=1 for a phone with touch). Screenshots go in test-results/ranges/.
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
 const {chromium} = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
@@ -51,6 +51,17 @@ async function drag(s, from, to, frac = 0.5) {
 // carry the board's key so that focus returns to the board after a press).
 const focused = () => page.evaluate(() => { const el = document.activeElement; return el?.tagName === 'BUTTON' ? 'BUTTON' : el?.dataset?.focus || el?.className?.baseVal || el?.tagName; });
 const button = name => page.locator('.rg-button', {hasText: name});
+// On a phone each control's reach (the part of its card row that a press
+// sends to it) is at least 44 px both ways, and numbers and letters 13 px.
+async function phoneSizes(label) {
+  if (!phone) return;
+  const z = await page.evaluate(() => {
+    const scale = document.querySelector('[data-rg-board]').getScreenCTM().a;
+    return {reach: [...document.querySelectorAll('.rg-reach')].map(r => { const b = r.getBoundingClientRect(); return Math.min(b.width, b.height); }), text: [...document.querySelectorAll('.rg-mark,.rg-letter,.rg-num')].map(t => parseFloat(getComputedStyle(t).fontSize) * scale)};
+  });
+  assert.ok(z.reach.length && Math.min(...z.reach) >= 44, `${label}: every reach 44 px or more (${Math.round(Math.min(...z.reach))})`);
+  assert.ok(Math.min(...z.text) >= 12.9, `${label}: numbers and letters 13 px (${Math.min(...z.text).toFixed(1)})`);
+}
 try {
   await mkdir(out, {recursive: true});
   await page.goto(base); await page.locator('#nickname').fill('Ranges QA'); await page.locator('#profile-form button[type=submit]').click();
@@ -162,7 +173,7 @@ try {
   await done(); await shot('05-widest');
 
   // Puzzle 6: two separate strips, the cross pairing.
-  await open('ranges-06'); await fit('puzzle 6');
+  await open('ranges-06'); await fit('puzzle 6'); await phoneSizes('puzzle 6');
   await tap('A', 15); await tap('B', 10); await button('Pin').click();
   await tap('A', 13); await button('Pin').click();
   assert.equal(await page.locator('.rg-note').innerText(), 'A gap can be smaller.', '5 and 3 are refused');
@@ -184,10 +195,10 @@ try {
   await done(); await shot('07-gaps');
 
   // Puzzle 8: A twice in the join; its band's ends by drag and tap.
-  await open('ranges-08'); await fit('puzzle 8');
+  await open('ranges-08'); await fit('puzzle 8'); await phoneSizes('puzzle 8');
   await drag('A', 6, 5, 0.3); await tap('A', 3, 0.3);
   assert.deepEqual((await board('ranges-08')).card, [3, 5]);
-  await button('Widest').click();
+  await button('Widest').click(); await phoneSizes('puzzle 8 after Widest');
   await key('A', 'Home'); await key('B', 'Home'); await button('Pin').click();
   await key('A', 'End'); await key('B', 'End'); await button('Pin').click();
   await done(); await shot('08-twice');
@@ -203,7 +214,7 @@ try {
 
   // The playground: where a band's two ends meet, the press side picks; lower
   // in the row, the strip's end is nearer.
-  await open('ranges-playground'); await fit('playground');
+  await open('ranges-playground'); await fit('playground'); await phoneSizes('playground');
   await page.locator('.rg-handle[data-focus="rg-card-A-hi"]').focus(); await page.keyboard.press('Home');
   assert.deepEqual((await board('ranges-playground')).cards.A, [2, 2], 'Home takes the right end down to the left end');
   assert.equal((await board('ranges-playground')).len.A, 2, 'the strip stays inside its band');

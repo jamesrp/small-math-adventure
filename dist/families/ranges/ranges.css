@@ -10,24 +10,26 @@
 .rg-grid{stroke:var(--b-line,#d0d6bd);stroke-width:.35}
 .rg-ruler{stroke:var(--b-ink,#294439);stroke-width:.8}
 .rg-tick{stroke:var(--b-ink,#294439);stroke-width:.6}
-.rg-mark{font:400 5.6px var(--b-display,Georgia,serif);fill:var(--b-muted,#5a6850);text-anchor:middle}
+.rg-mark{font:400 var(--rg-text,5.6px) var(--b-display,Georgia,serif);fill:var(--b-muted,#5a6850);text-anchor:middle}
 .rg-split{stroke:var(--b-line,#d0d6bd);stroke-width:.8;stroke-dasharray:2 1.5}
 .rg-band{fill:#ebe8da;stroke:var(--b-muted,#5a6850);stroke-width:.55;stroke-dasharray:1.6 1.1}
 .rg-strip{stroke:var(--b-ink,#294439);stroke-width:.7}
 .rg-sun{fill:var(--b-sun,#efc76e)}.rg-sky{fill:var(--b-sky,#9cc9de)}.rg-rose{fill:var(--b-rose,#e7a28f)}
-.rg-letter{font:600 6px var(--b-display,Georgia,serif);fill:var(--b-ink,#294439);pointer-events:none}
+.rg-letter{font:600 var(--rg-letter-size,6px) var(--b-display,Georgia,serif);fill:var(--b-ink,#294439);pointer-events:none}
 .rg-white{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:.7}
-.rg-num{font:400 5.6px var(--b-display,Georgia,serif);fill:var(--b-ink,#294439);text-anchor:middle;pointer-events:none}
+.rg-num{font:400 var(--rg-text,5.6px) var(--b-display,Georgia,serif);fill:var(--b-ink,#294439);text-anchor:middle;pointer-events:none}
 .rg-wall{fill:var(--b-pine,#31533e)}
 .rg-endmark{stroke:var(--b-ink,#294439);stroke-width:1.1}
-.rg-hit{fill:transparent;cursor:pointer}
+.rg-hit{fill:transparent}
+/* Each control's reach: the part of its row that a press sends to it. */
+.rg-reach{fill:transparent}
 .rg-knob{cursor:grab;outline:none}
 .rg-knob circle{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:1.3}
 .rg-handle{cursor:ew-resize;outline:none}
-.rg-handle rect{fill:var(--b-ink,#294439);stroke:var(--b-card,#fffdf5);stroke-width:.6}
+.rg-handle .rg-tab{fill:var(--b-ink,#294439);stroke:var(--b-card,#fffdf5);stroke-width:.6}
 .rg-handle line{stroke:var(--b-ink,#294439);stroke-width:1}
-.rg-knob:focus-visible circle,.rg-handle:focus-visible rect{stroke:var(--b-ochre,#b38840);stroke-width:2.2}
-.rg-knob.hinted circle,.rg-handle.hinted rect{stroke:var(--b-ochre,#b38840);stroke-width:1.8;stroke-dasharray:1.6 1}
+.rg-knob:focus-visible circle,.rg-handle:focus-visible .rg-tab{stroke:var(--b-ochre,#b38840);stroke-width:2.2}
+.rg-knob.hinted circle,.rg-handle.hinted .rg-tab{stroke:var(--b-ochre,#b38840);stroke-width:1.8;stroke-dasharray:1.6 1}
 .rg-aim{stroke:var(--b-ochre,#b38840);stroke-width:1.4;stroke-dasharray:1.6 1.2}
 .dragging .rg-knob,.dragging .rg-handle,.dragging .rg-hit{cursor:grabbing}
 .rg-window{fill:#f3e2b8;fill-opacity:.55;stroke:var(--b-ochre,#b38840);stroke-width:.7;stroke-dasharray:2 1.4}

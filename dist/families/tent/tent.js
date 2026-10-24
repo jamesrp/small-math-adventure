@@ -340,12 +340,27 @@ const U = 10, LEFT = 14, RIGHT = 7, START_H = 18, ROW_H = 12, KEPT_H = 8, RULER_
 const W = LEFT + 16 * U + RIGHT;
 const X = u => LEFT + u / UNIT * U;
 const f = n => Number(n.toFixed(2));
-const HANDLE_Y = 4.1 / START_H;
 const zoomed = q => q.mode === 'widest';
 const SX = (q, u) => zoomed(q) ? LEFT + u / q.zoom * 16 * U : X(u);
+// Sizes for the screen. The start row is a tap target as a whole (a press
+// goes to a control in it), so on a phone it is at least ROW_PX tall; in a
+// widest puzzle, where the band's handle and the marker share it, a lane at
+// least that tall for the handle's tab sits above the marker's lane. The
+// board is about PHONE_PX across on a 375 px phone and at most WIDE_PX on a
+// tablet, which fixes the units a pixel is worth; a phone also gets 13 px
+// numbers and a larger marker. Turning a phone past 560 px redraws.
+const PHONE_PX = 313, WIDE_PX = 640, ROW_PX = 46, TEXT_PX = 13, KNOB_PX = 22;
+const narrow = () => typeof matchMedia === 'function' && matchMedia('(max-width: 560px)').matches;
+function sizes(q) {
+  const phone = narrow(), k = W / (phone ? PHONE_PX : WIDE_PX);
+  const plain = phone ? Math.max(START_H, Math.ceil(ROW_PX * k)) : START_H, band = zoomed(q) ? Math.ceil(ROW_PX * k) : 0;
+  return {phone, k, plain, band, split: band / (band + plain), text: phone ? Math.max(5.6, f(TEXT_PX * k)) : 5.6, label: phone ? Math.max(5.4, f(TEXT_PX * k)) : 5.4, knob: phone ? Math.max(4.4, f(KNOB_PX / 2 * k)) : 4.4};
+}
 function layout(q) {
+  const z = sizes(q);
   let y = 4;
-  const start = y; y += START_H;
+  // The start row: the handle's lane (widest puzzles only), then the marker's lane.
+  const start = y, lane = start + z.band, startH = z.band + z.plain; y += startH;
   const zoom = zoomed(q) ? y : null;
   if (zoomed(q)) y += ZOOM_H + LINK_H;
   y += 5;
@@ -353,10 +368,20 @@ function layout(q) {
   for (let k = 0; k < rowsOf(q); k++) { rows.push(y); y += ROW_H; }
   const kept = q.mode === 'break' || q.mode === 'widest' ? y : null;
   if (kept !== null) y += KEPT_H;
-  return {start, zoom, split, rows, kept, ruler: y + 2, height: y + 2 + RULER_H};
+  return {start, lane, startH, z, zoom, split, rows, kept, ruler: y + 2, height: y + 2 + RULER_H};
 }
-const knob = (q, target, x, y, cls, label, min, max, now, hinted) => `<g class="tn-knob ${cls}${hinted ? ' hinted' : ''}" data-tn-target='${JSON.stringify({kind: target.kind, ...(target.which !== undefined ? {which: target.which} : {})})}' data-focus="tn-${target.kind}-${target.which ?? target.end ?? 0}" tabindex="0" role="slider" aria-label="${label}" aria-valuemin="${f(min / UNIT)}" aria-valuemax="${f(max / UNIT)}" aria-valuenow="${f(now / UNIT)}" aria-valuetext="${fmt(now)}" transform="translate(${f(x)},${y})"><circle r="4.4"/></g>`;
-const handle = (q, end, x, top, label, min, max, now, hinted) => `<g class="tn-handle${hinted ? ' hinted' : ''}" data-tn-target='${JSON.stringify({kind: 'band', end})}' data-focus="tn-band-${end}" tabindex="0" role="slider" aria-label="${label}" aria-valuemin="${f(min / UNIT)}" aria-valuemax="${f(max / UNIT)}" aria-valuenow="${f(now / UNIT)}" aria-valuetext="${fmt(now)}" transform="translate(${f(x)},${top})"><rect x="${end === 'lo' ? -5.2 : 0}" y="0.3" width="5.2" height="7.6" rx="1.8"/><line x1="0" y1="0.3" x2="0" y2="${START_H - 3}"/></g>`;
+// An invisible rect inside a control's group, translated to (gx, gy), over the
+// part of the start row that a press there sends to that control.
+// A band on the start row is drawn BAND_H tall in the middle of the marker's lane.
+const BAND_H = 12;
+const reachRect = ([x1, y1, x2, y2], gx, gy) => `<rect class="tn-reach" x="${f(x1 - gx)}" y="${f(y1 - gy)}" width="${f(Math.max(x2 - x1, 0))}" height="${f(Math.max(y2 - y1, 0))}"/>`;
+const knob = (q, target, x, y, cls, label, min, max, now, hinted, area, r) => `<g class="tn-knob ${cls}${hinted ? ' hinted' : ''}" data-tn-target='${JSON.stringify({kind: target.kind, ...(target.which !== undefined ? {which: target.which} : {})})}' data-focus="tn-${target.kind}-${target.which ?? target.end ?? 0}" tabindex="0" role="slider" aria-label="${label}" aria-valuemin="${f(min / UNIT)}" aria-valuemax="${f(max / UNIT)}" aria-valuenow="${f(now / UNIT)}" aria-valuetext="${fmt(now)}" transform="translate(${f(x)},${f(y)})">${reachRect(area, x, y)}<circle r="${r}"/></g>`;
+// A band's handle: a dark tab just above the band's end on a line down the row.
+// With no lane of its own, the tab sits on the band's top edge.
+function handle(q, end, x, L, label, min, max, now, hinted, area) {
+  const z = L.z, tw = Math.max(5.2, f(10 * z.k)), th = Math.max(7.6, Math.min(z.band || 7.6, f(22 * z.k))), ty = z.band ? z.band - 0.5 - th : Math.max(0.3, (z.plain - BAND_H) / 2 + 1.5 - th);
+  return `<g class="tn-handle${hinted ? ' hinted' : ''}" data-tn-target='${JSON.stringify({kind: 'band', end})}' data-focus="tn-band-${end}" tabindex="0" role="slider" aria-label="${label}" aria-valuemin="${f(min / UNIT)}" aria-valuemax="${f(max / UNIT)}" aria-valuenow="${f(now / UNIT)}" aria-valuetext="${fmt(now)}" transform="translate(${f(x)},${L.start})">${reachRect(area, x, L.start)}<rect class="tn-tab" x="${end === 'lo' ? -tw : 0}" y="${f(ty)}" width="${tw}" height="${f(th)}" rx="1.8"/><line x1="0" y1="${f(ty)}" x2="0" y2="${f(L.startH - 3)}"/></g>`;
+}
 const bandRect = (x1, x2, y, h, cls) => `<rect class="${cls}" x="${f(x1)}" y="${y}" width="${f(Math.max(x2 - x1, 0.8))}" height="${h}" rx="1.5"/>`;
 // The markers a board shows: [start, color class] pairs.
 function markersOf(q, b) {
@@ -374,12 +399,31 @@ function startBand(q, b) {
 }
 // Which controls a board offers on its start row, as targets for a press.
 export function targetsOf(q, b) {
-  if (q.mode === 'pairs') return b.at.map((u, which) => ({kind: 'set', which, at: u, y: 0.5}));
-  if (q.mode === 'break') return [{kind: 'set', at: b.at, y: 0.5}];
-  if (q.mode === 'width') return [{kind: 'band', end: 'lo', at: b.band[0], dx: -0.2, y: HANDLE_Y}, {kind: 'band', end: 'hi', at: b.band[1], dx: 0.2, y: HANDLE_Y}];
-  if (q.mode === 'fill' || q.mode === 'pieces') return [{kind: 'slide', at: b.lo + q.width / 2, y: 0.5}];
-  const out = [{kind: 'band', end: 'hi', at: b.hi, dx: 0.2, y: HANDLE_Y}];
-  if (b.claim) out.push({kind: 'set', at: b.at, y: 0.5});
+  if (q.mode === 'pairs') return b.at.map((u, which) => ({kind: 'set', which, at: u}));
+  if (q.mode === 'break') return [{kind: 'set', at: b.at}];
+  if (q.mode === 'width') return [{kind: 'band', end: 'lo', at: b.band[0], dx: -0.2}, {kind: 'band', end: 'hi', at: b.band[1], dx: 0.2}];
+  if (q.mode === 'fill' || q.mode === 'pieces') return [{kind: 'slide', at: b.lo + q.width / 2}];
+  const out = [{kind: 'band', end: 'hi', at: b.hi, dx: 0.2}];
+  if (b.claim) out.push({kind: 'set', at: b.at});
+  return out;
+}
+// Where a target sits across the board, and the lane it takes taps in: with
+// the band's handle and the marker both on the row (a widest puzzle after
+// Widest), the handle takes the top lane and the marker the bottom one.
+const targetX = (q, t) => SX(q, t.at) + (t.dx || 0) * U;
+const lanesOn = targets => targets.some(t => t.kind === 'band') && targets.some(t => t.kind !== 'band');
+const inLane = (targets, t, top) => !lanesOn(targets) || (t.kind === 'band') === top;
+// Each target's part of the start row, [x1, y1, x2, y2] in board units: its
+// lane, split across halfway to its neighbours in that lane (two at the same
+// place split there, the first on the left). targetsNear sends a press by the
+// same rule, so these are what a tap reaches.
+function areasOf(q, targets, L) {
+  const out = new Map();
+  for (const top of [true, false]) {
+    const lane = targets.map((t, i) => ({t, i, x: targetX(q, t)})).filter(({t}) => inLane(targets, t, top) && (lanesOn(targets) || top)).sort((a, c) => a.x - c.x || a.i - c.i);
+    const [y1, y2] = !lanesOn(targets) ? [L.start, L.start + L.startH] : top ? [L.start, L.lane] : [L.lane, L.start + L.startH];
+    lane.forEach((o, k) => out.set(o.t, [k ? (lane[k - 1].x + o.x) / 2 : 0, y1, k < lane.length - 1 ? (o.x + lane[k + 1].x) / 2 : W, y2]));
+  }
   return out;
 }
 // The move a target makes when sent to position v (in ticks), held inside what it can reach.
@@ -396,11 +440,12 @@ export function actionFor(q, b, t, v) {
 }
 function drawBoard(p, b, view) {
   const q = p.parameters, L = layout(q), parts = [], n = rowsOf(q), last = L.rows[n - 1], top = L.rows[0], bottom = L.ruler, live = view.live, shown = view.shown;
-  const mid = L.start + START_H / 2;
+  // The marker's lane of the start row: its band, markers and pins.
+  const sy = L.lane, sh = L.z.plain, mid = sy + sh / 2;
   // Faint unit lines through the result rows, then each row's label.
   // (through the start row too, unless it is drawn large)
   for (let v = 0; v <= 16; v++) parts.push(`<line class="tn-grid" x1="${X(v * UNIT)}" y1="${zoomed(q) ? top - 2 : L.start}" x2="${X(v * UNIT)}" y2="${bottom}"/>`);
-  L.rows.forEach((y, k) => parts.push(`<text class="tn-rowlabel" x="${LEFT - 4}" y="${y + ROW_H / 2 + 2}">${k + 1}</text>`));
+  L.rows.forEach((y, k) => parts.push(`<text class="tn-rowlabel" x="${LEFT - 4}" y="${f(y + ROW_H / 2 + 0.36 * L.z.label)}">${k + 1}</text>`));
   // The claim's window: on the last row for a claim about landings, across
   // every row when every position must stay inside.
   if (q.window) {
@@ -418,7 +463,7 @@ function drawBoard(p, b, view) {
     });
   }
   parts.push(`<line class="tn-split" x1="${LEFT - 4}" y1="${L.split}" x2="${W - 3}" y2="${L.split}"/>`);
-  if (band) parts.push(bandRect(SX(q, band[0]), SX(q, band[1]), L.start + 3, START_H - 6, q.mode === 'break' ? 'tn-band' : 'tn-set'));
+  if (band) parts.push(bandRect(SX(q, band[0]), SX(q, band[1]), f(mid - BAND_H / 2), BAND_H, q.mode === 'break' ? 'tn-band' : 'tn-set'));
   // Each marker's path: a line from its start through its place after each move.
   for (const [u, cls] of markersOf(q, b)) {
     const pts = pathOf(u, n), xy = [[SX(q, u), mid], ...pts.slice(1).map((v, k) => [X(v), L.rows[k] + ROW_H / 2])];
@@ -448,28 +493,29 @@ function drawBoard(p, b, view) {
     const y = L.kept + 3, lands = b.pins.map(u => after(u, q.moves));
     if (b.pins.length === 2) parts.push(`<g class="tn-span"><rect x="${X(Math.min(...lands))}" y="${y}" width="${f(Math.max(Math.abs(X(lands[0]) - X(lands[1])), 0.8))}" height="2"/></g>`);
     for (const [k, u] of b.pins.entries()) {
-      parts.push(`<line class="tn-pinmark" x1="${f(SX(q, u))}" y1="${L.start + 1}" x2="${f(SX(q, u))}" y2="${L.start + START_H - 1}"/>`);
+      parts.push(`<line class="tn-pinmark" x1="${f(SX(q, u))}" y1="${f(sy + 1)}" x2="${f(SX(q, u))}" y2="${f(sy + sh - 1)}"/>`);
       parts.push(`<path class="tn-pin" d="M${f(X(lands[k]))} ${y - 2.5}l3.2 6h-6.4z"/>`);
     }
   }
-  // The start row's controls, and a hit area over the whole row: a press goes to the nearest control.
-  const targets = live ? targetsOf(q, b) : [];
-  if (targets.length) parts.push(`<rect class="tn-hit" data-tn-row="start" x="0" y="${L.start}" width="${W}" height="${START_H}"/>`);
+  // The start row's controls, each with its part of the row, over a hit area
+  // for the whole row that names it for a press.
+  const targets = live ? targetsOf(q, b) : [], areas = areasOf(q, targets, L);
+  if (targets.length) parts.push(`<rect class="tn-hit" data-tn-row="start" x="0" y="${L.start}" width="${W}" height="${L.startH}"/>`);
   if (shown && ['set', 'band', 'slide'].includes(shown.type)) {
     const at = shown.type === 'slide' ? shown.at + q.width / 2 : shown.at;
-    parts.push(`<line class="tn-aim" x1="${f(SX(q, at))}" y1="${L.start + 1}" x2="${f(SX(q, at))}" y2="${L.start + START_H - 1}"/>`);
+    parts.push(`<line class="tn-aim" x1="${f(SX(q, at))}" y1="${L.start + 1}" x2="${f(SX(q, at))}" y2="${f(L.start + L.startH - 1)}"/>`);
   }
   const lit = t => shown && shown.type === (t.kind === 'slide' ? 'slide' : t.kind) && (shown.which === undefined || shown.which === t.which) && (shown.end === undefined || shown.end === t.end);
   for (const t of targets) {
     if (t.kind === 'band') {
       const [min, max] = q.mode === 'widest' ? [q.step, q.zoom] : t.end === 'lo' ? [0, b.band[1]] : [b.band[0], TRACK];
-      parts.push(handle(q, t.end, SX(q, t.at), L.start, `The band’s ${t.end === 'lo' ? 'left' : 'right'} end`, min, max, t.at, lit(t)));
+      parts.push(handle(q, t.end, SX(q, t.at), L, `The band’s ${t.end === 'lo' ? 'left' : 'right'} end`, min, max, t.at, lit(t), areas.get(t)));
     } else if (t.kind === 'slide') {
-      parts.push(knob(q, t, X(t.at), mid, 'm-band', 'The band', q.width / 2, TRACK - q.width / 2, b.lo, lit(t)));
+      parts.push(knob(q, t, X(t.at), mid, 'm-band', 'The band', q.width / 2, TRACK - q.width / 2, b.lo, lit(t), areas.get(t), L.z.knob));
     } else {
       const [cls, label] = q.mode === 'pairs' ? [t.which ? 'm-sky' : 'm-sun', `The ${COLORS[t.which]} marker`] : ['m-ink', 'The marker'];
       const [min, max] = q.mode === 'pairs' ? [0, TRACK] : q.mode === 'break' ? q.band : [0, b.hi];
-      parts.push(knob(q, t, SX(q, t.at), mid, cls, label, min, max, t.at, lit(t)));
+      parts.push(knob(q, t, SX(q, t.at), mid, cls, label, min, max, t.at, lit(t), areas.get(t), L.z.knob));
     }
   }
   // A marker that is not a control (before Widest, or after a solve) shows as an end mark.
@@ -521,7 +567,7 @@ function render(p, a) {
   const q = p.parameters, b = a.board, done = solved(p, b);
   const shown = a.hintLevel >= 2 && !done ? plan(p, b)?.action : null;
   const L = layout(q), live = !done;
-  const svg = `<svg class="tn-board" data-tn-board viewBox="0 0 ${W} ${f(L.height)}" style="--tn-aspect:${f(W / L.height)}" role="group" aria-label="A track from 0 to 16 and where everything is after each move"><g class="tn-live">${drawBoard(p, b, {live, shown})}</g></svg>`;
+  const svg = `<svg class="tn-board" data-tn-board viewBox="0 0 ${W} ${f(L.height)}" style="--tn-aspect:${f(W / L.height)};--tn-text:${L.z.text}px;--tn-label:${L.z.label}px" role="group" aria-label="A track from 0 to 16 and where everything is after each move"><g class="tn-live">${drawBoard(p, b, {live, shown})}</g></svg>`;
   const home = svg.match(/data-focus="(tn-[a-z]+-[a-z0-9]+)"/)?.[1] || 'tn-board';
   let bar = '';
   if (!done && (q.mode === 'pairs' || q.mode === 'pieces')) bar = moveButton('That’s all', {type: 'all'}, b.found.length > 0 && !b.told, shown?.type === 'all', home);
@@ -543,9 +589,16 @@ function render(p, a) {
 // it and the board follows; letting go makes one move (one Undo). A tap moves
 // it to the tapped place. Arrow keys move a focused control one grid step;
 // Home and End go to the ends of its reach.
+// The targets of a press at position v (ticks) and height fraction y of the
+// start row: first the one whose part of the row (areasOf) holds it, then the
+// others nearest first, for a tap that would move the first nowhere.
 export function targetsNear(q, b, v, y) {
-  const d = t => Math.hypot((t.at - v) / UNIT * (zoomed(q) ? 16 * UNIT / q.zoom : 1) + (t.dx || 0), (t.y - y) * START_H / U);
-  return targetsOf(q, b).sort((s, t) => d(s) - d(t));
+  const targets = targetsOf(q, b), px = SX(q, v), top = y < sizes(q).split;
+  // Two at the same place: the first takes presses on its left, the second on its right.
+  const order = list => list.map((t, i) => ({t, i, d: Math.abs(targetX(q, t) - px), x: targetX(q, t)})).sort((a, c) => a.d - c.d || (a.x === c.x && px > a.x ? c.i - a.i : a.i - c.i)).map(({t}) => t);
+  if (!lanesOn(targets)) return order(targets);
+  const mine = targets.filter(t => inLane(targets, t, top));
+  return [...order(mine), ...order(targets.filter(t => !mine.includes(t)))];
 }
 let gesture = null, listening = false;
 function tickAt(svg, q, x, y) {
@@ -586,9 +639,13 @@ function onEnd(e) {
   if (e.type === 'pointerup' && g.action && move(g.p, b, g.action)) { g.api.apply(g.action); return; }
   if (g.moved) g.api.ui({});
 }
+// Turning a phone past 560 px redraws the board at its other size.
+let redrawOnTurn = null, turnQuery = null;
 function wire(root, p, api) {
   const svg = root.querySelector('[data-tn-board]'), q = p.parameters;
   if (!svg) return;
+  redrawOnTurn = () => { if (root.isConnected) api.ui({}); };
+  if (!turnQuery && typeof matchMedia === 'function') { turnQuery = matchMedia('(max-width: 560px)'); turnQuery.addEventListener?.('change', () => redrawOnTurn?.()); }
   if (!listening) {
     document.addEventListener('pointermove', onMove);
     for (const type of ['pointerup', 'pointercancel']) document.addEventListener(type, onEnd);
@@ -601,7 +658,7 @@ function wire(root, p, api) {
     if (!hit || solved(p, b)) return;
     const at = tickAt(svg, q, e.clientX, e.clientY);
     if (!at) return;
-    const top = layout(q).start, order = targetsNear(q, b, at.v, (at.y - top) / START_H), target = order[0];
+    const L = layout(q), order = targetsNear(q, b, at.v, (at.y - L.start) / L.startH), target = order[0];
     if (!target) return;
     e.preventDefault();
     const action = actionFor(q, b, target, at.v);

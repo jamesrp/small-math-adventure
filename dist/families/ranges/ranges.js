@@ -302,18 +302,32 @@ function hint(p, b) {
 // 0. A window on the ruler marks the app's claim; pine pins and bars keep
 // the extremes the child has made.
 const U = 10, PAD = 7, CARD_H = 18, ROW_H = 13, KEPT_H = 8, RULER_H = 15;
-// A band's handles are tabs at the top of its row, just outside each end of
-// the band; the strip's end is a knob in the middle.
-const HANDLE_Y = 4.1 / CARD_H;
 const X = v => PAD + v * U;
 const f = n => Number(n.toFixed(2));
 const COLORS = ['sun', 'sky', 'rose'];
 const colorOf = (q, s) => COLORS[stripsOf(q).indexOf(s)] || 'sun';
 const lengthWords = v => `${v} ${v === 1 ? 'unit' : 'units'}`;
+// Sizes for the screen. A card row is a tap target as a whole (a press goes to
+// a control in it), so on a phone each row is at least ROW_PX tall, and a row
+// that holds a band's handles has a lane at least that tall above the strip's
+// lane for the handles' tabs. The board is about PHONE_PX across on a 375 px
+// phone and at most WIDE_PX on a tablet, which fixes the units a pixel is
+// worth; a phone also gets 13 px numbers and letters and a larger end knob.
+// Turning a phone past 560 px redraws.
+const PHONE_PX = 313, WIDE_PX = 620, ROW_PX = 46, TEXT_PX = 13, KNOB_PX = 22;
+const narrow = () => typeof matchMedia === 'function' && matchMedia('(max-width: 560px)').matches;
+// The row whose band has handles: the edited strip, or every strip in the playground.
+const editRow = (q, s) => canCard(q) && (q.mode === 'playground' || s === q.edit);
+function sizes(q) {
+  const phone = narrow(), k = (X(q.ruler) + PAD) / (phone ? PHONE_PX : WIDE_PX);
+  const plain = phone ? Math.max(CARD_H, Math.ceil(ROW_PX * k)) : CARD_H, band = Math.ceil(ROW_PX * k);
+  return {phone, k, plain, band, lanes: band + plain, split: band / (band + plain), text: phone ? Math.max(5.6, f(TEXT_PX * k)) : 5.6, letter: phone ? Math.max(6, f(TEXT_PX * k)) : 6, knob: phone ? Math.max(4.4, f(KNOB_PX / 2 * k)) : 4.4};
+}
 // Where everything goes, top to bottom.
 function layout(q) {
+  const z = sizes(q);
   let y = 4;
-  const cards = stripsOf(q).map(s => { const top = y; y += CARD_H; return {s, top}; });
+  const cards = stripsOf(q).map(s => { const top = y, h = editRow(q, s) ? z.lanes : z.plain; y += h; return {s, top, h}; });
   y += 7;
   const rows = [], kept = [];
   // Each pair of a gap puzzle is a group with a lane for its kept gaps below;
@@ -326,37 +340,52 @@ function layout(q) {
     for (const i of rowsOf) { rows[i] = y; y += ROW_H; }
     if (k !== null) { kept[k] = y; y += KEPT_H; }
   });
-  return {cards, rows, kept, ruler: y + 2, height: y + 2 + RULER_H, width: X(q.ruler) + PAD};
+  return {cards, rows, kept, ruler: y + 2, height: y + 2 + RULER_H, width: X(q.ruler) + PAD, z};
 }
-function cardRow(q, b, s, top, view) {
-  const cards = cardsOf(q, b), [lo, hi] = cards[s], v = b.len[s], c = colorOf(q, s), mid = top + CARD_H / 2;
-  const editing = view.live && canCard(q) && (q.mode === 'playground' || s === q.edit), setting = view.live && canSet(q, b);
+// A band is drawn BAND_H tall round the strip, in the middle of the strip's lane.
+const BAND_H = 12;
+// The strip's lane in a card row, [top, height]: below the band's lane in an edit row, else all of it.
+const stripLane = (q, s, top, h, z) => editRow(q, s) ? [top + z.band, h - z.band] : [top, h];
+// An invisible rect inside a control's group, translated to (gx, gy), over the
+// part of the row that a press there sends to that control.
+const reachRect = (x1, y1, x2, y2, gx, gy) => `<rect class="rg-reach" x="${f(x1 - gx)}" y="${f(y1 - gy)}" width="${f(Math.max(x2 - x1, 0))}" height="${f(Math.max(y2 - y1, 0))}"/>`;
+function cardRow(q, b, s, top, h, view, z) {
+  const cards = cardsOf(q, b), [lo, hi] = cards[s], v = b.len[s], c = colorOf(q, s);
+  const [sy, sh] = stripLane(q, s, top, h, z), mid = sy + sh / 2, W = X(q.ruler) + PAD;
+  const editing = view.live && editRow(q, s), setting = view.live && canSet(q, b);
   const [rlo, rhi] = reach(q, cards, b.len, s);
-  const parts = [`<rect class="rg-band b-${c}" x="${X(lo)}" y="${top + 3}" width="${(hi - lo) * U}" height="${CARD_H - 6}" rx="2"/>`];
-  parts.push(`<rect class="rg-strip rg-${c}" x="${X(0)}" y="${mid - 4}" width="${v * U}" height="8" rx="1.5"/><text class="rg-letter" x="${X(0) + 3}" y="${mid + 2.4}">${s}</text>`);
+  const parts = [`<rect class="rg-band b-${c}" x="${X(lo)}" y="${f(mid - BAND_H / 2)}" width="${(hi - lo) * U}" height="${BAND_H}" rx="2"/>`];
+  parts.push(`<rect class="rg-strip rg-${c}" x="${X(0)}" y="${f(mid - 4)}" width="${v * U}" height="8" rx="1.5"/><text class="rg-letter" x="${X(0) + 3}" y="${f(mid + 0.4 * z.letter)}">${s}</text>`);
   const shown = view.shown;
-  if (shown?.type === 'set' && shown.strip === s) parts.push(`<line class="rg-aim" x1="${X(shown.length)}" y1="${top + 1}" x2="${X(shown.length)}" y2="${top + CARD_H - 1}"/>`);
-  if (shown?.type === 'card' && shown.strip === s) parts.push(`<line class="rg-aim" x1="${X(shown.value)}" y1="${top}" x2="${X(shown.value)}" y2="${top + CARD_H}"/>`);
-  // The hit area covers the whole row: a press goes to the nearest control in it.
-  if (view.live && (editing || setting)) parts.push(`<rect class="rg-hit" data-rg-row="${s}" x="0" y="${top}" width="${X(q.ruler) + PAD}" height="${CARD_H}"/>`);
+  if (shown?.type === 'set' && shown.strip === s) parts.push(`<line class="rg-aim" x1="${X(shown.length)}" y1="${f(sy + 1)}" x2="${X(shown.length)}" y2="${f(sy + sh - 1)}"/>`);
+  if (shown?.type === 'card' && shown.strip === s) parts.push(`<line class="rg-aim" x1="${X(shown.value)}" y1="${top}" x2="${X(shown.value)}" y2="${f(top + h)}"/>`);
+  // The row's own hit area, under the controls' reach: it names the row for a press.
+  if (editing || setting) parts.push(`<rect class="rg-hit" data-rg-row="${s}" x="0" y="${top}" width="${W}" height="${f(h)}"/>`);
   if (editing) {
+    // Each band end takes its side of the band's middle, in the top lane when
+    // the strip's end is a control too, else the whole row.
+    const split = X((lo + hi) / 2), bottom = setting ? sy : top + h;
+    const tw = Math.max(5.2, f(10 * z.k)), th = Math.max(7.6, Math.min(z.band, f(22 * z.k))), ty = z.band - 0.5 - th;
     for (const [end, at] of [['lo', lo], ['hi', hi]]) {
       const [min, max] = end === 'lo' ? [1, hi] : [lo, cardTop(q, cards, s)];
-      parts.push(`<g class="rg-handle${shown?.type === 'card' && shown.strip === s && shown.end === end ? ' hinted' : ''}" data-rg-target='${JSON.stringify({kind: 'card', strip: s, end})}' data-focus="rg-card-${s}-${end}" tabindex="0" role="slider" aria-label="${s}’s band, ${sideWords(end)} end" aria-valuemin="${min}" aria-valuemax="${max}" aria-valuenow="${at}" aria-valuetext="${lengthWords(at)}" transform="translate(${X(at)},${top})"><rect x="${end === 'lo' ? -5.2 : 0}" y="0.3" width="5.2" height="7.6" rx="1.8"/><line x1="0" y1="0.3" x2="0" y2="${CARD_H - 3}"/></g>`);
+      const [x1, x2] = end === 'lo' ? [0, split] : [split, W];
+      parts.push(`<g class="rg-handle${shown?.type === 'card' && shown.strip === s && shown.end === end ? ' hinted' : ''}" data-rg-target='${JSON.stringify({kind: 'card', strip: s, end})}' data-focus="rg-card-${s}-${end}" tabindex="0" role="slider" aria-label="${s}’s band, ${sideWords(end)} end" aria-valuemin="${min}" aria-valuemax="${max}" aria-valuenow="${at}" aria-valuetext="${lengthWords(at)}" transform="translate(${X(at)},${top})">${reachRect(x1, top, x2, bottom, X(at), top)}<rect class="rg-tab" x="${end === 'lo' ? -tw : 0}" y="${f(ty)}" width="${tw}" height="${f(th)}" rx="1.8"/><line x1="0" y1="${f(ty)}" x2="0" y2="${f(h - 3)}"/></g>`);
     }
   }
-  if (setting) parts.push(`<g class="rg-knob${shown?.type === 'set' && shown.strip === s ? ' hinted' : ''}" data-rg-target='${JSON.stringify({kind: 'set', strip: s})}' data-focus="rg-knob-${s}" tabindex="0" role="slider" aria-label="${s}’s end" aria-valuemin="${rlo}" aria-valuemax="${rhi}" aria-valuenow="${v}" aria-valuetext="${lengthWords(v)}" transform="translate(${X(v)},${mid})"><circle r="4.4"/></g>`);
-  else parts.push(`<line class="rg-endmark" x1="${X(v)}" y1="${mid - 5}" x2="${X(v)}" y2="${mid + 5}"/>`);
+  if (setting) {
+    const [y1, y2] = editing ? [sy, sy + sh] : [top, top + h];
+    parts.push(`<g class="rg-knob${shown?.type === 'set' && shown.strip === s ? ' hinted' : ''}" data-rg-target='${JSON.stringify({kind: 'set', strip: s})}' data-focus="rg-knob-${s}" tabindex="0" role="slider" aria-label="${s}’s end" aria-valuemin="${rlo}" aria-valuemax="${rhi}" aria-valuenow="${v}" aria-valuetext="${lengthWords(v)}" transform="translate(${X(v)},${f(mid)})">${reachRect(0, y1, W, y2, X(v), mid)}<circle r="${z.knob}"/></g>`);
+  } else parts.push(`<line class="rg-endmark" x1="${X(v)}" y1="${f(mid - 5)}" x2="${X(v)}" y2="${f(mid + 5)}"/>`);
   return `<g class="rg-card">${parts.join('')}</g>`;
 }
-function resultRow(q, b, i, top) {
+function resultRow(q, b, i, top, z) {
   const row = q.rows[i];
   let at = 0;
   const pieces = row.map(piece => {
     const w = typeof piece === 'number' ? piece : b.len[piece], x = X(at);
     at += w;
-    if (typeof piece === 'number') return `<rect class="rg-white" x="${x}" y="${top + 2}" width="${w * U}" height="${ROW_H - 4}" rx="1.5"/><text class="rg-num" x="${f(x + w * U / 2)}" y="${top + ROW_H / 2 + 2.2}">${piece}</text>`;
-    return `<rect class="rg-strip rg-${colorOf(q, piece)}" x="${x}" y="${top + 2}" width="${w * U}" height="${ROW_H - 4}" rx="1.5"/><text class="rg-letter" x="${x + 3}" y="${top + ROW_H / 2 + 2.2}">${piece}</text>`;
+    if (typeof piece === 'number') return `<rect class="rg-white" x="${x}" y="${top + 2}" width="${w * U}" height="${ROW_H - 4}" rx="1.5"/><text class="rg-num" x="${f(x + w * U / 2)}" y="${f(top + ROW_H / 2 + 0.38 * z.text)}">${piece}</text>`;
+    return `<rect class="rg-strip rg-${colorOf(q, piece)}" x="${x}" y="${top + 2}" width="${w * U}" height="${ROW_H - 4}" rx="1.5"/><text class="rg-letter" x="${x + 3}" y="${f(top + ROW_H / 2 + 0.38 * z.letter)}">${piece}</text>`;
   }).join('');
   // A locked total's row ends against a wall at the sum.
   const wall = q.total && row.length > 1 && row.every(piece => q.total.strips.includes(piece)) ? `<rect class="rg-wall" x="${X(q.total.sum)}" y="${top}" width="2.4" height="${ROW_H}" rx="1"/>` : '';
@@ -371,9 +400,9 @@ function drawBoard(p, b, view) {
     const bad = q.mode !== 'gap' && outside(q, joinEnd(q, b.len));
     parts.push(`<rect class="rg-window${bad ? ' broken' : ''}" x="${X(q.window[0])}" y="${top - 3}" width="${(q.window[1] - q.window[0]) * U}" height="${bottom - top + 3}"/>`);
   }
-  for (const {s, top: y} of L.cards) parts.push(cardRow(q, b, s, y, view));
+  for (const {s, top: y, h} of L.cards) parts.push(cardRow(q, b, s, y, h, view, L.z));
   parts.push(`<line class="rg-split" x1="${PAD - 4}" y1="${top - 4}" x2="${X(q.ruler) + 4}" y2="${top - 4}"/>`);
-  q.rows.forEach((_, i) => parts.push(resultRow(q, b, i, L.rows[i])));
+  q.rows.forEach((_, i) => parts.push(resultRow(q, b, i, L.rows[i], L.z)));
   if (q.mode === 'gap') {
     q.pairs.forEach(([t, u], g) => {
       const a = endOf(q.rows[t], b.len), c = endOf(q.rows[u], b.len);
@@ -413,7 +442,7 @@ function render(p, a) {
   const q = p.parameters, b = a.board, done = solved(p, b);
   const shown = a.hintLevel >= 2 && !done && q.mode !== 'playground' ? plan(p, b)?.action : null;
   const L = layout(q), live = !done;
-  const svg = `<svg class="rg-board" data-rg-board viewBox="0 0 ${L.width} ${L.height}" style="--rg-aspect:${f(L.width / L.height)}" role="group" aria-label="Strips on a ruler"><g class="rg-live">${drawBoard(p, b, {live, shown})}</g></svg>`;
+  const svg = `<svg class="rg-board" data-rg-board viewBox="0 0 ${L.width} ${f(L.height)}" style="--rg-aspect:${f(L.width / L.height)};--rg-text:${L.z.text}px;--rg-letter-size:${L.z.letter}px" role="group" aria-label="Strips on a ruler"><g class="rg-live">${drawBoard(p, b, {live, shown})}</g></svg>`;
   let bar = '', note = '';
   const home = svg.match(/data-focus="(rg-(?:knob|card)-[^"]+)"/)?.[1] || 'rg-board';
   if (q.mode === 'break' && !done && !b.cant) bar = moveButton('Can’t', {type: 'cant'}, b.tried, shown?.type === 'cant', home);
@@ -428,25 +457,28 @@ function render(p, a) {
 }
 
 // --- Drags, taps and keys -------------------------------------------------------
-// A press on a card row goes to the nearest control in that row: the strip's
-// end, or an end of an editable band. Dragging moves it along the ruler and
-// the board follows; letting go makes one move (one Undo). A tap moves it to
-// the tapped unit, held inside what it can reach. Arrow keys move a focused
+// A press on a card row goes to a control in that row: the strip's end, or
+// the nearer end of an editable band. In a row with both, the top lane is the
+// band's and the bottom lane the strip's. Dragging moves it along the ruler
+// and the board follows; letting go makes one move (one Undo). A tap moves it
+// to the tapped unit, held inside what it can reach. Arrow keys move a focused
 // end by one unit; Home and End go to the ends of its reach.
 export function targetsIn(q, b, s) {
   const out = [];
-  if (canSet(q, b)) out.push({kind: 'set', strip: s, at: b.len[s], y: 0.5});
-  if (canCard(q) && (q.mode === 'playground' || s === q.edit)) { const c = cardsOf(q, b)[s]; out.push({kind: 'card', strip: s, end: 'lo', at: c[0], dx: -0.26, y: HANDLE_Y}, {kind: 'card', strip: s, end: 'hi', at: c[1], dx: 0.26, y: HANDLE_Y}); }
+  if (canSet(q, b)) out.push({kind: 'set', strip: s, at: b.len[s]});
+  if (editRow(q, s)) { const c = cardsOf(q, b)[s]; out.push({kind: 'card', strip: s, end: 'lo', at: c[0], dx: -0.26}, {kind: 'card', strip: s, end: 'hi', at: c[1], dx: 0.26}); }
   return out;
 }
 // The targets of a press at unit position x and height fraction y in the
-// row, nearest first. When a band's two ends meet, the side of the press picks.
+// row, the one it goes to first; the others follow, for a tap that would move
+// the first nowhere. A band's ends split the row at the band's middle; when
+// they meet, the side of the press picks. Each control's reach is drawn as an
+// invisible rect of exactly that part of the row (cardRow).
 export function targetsNear(q, b, s, x, y) {
-  const d = t => Math.hypot(t.at + (t.dx || 0) - x, (t.y - y) * CARD_H / U);
-  const all = targetsIn(q, b, s).sort((t, u) => d(t) - d(u));
-  const [first, second] = all;
-  if (second && first.kind === 'card' && second.kind === 'card' && first.at === second.at && (x > first.at) !== (first.end === 'hi')) [all[0], all[1]] = [second, first];
-  return all;
+  const all = targetsIn(q, b, s), d = t => Math.abs(t.at + (t.dx || 0) - x);
+  const ends = all.filter(t => t.kind === 'card').sort((t, u) => d(t) - d(u)), knob = all.filter(t => t.kind === 'set');
+  if (ends.length === 2 && ends[0].at === ends[1].at && (x > ends[0].at) !== (ends[0].end === 'hi')) ends.reverse();
+  return ends.length && knob.length && y >= sizes(q).split ? [...knob, ...ends] : [...ends, ...knob];
 }
 export const nearestTarget = (q, b, s, x, y) => targetsNear(q, b, s, x, y)[0] || null;
 export function actionFor(q, b, t, v) {
@@ -496,9 +528,13 @@ function onEnd(e) {
   if (e.type === 'pointerup' && g.action && move(g.p, b, g.action)) { g.api.apply(g.action); return; }
   if (g.moved) g.api.ui({});
 }
+// Turning a phone past 560 px redraws the board at its other size.
+let redrawOnTurn = null, turnQuery = null;
 function wire(root, p, api) {
   const svg = root.querySelector('[data-rg-board]'), q = p.parameters;
   if (!svg) return;
+  redrawOnTurn = () => { if (root.isConnected) api.ui({}); };
+  if (!turnQuery && typeof matchMedia === 'function') { turnQuery = matchMedia('(max-width: 560px)'); turnQuery.addEventListener?.('change', () => redrawOnTurn?.()); }
   if (!listening) {
     document.addEventListener('pointermove', onMove);
     for (const type of ['pointerup', 'pointercancel']) document.addEventListener(type, onEnd);
@@ -511,7 +547,7 @@ function wire(root, p, api) {
     if (!hit || solved(p, b)) return;
     const at = unitAt(svg, e.clientX, e.clientY), s = hit.dataset.rgRow;
     if (!at) return;
-    const top = Number(hit.getAttribute('y')), order = targetsNear(q, b, s, at.v, (at.y - top) / CARD_H), target = order[0];
+    const top = Number(hit.getAttribute('y')), order = targetsNear(q, b, s, at.v, (at.y - top) / Number(hit.getAttribute('height'))), target = order[0];
     if (!target) return;
     e.preventDefault();
     const action = actionFor(q, b, target, Math.round(at.v));

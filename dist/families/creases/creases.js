@@ -409,7 +409,8 @@ function hint(p, b) {
 // the yellow of the front. Taps inside the disk go to the nearest ray (wire
 // below); the chips are buttons for keys and screen readers.
 // The knob rides just inside the rim, clear of the letter chips outside it.
-export const R = 100, CHIP = 122, KNOB_R = 89;
+// A small disk's chips sit a little further in, so their larger letters fit.
+export const R = 100, CHIP = 122, CHIP_SMALL = 117, KNOB_R = 89, RIM_BAND_R = R - 14;
 const f1 = x => Math.round(x * 10) / 10;
 const pt = (deg, r) => [f1(r * Math.sin(deg * Math.PI / 180)), f1(-r * Math.cos(deg * Math.PI / 180))];
 function wedge(a, b, r = R) {
@@ -420,6 +421,24 @@ function wedge(a, b, r = R) {
 const moveAttrs = (action, focus) => `data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="${esc(focus)}"`;
 const buttonAttrs = (action, focus, label, pressed) => `role="button" tabindex="0" ${moveAttrs(action, focus)} aria-label="${esc(label)}"${pressed === undefined ? '' : ` aria-pressed="${pressed}"`}`;
 const colourName = c => (c === 'F' ? 'yellow' : c === 'B' ? 'green' : 'not coloured');
+// What a tap on the disk near a ray does (tapAction), as bands [inner
+// radius, outer radius, most degrees either side of the ray], for each kind
+// of disk; each chip reaches over its ray's bands and on out past itself to
+// the edge of the picture, cut halfway to the neighbouring rays. (In the
+// playground press-and-hold is watched on the whole disk, chips too.)
+const REACH = {fold: [[R * 0.18, 142, 20]], tabs: [[R * 0.18, 142, 45]], ray: [[R * 0.18, RIM_BAND_R, 20], [RIM_BAND_R, R + 10, 7.5], [R + 10, 142, 20]], play: [[R * 0.18, R + 10, 7.5], [R + 10, 142, 20]]};
+function reachPath(dirs, k, bands, [cx, cy]) {
+  const d = dirs[k], gap = sign => Math.min(360, ...dirs.filter((_, j) => j !== k).map(e => (((e - d) * sign) % 360 + 360) % 360));
+  const wide = (w, half) => Math.min(w, half), right = gap(1) / 2, left = gap(-1) / 2;
+  const at = (deg, r) => { const [x, y] = pt(deg, r); return `${f1(x - cx)} ${f1(y - cy)}`; };
+  const arc = (r, a0, a1) => { const n = Math.max(1, Math.ceil(Math.abs(a1 - a0) / 4)); return Array.from({length: n}, (_, j) => at(a0 + (a1 - a0) * (j + 1) / n, r)); };
+  const out = [at(d - wide(bands[0][2], left), bands[0][0]), ...arc(bands[0][0], d - wide(bands[0][2], left), d + wide(bands[0][2], right))];
+  bands.forEach(([, r1, w], i) => { out.push(at(d + wide(w, right), r1)); if (bands[i + 1]) out.push(...arc(r1, d + wide(w, right), d + wide(bands[i + 1][2], right))); });
+  const last = bands.at(-1);
+  out.push(...arc(last[1], d + wide(last[2], right), d - wide(last[2], left)));
+  for (let i = bands.length - 1; i >= 0; i--) { out.push(at(d - wide(bands[i][2], left), bands[i][0])); if (i > 0) out.push(...arc(bands[i][0], d - wide(bands[i][2], left), d - wide(bands[i - 1][2], left))); }
+  return `M${out.join('L')}Z`;
+}
 // o: {dirs, labels, fixed, chip(k) -> action or null, paint, sector(k) ->
 // action or null, marks: {jam, clash, hinted, hintedSector, ghost}, knob,
 // hit, label, focus, small}
@@ -445,11 +464,12 @@ function diskSvg(o) {
   if (o.marks?.clash !== undefined) { const [x, y] = pt(dirs[o.marks.clash], R * 0.48); parts.push(`<circle class="cr-clash" cx="${x}" cy="${y}" r="13"/>`); }
   // Chips: printed letters dark, the child's letters on paper, open rays empty.
   dirs.forEach((d, k) => {
-    const l = o.labels[k], [x, y] = pt(d, CHIP), act = o.chip?.(k), fixed = o.fixed[k];
+    const l = o.labels[k], [x, y] = pt(d, o.small ? CHIP_SMALL : CHIP), act = o.chip?.(k), fixed = o.fixed[k];
     const cls = `cr-chip${fixed ? ' fixed' : ''}${l ? '' : ' open'}${o.isNew?.(k) ? ' new' : ''}${o.marks?.jam?.has(k) ? ' jam' : ''}${o.marks?.hinted === k ? ' hinted' : ''}`;
     const name = `${o.isNew?.(k) ? 'New ray' : o.rayName ? o.rayName(k) : `Ray ${o.number ? o.number(k) : k + 1}`}, ${l ? LETTER[l] : 'no letter'}${fixed ? ', printed' : ''}`;
-    const body = o.small ? `<circle r="19"/><text y="7.5">${l || ''}</text>` : `<circle r="15"/><text y="5.5">${l || ''}</text>`;
-    parts.push(act ? `<g class="${cls}" transform="translate(${x} ${y})" ${buttonAttrs(act.action, `${o.focus}-c${k}`, `${name}. ${act.say}`)}>${body}</g>` : `<g class="${cls}" transform="translate(${x} ${y})" role="img" aria-label="${esc(name)}">${body}</g>`);
+    const body = o.small ? `<circle r="24"/><text y="10">${l || ''}</text>` : `<circle r="15"/><text y="5.5">${l || ''}</text>`;
+    const bands = REACH[(o.hit || '').split(':')[0]], reach = act && bands ? `<path class="cr-reach" d="${reachPath(dirs, k, bands, [x, y])}"/>` : '';
+    parts.push(act ? `<g class="${cls}" transform="translate(${x} ${y})" ${buttonAttrs(act.action, `${o.focus}-c${k}`, `${name}. ${act.say}`)}>${reach}${body}</g>` : `<g class="${cls}" transform="translate(${x} ${y})" role="img" aria-label="${esc(name)}">${body}</g>`);
   });
   // Each wedge's angle, in degrees.
   if (o.degrees && n > 1) dirs.forEach((d, k) => { const a = ends[k] - d, [x, y] = pt(d + a / 2, a < 45 ? 74 : 64); parts.push(`<text class="cr-deg" x="${x}" y="${f1(y + 4.5)}" aria-hidden="true">${a}°</text>`); });
@@ -458,7 +478,7 @@ function diskSvg(o) {
   if (o.knob) parts.push(o.knob);
   parts.push('<circle class="cr-centre" r="3"/>');
   if (o.letter) parts.push(`<text class="cr-disk-letter" x="-136" y="-108" aria-hidden="true">${o.letter}</text>`);
-  return `<svg class="cr-disk${o.small ? ' small' : ''}${o.ok ? ' ok' : ''}" viewBox="-142 -142 284 284" ${o.hidden ? 'aria-hidden="true"' : `role="group" aria-label="${esc(o.label)}"`}>${parts.join('')}</svg>`;
+  return `<svg class="cr-disk${o.small ? ' cr-small' : ''}${o.ok ? ' ok' : ''}" viewBox="-142 -142 284 284" ${o.hidden ? 'aria-hidden="true"' : `role="group" aria-label="${esc(o.label)}"`}>${parts.join('')}</svg>`;
 }
 
 // The side view: the rim of the disk as a strip, folded. Each wedge is a
@@ -634,7 +654,7 @@ function renderTabs(p, a) {
 
 function knobSvg(at, hintedKnob, label, name = 'New ray') {
   const parked = at === null, [x, y] = parked ? [118, 118] : pt(at, KNOB_R);
-  return `<g class="cr-knob${parked ? ' parked' : ''}${hintedKnob ? ' hinted' : ''}" transform="translate(${x} ${y})" role="slider" tabindex="0" data-focus="cr-knob" aria-label="${esc(name)}" aria-valuetext="${esc(label)}" aria-valuemin="0" aria-valuemax="345" aria-valuenow="${parked ? 0 : at}"><circle class="cr-knob-hit" r="17"/><circle r="11"/>${parked ? '<path d="M-5 0H5M0 -5V5"/>' : ''}</g>`;
+  return `<g class="cr-knob${parked ? ' parked' : ''}${hintedKnob ? ' hinted' : ''}" transform="translate(${x} ${y})" role="slider" tabindex="0" data-focus="cr-knob" aria-label="${esc(name)}" aria-valuetext="${esc(label)}" aria-valuemin="0" aria-valuemax="345" aria-valuenow="${parked ? 0 : at}"><circle class="cr-knob-hit" r="21"/><circle r="11"/>${parked ? '<path d="M-5 0H5M0 -5V5"/>' : ''}</g>`;
 }
 function renderRay(p, a) {
   const q = p.parameters, b = a.board, done = solved(p, b), g = q.rays.length;
@@ -684,7 +704,7 @@ const angDist = (x, y) => { const d = Math.abs(((x - y) % 360 + 360) % 360); ret
 // where a ray can be added or moved, the nearest free tick. The new ray of a
 // ray puzzle moves only from the rim band (and the knob and keys): once it
 // is placed, a tap inside the disk letters the nearest ray, as in a fold.
-export const RIM_BAND = R - 14;
+export const RIM_BAND = RIM_BAND_R;
 export function tapAction(p, b, hit, r, deg) {
   const q = p.parameters, near = (dirs, limit) => {
     let best = -1, bd = limit;
@@ -768,9 +788,12 @@ function wire(root, p, api) {
     });
     if (hitArea.dataset.crHit !== 'play') return;
     // Press and hold a ray to take it away; moving or lifting first cancels.
+    // The whole disk listens, since a ray's chip reaches over the ray; the
+    // tap that ends a hold does nothing more.
     let timer = null, start = null;
     const cancel = () => { clearTimeout(timer); timer = null; };
-    hitArea.addEventListener('pointerdown', e => {
+    svg.addEventListener('click', e => { if (held && e.target.closest?.('.cr-chip')) { held = false; e.stopPropagation(); e.preventDefault(); } }, true);
+    svg.addEventListener('pointerdown', e => {
       if (e.button > 0) return;
       held = false;
       const at = local(svg, e), action = at && holdAction(p, api.attempt().board, at.r, at.deg);
@@ -778,9 +801,9 @@ function wire(root, p, api) {
       start = [e.clientX, e.clientY];
       timer = setTimeout(() => { timer = null; held = true; api.apply(action); }, HOLD_MS);
     });
-    hitArea.addEventListener('pointermove', e => { if (timer && Math.hypot(e.clientX - start[0], e.clientY - start[1]) > 8) cancel(); });
-    for (const type of ['pointerup', 'pointercancel', 'pointerleave']) hitArea.addEventListener(type, cancel);
-    hitArea.addEventListener('contextmenu', e => e.preventDefault());
+    svg.addEventListener('pointermove', e => { if (timer && Math.hypot(e.clientX - start[0], e.clientY - start[1]) > 8) cancel(); });
+    for (const type of ['pointerup', 'pointercancel', 'pointerleave']) svg.addEventListener(type, cancel);
+    svg.addEventListener('contextmenu', e => e.preventDefault());
   });
   // SVG buttons answer Enter and Space as buttons do; Delete removes a ray in
   // the playground.

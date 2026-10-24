@@ -6,7 +6,7 @@
    through, and hints. */
 [data-mechanic-wire="width"]{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
 [data-mechanic-wire="width"] .wd-bar{display:flex;justify-content:flex-end;gap:.4rem;width:100%;max-width:360px}
-[data-mechanic-wire="width"] .wd-bar.wd-shapes{justify-content:center;flex-wrap:wrap;gap:.3rem}
+[data-mechanic-wire="width"] .wd-bar.wd-shapes{justify-content:center;flex-wrap:wrap;gap:.2rem}
 [data-mechanic-wire="width"] .wd-bar.wd-turns{justify-content:center}
 [data-mechanic-wire="width"] .wd-spin{min-width:5.5rem}
 [data-mechanic-wire="width"] .wd-board{display:block;width:100%;max-width:360px;height:auto;aspect-ratio:1;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;cursor:pointer;overflow:hidden;border-radius:14px}
@@ -28,11 +28,13 @@
 [data-mechanic-wire="width"] .wd-miss{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:2.4px;stroke-dasharray:6 4;stroke-linecap:round}
 [data-mechanic-wire="width"] .wd-short{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:5px;stroke-linecap:round}
 
-/* Hit areas: wide invisible strokes along each gap or arc, and pads round
-   each corner and dot (the corners and dots sit on top). */
-[data-mechanic-wire="width"] .wd-hit{fill:none;stroke:transparent;stroke-width:22px;stroke-linecap:round;pointer-events:stroke}
+/* Hit areas: each gap's part of the board (an arc's wide stroke in the
+   spin), and pads round each corner, dot and spot on top; all invisible. The
+   gap's line carries its focus ring. */
 [data-mechanic-wire="width"] .wd-hit:focus{outline:none}
-[data-mechanic-wire="width"] .wd-hit:focus-visible{stroke:rgba(179,136,64,.3)}
+[data-mechanic-wire="width"] .wd-gap-area{fill:transparent;stroke:none;pointer-events:fill}
+[data-mechanic-wire="width"] .wd-gap-line{fill:none;stroke:transparent;stroke-width:22px;stroke-linecap:round;pointer-events:none}
+[data-mechanic-wire="width"] .wd-hit:focus-visible .wd-gap-line{stroke:rgba(179,136,64,.3)}
 [data-mechanic-wire="width"] .wd-pt:focus{outline:none}
 [data-mechanic-wire="width"] .wd-pad{fill:transparent;stroke:none}
 [data-mechanic-wire="width"] .wd-pt:focus-visible .wd-pad{stroke:var(--b-ochre,#b38840);stroke-width:2.5px;stroke-dasharray:4 3}
@@ -46,7 +48,7 @@
 [data-mechanic-wire="width"] .wd-corner.missed .wd-disc{stroke:var(--b-ochre,#b38840);stroke-width:4px}
 [data-mechanic-wire="width"] .wd-corner.hinted .wd-disc{stroke:var(--b-ochre,#b38840);stroke-width:4.5px}
 [data-mechanic-wire="width"] .wd-corner text,[data-mechanic-wire="width"] .wd-letter,[data-mechanic-wire="width"] .wd-mark-label{font-family:Georgia,'Times New Roman',serif;font-weight:700;text-anchor:middle;dominant-baseline:central;fill:var(--b-ink,#294439);pointer-events:none}
-[data-mechanic-wire="width"] .wd-corner text{font-size:15px}
+[data-mechanic-wire="width"] .wd-corner text{font-size:15.5px}
 
 /* Spinning: rails, the shape, where the top rail started, and the result. */
 [data-mechanic-wire="width"] .wd-rail{fill:var(--b-ink,#294439)}
@@ -58,17 +60,18 @@
 [data-mechanic-wire="width"] .wd-band.soft{opacity:.2}
 [data-mechanic-wire="width"] .wd-touch{fill:var(--b-ochre,#b38840);stroke:var(--b-card,#fffdf5);stroke-width:1.5px}
 [data-mechanic-wire="width"] .wd-touch.snug{fill:var(--b-pine,#31533e)}
-[data-mechanic-wire="width"] .wd-letter{font-size:13px;paint-order:stroke;stroke:rgba(255,253,245,.85);stroke-width:3px}
+[data-mechanic-wire="width"] .wd-letter{font-size:15.5px;paint-order:stroke;stroke:rgba(255,253,245,.85);stroke-width:3px}
 [data-mechanic-wire="width"].wd-anim .wd-final{display:none}
-[data-mechanic-wire="width"].wd-anim .wd-hit{pointer-events:none}
+[data-mechanic-wire="width"].wd-anim .wd-hit,[data-mechanic-wire="width"].wd-anim .wd-hit *{pointer-events:none}
 
 /* Playground: shape picker (outline and corner dots), the mark O and the turn buttons. */
-[data-mechanic-wire="width"] .wd-pick{width:2.4rem;height:2.4rem;min-width:0;min-height:0;padding:.15rem;display:inline-flex;align-items:center;justify-content:center}
+/* Seven shape buttons share one row: 44 px where there is room, never under 40. */
+[data-mechanic-wire="width"] .wd-pick{flex:1 1 0;max-width:2.75rem;min-width:2.5rem;height:2.75rem;min-height:0;padding:.15rem;display:inline-flex;align-items:center;justify-content:center}
 [data-mechanic-wire="width"] .wd-pick[aria-pressed="true"]{opacity:1;background:rgba(239,199,110,.45);border-color:var(--b-ink,#294439);cursor:default}
 [data-mechanic-wire="width"] .wd-icon{width:100%;height:100%}
 [data-mechanic-wire="width"] .wd-icon path{fill:rgba(239,199,110,.75);stroke:var(--b-ink,#294439);stroke-width:1.4px;vector-effect:non-scaling-stroke}
 [data-mechanic-wire="width"] .wd-mark{fill:var(--b-ink,#294439);stroke:var(--b-card,#fffdf5);stroke-width:1.5px}
-[data-mechanic-wire="width"] .wd-mark-label{font-size:13px;font-style:italic;font-weight:400}
+[data-mechanic-wire="width"] .wd-mark-label{font-size:15.5px;font-style:italic;font-weight:400}
 [data-mechanic-wire="width"] .wd-turn-button{min-width:3.2rem;font-size:1.25rem}
 
 /* Placing a corner: the dotted line where it goes, and hollow spots. */

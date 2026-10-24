@@ -33,6 +33,10 @@
 .cb-notch{stroke:var(--b-ochre,#b38840);stroke-width:.6}
 .cb-point.true{fill:var(--b-ink,#294439);stroke:none}
 .cb-shown{stroke:var(--b-muted,#5a6850);stroke-width:.7}
+/* On a phone the boards are drawn at 1.5 to 1.7 px a unit (a 191-unit ruler
+   across 313 px, or the plot held to 46vh on a 667 px screen), so numbers and
+   letters are sized for 13 px there. */
+@media (max-width:560px){.cb-num{font-size:8.8px}.cb-rowlabel,.cb-letter,.cb-report{font-size:8.2px}}
 .cb-kit,.cb-dial,.cb-bar-buttons,.cb-trayline{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.35rem}
 .cb-dial-name{font-weight:600;color:var(--b-ink,#294439);margin-right:.2rem}
 .cb-chips{display:grid;grid-template-columns:repeat(var(--cols),minmax(44px,auto));gap:.35rem;justify-content:center}

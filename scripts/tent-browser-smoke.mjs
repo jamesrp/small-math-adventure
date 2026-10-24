@@ -3,7 +3,8 @@
 // bands, a pair kept on the shelf, That's all refused and kept through Undo,
 // a claim broken by a tap, Can't with wrong and right pins, the widest band
 // set by keys with Widest and its pin, goal chips met, Apply hint, focus
-// after moves, and no page overflow.
+// after moves, the handle's and the marker's lanes after Widest, no page
+// overflow, and on a phone 44 px reaches and 13 px numbers.
 // Same environment variables as the other browser suites (PLAYWRIGHT_MODULE,
 // BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone with touch).
 // SHOTS=<dir> also saves tablet (1024 px) and phone (375 px) screenshots.
@@ -22,13 +23,26 @@ const done = () => page.locator('#completion-heading').waitFor({timeout: 5000});
 const fit = async label => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `${label}: no page overflow`);
 const button = name => page.getByRole('button', {name, exact: true});
 const note = () => page.locator('.tn-note').innerText();
-// Where a position (in units, or on the enlarged 0–1 ruler) is on the start row, in page pixels.
-async function spot(v, zoom = false) {
+// Where a position (in units, or on the enlarged 0–1 ruler) is on the start
+// row, in page pixels: 13 units down, or a height fraction of the row.
+async function spot(v, zoom = false, frac = null) {
   const svg = page.locator('.tn-board'), b = await svg.boundingBox(), [, , w, h] = (await svg.getAttribute('viewBox')).split(' ').map(Number);
-  const x = 14 + (zoom ? v * 160 : v * 10);
-  return {x: b.x + x / w * b.width, y: b.y + 13 / h * b.height};
+  const x = 14 + (zoom ? v * 160 : v * 10), row = page.locator('.tn-hit');
+  const y = frac === null ? 13 : Number(await row.getAttribute('y')) + frac * Number(await row.getAttribute('height'));
+  return {x: b.x + x / w * b.width, y: b.y + y / h * b.height};
 }
-const tapAt = async (v, zoom) => { const {x, y} = await spot(v, zoom); if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); };
+const tapAt = async (v, zoom, frac) => { const {x, y} = await spot(v, zoom, frac); if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); };
+// On a phone each control's reach (the part of the start row that a press
+// sends to it) is at least 44 px both ways, and the numbers 13 px.
+async function phoneSizes(label) {
+  if (!phone) return;
+  const z = await page.evaluate(() => {
+    const scale = document.querySelector('.tn-board').getScreenCTM().a;
+    return {reach: [...document.querySelectorAll('.tn-reach')].map(r => { const b = r.getBoundingClientRect(); return Math.min(b.width, b.height); }), text: [...document.querySelectorAll('.tn-mark,.tn-rowlabel')].map(t => parseFloat(getComputedStyle(t).fontSize) * scale)};
+  });
+  assert.ok(z.reach.length && Math.min(...z.reach) >= 44, `${label}: every reach 44 px or more (${Math.round(Math.min(...z.reach))})`);
+  assert.ok(Math.min(...z.text) >= 12.9, `${label}: numbers 13 px (${Math.min(...z.text).toFixed(1)})`);
+}
 async function drag(from, to, zoom) {
   const a = await spot(from, zoom), b = await spot(to, zoom);
   if (phone) {
@@ -54,7 +68,7 @@ try {
   assert.equal(await ruler.locator('.library-group h2', {hasText: 'Fold and stretch'}).count(), 1, 'the group is in Ruler strips');
 
   // Puzzle 1: drag a marker, tap the other, a pair on the shelf; That’s all refused and kept through Undo.
-  await open('tent-01'); await fit('tent-01');
+  await open('tent-01'); await fit('tent-01'); await phoneSizes('tent-01');
   assert.equal(await page.locator('.tn-shelf').count(), 0, 'no shelf, and no slot per answer, before a find');
   await drag(2, 3);
   assert.deepEqual((await board('tent-01')).at, [96, 160], 'the yellow marker dragged from 2 to 3');
@@ -103,10 +117,25 @@ try {
   for (let k = 0; k < 8; k++) await page.keyboard.press('ArrowLeft');
   assert.equal((await board('tent-09')).hi, 8, 'the band is 0 to 1/4');
   assert.equal(await page.locator('.tn-dot.broken').count(), 0, 'nothing escapes');
-  await button('Widest').click();
+  await button('Widest').click(); await phoneSizes('tent-09 after Widest');
   assert.equal(await note(), 'Pin the start that lands farthest.');
-  await page.locator('.tn-knob').focus(); await page.keyboard.press('End');
+  // The handle's lane is above the marker's: a tap low in the row on the
+  // band's end moves the marker there, not the band.
+  await tapAt(0.25, true, 0.8);
+  assert.deepEqual([(await board('tent-09')).at, (await board('tent-09')).hi], [8, 8], 'the marker’s lane takes the tap');
+  await tapAt(0.125, true, 0.2);
+  assert.deepEqual([(await board('tent-09')).at, (await board('tent-09')).hi, (await board('tent-09')).claim], [4, 4, false], 'the handle’s lane moves the band, which takes Widest back');
+  await page.locator('[data-action="undo"]').click();
+  assert.deepEqual([(await board('tent-09')).at, (await board('tent-09')).hi], [8, 8]);
   await button('Pin').click(); await done();
+
+  // Puzzle 6: the band's two handles split the row at the band's middle.
+  await open('tent-06'); await fit('tent-06'); await phoneSizes('tent-06');
+  const band6 = (await board('tent-06')).band;
+  await tapAt(12, false, 0.9);
+  assert.deepEqual((await board('tent-06')).band, [band6[0], 384], 'a tap right of the middle, low in the row, moves the right end');
+  await tapAt(1, false, 0.1);
+  assert.deepEqual((await board('tent-06')).band, [32, 384], 'a tap left of the middle moves the left end');
 
   // Puzzle 5: no goal met at the start; dragging the band half a unit meets it.
   await open('tent-05'); await fit('tent-05');

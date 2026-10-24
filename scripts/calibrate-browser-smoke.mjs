@@ -4,7 +4,7 @@
 // a lost round with its two machines and Again, no Undo in request rounds,
 // pairs of hidden lengths on the shelf with That’s all refused and kept
 // through Undo, a repair, the steepest and shallowest stretch pinned, Apply
-// hint, focus after moves, and no page overflow.
+// hint, focus after moves, no page overflow, and 13 px board text on a phone.
 // Same environment variables as the other browser suites (PLAYWRIGHT_MODULE,
 // BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone with touch).
 // SHOTS=<dir> also saves tablet (1024 px) and phone (375 px) screenshots.
@@ -28,6 +28,12 @@ const strip = s => page.locator(`.cb-strip-chip[aria-label^="${s},"]`);
 const dial = (group, v) => page.locator(`.cb-dial[aria-label="${group}"] button`, {hasText: new RegExp(`^${v}$`)});
 const note = () => page.locator('.cb-note').innerText();
 const ticks = () => page.locator('.cb-board .cb-tick').count();
+// On a phone the boards' numbers and letters are at least 13 px.
+async function phoneText(label) {
+  if (!phone) return;
+  const px = await page.evaluate(() => Math.min(...[...document.querySelectorAll('.cb-board text')].map(t => parseFloat(getComputedStyle(t).fontSize) * t.ownerSVGElement.getScreenCTM().a)));
+  assert.ok(px >= 12.9, `${label}: board text 13 px or more (${px.toFixed(1)})`);
+}
 // Chip rows never leave one chip alone on a line, and a reference's arrows stay on one line.
 async function noOrphans(label) {
   const bad = await page.evaluate(() => {
@@ -121,6 +127,12 @@ try {
   await tap(button('Pin')); await step('Raise the report for length 2', 4); await step('Lower the report for length 4', 4); await tap(button('Pin'));
   await done();
   assert.equal(await page.locator('.cb-pinned').count(), 2);
+  // The plot and a bars board with row names on the shortest phone (375 × 667), where the plot is held to 46vh.
+  if (phone) {
+    await page.setViewportSize({width: 375, height: 667});
+    for (const id of ['calibrate-10', 'calibrate-04']) { await open(id); await phoneText(`${id} on 375 × 667`); }
+    await page.setViewportSize({width: 375, height: 812});
+  }
 
   if (process.env.SHOTS) {
     const dir = process.env.SHOTS.replace(/\/?$/, '/');
