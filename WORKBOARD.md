@@ -136,3 +136,4 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Release build and every browser suite after the road fixes and polish of October 24 | Claude, Autonomous worksheet improvement thread | `claude/app-final4-ntxcu3` | claimed |
 | Road replay fixes: K–1 reading aloud for hints, feedback, reactions, the solved strip and the finale | Claude, Autonomous worksheet improvement thread | `claude/replay-voice-ntxcu3` | claimed |
 | Road replay fixes: the crypt door's words, one noun per board, kite labels, stall labels and small polish | Claude, Autonomous worksheet improvement thread | `claude/replay-words-ntxcu3` | claimed |
+| Road replay fixes: pebble game controls on phones, the rematch's words, lost-star nudges and the finale's Replay | Claude, Autonomous worksheet improvement thread | `claude/replay-pebbles-ntxcu3` | claimed |
