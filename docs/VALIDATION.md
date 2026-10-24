@@ -1,5 +1,7 @@
 # Validation record
 
+The layout audit (`node scripts/layout-audit.mjs`) is a report, not a pass/fail suite: it measures tap targets, text size and fit for every puzzle at 390 × 844, 375 × 667 and 820 × 1180; method and latest results are in [layout-audit.md](layout-audit.md).
+
 ## Difficulty expansion — September 23, 2026
 
 The pack contains **192 puzzles**: the original 72 plus twelve puzzles in each of ten expansion families. All 132 prior IDs, revisions, boards, targets, and witnesses were compared with the previous pack and preserved. Difficulty groups are available from every grade trail.
