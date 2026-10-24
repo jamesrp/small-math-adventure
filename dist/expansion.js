@@ -20,7 +20,7 @@ export function playInstructions(p){
     case 'nim':return 'A turn takes one or more pebbles from one pile. Tap a pebble to lift it and those above it, then Take. The opponent replies automatically. Undo takes back your move and the reply.';
     case 'color':return 'Choose a color or shape, then tap a lantern. Crossings do not add links.';
     case 'jug':return (q.source_and_drain?'Fill or empty a jug, or pour between jugs.':'Pour between jugs; no water can be added or removed.')+' A pour stops when its source is empty or its destination is full.';
-    case 'weigh':return 'Place pebbles Left, Off, or Right. Put equal numbers on both pans, then Weigh. An answer must be the only possibility left by the observations.';
+    case 'weigh':return 'Place pebbles Left, Off, or Right. Put equal numbers on both pans, then Weigh. Candidates shows which pebbles could still be the odd one. Check an answer once the scale has shown which one it is. Undo takes back your last weighing.';
     default:return p.controls;
   }
 }

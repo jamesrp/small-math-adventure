@@ -103,7 +103,14 @@ export async function validateProofs() {
     } else {
       a = move(p, a, { type: 'mode', mode: 'prove' });
       if (refutation.kind === 'stars') a = move(p, a, { type: 'star', cells: refutation.stars, on: true });
-      else a = move(p, a, { type: 'checker', cell: cells[0] });
+      else {
+        // A painted proof ends with the child's answer: which color has more.
+        a = move(p, a, { type: 'checker', cell: cells[0] });
+        assert.ok(a && !isSolved(p, a.board), `${p.id}: a painting alone waits for the answer`);
+        const { more } = paintStatus(p, a.board.paint);
+        for (const wrong of [0, 1, 2].filter(color => color !== more)) assert.ok(!isSolved(p, move(p, a, { type: 'more', color: wrong }).board), `${p.id}: a wrong count is not a proof`);
+        a = move(p, a, { type: 'more', color: more });
+      }
       assert.ok(a && isSolved(p, a.board), `${p.id}: stored refutation is accepted`);
     }
   }

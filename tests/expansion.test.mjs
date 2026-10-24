@@ -55,7 +55,8 @@ test('all expansion boards, undo histories, hints, and completion round-trip thr
   while(!isSolved(p,a.board)&&steps++<200){
    const h=nextHint(p,a);assert.equal(h.type,'move',p.id);const next=move(p,a,h.action);assert.ok(next,p.id);
    // A puzzle without Undo (a final first-crossing pick) keeps no history.
-   if(mechanicFor(p).noUndo?.(p))assert.equal(next.history.length,0,p.id);else{assert.deepEqual(undo(next).board,a.board);assert.equal(undo(next).moves,a.moves);}
+   // A step a mechanic folds into the Undo step before it (the balance's answer) adds no history and no move.
+   if(mechanicFor(p).noUndo?.(p))assert.equal(next.history.length,0,p.id);else if(next.history.length===a.history.length&&mechanicFor(p).undoStep){assert.equal(next.history,a.history,p.id);assert.equal(next.moves,a.moves,p.id);}else{assert.deepEqual(undo(next).board,a.board);assert.equal(undo(next).moves,a.moves);}
    a={...next,hintLevel:3,helpUsed:true};store.profiles[0].attempts[p.id]=a;
    assert.deepEqual(parseBackup(JSON.stringify(store),puzzles).profiles[0].attempts[p.id],a,p.id);
   }

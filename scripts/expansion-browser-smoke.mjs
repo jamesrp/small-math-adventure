@@ -48,6 +48,15 @@ try{
  await goto('weigh-01');await clickMove({type:'place',coin:'A',pan:'left'});await clickMove({type:'place',coin:'B',pan:'right'});await clickMove({type:'weigh'});const balanceResult=(await state()).profiles[0].attempts['weigh-01'].board.observations[0].result;await page.locator(`input[name=coin][value="${balanceResult==='L'?'A':balanceResult==='R'?'B':'C'}"]`).check({force:true});await page.locator('form[data-puzzle-form] button[type=submit]').click();await page.locator('#completion-heading').waitFor();
  // Twelve pebbles: each control is one row of three places (the pressed one holds the pebble), so the balance, every pebble and Weigh fit a 390 x 844 screen.
  await goto('weigh-12');{const places=await page.locator('.pebble-places button').evaluateAll(els=>els.map(el=>{const r=el.getBoundingClientRect();return Math.min(r.width,r.height);}));assert.ok(places.length===36&&Math.min(...places)>=40,`weigh-12: pebble places at least 40 px (${Math.round(Math.min(...places))})`);assert.ok(await page.getByRole('button',{name:'Weigh',exact:true}).evaluate(el=>el.getBoundingClientRect().bottom<=innerHeight),'weigh-12: the pebbles and Weigh fit a 390 x 844 screen');}
+ // Road review (October 24): Candidates say "maybe", a ruled-out answer is told from the child's own weighing, and one Undo takes back the whole weighing with Candidates left open.
+ await goto('weigh-03');{for(const coin of['A','B','C'])await clickMove({type:'place',coin,pan:'left'});for(const coin of['D','E','F'])await clickMove({type:'place',coin,pan:'right'});await clickMove({type:'notebook'});await clickMove({type:'weigh'});
+  const result=(await state()).profiles[0].attempts['weigh-03'].board.observations[0].result,picked=result==='='?'F':result==='L'?'D':'A';
+  const listed=await page.locator('#candidate-notebook').innerText();assert.match(listed,/maybe/);assert.doesNotMatch(listed,/heavy/,'Candidates say maybe, not heavy');
+  await page.locator(`input[name=coin][value="${picked}"]`).check({force:true});await page.locator('form[data-puzzle-form] button[type=submit]').click();
+  const line=await page.locator('.measurement-observation').innerText();assert.equal(line,result==='='?'F balanced, so F isn’t the heavy one.':`${picked}’s pan went up, so ${picked} isn’t the heavy one.`,`weigh-03: ruled-out line (${line})`);
+  await page.locator('[data-action=undo]').click();const back=(await state()).profiles[0].attempts['weigh-03'];
+  assert.deepEqual([back.board.observations.length,back.board.left.length,back.board.right.length,back.board.notebook,back.history.length],[0,0,0,true,0],'weigh-03: one Undo takes back the whole weighing');
+  assert.equal(await page.locator('[data-action=undo]').isDisabled(),true);}
  console.log('Direct controls passed for all ten families.');
  await goto('clock-01');assert.equal(await page.locator('#completion-heading').count(),0);await page.locator('.solved-indicator').waitFor();
  await page.setViewportSize({width:390,height:480});await page.locator('[name=activations][value="3"]').check();

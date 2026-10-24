@@ -40,10 +40,20 @@ try {
   await tileFamily.locator('[data-id="proof-garden-01"]').click(); await page.locator('.proof-garden').waitFor();
   checks.push('Proofs group first in the Tile gardens satchel');
 
-  // 1: one star with no partner. The Undo button works for gardens.
+  // 1: one star with no partner. The Undo button works for gardens. The first
+  // domino is filled (not the empty square's pale green), and Prove keeps the
+  // dominoes as outlines. No proof card shows before a star or paint.
+  await drag(2, 3); await drag(6, 7);
+  const fills = await page.locator('.pf-domino').evaluateAll(nodes => nodes.map(n => getComputedStyle(n).backgroundColor));
+  const empty = await page.locator('.pf-cell:not(.covered)').first().evaluate(n => getComputedStyle(n).backgroundColor);
+  assert.equal(fills.length, 2); assert.ok(fills.every(color => color !== 'rgba(0, 0, 0, 0)' && color !== empty), `every domino is filled (${fills}, empty ${empty})`);
   await page.getByRole('button', { name: /Prove it can’t/ }).click();
+  assert.equal(await page.locator('.pf-board.proving .pf-domino').count(), 2, 'Prove keeps the dominoes');
+  assert.equal(await page.locator('.pf-domino').first().evaluate(n => getComputedStyle(n).borderTopStyle), 'dashed');
+  assert.equal(await page.locator('.proof-card').count(), 0, 'no proof card before a star or paint');
+  await shot('garden-01-outlines');
   await page.locator('.pf-cell[data-cell="0"]').click(); await done(); await shot('garden-01-proved');
-  checks.push('star proof by tap');
+  checks.push('first domino filled, outlines in Prove, no card before use, star proof by tap');
 
   // 2: keyboard stars keep focus on the cell.
   await open('proof-garden-02');
@@ -71,8 +81,16 @@ try {
   for (const cell of gold.filter(c => ![1, 6].includes(c))) await page.locator(`.pf-cell[data-cell="${cell}"]`).click();
   await page.locator('.proof-toolbox button').nth(2).click(); // green paint
   await page.getByRole('button', { name: /Fill blanks/ }).click();
-  await done(); await shot('garden-03-proved');
-  checks.push('paint proof with a stroke, taps and Fill blanks');
+  // A finished painting asks which color has more; the counts wait for the answer.
+  const ask = page.locator('.proof-ask');
+  await ask.waitFor(); assert.equal(await page.locator('#completion-heading').count(), 0, 'the painting alone is not the proof');
+  assert.doesNotMatch(await page.locator('.proof-cards').innerText(), /●\s*\d/, 'no counts before the answer');
+  await shot('garden-03-question');
+  await ask.getByRole('button', { name: 'Same', exact: true }).click();
+  assert.equal(await page.locator('.proof-ask-note').innerText(), 'Count again.');
+  await ask.getByRole('button', { name: /Gold/ }).click();
+  await done(); assert.match(await page.locator('.proof-cards').innerText(), /Gold has more/); await shot('garden-03-proved');
+  checks.push('paint proof with a stroke, taps and Fill blanks, ending with which color has more');
 
   // 4: cover by dragging dominoes. A drag that runs past its second square
   // places nothing, as on Tile Garden boards.
@@ -89,13 +107,19 @@ try {
   await open('proof-garden-05');
   await page.getByRole('button', { name: /Prove it can’t/ }).click();
   await tool('Checker'); await page.locator('.pf-cell[data-cell="1"]').click();
-  await done(); await shot('garden-05-checker'); checks.push('Checker tool after the first paint proof');
+  // Checker from square 1 paints its color gold: 18 gold, 16 green (two green corners are gone).
+  await page.locator('.proof-ask').getByRole('button', { name: /Gold/ }).click();
+  await done(); await shot('garden-05-checker'); checks.push('Checker tool after the first paint proof, then the one-tap question');
 
   // 6: a balanced garden: paint cannot prove it; stars can.
   await open('proof-garden-06');
   await page.getByRole('button', { name: /Prove it can’t/ }).click();
   await tool('Checker'); await page.locator('.pf-cell[data-cell="1"]').click();
+  await page.locator('.proof-ask').getByRole('button', { name: 'Same', exact: true }).click();
   assert.equal(await page.locator('#completion-heading').count(), 0, 'balanced colors do not prove anything');
+  assert.match(await page.locator('.proof-cards').innerText(), /Same counts: paint can’t prove it here\./);
+  assert.equal(await page.locator('.proof-check.no').count(), 0, 'equal counts are not a red fault');
+  await shot('garden-06-same');
   await tool('Star'); await page.locator('.pf-cell[data-cell="1"]').click(); await page.locator('.pf-cell[data-cell="6"]').click();
   await done(); await fit('garden 6'); checks.push('stars where paint fails');
 

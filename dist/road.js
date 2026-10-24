@@ -75,7 +75,7 @@ export const STOPS = [
       encounter('hollow-crypt', 'code', 'rattle', 'Crypt door', pick('code-02', 'code-04', 'code-05'),
         { open: 'My crypt door can’t keep a secret. Heh heh.', win: 'Creeeak! It opens!' }),
       encounter('hollow-plots', 'proofgarden', 'rattle', 'The garden nobody covered', pick('proof-garden-01', 'proof-garden-03', 'proof-garden-03'),
-        { open: 'Nobody has EVER covered my garden. Mwahaha!', win: 'You PROVED it?! Keep the chalk.' }, { grants: 'chalk' }),
+        { open: 'Nobody has EVER covered my garden. Mwahaha!', stuck: 'Stuck? Mwahaha! Maybe nobody can…', win: 'You PROVED it?! Keep the chalk.' }, { grants: 'chalk' }),
     ],
   },
   {
@@ -120,7 +120,7 @@ export const SIDE = [
     { open: 'A pump! Now we can fill and empty. Bath time.', locked: 'Bath time? These jugs only pour into each other.', win: 'Ahhh. Just right.' },
     { stop: 'ferry', requires: 'pump' }),
   encounter('marsh-garden', 'proofgarden', 'hops', 'The other garden', pick('proof-garden-02', 'proof-garden-05', 'proof-garden-06'),
-    { open: 'Chalk! Then show me why nobody can.', locked: 'Nobody has ever covered that garden. Many have tried.', win: 'Well! Now I know why.' },
+    { open: 'Chalk! Then show me why nobody can.', locked: 'Nobody has ever covered that garden. Many have tried.', stuck: 'Stuck? So was everyone else.', even: 'Hmm. I’d try stars, myself.', win: 'Well! Now I know why.' },
     { stop: 'marsh', requires: 'chalk' }),
 ];
 

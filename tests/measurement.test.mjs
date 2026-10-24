@@ -133,7 +133,7 @@ for (const source of balances) {
       let board = fixedBoard(p), tree = p.solution.strategy;
       const lucky = weigh.move(p, board, {type:'answer', coin:secret[0], deviation:secret[1]});
       assert.equal(weigh.solved(p, lucky), false, 'A lucky first guess is unsupported');
-      assert.match(weigh.render(p, {board:lucky}), /not yet justified/);
+      assert.match(weigh.render(p, {board:lucky}), /The scale hasn’t shown which one yet\. Weigh first\./);
       while (tree.branches) {
         const before = copy(board);
         board = weigh.move(p, board, {type:'weigh', left:tree.left, right:tree.right});
@@ -151,7 +151,7 @@ for (const source of balances) {
       const wrongCoin = p.parameters.coins.find(coin => coin !== secret[0]);
       const wrong = weigh.move(p, board, {type:'answer', coin:wrongCoin, deviation:secret[1]});
       assert.equal(weigh.solved(p, wrong), false);
-      assert.match(weigh.render(p, {board:wrong}), /does not fit/);
+      assert.match(weigh.render(p, {board:wrong}), new RegExp(`${wrongCoin}[^<]*so ${wrongCoin} isn’t`));
       board = weigh.move(p, wrong, {type:'answer', coin:tree.coin, deviation:tree.deviation});
       assert.equal(weigh.solved(p, board), true);
       assert.equal(weigh.hint(p, board).type, 'done');
@@ -282,4 +282,76 @@ test('each pebble control is one row of three places, the pressed place holding 
   assert.match(normalSet, new RegExp(`<legend><span class="sr-only">${normal}</span><span class="pebble-normal-label">Normal</span></legend>`));
   assert.match(normalSet, /on the right pan" aria-pressed="true"[^>]*><span class="pebble-token pebble-normal"/);
   assert.equal(sets.filter(body => body.startsWith('<legend class="sr-only">')).length, p.parameters.coins.length, 'ordinary pebbles name themselves only to screen readers');
+});
+
+// Road review, October 24: words a six-year-old knows, "maybe" in Candidates,
+// and a wrong answer told only from the child's own weighings.
+const feedbackOf = (p, board) => weigh.render(p, {board}).match(/class="measurement-observation"[^>]*>([^<]*)</)[1];
+test('balance wording: no adult words, and a ruled-out answer names only the chosen pebble and the child\'s weighing', () => {
+  let ruled = 0;
+  for (const source of balances) {
+    for (const secret of hypothesisList(source)) {
+      const p = withSecret(source, secret), tree = p.solution.strategy;
+      const board = weigh.move(p, fixedBoard(p), {type:'weigh', left:tree.left, right:tree.right});
+      const open = hypothesisList(p).filter(h => board.observations.every(r => {
+        const sign = h[1] * (Number(r.left.includes(h[0])) - Number(r.right.includes(h[0])));
+        return (sign > 0 ? 'L' : sign < 0 ? 'R' : '=') === r.result;
+      }));
+      for (const [coin, deviation] of hypothesisList(p)) {
+        const answered = weigh.move(p, board, {type:'answer', coin, deviation});
+        const line = feedbackOf(p, answered), shown = weigh.render(p, {board:{...answered, notebook:true}}).replace(/<[^>]*>/g, ' ');
+        assert.doesNotMatch(shown, /notebook|observation|justified|possibilit/i, `${p.id}: plain words`);
+        const fits = open.some(h => h[0] === coin && h[1] === deviation);
+        if (fits) { assert.match(line, open.length > 1 ? /^The scale hasn’t shown (which one|heavy or light) yet\. Weigh again\.$/ : /^$/, `${p.id} ${coin}`); continue; }
+        ruled++;
+        assert.match(line, new RegExp(`^(${coin} balanced|${coin}’s pan went (up|down)|The scale tipped without ${coin}), so ${coin} isn’t (the heavy one|the odd one|heavy|light)\\.$`), `${p.id} ${coin} ${deviation}: ${line}`);
+        const named = line.match(/\b[A-Z]\b/g).filter(word => [...p.parameters.coins, ...p.parameters.known_genuine].includes(word));
+        assert.deepEqual([...new Set(named)], [coin], `${p.id}: only the chosen pebble is named (${line})`);
+      }
+    }
+  }
+  assert.ok(ruled > 100);
+});
+
+test('balance Candidates say "maybe" and "normal"', () => {
+  const heavy = balances.find(p => p.id === 'weigh-03'), either = balances.find(p => p.id === 'weigh-04');
+  let board = weigh.move(heavy, fixedBoard(withSecret(heavy, ['G', 1])), {type:'weigh', left:['A', 'B', 'C'], right:['D', 'E', 'F']});
+  board = weigh.move(heavy, board, {type:'notebook'});
+  const items = html => [...html.matchAll(/<li class="[^"]*"><strong>(\w)<\/strong>: ([^<]+)<\/li>/g)].map(m => `${m[1]}: ${m[2]}`);
+  assert.deepEqual(items(weigh.render(heavy, {board})), ['A: normal', 'B: normal', 'C: normal', 'D: normal', 'E: normal', 'F: normal', 'G: maybe', 'H: maybe', 'J: maybe']);
+  let other = weigh.move(either, fixedBoard(withSecret(either, ['A', 1])), {type:'weigh', left:['A'], right:['B']});
+  other = weigh.move(either, other, {type:'notebook'});
+  assert.deepEqual(items(weigh.render(either, {board:other})), ['A: maybe heavy', 'B: maybe light', 'C: normal']);
+  const fresh = weigh.move(either, fixedBoard(either), {type:'notebook'});
+  assert.deepEqual(items(weigh.render(either, {board:fresh})), ['A: maybe light or heavy', 'B: maybe light or heavy', 'C: maybe light or heavy']);
+});
+
+test('one Undo takes back one whole weighing; Candidates and answers are not Undo steps', async () => {
+  const { freshAttempt, move, undoPress } = await import('../dist/engine.js');
+  const p = withSecret(balances.find(q => q.id === 'weigh-03'), ['G', 1]);
+  let a = {...freshAttempt(p), board:fixedBoard(p)};
+  const step = action => { const next = move(p, a, action); assert.ok(next, JSON.stringify(action)); a = next; };
+  const oneApart = () => a.history.forEach((h, i) => assert.equal(h.moves, a.moves - a.history.length + i, 'history entries stay one move apart'));
+  step({type:'notebook'});
+  assert.equal(a.history.length, 0, 'Candidates is not an Undo step');
+  for (const coin of ['A', 'B', 'C']) step({type:'place', coin, pan:'left'});
+  for (const coin of ['D', 'E', 'F']) step({type:'place', coin, pan:'right'});
+  step({type:'weigh'});
+  step({type:'answer', coin:'F', deviation:1});
+  step({type:'notebook'}); step({type:'notebook'});
+  assert.equal(a.history.length, 1); oneApart();
+  const afterFirst = copy(a.board);
+  a = undoPress(p, a);
+  assert.deepEqual([a.board.observations, a.board.left, a.board.right, a.board.answer, a.board.notebook], [[], [], [], null, true], 'one press: back to the start, Candidates still open');
+  assert.equal(a.history.length, 0);
+  // A second weighing: one Undo returns to the screen right after the first.
+  a = {...a, board:afterFirst, history:[{board:fixedBoard(p), moves:0}], moves:1};
+  step({type:'clear'}); step({type:'place', coin:'G', pan:'left'}); step({type:'place', coin:'H', pan:'right'});
+  step({type:'weigh'});
+  assert.equal(a.history.length, 2); oneApart();
+  a = undoPress(p, a);
+  assert.deepEqual([a.board.observations.length, a.board.left, a.board.right], [1, ['A', 'B', 'C'], ['D', 'E', 'F']]);
+  // Weighing the same pans again is its own step.
+  step({type:'weigh'});
+  assert.equal(a.history.length, 2); oneApart();
 });

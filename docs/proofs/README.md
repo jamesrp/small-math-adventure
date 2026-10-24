@@ -27,10 +27,10 @@ Gardens 1–7 do not say whether they can be covered. The child decides, then ei
 ## How a proof is checked
 
 - **Stars.** Starred squares may not touch. Every square next to a star is a partner. More stars than partners proves that no covering exists. For dominoes on a grid this is complete: by Hall’s theorem every uncoverable garden has such a set.
-- **Paint.** Every square painted, touching squares different, and different counts. Each domino covers one square of each color.
+- **Paint.** Every square painted, touching squares different, and different counts. Each domino covers one square of each color. Once the painting is finished the card asks “Which color has more squares?” (Gold, Green or Same), and the proof counts only when the child answers it right (October 24, 2026; road review). The counts show after a right answer. When the colors balance, a right “Same” shows “Same counts: paint can’t prove it here.” as a fact, not a fault. A wrong answer shows “Count again.” Boards saved before the question (no `more` field) that were proved by paint stay solved.
 - **Flip map.** Every line joins two colors; then the colors of the start and finish against the number of flips decide whether the trip is ruled out.
 
-The proof cards tick each condition live and accept the proof as soon as one card is complete. This favors clarity over rigor: a child can reach a proper coloring by watching the ticks. The one-check puzzles (Tile 10–14) are where the app tests whether the idea is understood.
+The proof cards tick each condition live. A card appears only once its tool is on the board (a star, or some paint), so Prove does not open on the whole argument as a checklist. A star card is accepted as soon as it is complete; a paint card waits for the child’s answer about the counts, so the last step of the argument is the child’s, even with the Checker. The ticks still favor clarity over rigor: a child can reach a proper coloring by watching them. The one-check puzzles (Tile 10–14) are where the app tests whether the idea is understood.
 
 Garden gestures match Tile Garden boards: only the central part of a square joins a stroke, and a drag that runs past its second square places nothing. `main.js` passes the rules from `tile-controls.js` to the proof board, since importing them into `proofs.js` would make a module cycle.
 
@@ -39,7 +39,7 @@ Garden gestures match Tile Garden boards: only the central part of a square join
 - Boards for hand-painting are small. Corners off has 14 squares.
 - A drag paints or stars every square it crosses, however fast. Squares are hit only near their centers, so a diagonal drag paints a diagonal.
 - **Fill blanks** paints every empty square in the chosen color, so a checkerboard needs one color by hand.
-- **Checker** paints the whole garden from one tap, and appears only after Corners off is solved. The child earns the shortcut by building the pattern once.
+- **Checker** paints the whole garden from one tap, and appears only after Corners off is solved. The child earns the shortcut by building the pattern once, and still answers which color has more.
 
 ## Rules that keep the evidence honest
 
@@ -50,7 +50,9 @@ Garden gestures match Tile Garden boards: only the central part of a square join
 - **Blind guessing.** Sorting levels 1–2: 1 round in 62, a level 1 time in 3,844. Level 3: 1 in 56 and 1 in 3,136. Trips: at best 1 round in 40, the puzzle 1 time in 1,600.
 - **Duel starts** are half losing positions for the player to move; under uniform sampling only 12% of three-pile starts would be. The opponent plays a winning move when it has one; when losing, it leaves the fewest winning replies. Only wins from a new start count.
 - **Duel 1 comes early in Pebble Duel.** Next after Pebble Duel's puzzle 2 opens Duel 1, and Next after Duel 1 opens puzzle 3 (the `next` field, which `ui.js` honours). Pebble Duel's bundle table in How to play stays folded away until Duel 1 is solved, and states no rule. Duel 1's first hint and all of Duel 2's hints point at the child's own lost starts (Same start again); Duel 2's hints never state the bundle rule, which its streak certifies. After a lost duel Hint shows these nudges rather than “Try a new start.” (Week 8 review card, October 2026).
-- **No dead-end message** on an impossible garden. The tile solver’s automatic “cannot be completed” would announce the answer.
+- **No dead-end message** on an impossible garden. The tile solver’s automatic “cannot be completed” would announce the answer. On the road only, the keeper teases a cover of an uncoverable garden once no domino fits the squares left (the mechanic’s `cue`, `'stuck'`), as the stop’s story already says nobody has covered it; the library stays silent.
+- **Dominoes stay visible in Prove** as dashed outlines over the paint, and the first domino is filled like the others (it used to be nearly the empty square’s color).
+- **Where the colors balance**, the first Hint in Prove says “Paint can’t prove this garden. Try stars.” before it points at a square.
 
 ## Files
 

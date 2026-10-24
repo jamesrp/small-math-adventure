@@ -4,11 +4,17 @@ The road is a race to the Lantern Fair. Six travelers haul their lantern tree al
 
 Design decisions, October 2026 (James and Claude):
 
-- Characters live inside the puzzles. Keepers and Plume speak one short line when a puzzle opens and react to what the player does: a mistake, a hint, a solve. They never restate rules. Those stay on the board and in How to play.
+- Characters live inside the puzzles. Keepers and Plume speak one short line when a puzzle opens and react to what the player does: a mistake, a hint, a solve (and, from October 24, a stuck cover or balanced colors in a proof garden). They never restate rules. Those stay on the board and in How to play.
 - The six travelers are a fixed party. They are the pieces in the ferry's seating puzzle and otherwise appear in the scenes, busy at each stop. They do not speak.
 - There is no losing. The tension comes from Plume's scores and from stars. Keepers never join the caravan.
 - The travelers' wagon goes the whole way. It rides across on Snooze's shell, at the stern behind the deck, and goes up Windy Ridge as the cable car's cargo, which is what Billie's stones balance (decided October 10).
 - Art is bright and saturated, with dark stops mixed in (night marsh, Halloween hollow, stormy lighthouse, night fair) the way Bloons TD varies its maps. Art is made separately; see [art/ROADMAP.md](art/ROADMAP.md).
+
+Design decisions, October 24, 2026 (Claude as product owner, before James's playtest), from two critics' play-throughs of the whole road:
+
+- **The balance (Cable-car stones, Prize booth) speaks plainly and takes back whole weighings.** One Undo takes back one weighing: the pebbles placed for it and the Weigh, back to the screen after the weighing before. Candidates and answer picks are not Undo steps. Candidates says "maybe" and "normal". A wrong answer is told only from the child's own weighings and names only the pebble they chose ("F balanced, so F isn't the heavy one."); an answer the scale hasn't singled out gets "The scale hasn't shown which one yet. Weigh again." The library's Odd-pebble Balance is the same board.
+- **A painted proof ends with the child's answer.** At the Hollow and in the other garden, a finished painting asks "Which color has more squares?" (Gold, Green or Same), and the counts show only after a right answer; the chalk, or the side puzzle's star, comes with that answer. With the Checker the whole proof is that one question. A painting whose colors balance says "Same counts: paint can't prove it here." instead of marking a fault. The proof cards appear only once a star or paint is on the board, so Prove no longer opens on the argument as a checklist.
+- **Keepers react to a stuck cover and to balanced colors.** In a garden nobody can cover, a cover with squares left that no domino fits gets a tease (Rattle: "Stuck? Mwahaha! Maybe nobody can…"; Mr. Hops: "Stuck? So was everyone else."). In the other garden, saying the colors are the same gets "Hmm. I'd try stars, myself." This is the 4–5 route to its star proof, which the road has not shown before; the first Hint there also says "Paint can't prove this garden. Try stars." Neither says which squares.
 
 ## Stops
 
@@ -29,7 +35,7 @@ All twelve catalog mechanics appear, plus a proof garden and the proof duel. The
 Two optional side puzzles appear on the map as soon as their stop is reached, before the tool that solves them exists:
 
 - **Snooze’s bath** (Turtle Ferry) is a pair of jugs that can only pour into each other, so the target is unreachable: pouring alone only trades between two states. After the **pump** from the Old Workshop, Fill and Empty appear and it can be solved. These are new instances: K–1 4/3 → 2, 2–3 5/3 → 4, 4–5 9/4 → 6. Each was checked to be impossible by pouring and solvable with the pump (5, 5 and 7 moves).
-- **The other garden** (Glowworm Marsh) is an uncoverable garden. Before the **chalk** from Spooky Hollow, Prove it can’t is locked. After it, the garden can be proved. In 2–3 it is the 6×6 board, and the Checker shortcut is earned by the painted proof at the Hollow. In 4–5 it is the “shared partner” garden, where the colors balance, so paint cannot work and a star proof is needed after painting at the Hollow.
+- **The other garden** (Glowworm Marsh) is an uncoverable garden. Before the **chalk** from Spooky Hollow, Prove it can’t is locked. After it, the garden can be proved. In 2–3 it is the 6×6 board, and the Checker shortcut is earned by the painted proof at the Hollow; one tap paints it, and the child still answers which color has more. In 4–5 it is the “shared partner” garden, where the colors balance, so paint cannot work and a star proof is needed after painting at the Hollow; saying the colors are the same brings Mr. Hops’s nudge toward stars.
 
 Side puzzles never advance the road.
 

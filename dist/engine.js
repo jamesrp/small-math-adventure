@@ -118,6 +118,10 @@ export function solveSwaps(puzzle, board = puzzle.start) {
   while (node.next) { const [a,b] = node.next; path.push([a,b]); [current[a],current[b]] = [current[b],current[a]]; node = graph.get(current.join(',')); }
   return path;
 }
+// A board state a road keeper may react to (a mechanic's `cue`, such as a
+// proof garden's 'stuck' cover), or null. Keepers' lines for cues are per
+// encounter in dist/road.js.
+export const boardCue = (puzzle, board) => (isExpansion(puzzle) && mechanicFor(puzzle).cue?.(puzzle, board)) || null;
 export function nextHint(puzzle, attempt) {
   if (isSolved(puzzle, attempt.board)) return { type: 'done' };
   if (isExpansion(puzzle)) return mechanicFor(puzzle).hint(puzzle, attempt.board);
@@ -149,8 +153,14 @@ export function move(puzzle, attempt, pair, random = Math.random) {
 function commitBoard(puzzle, attempt, board) {
   if (JSON.stringify(board) === JSON.stringify(attempt.board)) return attempt;
   // Puzzles without Undo (Proofs one-check rounds and duels) keep no history.
-  const keep = !(isExpansion(puzzle) && mechanicFor(puzzle).noUndo?.(puzzle));
-  return { ...attempt, board, moves: attempt.moves + 1, history: keep ? [...attempt.history, { board: clone(attempt.board), moves: attempt.moves }].slice(-120) : [], completed: attempt.completed || isSolved(puzzle, board), lastPlayed: Date.now() };
+  const mechanic = isExpansion(puzzle) ? mechanicFor(puzzle) : null, keep = !mechanic?.noUndo?.(puzzle);
+  // A mechanic's `undoStep(puzzle, before, after, top)` may fold a step into
+  // the Undo step before it (false), so one Undo takes back both: the
+  // balance's pebble placements with their weighing, its Candidates toggles.
+  const step = keep && (!mechanic?.undoStep || mechanic.undoStep(puzzle, attempt.board, board, attempt.history.at(-1)?.board ?? null));
+  const history = !keep ? [] : step ? [...attempt.history, { board: clone(attempt.board), moves: attempt.moves }].slice(-120) : attempt.history;
+  // `moves` counts Undo steps, so each history entry stays one move apart (storage checks it).
+  return { ...attempt, board, moves: attempt.moves + (keep && !step ? 0 : 1), history, completed: attempt.completed || isSolved(puzzle, board), lastPlayed: Date.now() };
 }
 export function removeTile(puzzle, attempt, cell) {
   if (puzzle.mechanic !== 'tile' || !attempt.board.some(pair => pair.includes(cell))) return null;

@@ -1,6 +1,6 @@
 // Views for the Lantern Road: the map, the scene above each road puzzle, the
 // solved strip, stop sheets, the journal and the fair finale.
-import { BANDS, isSolved } from './engine.js';
+import { BANDS, isSolved, boardCue } from './engine.js';
 import { STOPS, SIDE, CAST, TOOLS, BAND_KEYS, getProgress, medals, trailFor, stopOf, rivalScore, rivalVerdict, maxStars, starsFor, SCORE_UNITS, campaignId, withCampaignPuzzles, resolvePuzzle, canVisitEncounter, continueAfter } from './road.js';
 import { pick } from './road-cast.js';
 import { media, slots, asset } from './art.js';
@@ -132,6 +132,9 @@ export function encounterLine(e, p, attempt, reaction, held = false) {
   if (gameLost) return { ...from(cast.gloat ? 'gloat' : 'oops', cast.gloat || cast.oops, attempt.moves), pose: 'happy' };
   if (reaction?.kind === 'oops') return { ...from('oops', cast.oops, reaction.n), pose: 'oops' };
   if (reaction?.kind === 'hint') return { text: cast.hint, pose: 'talk', voice: `${e.speaker}/hint` };
+  // A board the keeper reacts to while it lasts (a proof garden's stuck cover).
+  const cue = boardCue(p, board);
+  if (cue && e.lines[cue]) return { text: e.lines[cue], pose: cue === 'stuck' ? 'happy' : 'talk', voice: `${e.id}/${cue}` };
   if (e.side && p.missingAbility) return { text: e.lines.locked, pose: 'talk', voice: `${e.id}/locked` };
   return { text: e.lines.open, pose: 'talk', voice: `${e.id}/open` };
 }

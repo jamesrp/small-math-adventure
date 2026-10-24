@@ -87,6 +87,8 @@ test('garden proofs: checks are sound, tools respect the mode, and the Checker t
   b = move(corners, b, { type: 'paint', cells: gold, color: 1 });
   assert.equal(paintStatus(corners, b.board.paint).blank, 6);
   b = move(corners, b, { type: 'fill', color: 2 });
+  assert.ok(!isSolved(corners, b.board), 'a finished painting waits for the answer');
+  b = move(corners, b, { type: 'more', color: paintStatus(corners, b.board.paint).more });
   assert.ok(isSolved(corners, b.board));
   // Equal counts never prove a coverable garden, however it is painted.
   let c = move(coverable, freshAttempt(coverable), { type: 'mode', mode: 'prove' });
@@ -212,4 +214,72 @@ test('a solved garden accepts no further moves', () => {
   a = move(p, a, { type: 'star', cells: [0], on: true });
   assert.ok(isSolved(p, a.board));
   for (const action of [{ type: 'mode', mode: 'cover' }, { type: 'wipe' }, { type: 'star', cells: [0], on: false }]) assert.equal(move(p, a, action), null, JSON.stringify(action));
+});
+
+// Road review, October 24 (critic 1 S12 and coulds, critic 2 S10).
+const cardsText = (p, a, ctx = {}) => { const m = mechanicFor(p).render(p, a, ctx).match(/<div class="proof-cards">([\s\S]*)/); return m ? m[1].replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() : ''; };
+test('garden proof cards appear once their tool is used, and a painting ends with one question', () => {
+  for (const p of proofs.puzzles.filter(p => p.mechanic === 'proofgarden')) {
+    let a = move(p, freshAttempt(p), { type: 'mode', mode: 'prove' });
+    assert.equal(cardsText(p, a), '', `${p.id}: Prove opens without a printed recipe`);
+    a = move(p, a, { type: 'paint', cells: [p.parameters.cells[0]], color: 1 });
+    assert.match(cardsText(p, a), /^Paint proof Every square painted \d+ blank not yet Touching squares differ not yet$/, p.id);
+    assert.doesNotMatch(cardsText(p, a), /Star proof|Which color|counts|●/, `${p.id}: no counts before the answer`);
+    a = move(p, a, { type: 'checker', cell: p.parameters.cells[0] });
+    const pt = paintStatus(p, a.board.paint);
+    assert.match(cardsText(p, a), /Which color has more squares\? Gold Green Same$/, p.id);
+    assert.equal(isSolved(p, a.board), false, `${p.id}: the painting alone is not the proof`);
+    for (const wrong of [0, 1, 2].filter(color => color !== pt.more)) {
+      const missed = move(p, a, { type: 'more', color: wrong });
+      assert.equal(isSolved(p, missed.board), false);
+      assert.match(cardsText(p, missed), /Count again\.$/, p.id);
+      assert.equal(move(p, missed, { type: 'more', color: wrong }), null, 'the same answer again changes nothing');
+    }
+    const right = move(p, a, { type: 'more', color: pt.more });
+    if (pt.more) {
+      assert.equal(isSolved(p, right.board), !p.parameters.coverable, p.id);
+      assert.match(cardsText(p, right), new RegExp(`${pt.more === 1 ? 'Gold' : 'Green'} has more ● ${pt.gold} · ◆ ${pt.green} done$`), p.id);
+    } else {
+      // Equal counts: a fact the child found, not a fault to repaint.
+      assert.equal(isSolved(p, right.board), false);
+      assert.match(cardsText(p, right), /Same counts: paint can’t prove it here\. ● (\d+) · ◆ \1$/, p.id);
+      assert.doesNotMatch(mechanicFor(p).render(p, right), /proof-check no/, `${p.id}: no red fault`);
+      assert.equal(mechanicFor(p).cue(p, right.board), 'even');
+      // Stars keep the answer; repainting clears it.
+      if (!p.parameters.coverable) assert.equal(move(p, right, { type: 'star', cells: [p.parameters.cells[1]], on: true }).board.more, 0);
+      assert.equal(move(p, right, { type: 'paint', cells: [p.parameters.cells[0]], color: 2 }).board.more, null);
+    }
+  }
+});
+
+test('garden: the hint asks for the count, stars are pointed to where paint cannot work, and old painted saves stay solved', () => {
+  const corners = byId('proof-garden-03'), shared = byId('proof-garden-06');
+  let a = move(corners, move(corners, freshAttempt(corners), { type: 'mode', mode: 'prove' }), { type: 'checker', cell: 1 });
+  const ask = nextHint(corners, a);
+  assert.deepEqual([ask.action.type, ask.text], ['more', 'Count the squares of each color.']);
+  let b = move(shared, freshAttempt(shared), { type: 'mode', mode: 'prove' });
+  assert.equal(nextHint(shared, b).text, 'Paint can’t prove this garden. Try stars.');
+  b = move(shared, b, nextHint(shared, b).action);
+  assert.match(nextHint(shared, b).text, /^Star row \d, column \d\. Which squares could be its partner\?$/);
+  // A board saved before the question (no `more`) and proved by paint alone stays solved.
+  const legacy = { ...a.board }; delete legacy.more;
+  assert.ok(mechanicFor(corners).valid(corners, legacy) && isSolved(corners, legacy));
+  assert.equal(mechanicFor(corners).valid(corners, { ...a.board, more: 'gold' }), false);
+});
+
+test('garden: dominoes stay as outlines in Prove, the first one is filled, and a stuck cover cues the keeper', async () => {
+  const lonely = byId('proof-garden-01'), g = mechanicFor(lonely);
+  let a = freshAttempt(lonely);
+  for (const pair of [[2, 3], [6, 7], [10, 11], [8, 12]]) a = move(lonely, a, { type: 'place', cells: pair });
+  assert.equal(g.cue(lonely, a.board), null, 'a domino still fits');
+  a = move(lonely, a, { type: 'place', cells: [5, 9] });
+  assert.equal(g.cue(lonely, a.board), 'stuck', 'squares left and no domino fits');
+  const proving = move(lonely, a, { type: 'mode', mode: 'prove' });
+  const html = g.render(lonely, proving);
+  assert.equal((html.match(/class="pf-domino /g) || []).length, 5, 'Prove keeps the dominoes');
+  assert.match(html, /aria-label="Garden with 12 squares, 5 dominoes drawn as outlines"/);
+  assert.equal(g.cue(byId('proof-garden-04'), a.board), null, 'never on a garden that can be covered');
+  const css = await readFile(new URL('../dist/proofs.css', import.meta.url), 'utf8');
+  assert.match(css, /\.pf-domino\.tile-color-0\{background:#8cddae/);
+  assert.match(css, /\.pf-board\.proving \.pf-domino\{[^}]*border:3px dashed/);
 });

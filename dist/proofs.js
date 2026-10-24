@@ -27,7 +27,9 @@ const moveButton = (label, action, cls = 'secondary', extra = '') => `<button ty
 // The main action of a round keeps focus across renders (Check, then New round).
 const primaryButton = (label, action, extra = '') => `<button type="button" class="primary expansion-action" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="proof-primary" ${extra}>${label}</button>`;
 const uiButton = (label, payload, pressed, extra = '') => `<button type="button" class="secondary proof-tool" data-action="mechanic-ui" data-ui="${esc(JSON.stringify(payload))}" data-focus="ui-${esc(JSON.stringify(payload))}" aria-pressed="${pressed}" ${extra}>${label}</button>`;
-const card = (title, lines) => `<section class="proof-card${lines.every(line => line.state === true) ? ' done' : ''}" aria-label="${esc(title)}"><h2 class="proof-title">${esc(title)}</h2>${lines.map(line => `<p class="proof-check ${line.state === true ? 'ok' : line.state === false ? 'no' : ''}"><span class="proof-mark" aria-hidden="true"></span><span>${esc(line.text)}</span>${line.count ? `<span class="proof-count">${esc(line.count)}</span>` : ''}<span class="sr-only">${line.state === true ? 'done' : line.state === false ? 'not yet: fix this' : 'not yet'}</span></p>`).join('')}</section>`;
+// A line's state: true (ticked), false (a fault to fix), 'info' (a fact, no
+// fault) or null (not yet). `extra` is drawn after the lines (a question).
+const card = (title, lines, extra = '') => `<section class="proof-card${!extra && lines.every(line => line.state === true) ? ' done' : ''}" aria-label="${esc(title)}"><h2 class="proof-title">${esc(title)}</h2>${lines.map(line => `<p class="proof-check ${line.state === true ? 'ok' : line.state === false ? 'no' : line.state === 'info' ? 'info' : ''}"><span class="proof-mark" aria-hidden="true"></span><span>${esc(line.text)}</span>${line.count ? `<span class="proof-count">${esc(line.count)}</span>` : ''}<span class="sr-only">${line.state === true ? 'done' : line.state === false ? 'not yet: fix this' : line.state === 'info' ? '' : 'not yet'}</span></p>`).join('')}${extra}</section>`;
 const pips = (n, on, label) => `<span class="proof-pips" role="img" aria-label="${esc(label)}">${Array.from({ length: n }, (_, i) => `<span class="${i < on ? 'on' : ''}"></span>`).join('')}</span>`;
 const swatch = color => `<span class="proof-swatch c${color}" aria-hidden="true"></span>`;
 const colorName = color => color === 1 ? 'gold' : 'green';
@@ -110,7 +112,18 @@ export function paintStatus(p, paint) {
     if (color === 1) gold++; else if (color === 2) green++; else blank++;
     if (color && gridNeighbors(cols, rows, region, cell).some(n => paint[n] === color)) clash = true;
   }
-  return { gold, green, blank, clash, proved: blank === 0 && !clash && gold !== green };
+  return { gold, green, blank, clash, proved: blank === 0 && !clash && gold !== green, more: gold === green ? 0 : gold > green ? 1 : 2 };
+}
+// A finished painting asks one question before it counts as a proof: which
+// color has more squares (1 gold, 2 green, 0 the same). `board.more` holds the
+// child's answer; any other move clears it. Boards saved before the question
+// (no `more`) were proved by the painting alone and stay solved.
+const painted = pt => pt.blank === 0 && !pt.clash;
+// Cover mode with squares left and no two of them side by side.
+function stuckCover(p, board) {
+  const { cols, rows } = p.parameters, region = regionOf(p), covered = new Set(board.doms.flat());
+  const free = [...region].filter(cell => !covered.has(cell));
+  return free.length > 0 && free.every(cell => gridNeighbors(cols, rows, region, cell).every(n => covered.has(n)));
 }
 function gardenValid(p, board) {
   const { cols, rows } = p.parameters, region = regionOf(p), n = cols * rows;
@@ -124,23 +137,38 @@ function gardenValid(p, board) {
     pair.forEach(cell => used.add(cell));
   }
   if (!board.paint.every((color, cell) => [0, 1, 2].includes(color) && (region.has(cell) || color === 0))) return false;
+  if (board.more !== undefined && ![null, 0, 1, 2].includes(board.more)) return false;
   return new Set(board.stars).size === board.stars.length && board.stars.every(cell => integer(cell) && region.has(cell));
 }
 function gardenSolved(p, board) {
   if (!gardenValid(p, board)) return false;
   if (p.parameters.coverable) return board.doms.length * 2 === p.parameters.cells.length;
-  return starStatus(p, board.stars).proved || paintStatus(p, board.paint).proved;
+  if (starStatus(p, board.stars).proved) return true;
+  const pt = paintStatus(p, board.paint);
+  return pt.proved && (board.more === undefined || board.more === pt.more);
 }
 function cellList(p, cells) {
   const region = regionOf(p);
   const list = Array.isArray(cells) ? cells.map(index) : [];
   return list.length && list.length <= region.size && list.every(cell => integer(cell) && region.has(cell)) ? [...new Set(list)] : null;
 }
+// The answer to the paint question lasts until the paint changes; stars,
+// dominoes and mode switches keep it.
 function gardenMove(p, board, action) {
+  const next = gardenStep(p, board, action);
+  if (next && (next.more === undefined || (action.type !== 'more' && next.paint.some((color, cell) => color !== board.paint[cell])))) next.more = null;
+  return next;
+}
+function gardenStep(p, board, action) {
   if (!gardenValid(p, board) || !object(action) || gardenSolved(p, board)) return null;
   const next = clone(board), region = regionOf(p), { cols, rows } = p.parameters;
   const covered = new Set(next.doms.flat());
   switch (action.type) {
+    case 'more': {
+      const color = index(action.color);
+      if (board.mode !== 'prove' || ![0, 1, 2].includes(color) || color === board.more || !painted(paintStatus(p, board.paint))) return null;
+      next.more = color; return next;
+    }
     case 'mode':
       if (!['cover', 'prove'].includes(action.mode) || (action.mode === 'prove' && p.parameters.proveLocked)) return null;
       next.mode = action.mode; return next;
@@ -212,13 +240,18 @@ function gardenHint(p, board) {
   }
   if (p.parameters.proveLocked) return { type: 'equipment', text: p.equipmentHint || 'This garden needs a proof tool you have not found yet.' };
   if (board.mode !== 'prove') return { type: 'move', action: { type: 'mode', mode: 'prove' }, text: 'Look for squares that cannot all find a partner. Then switch to Prove it can’t.' };
-  const refutation = p.parameters.refutation;
+  const refutation = p.parameters.refutation, pt = paintStatus(p, board.paint);
+  if (pt.proved && board.more !== pt.more) return { type: 'move', action: { type: 'more', color: pt.more }, text: 'Count the squares of each color.' };
   if (refutation.kind === 'stars') {
     const target = new Set(refutation.stars);
     const extra = board.stars.find(cell => !target.has(cell));
     if (extra !== undefined) return { type: 'move', action: { type: 'star', cells: [extra], on: false }, pair: [extra], text: `Remove the star at ${place(p, extra)}.` };
     const missing = refutation.stars.find(cell => !board.stars.includes(cell));
-    return { type: 'move', action: { type: 'star', cells: [missing], on: true }, pair: [missing], text: `Star ${place(p, missing)}. Which squares could be its partner?` };
+    // Where the colors balance, paint can never prove it: the first nudge
+    // points to stars (a 4–5 child may not have met a star proof on the road).
+    const balanced = cells.filter(cell => gridParity(cols, cell)).length * 2 === cells.length;
+    const text = balanced && !board.stars.length ? 'Paint can’t prove this garden. Try stars.' : `Star ${place(p, missing)}. Which squares could be its partner?`;
+    return { type: 'move', action: { type: 'star', cells: [missing], on: true }, pair: [missing], text };
   }
   // Paint along the child's own convention when there is one.
   const first = cells.find(cell => board.paint[cell]);
@@ -243,7 +276,8 @@ function gardenRender(p, attempt, ctx = {}) {
     const label = `Row ${Math.floor(cell / cols) + 1}, column ${cell % cols + 1}${isCovered ? ', covered; tap to lift' : ''}${color ? `, ${colorName(color)}` : ''}${star ? ', starred' : ''}${partners.has(cell) && !star ? ', partner square' : ''}`;
     return `<button type="button" class="${classes}" style="${pos(cell)}" data-cell="${cell}" data-focus="pf-cell-${cell}" aria-label="${esc(label)}" ${solved ? 'disabled' : ''}><span aria-hidden="true">${star ? '★' : color === 1 ? '●' : color === 2 ? '◆' : ''}</span></button>`;
   }).join('');
-  const dominoes = prove ? '' : board.doms.map((pair, i) => {
+  // In Prove the dominoes stay, drawn as outlines over the paint.
+  const dominoes = board.doms.map((pair, i) => {
     const first = Math.min(...pair), horizontal = Math.floor(pair[0] / cols) === Math.floor(pair[1] / cols);
     return `<span class="pf-domino tile-color-${i % 6}" style="grid-row:${Math.floor(first / cols) + 1} / span ${horizontal ? 1 : 2};grid-column:${first % cols + 1} / span ${horizontal ? 2 : 1}" aria-hidden="true"></span>`;
   }).join('');
@@ -259,21 +293,28 @@ function gardenRender(p, attempt, ctx = {}) {
     ['erase', '<span class="proof-tool-icon" aria-hidden="true">⌫</span> Erase', 'Erase']
   ];
   const st = starStatus(p, board.stars), pt = paintStatus(p, board.paint), anyPaint = pt.gold + pt.green > 0;
-  const proofCards = card('Star proof', [
-    { text: 'Stars don’t touch', state: st.count ? !st.touching : null },
-    { text: 'More stars than partners', count: `★ ${st.count} · ◌ ${st.partners}`, state: st.count ? st.count > st.partners : null }
-  ]) + card('Paint proof', [
-    { text: 'Every square painted', count: anyPaint && pt.blank ? `${pt.blank} blank` : '', state: anyPaint && !pt.blank ? true : null },
-    { text: 'Touching squares differ', state: pt.clash ? false : anyPaint && !pt.blank ? true : null },
-    { text: 'Different counts', count: `● ${pt.gold} · ◆ ${pt.green}`, state: anyPaint && !pt.blank ? pt.gold !== pt.green : null }
-  ]);
+  // Each card appears once its tool has been used, so Prove doesn't open on a
+  // printed recipe. A finished painting ends with a question the child
+  // answers; the counts show only after a right answer.
+  const counts = `● ${pt.gold} · ◆ ${pt.green}`, answered = board.more === undefined ? (pt.proved ? pt.more : null) : board.more;
+  const option = (color, label) => `<button type="button" class="secondary expansion-action${board.more === color ? ' miss' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify({ type: 'more', color }))}" data-focus="pf-more-${color}" aria-pressed="${board.more === color}">${label}</button>`;
+  const ask = painted(pt) && answered !== pt.more ? `<div class="proof-ask" role="group" aria-labelledby="pf-ask-${esc(p.id)}"><p class="proof-ask-q" id="pf-ask-${esc(p.id)}">Which color has more squares?</p><div class="proof-ask-options">${option(1, `${swatch(1)} Gold`)}${option(2, `${swatch(2)} Green`)}${option(0, 'Same')}</div>${board.more !== null && board.more !== undefined ? '<p class="proof-ask-note" role="status">Count again.</p>' : ''}</div>` : '';
+  const answer = painted(pt) && answered === pt.more ? [pt.more ? { text: `${pt.more === 1 ? 'Gold' : 'Green'} has more`, count: counts, state: true } : { text: 'Same counts: paint can’t prove it here.', count: counts, state: 'info' }] : [];
+  const proofCards = (st.count ? card('Star proof', [
+    { text: 'Stars don’t touch', state: !st.touching },
+    { text: 'More stars than partners', count: `★ ${st.count} · ◌ ${st.partners}`, state: st.count > st.partners }
+  ]) : '') + (anyPaint ? card('Paint proof', [
+    { text: 'Every square painted', count: pt.blank ? `${pt.blank} blank` : '', state: !pt.blank ? true : null },
+    { text: 'Touching squares differ', state: pt.clash ? false : !pt.blank ? true : null },
+    ...answer
+  ], ask) : '');
   return `<div class="proof-puzzle proof-garden" data-mechanic-wire="proofgarden">
     <div class="proof-modes" role="group" aria-label="Mode">${modeButton('cover', '▰', 'Cover')}${modeButton('prove', '✎', 'Prove it can’t')}</div>
-    <div class="pf-board${prove ? ' proving' : ''}" style="--cols:${cols};--rows:${rows}" role="group" aria-label="Garden with ${region.size} squares">${cellsHTML}${dominoes}</div>
+    <div class="pf-board${prove ? ' proving' : ''}" style="--cols:${cols};--rows:${rows}" role="group" aria-label="Garden with ${region.size} squares${prove && board.doms.length ? `, ${plural(board.doms.length, 'domino', 'dominoes')} drawn as outlines` : ''}">${cellsHTML}${dominoes}</div>
     ${solved ? '' : prove ? `<div class="proof-toolbox" role="group" aria-label="Proof tools">${tools.map(([tool, label, name]) => uiButton(label, { tool }, state.tool === tool, `aria-label="${name}"`)).join('')}</div>
       <div class="proof-actions">${state.tool === 1 || state.tool === 2 ? actionButton(`Fill blanks ${swatch(state.tool)}`, { type: 'fill', color: state.tool }, `aria-label="Fill blanks ${colorName(state.tool)}" ${pt.blank ? '' : 'disabled'}`) : ''}${actionButton('Clear all', { type: 'wipe' }, anyPaint || st.count ? '' : 'disabled')}</div>`
       : `<div class="proof-actions">${board.doms.length ? '' : '<span class="proof-hintline">Drag across two squares.</span>'}${actionButton('Clear', { type: 'clear' }, board.doms.length ? '' : 'disabled')}</div>`}
-    ${prove ? `<div class="proof-cards">${proofCards}</div>` : ''}
+    ${prove && proofCards ? `<div class="proof-cards">${proofCards}</div>` : ''}
   </div>`;
 }
 // Pointer gestures follow the Tile Garden board: main.js passes in the rules
@@ -409,11 +450,20 @@ function gardenWire(root, p, api) {
   });
 }
 const garden = {
-  fresh: p => ({ mode: 'cover', doms: [], paint: Array(p.parameters.cols * p.parameters.rows).fill(0), stars: [] }),
+  fresh: p => ({ mode: 'cover', doms: [], paint: Array(p.parameters.cols * p.parameters.rows).fill(0), stars: [], more: null }),
   valid: gardenValid,
   solved: gardenSolved,
   move: gardenMove,
   hint: gardenHint,
+  // A cue for the road's keeper (dist/road-ui.js): 'stuck' when a cover of an
+  // uncoverable garden has squares left that no domino fits, 'even' when the
+  // child has said a finished painting's colors are the same.
+  cue(p, board) {
+    if (!gardenValid(p, board) || gardenSolved(p, board)) return null;
+    if (board.mode === 'cover') return !p.parameters.coverable && stuckCover(p, board) ? 'stuck' : null;
+    const pt = paintStatus(p, board.paint);
+    return board.more === 0 && painted(pt) && pt.more === 0 ? 'even' : null;
+  },
   render: gardenRender,
   wire: gardenWire,
   reset: resetUI,
@@ -422,7 +472,7 @@ const garden = {
     if (object(payload) && ['star', 1, 2, 'checker', 'erase'].includes(payload.tool)) state.tool = payload.tool;
     if (object(payload) && (payload.sel === null || integer(payload.sel))) state.sel = payload.sel;
   },
-  help: () => '<div class="proof-help"><p>Dashed rings mark partners: the squares next to a star. Fill blanks paints every empty square in the chosen color.</p></div>',
+  help: () => '<div class="proof-help"><p>Dashed rings mark partners: the squares next to a star. Fill blanks paints every empty square in the chosen color. In Prove, your dominoes show as dashed outlines.</p></div>',
   demo: 'Drag across two squares to place a domino. If the garden cannot be covered, switch to Prove it can’t and build a star proof or a paint proof.',
   // Authoring helpers used by scripts/build-proofs.mjs and the validators.
   cover: (cols, rows, region) => tilingOf(cols, rows, region),

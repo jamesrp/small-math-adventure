@@ -205,16 +205,32 @@ function solvedWeigh(p, board) {
   return remaining.length === 1 && board.answer.coin === remaining[0][0] && board.answer.deviation === remaining[0][1];
 }
 
+// What the child's own weighings say about a chosen answer, in words a
+// six-year-old knows. A wrong answer names only the weighing that rules it
+// out and the pebble the child chose, never the pebble that is odd.
+function ruledOutBy(p, board, coin, deviation) {
+  const heavyOnly = p.parameters.odd_kind === 'heavy', odd = heavyOnly ? 'the heavy one' : 'the odd one';
+  const record = board.observations.find(record => outcome([coin, deviation], record.left, record.right) !== record.result);
+  if (!record) return '';
+  const pan = record.left.includes(coin) ? 'L' : record.right.includes(coin) ? 'R' : null;
+  if (!pan) return `The scale tipped without ${coin}, so ${coin} isn’t ${odd}.`;
+  if (record.result === '=') return `${coin} balanced, so ${coin} isn’t ${odd}.`;
+  const up = record.result !== pan;
+  return `${coin}’s pan went ${up ? 'up' : 'down'}, so ${coin} isn’t ${heavyOnly ? odd : up ? 'heavy' : 'light'}.`;
+}
+
 function balanceFeedback(p, board) {
-  const remaining = candidates(p, board), budget = p.parameters.weighing_budget - board.observations.length;
+  const remaining = candidates(p, board), used = board.observations.length, budget = p.parameters.weighing_budget - used;
+  const more = budget ? (used ? 'Weigh again.' : 'Weigh first.') : 'Undo a weighing or start again.';
   if (board.answer) {
-    if (remaining.length > 1) return `The observations still allow ${remaining.length} possibilities, so this answer is not yet justified. ${budget ? 'Make another weighing.' : 'Undo a weighing or start again to try another experiment.'}`;
-    if (!solvedWeigh(p, board)) return 'That answer does not fit the observations. Check the notebook and choose again.';
+    const {coin, deviation} = board.answer, why = ruledOutBy(p, board, coin, deviation);
+    if (why) return why;
+    if (remaining.length > 1) return `The scale hasn’t shown ${remaining.every(([other]) => other === coin) ? 'heavy or light' : 'which one'} yet. ${more}`;
     return '';
   }
   // When the observations single out one possibility, saying so unasked would
   // tell the child they know enough before they say so; Hint names it.
-  if (!budget && remaining.length > 1) return `${remaining.length} possibilities still fit and no weighings remain. Undo a weighing or start again.`;
+  if (!budget && remaining.length > 1) return `No weighings left, and the scale hasn’t shown which one. ${more}`;
   return '';
 }
 
@@ -237,6 +253,17 @@ const weigh = {
   },
   valid: validWeigh,
   solved: solvedWeigh,
+  // One Undo takes back one whole weighing: the pebbles placed for it and the
+  // Weigh itself, back to the screen after the weighing before (or the start).
+  // Placing pebbles opens an Undo step only as the first change since the
+  // last weighing; Candidates and answer picks never open one (engine.js
+  // commitBoard). `carry` keeps Candidates as the child left it and drops an
+  // answer, which was judged on the weighings Undo took back.
+  undoStep(p, before, after, top) {
+    if (after.observations.length === before.observations.length && same(after.left, before.left) && same(after.right, before.right)) return false;
+    return !top || top.observations.length !== before.observations.length;
+  },
+  carry: (p, from, to) => ({...to, notebook:from.notebook, answer:null}),
   move(p, board, action) {
     if (!validWeigh(p, board) || !object(action)) return null;
     if (action.type === 'notebook') return {...board, notebook:!board.notebook};
@@ -269,15 +296,15 @@ const weigh = {
     if (!validWeigh(p, board)) return {type:'deadend', text:'Start again to restore the balance.'};
     if (solvedWeigh(p, board)) return {type:'done'};
     const model = weighingModel(p.parameters), possible = candidates(p, board), budget = p.parameters.weighing_budget - board.observations.length;
-    if (possible.length === 1) return {type:'move', action:{type:'answer', coin:possible[0][0], deviation:possible[0][1]}, text:`Only ${possible[0][0]} ${possible[0][1] === 1 ? 'heavy' : 'light'} fits every observation. Submit that answer.`, remaining:0};
+    if (possible.length === 1) return {type:'move', action:{type:'answer', coin:possible[0][0], deviation:possible[0][1]}, text:p.parameters.odd_kind === 'heavy' ? `Only ${possible[0][0]} can still be the heavy one. Pick it and Check.` : `Only ${possible[0][0]} ${possible[0][1] === 1 ? 'heavy' : 'light'} fits every weighing. Pick it and Check.`, remaining:0};
     let mask = 0;
     model.hypotheses.forEach((hypothesis, i) => { if (possible.includes(hypothesis)) mask |= 1 << i; });
     const option = findWeighing(model, mask, budget);
     // Told only behind Hint (quiet): while weighings remain, the line would
     // judge the experiment's design, which is the puzzle; once they are spent,
     // the board's own line already says what is wrong.
-    if (!option) return {type:'deadend', quiet:true, text:budget ? `These observations leave no guaranteed plan within the ${budget} remaining ${budget === 1 ? 'weighing' : 'weighings'}. Undo a weighing or start again.` : 'More than one possibility still fits. Undo a weighing or start again.'};
-    return {type:'move', action:{type:'weigh', left:[...option.left], right:[...option.right]}, text:`Weigh ${option.left.join(', ')} on the left against ${option.right.join(', ')} on the right. Every possible outcome leaves a way to finish within your budget.`, remaining:budget};
+    if (!option) return {type:'deadend', quiet:true, text:budget ? `From here, ${budget === 1 ? 'one weighing' : `${budget} weighings`} can’t always find it. Undo a weighing or start again.` : 'The scale hasn’t shown which one. Undo a weighing or start again.'};
+    return {type:'move', action:{type:'weigh', left:[...option.left], right:[...option.right]}, text:`Weigh ${option.left.join(', ')} on the left against ${option.right.join(', ')} on the right. Whatever the scale shows, you can still finish.`, remaining:budget};
   },
   // A drawn balance shows which pebbles sit on each pan and how the last
   // weighing tipped. Each pebble has a small Left / Off / Right control whose
@@ -294,12 +321,14 @@ const weigh = {
       const pan = board.left.includes(coin) ? 'left' : board.right.includes(coin) ? 'right' : 'off';
       const normal = parameters.known_genuine.includes(coin), token = `<span class="pebble-token${normal ? ' pebble-normal' : ''}" aria-hidden="true">${esc(coin)}</span>`;
       return `<fieldset class="balance-pebble pebble-on-${pan}"><legend${normal ? '' : ' class="sr-only"'}><span class="sr-only">${esc(coin)}</span>${normal ? '<span class="pebble-normal-label">Normal</span>' : ''}</legend><div class="pebble-places">${[['left', '◀', 'Left'], ['off', '●', 'Off'], ['right', '▶', 'Right']].map(([value, icon, label]) => actionButton(`${pan === value ? token : `<span class="pebble-place-icon" aria-hidden="true">${icon}</span>`}<span class="pebble-place-name">${label}</span>`, {type:'place', coin, pan:value}, `aria-label="Put pebble ${esc(coin)} ${value === 'off' ? 'off the scale' : `on the ${value} pan`}" aria-pressed="${pan === value}"`)).join('')}</div></fieldset>`;
-    }).join('')}</div><div class="balance-controls">${actionButton('Weigh', {type:'weigh'}, !validPans(parameters, board.left, board.right, true) || used >= parameters.weighing_budget ? 'disabled' : '').replace('class="secondary expansion-action"', 'class="primary expansion-action"')}${actionButton('Clear pans', {type:'clear'}, board.left.length || board.right.length ? '' : 'disabled')}</div><section class="balance-history" aria-label="Observation history">${used ? `<ol>${board.observations.map(record => `<li><span><strong>${esc(record.left.join(' '))}</strong> <span aria-hidden="true">${record.result === 'L' ? '⟍' : record.result === 'R' ? '⟋' : '='}</span><span class="sr-only">vs</span> <strong>${esc(record.right.join(' '))}</strong></span><span>${resultLabel(record.result)}</span></li>`).join('')}</ol>` : ''}</section><div class="balance-notebook">${actionButton('Candidates', {type:'notebook'}, `aria-expanded="${board.notebook}" aria-controls="candidate-notebook"`)}${board.notebook ? `<div id="candidate-notebook"><ul>${parameters.coins.map(coin => {
+    }).join('')}</div><div class="balance-controls">${actionButton('Weigh', {type:'weigh'}, !validPans(parameters, board.left, board.right, true) || used >= parameters.weighing_budget ? 'disabled' : '').replace('class="secondary expansion-action"', 'class="primary expansion-action"')}${actionButton('Clear pans', {type:'clear'}, board.left.length || board.right.length ? '' : 'disabled')}</div><section class="balance-history" aria-label="Weighings">${used ? `<ol>${board.observations.map(record => `<li><span><strong>${esc(record.left.join(' '))}</strong> <span aria-hidden="true">${record.result === 'L' ? '⟍' : record.result === 'R' ? '⟋' : '='}</span><span class="sr-only">vs</span> <strong>${esc(record.right.join(' '))}</strong></span><span>${resultLabel(record.result)}</span></li>`).join('')}</ol>` : ''}</section><div class="balance-notebook">${actionButton('Candidates', {type:'notebook'}, `aria-expanded="${board.notebook}" aria-controls="candidate-notebook"`)}${board.notebook ? `<div id="candidate-notebook"><ul>${parameters.coins.map(coin => {
+      // "maybe" and "normal": a list of "heavy" would read as if every pebble left were heavy.
       const signs = possible.filter(hypothesis => hypothesis[0] === coin).map(hypothesis => hypothesis[1] === 1 ? 'heavy' : 'light');
-      return `<li class="${signs.length ? '' : 'ruled-out'}"><strong>${esc(coin)}</strong>: ${signs.length ? signs.join(' or ') : 'normal'}</li>`;
+      const label = !signs.length ? 'normal' : parameters.odd_kind === 'heavy' ? 'maybe' : `maybe ${signs.join(' or ')}`;
+      return `<li class="${signs.length ? 'maybe' : 'ruled-out'}"><strong>${esc(coin)}</strong>: ${label}</li>`;
     }).join('')}</ul></div>` : ''}</div><form data-puzzle-form class="balance-answer"><input type="hidden" name="type" value="answer"><fieldset class="answer-coins"><legend>Odd pebble</legend>${parameters.coins.map(coin => `<label class="answer-coin"><input type="radio" name="coin" value="${esc(coin)}" ${board.answer?.coin === coin ? 'checked' : ''} required><span class="pebble-token">${esc(coin)}</span></label>`).join('')}</fieldset>${parameters.odd_kind === 'heavy' ? '<input type="hidden" name="deviation" value="1">' : `<fieldset class="answer-weight"><legend>Weight</legend>${[[1, 'Heavy'], [-1, 'Light']].map(([value, label]) => `<label class="answer-choice"><input type="radio" name="deviation" value="${value}" ${board.answer?.deviation === value ? 'checked' : ''} required><span>${label}</span></label>`).join('')}</fieldset>`}${submitButton('Check')}</form><p class="measurement-observation" role="status" aria-live="polite">${esc(balanceFeedback(p, board))}</p></div>`;
   },
-  demo: 'Use Left, Off, and Right to place each pebble. Put equal numbers on both pans, then Weigh. A tilt tells you which pan is heavier. Open the candidate notebook to see what still fits. Submit an answer only when your observations single it out.',
+  demo: 'Use Left, Off, and Right to place each pebble. Put equal numbers on both pans, then Weigh. A tilt tells you which pan is heavier. Candidates shows which pebbles could still be the odd one. Check an answer once the scale has shown which one it is. Undo takes back your last weighing.',
 };
 
 export const measurementMechanics = {jug, weigh};

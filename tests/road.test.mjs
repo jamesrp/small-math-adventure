@@ -428,3 +428,23 @@ test('a board from another trail records on its own trail, and the next step fol
   assert.equal(continueAfter(pr, getEncounter('ferry-lights'), 'k1'), null, 'a lit stop returns to the map');
   assert.equal(continueAfter(pr, getEncounter('ferry-seats'), 'k1'), null, 'an older replay returns to the map');
 });
+
+test('proof gardens: the keeper teases a stuck cover and points to stars after equal counts, without the idea', () => {
+  const hollow = getEncounter('hollow-plots'), other = getEncounter('marsh-garden');
+  const lonely = all.find(q => q.id === campaignId('hollow-plots', 'k1'));
+  let a = freshAttempt(lonely);
+  assert.equal(encounterLine(hollow, lonely, a, null).voice, 'hollow-plots/open');
+  for (const pair of [[2, 3], [6, 7], [10, 11], [8, 12], [5, 9]]) a = move(lonely, a, { type: 'place', cells: pair });
+  const stuck = encounterLine(hollow, lonely, a, null);
+  assert.deepEqual([stuck.text, stuck.voice], ['Stuck? Mwahaha! Maybe nobody can…', 'hollow-plots/stuck']);
+  assert.equal(encounterLine(hollow, lonely, a, { kind: 'hint' }).voice, 'rattle/hint', 'a Hint press still answers first');
+  assert.equal(encounterLine(hollow, lonely, move(lonely, a, { type: 'lift', cell: 5 }), null).voice, 'hollow-plots/open');
+  // 4–5's other garden needs a star proof; its colors balance.
+  const pr = profile('45'), shared = resolvePuzzle(all.find(q => q.id === campaignId('marsh-garden', '45')), { ...pr, journey: { version: 4, trails: { 45: { started: true, completed: MAIN.slice(0, 12).map(e => e.id), side: [], stars: Object.fromEntries(MAIN.slice(0, 12).map(e => [e.id, 1])) } } } });
+  assert.ok(!shared.missingAbility, 'the chalk is earned');
+  let b = move(shared, move(shared, freshAttempt(shared), { type: 'mode', mode: 'prove' }), { type: 'checker', cell: shared.parameters.cells[0] });
+  b = move(shared, b, { type: 'more', color: 0 });
+  const even = encounterLine(other, shared, b, null);
+  assert.deepEqual([even.text, even.voice], ['Hmm. I’d try stars, myself.', 'marsh-garden/even']);
+  for (const line of [stuck.text, even.text, other.lines.stuck]) assert.doesNotMatch(line, /color|paint|count|partner|neighbo/i, 'the line gives no idea away');
+});

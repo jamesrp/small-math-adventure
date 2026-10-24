@@ -23,6 +23,10 @@
 .pf-cell:disabled{opacity:1;cursor:default}
 .pf-hole{border-radius:8px;border:2px dashed #b9b39b;background:repeating-linear-gradient(135deg,transparent,transparent 6px,#d7d1bb 6px,#d7d1bb 8px);aspect-ratio:1}
 .pf-domino{z-index:0;align-self:stretch;justify-self:stretch;margin:3px;border:2px solid #286854;border-radius:9px;pointer-events:none}
+/* The first domino gets a fill too (tile-color-0 has none), so it never looks like an empty square. */
+.pf-domino.tile-color-0{background:#8cddae;box-shadow:0 3px 0 #4e9a78}
+/* In Prove the dominoes stay as dark outlines over the paint. */
+.pf-board.proving .pf-domino{z-index:2;margin:1px;background:none;box-shadow:none;border:3px dashed #286854}
 .proof-toolbox{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;margin:10px 0 0}
 .proof-tool{display:inline-flex;align-items:center;gap:8px;font-weight:600}
 .proof-tool[aria-pressed="true"]{background:#e9eddc;border-color:var(--pf-pine);box-shadow:inset 0 0 0 1.5px var(--pf-pine)}
@@ -41,6 +45,14 @@
 .proof-check.ok .proof-mark{background:var(--pf-good);border-color:var(--pf-good);color:#fff}.proof-check.ok .proof-mark::after{content:"✓"}
 .proof-check.no .proof-mark{border-color:var(--pf-bad);color:var(--pf-bad)}.proof-check.no .proof-mark::after{content:"✗"}
 .proof-check.no{color:var(--pf-bad)}
+.proof-check.info .proof-mark{border-color:var(--pf-muted)}.proof-check.info .proof-mark::after{content:"=";color:var(--pf-muted)}
+/* The question that ends a paint proof. */
+.proof-ask{margin:8px 0 2px;padding-top:8px;border-top:1px dashed var(--pf-line)}
+.proof-ask-q{margin:0 0 8px;font-weight:600;font-size:1rem}
+.proof-ask-options{display:flex;flex-wrap:wrap;gap:8px}
+.proof-ask-options button{display:inline-flex;align-items:center;gap:6px;min-height:44px;min-width:76px;justify-content:center;font-weight:600}
+.proof-ask-options button.miss{border-color:var(--pf-bad);box-shadow:0 0 0 2px var(--pf-bad-soft)}
+.proof-ask-note{margin:8px 0 0;color:var(--pf-bad);font-size:.95rem}
 .proof-count{margin-left:auto;padding-left:8px;color:var(--pf-muted);white-space:nowrap}
 .proof-note{text-align:center;color:var(--pf-muted);margin:10px 0 0;flex-basis:100%}
 .proof-roundbar{display:flex;justify-content:flex-end;margin:0 0 8px}
