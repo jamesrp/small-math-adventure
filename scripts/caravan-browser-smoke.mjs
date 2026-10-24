@@ -58,6 +58,8 @@ function wire(page) {
 }
 // Grown-ups → Export, saved to test-results; returns the parsed backup and its path.
 async function exportBackup(page, ui, name) {
+  const explorer = page.locator('.explorer-toggle[aria-expanded=false]:visible'); // a phone keeps Grown-ups in the explorer's row
+  if (await explorer.count()) await explorer.click();
   await ui.action('parents-gate').click(); await page.getByRole('button', { name: 'I’m a grown-up', exact: true }).click();
   const download = page.waitForEvent('download'); await ui.action('export').click();
   const path = outputPath(name); await (await download).saveAs(path);

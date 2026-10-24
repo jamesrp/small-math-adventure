@@ -24,6 +24,8 @@ let sessionCompleted=new Set(),activePlay=null;
 let reaction=null,solveResult=null,oopsCount=0;
 // A solve whose strip is still held back (bells still ringing) takes focus when it appears.
 let focusDone=false;
+// The phone top bar's explorer row: open until the page changes.
+let accountOpen=false;
 // The play screen an Undo press drew for the attempt it lands on. The render
 // after the press shows it as drawn: drawing it again would cost another hint,
 // and a renderer that animates from the board it drew last (a piece coming
@@ -50,7 +52,7 @@ function activeEncounter(){
 }
 function save(){warning=persistStore(storage,state,puzzles);}
 function put(p,a){profile().attempts[p.id]=a;save();}
-function go(hash){viewState.save();clockTimeline.leave();focusDone=false;selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';reaction=null;solveResult=null;if(location.hash===`#${hash}`)render();else location.hash=hash;}
+function go(hash){viewState.save();clockTimeline.leave();focusDone=false;accountOpen=false;selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';reaction=null;solveResult=null;if(location.hash===`#${hash}`)render();else location.hash=hash;}
 function render(){
   const savedView=viewState.beforeRender(`${state.activeProfileId||''}:${location.hash}`);
   tileGesture=null;
@@ -76,7 +78,7 @@ function render(){
   const flips=new Map([...app.querySelectorAll('[data-flip]')].map(node=>[node.dataset.flip,node.getBoundingClientRect()]));
   keepMedia(app,()=>{
     const kept=new Map([...app.querySelectorAll('[data-keep]')].map(node=>[node.dataset.keep,node]));
-    app.innerHTML=caravanHeader(pr,view==='library'||(view==='play'&&!encounter)?'library':view==='journal'?'journal':'journey')+(warning?`<div class="error-banner" role="status">${esc(warning)}</div>`:'')+`<main class="shell" id="main">${content}</main>`;
+    app.innerHTML=caravanHeader(pr,view==='library'||(view==='play'&&!encounter)?'library':view==='journal'?'journal':'journey',accountOpen)+(warning?`<div class="error-banner" role="status">${esc(warning)}</div>`:'')+`<main class="shell" id="main">${content}</main>`;
     // An unchanged speech bubble or solved strip keeps its node, so its entrance
     // animation plays once instead of on every frame of a re-render.
     for(const node of [...app.querySelectorAll('[data-keep]')]){
@@ -280,6 +282,7 @@ function openEncounter(id){
 }
 function applyPair(p,pair,intent=null){const a=attempt(p),encounter=activeEncounter();if(encounter&&isSolved(p,a.board))return;const next=move(p,a,pair);selected=p.mechanic==='latin'?Number(pair.cell):null;tileSelection=[];highlighted=null;if(!next){message=isExpansion(p)?'That move is not allowed. Check How to play.':p.mechanic==='tile'?'':'Choose a listed pair.';if(encounter)reaction={key:location.hash,kind:'oops',n:oopsCount++};render();return;}message='';if(next!==a)reaction=null;if(isSolved(p,next.board)&&!a.completed)sessionCompleted.add(p.id);profile().attempts[p.id]=next;if(encounter&&isSolved(p,next.board)){const result=recordSolve(profile(),p.id,encounter.id,puzzles);solveResult=result?{...result,key:location.hash}:null;}save();if(p.mechanic==='clock'){if(intent==='ring')clockTimeline.ring(p,next.board.prediction,window.matchMedia('(prefers-reduced-motion: reduce)').matches);else clockTimeline.restore(p,next.board.prediction);}else render();if(isSolved(p,next.board)){if(encounter)window.scrollTo(0,0);const heading=document.querySelector('#completion-heading');if(heading)heading.focus({preventScroll:true});else focusDone=true;}}
 document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&accountOpen&&event.target.closest?.('.caravan-topbar')){const toggle=document.querySelector('.explorer-toggle');toggle?.click();toggle?.focus();return;}
   const wire=event.target.closest('.wire-hit');
   if(wire&&['Enter',' '].includes(event.key)){event.preventDefault();if(wire.getAttribute('aria-disabled')!=='true')wire.dispatchEvent(new MouseEvent('click',{bubbles:true}));return;}
   if(!event.target.closest('.latin-puzzle')||event.ctrlKey||event.metaKey||event.altKey)return;
@@ -299,6 +302,7 @@ document.addEventListener('click',event=>{
   const control=event.target.closest('[data-action]');if(!control||repeatToggle(control))return;const action=control.dataset.action,p=puzzle(),a=p&&profile()?attempt(p):null;
   if(action==='home')go(profile()?'map':'profiles');
   else if(action==='profiles')go('profiles');
+  else if(action==='explorer-menu'){accountOpen=!accountOpen;control.closest('.caravan-topbar')?.classList.toggle('account-open',accountOpen);control.setAttribute('aria-expanded',String(accountOpen));}
   else if(action==='map')go('map');
   else if(action==='library')go('library');
   else if(action==='journal')go('journal');
@@ -349,7 +353,7 @@ document.addEventListener('click',event=>{
 // A dialog belongs to the page it opened on (How to play names its puzzle), so a
 // history step or a hash edit closes it, and focus goes to the new page's heading.
 function leaveDialog(){if(!currentDialog)return;currentDialog.dataset.left='1';currentDialog.close();currentDialog=null;}
-function navigate(){if(!state||viewState.isCurrent())return;leaveDialog();focusDone=false;selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';reaction=null;if(solveResult?.key!==location.hash)solveResult=null;hush();resetTalk();render();const heading=document.querySelector('#completion-heading')||document.querySelector('#main h1');heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});if(route()[0]==='play'&&profile()?.sound&&puzzle()){const line=document.querySelector('.lr-listen');if(line)narrate(line.dataset.text,line.dataset.voice,line.closest('.lr-keeper')?.dataset.line);else speak(puzzle());}}
+function navigate(){if(!state||viewState.isCurrent())return;leaveDialog();focusDone=false;accountOpen=false;selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';reaction=null;if(solveResult?.key!==location.hash)solveResult=null;hush();resetTalk();render();const heading=document.querySelector('#completion-heading')||document.querySelector('#main h1');heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});if(route()[0]==='play'&&profile()?.sound&&puzzle()){const line=document.querySelector('.lr-listen');if(line)narrate(line.dataset.text,line.dataset.voice,line.closest('.lr-keeper')?.dataset.line);else speak(puzzle());}}
 // Restore on popstate before native history scrolling; hashchange also covers
 // direct hash edits. A traversal can fire both, so render each entry only once.
 window.addEventListener('popstate',navigate);

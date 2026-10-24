@@ -278,7 +278,10 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 .caravan-account .profile-nav{gap:0;padding:6px 8px;font-weight:650}
 .caravan-account .trail-choice{gap:6px;min-height:40px;padding:6px 12px;border-radius:999px;background:var(--rd-card);border:1px solid var(--rd-line);box-shadow:none;color:var(--rd-ink);font-size:.86rem;font-weight:600;white-space:nowrap}
 body:is([data-stop="marsh"],[data-stop="hollow"],[data-stop="lighthouse"],[data-stop="fair"]) .caravan-account .trail-choice{background:transparent;border-color:#f3efe066}
-@media (max-width:700px){.caravan-account .profile-label{display:inline-block;max-width:10ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}.trail-word{display:none}.caravan-nav{gap:28px}}
+body:is([data-stop="marsh"],[data-stop="hollow"],[data-stop="lighthouse"],[data-stop="fair"]) .explorer-toggle[aria-expanded=true] .caravan-avatar{border-color:#f3efe0;box-shadow:0 0 0 2px #f3efe0}
+@media (max-width:700px){.caravan-account .profile-label{display:inline-block;max-width:10ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}.trail-word{display:none}}
+/* Just above the phone layout the one-row bar is a little too wide: the level drops its word. */
+@media (min-width:701px) and (max-width:800px){.trail-word{display:none}.caravan-nav{gap:24px}}
 .welcome-crew .welcome-traveler{width:15%;height:auto;aspect-ratio:1}
 .welcome-crew .welcome-traveler>img{object-fit:contain}
 .welcome-crew .welcome-traveler>svg{object-fit:contain}

@@ -16,6 +16,8 @@ const settle=()=>page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()
 const back=async selector=>{await page.goBack();await page.locator(selector).waitFor();await settle();};
 const forward=async selector=>{await page.goForward();await page.locator(selector).waitFor();await settle();};
 const checks=[];
+// On a phone the explorer's row (name, level, Grown-ups) sits behind the button with their initial.
+const explorerRow=async()=>{const toggle=page.locator('.explorer-toggle[aria-expanded=false]:visible');if(await toggle.count())await toggle.click();};
 try{
   await page.goto(base);
   await page.locator('#nickname').fill('Navigation');
@@ -65,6 +67,7 @@ try{
   assert.deepEqual(await openFamilies(),[],'Forward restores the later all-closed visit');
   checks.push('same-route render, all-closed state, independent history entries');
 
+  await explorerRow();
   await page.getByRole('button',{name:'Grown-ups',exact:true}).click();
   await page.getByRole('button',{name:'I’m a grown-up',exact:true}).click();
   await page.locator('#catalog-band').selectOption('all');
@@ -111,6 +114,7 @@ try{
   await page.locator('.caravan-nav [data-action=library]').click();
   await family(newest).locator('summary').click();
   await family('Clockwork Gates').locator('summary').click();
+  await explorerRow();
   await page.locator('[data-action=profiles]').click();
   await page.locator('.caravan-add-profile > summary').click();
   await page.locator('.caravan-nav [data-action=library]').click();
@@ -149,6 +153,67 @@ try{
   await back('[data-puzzle-id="clock-10"]');
   await noDialog('Back between puzzles');
   checks.push('How to play closes on Back, Forward and a hash edit');
+
+  // The top bar on every screen that has it. On a phone it is one row: the
+  // lantern, the three tabs and the explorer's initial, whose button opens the
+  // explorer's row below the bar until the page changes. Tablets keep the full bar.
+  for(const [width,height] of [[390,844],[375,667],[820,1180]]){
+    const phone=width<=700,tag=`${width}×${height}`,barContext=await browser.newContext({viewport:{width,height},hasTouch:true,serviceWorkers:'block'}),bar=await barContext.newPage();
+    bar.on('pageerror',error=>errors.push(error.message));
+    const header=bar.locator('.caravan-topbar'),toggle=header.getByRole('button',{name:'Explorer Zoë, puzzle level and Grown-ups',exact:true});
+    const grownUps=header.getByRole('button',{name:'Grown-ups',exact:true}),level=header.getByRole('button',{name:'Puzzle level: grades K–1',exact:true}),chooser=header.getByRole('button',{name:'Choose explorer: Zoë',exact:true});
+    const shape=()=>bar.evaluate(()=>{const head=document.querySelector('.caravan-topbar'),shown=[...head.querySelectorAll('button')].filter(b=>b.checkVisibility()),box=b=>b.getBoundingClientRect();return {height:head.getBoundingClientRect().height,middles:shown.map(b=>box(b).top+box(b).height/2),small:shown.filter(b=>box(b).width<40||box(b).height<40).map(b=>b.getAttribute('aria-label')||b.textContent.trim()),overflow:document.documentElement.scrollWidth>innerWidth+1};});
+    try{
+      await bar.goto(base);await bar.locator('#nickname').waitFor();
+      let m=await shape();
+      assert.ok(m.height<=(phone?64:100),`${tag} new explorer: the bar is ${m.height} px`);
+      assert.ok(await grownUps.isVisible(),`${tag} new explorer: Grown-ups shows without an explorer`);
+      await bar.locator('#nickname').fill('Zoë');await bar.locator('#profile-form button[type=submit]').click();await bar.locator('.lr-overview').waitFor();
+      for(const [hash,ready] of [['map','.lr-overview'],['library','.caravan-library'],['journal','.lr-journal-view'],['play/nim-02','.board-panel'],['parents','.parent-layout'],['profiles','.caravan-saved-profiles']]){
+        await bar.evaluate(next=>{location.hash=next;},hash);await bar.locator(ready).waitFor();await bar.evaluate(()=>document.fonts.ready);
+        m=await shape();
+        assert.equal(m.overflow,false,`${tag} ${hash}: no page overflow`);
+        assert.deepEqual(m.small,[],`${tag} ${hash}: every bar button is at least 40 px`);
+        for(const name of ['Road','Puzzles','Journal'])assert.ok(await header.getByRole('button',{name,exact:true}).isVisible(),`${tag} ${hash}: the ${name} tab shows`);
+        if(phone){
+          assert.ok(m.height<=64,`${tag} ${hash}: the bar is ${m.height} px, one row`);
+          assert.ok(Math.max(...m.middles)-Math.min(...m.middles)<=4,`${tag} ${hash}: the bar's buttons share one row`);
+          assert.ok(await toggle.isVisible(),`${tag} ${hash}: the explorer button shows`);
+          assert.equal(await toggle.getAttribute('aria-expanded'),'false');
+          assert.equal((await toggle.innerText()).trim().charAt(0),'Z',`${tag} ${hash}: the explorer button shows their initial`);
+          for(const hidden of [grownUps,level,chooser])assert.equal(await hidden.isVisible(),false,`${tag} ${hash}: the explorer's row starts closed`);
+        }else{
+          assert.equal(m.height,96,`${tag} ${hash}: the tablet bar keeps its height`);
+          assert.equal(await toggle.count(),0,`${tag} ${hash}: no explorer button on a tablet`);
+          for(const shown of [grownUps,level,chooser])assert.ok(await shown.isVisible(),`${tag} ${hash}: the explorer's row shows`);
+        }
+      }
+      if(phone){
+        await bar.evaluate(()=>{location.hash='play/nim-02';});await bar.locator('.board-panel').waitFor();
+        const boardTop=await bar.locator('.board-panel').evaluate(node=>node.getBoundingClientRect().top);
+        await toggle.click();
+        assert.equal(await toggle.getAttribute('aria-expanded'),'true');
+        for(const shown of [chooser,level,grownUps])assert.ok(await shown.isVisible(),`${tag}: the explorer button opens name, level and Grown-ups`);
+        m=await shape();assert.deepEqual(m.small,[],`${tag}: the explorer's row buttons are at least 40 px`);
+        await level.focus();await bar.keyboard.press('Escape');
+        assert.equal(await toggle.getAttribute('aria-expanded'),'false','Escape closes the explorer row');
+        assert.equal(await bar.evaluate(()=>document.activeElement?.classList.contains('explorer-toggle')),true,'Escape leaves focus on the explorer button');
+        await bar.keyboard.press('Enter');assert.equal(await toggle.getAttribute('aria-expanded'),'true','Enter opens the explorer row');
+        await bar.keyboard.press('Tab');assert.equal(await bar.evaluate(()=>document.activeElement?.dataset.action),'profiles','Tab goes from the explorer button into its row');
+        await bar.keyboard.press('Tab');await bar.keyboard.press('Enter');await bar.getByRole('button',{name:'Apply',exact:true}).click();
+        assert.equal(await toggle.getAttribute('aria-expanded'),'true','the explorer row stays open after the level dialog');
+        await grownUps.click();await bar.getByRole('button',{name:'Back to play',exact:true}).click();
+        assert.equal(await toggle.getAttribute('aria-expanded'),'true','the explorer row stays open after the Grown-ups dialog');
+        await header.getByRole('button',{name:'Road',exact:true}).click();await bar.locator('.lr-overview').waitFor();
+        assert.equal(await toggle.getAttribute('aria-expanded'),'false','a new page closes the explorer row');
+        await bar.goBack();await bar.locator('.board-panel').waitFor();
+        assert.ok(Math.abs(await bar.locator('.board-panel').evaluate(node=>node.getBoundingClientRect().top)-boardTop)<2,'Back opens the puzzle with the row closed');
+        await mkdir(new URL('../test-results/',import.meta.url),{recursive:true});
+        await bar.screenshot({path:new URL(`../test-results/topbar-${width}x${height}.png`,import.meta.url).pathname});
+      }
+      checks.push(`top bar at ${tag}${phone?': one row, explorer row behind the initial, keyboard and Escape':': full bar unchanged'}`);
+    }finally{await barContext.close();}
+  }
 
   assert.deepEqual(errors,[]);
   await mkdir(new URL('../test-results/',import.meta.url),{recursive:true});

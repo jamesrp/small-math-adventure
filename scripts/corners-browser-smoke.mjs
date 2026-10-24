@@ -40,7 +40,7 @@ const clearRing = async id => { if (await page.locator('[data-cr-unfold]').count
 const button = name => page.getByRole('button', {name, exact: true});
 const NAME = {T: 'triangle', S: 'square', P: 'pentagon'};
 const tapAt = async ([x, y]) => { if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); await page.waitForTimeout(phone ? 400 : 30); };
-const centre = async locator => { const b = await locator.boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
+const centre = async locator => { await locator.scrollIntoViewIfNeeded(); const b = await locator.boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
 const tap = async locator => tapAt(await centre(locator));
 const add = async word => { for (const c of word) await tap(button(`Add a ${NAME[c]} corner`)); };
 // A point of an svg board, in its own units, on the screen.

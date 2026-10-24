@@ -7,6 +7,7 @@ import * as road3 from '../dist/caravan-road3.js';
 import * as legacy from '../dist/caravan-legacy.js';
 import * as rescue from '../dist/caravan-rescue.js';
 import {emptyStore,validateStore,parseBackup,importProfiles} from '../dist/storage.js';
+import {caravanHeader} from '../dist/caravan-ui.js';
 
 // Earlier stories (v1 caravan, v2 rescue, v3 lantern road) are archives: their
 // saves stay valid and readable while the current road starts fresh.
@@ -140,4 +141,22 @@ test('an untouched v3 road is not archived; a touched one is',()=>{
   assert.equal(Object.hasOwn(parseBackup(JSON.stringify(storeFor(started)),puzzles).profiles[0],'roadJourney'),false);
   const opened=profile();road3.startJourney(opened);const o=road3.beginEncounter(opened,puzzles);opened.attempts[o.puzzle.id]=freshAttempt(o.puzzle);
   assert.deepEqual(parseBackup(JSON.stringify(storeFor(opened)),puzzles).profiles[0].roadJourney,opened.journey);
+});
+
+// The phone top bar folds the explorer's row (name, level, Grown-ups) behind a
+// button with their initial; caravan.css shows that button only at 700 px and below.
+test('the header has one explorer button that opens the explorer row',()=>{
+  const bar=(name,open)=>caravanHeader({...profile(),name},'library',open);
+  const closed=bar('Zoë',false);
+  assert.match(closed,/<header class="topbar caravan-topbar has-explorer">/);
+  assert.match(closed,/data-action="explorer-menu"[^>]*aria-expanded="false" aria-controls="caravan-account" aria-label="Explorer Zoë, puzzle level and Grown-ups"><span class="caravan-avatar">Z<\/span>/);
+  assert.match(closed,/<div class="caravan-account" id="caravan-account">/);
+  for(const action of ['profiles','change-band','parents-gate','map','library','journal'])assert.equal(closed.split(`data-action="${action}"`).length,2,`${action} appears once`);
+  assert.match(bar('Zoë',true),/caravan-topbar has-explorer account-open"[\s\S]*aria-expanded="true"/);
+  assert.match(bar(' ella ',false),/<span class="caravan-avatar">E<\/span>/);
+  assert.match(bar('👩‍🚀 Ada',false),/<span class="caravan-avatar">👩‍🚀<\/span>/);
+  assert.match(bar('<b>',false),/<span class="caravan-avatar">&lt;<\/span>/);
+  const none=caravanHeader(null,'journey',true);
+  assert.doesNotMatch(none,/explorer-menu|has-explorer|account-open/);
+  assert.match(none,/data-action="parents-gate"/);
 });
