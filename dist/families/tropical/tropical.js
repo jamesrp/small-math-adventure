@@ -374,16 +374,30 @@ function raySvg(q, s, d, cls) {
   return `${line}<path class="tr-head ${cls}" d="M${f(ex)} ${f(ey)}L${f(bx - uy * wide)} ${f(by - ux * wide)}L${f(bx + uy * wide)} ${f(by + ux * wide)}Z"/>`;
 }
 const segSvg = (a, b, cls) => `<line class="${cls}" x1="${X(a[0])}" y1="${Y(a[1])}" x2="${X(b[0])}" y2="${Y(b[1])}"/>`;
-const dot = (z, r, cls) => `<circle class="${cls}" cx="${X(z[0])}" cy="${Y(z[1])}" r="${r}"/>`;
+// Junctions, circles, rings and names are sized for whole squares. On a
+// half-square board (puzzles 9 and 10) crossings are half as far apart, so
+// they are drawn smaller there: a ring then stops short of the next crossing,
+// and on the screen they come out about as large as on the other boards.
+export const HALF_SIZE = 0.7;
+export const sizeOf = q => (q?.step === 1 ? HALF_SIZE : 1);
+const dot = (z, r, cls, q) => `<circle class="${cls}" cx="${X(z[0])}" cy="${Y(z[1])}" r="${f(r * sizeOf(q))}"/>`;
 // A whole line: three arms and the junction.
-export const lineSvg = (q, J, cls) => `<g class="tr-line ${cls}">${L.ARMS.map(d => raySvg(q, J, d, cls)).join('')}${dot(J, 2.6, `tr-junction ${cls}`)}</g>`;
+export const lineSvg = (q, J, cls) => `<g class="tr-line ${cls}">${L.ARMS.map(d => raySvg(q, J, d, cls)).join('')}${dot(J, 2.6, `tr-junction ${cls}`, q)}</g>`;
 // A target's fan of allowed junctions.
 const fanSvg = (q, T, cls) => `<g class="tr-fan ${cls}">${L.FAN.map(d => raySvg(q, T, d, cls)).join('')}</g>`;
 // A name sits up and to the left of its point: no line through a point runs
 // that way (arms run along rows, columns and rising diagonals), and no goal
-// is there.
+// is there. `away` turns it to down and to the right, where no arm of the
+// point's own line runs either (B's name does that beside a ring goal).
 const LABEL = [-1.1, 0.95];
-const label = (z, text, cls = '') => `<text class="tr-name ${cls}" x="${f(X(z[0]) + LABEL[0] * SCALE)}" y="${f(Y(z[1]) - LABEL[1] * SCALE + 2.15)}">${esc(text)}</text>`;
+export const labelAt = (q, z, away = false) => { const k = sizeOf(q) * (away ? -1 : 1); return [z[0] + LABEL[0] * k, z[1] + LABEL[1] * k]; };
+const label = (q, z, text, cls = '', away = false) => {
+  const k = sizeOf(q), [u, v] = labelAt(q, z, away);
+  return `<text class="tr-name ${cls}" x="${X(u)}" y="${f(Y(v) + 2.15 * k)}">${esc(text)}</text>`;
+};
+// Does B's name, up and to the left of B, crowd a ring goal? A ring's radius
+// and half a name, in half-steps.
+export const nameCrowds = (q, B) => q.goal?.kind === 'point' && Math.hypot(...labelAt(q, B).map((c, k) => c - q.goal.at[k])) < 1.43 * sizeOf(q);
 function paper(q) {
   const [x0, y0, x1, y1] = q.win, lines = [];
   for (let u = x0; u <= x1; u++) if (u % 2 === 0 || q.step === 1) lines.push(`<line class="tr-grid${u % 2 ? ' half' : ''}" x1="${X(u)}" y1="${Y(y0)}" x2="${X(u)}" y2="${Y(y1)}"/>`);
@@ -393,18 +407,18 @@ function paper(q) {
 const viewBox = (q, margin = MARGIN) => `${X(q.win[0] - margin)} ${Y(q.win[3] + margin)} ${X(q.win[2] - q.win[0] + 2 * margin)} ${X(q.win[3] - q.win[1] + 2 * margin)}`;
 // What two lines share, drawn in `cls`.
 function sharedSvg(q, m, A, cls) {
-  if (m.kind === 'point') return dot(m.at, 4.6, `tr-ring ${cls}`);
+  if (m.kind === 'point') return dot(m.at, 4.6, `tr-ring ${cls}`, q);
   if (m.kind === 'ray') return `<g class="tr-shared ${cls}">${raySvg(q, m.from, m.dir, `tr-thick ${cls}`)}</g>`;
   return `<g class="tr-shared ${cls}">${L.ARMS.map(d => raySvg(q, A, d, `tr-thick ${cls}`)).join('')}</g>`;
 }
 function marksSvg(q, marks, cls = '') {
-  return marks.map(m => m.dir ? raySvg(q, m.from, m.dir, `tr-mark ${cls}`) : m.to ? segSvg(m.from, m.to, `tr-mark ${cls}`) : dot(m.from, 4.4, `tr-mark-dot ${cls}`)).join('');
+  return marks.map(m => m.dir ? raySvg(q, m.from, m.dir, `tr-mark ${cls}`) : m.to ? segSvg(m.from, m.to, `tr-mark ${cls}`) : dot(m.from, 4.4, `tr-mark-dot ${cls}`, q)).join('');
 }
-const targetSvg = (q, i, cls = '') => `<g class="tr-target ${cls}" data-target="${i}">${dot(q.targets[i], 2.9, 'tr-circle')}${label(q.targets[i], q.names[i])}</g>`;
-const ringAt = (z, cls) => dot(z, 4.4, `tr-ring ${cls}`);
+const targetSvg = (q, i, cls = '') => `<g class="tr-target ${cls}" data-target="${i}">${dot(q.targets[i], 2.9, 'tr-circle', q)}${label(q, q.targets[i], q.names[i])}</g>`;
+const ringAt = (q, z, cls) => dot(z, 4.4, `tr-ring ${cls}`, q);
 
 function boardSvg(q, inner, opt) {
-  return `<svg class="tr-board" viewBox="${viewBox(q)}" data-tr-board tabindex="0" role="group" aria-label="${esc(opt.label)}" data-focus="tr-board">${paper(q)}${inner}<g class="tr-preview"></g></svg>`;
+  return `<svg class="tr-board${q.step === 1 ? ' tr-half' : ''}" viewBox="${viewBox(q)}" data-tr-board tabindex="0" role="group" aria-label="${esc(opt.label)}" data-focus="tr-board">${paper(q)}${inner}<g class="tr-preview"></g></svg>`;
 }
 
 // What the screen reader hears.
@@ -414,15 +428,15 @@ const told = text => (text ? `<p class="tr-told">${esc(text)}</p>` : '');
 const moveButton = (label, action, enabled, hinted) => `<button type="button" class="secondary tr-button${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="tr-${action.type}" ${enabled ? '' : 'disabled'}>${label}</button>`;
 const bar = buttons => `<div class="tr-bar">${buttons.join('')}</div>`;
 // A hint's ring is larger and dotted, unlike the dashed rings of a refusal.
-const hintAt = z => dot(z, 6, 'tr-ring tr-hint');
-const hintRing = act => (act?.type === 'put' ? hintAt(act.at) : act?.type === 'mark' ? `${hintAt(act.from)}${raySvg(act.q, act.from, act.dir, 'tr-hint-ray')}` : '');
+const hintAt = (q, z) => dot(z, 6, 'tr-ring tr-hint', q);
+const hintRing = act => (act?.type === 'put' ? hintAt(act.q, act.at) : act?.type === 'mark' ? `${hintAt(act.q, act.from)}${raySvg(act.q, act.from, act.dir, 'tr-hint-ray')}` : '');
 
 function renderMeet(p, a) {
   const q = p.parameters, b = a.board, done = solved(p, b);
   const act = a.hintLevel >= 2 && !done ? hint(p, b).action : null, m = L.meet(q.A, b.at);
-  const goal = q.goal.kind === 'point' ? ringAt(q.goal.at, 'tr-goal') : `<g class="tr-goal-ray">${raySvg(q, q.goal.from, q.goal.dir, 'tr-goal')}${L.same(q.goal.from, q.A) ? '' : dot(q.goal.from, 2.4, 'tr-goal-start')}</g>`;
+  const goal = q.goal.kind === 'point' ? ringAt(q, q.goal.at, 'tr-goal') : `<g class="tr-goal-ray">${raySvg(q, q.goal.from, q.goal.dir, 'tr-goal')}${L.same(q.goal.from, q.A) ? '' : dot(q.goal.from, 2.4, 'tr-goal-start', q)}</g>`;
   const result = done ? sharedSvg(q, m, q.A, 'good') : b.said ? sharedSvg(q, m, q.A, 'bad') : '';
-  const inner = `${goal}${lineSvg(q, q.A, 'tr-a')}<g class="tr-mover">${lineSvg(q, b.at, 'tr-b')}</g>${result}${label(q.A, 'A', 'tr-a')}${label(b.at, 'B', 'tr-b tr-b-name')}${hintRing(act && {...act, q})}`;
+  const inner = `${goal}${lineSvg(q, q.A, 'tr-a')}<g class="tr-mover">${lineSvg(q, b.at, 'tr-b')}</g>${result}${label(q, q.A, 'A', 'tr-a')}${label(q, b.at, 'B', 'tr-b tr-b-name', nameCrowds(q, b.at))}${hintRing(act && {...act, q})}`;
   const svg = boardSvg(q, inner, {label: 'Two lines, A and B'});
   const word = b.said ? meetWords(q, m) : '';
   const say = `A at ${placeWords(q.A)}. B at ${placeWords(b.at)}. ${q.goal.kind === 'point' ? `The ring is at ${placeWords(q.goal.at)}.` : `The shaded stretch starts at ${placeWords(q.goal.from)} and runs ${DIR_WORDS[q.goal.dir]}.`}${word ? ` ${word}` : ''}${act?.type === 'put' ? ` Hint: B to ${placeWords(act.at)}.` : ''}`;
@@ -440,16 +454,17 @@ function renderThrough(p, a) {
     // The argument: the two picked circles' fans meet only at the junction,
     // and the line from there misses the other circles.
     const others = q.targets.map((_, k) => k).filter(k => !b.cert.includes(k));
-    extra = `${others.map(k => fanSvg(q, q.targets[k], 'tr-fan-off')).join('')}${b.cert.map(k => fanSvg(q, q.targets[k], 'tr-fan-on')).join('')}${ringAt(b.at, 'good')}${others.filter(k => !L.onLine(q.targets[k], b.at)).map(k => ringAt(q.targets[k], 'bad')).join('')}`;
-  } else if (done) extra = q.targets.map(T => ringAt(T, 'good')).join('');
-  else if (b.said === 'check') extra = q.targets.filter(T => !L.onLine(T, b.at)).map(T => ringAt(T, 'bad')).join('');
-  else if (refused) extra = refused.map(k => ringAt(q.targets[k], 'bad')).join('');
-  const picks = claiming ? q.targets.map((T, i) => `<g class="tr-pick${state.picks.includes(i) ? ' picked' : ''}" role="button" tabindex="0" data-pick="${i}" data-focus="tr-pick-${i}" aria-label="${esc(q.names[i])}${state.picks.includes(i) ? ', chosen' : ''}">${dot(T, 5.2, 'tr-pick-ring')}</g>`).join('') : '';
-  const hinted = act?.type === 'cant' ? act.picks.map(k => hintAt(q.targets[k])).join('') : hintRing(act && {...act, q});
+    extra = `${others.map(k => fanSvg(q, q.targets[k], 'tr-fan-off')).join('')}${b.cert.map(k => fanSvg(q, q.targets[k], 'tr-fan-on')).join('')}${ringAt(q, b.at, 'good')}${others.filter(k => !L.onLine(q.targets[k], b.at)).map(k => ringAt(q, q.targets[k], 'bad')).join('')}`;
+  } else if (done) extra = q.targets.map(T => ringAt(q, T, 'good')).join('');
+  else if (b.said === 'check') extra = q.targets.filter(T => !L.onLine(T, b.at)).map(T => ringAt(q, T, 'bad')).join('');
+  else if (refused) extra = refused.map(k => ringAt(q, q.targets[k], 'bad')).join('');
+  const picks = claiming ? q.targets.map((T, i) => `<g class="tr-pick${state.picks.includes(i) ? ' picked' : ''}" role="button" tabindex="0" data-pick="${i}" data-focus="tr-pick-${i}" aria-label="${esc(q.names[i])}${state.picks.includes(i) ? ', chosen' : ''}">${dot(T, 5.2, 'tr-pick-ring', q)}</g>`).join('') : '';
+  const hinted = act?.type === 'cant' ? act.picks.map(k => hintAt(q, q.targets[k])).join('') : hintRing(act && {...act, q});
   const inner = `${extra}<g class="tr-mover">${lineSvg(q, b.at, `tr-j${done ? ' good' : ''}`)}</g>${q.targets.map((_, i) => targetSvg(q, i)).join('')}${hinted}${picks}`;
   const svg = boardSvg(q, inner, {label: 'Circles and a line'});
   const missed = q.targets.map((T, i) => (L.onLine(T, b.at) ? null : q.names[i])).filter(Boolean);
-  const word = b.said === 'check' ? `The line misses ${list(missed)}.` : refused ? CLAIM_WORDS[why.why](q, why, refused) : claiming ? 'Tap two circles.' : '';
+  // While Can't waits for its taps, it asks for them, over what the last Check or claim said.
+  const word = claiming ? 'Tap two circles.' : b.said === 'check' ? `The line misses ${list(missed)}.` : refused ? CLAIM_WORDS[why.why](q, why, refused) : '';
   let buttons = '';
   if (!done) {
     const cant = q.cant ? `<button type="button" class="secondary tr-button tr-cant${act?.type === 'cant' && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="tr-cant" aria-pressed="${claiming}" ${canClaim(q, b) ? '' : 'disabled'}>Can’t</button>` : '';
@@ -464,7 +479,7 @@ function renderEvery(p, a) {
   const act = a.hintLevel >= 2 && !done ? hint(p, b).action : null;
   const verdict = b.said ? judgeMarks(q, b.marks) : null;
   let extra = '';
-  if (verdict?.kind === 'off') extra = `${marksSvg(q, [b.marks[verdict.mark]], 'bad')}${lineSvg(q, verdict.at, 'tr-off')}${ringAt(q.targets[verdict.miss], 'bad')}`;
+  if (verdict?.kind === 'off') extra = `${marksSvg(q, [b.marks[verdict.mark]], 'bad')}${lineSvg(q, verdict.at, 'tr-off')}${ringAt(q, q.targets[verdict.miss], 'bad')}`;
   const inner = `${marksSvg(q, b.marks, done ? 'good' : '')}${extra}<g class="tr-mover">${lineSvg(q, b.at, 'tr-j')}</g>${q.targets.map((_, i) => targetSvg(q, i)).join('')}${hintRing(act && {...act, q})}`;
   const svg = boardSvg(q, inner, {label: 'Circles, a line and your marks'});
   const word = verdict ? (verdict.kind === 'off' ? 'This one doesn’t work.' : 'There are more.') : '';
@@ -481,7 +496,8 @@ function renderEvery(p, a) {
 
 function renderPlayground(p, a) {
   const q = p.parameters, b = a.board, state = ui(p), m = L.meet(b.a, b.b);
-  const inner = `<g class="tr-shared-live">${sharedSvg(q, m, b.a, 'good')}</g><g class="tr-mover-a">${lineSvg(q, b.a, `tr-a${state.chosen === 'a' ? ' chosen' : ''}`)}</g><g class="tr-mover-b">${lineSvg(q, b.b, `tr-b${state.chosen === 'b' ? ' chosen' : ''}`)}</g>${label(b.a, 'A', 'tr-a tr-a-name')}${label(b.b, 'B', 'tr-b tr-b-name')}`;
+  // What they share is drawn on top, so a stretch shows over B's dashed arm.
+  const inner = `<g class="tr-mover-a">${lineSvg(q, b.a, `tr-a${state.chosen === 'a' ? ' chosen' : ''}`)}</g><g class="tr-mover-b">${lineSvg(q, b.b, `tr-b${state.chosen === 'b' ? ' chosen' : ''}`)}</g><g class="tr-shared-live">${sharedSvg(q, m, b.a, 'good')}</g>${label(q, b.a, 'A', 'tr-a tr-a-name')}${label(q, b.b, 'B', 'tr-b tr-b-name')}`;
   const svg = boardSvg(q, inner, {label: 'Two lines, A and B'});
   const shared = m.kind === 'point' ? `They share one point, ${placeWords(m.at)}.` : m.kind === 'ray' ? `They share the stretch from ${placeWords(m.from)} on ${DIR_WORDS[m.dir]}.` : 'They share everything.';
   return `<div class="tr-puzzle mode-playground" data-mechanic-wire="tropical">${svg}${status(`A at ${placeWords(b.a)}, B at ${placeWords(b.b)}. ${shared} ${state.chosen.toUpperCase()} is chosen.`)}</div>`;
@@ -498,9 +514,9 @@ function render(p, a) {
 // a point on it and a point off it, and two lines sharing one point.
 function help(p) {
   const small = {win: [0, 0, 10, 10], step: 2};
-  const one = `<svg class="tr-board tr-picture" viewBox="${viewBox(small, 1.4)}" role="img" aria-label="A line with its junction at 2 across, 2 up. P, at 4 across, 2 up, is on its right arm. Q, at 4 across, 4 up, is not on the line.">${paper(small)}${lineSvg(small, [4, 4], 'tr-j')}${dot([8, 4], 2.9, 'tr-circle tr-on')}${label([8, 4], 'P')}${dot([8, 8], 2.9, 'tr-circle tr-off')}${label([8, 8], 'Q')}</svg>`;
+  const one = `<svg class="tr-board tr-picture" viewBox="${viewBox(small, 1.4)}" role="img" aria-label="A line with its junction at 2 across, 2 up. P, at 4 across, 2 up, is on its right arm. Q, at 4 across, 4 up, is not on the line.">${paper(small)}${lineSvg(small, [4, 4], 'tr-j')}${dot([8, 4], 2.9, 'tr-circle tr-on')}${label(small, [8, 4], 'P')}${dot([8, 8], 2.9, 'tr-circle tr-off')}${label(small, [8, 8], 'Q')}</svg>`;
   const wide = {win: [0, 0, 16, 14], step: 2};
-  const two = `<svg class="tr-board tr-picture" viewBox="${viewBox(wide, 1.4)}" role="img" aria-label="Line A with its junction at 1 across, 4 up and line B with its junction at 4 across, 2 up. They share only the point 4 across, 4 up.">${paper(wide)}${lineSvg(wide, [2, 8], 'tr-a')}${lineSvg(wide, [8, 4], 'tr-b')}${ringAt([8, 8], 'good')}${label([2, 8], 'A', 'tr-a')}${label([8, 4], 'B', 'tr-b')}</svg>`;
+  const two = `<svg class="tr-board tr-picture" viewBox="${viewBox(wide, 1.4)}" role="img" aria-label="Line A with its junction at 1 across, 4 up and line B with its junction at 4 across, 2 up. They share only the point 4 across, 4 up.">${paper(wide)}${lineSvg(wide, [2, 8], 'tr-a')}${lineSvg(wide, [8, 4], 'tr-b')}${ringAt(wide, [8, 8], 'good')}${label(wide, [2, 8], 'A', 'tr-a')}${label(wide, [8, 4], 'B', 'tr-b')}</svg>`;
   const pictures = p.parameters.mode === 'meet' || p.parameters.mode === 'playground' ? [[one, 'P is on the line; Q is not.'], [two, 'These two lines share one point.']] : [[one, 'P is on the line; Q is not.']];
   return `<div class="tr-help" data-mechanic-wire="tropical">${pictures.map(([svg, caption]) => `<figure>${svg}<figcaption>${caption}</figcaption></figure>`).join('')}</div>`;
 }
@@ -511,7 +527,7 @@ function help(p) {
 // release is one move. In every puzzles a slide instead marks the stretch
 // from where it starts, and a slide off the board marks a ray. After Can't,
 // a tap on a circle picks it, and a tap elsewhere moves the junction.
-let gesture = null, listening = false;
+let gesture = null, listening = false, fitted = null;
 const boardAt = (svg, x, y) => {
   const m = svg.getScreenCTM?.();
   if (!m) return null;
@@ -523,10 +539,11 @@ const boardAt = (svg, x, y) => {
 const clampTo = (q, z) => [Math.max(q.win[0], Math.min(q.win[2], z[0])), Math.max(q.win[1], Math.min(q.win[3], z[1]))];
 export const snap = (q, z) => clampTo(q, z.map((c, k) => q.win[k] + Math.round((c - q.win[k]) / q.step) * q.step));
 // A tap on a circle's letter goes to the circle.
-const LABEL_HIT = [LABEL[0], LABEL[1], 0.6, 0.6];
+const LABEL_HIT = 0.6;
 function labelTarget(q, z) {
   if (!q.targets) return -1;
-  return q.targets.findIndex(T => Math.abs(z[0] - T[0] - LABEL_HIT[0]) <= LABEL_HIT[2] && Math.abs(z[1] - T[1] - LABEL_HIT[1]) <= LABEL_HIT[3]);
+  const reach = LABEL_HIT * sizeOf(q);
+  return q.targets.findIndex(T => { const c = labelAt(q, T); return Math.abs(z[0] - c[0]) <= reach && Math.abs(z[1] - c[1]) <= reach; });
 }
 // The stroke from s to the pointer at z: the nearest of eight directions, a
 // whole number of steps along it, and a ray once the pointer is past the
@@ -554,7 +571,7 @@ function onMove(e) {
   if (g.kind === 'stroke') {
     g.stroke = strokeOf(q, g.start, z);
     const layer = g.svg.querySelector('.tr-preview');
-    if (layer) layer.innerHTML = g.stroke ? (g.stroke.dir ? raySvg(q, g.stroke.from, g.stroke.dir, 'tr-mark tr-drawing') : segSvg(g.stroke.from, g.stroke.to, 'tr-mark tr-drawing')) : dot(g.start, 4.4, 'tr-mark-dot tr-drawing');
+    if (layer) layer.innerHTML = g.stroke ? (g.stroke.dir ? raySvg(q, g.stroke.from, g.stroke.dir, 'tr-mark tr-drawing') : segSvg(g.stroke.from, g.stroke.to, 'tr-mark tr-drawing')) : dot(g.start, 4.4, 'tr-mark-dot tr-drawing', q);
     return;
   }
   const at = snap(q, z);
@@ -585,14 +602,24 @@ function onEnd(e) {
   g.tap();
 }
 // On a short screen the board shrinks so that it, a line of words and the
-// buttons fit on the first screen below the header (CSS reads --tr-fit). The
-// board's top does not depend on its size, so one measure is enough.
-const GAP = 8.8, LINE = 22, SLACK = 6, SMALLEST = 220;
+// buttons fit on the first screen below the header (CSS reads --tr-fit). On a
+// wide screen the board may grow past 380 px (to 560 px), but only as far as
+// keeps the shared Undo, Restart and Hint row on the first screen too: a tablet
+// held upright grows it, and a desktop keeps its 380 px. The board's top, and
+// the distance from the bar to that row, do not depend on the board's size,
+// so one measure is enough.
+const GAP = 8.8, LINE = 22, SLACK = 6, SMALLEST = 220, WIDE = 700, COMPACT = 380;
 function fitBoard(root, svg) {
   if (typeof innerHeight !== 'number' || !svg.getBoundingClientRect) return;
   const top = svg.getBoundingClientRect().top + (window.scrollY || 0), bar = root.querySelector('.tr-bar');
   const below = GAP + LINE + (bar ? GAP + bar.getBoundingClientRect().height : 0) + SLACK;
-  root.style.setProperty('--tr-fit', `${Math.max(SMALLEST, Math.floor(innerHeight - top - below))}px`);
+  let fit = innerHeight - top - below;
+  const tools = innerWidth >= WIDE ? document.querySelector('.play-sidebar .tool-grid') : null;
+  if (tools) {
+    const end = bar ? bar.getBoundingClientRect().bottom : svg.getBoundingClientRect().bottom + GAP + LINE;
+    fit = Math.max(Math.min(fit, COMPACT), fit - Math.max(0, tools.getBoundingClientRect().bottom - end));
+  }
+  root.style.setProperty('--tr-fit', `${Math.max(SMALLEST, Math.floor(fit))}px`);
 }
 function wire(root, p, given) {
   const svg = root.querySelector('[data-tr-board]'), q = p.parameters;
@@ -603,9 +630,12 @@ function wire(root, p, given) {
   const panel = svg.closest('.board-panel');
   if (panel) root.style.setProperty('--tr-bleed', `${parseFloat(getComputedStyle(panel).paddingLeft) || 0}px`);
   fitBoard(root, svg);
+  fitted = {root, svg};
   if (!listening) {
     document.addEventListener('pointermove', onMove);
     for (const type of ['pointerup', 'pointercancel']) document.addEventListener(type, onEnd);
+    // Turning a tablet or phone measures the board again.
+    window.addEventListener('resize', () => { if (fitted?.svg.isConnected) fitBoard(fitted.root, fitted.svg); });
     listening = true;
   }
   const now = () => api.attempt().board;

@@ -109,8 +109,8 @@ export function replay(q, game) {
   return {pos, over, toMove, winner: over ? game.turns.at(-1).player : null};
 }
 // Starts for who-starts rounds: every position with each bucket 0 to max,
-// except those where one move takes every fish (a free win for Me first).
-// Half the draws are second-player starts, so always choosing Me first fails,
+// except those where one move takes every fish (a free win for Go first).
+// Half the draws are second-player starts, so always choosing Go first fails,
 // and a new start differs from the one before.
 export function startPool(q) {
   const out = [];
@@ -146,7 +146,7 @@ function gameStatus(run, turns) {
   const last = turns.at(-1);
   if (run.over) return run.winner === 'you' ? 'You took the last fish.' : 'I took the last fish.';
   if (run.toMove !== 'you') return '';
-  return `${last?.player === 'opponent' ? `I ${moveWords(last)}. ` : ''}Your turn`;
+  return `${last?.player === 'opponent' ? `I ${moveWords(last)}. ` : ''}Your\u00a0turn`;
 }
 
 // --- The move being built ------------------------------------------------------------
@@ -205,7 +205,10 @@ function bucketsHTML(q, pos, {live = false, pending = null, last = null, hinted 
     const inner = `<span class="fb-shoal" aria-hidden="true">${shoal}</span>`;
     const name = `Bucket ${i + 1}, ${fishWords(count)}`;
     let next = null, words = name;
-    if (live && !pending && count > 0) { next = {from: i + 1, take: 1, add: pos.map(() => 0)}; words = `${name}. Take one.`; }
+    // A bucket with fish starts a take: with no move begun, or right of the
+    // bucket taken from, where the tap starts a new take instead.
+    const starts = live && count > 0 && (!pending || i > from);
+    if (starts) { next = {from: i + 1, take: 1, add: pos.map(() => 0)}; words = `${name}. Take one.`; }
     if (live && role === 'take') {
       const more = pending.take < Math.min(T, count);
       next = more ? {...pending, take: pending.take + 1} : null;
@@ -216,7 +219,7 @@ function bucketsHTML(q, pos, {live = false, pending = null, last = null, hinted 
       next = {...pending, add: pending.add.map((a, k) => k === i ? (more ? a + 1 : 0) : a)};
       words = `${name}${added ? `, adding ${added}` : ''}. ${more ? 'Add one.' : 'Take the added fish out.'}`;
     }
-    const tappable = live && (role === 'take' || role === 'add' || (!pending && count > 0));
+    const tappable = live && (role === 'take' || role === 'add' || starts);
     const body = tappable
       ? `<button type="button" class="${cls}" data-i="${i}" data-action="mechanic-ui" data-ui="${esc(JSON.stringify({pending: next ? {key, ...next} : null}))}" data-focus="fb-bucket-${i}" aria-label="${esc(words)}">${inner}</button>`
       : `<span class="${cls}" data-i="${i}" role="img" aria-label="${esc(name)}">${inner}</span>`;
@@ -230,6 +233,9 @@ function turnControls(pending) {
   const end = button('End turn', pending ? {type: 'move', ...pending} : {type: 'move'}, 'primary', Boolean(pending));
   return pending ? `${end}${uiButton('Cancel', {pending: null}, 'secondary', 'fb-cancel')}` : end;
 }
+// Who starts, styled alike so neither looks like the default. Verbs with no
+// pronoun, since every other line on the board is the app speaking as "I".
+const whoStarts = () => `${button('Go first', {type: 'choose', first: 'you'}, 'secondary')}${button('Go second', {type: 'choose', first: 'opponent'}, 'secondary')}`;
 const pips = (n, on, what) => `<span class="fb-pips" role="img" aria-label="${on} of ${n} ${what}">${Array.from({length: n}, (_, i) => `<span class="${i < on ? 'on' : ''}"></span>`).join('')}</span>`;
 
 // --- Duels, every reply and who-starts rounds (mechanic `buckets`) ---------------------
@@ -356,7 +362,7 @@ function gameHint(p, b) {
   if (q.mode === 'streak') return b.first !== null && run.over && run.winner === 'you' ? {type: 'move', action: {type: 'new'}, text: 'Try a new start.'} : {type: 'note'};
   if (run.over) {
     if (q.mode === 'replies') return run.winner === 'you' ? {type: 'move', action: {type: 'next'}, text: 'Try the next first move.'} : {type: 'move', action: {type: 'again'}, text: 'Play this first move again.'};
-    return {type: 'deadend', text: 'Undo or restart to try again.'};
+    return {type: 'deadend', quiet: true, text: 'Undo or restart to try again.'};
   }
   const win = winningMoves(q, b.pos)[0];
   if (win) return {type: 'move', action: {type: 'move', ...win}, text: MOVE_HINT};
@@ -375,11 +381,12 @@ function gameRender(p, a) {
   let controls = '';
   if (yourTurn) controls = turnControls(pending);
   else if (!done && q.mode === 'streak') controls = b.first === null
-    ? `${button('Me first', {type: 'choose', first: 'you'}, 'secondary')}${button('You first', {type: 'choose', first: 'opponent'}, 'secondary')}`
+    ? whoStarts()
     : `${run.winner === 'opponent' ? button('Same start again', {type: 'again'}, 'secondary') : ''}${button('New start', {type: 'new'}, 'primary')}`;
   else if (!done && q.mode === 'replies' && run.over) controls = run.winner === 'you' ? button('Next first move', {type: 'next'}, 'primary') : button('Try again', {type: 'again'}, 'primary');
+  // Same start again is practice: said before the choice and after a win.
   let status = b.first === null ? '' : gameStatus(run, b.turns);
-  if (q.mode === 'streak' && run.over && run.winner === 'you' && !b.fresh) status += ' Wins count from a new start.';
+  if (q.mode === 'streak' && !b.fresh && (b.first === null || (run.over && run.winner === 'you'))) status = `${status} Wins count from a new start.`.trim();
   const bar = q.mode === 'streak' ? pips(q.streak, b.streak, 'wins in a row') : q.mode === 'replies' ? pips(firstMoves(q).length, b.round + (run.winner === 'you' ? 1 : 0), 'first moves answered') : '';
   return `<div class="fb-puzzle" data-mechanic-wire="buckets">
     <div class="fb-roundbar"><p class="fb-status" role="status" tabindex="-1" data-focus="fb-status">${esc(status)}</p>${bar}</div>
@@ -387,8 +394,8 @@ function gameRender(p, a) {
     <div class="fb-actions">${controls}</div>
   </div>`;
 }
-// A tap on a bucket that takes no part in the move being built (an empty one,
-// or one at or right of the bucket taken from) is reported as not allowed.
+// A tap on an empty bucket that can take no part in a move (with no move
+// begun, or right of the bucket taken from) is reported as not allowed.
 function wireBuckets(root, p, api) {
   root.addEventListener('click', event => {
     const bucket = event.target.closest('span.fb-bucket[data-i]');
@@ -577,7 +584,7 @@ function sortRender(p, a) {
   if (play.first === null) {
     // Picking a start for a practice game: tap a card, then who starts.
     building.delete(p.id);
-    const choose = play.start === null ? '' : `${button('Me first', {type: 'choose', first: 'you'}, 'secondary')}${button('You first', {type: 'choose', first: 'opponent'}, 'secondary')}`;
+    const choose = play.start === null ? '' : whoStarts();
     return `<div class="fb-puzzle sort" data-mechanic-wire="bucketsort"><p class="fb-status" role="status" tabindex="-1" data-focus="fb-status">${play.start === null ? 'Tap a card to start from.' : ''}</p>${cardsHTML(b, {live: true, pick: true, chosen: play.start})}<div class="fb-actions">${choose}${button('Back', {type: 'back'}, 'secondary')}</div></div>`;
   }
   const yourTurn = !run.over && run.toMove === 'you';

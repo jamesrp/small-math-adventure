@@ -13,7 +13,7 @@ import {libraryView} from '../dist/caravan-ui.js';
 import {playView, parentView} from '../dist/ui.js';
 import {FAMILIES} from '../dist/families.js';
 import * as L from '../dist/families/tropical/lines.js';
-import {tropicalMechanics, meetAnswers, throughAnswer, certificatesOf, judgeMarks, judgeClaim, placeWords, relWords, strokeOf, snap} from '../dist/families/tropical/tropical.js';
+import {tropicalMechanics, meetAnswers, throughAnswer, certificatesOf, judgeMarks, judgeClaim, placeWords, relWords, strokeOf, snap, HALF_SIZE, nameCrowds} from '../dist/families/tropical/tropical.js';
 import {validateTropical} from '../scripts/validate-tropical.mjs';
 import {loadPack} from '../scripts/packs.mjs';
 
@@ -27,6 +27,7 @@ const play = (p, a, ...actions) => actions.reduce((b, action) => { const next = 
 const put = z => ({type: 'put', at: H(z)});
 const check = {type: 'check'}, all = {type: 'all'}, keep = {type: 'keep'}, drop = {type: 'drop'};
 const cant = (i, j) => ({type: 'cant', picks: [i, j]});
+const f2 = n => Number(n.toFixed(2));
 const mark = m => ({type: 'mark', ...m});
 const view = (p, a, keepUi = false) => { if (!keepUi) M.reset(p); return playView(p, a, {pack, selected: null, message: ''}); };
 const board = (p, a) => M.render(p, a);
@@ -149,6 +150,12 @@ test('through: one junction through two circles; Can’t with two circles after 
   assert.equal((claiming.match(/class="tr-pick"/g) || []).length, 3);
   assert.doesNotMatch(claiming, /tr-hint|picked/);
   M.ui(r, {claiming: false});
+  // Can't pressed over a refused Check asks for its taps; let go, the refusal is back.
+  const checked = play(r, a, check);
+  M.ui(r, {claiming: true});
+  assert.match(board(r, checked), /<p class="tr-told">Tap two circles\.<\/p>/);
+  M.ui(r, {claiming: false});
+  assert.match(board(r, checked), /<p class="tr-told">The line misses R\.<\/p>/);
   // A wrong pair: one short refusal; that pair stays refused here, also across Undo.
   const wrong = play(r, a, cant(1, 2));
   assert.match(board(r, wrong), /<p class="tr-told">The line misses R\.<\/p>/);
@@ -242,6 +249,31 @@ test('hints: the authored first hint, then moves with the reason before Can’t,
   assert.equal(nextHint(r, freshAttempt(r)).text, 'Put the junction up and to the right of P and left of Q.');
   const e = byId('tropical-07');
   assert.equal(nextHint(e, play(e, freshAttempt(e), put([2, 4]))).text, 'Every junction further left works too, between dots and past the edge. Slide from P left, off the board.');
+});
+
+test('half-square boards draw junctions, circles, rings and names smaller; B’s name turns away from a ring goal', () => {
+  const radius = (html, cls) => Number(html.match(new RegExp(`class="${cls}"[^>]* r="([\\d.]+)"`))[1]);
+  const whole = byId('tropical-01'), half = byId('tropical-10');
+  const w = board(whole, freshAttempt(whole)), h = board(half, freshAttempt(half));
+  assert.doesNotMatch(w, /tr-half/); assert.match(h, /class="tr-board tr-half"/);
+  assert.equal(radius(w, 'tr-ring tr-goal'), 4.4); assert.equal(radius(h, 'tr-ring tr-goal'), f2(4.4 * HALF_SIZE));
+  assert.equal(radius(w, 'tr-junction tr-b'), 2.6); assert.equal(radius(h, 'tr-junction tr-b'), f2(2.6 * HALF_SIZE));
+  // The ring stops short of B's junction on the next half square (5 units away).
+  assert.ok(4.4 * HALF_SIZE + 2.6 * HALF_SIZE < 5, 'ring and junction on neighbouring half squares do not overlap');
+  assert.match(css, /\.tr-half \.tr-name\{font-size:4\.34px\}/);
+  const nine = byId('tropical-09');
+  assert.equal(radius(board(nine, freshAttempt(nine)), 'tr-circle'), f2(2.9 * HALF_SIZE));
+  // B's name sits up and to the left, except where it would sit on the ring goal.
+  const q = half.parameters, nameX = html => Number(html.match(/class="tr-name tr-b tr-b-name" x="(-?[\d.]+)"/)[1]);
+  for (const [B, away] of [[[1, 0.5], true], [[0.5, 0], true], [[0, 0.5], false], [[1, 1], false], [[3, 1], false]]) {
+    assert.equal(nameCrowds(q, H(B)), away, `B at ${B}`);
+    const shown = board(half, play(half, freshAttempt(half), put(B)));
+    assert.equal(nameX(shown) > 10 * B[0], away, `B at ${B}: name ${away ? 'down and to the right' : 'up and to the left'}`);
+  }
+  assert.equal(nameCrowds(byId('tropical-02').parameters, H([3, 4])), false, 'never beside a stretch goal');
+  // The playground draws what the lines share over both lines.
+  const pg = board(byId('tropical-playground'), freshAttempt(byId('tropical-playground')));
+  assert.ok(pg.indexOf('tr-shared-live') > pg.indexOf('tr-mover-b'), 'the shared part on top');
 });
 
 test('every puzzle renders its board, arms past the frame, one short objective; styles are scoped', () => {

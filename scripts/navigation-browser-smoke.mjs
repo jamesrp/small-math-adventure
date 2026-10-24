@@ -129,6 +129,27 @@ try{
   assert.deepEqual(await openFamilies(),[newest],'old history cannot transfer presentation state across explorers');
   checks.push('New explorer disclosure and explorer isolation');
 
+  // How to play belongs to the puzzle it opened on: Back, Forward and a hash
+  // edit close it, and focus goes to the new page rather than into a stale dialog.
+  const howTo=async()=>{await page.getByRole('button',{name:'How to play',exact:true}).click();await page.locator('dialog.modal[open]').waitFor();};
+  const noDialog=async label=>{await settle();assert.equal(await page.locator('dialog.modal').count(),0,`${label}: How to play is closed`);assert.equal(await page.evaluate(()=>Boolean(document.activeElement?.closest('dialog'))),false,`${label}: focus is not in a dialog`);};
+  await page.evaluate(()=>{location.hash='play/clock-10';});
+  await page.locator('[data-puzzle-id="clock-10"]').waitFor();
+  await howTo();
+  assert.match(await page.locator('dialog.modal').innerText(),/Clockwork|gear|clock/i,'How to play shows the puzzle’s rules');
+  await back('.caravan-library');
+  await noDialog('Back');
+  await forward('[data-puzzle-id="clock-10"]');
+  await noDialog('Forward');
+  await howTo();
+  await page.evaluate(()=>{location.hash='play/swap-k1-01';});
+  await page.locator('[data-puzzle-id="swap-k1-01"]').waitFor();
+  await noDialog('a hash edit');
+  await howTo();
+  await back('[data-puzzle-id="clock-10"]');
+  await noDialog('Back between puzzles');
+  checks.push('How to play closes on Back, Forward and a hash edit');
+
   assert.deepEqual(errors,[]);
   await mkdir(new URL('../test-results/',import.meta.url),{recursive:true});
   const report={passed:true,browser:process.env.TEST_BROWSER||'chromium',viewport:page.viewportSize(),checks,errors};

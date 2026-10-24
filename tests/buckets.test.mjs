@@ -102,15 +102,38 @@ test('a move by taps: take from a bucket, add to buckets on its left, End turn; 
   const reply = a.board.turns[1];
   assert.deepEqual(a.board.pos, [2, 2, 0].map((c, i) => c + reply.add[i] - (reply.from === i + 1 ? reply.take : 0)));
   html = view(p, a);
-  assert.match(html, /I took 1 from bucket \d( and added 1 to buckets? [\d, and]+)?\. Your turn/);
+  assert.match(html, /I took 1 from bucket \d( and added 1 to buckets? [\d, and]+)?\. Your\u00a0turn/, 'Your turn stays on one line');
   assert.equal(buckets(M.buckets.render(p, a)).some(b => /taking|adding/.test(b.cls)), false, 'the move being built is gone');
   assert.deepEqual(undo(a).board, before.board, 'Undo takes back the take, the added fish and my reply as one move');
-  // A tap on a bucket right of the one taken from is not a button; the wire
-  // reports it by applying a move the rules refuse.
+  // A tap on a bucket with fish right of the one taken from starts a new take
+  // there, the move begun before dropped, with no message.
   M.buckets.reset(p);
   html = tap(p, freshAttempt(p), 1);
   shown = buckets(html);
-  assert.equal(shown[1].ui, null); assert.match(shown[1].cls, /off/);
+  assert.match(shown[1].cls, /off/, 'buckets right of the take get no refill');
+  assert.deepEqual(shown[1].ui.pending && {...shown[1].ui.pending, key: 0}, {key: 0, from: 2, take: 1, add: [0, 0, 0]}, 'a bucket right of the take starts a new take');
+  html = tap(p, freshAttempt(p), 3);
+  shown = buckets(html);
+  assert.match(shown[2].cls, /taking/); assert.match(shown[0].cls, /adding/); assert.match(shown[1].cls, /adding/);
+  assert.deepEqual(endTurn(html).action, {type: 'move', from: 3, take: 1, add: [0, 0, 0]}, 'the new take replaces the old one');
+  // An empty bucket right of the take is no button; the wire reports a tap on
+  // it by applying a move the rules refuse.
+  M.buckets.reset(p);
+  const gap = {...p, id: 'buckets-test-gap', parameters: {...p.parameters, start: [1, 1, 0]}};
+  html = tap(gap, freshAttempt(gap), 1);
+  shown = buckets(html);
+  assert.deepEqual(shown.map(b => b.ui !== null), [true, true, false], 'the empty bucket on the right is no button');
+  assert.match(shown[2].cls, /off/);
+  M.buckets.reset(gap);
+  const duel = byId('buckets-01');
+  html = tap(duel, freshAttempt(duel), 3);
+  assert.deepEqual(buckets(html).map(b => b.ui !== null), [true, true, true], 'the take and the buckets on its left are buttons');
+  M.buckets.reset(duel);
+  const encore = byId('buckets-07');
+  html = tap(encore, freshAttempt(encore), 1);
+  shown = buckets(html);
+  assert.deepEqual(shown[1].ui.pending && {...shown[1].ui.pending, key: 0}, {key: 0, from: 2, take: 1, add: [0, 0]}, 'in the encore too');
+  M.buckets.reset(encore);
   assert.equal(move(p, freshAttempt(p), {type: 'move', from: 1, take: 1, add: [0, 1, 0]}), null, 'nothing is added on the right');
   assert.equal(move(p, freshAttempt(p), {type: 'move', from: 3, take: 1, add: [2, 0, 0]}), null, 'at most one fish to a bucket');
   assert.equal(move(p, freshAttempt(p), {type: 'move', from: 3, take: 2, add: [0, 0, 0]}), null, 'one fish taken');
@@ -182,9 +205,13 @@ test('who starts: choose, win three in a row from new starts; the choice is fina
   assert.equal(startPool(q).filter(s => !moverWins(q, s)).length, 7);
   const r = seeded(4);
   let b = M.buckets.fresh(p, r), wins = 0;
+  const n0 = () => M.buckets.fresh(p, seeded(9));
   const html = M.buckets.render(p, {board: b, hintLevel: 0});
   const looks = [...html.matchAll(/<button type="button" class="([^"]*)"[^>]*data-focus="fb-choose-(?:you|opponent)"/g)].map(m => m[1]);
   assert.equal(looks.length, 2); assert.equal(looks[0], looks[1], 'neither choice looks like the default');
+  // Verbs with no pronoun: every other line is the app speaking as "I".
+  assert.deepEqual([...html.matchAll(/data-focus="fb-choose-(?:you|opponent)" >([^<]*)</g)].map(m => m[1]), ['Go first', 'Go second']);
+  assert.doesNotMatch(html, /Me first|You first/);
   assert.equal(M.buckets.move(p, b, {type: 'move', from: 1, take: 1, add: [0, 0, 0]}), null, 'choose first');
   while (!M.buckets.solved(p, b)) {
     b = M.buckets.move(p, b, gameSolve(p, b), r);
@@ -201,6 +228,8 @@ test('who starts: choose, win three in a row from new starts; the choice is fina
   assert.equal(c.streak, 0);
   c = M.buckets.move(p, c, {type: 'again'}, r);
   assert.deepEqual(c.start, [2, 2, 2]); assert.equal(c.fresh, false);
+  assert.match(M.buckets.render(p, {board: c, hintLevel: 0}), /data-focus="fb-status">Wins count from a new start\.</, 'practice is said before the choice');
+  assert.doesNotMatch(M.buckets.render(p, {board: n0(), hintLevel: 0}), /Wins count/, 'not on a new start');
   c = M.buckets.move(p, c, {type: 'choose', first: 'opponent'}, r);
   while (c.pos.some(Boolean)) c = M.buckets.move(p, c, gameSolve(p, c), r);
   assert.equal(c.turns.at(-1).player, 'you');
@@ -240,8 +269,9 @@ test('Every start: marks, Play, That’s all and its lock; a wrong card is playe
   let t = move(p, a, {type: 'try'});
   assert.match(M.bucketsort.render(p, t), /Tap a card to start from\./);
   assert.equal(move(p, t, {type: 'choose', first: 'you'}), null, 'a card comes first');
+  assert.match(M.bucketsort.render(p, move(p, t, {type: 'start', cell: 6})), /data-focus="fb-choose-you" >Go first<[^]*data-focus="fb-choose-opponent" >Go second</, 'Every start’s practice choice says Go first and Go second');
   t = move(p, move(p, t, {type: 'start', cell: 6}), {type: 'choose', first: 'you'});
-  assert.match(M.bucketsort.render(p, t), /Your turn/);
+  assert.match(M.bucketsort.render(p, t), /Your\sturn/);
   t = move(p, t, {type: 'back'});
   assert.deepEqual(t.board.marked, a.board.marked);
   // Every answer and a wrong card: I go first from it at once and win.
@@ -318,6 +348,10 @@ test('hints point to a winning move without naming the rule; Apply hint makes it
   // A lost duel: the line above the buckets says who took the last fish, the hint only what to do.
   const first = byId('buckets-01'), lost = move(first, freshAttempt(first), {type: 'move', from: 3, take: 1, add: [1, 0, 0]}, seeded(1));
   assert.equal(nextHint(first, lost).text, 'Undo or restart to try again.');
+  assert.equal(nextHint(first, lost).quiet, true, 'told only behind Hint');
+  const shown = view(first, lost);
+  assert.match(shown, /I took the last fish\./);
+  assert.doesNotMatch(shown, /Undo or restart/, 'no line nobody asked for');
 });
 
 test('saves: fresh boards are valid; forged wins, streaks and marks are not; Restart deals a fresh board', () => {

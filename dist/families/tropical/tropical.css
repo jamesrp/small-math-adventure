@@ -8,6 +8,9 @@
 [data-mechanic-wire="tropical"] .tr-board{display:block;width:100%;max-width:380px;max-width:min(380px,var(--tr-fit,380px));height:auto;aspect-ratio:1;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;cursor:pointer;border-radius:12px;background:var(--b-card,#fffdf5)}
 /* On a phone the board reaches the panel's edges (wire sets --tr-bleed to the panel's padding), and on a
    short screen it shrinks so the words and buttons below it stay on the first screen (wire sets --tr-fit). */
+/* On a tablet the board grows to 560 px, as far as the screen's height allows (wire sets --tr-fit there so that
+   the shared Undo, Restart and Hint row stays on the first screen too); the half squares of puzzles 9 and 10 are then 37 px apart. */
+@media (min-width:700px){[data-mechanic-wire="tropical"].tr-puzzle .tr-board{max-width:560px;max-width:min(560px,var(--tr-fit,560px))}}
 @media (max-width:560px){[data-mechanic-wire="tropical"].tr-puzzle .tr-board{width:calc(100% + 2 * var(--tr-bleed,0px));width:min(calc(100% + 2 * var(--tr-bleed,0px)),var(--tr-fit,9999px));max-width:none;margin-inline:calc(-1 * var(--tr-bleed,0px));border-radius:0}}
 [data-mechanic-wire="tropical"] .tr-board:focus{outline:none}
 [data-mechanic-wire="tropical"] .tr-board:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:4px}
@@ -64,6 +67,8 @@
 [data-mechanic-wire="tropical"] .tr-circle.tr-on{fill:var(--b-sun,#efc76e)}
 [data-mechanic-wire="tropical"] .tr-name{font:400 6.2px/1 var(--b-display,Georgia,serif);text-anchor:middle;fill:var(--tr-c);paint-order:stroke;stroke:var(--b-card,#fffdf5);stroke-width:3px;stroke-linejoin:round;pointer-events:none}
 [data-mechanic-wire="tropical"] .tr-target .tr-name{font-style:italic}
+/* Half-square boards draw names smaller, like their junctions and rings (tropical.js, HALF_SIZE). */
+[data-mechanic-wire="tropical"] .tr-half .tr-name{font-size:4.34px}
 
 /* Marks: broad leaf bands beneath the line, so its arms stay readable; a stroke being drawn is lighter. */
 [data-mechanic-wire="tropical"] .tr-ray.tr-mark,[data-mechanic-wire="tropical"] line.tr-mark{--tr-c:#6f9e78;stroke:var(--tr-c);stroke-width:11px;stroke-linecap:round;opacity:.7}

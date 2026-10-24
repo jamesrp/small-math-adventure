@@ -1,6 +1,7 @@
 // Plays Pebble Duel's Buckets group through the real interface: How to play;
 // building a move by taps (take, add to buckets on the left, End turn) and
-// Cancel; a refused tap on a bucket right of the one taken from; a lost duel
+// Cancel; a tap on a bucket right of the one taken from starting a new take
+// there, and a refused tap on an empty bucket; a lost duel
 // from refilling, Undo taking back the move and my reply as one, and the win
 // by refilling nothing; 3, 3 and 1 won by refilling two buckets; every reply
 // to my three first moves, with a lost one and Try again; who-starts rounds
@@ -8,8 +9,8 @@
 // There is another and its lock, a practice game, a wrong That's all played
 // out at once and clearing the marks, and the solve; the encore's taps that
 // take 2 and add up to 3, and its rounds; focus after each kind of tap; the
-// move controls in view without scrolling; and fit at phone and desktop
-// sizes. Same environment variables as the other browser suites
+// move controls in view without scrolling; card fish big enough to count;
+// and fit at phone and desktop sizes. Same environment variables as the other browser suites
 // (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone
 // with touch). Screenshots go in test-results/buckets/.
 import assert from 'node:assert/strict';
@@ -96,6 +97,8 @@ try {
   assert.match(await page.locator('dialog').innerText(), /A move takes one fish from a bucket and may add one fish to each bucket to its left\. Whoever takes the last fish wins\./);
   await press('Done').click();
   assert.equal(await press('End turn').isDisabled(), true, 'End turn waits for a tap');
+  await tap(bucket(1));
+  assert.match(await message(), /not allowed/, 'an empty bucket cannot be taken from');
   await tap(bucket(3)); await tap(bucket(1));
   assert.equal(await bucket(3).evaluate(e => e.classList.contains('taking')), true);
   assert.equal(await page.locator('.fb-fish.new').count(), 1, 'the added fish shows');
@@ -116,13 +119,17 @@ try {
   assert.equal(await page.locator('.fb-bucket.taking').count(), 0, 'Cancel drops the move being built');
   assert.equal(await press('End turn').isDisabled(), true);
   await tap(bucket(1)); await tap(bucket(2));
-  assert.match(await message(), /not allowed/, 'a bucket right of the one taken from is refused');
-  assert.equal(await bucket(1).evaluate(e => e.classList.contains('taking')), true, 'the move being built stays');
+  assert.equal(await message(), '', 'a bucket right of the one taken from says nothing');
+  assert.equal(await bucket(2).evaluate(e => e.classList.contains('taking')), true, 'it starts a new take there');
+  assert.equal(await bucket(1).evaluate(e => e.classList.contains('adding')), true, 'with a place on its left');
+  assert.equal(await page.locator('.fb-fish.lift').count(), 1, 'one fish lifted, the first take dropped');
+  await tap(bucket(3));
+  assert.equal(await bucket(3).evaluate(e => e.classList.contains('taking')), true, 'and again further right');
   assert.deepEqual((await board(p.id)).turns, [], 'nothing moved');
   await tap(press('Cancel'));
-  checks.push('2, 1 and 1: Cancel, and a refused tap on the right');
+  checks.push('2, 1 and 1: Cancel, and a tap on the right starting a new take');
   await play({from: 3, take: 1, add: [0, 0, 0]}, 'a losing move');
-  assert.match(await status(), /^I took 1 from bucket \d( and added 1 to buckets? [\d, and]+)?\. Your turn$/);
+  assert.match(await status(), /^I took 1 from bucket \d( and added 1 to buckets? [\d, and]+)?\. Your\sturn$/);
   assert.ok(await page.locator('.fb-fish.gone').count() === 1, 'the fish I took is drawn dashed');
   await shot('reply'); await fit('after my reply');
   await tap(page.locator('[data-action="undo"]'));
@@ -157,13 +164,18 @@ try {
   // Who starts, three buckets of 0 to 3.
   p = byId('buckets-06');
   await open(p.id); await fit('who starts, fresh');
-  await inView(press('Me first'), 'who starts, fresh'); await inView(press('You first'), 'who starts, fresh');
+  await inView(press('Go first'), 'who starts, fresh'); await inView(press('Go second'), 'who starts, fresh');
   await shot('who-starts'); await finishStreak(p, 'three buckets'); checks.push('who starts: three wins from new starts');
 
   // Every start: two buckets of 0 to 3.
   p = byId('buckets-04');
   await open(p.id); await fit('cards, fresh');
   await inView(press('That’s all'), 'cards, fresh');
+  // The fish on the cards grow with the grid: 14px or more on a 375px phone, 26px on a wide screen.
+  const cardFish = await page.locator('.fb-card .fb-fish').first().boundingBox();
+  console.log(`Card fish ${cardFish.width.toFixed(1)} × ${cardFish.height.toFixed(1)} px.`);
+  assert.ok(cardFish.width >= (phone ? 14 : 24), `card fish are big enough to count (${cardFish.width}px)`);
+  assert.equal(await page.evaluate(() => [...document.querySelectorAll('.fb-card:not(.blank)')].every(c => [...c.querySelectorAll('.fb-mini')].every(m => { const a = m.getBoundingClientRect(), b = c.getBoundingClientRect(); return a.left >= b.left && a.right <= b.right; }))), true, 'both jars fit inside every card');
   const card = c => page.locator(`[data-focus="fb-card-${c}"]`);
   await tapAt(card(5), .9, .1); await tapAt(card(2), .1, .9);
   f = await focused(); assert.match(f.focus, /^fb-card-/, 'focus stays on the card');
@@ -174,8 +186,8 @@ try {
   assert.doesNotMatch(await page.locator('[data-mechanic-wire]').innerText(), /\d+ (more|left)/, 'no count');
   await tap(press('Play'));
   assert.match(await status(), /Tap a card to start from\./);
-  await tap(card(6)); await tap(press('You first'));
-  assert.match(await status(), /I took .*\. Your turn/);
+  await tap(card(6)); await tap(press('Go second'));
+  assert.match(await status(), /I took .*\. Your\sturn/);
   await inView(press('End turn'), 'a practice game');
   for (let i = 0; i < 10; i++) {
     const play2 = (await board(p.id)).play;
@@ -193,7 +205,7 @@ try {
   assert.match(await page.locator('.fb-label').innerText(), /^Whoever starts from 1 and 1 can win\. I go first\.$/);
   assert.equal(await press('Back').count(), 0, 'the play-out cannot be left');
   await shot('playout'); await fit('play-out');
-  for (let i = 0; i < 10 && /Your turn/.test(await status()); i++) {
+  for (let i = 0; i < 10 && /Your\sturn/.test(await status()); i++) {
     const play2 = (await board(p.id)).play;
     let pos = cardStart(play2.start);
     for (const t of play2.turns) pos = after(pos, t);
@@ -224,7 +236,7 @@ try {
   p = byId('buckets-08');
   // The fullest bucket a child can meet (validate-buckets.mjs): 16 fish in the
   // encore, after refilling fully from 5 and 5 twice. End turn stays in view.
-  await open(p.id); await tap(press('Me first'));
+  await open(p.id); await tap(press('Go first'));
   const turns = [{player: 'you', from: 2, take: 1, add: [3, 0]}, {player: 'opponent', from: 2, take: 1, add: [3, 0]}, {player: 'you', from: 2, take: 1, add: [3, 0]}, {player: 'opponent', from: 2, take: 2, add: [2, 0]}];
   const full = {...await board(p.id), start: [5, 5], pos: [16, 0], first: 'you', turns, streak: 0, won: [], fresh: true};
   await page.evaluate(([k, id, b]) => { const s = JSON.parse(localStorage.getItem(k)); s.profiles[0].attempts[id].board = b; localStorage.setItem(k, JSON.stringify(s)); }, [key, p.id, full]);

@@ -239,7 +239,7 @@ function wireForms(){
 function dialog(title,body,actions=[{label:'Done'}]){
   currentDialog?.close();const previous=document.activeElement,d=document.createElement('dialog');d.className='modal';d.innerHTML=`<h2 id="dialog-title">${esc(title)}</h2><div class="dialog-body">${body}</div><div class="dialog-actions"></div>`;d.setAttribute('aria-labelledby','dialog-title');document.body.append(d);currentDialog=d;
   for(const [i,action]of actions.entries()){const b=document.createElement('button');b.type='button';b.className=action.danger?'danger':i===actions.length-1?'primary':'secondary';b.textContent=action.label;b.addEventListener('click',()=>{if(action.run?.(d)===false)return;d.close();});d.querySelector('.dialog-actions').append(b);}
-  d.addEventListener('close',()=>{d.remove();if(currentDialog===d)currentDialog=null;if(previous?.isConnected)previous.focus();});d.showModal();return d;
+  d.addEventListener('close',()=>{d.remove();if(currentDialog===d)currentDialog=null;if(!d.dataset.left&&previous?.isConnected)previous.focus();});d.showModal();return d;
 }
 function instructions(p){
   return isExpansion(p)?playInstructions(p):p.mechanic==='tile'?tileInstructions(p):'Tap two cups to swap them. Only the listed pairs can swap.';
@@ -340,7 +340,10 @@ document.addEventListener('click',event=>{
   else if(action==='clear')dialog('Clear all adventure saves?','<p>This removes every explorer and their progress here, including the recovery copy. Other websites’ data is untouched. Export first if you want a backup.</p>',[{label:'Keep my saves'},{label:'Clear adventure data',danger:true,run:()=>{try{storage.removeItem(SAVE_KEY);storage.removeItem(BACKUP_KEY);state=emptyStore();warning='';sessionCompleted=new Set();go('profiles');}catch{warning='This browser did not allow data to be cleared.';render();}}}]);
   else if(action==='print')window.print();
 });
-function navigate(){if(!state||viewState.isCurrent())return;focusDone=false;selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';reaction=null;if(solveResult?.key!==location.hash)solveResult=null;hush();resetTalk();render();const heading=document.querySelector('#completion-heading')||document.querySelector('#main h1');heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});if(route()[0]==='play'&&profile()?.sound&&puzzle()){const line=document.querySelector('.lr-listen');if(line)narrate(line.dataset.text,line.dataset.voice,line.closest('.lr-keeper')?.dataset.line);else speak(puzzle());}}
+// A dialog belongs to the page it opened on (How to play names its puzzle), so a
+// history step or a hash edit closes it, and focus goes to the new page's heading.
+function leaveDialog(){if(!currentDialog)return;currentDialog.dataset.left='1';currentDialog.close();currentDialog=null;}
+function navigate(){if(!state||viewState.isCurrent())return;leaveDialog();focusDone=false;selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';reaction=null;if(solveResult?.key!==location.hash)solveResult=null;hush();resetTalk();render();const heading=document.querySelector('#completion-heading')||document.querySelector('#main h1');heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});if(route()[0]==='play'&&profile()?.sound&&puzzle()){const line=document.querySelector('.lr-listen');if(line)narrate(line.dataset.text,line.dataset.voice,line.closest('.lr-keeper')?.dataset.line);else speak(puzzle());}}
 // Restore on popstate before native history scrolling; hashchange also covers
 // direct hash edits. A traversal can fire both, so render each entry only once.
 window.addEventListener('popstate',navigate);

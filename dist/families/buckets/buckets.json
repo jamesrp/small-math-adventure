@@ -221,7 +221,7 @@
     "takes": 1
    },
    "objective": "You go second from 2 and 2. I try each of my first moves in turn. Win every game.",
-   "visibleObjective": "Go second from 2 and 2. Win against each of my first moves.",
+   "visibleObjective": "Win against each of my first moves from 2 and 2.",
    "instruction": "You go second from 2 and 2. I try each of my first moves in turn. Win every game.",
    "controls": "A move takes one fish from a bucket and may add one fish to each bucket to its left. Whoever takes the last fish wins. You go second, and I try each first move in turn. Tap a bucket to take a fish from it, tap buckets to its left to add one to each, then End turn. Tap a bucket again to change it. After a win, Next first move starts the next game; after a loss, Try again replays the same first move.",
    "rules": [
@@ -511,7 +511,7 @@
    "objective": "Choose who starts, then take the last fish. Win 3 games in a row from new starts.",
    "visibleObjective": "Win 3 games in a row.",
    "instruction": "Choose who starts, then take the last fish. Win 3 games in a row from new starts.",
-   "controls": "A move takes one fish from a bucket and may add one fish to each bucket to its left. Whoever takes the last fish wins. Choose Me first or You first. Tap a bucket to take a fish from it, tap buckets to its left to add one to each, then End turn. Tap a bucket again to change it. I reply at once. Win 3 games in a row from new starts. After a loss, Same start again is practice and does not count.",
+   "controls": "A move takes one fish from a bucket and may add one fish to each bucket to its left. Whoever takes the last fish wins. Choose Go first or Go second. Tap a bucket to take a fish from it, tap buckets to its left to add one to each, then End turn. Tap a bucket again to change it. I reply at once. Win 3 games in a row from new starts. After a loss, Same start again is practice and does not count.",
    "rules": [
     "Players take turns.",
     "A move takes one fish from a bucket.",
@@ -681,7 +681,7 @@
    "objective": "Choose who starts, then take the last fish. Win 3 games in a row from new starts.",
    "visibleObjective": "Take 1, 2 or 3 at a time, add up to 3 to each bucket on the left, and win 3 games in a row.",
    "instruction": "Choose who starts, then take the last fish. Win 3 games in a row from new starts.",
-   "controls": "A move takes 1, 2 or 3 fish from one bucket and may add up to 3 fish to each bucket to its left. Whoever takes the last fish wins. Choose Me first or You first. Tap a bucket to take a fish from it, and again to take more, up to 3; tap a bucket to its left to add a fish, and again to add more, up to 3; one more tap puts them back. Then End turn. I reply at once. Win 3 games in a row from new starts. After a loss, Same start again is practice and does not count.",
+   "controls": "A move takes 1, 2 or 3 fish from one bucket and may add up to 3 fish to each bucket to its left. Whoever takes the last fish wins. Choose Go first or Go second. Tap a bucket to take a fish from it, and again to take more, up to 3; tap a bucket to its left to add a fish, and again to add more, up to 3; one more tap puts them back. Then End turn. I reply at once. Win 3 games in a row from new starts. After a loss, Same start again is practice and does not count.",
    "rules": [
     "Players take turns.",
     "A move takes 1, 2 or 3 fish from one bucket.",

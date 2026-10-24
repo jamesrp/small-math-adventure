@@ -38,7 +38,7 @@ function controls(q) {
   if (q.kind === 'sort') return `${rule} Tap a card to mark it, and again to clear it. Play, then a card, tries a game from it against me. That’s all checks every mark at once. While a start is still missing, it says “There is another.” Once none is missing, it is final: if a marked start is one where the first player can win, I go first from it and win, and then the marks are cleared.`;
   if (q.mode === 'duel') return `${rule} ${taps} I reply at once. Undo takes back your move and my reply.`;
   if (q.mode === 'replies') return `${rule} You go second, and I try each first move in turn. ${taps} After a win, Next first move starts the next game; after a loss, Try again replays the same first move.`;
-  return `${rule} Choose Me first or You first. ${taps} I reply at once. Win 3 games in a row from new starts. After a loss, Same start again is practice and does not count.`;
+  return `${rule} Choose Go first or Go second. ${taps} I reply at once. Win 3 games in a row from new starts. After a loss, Same start again is practice and does not count.`;
 }
 function rules(q) {
   const out = ['Players take turns.', ...(q.cap > 1
@@ -87,7 +87,7 @@ const authored = [
     number: 3, difficulty_level: 'medium', title: 'Replies to 2 and 2',
     parameters: {mode: 'replies', start: [2, 2], cap: 1, takes: 1},
     objective: 'You go second from 2 and 2. I try each of my first moves in turn. Win every game.',
-    visibleObjective: 'Go second from 2 and 2. Win against each of my first moves.',
+    visibleObjective: 'Win against each of my first moves from 2 and 2.',
     idea: 'Going second from 2 and 2 wins against every first move: answer 1 and 2 with 0 and 2, answer 2 and 1 with 2 and 0, and answer 3 and 1 with 4 and 0.',
     prerequisites: 'Puzzles 1 and 2.',
     hints: ['After my first move, which buckets would you like to leave me?', 'You started from 2 and 2, a start you can win going second. Leave me something like it.', 'After each of my moves, make every bucket pair up again.'],

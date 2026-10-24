@@ -55,17 +55,23 @@
 :is([data-mechanic-wire="buckets"],[data-mechanic-wire="bucketsort"]) .fb-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
 
 /* Every start: fifteen cards laid out as on the worksheet (left bucket across,
-   right bucket down), the empty card's place left blank. */
-[data-mechanic-wire="bucketsort"] .fb-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;width:100%;max-width:380px}
-[data-mechanic-wire="bucketsort"] .fb-card{--fb-fish-w:13px;--fb-fish-h:8px;--fb-gap:2px;display:flex;justify-content:center;align-items:flex-end;gap:5px;min-width:0;min-height:58px;margin:0;padding:9px 3px 8px;border:1.5px solid var(--b-line,#d0d6bd);border-radius:9px;background:var(--b-card,#fffdf5);box-shadow:0 2px 0 var(--b-line,#d0d6bd);color:var(--b-ink,#294439);font:inherit;-webkit-tap-highlight-color:transparent}
+   right bucket down), the empty card's place left blank. The fish grow with the
+   grid's width (a container query): a card is 4 fish wide plus 21px of walls,
+   padding and gaps, so a fish is (width - 3 gaps - 4 x 21px) / 16: 15px wide on
+   a 390px phone (the grid reaches 8px into the panel's padding there), 11 to
+   15px on smaller phones, and 26px on a tablet, where the grid may be 540px. */
+[data-mechanic-wire="bucketsort"] .fb-cards{--fb-cards-gap:4px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--fb-cards-gap);width:100%;max-width:380px;container-type:inline-size}
+@media (min-width:700px){[data-mechanic-wire="bucketsort"] .fb-cards{--fb-cards-gap:8px;max-width:540px}}
+@media (max-width:420px){[data-mechanic-wire="bucketsort"] .fb-cards{width:calc(100% + 16px);max-width:none;margin-inline:-8px}}
+[data-mechanic-wire="bucketsort"] .fb-card{--fb-fish-w:clamp(9px,calc((100cqw - 3 * var(--fb-cards-gap) - 84px) / 16 - .2px),26px);--fb-fish-h:calc(var(--fb-fish-w) * .6);--fb-gap:2px;display:flex;justify-content:center;align-items:flex-end;gap:4px;min-width:0;min-height:58px;margin:0;padding:9px 1px 8px;border:1.5px solid var(--b-line,#d0d6bd);border-radius:9px;background:var(--b-card,#fffdf5);box-shadow:0 2px 0 var(--b-line,#d0d6bd);color:var(--b-ink,#294439);font:inherit;-webkit-tap-highlight-color:transparent}
 [data-mechanic-wire="bucketsort"] .fb-card.blank{visibility:hidden}
 [data-mechanic-wire="bucketsort"] button.fb-card{cursor:pointer}
 [data-mechanic-wire="bucketsort"] button.fb-card:hover:not(.marked):not(.chosen){background:#e9eddc;filter:none}
 [data-mechanic-wire="bucketsort"] button.fb-card:active{transform:none}
 [data-mechanic-wire="bucketsort"] .fb-card:focus{outline:none}
 [data-mechanic-wire="bucketsort"] .fb-card:focus-visible{outline:3px solid var(--b-ochre,#b38840);outline-offset:2px}
-[data-mechanic-wire="bucketsort"] .fb-mini{flex:none;display:flex;flex-wrap:wrap-reverse;align-content:flex-start;gap:var(--fb-gap);box-sizing:content-box;width:calc(2 * var(--fb-fish-w) + var(--fb-gap));min-height:calc(2 * var(--fb-fish-h) + var(--fb-gap));padding:5px 3px 4px;border:1.5px solid var(--b-ink,#294439);border-top-width:0;border-radius:2px 2px 8px 8px;position:relative}
-[data-mechanic-wire="bucketsort"] .fb-mini::before{content:"";position:absolute;top:-1.5px;left:-3px;right:-3px;height:2.5px;border-radius:2px;background:var(--b-ink,#294439)}
+[data-mechanic-wire="bucketsort"] .fb-mini{flex:none;display:flex;flex-wrap:wrap-reverse;align-content:flex-start;gap:var(--fb-gap);box-sizing:content-box;width:calc(2 * var(--fb-fish-w) + var(--fb-gap));min-height:calc(2 * var(--fb-fish-h) + var(--fb-gap));padding:5px .5px 4px;border:1.5px solid var(--b-ink,#294439);border-top-width:0;border-radius:2px 2px 8px 8px;position:relative}
+[data-mechanic-wire="bucketsort"] .fb-mini::before{content:"";position:absolute;top:-1.5px;left:-1.5px;right:-1.5px;height:2.5px;border-radius:2px;background:var(--b-ink,#294439)}
 [data-mechanic-wire="bucketsort"] .fb-mini .fb-fish{stroke-width:1.1px}
 [data-mechanic-wire="bucketsort"] .fb-card:is(.marked,.chosen){background:var(--b-pine,#31533e);border-color:var(--b-pine,#31533e)}
 [data-mechanic-wire="bucketsort"] .fb-card:is(.marked,.chosen) .fb-mini{border-color:#fff8d9}
@@ -77,11 +83,6 @@
 
 @media (max-width:420px){
   :is([data-mechanic-wire="buckets"],[data-mechanic-wire="bucketsort"]) :is(.fb-status,.fb-note){font-size:1rem}
-  [data-mechanic-wire="bucketsort"] .fb-cards{gap:5px}
-  [data-mechanic-wire="bucketsort"] .fb-card{--fb-fish-w:11px;--fb-fish-h:7px;gap:4px;min-height:52px}
-  [data-mechanic-wire="bucketsort"] .fb-mini{padding:4px 1.5px 3px}
-}
-@media (max-width:350px){
-  [data-mechanic-wire="bucketsort"] .fb-card{--fb-fish-w:8.5px;--fb-fish-h:5.5px;padding:8px 2px 7px;gap:3px}
-  [data-mechanic-wire="bucketsort"] .fb-mini{padding:3px 1px 3px}
+  [data-mechanic-wire="bucketsort"] .fb-card{min-height:52px}
+  [data-mechanic-wire="bucketsort"] .fb-mini{padding:4px .5px 3px}
 }

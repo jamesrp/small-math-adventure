@@ -153,6 +153,11 @@ try {
   assert.equal(await button('Can’t').isDisabled(), false);
   await press('Check');
   assert.match(await told(), /^The line misses (P|R|P and R)\.$/);
+  // Can't pressed straight after a refused Check asks for its taps; pressed again, the refusal is back.
+  await press('Can’t');
+  assert.equal(await told(), 'Tap two circles.', 'Can’t asks for two circles over a refused Check');
+  await press('Can’t');
+  assert.match(await told(), /^The line misses (P|R|P and R)\.$/);
   // Can't: every circle takes a tap; a tap away from the circles moves the junction.
   await tap([5, 5]);
   await press('Can’t');
@@ -291,6 +296,18 @@ try {
   assert.equal(await dialog.evaluate(d => d.scrollWidth <= d.clientWidth + 1), true, 'the pictures fit');
   await shot('how-to-play');
   await page.keyboard.press('Escape');
+  // Half-square boards draw junctions, rings and names smaller: the ring stops
+  // short of B's junction half a square below it, and B's name, which would sit
+  // on the ring, turns to down and to the right.
+  await tap([0.5, 0]);
+  assert.deepEqual((await board(P)).at, H([0.5, 0]), 'a tap in the corner lands on its half square');
+  const corner = await page.evaluate(() => {
+    const box = e => e.getBoundingClientRect(), ring = box(document.querySelector('.tr-ring.tr-goal')), junction = box(document.querySelector('.tr-mover .tr-junction')), name = box(document.querySelector('.tr-b-name'));
+    return {ring, junction, name, gap: box(document.querySelector('[data-tr-board]')).width};
+  });
+  assert.ok(corner.junction.top >= corner.ring.bottom - 2, `the ring and B’s junction do not overlap (${corner.ring.bottom.toFixed(1)} and ${corner.junction.top.toFixed(1)})`);
+  assert.ok(corner.name.left >= corner.junction.left && corner.name.top >= corner.junction.top, 'B’s name sits down and to the right beside the ring');
+  await shot('corner-names');
   // Half a square left of the ring.
   await tap([0, 0.5]); await press('Check'); await done();
   await shot('corner-solved');
@@ -309,6 +326,28 @@ try {
   }});
   assert.deepEqual((await board(P)).b, H([6, 2]), 'a drag moves B');
   await shot('playground');
+
+  // A tablet held upright: the board grows to 560 px, the half squares of
+  // puzzle 10 are at least 36 px apart, and the Undo row stays on the first
+  // screen; a desktop keeps its 380 px (checked at the top of this suite).
+  if (!phone) {
+    await page.setViewportSize({width: 820, height: 1180});
+    P = 'tropical-10';
+    await open(P);
+    const tablet = await page.evaluate(() => { const svg = document.querySelector('[data-tr-board]'); return {width: svg.getBoundingClientRect().width, half: svg.getScreenCTM().a * 5, tools: document.querySelector('.play-sidebar .tool-grid').getBoundingClientRect().bottom}; });
+    console.log(`Tablet: board ${tablet.width.toFixed(0)} px, half squares ${tablet.half.toFixed(1)} px apart.`);
+    assert.ok(tablet.width > 555 && tablet.width <= 561, `the board grows on a tablet (${tablet.width})`);
+    assert.ok(tablet.half >= 36, 'half squares 36 px apart');
+    assert.ok(tablet.tools <= 1180, 'the Undo row is on the first screen');
+    await onScreen('tablet');
+    await tap([0.5, 0]); await press('Check'); await done();
+    await shot('tablet-corner');
+    await open('tropical-01');
+    await page.setViewportSize({width: 1180, height: 820}); await page.waitForTimeout(200);
+    const turned = await page.evaluate(() => ({width: document.querySelector('[data-tr-board]').getBoundingClientRect().width, tools: document.querySelector('.play-sidebar .tool-grid').getBoundingClientRect().bottom}));
+    assert.ok(turned.width >= 379 && turned.tools <= 820, `turned sideways, the board is measured again and keeps the Undo row in view (${turned.width}, ${turned.tools})`);
+    await page.setViewportSize({width: 1024, height: 768});
+  }
 
   assert.deepEqual(errors, [], 'no page errors');
   console.log(`Three-arm lines browser smoke passed${phone ? ' (phone)' : ''}.`);
