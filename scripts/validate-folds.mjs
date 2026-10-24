@@ -303,6 +303,22 @@ export default async function validateFolds() {
       assert.ok(starts.length >= 2, `${label}: more than one start`);
       // They lie on one ray from P, away from B′.
       for (const S of starts) assert.equal((S[0] - P[0]) * (P[1] + B[1]) - (S[1] - P[1]) * (P[0] - B[0]), 0);
+      // Claims audit: every start that misses, kept with every right one, is
+      // refused with the same words and no ring, so That's all can't be used
+      // to find the wrong start (it once ringed it).
+      const shown = new Set();
+      for (let x = q.place[0]; x <= q.place[2]; x++) for (let y = q.place[1]; y <= q.place[3]; y++) {
+        const S = [x, y];
+        if (y <= 0 || same(S, B) || starts.some(T => same(T, S))) continue;
+        let a = fresh;
+        for (const T of [...starts, S]) a = move(p, a, {type: 'start', at: T}) || a;
+        if (a.board.starts.length !== starts.length + 1) continue;
+        const refused = move(p, move(p, a, {type: 'fold'}), {type: 'claim'}), html = M.render(p, {...refused, hintLevel: 0});
+        assert.doesNotMatch(html, /fd-mark/, `${label}: the start at ${S} is not ringed`);
+        shown.add(visible(html).replace(/\s+/g, ' '));
+      }
+      assert.equal(shown.size, 1, `${label}: one refusal for every start that misses`);
+      assert.match([...shown][0], /A start misses P\./);
     }
     if (q.mode === 'walls') {
       const best = wallsBrute(q);

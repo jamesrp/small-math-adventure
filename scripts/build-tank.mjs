@@ -27,11 +27,11 @@ export const family = {
 
 const RULES = {
   fill: family.rules,
-  which: [...family.rules, 'That’s all says no other level in the row can be filled with these jugs. A wrong claim is refused.'],
-  ways: [...family.rules, 'Each different way to fill the level (how many of each jug) is listed once. That’s all says there is no other way. A wrong claim is refused.'],
-  last: [...family.rules, '“Last gap is …” says the chosen level can’t be filled and every later level can; it is accepted when the levels just after it are lit. “Gaps never stop” says infinitely many levels can’t be filled. A wrong claim is refused.'],
+  which: [...family.rules, 'That’s all says no other level in the row can be filled with these jugs. A wrong claim is refused until something changes.'],
+  ways: [...family.rules, 'Each different way to fill the level (how many of each jug) is listed once. That’s all says there is no other way. A wrong claim is refused until something changes.'],
+  last: [...family.rules, '“Last gap is …” says the chosen level can’t be filled and every later level can; it can be pressed once the levels just after it are lit, as many as the smaller jug holds. “Gaps never stop” says infinitely many levels can’t be filled. A wrong claim is refused until something changes.'],
   choose: [...family.rules, 'Tap two jugs at the top to choose them. Putting a jug back pours its water out, and the levels it helped fill go dark.'],
-  design: [...family.rules, 'Tap two jugs at the top to choose them. The claim is accepted when the level can’t be filled and the levels just after it are lit.'],
+  design: [...family.rules, 'Tap two jugs at the top to choose them. The claim can be pressed once the levels just after it are lit, as many as the smaller jug holds, and is accepted when the level can’t be filled.'],
   playground: [...family.rules, 'Choose any two jugs. Nothing needs finishing.']
 };
 const POUR = 'Pour empties a full jug into the tank; − takes one jugful back out; Empty pours the tank away.';

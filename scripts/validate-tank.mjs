@@ -116,7 +116,10 @@ export default async function validateTank() {
       let a = fresh;
       for (const [i, t] of can.entries()) {
         const early = claim(p, a, 'all');
+        // Claims audit: That's all waits for a first lit level.
+        if (i === 0) { assert.equal(early, null, `${label}: no That’s all on an empty row`); a = fillLevel(p, a, t); continue; }
         assert.ok(early && early.board.refusal && !isSolved(p, early.board), `${label}: That’s all is refused with ${can.length - i} still dark`);
+        assert.equal(claim(p, early, 'all'), null, `${label}: That’s all stays off after a refusal`);
         assert.match(mechanicFor(p).render(p, early), /Another level can be filled/);
         assert.equal(target(p, early, t === early.board.target ? q.targets.find(x => x !== t) : t).board.refusal, null, `${label}: the next move clears the refusal`);
         refusals++;
@@ -143,6 +146,7 @@ export default async function validateTank() {
       let a = fresh;
       for (const [i, w] of all.entries()) {
         const early = claim(p, a, 'all');
+        if (i === 0) { assert.equal(early, null, `${label}: no That’s all before a first way`); a = pourTo(p, a, w); continue; }
         assert.ok(early.board.refusal && !isSolved(p, early.board), `${label}: That’s all is refused with ${all.length - i} ways missing`);
         assert.match(mechanicFor(p).render(p, early), /There is another way/);
         refusals++;
@@ -199,24 +203,30 @@ export default async function validateTank() {
       const never = claim(p, full, 'never');
       assert.equal(isSolved(p, never.board), gap === null, `${label}: Gaps never stop is accepted exactly when the jugs share a factor`);
       if (gap !== null) { assert.equal(never.board.refusal.why, 'stops'); assert.match(mechanicFor(p).render(p, never), /The gaps do stop/); refusals++; }
-      // Each level claimed as the last gap, with every fillable level lit.
+      // Claims audit: on an empty tank no level can be claimed as the last
+      // gap (each press once answered "can be filled", "a later level can't"
+      // or "show the run", which read the answer off level by level).
+      for (const t of q.targets) assert.equal(claim(p, target(p, fresh, t) || fresh, 'last'), null, `${label}: no Last gap is ${t} on an empty tank`);
+      // Each level claimed as the last gap, with every fillable level lit: the
+      // claim opens only on the m levels after t lit, and its one refusal is
+      // "Not the last gap.".
       for (const t of q.targets) {
-        const said = claim(p, target(p, full, t), 'last');
-        const why = fills(q.jugs, t) ? 'filled' : t === gap ? null : 'later';
+        const at = target(p, full, t) || full, open = range(t + 1, t + m).every(n => n <= top && fills(q.jugs, n));
+        const said = claim(p, at, 'last');
+        if (!open) { assert.equal(said, null, `${label}: Last gap is ${t} waits for the run after it`); continue; }
+        const why = fills(q.jugs, t) ? 'filled' : null;
+        assert.ok(why || t === gap, `${label}: an open claim at ${t} is right or ${t} fills`);
         assert.equal(said.board.refusal?.why ?? null, why, `${label}: Last gap is ${t}`);
         assert.equal(isSolved(p, said.board), why === null, `${label}: Last gap is ${t} solves exactly when true`);
-        if (why) refusals++;
+        if (why) { assert.match(mechanicFor(p).render(p, said), /<p class="tank-note" role="status">Not the last gap\.<\/p>/); assert.equal(claim(p, said, 'last'), null, `${label}: the claim stays off after a refusal`); refusals++; }
       }
       if (gap !== null) {
         // The true last gap, claimed before the run after it is lit.
         let partial = fresh;
         for (const t of range(gap + 1, gap + m - 1)) partial = fillLevel(p, partial, t);
-        const shy = claim(p, target(p, partial, gap), 'last');
-        assert.equal(shy.board.refusal?.why, 'show', `${label}: the claim needs all ${m} levels after ${gap} lit`);
-        assert.match(mechanicFor(p).render(p, shy), new RegExp(`Show that every level after ${gap} can be filled`));
+        assert.equal(claim(p, target(p, partial, gap), 'last'), null, `${label}: the claim needs all ${m} levels after ${gap} lit`);
         const shown = claim(p, target(p, fillLevel(p, partial, gap + m), gap), 'last');
         assert.ok(isSolved(p, shown.board), `${label}: ${m} lit levels after ${gap} are enough`);
-        refusals++;
       }
     }
 
@@ -229,17 +239,26 @@ export default async function validateTank() {
       assert.equal(claim(p, fresh, 'last'), null, `${label}: no claim before two jugs`);
       // Every pair, with every fillable level lit: the claim holds exactly for the answers.
       for (const pick of pairs(q.choices)) {
+        // Claims audit: a chosen pair with no water can't be claimed (one press
+        // per pair once said whether the pair was right).
+        assert.equal(claim(p, choose(p, fresh, pick), 'last'), null, `${label}: jugs ${pick} with an empty tank can't be claimed`);
         let a = choose(p, fresh, pick);
         for (const t of q.targets) if (fills(pick, t)) a = fillLevel(p, a, t);
         const said = claim(p, a, 'last');
-        const works = good.some(g => same(g, pick));
+        const works = good.some(g => same(g, pick)), open = range(q.last + 1, q.last + Math.min(...pick)).every(n => n <= Math.max(...q.targets) && fills(pick, n));
+        if (!open) { assert.ok(!works); assert.equal(said, null, `${label}: jugs ${pick}: no claim without the run after ${q.last}`); continue; }
         assert.equal(isSolved(p, said.board), works, `${label}: jugs ${pick} answer exactly when their last gap is ${q.last}`);
-        if (!works) { assert.ok(['filled', 'later', 'show'].includes(said.board.refusal.why)); refusals++; }
+        if (!works) { assert.equal(said.board.refusal.why, 'filled', `${label}: jugs ${pick}: with the run lit, only ${q.last} filling is left`); refusals++; }
       }
       assert.equal(claim(p, choose(p, fresh, good[0]), 'never'), null, `${label}: no Gaps never stop`);
       const wrong = choose(p, fresh, pairs(q.choices).find(s => !good.some(g => same(g, s))));
       hintSteps += hintRun(p, wrong, `${label} from wrong jugs`);
-      hintSteps += hintRun(p, claim(p, wrong, 'last'), `${label} after a refused claim`);
+      const refusable = pairs(q.choices).find(pick => !good.some(g => same(g, pick)) && fills(pick, q.last) && range(q.last + 1, q.last + Math.min(...pick)).every(n => n <= Math.max(...q.targets) && fills(pick, n)));
+      let runLit = choose(p, fresh, refusable);
+      for (const n of range(q.last + 1, q.last + Math.min(...refusable))) runLit = fillLevel(p, runLit, n);
+      const refused = claim(p, runLit, 'last');
+      assert.equal(refused.board.refusal.why, 'filled');
+      hintSteps += hintRun(p, refused, `${label} after a refused claim`);
     }
 
     // Hints alone, from a fresh board and from a tank poured too high.
@@ -249,10 +268,21 @@ export default async function validateTank() {
       const messy = jugs0.reduce((a, size) => move(p, move(p, a, {type: 'pour', jug: size}), {type: 'pour', jug: size}) || a, fresh);
       hintSteps += hintRun(p, messy, `${label} from a tank poured too high`);
     }
-    if (q.mode === 'which' || q.mode === 'ways') hintSteps += hintRun(p, claim(p, fresh, 'all'), `${label} after a refused That’s all`);
+    if (q.mode === 'which' || q.mode === 'ways') {
+      const one = q.mode === 'ways' ? pourTo(p, fresh, ways(q.jugs, q.target)[0]) : fillLevel(p, fresh, q.targets.find(t => fills(q.jugs, t)));
+      hintSteps += hintRun(p, claim(p, one, 'all'), `${label} after a refused That’s all`);
+    }
     if (q.mode === 'last') {
       hintSteps += hintRun(p, claim(p, fresh, 'never'), `${label} after a refused Gaps never stop`);
-      hintSteps += hintRun(p, claim(p, target(p, fresh, q.targets.at(-1)), 'last'), `${label} after a refused Last gap`);
+      const filledLevel = q.targets.find(t => fills(q.jugs, t) && range(t + 1, t + Math.min(...q.jugs)).every(n => n <= Math.max(...q.targets) && fills(q.jugs, n)));
+      // (With jugs that share a factor no run is ever lit, so Last gap never opens.)
+      if (filledLevel !== undefined) {
+        let runAfter = fresh;
+        for (const n of range(filledLevel + 1, filledLevel + Math.min(...q.jugs))) runAfter = fillLevel(p, runAfter, n);
+        const refusedLast = claim(p, target(p, runAfter, filledLevel) || runAfter, 'last');
+        assert.equal(refusedLast.board.refusal.why, 'filled');
+        hintSteps += hintRun(p, refusedLast, `${label} after a refused Last gap`);
+      }
     }
 
     // Illegal moves.

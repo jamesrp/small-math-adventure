@@ -305,7 +305,9 @@ function renderDesign(p, a) {
   }
   if (b.wrong !== null) result += `<p class="cb-say" role="status">The changer cannot break every key with ${plural(b.wrong, 'lantern')}. Keep looking.</p>`;
   if (b.claims.includes(b.length)) result += `<p class="cb-say good" role="status">Right: no key with ${plural(b.length, 'lantern')} can stop the changer.</p>`;
-  const claim = q.goal === 'key' || done ? '' : control(`No key with ${plural(b.length, 'lantern')}`, {type: 'claim'}, 'secondary cb-claim', b.tried.includes(b.length) && !b.claims.includes(b.length) ? '' : 'disabled');
+  // A refused claim stays off until the key changes (claims audit: it stayed
+  // enabled, so a second press or a double tap met the generic error).
+  const claim = q.goal === 'key' || done ? '' : control(`No key with ${plural(b.length, 'lantern')}`, {type: 'claim'}, 'secondary cb-claim', b.tried.includes(b.length) && !b.claims.includes(b.length) && b.wrong !== b.length ? '' : 'disabled');
   const check = done ? '' : control('Check', {type: 'check'}, `primary${shown?.action?.type === 'check' ? ' hinted' : ''}`, b.checked ? 'disabled' : '');
   return `<div class="codebook-puzzle mode-design" data-mechanic-wire="codebooks">${picker}<div class="cb-key" role="group" aria-label="The key">${rows}</div><div class="cb-tools">${check}${claim}</div>${result}</div>`;
 }
@@ -344,7 +346,8 @@ function renderPartners(p, a) {
 function wire(root, p, api) {
   root.addEventListener('click', e => {
     const el = e.target.closest('[data-cb-move]');
-    if (!el || !root.contains(el) || el.disabled) return;
+    // The number of lanterns already chosen does nothing.
+    if (!el || !root.contains(el) || el.disabled || (el.classList.contains('cb-length') && el.getAttribute('aria-pressed') === 'true')) return;
     try { api.apply(JSON.parse(el.dataset.cbMove)); } catch { /* malformed control */ }
   });
 }

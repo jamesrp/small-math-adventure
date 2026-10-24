@@ -174,8 +174,11 @@ test('every start: That’s all judges the whole set once', () => {
   assert.match(text(render(p, more)), /There is another\./);
   assert.doesNotMatch(text(render(p, more)), /\d/, 'no count');
   const wrong = play(p, a, [{type: 'start', at: [0, 3]}, {type: 'start', at: [5, 1]}, {type: 'claim'}]);
-  assert.match(text(render(p, wrong)), /misses P/);
-  assert.match(render(p, wrong), /fd-mark/);
+  assert.match(text(render(p, wrong)), /A start misses P\./);
+  // Claims audit: the start that misses is not ringed, so starting every
+  // point and taking away the ringed start no longer solves.
+  assert.doesNotMatch(render(p, wrong), /fd-mark/);
+  assert.equal(text(render(p, wrong)), text(render(p, play(p, a, [{type: 'start', at: [0, 3]}, {type: 'start', at: [7, 3]}, {type: 'claim'}]))), 'any wrong start gets the same board text');
   a = play(p, a, [{type: 'start', at: [0, 3]}, {type: 'claim'}]);
   assert.ok(isSolved(p, a.board));
   assert.equal(move(p, freshAttempt(p), {type: 'start', at: [10, 2]}), null, 'not on B');

@@ -83,11 +83,23 @@ export function pushAngles(q, braces, t, amount = 0.42) {
 }
 
 // --- Boards ------------------------------------------------------------------
-// fewest: {braces, told, claimed}   one, loose, playground: {braces}
-// `told` answers a wrong Fewest: the frame still moves, or a brace that can go.
+// fewest: {braces, told, claimed, last?}   one, loose, playground: {braces}
+// `told` answers a wrong Fewest: the frame still moves, or it holds with a
+// brace to spare. `last` is the braces at the last Fewest (absent before the
+// first, and in saves from before October 24, when it counts as the start).
 const startOf = q => sorted(q.start || []);
 const validSet = (q, list) => Array.isArray(list) && list.every(k => allowed(q, k)) && new Set(list).size === list.length && list.every((k, i) => i === 0 || list[i - 1] < k);
-const toldFor = (q, braces) => !holds(q, braces) ? {kind: 'moves'} : braces.length > fewest(q) ? {kind: 'spare', cell: spare(q, braces)[0]} : null;
+// A spare brace is marked only when the child added it since the last Fewest
+// (Who knows' rule); otherwise the answer names only the kind of fault, so
+// bracing every cell and taking out each marked brace no longer reaches the
+// fewest (claims audit).
+const toldFor = (q, braces, last = startOf(q)) => {
+  if (!holds(q, braces)) return {kind: 'moves'};
+  if (braces.length <= fewest(q)) return null;
+  const cell = spare(q, braces).find(k => !last.includes(k));
+  return cell === undefined ? {kind: 'spare'} : {kind: 'spare', cell};
+};
+const keysOf = (o, list) => Object.keys(o).sort().join() === [...list].sort().join();
 function fresh(p) {
   const q = p.parameters;
   return q.mode === 'fewest' ? {braces: startOf(q), told: null, claimed: false} : {braces: startOf(q)};
@@ -99,8 +111,17 @@ function valid(p, b) {
   if (q.mode === 'loose') return b.braces.length <= q.count;
   if (q.mode !== 'fewest') return true;
   if (typeof b.claimed !== 'boolean') return false;
+  if ('last' in b && !validSet(q, b.last)) return false;
   if (b.claimed) return b.told === null && holds(q, b.braces) && b.braces.length === fewest(q);
-  return b.told === null || (b.braces.length > 0 && JSON.stringify(b.told) === JSON.stringify(toldFor(q, b.braces)));
+  if (b.told === null) return true;
+  // An answer stands only on the frame it judged (`last` is that frame), and
+  // says what is true of it: it moves, or it holds with a brace to spare (the
+  // brace marked, if any, is one that can go).
+  if (!b.braces.length || ('last' in b && JSON.stringify(b.last) !== JSON.stringify(b.braces))) return false;
+  const kind = toldFor(q, b.braces)?.kind;
+  if (!object(b.told) || b.told.kind !== kind) return false;
+  if (kind === 'moves') return keysOf(b.told, ['kind']);
+  return keysOf(b.told, ['kind']) || (keysOf(b.told, ['kind', 'cell']) && spare(q, b.braces).includes(b.told.cell));
 }
 function solved(p, b) {
   const q = p.parameters;
@@ -118,13 +139,13 @@ function move(p, b, action) {
     const has = b.braces.includes(k), braces = has ? b.braces.filter(j => j !== k) : sorted([...b.braces, k]);
     if (q.mode === 'one' && (startOf(q).includes(k) || braces.length > startOf(q).length + 1)) return null;
     if (q.mode === 'loose' && braces.length > q.count) return null;
-    return q.mode === 'fewest' ? {braces, told: null, claimed: false} : {braces};
+    return q.mode === 'fewest' ? {braces, told: null, claimed: false, ...('last' in b ? {last: b.last} : {})} : {braces};
   }
   if (action.type === 'claim' && q.mode === 'fewest') {
     // An answer to this same frame waits for a change.
     if (!b.braces.length || b.told) return null;
-    const told = toldFor(q, b.braces);
-    return told ? {...b, told} : {...b, claimed: true};
+    const told = toldFor(q, b.braces, 'last' in b ? b.last : startOf(q));
+    return told ? {...b, told, last: b.braces} : {...b, claimed: true, last: b.braces};
   }
   return null;
 }
@@ -216,11 +237,11 @@ function render(p, a) {
   const beads = q.mode === 'loose' ? `<span class="bf-beads" role="img" aria-label="${b.braces.length} of ${q.count} braces">${Array.from({length: q.count}, (_, k) => `<i class="${k < b.braces.length ? 'on' : ''}"></i>`).join('')}</span>` : '';
   const claim = q.mode === 'fewest' && !done ? button('Fewest', `data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'claim'}))}" data-focus="bf-claim"`, 'bf-claim', b.braces.length > 0 && !b.told, hinted?.action?.type === 'claim') : '';
   const push = button('Push', 'data-bf-push data-focus="bf-push"', 'bf-push', true, false);
-  const words = {moves: 'It still moves.', spare: 'It holds, but this brace can go.'};
-  const note = b.told ? `<p class="bf-told">${words[b.told.kind]}</p>` : '';
+  const say = told => told.kind === 'moves' ? 'It still moves.' : told.cell === undefined ? 'It holds, but a brace can go.' : 'It holds, but this brace can go.';
+  const note = b.told ? `<p class="bf-told">${say(b.told)}</p>` : '';
   const after = esc(`Rows and columns linked by braces: ${plural(pieces(q, b.braces).count, 'piece')}`);
   const graph = q.graph ? [false, true].map(wide => `<div class="bf-side${wide ? ' bf-wide' : ' bf-tall'}" data-bf-after="${after}">${rowColumnGraph(q, b.braces, wide)}</div>`).join('') : '';
-  const status = `${plural(b.braces.length, 'brace')}.${b.told ? ` ${words[b.told.kind]}` : ''}`;
+  const status = `${plural(b.braces.length, 'brace')}.${b.told ? ` ${say(b.told)}` : ''}`;
   return `<div class="bf-puzzle${q.graph ? ' with-graph' : ''}${b.told?.kind === 'moves' ? ' push-now' : ''}" data-mechanic-wire="braces"><div class="bf-bar">${beads}<span class="bf-buttons">${push}${claim}</span></div><div class="bf-boards"><div class="bf-main">${frame}</div>${graph}</div>${note}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 

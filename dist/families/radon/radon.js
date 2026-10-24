@@ -182,8 +182,9 @@ const isBool = v => typeof v === 'boolean';
 // Four labels on four different points of the board.
 const validSpread = (q, pos) => keysAre(pos, LETTERS) && LETTERS.every(l => isPoint(q, pos[l])) && new Set(LETTERS.map(l => pointKey(pos[l]))).size === 4;
 // Find every: the shelf holds splits the child has claimed, unjudged until
-// That's all. A refusal names the first shelved split that misses, or says
-// one is missing; it stays until the shelf changes.
+// That's all. A refusal records the first shelved split that misses, or that
+// one is missing (the board shows only "Not yet."); it stays until the shelf
+// changes.
 const judge = (q, shelf) => { const answers = answersOf(q), miss = shelf.find(k => !answers.includes(k)); return miss ? {kind: 'apart', key: miss} : shelf.length < answers.length ? {kind: 'more'} : null; };
 function validEvery(q, b) {
   const letters = lettersOf(q), splits = splitList(letters);
@@ -530,15 +531,16 @@ function renderEvery(p, a) {
   const look = l => ({act: !done, piece: l, focus: `sb-disc-${l}`, cls: act?.type === 'tap' && act.label === l ? 'hinted' : '', label: `${l}, ${COLOURS[colours[l]]}`});
   const main = drawBoard(q, q.labels, {colours, look});
   const bar = done ? '' : `<div class="sb-bar">${moveButton('Meet', {type: 'meet'}, now !== null && b.told === null, act?.type === 'meet')}${moveButton('That’s all', {type: 'all'}, b.shelf.length > 0 && !b.refused, act?.type === 'all')}</div>`;
-  const apart = b.refused?.kind === 'apart' ? b.refused.key : null;
-  const word = b.told === 'again' ? 'Already on the shelf.' : apart ? 'This one doesn’t meet.' : b.refused ? 'There is another.' : '';
+  // A refused That's all says only "Not yet.", whether a shelved split misses
+  // or one is missing, and rings nothing: told apart, a shelf of one split
+  // would judge that split (Square leftovers' find rule). The save keeps which.
+  const word = b.told === 'again' ? 'Already on the shelf.' : b.refused ? 'Not yet.' : '';
   // The shelf: unjudged splits, each a button that takes it off; once solved,
   // each split drawn with its bands.
-  const item = key => `<button type="button" class="sb-chip sb-take${apart === key ? ' ringed' : ''}${act?.type === 'drop' && act.key === key ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'drop', key}))}" data-focus="sb-drop-${key.replace('|', '-')}" aria-label="${splitWords(key)}. Take it off the shelf"><b class="sb-c0">${groupsOf(key)[0].join('')}</b><b class="sb-c1">${groupsOf(key)[1].join('')}</b></button>`;
+  const item = key => `<button type="button" class="sb-chip sb-take${act?.type === 'drop' && act.key === key ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'drop', key}))}" data-focus="sb-drop-${key.replace('|', '-')}" aria-label="${splitWords(key)}. Take it off the shelf"><b class="sb-c0">${groupsOf(key)[0].join('')}</b><b class="sb-c1">${groupsOf(key)[1].join('')}</b></button>`;
   const list = done ? shelf(b.shelf.map(k => mini(q, q.labels, k, true)), 'Splits that meet') : b.shelf.length ? `<div class="sb-goal sb-shelved" role="group" aria-label="Shelf">${b.shelf.map(item).join('')}</div>` : '';
-  const proof = apart ? shelf([mini(q, q.labels, apart, false, true)], 'This split apart') : '';
-  const say = `${colourWords(letters, b.groups)}${b.shelf.length ? ` Shelf: ${b.shelf.map(splitWords).join('; ')}.` : ' The shelf is empty.'}${word ? ` ${word}` : ''}${apart ? ` ${splitWords(apart)}.` : ''}${done ? ' That’s all.' : ''}`;
-  return `<div class="sb-puzzle${done ? ' solved' : ''}" data-mechanic-wire="radon"><div class="sb-stage">${main}</div>${told(word)}${proof}${bar}${list}${status(say)}</div>`;
+  const say = `${colourWords(letters, b.groups)}${b.shelf.length ? ` Shelf: ${b.shelf.map(splitWords).join('; ')}.` : ' The shelf is empty.'}${word ? ` ${word}` : ''}${done ? ' That’s all.' : ''}`;
+  return `<div class="sb-puzzle${done ? ' solved' : ''}" data-mechanic-wire="radon"><div class="sb-stage">${main}</div>${told(word)}${bar}${list}${status(say)}</div>`;
 }
 
 function renderPlace(p, a) {

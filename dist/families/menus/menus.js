@@ -182,6 +182,9 @@ function hint(p, board) {
   // Choose-who-starts rounds are evidence: hints never name the answer.
   if (streakMode(p.parameters)) return over(p.parameters, board) ? {type: 'move', action: {type: 'new'}, text: 'Try a new start.'} : {type: 'note'};
   if (repliesMode(p.parameters) && over(p.parameters, board)) return winner(p.parameters, board) === 'you' ? {type: 'move', action: {type: 'next'}, text: 'Try the next first take.'} : {type: 'move', action: {type: 'again'}, text: 'Play this first take again.'};
+  // A lost game has no New start: the hint offers Undo (the hint card's
+  // button), as the duels do, and stays behind Hint.
+  if (over(p.parameters, board)) return {type: 'deadend', quiet: true, text: 'Undo your last turn.'};
   return solveAction(p, board);
 }
 
@@ -293,13 +296,18 @@ function opponentTurn(q, play, piles, random) {
   play.turns.push({player: 'opponent', ...m});
 }
 
+// A track board is {marked, checked, play}, plus `before`, the colouring at
+// the last Check, once the child has changed squares after one (saves from
+// before October 24 have no `before`; it counts as an empty track).
+const squaresOk = (q, list) => Array.isArray(list) && list.every(v => integer(v) && v >= 0 && v < squareCount(q)) && list.every((v, i) => !i || v > list[i - 1]);
 function trackValid(p, b) {
   const q = p.parameters, design = q.mode === 'design';
   const field = design ? 'menu' : 'marked', count = design ? null : squareCount(q);
-  if (!object(b) || !Array.isArray(b[field]) || typeof b.checked !== 'boolean' || Object.keys(b).length !== (design ? 2 : 3)) return false;
+  if (!object(b) || !Array.isArray(b[field]) || typeof b.checked !== 'boolean' || Object.keys(b).length !== (design ? 2 : 'before' in b ? 4 : 3)) return false;
   const list = b[field];
   if (!list.every(v => design ? q.choices.includes(v) : integer(v) && v >= 0 && v < count) || !list.every((v, i) => !i || v > list[i - 1]) || (b.checked && !list.length)) return false;
   if (design) return true;
+  if ('before' in b && !squaresOk(q, b.before)) return false;
   if (b.play === null) return true;
   if (!object(b.play) || !Array.isArray(b.play.turns) || Object.keys(b.play).length !== 1 || b.play.turns.length > 200) return false;
   const run = playout(q, b);
@@ -328,7 +336,7 @@ function trackMove(p, b, action, random = Math.random) {
   if (action.type === 'check') return b.checked || !(design ? b.menu : b.marked).length ? null : {...b, checked: true};
   if (!design && action.type === 'play') {
     const d = b.checked ? firstDifference(q, b.marked) : null;
-    if (!d) return null;
+    if (!d || !named(b, d)) return null;
     const play = {turns: []};
     if (d.extra) opponentTurn(q, play, d.at, random);
     return {...b, play};
@@ -336,8 +344,16 @@ function trackMove(p, b, action, random = Math.random) {
   const field = design ? 'menu' : 'marked', type = design ? 'choose' : 'mark', value = index(design ? action.take : action.square);
   if (action.type !== type || !(design ? q.choices.includes(value) : integer(value) && value >= 0 && value < squareCount(q))) return null;
   const list = b[field].includes(value) ? b[field].filter(v => v !== value) : sorted([...b[field], value]);
-  return design ? {menu: list, checked: false} : {marked: list, checked: false, play: null};
+  if (design) return {menu: list, checked: false};
+  // The next Check names a wrong square only if it changed since this one.
+  const before = b.checked ? b.marked : b.before;
+  return before === undefined ? {marked: list, checked: false, play: null} : {marked: list, checked: false, play: null, before};
 }
+// A checked track names its lowest wrong square (outline, reason, play-out)
+// only when the child changed that square since the last Check, as in Who
+// knows; otherwise the line says only which kind of square is wrong, so
+// Check, fix, Check can't fill the track square by square (claims audit).
+const named = (b, d) => (b.before || []).includes(d.square) !== b.marked.includes(d.square);
 function trackHint(p, b) {
   const q = p.parameters;
   if (!trackValid(p, b)) return {type: 'deadend', text: 'Restart to clear the track.'};
@@ -363,6 +379,7 @@ function trackSay(q, b) {
   }
   const d = firstDifference(q, b.marked);
   if (!d) return `Every coloured square is one to leave, and every other square is not.`;
+  if (!named(b, d)) return d.extra ? 'A coloured square is not one to leave.' : 'A square to leave is not coloured.';
   const at = name(d.at);
   if (d.extra) return `Leave ${at}, and your opponent can take ${d.move.take}${pileWord(q, d.move)} and leave you ${name(d.leaves[0])}, a square you coloured.`;
   if (!d.leaves.length) return `Leave ${at}, and your opponent cannot move at all.`;
@@ -385,7 +402,8 @@ function playPanel(q, b) {
 function trackRender(p, a) {
   const q = p.parameters, b = a.board, done = trackSolved(p, b), say = trackSay(q, b);
   const shown = a.hintLevel >= 2 && !done ? trackHint(p, b) : null;
-  const d = b.checked && !done ? (q.mode === 'design' ? designDifference(q, b.menu) : firstDifference(q, b.marked)) : null;
+  const found = b.checked && !done ? (q.mode === 'design' ? designDifference(q, b.menu) : firstDifference(q, b.marked)) : null;
+  const d = found && (q.mode === 'design' || named(b, found)) ? found : null;
   const check = done || b.play ? '' : button('Check', {type: 'check'}, `primary${shown?.action?.type === 'check' ? ' hinted' : ''}`, b.checked || !(q.mode === 'design' ? b.menu : b.marked).length ? 'disabled' : '');
   const note = say ? `<p class="menu-note${done ? ' good' : ''}" role="status">${esc(say)}</p>` : '<p class="sr-only" role="status"></p>';
   if (q.mode === 'design') {
@@ -433,7 +451,7 @@ export const menuMechanics = {
     move: trackMove,
     hint: trackHint,
     render: trackRender,
-    demo: 'Tap a square to colour it, and tap it again to clear it. Check says whether the colouring is right, and if not, explains the lowest square that is wrong.'
+    demo: 'Tap a square to colour it, and tap it again to clear it. Check says whether the colouring is right, and if not, which kind of square is wrong.'
   }
 };
 

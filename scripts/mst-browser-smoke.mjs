@@ -46,7 +46,10 @@ try {
   assert.equal(await page.locator('.gb-node.lit').count(), 4, 'every place lights up');
   await button('Cheapest').click();
   await page.locator('.mst-told').waitFor();
-  assert.equal(await page.locator('.gb-stroke.told-add').count(), 1); assert.equal(await page.locator('.gb-stroke.told-drop').count(), 1);
+  // Claims audit: the refusal names the kind of fault and draws no swap.
+  assert.equal(await page.locator('.mst-told').innerText(), 'Not the cheapest: a swap costs less.');
+  assert.equal(await page.locator('.gb-stroke.told-add, .gb-stroke.told-drop').count(), 0, 'no swap drawn');
+  assert.equal(await button('Cheapest').isDisabled(), true, 'the claim waits for a change');
   await shot('first-told');
   await buy(A, 'AC', 'AB', 'CD', 'AD');
   assert.equal(await page.locator('.mst-pile b').innerText(), '6');
@@ -106,13 +109,16 @@ try {
   await buy(X, 'AC', 'AD', 'CD');
   await done();
 
-  // Price design: change prices, a wrong Check lists networks, then four.
+  // Price design: Check off until a price changes, a wrong Check counts, then four.
   const D = 'mst-12';
   await open(D); await fit('design');
+  assert.equal(await button('Check').isDisabled(), true, 'Check waits for a price change');
+  await tap(link(L(D, 'AB')));
   await button('Check').click();
-  assert.equal(await page.locator('.mst-list li').count(), 16);
-  await tap(link(L(D, 'AB'))); await tap(link(L(D, 'CD')));
-  assert.equal(await page.locator('.mst-list').count(), 0, 'a price change clears the list');
+  assert.match(await page.locator('.mst-told').innerText(), /^\d+ cheapest networks\.$/, 'a wrong Check gives a count');
+  assert.equal(await page.locator('.mst-found').count(), 0, 'and draws no network');
+  await tap(link(L(D, 'CD')));
+  assert.equal(await page.locator('.mst-told').count(), 0, 'a price change clears the count');
   await shot('design');
   await button('Check').click();
   await done();

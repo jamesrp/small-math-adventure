@@ -146,10 +146,11 @@ try {
   assert.equal(await ringedCount(), 1, 'one ring marked');
   await tap(page.locator('.cr-shelf-item.ringed'));
   await button('That’s all').click();
-  assert.equal(await shelfTold(), 'These two are the same ring.');
-  assert.equal(await ringedCount(), 2, 'the pair marked');
+  assert.equal(await shelfTold(), 'Two of these are the same ring.');
+  assert.equal(await ringedCount(), 0, 'which two is left to the child');
+  assert.ok(await button('That’s all').isDisabled(), 'locked while the shelf is the same');
   await shot('same-ring');
-  await tap(page.locator('.cr-shelf-item.ringed').last());
+  await tap(page.locator('.cr-shelf-item').last());
   await tap(page.locator('.cr-shelf-item').first());
   assert.equal((await board(R9)).shelf.length, 0);
   await clearRing(R9);

@@ -643,7 +643,7 @@ const U = 40;
 export const CLAIM_LABEL = {shorter: 'Shorter', shortest: 'Shortest', less: 'Less rope', tie: 'Same rope', share: 'Same place'};
 const SAY = {
   beaten: 'Not shorter than this one.', shorter: 'There is a shorter one.', unequal: 'Not the same rope.', apart: 'They touch at different places.',
-  bends: 'This one bends.', misses: 'This one’s shortest route misses P.', more: 'There is another.', order: 'The other order is shorter.', long: 'A kept route isn’t shortest.',
+  bends: 'This one bends.', misses: 'A start misses P.', more: 'There is another.', order: 'The other order is shorter.', long: 'A kept route isn’t shortest.',
   window: 'The other stretch has a shorter route.', other: 'Fold a route in the other order too.'
 };
 const prime = (letter, n = 1) => `${letter}${n === 2 ? '″' : '′'}`;
@@ -797,7 +797,8 @@ function renderEvery(p, a) {
   parts.push(b.folded ? seg(f, P, B, 'fd-leg r0 faint') + seg(f, P, mirror(line, B), 'fd-leg r0 folded') : seg(f, P, B, 'fd-leg r0'));
   for (const S of b.starts) parts.push(seg(f, S, P, 'fd-leg r0 thin'));
   for (const S of b.starts) parts.push(dot(f, S, 'fd-start', .2));
-  if (told?.why === 'misses') parts.push(ring(f, told.mark, 'fd-mark'));
+  // A refused That's all names the kind of fault only, never the start: a
+  // ring let starting everywhere and taking away the ringed start solve.
   parts.push(`<g class="fd-p">${dot(f, P, 'fd-pmark', .17)}<text x="${f.X(P[0]).toFixed(1)}" y="${(f.Y(P[1]) + (line.dir === 'h' ? .62 : .15) * U).toFixed(1)}" dx="${line.dir === 'v' ? (-.45 * U * side(line, B)).toFixed(1) : 0}">P</text></g>`);
   if (b.folded) parts.push(letter(f, prime(q.finish), mirror(line, B), 'image'));
   for (const [name, pt] of Object.entries(q.dots)) parts.push(letter(f, name, pt));

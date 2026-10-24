@@ -154,6 +154,26 @@ These families already follow the model and have only could-level items (a playg
 
 These fixed families have only could-level items: meeting, ends, glued, shields, taquin, piles, cops, seeds, votes and strands (a playground selector), and gapflood, reshape, tropical, rotor and holes (the double-tap guard).
 
+## Fixed since
+
+### Lane B: oracle refusals and chosen options (October 24)
+
+Rechecked with `node scripts/claims-audit.mjs` and each family's tests, validator and browser suite. Untested with children.
+
+- **radon:** That's all answers "Not yet." with nothing ringed and no split drawn apart, the same words for a split that misses and one still to find, locked while the shelf is the same. Shelving all seven splits and taking off the ringed chip no longer works: nothing is ringed. ("A split on the shelf doesn't meet." would judge a one-split shelf; radon has no drawn bands to check it against.)
+- **folds:** "A start misses P." with no start ringed, locked while the starts are the same.
+- **braces:** Fewest marks a spare brace only if the child added it since the last Fewest, otherwise "It holds, but a brace can go." (an optional `last` field; old saves load).
+- **mst:** a refused Check names the kind ("Not the cheapest: a swap costs less." or "… there is a loop.") and draws no swap. mst-12's Check is off until a price changes and gives only the number of cheapest networks, none drawn.
+- **menus:** track Check names a square only if the child changed it since the last Check (an optional `before` field), otherwise "A coloured square is not one to leave." or "A square to leave is not coloured."; it is off until a change. After a lost game the hint is a quiet "Undo your last turn." with the Undo button, so Apply hint no longer meets the generic line.
+- **tank:** Last gap opens only once the m levels after t are lit; filled and later levels get "Not the last gap.", and the "show" refusal is gone. That's all waits for a first lit level; a refused claim locks every claim until the tank changes. A chosen level or jug: the shared guard.
+- **codebooks:** a refused claim is drawn off; the chosen key length is skipped by the wire.
+- **secrets:** the chosen budget and question tab are skipped by the wire.
+- **calibrate:** strips are off while the tray is full, and −/+ and ▲▼ at their ends. Chosen dials and report rows: the shared guard.
+- **kits, catches:** the chosen place, target and bag are the shared guard's case; no family change.
+- **corners:** a shelf with a ring kept twice gets "Two of these are the same ring." with neither copy marked.
+- **decks, rookrace (could, declined):** in decks the pairs cannot change once all are marked, so a lock would only repeat today's greying; decks-03's refusals are the counterexamples themselves. Rookrace's play-out starts on the wrong square, so taking the ring off hides nothing.
+- No lane B module is in pattern 6's list, so no `data-toggle` was added.
+
 ## Not covered
 
 - Gestures that only a family's `wire()` makes (drags, positional board taps) were read in the code, not walked.

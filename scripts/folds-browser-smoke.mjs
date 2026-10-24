@@ -157,6 +157,12 @@ try {
   assert.equal(await page.locator('[data-mechanic-wire="folds"]').textContent().then(t => /\d/.test(t.replace(/Starts at.*$/s, ''))), false, 'no count on the board');
   await tapBeside(pt('fd-s-0_3'), .3, .3);
   assert.deepEqual((await board(P)).starts, [[0, 3], [2, 2], [4, 1]], 'a tap off-centre puts the start on the nearest point');
+  // Claims audit: a wrong start is refused by kind, with no ring on it.
+  await tap(pt('fd-s-5_1'));
+  await press('That’s all');
+  assert.equal(await note(), 'A start misses P.');
+  assert.equal(await page.locator('[data-mechanic-wire="folds"] .fd-mark').count(), 0, 'the start that misses is not ringed');
+  await tap(pt('fd-s-5_1'));
   await press('That’s all'); await done();
   await shot('every-solved');
 

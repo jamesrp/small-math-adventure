@@ -61,6 +61,10 @@ test('deciding: a true claim solves, a false one is refused, and claims need a c
   assert.equal(refused.board.wrong, 5);
   assert.match(mechanicFor(yes).render(yes, refused), /cannot break every key with 5 lanterns/);
   assert.equal(move(yes, refused, {type: 'claim'}), null, 'the same claim again');
+  // Claims audit: the refused claim is drawn off, so a double tap can't meet
+  // the generic error.
+  assert.match(mechanicFor(yes).render(yes, refused), /<button[^>]*cb-claim[^>]*disabled[^>]*>No key with 5 lanterns</);
+  assert.doesNotMatch(mechanicFor(yes).render(yes, run(yes, freshAttempt(yes), [{type: 'check'}])), /<button[^>]*cb-claim[^>]*disabled/, 'the claim is on before it is refused');
   const key = [[], [0, 1, 2], [2, 3, 4], [0, 1, 3, 4]].flatMap((ls, k) => light(k, ls));
   assert.ok(isSolved(yes, run(yes, freshAttempt(yes), [...key, {type: 'check'}]).board));
   assert.equal(nextHint(yes, freshAttempt(yes)).type, 'note', 'hints do not reveal the answer');
@@ -146,4 +150,17 @@ test('the puzzles appear as a Codebooks group in Signal Lanterns', async () => {
   assert.ok(family.indexOf('<h2>Hard</h2>') < family.indexOf('<h2>Codebooks</h2>'));
   assert.match(family, /aria-label="Signal Lanterns, Codebooks, puzzle 1"/);
   assert.equal([...family.matchAll(/data-id="codebooks-/g)].length, 12);
+});
+
+test('the number of lanterns already chosen does nothing when tapped (claims audit)', () => {
+  const p = byId('codebooks-03'), html = mechanicFor(p).render(p, freshAttempt(p));
+  assert.match(html, /cb-length[^"]*"[^>]*aria-pressed="true"/, 'the chosen length is drawn pressed');
+  // The wire skips it: a click on the pressed length applies nothing.
+  const applied = [], listeners = [];
+  const chosen = {disabled: false, dataset: {cbMove: JSON.stringify({type: 'length', length: 1})}, classList: {contains: c => c === 'cb-length'}, getAttribute: k => k === 'aria-pressed' ? 'true' : null};
+  const other = {disabled: false, dataset: {cbMove: JSON.stringify({type: 'length', length: 2})}, classList: {contains: c => c === 'cb-length'}, getAttribute: k => k === 'aria-pressed' ? 'false' : null};
+  const root = {addEventListener: (type, f) => listeners.push(f), contains: () => true};
+  mechanicFor(p).wire(root, p, {apply: action => applied.push(action)});
+  for (const el of [chosen, other]) listeners[0]({target: {closest: () => el}});
+  assert.deepEqual(applied, [{type: 'length', length: 2}], 'only the other length is applied');
 });

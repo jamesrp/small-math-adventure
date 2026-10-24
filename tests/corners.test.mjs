@@ -177,8 +177,10 @@ test('a copy kept over a refusal: one thing marked at a time, never a stale verd
   assert.equal(shelfTold(view(p, a)), 'This one lies flat.');
   assert.deepEqual(ringed(view(p, a)), ['square, square, square, square'], 'only the ring it describes');
   a = play(p, a, {type: 'drop', index: 1}, {type: 'all'});
-  assert.equal(shelfTold(view(p, a)), 'These two are the same ring.');
-  assert.deepEqual(ringed(view(p, a)), ['square, square, triangle, triangle', 'triangle, square, square, triangle'], 'the pair');
+  assert.equal(shelfTold(view(p, a)), 'Two of these are the same ring.');
+  assert.deepEqual(ringed(view(p, a)), [], 'which two is left to the child');
+  assert.ok(!/, marked/.test(view(p, a)), 'no ring is marked in words either');
+  assert.equal(move(p, a, {type: 'all'}), null, 'locked while the shelf is the same');
   // After "There is another." too.
   let b = play(p, build(p, freshAttempt(p), 'SSTT'), {type: 'keep'}, {type: 'all'});
   assert.equal(shelfTold(view(p, b)), 'There is another.');

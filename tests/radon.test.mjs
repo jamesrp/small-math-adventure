@@ -77,17 +77,26 @@ test('find every split: Meet shelves with no verdict, That’s all judges the sh
   a = play(p, a, ...taps('B'), {type: 'meet'}, ...taps('C'), {type: 'meet'});
   assert.deepEqual(a.board.shelf, ['A|BCD', 'AB|CD', 'ABC|D']);
   a = play(p, a, {type: 'all'});
-  assert.deepEqual(a.board.refused, {kind: 'apart', key: 'A|BCD'}, 'the split that misses is named');
+  assert.deepEqual(a.board.refused, {kind: 'apart', key: 'A|BCD'}, 'the save records the split that misses');
   html = view(p, a);
-  assert.match(html, /This one doesn’t meet\./);
-  assert.equal((html.match(/class="sb-mini sb-big"/g) || []).length, 1, 'drawn apart, large');
-  assert.match(html, /sb-chip sb-take ringed/);
+  // The board says only "Not yet.": no split ringed or drawn apart, so shelving
+  // every split and taking off the ringed one no longer solves (claims audit).
+  assert.match(html, /Not yet\./);
+  assert.doesNotMatch(html, /doesn’t meet|There is another|ringed|sb-big/);
+  const missLine = html.match(/<p class="sb-told">[^<]*<\/p>/)[0];
   assert.equal(move(p, a, {type: 'all'}), null, 'That’s all waits for the shelf to change');
   a = play(p, a, {type: 'drop', key: 'A|BCD'});
   assert.equal(a.board.refused, null);
   a = play(p, a, {type: 'drop', key: 'ABC|D'}, {type: 'all'});
   assert.deepEqual(a.board.refused, {kind: 'more'});
-  assert.match(view(p, a), /There is another\./);
+  html = view(p, a);
+  assert.equal(html.match(/<p class="sb-told">[^<]*<\/p>/)[0], missLine, 'a split missing gets the same line as a split that misses');
+  // A shelf of one split can't judge that split: right or wrong, "Not yet.".
+  for (const k of ['A|BCD', 'AB|CD']) {
+    const one = play(p, freshAttempt(p), ...taps(k === 'A|BCD' ? 'A' : 'AB'), {type: 'meet'}, {type: 'all'});
+    assert.ok(!isSolved(p, one.board));
+    assert.equal(view(p, one).match(/<p class="sb-told">[^<]*<\/p>/)[0], missLine, `${k} alone: the same line`);
+  }
   a = play(p, a, {type: 'meet'}, {type: 'all'});
   assert.ok(isSolved(p, a.board));
   assert.equal((view(p, a).match(/class="sb-mini"/g) || []).length, 2, 'the shelf drawn with its bands');

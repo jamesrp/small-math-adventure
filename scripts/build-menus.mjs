@@ -29,7 +29,7 @@ const CONTROLS = {
   game: 'Tap a number under a pile to take that many pebbles. The opponent replies at once. Undo takes back your take and the reply.',
   streak: 'Choose Go first or Go second. Tap a number under a pile to take that many pebbles. After a game, New start draws new pebbles; Same start again is practice and does not count.',
   replies: 'Tap a number under the pile to take that many pebbles. The opponent replies at once. After a win, Next first take starts the next game; after a loss, Try again replays the same first take.',
-  track: 'Tap a square to colour it, and tap it again to clear it. Check says whether the colouring is right; if not, it explains the lowest square that is wrong, and you can play from that square against the opponent. Undo takes back one tap.',
+  track: 'Tap a square to colour it, and tap it again to clear it. Check says whether the colouring is right; if not, it says which kind of square is wrong, and if you changed the lowest wrong square since the last Check, it explains that square and you can play from it against the opponent. Undo takes back one tap.',
   design: 'Tap a take to allow it, and tap it again to remove it. Check works out the squares to leave for your takes and explains the lowest one that differs from the goal.'
 };
 const takeRule = (menu, piles) => `A turn takes ${menu.slice(0, -1).join(', ')} or ${menu.at(-1)} pebbles${piles > 1 ? ' from one pile' : ''}.`;
@@ -110,7 +110,7 @@ const authored = [
     parent: {
       notice: 'Whether your child fills the track from 0 upward, deciding each square from the ones below it, or colours a guessed pattern.',
       prompt: 'Why is 3 a good pile to leave, and 4 not?',
-      explanation: 'Work up from 0. Leaving 0 wins at once. Leaving 1 or 2 lets the opponent take the rest. Leaving 3 forces them to leave 2 or 1, which you finish. From 4 or 5 one take reaches 3, so they are not squares to leave; 6 is, and so on: the squares to leave are 0, 3, 6, …, 18. Check reports the lowest wrong square with its reason, in terms of the child’s own colouring.',
+      explanation: 'Work up from 0. Leaving 0 wins at once. Leaving 1 or 2 lets the opponent take the rest. Leaving 3 forces them to leave 2 or 1, which you finish. From 4 or 5 one take reaches 3, so they are not squares to leave; 6 is, and so on: the squares to leave are 0, 3, 6, …, 18. Check reports the lowest wrong square with its reason, in terms of the child’s own colouring, when the child changed that square since the last Check; otherwise only which kind of square is wrong.',
       extension: 'Without colouring, is 100 a square to leave?',
       connection: 'The P-positions of the subtraction game with takes 1 and 2: a position is P exactly when every move leads to an N-position (Ferguson, §1).'
     },
@@ -331,7 +331,7 @@ const authored = [
     parent: {
       notice: 'Whether your child starts with equal piles (copying), then finds the squares off the diagonal, and whether they connect the pattern to the one-pile track for 1 or 2.',
       prompt: 'Why is (2, 5) a square to leave, when the piles are not equal?',
-      explanation: 'Equal piles are squares to leave: whatever the opponent takes from one pile, take the same from the other. For takes of 1 or 2, three extra pebbles in a pile change nothing (whatever is taken from them, the other player takes the rest of the 3), so only the remainders after taking away 3s matter, and (2, 5) plays like (2, 2). The squares to leave are the 34 pairs whose piles differ by 0, 3, 6 or 9. A check explains the first wrong square, working outward from (0, 0).',
+      explanation: 'Equal piles are squares to leave: whatever the opponent takes from one pile, take the same from the other. For takes of 1 or 2, three extra pebbles in a pile change nothing (whatever is taken from them, the other player takes the rest of the 3), so only the remainders after taking away 3s matter, and (2, 5) plays like (2, 2). The squares to leave are the 34 pairs whose piles differ by 0, 3, 6 or 9. A check explains the first wrong square, working outward from (0, 0), when the child changed it since the last Check.',
       extension: 'Would you rather go first or second with piles of 20 and 11?',
       connection: 'By the Sprague–Grundy theorem a pile of n has value n mod 3 for takes of 1 and 2, and two piles lose for the player to move exactly when their values are equal (Ferguson, §3).'
     },

@@ -13,6 +13,8 @@ const object = value => value !== null && typeof value === 'object' && !Array.is
 const sum = list => list.reduce((a, b) => a + b, 0);
 const sorted = list => [...list].sort((a, b) => a - b);
 const same = (a, b) => a.length === b.length && sorted(a).every((x, i) => x === sorted(b)[i]);
+// A design still at the map's own prices (Check waits for a change).
+const atStart = (q, prices) => prices.every((x, i) => x === q.links[i][2]);
 export const MODES = ['cheapest', 'every', 'swap', 'forced', 'excluded', 'design'];
 export const DESIGN_PRICES = [1, 2, 3, 4];
 
@@ -229,7 +231,8 @@ function move(p, b, action) {
       return {prices, checked: false, told: null};
     }
     if (action.type === 'check') {
-      if (b.told) return null;
+      // Check judges the child's own design: it waits for a price change.
+      if (b.told || atStart(q, b.prices)) return null;
       return optima(q, b.prices).length === q.want ? {...b, checked: true} : {...b, told: {kind: 'list'}};
     }
     return null;
@@ -340,10 +343,14 @@ function renderNetwork(p, a, hinted) {
     edge: i => {
       const has = b.bought.includes(i), [u, v] = q.links[i];
       const act = !done && (has || q.mode !== 'swap' || swapsUsed(q, [...b.bought, i]) <= q.budget);
-      const strokes = [has ? 'buy' : '', has && loops.includes(i) ? 'loop' : '', told.add === i ? 'told-add' : '', told.drop === i ? 'told-drop' : ''].filter(Boolean);
-      const cls = [has ? 'bought' : '', i === q.target ? 'target' : '', hinted?.link === i ? 'hinted' : '', told.drop === i ? 'told-drop' : '', q.mode === 'swap' && q.start.includes(i) ? 'start' : ''].join(' ');
+      // A wrong Cheapest names the kind of fault only: the swap or loop link the
+      // save records is never drawn (claims audit: claim, make the drawn swap,
+      // claim again reached a cheapest network with no comparing). Hint marks
+      // a link when asked.
+      const strokes = [has ? 'buy' : '', has && loops.includes(i) ? 'loop' : ''].filter(Boolean);
+      const cls = [has ? 'bought' : '', i === q.target ? 'target' : '', hinted?.link === i ? 'hinted' : '', q.mode === 'swap' && q.start.includes(i) ? 'start' : ''].join(' ');
       const verb = pick ? (has ? 'Take it out of the loop' : 'Add it to the loop') : has ? 'Return it' : 'Buy it';
-      return {cls, act, tag: prices[i], strokes, label: `Link ${u} to ${v}, price ${prices[i]}${has ? (pick ? ', in the loop' : ', bought') : ''}${!pick && has && loops.includes(i) ? ', on a loop' : ''}${i === q.target ? ', the marked link' : ''}${told.add === i ? ', buy this one to pay less' : ''}${told.drop === i ? ', return this one to pay less' : ''}. ${verb}`};
+      return {cls, act, tag: prices[i], strokes, label: `Link ${u} to ${v}, price ${prices[i]}${has ? (pick ? ', in the loop' : ', bought') : ''}${!pick && has && loops.includes(i) ? ', on a loop' : ''}${i === q.target ? ', the marked link' : ''}. ${verb}`};
     }
   });
   if (pick) return `<div class="mst-puzzle" data-mechanic-wire="mst">${board}<p class="sr-only" role="status">${esc(`${plural(b.bought.length, 'link')} picked.${done ? ' The marked link costs the most on this loop.' : ''}`)}</p></div>`;
@@ -352,7 +359,7 @@ function renderNetwork(p, a, hinted) {
   const swaps = q.mode === 'swap' ? `<span class="mst-swaps" role="img" aria-label="${plural(left, 'new link')} left">${Array.from({length: q.budget}, (_, k) => swapIcon(k >= left)).join('')}</span>` : '';
   const buttons = done ? '' : moveButton('Cheapest', {type: 'claim'}, `mst-claim${hinted?.action?.type === 'claim' ? ' hinted' : ''}`, all && (!b.told || told.kind === 'more')) + (q.mode === 'every' ? moveButton('That’s all', {type: 'all'}, `mst-all${hinted?.action?.type === 'all' ? ' hinted' : ''}`, b.found.length > 0 && told.kind !== 'more') : '');
   const bar = `<div class="mst-bar"><span class="mst-pile" role="img" aria-label="Paid ${cost}">${coin}<b>${cost}</b></span>${swaps}<span class="mst-buttons">${buttons}</span></div>`;
-  const words = {swap: 'Not the cheapest: this swap costs less.', loop: 'Not the cheapest: this link is on a loop.', more: 'There is another cheapest network.', again: 'Found already.'};
+  const words = {swap: 'Not the cheapest: a swap costs less.', loop: 'Not the cheapest: there is a loop.', more: 'There is another cheapest network.', again: 'Found already.'};
   const note = told.kind ? `<p class="mst-told">${words[told.kind]}</p>` : '';
   const found = q.mode === 'every' && b.found.length ? `<ul class="mst-found" aria-label="Cheapest networks found">${b.found.map((t, k) => `<li class="${told.kind === 'again' && told.index === k ? 'again' : ''}${k === b.found.length - 1 && !told.kind ? ' fresh' : ''}">${mini(q, g, t)}</li>`).join('')}</ul>` : '';
   const status = `Paid ${cost}. ${all ? 'Every place is reached.' : 'Not every place is reached yet.'}${loops.length ? ' There is a loop.' : ''}${q.mode === 'swap' ? ` ${plural(left, 'new link')} left.` : ''}${told.kind ? ` ${words[told.kind]}` : ''}`;
@@ -381,10 +388,12 @@ function renderDesign(p, a, hinted) {
       return {cls: [hinted?.link === i ? 'hinted' : ''].join(' '), act: !done, tag: b.prices[i], label: `Link ${u} to ${v}, price ${b.prices[i]}. Change the price`};
     }
   });
-  const list = b.told ? optima(q, b.prices) : [];
-  const told = b.told ? `<p class="mst-told">${plural(list.length, 'cheapest network')}:</p><ul class="mst-found mst-list" aria-label="Cheapest networks with these prices">${list.map(t => `<li>${mini(q, g, t)}</li>`).join('')}</ul>` : '';
-  const bar = done ? '' : `<div class="mst-bar"><span class="mst-buttons">${moveButton('Check', {type: 'check'}, `mst-check${hinted?.action?.type === 'check' ? ' hinted' : ''}`, !b.told)}</span></div>`;
-  return `<div class="mst-puzzle" data-mechanic-wire="mst">${bar}${board}${told}<p class="sr-only" role="status">${esc(b.told ? `${plural(list.length, 'cheapest network')} with these prices.` : `Prices ${b.prices.join(', ')}.`)}</p></div>`;
+  // A wrong Check counts the cheapest networks for the child's prices and
+  // draws none: finding them is the child's part (claims audit).
+  const count = b.told ? optima(q, b.prices).length : 0;
+  const told = b.told ? `<p class="mst-told">${plural(count, 'cheapest network')}.</p>` : '';
+  const bar = done ? '' : `<div class="mst-bar"><span class="mst-buttons">${moveButton('Check', {type: 'check'}, `mst-check${hinted?.action?.type === 'check' ? ' hinted' : ''}`, !b.told && !atStart(q, b.prices))}</span></div>`;
+  return `<div class="mst-puzzle" data-mechanic-wire="mst">${bar}${board}${told}<p class="sr-only" role="status">${esc(b.told ? `${plural(count, 'cheapest network')} with these prices.` : `Prices ${b.prices.join(', ')}.`)}</p></div>`;
 }
 function render(p, a) {
   const q = p.parameters, hinted = a.hintLevel >= 2 && !solved(p, a.board) ? hint(p, a.board) : null;

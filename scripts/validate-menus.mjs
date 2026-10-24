@@ -222,10 +222,22 @@ function validateTrack(p) {
     // A random colouring, near the truth so that the first wrong square varies.
     const marked = squares.filter(s => (random() < .15) !== ids.has(s.id)).map(s => s.id).sort((a, b) => a - b);
     if (!marked.length) continue;
-    let a = {...freshAttempt(p), board: {marked, checked: false, play: null}};
+    const d = firstDifference(q, marked);
+    // Claims audit: a check names the lowest wrong square only when the child
+    // changed it since the last Check; otherwise only the kind of fault.
+    if (d) {
+      let same = {...freshAttempt(p), board: {marked, checked: false, play: null, before: marked}};
+      assert.ok(validBoard(p, same.board));
+      same = move(p, same, {type: 'check'});
+      const html = mechanicFor(p).render(p, {...same, hintLevel: 0});
+      assert.ok(html.includes(d.extra ? 'A coloured square is not one to leave.' : 'A square to leave is not coloured.'), `${label}: the kind of fault`);
+      assert.doesNotMatch(html, /Leave [\d(]|Start from|menu-square[^"]*flag/, `${label}: no square named`);
+      assert.equal(move(p, same, {type: 'play'}), null, `${label}: no play-out from an unnamed square`);
+    }
+    const before = d ? (marked.includes(d.square) ? marked.filter(v => v !== d.square) : [...marked, d.square].sort((x, y) => x - y)) : marked;
+    let a = {...freshAttempt(p), board: {marked, checked: false, play: null, before}};
     assert.ok(validBoard(p, a.board));
     a = move(p, a, {type: 'check'});
-    const d = firstDifference(q, marked);
     if (!d) { assert.ok(isSolved(p, a.board)); continue; }
     assert.ok(!isSolved(p, a.board), `${label}: a wrong colouring is not solved`);
     const mine = new Set(marked), at = squares.find(s => s.id === d.square);

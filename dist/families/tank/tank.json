@@ -243,7 +243,7 @@
     "Pour empties one full jug into the tank. − takes one jugful back out.",
     "A level is filled when the water sits exactly on its line. It lights up.",
     "The order of the jugfuls does not matter.",
-    "That’s all says no other level in the row can be filled with these jugs. A wrong claim is refused."
+    "That’s all says no other level in the row can be filled with these jugs. A wrong claim is refused until something changes."
    ],
    "idea": "3 and 4 miss only 1, 2 and 5; from 6 on, every level fills.",
    "prerequisites": "Full jugs puzzle 1.",
@@ -311,7 +311,7 @@
     "Pour empties one full jug into the tank. − takes one jugful back out.",
     "A level is filled when the water sits exactly on its line. It lights up.",
     "The order of the jugfuls does not matter.",
-    "Each different way to fill the level (how many of each jug) is listed once. That’s all says there is no other way. A wrong claim is refused."
+    "Each different way to fill the level (how many of each jug) is listed once. That’s all says there is no other way. A wrong claim is refused until something changes."
    ],
    "idea": "12 is four 3s or three 4s, and nothing in between.",
    "prerequisites": "Full jugs puzzle 1.",
@@ -387,7 +387,7 @@
     "Pour empties one full jug into the tank. − takes one jugful back out.",
     "A level is filled when the water sits exactly on its line. It lights up.",
     "The order of the jugfuls does not matter.",
-    "That’s all says no other level in the row can be filled with these jugs. A wrong claim is refused."
+    "That’s all says no other level in the row can be filled with these jugs. A wrong claim is refused until something changes."
    ],
    "idea": "3 and 5 miss 1, 2, 4 and 7, and then never again.",
    "prerequisites": "Full jugs puzzle 2.",
@@ -456,7 +456,7 @@
     "Pour empties one full jug into the tank. − takes one jugful back out.",
     "A level is filled when the water sits exactly on its line. It lights up.",
     "The order of the jugfuls does not matter.",
-    "Each different way to fill the level (how many of each jug) is listed once. That’s all says there is no other way. A wrong claim is refused."
+    "Each different way to fill the level (how many of each jug) is listed once. That’s all says there is no other way. A wrong claim is refused until something changes."
    ],
    "idea": "Eight 3s, four 3s and three 4s, or six 4s: each way trades four 3s for three 4s.",
    "prerequisites": "Full jugs puzzle 3.",
@@ -614,7 +614,7 @@
     "Pour empties one full jug into the tank. − takes one jugful back out.",
     "A level is filled when the water sits exactly on its line. It lights up.",
     "The order of the jugfuls does not matter.",
-    "“Last gap is …” says the chosen level can’t be filled and every later level can; it is accepted when the levels just after it are lit. “Gaps never stop” says infinitely many levels can’t be filled. A wrong claim is refused."
+    "“Last gap is …” says the chosen level can’t be filled and every later level can; it can be pressed once the levels just after it are lit, as many as the smaller jug holds. “Gaps never stop” says infinitely many levels can’t be filled. A wrong claim is refused until something changes."
    ],
    "idea": "11 can’t be filled, and 12, 13, 14 and 15 can: four in a row with a 4-jug means every later level can too.",
    "prerequisites": "Full jugs puzzles 2 and 4.",
@@ -699,7 +699,7 @@
     "Pour empties one full jug into the tank. − takes one jugful back out.",
     "A level is filled when the water sits exactly on its line. It lights up.",
     "The order of the jugfuls does not matter.",
-    "“Last gap is …” says the chosen level can’t be filled and every later level can; it is accepted when the levels just after it are lit. “Gaps never stop” says infinitely many levels can’t be filled. A wrong claim is refused."
+    "“Last gap is …” says the chosen level can’t be filled and every later level can; it can be pressed once the levels just after it are lit, as many as the smaller jug holds. “Gaps never stop” says infinitely many levels can’t be filled. A wrong claim is refused until something changes."
    ],
    "idea": "17 is the last gap: 18, 19, 20 and 21 fill, and 17 minus any number of 7s is never a pile of 4s.",
    "prerequisites": "Full jugs puzzle 7.",
@@ -779,7 +779,7 @@
     "Pour empties one full jug into the tank. − takes one jugful back out.",
     "A level is filled when the water sits exactly on its line. It lights up.",
     "The order of the jugfuls does not matter.",
-    "“Last gap is …” says the chosen level can’t be filled and every later level can; it is accepted when the levels just after it are lit. “Gaps never stop” says infinitely many levels can’t be filled. A wrong claim is refused."
+    "“Last gap is …” says the chosen level can’t be filled and every later level can; it can be pressed once the levels just after it are lit, as many as the smaller jug holds. “Gaps never stop” says infinitely many levels can’t be filled. A wrong claim is refused until something changes."
    ],
    "idea": "Both jugs are even, so every odd level stays empty forever: the gaps never stop.",
    "prerequisites": "Full jugs puzzles 6 and 7.",
@@ -874,7 +874,7 @@
     "Pour empties one full jug into the tank. − takes one jugful back out.",
     "A level is filled when the water sits exactly on its line. It lights up.",
     "The order of the jugfuls does not matter.",
-    "“Last gap is …” says the chosen level can’t be filled and every later level can; it is accepted when the levels just after it are lit. “Gaps never stop” says infinitely many levels can’t be filled. A wrong claim is refused."
+    "“Last gap is …” says the chosen level can’t be filled and every later level can; it can be pressed once the levels just after it are lit, as many as the smaller jug holds. “Gaps never stop” says infinitely many levels can’t be filled. A wrong claim is refused until something changes."
    ],
    "idea": "23 is the last gap, and five levels in a row, 24 to 28, prove it.",
    "prerequisites": "Full jugs puzzle 8.",
@@ -965,7 +965,7 @@
     "Pour empties one full jug into the tank. − takes one jugful back out.",
     "A level is filled when the water sits exactly on its line. It lights up.",
     "The order of the jugfuls does not matter.",
-    "Tap two jugs at the top to choose them. The claim is accepted when the level can’t be filled and the levels just after it are lit."
+    "Tap two jugs at the top to choose them. The claim can be pressed once the levels just after it are lit, as many as the smaller jug holds, and is accepted when the level can’t be filled."
    ],
    "idea": "3 and 7, or 4 and 5: both have last gap 11.",
    "prerequisites": "Full jugs puzzles 7 and 10.",
@@ -1056,7 +1056,7 @@
     "Pour empties one full jug into the tank. − takes one jugful back out.",
     "A level is filled when the water sits exactly on its line. It lights up.",
     "The order of the jugfuls does not matter.",
-    "Tap two jugs at the top to choose them. The claim is accepted when the level can’t be filled and the levels just after it are lit."
+    "Tap two jugs at the top to choose them. The claim can be pressed once the levels just after it are lit, as many as the smaller jug holds, and is accepted when the level can’t be filled."
    ],
    "idea": "Only 3 and 8 work among these jugs: (3 − 1)(8 − 1) = 14.",
    "prerequisites": "Full jugs puzzle 11.",

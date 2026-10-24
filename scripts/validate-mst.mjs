@@ -130,6 +130,10 @@ export async function validateMst() {
         assert.ok(prices[told.add] < prices[told.drop], `${p.id}: the swap costs less`);
         assert.ok(!isSolved(p, b.board) && validBoard(p, b.board));
         assert.equal(move(p, b, {type: 'claim'}), null, `${p.id}: change something before claiming again`);
+        // Claims audit: the saved swap is never drawn or read out.
+        const html = mechanicFor(p).render(p, {...b, hintLevel: 0});
+        assert.match(html, /Not the cheapest: a swap costs less\./, `${p.id}: the kind of fault`);
+        assert.doesNotMatch(html, /told-add|told-drop|to pay less/, `${p.id}: no swap drawn`);
         wrongClaims++;
       }
       if (q.mode !== 'swap') {
@@ -139,6 +143,7 @@ export async function validateMst() {
         assert.equal(told.kind, 'loop', `${p.id}: a network with a loop gets a link to return`);
         const rest = q.links.map((_, i) => i).filter(i => i !== told.drop);
         assert.ok(joined(q, rest), `${p.id}: returning it keeps every place joined`);
+        assert.doesNotMatch(mechanicFor(p).render(p, {...play(p, lots, {type: 'claim'}), hintLevel: 0}), /told-drop|to pay less/, `${p.id}: no loop link drawn`);
         wrongClaims++;
         // Not joined: no claim.
         assert.equal(move(p, fresh, {type: 'claim'}), null, `${p.id}: no claim before every place is joined`);
@@ -242,8 +247,13 @@ export async function validateMst() {
       for (const [i, c] of target.entries()) while (a.board.prices[i] !== c) a = play(p, a, {type: 'price', link: i});
       a = play(p, a, {type: 'check'});
       assert.ok(isSolved(p, a.board), `${p.id}: a loop of four equal links gives four`);
-      const wrong = play(p, fresh, {type: 'check'});
-      assert.equal(wrong.board.told.kind, 'list', `${p.id}: a wrong check lists the cheapest networks`);
+      // Check waits for a price change; a wrong one counts, drawing nothing.
+      assert.equal(move(p, fresh, {type: 'check'}), null, `${p.id}: no Check on the map's own prices`);
+      const changed = play(p, fresh, {type: 'price', link: 0}), wrong = play(p, changed, {type: 'check'});
+      assert.equal(wrong.board.told.kind, 'list', `${p.id}: a wrong check is answered`);
+      const shown = mechanicFor(p).render(p, {...wrong, hintLevel: 0});
+      assert.match(shown, new RegExp(`>${cheapestOf(q, wrong.board.prices).length} cheapest networks\\.<`), `${p.id}: with the count`);
+      assert.doesNotMatch(shown, /mst-found|mst-list/, `${p.id}: and no network drawn`);
       assert.equal(move(p, wrong, {type: 'check'}), null, `${p.id}: change a price before checking again`);
       steps += hintsSolve(p, fresh, 'from fresh');
       steps += hintsSolve(p, wrong, 'after a wrong check');

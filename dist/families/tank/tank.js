@@ -70,6 +70,19 @@ export function judge(q, b, claim) {
   return {why: 'bad'};
 }
 const claimShapes = q => q.mode === 'last' ? ['last', 'never'] : q.mode === 'design' ? ['last'] : claims(q) ? ['all'] : [];
+// When a claim can be made (claims audit). "Last gap is t" waits until the m
+// levels after t are lit (m the smaller jug), the run that proves no later
+// gap, so it can't be pressed level by level on an empty tank to read the
+// answer off its refusals; That's all waits for a first lit level (or way).
+// Every claim stays off after a refusal until the tank, the jugs or the level
+// changes.
+const runLit = (q, b, t) => { const jugs = jugsOf(q, b); return jugs.length > 0 && Array.from({length: Math.min(...jugs)}, (_, i) => t + 1 + i).every(n => lit(b, n)); };
+function claimOpen(q, b, claim) {
+  if (b.refusal !== null) return false;
+  if (claim.type === 'last') return runLit(q, b, claim.target);
+  if (claim.type === 'all') return b.found.length > 0;
+  return true;
+}
 function validClaim(q, b, c) {
   if (!object(c) || !claimShapes(q).includes(c.type)) return false;
   if (c.type === 'last') return q.mode === 'design' ? c.target === q.last && Object.keys(c).length === 2 : targetsOf(q).includes(c.target) && Object.keys(c).length === 2;
@@ -154,7 +167,7 @@ function move(p, b, action) {
   }
   if (['all', 'last', 'never'].includes(action.type)) {
     const claim = action.type === 'last' ? {type: 'last', target: q.mode === 'design' ? q.last : b.target} : {type: action.type};
-    if (!validClaim(q, b, claim) || !fullKit(q, b)) return null;
+    if (!validClaim(q, b, claim) || !fullKit(q, b) || !claimOpen(q, b, claim)) return null;
     const verdict = judge(q, b, claim);
     return verdict.ok ? {...next, done: claim} : {...next, refusal: {claim, why: verdict.why}};
   }
@@ -268,9 +281,12 @@ const wayHTML = (jugs, counts) => `<li class="tank-way" aria-label="${esc(jugs.m
 const REFUSALS = {
   more: () => 'Another level can be filled.',
   way: () => 'There is another way.',
-  filled: t => `Level ${t} can be filled.`,
-  later: t => `A level after ${t} can’t be filled either.`,
-  show: t => `Show that every level after ${t} can be filled.`,
+  // With the run after t lit, the only fault left is that t fills; "later"
+  // and "show" come only from saves made before October 24 ("show" named the
+  // answer, so it says nothing now).
+  filled: () => 'Not the last gap.',
+  later: () => 'Not the last gap.',
+  show: () => '',
   evidence: () => 'Fill every level you can first.',
   stops: () => 'The gaps do stop.'
 };
@@ -278,10 +294,11 @@ function render(p, attempt) {
   const q = p.parameters, b = attempt.board, jugs = jugsOf(q, b), solved = solvedBoard(p, b);
   const shown = attempt.hintLevel >= 2 && !solved && q.mode !== 'playground' ? plan(q, b).action : null;
   const tools = [];
+  const open = claim => fullKit(q, b) && claimOpen(q, b, claim);
   const claimButton = (label, action, enabled = true) => actionButton(label, action, enabled ? '' : 'disabled').replace('class="secondary expansion-action"', `class="primary expansion-action tank-claim${hintedClass(shown, action)}"`);
-  if (!solved && (q.mode === 'which' || q.mode === 'ways')) tools.push(claimButton('That’s all', {type: 'all'}));
-  if (!solved && q.mode === 'last') tools.push(claimButton(`Last gap is ${b.target}`, {type: 'last'}), claimButton('Gaps never stop', {type: 'never'}));
-  if (!solved && q.mode === 'design') tools.push(claimButton(`Last gap is ${q.last}`, {type: 'last'}, b.pick.length === 2));
+  if (!solved && (q.mode === 'which' || q.mode === 'ways')) tools.push(claimButton('That’s all', {type: 'all'}, open({type: 'all'})));
+  if (!solved && q.mode === 'last') tools.push(claimButton(`Last gap is ${b.target}`, {type: 'last'}, open({type: 'last', target: b.target})), claimButton('Gaps never stop', {type: 'never'}, open({type: 'never'})));
+  if (!solved && q.mode === 'design') tools.push(claimButton(`Last gap is ${q.last}`, {type: 'last'}, open({type: 'last', target: q.last})));
   const ways = q.mode === 'ways' && b.found.length ? `<ol class="tank-ways" aria-label="Ways found">${b.found.map(r => wayHTML(jugs, r.counts)).join('')}</ol>` : '';
   const note = b.refusal ? REFUSALS[b.refusal.why](b.refusal.claim.target) : '';
   const status = `Level ${level(jugs, b.counts)}, target ${b.target}.`;

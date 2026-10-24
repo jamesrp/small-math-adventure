@@ -1,8 +1,8 @@
 // Plays Stretch bands through the real interface on the shared square grid:
 // colouring letters by tapping their discs, Meet shelving a split with no
 // verdict, taking one off, That's all judging the shelf and its lock through
-// Undo (one press takes back the claim with the Meet before it), a split
-// drawn apart at least 200px wide, two letters on one point tapped near the
+// Undo (one press takes back the claim with the Meet before it), its one
+// line "Not yet." with nothing on the shelf marked, two letters on one point tapped near the
 // edge each disc shows, Enter on a disc, placing D
 // by tapping a place, an arrow key and a letter's own disc, Check's
 // refusals with the ringed goal split, every place for C with its crosses and
@@ -64,16 +64,18 @@ try {
   await notThatsAll('after Meet');
   assert.match((await focused()).cls, /sb-disc|sb-button/, 'focus on the board or a move button');
   await button('That’s all').click();
-  assert.equal(await told(), 'There is another.');
+  assert.equal(await told(), 'Not yet.');
   assert.equal(await button('That’s all').isDisabled(), true, 'That’s all waits for the shelf to change');
   await notThatsAll('after a wrong That’s all');
   await tap(disc('A'));
   await button('Meet').click();
   assert.deepEqual((await board(E)).shelf, ['AB|CD', 'ACD|B']);
   await button('That’s all').click();
-  assert.equal(await told(), 'This one doesn’t meet.');
-  assert.equal(await page.locator('.sb-take.ringed').count(), 1, 'the split that misses is marked on the shelf');
-  assert.equal(await page.locator('.sb-mini.sb-big .sb-shape').count(), 1, 'and drawn apart: the triangle of A, C and D without B');
+  // Claims audit: a split that misses gets the same line as a split missing,
+  // and nothing on the shelf is marked or drawn apart.
+  assert.equal(await told(), 'Not yet.');
+  assert.equal(await page.locator('.sb-take.ringed').count(), 0, 'no split on the shelf is marked');
+  assert.equal(await page.locator('.sb-mini.sb-big').count(), 0, 'and none is drawn apart');
   await shot('apart');
   // The claim press draws nothing of its own once Undo keeps its refusal, so
   // one Undo takes it back with the Meet before it; the shelf it leaves keeps
@@ -81,14 +83,14 @@ try {
   await undoButton();
   assert.deepEqual((await board(E)).shelf, ['AB|CD'], 'Undo takes back the claim and the Meet before it');
   assert.deepEqual((await board(E)).groups, [1, 0, 1, 1], 'but not the colours');
-  assert.equal(await page.locator('.sb-take.ringed').count(), 0, 'the split apart goes with it');
   assert.deepEqual((await board(E)).refused, {kind: 'more'}, 'Undo keeps the refusal of that shelf');
-  assert.equal(await told(), 'There is another.');
+  assert.equal(await told(), 'Not yet.');
   assert.equal(await button('That’s all').isDisabled(), true);
   await button('Meet').click(); await button('That’s all').click();
   assert.deepEqual((await board(E)).refused, {kind: 'apart', key: 'ACD|B'}, 'the same shelf is refused again');
-  await page.locator('.sb-take.ringed').scrollIntoViewIfNeeded();
-  await tap(page.locator('.sb-take.ringed'));
+  const acdb = page.locator('.sb-take[aria-label="ACD and B. Take it off the shelf"]');
+  await acdb.scrollIntoViewIfNeeded();
+  await tap(acdb);
   assert.deepEqual((await board(E)).shelf, ['AB|CD'], 'tapping a split on the shelf takes it off');
   await tap(disc('A'));
   await disc('C').focus(); await page.keyboard.press('Enter');
@@ -179,9 +181,8 @@ try {
   await button('Hint').click();
   assert.equal(await page.locator('.hint-card').innerText(), 'Is any dot inside the triangle of the other three?', 'the first hint is the puzzle’s own');
   await tap(disc('B')); await button('Meet').click(); await button('That’s all').click();
-  assert.equal(await told(), 'This one doesn’t meet.');
-  const big = await page.locator('.sb-mini.sb-big').evaluateAll(els => els.map(e => e.getBoundingClientRect().width));
-  assert.ok(big.length === 1 && big[0] >= 200, `the split apart is drawn at least 200px wide (${big})`);
+  assert.equal(await told(), 'Not yet.');
+  assert.equal(await page.locator('.sb-mini.sb-big, .sb-take.ringed').count(), 0, 'the one split shelved is not judged on the board');
   await undoButton();
   assert.deepEqual((await board(T)).shelf, [], 'Undo takes back the claim and the Meet before it');
   assert.deepEqual((await board(T)).groups, [0, 1, 0, 0], 'but not the colours');

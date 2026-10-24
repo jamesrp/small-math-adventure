@@ -499,7 +499,11 @@ function controls(p, b, shown) {
     if (lostRound(q, b) || b.named) return '';
     const live = b.requests.length < q.budget;
     const tray = b.tray.length ? b.tray.map(s => `<span class="cb-mini s-${COLORS[s]}" style="width:${q.kit[s] * 9}px">${s}</span>`).join('') : '';
-    return `<div class="cb-kit">${Object.keys(q.kit).map(s => stripChip(q, s, b.tray.includes(s), live, same(shown, {type: 'strip', strip: s}))).join('')}</div>`
+    // A full tray (of two or more) takes no other strip until one comes out,
+    // so the others are drawn off, as Balance kits' and Water levels' full
+    // pickers are (a tap there met the generic error).
+    const room = s => b.tray.includes(s) || q.tray === 1 || b.tray.length < q.tray;
+    return `<div class="cb-kit">${Object.keys(q.kit).map(s => stripChip(q, s, b.tray.includes(s), live && room(s), same(shown, {type: 'strip', strip: s}))).join('')}</div>`
       + `<div class="cb-trayline"><div class="cb-tray${b.tray.length ? '' : ' empty'}" aria-label="Tray">${tray}</div>${button('Send', {type: 'send'}, {on: b.tray.length > 0 && live, hinted: same(shown, {type: 'send'}), cls: 'primary'})}</div>`
       + (q.copies.length > 1 ? dialRow(q, b, 'c', q.copies, shown, true) : '') + dialRow(q, b, 'e', range(q.extras[0], q.extras[1]), shown, true)
       + `<div class="cb-bar-buttons">${button('That’s the machine', {type: 'name'}, {on: dialsFitReports(q, b), hinted: same(shown, {type: 'name'})})}</div>`;
@@ -512,10 +516,13 @@ function controls(p, b, shown) {
   }
   if (q.mode === 'repair') {
     return `<div class="cb-dial" role="group" aria-label="Reports">${q.rows.map(([x, y], i) => button(`${fmt(x)} → ${fmt(i === b.pick ? b.value : y)}`, {type: 'pick', row: i}, {pressed: b.pick === i, hinted: same(shown, {type: 'pick', row: i}), cls: 'cb-chip cb-pair'})).join('')}</div>`
-      + (b.pick === null ? '' : `<div class="cb-dial">${button('−', {type: 'step', by: -1}, {hinted: same(shown, {type: 'step', by: -1}), cls: 'cb-chip', aria: 'Smaller report'})}${button('+', {type: 'step', by: 1}, {hinted: same(shown, {type: 'step', by: 1}), cls: 'cb-chip', aria: 'Bigger report'})}</div>`);
+      + (b.pick === null ? '' : `<div class="cb-dial">${button('−', {type: 'step', by: -1}, {on: b.value - q.step >= q.lo - 1e-9, hinted: same(shown, {type: 'step', by: -1}), cls: 'cb-chip', aria: 'Smaller report'})}${button('+', {type: 'step', by: 1}, {on: b.value + q.step <= q.hi + 1e-9, hinted: same(shown, {type: 'step', by: 1}), cls: 'cb-chip', aria: 'Bigger report'})}</div>`);
   }
   // One row per reference, its name and both arrows together.
-  const arrows = (x, i) => [button('▼', {type: 'step', ref: i, by: -1}, {hinted: same(shown, {type: 'step', ref: i, by: -1}), cls: 'cb-chip', aria: `Lower the report for length ${fmt(x)}`}), button('▲', {type: 'step', ref: i, by: 1}, {hinted: same(shown, {type: 'step', ref: i, by: 1}), cls: 'cb-chip', aria: `Raise the report for length ${fmt(x)}`})];
+  // ▲ and ▼ are off at the ends of the error band (a press past it met the
+  // generic error).
+  const can = (i, by) => Math.abs(b.t[i] + by * q.step - q.refs[i][1]) <= q.err + 1e-9;
+  const arrows = (x, i) => [button('▼', {type: 'step', ref: i, by: -1}, {on: can(i, -1), hinted: same(shown, {type: 'step', ref: i, by: -1}), cls: 'cb-chip', aria: `Lower the report for length ${fmt(x)}`}), button('▲', {type: 'step', ref: i, by: 1}, {on: can(i, 1), hinted: same(shown, {type: 'step', ref: i, by: 1}), cls: 'cb-chip', aria: `Raise the report for length ${fmt(x)}`})];
   return `<p class="cb-readout">Stretch ${fmtHtml(stretchOf(q, b.t))}${b.pins.length ? ` · pinned ${fmtHtml(stretchOf(q, b.pins[0]))}` : ''}</p>${q.refs.map(([x], i) => chipRow(`${fmt(x)} → ${fmt(b.t[i])}`, arrows(x, i), ' cb-ref', `Length ${fmt(x)}, report ${fmt(b.t[i])}`)).join('')}`
     + `<div class="cb-bar-buttons">${button('Pin', {type: 'pin'}, {hinted: same(shown, {type: 'pin'})})}</div>`;
 }

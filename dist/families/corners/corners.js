@@ -464,7 +464,7 @@ function miniSvg(ring, folded) {
   return `<svg class="cr-mini" viewBox="-50 -50 100 100" aria-hidden="true">${ring.map((c, i) => `<polygon class="cr-piece cr-${c}${starts[i] + PIECES[c].angle > TURN + 1e-9 ? ' past' : ''}" points="${svgPts(piecePoints(c, starts[i], 30))}"/>`).join('')}<circle class="cr-point" r="2"/></svg>`;
 }
 const SAYS = {
-  over: 'They overlap.', flat: 'It lies flat.', more: 'There is another.', same: 'These two are the same ring.',
+  over: 'They overlap.', flat: 'It lies flat.', more: 'There is another.', same: 'Two of these are the same ring.',
   no: 'That ring doesn’t show it.'
 };
 const offWords = ring => `This one ${FOLD_WORDS[foldOf(ring)]}.`;
@@ -530,7 +530,10 @@ function renderRing(p, att) {
   if (q.mode === 'make' && b.claimed) told = `Even the smallest corners ${foldOf(b.ring) === 'flat' ? 'make a whole turn' : 'go past a whole turn'}.`;
   const verdict = q.mode === 'every' && b.shown ? b.refused : null;
   const shelfTold = !verdict ? '' : verdict.kind === 'off' ? offWords(b.shelf[verdict.index]) : SAYS[verdict.kind];
-  const marked = i => verdict?.kind === 'off' ? verdict.index === i : verdict?.kind === 'same' ? verdict.pair.includes(i) : false;
+  // A ring that doesn't belong is marked: its own fold already shows that. A
+  // copy is not: which two are the same, turned or flipped, is part of the
+  // count, so the words say only that there is one.
+  const marked = i => verdict?.kind === 'off' && verdict.index === i;
   let shelf = '';
   if (q.mode === 'every' && b.shelf.length) {
     shelf = done ? casesHtml(q, b.shelf) : `<section class="cr-shelf-box" aria-label="Shelf">${shelfTold ? `<p class="cr-shelf-told">${esc(shelfTold)}</p>` : ''}<ul class="cr-shelf">${b.shelf.map((r, i) => {

@@ -77,6 +77,26 @@ test('a tray for one strip swaps it; a tray for two refuses a third', () => {
   const two = go(p8, freshAttempt(p8), [{type: 'strip', strip: 'A'}, {type: 'strip', strip: 'B'}]);
   assert.equal(move(p8, two, {type: 'strip', strip: 'C'}), null);
   assert.deepEqual(go(p8, two, [{type: 'strip', strip: 'A'}]).board.tray, ['B'], 'a second tap takes a strip out');
+  // Claims audit: with the tray full, the other strips are drawn off, so a tap
+  // there can't meet the generic error; the strips in the tray stay on.
+  const html = view(p8, two);
+  for (const s of Object.keys(p8.parameters.kit)) assert.equal(new RegExp(`data-focus="cb-strip-${s}"[^>]*disabled`).test(html), !two.board.tray.includes(s), `${s} is ${two.board.tray.includes(s) ? 'on' : 'off'}`);
+  assert.doesNotMatch(view(p1, go(p1, freshAttempt(p1), [{type: 'strip', strip: 'A'}])), /data-focus="cb-strip-[A-Z]"[^>]*disabled/, 'a tray for one swaps, so every strip stays on');
+});
+
+test('▲ ▼ and − + are off at the ends of their range (claims audit)', () => {
+  const p = byId('calibrate-10'), q = p.parameters;
+  let a = freshAttempt(p);
+  const up = {type: 'step', ref: 0, by: 1};
+  while (move(p, a, up)) a = move(p, a, up);
+  assert.match(view(p, a), /data-move="\{&quot;type&quot;:&quot;step&quot;,&quot;ref&quot;:0,&quot;by&quot;:1\}"[^>]*disabled>▲/, '▲ off at the top of the band');
+  assert.doesNotMatch(view(p, a), /&quot;ref&quot;:0,&quot;by&quot;:-1\}"[^>]*disabled/, '▼ still on');
+  assert.ok(Math.abs(a.board.t[0] - (q.refs[0][1] + q.err)) < 1e-9);
+  const r = byId('calibrate-05');
+  let b = go(r, freshAttempt(r), [{type: 'pick', row: 0}]);
+  while (move(r, b, {type: 'step', by: -1})) b = move(r, b, {type: 'step', by: -1});
+  assert.match(view(r, b), /aria-label="Smaller report" disabled/, '− off at the bottom');
+  assert.doesNotMatch(view(r, b), /aria-label="Bigger report" disabled/);
 });
 
 test('pairs of hidden lengths go on the shelf as they fit; That’s all is judged and kept through Undo', () => {

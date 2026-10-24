@@ -90,8 +90,12 @@ try {
   // Puzzle 8: a two-strip tray, and Apply hint to the end.
   await open('calibrate-08'); await fit('calibrate-08');
   await tap(strip('A')); await tap(strip('B'));
-  assert.ok(await strip('C').isEnabled());
+  // Claims audit: a full tray turns the other strips off (a tap met the
+  // generic error), and leaves its own strips on.
+  assert.equal(await strip('C').isEnabled(), false, 'a full tray takes no third strip');
+  assert.ok(await strip('A').isEnabled());
   await tap(strip('A'));
+  assert.ok(await strip('C').isEnabled(), 'with room in the tray, C is on again');
   assert.deepEqual((await board('calibrate-08')).tray, ['B'], 'a second tap takes a strip out');
   for (let k = 0; k < 6 && !(await page.locator('#completion-heading').count()); k++) { for (let j = 0; j < 3; j++) if (await button('Hint').count()) await button('Hint').click(); if (await button('Apply hint').count()) await button('Apply hint').click(); }
   await done();
@@ -122,7 +126,11 @@ try {
   const step = async (name, n) => { for (let k = 0; k < n; k++) await tap(page.getByRole('button', {name})); };
   await tap(button('Pin'));
   assert.equal(await page.locator('.feedback').innerText(), '', 'one pin is not judged');
-  await step('Lower the report for length 2', 2); await step('Raise the report for length 4', 2); await tap(button('Pin'));
+  await step('Lower the report for length 2', 2); await step('Raise the report for length 4', 2);
+  // Claims audit: ▼ and ▲ are off at the ends of their bars.
+  assert.equal(await page.getByRole('button', {name: 'Lower the report for length 2'}).isEnabled(), false, '▼ off at the bottom of the bar');
+  assert.equal(await page.getByRole('button', {name: 'Raise the report for length 4'}).isEnabled(), false, '▲ off at the top of the bar');
+  await tap(button('Pin'));
   assert.equal(await note(), 'A line can be shallower.');
   await tap(button('Pin')); await step('Raise the report for length 2', 4); await step('Lower the report for length 4', 4); await tap(button('Pin'));
   await done();

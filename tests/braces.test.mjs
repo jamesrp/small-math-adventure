@@ -15,6 +15,7 @@ const byId = id => braces.puzzles.find(p => p.id === id);
 const play = (p, a, ...actions) => actions.reduce((b, action) => { const next = move(p, b, action); assert.ok(next, `${JSON.stringify(action)} is legal`); return next; }, a);
 const cell = (p, rc) => (Number(rc[0]) - 1) * p.parameters.cols + Number(rc[1]) - 1;
 const brace = (p, ...rcs) => rcs.map(rc => ({type: 'brace', cell: cell(p, rc)}));
+const view = (p, a) => playView(p, a, {pack, selected: null, message: ''});
 
 test('pieces, holding and spare braces', () => {
   const q = {rows: 2, cols: 2};
@@ -52,10 +53,45 @@ test('fewest: the claim, a frame that moves, a brace to spare', () => {
   a = play(p, a, ...brace(p, '12', '21'));
   assert.equal(a.board.told, null);
   a = play(p, a, {type: 'claim'});
-  assert.deepEqual(a.board.told, {kind: 'spare', cell: 0});
+  assert.deepEqual(a.board.told, {kind: 'spare', cell: 1}, 'a spare brace added since the last Fewest is marked, not 11, which was there before');
   a = play(p, a, ...brace(p, '11'), {type: 'claim'});
   assert.ok(isSolved(p, a.board));
   assert.equal(move(p, a, {type: 'brace', cell: 0}), null, 'nothing moves after a solve');
+});
+
+test('fewest: brace every cell, take out the marked brace, repeat no longer works (claims audit)', () => {
+  for (const id of ['braces-04', 'braces-08', 'braces-10']) {
+    const p = byId(id), q = p.parameters;
+    const cells = [...Array(q.rows * q.cols).keys()].filter(k => !(q.windows || []).includes(k));
+    let a = freshAttempt(p);
+    for (const k of cells) a = move(p, a, {type: 'brace', cell: k}) || a;
+    a = play(p, a, {type: 'claim'});
+    assert.equal(a.board.told.kind, 'spare');
+    assert.ok(Number.isInteger(a.board.told.cell), `${id}: the first press may mark a brace the child added`);
+    assert.match(view(p, a), /It holds, but this brace can go\./);
+    a = play(p, a, {type: 'brace', cell: a.board.told.cell}, {type: 'claim'});
+    assert.deepEqual(a.board.told, {kind: 'spare'}, `${id}: after a take-out nothing was added, so nothing is marked`);
+    const html = view(p, a);
+    assert.match(html, /It holds, but a brace can go\./);
+    assert.doesNotMatch(html, /class="bf-(cell|brace)[^"]*\btold\b/, `${id}: no brace drawn as told`);
+    assert.equal(move(p, a, {type: 'claim'}), null, `${id}: Fewest waits for a change`);
+    // Taking out a brace that isn't spare and putting it back marks nothing.
+    const firm = a.board.braces.find(k => !spare(q, a.board.braces).includes(k));
+    if (firm !== undefined) assert.deepEqual(play(p, a, {type: 'brace', cell: firm}, {type: 'brace', cell: firm}, {type: 'claim'}).board.told, {kind: 'spare'});
+  }
+  // Starting full (puzzle 5), the first press marks nothing: no brace was added.
+  const full = byId('braces-05');
+  assert.deepEqual(play(full, freshAttempt(full), {type: 'claim'}).board.told, {kind: 'spare'});
+});
+
+test('saves from before the spare-brace rule still load', () => {
+  const p = byId('braces-02');
+  assert.ok(validBoard(p, {braces: [0, 1, 2, 3], told: {kind: 'spare', cell: 0}, claimed: false}), 'an old answer that marked the first spare brace');
+  assert.ok(validBoard(p, {braces: [0, 1, 2, 3], told: {kind: 'spare', cell: 3}, claimed: false}), 'any spare brace');
+  assert.ok(validBoard(p, {braces: [0, 1, 2, 3], told: {kind: 'spare'}, claimed: false}));
+  assert.equal(validBoard(p, {braces: [0, 1, 2, 3], told: {kind: 'spare'}, claimed: false, last: [0, 1, 2]}), false, 'an answer stands only on the frame it judged');
+  const old = play(p, {...freshAttempt(p), board: {braces: [0, 1, 2], told: null, claimed: false}}, {type: 'brace', cell: 3}, {type: 'claim'});
+  assert.deepEqual(old.board.told, {kind: 'spare', cell: 0}, 'an old board without `last` counts every brace since the start as added');
 });
 
 test('taking braces out of a full frame', () => {
@@ -108,6 +144,7 @@ test('forged saves are rejected', () => {
   assert.equal(validBoard(p, {...fresh, braces: [1, 0]}), false, 'braces are kept in order');
   assert.equal(validBoard(p, {...fresh, braces: [0, 1, 2], claimed: true}), false, 'three braces can’t hold a 2-by-3 frame');
   assert.equal(validBoard(p, {...fresh, braces: [0, 1, 2, 3], told: {kind: 'spare', cell: 0}}), false, 'a forged answer');
+  assert.equal(validBoard(p, {...fresh, braces: [0, 1, 2, 3, 4], told: {kind: 'spare', cell: 2, extra: 1}}), false, 'an answer with a stray field');
   assert.ok(validBoard(p, {...fresh, braces: [0, 1, 2, 3], claimed: true}));
 });
 

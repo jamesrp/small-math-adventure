@@ -584,7 +584,8 @@ function renderPlantest(p, a) {
 function wire(root, p, api) {
   root.addEventListener('click', e => {
     const el = e.target.closest('[data-sx-move]');
-    if (!el || !root.contains(el) || el.disabled) return;
+    // The budget or question tab already chosen does nothing (items toggle).
+    if (!el || !root.contains(el) || el.disabled || (el.matches?.('.sx-budget, .sx-tab') && el.getAttribute('aria-pressed') === 'true')) return;
     try { api.apply(JSON.parse(el.dataset.sxMove)); } catch { /* malformed control */ }
   });
 }

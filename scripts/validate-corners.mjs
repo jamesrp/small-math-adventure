@@ -325,8 +325,10 @@ function checkRing(p, fresh, row, stats, cantWords) {
     assert.equal(ringedOnShelf(html(p, two)), 0, `${p.id}: and marks nothing`);
     const pair = play(p, two, {type: 'all'});
     assert.equal(pair.board.refused.kind, 'same', `${p.id}: That's all finds the ring kept twice`);
-    assert.equal(shelfWords(html(p, pair)), 'These two are the same ring.');
-    assert.equal(ringedOnShelf(html(p, pair)), 2, `${p.id}: the pair is marked`);
+    assert.equal(shelfWords(html(p, pair)), 'Two of these are the same ring.');
+    assert.equal(ringedOnShelf(html(p, pair)), 0, `${p.id}: the pair is not marked`);
+    assert.ok(!/, marked/.test(html(p, pair)), `${p.id}: nor named in a label`);
+    assert.equal(move(p, pair, {type: 'all'}), null, `${p.id}: That's all is off while the shelf is the same`);
     assert.ok(pair.board.refused.pair.every(i => sameRing(pair.board.shelf[i], [...base])), `${p.id}: the pair is the ring kept twice`);
     stats.hintSteps[`${p.id} after a ring kept twice`] = hintSolve(p, pair, 'after a ring kept twice').steps;
     // That's all: one short refusal, kept through Undo until the shelf changes.
@@ -369,7 +371,7 @@ function checkRing(p, fresh, row, stats, cantWords) {
     assert.equal(ringedOnShelf(html(p, first)), 1, `${p.id}: one thing marked at a time`);
     const then = play(p, play(p, first, {type: 'drop', index: answers.length}), {type: 'all'});
     assert.equal(then.board.refused.kind, 'same', `${p.id}: then the ring kept twice`);
-    assert.equal(ringedOnShelf(html(p, then)), 2);
+    assert.equal(ringedOnShelf(html(p, then)), 0, `${p.id}: unmarked`);
     // Random shelves of the right size pass That's all how often?
     // Every ring a child can keep here: three to eight corners (or the count).
     const pool = ['point', 'flat', 'over'].flatMap(goal => ringsOf(q.menu, goal, q.count || 0));

@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo, restart} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
-import {moverWins, opponentMove, drawStart, firstDifference} from '../dist/families/menus/menus.js';
+import {moverWins, opponentMove, drawStart, firstDifference, legalMoves, after} from '../dist/families/menus/menus.js';
 import {libraryView} from '../dist/caravan-ui.js';
 import {loadPack} from '../scripts/packs.mjs';
 
@@ -181,7 +181,33 @@ test('a track: colour, Check, and the lowest wrong square is explained', () => {
   a = move(p, a, {type: 'mark', square: 4});
   assert.equal(a.board.checked, false);
   a = move(p, a, {type: 'check'});
-  assert.match(mechanicFor(p).render(p, a), /Leave 7, and your opponent can only leave 6, 4 or 3. None of those is coloured/);
+  // Claims audit: 7 is wrong but the child didn't change it since the last
+  // Check, so the line gives only the kind of fault: no square, no outline,
+  // no play-out (Who knows' rule).
+  let html = mechanicFor(p).render(p, a);
+  assert.match(html, /A square to leave is not coloured\./);
+  assert.doesNotMatch(html, /Leave 7|flag|and play/);
+  // A square the child changed since the last Check is named.
+  a = move(p, move(p, move(p, a, {type: 'mark', square: 6}), {type: 'mark', square: 9}), {type: 'check'});
+  assert.match(mechanicFor(p).render(p, a), /Leave 6, and your opponent can take \d and leave you \d, a square you coloured\./);
+  a = move(p, move(p, a, {type: 'mark', square: 6}), {type: 'check'});
+  html = mechanicFor(p).render(p, a);
+  assert.match(html, /A square to leave is not coloured\./, '7 is still missing, and still unnamed');
+  a = move(p, move(p, a, {type: 'mark', square: 7}), {type: 'mark', square: 7});
+  assert.match(mechanicFor(p).render(p, move(p, a, {type: 'check'})), /A square to leave is not coloured\./, 'tapping 7 twice is no change');
+  a = move(p, move(p, a, {type: 'mark', square: 7}), {type: 'check'});
+  assert.doesNotMatch(mechanicFor(p).render(p, a), /Leave 7/, 'once 7 is coloured, the next wrong square was not changed');
+  // Colour everything, then Check, fix, Check: one square is named, then none.
+  let all = freshAttempt(p);
+  for (let square = 0; square <= 24; square++) all = move(p, all, {type: 'mark', square});
+  all = move(p, all, {type: 'check'});
+  assert.match(mechanicFor(p).render(p, all), /Leave 1, and your opponent can take 1 and leave you 0/);
+  all = move(p, move(p, all, {type: 'mark', square: 1}), {type: 'check'});
+  html = mechanicFor(p).render(p, all);
+  assert.match(html, /A coloured square is not one to leave\./);
+  assert.doesNotMatch(html, /Leave \d|flag|and play/);
+  assert.equal(move(p, all, {type: 'play'}), null, 'no play-out from a square that isn’t named');
+  assert.equal(move(p, all, {type: 'check'}), null, 'Check waits for a change');
   assert.deepEqual(firstDifference({menu: [2, 5, 6], last: 30}, [0]), {square: 1, at: [1], extra: false, leaves: []});
   // Hints point at the lowest wrong square, then Check.
   a = freshAttempt(p);
@@ -208,14 +234,48 @@ test('playing out a wrong square: the opponent wins from it', () => {
   a = move(p, a, {type: 'back'});
   assert.equal(a.board.play, null);
   assert.equal(a.board.checked, true, 'the explanation stays');
-  // 7 left uncoloured: the child starts from 7 and loses whatever they take.
-  let b = move(p, [0, 2].reduce((x, square) => move(p, x, {type: 'mark', square}), freshAttempt(p)), {type: 'check'});
+  // 7 left uncoloured, after the child took it off since the last Check:
+  // the child starts from 7 and loses whatever they take.
+  let b = move(p, [0, 2, 7].reduce((x, square) => move(p, x, {type: 'mark', square}), freshAttempt(p)), {type: 'check'});
+  b = move(p, move(p, b, {type: 'mark', square: 7}), {type: 'check'});
+  assert.match(mechanicFor(p).render(p, b), /Start from 7 and play/);
   b = move(p, b, {type: 'play'}, fixed(0));
   assert.deepEqual(b.board.play.turns, []);
   for (let i = 0; i < 10 && legalTakes(b.board); i++) b = move(p, b, {type: 'take', pile: 1, take: [1, 3, 4].filter(t => t <= pilesLeft(b.board)).at(-1)}, fixed(0));
   assert.match(mechanicFor(p).render(p, b), /Whoever moves first from 7 loses, so 7 is a square to leave./);
   assert.equal(validBoard(p, {...b.board, play: {turns: [{player: 'opponent', pile: 1, take: 1}]}}), false, 'the child moves first from 7');
   assert.equal(validBoard(p, {marked: [0, 2], checked: false, play: {turns: []}}), false, 'play needs a check');
+});
+
+test('track saves from before the naming rule still load and play', () => {
+  const p = byId('menus-08');
+  assert.ok(validBoard(p, {marked: [0, 2], checked: true, play: null}), 'an old checked track');
+  assert.ok(validBoard(p, {marked: [0, 2], checked: true, play: {turns: []}}), 'an old play-out from 7');
+  assert.ok(validBoard(p, {marked: [0, 2], checked: false, play: null, before: [0, 2, 4]}));
+  assert.equal(validBoard(p, {marked: [0, 2], checked: false, play: null, before: [4, 2]}), false, 'before is kept in order');
+  assert.equal(validBoard(p, {marked: [0, 2], checked: false, play: null, before: [0], extra: 1}), false);
+});
+
+test('a lost game’s hint offers Undo, not a New start the game lacks', () => {
+  for (const id of ['menus-01', 'menus-02', 'menus-05', 'menus-06', 'menus-07', 'menus-11', 'menus-15', 'menus-18']) {
+    const p = byId(id), q = p.parameters;
+    let a = freshAttempt(p);
+    // Take a losing take whenever there is one, so the perfect opponent wins.
+    for (let i = 0; i < 200 && a.board.turns.length < 200; i++) {
+      const piles = a.board.piles, all = legalMoves(q, piles);
+      if (!all.length || isSolved(p, a.board)) break;
+      const bad = all.find(m => moverWins(q, after(piles, m))) || all[0];
+      const next = move(p, a, {type: 'take', ...bad}, fixed(0));
+      if (!next) break;
+      a = next;
+    }
+    assert.ok(!isSolved(p, a.board), `${id}: the game is lost`);
+    const h = nextHint(p, a);
+    assert.equal(h.type, 'deadend', `${id}: a lost game`);
+    assert.equal(h.quiet, true, `${id}: behind Hint only`);
+    assert.equal(h.text, 'Undo your last turn.');
+    assert.ok(!h.action, `${id}: no action the game would refuse`);
+  }
 });
 const pilesLeft = board => board.play.turns.reduce((n, t) => n - t.take, 7);
 const legalTakes = board => pilesLeft(board) > 0;
@@ -225,7 +285,9 @@ test('the chart for two piles: equal remainders after taking away 3s', () => {
   assert.equal(p.solution.toLeave.length, 34);
   assert.ok(p.solution.toLeave.includes('2,5') && !p.solution.toLeave.includes('2,4'));
   let a = move(p, move(p, freshAttempt(p), {type: 'mark', square: 0}), {type: 'check'});
-  assert.match(mechanicFor(p).render(p, a), /Leave \(1, 1\), and your opponent can only leave \(0, 1\) or \(1, 0\). None of those is coloured/);
+  assert.match(mechanicFor(p).render(p, a), /A square to leave is not coloured\./, '(1, 1) was never touched, so it isn’t named');
+  a = move(p, move(p, move(p, a, {type: 'mark', square: 11}), {type: 'mark', square: 11}), {type: 'check'});
+  assert.match(mechanicFor(p).render(p, a), /A square to leave is not coloured\./);
   a = move(p, move(p, a, {type: 'mark', square: 1}), {type: 'check'});
   assert.match(mechanicFor(p).render(p, a), /Leave \(0, 1\), and your opponent can take 1 from the second pile and leave you \(0, 0\), a square you coloured./);
   a = freshAttempt(p);

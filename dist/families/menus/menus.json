@@ -246,7 +246,7 @@
    "objective": "Each turn takes 1 or 2 pebbles, and whoever takes the last pebble wins. The squares 0 to 20 stand for piles of that many pebbles. Colour every square you would like to leave for your opponent, then Check.",
    "visibleObjective": "Colour every pile you would like to leave for your opponent.",
    "instruction": "Each turn takes 1 or 2 pebbles, and whoever takes the last pebble wins. The squares 0 to 20 stand for piles of that many pebbles. Colour every square you would like to leave for your opponent, then Check.",
-   "controls": "Tap a square to colour it, and tap it again to clear it. Check says whether the colouring is right; if not, it explains the lowest square that is wrong, and you can play from that square against the opponent. Undo takes back one tap.",
+   "controls": "Tap a square to colour it, and tap it again to clear it. Check says whether the colouring is right; if not, it says which kind of square is wrong, and if you changed the lowest wrong square since the last Check, it explains that square and you can play from it against the opponent. Undo takes back one tap.",
    "rules": [
     "Players take turns.",
     "A turn takes 1 or 2 pebbles.",
@@ -263,7 +263,7 @@
    "parent": {
     "notice": "Whether your child fills the track from 0 upward, deciding each square from the ones below it, or colours a guessed pattern.",
     "prompt": "Why is 3 a good pile to leave, and 4 not?",
-    "explanation": "Work up from 0. Leaving 0 wins at once. Leaving 1 or 2 lets the opponent take the rest. Leaving 3 forces them to leave 2 or 1, which you finish. From 4 or 5 one take reaches 3, so they are not squares to leave; 6 is, and so on: the squares to leave are 0, 3, 6, …, 18. Check reports the lowest wrong square with its reason, in terms of the child’s own colouring.",
+    "explanation": "Work up from 0. Leaving 0 wins at once. Leaving 1 or 2 lets the opponent take the rest. Leaving 3 forces them to leave 2 or 1, which you finish. From 4 or 5 one take reaches 3, so they are not squares to leave; 6 is, and so on: the squares to leave are 0, 3, 6, …, 18. Check reports the lowest wrong square with its reason, in terms of the child’s own colouring, when the child changed that square since the last Check; otherwise only which kind of square is wrong.",
     "extension": "Without colouring, is 100 a square to leave?",
     "connection": "The P-positions of the subtraction game with takes 1 and 2: a position is P exactly when every move leads to an N-position (Ferguson, §1).",
     "sourceIds": [
@@ -491,7 +491,7 @@
    "objective": "Each turn takes 1, 3 or 4 pebbles, and whoever takes the last pebble wins. The squares 0 to 24 stand for piles. Colour every square you would like to leave for your opponent, then Check.",
    "visibleObjective": "Colour every pile you would like to leave for your opponent.",
    "instruction": "Each turn takes 1, 3 or 4 pebbles, and whoever takes the last pebble wins. The squares 0 to 24 stand for piles. Colour every square you would like to leave for your opponent, then Check.",
-   "controls": "Tap a square to colour it, and tap it again to clear it. Check says whether the colouring is right; if not, it explains the lowest square that is wrong, and you can play from that square against the opponent. Undo takes back one tap.",
+   "controls": "Tap a square to colour it, and tap it again to clear it. Check says whether the colouring is right; if not, it says which kind of square is wrong, and if you changed the lowest wrong square since the last Check, it explains that square and you can play from it against the opponent. Undo takes back one tap.",
    "rules": [
     "Players take turns.",
     "A turn takes 1, 3 or 4 pebbles.",
@@ -831,7 +831,7 @@
    "objective": "Each turn takes 2, 5 or 6 pebbles, and a player who cannot take loses. The squares 0 to 30 stand for piles. Colour every square you would like to leave for your opponent, then Check.",
    "visibleObjective": "Colour every pile you would like to leave for your opponent.",
    "instruction": "Each turn takes 2, 5 or 6 pebbles, and a player who cannot take loses. The squares 0 to 30 stand for piles. Colour every square you would like to leave for your opponent, then Check.",
-   "controls": "Tap a square to colour it, and tap it again to clear it. Check says whether the colouring is right; if not, it explains the lowest square that is wrong, and you can play from that square against the opponent. Undo takes back one tap.",
+   "controls": "Tap a square to colour it, and tap it again to clear it. Check says whether the colouring is right; if not, it says which kind of square is wrong, and if you changed the lowest wrong square since the last Check, it explains that square and you can play from it against the opponent. Undo takes back one tap.",
    "rules": [
     "Players take turns.",
     "A turn takes 2, 5 or 6 pebbles.",
@@ -1129,7 +1129,7 @@
    "objective": "There are two piles. Each turn takes 1 or 2 pebbles from one pile, and whoever takes the last pebble wins. The square in row a and column b stands for piles of a and b. Colour every square you would like to leave for your opponent, then Check.",
    "visibleObjective": "Colour every pair of piles you would like to leave for your opponent.",
    "instruction": "There are two piles. Each turn takes 1 or 2 pebbles from one pile, and whoever takes the last pebble wins. The square in row a and column b stands for piles of a and b. Colour every square you would like to leave for your opponent, then Check.",
-   "controls": "Tap a square to colour it, and tap it again to clear it. Check says whether the colouring is right; if not, it explains the lowest square that is wrong, and you can play from that square against the opponent. Undo takes back one tap.",
+   "controls": "Tap a square to colour it, and tap it again to clear it. Check says whether the colouring is right; if not, it says which kind of square is wrong, and if you changed the lowest wrong square since the last Check, it explains that square and you can play from it against the opponent. Undo takes back one tap.",
    "rules": [
     "Players take turns.",
     "A turn takes 1 or 2 pebbles from one pile.",
@@ -1146,7 +1146,7 @@
    "parent": {
     "notice": "Whether your child starts with equal piles (copying), then finds the squares off the diagonal, and whether they connect the pattern to the one-pile track for 1 or 2.",
     "prompt": "Why is (2, 5) a square to leave, when the piles are not equal?",
-    "explanation": "Equal piles are squares to leave: whatever the opponent takes from one pile, take the same from the other. For takes of 1 or 2, three extra pebbles in a pile change nothing (whatever is taken from them, the other player takes the rest of the 3), so only the remainders after taking away 3s matter, and (2, 5) plays like (2, 2). The squares to leave are the 34 pairs whose piles differ by 0, 3, 6 or 9. A check explains the first wrong square, working outward from (0, 0).",
+    "explanation": "Equal piles are squares to leave: whatever the opponent takes from one pile, take the same from the other. For takes of 1 or 2, three extra pebbles in a pile change nothing (whatever is taken from them, the other player takes the rest of the 3), so only the remainders after taking away 3s matter, and (2, 5) plays like (2, 2). The squares to leave are the 34 pairs whose piles differ by 0, 3, 6 or 9. A check explains the first wrong square, working outward from (0, 0), when the child changed it since the last Check.",
     "extension": "Would you rather go first or second with piles of 20 and 11?",
     "connection": "By the Sprague–Grundy theorem a pile of n has value n mod 3 for takes of 1 and 2, and two piles lose for the player to move exactly when their values are equal (Ferguson, §3).",
     "sourceIds": [

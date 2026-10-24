@@ -162,6 +162,19 @@ export async function validateBraces() {
         assert.equal(c.board.told.kind, 'spare', `${p.id}: a brace to spare is shown`);
         const without = c.board.braces.filter(k => k !== c.board.told.cell);
         assert.ok(rigid(q, without), `${p.id}: the marked brace really can go`);
+        if (c.board.told.cell !== undefined) assert.ok(!(q.start || []).includes(c.board.told.cell), `${p.id}: only a brace the child added is marked`);
+        // Claims audit: bracing every cell and taking out each marked brace
+        // marked one brace at most; after that Fewest names only the kind.
+        let all = braceAll(p, fresh, cells), marks = 0;
+        for (let round = 0; round < cells.length && !isSolved(p, all.board); round++) {
+          all = play(p, all, {type: 'claim'});
+          if (isSolved(p, all.board) || all.board.told.kind !== 'spare' || all.board.told.cell === undefined) break;
+          marks++;
+          all = play(p, all, {type: 'brace', cell: all.board.told.cell});
+        }
+        assert.ok(marks <= 1, `${p.id}: one marked brace at most from a full frame (${marks})`);
+        if (!isSolved(p, all.board)) assert.deepEqual(all.board.told, {kind: 'spare'}, `${p.id}: then the kind only`);
+        else assert.equal(cells.length, need + 1, `${p.id}: one take-out solves only when one brace is spare`);
         steps += hintsSolve(p, c, 'after a spare brace');
         claims++;
       }

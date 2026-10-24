@@ -184,3 +184,16 @@ test('the puzzles appear as a Slippery secrets group in Signal Lanterns', async 
   assert.match(family, /aria-label="Signal Lanterns, Slippery secrets, puzzle 1"/);
   assert.equal([...family.matchAll(/data-id="secrets-/g)].length, 13);
 });
+
+test('the budget or question tab already chosen does nothing when tapped (claims audit)', () => {
+  for (const id of ['secrets-07', 'secrets-08']) {
+    const p = byId(id), html = mechanicFor(p).render(p, freshAttempt(p));
+    assert.match(html, /class="[^"]*\bsx-(budget|tab)\b[^"]*"[^>]*aria-pressed="true"/, `${id}: a chosen budget or tab is drawn pressed`);
+  }
+  const applied = [], listeners = [];
+  const el = (cls, pressed, move) => ({disabled: false, dataset: {sxMove: JSON.stringify(move)}, matches: sel => sel.split(',').some(s => s.trim() === `.${cls}`), getAttribute: k => k === 'aria-pressed' ? String(pressed) : null});
+  const p = byId('secrets-07'), root = {addEventListener: (type, f) => listeners.push(f), contains: () => true};
+  mechanicFor(p).wire(root, p, {apply: action => applied.push(action)});
+  for (const target of [el('sx-budget', true, {type: 'budget', budget: 3}), el('sx-tab', true, {type: 'question', question: 0}), el('sx-budget', false, {type: 'budget', budget: 4}), el('sx-item', true, {type: 'item', item: 2})]) listeners[0]({target: {closest: () => target}});
+  assert.deepEqual(applied, [{type: 'budget', budget: 4}, {type: 'item', item: 2}], 'chosen budgets and tabs are skipped; a picked item still toggles');
+});

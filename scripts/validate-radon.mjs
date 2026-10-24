@@ -269,6 +269,13 @@ function checkEvery(p, fresh, answers) {
     if (answers.length === 1 && answers[0] === k) assert.ok(isSolved(p, judged.board), `${p.id} ${k}: the one split solves`);
     else assert.deepEqual(judged.board.refused, answers.includes(k) ? {kind: 'more'} : {kind: 'apart', key: k}, `${p.id} ${k}: That’s all refuses by the program`);
     if (!answers.includes(k)) steps += hintsSolve(p, judged, `after ${k} judged`);
+    // Claims audit: a shelf of one split can't judge it. Right or wrong, the
+    // board says "Not yet." and rings or draws nothing.
+    if (!isSolved(p, judged.board)) {
+      const html = mechanicFor(p).render(p, judged);
+      assert.match(html, /<p class="sb-told">Not yet\.<\/p>/, `${p.id} ${k}: one refusal line`);
+      assert.doesNotMatch(html, /ringed|sb-big|doesn’t meet|There is another/, `${p.id} ${k}: nothing named`);
+    }
   }
   // Every split on the shelf is refused, naming the first that misses.
   const full = shelve(fresh, all);
@@ -278,6 +285,9 @@ function checkEvery(p, fresh, answers) {
   assert.ok(!isSolved(p, a.board), `${p.id}: a shelf of all seven splits is not a solve`);
   assert.deepEqual(a.board.refused, {kind: 'apart', key: firstMiss}, `${p.id}: the first split that misses is shown apart`);
   refuse(p, a, {type: 'all'}, 'That’s all again on the same shelf');
+  // Claims audit: shelving all seven and taking off the ringed chip once
+  // solved this; now nothing on the shelf is ringed or drawn apart.
+  assert.doesNotMatch(mechanicFor(p).render(p, a), /ringed|sb-big/, `${p.id}: the full shelf's refusal names no split`);
   // The refusal stays through a colour change and its Undo, and through an
   // Undo back to the same shelf; it goes when the shelf changes.
   const tapped = play(p, a, {type: 'tap', label: letters[0]});

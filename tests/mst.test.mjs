@@ -103,10 +103,19 @@ test('a split proves a forced link; a loop proves an excluded one', () => {
 
 test('price design: tap to change, Check lists the cheapest networks', () => {
   const p = byId('mst-12');
-  let a = play(p, freshAttempt(p), {type: 'check'});
+  // Claims audit: Check waits for the child's own design, and a wrong one
+  // gets a count, with no network drawn.
+  assert.equal(move(p, freshAttempt(p), {type: 'check'}), null, 'no Check on the map’s own prices');
+  assert.match(playView(p, freshAttempt(p), {pack, selected: null, message: ''}), /<button[^>]*mst-check[^>]*disabled/, 'Check is off on a fresh map');
+  let a = play(p, freshAttempt(p), {type: 'price', link: L(p, 'BC')}, {type: 'price', link: L(p, 'BC')}, {type: 'price', link: L(p, 'BC')}, {type: 'price', link: L(p, 'BC')});
+  assert.equal(move(p, a, {type: 'check'}), null, 'nor after cycling a price back to the start');
+  a = play(p, freshAttempt(p), {type: 'price', link: L(p, 'BD')}, {type: 'check'});
   assert.equal(a.board.told.kind, 'list');
-  assert.equal(optima(p.parameters, a.board.prices).length, 16);
-  a = play(p, a, {type: 'price', link: L(p, 'AB')}, {type: 'price', link: L(p, 'CD')});
+  const n = optima(p.parameters, a.board.prices).length, html = playView(p, a, {pack, selected: null, message: ''});
+  assert.notEqual(n, 4);
+  assert.match(html, new RegExp(`${n} cheapest networks\\.`));
+  assert.doesNotMatch(html, /mst-list|mst-found/, 'no network drawn');
+  a = play(p, freshAttempt(p), {type: 'price', link: L(p, 'AB')}, {type: 'price', link: L(p, 'CD')});
   assert.deepEqual([a.board.prices[L(p, 'AB')], a.board.prices[L(p, 'CD')]], [2, 2]);
   a = play(p, a, {type: 'check'});
   assert.ok(isSolved(p, a.board), 'a loop of four 1s gives four cheapest networks');
@@ -150,5 +159,14 @@ test('every puzzle renders its board and controls', () => {
   const p = byId('mst-01');
   const a = play(p, freshAttempt(p), ...buy(p, 'AB', 'BC', 'CD'), {type: 'claim'});
   const html = playView(p, a, {pack, selected: null, message: ''});
-  assert.match(html, /told-add/); assert.match(html, /told-drop/); assert.match(html, /this swap costs less/);
+  // Claims audit: the refusal names the kind only and draws no swap, so
+  // claiming, making the drawn swap and claiming again no longer works.
+  assert.match(html, /Not the cheapest: a swap costs less\./);
+  assert.doesNotMatch(html, /told-add|told-drop|to pay less/);
+  const loop = play(p, a, ...buy(p, 'AC'), {type: 'claim'});
+  const loopHtml = playView(p, loop, {pack, selected: null, message: ''});
+  assert.match(loopHtml, /Not the cheapest: there is a loop\./);
+  assert.doesNotMatch(loopHtml, /told-drop|to pay less/);
+  // Behind Hint, the second level still marks a link.
+  assert.match(playView(p, {...a, hintLevel: 2}, {pack, selected: null, message: ''}), /gb-edge[^"]*hinted/);
 });

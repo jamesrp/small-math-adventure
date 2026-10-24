@@ -55,10 +55,12 @@ test('pouring full jugs fills the tank, and the level lights on the line', () =>
 
 test('That’s all is refused while a level that can fill is dark', () => {
   const p = byId('tank-02');
-  let a = move(p, freshAttempt(p), {type: 'all'});
+  assert.equal(move(p, freshAttempt(p), {type: 'all'}), null, 'That’s all waits for a first lit level');
+  let a = move(p, run(p, freshAttempt(p), [level(3), ...pour(3)]), {type: 'all'});
   assert.equal(a.board.refusal.why, 'more');
   assert.match(mechanicFor(p).render(p, a), /Another level can be filled/);
-  a = run(p, a, [level(3), ...pour(3)]);
+  assert.equal(move(p, a, {type: 'all'}), null, 'and stays off after a refusal until the tank changes');
+  a = run(p, a, [{type: 'empty'}]);
   assert.equal(a.board.refusal, null, 'the next move clears the refusal');
   for (const t of [4, 6, 7, 8, 9, 10, 11, 12]) a = fillTo(p, a, [3, 4], t);
   assert.deepEqual(a.board.found.map(r => r.target), [3, 4, 6, 7, 8, 9, 10, 11, 12]);
@@ -71,6 +73,7 @@ test('every way: each new way joins the list once', () => {
   const p = byId('tank-03');
   let a = run(p, freshAttempt(p), pour(4, 3));
   assert.equal(a.board.found.length, 1);
+  assert.equal(move(p, freshAttempt(p), {type: 'all'}), null, 'That’s all waits for a first way');
   assert.equal(move(p, a, {type: 'all'}).board.refusal.why, 'way', 'one way is not all of them');
   a = run(p, a, [{type: 'empty'}, ...pour(3, 4)]);
   assert.equal(a.board.found.length, 2);
@@ -82,15 +85,21 @@ test('every way: each new way joins the list once', () => {
 
 test('the last gap is claimed with the run of filled levels after it', () => {
   const p = byId('tank-07');
-  let a = run(p, freshAttempt(p), [level(11), {type: 'last'}]);
-  assert.equal(a.board.refusal.why, 'show');
-  assert.match(mechanicFor(p).render(p, a), /Show that every level after 11 can be filled/);
+  // Claims audit: on an empty tank "Last gap is t" is off for every level, so
+  // pressing it level by level reads nothing off (it once answered 11 here).
+  for (const t of p.parameters.targets) assert.equal(move(p, run(p, freshAttempt(p), t === 1 ? [] : [level(t)]), {type: 'last'}), null, `no claim at ${t} on an empty tank`);
+  assert.match(mechanicFor(p).render(p, freshAttempt(p)), /<button[^>]*disabled[^>]*>Last gap is 1</);
+  let a = freshAttempt(p);
   const fill = (x, t) => fillTo(p, x, [4, 5], t);
   for (const t of [12, 13, 14]) a = fill(a, t);
-  assert.equal(run(p, a, [level(11), {type: 'last'}]).board.refusal.why, 'show', 'three levels in a row are not enough for a 4-jug');
+  assert.equal(move(p, run(p, a, [level(11)]), {type: 'last'}), null, 'three levels in a row are not enough for a 4-jug');
   a = fill(a, 15);
-  assert.equal(run(p, a, [level(7), {type: 'last'}]).board.refusal.why, 'later');
-  assert.equal(run(p, a, [level(10), {type: 'last'}]).board.refusal.why, 'filled');
+  assert.equal(move(p, run(p, a, [level(7)]), {type: 'last'}), null, '7: the four levels after it aren’t all lit');
+  a = fill(a, 16);
+  const twelve = run(p, a, [level(12), {type: 'last'}]);
+  assert.equal(twelve.board.refusal.why, 'filled');
+  assert.match(mechanicFor(p).render(p, twelve), /<p class="tank-note" role="status">Not the last gap\.<\/p>/);
+  assert.equal(move(p, twelve, {type: 'last'}), null, 'the claim stays off until something changes');
   assert.equal(move(p, a, {type: 'never'}).board.refusal.why, 'evidence');
   a = run(p, a, [level(11), {type: 'last'}]);
   assert.ok(isSolved(p, a.board));
@@ -102,7 +111,7 @@ test('gaps never stop when the jugs share a factor', () => {
   let a = move(p, freshAttempt(p), {type: 'never'});
   assert.equal(a.board.refusal.why, 'evidence');
   for (const t of [4, 6, 8, 10, 12, 14, 16]) a = fillTo(p, a, [4, 6], t);
-  assert.equal(run(p, a, [level(15), {type: 'last'}]).board.refusal.why, 'later', '17 can’t be filled either');
+  assert.equal(move(p, run(p, a, [level(15)]), {type: 'last'}), null, 'the levels after 15 aren’t in the row, so no claim');
   a = move(p, a, {type: 'never'});
   assert.ok(isSolved(p, a.board));
   const other = byId('tank-08');
@@ -133,8 +142,11 @@ test('designing jugs for a last gap', () => {
   assert.deepEqual(pickAnswers(p.parameters), [[3, 7], [4, 5]]);
   assert.deepEqual(pickAnswers(byId('tank-12').parameters), [[3, 8]], '(a − 1)(b − 1) = 14 leaves only 3 and 8 up to 12');
   assert.equal(move(p, freshAttempt(p), {type: 'last'}), null, 'no claim before two jugs');
-  let a = run(p, freshAttempt(p), [{type: 'pick', jug: 2}, {type: 'pick', jug: 9}, {type: 'last'}]);
+  let a = run(p, freshAttempt(p), [{type: 'pick', jug: 2}, {type: 'pick', jug: 9}]);
+  assert.equal(move(p, a, {type: 'last'}), null, 'a chosen pair alone can’t be claimed: light the run first');
+  a = run(p, fillTo(p, fillTo(p, a, [2, 9], 12), [2, 9], 13), [{type: 'last'}]);
   assert.equal(a.board.refusal.why, 'filled', '2 + 9 = 11');
+  assert.match(mechanicFor(p).render(p, a), /Not the last gap\./);
   a = run(p, a, [{type: 'pick', jug: 2}, {type: 'pick', jug: 9}, {type: 'pick', jug: 3}, {type: 'pick', jug: 7}]);
   for (const t of [12, 13, 14]) a = fillTo(p, a, [3, 7], t);
   assert.ok(isSolved(p, move(p, a, {type: 'last'}).board));
@@ -171,6 +183,11 @@ test('saves are checked: records sit on the line, claims hold', () => {
   assert.ok(validBoard(p, {...b, refusal: {claim: {type: 'all'}, why: 'more'}}));
   assert.equal(validBoard(p, {...b, refusal: {claim: {type: 'all'}, why: 'way'}}), false);
   assert.equal(validBoard(p, {...b, counts: [99, 0]}), false, 'the tank has a top');
+  // Saves from before October 24 with refusals the claim no longer gives.
+  const old = byId('tank-07'), o = freshAttempt(old).board;
+  assert.ok(validBoard(old, {...o, target: 11, refusal: {claim: {type: 'last', target: 11}, why: 'show'}}), 'an old "show" refusal');
+  assert.ok(validBoard(old, {...o, target: 7, refusal: {claim: {type: 'last', target: 7}, why: 'later'}}), 'an old "later" refusal');
+  assert.doesNotMatch(mechanicFor(old).render(old, {...freshAttempt(old), board: {...o, target: 11, refusal: {claim: {type: 'last', target: 11}, why: 'show'}}}), /Show that|after 11|tank-note/, 'an old "show" names nothing now');
   const last = byId('tank-07'), l = freshAttempt(last).board;
   assert.equal(validBoard(last, {...l, done: {type: 'last', target: 11}}), false, 'the last gap needs its run');
   assert.equal(validBoard(last, {...l, done: {type: 'never'}}), false);
