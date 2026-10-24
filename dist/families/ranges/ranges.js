@@ -258,7 +258,10 @@ export function certificates(q, cards) {
 function pinPlan(q, b, cards) {
   const off = len => stripsOf(q).filter(s => len[s] !== b.len[s]).length;
   const pairs = certificates(q, cards).filter(([x]) => !b.pins.length || same(x, b.pins[0]));
-  if (!pairs.length) return {type: 'deadend', text: q.mode === 'gap' ? 'That pin is not a biggest or a smallest gap.' : 'That pin is not the shortest or the longest join.'};
+  // Told only behind Hint: said at once, it would judge each pin alone, so
+  // pin, Undo and pin again would find the extremes. The second pin is
+  // judged with the first.
+  if (!pairs.length) return {type: 'deadend', quiet: true, text: q.mode === 'gap' ? 'That pin is not a biggest or a smallest gap.' : 'That pin is not the shortest or the longest join.'};
   const target = b.pins.length ? pairs.map(([, y]) => y).reduce((u, v) => off(v) < off(u) ? v : u) : pairs.map(([x]) => x).reduce((u, v) => off(v) < off(u) ? v : u);
   const step = toward(q, b, target);
   if (step) return step;

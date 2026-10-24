@@ -185,7 +185,10 @@ function checkExact(p, fresh, row, r) {
   if (!home.length) {
     assert.equal(p.solution.cant, true);
     assert.ok(r.W % 2 === 0 && r.H % 2 === 0 && q.steps % 2 === 1, `${p.id}: the checkerboard certificate`);
-    const claimed = play(p, fresh, {type: 'cant'});
+    // Can't waits for a full trip (every bead used).
+    refuse(p, fresh, {type: 'cant'}, 'Can’t on a fresh board');
+    refuse(p, steps(p, fresh, 'RRUD'), {type: 'cant'}, 'Can’t before the beads are used');
+    const claimed = play(p, steps(p, fresh, 'RRUDL'), {type: 'cant'});
     assert.ok(isSolved(p, claimed.board), `${p.id}: Can’t is right`);
     let b = steps(p, fresh, 'RRUD');
     n += hintsSolve(p, b, 'after a few steps');
@@ -198,18 +201,24 @@ function checkExact(p, fresh, row, r) {
   const done = steps(p, fresh, row.witness);
   assert.ok(isSolved(p, done.board), `${p.id}: the witness solves`);
   for (const w of home.slice(0, 40)) assert.ok(isSolved(p, steps(p, fresh, w).board), `${p.id}: ${w} solves`);
-  const wrongCant = play(p, fresh, {type: 'cant'});
+  // Can't waits for a full trip that misses H.
+  const miss = words(q.steps).find(w => r.run(q.home, w) && r.run(q.home, w) !== q.home);
+  const full = steps(p, fresh, miss);
+  refuse(p, fresh, {type: 'cant'}, 'Can’t on a fresh board');
+  refuse(p, steps(p, fresh, miss.slice(0, -1)), {type: 'cant'}, 'Can’t before the beads are used');
+  const wrongCant = play(p, full, {type: 'cant'});
   assert.equal(wrongCant.board.told, 'way', `${p.id}: there is a way`);
   assert.ok(!isSolved(p, wrongCant.board));
   refuse(p, wrongCant, {type: 'cant'}, 'Can’t twice');
   n += hintsSolve(p, wrongCant, 'after a wrong Can’t');
-  // A start that can't finish: the hint says so, and Undo goes back.
+  // A start that can't finish: told only behind Hint while beads are left,
+  // at once when they are used up; Undo goes back.
   const stuck = steps(p, fresh, row.wrong);
   assert.equal(nextHint(p, stuck).type, 'deadend', `${p.id}: ${row.wrong} can’t finish`);
+  assert.equal(nextHint(p, stuck).quiet, row.wrong.length < q.steps ? true : undefined, `${p.id}: quiet while beads are left`);
+  assert.ok(nextHint(p, full).type === 'deadend' && !nextHint(p, full).quiet, `${p.id}: a full trip off H is told at once`);
   n += hintsSolve(p, stuck, 'after a dead end');
   // A full trip that misses H stays unsolved and can't take another step.
-  const miss = words(q.steps).find(w => r.run(q.home, w) && r.run(q.home, w) !== q.home);
-  const full = steps(p, fresh, miss);
   assert.ok(!isSolved(p, full.board));
   refuse(p, full, {type: 'step', dir: 'R'}, 'a step past the beads');
   return n;
@@ -274,6 +283,7 @@ function checkEvery(p, fresh, row, r) {
   const again = steps(p, a, ends.get(row.answers[0]));
   assert.deepEqual(again.board.told, {kind: 'again', s: row.answers[0]}, `${p.id}: found already`);
   assert.ok(isSolved(p, play(p, a, {type: 'all'}).board), `${p.id}: That’s all after every square`);
+  refuse(p, fresh, {type: 'all'}, 'That’s all before a square is ringed');
   const early = play(p, steps(p, fresh, ends.get(row.answers[1])), {type: 'all'});
   assert.deepEqual(early.board.told, {kind: 'more'}, `${p.id}: there is another`);
   refuse(p, early, {type: 'all'}, 'That’s all again before a new square');
@@ -307,7 +317,8 @@ function checkTrade(p, fresh, row, r) {
     assert.equal(p.solution.cant, true);
     // After any trip, the blue pawn is the same translation from the yellow one.
     for (const w of words(4)) { const ea = r.run(a0, w), eb = r.run(b0, w); assert.ok(!(ea === b0 && eb === a0)); assert.equal(((r.pos[eb][0] - r.pos[ea][0] - dx) % r.W + r.W) % r.W, 0); }
-    assert.ok(isSolved(p, play(p, fresh, {type: 'cant'}).board), `${p.id}: Can’t is right`);
+    refuse(p, fresh, {type: 'cant'}, 'Can’t before a step');
+    assert.ok(isSolved(p, play(p, steps(p, fresh, 'U'), {type: 'cant'}).board), `${p.id}: Can’t is right`);
     n += hintsSolve(p, steps(p, fresh, 'UUL'), 'after a few steps');
     return n;
   }
@@ -317,7 +328,8 @@ function checkTrade(p, fresh, row, r) {
   assert.equal(row.witness.length, row.shortest);
   assert.ok(isSolved(p, steps(p, fresh, row.witness).board), `${p.id}: the witness solves`);
   assert.ok(isSolved(p, steps(p, fresh, 'LLUU').board), `${p.id}: the other way round solves too`);
-  const wrong = play(p, fresh, {type: 'cant'});
+  refuse(p, fresh, {type: 'cant'}, 'Can’t before a step');
+  const wrong = play(p, steps(p, fresh, 'U'), {type: 'cant'});
   assert.equal(wrong.board.told, 'way', `${p.id}: there is a way`);
   n += hintsSolve(p, wrong, 'after a wrong Can’t');
   n += hintsSolve(p, steps(p, fresh, 'RUR'), 'after a wrong turn');
@@ -338,7 +350,8 @@ function checkShrink(p, fresh, row, r) {
     // Every trip the moves reach ends in that copy.
     const S = surfaceFor(q);
     for (const w of editReach(q.trip).keys()) assert.deepEqual(copyIndex(S, tripLift(S, q.home, w).end), row.endCopy);
-    assert.ok(isSolved(p, play(p, fresh, {type: 'cant'}).board), `${p.id}: Can’t is right`);
+    refuse(p, fresh, {type: 'cant'}, 'Can’t before the trip changes');
+    assert.ok(isSolved(p, play(p, play(p, fresh, nextHint(p, fresh).action), {type: 'cant'}).board), `${p.id}: Can’t is right`);
     return n;
   }
   const slides = q.target === '' ? Math.abs(area(q.trip)) : slidesBetween(q.trip, q.target);
@@ -347,7 +360,8 @@ function checkShrink(p, fresh, row, r) {
   assert.equal(editReach(q.trip).get(q.target), slides, `${p.id}: the mechanic’s search agrees`);
   if (row.erasures !== undefined) assert.equal((q.trip.length - q.target.length) / 2, row.erasures);
   assert.equal(p.solution.slides ?? slides, slides);
-  const wrong = play(p, fresh, {type: 'cant'});
+  refuse(p, fresh, {type: 'cant'}, 'Can’t before the trip changes');
+  const wrong = play(p, play(p, fresh, nextHint(p, fresh).action), {type: 'cant'});
   assert.equal(wrong.board.told, 'way');
   n += hintsSolve(p, wrong, 'after a wrong Can’t');
   if (q.target) {

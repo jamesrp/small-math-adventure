@@ -172,6 +172,16 @@ function possible(q) {
 }
 // After That's all with a square unringed: That's all waits for a new ring.
 const moreLeft = b => b.told?.kind === 'more' || b.told?.more === true;
+// Claims wait for the child's own attempt: That's all for the first ringed
+// square; Can't for a full trip (exactly k steps), a step (the trade) or a
+// changed trip (shrinking). "There is a way." keeps Can't off until a change.
+const allOpen = b => b.found.length > 0 && !moreLeft(b);
+export function cantOpen(q, b) {
+  if (b.told === 'way') return false;
+  if (q.mode === 'walk') return b.trip.length === q.steps;
+  if (q.mode === 'shrink') return b.trip !== q.trip;
+  return b.trip.length > 0;
+}
 const capOf = q => q.mode === 'playground' ? PLAY_TRIP : q.mode === 'walk' && q.steps ? q.steps : q.mode === 'every' ? q.steps - 1 : MAX_TRIP;
 
 function fresh(p) {
@@ -233,12 +243,12 @@ function move(p, b, action) {
     return legal(S, q.home, trip) ? {...b, trip} : null;
   }
   if (action.type === 'cant') {
-    if (!hasCant(q) || b.told === 'way') return null;
+    if (!hasCant(q) || !cantOpen(q, b)) return null;
     return possible(q) ? {...b, told: 'way'} : {...b, told: null, claimed: true};
   }
   if (q.mode === 'every') {
     if (action.type === 'all') {
-      if (moreLeft(b)) return null;
+      if (!allOpen(b)) return null;
       return b.found.length === reachIn(S, q.home, q.steps).length ? {...b, trip: '', told: null, done: true} : {...b, told: {kind: 'more'}};
     }
     if (action.type !== 'step' || !LETTERS.includes(action.dir)) return null;
@@ -340,9 +350,19 @@ function hint(p, b) {
   const S = surfaceFor(q), cant = {type: 'move', action: {type: 'cant'}, text: 'Press Can’t.'};
   if (q.mode === 'walk') {
     if (q.steps) {
+      if (!exactPossible(q) && b.trip.length < q.steps) {
+        // Can't waits for a full trip: walk it, toward H where that helps.
+        const here = tripLift(S, q.home, b.trip).end.s, route = tradeRouteTo(S, here, q.home);
+        const d = [...(route ? route.slice(0, 1) : ''), ...LETTERS].find(x => legal(S, q.home, b.trip + x));
+        return {type: 'move', action: {type: 'step', dir: d}, text: say(d)};
+      }
       if (!exactPossible(q)) return {...cant, text: checkerboard(S) && q.steps % 2 ? `Every step changes the checkerboard colour, even through a portal, so after ${q.steps} steps the pawn is never on ${letterOf(q, q.home)}’s colour. Press Can’t.` : 'Press Can’t.'};
       const d = exactStep(S, q, b.trip);
-      return d ? {type: 'move', action: {type: 'step', dir: d}, text: say(d)} : {type: 'deadend', text: 'That trip can’t finish on H. Undo.'};
+      // While beads are left, a trip that can't finish is told only behind
+      // Hint (quiet): said at once, it would judge each step. Once they are
+      // used up, the line says what is wrong.
+      if (d) return {type: 'move', action: {type: 'step', dir: d}, text: say(d)};
+      return b.trip.length < q.steps ? {type: 'deadend', quiet: true, text: `That trip can’t finish on ${letterOf(q, q.home)}. Undo.`} : {type: 'deadend', text: `The pawn isn’t on ${letterOf(q, q.home)}. Undo.`};
     }
     const route = walkRoute(S, q, b.trip);
     if (route === null || b.trip.length + route.length > MAX_TRIP) return {type: 'deadend', text: 'Too many steps. Undo.'};
@@ -362,6 +382,7 @@ function hint(p, b) {
     // Walk the yellow pawn onto the blue pawn's start, where the gap shows.
     const route = tradeRouteTo(S, tradeEnds(S, q, b.trip).a.end.s, q.pawns[1]);
     if (route && b.trip.length + route.length <= MAX_TRIP) return {type: 'move', action: {type: 'step', dir: route[0]}, text: `${say(route[0])} Watch the gap between the pawns in the unrolled view.`};
+    if (!cantOpen(q, b)) { const d = LETTERS.find(x => !tradeEnds(S, q, b.trip + x).blocked); return {type: 'move', action: {type: 'step', dir: d}, text: `${say(d)} Watch the gap between the pawns in the unrolled view.`}; }
     return {...cant, text: `The yellow pawn is on ${letterOf(q, q.pawns[1])}, but the blue pawn is not on ${letterOf(q, q.pawns[0])}. The gap between them never changes. Press Can’t.`};
   }
   // shrink
@@ -370,6 +391,7 @@ function hint(p, b) {
     if (!m) return {...cant, text: `The trip ends on ${letterOf(q, q.home)}, ${copyWords(copyIndex(S, tripLift(S, q.home, b.trip).end))}, and no move changes that. Press Can’t.`};
     return {type: 'move', action: {type: m.kind, at: m.at}, text: m.kind === 'cancel' ? `Erase a there-and-back pair: ${pairWords(b.trip, m.at)}.` : `Slide a ${pairWords(b.trip, m.at)} corner.`};
   }
+  if (!shrinkPossible(q) && !cantOpen(q, b) && shrinkStep(b.trip)) { const m = shrinkStep(b.trip); return {type: 'move', action: {type: m.kind, at: m.at}, text: m.kind === 'cancel' ? `Erase a there-and-back pair: ${pairWords(b.trip, m.at)}.` : `Slide a ${pairWords(b.trip, m.at)} corner.`}; }
   if (!shrinkPossible(q)) return {...cant, text: 'The two trips end in different copies. Press Can’t.'};
   const m = q.target === '' ? shrinkStep(b.trip) : turnStep(q, b);
   if (!m) return {type: 'deadend', text: 'Undo.'};
@@ -473,8 +495,8 @@ function renderWalk(p, a, q0, q, S, done, act) {
   } else if (!done) {
     const parts = [];
     if (steps) parts.push(beads(steps, b.trip.length, `${b.trip.length} of ${steps} steps`));
-    if (q.mode === 'every') parts.push(button('That’s all', {type: 'all'}, !moreLeft(b), act?.type === 'all'));
-    if (hasCant(q)) parts.push(button('Can’t', {type: 'cant'}, b.told !== 'way', act?.type === 'cant'));
+    if (q.mode === 'every') parts.push(button('That’s all', {type: 'all'}, allOpen(b), act?.type === 'all'));
+    if (hasCant(q)) parts.push(button('Can’t', {type: 'cant'}, cantOpen(q, b), act?.type === 'cant'));
     bar = parts.length ? `<div class="pt-bar">${parts.join('')}</div>` : '';
   }
   if (moving) pad = arrowPad({cls: 'pt-pad', dir: d => ({act: can(d), hinted: hintDir === d})});
@@ -508,7 +530,7 @@ function renderShrink(p, a, q, S, done, act) {
   const plane = planeBoard(S, {cls: 'pt-plane', label: 'Unrolled view', key: `portals-${p.id}`, show, min: Math.max(w, h) + 4, max: Math.max(w, h) * 3 + 2, labelAt: LETTER_AT, point: pt => ({text: letterOf(q, pt.s), textCls: 'faint corner', label: `${letterOf(q, pt.s)}, ${copyWords(copyIndex(S, pt))}`}), square: (s, X, Y, copy) => copy[0] === 0 && copy[1] === 0 ? 'first' : '', under, over: layer.line, top: moving ? layer.controls : ''});
   const word = `<div class="pt-word" role="img" aria-label="${esc(b.trip ? `Trip: ${[...b.trip].map(c => DIR_NAMES[c]).join(', ')}` : 'No steps left')}">${b.trip ? [...b.trip].map((c, k) => `<span class="${hintAt && (k === hintAt - 1 || k === hintAt) ? 'hinted' : ''}">${ARROWS[c]}</span>`).join('') : '<span class="pt-empty">·</span>'}</div>`;
   const parts = [];
-  if (moving) parts.push(button('Can’t', {type: 'cant'}, b.told !== 'way', act?.type === 'cant'));
+  if (moving) parts.push(button('Can’t', {type: 'cant'}, cantOpen(q, b), act?.type === 'cant'));
   const bar = parts.length ? `<div class="pt-bar">${parts.join('')}</div>` : '';
   const told = b.told === 'way' ? 'There is a way.' : '';
   const status = `Trip ${b.trip ? [...b.trip].map(c => DIR_NAMES[c]).join(', ') : 'empty'}. It ends on ${letterOf(q, L.end.s)}, ${copyWords(copyIndex(S, L.end))}.${told ? ` ${told}` : ''}`;

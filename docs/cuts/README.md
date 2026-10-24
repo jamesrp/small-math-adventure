@@ -45,13 +45,13 @@ The [Week 14 review card](https://github.com/jamesrp/math-circle-worksheets/blob
 ## How a puzzle plays
 
 - **Drawing.** Tap a corner to choose it, then another to draw a line between them. Tapping the chosen corner again lets it go; tapping a neighbouring corner chooses that one instead. A line that would cross another is refused with "Lines can't cross." and a dashed red line. Tap a line to erase it. A kept line is drawn thick and can't be erased.
-- **Every way.** When the shape is cut all the way into triangles, the way joins a row below the board, sorted by the triangle on the side from A to the last corner. **That's all** checks the row: with one missing it says "There's another." and waits for a change. Undo keeps the ways found; Restart clears them. **Clear** erases every line but kept ones.
+- **Every way.** When the shape is cut all the way into triangles, the way joins a row below the board, sorted by the triangle on the side from A to the last corner. **That's all** opens with the first way found and checks the row: with one missing it says "There's another." and waits for a change. Undo keeps the ways found; Restart clears them. **Clear** erases every line but kept ones.
 - **Flipping.** Tap a line to flip it. The board shows the current way; nothing is drawn by hand.
 - **Flip to the card.** The goal card shows the way to make and a counter shows flips used of those allowed. A flip past the allowance is refused with "No flips left."
 - **Odd way home.** The home card shows the start; solved when it is back after an odd number of flips.
 - **Every way once.** A trail below the board shows the ways visited, home first. A flip back to a way already visited is refused with "You've been there."; the last flip may come home once every way is visited.
 - **The playground.** Four to eight corners, chosen by small pictures. Draw lines; **Flip** and **Erase** choose what tapping a line does (a line beside a four-sided piece can't flip). There are no hints and no solve.
-- **Hints.** In every-way puzzles a hint erases a line, or draws one, toward the nearest way not yet found, then presses That's all. In flip puzzles it glows the line to flip on a shortest route; when the card or home is out of reach, or a tour can't be finished, it says to undo. Hints alone solve every puzzle.
+- **Hints.** In every-way puzzles a hint erases a line, or draws one, toward the nearest way not yet found, then presses That's all. In flip puzzles it glows the line to flip on a shortest route; when the card or home is out of reach, or a tour can't be finished, it says to undo. Those lines wait behind Hint while a flip is still allowed (so a flip isn't judged as it is made); once the flips are used up, or every flip of a tour goes to a way already visited, the line is said unasked. Hints alone solve every puzzle.
 
 ## Rules that keep the record honest
 

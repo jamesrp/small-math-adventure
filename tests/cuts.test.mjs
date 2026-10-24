@@ -83,7 +83,10 @@ test('finding every way: draw, a full way joins the row, That’s all checks the
   assert.deepEqual(fresh.board.diags, [line(P5, 'AC')]);
   assert.equal(move(p, fresh, {type: 'erase', d: line(P5, 'AC')}), null, 'the thick line stays');
   assert.equal(move(p, fresh, draw(P5, 'BD')), null, 'BD crosses AC');
+  assert.equal(move(p, fresh, {type: 'claim'}), null, 'That’s all waits for the first way');
+  assert.match(view(p, fresh), /data-focus="ct-claim" disabled/);
   const one = play(p, fresh, draw(P5, 'AD'));
+  assert.doesNotMatch(view(p, one), /data-focus="ct-claim" disabled/);
   assert.deepEqual(one.board.found, ['AC AD']);
   const early = play(p, one, {type: 'claim'});
   assert.ok(early.board.missed && !isSolved(p, early.board));
@@ -118,6 +121,7 @@ test('flipping to a card: a flip per tap, the budget, and hints', () => {
   assert.equal(move(p, fresh, draw(P6, 'AC')), null, 'no drawing');
   const wasted = play(p, fresh, flipLine(P6, 'BD'));
   assert.equal(nextHint(p, wasted).type, 'deadend', 'BD → CF moves away from the card');
+  assert.equal(nextHint(p, wasted).quiet, true, 'told only behind Hint while flips remain');
   const hint = nextHint(p, fresh);
   assert.equal(hint.action.type, 'flip');
   assert.match(view(p, {...fresh, hintLevel: 2}), /ct-hit hinted/);
@@ -127,6 +131,8 @@ test('flipping to a card: a flip per tap, the budget, and hints', () => {
   const last = fromKey(P6, out.board.path.at(-1));
   assert.ok(last.every(d => move(p, out, {type: 'flip', d}) === null), 'no flip past the budget');
   assert.match(view(p, out), /Flips <strong class="over">3<\/strong> \/ 3/);
+  const spent = nextHint(p, out);
+  assert.ok(spent.type === 'deadend' && !spent.quiet && /No flips left/.test(spent.text), 'said once the flips are used up');
 });
 
 test('one more flip: no first flip draws a line of the card', () => {
@@ -161,6 +167,19 @@ test('touring every way: no way twice, home at the end, and a stuck route is a d
   while ((next = flips(b)[0]) && !isSolved(q, next.board)) b = next;
   assert.equal(next, undefined, 'taking the first flip each time gets stuck');
   assert.equal(nextHint(q, b).type, 'deadend');
+  assert.ok(!nextHint(q, b).quiet, 'a stuck route is said: every flip is refused');
+  // A route that can't finish while a new way is still a flip away is told
+  // only behind Hint.
+  const queue = [freshAttempt(q)];
+  let doomed = null;
+  while (queue.length && !doomed) {
+    const x = queue.shift(), h = nextHint(q, x);
+    if (h.type === 'deadend') { doomed = {x, h}; break; }
+    if (x.board.path.length < 6) queue.push(...flips(x));
+  }
+  assert.ok(doomed, 'some short route can no longer finish');
+  assert.equal(doomed.h.quiet, true);
+  assert.ok(flips(doomed.x).length > 0, 'and a flip to a new way remains');
 });
 
 test('the playground: five shapes, draw, flip or erase, clear', () => {

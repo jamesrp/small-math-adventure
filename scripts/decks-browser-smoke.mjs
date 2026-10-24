@@ -88,12 +88,15 @@ try {
   await page.getByText('No deck beats both others').waitFor();
   await fit('cycle'); await shot('03-solved');
 
-  // Split four cards evenly: Can't refused, then one swap.
+  // Split four cards evenly: Can't waits for a swap, is refused, then one swap more.
   const P4 = 'decks-04';
   await open(P4); await shot('04-start');
+  assert.equal(await button('Can’t').isDisabled(), true, 'Can’t waits for a swap');
+  await tap(card(2)); await tap(card(3));
   await button('Can’t').click();
   await page.getByText('Keep looking.').waitFor();
-  await tap(card(2)); await tap(card(4));
+  assert.equal(await button('Can’t').isDisabled(), true, 'refused: off until the decks change');
+  await tap(card(3)); await tap(card(4));
   await solved();
   assert.deepEqual((await board(P4)).decks, [[1, 4], [2, 3]]);
   await fit('four cards'); await shot('04-solved');
@@ -145,19 +148,19 @@ try {
   assert.equal(await page.locator('.case-catalog .case-kept.yes').count(), 5);
   await fit('swaps solved'); await shot('05-solved');
 
-  // Split six cards evenly: Can't is right, with every split.
+  // Split six cards evenly: Can't is right after a swap, with every split.
   await open('decks-07');
+  assert.equal(await button('Can’t').isDisabled(), true, 'no Can’t on a fresh deal');
+  await tap(card(1)); await tap(card(4));
   await button('Can’t').click();
   await solved();
   assert.equal(await page.locator('.case-catalog .case-kept').count(), 10, 'every split with 1 in A');
   await fit('splits'); await shot('07-solved');
 
-  // Make a cycle: Can't refused; two-tap swaps by keyboard; a re-pick; a solve.
+  // Make a cycle: two-tap swaps by keyboard; a re-pick; Can't refused; a solve.
   const P9 = 'decks-09';
   await open(P9); await shot('09-start');
-  await button('Can’t').click();
-  await page.getByText('Keep looking.').waitFor();
-  assert.equal(await button('Can’t').isDisabled(), true);
+  assert.equal(await button('Can’t').isDisabled(), true, 'no Can’t on a fresh deal');
   await card(4).focus(); await page.keyboard.press('Enter');
   assert.equal(await card(4).getAttribute('aria-pressed'), 'true', 'picked');
   assert.equal(await focused(), 'card-4', 'keyboard focus stays on the card');
@@ -165,15 +168,19 @@ try {
   assert.equal(await card(1).getAttribute('aria-pressed'), 'true', 'a card in the same deck is picked instead');
   assert.equal(await card(4).getAttribute('aria-pressed'), 'false');
   await card(5).focus(); await page.keyboard.press('Enter');
-  assert.deepEqual(await board(P9), {decks: [[3, 6, 9], [1, 2, 8], [4, 5, 7]], cant: false}, '1 and 5 swap; the refusal clears');
+  assert.deepEqual(await board(P9), {decks: [[3, 6, 9], [1, 2, 8], [4, 5, 7]], cant: false}, '1 and 5 swap');
   assert.equal(await focused(), 'card-5', 'keyboard focus follows the card');
-  assert.equal(await page.getByText('Keep looking.').count(), 0);
   await shot('09-swapped');
+  await button('Can’t').click();
+  await page.getByText('Keep looking.').waitFor();
+  assert.equal(await button('Can’t').isDisabled(), true);
   await tap(card(2)); await tap(card(2));
   assert.equal(await page.locator('.deck-card.picked').count(), 0, 'tapping the picked card puts it down');
   await tap(card(2));
   await page.locator('[data-action="undo"]').click();
   assert.equal(await page.locator('.deck-card.picked').count(), 0, 'Undo forgets the pick');
+  assert.equal(await page.getByText('Keep looking.').count(), 0, 'and takes back Can’t');
+  await page.locator('[data-action="undo"]').click();
   assert.deepEqual((await board(P9)).decks, [[3, 6, 9], [2, 5, 8], [1, 4, 7]]);
   await tap(card(1)); await tap(card(5));
   await tap(card(2)); await tap(card(6));
@@ -192,13 +199,16 @@ try {
   assert.equal(await page.locator('.case-catalog .case-kept.yes').count(), 3);
   await fit('every deal'); await shot('08-solved');
 
-  // Two-card decks and three big wins: Can't with its certificates.
+  // Two-card decks and three big wins: Can't after a swap, with its certificates.
   await open('decks-10');
+  assert.equal(await button('Can’t').isDisabled(), true, 'no Can’t on a fresh deal');
+  await tap(card(2)); await tap(card(3));
   await button('Can’t').click();
   await solved();
   assert.equal(await page.locator('.deck-cell.lost').count(), 4, 'card 1’s pairs ringed in its two grids');
   await fit('two-card decks'); await shot('10-solved');
   await open('decks-12');
+  await tap(card(4)); await tap(card(6));
   await button('Can’t').click();
   await solved();
   assert.equal(await page.locator('.case-catalog .case-kept').count(), 15, 'every cycle');

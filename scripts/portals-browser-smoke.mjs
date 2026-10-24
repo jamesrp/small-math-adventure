@@ -125,6 +125,7 @@ try {
   await open(C); await fit('every');
   assert.equal(await page.locator('.puzzle-goal').innerText(), 'Find every square exactly two steps away.');
   assert.equal(await page.locator('.pt-beads i').count(), 2);
+  assert.equal(await button('That’s all').isDisabled(), true, 'That’s all waits for the first ring');
   await tap(room('E')); await tap(room('D'));
   assert.deepEqual((await board(C)).found, ['D'], 'two steps right ring D through the portal');
   assert.equal((await board(C)).trip, '', 'the pawn goes home');
@@ -148,12 +149,20 @@ try {
   await tap(arrow('R'));
   assert.equal(await arrow('R').isDisabled(), true, 'a wall');
 
-  // Puzzle 3: beads and Can't.
+  // Puzzle 3: beads, a trip that can't finish (told only behind Hint until
+  // the beads are used), and Can't after a full trip.
   const D = 'portals-03';
   await open(D);
+  assert.equal(await button('Can’t').isDisabled(), true, 'Can’t waits for a full trip');
+  await arrows('RU');
+  assert.doesNotMatch(await page.locator('.feedback').innerText(), /finish/, 'no unasked line while a bead is left');
+  await arrows('L');
+  assert.equal(await page.locator('.feedback').innerText(), 'The pawn isn’t on H. Undo.', 'a full trip off H says so');
   await button('Can’t').click();
   assert.equal(await told(), 'There is a way.');
   assert.equal(await button('Can’t').isDisabled(), true);
+  for (let k = 0; k < 4; k++) await undo();
+  assert.equal((await board(D)).trip, '', 'back to the start');
   await tap(arrow('U'));
   assert.equal(await page.locator('.pt-beads i.on').count(), 1, 'a bead per step');
   assert.equal(await page.locator('.pt-told').count(), 0, 'a step clears it');
@@ -164,8 +173,10 @@ try {
   await page.keyboard.press('Enter');
   await done();
 
-  // Puzzle 12: Can't, and the checkerboard after it.
+  // Puzzle 12: Can't after a full trip, and the checkerboard after it.
   await open('portals-12');
+  assert.equal(await button('Can’t').isDisabled(), true);
+  await arrows('RRRRR');
   await button('Can’t').click();
   await done();
   assert.ok(await page.locator('.pb-point.dark').count() > 0, 'the checkerboard shows');
@@ -226,8 +237,10 @@ try {
   assert.equal((await board(H)).trip, 'UUURRR', 'eleven slides in all');
   await shot('turn-solved');
 
-  // Puzzle 11: Can't, from the finishing copy.
+  // Puzzle 11: Can't once the trip has changed, from the finishing copy.
   await open('portals-11');
+  assert.equal(await button('Can’t').isDisabled(), true);
+  await tap(vertex(3));
   await button('Can’t').click();
   await done();
 

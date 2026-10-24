@@ -131,6 +131,12 @@ try {
   await button('Pin').click();
   assert.equal(await page.locator('.rg-note').innerText(), 'A join can be longer.', 'the same pins are refused again');
   assert.equal(await page.locator('.rg-pin').count(), 0, 'and the pins clear');
+  // A first pin that is neither extreme is not judged unasked.
+  await button('Pin').click();
+  assert.equal(await page.locator('.rg-pin').count(), 1);
+  assert.equal(await page.locator('.feedback').innerText(), '', 'one pin is not judged alone');
+  await page.locator('[data-action="undo"]').click();
+  assert.equal(await page.locator('.rg-pin').count(), 0);
   await page.locator('.rg-knob[data-focus="rg-knob-A"]').focus(); await page.keyboard.press('Home');
   await button('Pin').click();
   await page.locator('.rg-knob[data-focus="rg-knob-A"]').focus(); await page.keyboard.press('End');

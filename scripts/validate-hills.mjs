@@ -10,7 +10,7 @@
 // Run: node scripts/validate-hills.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import {freshAttempt, move, isSolved, nextHint, validBoard} from '../dist/engine.js';
+import {freshAttempt, move, isSolved, nextHint, validBoard, undoPress} from '../dist/engine.js';
 import {isExpansion, mechanicFor} from '../dist/expansion.js';
 import * as hills from '../dist/families/hills/hills.js';
 import {loadPack} from './packs.mjs';
@@ -163,6 +163,7 @@ export default async function validateHills() {
         for (const s of wrong) w = move(p, w, {type: 'pin', site: s});
         assert.ok(w && !isSolved(p, w.board));
         assert.equal(move(p, w, {type: 'pin', site: p.solution.pins.find(s => !wrong.includes(s))}), null, `${label}: no pin past the budget`);
+        assert.doesNotMatch(mechanicFor(p).render(p, w), new RegExp(`&quot;type&quot;:&quot;pin&quot;,&quot;site&quot;:(?!(?:${wrong.join('|')})\\})`), `${label}: with the pins used, only pinned towers make a move (the rest shake the pins)`);
         assert.match(mechanicFor(p).render(p, w), /hills-peek-marker/, `${label}: a second landscape shows`);
         hintSteps += hintRun(p, w, `${label} from wrong pins`);
       }
@@ -181,9 +182,20 @@ export default async function validateHills() {
     if (q.mode === 'every') {
       assert.deepEqual(p.solution.landscapes, [...found].sort(), `${label}: every landscape`);
       assert.equal(p.solution.count, found.length);
-      // That's all too soon is refused; each landscape is recorded once.
-      let a = move(p, fresh, {type: 'done'});
-      assert.ok(a && a.board.said === 'wrong' && !isSolved(p, a.board), `${label}: That's all too soon`);
+      // That's all waits for the first landscape; too soon it is refused and
+      // stays off until the row changes; each landscape is recorded once.
+      assert.equal(move(p, fresh, {type: 'done'}), null, `${label}: no That's all before a landscape`);
+      const first = found[0].split(',').map(Number);
+      let a = fresh;
+      for (let i = 0; i < n; i++) if (a.board.h[i] !== first[i]) a = move(p, a, {type: 'set', site: i, h: first[i]});
+      const early = a;
+      if (found.length > 1) {
+        a = move(p, a, {type: 'done'});
+        assert.ok(a && a.board.said === 'wrong' && !isSolved(p, a.board), `${label}: That's all too soon`);
+        assert.equal(move(p, a, {type: 'done'}), null, `${label}: That's all stays off until the row changes`);
+        assert.equal(undoPress(p, a).board.said, 'wrong', `${label}: Undo keeps the refusal on the same row`);
+        refusals++;
+      }
       for (const f of found) {
         const h = f.split(',').map(Number);
         for (let i = 0; i < n; i++) if (a.board.h[i] !== h[i]) a = move(p, a, {type: 'set', site: i, h: h[i]});
@@ -191,7 +203,7 @@ export default async function validateHills() {
       assert.deepEqual(a.board.found, [...found].sort(), `${label}: every landscape recorded`);
       a = move(p, a, {type: 'done'});
       assert.ok(isSolved(p, a.board), `${label}: That's all with every landscape`);
-      hintSteps += hintRun(p, move(p, fresh, {type: 'done'}), `${label} after That's all too soon`);
+      if (found.length > 1) hintSteps += hintRun(p, move(p, early, {type: 'done'}), `${label} after That's all too soon`);
       for (const f of [{...fresh.board, found: ['9,9']}, {...fresh.board, found: [found[0], found[0]]}, {...fresh.board, found: [...found].sort().reverse()}, {...fresh.board, said: 'done'}, {...fresh.board, said: 'yes'}, {...fresh.board, claimed: null}]) {
         assert.equal(validBoard(p, f), false, `${label}: rejects a forged save ${JSON.stringify(f).slice(0, 80)}`);
         forgeries++;
@@ -202,7 +214,9 @@ export default async function validateHills() {
       assert.equal(found.length, 0, `${label}: no landscape fits`);
       assert.ok(q.cant, `${label}: Can't is offered`);
       assert.deepEqual(p.solution.pairs, tooFar, `${label}: the pairs too far apart`);
-      const a = move(p, fresh, {type: 'cant', pair: [...p.solution.apart].reverse()});
+      assert.equal(move(p, fresh, {type: 'cant', pair: p.solution.apart}), null, `${label}: no claim before a tower is built`);
+      const built = move(p, fresh, {type: 'set', site: range(0, n - 1).find(i => !q.clues.some(([c]) => c === i)), h: 0});
+      const a = move(p, built, {type: 'cant', pair: [...p.solution.apart].reverse()});
       assert.ok(a && isSolved(p, a.board), `${label}: the right claim solves`);
       assert.match(mechanicFor(p).render(p, a), /apart/);
     } else {
@@ -216,12 +230,15 @@ export default async function validateHills() {
     }
     if (q.mode === 'fill' && q.cant) {
       const cluePairs = q.clues.flatMap(([c], k) => q.clues.slice(k + 1).map(([d]) => [Math.min(c, d), Math.max(c, d)]));
+      const free0 = range(0, n - 1).find(i => !q.clues.some(([c]) => c === i)), built = move(p, fresh, {type: 'set', site: free0, h: 1});
+      for (const pair of cluePairs) assert.equal(move(p, fresh, {type: 'cant', pair}), null, `${label}: no claim on ${pair} before a tower is built`);
       for (const pair of cluePairs.filter(pr => !tooFar.some(t => t.join() === pr.join()))) {
-        const r = move(p, fresh, {type: 'cant', pair});
+        const r = move(p, built, {type: 'cant', pair});
         assert.ok(r && !isSolved(p, r.board) && r.board.refused.join() === pair.join(), `${label}: claim on ${pair} refused`);
         assert.match(mechanicFor(p).render(p, r), /Those two clues fit/);
-        const free = range(0, n - 1).find(i => !q.clues.some(([c]) => c === i));
-        assert.equal(move(p, r, {type: 'set', site: free, h: 0}).board.refused, null, `${label}: the refusal clears`);
+        for (const other of cluePairs) assert.equal(move(p, r, {type: 'cant', pair: other}), null, `${label}: Can't stays off after a refusal until a height changes`);
+        assert.deepEqual(undoPress(p, r).board.refused, pair, `${label}: Undo keeps the refusal on the same heights`);
+        assert.equal(move(p, r, {type: 'set', site: free0, h: 0}).board.refused, null, `${label}: the refusal clears`);
         hintSteps += hintRun(p, r, `${label} after a refused claim`);
         refusals++;
       }

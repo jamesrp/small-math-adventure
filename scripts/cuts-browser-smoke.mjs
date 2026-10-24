@@ -64,6 +64,7 @@ try {
   await open(K); await fit('keep the line');
   assert.equal(await page.locator('[data-tg-point]').count(), 5);
   assert.equal(await page.locator('.ct-line.kept').count(), 1);
+  assert.equal(await page.locator('.ct-action', {hasText: 'That’s all'}).isDisabled(), true, 'That’s all waits for the first way');
   await tapCorner('A'); await eventually(async () => assert.equal(await corner(0).getAttribute('aria-label'), 'Corner A, chosen'));
   await tapCorner('B'); await eventually(async () => assert.equal(await corner(1).getAttribute('aria-label'), 'Corner B, chosen', 'a neighbour moves the choice'));
   await tapCorner('D');
@@ -83,9 +84,14 @@ try {
   await page.locator('.ct-action', {hasText: 'That’s all'}).click();
   await done();
 
-  // Fan to fan: flips by tap and by key, the counter, the goal card.
+  // Fan to fan: a wasted flip says nothing unasked; flips by tap and by
+  // key, the counter, the goal card.
   const F = 'cuts-05';
   await open(F); await fit('fan to fan');
+  await flipTo(F, 6, 'BD');
+  assert.equal(await page.locator('.feedback').innerText(), '', 'a wasted flip is told only behind Hint');
+  await page.locator('[data-action=undo]').click();
+  await eventually(async () => assert.equal((await board(F)).path.length, 1));
   assert.equal(await page.locator('[data-tg-point]').count(), 0, 'corners are not controls in a flip puzzle');
   assert.equal(await page.locator('.ct-card.goal').count(), 1);
   await flipTo(F, 6, 'BF');

@@ -76,7 +76,9 @@ test('Can’t: only after a try, no verdict on the press, judged by the two extr
   assert.match(view(p, refused), /A join can be longer\./);
   assert.equal(M.carry(p, refused.board, undo(refused).board).told, 'longer', 'Undo keeps the refusal while the strips stay put');
   assert.equal(play(p, refused, set('B', 5)).board.told, null, 'a move clears it');
-  assert.equal(nextHint(p, play(p, freshAttempt(p), set('B', 4), set('A', 5), {type: 'cant'}, {type: 'pin'})).type, 'deadend', 'a pin that is neither extreme is a dead end');
+  const lone = nextHint(p, play(p, freshAttempt(p), set('B', 4), set('A', 5), {type: 'cant'}, {type: 'pin'}));
+  assert.equal(lone.type, 'deadend', 'a pin that is neither extreme is a dead end');
+  assert.equal(lone.quiet, true, 'told only behind Hint: one pin is not judged alone');
   a = play(p, a, set('B', 5));
   assert.equal(isSolved(p, a.board), false, 'the longest join counts only when pinned');
   a = play(p, a, {type: 'pin'});

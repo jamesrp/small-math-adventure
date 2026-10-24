@@ -6,7 +6,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
+import {freshAttempt, move, isSolved, nextHint, validBoard, undo, undoPress} from '../dist/engine.js';
+import {playView} from '../dist/ui.js';
 import {mechanicFor} from '../dist/expansion.js';
 import {apply, allRows, rowsAfter, shortest, apart, canJoin, cardWords, singleCards} from '../dist/families/paint/paint.js';
 import {libraryView} from '../dist/caravan-ui.js';
@@ -17,6 +18,7 @@ const byId = id => pack.puzzles.find(p => p.id === id);
 const card = (p, c) => ({type: 'play', card: p.parameters.hand.indexOf(c)});
 const run = (p, a, cards) => cards.reduce((x, c) => x && move(p, x, card(p, c)), a);
 const html = (p, a) => mechanicFor(p).render(p, a);
+const pr = {pack: await loadPack(), selected: null, message: ''};
 const stacks = (p, a) => (html(p, a).match(/class="paint-stack/g) || []).length;
 
 test('paint sets a tile, turn turns it, copy and shift move colours within each row', () => {
@@ -78,7 +80,12 @@ test('every start: the rows stack up as tiles are painted, and the budget is the
   assert.equal(stacks(p, a), 4, 'painting tile 1 again joins nothing');
   assert.doesNotMatch(html(p, a), /merged/);
   assert.equal(nextHint(p, a).type, 'deadend', 'one card left for two tiles');
-  assert.equal(move(p, run(p, a, ['.Y.']), card(p, '..Y')), null, 'no card past the budget');
+  assert.equal(nextHint(p, a).quiet, true, 'told only behind Hint while a card is left');
+  assert.doesNotMatch(playView(p, a, pr), /Too few cards/, 'no unasked line while a card is left');
+  const spent = run(p, a, ['.Y.']);
+  assert.equal(nextHint(p, spent).quiet, undefined, 'the spent budget is told at once');
+  assert.match(playView(p, spent, pr), /The rows don’t all match\. Undo\./);
+  assert.equal(move(p, spent, card(p, '..Y')), null, 'no card past the budget');
   a = run(p, undo(a), ['.B.', '..Y']);
   assert.ok(isSolved(p, a.board));
   assert.match(html(p, a), /×8/);
@@ -88,10 +95,19 @@ test('Can’t names two rows: a pair that never joins solves, a pair that can is
   const p = byId('paint-03');
   assert.deepEqual(p.solution.apart, ['YBY', 'YYY']);
   let a = freshAttempt(p);
-  assert.match(html(p, a), /paint-cant/);
-  a = move(p, a, {type: 'cant', rows: ['YYY', 'YYB']});
+  assert.match(html(p, a), /paint-cant"[^>]*disabled/, 'Can’t waits for the first card');
+  assert.equal(move(p, a, {type: 'cant', rows: ['YBY', 'YYY']}), null, 'no claim on a fresh table, even a right one');
+  a = run(p, a, ['F..']);
+  assert.match(html(p, a), /data-toggle="paint-cant"/, 'a double tap can’t close the claim');
+  assert.doesNotMatch(html(p, a), /paint-cant"[^>]*disabled/, 'Can’t opens after a card');
+  a = move(p, a, {type: 'cant', rows: ['BYY', 'BYB']});
   assert.ok(a && !isSolved(p, a.board));
   assert.match(html(p, a), /Those two can still become one\./);
+  assert.match(html(p, a), /paint-cant"[^>]*disabled/, 'a refusal keeps Can’t off');
+  assert.equal(move(p, a, {type: 'cant', rows: ['BYY', 'BBY']}), null, 'no second pair on the same table');
+  const back = undoPress(p, a, x => html(p, x));
+  assert.equal(back.board.story.length, 0, 'Undo goes back past the refused table');
+  assert.equal(undoPress(p, a).board.refused.join(), a.board.refused.join(), 'a plain step back keeps the refusal on the same cards');
   a = run(p, a, ['Y..']);
   assert.equal(a.board.refused, null, 'a card clears the refusal');
   a = run(p, a, ['..B']);
@@ -100,26 +116,28 @@ test('Can’t names two rows: a pair that never joins solves, a pair that can is
   a = move(p, a, {type: 'cant', rows});
   assert.ok(isSolved(p, a.board));
   assert.equal((html(p, a).match(/paint-stack[^"]* apart/g) || []).length, 2, 'the two stacks are marked');
-  assert.equal(move(p, freshAttempt(p), {type: 'cant', rows: ['YYY', 'YYY']}), null, 'two different rows');
+  assert.equal(move(p, run(p, freshAttempt(p), ['F..']), {type: 'cant', rows: ['BYY', 'BYY']}), null, 'two different rows');
 });
 
 test('the Can’t picker is view state: tap one stack, then another; it closes after a move', () => {
   const p = byId('paint-03'), m = mechanicFor(p);
   m.reset(p);
-  assert.doesNotMatch(html(p, freshAttempt(p)), /paint-pickable/);
+  const turned = run(p, freshAttempt(p), ['F..']);
+  assert.doesNotMatch(html(p, turned), /paint-pickable/);
   m.ui(p, {claiming: true});
-  assert.equal((html(p, freshAttempt(p)).match(/paint-pickable/g) || []).length, 8);
-  assert.match(html(p, freshAttempt(p)), /paint-card[^>]*disabled/, 'cards wait while picking');
-  m.ui(p, {pick: 'YYY'});
-  const picking = html(p, freshAttempt(p));
+  assert.doesNotMatch(html(p, freshAttempt(p)), /paint-pickable/, 'no picking on a fresh table');
+  assert.equal((html(p, turned).match(/paint-pickable/g) || []).length, 8);
+  assert.match(html(p, turned), /paint-card[^>]*disabled/, 'cards wait while picking');
+  m.ui(p, {pick: 'BYY'});
+  const picking = html(p, turned);
   assert.match(picking, /paint-pickable picked/);
-  assert.match(picking, /data-action="expansion-move" data-move="\{&quot;type&quot;:&quot;cant&quot;,&quot;rows&quot;:\[&quot;YYY&quot;,&quot;YYB&quot;\]\}"/, 'the other stacks make the claim');
-  m.ui(p, {pick: 'YYY'});
-  assert.doesNotMatch(html(p, freshAttempt(p)), /picked/, 'a second tap unpicks');
-  move(p, freshAttempt(p), card(p, 'Y..'));
-  assert.doesNotMatch(html(p, freshAttempt(p)), /paint-pickable/);
+  assert.match(picking, /data-action="expansion-move" data-move="\{&quot;type&quot;:&quot;cant&quot;,&quot;rows&quot;:\[&quot;BYY&quot;,&quot;BYB&quot;\]\}"/, 'the other stacks make the claim');
+  m.ui(p, {pick: 'BYY'});
+  assert.doesNotMatch(html(p, turned), /picked/, 'a second tap unpicks');
+  move(p, turned, card(p, 'Y..'));
+  assert.doesNotMatch(html(p, turned), /paint-pickable/);
   m.ui(p, {claiming: 'yes'});
-  assert.doesNotMatch(html(p, freshAttempt(p)), /paint-pickable/);
+  assert.doesNotMatch(html(p, turned), /paint-pickable/);
 });
 
 test('a goal row: the last paint, then its turns; a turn first is painted over', () => {
@@ -129,7 +147,7 @@ test('a goal row: the last paint, then its turns; a turn first is painted over',
   assert.equal(nextHint(p, a).type, 'deadend', 'the turn before the paint wasted a card');
   a = run(p, freshAttempt(p), ['Y..', 'F..', '.Y.', '..Y', '..F']);
   assert.ok(isSolved(p, a.board));
-  assert.match(html(p, move(p, freshAttempt(p), {type: 'cant', rows: ['YYY', 'BBB']})), /can still become one/);
+  assert.match(html(p, move(p, run(p, freshAttempt(p), ['Y..']), {type: 'cant', rows: ['YYY', 'YBB']})), /can still become one/);
 });
 
 test('two rows can take a turn where every start could not', () => {
@@ -142,7 +160,8 @@ test('two rows can take a turn where every start could not', () => {
 
 test('copies only: the all-yellow and all-blue rows never join', () => {
   const p = byId('paint-06');
-  assert.equal(nextHint(p, freshAttempt(p)).action.type, 'cant');
+  assert.equal(nextHint(p, freshAttempt(p)).action.type, 'play', 'a card first: Can’t waits for one');
+  assert.equal(nextHint(p, run(p, freshAttempt(p), ['C12'])).action.type, 'cant');
   let a = run(p, freshAttempt(p), ['C12', 'C23']);
   assert.equal(stacks(p, a), 2);
   assert.match(html(p, a), /×4/);
@@ -192,7 +211,8 @@ test('hints name a card in words, or Can’t and two rows, and hints alone finis
   }
   const p = byId('paint-03');
   mechanicFor(p).reset(p);
-  const shown = html(p, {...freshAttempt(p), hintLevel: 2});
+  assert.doesNotMatch(html(p, {...freshAttempt(p), hintLevel: 2}), /paint-pickable/, 'a fresh table: the hint names a card first');
+  const shown = html(p, {...run(p, freshAttempt(p), ['Y..']), hintLevel: 2});
   assert.equal((shown.match(/paint-pickable[^"]*hinted/g) || []).length, 2, 'the two rows are marked');
 });
 

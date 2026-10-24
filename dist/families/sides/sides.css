@@ -47,3 +47,5 @@
 /* Piles fill row by row, so equal piles stand equally tall. */
 .side-puzzle .case-bin .case-list,.side-play .case-bin .case-list{flex-direction:row;align-content:flex-start;max-width:11rem}
 @media (max-width:420px){.board-panel .side-card .side-face{width:44px;height:56px}.side-cards{gap:.5rem}.side-stack{min-width:5.5rem}}
+@media (prefers-reduced-motion:no-preference){.side-puzzle .case-action.shake{animation:side-shake .4s ease-out}}
+@keyframes side-shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}

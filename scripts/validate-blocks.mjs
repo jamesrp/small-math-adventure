@@ -285,13 +285,19 @@ export async function validateBlocks() {
     else assert.notEqual(m.n % 3, 0, `${p.id}: the triangle count rules trapezoids out`);
     const possible = count > 0 && (q.mode !== 'kind' || kinds[1] === q.down);
     if (q.mode === 'fill' || q.mode === 'kind') {
-      const fresh = freshAttempt(p), claimed = move(p, fresh, {type: 'cant'});
+      // Can't waits for a trapezoid on the board; the hint lays one first.
+      const fresh = freshAttempt(p);
+      assert.equal(move(p, fresh, {type: 'cant'}), null, `${p.id}: no Can't on a fresh board`);
+      const first = nextHint(p, fresh);
+      assert.equal(first.action.type, 'place', `${p.id}: the first hint lays a trapezoid`);
+      const laid = play(p, fresh, first.action), claimed = move(p, laid, {type: 'cant'});
       assert.equal(isSolved(p, claimed.board), !possible, `${p.id}: Can't`);
       if (possible) { assert.equal(claimed.board.refused, true); assert.equal(move(p, claimed, {type: 'cant'}), null, `${p.id}: Can't waits for a change`); }
       assert.equal(validBoard(p, {pieces: [], cant: possible, refused: !possible}), false, `${p.id}: a forged Can't or refusal`);
     }
     if (q.mode === 'every') {
       let a = freshAttempt(p);
+      assert.equal(move(p, a, {type: 'claim'}), null, `${p.id}: no That's all before a filling`);
       for (const piece of f.list[0]) a = play(p, a, {type: 'place', cells: piece});
       a = play(p, a, {type: 'claim'});
       assert.equal(a.board.missed, true, `${p.id}: That's all too soon`);

@@ -3,7 +3,8 @@
 // and sorting the side, a wrong pile, a repeat, an early That's all and Undo;
 // a design by switches with Try it and its notes; Keep refusing a cup that
 // doesn't tie and showing its red sides; a hint solve with the catalog of 63;
-// whole cards with Can't and its catalog, copies, and + and − by keyboard;
+// whole cards with Can't (after Try it) and its catalog, copies, and + and −
+// by keyboard; the wrong pile shaking with no line;
 // and the playground up to its sixty draws, with nothing covered. Same environment
 // variables as the other browser suites (PLAYWRIGHT_MODULE,
 // BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone viewport).
@@ -60,6 +61,8 @@ try {
   await shot('01-turned');
   await page.keyboard.press('Enter');
   assert.equal((await board(P1)).kept.length, 0, 'the wrong pile is refused');
+  assert.equal(await refused(), 0, 'the wrong pile shakes, with no line');
+  assert.match(await sortTo('red').getAttribute('class'), /\bshake\b/, 'the wrong pile shakes');
   await sortTo('blue').click();
   assert.deepEqual((await board(P1)).kept, ['3']);
   assert.equal(await page.locator('.case-bin[data-bin="B"] .case-kept').count(), 1, 'with blue underneath');
@@ -134,11 +137,14 @@ try {
   assert.equal(await page.locator('.case-catalog .case-kept').count(), 7, 'the seven tables');
   await fit('whole cards'); await shot('08-solved');
 
-  // Copies: Can't is refused; + and − by keyboard; a tie.
+  // Copies: Can't waits for Try it, then is refused; + and − by keyboard; a tie.
   const P9 = 'sides-09';
   await open(P9);
+  assert.equal(await button('Can’t').isDisabled(), true, 'Can’t waits for Try it');
+  await button('Try it').click();
   await button('Can’t').click();
   await page.getByText('Keep looking.').waitFor();
+  assert.equal(await button('Can’t').isDisabled(), true, 'refused: off until the table changes');
   const more = page.getByRole('button', {name: 'One red and blue card more'});
   await more.focus();
   for (let i = 0; i < 2; i++) await page.keyboard.press('Enter');

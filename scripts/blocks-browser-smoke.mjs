@@ -148,26 +148,33 @@ try {
   await lay(F, rs[1]);
   await done();
 
-  // Red arrow: Can't is refused; then fill it.
+  // Red arrow: Can't waits for a trapezoid, then is refused; then fill it.
   const A = 'redfill-01', ga = gridFor(A);
   await open(A);
-  await button('Can’t').click();
-  await eventually(async () => assert.equal(await page.locator('.bk-note').innerText(), 'It can be done.'));
+  assert.equal(await button('Can’t').isDisabled(), true, 'Can’t waits for a trapezoid');
   const fillA = fillWithin(ga, [], 4, ['trapezoid']);
   await slide(...path(ga, fillA[0]));
   await eventually(async () => assert.equal((await board(A)).pieces.length, 1, 'a slide lays a trapezoid'));
+  await button('Can’t').click();
+  await eventually(async () => assert.equal(await page.locator('.bk-note').innerText(), 'It can be done.'));
+  assert.equal(await button('Can’t').isDisabled(), true, 'refused: off until a change');
+  await lay(A, fillA[1]);
   assert.equal(await page.locator('.bk-note').count(), 0, 'the note goes after a change');
-  for (const piece of fillA.slice(1)) await lay(A, piece);
+  for (const piece of fillA.slice(2)) await lay(A, piece);
   await done();
 
-  // Red hexagon: Can't is right.
-  await open('redfill-03');
+  // Red hexagon: Can't is right once a trapezoid is down.
+  const R3 = 'redfill-03', g3 = gridFor(R3);
+  await open(R3);
+  assert.equal(await button('Can’t').isDisabled(), true);
+  await lay(R3, placements(g3, 'trapezoid')[0]);
   await button('Can’t').click();
   await done();
 
   // Two ways: That's all too soon, then both.
   const W = 'redfill-04', gw = gridFor(W), first = fillWithin(gw, [], 3, ['trapezoid']);
   await open(W);
+  assert.equal(await button('That’s all').isDisabled(), true, 'That’s all waits for a filling');
   for (const piece of first) await lay(W, piece);
   await button('That’s all').click();
   await eventually(async () => assert.match(await page.locator('.bk-puzzle').innerText(), /There’s another\./));

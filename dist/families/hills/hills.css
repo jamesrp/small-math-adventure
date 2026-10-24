@@ -41,3 +41,5 @@
 @media (max-width:420px){.hills-board{--hills-c:40px;container-type:inline-size}.hills-land,.hills-land.hills-wide{--hills-w:clamp(22px,calc((100cqw - 40px - (var(--cols,5) - 1) * 4px) / var(--cols,5)),44px);padding:.55rem .45rem .5rem .3rem}.hills-land.hills-l6{--hills-c:34px}.hills-land.hills-l7{--hills-c:30px}.hills-gap{width:4px}.hills-axis{margin-right:5px}}
 /* A tablet held upright has room for bigger blocks. */
 @media (min-width:700px) and (min-height:1000px){.hills-board{--hills-w:48px;--hills-c:44px}.hills-land.hills-wide{--hills-w:44px}}
+@media (prefers-reduced-motion:no-preference){.hills-pins.full{animation:hills-nudge .4s ease-out}}
+@keyframes hills-nudge{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}

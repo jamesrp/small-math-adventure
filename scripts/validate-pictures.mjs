@@ -173,6 +173,7 @@ export async function validatePictures() {
         const wasted = move(p, fresh, switchMove(q.start, waste));
         assert.ok(wasted, `${p.id}: a wasted switch is still legal`);
         assert.equal(nextHint(p, wasted).type, 'deadend', `${p.id}: a wasted switch is a dead end`);
+        assert.equal(nextHint(p, wasted).quiet, q.budget > 1, `${p.id}: told only behind Hint while switches remain`);
         theoremChecks++;
       }
       // Saves are replayed: over budget, or with a switch that is not one, they are rejected.

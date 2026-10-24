@@ -130,8 +130,10 @@ function movePuzzle(p, b, action) {
     return {story: [...b.story, action.card], claimed: null, refused: null};
   }
   if (action.type === 'cant') {
+    // Can't opens after the first card, and a refused claim keeps it off
+    // until the next card (or Undo past the refusal's board).
     const cards = storyCards(q, b.story), rows = distinct(rowsAfter(q, cards));
-    if (!q.cant || !Array.isArray(action.rows) || action.rows.length !== 2 || action.rows[0] === action.rows[1] || !action.rows.every(r => rows.includes(r))) return null;
+    if (!q.cant || !b.story.length || b.refused !== null || !Array.isArray(action.rows) || action.rows.length !== 2 || action.rows[0] === action.rows[1] || !action.rows.every(r => rows.includes(r))) return null;
     const pair = claimFor(q, cards, action.rows);
     return pair ? {...b, claimed: pair, refused: null} : {...b, claimed: null, refused: [startsOn(q, cards, action.rows[0])[0], startsOn(q, cards, action.rows[1])[0]].sort()};
   }
@@ -156,18 +158,28 @@ export function cardWords(card) {
 const capital = s => s.charAt(0).toUpperCase() + s.slice(1);
 
 // Hints: the first card of a shortest finish within the cards left; Can't and
-// two rows that never join once the search shows no finish at all; Undo when
-// the budget is spent.
+// two rows that never join once the search shows no finish at all (after a
+// card, since Can't waits for one: before it, or after a refused claim, the
+// card that leaves the fewest different rows); Undo when the budget is spent.
+// While cards are left, that dead end is told only behind Hint (quiet): said
+// at once, it would judge each card as it is played, and trial with Undo would
+// find the fewest. Once the budget is spent the line says what is wrong.
 function plan(p, b) {
   const q = p.parameters, rows = rowsAfter(q, storyCards(q, b.story)), left = budgetOf(q) - b.story.length;
   const path = shortest(q, rows, left);
   if (path && path.length) return {type: 'move', action: {type: 'play', card: path[0]}, text: `${capital(cardWords(q.hand[path[0]]))}.`};
   const pair = q.cant ? apart(q) : null;
-  if (pair) {
+  if (pair && (!b.story.length || b.refused !== null) && left > 0) {
+    const counts = q.hand.map(c => distinct(rows.map(r => apply(c, r))).length), k = counts.indexOf(Math.min(...counts));
+    return {type: 'move', action: {type: 'play', card: k}, text: `${capital(cardWords(q.hand[k]))}.`};
+  }
+  if (pair && b.refused === null) {
     const cards = storyCards(q, b.story), now = pair.map(s => cards.reduce((row, c) => apply(c, row), s));
     return {type: 'move', action: {type: 'cant', rows: now}, text: 'Two of these rows can never become one. Press Can’t and tap them both.'};
   }
-  return {type: 'deadend', text: b.story.length ? 'Too few cards are left. Undo.' : 'Restart.'};
+  if (!b.story.length) return {type: 'deadend', text: 'Restart.'};
+  if (left > 0) return {type: 'deadend', quiet: true, text: 'Too few cards are left. Undo.'};
+  return {type: 'deadend', text: q.target ? 'Not every row matches the goal. Undo.' : q.rows === 'all' ? 'The rows don’t all match. Undo.' : 'The rows don’t match. Undo.'};
 }
 function hintPuzzle(p, b) {
   if (!validPuzzle(p, b)) return {type: 'deadend', text: 'Restart.'};
@@ -277,11 +289,14 @@ function renderPuzzle(p, attempt) {
   const q = p.parameters, b = attempt.board, solved = solvedPuzzle(p, b), cards = storyCards(q, b.story);
   const rows = rowsAfter(q, cards), before = cards.length ? rowsAfter(q, cards.slice(0, -1)) : null;
   const shown = attempt.hintLevel >= 2 && !solved ? plan(p, b).action : null, full = b.story.length >= budgetOf(q);
-  const state = ui(p), picking = q.cant && !solved && (state.claiming || shown?.type === 'cant');
+  const state = ui(p), picking = q.cant && !solved && b.story.length > 0 && b.refused === null && (state.claiming || shown?.type === 'cant');
   const now = r => cards.reduce((row, c) => apply(c, row), r);
   const claim = {picking, picks: picking ? state.picks.filter(r => rows.includes(r)) : [], shown: shown?.type === 'cant' ? shown.rows : null, apart: b.claimed ? b.claimed.map(now) : []};
   const hand = `<div class="paint-hand" role="group" aria-label="Cards">${q.hand.map((c, k) => cardButton(c, q.slots, {type: 'play', card: k}, solved || full || picking, shown)).join('')}</div>`;
-  const cant = q.cant && !solved ? `<button type="button" class="secondary paint-cant${shown?.type === 'cant' && !picking ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !picking})}' aria-pressed="${picking}">Can’t</button>` : '';
+  // Can't is drawn in every puzzle with every start, but opens only after the
+  // first card, and a refused claim keeps it off until the next card.
+  const open = b.story.length > 0 && b.refused === null;
+  const cant = q.cant && !solved ? `<button type="button" class="secondary paint-cant${shown?.type === 'cant' && !picking ? ' hinted' : ''}" data-action="mechanic-ui" data-toggle="paint-cant" data-ui='${JSON.stringify({claiming: !picking})}' aria-pressed="${picking}"${open ? '' : ' disabled'}>Can’t</button>` : '';
   const note = b.refused ? '<p class="paint-note" role="status">Those two can still become one.</p>' : `<p class="sr-only" role="status">${esc(q.rows === 'all' ? `${distinct(rows).length} different ${distinct(rows).length === 1 ? 'row' : 'rows'}.` : rows.map(rowWords).join('. '))}</p>`;
   return `<div class="paint-board mode-${q.rows === 'all' ? 'all' : 'two'}">${rowsHtml(q, rows, before, solved, claim)}${storyHtml(q, cards, q.budget ?? null)}${hand}${cant ? `<div class="paint-tools">${cant}</div>` : ''}${note}</div>`;
 }
@@ -319,6 +334,9 @@ export const paintMechanics = {
       if (typeof payload.pick === 'string') state.picks = state.picks.includes(payload.pick) ? [] : [payload.pick];
     },
     reset: p => { uiState.delete(p.id); },
+    // Undo keeps a refusal while the cards played are the same, so Undo can't
+    // reopen Can't on the board it was refused on.
+    carry: (p, from, to) => !playground(p) && from.refused !== null && to.claimed === null && JSON.stringify(from.story) === JSON.stringify(to.story) ? {...to, refused: from.refused} : to,
     noHint: playground
   }
 };

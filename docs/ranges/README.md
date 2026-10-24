@@ -43,7 +43,7 @@ The two easy break puzzles break on opposite sides of the window, and puzzle 4, 
 
 ## Hints
 
-The first hint, on a fresh board, is an idea (each puzzle's `hints[0]`). After that the mechanic names one move at a time, which Apply hint plays: a strip to a length, a band end to a unit, or Can't, Widest or Pin with the reason only ("The shortest join ends at 8 and the longest at 10, both inside the window.", "This is the shortest join."): a level-1 hint never says Press Can't, and a second Hint marks the button. For a claim that can't be broken, the chain first makes a try (the shortest join), so Can't is never the first move. A pin that is neither extreme (or in no certifying pair) makes the hint a dead end, with Undo offered. Settings, extremes and widest bands are cached per band; the validator times every hint with its move, and the slowest takes a few milliseconds.
+The first hint, on a fresh board, is an idea (each puzzle's `hints[0]`). After that the mechanic names one move at a time, which Apply hint plays: a strip to a length, a band end to a unit, or Can't, Widest or Pin with the reason only ("The shortest join ends at 8 and the longest at 10, both inside the window.", "This is the shortest join."): a level-1 hint never says Press Can't, and a second Hint marks the button. For a claim that can't be broken, the chain first makes a try (the shortest join), so Can't is never the first move. A pin that is neither extreme (or in no certifying pair) makes the hint a dead end, with Undo offered; it is told only behind Hint, so a single pin is never judged unasked. Settings, extremes and widest bands are cached per band; the validator times every hint with its move, and the slowest takes a few milliseconds.
 
 ## Provenance
 

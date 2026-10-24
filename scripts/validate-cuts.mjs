@@ -195,7 +195,8 @@ export async function validateCuts() {
       const first = drawWay(p, m, fresh, want[0]), crossing = m.lines.findIndex((_, i) => first.board.diags.some(j => m.cross[i][j]));
       assert.equal(move(p, first, {type: 'draw', a: m.lines[crossing][0], b: m.lines[crossing][1]}), null, `${p.id}: no crossing lines`);
       assert.equal(move(p, first, {type: 'flip', d: first.board.diags[0]}), null, `${p.id}: no flips here`);
-      const early = play(p, fresh, {type: 'claim'});
+      assert.equal(move(p, fresh, {type: 'claim'}), null, `${p.id}: no That's all before the first way`);
+      const early = play(p, first, {type: 'claim'});
       assert.ok(early.board.missed && !isSolved(p, early.board), `${p.id}: That's all too soon is refused`);
       assert.equal(move(p, early, {type: 'claim'}), null, `${p.id}: no second That's all until something changes`);
       let a = fresh;
@@ -253,12 +254,14 @@ export async function validateCuts() {
         const away = m.ways[start].map(i => play(p, fresh, {type: 'flip', d: i})).find(x => dist[m.index.get(x.board.path[1])] > dist[start]);
         if (away) {
           assert.equal(nextHint(p, away).type, 'deadend', `${p.id}: a wasted flip is a dead end`);
+          assert.equal(nextHint(p, away).quiet, true, `${p.id}: told only behind Hint while flips remain`);
           steps += hintsSolve(p, undoToSolvable(p, away), 'after undoing a wasted flip');
         }
         let out = fresh;
         while (out.board.path.length - 1 < q.budget) out = play(p, out, {type: 'flip', d: m.ways[m.index.get(out.board.path.at(-1))].find(i => { const next = move(p, out, {type: 'flip', d: i}); return next && !isSolved(p, next.board); })});
         assert.ok(!isSolved(p, out.board), `${p.id}: the flips can run out`);
         assert.equal(m.ways[m.index.get(out.board.path.at(-1))].map(i => move(p, out, {type: 'flip', d: i})).filter(Boolean).length, 0, `${p.id}: no flip past the budget`);
+        assert.ok(nextHint(p, out).type === 'deadend' && !nextHint(p, out).quiet, `${p.id}: said once the flips are used up`);
       }
       if (q.mode === 'home') {
         assert.equal(oddReturn(m, start), claim.oddHome, `${p.id}: shortest odd way home`);
@@ -284,6 +287,7 @@ export async function validateCuts() {
         assert.equal(!next, Boolean(claim.stuck), `${p.id}: the first-flip route gets stuck`);
         if (!next) {
           assert.equal(nextHint(p, stuck).type, 'deadend', `${p.id}: a stuck route is a dead end`);
+          assert.ok(!nextHint(p, stuck).quiet, `${p.id}: a stuck route is said`);
           steps += hintsSolve(p, undoToSolvable(p, stuck), 'after a stuck route');
         }
       }

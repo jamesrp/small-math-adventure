@@ -77,23 +77,31 @@ test('making a machine: a swap starts the run again, Can’t is checked', () => 
   const p = byId('machines-02');
   let a = play(p, freshAttempt(p), [swap(0, 1), turnOnce]);
   assert.equal(a.board.turns, 1);
-  a = play(p, a, [swap(0, 2)]);
-  assert.deepEqual([a.board.machine, a.board.turns], ['CABD', 0], 'a new machine starts from home');
-  const refused = play(p, a, [cant]);
+  assert.equal(move(p, freshAttempt(p), cant), null, 'no Can’t on the straight arrows');
+  assert.equal(move(p, a, cant), null, 'no Can’t before the run ends');
+  assert.match(view(p, a), /data-focus="mach-cant" disabled/);
+  assert.equal(move(p, play(p, freshAttempt(p), [turnOnce]), cant), null, 'no Can’t after a run of the straight arrows');
+  const refused = play(p, a, [turnOnce, cant]);
   assert.ok(refused.board.wrong && !isSolved(p, refused.board));
   assert.match(view(p, refused), /Keep looking\./);
   assert.match(view(p, refused), /data-focus="mach-cant" disabled/);
   assert.equal(play(p, refused, [swap(0, 1)]).board.wrong, false);
+  a = play(p, a, [swap(0, 2)]);
+  assert.deepEqual([a.board.machine, a.board.turns], ['CABD', 0], 'a new machine starts from home');
   a = play(p, a, turns(3));
   assert.ok(isSolved(p, a.board), 'a loop of three comes home in 3 turns');
   // Puzzle 4: no machine moves just one cup. The catalog has nothing under 1.
-  const one = byId('machines-04'), done = play(one, freshAttempt(one), [cant]);
+  const one = byId('machines-04');
+  assert.equal(move(one, freshAttempt(one), cant), null, 'no Can’t on a fresh machine, even where it is right');
+  const done = play(one, freshAttempt(one), [swap(0, 1), turnOnce, turnOnce, cant]);
   assert.ok(isSolved(one, done.board));
   assert.match(view(one, done), /<h3 class="case-bin-label">1 cup moves<\/h3><ol class="case-list"><\/ol>/);
   // Puzzle 9: five cups can't all move and come home in 2 turns.
   const five = byId('machines-09');
-  assert.ok(isSolved(five, play(five, freshAttempt(five), [cant]).board));
-  assert.equal(nextHint(five, freshAttempt(five)).action.type, 'cant');
+  assert.equal(nextHint(five, freshAttempt(five)).action.type, 'swap', 'the hint builds a machine first');
+  let h = freshAttempt(five);
+  while (nextHint(five, h).action.type !== 'cant') h = play(five, h, [nextHint(five, h).action]);
+  assert.ok(isSolved(five, play(five, h, [cant]).board));
 });
 
 test('undoing: turn A, read the row, make your machine, turn it', () => {
@@ -181,7 +189,7 @@ test('the playground: three to seven cups, any machine, never solved', () => {
 test('saves round-trip through storage, and forged saves are refused', () => {
   const p = byId('machines-05'), a = solve(p);
   const run = play(byId('machines-01'), freshAttempt(byId('machines-01')), turns(4));
-  const refused = play(byId('machines-03'), freshAttempt(byId('machines-03')), [cant]);
+  const refused = play(byId('machines-03'), freshAttempt(byId('machines-03')), [swap(0, 1), turnOnce, turnOnce, cant]);
   const chain = play(byId('machines-12'), freshAttempt(byId('machines-12')), [turnOnce, swap(0, 1)]);
   const shelf = play(byId('machines-10'), freshAttempt(byId('machines-10')), [turnOnce, keep, swap(0, 1), turnOnce, turnOnce, keep, claim]);
   const pg = byId('machines-playground'), toy = play(pg, freshAttempt(pg), [swap(1, 2), turnOnce]);

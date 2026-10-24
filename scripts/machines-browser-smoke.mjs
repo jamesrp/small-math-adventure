@@ -96,21 +96,25 @@ try {
   await turn();
   await drag(cup(1), cup(2));
   assert.deepEqual([(await board(P2)).machine, (await board(P2)).turns], ['BCAD', 0], 'a drag swaps, and the run starts again');
-  await tap(button('Can’t'));
-  await page.getByText('Keep looking.').waitFor();
-  assert.equal(await button('Can’t').isDisabled(), true);
-  assert.equal(await focused(), 'mach-turn', 'focus moves on to the next action');
+  assert.equal(await button('Can’t').isDisabled(), true, 'Can’t waits for a finished run');
   await cup(2).focus(); await page.keyboard.press('Enter'); await cup(3).focus(); await page.keyboard.press('Enter');
   assert.equal((await board(P2)).machine, 'BCDA', 'the keyboard swaps');
-  assert.equal(await page.getByText('Keep looking.').count(), 0, 'a swap clears the refusal');
   await turn(4);
   assert.equal(await page.locator('.mach-count', {hasText: 'Every cup home after 4 turns'}).count(), 1, 'a loop of four is not the answer');
   assert.equal(await button('Turn').isDisabled(), true, 'the run stops at home');
-  await swap(2, 3); await turn(3);
+  await tap(button('Can’t'));
+  await page.getByText('Keep looking.').waitFor();
+  assert.equal(await button('Can’t').isDisabled(), true, 'refused: off until the machine changes');
+  assert.notEqual(await focused(), 'mach-cant', 'focus moves on to the next action');
+  await swap(2, 3);
+  assert.equal(await page.getByText('Keep looking.').count(), 0, 'a swap clears the refusal');
+  await turn(3);
   await solved(); await fit('three turns'); await shot('02-solved');
 
   // Can't is right: no machine moves just one cup. Nothing under "1 cup moves".
   await open('machines-04');
+  assert.equal(await button('Can’t').isDisabled(), true, 'no Can’t on the straight arrows');
+  await swap(0, 1); await turn(2);
   await tap(button('Can’t'));
   await solved();
   assert.equal(await page.locator('.case-catalog .case-bin', {has: page.locator('h3', {hasText: /^1 cup moves$/})}).locator('li').count(), 0);

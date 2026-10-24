@@ -45,6 +45,12 @@ test('shorten puzzles: any order, the same end', () => {
   const b = play(p, freshAttempt(p), {type: 'cancel', at: 3});
   assert.deepEqual(turns(b.board.trip), [2, 4], 'a new turning point at D');
   assert.equal(move(p, freshAttempt(p), {type: 'step', to: 'B'}), null, 'no walking in a shorten puzzle');
+  // Every inside dot is a button, but only a turning point makes a move: the
+  // others do nothing (no generic line), and the row doesn't show which is which.
+  const row = playView(p, freshAttempt(p), {pack, selected: null, message: ''});
+  assert.equal((row.match(/<button type="button" class="dt-stop/g) || []).length, p.parameters.trip.length - 2, 'every inside dot is a button');
+  assert.equal((row.match(/data-move="\{&quot;type&quot;:&quot;cancel&quot;/g) || []).length, 2, 'only the two turning points make a move');
+  assert.match(row, /<button type="button" class="dt-stop\s*" data-focus="dt-stop-1" aria-label="Step 1 reaches B\./, 'B, not a turning point, is a button with no move');
 });
 
 test('make: walk, Shorten tells what is missing, then cancel to a solve or a miss', () => {
@@ -109,6 +115,25 @@ test('every route: keep, found already, there is another, That’s all, Undo kee
   a = route(play(p, a, {type: 'new'}), 'DCBADCBA');
   a = play(p, a, {type: 'all'});
   assert.ok(isSolved(p, a.board));
+});
+
+test('a trip that can no longer work is told only behind Hint', () => {
+  // The first doomed trip by breadth-first search over steps, in every puzzle that walks.
+  let checked = 0;
+  for (const p of detours.puzzles.filter(x => x.band !== 'playground' && x.parameters.mode !== 'shorten')) {
+    let queue = [freshAttempt(p)], doomed = null;
+    for (let i = 0; i < queue.length && !doomed && i < 4000; i++) {
+      const a = queue[i], h = nextHint(p, a);
+      if (h.type === 'deadend') { doomed = a; break; }
+      for (const to of new Set(p.parameters.roads.flat())) { const b = move(p, a, {type: 'step', to}); if (b) queue.push(b); }
+    }
+    if (!doomed) continue;
+    assert.equal(nextHint(p, doomed).quiet, true, `${p.id}: quiet`);
+    assert.doesNotMatch(playView(p, doomed, {pack, selected: null, message: ''}), /can’t work/, `${p.id}: no unasked line`);
+    assert.match(playView(p, {...doomed, hintLevel: 2}, {pack, selected: null, message: ''}), /This trip can’t work\. Undo some steps\./, `${p.id}: behind Hint`);
+    checked++;
+  }
+  assert.ok(checked >= 4, 'doomed trips found in several puzzles');
 });
 
 test('the playground: any map, walking and cancelling mixed', () => {

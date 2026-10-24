@@ -85,7 +85,8 @@ function movePuzzle(p, b, action) {
     else if (action.type === 'erase') diags = integer(action.d) && b.diags.includes(action.d) && !kept.includes(action.d) ? remove(b.diags, action.d) : null;
     else if (action.type === 'clear') diags = b.diags.length > kept.length ? kept : null;
     else if (action.type === 'claim') {
-      if (b.missed) return null;
+      // That's all opens with the first way found.
+      if (b.missed || !b.found.length) return null;
       return b.found.length === wanted(p).length ? {...b, claimed: true} : {...b, missed: true};
     }
     if (!diags) return null;
@@ -154,16 +155,25 @@ function hintPuzzle(p, b) {
   const now = b.path.at(-1), flips = b.path.length - 1;
   if (q.mode === 'reach') {
     const dist = distancesTo(P, q.target);
-    if (dist.get(now) > q.budget - flips) return {type: 'deadend', text: 'The card is too many flips away now. Undo.'};
+    // Told only behind Hint while flips remain: said at once, it would judge
+    // each flip, and flips with Undo would find the route. Once the flips
+    // are used up, the board already shows the card isn't made.
+    if (dist.get(now) > q.budget - flips) return flips < q.budget
+      ? {type: 'deadend', quiet: true, text: 'The card is too many flips away now. Undo.'}
+      : {type: 'deadend', text: 'No flips left, and this isn’t the card. Undo.'};
     return flipHint(P, now, map.get(now).find(k => dist.get(k) === dist.get(now) - 1));
   }
   if (q.mode === 'home') {
     const dist = homeDistances(P, q.start), par = flips % 2, left = dist.get(`${now}|${par}`);
-    if (flips + left > HOME_LIMIT) return {type: 'deadend', text: 'That is a long way round. Undo.'};
+    if (flips + left > HOME_LIMIT) return {type: 'deadend', quiet: flips < HOME_LIMIT, text: 'That is a long way round. Undo.'};
     return flipHint(P, now, map.get(now).find(k => dist.get(`${k}|${1 - par}`) === left - 1));
   }
   const route = finishTour(P, b.path, q.start);
-  if (!route) return {type: 'deadend', text: 'From here you can’t visit every way. Undo.'};
+  // Quiet while some flip still reaches a new way (or home at the end);
+  // said once every flip from here is refused.
+  if (!route) return map.get(now).some(k => !b.path.includes(k))
+    ? {type: 'deadend', quiet: true, text: 'From here you can’t visit every way. Undo.'}
+    : {type: 'deadend', text: 'Every flip from here goes to a way already visited. Undo.'};
   return flipHint(P, now, route[b.path.length]);
 }
 
@@ -240,7 +250,7 @@ function renderPuzzle(p, a) {
     // Finds sorted by the triangle on the side from A to the last corner.
     const found = [...b.found].map(k => fromKey(P, k)).sort((x, y) => apexOf(P, x) - apexOf(P, y) || keyOf(P, x).localeCompare(keyOf(P, y)));
     const groups = [...new Set(found.map(ds => apexOf(P, ds)))].map(g => `<li class="ct-group">${found.filter(ds => apexOf(P, ds) === g).map(ds => mini(P, ds, keyOf(P, ds) === now ? 'here' : '', describe(P, ds))).join('')}</li>`).join('');
-    const actions = solved ? '' : `<div class="ct-actions">${moveButton('Clear', {type: 'clear'}, '', b.diags.length > kept.length ? '' : 'disabled')}${moveButton('That’s all', {type: 'claim'}, h === 'claim' ? 'hinted' : '', b.missed ? 'disabled' : '')}</div>`;
+    const actions = solved ? '' : `<div class="ct-actions">${moveButton('Clear', {type: 'clear'}, '', b.diags.length > kept.length ? '' : 'disabled')}${moveButton('That’s all', {type: 'claim'}, h === 'claim' ? 'hinted' : '', b.missed || !b.found.length ? 'disabled' : '')}</div>`;
     bottom = `<ul class="ct-shelf" aria-label="Ways found">${groups}</ul>${actions}${b.missed ? '<p class="ct-note" role="status">There’s another.</p>' : ''}`;
     top = noteOf(state);
     status = `${describe(P, b.diags)}. ${plural(b.found.length, 'way', 'ways')} found.`;

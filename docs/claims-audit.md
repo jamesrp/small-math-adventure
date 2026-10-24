@@ -174,6 +174,22 @@ Rechecked with `node scripts/claims-audit.mjs` and each family's tests, validato
 - **decks, rookrace (could, declined):** in decks the pairs cannot change once all are marked, so a lock would only repeat today's greying; decks-03's refusals are the counterexamples themselves. Rookrace's play-out starts on the wrong square, so taking the ring off hides nothing.
 - No lane B module is in pattern 6's list, so no `data-toggle` was added.
 
+### Early claims and unasked lines (October 24)
+
+Each fix was checked by rerunning `scripts/claims-audit.mjs` on the module (no claim-like control that solves on a fresh board; no unasked dead end except the lines said once a budget is spent) and has a test, a validator check or a browser-suite check. Untested with children.
+
+- **paint:** Can't opens after the first card and, once refused, stays off until the cards change (Undo keeps the refusal while the cards are the same); it carries `data-toggle`. "Too few cards are left." is told only behind Hint while cards remain; once they are spent the line says only that the rows don't match.
+- **hills:** Can't opens once the child has set a tower that isn't a clue, and a refusal locks it until a height changes; it carries `data-toggle`. That's all opens with the first landscape (hills-03, 08, 09) and, once refused, waits for a new one. A tap on a tower when the pins are used up shakes the pins instead of the generic line.
+- **sides:** the whole-cards Can't opens after Try it on the table as it stands. The wrong pile shakes, with no line.
+- **blocks (Red trapezoids):** Can't opens with the first trapezoid down; That's all opens with the first filling found (redfill-04, 05).
+- **decks:** the deal puzzles' Can't opens once a swap has changed the deal. The A/B pair could is lane B's, declined above.
+- **machines (Arrow machines):** Can't opens after a finished run of a machine changed from straight arrows.
+- **portals:** Can't opens after a full trip (exactly k), a first step (trade) or a changed trip (shrink); That's all opens with the first ring (portals-02, 07). "That trip can't finish on H." is told only behind Hint while beads remain; a full trip off H says "The pawn isn't on H."
+- **detours:** "This trip can't work." is told only behind Hint. Inside dots that aren't turning points have no move, so they do nothing, as the README says.
+- **cuts:** "The card is too many flips away now.", the tour's line and the long way home are told only behind Hint while a flip is allowed; they are said once the flips are used up or every tour flip goes to a way already visited. That's all opens with the first way (cuts-01, 02, 04, 08).
+- **pictures:** the switch dead end is told only behind Hint while switches remain, then "No switches left, and some rings are empty." A full lonely picture with a switch says "Another picture has these counts."; the switch's corners are outlined only after Hint.
+- **ranges:** a first pin that is neither extreme is told only behind Hint (`pinPlan`'s dead end is quiet), so one pin is never judged alone.
+
 ## Not covered
 
 - Gestures that only a family's `wire()` makes (drags, positional board taps) were read in the code, not walked.

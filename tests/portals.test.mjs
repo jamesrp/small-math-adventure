@@ -276,21 +276,34 @@ test('exactly k steps home: the beads cap the trip; Can’t is checked; a dead e
   const miss = play(p, a, ...walk('RUL'));
   assert.ok(!isSolved(p, miss.board));
   assert.equal(move(p, miss, {type: 'step', dir: 'R'}), null, 'no fourth step');
-  const told = play(p, a, {type: 'cant'});
+  assert.equal(move(p, a, {type: 'cant'}), null, 'Can’t waits for a full trip');
+  assert.equal(move(p, play(p, a, ...walk('RU')), {type: 'cant'}), null, 'not before the beads are used');
+  assert.match(view(p, a), /data-focus="pt-cant" disabled/);
+  const told = play(p, miss, {type: 'cant'});
   assert.equal(told.board.told, 'way');
   assert.equal(move(p, told, {type: 'cant'}), null);
-  assert.equal(play(p, told, {type: 'step', dir: 'U'}).board.told, null, 'a step clears it');
+  assert.equal(undo(told).board.told, null, 'Undo takes it back');
   const stuck = play(p, a, ...walk('RU'));
   assert.equal(nextHint(p, stuck).type, 'deadend');
+  assert.equal(nextHint(p, stuck).quiet, true, 'told only behind Hint while beads are left');
+  assert.doesNotMatch(view(p, stuck), /can’t finish/, 'no unasked line while beads are left');
+  assert.equal(nextHint(p, miss).quiet, undefined, 'a full trip off H is told at once');
+  assert.match(view(p, miss), /The pawn isn’t on H\. Undo\./);
   assert.equal(undoToSolvable(p, stuck).board.trip, 'R');
   const q = byId('portals-12');
-  assert.ok(isSolved(q, play(q, freshAttempt(q), {type: 'cant'}).board), 'no odd trip home on the 4 × 4 torus');
-  assert.match(view(q, play(q, freshAttempt(q), {type: 'cant'})), /pb-point dark/, 'the checkerboard shows after Can’t');
+  assert.equal(move(q, freshAttempt(q), {type: 'cant'}), null, 'no Can’t on a fresh board, even where it is right');
+  let full = freshAttempt(q);
+  while (nextHint(q, full).action.type !== 'cant') full = play(q, full, nextHint(q, full).action);
+  assert.equal(full.board.trip.length, 5, 'the hints walk a full trip first');
+  assert.ok(isSolved(q, play(q, full, {type: 'cant'}).board), 'no odd trip home on the 4 × 4 torus');
+  assert.match(view(q, play(q, full, {type: 'cant'})), /pb-point dark/, 'the checkerboard shows after Can’t');
 });
 
 test('every square in two steps: rings, found already, there is another, That’s all', () => {
   const p = byId('portals-02');
   let a = freshAttempt(p);
+  assert.equal(move(p, a, {type: 'all'}), null, 'That’s all waits for the first ring');
+  assert.match(view(p, a), /data-focus="pt-all" disabled/);
   const one = view(p, play(p, a, ...walk('R')));
   assert.doesNotMatch(one, /data-pb-dir="[RULD]"[^>]*disabled/, 'every arrow still works after the first step');
   assert.match(one, /data-pb-point="D,0,0" data-pb-view="room" role="button"/, 'and D, across the portal, can be tapped');
@@ -316,14 +329,15 @@ test('every square in two steps: rings, found already, there is another, That’
 test('the trade: never on three wide, half a room apart on four', () => {
   const p = byId('portals-04'), a = freshAttempt(p);
   for (const w of ['R', 'RR', 'UL', 'RRRUUU']) assert.ok(!isSolved(p, play(p, a, ...walk(w)).board));
-  assert.ok(isSolved(p, play(p, a, {type: 'cant'}).board));
+  assert.equal(move(p, a, {type: 'cant'}), null, 'Can’t waits for a step');
+  assert.ok(isSolved(p, play(p, a, ...walk('R'), {type: 'cant'}).board));
   const h = nextHint(p, play(p, a, ...walk('R')));
   assert.deepEqual(h.action, {type: 'cant'});
   assert.match(h.text, /gap between them never changes/);
   const q = byId('portals-09'), b = freshAttempt(q);
   assert.match(view(q, b), /data-pb-point="O,0,0" data-pb-view="room" role="button" tabindex="0" aria-label="O\. Step left"/, 'a square next to the blue pawn is a control too');
   assert.ok(isSolved(q, play(q, b, ...walk('RDRD')).board));
-  assert.equal(play(q, b, {type: 'cant'}).board.told, 'way');
+  assert.equal(play(q, b, ...walk('R'), {type: 'cant'}).board.told, 'way');
 });
 
 test('erasing and sliding: the moves, any route, Can’t with the finishing copy', () => {
@@ -346,8 +360,9 @@ test('erasing and sliding: the moves, any route, Can’t with the finishing copy
   b = play(s, b, {type: 'slide', at: 6});
   assert.equal(b.board.trip, 'RRRUULULLDDD');
   const z = byId('portals-11');
-  assert.ok(isSolved(z, play(z, freshAttempt(z), {type: 'cant'}).board));
-  assert.equal(play(s, freshAttempt(s), {type: 'cant'}).board.told, 'way');
+  assert.equal(move(z, freshAttempt(z), {type: 'cant'}), null, 'Can’t waits for a change to the trip');
+  assert.ok(isSolved(z, play(z, freshAttempt(z), nextHint(z, freshAttempt(z)).action, {type: 'cant'}).board));
+  assert.equal(play(s, b, {type: 'cant'}).board.told, 'way');
 });
 
 test('the playground: four rooms, walls and portals, never solved and no Hint', () => {

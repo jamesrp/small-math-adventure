@@ -258,7 +258,12 @@ function hintPuzzle(p, b) {
   if (q.mode === 'reach') {
     const route = switchRoute(R, C, cells, q.goal), left = q.budget - b.path.length;
     if (!route) return {type: 'deadend', text: 'Start again to restore this picture.'};
-    if (route.length > left) return {type: 'deadend', text: `The rings are ${plural(route.length, 'switch', 'switches')} away, but ${left ? `only ${left} ${left === 1 ? 'is' : 'are'}` : 'none are'} left. Undo a switch or start again.`};
+    // Told only behind Hint while switches remain: said at once, it would
+    // judge each switch, and switches with Undo would find the route. Once
+    // the switches are used up, it says only what the rings already show.
+    if (route.length > left) return left
+      ? {type: 'deadend', quiet: true, text: `The rings are ${plural(route.length, 'switch', 'switches')} away, but only ${left} ${left === 1 ? 'is' : 'are'} left. Undo a switch or start again.`}
+      : {type: 'deadend', text: 'No switches left, and some rings are empty. Undo a switch or start again.'};
     const [i, j] = route[0];
     return {type: 'move', action: {type: 'switch', a: i, b: j}, cells: [i, j], text: `Switch the counters on ${cellName(C, i)} and ${cellName(C, j)}.`};
   }
@@ -377,7 +382,9 @@ function renderPuzzle(p, a) {
   }
   const full = q.mode === 'lonely' && sum(cells) >= q.counters;
   const twins = q.mode === 'lonely' && full && !solved ? switchesOf(R, C, cells)[0] : null;
-  const corners = twins ? new Set([...twins, ...switchCorners(C, ...twins)]) : new Set();
+  // Unasked, a full picture with a switch is only told that another picture
+  // shares its counts; finding the switch is the child's. Hint outlines one.
+  const corners = twins && a.hintLevel >= 1 ? new Set([...twins, ...switchCorners(C, ...twins)]) : new Set();
   const cell = i => solved || (full && !cells[i]) ? {} : {move: {type: 'toggle', cell: i}};
   const goals = q.mode === 'lonely' ? null : targetCounts(p);
   const board = grid(R, C, cells, {goals, cell, marks: i => (corners.has(i) ? 'twin' : '') + hintMark(i), label: 'Your picture'});
@@ -385,7 +392,7 @@ function renderPuzzle(p, a) {
   if (q.mode === 'twin') extra = `<figure class="pic-card start">${miniPicture(R, C, q.picture, `Starting picture. ${describe(R, C, cellsOf(q.picture))}`)}<span class="pic-not" aria-hidden="true">≠</span></figure>`;
   if (q.mode === 'lonely') {
     const left = q.counters - sum(cells);
-    extra = left ? `<div class="pic-tray" role="img" aria-label="${plural(left, 'counter')} to place">${Array.from({length: left}, () => disc).join('')}</div>` : '';
+    extra = left ? `<div class="pic-tray" role="img" aria-label="${plural(left, 'counter')} to place">${Array.from({length: left}, () => disc).join('')}</div>` : twins ? '<p class="pic-early" role="status">Another picture has these counts.</p>' : '';
   }
   let shelf = '';
   if (q.mode === 'every') {

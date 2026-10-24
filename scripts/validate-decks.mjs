@@ -293,7 +293,13 @@ export async function validateDecks() {
         if (!isSolved(p, there.board)) hintsSolve(p, there, `${p.id} from ${key(d)}${cant ? ', Can’t' : ''}`);
       }
       walk(p, start, [...swapActions, {type: 'cant'}], p.id, 60);
-      const cant = move(p, start, {type: 'cant'});
+      // Can't waits for a swap: none on the deal as it came, and after a swap
+      // and the same swap back.
+      assert.equal(move(p, start, {type: 'cant'}), null, `${p.id}: no Can’t on a fresh deal`);
+      const swapped = swapActions.map(x => move(p, start, x)).find(x => x && !isSolved(p, x.board));
+      const back = swapped && move(p, swapped, swapActions.find(x => move(p, start, x)?.board && key(move(p, start, x).board.decks) === key(swapped.board.decks)));
+      assert.ok(back && key(back.board.decks) === key(start.board.decks) && move(p, back, {type: 'cant'}) === null, `${p.id}: no Can’t when the decks are back as dealt`);
+      const cant = move(p, swapped, {type: 'cant'});
       assert.equal(isSolved(p, cant.board), want.length === 0, `${p.id}: Can’t is ${want.length ? 'refused' : 'right'}`);
       if (want.length) {
         assert.equal(move(p, cant, {type: 'cant'}), null, `${p.id}: Can’t once until the decks change`);

@@ -99,6 +99,13 @@ const freshPuzzle = p => {
   if (q.mode === 'every') return {h: blank(q), found: [], said: null};
   return {h: blank(q), claimed: null, refused: null};
 };
+// Claims wait for the child's own attempt. That's all opens once a landscape
+// is found, and stays off after "There is another landscape." until the row of
+// landscapes changes. Can't opens once a tower is built, and stays off after
+// "Those two clues fit." until a height changes (Undo keeps both refusals
+// while the board is the same: see `carry`).
+const thatsAllOpen = b => b.found.length > 0 && b.said === null;
+export const cantOpen = (q, b) => b.refused === null && b.h.some((v, i) => v !== null && !isClue(q, i));
 // A finished landscape is recorded as found.
 const record = (q, b) => legal(q, b.h) && !b.found.includes(key(b.h)) ? {...b, found: [...b.found, key(b.h)].sort()} : b;
 function movePuzzle(p, b, action) {
@@ -114,12 +121,16 @@ function movePuzzle(p, b, action) {
     const s = action.site;
     if (!Number.isInteger(s) || s < 0 || s >= q.sites || isClue(q, s) || !cellOk(q, action.h) || action.h === undefined || b.h[s] === action.h) return null;
     const h = b.h.map((v, i) => i === s ? action.h : v);
-    return q.mode === 'every' ? record(q, {...b, h, said: null}) : {...b, h, refused: null};
+    if (q.mode !== 'every') return {...b, h, refused: null};
+    // "There is another landscape." stands, with That's all off, until a new
+    // landscape joins the row.
+    const next = record(q, {...b, h});
+    return next.found.length === b.found.length ? next : {...next, said: null};
   }
-  if (action.type === 'done' && q.mode === 'every') return {...b, said: b.found.length === allLandscapes(q).length ? 'done' : 'wrong'};
+  if (action.type === 'done' && q.mode === 'every') return thatsAllOpen(b) ? {...b, said: b.found.length === allLandscapes(q).length ? 'done' : 'wrong'} : null;
   if (action.type === 'cant' && q.mode === 'fill' && q.cant) {
     const pair = Array.isArray(action.pair) && action.pair.length === 2 ? [...action.pair].sort((x, y) => x - y) : null;
-    if (!pair || !pairOk(q, pair)) return null;
+    if (!pair || !pairOk(q, pair) || !cantOpen(q, b)) return null;
     return isConflict(q, pair) ? {...b, claimed: pair, refused: null} : {...b, claimed: null, refused: pair};
   }
   return null;
@@ -138,6 +149,19 @@ function towardHint(q, h, goal) {
   const i = wrong.find(k => h[k] === null) ?? wrong.find(k => steepSites.has(k)) ?? wrong.reduce((x, y) => Math.abs(h[y] - goal[y]) > Math.abs(h[x] - goal[x]) ? y : x);
   return {type: 'move', action: {type: 'set', site: i, h: goal[i]}, text: `Make ${column(i)} ${goal[i]} high.`};
 }
+// The towers on the short way from clue c to clue d, nearest c first, each
+// one block further from c's height toward d's; the first that differs is
+// built, or else the last is cleared, so the board changes.
+function attemptHint(q, b, c, d) {
+  const n = q.sites, forward = !q.ring || (d - c + n) % n <= n / 2, step = forward ? 1 : -1, sign = Math.sign(clueAt(q, d) - clueAt(q, c));
+  const way = [];
+  for (let i = (c + step + n) % n; i !== d; i = (i + step + n) % n) if (!isClue(q, i)) way.push(i);
+  const target = way.map((i, k) => Math.max(0, Math.min(q.top, clueAt(q, c) + sign * (k + 1))));
+  const k = way.findIndex((i, j) => b.h[i] !== target[j]);
+  if (k >= 0) return {type: 'move', action: {type: 'set', site: way[k], h: target[k]}, text: `Make ${column(way[k])} ${target[k]} high.`};
+  const last = way.at(-1);
+  return {type: 'move', action: {type: 'set', site: last, h: null}, text: `Clear ${column(last)}.`};
+}
 function plan(p, b) {
   const q = p.parameters;
   if (q.mode === 'pin') {
@@ -153,6 +177,9 @@ function plan(p, b) {
   }
   if (q.cant && conflicts(q).length) {
     const [c, d] = conflicts(q)[0];
+    // Can't waits for a tower: first build one from the first clue toward the
+    // other, a step at a time, which shows the jump that is too big.
+    if (!cantOpen(q, b)) return attemptHint(q, b, c, d);
     return {type: 'move', action: {type: 'cant', pair: [c, d]}, text: `${capital(column(c))} and ${column(d)} are ${Math.abs(clueAt(q, c) - clueAt(q, d))} blocks apart in height, with only ${distance(q, c, d)} ${distance(q, c, d) === 1 ? 'step' : 'steps'} between them. Press Can’t and tap both.`};
   }
   const goals = [lowest(q), highest(q), ...Array.from({length: q.top + 1}, (_, t) => level(q, t))];
@@ -206,6 +233,7 @@ const heightWords = v => v === null ? 'empty' : `${v} high`;
 function cellHtml(look, action, label, focus = true) {
   const inner = look.includes(' top') ? '<i class="hills-marker"></i>' : look.includes(' peek') ? '<i class="hills-peek-marker"></i>' : '';
   if (!action) return `<span class="${look}" aria-hidden="true">${inner}</span>`;
+  if (action.full) return `<button type="button" class="${look}" data-hills-full ${label ? `aria-label="${esc(label)}"` : 'tabindex="-1" aria-hidden="true"'}>${inner}</button>`;
   if (action.ui) return `<button type="button" class="${look}" data-action="mechanic-ui" data-ui='${esc(JSON.stringify(action.ui))}' ${label ? `aria-label="${esc(label)}"` : 'tabindex="-1" aria-hidden="true"'}>${inner}</button>`;
   return swap(actionButton(inner, action, label && focus ? `aria-label="${esc(label)}"` : 'tabindex="-1" aria-hidden="true"'), look);
 }
@@ -220,7 +248,8 @@ function towerCells(q, i, s) {
     if (s.peek && s.peek[i] === t && v !== t) look += ' peek';
     if (s.apart?.includes(i) && t === v) look += ' apart';
     if (s.mode === 'pin') {
-      action = {type: 'pin', site: i};
+      // With every pin used, a tower not pinned shakes the pins (wire).
+      action = s.full && !clue ? {full: true} : {type: 'pin', site: i};
       label = t === v ? `${clue ? 'Unpin' : 'Pin'} ${column(i)}` : '';
     } else if (s.mode === 'claim') {
       if (clue && t === v) {
@@ -282,23 +311,23 @@ function renderPuzzle(p, attempt) {
     // landscape that fits the pins (the first free tower at another height).
     const free = solved || b.pins.length < budgetOf(q) ? -1 : ghost.findIndex(g => g.length > 1);
     const peek = free < 0 ? null : level(q, lo[free] !== q.land[free] ? lo[free] : hi[free], c);
-    const land = landHtml(q, {mode: solved ? 'still' : 'pin', h: q.land, clues: pins, ghost, peek, shown, solved});
+    const land = landHtml(q, {mode: solved ? 'still' : 'pin', h: q.land, clues: pins, ghost, peek, shown, solved, full: b.pins.length >= budgetOf(q)});
     const budget = budgetOf(q), left = budget - b.pins.length;
     const slots = `<ol class="hills-pins" aria-label="${left} ${left === 1 ? 'pin' : 'pins'} left">${Array.from({length: budget}, (_, k) => `<li class="${k < b.pins.length ? 'used' : ''}"></li>`).join('')}</ol>`;
     const status = peek ? `Another landscape fits: ${peek.join(', ')}.` : solved ? 'Only this landscape fits.' : `${ghost.filter(g => g.length > 1).length} towers can still change.`;
-    return `<div class="hills-board mode-pin">${land}${slots}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+    return `<div class="hills-board mode-pin" data-mechanic-wire="hills">${land}${slots}<p class="sr-only" role="status">${esc(status)}</p></div>`;
   }
   if (q.mode === 'every') {
     const land = landHtml(q, {mode: solved ? 'still' : 'set', h: b.h, clues: new Set(q.clues.map(([c]) => c)), shown, solved});
     const found = b.found.length ? `<ol class="hills-found" aria-label="Landscapes found">${b.found.map(f => thumbHtml(q, f)).join('')}</ol>` : '';
-    const done = solved ? '' : `<div class="hills-tools">${swap(actionButton('That’s all', {type: 'done'}), `primary expansion-action hills-done${hinted(shown, {type: 'done'})}`)}</div>`;
+    const done = solved ? '' : `<div class="hills-tools">${swap(actionButton('That’s all', {type: 'done'}, thatsAllOpen(b) ? '' : 'disabled'), `primary expansion-action hills-done${hinted(shown, {type: 'done'})}`)}</div>`;
     const note = b.said === 'wrong' ? '<p class="hills-note" role="status">There is another landscape.</p>' : `<p class="sr-only" role="status">${esc(b.h.map((v, i) => `${capital(column(i))} ${heightWords(v)}`).join(', '))}</p>`;
     return `<div class="hills-board mode-every" data-mechanic-wire="hills">${land}${found}${done}${note}</div>`;
   }
-  const claiming = q.cant && !solved && (state.claiming || shown?.type === 'cant');
+  const claiming = q.cant && !solved && cantOpen(q, b) && (state.claiming || shown?.type === 'cant');
   const clues = new Set(q.clues.map(([c]) => c)), picks = b.claimed || (claiming ? state.picks : []);
   const land = landHtml(q, {mode: claiming ? 'claim' : solved ? 'still' : 'set', h: b.h, clues, picks, apart: b.claimed, shown, solved});
-  const cant = q.cant && !solved ? `<div class="hills-tools"><button type="button" class="secondary hills-cant${shown?.type === 'cant' && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' aria-pressed="${claiming}">Can’t</button></div>` : '';
+  const cant = q.cant && !solved ? `<div class="hills-tools"><button type="button" class="secondary hills-cant${shown?.type === 'cant' && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-toggle="hills-cant" data-ui='${JSON.stringify({claiming: !claiming})}' aria-pressed="${claiming}"${cantOpen(q, b) ? '' : ' disabled'}>Can’t</button></div>` : '';
   const claimed = b.claimed ? `<p class="sr-only">${esc(`The clues in ${column(b.claimed[0])} and ${column(b.claimed[1])} are too far apart.`)}</p>` : '';
   const note = b.refused ? '<p class="hills-note" role="status">Those two clues fit.</p>' : `<p class="sr-only" role="status">${esc(`${b.h.map((v, i) => `${capital(column(i))} ${heightWords(v)}`).join(', ')}.${steep(q, b.h).length ? ' A jump is too big.' : ''}`)}</p>`;
   return `<div class="hills-board mode-fill${b.claimed ? ' claimed' : ''}" data-mechanic-wire="hills" ${b.claimed ? `data-claimed="${b.claimed.join(',')}"` : ''}>${land}${cant}${claimed}${note}</div>`;
@@ -319,6 +348,13 @@ function wire(root, p, api) {
   const board = root.classList.contains('hills-board') ? root : root.querySelector('.hills-board');
   if (!board) return;
   let dragging = null;
+  // A tower tapped with every pin used: the pins shake, and nothing else.
+  board.addEventListener('click', e => {
+    if (!e.target.closest('[data-hills-full]')) return;
+    const pins = board.querySelector('.hills-pins');
+    if (!pins) return;
+    pins.classList.remove('full'); void pins.getBoundingClientRect(); pins.classList.add('full');
+  });
   board.addEventListener('pointerdown', e => { const cell = e.target.closest('.hills-col:not(.clue):not(.copy) .hills-cell'); dragging = cell ? cell.closest('.hills-col') : null; });
   const stop = () => { dragging = null; };
   board.addEventListener('pointerup', stop);
@@ -355,6 +391,16 @@ export const hillMechanics = {
       if (Number.isInteger(payload.pick)) state.picks = state.picks.includes(payload.pick) ? [] : [payload.pick];
     },
     reset: p => { uiState.delete(p.id); },
+    // Undo keeps a refusal while the board it answered is the same: "Those
+    // two clues fit." on the same heights, "There is another landscape." on
+    // the same row of landscapes.
+    carry(p, from, to) {
+      const q = p.parameters;
+      if (playground(p)) return to;
+      if (q.mode === 'fill') return from.refused !== null && to.claimed === null && JSON.stringify(from.h) === JSON.stringify(to.h) ? {...to, refused: from.refused} : to;
+      if (q.mode === 'every') return from.said === 'wrong' && to.said === null && JSON.stringify(from.found) === JSON.stringify(to.found) ? {...to, said: 'wrong'} : to;
+      return to;
+    },
     noHint: playground
   }
 };

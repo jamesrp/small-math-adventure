@@ -5,7 +5,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {freshAttempt, move, isSolved, nextHint, validBoard} from '../dist/engine.js';
+import {freshAttempt, move, isSolved, nextHint, validBoard, undoPress} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
 import {distance, conflicts, lowest, highest, completions, needed, fixed, steep, legal} from '../dist/families/hills/hills.js';
 import {libraryView} from '../dist/caravan-ui.js';
@@ -55,9 +55,18 @@ test('fill: build the forced ramp; a steep jump shows a red bar', () => {
 
 test('Can’t names two clues: too far apart solves, a pair that fits is refused', () => {
   const p = byId('hills-06');
-  let a = move(p, freshAttempt(p), {type: 'cant', pair: [0, 2]});
+  assert.match(html(p, freshAttempt(p)), /hills-cant"[^>]*disabled/, 'Can’t waits for a tower');
+  assert.equal(move(p, freshAttempt(p), {type: 'cant', pair: [2, 4]}), null, 'no claim on a fresh board, even a right one');
+  let a = move(p, freshAttempt(p), {type: 'set', site: 3, h: 2});
+  assert.match(html(p, a), /data-toggle="hills-cant"/, 'a double tap can’t close the claim');
+  assert.doesNotMatch(html(p, a), /hills-cant"[^>]*disabled/, 'Can’t opens once a tower is built');
+  a = move(p, a, {type: 'cant', pair: [0, 2]});
   assert.ok(a && !isSolved(p, a.board));
   assert.match(html(p, a), /Those two clues fit\./);
+  assert.match(html(p, a), /hills-cant"[^>]*disabled/, 'a refusal keeps Can’t off');
+  assert.equal(move(p, a, {type: 'cant', pair: [2, 4]}), null, 'no second pair on the same heights');
+  assert.deepEqual(undoPress(p, a).board.refused, [0, 2], 'Undo keeps the refusal on the same heights');
+  assert.equal(undoPress(p, a, x => html(p, x)).board.h[3], null, 'Undo goes back past the refused board');
   a = move(p, a, {type: 'set', site: 1, h: 2});
   assert.equal(a.board.refused, null, 'a move clears the refusal');
   a = move(p, a, {type: 'cant', pair: [4, 2]});
@@ -65,31 +74,39 @@ test('Can’t names two clues: too far apart solves, a pair that fits is refused
   assert.deepEqual(a.board.claimed, [2, 4]);
   assert.equal((html(p, a).match(/hills-cell[^"]* apart/g) || []).length, 2, 'both clues are ringed');
   const room = byId('hills-05');
-  assert.ok(!isSolved(room, move(room, freshAttempt(room), {type: 'cant', pair: [3, 6]}).board), 'Just enough room: the tight pair still fits');
+  assert.ok(!isSolved(room, move(room, move(room, freshAttempt(room), {type: 'set', site: 4, h: 1}), {type: 'cant', pair: [3, 6]}).board), 'Just enough room: the tight pair still fits');
   assert.ok(isSolved(room, build(room, freshAttempt(room), [2, 1, 0, 0, 1, 2, 3]).board));
 });
 
 test('the Can’t picker is view state: tap one clue, then another', () => {
-  const p = byId('hills-02'), m = mechanicFor(p);
+  const p = byId('hills-02'), m = mechanicFor(p), built = move(p, freshAttempt(p), {type: 'set', site: 1, h: 1});
   m.reset(p);
-  assert.doesNotMatch(html(p, freshAttempt(p)), /hills-pickable/);
+  assert.doesNotMatch(html(p, built), /hills-pickable/);
   m.ui(p, {claiming: true});
-  assert.equal((html(p, freshAttempt(p)).match(/hills-pickable/g) || []).length, 2);
+  assert.doesNotMatch(html(p, freshAttempt(p)), /hills-pickable/, 'no picking on a fresh board');
+  assert.equal((html(p, built).match(/hills-pickable/g) || []).length, 2);
   m.ui(p, {pick: 0});
-  assert.match(html(p, freshAttempt(p)), /hills-pickable picked/);
-  assert.match(html(p, freshAttempt(p)), /data-move="\{&quot;type&quot;:&quot;cant&quot;,&quot;pair&quot;:\[0,2\]\}"/);
-  move(p, freshAttempt(p), {type: 'set', site: 1, h: 1});
-  assert.doesNotMatch(html(p, freshAttempt(p)), /hills-pickable/, 'a move closes the picker');
+  assert.match(html(p, built), /hills-pickable picked/);
+  assert.match(html(p, built), /data-move="\{&quot;type&quot;:&quot;cant&quot;,&quot;pair&quot;:\[0,2\]\}"/);
+  move(p, built, {type: 'set', site: 1, h: 2});
+  assert.doesNotMatch(html(p, built), /hills-pickable/, 'a move closes the picker');
 });
 
 test('every landscape: each is recorded once, and That’s all checks', () => {
   const p = byId('hills-03');
-  let a = move(p, freshAttempt(p), {type: 'done'});
-  assert.match(html(p, a), /There is another landscape\./);
-  a = build(p, a, [3, 2, 1, 0, 0]);
+  assert.match(html(p, freshAttempt(p)), /hills-done[^>]*disabled/, 'That’s all waits for a landscape');
+  assert.equal(move(p, freshAttempt(p), {type: 'done'}), null);
+  let a = build(p, freshAttempt(p), [3, 2, 1, 0, 0]);
   assert.deepEqual(a.board.found, ['3,2,1,0,0']);
   assert.match(html(p, a), /hills-found/);
+  a = move(p, a, {type: 'done'});
+  assert.match(html(p, a), /There is another landscape\./);
+  assert.match(html(p, a), /hills-done[^>]*disabled/, 'refused: off until the row changes');
+  assert.equal(undoPress(p, a).board.said, 'wrong', 'Undo keeps the refusal on the same row');
+  a = build(p, a, [3, 2, 2, 0, 0]);
+  assert.equal(a.board.said, 'wrong', 'a landscape that doesn’t fit changes nothing');
   a = build(p, a, [3, 2, 1, 1, 0]);
+  assert.equal(a.board.said, null, 'a new landscape opens That’s all again');
   a = build(p, a, [3, 2, 1, 0, 0]);
   assert.equal(a.board.found.length, 2, 'found again counts once');
   a = build(p, build(p, a, [3, 2, 2, 1, 0]), [3, 3, 2, 1, 0]);
@@ -107,7 +124,8 @@ test('a ring of three: the last tower is next to the first', () => {
   assert.equal(a.board.found.length, 0, 'the jump back from the last tower is checked');
   assert.match(html(p, a), /hills-gap steep/);
   const ring = byId('hills-10');
-  assert.ok(isSolved(ring, move(ring, freshAttempt(ring), {type: 'cant', pair: [0, 3]}).board));
+  assert.equal(move(ring, freshAttempt(ring), {type: 'cant', pair: [0, 3]}), null, 'no claim on a fresh ring');
+  assert.ok(isSolved(ring, move(ring, move(ring, freshAttempt(ring), {type: 'set', site: 4, h: 1}), {type: 'cant', pair: [0, 3]}).board));
 });
 
 test('pin: the fewest towers fix the landscape; wrong pins show a second landscape', () => {
@@ -118,6 +136,9 @@ test('pin: the fewest towers fix the landscape; wrong pins show a second landsca
   for (const s of [0, 2, 4, 6]) a = move(p, a, {type: 'pin', site: s});
   assert.ok(!isSolved(p, a.board));
   assert.equal(move(p, a, {type: 'pin', site: 3}), null, 'no pin past the budget');
+  assert.doesNotMatch(html(p, a), /data-move="\{&quot;type&quot;:&quot;pin&quot;,&quot;site&quot;:[135]\}"/, 'with every pin used, a tower not pinned makes no move');
+  assert.match(html(p, a), /data-hills-full[^>]*aria-label="Pin column 4"/, 'it shakes the pins instead');
+  assert.match(html(p, a), /mode-pin" data-mechanic-wire="hills"/);
   assert.match(html(p, a), /hills-peek-marker/, 'a second landscape that fits the pins');
   assert.equal(nextHint(p, a).text, 'Unpin column 5. The towers beside it fix it.');
   a = move(p, move(p, a, {type: 'pin', site: 4}), {type: 'pin', site: 3});

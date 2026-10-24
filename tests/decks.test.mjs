@@ -104,8 +104,12 @@ test('a deal: card buttons, pinned pictures, live grids with verdicts, and the p
   assert.doesNotMatch(view(p, a), /picked/);
   mechanic.ui(p, {pick: 3, moves: 0}); mechanic.reset(p);
   assert.doesNotMatch(view(p, a), /picked/, 'Restart forgets the pick');
-  const b = play(p, a, [cant]);
+  assert.equal(move(p, a, cant), null, 'Can’t waits for a swap');
+  assert.match(view(p, a), /data-deck-move="\{&quot;type&quot;:&quot;cant&quot;\}"[^>]*disabled/);
+  const b = play(p, a, [swap(3, 2), cant]);
   assert.match(view(p, b), /Keep looking\./);
+  assert.equal(move(p, b, cant), null, 'refused: off until the decks change');
+  assert.equal(move(p, play(p, a, [swap(3, 2), swap(3, 2)]), cant), null, 'swapped back to the deal: off again');
   // Pinned cards are pictures, not buttons.
   const p8 = byId('decks-08'), pinned = view(p8, freshAttempt(p8));
   assert.doesNotMatch(pinned, /data-card="9"/);
@@ -137,18 +141,21 @@ test('a card in the empty place, a swap and the certificates', () => {
   assert.match(view(p5, a), /<section class="case-shelf" aria-label="Swaps kept">/);
   assert.equal((view(p5, solve(p5)).match(/class="case-kept yes"/g) || []).length, 5);
 
-  const p7 = byId('decks-07'), split = play(p7, freshAttempt(p7), [cant]);
+  const p7 = byId('decks-07');
+  assert.equal(move(p7, freshAttempt(p7), cant), null, 'no Can’t on a fresh deal, even where it is right');
+  assert.equal(nextHint(p7, freshAttempt(p7)).action.type, 'swap', 'the hint swaps first');
+  const split = play(p7, freshAttempt(p7), [swap(1, 4), cant]);
   assert.ok(isSolved(p7, split.board));
   html = view(p7, split);
   assert.equal((html.match(/<li class="case-kept /g) || []).length, 10, 'every split with 1 in A');
   assert.match(html, /<h3 class="case-bin-label">5 to 4<\/h3>/);
   assert.doesNotMatch(html, /tie/);
   const p10 = byId('decks-10');
-  html = view(p10, play(p10, freshAttempt(p10), [cant]));
+  html = view(p10, play(p10, freshAttempt(p10), [swap(2, 3), cant]));
   assert.equal((html.match(/deck-cell win-[ABC] lost/g) || []).length, 4, 'card 1’s pairs');
   assert.match(html, /Card 1 loses every pair it is in/);
   const p12 = byId('decks-12');
-  html = view(p12, play(p12, freshAttempt(p12), [cant]));
+  html = view(p12, play(p12, freshAttempt(p12), [swap(2, 1), cant]));
   assert.equal((html.match(/<li class="case-kept /g) || []).length, 15);
   assert.match(html, /Two big wins/); assert.doesNotMatch(html, /Three big wins/);
 

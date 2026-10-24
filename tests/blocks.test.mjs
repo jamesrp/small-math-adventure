@@ -130,17 +130,23 @@ test('fewest blocks: hints keep the child’s blocks, and lift the hexagon that 
   assert.equal(fillWithin(gridFor(hexagonOfThree), [], 11), null, 'eleven blocks are too few for the hexagon of side 3');
 });
 
-test('red trapezoids: Can’t is refused where a filling exists and solves where none does', () => {
-  let a = play(arrow, freshAttempt(arrow), {type: 'cant'});
+test('red trapezoids: Can’t waits for a trapezoid, is refused where a filling exists and solves where none does', () => {
+  for (const p of [arrow, redHexagon, fourDown]) {
+    assert.equal(move(p, freshAttempt(p), {type: 'cant'}), null, `${p.id}: no Can’t on a fresh board`);
+    assert.match(view(p, freshAttempt(p)), /data-bk-move="\{&quot;type&quot;:&quot;cant&quot;\}"[^>]*disabled/);
+    assert.equal(nextHint(p, freshAttempt(p)).action.type, 'place', `${p.id}: the hint lays a trapezoid first`);
+  }
+  const g = gridFor(arrow), piece = placements(g, 'trapezoid')[0], other = placements(g, 'trapezoid').find(x => !x.some(c => piece.includes(c)));
+  let a = play(arrow, freshAttempt(arrow), {type: 'place', cells: piece}, {type: 'cant'});
   assert.equal(a.board.refused, true);
   assert.match(view(arrow, a), /It can be done\./);
   assert.equal(move(arrow, a, {type: 'cant'}), null);
-  const g = gridFor(arrow), piece = placements(g, 'trapezoid')[0];
-  a = play(arrow, a, {type: 'place', cells: piece});
+  a = play(arrow, a, {type: 'place', cells: other});
   assert.equal(a.board.refused, false, 'a change clears the note');
-  const b = play(redHexagon, freshAttempt(redHexagon), {type: 'cant'});
+  const lay = p => play(p, freshAttempt(p), nextHint(p, freshAttempt(p)).action);
+  const b = play(redHexagon, lay(redHexagon), {type: 'cant'});
   assert.ok(isSolved(redHexagon, b.board), 'sixteen triangles cannot take trapezoids');
-  const c = play(fourDown, freshAttempt(fourDown), {type: 'cant'});
+  const c = play(fourDown, lay(fourDown), {type: 'cant'});
   assert.ok(isSolved(fourDown, c.board), 'no filling of the triangle of six has four pointing down');
 });
 
@@ -158,6 +164,8 @@ test('red trapezoids: every way, with That’s all and Undo keeping what was fou
   const p = twoWays, g = gridFor(p);
   const [first] = [fillWithin(g, [], 3, ['trapezoid'])];
   let a = freshAttempt(p);
+  assert.equal(move(p, a, {type: 'claim'}), null, 'That’s all waits for the first filling');
+  assert.match(view(p, a), /data-bk-move="\{&quot;type&quot;:&quot;claim&quot;\}"[^>]*disabled/);
   for (const piece of first) a = play(p, a, {type: 'place', cells: piece});
   assert.equal(a.board.found.length, 1);
   a = play(p, a, {type: 'claim'});

@@ -257,7 +257,10 @@ function hint(p, b) {
   if (b.input !== null) return cancel();
   const want = left ? (t, r) => left.some(x => same(x, r)) : (t, r) => resultOk(q, t, r);
   const target = complete(q, b.trip, want);
-  if (!target) return {type: 'deadend', text: 'This trip can’t work. Undo some steps.'};
+  // A trip that can't work is told only behind Hint (quiet): said at once it
+  // would judge each step, and steps with Undo would find a route. Shorten
+  // says what a finished trip misses.
+  if (!target) return {type: 'deadend', quiet: true, text: 'This trip can’t work. Undo some steps.'};
   if (target.length === b.trip.length) return {type: 'move', action: {type: 'shorten'}, text: 'Press Shorten.'};
   const to = target[b.trip.length];
   return {type: 'move', action: {type: 'step', to}, text: `Step to ${to}.`, to};
@@ -273,13 +276,18 @@ const words = (q, t) => ({
   more: 'There is another.'
 })[t.kind];
 const tripWords = trip => trip.length === 1 ? `stay at ${trip[0]}` : trip.join(' to ');
-// The trip as a row of dots and arrows; a turning point is a button when the
-// trip is being shortened.
+// The trip as a row of dots and arrows; while the trip is being shortened
+// every inside dot is a button, so the row doesn't show which are turning
+// points, but only a turning point cancels: the others do nothing.
 function strip(trip, opts = {}) {
+  const turning = new Set(opts.cancel ? turns(trip) : []);
   const items = trip.map((id, k) => {
     const inside = k > 0 && k < trip.length - 1, cls = [opts.hinted === k ? 'hinted' : '', opts.told === k ? 'told' : ''].join(' ');
+    const label = `aria-label="${esc(`Step ${k} reaches ${id}. Cancel the steps into and out of it`)}"`;
     const stop = opts.cancel && inside
-      ? `<button type="button" class="dt-stop ${cls}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'cancel', at: k}))}" data-focus="dt-stop-${k}" aria-label="${esc(`Step ${k} reaches ${id}. Cancel the steps into and out of it`)}">${esc(id)}</button>`
+      ? turning.has(k)
+        ? `<button type="button" class="dt-stop ${cls}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'cancel', at: k}))}" data-focus="dt-stop-${k}" ${label}>${esc(id)}</button>`
+        : `<button type="button" class="dt-stop ${cls}" data-focus="dt-stop-${k}" ${label}>${esc(id)}</button>`
       : `<span class="dt-stop fixed ${cls}">${esc(id)}</span>`;
     return k ? `<span class="dt-step"><span class="dt-arrow" aria-hidden="true">→</span>${stop}</span>` : stop;
   }).join('');

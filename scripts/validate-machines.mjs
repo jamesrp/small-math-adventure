@@ -214,7 +214,14 @@ export async function validateMachines() {
     }
 
     if (q.mode === 'make') {
-      const can = want.length > 0, cant = move(p, start, {type: 'cant'});
+      // Can't waits for a finished run of a machine other than the straight
+      // arrows: not on a fresh board, not mid-run, not after a run of the
+      // straight arrows.
+      const can = want.length > 0, tried = machines(q.cups).map(go => ({m: toPack(go), runs: turnsOf(go)})).find(x => x.runs > 1 && !want.includes(x.m));
+      assert.equal(move(p, start, {type: 'cant'}), null, `${p.id}: no Can't on a fresh board`);
+      assert.equal(move(p, move(p, start, {type: 'turn'}), {type: 'cant'}), null, `${p.id}: no Can't after a run of the straight arrows`);
+      assert.equal(move(p, at(start, {machine: tried.m, turns: tried.runs - 1}), {type: 'cant'}), null, `${p.id}: no Can't mid-run`);
+      const cant = move(p, at(start, {machine: tried.m, turns: tried.runs}), {type: 'cant'});
       assert.equal(cant.board.cant, !can, `${p.id}: Can't is right exactly when no machine works`);
       assert.equal(cant.board.wrong, can, `${p.id}: otherwise it is refused`);
       assert.equal(isSolved(p, cant.board), !can);

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {freshAttempt, move, nextHint, isSolved, undo, resumeAttempt} from '../dist/engine.js';
+import {freshAttempt, move, nextHint, isSolved, undo, undoPress, resumeAttempt} from '../dist/engine.js';
 import {emptyStore, validateStore, loadStore, persistStore} from '../dist/storage.js';
 import {libraryView} from '../dist/caravan-ui.js';
 import {playView, parentView} from '../dist/ui.js';
@@ -152,11 +152,16 @@ test('whole cards: Can’t is right with one of each at most; copies tie with on
   assert.match(html, /aria-label="Every table of whole cards"/);
   assert.equal((html.match(/class="case-kept /g) || []).length, 7, 'the seven tables');
   assert.doesNotMatch(html, /case-kept yes/, 'none ties');
+  assert.equal(move(p, freshAttempt(p), cant), null, 'no Can’t on a fresh table: it waits for Try it');
+  assert.match(view(p, freshAttempt(p)), /data-side-move="\{&quot;type&quot;:&quot;cant&quot;\}"[^>]*disabled/);
   const copies = byId('sides-09');
-  let c = play(copies, freshAttempt(copies), [cant]);
+  assert.equal(move(copies, freshAttempt(copies), cant), null);
+  let c = play(copies, freshAttempt(copies), [tryIt, cant]);
   assert.ok(!isSolved(copies, c.board));
   assert.match(view(copies, c), /Keep looking\./);
   assert.equal(move(copies, c, cant), null, 'Can’t once until the table changes');
+  assert.equal(undoPress(copies, c).board.cant, true, 'Undo keeps the refusal on the same table');
+  assert.equal(move(copies, play(copies, c, [count(0, -1)]), cant), null, 'a changed table waits for Try it again');
   c = play(copies, c, [count(0, -1), count(1, 1), tryIt]);
   assert.ok(isSolved(copies, c.board));
   assert.deepEqual(c.board.counts, [1, 2, 1]);
@@ -200,7 +205,7 @@ test('saves round-trip through storage, and forged saves are refused', () => {
   const p = byId('sides-07'), a = solve(p);
   const half = play(byId('sides-01'), freshAttempt(byId('sides-01')), [draw(1), look, sort('R'), draw(2), look]);
   const design = play(byId('sides-04'), freshAttempt(byId('sides-04')), [toggle(5), tryIt]);
-  const cards = play(byId('sides-09'), freshAttempt(byId('sides-09')), [count(0, 1), cant]);
+  const cards = play(byId('sides-09'), freshAttempt(byId('sides-09')), [count(0, 1), tryIt, cant]);
   const pg = byId('sides-playground'), toy = move(pg, freshAttempt(pg), {type: 'random', n: 10}, () => 0.7);
   const store = {...emptyStore(), activeProfileId: 'one', profiles: [profile({[p.id]: a, 'sides-01': half, 'sides-04': design, 'sides-09': cards, [pg.id]: toy})]};
   const storage = memory();

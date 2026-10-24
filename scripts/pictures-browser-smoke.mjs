@@ -45,7 +45,9 @@ try{
 
  // A wasted switch: the budget runs out and the dead end says so.
  await open('pictures-10');
- await cell(0).tap();await cell(4).tap();await cell(1).tap();await cell(3).tap();
+ await cell(0).tap();await cell(4).tap();
+ assert.doesNotMatch(await page.locator('.feedback').innerText(),/away/,'told only behind Hint while a switch is left');
+ await cell(1).tap();await cell(3).tap();
  assert.equal(await page.locator('.pic-budget i.left').count(),0);
  assert.match(await page.locator('.feedback').innerText(),/Undo/);
  assert.equal(await page.locator('.pic-cell:not([aria-disabled])').count(),0,'no switches past the budget');checks.push('budget');
@@ -62,9 +64,13 @@ try{
  assert.equal(await page.locator('.pic-found li').count(),2);
  await page.getByRole('button',{name:'That’s all'}).tap();assert.equal(await solved(),1);checks.push('every');
 
- // Lonely: a placement with a switch shows its four corners.
+ // Lonely: a placement with a switch says another picture shares its
+ // counts; Hint outlines the switch's four corners.
  await open('pictures-08');
  for(const i of [0,4,2,6])await cell(i).tap();
+ assert.equal(await page.locator('.pic-cell.twin').count(),0,'unasked, the switch is not shown');
+ assert.equal(await page.locator('.pic-early').innerText(),'Another picture has these counts.');
+ await page.locator('[data-action="hint"]').first().tap();
  assert.equal(await page.locator('.pic-cell.twin').count(),4);
  assert.equal(await page.locator('.pic-cell:not(.on):not([aria-disabled])').count(),0,'no fifth counter');
  for(const i of [4,6,1,3])await cell(i).tap();assert.equal(await solved(),1);checks.push('lonely');

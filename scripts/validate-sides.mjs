@@ -14,7 +14,7 @@
 // Run: node scripts/validate-sides.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
+import {freshAttempt, move, isSolved, nextHint, validBoard, undo, undoPress} from '../dist/engine.js';
 import {isExpansion} from '../dist/expansion.js';
 import {loadPack} from './packs.mjs';
 
@@ -188,11 +188,15 @@ export async function validateSides() {
         if (!isSolved(p, there.board)) hintsSolve(p, there, `${p.id} from ${t}${tried ? ', tried' : ''}${cant ? ', Can’t' : ''}`);
       }
       walk(p, start, [0, 1, 2].flatMap(card => [1, -1].map(by => ({type: 'count', card, by}))).concat([{type: 'try'}, {type: 'try'}, {type: 'cant'}]), p.id, 60);
-      // Can't is checked: right when no table within the limit works, refused otherwise.
-      const cant = move(p, start, {type: 'cant'});
+      // Can't waits for Try it on the table showing, and is checked: right
+      // when no table within the limit works, refused otherwise.
+      assert.equal(move(p, start, {type: 'cant'}), null, `${p.id}: no Can’t before Try it`);
+      if (!want.includes(key(start.board.counts))) assert.equal(move(p, move(p, move(p, start, {type: 'try'}), {type: 'count', card: 0, by: start.board.counts[0] ? -1 : 1}), {type: 'cant'}), null, `${p.id}: no Can’t on a changed table before Try it`);
+      const cant = move(p, move(p, start, {type: 'try'}), {type: 'cant'});
       assert.equal(isSolved(p, cant.board), want.length === 0, `${p.id}: Can’t is ${want.length ? 'refused' : 'right'}`);
       if (want.length) {
         assert.equal(move(p, cant, {type: 'cant'}), null, `${p.id}: Can’t once until the table changes`);
+        assert.equal(undoPress(p, cant).board.cant, true, `${p.id}: Undo keeps the refusal on the same table`);
         assert.equal(move(p, cant, {type: 'count', card: 2, by: max > 1 ? 1 : -1}).board.cant, false, `${p.id}: a change clears the refusal`);
       }
       for (const bad of [null, {type: 'count', card: 3, by: 1}, {type: 'count', card: 0, by: 2}, {type: 'count', card: '0', by: 1}, {type: 'count'}, {type: 'toggle', ticket: 1}, {type: 'draw', ticket: 1}, {type: 'look'}, {type: 'keep'}, {type: 'claim'}]) assert.equal(move(p, start, bad), null, `${p.id}: rejects ${JSON.stringify(bad)}`);

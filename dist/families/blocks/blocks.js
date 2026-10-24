@@ -326,12 +326,14 @@ function redMove(p, b, action) {
     case 'place': { const pieces = placePiece(g, RED, b.pieces, action.cells); return pieces && withReds(p, b, pieces); }
     case 'lift': { const pieces = liftPiece(b.pieces, action.cell); return pieces && withReds(p, b, pieces); }
     case 'clear': return b.pieces.length ? withReds(p, b, []) : null;
+    // That's all opens once a filling is found, Can't once a trapezoid is
+    // down: a claim follows the child's own attempt.
     case 'claim': {
-      if (q.mode !== 'every' || b.missed) return null;
+      if (q.mode !== 'every' || b.missed || !b.found.length) return null;
       return b.found.length === redsOf(g).length ? {...b, claimed: true} : {...b, missed: true};
     }
     case 'cant': {
-      if (q.mode === 'every' || b.refused) return null;
+      if (q.mode === 'every' || b.refused || !b.pieces.length) return null;
       return redPossible(p) ? {...b, refused: true} : {...b, cant: true};
     }
   }
@@ -355,6 +357,12 @@ function redHint(p, b) {
     const route = homeRoute(g, b.pieces, b.path.length - 1, tilingKey(q.start));
     if (!route) return {type: 'move', action: {type: 'again'}, text: 'Start again.'};
     return {type: 'move', action: {type: 'recut', a: route[0], b: route[1]}, text: 'Re-cut the two glowing trapezoids.'};
+  }
+  if (q.mode !== 'every' && !redPossible(p) && !b.pieces.length) {
+    // Can't waits for a trapezoid: lay the first piece of a filling (one
+    // with the wrong count pointing down), or the first that fits.
+    const one = covers(g, 'trapezoid', 1)[0];
+    return placeHint(one ? one[0] : placements(g, 'trapezoid')[0]);
   }
   if (q.mode !== 'every' && !redPossible(p)) return {type: 'move', action: {type: 'cant'}, text: q.mode === 'kind' ? `Count the triangles pointing up and pointing down. Can ${q.down} trapezoids point down?` : 'Count the triangles. Can trapezoids of three cover them all?'};
   if (q.mode === 'every') {
@@ -406,9 +414,9 @@ function redRender(p, a) {
     if (q.mode === 'every') {
       const here = full(g, b.pieces) ? b.found.indexOf(tilingKey(b.pieces)) : -1;
       const shelf = b.found.length ? `<ol class="bk-shelf" aria-label="Fillings found: ${b.found.length}">${b.found.map((k, i) => `<li class="${i === here ? 'here' : ''}">${mini(g, piecesOf(k), `Filling ${i + 1}${i === here ? ', on the board' : ''}`)}</li>`).join('')}</ol>` : '';
-      bottom = `${solved ? '' : `<div class="bk-actions">${moveButton('Clear', {type: 'clear'}, h?.type === 'clear' ? 'hinted' : '', b.pieces.length ? '' : 'disabled')}${moveButton('That’s all', {type: 'claim'}, h?.type === 'claim' ? 'hinted' : '', b.missed ? 'disabled' : '')}</div>`}${b.missed ? '<p class="bk-note" role="status">There’s another.</p>' : ''}${shelf}`;
+      bottom = `${solved ? '' : `<div class="bk-actions">${moveButton('Clear', {type: 'clear'}, h?.type === 'clear' ? 'hinted' : '', b.pieces.length ? '' : 'disabled')}${moveButton('That’s all', {type: 'claim'}, h?.type === 'claim' ? 'hinted' : '', b.missed || !b.found.length ? 'disabled' : '')}</div>`}${b.missed ? '<p class="bk-note" role="status">There’s another.</p>' : ''}${shelf}`;
     } else {
-      bottom = `${solved ? '' : `<div class="bk-actions">${moveButton('Clear', {type: 'clear'}, '', b.pieces.length ? '' : 'disabled')}${moveButton('Can’t', {type: 'cant'}, h?.type === 'cant' ? 'hinted' : '', b.refused ? 'disabled' : '')}</div>`}${b.refused ? '<p class="bk-note" role="status">It can be done.</p>' : ''}`;
+      bottom = `${solved ? '' : `<div class="bk-actions">${moveButton('Clear', {type: 'clear'}, '', b.pieces.length ? '' : 'disabled')}${moveButton('Can’t', {type: 'cant'}, h?.type === 'cant' ? 'hinted' : '', b.refused || !b.pieces.length ? 'disabled' : '')}</div>`}${b.refused ? '<p class="bk-note" role="status">It can be done.</p>' : ''}`;
     }
   }
   const status = home ? `${plural(b.path.length - 1, 'move', 'moves')}.` : q.mode === 'every' ? `${plural(b.found.length, 'filling', 'fillings')} found.` : `${plural(g.cells.length - covered(b.pieces).size, 'empty triangle', 'empty triangles')}.`;

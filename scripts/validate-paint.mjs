@@ -11,7 +11,7 @@
 // Run: node scripts/validate-paint.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import {freshAttempt, move, isSolved, nextHint, validBoard, undo, undoToSolvable} from '../dist/engine.js';
+import {freshAttempt, move, isSolved, nextHint, validBoard, undo, undoPress, undoToSolvable} from '../dist/engine.js';
 import {isExpansion, mechanicFor} from '../dist/expansion.js';
 import {loadPack} from './packs.mjs';
 
@@ -215,9 +215,11 @@ export default async function validatePaint() {
       assert.ok(never.includes(p.solution.apart.join()), `${label}: the pair search agrees`);
       for (const pair of never) assert.ok(certified(q, pair.split(',')), `${label}: ${pair} has a certificate`);
       assert.equal(fewest(q, Math.min(6, Math.floor(Math.log(20000) / Math.log(q.hand.length)))), null, `${label}: no short run solves`);
-      const a = move(p, fresh, {type: 'cant', rows: p.solution.apart});
-      assert.ok(a && isSolved(p, a.board), `${label}: the right claim solves`);
-      assert.deepEqual(a.board.claimed, p.solution.apart);
+      assert.equal(move(p, fresh, {type: 'cant', rows: p.solution.apart}), null, `${label}: no claim before a card`);
+      const first = move(p, fresh, {type: 'play', card: 0}), firstNow = p.solution.apart.map(r => toRow(toCard(q.hand[0], n).play(toMask(r)), n));
+      const a = move(p, first, {type: 'cant', rows: firstNow});
+      assert.ok(a && isSolved(p, a.board), `${label}: the right claim solves after a card`);
+      assert.ok(never.includes(a.board.claimed.join()), `${label}: the claim keeps two starts that never join`);
       assert.equal(move(p, a, {type: 'play', card: 0}), null, `${label}: nothing after a solve`);
       let later = fresh;
       for (let k = 0; k < q.hand.length; k++) later = move(p, later, {type: 'play', card: k});
@@ -246,19 +248,38 @@ export default async function validatePaint() {
     }
     // A claim on two rows that can still join is refused, with the board kept;
     // the refusal clears on the next card, and hints still finish.
+    // Can't opens after the first card: no claim on a fresh table. After a
+    // card, a claim on two stacks whose starts can all still join is refused,
+    // with the board kept; the refusal keeps Can't off until the next card
+    // (Undo's carry keeps it on the same cards), and hints still finish.
     if (q.cant) {
-      const r = move(p, fresh, {type: 'cant', rows: joinable});
-      assert.ok(r && !isSolved(p, r.board) && r.board.refused.join() === joinable.join(), `${label}: claim on ${joinable} refused`);
-      assert.deepEqual(r.board.story, fresh.board.story);
-      assert.match(mechanicFor(p).render(p, r), /can still become one/);
-      const after = move(p, r, {type: 'play', card: 0});
-      assert.equal(after.board.refused, null, `${label}: the refusal clears on the next card`);
-      hintSteps += hintRun(p, r, `${label} after a refused claim`);
-      refusals++;
+      assert.equal(move(p, fresh, {type: 'cant', rows: joinable}), null, `${label}: no claim on a fresh table`);
+      const first = move(p, fresh, {type: 'play', card: 0}), stacks = [...new Set(rowsNow(p, first))];
+      const starts = r => startsFor(q).map(m => toRow(m, n)).filter(s => toRow(toCard(q.hand[0], n).play(toMask(s)), n) === r);
+      const pairs = [];
+      for (let i = 0; i < stacks.length; i++) for (let j = i + 1; j < stacks.length; j++) pairs.push([stacks[i], stacks[j]]);
+      const open = pairs.filter(([x, y]) => starts(x).every(s => starts(y).every(t => !never.includes([s, t].sort().join()))));
+      for (const pair of pairs) {
+        const r = move(p, first, {type: 'cant', rows: pair}), ok = !open.includes(pair);
+        assert.equal(Boolean(r && isSolved(p, r.board)), ok, `${label}: the claim on ${pair} after a card`);
+        if (ok) continue;
+        assert.ok(r.board.refused, `${label}: claim on ${pair} refused`);
+        assert.deepEqual(r.board.story, first.board.story);
+        assert.match(mechanicFor(p).render(p, r), /can still become one/);
+        assert.match(mechanicFor(p).render(p, r), /paint-cant"[^>]*disabled/, `${label}: a refusal keeps Can’t off`);
+        for (const other of pairs) assert.equal(move(p, r, {type: 'cant', rows: other}), null, `${label}: no second claim on the same cards`);
+        assert.deepEqual(undoPress(p, r).board.refused, r.board.refused, `${label}: Undo keeps the refusal on the same cards`);
+        const after = move(p, r, {type: 'play', card: 0});
+        assert.equal(after.board.refused, null, `${label}: the refusal clears on the next card`);
+        refusals++;
+      }
+      assert.ok(open.length, `${label}: some claim after the first card is refused`);
+      const r = move(p, first, {type: 'cant', rows: open[0]});
+      hintSteps += hintRun(p, undoToSolvable(p, r), `${label} after a refused claim`);
       // A claim must name two different rows on the table.
-      const rows = rowsNow(p, fresh);
-      for (const bad of [[rows[0], rows[0]], [rows[0]], [rows[0], 'Y'.repeat(n + 1)], 'YY', null]) assert.equal(move(p, fresh, {type: 'cant', rows: bad}), null, `${label}: rejects a claim on ${JSON.stringify(bad)}`);
-    } else assert.equal(move(p, fresh, {type: 'cant', rows: [...q.rows]}), null, `${label}: no Can’t`);
+      const rows = rowsNow(p, first);
+      for (const bad of [[rows[0], rows[0]], [rows[0]], [rows[0], 'Y'.repeat(n + 1)], 'YY', null]) assert.equal(move(p, first, {type: 'cant', rows: bad}), null, `${label}: rejects a claim on ${JSON.stringify(bad)}`);
+    } else assert.equal(move(p, move(p, fresh, {type: 'play', card: 0}), {type: 'cant', rows: [...q.rows]}), null, `${label}: no Can’t`);
 
     // Hints alone, from a fresh board and from wasted cards.
     hintSteps += hintRun(p, fresh, label);
@@ -267,6 +288,9 @@ export default async function validatePaint() {
       for (let i = 0; i < q.budget; i++) wasted = move(p, wasted, {type: 'play', card: (i * 2 + 1) % q.hand.length}) || wasted;
       if (!isSolved(p, wasted.board)) {
         assert.equal(nextHint(p, wasted).type, 'deadend', `${label}: a spent budget is a dead end`);
+        assert.ok(!nextHint(p, wasted).quiet, `${label}: a spent budget is told at once`);
+        // Earlier dead ends, while cards are left, are told only behind Hint.
+        for (let a = undo(wasted); a.board.story.length; a = undo(a)) { const h = nextHint(p, a); if (h.type === 'deadend') assert.equal(h.quiet, true, `${label}: a dead end with cards left is quiet`); }
         hintSteps += hintRun(p, undoToSolvable(p, wasted), `${label} after Undo from wasted cards`);
       }
     }

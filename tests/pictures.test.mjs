@@ -119,7 +119,16 @@ test('switch puzzles: only switches, a budget, rings, and the goal', () => {
   let w = play(p, freshAttempt(p), [swap(0, 6), swap(2, 4)]);
   assert.equal(isSolved(p, w.board), false);
   assert.equal(nextHint(p, w).type, 'deadend');
+  assert.ok(!nextHint(p, w).quiet && /No switches left/.test(nextHint(p, w).text), 'said once the switches are used up');
   assert.equal(move(p, w, swap(1, 7)), null, 'no switches left');
+  // A switch that wastes one while one is left is told only behind Hint.
+  // (In puzzles 7 and 10 every first switch is on a shortest route.)
+  const r = byId('pictures-11'), fresh = freshAttempt(r), cells = picture(r, fresh.board);
+  const firsts = cells.flatMap((v, i) => cells.map((_, j) => [i, j])).filter(([i, j]) => i < j).map(([i, j]) => move(r, fresh, swap(i, j))).filter(Boolean);
+  const doomed = firsts.find(x => nextHint(r, x).type === 'deadend');
+  assert.ok(doomed, 'some first switch wastes the budget');
+  assert.equal(nextHint(r, doomed).quiet, true);
+  assert.match(nextHint(r, doomed).text, /only 2 are left/);
 });
 
 test('a picked counter shows its partners; picking is view state, not a move', () => {
@@ -141,7 +150,9 @@ test('lonely pictures: exactly the counter count, no switch, and a shown switch 
   const p = byId('pictures-08');
   let a = play(p, freshAttempt(p), [toggle(0), toggle(4), toggle(2), toggle(6)]);
   assert.equal(isSolved(p, a.board), false, 'A1 B2 can switch with A2 B1');
-  assert.equal((view(p, a).match(/ twin/g) || []).length, 4, 'the four corners of a switch');
+  assert.equal((view(p, a).match(/ twin/g) || []).length, 0, 'unasked, the switch is not shown');
+  assert.match(view(p, a), /Another picture has these counts\./);
+  assert.equal((view(p, {...a, hintLevel: 1}).match(/ twin/g) || []).length, 4, 'behind Hint, the four corners of a switch');
   assert.equal(move(p, a, toggle(8)), null, 'no fifth counter');
   a = play(p, a, [toggle(4), toggle(6), toggle(1), toggle(3)]);
   assert.ok(isSolved(p, a.board), 'A1 A2 A3 B1 is alone in its counts');
