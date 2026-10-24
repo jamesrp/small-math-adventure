@@ -1,5 +1,6 @@
 // Plays Mirror Couriers bounce words through the real interface: aiming
-// draws only the straight aim (a sweep with the button held shows no word),
+// draws only the straight aim over the launched shot, faded (a sweep with the
+// button held shows no new word),
 // Launch is the move (a corner hit, Undo, Enter on the board), arrow keys and
 // where focus goes, Can't closed until a launch starts the word, wall taps (a
 // refusal kept through Undo, a tap near a corner where walls meet, the right
@@ -8,7 +9,8 @@
 // dragging and tapping the start in the rhombus, a remake with Stretch,
 // Check refused with a square shot and kept for the same word, the letters
 // after a right Check, the busiest board of the hardest puzzle at phone size
-// with its drawn argument, How to play, and Mirror Couriers' own puzzles and
+// (the last shot's copies kept, faded, while aiming; a bigger window on a
+// tablet) with its drawn argument, How to play, and Mirror Couriers' own puzzles and
 // Sight lines still opening. Same environment variables as the other browser
 // suites (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a
 // 375 × 667 phone with touch). Screenshots go in test-results/aims/, or in
@@ -40,11 +42,13 @@ const aim = async () => JSON.parse(await page.locator('.am-launch').getAttribute
 const launch = async () => { await button('Launch').click(); };
 const pack = await (await fetch(`${base}/families/aims/aims.json`)).json();
 const params = id => pack.puzzles.find(p => p.id === id).parameters;
-// Nothing of a shot is drawn while aiming.
-async function onlyAim(label) {
+// Nothing of the aimed shot is drawn while aiming: only the launched shot,
+// faded, with its word (`launched`, empty before the first launch).
+async function onlyAim(label, launched = '') {
   assert.equal(await page.locator('.am-board .am-aim').count(), 1, `${label}: the aim line`);
-  for (const sel of ['.am-hit', '.am-shot', '.am-wall.crossed', '.am-copy.passed', '.am-fold-path']) assert.equal(await page.locator(`[data-mechanic-wire="aims"] ${sel}`).count(), 0, `${label}: no ${sel} while aiming`);
-  assert.equal(await word(), '', `${label}: no word while aiming`);
+  for (const sel of ['.am-hit', '.am-shot', '.am-wall.crossed', '.am-copy.passed', '.am-fold-path']) assert.equal(await page.locator(`[data-mechanic-wire="aims"] ${sel}:not(.last)`).count(), 0, `${label}: no ${sel} of the aim`);
+  assert.equal(await word(), launched, `${label}: the launched word only`);
+  assert.equal(await page.locator('.am-row.now .am-tile:not(.empty):not(.last)').count(), 0, `${label}: faded`);
 }
 
 // A point of the app's plane (rhombus points in its slanted coordinates) on
@@ -150,6 +154,20 @@ try {
   await page.keyboard.press('Enter');
   assert.deepEqual((await board(P2)).end, [7, 9]);
   assert.equal(await focused(), 'am-board');
+  // After a launch, a sweep keeps the launched shot, faded, and shows nothing new.
+  await shoot(P2, [17, 13]);
+  const launched = await word(), hits = await page.locator('.am-board .am-hit').count();
+  assert.equal(launched, 'DC'); assert.equal(hits, 2);
+  let swept = 0;
+  await drag(await spot(P2, [3, 1]), await spot(P2, [27, 21]), async () => {
+    await onlyAim('a sweep after a launch', launched);
+    assert.equal(await page.locator('.am-board .am-hit.last').count(), hits, 'the launched shot’s crossings, faded');
+    swept++;
+  });
+  assert.equal(swept, 1);
+  await onlyAim('after the sweep', launched);
+  await page.locator('.am-board').focus(); await page.keyboard.press('Escape');
+  assert.equal(await page.locator('[data-mechanic-wire="aims"] .last').count(), 0, 'Escape: the launched shot, unfaded');
 
   // Puzzle 5: Can't in the square.
   const P5 = 'aims-05';
@@ -168,7 +186,7 @@ try {
   assert.equal(await word(), 'A');
   assert.equal(await page.locator('.am-pick').count(), 0, 'Undo puts the walls away');
   await tap(P5, [-3, -9]);
-  await onlyAim('after Can’t and Undo');
+  await onlyAim('after Can’t and Undo', 'A');
   await launch();
   assert.equal(await word(), 'AB', 'and Launch still works');
   await button('Can’t').click();
@@ -323,6 +341,20 @@ try {
   const check = await page.locator('.am-check').boundingBox();
   assert.ok(check.x >= 0 && check.x + check.width <= vw, 'Check is on screen across');
   await shot('11-long');
+  // Aiming the next shot: the rhombus copies of the last one stay, faded.
+  const long = await word(), copies = await page.locator('.am-board .am-copy.passed').count();
+  await tap(P11, [10, 5]);
+  await onlyAim('the next aim in the rhombus', long);
+  assert.equal(await page.locator('.am-board .am-copy.passed.last').count(), copies, 'the last shot’s copies, faded');
+  await shot('11-aiming');
+  // On a tablet the window is bigger.
+  const size = page.viewportSize();
+  await page.setViewportSize({width: 820, height: 1180});
+  const wide = await page.locator('.am-board').boundingBox();
+  assert.ok(wide.height >= 500, `a bigger window on a tablet (${wide.width} × ${wide.height})`);
+  await fit('puzzle 11 on a tablet'); await shot('11-tablet');
+  await page.setViewportSize(size);
+  await page.locator('.am-board').focus(); await page.keyboard.press('Escape');
   await hintsToSolve();
   assert.match(await note(), /^In a rectangle, [ABCD] to [ABCD] is (steeper|flatter) than the diagonal and [ABCD] to [ABCD] is (flatter|steeper)\.$/);
   assert.equal(await page.locator('.am-proofbox .am-mini .am-diag').count(), 2);

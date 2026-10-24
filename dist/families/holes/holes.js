@@ -446,11 +446,10 @@ const pts = (B, dots) => dots.map(k => B.m.xy[k].map(n2).join(',')).join(' ');
 const cellPts = (B, t) => pts(B, B.m.cells[t]);
 const holePts = (B, h) => pts(B, B.holes[h].dots);
 const facePts = (B, f) => f < B.T ? cellPts(B, f) : holePts(B, f - B.T);
-// A wire's ends as line attributes, moved sideways by shift and trimmed by
-// a share of its length at each end.
-const ends = (B, e, shift = 0, trim = 0) => {
+// A wire's ends as line attributes, moved sideways by shift.
+const ends = (B, e, shift = 0) => {
   const [a, b] = B.m.edges[e].map(k => B.m.xy[k]), dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy), nx = -dy / len * shift, ny = dx / len * shift;
-  return `x1="${n2(a[0] + nx + dx * trim)}" y1="${n2(a[1] + ny + dy * trim)}" x2="${n2(b[0] + nx - dx * trim)}" y2="${n2(b[1] + ny - dy * trim)}"`;
+  return `x1="${n2(a[0] + nx)}" y1="${n2(a[1] + ny)}" x2="${n2(b[0] + nx)}" y2="${n2(b[1] + ny)}"`;
 };
 // A face's middle, for rings and marks: a triangle's centre, a hole's
 // average dot (the holes here are convex).
@@ -481,19 +480,49 @@ function drawBoard(p, B, look) {
   const picks = (look.picks || []).map(t => `<polygon class="hl-pick" points="${insetPts(B, t)}"/>`).join('');
   const marks = (look.marks || []).map(f => `<polygon class="hl-mark" points="${f < B.T ? insetPts(B, f) : holePts(B, f - B.T)}"/>`).join('');
   const markedPlaces = (look.markedPlaces || []).map(e => `<line class="hl-mark-place" ${ends(B, e)}/>`).join('');
-  // Controls: triangles and holes, then dashed wire places on top, so a tap
-  // near a dashed line adds the wire and a tap inside a triangle fills it.
+  // Controls: triangles and holes, then dashed wire places (placeArea), which
+  // never overlap a triangle that is a button.
   const cellHits = B.m.cells.map((_, t) => { const c = look.cells?.(t); return c?.act ? `<polygon class="tg-hit hl-hit" points="${cellPts(B, t)}" role="button" tabindex="0" aria-label="${esc(c.label)}" data-tg-cell="${t}" data-focus="hl-cell-${t}"/>` : ''; }).join('');
   const holeHits = B.holes.map((_, h) => { const c = look.holes?.(h); return c?.act ? `<polygon class="tg-hit hl-hit hl-hole-hit" points="${holePts(B, h)}" role="button" tabindex="0" aria-label="${esc(c.label)}" data-tg-piece="hole-${h}" data-focus="hl-hole-${h}"/>` : ''; }).join('');
-  // A place's button stops short of its dots, so a tap near a dot where
-  // several dashed lines meet goes to none rather than to whichever is drawn
-  // last.
-  const placeHits = present ? B.m.edges.map((_, e) => { const c = !present[e] && look.places?.(e); return c?.act ? `<line class="tm-edge-hit hl-place-hit" ${ends(B, e, 0, .2)} role="button" tabindex="0" aria-label="${esc(c.label)}" data-tg-edge="${e}" data-focus="hl-edge-${e}"/>` : ''; }).join('') : '';
+  const placeHits = present ? B.m.edges.map((_, e) => { const c = !present[e] && look.places?.(e); return c?.act ? `<polygon class="tg-hit hl-place-hit" points="${pts2(placeArea(B, e))}" role="button" tabindex="0" aria-label="${esc(c.label)}" data-tg-edge="${e}" data-focus="hl-edge-${e}"/>` : ''; }).join('') : '';
   const [x, y, w, h] = B.m.box, pad = 4;
   // The hatching that marks a hole (one board on a page, so one pattern id).
   const hatch = B.holes.length ? '<defs><pattern id="hl-hatch" width="2.4" height="2.4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="hl-hatch-bg" width="2.4" height="2.4"/><line class="hl-hatch-line" x1="0" y1="0" x2="0" y2="2.4"/></pattern></defs>' : '';
   return `<svg class="tg-board hl-svg${look.solved ? ' solved' : ''}" viewBox="${n2(x - pad)} ${n2(y - pad)} ${n2(w + 2 * pad)} ${n2(h + 2 * pad)}" style="--hl-units:${n2((w + 2 * pad) / 10)};--hl-ratio:${n2((w + 2 * pad) / (h + 2 * pad))}" role="group" data-tg-board tabindex="-1" aria-label="${esc(look.label || 'Board')}">${hatch}${tris}${holes}${shade}${wires}${lines(outs, 'out')}${lines(glows, 'glow')}${dots}${rings}${picks}${marks}${markedPlaces}${cellHits}${holeHits}${placeHits}</svg>`;
 }
+// A dashed place's button: the part of the triangles on each side of it that
+// is nearer to it than to their other sides (each triangle splits into three
+// by the lines from its corners to its incentre), and on the page or hole side
+// the same shape mirrored. So a tap goes to the nearest wire, places never
+// overlap, and none reaches a triangle ready for a tile (both triangles beside
+// a place lack its wire). It is cut off short of each dot, so a tap close to a
+// dot where several dashed lines meet adds none.
+const PLACE_TRIM = .12;
+const incentre = (B, t) => {
+  const c = B.m.cells[t].map(k => B.m.xy[k]), l = c.map((_, i) => Math.hypot(c[(i + 1) % 3][0] - c[(i + 2) % 3][0], c[(i + 1) % 3][1] - c[(i + 2) % 3][1])), L = l[0] + l[1] + l[2];
+  return [0, 1].map(d => (l[0] * c[0][d] + l[1] * c[1][d] + l[2] * c[2][d]) / L);
+};
+export function placeArea(B, e) {
+  const [a, b] = B.m.edges[e].map(k => B.m.xy[k]), dx = b[0] - a[0], dy = b[1] - a[1], len2 = dx * dx + dy * dy;
+  const inner = B.sides[e].filter(f => f >= 0 && f < B.T).map(t => incentre(B, t));
+  // The mirror image across the wire, for its side without a triangle.
+  const mirror = ([x, y]) => { const k = 2 * ((x - a[0]) * dy - (y - a[1]) * dx) / len2; return [x - k * dy, y + k * dx]; };
+  const tips = inner.length === 2 ? inner : [inner[0], mirror(inner[0])];
+  let poly = [a, tips[0], b, tips[1]];
+  // Keep the part between PLACE_TRIM and 1 − PLACE_TRIM along the wire.
+  const along = ([x, y]) => ((x - a[0]) * dx + (y - a[1]) * dy) / len2;
+  for (const keep of [q => along(q) - PLACE_TRIM, q => 1 - PLACE_TRIM - along(q)]) {
+    const out = [];
+    poly.forEach((q, i) => {
+      const r = poly[(i + 1) % poly.length], fq = keep(q), fr = keep(r);
+      if (fq >= 0) out.push(q);
+      if ((fq >= 0) !== (fr >= 0)) { const u = fq / (fq - fr); out.push([q[0] + (r[0] - q[0]) * u, q[1] + (r[1] - q[1]) * u]); }
+    });
+    poly = out;
+  }
+  return poly;
+}
+const pts2 = list => list.map(q => q.map(n2).join(',')).join(' ');
 function insetPts(B, t, k = .62) {
   const [cx, cy] = B.m.centre[t];
   return B.m.cells[t].map(i => [cx + (B.m.xy[i][0] - cx) * k, cy + (B.m.xy[i][1] - cy) * k].map(n2).join(',')).join(' ');
@@ -525,8 +554,8 @@ function renderCancel(p, a) {
   const cant = solved ? '' : tool('Can’t', `hl-cant${hintFace !== undefined && !point ? ' hinted' : ''}`, `data-hl-ui='${JSON.stringify({point: !point})}' data-focus="hl-cant" aria-pressed="${point}"${open ? '' : ' disabled'}`);
   const note = b.refused?.shown ? 'That one doesn’t keep it lit.' : '';
   const litCount = listOf(lit).length;
-  const status = solved ? (right ? `${Cap(faceName(B, b.cant))} stays inside the loop, so it can’t go dark.` : 'Every wire is dark.') : `${litCount ? plural(litCount, 'wire lit', 'wires lit') : 'Every wire is dark'}.${point ? ' Tap the triangle or hole that keeps the loop lit.' : ''}${note ? ` ${note}` : ''}`;
-  return `<div class="hl-board hl-cancel${solved ? ' solved' : ''}${point ? ' pointing' : ''}" data-mechanic-wire="holes">${board}<div class="hl-tools">${cant}${note ? `<p class="hl-note">${note}</p>` : ''}</div><p class="sr-only" role="status">${esc(status)}</p></div>`;
+  const status = solved ? (right ? `${Cap(faceName(B, b.cant))} stays inside the loop, so it can’t go dark.` : 'Every wire is dark.') : `${litCount ? plural(litCount, 'wire lit', 'wires lit') : 'Every wire is dark'}.${point ? ` Tap the triangle${B.holes.length ? ' or hole' : ''} that keeps the loop lit.` : ''}${note ? ` ${note}` : ''}`;
+  return `<div class="hl-board hl-cancel${solved ? ' solved' : ''}${point ? ' pointing' : ''}" data-mechanic-wire="holes">${board}<div class="hl-tools">${cant}${note ? `<p class="hl-note">${esc(note)}</p>` : ''}</div><p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 
 // The tile track: an outline for each tile up to the marked one; tiles
@@ -588,8 +617,18 @@ function renderRace(p, a) {
   const check = point ? tool('Check', `hl-check${shown?.action?.cant ? ' hinted' : ''}`, `data-hl-move='${esc(JSON.stringify({cant: [...state.picks].sort((x, y) => x - y)}))}' data-focus="hl-check"${state.picks.length ? '' : ' disabled'}`) : '';
   const note = b.refused?.shown ? raceRefusal(p, b.refused.tiles) : '';
   const word = x => x ? `out with fill ${x}` : 'lit';
-  const status = solved && right ? 'Every tile the pink loop needs is inside the yellow loop.' : `Yellow loop ${word(s.yellow)}, pink loop ${word(s.pink)}. ${plural(b.fills.length, 'triangle', 'triangles')} filled.${point ? ' Tap the tiles that fill the pink loop, then Check.' : ''}${note ? ` ${note}` : ''}`;
+  const status = solved && right ? 'Every tile the pink loop needs is inside the yellow loop.' : `Yellow loop ${word(s.yellow)}, pink loop ${word(s.pink)}. ${plural(b.fills.length, 'triangle', 'triangles')} filled.${point ? ` ${ASK.race}` : ''}${note ? ` ${note}` : ''}`;
   return `<div class="hl-board hl-race${solved ? ' solved' : ''}${point ? ' pointing' : ''}" data-mechanic-wire="holes">${board}<div class="hl-tools">${cant}${check}${note ? `<p class="hl-note">${esc(note)}</p>` : ''}</div><p class="sr-only" role="status">${esc(status)}</p></div>`;
+}
+
+// While pointing after Can't, the goal line says what to tap instead, so the
+// screen keeps one line and nothing moves.
+const ASK = {cancel: 'Tap what keeps the loop lit.', race: 'Tap the tiles that fill the pink loop, then Check.'};
+function objective(p, b) {
+  if (!puzzleOk(p) || !uiState.get(p.id)?.point) return undefined;
+  if (kindOf(p) === 'cancel') return validCancel(p, b) && !solvedCancel(p, b) && cantOpen(b) ? ASK.cancel : undefined;
+  if (kindOf(p) === 'race') return validRace(p, b) && raceOpen(p, b) ? ASK.race : undefined;
+  return undefined;
 }
 
 // Taps on the board go through tri-grid's wireTri (pointer press and
@@ -628,6 +667,7 @@ const hooks = {
   move: (p, b, action) => kindOf(p) === 'schedule' ? moveSchedule(p, b, action) : kindOf(p) === 'race' ? moveRace(p, b, action) : moveCancel(p, b, action),
   hint: (p, b) => kindOf(p) === 'schedule' ? hintSchedule(p, b) : kindOf(p) === 'race' ? hintRace(p, b) : hintCancel(p, b),
   render: (p, a) => kindOf(p) === 'schedule' ? renderSchedule(p, a) : kindOf(p) === 'race' ? renderRace(p, a) : renderCancel(p, a),
+  objective,
   wire,
   ui(p, payload) {
     const state = ui(p);

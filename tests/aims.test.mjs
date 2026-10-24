@@ -138,6 +138,46 @@ test('while aiming only the straight aim is drawn; Launch draws the rest', () =>
   }
 });
 
+test('while aiming after a launch, the launched shot stays, faded, and nothing of the aim is drawn', () => {
+  const tiles = html => [...html.matchAll(/<span class="am-tile([^"]*)">([ABCD⌟])<\/span>/g)];
+  for (const id of ['aims-01', 'aims-03', 'aims-11']) {
+    const p = byId(id), m = mechanicFor(p), q = p.parameters;
+    m.reset(p);
+    const fresh = freshAttempt(p), launched = p.solution.end;
+    const a = play(p, fresh, {type: 'launch', start: q.start, end: launched}), word = fold(q.room, q.start, launched).word;
+    const plain = m.render(p, a), board = html => html.slice(html.indexOf('data-am-board'), html.indexOf('</svg>', html.indexOf('data-am-board')));
+    // Aim somewhere else, on an aim point whose shot has another word.
+    const other = frameAims(q.room, q.frame).find(e => fold(q.room, q.start, e).word !== word && !fold(q.room, q.start, e).corner && String(e) !== String(q.start));
+    m.ui(p, {aim: {start: q.start, end: other}});
+    const html = m.render(p, a), inner = board(html);
+    assert.match(inner, /class="am-aim"/, `${id}: the aim line`);
+    // The launched shot, every mark of it faded, in the same places.
+    for (const cls of ['am-hit', 'am-shot']) {
+      assert.equal((inner.match(new RegExp(`class="${cls}"`, 'g')) || []).length, 0, `${id}: no unfaded ${cls}`);
+      assert.equal((inner.match(new RegExp(`class="${cls} last"`, 'g')) || []).length, (board(plain).match(new RegExp(`class="${cls}"`, 'g')) || []).length, `${id}: the launched ${cls}, faded`);
+    }
+    assert.equal((inner.match(/am-wall crossed last/g) || []).length, (board(plain).match(/am-wall crossed"/g) || []).length, `${id}: its crossed walls, faded`);
+    assert.equal((inner.match(/am-copy passed last/g) || []).length, (board(plain).match(/am-copy passed"/g) || []).length, `${id}: its copies, faded`);
+    assert.doesNotMatch(inner, /am-wall crossed"|am-copy passed"/, `${id}: nothing unfaded`);
+    assert.match(inner, /class="am-end last"/, `${id}: where it ended`);
+    // The word row shows the launched word, faded; the fold box its bounces, faded.
+    assert.deepEqual(tiles(html).filter(t => !t[1].includes('goal')).map(t => t[2]).join(''), word, `${id}: the launched word, not the aim’s`);
+    assert.ok(tiles(html).filter(t => !t[1].includes('goal')).every(t => t[1].includes('last')), `${id}: faded`);
+    assert.match(html, new RegExp(`aria-label="Last shot word ${word}"`));
+    assert.match(html, /class="am-fold-path last"/);
+    assert.doesNotMatch(html, /class="am-fold-path"/);
+    // Two different aims draw the same thing apart from the aim itself.
+    const another = frameAims(q.room, q.frame).filter(e => String(e) !== String(other) && String(e) !== String(q.start)).at(-1);
+    m.ui(p, {aim: {start: q.start, end: another}});
+    const strip = h => h.replace(/<line class="am-aim"[^>]*\/>|<circle class="am-end aim"[^>]*\/>|data-move='[^']*'|aria-label="Copies[^"]*"/g, '');
+    assert.equal(strip(m.render(p, a)), strip(html), `${id}: the faded shot does not follow the aim`);
+    // Escape (the aim back on the launched shot) shows it unfaded again.
+    m.ui(p, {aim: {start: q.start, end: launched}});
+    assert.doesNotMatch(m.render(p, a), / last"/, `${id}: back to the launched shot`);
+    m.reset(p);
+  }
+});
+
 test('Can’t: after a launch that starts the word, the two A walls on one line, one refusal kept through Undo', () => {
   const p = byId('aims-05'), q = p.parameters, fresh = freshAttempt(p), cert = certificate(q).map(s => s.id).sort(), L = end => ({type: 'launch', start: [5, 5], end});
   assert.deepEqual(cert, ['-10,0,0,0', '0,0,10,0'], 'the room’s A wall and the A wall after A, B');

@@ -11,7 +11,7 @@ import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/
 import {mechanicFor} from '../dist/expansion.js';
 import {emptyStore, validateStore, loadStore, persistStore} from '../dist/storage.js';
 import {libraryView} from '../dist/caravan-ui.js';
-import {boardOf, facesInside, startLit, litAfter, certificates, canGoDark, replaySchedule, raceSets, canRace, replayRace, raceRefusal, simpleLoop, spanningTree, edgesOf, maskOf, internals} from '../dist/families/holes/holes.js';
+import {boardOf, facesInside, startLit, litAfter, certificates, canGoDark, replaySchedule, raceSets, canRace, replayRace, raceRefusal, simpleLoop, spanningTree, edgesOf, maskOf, placeArea, internals} from '../dist/families/holes/holes.js';
 import holesModule from '../dist/families/holes/holes.js';
 import validateHoles from '../scripts/validate-holes.mjs';
 import {loadPack} from '../scripts/packs.mjs';
@@ -206,6 +206,70 @@ test('pointing after Can’t: every face is a button, taps are ringed in a race 
   assert.equal((html(c, b).match(/data-tg-cell=/g) || []).length, 16, 'only tiles are buttons');
 });
 
+test('while pointing after Can’t, the goal line says what to tap; it comes back after a claim, Undo or Can’t again', () => {
+  const goal = (p, a) => hooks.objective(p, a.board);
+  for (const n of [3, 8]) {
+    const p = P(n), a = play(p, freshAttempt(p), [{tile: p.parameters.filled[0]}]);
+    hooks.reset(p);
+    assert.equal(goal(p, a), undefined, `${p.id}: the puzzle’s own goal before Can’t`);
+    hooks.ui(p, {point: true});
+    assert.equal(goal(p, a), 'Tap what keeps the loop lit.', `${p.id}: what to tap while pointing`);
+    assert.match(html(p, a), /role="status">[^<]*Tap the triangle( or hole)? that keeps the loop lit\./, `${p.id}: and in the status`);
+    const face = [...Array(boardOf(p.parameters).F).keys()].find(f => !certificates(p).includes(f) && !p.parameters.filled.includes(f));
+    hooks.ui(p, {point: false});
+    const wrong = play(p, a, [{cant: face}]);
+    hooks.ui(p, {point: true});
+    assert.equal(goal(p, wrong), undefined, `${p.id}: Can’t is locked after a refusal, so no pointing line`);
+    assert.match(html(p, wrong), /<p class="hl-note">That one doesn’t keep it lit\.<\/p>/);
+    hooks.carry(p, wrong.board, a.board);
+    assert.equal(goal(p, a), undefined, `${p.id}: Undo ends pointing`);
+    hooks.reset(p);
+  }
+  const r = P(12), a = play(r, freshAttempt(r), [{tile: 1}]);
+  hooks.reset(r);
+  assert.equal(goal(r, freshAttempt(r)), undefined);
+  hooks.ui(r, {point: true});
+  assert.equal(goal(r, a), 'Tap the tiles that fill the pink loop, then Check.');
+  hooks.ui(r, {point: false});
+  assert.equal(goal(r, a), undefined, 'pressing Can’t again brings the goal back');
+  const s = P(9);
+  hooks.ui(s, {point: true});
+  assert.equal(goal(s, freshAttempt(s)), undefined, 'schedules have no Can’t');
+  for (const q of [r, s]) hooks.reset(q);
+});
+
+test('dashed places: a tap goes to the nearest wire, never to a ready triangle, and none near a dot', () => {
+  const inside = (poly, [x, y]) => { let s = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [xi, yi] = poly[i], [xj, yj] = poly[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) s = !s; } return s; };
+  const toLine = ([x, y], [a, b]) => { const dx = b[0] - a[0], dy = b[1] - a[1], t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / (dx * dx + dy * dy))); return Math.hypot(a[0] + t * dx - x, a[1] + t * dy - y); };
+  for (const n of [9, 10]) {
+    const p = P(n), B = boardOf(p.parameters), start = new Set(edgesOf(B, p.parameters.start));
+    const places = [...B.m.edges.keys()].filter(e => !start.has(e)), areas = new Map(places.map(e => [e, placeArea(B, e)]));
+    const seg = e => B.m.edges[e].map(k => B.m.xy[k]);
+    const [x0, y0, w, h] = B.m.box;
+    let covered = 0;
+    for (let x = x0 - 3; x <= x0 + w + 3; x += .25) for (let y = y0 - 3; y <= y0 + h + 3; y += .25) {
+      const hits = places.filter(e => inside(areas.get(e), [x, y]));
+      assert.ok(hits.length <= 1, `${p.id}: places never overlap (${x}, ${y})`);
+      if (!hits.length) continue;
+      covered++;
+      const e = hits[0], d = toLine([x, y], seg(e));
+      // Nearest: no other wire of a triangle beside it is nearer.
+      for (const t of B.sides[e].filter(f => f >= 0 && f < B.T)) for (const f of B.m.cellEdges[t]) assert.ok(toLine([x, y], seg(f)) >= d - 1e-9, `${p.id}: the nearest wire (${x}, ${y})`);
+      // Only in a triangle beside the place (never ready while it is dashed).
+      const cell = [...B.m.cells.keys()].find(t => inside(B.m.cells[t].map(k => B.m.xy[k]), [x, y]));
+      if (cell !== undefined) assert.ok(B.sides[e].includes(cell), `${p.id}: no place over another triangle (${x}, ${y})`);
+      // None close to a dot.
+      for (const [a, b] of [seg(e), seg(e).reverse()]) assert.ok(Math.hypot(x - a[0], y - a[1]) > 1, `${p.id}: no place within a tenth of a side of a dot`);
+    }
+    assert.ok(covered > 0);
+    // Each place reaches a quarter of a side off its wire's middle, both ways.
+    for (const e of places) {
+      const [a, b] = seg(e), m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], len = Math.hypot(b[0] - a[0], b[1] - a[1]), nx = -(b[1] - a[1]) / len, ny = (b[0] - a[0]) / len;
+      for (const k of [-2.5, 2.5]) assert.ok(inside(areas.get(e), [m[0] + nx * k, m[1] + ny * k]), `${p.id}: place ${e} reaches ${k} units off its middle`);
+    }
+  }
+});
+
 test('hints: a move first, never Can’t; the reason in words; quick in CPU time', () => {
   for (const p of mine) {
     let a = freshAttempt(p), steps = 0;
@@ -236,7 +300,7 @@ test('the board: buttons sized to the triangles, a focus target that is always a
   assert.match(board, /<pattern id="hl-hatch"/, 'the hole is hatched');
   assert.match(holesModule.focus, /\[tabindex="0"\]$/, 'focus goes to a control');
   const s = P(10), sb = html(s, freshAttempt(s));
-  assert.equal((sb.match(/class="tm-edge-hit hl-place-hit"/g) || []).length, 19, 'a dashed place for each wire not in');
+  assert.equal((sb.match(/class="tg-hit hl-place-hit"/g) || []).length, 19, 'a dashed place for each wire not in');
   assert.equal((sb.match(/data-tg-cell=/g) || []).length, 0, 'no triangle has three wires yet');
 });
 
@@ -246,7 +310,7 @@ test('every style rule is scoped under the group’s root', async () => {
   for (const rule of rules) {
     if (rule.startsWith('@import')) { assert.match(rule, /tri-grid\.css/); continue; }
     // A rule inside @supports: check the rule itself.
-    const inner = rule.startsWith('@supports') ? rule.slice(rule.indexOf('{') + 1) : rule;
+    const inner = /^@(supports|media)/.test(rule) ? rule.slice(rule.indexOf('{') + 1) : rule;
     const selectors = inner.slice(0, inner.indexOf('{')).split(',');
     for (const sel of selectors) assert.match(sel.trim(), /^\[data-mechanic-wire="holes"\]/, sel);
   }

@@ -4,11 +4,13 @@
 // face refused with one note, the lock kept through Undo while the note
 // goes, a tap reopening it and the hole tapped near its rim; a strip by the
 // keyboard alone, focus staying on the board; a schedule by taps on dashed
-// lines (at their middles, and near a dot where three meet, which adds
-// none) with the loop going out too soon, Undo and a finish; the busiest
-// schedule board at phone width; a race won by taps and a nested race
-// claimed with Can't, a wrong set refused on Check and the right one
-// accepted; a puzzle finished by hints. No page overflow anywhere. Same
+// lines (at their middles, near a dot where three meet, which adds none,
+// and well off every line's middle on both sides) with the loop going out
+// too soon, Undo and a finish; the busiest schedule board at phone width and
+// grown on a tablet; the goal line saying what to tap while pointing after
+// Can't; a race won by taps and a nested race claimed with Can't, a wrong
+// set refused on Check and the right one accepted; a puzzle finished by
+// hints. No page overflow anywhere. Same
 // environment variables as the other browser suites (PLAYWRIGHT_MODULE,
 // BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a 375 × 667 phone).
 // Screenshots go in test-results/holes/.
@@ -60,7 +62,15 @@ async function tapTri(t, share = 0, toCorner = null) {
   const target = toCorner === null ? c : toward(c, toCorner(g.tris[t]), share);
   await tapAt(...target);
 }
-const placeMiddle = async e => page.evaluate(e => { const l = document.querySelector(`[data-mechanic-wire="holes"] [data-tg-edge="${e}"]`); const [x1, y1, x2, y2] = ['x1', 'y1', 'x2', 'y2'].map(a => Number(l.getAttribute(a))); return [(x1 + x2) / 2, (y1 + y2) / 2]; }, e);
+// A dashed line's middle and the way across it, in board units, from its two
+// dots (named from 1 in its label).
+const placeLine = async e => page.evaluate(e => {
+  const svg = document.querySelector('[data-mechanic-wire="holes"] .hl-svg'), dots = [...svg.querySelectorAll('.hl-dot')].map(c => [Number(c.getAttribute('cx')), Number(c.getAttribute('cy'))]);
+  const [a, b] = svg.querySelector(`[data-tg-edge="${e}"]`).getAttribute('aria-label').match(/\d+/g).map(n => dots[Number(n) - 1]), len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+  return {middle: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], across: [-(b[1] - a[1]) / len, (b[0] - a[0]) / len]};
+}, e);
+const placeMiddle = async e => (await placeLine(e)).middle;
+const pxPerUnit = () => page.evaluate(() => document.querySelector('[data-mechanic-wire="holes"] .hl-svg').getScreenCTM().a);
 async function hintSolve() {
   for (let i = 0; i < 3; i++) await button('Hint').click();
   for (let s = 0; !await page.locator('#completion-heading').count() && s < 40; s++) await button('Apply hint').click();
@@ -93,13 +103,18 @@ try {
   assert.ok(await button('Can’t').isDisabled(), 'Can’t waits for a tap');
   await tapTri(2);
   assert.ok(!await button('Can’t').isDisabled());
+  const goalTop = (await page.locator('.puzzle-goal').boundingBox()).y, boardTop = (await page.locator('.hl-svg').boundingBox()).y;
   await button('Can’t').click();
   assert.equal(await page.locator('[data-mechanic-wire="holes"].pointing').count(), 1);
+  assert.equal(await page.locator('.puzzle-goal').innerText(), 'Tap what keeps the loop lit.', 'while pointing the goal line says what to tap');
+  assert.equal((await page.locator('.hl-svg').boundingBox()).y, boardTop, 'and the board does not move');
+  assert.equal((await page.locator('.puzzle-goal').boundingBox()).y, goalTop);
   assert.equal((await focused()).tag.toLowerCase(), 'svg', 'Can’t sends focus to the board');
   assert.equal(await page.locator('[data-tg-piece="hole-0"]').count(), 1, 'the hole is a button after Can’t');
   await shot('04-pointing');
   await tapTri(16);
   await page.locator('.hl-note', {hasText: 'That one doesn’t keep it lit.'}).waitFor();
+  assert.equal(await page.locator('.puzzle-goal').innerText(), 'Make every wire dark.', 'the goal comes back after the claim');
   assert.ok(await button('Can’t').isDisabled(), 'Can’t stays off after a refusal');
   assert.notEqual((await focused()).label, 'Can’t');
   await shot('04-refused');
@@ -171,8 +186,27 @@ try {
   await shot('10-round-the-hole');
   await inSight(page.locator('.hl-track'), 'the tile track'); await inSight(button('↶ Undo'), 'Undo');
   const box = await page.locator('.hl-svg').boundingBox();
-  assert.ok(box.width <= 382, `the board is at most about 380 px wide (${box.width})`);
+  assert.ok(box.width <= 382, `the board is at most about 380 px wide here (${box.width})`);
   await button('↶ Undo').click();
+  // A tap well off a dashed line's middle, on either side, adds that line:
+  // its button is the part of the triangles beside it nearer to it than to
+  // their other sides.
+  const unit = await pxPerUnit(), off = Math.min(12, 2.5 * unit);
+  for (const e of await page.locator('[data-tg-edge]').evaluateAll(list => list.map(l => Number(l.dataset.tgEdge)))) {
+    for (const side of [1, -1]) {
+      const {middle, across} = await placeLine(e);
+      await tapAt(middle[0] + across[0] * side * off / unit, middle[1] + across[1] * side * off / unit);
+      assert.deepEqual(await board('holes-10'), {steps: [{edge: e}]}, `a tap ${off.toFixed(1)} px off the middle of dashed line ${e} adds it`);
+      await button('↶ Undo').click();
+    }
+  }
+  // On a tablet the board grows.
+  const size = page.viewportSize();
+  await page.setViewportSize({width: 820, height: 1180});
+  const wide = await page.locator('.hl-svg').boundingBox();
+  assert.ok(wide.width >= 500, `a bigger board on a tablet (${wide.width})`);
+  await fit('ring of wires on a tablet'); await shot('10-tablet');
+  await page.setViewportSize(size);
   await hintSolve(); await fit('ring of wires solved'); await shot('10-solved');
 
   // A race won by taps.
@@ -185,6 +219,7 @@ try {
   assert.ok(await button('Can’t').isDisabled());
   await tapTri(1);
   await button('Can’t').click();
+  assert.equal(await page.locator('.puzzle-goal').innerText(), 'Tap the tiles that fill the pink loop, then Check.', 'what to tap after Can’t');
   assert.ok(await button('Check').isDisabled(), 'Check waits for a tap');
   for (const t of [4, 5, 6]) await tapTri(t);
   assert.equal(await page.locator('.hl-pick').count(), 3, 'tapped tiles are ringed, nothing else');
@@ -192,6 +227,7 @@ try {
   await inSight(button('Check'), 'Check'); await inSight(button('↶ Undo'), 'Undo');
   await button('Check').click();
   await page.locator('.hl-note', {hasText: 'Those tiles don’t fill the pink loop.'}).waitFor();
+  assert.equal(await page.locator('.puzzle-goal').innerText(), 'Make the yellow loop go out while the pink one is lit.');
   assert.equal(await page.locator('.hl-pick').count(), 0, 'the refusal clears the taps');
   assert.notEqual((await focused()).label, 'Check');
   assert.ok(await button('Can’t').isDisabled());

@@ -417,24 +417,28 @@ const label = (v, s, cls = '') => { const [x, y] = mid(v, s); return `<text clas
 const segment = (v, s, cls) => { const [x1, y1] = v.px(s.a), [x2, y2] = v.px(s.b); return `<line class="${cls}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`; };
 
 // The copies: a rectangle's whole window, or the rhombus copies along a
-// launched shot (only the room while aiming), cut off at the window's edge.
-function copiesLayer(v, room, f, maps, crossedIds, clip = '') {
+// launched shot (only the room before the first launch), cut off at the
+// window's edge. With `last` (while aiming) what the launched shot added is
+// faded: its tinted copies, crossed walls and, in the rhombus, its copies'
+// walls and letters.
+function copiesLayer(v, room, f, maps, crossedIds, clip = '', last = false) {
   let out = '';
+  const fade = last ? ' last' : '', crossed = s => (crossedIds.has(s.id) ? ` crossed${fade}` : '');
   if (room === 'rhombus') {
     const [X0, X1, Y0, Y1] = box(room, f), frame = `x="${n2(v.left)}" y="${PAD}" width="${n2((X1 - X0) * v.k)}" height="${n2((Y1 - Y0) * v.k)}"`;
     out += `<clipPath id="am-clip${clip}"><rect ${frame}/></clipPath><rect class="am-paper" ${frame}/><g clip-path="url(#am-clip${clip})">`;
-    out += maps.map((m, i) => `<polygon class="am-copy${i === 0 ? ' room' : ' passed'}" points="${pts(v, roomPoly(room, m))}"/>`).join('');
-    const walls = chainSeams(room, maps);
-    out += walls.map(s => segment(v, s, `am-wall${crossedIds.has(s.id) ? ' crossed' : ''}`)).join('');
-    return {svg: `${out}</g>`, labels: `<g clip-path="url(#am-clip${clip})">${walls.map(s => label(v, s, crossedIds.has(s.id) ? ' crossed' : '')).join('')}</g>`};
+    out += maps.map((m, i) => `<polygon class="am-copy${i === 0 ? ' room' : ` passed${fade}`}" points="${pts(v, roomPoly(room, m))}"/>`).join('');
+    const walls = chainSeams(room, maps), copy = s => (s.copy && !crossedIds.has(s.id) ? fade : '');
+    out += walls.map(s => segment(v, s, `am-wall${crossed(s)}${copy(s)}`)).join('');
+    return {svg: `${out}</g>`, labels: `<g clip-path="url(#am-clip${clip})">${walls.map(s => label(v, s, `${crossed(s)}${copy(s)}`)).join('')}</g>`};
   }
   const [x0, y0] = v.px([f[0] * ROOMS[room].W, (f[3] + 1) * ROOMS[room].H]);
   out += `<rect class="am-paper" x="${x0}" y="${y0}" width="${n2(v.w)}" height="${n2(v.h)}"/>`;
-  out += maps.slice(1).map(m => `<polygon class="am-copy passed" points="${pts(v, roomPoly(room, m))}"/>`).join('');
+  out += maps.slice(1).map(m => `<polygon class="am-copy passed${fade}" points="${pts(v, roomPoly(room, m))}"/>`).join('');
   out += `<polygon class="am-copy room" points="${pts(v, roomPoly(room, ID))}"/>`;
   const walls = gridSeams(room, f);
-  out += walls.map(s => segment(v, s, `am-wall${crossedIds.has(s.id) ? ' crossed' : ''}`)).join('');
-  return {svg: out, labels: walls.map(s => label(v, s, crossedIds.has(s.id) ? ' crossed' : '')).join('')};
+  out += walls.map(s => segment(v, s, `am-wall${crossed(s)}`)).join('');
+  return {svg: out, labels: walls.map(s => label(v, s, crossed(s))).join('')};
 }
 // The walls a shot crosses, by id.
 function crossedWalls(room, r) {
@@ -446,7 +450,7 @@ function shotLayer(v, start, end, r, cls = '') {
   if (!r) return '';
   const S = v.px(start), E = v.px(end), stop = r.corner ? v.px(at(start, end, r.corner.at)) : E;
   let out = `<line class="am-shot${cls}" x1="${S[0]}" y1="${S[1]}" x2="${stop[0]}" y2="${stop[1]}"/>`;
-  if (r.corner) out += `<line class="am-shot-after${cls}" x1="${stop[0]}" y1="${stop[1]}" x2="${E[0]}" y2="${E[1]}"/><circle class="am-corner" cx="${stop[0]}" cy="${stop[1]}" r="7"/>`;
+  if (r.corner) out += `<line class="am-shot-after${cls}" x1="${stop[0]}" y1="${stop[1]}" x2="${E[0]}" y2="${E[1]}"/><circle class="am-corner${cls}" cx="${stop[0]}" cy="${stop[1]}" r="7"/>`;
   out += r.crossings.map(c => { const [x, y] = v.px(at(start, end, c.at)); return `<circle class="am-hit${cls}" cx="${x}" cy="${y}" r="3"/>`; }).join('');
   return out;
 }
@@ -463,10 +467,13 @@ function wallName(q, s) {
 }
 
 // The play window's inside: the launched shot with its crossings and copies,
-// or, while aiming, only the straight aim and its end.
+// or, while aiming, the straight aim and its end over the launched shot,
+// faded. The faded shot is the one already launched, so it shows nothing new
+// while the aim moves: the aim's own word and bounces wait for Launch.
 function boardInner(p, b, v, opts = {}) {
   const q = p.parameters, w = viewsOf(q).play, claiming = Boolean(opts.claiming), aim = aiming(v, b) && !claiming;
-  const r = aim ? null : shotOf(q, b), crossed = crossedWalls(q.room, r), layer = copiesLayer(w, q.room, q.frame, r ? r.copies : [ID], crossed);
+  const r = aim ? null : shotOf(q, b), last = aim ? shotOf(q, b) : null, drawn = r || last;
+  const layer = copiesLayer(w, q.room, q.frame, drawn ? drawn.copies : [ID], crossedWalls(q.room, drawn), '', Boolean(last));
   let out = layer.svg;
   // A right claim draws the line through both walls across the window (in a
   // rectangle, where claims can be right, that line is level or upright).
@@ -477,6 +484,12 @@ function boardInner(p, b, v, opts = {}) {
     out += b.claimed.map(id => segment(w, parseSeam(id), 'am-proved')).join('');
   }
   if (opts.given) out += shotLayer(w, opts.given.start, opts.given.end, opts.given.r, ' ghost');
+  if (last) {
+    out += shotLayer(w, b.start, b.end, last, ' last');
+    const [ex, ey] = w.px(b.end);
+    out += `<circle class="am-end last" cx="${ex}" cy="${ey}" r="6"/>`;
+    if (!same(b.start, v.start)) { const [sx, sy] = w.px(b.start); out += `<circle class="am-start last" cx="${sx}" cy="${sy}" r="4.5"/>`; }
+  }
   if (aim && v.end) { const [x1, y1] = w.px(v.start), [x2, y2] = w.px(v.end); out += `<line class="am-aim" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`; }
   if (!aim) out += shotLayer(w, b.start, b.end, r);
   out += layer.labels;
@@ -494,23 +507,24 @@ function boardInner(p, b, v, opts = {}) {
   return out;
 }
 
-// The word: the goal's letters (dashed) over the launched shot's. After a
-// right Check the shot's letters are buttons, for the two that show why; they
-// stay while the child aims elsewhere.
+// The word: the goal's letters (dashed) over the launched shot's, faded while
+// aiming. After a right Check the shot's letters are buttons, for the two
+// that show why; they stay while the child aims elsewhere.
 function wordRows(p, b, v, opts = {}) {
-  const q = p.parameters, aim = aiming(v, b) && !opts.claiming && !canPair(q, b), r = aim ? null : shotOf(q, b);
+  const q = p.parameters, aim = aiming(v, b) && !opts.claiming && !canPair(q, b), r = shotOf(q, b), fade = aim ? ' last' : '';
   const tiles = (word, cls) => [...word].map(c => `<span class="am-tile${cls}">${c}</span>`).join('');
   const goal = q.mode === 'design' ? '' : `<div class="am-row goal" aria-label="Goal word ${esc(q.word)}">${tiles(q.word, ' goal')}</div>`;
   let now = '';
   if (r && canPair(q, b)) {
     now = [...r.word].map((c, i) => `<button type="button" class="am-tile pick${v.tile === i ? ' picked' : ''}${opts.hintTiles?.includes(i) ? ' hinted' : ''}" data-am-tile="${i}" data-focus="am-tile-${i}" aria-pressed="${v.tile === i}" aria-label="Letter ${i + 1}, ${c}">${c}</button>`).join('');
   } else if (r) {
-    now = [...r.word].map((c, i) => `<span class="am-tile${b.pair?.includes(i) ? ' proved' : ''}">${c}</span>`).join('') + (r.corner ? '<span class="am-tile corner" aria-label="corner">⌟</span>' : '');
+    now = [...r.word].map((c, i) => `<span class="am-tile${b.pair?.includes(i) ? ' proved' : ''}${fade}">${c}</span>`).join('') + (r.corner ? `<span class="am-tile corner${fade}" aria-label="corner">⌟</span>` : '');
   }
-  return `${goal}<div class="am-row now" aria-label="${r ? `Shot word ${esc(r.word) || 'empty'}${r.corner ? ', then a corner' : ''}` : 'Not launched'}">${now || '<span class="am-tile empty"></span>'}</div>`;
+  return `${goal}<div class="am-row now" aria-label="${r ? `${aim ? 'Last shot' : 'Shot'} word ${esc(r.word) || 'empty'}${r.corner ? ', then a corner' : ''}` : 'Not launched'}">${now || '<span class="am-tile empty"></span>'}</div>`;
 }
-// The same shot folded into the room: its bounces, start and end.
-function foldInner(room, start, end, r) {
+// The same shot folded into the room: its bounces, start and end. While
+// aiming, the launched shot's bounces faded (`last`) and the aim's start.
+function foldInner(room, start, end, r, last = false) {
   const rm = ROOMS[room], corners = rm.corners.map(c => euclid(room, c)), xs = corners.map(c => c[0]), ys = corners.map(c => c[1]);
   const X0 = Math.min(...xs), X1 = Math.max(...xs), Y0 = Math.min(...ys), Y1 = Math.max(...ys), k = Math.min(104 / (X1 - X0), 70 / (Y1 - Y0)), m = 14;
   const px = pt => { const [x, y] = euclid(room, pt); return [n2(m + (x - X0) * k), n2(m + (Y1 - y) * k)]; };
@@ -522,12 +536,12 @@ function foldInner(room, start, end, r) {
     return `<text class="am-fold-lab" x="${n2(mx + (dx / L) * 8)}" y="${n2(my + (dy / L) * 8)}">${wl.letter}</text>`;
   }).join('');
   if (r && end) {
-    const stops = [[0, 1], ...r.crossings.map(c => c.at), r.corner ? r.corner.at : [1, 1]];
+    const stops = [[0, 1], ...r.crossings.map(c => c.at), r.corner ? r.corner.at : [1, 1]], fade = last ? ' last' : '';
     const path = r.legs.slice(0, stops.length - 1).flatMap(([s, e], i) => [px(at(s, e, stops[i])), px(at(s, e, stops[i + 1]))]);
-    out += `<polyline class="am-fold-path" points="${path.map(p => p.join(',')).join(' ')}"/>`;
-    out += r.crossings.map((c, i) => { const [s, e] = r.legs[i]; const [x, y] = px(at(s, e, c.at)); return `<circle class="am-fold-hit" cx="${x}" cy="${y}" r="2.6"/>`; }).join('');
-    const last = path.at(-1);
-    out += r.corner ? `<circle class="am-corner" cx="${last[0]}" cy="${last[1]}" r="5"/>` : `<circle class="am-fold-end" cx="${last[0]}" cy="${last[1]}" r="3.2"/>`;
+    out += `<polyline class="am-fold-path${fade}" points="${path.map(p => p.join(',')).join(' ')}"/>`;
+    out += r.crossings.map((c, i) => { const [s, e] = r.legs[i]; const [x, y] = px(at(s, e, c.at)); return `<circle class="am-fold-hit${fade}" cx="${x}" cy="${y}" r="2.6"/>`; }).join('');
+    const stop = path.at(-1);
+    out += r.corner ? `<circle class="am-corner${fade}" cx="${stop[0]}" cy="${stop[1]}" r="5"/>` : `<circle class="am-fold-end${fade}" cx="${stop[0]}" cy="${stop[1]}" r="3.2"/>`;
   }
   const [sx, sy] = px(start);
   return `${out}<circle class="am-fold-start" cx="${sx}" cy="${sy}" r="3.6"/></svg>`;
@@ -576,6 +590,9 @@ function slopesSvg(word) {
   const steepFirst = SIDE[word[0]] === 'AC';
   return `<svg class="am-mini" viewBox="-14 -8 228 118" role="img" aria-label="${esc(slopesText(word))}">${cell(0, word[0], word[1], steepFirst)}${cell(110, word[2], word[3], !steepFirst)}</svg>`;
 }
+// The fold box under the board: the launched shot, or while aiming the aim's
+// start with the launched shot faded.
+const foldFor = (q, b, v, aim) => (aim ? foldInner(q.room, v.start, b.end, shotOf(q, b), true) : foldInner(q.room, b.start, b.end, shotOf(q, b)));
 const slopesText = word => (SIDE[word[0]] === 'AC'
   ? `In a rectangle, ${word[0]} to ${word[1]} is steeper than the diagonal and ${word[2]} to ${word[3]} is flatter.`
   : `In a rectangle, ${word[0]} to ${word[1]} is flatter than the diagonal and ${word[2]} to ${word[3]} is steeper.`);
@@ -606,7 +623,7 @@ function render(p, a) {
   const shown = a.hintLevel >= 2 && !done ? hint(p, b) : null, hinted = shown?.type === 'move' ? shown.action : null;
   const given = q.mode === 'remake' && done ? {start: mapGiven(q, q.given.start), end: mapGiven(q, q.given.end), r: shot(q.room, mapGiven(q, q.given.start), mapGiven(q, q.given.end))} : null;
   const inner = boardInner(p, b, v, {claiming, hinted, given});
-  const tall = w.H > w.W ? ` style="max-width:${Math.round((380 * w.W) / w.H)}px"` : '';
+  const tall = w.H > w.W ? ` style="max-width:calc(var(--am-cap) * ${Math.round((1000 * w.W) / w.H) / 1000})"` : '';
   const label = `Copies of the ${ROOM_WORD[q.room]}${aim ? ', aiming' : r ? `, a shot with the word ${r.word || 'empty'}${r.corner ? ' that hits a corner' : ''}` : ''}`;
   const board = `<svg class="am-board${claiming ? ' claiming' : ''}${done ? ' solved' : ''}" data-am-board viewBox="0 0 ${n2(w.W)} ${n2(w.H)}"${tall} tabindex="0" data-focus="am-board" role="application" aria-label="${esc(label)}">${inner}</svg>`;
   const top = q.mode === 'remake' ? givenWindow(q, views2.given, done && v.stretched) : '';
@@ -621,7 +638,7 @@ function render(p, a) {
   if (q.mode === 'design' && !done && !b.checked) tools.push(`<button type="button" class="secondary am-check${hinted?.type === 'check' ? ' hinted' : ''}" data-action="expansion-move" data-move='{"type":"check"}' data-focus="am-check" ${canCheck(q, b) ? '' : 'disabled'}>Check</button>`);
   if (q.mode === 'remake' && done) tools.push(`<button type="button" class="secondary am-stretch" data-am-stretch aria-pressed="${v.stretched}" data-focus="am-stretch">${q.given.room === 'square' ? 'Stretch' : 'Squeeze'}</button>`);
   const rows = wordRows(p, b, v, {claiming, hintTiles: hinted?.type === 'pair' ? hinted.tiles : null});
-  const strip = `<div class="am-strip"><div class="am-words"><div class="am-rows">${rows}</div>${tools.length ? `<div class="am-tools">${tools.join('')}</div>` : ''}</div><div class="am-fold-box">${foldInner(q.room, aim ? v.start : b.start, aim ? null : b.end, r)}</div></div>`;
+  const strip = `<div class="am-strip"><div class="am-words"><div class="am-rows">${rows}</div>${tools.length ? `<div class="am-tools">${tools.join('')}</div>` : ''}</div><div class="am-fold-box">${foldFor(q, b, v, aim)}</div></div>`;
   const note = noteFor(q, b, v, claiming);
   const status = aim ? 'Aiming.' : r ? `Word ${r.word || 'empty'}${r.corner ? ', then a corner' : ''}.` : 'No shot yet.';
   const foot = note ? `<p class="am-note${note.good ? ' good' : ''}" role="status">${esc(note.text)}</p>${note.svg ? `<div class="am-proofbox">${note.svg}</div>` : ''}<p class="sr-only">${esc(status)}</p>` : `<p class="sr-only" role="status">${esc(status)}</p>`;
@@ -674,12 +691,13 @@ function wire(root, p, api) {
   const scale = () => svg.getScreenCTM?.()?.a || 1;
   const closest = (list, [x, y], skip = null) => { let best = null, d = Infinity; for (const pt of list) { if (skip && same(pt, skip)) continue; const [u, t] = w.px(pt), e = (u - x) ** 2 + (t - y) ** 2; if (e < d) { d = e; best = pt; } } return best; };
   const words = root.querySelector('.am-rows'), foldBox = root.querySelector('.am-fold-box');
-  // While aiming: the straight aim only, no word and no bounces.
+  // While aiming: the straight aim over the launched shot, faded; the aim's
+  // own word and bounces wait for Launch.
   const paint = () => {
     const b = board(), v = v0();
     svg.innerHTML = boardInner(p, b, v, {});
     if (words) words.innerHTML = wordRows(p, b, v);
-    if (foldBox) foldBox.innerHTML = foldInner(q.room, v.start, null, null);
+    if (foldBox) foldBox.innerHTML = foldFor(q, b, v, aiming(v, b));
   };
   let drag = null;
   const tapWall = id => {

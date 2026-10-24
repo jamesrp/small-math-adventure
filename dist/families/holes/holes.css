@@ -5,12 +5,15 @@
    under the group's own root. */
 @import url('../../tri-grid.css');
 
-[data-mechanic-wire="holes"]{display:grid;justify-items:center;gap:.45rem;width:100%}
-[data-mechanic-wire="holes"] .hl-svg{width:min(100%,calc(var(--hl-units,4) * 80px));max-width:380px;max-height:none;margin:0 auto;padding:0;box-sizing:border-box;background:var(--b-paper,#f5f1e6);border:1.5px dashed var(--b-line,#d0d6bd);border-radius:14px}
+[data-mechanic-wire="holes"]{display:grid;justify-items:center;gap:.45rem;width:100%;--hl-unit:80px;--hl-cap:380px}
+/* On a wide screen (a tablet) the board grows, so triangles and dashed lines
+   are bigger to tap. */
+@media (min-width:700px){[data-mechanic-wire="holes"]{--hl-unit:112px;--hl-cap:540px}}
+[data-mechanic-wire="holes"] .hl-svg{width:min(100%,calc(var(--hl-units,4) * var(--hl-unit)));max-width:var(--hl-cap);max-height:none;margin:0 auto;padding:0;box-sizing:border-box;background:var(--b-paper,#f5f1e6);border:1.5px dashed var(--b-line,#d0d6bd);border-radius:14px}
 /* On a short screen a tall board narrows (to no less than 240 px) so Can't,
    Check or the tile track and the Undo row below stay in sight; --hl-ratio is
    the board's width over its height. Wide strips are not affected. */
-@supports (height:1svh){[data-mechanic-wire="holes"] .hl-svg{width:min(100%,calc(var(--hl-units,4) * 80px),max(240px,calc((100svh - 432px) * var(--hl-ratio,1))))}}
+@supports (height:1svh){[data-mechanic-wire="holes"] .hl-svg{width:min(100%,calc(var(--hl-units,4) * var(--hl-unit)),max(240px,calc((100svh - 432px) * var(--hl-ratio,1))))}}
 [data-mechanic-wire="holes"] .hl-svg.solved{background:var(--b-good-soft,#e2ecd6);border:1.5px solid var(--b-good,#3c7a4a)}
 
 /* Triangles: an empty triangle is paper; a tile is green; a hole is cut out. */
@@ -45,9 +48,9 @@
 [data-mechanic-wire="holes"] .hl-mark-place{stroke:var(--b-ochre,#b38840);stroke-width:6px;vector-effect:non-scaling-stroke;stroke-dasharray:5 4;stroke-linecap:round;opacity:.8;pointer-events:none}
 
 /* Controls: each triangle and hole is a button its own shape; a dashed wire
-   place is a wide invisible line over it. After Can't every face is a
+   place is the part of the triangles beside it nearer to it than to their
+   other sides (tri-grid's .tg-hit look). After Can't every face is a
    button, so the board gets a dashed ochre edge. */
-[data-mechanic-wire="holes"] .hl-place-hit{stroke-width:18px}
 [data-mechanic-wire="holes"].pointing .hl-svg{border:2px dashed var(--b-ochre,#b38840)}
 
 /* Can't and Check. */
