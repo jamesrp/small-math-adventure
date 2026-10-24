@@ -375,7 +375,7 @@ function navigate(){if(!state||viewState.isCurrent())return;leaveDialog();focusD
 // direct hash edits. A traversal can fire both, so render each entry only once.
 window.addEventListener('popstate',navigate);
 window.addEventListener('hashchange',navigate);
-window.addEventListener('storage',event=>{if(event.key===SAVE_KEY||event.key===null){clockTimeline.leave();const loaded=loadStore(storage,puzzles);state=loaded.store;warning=loaded.warning;selected=null;highlighted=null;activePlay=null;render();}});
+window.addEventListener('storage',event=>{if(state&&(event.key===SAVE_KEY||event.key===null)){clockTimeline.leave();const loaded=loadStore(storage,puzzles);state=loaded.store;warning=loaded.warning;selected=null;highlighted=null;activePlay=null;render();}});
 function setOfflineMessage(text){pwaMessage=text;const node=document.querySelector('#offline-status');if(node)node.textContent=text;}
 async function setupOffline(){
   // A preview copy sits inside the live app's service-worker scope and registers no worker of its own.
@@ -388,4 +388,5 @@ function registerTools(){const context=document.modelContext;if(!context?.regist
 // static links once did, and load before the first render.
 function familyStyles(){const anchor=document.querySelector('link[href="./caravan.css"]');return Promise.all(FAMILIES.filter(m=>m.css).map(m=>new Promise(resolve=>{const link=document.createElement('link');link.rel='stylesheet';link.href=m.css;link.onload=link.onerror=resolve;if(anchor)anchor.before(link);else document.head.append(link);})));}
 async function loadPack(url){const response=await fetch(url);if(!response.ok)throw Error(`Puzzle pack unavailable: ${url}`);return response.json();}
-try{const styles=familyStyles();const [base,...packs]=await Promise.all([loadPack('./puzzles.json'),...FAMILIES.filter(m=>m.pack).map(m=>loadPack(m.pack))]);pack=mergePacks(base,packs);puzzles=withCampaignPuzzles(pack.puzzles);await Promise.all([loadArt(),styles]);const loaded=loadStore(storage,puzzles);state=loaded.store;warning=loaded.warning;render();setupOffline();registerTools();}catch(error){app.innerHTML='<main class="shell"><section class="panel"><h1>The island couldn’t load.</h1><p class="spaced">Connect to the internet for the first visit, then try again. Your saved progress has not been changed.</p><button class="primary" onclick="location.reload()">Try again</button></section></main>';console.error(error);}
+// A failure before the first render shows index.html's start-up screen; after it, startup.fail() does nothing.
+try{const styles=familyStyles();const [base,...packs]=await Promise.all([loadPack('./puzzles.json'),...FAMILIES.filter(m=>m.pack).map(m=>loadPack(m.pack))]);pack=mergePacks(base,packs);puzzles=withCampaignPuzzles(pack.puzzles);await Promise.all([loadArt(),styles]);const loaded=loadStore(storage,puzzles);state=loaded.store;warning=loaded.warning;render();globalThis.startup?.done();setupOffline();registerTools();}catch(error){globalThis.startup?.fail();console.error(error);}

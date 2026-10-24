@@ -110,6 +110,8 @@ It covers creation and isolation of profiles, hints after reload, offline reload
 
 The navigation regression suite (`node scripts/navigation-browser-smoke.mjs`) uses the same environment variables. It checks Puzzles groups and scroll position through Back/Forward and reload, independent history entries, all-closed groups, Grown-ups filters and nested notes, Journal archives, and explorer isolation. Set `TEST_BROWSER=webkit` for WebKit or `TEST_PHONE=1` for a phone viewport.
 
+The start-up suite (`node scripts/boot-failure-browser-smoke.mjs`, same variables and `TEST_PHONE=1`) blocks a family module, a static module, a module that throws and `puzzles.json` on a first visit and checks that each shows the one start-up screen, that Try again starts the app once the file loads, and that a normal or slow start, or an error after the first render, never shows it.
+
 Presentation state lives in each browser-history entry, scoped to the active explorer, separately from puzzle saves. `dist/view-state.js` captures it before replacing the page and restores disclosures before scrolling. Give page disclosures and filters a stable `data-view-key` (use puzzle IDs for catalog entries); render filter-dependent content from the saved values. New history entries use the view's defaults. Ordinary rerenders preserve the current entry.
 
 
@@ -147,6 +149,8 @@ To refresh the expansion from its checked authoring JSON, run `node scripts/impo
 4. Turn on Airplane Mode and reopen it to verify offline readiness on the actual device.
 
 Saves belong to this browser/app installation and origin. A new hostname, HTTP-to-HTTPS transition, or separate installed context may need an exported backup imported there. Home Screen installation is not a backup. Source links in the parent area require the internet. See [Apple’s iPad guide](https://support.apple.com/guide/ipad/open-as-web-app-ipad8f1f7a29/ipados) and [WebKit’s storage policy](https://webkit.org/blog/14403/updates-to-storage-policy/).
+
+If anything stops the app before its first screen (a module or puzzle pack that doesn't load, as on a first visit with a dropped connection, or code that throws), it shows one screen with **Try again**, which reloads ([`dist/index.html`](dist/index.html)); saves are read only once everything has loaded. A failed module isn't retried in the page: Chromium remembers a failed `import()` for the life of the page, so the reload is the retry.
 
 Updates wait until existing app tabs close, avoiding replacement of a live board. The UI indicates an update is waiting. Save schema and content versions are explicit. The expansion is additive and keeps version-one saves compatible. A saved attempt at a puzzle that has changed since starts afresh on load and keeps its star, with the untouched save kept under its own key ([Saved progress across a deploy](docs/save-compat.md)); a deliberate migration keeps unfinished progress where it matters. Imports and unsupported save versions are rejected rather than silently reinterpreted.
 
