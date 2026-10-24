@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import {waitForOffline} from './browser-offline.mjs';
 import {readFile,mkdir,writeFile}from'node:fs/promises';
+import {REPAIR_KEY,REPAIRED_WARNING} from '../dist/storage.js';
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 const browser=await chromium.launch({headless:true,...(process.env.BROWSER_EXECUTABLE?{executablePath:process.env.BROWSER_EXECUTABLE}:{} )});
 const context=await browser.newContext({viewport:{width:1024,height:768},hasTouch:true,acceptDownloads:true});
@@ -36,8 +37,14 @@ try{
  const minTarget=await page.locator('.cup-button').evaluateAll(nodes=>Math.min(...nodes.map(n=>n.getBoundingClientRect().width)));assert.ok(minTarget>=44,`cup touch targets ${minTarget}`);
  await page.getByRole('button',{name:'Hint',exact:true}).focus();await page.keyboard.press('Enter');assert.equal(await page.evaluate(()=>document.activeElement.dataset.action),'hint');
  await page.setViewportSize({width:768,height:1024});await fit();await parents();await fit();await page.locator('#catalog-band').selectOption('45');assert.equal(await page.locator('.puzzle-notes').count(),24);
- await page.evaluate(()=>localStorage.setItem('unrelated-app','keep'));await page.getByRole('button',{name:'Clear all local data',exact:true}).click();await page.getByRole('button',{name:'Clear adventure data',exact:true}).click();await page.locator('#nickname').waitFor();assert.equal(await page.evaluate(()=>localStorage.getItem('unrelated-app')),'keep');assert.equal(await page.evaluate(key=>localStorage.getItem(key),key),null);
+ // A save from before an update whose puzzle changed: that board starts afresh with its star, the rest loads, and the old save is kept.
+ const stale=await state();stale.profiles[0].attempts['swap-k1-01']={...stale.profiles[0].attempts['swap-k1-01'],board:[0,0],moves:2,history:[]};assert.equal(stale.profiles[0].attempts['swap-k1-01'].completed,true);
+ await page.evaluate(({key,value})=>localStorage.setItem(key,value),{key,value:JSON.stringify(stale)});await page.goto(base);await page.getByText(REPAIRED_WARNING,{exact:true}).waitFor();
+ assert.equal(await page.evaluate(k=>localStorage.getItem(k),REPAIR_KEY),JSON.stringify(stale));
+ await goto('swap-k1-01');const repaired=await state();assert.equal(repaired.profiles.length,3);assert.equal(repaired.profiles[0].attempts['swap-k1-01'].completed,true);assert.equal(repaired.profiles[0].attempts['swap-k1-01'].moves,0);assert.deepEqual(repaired.profiles[0].attempts['tile-45-12'],stale.profiles[0].attempts['tile-45-12']);
+ await page.reload();await page.locator('.board-panel').waitFor();assert.equal(await page.locator('.error-banner').count(),0);await parents();
+ await page.evaluate(()=>localStorage.setItem('unrelated-app','keep'));await page.getByRole('button',{name:'Clear all local data',exact:true}).click();await page.getByRole('button',{name:'Clear adventure data',exact:true}).click();await page.locator('#nickname').waitFor();assert.equal(await page.evaluate(()=>localStorage.getItem('unrelated-app')),'keep');assert.equal(await page.evaluate(key=>localStorage.getItem(key),key),null);assert.equal(await page.evaluate(k=>localStorage.getItem(k),REPAIR_KEY),null);
  assert.deepEqual(errors,[]);const nativeWebMCP=await page.evaluate(()=>Boolean(document.modelContext?.registerTool));
- console.log(JSON.stringify({browser:'Chromium',checks:['profile creation/separation','current-state hints after reload','offline reload and unopened puzzle','completion and replay','export/import and corrupt-backup rejection','keyboard focus','iPad/phone viewport fit','clear only app saves'],nativeWebMCP,errors},null,2));
+ console.log(JSON.stringify({browser:'Chromium',checks:['profile creation/separation','current-state hints after reload','offline reload and unopened puzzle','completion and replay','export/import and corrupt-backup rejection','keyboard focus','iPad/phone viewport fit','a changed puzzle restarts with its star, old save kept','clear only app saves'],nativeWebMCP,errors},null,2));
  await writeFile(new URL('../test-results/browser-report.json',import.meta.url),JSON.stringify({passed:true,nativeWebMCP,errors},null,2));
 }finally{await browser.close();}

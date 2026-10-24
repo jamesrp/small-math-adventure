@@ -67,6 +67,8 @@ npm run deploy -- --dry-run
 npm run deploy -- "Update puzzles"
 ```
 
+Before a release, check that children's saves from the live build still load: `node scripts/save-compat.mjs` makes saves with the deployed copy (`origin/gh-pages`, after a `git fetch`) in a browser and in Node, and reads each one with this checkout. It lists every puzzle whose saved attempts will start afresh after the deploy and fails if any save would still be unreadable. See [Saved progress across a deploy](docs/save-compat.md).
+
 The existing SSH key must be available to Git. If it is locked, run `ssh-add --apple-use-keychain ~/.ssh/id_ed25519` in your own Terminal and enter its passphrase there. `ssh -T git@github.com` should identify you as `jamesrp` (GitHub returns exit status 1 even on success). The deployment script uses `git@github.com:jamesrp/small-math-adventure.git` and targets only `gh-pages`; `PAGES_REMOTE` can override the repository for testing against a local bare repository that has that branch.
 
 ## Preview links for testers
@@ -146,7 +148,7 @@ To refresh the expansion from its checked authoring JSON, run `node scripts/impo
 
 Saves belong to this browser/app installation and origin. A new hostname, HTTP-to-HTTPS transition, or separate installed context may need an exported backup imported there. Home Screen installation is not a backup. Source links in the parent area require the internet. See [Apple’s iPad guide](https://support.apple.com/guide/ipad/open-as-web-app-ipad8f1f7a29/ipados) and [WebKit’s storage policy](https://webkit.org/blog/14403/updates-to-storage-policy/).
 
-Updates wait until existing app tabs close, avoiding replacement of a live board. The UI indicates an update is waiting. Save schema and content versions are explicit. The expansion is additive and keeps version-one saves compatible. Puzzle-rule changes require a deliberate migration; unsupported save versions are rejected rather than silently reinterpreted.
+Updates wait until existing app tabs close, avoiding replacement of a live board. The UI indicates an update is waiting. Save schema and content versions are explicit. The expansion is additive and keeps version-one saves compatible. A saved attempt at a puzzle that has changed since starts afresh on load and keeps its star, with the untouched save kept under its own key ([Saved progress across a deploy](docs/save-compat.md)); a deliberate migration keeps unfinished progress where it matters. Imports and unsupported save versions are rejected rather than silently reinterpreted.
 
 ## Files and boundaries
 

@@ -2,6 +2,15 @@
 
 The layout audit (`node scripts/layout-audit.mjs`) is a report, not a pass/fail suite: it measures tap targets, text size and fit for every puzzle at 390 × 844, 375 × 667 and 820 × 1180; method and latest results are in [layout-audit.md](layout-audit.md).
 
+## Saved progress across a deploy — October 24, 2026
+
+Children's saves from the live build (`gh-pages` 6fe77e0, deployed October 11) were made and read back with `main` (916e7a4, and again at caf7871) by the new `node scripts/save-compat.mjs` ([Saved progress across a deploy](save-compat.md)): 9,510 browser-made attempts over all 988 satchel puzzles (opened, after Hint, after one to three applied hints, solved, and after seeded random presses on the board), about 7,800 Node-made attempts, and 18 explorers part way along and at the end of each road trail.
+
+- No saved attempt fails the strict validator on `main`, so no store would have been emptied. Mirror Couriers' revision 2 migration starts billiard-01 to -12 and the three lighthouse road boards afresh, stars kept.
+- Sensitivity: with Lamplighter's longer street removed in a scratch copy, two Lamplighter saves fail; `main` without the repair then empties the store in the app, and with it they start afresh.
+- `loadStore` now repairs a save per attempt (a changed puzzle's attempt starts afresh keeping its star; an attempt at a gone puzzle is dropped), after copying the untouched save to `small-math-adventure:before-repair:v1`. Imports and everything outside the attempts stay strict. `tests/save-repair.test.mjs` (11 tests) and a step in `scripts/browser-smoke.mjs` cover it.
+- `npm test` (1,590), `npm run validate`, the main browser suite, the caravan suite on the K–1 trail and the families suite for 13 modules (chips, lamplighter, shares, proofs, robot, strands, cops, piles, meeting, gapflood, elevators, beads, portals) pass. The release build was not run.
+
 ## Difficulty expansion — September 23, 2026
 
 The pack contains **192 puzzles**: the original 72 plus twelve puzzles in each of ten expansion families. All 132 prior IDs, revisions, boards, targets, and witnesses were compared with the previous pack and preserved. Difficulty groups are available from every grade trail.

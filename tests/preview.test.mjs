@@ -8,7 +8,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import vm from 'node:vm';
-import {SAVE_KEY, BACKUP_KEY, saveKeys} from '../dist/storage.js';
+import {SAVE_KEY, BACKUP_KEY, REPAIR_KEY, saveKeys} from '../dist/storage.js';
 import {PREVIEW} from '../dist/preview.js';
 import {buildPreview, checkItem, previewModule, previewUrl, rename, retitle, DIST} from '../scripts/preview.mjs';
 
@@ -16,8 +16,9 @@ test('the live app keeps its save keys; each preview has its own', () => {
   assert.equal(PREVIEW, null);
   assert.equal(SAVE_KEY, 'small-math-adventure:saves:v1');
   assert.equal(BACKUP_KEY, 'small-math-adventure:previous:v1');
+  assert.equal(REPAIR_KEY, 'small-math-adventure:before-repair:v1');
   const live = Object.values(saveKeys(null)), a = Object.values(saveKeys('road-ferry')), b = Object.values(saveKeys('road-ferry-2'));
-  assert.equal(new Set([...live, ...a, ...b]).size, 6);
+  assert.equal(new Set([...live, ...a, ...b]).size, 9);
   for (const key of [...a, ...b]) assert.ok(key.startsWith('small-math-adventure:preview:'), key);
 });
 
