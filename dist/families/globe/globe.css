@@ -48,7 +48,7 @@
 
 /* Turning and the corner cards. */
 [data-mechanic-wire="globe"] .gl-turns{display:flex;gap:.4rem}
-[data-mechanic-wire="globe"] .gl-turn{display:grid;place-items:center;width:44px;height:38px;min-height:0;padding:0;background:var(--b-card,#fffdf5);border:1px solid var(--b-line,#d0d6bd);border-radius:11px;box-shadow:0 2px 0 var(--b-line,#d0d6bd);color:var(--b-ink,#294439);cursor:pointer}
+[data-mechanic-wire="globe"] .gl-turn{display:grid;place-items:center;width:48px;height:44px;min-height:0;padding:0;background:var(--b-card,#fffdf5);border:1px solid var(--b-line,#d0d6bd);border-radius:11px;box-shadow:0 2px 0 var(--b-line,#d0d6bd);color:var(--b-ink,#294439);cursor:pointer}
 [data-mechanic-wire="globe"] .gl-turn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.6px;stroke-linecap:round;stroke-linejoin:round}
 [data-mechanic-wire="globe"] .gl-cards{display:flex;justify-content:center;gap:.45rem;max-width:100%}
 [data-mechanic-wire="globe"] .gl-card{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:66px;min-height:0;margin:0;padding:4px 7px 5px;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd);font:inherit}

@@ -108,7 +108,7 @@ const legalTo = (q, from, to) => boardMoves(q, from).some(m => same(m, to));
 const perfectTo = (q, from, to) => !squareWins(q, from) || !squareWins(q, to);
 const perfectTake = (from, to) => !pilesWin(from) || !pilesWin(to);
 // Starts are drawn half from squares where the first player loses, so always
-// choosing Me first fails. A new start differs from the last one when it can.
+// choosing Go first fails. A new start differs from the last one when it can.
 // On boards up to 5 by 5, a start one move from the star is not drawn: on 4 by
 // 4 that is half the first-player squares, each won in one tap.
 export const NEAR_UP_TO = 5;
@@ -321,7 +321,7 @@ function raceRender(p, a) {
   const last = b.turns.at(-1), from = last?.player === 'opponent' ? (b.turns.length > 1 ? b.turns.at(-2).to : b.start) : null;
   const board = boardHTML(q, {token: b.at, from, targets: yourTurn ? boardMoves(q, b.at) : [], rings: a.hintLevel >= 2 && !done ? b.lost : [], label: `Board, ${q.size} by ${q.size}, star in the bottom-left corner`});
   const actions = done ? '' : b.first === null
-    ? `${moveButton('Me first', {type: 'choose', first: 'you'}, 'secondary')}${moveButton('You first', {type: 'choose', first: 'opponent'}, 'secondary')}`
+    ? `${moveButton('Go first', {type: 'choose', first: 'you'}, 'secondary')}${moveButton('Go second', {type: 'choose', first: 'opponent'}, 'secondary')}`
     : over ? `${raceWinner(b) === 'opponent' ? moveButton('Same start again', {type: 'again'}, 'secondary') : ''}${moveButton('New start', {type: 'new'}, 'primary')}` : '';
   return `<div class="rr-puzzle" data-mechanic-wire="rookrace">
     <div class="rr-roundbar">${moveKey(q)}<p class="rr-status" role="status" tabindex="-1" data-focus="rr-status">${esc(raceStatus(b))}</p>${pips(q.streak, b.streak)}</div>
@@ -604,7 +604,7 @@ function playPanel(p, b, state, act) {
     status = run.over ? (run.winner === 'you' ? 'You reached the star.' : out ? 'I reached the star.' : `I moved ${stepWords(before, run.at)} and reached the star.`) : `${last?.player === 'opponent' ? `I moved ${stepWords(before, run.at)}. ` : ''}Your turn`;
   }
   const yourTurn = play.first !== null && !run.over && run.toMove === 'you';
-  const choose = play.first === null && play.start !== null ? `${button('Me first', {type: 'choose', first: 'you'}, 'secondary')}${button('You first', {type: 'choose', first: 'opponent'}, 'secondary')}` : '';
+  const choose = play.first === null && play.start !== null ? `${button('Go first', {type: 'choose', first: 'you'}, 'secondary')}${button('Go second', {type: 'choose', first: 'opponent'}, 'secondary')}` : '';
   let field, controls = choose;
   if (pilesKind(q)) {
     const lifted = yourTurn && state.pick && state.pick.pile <= 3 && state.pick.from < run.at[state.pick.pile - 1] ? state.pick : null;

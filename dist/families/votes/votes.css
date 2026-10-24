@@ -27,7 +27,7 @@
 .vt-puzzle .vt-card.active{border:2px solid var(--b-pine,#31533e);background:#eef1e1}
 .vt-puzzle button.vt-card{cursor:pointer}
 .vt-puzzle .vt-card.chosen,.vt-puzzle .vt-card.ringed{box-shadow:0 0 0 3px var(--b-card,#fffdf5),0 0 0 6px var(--b-ochre,#b38840)}
-.vt-who{font-size:.72rem;font-weight:700;letter-spacing:.02em;color:var(--b-muted,#5a6850)}
+.vt-who{font-size:.8125rem;font-weight:700;letter-spacing:.02em;color:var(--b-muted,#5a6850)}
 .vt-ls{display:flex;flex-direction:column;gap:3px}
 .vt-puzzle .vt-l{display:grid;place-items:center;width:40px;height:34px;min-width:0;min-height:0;box-sizing:border-box;margin:0;padding:0;border-radius:7px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);box-shadow:none;font:400 1.1rem/1 var(--b-display,Georgia,serif);color:var(--b-ink,#294439);transition:opacity .15s}
 .vt-puzzle .vt-l.pick{background:var(--b-pine,#31533e);border-color:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9)}
@@ -38,6 +38,8 @@
 .vt-puzzle .vt-l.next{cursor:pointer;border-color:var(--b-muted,#5a6850)}
 .vt-puzzle .vt-l.next.on{border:2px solid var(--b-pine,#31533e);background:var(--b-good-soft,#e2ecd6)}
 .vt-puzzle .vt-l.written{cursor:pointer;border-color:var(--b-ink,#294439)}
+/* Cards the child writes on take taps on every letter slot: 44 by 40 px. */
+.vt-puzzle:is(.mode-cards,.mode-playground) .vt-l{width:44px;height:40px}
 
 /* The knockout mat. */
 .vt-ko{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:8px 10px;border-radius:14px;background:var(--b-paper,#f5f1e6);border:1.5px dashed var(--b-line,#d0d6bd);box-sizing:border-box}
@@ -84,10 +86,11 @@
 .vt-col.can:last-child{border-radius:0 14px 14px 0}
 .vt-col.over{background:var(--b-good-soft,#e2ecd6);box-shadow:inset 0 0 0 2px var(--b-pine,#31533e)}
 .vt-stack{display:flex;flex-direction:column-reverse;align-items:center;gap:5px;min-height:112px;justify-content:flex-start;padding-bottom:4px}
-.vt-puzzle .vt-voter{display:grid;place-items:center;width:34px;height:34px;min-width:0;min-height:0;margin:0;padding:0;border-radius:50%;background:var(--b-sky,#9cc9de);border:2px solid var(--b-ink,#294439);box-shadow:none;font:700 .66rem/1 system-ui,sans-serif;color:var(--b-ink,#294439);touch-action:none;user-select:none;-webkit-user-select:none;box-sizing:border-box}
+.vt-puzzle .vt-voter{display:grid;place-items:center;width:34px;height:34px;min-width:0;min-height:0;margin:0;padding:0;border-radius:50%;background:var(--b-sky,#9cc9de);border:2px solid var(--b-ink,#294439);box-shadow:none;font:700 .75rem/1 system-ui,sans-serif;color:var(--b-ink,#294439);touch-action:none;user-select:none;-webkit-user-select:none;box-sizing:border-box}
 .vt-puzzle button.vt-voter{position:relative;cursor:grab}
 /* A bigger place to grab than the disc (the inset counts from inside the
-   border): 44 px where the columns allow it, 28 by 39 px on a phone. */
+   border): 44 px where the columns allow it; on a phone the line runs to the
+   panel's edges and a voter takes taps as wide as its column (32 px). */
 .vt-puzzle button.vt-voter::after{content:'';position:absolute;inset:-7px}
 .vt-puzzle .vt-voter.moved{background:var(--b-leaf,#86a68c)}
 .vt-puzzle .vt-voter.extra{background:var(--b-sun,#efc76e)}
@@ -112,9 +115,11 @@
 @media (max-width:420px){
   .vt-puzzle .vt-card{min-width:44px;padding:4px 4px 6px}
   .vt-puzzle .vt-l{width:36px;height:32px}
+  .vt-puzzle:is(.mode-cards,.mode-playground) .vt-l{width:44px;height:40px}
+  .vt-line{align-self:stretch;width:auto;margin-inline:-12px;padding-inline:0}
   .vt-ko{gap:8px;padding:6px}
   .vt-side{min-width:76px;padding:2px 4px}
-  .vt-puzzle .vt-voter{width:28px;height:28px;font-size:.6rem}
+  .vt-puzzle .vt-voter{width:30px;height:30px;font-size:.75rem}
   .vt-puzzle button.vt-voter::after{inset:-9px -2px -6px}
   .vt-stack{gap:4px}
   .vt-puzzle .vt-tick{font-size:.88rem}

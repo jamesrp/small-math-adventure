@@ -1,6 +1,6 @@
 // Plays the Week 1 encore groups of Rhombus gardens through the real
 // interface: the three group headings in the satchel; a duel won by copying
-// (You first, then each rhombus opposite mine, laid by taps and by a slide)
+// (Go second, then each rhombus opposite mine, laid by taps and by a slide)
 // and a duel lost and played again; fewest blocks with the tools, a hexagon
 // by its yellow dot, a slide that picks its own block, lifting, Clear and
 // the over-budget count; red trapezoids with Can't refused and accepted,
@@ -80,12 +80,12 @@ try {
   if (!(await satchel.evaluate(d => d.open))) await satchel.locator('summary').click();
   for (const heading of ['Rhombus duel', 'Fewest blocks', 'Red trapezoids']) await satchel.locator('h2', {hasText: heading}).waitFor();
 
-  // Big hexagon: You first, then copy every rhombus, by taps and by a slide.
+  // Big hexagon: Go second, then copy every rhombus, by taps and by a slide.
   const D = 'blueduel-07', gd = gridFor(D);
   await open(D); await fit('duel');
   assert.equal(await page.locator('.bk-status').innerText(), 'Who goes first?');
   assert.equal(await page.locator('[data-tg-cell]').count(), 0, 'no triangles to tap before choosing');
-  await button('You first').click();
+  await button('Go second').click();
   await eventually(async () => assert.equal((await board(D)).pieces.length, 1));
   await shot('duel-app-first');
   let slid = false;
@@ -96,10 +96,10 @@ try {
   }
   await done();
 
-  // The strip: Me first in the wrong place loses; Play again; then the middle wins.
+  // The strip: Go first in the wrong place loses; Play again; then the middle wins.
   const S = 'blueduel-02', gs = gridFor(S), [middle] = winningSpots(gs, []);
   await open(S);
-  await button('Me first').click();
+  await button('Go first').click();
   await eventually(async () => assert.equal((await board(S)).first, 'you'));
   const wrong = openSpots(gs, []).find(s => pieceKey(s) !== pieceKey(middle));
   await lay(S, wrong);
@@ -108,7 +108,7 @@ try {
   await shot('duel-lost');
   await button('Play again').click();
   await eventually(async () => assert.equal((await board(S)).first, null));
-  await button('Me first').click();
+  await button('Go first').click();
   await lay(S, middle);
   const rest = openSpots(gs, (await board(S)).pieces);
   await lay(S, turnedPiece(gs, (await board(S)).pieces.at(-1)).every(c => rest.flat().includes(c)) ? turnedPiece(gs, (await board(S)).pieces.at(-1)) : rest[0]);

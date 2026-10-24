@@ -164,7 +164,7 @@ try {
   for (let game = 0; game < 3; game++) {
     let d = await board('proof-duel-01');
     const equal = d.piles[0] === d.piles[1];
-    await page.getByRole('button', { name: equal ? 'You first' : 'Me first', exact: true }).click();
+    await page.getByRole('button', { name: equal ? 'Go second' : 'Go first', exact: true }).click();
     if (game === 0) assert.equal(await page.evaluate(() => document.activeElement?.className), 'duel-status', 'focus moves to the duel status');
     for (let turn = 0; turn < 20; turn++) {
       d = await board('proof-duel-01');

@@ -20,9 +20,10 @@
 .sm-token.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
 .sm-token:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:5px}
 
-/* Strips: one place per row, the shape of the letter it names. */
+/* Strips: one place per row, the shape of the letter it names; a strip the
+   child edits takes taps 40 px tall. */
 .sm-cell{justify-self:stretch;display:grid;place-items:center;box-sizing:border-box;height:34px;margin:0;padding:0;border:0;border-radius:8px;background:transparent;color:var(--b-ink,#294439)}
-.board-panel button.sm-cell{min-width:0;min-height:0;padding:0;cursor:pointer;background:rgba(208,214,189,.28);box-shadow:none;touch-action:none}
+.board-panel button.sm-cell{min-width:0;min-height:0;height:40px;padding:0;cursor:pointer;background:rgba(208,214,189,.28);box-shadow:none;touch-action:none}
 .sm-cell i{display:grid;place-items:center;box-sizing:border-box;width:27px;height:27px;border:1.5px solid var(--b-ink,#294439);background:var(--b-card,#fffdf5);font:400 .98rem/1 var(--b-display,Georgia,serif);font-style:normal}
 .sm-cell .sm-ci{border-radius:50%}
 .sm-cell .sm-sq{border-radius:5px}
@@ -56,13 +57,14 @@
 .sm-told{margin:0;max-width:30rem;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
 .sm-why{margin:0;font-size:.95rem;color:var(--b-muted,#5a6850);text-align:center}
 
-/* Small pairings: the shelf and the playground's sizes. */
-.sm-mini{display:block;height:44px;width:auto}
+/* Small pairings: the shelf and the playground's sizes, drawn at 1.6 so
+   their letters are 12 px. */
+.sm-mini{display:block;height:64px;width:auto}
 .sm-mini-links line{stroke:var(--b-ink,#294439);stroke-width:1.6}
 .sm-mini-links .dash{stroke:var(--b-pine,#31533e);stroke-dasharray:2.5 2}
 .sm-mini circle{fill:var(--b-sun,#efc76e);stroke:var(--b-ink,#294439);stroke-width:.9}
 .sm-mini rect{fill:var(--b-sky,#9cc9de);stroke:var(--b-ink,#294439);stroke-width:.9}
-.sm-mini text{font:400 7px var(--b-display,Georgia,serif);fill:var(--b-ink,#294439);text-anchor:middle}
+.sm-mini text{font:400 7.6px var(--b-display,Georgia,serif);fill:var(--b-ink,#294439);text-anchor:middle}
 .sm-sizes{display:flex;gap:.5rem;justify-content:center}
 .sm-puzzle .sm-size{display:grid;place-items:center;min-width:64px;min-height:56px;padding:4px 8px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:none}
 .sm-puzzle .sm-size[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 2px var(--b-pine,#31533e)}

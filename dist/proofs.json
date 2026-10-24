@@ -1002,7 +1002,7 @@
       "parent": {
         "notice": "Whether your child decides who starts before moving, and how quickly.",
         "prompt": "How can you tell from the piles who should start?",
-        "explanation": "A position loses for the player to move exactly when the Nim-sum is 0. Starts are drawn half from such positions; under uniform sampling only 12% would be, and “Me first” would nearly always be right.",
+        "explanation": "A position loses for the player to move exactly when the Nim-sum is 0. Starts are drawn half from such positions; under uniform sampling only 12% would be, and “Go first” would nearly always be right.",
         "extension": "Find a three-pile start where the second player wins and no pile is empty.",
         "connection": "Bouton’s solution of Nim and the Sprague–Grundy theorem.",
         "sourceIds": [

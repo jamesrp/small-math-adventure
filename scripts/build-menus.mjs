@@ -27,7 +27,7 @@ export const family = {
 
 const CONTROLS = {
   game: 'Tap a number under a pile to take that many pebbles. The opponent replies at once. Undo takes back your take and the reply.',
-  streak: 'Choose Me first or You first. Tap a number under a pile to take that many pebbles. After a game, New start draws new pebbles; Same start again is practice and does not count.',
+  streak: 'Choose Go first or Go second. Tap a number under a pile to take that many pebbles. After a game, New start draws new pebbles; Same start again is practice and does not count.',
   replies: 'Tap a number under the pile to take that many pebbles. The opponent replies at once. After a win, Next first take starts the next game; after a loss, Try again replays the same first take.',
   track: 'Tap a square to colour it, and tap it again to clear it. Check says whether the colouring is right; if not, it explains the lowest square that is wrong, and you can play from that square against the opponent. Undo takes back one tap.',
   design: 'Tap a take to allow it, and tap it again to remove it. Check works out the squares to leave for your takes and explains the lowest one that differs from the goal.'
@@ -93,7 +93,7 @@ const authored = [
     parent: {
       notice: 'Whether your child decides who starts by looking at the pile, before playing.',
       prompt: 'How can you tell from the pile who should start?',
-      explanation: 'Starts are drawn half from the losing piles, so always choosing Me first wins only by luck. The opponent never misses a winning move, so three wins in a row from new starts shows the rule is known, not guessed.',
+      explanation: 'Starts are drawn half from the losing piles, so always choosing Go first wins only by luck. The opponent never misses a winning move, so three wins in a row from new starts shows the rule is known, not guessed.',
       extension: 'Why does the player who goes second win from a multiple of 3?',
       connection: 'Choosing who starts is the classification into P- and N-positions; winning against perfect play is the strategy (Ferguson, §1).'
     },

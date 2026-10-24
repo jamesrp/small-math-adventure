@@ -41,7 +41,7 @@ The worksheets are in [math-circle-worksheets, week 29](https://github.com/james
 ## How a puzzle plays
 
 - **The tank is the board.** A tall vessel with a mark at every level and a line at the chosen level. Each jugful is a layer, shaded by jug, so the order of pours shows; the level is written above the water. When the water sits exactly on the line, the level lights in the row above.
-- **Pouring.** Each jug has Pour and −. Pour empties a full jug into the tank; − lifts one jugful back out. Empty pours the tank away. The tank holds the top level in the row plus one more jug, so going over by one jug is possible and can be taken back.
+- **Pouring.** Each jug has Pour and −. Pour empties a full jug into the tank; − lifts one jugful back out. Empty, under the jugs, pours the tank away. The tank holds the top level in the row plus one more jug, so going over by one jug is possible and can be taken back.
 - **Fill** (1): fill the tank to the line.
 - **Which fill** (2, 4): light every level the jugs can fill, then press That's all. That's all is refused with "Another level can be filled" while a dark level could fill. After a solve, the levels that can't fill are struck through.
 - **Every way** (3, 5): each different way (how many of each jug) joins a list drawn as little stacks. That's all is refused with "There is another way" while one is missing.
@@ -76,4 +76,5 @@ The module adds no satchel family; its puzzles set `libraryFamily: "jug"` and `g
 - **The "can't" picture.** The card suggests showing why a level fails by laying zero, one, two, … of the larger jug and showing that no leftover is a multiple of the smaller. The hints say this in words; nothing draws it.
 - **Fewest jugs and three jugs.** The bonus pages' three rod lengths and fewest rods are not built.
 - **A playground in the Spring-water Jugs.** The family had no playground, so its Playground button now opens the full jugs. If the base jugs get a playground of their own, the two will need separate buttons.
+- **Many levels on a phone.** Rows of up to 16 levels keep 44 px buttons and wrap (three rows for 14 or 16 levels on a phone); longer rows (18 to 40) become a grid of squares at least 40 px, eight across a phone and ten on a tablet.
 - **Story.** Full jugs are not on the Lantern Road.

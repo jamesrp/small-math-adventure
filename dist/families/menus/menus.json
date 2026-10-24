@@ -186,7 +186,7 @@
    "objective": "Choose who starts, then take the last pebble. Each turn takes 1 or 2 pebbles. Win 3 games in a row from new starts.",
    "visibleObjective": "Win 3 games in a row.",
    "instruction": "Choose who starts, then take the last pebble. Each turn takes 1 or 2 pebbles. Win 3 games in a row from new starts.",
-   "controls": "Choose Me first or You first. Tap a number under a pile to take that many pebbles. After a game, New start draws new pebbles; Same start again is practice and does not count.",
+   "controls": "Choose Go first or Go second. Tap a number under a pile to take that many pebbles. After a game, New start draws new pebbles; Same start again is practice and does not count.",
    "rules": [
     "Players take turns.",
     "A turn takes 1 or 2 pebbles.",
@@ -204,7 +204,7 @@
    "parent": {
     "notice": "Whether your child decides who starts by looking at the pile, before playing.",
     "prompt": "How can you tell from the pile who should start?",
-    "explanation": "Starts are drawn half from the losing piles, so always choosing Me first wins only by luck. The opponent never misses a winning move, so three wins in a row from new starts shows the rule is known, not guessed.",
+    "explanation": "Starts are drawn half from the losing piles, so always choosing Go first wins only by luck. The opponent never misses a winning move, so three wins in a row from new starts shows the rule is known, not guessed.",
     "extension": "Why does the player who goes second win from a multiple of 3?",
     "connection": "Choosing who starts is the classification into P- and N-positions; winning against perfect play is the strategy (Ferguson, §1).",
     "sourceIds": [
@@ -637,7 +637,7 @@
    "objective": "Choose who starts, then take the last pebble. Each turn takes 1, 3 or 4 pebbles. Win 3 games in a row from new starts.",
    "visibleObjective": "Win 3 games in a row.",
    "instruction": "Choose who starts, then take the last pebble. Each turn takes 1, 3 or 4 pebbles. Win 3 games in a row from new starts.",
-   "controls": "Choose Me first or You first. Tap a number under a pile to take that many pebbles. After a game, New start draws new pebbles; Same start again is practice and does not count.",
+   "controls": "Choose Go first or Go second. Tap a number under a pile to take that many pebbles. After a game, New start draws new pebbles; Same start again is practice and does not count.",
    "rules": [
     "Players take turns.",
     "A turn takes 1, 3 or 4 pebbles.",
@@ -765,7 +765,7 @@
    "objective": "Choose who starts, then take the last pebble. Each turn takes 1, 3 or 4 pebbles. Win 3 games in a row from new starts.",
    "visibleObjective": "Win 3 games in a row.",
    "instruction": "Choose who starts, then take the last pebble. Each turn takes 1, 3 or 4 pebbles. Win 3 games in a row from new starts.",
-   "controls": "Choose Me first or You first. Tap a number under a pile to take that many pebbles. After a game, New start draws new pebbles; Same start again is practice and does not count.",
+   "controls": "Choose Go first or Go second. Tap a number under a pile to take that many pebbles. After a game, New start draws new pebbles; Same start again is practice and does not count.",
    "rules": [
     "Players take turns.",
     "A turn takes 1, 3 or 4 pebbles.",
@@ -1045,7 +1045,7 @@
    "objective": "Choose who starts, then take the last pebble. Each turn takes 1 or 2 pebbles from one pile. Win 3 games in a row from new starts.",
    "visibleObjective": "Win 3 games in a row.",
    "instruction": "Choose who starts, then take the last pebble. Each turn takes 1 or 2 pebbles from one pile. Win 3 games in a row from new starts.",
-   "controls": "Choose Me first or You first. Tap a number under a pile to take that many pebbles. After a game, New start draws new pebbles; Same start again is practice and does not count.",
+   "controls": "Choose Go first or Go second. Tap a number under a pile to take that many pebbles. After a game, New start draws new pebbles; Same start again is practice and does not count.",
    "rules": [
     "Players take turns.",
     "A turn takes 1 or 2 pebbles from one pile.",

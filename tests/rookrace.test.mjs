@@ -313,7 +313,7 @@ test('saves: a fresh race and a finished shelf are valid; forged ones are not', 
   assert.deepEqual(restart(every, done).board, freshAttempt(every).board);
 });
 
-test('small boards draw no one-move starts, half the starts are second-player ones, and Me first and You first look alike', () => {
+test('small boards draw no one-move starts, half the starts are second-player ones, and Go first and Go second look alike', () => {
   for (const id of ['rookrace-01', 'rookrace-02', 'rookrace-03']) {
     const q = byId(id).parameters, r = seeded(9);
     let losing = 0, near = 0;
@@ -326,6 +326,7 @@ test('small boards draw no one-move starts, half the starts are second-player on
   const looks = [...html.matchAll(/<button type="button" class="([^"]*)"[^>]*data-focus="rr-choose-(?:you|opponent)"/g)].map(m => m[1]);
   assert.equal(looks.length, 2);
   assert.equal(looks[0], looks[1], 'neither choice looks like the default');
+  assert.match(html, />Go first<[\s\S]*>Go second</, 'who starts reads Go first / Go second');
   for (const q of json.puzzles) assert.equal(q.proof, true, `${q.id}: How to play leaves out the grown-ups’ notes, which hold the answer`);
 });
 

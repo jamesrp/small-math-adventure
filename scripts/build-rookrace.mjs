@@ -40,7 +40,7 @@ function thatsAll(q, answers, it = 'That’s all') {
   return answers === 1 ? [`${it} is final: ${final}`] : [`While a start is still missing, ${it} says “There is another.”`, `Once none is missing, ${it} is final: ${final}`];
 }
 function controls(q, answers) {
-  if (q.kind === 'race') return `${SLIDE(q)}, and whoever moves it onto the star wins. Choose Me first or You first, then tap a dotted square to move the token there; I reply at once. Win 3 games in a row from new starts. After a loss, Same start again is practice and does not count.`;
+  if (q.kind === 'race') return `${SLIDE(q)}, and whoever moves it onto the star wins. Choose Go first or Go second, then tap a dotted square to move the token there; I reply at once. Win 3 games in a row from new starts. After a loss, Same start again is practice and does not count.`;
   const check = `That’s all checks ${q.kind === 'board' ? 'every mark' : 'the whole shelf'} at once. ${thatsAll(q, answers, 'it').join(' ').replace(/^it/, 'It')}`;
   if (q.kind === 'board') return `${SLIDE(q)}, and whoever moves it onto the star wins. Tap a square to mark it, and again to clear it. Play, then a square, tries a game from it against me. ${check}`;
   return `A turn takes one or more pebbles from one pile, and whoever takes the last pebble wins. The order of the piles does not matter. Tap a slot to set a pile, Keep to put the start on the shelf, and a kept start to take it off. Play tries the start against me. ${check}`;

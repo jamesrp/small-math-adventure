@@ -55,7 +55,7 @@ export function opponentMove(q, piles, random = Math.random) {
   return pick(best, random);
 }
 // Starts for choose-who-starts puzzles: every playable start in the range,
-// half of them drawn from the losing ones so that guessing "Me first" fails.
+// half of them drawn from the losing ones so that guessing "Go first" fails.
 export function startPool(q) {
   const out = [], [lo, hi] = q.range;
   (function build(prefix) {
@@ -217,7 +217,7 @@ function render(p, attempt) {
   const rounds = replies ? firstMoves(q).length : 0, won = replies ? board.round + (winner(q, board) === 'you' ? 1 : 0) : 0;
   const controls = replies ? (done || !over(q, board) ? '' : winner(q, board) === 'you' ? actionButton('Next first take', {type: 'next'}).replace('class="secondary expansion-action"', 'class="primary expansion-action"') : actionButton('Try again', {type: 'again'}).replace('class="secondary expansion-action"', 'class="primary expansion-action"'))
     : !streak || done ? '' : board.first === null
-    ? `${actionButton('Me first', {type: 'choose', first: 'you'}).replace('class="secondary expansion-action"', 'class="primary expansion-action"')}${actionButton('You first', {type: 'choose', first: 'opponent'})}`
+    ? `${actionButton('Go first', {type: 'choose', first: 'you'}).replace('class="secondary expansion-action"', 'class="primary expansion-action"')}${actionButton('Go second', {type: 'choose', first: 'opponent'})}`
     : over(q, board) ? `${winner(q, board) === 'opponent' ? actionButton('Same start again', {type: 'again'}) : ''}${actionButton('New start', {type: 'new'}).replace('class="secondary expansion-action"', 'class="primary expansion-action"')}` : '';
   return `<div class="menu-puzzle${q.misere ? ' misere' : ''}">
     ${streak ? `<div class="menu-roundbar">${pips(q.streak, board.streak)}</div>` : replies ? `<div class="menu-roundbar">${pips(rounds, won).replace(/wins in a row/, 'first takes answered')}</div>` : ''}

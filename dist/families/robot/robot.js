@@ -213,11 +213,13 @@ export function boardSvg(v, q, walk, opts = {}) {
   const start = at(v, states[0]), [rx, ry] = at(v, now);
   const flag = q.flag ? `<g class="mr-flag" transform="translate(${f(at(v, q.flag)[0])},${f(at(v, q.flag)[1])})">${FLAG}</g>` : '';
   const robot = `<g class="mr-robot" transform="translate(${f(rx)},${f(ry)})"><g class="mr-glide"${opts.glide || ''}>${ROBOT}</g></g>`;
+  // A step takes taps 0.55 of a square around its point: 47 px on a 375 px
+  // phone, and steps a diagonal apart still don't touch.
   const steps = opts.live ? ORDER.map((d, k) => {
     const t = step(now, d);
     if (!onBoard(t[0], t[1]) || t[0] < v.x0 || t[0] > v.x1 || t[1] < v.y0 || t[1] > v.y1) return '';
     const [tx, ty] = at(v, t);
-    return `<g class="mr-step${opts.hinted === d ? ' hinted' : ''}" transform="translate(${f(tx)},${f(ty)})" role="button" tabindex="0" aria-label="Move ${NAMES[d]}" data-sg-point="${k}" data-focus="mr-${d}"><circle class="mr-reach" r="4.6"/><circle class="mr-pip" r="1.25"/></g>`;
+    return `<g class="mr-step${opts.hinted === d ? ' hinted' : ''}" transform="translate(${f(tx)},${f(ty)})" role="button" tabindex="0" aria-label="Move ${NAMES[d]}" data-sg-point="${k}" data-focus="mr-${d}"><circle class="mr-reach" r="5.5"/><circle class="mr-pip" r="1.25"/></g>`;
   }).join('') : '';
   return squareBoard(g, {
     cls: `mr-board${opts.picture ? ' mr-mini' : ''}`, label: opts.label || 'Streets', picture: opts.picture, pad: .6, cell,

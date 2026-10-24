@@ -87,6 +87,9 @@
    on a 375 × 667 screen. Every button stays at least 44 px. */
 @media (max-width:420px){
   [data-mechanic-wire="friezes"]{gap:.4rem}
+  /* The board runs to the panel's border, so a place is 40 px wide where
+     eight places show (the playground's nine stay about 37 px). */
+  [data-mechanic-wire="friezes"] .fz-board{align-self:stretch;width:auto;max-width:none;margin-inline:-12px}
   [data-mechanic-wire="friezes"] .fz-goals{gap:.35rem .4rem}
   [data-mechanic-wire="friezes"] .fz-move-icon{width:42px;height:30px}
   [data-mechanic-wire="friezes"] .fz-goal{gap:.25rem;padding:0 4px;min-height:44px}

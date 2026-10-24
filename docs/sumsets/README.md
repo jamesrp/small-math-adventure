@@ -69,7 +69,7 @@ Experiments come first: tap cards, watch tokens land and stack, see which dots s
 
 1. **Watch whether children tap a route** without being told, now that nothing lights the start or the next dot, or need a grown-up after building a fewest design. If they stall, the first hint may need to point at the grid.
 2. **Watch puzzle 7**: whether a child thinks of a one-card A after the starting two cards are refused, or reads the refusal as arbitrary.
-3. **Watch the strip on a phone**: its numerals are small at 375 px, and stacked tokens show shared totals only by their height.
+3. **Watch the trays and the strip on a phone.** They run to the panel's edges, so a card is about 32 px wide (44 tall) and the strip's numerals are 13 px. The ten cards stay one row: they are the number line whose spacing the puzzles are about, and two rows of five would hide it; 40 px cards would need a 520 px screen. Stacked tokens show shared totals only by their height.
 4. The worksheet's proofs (Problems 9 and 10) are not in the app; the route certificate is the only proof step the child performs.
 5. No K–1 route (the card's fix 1); the counter action might suit younger children with fewer cards.
 6. Not on the Lantern Road, and no Plume scores.

@@ -242,12 +242,14 @@ function tankArt(q, jugs, counts, target) {
 }
 const hintedClass = (shown, action) => shown && JSON.stringify(shown) === JSON.stringify(action) ? ' hinted' : '';
 const jugIcon = (size, k) => `<span class="tank-jug j${k}"><svg viewBox="0 0 40 48" aria-hidden="true"><path class="tank-jug-body" d="M12 4h16v6l6 6v26a4 4 0 0 1-4 4H10a4 4 0 0 1-4-4V16l6-6z"/><path class="tank-jug-water" d="M7 20h26v22a3 3 0 0 1-3 3H10a3 3 0 0 1-3-3z"/></svg><b>${size}</b></span>`;
+// Empty sits under the jugs, so the claims below the tank keep one row.
 function jugControls(q, b, jugs, shown, solved) {
   const cap = capOf(q), now = level(jugs, b.counts);
+  const empty = actionButton('Empty', {type: 'empty'}, b.counts.some(Boolean) && !solved ? '' : 'disabled').replace('class="secondary expansion-action"', 'class="secondary expansion-action tank-empty"');
   return `<div class="tank-jugs">${jugs.map((size, k) => {
     const pour = {type: 'pour', jug: size}, back = {type: 'back', jug: size};
     return `<div class="tank-station" role="group" aria-label="${size}-jug">${jugIcon(size, k)}${actionButton('Pour', pour, `aria-label="Pour a full ${size}-jug into the tank" ${solved || now + size > cap ? 'disabled' : ''}`).replace('class="secondary expansion-action"', `class="primary expansion-action tank-pour${hintedClass(shown, pour)}"`)}${actionButton('−', back, `aria-label="Take one ${size} back out" ${solved || !b.counts[k] ? 'disabled' : ''}`).replace('class="secondary expansion-action"', `class="secondary expansion-action tank-back${hintedClass(shown, back)}"`)}</div>`;
-  }).join('')}</div>`;
+  }).join('')}${empty}</div>`;
 }
 function picker(q, b, shown, solved) {
   return `<div class="tank-picker" role="group" aria-label="Jugs to choose">${q.choices.map(w => {
@@ -275,7 +277,7 @@ const REFUSALS = {
 function render(p, attempt) {
   const q = p.parameters, b = attempt.board, jugs = jugsOf(q, b), solved = solvedBoard(p, b);
   const shown = attempt.hintLevel >= 2 && !solved && q.mode !== 'playground' ? plan(q, b).action : null;
-  const tools = [actionButton('Empty', {type: 'empty'}, b.counts.some(Boolean) && !solved ? '' : 'disabled')];
+  const tools = [];
   const claimButton = (label, action, enabled = true) => actionButton(label, action, enabled ? '' : 'disabled').replace('class="secondary expansion-action"', `class="primary expansion-action tank-claim${hintedClass(shown, action)}"`);
   if (!solved && (q.mode === 'which' || q.mode === 'ways')) tools.push(claimButton('That’s all', {type: 'all'}));
   if (!solved && q.mode === 'last') tools.push(claimButton(`Last gap is ${b.target}`, {type: 'last'}), claimButton('Gaps never stop', {type: 'never'}));
@@ -283,7 +285,7 @@ function render(p, attempt) {
   const ways = q.mode === 'ways' && b.found.length ? `<ol class="tank-ways" aria-label="Ways found">${b.found.map(r => wayHTML(jugs, r.counts)).join('')}</ol>` : '';
   const note = b.refusal ? REFUSALS[b.refusal.why](b.refusal.claim.target) : '';
   const status = `Level ${level(jugs, b.counts)}, target ${b.target}.`;
-  return `<div class="measurement-board tank-puzzle mode-${q.mode}">${picking(q) ? picker(q, b, shown, solved) : ''}${targetsOf(q).length > 1 ? targetRow(q, b, jugs, shown, solved) : ''}<div class="tank-main">${tankArt(q, jugs, b.counts, b.target)}${jugs.length ? jugControls(q, b, jugs, shown, solved) : ''}</div><div class="tank-tools">${tools.join('')}</div>${ways}${note ? `<p class="tank-note" role="status">${esc(note)}</p>` : `<p class="sr-only" role="status">${esc(status)}</p>`}</div>`;
+  return `<div class="measurement-board tank-puzzle mode-${q.mode}">${picking(q) ? picker(q, b, shown, solved) : ''}${targetsOf(q).length > 1 ? targetRow(q, b, jugs, shown, solved) : ''}<div class="tank-main">${tankArt(q, jugs, b.counts, b.target)}${jugs.length ? jugControls(q, b, jugs, shown, solved) : ''}</div>${tools.length ? `<div class="tank-tools">${tools.join('')}</div>` : ''}${ways}${note ? `<p class="tank-note" role="status">${esc(note)}</p>` : `<p class="sr-only" role="status">${esc(status)}</p>`}</div>`;
 }
 
 export const tankMechanics = {

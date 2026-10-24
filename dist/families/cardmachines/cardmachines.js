@@ -519,7 +519,10 @@ function arrowShapes(L, arrows) {
     const lo = Math.min(s, t), hi = Math.max(s, t), group = between.get(`${lo},${hi}`);
     const rank = ({s: a, card: k}) => (a === lo ? (k === 'R' ? 0 : 1) : k === 'B' ? 2 : 3);
     group.sort((x, y) => rank(x) - rank(y));
-    const n = group.findIndex(g => g.s === s && g.card === card), offset = (n - (group.length - 1) / 2) * 7;
+    // Two circles side by side can carry four arrows between them, so they
+    // bend further apart there: their chips stay 14 units apart (43 px on a
+    // 375 px phone), and no chip's hit circle covers another's.
+    const n = group.findIndex(g => g.s === s && g.card === card), offset = (n - (group.length - 1) / 2) * (L.at.length === 2 ? 13 : 7);
     const A = L.at[lo], B = L.at[hi], dir = unit(A, B), normal = [-dir[1], dir[0]], mid = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2];
     const ctrl = add(mid, normal, offset * 2), from = L.at[s], to = L.at[t];
     const p0 = add(from, unit(from, ctrl), L.r), tip = add(to, unit(to, ctrl), L.r + 0.6), back = add(tip, unit(tip, ctrl), 3.4);
@@ -566,7 +569,7 @@ export function machineSVG(m, opts = {}) {
     const said = `${circleName(i)}, ${markWord(m.marks[i])}`;
     const control = edit || claim ? `role="button" tabindex="0" aria-label="${esc(`${said}${claim ? '. Both rows stop here' : target}`)}" data-circle="${i}" data-focus="cm-circle-${i}"` : `role="img" aria-label="${esc(said)}"`;
     const cls = [m.marks[i] ? 'yes' : 'no', arm || claim ? 'target' : '', hinted.circle === i ? 'hinted' : ''].join(' ');
-    return `<g class="cm-circle ${cls}" transform="translate(${pt(c)})" ${control}><circle class="cm-ring" r="${L.r}"/><text class="cm-num" y="${f(-L.r * 0.42)}">${i + 1}</text><text class="cm-mark" y="${f(L.r * 0.5)}">${markWord(m.marks[i])}</text></g>`;
+    return `<g class="cm-circle ${cls}" transform="translate(${pt(c)})" ${control}><circle class="cm-ring" r="${L.r}"/><text class="cm-num" y="${f(-L.r * 0.5)}">${i + 1}</text><text class="cm-mark" y="${f(L.r * 0.5)}">${markWord(m.marks[i])}</text></g>`;
   }).join('');
   const markers = markerShapes(L, opts.markers || []);
   return `<svg class="cm-machine${edit ? ' edit' : claim ? ' claim' : ''} k${k} ${opts.cls || ''}" viewBox="-2 -2 104 ${f(L.h + 4)}" role="group" aria-label="${esc(opts.label || 'Machine')}" data-cm-machine>${start}<g class="cm-arrows">${lines}</g><g class="cm-circles">${circles}</g><g class="cm-chips">${chips}</g><g class="cm-markers" aria-hidden="true">${markers}</g></svg>`;

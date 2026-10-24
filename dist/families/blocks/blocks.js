@@ -191,7 +191,7 @@ function duelRender(p, a) {
   const looks = piece => { const i = b.pieces.indexOf(piece); return {act: false, cls: `${mine(i) ? 'you' : 'app'}${i === lastApp ? ' last' : ''}`, label: `${pieceName(g, piece)}, ${mine(i) ? 'yours' : 'mine'}`}; };
   const body = layBoard(p, g, b.pieces, {shape: yourTurn ? 'rhombus' : null, live: yourTurn, pick, hint: h, looks, fresh: newPieces(p, b.pieces), solved, label: 'Board'});
   const status = b.first === null ? 'Who goes first?' : winner === 'you' ? 'No room for my rhombus. You win!' : winner === 'app' ? 'No room for your rhombus. I win.' : lastApp >= 0 ? 'I laid the light rhombus. Your turn.' : 'Your turn.';
-  const choose = b.first === null ? `<div class="bk-actions">${moveButton('Me first', {type: 'choose', first: 'you'}, `primary${h?.type === 'choose' && h.first === 'you' ? ' hinted' : ''}`)}${moveButton('You first', {type: 'choose', first: 'app'}, h?.type === 'choose' && h.first === 'app' ? 'hinted' : '')}</div>` : '';
+  const choose = b.first === null ? `<div class="bk-actions">${moveButton('Go first', {type: 'choose', first: 'you'}, `primary${h?.type === 'choose' && h.first === 'you' ? ' hinted' : ''}`)}${moveButton('Go second', {type: 'choose', first: 'app'}, h?.type === 'choose' && h.first === 'app' ? 'hinted' : '')}</div>` : '';
   const again = winner === 'app' ? `<div class="bk-actions">${moveButton('Play again', {type: 'again'}, h?.type === 'again' ? 'hinted' : '')}</div>` : '';
   return `<div class="bk-puzzle mode-duel${solved ? ' solved' : ''}" data-mechanic-wire="blocks"><p class="bk-status" role="status">${esc(status)}</p>${choose}<div class="bk-stage">${body}</div>${again}</div>`;
 }

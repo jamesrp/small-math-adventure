@@ -5,13 +5,15 @@
    and the duel's leaf pebbles. Shared by the two mechanics of the module. */
 :is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]){display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%}
 
-/* The board: at most 380px, and short enough on a phone that the controls
-   under it stay in view (the page above it and the controls under it take up
-   to about 430px when the top bar wraps onto two lines), but never shorter
-   than 27px a column (the 11-by-11 board is 297px, squares of about 25px
-   between the lines): on a 375-by-667 phone with a short name it all fits;
-   with a long name (the top bar on two lines) it is a short scroll. */
-:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-board{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:1px;width:100%;max-width:clamp(max(220px,min(380px,calc(var(--n) * 27px))),calc(100vh - 430px),380px);max-width:clamp(max(220px,min(380px,calc(var(--n) * 27px))),calc(100svh - 430px),380px);aspect-ratio:1;padding:2px;background:var(--b-line,#d0d6bd);border:2px solid var(--b-ink,#294439);border-radius:10px;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+/* The board: short enough on a phone that the controls under it stay in
+   view (the page above it and the controls under it take up to about 430px),
+   but never so short that a square is under 40 px where the width allows it
+   (8 by 8 and smaller fill a phone's width, using the panel's padding, and
+   may then need a short scroll on a 375-by-667 phone); at most 380px, or as
+   much as 40 px squares need on a tall screen (the 11-by-11 board is 459px on
+   an upright tablet). On a phone the 11-by-11 board's squares stay about
+   30 px: eleven 40 px squares do not fit across. */
+:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-board{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:1px;width:100%;max-width:clamp(max(220px,min(380px,calc(var(--n) * 41px + 8px))),calc(100vh - 430px),max(380px,calc(var(--n) * 41px + 8px)));max-width:clamp(max(220px,min(380px,calc(var(--n) * 41px + 8px))),calc(100svh - 430px),max(380px,calc(var(--n) * 41px + 8px)));aspect-ratio:1;padding:2px;background:var(--b-line,#d0d6bd);border:2px solid var(--b-ink,#294439);border-radius:10px;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 :is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-cell{position:relative;display:grid;place-items:center;min-width:0;min-height:0;aspect-ratio:1;padding:0;margin:0;border:0;border-radius:0;box-shadow:none;font:inherit;color:var(--b-ink,#294439);background:var(--b-card,#fffdf5);-webkit-tap-highlight-color:transparent;cursor:default}
 :is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-cell.odd{background:#f3efe1}
 :is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-board .rr-cell:first-child{border-top-left-radius:7px}
@@ -67,7 +69,7 @@
 [data-mechanic-wire="everystart"] .es-builder{display:flex;justify-content:center;align-items:flex-end;gap:clamp(18px,8vw,48px)}
 [data-mechanic-wire="everystart"] .es-builder-pile{display:flex;flex-direction:column;align-items:center;gap:6px}
 [data-mechanic-wire="everystart"] .es-slots{display:flex;flex-direction:column-reverse;align-items:center;gap:3px}
-[data-mechanic-wire="everystart"] .es-slot{width:42px;min-width:42px;height:34px;min-height:34px;padding:0;border-radius:50%;background:transparent;border:2px dashed #b9b49c;box-shadow:none}
+[data-mechanic-wire="everystart"] .es-slot{width:44px;min-width:44px;height:40px;min-height:40px;padding:0;border-radius:50%;background:transparent;border:2px dashed #b9b49c;box-shadow:none}
 [data-mechanic-wire="everystart"] .es-slot.on{background:var(--b-leaf,#86a68c);border:2px solid var(--b-ink,#294439)}
 [data-mechanic-wire="everystart"] .es-slot:disabled{opacity:1}
 [data-mechanic-wire="everystart"] .es-count{font-family:var(--b-display,Georgia,serif);font-size:1.1rem;color:var(--b-muted,#5a6850)}
@@ -80,10 +82,11 @@
 [data-mechanic-wire="everystart"] .es-piles{display:flex;justify-content:center;align-items:flex-end;gap:clamp(14px,6vw,40px);min-height:150px;padding:8px 0}
 [data-mechanic-wire="everystart"] .es-bowl{display:flex;flex-direction:column;align-items:center;gap:6px}
 [data-mechanic-wire="everystart"] .es-pile{display:flex;flex-direction:column-reverse;align-items:center;gap:3px}
-[data-mechanic-wire="everystart"] .es-pebble{width:42px;min-width:42px;height:34px;min-height:34px;padding:0;border-radius:50%;background:var(--b-leaf,#86a68c);border:2px solid var(--b-ink,#294439);box-shadow:none}
+[data-mechanic-wire="everystart"] .es-pebble{width:44px;min-width:44px;height:40px;min-height:40px;padding:0;border-radius:50%;background:var(--b-leaf,#86a68c);border:2px solid var(--b-ink,#294439);box-shadow:none}
 [data-mechanic-wire="everystart"] .es-pebble:disabled{opacity:1;cursor:default}
 [data-mechanic-wire="everystart"] .es-pebble.lift{background:var(--b-sun,#efc76e);border-color:var(--b-ochre,#b38840);transform:translateY(-4px)}
 [data-mechanic-wire="everystart"] .es-pebble.gone{display:block;background:transparent;border:2px dashed #c9c3a8}
 @media (hover:hover){[data-mechanic-wire="everystart"] .es-pile button.es-pebble:not(:disabled):hover,[data-mechanic-wire="everystart"] .es-pile button.es-pebble:not(:disabled):hover~button.es-pebble{background:var(--b-sun,#efc76e);border-color:var(--b-ochre,#b38840)}}
-@media (max-width:420px){[data-mechanic-wire="everystart"] :is(.es-slot,.es-pebble){width:38px;min-width:38px;height:31px;min-height:31px}:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-key{width:44px;height:44px}:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) :is(.rr-status,.es-status,.es-note){font-size:1rem}[data-mechanic-wire="rookrace"] .rr-status{font-size:.95rem}}
+@media (max-width:440px){:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-board{width:calc(100% + 24px);margin-inline:-12px}}
+@media (max-width:420px){:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) .rr-key{width:44px;height:44px}:is([data-mechanic-wire="rookrace"],[data-mechanic-wire="everystart"]) :is(.rr-status,.es-status,.es-note){font-size:1rem}[data-mechanic-wire="rookrace"] .rr-status{font-size:.95rem}}
 @media (prefers-reduced-motion:no-preference){[data-mechanic-wire="everystart"] .es-pebble{transition:transform .15s,background .15s}}

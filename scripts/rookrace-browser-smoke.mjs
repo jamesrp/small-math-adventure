@@ -113,25 +113,25 @@ try {
   // Star race on the 8-by-8 queen board: a lost game, the hint's ring, then three wins.
   p = byId('rookrace-05');
   await open(p.id);
-  await inView(press('Me first'), 'queen race, fresh'); await inView(press('You first'), 'queen race, fresh');
+  await inView(press('Go first'), 'queen race, fresh'); await inView(press('Go second'), 'queen race, fresh');
   // Lose (going second) from first-player starts until a second-player start comes up.
   for (let i = 0; i < 12; i++) {
     b = await board(p.id);
     if (!squareWins(p.parameters, b.at)) break;
-    await tap(press('You first'));
+    await tap(press('Go second'));
     for (let t = 0; t < 30; t++) { if (!await page.locator('.rr-cell.target').count()) break; await tap(page.locator('.rr-cell.target').first()); }
     await tap(press('New start'));
   }
   b = await board(p.id);
   const lostStart = b.start;
-  await tap(press('Me first'));
+  await tap(press('Go first'));
   for (let i = 0; i < 30; i++) { b = await board(p.id); if (b.at[0] === 0 && b.at[1] === 0) break; await tap(page.locator('.rr-cell.target').first()); }
   assert.equal((await board(p.id)).turns.at(-1).player, 'opponent', 'going first from a second-player square loses');
   assert.equal((await board(p.id)).streak, 0);
   await inView(press('Same start again'), 'queen race, lost'); await inView(press('New start'), 'queen race, lost');
   checks.push('the move controls are in view on the busiest boards');
   await tap(press('New start'));
-  if ((await board(p.id)).first === null) await tap(press('Me first'));
+  if ((await board(p.id)).first === null) await tap(press('Go first'));
   await press('Hint').click(); await press('Hint').click();
   assert.equal(await cell(...lostStart).evaluate(e => e.classList.contains('lost')), true, 'the second hint rings the lost start');
   await shot('queen-hint'); await fit('queen race with hint rings');
@@ -158,12 +158,12 @@ try {
   assert.match(await page.locator('.es-note').innerText(), /^There is another\.$/);
   assert.equal(await press('That’s all').isDisabled(), true, 'That’s all waits for a change');
   assert.doesNotMatch(await page.locator('[data-mechanic-wire]').innerText(), /\d+ (more|left)/, 'no count');
-  // A practice game: Play, tap the square to start from, You first.
+  // A practice game: Play, tap the square to start from, Go second.
   await tap(press('Play'));
   assert.match(await page.locator('.es-status').innerText(), /Tap a square to start from\./);
   f = await focused(); assert.match(f.focus, /^rr-cell-/, `focus on a square to start from (${JSON.stringify(f)})`);
   await tap(cell(6, 1));
-  await tap(press('You first'));
+  await tap(press('Go second'));
   assert.match(await page.locator('.es-status').innerText(), /I moved .*\. Your turn/);
   for (let i = 0; i < 30; i++) { if (!await page.locator('.rr-cell.target').count()) break; await tap(page.locator('.rr-cell.target').last()); }
   await tap(press('Back'));
@@ -197,7 +197,7 @@ try {
   await setStart('2,2,5'); await tap(press('Keep'));
   // A practice game from the start being built: lift two pebbles from the right pile, Take.
   await tap(press('Play'));
-  await tap(press('Me first'));
+  await tap(press('Go first'));
   const right = page.locator('.es-bowl').nth(2).locator('button.es-pebble');
   await tap(right.nth(3));
   await tap(press('Take 2'));
@@ -237,8 +237,8 @@ try {
   for (const [x, y] of [[5, 2], ...answers]) await tap(cell(x, y));
   await inView(press('That’s all'), 'short name, queen marks, marked');
   await tap(press('Play')); await inView(press('Back'), 'short name, practice, choosing a square');
-  await tap(cell(6, 1)); await inView(press('You first'), 'short name, practice, choosing who starts');
-  await tap(press('You first')); await inView(page.locator('.rr-board'), 'short name, practice game'); await inView(press('Back'), 'short name, practice game');
+  await tap(cell(6, 1)); await inView(press('Go second'), 'short name, practice, choosing who starts');
+  await tap(press('Go second')); await inView(page.locator('.rr-board'), 'short name, practice game'); await inView(press('Back'), 'short name, practice game');
   for (let i = 0; i < 30; i++) { if (!await page.locator('.rr-cell.target').count()) break; await tap(page.locator('.rr-cell.target').last()); }
   await inView(press('Back'), 'short name, practice over'); await tap(press('Back'));
   await tap(press('That’s all')); assert.equal((await board(p.id)).play.kind, 'out');

@@ -978,7 +978,7 @@ function duelRender(p, attempt) {
     <div class="proof-roundbar">${pips(q.streak, board.streak, `${board.streak} of ${q.streak} wins in a row`)}</div>
     <p class="duel-status" role="status" tabindex="-1" data-focus="duel-status">${esc(status)}</p>
     <div class="duel-piles">${piles}</div>
-    <div class="proof-actions">${board.first === null ? `${primaryButton('Me first', { type: 'choose', first: 'you' })}${actionButton('You first', { type: 'choose', first: 'opponent' })}` :
+    <div class="proof-actions">${board.first === null ? `${primaryButton('Go first', { type: 'choose', first: 'you' })}${actionButton('Go second', { type: 'choose', first: 'opponent' })}` :
       over ? (solved ? '' : `${winner === 'opponent' ? actionButton('Same start again', { type: 'again' }) : ''}${primaryButton('New start', { type: 'new' })}`) :
       state.pick ? `${moveButton(`Take ${takeCount}`, { type: 'take', pile: state.pick.pile, remove: takeCount }, 'primary')}${uiButton('Cancel', { pick: null }, false)}` : ''}</div>
   </div>`;

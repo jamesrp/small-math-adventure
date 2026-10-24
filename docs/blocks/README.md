@@ -57,7 +57,7 @@ The worksheets are in [math-circle-worksheets, the Week 1 encore](https://github
 
 The [Week 1 encore review card](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-01e.md) (keep, fit B) set the app fit, and its [math check](https://github.com/jamesrp/math-circle-worksheets/blob/main/plans/review/week-01e-math.md) gave the answers this pack checks again.
 
-- **The duel.** The child picks Me first or You first and wins against perfect play. Boards mix grid-point centres, edge-middle centres and a triangle, and the puzzle never asks only "who wins?".
+- **The duel.** The child picks Go first or Go second and wins against perfect play. Boards mix grid-point centres, edge-middle centres and a triangle, and the puzzle never asks only "who wins?".
 - **Fewest blocks.** A four-block palette and a budget, on boards with a hexagon trap, chosen so the bound with the hexagons that fit proves the fewest.
 - **Red trapezoids.** Every filling of the hexagon of side 2 with That's all and no slot count; a re-cut move with a return in three; and the kind count posed as a decision, "fill triangle 6 with 4 pointing down", refuted by counting.
 
@@ -66,7 +66,7 @@ The card's other items are not here (see Not yet done). Rhombus gardens already 
 ## How a puzzle plays
 
 - **Laying a piece.** Drag across a piece's triangles, or tap them one after the other, as in the rest of Rhombus gardens. A tapped triangle shows a mark and the triangles that can join it glow. Tap a piece to lift it.
-- **The duel.** **Me first** or **You first** chooses who starts. The app answers at once; its rhombi are light, and its last one has an ochre edge. A line above the board says whose turn it is and who won. After a loss, **Play again** starts over. Undo takes back the child's last rhombus and the app's answer. The app plays every board perfectly: it copies the child's last rhombus when the copy wins, else lays a winning rhombus, else any free one.
+- **The duel.** **Go first** or **Go second** chooses who starts. The app answers at once; its rhombi are light, and its last one has an ochre edge. A line above the board says whose turn it is and who won. After a loss, **Play again** starts over. Undo takes back the child's last rhombus and the app's answer. The app plays every board perfectly: it copies the child's last rhombus when the copy wins, else lays a winning rhombus, else any free one.
 - **Fewest blocks.** Four tools (triangle, rhombus, trapezoid, hexagon) show how many of each are down, and a counter shows blocks used against the budget. A slide places the chosen block, or another block whose triangles the slide covers exactly, and the tool follows. With the hexagon chosen, yellow dots mark where one fits; tap one to place it. **Clear** lifts every block. Solved when the board is full within the budget.
 - **Red fill.** Counts above the board show how many trapezoids point up and down. **Can't** solves when no filling exists; otherwise it says "It can be done." and waits for a change. Puzzles 7 and 8 ask for a number pointing down and solve the same way.
 - **Every way.** Each filling joins a shelf below the board, once. **That's all** checks the shelf: with one missing it says "There's another." and waits for a change. Undo keeps the fillings found; Restart clears them.

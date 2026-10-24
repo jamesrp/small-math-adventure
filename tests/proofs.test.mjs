@@ -150,6 +150,7 @@ test('one check per round: answers lock after Check, and Undo is unavailable', (
 test('duel: only wins from a new start count toward the streak', () => {
   const p = byId('proof-duel-01'), random = seeded(5);
   let a = freshAttempt(p, random);
+  assert.match(mechanicFor(p).render(p, a), />Go first<[\s\S]*>Go second</, 'who starts reads Go first / Go second');
   // Lose on purpose: choose the wrong side, then play the first legal move.
   const losingChoice = a.board.piles[0] === a.board.piles[1] ? 'you' : 'opponent';
   a = move(p, a, { type: 'choose', first: losingChoice }, random);

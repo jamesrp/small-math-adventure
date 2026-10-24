@@ -31,7 +31,7 @@
    piles to leave for the opponent. The design puzzle shows its goal track. */
 .menu-label{margin:.2rem 0 0;font-family:var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850);display:flex;align-items:center;gap:6px}
 .menu-chip{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;border:2px solid var(--b-ink,#294439);background:var(--b-card,#fffdf5);color:var(--b-ink,#294439)}
-.menu-track{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px;width:min(100%,430px);margin:4px 0}
+.menu-track{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px;width:min(100%,470px);margin:4px 0}
 .board-panel .menu-puzzle .menu-square{min-width:0;width:auto;height:40px;min-height:40px;padding:0;border-radius:8px;font-family:var(--b-display,Georgia,serif);font-size:1rem;font-weight:400}
 .board-panel .menu-puzzle .menu-square.on,.board-panel .menu-puzzle .menu-choice.on{background:var(--b-pine,#31533e);border-color:var(--b-pine,#31533e);color:#fff8d9}
 .menu-track.goal .menu-square{display:grid;place-items:center;height:30px;min-height:30px;border:1.5px solid var(--b-line,#d0d6bd);border-radius:7px;background:var(--b-card,#fffdf5);font-family:var(--b-display,Georgia,serif);font-size:.85rem;color:var(--b-muted,#5a6850)}
@@ -40,13 +40,17 @@
 .board-panel .menu-track-puzzle .hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:2px}
 .menu-note{margin:0;max-width:30rem;text-align:center;line-height:1.4}
 .menu-note.good{color:var(--b-good,#3c7a4a);font-weight:600}
-@media (max-width:460px){.menu-track{gap:3px}.board-panel .menu-puzzle .menu-square{height:36px;min-height:36px;font-size:.9rem}}
+/* Phones: rows of five (each row of ten split in two, so the decimal rows
+   still pair up) keep squares 40 px tall and wider than 40 px. */
+@media (max-width:460px){.menu-track{gap:3px}.menu-track:not(.goal){grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}.board-panel .menu-puzzle .menu-square{height:40px;min-height:40px;font-size:1rem}}
 /* The two-pile chart: first pile down, second pile across, with axis numbers. */
 .menu-axes{font-size:.85rem;margin-left:6px}
-.menu-chart{display:grid;grid-template-columns:repeat(calc(var(--n) + 1),minmax(0,1fr));gap:3px;width:min(100%,420px);margin:4px 0}
+.menu-chart{display:grid;grid-template-columns:1.4rem repeat(var(--n),minmax(0,1fr));gap:3px;width:min(100%,calc(var(--n) * 47px + 1.4rem));margin:4px 0}
 .menu-axis{display:grid;place-items:center;font-family:var(--b-display,Georgia,serif);font-size:.85rem;color:var(--b-muted,#5a6850)}
-.board-panel .menu-puzzle .menu-chart .menu-square{height:32px;min-height:32px;border-radius:6px}
+.board-panel .menu-puzzle .menu-chart .menu-square{height:40px;min-height:40px;border-radius:6px}
 /* Playing out a wrong square, below the track. */
 .menu-playout{display:flex;flex-direction:column;align-items:center;gap:.4rem;width:100%;margin-top:.4rem;padding-top:.6rem;border-top:2px dashed var(--b-line,#d0d6bd)}
 .menu-playout .menu-piles{min-height:0}
-@media (max-width:460px){.menu-chart{gap:2px}.board-panel .menu-puzzle .menu-chart .menu-square{height:28px;min-height:28px}}
+/* A ten-by-ten chart can't have 40 px squares across a phone: it runs to
+   the panel's edges with a narrow axis, about 31 px a square. */
+@media (max-width:460px){.menu-chart{gap:2px;grid-template-columns:1.1rem repeat(var(--n),minmax(0,1fr));align-self:stretch;width:auto;margin-inline:-12px}.board-panel .menu-puzzle .menu-chart .menu-square{height:32px;min-height:32px}}

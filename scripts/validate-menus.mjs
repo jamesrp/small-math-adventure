@@ -133,7 +133,7 @@ export default async function validateMenus() {
         while (a && takesFrom(q, a.board.piles).length) { const h = solveAction(p, a.board); a = move(p, a, h.action, r); }
         if (!a.board.streak) lostOne = true;
       }
-      assert.ok(lostOne, `${label}: "Me first" every time does not win`);
+      assert.ok(lostOne, `${label}: "Go first" every time does not win`);
       assert.equal(nextHint(p, freshAttempt(p, seeded(5))).type, 'note', `${label}: round hints never name who starts`);
       assert.ok(mechanicFor(p).noUndo(p), `${label}: rounds have no Undo`);
     }

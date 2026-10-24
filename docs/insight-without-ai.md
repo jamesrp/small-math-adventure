@@ -103,13 +103,13 @@ The sorting test is an interactive proof: the app samples instances, the child a
 
 Uniform sampling would miss the interesting cases. Of the 23,409 color-balanced 6×6 boards with four holes, only 540 (2.3%) cannot be covered, and every one of those has a stranded corner square. A port of the prototype's generator confirms that each wrong rule above passes 0% of its level's rounds while the true rule passes 100%.
 
-**Control base rates.** With three Nim piles of 1–7, only 42 of 343 starts lose for the player to move, so under uniform sampling "Me first" is right 88% of the time. Draw positives and negatives deliberately.
+**Control base rates.** With three Nim piles of 1–7, only 42 of 343 starts lose for the player to move, so under uniform sampling "Go first" is right 88% of the time. Draw positives and negatives deliberately.
 
 **Don't let feedback be fished.** A blind guesser passes six coin-flip boards in one try with probability 1/64. Retries change that sharply: with a second try after "N are wrong," it is 7/64; after a coarse "two or fewer wrong" (the indicator *The Case of the Golden Idol* uses), 3/64. *Return of the Obra Dinn* confirms deductions in batches of three for the same reason, and players still fish when they can retry ([Golden Idol](https://www.gamedeveloper.com/design/case-of-the-golden-idol), [Obra Dinn](https://filmstories.co.uk/?p=83249)). The prototype gives one check per round, reveals a covering or a refutation for every board on a miss, and passes a level after two clean rounds in a row. A blind guesser passes a level about 1 time in 4,000. A forced 4/4 split is worse than coin flips because it lets a child reason by elimination.
 
 **Zoombinis takes the other route.** Allergic Cliffs gives per-item feedback (each Zoombini crosses or is bounced) under a budget of mistakes: learning by feedback under a cost, not a test after the fact. Both are legitimate. Per-item feedback with an error budget suits discovery; one-try rounds with a reveal suit checking a rule the child believes they have. TERC's researchers built detectors of implicit computational thinking from Zoombinis gameplay logs, and the in-game measures correlated with external tests ([Rowe et al., 2021](https://www.terc.edu/publications/assessing-implicit-computational-thinking-in-zoombinis-puzzle-gameplay/)). So instance play can carry evidence of insight.
 
-**Choose who starts** is the cheapest version, already inside a game. Before each Pebble Duel, the child picks "Me first" or "You first." Picking right is the classification; winning against perfect play is the strategy. The prototype counts a win toward its three-in-a-row streak only from a new start, so a memorized start cannot earn it.
+**Choose who starts** is the cheapest version, already inside a game. Before each Pebble Duel, the child picks "Go first" or "Go second." Picking right is the classification; winning against perfect play is the strategy. The prototype counts a win toward its three-in-a-row streak only from a new start, so a memorized start cannot earn it.
 
 ## 6. More paths
 

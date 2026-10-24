@@ -8,7 +8,7 @@
 .rt-grid{display:grid;grid-template-columns:1.8rem minmax(0,var(--tt-cell)) repeat(var(--n),minmax(0,var(--tt-cell)));gap:4px;align-items:center;justify-items:stretch;max-width:100%;padding:.55rem .6rem;border-radius:14px;background:var(--b-paper,#f5f1e6);border:1.5px solid var(--b-line,#d0d6bd)}
 .rt-board.solved .rt-grid{border:2px solid var(--b-good,#3c7a4a);background:var(--b-good-soft,#e2ecd6)}
 .rt-h{text-align:center;font-size:.78rem;color:var(--b-muted,#5a6850);line-height:1.1}
-.rt-hs{font-size:.7rem;letter-spacing:.01em;color:var(--b-muted,#5a6850)}
+.rt-hs{font-size:.78rem;letter-spacing:.01em;color:var(--b-muted,#5a6850)}
 .rt-gap{display:block}
 /* Row glyphs: a card, numbered trays and a flag. */
 .rt-lab{display:inline-flex;align-items:center;justify-content:center;justify-self:center;font:400 .8rem/1 var(--b-display,Georgia,serif);color:var(--tt-ink)}
@@ -62,4 +62,6 @@
 .rt-board .pop{animation:rt-pop .38s ease-out both;animation-delay:calc(var(--d,0) * .22s)}
 @keyframes rt-pop{0%{transform:scale(.7);opacity:.2}70%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.rt-board .pop{animation:none}}
-@media (max-width:420px){.rt-board{--tt-cell:2.7rem}.rt-grid{gap:3px;padding:.45rem .35rem;grid-template-columns:1.35rem minmax(0,var(--tt-cell)) repeat(var(--n),minmax(0,var(--tt-cell)))}.rt-board .rt-slot{height:3.1rem}.rt-num{font-size:1.15rem}.rt-cell{height:2.05rem;font-size:.98rem}.rt-hs{font-size:.62rem}.rt-lab-tray{width:1.15rem}.rt-board .rt-card{width:2.6rem;height:3.3rem}.rt-starts{flex-direction:column}.rt-chips{display:grid;grid-template-columns:repeat(var(--cols),2.75rem)}}
+/* Phones: the table runs to the panel's edges with a narrow start column,
+   so six turns keep 40 px slots on a 375 px screen. */
+@media (max-width:420px){.rt-board{--tt-cell:2.7rem}.rt-grid{gap:2px;padding:.4rem .3rem;margin-inline:-12px;max-width:calc(100% + 24px);grid-template-columns:1.2rem minmax(0,2rem) repeat(var(--n),minmax(0,var(--tt-cell)))}.rt-board .rt-slot{height:3.1rem}.rt-num{font-size:1.15rem}.rt-cell{height:2.05rem;font-size:.98rem}.rt-hs{font-size:.75rem}.rt-lab-tray{width:1.15rem}.rt-board .rt-card{width:2.6rem;height:3.3rem}.rt-starts{flex-direction:column}.rt-chips{display:grid;grid-template-columns:repeat(var(--cols),2.75rem)}}

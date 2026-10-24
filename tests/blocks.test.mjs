@@ -61,8 +61,8 @@ test('duel maths: who wins, the centre of the half turn, and copies', () => {
 test('the duel: choosing who starts, the app answers at once and copies on a point-centre board', () => {
   const p = bigHexagon, g = gridFor(p);
   let a = freshAttempt(p);
-  assert.match(view(p, a), /Me first/);
-  assert.match(view(p, a), /You first/);
+  assert.match(view(p, a), /Go first/);
+  assert.match(view(p, a), /Go second/);
   assert.equal(move(p, a, {type: 'place', cells: openSpots(g, [])[0]}), null, 'no rhombus before choosing');
   const hint = nextHint(p, a);
   assert.deepEqual(hint.action, {type: 'choose', first: 'app'}, 'the second player wins here');

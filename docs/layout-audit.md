@@ -22,6 +22,8 @@ done
 node scripts/layout-audit.mjs report /tmp/layout-audit/*.json
 ```
 
+`scripts/family-targets-browser-smoke.mjs` is the pass/fail companion for the family fixes listed under *Fixed since … family targets* below: it measures the same way (what a tap reaches, and font size times the SVG scale) on the puzzles those fixes changed at all three sizes, with the stated lower floors for rows too long for 40 px on a phone, and takes the same browser variables.
+
 ## What it measures
 
 Each puzzle opens at `#play/<id>` for a fresh explorer named "Explorer" on the K–1 trail, at **390 × 844** (iPhone 12–15), **375 × 667** (iPhone SE) and **820 × 1180** (iPad Air, portrait), each with touch. The audit waits for the board, fonts, finite animations and two frames, then measures the play screen below the app's top bar (`#main`: How to play, the board, Undo, Restart and Hint) as it first appears.
@@ -85,6 +87,24 @@ These are digital measurements, not play with children or checks on devices. Scr
 6. **SVG labels authored at 8–10 board units.** Most of the 60 small-text groups are SVG labels in a viewBox that is drawn smaller on a phone: 7.9 px in knowledge, 8.1 px in portals, 8.6 px in creases, 8.8 px in tetra, 9.3 px in tent. This is a habit rather than one file. A family can size labels from the rendered scale, or draw them in HTML over the board.
 
 Boards that do not fit for their own reasons: three stacked clocks in base-clock (763 px below a 390 × 844 screen in clock-11 and 12), the weighing board in base-weigh (557 px), the offers tree in offers (543 px) and the balance with its five rows of targets in kits (269 px).
+
+*Fixed since (October 24, `claude/layout-pickers-ntxcu3`), family targets:* this audit on main `75a0b44` before and on `f3303a1` (with the one-row top bar) after, 16 modules at all three sizes: 43 distinct problems to 11. Per module, before → after:
+
+- tank 6 → 0: levels over 16 are a grid of squares at least 40 px (eight across a phone, ten on a tablet), Empty sits under the jugs so the claims keep one row, scale numerals 14 px, − buttons 44 px.
+- kits 4 → 2: the same 40 px target grid; the weights' trays two across on a phone. Left: the playground's two-row picker of nine weights, 17 px below a 390 × 844 screen.
+- cardmachines 5 → 1: arrows between two circles bend further apart (chips 41–43 px), circle numbers 12 px, clear of the marks, row dots 20 px. Left: puzzles 4 and 11, long lists of pairs, 99 px below a 390 × 844 screen.
+- sumsets 2 → 1: trays and strip run to the panel's edges (cards 31–33 px, numerals 13 px). Left on purpose: ten cards stay one row, the number line the puzzles are about.
+- joins 2 → 0: strips 40 px tall, and a strip narrower than 44 px takes taps 44 px wide into its empty row.
+- menus 1 → 1: tracks wrap into rows of five 40 px squares on a phone; the chart's squares are 40 px on a tablet. Left: the 10 × 10 chart (puzzle 17) at 30–32 px on phones.
+- codebooks 1 → 0 and secrets 1 → 0: lanterns 40 px (codebooks) and 42–44 px (secrets) on phones.
+- matching 3 → 0: strip places 40 px tall; the playground's small pairings drawn larger (letters 12 px).
+- rookrace 3 → 2: boards run to the panel's edges and allow 40 px squares (8 by 8 and smaller); pile slots 44 × 40 px. Left: the 11-by-11 board (everystart-06) at 30–32 px on phones.
+- globe 2 → 0: turn buttons 48 × 44 px.
+- totals 3 → 0: the table runs to the panel's edges with a narrow start column (slots 40 px); header text 12 px.
+- sorting 1 → 0: six-slot columns spread to 21–81% so each lane end takes taps 40 px; a card's tap area is max(its size, 44 px).
+- friezes 1 → 1: the board runs to the panel's border (places 41–42 px). Left: the playground's places, 36–38 px on phones.
+- robot 1 → 0: step tap circles 0.55 of a square (47 px on a 375 px phone).
+- votes 7 → 3: letter slots 44 × 40 px, voter names 12–13 px, and the line runs to the panel's edges. Left on purpose: eleven spots give columns of 31–32 px; voters stay pick-up-and-drop by column.
 
 ### Ranked by distinct problems
 

@@ -58,7 +58,7 @@ const DUEL = {
   group: 'Rhombus duel', mechanic: 'blueduel', prefix: 'blueduel',
   objective: 'Choose who goes first, then win: take turns laying a rhombus, and whoever has no room on their turn loses.',
   visibleObjective: 'Choose who goes first, then win.',
-  controls: 'Me first or You first chooses who starts. Drag across two empty triangles that share a side, or tap them one after the other, to lay your rhombus; I lay mine at once, and it is the light one. After I win, Play again starts over. Undo takes back your last rhombus and my answer.',
+  controls: 'Go first or Go second chooses who starts. Drag across two empty triangles that share a side, or tap them one after the other, to lay your rhombus; I lay mine at once, and it is the light one. After I win, Play again starts over. Undo takes back your last rhombus and my answer.',
   rules: [
     'A rhombus covers two empty triangles that share a side and stays inside the board.',
     'Players take turns. If there is no room for a rhombus on your turn, you lose.',

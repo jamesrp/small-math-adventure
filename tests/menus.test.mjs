@@ -82,7 +82,7 @@ test('a round: choose who starts, count wins from new starts only, no Undo', () 
   let a = {...freshAttempt(p), board: {start, piles: [...start], first: null, turns: [], streak: 0, fresh: true}};
   assert.ok(validBoard(p, a.board));
   assert.equal(nextHint(p, a).type, 'note', 'no hint names who starts');
-  assert.match(mechanicFor(p).render(p, a), /Me first[\s\S]*You first/);
+  assert.match(mechanicFor(p).render(p, a), /Go first[\s\S]*Go second/);
   a = move(p, a, {type: 'choose', first: 'opponent'}, fixed(0));
   assert.equal(a.board.turns[0].player, 'opponent');
   while (a.board.piles[0]) a = move(p, a, {type: 'take', pile: 1, take: 3 - a.board.turns.at(-1).take}, fixed(0));

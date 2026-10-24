@@ -61,5 +61,7 @@
 .cb-found.wrong .cb-row{opacity:.6}
 .cb-found.missed{border:2px dashed var(--b-good,#3c7a4a)}
 .board-panel .codebook-puzzle .cb-remove{min-width:32px;min-height:32px;padding:0;font-size:1.2rem;line-height:1}
-@media (max-width:460px){.cb-lantern{width:34px;height:34px}.cb-row{gap:5px}.cb-key-row,.cb-send{gap:8px}.cb-shape{width:26px;height:26px}.cb-trick .cb-lantern{width:24px;height:24px}}
+/* Phones: lanterns stay 40 px (six and a picture fit across 375 px with
+   the gaps and the key's padding trimmed). */
+@media (max-width:460px){.cb-lantern{width:40px;height:40px}.cb-row{gap:4px}.cb-key{padding:8px;gap:6px}.cb-key-row,.cb-send{gap:6px}.cb-send{padding:8px}.cb-shape{width:24px;height:24px}.cb-trick .cb-lantern{width:24px;height:24px}}
 @media (max-width:360px){.cb-lantern{width:30px;height:30px}.cb-row{gap:4px}}
