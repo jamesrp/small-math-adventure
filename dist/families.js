@@ -103,8 +103,23 @@ const paths = [
 
 export const FAMILIES = await Promise.all(paths.map(path => import(path).then(module => module.default)));
 
-// The satchel families the modules add, newest first. The newest starts open.
+// The satchel families the modules add, newest first.
 export const newFamilies = () => FAMILIES.filter(m => m.family).map(m => m.family).reverse();
+
+// The areas of mathematics that Grown-ups groups the families' notes under. A
+// module's family names one (`family.area`); the twelve base mechanics have
+// theirs in dist/ui.js. A family without one is listed under More.
+export const AREAS = {
+  games: 'Games and strategy',
+  logic: 'Logic and information',
+  networks: 'Maps and networks',
+  numbers: 'Numbers and measuring',
+  patterns: 'Orders and patterns',
+  shapes: 'Tilings and shapes',
+  geometry: 'Geometry and symmetry',
+  surfaces: 'Surfaces and knots',
+  chance: 'Chance and fairness',
+};
 
 // The app's single pack: the base pack, then each module's pack in registry order.
 export function mergePacks(base, packs) {

@@ -742,7 +742,7 @@ export const widthMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'width',
-  family: {id: 'width', symbol: '⌓'},
+  family: {id: 'width', symbol: '⌓', area: 'geometry'},
   mechanics: widthMechanics,
   pack: new URL('./width.json', import.meta.url).href,
   css: new URL('./width.css', import.meta.url).href,

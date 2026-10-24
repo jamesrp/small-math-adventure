@@ -592,7 +592,7 @@ export const rangeMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'ranges',
-  family: {id: 'ranges', symbol: '↔'},
+  family: {id: 'ranges', symbol: '↔', area: 'numbers'},
   mechanics: rangeMechanics,
   pack: new URL('./ranges.json', import.meta.url).href,
   css: new URL('./ranges.css', import.meta.url).href,

@@ -359,7 +359,7 @@ export const primesMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'primes',
-  family: {id: 'primes', symbol: '∏'},
+  family: {id: 'primes', symbol: '∏', area: 'numbers'},
   mechanics: primesMechanics,
   pack: new URL('./primes.json', import.meta.url).href,
   css: new URL('./primes.css', import.meta.url).href,

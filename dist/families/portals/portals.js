@@ -577,7 +577,7 @@ export const portalMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'portals',
-  family: {id: 'portals', symbol: '⧉'},
+  family: {id: 'portals', symbol: '⧉', area: 'surfaces'},
   mechanics: portalMechanics,
   pack: new URL('./portals.json', import.meta.url).href,
   css: new URL('./portals.css', import.meta.url).href,

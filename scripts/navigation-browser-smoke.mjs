@@ -8,7 +8,7 @@ const context=await browser.newContext({viewport:process.env.TEST_PHONE?{width:3
 const page=await context.newPage(),errors=[];
 page.on('pageerror',error=>errors.push(error.message));
 const base=process.env.TEST_URL||'http://127.0.0.1:4187';
-// The newest family on the seam (dist/families.js) starts open.
+// The newest family on the seam (dist/families.js). Every family starts closed.
 const newest=(await loadPack()).puzzles.find(p=>(p.libraryFamily||p.mechanic)===newFamilies()[0].id).familyTitle;
 const family=name=>page.locator('.satchel-family').filter({has:page.locator('summary strong').filter({hasText:new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}$`)})});
 const openFamilies=()=>page.locator('.satchel-family[open] summary strong').allTextContents();
@@ -23,7 +23,9 @@ try{
   await page.locator('#nickname').fill('Navigation');
   await page.locator('#profile-form button[type=submit]').click();
   await page.locator('.caravan-nav [data-action=library]').click();
-  await family(newest).locator('summary').click();
+  assert.deepEqual(await openFamilies(),[],'the library opens with every family closed');
+  assert.equal(await page.locator('.satchel-family').first().locator('summary strong').textContent(),'Tile gardens','the road’s families come first, then the newer ones');
+  assert.match(await family('Cup swaps').locator('.family-count [aria-hidden]').textContent(),/^0\/\d+$/,'each family shows solved/total');
   await family('Clockwork Gates').locator('summary').click();
   await family('Cup swaps').locator('summary').click();
   const expected=await openFamilies();
@@ -36,6 +38,7 @@ try{
   await page.locator('[data-puzzle-id="clock-10"]').waitFor();
   await back('.caravan-library');
   assert.deepEqual(await openFamilies(),expected,`Back restores every family, including closed ${newest}`);
+  checks.push('the library opens closed, road families first with solved/total; a family, then a puzzle');
   assert.ok(Math.abs(await page.evaluate(()=>scrollY)-scroll)<3,'Back restores the library scroll position');
   await forward('[data-puzzle-id="clock-10"]');
   await back('.caravan-library');
@@ -75,12 +78,14 @@ try{
   await note.locator(':scope > summary').click();
   await note.locator('details > summary').click();
   const title=await note.locator(':scope > summary').textContent();
-  await page.locator('#sound-toggle').check();
+  assert.equal(await page.locator('.caravan-topbar [aria-current]').count(),0,'no top-bar tab is current on Grown-ups');
+  assert.equal(await page.locator('#sound-toggle').isChecked(),true,'reading aloud starts on for a K–1 explorer');
+  await page.locator('#sound-toggle').uncheck();
   assert.equal(await page.locator('#catalog-band').inputValue(),'all','save-triggered render preserves the catalog filter');
   assert.equal(await note.locator(':scope > summary').textContent(),title);
   assert.ok(await note.evaluate(node=>node.open),'save-triggered render preserves the note');
   assert.ok(await note.locator('details').evaluate(node=>node.open),'nested disclosure stays open');
-  await page.locator('#sound-toggle').uncheck();
+  await page.locator('#sound-toggle').check();
   await note.locator('[data-action=open-puzzle]').click();
   await page.locator('.board-panel').waitFor();
   await back('.parent-layout');
@@ -94,6 +99,13 @@ try{
   await page.locator('#catalog-band').selectOption('all');
   assert.ok(await note.evaluate(node=>node.open),'switching filters retains notes for the original puzzles');
   checks.push('Grown-ups filter, nested notes, save rerenders and stable puzzle identities');
+  // Grown-ups' New explorer lands on the name field. (A role query is slow
+  // over every family's notes, so the button is found by its action.)
+  await page.locator('.parent-layout [data-action=new-explorer]').click();
+  await page.locator('.caravan-add-profile[open] #nickname').waitFor();
+  assert.equal(await page.evaluate(()=>document.activeElement?.id),'nickname','New explorer focuses the name field');
+  await back('.parent-layout');
+  checks.push('no current tab on Grown-ups; New explorer lands on the name field');
 
   await page.evaluate(async()=>{
     const {startJourney}=await import('./caravan-legacy.js');
@@ -111,12 +123,32 @@ try{
   assert.ok(await page.locator('.earlier-journey').evaluate(node=>node.open),'Journal archives survive navigation');
   checks.push('Journal archive disclosures');
 
+  // Grown-ups typed straight into the address (a fresh page load) goes through
+  // the same gate; leaving the gate trades the address for the road.
+  await page.evaluate(()=>{location.hash='parents';});
+  await page.getByRole('button',{name:'I’m a grown-up',exact:true}).waitFor();
+  assert.equal(await page.locator('.parent-layout').count(),0,'#parents shows the gate, not Grown-ups');
+  await page.getByRole('button',{name:'Back to play',exact:true}).click();
+  await page.waitForFunction(()=>location.hash==='#map');await page.locator('.lr-overview').waitFor();
+  await page.evaluate(()=>{location.hash='parents';});
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(()=>location.hash==='#map');
+  assert.equal(await page.locator('.parent-layout').count(),0,'Escape leaves the gate shut');
+  await page.evaluate(()=>{location.hash='parents';});
+  await page.getByRole('button',{name:'I’m a grown-up',exact:true}).click();
+  await page.locator('.parent-layout').waitFor();
+  assert.deepEqual(await page.locator('.parent-layout h2').evaluateAll(hs=>hs.slice(0,2).map(h=>h.textContent.trim())),['Explorers & saves','Play on iPad'],'explorers and backup come first');
+  assert.ok(await page.locator('.research-area').count()>5,'the mathematics notes are grouped by area');
+  assert.equal(await page.locator('.research-area[open]').count(),0,'every area starts closed');
+  checks.push('#parents typed directly asks the Grown-ups gate; areas start closed');
+
   await page.locator('.caravan-nav [data-action=library]').click();
   await family(newest).locator('summary').click();
   await family('Clockwork Gates').locator('summary').click();
   await explorerRow();
   await page.locator('[data-action=profiles]').click();
   await page.locator('.caravan-add-profile > summary').click();
+  await page.waitForFunction(()=>document.activeElement?.id==='nickname');
   await page.locator('.caravan-nav [data-action=library]').click();
   await page.locator('.caravan-library').waitFor();
   await back('.caravan-add-profile');
@@ -126,11 +158,11 @@ try{
   await page.locator('.lr-overview').waitFor();
   await page.locator('.caravan-nav [data-action=library]').click();
   await page.locator('.caravan-library').waitFor();
-  assert.deepEqual(await openFamilies(),[newest],'another explorer starts with fresh presentation state');
+  assert.deepEqual(await openFamilies(),[],'another explorer starts with fresh presentation state');
   await page.evaluate(()=>history.go(-3));
   await page.waitForURL('**/#library');await settle();
   assert.equal(await page.locator('.profile-label').textContent(),'Second explorer');
-  assert.deepEqual(await openFamilies(),[newest],'old history cannot transfer presentation state across explorers');
+  assert.deepEqual(await openFamilies(),[],'old history cannot transfer presentation state across explorers');
   checks.push('New explorer disclosure and explorer isolation');
 
   // How to play belongs to the puzzle it opened on: Back, Forward and a hash
@@ -170,7 +202,10 @@ try{
       assert.ok(await grownUps.isVisible(),`${tag} new explorer: Grown-ups shows without an explorer`);
       await bar.locator('#nickname').fill('Zoë');await bar.locator('#profile-form button[type=submit]').click();await bar.locator('.lr-overview').waitFor();
       for(const [hash,ready] of [['map','.lr-overview'],['library','.caravan-library'],['journal','.lr-journal-view'],['play/nim-02','.board-panel'],['parents','.parent-layout'],['profiles','.caravan-saved-profiles']]){
-        await bar.evaluate(next=>{location.hash=next;},hash);await bar.locator(ready).waitFor();await bar.evaluate(()=>document.fonts.ready);
+        await bar.evaluate(next=>{location.hash=next;},hash);
+        if(hash==='parents')await bar.getByRole('button',{name:'I’m a grown-up',exact:true}).click();
+        await bar.locator(ready).waitFor();await bar.evaluate(()=>document.fonts.ready);
+        if(hash==='parents')assert.equal(await header.locator('[aria-current]').count(),0,`${tag} parents: no tab is current`);
         m=await shape();
         assert.equal(m.overflow,false,`${tag} ${hash}: no page overflow`);
         assert.deepEqual(m.small,[],`${tag} ${hash}: every bar button is at least 40 px`);

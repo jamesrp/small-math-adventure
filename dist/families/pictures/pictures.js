@@ -469,7 +469,7 @@ export const pictureMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'pictures',
-  family: {id: 'pictures', symbol: '▚'},
+  family: {id: 'pictures', symbol: '▚', area: 'logic'},
   mechanics: pictureMechanics,
   pack: new URL('./pictures.json', import.meta.url).href,
   css: new URL('./pictures.css', import.meta.url).href,

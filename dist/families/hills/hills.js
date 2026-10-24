@@ -408,7 +408,7 @@ export const hillMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'hills',
-  family: {id: 'hills', symbol: '∿'},
+  family: {id: 'hills', symbol: '∿', area: 'numbers'},
   mechanics: hillMechanics,
   pack: new URL('./hills.json', import.meta.url).href,
   css: new URL('./hills.css', import.meta.url).href,

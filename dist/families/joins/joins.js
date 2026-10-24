@@ -436,7 +436,7 @@ export const joinsMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'joins',
-  family: {id: 'joins', symbol: '▤'},
+  family: {id: 'joins', symbol: '▤', area: 'numbers'},
   mechanics: joinsMechanics,
   pack: new URL('./joins.json', import.meta.url).href,
   css: new URL('./joins.css', import.meta.url).href,

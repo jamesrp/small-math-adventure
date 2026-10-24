@@ -543,7 +543,7 @@ export const leftoverMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'leftovers',
-  family: {id: 'leftovers', symbol: '⊟'},
+  family: {id: 'leftovers', symbol: '⊟', area: 'numbers'},
   mechanics: leftoverMechanics,
   pack: new URL('./leftovers.json', import.meta.url).href,
   css: new URL('./leftovers.css', import.meta.url).href,

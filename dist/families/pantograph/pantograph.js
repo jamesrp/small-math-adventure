@@ -557,7 +557,7 @@ export const pantographMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'pantograph',
-  family: {id: 'pantograph', symbol: '⟋'},
+  family: {id: 'pantograph', symbol: '⟋', area: 'geometry'},
   mechanics: pantographMechanics,
   pack: new URL('./pantograph.json', import.meta.url).href,
   css: new URL('./pantograph.css', import.meta.url).href,

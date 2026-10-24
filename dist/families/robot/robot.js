@@ -284,7 +284,7 @@ export const robotMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'robot',
-  family: {id: 'robot', symbol: '⟲'},
+  family: {id: 'robot', symbol: '⟲', area: 'geometry'},
   mechanics: robotMechanics,
   pack: new URL('./robot.json', import.meta.url).href,
   css: new URL('./robot.css', import.meta.url).href,

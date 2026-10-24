@@ -4,7 +4,9 @@ self.addEventListener('install',event=>event.waitUntil((async()=>{
   const cache=await caches.open(CACHE);
   // addAll is atomic: a missing asset fails installation, never claiming readiness.
   await cache.addAll(ASSETS);
-  // Updated workers wait for existing tabs to close; never replace a live puzzle.
+  // An updated worker waits until the app asks it to take over (SKIP_WAITING,
+  // sent by Reload on the map or in Grown-ups, never during a puzzle) or every
+  // app tab has closed.
 })()));
 // Art videos are kept in their own cache once played, so a clip seen online
 // also plays offline. Video and audio elements ask for byte ranges; Safari
@@ -44,6 +46,7 @@ self.addEventListener('fetch',event=>{
   })());
 });
 self.addEventListener('message',event=>{
+  if(event.data?.type==='SKIP_WAITING'){self.skipWaiting();return;}
   if(event.data?.type==='CHECK_READY')event.waitUntil((async()=>{
     const cache=await caches.open(CACHE);const entries=await Promise.all(ASSETS.map(asset=>cache.match(asset)));
     event.ports[0]?.postMessage({ready:entries.every(Boolean),version:CACHE});

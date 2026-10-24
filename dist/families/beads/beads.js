@@ -319,7 +319,7 @@ export const beadMechanics = {beads: hooks, lopsided: hooks};
 // The family seam entry (dist/families.js).
 export default {
   id: 'beads',
-  family: {id: 'beads', symbol: '◌'},
+  family: {id: 'beads', symbol: '◌', area: 'geometry'},
   mechanics: beadMechanics,
   pack: new URL('./beads.json', import.meta.url).href,
   css: new URL('./beads.css', import.meta.url).href,

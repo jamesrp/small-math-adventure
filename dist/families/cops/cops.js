@@ -682,7 +682,7 @@ export const twoMechanic = {
 export const copsMechanics = {cops: copsMechanic, copsfold: foldMechanic, copstwo: twoMechanic};
 export default {
   id: 'cops',
-  family: {id: 'cops', symbol: '◐'},
+  family: {id: 'cops', symbol: '◐', area: 'games'},
   mechanics: copsMechanics,
   pack: new URL('./cops.json', import.meta.url).href,
   css: new URL('./cops.css', import.meta.url).href,

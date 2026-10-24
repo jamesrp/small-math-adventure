@@ -289,7 +289,7 @@ function readStore(value, puzzles, repairs) {
   const journeys = new Map(), kept = new Map();
   const ids = new Set();
   for (const profile of value.profiles) {
-    if (!profile || typeof profile.id !== 'string' || profile.id.length > 100 || !profile.id || ids.has(profile.id) || typeof profile.name !== 'string' || !profile.name.trim() || profile.name.length > 24 || !Object.hasOwn(BANDS,profile.band) || !Number.isInteger(profile.avatar) || profile.avatar < 0 || profile.avatar > 5 || typeof profile.sound !== 'boolean' || !profile.attempts || Array.isArray(profile.attempts) || typeof profile.attempts !== 'object' || Object.keys(profile.attempts).length > allPuzzles.length) throw new Error('An explorer in this backup is not valid.');
+    if (!profile || typeof profile.id !== 'string' || profile.id.length > 100 || !profile.id || ids.has(profile.id) || typeof profile.name !== 'string' || !profile.name.trim() || profile.name.length > 24 || !Object.hasOwn(BANDS,profile.band) || !Number.isInteger(profile.avatar) || profile.avatar < 0 || profile.avatar > 5 || typeof profile.sound !== 'boolean' || (Object.hasOwn(profile,'readAloud') && typeof profile.readAloud !== 'boolean') || (Object.hasOwn(profile,'importedAt') && !(Number.isFinite(profile.importedAt) && profile.importedAt >= 0)) || !profile.attempts || Array.isArray(profile.attempts) || typeof profile.attempts !== 'object' || Object.keys(profile.attempts).length > allPuzzles.length) throw new Error('An explorer in this backup is not valid.');
     ids.add(profile.id);
     // Earlier stories stay readable as archives; the current road is version 4.
     let journey, caravanJourney, rescueJourney, roadJourney;
@@ -330,7 +330,7 @@ function readStore(value, puzzles, repairs) {
   }
   if (value.activeProfileId !== null && !ids.has(value.activeProfileId)) throw new Error('The selected explorer is missing.');
   // Copy only documented fields; never merge arbitrary imported object keys.
-  return { schemaVersion: 1, contentVersion: CONTENT_VERSION, activeProfileId: value.activeProfileId, profiles: value.profiles.map(p => ({ id:p.id,name:p.name,band:p.band,avatar:p.avatar,sound:p.sound,attempts:Object.fromEntries(kept.get(p.id).map(([id,a]) => [id,restoredAttempt(byId.get(id),a)])),...journeys.get(p.id) })) };
+  return { schemaVersion: 1, contentVersion: CONTENT_VERSION, activeProfileId: value.activeProfileId, profiles: value.profiles.map(p => ({ id:p.id,name:p.name,band:p.band,avatar:p.avatar,sound:p.sound,...(Object.hasOwn(p,'readAloud')?{readAloud:p.readAloud}:{}),...(Object.hasOwn(p,'importedAt')?{importedAt:p.importedAt}:{}),attempts:Object.fromEntries(kept.get(p.id).map(([id,a]) => [id,restoredAttempt(byId.get(id),a)])),...journeys.get(p.id) })) };
 }
 export const validateStore = (value, puzzles) => readStore(value, puzzles, null);
 // For saves in this browser only: imports stay strict (parseBackup).
@@ -377,8 +377,10 @@ export function parseBackup(text, puzzles) {
   if (typeof text !== 'string' || text.length > 5000000) throw new Error('Choose a Small math adventure JSON backup smaller than 5 MB.');
   try { return validateStore(JSON.parse(text),puzzles); } catch (e) { if (e instanceof SyntaxError) throw new Error('This file is not a readable JSON backup.'); throw e; }
 }
-export function importProfiles(store, backup, makeId) {
+// Each imported explorer remembers when it arrived (importedAt), so Grown-ups
+// can tell a copy from an explorer of the same name.
+export function importProfiles(store, backup, makeId, now = Date.now()) {
   if (store.profiles.length + backup.profiles.length > 30) throw new Error('There is room for 30 saved explorers. Remove an unused save first.');
-  const incoming = backup.profiles.map(p => ({...clone(p),id:makeId(),name:p.name.slice(0,24)}));
+  const incoming = backup.profiles.map(p => ({...clone(p),id:makeId(),name:p.name.slice(0,24),importedAt:now}));
   return { ...store, profiles:[...store.profiles,...incoming], activeProfileId:store.activeProfileId || incoming[0]?.id || null };
 }

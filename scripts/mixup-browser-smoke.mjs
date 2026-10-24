@@ -40,7 +40,7 @@ try {
   await mkdir(out, {recursive: true});
   await page.goto(base); await page.locator('#nickname').fill('Cups QA'); await page.locator('#profile-form button[type=submit]').click();
   await page.locator('[data-action=library]').first().click(); await page.locator('.caravan-library').waitFor();
-  // Which family starts open is the families suite's check; newer families follow this one.
+  // That every family starts closed is the families suite's check.
   assert.equal(await page.locator('.satchel-family[data-view-key="family-mixup"]').count(), 1, 'Mixed-up cups is in the satchel');
 
   // Three cups: two taps swap, a drag swaps, Keep, a repeat, an early That's all.

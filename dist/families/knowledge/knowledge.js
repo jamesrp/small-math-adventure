@@ -568,7 +568,7 @@ export const knowledgeMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'knowledge',
-  family: {id: 'knowledge', symbol: '⊨'},
+  family: {id: 'knowledge', symbol: '⊨', area: 'logic'},
   mechanics: knowledgeMechanics,
   pack: new URL('./knowledge.json', import.meta.url).href,
   css: new URL('./knowledge.css', import.meta.url).href,

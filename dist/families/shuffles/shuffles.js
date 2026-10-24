@@ -354,7 +354,7 @@ export const shuffleMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'shuffles',
-  family: {id: 'shuffles', symbol: '⇆'},
+  family: {id: 'shuffles', symbol: '⇆', area: 'chance'},
   mechanics: shuffleMechanics,
   pack: new URL('./shuffles.json', import.meta.url).href,
   css: new URL('./shuffles.css', import.meta.url).href,

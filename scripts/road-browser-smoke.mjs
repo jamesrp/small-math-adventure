@@ -212,6 +212,17 @@ try {
     assert.equal((await ui.profile()).journey.trails[band].completed.length, MAIN.length);
     await context.setOffline(false);
     checks.push(`${band}: all ${MAIN.length} encounters, finale, offline replay`);
+    // The Puzzles library opens closed, with the road's mechanics on a shelf of their own at the top.
+    await ui.action('library').click(); await page.locator('.caravan-library').waitFor();
+    assert.equal(await page.locator('.satchel-family[open]').count(), 0, `${band}: the library opens with every family closed`);
+    const shelves = await page.locator('.caravan-library').evaluate(root => { const out = {}; let at = null; for (const n of root.children) { if (n.matches('.library-shelf')) out[at = n.textContent] = []; else if (at && n.matches('.satchel-family')) out[at].push({ title: n.querySelector('summary strong').textContent, count: n.querySelector('.family-count [aria-hidden]').textContent }); } return out; });
+    assert.deepEqual(Object.keys(shelves), ['From the road', 'More puzzles'], `${band}: the road's shelf comes first`);
+    assert.ok(shelves['From the road'].some(f => f.title === 'Cup swaps') && shelves['From the road'].length >= 8, `${band}: the shelf holds the road's mechanics`);
+    assert.ok(Object.values(shelves).flat().every(f => /^\d+\/\d+$/.test(f.count)), `${band}: each family shows solved/total`);
+    await page.locator('.satchel-family').first().locator('summary').click();
+    await page.locator('.satchel-family[open] [data-action=open-puzzle]').first().click(); await page.locator('.board-panel').waitFor();
+    await capture('library-to-board');
+    checks.push(`${band}: library opens closed, road shelf first, two taps to a board`);
     await context.close();
   }
 
@@ -282,7 +293,8 @@ try {
     await page.route('**/art/k/line.wav', route => route.fulfill({ body: wav(), contentType: 'audio/wav' }));
     const shown = () => page.locator('.lr-keeper > .art-slot').evaluate(n => n.dataset.artSrc.replace(/^.*\/art\//, ''));
     const until = src => page.waitForFunction(want => document.querySelector('.lr-keeper > .art-slot')?.dataset.artSrc.endsWith(want), src, { timeout: 8000 });
-    await page.goto(base); await page.locator('#nickname').fill('Talk'); await page.locator('#profile-form button[type=submit]').click(); await page.locator('.lr-overview').waitFor();
+    // A 2–3 explorer: the screen is not read aloud by itself (K–1 below).
+    await page.goto(base); await page.locator('#nickname').fill('Talk'); await page.locator('[name=band][value="23"]').check(); await page.locator('#profile-form button[type=submit]').click(); await page.locator('.lr-overview').waitFor();
     await ui.action('start-journey').click(); await page.locator('.board-panel').waitFor();
     const opened = Date.now();
     assert.equal(await shown(), 'k/talk.png', 'a new line: the talk still, not the loop');
@@ -307,6 +319,76 @@ try {
     await page.evaluate(() => window.endVoice());
     await until('k/still.png');
     checks.push('talk: the browser voice, and stills with reduced motion'); await context.close();
+  }
+
+  // Reading aloud for K–1: the first time each puzzle screen opens in a visit,
+  // the keeper's line (and Plume's) and then the board's instruction; Listen
+  // (44 px) says Stop reading while a voice is heard and stops it; a revisit or
+  // a re-render reads nothing; Grown-ups turns it off. With reduced motion.
+  {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, reducedMotion: 'reduce', serviceWorkers: 'block' }), page = await context.newPage(), ui = wire(page);
+    await context.addInitScript(() => {
+      const voice = { said: [], speaking: null, started: null, speak(u) { this.said.push(u.text); this.speaking = u; setTimeout(() => { if (this.speaking === u) { u.onstart?.(); this.started = u; } }, 0); }, cancel() { const u = this.speaking; this.speaking = null; u?.onerror?.({ error: 'canceled' }); }, getVoices: () => [] };
+      Object.defineProperty(window, 'speechSynthesis', { value: voice, configurable: true });
+      window.SpeechSynthesisUtterance = function (text) { this.text = text; };
+      window.said = () => voice.said.slice();
+      window.voiceHeard = () => Boolean(voice.speaking) && voice.started === voice.speaking;
+      window.endVoice = () => { const u = voice.speaking; voice.speaking = null; u?.onend?.(); };
+    });
+    await page.route('**/art/manifest.json', route => route.fulfill({ json: { version: 1, assets: {} } }));
+    const said = () => page.evaluate(() => window.said()), listen = page.locator('.lr-listen');
+    const heard = () => page.waitForFunction(() => window.voiceHeard(), null, { timeout: 8000 });
+    const quiet = async () => { await page.waitForTimeout(150); return said(); };
+    await page.goto(base); await page.locator('#nickname').fill('Reader'); await page.locator('#profile-form button[type=submit]').click(); await page.locator('.lr-overview').waitFor();
+    assert.deepEqual(await quiet(), [], 'the map is not read aloud');
+    await ui.action('start-journey').click(); await page.locator('.board-panel').waitFor(); await heard();
+    const e = MAIN[0];
+    // What the screen should say: each Listen line in the scene (the keeper's,
+    // then Plume's where Plume speaks), then the goal above the board.
+    const expected = await page.evaluate(() => [...document.querySelectorAll('.lr-scene .lr-listen')].map(b => b.dataset.text).concat((document.querySelector('.puzzle-goal')?.textContent || '').trim()).filter(Boolean));
+    assert.equal(apos(expected[0]), apos(e.lines.open));
+    assert.deepEqual((await said()).map(apos), [apos(e.lines.open)], 'the keeper’s line first');
+    assert.equal(await listen.first().getAttribute('aria-label'), 'Stop reading', 'Listen stops the reading while a voice is heard');
+    const box = await listen.first().boundingBox();
+    assert.ok(box.width >= 44 && box.height >= 44, `Listen is ${box.width}×${box.height} px`);
+    for (let k = 1; k < expected.length; k++) { await page.evaluate(() => window.endVoice()); await heard(); assert.equal((await said())[k], expected[k], `then line ${k + 1} of the screen`); }
+    if (!await page.locator('.puzzle-goal').count()) { await page.evaluate(() => window.endVoice()); await heard(); expected.push((await said())[expected.length]); assert.ok(expected.at(-1), 'then the goal How to play gives'); }
+    await page.evaluate(() => window.endVoice());
+    await page.waitForFunction(() => document.querySelector('.lr-listen')?.getAttribute('aria-label') !== 'Stop reading');
+    const n = expected.length;
+    await ui.action('hint').click();
+    assert.equal((await quiet()).length, n, 'a re-render reads nothing new');
+    await ui.action('map').click(); await page.locator('.lr-overview').waitFor();
+    await ui.action('continue-journey').click(); await page.locator('.board-panel').waitFor();
+    assert.equal((await quiet()).length, n, 'a screen already read is not read again');
+    checks.push(`K–1 hears the screen’s ${n} lines in turn, once; Listen ${box.width}×${box.height} px`);
+    // Stopping: a new visit reads the screen again; Listen stops it and nothing after it is read.
+    await page.goto(base); await page.locator('.lr-overview').waitFor();
+    await ui.action('continue-journey').click(); await page.locator('.board-panel').waitFor(); await heard();
+    assert.equal((await said()).length, 1, 'a new page load starts a new visit');
+    await listen.first().click();
+    assert.equal(await page.evaluate(() => window.voiceHeard()), false, 'Listen stops the reading');
+    assert.equal((await quiet()).length, 1, 'nothing after it is read');
+    assert.notEqual(await listen.first().getAttribute('aria-label'), 'Stop reading');
+    // A library board reads its instruction; Read aloud stops it.
+    await ui.action('library').click(); await page.locator('.caravan-library').waitFor();
+    await page.locator('.satchel-family').filter({ hasText: 'Cup swaps' }).first().locator('summary').click();
+    await page.locator('.satchel-family[open] [data-action=open-puzzle][data-id="swap-k1-02"]').click(); await page.locator('.board-panel').waitFor(); await heard();
+    assert.equal((await said()).length, 2, 'a library board reads its instruction');
+    const readAloud = page.locator('.play-help [data-action=speak]:visible').first();
+    assert.equal(await readAloud.getAttribute('aria-label'), 'Stop reading');
+    await readAloud.click();
+    assert.equal(await page.evaluate(() => window.voiceHeard()), false, 'Read aloud stops the reading');
+    assert.notEqual(await readAloud.getAttribute('aria-label'), 'Stop reading');
+    assert.equal((await quiet()).length, 2, 'stopping does not start anything else');
+    checks.push('the reading stops from Listen or Read aloud');
+    // Grown-ups turns it off.
+    await page.locator('.explorer-toggle').click(); await page.getByRole('button', { name: 'Grown-ups', exact: true }).click(); await page.getByRole('button', { name: 'I’m a grown-up', exact: true }).click();
+    await page.locator('#sound-toggle').uncheck();
+    assert.equal((await ui.profile()).readAloud, false);
+    await page.evaluate(() => { location.hash = 'play/swap-k1-03'; }); await page.locator('.board-panel').waitFor();
+    assert.equal((await quiet()).length, 2, 'with the setting off nothing is read');
+    checks.push('Grown-ups turns reading aloud off'); await context.close();
   }
 
   assert.deepEqual(errors, []);

@@ -22,8 +22,7 @@ try{
  await waitForOffline(page);
  const links=await page.evaluate(()=>[...document.querySelectorAll('link[rel=stylesheet]')].map(l=>new URL(l.href).pathname.split('/').pop()));
  for(const m of FAMILIES.filter(m=>m.css)){const name=m.css.split('/').pop();assert.equal(links.filter(l=>l===name).length,1,`${m.id}: stylesheet loads once`);assert.ok(links.indexOf(name)<links.indexOf('caravan.css'),`${m.id}: stylesheet comes before caravan.css`);}
- const newest=newFamilies()[0];
- if(newest)assert.equal(await page.locator(`.satchel-family[data-view-key="family-${newest.id}"]`).getAttribute('open'),'','the newest family starts open');
+ assert.equal(await page.locator('.satchel-family[open]').count(),0,'every family starts closed');
  for(const f of newFamilies())assert.equal(await page.locator(`.satchel-family[data-view-key="family-${f.id}"] .family-ink-symbol`).innerText(),f.symbol,`${f.id}: in the satchel with its symbol`);
  for(const m of modules){
   const {puzzles}=JSON.parse(await readFile(new URL(m.pack),'utf8')),result={id:m.id,puzzles:puzzles.length,solvedByHints:0,notHintSolvable:[]};

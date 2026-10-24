@@ -344,7 +344,7 @@ export const paintMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'paint',
-  family: {id: 'paint', symbol: '≡'},
+  family: {id: 'paint', symbol: '≡', area: 'logic'},
   mechanics: paintMechanics,
   pack: new URL('./paint.json', import.meta.url).href,
   css: new URL('./paint.css', import.meta.url).href,

@@ -98,7 +98,8 @@ try {
     for (const [i, [, , , field]] of earlier.entries()) {
       assert.deepEqual(imported.profiles[i + 3][field], originals[i].journey); assert.deepEqual(imported.profiles[i + 3].attempts, originals[i].attempts);
     }
-    await page.reload(); await page.locator('.parent-layout').waitFor();
+    // A reload is a fresh visit to #parents: it asks the Grown-ups gate again.
+    await page.reload(); await page.getByRole('button', { name: 'I’m a grown-up', exact: true }).click(); await page.locator('.parent-layout').waitFor();
     assert.deepEqual(await ui.state(), imported, 'imported saves survive reload');
     for (const [i, story] of earlier.entries()) await readArchive(imported.profiles[i + 3].id, story);
     await page.screenshot({ path: outputPath('earlier-stories.png'), fullPage: true });

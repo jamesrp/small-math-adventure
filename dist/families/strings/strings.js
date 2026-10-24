@@ -984,7 +984,7 @@ export const stringsMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'strings',
-  family: {id: 'strings', symbol: '⌒'},
+  family: {id: 'strings', symbol: '⌒', area: 'patterns'},
   mechanics: stringsMechanics,
   pack: new URL('./strings.json', import.meta.url).href,
   css: new URL('./strings.css', import.meta.url).href,

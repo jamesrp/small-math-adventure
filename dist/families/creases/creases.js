@@ -895,7 +895,7 @@ export const creaseMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'creases',
-  family: {id: 'creases', symbol: '⊛'},
+  family: {id: 'creases', symbol: '⊛', area: 'geometry'},
   mechanics: creaseMechanics,
   pack: new URL('./creases.json', import.meta.url).href,
   css: new URL('./creases.css', import.meta.url).href,

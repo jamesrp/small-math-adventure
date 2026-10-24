@@ -512,7 +512,7 @@ export const meetingMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'meeting',
-  family: {id: 'meeting', symbol: '⋏'},
+  family: {id: 'meeting', symbol: '⋏', area: 'networks'},
   mechanics: meetingMechanics,
   pack: new URL('./meeting.json', import.meta.url).href,
   css: new URL('./meeting.css', import.meta.url).href,

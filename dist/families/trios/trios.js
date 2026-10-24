@@ -856,7 +856,7 @@ export const triosMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'trios',
-  family: {id: 'trios', symbol: '∴'},
+  family: {id: 'trios', symbol: '∴', area: 'patterns'},
   mechanics: triosMechanics,
   pack: new URL('./trios.json', import.meta.url).href,
   css: new URL('./trios.css', import.meta.url).href,

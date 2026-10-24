@@ -21,7 +21,7 @@ try{
  await mkdir(new URL('../test-results/',import.meta.url),{recursive:true});
  await page.goto(base);await page.locator('#nickname').fill('Expansion QA');await page.locator('#profile-form button[type=submit]').click();await page.locator('[data-action=library]').first().click();await page.locator('.caravan-library').waitFor();assert.equal(await page.locator('.satchel-family').count(),satchelFamilies);const familyIds=[...new Set(expanded.map(p=>p.mechanic))];assert.equal(familyIds.length,10);for(const id of familyIds){const family=page.locator('.satchel-family').filter({has:page.locator(`[data-id="${id}-01"]`)});assert.equal(await family.count(),1);assert.equal(await family.locator('.library-band:not(.library-proofs,.library-group) [data-action=open-puzzle]').count(),expanded.filter(p=>p.mechanic===id).length);}await fit('satchel');
  await waitForOffline(page);
- // The newest family starts open; open Lantern Wires before choosing its first puzzle.
+ // Every family starts closed; open Lantern Wires before choosing its first puzzle.
  await page.locator('.satchel-family').filter({has:page.locator('[data-id="toggle-01"]')}).locator('summary').click();await page.locator('button[data-id=toggle-01]').click();await page.locator('.expansion-board').waitFor();
  // Exercise direct controls for all ten types before using the shared hint flow.
  await goto('toggle-01');assert.equal(await page.locator('.motion-controls').count(),0);await page.locator('.wire-hit').first().focus();await page.keyboard.press('Enter');await page.locator('#completion-heading').waitFor();

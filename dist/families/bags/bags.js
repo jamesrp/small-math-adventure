@@ -303,7 +303,7 @@ export const bagMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'bags',
-  family: {id: 'bags', symbol: '◒'},
+  family: {id: 'bags', symbol: '◒', area: 'chance'},
   mechanics: bagMechanics,
   pack: new URL('./bags.json', import.meta.url).href,
   css: new URL('./bags.css', import.meta.url).href,

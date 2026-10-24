@@ -265,7 +265,7 @@ export const elevatorMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'elevators',
-  family: {id: 'elevators', symbol: '⇞'},
+  family: {id: 'elevators', symbol: '⇞', area: 'numbers'},
   mechanics: elevatorMechanics,
   pack: new URL('./elevators.json', import.meta.url).href,
   css: new URL('./elevators.css', import.meta.url).href,

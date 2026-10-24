@@ -19,3 +19,28 @@ button{min-height:46px;border-radius:9px;font-size:.95rem;font-weight:600;transi
 @media(max-width:700px){.road-next{order:0;border-top:0;border-bottom:1px solid #bfccad}.road-map{order:1}}
 /* Put the next action before the illustrated route at every window size. */
 .road-next{order:0;border-top:0;border-bottom:1px solid #bfccad}
+/* Puzzles: the From the road shelf and each family's solved count (October 24). */
+.library-shelf{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:1.15rem;color:#4c6942;margin:12px 0 0}
+.library-shelf:first-child{margin-top:0}
+.family-count{margin-left:auto;font-size:.9rem;color:#667858;font-variant-numeric:tabular-nums;white-space:nowrap}
+.family-count+.family-expand{margin-left:6px}
+/* Grown-ups (October 24): copies told apart, a line per road trail, the mathematics closed by area. */
+.caravan-profile-card small.explorer-note{font-size:.8rem;color:#667858}
+.parent-profile .explorer-note{font-size:.85rem;color:#536a81;font-weight:500}
+.parent-profile p+p{margin-top:2px}
+/* The road lines need the row's width on a phone: Open and Delete wrap below them. */
+.parent-layout .parent-profile>div{min-width:min(100%,260px)}
+.research-area{border-top:1px solid #e0e5d0}
+.research-area>summary{font-size:1.05rem;padding:14px 0;min-height:48px}
+.research-area>summary small{display:block;font-weight:400;font-size:.85rem;color:#667858;margin-top:4px}
+.research-area-body{padding:0 0 18px}
+.research-area-body h3{margin:18px 0 8px;font-size:1.05rem}
+.research-area-body h4{margin:12px 0 6px;font-size:.95rem}
+.research-area-body p{font-size:.95rem;margin-bottom:10px}
+.install-panel [data-action=apply-update]{margin:4px 0 8px}
+/* A newer offline copy is waiting: a small banner on the map (October 24). */
+.update-banner{display:flex;align-items:center;justify-content:space-between;gap:8px 14px;flex-wrap:wrap;max-width:1040px;margin:0 auto 12px;padding:6px 8px 6px 16px;background:#fbf4dc;border:1px solid #ead9a4;border-radius:10px;font-size:.95rem;color:#4c5a3e}
+.update-banner button{min-height:44px;padding:8px 16px}
+/* While something is read aloud, Read aloud shows a stop square and stops it. */
+.is-reading .play-help [data-action=speak] svg{display:none}
+.is-reading .play-help [data-action=speak]::after{content:"";width:14px;height:14px;border-radius:3px;background:currentColor}

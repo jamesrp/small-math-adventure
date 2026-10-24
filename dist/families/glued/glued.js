@@ -671,7 +671,7 @@ export const gluedMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'glued',
-  family: {id: 'glued', symbol: '⊞'},
+  family: {id: 'glued', symbol: '⊞', area: 'surfaces'},
   mechanics: gluedMechanics,
   pack: new URL('./glued.json', import.meta.url).href,
   css: new URL('./glued.css', import.meta.url).href,

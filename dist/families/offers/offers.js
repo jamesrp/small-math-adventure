@@ -408,7 +408,7 @@ export const offerMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'offers',
-  family: {id: 'offers', symbol: '▷'},
+  family: {id: 'offers', symbol: '▷', area: 'chance'},
   mechanics: offerMechanics,
   pack: new URL('./offers.json', import.meta.url).href,
   css: new URL('./offers.css', import.meta.url).href,

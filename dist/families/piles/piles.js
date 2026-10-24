@@ -500,7 +500,7 @@ export const pilesMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'piles',
-  family: {id: 'piles', symbol: '⁖'},
+  family: {id: 'piles', symbol: '⁖', area: 'networks'},
   mechanics: pilesMechanics,
   pack: new URL('./piles.json', import.meta.url).href,
   css: new URL('./piles.css', import.meta.url).href,

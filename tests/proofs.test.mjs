@@ -116,7 +116,7 @@ test('hints on one-check rounds and duels give the authored nudges, never an ans
   }
   const sortP = byId('proof-sort-01'), helped = { ...solve(sortP), helpUsed: true };
   const html = parentView({ ...emptyStore(), profiles: [profile({ 'proof-sort-01': helped })], activeProfileId: 'one' }, profile({ 'proof-sort-01': helped }), pack, 'Ready', 'proofs');
-  assert.match(html, /1\/17 proofs \(1 with hints\)/);
+  assert.match(html, /Puzzles library: 1 solved · 1 with hints/, 'a proof solved with a hint counts in the library line');
 });
 
 test('Any odd number? starts with the worksheet question, reveals after a check, and asks a different trip next', () => {
@@ -191,7 +191,7 @@ test('the grown-up area lists proof notes and counts', () => {
   const html = parentView({ ...emptyStore(), profiles: [profile()], activeProfileId: 'one' }, profile(), pack, 'Ready', 'proofs');
   assert.match(html, /<option value="proofs" selected>Proofs<\/option>/);
   for (const p of proofs.puzzles) assert.ok(html.includes(`data-view-key="notes-${p.id}"`), p.id);
-  assert.match(html, /0\/17 proofs \(0 with hints\)/);
+  assert.match(html, /Puzzles library: 0 solved · 0 with hints/);
 });
 
 test('choices that are not moves reset on Restart and when a puzzle is opened again', () => {

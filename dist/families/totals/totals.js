@@ -465,7 +465,7 @@ export const totalMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'totals',
-  family: {id: 'totals', symbol: 'Σ'},
+  family: {id: 'totals', symbol: 'Σ', area: 'numbers'},
   mechanics: totalMechanics,
   pack: new URL('./totals.json', import.meta.url).href,
   css: new URL('./totals.css', import.meta.url).href,

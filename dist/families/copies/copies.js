@@ -277,7 +277,7 @@ export const copyMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'copies',
-  family: {id: 'copies', symbol: '⊕'},
+  family: {id: 'copies', symbol: '⊕', area: 'chance'},
   mechanics: copyMechanics,
   pack: new URL('./copies.json', import.meta.url).href,
   css: new URL('./copies.css', import.meta.url).href,

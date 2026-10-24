@@ -6,7 +6,9 @@ Work in two stages with a stop between them: auditions, then James picks, then a
 
 ## Where the lines play
 
-On every road puzzle the keeper (or Plume) has a speech bubble with a Listen button. Tapping it plays that line's recording, or the browser's voice if there is none. When a player has turned sound on, the opening line plays by itself as the puzzle opens. Every other line (a mistake, a hint, a solve, Plume's first boast and verdicts, a locked side puzzle, a stuck or balanced proof garden, the finale's goodbyes) plays only on Listen. The keeper's portrait talks from the moment the recording starts until it ends, so trimmed silence matters to the picture too ([ROADMAP](../art/ROADMAP.md), “When `talk` shows”).
+On every road puzzle the keeper (or Plume) has a speech bubble with a Listen button. Tapping it plays that line's recording, or the browser's voice if there is none. For a K–1 explorer (and any explorer whose grown-up turned reading aloud on in Grown-ups), the opening line plays by itself the first time a puzzle opens, and the board's instruction follows it in the browser's voice. While a line plays, Listen shows a stop square and stops it. Every other line (a mistake, a hint, a solve, Plume's first boast and verdicts, a locked side puzzle, a stuck or balanced proof garden, the finale's goodbyes) plays only on Listen. The keeper's portrait talks from the moment the recording starts until it ends, so trimmed silence matters to the picture too ([ROADMAP](../art/ROADMAP.md), “When `talk` shows”).
+
+The board instructions read after the opening line (the goal above each road board) are not part of this brief; they stay with the browser's voice. Recording them in one calm narrator voice, separate from the cast, could be a later batch once children have heard the K–1 trail read aloud.
 
 `node scripts/check-art.mjs --voices` lists all 99 lines with their IDs and speakers. That list is the script. The text comes from `dist/road.js` (each puzzle's `open`, `win`, `locked`, the proof gardens' `stuck` and `even`, and Plume's boast on the first scored board of each trail, `ferry-seats/taunt-k1`, `-23` and `-45`, spoken by Plume) and `dist/road-cast.js` (each character's `hint`, `oops`, Snooze's `nudge`, each keeper's finale `bye`, and Plume's `beat`, `tie`, `lose`, `gloat` and finale `concede`).
 
@@ -84,7 +86,7 @@ Billie and Sprocket have no stated gender in the game; this brief casts both as 
 
 - Transcribe each clip with a speech-to-text tool and compare it with the bubble text, to catch dropped, added or garbled words. Flag any clip shorter than half a second or longer than five.
 - `node scripts/check-art.mjs` (every voice ID is a real line, MP3 or M4A, under 200 KB, file present), `npm run build`, `npm test`, and `node scripts/road-browser-smoke.mjs` with `npm start` running.
-- In the game: tap Listen at every stop and on a mistake, a hint and a solve; turn sound on in the profile and open a puzzle to hear its opening line play by itself. If an iPad is at hand, try Safari there too; recorded playback has never been checked on one.
+- In the game: tap Listen at every stop and on a mistake, a hint and a solve; with a K–1 explorer, open a puzzle to hear its opening line play by itself, then the instruction. If an iPad is at hand, try Safari there too; recorded playback has never been checked on one.
 - Voice and art both write `dist/art/manifest.json`. If an art batch lands first, rebase and keep both sets of entries.
 
 ## Done

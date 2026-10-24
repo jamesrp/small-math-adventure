@@ -50,7 +50,7 @@ try {
   await mkdir(out, {recursive: true});
   await page.goto(base); await page.locator('#nickname').fill('Rainbow QA'); await page.locator('#profile-form button[type=submit]').click();
   await page.locator('[data-action=library]').first().click(); await page.locator('.caravan-library').waitFor();
-  // The newest family starts open; open this one if a newer family has taken its place.
+  // Every family starts closed: open this one.
   const satchel = page.locator('details[data-view-key="family-rainbow"]');
   if (!(await satchel.evaluate(d => d.open))) await satchel.locator('summary').click();
   await page.locator('.caravan-library').getByText('Starred dots', {exact: true}).first().waitFor();

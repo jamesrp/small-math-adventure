@@ -424,7 +424,7 @@ export const diffMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'diffs',
-  family: {id: 'diffs', symbol: 'Δ'},
+  family: {id: 'diffs', symbol: 'Δ', area: 'numbers'},
   mechanics: diffMechanics,
   pack: new URL('./diffs.json', import.meta.url).href,
   css: new URL('./diffs.css', import.meta.url).href,

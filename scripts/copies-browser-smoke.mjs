@@ -36,7 +36,7 @@ try {
   await mkdir(out, {recursive: true});
   await page.goto(base); await page.locator('#nickname').fill('Copy QA'); await page.locator('#profile-form button[type=submit]').click();
   await page.locator('[data-action=library]').first().click(); await page.locator('.caravan-library').waitFor();
-  // Which family is newest (and starts open) is checked by families-browser-smoke.mjs.
+  // That every family starts closed is checked by families-browser-smoke.mjs.
   assert.equal(await page.locator('.satchel-family[data-view-key="family-copies"]').count(), 1, 'in the satchel');
 
   // Make a bag: a copy joins after each draw; Again.

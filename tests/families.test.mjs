@@ -91,12 +91,12 @@ test('a module that adds a family names it and gives it a symbol', () => {
   }
 });
 
-test('new families come first in the satchel, newest first, and only the newest starts open', () => {
+test('the satchel lists the road’s families in pack order, then the new families newest first, every one closed', () => {
   const html = libraryView(profile, pack.puzzles), newest = newFamilies().map(f => f.id);
-  const order = [...html.matchAll(/data-view-key="family-([^"]+)"/g)].map(match => match[1]);
-  assert.deepEqual(order.slice(0, newest.length), newest);
-  assert.deepEqual(order.slice(newest.length), [...new Set(pack.puzzles.map(familyOf))].filter(id => !newest.includes(id)), 'base families keep pack order');
-  assert.deepEqual([...html.matchAll(/data-view-key="family-([^"]+)" open/g)].map(match => match[1]), newest.slice(0, 1));
+  const order = [...html.matchAll(/data-view-key="family-([^"]+)"/g)].map(match => match[1]), base = [...new Set(pack.puzzles.map(familyOf))].filter(id => !newest.includes(id));
+  assert.deepEqual(order, [...base, ...newest], 'base families keep pack order, new families follow newest first');
+  assert.doesNotMatch(html, /<details[^>]*\bopen\b/, 'no family starts open');
+  assert.doesNotMatch(html, /From the road/, 'no shelf before the road is started');
   for (const f of newFamilies()) assert.ok(html.includes(`<span class="family-ink-symbol" aria-hidden="true">${f.symbol}</span>`), `${f.id}: symbol shown`);
 });
 

@@ -837,7 +837,7 @@ export const shareMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'shares',
-  family: {id: 'shares', symbol: '÷'},
+  family: {id: 'shares', symbol: '÷', area: 'chance'},
   mechanics: shareMechanics,
   pack: new URL('./shares.json', import.meta.url).href,
   css: new URL('./shares.css', import.meta.url).href,

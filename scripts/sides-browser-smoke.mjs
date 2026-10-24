@@ -41,7 +41,7 @@ try {
   await mkdir(out, {recursive: true});
   await page.goto(base); await page.locator('#nickname').fill('Side QA'); await page.locator('#profile-form button[type=submit]').click();
   await page.locator('[data-action=library]').first().click(); await page.locator('.caravan-library').waitFor();
-  // Which family is newest (and starts open) is checked by families-browser-smoke.mjs.
+  // That every family starts closed is checked by families-browser-smoke.mjs.
   assert.equal(await page.locator('.satchel-family[data-view-key="family-sides"]').count(), 1, 'in the satchel');
 
   // Red shows: draw, the other side covered, turn it over, sort, a repeat, That's all early, Undo.

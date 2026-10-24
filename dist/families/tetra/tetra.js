@@ -951,7 +951,7 @@ export const tetraMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'tetra',
-  family: {id: 'tetra', symbol: '⧖'},
+  family: {id: 'tetra', symbol: '⧖', area: 'geometry'},
   mechanics: tetraMechanics,
   pack: new URL('./tetra.json', import.meta.url).href,
   css: new URL('./tetra.css', import.meta.url).href,

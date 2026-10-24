@@ -837,7 +837,7 @@ export const globeMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'globe',
-  family: {id: 'globe', symbol: '◍'},
+  family: {id: 'globe', symbol: '◍', area: 'surfaces'},
   mechanics: globeMechanics,
   pack: new URL('./globe.json', import.meta.url).href,
   css: new URL('./globe.css', import.meta.url).href,

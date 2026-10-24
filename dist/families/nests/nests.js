@@ -715,7 +715,7 @@ export const nestMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'nests',
-  family: {id: 'nests', symbol: '▣'},
+  family: {id: 'nests', symbol: '▣', area: 'patterns'},
   mechanics: nestMechanics,
   pack: new URL('./nests.json', import.meta.url).href,
   css: new URL('./nests.css', import.meta.url).href,

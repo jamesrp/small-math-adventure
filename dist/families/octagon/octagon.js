@@ -1016,7 +1016,7 @@ export const octagonMechanics = {
 // The family seam entry (dist/families.js).
 export default {
   id: 'octagon',
-  family: {id: 'octagon', symbol: '⊚'},
+  family: {id: 'octagon', symbol: '⊚', area: 'surfaces'},
   mechanics: octagonMechanics,
   pack: new URL('./octagon.json', import.meta.url).href,
   css: new URL('./octagon.css', import.meta.url).href,

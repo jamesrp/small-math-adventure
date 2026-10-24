@@ -7,7 +7,7 @@ import {puzzleObjective} from './puzzle-copy.js';
 import { BANDS,freshAttempt,resumeAttempt,isSolved,nextHint,move,removeTile,undoPress,restart,undoToSolvable } from './engine.js';
 import { SAVE_KEY,BACKUP_KEY,REPAIR_KEY,emptyStore,loadStore,persistStore,parseBackup,importProfiles } from './storage.js';
 import { PREVIEW } from './preview.js';
-import { esc,playView,parentView,notesHTML } from './ui.js';
+import { esc,playView,parentView,notesHTML,readsAloud } from './ui.js';
 import { getProgress, getEncounter, startJourney, beginEncounter, recordSolve, continueAfter, withCampaignPuzzles, resolvePuzzle, canVisitEncounter, stopOf, BAND_KEYS } from './road.js';
 import { caravanHeader, caravanProfiles, libraryView } from './caravan-ui.js';
 import { roadMapView, journalView, finaleView, stopSheet, trailOptions, wireKeeper, sayLine, startTalk, stopTalk, resetTalk } from './road-ui.js';
@@ -28,6 +28,12 @@ let reaction=null,solveResult=null,oopsCount=0;
 let focusDone=false;
 // The phone top bar's explorer row: open until the page changes.
 let accountOpen=false;
+// Grown-ups' gate, passed once per page load: the Grown-ups button always asks,
+// and an address typed straight to #parents asks until it has been passed.
+let grownUp=false;
+// A newer offline copy waiting to take over (its registration), shown as a
+// banner on the map and in Grown-ups; it takes over only when Reload asks.
+let waitingUpdate=null;
 // The play screen an Undo press drew for the attempt it lands on. The render
 // after the press shows it as drawn: drawing it again would cost another hint,
 // and a renderer that animates from the board it drew last (a piece coming
@@ -72,7 +78,10 @@ function render(){
   if(playKey&&p.mechanic==='clock')clockTimeline.enter(playKey,p,attempt(p).board.prediction);
   else if(clockTimeline.key)clockTimeline.leave();
   const encounter=activeEncounter();
-  const content=view==='parents'?parentView(state,pr,pack,pwaMessage,savedView.values['catalog-band']):!pr||view==='profiles'?caravanProfiles(state,puzzles):view==='journal'?journalView(pr,puzzles):view==='finale'&&getProgress(pr).complete?finaleView(pr,puzzles):view==='library'?libraryView(pr,puzzles):view==='play'&&p?(undoDrawn??playView(p,attempt(p),playContext(p,pr,encounter))):roadMapView(pr);
+  // Grown-ups opens only through its gate; an address typed straight to it
+  // shows the road (or the explorers) behind the gate instead.
+  const gated=view==='parents'&&!grownUp;
+  const content=view==='parents'&&!gated?parentView(state,pr,pack,pwaMessage,savedView.values['catalog-band'],Boolean(waitingUpdate)):!pr||view==='profiles'?caravanProfiles(state,route()[1]==='new'):view==='parents'?roadMapView(pr):view==='journal'?journalView(pr,puzzles):view==='finale'&&getProgress(pr).complete?finaleView(pr,puzzles):view==='library'?libraryView(pr,puzzles):view==='play'&&p?(undoDrawn??playView(p,attempt(p),playContext(p,pr,encounter))):roadMapView(pr);
   undoDrawn=null;
   document.body.dataset.view=view||'map';
   document.body.classList.toggle('on-encounter',Boolean(encounter));
@@ -80,7 +89,7 @@ function render(){
   const flips=new Map([...app.querySelectorAll('[data-flip]')].map(node=>[node.dataset.flip,node.getBoundingClientRect()]));
   keepMedia(app,()=>{
     const kept=new Map([...app.querySelectorAll('[data-keep]')].map(node=>[node.dataset.keep,node]));
-    app.innerHTML=caravanHeader(pr,view==='library'||(view==='play'&&!encounter)?'library':view==='journal'?'journal':'journey',accountOpen)+(warning?`<div class="error-banner" role="status">${esc(warning)}</div>`:'')+`<main class="shell" id="main">${content}</main>`;
+    app.innerHTML=caravanHeader(pr,view==='library'||(view==='play'&&!encounter)?'library':view==='journal'?'journal':view==='parents'?'':'journey',accountOpen)+(warning?`<div class="error-banner" role="status">${esc(warning)}</div>`:'')+`<main class="shell" id="main">${waitingUpdate&&pr&&(!view||view==='map')?updateBanner():''}${content}</main>`;
     // An unchanged speech bubble or solved strip keeps its node, so its entrance
     // animation plays once instead of on every frame of a re-render.
     for(const node of [...app.querySelectorAll('[data-keep]')]){
@@ -102,6 +111,8 @@ function render(){
   wireClockBoard();
   wireMechanic();
   viewState.restore();
+  setReading(reading);
+  if(gated&&!currentDialog?.dataset.gate)grownUpGate();
 }
 // What the play screen draws besides the attempt: the moment's selections,
 // message, keeper reaction and solve.
@@ -238,9 +249,11 @@ function wireForms(){
   document.querySelectorAll('form[data-puzzle-form]').forEach(form=>form.addEventListener('submit',e=>{e.preventDefault();const p=puzzle();if(!p||!profile())return;const bad=form.querySelector(':is(input,select,textarea):invalid');if(bad){message=bad.dataset.invalid||'';render();document.querySelector(`[data-focus="${CSS.escape(bad.dataset.focus||'')}"]`)?.focus();return;}applyPair(p,Object.fromEntries(new FormData(e.currentTarget)),p.mechanic==='clock'?'ring':null);}));
   document.querySelectorAll('input[name="activations"]').forEach(input=>input.addEventListener(input.type==='number'?'input':'change',e=>clockTimeline.edit(e.target.value,input.type!=='number')));
   document.querySelector('#profile-form')?.addEventListener('submit',e=>{e.preventDefault();const data=new FormData(e.currentTarget),name=String(data.get('name')).trim();if(!name){document.querySelector('#nickname').focus();return;}if(state.profiles.length>=30){dialog('All save slots are full','<p>There is room for 30 explorers. Export and remove an unused save in the grown-up area.</p>');return;}const pr={id:uid(),name,band:data.get('band'),avatar:0,sound:false,attempts:{}};state.profiles.push(pr);state.activeProfileId=pr.id;save();go(['library','play'].includes(route()[0])?location.hash.slice(1):'map');});
+  // Opening New explorer puts the cursor in the name field.
+  document.querySelector('.caravan-add-profile > summary')?.addEventListener('click',e=>{const details=e.currentTarget.parentElement;requestAnimationFrame(()=>{if(details.open)document.querySelector('#nickname')?.focus();});});
   document.querySelector('#checker')?.addEventListener('change',e=>{checker=e.target.checked;document.querySelector('.tile-board')?.classList.toggle('show-checker',checker);});
   document.querySelector('#catalog-band')?.addEventListener('change',()=>render());
-  document.querySelector('#sound-toggle')?.addEventListener('change',e=>{profile().sound=e.target.checked;save();render();});
+  document.querySelector('#sound-toggle')?.addEventListener('change',e=>{const pr=profile();pr.readAloud=pr.sound=e.target.checked;save();render();});
   document.querySelector('#import-file')?.addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>5000000)throw Error('Choose a backup smaller than 5 MB.');const backup=parseBackup(await file.text(),puzzles),next=importProfiles(state,backup,uid);state=next;save();render();dialog('Saves restored',`<p>${backup.profiles.length} ${backup.profiles.length===1?'explorer was':'explorers were'} added. Existing explorers are unchanged.</p>`);}catch(error){dialog('That backup could not be opened',`<p>${esc(error.message)}</p><p>Your existing saves have not changed.</p>`);}});
 }
 function dialog(title,body,actions=[{label:'Done'}]){
@@ -253,31 +266,90 @@ function instructions(p){
 }
 // A road puzzle played in its picture is explained in the picture's words (dist/road-stage.js).
 function helpCopy(p){const e=activeEncounter(),kind=e&&stageKind(e,p);return kind?{...stageHelp(kind,p),dress:text=>dress(kind,text)}:{objective:puzzleObjective(p),instructions:instructions(p),note:'',dress:text=>text};}
-function speak(p){
-  if(!('speechSynthesis'in window)){message='Read-aloud unavailable. Open How to play.';render();return;}
-  window.speechSynthesis.cancel();
-  const help=helpCopy(p),utterance=new SpeechSynthesisUtterance(`${help.objective} ${help.instructions}`);utterance.rate=.85;
-  utterance.onerror=event=>{if(['interrupted','canceled'].includes(event.error))return;message='Read-aloud unavailable. Open How to play.';render();};
-  window.speechSynthesis.speak(utterance);
+// Reading aloud. Each request first stops whatever is being read, so the app
+// never speaks over itself. A recorded line plays when the art manifest has
+// one; otherwise the browser voice reads it. The keeper's portrait (`line`)
+// talks for the line's beat and, once a voice is heard, until it stops
+// (road-ui.js, "The keeper's talk pose"). While a voice is heard the page is
+// `reading`: Listen and Read aloud show a stop square and stop it when tapped.
+let voiceClip=null,utterance=null,readToken=0,reading=false;
+function setReading(on){
+  reading=on;document.body.classList.toggle('is-reading',on);
+  for(const b of app.querySelectorAll('.lr-listen,.play-help [data-action="speak"]')){if(!b.dataset.label)b.dataset.label=b.getAttribute('aria-label')||'';b.setAttribute('aria-label',on?'Stop reading':b.dataset.label);}
 }
-// A recorded line plays when the art manifest has one; otherwise the browser voice reads it.
-// The keeper's portrait (`line`) talks for the line's beat and, once a voice
-// is heard, until it stops (road-ui.js, "The keeper's talk pose").
-let voiceClip=null,utterance=null;
 function hush(){
+  readToken++;
   if(voiceClip){voiceClip.onplaying=voiceClip.onended=voiceClip.onpause=voiceClip.onerror=null;voiceClip.pause();voiceClip=null;}
   if(utterance){utterance.onstart=utterance.onend=utterance.onerror=null;utterance=null;}
   window.speechSynthesis?.cancel();
+  if(reading)setReading(false);
 }
-function narrate(text,voiceId,line=null){
-  hush();sayLine(line,text);
-  const recorded=voiceId&&asset(voiceId)?.audio;
-  if(recorded){const clip=voiceClip=new Audio(artUrl(recorded));let token=0;clip.onplaying=()=>{token=startTalk(line);};clip.onended=clip.onpause=clip.onerror=()=>stopTalk(token);clip.play().catch(()=>{if(voiceClip===clip)narrate(text,null,line);});return;}
-  if(!('speechSynthesis' in window)){dialog('Read it together',`<p>${esc(text)}</p>`);return;}
-  const voice=utterance=new SpeechSynthesisUtterance(text);voice.rate=.86;let token=0;
-  voice.onstart=()=>{token=startTalk(line);};voice.onend=()=>stopTalk(token);
-  voice.onerror=event=>{stopTalk(token);if(!['interrupted','canceled'].includes(event.error))dialog('Read it together',`<p>${esc(text)}</p>`);};
-  window.speechSynthesis.speak(voice);
+// Says each item ({text, voiceId, line}) in turn. `fail(text)` runs when it
+// can't be heard; reading a new screen aloud (no fail) never shows anything.
+function sayInTurn(items,fail=null){
+  hush();const token=readToken,live=()=>token===readToken;
+  const heard=()=>{if(live()&&!reading)setReading(true);};
+  const over=text=>{if(!live())return;if(reading)setReading(false);if(text!==undefined)fail?.(text);};
+  const voice=(item,next)=>{
+    if(!('speechSynthesis' in window)){over(item.text);return;}
+    const u=utterance=new SpeechSynthesisUtterance(item.text);u.rate=.86;let talking=0;
+    u.onstart=()=>{if(!live())return;heard();talking=startTalk(item.line);};
+    u.onend=()=>{stopTalk(talking);if(utterance===u)utterance=null;next();};
+    u.onerror=event=>{stopTalk(talking);if(utterance===u)utterance=null;over(['interrupted','canceled'].includes(event.error)?undefined:item.text);};
+    window.speechSynthesis.speak(u);
+  };
+  const step=i=>{
+    if(!live())return;
+    if(i>=items.length){over();return;}
+    const item=items[i],next=()=>step(i+1),recorded=item.voiceId&&asset(item.voiceId)?.audio;
+    if(item.line)sayLine(item.line,item.text);
+    if(!recorded){voice(item,next);return;}
+    const clip=voiceClip=new Audio(artUrl(recorded));let talking=0;
+    clip.onplaying=()=>{if(!live())return;heard();talking=startTalk(item.line);};
+    clip.onpause=()=>stopTalk(talking);
+    clip.onended=()=>{stopTalk(talking);if(voiceClip===clip)voiceClip=null;next();};
+    clip.onerror=()=>{stopTalk(talking);if(voiceClip===clip){voiceClip=null;voice(item,next);}};
+    clip.play().catch(()=>{if(voiceClip===clip){voiceClip=null;voice(item,next);}});
+  };
+  step(0);
+}
+function speak(p){const help=helpCopy(p);sayInTurn([{text:`${help.objective} ${help.instructions}`}],()=>{message='Read-aloud unavailable. Open How to play.';render();});}
+function narrate(text,voiceId,line=null){sayInTurn([{text,voiceId,line}],text=>dialog('Read it together',`<p>${esc(text)}</p>`));}
+// For K–1, and wherever a grown-up turned it on, the first time each puzzle
+// screen opens in a visit: each Listen line in the scene (the keeper's, then
+// Plume's where Plume speaks), then the board's
+// instruction (the line above the board or, where the board shows its goal
+// itself, the goal How to play gives). A solved board's line is said alone.
+const heardScreens=new Set();
+function readScreen(){
+  const pr=profile(),p=puzzle();
+  if(route()[0]!=='play'||!p||!readsAloud(pr))return;
+  const key=`${pr.id}|${location.hash}`;
+  if(heardScreens.has(key))return;
+  heardScreens.add(key);
+  const lines=[...app.querySelectorAll('.lr-scene .lr-listen')].map(b=>({text:b.dataset.text,voiceId:b.dataset.voice,line:b.closest('.lr-keeper')?.dataset.line||null}));
+  const goal=app.querySelector('.puzzle-goal')?.textContent.trim()||helpCopy(p).objective;
+  sayInTurn([...lines,...(isSolved(p,attempt(p).board)?[]:[{text:goal}])].filter(item=>item.text));
+}
+const updateBanner=()=>'<div class="update-banner" role="status"><span>A new version is ready.</span><button type="button" class="secondary small" data-action="apply-update">Reload</button></div>';
+// The waiting copy takes over only when asked, then this tab reloads; other
+// open tabs keep their page (and any puzzle in play) until they reload.
+let reloading=false;
+function applyUpdate(){
+  if(reloading)return;reloading=true;
+  const worker=waitingUpdate?.waiting,reload=()=>location.reload();
+  if(!worker){reload();return;}
+  navigator.serviceWorker.addEventListener('controllerchange',reload,{once:true});
+  worker.postMessage({type:'SKIP_WAITING'});
+  setTimeout(reload,4000);
+}
+// The same gate the Grown-ups button opens. Leaving it without passing it
+// trades a #parents address for the road (or the explorers).
+function grownUpGate(){
+  let passed=false;
+  const d=dialog('Grown-ups','',[{label:'Back to play'},{label:'I’m a grown-up',run:()=>{passed=grownUp=true;if(route()[0]==='parents')render();else go('parents');}}]);
+  d.dataset.gate='1';
+  d.addEventListener('close',()=>{if(!passed&&route()[0]==='parents')location.replace(`#${profile()?'map':'profiles'}`);});
 }
 function openPuzzle(id){const p=puzzles.find(p=>p.id===id);if(!p||p.campaignOnly||!profile())return;if(!profile().attempts[id])profile().attempts[id]=freshAttempt(p);save();go(`play/${id}`);}
 // Replay from a stop sheet, the Journal or the finale (replay) starts a fresh attempt.
@@ -347,11 +419,14 @@ document.addEventListener('click',event=>{
   else if(action==='stop-sheet'&&profile()){const stop=stopOf(control.dataset.id),fair=stop?.id==='fair'&&getProgress(profile()).complete;if(stop)dialog(stop.title,stopSheet(stop.id,profile(),puzzles),fair?[{label:'Done'},{label:'Finale',run:()=>go('finale')}]:[{label:'Done'}]);}
   else if(action==='finale'&&profile())go('finale');
   else if(action==='switch-band'&&profile()&&BAND_KEYS.includes(control.dataset.id)){profile().band=control.dataset.id;save();go('map');}
+  else if((action==='hear-story'||action==='speak')&&reading)hush();
   else if(action==='hear-story'&&profile()&&control.dataset.text)narrate(control.dataset.text,control.dataset.voice,control.closest('.lr-keeper')?.dataset.line);
   else if(action==='families')document.querySelector('.family-adventures')?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
   else if(action==='choose-profile'){state.activeProfileId=control.dataset.id;sessionCompleted=new Set();save();go('map');}
   else if(action==='open-puzzle')openPuzzle(control.dataset.id);
-  else if(action==='parents-gate')dialog('Grown-ups','',[{label:'Back to play'},{label:'I’m a grown-up',run:()=>go('parents')}]);
+  else if(action==='parents-gate')grownUpGate();
+  else if(action==='new-explorer')go('profiles/new');
+  else if(action==='apply-update')applyUpdate();
   else if(action==='change-band')dialog('Puzzle level',`<div class="grade-options road-trails">${trailOptions(profile())}</div>`,[{label:'Cancel'},{label:'Apply',run:d=>{profile().band=d.querySelector('input[name=band]:checked').value;save();render();}}]);
   else if(action==='tile-cell'&&p?.mechanic==='tile'){
     if(control.classList.contains('garden-domino')||control.classList.contains('planted')||event.detail===0)tapTile(p,Number(control.dataset.cell));
@@ -380,18 +455,27 @@ document.addEventListener('click',event=>{
 // A dialog belongs to the page it opened on (How to play names its puzzle), so a
 // history step or a hash edit closes it, and focus goes to the new page's heading.
 function leaveDialog(){if(!currentDialog)return;currentDialog.dataset.left='1';currentDialog.close();currentDialog=null;}
-function navigate(){if(!state||viewState.isCurrent())return;leaveDialog();focusDone=false;accountOpen=false;selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';reaction=null;if(solveResult?.key!==location.hash)solveResult=null;hush();resetTalk();render();const heading=document.querySelector('#completion-heading')||document.querySelector('#main h1');heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});if(route()[0]==='play'&&profile()?.sound&&puzzle()){const line=document.querySelector('.lr-listen');if(line)narrate(line.dataset.text,line.dataset.voice,line.closest('.lr-keeper')?.dataset.line);else speak(puzzle());}}
+function navigate(){if(!state||viewState.isCurrent())return;leaveDialog();focusDone=false;accountOpen=false;selected=null;tileSelection=[];tileGesture=null;highlighted=null;message='';reaction=null;if(solveResult?.key!==location.hash)solveResult=null;hush();resetTalk();render();const heading=document.querySelector('#completion-heading')||document.querySelector('#main h1');heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true});if(route()[0]==='profiles'&&route()[1]==='new')document.querySelector('#nickname')?.focus();readScreen();}
 // Restore on popstate before native history scrolling; hashchange also covers
 // direct hash edits. A traversal can fire both, so render each entry only once.
 window.addEventListener('popstate',navigate);
 window.addEventListener('hashchange',navigate);
 window.addEventListener('storage',event=>{if(state&&(event.key===SAVE_KEY||event.key===null)){clockTimeline.leave();const loaded=loadStore(storage,puzzles);state=loaded.store;warning=loaded.warning;selected=null;highlighted=null;activePlay=null;render();}});
 function setOfflineMessage(text){pwaMessage=text;const node=document.querySelector('#offline-status');if(node)node.textContent=text;}
+// A newer offline copy waits (registration.waiting) until Reload asks it to take
+// over (apply-update); the banner shows on the map and the line and Reload in
+// Grown-ups, never over a puzzle.
+const UPDATE_READY='A new version of the app is ready. Reload to start using it.';
+function updateWaiting(registration){
+  if(!registration.waiting||!navigator.serviceWorker.controller)return;
+  const first=!waitingUpdate;waitingUpdate=registration;setOfflineMessage(UPDATE_READY);
+  if(first&&state&&['','map','parents'].includes(route()[0])&&!currentDialog)render();
+}
 async function setupOffline(){
   // A preview copy sits inside the live app's service-worker scope and registers no worker of its own.
   if(PREVIEW){setOfflineMessage('Preview copy · online only');return;}
   if(!window.isSecureContext||!('serviceWorker'in navigator)){setOfflineMessage('Offline install needs HTTPS');return;}
-  try{const registration=await navigator.serviceWorker.register('./sw.js',{scope:'./'});await navigator.serviceWorker.ready;if(registration.waiting)setOfflineMessage('Update ready · close every app tab and reopen');const worker=registration.active;if(worker){const channel=new MessageChannel();channel.port1.onmessage=e=>setOfflineMessage(registration.waiting?'Update ready · close every app tab and reopen':e.data?.ready?'Ready for offline play':'Offline copy is still preparing');worker.postMessage({type:'CHECK_READY'},[channel.port2]);}registration.addEventListener('updatefound',()=>{const worker=registration.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)setOfflineMessage('Update ready · close every app tab and reopen');});});}catch{setOfflineMessage('Offline setup unavailable · online play works');}
+  try{const registration=await navigator.serviceWorker.register('./sw.js',{scope:'./'});await navigator.serviceWorker.ready;updateWaiting(registration);const worker=registration.active;if(worker){const channel=new MessageChannel();channel.port1.onmessage=e=>setOfflineMessage(registration.waiting&&navigator.serviceWorker.controller?UPDATE_READY:e.data?.ready?'Ready for offline play':'Offline copy is still preparing');worker.postMessage({type:'CHECK_READY'},[channel.port2]);}registration.addEventListener('updatefound',()=>{const worker=registration.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed')updateWaiting(registration);});});}catch{setOfflineMessage('Offline setup unavailable · online play works');}
 }
 function registerTools(){const context=document.modelContext;if(!context?.registerTool)return;const lifecycle=new AbortController();for(const tool of [{name:'read_adventure_progress',description:'Read the active explorer’s trail and completed puzzle IDs without changing saves.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,untrustedContentHint:true},execute(input){if(!input||Object.keys(input).length)throw Error('Expected an empty object.');const pr=profile();return pr?{name:pr.name,band:pr.band,completed:Object.entries(pr.attempts).filter(([,a])=>a.completed).map(([id])=>id)}:{profile:null};}},{name:'open_adventure_puzzle',description:'Open an authored puzzle for the active explorer, creating or resuming its saved attempt without solving it.',inputSchema:{type:'object',properties:{puzzleId:{type:'string'}},required:['puzzleId'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},async execute(input){if(!input||Object.keys(input).length!==1||typeof input.puzzleId!=='string'||!puzzles.some(p=>p.id===input.puzzleId&&!p.campaignOnly)||!profile())throw Error('Choose an existing puzzle and active explorer.');openPuzzle(input.puzzleId);await new Promise(resolve=>setTimeout(resolve,0));return {puzzleId:input.puzzleId,status:'opened'};}}]){try{Promise.resolve(context.registerTool(tool,{signal:lifecycle.signal})).catch(()=>{});}catch{}}window.addEventListener('pagehide',()=>lifecycle.abort(),{once:true});}
 // Family stylesheets (dist/families.js) go before the caravan styles, as the
