@@ -259,8 +259,8 @@ function ui(p) { if (!view.has(p.id)) view.set(p.id, {sel: null, fresh: null}); 
 const calm = p => Object.assign(ui(p), {sel: null, fresh: null});
 const moveAttrs = (action, focus) => `data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="${focus}"`;
 const uiAttrs = (payload, focus) => `data-action="mechanic-ui" data-ui="${esc(JSON.stringify(payload))}" data-focus="${focus}"`;
-const pips = v => `<i class="tt-pips" aria-hidden="true">${'<b></b>'.repeat(v)}</i>`;
-const face = v => `<span class="tt-face"><span class="tt-num">${v}</span>${pips(v)}</span>`;
+const pips = v => `<i class="rt-pips" aria-hidden="true">${'<b></b>'.repeat(v)}</i>`;
+const face = v => `<span class="rt-face"><span class="rt-num">${v}</span>${pips(v)}</span>`;
 const goalsOf = q => q.mode === 'make' ? [...blank(q.cards.length - 1), q.target] : q.mode === 'playground' ? null : q.goal;
 const traysOf = (q, b) => q.mode === 'playground' ? b.trays : q.mode === 'every' ? 1 : q.start.length;
 // The cells a move changed, to pop in order: the card, then tray 1, tray 2 and tray 3.
@@ -289,48 +289,48 @@ function render(p, a) {
   const slotHint = i => shown && (((shown.type === 'put' || shown.type === 'change' || shown.type === 'take') && shown.slot === i) || (shown.type === 'swap' && (shown.a === i || shown.b === i)));
   const cells = [];
   // Turn numbers.
-  cells.push('<span class="tt-h" aria-hidden="true"></span>', `<span class="tt-h tt-hs" aria-hidden="true">start</span>`);
-  for (let j = 1; j <= n; j++) cells.push(`<span class="tt-h" aria-hidden="true">${j}</span>`);
+  cells.push('<span class="rt-h" aria-hidden="true"></span>', `<span class="rt-h rt-hs" aria-hidden="true">start</span>`);
+  for (let j = 1; j <= n; j++) cells.push(`<span class="rt-h" aria-hidden="true">${j}</span>`);
   // The lane.
-  cells.push('<span class="tt-lab tt-lab-card" aria-hidden="true"></span>', '<span class="tt-gap" aria-hidden="true"></span>');
+  cells.push('<span class="rt-lab rt-lab-card" aria-hidden="true"></span>', '<span class="rt-gap" aria-hidden="true"></span>');
   lane.forEach((v, i) => {
-    const look = `tt-slot${v === null ? ' empty' : ' filled'}${sel === i ? ' sel' : ''}${hinted(slotHint(i))}${popAttr(`c${i + 1}`, 0)}`;
+    const look = `rt-slot${v === null ? ' empty' : ' filled'}${sel === i ? ' sel' : ''}${hinted(slotHint(i))}${popAttr(`c${i + 1}`, 0)}`;
     const label = `Turn ${i + 1}: ${v === null ? 'empty' : `card ${v}`}`;
     if (done) { cells.push(`<span class="${look}" role="img" aria-label="${esc(label)}">${v === null ? '' : face(v)}</span>`); return; }
     let attrs;
-    if (sel === null) attrs = uiAttrs({sel: i}, `tt-s${i}`);
-    else if (sel === i) attrs = v === null ? uiAttrs({sel: null}, `tt-s${i}`) : moveAttrs({type: 'take', slot: i}, `tt-s${i}`);
-    else attrs = lane[sel] !== v ? moveAttrs({type: 'swap', a: sel, b: i}, `tt-s${i}`) : uiAttrs({sel: i}, `tt-s${i}`);
+    if (sel === null) attrs = uiAttrs({sel: i}, `rt-s${i}`);
+    else if (sel === i) attrs = v === null ? uiAttrs({sel: null}, `rt-s${i}`) : moveAttrs({type: 'take', slot: i}, `rt-s${i}`);
+    else attrs = lane[sel] !== v ? moveAttrs({type: 'swap', a: sel, b: i}, `rt-s${i}`) : uiAttrs({sel: i}, `rt-s${i}`);
     cells.push(`<button type="button" class="${look}" ${attrs} data-tt-slot="${i}" aria-pressed="${sel === i}" aria-label="${esc(label)}">${v === null ? '' : face(v)}</button>`);
   });
   // The trays.
   for (let t = 0; t < k; t++) {
     const last = t === k - 1;
-    cells.push(`<span class="tt-lab tt-lab-tray" aria-hidden="true">${t + 1}</span>`, `<span class="tt-cell tt-start${start[t] === null ? ' unknown' : ''}" aria-hidden="true">${start[t] ?? '?'}</span>`);
+    cells.push(`<span class="rt-lab rt-lab-tray" aria-hidden="true">${t + 1}</span>`, `<span class="rt-cell rt-start${start[t] === null ? ' unknown' : ''}" aria-hidden="true">${start[t] ?? '?'}</span>`);
     for (let j = 1; j <= n; j++) {
       const v = rows[t][j], g = last && goals ? goals[j - 1] : null;
       const mark = g !== null && g !== undefined && v !== null ? (v === g ? ' good' : ' bad') : '';
-      cells.push(`<span class="tt-cell${last ? ' last' : ''}${v === null ? ' none' : ''}${mark}${popAttr(`${t}|${j}`, t + 1)}" aria-hidden="true">${v ?? ''}</span>`);
+      cells.push(`<span class="rt-cell${last ? ' last' : ''}${v === null ? ' none' : ''}${mark}${popAttr(`${t}|${j}`, t + 1)}" aria-hidden="true">${v ?? ''}</span>`);
     }
   }
   // The goals under the last tray.
   if (goals) {
-    cells.push('<span class="tt-lab tt-lab-goal" aria-hidden="true">⚑</span>', '<span class="tt-gap" aria-hidden="true"></span>');
-    goals.forEach(g => cells.push(`<span class="tt-goal${g === null ? ' none' : ''}" aria-hidden="true">${g ?? ''}</span>`));
+    cells.push('<span class="rt-lab rt-lab-goal" aria-hidden="true">⚑</span>', '<span class="rt-gap" aria-hidden="true"></span>');
+    goals.forEach(g => cells.push(`<span class="rt-goal${g === null ? ' none' : ''}" aria-hidden="true">${g ?? ''}</span>`));
   }
-  const grid = `<div class="tt-grid" style="--n:${n}">${cells.join('')}</div>`;
+  const grid = `<div class="rt-grid" style="--n:${n}">${cells.join('')}</div>`;
 
   // Every: the starts to choose from; the ones found are green.
   let starts = '';
   if (q.mode === 'every') {
     const chips = Array.from({length: q.startCap + 1}, (_, s) => {
-      const look = `tt-chip${b.start === s ? ' on' : ''}${b.found.includes(s) ? ' found' : ''}${hinted(shown?.type === 'start' && shown.value === s)}`;
+      const look = `rt-chip${b.start === s ? ' on' : ''}${b.found.includes(s) ? ' found' : ''}${hinted(shown?.type === 'start' && shown.value === s)}`;
       const label = `Start ${s}${b.found.includes(s) ? ', found' : ''}`;
       if (done || b.start === s) return `<span class="${look}" role="img" aria-label="${esc(label)}">${s}</span>`;
-      return `<button type="button" class="${look}" ${moveAttrs({type: 'start', value: s}, `tt-st${s}`)} aria-label="${esc(label)}">${s}</button>`;
+      return `<button type="button" class="${look}" ${moveAttrs({type: 'start', value: s}, `rt-st${s}`)} aria-label="${esc(label)}">${s}</button>`;
     });
     // On a phone the start buttons stand in two even rows.
-    starts = `<div class="tt-starts" role="group" aria-label="Start"><span class="tt-hs" aria-hidden="true">start</span><span class="tt-chips" style="--cols:${Math.ceil(chips.length / 2)}">${chips.join('')}</span></div>`;
+    starts = `<div class="rt-starts" role="group" aria-label="Start"><span class="rt-hs" aria-hidden="true">start</span><span class="rt-chips" style="--cols:${Math.ceil(chips.length / 2)}">${chips.join('')}</span></div>`;
   }
   // The hand.
   let handHtml = '';
@@ -340,25 +340,25 @@ function render(p, a) {
       const on = hintedCard === v;
       if (on) hintedCard = null;
       let attrs, disabled = false;
-      if (sel !== null) attrs = lane[sel] === null ? moveAttrs({type: 'put', slot: sel, card: v}, `tt-h${h}`) : lane[sel] !== v ? moveAttrs({type: 'change', slot: sel, card: v}, `tt-h${h}`) : uiAttrs({sel: null}, `tt-h${h}`);
-      else if (firstEmpty >= 0) attrs = moveAttrs({type: 'put', slot: firstEmpty, card: v}, `tt-h${h}`);
-      else { attrs = `data-focus="tt-h${h}"`; disabled = true; }
-      return `<button type="button" class="tt-card${hinted(on)}" ${attrs} data-tt-card="${v}" aria-label="${esc(`Card ${v}`)}"${disabled ? ' disabled' : ''}>${face(v)}</button>`;
+      if (sel !== null) attrs = lane[sel] === null ? moveAttrs({type: 'put', slot: sel, card: v}, `rt-h${h}`) : lane[sel] !== v ? moveAttrs({type: 'change', slot: sel, card: v}, `rt-h${h}`) : uiAttrs({sel: null}, `rt-h${h}`);
+      else if (firstEmpty >= 0) attrs = moveAttrs({type: 'put', slot: firstEmpty, card: v}, `rt-h${h}`);
+      else { attrs = `data-focus="rt-h${h}"`; disabled = true; }
+      return `<button type="button" class="rt-card${hinted(on)}" ${attrs} data-tt-card="${v}" aria-label="${esc(`Card ${v}`)}"${disabled ? ' disabled' : ''}>${face(v)}</button>`;
     });
-    handHtml = `<div class="tt-hand" data-tt-hand role="group" aria-label="Cards">${cards.join('')}</div>`;
+    handHtml = `<div class="rt-hand" data-tt-hand role="group" aria-label="Cards">${cards.join('')}</div>`;
   }
   // Tools.
   let tools = '';
   if (!done && q.mode === 'make' && q.cant) {
     const ready = full(lane) && !b.refused;
-    tools = `<div class="tt-tools"><button type="button" class="secondary tt-cant${hinted(shown?.type === 'cant')}" ${moveAttrs({type: 'cant'}, 'tt-cant')} ${ready ? '' : 'disabled'}>Can’t</button></div>`;
+    tools = `<div class="rt-tools"><button type="button" class="secondary rt-cant${hinted(shown?.type === 'cant')}" ${moveAttrs({type: 'cant'}, 'rt-cant')} ${ready ? '' : 'disabled'}>Can’t</button></div>`;
   }
-  if (!done && q.mode === 'every') tools = `<div class="tt-tools"><button type="button" class="primary tt-all${hinted(shown?.type === 'all')}" ${moveAttrs({type: 'all'}, 'tt-all')} ${b.told === 'more' ? 'disabled' : ''}>That’s all</button></div>`;
+  if (!done && q.mode === 'every') tools = `<div class="rt-tools"><button type="button" class="primary rt-all${hinted(shown?.type === 'all')}" ${moveAttrs({type: 'all'}, 'rt-all')} ${b.told === 'more' ? 'disabled' : ''}>That’s all</button></div>`;
   if (q.mode === 'playground') {
     const buttons = Array.from({length: MAX_TRAYS}, (_, i) => i + 1).map(m => m === b.trays
-      ? `<span class="tt-trayn on" role="img" aria-label="${m} ${m === 1 ? 'tray' : 'trays'}, chosen"><span class="tt-lab tt-lab-tray">${m}</span></span>`
-      : `<button type="button" class="tt-trayn" ${moveAttrs({type: 'trays', n: m}, `tt-n${m}`)} aria-label="${m} ${m === 1 ? 'tray' : 'trays'}"><span class="tt-lab tt-lab-tray">${m}</span></button>`);
-    tools = `<div class="tt-tools tt-trays" role="group" aria-label="Trays">${buttons.join('')}</div>`;
+      ? `<span class="rt-trayn on" role="img" aria-label="${m} ${m === 1 ? 'tray' : 'trays'}, chosen"><span class="rt-lab rt-lab-tray">${m}</span></span>`
+      : `<button type="button" class="rt-trayn" ${moveAttrs({type: 'trays', n: m}, `rt-n${m}`)} aria-label="${m} ${m === 1 ? 'tray' : 'trays'}"><span class="rt-lab rt-lab-tray">${m}</span></button>`);
+    tools = `<div class="rt-tools rt-trays" role="group" aria-label="Trays">${buttons.join('')}</div>`;
   }
   // The line under the board. After a right Can't it states the fact; the
   // reason (the sorted lane) is the child's, and the hints' and notes'.
@@ -373,7 +373,7 @@ function render(p, a) {
   const goalWords = q.mode === 'make' ? ` Make ${q.target}.` : goals ? ` Goals: ${goals.join(', ')}.` : '';
   const foundWords = q.mode === 'every' && b.found.length ? ` Found ${b.found.join(', ')}.` : '';
   const status = `Cards: ${lane.map(v => v ?? '–').join(', ')}. ${rowWords}${goalWords}${foundWords}${note ? ` ${note}` : ''}`;
-  return `<div class="tt-board tt-${q.mode}${done ? ' solved' : ''}${sel !== null ? ' picking' : ''}" data-mechanic-wire="totals">${grid}${starts}${handHtml}${tools}${note ? `<p class="tt-note${bad ? ' bad' : ''}">${esc(note)}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="rt-board rt-${q.mode}${done ? ' solved' : ''}${sel !== null ? ' picking' : ''}" data-mechanic-wire="totals">${grid}${starts}${handHtml}${tools}${note ? `<p class="rt-note${bad ? ' bad' : ''}">${esc(note)}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 
 // --- Gestures --------------------------------------------------------------------------------------
@@ -383,7 +383,7 @@ function render(p, a) {
 // has gone by, so that click is swallowed here rather than landing on a
 // redrawn board.
 function wire(root, p, api) {
-  const board = root.matches('.tt-board') ? root : root.querySelector('.tt-board');
+  const board = root.matches('.rt-board') ? root : root.querySelector('.rt-board');
   if (!board || board.classList.contains('solved')) return;
   let drag = null, dragged = false;
   const later = fn => setTimeout(() => { dragged = false; fn(); }, 0);
@@ -395,7 +395,7 @@ function wire(root, p, api) {
     drag = {el, id: e.pointerId, x: e.clientX, y: e.clientY, card: el.dataset.ttCard !== undefined ? Number(el.dataset.ttCard) : null, from: el.dataset.ttSlot !== undefined ? Number(el.dataset.ttSlot) : null, moved: false};
   });
   const zoneAt = e => { const z = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-tt-slot],[data-tt-hand]'); return z && board.contains(z) ? z : null; };
-  const clear = () => board.querySelectorAll('.tt-over').forEach(z => z.classList.remove('tt-over'));
+  const clear = () => board.querySelectorAll('.rt-over').forEach(z => z.classList.remove('rt-over'));
   board.addEventListener('pointermove', e => {
     if (!drag || e.pointerId !== drag.id) return;
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
@@ -403,7 +403,7 @@ function wire(root, p, api) {
     if (!drag.moved) { drag.moved = true; drag.el.classList.add('dragging'); }
     drag.el.style.transform = `translate(${dx}px,${dy}px)`;
     clear();
-    zoneAt(e)?.classList.add('tt-over');
+    zoneAt(e)?.classList.add('rt-over');
   });
   const end = e => {
     if (!drag || e.pointerId !== drag.id) return;
@@ -469,5 +469,5 @@ export default {
   mechanics: totalMechanics,
   pack: new URL('./totals.json', import.meta.url).href,
   css: new URL('./totals.css', import.meta.url).href,
-  focus: '.tt-slot:not(span),.tt-card:not([disabled])'
+  focus: '.rt-slot:not(span),.rt-card:not([disabled])'
 };

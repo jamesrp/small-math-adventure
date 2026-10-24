@@ -264,45 +264,45 @@ function hint(p, b) {
 // --- Drawing ---------------------------------------------------------------------
 // A pattern: a second catch drawn as n squares, the first k dotted.
 export function patternHTML(n, k, label = `${k} dotted, ${n - k} plain`) {
-  return `<span class="ct-pattern" role="img" aria-label="${esc(label)}">${range(1, n).map(i => `<span class="ct-p${i <= k ? ' dot' : ''}"></span>`).join('')}</span>`;
+  return `<span class="ck-pattern" role="img" aria-label="${esc(label)}">${range(1, n).map(i => `<span class="ck-p${i <= k ? ' dot' : ''}"></span>`).join('')}</span>`;
 }
 const sayDots = k => (k === 1 ? '1 dotted tile' : `${k} dotted tiles`);
 // A small catch: its letters, dotted where marked.
-const catchMini = (key, marked) => `<span class="ct-mini">${[...key].map(ch => `<span class="ct-m${marked.includes(LETTERS.indexOf(ch)) ? ' dot' : ''}">${ch}</span>`).join('')}</span>`;
+const catchMini = (key, marked) => `<span class="ck-mini">${[...key].map(ch => `<span class="ck-m${marked.includes(LETTERS.indexOf(ch)) ? ' dot' : ''}">${ch}</span>`).join('')}</span>`;
 const sayCatch = (key, marked) => `${[...key].join(' ')}, ${sayDots([...key].filter(ch => marked.includes(LETTERS.indexOf(ch))).length)}`;
 const columnsFor = N => (N <= 6 ? N : Math.ceil(N / Math.ceil(N / 6)));
 const moveAttr = action => `data-action="expansion-move" data-move="${esc(JSON.stringify(action))}"`;
 const sameAction = (x, y) => x && y && JSON.stringify(x) === JSON.stringify(y);
 const button = (label, action, cls, {enabled = true, hinted = false} = {}) =>
-  `<button type="button" class="secondary ct-button ${cls}${hinted ? ' hinted' : ''}" ${moveAttr(action)} data-focus="${cls}"${enabled ? '' : ' disabled'}>${label}</button>`;
+  `<button type="button" class="secondary ck-button ${cls}${hinted ? ' hinted' : ''}" ${moveAttr(action)} data-focus="${cls}"${enabled ? '' : ' disabled'}>${label}</button>`;
 
 function tileHTML(i, s, {live, act, sort, proof}) {
   const marked = s.first.includes(i), caught = s.second.includes(i);
-  const cls = ['ct-tile', marked ? 'marked' : '', caught ? 'caught' : '', proof.includes(i) ? 'proof' : '', act && act.type === 'tap' && act.tile === i ? 'hinted' : ''].filter(Boolean).join(' ');
-  const face = `<span class="ct-letter">${L(i)}</span>${marked ? '<span class="ct-dot" aria-hidden="true"></span>' : ''}`;
+  const cls = ['ck-tile', marked ? 'marked' : '', caught ? 'caught' : '', proof.includes(i) ? 'proof' : '', act && act.type === 'tap' && act.tile === i ? 'hinted' : ''].filter(Boolean).join(' ');
+  const face = `<span class="ck-letter">${L(i)}</span>${marked ? '<span class="ck-dot" aria-hidden="true"></span>' : ''}`;
   const name = `${L(i)}${marked ? ', dotted' : ''}${caught ? ', in the second catch' : ''}`;
   if (!live) return `<span class="${cls}" role="img" aria-label="${esc(name)}">${face}</span>`;
   const enabled = (!sort && !s.full1) || caught || !s.full2;
-  return `<button type="button" class="${cls}" ${moveAttr({type: 'tap', tile: i})} data-focus="ct-tile-${i}" aria-label="${esc(name)}"${enabled ? '' : ' disabled'}>${face}</button>`;
+  return `<button type="button" class="${cls}" ${moveAttr({type: 'tap', tile: i})} data-focus="ck-tile-${i}" aria-label="${esc(name)}"${enabled ? '' : ' disabled'}>${face}</button>`;
 }
 export function bagHTML(s, o) {
   const tiles = range(0, s.N - 1).map(i => tileHTML(i, s, o)).join('');
-  return `<div class="ct-bag" style="--cols:${columnsFor(s.N)}" role="group" aria-label="The bag">${tiles}</div>`;
+  return `<div class="ck-bag" style="--cols:${columnsFor(s.N)}" role="group" aria-label="The bag">${tiles}</div>`;
 }
 function trayHTML(which, s, {live, act, fixed, proof}) {
   const list = which === 1 ? s.first : s.second, size = which === 1 ? s.M : s.n;
   const active = live && !fixed && (which === 1 ? !s.full1 : s.full1);
   const slots = range(0, size - 1).map(k => {
     const t = list[k];
-    if (t === undefined) return '<span class="ct-slot empty" aria-hidden="true"></span>';
-    const marked = s.first.includes(t), cls = `ct-slot${marked ? ' marked' : ''}${which === 2 && proof.includes(t) ? ' proof' : ''}${sameAction(act, {type: 'out', which, tile: t}) ? ' hinted' : ''}`;
-    const face = `<span class="ct-letter">${L(t)}</span>${marked ? '<span class="ct-dot" aria-hidden="true"></span>' : ''}`;
+    if (t === undefined) return '<span class="ck-slot empty" aria-hidden="true"></span>';
+    const marked = s.first.includes(t), cls = `ck-slot${marked ? ' marked' : ''}${which === 2 && proof.includes(t) ? ' proof' : ''}${sameAction(act, {type: 'out', which, tile: t}) ? ' hinted' : ''}`;
+    const face = `<span class="ck-letter">${L(t)}</span>${marked ? '<span class="ck-dot" aria-hidden="true"></span>' : ''}`;
     const name = `${L(t)}${marked ? ', dotted' : ''}`;
     return live && !fixed
-      ? `<button type="button" class="${cls}" ${moveAttr({type: 'out', which, tile: t})} data-focus="ct-out-${which}-${t}" aria-label="${esc(`${name}: take out of the ${which === 1 ? 'first' : 'second'} catch`)}">${face}</button>`
+      ? `<button type="button" class="${cls}" ${moveAttr({type: 'out', which, tile: t})} data-focus="ck-out-${which}-${t}" aria-label="${esc(`${name}: take out of the ${which === 1 ? 'first' : 'second'} catch`)}">${face}</button>`
       : `<span class="${cls}" role="img" aria-label="${esc(name)}">${face}</span>`;
   }).join('');
-  return `<div class="ct-tray${active ? ' active' : ''}" role="group" aria-label="${which === 1 ? 'First' : 'Second'} catch"><span class="ct-tray-tag" aria-hidden="true">${which === 1 ? '1st' : '2nd'} catch</span><span class="ct-slots">${slots}</span></div>`;
+  return `<div class="ck-tray${active ? ' active' : ''}" role="group" aria-label="${which === 1 ? 'First' : 'Second'} catch"><span class="ck-tray-tag" aria-hidden="true">${which === 1 ? '1st' : '2nd'} catch</span><span class="ck-slots">${slots}</span></div>`;
 }
 const words = list => (list.length ? list.map(L).join(', ') : 'empty');
 
@@ -316,21 +316,21 @@ function render(p, a) {
   let top = '', below = '', note = '';
   if (q.mode === 'arrange' || q.mode === 'sizes') {
     const met = s.full && s.overlap === q.goal;
-    top = `<div class="ct-goal${met ? ' met' : ''}${b.cant ? ' cant' : ''}"><span class="ct-tag" aria-hidden="true">Goal</span>${patternHTML(q.n, q.goal, `Goal: a second catch with ${sayDots(q.goal)} and ${q.n - q.goal} plain`)}</div>`;
+    top = `<div class="ck-goal${met ? ' met' : ''}${b.cant ? ' cant' : ''}"><span class="ck-tag" aria-hidden="true">Goal</span>${patternHTML(q.n, q.goal, `Goal: a second catch with ${sayDots(q.goal)} and ${q.n - q.goal} plain`)}</div>`;
   }
   if (q.mode === 'sizes') {
     const target = targetOf(q);
-    top += `<div class="ct-bags" role="group" aria-label="Bags">${q.bags.map(N => {
-      const found = b.kept.includes(String(N)), cls = `ct-bag-chip${found ? ' found' : ''}${done && !target.includes(String(N)) ? ' no' : ''}${sameAction(act, {type: 'size', size: N}) ? ' hinted' : ''}`;
-      const name = `Bag of ${N}${found ? ', found' : ''}`, tick = found ? '<span class="ct-tick" aria-hidden="true">✓</span>' : '';
-      return done ? `<span class="${cls}" role="img" aria-label="${esc(name)}">${N}${tick}</span>` : `<button type="button" class="${cls}" ${moveAttr({type: 'size', size: N})} data-focus="ct-bag-${N}" aria-pressed="${N === b.bag}" aria-label="${esc(name)}">${N}${tick}</button>`;
+    top += `<div class="ck-bags" role="group" aria-label="Bags">${q.bags.map(N => {
+      const found = b.kept.includes(String(N)), cls = `ck-bag-chip${found ? ' found' : ''}${done && !target.includes(String(N)) ? ' no' : ''}${sameAction(act, {type: 'size', size: N}) ? ' hinted' : ''}`;
+      const name = `Bag of ${N}${found ? ', found' : ''}`, tick = found ? '<span class="ck-tick" aria-hidden="true">✓</span>' : '';
+      return done ? `<span class="${cls}" role="img" aria-label="${esc(name)}">${N}${tick}</span>` : `<button type="button" class="${cls}" ${moveAttr({type: 'size', size: N})} data-focus="ck-bag-${N}" aria-pressed="${N === b.bag}" aria-label="${esc(name)}">${N}${tick}</button>`;
     }).join('')}</div>`;
   }
   const live = !done, sort = q.mode === 'sort';
-  const board = `${bagHTML(s, {live, act, sort, proof})}<div class="ct-trays">${trayHTML(1, s, {live, act, fixed: sort, proof})}${trayHTML(2, s, {live, act, fixed: false, proof})}</div>`;
+  const board = `${bagHTML(s, {live, act, sort, proof})}<div class="ck-trays">${trayHTML(1, s, {live, act, fixed: sort, proof})}${trayHTML(2, s, {live, act, fixed: false, proof})}</div>`;
   let bar = '';
-  if (q.mode === 'arrange' && !done) bar = button('Can’t', {type: 'cant'}, 'ct-cant', {enabled: s.full && !b.refused, hinted: act?.type === 'cant'});
-  if (catalog(q) && !done) bar = button('That’s all', {type: 'all'}, 'ct-all', {enabled: b.kept.length > 0 && !b.missed, hinted: act?.type === 'all'});
+  if (q.mode === 'arrange' && !done) bar = button('Can’t', {type: 'cant'}, 'ck-cant', {enabled: s.full && !b.refused, hinted: act?.type === 'cant'});
+  if (catalog(q) && !done) bar = button('That’s all', {type: 'all'}, 'ck-all', {enabled: b.kept.length > 0 && !b.missed, hinted: act?.type === 'all'});
   if (q.mode === 'arrange') {
     if (b.refused) note = s.overlap > q.goal ? 'A plain tile could swap in.' : 'A dotted tile could swap in.';
     if (b.cant) note = q.goal < s.low ? 'Every plain tile is in the second catch.' : 'Every dotted tile is in the second catch.';
@@ -340,9 +340,9 @@ function render(p, a) {
     const now = s.full ? String(s.overlap) : null;
     if (done) {
       const target = targetOf(q);
-      below = `<section class="case-catalog ct-catalog" aria-label="Every number of dots"><ol class="case-list">${range(0, s.high).map((k, i) => `<li class="case-kept ${target.includes(String(k)) ? 'yes' : 'no'}" style="--i:${i}" aria-label="${esc(`${sayDots(k)}${target.includes(String(k)) ? '' : ': never'}`)}">${patternHTML(q.n, k, sayDots(k))}</li>`).join('')}</ol></section>`;
+      below = `<section class="case-catalog ck-catalog" aria-label="Every number of dots"><ol class="case-list">${range(0, s.high).map((k, i) => `<li class="case-kept ${target.includes(String(k)) ? 'yes' : 'no'}" style="--i:${i}" aria-label="${esc(`${sayDots(k)}${target.includes(String(k)) ? '' : ': never'}`)}">${patternHTML(q.n, k, sayDots(k))}</li>`).join('')}</ol></section>`;
     } else if (b.kept.length) {
-      below = `<section class="case-shelf ct-shelf" aria-label="Found"><ol class="case-list">${b.kept.map(k => `<li class="case-kept${k === now ? ' current' : ''}" aria-label="${esc(sayDots(Number(k)))}">${patternHTML(q.n, Number(k), sayDots(Number(k)))}</li>`).join('')}</ol></section>`;
+      below = `<section class="case-shelf ck-shelf" aria-label="Found"><ol class="case-list">${b.kept.map(k => `<li class="case-kept${k === now ? ' current' : ''}" aria-label="${esc(sayDots(Number(k)))}">${patternHTML(q.n, Number(k), sayDots(Number(k)))}</li>`).join('')}</ol></section>`;
     }
   }
   if (sort) {
@@ -354,25 +354,25 @@ function render(p, a) {
       : binsHTML(b.kept, bins, bin, {...o, always: true, current: s.full ? keyOf(s.second) : null, label: 'Catches found, by their dots'});
   }
   const status = `${q.mode === 'sizes' ? `Bag of ${b.bag}. ` : ''}First catch: ${words(s.first)}. Second catch: ${words(s.second)}.${s.full ? ` ${sayDots(s.overlap)} in the second catch.` : ''}${note ? ` ${note}` : ''}`;
-  return `<div class="ct-puzzle ct-${q.mode}${done ? ' solved' : ''}">${top}${board}${bar ? `<div class="ct-bar">${bar}</div>` : ''}${note ? `<p class="ct-told">${esc(note)}</p>` : ''}${below}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="ck-puzzle ck-${q.mode}${done ? ' solved' : ''}">${top}${board}${bar ? `<div class="ck-bar">${bar}</div>` : ''}${note ? `<p class="ck-told">${esc(note)}</p>` : ''}${below}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 
 // The playground: steppers for the bag and the catches, random catches, and
 // a pile for each overlap.
 function stepper(label, value, which, down, up) {
   const act = by => (which ? {type: 'catch', which, by} : {type: 'bag', by});
-  const id = which ? `ct-catch-${which}` : 'ct-size';
-  const step = (by, ok, sign, word) => `<button type="button" class="ct-step" ${moveAttr(act(by))} data-focus="${id}-${by < 0 ? 'down' : 'up'}" aria-label="${esc(`${label}: ${word}`)}"${ok ? '' : ' disabled'}>${sign}</button>`;
-  return `<div class="ct-stepper" role="group" aria-label="${esc(label)}"><span class="ct-step-tag">${label}</span>${step(-1, down, '−', 'fewer')}<span class="ct-step-value">${value}</span>${step(1, up, '+', 'more')}</div>`;
+  const id = which ? `ck-catch-${which}` : 'ck-size';
+  const step = (by, ok, sign, word) => `<button type="button" class="ck-step" ${moveAttr(act(by))} data-focus="${id}-${by < 0 ? 'down' : 'up'}" aria-label="${esc(`${label}: ${word}`)}"${ok ? '' : ' disabled'}>${sign}</button>`;
+  return `<div class="ck-stepper" role="group" aria-label="${esc(label)}"><span class="ck-step-tag">${label}</span>${step(-1, down, '−', 'fewer')}<span class="ck-step-value">${value}</span>${step(1, up, '+', 'more')}</div>`;
 }
 function renderPlayground(b) {
   const s = {N: b.bag, M: b.m, n: b.n, first: b.first, second: b.second, full1: true, full2: true};
   const counts = range(0, highest(b.m, b.n)).map(k => b.rounds.filter(r => r === k).length);
-  const piles = `<div class="ct-piles" role="group" aria-label="Catches by their dots">${counts.map((c, k) => `<div class="ct-pile" role="img" aria-label="${esc(`${sayDots(k)}: ${c}`)}"><span class="ct-pile-count">${c || ''}</span><span class="ct-pebbles">${'<i></i>'.repeat(c)}</span><span class="ct-pile-tag" aria-hidden="true">${k}</span></div>`).join('')}</div>`;
+  const piles = `<div class="ck-piles" role="group" aria-label="Catches by their dots">${counts.map((c, k) => `<div class="ck-pile" role="img" aria-label="${esc(`${sayDots(k)}: ${c}`)}"><span class="ck-pile-count">${c || ''}</span><span class="ck-pebbles">${'<i></i>'.repeat(c)}</span><span class="ck-pile-tag" aria-hidden="true">${k}</span></div>`).join('')}</div>`;
   const full = b.rounds.length >= MAX_ROUNDS;
-  const bar = `<div class="ct-bar">${button('Catch', {type: 'round', count: 1}, 'ct-round', {enabled: !full})}${button('Catch 10', {type: 'round', count: 10}, 'ct-ten', {enabled: !full})}${button('Clear', {type: 'clear'}, 'ct-clear', {enabled: b.rounds.length > 0})}</div>`;
+  const bar = `<div class="ck-bar">${button('Catch', {type: 'round', count: 1}, 'ck-round', {enabled: !full})}${button('Catch 10', {type: 'round', count: 10}, 'ck-ten', {enabled: !full})}${button('Clear', {type: 'clear'}, 'ck-clear', {enabled: b.rounds.length > 0})}</div>`;
   const status = b.rounds.length ? `Last catch: first ${words(b.first)}, second ${words(b.second)}, ${sayDots(b.rounds.at(-1))}. ${b.rounds.length} catches so far.` : 'No catches yet.';
-  return `<div class="ct-puzzle ct-playground"><div class="ct-steppers">${stepper('Bag', b.bag, 0, b.bag > MIN_BAG, b.bag < MAX_BAG)}${stepper('1st catch', b.m, 1, b.m > 1, b.m < Math.min(b.bag, MAX_CATCH))}${stepper('2nd catch', b.n, 2, b.n > 1, b.n < Math.min(b.bag, MAX_CATCH))}</div>${bagHTML(s, {live: false, act: null, sort: false, proof: []})}${bar}${piles}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="ck-puzzle ck-playground"><div class="ck-steppers">${stepper('Bag', b.bag, 0, b.bag > MIN_BAG, b.bag < MAX_BAG)}${stepper('1st catch', b.m, 1, b.m > 1, b.m < Math.min(b.bag, MAX_CATCH))}${stepper('2nd catch', b.n, 2, b.n > 1, b.n < Math.min(b.bag, MAX_CATCH))}</div>${bagHTML(s, {live: false, act: null, sort: false, proof: []})}${bar}${piles}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 
 export const catchMechanics = {
@@ -398,5 +398,5 @@ export default {
   mechanics: catchMechanics,
   pack: new URL('./catches.json', import.meta.url).href,
   css: new URL('./catches.css', import.meta.url).href,
-  focus: 'button.ct-tile:not([disabled]),.ct-cant:not([disabled]),.ct-all:not([disabled])'
+  focus: 'button.ck-tile:not([disabled]),.ck-cant:not([disabled]),.ck-all:not([disabled])'
 };

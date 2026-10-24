@@ -21,13 +21,13 @@ const base = (process.env.TEST_URL || 'http://127.0.0.1:4187').replace(/\/$/, ''
 const out = new URL('../test-results/gapflood/', import.meta.url);
 const shot = name => page.screenshot({path: new URL(`${name}${phone ? '-phone' : ''}.png`, out).pathname, fullPage: true});
 const board = id => page.evaluate(([k, id]) => JSON.parse(localStorage.getItem(k)).profiles[0].attempts[id]?.board, [key, id]);
-const open = async id => { await page.goto(`${base}/#play/${id}`); await page.locator('.gf-puzzle').waitFor(); };
+const open = async id => { await page.goto(`${base}/#play/${id}`); await page.locator('.gp-puzzle').waitFor(); };
 const done = () => page.locator('#completion-heading').waitFor({timeout: 5000});
 const fit = async label => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `${label}: no page overflow`);
 const dot = id => page.locator(`.gb-node[data-node="${id}"]`);
 const road = i => page.locator(`.gb-hit[data-gb-edge="${i}"]`);
-const chip = s => page.locator(`.gf-chip.t${s}`);
-const told = () => page.locator('.gf-told').innerText();
+const chip = s => page.locator(`.gp-chip.t${s}`);
+const told = () => page.locator('.gp-told').innerText();
 const center = async locator => { const b = await locator.boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
 // Taps land at a control's centre through real hit-testing, as in the flow
 // and meeting suites: a straight road has a zero-width box.
@@ -126,7 +126,7 @@ try {
   assert.equal((await board(T)).told, null, 'a route changed');
   await press('Can’t').click(); await taps('c');
   await done();
-  assert.ok(await page.locator('.gf-glow').count() > 0, 'the tripod glows');
+  assert.ok(await page.locator('.gp-glow').count() > 0, 'the tripod glows');
   assert.equal(await page.locator('.gb-node.centre').count(), 1, 'its centre is ringed');
   await shot('tree');
 
@@ -160,7 +160,7 @@ try {
   await press('Can’t').click();
   await done();
   assert.equal(await told(), 'Two routes cross every column.');
-  assert.equal(await page.locator('.gf-column').count(), 17);
+  assert.equal(await page.locator('.gp-column').count(), 17);
   await shot('ladder');
 
   // Puzzle 9: Best refused, then right with each dot's steps from a home.

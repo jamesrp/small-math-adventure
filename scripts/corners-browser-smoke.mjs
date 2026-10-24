@@ -229,76 +229,76 @@ try {
   // Trees 2: taps near a dot go to the nearest line; a dot is not a control.
   const T2 = 'corners-tree-02', q = byId(T2).parameters, H = 100 / q.aspect, at = id => [q.nodes[id][0], q.nodes[id][1] * H / 100];
   await open(T2); await fit('tree');
-  const tints = async () => page.locator('.ct-region').evaluateAll(els => els.map(e => e.getAttribute('class')));
-  assert.equal(await page.locator('.ct-region').count(), 5, 'five shaded regions');
+  const tints = async () => page.locator('.cn-region').evaluateAll(els => els.map(e => e.getAttribute('class')));
+  assert.equal(await page.locator('.cn-region').count(), 5, 'five shaded regions');
   assert.equal(new Set(await tints()).size, 5, 'each with its own tint');
   const [ax, ay] = at('A');
-  await tapAt(await onScreen('.ct-map', [ax + 8, ay - 2.5]));
+  await tapAt(await onScreen('.cn-map', [ax + 8, ay - 2.5]));
   assert.deepEqual((await board(T2)).erased, [0], 'a tap between the bottom line and a spoke goes to the nearer line');
-  assert.equal(await page.locator('.ct-region').count(), 4, 'a region opens');
-  await tapAt(await onScreen('.ct-map', [ax + 6, ay - 5.5]));
+  assert.equal(await page.locator('.cn-region').count(), 4, 'a region opens');
+  await tapAt(await onScreen('.cn-map', [ax + 6, ay - 5.5]));
   assert.deepEqual((await board(T2)).erased, [0, 9], 'a tap on the spoke near the dot');
   assert.equal(new Set(await tints()).size, 3, 'two regions became one: one tint fewer');
-  await tapAt(await onScreen('.ct-map', at('E')));
+  await tapAt(await onScreen('.cn-map', at('E')));
   assert.deepEqual((await board(T2)).erased, [0, 9], 'a tap on a dot does nothing');
-  await tap(page.locator('.ct-map [data-gb-edge="4"]'));
-  assert.equal(await page.locator('.ct-map .gb-node.cut').count(), 1, 'corner A is cut off');
-  await page.locator('.ct-map [data-gb-edge="4"]').focus(); await page.keyboard.press('Enter');
+  await tap(page.locator('.cn-map [data-gb-edge="4"]'));
+  assert.equal(await page.locator('.cn-map .gb-node.cut').count(), 1, 'corner A is cut off');
+  await page.locator('.cn-map [data-gb-edge="4"]').focus(); await page.keyboard.press('Enter');
   assert.deepEqual((await board(T2)).erased, [0, 9], 'Enter on a line draws it back');
-  assert.equal(await page.locator('.ct-map .gb-node.cut').count(), 0);
+  assert.equal(await page.locator('.cn-map .gb-node.cut').count(), 0);
   await focusOk('after Enter on a line');
   // The dot on the bottom side: erasing its other line cuts it off.
-  await tap(page.locator('.ct-map [data-gb-edge="1"]'));
-  assert.equal(await page.locator('.ct-map .gb-node.cut').count(), 1, 'the dot on the bottom side is cut off');
-  await tap(page.locator('.ct-map [data-gb-edge="1"]'));
-  for (const line of [2, 3, 5]) await tap(page.locator(`.ct-map [data-gb-edge="${line}"]`));
+  await tap(page.locator('.cn-map [data-gb-edge="1"]'));
+  assert.equal(await page.locator('.cn-map .gb-node.cut').count(), 1, 'the dot on the bottom side is cut off');
+  await tap(page.locator('.cn-map [data-gb-edge="1"]'));
+  for (const line of [2, 3, 5]) await tap(page.locator(`.cn-map [data-gb-edge="${line}"]`));
   await done(); await fit('tree solved');
-  assert.equal(await page.locator('.ct-map .gb-stroke.tree').count(), 8, 'the tree drawn');
+  assert.equal(await page.locator('.cn-map .gb-stroke.tree').count(), 8, 'the tree drawn');
   await shot('tree');
 
   // Trees 3: the busiest drawing, cut and hinted; then down to a tree and end dots taken off.
   const T3 = 'corners-tree-03', q3 = byId(T3).parameters, H3 = 100 / q3.aspect, at3 = id => [q3.nodes[id][0], q3.nodes[id][1] * H3 / 100];
   await open(T3); await fit('octahedron');
   assert.equal(new Set(await tints()).size, 7, 'seven regions, seven tints');
-  for (const line of [0, 2, 6, 7]) await tap(page.locator(`.ct-map [data-gb-edge="${line}"]`));
-  assert.equal(await page.locator('.ct-map .gb-node.cut').count(), 1, 'the top dot is cut off');
+  for (const line of [0, 2, 6, 7]) await tap(page.locator(`.cn-map [data-gb-edge="${line}"]`));
+  assert.equal(await page.locator('.cn-map .gb-node.cut').count(), 1, 'the top dot is cut off');
   await button('Hint').click(); await button('Hint').click();
-  assert.equal(await page.locator('.ct-map .gb-edge.hinted').count(), 1, 'the hint marks a line to draw back');
+  assert.equal(await page.locator('.cn-map .gb-edge.hinted').count(), 1, 'the hint marks a line to draw back');
   await shot('octahedron-cut');
-  await page.locator('.ct-map [data-gb-edge="7"]').focus(); await page.keyboard.press('Enter');
-  assert.equal(await page.locator('.ct-map .gb-node.cut').count(), 0, 'drawn back');
-  for (const line of [1, 8, 11, 3]) await tap(page.locator(`.ct-map [data-gb-edge="${line}"]`));
+  await page.locator('.cn-map [data-gb-edge="7"]').focus(); await page.keyboard.press('Enter');
+  assert.equal(await page.locator('.cn-map .gb-node.cut').count(), 0, 'drawn back');
+  for (const line of [1, 8, 11, 3]) await tap(page.locator(`.cn-map [data-gb-edge="${line}"]`));
   assert.deepEqual((await board(T3)).erased, [0, 1, 2, 3, 6, 8, 11], 'the route’s tree');
-  assert.equal(await page.locator('.ct-map.ct-leafing').count(), 1, 'a tree: end dots can come off');
-  assert.equal(await page.locator('.ct-map .gb-hit').count(), 0, 'the lines are no longer controls');
+  assert.equal(await page.locator('.cn-map.cn-leafing').count(), 1, 'a tree: end dots can come off');
+  assert.equal(await page.locator('.cn-map .gb-hit').count(), 0, 'the lines are no longer controls');
   assert.equal(await page.locator('#completion-heading').count(), 0, 'a tree is not the end here');
   // Which dots are end dots now: A (AF), B (BE), C (CD). A tap that takes
   // nothing off says the rule (not which dots are end dots), is not a move,
   // and goes at the next move.
   const RULE = 'Only an end dot comes off.';
   const moves3 = () => page.evaluate(([k, id]) => JSON.parse(localStorage.getItem(k)).profiles[0].attempts[id]?.moves, [key, T3]);
-  const before3 = await moves3(), marked3 = () => page.locator('.ct-map .gb-node.hinted, .ct-map .gb-node.ringed').count(), marks3 = await marked3();
-  await tapAt(await onScreen('.ct-map', at3('E')));
+  const before3 = await moves3(), marked3 = () => page.locator('.cn-map .gb-node.hinted, .cn-map .gb-node.ringed').count(), marks3 = await marked3();
+  await tapAt(await onScreen('.cn-map', at3('E')));
   assert.deepEqual((await board(T3)).gone, [], 'a dot with more lines stays');
   assert.equal(await told(), RULE, 'a tap on a dot with more lines says the rule');
   assert.equal(await moves3(), before3, 'a refused tap is not a move');
   assert.equal(await marked3(), marks3, 'and marks no dot (beyond the hint already showing)');
   await focusOk('after a refused dot');
-  await tapAt(await onScreen('.ct-map', [at3('A')[0] + 3.5, at3('A')[1] + 2]));
+  await tapAt(await onScreen('.cn-map', [at3('A')[0] + 3.5, at3('A')[1] + 2]));
   assert.deepEqual((await board(T3)).gone, [['A', 7]], 'a tap near an end dot takes it off with its line');
   assert.equal(await told(), null, 'the next move clears the words');
-  assert.equal(await page.locator('.ct-map .gb-node.gone').count(), 1, 'drawn faint');
+  assert.equal(await page.locator('.cn-map .gb-node.gone').count(), 1, 'drawn faint');
   await focusOk('after taking a dot off');
   // A tap on a line, between E and F away from the dots, says the rule too.
-  await tapAt(await onScreen('.ct-map', [0, 1].map(k => (at3('E')[k] + at3('F')[k]) / 2)));
+  await tapAt(await onScreen('.cn-map', [0, 1].map(k => (at3('E')[k] + at3('F')[k]) / 2)));
   assert.equal(await told(), RULE, 'a tap on a line says the rule');
   assert.equal((await board(T3)).gone.length, 1, 'and takes nothing off');
   await focusOk('after a refused line');
-  await page.locator('.ct-map [data-gb-node="D"]').focus(); await page.keyboard.press('Enter');
+  await page.locator('.cn-map [data-gb-node="D"]').focus(); await page.keyboard.press('Enter');
   assert.equal(await told(), RULE, 'Enter on a dot with more lines says the rule');
   assert.equal((await board(T3)).gone.length, 1);
   await focusOk('after Enter on a refused dot');
-  await page.locator('.ct-map [data-gb-node="B"]').focus(); await page.keyboard.press('Enter');
+  await page.locator('.cn-map [data-gb-node="B"]').focus(); await page.keyboard.press('Enter');
   assert.equal((await board(T3)).gone.length, 2, 'Enter on an end dot');
   assert.equal(await told(), null, 'and the words go');
   await shot('octahedron-leaves');
@@ -307,7 +307,7 @@ try {
   await button('Hint').click(); await button('Hint').click(); await button('Hint').click();
   for (let i = 0; i < 8 && !(await page.locator('#completion-heading').count()); i++) await button('Apply hint').click();
   await done(); await fit('octahedron solved');
-  assert.equal(await page.locator('.ct-map .gb-node:not(.gone)').count(), 1, 'one dot left');
+  assert.equal(await page.locator('.cn-map .gb-node:not(.gone)').count(), 1, 'one dot left');
 
   // The playground.
   const G = 'corners-playground';

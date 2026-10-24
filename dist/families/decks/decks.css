@@ -57,7 +57,7 @@
 /* Small decks for shelves and catalogs: a row per deck. */
 .deck-mini{display:inline-flex;flex-direction:column;gap:2px;font-family:var(--b-display,Georgia,serif);font-size:.85rem;line-height:1}
 .deck-mini-row{display:flex;gap:1px}
-.deck-mini i,.case-bin-label>i{display:inline-grid;place-items:center;width:1.3em;height:1.4em;border:1px solid var(--deck);border-radius:3px;color:var(--deck);font-style:normal;font-weight:700;background:var(--b-card,#fffdf5)}
+.deck-mini i,[data-mechanic-wire="decks"] .case-bin-label>i{display:inline-grid;place-items:center;width:1.3em;height:1.4em;border:1px solid var(--deck);border-radius:3px;color:var(--deck);font-style:normal;font-weight:700;background:var(--b-card,#fffdf5)}
 .deck-mini.deck-swap,.deck-mini.deck-round{flex-direction:row;align-items:center;gap:.2rem}
 .case-bin-label .deck-tag{font-size:.8rem}
 .case-catalog .deck-mini{font-size:.75rem}

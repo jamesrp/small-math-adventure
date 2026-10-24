@@ -48,11 +48,11 @@ test('third tile: a wrong tap shows the rule row by row; the right tap moves on'
   const html = view(p, a);
   assert.match(html, /aria-label="shapes two the same"/, 'circle, circle, square: two the same');
   assert.match(html, /aria-label="fills all different"/, 'open, striped, solid');
-  assert.match(html, /tr-card[^"]*missed/);
+  assert.match(html, /ts-card[^"]*missed/);
   assert.equal(move(p, a, {type: 'pick', card: x}), null, 'a ringed tile is not a choice');
   a = play(p, a, {type: 'pick', card: third(2, x, y)});
   assert.deepEqual(a.board, {round: 1, miss: null});
-  assert.match(view(p, a), /tr-shelf/, 'the trio made goes on the shelf');
+  assert.match(view(p, a), /ts-shelf/, 'the trio made goes on the shelf');
   assert.match(nextHint(p, freshAttempt(p)).text, /^Circle and circle: circle; open and striped: solid\. Tap the solid circle\.$/);
   for (const pair of p.parameters.pairs.slice(1)) a = play(p, a, {type: 'pick', card: third(2, ...pair)});
   assert.ok(isSolved(p, a.board));
@@ -68,13 +68,13 @@ test('through one tile: pairs make trios, found already, there is another, That�
   assert.match(view(p, again), /Found already\./);
   const wrong = play(p, a, {type: 'pick', card: T.TO}, {type: 'pick', card: T.TH});
   assert.deepEqual(wrong.board.pick, [T.TO, T.TH], 'not a trio: both stay picked, marked');
-  assert.match(view(p, wrong), /tr-strip/);
+  assert.match(view(p, wrong), /ts-strip/);
   assert.deepEqual(play(p, wrong, {type: 'pick', card: T.SO}).board.pick, [T.SO], 'a third tap starts a new pair');
   a = play(p, a, {type: 'all'});
   assert.equal(a.board.told, 'more');
   assert.match(view(p, a), /There is another\./);
   assert.equal(move(p, a, {type: 'all'}), null, 'That’s all waits for a new trio');
-  assert.match(view(p, a), /class="secondary tr-button all"[^>]*disabled/);
+  assert.match(view(p, a), /class="secondary ts-button all"[^>]*disabled/);
   const kept = mech.carry(p, a.board, undo(a).board);
   assert.equal(kept.told, 'more', 'Undo keeps the answer');
   assert.deepEqual(kept.found, ['3.6']);
@@ -83,7 +83,7 @@ test('through one tile: pairs make trios, found already, there is another, That�
   a = play(p, a, {type: 'all'});
   assert.ok(isSolved(p, a.board));
   const html = view(p, freshAttempt(p));
-  assert.doesNotMatch(html, /\b[0-4] of 4\b|tr-count/, 'no found-count');
+  assert.doesNotMatch(html, /\b[0-4] of 4\b|ts-count/, 'no found-count');
 });
 
 test('every split: trays fill in turn, a split is kept and the trays empty, wrong trays stay', () => {
@@ -112,10 +112,10 @@ test('four with no trio: Can’t after a full try is refused, and the refusal su
   const p = byId('trios-03');
   let a = play(p, freshAttempt(p), {type: 'pick', card: T.CO}, {type: 'pick', card: T.TO}, {type: 'pick', card: T.SO});
   assert.equal(move(p, a, {type: 'cant', trio: [T.CO, T.TO, T.SO]}), null, 'Can’t needs a full try');
-  assert.match(view(p, a), /class="secondary tr-button tr-cant"[^>]*disabled/);
+  assert.match(view(p, a), /class="secondary ts-button ts-cant"[^>]*disabled/);
   a = play(p, a, {type: 'pick', card: T.CH});
   let html = view(p, a);
-  assert.doesNotMatch(html, /tr-line bad|in-bad/, 'the trio is the child’s to find: not drawn');
+  assert.doesNotMatch(html, /ts-line bad|in-bad/, 'the trio is the child’s to find: not drawn');
   assert.match(html, /There is a trio\./, 'but reported');
   assert.doesNotMatch(html, /A trio: /, 'and not named to a screen reader either');
   a = play(p, a, {type: 'cant', trio: [T.SO, T.CO, T.TO]});
@@ -125,7 +125,7 @@ test('four with no trio: Can’t after a full try is refused, and the refusal su
   const back = {...undo(a), board: mech.carry(p, a.board, undo(a).board)};
   assert.equal(back.board.told, 'way', 'Undo keeps the refusal');
   assert.doesNotMatch(view(p, back, true), /There is a way\./, 'but does not say it again');
-  assert.match(view(p, back, true), /class="secondary tr-button tr-cant"[^>]*disabled/, 'Can’t stays off');
+  assert.match(view(p, back, true), /class="secondary ts-button ts-cant"[^>]*disabled/, 'Can’t stays off');
   assert.equal(mech.carryOnRestart(p, a.board, restart(p, a).board).told, 'way', 'Restart keeps it too');
   const later = play(p, a, {type: 'pick', card: T.CH}, {type: 'pick', card: T.TH});
   assert.equal(later.board.told, 'way');
@@ -168,7 +168,7 @@ test('five with no trio: hints try first, then Can’t with the trio tapped; the
   mech.ui(p, {claiming: true});
   let html = view(p, a, true);
   assert.match(html, /Tap the trio\./);
-  assert.doesNotMatch(html, /claimable|tr-card[^"]*hinted/, 'nothing marks the tiles to tap');
+  assert.doesNotMatch(html, /claimable|ts-card[^"]*hinted/, 'nothing marks the tiles to tap');
   assert.match(html, /aria-label="Open square\. Pick for Can’t"/, 'a tile not chosen can be tapped too');
   assert.match(html, /aria-pressed="true"[^>]*>Can’t/);
   mech.ui(p, {pick: trio[0]});
@@ -178,8 +178,8 @@ test('five with no trio: hints try first, then Can’t with the trio tapped; the
   a = play(p, a, {type: 'cant', trio});
   assert.ok(isSolved(p, a.board));
   html = view(p, a);
-  assert.match(html, /tr-line bad/, 'the claimed trio is drawn once the claim is right');
-  assert.match(html, /tr-dishes/);
+  assert.match(html, /ts-line bad/, 'the claimed trio is drawn once the claim is right');
+  assert.match(html, /ts-dishes/);
   assert.match(html, /The open square completes 1 pair/);
   assert.match(html, /6 pairs complete inside the five/, 'two trios: ten pairs, four in dishes, six inside');
 });
@@ -193,7 +193,7 @@ test('nine of 27: dimmed cards can’t be chosen and light the pair that rules t
   const html = view(p, a, true);
   assert.match(html, /pair-lit/);
   assert.match(html, /aria-label="One square, ruled out by two chosen cards\. Show why"|ruled out by two chosen cards\. Show why/);
-  assert.match(html, /tr-strip/, 'the rule rows for the three');
+  assert.match(html, /ts-strip/, 'the rule rows for the three');
   const ten = byId('trios-10');
   const stuck = freshAttempt(ten);
   assert.equal(stuck.board.chosen.length, 8);
@@ -210,7 +210,7 @@ test('colours: two colours fail with a trio tapped, three work; counts draw card
   const yellow = trios(2).find(t => t.every(i => a.board.paint[i] === 0));
   a = play(p, a, {type: 'cant', trio: yellow});
   assert.ok(isSolved(p, a.board));
-  assert.match(view(p, a), /tr-classes/);
+  assert.match(view(p, a), /ts-classes/);
   assert.match(view(p, a), /5 yellow tiles/);
   const three = byId('trios-08');
   const good = designs(3, 'mono')[0];
@@ -253,7 +253,7 @@ test('the playground: three decks, dimmed cards, Clear, never solved', () => {
   a = play(p, a, {type: 'deck', deck: 4});
   assert.deepEqual(a.board, {deck: 4, chosen: []});
   a = play(p, a, {type: 'pick', card: 80});
-  assert.match(view(p, a), /tr-board deck-4/);
+  assert.match(view(p, a), /ts-board ts-deck-4/);
   a = play(p, a, {type: 'clear'});
   assert.equal(isSolved(p, a.board), false);
   assert.equal(nextHint(p, a).type, 'done');
@@ -281,8 +281,8 @@ test('forged saves are rejected', () => {
 test('every puzzle renders a board, with one short objective', () => {
   for (const p of json.puzzles) {
     const html = view(p, freshAttempt(p));
-    assert.match(html, /tr-puzzle/, p.id);
-    assert.match(html, /tr-board/, p.id);
+    assert.match(html, /ts-puzzle/, p.id);
+    assert.match(html, /ts-board/, p.id);
     assert.ok(p.visibleObjective.length < 60, p.id);
   }
   const L = layout(2, byId('trios-01').parameters.order);

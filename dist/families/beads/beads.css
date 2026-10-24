@@ -44,4 +44,4 @@
 .bd-palette-pick .bd-swatch{width:16px;height:16px}
 .bd-size[aria-pressed="true"],.bd-palette-pick[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e);background:#e9eddc}
 
-@media (max-width:520px){.br-ring{width:min(100%,290px)}.bd-found .br-mini{width:48px;height:48px}}
+@media (max-width:520px){[data-mechanic-wire="beads"] .br-ring{width:min(100%,290px)}.bd-found .br-mini{width:48px;height:48px}}

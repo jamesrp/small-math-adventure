@@ -79,7 +79,7 @@ test('wrong letters show red, and the hint says to undo', () => {
   const p = byId('rotor-04');
   let a = play(p, freshAttempt(p), ...set('L', 'L', 'R'), ...sends(2));
   const html = view(p, a);
-  assert.match(html, /rr-slot got full wrong">D</, 'D landed where C was wanted');
+  assert.match(html, /ro-slot got full wrong">D</, 'D landed where C was wanted');
   const h = nextHint(p, a);
   assert.equal(h.type, 'deadend');
   assert.ok(h.quiet);
@@ -90,9 +90,9 @@ test('wrong letters show red, and the hint says to undo', () => {
 test('Can’t: proofs and refusals, each claim answered on its own whether or not the order can be made', () => {
   const p = byId('rotor-05'), m = mechanicFor(p);
   let a = freshAttempt(p);
-  assert.match(view(p, a), /rr-cant"[^>]*disabled/, 'Can’t waits for a counter');
+  assert.match(view(p, a), /ro-cant"[^>]*disabled/, 'Can’t waits for a counter');
   a = play(p, a, ...set('L', 'L', 'L'), {type: 'send'});
-  assert.doesNotMatch(view(p, a), /rr-cant"[^>]*disabled/);
+  assert.doesNotMatch(view(p, a), /ro-cant"[^>]*disabled/);
   const wrong = play(p, a, {type: 'cant', node: 's1', at: [0, 1]});
   assert.equal(wrong.board.told, 'apart');
   assert.match(view(p, wrong), /Those two go different ways there\./);
@@ -102,8 +102,8 @@ test('Can’t: proofs and refusals, each claim answered on its own whether or no
   assert.deepEqual(right.board.claim, {node: 's0', at: [0, 1]});
   const html = view(p, right);
   assert.match(html, /gb-node sw [lr] claimed/, 'the switch is ringed');
-  assert.equal((html.match(/rr-slot want claimed/g) || []).length, 2, 'and the two letters');
-  assert.match(html, /rr-claim/, 'with the road they share');
+  assert.equal((html.match(/ro-slot want claimed/g) || []).length, 2, 'and the two letters');
+  assert.match(html, /ro-claim/, 'with the road they share');
   // On an order some start makes (C B D A), a claim gets its own verdict, the
   // same kinds of line as above, and Can't stays on.
   const q = byId('rotor-07');
@@ -115,7 +115,7 @@ test('Can’t: proofs and refusals, each claim answered on its own whether or no
     assert.equal(c.board.told, certify(2, q.parameters.target, s, x, y));
     lines.add(c.board.told);
     assert.doesNotMatch(view(q, c), /There is a way/);
-    assert.doesNotMatch(view(q, c), /rr-cant"[^>]*disabled/, 'Can’t stays on');
+    assert.doesNotMatch(view(q, c), /ro-cant"[^>]*disabled/, 'Can’t stays on');
   }
   assert.deepEqual([...lines].sort(), ['apart', 'between', 'off'], 'the same three lines as on an impossible order');
   b = play(q, b, {type: 'cant', node: 's0', at: [0, 1]});
@@ -133,14 +133,14 @@ test('the claim being tapped is view state, ended by any move or Undo', () => {
   let a = play(p, freshAttempt(p), {type: 'flip', node: 's0'}, {type: 'send'});
   m.ui(p, {claiming: true, moves: a.moves});
   let html = view(p, a);
-  assert.match(html, /rr-puzzle claiming/);
+  assert.match(html, /ro-puzzle claiming/);
   assert.equal((html.match(/data-rr-at=/g) || []).length, 4, 'the slots of the order are buttons');
-  assert.match(html, /rr-send"[^>]*disabled/, 'no Send while claiming');
+  assert.match(html, /ro-send"[^>]*disabled/, 'no Send while claiming');
   m.ui(p, {node: 's0', moves: a.moves});
   m.ui(p, {at: [1], moves: a.moves});
   html = view(p, a);
   assert.match(html, /gb-node sw r chosen/);
-  assert.match(html, /rr-slot want chosen/);
+  assert.match(html, /ro-slot want chosen/);
   m.ui(p, {at: [2], moves: a.moves + 1});
   assert.match(view(p, a), /aria-pressed="true"[^>]*>B</, 'a payload from another board is ignored');
   a = play(p, a, {type: 'send'});
@@ -154,13 +154,13 @@ test('the claim being tapped is view state, ended by any move or Undo', () => {
 test('find every: Keep, the shelf and That’s all', () => {
   const p = byId('rotor-06');
   let a = play(p, freshAttempt(p), ...set('R', 'L', 'R'), ...sends(4));
-  assert.match(view(p, a), /rr-keep"[^>]*>Keep/);
+  assert.match(view(p, a), /ro-keep"[^>]*>Keep/);
   a = play(p, a, {type: 'keep'});
   assert.equal(a.board.sent, 0);
-  assert.match(view(p, a), /rr-kept/);
+  assert.match(view(p, a), /ro-kept/);
   a = play(p, a, {type: 'all'});
   assert.equal(a.board.told, 'more');
-  assert.match(view(p, a), /rr-all"[^>]*disabled/, 'That’s all stays off');
+  assert.match(view(p, a), /ro-all"[^>]*disabled/, 'That’s all stays off');
   a = play(p, a, {type: 'set', node: 's1', side: 'R'}, ...sends(4), {type: 'keep'}, {type: 'all'});
   assert.ok(isSolved(p, a.board));
   assert.doesNotMatch(view(p, a), /There is another/);
@@ -170,7 +170,7 @@ test('the playground: trees, the cap and Clear; never solved and no Hint', () =>
   const g = byId('rotor-playground'), m = mechanicFor(g);
   let a = freshAttempt(g);
   assert.ok(m.noHint(g));
-  assert.match(view(g, a), /rr-tree-button/);
+  assert.match(view(g, a), /ro-tree-button/);
   a = play(g, a, {type: 'tree', depth: 2}, ...set('L', 'R', 'L'), ...sends(8));
   assert.equal(move(g, a, {type: 'send'}), null, 'two blocks');
   assert.deepEqual(a.board.start, ['L', 'R', 'L'], 'the start is kept');

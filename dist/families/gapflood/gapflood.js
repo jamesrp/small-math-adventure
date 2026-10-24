@@ -354,7 +354,7 @@ function trails(g, q, routes) {
     const list = SIDES.filter(s => users[e.i].includes(s)), {n} = edgeGeometry(g, e), [x1, y1] = g.pos[e.u], [x2, y2] = g.pos[e.v];
     return list.map((s, k) => {
       const off = (k - (list.length - 1) / 2) * 2.1 * g.k;
-      return `<line class="gf-trail t${s}" x1="${f(x1 + n[0] * off)}" y1="${f(y1 + n[1] * off)}" x2="${f(x2 + n[0] * off)}" y2="${f(y2 + n[1] * off)}"/>`;
+      return `<line class="gp-trail t${s}" x1="${f(x1 + n[0] * off)}" y1="${f(y1 + n[1] * off)}" x2="${f(x2 + n[0] * off)}" y2="${f(y2 + n[1] * off)}"/>`;
     }).join('');
   }).join('');
 }
@@ -370,7 +370,7 @@ function floodRoads(g, q, fl, cls) {
 function glowRoutes(g, q, routes) {
   const used = new Set();
   for (const s of SIDES) { const r = routes[s]; for (let k = 1; k < r.length; k++) used.add(roadOf(q, r[k - 1], r[k])); }
-  return g.edges.filter(e => used.has(e.i)).map(e => { const [x1, y1] = g.pos[e.u], [x2, y2] = g.pos[e.v]; return `<line class="gf-glow" x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}"/>`; }).join('');
+  return g.edges.filter(e => used.has(e.i)).map(e => { const [x1, y1] = g.pos[e.u], [x2, y2] = g.pos[e.v]; return `<line class="gp-glow" x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}"/>`; }).join('');
 }
 // A ladder's columns, each ringed once for every route that must cross it.
 function columnRings(g, q) {
@@ -379,7 +379,7 @@ function columnRings(g, q) {
     const ids = Object.keys(q.columns).filter(id => q.columns[id] === x), ys = ids.map(id => g.pos[id][1]), cx = g.pos[ids[0]][0];
     return sides.map((s, k) => {
       const r = r0 + k * step, top = Math.min(...ys) - r, h = Math.max(...ys) - Math.min(...ys) + 2 * r;
-      return `<rect class="gf-column t${s}" x="${f(cx - r)}" y="${f(top)}" width="${f(2 * r)}" height="${f(h)}" rx="${f(r)}"/>`;
+      return `<rect class="gp-column t${s}" x="${f(cx - r)}" y="${f(top)}" width="${f(2 * r)}" height="${f(h)}" rx="${f(r)}"/>`;
     }).join('');
   }).join('');
 }
@@ -419,22 +419,22 @@ function render(p, a) {
     const mark = (act?.type === 'draw' || act?.type === 'cut') && act.side === pen && roadOf(q, b.routes[pen].at(-1), act.to) === i;
     return {cls: mark ? 'hinted' : '', act: Boolean(action), label: `Road from ${nameOf(q, u)} to ${nameOf(q, v)}${action ? `. ${action.type === 'draw' ? 'Draw' : 'Take'} ${action.side} ${action.type === 'draw' ? 'along it' : 'back'}` : ''}`};
   };
-  const under = (fl && fl.gap > 0 ? floodRoads(g, q, fl, 'gf-flood') : '') + (cert === 'tripod' ? glowRoutes(g, q, routes) : '') + (cert === 'columns' ? columnRings(g, q) : '');
-  const board = graphBoard(g, {cls: `gf-map ${q.kind}${q.small ? ' small' : ''}${claiming ? ' claiming' : ''}`, label: 'Map of roads', slide: Boolean(pen), node, edge, under, over: trails(g, q, routes)});
+  const under = (fl && fl.gap > 0 ? floodRoads(g, q, fl, 'gp-flood') : '') + (cert === 'tripod' ? glowRoutes(g, q, routes) : '') + (cert === 'columns' ? columnRings(g, q) : '');
+  const board = graphBoard(g, {cls: `gp-map ${q.kind}${q.small ? ' small' : ''}${claiming ? ' claiming' : ''}`, label: 'Map of roads', slide: Boolean(pen), node, edge, under, over: trails(g, q, routes)});
   const hintSide = (act?.type === 'draw' || act?.type === 'cut') && act.side !== pen ? act.side : null;
-  const chips = SIDES.map(s => `<button type="button" class="gf-chip t${s}${s === hintSide ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({pen: s})}' data-focus="gf-chip-${s}" aria-pressed="${s === pen}" aria-label="Route ${s}">${s}</button>`).join('');
-  const claim = centreClaim(q) ? `<button type="button" class="secondary gf-button${act?.type === 'cant' && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="gf-cant" aria-pressed="${claiming}"${open ? '' : ' disabled'}>Can’t</button>`
+  const chips = SIDES.map(s => `<button type="button" class="gp-chip t${s}${s === hintSide ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({pen: s})}' data-focus="gp-chip-${s}" aria-pressed="${s === pen}" aria-label="Route ${s}">${s}</button>`).join('');
+  const claim = centreClaim(q) ? `<button type="button" class="secondary gp-button${act?.type === 'cant' && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="gp-cant" aria-pressed="${claiming}"${open ? '' : ' disabled'}>Can’t</button>`
     : q.goal === 'reach' ? button('Can’t', {type: 'cant'}, open, act?.type === 'cant')
     : q.goal === 'best' ? button('Best', {type: 'best'}, b.flood !== null && b.told !== 'bigger', act?.type === 'best') : '';
-  const top = solvedNow ? '' : `<div class="gf-bar"><div class="gf-chips" role="group" aria-label="Routes">${chips}</div>${claim}</div>`;
+  const top = solvedNow ? '' : `<div class="gp-bar"><div class="gp-chips" role="group" aria-label="Routes">${chips}</div>${claim}</div>`;
   const told = b.told === 'can' ? 'It can be done.' : b.told === 'bigger' ? 'A bigger gap is possible.'
     : b.told === 'miss' && !solvedNow ? 'The three routes don’t all meet there.' : claiming ? 'Tap where all three routes meet.'
     : cert === 'rings' ? `Every dot is within ${far} ${far === 1 ? 'step' : 'steps'} of A, B or C.` : cert === 'columns' ? 'Two routes cross every column.' : '';
   const gapNow = b.flood !== null ? gapAt(q, routes, b.flood) : null;
   const status = `${routeWords(q, {routes})}.${gapNow !== null ? ` Gap ${gapNow} at ${nameOf(q, b.flood)}.` : ''}${told ? ` ${told}` : ''}${pen ? ` ${pen} is chosen.` : ''}`;
-  return `<div class="gf-puzzle${solvedNow ? ' solved' : ''}" data-mechanic-wire="gapflood">${top}${board}${told ? `<p class="gf-told">${esc(told)}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="gp-puzzle${solvedNow ? ' solved' : ''}" data-mechanic-wire="gapflood">${top}${board}${told ? `<p class="gp-told">${esc(told)}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
-const button = (label, action, enabled, hinted) => `<button type="button" class="secondary gf-button${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="gf-${action.type}" ${enabled ? '' : 'disabled'}>${label}</button>`;
+const button = (label, action, enabled, hinted) => `<button type="button" class="secondary gp-button${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="gp-${action.type}" ${enabled ? '' : 'disabled'}>${label}</button>`;
 
 // A press that becomes a slide draws; only a tap floods, so a slide that
 // finishes the triangle and runs on does not flood every dot it crosses.
@@ -501,5 +501,5 @@ export default {
   mechanics: gapMechanics,
   pack: new URL('./gapflood.json', import.meta.url).href,
   css: new URL('./gapflood.css', import.meta.url).href,
-  focus: '.gb-node[role=button],.gb-hit,.gf-chip,.gf-button:not([disabled])'
+  focus: '.gb-node[role=button],.gb-hit,.gp-chip,.gp-button:not([disabled])'
 };

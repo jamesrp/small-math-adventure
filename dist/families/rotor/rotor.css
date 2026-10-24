@@ -6,69 +6,69 @@
    last one's trip glows pale gold, and landed counters stack under their exit.
    Under the tree, the order to make (dashed ochre slots, blank where any exit
    will do) sits over the order the counters landed in (red where it differs). */
-.rr-puzzle{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
-.rr-map{max-width:520px}
-.rr-map.rr-depth-1{max-width:340px}
-.rr-map.rr-depth-3{max-width:600px}
+.ro-puzzle{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:100%}
+.ro-map{max-width:520px}
+.ro-map.ro-depth-1{max-width:340px}
+.ro-map.ro-depth-3{max-width:600px}
 
 /* Switches and exits. */
-.rr-map .gb-node.sw .gb-dot{fill:transparent}
+.ro-map .gb-node.sw .gb-dot{fill:transparent}
 /* On the eight-exit tree the switches are drawn smaller; their tap area (and
    rings) stay about 44 px across on a phone. The exits are not controls. */
-.rr-map.rr-depth-3 .gb-node.sw .gb-reach{r:9.4px}
-.rr-map .gb-node.sw[role="button"]:hover .gb-dot{fill:rgba(246,240,220,.45)}
-.rr-map .gb-node.sw.unset .gb-dot{stroke-dasharray:3 2.6}
-.rr-map .rr-card-face{fill:var(--b-card,#fffdf5)}
-.rr-map .rr-arrow{stroke:var(--b-pine,#31533e);stroke-width:2.4px;vector-effect:non-scaling-stroke;stroke-linecap:round}
-.rr-map .rr-arrow-head{fill:var(--b-pine,#31533e)}
-.rr-map .gb-node.exit .gb-dot{fill:#f3efe2}
-.rr-map .gb-node.chosen .gb-reach,.rr-map .gb-node.claimed .gb-reach{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:3.5px;vector-effect:non-scaling-stroke}
-.rr-map .gb-node.claimed .gb-reach{stroke:var(--b-pine,#31533e)}
+.ro-map.ro-depth-3 .gb-node.sw .gb-reach{r:9.4px}
+.ro-map .gb-node.sw[role="button"]:hover .gb-dot{fill:rgba(246,240,220,.45)}
+.ro-map .gb-node.sw.unset .gb-dot{stroke-dasharray:3 2.6}
+.ro-map .ro-card-face{fill:var(--b-card,#fffdf5)}
+.ro-map .ro-arrow{stroke:var(--b-pine,#31533e);stroke-width:2.4px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.ro-map .ro-arrow-head{fill:var(--b-pine,#31533e)}
+.ro-map .gb-node.exit .gb-dot{fill:#f3efe2}
+.ro-map .gb-node.chosen .gb-reach,.ro-map .gb-node.claimed .gb-reach{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:3.5px;vector-effect:non-scaling-stroke}
+.ro-map .gb-node.claimed .gb-reach{stroke:var(--b-pine,#31533e)}
 
 /* Roads: the next road out of each switch, the last trip, the entry. */
-.rr-map .gb-stroke.rr-next{stroke:var(--b-pine,#31533e);stroke-width:5px}
-.rr-map .gb-stroke.rr-claim{stroke:var(--b-ochre,#b38840);stroke-width:7px}
-.rr-map .rr-trail{fill:none;stroke:#f2dc9b;stroke-width:15px;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
-.rr-map .rr-entry{stroke:#9aa88f;stroke-width:3px;vector-effect:non-scaling-stroke;stroke-dasharray:3 3}
-.rr-map .rr-counter{fill:var(--b-sun,#efc76e);stroke:var(--b-ink,#294439);stroke-width:1.5px;vector-effect:non-scaling-stroke}
+.ro-map .gb-stroke.ro-next{stroke:var(--b-pine,#31533e);stroke-width:5px}
+.ro-map .gb-stroke.ro-claim{stroke:var(--b-ochre,#b38840);stroke-width:7px}
+.ro-map .ro-trail{fill:none;stroke:#f2dc9b;stroke-width:15px;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.ro-map .ro-entry{stroke:#9aa88f;stroke-width:3px;vector-effect:non-scaling-stroke;stroke-dasharray:3 3}
+.ro-map .ro-counter{fill:var(--b-sun,#efc76e);stroke:var(--b-ink,#294439);stroke-width:1.5px;vector-effect:non-scaling-stroke}
 
 /* The bar: counters to send, Send and the claims. */
-.rr-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.45rem .7rem;max-width:100%;min-height:30px}
-.rr-tray{display:inline-flex;flex-wrap:wrap;justify-content:center;gap:5px;max-width:200px}
-.rr-tray-dot{width:16px;height:16px;border-radius:50%;background:var(--b-sun,#efc76e);border:1.5px solid var(--b-ink,#294439);box-sizing:border-box}
-.rr-puzzle .rr-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
-.rr-puzzle .rr-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
-.rr-puzzle .rr-button[aria-pressed="true"]{background:#e9eddc;box-shadow:inset 0 0 0 2px var(--b-pine,#31533e)}
-.rr-puzzle .rr-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.ro-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.45rem .7rem;max-width:100%;min-height:30px}
+.ro-tray{display:inline-flex;flex-wrap:wrap;justify-content:center;gap:5px;max-width:200px}
+.ro-tray-dot{width:16px;height:16px;border-radius:50%;background:var(--b-sun,#efc76e);border:1.5px solid var(--b-ink,#294439);box-sizing:border-box}
+.ro-puzzle .ro-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.ro-puzzle .ro-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+.ro-puzzle .ro-button[aria-pressed="true"]{background:#e9eddc;box-shadow:inset 0 0 0 2px var(--b-pine,#31533e)}
+.ro-puzzle .ro-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
 
 /* The order to make, and the order they landed in. */
-.rr-rows{display:flex;flex-direction:column;align-items:center;gap:.3rem;width:100%}
+.ro-rows{display:flex;flex-direction:column;align-items:center;gap:.3rem;width:100%}
 /* Up to eight slots a line, each up to 40px wide, so eight fit a phone. */
-.rr-row{display:grid;grid-template-columns:repeat(var(--n,8),minmax(0,40px));justify-content:center;gap:5px;width:100%;max-width:360px}
-.rr-slot{display:flex;align-items:center;justify-content:center;width:100%;height:38px;box-sizing:border-box;border-radius:8px;font-family:var(--b-display,Georgia,serif);font-size:1.25rem;color:var(--b-ink,#294439)}
-.rr-slot.want{border:2px dashed var(--b-ochre,#b38840);background:#f7efdc}
-.rr-slot.want.open{background:transparent;border-color:#d8c79f}
-.rr-slot.got{border:1.5px solid var(--b-line,#d0d6bd);background:var(--b-card,#fffdf5)}
-.rr-slot.got.full{border-color:var(--b-pine,#31533e)}
-.rr-slot.got.wrong{border:2px solid var(--b-bad,#a9503a);color:var(--b-bad,#a9503a);background:#f8e6df}
-.rr-arrivals.play .rr-slot{height:32px;font-size:1.05rem}
-.rr-puzzle button.rr-slot{padding:0;cursor:pointer;height:44px;font-weight:400}
-.rr-puzzle button.rr-slot.chosen{box-shadow:0 0 0 3px var(--b-ochre,#b38840);border-style:solid;background:#f3e3bf}
-.rr-slot.claimed{box-shadow:0 0 0 3px var(--b-pine,#31533e);border-style:solid}
-.rr-puzzle button.rr-slot.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
-.rr-puzzle.claiming .rr-target{padding:4px;border-radius:12px;background:#fbf4e3}
+.ro-row{display:grid;grid-template-columns:repeat(var(--n,8),minmax(0,40px));justify-content:center;gap:5px;width:100%;max-width:360px}
+.ro-slot{display:flex;align-items:center;justify-content:center;width:100%;height:38px;box-sizing:border-box;border-radius:8px;font-family:var(--b-display,Georgia,serif);font-size:1.25rem;color:var(--b-ink,#294439)}
+.ro-slot.want{border:2px dashed var(--b-ochre,#b38840);background:#f7efdc}
+.ro-slot.want.open{background:transparent;border-color:#d8c79f}
+.ro-slot.got{border:1.5px solid var(--b-line,#d0d6bd);background:var(--b-card,#fffdf5)}
+.ro-slot.got.full{border-color:var(--b-pine,#31533e)}
+.ro-slot.got.wrong{border:2px solid var(--b-bad,#a9503a);color:var(--b-bad,#a9503a);background:#f8e6df}
+.ro-arrivals.play .ro-slot{height:32px;font-size:1.05rem}
+.ro-puzzle button.ro-slot{padding:0;cursor:pointer;height:44px;font-weight:400}
+.ro-puzzle button.ro-slot.chosen{box-shadow:0 0 0 3px var(--b-ochre,#b38840);border-style:solid;background:#f3e3bf}
+.ro-slot.claimed{box-shadow:0 0 0 3px var(--b-pine,#31533e);border-style:solid}
+.ro-puzzle button.ro-slot.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.ro-puzzle.claiming .ro-target{padding:4px;border-radius:12px;background:#fbf4e3}
 
 /* Kept orders. */
-.rr-shelf{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;max-width:100%}
-.rr-kept{display:inline-flex;gap:2px;padding:4px 7px;border:1.5px solid var(--b-pine,#31533e);border-radius:9px;background:#e9eddc;font-family:var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
-.rr-kept i{font-style:normal;width:.85em;text-align:center}
+.ro-shelf{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;max-width:100%}
+.ro-kept{display:inline-flex;gap:2px;padding:4px 7px;border:1.5px solid var(--b-pine,#31533e);border-radius:9px;background:#e9eddc;font-family:var(--b-display,Georgia,serif);color:var(--b-ink,#294439)}
+.ro-kept i{font-style:normal;width:.85em;text-align:center}
 
 /* Playground: trees. */
-.rr-trees{display:flex;gap:.4rem;justify-content:center}
-.rr-puzzle .rr-tree-button{width:72px;min-height:46px;padding:4px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
-.rr-puzzle .rr-tree-button[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 2px var(--b-pine,#31533e);background:#e9eddc}
-.rr-tree-icon{display:block;width:100%;height:auto;max-height:40px}
-.rr-tree-icon .rr-icon-roads line{stroke:#9aa88f;stroke-width:3px}
-.rr-tree-icon circle{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:2.5px}
+.ro-trees{display:flex;gap:.4rem;justify-content:center}
+.ro-puzzle .ro-tree-button{width:72px;min-height:46px;padding:4px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+.ro-puzzle .ro-tree-button[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 2px var(--b-pine,#31533e);background:#e9eddc}
+.ro-tree-icon{display:block;width:100%;height:auto;max-height:40px}
+.ro-tree-icon .ro-icon-roads line{stroke:#9aa88f;stroke-width:3px}
+.ro-tree-icon circle{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:2.5px}
 
-.rr-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+.ro-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}

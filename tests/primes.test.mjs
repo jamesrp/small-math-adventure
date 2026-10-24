@@ -52,14 +52,14 @@ test('bag helpers: counts, splits, the smallest bags', () => {
 test('choosing and keeping: one value per choice, tokens with the same number are the same', () => {
   const p = byId('primes-02');
   let a = freshAttempt(p);
-  assert.match(draw(p, a), /<span class="pb-value"[^>]*>1<\/span>/, 'nothing chosen makes 1');
+  assert.match(draw(p, a), /<span class="pm-value"[^>]*>1<\/span>/, 'nothing chosen makes 1');
   a = play(p, a, keep, ...pick(0));
-  assert.match(draw(p, a), /<span class="pb-value"[^>]*>2<\/span>/);
+  assert.match(draw(p, a), /<span class="pm-value"[^>]*>2<\/span>/);
   a = play(p, a, keep, ...pick(0, 1));
   assert.equal(move(p, a, keep), null, 'the second 2 alone makes 2 again');
   const html = draw(p, a);
-  assert.match(html, /pb-keep"[^>]*disabled/, 'Keep is off');
-  assert.match(html, /<li class="pb-item now"[^>]*><b>2<\/b>/, 'and the kept 2 is ringed');
+  assert.match(html, /pm-keep"[^>]*disabled/, 'Keep is off');
+  assert.match(html, /<li class="pm-item now"[^>]*><b>2<\/b>/, 'and the kept 2 is ringed');
   assert.deepEqual(a.board.tray.map(valueOf), [1, 2]);
   a = play(p, a, ...pick(0), keep, ...pick(2), keep);
   assert.deepEqual(a.board.tray.map(valueOf), [1, 2, 4, 8], 'kept smallest first');
@@ -73,7 +73,7 @@ test('That’s all: refused while a value is missing, held until the tray grows,
   a = play(p, a, all);
   assert.equal(a.board.said, 'more');
   assert.match(draw(p, a), /There is another\./);
-  assert.match(draw(p, a), /pb-all"[^>]*disabled/);
+  assert.match(draw(p, a), /pm-all"[^>]*disabled/);
   assert.equal(move(p, a, all), null);
   let b = play(p, a, ...pick(1));
   assert.equal(b.board.said, 'more', 'choosing keeps the refusal');
@@ -133,7 +133,7 @@ test('splitting: keys, the chosen card, a refused key, the shelf and New run', (
   mech.reset(p);
   let a = freshAttempt(p);
   let html = draw(p, a);
-  assert.match(html, /<span class="pb-eq" aria-hidden="true">12 =<\/span>/);
+  assert.match(html, /<span class="pm-eq" aria-hidden="true">12 =<\/span>/);
   // A key that does not divide is a refusal, not a move.
   const told = uiOf(html).find(u => u.told && u.told.d === 5);
   assert.ok(told, '5 on 12 is a refusal');
@@ -141,13 +141,13 @@ test('splitting: keys, the chosen card, a refused key, the shelf and New run', (
   mech.ui(p, told);
   html = draw(p, a);
   assert.match(html, /5 doesn’t split 12\./);
-  assert.match(html, /class="pb-key marked"[^>]*>5</);
+  assert.match(html, /class="pm-key marked"[^>]*>5</);
   a = play(p, a, {type: 'split', card: 0, by: 3});
   html = draw(p, a);
   assert.doesNotMatch(html, /doesn’t split/, 'the refusal goes with the board');
   assert.match(html, /aria-label="3, prime">3<\/span>/, 'a prime becomes a round token');
-  assert.match(html, /pb-card selected[^>]*aria-pressed="true" aria-label="4"/, 'the composite card is chosen');
-  assert.match(html, /data-focus="pb-key-4" disabled/, 'keys from the card up are off');
+  assert.match(html, /pm-card selected[^>]*aria-pressed="true" aria-label="4"/, 'the composite card is chosen');
+  assert.match(html, /data-focus="pm-key-4" disabled/, 'keys from the card up are off');
   a = play(p, a, {type: 'split', card: 1, by: 2});
   assert.deepEqual(a.board.shelf, [{pair: [3, 4], bag: [2, 2, 3]}]);
   assert.equal(move(p, a, {type: 'split', card: 0, by: 2}), null, 'nothing splits when every card is prime');
@@ -155,7 +155,7 @@ test('splitting: keys, the chosen card, a refused key, the shelf and New run', (
   assert.equal(a.board.said, 'more');
   a = play(p, a, {type: 'new'}, {type: 'split', card: 0, by: 4}, {type: 'split', card: 0, by: 2});
   assert.equal(a.board.shelf.length, 1, '4 × 3 is the first split 3 × 4 again');
-  assert.match(draw(p, a), /pb-run now/);
+  assert.match(draw(p, a), /pm-run now/);
   assert.equal(a.board.said, 'more', 'still refused');
   // Choosing another card is view state.
   a = play(p, a, {type: 'new'}, {type: 'split', card: 0, by: 2});
@@ -173,7 +173,7 @@ test('choosing a card among several', () => {
   mech.reset(p);
   let a = play(p, freshAttempt(p), {type: 'split', card: 0, by: 6});
   let html = draw(p, a);
-  assert.match(html, /pb-card selected[^>]*aria-label="6"/, 'the first composite card starts chosen');
+  assert.match(html, /pm-card selected[^>]*aria-label="6"/, 'the first composite card starts chosen');
   const second = uiOf(html).find(u => u.sel === 1);
   mech.ui(p, second);
   html = draw(p, a);
@@ -200,7 +200,7 @@ test('hints: the authored nudge first, then one move at a time', () => {
   assert.equal(nextHint(design, d).text, 'Take a 7 out of the bag.');
   d = play(design, d, drop(7));
   assert.equal(nextHint(design, d).text, 'Put a 2 in the bag.');
-  assert.match(draw(design, d, 2), /class="pb-token pb-add hinted"[^>]*aria-label="Put a 2 in the bag"/);
+  assert.match(draw(design, d, 2), /class="pm-token pm-add hinted"[^>]*aria-label="Put a 2 in the bag"/);
 });
 
 test('saves: forged boards are rejected', () => {

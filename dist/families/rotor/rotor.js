@@ -327,13 +327,13 @@ function card(tree, id, side) {
   const tail = [x - s * 2 * k, y - 2 * k], tip = [x + s * 2.5 * k, y + 2.5 * k];
   const dir = [s / Math.SQRT2, 1 / Math.SQRT2], nrm = [-dir[1], dir[0]], h = 1.9 * k;
   const head = [tip, [tip[0] - dir[0] * h + nrm[0] * h * .7, tip[1] - dir[1] * h + nrm[1] * h * .7], [tip[0] - dir[0] * h - nrm[0] * h * .7, tip[1] - dir[1] * h - nrm[1] * h * .7]];
-  return `<g class="rr-card" aria-hidden="true"><circle class="rr-card-face" cx="${f(x)}" cy="${f(y)}" r="${f(NODE_R * k)}"/>${side ? `<line class="rr-arrow" x1="${f(tail[0])}" y1="${f(tail[1])}" x2="${f(tip[0] - dir[0] * h * .6)}" y2="${f(tip[1] - dir[1] * h * .6)}"/><polygon class="rr-arrow-head" points="${head.map(pt).join(' ')}"/>` : ''}</g>`;
+  return `<g class="ro-card" aria-hidden="true"><circle class="ro-card-face" cx="${f(x)}" cy="${f(y)}" r="${f(NODE_R * k)}"/>${side ? `<line class="ro-arrow" x1="${f(tail[0])}" y1="${f(tail[1])}" x2="${f(tip[0] - dir[0] * h * .6)}" y2="${f(tip[1] - dir[1] * h * .6)}"/><polygon class="ro-arrow-head" points="${head.map(pt).join(' ')}"/>` : ''}</g>`;
 }
 // Counters at an exit, stacked below it.
 function stack(tree, id, count) {
   const [x, y] = tree.g.pos[id], k = tree.k, room = tree.slots, gap = count > room ? 5.6 * (room - 1) / (count - 1) : 5.6;
   let out = '';
-  for (let c = 0; c < count; c++) out += `<circle class="rr-counter" cx="${f(x)}" cy="${f(y + (NODE_R + 3.4 + c * gap) * k)}" r="${f(2.6 * k)}"/>`;
+  for (let c = 0; c < count; c++) out += `<circle class="ro-counter" cx="${f(x)}" cy="${f(y + (NODE_R + 3.4 + c * gap) * k)}" r="${f(2.6 * k)}"/>`;
   return out;
 }
 const uiState = new Map();
@@ -341,11 +341,11 @@ const ui = p => { if (!uiState.has(p.id)) uiState.set(p.id, {claiming: false, no
 // The claim being tapped belongs to the board it began on: any move or Undo
 // ends it.
 const claimOf = (p, a) => { const v = ui(p); return v.claiming && v.moves === a.moves && cantOpen(p, a.board) && !solved(p, a.board) ? v : null; };
-const moveButton = (label, action, cls, enabled, extra = '') => `<button type="button" class="secondary rr-button ${cls}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="rr-${action.type}${action.depth ? `-${action.depth}` : ''}" ${enabled ? '' : 'disabled'} ${extra}>${label}</button>`;
+const moveButton = (label, action, cls, enabled, extra = '') => `<button type="button" class="secondary ro-button ${cls}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="ro-${action.type}${action.depth ? `-${action.depth}` : ''}" ${enabled ? '' : 'disabled'} ${extra}>${label}</button>`;
 function treeIcon(d) {
   const t = treeOf(d), g = t.g;
   const lines = g.edges.map(e => `<line x1="${f(g.pos[e.u][0])}" y1="${f(g.pos[e.u][1])}" x2="${f(g.pos[e.v][0])}" y2="${f(g.pos[e.v][1])}"/>`).join('');
-  return `<svg class="rr-tree-icon" viewBox="-4 ${f(t.entry[1] + 6)} 108 ${f(g.pos[letterOf(0)][1] - t.entry[1])}" aria-hidden="true"><g class="rr-icon-roads">${lines}</g>${g.ids.map(id => `<circle cx="${f(g.pos[id][0])}" cy="${f(g.pos[id][1])}" r="${f(NODE_R * t.k)}"/>`).join('')}</svg>`;
+  return `<svg class="ro-tree-icon" viewBox="-4 ${f(t.entry[1] + 6)} 108 ${f(g.pos[letterOf(0)][1] - t.entry[1])}" aria-hidden="true"><g class="ro-icon-roads">${lines}</g>${g.ids.map(id => `<circle cx="${f(g.pos[id][0])}" cy="${f(g.pos[id][1])}" r="${f(NODE_R * t.k)}"/>`).join('')}</svg>`;
 }
 const TOLD = {
   open: 'That slot could be any exit.',
@@ -367,7 +367,7 @@ function render(p, a) {
   const lastTrip = new Set(st.last ? st.last.slice(0, -1) : []);
   const hintNodes = shown?.nodes || [];
   const board = graphBoard(g, {
-    cls: `rr-map rr-depth-${d}${done ? ' done' : ''}${claiming ? ' claiming' : ''}`,
+    cls: `ro-map ro-depth-${d}${done ? ' done' : ''}${claiming ? ' claiming' : ''}`,
     label: 'Tree of switches',
     node: id => {
       const i = switchIndex(id);
@@ -385,10 +385,10 @@ function render(p, a) {
       const i = Math.floor(e / 2), side = e % 2 ? 'R' : 'L', next = st.now[i] === side;
       const onClaim = final && i === finalSwitch && sideAt(d, i, leafOf(target[final.at[0]])) === side;
       const hinted = shownAction?.type === 'set' && switchIndex(shownAction.node) === i && shownAction.side === side;
-      return {cls: [next ? 'next' : '', onClaim ? 'claimed' : '', hinted ? 'hinted' : ''].filter(Boolean).join(' '), strokes: [next ? 'rr-next' : '', onClaim ? 'rr-claim' : ''].filter(Boolean), act: canSet, label: `Road from ${switchName(d, i)} to the ${sideWord(side)}${next ? ', the next road' : ''}${canSet && !next ? `. Point ${switchName(d, i)} this way` : ''}`};
+      return {cls: [next ? 'next' : '', onClaim ? 'claimed' : '', hinted ? 'hinted' : ''].filter(Boolean).join(' '), strokes: [next ? 'ro-next' : '', onClaim ? 'ro-claim' : ''].filter(Boolean), act: canSet, label: `Road from ${switchName(d, i)} to the ${sideWord(side)}${next ? ', the next road' : ''}${canSet && !next ? `. Point ${switchName(d, i)} this way` : ''}`};
     },
-    under: (st.last ? `<polyline class="rr-trail" points="${[tree.entry, ...st.last.map(k => g.pos[k < n ? switchId(k) : letterOf(k - n)])].map(pt).join(' ')}"/>` : '') + `<line class="rr-entry" x1="50" y1="${f(tree.entry[1])}" x2="50" y2="${f(g.pos.s0[1] - NODE_R * tree.k - 1)}"/>`,
-    over: Array.from({length: n}, (_, i) => card(tree, switchId(i), st.now[i])).join('') + Array.from({length: exitCount(d)}, (_, k) => stack(tree, letterOf(k), counts[k])).join('') + (b.sent < st.length && !done ? `<circle class="rr-counter rr-waiting" cx="50" cy="${f(tree.entry[1])}" r="${f(2.6 * tree.k * 1.15)}"/>` : '')
+    under: (st.last ? `<polyline class="ro-trail" points="${[tree.entry, ...st.last.map(k => g.pos[k < n ? switchId(k) : letterOf(k - n)])].map(pt).join(' ')}"/>` : '') + `<line class="ro-entry" x1="50" y1="${f(tree.entry[1])}" x2="50" y2="${f(g.pos.s0[1] - NODE_R * tree.k - 1)}"/>`,
+    over: Array.from({length: n}, (_, i) => card(tree, switchId(i), st.now[i])).join('') + Array.from({length: exitCount(d)}, (_, k) => stack(tree, letterOf(k), counts[k])).join('') + (b.sent < st.length && !done ? `<circle class="ro-counter ro-waiting" cx="50" cy="${f(tree.entry[1])}" r="${f(2.6 * tree.k * 1.15)}"/>` : '')
   });
   // The rows: the order to make (slots left open are blank) and the arrivals.
   const slot = k => {
@@ -398,30 +398,30 @@ function render(p, a) {
   const length = st.length;
   const pickedAt = claiming ? claim.at : [], finalAt = final ? final.at : [], hintAt = shown?.at || [];
   const columns = ` style="--n:${Math.min(length, 8)}"`;
-  const targetRow = target ? `<div class="rr-row rr-target"${columns} role="group" aria-label="Order to make">${target.map((x, k) => {
-    const cls = `rr-slot want${x === null ? ' open' : ''}${pickedAt.includes(k) ? ' chosen' : ''}${finalAt.includes(k) ? ' claimed' : ''}${hintAt.includes(k) && claiming ? ' hinted' : ''}`;
+  const targetRow = target ? `<div class="ro-row ro-target"${columns} role="group" aria-label="Order to make">${target.map((x, k) => {
+    const cls = `ro-slot want${x === null ? ' open' : ''}${pickedAt.includes(k) ? ' chosen' : ''}${finalAt.includes(k) ? ' claimed' : ''}${hintAt.includes(k) && claiming ? ' hinted' : ''}`;
     const label = `Slot ${k + 1}: ${x === null ? 'any exit' : x}`;
-    return claiming ? `<button type="button" class="${cls}" data-rr-at="${k}" data-focus="rr-at-${k}" aria-pressed="${pickedAt.includes(k)}" aria-label="${esc(label)}">${x ?? ''}</button>` : `<span class="${cls}" role="img" aria-label="${esc(label)}">${x ?? ''}</span>`;
+    return claiming ? `<button type="button" class="${cls}" data-rr-at="${k}" data-focus="ro-at-${k}" aria-pressed="${pickedAt.includes(k)}" aria-label="${esc(label)}">${x ?? ''}</button>` : `<span class="${cls}" role="img" aria-label="${esc(label)}">${x ?? ''}</span>`;
   }).join('')}</div>` : '';
-  const arrivals = `<div class="rr-row rr-arrivals${play ? ' play' : ''}"${columns} role="img" aria-label="${esc(st.letters.length ? `Landed: ${st.letters.join(', ')}` : 'No counters have landed')}">${Array.from({length}, (_, k) => { const s = slot(k); return `<span class="rr-slot got${s.got ? ' full' : ''}${s.wrong ? ' wrong' : ''}">${s.got ?? ''}</span>`; }).join('')}</div>`;
+  const arrivals = `<div class="ro-row ro-arrivals${play ? ' play' : ''}"${columns} role="img" aria-label="${esc(st.letters.length ? `Landed: ${st.letters.join(', ')}` : 'No counters have landed')}">${Array.from({length}, (_, k) => { const s = slot(k); return `<span class="ro-slot got${s.got ? ' full' : ''}${s.wrong ? ' wrong' : ''}">${s.got ?? ''}</span>`; }).join('')}</div>`;
   // The bar: counters still to send, Send, and the claims.
   const left = st.length - b.sent;
-  const tray = !done ? `<span class="rr-tray" role="img" aria-label="${plural(left, 'counter')} to send">${Array.from({length: left}, () => '<i class="rr-tray-dot"></i>').join('')}</span>` : '';
-  const send = !done ? moveButton('Send', {type: 'send'}, `rr-send${shownAction?.type === 'send' ? ' hinted' : ''}`, allSet(b.start) && b.sent < st.length && !claiming) : '';
+  const tray = !done ? `<span class="ro-tray" role="img" aria-label="${plural(left, 'counter')} to send">${Array.from({length: left}, () => '<i class="ro-tray-dot"></i>').join('')}</span>` : '';
+  const send = !done ? moveButton('Send', {type: 'send'}, `ro-send${shownAction?.type === 'send' ? ' hinted' : ''}`, allSet(b.start) && b.sent < st.length && !claiming) : '';
   let claims = '';
-  if (q.mode === 'make' && !done) claims = `<button type="button" class="secondary rr-button rr-cant${shownAction?.type === 'cant' && !claiming ? ' hinted' : ''}" data-rr-cant data-focus="rr-cant" aria-pressed="${claiming}" ${cantOpen(p, b) ? '' : 'disabled'}>Can’t</button>`;
+  if (q.mode === 'make' && !done) claims = `<button type="button" class="secondary ro-button ro-cant${shownAction?.type === 'cant' && !claiming ? ' hinted' : ''}" data-rr-cant data-focus="ro-cant" aria-pressed="${claiming}" ${cantOpen(p, b) ? '' : 'disabled'}>Can’t</button>`;
   if (q.mode === 'every' && !done) {
     const word = st.letters.join(''), keepOk = b.sent === q.target.length && isOrder(q, word) && !b.kept.includes(word);
-    claims = moveButton('Keep', {type: 'keep'}, `rr-keep${shownAction?.type === 'keep' ? ' hinted' : ''}`, keepOk) + moveButton('That’s all', {type: 'all'}, `rr-all${shownAction?.type === 'all' ? ' hinted' : ''}`, b.kept.length > 0 && b.told !== 'more');
+    claims = moveButton('Keep', {type: 'keep'}, `ro-keep${shownAction?.type === 'keep' ? ' hinted' : ''}`, keepOk) + moveButton('That’s all', {type: 'all'}, `ro-all${shownAction?.type === 'all' ? ' hinted' : ''}`, b.kept.length > 0 && b.told !== 'more');
   }
   // The chosen tree's button does nothing when tapped again.
-  const trees = play ? `<div class="rr-trees" role="group" aria-label="Trees">${DEPTHS.map(k => `<button type="button" class="secondary rr-tree-button"${b.depth === k ? '' : ` data-action="expansion-move" data-move='${JSON.stringify({type: 'tree', depth: k})}'`} data-focus="rr-tree-${k}" aria-pressed="${b.depth === k}" aria-label="${exitCount(k)} exits">${treeIcon(k)}</button>`).join('')}</div>` : '';
-  const clear = play ? moveButton('Clear', {type: 'clear'}, 'rr-clear', b.sent > 0) : '';
-  const bar = `<div class="rr-bar">${tray}${send}${claims}${clear}</div>`;
-  const shelf = q.mode === 'every' && b.kept.length ? `<div class="rr-shelf" role="list" aria-label="Kept orders">${b.kept.map(w => `<span class="rr-kept" role="listitem" aria-label="${esc(w.split('').join(', '))}">${w.split('').map(x => `<i>${x}</i>`).join('')}</span>`).join('')}</div>` : '';
+  const trees = play ? `<div class="ro-trees" role="group" aria-label="Trees">${DEPTHS.map(k => `<button type="button" class="secondary ro-tree-button"${b.depth === k ? '' : ` data-action="expansion-move" data-move='${JSON.stringify({type: 'tree', depth: k})}'`} data-focus="ro-tree-${k}" aria-pressed="${b.depth === k}" aria-label="${exitCount(k)} exits">${treeIcon(k)}</button>`).join('')}</div>` : '';
+  const clear = play ? moveButton('Clear', {type: 'clear'}, 'ro-clear', b.sent > 0) : '';
+  const bar = `<div class="ro-bar">${tray}${send}${claims}${clear}</div>`;
+  const shelf = q.mode === 'every' && b.kept.length ? `<div class="ro-shelf" role="list" aria-label="Kept orders">${b.kept.map(w => `<span class="ro-kept" role="listitem" aria-label="${esc(w.split('').join(', '))}">${w.split('').map(x => `<i>${x}</i>`).join('')}</span>`).join('')}</div>` : '';
   const told = b.told && !done ? TOLD[b.told] : '';
   const status = `${allSet(b.start) ? `Switches: ${st.now.map((s, i) => `${switchName(d, i)} ${sideWord(s)}`).join(', ')}.` : `${plural(b.start.filter(s => s === null).length, 'switch', 'switches')} not set.`} ${st.letters.length ? `Landed: ${st.letters.join(', ')}.` : ''}${claiming ? ' Tap a switch and two letters.' : ''}${told ? ` ${told}` : ''}`;
-  return `<div class="rr-puzzle${done ? ' solved' : ''}${claiming ? ' claiming' : ''}" data-mechanic-wire="rotor">${trees}${bar}${board}<div class="rr-rows">${targetRow}${arrivals}</div>${shelf}${told ? `<p class="rr-told">${told}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="ro-puzzle${done ? ' solved' : ''}${claiming ? ' claiming' : ''}" data-mechanic-wire="rotor">${trees}${bar}${board}<div class="ro-rows">${targetRow}${arrivals}</div>${shelf}${told ? `<p class="ro-told">${told}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 
 // --- Taps --------------------------------------------------------------------------------------
@@ -492,5 +492,5 @@ export default {
   mechanics: rotorMechanics,
   pack: new URL('./rotor.json', import.meta.url).href,
   css: new URL('./rotor.css', import.meta.url).href,
-  focus: '.gb-node[role=button],.rr-slot[data-rr-at],.rr-button:not([disabled])'
+  focus: '.gb-node[role=button],.ro-slot[data-rr-at],.ro-button:not([disabled])'
 };

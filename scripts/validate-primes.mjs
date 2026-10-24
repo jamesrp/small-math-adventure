@@ -231,7 +231,7 @@ function checkSplit(p) {
 }
 function cardsShown(p, a) {
   const html = mechanicFor(p).render(p, {...a, hintLevel: 0}, {});
-  const row = html.slice(html.indexOf('pb-cards'), html.indexOf('</div>', html.indexOf('pb-cards')));
+  const row = html.slice(html.indexOf('pm-cards'), html.indexOf('</div>', html.indexOf('pm-cards')));
   return [...row.matchAll(/>(\d+)<\/(?:span|button)>/g)].map(x => Number(x[1]));
 }
 

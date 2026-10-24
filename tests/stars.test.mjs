@@ -154,7 +154,7 @@ test('the ring shows the pen, lined dots and the pieces so far', () => {
   const html = mechanicFor(p).render(p, a);
   assert.equal([...html.matchAll(/class="star-dot/g)].length, 12);
   assert.match(html, /class="star-dot pen"[^>]*data-star-move="\{&quot;type&quot;:&quot;tap&quot;,&quot;dot&quot;:1\}"/);
-  assert.equal([...html.matchAll(/class="star-line c0"/g)].length, 4);
+  assert.equal([...html.matchAll(/class="star-line star-c0"/g)].length, 4);
   assert.match(html, /aria-label="2 pieces of 3"/);
   assert.match(html, /Hop 3/);
 });

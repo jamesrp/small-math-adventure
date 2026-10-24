@@ -82,8 +82,6 @@
 [data-mechanic-wire="chips"] .chip-sink-swatch{display:inline-block;width:18px;height:14px;border-radius:3px;background:#e7e1cc;border:1.5px solid #8a9a80}
 [data-mechanic-wire="chips"].chips-play .chip-run{min-height:40px}
 @media (max-width:420px){[data-mechanic-wire="chips"] .chip-board .chip-node{width:clamp(60px,22%,80px)}[data-mechanic-wire="chips"] .chip-dots{width:40px}[data-mechanic-wire="chips"] .chip-dots i{width:11px;height:11px}}
-.caravan-library .satchel-playground{display:flex;align-items:center;justify-content:center;gap:.55rem;width:100%;min-height:60px;margin-top:20px;padding:10px 16px;background:#fbf4dc;border:1px solid #ead9a4;border-radius:9px;box-shadow:0 2px 0 #ead9a4;font-family:Georgia,'Times New Roman',serif;font-size:1.3rem;font-weight:400;color:#4c6942}
-.caravan-library .satchel-playground:hover{background:#f6ecc8}
 
 [data-mechanic-wire="chips"].chips-puzzle .chip-again.primary{background:var(--b-pine,#31533e);color:var(--b-on-pine,#fff8d9);border:0;box-shadow:0 3px 0 #1d3526}
 [data-mechanic-wire="chips"].chips-puzzle .chip-claim{min-height:46px;padding:6px 16px}

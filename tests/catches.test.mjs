@@ -92,7 +92,7 @@ test('Can’t: refused with the swap that comes closer, accepted on the closest 
   assert.ok(isSolved(p, a.board), 'both plain tiles caught, and a dot anyway');
   const html = view(p, a);
   assert.match(html, /Every plain tile is in the second catch\./);
-  assert.equal((html.match(/ct-slot proof/g) || []).length, 2, 'the two plain tiles are the certificate');
+  assert.equal((html.match(/ck-slot proof/g) || []).length, 2, 'the two plain tiles are the certificate');
   // A goal that can be made: Can't is refused, never accepted.
   const one = byId('catches-01');
   const b = play(one, freshAttempt(one), ...tap(A, B, C, D, E), {type: 'cant'});
@@ -144,7 +144,7 @@ test('bags: a size change keeps the first catch and empties the second; a matchi
   assert.deepEqual(a.board.kept, ['8', '20', '7', '12']);
   a = play(p, a, {type: 'all'});
   assert.ok(isSolved(p, a.board));
-  assert.match(view(p, a), /ct-bag-chip no/);
+  assert.match(view(p, a), /ck-bag-chip no/);
 });
 
 test('sorting every catch: the first catch is given, catches land in bins by their dots', () => {
@@ -197,12 +197,12 @@ test('rendering: no slot per answer, the goal, buttons for every tile', () => {
   let html = view(p, freshAttempt(p));
   assert.match(html, /Find every number of dots the second catch can hold\./);
   assert.ok(!html.includes('case-shelf'), 'an empty shelf draws nothing');
-  assert.equal((html.match(/<button type="button" class="ct-tile/g) || []).length, 8);
+  assert.equal((html.match(/<button type="button" class="ck-tile/g) || []).length, 8);
   const one = byId('catches-01');
   html = view(one, freshAttempt(one));
   assert.ok(!html.includes('puzzle-goal'), 'no objective line where the goal shows the task');
   assert.match(html, /aria-label="Goal: a second catch with 1 dotted tile and 2 plain"/);
-  assert.equal((html.match(/ct-slot empty/g) || []).length, 5, 'a slot per tile of each catch');
+  assert.equal((html.match(/ck-slot empty/g) || []).length, 5, 'a slot per tile of each catch');
 });
 
 test('the playground: random catches pile up by their dots, never solved, no hints', () => {
@@ -217,7 +217,7 @@ test('the playground: random catches pile up by their dots, never solved, no hin
   assert.ok(validBoard(p, a.board));
   assert.ok(!isSolved(p, a.board));
   const html = view(p, a);
-  assert.equal((html.match(/class="ct-pile"/g) || []).length, 3);
+  assert.equal((html.match(/class="ck-pile"/g) || []).length, 3);
   const b = play(p, a, {type: 'catch', which: 1, by: 1});
   assert.deepEqual(b.board.rounds, [], 'a new catch size clears the piles');
   assert.equal(move(p, play(p, freshAttempt(p), {type: 'catch', which: 1, by: -1}), {type: 'catch', which: 1, by: -1}), null, 'a catch of at least one');

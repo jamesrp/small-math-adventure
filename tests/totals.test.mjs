@@ -17,7 +17,7 @@ const byId = id => pack.puzzles.find(p => p.id === id);
 const play = (p, a, ...actions) => actions.reduce((b, action) => { const next = move(p, b, action); assert.ok(next, `${JSON.stringify(action)} is legal`); return next; }, a);
 const put = (slot, card) => ({type: 'put', slot, card});
 const view = (p, a) => playView(p, a, {pack: merged, selected: null, message: ''});
-const board = html => html.match(/<div class="tt-board[\s\S]*$/)[0];
+const board = html => html.match(/<div class="rt-board[\s\S]*$/)[0];
 const attrsOf = (html, re) => { const m = board(html).match(re); assert.ok(m, `found ${re}`); return m[0]; };
 const moveIn = tag => JSON.parse(tag.match(/data-move="([^"]*)"/)[1].replace(/&quot;/g, '"'));
 
@@ -74,11 +74,11 @@ test('make: cards, the hand, a solve and nothing after it', () => {
   let a = play(p, freshAttempt(p), put(0, 3), put(1, 1), put(2, 0));
   assert.ok(!isSolved(p, a.board), '3, 1, 0 makes 11');
   assert.equal(finalOf([0, 0], a.board.lane), 11);
-  assert.match(view(p, a), /tt-cell last bad/, 'a missed total is marked');
+  assert.match(view(p, a), /rt-cell last bad/, 'a missed total is marked');
   assert.equal(move(p, a, put(0, 1)), null, 'turn 1 is full');
   a = play(p, a, {type: 'swap', a: 0, b: 1});
   assert.ok(isSolved(p, a.board), '1, 3, 0 makes 9');
-  assert.match(view(p, a), /tt-cell last good/);
+  assert.match(view(p, a), /rt-cell last good/);
   assert.equal(move(p, a, {type: 'take', slot: 0}), null, 'nothing after a solve');
   assert.doesNotMatch(board(view(p, a)), /data-action="expansion-move"/, 'a solved board offers no moves');
 });
@@ -126,10 +126,10 @@ test('a move pops the cells it changed, tray by tray', () => {
   const p = byId('totals-10'), mech = mechanicFor(p);
   let a = play(p, freshAttempt(p), put(0, 2));
   const html = board(view(p, a));
-  assert.match(html, /tt-slot filled pop" style="--d:0"/);
-  assert.match(html, /tt-cell pop" style="--d:1"[^>]*>2</);
-  assert.match(html, /tt-cell pop" style="--d:2"[^>]*>2</);
-  assert.match(html, /tt-cell last pop" style="--d:3"[^>]*>2</);
+  assert.match(html, /rt-slot filled pop" style="--d:0"/);
+  assert.match(html, /rt-cell pop" style="--d:1"[^>]*>2</);
+  assert.match(html, /rt-cell pop" style="--d:2"[^>]*>2</);
+  assert.match(html, /rt-cell last pop" style="--d:3"[^>]*>2</);
   mech.ui(p, {sel: 1});
   assert.doesNotMatch(board(view(p, a)), / pop"/, 'a tap that only picks clears the pop');
   mech.reset(p);
@@ -138,10 +138,10 @@ test('a move pops the cells it changed, tray by tray', () => {
 test('Can’t: refused, locked until the lane changes, kept by Undo; then accepted', () => {
   const p = byId('totals-07');
   let a = play(p, freshAttempt(p), put(0, 2), put(1, 1), put(2, 2), put(3, 0), put(4, 0));
-  assert.match(view(p, a), /tt-cant"[^>]*>Can’t/);
+  assert.match(view(p, a), /rt-cant"[^>]*>Can’t/);
   a = play(p, a, {type: 'cant'});
   assert.equal(a.board.refused, true);
-  assert.match(view(p, a), /tt-note bad">That doesn’t rule it out\./);
+  assert.match(view(p, a), /rt-note bad">That doesn’t rule it out\./);
   assert.equal(move(p, a, {type: 'cant'}), null);
   const draw = att => view(p, att), back = undoPress(p, a, draw, draw(a));
   assert.deepEqual(back.board.lane, [2, 1, 2, 0, null], 'one press goes past the refusal to the last card');
@@ -152,7 +152,7 @@ test('Can’t: refused, locked until the lane changes, kept by Undo; then accept
   assert.deepEqual(nextHint(p, a).action, {type: 'cant'});
   a = play(p, a, {type: 'cant'});
   assert.ok(isSolved(p, a.board));
-  assert.match(view(p, a), /tt-note">21 is the most\./);
+  assert.match(view(p, a), /rt-note">21 is the most\./);
 });
 
 test('hints: the first empty turn, a change, a swap, a start and That’s all', () => {
@@ -176,7 +176,7 @@ test('hints: the first empty turn, a change, a swap, a start and That’s all', 
   assert.deepEqual(nextHint(e, c), {type: 'move', action: {type: 'all'}, text: 'Press That’s all.'});
   // Hints are outlined on the board from level 2.
   const shown = view(e, {...c, hintLevel: 2});
-  assert.match(shown, /tt-all hinted/);
+  assert.match(shown, /rt-all hinted/);
   const s = byId('totals-11');
   let d = play(s, freshAttempt(s), put(0, 2));
   assert.equal(nextHint(s, d).text, 'Change turn 1 to 0.');
@@ -185,15 +185,15 @@ test('hints: the first empty turn, a change, a swap, a start and That’s all', 
 test('every: starts, finds, a wrong That’s all and Undo', () => {
   const p = byId('totals-08');
   let a = freshAttempt(p);
-  assert.match(view(p, a), /tt-start unknown" aria-hidden="true">\?</);
+  assert.match(view(p, a), /rt-start unknown" aria-hidden="true">\?</);
   assert.match(view(p, a), /Find every start that makes these totals\./);
   a = play(p, a, {type: 'start', value: 1}, put(0, 3), put(1, 3), put(2, 0), put(3, 5));
   assert.deepEqual(a.board.found, [1]);
-  assert.match(view(p, a), /tt-chip on found/);
+  assert.match(view(p, a), /rt-chip on found/);
   a = play(p, a, {type: 'all'});
   assert.equal(a.board.told, 'more');
   assert.match(view(p, a), /There is another\./);
-  assert.match(view(p, a), /tt-all[^>]*disabled/);
+  assert.match(view(p, a), /rt-all[^>]*disabled/);
   const draw = att => view(p, att), back = undoPress(p, a, draw, draw(a));
   assert.deepEqual(back.board.found, [1]); assert.equal(back.board.told, 'more');
   assert.deepEqual(back.board.lane, [3, 3, 0, null], 'the press takes back a card');
@@ -220,8 +220,8 @@ test('the playground: trays, totals and no goal', () => {
   for (let s = 0; s < 6; s++) a = play(g, a, put(s, 1));
   const html = board(view(g, a));
   assert.match(html, />56<\/span>/);
-  assert.doesNotMatch(html, /tt-goal/, 'no goals in the playground');
-  assert.match(html, /tt-trayn on/);
+  assert.doesNotMatch(html, /rt-goal/, 'no goals in the playground');
+  assert.match(html, /rt-trayn on/);
   assert.ok(!isSolved(g, a.board));
   a = play(g, a, {type: 'change', slot: 0, card: 0});
   assert.match(board(view(g, a)), />35<\/span>/, 'a 0 first: tray 3 reads 35 after six turns');
@@ -232,6 +232,6 @@ test('every puzzle renders with a status line and a goal row', () => {
     const html = view(p, freshAttempt(p));
     assert.match(html, /data-mechanic-wire="totals"/);
     assert.match(html, /role="status"/);
-    if (p.parameters.mode !== 'playground') assert.match(html, /tt-lab-goal/);
+    if (p.parameters.mode !== 'playground') assert.match(html, /rt-lab-goal/);
   }
 });

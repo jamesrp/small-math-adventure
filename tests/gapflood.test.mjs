@@ -21,7 +21,7 @@ const draw = (side, dots) => dots.split(' ').map(to => ({type: 'draw', side, to}
 const drawAll = (q, routes = Object.fromEntries(SIDES3.map(s => [s, allRoutes(q, s)[0]]))) => SIDES3.flatMap(s => routes[s].slice(1).map(to => ({type: 'draw', side: s, to})));
 // The chosen route is view state; each view starts from a fresh one, as opening a puzzle does.
 const view = (p, a, keep = false) => { if (!keep) mech.reset(p); return playView(p, a, {pack, selected: null, message: ''}); };
-const pen = (p, a) => { const html = playView(p, a, {pack, selected: null, message: ''}); return html.match(/gf-chip t(\w+)[^"]*" data-action="mechanic-ui" data-ui='[^']*' data-focus="[^"]*" aria-pressed="true"/)?.[1] || null; };
+const pen = (p, a) => { const html = playView(p, a, {pack, selected: null, message: ''}); return html.match(/gp-chip t(\w+)[^"]*" data-action="mechanic-ui" data-ui='[^']*' data-focus="[^"]*" aria-pressed="true"/)?.[1] || null; };
 
 test('routes are held to shortest; gaps are measured along every road', () => {
   const p = byId(4), q = p.parameters;
@@ -131,7 +131,7 @@ test('every gap 0 solves when the triangle is finished; a gap of k solves when f
   a = play(z, a, {type: 'cut', side: 'CA', to: '44'}, ...draw('CA', '43 42 41 40 30 20 10 00'));
   assert.ok(isSolved(z, a.board), 'CA through B');
   assert.match(view(z, a), /data-node="40"[^>]*class="[^"]*\bcentre\b|class="[^"]*\bcentre\b[^"]*"[^>]*data-node="40"/, 'the tripod’s centre, B, is ringed');
-  assert.match(view(z, a), /gf-glow/, 'its roads glow');
+  assert.match(view(z, a), /gp-glow/, 'its roads glow');
 
   const r = byId(4);
   a = play(r, freshAttempt(r), ...draw('AB', '10 20 30 40'), ...draw('BC', '41 42 43 44'), ...draw('CA', '34 24 14 04 03 02 01 00'));
@@ -144,7 +144,7 @@ test('every gap 0 solves when the triangle is finished; a gap of k solves when f
   const four = play(r, one, {type: 'flood', at: '04'});
   assert.ok(isSolved(r, four.board), 'a gap of 4 is 2 or more');
   const html = view(r, four);
-  assert.match(html, /class="gf-flood d0"/, 'the flood’s roads');
+  assert.match(html, /class="gp-flood d0"/, 'the flood’s roads');
   assert.match(html, /meet/, 'where it meets another route');
   const changed = play(r, one, {type: 'cut', side: 'CA', to: '04'});
   assert.equal(changed.board.flood, null, 'a change to a route clears the flood');
@@ -153,15 +153,15 @@ test('every gap 0 solves when the triangle is finished; a gap of k solves when f
 test('Can’t: off until the triangle is drawn; refused with “It can be done.” until a route changes; right on the tree and the ladder, with certificates', () => {
   const r = byId(4);
   assert.equal(move(r, freshAttempt(r), {type: 'cant'}), null, 'Can’t waits for a triangle');
-  assert.match(view(r, freshAttempt(r)), /data-focus="gf-cant" disabled/);
+  assert.match(view(r, freshAttempt(r)), /data-focus="gp-cant" disabled/);
   const part = play(r, freshAttempt(r), ...draw('AB', '10 20 30 40'), ...draw('BC', '41 42 43 44'), ...draw('CA', '43 42 41 40 30 20 10'));
   assert.equal(move(r, part, {type: 'cant'}), null, 'still waiting with one step of CA to go');
   let a = play(r, part, ...draw('CA', '00'));
-  assert.doesNotMatch(view(r, a), /data-focus="gf-cant" disabled/, 'open on a finished triangle');
+  assert.doesNotMatch(view(r, a), /data-focus="gp-cant" disabled/, 'open on a finished triangle');
   a = play(r, a, {type: 'flood', at: '30'}, {type: 'cant'});
   assert.equal(a.board.told, 'can');
   assert.match(view(r, a), /It can be done\./);
-  assert.match(view(r, a), /data-focus="gf-cant" disabled/);
+  assert.match(view(r, a), /data-focus="gp-cant" disabled/);
   assert.equal(move(r, a, {type: 'cant'}), null);
   assert.equal(play(r, a, {type: 'flood', at: '20'}).board.told, 'can', 'a flood is no change to the triangle');
   const back = undoPress(r, a, x => view(r, x));
@@ -202,13 +202,13 @@ test('Can’t: off until the triangle is drawn; refused with “It can be done.�
   assert.ok(isSolved(t, right.board));
   mech.ui(t, {claiming: false});
   const html = view(t, right);
-  assert.match(html, /gf-glow/, 'the tripod glows');
-  assert.equal((html.match(/class="gf-trail/g) || []).length, 16, 'eight roads, each on two routes');
+  assert.match(html, /gp-glow/, 'the tripod glows');
+  assert.equal((html.match(/class="gp-trail/g) || []).length, 16, 'eight roads, each on two routes');
   assert.match(html, /class="gb-node centre"[^>]*data-node="c"/, 'and the centre the child tapped is ringed');
   // A save from before Can't waited for the triangle still loads and draws the tripod.
   const oldSave = {...freshAttempt(t).board, told: null, done: true};
   assert.ok(validBoard(t, oldSave) && isSolved(t, oldSave));
-  assert.match(view(t, {...freshAttempt(t), board: oldSave}), /gf-glow/);
+  assert.match(view(t, {...freshAttempt(t), board: oldSave}), /gp-glow/);
 
   const l = byId(5);
   assert.equal(move(l, freshAttempt(l), {type: 'cant'}), null, 'the ladder’s Can’t waits for a triangle too');
@@ -216,7 +216,7 @@ test('Can’t: off until the triangle is drawn; refused with “It can be done.�
   assert.ok(isSolved(l, ladder.board));
   const lv = view(l, ladder);
   assert.match(lv, /Two routes cross every column\./);
-  assert.equal((lv.match(/class="gf-column/g) || []).length, 17, 'eight columns with two rings, one with three');
+  assert.equal((lv.match(/class="gp-column/g) || []).length, 17, 'eight columns with two rings, one with three');
 });
 
 test('Best: refused with “A bigger gap is possible.” until a new flood; right with each dot’s steps from a home', () => {
@@ -239,7 +239,7 @@ test('Best: refused with “A bigger gap is possible.” until a new flood; righ
   const html = view(p, a);
   assert.match(html, /Every dot is within 3 steps of A, B or C\./);
   assert.match(html, /class="gb-node lit d3 far"[^>]*>.*?<text class="gb-label"[^>]*>3</, 'the farthest dots are 3 steps from a home');
-  assert.doesNotMatch(html, /gf-flood/, 'the certificate replaces the flood');
+  assert.doesNotMatch(html, /gp-flood/, 'the certificate replaces the flood');
 });
 
 test('hints: the authored nudge, then take back, draw, flood and claim; alone they solve every puzzle', () => {
@@ -303,12 +303,12 @@ test('every puzzle renders its map, homes and route buttons, with one short obje
   const objectives = {zero: 'Make every gap 0.', best: 'Make the biggest gap you can.'};
   for (const p of gaps.puzzles) {
     const html = view(p, freshAttempt(p));
-    assert.match(html, /gf-puzzle/, p.id);
+    assert.match(html, /gp-puzzle/, p.id);
     assert.match(html, /gb-board/, p.id);
     assert.match(html, /aria-label="Route AB"/, p.id);
     assert.equal(p.visibleObjective, objectives[p.parameters.goal] || `Make a gap of ${p.parameters.k} or more.`, p.id);
-    assert.equal(/gf-cant/.test(html), p.parameters.goal === 'reach', `${p.id}: Can’t only where a gap is asked for`);
-    assert.equal(/gf-best/.test(html), p.parameters.goal === 'best', `${p.id}: Best only in Best puzzles`);
+    assert.equal(/gp-cant/.test(html), p.parameters.goal === 'reach', `${p.id}: Can’t only where a gap is asked for`);
+    assert.equal(/gp-best/.test(html), p.parameters.goal === 'best', `${p.id}: Best only in Best puzzles`);
     assert.doesNotMatch(html, /\d+ of \d+/, `${p.id}: no counts`);
   }
   const p = byId(4), html = view(p, freshAttempt(p));

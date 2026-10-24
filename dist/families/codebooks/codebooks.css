@@ -7,7 +7,7 @@
 .cb-row{display:inline-flex;gap:6px}
 .cb-shape{width:30px;height:30px;flex:none;stroke:var(--b-ink,#294439);stroke-width:1.6;stroke-linejoin:round}
 .cb-shape.inline{width:20px;height:20px;vertical-align:-4px}
-.s0{fill:#b9604a}.s1{fill:#4f86a8}.s2{fill:#6f9a52}.s3{fill:#efc76e}.s4{fill:#7a5a8c}.s5{fill:#b38840}.s6{fill:#e7a28f}.s7{fill:#31533e}
+.cb-s0{fill:#b9604a}.cb-s1{fill:#4f86a8}.cb-s2{fill:#6f9a52}.cb-s3{fill:#efc76e}.cb-s4{fill:#7a5a8c}.cb-s5{fill:#b38840}.cb-s6{fill:#e7a28f}.cb-s7{fill:#31533e}
 .cb-lantern{display:inline-block;width:40px;height:40px;border-radius:50%;background:#f4f1e6;border:2px solid var(--b-ink,#294439);box-shadow:0 2px 0 rgba(41,68,57,.2);flex:none}
 .cb-lantern.on{background:var(--b-sun,#efc76e);box-shadow:0 0 0 4px rgba(239,199,110,.35),0 2px 0 rgba(41,68,57,.2)}
 .board-panel .codebook-puzzle button.cb-lantern{min-width:0;min-height:0;padding:0;cursor:pointer}

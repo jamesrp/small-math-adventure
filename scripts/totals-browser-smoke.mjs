@@ -18,13 +18,13 @@ const base = (process.env.TEST_URL || 'http://127.0.0.1:4187').replace(/\/$/, ''
 const out = new URL('../test-results/totals/', import.meta.url);
 const shot = name => page.screenshot({path: new URL(`${name}${phone ? '-phone' : ''}.png`, out).pathname, fullPage: true});
 const board = id => page.evaluate(([k, id]) => JSON.parse(localStorage.getItem(k)).profiles[0].attempts[id]?.board, [key, id]);
-const open = async id => { await page.goto(`${base}/#play/${id}`); await page.locator('.tt-board').waitFor(); };
+const open = async id => { await page.goto(`${base}/#play/${id}`); await page.locator('.rt-board').waitFor(); };
 const done = () => page.locator('#completion-heading').waitFor({timeout: 5000});
 const fit = async label => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `${label}: no page overflow`);
 const tap = async locator => { const b = await locator.boundingBox(); const x = b.x + b.width / 2, y = b.y + b.height / 2; if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); };
-const card = v => page.locator(`.tt-hand [data-tt-card="${v}"]`).first();
-const slot = i => page.locator(`.tt-board [data-tt-slot="${i}"]`);
-const lastRow = () => page.locator('.tt-cell.last').allInnerTexts();
+const card = v => page.locator(`.rt-hand [data-tt-card="${v}"]`).first();
+const slot = i => page.locator(`.rt-board [data-tt-slot="${i}"]`);
+const lastRow = () => page.locator('.rt-cell.last').allInnerTexts();
 const focusKey = () => page.evaluate(() => document.activeElement?.dataset?.focus || document.activeElement?.className || '');
 // A pointer drag from one control to another, in small steps.
 async function drag(from, to) {
@@ -46,7 +46,7 @@ try {
   await tap(card(3)); await tap(card(1)); await tap(card(0));
   assert.deepEqual((await board('totals-03')).lane, [3, 1, 0]);
   assert.deepEqual(await lastRow(), ['3', '7', '11'], 'tray 2 reads 3, 7, 11');
-  assert.equal(await page.locator('.tt-cell.last.bad').count(), 1, 'the missed total is marked');
+  assert.equal(await page.locator('.rt-cell.last.bad').count(), 1, 'the missed total is marked');
   await shot('make');
   await tap(slot(0));
   assert.equal(await slot(0).getAttribute('aria-pressed'), 'true', 'a tapped turn is picked');
@@ -58,14 +58,14 @@ try {
   await open('totals-05'); await fit('totals-05');
   await card(1).focus(); await page.keyboard.press('Enter');
   assert.deepEqual((await board('totals-05')).lane, [1, null, null, null]);
-  assert.match(await focusKey(), /^tt-/, 'focus stays on the board after a move');
+  assert.match(await focusKey(), /^rt-/, 'focus stays on the board after a move');
   await drag(card(3), slot(2));
   assert.deepEqual((await board('totals-05')).lane, [1, null, 3, null], 'a card dragged onto a turn');
   await drag(slot(2), slot(1));
   assert.deepEqual((await board('totals-05')).lane, [1, 3, null, null], 'a card dragged to an empty turn moves there');
   await drag(slot(0), slot(1));
   assert.deepEqual((await board('totals-05')).lane, [3, 1, null, null], 'two cards trade');
-  await drag(slot(1), page.locator('.tt-hand'));
+  await drag(slot(1), page.locator('.rt-hand'));
   assert.deepEqual((await board('totals-05')).lane, [3, null, null, null], 'a card dragged back to the cards');
   // Pick a full turn and tap a card to change it.
   await tap(slot(0)); await tap(card(0));
@@ -78,12 +78,12 @@ try {
 
   // Can't: refused on a lane that is not biggest first, Undo goes past the refusal, then accepted.
   await open('totals-07'); await fit('totals-07');
-  assert.ok(await page.locator('.tt-cant').isDisabled(), 'Can’t waits for a full lane');
+  assert.ok(await page.locator('.rt-cant').isDisabled(), 'Can’t waits for a full lane');
   for (const v of [2, 1, 2, 0, 0]) await tap(card(v));
-  await tap(page.locator('.tt-cant'));
-  await page.locator('.tt-note.bad').waitFor();
-  assert.equal(await page.locator('.tt-note.bad').innerText(), 'That doesn’t rule it out.');
-  assert.ok(await page.locator('.tt-cant').isDisabled(), 'Can’t waits for a change');
+  await tap(page.locator('.rt-cant'));
+  await page.locator('.rt-note.bad').waitFor();
+  assert.equal(await page.locator('.rt-note.bad').innerText(), 'That doesn’t rule it out.');
+  assert.ok(await page.locator('.rt-cant').isDisabled(), 'Can’t waits for a change');
   assert.doesNotMatch(await focusKey(), /cant/, 'focus is not left on Can’t');
   await shot('cant-refused');
   await page.locator('[data-action="undo"]').click();
@@ -92,31 +92,31 @@ try {
   assert.equal((await board('totals-07')).refused, false);
   await tap(slot(1)); await tap(slot(2));
   assert.deepEqual((await board('totals-07')).lane, [2, 2, 1, 0, 0]);
-  await tap(page.locator('.tt-cant'));
+  await tap(page.locator('.rt-cant'));
   await done();
   assert.equal((await board('totals-07')).claim, 'most');
-  assert.equal(await page.locator('.tt-note').innerText(), '21 is the most.');
+  assert.equal(await page.locator('.rt-note').innerText(), '21 is the most.');
   await shot('cant-done');
 
   // Every: a start, its cards, There is another, then every start and That's all.
   await open('totals-08'); await fit('totals-08');
   // The start buttons are at least 44 px, in at most two rows.
-  const chips = await page.locator('.tt-chip').evaluateAll(els => els.map(el => { const r = el.getBoundingClientRect(); return {w: r.width, h: r.height, top: Math.round(r.top)}; }));
+  const chips = await page.locator('.rt-chip').evaluateAll(els => els.map(el => { const r = el.getBoundingClientRect(); return {w: r.width, h: r.height, top: Math.round(r.top)}; }));
   assert.equal(chips.length, 9);
   assert.ok(chips.every(c => c.w >= 43.5 && c.h >= 43.5), 'start buttons are 44 px');
   assert.ok(new Set(chips.map(c => c.top)).size <= 2, 'start buttons in at most two rows');
   if (phone) assert.equal(new Set(chips.map(c => c.top)).size, 2, 'two rows on a phone');
-  await tap(page.locator('.tt-chip', {hasText: '4'}));
+  await tap(page.locator('.rt-chip', {hasText: '4'}));
   for (const v of [0, 3, 0, 5]) await tap(card(v));
   assert.deepEqual((await board('totals-08')).found, [4]);
-  await tap(page.locator('.tt-all'));
-  assert.equal(await page.locator('.tt-note.bad').innerText(), 'There is another.');
-  assert.ok(await page.locator('.tt-all').isDisabled());
-  for (const s of [0, 1, 2, 3]) { await tap(page.locator('.tt-chip', {hasText: String(s)})); await tap(slot(0)); await tap(card(4 - s)); }
+  await tap(page.locator('.rt-all'));
+  assert.equal(await page.locator('.rt-note.bad').innerText(), 'There is another.');
+  assert.ok(await page.locator('.rt-all').isDisabled());
+  for (const s of [0, 1, 2, 3]) { await tap(page.locator('.rt-chip', {hasText: String(s)})); await tap(slot(0)); await tap(card(4 - s)); }
   assert.deepEqual((await board('totals-08')).found, [0, 1, 2, 3, 4]);
-  assert.equal(await page.locator('.tt-chip.found').count(), 5);
+  assert.equal(await page.locator('.rt-chip.found').count(), 5);
   await shot('every');
-  await tap(page.locator('.tt-all'));
+  await tap(page.locator('.rt-all'));
   await done();
 
   // Three trays and the hard boards fit.
@@ -129,7 +129,7 @@ try {
   // The playground: three trays of six 1s.
   await open('totals-playground'); await fit('totals-playground');
   assert.equal(await page.locator('[data-action="hint"]').count(), 0, 'no Hint in the playground');
-  await tap(page.locator('.tt-trayn').nth(2));
+  await tap(page.locator('.rt-trayn').nth(2));
   for (let k = 0; k < 6; k++) await tap(card(1));
   assert.deepEqual(await lastRow(), ['1', '4', '10', '20', '35', '56']);
   await shot('playground');

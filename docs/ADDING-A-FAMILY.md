@@ -22,7 +22,7 @@ A new puzzle family, or a new group of puzzles inside an existing family, touche
 | File | Contents |
 |---|---|
 | `dist/families/<id>/<id>.js` | The mechanic or mechanics, and the module entry (its default export) |
-| `dist/families/<id>/<id>.css` | Styles, in the shared board look of `dist/boards.css`. Every family's stylesheet is loaded on every screen, so scope each rule to `[data-mechanic-wire="<id>"]` or use a class prefix no other family styles (Fair shares and Portal shields once shared `sh-`, and Globe and Glued squares share `gl-`) |
+| `dist/families/<id>/<id>.css` | Styles, in the shared board look of `dist/boards.css`, kept to the family's own elements (see [Styles](#styles)) |
 | `dist/families/<id>/<id>.json` | The pack: puzzles, sources and a family record |
 | `scripts/build-<id>.mjs` | Optional: the authoring list that computes answers and writes the pack |
 | `scripts/validate-<id>.mjs` | The validator; its default export runs it, and `npm run build` calls it |
@@ -31,6 +31,10 @@ A new puzzle family, or a new group of puzzles inside an existing family, touche
 | `dist/families.js` | One line, `'./families/<id>/<id>.js'`, added at the end |
 
 `<id>` is a short lowercase name such as `chips`. Start every puzzle id with `<id>-` (Proofs, which came first, uses `proof-`).
+
+## Styles
+
+Every family's stylesheet is loaded on every screen, so a rule that names another family's class reaches that family's boards too (Drawing machines' `.pg-board{display:block}` once laid every Proofs garden out in one column). Pick a class prefix no other family uses, and start every selector with your board's root, `[data-mechanic-wire="<mechanic>"]`, or one of your own classes, rules on shared board classes (`gb-`, `sg-`, `case-`, …) included; give `@keyframes` your prefix too. `tests/family-styles.test.mjs`, in `npm test`, fails on any selector in a family stylesheet that names nothing only that family uses and says who else uses each class (`node scripts/family-styles.mjs` prints the same report).
 
 ## The module entry
 

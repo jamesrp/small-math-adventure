@@ -589,7 +589,7 @@ const pct = (v, total) => `${r2(v / total * 100)}%`;
 function trioPath(L, at, trio, cls, open) {
   const [a, b, c] = trio.map(i => L.pos[at.get(i)]);
   const path = `M${r2(a[0])} ${r2(a[1])}L${r2(b[0])} ${r2(b[1])}L${r2(c[0])} ${r2(c[1])}${open ? '' : 'Z'}`;
-  return `<g class="tr-line ${cls}"><path class="halo" d="${path}"/><path d="${path}"/></g>`;
+  return `<g class="ts-line ${cls}"><path class="halo" d="${path}"/><path d="${path}"/></g>`;
 }
 // The board: trio lines (on the ring only), then a card button or a
 // placeholder per position. look(id) gives {cls, label, move, ui, pressed,
@@ -601,21 +601,21 @@ function boardHtml(d, order, look, lines = [], {big = false, square = false} = {
   const inBad = new Set(lines.filter(([, cls]) => cls === 'bad').flatMap(([t]) => t));
   const cards = order.map((id, k) => {
     const [x, y] = L.pos[k], o0 = look(id), o = inBad.has(id) && !o0.hidden ? {...o0, cls: `${o0.cls || ''} in-bad`.trim()} : o0, style = `left:${pct(x - L.w / 2, L.W)};top:${pct(y - L.h / 2, L.H)};width:${pct(L.w, L.W)};height:${pct(L.h, L.H)}`;
-    if (o.hidden) return `<span class="tr-spot" style="${style}" aria-hidden="true"></span>`;
+    if (o.hidden) return `<span class="ts-spot" style="${style}" aria-hidden="true"></span>`;
     const face = o.face ?? faceSvg(d, id, {big, square});
-    const attrs = `class="tr-card${o.cls ? ` ${o.cls}` : ''}" style="${style}" aria-label="${esc(o.label)}" data-focus="tr-card-${id}"`;
+    const attrs = `class="ts-card${o.cls ? ` ${o.cls}` : ''}" style="${style}" aria-label="${esc(o.label)}" data-focus="ts-card-${id}"`;
     if (o.move) return `<button type="button" ${attrs} data-action="expansion-move" data-move="${esc(JSON.stringify(o.move))}"${o.pressed !== undefined ? ` aria-pressed="${o.pressed}"` : ''}>${face}</button>`;
     if (o.ui) return `<button type="button" ${attrs} data-action="mechanic-ui" data-ui="${esc(JSON.stringify(o.ui))}"${o.pressed !== undefined ? ` aria-pressed="${o.pressed}"` : ''}>${face}</button>`;
     return `<span role="img" ${attrs.replace(/ data-focus="[^"]*"/, '')}>${face}</span>`;
   }).join('');
-  const under = lines.length && d === 2 ? `<svg class="tr-lines" viewBox="0 0 ${L.W} ${L.H}" aria-hidden="true" focusable="false">${lines.map(([trio, cls, open]) => trioPath(L, at, trio, cls, open)).join('')}</svg>` : '';
-  return `<div class="tr-board deck-${d}${square ? ' counts' : ''}" style="aspect-ratio:${L.W}/${L.H}">${under}${cards}</div>`;
+  const under = lines.length && d === 2 ? `<svg class="ts-lines" viewBox="0 0 ${L.W} ${L.H}" aria-hidden="true" focusable="false">${lines.map(([trio, cls, open]) => trioPath(L, at, trio, cls, open)).join('')}</svg>` : '';
+  return `<div class="ts-board ts-deck-${d}${square ? ' counts' : ''}" style="aspect-ratio:${L.W}/${L.H}">${under}${cards}</div>`;
 }
 // A small card, for trays, shelves, strips and pictures.
 function mini(d, id, {cls = '', big = false, square = false, label = true, paint = null} = {}) {
-  return `<span class="tr-mini${cls ? ` ${cls}` : ''}${paint !== null ? ` paint-${paint}` : ''}${d > 2 && !square ? ' tall' : ''}" ${label ? `role="img" aria-label="${esc(d === 2 ? tileName(id) : cardName(d, id))}"` : 'aria-hidden="true"'}>${faceSvg(d, id, {big: d === 2 && !square && big !== false, square})}</span>`;
+  return `<span class="ts-mini${cls ? ` ${cls}` : ''}${paint !== null ? ` paint-${paint}` : ''}${d > 2 && !square ? ' tall' : ''}" ${label ? `role="img" aria-label="${esc(d === 2 ? tileName(id) : cardName(d, id))}"` : 'aria-hidden="true"'}>${faceSvg(d, id, {big: d === 2 && !square && big !== false, square})}</span>`;
 }
-const miniTrio = (d, trio, cls = '', opts = {}) => `<span class="tr-trio${cls ? ` ${cls}` : ''}">${trio.map(i => mini(d, i, opts)).join('')}</span>`;
+const miniTrio = (d, trio, cls = '', opts = {}) => `<span class="ts-trio${cls ? ` ${cls}` : ''}">${trio.map(i => mini(d, i, opts)).join('')}</span>`;
 // The rule, checked attribute by attribute for three cards: each row shows
 // the three values and a tick or a cross.
 function ruleRows(d, trio) {
@@ -624,13 +624,13 @@ function ruleRows(d, trio) {
     const vals = [a[k], b[k], c[k]], good = new Set(vals).size !== 2;
     const glyph = v => k === 0 ? `<svg viewBox="0 0 24 24">${shapeSvg(v, 0, 12, 12.5, 15, INK[0])}</svg>` : k === 1 ? `<svg viewBox="0 0 24 24">${shapeSvg(2, v, 12, 12, 17, INK[0])}</svg>` : k === 2 ? `<b>${v + 1}</b>` : `<i class="ink-${v}"></i>`;
     const what = ['shapes', 'fills', 'counts', 'colours'][k];
-    return `<span class="tr-row ${good ? 'ok' : 'no'}" role="img" aria-label="${what} ${good ? (vals[0] === vals[1] ? 'all the same' : 'all different') : 'two the same'}">${vals.map(v => `<span class="tr-val">${glyph(v)}</span>`).join('')}<span class="tr-mark">${good ? '✓' : '✗'}</span></span>`;
+    return `<span class="ts-row ${good ? 'ok' : 'no'}" role="img" aria-label="${what} ${good ? (vals[0] === vals[1] ? 'all the same' : 'all different') : 'two the same'}">${vals.map(v => `<span class="ts-val">${glyph(v)}</span>`).join('')}<span class="ts-mark">${good ? '✓' : '✗'}</span></span>`;
   }).join('');
-  return `<div class="tr-rows">${rows}</div>`;
+  return `<div class="ts-rows">${rows}</div>`;
 }
-const strip = (d, trio, opts = {}) => `<div class="tr-strip">${miniTrio(d, trio, '', opts)}${ruleRows(d, trio)}</div>`;
-const told = text => text ? `<p class="tr-told" role="status">${esc(text)}</p>` : '';
-const actionBtn = (label, action, cls, enabled = true, hinted = false) => `<button type="button" class="secondary tr-button ${cls}${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="tr-${cls}" ${enabled ? '' : 'disabled'}>${label}</button>`;
+const strip = (d, trio, opts = {}) => `<div class="ts-strip">${miniTrio(d, trio, '', opts)}${ruleRows(d, trio)}</div>`;
+const told = text => text ? `<p class="ts-told" role="status">${esc(text)}</p>` : '';
+const actionBtn = (label, action, cls, enabled = true, hinted = false) => `<button type="button" class="secondary ts-button ${cls}${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="ts-${cls}" ${enabled ? '' : 'disabled'}>${label}</button>`;
 const sameAction = (a, b) => Boolean(a && b) && JSON.stringify(a) === JSON.stringify(b);
 
 function renderComplete(p, a) {
@@ -645,10 +645,10 @@ function renderComplete(p, a) {
     return done || given ? {cls, label} : {cls, label, move: {type: 'pick', card: id}};
   }, lines, {big: d === 2});
   const kept = q.pairs.slice(0, b.round).map(([x, y]) => miniTrio(d, [x, y, third(d, x, y)], 'kept', {big: true})).join('');
-  const shelf = kept ? `<div class="tr-shelf" aria-label="Trios made">${kept}</div>` : '';
+  const shelf = kept ? `<div class="ts-shelf" aria-label="Trios made">${kept}</div>` : '';
   const check = b.miss !== null && !done ? strip(d, [...pair, b.miss], {big: true}) : '';
   const status = done ? 'Every trio made.' : `Ringed: ${listWords(pair.map(i => cardName(d, i)))}.${b.miss !== null ? ` The ${cardName(d, b.miss)} does not make a trio with them.` : ''}`;
-  return `<div class="tr-puzzle${done ? ' solved' : ''}">${board}${check}${shelf}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="ts-puzzle${done ? ' solved' : ''}">${board}${check}${shelf}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 function renderThrough(p, a) {
   const q = p.parameters, b = a.board, done = solved(p, b), c = q.centre;
@@ -662,11 +662,11 @@ function renderThrough(p, a) {
     const label = `${capital(tileName(id))}${picked ? ', picked' : ''}`;
     return done ? {cls, label} : {cls, label, move: {type: 'pick', card: id}, pressed: picked};
   }, lines, {big: true});
-  const bar = done ? '' : `<div class="tr-bar">${actionBtn('That’s all', {type: 'all'}, 'all', b.told !== 'more', sameAction(hinted, {type: 'all'}))}</div>`;
+  const bar = done ? '' : `<div class="ts-bar">${actionBtn('That’s all', {type: 'all'}, 'all', b.told !== 'more', sameAction(hinted, {type: 'all'}))}</div>`;
   const check = failed ? strip(2, [failed[0], c, failed[1]], {big: true}) : '';
   const note = told({more: 'There is another.', again: 'Found already.'}[b.told]);
   const status = `${found.length ? `Trios found: ${found.map(([x, y]) => `${tileName(x)} and ${tileName(y)}`).join('; ')}.` : 'No trio found yet.'}${failed ? ' Those two do not make a trio with the ringed tile.' : ''}`;
-  return `<div class="tr-puzzle${done ? ' solved' : ''}">${board}${check}${note}${bar}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="ts-puzzle${done ? ' solved' : ''}">${board}${check}${note}${bar}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 function renderSplit(p, a) {
   const q = p.parameters, b = a.board, done = solved(p, b);
@@ -677,22 +677,22 @@ function renderSplit(p, a) {
     return done ? {cls, label: capital(tileName(id))} : {cls, label: `${capital(tileName(id))}. Put it in a tray`, move: {type: 'place', card: id}};
   }, [], {big: true});
   const next = b.trays.findIndex(t => t.length < 3);
-  const trays = done ? '' : `<div class="tr-trays">${b.trays.map((tray, k) => {
+  const trays = done ? '' : `<div class="ts-trays">${b.trays.map((tray, k) => {
     const full = tray.length === 3, good = full && isTrio(2, ...tray);
     const slots = [0, 1, 2].map(j => {
       const id = tray[j];
-      if (id === undefined) return `<span class="tr-slot${k === next && j === tray.length ? ' next' : ''}" aria-hidden="true"></span>`;
+      if (id === undefined) return `<span class="ts-slot${k === next && j === tray.length ? ' next' : ''}" aria-hidden="true"></span>`;
       const hintedCls = sameAction(hinted, {type: 'lift', card: id}) ? ' hinted' : '';
-      return `<button type="button" class="tr-slot filled${hintedCls}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'lift', card: id}))}" data-focus="tr-tray-${id}" aria-label="${esc(`${capital(tileName(id))} in tray ${k + 1}. Take it out`)}">${faceSvg(2, id, {big: true})}</button>`;
+      return `<button type="button" class="ts-slot filled${hintedCls}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'lift', card: id}))}" data-focus="ts-tray-${id}" aria-label="${esc(`${capital(tileName(id))} in tray ${k + 1}. Take it out`)}">${faceSvg(2, id, {big: true})}</button>`;
     }).join('');
     const marks = full ? ruleRows(2, tray) : '';
-    return `<div class="tr-tray${full ? (good ? ' ok' : ' no') : ''}" role="group" aria-label="Tray ${k + 1}${full ? (good ? ', a trio' : ', not a trio') : ''}"><div class="tr-slots">${slots}</div>${marks}</div>`;
+    return `<div class="ts-tray${full ? (good ? ' ok' : ' no') : ''}" role="group" aria-label="Tray ${k + 1}${full ? (good ? ', a trio' : ', not a trio') : ''}"><div class="ts-slots">${slots}</div>${marks}</div>`;
   }).join('')}</div>`;
-  const shelf = b.found.length ? `<div class="tr-shelf splits" aria-label="Splits found">${b.found.map(k => `<span class="tr-split">${k.split('|').map(t => miniTrio(2, t.split('.').map(Number), '', {big: true})).join('')}</span>`).join('')}</div>` : '';
-  const bar = done ? '' : `<div class="tr-bar">${actionBtn('That’s all', {type: 'all'}, 'all', b.told !== 'more', sameAction(hinted, {type: 'all'}))}</div>`;
+  const shelf = b.found.length ? `<div class="ts-shelf splits" aria-label="Splits found">${b.found.map(k => `<span class="ts-split">${k.split('|').map(t => miniTrio(2, t.split('.').map(Number), '', {big: true})).join('')}</span>`).join('')}</div>` : '';
+  const bar = done ? '' : `<div class="ts-bar">${actionBtn('That’s all', {type: 'all'}, 'all', b.told !== 'more', sameAction(hinted, {type: 'all'}))}</div>`;
   const note = told({more: 'There is another.', again: 'Found already.'}[b.told]);
   const status = `${b.found.length} ${b.found.length === 1 ? 'split' : 'splits'} kept. ${b.trays.map((t, k) => `Tray ${k + 1}: ${t.length ? listWords(t.map(tileName)) : 'empty'}`).join('. ')}.`;
-  return `<div class="tr-puzzle${done ? ' solved' : ''}">${board}${trays}${note}${bar}${shelf}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="ts-puzzle${done ? ' solved' : ''}">${board}${trays}${note}${bar}${shelf}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 // After a right Can't with five tiles: the four other tiles are dishes, each
 // holding the pairs of the five it completes. No dish holds more than two,
@@ -704,16 +704,16 @@ function dishesHtml(chosen) {
     const t = third(2, chosen[i], chosen[j]);
     (dishes.get(t) || inside).push([chosen[i], chosen[j]]);
   }
-  const pairHtml = pr => `<span class="tr-pair">${pr.map(i => mini(2, i, {big: true})).join('')}</span>`;
-  const dish = o => `<div class="tr-dish" role="group" aria-label="${esc(`The ${tileName(o)} completes ${dishes.get(o).length} ${dishes.get(o).length === 1 ? 'pair' : 'pairs'}`)}">${mini(2, o, {cls: 'dish-tile', big: true})}${[0, 1].map(k => dishes.get(o)[k] ? pairHtml(dishes.get(o)[k]) : '<span class="tr-pair empty" aria-hidden="true"></span>').join('')}</div>`;
-  return `<div class="tr-dishes">${others.map(dish).join('')}<div class="tr-dish inside" role="group" aria-label="${inside.length} pairs complete inside the five">${inside.map(pairHtml).join('')}</div></div>`;
+  const pairHtml = pr => `<span class="ts-pair">${pr.map(i => mini(2, i, {big: true})).join('')}</span>`;
+  const dish = o => `<div class="ts-dish" role="group" aria-label="${esc(`The ${tileName(o)} completes ${dishes.get(o).length} ${dishes.get(o).length === 1 ? 'pair' : 'pairs'}`)}">${mini(2, o, {cls: 'dish-tile', big: true})}${[0, 1].map(k => dishes.get(o)[k] ? pairHtml(dishes.get(o)[k]) : '<span class="ts-pair empty" aria-hidden="true"></span>').join('')}</div>`;
+  return `<div class="ts-dishes">${others.map(dish).join('')}<div class="ts-dish inside" role="group" aria-label="${inside.length} pairs complete inside the five">${inside.map(pairHtml).join('')}</div></div>`;
 }
 // After a right Can't with two colours: each colour's tiles in a row, with
 // room for four marked. One colour has five or more.
 function classesHtml(paint, trio) {
-  return `<div class="tr-classes">${[0, 1].map(v => {
+  return `<div class="ts-classes">${[0, 1].map(v => {
     const tiles = paint.map((x, i) => x === v ? i : -1).filter(i => i >= 0);
-    return `<div class="tr-class" role="group" aria-label="${tiles.length} ${PAINTS[v]} tiles"><span class="tr-room">${tiles.slice(0, 4).map(i => mini(2, i, {big: true, paint: v, cls: trio.includes(i) ? 'in-trio' : ''})).join('')}</span>${tiles.slice(4).map(i => mini(2, i, {big: true, paint: v, cls: `over${trio.includes(i) ? ' in-trio' : ''}`})).join('')}</div>`;
+    return `<div class="ts-class" role="group" aria-label="${tiles.length} ${PAINTS[v]} tiles"><span class="ts-room">${tiles.slice(0, 4).map(i => mini(2, i, {big: true, paint: v, cls: trio.includes(i) ? 'in-trio' : ''})).join('')}</span>${tiles.slice(4).map(i => mini(2, i, {big: true, paint: v, cls: `over${trio.includes(i) ? ' in-trio' : ''}`})).join('')}</div>`;
   }).join('')}</div>`;
 }
 function claimBar(p, b, full, done, hinted) {
@@ -721,7 +721,7 @@ function claimBar(p, b, full, done, hinted) {
   if (!q.can || done) return '';
   const on = state.claiming && full;
   const enabled = full && b.told !== 'way';
-  return `<div class="tr-bar"><button type="button" class="secondary tr-button tr-cant${hinted?.type === 'cant' && !on ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !on})}' data-focus="tr-cant" aria-pressed="${on}" ${enabled ? '' : 'disabled'}>Can’t</button></div>`;
+  return `<div class="ts-bar"><button type="button" class="secondary ts-button ts-cant${hinted?.type === 'cant' && !on ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !on})}' data-focus="ts-cant" aria-pressed="${on}" ${enabled ? '' : 'disabled'}>Can’t</button></div>`;
 }
 // A card's part in a Can't claim: every card can be tapped and nothing is
 // tinted but the child's own picks, so a claim can fail. The first two taps
@@ -756,14 +756,14 @@ function renderCap(p, a) {
     if (!on && full) return {cls: [...base, 'full'].join(' '), label};
     return {cls: base.join(' '), label, move: {type: 'pick', card: id}, pressed: on};
   }, lines, {big: d === 2});
-  const slots = `<span class="tr-count" role="img" aria-label="${b.chosen.length} of ${q.target} chosen">${Array.from({length: q.target}, (_, k) => `<i class="${k < b.chosen.length ? 'on' : ''}"></i>`).join('')}</span>`;
+  const slots = `<span class="ts-count" role="img" aria-label="${b.chosen.length} of ${q.target} chosen">${Array.from({length: q.target}, (_, k) => `<i class="${k < b.chosen.length ? 'on' : ''}"></i>`).join('')}</span>`;
   const check = whyPair ? strip(d, [...whyPair, why], {big: d === 2}) : '';
   const picture = done && b.claim && d === 2 ? dishesHtml(b.chosen) : '';
   const unfound = hidden && full && bad.length && !done;
   const said = b.told === 'way' ? (state.way ? 'There is a way.' : '') : {not: 'Not a trio.', out: `Not a trio in your ${['four', 'five'][q.target - 4] || 'try'}.`}[b.told];
   const note = told(said || (claiming ? 'Tap the trio.' : unfound ? 'There is a trio.' : ''));
   const status = `${b.chosen.length} chosen${b.chosen.length ? `: ${listWords(b.chosen.map(i => cardName(d, i)))}` : ''}.${bad.length && !q.dim && !hidden ? ` A trio: ${listWords(bad[0].map(i => cardName(d, i)))}.` : ''}${q.dim && b.chosen.length < q.target && blocked.size + b.chosen.length === deckSize(d) ? ' Every other card is ruled out.' : ''}`;
-  return `<div class="tr-puzzle${done ? ' solved' : ''}${claiming ? ' claiming' : ''}"><div class="tr-top">${slots}</div>${board}${check}${note}${claimBar(p, b, full, done, hinted)}${picture}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="ts-puzzle${done ? ' solved' : ''}${claiming ? ' claiming' : ''}"><div class="ts-top">${slots}</div>${board}${check}${note}${claimBar(p, b, full, done, hinted)}${picture}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 function renderPaint(p, a) {
   const q = p.parameters, b = a.board, done = solved(p, b), state = ui(p);
@@ -788,7 +788,7 @@ function renderPaint(p, a) {
   const note = told(said || (claiming ? 'Tap the trio.' : hidden && full && flagged.length && !done ? 'A trio is all one colour.' : ''));
   const say = i => counts ? cardName(3, i + 9 * b.paint[i]) : `${tileName(i)} ${b.paint[i] === null ? 'blank' : PAINTS[b.paint[i]]}`;
   const status = `${q.order.map(say).join(', ')}.${flags.length && !b.claim ? ` ${flags.length} ${flags.length === 1 ? 'trio is' : 'trios are'} marked.` : ''}`;
-  return `<div class="tr-puzzle${done ? ' solved' : ''}${claiming ? ' claiming' : ''}">${board}${note}${claimBar(p, b, full, done, hinted)}${picture}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="ts-puzzle${done ? ' solved' : ''}${claiming ? ' claiming' : ''}">${board}${note}${claimBar(p, b, full, done, hinted)}${picture}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 function renderGame(p, a) {
   const q = p.parameters, b = a.board, s = replay(b.turns), done = s.over === 'won';
@@ -802,7 +802,7 @@ function renderGame(p, a) {
   }, lines, {big: true});
   const note = told(s.over === 'lost' ? 'You own a trio.' : '');
   const status = `${b.turns.length ? `You: ${listWords(b.turns.filter((_, k) => k % 2 === 0).map(tileName))}. Them: ${b.turns.filter((_, k) => k % 2).map(tileName).join(', ') || 'nothing yet'}.` : 'Your turn.'}${s.over === 'won' ? ' They own a trio.' : ''}`;
-  return `<div class="tr-puzzle${done ? ' solved' : ''}">${board}${note}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="ts-puzzle${done ? ' solved' : ''}">${board}${note}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 function renderPlay(p, a) {
   const q = p.parameters, b = a.board, d = b.deck, state = ui(p), order = q.orders[d];
@@ -814,11 +814,11 @@ function renderPlay(p, a) {
     if (dim) return {cls, label: `${name}, ruled out by two chosen cards. Show why`, ui: {why: id}};
     return {cls, label: `${name}${on ? ', chosen' : ''}`, move: {type: 'pick', card: id}, pressed: on};
   }, whyPair ? [[[...whyPair, why], 'why']] : [], {big: d === 2});
-  const decks = `<div class="tr-decks" role="group" aria-label="Cards">${PLAY_DECKS.map(k => `<button type="button" class="secondary tr-button tr-deck" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'deck', deck: k}))}" data-focus="tr-deck-${k}" aria-pressed="${k === d}">${deckSize(k)}</button>`).join('')}${actionBtn('Clear', {type: 'clear'}, 'clear', b.chosen.length > 0)}</div>`;
-  const count = `<p class="tr-tally" aria-label="${b.chosen.length} chosen">${b.chosen.length}</p>`;
+  const decks = `<div class="ts-decks" role="group" aria-label="Cards">${PLAY_DECKS.map(k => `<button type="button" class="secondary ts-button ts-deck" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'deck', deck: k}))}" data-focus="ts-deck-${k}" aria-pressed="${k === d}">${deckSize(k)}</button>`).join('')}${actionBtn('Clear', {type: 'clear'}, 'clear', b.chosen.length > 0)}</div>`;
+  const count = `<p class="ts-tally" aria-label="${b.chosen.length} chosen">${b.chosen.length}</p>`;
   const check = whyPair ? strip(d, [...whyPair, why], {big: d === 2}) : '';
   const stuck = b.chosen.length && blocked.size + b.chosen.length === deckSize(d);
-  return `<div class="tr-puzzle tr-play${stuck ? ' stuck' : ''}">${decks}${count}${board}${check}<p class="sr-only" role="status">${esc(`${b.chosen.length} chosen.${stuck ? ' Every other card is ruled out.' : ''}`)}</p></div>`;
+  return `<div class="ts-puzzle ts-play${stuck ? ' stuck' : ''}">${decks}${count}${board}${check}<p class="sr-only" role="status">${esc(`${b.chosen.length} chosen.${stuck ? ' Every other card is ruled out.' : ''}`)}</p></div>`;
 }
 function render(p, a) {
   return {complete: renderComplete, through: renderThrough, split: renderSplit, cap: renderCap, paint: renderPaint, game: renderGame, playground: renderPlay}[p.parameters.mode](p, a);
@@ -860,5 +860,5 @@ export default {
   mechanics: triosMechanics,
   pack: new URL('./trios.json', import.meta.url).href,
   css: new URL('./trios.css', import.meta.url).href,
-  focus: '.tr-card:is(button),.tr-slot:is(button),.tr-deck'
+  focus: '.ts-card:is(button),.ts-slot:is(button),.ts-deck'
 };

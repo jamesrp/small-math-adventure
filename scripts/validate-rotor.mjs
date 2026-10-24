@@ -399,8 +399,8 @@ export default async function validateRotor() {
     for (let k = 0; k < 16; k++) a = play(g, a, {type: 'send'});
     refuse(g, a, {type: 'send'}, 'two blocks of eight');
     refuse(g, a, {type: 'tree', depth: 3}, 'the same tree');
-    assert.doesNotMatch(draw(g)(a).match(/<button[^>]*data-focus="rr-tree-3"[^>]*>/)[0], /data-move/, 'the chosen tree’s button does nothing');
-    assert.match(draw(g)(a).match(/<button[^>]*data-focus="rr-tree-2"[^>]*>/)[0], /data-move/, 'another tree’s button chooses it');
+    assert.doesNotMatch(draw(g)(a).match(/<button[^>]*data-focus="ro-tree-3"[^>]*>/)[0], /data-move/, 'the chosen tree’s button does nothing');
+    assert.match(draw(g)(a).match(/<button[^>]*data-focus="ro-tree-2"[^>]*>/)[0], /data-move/, 'another tree’s button chooses it');
     forge(g, {...a.board, depth: 4}, 'a tree that isn’t offered');
     assert.ok(!isSolved(g, a.board), 'the playground is never solved');
   }

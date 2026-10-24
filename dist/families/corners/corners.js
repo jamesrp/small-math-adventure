@@ -736,11 +736,11 @@ function renderTree(p, att) {
   const size = {};
   for (const id of Object.keys(q.nodes)) size[pieces.of[id]] = (size[pieces.of[id]] || 0) + 1;
   const main = Object.keys(size).map(Number).reduce((top, k) => size[k] > size[top] ? k : top, pieces.of[Object.keys(q.nodes)[0]]);
-  const regions = faces.closed.map(k => `<polygon class="ct-region ct-tint-${(tints[k] ?? 0) % TINTS}" points="${faces.walks[k].dots.map(id => `${f(g.pos[id][0])},${f(g.pos[id][1])}`).join(' ')}"/>`).join('');
+  const regions = faces.closed.map(k => `<polygon class="cn-region cn-tint-${(tints[k] ?? 0) % TINTS}" points="${faces.walks[k].dots.map(id => `${f(g.pos[id][0])},${f(g.pos[id][1])}`).join(' ')}"/>`).join('');
   const sideWords = i => { const s = faces.sides[i]; return holdsOn(faces, i) ? ', the same space on both sides' : s.includes('out') ? ', between the outside and a shaded region' : ', between two shaded regions'; };
   const board = graphBoard(g, {
-    cls: `ct-map${done ? ' tree' : ''}${taking && !done ? ' ct-leafing' : ''}`, label: 'Opened drawing',
-    under: `<g class="ct-regions">${regions}</g>`,
+    cls: `cn-map${done ? ' tree' : ''}${taking && !done ? ' cn-leafing' : ''}`, label: 'Opened drawing',
+    under: `<g class="cn-regions">${regions}</g>`,
     node: id => {
       if (gone.has(id)) return {text: '', cls: 'gone', label: `Dot ${id}, taken off`};
       const end = taking && !done && endLine(q, b, id) !== null, cut = pieces.of[id] !== main;
@@ -760,7 +760,7 @@ function renderTree(p, att) {
     faces.closed.length ? 'Some of the drawing is shaded.' : 'Nothing is shaded.',
     tree ? 'A tree.' : '', done && q.leaves ? 'One dot is left.' : '', said || ''
   ].filter(Boolean).join(' ');
-  return `<div class="ct-puzzle${done ? ' solved' : ''}" data-mechanic-wire="corners">${board}${said ? `<p class="cr-told">${esc(said)}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="cn-puzzle${done ? ' solved' : ''}" data-mechanic-wire="corners">${board}${said ? `<p class="cr-told">${esc(said)}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 // A tap anywhere on a line's wide hit area goes to the nearest line, so where
 // the hit areas of lines meeting at a dot overlap, the line under the finger
@@ -780,7 +780,7 @@ function wireTree(root, p, api) {
     else api.ui({note: 'end', at: JSON.stringify(b)});
   };
   svg.addEventListener('click', e => {
-    if (svg.classList.contains('ct-leafing')) {
+    if (svg.classList.contains('cn-leafing')) {
       const point = at(e), id = e.target.closest?.('[data-gb-node]')?.dataset.gbNode;
       const tapped = point ? leafTap(q, api.attempt().board, point) : id ? {dot: id} : null;
       if (tapped) takeOff(tapped.dot ?? tapped.refuse, 'refuse' in tapped);

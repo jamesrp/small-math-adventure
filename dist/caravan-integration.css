@@ -9,3 +9,6 @@
 /* Solving brings the next action into view without hiding the finished board. */
 .road-solve-actions{margin:0 0 13px}.caravan-puzzle .road-solve-actions .caravan-completion{max-width:none}.has-road-scene .is-complete .board-panel :is(button,input,select):disabled{opacity:1}
 @media(max-width:780px){.road-solve-actions{margin-bottom:10px}}
+/* The satchel's playground button, for every family (once in chips.css). */
+.caravan-library .satchel-playground{display:flex;align-items:center;justify-content:center;gap:.55rem;width:100%;min-height:60px;margin-top:20px;padding:10px 16px;background:#fbf4dc;border:1px solid #ead9a4;border-radius:9px;box-shadow:0 2px 0 #ead9a4;font-family:Georgia,'Times New Roman',serif;font-size:1.3rem;font-weight:400;color:#4c6942}
+.caravan-library .satchel-playground:hover{background:#f6ecc8}

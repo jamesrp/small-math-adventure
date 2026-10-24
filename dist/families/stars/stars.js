@@ -178,7 +178,7 @@ const point = (n, d, r = 40) => [50 + r * Math.sin(2 * Math.PI * d / n), 50 - r 
 // Chords for a list of [from, to, piece] lines on n dots, in viewBox units.
 const chords = (n, lines) => lines.map(([a, b, k]) => {
   const [x1, y1] = point(n, a), [x2, y2] = point(n, b);
-  return `<line class="star-line c${k % COLORS}" x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}"/>`;
+  return `<line class="star-line star-c${k % COLORS}" x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}"/>`;
 }).join('');
 // A picture of the whole drawing of hop k on n dots (the goal card).
 export function figure(n, k, label) {
@@ -188,7 +188,7 @@ export function figure(n, k, label) {
 const centerCount = (q, run) => {
   const made = run.starts.length, target = q.mode === 'starts' || q.mode === 'rings' ? q.starts : null;
   const slots = target ? Math.max(target, made) : made;
-  const dots = Array.from({length: slots}, (_, i) => `<i class="${i < made ? `c${i % COLORS}` : 'empty'}${target && i >= target ? ' extra' : ''}"></i>`).join('');
+  const dots = Array.from({length: slots}, (_, i) => `<i class="${i < made ? `star-c${i % COLORS}` : 'empty'}${target && i >= target ? ' extra' : ''}"></i>`).join('');
   const label = target ? `${plural(made, 'piece')} of ${target}` : plural(made, 'piece');
   return `<div class="star-count${target && run.complete && made !== target ? ' missed' : ''}" role="img" aria-label="${label}">${dots}</div>`;
 };

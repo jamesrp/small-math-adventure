@@ -281,7 +281,7 @@ export default async function validateTotals() {
     assert.equal(a.board.refused, true);
     assert.match(draw(p)(a), /That doesn’t rule it out\./);
     refuse(p, a, {type: 'cant'}, 'the same lane stays refused');
-    assert.match(draw(p)(a), /tt-cant[^>]*disabled/, 'Can’t is off after a refusal');
+    assert.match(draw(p)(a), /rt-cant[^>]*disabled/, 'Can’t is off after a refusal');
     // Undo keeps the refusal while the lane is the same: the press goes back a card.
     const back = undoPress(p, a, draw(p), draw(p)(a));
     assert.deepEqual(back.board.lane, [2, 1, 2, 0, null], 'Undo takes back the last card');
@@ -292,7 +292,7 @@ export default async function validateTotals() {
     c = play(p, c, {type: 'cant'});
     assert.ok(isSolved(p, c.board)); assert.equal(c.board.claim, 'most');
     assert.match(draw(p)(c), /21 is the most\./);
-    assert.doesNotMatch(draw(p)(c), /tt-note[^>]*>[^<]*[Bb]iggest/, 'the line after a right Can’t leaves the reason to the child');
+    assert.doesNotMatch(draw(p)(c), /rt-note[^>]*>[^<]*[Bb]iggest/, 'the line after a right Can’t leaves the reason to the child');
     // Hints after a refusal reach the claim.
     hintsSolve(p, a, 'after a refusal');
     const l = byTitle('Below the least');
@@ -385,7 +385,7 @@ export default async function validateTotals() {
     a = play(p, a, {type: 'put', slot: 2, card: 0});
     const html = strip(draw(p)(a));
     // Totals stop at the first empty turn.
-    assert.match(html, /tt-start" aria-hidden="true">0<\/span><span class="tt-cell last good" aria-hidden="true">2<\/span><span class="tt-cell last none"/, 'tray 2 reads 0, 2 and stops');
+    assert.match(html, /rt-start" aria-hidden="true">0<\/span><span class="rt-cell last good" aria-hidden="true">2<\/span><span class="rt-cell last none"/, 'tray 2 reads 0, 2 and stops');
     for (const [slot, card] of [[1, 1], [3, 3]]) a = play(p, a, {type: 'put', slot, card});
     assert.ok(isSolved(p, a.board));
   }

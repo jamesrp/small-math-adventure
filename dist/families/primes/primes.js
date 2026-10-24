@@ -249,19 +249,19 @@ let drawnFor = '';
 const uiAttr = payload => `data-action="mechanic-ui" data-ui='${esc(JSON.stringify({...payload, at: drawnFor}))}'`;
 const moveAttr = action => `data-action="expansion-move" data-move="${esc(JSON.stringify(action))}"`;
 const button = (label, action, cls, {enabled = true, hinted = false, primary = false, aria = ''} = {}) =>
-  `<button type="button" class="${primary ? 'primary' : 'secondary'} pb-button ${cls}${hinted ? ' hinted' : ''}" ${moveAttr(action)} data-focus="${cls}"${aria ? ` aria-label="${esc(aria)}"` : ''}${enabled ? '' : ' disabled'}>${label}</button>`;
+  `<button type="button" class="${primary ? 'primary' : 'secondary'} pm-button ${cls}${hinted ? ' hinted' : ''}" ${moveAttr(action)} data-focus="${cls}"${aria ? ` aria-label="${esc(aria)}"` : ''}${enabled ? '' : ' disabled'}>${label}</button>`;
 const sameAction = (a, b) => Boolean(a && b) && JSON.stringify(a) === JSON.stringify(b);
 const words = list => list.join(', ');
 // A small picture of a chosen bag: its tokens in a row, or an empty ring.
 export function mini(c) {
   const t = tokensOf(c);
-  return `<span class="pb-mini" aria-hidden="true">${t.length ? t.map(x => `<i>${x}</i>`).join('') : '<i class="none"></i>'}</span>`;
+  return `<span class="pm-mini" aria-hidden="true">${t.length ? t.map(x => `<i>${x}</i>`).join('') : '<i class="none"></i>'}</span>`;
 }
 const chosenWords = c => (sizeOf(c) ? tokensOf(c).join(' × ') : 'nothing');
 
 function trayHTML(tray, now) {
   if (!tray.length) return '';
-  return `<ul class="pb-tray" aria-label="Kept">${tray.map(c => `<li class="pb-item${now && same(c, now) ? ' now' : ''}" aria-label="${esc(`${valueOf(c)}, from ${chosenWords(c)}`)}"><b>${valueOf(c)}</b>${mini(c)}</li>`).join('')}</ul>`;
+  return `<ul class="pm-tray" aria-label="Kept">${tray.map(c => `<li class="pm-item${now && same(c, now) ? ' now' : ''}" aria-label="${esc(`${valueOf(c)}, from ${chosenWords(c)}`)}"><b>${valueOf(c)}</b>${mini(c)}</li>`).join('')}</ul>`;
 }
 
 function renderBag(p, a) {
@@ -271,25 +271,25 @@ function renderBag(p, a) {
   const h = a.hintLevel >= 2 && live && q.mode !== 'playground' ? hint(p, b) : null, act = h?.type === 'move' ? h.action : null;
   let supply = '';
   if (q.mode !== 'every') {
-    supply = `<div class="pb-supply" role="group" aria-label="Tokens">${PRIMES.map((x, i) => {
+    supply = `<div class="pm-supply" role="group" aria-label="Tokens">${PRIMES.map((x, i) => {
       const add = {type: 'add', prime: x}, drop = {type: 'drop', prime: x};
-      return `<span class="pb-stock"><button type="button" class="pb-token pb-add${sameAction(act, add) ? ' hinted' : ''}" ${moveAttr(add)} data-focus="pb-add-${x}" aria-label="Put a ${x} in the bag"${live && sizeOf(bag) < LIMIT ? '' : ' disabled'}>${x}</button><button type="button" class="pb-drop${sameAction(act, drop) ? ' hinted' : ''}" ${moveAttr(drop)} data-focus="pb-drop-${x}" aria-label="Take a ${x} out of the bag"${live && bag[i] ? '' : ' disabled'}>−</button></span>`;
+      return `<span class="pm-stock"><button type="button" class="pm-token pm-add${sameAction(act, add) ? ' hinted' : ''}" ${moveAttr(add)} data-focus="pm-add-${x}" aria-label="Put a ${x} in the bag"${live && sizeOf(bag) < LIMIT ? '' : ' disabled'}>${x}</button><button type="button" class="pm-drop${sameAction(act, drop) ? ' hinted' : ''}" ${moveAttr(drop)} data-focus="pm-drop-${x}" aria-label="Take a ${x} out of the bag"${live && bag[i] ? '' : ' disabled'}>−</button></span>`;
     }).join('')}</div>`;
   }
   const tokens = toks.map((x, i) => {
     const chosen = b.pick.includes(i), action = {type: 'pick', token: i};
-    const cls = `pb-token${chosen ? ' chosen' : ''}${sameAction(act, action) ? ' hinted' : ''}`;
-    return live ? `<button type="button" class="${cls}" ${moveAttr(action)} data-focus="pb-tok-${i}" aria-pressed="${chosen}" aria-label="${x}">${x}</button>` : `<span class="${cls}" aria-hidden="true">${x}</span>`;
+    const cls = `pm-token${chosen ? ' chosen' : ''}${sameAction(act, action) ? ' hinted' : ''}`;
+    return live ? `<button type="button" class="${cls}" ${moveAttr(action)} data-focus="pm-tok-${i}" aria-pressed="${chosen}" aria-label="${x}">${x}</button>` : `<span class="${cls}" aria-hidden="true">${x}</span>`;
   }).join('');
-  const bagHTML = `<div class="pb-bagrow"><div class="pb-bag${toks.length ? '' : ' empty'}" role="group" aria-label="Bag">${tokens}</div><span class="pb-total" aria-label="${esc(`The bag's value is ${valueOf(bag)}`)}">= ${valueOf(bag)}</span></div>`;
+  const bagHTML = `<div class="pm-bagrow"><div class="pm-bag${toks.length ? '' : ' empty'}" role="group" aria-label="Bag">${tokens}</div><span class="pm-total" aria-label="${esc(`The bag's value is ${valueOf(bag)}`)}">= ${valueOf(bag)}</span></div>`;
   const kept = b.tray.some(c => same(c, now));
-  const expr = sizeOf(now) > 1 ? `<span class="pb-expr">${tokensOf(now).join(' × ')} =</span>` : '';
-  const keep = live ? button('Keep', {type: 'keep'}, 'pb-keep', {enabled: !kept, hinted: sameAction(act, {type: 'keep'}), primary: !kept, aria: `Keep ${valueOf(now)}`}) : '';
-  const choice = `<div class="pb-choice">${expr}<span class="pb-value" aria-label="${esc(`Chosen ${chosenWords(now)}, value ${valueOf(now)}`)}">${valueOf(now)}</span>${keep}</div>`;
-  const all = q.mode !== 'playground' && live ? `<div class="pb-bar">${button('That’s all', {type: 'all'}, 'pb-all', {enabled: b.tray.length > 0 && !b.said, hinted: sameAction(act, {type: 'all'})})}</div>` : '';
+  const expr = sizeOf(now) > 1 ? `<span class="pm-expr">${tokensOf(now).join(' × ')} =</span>` : '';
+  const keep = live ? button('Keep', {type: 'keep'}, 'pm-keep', {enabled: !kept, hinted: sameAction(act, {type: 'keep'}), primary: !kept, aria: `Keep ${valueOf(now)}`}) : '';
+  const choice = `<div class="pm-choice">${expr}<span class="pm-value" aria-label="${esc(`Chosen ${chosenWords(now)}, value ${valueOf(now)}`)}">${valueOf(now)}</span>${keep}</div>`;
+  const all = q.mode !== 'playground' && live ? `<div class="pm-bar">${button('That’s all', {type: 'all'}, 'pm-all', {enabled: b.tray.length > 0 && !b.said, hinted: sameAction(act, {type: 'all'})})}</div>` : '';
   const note = q.mode !== 'playground' && b.said && live ? SAID[b.said](q, bag) : '';
   const status = `Bag ${toks.length ? words(toks) : 'empty'}, value ${valueOf(bag)}. Chosen ${chosenWords(now)}, value ${valueOf(now)}${kept ? ', kept' : ''}. Kept ${b.tray.length ? words(b.tray.map(valueOf)) : 'nothing'}.${note ? ` ${note}` : ''}`;
-  return `<div class="pb-puzzle pb-${q.mode}${done ? ' solved' : ''}">${supply}${bagHTML}${choice}${all}${note ? `<p class="pb-told">${esc(note)}</p>` : ''}${trayHTML(b.tray, live ? now : null)}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="pm-puzzle pm-${q.mode}${done ? ' solved' : ''}">${supply}${bagHTML}${choice}${all}${note ? `<p class="pm-told">${esc(note)}</p>` : ''}${trayHTML(b.tray, live ? now : null)}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 
 function renderSplit(p, a) {
@@ -301,26 +301,26 @@ function renderSplit(p, a) {
   const told = live && state.told && state.told.at === drawnFor ? state.told : null;
   const h = a.hintLevel >= 2 && live ? hint(p, b) : null, act = h?.type === 'move' ? h.action : null;
   const row = cards.map((c, i) => {
-    if (isPrime(c)) return `<span class="pb-token pb-prime" role="img" aria-label="${c}, prime">${c}</span>`;
-    const cls = `pb-card${i === sel ? ' selected' : ''}${act?.type === 'split' && act.card === i ? ' hinted' : ''}`;
-    return live ? `<button type="button" class="${cls}" ${uiAttr({sel: i})} data-focus="pb-card-${i}" aria-pressed="${i === sel}" aria-label="${c}">${c}</button>` : `<span class="${cls}" aria-hidden="true">${c}</span>`;
+    if (isPrime(c)) return `<span class="pm-token pm-prime" role="img" aria-label="${c}, prime">${c}</span>`;
+    const cls = `pm-card${i === sel ? ' selected' : ''}${act?.type === 'split' && act.card === i ? ' hinted' : ''}`;
+    return live ? `<button type="button" class="${cls}" ${uiAttr({sel: i})} data-focus="pm-card-${i}" aria-pressed="${i === sel}" aria-label="${c}">${c}</button>` : `<span class="${cls}" aria-hidden="true">${c}</span>`;
   }).join('');
   // A finished run keeps the keypad's room, so a quick second tap on the last
   // key lands on nothing instead of on New run rising into its place.
-  let pad = live && over ? `<div class="pb-pad pb-rest" aria-hidden="true"><span class="pb-keys">${KEYS.map(() => '<span class="pb-key"></span>').join('')}</span></div>` : '';
+  let pad = live && over ? `<div class="pm-pad pm-rest" aria-hidden="true"><span class="pm-keys">${KEYS.map(() => '<span class="pm-key"></span>').join('')}</span></div>` : '';
   if (live && sel !== null) {
     const c = cards[sel];
-    pad = `<div class="pb-pad" role="group" aria-label="Split ${c}"><span class="pb-eq" aria-hidden="true">${c} =</span><span class="pb-keys">${KEYS.map(d => {
+    pad = `<div class="pm-pad" role="group" aria-label="Split ${c}"><span class="pm-eq" aria-hidden="true">${c} =</span><span class="pm-keys">${KEYS.map(d => {
       const ok = canSplit(c, d), hinted = act?.type === 'split' && act.card === sel && act.by === d;
-      return `<button type="button" class="pb-key${hinted ? ' hinted' : ''}${told && told.c === c && told.d === d ? ' marked' : ''}" ${ok ? moveAttr({type: 'split', card: sel, by: d}) : uiAttr({told: {c, d}})} data-focus="pb-key-${d}"${d < c ? '' : ' disabled'}>${d}</button>`;
-    }).join('')}</span><span class="pb-eq" aria-hidden="true">× ?</span></div>`;
+      return `<button type="button" class="pm-key${hinted ? ' hinted' : ''}${told && told.c === c && told.d === d ? ' marked' : ''}" ${ok ? moveAttr({type: 'split', card: sel, by: d}) : uiAttr({told: {c, d}})} data-focus="pm-key-${d}"${d < c ? '' : ' disabled'}>${d}</button>`;
+    }).join('')}</span><span class="pm-eq" aria-hidden="true">× ?</span></div>`;
   }
-  const bar = live ? `<div class="pb-bar">${button('New run', {type: 'new'}, 'pb-new', {enabled: b.steps.length > 0, hinted: sameAction(act, {type: 'new'}), primary: over})}${button('That’s all', {type: 'all'}, 'pb-all', {enabled: b.shelf.length > 0 && !b.said, hinted: sameAction(act, {type: 'all'})})}</div>` : '';
+  const bar = live ? `<div class="pm-bar">${button('New run', {type: 'new'}, 'pm-new', {enabled: b.steps.length > 0, hinted: sameAction(act, {type: 'new'}), primary: over})}${button('That’s all', {type: 'all'}, 'pm-all', {enabled: b.shelf.length > 0 && !b.said, hinted: sameAction(act, {type: 'all'})})}</div>` : '';
   const note = told ? `${told.d} doesn’t split ${told.c}.` : live && b.said ? SAID.more() : '';
   const nowPair = b.steps.length ? pairOf(q.card, b.steps[0][1]) : null;
-  const shelf = b.shelf.length ? `<ul class="pb-shelf" aria-label="Found">${b.shelf.map(x => `<li class="pb-run${live && nowPair && same(x.pair, nowPair) ? ' now' : ''}" aria-label="${esc(`First ${x.pair[0]} × ${x.pair[1]}, finished ${words(x.bag)}`)}"><span class="pb-pair">${x.pair[0]} × ${x.pair[1]}</span><span class="pb-arrow" aria-hidden="true">→</span>${mini(countsOf(x.bag))}</li>`).join('')}</ul>` : '';
+  const shelf = b.shelf.length ? `<ul class="pm-shelf" aria-label="Found">${b.shelf.map(x => `<li class="pm-run${live && nowPair && same(x.pair, nowPair) ? ' now' : ''}" aria-label="${esc(`First ${x.pair[0]} × ${x.pair[1]}, finished ${words(x.bag)}`)}"><span class="pm-pair">${x.pair[0]} × ${x.pair[1]}</span><span class="pm-arrow" aria-hidden="true">→</span>${mini(countsOf(x.bag))}</li>`).join('')}</ul>` : '';
   const status = `Cards ${words(cards)}.${over ? ' Every card is prime.' : sel !== null ? ` Splitting ${cards[sel]}.` : ''} Found ${b.shelf.length}.${note ? ` ${note}` : ''}`;
-  return `<div class="pb-puzzle pb-split${done ? ' solved' : ''}"><div class="pb-cards" role="group" aria-label="Cards">${row}</div>${pad}${bar}${note ? `<p class="pb-told">${esc(note)}</p>` : ''}${shelf}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  return `<div class="pm-puzzle pm-split${done ? ' solved' : ''}"><div class="pm-cards" role="group" aria-label="Cards">${row}</div>${pad}${bar}${note ? `<p class="pm-told">${esc(note)}</p>` : ''}${shelf}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 
 const render = (p, a) => (p.parameters.mode === 'split' ? renderSplit(p, a) : renderBag(p, a));
@@ -363,5 +363,5 @@ export default {
   mechanics: primesMechanics,
   pack: new URL('./primes.json', import.meta.url).href,
   css: new URL('./primes.css', import.meta.url).href,
-  focus: 'button.pb-token:not([disabled]),.pb-key:not([disabled]),.pb-keep:not([disabled]),.pb-new:not([disabled]),.pb-all:not([disabled])'
+  focus: 'button.pm-token:not([disabled]),.pm-key:not([disabled]),.pm-keep:not([disabled]),.pm-new:not([disabled]),.pm-all:not([disabled])'
 };

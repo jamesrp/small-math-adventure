@@ -333,7 +333,7 @@ function cardRow(q, b, s, top, view) {
   const editing = view.live && canCard(q) && (q.mode === 'playground' || s === q.edit), setting = view.live && canSet(q, b);
   const [rlo, rhi] = reach(q, cards, b.len, s);
   const parts = [`<rect class="rg-band b-${c}" x="${X(lo)}" y="${top + 3}" width="${(hi - lo) * U}" height="${CARD_H - 6}" rx="2"/>`];
-  parts.push(`<rect class="rg-strip s-${c}" x="${X(0)}" y="${mid - 4}" width="${v * U}" height="8" rx="1.5"/><text class="rg-letter" x="${X(0) + 3}" y="${mid + 2.4}">${s}</text>`);
+  parts.push(`<rect class="rg-strip rg-${c}" x="${X(0)}" y="${mid - 4}" width="${v * U}" height="8" rx="1.5"/><text class="rg-letter" x="${X(0) + 3}" y="${mid + 2.4}">${s}</text>`);
   const shown = view.shown;
   if (shown?.type === 'set' && shown.strip === s) parts.push(`<line class="rg-aim" x1="${X(shown.length)}" y1="${top + 1}" x2="${X(shown.length)}" y2="${top + CARD_H - 1}"/>`);
   if (shown?.type === 'card' && shown.strip === s) parts.push(`<line class="rg-aim" x1="${X(shown.value)}" y1="${top}" x2="${X(shown.value)}" y2="${top + CARD_H}"/>`);
@@ -356,7 +356,7 @@ function resultRow(q, b, i, top) {
     const w = typeof piece === 'number' ? piece : b.len[piece], x = X(at);
     at += w;
     if (typeof piece === 'number') return `<rect class="rg-white" x="${x}" y="${top + 2}" width="${w * U}" height="${ROW_H - 4}" rx="1.5"/><text class="rg-num" x="${f(x + w * U / 2)}" y="${top + ROW_H / 2 + 2.2}">${piece}</text>`;
-    return `<rect class="rg-strip s-${colorOf(q, piece)}" x="${x}" y="${top + 2}" width="${w * U}" height="${ROW_H - 4}" rx="1.5"/><text class="rg-letter" x="${x + 3}" y="${top + ROW_H / 2 + 2.2}">${piece}</text>`;
+    return `<rect class="rg-strip rg-${colorOf(q, piece)}" x="${x}" y="${top + 2}" width="${w * U}" height="${ROW_H - 4}" rx="1.5"/><text class="rg-letter" x="${x + 3}" y="${top + ROW_H / 2 + 2.2}">${piece}</text>`;
   }).join('');
   // A locked total's row ends against a wall at the sum.
   const wall = q.total && row.length > 1 && row.every(piece => q.total.strips.includes(piece)) ? `<rect class="rg-wall" x="${X(q.total.sum)}" y="${top}" width="2.4" height="${ROW_H}" rx="1"/>` : '';

@@ -29,13 +29,13 @@
 .mr-trail-case{fill:none;stroke:var(--b-card,#fffdf5);stroke-width:8px;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
 .mr-trail{fill:none;stroke:var(--b-ink,#294439);stroke-width:3.2px;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round}
 .mr-start{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:2px;vector-effect:non-scaling-stroke}
-.mr-pole{stroke:var(--b-ink,#294439);stroke-width:2.2px;vector-effect:non-scaling-stroke;stroke-linecap:round}
-.mr-cloth{fill:var(--b-rose,#e7a28f);stroke:var(--b-ink,#294439);stroke-width:1.5px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
-.mr-body{fill:var(--b-pine,#31533e);stroke:var(--b-ink,#294439);stroke-width:1.5px;vector-effect:non-scaling-stroke}
-.mr-eye,.mr-antenna-tip{fill:var(--b-on-pine,#fff8d9)}
-.mr-antenna-tip{stroke:var(--b-pine,#31533e);stroke-width:1.2px;vector-effect:non-scaling-stroke}
-.mr-antenna{stroke:var(--b-pine,#31533e);stroke-width:2px;vector-effect:non-scaling-stroke}
-.mr-mouth{stroke:var(--b-on-pine,#fff8d9);stroke-width:1.6px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+:is([data-mechanic-wire="robot"],.mr-help) .mr-pole{stroke:var(--b-ink,#294439);stroke-width:2.2px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+:is([data-mechanic-wire="robot"],.mr-help) .mr-cloth{fill:var(--b-rose,#e7a28f);stroke:var(--b-ink,#294439);stroke-width:1.5px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+:is([data-mechanic-wire="robot"],.mr-help) .mr-body{fill:var(--b-pine,#31533e);stroke:var(--b-ink,#294439);stroke-width:1.5px;vector-effect:non-scaling-stroke}
+:is([data-mechanic-wire="robot"],.mr-help) .mr-eye,:is([data-mechanic-wire="robot"],.mr-help) .mr-antenna-tip{fill:var(--b-on-pine,#fff8d9)}
+:is([data-mechanic-wire="robot"],.mr-help) .mr-antenna-tip{stroke:var(--b-pine,#31533e);stroke-width:1.2px;vector-effect:non-scaling-stroke}
+:is([data-mechanic-wire="robot"],.mr-help) .mr-antenna{stroke:var(--b-pine,#31533e);stroke-width:2px;vector-effect:non-scaling-stroke}
+:is([data-mechanic-wire="robot"],.mr-help) .mr-mouth{stroke:var(--b-on-pine,#fff8d9);stroke-width:1.6px;vector-effect:non-scaling-stroke;stroke-linecap:round}
 .mr-icon .mr-body{stroke-width:1px}
 @media (prefers-reduced-motion:no-preference){.mr-glide[style]{animation:mr-glide .22s ease-out}}
 @keyframes mr-glide{from{transform:translate(var(--mr-dx),var(--mr-dy))}to{transform:none}}

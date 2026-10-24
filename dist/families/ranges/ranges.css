@@ -14,7 +14,7 @@
 .rg-split{stroke:var(--b-line,#d0d6bd);stroke-width:.8;stroke-dasharray:2 1.5}
 .rg-band{fill:#ebe8da;stroke:var(--b-muted,#5a6850);stroke-width:.55;stroke-dasharray:1.6 1.1}
 .rg-strip{stroke:var(--b-ink,#294439);stroke-width:.7}
-.s-sun{fill:var(--b-sun,#efc76e)}.s-sky{fill:var(--b-sky,#9cc9de)}.s-rose{fill:var(--b-rose,#e7a28f)}
+.rg-sun{fill:var(--b-sun,#efc76e)}.rg-sky{fill:var(--b-sky,#9cc9de)}.rg-rose{fill:var(--b-rose,#e7a28f)}
 .rg-letter{font:600 6px var(--b-display,Georgia,serif);fill:var(--b-ink,#294439);pointer-events:none}
 .rg-white{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:.7}
 .rg-num{font:400 5.6px var(--b-display,Georgia,serif);fill:var(--b-ink,#294439);text-anchor:middle;pointer-events:none}

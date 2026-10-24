@@ -321,7 +321,7 @@ test('trees: each region its own tint, so a merge shows', () => {
   assert.equal(after.length, 6);
   assert.ok(after.every(t => tints([]).includes(t)));
   const html = view(tree(3), {...freshAttempt(tree(3)), board: {erased: [inner], gone: []}});
-  assert.equal(new Set(html.match(/ct-tint-\d/g)).size, 6, 'six tints drawn');
+  assert.equal(new Set(html.match(/cn-tint-\d/g)).size, 6, 'six tints drawn');
 });
 
 test('trees: end dots come off a tree with their lines, down to one dot', () => {
@@ -331,7 +331,7 @@ test('trees: end dots come off a tree with their lines, down to one dot', () => 
   assert.equal(move(p, a, {type: 'dot', id: 'A'}), null, 'not before a tree');
   a = play(p, a, ...route.map(line => ({type: 'line', line})));
   assert.ok(isTree(q, a.board.erased) && !isSolved(p, a.board), 'a tree, not yet one dot');
-  assert.match(view(p, a), /ct-leafing/);
+  assert.match(view(p, a), /cn-leafing/);
   assert.equal(move(p, a, {type: 'line', line: route[0]}), null, 'the lines stay once a tree is left');
   const ends = Object.keys(q.nodes).filter(id => endLine(q, a.board, id) !== null), inner = Object.keys(q.nodes).find(id => !ends.includes(id));
   assert.ok(ends.length >= 2);

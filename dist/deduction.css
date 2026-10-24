@@ -72,3 +72,23 @@
   .board-panel .code-puzzle .code-bit{width:44px;height:34px;box-sizing:border-box}
   .code-puzzle .code-word{gap:4px;flex-wrap:nowrap}
 }
+
+/* Shared by Pebble Duel's board (nim) and the Proofs duel, once in proofs.css:
+   the --pf-* colors on .proof-puzzle, the action row, the win pips (Move menus
+   too) and the piles of pebbles. */
+.proof-puzzle{--pf-ink:#294439;--pf-muted:#5a6850;--pf-line:#d0d6bd;--pf-paper:#f5f1e6;--pf-card:#fffdf5;--pf-pine:#31533e;--pf-ochre:#b38840;--pf-sun:#efc76e;--pf-leaf:#86a68c;--pf-good:#3c7a4a;--pf-good-soft:#e2ecd6;--pf-bad:#a9503a;--pf-bad-soft:#f5e3d9;--pf-cell:#edf2e4;--pf-cell-line:#c9d4ba;--pf-hole:#8e8a76;max-width:720px;margin:0 auto;color:var(--pf-ink)}
+.proof-puzzle .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.proof-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;margin:10px 0 0}
+.proof-pips{display:inline-flex;gap:6px}.proof-pips span{width:14px;height:14px;border-radius:50%;border:2px solid var(--pf-pine)}.proof-pips span.on{background:var(--pf-pine)}
+.duel-status{text-align:center;font-family:Georgia,'Times New Roman',serif;font-size:1.15rem;min-height:1.6em;margin:0 0 6px}
+.duel-piles{display:flex;justify-content:center;align-items:flex-end;gap:clamp(14px,6vw,48px);min-height:200px;padding:8px 0}
+.duel-bowl{display:flex;flex-direction:column;align-items:center;gap:6px}
+.duel-pile{display:flex;flex-direction:column-reverse;align-items:center;gap:4px}
+.duel-pebble{width:44px;height:40px;min-height:40px;min-width:44px;padding:0;border-radius:50%;background:#aabf9a;border:2px solid #294439;box-shadow:none}
+.duel-pebble:disabled{opacity:1;cursor:default}
+.duel-pebble.lift{background:var(--pf-sun);border-color:var(--pf-ochre);transform:translateY(-4px)}
+.duel-pebble.gone{display:block;opacity:.25;border-style:dashed}
+@media (hover:hover){.duel-pile .duel-pebble:not(:disabled):hover,.duel-pile .duel-pebble:not(:disabled):hover~.duel-pebble:not(.gone){background:var(--pf-sun);border-color:var(--pf-ochre)}}
+.duel-base{width:76px;height:16px;border-radius:0 0 40px 40px;background:#eceddf;border:1.5px solid var(--pf-line);border-top:0}
+@media (max-width:460px){.duel-pebble{width:40px;min-width:40px;height:36px;min-height:36px}}
+@media (prefers-reduced-motion:no-preference){.duel-pebble{transition:transform .15s,background .15s}}

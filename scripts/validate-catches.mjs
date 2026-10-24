@@ -380,7 +380,7 @@ function checkPlayground(p) {
   c = play(p, c, [{type: 'round', count: 10}]);
   assert.ok(c.board.rounds.every(r => listedOverlaps(20, 8, c.board.n).includes(r)));
   const html = m.render(p, {...c, hintLevel: 0}, {});
-  assert.ok(html.includes('ct-pile') && !html.includes('data-move="{&quot;type&quot;:&quot;tap'), `${p.id}: piles and no tile taps`);
+  assert.ok(html.includes('ck-pile') && !html.includes('data-move="{&quot;type&quot;:&quot;tap'), `${p.id}: piles and no tile taps`);
   for (const [board, why] of [[{...c.board, rounds: [...c.board.rounds.slice(0, -1), 9]}, 'an overlap the bag can’t give'], [{...c.board, bag: 2}, 'a bag below three'], [{...c.board, m: 9}, 'a catch above eight'], [{...c.board, rounds: Array(61).fill(c.board.rounds[0])}, 'more than sixty catches'], [{...c.board, first: []}, 'catches that don’t show the last overlap'], [{...c.board, extra: 1}, 'an unknown field']]) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
 }
 

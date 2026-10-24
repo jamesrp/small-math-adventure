@@ -259,7 +259,7 @@ export const SHAPES = [
   {name: 'heart', path: 'M12 20.5C5 15.5 2.5 12 2.5 8.6A4.6 4.6 0 0 1 12 6.3a4.6 4.6 0 0 1 9.5 2.3c0 3.4-2.5 6.9-9.5 11.9z'},
   {name: 'cross', path: 'M9 3h6v6h6v6h-6v6H9v-6H3V9h6z'}
 ];
-const shape = (k, cls = '') => `<svg class="cb-shape s${k} ${cls}" viewBox="0 0 24 24" role="img" aria-label="${SHAPES[k].name}"><path d="${SHAPES[k].path}"/></svg>`;
+const shape = (k, cls = '') => `<svg class="cb-shape cb-s${k} ${cls}" viewBox="0 0 24 24" role="img" aria-label="${SHAPES[k].name}"><path d="${SHAPES[k].path}"/></svg>`;
 const EYE = '<svg class="cb-eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
 const describe = row => [...row].map(c => c === '1' ? 'lit' : 'dark').join(', ');
 // A row of lanterns. `act(i)` gives a lantern's action, or null for a picture.
