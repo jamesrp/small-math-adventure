@@ -384,7 +384,7 @@ function renderPlacing(p, a) {
   if (!done) {
     if (q.mode === 'fewest') buttons.push(button('Done', {type: 'done'}, 'sq-done', full && (b.fewer === null || b.sq.length < b.fewer), act?.type === 'done'));
     buttons.push(button('Clear', {type: 'clear'}, 'sq-clear', b.sq.length > 0 && !claiming, act?.type === 'clear'));
-    if (q.mode === 'fill') buttons.push(`<button type="button" class="secondary sq-button sq-cant${act?.type === 'cant' && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="sq-cant" aria-pressed="${claiming}" ${b.sq.length ? '' : 'disabled'}>Can’t</button>`);
+    if (q.mode === 'fill') buttons.push(`<button type="button" class="secondary sq-button sq-cant${act?.type === 'cant' && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="sq-cant" data-toggle="sq-cant" aria-pressed="${claiming}" ${b.sq.length ? '' : 'disabled'}>Can’t</button>`);
   }
   if (buttons.length) bar += `<span class="sq-buttons">${buttons.join('')}</span>`;
   const note = q.mode === 'fewest' && !done && b.fewer !== null && full && b.sq.length >= b.fewer ? 'Fewer squares fit.' : claiming && state.said ? state.said : '';

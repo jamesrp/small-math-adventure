@@ -644,7 +644,7 @@ function renderStill(p, a) {
   const dropButton = solved || pick || run.ended ? '' : `<button type="button" class="secondary chip-drop ${act.type === 'drop' ? 'hinted' : ''}" data-chip-move="${esc(JSON.stringify({type: 'drop'}))}" data-focus="chip-drop" aria-label="Add a chip at ${q.at}" ${canDrop ? '' : 'disabled'}><span aria-hidden="true">+</span><span class="chip-dot-icon" aria-hidden="true"></span><span aria-hidden="true">${q.at}</span></button>`;
   const fresh = !b.steps && !total && !b.sink;
   const againButton = !fresh && !solved && !pick ? `<button type="button" class="primary chip-again ${act.type === 'again' ? 'hinted' : ''}" data-chip-move="${esc(JSON.stringify({type: 'again'}))}" data-focus="chip-again"><span aria-hidden="true">↺</span> New run</button>` : '';
-  const claimButton = solved ? '' : `<button type="button" class="secondary chip-claim ${act.type === 'claim' ? 'hinted' : ''}" data-chip-pick="1" data-focus="chip-all" aria-pressed="${pick}" ${pickOpen(p, b, run) ? '' : 'disabled'}>That’s all</button>`;
+  const claimButton = solved ? '' : `<button type="button" class="secondary chip-claim ${act.type === 'claim' ? 'hinted' : ''}" data-chip-pick="1" data-focus="chip-all" data-toggle="chip-pick" aria-pressed="${pick}" ${pickOpen(p, b, run) ? '' : 'disabled'}>That’s all</button>`;
   // One line of controls, then one line for a refusal or a pair that is one board twice.
   const refused = !b.told ? '' : b.claim === 'apart' ? STILL_TOLD.apart : b.found.length < q.answers ? STILL_TOLD.more : '';
   const said = pick && ui(p).said === 'same' ? toldLine('Those are the same board.') : refused ? toldLine(refused) : '';
@@ -729,6 +729,11 @@ function wire(root, p, api) {
     api.apply(action);
   };
   root.addEventListener('click', e => {
+    // That's all on still boards is a data-toggle slot: the app's double-tap
+    // guard drops the click right after it when it is That's all again or
+    // lands where That's all was, whatever moved there.
+    const hit = e.target.closest('[data-chip-pick],[data-chip-tap],[data-chip-move]');
+    if (hit && root.contains(hit) && api.repeatToggle?.(hit, e)) return;
     // That's all (still boards) opens the picking of two boards in the row;
     // the second board tapped makes the claim.
     const opener = e.target.closest('[data-chip-pick]');

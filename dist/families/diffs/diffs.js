@@ -351,7 +351,7 @@ function renderMake(p, a) {
     const ready = complete(b.old) && b.refused === null;
     const submit = state.claiming && state.marks.length;
     const attrs = submit ? moveAttrs({type: 'cant', marks: [...state.marks].sort((x, y) => x - y)}, 'df-cant') : `data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !state.claiming})}' data-focus="df-cant"`;
-    tools = `<div class="df-tools"><button type="button" class="secondary df-cant${showCant && !submit ? ' hinted' : ''}" ${attrs}${submit ? ' aria-label="Can’t: check marks"' : ''} aria-pressed="${Boolean(state.claiming && ready)}" ${ready ? '' : 'disabled'}>Can’t</button></div>`;
+    tools = `<div class="df-tools"><button type="button" class="secondary df-cant${showCant && !submit ? ' hinted' : ''}" ${attrs} data-toggle="df-cant"${submit ? ' aria-label="Can’t: check marks"' : ''} aria-pressed="${Boolean(state.claiming && ready)}" ${ready ? '' : 'disabled'}>Can’t</button></div>`;
   }
   const why = b.claim ? certificate(q.target, b.claim) : null;
   const note = b.refused ? 'Those don’t rule it out.' : why === 'zeros' ? 'Three 0 gaps make all four towers equal.' : why === 'odd' ? 'Odd and even can’t swap an odd number of times round a ring.' : '';

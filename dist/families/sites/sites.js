@@ -459,7 +459,7 @@ function render(p, a) {
   let bar = '';
   if (!done) {
     const check = moveButton('Check', {type: 'check'}, 'st-check', !b.checked, act?.type === 'check');
-    const cant = q.mode === 'take' ? `<button type="button" class="secondary st-button st-cant${act?.type === 'cant' && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="st-cant" aria-pressed="${claiming}" ${tried(b) ? '' : 'disabled'}>Can’t</button>` : '';
+    const cant = q.mode === 'take' ? `<button type="button" class="secondary st-button st-cant${act?.type === 'cant' && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="st-cant" data-toggle="st-cant" aria-pressed="${claiming}" ${tried(b) ? '' : 'disabled'}>Can’t</button>` : '';
     const fewest = q.mode === 'fit' ? moveButton('Fewest', {type: 'fewest'}, 'st-fewest', b.checked && goal(q, b.dots) && !(b.fewer !== null && b.dots.length >= b.fewer), act?.type === 'fewest') : '';
     bar = `<div class="st-bar">${slots(q, b)}${check}${cant}${fewest}</div>`;
   }

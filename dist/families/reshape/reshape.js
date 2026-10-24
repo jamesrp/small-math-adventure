@@ -545,7 +545,7 @@ function render(p, a) {
     const spin = chosen ? (chosen.at ? turnSpot(q, G, b, chosen) : homeTurnSpot(q, G, b, chosen)) : null;
     buttons.push(button('Turn', spin ? {type: 'put', piece: chosen.cells[0], x: spin[0], y: spin[1], r: spin[2]} : {type: 'put'}, 'rs-turn', Boolean(spin) && !claiming, false));
     buttons.push(button('Tape', {type: 'tape'}, 'rs-tape', tried(b) && !claiming, act?.type === 'tape'));
-    if (q.mode === 'square' && q.cant) buttons.push(`<button type="button" class="secondary rs-button rs-cant${act?.type === 'cant' && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="rs-cant" aria-pressed="${claiming}" ${tried(b) ? '' : 'disabled'}>Can’t</button>`);
+    if (q.mode === 'square' && q.cant) buttons.push(`<button type="button" class="secondary rs-button rs-cant${act?.type === 'cant' && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="rs-cant" data-toggle="rs-cant" aria-pressed="${claiming}" ${tried(b) ? '' : 'disabled'}>Can’t</button>`);
     if (q.mode === 'rebuild') buttons.push(button('That’s all', {type: 'all'}, 'rs-all', b.found.length > 0 && !b.no, act?.type === 'all'));
   }
   const bar = `<div class="rs-bar">${snips}${buttons.length ? `<span class="rs-buttons">${buttons.join('')}</span>` : ''}</div>`;

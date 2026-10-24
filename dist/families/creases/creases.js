@@ -586,7 +586,7 @@ const hinted = (shown, action) => Boolean(shown && same(shown, action));
 // focus: where focus goes after the press. Can't and Check send it to the
 // board (the first wedge or disk), so it never rests on Can't; a key with no
 // element falls back to the family's focus selector (a chip or the knob).
-const toolButton = (label, action, enabled, shownAction, cls, pressed, focus = cls) => `<button type="button" class="${cls === 'cr-fold' ? 'primary' : 'secondary'} cr-tool ${cls}${hinted(shownAction, action) ? ' hinted' : ''}" ${moveAttrs(action, focus)}${pressed === undefined ? '' : ` aria-pressed="${pressed}"`} ${enabled ? '' : 'disabled'}>${label}</button>`;
+const toolButton = (label, action, enabled, shownAction, cls, pressed, focus = cls) => `<button type="button" class="${cls === 'cr-fold' ? 'primary' : 'secondary'} cr-tool ${cls}${hinted(shownAction, action) ? ' hinted' : ''}" ${moveAttrs(action, focus)}${cls === 'cr-cant' ? ' data-toggle="cr-cant"' : ''}${pressed === undefined ? '' : ` aria-pressed="${pressed}"`} ${enabled ? '' : 'disabled'}>${label}</button>`;
 const status = text => `<p class="sr-only" role="status">${esc(text)}</p>`;
 const note = text => (text ? `<p class="cr-told">${esc(text)}</p>` : '');
 const labelsWords = labels => labels.map((l, k) => `ray ${k + 1} ${l ? LETTER[l] : 'open'}`).join(', ');

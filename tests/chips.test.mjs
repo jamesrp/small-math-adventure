@@ -305,7 +305,7 @@ test('the cycle: a still start, chips added at A, and a start that comes back is
   assert.deepEqual(a.board.found, ['0,1'], 'a start that never comes back is not shelved');
   const html = playView(p, a, {pack, selected: null, message: ''});
   assert.doesNotMatch(html, /\b[0-9] of [0-9]\b|chip-slot empty/, 'no count of answers');
-  assert.match(html, /data-chip-pick="1" data-focus="chip-all" aria-pressed="false" >That’s all/);
+  assert.match(html, /data-chip-pick="1" data-focus="chip-all" data-toggle="chip-pick" aria-pressed="false" >That’s all/);
 });
 
 test('the cycle: That’s all is judged with two boards that go to the same board', () => {

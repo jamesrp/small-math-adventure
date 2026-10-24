@@ -467,7 +467,7 @@ function renderThrough(p, a) {
   const word = claiming ? 'Tap two circles.' : b.said === 'check' ? `The line misses ${list(missed)}.` : refused ? CLAIM_WORDS[why.why](q, why, refused) : '';
   let buttons = '';
   if (!done) {
-    const cant = q.cant ? `<button type="button" class="secondary tr-button tr-cant${act?.type === 'cant' && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="tr-cant" aria-pressed="${claiming}" ${canClaim(q, b) ? '' : 'disabled'}>Can’t</button>` : '';
+    const cant = q.cant ? `<button type="button" class="secondary tr-button tr-cant${act?.type === 'cant' && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="tr-cant" data-toggle="tr-cant" aria-pressed="${claiming}" ${canClaim(q, b) ? '' : 'disabled'}>Can’t</button>` : '';
     buttons = bar([moveButton('Check', {type: 'check'}, canCheck(q, b) && !claiming, act?.type === 'check'), cant]);
   }
   const say = `Junction at ${placeWords(b.at)}. Circles: ${targetWords(q)}.${word ? ` ${word}` : ''}${act?.type === 'put' ? ` Hint: the junction to ${placeWords(act.at)}.` : ''}`;

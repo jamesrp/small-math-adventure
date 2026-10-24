@@ -414,7 +414,7 @@ const ui = p => memo(uiState, p.id, () => ({claiming: false, chosen: [], pick: n
 const moveAttrs = (action, focus) => `data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="${esc(focus)}"`;
 const uiAttrs = (payload, focus) => `data-action="mechanic-ui" data-ui="${esc(JSON.stringify(payload))}" data-focus="${esc(focus)}"`;
 const claimButton = (label, action, enabled, hinted, cls) => `<button type="button" class="vt-button ${cls}${hinted ? ' hinted' : ''}" ${moveAttrs(action, cls)} ${enabled ? '' : 'disabled'}>${label}</button>`;
-const toggleButton = (label, payload, on, hinted, cls, enabled = true) => `<button type="button" class="vt-button ${cls}${hinted ? ' hinted' : ''}" ${uiAttrs(payload, cls)} aria-pressed="${on}" ${enabled ? '' : 'disabled'}>${label}</button>`;
+const toggleButton = (label, payload, on, hinted, cls, enabled = true) => `<button type="button" class="vt-button ${cls}${hinted ? ' hinted' : ''}" ${uiAttrs(payload, cls)} data-toggle="${cls}" aria-pressed="${on}" ${enabled ? '' : 'disabled'}>${label}</button>`;
 const status = text => `<p class="sr-only" role="status">${esc(text)}</p>`;
 const note = (text, cls = '') => text ? `<p class="vt-told${cls}">${esc(text)}</p>` : '';
 const tok = (x, cls = '') => `<b class="vt-tok${cls}">${esc(x)}</b>`;

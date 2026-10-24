@@ -721,7 +721,7 @@ function claimBar(p, b, full, done, hinted) {
   if (!q.can || done) return '';
   const on = state.claiming && full;
   const enabled = full && b.told !== 'way';
-  return `<div class="ts-bar"><button type="button" class="secondary ts-button ts-cant${hinted?.type === 'cant' && !on ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !on})}' data-focus="ts-cant" aria-pressed="${on}" ${enabled ? '' : 'disabled'}>Can’t</button></div>`;
+  return `<div class="ts-bar"><button type="button" class="secondary ts-button ts-cant${hinted?.type === 'cant' && !on ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !on})}' data-focus="ts-cant" data-toggle="ts-cant" aria-pressed="${on}" ${enabled ? '' : 'disabled'}>Can’t</button></div>`;
 }
 // A card's part in a Can't claim: every card can be tapped and nothing is
 // tinted but the child's own picks, so a claim can fail. The first two taps

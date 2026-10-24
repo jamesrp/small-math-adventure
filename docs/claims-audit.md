@@ -203,6 +203,25 @@ Each fix has a unit test and a browser check. Untested with children.
 - **color.** A lantern tapped with the colour it already has stays as it is, a no-op with no undo step, as the chosen palette colour already was.
 - **billiard.** billiard-15's That's all on a shelf with a wrong room says "A kept room doesn’t bounce once." and rings nothing (the save still records the room, so old saves load); the refused shelf stays refused until it changes. The audit's exploit now stops at the first claim. Can't carries `data-toggle="cr-cant"`.
 
+### Lane D: double tap (October 24)
+
+Checked with a new suite, `scripts/claim-toggles-browser-smoke.mjs`. For one or two puzzles per claim button it applies hints until the claim is on and closed, then checks three things:
+- two taps 90 ms apart at one point draw the board exactly as one tap does;
+- a second tap that follows the moved button keeps the claim open, and closes it once `data-toggle` is taken off, so the check can fail;
+- a tap 400 ms later closes the claim.
+
+On origin/main, before these changes, a second tap following the button closed the claim in all 31 lane D cases. Two taps at one point closed it or pressed something else in 20 of 31 on a desktop and 25 of 31 on a 390 × 844 phone. Now the 31 cases pass at 1280 × 900, 390 × 844, 820 × 1180 and 375 × 667 (the last three with touch), and so do glued, shields, paint, hills and billiard. `scripts/claims-audit.mjs` lists averages' Can't/stop and creases' Can't as guarded. Untested with children and on real phones.
+
+- **The guard (`dist/main.js`).** Opening a claim often moves the layout, so a second tap at the same point landed on another control: Restart in averages-05 and 08 (desktop and tablet), votes-03 (tablet and phones) and creases-08 and 10 (phones); geoboard-10's + stepper and a disk in creases-06 (phones); and a chosen stack in tetra-11 and 12. The click right after a toggle's press, within 350 ms, is now dropped in two cases: when it is the same slot, or when it comes from a pointer and lands within 40 px of the first tap, whatever is drawn there now. The double tap ends early on any other click, a press anywhere else, or any key except Enter or Space on the toggle. A family's own listener asks the same guard through `api.repeatToggle(control, event)`.
+- **squares, sites, cardmachines, diffs, trios, globe, geoboard, tetra, strings, votes, reshape, tropical, gapflood:** Can't carries `data-toggle`.
+- **averages, creases:** Can't is an `expansion-move` toggle and carries `data-toggle`; so does averages' stop.
+- **mobius:** Can't, on puzzles with more than one edge. **shares:** both Can'ts and Cut. **friezes:** each goal's claim (Can't, Shortest, Turn here) is its own slot.
+- **islands:** No walk and Fewest. **towers:** No city. **stairs:** Fewest.
+- **chips, rotor, holes:** their wires call `api.repeatToggle` before handling a tap. This covers chips' That's all (`data-chip-pick`), rotor's Can't and holes' Can't (`data-hl-ui`).
+- **Suites:** the geoboard, rotor and tropical suites now wait 400 ms between two presses that only a robot makes that fast.
+- **Not covered:** board taps that a family's `wire()` takes on pointerdown are never dropped; they only end a double tap. No claim in this list opens from such a tap. Strands' claim buttons have no pressed state, so its own suite checks them, not this one.
+- **Seen, not changed:** in paint and hills, while Hint shows a Can't claim the claim stays open, and pressing Can't then changes nothing on the screen. The hint holds it open, so the suite makes their first move by hand.
+
 ## Not covered
 
 - Gestures that only a family's `wire()` makes (drags, positional board taps) were read in the code, not walked.

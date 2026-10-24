@@ -129,7 +129,10 @@ try {
   assert.ok(await button('Can’t').isDisabled(), 'Can’t waits for a band');
   await band([0, 0], [0, 1], [1, 3], [4, 1]);
   assert.ok(!(await button('Can’t').isDisabled()));
-  await button('Can’t').click();
+  // Can't is a data-toggle slot: the click right after it, within 350 ms and
+  // 40 px, is taken for a double tap's second tap and dropped (dist/main.js),
+  // and the stepper's + opens near it, so the suite waits as a child would.
+  await button('Can’t').click(); await page.waitForTimeout(400);
   assert.equal(await page.locator('.geo-step b').textContent(), '?');
   assert.ok(await page.evaluate(() => document.activeElement?.getAttribute('aria-label') === 'More'), 'opening Can’t moves focus to +');
   for (let i = 0; i < 7; i++) await page.getByRole('button', {name: 'More'}).click();
@@ -149,7 +152,7 @@ try {
   assert.equal(await page.locator('.geo-note').textContent(), '3 outline dots don’t fit Pick’s rule.', 'the refusal still shows');
   assert.ok(await button('Can’t').isDisabled(), 'Can’t waits for the band to close again');
   await tap([0, 0]);
-  await button('Can’t').click();
+  await button('Can’t').click(); await page.waitForTimeout(400);
   for (let i = 0; i < 5; i++) await page.getByRole('button', {name: 'More'}).click();
   await button('Can’t').click();
   await done();

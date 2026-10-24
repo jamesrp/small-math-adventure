@@ -409,7 +409,7 @@ function render(p, a) {
   const tray = !done ? `<span class="ro-tray" role="img" aria-label="${plural(left, 'counter')} to send">${Array.from({length: left}, () => '<i class="ro-tray-dot"></i>').join('')}</span>` : '';
   const send = !done ? moveButton('Send', {type: 'send'}, `ro-send${shownAction?.type === 'send' ? ' hinted' : ''}`, allSet(b.start) && b.sent < st.length && !claiming) : '';
   let claims = '';
-  if (q.mode === 'make' && !done) claims = `<button type="button" class="secondary ro-button ro-cant${shownAction?.type === 'cant' && !claiming ? ' hinted' : ''}" data-rr-cant data-focus="ro-cant" aria-pressed="${claiming}" ${cantOpen(p, b) ? '' : 'disabled'}>Can’t</button>`;
+  if (q.mode === 'make' && !done) claims = `<button type="button" class="secondary ro-button ro-cant${shownAction?.type === 'cant' && !claiming ? ' hinted' : ''}" data-rr-cant data-focus="ro-cant" data-toggle="ro-cant" aria-pressed="${claiming}" ${cantOpen(p, b) ? '' : 'disabled'}>Can’t</button>`;
   if (q.mode === 'every' && !done) {
     const word = st.letters.join(''), keepOk = b.sent === q.target.length && isOrder(q, word) && !b.kept.includes(word);
     claims = moveButton('Keep', {type: 'keep'}, `ro-keep${shownAction?.type === 'keep' ? ' hinted' : ''}`, keepOk) + moveButton('That’s all', {type: 'all'}, `ro-all${shownAction?.type === 'all' ? ' hinted' : ''}`, b.kept.length > 0 && b.told !== 'more');
@@ -446,9 +446,11 @@ function wire(root, p, api) {
     if (v.node !== null && at.length === 2) { api.apply({type: 'cant', node: v.node, at}); return; }
     api.ui({at, moves: a.moves});
   };
-  root.querySelectorAll('[data-rr-at]').forEach(el => el.addEventListener('click', () => pickAt(Number(el.dataset.rrAt))));
+  // Can't is a data-toggle slot: the app's double-tap guard drops the click
+  // right after it when it is Can't again or lands where Can't was.
+  root.querySelectorAll('[data-rr-at]').forEach(el => el.addEventListener('click', e => { if (!api.repeatToggle?.(el, e)) pickAt(Number(el.dataset.rrAt)); }));
   // Can't opens (or closes) the claim on the board as it is now.
-  root.querySelector('[data-rr-cant]')?.addEventListener('click', () => { const a = api.attempt(); api.ui({claiming: !claimOf(p, a), moves: a.moves}); });
+  root.querySelector('[data-rr-cant]')?.addEventListener('click', e => { if (api.repeatToggle?.(e.currentTarget, e)) return; const a = api.attempt(); api.ui({claiming: !claimOf(p, a), moves: a.moves}); });
   wireGraph(root, {
     node: id => {
       const a = api.attempt();

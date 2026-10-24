@@ -271,7 +271,7 @@ test('every puzzle renders a compact map with its controls', () => {
     if (mode === 'starts') { assert.match(html, />No walk</); assert.match(html, />Done</); }
     if (mode === 'fewest' || mode === 'deliver') assert.match(html, />Fewest</);
     if (mode === 'add') assert.doesNotMatch(html, />Fewest<|>No walk</);
-    if (mode !== 'add') assert.match(html, /disabled aria-pressed="false">(No walk|Fewest)</, `${p.id}: no claim on a fresh board`);
+    if (mode !== 'add') assert.match(html, /disabled data-toggle="isl-claim" aria-pressed="false">(No walk|Fewest)</, `${p.id}: no claim on a fresh board`);
   }
 });
 

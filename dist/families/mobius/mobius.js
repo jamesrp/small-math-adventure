@@ -672,7 +672,7 @@ const plural = (n, one, many = `${one}s`) => `${WORDS[n] || n} ${n === 1 ? one :
 const ringsWords = rings => `Rings: ${rings.map(m => plural(m, 'dot')).join('; ')}`;
 const piecesWords = goal => `Pieces: ${goal.map(e => `one with ${plural(e, 'closed edge')}`).join('; ')}`;
 const moveButton = (label, action, {enabled = true, hinted = false, focus} = {}) => `<button type="button" class="secondary mb-button${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="${focus || `mb-${action.type}`}" ${enabled ? '' : 'disabled'}>${label}</button>`;
-const uiButton = (label, payload, {pressed, enabled = true, hinted = false, focus, aria} = {}) => `<button type="button" class="secondary mb-button${hinted ? ' hinted' : ''}" data-action="mechanic-ui" data-ui="${esc(JSON.stringify(payload))}" data-focus="${focus}"${pressed === undefined ? '' : ` aria-pressed="${pressed}"`}${aria ? ` aria-label="${esc(aria)}"` : ''} ${enabled ? '' : 'disabled'}>${label}</button>`;
+const uiButton = (label, payload, {pressed, enabled = true, hinted = false, focus, aria, toggle} = {}) => `<button type="button" class="secondary mb-button${hinted ? ' hinted' : ''}" data-action="mechanic-ui" data-ui="${esc(JSON.stringify(payload))}" data-focus="${focus}"${toggle ? ` data-toggle="${toggle}"` : ''}${pressed === undefined ? '' : ` aria-pressed="${pressed}"`}${aria ? ` aria-label="${esc(aria)}"` : ''} ${enabled ? '' : 'disabled'}>${label}</button>`;
 const arrowIcon = '<svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" stroke-dasharray="2 2.4"/><path d="M8 5v12M5.2 14l2.8 3.6 2.8-3.6M16 19V7M13.2 10l2.8-3.6 2.8 3.6"/></svg>';
 const status = text => `<p class="sr-only" role="status">${esc(text)}</p>`;
 // A new board closes Can't and drops lamps on edges that are gone.
@@ -718,7 +718,7 @@ function renderDots(p, a) {
   // On a band with one closed edge Can't is the claim; otherwise it opens the
   // taps, and That's all is a move only for one tap on each closed edge.
   const all = certified(topo, v.flags) ? moveButton('That’s all', {type: 'cant', flags: v.flags}, {hinted: allReady, focus: 'mb-all'}) : uiButton('That’s all', {refuse: true}, {enabled: v.flags.length > 0, focus: 'mb-all'});
-  const cant = oneEdge(topo) ? moveButton('Can’t', {type: 'cant', flags: []}, {enabled: open, hinted: hintCant, focus: 'mb-cant'}) : uiButton('Can’t', {claiming: !claiming}, {pressed: claiming, enabled: open, hinted: hintCant && !claiming, focus: claiming ? 'mb-cant-close' : 'mb-cant-open'});
+  const cant = oneEdge(topo) ? moveButton('Can’t', {type: 'cant', flags: []}, {enabled: open, hinted: hintCant, focus: 'mb-cant'}) : uiButton('Can’t', {claiming: !claiming}, {pressed: claiming, enabled: open, hinted: hintCant && !claiming, focus: claiming ? 'mb-cant-close' : 'mb-cant-open', toggle: 'mb-cant'});
   const bar = done ? '' : `<div class="mb-bar">${cant}${claiming ? all : ''}</div>`;
   const told = b.told === 'way' ? 'There is a way.' : v.told === 'flags' && !done ? 'Tap each closed edge once.' : '';
   const groups = groupSizes(topo, b.dots);

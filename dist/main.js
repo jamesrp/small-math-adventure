@@ -181,7 +181,7 @@ function wireTileBoard(){
   board.addEventListener('lostpointercapture',e=>finish(e,true));
 }
 // Proof mechanics attach their own pointer gestures after each render.
-function wireMechanic(){const p=puzzle(),root=app.querySelector('[data-mechanic-wire]');if(!root||!p||!profile()||!isExpansion(p))return;mechanicFor(p).wire?.(root,p,{apply:action=>applyPair(p,action),ui:payload=>{mechanicFor(p).ui?.(p,payload);render();},attempt:()=>attempt(p),tile:{extendTileStroke,startTileStroke,tapTileSelection,tileReleaseAction,tileStrokeTarget}});}
+function wireMechanic(){const p=puzzle(),root=app.querySelector('[data-mechanic-wire]');if(!root||!p||!profile()||!isExpansion(p))return;mechanicFor(p).wire?.(root,p,{apply:action=>applyPair(p,action),ui:payload=>{mechanicFor(p).ui?.(p,payload);render();},attempt:()=>attempt(p),repeatToggle,tile:{extendTileStroke,startTileStroke,tapTileSelection,tileReleaseAction,tileStrokeTarget}});}
 function wireClockBoard(){
   const svg=app.querySelector('.clock-choose svg[role="slider"]'),p=puzzle();
   if(!svg||p?.mechanic!=='clock'||svg.getAttribute('aria-disabled')==='true')return;
@@ -299,14 +299,24 @@ document.addEventListener('keydown',event=>{
 let chosenTap=false;
 document.addEventListener('click',event=>{const control=event.target.closest?.('button,[role="button"]');chosenTap=control?.getAttribute('aria-pressed')==='true';if(chosenTap)setTimeout(()=>{chosenTap=false;});},true);
 // A button that opens a claim and closes it again in the same place carries
-// data-toggle, naming its slot. A quick double tap lands the second press on
-// the redrawn button and would close what the first opened, so a press of
-// the same slot within 350 ms of the last one is dropped.
-let lastToggle={slot:null,at:-Infinity};
-function repeatToggle(control){const slot=control.dataset.toggle;if(!slot)return false;const now=performance.now();if(lastToggle.slot===slot&&now-lastToggle.at<350)return true;lastToggle={slot,at:now};return false;}
+// data-toggle, naming its slot. A quick double tap is one press: the click
+// right after a toggle's press, within 350 ms, is dropped when it is the same
+// slot (the second tap lands on the redrawn button and would close what the
+// first opened) or, from a pointer, lands within 40 px of the first tap,
+// whatever is drawn there now (opening a claim can move Restart, a stepper or
+// a piece of the board under the finger). Every click passes through here, so
+// any other click in between ends the double tap; so does a press somewhere
+// else (a board that answers pointerdown and redraws may get no click), and
+// any key but Enter or Space on the toggle itself. A family's own controls,
+// which its wire() handles without data-action, ask the same guard through
+// api.repeatToggle(control, event); each click is judged once.
+let lastToggle=null,judged={event:null,drop:false};
+function repeatToggle(control,event){if(event&&judged.event===event)return judged.drop;const now=performance.now(),slot=control?.dataset?.toggle,point=event?.detail>0?[event.clientX,event.clientY]:null,last=lastToggle;const drop=Boolean(last&&now-last.at<350&&(slot&&slot===last.slot||point&&last.point&&Math.hypot(point[0]-last.point[0],point[1]-last.point[1])<40));if(!drop)lastToggle=slot?{slot,at:now,point}:null;if(event)judged={event,drop};return drop;}
+document.addEventListener('keydown',event=>{if(!(['Enter',' '].includes(event.key)&&event.target.closest?.('[data-toggle]')))lastToggle=null;},true);
+document.addEventListener('pointerdown',event=>{const last=lastToggle;if(last&&event.target.closest?.('[data-toggle]')?.dataset.toggle!==last.slot&&!(last.point&&Math.hypot(event.clientX-last.point[0],event.clientY-last.point[1])<40))lastToggle=null;},true);
 document.addEventListener('click',event=>{
   if(event.target.closest('.skip-link')){event.preventDefault();const main=document.querySelector('#main');main?.setAttribute('tabindex','-1');main?.focus();return;}
-  const control=event.target.closest('[data-action]');if(!control||repeatToggle(control))return;const action=control.dataset.action,p=puzzle(),a=p&&profile()?attempt(p):null;
+  const control=event.target.closest('[data-action]');if(repeatToggle(control,event)||!control)return;const action=control.dataset.action,p=puzzle(),a=p&&profile()?attempt(p):null;
   if(action==='home')go(profile()?'map':'profiles');
   else if(action==='profiles')go('profiles');
   else if(action==='explorer-menu'){accountOpen=!accountOpen;control.closest('.caravan-topbar')?.classList.toggle('account-open',accountOpen);control.setAttribute('aria-expanded',String(accountOpen));}

@@ -689,7 +689,7 @@ const treeWords = tree => tree.length ? `the root has ${NUMBER[tree.length]} ${t
 const button = (label, action, cls, enabled, hinted) => `<button type="button" class="secondary st-button ${cls}${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="st-${action.type}" ${enabled ? '' : 'disabled'}>${label}</button>`;
 const sizeButton = (label, n, cls, name, enabled) => `<button type="button" class="secondary st-button st-${cls}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'size', n}))}" data-focus="st-${cls}" aria-label="${name}" ${enabled ? '' : 'disabled'}>${label}</button>`;
 // A toggle's data-focus names what takes focus after it is pressed.
-const toggle = (label, payload, cls, pressed, enabled, hinted, focus = `st-${cls}`) => `<button type="button" class="secondary st-button ${cls}${hinted ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify(payload)}' data-focus="${focus}" aria-pressed="${pressed}" ${enabled ? '' : 'disabled'}>${label}</button>`;
+const toggle = (label, payload, cls, pressed, enabled, hinted, focus = `st-${cls}`) => `<button type="button" class="secondary st-button ${cls}${hinted ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify(payload)}' data-focus="${focus}" data-toggle="strings-${cls}" aria-pressed="${pressed}" ${enabled ? '' : 'disabled'}>${label}</button>`;
 const told = text => text ? `<p class="st-told">${esc(text)}</p>` : '';
 const status = text => `<p class="sr-only" role="status">${esc(text)}</p>`;
 const stringsSay = (n, all) => all.length ? `Strings: ${sortStrings(all).map(([a, b]) => `${a} to ${b}`).join(', ')}.` : 'No strings.';

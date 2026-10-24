@@ -100,7 +100,7 @@ test('Can’t: only after an attempt; a wrong part refused once, kept through Un
 test('pressing Can’t turns the circle’s parts into buttons, unmarked, with focus on the board rather than a part', () => {
   const p = byId('strings-03'), a = play(p, freshAttempt(p), {type: 'lay', s: [2, 3]});
   const off = view(p, a);
-  assert.match(off, /data-ui='\{"cant":true\}' data-focus="st-board" aria-pressed="false"/);
+  assert.match(off, /data-ui='\{"cant":true\}' data-focus="st-board" data-toggle="strings-cant" aria-pressed="false"/);
   assert.doesNotMatch(off, /data-gap=/);
   M.reset(p);
   M.ui(p, {cant: true});
@@ -108,7 +108,7 @@ test('pressing Can’t turns the circle’s parts into buttons, unmarked, with f
   assert.match(on, /mode-regions" viewBox="0 0 100 100" role="group" aria-label="[^"]*" tabindex="-1" data-focus="st-board"/);
   assert.match(on, /data-gap="1"[^>]*data-focus="st-region-1"/);
   assert.equal((on.match(/class="st-region"/g) || []).length, 2, 'both parts look the same: nothing marks the trapped one');
-  assert.match(on, /data-focus="st-cant" aria-pressed="true"/);
+  assert.match(on, /data-focus="st-cant" data-toggle="strings-cant" aria-pressed="true"/);
   assert.doesNotMatch(on, /data-dot=/, 'dots are not controls while Can’t is pressed');
   const fresh = view(p, freshAttempt(p));
   assert.match(fresh, /class="secondary st-button cant"[^>]*disabled/, 'Can’t waits for an attempt');

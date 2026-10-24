@@ -562,7 +562,7 @@ function render(p, a) {
   const hintClaim = act.type === 'check';
   const bar = done ? '' : `<div class="isl-bar">${
     claiming ? '' : button('<span aria-hidden="true">↺</span> Again', {type: 'again'}, `again${act.type === 'again' ? ' hinted' : ''}`, b.start !== null)
-  }${q.mode === 'add' ? '' : uiButton(claimName, {claim: claiming ? null : claimKind}, `${claiming ? 'claiming' : 'claim'}${hintClaim && !claiming ? ' hinted' : ''}`, claiming || (q.mode === 'starts' ? can.noWalk : can.fewest), `aria-pressed="${Boolean(claiming)}"`)}${
+  }${q.mode === 'add' ? '' : uiButton(claimName, {claim: claiming ? null : claimKind}, `${claiming ? 'claiming' : 'claim'}${hintClaim && !claiming ? ' hinted' : ''}`, claiming || (q.mode === 'starts' ? can.noWalk : can.fewest), `data-toggle="isl-claim" aria-pressed="${Boolean(claiming)}"`)}${
     claiming ? button('Check', {type: 'check', claim: claimKind, picks: v.picks}, `check${hintClaim ? ' hinted' : ''}`, v.picks.length > 0) : q.mode === 'starts' ? button('Done', {type: 'done'}, `done${act.type === 'done' ? ' hinted' : ''}`, can.done) : ''
   }</div>`;
   let say = '';

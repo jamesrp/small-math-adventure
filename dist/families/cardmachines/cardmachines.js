@@ -648,7 +648,7 @@ function splitBlock(p, a, q, b, h) {
   const items = q.pairs.map(([x, y], n) => {
     const sel = !done && s[1] === n, cant = b.cant[n], armed = claim === n;
     const open = !splits(q.rule, x, y, b.ends[n]);
-    const extra = `<button type="button" class="secondary cm-button cm-cant${armed ? ' armed' : ''}${act?.type === 'cant' && hintPair === n && !armed ? ' hinted' : ''}" ${uiData({claim: armed ? null : n})} data-focus="cm-cant" aria-pressed="${armed}" ${open ? '' : 'disabled'}>Can’t</button>`;
+    const extra = `<button type="button" class="secondary cm-button cm-cant${armed ? ' armed' : ''}${act?.type === 'cant' && hintPair === n && !armed ? ' hinted' : ''}" ${uiData({claim: armed ? null : n})} data-focus="cm-cant" data-toggle="cm-cant" aria-pressed="${armed}" ${open ? '' : 'disabled'}>Can’t</button>`;
     const html = pairHTML(p, q, b, n, x, y, {sel, cant, at: cant ? runMachine(m, x + b.ends[n]).at(-1) : null, names: [rowWords(x), rowWords(y)], dots: ['l1', 'l2'], marks: ['', ''], hinted: hintPair === n && act?.type === 'key', locked: done || cant, after: b.refused[n] ? '<p class="cm-told">Keep looking.</p>' : ''});
     return html + (sel && !cant ? keys('end', n, b.ends[n], act?.type === 'key' && hintPair === n ? act.card : null, extra) : '');
   }).join('');

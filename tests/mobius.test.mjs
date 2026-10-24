@@ -273,7 +273,7 @@ test('rendering: controls, lamps, Can’t taps hide the colours, and the solved 
   html = view(p, a);
   assert.match(html, /Tap each closed edge once\./);
   assert.ok(!/That’s all/.test(html), 'the taps close');
-  assert.match(html, /data-focus="mb-cant-open" aria-pressed="false" >/, 'Can’t stays open');
+  assert.match(html, /data-focus="mb-cant-open" data-toggle="mb-cant" aria-pressed="false" >/, 'Can’t stays open');
   const lifted = play(p, a, {type: 'dot', seg: '0:4d:1'});
   assert.ok(!/Tap each closed edge once/.test(view(p, lifted)), 'a dot moved drops the words');
   view(p, a);

@@ -113,6 +113,9 @@ try {
   assert.equal(await count('.ro-slot.chosen'), 1, 'a picked letter is marked');
   await tap(button('cant'));
   assert.equal(await count('.ro-puzzle.claiming'), 0, 'pressing Can’t again lets go');
+  // Can't is a data-toggle slot: a press within 350 ms of the last is taken
+  // for a double tap and dropped (dist/main.js), so the suite waits.
+  await page.waitForTimeout(400);
   await tap(button('cant')); await tap(slot(1)); await tap(slot(0)); await tap(node('s0'));
   await done();
   assert.deepEqual((await board(C)).claim, {node: 's0', at: [0, 1]}, 'the claim is stored in order');

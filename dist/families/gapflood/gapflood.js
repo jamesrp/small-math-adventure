@@ -423,7 +423,7 @@ function render(p, a) {
   const board = graphBoard(g, {cls: `gp-map ${q.kind}${q.small ? ' small' : ''}${claiming ? ' claiming' : ''}`, label: 'Map of roads', slide: Boolean(pen), node, edge, under, over: trails(g, q, routes)});
   const hintSide = (act?.type === 'draw' || act?.type === 'cut') && act.side !== pen ? act.side : null;
   const chips = SIDES.map(s => `<button type="button" class="gp-chip t${s}${s === hintSide ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({pen: s})}' data-focus="gp-chip-${s}" aria-pressed="${s === pen}" aria-label="Route ${s}">${s}</button>`).join('');
-  const claim = centreClaim(q) ? `<button type="button" class="secondary gp-button${act?.type === 'cant' && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="gp-cant" aria-pressed="${claiming}"${open ? '' : ' disabled'}>Can’t</button>`
+  const claim = centreClaim(q) ? `<button type="button" class="secondary gp-button${act?.type === 'cant' && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="gp-cant" data-toggle="gp-cant" aria-pressed="${claiming}"${open ? '' : ' disabled'}>Can’t</button>`
     : q.goal === 'reach' ? button('Can’t', {type: 'cant'}, open, act?.type === 'cant')
     : q.goal === 'best' ? button('Best', {type: 'best'}, b.flood !== null && b.told !== 'bigger', act?.type === 'best') : '';
   const top = solvedNow ? '' : `<div class="gp-bar"><div class="gp-chips" role="group" aria-label="Routes">${chips}</div>${claim}</div>`;

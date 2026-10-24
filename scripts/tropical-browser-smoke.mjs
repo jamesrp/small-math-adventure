@@ -156,6 +156,9 @@ try {
   // Can't pressed straight after a refused Check asks for its taps; pressed again, the refusal is back.
   await press('Can’t');
   assert.equal(await told(), 'Tap two circles.', 'Can’t asks for two circles over a refused Check');
+  // Can't is a data-toggle slot: a press within 350 ms of the last is taken
+  // for a double tap and dropped (dist/main.js), so the suite waits.
+  await page.waitForTimeout(400);
   await press('Can’t');
   assert.match(await told(), /^The line misses (P|R|P and R)\.$/);
   // Can't: every circle takes a tap; a tap away from the circles moves the junction.

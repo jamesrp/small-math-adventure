@@ -415,7 +415,7 @@ function render(p, a) {
   } else {
     // Fewest waits for the flag, and after a refusal for a change of walk.
     const ready = atFlag(q, b.walk) && !done && b.refused === null;
-    const fewestButton = `<button type="button" class="secondary st-fewest${hinted?.windows && !claim ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='{"claim":"toggle"}' data-focus="st-fewest" aria-pressed="${claim}" ${ready ? '' : 'disabled'}>Fewest</button>`;
+    const fewestButton = `<button type="button" class="secondary st-fewest${hinted?.windows && !claim ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='{"claim":"toggle"}' data-focus="st-fewest" data-toggle="st-fewest" aria-pressed="${claim}" ${ready ? '' : 'disabled'}>Fewest</button>`;
     const slots = claim ? `<ol class="st-wins" aria-label="Windows">${Array.from({length: need(turnsOf(b.walk))}, (_, i) => `<li class="${i < v.marks.length ? 'on' : ''}" aria-hidden="true"></li>`).join('')}</ol>` : '';
     below = done ? '' : `<div class="st-tools">${fewestButton}${slots}</div>`;
     if (b.told) note = 'A flat piece can cross two of these.';

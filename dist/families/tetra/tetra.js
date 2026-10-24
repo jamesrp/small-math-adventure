@@ -717,7 +717,7 @@ function claimPair(p, {L, R, at, key, labels, done, canTrace, claimed, act, setu
   const left = model({labels: L, stickers: ID, side: 'left', cls: 'tt-goal', label: `${labels[0]}: ${describe(L)}`, corners: leftCorner, over: arrows('left'), pending: pending.left});
   const right = model({labels: R, stickers: at, key, at, side: 'right', label: `${labels[1]}: ${describe(R)}`, corners: rightCorner, over: arrows('right'), pending: pending.right});
   // Can't hands the keys to the first corner to trace, and back to your model.
-  const cant = button('Can’t', uiAttrs({tracing: !tracing}, tracing ? 'tt-r1' : 'tt-l1'), 'tt-cant', canTrace, act?.type === 'cant', `aria-pressed="${tracing}" aria-label="Can’t match"`);
+  const cant = button('Can’t', uiAttrs({tracing: !tracing}, tracing ? 'tt-r1' : 'tt-l1'), 'tt-cant', canTrace, act?.type === 'cant', `data-toggle="tt-cant" aria-pressed="${tracing}" aria-label="Can’t match"`);
   return {pair: `<div class="tt-pair">${left}${right}</div>`, cant, tracing};
 }
 

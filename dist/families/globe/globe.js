@@ -606,7 +606,7 @@ function shelf(p, b, state, act, done) {
   }).join('');
   const button = done ? '' : b.over !== null
     ? `<button type="button" class="gl-again${act?.type === 'again' ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'again'}))}" data-focus="gl-again">Again</button>`
-    : `<button type="button" class="gl-cant${hintRecord !== null && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="gl-cant" aria-pressed="${claiming}" ${can ? '' : 'disabled'}>Can’t</button>`;
+    : `<button type="button" class="gl-cant${hintRecord !== null && !claiming ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claiming: !claiming})}' data-focus="gl-cant" data-toggle="globe-cant" aria-pressed="${claiming}" ${can ? '' : 'disabled'}>Can’t</button>`;
   return `<div class="gl-shelf"><div class="gl-records" role="group" aria-label="Sets of corners">${items}</div>${button}</div>`;
 }
 // The argument for a right Can't: the record's corners laid side by side

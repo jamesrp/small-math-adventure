@@ -551,7 +551,7 @@ function renderCancel(p, a) {
     shade: right ? facesInside(B, lit) : [], rings: right ? [b.cant] : [], marks,
     solved, label: `Board: ${plural(B.T, 'triangle', 'triangles')}${B.holes.length ? ' round a hole' : ''}`
   });
-  const cant = solved ? '' : tool('Can’t', `hl-cant${hintFace !== undefined && !point ? ' hinted' : ''}`, `data-hl-ui='${JSON.stringify({point: !point})}' data-focus="hl-cant" aria-pressed="${point}"${open ? '' : ' disabled'}`);
+  const cant = solved ? '' : tool('Can’t', `hl-cant${hintFace !== undefined && !point ? ' hinted' : ''}`, `data-hl-ui='${JSON.stringify({point: !point})}' data-focus="hl-cant" data-toggle="hl-cant" aria-pressed="${point}"${open ? '' : ' disabled'}`);
   const note = b.refused?.shown ? 'That one doesn’t keep it lit.' : '';
   const litCount = listOf(lit).length;
   const status = solved ? (right ? `${Cap(faceName(B, b.cant))} stays inside the loop, so it can’t go dark.` : 'Every wire is dark.') : `${litCount ? plural(litCount, 'wire lit', 'wires lit') : 'Every wire is dark'}.${point ? ` Tap the triangle${B.holes.length ? ' or hole' : ''} that keeps the loop lit.` : ''}${note ? ` ${note}` : ''}`;
@@ -613,7 +613,7 @@ function renderRace(p, a) {
     shade: right ? raceSets(p).yellow : [], rings: right ? b.cant : [], picks: point ? state.picks : [], marks: hintTiles,
     label: `Board: ${plural(B.T, 'triangle', 'triangles')}, a yellow loop and a pink loop`
   });
-  const cant = solved ? '' : tool('Can’t', `hl-cant${shown?.action?.cant && !point ? ' hinted' : ''}`, `data-hl-ui='${JSON.stringify({point: !point})}' data-focus="hl-cant" aria-pressed="${point}"${open ? '' : ' disabled'}`);
+  const cant = solved ? '' : tool('Can’t', `hl-cant${shown?.action?.cant && !point ? ' hinted' : ''}`, `data-hl-ui='${JSON.stringify({point: !point})}' data-focus="hl-cant" data-toggle="hl-cant" aria-pressed="${point}"${open ? '' : ' disabled'}`);
   const check = point ? tool('Check', `hl-check${shown?.action?.cant ? ' hinted' : ''}`, `data-hl-move='${esc(JSON.stringify({cant: [...state.picks].sort((x, y) => x - y)}))}' data-focus="hl-check"${state.picks.length ? '' : ' disabled'}`) : '';
   const note = b.refused?.shown ? raceRefusal(p, b.refused.tiles) : '';
   const word = x => x ? `out with fill ${x}` : 'lit';
@@ -641,6 +641,9 @@ function wire(root, p, api) {
   root.addEventListener('click', e => {
     const control = e.target.closest('[data-hl-ui],[data-hl-move]');
     if (!control || !root.contains(control) || control.disabled) return;
+    // Can't is a data-toggle slot: the app's double-tap guard drops the click
+    // right after it when it is Can't again or lands where Can't was.
+    if (api.repeatToggle?.(control, e)) return;
     if (control.dataset.hlMove) { try { apply(JSON.parse(control.dataset.hlMove)); } catch { /* malformed control data is ignored */ } return; }
     try { api.ui(JSON.parse(control.dataset.hlUi)); } catch { return; }
     if (ui(p).point) document.querySelector('[data-mechanic-wire="holes"] .hl-svg')?.focus({preventScroll: true});

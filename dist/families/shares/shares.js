@@ -448,7 +448,9 @@ const uiAttrs = (payload, focus = '') => `data-action="mechanic-ui" data-ui="${e
 // Claim buttons hand focus back to the board after a move: no element keeps
 // their focus key, so the app falls back to the family's focus selector.
 const claimButton = (label, action, enabled, hinted, cls) => `<button type="button" class="sh-button ${cls}${hinted ? ' hinted' : ''}" ${moveAttrs(action, 'sh-board')} ${enabled ? '' : 'disabled'}>${label}</button>`;
-const toggleButton = (label, payload, on, hinted, cls, enabled = true) => `<button type="button" class="sh-button ${cls}${hinted ? ' hinted' : ''}" ${uiAttrs(payload, cls)} aria-pressed="${on}" ${enabled ? '' : 'disabled'}>${label}</button>`;
+// A toggle opens a claim or the knife and closes it in place: a press of it
+// within 350 ms of the last is a double tap and is dropped (data-toggle).
+const toggleButton = (label, payload, on, hinted, cls, enabled = true) => `<button type="button" class="sh-button ${cls}${hinted ? ' hinted' : ''}" ${uiAttrs(payload, cls)} data-toggle="${cls}" aria-pressed="${on}" ${enabled ? '' : 'disabled'}>${label}</button>`;
 const status = text => `<p class="sr-only" role="status">${esc(text)}</p>`;
 const note = text => text ? `<p class="sh-told">${esc(text)}</p>` : '';
 

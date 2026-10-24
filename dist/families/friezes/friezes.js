@@ -648,7 +648,7 @@ const FAMILY_WHY = {turn: 'That doesn’t rule out every half-turn.', mirror: 'T
 export const whyText = (goal, why) => (isFamily(goal) ? FAMILY_WHY[goal.move] : WHY[why]);
 
 const button = (label, action, cls, opt = {}) => `<button type="button" class="secondary fz-button ${cls}${opt.hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="${opt.focus || `fz-${action.type}`}"${opt.aria ? ` aria-label="${esc(opt.aria)}"` : ''}${opt.enabled === false ? ' disabled' : ''}>${label}</button>`;
-const uiButton = (label, payload, cls, opt = {}) => `<button type="button" class="secondary fz-button ${cls}${opt.hinted ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify(payload)}' data-focus="${opt.focus}"${opt.aria ? ` aria-label="${esc(opt.aria)}"` : ''}${opt.pressed !== undefined ? ` aria-pressed="${opt.pressed}"` : ''}${opt.enabled === false ? ' disabled' : ''}>${label}</button>`;
+const uiButton = (label, payload, cls, opt = {}) => `<button type="button" class="secondary fz-button ${cls}${opt.hinted ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify(payload)}' data-focus="${opt.focus}"${opt.toggle ? ` data-toggle="${opt.toggle}"` : ''}${opt.aria ? ` aria-label="${esc(opt.aria)}"` : ''}${opt.pressed !== undefined ? ` aria-pressed="${opt.pressed}"` : ''}${opt.enabled === false ? ' disabled' : ''}>${label}</button>`;
 
 function render(p, a) {
   const q = p.parameters, b = a.board, cell = b.cell, P = periodOf(cell), state = ui(p), {from, to} = windowOf(P);
@@ -717,7 +717,7 @@ function render(p, a) {
       const icon = moveIcon(g.type === 'centre' ? 'turn' : g.move, g.type === 'cant', g.type === 'cant' && g.move === 'slide' ? g.by : null);
       const name = g.type === 'match' ? (g.line ? 'Flip across the crossing line' : MOVE_WORDS[g.move]) : g.type === 'cant' ? `No ${g.move === 'slide' ? `slide of ${g.by}` : MOVE_WORDS[g.move].toLowerCase()}${isFamily(g) ? ' anywhere' : ''}` : g.type === 'shortest' ? `Shortest ${g.move}` : 'Where the half-turn goes round';
       const label = {cant: 'Can’t', shortest: 'Shortest', centre: 'Turn here'}[g.type];
-      const btn = g.type === 'match' || ok || done ? '' : uiButton(label, {claim: claim === i ? null : i}, 'fz-claim', {focus: `fz-claim-${i}`, pressed: claim === i, enabled: canClaim(q, b, i), hinted: hinted?.button === `claim-${i}` && claim !== i});
+      const btn = g.type === 'match' || ok || done ? '' : uiButton(label, {claim: claim === i ? null : i}, 'fz-claim', {focus: `fz-claim-${i}`, toggle: `fz-claim-${i}`, pressed: claim === i, enabled: canClaim(q, b, i), hinted: hinted?.button === `claim-${i}` && claim !== i});
       return `<div class="fz-goal${ok ? ' done' : ''}${g.type === 'cant' ? ' no' : ''}" role="group" aria-label="${esc(`${name}${ok ? ', done' : ''}`)}">${icon}${btn}</div>`;
     }).join('')}</div>`;
   }

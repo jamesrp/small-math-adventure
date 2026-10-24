@@ -458,7 +458,7 @@ function keysHTML(p, q, b, chosen, hinted) {
   }
   return `<div class="av-keys${q.range[1] - q.range[0] > 6 ? ' many' : ''}" role="group" aria-label="${esc(cap(nameOf(q, chosen)))}">${keys.join('')}</div>`;
 }
-const button = (label, action, cls, {enabled = true, pressed = null, hinted = false, focus} = {}) => `<button type="button" class="av-button ${cls}${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="${focus}"${pressed === null ? '' : ` aria-pressed="${pressed}"`} ${enabled ? '' : 'disabled'}>${label}</button>`;
+const button = (label, action, cls, {enabled = true, pressed = null, hinted = false, focus, toggle} = {}) => `<button type="button" class="av-button ${cls}${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="${focus}"${toggle ? ` data-toggle="${toggle}"` : ''}${pressed === null ? '' : ` aria-pressed="${pressed}"`} ${enabled ? '' : 'disabled'}>${label}</button>`;
 
 function render(p, a) {
   const q0 = p.parameters, b = a.board, q = boardQ(p, b), done = solved(p, b);
@@ -499,7 +499,7 @@ function render(p, a) {
     const act = hinted?.action?.type;
     // The two refusals: a tap away from the chase, and a chase that ran out.
     told = b.told === 'apart' ? 'Not joined to the chase.' : b.told === 'out' ? `Every square it reaches is ${M}.` : '';
-    bar = `<div class="av-bar">${chase ? button('Can’t', {type: 'stop'}, 'av-cant', {pressed: true, hinted: act === 'stop', focus: 'av-stop'}) : button('Can’t', {type: 'cant'}, 'av-cant', {pressed: false, enabled: triedTie(q, b.values) && b.told !== 'out', hinted: act === 'cant', focus: 'av-cant'})}</div>`;
+    bar = `<div class="av-bar">${chase ? button('Can’t', {type: 'stop'}, 'av-cant', {pressed: true, hinted: act === 'stop', focus: 'av-stop', toggle: 'av-cant'}) : button('Can’t', {type: 'cant'}, 'av-cant', {pressed: false, enabled: triedTie(q, b.values) && b.told !== 'out', hinted: act === 'cant', focus: 'av-cant', toggle: 'av-cant'})}</div>`;
   }
   const working = shapeOf(q).circles.filter(c => works(q, vals, c));
   const status = done && proof ? `Can’t: ${listWords(path.map(id => nameOf(q, id)))}; ${nameOf(q, path.at(-1))} is not ${M}.`

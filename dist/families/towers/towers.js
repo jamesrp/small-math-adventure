@@ -548,7 +548,7 @@ function renderCity(p, a) {
   const pad = editable ? keypad(n, {cell: sel}, cells[sel], shown, false) : edge !== null ? keypad(n, {slot: edge}, b.extra?.[0] === edge ? b.extra[1] : 0, shown, false) : '';
   let tools = '', note = '', extra = '';
   if (q.mode === 'city' && !done) {
-    tools = `<button type="button" class="secondary tw-no${shown?.type === 'none' && !picking ? ' hinted' : ''}" ${uiAttrs({pick: !picking}, 'tw-no')} aria-pressed="${picking}" ${b.refused || !b.tried ? 'disabled' : ''}>No city</button>`;
+    tools = `<button type="button" class="secondary tw-no${shown?.type === 'none' && !picking ? ' hinted' : ''}" ${uiAttrs({pick: !picking}, 'tw-no')} data-toggle="tw-no" aria-pressed="${picking}" ${b.refused || !b.tried ? 'disabled' : ''}>No city</button>`;
     note = b.refused ? 'A city fits.' : could !== null ? 'No edge number rules this square out.' : '';
   }
   if (q.mode === 'every') {
