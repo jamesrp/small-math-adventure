@@ -88,6 +88,25 @@ try {
   await open('kits-02');
   await chosenDoesNothing('kits-02', page.locator('.kit-target[aria-pressed="true"]'), 'kits: the target on the scale');
   await chosenDoesNothing('kits-02', page.getByRole('button', {name: 'Weight 1: off', exact: true}), 'kits: the place a weight has');
+  for (const place of ['beside the target', 'other pan']) {
+    const button = page.getByRole('button', {name: `Weight 1: ${place}`, exact: true});
+    await press(button);
+    await chosenDoesNothing('kits-02', button, `kits: ${place}, where the weight already is`);
+  }
+  await press(page.locator('.kit-target[aria-pressed="false"]').first());
+  await chosenDoesNothing('kits-02', page.locator('.kit-target[aria-pressed="true"]'), 'kits: a target just chosen');
+  // Catches' bag sizes (06 and 10) and Tank's target level, which lane B left to this guard.
+  for (const id of ['catches-06', 'catches-10']) {
+    await open(id);
+    await chosenDoesNothing(id, page.locator('.ck-bag-chip[aria-pressed="true"]'), `${id}: the starting bag`);
+    await press(page.locator('.ck-bag-chip[aria-pressed="false"]').first());
+    await chosenDoesNothing(id, page.locator('.ck-bag-chip[aria-pressed="true"]'), `${id}: a bag just chosen`);
+  }
+  for (const id of ['tank-02', 'tank-07']) {
+    await open(id);
+    await press(page.locator('.tank-target[aria-pressed="false"]').nth(4));
+    await chosenDoesNothing(id, page.locator('.tank-target[aria-pressed="true"]'), `${id}: the level chosen`);
+  }
   await open('pictures-playground');
   await chosenDoesNothing('pictures-playground', page.locator('.pic-size[aria-pressed="true"]'), 'pictures: the grid size chosen');
   await open('sorting-playground');

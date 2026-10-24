@@ -190,17 +190,11 @@ Each fix was checked by rerunning `scripts/claims-audit.mjs` on the module (no c
 - **pictures:** the switch dead end is told only behind Hint while switches remain, then "No switches left, and some rings are empty." A full lonely picture with a switch says "Another picture has these counts."; the switch's corners are outlined only after Hint.
 - **ranges:** a first pin that is neither extreme is told only behind Hint (`pinPlan`'s dead end is quiet), so one pin is never judged alone.
 
-## Not covered
+### Lane A: shared guard and base mechanics (October 24)
 
-- Gestures that only a family's `wire()` makes (drags, positional board taps) were read in the code, not walked.
-- Pattern 4 was judged from the strings a module can show. Confirmations after a right claim were accepted when brief, as the brief allows.
-- The browser was used for five confirmations only. No child has played any of this.
+Each fix has a unit test and a browser check. Untested with children.
 
-## Fixed since
-
-October 24, lane A (`claude/claims-fix-ntxcu3-base`). Each fix has a unit test and a browser check; nothing here has been played by children.
-
-- **Shared guard (`dist/main.js`, pattern 5).** A tap on a control drawn `aria-pressed="true"` whose move the mechanic refuses does nothing: no line, nothing redrawn, no keeper reaction. A capture-phase click listener notes the tapped control, so the guard covers a board's own `expansion-move` buttons and also the taps a family's `wire()` hands to `api.apply` in the same click. `scripts/claims-audit.mjs` now lists these taps as dropped, not as the generic line. A pressed-control scan (every puzzle, 6 walks of 25 steps) found every chosen-option refusal the audit attributes to this case drawn `aria-pressed="true"`: code, weigh, kits, tank, codebooks' chosen length, secrets' budget and question tabs, calibrate's dial and report row, catches' bag size, and the playground selectors of 31 of the 32 modules listed above (all but strands). Chips', sorting's, rhombus', rainbow's and cuts' selectors and codebooks' and secrets' controls go through a wire. Not covered, because they are not a chosen option: color (fixed in the mechanic, below); strands' playground ↺ and ↻ at the twist limit, drawn enabled; matching's playground sizes while a refused Stays is held (enabled, refused by the move); and the rows named as different above (detours, hills, menus, calibrate's strip and steps, codebooks' refused claim, sides' wrong pile).
+- **Shared guard (`dist/main.js`, pattern 5).** A tap on a control drawn `aria-pressed="true"` whose move the mechanic refuses does nothing: no line, nothing redrawn, no keeper reaction. A capture-phase click listener notes the tapped control, so the guard covers a board's own `expansion-move` buttons and also the taps a family's `wire()` hands to `api.apply` in the same click. `scripts/claims-audit.mjs` now lists these taps as dropped, not as the generic line. A pressed-control scan (every puzzle, 6 walks of 25 steps) found every chosen-option refusal the audit attributes to this case drawn `aria-pressed="true"`: code, weigh, kits, tank, codebooks' chosen length, secrets' budget and question tabs, calibrate's dial and report row, catches' bag size, and the playground selectors of 31 of the 32 modules listed above (all but strands). Chips', sorting's, rhombus', rainbow's and cuts' selectors go through a wire (codebooks' and secrets' wires now skip their chosen controls themselves, lane B above). The browser suite taps the chosen option in code, weigh, kits (each place ◀ ● ▶ and the target), catches-06 and 10 (the bag), tank-02 and 07 (the level) and the pictures and sorting playgrounds; without the guard each of these showed the generic line. Not covered, because they are not a chosen option: color (fixed in the mechanic, below); strands' playground ↺ and ↻ at the twist limit, drawn enabled; matching's playground sizes while a refused Stays is held (enabled, refused by the move); and the rows named as different above (detours, hills, menus, calibrate's strip and steps, codebooks' refused claim, sides' wrong pile).
 - **toggle.** A wasted press is told only behind Hint while presses remain ("This picture needs 2 more presses, but only 1 press remains. …", typos fixed: `plural()` adds "es" to words ending in "ss", and "remains" for one); once the budget is spent the line says "The lanterns don’t match the goal card. Undo.".
 - **latin.** Both dead ends are quiet. The repeat line shows once, on the board with the outlined squares; "cannot lead to a complete orchard" is behind Hint.
 - **weigh.** The dead end is quiet: while weighings remain it would judge the experiment, and once they are spent the board's own line already says what is wrong (it no longer says "1 possibilities"). The unasked "Your observations single out one possibility." is gone; Hint names the pebble. Check again on the answer already given changes nothing instead of showing the generic line (found in the browser while checking this lane).
@@ -208,3 +202,9 @@ October 24, lane A (`claude/claims-fix-ntxcu3-base`). Each fix has a unit test a
 - **code.** Covered by the shared guard (the chosen bit is drawn pressed).
 - **color.** A lantern tapped with the colour it already has stays as it is, a no-op with no undo step, as the chosen palette colour already was.
 - **billiard.** billiard-15's That's all on a shelf with a wrong room says "A kept room doesn’t bounce once." and rings nothing (the save still records the room, so old saves load); the refused shelf stays refused until it changes. The audit's exploit now stops at the first claim. Can't carries `data-toggle="cr-cant"`.
+
+## Not covered
+
+- Gestures that only a family's `wire()` makes (drags, positional board taps) were read in the code, not walked.
+- Pattern 4 was judged from the strings a module can show. Confirmations after a right claim were accepted when brief, as the brief allows.
+- The browser was used for five confirmations only. No child has played any of this.
