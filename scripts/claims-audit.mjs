@@ -12,7 +12,9 @@
 // - claim-like controls that solve the puzzle when pressed on a fresh board;
 // - unasked dead-end lines (a hint of type `deadend` without `quiet`);
 // - presses of drawn, not-`disabled` controls that the mechanic refuses, which
-//   the app answers with its generic "That move is not allowed" line;
+//   the app answers with its generic "That move is not allowed" line (since
+//   October 24 main.js drops a refused tap on a control drawn
+//   aria-pressed="true", so those are listed apart, as dropped);
 // - claim-like controls whose second press restores the board (a double tap
 //   would cancel the claim), and whether they carry `data-toggle`.
 // Gestures that only `wire()` makes are not walked; read those in the code.
@@ -53,7 +55,7 @@ function controls(html) {
     let label = at['aria-label'] || '';
     if (tag === 'button') { const end = html.indexOf('</button>', m.index); const inner = strip(html.slice(m.index + m[0].length, end)); label = inner || label; }
     let payload = null; try { payload = JSON.parse(at['data-action'] === 'mechanic-ui' ? at['data-ui'] : at['data-move']); } catch { payload = undefined; }
-    list.push({tag, action: at['data-action'], payload, label: label.slice(0, 80), disabled: 'disabled' in at, ariaDisabled: at['aria-disabled'] === 'true', toggle: at['data-toggle'] || null, wired: at['data-wired'] || null, pressed: at['aria-pressed'] === 'true' || at['aria-current'] === 'true' || at['aria-checked'] === 'true' || /\b(chosen|selected|active|is-on|current)\b/.test(at.class || ''), key: `${at['data-action']}:${at['data-move'] ?? at['data-ui']}`});
+    list.push({tag, action: at['data-action'], payload, label: label.slice(0, 80), disabled: 'disabled' in at, ariaDisabled: at['aria-disabled'] === 'true', toggle: at['data-toggle'] || null, wired: at['data-wired'] || null, ariaPressed: at['aria-pressed'] === 'true', pressed: at['aria-pressed'] === 'true' || at['aria-current'] === 'true' || at['aria-checked'] === 'true' || /\b(chosen|selected|active|is-on|current)\b/.test(at.class || ''), key: `${at['data-action']}:${at['data-move'] ?? at['data-ui']}`});
   }
   return list;
 }
@@ -76,7 +78,7 @@ export async function audit(pack, modules) {
   for (const mod of modules) {
     const mechs = new Set(Object.keys(mod.mechanics));
     const puzzles = pack.puzzles.filter(p => mechs.has(p.mechanic));
-    const r = report[mod.id] = {puzzles: puzzles.length, labels: {}, freshClaims: {}, freshOutcome: {}, lines: {}, deadends: {}, generic: [], ariaGeneric: [], toggles: [], errors: []};
+    const r = report[mod.id] = {puzzles: puzzles.length, labels: {}, freshClaims: {}, freshOutcome: {}, lines: {}, deadends: {}, generic: [], ariaGeneric: [], guarded: [], toggles: [], errors: []};
     const seenLine = (p, kind, text, after) => { const k = `${kind}|${text}`; const e = r.lines[k] ||= {kind, text, after: {}, puzzles: []}; if (!e.puzzles.includes(p.id)) e.puzzles.push(p.id); if (after) e.after[after] = (e.after[after] || 0) + 1; };
     for (const p of puzzles) {
       const mech = mechanicFor(p), render = (a, message = '') => playView(p, a, {pack, profile, encounter: null, selected: null, tileSelection: [], highlighted: null, message, checker: false, sessionCount: 0, reaction: null, result: null, changed: false});
@@ -98,7 +100,7 @@ export async function audit(pack, modules) {
             // Probe every enabled claim-like control from this board.
             for (const c of cs.filter(c => c.action === 'expansion-move' && CLAIM.test(c.label) && !c.disabled)) {
               const n1 = move(p, a, c.payload);
-              if (!n1) { (c.ariaDisabled ? r.ariaGeneric : r.generic).push({puzzle: p.id, label: c.label, payload: c.payload, step}); continue; }
+              if (!n1) { if (c.ariaPressed) r.guarded.push({puzzle: p.id, label: c.label}); else (c.ariaDisabled ? r.ariaGeneric : r.generic).push({puzzle: p.id, label: c.label, payload: c.payload, step}); continue; }
               if (step === 0 && w === 0) (r.freshOutcome[c.label] ||= {solved: [], refused: []})[isSolved(p, n1.board) ? 'solved' : 'refused'].push(p.id);
               const h1 = render({...n1, __last: undefined}), c2 = controls(h1).find(x => x.key === c.key && !x.disabled) || controls(h1).find(x => x.label === c.label && !x.disabled);
               for (const [kind, t] of lines(h1)) if (!here.has(`${kind}|${t}`)) seenLine(p, kind, t, `claim:${c.label}`);
@@ -112,6 +114,9 @@ export async function audit(pack, modules) {
             if (!chosen) break;
             if (chosen.action === 'mechanic-ui') { mech.ui?.(p, chosen.payload); message = ''; a = {...a, __last: `ui:${chosen.label}`}; continue; }
             const next = move(p, a, chosen.payload);
+            // main.js drops a refused tap on a control drawn aria-pressed="true"
+            // (the option already chosen): no line, nothing changes.
+            if (!next && chosen.ariaPressed) { r.guarded.push({puzzle: p.id, label: chosen.label}); continue; }
             if (!next) { if (chosen.label !== '(hint)') (chosen.ariaDisabled ? r.ariaGeneric : r.generic).push({puzzle: p.id, label: chosen.label, payload: chosen.payload, step, pressed: chosen.pressed, wired: chosen.wired || null}); message = GENERIC; a = {...a, __last: `refused:${chosen.label}`}; continue; }
             message = ''; a = {...next, __last: chosen.label};
           }
@@ -138,6 +143,7 @@ function summary(report) {
     for (const [l, ps] of gen) out.push(`GENERIC on "${l}": ${[...new Set(ps)].join(' ')}`);
     const ag = new Map(); for (const g of r.ariaGeneric) { const k = g.label; ag.set(k, [...(ag.get(k) || []), g.puzzle]); }
     for (const [l, ps] of ag) out.push(`GENERIC on aria-disabled "${l}": ${[...new Set(ps)].join(' ')}`);
+    if (r.guarded.length) out.push(`chosen option refused, dropped by main.js (no line): ${[...new Set(r.guarded.map(g => g.label))].slice(0, 12).join(' | ')} in ${new Set(r.guarded.map(g => g.puzzle)).size} puzzles`);
     for (const t of r.toggles) out.push(`TOGGLE "${t.label}" ${t.puzzle}${t.guarded ? ' (guarded)' : ''}`);
     for (const e of Object.values(r.lines)) if (e.kind !== 'board' || Object.keys(e.after).some(k => k.startsWith('claim:'))) out.push(`${e.kind}: "${e.text}" after [${Object.keys(e.after).slice(0, 4).join('; ')}] in ${e.puzzles.length}`);
     for (const e of r.errors.slice(0, 3)) out.push(`ERROR ${e}`);
