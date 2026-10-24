@@ -39,9 +39,13 @@ try {
   assert.equal(await count.inputValue(), '');
   await count.fill('0'); await ring();
   assert.equal(await count.evaluate(el => el.validity.rangeUnderflow), true);
+  // The count is refused in the feedback line, not the browser's own tooltip.
+  assert.equal(await page.locator('#bell-form').getAttribute('novalidate'), '');
+  await page.locator('.feedback', {hasText: 'Choose 1 to 60 bells.'}).waitFor();
   assert.equal((await saved('clock-12')).prediction, null, 'zero is not submitted');
   await count.fill('61'); await ring();
   assert.equal(await count.evaluate(el => el.validity.rangeOverflow), true);
+  await page.locator('.feedback', {hasText: 'Choose 1 to 60 bells.'}).waitFor();
   assert.equal((await saved('clock-12')).prediction, null, 'the original answer range remains enforced');
   await count.fill('18'); await ring();
   assert.equal((await saved('clock-12')).prediction, 18);

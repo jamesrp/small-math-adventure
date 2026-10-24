@@ -10,6 +10,14 @@
 //   TEST_FAMILY=seeds node scripts/layout-audit.mjs     # one module (or a comma list; base-tile for a base mechanic)
 //   TEST_PUZZLE=seeds-03 node scripts/layout-audit.mjs  # one puzzle
 //   node scripts/layout-audit.mjs report a.json b.json  # ranked Markdown from saved runs
+//   TEST_FAMILY=road node scripts/layout-audit.mjs      # the Lantern Road's encounters (road-k1, road-23, road-45 for one trail)
+//
+// Road modules open each main road encounter as a child first meets it (the
+// trail finished up to the stop before, played through the road's own rules),
+// with its scene, keeper and stage, and add an iPad in landscape (1180 × 820).
+// TEST_ROAD picks the encounters: "staged" (default: the four played inside
+// their picture), "all", or a comma list of encounter ids. They are not part
+// of the default run.
 //
 // Environment: TEST_URL (default http://127.0.0.1:4187), PLAYWRIGHT_MODULE,
 // BROWSER_EXECUTABLE (as in browser-smoke.mjs), AUDIT_OUT (JSON path, default
@@ -28,7 +36,11 @@ const VIEWPORTS=[
  {name:'375x667',width:375,height:667},   // iPhone SE
  {name:'820x1180',width:820,height:1180}  // iPad Air, portrait
 ];
+// Road modules add an iPad in landscape, where the scene above the board matters most.
+const LANDSCAPE={name:'1180x820',width:1180,height:820};
+const ALL_VIEWPORTS=[...VIEWPORTS,LANDSCAPE];
 const PHONE='390x844';  // the size on which a board running off the screen counts as a problem
+const START=120;  // road modules: px of the board panel (all of it, if shorter) that must show on the first screen
 const THRESHOLDS={
  target:40,      // a tap target whose effective hit area is thinner than this in any direction is flagged (the repo's floor)
  targetGoal:44,  // 40–43 px is noted separately as a near miss
@@ -173,7 +185,8 @@ function measure(cfg){
  const strips=[];for(const el of root.querySelectorAll('*')){const s=css(el);if(['auto','scroll'].includes(s.overflowX)&&el.scrollWidth>el.clientWidth+2)strips.push({sig:sig(el),hidden:el.scrollWidth-el.clientWidth});}
  // ---- fit
  const board=document.querySelector(S.board),controls=document.querySelector(S.controls),br=board&&R(board),cr=controls&&R(controls);
- const fit={overflowX:Math.max(0,document.documentElement.scrollWidth-vw),boardTop:br?Math.round(br.top):null,boardBelow:br?Math.round(br.bottom-vh):null,controlsBelow:cr&&cr.height?Math.round(cr.bottom-vh):null,pageHeight:document.documentElement.scrollHeight};
+ const scene=document.querySelector('.lr-stage,.lr-scene-art'),sr=scene&&R(scene);
+ const fit={overflowX:Math.max(0,document.documentElement.scrollWidth-vw),boardTop:br?Math.round(br.top):null,boardHeight:br?Math.round(br.height):null,boardBelow:br?Math.round(br.bottom-vh):null,controlsBelow:cr&&cr.height?Math.round(cr.bottom-vh):null,pageHeight:document.documentElement.scrollHeight,...(sr?{sceneTop:Math.round(sr.top),sceneHeight:Math.round(sr.height),sceneWidth:Math.round(sr.width)}:{})};
  // ---- flagged output
  const flagged=targets.filter(t=>t.size&&!t.covered&&t.size.min<T.targetGoal).map(t=>({sig:sig(t.el),label:label(t.el),via:t.via,...t.size,bbox:t.bbox,crowd:t.crowd,at:box(t.el.getBoundingClientRect())}));
  const covered=targets.filter(t=>t.covered).map(t=>({sig:sig(t.el),label:label(t.el),why:t.covered,...t.size}));
@@ -193,7 +206,26 @@ function mark(data){
  document.documentElement.append(layer);
 }
 
+// The road's encounters, each with the save a child has when meeting it: the
+// trail finished up to the encounter before, solved through the road's rules.
+const STAGED=['ferry-seats','ferry-bell','ferry-lights','marsh-boardwalks'];
+async function roadModules(){
+ const road=await import('../dist/road.js'),{mechanicFor}=await import('../dist/expansion.js'),eng=await import('../dist/engine.js'),{emptyStore,SAVE_KEY}=await import('../dist/storage.js');
+ const puzzles=[...JSON.parse(await readFile(join(dist,'puzzles.json'),'utf8')).puzzles,...JSON.parse(await readFile(join(dist,'proofs.json'),'utf8')).puzzles];
+ const want=process.env.TEST_ROAD||'staged',ids=want==='all'?road.MAIN.map(e=>e.id):want==='staged'?STAGED:want.split(',');
+ return road.BAND_KEYS.map(band=>{
+  const profile={id:`audit-${band}`,name:'Explorer',band,avatar:0,sound:false,attempts:{}},saves={};road.startJourney(profile);
+  for(const e of road.MAIN){
+   if(ids.includes(e.id))saves[road.campaignId(e.id,band)]=JSON.stringify({...emptyStore(),activeProfileId:profile.id,profiles:[profile]});
+   const o=road.beginEncounter(profile,puzzles);let a=eng.freshAttempt(o.puzzle);
+   for(let i=0;i<500&&!eng.isSolved(o.puzzle,a.board);i++)a=eng.move(o.puzzle,a,mechanicFor(o.puzzle)?.solve?mechanicFor(o.puzzle).solve(o.puzzle,a.board):(h=>h.action||h.pair)(eng.nextHint(o.puzzle,a)));
+   profile.attempts[o.puzzle.id]={...a,completed:true};road.recordSolve(profile,o.puzzle.id,o.encounter.id,puzzles);
+  }
+  return {id:`road-${band}`,road:true,saveKey:SAVE_KEY,puzzles:road.MAIN.filter(e=>ids.includes(e.id)).map(e=>({id:road.campaignId(e.id,band),encounter:e.id,save:saves[road.campaignId(e.id,band)]}))};
+ });
+}
 async function modules(){
+ if(process.env.TEST_FAMILY?.split(',').some(id=>id==='road'||id.startsWith('road-')))return (await roadModules()).map(m=>({...m,match:['road',m.id]}));
  const {FAMILIES}=await import('./packs.mjs');
  const list=[];
  for(const m of FAMILIES.filter(m=>m.pack))list.push({id:m.id,puzzles:JSON.parse(await readFile(new URL(m.pack),'utf8')).puzzles});
@@ -207,26 +239,29 @@ async function audit(){
  const base=(process.env.TEST_URL||'http://127.0.0.1:4187').replace(/\/$/,''),only=process.env.TEST_FAMILY?.split(','),puzzleOnly=process.env.TEST_PUZZLE;
  const viewports=VIEWPORTS.filter(v=>!process.env.AUDIT_VIEWPORTS||process.env.AUDIT_VIEWPORTS.split(',').includes(v.name));
  const hooks=await hookSelectors(),cfg={thresholds:THRESHOLDS,selectors:{...SELECTORS,ready:undefined},hooks};
- const chosen=(await modules()).map(m=>({...m,puzzles:m.puzzles.filter(p=>!puzzleOnly||p.id===puzzleOnly)})).filter(m=>m.puzzles.length&&(!only||only.includes(m.id)));
+ const chosen=(await modules()).map(m=>({...m,puzzles:m.puzzles.filter(p=>!puzzleOnly||p.id===puzzleOnly)})).filter(m=>m.puzzles.length&&(!only||(m.match||[m.id]).some(id=>only.includes(id))));
  if(!chosen.length)throw new Error(`No module or puzzle matches ${puzzleOnly||only}`);
  const browser=await chromium.launch({headless:true,...(process.env.BROWSER_EXECUTABLE?{executablePath:process.env.BROWSER_EXECUTABLE}:{})});
  const report={generated:new Date().toISOString(),url:base,thresholds:THRESHOLDS,viewports,hooks,modules:[]};
  try{
   for(const m of chosen){
    const result={id:m.id,puzzles:m.puzzles.length,results:[],errors:[]};
-   for(const vp of viewports){
-    const context=await browser.newContext({viewport:{width:vp.width,height:vp.height},hasTouch:true});
+   for(const vp of m.road?[...viewports,...(!process.env.AUDIT_VIEWPORTS||process.env.AUDIT_VIEWPORTS.split(',').includes(LANDSCAPE.name)?[LANDSCAPE]:[])]:viewports){
+    const context=await browser.newContext({viewport:{width:vp.width,height:vp.height},hasTouch:true,...(m.road?{serviceWorkers:'block'}:{})});
     const page=await context.newPage();page.on('pageerror',e=>result.errors.push(`${vp.name}: ${e.message}`));let cdp=null;
     try{
-     await page.goto(base);await page.locator('#nickname').fill('Explorer');await page.locator('#profile-form button[type=submit]').click();await page.locator('#main').waitFor();
+     if(!m.road){await page.goto(base);await page.locator('#nickname').fill('Explorer');await page.locator('#profile-form button[type=submit]').click();await page.locator('#main').waitFor();}
      for(const p of m.puzzles){
       try{
-       await page.goto(`${base}/#play/${p.id}`);await page.locator(SELECTORS.ready(p.id)).waitFor({timeout:20000});
+       // A road encounter loads afresh with the save of a child arriving at it.
+       if(m.road){if(page.url()==='about:blank')await page.goto(base);await page.evaluate(([k,v])=>localStorage.setItem(k,v),[m.saveKey,p.save]);await page.goto(`${base}/?audit=${p.id}#play/${p.id}/${p.encounter}`);}
+       else await page.goto(`${base}/#play/${p.id}`);
+       await page.locator(SELECTORS.ready(p.id)).waitFor({timeout:20000});
        // Let entrance animations, fonts and any fit-to-room pass settle before measuring.
        await page.evaluate(async()=>{await document.fonts?.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));await Promise.race([Promise.all(document.getAnimations().filter(a=>a.playState==='running'&&Number.isFinite(a.effect?.getComputedTiming().endTime)).map(a=>a.finished.catch(()=>{}))),new Promise(r=>setTimeout(r,1500))]);});
        await page.waitForTimeout(120);
-       const data=await page.evaluate(measure,cfg),row={id:p.id,viewport:vp.name,...data};
-       const findings=data.targets.some(t=>t.min<THRESHOLDS.target)||data.texts.length||data.overlaps.length||data.clipped.length||data.fit.overflowX>0||(vp.name===PHONE&&data.fit.boardBelow>0);
+       const data=await page.evaluate(measure,cfg),row={id:p.id,...(p.encounter?{encounter:p.encounter}:{}),viewport:vp.name,...data};
+       const findings=data.targets.some(t=>t.min<THRESHOLDS.target)||data.texts.length||data.overlaps.length||data.clipped.length||data.fit.overflowX>0||(vp.name===PHONE&&data.fit.boardBelow>0)||(m.road&&data.fit.boardTop+Math.min(START,data.fit.boardHeight)>vp.height);
        if(shotDir&&findings){
         const path=join(shotDir,m.id,`${p.id}-${vp.name}.jpg`);await mkdir(dirname(path),{recursive:true});
         await page.evaluate(mark,data);await page.screenshot({path,fullPage:true,type:'jpeg',quality:60});await page.evaluate(()=>document.querySelector('#layout-audit-marks')?.remove());
@@ -255,7 +290,10 @@ function summarise(module){
  const T=THRESHOLDS,groups=new Map();
  const add=(kind,key,vp,id,value,extra={})=>{const k=`${kind}|${key}`;if(!groups.has(k))groups.set(k,{kind,key,byVp:{},labels:new Set(),shown:false});const g=groups.get(k),v=g.byVp[vp]||(g.byVp[vp]={puzzles:new Set(),worst:null});v.puzzles.add(id);if(extra.label)g.labels.add(extra.label.slice(0,24));if(extra.shown!==false)g.shown=true;if(!v.worst||value.score<v.worst.score)v.worst=value;};
  for(const r of module.results){
-  const short=r.id.startsWith(`${module.id}-`)?r.id.slice(module.id.length+1):r.id,board=r.fit.boardBelow+VIEWPORTS.find(v=>v.name===r.viewport).height;
+  const short=r.encounter||(r.id.startsWith(`${module.id}-`)?r.id.slice(module.id.length+1):r.id),vh=ALL_VIEWPORTS.find(v=>v.name===r.viewport).height,board=r.fit.boardBelow+vh;
+  // On the road, less than START px of the board (or less than all of a shorter one) on screen at first means scrolling before every move.
+  const need=Math.min(START,r.fit.boardHeight??START);
+  if(r.fit.sceneTop!==undefined&&r.fit.boardTop+need>vh)add('start','board panel',r.viewport,short,{score:-(r.fit.boardTop+need-vh),text:`board top at ${r.fit.boardTop} px of ${vh}`});
   for(const t of r.targets)add(t.min<T.target?'target':'near',t.sig,r.viewport,short,{score:t.min,text:`${Math.round(t.w)}×${Math.round(t.h)} px${t.min<Math.min(t.w,t.h)-1?` (${Math.round(t.min)} at its thinnest)`:''}`},{label:t.label});
   for(const t of r.crowded)add('crowd',t.sig,r.viewport,short,{score:-t.crowd,text:`${t.crowd} centres within ${T.crowd} px`},{label:t.label});
   for(const t of r.texts)add('text',t.sig,r.viewport,short,{score:t.px,text:`${t.px} px`},{label:t.text,shown:!t.ariaHidden});
@@ -268,20 +306,20 @@ function summarise(module){
   for(const w of r.wraps)add(r.viewport===PHONE&&r.fit.boardBelow>0&&w.top<board?'wrap':'wraps',w.sig,r.viewport,short,{score:-w.extra,text:`${w.rows} rows, +${w.extra} px${r.fit.boardBelow>0?` (board ${r.fit.boardBelow} px off)`:''}`},{label:w.labels.join(' ')});
   for(const s of r.strips)add('strip',s.sig,r.viewport,short,{score:-s.hidden,text:`${s.hidden} px hidden`});
  }
- const all=[...groups.values()].map(g=>({...g,labels:[...g.labels].slice(0,3),byVp:Object.fromEntries(VIEWPORTS.filter(v=>g.byVp[v.name]).map(({name})=>{const v=g.byVp[name];return [name,{puzzles:[...v.puzzles],worst:v.worst.text,score:v.worst.score}];}))}));
+ const all=[...groups.values()].map(g=>({...g,labels:[...g.labels].slice(0,3),byVp:Object.fromEntries(ALL_VIEWPORTS.filter(v=>g.byVp[v.name]).map(({name})=>{const v=g.byVp[name];return [name,{puzzles:[...v.puzzles],worst:v.worst.text,score:v.worst.score}];}))}));
  // A board below the screen counts on a 390 × 844 phone; on the short SE screen and the tablet it is a note.
- const counts=g=>['target','text','overlap','clipped','overflow','wrap'].includes(g.kind)||(g.kind==='fold'&&g.byVp[PHONE]);
- const order={overflow:0,target:1,text:2,clipped:3,overlap:4,fold:5,wrap:6},worst=g=>Math.min(...Object.values(g.byVp).map(v=>v.score));
+ const counts=g=>['target','text','overlap','clipped','overflow','wrap','start'].includes(g.kind)||(g.kind==='fold'&&g.byVp[PHONE]);
+ const order={overflow:0,start:1,target:1,text:2,clipped:3,overlap:4,fold:5,wrap:6},worst=g=>Math.min(...Object.values(g.byVp).map(v=>v.score));
  const problems=all.filter(counts).sort((a,b)=>order[a.kind]-order[b.kind]||worst(a)-worst(b));
  return {problems,near:all.filter(g=>g.kind==='near').sort((a,b)=>worst(a)-worst(b)),notes:all.filter(g=>!counts(g)&&g.kind!=='near'),instances:problems.reduce((n,g)=>n+Object.values(g.byVp).reduce((m,v)=>m+v.puzzles.length,0),0),errors:module.errors};
 }
 
-const KIND={target:'Tap target',near:'Near miss (40–43 px)',crowd:'Crowded targets',text:'Small text',overlap:'Overlapping labels',clipped:'Cut off',covered:'Pointer cursor but no hit at any probe point',overflow:'Page wider than the screen',fold:'Board below the screen',wrap:'Wrapped row above a board that runs off a 390 × 844 screen',wraps:'Wrapped row',strip:'Sideways scroll'};
+const KIND={start:'Board starts below the screen',target:'Tap target',near:'Near miss (40–43 px)',crowd:'Crowded targets',text:'Small text',overlap:'Overlapping labels',clipped:'Cut off',covered:'Pointer cursor but no hit at any probe point',overflow:'Page wider than the screen',fold:'Board below the screen',wrap:'Wrapped row above a board that runs off a 390 × 844 screen',wraps:'Wrapped row',strip:'Sideways scroll'};
 // "Tap target `button.x` (“+”): 35×35 px at 390×844, 34×34 at 375×667; puzzles 03–09"
 const describe=g=>{
  const union=[...new Set(Object.values(g.byVp).flatMap(v=>v.puzzles))];
  const sizes=Object.entries(g.byVp).map(([vp,v])=>`${v.worst} at ${vp.replace('x','×')}${v.puzzles.length<union.length?` (only ${ids(v.puzzles)})`:''}`).join(', ');
- return `${KIND[g.kind]}${['fold','overflow'].includes(g.kind)?'':` \`${g.key}\``}${g.labels.length?` (${g.labels.map(l=>`“${l}”`).join(', ')})`:''}${g.kind==='text'&&!g.shown?', aria-hidden':''}: ${sizes}; puzzles ${ids(union)}`;
+ return `${KIND[g.kind]}${['fold','overflow','start'].includes(g.kind)?'':` \`${g.key}\``}${g.labels.length?` (${g.labels.map(l=>`“${l}”`).join(', ')})`:''}${g.kind==='text'&&!g.shown?', aria-hidden':''}: ${sizes}; puzzles ${ids(union)}`;
 };
 // Classes that start a selector in two modules' stylesheets and in no shared one: each module's rules
 // then reach the other's board (pantograph.css's .pg-board{display:block} flattened the Proofs gardens).

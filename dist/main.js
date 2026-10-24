@@ -13,6 +13,7 @@ import { caravanHeader, caravanProfiles, libraryView } from './caravan-ui.js';
 import { roadMapView, journalView, finaleView, stopSheet, trailOptions, wireKeeper, sayLine, startTalk, stopTalk, resetTalk } from './road-ui.js';
 import { loadArt, keepMedia, asset, artUrl } from './art.js';
 import { createClockTimeline } from './clock-playback.js';
+import { stageKind, stageHelp, dress } from './road-stage.js';
 import { clockJumpArc, clockJumpFromPlace, clockPlaceAtPoint, clockStepJump } from './clock-geometry.js';
 const app=document.querySelector('#app');
 const viewState=createViewState(app);
@@ -233,7 +234,8 @@ function wireClockBoard(){
   });
 }
 function wireForms(){
-  document.querySelectorAll('form[data-puzzle-form]').forEach(form=>form.addEventListener('submit',e=>{e.preventDefault();const p=puzzle();if(p&&profile())applyPair(p,Object.fromEntries(new FormData(e.currentTarget)),p.mechanic==='clock'?'ring':null);}));
+  // A form marked novalidate (the bell count) says what is missing in the feedback line instead of the browser's tooltip.
+  document.querySelectorAll('form[data-puzzle-form]').forEach(form=>form.addEventListener('submit',e=>{e.preventDefault();const p=puzzle();if(!p||!profile())return;const bad=form.querySelector(':is(input,select,textarea):invalid');if(bad){message=bad.dataset.invalid||'';render();document.querySelector(`[data-focus="${CSS.escape(bad.dataset.focus||'')}"]`)?.focus();return;}applyPair(p,Object.fromEntries(new FormData(e.currentTarget)),p.mechanic==='clock'?'ring':null);}));
   document.querySelectorAll('input[name="activations"]').forEach(input=>input.addEventListener(input.type==='number'?'input':'change',e=>clockTimeline.edit(e.target.value,input.type!=='number')));
   document.querySelector('#profile-form')?.addEventListener('submit',e=>{e.preventDefault();const data=new FormData(e.currentTarget),name=String(data.get('name')).trim();if(!name){document.querySelector('#nickname').focus();return;}if(state.profiles.length>=30){dialog('All save slots are full','<p>There is room for 30 explorers. Export and remove an unused save in the grown-up area.</p>');return;}const pr={id:uid(),name,band:data.get('band'),avatar:0,sound:false,attempts:{}};state.profiles.push(pr);state.activeProfileId=pr.id;save();go(['library','play'].includes(route()[0])?location.hash.slice(1):'map');});
   document.querySelector('#checker')?.addEventListener('change',e=>{checker=e.target.checked;document.querySelector('.tile-board')?.classList.toggle('show-checker',checker);});
@@ -249,10 +251,12 @@ function dialog(title,body,actions=[{label:'Done'}]){
 function instructions(p){
   return isExpansion(p)?playInstructions(p):p.mechanic==='tile'?tileInstructions(p):'Tap two cups to swap them. Only the listed pairs can swap.';
 }
+// A road puzzle played in its picture is explained in the picture's words (dist/road-stage.js).
+function helpCopy(p){const e=activeEncounter(),kind=e&&stageKind(e,p);return kind?{...stageHelp(kind,p),dress:text=>dress(kind,text)}:{objective:puzzleObjective(p),instructions:instructions(p),note:'',dress:text=>text};}
 function speak(p){
   if(!('speechSynthesis'in window)){message='Read-aloud unavailable. Open How to play.';render();return;}
   window.speechSynthesis.cancel();
-  const utterance=new SpeechSynthesisUtterance(`${puzzleObjective(p)} ${instructions(p)}`);utterance.rate=.85;
+  const help=helpCopy(p),utterance=new SpeechSynthesisUtterance(`${help.objective} ${help.instructions}`);utterance.rate=.85;
   utterance.onerror=event=>{if(['interrupted','canceled'].includes(event.error))return;message='Read-aloud unavailable. Open How to play.';render();};
   window.speechSynthesis.speak(utterance);
 }
@@ -366,7 +370,7 @@ document.addEventListener('click',event=>{
   else if(action==='rescue'&&a&&!(isExpansion(p)&&mechanicFor(p).noUndo?.(p))){put(p,undoToSolvable(p,a));selected=null;highlighted=null;message='';render();}
   else if(action==='puzzle-notes'&&p)dialog(p.title,`<div class="note-body">${notesHTML(p,pack)}</div>`);
   else if(action==='speak'&&p)speak(p);
-  else if(action==='demo'&&p)dialog('How to play',`<p>${esc(puzzleObjective(p))}</p><p>${esc(instructions(p))}</p>${isExpansion(p)?`${mechanicFor(p).help?.(p,a,{completed:id=>Boolean(profile()?.attempts?.[id]?.completed)})||''}<details><summary>Rules</summary><ul>${p.rules.map(r=>`<li>${esc(r)}</li>`).join('')}</ul></details>`:''}${p.band==='proofs'||p.proof?'':`<details><summary>For grown-ups</summary>${notesHTML(p,pack)}</details>`}`);
+  else if(action==='demo'&&p){const help=helpCopy(p);dialog('How to play',`<p>${esc(help.objective)}</p><p>${esc(help.instructions)}</p>${isExpansion(p)?`${mechanicFor(p).help?.(p,a,{completed:id=>Boolean(profile()?.attempts?.[id]?.completed)})||''}<details><summary>Rules</summary><ul>${p.rules.map(r=>`<li>${esc(help.dress(r))}</li>`).join('')}</ul></details>`:''}${p.band==='proofs'||p.proof?'':`<details><summary>For grown-ups</summary>${help.note?`<p class="note-stage">${esc(help.note)}</p>`:''}${notesHTML(p,pack)}</details>`}`);}
   else if(action==='export'){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`math-adventure-saves-${new Date().toISOString().slice(0,10)}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}
   else if(action==='import')document.querySelector('#import-file').click();
   else if(action==='delete-profile'){const target=state.profiles.find(pr=>pr.id===control.dataset.id);dialog(`Delete ${target.name}’s save?`,'<p>This removes this explorer’s progress here. Export a backup first if you want to keep it.</p>',[{label:'Keep save'},{label:'Delete this save',danger:true,run:()=>{state.profiles=state.profiles.filter(pr=>pr.id!==target.id);if(state.activeProfileId===target.id)state.activeProfileId=state.profiles[0]?.id||null;save();try{storage.removeItem(BACKUP_KEY);storage.removeItem(REPAIR_KEY);}catch{}render();}}]);}

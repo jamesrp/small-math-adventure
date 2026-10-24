@@ -80,28 +80,54 @@ body:is([data-stop="marsh"],[data-stop="hollow"],[data-stop="lighthouse"],[data-
   .lr-rival.has-line{max-width:min(92%,360px)}
 }
 
+/* The workshop's art puts Sprocket in the top-right corner, so Plume's card
+   takes the top-left (the window) there until the art keeps that corner clear
+   (docs/art/ROADMAP.md). */
+.lr-scene[data-stop="workshop"]:not(.is-staged) .lr-rival{right:auto;left:12px}
+@media (max-width:620px){.lr-scene[data-stop="workshop"]:not(.is-staged) .lr-rival{left:8px}}
+
+/* Wide, short screens (a tablet or laptop in landscape): the scene and the
+   keeper stand beside the board, so the board starts at the top of the screen
+   instead of below a picture half the screen tall. The picture shows its
+   middle 80%, as on phones, and Plume's card sits under the keeper. Stages
+   are the board, and keep their own layout. */
+@media (min-width:1000px) and (max-height:900px) and (min-aspect-ratio:5/4){
+  .lr-play:not(.is-staged){max-width:1180px;display:grid;grid-template-columns:minmax(300px,30%) minmax(0,1fr);align-items:start;gap:16px 24px}
+  .lr-play:not(.is-staged) .lr-scene-art{aspect-ratio:1440/690;max-height:none}
+  .lr-play:not(.is-staged) .lr-keeper{margin:-40px 8px 0}
+  .lr-play:not(.is-staged) .lr-keeper .lr-portrait{width:84px;height:84px}
+  .lr-play:not(.is-staged) .lr-keeper .lr-bubble{margin-top:48px;font-size:1rem}
+  .lr-play:not(.is-staged) .lr-rival{position:static;align-self:flex-start;margin:12px 0 0;max-width:100%}
+}
+
 /* Stages: road puzzles played in their picture (dist/road-stage.js) -----------
    The backdrop and the drawn layers share one 1600 × 900 space and pieces sit
-   at (--x, --y) in it. Phones show the middle 1200 (x 200–1400). The page
+   at (--x, --y) in it. The stage shows --vw × --vh of it from (--x0, --y0):
+   all of it on wider screens; on phones the middle 1200 (x 200–1400), or the
+   stage's own crop (--px0, --pvw, --py0, --pvh from phoneView). The page
    narrows on short screens so the picture and its controls fit together. */
 .lr-play.is-staged{max-width:min(1000px,max(560px,calc((100svh - 330px) * 16 / 9)))}
 /* The seats' pair buttons and the bell's number chart are taller than one row,
    so their pictures are a little smaller. */
 .lr-play.staged-seats{max-width:min(1000px,max(560px,calc((100svh - 380px) * 16 / 9)))}
 .lr-play.staged-bell{max-width:min(1000px,max(560px,calc((100svh - 440px) * 16 / 9)))}
-.lr-stage{--x0:0;--vw:1600;position:relative;width:100%;aspect-ratio:16/9;border-radius:22px;overflow:hidden;background:#2a8fc2;box-shadow:0 4px 0 rgba(0,0,0,.12),0 12px 30px -18px rgba(0,0,0,.45);isolation:isolate;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+/* The lamps' goal card is drawn large enough to read, so their picture is a little smaller too. */
+.lr-play.staged-lights{max-width:min(1000px,max(560px,calc((100svh - 400px) * 16 / 9)))}
+.lr-stage{--x0:0;--vw:1600;--y0:0;--vh:900;position:relative;width:100%;aspect-ratio:16/9;border-radius:22px;overflow:hidden;background:#2a8fc2;box-shadow:0 4px 0 rgba(0,0,0,.12),0 12px 30px -18px rgba(0,0,0,.45);isolation:isolate;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .lr-stage.stage-marsh{background:#0e2a33}
-.stage-world{position:absolute;top:0;bottom:0;left:calc(var(--x0) / var(--vw) * -100%);width:calc(1600 / var(--vw) * 100%)}
+.stage-world{position:absolute;top:calc(var(--y0) / var(--vh) * -100%);height:calc(900 / var(--vh) * 100%);left:calc(var(--x0) / var(--vw) * -100%);width:calc(1600 / var(--vw) * 100%)}
 .stage-world>*{position:absolute;inset:0;width:100%;height:100%}
 .stage-world>.stage-backdrop>:is(img,video,svg){object-fit:fill}
 .stage-layer{z-index:1;pointer-events:none;overflow:hidden}
 .stage-pieces{z-index:2;pointer-events:none}
 .stage-front{z-index:3}
+/* Rope and lamp taps lie over everything drawn, so a traveler never takes them. */
+.stage-hits{z-index:4}
 .stage-piece{position:absolute;left:calc(var(--x) / 16 * 1%);top:calc(var(--y) / 9 * 1%);width:calc(var(--s) / 16 * 1%);aspect-ratio:1;min-height:0;margin:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;color:inherit;pointer-events:auto}
 .stage-piece:is(div,span){pointer-events:none}
 .stage-piece .art-slot>:is(img,svg){object-fit:contain}
 .stage-piece:focus-visible{outline:3px solid #fff8d9;outline-offset:2px;border-radius:18px}
-@media (max-width:620px){.lr-stage{--x0:200;--vw:1200;aspect-ratio:4/3;border-radius:18px}.lr-stage.kind-bell{--x0:700;--vw:900;aspect-ratio:1}.stage-wagon{display:none}}
+@media (max-width:620px){.lr-stage{--x0:200;--vw:1200;aspect-ratio:4/3;border-radius:18px}.lr-stage.has-crop{--x0:var(--px0);--vw:var(--pvw);--y0:var(--py0);--vh:var(--pvh);aspect-ratio:var(--pvw) / var(--pvh)}.stage-wagon{display:none}}
 
 /* Travelers stand on their spot; the one picked first glows underfoot. */
 .stage-wagon{aspect-ratio:4/3;translate:-50% -100%;pointer-events:none}
@@ -113,11 +139,12 @@ body:is([data-stop="marsh"],[data-stop="hollow"],[data-stop="lighthouse"],[data-
 .stage-traveler.is-hinted::before{opacity:1;background:radial-gradient(closest-side,#effbe6,#86c46f 55%,rgba(134,196,111,0))}
 button.stage-traveler:hover{filter:drop-shadow(0 0 5px #fffdf0) drop-shadow(0 0 2px #fffdf0)}
 button.stage-traveler:disabled{cursor:default;filter:none}
-.stage-tag{translate:-50% -50%;border-radius:50%;background:#fffdf5;border:3px solid #fffdf5;box-shadow:0 3px 0 rgba(0,0,0,.25)}
-.stage-tag .art-slot{border-radius:50%;overflow:hidden;opacity:.55;filter:grayscale(.35)}
+/* A seat's tag shows whose seat it is: at least 36 px, so the face reads on a phone. */
+.stage-tag{width:max(calc(var(--s) / 16 * 1%), 36px);translate:-50% -50%;border-radius:50%;background:#fffdf5;border:3px solid #fffdf5;box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.stage-tag .art-slot{border-radius:50%;overflow:hidden;opacity:.8;filter:grayscale(.2)}
 .stage-tag.is-matched{border-color:var(--rd-good);box-shadow:0 0 0 2px #fffdf5,0 3px 0 rgba(0,0,0,.25)}
 .stage-tag.is-matched .art-slot{opacity:1;filter:none}
-.stage-tag b{position:absolute;left:-18%;top:-18%;z-index:1;width:48%;aspect-ratio:1;display:grid;place-items:center;border-radius:50%;background:var(--rd-pine);color:#fff8d9;font-size:clamp(.62rem,1.5vw,.95rem);line-height:1}
+.stage-tag b{position:absolute;left:-18%;top:-18%;z-index:1;width:max(48%,19px);aspect-ratio:1;display:grid;place-items:center;border-radius:50%;background:var(--rd-pine);color:#fff8d9;font-size:clamp(12px,1.5vw,.95rem);line-height:1}
 
 /* The bell rings on its own tap, or the Ring button's; each bell swings it. */
 .stage-bell{translate:-50% -50%;cursor:pointer}
@@ -126,23 +153,41 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 @media (prefers-reduced-motion:no-preference){.stage-bell.is-ringing .art-slot{animation:rd-ring .32s ease-in-out}}
 @keyframes rd-ring{25%{rotate:16deg}75%{rotate:-13deg}}
 .stage-wheel-rim{fill:#fbf3df;stroke:#8a5a33;stroke-width:8}
-.lr-stage .clock-position text{font-size:27px}
-.lr-stage .clock-position .clock-star{font-size:26px}
-.lr-stage .clock-center{font-size:40px}
-.lr-stage .clock-center-label{font-size:17px}
+/* The star may sit on the rim. */
+.lr-stage .stage-wheel{overflow:visible}
+/* Wheel numbers and the star read at 12 px or more where the wheel is smallest
+   (a phone, a tablet in landscape). The bell count needs no word beside it. */
+.lr-stage .clock-position text{font-size:36px}
+.lr-stage .clock-position .clock-star{font-size:36px;fill:#ffc61a;stroke:#6b4a00;stroke-width:3px;paint-order:stroke;stroke-linejoin:round}
+.lr-stage .clock-center{font-size:44px}
+.lr-stage .clock-center-label{display:none}
+@media (max-width:620px){.lr-stage .clock-position text,.lr-stage .clock-position .clock-star{font-size:46px}.lr-stage .clock-center{font-size:54px}}
+/* A short phone draws the bell's stage narrower (--pshort, from phoneView), so
+   the goal and the whole chart fit under it; the numbers stay 12 px or more. */
+@media (max-width:620px) and (max-height:700px){.lr-stage.kind-bell{width:min(100%,var(--pshort,100%));margin-inline:auto}}
 
 /* Lamps and the ropes that flip them. */
-.stage-rope-under{fill:none;stroke:#5e3b1f;stroke-width:17;stroke-linecap:round}
-.stage-rope{fill:none;stroke:#f3e2b0;stroke-width:9;stroke-linecap:round;stroke-dasharray:14 6}
-.stage-rope-hit{fill:none;stroke:transparent;stroke-width:64;stroke-linecap:round;cursor:pointer;pointer-events:stroke}
-.stage-rope-hit:hover{stroke:rgba(255,248,214,.35)}
+/* Lamps and the ropes that flip them. A rope is a thick gold line on a dark
+   cord, unlike the deck's pale rail; it takes taps 44 screen px wide at any
+   size and lights up while pressed. A lamp's own tap makes its ropes glow. */
+.stage-rope-under{fill:none;stroke:#3a2312;stroke-width:24;stroke-linecap:round}
+.stage-rope{fill:none;stroke:#ffd774;stroke-width:11;stroke-linecap:round;stroke-dasharray:22 8}
+.stage-rope-set.is-pulsing .stage-rope-under{stroke:#fff3b0}
+.stage-rope-set.is-pulsing .stage-rope{stroke:#e98a12;stroke-dasharray:none}
+@media (prefers-reduced-motion:no-preference){.stage-rope-set.is-pulsing{animation:rd-rope .45s ease-in-out 3}}
+@keyframes rd-rope{50%{opacity:.35}}
+/* Square ends: where two ropes leave one lamp, neither takes the other's taps. */
+.stage-rope-hit{fill:none;stroke:transparent;stroke-width:44px;vector-effect:non-scaling-stroke;stroke-linecap:butt;cursor:pointer;pointer-events:stroke}
+@media (hover:hover){.stage-rope-hit:hover{stroke:rgba(255,248,214,.3)}}
+.stage-rope-hit:active{stroke:rgba(255,240,170,.55)}
 .stage-rope-hit:focus-visible{stroke:rgba(255,248,214,.6);outline:none}
 .stage-rope-hit.is-hinted{stroke:rgba(134,196,111,.55)}
 .stage-rope-hit[aria-disabled="true"]{pointer-events:none}
+.stage-lamp-hit{fill:transparent;pointer-events:all;cursor:pointer}
 .stage-lamp-cap{fill:#3a2a1c}
 .stage-lamp-glass{fill:#33424d;stroke:#1d2830;stroke-width:4}
 .stage-lamp.is-lit .stage-lamp-glass{fill:#ffd653;stroke:#9a6b10}
-.stage-lamp-label{font:700 26px var(--rd-body);text-anchor:middle;fill:#e9eef2}
+.stage-lamp-label{font:700 34px var(--rd-body);text-anchor:middle;fill:#e9eef2}
 .stage-lamp.is-lit .stage-lamp-label{fill:#5a3d00}
 .stage-glow{fill:url(#stage-glow)}
 @media (prefers-reduced-motion:no-preference){.stage-glow{animation:rd-glow 2.6s ease-in-out infinite}}
@@ -163,6 +208,8 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 .stage-junction.can-go:not(.is-here):hover{box-shadow:0 0 0 4px #fff3c4,0 0 26px 10px rgba(255,214,90,.7)}
 .stage-junction.is-hinted{box-shadow:0 0 0 4px #b9e6a0,0 0 22px 8px rgba(134,196,111,.7)!important}
 .stage-junction:focus-visible{outline:3px solid #fff8d9;outline-offset:4px;border-radius:50%}
+/* On a phone a junction takes taps at least 56 × 46 px and its letter reads at 12 px or more. */
+@media (max-width:620px){.stage-junction{width:max(calc(var(--s) / 16 * 1%), 56px);min-height:46px}.stage-pad-label{font-size:44px}}
 @media (prefers-reduced-motion:no-preference){.stage-junction.can-go:not(.is-here):not(:hover){animation:rd-call 2.2s ease-in-out infinite}}
 @keyframes rd-call{50%{box-shadow:0 0 0 3px rgba(255,240,170,.55),0 0 10px 3px rgba(255,214,90,.25)}}
 .stage-hops{translate:-50% -100%;z-index:1}
@@ -184,7 +231,7 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 /* A solved stage locks its pieces without fading them. */
 .lr-stage .stage-piece:disabled{opacity:1}
 .lr-play.is-staged .pair-button{min-height:40px;min-width:0;padding:6px 8px;font-size:.9rem}
-@media (min-width:621px){.lr-play.is-staged .puzzle-workspace{position:relative}.lr-play.is-staged .play-heading{position:absolute;right:0;top:-58px;margin:0}.lr-play.is-staged .lr-bubble{max-width:min(52ch,calc(100% - 270px))}}
+@media (min-width:621px){.lr-play.is-staged .puzzle-workspace{position:relative}.lr-play.is-staged .play-heading{position:absolute;right:0;top:-58px;margin:0}.lr-play.is-staged .lr-bubble{max-width:min(52ch,calc(100% - 320px))}}
 @media (max-width:760px){.lr-play.is-staged .play-layout{grid-template-columns:1fr}.lr-play.is-staged .play-sidebar{display:block}}
 .stage-count{margin:0;display:flex;align-items:baseline;justify-content:center;gap:6px 16px;flex-wrap:wrap;color:var(--rd-ink);font-size:1rem}
 .stage-count strong{font-family:var(--rd-display);font-size:1.6rem;font-weight:400}
@@ -192,8 +239,12 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 .stage-goal-row{display:flex;align-items:center;justify-content:center;gap:12px 24px;flex-wrap:wrap}
 .stage-goal{margin:0;display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:14px;background:#fbf4dc;border:1px solid #ead9a4}
 .stage-goal figcaption{font-family:var(--rd-display);font-size:1.05rem;color:var(--rd-ink)}
-.stage-goal svg{display:block;width:clamp(120px,22vw,190px);height:auto;max-height:110px}
-.stage-goal-lines line{stroke:#9c7a4f;stroke-width:8;stroke-linecap:round}
+.stage-goal svg{display:block;width:max(var(--goal-w,150px),min(22vw,190px));max-width:100%;height:auto}
+.stage-goal-lines line{stroke:#9c7a4f;stroke-linecap:round}
+.stage-goal-glow{fill:#ffe48a;opacity:.6}
+.stage-goal-label{font-family:var(--rd-body);font-weight:700;text-anchor:middle;fill:#e9eef2}
+.stage-goal-lamp.is-lit .stage-lamp-glass{fill:#ffd653;stroke:#9a6b10}
+.stage-goal-lamp.is-lit .stage-goal-label{fill:#5a3d00}
 
 /* Bell chart: tap a number, then ring. Numbers already rung stay marked. */
 .bell-chart{flex:1 1 100%;display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:6px;max-width:560px;margin:0 auto}
@@ -206,12 +257,21 @@ body:has(.bell-chart input:checked) button.stage-bell .art-slot{filter:drop-shad
 .bell-number.is-tried input:checked+span{background:#f6dfa0;color:var(--rd-ink)}
 .stage-bell-form{margin:0;flex-wrap:nowrap;align-items:center}
 .stage-bell-form .bell-chart{flex:1 1 auto;margin:0}
+/* Ten numbers in a row need about 560 px beside Ring; narrower, they take two
+   rows of five, so each stays at least 40 px wide. */
+.stage-bell-form{container-type:inline-size}
+@container (max-width:561px){.stage-bell-form .bell-chart{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .stage-bell-form>button{flex:none;min-width:96px}
-.lr-play.is-staged .bell-number>span:first-of-type{min-height:36px}
-@media (max-width:620px){.stage-bell-form{flex-wrap:wrap}.stage-bell-form>button{flex:1 1 100%}}
-/* Beside the pair buttons and the bell chart, Undo, Restart and Hint stack so
-   the controls keep their width. */
-@media (min-width:761px){:is(.lr-play.staged-seats,.lr-play.staged-bell) .play-sidebar .tool-grid{flex-direction:column;align-items:stretch;gap:8px}:is(.lr-play.staged-seats,.lr-play.staged-bell) .play-sidebar .tool-grid button{min-height:0;height:40px;padding-block:0}}
+/* A long bell count is typed: the word sits beside its box, in one row with Ring. */
+.stage-bell-form label.bell-count{flex:0 1 auto;max-width:none;flex-direction:row;align-items:center;gap:10px;font-size:1rem}
+.stage-bell-form .bell-count input{width:104px}
+.lr-play.is-staged .bell-number>span:first-of-type{min-height:44px}
+/* On a phone the chart is two rows of five with Ring beside it, so chart and
+   Ring stay on a small screen together. */
+@media (max-width:620px){.stage-bell-form{align-items:stretch;gap:8px}.stage-bell-form .bell-chart{grid-template-columns:repeat(5,minmax(0,1fr))}.stage-bell-form>button{min-width:64px;width:64px;padding-inline:4px}}
+/* Beside the pair buttons, the bell chart and the lamps' goal card, Undo,
+   Restart and Hint stack so the controls keep their width. */
+@media (min-width:761px){:is(.lr-play.staged-seats,.lr-play.staged-bell,.lr-play.staged-lights) .play-sidebar .tool-grid{flex-direction:column;align-items:stretch;gap:8px}:is(.lr-play.staged-seats,.lr-play.staged-bell,.lr-play.staged-lights) .play-sidebar .tool-grid button{min-height:0;height:40px;padding-block:0}}
 .lr-play.is-staged .motion-result{margin:10px auto 0;padding:8px 12px;max-width:560px;text-align:center}
 
 /* Solved strip ------------------------------------------------------------------ */

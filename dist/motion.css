@@ -37,6 +37,8 @@
 .lantern.lit circle { fill:#ffd653; stroke:#886313; stroke-dasharray:none; stroke-width:3; }
 .lantern text { font-size:19px; font-weight:800; text-anchor:middle; }
 .lamp-rays { stroke:#886313; stroke-width:3; }
+/* A lamp's letter and rays never take a tap meant for the wire under them. */
+.lantern text, .lamp-rays { pointer-events:none; }
 .clock-pictures { display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; margin-top:1rem; }
 .clock-picture { flex:1 1 200px; max-width:330px; }
 .clock-choose .clock-picture svg { touch-action:none; user-select:none; -webkit-user-select:none; cursor:pointer; }

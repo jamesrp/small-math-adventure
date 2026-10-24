@@ -168,7 +168,8 @@ export function clockFace(clock, count, total, { big = false, compact = false } 
   const arrow = clockJumpArc(clock.positions, clock.start, clock.jump);
   const nodes = range(0, clock.positions - 1).map(position => {
     const [x, y] = point(position), target = clock.target === position;
-    const [starX, starY] = point(position, compact ? 146 : 138);
+    // The road's big wheels set their larger star further out, clear of its number.
+    const [starX, starY] = point(position, compact ? 146 : big ? 150 : 138);
     return `<g class="clock-position ${target ? 'clock-target' : ''}"><circle cx="${x}" cy="${y}" r="${big ? 25 : 18}"/><text x="${x}" y="${y + (big ? 9 : 5)}">${position}</text>${target ? `<text class="clock-star" x="${starX}" y="${starY + 6}">★</text>` : ''}</g>`;
   }).join('');
   const [x, y] = point(current);
@@ -192,17 +193,19 @@ function clockPicture(clock, count, label, total, control = null, compact = fals
 export function bellChart(p, attempt, presentation = {}) {
   const chosen = Number(presentation.draft ?? attempt.board.prediction ?? 0);
   const length = Math.max(10, Math.ceil(clockPeriod(p.parameters) / 10) * 10);
-  if (length > 20) return `<label class="bell-count">Bells<input type="number" name="activations" min="1" max="${length}" step="1" inputmode="numeric" value="${esc(presentation.draft ?? attempt.board.prediction ?? '')}" data-focus="bell-count" required></label>`;
+  // A count outside the chart is refused with this line (dist/main.js), not the browser's tooltip.
+  if (length > 20) return `<label class="bell-count">Bells<input type="number" name="activations" min="1" max="${length}" step="1" inputmode="numeric" value="${esc(presentation.draft ?? attempt.board.prediction ?? '')}" data-focus="bell-count" data-invalid="Choose 1 to ${length} bells." required></label>`;
   const tried = new Set([...(attempt.history || []).map(h => h.board.prediction), attempt.board.prediction].filter(n => n != null));
-  return `<fieldset class="bell-chart"><legend class="sr-only">Bell count</legend>${range(1, length).map(n => `<label class="bell-number ${tried.has(n) ? 'is-tried' : ''}"><input type="radio" name="activations" value="${n}" data-focus="bell-${n}" ${n === chosen ? 'checked' : ''} required><span>${n}</span>${tried.has(n) ? `<span class="sr-only"> (rung)</span>` : ''}</label>`).join('')}</fieldset>`;
+  return `<fieldset class="bell-chart"><legend class="sr-only">Bell count</legend>${range(1, length).map(n => `<label class="bell-number ${tried.has(n) ? 'is-tried' : ''}"><input type="radio" name="activations" value="${n}" data-focus="bell-${n}" data-invalid="Tap a number first." ${n === chosen ? 'checked' : ''} required><span>${n}</span>${tried.has(n) ? `<span class="sr-only"> (rung)</span>` : ''}</label>`).join('')}</fieldset>`;
 }
 // What a wrong ring showed, or '' for none or a solve.
 export function clockFeedback(p, attempt) {
   const params = p.parameters, prediction = attempt.board.prediction, gear = params.mode === 'choose_jump';
   if (prediction === null || solvedClock(p, attempt.board)) return '';
   if (gear) return `Jump ${prediction} first returns on bell ${params.positions / gcd(params.positions, prediction)}.`;
-  const endpoint = params.clocks.map(clock => clockPlace(clock, prediction));
-  return `After ${plural(prediction, 'bell')}: ${endpoint.join(' and ')}. ${endpoint.every((position, i) => position === params.clocks[i].target) ? 'The markers reached their stars on an earlier bell.' : 'The markers must land on their stars together.'}`;
+  const endpoint = params.clocks.map(clock => clockPlace(clock, prediction)), one = params.clocks.length === 1;
+  const early = endpoint.every((position, i) => position === params.clocks[i].target);
+  return `After ${plural(prediction, 'bell')}: ${endpoint.join(' and ')}. ${early ? (one ? 'The marker reached its star on an earlier bell.' : 'The markers reached their stars on an earlier bell.') : one ? 'The marker must land on its star.' : 'The markers must land on their stars together.'}`;
 }
 
 const clock = {
@@ -235,7 +238,7 @@ const clock = {
     const count = presentation.count ?? submittedCount;
     const controls = gear ? `<input type="hidden" name="jump" value="${clocks[0].jump}">` : bellChart(p, attempt, presentation);
     const feedback = clockFeedback(p, attempt);
-    return `<div class="motion-board clock-board${gear?' clock-choose':''}"><div class="clock-pictures${clocks.length > 1 ? ' clock-several' : ''}">${clocks.map((item, i) => clockPicture(item, count, clocks.length>1?`Clock ${i + 1} · `:'', submittedCount, gear ? { min: params.jump_min, max: params.jump_max } : null, clocks.length > 1)).join('')}</div><form data-puzzle-form class="motion-form" id="bell-form">${controls}${submitButton('Ring')}</form>${feedback ? `<div class="motion-result" role="status">${feedback}</div>` : ''}</div>`;
+    return `<div class="motion-board clock-board${gear?' clock-choose':''}"><div class="clock-pictures${clocks.length > 1 ? ' clock-several' : ''}">${clocks.map((item, i) => clockPicture(item, count, clocks.length>1?`Clock ${i + 1} · `:'', submittedCount, gear ? { min: params.jump_min, max: params.jump_max } : null, clocks.length > 1)).join('')}</div><form data-puzzle-form class="motion-form" id="bell-form" novalidate>${controls}${submitButton('Ring')}</form>${feedback ? `<div class="motion-result" role="status">${feedback}</div>` : ''}</div>`;
   },
   help(p, attempt) {
     const params = p.parameters, prediction = attempt.board.prediction, gear = params.mode === 'choose_jump';

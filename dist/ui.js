@@ -1,6 +1,6 @@
 import { visiblePuzzleObjective } from './puzzle-copy.js';
 import { encounterScene, encounterDone } from './road-ui.js';
-import { stageKind, stageBoard, stageControls } from './road-stage.js';
+import { stageKind, stageBoard, stageControls, stageHelp, dress } from './road-stage.js';
 import { PARTY_NAMES } from './road-cast.js';
 import { companionDrawing } from './caravan-art.js';
 import { media, slots } from './art.js';
@@ -21,21 +21,22 @@ export function mapView(pr,puzzles){const list=listFor(puzzles,pr.band),next=nex
 function puzzleView(p,a,ctx){
   const expansion=isExpansion(p),solved=isSolved(p,a.board),hint=nextHint(p,a),shown=solved&&!ctx.ringing;
   // A mechanic's `objective(p, board)` may change the line as the board changes.
-  const own=expansion?mechanicFor(p).objective?.(p,a.board):undefined,objective=typeof own==='string'?own:visiblePuzzleObjective(p);
+  // A staged road puzzle says its goal in the picture's words (boardwalks, not roads).
+  const own=expansion?mechanicFor(p).objective?.(p,a.board):undefined,shownObjective=typeof own==='string'?own:visiblePuzzleObjective(p),objective=ctx.stage&&shownObjective?stageHelp(ctx.stage,p).objective:shownObjective,words=text=>ctx.stage?dress(ctx.stage,text):text;
   ctx={...ctx,highlighted:a.hintLevel>=2&&hint.type==='move'?hint.pair:null};
   // A dead end marked `quiet` is told only behind Hint.
   const deadend=!solved&&hint.type==='deadend'&&!hint.quiet;
-  const feedback=ctx.message||(deadend&&!a.hintLevel?(expansion?hint.text:'This leaves an unfillable gap. Undo or lift a tile.'):'');
+  const feedback=words(ctx.message)||(deadend&&!a.hintLevel?(expansion?words(hint.text):'This leaves an unfillable gap. Undo or lift a tile.'):'');
   return `${shown&&ctx.encounter?encounterDone(ctx.encounter,ctx.profile,p,a,ctx.result):''}<div class="play-heading">
     ${a.completed&&!solved?'<span class="solved-indicator">✓ Solved</span>':''}<div class="play-help">${btn('How to play','demo','quiet')}${btn('<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M11 4 6 8H3v8h3l5 4V4Z"/><path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></svg>','speak','quiet small','aria-label="Read instructions aloud"')}</div>
   </div>
   <div class="play-layout ${expansion?'expansion-layout':''} ${solved?'is-complete':''}">
     <section class="board-panel ${expansion?'expansion-board':''} ${ctx.stage?'stage-controls':''} ${esc(p.mechanic)}" aria-label="${ctx.stage?'Puzzle controls':'Puzzle play area'}">
-      ${objective?`<h1 class="puzzle-goal">${esc(objective)}</h1>`:`<h1 class="sr-only">${esc(p.familyTitle||(p.mechanic==='swap'?'Cup swaps':'Puzzle'))}</h1>`}
+      ${objective?`<h1 class="puzzle-goal">${esc(objective)}</h1>`:`<h1 class="sr-only">${esc(ctx.encounter?.title||p.familyTitle||(p.mechanic==='swap'?'Cup swaps':'Puzzle'))}</h1>`}
       ${ctx.stage?stageControls(ctx.stage,p,a,ctx):expansion?mechanicFor(p).render(p,a,ctx):p.mechanic==='tile'?tileBoard(p,a,ctx):ctx.encounter?.party?partyBoard(p,a,ctx):swapBoard(p,a,ctx)}
       ${p.mechanic==='tile'?`<div class="board-bottom"><label class="checker-toggle"><input type="checkbox" id="checker" ${ctx.checker?'checked':''}> Checker colors</label></div>`:''}
     </section>
-    ${solved&&ctx.encounter?'':`<aside class="play-sidebar">${solved?completionCard(p,a,ctx):`<div class="tool-grid">${btn('↶ Undo','undo','secondary',a.history.length&&!(expansion&&mechanicFor(p).noUndo?.(p))?'':'disabled')}${btn('Restart','restart','secondary')}${p.missingAbility?needsTool(p):expansion&&mechanicFor(p).noHint?.(p)?'':btn('Hint','hint','hint-button')}</div>${a.hintLevel&&!p.missingAbility?(expansion?expansionHintCard(a,hint,p,ctx):hintCard(p,a,hint,ctx)):''}`}</aside>`}
+    ${solved&&ctx.encounter?'':`<aside class="play-sidebar">${solved?completionCard(p,a,ctx):`<div class="tool-grid">${btn('↶ Undo','undo','secondary',a.history.length&&!(expansion&&mechanicFor(p).noUndo?.(p))?'':'disabled')}${btn('Restart','restart','secondary')}${p.missingAbility?needsTool(p):expansion&&mechanicFor(p).noHint?.(p)?'':btn('Hint','hint','hint-button')}</div>${a.hintLevel&&!p.missingAbility?(expansion?expansionHintCard(a,hint,p,{...ctx,words}):hintCard(p,a,hint,ctx)):''}`}</aside>`}
   </div><div class="feedback ${deadend?'deadend':''}" role="status" aria-live="polite">${esc(feedback)}</div>`;
 }
 // A road side puzzle before its tool (dist/road.js, resolvePuzzle) has no Hint:
@@ -44,10 +45,12 @@ const TOOL_NAMES={pump:'pump',chalk:'chalk'};
 function needsTool(p){return `<span class="needs-tool" role="note">${media(slots.tool(p.missingAbility),toolArt(p.missingAbility),{key:`needs-${p.missingAbility}`,cls:'needs-tool-icon'})}Needs the ${esc(TOOL_NAMES[p.missingAbility]||p.missingAbility)}</span>`;}
 function expansionHintCard(a,hint,p,ctx={}){
   // A 'note' hint (Proofs evidence puzzles) shows the authored hints by level and never an answer.
+  // A staged road board's hints are told in its picture's words (ctx.words).
+  const words=ctx.words||(text=>text);
   // On the road the first Hint is a free nudge: the idea (the first authored
   // hint), never a move, unless the board is already at a dead end.
   const nudge=a.hintLevel===1&&(a.moves===0||ctx.encounter)&&hint.type!=='deadend';
-  return `<section class="hint-card" aria-label="Hint"><p>${esc(hint.type==='note'?p.hints[Math.min(a.hintLevel,p.hints.length)-1]:nudge?p.hints[0]:hint.text||'Check your current choices.')}</p>${a.hintLevel>=2&&hint.type==='deadend'?btn('Undo','rescue','secondary'):a.hintLevel>=3&&hint.type==='move'?btn('Apply hint','apply-hint','secondary'):''}</section>`;
+  return `<section class="hint-card" aria-label="Hint"><p>${esc(words(hint.type==='note'?p.hints[Math.min(a.hintLevel,p.hints.length)-1]:nudge?p.hints[0]:hint.text||'Check your current choices.'))}</p>${a.hintLevel>=2&&hint.type==='deadend'?btn('Undo','rescue','secondary'):a.hintLevel>=3&&hint.type==='move'?btn('Apply hint','apply-hint','secondary'):''}</section>`;
 }
 function tileBoard(p,a,ctx){
   const isL=p.tileShape==='l-tromino',selection=ctx.tileSelection||[];
@@ -74,7 +77,7 @@ function swapBoard(p,a,ctx){return `<div class="cup-board" style="--cups:${p.sta
 // On the road the six travelers are the cups: each finds the seat with their name.
 const PARTY_ORDER=['pip','moss','rook','bea','fern','tumble'];
 function partyBoard(p,a,ctx){const who=i=>PARTY_ORDER[i],name=i=>PARTY_NAMES[who(i)];return `<div class="cup-board party-board" style="--cups:${p.start.length}" role="group" aria-label="Travelers and their seats">${a.board.map((token,index)=>`<div class="cup-position"><span class="position-number">${index+1}</span><button class="cup-button party-seat ${ctx.selected===index?'selected':''} ${ctx.highlighted?.includes(index)?'hinted':''} ${token===p.target[index]?'seated':''}" data-action="cup" data-cell="${index}" data-focus="cup-${index}" aria-label="Seat ${index+1}: ${name(token)}; this is ${name(p.target[index])}’s seat" aria-pressed="${ctx.selected===index}">${media(slots.party(who(token)),`<svg viewBox="0 0 120 120" aria-hidden="true">${companionDrawing(who(token))}</svg>`,{key:`seat-${index}`})}</button><div class="cup-home seat-home ${token===p.target[index]?'home-matched':''}">${media(slots.party(who(p.target[index])),`<svg viewBox="0 0 120 120" aria-hidden="true">${companionDrawing(who(p.target[index]))}</svg>`,{key:`home-${index}`})}<span>${name(p.target[index])}${token===p.target[index]?' ✓':''}</span></div></div>`).join('')}</div><div class="allowed-pairs"><div>${p.edges.map(([a,b])=>btn(`${a+1} ↔ ${b+1}`,'swap-pair','pair-button',`data-pair="${a},${b}" aria-label="Swap seats ${a+1} and ${b+1}"`)).join('')}</div></div>`;}
-function hintCard(p,a,hint,ctx={}){const party=ctx.encounter?.party;return `<section class="hint-card" aria-label="Hint">${a.hintLevel===1?`<p>${esc(party?'Look at the names under each seat. Who needs to move, and which allowed swap helps?':a.moves===0?p.hints[0]:p.mechanic==='tile'?'Look for an empty patch with only one possible tile placement. If there is none, try a patch near the edge.':'Look at the home labels. Where does one cup need to go, and which allowed swap helps it get there?')}</p>`:''}${hint.type==='deadend'?`<p>This cannot be completed. Undo to try another move.</p>${btn('Undo','rescue','secondary')}`:hint.type==='move'&&a.hintLevel>=2?`<p>${p.mechanic==='tile'?`The glowing patches at ${hint.pair.map(cell=>`row ${Math.floor(cell/p.cols)+1}, column ${cell%p.cols+1}`).join('; ')} can share a tile.`:`Try swapping ${party?'seats':'positions'} ${hint.pair[0]+1} and ${hint.pair[1]+1}.`}</p>${a.hintLevel>=3?btn('Apply hint','apply-hint','secondary'):''}`:''}</section>`;}
+function hintCard(p,a,hint,ctx={}){const party=ctx.encounter?.party;return `<section class="hint-card" aria-label="Hint">${a.hintLevel===1?`<p>${esc(party?'Look at the face under each seat. Who needs to move, and which allowed swap helps?':a.moves===0?p.hints[0]:p.mechanic==='tile'?'Look for an empty patch with only one possible tile placement. If there is none, try a patch near the edge.':'Look at the home labels. Where does one cup need to go, and which allowed swap helps it get there?')}</p>`:''}${hint.type==='deadend'?`<p>This cannot be completed. Undo to try another move.</p>${btn('Undo','rescue','secondary')}`:hint.type==='move'&&a.hintLevel>=2?`<p>${p.mechanic==='tile'?`The glowing patches at ${hint.pair.map(cell=>`row ${Math.floor(cell/p.cols)+1}, column ${cell%p.cols+1}`).join('; ')} can share a tile.`:`Try swapping ${party?'seats':'positions'} ${hint.pair[0]+1} and ${hint.pair[1]+1}.`}</p>${a.hintLevel>=3?btn('Apply hint','apply-hint','secondary'):''}`:''}</section>`;}
 function completionCard(p,a,ctx){
   const list=p.band==='proofs'?ctx.pack.puzzles.filter(q=>q.band==='proofs'&&q.libraryFamily===p.libraryFamily).sort((a,b)=>a.number-b.number):isExpansion(p)?ctx.pack.puzzles.filter(q=>q.mechanic===p.mechanic).sort((a,b)=>a.number-b.number):listFor(ctx.pack.puzzles,p.band);
   // A puzzle may name its Next itself (p.next), to place it in another list's flow.
@@ -99,5 +102,5 @@ export function playView(p,a,ctx){
  const e=ctx.encounter?.stop&&ctx.profile?ctx.encounter:null,solved=isSolved(p,a.board),presentation=ctx.clockPresentation;
  ctx={...ctx,ringing:Boolean(presentation&&presentation.count<presentation.total),stage:e?stageKind(e,p):null};
  const board=ctx.stage?sceneStage=>stageBoard(ctx.stage,p,a,{...ctx,sceneStage}):null;
- return `<div data-puzzle-id="${esc(p.id)}" class="caravan-puzzle ${e?`lr-play mood-${esc(e.stop)}`:''} ${ctx.stage?`is-staged staged-${ctx.stage}`:''} ${e&&solved&&!ctx.ringing?'lr-solved':''}" aria-label="${esc(p.familyTitle||(p.mechanic==='tile'?'Tile garden':'Cup swaps'))}">${e?encounterScene(e,ctx.profile,p,a,{reaction:ctx.reaction,changed:ctx.changed,held:ctx.ringing,board}):''}<div class="puzzle-workspace">${puzzleView(p,a,ctx)}</div></div>`;
+ return `<div data-puzzle-id="${esc(p.id)}" class="caravan-puzzle ${e?`lr-play mood-${esc(e.stop)}`:''} ${ctx.stage?`is-staged staged-${ctx.stage}`:''} ${e&&solved&&!ctx.ringing?'lr-solved':''}" aria-label="${esc(e?.title||p.familyTitle||(p.mechanic==='tile'?'Tile garden':'Cup swaps'))}">${e?encounterScene(e,ctx.profile,p,a,{reaction:ctx.reaction,changed:ctx.changed,held:ctx.ringing,board}):''}<div class="puzzle-workspace">${puzzleView(p,a,ctx)}</div></div>`;
 }

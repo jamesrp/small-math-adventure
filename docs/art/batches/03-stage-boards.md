@@ -29,7 +29,7 @@ Snooze's head sits to the right of the frame (x 1380–1600, y 480–700). Her f
 
 **Covered corners.** Plume's card covers the top-left (about 330 × 110) and the keeper's round portrait overlaps the bottom-left (about 250 × 110).
 
-**Phones** show the middle of the picture, x 200–1400; the bell puzzle shows the bow, x 700–1600. Snooze's face only has to read in the bow view.
+**Phones** show only the part of the picture around each puzzle's pieces (`phoneView` in `dist/road-stage.js`, since October 24): about x 180–1420, y 266–816 for the seats and the bow platform; the bow from the bell to its wheels, x 700–1600, y 40–790; about x 150–1125, y 0–815 for the lamps; and the marsh water down to the bank, about x 250–1350, y 175–900. Snooze's face only has to read in the bow view.
 
 ## The bell and Hops
 

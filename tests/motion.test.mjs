@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { motionMechanics, simulateBilliard, firstClockHit } from '../dist/motion.js';
+import { motionMechanics, simulateBilliard, firstClockHit, clockFeedback } from '../dist/motion.js';
 import { clockJumpArc, clockJumpFromPlace, clockPlaceAtPoint, clockStepJump } from '../dist/clock-geometry.js';
 import { clockBellDelay, clockTrailStep, createClockTimeline } from '../dist/clock-playback.js';
 import { playInstructions } from '../dist/expansion.js';
@@ -183,6 +183,21 @@ test('long clock periods use a compact count input while introductory charts rem
   assert.match(input, /type="number" name="activations" min="1" max="60" step="1" inputmode="numeric" value="19"/);
   assert.doesNotMatch(input, /class="bell-chart"|type="radio"/);
   assert.equal(handler.solved(large, handler.move(large, initial(large), {activations: '19'})), true);
+  // The form checks nothing itself: a count outside the chart is refused in words (dist/main.js), not a browser tooltip.
+  assert.match(input, /<form data-puzzle-form class="motion-form" id="bell-form" novalidate>/);
+  assert.match(input, /data-invalid="Choose 1 to 60 bells\."/);
+  assert.match(taps, /data-invalid="Tap a number first\."/);
+});
+
+test('a wrong ring names one marker for one wheel, every marker for several', () => {
+  const one = { parameters: { mode: 'choose_first_activation_count', clocks: [{ positions: 4, jump: 1, start: 0, target: 3 }] } };
+  const two = { parameters: { mode: 'choose_first_activation_count', clocks: [{ positions: 6, jump: 1, start: 0, target: 2 }, { positions: 8, jump: 1, start: 0, target: 4 }] } };
+  const at = (p, prediction) => clockFeedback(p, { board: { prediction } });
+  assert.equal(at(one, 1), 'After 1 bell: 1. The marker must land on its star.');
+  assert.equal(at(one, 7), 'After 7 bells: 3. The marker reached its star on an earlier bell.');
+  assert.equal(at(one, 3), '', 'a solve says nothing');
+  assert.equal(at(two, 2), 'After 2 bells: 2 and 2. The markers must land on their stars together.');
+  assert.equal(at(two, 44), 'After 44 bells: 2 and 4. The markers reached their stars on an earlier bell.');
 });
 
 test('several clocks draw the compact face so two fit side by side on a phone; one clock keeps the plain face', () => {

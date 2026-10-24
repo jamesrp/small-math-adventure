@@ -312,7 +312,8 @@ test('the ferry and marsh puzzles are played in their picture, with the rest of 
         assert.equal(count(/class="stage-piece stage-traveler is-still"/g) + count(/is-standing/g), 6);
         assert.equal(count(/class="stage-wheel"/g), p.parameters.clocks.length);
         assert.match(html, /<button type="submit" form="bell-form" class="stage-piece stage-bell/);
-        assert.match(html, /<form data-puzzle-form [^>]*id="bell-form">/);
+        assert.match(html, /<form data-puzzle-form [^>]*id="bell-form" novalidate>/);
+        assert.match(html, /class="lr-stage stage-ferry kind-bell has-crop" style="--px0:700;--pvw:900;--py0:40;--pvh:\d+;--pshort:\d+px"/);
         if (clockPeriod(p.parameters) > 20) {
           assert.match(html, /type="number" name="activations"/);
           assert.equal(count(/name="activations"/g), 1);
@@ -323,7 +324,12 @@ test('the ferry and marsh puzzles are played in their picture, with the rest of 
       }
       if (id === 'ferry-lights') {
         assert.equal(count(/class="wire-hit stage-rope-hit/g), p.parameters.edges.length);
-        assert.equal(count(/class="stage-lamp /g), 2 * p.parameters.vertices.length, 'picture and goal card');
+        // Each rope is drawn once (a set the lamp tap lights up) and pressed through one hit above everything drawn.
+        assert.equal(count(/class="stage-rope-set" data-ends="/g), p.parameters.edges.length);
+        assert.match(html, /<svg class="stage-layer stage-hits"[^>]*>(<path class="wire-hit stage-rope-hit[^>]*\/>)+(<circle class="stage-lamp-hit"[^>]*\/>)+<\/svg>/);
+        assert.equal(count(/class="stage-lamp-hit" [^>]*data-stage-lamp="/g), p.parameters.vertices.length);
+        assert.equal(count(/class="stage-lamp /g), p.parameters.vertices.length, 'the picture');
+        assert.equal(count(/class="stage-goal-lamp /g), p.parameters.vertices.length, 'the goal card');
         assert.match(html, /class="stage-goal"/);
       }
       if (id === 'marsh-boardwalks') {
@@ -335,6 +341,50 @@ test('the ferry and marsh puzzles are played in their picture, with the rest of 
     }
     const next = beginEncounter(pr, puzzles);
     assert.equal(stageKind(next.encounter, next.puzzle), null, 'the lily pads keep their own board');
+  }
+});
+
+test('a staged board speaks the stage’s words, and a phone shows the part of the picture that holds its pieces', async () => {
+  const { stageKind, stageHelp, dress, phoneView } = await import('../dist/road-stage.js');
+  const library = /\b(cups?|letters?|clocks?|wires?|lanterns?|roads?|dots?)\b/i;
+  assert.equal(dress('lights', 'Press wire A to C; flip both lanterns.'), 'Press rope A to C; flip both lamps.');
+  assert.equal(dress('boardwalks', 'Roads: Dots are junctions; crossings without dots are not junctions.'), 'Boardwalks: Platforms are junctions; crossings without platforms are not junctions.');
+  assert.equal(dress('bell', 'Each clock'), 'Each wheel');
+  assert.equal(dress('seats', 'Put one cup in its spot.'), 'Put one traveler in its seat.');
+  assert.equal(dress(null, 'cups'), 'cups');
+  for (const band of BAND_KEYS) {
+    const pr = profile(band); startJourney(pr);
+    for (let n = 0; n < 4; n++) {
+      const { puzzle: p, encounter: e } = beginEncounter(pr, puzzles), a = freshAttempt(p), kind = stageKind(e, p), help = stageHelp(kind, p);
+      const where = `${band} ${e.id}`;
+      assert.doesNotMatch(`${help.objective} ${help.instructions}`, library, `${where}: How to play in the stage's words`);
+      assert.match(help.note, /^On the road /, `${where}: the grown-up notes say what the stage dresses`);
+      const html = playView(p, a, { pack: fullPack, profile: pr, encounter: e, selected: null, message: '' });
+      // The page is named for the encounter, never "Cup swaps"; a shown goal is the stage's.
+      assert.match(html, new RegExp(`data-puzzle-id="${p.id}" class="[^"]*" aria-label="${e.title}"`), where);
+      const goal = html.match(/<h1 class="puzzle-goal">([^<]*)<\/h1>/)?.[1];
+      if (goal) assert.equal(goal, help.objective, `${where}: goal`); else assert.match(html, new RegExp(`<h1 class="sr-only">${e.title}</h1>`));
+      // A hint is dressed too.
+      const hinted = playView(p, { ...a, hintLevel: 2 }, { pack: fullPack, profile: pr, encounter: e, selected: null, message: '' });
+      assert.doesNotMatch(hinted.match(/<section class="hint-card"[^]*?<\/section>/)?.[0] ?? '', library, `${where}: hint`);
+      // On a phone: a crop inside the picture that holds every piece a child taps or reads.
+      const view = phoneView(kind, p), crop = view ?? { x0: 200, w: 1200, y0: 0, h: 900 };
+      assert.ok(crop.x0 >= 0 && crop.y0 >= 0 && crop.x0 + crop.w <= 1600 && crop.y0 + crop.h <= 900, `${where}: crop inside the picture`);
+      const inside = (x, y, half, label) => assert.ok(x - half >= crop.x0 - 1 && x + half <= crop.x0 + crop.w + 1 && y - half >= crop.y0 - 1 && y + half <= crop.y0 + crop.h + 1, `${where}: ${label} at ${x},${y} inside ${JSON.stringify(crop)}`);
+      const stage = html.match(/<div class="lr-stage [^]*$/)[0];
+      for (const [, cls, x, y, s] of stage.matchAll(/class="stage-piece (stage-(?:traveler|tag|junction|bell)[^"]*)" style="--x:(-?\d+);--y:(-?\d+);--s:(\d+)"/g)) {
+        if (/is-still/.test(cls) && !(kind === 'seats' && /is-standing/.test(cls))) continue;  // scenery, except who stands on the bow in the seats puzzle
+        const size = Number(s), up = /traveler/.test(cls) ? size / 2 : 0;
+        inside(Number(x), Number(y) - up, size / 2, cls.split(' ')[0]);
+      }
+      for (const [, x, y, r] of stage.matchAll(/class="stage-lamp-hit" cx="([\d.]+)" cy="([\d.]+)" r="(\d+)"/g)) inside(Number(x), Number(y), Number(r), 'lamp');
+      for (const [, x, y, w] of stage.matchAll(/<svg class="stage-wheel" x="([\d.]+)" y="([\d.]+)" width="(\d+)"/g)) inside(Number(x) + w / 2, Number(y) + w / 2, w / 2, 'wheel');
+      if (kind === 'boardwalks') { const [, x, y, s] = stage.match(/class="stage-piece stage-hops" style="--x:(\d+);--y:(\d+);--s:(\d+)"/); inside(Number(x), Number(y) - s / 2, s / 2, 'Hops'); }
+      if (view) assert.match(stage, new RegExp(`has-crop" style="--px0:${view.x0};--pvw:${view.w};--py0:${view.y0};--pvh:${view.h}`));
+      // A crop zooms in on the middle 1200 for seats and lamps.
+      if (kind === 'seats' || kind === 'lights') assert.ok(view.w < 1200, `${where}: ${view.w} wide`);
+      pr.attempts[p.id] = solve(p, a); recordSolve(pr, p.id, e.id, puzzles);
+    }
   }
 });
 

@@ -19,3 +19,6 @@ fieldset{padding:0;border:0;margin:0;min-width:0}legend{padding:0}summary{cursor
 
 /* Preserve the board coordinates even when an entire row contains holes. */
 .tile-board{grid-template-rows:repeat(var(--rows),1fr)}
+
+/* A long dialog scrolls its body; the title and the buttons stay in view (How to play with the grown-up notes open). */
+.modal[open]{display:flex;flex-direction:column}.modal>h2,.modal>.dialog-actions{flex:none}.modal>.dialog-body{flex:0 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
