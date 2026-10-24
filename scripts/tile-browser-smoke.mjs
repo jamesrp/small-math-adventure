@@ -176,7 +176,37 @@ try{
   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
   assert.equal((await attempt(puzzle.id)).board.length,1,`CDP touch stroke places ${puzzle.id}`);
  }
- cdpTouch='Chromium CDP L and domino strokes passed; real iPad check outstanding';
+ // Taps on a touchscreen, one square at a time: each tap is one action. The
+ // browser follows each tap with a click aimed at the square as redrawn,
+ // which once let go of the square just chosen and lifted the tile just
+ // placed (two moves, no tile). The click must be spent on the tap.
+ const touchTap=async n=>{const p=await centre(n);await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{...p,id:1}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForTimeout(150);};
+ for(const puzzle of [shippedL,pack.puzzles.find(p=>p.id==='tile-45-08'),pack.puzzles.find(p=>p.id==='tile-45-01')]){
+  await reset(puzzle);const piece=puzzle.solution[0],other=puzzle.solution[1];
+  await touchTap(piece[0]);assert.equal(await cell(piece[0]).getAttribute('aria-pressed'),'true',`${puzzle.id}: a touch tap chooses a square`);
+  await touchTap(piece[0]);assert.equal(await cell(piece[0]).getAttribute('aria-pressed'),'false',`${puzzle.id}: a second touch tap lets it go`);
+  for(const n of piece)await touchTap(n);
+  let a=await attempt(puzzle.id);
+  assert.deepEqual(a.board.map(sorted),[sorted(piece)],`${puzzle.id}: tapping the squares places one tile`);assert.equal(a.moves,1,`${puzzle.id}: placing is one move`);
+  for(const n of other)await touchTap(n);
+  a=await attempt(puzzle.id);assert.equal(a.board.length,2,`${puzzle.id}: a second tile by taps`);assert.equal(a.moves,2);
+  await touchTap(piece.at(-1));a=await attempt(puzzle.id);
+  assert.deepEqual(a.board.map(sorted),[sorted(other)],`${puzzle.id}: a touch tap on a tile lifts that tile`);assert.equal(a.moves,3,`${puzzle.id}: lifting is one move`);
+  assert.equal(await page.locator('.garden-cell.selected').count(),0,`${puzzle.id}: nothing left chosen`);
+ }
+ // A stroke gets no click afterwards, so nothing waits to be dropped: an
+ // Enter or a tap straight after it still counts.
+ {
+  const garden=pack.puzzles.find(p=>p.id==='tile-45-01'),[first,second]=garden.solution;await reset(garden);
+  const a0=await centre(first[0]),a1=await centre(first[1]);
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{...a0,id:1}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{...a1,id:1}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  assert.equal((await attempt(garden.id)).board.length,1,'a touch stroke places a domino');
+  await cell(second[0]).focus();await page.keyboard.press('Enter');
+  assert.equal(await cell(second[0]).getAttribute('aria-pressed'),'true','Enter straight after a stroke chooses the square');
+  await touchTap(first[0]);
+  assert.equal((await attempt(garden.id)).board.length,0,'a tap straight after a stroke lifts the tile');
+ }
+ cdpTouch='Chromium CDP L and domino strokes and taps passed; real iPad check outstanding';
  // The road's Old Workshop floor is an L-tromino garden: reach it with a saved
  // trail, then cover it by taps and check the trail records the encounter.
  const {startJourney,beginEncounter,recordSolve,campaignId}=await import('../dist/road.js');
@@ -194,6 +224,27 @@ try{
  await story.locator('#completion-heading').waitFor();
  const journey=await story.evaluate(()=>JSON.parse(localStorage.getItem('small-math-adventure:saves:v1')).profiles[0].journey);
  assert.ok(journey.trails.k1.completed.includes('workshop-floor'));await storyContext.close();
+ // The 4–5 Floor patch on a touch tablet, covered by taps alone: one move a
+ // tile, and the tap that finishes it leaves the solved strip on screen.
+ {
+  const tablet={id:'road45',name:'Road taps',avatar:0,band:'45',sound:false,attempts:{}};startJourney(tablet);
+  for(let i=0;i<12;i++){const o=beginEncounter(tablet,roadPuzzles);let a=freshAttempt(o.puzzle);for(let k=0;k<300&&!isSolved(o.puzzle,a.board);k++)a=move(o.puzzle,a,mechanicFor(o.puzzle)?.solve?mechanicFor(o.puzzle).solve(o.puzzle,a.board):(h=>h.action||h.pair)(nextHint(o.puzzle,a)));tablet.attempts[o.puzzle.id]=a;recordSolve(tablet,o.puzzle.id,o.encounter.id,roadPuzzles);}
+  const tabletContext=await browser.newContext({viewport:{width:820,height:1180},hasTouch:true,isMobile:true,serviceWorkers:'block'});
+  await tabletContext.addInitScript(value=>{if(!localStorage.getItem('small-math-adventure:saves:v1'))localStorage.setItem('small-math-adventure:saves:v1',value);},JSON.stringify({schemaVersion:1,contentVersion:1,activeProfileId:'road45',profiles:[tablet]}));
+  const road=await tabletContext.newPage();road.on('pageerror',e=>errors.push(e.message));
+  const id=campaignId('workshop-floor','45'),floor=pack.puzzles.find(p=>p.id==='tile-45-08');
+  await road.goto(`${base}/#play/${id}/workshop-floor`);await road.locator('.garden-cell').first().waitFor();
+  const touch=await tabletContext.newCDPSession(road),saved=()=>road.evaluate(id=>JSON.parse(localStorage.getItem('small-math-adventure:saves:v1')).profiles[0].attempts[id],id);
+  const tap=async n=>{const b=await road.locator(`.garden-cell[data-cell="${n}"]`).boundingBox();await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:b.x+b.width/2,y:b.y+b.height/2,id:1}]});await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await road.waitForTimeout(150);};
+  for(const [i,piece] of floor.solution.entries()){
+   for(const n of piece){await road.locator(`.garden-cell[data-cell="${n}"]`).scrollIntoViewIfNeeded();await tap(n);}
+   const a=await saved();assert.equal(a.board.length,i+1,`road floor: tile ${i+1} placed by taps`);assert.equal(a.moves,i+1,`road floor: one move a tile`);
+  }
+  await road.locator('#completion-heading').waitFor();
+  assert.match(road.url(),new RegExp(`#play/${id}/workshop-floor$`),'the finishing tap stays on the floor patch');
+  assert.ok((await road.evaluate(()=>JSON.parse(localStorage.getItem('small-math-adventure:saves:v1')).profiles[0].journey)).trails['45'].completed.includes('workshop-floor'),'road floor: recorded');
+  await tabletContext.close();
+ }
  assert.deepEqual(errors,[]);const report={passed:true,shapes:['L-tromino','domino'],errors,touch:cdpTouch};
  await writeFile(new URL('../test-results/tile-browser-report.json',import.meta.url),JSON.stringify(report,null,2));console.log(JSON.stringify(report));
 }finally{await browser.close();}

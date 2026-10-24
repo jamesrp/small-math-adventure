@@ -1,4 +1,5 @@
 import { createViewState } from './view-state.js';
+import { pressHandled } from './click-echo.js';
 import { extendTileStroke, startTileStroke, tapTileSelection, tileInstructions, tileReleaseAction, tileStrokeTarget } from './tile-controls.js';
 import {isExpansion,mechanicFor,playInstructions} from './expansion.js';
 import {FAMILIES,mergePacks} from './families.js';
@@ -172,6 +173,8 @@ function wireTileBoard(){
     const action=cancel?null:tileReleaseAction(gesture.stroke,gesture.multi,gesture.departed,hit,insideStart);
     tileGesture=null;
     if(board.hasPointerCapture(e.pointerId))board.releasePointerCapture(e.pointerId);
+    // The press is the board's: its click must not tap the square drawn there now.
+    if(!cancel)pressHandled();
     if(action?.type==='place')applyPair(p,action.cells);
     else if(action?.type==='tap')tapTile(p,action.cell);
     else paint();
