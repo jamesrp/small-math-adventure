@@ -130,3 +130,4 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Touch taps that undo themselves (road review M1) and a touch-tap sweep of every board | Claude, Autonomous worksheet improvement thread | `claude/touch-taps-ntxcu3` | claimed |
 | Road review fixes: staged boards (ferry lamps and seats, bell, boardwalk, scene height) on phones and tablets | Claude, Autonomous worksheet improvement thread | `claude/road-stages-ntxcu3` | claimed |
 | Road review fixes: Puzzles library order, Grown-ups road progress and layout, read-aloud for K–1 | Claude, Autonomous worksheet improvement thread | `claude/road-library-ntxcu3` | claimed |
+| Road review fixes: the race, stars, hints, the Ridge duel and the finale | Claude, Autonomous worksheet improvement thread | `claude/road-race-ntxcu3` | claimed |
