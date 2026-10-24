@@ -65,7 +65,7 @@
 .clock-picture.clock-compact .clock-center-label { font-size:21px; }
 .clock-picture.clock-compact .clock-jump-arrow { stroke-width:4; }
 .clock-picture.clock-compact .clock-trail { stroke-width:3; }
-@media (max-width:440px) { .lantern-comparison { grid-template-columns:1fr; gap:.8rem; } .lantern-picture svg { max-width:300px; margin:auto; } .lantern-picture.goal-picture svg { max-width:220px; } .goal-picture .lantern text { font-size:21px; } .motion-form { align-items:stretch; } .motion-form button { flex:1 1 100%; }
+@media (max-width:440px) { .lantern-comparison { grid-template-columns:1fr; gap:.8rem; } .lantern-picture svg { margin:auto; } .lantern-picture.goal-picture svg { max-width:220px; } .goal-picture .lantern text { font-size:21px; } .motion-form { align-items:stretch; } .motion-form button { flex:1 1 100%; }
   .clock-pictures.clock-several { gap:.7rem; } .clock-several .clock-picture { flex:0 1 calc(50% - .35rem); min-width:0; }
   .clock-picture.clock-compact .clock-position text, .clock-picture.clock-compact .clock-position text.clock-star { font-size:27px; } .clock-picture.clock-compact .clock-center { font-size:42px; } .clock-picture.clock-compact .clock-center-label { font-size:26px; } }
 /* Ten bell numbers in a row are 27 px wide on a phone: rows of five instead. */

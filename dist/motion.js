@@ -69,7 +69,8 @@ function togglePositions(parameters) {
   const { topology, vertices, rows } = parameters;
   // Authored worksheet coordinates use the same 360 × 280 SVG as the built-in layouts.
   if (parameters.positions) return parameters.positions;
-  if (topology === 'complete_binary_tree_depth_2') return [[180, 35], [95, 120], [265, 120], [45, 220], [135, 220], [225, 220], [315, 220]];
+  // The tree fills the picture, so sibling wires sit far enough apart for 40 px taps on a phone.
+  if (topology === 'complete_binary_tree_depth_2') return [[180, 36], [84, 140], [276, 140], [36, 244], [132, 244], [228, 244], [324, 244]];
   if (topology === 'rectangular_grid') return vertices.map(vertex => {
     const row = rows.findIndex(line => line.includes(vertex));
     return [45 + rows[row].indexOf(vertex) * 270 / (rows[row].length - 1), 45 + row * 190 / (rows.length - 1)];

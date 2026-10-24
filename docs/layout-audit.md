@@ -66,17 +66,19 @@ Each puzzle opens at `#play/<id>` for a fresh explorer named "Explorer" on the K
 
 `TEST_FAMILY=road` measures the Lantern Road instead of the library: each encounter opens with the save a child has on arriving (the trail solved up to the encounter before), on each of the three trails, at the three sizes above and at **1180 × 820** (an iPad in landscape). `TEST_ROAD` chooses the encounters: `staged` (the default: the ferry's seats, bell and lamps and the marsh boardwalks, played inside their picture), `all` (all 21), or a comma list of encounter ids. On the road a board also counts as a problem when less than 120 px of it (or less than all of a shorter one) shows on the first screen ("Board starts below the screen"), at every size.
 
-October 24, 2026, all 21 encounters, before and after the staged-board fixes (`claude/road-stages-ntxcu3`, measured on top of the race fixes):
+October 24, 2026, all 21 encounters, before and after the staged-board fixes (`claude/road-stages-ntxcu3`, measured on top of the race fixes), and again after the road polish (`claude/road-polish-ntxcu3`):
 
-| | Before | After |
-|---|---|---|
-| Problems (K–1 / 2–3 / 4–5) | 18 / 19 / 18 | 8 / 9 / 11 |
-| Staged boards: thinnest tap target, phones / tablets | 19 / 31–35 px (ferry ropes) | 40 px or more, except the 4–5 lamp tree's lamp taps (23 / 29 px), which only light that lamp's ropes; every rope keeps 40 px |
-| Staged boards: smallest text, phones / tablets | 3.6 / 5.4–5.7 px (lamp letters; on phones also the bell word 5.2, wheel numerals 8.2, platform letters 8.5 and seat-tag numbers 9.4) | 12 px or more, except the keeper's name and Snooze's sleeping "z" (below) |
-| Other encounters at 1180 × 820: lowest board top | 636 px (scene above the board) | 176 px (scene and keeper beside the board) |
-| Staged boards on phones: lowest board top, 390 / 375 | 635 / 620 px | 575 / 544 px |
+| | Before | After | After the polish |
+|---|---|---|---|
+| Problems (K–1 / 2–3 / 4–5) | 18 / 19 / 18 | 8 / 9 / 11 | 4 / 3 / 6 |
+| Staged boards: thinnest tap target, phones / tablets | 19 / 31–35 px (ferry ropes) | 40 px or more, except the 4–5 lamp tree's lamp taps (23 / 29 px), which only light that lamp's ropes; every rope keeps 40 px | unchanged |
+| Staged boards: smallest text, phones / tablets | 3.6 / 5.4–5.7 px (lamp letters; on phones also the bell word 5.2, wheel numerals 8.2, platform letters 8.5 and seat-tag numbers 9.4) | 12 px or more, except the keeper's name and Snooze's sleeping "z" (below) | 12 px or more (the keeper's name 12.5 px), except Snooze's "z" |
+| Other encounters at 1180 × 820: lowest board top | 636 px (scene above the board) | 176 px (scene and keeper beside the board) | unchanged |
+| Staged boards on phones: lowest board top, 390 / 375 | 635 / 620 px | 575 / 544 px | unchanged |
 
-What the after run still reports on the road: the keeper's Listen button (34 px) and name (11.5 px) in every scene; Snooze's decorative "z" (aria-hidden, 10–11.6 px on phones); the 2–3 Pumpkin patch's wire B–E, 37 px across on phones (the library's lantern board, unchanged); the balance's answer rows wrapping on phones; the 4–5 bell's star box overlapping the "4" beside it by 35% on phones (font boxes only; the ink does not touch); and boards below a phone's first screen under the scene, as on every phone page. `scripts/road-stages-browser-smoke.mjs` is the pass/fail companion for the staged boards.
+The polish raised the keeper's name to 12.5 px and gave the Pumpkin patch's wires 40 px or more (B–E now 41 px on a 375 × 667 phone); the keeper's Listen button measures 44 px. The balance's answer is now a deliberate two-row layout on phones (the pebbles in one line, or two even lines from 7 pebbles on, then Weight beside Check), and `TEST_FAMILY=base-weigh` went from 4 problems to 1 (its board still starts below a phone's first screen).
+
+What the polish run still reports on the road: the 4–5 lamp tree's lamp taps (above); Snooze's decorative "z" (aria-hidden, 9.8–11.6 px on phones, and cut off by the scene's edge at the ferry seats); the 4–5 bell's star box overlapping the "4" beside it by 35% on phones (font boxes only; the ink does not touch); the Lighthouse gears' answer form wrapping to two rows on phones (+58 px above a board that runs off the screen); and boards below a phone's first screen under the scene, as on every phone page. `scripts/road-stages-browser-smoke.mjs` is the pass/fail companion for the staged boards.
 
 ## Results, October 24, 2026
 

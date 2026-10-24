@@ -4,8 +4,9 @@
 // keeper and Plume's card, 40 px taps (ropes measured along and across), 12 px
 // text, a tap on a lamp lighting its ropes without a move, the bell's refusals
 // in words, How to play in the stage's own words with Done in reach, the bell's
-// chart on a short phone, and the board starting on screen on a tablet in
-// landscape. Isolated browser profiles only. Environment: PLAYWRIGHT_MODULE,
+// chart on a short phone, the board starting on screen on a tablet in
+// landscape, keepers' names at 12 px, and the balance's answer rows on phones.
+// Isolated browser profiles only. Environment: PLAYWRIGHT_MODULE,
 // BROWSER_EXECUTABLE, TEST_URL, TEST_BANDS (e.g. "k1"), TEST_PHONE=1 (the two
 // phones only). Screenshots go in test-results/road-stages/.
 import assert from 'node:assert/strict';
@@ -77,7 +78,7 @@ function survey() {
     if (r.left < s.left - 1 || r.right > s.right + 1 || r.top < s.top - 1 || r.bottom > s.bottom + 1) covered.push(`${name(el)} cut off by the picture's edge`);
   }
   const targets = [...document.querySelectorAll('.lr-stage button.stage-piece, .board-panel .pair-button, .board-panel .bell-number, .board-panel button[type=submit], .board-panel .bell-count input')].filter(shown).map(el => ({ name: name(el), ...box(el) }));
-  const texts = [...document.querySelectorAll('.lr-stage .stage-lamp-label, .lr-stage .clock-position text, .lr-stage .clock-center, .lr-stage .stage-pad-label, .stage-tag b, .stage-goal-label, .lantern text')].filter(el => shown(el) && el.textContent.trim()).map(el => ({ name: name(el), px: Math.round(textPx(el) * 10) / 10 }));
+  const texts = [...document.querySelectorAll('.lr-stage .stage-lamp-label, .lr-stage .clock-position text, .lr-stage .clock-center, .lr-stage .stage-pad-label, .stage-tag b, .stage-goal-label, .lantern text, .lr-speaker')].filter(el => shown(el) && el.textContent.trim()).map(el => ({ name: name(el), px: Math.round(textPx(el) * 10) / 10 }));
   const panel = document.querySelector('.board-panel'), panelBox = panel && box(panel);
   // Each rope is measured in the middle of the screen, then the page goes back to the top.
   const ropes = [...document.querySelectorAll('.stage-rope-hit, .lantern-wires .wire-hit')].filter(shown).map(reach);
@@ -107,6 +108,21 @@ try {
         for (const r of s.ropes) assert.ok(r.across >= 40 && r.along >= 40, `${where}: ${r.name} takes taps ${r.across} px across and ${r.along} px along`);
         for (const t of s.texts) assert.ok(t.px >= 12, `${where}: ${t.name} reads at ${t.px} px`);
         if (e.mechanic === 'toggle') checks.add('toggle boards: ropes and wires 40 px along and across, letters 12 px');
+        checks.add("keepers' names 12 px or more");
+        // The balance's answer on a phone: the pebbles in one line or two even ones, then Weight beside Check (or Check alone).
+        if (e.mechanic === 'weigh' && phone) {
+          const a = await page.locator('.balance-answer').evaluate(form => {
+            const box = el => el.getBoundingClientRect(), rows = els => [...new Set(els.map(el => Math.round(box(el).top)))];
+            const coins = [...form.querySelectorAll('.answer-coin')], choices = [...form.querySelectorAll('.answer-choice')], check = form.querySelector('[type=submit]');
+            const lines = rows(coins).map(top => coins.filter(el => Math.round(box(el).top) === top).length);
+            return { lines, coin: Math.min(...coins.map(el => Math.min(box(el).width, box(el).height))), choices: rows(choices), check: box(check), choiceBottom: choices.length ? Math.max(...choices.map(el => box(el).bottom)) : null, width: form.scrollWidth - form.clientWidth };
+          });
+          assert.ok(a.lines.length <= 2 && Math.max(...a.lines) - Math.min(...a.lines) <= 1, `${where}: pebbles in even lines (${a.lines})`);
+          assert.ok(a.coin >= 44 - .5, `${where}: pebble answers ${Math.round(a.coin)} px`);
+          if (a.choiceBottom !== null) assert.ok(a.choices.length === 1 && Math.abs(a.check.bottom - a.choiceBottom) < 2, `${where}: Heavy, Light and Check share one row`);
+          assert.ok(a.width <= 0, `${where}: the answer fits the board`);
+          checks.add('the balance answers on a phone: even lines of pebbles, then Weight beside Check');
+        }
         // On a wide, short screen the board starts near the top; a staged board fits whole.
         if (size.width === 1180 && !kind) assert.ok(s.panel.top <= 300, `${where}: the board starts at ${Math.round(s.panel.top)} px`);
         if (!phone && kind) assert.ok(s.panel.bottom <= s.vh + 1, `${where}: the controls under the picture end at ${Math.round(s.panel.bottom)} px of ${s.vh}`);

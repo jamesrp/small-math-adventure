@@ -310,6 +310,8 @@ const weigh = {
   // weighing tipped. Each pebble has a small Left / Off / Right control whose
   // pressed place holds the pebble's token (one row of three places, so twelve
   // pebbles fit a phone screen); the answer is picked from the same tokens.
+  // On a phone the answer takes two deliberate rows (boards.css): the pebbles,
+  // in one line or two even ones (--coin-cols), then Weight beside Check.
   render(p, attempt) {
     const board = attempt.board, parameters = p.parameters, possible = candidates(p, board), left = board.left.join(', '), right = board.right.join(', ');
     const used = board.observations.length, latest = board.observations.at(-1), all = [...parameters.coins, ...parameters.known_genuine];
@@ -326,7 +328,7 @@ const weigh = {
       const signs = possible.filter(hypothesis => hypothesis[0] === coin).map(hypothesis => hypothesis[1] === 1 ? 'heavy' : 'light');
       const label = !signs.length ? 'normal' : parameters.odd_kind === 'heavy' ? 'maybe' : `maybe ${signs.join(' or ')}`;
       return `<li class="${signs.length ? 'maybe' : 'ruled-out'}"><strong>${esc(coin)}</strong>: ${label}</li>`;
-    }).join('')}</ul></div>` : ''}</div><form data-puzzle-form class="balance-answer"><input type="hidden" name="type" value="answer"><fieldset class="answer-coins"><legend>Odd pebble</legend>${parameters.coins.map(coin => `<label class="answer-coin"><input type="radio" name="coin" value="${esc(coin)}" ${board.answer?.coin === coin ? 'checked' : ''} required><span class="pebble-token">${esc(coin)}</span></label>`).join('')}</fieldset>${parameters.odd_kind === 'heavy' ? '<input type="hidden" name="deviation" value="1">' : `<fieldset class="answer-weight"><legend>Weight</legend>${[[1, 'Heavy'], [-1, 'Light']].map(([value, label]) => `<label class="answer-choice"><input type="radio" name="deviation" value="${value}" ${board.answer?.deviation === value ? 'checked' : ''} required><span>${label}</span></label>`).join('')}</fieldset>`}${submitButton('Check')}</form><p class="measurement-observation" role="status" aria-live="polite">${esc(balanceFeedback(p, board))}</p></div>`;
+    }).join('')}</ul></div>` : ''}</div><form data-puzzle-form class="balance-answer"><input type="hidden" name="type" value="answer"><fieldset class="answer-coins" style="--coin-cols:${parameters.coins.length <= 6 ? parameters.coins.length : Math.ceil(parameters.coins.length / 2)}"><legend>Odd pebble</legend>${parameters.coins.map(coin => `<label class="answer-coin"><input type="radio" name="coin" value="${esc(coin)}" ${board.answer?.coin === coin ? 'checked' : ''} required><span class="pebble-token">${esc(coin)}</span></label>`).join('')}</fieldset>${parameters.odd_kind === 'heavy' ? '<input type="hidden" name="deviation" value="1">' : `<fieldset class="answer-weight"><legend>Weight</legend>${[[1, 'Heavy'], [-1, 'Light']].map(([value, label]) => `<label class="answer-choice"><input type="radio" name="deviation" value="${value}" ${board.answer?.deviation === value ? 'checked' : ''} required><span>${label}</span></label>`).join('')}</fieldset>`}${submitButton('Check')}</form><p class="measurement-observation" role="status" aria-live="polite">${esc(balanceFeedback(p, board))}</p></div>`;
   },
   demo: 'Use Left, Off, and Right to place each pebble. Put equal numbers on both pans, then Weigh. A tilt tells you which pan is heavier. Candidates shows which pebbles could still be the odd one. Check an answer once the scale has shown which one it is. Undo takes back your last weighing.',
 };
