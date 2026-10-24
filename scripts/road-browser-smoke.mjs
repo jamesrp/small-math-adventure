@@ -228,12 +228,18 @@ try {
     // Two seconds of silence as an 8-bit WAV: the recorded line.
     const wav = (rate = 8000, n = 16000) => { const b = Buffer.alloc(44 + n, 128); b.write('RIFF', 0); b.writeUInt32LE(36 + n, 4); b.write('WAVEfmt ', 8); b.writeUInt32LE(16, 16); b.writeUInt16LE(1, 20); b.writeUInt16LE(1, 22); b.writeUInt32LE(rate, 24); b.writeUInt32LE(rate, 28); b.writeUInt16LE(1, 32); b.writeUInt16LE(8, 34); b.write('data', 36); b.writeUInt32LE(n, 40); return b; };
     const context = await browser.newContext({ viewport: { width: 1024, height: 768 }, serviceWorkers: 'block' }), page = await context.newPage(), ui = wire(page);
-    // A browser voice that starts at once and ends when the suite says.
+    // A browser voice that starts on the next task, as a real one does, and
+    // ends when the suite says. Like a real voice it cannot end before it has
+    // started: the suite waits for voiceHeard() when nothing on screen shows
+    // the start (with reduced motion the line's beat already shows the talk
+    // still), and endVoice() before the start fails instead of leaving a
+    // late start that nothing ends.
     await context.addInitScript(() => {
-      const voice = { speaking: null, speak(u) { this.speaking = u; setTimeout(() => u.onstart?.(), 0); }, cancel() { const u = this.speaking; this.speaking = null; u?.onerror?.({ error: 'canceled' }); }, getVoices: () => [] };
+      const voice = { speaking: null, started: null, speak(u) { this.speaking = u; setTimeout(() => { u.onstart?.(); this.started = u; }, 0); }, cancel() { const u = this.speaking; this.speaking = null; u?.onerror?.({ error: 'canceled' }); }, getVoices: () => [] };
       Object.defineProperty(window, 'speechSynthesis', { value: voice, configurable: true });
       window.SpeechSynthesisUtterance = function (text) { this.text = text; };
-      window.endVoice = () => { const u = voice.speaking; voice.speaking = null; u?.onend?.(); };
+      window.voiceHeard = () => Boolean(voice.speaking) && voice.started === voice.speaking;
+      window.endVoice = () => { const u = voice.speaking; if (u && voice.started !== u) throw new Error('endVoice: the voice has not started yet'); voice.speaking = null; u?.onend?.(); };
     });
     await page.route('**/art/manifest.json', route => route.fulfill({ json: { version: 1, assets: { 'keeper/snooze/idle': { status: 'ready', image: 'k/still.png', video: 'k/idle.webm' }, 'keeper/snooze/talk': { status: 'ready', image: 'k/talk.png', video: 'k/talk.webm' }, 'voice/ferry-seats/open': { status: 'ready', audio: 'k/line.wav' } } } }));
     for (const [name, file, type] of [['still.png', 'still.png', 'image/png'], ['talk.png', 'still.png', 'image/png'], ['idle.webm', 'idle.webm', 'video/webm'], ['talk.webm', 'idle.webm', 'video/webm']]) await page.route(`**/art/k/${name}`, async route => route.fulfill({ body: await fixture(file), contentType: type }));
@@ -260,7 +266,8 @@ try {
     await until('k/idle.webm');
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await ui.action('hear-story').click();
-    await until('k/talk.png');
+    await page.waitForFunction(() => window.voiceHeard(), null, { timeout: 8000 });
+    assert.equal(await shown(), 'k/talk.png', 'with reduced motion a heard voice shows the talk still, not the loop');
     await page.evaluate(() => window.endVoice());
     await until('k/still.png');
     checks.push('talk: the browser voice, and stills with reduced motion'); await context.close();
