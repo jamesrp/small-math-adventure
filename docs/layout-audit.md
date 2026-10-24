@@ -124,6 +124,19 @@ Boards that do not fit for their own reasons: three stacked clocks in base-clock
 - **offers** 3 → 2: on a phone each line of the tree is one row, so every switch and card of 05–07 and 09 is on a 390 × 844 screen. Left: the Best plan row below them (75 px).
 - **knowledge** 3 → 0, **tetra** 1 → 0, **proofs** 2 → 1, **braces** 3 → 0, **bags** 2 → 1, **chips** 2 → 0, **sides** 1 → 0, **loops** 2 → 0, **aims** 2 → 0, **base-route** 1 → 0: labels at 12 px or more on a phone (knowledge's `?` 14 units, tetra's mini letters 24, flip labels 26, braces' graph drawn across under the frame on a phone, bags' case counters, chips' Sink, sides' faces, loops' badge, aims' labels, network numbers). Left: proofs' flip and sort boards (199 px) and bags 07–08 (149 px) still end below a 390 × 844 screen.
 
+*Fixed since (October 24, `claude/layout-handles-ntxcu3`), handles, dots, chips and cells:* this audit on main `5daea64` before and on `15a9e83` after (with the one-row top bar and the shared hit-fit), 10 modules at all three sizes: 33 distinct problems to 6. Per module, before → after:
+
+- tent 5 → 0: the whole start row is the target. Each handle and marker has an invisible reach over the part of its lane that a press goes to (46 px tall on a phone), and the row numbers and ruler numbers are 13 px.
+- ranges 5 → 0: the same reach rows for band ends and strip knobs, with a tabs' lane over the strip's lane, and the numbers and letters at 13 px.
+- calibrate 5 → 0: on a phone the ruler numbers, reports, row labels and letters are drawn at about 13 px. The boards below the screen were fixed by the one-row top bar.
+- width 5 → 1: pads of 26 units round each spot (37–47 px), and gaps and wedges that reach out from the shape. Spun shapes take taps beside their arcs, the shape picker is 42–44 px and the letters are about 13 px. Left: spots 36 units apart and the midpoint dot of the 88-unit side in hard puzzles 5 and 9 (37–39 px), because the board is already as wide as the phone.
+- creases 4 → 0: each chip reaches halfway to its neighbours, within a band of the disk. Chips and the knob are 40 px or more, chip letters and ray numbers 13 px or more, and the playground's hold works on the whole disk. A global `.small` rule had shrunk the small disk; it is now `cr-small`.
+- folds 3 → 1: river and wall buttons are two cells deep across their line (48–50 px on phones), block corners are 2 × 2 cells, the letters scale with the board (13 px or more), and tablets get 560 px boards (43 px or more). Left: 12–13 columns in 313 px make cells 23–25 px wide along the line on phones.
+- diffs 3 → 2: on a phone the child's blocks and floors are 40 px wide. Levels are 40 px tall with a cap of 1–2, 30 px with a cap of 3, and 24 px with a cap of 4–5. The floor is a full level with its bar drawn inside, and the foot letters are 13 px. Left: a cap of 3 or more at 24–30 px, because 40 px levels would make the rings about 500 px tall. Tablets and caps of 1–2 pass.
+- stairs 1 → 1: a tap now goes to the corner whose square cell it lands in, and tablets get 720 px boards. Left: dense boards (8–16 blocks across 313 px) have 17–35 px blocks. Dragging and the arrow keys are the alternative, and puzzles 1, 6 and 8 and tablets pass.
+- hills 1 → 1: on a phone the columns share the board's width (up to 44 px) and the levels are 40 px tall (34 and 30 px with six and seven levels). Five-tower boards and rings of five are 42–44 × 40 px, and tablets are 44–48 × 44 px. Left: seven-column boards at 36–38 px and nine-tower boards at 27–28 px.
+- piles 1 → 0: each pile's tap band is 15 board units wide (45–47 px on phones) and at least three counters tall, stopping inside the board. Near miss: the two-counter line of puzzles 1 and 3 at 45 × 42 px.
+
 ### Ranked by distinct problems
 
 | Rank | Module | Puzzles | Problems | Near misses | Top issue |
