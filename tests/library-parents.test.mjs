@@ -1,5 +1,6 @@
 // The Puzzles library's order and the Grown-ups page (road review, October 24):
-// a From the road shelf, every family closed with its solved count, each
+// a From the road shelf, every family closed with no count (each solved puzzle
+// carries the road's ✓ instead), each
 // explorer's road in Grown-ups, copies told apart, the mathematics by area,
 // and the read-aloud setting.
 import test from 'node:test';
@@ -48,13 +49,24 @@ test('Puzzles: a From the road shelf of the families met on the road, in road or
   assert.deepEqual(roadFamilies(ben, puzzles), ['swap', 'clock', 'toggle', 'route']);
 });
 
-test('Puzzles: each family shows how many of its puzzles this explorer solved, and the explorer’s grade comes first', () => {
+test('Puzzles: no family carries a solved/total count; each solved puzzle shows the road’s ✓, and the explorer’s grade comes first', () => {
   const pr = explorer('45', {attempts: {'tile-45-01': {completed: true}, 'tile-k1-02': {completed: true}, 'proof-garden-01': {completed: true}, 'clock-03': {completed: false}}});
   const html = libraryView(pr, puzzles), tile = html.slice(html.indexOf('data-view-key="family-tile"'), html.indexOf('</details>', html.indexOf('data-view-key="family-tile"')));
-  const total = puzzles.filter(p => familyOf(p) === 'tile' && p.band !== 'playground').length;
-  assert.match(tile, new RegExp(`<span aria-hidden="true">3/${total}</span><span class="sr-only">, 3 of ${total} solved</span>`));
+  // AGENTS.md: no total/explored counters in puzzle selection (the organizer's standing rule).
+  for (const summary of html.match(/<summary>[^]*?<\/summary>/g)) {
+    assert.doesNotMatch(summary.replace(/<[^>]+>/g, ''), /\d/, `no count in ${summary.slice(0, 120)}`);
+    assert.doesNotMatch(summary, /solved|family-count/);
+  }
+  const card = id => html.match(new RegExp(`<button type="button" class="puzzle-card[^"]*" data-action="open-puzzle" data-id="${id}"[^>]*>[^]*?</button>`))[0];
+  for (const id of ['tile-45-01', 'tile-k1-02', 'proof-garden-01']) {
+    assert.match(card(id), /class="puzzle-card complete"/, `${id}: solved card`);
+    assert.match(card(id), /<span class="puzzle-check" aria-hidden="true">✓<\/span>/, `${id}: the road's Solved mark`);
+    assert.match(card(id), /, completed"/, `${id}: named as completed`);
+  }
+  assert.doesNotMatch(card('clock-03'), /✓|complete"/, 'started is not solved'); assert.match(card('clock-03'), /, in progress"/);
+  assert.doesNotMatch(card('tile-45-02'), /✓|complete"|in progress/, 'untouched');
+  assert.equal(html.split('puzzle-check').length - 1, 3, 'one ✓ per solved puzzle, nothing else');
   assert.ok(tile.indexOf('<h2>Proofs</h2>') < tile.indexOf('<h2>Grades 4–5</h2>') && tile.indexOf('<h2>Grades 4–5</h2>') < tile.indexOf('<h2>Grades K–1</h2>') && tile.indexOf('<h2>Grades K–1</h2>') < tile.indexOf('<h2>Grades 2–3</h2>'), 'Proofs, then the explorer’s grade, then the others');
-  assert.match(html, /data-view-key="family-clock"[^]*?<span aria-hidden="true">0\/24<\/span>/, 'started is not solved');
   // Partial profiles from older tests still render.
   assert.doesNotThrow(() => libraryView({attempts: {}}, puzzles));
 });

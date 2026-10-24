@@ -101,7 +101,7 @@ Every group gets its own mechanic id, even when the move is the family's own, be
 
 ## Where it appears
 
-- **Satchel.** The road's families come first (on a From the road shelf once an explorer has met them), then the families from the seam, newest first. Every family starts closed and shows how many of its puzzles this explorer has solved. A playground opens from a button above the groups.
+- **Satchel.** The road's families come first (on a From the road shelf once an explorer has met them), then the families from the seam, newest first. Every family starts closed, with no count; each puzzle the explorer has solved shows a ✓. A playground opens from a button above the groups.
 - **Grown-ups.** The family's notes appear under its area in Mathematics, closed until opened.
 - **Not on the road.** A family goes onto a road only after children have played it. That is a separate change to the road, and Claude owns the story.
 - **Offline.** `npm run build` adds the module's files to the offline copy (`dist/sw.js`). Nothing reaches the live site until James asks for a release.

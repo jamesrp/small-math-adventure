@@ -25,7 +25,7 @@ try{
   await page.locator('.caravan-nav [data-action=library]').click();
   assert.deepEqual(await openFamilies(),[],'the library opens with every family closed');
   assert.equal(await page.locator('.satchel-family').first().locator('summary strong').textContent(),'Tile gardens','the road’s families come first, then the newer ones');
-  assert.match(await family('Cup swaps').locator('.family-count [aria-hidden]').textContent(),/^0\/\d+$/,'each family shows solved/total');
+  assert.doesNotMatch(await page.locator('.satchel-family summary').allInnerTexts().then(t=>t.join('|')),/\d/,'no family shows a solved/total count (AGENTS.md)');
   await family('Clockwork Gates').locator('summary').click();
   await family('Cup swaps').locator('summary').click();
   const expected=await openFamilies();
@@ -38,7 +38,7 @@ try{
   await page.locator('[data-puzzle-id="clock-10"]').waitFor();
   await back('.caravan-library');
   assert.deepEqual(await openFamilies(),expected,`Back restores every family, including closed ${newest}`);
-  checks.push('the library opens closed, road families first with solved/total; a family, then a puzzle');
+  checks.push('the library opens closed, road families first, no counts; a family, then a puzzle');
   assert.ok(Math.abs(await page.evaluate(()=>scrollY)-scroll)<3,'Back restores the library scroll position');
   await forward('[data-puzzle-id="clock-10"]');
   await back('.caravan-library');

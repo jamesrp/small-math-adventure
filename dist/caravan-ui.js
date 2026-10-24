@@ -41,8 +41,9 @@ export function caravanProfiles(state,adding=false){
 // Proof puzzles (band "proofs") join their family's satchel as a Proofs group
 // above the grade or difficulty groups; puzzles with a `group` name form a
 // group of that name below them. A family's playground (band "playground")
-// opens from a button above its groups. Every family starts closed and shows
-// how many of its puzzles this explorer has solved.
+// opens from a button above its groups. Every family starts closed. A family
+// carries no solved/total count (AGENTS.md: no counters in puzzle selection);
+// each puzzle this explorer has solved shows the road's Solved mark, a ✓.
 // Order (decided October 24, docs/ROAD.md): a From the road shelf of the
 // families whose boards the explorer has opened on the road (any trail), in
 // road order; then the road's other families in pack order; then the families
@@ -70,8 +71,7 @@ export function libraryView(profile,puzzles){
   const graded=core.some(p=>p.band!=='all'),labels={easy:'Easy',medium:'Medium',hard:'Hard',proofs:'Proofs'};
   const named=[...new Set(family.filter(p=>p.band!=='proofs'&&p.group).map(p=>p.group))];
   const groups=[...(family.some(p=>p.band==='proofs')?['proofs']:[]),...(graded?grades:['easy','medium','hard']),...named.map(name=>({name}))];
-  const solved=family.filter(p=>profile.attempts?.[p.id]?.completed).length;
-  return `<details class="satchel-family" data-view-key="family-${esc(id)}"><summary><span class="family-ink-symbol" aria-hidden="true">${familySymbols[id]||'✦'}</span><strong>${esc(title)}</strong><span class="family-count"><span aria-hidden="true">${solved}/${family.length}</span><span class="sr-only">, ${solved} of ${family.length} solved</span></span><span class="family-expand" aria-hidden="true">+</span></summary><div class="satchel-family-content">${play?`<button type="button" class="satchel-playground ${profile.attempts?.[play.id]?'started':''}" data-action="open-puzzle" data-id="${esc(play.id)}"><span aria-hidden="true">${familySymbols[id]||'✦'}</span> Playground</button>`:''}${groups.map(group=>{
+  return `<details class="satchel-family" data-view-key="family-${esc(id)}"><summary><span class="family-ink-symbol" aria-hidden="true">${familySymbols[id]||'✦'}</span><strong>${esc(title)}</strong><span class="family-expand" aria-hidden="true">+</span></summary><div class="satchel-family-content">${play?`<button type="button" class="satchel-playground ${profile.attempts?.[play.id]?'started':''}" data-action="open-puzzle" data-id="${esc(play.id)}"><span aria-hidden="true">${familySymbols[id]||'✦'}</span> Playground</button>`:''}${groups.map(group=>{
    const proofs=group==='proofs',custom=typeof group==='object';
    const list=family.filter(p=>custom?p.band!=='proofs'&&p.group===group.name:proofs?p.band==='proofs':p.band!=='proofs'&&!p.group&&(graded?p.band===group:p.difficulty_level===group)).sort((a,b)=>a.number-b.number);
    if(!list.length)return '';

@@ -19,11 +19,9 @@ button{min-height:46px;border-radius:9px;font-size:.95rem;font-weight:600;transi
 @media(max-width:700px){.road-next{order:0;border-top:0;border-bottom:1px solid #bfccad}.road-map{order:1}}
 /* Put the next action before the illustrated route at every window size. */
 .road-next{order:0;border-top:0;border-bottom:1px solid #bfccad}
-/* Puzzles: the From the road shelf and each family's solved count (October 24). */
+/* Puzzles: the From the road shelf (October 24). */
 .library-shelf{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:1.15rem;color:#4c6942;margin:12px 0 0}
 .library-shelf:first-child{margin-top:0}
-.family-count{margin-left:auto;font-size:.9rem;color:#667858;font-variant-numeric:tabular-nums;white-space:nowrap}
-.family-count+.family-expand{margin-left:6px}
 /* Grown-ups (October 24): copies told apart, a line per road trail, the mathematics closed by area. */
 .caravan-profile-card small.explorer-note{font-size:.8rem;color:#667858}
 .parent-profile .explorer-note{font-size:.85rem;color:#536a81;font-weight:500}

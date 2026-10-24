@@ -215,14 +215,27 @@ try {
     // The Puzzles library opens closed, with the road's mechanics on a shelf of their own at the top.
     await ui.action('library').click(); await page.locator('.caravan-library').waitFor();
     assert.equal(await page.locator('.satchel-family[open]').count(), 0, `${band}: the library opens with every family closed`);
-    const shelves = await page.locator('.caravan-library').evaluate(root => { const out = {}; let at = null; for (const n of root.children) { if (n.matches('.library-shelf')) out[at = n.textContent] = []; else if (at && n.matches('.satchel-family')) out[at].push({ title: n.querySelector('summary strong').textContent, count: n.querySelector('.family-count [aria-hidden]').textContent }); } return out; });
+    const shelves = await page.locator('.caravan-library').evaluate(root => { const out = {}; let at = null; for (const n of root.children) { if (n.matches('.library-shelf')) out[at = n.textContent] = []; else if (at && n.matches('.satchel-family')) out[at].push({ title: n.querySelector('summary strong').textContent, summary: n.querySelector('summary').textContent }); } return out; });
     assert.deepEqual(Object.keys(shelves), ['From the road', 'More puzzles'], `${band}: the road's shelf comes first`);
     assert.ok(shelves['From the road'].some(f => f.title === 'Cup swaps') && shelves['From the road'].length >= 8, `${band}: the shelf holds the road's mechanics`);
-    assert.ok(Object.values(shelves).flat().every(f => /^\d+\/\d+$/.test(f.count)), `${band}: each family shows solved/total`);
+    // AGENTS.md: no total/explored counters in puzzle selection; a solved puzzle shows the road's ✓ instead.
+    assert.ok(Object.values(shelves).flat().every(f => !/\d/.test(f.summary)), `${band}: no family shows a count`);
     await page.locator('.satchel-family').first().locator('summary').click();
-    await page.locator('.satchel-family[open] [data-action=open-puzzle]').first().click(); await page.locator('.board-panel').waitFor();
+    await page.locator('.satchel-family[open] .puzzle-card').first().click(); await page.locator('.board-panel').waitFor();
     await capture('library-to-board');
-    checks.push(`${band}: library opens closed, road shelf first, two taps to a board`);
+    const libraryId = await page.evaluate(() => decodeURIComponent(location.hash.split('/')[1]));
+    for (let steps = 0; !await page.locator('#completion-heading').count() && steps < 80; steps++) await ui.action(await page.locator('[data-action=apply-hint]:visible').count() ? 'apply-hint' : 'hint').click();
+    assert.equal(await page.locator('#completion-heading').count(), 1, `${band}: ${libraryId} solved in the library`);
+    await ui.action('library').click(); await page.locator('.caravan-library').waitFor();
+    const solvedFamily = page.locator('.satchel-family').filter({ has: page.locator(`[data-id="${libraryId}"]`) });
+    if (!await solvedFamily.evaluate(d => d.open)) await solvedFamily.locator('summary').click();
+    const solvedCard = page.locator(`.puzzle-card[data-id="${libraryId}"]`);
+    assert.equal(await solvedCard.locator('.puzzle-check').innerText(), '✓', `${band}: a solved puzzle shows the road's ✓`);
+    assert.match(await solvedCard.getAttribute('aria-label'), /, completed$/);
+    assert.equal(await page.locator('.puzzle-check').count(), 1, `${band}: only the solved puzzle carries the mark`);
+    assert.ok(!/\d/.test(await solvedFamily.locator('summary').innerText()), `${band}: still no count once a puzzle is solved`);
+    await capture('library-solved');
+    checks.push(`${band}: library opens closed, road shelf first, two taps to a board, no family counts, a solved puzzle marked ✓`);
     await context.close();
   }
 
