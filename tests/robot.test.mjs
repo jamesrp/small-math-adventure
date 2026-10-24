@@ -69,10 +69,11 @@ test('the budget is the fewest moves, and the hint search finds a shortest finis
 test('order matters: east then north solves, north then east is a dead end', () => {
   const p = byId('robot-01');
   let a = go(p, freshAttempt(p), 'N');
-  assert.equal(nextHint(p, a).type, 'deadend');
-  assert.match(nextHint(p, a).text, /Undo/);
+  // Told only behind Hint while a box is left, and it names the memory: the flag is one move away.
+  assert.deepEqual(nextHint(p, a), {type: 'deadend', quiet: true, text: '1 move can’t reach the flag with memory 1 from here. Undo.'});
   a = go(p, a, 'E');
   assert.ok(a && !isSolved(p, a.board), 'on the flag with memory 0');
+  assert.deepEqual(nextHint(p, a), {type: 'deadend', text: 'Memory 0, not 1. Undo.'}, 'the boxes are full: said at once');
   assert.equal(go(p, a, 'E'), null, 'no move past the budget');
   a = go(p, freshAttempt(p), 'EN');
   assert.ok(isSolved(p, a.board));
@@ -146,8 +147,23 @@ test('hints name the next move in words and mark its corner; hints alone finish 
   assert.doesNotMatch(html(p, {...a, hintLevel: 1}), /hinted/);
   // With the budget spent and no solve, Undo; one Undo is not always enough.
   const spent = go(p, freshAttempt(p), 'EENNEW');
-  assert.equal(nextHint(p, spent).type, 'deadend');
-  assert.equal(nextHint(p, undo(spent)).type, 'deadend');
+  assert.deepEqual(nextHint(p, spent), {type: 'deadend', text: 'Memory 4, not 5. Undo.'});
+  assert.deepEqual(nextHint(p, undo(spent)), {type: 'deadend', quiet: true, text: '1 move can’t reach the flag with memory 5 from here. Undo.'});
+  assert.deepEqual(nextHint(p, go(p, freshAttempt(p), 'EEEEWW')), {type: 'deadend', text: 'The robot isn’t on the flag. Undo.'});
+});
+
+test('no line judges a move unasked while boxes are left', () => {
+  // The budget is the fewest moves, so an unasked line after a wasted move
+  // would tell a child, move by move, whether each move was right.
+  for (const p of pack.puzzles.filter(x => x.band === 'all')) {
+    const fresh = freshAttempt(p);
+    for (const w of ['E', 'N', 'W', 'S', 'EE', 'EN', 'NN', 'NW', 'WS', 'SE']) {
+      const a = go(p, fresh, w);
+      if (!a || a.board.walk.length >= p.parameters.budget || isSolved(p, a.board)) continue;
+      const h = nextHint(p, a);
+      assert.ok(h.type === 'move' || h.quiet === true, `${p.id} ${w}: ${h.text}`);
+    }
+  }
 });
 
 test('saves: only walks on the board within the budget, ending at the first solve', () => {

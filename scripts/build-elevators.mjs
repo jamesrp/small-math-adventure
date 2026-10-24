@@ -156,7 +156,7 @@ const authored = [
     parameters: {target: 23, levels: 5, xmin: -4, xmax: 28},
     idea: 'Going past the flag and stepping back is shorter: 24 − 1 takes ten moves, while trips with no left step need eleven.',
     prerequisites: 'Farthest in nine.',
-    hints: ['Try going past the flag.', 'Twenty-four is three steps of 8.', 'Go to 24 on the ground, then step left.'],
+    hints: ['Which number near 23 is quick to reach?', 'Twenty-four is three steps of 8.', 'Go to 24 on the ground, then step left.'],
     parent: {
       notice: 'Whether your child remembers 24 from puzzle 8 and tries a left step.',
       prompt: 'Why is 23 harder than 24?',
@@ -171,7 +171,7 @@ const authored = [
     parameters: {levels: 6, xmin: -4, xmax: 64},
     idea: 'With eleven moves, topping out at level H reaches (11 − 2H)·2^H: 11, 18, 28, 40, 48, 32. Level 4 wins, at 48.',
     prerequisites: 'Farthest in nine.',
-    hints: ['Is the highest level always the farthest?', 'Topping out at level 4 leaves three steps of 16.', 'Go up four times, step right three times, come down four times.'],
+    hints: ['Try topping out at each level.', 'Topping out at level 4 leaves three steps of 16.', 'Go up four times, step right three times, come down four times.'],
     parent: {
       notice: 'Whether your child plans the top level before moving, now that the best level is not the highest.',
       prompt: 'Forty took eleven moves. Can eleven moves go farther?',
@@ -186,7 +186,7 @@ const authored = [
     parameters: {target: 47, levels: 6, xmin: -4, xmax: 52},
     idea: '47 = 48 − 1: twelve moves with a step back, against fourteen without.',
     prerequisites: 'Twenty-three and Farthest in eleven.',
-    hints: ['Where did the last puzzle end?', 'Forty-eight is three steps of 16.', 'Go to 48 on the ground, then step left.'],
+    hints: ['Which number near 47 is quick to reach?', 'Forty-eight is three steps of 16.', 'Go to 48 on the ground, then step left.'],
     parent: {
       notice: 'Whether your child connects 47 with the 48 of puzzle 10 and the trick from 23.',
       prompt: 'Which number near 47 is quick to reach?',

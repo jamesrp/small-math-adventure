@@ -1,9 +1,10 @@
 // Plays Memory robot through the real interface: the family and its
 // playground in the satchel; order matters, by taps on the corners next to
 // the robot (touch taps with TEST_PHONE=1), with the boxes filling, the dead
-// end said at once, Undo, and taps away from those corners and on a full
-// budget doing nothing; the keyboard (Enter on a corner, the arrow keys, focus
-// kept on the board); the long strips far from the wall cancelling round a
+// end told only behind Hint until the boxes are full, Undo, and taps away
+// from those corners and on a full budget doing nothing; the keyboard (Enter
+// on a corner, the arrow keys, focus kept on the board); the board growing on
+// a wide screen; the long strips far from the wall cancelling round a
 // loop; a hint marking its corner and hints alone finishing a hard puzzle;
 // and the playground's loops, numerals and Clear. Same environment variables
 // as the other browser suites (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE,
@@ -53,7 +54,9 @@ try {
   assert.equal(await family.locator('[data-id="robot-playground"]').count(), 1);
   assert.equal(await family.locator('[data-id^="robot-"]').count(), 13);
 
-  // Order matters: north first is a dead end at once; Undo; east then north solves.
+  // Order matters: north first is a dead end, told only behind Hint while a box
+  // is left; with the boxes full the line says what is wrong; Undo; east then
+  // north solves.
   const P1 = 'robot-01';
   await open(P1); await fit('order matters'); await shot('01-start');
   assert.equal(await page.locator('.mr-slot').count(), 2);
@@ -61,17 +64,24 @@ try {
   assert.equal(await page.locator('.puzzle-goal').count(), 0, 'no task line on the board');
   await tapWalk(P1, 'N');
   assert.equal(await memory(), '0');
-  await page.locator('.feedback.deadend', {hasText: 'Too few moves are left. Undo.'}).waitFor();
+  await page.waitForTimeout(300);
+  assert.equal(await page.locator('.feedback').innerText(), '', 'a wasted move is not judged unasked');
   assert.equal(await page.locator('.mr-played').count(), 1, 'a box fills');
   await tapWalk(P1, 'E');
+  await page.locator('.feedback.deadend', {hasText: 'Memory 0, not 1. Undo.'}).waitFor();
   assert.equal(await page.locator('.mr-step').count(), 0, 'no corners once the moves are spent');
   // A tap on the robot or a far square does nothing.
   await tapAt(await centre(page.locator('.mr-robot')));
   await page.waitForTimeout(300);
   assert.equal(await walk(P1), 'NE', 'a full budget refuses more moves');
   await shot('01-spent');
-  await button('↶ Undo').click(); await button('↶ Undo').click();
+  await button('↶ Undo').click();
+  await eventually(async () => assert.equal(await walk(P1), 'N'));
+  await button('Hint').click();
+  await page.locator('.hint-card', {hasText: '1 move can’t reach the flag with memory 1 from here. Undo.'}).waitFor();
+  await button('↶ Undo').click();
   await eventually(async () => assert.equal(await walk(P1), ''));
+  await button('Restart').click();
   await tapAt(await centre(page.locator('.mr-flag')));
   await page.waitForTimeout(300);
   assert.equal(await walk(P1), '', 'a corner two blocks away is not a move');
@@ -97,6 +107,11 @@ try {
   // Far from the wall: four squares shade going up, two stay when the loop closes.
   const P8 = 'robot-08';
   await open(P8);
+  // On a portrait tablet the board grows past the phone's 350 px.
+  const size = page.viewportSize();
+  await page.setViewportSize({width: 820, height: 1180});
+  await eventually(async () => assert.ok((await page.locator('.mr-board').boundingBox()).width > 460, 'the board grows on a tablet'));
+  await page.setViewportSize(size);
   await tapWalk(P8, 'EN');
   assert.equal(await page.locator('.sg-cell.mr-pos').count(), 4);
   assert.equal(await memory(), '4');

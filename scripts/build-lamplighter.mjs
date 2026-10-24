@@ -37,7 +37,9 @@ const KEYS = {
 };
 const controlsFor = q => `Tap the lantern next to the lamplighter to walk there. Tap the lantern the lamplighter stands at to light it or put it out. With a keyboard, ${KEYS[q.geometry]}, and Enter or Space taps the lantern in focus. Undo takes back a move.`;
 const OBJECTIVE = 'Make your lanterns match the goal card and finish where its lamplighter stands, using the moves shown.';
-const street = (start, goal) => ({geometry: 'street', min: -4, max: 4, start, goal});
+// The street runs from −3 to 3 (the worksheet's runs to ±4): no shortest word
+// goes past ±3, and seven lanterns are wide enough to tap on a phone.
+const street = (start, goal) => ({geometry: 'street', min: -3, max: 3, start, goal});
 const ring = (start, goal) => ({geometry: 'ring', size: 8, start, goal});
 const grid = (rows, cols, start, goal) => ({geometry: 'grid', rows, cols, start, goal});
 const DARK = {at: 0, lit: []};
@@ -93,7 +95,7 @@ const authored = [
     parameters: street(DARK, {at: 2, lit: [-2, 0, 2]}),
     idea: 'Finish at the end you visit last: −2 first, then right across to 2. 6 walks and 3 lights.',
     prerequisites: 'Both sides.',
-    hints: ['Where does the lamplighter finish? Go to the other end first.', 'Start by walking left.', 'Walk left twice and light, then walk right, lighting 0 and 2 as you reach them.'],
+    hints: ['Which end of the street should come last?', 'Start by walking left.', 'Walk left twice and light, then walk right, lighting 0 and 2 as you reach them.'],
     parent: {
       notice: 'Whether your child heads for 2, the finish, first, and runs out of moves.',
       prompt: 'Which end did you go to first, and why?',
@@ -198,7 +200,7 @@ const authored = [
     parameters: grid(3, 3, {at: [1, 1], lit: []}, {at: [1, 1], lit: [[0, 0], [0, 2], [2, 0], [2, 2]]}),
     idea: 'A tour: out to a corner, round the edge to each of the others, and back to the middle: 10 walks and 4 lights.',
     prerequisites: 'Once round.',
-    hints: ['Visit the corners in an order that goes round the edge.', 'Each corner is two steps from the next one round the edge.', 'Go to a corner and light it, go round the edge lighting each corner, then back to the middle.'],
+    hints: ['In what order should you visit the corners?', 'Each corner is two steps from the next one round the edge.', 'Go to a corner and light it, go round the edge lighting each corner, then back to the middle.'],
     parent: {
       notice: 'Whether your child crosses from one corner to the opposite one.',
       prompt: 'Which corner did you visit after the first? Does the order matter?',

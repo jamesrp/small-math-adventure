@@ -64,4 +64,6 @@
 .mr-help .sg-board.mr-mini{width:190px;max-width:60%;margin:0}
 .mr-help .mr-readout{min-height:40px}
 .mr-help .mr-readout b{font-size:1.6rem}
+/* Tablets: the board grows, and its corners with it. */
+@media (min-width:700px){.mr-table{max-width:600px}.mr-puzzle .sg-board.mr-board{max-width:500px}}
 @media (max-width:420px){.mr-table{padding:.45rem .1rem .1rem}.mr-readout b{font-size:1.8rem}.mr-slots{--mr-box:34px}.mr-arrow{width:21px;height:21px}}

@@ -206,7 +206,9 @@ export default async function validateLamplighter() {
       if (c) wasted = [...tapsFor(q, B, from, p.solution.word.slice(0, i)), {lantern: indexOf(q, B, stepOn(B, s, c).p)}].reduce((x, tap) => move(p, x, tap), fresh);
     }
     assert.ok(wasted && !isSolved(p, wasted.board), `${label}: a wasted move`);
-    assert.deepEqual(nextHint(p, wasted), {type: 'deadend', text: 'Too few moves are left. Undo.'}, `${label}: a wasted move means Undo`);
+    // Told only behind Hint while outlines are left, so no line judges a move unasked.
+    const told = wasted.board.word.length < q.budget ? {quiet: true} : {};
+    assert.deepEqual(nextHint(p, wasted), {type: 'deadend', ...told, text: 'Too few moves are left. Undo.'}, `${label}: a wasted move means Undo, quietly`);
     hintSteps += hintRun(p, undoToSolvable(p, wasted), `${label} after Undo`);
     let spent = wasted;
     while (spent.board.word.length < q.budget) {
@@ -215,6 +217,7 @@ export default async function validateLamplighter() {
     }
     assert.ok(!isSolved(p, spent.board));
     assert.equal(nextHint(p, spent).type, 'deadend', `${label}: a spent budget says Undo`);
+    assert.ok(!nextHint(p, spent).quiet && /^The (lanterns don’t match the goal|lamplighter isn’t where the goal shows)\. Undo\.$/.test(nextHint(p, spent).text), `${label}: full outlines say what is wrong at once`);
     for (let k = 0; k < B.names.length; k++) assert.equal(move(p, spent, {lantern: k}), null, `${label}: no move past the budget`);
     hintSteps += hintRun(p, undoToSolvable(p, spent), `${label} after Undo from a spent budget`);
 
@@ -235,8 +238,16 @@ export default async function validateLamplighter() {
       if (end.word.length <= q.budget) assert.equal(move(p, {...fresh, board: end}, {lantern: n - 1}), null, `${label}: no walking round the end of a street`);
     }
 
-    // Forged saves.
-    const offBoard = q.geometry === 'street' ? 'L'.repeat(from.p - q.min + 1) : q.geometry === 'grid' ? 'UUUU' : null;
+    // A save from the street of −4 … 4 (before October 23, 2026) that walked
+    // to −4 still loads, as a dead end that Undo takes back.
+    if (q.geometry === 'street' && from.p + 4 <= q.budget) {
+      const old = {word: 'L'.repeat(from.p + 4)};
+      assert.ok(validBoard(p, old) && !isSolved(p, old), `${label}: an old save at −4 loads`);
+      assert.equal(nextHint(p, {...fresh, board: old}).type, 'deadend', `${label}: an old save at −4 is a dead end`);
+    }
+
+    // Forged saves; on the street, past −4.
+    const offBoard = q.geometry === 'street' ? 'L'.repeat(from.p + 5) : q.geometry === 'grid' ? 'UUUU' : null;
     const forged = [
       {word: 'X'}, {word: 'f'}, {word: q.geometry === 'grid' ? 'Q' : 'U'}, {word: 7}, {word: ['L']}, {}, {word: '', extra: 1}, null, 'LF',
       {word: 'F'.repeat(q.budget + 1)}, {word: p.solution.word + 'F'},

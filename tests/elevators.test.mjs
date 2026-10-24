@@ -75,13 +75,23 @@ test('a flag puzzle: the slots fill, the flag and the step lengths show, and the
   assert.ok(isSolved(p, play(p, freshAttempt(p), 'UURRRRDD').board), 'the other eight-move trip');
 });
 
-test('a wasted move is a dead end, and the budget refuses one move more', () => {
+test('a wasted move is a dead end, told only behind Hint until the outlines are full, and the budget refuses one move more', () => {
   const p = byId('elevators-02');
   let a = play(p, freshAttempt(p), 'R');
-  assert.deepEqual(nextHint(p, a), {type: 'deadend', text: 'Too few moves are left. Undo.'});
+  assert.deepEqual(nextHint(p, a), {type: 'deadend', quiet: true, text: 'Too few moves are left. Undo.'});
   a = play(p, a, 'RRRR');
   assert.equal(a.board.word.length, 5);
   assert.ok(!isSolved(p, a.board));
+  assert.deepEqual(nextHint(p, a), {type: 'deadend', text: 'The car isn’t at the flag. Undo.'}, 'full outlines: said at once');
+  // No first or second move is judged unasked, on any puzzle.
+  for (const q of pack.puzzles.filter(x => x.band !== 'playground')) {
+    for (const w of ['U', 'R', 'L', 'UU', 'UR', 'UL', 'RR', 'RU', 'LU', 'UUU', 'UUUU']) {
+      const b = play(q, freshAttempt(q), w);
+      if (!b || isSolved(q, b.board)) continue;
+      const h = nextHint(q, b);
+      assert.ok(h.type === 'move' || h.quiet === true, `${q.id} ${w}: ${h.text}`);
+    }
+  }
   for (const dir of 'UDLR') assert.equal(move(p, a, {type: 'move', dir}), null, `no ${dir} past the budget`);
   assert.match(html(p, a), /aria-label="Up" disabled/);
   assert.ok(isSolved(p, play(p, freshAttempt(p), 'URRRD').board));
@@ -95,7 +105,10 @@ test('a farthest puzzle has no flag, one line of goal, and only the farthest pla
   const short = play(p, freshAttempt(p), 'UURRRRRDD');
   assert.deepEqual(replay(q, short.board.word).at(-1), [20, 0]);
   assert.ok(!isSolved(p, short.board), 'ending on the ground at 20 is not the farthest');
-  assert.deepEqual(nextHint(p, short), {type: 'deadend', text: 'Some trip goes farther. Undo.'});
+  assert.deepEqual(nextHint(p, short), {type: 'deadend', text: 'Some trip goes farther. Undo.'}, 'a full trip short of the farthest is told at once');
+  // Topping out too high is told only behind Hint: it is the puzzle's one decision.
+  assert.deepEqual(nextHint(p, play(p, freshAttempt(p), 'UUUU')), {type: 'deadend', quiet: true, text: 'Some trip goes farther. Undo.'});
+  assert.deepEqual(nextHint(p, play(p, freshAttempt(p), 'UUURRRDDU')), {type: 'deadend', text: 'The car isn’t on the ground. Undo.'});
   assert.ok(isSolved(p, play(p, freshAttempt(p), 'UUURRRDDD').board));
   const far = byId('elevators-10');
   assert.equal(far.parameters.target, 48);

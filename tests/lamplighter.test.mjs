@@ -17,8 +17,8 @@ const puzzles = pack.puzzles, byId = id => puzzles.find(p => p.id === id);
 const P = n => byId(`lamplighter-${String(n).padStart(2, '0')}`);
 const html = (p, a) => mechanicFor(p).render(p, a);
 const tap = k => ({lantern: k});
-// Lanterns on the −4 … 4 street are numbered 0 … 8 in the board.
-const at = pos => pos + 4;
+// Lanterns on the −3 … 3 street are numbered 0 … 6 in the board.
+const at = pos => pos + 3;
 const play = (p, a, taps) => taps.reduce((x, t) => { const next = move(p, x, t); assert.ok(next, `${p.id}: ${JSON.stringify(t)}`); return next; }, a);
 // Plays a move word by tapping: F taps the lantern underfoot, a walk taps the neighbour.
 const word = (p, a, w) => [...w].reduce((x, c) => { const q = p.parameters, g = boardOf(q), s = replay(q, x.board.word); return play(p, x, [tap(c === 'F' ? s.at : g.walk[c](s.at))]); }, a);
@@ -34,7 +34,7 @@ test('the pack validates: budgets by flips and every order, theorems, hints, ref
 
 test('walks and flips on a street, a ring and a grid', () => {
   const street = boardOf(P(1).parameters), ring = boardOf(P(9).parameters), grid = boardOf(P(12).parameters);
-  assert.equal(street.n, 9); assert.equal(ring.n, 8); assert.equal(grid.n, 12);
+  assert.equal(street.n, 7); assert.equal(ring.n, 8); assert.equal(grid.n, 12);
   assert.deepEqual(step(street, {at: 4, lit: 0}, 'R'), {at: 5, lit: 0});
   assert.deepEqual(step(street, {at: 4, lit: 0}, 'F'), {at: 4, lit: 16});
   assert.deepEqual(step(street, {at: 4, lit: 16}, 'F'), {at: 4, lit: 0}, 'a second flip puts it out');
@@ -45,10 +45,10 @@ test('walks and flips on a street, a ring and a grid', () => {
   assert.equal(step(grid, {at: 0, lit: 0}, 'U'), null);
   assert.equal(step(grid, {at: 3, lit: 0}, 'R'), null, 'no walking off the right edge of the grid');
   assert.equal(letterTo(street, 4, 3), 'L'); assert.equal(letterTo(street, 4, 4), 'F'); assert.equal(letterTo(street, 4, 6), null);
-  assert.equal(letterTo(street, 0, 8), null, 'the street does not wrap');
+  assert.equal(letterTo(street, 0, 6), null, 'the street does not wrap');
   assert.equal(letterTo(ring, 0, 7), 'L'); assert.equal(letterTo(ring, 7, 0), 'R');
   assert.equal(letterTo(grid, 5, 9), 'D'); assert.equal(letterTo(grid, 5, 10), null, 'no diagonal walks');
-  assert.equal(replay(P(1).parameters, 'LLLLL'), null);
+  assert.equal(replay(P(1).parameters, 'LLLL'), null, 'the street ends at −3');
   assert.equal(replay(P(1).parameters, 'RX'), null);
 });
 
@@ -83,8 +83,8 @@ test('a puzzle plays by taps: the lantern underfoot flips, a neighbour is walked
   const p = P(2);
   let a = freshAttempt(p);
   assert.equal(move(p, a, tap(at(2))), null, 'two places away');
-  assert.equal(move(p, a, tap(at(-4))), null);
-  assert.equal(move(p, a, tap(9)), null, 'off the street');
+  assert.equal(move(p, a, tap(at(-3))), null);
+  assert.equal(move(p, a, tap(7)), null, 'off the street');
   assert.equal(move(p, a, {lantern: '3'}), null);
   a = play(p, a, [tap(at(-1)), tap(at(-1))]);
   assert.equal(a.board.word, 'LF');
@@ -110,17 +110,50 @@ test('every shortest word is accepted, not only the witness', () => {
   for (const w of ['ULFRRFDDFLLFUR', 'DRFLLFUUFRRFDL', 'LUFRRFDDFLLFRU']) assert.ok(isSolved(grid, word(grid, freshAttempt(grid), w).board), w);
 });
 
-test('the budget: a wasted move means Undo, and no move past the last outline', () => {
+test('the budget: a wasted move is told only behind Hint until the outlines are full, and no move past the last', () => {
   const p = P(4);
   let a = word(p, freshAttempt(p), 'R');
-  assert.deepEqual(nextHint(p, a), {type: 'deadend', text: 'Too few moves are left. Undo.'});
+  // Quiet: the line would otherwise say after every move whether it was right.
+  assert.deepEqual(nextHint(p, a), {type: 'deadend', quiet: true, text: 'Too few moves are left. Undo.'});
+  for (const q of puzzles.filter(x => x.mechanic === 'lamplighter')) {
+    const fresh = freshAttempt(q), g = boardOf(q.parameters), s = startOf(q.parameters);
+    for (const k of [s.at, ...[...g.letters].filter(c => c !== 'F').map(c => g.walk[c](s.at))].filter(k => k !== null)) {
+      const h = nextHint(q, move(q, fresh, tap(k)));
+      assert.ok(h.type === 'move' || h.quiet === true, `${q.id}: a first move is never judged unasked`);
+    }
+  }
   a = word(p, a, 'FFFFFFFF');
   assert.equal(a.board.word.length, 9);
   assert.equal(move(p, a, tap(at(1))), null, 'the budget is spent');
   assert.doesNotMatch(html(p, a), /data-action="expansion-move"/);
-  assert.equal(nextHint(p, a).type, 'deadend');
+  assert.deepEqual(nextHint(p, a), {type: 'deadend', text: 'The lanterns don’t match the goal. Undo.'}, 'full outlines: said at once');
+  assert.deepEqual(nextHint(p, undo(a)), {type: 'deadend', quiet: true, text: 'Too few moves are left. Undo.'});
   assert.equal(nextHint(p, undo(undo(a))).type, 'deadend');
   assert.equal(nextHint(p, freshAttempt(p)).type, 'move');
+  // The lanterns right, the lamplighter not: puzzle 5 is puzzle 4 ending home.
+  const five = P(5), off = word(five, freshAttempt(five), 'LLFRRFRRFFF');
+  assert.deepEqual(nextHint(five, off), {type: 'deadend', text: 'The lamplighter isn’t where the goal shows. Undo.'});
+});
+
+test('a save from the −4 … 4 street that walked to −4 still loads, on the longer street, and Undo takes it back', () => {
+  const p = P(2), old = {word: 'LLLL'};
+  assert.ok(validBoard(p, old));
+  assert.equal(validBoard(p, {word: 'LLLLL'}), false, 'past −4 is still off the street');
+  const a = {...freshAttempt(p), board: old, moves: 4, history: ['', 'L', 'LL', 'LLL'].map((w, i) => ({...freshAttempt(p), board: {word: w}, moves: i}))};
+  assert.ok(!isSolved(p, a.board));
+  const out = html(p, a);
+  assert.equal((out.match(/<button type="button" class="ll-lamp/g) || []).length, 9, 'drawn on the longer street');
+  assert.match(out, /aria-label="Light lantern −4"/);
+  assert.deepEqual(nextHint(p, a), {type: 'deadend', quiet: true, text: 'Too few moves are left. Undo.'});
+  assert.equal(move(p, a, tap(1)).board.word, 'LLLLR', 'it plays on the longer street');
+  assert.equal(undo(a).board.word, 'LLL');
+  assert.equal((html(p, undo(a)).match(/<button type="button" class="ll-lamp/g) || []).length, 7, 'back on the street of −3 … 3');
+  // The store loads with it.
+  const store = {...emptyStore(), activeProfileId: 'one', profiles: [profile({[p.id]: a})]}, storage = memory();
+  assert.equal(persistStore(storage, store, puzzles), '');
+  const loaded = loadStore(storage, puzzles);
+  assert.equal(loaded.warning, '');
+  assert.equal(loaded.store.profiles[0].attempts[p.id].board.word, 'LLLL');
 });
 
 test('hints name the next move of a shortest finish in words, and mark its lantern', () => {

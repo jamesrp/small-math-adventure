@@ -104,14 +104,21 @@ function movePuzzle(p, b, action) {
   return go(q, at(q, b.word), action.dir) ? {word: b.word + action.dir} : null;
 }
 // Hints: the next move of a shortest finish within the moves left, searched
-// from where the car is; Undo when no finish fits.
+// from where the car is; Undo when no finish fits. The budget is the fewest
+// moves, so every wasted move is a dead end at once: while outlines are left
+// it is told only behind Hint (quiet), or the line would say after each move
+// whether it was right (on a farthest puzzle, which level to top out at).
+// Once the outlines are full, the line says what is wrong with the trip.
 function plan(p, b) {
   const q = p.parameters, place = at(q, b.word), left = q.budget - b.word.length;
   if (fewest(q, place) <= left) {
     const dir = nextMove(q, place);
     return {type: 'move', action: {type: 'move', dir}, text: moveWords(dir, place[1], true)};
   }
-  return {type: 'deadend', text: !b.word.length ? 'Restart.' : q.farthest ? 'Some trip goes farther. Undo.' : 'Too few moves are left. Undo.'};
+  if (!b.word.length) return {type: 'deadend', text: 'Restart.'};
+  if (left) return {type: 'deadend', quiet: true, text: q.farthest ? 'Some trip goes farther. Undo.' : 'Too few moves are left. Undo.'};
+  if (!q.farthest) return {type: 'deadend', text: 'The car isn’t at the flag. Undo.'};
+  return {type: 'deadend', text: place[1] ? 'The car isn’t on the ground. Undo.' : 'Some trip goes farther. Undo.'};
 }
 function hintPuzzle(p, b) {
   if (!validPuzzle(p, b)) return {type: 'deadend', text: 'Restart.'};
@@ -165,7 +172,9 @@ function boardHtml(q, word, {target = null, solved = false, open = true, hinted 
   const steps = levels.map(h => `<span style="top:${levelY(q, h)}px">${stepAt(h)}</span>`).join('');
   const dots = levels.map(h => `<line class="elv-level${h ? '' : ' ground'}" x1="0" x2="100%" y1="${levelY(q, h)}" y2="${levelY(q, h)}"/>${Array.from({length: n}, (_, i) => `<circle class="elv-dot" cx="${pct(q, q.xmin + i)}" cy="${levelY(q, h)}" r="${n > 40 ? 1.4 : 2.1}"/>`).join('')}`).join('');
   const coords = Array.from({length: n}, (_, i) => q.xmin + i).filter(x => x % every === 0).map(x => `<text class="elv-coord" x="${pct(q, x)}" y="${boardHeight(q) - 6}">${String(x).replace('-', '−')}</text>`).join('');
-  const rings = open ? DIRS.map(dir => [dir, go(q, place, dir)]).filter(([, to]) => to).map(([dir, [x, h]]) => `<circle class="elv-dest${hinted === dir ? ' hinted' : ''}" data-dir="${dir}" cx="${pct(q, x)}" cy="${levelY(q, h)}" r="7"/>`).join('') : '';
+  // The ring on the flag is marked, so a tap on the flag's cloth goes there:
+  // on a dense board the car covers a ring one dot away.
+  const rings = open ? DIRS.map(dir => [dir, go(q, place, dir)]).filter(([, to]) => to).map(([dir, [x, h]]) => `<circle class="elv-dest${hinted === dir ? ' hinted' : ''}" data-dir="${dir}"${x === target && !h ? ' data-flag=""' : ''} cx="${pct(q, x)}" cy="${levelY(q, h)}" r="7"/>`).join('') : '';
   const flag = target === null ? '' : flagHtml(q, target);
   const max = Math.max(320, n * 28 + 40);
   return `<div class="elv-field${solved ? ' solved' : ''}" style="--elv-max:${max}px" tabindex="0" role="application" data-focus="elevator-board" aria-label="${esc(label)}"><div class="elv-steps" aria-hidden="true">${steps}</div><svg class="elv-svg" data-elv-svg width="100%" height="${boardHeight(q)}" aria-hidden="true">${dots}${coords}${flag}${trailHtml(q, path, word)}${rings}${carHtml(q, place)}</svg></div>`;
@@ -199,7 +208,8 @@ function renderPlay(p, attempt) {
 
 // Gestures: arrow keys anywhere on the board or its buttons, and a tap on the
 // board goes to the ringed place nearest the tap (the car itself is a
-// candidate too, so a tap on the car does nothing). The move that produced
+// candidate too, so a tap on the car does nothing; the flag's cloth stands
+// for a ring on the flag, which the car may cover). The move that produced
 // this render slides the car from where it was, along the arc for a step.
 const KEYS = {ArrowUp: 'U', ArrowDown: 'D', ArrowLeft: 'L', ArrowRight: 'R'};
 const reach = 34;
@@ -219,6 +229,8 @@ function wire(root, p, api) {
     const car = root.querySelector('.elv-here');
     const options = [...root.querySelectorAll('.elv-dest')].map(el => [el.dataset.dir, centre(el)]);
     if (car) options.push([null, centre(car)]);
+    const flagRing = root.querySelector('.elv-dest[data-flag]'), cloth = root.querySelector('.elv-flag-cloth');
+    if (flagRing && cloth) options.push([flagRing.dataset.dir, centre(cloth)]);
     let best = null, near = reach;
     for (const [dir, [x, y]] of options) { const d = Math.hypot(e.clientX - x, e.clientY - y); if (d < near) { best = dir; near = d; } }
     if (best && legal(best)) api.apply({type: 'move', dir: best});

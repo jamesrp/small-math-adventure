@@ -538,7 +538,7 @@
    "idea": "Going past the flag and stepping back is shorter: 24 − 1 takes ten moves, while trips with no left step need eleven.",
    "prerequisites": "Farthest in nine.",
    "hints": [
-    "Try going past the flag.",
+    "Which number near 23 is quick to reach?",
     "Twenty-four is three steps of 8.",
     "Go to 24 on the ground, then step left."
    ],
@@ -592,7 +592,7 @@
    "idea": "With eleven moves, topping out at level H reaches (11 − 2H)·2^H: 11, 18, 28, 40, 48, 32. Level 4 wins, at 48.",
    "prerequisites": "Farthest in nine.",
    "hints": [
-    "Is the highest level always the farthest?",
+    "Try topping out at each level.",
     "Topping out at level 4 leaves three steps of 16.",
     "Go up four times, step right three times, come down four times."
    ],
@@ -644,7 +644,7 @@
    "idea": "47 = 48 − 1: twelve moves with a step back, against fourteen without.",
    "prerequisites": "Twenty-three and Farthest in eleven.",
    "hints": [
-    "Where did the last puzzle end?",
+    "Which number near 47 is quick to reach?",
     "Forty-eight is three steps of 16.",
     "Go to 48 on the ground, then step left."
    ],

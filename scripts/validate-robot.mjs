@@ -211,6 +211,8 @@ export default async function validateRobot() {
     const wrong = [...words(1), ...words(2)].map(w => go(p, fresh, w)).find(a => a && nextHint(p, a).type === 'deadend');
     assert.ok(wrong, `${label}: one or two moves can waste the budget`);
     assert.match(nextHint(p, wrong).text, /Undo/, `${label}: a wasted move says Undo`);
+    // With boxes left it is told only behind Hint, or the line would judge each move.
+    assert.equal(nextHint(p, wrong).quiet, wrong.board.walk.length < q.budget ? true : undefined, `${label}: a wasted move with boxes left is quiet`);
     assert.equal(nextHint(p, undoToSolvable(p, wrong)).type, 'move', `${label}: Undo finds a finish again`);
     hintSteps += hintRun(p, undoToSolvable(p, wrong), `${label} after a wasted move`);
     let spent = null;
@@ -220,6 +222,7 @@ export default async function validateRobot() {
     }
     assert.ok(spent, `${label}: a spent budget`);
     assert.equal(nextHint(p, spent).type, 'deadend', `${label}: a spent budget is a dead end`);
+    assert.ok(!nextHint(p, spent).quiet && /^(Memory −?\d+, not −?\d+|The robot isn’t on the flag)\. Undo\.$/.test(nextHint(p, spent).text), `${label}: full boxes say what is wrong at once`);
     hintSteps += hintRun(p, undoToSolvable(p, spent), `${label} after Undo from a spent budget`);
 
     // Illegal moves: two blocks, a diagonal, off the board, past the budget,

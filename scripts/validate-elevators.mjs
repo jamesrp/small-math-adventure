@@ -199,10 +199,13 @@ export default async function validateElevators() {
     let wasted = play(p, fresh, waste);
     assert.equal(nextHint(p, wasted).type, 'deadend', `${label}: a wasted move is a dead end`);
     assert.match(nextHint(p, wasted).text, /Undo\.$/);
+    // With outlines left it is told only behind Hint, or the line would judge each move.
+    assert.equal(nextHint(p, wasted).quiet, true, `${label}: a wasted move with outlines left is quiet`);
     hintSteps += hintRun(p, undoToSolvable(p, wasted), `${label} after Undo`);
     while (wasted.board.word.length < q.budget) wasted = play(p, wasted, ['U', 'R', 'D', 'L'].find(dir => play(p, wasted, dir)));
     assert.ok(!isSolved(p, wasted.board));
     assert.equal(nextHint(p, wasted).type, 'deadend', `${label}: a spent budget is a dead end`);
+    assert.ok(!nextHint(p, wasted).quiet && /^(The car isn’t (at the flag|on the ground)|Some trip goes farther)\. Undo\.$/.test(nextHint(p, wasted).text), `${label}: full outlines say what is wrong at once`);
     hintSteps += hintRun(p, undoToSolvable(p, wasted), `${label} after Undo from a spent budget`);
 
     // Illegal moves: down from the ground, up from the top level, off the

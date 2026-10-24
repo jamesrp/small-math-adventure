@@ -147,14 +147,20 @@ function move(p, b, action) {
   return d ? {walk: b.walk + d} : null;
 }
 // Hints: the next move of a shortest finish within the moves left, searched
-// from where the robot is now; Undo when no finish fits.
+// from where the robot is now; Undo when no finish fits. The budget is the
+// fewest moves, so every move off a shortest walk is a dead end at once: while
+// boxes are left it is told only behind Hint (quiet), or the line would say
+// after each move whether it was right. Once the boxes are full, the line
+// says what is wrong.
 function hint(p, b) {
   if (playground(p)) return {type: 'note'};
   if (!valid(p, b)) return {type: 'deadend', text: 'Restart.'};
   if (solved(p, b)) return {type: 'done'};
-  const q = p.parameters, s = stateOf(q, b.walk), rest = finish(q, s, q.budget - b.walk.length);
-  if (!rest) return {type: 'deadend', text: 'Too few moves are left. Undo.'};
-  return {type: 'move', action: goTo(step(s, rest[0])), text: `Move ${NAMES[rest[0]]}.`};
+  const q = p.parameters, s = stateOf(q, b.walk), left = q.budget - b.walk.length, rest = finish(q, s, left);
+  if (rest) return {type: 'move', action: goTo(step(s, rest[0])), text: `Move ${NAMES[rest[0]]}.`};
+  if (left) return {type: 'deadend', quiet: true, text: `${plural(left, 'move')} can’t reach the flag with memory ${minus(q.goal)} from here. Undo.`};
+  const onFlag = s[0] === q.flag[0] && s[1] === q.flag[1];
+  return {type: 'deadend', text: onFlag ? `Memory ${minus(s[2])}, not ${minus(q.goal)}. Undo.` : 'The robot isn’t on the flag. Undo.'};
 }
 
 // Drawing. The board is a grid of squares whose corners are the street

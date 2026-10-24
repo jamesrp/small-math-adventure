@@ -121,11 +121,23 @@ export function shortestWord(q, s) {
   return word;
 }
 
+// Streets ran from −4 to 4 until October 23, 2026, and now run from −3 to 3:
+// no shortest word goes past ±3, and seven lanterns are wide enough to tap on
+// a phone. A save made on the longer street that walked to −4 or 4 (always a
+// dead end) still loads, and is drawn and played on the longer street, so
+// Undo can take it back; a store with one unreadable save would not load.
+const longer = new WeakMap();
+export function viewOf(q, word) {
+  if (q.geometry !== 'street' || (q.min <= -4 && q.max >= 4) || replay(q, word)) return q;
+  if (!longer.has(q)) longer.set(q, {...q, min: Math.min(q.min, -4), max: Math.max(q.max, 4)});
+  return replay(longer.get(q), word) ? longer.get(q) : q;
+}
+
 // The save: the move word, at most the budget, replaying on the board.
 const budgetOf = p => p.parameters.budget;
 function valid(p, b) {
   if (!object(b) || Object.keys(b).join() !== 'word' || typeof b.word !== 'string' || b.word.length > budgetOf(p)) return false;
-  const q = p.parameters, g = boardOf(q), goal = goalOf(q);
+  const q = viewOf(p.parameters, b.word), g = boardOf(q), goal = goalOf(q);
   let s = startOf(q);
   for (const c of b.word) {
     // Nothing follows a solve.
@@ -135,10 +147,10 @@ function valid(p, b) {
   }
   return true;
 }
-const solved = (p, b) => valid(p, b) && sameState(replay(p.parameters, b.word), goalOf(p.parameters));
+const solved = (p, b) => { if (!valid(p, b)) return false; const q = viewOf(p.parameters, b.word); return sameState(replay(q, b.word), goalOf(q)); };
 function move(p, b, action) {
   if (!valid(p, b) || solved(p, b) || !object(action) || b.word.length >= budgetOf(p)) return null;
-  const q = p.parameters, g = boardOf(q), k = action.lantern;
+  const q = viewOf(p.parameters, b.word), g = boardOf(q), k = action.lantern;
   if (!Number.isInteger(k) || k < 0 || k >= g.n) return null;
   const letter = letterTo(g, replay(q, b.word).at, k);
   return letter ? {word: b.word + letter} : null;
@@ -149,12 +161,20 @@ const WALKS = {street: {L: 'Walk left', R: 'Walk right'}, ring: {L: 'Walk anticl
 export const moveWords = (q, s, letter) => letter === 'F' ? (s.lit >> s.at & 1 ? 'Put out this lantern' : 'Light this lantern') : WALKS[q.geometry][letter];
 
 // Hints: the next move of a shortest finish within the moves left, the
-// lantern underfoot first; Undo when no finish fits.
+// lantern underfoot first; Undo when no finish fits. The budget is the fewest
+// moves, so every wasted move is a dead end at once: while outlines are left
+// it is told only behind Hint (quiet), or the line would say after each move
+// whether it was right ("which end first?" would become "try a step"). Once
+// the outlines are full, the line says what is wrong.
 function plan(p, b) {
-  const q = p.parameters, g = boardOf(q), s = replay(q, b.word), left = budgetOf(p) - b.word.length, d = fewestFrom(q, s);
-  if (d < 0 || d > left) return {type: 'deadend', text: b.word.length ? 'Too few moves are left. Undo.' : 'Restart.'};
-  const letter = shortestWord(q, s)[0], t = step(g, s, letter);
-  return {type: 'move', action: {lantern: t.at}, remaining: d, text: `${moveWords(q, s, letter)}.`};
+  const q = viewOf(p.parameters, b.word), g = boardOf(q), s = replay(q, b.word), left = budgetOf(p) - b.word.length, d = fewestFrom(q, s);
+  if (d >= 0 && d <= left) {
+    const letter = shortestWord(q, s)[0], t = step(g, s, letter);
+    return {type: 'move', action: {lantern: t.at}, remaining: d, text: `${moveWords(q, s, letter)}.`};
+  }
+  if (!b.word.length) return {type: 'deadend', text: 'Restart.'};
+  if (left) return {type: 'deadend', quiet: true, text: 'Too few moves are left. Undo.'};
+  return {type: 'deadend', text: s.lit === goalOf(q).lit ? 'The lamplighter isn’t where the goal shows. Undo.' : 'The lanterns don’t match the goal. Undo.'};
 }
 function hint(p, b) {
   if (!valid(p, b)) return {type: 'deadend', text: 'Restart.'};
@@ -251,7 +271,7 @@ const litWords = (q, g, mask) => {
 const where = (g, k) => `the lamplighter at ${g.short(k)}`;
 const GROUP = {street: q => `Street, lanterns ${signed(q.min)} to ${signed(q.max)}`, ring: q => `Ring of ${q.size} lanterns, numbered 0 to ${q.size - 1} clockwise from the top`, grid: q => `Grid of ${q.rows} rows and ${q.cols} columns of lanterns`};
 function render(p, attempt) {
-  const q = p.parameters, g = boardOf(q), b = attempt.board, s = replay(q, b.word), done = solved(p, b), budget = budgetOf(p), full = b.word.length >= budget;
+  const b = attempt.board, q = viewOf(p.parameters, b.word), g = boardOf(q), s = replay(q, b.word), done = solved(p, b), budget = budgetOf(p), full = b.word.length >= budget;
   const live = !done && !full;
   const shown = attempt.hintLevel >= 2 && live ? plan(p, b) : null, hinted = shown?.type === 'move' ? shown.action.lantern : null;
   const walkable = live ? [...g.letters].filter(c => c !== 'F').map(c => g.walk[c](s.at)).filter(k => k !== null) : [];
@@ -277,7 +297,7 @@ ${record(q, b.word, budget)}<p class="sr-only" role="status">${esc(status)}</p><
 const KEYS = {ArrowLeft: 'L', ArrowRight: 'R', ArrowUp: 'U', ArrowDown: 'D'};
 let seen = null;
 function wire(root, p, api) {
-  const q = p.parameters, g = boardOf(q);
+  const q = viewOf(p.parameters, api.attempt().board.word), g = boardOf(q);
   root.addEventListener('keydown', e => {
     const letter = KEYS[e.key];
     if (!letter || !g.letters.includes(letter) || e.altKey || e.ctrlKey || e.metaKey) return;

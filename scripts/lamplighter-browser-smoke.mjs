@@ -1,9 +1,11 @@
 // Plays Lamplighter (a group in Lantern Wires) through the real interface:
 // the group in the satchel; a street puzzle by taps, with a far lantern
-// refused, a wasted move answered with Undo and the lamplighter gliding; the
+// refused, lanterns at least 44 px wide on a phone and a tap off-centre on the
+// lantern underfoot lighting it, a wasted move not judged unasked (Hint says
+// Undo) and the lamplighter gliding; the
 // same puzzle solved with the keyboard alone (arrow keys walk, Enter and
 // Space light, focus following the lamplighter); a spent budget with every
-// lantern greyed and the hint saying Undo; the ring with the left arrow key
+// lantern greyed and the line saying what is wrong; the ring with the left arrow key
 // walking anticlockwise round past the top; the grid with all four arrows; a
 // hinted lantern ringed and the puzzle finished by hints. Same environment
 // variables as the other browser suites (PLAYWRIGHT_MODULE,
@@ -43,22 +45,35 @@ try {
   assert.equal(await family.locator('h2', {hasText: 'Lamplighter'}).count(), 1, 'a group in Lantern Wires');
   assert.equal(await family.locator('[data-id^="lamplighter-"]').count(), 12);
 
-  // A street by taps: a far lantern is refused, a wasted move says Undo, the
+  // A street by taps: a far lantern is refused, a tap off-centre on the
+  // lantern underfoot lights it, a wasted move is told only behind Hint, the
   // lamplighter glides.
   const P2 = 'lamplighter-02';
   await open(P2); await fit('both sides'); await shot('02-start');
   assert.equal(await page.locator('.ll-slot').count(), 5);
+  assert.equal(await page.locator('.ll-lamp').count(), 7, 'lanterns −3 to 3');
+  assert.ok((await page.locator('.ll-lamp').first().boundingBox()).width >= 44, 'lanterns at least 44 px wide');
   assert.equal(await page.locator('.ll-lamp:not([aria-disabled])').count(), 3, 'the lantern underfoot and its two neighbours');
   await tap(lamp('Lantern 3'));
   assert.equal(await word(P2), '', 'a far lantern is refused');
   assert.equal(await page.locator('.feedback').innerText(), '', 'quietly');
+  const home = await lamp('Light lantern 0').boundingBox(), [hx, hy] = [home.x + home.width / 2 - 19, home.y + home.height / 2];
+  if (phone) await page.touchscreen.tap(hx, hy); else await page.mouse.click(hx, hy);
+  await page.waitForTimeout(300);
+  assert.equal(await word(P2), 'F', 'a tap 19 px left of the lantern underfoot lights it');
+  await button('↶ Undo').click();
+  assert.equal(await word(P2), '');
   await tap(lamp('Walk to lantern 1'));
   assert.equal(await word(P2), 'R');
   if (!await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches)) assert.ok(await page.evaluate(() => document.getAnimations().length > 0), 'the lamplighter glides');
-  await page.locator('.feedback', {hasText: 'Too few moves are left. Undo.'}).waitFor();
+  await page.waitForTimeout(300);
+  assert.equal(await page.locator('.feedback').innerText(), '', 'a wasted move is not judged unasked');
+  await button('Hint').click();
+  await page.locator('.hint-card', {hasText: 'Too few moves are left. Undo.'}).waitFor();
   await shot('02-wasted');
   await button('↶ Undo').click();
   assert.equal(await word(P2), '');
+  await button('Restart').click();
   await tap(lamp('Walk to lantern −1')); await tap(lamp('Light lantern −1'));
   assert.equal(await page.locator('.ll-move').count(), 2, 'two moves recorded');
   assert.equal(await page.locator('.ll-slot').count(), 3);
@@ -83,16 +98,18 @@ try {
   await solved();
   assert.equal(await word(P3), 'FRRFLL');
 
-  // A spent budget: every lantern greys, the hint says Undo, Undo rescues.
+  // A spent budget: every lantern greys, the line says what is wrong at once,
+  // the hint says it too, Undo rescues.
   const P1 = 'lamplighter-01';
   await open(P1);
   await tap(lamp('Walk to lantern −1')); await tap(lamp('Walk to lantern 0'));
   assert.equal(await word(P1), 'LR');
   assert.equal(await page.locator('.ll-lamp:not([aria-disabled])').count(), 0, 'no move past the budget');
+  await page.locator('.feedback', {hasText: 'The lanterns don’t match the goal. Undo.'}).waitFor();
   await tap(lamp('Lantern 1'));
   assert.equal(await word(P1), 'LR');
   await button('Hint').click(); await button('Hint').click();
-  await page.locator('.hint-card', {hasText: 'Too few moves are left. Undo.'}).waitFor();
+  await page.locator('.hint-card', {hasText: 'The lanterns don’t match the goal. Undo.'}).waitFor();
   await shot('01-spent');
   await page.locator('.hint-card').getByRole('button', {name: 'Undo'}).click();
   assert.equal(await word(P1), '', 'Undo goes back to a board that can still finish');
@@ -106,7 +123,8 @@ try {
   assert.equal(await focusedLabel(), 'Light lantern 7', 'anticlockwise from the top is lantern 7');
   await page.keyboard.press('ArrowRight');
   assert.equal(await word(P10), 'LR');
-  await page.locator('.feedback', {hasText: 'Undo'}).waitFor();
+  await page.waitForTimeout(300);
+  assert.equal(await page.locator('.feedback').innerText(), '', 'there and back is not judged unasked');
   await button('↶ Undo').click(); await button('↶ Undo').click();
   await shot('10-ring');
   await hintSolve(); await fit('ring solved'); await shot('10-solved');

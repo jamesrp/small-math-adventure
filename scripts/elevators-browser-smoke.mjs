@@ -1,8 +1,9 @@
 // Plays Doubling elevators through the real interface: the move buttons and
 // their names, taps on the rings and elsewhere on the board, arrow keys, moves
 // refused at the ground, the top level and the edge of the window, the move
-// slots, Undo, a dead end, a farthest puzzle, a solve by hints and the
-// playground with Clear. Same environment variables as the other browser
+// slots, Undo, a dead end told only behind Hint until the slots are full, a
+// farthest puzzle, a tap on the flag, a solve by hints and the playground
+// with Clear. Same environment variables as the other browser
 // suites (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a
 // phone viewport with touch). Screenshots go in test-results/elevators/.
 import assert from 'node:assert/strict';
@@ -61,7 +62,7 @@ try {
   assert.equal(await button('Up').isDisabled(), true, 'the top level');
   assert.equal(await button('Right 2').isEnabled(), false, 'the budget is spent');
   assert.equal(await page.locator('.elv-dest').count(), 0, 'no rings once the budget is spent');
-  await page.getByText('Too few moves are left. Undo.').waitFor();
+  await page.locator('.feedback', {hasText: 'The car isn’t at the flag. Undo.'}).waitFor();
   await page.locator('[data-action="undo"]').click();
   assert.equal(await word(P1), 'RR');
   await button('Right 1').click();
@@ -100,14 +101,17 @@ try {
   await page.locator('#completion-heading').waitFor({timeout: 5000});
   assert.equal(await word(P5), 'UURRRRDD', 'the other eight-move trip solves too');
 
-  // Twenty-three: a wasted move is a dead end; the hint marks the move, and hints finish.
+  // Twenty-three: a wasted move is a dead end told only behind Hint; the hint
+  // marks the move, and hints finish.
   const P9 = 'elevators-09';
   await open(P9);
   await button('Right 1').click();
-  await page.getByText('Too few moves are left. Undo.').waitFor();
-  await page.locator('[data-action="undo"]').click();
+  await page.waitForTimeout(300);
+  assert.equal(await page.locator('.feedback').innerText(), '', 'a wasted move is not judged unasked');
   await button('Hint').click();
-  await page.getByText('Try going past the flag.').waitFor();
+  await page.locator('.hint-card', {hasText: 'Too few moves are left. Undo.'}).waitFor();
+  await page.locator('[data-action="undo"]').click();
+  await page.locator('.hint-card', {hasText: 'Which number near 23 is quick to reach?'}).waitFor();
   await button('Hint').click();
   await page.locator('.hint-card').getByText('Go up.').waitFor();
   assert.equal(await page.locator('.elv-move.hinted').getAttribute('aria-label'), 'Up');
@@ -119,11 +123,19 @@ try {
   assert.equal(await word(P9), 'UUURRRDDDL');
   await fit('twenty-three solved'); await shot('09-solved');
 
-  // Farthest in nine: one line of goal, no flag; 20 on the ground is not enough.
+  // Farthest in nine: one line of goal, no flag; topping out too high is not
+  // judged unasked (it is the puzzle's decision); 20 on the ground is not enough.
   const P8 = 'elevators-08';
   await open(P8);
   assert.equal((await page.locator('.puzzle-goal').innerText()).trim(), 'Go as far right as you can.');
   assert.equal(await page.locator('.elv-flag').count(), 0);
+  await page.locator('.elv-field').focus();
+  await keys('UUUU');
+  await page.waitForTimeout(300);
+  assert.equal(await word(P8), 'UUUU');
+  assert.equal(await page.locator('.feedback').innerText(), '', 'level 4 is not judged unasked');
+  for (let i = 0; i < 4; i++) await page.locator('[data-action="undo"]').click();
+  assert.equal(await word(P8), '');
   await page.locator('.elv-field').focus();
   await keys('UURRRRRDD');
   assert.equal(await solved(), 0, 'ending at 20 does not solve');
@@ -136,9 +148,18 @@ try {
   await page.locator('#completion-heading').waitFor({timeout: 5000});
   await fit('farthest solved'); await shot('08-solved');
 
-  // Sixty-three on the densest board: hints alone.
+  // Sixty-three on the densest board: at 64 the car covers the ring on the
+  // flag, so a tap on the flag's cloth steps there. Then hints alone.
   const P12 = 'elevators-12';
   await open(P12); await fit('sixty-three');
+  await page.locator('.elv-field').focus();
+  await keys('UUUUURRDDDDD');
+  assert.equal(await word(P12), 'UUUUURRDDDDD');
+  await shot('12-at-64');
+  await tap(page.locator('.elv-flag-cloth'));
+  await page.locator('#completion-heading').waitFor({timeout: 5000});
+  assert.equal(await word(P12), 'UUUUURRDDDDDL', 'the flag stands for the ring on it');
+  await button('Replay').click();
   await hintSolve();
   assert.equal((await word(P12)).length, 13);
   await shot('12-solved');
