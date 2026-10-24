@@ -225,7 +225,7 @@ const dirOf = ([u, v]) => { const g = gcd(u, v); return [u / g, v / g]; };
 function shownCopies(p, a) {
   const html = mechanicFor(p).render(p, {...a, hintLevel: 0});
   const shown = [...html.matchAll(/data-pb-point="(-?\d+),(-?\d+)" data-pb-view="plane" role="button"/g)].map(m => [Number(m[1]), Number(m[2])]);
-  const ask = html.match(/class="sh-prompt">Tap (\d+) shots/);
+  const ask = html.match(/class="ps-prompt">Tap (\d+) shots/);
   return {shown, need: ask ? Number(ask[1]) : 0, html};
 }
 // The first two of the chosen shots, in the order chosen, that share a point.
@@ -486,7 +486,7 @@ function checkPicks(p, claim, need) {
     if (!crossTold) {
       crossTold = true;
       const html = mechanicFor(p).render(p, {...next, hintLevel: 0});
-      assert.ok(html.includes('Those two cross.') && html.includes('sh-clash'), `${p.id}: the crossings are told and ringed`);
+      assert.ok(html.includes('Those two cross.') && html.includes('ps-clash'), `${p.id}: the crossings are told and ringed`);
       n += hintsSolve(p, next, 'after crossing shots');
     }
   }
@@ -528,7 +528,7 @@ function checkRandomSets(p, fresh, row, best, shots) {
     assert.equal(status.includes('No shot gets through.'), blocked, `${p.id}: ${JSON.stringify(set)} ${blocked ? 'stops' : 'lets through'} every shot`);
     if (!blocked) {
       // The shot the app fires really gets through.
-      const named = planeOf(html).match(/class="sh-shot escape" x1="0" y1="0" x2="(-?[\d.]+)" y2="(-?[\d.]+)"/);
+      const named = planeOf(html).match(/class="ps-shot escape" x1="0" y1="0" x2="(-?[\d.]+)" y2="(-?[\d.]+)"/);
       assert.ok(named, `${p.id}: a shot is drawn getting through`);
       const end = [Number(named[1]), 0 - Number(named[2])], g = gcd(end[0], end[1]), d = [end[0] / g, end[1] / g];
       assert.deepEqual(trace(T, d).plane, end, `${p.id}: the drawn shot ends at its first ${T ? 'T' : 'S'}`);
@@ -627,12 +627,12 @@ function checkPlayground(p, fresh) {
     const goal = r.T || [0, 0];
     // Aim at the copies two right, two up: the shot stops at its first target.
     const far = [goal[0] + 16, goal[1] + 16], shot = play(p, a, {type: 'aim', at: far});
-    const html = planeOf(M.render(p, {...shot, hintLevel: 0})), line = html.match(/class="sh-shot (escape|stopped)" x1="0" y1="0" x2="(-?[\d.]+)" y2="(-?[\d.]+)"/);
+    const html = planeOf(M.render(p, {...shot, hintLevel: 0})), line = html.match(/class="ps-shot (escape|stopped)" x1="0" y1="0" x2="(-?[\d.]+)" y2="(-?[\d.]+)"/);
     const g = gcd(far[0], far[1]), d = [far[0] / g, far[1] / g];
     assert.deepEqual([Number(line[2]), 0 - Number(line[3])], trace(r.T, d).plane, `${p.id}: ${name}: a shot aimed at ${far} stops at its first ${r.T ? 'T' : 'S'}`);
     // A shield on its first cross stops it there.
     const c = trace(r.T, d).crosses[0].split(',').map(Number), stopped = play(p, shot, {type: 'shield', at: c});
-    const line2 = planeOf(M.render(p, {...stopped, hintLevel: 0})).match(/class="sh-shot stopped" x1="0" y1="0" x2="(-?[\d.]+)" y2="(-?[\d.]+)"/);
+    const line2 = planeOf(M.render(p, {...stopped, hintLevel: 0})).match(/class="ps-shot stopped" x1="0" y1="0" x2="(-?[\d.]+)" y2="(-?[\d.]+)"/);
     assert.ok(line2, `${p.id}: ${name}: a stopped shot`);
     // Aims past the limit drop the oldest.
     let many = a;

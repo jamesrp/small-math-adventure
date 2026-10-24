@@ -1,6 +1,6 @@
 // Plays Portal rooms through the real interface on the shared portal board:
 // steps by tapping squares in the room and in the unrolled view, the arrow
-// pad, arrow keys, Enter on a square, finger slides in both views, Undo, a
+// pad (drawn as a cross), arrow keys, Enter on a square, finger slides in both views, Undo, a
 // walk to stars through other copies and back, beads and Can't, every square
 // with Found already, There is another and That's all, the two-pawn trade
 // with its gap, corner and erase discs, any route in puzzle 10, hints marked
@@ -80,6 +80,12 @@ try {
   await tap(plane(3, 1));
   assert.equal((await board(A)).trip, 'RR', 'a tap on the next square in the unrolled view, across the portal');
   assert.equal(await page.locator('.pb-room .pb-trail-portal').count(), 2, 'the room’s trail breaks at the portal');
+  // The pad is a cross: up above, left and right either side, down below, all
+  // 48 px (pb-cross keeps another family's .pb-pad rules off it).
+  { const [u, l, r, d] = await Promise.all(['U', 'L', 'R', 'D'].map(k => arrow(k).boundingBox()));
+    assert.ok(u.y + u.height <= l.y + 1 && Math.abs(l.y - r.y) < 1 && r.y + r.height <= d.y + 1, 'up above left and right, down below');
+    assert.ok(l.x + l.width <= u.x + 1 && u.x + u.width <= r.x + 1 && Math.abs(u.x - d.x) < 1, 'left and right either side of up and down');
+    assert.ok([u, l, r, d].every(b => b.width >= 44 && b.height >= 44), 'arrows at least 44 px'); }
   await tap(arrow('R'));
   assert.equal((await board(A)).trip, 'RRR', 'an arrow');
   await arrow('U').focus(); await page.keyboard.press('ArrowUp');

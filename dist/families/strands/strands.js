@@ -542,7 +542,9 @@ const crossingWords = n => `${n} ${n === 1 ? 'crossing' : 'crossings'}`;
 
 // A claim being made: Done (or Can't) pressed on this very board, with no refusal waiting.
 const claimingNow = (p, b) => b.told === null && uiOf(p).claim === JSON.stringify(b) && !solved(p, b);
-const uiButton = (label, payload, focus, opts = {}) => `<button type="button" class="secondary st-button${opts.hinted ? ' hinted' : ''}" data-action="mechanic-ui" data-ui="${esc(JSON.stringify(payload))}" data-focus="${focus}"${opts.disabled ? ' disabled' : ''}>${label}</button>`;
+// Done or Can't, and Back in its place, are one slot: a quick double tap
+// doesn't open the claim and close it again (data-toggle, dist/main.js).
+const uiButton = (label, payload, focus, opts = {}) => `<button type="button" class="secondary st-button${opts.hinted ? ' hinted' : ''}" data-action="mechanic-ui" data-ui="${esc(JSON.stringify(payload))}" data-focus="${focus}"${opts.toggle ? ` data-toggle="${opts.toggle}"` : ''}${opts.disabled ? ' disabled' : ''}>${label}</button>`;
 function renderUntangle(p, b, done, act) {
   const q = p.parameters, C = cylOf(q), [xr, xb] = routesOf(p, b), cross = crossings(C, xr, xb), walls = barriers(...q.w);
   const claiming = !done && claimingNow(p, b), moving = !done && !claiming, picks = done ? walls : claiming ? uiOf(p).picks : [];
@@ -565,8 +567,8 @@ function renderUntangle(p, b, done, act) {
   // With no crossings there is no certificate to pick. Otherwise Done starts
   // the claim; That's all sends it with the copies tapped, and Back leaves it.
   let bar = '';
-  if (moving) bar = `<div class="st-bar st-slots"><span></span>${cross.length === 0 ? button('Done', {type: 'done', copies: []}, {disabled: b.told !== null, hinted: Boolean(claimHint)}) : uiButton('Done', {claim: JSON.stringify(b)}, 'st-claim', {disabled: b.told !== null, hinted: Boolean(claimHint)})}<span></span></div>`;
-  if (claiming) bar = `<div class="st-bar st-slots"><span></span>${uiButton('Back', {claim: null}, 'st-back')}${button('That’s all', {type: 'done', copies: [...picks].sort((x, y) => x - y)}, {hinted: Boolean(claimHint)})}</div>`;
+  if (moving) bar = `<div class="st-bar st-slots"><span></span>${cross.length === 0 ? button('Done', {type: 'done', copies: []}, {disabled: b.told !== null, hinted: Boolean(claimHint)}) : uiButton('Done', {claim: JSON.stringify(b)}, 'st-claim', {disabled: b.told !== null, hinted: Boolean(claimHint), toggle: 'st-claim'})}<span></span></div>`;
+  if (claiming) bar = `<div class="st-bar st-slots"><span></span>${uiButton('Back', {claim: null}, 'st-back', {toggle: 'st-claim'})}${button('That’s all', {type: 'done', copies: [...picks].sort((x, y) => x - y)}, {hinted: Boolean(claimHint)})}</div>`;
   const told = claiming ? 'Tap each red copy that blue must cross, then press That’s all.' : b.told === 'fewer' ? 'There is a way with fewer.' : b.told === 'copies' ? 'Those aren’t the copies blue must cross.' : b.told === 'none' ? 'Blue must cross some copy of red.' : '';
   const status = `${crossingWords(cross.length)}. Red ends at the B ${copyWords(q.w[0])}, blue at the B ${copyWords(q.w[1])}.${claiming ? ` ${picks.length} ${picks.length === 1 ? 'copy' : 'copies'} tapped.` : ''}${told ? ` ${told}` : ''}`;
   return frame(done, bar, lift, room, told, status);
@@ -631,7 +633,7 @@ function renderDesign(p, b, done, act) {
   const lift = liftView(p, C, {cls: 'design', pad: 1.6, over: over + marks, top: done ? '' : band(C, 1.2)});
   let bar = `<div class="st-top"><div class="st-pairs">${PAIRS.map((_, i) => pairChip(q, b.w, i)).join('')}</div></div>`;
   // Can't starts the claim; tapping a strand sends it.
-  const cant = claiming ? uiButton('Back', {claim: null}, 'st-back') : uiButton('Can’t', {claim: JSON.stringify(b)}, 'st-claim', {disabled: !b.tried || b.told !== null, hinted: act?.type === 'cant'});
+  const cant = claiming ? uiButton('Back', {claim: null}, 'st-back', {toggle: 'st-claim'}) : uiButton('Can’t', {claim: JSON.stringify(b)}, 'st-claim', {disabled: !b.tried || b.told !== null, hinted: act?.type === 'cant', toggle: 'st-claim'});
   if (!done) bar += `<div class="st-bar">${endButtons(b.w, {pick: claiming, sel, hinted})}${cant}</div>`;
   const told = claiming ? 'Tap the strand whose end is in the middle.' : b.told === 'way' ? 'There is a way.' : b.told === 'two' ? 'First get two pairs right, with every end at a different B.' : b.told === 'miss' ? 'Its end isn’t between the other two.' : '';
   const counts = pairCounts(b.w);

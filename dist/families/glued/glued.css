@@ -4,122 +4,122 @@
    one straight line with its beads. Stacked on a phone, side by side when
    there is room. Trips are sun, sky and rose in order; corner groups take
    the child's own colours in the order they were made. */
-.gl-puzzle{container-type:inline-size;display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%}
-.gl-bar,.gl-play-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .9rem;max-width:100%}
-.gl-stage{display:flex;flex-direction:column;align-items:center;gap:.7rem;width:100%;max-width:820px}
-.gl-room-view{width:100%;max-width:330px;min-width:0}
-.gl-trips{display:flex;flex-direction:column;align-items:center;gap:.6rem;width:100%;min-width:0}
-.gl-trip{display:flex;flex-direction:column;align-items:center;gap:.25rem;width:100%;min-width:0}
-.gl-head{display:flex;align-items:center;gap:.45rem;min-height:26px}
-.gl-strip-view{width:100%;max-width:min(100%,calc(var(--sq,58px) * var(--w,3)));min-width:0}
-.gl-stage.two .gl-strip-view{--sq:46px}
-.gl-corner-stage{display:flex;flex-direction:column;align-items:center;gap:.8rem;width:100%;max-width:820px}
-.gl-corners-view{width:100%;max-width:min(100%,calc(270px * var(--a,1)))}
-.gl-stage.play .gl-room-view{max-width:300px}
-.gl-stage.play .gl-strip-view{--sq:110px}
+[data-mechanic-wire="glued"]{container-type:inline-size;display:flex;flex-direction:column;align-items:center;gap:.55rem;width:100%}
+[data-mechanic-wire="glued"] .gl-bar,[data-mechanic-wire="glued"] .gl-play-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem .9rem;max-width:100%}
+[data-mechanic-wire="glued"] .gl-stage{display:flex;flex-direction:column;align-items:center;gap:.7rem;width:100%;max-width:820px}
+[data-mechanic-wire="glued"] .gl-room-view{width:100%;max-width:330px;min-width:0}
+[data-mechanic-wire="glued"] .gl-trips{display:flex;flex-direction:column;align-items:center;gap:.6rem;width:100%;min-width:0}
+[data-mechanic-wire="glued"] .gl-trip{display:flex;flex-direction:column;align-items:center;gap:.25rem;width:100%;min-width:0}
+[data-mechanic-wire="glued"] .gl-head{display:flex;align-items:center;gap:.45rem;min-height:26px}
+[data-mechanic-wire="glued"] .gl-strip-view{width:100%;max-width:min(100%,calc(var(--sq,58px) * var(--w,3)));min-width:0}
+[data-mechanic-wire="glued"] .gl-stage.two .gl-strip-view{--sq:46px}
+[data-mechanic-wire="glued"] .gl-corner-stage{display:flex;flex-direction:column;align-items:center;gap:.8rem;width:100%;max-width:820px}
+[data-mechanic-wire="glued"] .gl-corners-view{width:100%;max-width:min(100%,calc(270px * var(--a,1)))}
+[data-mechanic-wire="glued"] .gl-stage.play .gl-room-view{max-width:300px}
+[data-mechanic-wire="glued"] .gl-stage.play .gl-strip-view{--sq:110px}
 @container (min-width:520px){
-  .gl-stage{flex-direction:row;align-items:center;justify-content:center;gap:1.4rem}
-  .gl-room-view{flex:0 1 360px;max-width:360px}
-  .gl-trips{flex:1 1 0;max-width:460px}
-  .gl-stage.play .gl-room-view{flex-basis:320px}
-  .gl-corner-stage{flex-direction:row;justify-content:center;align-items:center;gap:1.6rem}
-  .gl-corners-view{max-width:min(100%,calc(320px * var(--a,1)))}
+  [data-mechanic-wire="glued"] .gl-stage{flex-direction:row;align-items:center;justify-content:center;gap:1.4rem}
+  [data-mechanic-wire="glued"] .gl-room-view{flex:0 1 360px;max-width:360px}
+  [data-mechanic-wire="glued"] .gl-trips{flex:1 1 0;max-width:460px}
+  [data-mechanic-wire="glued"] .gl-stage.play .gl-room-view{flex-basis:320px}
+  [data-mechanic-wire="glued"] .gl-corner-stage{flex-direction:row;justify-content:center;align-items:center;gap:1.6rem}
+  [data-mechanic-wire="glued"] .gl-corners-view{max-width:min(100%,calc(320px * var(--a,1)))}
 }
 
 /* The squares' letters, dots and trips. */
-.gl-room-letter{font-family:var(--b-display,Georgia,serif);font-size:.34px;text-anchor:middle;fill:#9aa78f;pointer-events:none}
-.gl-puzzle .pb-label.gl-letter{font-size:.3px}
-.gl-puzzle .pb-label.gl-letter.big{font-size:1px}
-.gl-puzzle .pb-label.gl-centre{font-size:.42px;fill:#8c9a82}
-.gl-dot{fill:var(--b-ink,#294439);pointer-events:none}
-.gl-trail{fill:none;stroke-width:4px;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
-.gl-trail.t0{stroke:rgba(190,143,40,.85)}
-.gl-trail.t1{stroke:rgba(79,143,174,.85)}
-.gl-trail.t2{stroke:rgba(196,108,85,.85)}
-.gl-start{fill:none;stroke-width:2.6px;vector-effect:non-scaling-stroke;pointer-events:none}
-.gl-start.t0{stroke:#a87b22}
-.gl-start.t1{stroke:#3d7896}
-.gl-start.t2{stroke:#a9503a}
-.gl-tip{stroke:none;pointer-events:none}
-.gl-tip.t0{fill:#a87b22}
-.gl-tip.t1{fill:#3d7896}
-.gl-tip.t2{fill:#a9503a}
-.gl-block{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:1.6px;vector-effect:non-scaling-stroke;pointer-events:none}
-.gl-block.home{fill:var(--b-ink,#294439)}
-.gl-home{fill:none;stroke-width:3px;vector-effect:non-scaling-stroke;pointer-events:none}
-.gl-home.t0{stroke:#a87b22}
-.gl-home.t1{stroke:#3d7896}
-.gl-home.t2{stroke:#a9503a}
-.gl-stop{fill:none;stroke:var(--b-bad,#a9503a);stroke-width:3px;vector-effect:non-scaling-stroke;stroke-linecap:round;pointer-events:none}
+[data-mechanic-wire="glued"] .gl-room-letter{font-family:var(--b-display,Georgia,serif);font-size:.34px;text-anchor:middle;fill:#9aa78f;pointer-events:none}
+[data-mechanic-wire="glued"] .pb-label.gl-letter{font-size:.3px}
+[data-mechanic-wire="glued"] .pb-label.gl-letter.big{font-size:1px}
+[data-mechanic-wire="glued"] .pb-label.gl-centre{font-size:.42px;fill:#8c9a82}
+[data-mechanic-wire="glued"] .gl-dot{fill:var(--b-ink,#294439);pointer-events:none}
+[data-mechanic-wire="glued"] .gl-trail{fill:none;stroke-width:4px;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+[data-mechanic-wire="glued"] .gl-trail.t0{stroke:rgba(190,143,40,.85)}
+[data-mechanic-wire="glued"] .gl-trail.t1{stroke:rgba(79,143,174,.85)}
+[data-mechanic-wire="glued"] .gl-trail.t2{stroke:rgba(196,108,85,.85)}
+[data-mechanic-wire="glued"] .gl-start{fill:none;stroke-width:2.6px;vector-effect:non-scaling-stroke;pointer-events:none}
+[data-mechanic-wire="glued"] .gl-start.t0{stroke:#a87b22}
+[data-mechanic-wire="glued"] .gl-start.t1{stroke:#3d7896}
+[data-mechanic-wire="glued"] .gl-start.t2{stroke:#a9503a}
+[data-mechanic-wire="glued"] .gl-tip{stroke:none;pointer-events:none}
+[data-mechanic-wire="glued"] .gl-tip.t0{fill:#a87b22}
+[data-mechanic-wire="glued"] .gl-tip.t1{fill:#3d7896}
+[data-mechanic-wire="glued"] .gl-tip.t2{fill:#a9503a}
+[data-mechanic-wire="glued"] .gl-block{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:1.6px;vector-effect:non-scaling-stroke;pointer-events:none}
+[data-mechanic-wire="glued"] .gl-block.home{fill:var(--b-ink,#294439)}
+[data-mechanic-wire="glued"] .gl-home{fill:none;stroke-width:3px;vector-effect:non-scaling-stroke;pointer-events:none}
+[data-mechanic-wire="glued"] .gl-home.t0{stroke:#a87b22}
+[data-mechanic-wire="glued"] .gl-home.t1{stroke:#3d7896}
+[data-mechanic-wire="glued"] .gl-home.t2{stroke:#a9503a}
+[data-mechanic-wire="glued"] .gl-stop{fill:none;stroke:var(--b-bad,#a9503a);stroke-width:3px;vector-effect:non-scaling-stroke;stroke-linecap:round;pointer-events:none}
 
 /* The trip's head: where it starts, its arrow and its beads. */
-.gl-from{display:inline-grid;place-items:center;min-width:26px;height:26px;border-radius:50%;border:2.5px solid currentColor;font:600 .95rem/1 var(--b-display,Georgia,serif);box-sizing:border-box}
-.gl-from.t0{color:#8a6418}
-.gl-from.t1{color:#2f6681}
-.gl-from.t2{color:#8f412f}
-.gl-arrow-icon{display:block;flex:none}
-.gl-arrow-icon line{stroke:var(--b-ink,#294439);stroke-width:2.2px;stroke-linecap:round}
-.gl-arrow-icon polygon{fill:var(--b-ink,#294439)}
-.gl-arrow-icon circle{fill:#a9b39b}
-.gl-beads{display:inline-flex;flex-wrap:wrap;gap:5px;align-items:center}
-.gl-beads i{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;border:2px solid var(--b-pine,#31533e);box-sizing:border-box;background:var(--b-card,#fffdf5);font:600 .62rem/1 var(--b-display,Georgia,serif);font-style:normal;color:var(--b-card,#fffdf5)}
-.gl-beads i.on{background:var(--b-pine,#31533e)}
-.gl-beads i.home{box-shadow:0 0 0 2px var(--b-card,#fffdf5),0 0 0 4px var(--b-ink,#294439)}
-.gl-beads i.extra{border-color:var(--b-bad,#a9503a);background:var(--b-rose,#e7a28f)}
-.gl-beads i.lettered{width:20px;height:20px}
-.gl-beads i.none{width:20px;height:20px;border:2px dashed var(--b-bad,#a9503a);background:linear-gradient(135deg,transparent 45%,var(--b-bad,#a9503a) 45%,var(--b-bad,#a9503a) 55%,transparent 55%)}
+[data-mechanic-wire="glued"] .gl-from{display:inline-grid;place-items:center;min-width:26px;height:26px;border-radius:50%;border:2.5px solid currentColor;font:600 .95rem/1 var(--b-display,Georgia,serif);box-sizing:border-box}
+[data-mechanic-wire="glued"] .gl-from.t0{color:#8a6418}
+[data-mechanic-wire="glued"] .gl-from.t1{color:#2f6681}
+[data-mechanic-wire="glued"] .gl-from.t2{color:#8f412f}
+[data-mechanic-wire="glued"] .gl-arrow-icon{display:block;flex:none}
+[data-mechanic-wire="glued"] .gl-arrow-icon line{stroke:var(--b-ink,#294439);stroke-width:2.2px;stroke-linecap:round}
+[data-mechanic-wire="glued"] .gl-arrow-icon polygon{fill:var(--b-ink,#294439)}
+[data-mechanic-wire="glued"] .gl-arrow-icon circle{fill:#a9b39b}
+[data-mechanic-wire="glued"] .gl-beads{display:inline-flex;flex-wrap:wrap;gap:5px;align-items:center}
+[data-mechanic-wire="glued"] .gl-beads i{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;border:2px solid var(--b-pine,#31533e);box-sizing:border-box;background:var(--b-card,#fffdf5);font:600 .62rem/1 var(--b-display,Georgia,serif);font-style:normal;color:var(--b-card,#fffdf5)}
+[data-mechanic-wire="glued"] .gl-beads i.on{background:var(--b-pine,#31533e)}
+[data-mechanic-wire="glued"] .gl-beads i.home{box-shadow:0 0 0 2px var(--b-card,#fffdf5),0 0 0 4px var(--b-ink,#294439)}
+[data-mechanic-wire="glued"] .gl-beads i.extra{border-color:var(--b-bad,#a9503a);background:var(--b-rose,#e7a28f)}
+[data-mechanic-wire="glued"] .gl-beads i.lettered{width:20px;height:20px}
+[data-mechanic-wire="glued"] .gl-beads i.none{width:20px;height:20px;border:2px dashed var(--b-bad,#a9503a);background:linear-gradient(135deg,transparent 45%,var(--b-bad,#a9503a) 45%,var(--b-bad,#a9503a) 55%,transparent 55%)}
 
 /* Sides: the chosen side, the sides it can be glued to, the hinted pair. */
-.gl-side{pointer-events:none;stroke:none}
-.gl-side.could{fill:rgba(156,201,222,.28)}
-.gl-side.chosen{fill:rgba(49,83,62,.28)}
-.gl-side.hinted{fill:rgba(239,199,110,.5)}
-.gl-side-line{stroke-width:7px;vector-effect:non-scaling-stroke;stroke-linecap:round;pointer-events:none}
-.gl-side-line.chosen{stroke:var(--b-pine,#31533e)}
-.gl-side-line.hinted{stroke:var(--b-ochre,#b38840);stroke-dasharray:6 4}
-.gl-puzzle .gl-side-hit .pb-hit{fill:transparent}
-.gl-puzzle .gl-side-hit:hover .pb-hit{fill:rgba(134,166,140,.22)}
-.gl-puzzle .gl-side-hit,.gl-puzzle .gl-dot-hit,.gl-puzzle .gl-corner-hit{cursor:pointer;outline:none}
-.gl-puzzle .gl-side-hit:focus-visible .pb-hit,.gl-puzzle .gl-dot-hit:focus-visible .pb-hit,.gl-puzzle .gl-corner-hit:focus-visible .pb-hit{fill:rgba(179,136,64,.18);stroke:var(--b-ochre,#b38840);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}
+[data-mechanic-wire="glued"] .gl-side{pointer-events:none;stroke:none}
+[data-mechanic-wire="glued"] .gl-side.could{fill:rgba(156,201,222,.28)}
+[data-mechanic-wire="glued"] .gl-side.chosen{fill:rgba(49,83,62,.28)}
+[data-mechanic-wire="glued"] .gl-side.hinted{fill:rgba(239,199,110,.5)}
+[data-mechanic-wire="glued"] .gl-side-line{stroke-width:7px;vector-effect:non-scaling-stroke;stroke-linecap:round;pointer-events:none}
+[data-mechanic-wire="glued"] .gl-side-line.chosen{stroke:var(--b-pine,#31533e)}
+[data-mechanic-wire="glued"] .gl-side-line.hinted{stroke:var(--b-ochre,#b38840);stroke-dasharray:6 4}
+[data-mechanic-wire="glued"] .gl-side-hit .pb-hit{fill:transparent}
+[data-mechanic-wire="glued"] .gl-side-hit:hover .pb-hit{fill:rgba(134,166,140,.22)}
+[data-mechanic-wire="glued"] .gl-side-hit,[data-mechanic-wire="glued"] .gl-dot-hit,[data-mechanic-wire="glued"] .gl-corner-hit{cursor:pointer;outline:none}
+[data-mechanic-wire="glued"] .gl-side-hit:focus-visible .pb-hit,[data-mechanic-wire="glued"] .gl-dot-hit:focus-visible .pb-hit,[data-mechanic-wire="glued"] .gl-corner-hit:focus-visible .pb-hit{fill:rgba(179,136,64,.18);stroke:var(--b-ochre,#b38840);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}
 
 /* Can't: every dot is ringed, and the tapped ones filled. */
-.gl-ring{fill:rgba(255,253,245,.6);stroke:var(--b-ochre,#b38840);stroke-width:2.4px;stroke-dasharray:4 3;vector-effect:non-scaling-stroke;pointer-events:none}
-.gl-ring.picked{fill:rgba(49,83,62,.2);stroke:var(--b-pine,#31533e);stroke-dasharray:none;stroke-width:3px}
-.gl-ring.hinted{fill:rgba(239,199,110,.6)}
-.gl-puzzle .gl-dot-hit .pb-hit{fill:transparent}
+[data-mechanic-wire="glued"] .gl-ring{fill:rgba(255,253,245,.6);stroke:var(--b-ochre,#b38840);stroke-width:2.4px;stroke-dasharray:4 3;vector-effect:non-scaling-stroke;pointer-events:none}
+[data-mechanic-wire="glued"] .gl-ring.picked{fill:rgba(49,83,62,.2);stroke:var(--b-pine,#31533e);stroke-dasharray:none;stroke-width:3px}
+[data-mechanic-wire="glued"] .gl-ring.hinted{fill:rgba(239,199,110,.6)}
+[data-mechanic-wire="glued"] .gl-dot-hit .pb-hit{fill:transparent}
 
 /* Corners: a quarter disc in each, in the colour of the child's group. */
-.gl-wedge{fill:#ecefe0;stroke:#b9c2a6;stroke-width:1px;vector-effect:non-scaling-stroke;pointer-events:none}
-.gl-wedge.chosen{stroke:var(--b-pine,#31533e);stroke-width:3.2px}
-.gl-wedge.hinted{stroke:var(--b-ochre,#b38840);stroke-width:3px;stroke-dasharray:4 3}
-.gl-wedge.g0,.gl-rose-wedge.g0{fill:#efc76e}
-.gl-wedge.g1,.gl-rose-wedge.g1{fill:#9cc9de}
-.gl-wedge.g2,.gl-rose-wedge.g2{fill:#e7a28f}
-.gl-wedge.g3,.gl-rose-wedge.g3{fill:#86a68c}
-.gl-wedge.g4,.gl-rose-wedge.g4{fill:#bba7d6}
-.gl-wedge.g5,.gl-rose-wedge.g5{fill:#d9c49a}
-.gl-wedge.g6,.gl-rose-wedge.g6{fill:#7fbfb3}
-.gl-wedge.g7,.gl-rose-wedge.g7{fill:#f1b58a}
-.gl-puzzle .gl-corner-hit .pb-hit{fill:transparent}
-.gl-puzzle .gl-corner-hit:hover .pb-hit{fill:rgba(134,166,140,.2)}
-.gl-roses{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.8rem}
-.gl-rose{display:block;width:var(--r,150px);height:auto;overflow:visible}
-.gl-rose-wedge{fill:#ecefe0;stroke:var(--b-ink,#294439);stroke-width:1.2px;vector-effect:non-scaling-stroke}
-.gl-rose-letter{font-family:var(--b-display,Georgia,serif);font-size:.24px;text-anchor:middle;fill:var(--b-ink,#294439)}
-.gl-rose-point{fill:var(--b-ink,#294439)}
+[data-mechanic-wire="glued"] .gl-wedge{fill:#ecefe0;stroke:#b9c2a6;stroke-width:1px;vector-effect:non-scaling-stroke;pointer-events:none}
+[data-mechanic-wire="glued"] .gl-wedge.chosen{stroke:var(--b-pine,#31533e);stroke-width:3.2px}
+[data-mechanic-wire="glued"] .gl-wedge.hinted{stroke:var(--b-ochre,#b38840);stroke-width:3px;stroke-dasharray:4 3}
+[data-mechanic-wire="glued"] .gl-wedge.g0,[data-mechanic-wire="glued"] .gl-rose-wedge.g0{fill:#efc76e}
+[data-mechanic-wire="glued"] .gl-wedge.g1,[data-mechanic-wire="glued"] .gl-rose-wedge.g1{fill:#9cc9de}
+[data-mechanic-wire="glued"] .gl-wedge.g2,[data-mechanic-wire="glued"] .gl-rose-wedge.g2{fill:#e7a28f}
+[data-mechanic-wire="glued"] .gl-wedge.g3,[data-mechanic-wire="glued"] .gl-rose-wedge.g3{fill:#86a68c}
+[data-mechanic-wire="glued"] .gl-wedge.g4,[data-mechanic-wire="glued"] .gl-rose-wedge.g4{fill:#bba7d6}
+[data-mechanic-wire="glued"] .gl-wedge.g5,[data-mechanic-wire="glued"] .gl-rose-wedge.g5{fill:#d9c49a}
+[data-mechanic-wire="glued"] .gl-wedge.g6,[data-mechanic-wire="glued"] .gl-rose-wedge.g6{fill:#7fbfb3}
+[data-mechanic-wire="glued"] .gl-wedge.g7,[data-mechanic-wire="glued"] .gl-rose-wedge.g7{fill:#f1b58a}
+[data-mechanic-wire="glued"] .gl-corner-hit .pb-hit{fill:transparent}
+[data-mechanic-wire="glued"] .gl-corner-hit:hover .pb-hit{fill:rgba(134,166,140,.2)}
+[data-mechanic-wire="glued"] .gl-roses{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.8rem}
+[data-mechanic-wire="glued"] .gl-rose{display:block;width:var(--r,150px);height:auto;overflow:visible}
+[data-mechanic-wire="glued"] .gl-rose-wedge{fill:#ecefe0;stroke:var(--b-ink,#294439);stroke-width:1.2px;vector-effect:non-scaling-stroke}
+[data-mechanic-wire="glued"] .gl-rose-letter{font-family:var(--b-display,Georgia,serif);font-size:.24px;text-anchor:middle;fill:var(--b-ink,#294439)}
+[data-mechanic-wire="glued"] .gl-rose-point{fill:var(--b-ink,#294439)}
 
 /* Buttons and words. */
-.gl-puzzle .gl-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
-.gl-puzzle .gl-button[aria-pressed="true"]{background:var(--b-pine,#31533e);color:var(--b-card,#fffdf5)}
-.gl-puzzle .gl-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
-.gl-puzzle .gl-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
-.gl-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
+[data-mechanic-wire="glued"] .gl-button{min-height:46px;padding:6px 16px;font-weight:600;white-space:nowrap;background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);border:1px solid var(--b-pine,#31533e);border-radius:12px;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
+[data-mechanic-wire="glued"] .gl-button[aria-pressed="true"]{background:var(--b-pine,#31533e);color:var(--b-card,#fffdf5)}
+[data-mechanic-wire="glued"] .gl-button[disabled]{opacity:.5;box-shadow:none;border-color:var(--b-line,#d0d6bd)}
+[data-mechanic-wire="glued"] .gl-button.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:4px}
+[data-mechanic-wire="glued"] .gl-told{margin:0;font-family:var(--b-display,Georgia,serif);font-size:1.05rem;color:var(--b-ink,#294439);text-align:center}
 
 /* The playground: surfaces as small pictures, and eight arrows. */
-.gl-picks,.gl-dirs{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center}
-.gl-puzzle .gl-pick{width:64px;min-height:64px;padding:5px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px}
-.gl-puzzle .gl-pick[aria-pressed="true"],.gl-puzzle .gl-dir[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 2px var(--b-pine,#31533e)}
-.gl-puzzle .gl-dir{display:grid;place-items:center;width:46px;height:46px;min-width:0;min-height:0;padding:0;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px}
-.gl-puzzle .gl-dir:focus-visible,.gl-puzzle .gl-pick:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
-.gl-mini .pb-label{display:none}
-.gl-puzzle .gl-play-room .pb-point.chosen .pb-hit{fill:rgba(239,199,110,.55)}
+[data-mechanic-wire="glued"] .gl-picks,[data-mechanic-wire="glued"] .gl-dirs{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center}
+[data-mechanic-wire="glued"] .gl-pick{width:64px;min-height:64px;padding:5px;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px}
+[data-mechanic-wire="glued"] .gl-pick[aria-pressed="true"],[data-mechanic-wire="glued"] .gl-dir[aria-pressed="true"]{border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 2px var(--b-pine,#31533e)}
+[data-mechanic-wire="glued"] .gl-dir{display:grid;place-items:center;width:46px;height:46px;min-width:0;min-height:0;padding:0;background:var(--b-card,#fffdf5);border:1.5px solid var(--b-line,#d0d6bd);border-radius:12px}
+[data-mechanic-wire="glued"] .gl-dir:focus-visible,[data-mechanic-wire="glued"] .gl-pick:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
+[data-mechanic-wire="glued"] .gl-mini .pb-label{display:none}
+[data-mechanic-wire="glued"] .gl-play-room .pb-point.chosen .pb-hit{fill:rgba(239,199,110,.55)}

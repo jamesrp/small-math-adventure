@@ -563,9 +563,9 @@
      ]
     ]
    },
-   "objective": "Slide the beads until red and blue cross as few times as they can. Then press Done. Tap each copy of red that blue has to cross, and press That’s all.",
+   "objective": "Slide the beads until red and blue cross as few times as they can. Then press Done.",
    "visibleObjective": "Untangle them, then press Done.",
-   "instruction": "Slide the beads until red and blue cross as few times as they can. Then press Done. Tap each copy of red that blue has to cross, and press That’s all.",
+   "instruction": "Slide the beads until red and blue cross as few times as they can. Then press Done.",
    "controls": "Slide a bead sideways, in the cylinder or the unrolled view, or tab to a bead and use the left and right arrow keys (up and down go to the next bead). When they can’t cross fewer times, press Done. Then tap each copy of red that blue has to cross, and press That’s all. Undo takes back a move.",
    "rules": [
     "The strip’s left and right edges are glued, so it is a cylinder. Its top and bottom edges are rims.",
@@ -686,9 +686,9 @@
      ]
     ]
    },
-   "objective": "Slide the beads until red and blue cross as few times as they can. Then press Done. Tap each copy of red that blue has to cross, and press That’s all.",
+   "objective": "Slide the beads until red and blue cross as few times as they can. Then press Done.",
    "visibleObjective": "Untangle them, then press Done.",
-   "instruction": "Slide the beads until red and blue cross as few times as they can. Then press Done. Tap each copy of red that blue has to cross, and press That’s all.",
+   "instruction": "Slide the beads until red and blue cross as few times as they can. Then press Done.",
    "controls": "Slide a bead sideways, in the cylinder or the unrolled view, or tab to a bead and use the left and right arrow keys (up and down go to the next bead). When they can’t cross fewer times, press Done. Then tap each copy of red that blue has to cross, and press That’s all. Undo takes back a move.",
    "rules": [
     "The strip’s left and right edges are glued, so it is a cylinder. Its top and bottom edges are rims.",
@@ -795,10 +795,10 @@
      1
     ]
    },
-   "objective": "Move the ends so that each pair of strands crosses as often as its number. If no ends work, get two pairs right with every end at a different B, press Can’t and tap the strand whose end is in the middle.",
+   "objective": "Move the ends so that each pair of strands crosses as often as its number.",
    "visibleObjective": "Each pair crosses as often as its number.",
-   "instruction": "Move the ends so that each pair of strands crosses as often as its number. If no ends work, get two pairs right with every end at a different B, press Can’t and tap the strand whose end is in the middle.",
-   "controls": "Tap an end above the top rim and then a B, or drag the end along the rim. Or choose an end’s button and use the left and right arrow keys. If no ends work, get two pairs right with every end at a different B, press Can’t and tap the strand whose end is in the middle. Undo takes back a move.",
+   "instruction": "Move the ends so that each pair of strands crosses as often as its number.",
+   "controls": "Tap an end above the top rim and then a B, or drag the end along the rim. Or choose an end’s button and use the left and right arrow keys. If no ends work, press Can’t and tap a strand. Undo takes back a move.",
    "rules": [
     "The strip’s left and right edges are glued, so it is a cylinder. Its top and bottom edges are rims.",
     "Each strand runs up from A on the bottom rim to a B on the top rim. Its ends never move.",
@@ -897,9 +897,9 @@
      ]
     ]
    },
-   "objective": "Slide the beads until red and blue cross as few times as they can. Then press Done. Tap each copy of red that blue has to cross, and press That’s all.",
+   "objective": "Slide the beads until red and blue cross as few times as they can. Then press Done.",
    "visibleObjective": "Untangle them, then press Done.",
-   "instruction": "Slide the beads until red and blue cross as few times as they can. Then press Done. Tap each copy of red that blue has to cross, and press That’s all.",
+   "instruction": "Slide the beads until red and blue cross as few times as they can. Then press Done.",
    "controls": "Slide a bead sideways, in the cylinder or the unrolled view, or tab to a bead and use the left and right arrow keys (up and down go to the next bead). When they can’t cross fewer times, press Done. Then tap each copy of red that blue has to cross, and press That’s all. Undo takes back a move.",
    "rules": [
     "The strip’s left and right edges are glued, so it is a cylinder. Its top and bottom edges are rims.",
@@ -1021,9 +1021,9 @@
      ]
     ]
    },
-   "objective": "Slide the beads until red and blue cross as few times as they can. Then press Done. Tap each copy of red that blue has to cross, and press That’s all.",
+   "objective": "Slide the beads until red and blue cross as few times as they can. Then press Done.",
    "visibleObjective": "Untangle them, then press Done.",
-   "instruction": "Slide the beads until red and blue cross as few times as they can. Then press Done. Tap each copy of red that blue has to cross, and press That’s all.",
+   "instruction": "Slide the beads until red and blue cross as few times as they can. Then press Done.",
    "controls": "Slide a bead sideways, in the cylinder or the unrolled view, or tab to a bead and use the left and right arrow keys (up and down go to the next bead). When they can’t cross fewer times, press Done. Then tap each copy of red that blue has to cross, and press That’s all. Undo takes back a move.",
    "rules": [
     "The strip’s left and right edges are glued, so it is a cylinder. Its top and bottom edges are rims.",
@@ -1145,9 +1145,9 @@
      ]
     ]
    },
-   "objective": "Slide the beads until red and blue cross as few times as they can. Then press Done. Tap each copy of red that blue has to cross, and press That’s all.",
+   "objective": "Slide the beads until red and blue cross as few times as they can. Then press Done.",
    "visibleObjective": "Untangle them, then press Done.",
-   "instruction": "Slide the beads until red and blue cross as few times as they can. Then press Done. Tap each copy of red that blue has to cross, and press That’s all.",
+   "instruction": "Slide the beads until red and blue cross as few times as they can. Then press Done.",
    "controls": "Slide a bead sideways, in the cylinder or the unrolled view, or tab to a bead and use the left and right arrow keys (up and down go to the next bead). When they can’t cross fewer times, press Done. Then tap each copy of red that blue has to cross, and press That’s all. Undo takes back a move.",
    "rules": [
     "The strip’s left and right edges are glued, so it is a cylinder. Its top and bottom edges are rims.",
@@ -1268,9 +1268,9 @@
      ]
     ]
    },
-   "objective": "Slide the beads until red and blue cross as few times as they can. Then press Done. Tap each copy of red that blue has to cross, and press That’s all.",
+   "objective": "Slide the beads until red and blue cross as few times as they can. Then press Done.",
    "visibleObjective": "Untangle them, then press Done.",
-   "instruction": "Slide the beads until red and blue cross as few times as they can. Then press Done. Tap each copy of red that blue has to cross, and press That’s all.",
+   "instruction": "Slide the beads until red and blue cross as few times as they can. Then press Done.",
    "controls": "Slide a bead sideways, in the cylinder or the unrolled view, or tab to a bead and use the left and right arrow keys (up and down go to the next bead). When they can’t cross fewer times, press Done. Then tap each copy of red that blue has to cross, and press That’s all. Undo takes back a move.",
    "rules": [
     "The strip’s left and right edges are glued, so it is a cylinder. Its top and bottom edges are rims.",
@@ -1379,10 +1379,10 @@
      3
     ]
    },
-   "objective": "Move the ends so that each pair of strands crosses as often as its number. If no ends work, get two pairs right with every end at a different B, press Can’t and tap the strand whose end is in the middle.",
+   "objective": "Move the ends so that each pair of strands crosses as often as its number.",
    "visibleObjective": "Each pair crosses as often as its number.",
-   "instruction": "Move the ends so that each pair of strands crosses as often as its number. If no ends work, get two pairs right with every end at a different B, press Can’t and tap the strand whose end is in the middle.",
-   "controls": "Tap an end above the top rim and then a B, or drag the end along the rim. Or choose an end’s button and use the left and right arrow keys. If no ends work, get two pairs right with every end at a different B, press Can’t and tap the strand whose end is in the middle. Undo takes back a move.",
+   "instruction": "Move the ends so that each pair of strands crosses as often as its number.",
+   "controls": "Tap an end above the top rim and then a B, or drag the end along the rim. Or choose an end’s button and use the left and right arrow keys. If no ends work, press Can’t and tap a strand. Undo takes back a move.",
    "rules": [
     "The strip’s left and right edges are glued, so it is a cylinder. Its top and bottom edges are rims.",
     "Each strand runs up from A on the bottom rim to a B on the top rim. Its ends never move.",
@@ -1467,10 +1467,10 @@
      1
     ]
    },
-   "objective": "Move the ends so that each pair of strands crosses as often as its number. If no ends work, get two pairs right with every end at a different B, press Can’t and tap the strand whose end is in the middle.",
+   "objective": "Move the ends so that each pair of strands crosses as often as its number.",
    "visibleObjective": "Each pair crosses as often as its number.",
-   "instruction": "Move the ends so that each pair of strands crosses as often as its number. If no ends work, get two pairs right with every end at a different B, press Can’t and tap the strand whose end is in the middle.",
-   "controls": "Tap an end above the top rim and then a B, or drag the end along the rim. Or choose an end’s button and use the left and right arrow keys. If no ends work, get two pairs right with every end at a different B, press Can’t and tap the strand whose end is in the middle. Undo takes back a move.",
+   "instruction": "Move the ends so that each pair of strands crosses as often as its number.",
+   "controls": "Tap an end above the top rim and then a B, or drag the end along the rim. Or choose an end’s button and use the left and right arrow keys. If no ends work, press Can’t and tap a strand. Undo takes back a move.",
    "rules": [
     "The strip’s left and right edges are glued, so it is a cylinder. Its top and bottom edges are rims.",
     "Each strand runs up from A on the bottom rim to a B on the top rim. Its ends never move.",

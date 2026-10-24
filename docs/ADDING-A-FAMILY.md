@@ -22,7 +22,7 @@ A new puzzle family, or a new group of puzzles inside an existing family, touche
 | File | Contents |
 |---|---|
 | `dist/families/<id>/<id>.js` | The mechanic or mechanics, and the module entry (its default export) |
-| `dist/families/<id>/<id>.css` | Styles, in the shared board look of `dist/boards.css` |
+| `dist/families/<id>/<id>.css` | Styles, in the shared board look of `dist/boards.css`. Every family's stylesheet is loaded on every screen, so scope each rule to `[data-mechanic-wire="<id>"]` or use a class prefix no other family styles (Fair shares and Portal shields once shared `sh-`, and Globe and Glued squares share `gl-`) |
 | `dist/families/<id>/<id>.json` | The pack: puzzles, sources and a family record |
 | `scripts/build-<id>.mjs` | Optional: the authoring list that computes answers and writes the pack |
 | `scripts/validate-<id>.mjs` | The validator; its default export runs it, and `npm run build` calls it |
@@ -63,7 +63,7 @@ Every mechanic has these:
 | `solved(p, board)` | Whether the board is a solve |
 | `move(p, board, action, random)` | The next board, or `null` for an illegal move |
 | `hint(p, board)` | `{type: 'move', action, text}`, `{type: 'deadend', text}` (shown unasked under the board; add `quiet: true` to tell it only behind Hint), `{type: 'done'}`, or `{type: 'note'}` to show the authored hints by level and never an answer |
-| `render(p, attempt, ctx)` | The board's HTML. Buttons with `data-action="expansion-move"` and a JSON `data-move` make moves; `data-action="mechanic-ui"` with `data-ui` changes view-only state. Undo draws the current attempt and earlier ones to compare them, and the screen after the press is the last of those drawings, so a renderer that animates from the board it drew last still starts from the screen. The same attempt and view state must give the same HTML (no running ids or clock times), or Undo can't tell that two steps look alike |
+| `render(p, attempt, ctx)` | The board's HTML. Buttons with `data-action="expansion-move"` and a JSON `data-move` make moves; `data-action="mechanic-ui"` with `data-ui` changes view-only state. A button that opens something and closes it again in the same place (a claim's Can't, say) can carry `data-toggle="<slot>"`: a press of the same slot within 350 ms of the last is dropped, so a quick double tap doesn't open and close it at once. Undo draws the current attempt and earlier ones to compare them, and the screen after the press is the last of those drawings, so a renderer that animates from the board it drew last still starts from the screen. The same attempt and view state must give the same HTML (no running ids or clock times), or Undo can't tell that two steps look alike |
 
 These are optional:
 

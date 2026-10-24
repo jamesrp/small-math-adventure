@@ -55,13 +55,15 @@
 .pb-vertex[role="button"].cancel:hover .pb-vertex-hit{fill:rgba(231,162,143,.65)}
 .pb-vertex:focus-visible .pb-vertex-hit,.pb-vertex.hinted .pb-vertex-hit{fill:rgba(239,199,110,.6);stroke:var(--b-ochre,#b38840);stroke-width:2.5px;stroke-dasharray:4 3}
 
-/* Arrow buttons in a cross. */
-.pb-pad{display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(3,48px);grid-template-areas:". u ." "l . r" ". d .";gap:3px;justify-content:center}
-.pb-pad .pb-arrow{display:grid;place-items:center;width:48px;height:48px;min-width:0;min-height:0;padding:0;border-radius:12px;border:1.5px solid var(--b-pine,#31533e);background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);font:400 1.45rem/1 var(--b-display,Georgia,serif);box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer;touch-action:manipulation}
-.pb-pad .pb-U{grid-area:u}
-.pb-pad .pb-L{grid-area:l}
-.pb-pad .pb-R{grid-area:r}
-.pb-pad .pb-D{grid-area:d}
-.pb-pad .pb-arrow[disabled]{opacity:.4;box-shadow:none;border-color:var(--b-line,#d0d6bd);cursor:default}
-.pb-pad .pb-arrow:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
-.pb-pad .pb-arrow.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px;background:#f6e3b0}
+/* Arrow buttons in a cross. The pad's own class pb-cross keeps these rules
+   above a family's unscoped .pb-pad or .pb-arrow (Prime bags uses both), and
+   keeps them off that family's elements. */
+.pb-pad.pb-cross{display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(3,48px);grid-template-areas:". u ." "l . r" ". d .";gap:3px;justify-content:center}
+.pb-cross .pb-arrow{display:grid;place-items:center;width:48px;height:48px;min-width:0;min-height:0;padding:0;border-radius:12px;border:1.5px solid var(--b-pine,#31533e);background:var(--b-card,#fffdf5);color:var(--b-ink,#294439);font:400 1.45rem/1 var(--b-display,Georgia,serif);box-shadow:0 2px 0 var(--b-line,#d0d6bd);cursor:pointer;touch-action:manipulation}
+.pb-cross .pb-U{grid-area:u}
+.pb-cross .pb-L{grid-area:l}
+.pb-cross .pb-R{grid-area:r}
+.pb-cross .pb-D{grid-area:d}
+.pb-cross .pb-arrow[disabled]{opacity:.4;box-shadow:none;border-color:var(--b-line,#d0d6bd);cursor:default}
+.pb-cross .pb-arrow:focus-visible{outline:3px dashed var(--b-ochre,#b38840);outline-offset:3px}
+.pb-cross .pb-arrow.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px;background:#f6e3b0}

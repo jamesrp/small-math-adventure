@@ -1,6 +1,7 @@
 // Plays Strands through the real interface on the shared portal board: bead
 // slides in the cylinder and in the unrolled view (across the seam and past
-// the other strand's spot), arrow keys on a focused bead, Done and Back, a
+// the other strand's spot), arrow keys on a focused bead, Done and Back (and a
+// quick double tap on Done), the cylinder's width side by side, a
 // claim sent with crossings to spare, Undo keeping it, hints up to the
 // fewest, copies of red tapped and untapped (contested taps between two
 // copies go to the nearer), a claim with no copies refused, Undo taking it
@@ -61,6 +62,12 @@ async function slide(points) {
   await touch('touchEnd', points.at(-1));
 }
 const undo = () => page.locator('[data-action="undo"]').click();
+// Done, Can't and Back are one slot: a press within 350 ms of the last is
+// taken for a double tap and dropped (data-toggle, dist/main.js), so the suite
+// leaves 400 ms between them, as a child's separate presses would.
+let lastSlot = -Infinity;
+const sinceSlot = async ms => { const wait = lastSlot + ms - Date.now(); if (wait > 0) await page.waitForTimeout(wait); };
+const slot = async name => { await sinceSlot(400); await button(name).click(); lastSlot = Date.now(); };
 async function hintsFinish() {
   for (let i = 0; i < 3; i++) await button('Hint').click();
   let n = 0;
@@ -80,7 +87,7 @@ try {
   for (let i = 0; i < 3; i++) await button('Hint').click();
   for (let n = 0; n < 20 && !(await page.locator('.hint-card').innerText()).includes('No crossings are left. Press Done.'); n++) await button('Apply hint').click();
   assert.ok((await page.locator('.hint-card').innerText()).includes('No crossings are left. Press Done.'));
-  await button('Done').click();
+  await slot('Done');
   await done();
   assert.equal(await page.getByRole('button', {name: 'That’s all', exact: true}).count(), 0, 'there is no empty-copy confirmation');
   assert.equal((await board('strands-01')).done, true);
@@ -88,19 +95,29 @@ try {
   // Puzzle 4: windings 0 and 2.
   const U = 'strands-04';
   await open(U); await fit('untangle');
+  // Side by side the cylinder keeps its own column, never narrower than on a phone (190 px).
+  { const w = (await page.locator('.st-room').boundingBox()).width;
+    assert.ok(w >= (phone ? 180 : 220), `the cylinder is ${Math.round(w)} px wide`); }
   await shot('untangle-start');
   const text = await page.evaluate(() => { const el = document.querySelector('.st-puzzle').cloneNode(true); el.querySelectorAll('.sr-only').forEach(n => n.remove()); return el.textContent; });
   assert.ok(!/\d/.test(text), 'no number on screen: no count, no budget');
   // Done starts a claim and Back leaves it; nothing is checked until That's all.
-  await button('Done').click();
+  await slot('Done');
   assert.equal(await told(), 'Tap each red copy that blue must cross, then press That’s all.');
   assert.equal(await active('.st-copy-hit'), true, 'after Done, focus lands on a copy of red');
   assert.equal(await page.locator('.st-room [data-st-bead][role="button"]').count(), 0, 'beads rest during the claim');
   assert.equal((await board(U)).told, null, 'Done alone checks nothing');
-  await button('Back').click();
+  await slot('Back');
   assert.equal(await page.locator('.st-told').count(), 0);
+  // A quick double tap on Done opens the claim once: Back is drawn where Done
+  // was, and the second tap would close it again (data-toggle, dist/main.js).
+  await sinceSlot(400);
+  { const p = await center(button('Done')); await tapAt(p); await page.waitForTimeout(90); await tapAt(p); lastSlot = Date.now(); }
+  assert.equal(await button('Back').count(), 1, 'a double tap on Done leaves the claim open');
+  await slot('Back');
+  assert.equal(await button('Done').count(), 1, 'Back after a pause leaves it');
   // A claim with crossings to spare: told once, Done waits, Undo keeps it.
-  await button('Done').click(); await button('That’s all').click();
+  await slot('Done'); await button('That’s all').click();
   assert.equal(await told(), 'There is a way with fewer.');
   assert.equal(await button('Done').isDisabled(), true);
   assert.equal(await active('.st-puzzle .st-button'), false, 'focus is not left on a claim button');
@@ -142,7 +159,7 @@ try {
   assert.ok((await page.locator('.hint-card').innerText()).includes('That’s all'), 'the hints reach the fewest');
   assert.ok((await page.evaluate(([k, id]) => JSON.parse(localStorage.getItem(k)).profiles[0].attempts[id].moves, [key, U])) >= 3, 'several moves to the fewest');
   await shot('untangle-fewest');
-  await button('Done').click();
+  await slot('Done');
   // Red itself: tapped and untapped. A claim with no copies is refused.
   const xr = (await board(U)).s[0][3];
   await tapAt(await at('plane', xr + 0.3, -4));
@@ -162,13 +179,13 @@ try {
   assert.equal(await page.locator('.st-told').count(), 0);
   await button('Apply hint').click();
   assert.deepEqual((await board(U)).s, fewest, 'the hint makes that move again');
-  await button('Done').click(); await button('That’s all').click();
+  await slot('Done'); await button('That’s all').click();
   assert.equal(await told(), 'Blue must cross some copy of red.', 'Undo doesn’t escape a wrong claim');
   assert.equal(await button('Done').isDisabled(), true, 'the claim waits for a move');
   // A bead out and back, then the claim with the copy blue must cross:
   // a tap beside the copies goes to the nearer, here copy one, not two.
   await roomBead(0, 1).focus(); await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowLeft');
-  await button('Done').click();
+  await slot('Done');
   await page.waitForTimeout(750);
   await tapAt(await at('plane', xr + 4 + .8, -4));
   assert.equal(await page.locator('[data-st-copy="1"][aria-pressed="true"]').count(), 1, 'the nearer copy is marked');
@@ -210,7 +227,7 @@ try {
   assert.equal((await board(D)).w[still], -1, 'an arrow key moves the focused end');
   await page.keyboard.press('ArrowRight');
   // Can't without the attempt (two pairs right, ends apart): told once, focus not on Can't.
-  await button('Can’t').click();
+  await slot('Can’t');
   assert.equal(await told(), 'Tap the strand whose end is in the middle.');
   assert.equal(await active('.st-end-button'), true, 'focus lands on a strand');
   await button('Red strand').click();
@@ -223,7 +240,7 @@ try {
   assert.equal((await board(D)).told, null);
   await page.locator(`.st-end-button[data-st-end="${still}"]`).focus();
   await page.keyboard.press('ArrowRight');
-  await button('Can’t').click(); await button('Red strand').click();
+  await slot('Can’t'); await button('Red strand').click();
   assert.equal(await told(), 'First get two pairs right, with every end at a different B.', 'the same claim on the same ends is refused again');
   assert.equal((await board(D)).told, 'two');
   assert.equal(await button('Can’t').isDisabled(), true, 'Can’t waits for a move');
@@ -237,7 +254,7 @@ try {
   await page.locator('.st-end-button[data-st-end="0"]').click();
   await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowLeft');
   assert.deepEqual((await board(I)).w, [0, 0, 0]);
-  await button('Can’t').click(); await button('Blue strand').click();
+  await slot('Can’t'); await button('Blue strand').click();
   assert.equal(await told(), 'First get two pairs right, with every end at a different B.');
   assert.equal(await page.locator('#completion-heading').count(), 0, 'not solved');
   await page.locator('.st-end-button[data-st-end="1"]').click();
@@ -246,7 +263,7 @@ try {
   for (let k = 0; k < 4; k++) await page.keyboard.press('ArrowRight');
   assert.deepEqual((await board(I)).w, [0, 2, 4]);
   assert.equal(await page.locator('.st-pair.met').count(), 2, 'two pairs right');
-  await button('Can’t').click();
+  await slot('Can’t');
   assert.equal(await told(), 'Tap the strand whose end is in the middle.');
   await button('Red strand').click();
   assert.equal(await told(), 'Its end isn’t between the other two.');
@@ -254,14 +271,14 @@ try {
   assert.deepEqual((await board(I)).w, [0, 2, 3], 'Undo takes back the claim and the end move before it');
   assert.equal((await board(I)).told, null);
   await page.locator('.st-end-button[data-st-end="2"]').focus(); await page.keyboard.press('ArrowRight');
-  await button('Can’t').click(); await button('Red strand').click();
+  await slot('Can’t'); await button('Red strand').click();
   assert.equal(await told(), 'Its end isn’t between the other two.', 'the same claim on the same ends is refused again');
   assert.equal((await board(I)).told, 'miss');
   assert.equal(await button('Can’t').isDisabled(), true, 'Can’t waits for a move');
   await page.locator('.st-end-button[data-st-end="2"]').focus();
   await page.keyboard.press('ArrowLeft'); await page.keyboard.press('ArrowRight');
   assert.deepEqual((await board(I)).w, [0, 2, 4]);
-  await button('Can’t').click();
+  await slot('Can’t');
   await tapAt(await at('plane', C.a + 2 * C.N + .3, -C.M - 1.1));
   await done();
   assert.equal(await page.locator('.st-gap.inner').count(), 2, 'both inner gaps are drawn');

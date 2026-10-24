@@ -11,8 +11,10 @@
 [data-mechanic-wire="strands"] .st-view{width:100%;min-width:0}
 [data-mechanic-wire="strands"] .st-lift-view{grid-area:lift}
 [data-mechanic-wire="strands"] .st-room-view{grid-area:room;max-width:190px}
+/* Side by side, the cylinder keeps a column of its own, never narrower than
+   on a phone: 230 px wide (about 400 px tall) beside the unrolled view. */
 @container (min-width:520px){
-  [data-mechanic-wire="strands"] .st-stage{grid-template-columns:minmax(0,.42fr) minmax(0,1.58fr);grid-template-areas:"room lift";max-width:820px;gap:1.2rem}
+  [data-mechanic-wire="strands"] .st-stage{grid-template-columns:minmax(190px,230px) minmax(0,1fr);grid-template-areas:"room lift";max-width:820px;gap:1.2rem}
   [data-mechanic-wire="strands"] .st-room-view{max-width:230px}
 }
 /* On a phone the unrolled view is about 13 px a column: larger crossing rings and A. */

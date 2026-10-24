@@ -4,7 +4,7 @@
 // playground, forged saves, rendering, and the portal board's wider tap disc.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {readFile, readdir} from 'node:fs/promises';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
 import {playView} from '../dist/ui.js';
@@ -130,11 +130,11 @@ test('Fewest: refused while a shot gets through; a claim is judged only at its l
   assert.deepEqual(clash.board.note, {cross: [[1, 3], [3, 1]]});
   assert.deepEqual(clash.board.picks, []);
   assert.match(view(p, clash), /Those two cross\./);
-  assert.match(view(p, clash), /sh-clash/);
+  assert.match(view(p, clash), /ps-clash/);
   assert.deepEqual(undoApp(p, clash).board.picks, [], 'Undo doesn’t bring crossing shots back');
   const done = play(p, clash, ...tap(p, [1, 3], [1, 1]));
   assert.ok(isSolved(p, done.board));
-  assert.match(view(p, done), /sh-ring k1/);
+  assert.match(view(p, done), /ps-ring k1/);
   // Fewest again before finishing goes back to the shields.
   assert.equal(play(p, first, {type: 'fewest'}).board.claim, null);
   // Only the copy where a shot stops can be tapped, and only drawn shots.
@@ -191,9 +191,9 @@ test('the playground: three rooms, shots aimed at far copies stop at the first t
   assert.equal(m.noHint(p), true);
   assert.equal(nextHint(p, a).type, 'done');
   const aimed = play(p, a, {type: 'aim', at: [20, 20]});
-  assert.match(view(p, aimed), /class="sh-shot escape" x1="0" y1="0" x2="4" y2="-4"/, 'stops at the first T');
+  assert.match(view(p, aimed), /class="ps-shot escape" x1="0" y1="0" x2="4" y2="-4"/, 'stops at the first T');
   const stopped = play(p, aimed, ...put([2, 2]));
-  assert.match(view(p, stopped), /class="sh-shot stopped" x1="0" y1="0" x2="2" y2="-2"/);
+  assert.match(view(p, stopped), /class="ps-shot stopped" x1="0" y1="0" x2="2" y2="-2"/);
   const none = play(p, a, {type: 'room', room: 'none'});
   assert.ok(move(p, none, {type: 'aim', at: [8, 0]}));
   assert.equal(move(p, none, {type: 'aim', at: [4, 4]}), null, 'no T in this room');
@@ -224,7 +224,7 @@ test('forged saves are rejected; an open claim is not judged', () => {
 test('every puzzle renders both views; the goal is one line with no count; crosses are the controls', () => {
   for (const p of shields.puzzles) {
     const a = freshAttempt(p), html = view(p, a), q = p.parameters;
-    assert.match(html, /sh-puzzle/);
+    assert.match(html, /ps-puzzle/);
     assert.match(html, /pb-board pb-room/);
     assert.match(html, /pb-board pb-plane/);
     // 63 crosses (61 with T) are buttons, and their seam copies too; no discs for shields.
@@ -271,4 +271,37 @@ test('the portal board widens a cross’s tap disc when asked, keeps .42 otherwi
   // The shields views leave out every plane point but the copies to tap.
   const p = byId('shields-01'), html = view(p, freshAttempt(p));
   assert.equal((html.slice(html.indexOf('pb-plane')).match(/data-pb-point=/g) || []).length, 0, 'nothing to tap in the unrolled view before a claim');
+});
+
+test('the S label keeps its size on screen when a long shot zooms the view out; the claim button is one slot', () => {
+  // The label's share of the unrolled view's width is the same on every puzzle
+  // (about 15 px where the view is 330 px wide), so it grows with the zoom.
+  const share = p => {
+    const html = view(p, freshAttempt(p)), plane = html.slice(html.indexOf('pb-board pb-plane'));
+    const width = +plane.match(/viewBox="[-\d.]+ [-\d.]+ ([\d.]+) /)[1], size = +plane.match(/class="ps-label plane"[^>]*font-size:([\d.]+)px/)[1];
+    return {width, size, share: size / width};
+  };
+  const near = share(byId('shields-01')), far = share(byId('shields-08'));
+  assert.ok(far.width > near.width && far.size > near.size, 'shields-08 zooms out and its label grows');
+  for (const p of shields.puzzles) assert.ok(Math.abs(share(p).share - near.share) < 1e-3 && share(p).share * 330 >= 13, `${p.id}: the S label at ${(share(p).share * 330).toFixed(1)} px`);
+  // Fewest or Can't opens a claim and closes it in the same place: data-toggle
+  // makes a quick double tap open it once (dist/main.js).
+  for (const id of ['shields-01', 'shields-07']) {
+    const p = byId(id), a = play(p, freshAttempt(p), ...put([1, 1]));
+    assert.match(view(p, a), /class="secondary ps-button[^"]*"[^>]*data-toggle="ps-claim"/, id);
+  }
+});
+
+test('Portal shields’ classes are its own: ps-, beside Fair shares’ sh-', async () => {
+  // Every family's stylesheet is loaded on every screen, so a class another
+  // family styles without scoping would restyle these boards (Fair shares'
+  // .sh-puzzle capped this one at 560 px and shrank it on a tablet).
+  const css = await readFile(new URL('../dist/families/shields/shields.css', import.meta.url), 'utf8');
+  const js = await readFile(new URL('../dist/families/shields/shields.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(css + js, /\bsh-/, 'no sh- class left');
+  for (const f of await readdir(new URL('../dist/families/', import.meta.url))) {
+    if (f === 'shields') continue;
+    const other = await readFile(new URL(`../dist/families/${f}/${f}.css`, import.meta.url), 'utf8').catch(() => '');
+    assert.doesNotMatch(other.replace(/\/\*[\s\S]*?\*\//g, ''), /\.ps-[a-z]/, `${f}.css styles no ps- class`);
+  }
 });

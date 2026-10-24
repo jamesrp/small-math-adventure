@@ -22,11 +22,13 @@ const glue = (n, sides, trips, spot) => {
   return {mode: 'glue', squares: apart(n), sides, start: {right: nulls(list), up: nulls(list)}, spot: SPOT[spot], trips: trips.map(([from, dir, blocks]) => ({from, dir, blocks}))};
 };
 // The surfaces with fixed gluings: the worksheet's L, two squares in a ring,
-// four squares with two tops crossed, and one square.
+// four squares with two tops crossed, and one square. The four are drawn as
+// three in a row with D on B's top (glued there), not four in a row: on a
+// phone a row of four leaves each square about 70 px and its corners 33 px.
 export const SURFACES = {
   L: {name: 'L of three squares', squares: {A: [0, 0], B: [1, 0], C: [0, 1]}, right: {A: 'B', B: 'A', C: 'C'}, up: {A: 'C', B: 'B', C: 'A'}},
   ring: {name: 'Two squares in a ring', squares: {A: [0, 0], B: [1, 0]}, right: {A: 'B', B: 'A'}, up: {A: 'A', B: 'B'}},
-  twist: {name: 'Four squares, two tops crossed', squares: {A: [0, 0], B: [1, 0], C: [2, 0], D: [3, 0]}, right: {A: 'B', B: 'C', C: 'D', D: 'A'}, up: {A: 'A', B: 'D', C: 'C', D: 'B'}},
+  twist: {name: 'Four squares, two tops crossed', squares: {A: [0, 0], B: [1, 0], C: [2, 0], D: [1, 1]}, right: {A: 'B', B: 'C', C: 'D', D: 'A'}, up: {A: 'A', B: 'D', C: 'C', D: 'B'}},
   one: {name: 'One square', squares: {A: [0, 0]}, right: {A: 'A'}, up: {A: 'A'}}
 };
 const corners = name => ({mode: 'corners', squares: SURFACES[name].squares, right: SURFACES[name].right, up: SURFACES[name].up});
@@ -126,8 +128,8 @@ const PUZZLES = [
   {number: 10, level: 'hard', title: 'Four squares’ corners', q: corners('twist'), check: {points: [8, 8]}, kind: 'corners',
     objective: 'Join the corners that meet into groups, then press That’s all.', visible: 'Join corners that meet, then press That’s all.',
     idea: 'Four squares can make two points with two full turns of corners each: not one point, as on the L, and neither of them flat.',
-    hints: ['Start with a corner of B and follow the mark over its top.', 'B’s top is glued to D’s bottom, so B’s upper-left corner meets D’s lower-left corner.', 'The corners make two groups of eight.'],
-    parent: {notice: 'Whether your child stops at four corners, as on puzzle 3, or at one group, as on the L, before checking that nothing else meets.', prompt: 'How many full turns of corners are round each point?', explanation: 'Following the matches round a point, eight corners go by before the chain closes, and the other eight make a second chain. Each point has eight corners round it: two full turns (720°), so neither point is flat. With two points and four squares, V − n = 2 − 4 = −2 = 2 − 2g: genus two again, like the L, but with two cone points instead of one.', extension: 'Glue every top of this row to its own bottom instead. How many points now? (Four, each flat: a torus.)', connection: 'Square-tiled surfaces of genus two have either one cone point of angle 6π or two of angle 4π (the strata H(2) and H(1,1)).'},
+    hints: ['Start with a corner of B and follow the mark under it.', 'B’s bottom is glued to D’s top, so B’s lower-left corner meets D’s upper-left corner.', 'The corners make two groups of eight.'],
+    parent: {notice: 'Whether your child stops at four corners, as on puzzle 3, or at one group, as on the L, before checking that nothing else meets.', prompt: 'How many full turns of corners are round each point?', explanation: 'Following the matches round a point, eight corners go by before the chain closes, and the other eight make a second chain. Each point has eight corners round it: two full turns (720°), so neither point is flat. With two points and four squares, V − n = 2 − 4 = −2 = 2 − 2g: genus two again, like the L, but with two cone points instead of one.', extension: 'Glue each square’s top to its own bottom instead, keeping the right sides. How many points now? (Four, each flat: a torus.)', connection: 'Square-tiled surfaces of genus two have either one cone point of angle 6π or two of angle 4π (the strata H(2) and H(1,1)).'},
     provenance: 'New: a four-square surface in the style of Week 64 Problems 4–5, whose corners make two points of two full turns each, in contrast with the L’s single point of three.'},
   {number: 11, level: 'hard', title: 'Five blocks', q: {...glue(4, ['right', 'up'], [['A', [1, 1], 5]], 'low'), cant: true}, check: {works: 0, of: 576, longest: 4, longestWays: 144}, kind: 'cant',
     objective: 'Glue sides so that the trip from A, one right and one up each block, comes home after exactly 5 blocks.', visible: 'Get the trip home in exactly 5 blocks.',

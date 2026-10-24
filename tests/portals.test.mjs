@@ -217,7 +217,7 @@ test('trip moves: erase a step and its way back, slide a corner; the ends never 
   assert.ok(editReach('RRRUUULLL').has('UUU'));
 });
 
-test('drawing: points are controls only where they act; pictures have none; the pad disables arrows', () => {
+test('drawing: points are controls only where they act; pictures have none; the pad disables arrows', async () => {
   const svg = roomBoard(torus, {point: pt => ({text: pt.s, act: pt.s === 'E', label: `${pt.s}. Step right`})});
   assert.equal((svg.match(/role="button"/g) || []).length, 1);
   assert.match(svg, /data-pb-point="E,0,0" data-pb-view="room" role="button" tabindex="0" aria-label="E. Step right"/);
@@ -235,6 +235,10 @@ test('drawing: points are controls only where they act; pictures have none; the 
   const pad = arrowPad({dir: d => ({act: d !== 'L', hinted: d === 'U'})});
   assert.match(pad, /data-pb-dir="L"[^>]*disabled/);
   assert.match(pad, /pb-arrow pb-U hinted/);
+  // pb-cross keeps the pad's rules above Prime bags' unscoped .pb-pad and .pb-arrow.
+  assert.match(pad, /^<div class="pb-pad pb-cross /);
+  const css = (await readFile(new URL('../dist/portal-board.css', import.meta.url), 'utf8')).replace(/\/\*[\s\S]*?\*\//g, '');
+  for (const [, sel] of css.matchAll(/([^{}]+)\{/g)) if (/\.pb-(pad|arrow|[UDLR])\b/.test(sel)) assert.match(sel.trim(), /^(\.pb-pad)?\.pb-cross\b/, sel.trim());
   assert.equal(copyOf(torus, 'H', 4, 4).join(), '3,3');
 });
 

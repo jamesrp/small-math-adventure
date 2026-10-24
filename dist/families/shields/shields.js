@@ -427,14 +427,14 @@ function roomShot(S, d, length, cls) {
   let lines = '', dots = '';
   pieces.forEach((pc, k) => {
     const [x1, y1] = roomXY(S, 'o', ...pc.a), [x2, y2] = roomXY(S, 'o', ...pc.b);
-    lines += `<line class="sh-shot ${cls}" x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}"/>`;
-    if (k > 0) dots += `<circle class="sh-portal ${cls}" cx="${f(x1)}" cy="${f(y1)}" r=".09"/>`;
-    if (k < pieces.length - 1) dots += `<circle class="sh-portal ${cls}" cx="${f(x2)}" cy="${f(y2)}" r=".09"/>`;
+    lines += `<line class="ps-shot ${cls}" x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}"/>`;
+    if (k > 0) dots += `<circle class="ps-portal ${cls}" cx="${f(x1)}" cy="${f(y1)}" r=".09"/>`;
+    if (k < pieces.length - 1) dots += `<circle class="ps-portal ${cls}" cx="${f(x2)}" cy="${f(y2)}" r=".09"/>`;
   });
   return lines + dots;
 }
-const planeShot = (d, length, cls) => `<line class="sh-shot ${cls}" x1="0" y1="0" x2="${f(d[0] * length)}" y2="${f(-d[1] * length)}"/>`;
-const cross = ([x, y], size, cls = '') => `<path class="sh-shield ${cls}" d="M${f(x - size)},${f(y - size)}L${f(x + size)},${f(y + size)}M${f(x - size)},${f(y + size)}L${f(x + size)},${f(y - size)}"/>`;
+const planeShot = (d, length, cls) => `<line class="ps-shot ${cls}" x1="0" y1="0" x2="${f(d[0] * length)}" y2="${f(-d[1] * length)}"/>`;
+const cross = ([x, y], size, cls = '') => `<path class="ps-shield ${cls}" d="M${f(x - size)},${f(y - size)}L${f(x + size)},${f(y + size)}M${f(x - size)},${f(y + size)}L${f(x + size)},${f(y - size)}"/>`;
 const PICK = ['k0', 'k1', 'k2', 'k3', 'k4'];
 
 function render(p, a) {
@@ -468,15 +468,15 @@ function render(p, a) {
   const goalSpots = q.T ? roomSpots(S, {s: 'o', i: q.T[0], j: q.T[1]}) : [];
   // Every cross of the room as a small dot, so the places a shield can go show.
   let under = '', over = '';
-  for (let i = 0; i <= N; i++) for (let j = 0; j <= N; j++) under += `<circle class="sh-dot" cx="${i}" cy="${-j}" r=".07"/>`;
+  for (let i = 0; i <= N; i++) for (let j = 0; j <= N; j++) under += `<circle class="ps-dot" cx="${i}" cy="${-j}" r=".07"/>`;
   for (const s of shots) over += roomShot(S, s.d, s.length, s.cls);
-  for (const c of b.shields) for (const xy of roomSpots(S, {s: 'o', i: c[0], j: c[1]})) over += cross(xy, .26, ringOf(c)) + (done && ringOf(c) ? `<circle class="sh-ring ${ringOf(c)}" cx="${f(xy[0])}" cy="${f(xy[1])}" r=".42"/>` : '');
-  for (const {t} of crossings2) { const [x, y] = [md(t * b.note.cross[0][0]), md(t * b.note.cross[0][1])]; over += `<circle class="sh-clash" cx="${f(x)}" cy="${f(-y)}" r=".38"/>`; }
-  for (const [x, y] of [[0, 0], [N, 0], [0, -N], [N, -N]]) over += `<circle class="sh-s" cx="${x}" cy="${y}" r=".16"/>`;
-  for (const [x, y] of goalSpots) over += `<circle class="sh-t" cx="${f(x)}" cy="${f(y)}" r=".22"/>`;
+  for (const c of b.shields) for (const xy of roomSpots(S, {s: 'o', i: c[0], j: c[1]})) over += cross(xy, .26, ringOf(c)) + (done && ringOf(c) ? `<circle class="ps-ring ${ringOf(c)}" cx="${f(xy[0])}" cy="${f(xy[1])}" r=".42"/>` : '');
+  for (const {t} of crossings2) { const [x, y] = [md(t * b.note.cross[0][0]), md(t * b.note.cross[0][1])]; over += `<circle class="ps-clash" cx="${f(x)}" cy="${f(-y)}" r=".38"/>`; }
+  for (const [x, y] of [[0, 0], [N, 0], [0, -N], [N, -N]]) over += `<circle class="ps-s" cx="${x}" cy="${y}" r=".16"/>`;
+  for (const [x, y] of goalSpots) over += `<circle class="ps-t" cx="${f(x)}" cy="${f(y)}" r=".22"/>`;
   let labels = '';
-  for (const [x, y, dx, dy] of [[0, 0, -.42, .5], [N, 0, .42, .5], [0, -N, -.42, -.22], [N, -N, .42, -.22]]) labels += `<text class="sh-label" x="${f(x + dx)}" y="${f(y + dy)}">S</text>`;
-  for (const [x, y] of goalSpots) labels += `<text class="sh-label" x="${f(x + .52)}" y="${f(y - .3)}">T</text>`;
+  for (const [x, y, dx, dy] of [[0, 0, -.42, .5], [N, 0, .42, .5], [0, -N, -.42, -.22], [N, -N, .42, -.22]]) labels += `<text class="ps-label" x="${f(x + dx)}" y="${f(y + dy)}">S</text>`;
+  for (const [x, y] of goalSpots) labels += `<text class="ps-label" x="${f(x + .52)}" y="${f(y - .3)}">T</text>`;
   const hintAt = act?.type === 'shield' ? crossKey(act.at) : null;
   const roomLook = pt => {
     const c = [pt.i, pt.j], k = crossKey(c);
@@ -485,7 +485,7 @@ function render(p, a) {
     // Neighbouring tap discs touch but never overlap.
     return {act: can, r: .5, label: `${crossWords(c)}${has ? ', shield' : ''}`, cls: [has ? 'shield' : '', hintAt === k ? 'hinted' : ''].filter(Boolean).join(' ')};
   };
-  const room = roomBoard(S, {cls: 'sh-room', label: 'Portal room', pad: .75, point: roomLook, under, over: over + labels});
+  const room = roomBoard(S, {cls: 'ps-room', label: 'Portal room', pad: .75, point: roomLook, under, over: over + labels});
 
   // The unrolled view.
   const ends = shots.map(s => [s.d[0] * s.length, s.d[1] * s.length]);
@@ -510,27 +510,30 @@ function render(p, a) {
   let pUnder = '', pOver = '';
   for (let X = X0; X <= X1 + 1; X++) for (let Y = Y0; Y <= Y1 + 1; Y++) {
     const [x, y] = [X * N, -Y * N];
-    pOver += `<circle class="sh-s${!X && !Y ? ' home' : ''}" cx="${x}" cy="${y}" r="${!X && !Y ? .55 : .32}"/>`;
-    if (q.T) { const [u, v] = [X * N + q.T[0], Y * N + q.T[1]]; if (u <= (X1 + 1) * N && v <= (Y1 + 1) * N) pOver += `<circle class="sh-t" cx="${u}" cy="${-v}" r=".55"/>`; }
+    pOver += `<circle class="ps-s${!X && !Y ? ' home' : ''}" cx="${x}" cy="${y}" r="${!X && !Y ? .55 : .32}"/>`;
+    if (q.T) { const [u, v] = [X * N + q.T[0], Y * N + q.T[1]]; if (u <= (X1 + 1) * N && v <= (Y1 + 1) * N) pOver += `<circle class="ps-t" cx="${u}" cy="${-v}" r=".55"/>`; }
     // A shield is on its cross in every copy; the copies other than the room itself are lighter.
     for (const c of b.shields) { const [u, v] = [X * N + c[0], Y * N + c[1]]; if (u <= (X1 + 1) * N && v <= (Y1 + 1) * N) pUnder += cross([u, -v], .5, [ringOf(c), u >= 0 && u <= N && v >= 0 && v <= N ? '' : 'copy'].filter(Boolean).join(' ')); }
   }
   for (const s of shots) pOver += planeShot(s.d, s.length, s.cls);
   for (const {t, s: s2} of crossings2) {
     const [d1, d2] = b.note.cross;
-    pOver += `<circle class="sh-clash" cx="${f(t * d1[0])}" cy="${f(-t * d1[1])}" r=".9"/><circle class="sh-clash" cx="${f(s2 * d2[0])}" cy="${f(-s2 * d2[1])}" r=".9"/>`;
+    pOver += `<circle class="ps-clash" cx="${f(t * d1[0])}" cy="${f(-t * d1[1])}" r=".9"/><circle class="ps-clash" cx="${f(s2 * d2[0])}" cy="${f(-s2 * d2[1])}" r=".9"/>`;
   }
-  pOver += `<text class="sh-label plane" x="-1.3" y="1.9">S</text>`;
-  const plane = planeBoard(S, {cls: 'sh-plane', label: 'Unrolled view', key: `shields-${p.id}`, window, point: planeLook, square: (s, X, Y, copy) => copy[0] === 0 && copy[1] === 0 ? 'first' : '', under: pUnder, over: pOver, pad: .6});
+  // The S label keeps its size on screen when a long shot zooms the view out
+  // (five or six copies across): about 15 px wherever the view is 330 px wide.
+  const zoom = ((X1 - X0 + 1) * N + 1.2) / (4 * N + 1.2);
+  pOver += `<text class="ps-label plane" x="${f(-1.3 * zoom)}" y="${f(1.9 * zoom)}" style="font-size:${f(1.5 * zoom)}px">S</text>`;
+  const plane = planeBoard(S, {cls: 'ps-plane', label: 'Unrolled view', key: `shields-${p.id}`, window, point: planeLook, square: (s, X, Y, copy) => copy[0] === 0 && copy[1] === 0 ? 'first' : '', under: pUnder, over: pOver, pad: .6});
 
   // Controls and words.
   let bar = '';
   if (play) {
-    bar = `<div class="sh-rooms" role="group" aria-label="Room">${Object.entries(q0.rooms).map(([id, r]) => `<button type="button" class="secondary sh-pick" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'room', room: id}))}" data-focus="sh-room-${id}" aria-pressed="${b.room === id}" aria-label="${esc(r.name)}">${miniRoom(r)}</button>`).join('')}</div>`;
+    bar = `<div class="ps-rooms" role="group" aria-label="Room">${Object.entries(q0.rooms).map(([id, r]) => `<button type="button" class="secondary ps-pick" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'room', room: id}))}" data-focus="ps-room-${id}" aria-pressed="${b.room === id}" aria-label="${esc(r.name)}">${miniRoom(r)}</button>`).join('')}</div>`;
   } else if (live) {
     const kind = q.mode === 'fewest' ? 'fewest' : 'cant', on = claim === kind;
     const enabled = on || (q.mode === 'fewest' ? b.shields.length > 0 && !escaping(q, b.shields).length && (b.fewer === null || b.shields.length < b.fewer) : b.shields.length > 0 && !b.way);
-    bar = `<div class="sh-bar"><button type="button" class="secondary sh-button${act?.type === kind ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: kind}))}" data-focus="sh-${kind}${on ? '-on' : ''}" aria-pressed="${on}" ${enabled ? '' : 'disabled'}>${kind === 'fewest' ? 'Fewest' : 'Can’t'}</button></div>`;
+    bar = `<div class="ps-bar"><button type="button" class="secondary ps-button${act?.type === kind ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: kind}))}" data-focus="ps-${kind}${on ? '-on' : ''}" data-toggle="ps-claim" aria-pressed="${on}" ${enabled ? '' : 'disabled'}>${kind === 'fewest' ? 'Fewest' : 'Can’t'}</button></div>`;
   }
   const need = claim ? needOf(q, b) : 0;
   const prompt = claim && live ? `Tap ${need} shots that cross only at ${q.T ? 'S and T' : 'S'}.` : '';
@@ -538,13 +541,13 @@ function render(p, a) {
   const status = play
     ? `${b.shields.length} ${b.shields.length === 1 ? 'shield' : 'shields'}. ${shots.map(s => s.cls === 'escape' ? 'A shot reaches its target.' : 'A shot stops at a shield.').join(' ')}`
     : `${b.shields.length} ${b.shields.length === 1 ? 'shield' : 'shields'}${b.shields.length ? `: ${b.shields.map(crossWords).join('; ')}` : ''}. ${claim ? `${b.picks.length} of ${need} shots tapped.` : escapes.length ? `The shot to ${targetWords(q, endOf(q, escapes[0]))} gets through.` : 'No shot gets through.'}${told ? ` ${told}` : ''}`;
-  const stage = `<div class="sh-stage"><div class="sh-view sh-room-view">${room}</div><div class="sh-view sh-plane-view">${plane}</div></div>`;
-  return `<div class="sh-puzzle${done ? ' solved' : ''}${claim ? ' claiming' : ''}" data-mechanic-wire="shields">${bar}${prompt ? `<p class="sh-prompt">${esc(prompt)}</p>` : ''}${stage}${told ? `<p class="sh-told">${esc(told)}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
+  const stage = `<div class="ps-stage"><div class="ps-view ps-room-view">${room}</div><div class="ps-view ps-plane-view">${plane}</div></div>`;
+  return `<div class="ps-puzzle${done ? ' solved' : ''}${claim ? ' claiming' : ''}" data-mechanic-wire="shields">${bar}${prompt ? `<p class="ps-prompt">${esc(prompt)}</p>` : ''}${stage}${told ? `<p class="ps-told">${esc(told)}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
 // A small picture of a room for the playground's buttons: S at the corners, T.
 function miniRoom(r) {
-  const t = r.T ? `<circle class="sh-t" cx="${r.T[0]}" cy="${-r.T[1]}" r=".7"/>${r.T[1] === 0 ? `<circle class="sh-t" cx="${r.T[0]}" cy="${-N}" r=".7"/>` : ''}` : '';
-  return `<svg class="sh-mini" viewBox="-1 -9 10 10" role="img" aria-label="${esc(r.name)}"><rect class="sh-mini-room" x="0" y="-8" width="8" height="8"/>${[[0, 0], [8, 0], [0, -8], [8, -8]].map(([x, y]) => `<circle class="sh-s" cx="${x}" cy="${y}" r=".6"/>`).join('')}${t}</svg>`;
+  const t = r.T ? `<circle class="ps-t" cx="${r.T[0]}" cy="${-r.T[1]}" r=".7"/>${r.T[1] === 0 ? `<circle class="ps-t" cx="${r.T[0]}" cy="${-N}" r=".7"/>` : ''}` : '';
+  return `<svg class="ps-mini" viewBox="-1 -9 10 10" role="img" aria-label="${esc(r.name)}"><rect class="ps-mini-room" x="0" y="-8" width="8" height="8"/>${[[0, 0], [8, 0], [0, -8], [8, -8]].map(([x, y]) => `<circle class="ps-s" cx="${x}" cy="${y}" r=".6"/>`).join('')}${t}</svg>`;
 }
 
 function wire(root, p, api) {
@@ -575,5 +578,5 @@ export default {
   mechanics: shieldMechanics,
   pack: new URL('./shields.json', import.meta.url).href,
   css: new URL('./shields.css', import.meta.url).href,
-  focus: '.sh-room .pb-point.act,.sh-plane .pb-point.act'
+  focus: '.ps-room .pb-point.act,.ps-plane .pb-point.act'
 };

@@ -783,7 +783,7 @@ export function arrowPad(opts = {}) {
     const l = look(name);
     return `<button type="button" class="pb-arrow pb-${name}${l.hinted ? ' hinted' : ''}" data-pb-dir="${name}" data-focus="pb-dir-${name}" aria-label="${esc(l.label || `Step ${DIR_NAMES[name]}`)}" ${l.act === false ? 'disabled' : ''}>${ARROW[name]}</button>`;
   };
-  return `<div class="pb-pad ${opts.cls || ''}" role="group" aria-label="${esc(opts.label || 'Steps')}">${['U', 'L', 'R', 'D'].map(button).join('')}</div>`;
+  return `<div class="pb-pad pb-cross ${opts.cls || ''}" role="group" aria-label="${esc(opts.label || 'Steps')}">${['U', 'L', 'R', 'D'].map(button).join('')}</div>`;
 }
 
 /* ------------------------------------------------------------------ *

@@ -3,8 +3,8 @@
 // Undo, Enter on sides, where focus goes after a move, Can't without the
 // longest trip (the refusal every puzzle gives), the trip's landings tapped
 // out of order and then in order, the beads lettered from the trip, "There is
-// a way." kept through Undo until a new gluing, corners joined by taps (including taps beside a corner shared
-// by two squares), a wrong That's all refused through Undo, the rosettes,
+// a way." kept through Undo until a new gluing, a double tap on Can't, corners joined by taps (including taps beside a corner shared
+// by two squares), puzzle 10's corner targets, a wrong That's all refused through Undo, the rosettes,
 // hints applied to a finish, and the playground's surfaces, arrows and
 // starts; no page overflow. Same environment variables as the other browser
 // suites (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a
@@ -36,6 +36,14 @@ const focused = () => page.evaluate(() => { const el = document.activeElement; r
 const tapAt = async (x, y) => { if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); };
 const tap = async (locator, fx = .5, fy = .5) => { const b = await locator.boundingBox(); await tapAt(b.x + b.width * fx, b.y + b.height * fy); };
 const glue = async (a, b) => { await tap(side(...a)); await tap(side(...b)); };
+// Two taps 90 ms apart at one point: a quick double tap.
+// Can't is a data-toggle slot: a press within 350 ms of the last is taken for
+// a double tap and dropped (dist/main.js), so the suite leaves 400 ms between
+// its presses, as a child's separate presses would.
+let lastCant = -Infinity;
+const sinceCant = async () => { const wait = lastCant + 400 - Date.now(); if (wait > 0) await page.waitForTimeout(wait); };
+const pressCant = async () => { await sinceCant(); await tap(cant()); lastCant = Date.now(); };
+const doubleTap = async locator => { await sinceCant(); const b = await locator.boundingBox(), x = b.x + b.width / 2, y = b.y + b.height / 2; await tapAt(x, y); await page.waitForTimeout(90); await tapAt(x, y); lastCant = Date.now(); };
 const undo = () => page.locator('[data-action="undo"]').click();
 async function hintsFinish() {
   for (let i = 0; i < 3; i++) await button('Hint').click();
@@ -85,7 +93,7 @@ try {
   await side('C', 'down').focus(); await page.keyboard.press('Enter');
   assert.deepEqual((await board(P4)).up, {A: 'C', B: null, C: null}, 'Enter glues');
   assert.match((await focused()).cls, /gl-side-hit/, 'focus after a keyboard gluing');
-  await tap(cant());
+  await pressCant();
   assert.equal(await cant().getAttribute('aria-pressed'), 'true');
   assert.equal(await page.locator('.gl-dot-hit').count(), 3, 'every dot is a control');
   assert.equal(await page.locator('.gl-side-hit').count(), 0, 'the sides wait');
@@ -102,6 +110,11 @@ try {
   await shot('04-refused');
   await glue(['A', 'right'], ['B', 'left']);
   assert.equal(await told().count(), 0, 'a new gluing clears it');
+  // A quick double tap on Can't opens the dots once; it doesn't close them again.
+  await doubleTap(cant());
+  assert.equal(await cant().getAttribute('aria-pressed'), 'true', 'a double tap leaves the dots open');
+  await pressCant();
+  assert.equal(await cant().getAttribute('aria-pressed'), 'false', 'a later press closes them');
   await hintsFinish(); await shot('04-solved');
 
   // Puzzle 2: the trip lands on every dot, tapped in order, but the puzzle can
@@ -109,7 +122,7 @@ try {
   const P2 = 'glued-02';
   await open(P2); await fit('puzzle 2');
   await glue(['A', 'right'], ['B', 'left']); await glue(['B', 'right'], ['C', 'left']); await glue(['C', 'right'], ['A', 'left']);
-  await tap(cant());
+  await pressCant();
   for (const s of ['B', 'C', 'A']) await tap(dot(s));
   assert.equal(await told().innerText(), 'There is a way.');
   assert.ok(await cant().isDisabled(), 'Can’t is shut after "There is a way."');
@@ -126,18 +139,18 @@ try {
   await open(P7); await fit('puzzle 7');
   assert.ok(await cant().isDisabled(), 'no Can’t before an attempt');
   await glue(['C', 'up'], ['B', 'down']);
-  await tap(cant());
+  await pressCant();
   for (const s of ['C', 'A', 'B']) await tap(dot(s));
   assert.equal(await told().innerText(), refusal, 'a trip that stops at once is no certificate');
   for (const s of ['A', 'B', 'C']) await glue([s, 'right'], [s, 'left']);
   await glue(['A', 'up'], ['C', 'down']); await glue(['B', 'up'], ['A', 'down']);
   assert.deepEqual((await board(P7)).up, {A: 'C', B: 'A', C: 'B'});
-  await tap(cant());
+  await pressCant();
   for (const s of ['B', 'C']) await tap(dot(s));
   assert.deepEqual(await page.locator('.gl-beads').first().locator('i.lettered').allInnerTexts(), ['B', 'C'], 'the beads take the taps in order');
   await tap(dot('A'));
   assert.equal(await told().innerText(), refusal, 'out of order');
-  await tap(cant());
+  await pressCant();
   for (const s of ['C', 'B', 'A']) await tap(dot(s));
   await done();
   assert.ok((await board(P7)).claimed);
@@ -189,7 +202,13 @@ try {
   assert.equal(await page.locator('.gl-rose').count(), 1);
   assert.equal(await page.locator('.gl-rose-wedge').count(), 12);
   await shot('06-solved');
-  await open('glued-10'); await fit('puzzle 10'); await hintsFinish();
+  // Puzzle 10: three squares across with D on B's top, glued there, so each
+  // corner's target is about 40 px on a 375 px phone (33 px in a row of four).
+  await open('glued-10'); await fit('puzzle 10'); await shot('10-start');
+  const [a00, b01, d00] = await Promise.all(['A:00', 'B:01', 'D:00'].map(k => corner(k).boundingBox()));
+  assert.ok(Math.min(a00.width, a00.height) >= 39.5, `puzzle 10's corner targets are ${Math.round(a00.width)} px`);
+  assert.ok(Math.abs(d00.y + d00.height - b01.y) < 1 && Math.abs(d00.x - b01.x) < 1, 'D is drawn on B’s top');
+  await hintsFinish();
   assert.equal(await page.locator('.gl-rose').count(), 2); await shot('10-solved');
 
   // The playground: surfaces, arrows, starts.

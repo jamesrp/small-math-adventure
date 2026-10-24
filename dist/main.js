@@ -288,9 +288,15 @@ document.addEventListener('keydown',event=>{
   const value=['Backspace','Delete','0'].includes(event.key)?0:/^[1-9]$/.test(event.key)?Number(event.key):null;
   if(value!==null&&value<=p.parameters.order){event.preventDefault();if(attempt(p).board.cells[Number(cell.dataset.cell)]!==value)applyPair(p,{type:'set',cell:Number(cell.dataset.cell),value});}
 });
+// A button that opens a claim and closes it again in the same place carries
+// data-toggle, naming its slot. A quick double tap lands the second press on
+// the redrawn button and would close what the first opened, so a press of
+// the same slot within 350 ms of the last one is dropped.
+let lastToggle={slot:null,at:-Infinity};
+function repeatToggle(control){const slot=control.dataset.toggle;if(!slot)return false;const now=performance.now();if(lastToggle.slot===slot&&now-lastToggle.at<350)return true;lastToggle={slot,at:now};return false;}
 document.addEventListener('click',event=>{
   if(event.target.closest('.skip-link')){event.preventDefault();const main=document.querySelector('#main');main?.setAttribute('tabindex','-1');main?.focus();return;}
-  const control=event.target.closest('[data-action]');if(!control)return;const action=control.dataset.action,p=puzzle(),a=p&&profile()?attempt(p):null;
+  const control=event.target.closest('[data-action]');if(!control||repeatToggle(control))return;const action=control.dataset.action,p=puzzle(),a=p&&profile()?attempt(p):null;
   if(action==='home')go(profile()?'map':'profiles');
   else if(action==='profiles')go('profiles');
   else if(action==='map')go('map');

@@ -176,7 +176,7 @@ planeBoard(S, {
 - `planeWindow` picks a square window that holds everything in `show` and the focus with a margin. The window is at least `min` squares across and at most `max`. If everything doesn't fit within `max`, the window centres on the focus. So the view recentres and grows as a trip goes on. While a finger slides on the plane, the window stays where it was, so the square under the finger doesn't move. When the slide ends, the family redraws the view.
 - `planeTrail` draws a trip as one line in the plane. `roomTrail` draws it in the room, broken at the seams, with a small dot where it leaves and comes back in.
 - `tripLayer(S, start, steps, {vertex})` draws a trip with a chevron on each step, and a control at each vertex where `tripMove` allows a move. Each control sits a little inside the square its slide would cross.
-- `arrowPad({dir})` draws four arrow buttons in a cross.
+- `arrowPad({dir})` draws four arrow buttons in a cross. The pad's class `pb-cross` scopes its styles, since Prime bags styles `.pb-pad` and `.pb-arrow` for its own controls.
 
 ## Wiring
 

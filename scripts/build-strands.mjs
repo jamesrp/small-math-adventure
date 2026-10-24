@@ -51,7 +51,7 @@ const RULES = {
 };
 const CONTROLS = {
   untangle: least => `Slide a bead sideways, in the cylinder or the unrolled view, or tab to a bead and use the left and right arrow keys (up and down go to the next bead). When they can’t cross fewer times, press Done.${least ? ' Then tap each copy of red that blue has to cross, and press That’s all.' : ''} Undo takes back a move.`,
-  design: 'Tap an end above the top rim and then a B, or drag the end along the rim. Or choose an end’s button and use the left and right arrow keys. If no ends work, get two pairs right with every end at a different B, press Can’t and tap the strand whose end is in the middle. Undo takes back a move.',
+  design: 'Tap an end above the top rim and then a B, or drag the end along the rim. Or choose an end’s button and use the left and right arrow keys. If no ends work, press Can’t and tap a strand. Undo takes back a move.',
   playground: 'Slide beads in either view. Tap an end above the top rim and then a B, or drag it. The twist buttons turn the top rim once round with both strands. Restart puts everything back.'
 };
 const PREREQ = {
@@ -147,7 +147,8 @@ const out = PUZZLES.map(item => {
     solution = {startCrossings: item.check.start, fewest: item.check.fewest, movesToFewest: item.check.moves, barriers: barriers(wr, wb), witness: tight.map(r => r.slice(1, -1))};
     rules.push(RULES.untangle);
     controls = CONTROLS.untangle(item.check.fewest);
-    objective = `Slide the beads until red and blue cross as few times as they can. Then press Done.${item.check.fewest ? ' Tap each copy of red that blue has to cross, and press That’s all.' : ''}`;
+    // How to play shows the objective and then the controls: the claim's taps are said once, in the controls.
+    objective = 'Slide the beads until red and blue cross as few times as they can. Then press Done.';
     visible = 'Untangle them, then press Done.';
     prerequisites = item.check.fewest ? PREREQ.certificate : PREREQ.untangle;
   } else {
@@ -168,7 +169,8 @@ const out = PUZZLES.map(item => {
     } else solution = {cant: true, certificate: 'the middle strand: its two gaps add up to the outer gap'};
     rules.push(RULES.design);
     controls = CONTROLS.design;
-    objective = 'Move the ends so that each pair of strands crosses as often as its number. If no ends work, get two pairs right with every end at a different B, press Can’t and tap the strand whose end is in the middle.';
+    // Can't is in the controls only, without its certificate: puzzles 6 and 11 can be done, and the claim's own line names what to tap.
+    objective = 'Move the ends so that each pair of strands crosses as often as its number.';
     visible = 'Each pair crosses as often as its number.';
     prerequisites = PREREQ.design;
   }

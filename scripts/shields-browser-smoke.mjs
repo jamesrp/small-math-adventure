@@ -8,7 +8,8 @@
 // refused for good at its last shot where there is a way, and right with three
 // shields, with the four corner shots tapped; the room with
 // no T and its seam crosses; hints marked on the board and applied; where
-// focus goes after a claim; how long a tap takes; the playground's rooms and
+// focus goes after a claim; a double tap on Fewest; how long a tap takes; the
+// room's size side by side and the S label's on long shots; the playground's rooms and
 // aimed shots; no page overflow. Same environment variables as the other
 // browser suites (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL,
 // TEST_PHONE=1 for a phone with touch). Screenshots go in test-results/shields/.
@@ -24,21 +25,27 @@ const base = (process.env.TEST_URL || 'http://127.0.0.1:4187').replace(/\/$/, ''
 const out = new URL('../test-results/shields/', import.meta.url);
 const shot = name => page.screenshot({path: new URL(`${name}${phone ? '-phone' : ''}.png`, out).pathname, fullPage: true});
 const board = id => page.evaluate(([k, id]) => JSON.parse(localStorage.getItem(k)).profiles[0].attempts[id]?.board, [key, id]);
-const open = async id => { await page.goto(`${base}/#play/${id}`); await page.locator('.sh-puzzle').waitFor(); };
+const open = async id => { await page.goto(`${base}/#play/${id}`); await page.locator('.ps-puzzle').waitFor(); };
 const done = () => page.locator('#completion-heading').waitFor({timeout: 5000});
 const fit = async label => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `${label}: no page overflow`);
-const cross = (i, j, n = 0) => page.locator(`.sh-room [data-pb-point="o,${i},${j}"]`).nth(n);
-const copy = (u, v) => page.locator(`.sh-plane [data-pb-point="${u},${v}"]`);
+const cross = (i, j, n = 0) => page.locator(`.ps-room [data-pb-point="o,${i},${j}"]`).nth(n);
+const copy = (u, v) => page.locator(`.ps-plane [data-pb-point="${u},${v}"]`);
 const button = name => page.getByRole('button', {name, exact: true});
-const told = () => page.locator('.sh-told').innerText();
-const untold = async () => (await page.locator('.sh-told').count()) === 0;
-const status = () => page.locator('.sh-puzzle [role="status"]').innerText();
+const told = () => page.locator('.ps-told').innerText();
+const untold = async () => (await page.locator('.ps-told').count()) === 0;
+const status = () => page.locator('.ps-puzzle [role="status"]').innerText();
 const center = async locator => { const b = await locator.boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
 // Taps land where the child sees the target, through real hit-testing: the
 // centre of the cross (or T) drawn, not the control's own box.
 const tap = async locator => { const hit = locator.locator('.pb-hit'); await hit.scrollIntoViewIfNeeded(); const [x, y] = await center(hit); if (phone) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y); };
 const undo = () => page.locator('[data-action="undo"]').click();
-const focusOnBoard = () => page.evaluate(() => document.activeElement?.matches('.sh-puzzle .pb-point.act') ?? false);
+// Fewest or Can't is one slot: a press within 350 ms of the last is taken for
+// a double tap and dropped (data-toggle, dist/main.js), so the suite leaves
+// 400 ms between them, as a child's separate presses would.
+let lastSlot = -Infinity;
+const sinceSlot = async ms => { const wait = lastSlot + ms - Date.now(); if (wait > 0) await page.waitForTimeout(wait); };
+const slot = async (name, key) => { await sinceSlot(400); if (key) { await button(name).focus(); await page.keyboard.press(key); } else await button(name).click(); lastSlot = Date.now(); };
+const focusOnBoard = () => page.evaluate(() => document.activeElement?.matches('.ps-puzzle .pb-point.act') ?? false);
 async function hintsFinish() {
   for (let i = 0; i < 3; i++) await button('Hint').click();
   let n = 0;
@@ -64,19 +71,23 @@ try {
   // Puzzle 1: three drawn shots.
   const A = 'shields-01';
   await open(A); await fit('three shots');
+  // The room, where crosses are tapped, fills the panel on a phone (328 px at
+  // 390 wide, crosses about 34 px apart) and is never smaller side by side.
+  { const w = (await page.locator('.ps-room').boundingBox()).width, panel = (await page.locator('.ps-puzzle').boundingBox()).width;
+    assert.ok(phone ? w >= panel - 1 : w >= 340, `the room is ${Math.round(w)} px wide in a ${Math.round(panel)} px panel`); }
   assert.equal(await page.locator('.puzzle-goal').innerText(), 'Stop every shot with as few shields as you can.');
-  assert.ok(await page.locator('.sh-room .sh-shot.escape').count() >= 3, 'the shots getting through, in the room');
-  assert.equal(await page.locator('.sh-plane .sh-shot.escape').count(), 3, 'and in the unrolled view, one line each');
+  assert.ok(await page.locator('.ps-room .ps-shot.escape').count() >= 3, 'the shots getting through, in the room');
+  assert.equal(await page.locator('.ps-plane .ps-shot.escape').count(), 3, 'and in the unrolled view, one line each');
   assert.equal(await button('Fewest').isDisabled(), true, 'nothing to claim yet');
-  assert.equal(await page.locator('.sh-room [data-pb-point="o,0,0"][role="button"], .sh-room [data-pb-point="o,4,4"][role="button"]').count(), 0, 'S and T are not controls');
+  assert.equal(await page.locator('.ps-room [data-pb-point="o,0,0"][role="button"], .ps-room [data-pb-point="o,4,4"][role="button"]').count(), 0, 'S and T are not controls');
   // Where the two steep shots cross.
   await tap(cross(1, 3));
   assert.deepEqual((await board(A)).shields, [[1, 3]], 'a tap where two shots cross puts the shield there');
-  assert.equal(await page.locator('.sh-plane .sh-shot.escape').count(), 1, 'one shield stops both steep shots');
+  assert.equal(await page.locator('.ps-plane .ps-shot.escape').count(), 1, 'one shield stops both steep shots');
   // A cross on the seam is one point drawn twice: either copy works.
   await tap(cross(0, 4, 1));
   assert.deepEqual((await board(A)).shields, [[0, 4], [1, 3]], 'the right-hand copy of a seam cross');
-  assert.equal(await page.locator('.sh-room .sh-shield').count(), 3, 'a shield on the seam is drawn at both copies');
+  assert.equal(await page.locator('.ps-room .ps-shield').count(), 3, 'a shield on the seam is drawn at both copies');
   await tap(cross(0, 4, 0));
   assert.deepEqual((await board(A)).shields, [[1, 3]], 'the left-hand copy takes it off');
   await cross(1, 1).focus(); await page.keyboard.press('Enter');
@@ -86,9 +97,9 @@ try {
   // Too many: pressing Fewest judges nothing; the last of three shots is told
   // “Fewer can do it.”, once, and Undo doesn't bring the claim back.
   await tap(cross(3, 1));
-  await button('Fewest').click();
+  await slot('Fewest');
   assert.equal(await untold(), true, 'pressing Fewest says nothing yet');
-  assert.equal(await page.locator('.sh-prompt').innerText(), 'Tap 3 shots that cross only at S and T.');
+  assert.equal(await page.locator('.ps-prompt').innerText(), 'Tap 3 shots that cross only at S and T.');
   await tap(copy(4, 12)); await tap(copy(12, 4));
   assert.equal(await untold(), true, 'two crossing shots before the last are not judged');
   await tap(copy(4, 4));
@@ -97,25 +108,36 @@ try {
   assert.equal(await focusOnBoard(), true, 'focus goes to the board, not a disabled button');
   await undo();
   assert.equal(await button('Fewest').isDisabled(), true, 'still refused at three after Undo');
-  assert.equal(await page.locator('.sh-prompt').count(), 0, 'Undo doesn’t reopen the claim');
+  assert.equal(await page.locator('.ps-prompt').count(), 0, 'Undo doesn’t reopen the claim');
   await shot('fewer');
   await tap(cross(3, 1));
   assert.equal(await button('Fewest').isDisabled(), false, 'two shields can try again');
-  // Four taps on and off one cross; the median, so one slow frame on a busy machine doesn't decide.
+  // A tap's cost is the board it redraws: its size is the work, and wall time
+  // is only checked as the fastest of six taps on and off one cross, so taps
+  // slowed by other work on a busy machine don't decide.
+  const drawn = await page.evaluate(() => document.querySelector('.ps-puzzle').outerHTML.length);
+  assert.ok(drawn < 60000, `a tap redraws ${Math.round(drawn / 1000)} KB of board`);
   const times = [];
-  for (let k = 0; k < 4; k++) times.push(await tapTime(5, 5));
-  times.sort((x, y) => x - y);
-  const t = (times[1] + times[2]) / 2;
+  for (let k = 0; k < 6; k++) times.push(await tapTime(5, 5));
+  const t = Math.min(...times);
   assert.ok(t < 100, `a tap redraws in ${t.toFixed(1)} ms`);
-  await button('Fewest').focus(); await page.keyboard.press('Enter');
-  assert.equal(await page.locator('.sh-prompt').innerText(), 'Tap 2 shots that cross only at S and T.');
+  // A quick double tap on Fewest opens the claim once: the second tap lands on
+  // the redrawn button and would close it again (data-toggle, dist/main.js).
+  await sinceSlot(400);
+  { const [x, y] = await center(button('Fewest')); const press = () => phone ? page.touchscreen.tap(x, y) : page.mouse.click(x, y);
+    await press(); await page.waitForTimeout(90); await press(); lastSlot = Date.now(); }
+  assert.equal(await page.locator('.ps-prompt').count(), 1, 'a double tap on Fewest leaves the claim open');
+  await slot('Fewest');
+  assert.equal(await page.locator('.ps-prompt').count(), 0, 'a later tap closes it');
+  await slot('Fewest', 'Enter');
+  assert.equal(await page.locator('.ps-prompt').innerText(), 'Tap 2 shots that cross only at S and T.');
   assert.equal(await focusOnBoard(), true, 'focus goes to a shot to tap, not to a button');
-  assert.equal(await page.locator('.sh-room .pb-point.act').count(), 0, 'crosses rest during the claim');
-  assert.equal(await page.locator('.sh-plane .pb-point.pick').count(), 3, 'the three drawn shots can be tapped');
+  assert.equal(await page.locator('.ps-room .pb-point.act').count(), 0, 'crosses rest during the claim');
+  assert.equal(await page.locator('.ps-plane .pb-point.pick').count(), 3, 'the three drawn shots can be tapped');
   await tap(copy(4, 12));
   await tap(copy(12, 4));
   assert.equal(await told(), 'Those two cross.');
-  assert.equal(await page.locator('.sh-plane .sh-clash').count(), 4, 'both crossings marked on both lines');
+  assert.equal(await page.locator('.ps-plane .ps-clash').count(), 4, 'both crossings marked on both lines');
   assert.deepEqual((await board(A)).picks, [], 'crossing shots are cleared');
   assert.equal(await focusOnBoard(), true, 'focus stays on the board');
   await shot('crossing');
@@ -129,16 +151,16 @@ try {
   await open(C); await fit('three shields');
   assert.equal(await page.locator('.puzzle-goal').innerText(), 'Stop every shot with 3 shields.');
   assert.equal(await button('Can’t').isDisabled(), true, 'a try first');
-  assert.equal(await page.locator('.sh-plane .sh-shot.escape').count(), 1, 'the app fires one shot that gets through');
+  assert.equal(await page.locator('.ps-plane .ps-shot.escape').count(), 1, 'the app fires one shot that gets through');
   await button('Hint').click();
   assert.match(await page.locator('.hint-card').innerText(), /Try three shields/, 'the first hint is a try');
   await tap(cross(2, 2)); await tap(cross(2, 6)); await tap(cross(6, 2));
-  assert.equal(await page.locator('.sh-room .pb-point.act').count(), 3, 'a full budget leaves only the shields to take off');
+  assert.equal(await page.locator('.ps-room .pb-point.act').count(), 3, 'a full budget leaves only the shields to take off');
   assert.match(await status(), /gets through/);
   await shot('three-open');
-  await button('Can’t').focus(); await page.keyboard.press('Enter');
+  await slot('Can’t', 'Enter');
   assert.equal(await focusOnBoard(), true, 'focus leaves Can’t for the board');
-  assert.equal(await page.locator('.sh-prompt').innerText(), 'Tap 4 shots that cross only at S and T.');
+  assert.equal(await page.locator('.ps-prompt').innerText(), 'Tap 4 shots that cross only at S and T.');
   for (const [u, v] of [[4, 4], [-4, 4], [4, -4]]) await tap(copy(u, v));
   assert.equal(await page.locator('#completion-heading').count(), 0, 'three shots are not yet the proof');
   await tap(copy(-4, -4));
@@ -149,9 +171,9 @@ try {
   const B = 'shields-06';
   await open(B);
   await tap(cross(1, 1));
-  await button('Can’t').click();
+  await slot('Can’t');
   assert.equal(await untold(), true, 'pressing Can’t says nothing yet');
-  assert.equal(await page.locator('.sh-prompt').innerText(), 'Tap 5 shots that cross only at S and T.');
+  assert.equal(await page.locator('.ps-prompt').innerText(), 'Tap 5 shots that cross only at S and T.');
   for (const [u, v] of [[4, 4], [-4, 4], [4, -4], [-4, -4]]) await tap(copy(u, v));
   assert.equal(await untold(), true);
   await tap(copy(4, 12));
@@ -161,7 +183,7 @@ try {
   await undo();
   assert.equal(await button('Can’t').isDisabled(), true, 'Undo keeps the refusal');
   for (let i = 0; i < 2; i++) await button('Hint').click();
-  assert.equal(await page.locator('.sh-room .pb-point.hinted').count(), 1, 'the second hint marks a cross');
+  assert.equal(await page.locator('.ps-room .pb-point.hinted').count(), 1, 'the second hint marks a cross');
   await hintsFinish();
 
   // Puzzle 9: back to S, seam crosses, S copies to tap.
@@ -170,8 +192,8 @@ try {
   await tap(cross(0, 4, 1)); await tap(cross(4, 0, 1)); await tap(cross(4, 4));
   assert.deepEqual((await board(D)).shields, [[0, 4], [4, 0], [4, 4]]);
   assert.match(await status(), /No shot gets through\./);
-  await button('Fewest').click();
-  assert.equal(await page.locator('.sh-prompt').innerText(), 'Tap 3 shots that cross only at S.');
+  await slot('Fewest');
+  assert.equal(await page.locator('.ps-prompt').innerText(), 'Tap 3 shots that cross only at S.');
   await tap(copy(8, 8)); await tap(copy(-8, -8));
   assert.equal(await untold(), true, 'not judged before the last shot');
   await tap(copy(8, 0));
@@ -182,7 +204,12 @@ try {
   await shot('back-to-s');
 
   // Puzzles 5, 8 and 10: the long shot, the drawn return shots, T on the edge.
-  for (const id of ['shields-05', 'shields-08', 'shields-10']) { await open(id); await fit(id); await shot(id); }
+  // A long shot zooms the unrolled view out; its S label keeps about 15 px.
+  for (const id of ['shields-05', 'shields-08', 'shields-10']) {
+    await open(id); await fit(id); await shot(id);
+    const h = (await page.locator('.ps-plane .ps-label.plane').boundingBox()).height;
+    assert.ok(h >= 12, `${id}: the S label is ${h.toFixed(1)} px tall`);
+  }
   await hintsFinish();
 
   // The playground.
@@ -191,20 +218,20 @@ try {
   assert.equal(await button('Hint').count(), 0, 'no Hint');
   await tap(copy(12, 12));
   assert.deepEqual((await board(G)).aims, [[12, 12]]);
-  assert.equal(await page.locator('.sh-plane .sh-shot.escape').getAttribute('x2'), '4', 'aimed at the T one copy right and up, it stops at the first T');
+  assert.equal(await page.locator('.ps-plane .ps-shot.escape').getAttribute('x2'), '4', 'aimed at the T one copy right and up, it stops at the first T');
   await tap(copy(12, 4));
-  assert.equal(await page.locator('.sh-plane .sh-shot.escape').count(), 2, 'two aimed shots');
+  assert.equal(await page.locator('.ps-plane .ps-shot.escape').count(), 2, 'two aimed shots');
   await tap(cross(1, 0));
-  assert.equal(await page.locator('.sh-plane .sh-shot.stopped').count(), 0, 'a shield off the shots changes nothing');
+  assert.equal(await page.locator('.ps-plane .ps-shot.stopped').count(), 0, 'a shield off the shots changes nothing');
   await tap(cross(1, 0));
   await tap(cross(3, 3));
-  assert.equal(await page.locator('.sh-plane .sh-shot.stopped').count(), 1, 'a shield on one stops it');
+  assert.equal(await page.locator('.ps-plane .ps-shot.stopped').count(), 1, 'a shield on one stops it');
   await page.getByRole('button', {name: 'No T', exact: true}).click();
   assert.equal((await board(G)).room, 'none');
   await tap(copy(8, 8));
-  assert.equal(await page.locator('.sh-plane .sh-shot.escape').getAttribute('x2'), '8');
+  assert.equal(await page.locator('.ps-plane .ps-shot.escape').getAttribute('x2'), '8');
   await shot('playground');
 
   assert.deepEqual(errors, []);
-  console.log(JSON.stringify({passed: true, phone, tapMs: Number(t.toFixed(1)), errors}));
+  console.log(JSON.stringify({passed: true, phone, tapMs: Number(t.toFixed(1)), drawnKB: Math.round(drawn / 1000), errors}));
 } catch (error) { console.error(error); process.exitCode = 1; } finally { await browser.close(); }

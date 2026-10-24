@@ -220,3 +220,28 @@ test('every puzzle renders both views with its controls; handles sit apart where
 });
 
 function refuse(p, a, action, why) { assert.equal(move(p, a, action), null, `refuses ${why}`); }
+
+test('How to play says each thing once, and never names the certificate', () => {
+  for (const p of strands.puzzles.filter(p => p.parameters.mode !== 'playground')) {
+    const sentences = text => text.split(/(?<=\.)\s+/).filter(Boolean);
+    const repeated = sentences(p.objective).filter(s => p.controls.includes(s));
+    assert.deepEqual(repeated, [], `${p.id}: the objective and the controls share no sentence`);
+    assert.doesNotMatch(p.objective + p.controls + p.rules.join(' '), /middle/, `${p.id}: no certificate in How to play`);
+  }
+  assert.match(byId('strands-11').controls, /press Can’t and tap a strand\./);
+  assert.match(byId('strands-07').controls, /tap each copy of red that blue has to cross/);
+});
+
+test('Done or Can’t, and Back in its place, carry one data-toggle slot', () => {
+  const u = byId('strands-07');
+  mechanicFor(u).reset(u);
+  const a = freshAttempt(u);
+  assert.match(view(u, a), /data-focus="st-claim" data-toggle="st-claim"/, 'Done');
+  ui(u, {claim: JSON.stringify(a.board)});
+  assert.match(view(u, a), /data-focus="st-back" data-toggle="st-claim"/, 'Back');
+  mechanicFor(u).reset(u);
+  const d = byId('strands-12');
+  mechanicFor(d).reset(d);
+  assert.match(view(d, freshAttempt(d)), /data-focus="st-claim" data-toggle="st-claim"/, 'Can’t');
+  mechanicFor(d).reset(d);
+});

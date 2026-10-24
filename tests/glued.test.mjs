@@ -180,8 +180,11 @@ test('hints: from every puzzle’s start they reach a solve, quickly, and never 
     let a = freshAttempt(p), steps = 0;
     assert.notEqual(nextHint(p, a).action.type, 'cant', p.id);
     while (!isSolved(p, a.board)) {
-      const t0 = performance.now(), h = nextHint(p, a);
-      assert.ok(performance.now() - t0 < 100, `${p.id}: a hint in under 100 ms`);
+      // Timed in CPU time, not wall time, so other work on a busy machine
+      // doesn't count (as tests/corners.test.mjs does). Alone the slowest hint
+      // takes about 8 ms of CPU; 100 ms still catches a search that isn't memoised.
+      const c0 = process.cpuUsage(), h = nextHint(p, a), c = process.cpuUsage(c0), ms = (c.user + c.system) / 1000;
+      assert.ok(ms < 100, `${p.id}: a hint in under 100 ms of CPU time (${ms.toFixed(1)} ms)`);
       if (h.action.type === 'cant') {
         assert.match(h.text, /twice/, `${p.id}: the reason before Can’t`);
         assert.deepEqual(h.action.dots, goalTrips(p.parameters, a.board)[0].blocks.map(b => b.s), `${p.id}: the dots in the order the trip lands`);
@@ -255,4 +258,33 @@ test('all corners and squares stay in the drawn room', () => {
     assert.equal(allCorners(S).length, 4 * S.ids.length);
     assert.equal(cornerCycles(S).flat().length, 4 * S.ids.length, `${p.id}: every corner in one chain`);
   }
+});
+
+test('puzzle 10 is drawn three across with D on B’s top; its gluing and answer are unchanged', () => {
+  // A row of four left 33 px corners on a phone; three across leaves about 42.
+  const p = byId('glued-10'), q = p.parameters;
+  assert.deepEqual(q.squares, {A: [0, 0], B: [1, 0], C: [2, 0], D: [1, 1]});
+  assert.deepEqual([q.right, q.up], [{A: 'B', B: 'C', C: 'D', D: 'A'}, {A: 'A', B: 'D', C: 'C', D: 'B'}], 'the same gluing, so old saves still fit');
+  const S = fixedSurface(q);
+  assert.deepEqual(cornerCycles(S).map(c => c.length), [8, 8], 'two points of eight corners each');
+  // B's top meets D's bottom where they touch, so the marked sides are the others.
+  const edge = (s, side) => S.edges.find(e => e.s === s && e.side === side);
+  assert.deepEqual([edge('B', 'up').kind, edge('B', 'up').partner], ['inner', 'D']);
+  assert.deepEqual([edge('B', 'down').kind, edge('B', 'down').partner], ['seam', 'D'], 'B’s bottom carries D’s top’s mark');
+  assert.match(p.hints[1], /B’s bottom is glued to D’s top/);
+});
+
+test('Can’t carries data-toggle, so a quick double tap opens the dots once', () => {
+  const p = byId('glued-04');
+  M.reset(p);
+  const html = view(p, freshAttempt(p));
+  assert.match(html, /data-focus="gl-cant" data-toggle="gl-cant" aria-pressed="false"/);
+  M.reset(p);
+});
+
+test('glued.css is scoped to its own boards: Globe uses gl- classes too', async () => {
+  const css = (await readFile(new URL('../dist/families/glued/glued.css', import.meta.url), 'utf8')).replace(/\/\*[\s\S]*?\*\//g, '');
+  const selectors = [...css.matchAll(/([^{}]+)\{/g)].map(m => m[1].trim()).filter(s => !s.startsWith('@'));
+  assert.ok(selectors.length > 20);
+  for (const list of selectors) for (const s of list.split(/,(?![^(]*\))/)) assert.match(s.trim(), /^\[data-mechanic-wire="glued"\]/, s.trim());
 });
