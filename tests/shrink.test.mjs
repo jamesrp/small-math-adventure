@@ -20,6 +20,17 @@ const play = (p, a, ...actions) => actions.reduce((b, action) => { const next = 
 const view = (p, a, keep = false) => { if (!keep) mech.reset(p); return playView(p, a, {pack, selected: null, message: ''}); };
 const carried = (p, from) => { const to = undo(from); return {...to, board: mech.carry(p, from.board, to.board)}; };
 const board = html => html.slice(html.indexOf('data-mechanic-wire="shrink"'));
+// The moves that take a real row to one tile, from way s on the row at path.
+function oneTile(w, s, extra = {}, path = '') {
+  const out = [];
+  for (;;) {
+    out.push({type: 'seam', at: path, s, ...extra}, {type: 'shrink', at: path, s, ...extra});
+    w = shrinkWord(w, s); path += s;
+    if (w.length === 1) return out;
+    s = w.length === 2 ? (w[0] === w[1] ? 1 : 0) : [0, 1].find(t => fits(w, t));
+  }
+}
+const keepOff = html => /class="sk-button sk-keep"[^>]*disabled/.test(html);
 
 test('rows grow from one tile into the Thue–Morse word', () => {
   let w = 'A';
@@ -104,31 +115,55 @@ test('impostor: at most k tiles, chosen by two taps; a far tap is refused in wor
   assert.doesNotMatch(html, /sk-tile [ab] anchor/, 'the far tap drops the first tile');
 });
 
-test('seams: Keep shelves unjudged; That’s all judges once and its refusal stays through Undo', () => {
+test('seams: Keep waits until the rows reach one tile; That’s all judges once and its refusal stays through Undo', () => {
   const p = byId('04');
   let a = freshAttempt(p);
-  assert.match(view(p, a), /class="sk-button sk-keep"[^>]*disabled/, 'nothing to keep before seams');
-  a = play(p, a, {type: 'seam', piece: 0, at: '', s: 1}, {type: 'keep', piece: 0});
-  assert.deepEqual(a.board.shelf, [[0, 1]]);
+  assert.ok(keepOff(view(p, a)), 'nothing to keep before seams');
+  // ABAB with the first tile alone marks nothing on top but shrinks to BBB,
+  // which is stuck: it can never be kept, so That's all can't be asked about it.
+  a = play(p, a, {type: 'seam', piece: 0, at: '', s: 1});
+  assert.ok(keepOff(view(p, a)), 'Keep waits for the rows');
+  assert.equal(move(p, a, {type: 'keep', piece: 0}), null);
+  a = play(p, a, {type: 'shrink', piece: 0, at: '', s: 1}, {type: 'seam', piece: 0, at: '1', s: 0}, {type: 'seam', piece: 0, at: '1', s: 1});
+  assert.ok(stuck(a.board.trees[0].k[1], 'BBB'));
+  assert.equal(move(p, a, {type: 'keep', piece: 0}), null, 'a way shown stuck is never kept');
+  assert.ok(keepOff(view(p, a)));
+  // ABAB paired: AA, BA, B. Keep once the last row is one tile.
+  const moves = oneTile('ABAB', 0, {piece: 0});
+  a = play(p, a, ...moves.slice(0, -1));
+  assert.ok(keepOff(view(p, a)), 'not one row early');
+  a = play(p, a, moves.at(-1));
+  assert.ok(!keepOff(view(p, a)), 'Keep once the rows reach one tile');
+  a = play(p, a, {type: 'keep', piece: 0});
+  assert.deepEqual(a.board.shelf, [[0, 0]]);
   let html = view(p, a);
   assert.doesNotMatch(board(html), /sk-told/, 'Keep says nothing');
   assert.doesNotMatch(html, /\b\d of \d\b/, 'no count');
   a = play(p, a, {type: 'all'});
   html = view(p, a);
-  assert.match(html, /One of these gets stuck\./);
+  assert.match(html, /There is another\./);
   assert.match(html, /sk-all[^>]*disabled/);
   assert.equal(move(p, a, {type: 'all'}), null);
   const back = carried(p, a);
   assert.ok(back.board.refused && !back.board.told, 'Undo keeps the refusal, not its note');
-  assert.doesNotMatch(view(p, back), /One of these gets stuck/, 'so the Undo shows');
+  assert.doesNotMatch(view(p, back), /There is another/, 'so the Undo shows');
   assert.equal(move(p, back, {type: 'all'}), null, 'That’s all stays off on the same shelf');
-  a = play(p, a, {type: 'drop', piece: 0, s: 1});
+  a = play(p, a, {type: 'drop', piece: 0, s: 0});
   assert.equal(a.board.refused, false, 'taking one back lifts it');
-  for (const [i, s] of [[0, 0], [1, 0], [1, 1]]) a = play(p, a, {type: 'seam', piece: i, at: '', s}, {type: 'keep', piece: i});
+  a = play(p, a, {type: 'keep', piece: 0});
+  for (const [i, s, w] of [[1, 0, 'BAB'], [1, 1, 'BAB']]) a = play(p, a, ...oneTile(w, s, {piece: i}), {type: 'keep', piece: i});
   a = play(p, a, {type: 'all'});
   assert.match(view(p, a), /There is another\./);
-  a = play(p, a, {type: 'seam', piece: 2, at: '', s: 0}, {type: 'keep', piece: 2}, {type: 'all'});
+  a = play(p, a, ...oneTile('ABBAABBA', 0, {piece: 2}), {type: 'keep', piece: 2}, {type: 'all'});
   assert.ok(isSolved(p, a.board));
+});
+
+test('a shelf saved before Keep waited for one tile still loads, and That’s all names a kept way that gets stuck', () => {
+  const p = byId('04'), fresh = freshAttempt(p);
+  const old = {...fresh, board: {...fresh.board, shelf: [[0, 1]]}};
+  assert.ok(validBoard(p, old.board));
+  const a = play(p, old, {type: 'all'});
+  assert.match(view(p, a), /One of these gets stuck\./);
 });
 
 test('seams: a move or an Undo on another piece brings that piece to the work area', () => {
@@ -144,17 +179,21 @@ test('seams: a move or an Undo on another piece brings that piece to the work ar
   assert.match(view(p, a, true), /aria-label="AABB"/, 'Undo shows the piece it changed');
 });
 
-test('repair: one flip at a time, Keep and That’s all', () => {
-  const p = byId('09');
+test('repair: one flip at a time; Keep once the rows reach one tile; That’s all', () => {
+  const p = byId('09'), fitWay = w => [0, 1].find(t => fits(w, t));
   let a = play(p, freshAttempt(p), {type: 'flip', i: 3});
   assert.equal(a.board.flip, 3);
   a = play(p, a, {type: 'flip', i: 0});
   assert.equal(a.board.flip, 0, 'flipping another puts the first back');
   assert.match(view(p, a), /sk-tile b flipped/);
-  a = play(p, a, {type: 'keep'}, {type: 'all'});
+  assert.equal(move(p, a, {type: 'keep'}), null, 'Keep waits for the rows');
+  a = play(p, a, ...oneTile('BABBAABB', fitWay('BABBAABB')), {type: 'keep'}, {type: 'all'});
   assert.equal(a.board.told, 'more');
-  a = play(p, a, {type: 'flip', i: 7}, {type: 'keep'}, {type: 'all'});
+  a = play(p, a, {type: 'flip', i: 7}, ...oneTile('AABBAABA', fitWay('AABBAABA')), {type: 'keep'}, {type: 'all'});
   assert.ok(isSolved(p, a.board));
+  // A flip that still gets stuck is never kept: tile 2 makes BBB.
+  const b = play(p, freshAttempt(p), {type: 'flip', i: 1}, {type: 'seam', at: '', s: 0}, {type: 'seam', at: '', s: 1});
+  assert.equal(move(p, b, {type: 'keep'}), null);
 });
 
 test('rows of two tiles end the tree: two different tiles only pair, so no row comes round again', () => {
@@ -188,8 +227,11 @@ test('hints solve every puzzle from fresh and after a wrong start, quickly, and 
     assert.ok(!['all', 'keep'].includes(first.action.type), `${p.id}: the first hint acts on the board`);
     const starts = [fresh];
     if (p.parameters.mode === 'impostor') starts.push(play(p, fresh, {type: 'select', a: 0, b: 1}, {type: 'seam', at: '', s: 0}));
-    if (p.parameters.mode === 'repair') starts.push(play(p, fresh, {type: 'flip', i: 2}, {type: 'keep'}, {type: 'all'}));
-    if (p.parameters.mode === 'seams') starts.push(play(p, fresh, {type: 'seam', piece: 2, at: '', s: 1}, {type: 'keep', piece: 2}, {type: 'all'}));
+    if (p.parameters.mode === 'repair') starts.push(play(p, fresh, {type: 'flip', i: 2}, {type: 'seam', at: '', s: 0}, {type: 'seam', at: '', s: 1}));
+    if (p.parameters.mode === 'seams') {
+      const [i, s] = fitsOf(p.parameters.pieces)[0];
+      starts.push(play(p, fresh, {type: 'seam', piece: 2, at: '', s: 1}, ...oneTile(p.parameters.pieces[i], s, {piece: i}), {type: 'keep', piece: i}, {type: 'all'}));
+    }
     for (let a of starts) {
       for (let i = 0; i < 90 && !isSolved(p, a.board); i++) {
         const t = process.cpuUsage(), h = nextHint(p, a), u = process.cpuUsage(t);
@@ -228,7 +270,7 @@ test('That’s all needs something kept', () => {
 test('saves are checked, including a forged finish', () => {
   const p = byId('01'), fresh = freshAttempt(p);
   assert.equal(validBoard(p, {...fresh.board, done: true}), false);
-  assert.equal(validBoard(p, {...fresh.board, shelf: [[0, 0]]}), true, 'a kept way is not judged until That’s all');
+  assert.equal(validBoard(p, {...fresh.board, shelf: [[0, 0]]}), true, 'a saved shelf is judged by That’s all, not by the save');
   assert.equal(validBoard(p, {...fresh.board, shelf: [[2, 0]], told: 'more', refused: true}), false, 'the wrong note');
   const q = byId('02');
   assert.equal(validBoard(q, {sel: [0, 4], tree: {s: 0, t: [true, false], k: [{s: null, t: [false, false], k: [null, null]}, {s: null, t: [false, false], k: [null, null]}]}}), false, 'a row shrunk on an untried way');
@@ -273,4 +315,51 @@ test('seam buttons cover the row: each join takes the taps nearest to it', () =>
   assert.equal(gaps[0][0], 0, 'the first join reaches the left edge');
   assert.ok(Math.abs(gaps.at(-1)[0] + gaps.at(-1)[1] - 100) < 0.01, 'the last reaches the right edge');
   for (let i = 1; i < gaps.length; i++) assert.ok(Math.abs(gaps[i][0] - (gaps[i - 1][0] + gaps[i - 1][1])) < 0.01, 'no gaps and no overlaps');
+});
+
+test('once a row has seams, the other way takes a slot and a half at each of its joins, and the seams only a quarter slot each side', () => {
+  const p = byId('02');
+  const a = play(p, freshAttempt(p), {type: 'select', a: 0, b: 4}, {type: 'seam', at: '', s: 0});
+  const html = view(p, a);
+  const gaps = [...html.matchAll(/class="sk-gap([^"]*)" style="left:([\d.]+)%;width:([\d.]+)%/g)].map(m => ({on: m[1].includes('on'), from: Number(m[2]) * 7 / 100, width: Number(m[3]) * 7 / 100}));
+  assert.equal(gaps.length, 6);
+  const near = (x, y) => Math.abs(x - y) < 0.01;
+  // Seven slots: ghost, five tiles, ghost. Joins 0, 2 and 4 carry seams.
+  assert.deepEqual(gaps.map(g => g.on), [true, false, true, false, true, false]);
+  assert.ok(near(gaps[0].width, 1.25) && near(gaps[2].width, 0.5) && near(gaps[4].width, 0.5), 'a seam keeps a quarter slot each side (the end one reaches the edge)');
+  assert.ok(near(gaps[1].width, 1.5) && near(gaps[3].width, 1.5) && near(gaps[5].width, 1.75), 'the other way takes the rest');
+  for (let i = 1; i < gaps.length; i++) assert.ok(near(gaps[i].from, gaps[i - 1].from + gaps[i - 1].width), 'no gaps and no overlaps');
+  assert.match(html, /class="sk-row[^"]*" style="--n:7"/);
+});
+
+test('an untouched row shows its joins; marks of the way not drawn are dimmed', () => {
+  const p = byId('04');
+  let a = freshAttempt(p);
+  assert.match(view(p, a), /class="sk-row fresh"/, 'a fresh row');
+  // ABBAABBA: with the first tile alone it marks BB, AA and BB; paired it marks nothing.
+  a = play(p, a, {type: 'seam', piece: 2, at: '', s: 1});
+  let html = view(p, a);
+  assert.doesNotMatch(html, /sk-row[^"]*fresh/, 'seams placed');
+  assert.equal((html.match(/class="sk-mark over"/g) || []).length, 3);
+  a = play(p, a, {type: 'seam', piece: 2, at: '', s: 0});
+  html = view(p, a);
+  assert.equal((html.match(/class="sk-mark over other"/g) || []).length, 3, 'the marks stay, dimmed, when the other way is drawn');
+});
+
+test('the strip runs at most eight tiles to a line', () => {
+  for (const p of shrink.puzzles.filter(x => x.parameters.mode === 'impostor')) {
+    const html = view(p, freshAttempt(p));
+    const lines = [...html.matchAll(/<div class="sk-line[^"]*" style="--c:(\d+)">/g)].map(m => Number(m[1]));
+    assert.ok(lines.length && lines.every(c => c <= 8), `${p.id}: ${lines}`);
+    assert.equal(lines.reduce((x, y) => x + y, 0) >= p.parameters.strip.length, true);
+  }
+});
+
+test('opened again, an every-way puzzle shows the piece of the last move', () => {
+  const p = byId('01');
+  let a = play(p, freshAttempt(p), {type: 'seam', piece: 2, at: '', s: 1});
+  assert.match(view(p, a), /aria-label="Shrinking"[\s\S]*aria-label="AABB, first tile alone"/, 'the tree that changed last');
+  a = play(p, a, ...oneTile('BAABA', 0, {piece: 1}), {type: 'keep', piece: 1});
+  assert.match(view(p, a), /aria-label="Shrinking"[\s\S]*aria-label="BAABA, paired from the first tile"/, 'after a Keep, its piece');
+  assert.match(view(p, freshAttempt(p)), /aria-label="Shrinking"[\s\S]*aria-label="ABA"/, 'with no move, the first piece');
 });

@@ -109,6 +109,11 @@ export function stuck(node, w) {
 }
 // Whether this placement of the row is settled as stuck.
 const deadWay = (node, w, s) => (node.t[s] && marked(w, s).length > 0) || Boolean(node.k[s] && stuck(node.k[s], shrinkWord(w, s)));
+// Whether the tree shows the row reaching one tile, and whether it shows
+// placement s doing so. A tree can only show this for a real row: each
+// shrunk row is unmarked, so it fits.
+const shownReal = (node, w) => w.length === 1 || [0, 1].some(s => node.k[s] && shownReal(node.k[s], shrinkWord(w, s)));
+const reaches = (node, w, s) => Boolean(node.k[s]) && shownReal(node.k[s], shrinkWord(w, s));
 export function validTree(node, w, depth = 0, count = {n: 0}) {
   if (!keysAre(node, ['k', 's', 't']) || ++count.n > LIMIT.nodes || depth > LIMIT.depth) return false;
   const {s, t, k} = node;
@@ -205,9 +210,20 @@ function solved(p, b) {
   if (q.mode === 'impostor') return b.sel !== null && stuck(b.tree, selWord(q, b.sel));
   return b.done;
 }
-// Keep shelves the seams on a piece's top row, or the flip, without judging
-// it; That's all judges the whole shelf once, and its refusal stands until the
-// shelf changes (Keep and taking back lift it).
+// What Keep would shelve: the seams on a piece's top row, or the flip, once
+// the child's own rows show them reaching one tile (null before). So nothing
+// that gets stuck can be kept, and That's all only ever finds one missing.
+function keepEntry(q, b, piece) {
+  if (q.mode === 'seams') {
+    const node = b.trees[piece], s = node.s;
+    return s !== null && reaches(node, q.pieces[piece], s) ? [piece, s] : null;
+  }
+  return b.flip !== null && shownReal(b.tree, pieceNow(q, b)) ? b.flip : null;
+}
+// Keep shelves the entry; That's all judges the whole shelf once, and its
+// refusal stands until the shelf changes (Keep and taking back lift it). A
+// kept one that gets stuck ("stuck") is left only in saves from before Keep
+// waited for one tile.
 function shelfMove(q, b, action, entry) {
   const answer = answerOf(q);
   if (action.type === 'keep') {
@@ -236,8 +252,7 @@ function moveBoard(q, b, action) {
     }
     if (action.type === 'keep') {
       if (!keysAre(action, ['piece', 'type']) || !int(action.piece) || action.piece < 0 || action.piece >= q.pieces.length) return null;
-      const s = b.trees[action.piece].s;
-      return shelfMove(q, b, action, s === null ? null : [action.piece, s]);
+      return shelfMove(q, b, action, keepEntry(q, b, action.piece));
     }
     if (action.type === 'drop' && !keysAre(action, ['piece', 's', 'type'])) return null;
     if (action.type === 'all' && !keysAre(action, ['type'])) return null;
@@ -266,7 +281,7 @@ function moveBoard(q, b, action) {
     if (action.type === 'keep' && !keysAre(action, ['type'])) return null;
     if (action.type === 'drop' && !(keysAre(action, ['i', 'type']) && int(action.i))) return null;
     if (action.type === 'all' && !keysAre(action, ['type'])) return null;
-    return shelfMove(q, b, action, b.flip);
+    return shelfMove(q, b, action, keepEntry(q, b));
   }
   if (action.type === 'grow') return keysAre(action, ['type']) && b.rows < q.rows ? {...b, rows: b.rows + 1} : null;
   if (action.type === 'start') return keysAre(action, ['type']) ? {...b, start: other(b.start)} : null;
@@ -301,8 +316,6 @@ function stuckStep(node, w, path) {
   for (const s of [0, 1]) { const step = wayStep(node, w, path, s); if (step) return step; }
   return null;
 }
-// Whether the tree shows the row reaching one tile.
-const shownReal = (node, w) => w.length === 1 || [0, 1].some(s => node.k[s] && shownReal(node.k[s], shrinkWord(w, s)));
 // The way a real row fits (two tiles: the only way allowed that shortens).
 const fitWay = w => w.length === 2 ? (w[0] === w[1] ? 1 : 0) : [0, 1].find(s => fits(w, s));
 // The next step that takes a real row down to one tile along way s.
@@ -393,8 +406,8 @@ function hint(p, b) {
 // anchor: the strip tile tapped first; note: a short refusal of a tap;
 // active: the piece in the work area (seams), and trees, the pieces' trees
 // last drawn, so that a move or an Undo on another piece brings that piece to
-// the work area. It lasts while a puzzle is on screen: drawing another puzzle
-// clears it.
+// the work area (on a puzzle's first drawing, the piece of the last move). It
+// lasts while a puzzle is on screen: drawing another puzzle clears it.
 const uiState = new Map();
 let onScreen = null;
 const ui = p => memo(uiState, p.id, () => ({anchor: null, note: null, active: 0, trees: null}));
@@ -437,24 +450,31 @@ function rowHtml(ctx, node, w, path) {
   const pos = x => `${(x / (n + 2) * 100).toFixed(3)}%`;
   let overlay = '';
   if (s !== null) for (let g = s; g <= n; g += 2) overlay += `<i class="sk-seam" style="left:${pos(g + 1)}" aria-hidden="true"></i>`;
-  for (const p of [0, 1]) if (node.t[p]) for (const i of marked(w, p)) overlay += `<i class="sk-mark ${p ? 'over' : 'under'}" style="left:${pos(i + 1)};width:${pos(2)}" aria-hidden="true"></i>`;
+  // Marks of the way not drawn now stay, dimmed, so both ways' marks show.
+  for (const p of [0, 1]) if (node.t[p]) for (const i of marked(w, p)) overlay += `<i class="sk-mark ${p ? 'over' : 'under'}${s !== null && s !== p ? ' other' : ''}" style="left:${pos(i + 1)};width:${pos(2)}" aria-hidden="true"></i>`;
   let gaps = '';
   if (!one && !done) {
     // The joins of the ways allowed; join g's line is at slot g + 1.
     const joins = [];
     for (let g = 0; g <= n; g++) if (wayAllowed(w, g % 2)) joins.push(g);
     const hintG = act?.type === 'seam' && act.at === path && (act.piece ?? null) === (ctx.piece ?? null) ? joins.find(g => g % 2 === act.s && g > 0 && g < n) ?? joins.find(g => g % 2 === act.s) : null;
+    // Where the taps of two neighbouring joins meet: halfway, except beside a
+    // seam already placed, which keeps only a quarter slot on each side. So
+    // on a row with seams nearly every tap moves them to the other way (the
+    // only change a tap can make), a target a slot and a half wide.
+    const on = g => s === g % 2;
+    const meet = (g, h) => on(g) && !on(h) ? g + 1.25 : on(h) && !on(g) ? h + 0.75 : (g + h) / 2 + 1;
     joins.forEach((g, j) => {
-      const p = g % 2, on = s === p, key = `${base}${path}-${g}`;
-      const attrs = on ? `aria-pressed="true" ${uiAttrs({}, key)}` : `aria-pressed="false" ${moveAttrs({type: 'seam', at: path, s: p, ...ctx.extra}, key)}`;
-      // Each join takes the taps nearest to it: halfway to the next join on
-      // each side, and the joins at the ends reach the edges.
-      const from = j === 0 ? 0 : (joins[j - 1] + g) / 2 + 1, to = j === joins.length - 1 ? n + 2 : (g + joins[j + 1]) / 2 + 1;
-      gaps += `<button type="button" class="sk-gap${on ? ' on' : ''}${g === hintG ? ' hinted' : ''}" style="left:${pos(from)};width:${pos(to - from)};--at:${((g + 1 - from) / (to - from) * 100).toFixed(2)}%" ${attrs} aria-label="${esc(`Seams ${joinName(g, n)}`)}"></button>`;
+      const p = g % 2, key = `${base}${path}-${g}`;
+      const attrs = on(g) ? `aria-pressed="true" ${uiAttrs({}, key)}` : `aria-pressed="false" ${moveAttrs({type: 'seam', at: path, s: p, ...ctx.extra}, key)}`;
+      // The joins at the ends reach the edges.
+      const from = j === 0 ? 0 : meet(joins[j - 1], g), to = j === joins.length - 1 ? n + 2 : meet(g, joins[j + 1]);
+      gaps += `<button type="button" class="sk-gap${on(g) ? ' on' : ''}${g === hintG ? ' hinted' : ''}" style="left:${pos(from)};width:${pos(to - from)};--at:${((g + 1 - from) / (to - from) * 100).toFixed(2)}%" ${attrs} aria-label="${esc(`Seams ${joinName(g, n)}`)}"></button>`;
     });
   }
   const label = `${w}${s === null ? '' : s ? ', first tile alone' : ', paired from the first tile'}${node.t.some((x, p) => x && marked(w, p).length) ? ', a pair marked' : ''}${isStuck ? ', stuck' : ''}${one ? ', one tile' : ''}`;
-  const row = `<div class="sk-row${isStuck ? ' stuck' : ''}${one ? ' one' : ''}${n + 2 > 12 ? ' long' : ''}" style="--n:${n + 2}" role="group" aria-label="${esc(label)}">${slots.join('')}${overlay}${gaps}${isStuck ? '<b class="sk-x" aria-hidden="true">✕</b>' : ''}</div>`;
+  // An untouched row shows a faint tick at each join, where seams can go.
+  const row = `<div class="sk-row${isStuck ? ' stuck' : ''}${one ? ' one' : ''}${n + 2 > 12 ? ' long' : ''}${s === null && !one && !done ? ' fresh' : ''}" style="--n:${n + 2}" role="group" aria-label="${esc(label)}">${slots.join('')}${overlay}${gaps}${isStuck ? '<b class="sk-x" aria-hidden="true">✕</b>' : ''}</div>`;
   // Shrunk rows, left for pairing the first two tiles and right for leaving
   // the first tile alone, and Shrink where the current placement's row goes.
   const kids = [];
@@ -501,7 +521,9 @@ function mini(w, opts = {}) {
 }
 
 function stripHtml(q, b, state, act, done) {
-  const n = q.strip.length, lines = Math.ceil(n / 10), per = Math.ceil(n / lines), cols = per + (q.endless ? 1 : 0);
+  // At most eight tiles to a line, so a tile is 40 px wide on a 390 px phone;
+  // the repeating strips' lines (blocks of 2, 6 and 8) then line up.
+  const n = q.strip.length, lines = Math.ceil(n / 8), per = Math.ceil(n / lines);
   const sel = b.sel, anchor = done ? null : state.anchor;
   const hintSel = act?.type === 'select' ? [act.a, act.b] : null;
   const tiles = [...q.strip].map((c, i) => {
@@ -518,16 +540,32 @@ function stripHtml(q, b, state, act, done) {
     return `<button type="button" class="${cls}" data-sk-i="${i}" ${attrs} aria-pressed="${anchor === i}" aria-label="${esc(name)}">${c}</button>`;
   });
   const rows = [];
-  for (let k = 0; k < lines; k++) rows.push(`<div class="sk-line" style="--c:${cols}">${tiles.slice(k * per, (k + 1) * per).join('')}${k === lines - 1 && q.endless ? '<span class="sk-more" aria-hidden="true">…</span>' : ''}</div>`);
+  for (let k = 0; k < lines; k++) rows.push(`<div class="sk-line${q.endless ? ' endless' : ''}" style="--c:${per}">${tiles.slice(k * per, (k + 1) * per).join('')}${k === lines - 1 && q.endless ? '<span class="sk-more" aria-hidden="true">…</span>' : ''}</div>`);
   return `<div class="sk-strip${done ? '' : ' live'}" data-sk-strip="${n}" role="group" aria-label="${esc(`Strip ${q.strip}${q.endless ? ', repeating forever' : ''}`)}">${rows.join('')}</div>`;
 }
 
+// The piece the last move on a piece changed (its tree, or its kept way;
+// That's all changes neither), so that a puzzle opened again, or reloaded,
+// shows the piece the child was working on; -1 when no move goes by one.
+function lastPiece(p, a) {
+  let after = a.board;
+  for (let i = (a.history?.length ?? 0) - 1; i >= 0; i--) {
+    const before = a.history[i]?.board;
+    if (!valid(p, before)) return -1;
+    const tree = after.trees.findIndex((t, j) => !same(t, before.trees[j]));
+    if (tree >= 0) return tree;
+    const moved = [...after.shelf.filter(x => !before.shelf.some(y => same(x, y))), ...before.shelf.filter(x => !after.shelf.some(y => same(x, y)))][0];
+    if (moved) return moved[0];
+    after = before;
+  }
+  return -1;
+}
 function render(p, a) {
   if (onScreen !== p.id) { uiState.clear(); onScreen = p.id; }
   const q = p.parameters, b = a.board, state = ui(p);
   if (q.mode === 'playground') return renderPlayground(p, a);
   if (q.mode === 'seams' && valid(p, b)) {
-    const trees = b.trees.map(t => JSON.stringify(t)), changed = state.trees ? trees.findIndex((t, i) => t !== state.trees[i]) : -1;
+    const trees = b.trees.map(t => JSON.stringify(t)), changed = state.trees ? trees.findIndex((t, i) => t !== state.trees[i]) : lastPiece(p, a);
     if (changed >= 0) state.active = changed;
     state.trees = trees;
   }
@@ -566,7 +604,7 @@ function render(p, a) {
   }
   if (q.mode !== 'impostor') {
     const active = q.mode === 'seams' ? Math.min(state.active, q.pieces.length - 1) : null;
-    const entry = q.mode === 'seams' ? (b.trees[active].s === null ? null : [active, b.trees[active].s]) : b.flip;
+    const entry = keepEntry(q, b, active);
     if (!done) {
       const keepAction = q.mode === 'seams' ? {type: 'keep', piece: active} : {type: 'keep'};
       bar = `<div class="sk-bar">${barButton('Keep', keepAction, entry !== null && !b.shelf.some(x => same(x, entry)), act?.type === 'keep' && (act.piece ?? active) === active, 'sk-keep')}${barButton('That’s all', {type: 'all'}, !b.refused && b.shelf.length > 0, act?.type === 'all', 'sk-all')}</div>`;
@@ -614,6 +652,11 @@ function renderPlayground(p, a) {
 // also a tap.
 function wire(root, p, api) {
   const q = p.parameters;
+  // On a phone the strip and the rows reach to 2 px from the panel's edges
+  // (CSS reads --sk-bleed), so their tiles and joins are as wide as the
+  // screen allows.
+  const panel = root.closest('.board-panel');
+  if (panel) root.style.setProperty('--sk-bleed', `${Math.max(0, (parseFloat(getComputedStyle(panel).paddingLeft) || 0) - 2)}px`);
   if (q.mode !== 'impostor') return;
   const strip = root.querySelector('.sk-strip.live');
   if (!strip) return;

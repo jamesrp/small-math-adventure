@@ -105,14 +105,14 @@
    "objective": "Keep every way to place seams on each piece from which it can shrink to one tile, then press That’s all.",
    "visibleObjective": "Keep every way to place seams that lets a piece shrink to one tile.",
    "instruction": "Keep every way to place seams on each piece from which it can shrink to one tile, then press That’s all.",
-   "controls": "A row grows by turning every A into AB and every B into BA, so a grown row splits into pairs AB and BA. Shrink undoes that: seams split a row into pairs, a tile cut off at an end gets its partner back (dashed, the other letter), and each pair becomes its first letter. A pair AA or BB is marked. Tap a piece to work on it. Tap a row at a join between two tiles, or at an end, to place seams there and every two tiles along it. Shrink makes the row below. A row is stuck (✕) when each way of placing its seams is marked or stuck below. Keep keeps the seams on the top row; tap a kept one to take it back. Press That’s all when every way that can shrink to one tile is kept. Undo takes back the last move.",
+   "controls": "A row grows by turning every A into AB and every B into BA, so a grown row splits into pairs AB and BA. Shrink undoes that: seams split a row into pairs, a tile cut off at an end gets its partner back (dashed, the other letter), and each pair becomes its first letter. A pair AA or BB is marked. Tap a piece to work on it. Tap a row at a join between two tiles, or at an end, to place seams there and every two tiles along it; tap it again to move them over one. Shrink makes the row below. A row is stuck (✕) when each way of placing its seams is marked or stuck below. Once the rows show the seams on the top row shrinking to one tile, Keep keeps them; tap a kept one to take it back. Press That’s all when every way that can shrink to one tile is kept. Undo takes back the last move.",
    "rules": [
     "A row grows by turning every A into AB and every B into BA, all at once: A, AB, ABBA, ABBABAAB, and on. A piece is a run of tiles cut from a grown row.",
     "Shrinking undoes one step. Seams split the row into pairs in one of two ways: pair the first two tiles, or leave the first tile alone. A tile cut off from its partner at an end gets the partner back as a dashed ghost, the other letter.",
     "Each pair shrinks to its first letter. A pair AA or BB is marked: no tile grows into it.",
     "A row of two different tiles is one pair, so its seams go only at its ends.",
     "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. Only rows of three tiles or more can be stuck.",
-    "Keep puts the seams on a piece’s top row on the shelf, unjudged; a tap on the shelf takes one back. That’s all checks the whole shelf at once and can be pressed again once the shelf changes."
+    "Keep puts the seams on a piece’s top row on the shelf once the rows below show them shrinking to one tile; a tap on the shelf takes one back. That’s all checks the whole shelf at once and can be pressed again once the shelf changes."
    ],
    "idea": "A grown row is made of pairs AB and BA, so a way of placing seams that marks AA or BB is not how the piece was cut; a piece as short as ABA fits both ways.",
    "prerequisites": "Read the letters A and B and see whether two letters are the same. No arithmetic. Following a row down through several shrinks takes patience; a grown-up can read How to play.",
@@ -155,9 +155,39 @@
     "moves": [
      {
       "type": "seam",
-      "piece": 0,
       "at": "",
-      "s": 0
+      "s": 0,
+      "piece": 0
+     },
+     {
+      "type": "shrink",
+      "at": "",
+      "s": 0,
+      "piece": 0
+     },
+     {
+      "type": "seam",
+      "at": "0",
+      "s": 1,
+      "piece": 0
+     },
+     {
+      "type": "shrink",
+      "at": "0",
+      "s": 1,
+      "piece": 0
+     },
+     {
+      "type": "seam",
+      "at": "01",
+      "s": 0,
+      "piece": 0
+     },
+     {
+      "type": "shrink",
+      "at": "01",
+      "s": 0,
+      "piece": 0
      },
      {
       "type": "keep",
@@ -165,9 +195,39 @@
      },
      {
       "type": "seam",
-      "piece": 0,
       "at": "",
-      "s": 1
+      "s": 1,
+      "piece": 0
+     },
+     {
+      "type": "shrink",
+      "at": "",
+      "s": 1,
+      "piece": 0
+     },
+     {
+      "type": "seam",
+      "at": "1",
+      "s": 1,
+      "piece": 0
+     },
+     {
+      "type": "shrink",
+      "at": "1",
+      "s": 1,
+      "piece": 0
+     },
+     {
+      "type": "seam",
+      "at": "11",
+      "s": 0,
+      "piece": 0
+     },
+     {
+      "type": "shrink",
+      "at": "11",
+      "s": 0,
+      "piece": 0
      },
      {
       "type": "keep",
@@ -175,9 +235,39 @@
      },
      {
       "type": "seam",
-      "piece": 1,
       "at": "",
-      "s": 0
+      "s": 0,
+      "piece": 1
+     },
+     {
+      "type": "shrink",
+      "at": "",
+      "s": 0,
+      "piece": 1
+     },
+     {
+      "type": "seam",
+      "at": "0",
+      "s": 0,
+      "piece": 1
+     },
+     {
+      "type": "shrink",
+      "at": "0",
+      "s": 0,
+      "piece": 1
+     },
+     {
+      "type": "seam",
+      "at": "00",
+      "s": 0,
+      "piece": 1
+     },
+     {
+      "type": "shrink",
+      "at": "00",
+      "s": 0,
+      "piece": 1
      },
      {
       "type": "keep",
@@ -185,9 +275,51 @@
      },
      {
       "type": "seam",
-      "piece": 2,
       "at": "",
-      "s": 1
+      "s": 1,
+      "piece": 2
+     },
+     {
+      "type": "shrink",
+      "at": "",
+      "s": 1,
+      "piece": 2
+     },
+     {
+      "type": "seam",
+      "at": "1",
+      "s": 0,
+      "piece": 2
+     },
+     {
+      "type": "shrink",
+      "at": "1",
+      "s": 0,
+      "piece": 2
+     },
+     {
+      "type": "seam",
+      "at": "10",
+      "s": 1,
+      "piece": 2
+     },
+     {
+      "type": "shrink",
+      "at": "10",
+      "s": 1,
+      "piece": 2
+     },
+     {
+      "type": "seam",
+      "at": "101",
+      "s": 0,
+      "piece": 2
+     },
+     {
+      "type": "shrink",
+      "at": "101",
+      "s": 0,
+      "piece": 2
      },
      {
       "type": "keep",
@@ -219,7 +351,7 @@
    "objective": "Choose at most 6 tiles of the strip and shrink them until every way is stuck.",
    "visibleObjective": "Choose at most 6 tiles that get stuck.",
    "instruction": "Choose at most 6 tiles of the strip and shrink them until every way is stuck.",
-   "controls": "A row grows by turning every A into AB and every B into BA, so a grown row splits into pairs AB and BA. Shrink undoes that: seams split a row into pairs, a tile cut off at an end gets its partner back (dashed, the other letter), and each pair becomes its first letter. A pair AA or BB is marked. Tap two tiles of the strip, or slide along it, to choose them and the tiles between. Tap a row at a join between two tiles, or at an end, to place seams there and every two tiles along it. Shrink makes the row below. A row is stuck (✕) when each way of placing its seams is marked or stuck below. Undo takes back the last move.",
+   "controls": "A row grows by turning every A into AB and every B into BA, so a grown row splits into pairs AB and BA. Shrink undoes that: seams split a row into pairs, a tile cut off at an end gets its partner back (dashed, the other letter), and each pair becomes its first letter. A pair AA or BB is marked. Tap two tiles of the strip, or slide along it, to choose them and the tiles between. Tap a row at a join between two tiles, or at an end, to place seams there and every two tiles along it; tap it again to move them over one. Shrink makes the row below. A row is stuck (✕) when each way of placing its seams is marked or stuck below. Undo takes back the last move.",
    "rules": [
     "A row grows by turning every A into AB and every B into BA, all at once: A, AB, ABBA, ABBABAAB, and on. A piece is a run of tiles cut from a grown row.",
     "Shrinking undoes one step. Seams split the row into pairs in one of two ways: pair the first two tiles, or leave the first tile alone. A tile cut off from its partner at an end gets the partner back as a dashed ghost, the other letter.",
@@ -380,16 +512,16 @@
     "piece": "AABBBABA"
    },
    "objective": "Flip one tile at a time. Keep every flip that lets the piece shrink to one tile, then press That’s all.",
-   "visibleObjective": "Keep every one-tile flip that lets the piece shrink to one tile.",
+   "visibleObjective": "Keep every flip that lets the piece shrink to one tile.",
    "instruction": "Flip one tile at a time. Keep every flip that lets the piece shrink to one tile, then press That’s all.",
-   "controls": "A row grows by turning every A into AB and every B into BA, so a grown row splits into pairs AB and BA. Shrink undoes that: seams split a row into pairs, a tile cut off at an end gets its partner back (dashed, the other letter), and each pair becomes its first letter. A pair AA or BB is marked. Tap a tile to flip it, and again to flip it back. Tap a row at a join between two tiles, or at an end, to place seams there and every two tiles along it. Shrink makes the row below. A row is stuck (✕) when each way of placing its seams is marked or stuck below. Keep keeps the flip; tap a kept one to take it back. Press That’s all when every flip that lets the piece shrink to one tile is kept. Undo takes back the last move.",
+   "controls": "A row grows by turning every A into AB and every B into BA, so a grown row splits into pairs AB and BA. Shrink undoes that: seams split a row into pairs, a tile cut off at an end gets its partner back (dashed, the other letter), and each pair becomes its first letter. A pair AA or BB is marked. Tap a tile to flip it, and again to flip it back. Tap a row at a join between two tiles, or at an end, to place seams there and every two tiles along it; tap it again to move them over one. Shrink makes the row below. A row is stuck (✕) when each way of placing its seams is marked or stuck below. Once the rows show the piece shrinking to one tile, Keep keeps the flip; tap a kept one to take it back. Press That’s all when every flip that lets the piece shrink to one tile is kept. Undo takes back the last move.",
    "rules": [
     "A row grows by turning every A into AB and every B into BA, all at once: A, AB, ABBA, ABBABAAB, and on. A piece is a run of tiles cut from a grown row.",
     "Shrinking undoes one step. Seams split the row into pairs in one of two ways: pair the first two tiles, or leave the first tile alone. A tile cut off from its partner at an end gets the partner back as a dashed ghost, the other letter.",
     "Each pair shrinks to its first letter. A pair AA or BB is marked: no tile grows into it.",
     "A row of two different tiles is one pair, so its seams go only at its ends.",
     "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. Only rows of three tiles or more can be stuck.",
-    "One tile is flipped at a time; flipping another puts the first back. Keep puts the flip on the shelf, unjudged; That’s all checks the whole shelf at once."
+    "One tile is flipped at a time; flipping another puts the first back. Keep puts the flip on the shelf once the rows below show the piece shrinking to one tile; That’s all checks the whole shelf at once."
    ],
    "idea": "Three equal tiles never sit in a grown row, so the flipped tile is in BBB; only one of its three tiles fixes the piece.",
    "prerequisites": "Read A and B, try a flip, shrink, and try another. Spotting AAA or BBB saves work.",
@@ -418,6 +550,46 @@
      {
       "type": "flip",
       "i": 4
+     },
+     {
+      "type": "seam",
+      "at": "",
+      "s": 1
+     },
+     {
+      "type": "shrink",
+      "at": "",
+      "s": 1
+     },
+     {
+      "type": "seam",
+      "at": "1",
+      "s": 0
+     },
+     {
+      "type": "shrink",
+      "at": "1",
+      "s": 0
+     },
+     {
+      "type": "seam",
+      "at": "10",
+      "s": 1
+     },
+     {
+      "type": "shrink",
+      "at": "10",
+      "s": 1
+     },
+     {
+      "type": "seam",
+      "at": "101",
+      "s": 0
+     },
+     {
+      "type": "shrink",
+      "at": "101",
+      "s": 0
      },
      {
       "type": "keep"
@@ -450,14 +622,14 @@
    "objective": "Keep every way to place seams on each piece from which it can shrink to one tile, then press That’s all.",
    "visibleObjective": "Keep every way to place seams that lets a piece shrink to one tile.",
    "instruction": "Keep every way to place seams on each piece from which it can shrink to one tile, then press That’s all.",
-   "controls": "A row grows by turning every A into AB and every B into BA, so a grown row splits into pairs AB and BA. Shrink undoes that: seams split a row into pairs, a tile cut off at an end gets its partner back (dashed, the other letter), and each pair becomes its first letter. A pair AA or BB is marked. Tap a piece to work on it. Tap a row at a join between two tiles, or at an end, to place seams there and every two tiles along it. Shrink makes the row below. A row is stuck (✕) when each way of placing its seams is marked or stuck below. Keep keeps the seams on the top row; tap a kept one to take it back. Press That’s all when every way that can shrink to one tile is kept. Undo takes back the last move.",
+   "controls": "A row grows by turning every A into AB and every B into BA, so a grown row splits into pairs AB and BA. Shrink undoes that: seams split a row into pairs, a tile cut off at an end gets its partner back (dashed, the other letter), and each pair becomes its first letter. A pair AA or BB is marked. Tap a piece to work on it. Tap a row at a join between two tiles, or at an end, to place seams there and every two tiles along it; tap it again to move them over one. Shrink makes the row below. A row is stuck (✕) when each way of placing its seams is marked or stuck below. Once the rows show the seams on the top row shrinking to one tile, Keep keeps them; tap a kept one to take it back. Press That’s all when every way that can shrink to one tile is kept. Undo takes back the last move.",
    "rules": [
     "A row grows by turning every A into AB and every B into BA, all at once: A, AB, ABBA, ABBABAAB, and on. A piece is a run of tiles cut from a grown row.",
     "Shrinking undoes one step. Seams split the row into pairs in one of two ways: pair the first two tiles, or leave the first tile alone. A tile cut off from its partner at an end gets the partner back as a dashed ghost, the other letter.",
     "Each pair shrinks to its first letter. A pair AA or BB is marked: no tile grows into it.",
     "A row of two different tiles is one pair, so its seams go only at its ends.",
     "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. Only rows of three tiles or more can be stuck.",
-    "Keep puts the seams on a piece’s top row on the shelf, unjudged; a tap on the shelf takes one back. That’s all checks the whole shelf at once and can be pressed again once the shelf changes."
+    "Keep puts the seams on a piece’s top row on the shelf once the rows below show them shrinking to one tile; a tap on the shelf takes one back. That’s all checks the whole shelf at once and can be pressed again once the shelf changes."
    ],
    "idea": "A way with no marked pair can still be stuck lower down: ABAB with the first tile alone shrinks to BBB.",
    "prerequisites": "Read the letters A and B and see whether two letters are the same. No arithmetic. Following a row down through several shrinks takes patience; a grown-up can read How to play.",
@@ -500,9 +672,39 @@
     "moves": [
      {
       "type": "seam",
-      "piece": 0,
       "at": "",
-      "s": 0
+      "s": 0,
+      "piece": 0
+     },
+     {
+      "type": "shrink",
+      "at": "",
+      "s": 0,
+      "piece": 0
+     },
+     {
+      "type": "seam",
+      "at": "0",
+      "s": 1,
+      "piece": 0
+     },
+     {
+      "type": "shrink",
+      "at": "0",
+      "s": 1,
+      "piece": 0
+     },
+     {
+      "type": "seam",
+      "at": "01",
+      "s": 0,
+      "piece": 0
+     },
+     {
+      "type": "shrink",
+      "at": "01",
+      "s": 0,
+      "piece": 0
      },
      {
       "type": "keep",
@@ -510,9 +712,39 @@
      },
      {
       "type": "seam",
-      "piece": 1,
       "at": "",
-      "s": 0
+      "s": 0,
+      "piece": 1
+     },
+     {
+      "type": "shrink",
+      "at": "",
+      "s": 0,
+      "piece": 1
+     },
+     {
+      "type": "seam",
+      "at": "0",
+      "s": 1,
+      "piece": 1
+     },
+     {
+      "type": "shrink",
+      "at": "0",
+      "s": 1,
+      "piece": 1
+     },
+     {
+      "type": "seam",
+      "at": "01",
+      "s": 0,
+      "piece": 1
+     },
+     {
+      "type": "shrink",
+      "at": "01",
+      "s": 0,
+      "piece": 1
      },
      {
       "type": "keep",
@@ -520,9 +752,39 @@
      },
      {
       "type": "seam",
-      "piece": 1,
       "at": "",
-      "s": 1
+      "s": 1,
+      "piece": 1
+     },
+     {
+      "type": "shrink",
+      "at": "",
+      "s": 1,
+      "piece": 1
+     },
+     {
+      "type": "seam",
+      "at": "1",
+      "s": 1,
+      "piece": 1
+     },
+     {
+      "type": "shrink",
+      "at": "1",
+      "s": 1,
+      "piece": 1
+     },
+     {
+      "type": "seam",
+      "at": "11",
+      "s": 0,
+      "piece": 1
+     },
+     {
+      "type": "shrink",
+      "at": "11",
+      "s": 0,
+      "piece": 1
      },
      {
       "type": "keep",
@@ -530,9 +792,51 @@
      },
      {
       "type": "seam",
-      "piece": 2,
       "at": "",
-      "s": 0
+      "s": 0,
+      "piece": 2
+     },
+     {
+      "type": "shrink",
+      "at": "",
+      "s": 0,
+      "piece": 2
+     },
+     {
+      "type": "seam",
+      "at": "0",
+      "s": 0,
+      "piece": 2
+     },
+     {
+      "type": "shrink",
+      "at": "0",
+      "s": 0,
+      "piece": 2
+     },
+     {
+      "type": "seam",
+      "at": "00",
+      "s": 1,
+      "piece": 2
+     },
+     {
+      "type": "shrink",
+      "at": "00",
+      "s": 1,
+      "piece": 2
+     },
+     {
+      "type": "seam",
+      "at": "001",
+      "s": 0,
+      "piece": 2
+     },
+     {
+      "type": "shrink",
+      "at": "001",
+      "s": 0,
+      "piece": 2
      },
      {
       "type": "keep",
@@ -548,7 +852,7 @@
   {
    "id": "shrink-05",
    "number": 5,
-   "title": "A strip of ABBA",
+   "title": "Nearly a grown row",
    "difficulty_level": "medium",
    "familyTitle": "Shrink strips",
    "mechanic": "shrink",
@@ -557,14 +861,14 @@
    "sourceDocument": "docs/shrink/README.md",
    "parameters": {
     "mode": "impostor",
-    "strip": "ABBAABBAABBAABBA",
-    "endless": true,
+    "strip": "AABABBAABBAABABB",
+    "endless": false,
     "k": 10
    },
    "objective": "Choose at most 10 tiles of the strip and shrink them until every way is stuck.",
    "visibleObjective": "Choose at most 10 tiles that get stuck.",
    "instruction": "Choose at most 10 tiles of the strip and shrink them until every way is stuck.",
-   "controls": "A row grows by turning every A into AB and every B into BA, so a grown row splits into pairs AB and BA. Shrink undoes that: seams split a row into pairs, a tile cut off at an end gets its partner back (dashed, the other letter), and each pair becomes its first letter. A pair AA or BB is marked. Tap two tiles of the strip, or slide along it, to choose them and the tiles between. Tap a row at a join between two tiles, or at an end, to place seams there and every two tiles along it. Shrink makes the row below. A row is stuck (✕) when each way of placing its seams is marked or stuck below. Undo takes back the last move.",
+   "controls": "A row grows by turning every A into AB and every B into BA, so a grown row splits into pairs AB and BA. Shrink undoes that: seams split a row into pairs, a tile cut off at an end gets its partner back (dashed, the other letter), and each pair becomes its first letter. A pair AA or BB is marked. Tap two tiles of the strip, or slide along it, to choose them and the tiles between. Tap a row at a join between two tiles, or at an end, to place seams there and every two tiles along it; tap it again to move them over one. Shrink makes the row below. A row is stuck (✕) when each way of placing its seams is marked or stuck below. Undo takes back the last move.",
    "rules": [
     "A row grows by turning every A into AB and every B into BA, all at once: A, AB, ABBA, ABBABAAB, and on. A piece is a run of tiles cut from a grown row.",
     "Shrinking undoes one step. Seams split the row into pairs in one of two ways: pair the first two tiles, or leave the first tile alone. A tile cut off from its partner at an end gets the partner back as a dashed ghost, the other letter.",
@@ -573,19 +877,19 @@
     "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. Only rows of three tiles or more can be stuck.",
     "Choose a run of at most the number of tiles shown. The puzzle is solved when the chosen tiles are stuck."
    ],
-   "idea": "Shrinking a strip that repeats ABBA gives the strip that repeats AB, so the tiles that shrink to ABABA are stuck.",
+   "idea": "A strip with no AAA, BBB or ABABA on top can still hide a stuck run: BBAABBAA shrinks to ABABA one row down.",
    "prerequisites": "Read A and B and keep several rows in view. Choosing which tiles to test is the puzzle; the rows below are built one tap at a time.",
    "hints": [
-    "Shrink a long run. What strip do the shrunk rows come from?",
-    "ABBA repeated shrinks to AB repeated, and ABABA is stuck. Which tiles shrink to ABABA?",
-    "Choose tiles 2 to 9, BBAABBAA. With the first tile alone it shrinks to ABABA; paired from the first tile it marks BB."
+    "Choose a long run and shrink it. Look at the shrunk rows too.",
+    "Nothing on top is AAA, BBB or ABABA. Find BB, AA, BB, AA in a row and shrink it.",
+    "Choose tiles 5 to 12, BBAABBAA. With the first tile alone it shrinks to ABABA; paired from the first tile it marks BB."
    ],
    "parent": {
-    "notice": "Whether your child recognizes the shrunk row ABAB… from the strip that repeats AB, and uses it to choose tiles.",
-    "prompt": "What does this strip shrink to? Have you seen that strip before?",
-    "explanation": "ABBA repeated, paired from the first tile, is AB|BA|AB|BA…, which shrinks to ABAB…, and that strip has ABABA, which is stuck. So tiles that shrink to ABABA are stuck too: ABBAABBAAB (ten tiles) paired from the first tile, or with the ghosts doing the ends, eight tiles: BBAABBAA, which with the first tile alone is (A)B|BA|AB|BA|A(B) and shrinks to ABABA, while paired from the first tile it marks BB. AABBAABB, from tile 4, shrinks to BABAB and marks AA the other way. No run of seven tiles or fewer is stuck.",
-    "extension": "Which is the shortest stuck run of a strip that repeats ABBABAAB? (Puzzle 10.)",
-    "connection": "Shrinking halves a repeating strip’s block (ABBA to AB). A grown row has no overlap, so any strip that repeats a block has a stuck run of at most two blocks and one tile (here ABBAABBAA).",
+    "notice": "Whether your child looks for AAA or ABABA in the shrunk rows as well as on the strip, and whether they move along the strip when a run fits.",
+    "prompt": "Nothing looks wrong on top. What does this stretch shrink to?",
+    "explanation": "The strip is tiles 18 to 33 of the grown row ABBABAABBAABABBABAABABBAABBABAAB… with its 12th and 13th tiles swapped (BA to AB). On top it has no AAA, BBB, ABABA or BABAB, and every run of seven tiles or fewer sits in a grown row. Tiles 5–12, BBAABBAA, are stuck: paired from the first tile they mark BB; with the first tile alone they are (A)B|BA|AB|BA|A(B), which shrinks to ABABA, and ABABA shrinks to AAA or BBB. The six stuck runs of ten tiles or fewer all contain tiles 5–12; three of the seven runs of ten are stuck, the middle three.",
+    "extension": "BBAABBAA is a stretch of the strip that repeats ABBA (worksheet Problem 6). What does that whole strip shrink to?",
+    "connection": "Shrinking the strip that repeats ABBA gives the strip that repeats AB, which has the overlap ABABA. Two swapped tiles in a grown row make a stretch of it, so the error shows only one row down.",
     "sourceIds": [
      "shrink-week76",
      "shrink-card76",
@@ -594,38 +898,14 @@
    },
    "solution": {
     "run": [
-     1,
-     8
+     4,
+     11
     ],
     "word": "BBAABBAA",
     "stuckRuns": [
      [
-      1,
-      8
-     ],
-     [
-      3,
-      10
-     ],
-     [
-      5,
-      12
-     ],
-     [
-      7,
-      14
-     ],
-     [
-      0,
-      8
-     ],
-     [
-      1,
-      9
-     ],
-     [
-      2,
-      10
+      4,
+      11
      ],
      [
       3,
@@ -634,26 +914,6 @@
      [
       4,
       12
-     ],
-     [
-      5,
-      13
-     ],
-     [
-      6,
-      14
-     ],
-     [
-      7,
-      15
-     ],
-     [
-      0,
-      9
-     ],
-     [
-      1,
-      10
      ],
      [
       2,
@@ -666,21 +926,13 @@
      [
       4,
       13
-     ],
-     [
-      5,
-      14
-     ],
-     [
-      6,
-      15
      ]
     ],
     "moves": [
      {
       "type": "select",
-      "a": 1,
-      "b": 8
+      "a": 4,
+      "b": 11
      },
      {
       "type": "seam",
@@ -739,7 +991,7 @@
      }
     ]
    },
-   "provenance": "Week 76 Problem 6 (student page 4, Grades 3–5): the strip that repeats ABBA forever."
+   "provenance": "New instance on Week 76 Problem 6, as the review card’s Decision asks for a long grown strip with an error: here two neighbouring tiles are swapped, which hides the ABBA strip’s stuck run BBAABBAA."
   },
   {
    "id": "shrink-06",
@@ -756,16 +1008,16 @@
     "piece": "ABBABBAB"
    },
    "objective": "Flip one tile at a time. Keep every flip that lets the piece shrink to one tile, then press That’s all.",
-   "visibleObjective": "Keep every one-tile flip that lets the piece shrink to one tile.",
+   "visibleObjective": "Keep every flip that lets the piece shrink to one tile.",
    "instruction": "Flip one tile at a time. Keep every flip that lets the piece shrink to one tile, then press That’s all.",
-   "controls": "A row grows by turning every A into AB and every B into BA, so a grown row splits into pairs AB and BA. Shrink undoes that: seams split a row into pairs, a tile cut off at an end gets its partner back (dashed, the other letter), and each pair becomes its first letter. A pair AA or BB is marked. Tap a tile to flip it, and again to flip it back. Tap a row at a join between two tiles, or at an end, to place seams there and every two tiles along it. Shrink makes the row below. A row is stuck (✕) when each way of placing its seams is marked or stuck below. Keep keeps the flip; tap a kept one to take it back. Press That’s all when every flip that lets the piece shrink to one tile is kept. Undo takes back the last move.",
+   "controls": "A row grows by turning every A into AB and every B into BA, so a grown row splits into pairs AB and BA. Shrink undoes that: seams split a row into pairs, a tile cut off at an end gets its partner back (dashed, the other letter), and each pair becomes its first letter. A pair AA or BB is marked. Tap a tile to flip it, and again to flip it back. Tap a row at a join between two tiles, or at an end, to place seams there and every two tiles along it; tap it again to move them over one. Shrink makes the row below. A row is stuck (✕) when each way of placing its seams is marked or stuck below. Once the rows show the piece shrinking to one tile, Keep keeps the flip; tap a kept one to take it back. Press That’s all when every flip that lets the piece shrink to one tile is kept. Undo takes back the last move.",
    "rules": [
     "A row grows by turning every A into AB and every B into BA, all at once: A, AB, ABBA, ABBABAAB, and on. A piece is a run of tiles cut from a grown row.",
     "Shrinking undoes one step. Seams split the row into pairs in one of two ways: pair the first two tiles, or leave the first tile alone. A tile cut off from its partner at an end gets the partner back as a dashed ghost, the other letter.",
     "Each pair shrinks to its first letter. A pair AA or BB is marked: no tile grows into it.",
     "A row of two different tiles is one pair, so its seams go only at its ends.",
     "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. Only rows of three tiles or more can be stuck.",
-    "One tile is flipped at a time; flipping another puts the first back. Keep puts the flip on the shelf, unjudged; That’s all checks the whole shelf at once."
+    "One tile is flipped at a time; flipping another puts the first back. Keep puts the flip on the shelf once the rows below show the piece shrinking to one tile; That’s all checks the whole shelf at once."
    ],
    "idea": "One flipped tile can have more than one repair: three different flips each give a piece of a grown row.",
    "prerequisites": "Read A and B, try a flip, shrink, and try another. Spotting AAA or BBB saves work.",
@@ -798,6 +1050,56 @@
       "i": 1
      },
      {
+      "type": "seam",
+      "at": "",
+      "s": 1
+     },
+     {
+      "type": "shrink",
+      "at": "",
+      "s": 1
+     },
+     {
+      "type": "seam",
+      "at": "1",
+      "s": 0
+     },
+     {
+      "type": "shrink",
+      "at": "1",
+      "s": 0
+     },
+     {
+      "type": "seam",
+      "at": "10",
+      "s": 0
+     },
+     {
+      "type": "shrink",
+      "at": "10",
+      "s": 0
+     },
+     {
+      "type": "seam",
+      "at": "100",
+      "s": 1
+     },
+     {
+      "type": "shrink",
+      "at": "100",
+      "s": 1
+     },
+     {
+      "type": "seam",
+      "at": "1001",
+      "s": 0
+     },
+     {
+      "type": "shrink",
+      "at": "1001",
+      "s": 0
+     },
+     {
       "type": "keep"
      },
      {
@@ -805,11 +1107,81 @@
       "i": 4
      },
      {
+      "type": "seam",
+      "at": "",
+      "s": 0
+     },
+     {
+      "type": "shrink",
+      "at": "",
+      "s": 0
+     },
+     {
+      "type": "seam",
+      "at": "0",
+      "s": 1
+     },
+     {
+      "type": "shrink",
+      "at": "0",
+      "s": 1
+     },
+     {
+      "type": "seam",
+      "at": "01",
+      "s": 1
+     },
+     {
+      "type": "shrink",
+      "at": "01",
+      "s": 1
+     },
+     {
+      "type": "seam",
+      "at": "011",
+      "s": 0
+     },
+     {
+      "type": "shrink",
+      "at": "011",
+      "s": 0
+     },
+     {
       "type": "keep"
      },
      {
       "type": "flip",
       "i": 5
+     },
+     {
+      "type": "seam",
+      "at": "",
+      "s": 0
+     },
+     {
+      "type": "shrink",
+      "at": "",
+      "s": 0
+     },
+     {
+      "type": "seam",
+      "at": "0",
+      "s": 0
+     },
+     {
+      "type": "shrink",
+      "at": "0",
+      "s": 0
+     },
+     {
+      "type": "seam",
+      "at": "00",
+      "s": 0
+     },
+     {
+      "type": "shrink",
+      "at": "00",
+      "s": 0
      },
      {
       "type": "keep"
@@ -840,7 +1212,7 @@
    "objective": "Choose at most 6 tiles of the strip and shrink them until every way is stuck.",
    "visibleObjective": "Choose at most 6 tiles that get stuck.",
    "instruction": "Choose at most 6 tiles of the strip and shrink them until every way is stuck.",
-   "controls": "A row grows by turning every A into AB and every B into BA, so a grown row splits into pairs AB and BA. Shrink undoes that: seams split a row into pairs, a tile cut off at an end gets its partner back (dashed, the other letter), and each pair becomes its first letter. A pair AA or BB is marked. Tap two tiles of the strip, or slide along it, to choose them and the tiles between. Tap a row at a join between two tiles, or at an end, to place seams there and every two tiles along it. Shrink makes the row below. A row is stuck (✕) when each way of placing its seams is marked or stuck below. Undo takes back the last move.",
+   "controls": "A row grows by turning every A into AB and every B into BA, so a grown row splits into pairs AB and BA. Shrink undoes that: seams split a row into pairs, a tile cut off at an end gets its partner back (dashed, the other letter), and each pair becomes its first letter. A pair AA or BB is marked. Tap two tiles of the strip, or slide along it, to choose them and the tiles between. Tap a row at a join between two tiles, or at an end, to place seams there and every two tiles along it; tap it again to move them over one. Shrink makes the row below. A row is stuck (✕) when each way of placing its seams is marked or stuck below. Undo takes back the last move.",
    "rules": [
     "A row grows by turning every A into AB and every B into BA, all at once: A, AB, ABBA, ABBABAAB, and on. A piece is a run of tiles cut from a grown row.",
     "Shrinking undoes one step. Seams split the row into pairs in one of two ways: pair the first two tiles, or leave the first tile alone. A tile cut off from its partner at an end gets the partner back as a dashed ghost, the other letter.",
@@ -957,7 +1329,7 @@
    "objective": "Choose at most 9 tiles of the strip and shrink them until every way is stuck.",
    "visibleObjective": "Choose at most 9 tiles that get stuck.",
    "instruction": "Choose at most 9 tiles of the strip and shrink them until every way is stuck.",
-   "controls": "A row grows by turning every A into AB and every B into BA, so a grown row splits into pairs AB and BA. Shrink undoes that: seams split a row into pairs, a tile cut off at an end gets its partner back (dashed, the other letter), and each pair becomes its first letter. A pair AA or BB is marked. Tap two tiles of the strip, or slide along it, to choose them and the tiles between. Tap a row at a join between two tiles, or at an end, to place seams there and every two tiles along it. Shrink makes the row below. A row is stuck (✕) when each way of placing its seams is marked or stuck below. Undo takes back the last move.",
+   "controls": "A row grows by turning every A into AB and every B into BA, so a grown row splits into pairs AB and BA. Shrink undoes that: seams split a row into pairs, a tile cut off at an end gets its partner back (dashed, the other letter), and each pair becomes its first letter. A pair AA or BB is marked. Tap two tiles of the strip, or slide along it, to choose them and the tiles between. Tap a row at a join between two tiles, or at an end, to place seams there and every two tiles along it; tap it again to move them over one. Shrink makes the row below. A row is stuck (✕) when each way of placing its seams is marked or stuck below. Undo takes back the last move.",
    "rules": [
     "A row grows by turning every A into AB and every B into BA, all at once: A, AB, ABBA, ABBABAAB, and on. A piece is a run of tiles cut from a grown row.",
     "Shrinking undoes one step. Seams split the row into pairs in one of two ways: pair the first two tiles, or leave the first tile alone. A tile cut off from its partner at an end gets the partner back as a dashed ghost, the other letter.",
@@ -1067,16 +1439,16 @@
     "piece": "AABBAABB"
    },
    "objective": "Flip one tile at a time. Keep every flip that lets the piece shrink to one tile, then press That’s all.",
-   "visibleObjective": "Keep every one-tile flip that lets the piece shrink to one tile.",
+   "visibleObjective": "Keep every flip that lets the piece shrink to one tile.",
    "instruction": "Flip one tile at a time. Keep every flip that lets the piece shrink to one tile, then press That’s all.",
-   "controls": "A row grows by turning every A into AB and every B into BA, so a grown row splits into pairs AB and BA. Shrink undoes that: seams split a row into pairs, a tile cut off at an end gets its partner back (dashed, the other letter), and each pair becomes its first letter. A pair AA or BB is marked. Tap a tile to flip it, and again to flip it back. Tap a row at a join between two tiles, or at an end, to place seams there and every two tiles along it. Shrink makes the row below. A row is stuck (✕) when each way of placing its seams is marked or stuck below. Keep keeps the flip; tap a kept one to take it back. Press That’s all when every flip that lets the piece shrink to one tile is kept. Undo takes back the last move.",
+   "controls": "A row grows by turning every A into AB and every B into BA, so a grown row splits into pairs AB and BA. Shrink undoes that: seams split a row into pairs, a tile cut off at an end gets its partner back (dashed, the other letter), and each pair becomes its first letter. A pair AA or BB is marked. Tap a tile to flip it, and again to flip it back. Tap a row at a join between two tiles, or at an end, to place seams there and every two tiles along it; tap it again to move them over one. Shrink makes the row below. A row is stuck (✕) when each way of placing its seams is marked or stuck below. Once the rows show the piece shrinking to one tile, Keep keeps the flip; tap a kept one to take it back. Press That’s all when every flip that lets the piece shrink to one tile is kept. Undo takes back the last move.",
    "rules": [
     "A row grows by turning every A into AB and every B into BA, all at once: A, AB, ABBA, ABBABAAB, and on. A piece is a run of tiles cut from a grown row.",
     "Shrinking undoes one step. Seams split the row into pairs in one of two ways: pair the first two tiles, or leave the first tile alone. A tile cut off from its partner at an end gets the partner back as a dashed ghost, the other letter.",
     "Each pair shrinks to its first letter. A pair AA or BB is marked: no tile grows into it.",
     "A row of two different tiles is one pair, so its seams go only at its ends.",
     "A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. Only rows of three tiles or more can be stuck.",
-    "One tile is flipped at a time; flipping another puts the first back. Keep puts the flip on the shelf, unjudged; That’s all checks the whole shelf at once."
+    "One tile is flipped at a time; flipping another puts the first back. Keep puts the flip on the shelf once the rows below show the piece shrinking to one tile; That’s all checks the whole shelf at once."
    ],
    "idea": "When every inner flip makes three equal tiles, a fix must be at an end, and here either end works.",
    "prerequisites": "Read A and B, try a flip, shrink, and try another. Spotting AAA or BBB saves work.",
@@ -1108,11 +1480,91 @@
       "i": 0
      },
      {
+      "type": "seam",
+      "at": "",
+      "s": 1
+     },
+     {
+      "type": "shrink",
+      "at": "",
+      "s": 1
+     },
+     {
+      "type": "seam",
+      "at": "1",
+      "s": 1
+     },
+     {
+      "type": "shrink",
+      "at": "1",
+      "s": 1
+     },
+     {
+      "type": "seam",
+      "at": "11",
+      "s": 0
+     },
+     {
+      "type": "shrink",
+      "at": "11",
+      "s": 0
+     },
+     {
+      "type": "seam",
+      "at": "110",
+      "s": 0
+     },
+     {
+      "type": "shrink",
+      "at": "110",
+      "s": 0
+     },
+     {
       "type": "keep"
      },
      {
       "type": "flip",
       "i": 7
+     },
+     {
+      "type": "seam",
+      "at": "",
+      "s": 1
+     },
+     {
+      "type": "shrink",
+      "at": "",
+      "s": 1
+     },
+     {
+      "type": "seam",
+      "at": "1",
+      "s": 0
+     },
+     {
+      "type": "shrink",
+      "at": "1",
+      "s": 0
+     },
+     {
+      "type": "seam",
+      "at": "10",
+      "s": 1
+     },
+     {
+      "type": "shrink",
+      "at": "10",
+      "s": 1
+     },
+     {
+      "type": "seam",
+      "at": "101",
+      "s": 0
+     },
+     {
+      "type": "shrink",
+      "at": "101",
+      "s": 0
      },
      {
       "type": "keep"
@@ -1143,7 +1595,7 @@
    "objective": "Choose at most 15 tiles of the strip and shrink them until every way is stuck.",
    "visibleObjective": "Choose at most 15 tiles that get stuck.",
    "instruction": "Choose at most 15 tiles of the strip and shrink them until every way is stuck.",
-   "controls": "A row grows by turning every A into AB and every B into BA, so a grown row splits into pairs AB and BA. Shrink undoes that: seams split a row into pairs, a tile cut off at an end gets its partner back (dashed, the other letter), and each pair becomes its first letter. A pair AA or BB is marked. Tap two tiles of the strip, or slide along it, to choose them and the tiles between. Tap a row at a join between two tiles, or at an end, to place seams there and every two tiles along it. Shrink makes the row below. A row is stuck (✕) when each way of placing its seams is marked or stuck below. Undo takes back the last move.",
+   "controls": "A row grows by turning every A into AB and every B into BA, so a grown row splits into pairs AB and BA. Shrink undoes that: seams split a row into pairs, a tile cut off at an end gets its partner back (dashed, the other letter), and each pair becomes its first letter. A pair AA or BB is marked. Tap two tiles of the strip, or slide along it, to choose them and the tiles between. Tap a row at a join between two tiles, or at an end, to place seams there and every two tiles along it; tap it again to move them over one. Shrink makes the row below. A row is stuck (✕) when each way of placing its seams is marked or stuck below. Undo takes back the last move.",
    "rules": [
     "A row grows by turning every A into AB and every B into BA, all at once: A, AB, ABBA, ABBABAAB, and on. A piece is a run of tiles cut from a grown row.",
     "Shrinking undoes one step. Seams split the row into pairs in one of two ways: pair the first two tiles, or leave the first tile alone. A tile cut off from its partner at an end gets the partner back as a dashed ghost, the other letter.",
@@ -1160,7 +1612,7 @@
     "Choose tiles 4 to 17, ABAABABBABAABA: with the first tile alone it shrinks to BBAABBAA, then ABABA, which is stuck both ways."
    ],
    "parent": {
-    "notice": "Whether your child uses the earlier repeating strips: this one shrinks to ABBA repeated and then to AB repeated.",
+    "notice": "Whether your child shrinks the whole strip: it shrinks to ABBA repeated and then to AB repeated, puzzle 2’s strip.",
     "prompt": "What does this strip shrink to? And that one?",
     "explanation": "ABBABAAB repeated, paired from the first tile, shrinks to ABBA repeated and then to AB repeated, which has ABABA. Tracing ABABA back up gives ABAABABBABAABA (tiles 4–17, and its swap BABBABAABABBAB from tile 8): paired from the first tile it marks AA; with the first tile alone it shrinks to BBAABBAA, which marks BB one way and shrinks to ABABA the other, and ABABA shrinks to AAA or BBB. No run of thirteen tiles or fewer is stuck.",
     "extension": "Two copies, ABBABAABABBABAAB, do sit in a grown row (worksheet Problem 3 asks whether it is a whole one). Where?",

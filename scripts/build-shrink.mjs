@@ -1,6 +1,7 @@
 // Authoring list for Shrink strips (worksheet Week 76, substitution strips).
 // Computes every answer with the mechanic's own functions, checks them against
-// the table in docs/shrink/README.md, finds a witness by following the hints,
+// the table in docs/shrink/README.md, checks that the choice of tiles matters
+// in every impostor but the first, finds a witness by following the hints,
 // and writes dist/families/shrink/shrink.json. scripts/validate-shrink.mjs
 // checks the answers again against the Thue–Morse word itself.
 // Run: node scripts/build-shrink.mjs
@@ -16,17 +17,17 @@ const RULES = [
   'A row is stuck when each way of placing its seams marks a pair or shrinks to a stuck row. Only rows of three tiles or more can be stuck.'
 ];
 const MODE_RULES = {
-  seams: 'Keep puts the seams on a piece’s top row on the shelf, unjudged; a tap on the shelf takes one back. That’s all checks the whole shelf at once and can be pressed again once the shelf changes.',
+  seams: 'Keep puts the seams on a piece’s top row on the shelf once the rows below show them shrinking to one tile; a tap on the shelf takes one back. That’s all checks the whole shelf at once and can be pressed again once the shelf changes.',
   impostor: 'Choose a run of at most the number of tiles shown. The puzzle is solved when the chosen tiles are stuck.',
-  repair: 'One tile is flipped at a time; flipping another puts the first back. Keep puts the flip on the shelf, unjudged; That’s all checks the whole shelf at once.',
+  repair: 'One tile is flipped at a time; flipping another puts the first back. Keep puts the flip on the shelf once the rows below show the piece shrinking to one tile; That’s all checks the whole shelf at once.',
   playground: 'Grow adds the next row, up to five rows. The top tile switches between A and B.'
 };
 const OPENER = 'A row grows by turning every A into AB and every B into BA, so a grown row splits into pairs AB and BA. Shrink undoes that: seams split a row into pairs, a tile cut off at an end gets its partner back (dashed, the other letter), and each pair becomes its first letter. A pair AA or BB is marked.';
-const ROWS = 'Tap a row at a join between two tiles, or at an end, to place seams there and every two tiles along it. Shrink makes the row below. A row is stuck (✕) when each way of placing its seams is marked or stuck below.';
+const ROWS = 'Tap a row at a join between two tiles, or at an end, to place seams there and every two tiles along it; tap it again to move them over one. Shrink makes the row below. A row is stuck (✕) when each way of placing its seams is marked or stuck below.';
 const CONTROLS = {
-  seams: `${OPENER} Tap a piece to work on it. ${ROWS} Keep keeps the seams on the top row; tap a kept one to take it back. Press That’s all when every way that can shrink to one tile is kept. Undo takes back the last move.`,
+  seams: `${OPENER} Tap a piece to work on it. ${ROWS} Once the rows show the seams on the top row shrinking to one tile, Keep keeps them; tap a kept one to take it back. Press That’s all when every way that can shrink to one tile is kept. Undo takes back the last move.`,
   impostor: `${OPENER} Tap two tiles of the strip, or slide along it, to choose them and the tiles between. ${ROWS} Undo takes back the last move.`,
-  repair: `${OPENER} Tap a tile to flip it, and again to flip it back. ${ROWS} Keep keeps the flip; tap a kept one to take it back. Press That’s all when every flip that lets the piece shrink to one tile is kept. Undo takes back the last move.`,
+  repair: `${OPENER} Tap a tile to flip it, and again to flip it back. ${ROWS} Once the rows show the piece shrinking to one tile, Keep keeps the flip; tap a kept one to take it back. Press That’s all when every flip that lets the piece shrink to one tile is kept. Undo takes back the last move.`,
   playground: 'A row grows by turning every A into AB and every B into BA, all at once. Press Grow for the next row. Tap the top tile to start from the other letter.'
 };
 const OBJECTIVE = {
@@ -37,7 +38,7 @@ const OBJECTIVE = {
 const VISIBLE = {
   seams: () => 'Keep every way to place seams that lets a piece shrink to one tile.',
   impostor: k => `Choose at most ${k} tiles that get stuck.`,
-  repair: () => 'Keep every one-tile flip that lets the piece shrink to one tile.'
+  repair: () => 'Keep every flip that lets the piece shrink to one tile.'
 };
 const PREREQUISITES = {
   seams: 'Read the letters A and B and see whether two letters are the same. No arithmetic. Following a row down through several shrinks takes patience; a grown-up can read How to play.',
@@ -46,7 +47,11 @@ const PREREQUISITES = {
   playground: 'None beyond reading A and B.'
 };
 const sources = ['shrink-week76', 'shrink-card76', 'shrink-allouche'];
-const T = 'ABBABAABBAABABBABAABABBAABBABAAB';
+// The first 64 tiles of the grown row: tile n (from 0) is A when n has an
+// even number of ones in binary.
+const T = Array.from({length: 64}, (_, n) => n.toString(2).split('1').length % 2 ? 'A' : 'B').join('');
+// Two neighbouring tiles i and i + 1 swapped.
+const swapAt = (w, i) => w.slice(0, i) + w[i + 1] + w[i] + w.slice(i + 2);
 
 // Each puzzle with the answer the table in docs/shrink/README.md gives.
 // seams: check is the kept [piece, way] pairs (way 0 pairs the first two
@@ -82,13 +87,13 @@ const PUZZLES = [
       explanation: 'ABAB paired from the first tile is AB|AB, which shrinks to AA and on to one tile (AA, BA, B). With the first tile alone it is (B)A|BA|B(A), which shrinks to BBB, and BBB marks a pair both ways: stuck. BAB fits both ways (BA|B(A) shrinks to BB, (A)B|AB to AA). ABBAABBA paired from the first tile shrinks to ABAB, then AA, BA and B; with the first tile alone it marks BB. Four ways.',
       extension: 'Worksheet Problem 5: can a piece of five tiles fit both ways?', connection: 'Recognizability: a long enough piece of the Thue–Morse word has only one way to be cut into pairs (from four tiles on), while ABA and BAB have two.'},
     provenance: 'Week 76 Problem 4 (student page 3, Grades 3–5): the piece ABBAABBA, with ABAB and BAB added (new) for a way that is stuck one row down.'},
-  {number: 5, level: 'medium', title: 'A strip of ABBA', mode: 'impostor', block: 'ABBA', copies: 4, endless: true, k: 10, check: {run: [1, 8], shortest: 8, dead: 19},
-    idea: 'Shrinking a strip that repeats ABBA gives the strip that repeats AB, so the tiles that shrink to ABABA are stuck.',
-    hints: ['Shrink a long run. What strip do the shrunk rows come from?', 'ABBA repeated shrinks to AB repeated, and ABABA is stuck. Which tiles shrink to ABABA?', 'Choose tiles 2 to 9, BBAABBAA. With the first tile alone it shrinks to ABABA; paired from the first tile it marks BB.'],
-    parent: {notice: 'Whether your child recognizes the shrunk row ABAB… from the strip that repeats AB, and uses it to choose tiles.', prompt: 'What does this strip shrink to? Have you seen that strip before?',
-      explanation: 'ABBA repeated, paired from the first tile, is AB|BA|AB|BA…, which shrinks to ABAB…, and that strip has ABABA, which is stuck. So tiles that shrink to ABABA are stuck too: ABBAABBAAB (ten tiles) paired from the first tile, or with the ghosts doing the ends, eight tiles: BBAABBAA, which with the first tile alone is (A)B|BA|AB|BA|A(B) and shrinks to ABABA, while paired from the first tile it marks BB. AABBAABB, from tile 4, shrinks to BABAB and marks AA the other way. No run of seven tiles or fewer is stuck.',
-      extension: 'Which is the shortest stuck run of a strip that repeats ABBABAAB? (Puzzle 10.)', connection: 'Shrinking halves a repeating strip’s block (ABBA to AB). A grown row has no overlap, so any strip that repeats a block has a stuck run of at most two blocks and one tile (here ABBAABBAA).'},
-    provenance: 'Week 76 Problem 6 (student page 4, Grades 3–5): the strip that repeats ABBA forever.'},
+  {number: 5, level: 'medium', title: 'Nearly a grown row', mode: 'impostor', strip: swapAt(T.slice(17, 33), 11), endless: false, k: 10, check: {run: [4, 11], shortest: 8, dead: 6},
+    idea: 'A strip with no AAA, BBB or ABABA on top can still hide a stuck run: BBAABBAA shrinks to ABABA one row down.',
+    hints: ['Choose a long run and shrink it. Look at the shrunk rows too.', 'Nothing on top is AAA, BBB or ABABA. Find BB, AA, BB, AA in a row and shrink it.', 'Choose tiles 5 to 12, BBAABBAA. With the first tile alone it shrinks to ABABA; paired from the first tile it marks BB.'],
+    parent: {notice: 'Whether your child looks for AAA or ABABA in the shrunk rows as well as on the strip, and whether they move along the strip when a run fits.', prompt: 'Nothing looks wrong on top. What does this stretch shrink to?',
+      explanation: 'The strip is tiles 18 to 33 of the grown row ABBABAABBAABABBABAABABBAABBABAAB… with its 12th and 13th tiles swapped (BA to AB). On top it has no AAA, BBB, ABABA or BABAB, and every run of seven tiles or fewer sits in a grown row. Tiles 5–12, BBAABBAA, are stuck: paired from the first tile they mark BB; with the first tile alone they are (A)B|BA|AB|BA|A(B), which shrinks to ABABA, and ABABA shrinks to AAA or BBB. The six stuck runs of ten tiles or fewer all contain tiles 5–12; three of the seven runs of ten are stuck, the middle three.',
+      extension: 'BBAABBAA is a stretch of the strip that repeats ABBA (worksheet Problem 6). What does that whole strip shrink to?', connection: 'Shrinking the strip that repeats ABBA gives the strip that repeats AB, which has the overlap ABABA. Two swapped tiles in a grown row make a stretch of it, so the error shows only one row down.'},
+    provenance: 'New instance on Week 76 Problem 6, as the review card’s Decision asks for a long grown strip with an error: here two neighbouring tiles are swapped, which hides the ABBA strip’s stuck run BBAABBAA.'},
   {number: 6, level: 'medium', title: 'One tile wrong', mode: 'repair', piece: 'ABBABBAB', check: [1, 4, 5],
     idea: 'One flipped tile can have more than one repair: three different flips each give a piece of a grown row.',
     hints: ['Shrink the piece both ways. Which tiles are in a marked pair?', 'Paired from the first tile, BB at tiles 5 and 6 is marked; with the first tile alone, BB at tiles 2 and 3. A fix flips one of these.', 'Keep the flips of tiles 2, 5 and 6.'],
@@ -120,7 +125,7 @@ const PUZZLES = [
   {number: 10, level: 'hard', title: 'A grown row over and over', mode: 'impostor', block: 'ABBABAAB', copies: 3, endless: true, k: 15, check: {run: [3, 16], shortest: 14, dead: 6},
     idea: 'A grown row repeated forever is not a grown row: shrinking three times reaches ABABA.',
     hints: ['Shrink a long run. What strip do the shrunk rows come from?', 'ABBABAAB repeated shrinks to ABBA repeated, and then to AB repeated. Which tiles shrink to ABABA?', 'Choose tiles 4 to 17, ABAABABBABAABA: with the first tile alone it shrinks to BBAABBAA, then ABABA, which is stuck both ways.'],
-    parent: {notice: 'Whether your child uses the earlier repeating strips: this one shrinks to ABBA repeated and then to AB repeated.', prompt: 'What does this strip shrink to? And that one?',
+    parent: {notice: 'Whether your child shrinks the whole strip: it shrinks to ABBA repeated and then to AB repeated, puzzle 2’s strip.', prompt: 'What does this strip shrink to? And that one?',
       explanation: 'ABBABAAB repeated, paired from the first tile, shrinks to ABBA repeated and then to AB repeated, which has ABABA. Tracing ABABA back up gives ABAABABBABAABA (tiles 4–17, and its swap BABBABAABABBAB from tile 8): paired from the first tile it marks AA; with the first tile alone it shrinks to BBAABBAA, which marks BB one way and shrinks to ABABA the other, and ABABA shrinks to AAA or BBB. No run of thirteen tiles or fewer is stuck.',
       extension: 'Two copies, ABBABAABABBABAAB, do sit in a grown row (worksheet Problem 3 asks whether it is a whole one). Where?', connection: 'Squares such as ABBABAABABBABAAB occur in the Thue–Morse word, but overlaps do not (Thue, 1912), so three copies of a block never do.'},
     provenance: 'Week 76 Problem 3 (student page 2): the fourth claim, ABBABAAB twice, repeated forever as in Problem 6; new instance.'}
@@ -130,7 +135,7 @@ const id = n => `shrink-${String(n).padStart(2, '0')}`;
 const hintMoves = new Map();
 // The runs the grown-up explanations name, by first tile (counting from 1).
 const NAMED = {
-  5: [[1, 'ABBAABBAAB'], [2, 'BBAABBAA'], [4, 'AABBAABB']],
+  5: [[5, 'BBAABBAA']],
   7: [[9, 'ABABA']],
   8: [[3, 'BABBAABA'], [9, 'BABBAABA']],
   10: [[4, 'ABAABABBABAABA'], [8, 'BABBABAABABBAB']]
@@ -170,6 +175,10 @@ const out = PUZZLES.map(item => {
     assert.equal(runs.length, item.check.dead, `${id(item.number)}: stuck runs of at most k tiles`);
     assert.ok(item.k > shortest, `${id(item.number)}: the budget is not the shortest`);
     if (item.endless) assert.ok(strip.length >= item.k + item.block.length - 1, `${id(item.number)}: the strip shows every run of at most k tiles of the endless strip`);
+    // Past the first (puzzle 2, where every run of k tiles is stuck), the
+    // choice of tiles matters: some runs of k tiles fit a grown row.
+    const full = Array.from({length: strip.length - item.k + 1}, (_, a) => strip.slice(a, a + item.k));
+    if (item.number !== 2) assert.ok(full.some(w => real(w)), `${id(item.number)}: some run of ${item.k} tiles fits`);
     solution = {run: item.check.run, word: strip.slice(item.check.run[0], item.check.run[1] + 1), stuckRuns: runs};
     for (const [from, w] of NAMED[item.number] || []) {
       assert.equal(strip.slice(from - 1, from - 1 + w.length), w, `${id(item.number)}: ${w} from tile ${from}`);
@@ -185,17 +194,14 @@ const out = PUZZLES.map(item => {
     idea: item.idea, prerequisites: PREREQUISITES[item.mode], hints: item.hints,
     parent: {...item.parent, sourceIds: sources}, solution: null, provenance: item.provenance
   };
-  // The witness: an impostor's hint chain (the run and its certificate); in
-  // the other modes each answer placed and kept, then That's all.
-  const chain = hintChain(p);
-  const moves = q.mode === 'impostor' ? chain
-    : q.mode === 'seams' ? [...solution.ways.flatMap(([i, s]) => [{type: 'seam', piece: i, at: '', s}, {type: 'keep', piece: i}]), {type: 'all'}]
-    : [...solution.fixes.flatMap(i => [{type: 'flip', i}, {type: 'keep'}]), {type: 'all'}];
+  // The witness is the hint chain: an impostor's run and its certificate;
+  // each answer shrunk to one tile and kept, then That's all.
+  const moves = hintChain(p);
   let b = mech.fresh(p);
   for (const m of moves) { b = mech.move(p, b, m); assert.ok(b, `${p.id}: the witness move ${JSON.stringify(m)} is legal`); }
   assert.ok(mech.solved(p, b), `${p.id}: the witness solves`);
   p.solution = {...solution, moves};
-  hintMoves.set(p.id, chain.length);
+  hintMoves.set(p.id, moves.length);
   return p;
 });
 

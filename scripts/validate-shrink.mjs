@@ -8,9 +8,11 @@
 // mechanic's own test of real and stuck rows is compared with occurrences for
 // every word of up to 14 tiles; the child's trees are judged by a separate
 // shrinker; certificates are built for every stuck run within the tree's
-// limits; witnesses and hint chains are played from fresh and after wrong
-// moves, wrong claims and Undo; illegal moves and forged saves are refused;
-// random play is counted to show that a certificate can fail; and hints are
+// limits; Keep waits until the child's rows take a way or a flip to one tile;
+// witnesses and hint chains are played from fresh and after wrong moves,
+// wrong claims and Undo; illegal moves and forged saves are refused; random
+// play is counted to show that a certificate can fail, and past puzzle 2 some
+// run of the full budget fits, so the choice of tiles matters; and hints are
 // timed in CPU time. Run: node scripts/validate-shrink.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
@@ -28,7 +30,7 @@ const TABLE = {
   'shrink-02': {level: 'easy', mode: 'impostor', run: [0, 4], shortest: 5, dead: 15},
   'shrink-03': {level: 'easy', mode: 'repair', fixes: [4]},
   'shrink-04': {level: 'medium', mode: 'seams', ways: [[0, 0], [1, 0], [1, 1], [2, 0]]},
-  'shrink-05': {level: 'medium', mode: 'impostor', run: [1, 8], shortest: 8, dead: 19},
+  'shrink-05': {level: 'medium', mode: 'impostor', run: [4, 11], shortest: 8, dead: 6},
   'shrink-06': {level: 'medium', mode: 'repair', fixes: [1, 4, 5]},
   'shrink-07': {level: 'medium', mode: 'impostor', run: [8, 12], shortest: 5, dead: 3},
   'shrink-08': {level: 'hard', mode: 'impostor', run: [2, 9], shortest: 8, dead: 6},
@@ -105,6 +107,22 @@ function treeMoves(node, path = '', extra = {}) {
   return out;
 }
 
+// The moves that take a real row down to one tile, starting with way s on
+// the row at path: a seam tap and Shrink at each row, on a way that fits.
+function downMoves(w, s, path = '', extra = {}) {
+  const out = [];
+  for (;;) {
+    out.push({type: 'seam', at: path, s, ...extra}, {type: 'shrink', at: path, s, ...extra});
+    w = parentOf(w, s); path += s;
+    if (w.length === 1) return out;
+    s = w.length === 2 ? (w[0] === w[1] ? 1 : 0) : [0, 1].find(t => !markedOf(w, t) && isFactor(parentOf(w, t)));
+  }
+}
+const fitWayOf = w => [0, 1].find(t => !markedOf(w, t) && isFactor(parentOf(w, t)));
+// The moves, after the seams of way s, that show that way stuck: nothing if
+// it marks a pair, else Shrink and the shrunk row's smallest certificate.
+const stuckMoves = (w, s, extra = {}) => markedOf(w, s) ? [] : [{type: 'shrink', at: '', s, ...extra}, ...treeMoves(certificate(parentOf(w, s)), String(s), extra)];
+
 // --- Play ---------------------------------------------------------------------------------
 const play = (p, a, action) => { const next = move(p, a, action); assert.ok(next && next !== a, `${p.id}: ${JSON.stringify(action)} is legal`); return next; };
 const refuse = (p, a, action, why) => assert.equal(move(p, a, action), null, `${p.id}: refuses ${why}`);
@@ -176,30 +194,43 @@ function checkSeams(p, row) {
   assert.deepEqual(p.solution.ways, row.ways, `${p.id}: the stored ways`);
   let steps = hintsSolve(p, fresh, 'from fresh');
   refuse(p, fresh, {type: 'all'}, 'That’s all on an empty shelf');
-  // Witness: place each way and keep it, then That's all.
+  // Witness: take each way to one tile and keep it, then That's all.
   let a = fresh;
-  for (const [i, s] of row.ways) { a = play(p, a, {type: 'seam', piece: i, at: '', s}); a = play(p, a, {type: 'keep', piece: i}); }
+  for (const [i, s] of row.ways) {
+    a = play(p, a, {type: 'seam', piece: i, at: '', s});
+    refuse(p, a, {type: 'keep', piece: i}, 'Keep before the rows reach one tile');
+    for (const m of downMoves(q.pieces[i], s, '', {piece: i}).slice(1)) a = play(p, a, m);
+    a = play(p, a, {type: 'keep', piece: i});
+    assert.equal(a.board.told, null, `${p.id}: Keep says nothing`);
+  }
   a = play(p, a, {type: 'all'});
   assert.ok(isSolved(p, a.board), `${p.id}: the witness solves`);
-  // A wrong way kept: That's all refuses once, the refusal stays through Undo
-  // (its note goes) until the shelf changes.
+  // A way that gets stuck is never kept, even once the tree shows it stuck.
   const wrong = [0, 1, 2].flatMap(i => [0, 1].map(s => [i, s])).find(x => !row.ways.some(y => y.join() === x.join()));
   let b = play(p, fresh, {type: 'seam', piece: wrong[0], at: '', s: wrong[1]});
-  b = play(p, b, {type: 'keep', piece: wrong[0]});
-  assert.equal(b.board.told, null, `${p.id}: Keep says nothing`);
-  b = play(p, b, {type: 'all'});
-  assert.equal(b.board.told, 'stuck', `${p.id}: a kept way that gets stuck`);
-  refuse(p, b, {type: 'all'}, 'That’s all twice on one shelf');
-  const back = carried(p, b);
+  refuse(p, b, {type: 'keep', piece: wrong[0]}, 'a way that gets stuck');
+  for (const m of stuckMoves(q.pieces[wrong[0]], wrong[1], {piece: wrong[0]})) b = play(p, b, m);
+  refuse(p, b, {type: 'keep', piece: wrong[0]}, 'a way the tree shows stuck');
+  // Too few: "There is another." once, standing through Undo (its note goes)
+  // until the shelf changes.
+  const [i0, s0] = row.ways[0];
+  let c = fresh;
+  for (const m of downMoves(q.pieces[i0], s0, '', {piece: i0})) c = play(p, c, m);
+  c = play(p, play(p, c, {type: 'keep', piece: i0}), {type: 'all'});
+  assert.equal(c.board.told, 'more', `${p.id}: there is another`);
+  refuse(p, c, {type: 'all'}, 'That’s all twice on one shelf');
+  const back = carried(p, c);
   assert.ok(back.board.refused && back.board.told === null, `${p.id}: Undo keeps the refusal and drops its note`);
   refuse(p, back, {type: 'all'}, 'That’s all after Undo on the same shelf');
-  steps += hintsSolve(p, b, 'after a wrong way and That’s all');
-  steps += hintsSolve(p, back, 'after Undo');
-  // Too few: "There is another."
-  let c = play(p, fresh, {type: 'seam', piece: row.ways[0][0], at: '', s: row.ways[0][1]});
-  c = play(p, play(p, c, {type: 'keep', piece: row.ways[0][0]}), {type: 'all'});
-  assert.equal(c.board.told, 'more', `${p.id}: there is another`);
   steps += hintsSolve(p, c, 'after too few');
+  steps += hintsSolve(p, back, 'after Undo');
+  // A save from before Keep waited for one tile may hold a way that gets
+  // stuck: That's all says so, and the hints take it back.
+  const old = {...fresh, board: {...fresh.board, shelf: [wrong]}};
+  assert.ok(validBoard(p, old.board), `${p.id}: an old shelf with a stuck way loads`);
+  const told = play(p, old, {type: 'all'});
+  assert.equal(told.board.told, 'stuck', `${p.id}: a kept way that gets stuck`);
+  steps += hintsSolve(p, told, 'after an old shelf with a stuck way');
   // Moves on the trees: a Shrink needs seams and no mark; a way is shrunk once.
   const [i, s] = row.ways[0];
   refuse(p, fresh, {type: 'shrink', piece: i, at: '', s}, 'Shrink before seams');
@@ -232,8 +263,8 @@ function checkSeams(p, row) {
     [{...fresh.board, trees: fresh.board.trees.map((t, j) => j ? t : {s: 0, t: [false, false], k: [null, null]})}, 'seams on a way never tried'],
     [{...fresh.board, extra: 1}, 'an unknown field']
   ]) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
-  // Keep judges nothing, so a right shelf marked done is a real finish whatever
-  // the trees show; it is what That's all makes.
+  // A right shelf marked done is a finish whatever the trees show (a save's
+  // trees are not checked against its shelf); it is what That's all makes.
   assert.ok(validBoard(p, {...fresh.board, shelf: row.ways, done: true}), `${p.id}: a right shelf is a finish`);
   // A row shrunk on a marked way is forged.
   if (marked) {
@@ -251,35 +282,50 @@ function checkRepair(p, row) {
   assert.deepEqual(p.solution.fixes, row.fixes, `${p.id}: the stored fixes`);
   let steps = hintsSolve(p, fresh, 'from fresh');
   refuse(p, fresh, {type: 'all'}, 'That’s all on an empty shelf');
+  // Each fix shrinks to one tile on the board, one way at a time, within the
+  // limits; Keep waits for the last shrink. The witness keeps each, then
+  // That's all.
+  const keptFix = (a, i) => {
+    let b = play(p, a, {type: 'flip', i});
+    const moves = downMoves(flip(q.piece, i), fitWayOf(flip(q.piece, i)));
+    assert.ok(moves.length / 2 <= LIMIT.depth, `${p.id}: flip ${i} shrinks within the limit`);
+    for (const m of moves) { refuse(p, b, {type: 'keep'}, `Keep before flip ${i} reaches one tile`); b = play(p, b, m); }
+    return play(p, b, {type: 'keep'});
+  };
   let a = fresh;
-  for (const i of row.fixes) { a = play(p, a, {type: 'flip', i}); a = play(p, a, {type: 'keep'}); }
+  for (const i of row.fixes) a = keptFix(a, i);
   assert.ok(isSolved(p, play(p, a, {type: 'all'}).board), `${p.id}: the witness solves`);
-  // Each fix shrinks to one tile on the board, one way at a time.
-  for (const i of row.fixes) {
-    let w = flip(q.piece, i), b = play(p, fresh, {type: 'flip', i}), path = '';
-    while (w.length > 1) {
-      // A factor of three tiles or more has an unmarked way to a factor; two
-      // unequal tiles pair to one, and two equal tiles leave the first alone.
-      const s = w.length > 2 ? [0, 1].find(t => !markedOf(w, t) && isFactor(parentOf(w, t))) : w[0] === w[1] ? 1 : 0;
-      b = play(p, b, {type: 'seam', at: path, s});
-      b = play(p, b, {type: 'shrink', at: path, s});
-      w = parentOf(w, s); path += s;
-      assert.ok(path.length <= LIMIT.depth, `${p.id}: flip ${i} shrinks within the limit`);
-    }
-  }
-  // A wrong flip kept, That's all, Undo.
+  // A flip that still gets stuck is never kept, even once the tree shows it.
   const wrong = [...q.piece].map((_, i) => i).find(i => !row.fixes.includes(i));
-  let b = play(p, play(p, play(p, fresh, {type: 'flip', i: wrong}), {type: 'keep'}), {type: 'all'});
-  assert.equal(b.board.told, 'stuck', `${p.id}: a kept flip that still gets stuck`);
-  refuse(p, b, {type: 'all'}, 'That’s all twice');
-  const back = carried(p, b);
-  assert.ok(back.board.refused && !back.board.told, `${p.id}: Undo keeps the refusal`);
-  steps += hintsSolve(p, b, 'after a wrong flip');
-  steps += hintsSolve(p, back, 'after Undo');
-  let c = play(p, play(p, play(p, fresh, {type: 'flip', i: row.fixes[0]}), {type: 'keep'}), {type: 'all'});
+  let b = play(p, fresh, {type: 'flip', i: wrong});
+  const cert = certificate(flip(q.piece, wrong));
+  for (const m of treeMoves(cert)) { refuse(p, b, {type: 'keep'}, 'a flip that gets stuck'); b = play(p, b, m); }
+  assert.ok(stuck(b.board.tree, flip(q.piece, wrong)), `${p.id}: the tree shows the flip stuck`);
+  refuse(p, b, {type: 'keep'}, 'a flip the tree shows stuck');
+  steps += hintsSolve(p, b, 'after a wrong flip shown stuck');
+  // One fix kept: That's all solves, or says there is another, standing
+  // through Undo (its note goes).
+  const c = play(p, keptFix(fresh, row.fixes[0]), {type: 'all'});
   assert.equal(c.board.told, row.fixes.length > 1 ? 'more' : null, `${p.id}: one fix kept`);
   if (row.fixes.length === 1) assert.ok(isSolved(p, c.board));
-  else steps += hintsSolve(p, c, 'after one fix');
+  else {
+    refuse(p, c, {type: 'all'}, 'That’s all twice');
+    const back = carried(p, c);
+    assert.ok(back.board.refused && !back.board.told, `${p.id}: Undo keeps the refusal`);
+    steps += hintsSolve(p, c, 'after one fix');
+    steps += hintsSolve(p, back, 'after Undo');
+  }
+  // A save from before Keep waited for one tile may hold a flip that gets
+  // stuck: That's all says so, and the hints take it back.
+  const old = {...fresh, board: {...fresh.board, shelf: [wrong]}};
+  assert.ok(validBoard(p, old.board), `${p.id}: an old shelf with a stuck flip loads`);
+  const told = play(p, old, {type: 'all'});
+  assert.equal(told.board.told, 'stuck', `${p.id}: a kept flip that still gets stuck`);
+  refuse(p, told, {type: 'all'}, 'That’s all twice');
+  const back = carried(p, told);
+  assert.ok(back.board.refused && !back.board.told, `${p.id}: Undo keeps that refusal too`);
+  steps += hintsSolve(p, told, 'after an old shelf with a stuck flip');
+  steps += hintsSolve(p, back, 'after Undo of it');
   // A flip moves: flipping another tile puts the first back.
   const f = play(p, play(p, fresh, {type: 'flip', i: 0}), {type: 'flip', i: 1});
   assert.equal(f.board.flip, 1, `${p.id}: one flip at a time`);
@@ -288,7 +334,7 @@ function checkRepair(p, row) {
   refuse(p, fresh, {type: 'flip', i: q.piece.length}, 'a tile off the piece');
   refuse(p, fresh, {type: 'flip', i: 0.5}, 'half a tile');
   refuse(p, fresh, {type: 'drop', i: 0}, 'taking back a flip not kept');
-  refuse(p, play(p, play(p, fresh, {type: 'flip', i: 0}), {type: 'keep'}), {type: 'keep'}, 'keeping a flip twice');
+  refuse(p, keptFix(fresh, row.fixes[0]), {type: 'keep'}, 'keeping a flip twice');
   for (const [board, why] of [
     [{...fresh.board, done: true}, 'a forged done'],
     [{...fresh.board, shelf: [wrong, ...row.fixes].sort((x, y) => JSON.stringify(x) < JSON.stringify(y) ? -1 : 1), done: true}, 'done with a wrong flip'],
@@ -462,9 +508,8 @@ function checkHintsWait(p) {
       assert.notEqual(first.action.type, 'keep', `${p.id}: no Keep before the way is shrunk`);
       // Unless the seams mark a pair (shown at once), the hint shrinks them.
       if (!markedOf(q.pieces[i], s)) assert.ok(first.action.type === 'shrink' && first.action.piece === i && first.action.at === '' && first.action.s === s, `${p.id}: seams placed on piece ${i + 1} are shrunk first`);
-      const kept = play(p, a, {type: 'keep', piece: i}), h = nextHint(p, kept);
-      if (markedOf(q.pieces[i], s)) continue;
-      assert.notEqual(h.action.type, 'drop', `${p.id}: a kept way is not judged before it is shrunk`);
+      // Nor can the child keep it before the rows reach one tile.
+      refuse(p, a, {type: 'keep', piece: i}, `Keep of seams on piece ${i + 1} before they are shrunk`);
     }
   }
 }
@@ -536,17 +581,19 @@ export async function validateShrink() {
     checkHintsWait(p);
     if (q.mode === 'seams') {
       hintSteps += checkSeams(p, row);
-      // Random shelves: one subset of the six ways in 64 is right.
-      shares[p.id] = `random shelf 1/${2 ** (q.pieces.length * 2)}`;
+      shares[p.id] = 'Keep only once the rows reach one tile';
     } else if (q.mode === 'repair') {
       hintSteps += checkRepair(p, row);
-      shares[p.id] = `random shelf 1/${2 ** q.piece.length}`;
+      shares[p.id] = 'Keep only once the rows reach one tile';
     } else {
       const r = checkImpostor(p, row, random);
       hintSteps += r.steps;
       // One choice of tiles per try: random play can do no better than the
       // share of stuck runs, up to sampling noise (400 tries).
       assert.ok(r.randomShare <= r.stuckShare + 0.08 && r.randomShare < 0.4, `${p.id}: random play solves no more often than a random run is stuck (${r.randomShare})`);
+      // Past puzzle 2 (every run of 6 tiles of AB repeated is stuck), the
+      // choice of tiles matters: some runs of the full budget fit.
+      if (p.id !== 'shrink-02') assert.ok(r.fullBudget < 1, `${p.id}: some run of ${q.k} tiles fits (${r.fullBudget})`);
       shares[p.id] = `random play ${(r.randomShare * 100).toFixed(1)}% (stuck runs ${(r.stuckShare * 100).toFixed(1)}% of choices); ${q.k} tiles anywhere ${(r.fullBudget * 100).toFixed(0)}%; ${q.k} tiles slid from the left stick on try ${r.slide}`;
     }
   }
