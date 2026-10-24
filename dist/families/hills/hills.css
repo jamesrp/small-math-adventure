@@ -35,4 +35,9 @@
 .hills-board .hills-cant[aria-pressed="true"]{border-color:var(--b-bad,#a9503a);box-shadow:inset 0 0 0 1.5px var(--b-bad,#a9503a)}
 .hills-note{color:var(--b-bad,#a9503a);font-weight:600}
 .hills-board .hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:2px}
-@media (max-width:420px){.hills-board{--hills-w:30px;--hills-c:26px}.hills-land{padding:.55rem .45rem .5rem .3rem}.hills-land.hills-wide{--hills-w:24px}.hills-gap{width:4px}.hills-axis{margin-right:5px}}
+/* On a phone the towers share the board's width (44 px each at most) and a
+   level is 40 px tall up to five levels; taller towers get shorter levels
+   so the land stays on one screen. */
+@media (max-width:420px){.hills-board{--hills-c:40px;container-type:inline-size}.hills-land,.hills-land.hills-wide{--hills-w:clamp(22px,calc((100cqw - 40px - (var(--cols,5) - 1) * 4px) / var(--cols,5)),44px);padding:.55rem .45rem .5rem .3rem}.hills-land.hills-l6{--hills-c:34px}.hills-land.hills-l7{--hills-c:30px}.hills-gap{width:4px}.hills-axis{margin-right:5px}}
+/* A tablet held upright has room for bigger blocks. */
+@media (min-width:700px) and (min-height:1000px){.hills-board{--hills-w:48px;--hills-c:44px}.hills-land.hills-wide{--hills-w:44px}}

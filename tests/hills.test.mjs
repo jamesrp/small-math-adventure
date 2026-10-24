@@ -181,3 +181,13 @@ test('the satchel shows Gentle hills with its playground and twelve puzzles', as
   assert.match(section, /data-id="hills-playground"/);
   for (let i = 1; i <= 12; i++) assert.match(section, new RegExp(`data-id="hills-${String(i).padStart(2, '0')}"`));
 });
+
+test('the land tells the phone layout how many columns and levels it has', () => {
+  // The CSS shares the board's width among the columns (a ring's copy of its
+  // first tower counts) and gives up to five levels 40 px each on a phone.
+  for (const [id, cols, levels] of [['hills-01', 5, 5], ['hills-05', 7, 5], ['hills-08', 6, 4], ['hills-12', 9, 6]]) {
+    const p = byId(id), out = html(p, freshAttempt(p));
+    assert.match(out, new RegExp(`--cols:${cols}"`), `${id}: ${cols} columns`);
+    assert.match(out, new RegExp(`hills-l${levels}"`), `${id}: ${levels} levels`);
+  }
+});

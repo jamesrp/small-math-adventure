@@ -12,6 +12,8 @@
 
 /* The board. */
 [data-mechanic-wire="stairs"] .sg-board.st-board{max-width:380px;max-height:56vh;margin:.1rem auto;touch-action:none}
+/* A tablet held upright has room for a bigger board, so its blocks reach 40 px or more. */
+@media (min-width:700px) and (min-height:1000px){[data-mechanic-wire="stairs"] .st-table{max-width:760px}[data-mechanic-wire="stairs"] .sg-board.st-board{max-width:720px}}
 [data-mechanic-wire="stairs"] .sg-board.st-board:focus{outline:none}
 [data-mechanic-wire="stairs"] .sg-board.st-board:focus-visible{outline:2px dashed var(--st-ochre);outline-offset:3px}
 [data-mechanic-wire="stairs"] .st-board .sg-cell{fill:#fbf8ec;stroke:#dfe3cf}
@@ -43,6 +45,8 @@
 /* The corners one straight piece can reach: a soft pine pip, an ochre ring when hinted. */
 [data-mechanic-wire="stairs"] .st-go{cursor:pointer;outline:none}
 [data-mechanic-wire="stairs"] .st-go.st-hidden{display:none}
+/* A dot takes taps on its whole block-wide square, as the board routes them. */
+[data-mechanic-wire="stairs"] .st-cell{fill:transparent}
 [data-mechanic-wire="stairs"] .st-reach{fill:transparent}
 [data-mechanic-wire="stairs"] .st-pip{fill:var(--b-pine,#31533e);fill-opacity:.5}
 [data-mechanic-wire="stairs"] .st-go:hover .st-reach{fill:rgba(49,83,62,.12)}

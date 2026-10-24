@@ -327,11 +327,14 @@ const ui = p => { if (!uiState.has(p.id)) uiState.set(p.id, {pick: null, at: nul
 const pickOf = (p, a, st) => { const s = ui(p); return s.at === a.moves && s.pick !== null && st.phase === 'move' && st.now[shapeOf(st.m).index[s.pick]] > 0 ? s.pick : null; };
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 const f = n => Number(n.toFixed(2));
-export const STACK = {space: 5.9, first: NODE_R + 3.6, counter: 2.6, ring: 3.15};
+// `hit` is the width of the clear band over a pile, in board units: about 46
+// pixels on a 375-pixel phone, and narrower than the closest two places on
+// any map (16.8 units on the six-bin line), so neighbouring piles never meet.
+export const STACK = {space: 5.9, first: NODE_R + 3.6, counter: 2.6, ring: 3.15, hit: 15};
 const {space: SPACE, first: FIRST, counter: COUNTER, ring: RING} = STACK;
 const dirOf = (m, id) => { const deg = m.out?.[id] ?? 90, r = deg * Math.PI / 180; return [Math.cos(r), -Math.sin(r)]; };
 // One place's pile and rings, stacked away from its dot, with a wide clear
-// stroke so a tap anywhere along the stack is a tap on the place. A map has
+// band (STACK.hit) so a tap anywhere along the stack is a tap on the place. A map has
 // room for `slots` counters a place (4 unless it says); taller piles squeeze.
 function column(g, m, id, counters, rings, opts = {}) {
   const room = m.slots || 4, [x, y] = g.pos[id], [dx, dy] = dirOf(m, id), n = Math.max(counters, rings, room), gap = n > room ? SPACE * Math.max(room - 1, 1) / (n - 1) : SPACE;
@@ -339,8 +342,13 @@ function column(g, m, id, counters, rings, opts = {}) {
   let art = '';
   for (let k = 0; k < rings; k++) { const [cx, cy] = at(k); art += `<circle class="pl-ring${k < counters ? ' full' : ''}" cx="${f(cx)}" cy="${f(cy)}" r="${RING}"/>`; }
   for (let k = 0; k < counters; k++) { const [cx, cy] = at(k, opts.picked && k === counters - 1 ? 1.8 : 0); art += `<circle class="pl-counter${k >= rings ? ' extra' : ''}" cx="${f(cx)}" cy="${f(cy)}" r="${COUNTER}"/>`; }
-  const [ax, ay] = at(-0.6), [bx, by] = at(room - 0.6);
-  const hit = opts.act ? `<line class="pl-hit" x1="${f(ax)}" y1="${f(ay)}" x2="${f(bx)}" y2="${f(by)}"/>` : '';
+  // The band runs from inside the dot's reach to just past the top slot (at
+  // least three slots, so a short two-slot line still gives a tall band),
+  // and stops inside the board.
+  const edge = Math.min(dx > 0 ? (101.7 - x) / dx : dx < 0 ? (x + 1.7) / -dx : Infinity, dy > 0 ? (g.height + 1.7 - y) / dy : dy < 0 ? (y + 1.7) / -dy : Infinity);
+  const end = Math.min(FIRST + (Math.max(room, 3) - 0.6) * SPACE, edge), start = FIRST - 0.6 * SPACE;
+  const [ax, ay] = [x + dx * start, y + dy * start], [bx, by] = [x + dx * end, y + dy * end];
+  const hit = opts.act ? `<line class="pl-hit" x1="${f(ax)}" y1="${f(ay)}" x2="${f(bx)}" y2="${f(by)}" stroke-width="${STACK.hit}"/>` : '';
   return `<g class="pl-col${opts.picked ? ' picked' : ''}"${opts.act ? ` data-gb-node="${esc(id)}"` : ''} aria-hidden="true">${hit}${art}</g>`;
 }
 // After a solve, what a road carried: its count in a small card beside the

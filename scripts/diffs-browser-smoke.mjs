@@ -2,8 +2,9 @@
 // cells and floors (at their edges too, where cells meet), the live gaps on
 // the arrows, Enter on a focused cell, a solve; Can't with marks, refused and
 // then accepted, with focus kept off Can't; That's all with There is another;
-// a run with a ring taken back from the row; the three-tower loop; and no
-// page overflow. Same environment variables as the other browser suites
+// a run with a ring taken back from the row; the three-tower loop; no page
+// overflow; and, on a phone, the size of the child's blocks and floors, of
+// the towers to mark and of the letters. Same environment variables as the other browser suites
 // (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1 for a phone
 // with touch). Screenshots go in test-results/diffs/.
 import assert from 'node:assert/strict';
@@ -34,6 +35,18 @@ async function build(ring) {
   }
 }
 const gapsShown = () => page.locator('.df-edit .df-gap').allInnerTexts();
+// On a phone: the child's blocks and floors are 40 px wide, and 40 px tall up
+// to a cap of 2 (at least 24 px above it); the letters under the towers are
+// 13 px or more.
+async function phoneSizes(label, tall) {
+  if (!phone) return;
+  const z = await page.evaluate(() => ({
+    buttons: [...document.querySelectorAll('.df-edit button.df-cell, .df-edit button.df-floor')].map(el => { const r = el.getBoundingClientRect(); return [r.width, r.height]; }),
+    text: [...document.querySelectorAll('.df-foot i')].map(el => parseFloat(getComputedStyle(el).fontSize))
+  }));
+  for (const [w, h] of z.buttons) assert.ok(w >= 40 && h >= tall, `${label}: a block or floor is ${Math.round(w)}×${Math.round(h)} px`);
+  assert.ok(Math.min(...z.text) >= 12.9, `${label}: letters 13 px or more`);
+}
 const focusKey = () => page.evaluate(() => document.activeElement?.dataset?.focus || document.activeElement?.className || '');
 try {
   await mkdir(out, {recursive: true});
@@ -43,6 +56,7 @@ try {
 
   // Make: live gaps, edge taps, Enter on a focused cell, a solve.
   await open('diffs-05'); await fit('diffs-05');
+  await phoneSizes('cap 4', 24);
   await build([1, 4, 2]);
   assert.deepEqual((await gapsShown()).slice(0, 2), ['3', '2'], 'gaps from A to B and B to C');
   assert.equal((await gapsShown())[2], '', 'no gap until D is built');
@@ -63,6 +77,7 @@ try {
   await build([0, 1, 0, 1]);
   await tapAt(page.locator('.df-cant'));
   assert.equal(await page.locator('.df-pick').count(), 4, 'the towers on the right can be marked');
+  if (phone) for (const b of await page.locator('.df-pick').evaluateAll(els => els.map(el => el.getBoundingClientRect().width))) assert.ok(b >= 40, `a tower to mark is ${Math.round(b)} px wide`);
   await tapAt(page.locator('.df-pick.s0'));
   await tapAt(page.locator('.df-cant'));
   await page.locator('.df-note.bad').waitFor();
@@ -84,6 +99,7 @@ try {
 
   // Every: There is another, then That's all with every ring.
   await open('diffs-07');
+  await phoneSizes('cap 2', 40);
   await build([0, 0, 1, 1]);
   await tapAt(page.locator('.df-all'));
   assert.equal(await page.locator('.df-note.bad').innerText(), 'There is another.');

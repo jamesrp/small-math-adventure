@@ -380,7 +380,7 @@ export function boardSvg(q, opts = {}) {
     ? `<circle class="st-back-hint" cx="${f(sx(q, opts.hinted.go[0]))}" cy="${f(sy(q, opts.hinted.go[1]))}" r="${f(3.6 * s)}"/>` : '';
   const dots = opts.live ? reach(q, walk).map(([d, c]) => {
     const hinted = opts.hinted?.go && opts.hinted.go[0] === c[0] && opts.hinted.go[1] === c[1];
-    return `<g class="st-go${hinted ? ' hinted' : ''}" transform="translate(${pt(q, c)})" role="button" tabindex="0" aria-label="${esc(goText(d, c).slice(0, -1))}" data-go="${c.join()}" data-focus="st-go-${c.join('-')}"><circle class="st-reach" r="${f(Math.min(4.6, 3.4 * s))}"/><circle class="st-pip" r="${f(1.15 * s)}"/></g>`;
+    return `<g class="st-go${hinted ? ' hinted' : ''}" transform="translate(${pt(q, c)})" role="button" tabindex="0" aria-label="${esc(goText(d, c).slice(0, -1))}" data-go="${c.join()}" data-focus="st-go-${c.join('-')}"><rect class="st-cell" x="${-UNIT / 2}" y="${-UNIT / 2}" width="${UNIT}" height="${UNIT}"/><circle class="st-reach" r="${f(Math.min(4.6, 3.4 * s))}"/><circle class="st-pip" r="${f(1.15 * s)}"/></g>`;
   }).join('') : '';
   const columns = opts.claim ? Array.from({length: q.a}, (_, c) => {
     const on = windows.includes(c);
@@ -446,7 +446,9 @@ function worldAt(svg, q, clientX, clientY) {
   const r = point.matrixTransform(m.inverse());
   return [r.x / UNIT, q.b - r.y / UNIT];
 }
-const nearest = (q, w) => w && Math.hypot(w[0] - Math.round(w[0]), w[1] - Math.round(w[1])) <= .5 ? [Math.round(w[0]), Math.round(w[1])] : null;
+// The corner whose block-wide square holds the point (so a tap anywhere
+// goes to its nearest corner, as each dot's square on the board shows).
+const nearest = (q, w) => w && Math.max(Math.abs(w[0] - Math.round(w[0])), Math.abs(w[1] - Math.round(w[1]))) <= .5 ? [Math.round(w[0]), Math.round(w[1])] : null;
 // A drag follows the finger one block at a time: back along the trail when
 // the finger is over it, otherwise a step towards the finger, the longer
 // way first.

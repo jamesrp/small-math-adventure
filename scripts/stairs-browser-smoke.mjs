@@ -1,6 +1,7 @@
 // Plays Staircases, a group in Memory robot, through the real interface: the
 // group under Memory robot's levels in the satchel; taps on the dots (touch
-// taps with TEST_PHONE=1), a tap between two dots going to the nearer, a tap
+// taps with TEST_PHONE=1), a tap between two dots going to the nearer, a
+// tap near the corner of a dot's square going to the dot, a tap
 // on a corner of the trail taking the walk back, a tap away from every dot
 // doing nothing; a drag from the robot and back over the trail; Fewest off
 // until the flag; a staircase with too many turns, whose windows are always
@@ -117,6 +118,13 @@ try {
   let [x, y] = await at(1, 0);
   await tapAt([x + .38 * u, y]); // between the dots at 1 and 2 across, nearer 1
   await eventually(async () => assert.equal(await walk(P1), 'E', 'a tap goes to the nearest corner'));
+  // A dot takes taps on its whole square, out to the square's corners.
+  await page.locator('[data-action="undo"]').click();
+  await eventually(async () => assert.equal(await walk(P1), '', 'Undo'));
+  [x, y] = await at(1, 0);
+  await tapAt([x + .42 * u, y - .42 * u]);
+  await eventually(async () => assert.equal(await walk(P1), 'E', 'a tap near the corner of a dot’s square goes to the dot'));
+  if (phone) assert.ok(Math.min(...Object.values(await page.locator('.st-go').first().boundingBox()).slice(2)) >= 40, 'puzzle 1’s dots are 40 px squares on a phone');
   await tapCorner(P1, 0, 1); // in the strip, but no dot: a staircase never goes left
   await page.waitForTimeout(300);
   assert.equal(await walk(P1), 'E', 'a tap away from every dot does nothing');

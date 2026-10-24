@@ -330,7 +330,7 @@ function ringHtml(r, s) {
     return `<span class="df-arrow a${i}${claimed}" aria-hidden="true"><b class="df-gap${g[i] === null ? ' unset' : ''}">${g[i] ?? ''}</b><i>${(n === 4 ? ARROWS4 : ARROWS3)[i]}</i></span>`;
   });
   const gapWords = s.gaps && complete(r) ? ` Gaps ${g.join(', ')}.` : '';
-  return `<div class="df-ring n${n}${s.edit ? ' df-edit' : ''}${s.cls ? ` ${s.cls}` : ''}" style="--cap:${s.cap}" role="group" aria-label="${esc(`${s.label}: ${r.map((v, i) => `${LETTERS[i]} ${heightWords(v)}`).join(', ')}.${gapWords}`)}">${r.map((_, i) => station(r, i, s)).join('')}${s.gaps ? arrows.join('') : ''}</div>`;
+  return `<div class="df-ring n${n} df-cap${s.cap}${s.edit ? ' df-edit' : ''}${s.cls ? ` ${s.cls}` : ''}" style="--cap:${s.cap}" role="group" aria-label="${esc(`${s.label}: ${r.map((v, i) => `${LETTERS[i]} ${heightWords(v)}`).join(', ')}.${gapWords}`)}">${r.map((_, i) => station(r, i, s)).join('')}${s.gaps ? arrows.join('') : ''}</div>`;
 }
 // A small ring of numbers, for the run and the rings found.
 const miniHtml = (r, cls = '') => `<span class="df-mini n${r.length}${cls}" aria-hidden="true">${r.map((v, i) => `<i class="m${i}">${v}</i>`).join('')}</span>`;

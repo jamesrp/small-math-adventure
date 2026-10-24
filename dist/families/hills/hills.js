@@ -261,7 +261,7 @@ function landHtml(q, s) {
   const parts = [axis];
   for (let i = 0; i < q.sites; i++) { parts.push(col(i)); if (i < q.sites - 1) parts.push(gap(i, i + 1)); }
   if (q.ring) parts.push(gap(q.sites - 1, 0), col(0, true));
-  return `<div class="hills-land${q.ring ? ' ring' : ''}${s.solved ? ' solved' : ''}${q.sites > 7 ? ' hills-wide' : ''}" style="--levels:${q.top + 1}">${parts.join('')}</div>`;
+  return `<div class="hills-land${q.ring ? ' ring' : ''}${s.solved ? ' solved' : ''}${q.sites > 7 ? ' hills-wide' : ''} hills-l${q.top + 1}" style="--levels:${q.top + 1};--cols:${q.sites + (q.ring ? 1 : 0)}">${parts.join('')}</div>`;
 }
 // A found landscape, drawn small.
 function thumbHtml(q, f) {

@@ -1,5 +1,6 @@
 // Plays Moving piles through the real interface on the shared graph board:
-// picking a pile and moving by taps and by keyboard, where a picked pile can
+// picking a pile and moving by taps and by keyboard, a tap beside a pile's
+// stack (its band 40 pixels or more on a phone), where a picked pile can
 // go, a slide that carries a counter several roads (a mouse drag, or a touch
 // drag with TEST_PHONE=1), red move dots with "Fewer moves would do." and Undo, the marks after a solve,
 // placing a design and "Fewer moves would do.", the cards with both refused
@@ -55,6 +56,15 @@ async function slide(...ids) {
   await page.waitForTimeout(150); await touch('touchEnd', points.at(-1));
 }
 const count = selector => page.locator(selector).count();
+// A pile's tap band in page pixels: its two ends, its width, and how much of
+// it shows beyond the dot's own reach (the band starts 5.66 board units out,
+// inside the reach of 7.8).
+const band = id => page.evaluate(id => {
+  const l = document.querySelector(`.pl-col[data-gb-node="${id}"] .pl-hit`), m = l.getScreenCTM(), at = (x, y) => [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f];
+  const a = at(+l.getAttribute('x1'), +l.getAttribute('y1')), b = at(+l.getAttribute('x2'), +l.getAttribute('y2'));
+  return {a, b, w: +l.getAttribute('stroke-width') * m.a, clear: Math.hypot(b[0] - a[0], b[1] - a[1]) - (7.8 - 5.66) * m.a};
+}, id);
+const tapAt = (x, y) => phone ? page.touchscreen.tap(x, y) : page.mouse.click(x, y);
 try {
   await mkdir(out, {recursive: true});
   await page.goto(base); await page.locator('#nickname').fill('Piles QA'); await page.locator('#profile-form button[type=submit]').click();
@@ -71,6 +81,16 @@ try {
   assert.equal(await count('.gb-node.can-go'), 1, 'one place it can go');
   await tap(place('0'));
   assert.equal(await count('.gb-node.picked'), 0, 'a second tap lets go');
+  // A tap near the side of a pile's band, well above its dot, is a tap on
+  // the place too; on a phone the band is 40 pixels or more both ways.
+  await page.locator('.pl-map').scrollIntoViewIfNeeded();
+  const b0 = await band('0');
+  if (phone) assert.ok(Math.min(b0.w, b0.clear) >= 40, `pile band ${Math.round(b0.w)}×${Math.round(b0.clear)} px on a phone`);
+  const side = [b0.a[0] + .36 * b0.w, b0.b[1] + .15 * (b0.a[1] - b0.b[1])];
+  await tapAt(...side);
+  assert.equal(await page.locator('.gb-node.picked').getAttribute('data-node'), '0', 'a tap beside the pile picks it');
+  await tapAt(...side);
+  assert.equal(await count('.gb-node.picked'), 0, 'and lets it go');
   await shot('first');
   await go('0', '1');
   assert.deepEqual((await board(A)).log, [['0', '1']], 'two taps move one counter');

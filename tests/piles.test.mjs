@@ -8,7 +8,7 @@ import {readFile} from 'node:fs/promises';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undoPress} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
 import {playView} from '../dist/ui.js';
-import {leastWork, pilesFrom, replay, traffic, planSteps, designStarts, farthest, roadOf} from '../dist/families/piles/piles.js';
+import {leastWork, pilesFrom, replay, traffic, planSteps, designStarts, farthest, roadOf, STACK} from '../dist/families/piles/piles.js';
 import {loadPack} from '../scripts/packs.mjs';
 
 const pack = JSON.parse(await readFile(new URL('../dist/families/piles/piles.json', import.meta.url), 'utf8'));
@@ -193,6 +193,28 @@ test('every puzzle renders with its board and the hints solve it', () => {
     assert.ok(isSolved(p, a.board), `${p.id}: hints solve it`);
     assert.equal(p.familyTitle, 'Moving piles');
   }
+});
+
+test('each pile has a wide tap band that stays on the board and clear of its neighbours', () => {
+  // Distance between two segments that do not cross: the least distance from
+  // an end of one to the other.
+  const toSeg = ([px, py], [ax, ay, bx, by]) => { const vx = bx - ax, vy = by - ay, t = Math.max(0, Math.min(1, ((px - ax) * vx + (py - ay) * vy) / (vx * vx + vy * vy))); return Math.hypot(px - ax - t * vx, py - ay - t * vy); };
+  const apart = (s, t) => Math.min(toSeg(s.slice(0, 2), t), toSeg(s.slice(2), t), toSeg(t.slice(0, 2), s), toSeg(t.slice(2), s));
+  let seen = 0;
+  for (const p of pack.puzzles) {
+    const html = view(p, freshAttempt(p)), box = html.match(/class="gb-board[^"]*" viewBox="([^"]+)"/)[1].split(' ').map(Number);
+    const bands = [...html.matchAll(/<line class="pl-hit" x1="([-\d.]+)" y1="([-\d.]+)" x2="([-\d.]+)" y2="([-\d.]+)" stroke-width="([\d.]+)"\/>/g)].map(m => m.slice(1).map(Number));
+    if (p.parameters.mode !== 'cards') assert.equal(bands.length, Object.keys(p.parameters.map?.nodes || p.parameters.maps.line.nodes).length, `${p.id}: a band for every place`);
+    for (const [x1, y1, x2, y2, w] of bands) {
+      seen++;
+      assert.equal(w, STACK.hit, `${p.id}: band width`);
+      assert.ok(Math.hypot(x2 - x1, y2 - y1) >= 15, `${p.id}: band at least 15 units long`);
+      for (const [x, y] of [[x1, y1], [x2, y2]]) assert.ok(x >= box[0] && x <= box[0] + box[2] && y >= box[1] && y <= box[1] + box[3], `${p.id}: band inside the board`);
+    }
+    for (let i = 0; i < bands.length; i++) for (let j = i + 1; j < bands.length; j++) assert.ok(apart(bands[i], bands[j]) > STACK.hit + 1, `${p.id}: bands ${i} and ${j} do not meet`);
+  }
+  assert.ok(seen >= 40, 'bands checked');
+  assert.ok(STACK.hit >= 15, 'about 45 pixels on a 375-pixel phone');
 });
 
 test('hints answer quickly', () => {
