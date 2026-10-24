@@ -25,7 +25,7 @@
 [data-mechanic-wire="shrink"] .sk-line{display:grid;grid-template-columns:repeat(var(--c),minmax(0,var(--sk-cell)));gap:2px;justify-content:center;width:100%}
 [data-mechanic-wire="shrink"] .sk-line.endless{grid-template-columns:repeat(var(--c),minmax(0,var(--sk-cell))) 12px}
 [data-mechanic-wire="shrink"] .sk-strip .sk-tile{width:100%;height:44px;font-size:1.1rem}
-[data-mechanic-wire="shrink"] .sk-more{display:grid;place-items:center;font:400 1.3rem/1 var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850)}
+[data-mechanic-wire="shrink"] .sk-more{display:grid;place-items:center;min-width:0;overflow:hidden;font:700 .8rem/1 var(--b-display,Georgia,serif);color:var(--b-muted,#5a6850)}
 [data-mechanic-wire="shrink"] .sk-strip .sk-tile.sel{box-shadow:0 5px 0 -1px var(--b-pine,#31533e)}
 [data-mechanic-wire="shrink"] .sk-strip .sk-tile.sliding{box-shadow:0 5px 0 -1px var(--b-ochre,#b38840)}
 [data-mechanic-wire="shrink"] .sk-strip .sk-tile.caught{box-shadow:0 5px 0 -1px var(--sk-bad)}
@@ -37,8 +37,10 @@
 [data-mechanic-wire="shrink"] .sk-tree{display:flex;flex-direction:column;align-items:center;width:100%}
 [data-mechanic-wire="shrink"] .sk-node{display:flex;flex-direction:column;align-items:center;width:100%;min-width:0}
 /* On a phone the strip, the piece and the rows reach to 2 px from the
-   panel's edges (wire sets --sk-bleed from the panel's padding). */
-@media (max-width:560px){[data-mechanic-wire="shrink"] .sk-strip,[data-mechanic-wire="shrink"] .sk-tree{width:calc(100% + 2 * var(--sk-bleed,0px));margin-inline:calc(-1 * var(--sk-bleed,0px))}}
+   panel's edges (wire sets --sk-bleed from the panel's padding, again on
+   each resize), and never past 4 px from the window's edges, whatever the
+   bleed was measured at. */
+@media (max-width:560px){[data-mechanic-wire="shrink"] .sk-strip,[data-mechanic-wire="shrink"] .sk-tree{--sk-reach:min(var(--sk-bleed,0px),max(0px,(100vw - 100%) / 2 - 4px));width:calc(100% + 2 * var(--sk-reach));margin-inline:calc(-1 * var(--sk-reach))}}
 [data-mechanic-wire="shrink"] .sk-row{position:relative;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));width:min(100%,calc(var(--n) * var(--sk-slot)));height:var(--sk-row);margin:0 auto}
 [data-mechanic-wire="shrink"] .sk-slot{display:grid;place-items:center;min-width:0}
 [data-mechanic-wire="shrink"] .sk-row .sk-tile{width:calc(100% - 5px);max-width:calc(var(--sk-slot) - 6px);height:var(--sk-tile)}

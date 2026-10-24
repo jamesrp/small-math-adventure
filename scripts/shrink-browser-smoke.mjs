@@ -342,6 +342,22 @@ try {
   }
   if (sized.length) await page.setViewportSize({width: 375, height: 667});
 
+  // Drawn on a wide screen and then narrowed to 320 px without a redraw (as
+  // the review-layout suite does), puzzle 10 still fits: the bleed into the
+  // panel's padding is measured again on resize, and the … fits its column.
+  const back = page.viewportSize();
+  await page.setViewportSize({width: 1280, height: 720});
+  await open('shrink-10'); await restartIfPlayed();
+  await page.setViewportSize({width: 320, height: 844}); await settle();
+  await fit('puzzle 10 narrowed to 320 px');
+  await page.setViewportSize({width: 1280, height: 720});
+  await playMove({type: 'select', a: 0, b: 14});
+  for (const m of deepest('ABBABAABABBABAA')) await playMove(m);
+  await page.setViewportSize({width: 320, height: 844}); await settle();
+  await fit('puzzle 10\'s deepest tree narrowed to 320 px');
+  await shot('narrowed-320');
+  await page.setViewportSize(back);
+
   // A hint marks its tap, never a certificate's next tap without being asked.
   P = 'shrink-07';
   await open(P);

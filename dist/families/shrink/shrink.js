@@ -650,13 +650,22 @@ function renderPlayground(p, a) {
 // A slide along the strip chooses the tiles between where it starts and ends.
 // The browser's own click for the slide is swallowed here, so a slide is not
 // also a tap.
-function wire(root, p, api) {
-  const q = p.parameters;
-  // On a phone the strip and the rows reach to 2 px from the panel's edges
-  // (CSS reads --sk-bleed), so their tiles and joins are as wide as the
-  // screen allows.
+// On a phone the strip and the rows reach to 2 px from the panel's edges
+// (CSS reads --sk-bleed), so their tiles and joins are as wide as the screen
+// allows. The panel's padding changes with the window's width, so the bleed is
+// measured again whenever the window changes size.
+function setBleed(root) {
   const panel = root.closest('.board-panel');
   if (panel) root.style.setProperty('--sk-bleed', `${Math.max(0, (parseFloat(getComputedStyle(panel).paddingLeft) || 0) - 2)}px`);
+}
+let resizing = false;
+function wire(root, p, api) {
+  const q = p.parameters;
+  setBleed(root);
+  if (!resizing) {
+    window.addEventListener('resize', () => document.querySelectorAll('[data-mechanic-wire="shrink"]').forEach(setBleed));
+    resizing = true;
+  }
   if (q.mode !== 'impostor') return;
   const strip = root.querySelector('.sk-strip.live');
   if (!strip) return;
