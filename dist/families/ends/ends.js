@@ -211,6 +211,20 @@ export function impossible(q) {
 const canCant = b => b.shown === 'pieces' && b.blocks.length > 0;
 const mapFor = (p, b) => p.parameters.mode === 'playground' ? p.parameters.maps[b.map] : p.parameters.map;
 const capOf = p => p.parameters.mode === 'playground' ? PLAY_CAP : p.parameters.budget;
+// With every slot used, an open dot does nothing when tapped (class "off"):
+// the slots pulse instead of a refused move. It keeps the keyboard's focus,
+// which walks over open dots to the blocks.
+const full = (p, b) => b.blocks.length >= capOf(p);
+// On a phone a flat map shows its `narrow` view (fewer columns), so dots are
+// about 46 px apart instead of 36. Only the drawing uses it.
+const narrow = () => typeof matchMedia === 'function' && matchMedia('(max-width: 560px)').matches;
+const fitted = new WeakMap();
+export function onScreen(m) {
+  if (m.kind !== 'flat' || !m.narrow || !narrow()) return m;
+  if (!fitted.has(m)) fitted.set(m, {...m, view: {...m.view, ...m.narrow}});
+  return fitted.get(m);
+}
+const shownMap = (p, b) => onScreen(mapFor(p, b));
 function fresh(p) {
   const q = p.parameters;
   return q.mode === 'playground' ? {map: Object.keys(q.maps)[0], blocks: [], shown: null} : {blocks: [], shown: null};
@@ -415,10 +429,14 @@ const mapKey = (p, b) => p.parameters.mode === 'playground' ? b.map : 'map';
 // on the one drawn last.
 function viewOf(p, b) {
   if (!uiState.has(p.id)) uiState.set(p.id, {maps: {}, current: null});
-  const all = uiState.get(p.id), k = mapKey(p, b), m = mapFor(p, b);
+  const all = uiState.get(p.id), k = mapKey(p, b), m = shownMap(p, b);
   if (!all.maps[k]) all.maps[k] = {map: m, view: startView(m), cursor: startDot(m)};
+  const now = all.maps[k];
+  // Turning a phone changes the view's size: a view still at the start moves
+  // to the new start.
+  if (now.map !== m) { if (!away(now.map, now.view)) now.view = startView(m); now.map = m; }
   all.current = k;
-  return all.maps[k];
+  return now;
 }
 const finite = (...n) => n.every(Number.isFinite);
 const validView = (m, v) => object(v) && (m.kind === 'tree' ? treeIsDot(v.focus) && object(v.frame) && Array.isArray(v.frame.a) && Array.isArray(v.frame.b) && finite(...v.frame.a, ...v.frame.b) : finite(v.cx, v.cy) && (v.z === undefined || (finite(v.z) && v.z >= 1 && v.z <= 8)));
@@ -520,7 +538,7 @@ function paint(p, b, view, extra) {
 const rect = r => ({x: [r.x[0], r.x[1]], y: [r.y[0], r.y[1]]});
 
 function flatInner(p, b, view, ctx) {
-  const m = mapFor(p, b), R = drawn(m, view), blocked = new Set(b.blocks);
+  const m = shownMap(p, b), R = drawn(m, view), blocked = new Set(b.blocks);
   const dots = [];
   for (let y = R.y[0]; y <= R.y[1]; y++) for (let x = R.x[0]; x <= R.x[1]; x++) if (flatHas(m, x, y)) dots.push(keyOf(x, y));
   const look = paint(p, b, view, rect(R));
@@ -554,7 +572,7 @@ function flatInner(p, b, view, ctx) {
   const hinted = ctx.hintDot, cursor = ctx.cursor;
   const nodes = dots.map(d => {
     const [x, y] = xyOf(d), isBlocked = blocked.has(d), vis = seen(m, view, d);
-    const cls = ['ends-dot', isBlocked ? 'blocked' : '', look.colour.has(d) ? `ends-on ends-c${look.colour.get(d)}` : '', look.trapped.has(d) ? 'trap' : '', d === hinted ? 'hinted' : '', d === cursor && ctx.active ? 'cursor' : ''].filter(Boolean).join(' ');
+    const cls = ['ends-dot', isBlocked ? 'blocked' : '', look.colour.has(d) ? `ends-on ends-c${look.colour.get(d)}` : '', look.trapped.has(d) ? 'trap' : '', d === hinted ? 'hinted' : '', d === cursor && ctx.active ? 'cursor' : '', ctx.full && !isBlocked ? 'off' : ''].filter(Boolean).join(' ');
     const label = `${dotLabel(m, d)}${isBlocked ? ', blocked' : ''}${look.labels.has(d) ? `, ${look.labels.get(d)}` : ''}`;
     const role = vis && ctx.active ? `role="button" tabindex="${d === cursor ? 0 : -1}" aria-label="${esc(label)}"${d === cursor ? ' data-focus="ends-cursor"' : ''}` : 'aria-hidden="true"';
     const mark = isBlocked ? `<circle class="ends-stone" r="0.3"/><circle class="ends-stone-ring" r="0.19"/>` : `<circle class="ends-pip" r="0.16"/>`;
@@ -563,7 +581,7 @@ function flatInner(p, b, view, ctx) {
   return `${under}${roads}${over}${nodes}`;
 }
 function flatSvg(p, b, view, ctx) {
-  const m = mapFor(p, b), s = shown(m, view);
+  const m = shownMap(p, b), s = shown(m, view);
   const [w, h] = sizeOf(m, view);
   return `<svg class="ends-board ends-flat" viewBox="${f(s.x[0])} ${f(s.y[0])} ${f(w)} ${f(h)}" role="group" aria-label="${esc(m.name)}, going on forever. Drag to look around." data-ends-board>${flatInner(p, b, view, ctx)}</svg>`;
 }
@@ -587,7 +605,7 @@ function treeInner(p, b, view, ctx) {
     if (k < 0.03 && !isBlocked) return '';
     const x = f(100 * z[0]), y = f(100 * z[1]);
     if (control) targets.push({d, x: 100 * z[0], y: 100 * z[1], r: 16 * k});
-    const cls = ['ends-dot', isBlocked ? 'blocked' : '', look.colour.has(d) ? `ends-on ends-c${look.colour.get(d)}` : '', look.trapped.has(d) ? 'trap' : '', d === ctx.hintDot ? 'hinted' : '', d === ctx.cursor && control ? 'cursor' : ''].filter(Boolean).join(' ');
+    const cls = ['ends-dot', isBlocked ? 'blocked' : '', look.colour.has(d) ? `ends-on ends-c${look.colour.get(d)}` : '', look.trapped.has(d) ? 'trap' : '', d === ctx.hintDot ? 'hinted' : '', d === ctx.cursor && control ? 'cursor' : '', ctx.full && !isBlocked ? 'off' : ''].filter(Boolean).join(' ');
     const label = `${dotLabel(m, d)}${isBlocked ? ', blocked' : ''}${look.labels.has(d) ? `, ${look.labels.get(d)}` : ''}`;
     const role = control ? `role="button" tabindex="${d === ctx.cursor ? 0 : -1}" aria-label="${esc(label)}"${d === ctx.cursor ? ' data-focus="ends-cursor"' : ''}` : 'aria-hidden="true"';
     const mark = isBlocked ? `<circle class="ends-stone" r="${f(11 * k)}"/><circle class="ends-stone-ring" r="${f(7 * k)}"/>` : `<circle class="ends-pip" r="${f(7.5 * k)}"/>`;
@@ -619,7 +637,7 @@ function mapIcon(m) {
 
 const button = (label, action, cls, enabled, hinted, extra = '') => `<button type="button" class="secondary ends-button ${cls}${hinted ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" data-focus="ends-${action.type}" ${enabled ? '' : 'disabled'} ${extra}>${label}</button>`;
 function render(p, a, ctx = {}) {
-  const q = p.parameters, b = a.board, m = mapFor(p, b), done = solved(p, b), play = q.mode === 'playground';
+  const q = p.parameters, b = a.board, m = shownMap(p, b), done = solved(p, b), play = q.mode === 'playground';
   const state = viewOf(p, b), h = !play && a.hintLevel >= 2 && !done ? hint(p, b) : null, act = h?.action;
   const hintDot = act && (act.type === 'block' || act.type === 'unblock') ? act.dot : null;
   // Keep the keyboard's dot and a marked dot in sight; show a certificate whole,
@@ -635,7 +653,7 @@ function render(p, a, ctx = {}) {
     if (hintDot && !diskVisible(state.view, hintDot)) state.view = centreOn(state.view, hintDot);
     if (!diskVisible(state.view, state.cursor)) state.cursor = settle(state.view).focus;
   }
-  const view = {active: !done, cursor: state.cursor, hintDot};
+  const view = {active: !done, cursor: state.cursor, hintDot, full: full(p, b)};
   const board = m.kind === 'tree' ? treeSvg(p, b, state.view, view) : flatSvg(p, b, state.view, view);
   const used = b.blocks.length, cap = capOf(p);
   const slots = play ? '' : `<span class="ends-slots" role="img" aria-label="${used} of ${cap} ${cap === 1 ? 'block' : 'blocks'} used">${Array.from({length: cap}, (_, k) => `<i class="${k < used ? 'ends-used' : ''}"></i>`).join('')}</span>`;
@@ -723,9 +741,22 @@ function lift(e) {
   if (d.moved) { d.api.ui({view: d.view}); return; }
   if (e.type === 'pointercancel') return;
   const dot = dotAt(d.p, d.api.attempt().board, d.svg, e);
-  if (!dot) return;
-  viewOf(d.p, d.api.attempt().board).cursor = dot;
-  d.api.apply(toggle(d.api.attempt().board, dot));
+  if (dot) press(d.p, d.api, d.svg, dot);
+}
+// A tap or Enter on a dot: block or unblock it, or, with the slots full and
+// the dot open, pulse the slots and change nothing.
+function press(p, api, svg, d) {
+  const b = api.attempt().board, act = toggle(b, d);
+  if (act.type === 'block' && full(p, b)) { pulse(svg); return; }
+  viewOf(p, b).cursor = d;
+  api.apply(act);
+}
+function pulse(svg) {
+  const slots = svg.closest('[data-mechanic-wire]')?.querySelector('.ends-slots');
+  if (!slots) return;
+  slots.classList.remove('ends-pulse');
+  void slots.getBoundingClientRect();
+  slots.classList.add('ends-pulse');
 }
 const ARROWS = {ArrowRight: [1, 0], ArrowLeft: [-1, 0], ArrowDown: [0, 1], ArrowUp: [0, -1]};
 // Arrow keys move the keyboard's dot along a road, panning to keep it in sight.
@@ -747,13 +778,17 @@ export function arrowTarget(m, view, cursor, key) {
   }
   return best;
 }
+// Turning a phone past 560 px redraws the map at its other size.
+let redrawOnTurn = null, turnQuery = null;
 function wire(root, p, api) {
   const svg = root.querySelector('[data-ends-board]');
   if (!svg) return;
   if (!listening) { document.addEventListener('pointermove', pan); document.addEventListener('pointerup', lift); document.addEventListener('pointercancel', lift); listening = true; }
+  redrawOnTurn = () => { if (root.isConnected) api.ui({}); };
+  if (!turnQuery && typeof matchMedia === 'function') { turnQuery = matchMedia('(max-width: 560px)'); turnQuery.addEventListener?.('change', () => redrawOnTurn?.()); }
   svg.addEventListener('pointerdown', e => {
     if (e.button > 0 || drag) return;
-    const b = api.attempt().board, m = mapFor(p, b), state = viewOf(p, b);
+    const b = api.attempt().board, m = shownMap(p, b), state = viewOf(p, b);
     lastPress = Date.now();
     drag = {pointer: e.pointerId, x: e.clientX, y: e.clientY, moved: false, svg, p, b, m, api, start: state.view, view: state.view, drawnAt: state.view, frame: 0};
   });
@@ -761,17 +796,16 @@ function wire(root, p, api) {
   svg.addEventListener('click', e => {
     if (Date.now() - lastPress < 1000) return;
     const d = e.target.closest('[data-dot]')?.dataset.dot, b = api.attempt().board;
-    if (d && e.target.closest('[role="button"]') && !solved(p, b)) { viewOf(p, b).cursor = d; api.apply(toggle(b, d)); }
+    if (d && e.target.closest('[role="button"]') && !solved(p, b)) press(p, api, svg, d);
   });
   svg.addEventListener('keydown', e => {
-    const b = api.attempt().board, state = viewOf(p, b), m = mapFor(p, b);
+    const b = api.attempt().board, state = viewOf(p, b), m = shownMap(p, b);
     if (solved(p, b)) return;
     if (e.key === 'Enter' || e.key === ' ') {
       const d = e.target.closest('[data-dot]')?.dataset.dot;
       if (!d) return;
       e.preventDefault();
-      state.cursor = d;
-      api.apply(toggle(b, d));
+      press(p, api, svg, d);
       return;
     }
     if (!ARROWS[e.key] || e.altKey || e.ctrlKey || e.metaKey) return;

@@ -9,7 +9,7 @@
 // Run: node scripts/build-octagon.mjs
 import {writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import {reduce, dotKey, TURN, TURNS, FENCE_CAP, fenceOk, goalMet, inside, lefts, rights, mapOf, EDGE, SQ_EDGE, atHome, halfwayState, evenDots, legalWalk, spent} from '../dist/families/octagon/octagon.js';
+import {reduce, dotKey, TURN, TURNS, FENCE_CAP, fenceOk, goalMet, inside, lefts, rights, mapOf, EDGE, SQ_EDGE, atHome, halfwayState, evenDots, legalWalk, spent, tried} from '../dist/families/octagon/octagon.js';
 
 // --- Search ------------------------------------------------------------------
 // The fewest roads from a dot back home is at least its hyperbolic distance
@@ -100,7 +100,7 @@ const byWalk = (a, b) => a.length - b.length || (() => { for (let i = 0; i < a.l
 const BASE = 'A move turns at a dot (left, straight on or right) and then walks one road to the next dot; the robot never turns round. Home facing the same way means back on the yellow ring, pointing like the faint arrow.';
 const FENCE = 'A fence is a walk that comes home facing the same way and never uses a dot twice; the rooms it goes round are fenced in.';
 const GESTURES = 'Tap ↰, ↑ or ↱, or a road ahead of the robot. Drag a floor to look round it.';
-const CANT = {dot: 'After a try, if no walk can do it, press Can’t and tap the dot that shows why.', dots: 'After a try, if no walk can do it, press Can’t and tap the dots that show why.', fence: 'After a try, if no fence can do it, press Can’t.'};
+const CANT = {dot: 'After a try, if no walk can do it, press Can’t and tap the dot that shows why.', dots: 'After a try, if no walk can do it, press Can’t and tap the dots that show why, on the floor or in the move boxes.', fence: 'After a try, if no fence can do it, press Can’t.', budget: 'Once the left turns are used up, if no fence can do it, press Can’t.'};
 const RULES = {
   move: 'Each move turns left, goes straight on or turns right at a dot, then walks one road. The robot never turns round.',
   floors: 'On the octagon floor every room has eight corners, all right angles, and four rooms meet at every dot. The floor slides so the robot stays in the middle; rooms near the rim are drawn smaller but are all the same size.',
@@ -108,7 +108,8 @@ const RULES = {
   fence: 'A fence comes home facing the same way and never uses a dot twice. The flowers must be inside it.',
   noRight: 'No right turns.',
   lefts: n => `At most ${n} left turns: each one uses a ↰.`,
-  cant: 'Can’t works once a try is finished. After a wrong tap or “There is a way.”, it waits for a different finished try.'
+  cant: 'Can’t works once a try is finished. After a wrong tap or “There is a way.”, it waits for a different finished try.',
+  budgetCant: 'Can’t works once a try has used up the left turns. After “There is a way.”, it waits for a different try.'
 };
 const PREREQ = {
   home: 'Tell left from right and count moves to fourteen. Keeping track of which way the robot faces on a curved road takes practice; a grown-up can trace the first moves with a finger.',
@@ -140,7 +141,7 @@ const PUZZLES = [
   {number: 5, level: 'medium', title: 'Seven moves home', q: {mode: 'home', moves: 7}, floors: ['sq', 'oct'], expect: {sq: 0, oct: 0}, attempt: {sq: 'LLSLLSL', oct: 'LLLLLLL'},
     idea: 'No odd walk comes home, on either floor: colour the dots light and dark so every road joins two colours.',
     hints: ['Try seven moves on each floor.', 'Colour home light, its neighbours dark, their neighbours light. What colour is the robot on after seven moves?', 'After seven moves, press Can’t and tap every dot your walk reached after an even number of moves, other than home.'],
-    parent: {notice: 'Whether your child notices that this one fails on both floors, unlike four and six.', prompt: 'If every road joins a light dot to a dark one, what colour is the robot on after one move? After two? After seven?', explanation: 'Colour the dots so every road joins a light dot to a dark one; both floors can be coloured like a chessboard. Home is light, and every move walks one road, so the colour changes at every move. After seven moves the robot is on a dark dot, never home. After Can’t the child taps the dots of the walk that share home’s colour, the ones it reached after two, four and six moves (other than home), and the app then draws the whole colouring. Those dots show the colours alternating along the walk, which puts the seventh dot on the other colour.', extension: 'Does the colouring also rule out 13 moves? (Yes: Puzzle 10.)', connection: 'Both floors are bipartite graphs, because every room has an even number of sides.'},
+    parent: {notice: 'Whether your child notices that this one fails on both floors, unlike four and six.', prompt: 'If every road joins a light dot to a dark one, what colour is the robot on after one move? After two? After seven?', explanation: 'Colour the dots so every road joins a light dot to a dark one; both floors can be coloured like a chessboard. Home is light, and every move walks one road, so the colour changes at every move. After seven moves the robot is on a dark dot, never home. After Can’t the child taps the dots of the walk that share home’s colour, the ones it reached after two, four and six moves (other than home), on the floor or by the move boxes after those moves, and the app then draws the whole colouring. Those dots show the colours alternating along the walk, which puts the seventh dot on the other colour.', extension: 'Does the colouring also rule out 13 moves? (Yes: Puzzle 10.)', connection: 'Both floors are bipartite graphs, because every room has an even number of sides.'},
     provenance: 'New, from the review card’s can’t “any odd length (two-colour the corners)”.'},
   {number: 6, level: 'medium', title: 'Corner flowers', q: {mode: 'fence', flowers: ['T', 'THT'], maxLeft: null, maxRight: 0}, floors: ['oct'], expect: {oct: 17},
     idea: 'Two rooms that meet only at a corner can’t be fenced alone; with no right turns the fence takes all four rooms at that dot.',
@@ -155,7 +156,7 @@ const PUZZLES = [
   {number: 8, level: 'medium', title: 'Eleven left turns', q: {mode: 'fence', flowers: ['T', ''], maxLeft: 11, maxRight: 0}, floors: ['sq', 'oct'], expect: {sq: 455, oct: 0}, attempt: {oct: 'SLLLLLLSLLLLL'},
     idea: 'Two octagons need 12 left turns at least; two squares need only 4.',
     hints: ['Fence the flowers on each floor and watch the left turns.', 'Two octagons have 16 corners, and the fence goes straight at both ends of the wall they share.', 'Squares: straight, left, left, straight, left, left. Octagons: use up the left turns and press Can’t.'],
-    parent: {notice: 'Whether your child uses Puzzle 3’s count to predict that the octagons will run out of left turns.', prompt: 'Where are the corners the fence doesn’t turn at?', explanation: 'On squares every rectangle round the flowers takes 4 lefts, well inside the budget (455 fences). On octagons no fence has 11 or fewer: the tightest one, round just the two flowers, turns left at 16 − 4 = 12 corners, losing the 4 at the ends of the shared wall. With no right turns, a fence round more rooms has more lefts still (4 + 4n round n rooms). That is a fact about every fence at once, not about one walk, so Can’t is pressed alone, and the app draws the tightest fence and its 12 corners. The app checks every walk of up to 30 moves with at most 11 lefts.', extension: 'How many left turns does a fence round three octagons in a row need? (16.)', connection: 'Gauss–Bonnet: left minus right turns is 4 + 4n round n octagons and 4 round any number of squares.'},
+    parent: {notice: 'Whether your child uses Puzzle 3’s count to predict that the octagons will run out of left turns.', prompt: 'Where are the corners the fence doesn’t turn at?', explanation: 'On squares every rectangle round the flowers takes 4 lefts, well inside the budget (455 fences). On octagons no fence has 11 or fewer: the tightest one, round just the two flowers, turns left at 16 − 4 = 12 corners, losing the 4 at the ends of the shared wall. With no right turns, a fence round more rooms has more lefts still (4 + 4n round n rooms). That is a fact about every fence at once, not about one walk, so Can’t is pressed alone, once a try has used up the 11 left turns (a fence round one flower, or a stuck walk, leaves turns over and doesn’t open it), and the app draws the tightest fence and its 12 corners. The app checks every walk of up to 30 moves with at most 11 lefts.', extension: 'How many left turns does a fence round three octagons in a row need? (16.)', connection: 'Gauss–Bonnet: left minus right turns is 4 + 4n round n octagons and 4 round any number of squares.'},
     provenance: 'The review card’s can’t “two rooms with fewer than 12 left turns”, on Week 65 Problem 3’s two rooms.'},
   {number: 9, level: 'hard', title: 'Corner flowers again', q: {mode: 'fence', flowers: ['T', 'THT'], maxLeft: 19, maxRight: null}, floors: ['oct'], expect: {oct: 2},
     idea: 'With a right turn allowed, three rooms round the corner dot are enough: 17 lefts and 1 right.',
@@ -165,7 +166,7 @@ const PUZZLES = [
   {number: 10, level: 'hard', title: 'Thirteen moves home', q: {mode: 'home', moves: 13}, floors: ['oct'], expect: {oct: 0}, attempt: {oct: 'LLLLLLLLLLLLL'},
     idea: 'Thirteen is one short of fourteen, and no odd walk comes home.',
     hints: ['Fourteen moves worked in Puzzle 7. Try thirteen.', 'Colour the dots light and dark so every road joins two colours. What colour is the robot on after thirteen moves?', 'After thirteen moves, press Can’t and tap every dot your walk reached after an even number of moves, other than home.'],
-    parent: {notice: 'Whether your child reaches for Puzzle 5’s colouring rather than trying many walks.', prompt: 'Is there any odd number of moves that works?', explanation: 'Every move changes the colour of the robot’s dot, so after thirteen moves it is on a dark dot and home is light. None of the 1,594,323 walks of thirteen moves comes home. After Can’t the child taps the walk’s dots of home’s colour (those reached after an even number of moves, other than home), and the app draws the colouring.', extension: 'On the octagon floor, which even numbers of moves can come home? (8 and every even number from 14 on; not 2, 4, 6, 10 or 12.)', connection: 'The floor is bipartite because every room has eight sides, an even number.'},
+    parent: {notice: 'Whether your child reaches for Puzzle 5’s colouring rather than trying many walks.', prompt: 'Is there any odd number of moves that works?', explanation: 'Every move changes the colour of the robot’s dot, so after thirteen moves it is on a dark dot and home is light. None of the 1,594,323 walks of thirteen moves comes home. After Can’t the child taps the walk’s dots of home’s colour (those reached after an even number of moves, other than home), on the floor or by the move boxes after those moves, and the app draws the colouring.', extension: 'On the octagon floor, which even numbers of moves can come home? (8 and every even number from 14 on; not 2, 4, 6, 10 or 12.)', connection: 'The floor is bipartite because every room has eight sides, an even number.'},
     provenance: 'The review card’s can’t “any odd length”, at 13, beside Puzzle 7’s 14.'}
 ];
 
@@ -186,12 +187,12 @@ function visibleOf(item) {
   return `Fence in the flowers${q.maxRight === 0 ? ' with no right turns' : ''}.`;
 }
 function controlsOf(item) {
-  const q = item.q, cant = q.mode === 'fence' ? CANT.fence : q.moves % 2 ? CANT.dots : CANT.dot;
+  const q = item.q, cant = q.mode === 'fence' ? (Number.isInteger(q.maxLeft) ? CANT.budget : CANT.fence) : q.moves % 2 ? CANT.dots : CANT.dot;
   return [BASE, q.mode === 'fence' ? FENCE : '', GESTURES, cant].filter(Boolean).join(' ');
 }
 function rulesOf(item) {
   const q = item.q;
-  return [RULES.move, RULES.floors, q.mode === 'home' ? RULES.home(q.moves) : RULES.fence, q.maxRight === 0 ? RULES.noRight : '', Number.isInteger(q.maxLeft) ? RULES.lefts(q.maxLeft) : '', RULES.cant].filter(Boolean);
+  return [RULES.move, RULES.floors, q.mode === 'home' ? RULES.home(q.moves) : RULES.fence, q.maxRight === 0 ? RULES.noRight : '', Number.isInteger(q.maxLeft) ? RULES.lefts(q.maxLeft) : '', Number.isInteger(q.maxLeft) ? RULES.budgetCant : RULES.cant].filter(Boolean);
 }
 const t0 = Date.now();
 const out = PUZZLES.map(item => {
@@ -221,14 +222,14 @@ const out = PUZZLES.map(item => {
     }
     const attempt = solutions.length ? '' : item.attempt[kind];
     if (!solutions.length) {
-      assert.ok(legalWalk(kind, q, attempt) && spent(kind, q, attempt), `${id(item.number)} ${kind}: the hints’ attempt is a finished try`);
+      assert.ok(legalWalk(kind, q, attempt) && spent(kind, q, attempt) && tried(kind, q, attempt), `${id(item.number)} ${kind}: the hints’ attempt is a finished try that opens Can’t`);
       if (q.mode === 'home' && q.moves % 2 === 0) assert.ok(halfwayState(kind, attempt) !== undefined);
       if (q.mode === 'home' && q.moves % 2) assert.ok(evenDots(kind, attempt).length > 0, `${id(item.number)} ${kind}: the try has dots of home’s colour to tap`);
     }
     floors.push({kind, solutions, attempt});
     solution.floors.push(solutions.length
       ? {kind, count: solutions.length, example: solutions[0], words: spell(solutions[0])}
-      : {kind, count: 0, cant: q.mode === 'fence' ? 'pressed alone; the tightest fence and its 12 corners are drawn' : q.moves % 2 ? 'the walk’s dots of home’s colour, then the colouring' : `the dot after ${q.moves / 2} moves`});
+      : {kind, count: 0, cant: q.mode === 'fence' ? 'pressed alone once the left turns are used up; the tightest fence and its 12 corners are drawn' : q.moves % 2 ? 'the walk’s dots of home’s colour, on the floor or by the move boxes, then the colouring' : `the dot after ${q.moves / 2} moves`});
     // No odd walk comes home (every road joins a light dot to a dark one), so
     // an odd goal never has an answer, and its taps are never “There is a way”.
     if (q.mode === 'home' && q.moves % 2) assert.equal(solutions.length, 0, `${id(item.number)} ${kind}: no odd walk comes home`);

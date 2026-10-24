@@ -287,6 +287,49 @@ test('panning is view state: the board moves, the home button appears and goes b
   assert.match(view(t, freshAttempt(t), true), /data-dot="abc"[^>]*tabindex/, 'a view on a dot that is not on the tree is ignored');
 });
 
+test('with every slot used, open dots are off (a tap pulses the slots); blocked dots still come off', () => {
+  const p = byId('ends-02');
+  let html = view(p, play(p, freshAttempt(p), ...block('0,0')));
+  assert.doesNotMatch(html, /class="ends-dot[^"]* off"/, 'a slot left: every dot can be tapped');
+  const a = play(p, freshAttempt(p), ...block('0,0', '3,0'));
+  html = view(p, a);
+  assert.match(html, /class="ends-dot[^"]* off" data-dot="0,1"[^>]*role="button" tabindex/, 'an open dot is off, and keeps the keyboard');
+  assert.match(html, /class="ends-dot blocked[^"]*" data-dot="0,0"/, 'a blocked dot is not off');
+  assert.doesNotMatch(html, /class="[^"]* off" data-dot="(0,0|3,0)"/);
+  assert.equal(move(p, a, {type: 'block', dot: '0,1'}), null, 'the budget still holds in the rules');
+  const t = byId('ends-05');
+  html = view(t, play(t, freshAttempt(t), ...block('o', 'ab', 'ba')));
+  assert.match(html, /class="ends-dot[^"]* off" data-dot="ca"/, 'on the tree too');
+  assert.doesNotMatch(html, /class="[^"]* off" data-dot="ab"/);
+});
+
+test('on a phone the line, ladder and strip show 7 columns and the T 6, so dots are about 46 px apart', () => {
+  const was = globalThis.matchMedia;
+  const widthOf = html => Number(html.match(/ends-flat" viewBox="[-\d.]+ [-\d.]+ ([\d.]+) ([\d.]+)"/)[1]);
+  const wide = Object.fromEntries(['ends-01', 'ends-02', 'ends-09', 'ends-08', 'ends-03'].map(id => [id, widthOf(view(byId(id), freshAttempt(byId(id))))]));
+  assert.deepEqual(wide, {'ends-01': 9, 'ends-02': 9, 'ends-09': 9, 'ends-08': 8, 'ends-03': 7});
+  try {
+    globalThis.matchMedia = query => ({matches: query === '(max-width: 560px)', addEventListener() {}});
+    const phone = Object.fromEntries(Object.keys(wide).map(id => [id, widthOf(view(byId(id), freshAttempt(byId(id))))]));
+    assert.deepEqual(phone, {'ends-01': 7, 'ends-02': 7, 'ends-09': 7, 'ends-08': 6, 'ends-03': 7}, 'the grid already shows 7');
+    // A 326 px board (a 390 px phone): 46.6 px between dots, and between the ladder's rails.
+    assert.ok(326 / phone['ends-02'] >= 46 && 326 / phone['ends-08'] >= 46);
+    const ladder = view(byId('ends-02'), freshAttempt(byId('ends-02')));
+    for (const d of ['-3,0', '3,1', '0,0']) assert.match(ladder, new RegExp(`data-dot="${d}"[^>]*role="button"`), `${d} is in view`);
+    assert.doesNotMatch(ladder, /data-dot="4,0"[^>]*role="button"/, 'the eighth column waits for a drag');
+    const tee = view(byId('ends-08'), freshAttempt(byId('ends-08')));
+    assert.match(tee, /ends-flat" viewBox="-2.5 -1.2 6 6.6"/, 'the T: the junction in the middle, room above for the button back');
+    for (const d of ['-2,0', '3,1', '0,5', '1,5']) assert.match(tee, new RegExp(`data-dot="${d}"[^>]*role="button"`), `${d} is in view`);
+    // A certificate still fits whole on a phone.
+    const g = byId('ends-06');
+    const cert = view(g, play(g, freshAttempt(g), ...block('-3,0', '3,1'), {type: 'check'}, {type: 'cant'}));
+    const [, x, , w] = cert.match(/ends-flat" viewBox="([-\d.]+) ([-\d.]+) ([\d.]+) ([\d.]+)"/).map(Number);
+    assert.ok(x <= -4.5 && x + w >= 4.5, `the box and a column each side are in view (${x} ${w})`);
+  } finally {
+    globalThis.matchMedia = was;
+  }
+});
+
 test('the playground: six maps, forty blocks, Check, never solved, no Can’t', () => {
   const p = byId('ends-playground');
   let a = freshAttempt(p);

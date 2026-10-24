@@ -180,6 +180,24 @@ test('fence goals: budgets, and puzzle 8’s bare Can’t with the tight fence a
   a = freshAttempt(p8);
   assert.equal(move(p8, a, {type: 'go', floor: 1, turn: 'R'}), null, 'no right turns');
   assert.equal(move(p8, a, {type: 'claim', floor: 1}), null, 'Can’t needs a finished try');
+  // Under a budget, Can't waits for the left turns to be used up: a fence
+  // round one flower (eight lefts on octagons, four on squares) is a finished
+  // try that leaves turns over, on both floors alike.
+  const one = play(p8, a, ...walkOn(1, 'LLLLLLLL'), ...walkOn(0, 'LLLL'));
+  for (const i of [0, 1]) {
+    assert.ok(spent(p8.parameters.floors[i].kind, p8.parameters, one.board.floors[i].walk), `floor ${i}: a finished try`);
+    assert.equal(move(p8, one, {type: 'claim', floor: i}), null, `floor ${i}: Can’t waits for the left turns to be used up`);
+    assert.match(view(p8, one).split('<svg class="oc-board').slice(1)[i], /class="secondary oc-cant"[^>]*disabled>/, `floor ${i}: Can’t is off`);
+  }
+  // The hints take the closed fence back and use up the left turns.
+  let h = nextHint(p8, play(p8, a, ...walkOn(0, 'SLLSLL'), ...walkOn(1, 'LLLLLLLL')));
+  assert.deepEqual(h.action, {type: 'back', floor: 1});
+  assert.equal(h.text, 'Take back the last move, then use up the left turns.');
+  // On squares a try can use up all eleven, after 23 moves at the least; there
+  // Can't opens and says There is a way.
+  const sq = play(p8, a, ...walkOn(0, 'LLLSLSLSSLSSSSLSSLSLSLL'));
+  assert.equal(lefts(sq.board.floors[0].walk), 11);
+  assert.deepEqual(play(p8, sq, {type: 'claim', floor: 0}).board.floors[0].told, {say: 'way', walk: 'LLLSLSLSSLSSSSLSSLSLSLL'});
   a = play(p8, a, ...walkOn(1, 'SLLLLLLSLLLLL'));
   assert.equal(move(p8, a, {type: 'go', floor: 1, turn: 'L'}), null, 'the eleven left turns are used');
   assert.ok(spent('oct', p8.parameters, a.board.floors[1].walk), 'a finished try');
@@ -198,6 +216,23 @@ test('fence goals: budgets, and puzzle 8’s bare Can’t with the tight fence a
   assert.ok(isSolved(p9, c.board));
 });
 const lefts = w => [...w].filter(x => x === 'L').length;
+
+test('hints use up the left turns from closed and stuck fences, never undoing and redoing a move', () => {
+  const p8 = byNumber(8), q = p8.parameters;
+  for (const start of ['LLLLLLLL', 'LLLLLLLS', 'SLLLLLLL', 'LSLLLLLLSLLLLLL', 'SSSSSSSSSS', 'LLLLLLLSLLLLLLL']) {
+    let a = play(p8, freshAttempt(p8), ...walkOn(0, 'SLLSLL'));
+    for (const x of start) { const n = move(p8, a, {type: 'go', floor: 1, turn: x}); if (n) a = n; }
+    const seen = new Set();
+    for (let k = 0; k < 80 && !isSolved(p8, a.board); k++) {
+      const h = nextHint(p8, a), key = a.board.floors[1].walk;
+      assert.ok(!seen.has(`${key}|${h.action.type}`), `${start}: no walk comes round twice (${key})`);
+      seen.add(`${key}|${h.action.type}`);
+      a = play(p8, a, h.action);
+    }
+    assert.ok(isSolved(p8, a.board), `${start}: solved by hints`);
+    assert.ok(lefts(a.board.floors[1].walk) === q.maxLeft, `${start}: the claim follows a try that used up the left turns`);
+  }
+});
 
 test('hints: quick in CPU time, the reason before Can’t, and they finish every puzzle', () => {
   for (const p of octagon.puzzles.filter(x => x.band !== 'playground')) {
@@ -357,7 +392,7 @@ test('home off the drawing: a marker on the edge, outside every target, points t
   }
 });
 
-test('the second hint level brings the next dot to tap within reach, and a line asks for a drag', () => {
+test('the second hint level brings the next dot to tap within reach, and a line asks for a drag where the floor is the only way', () => {
   const p5 = byNumber(5), p4 = byNumber(4), p2 = byNumber(2);
   let a = play(p5, freshAttempt(p5), ...walkOn(0, 'LLSLLSL'), {type: 'claim', floor: 0, cert: evenDots('sq', 'LLSLLSL')}, ...walkOn(1, 'SSSSSSS'));
   const dots = trace('oct', 'SSSSSSS').dots, [d2, d4, d6] = [dots[2], dots[4], dots[6]];
@@ -365,7 +400,7 @@ test('the second hint level brings the next dot to tap within reach, and a line 
   mech.reset(p5);
   mech.ui(p5, {claim: 1});
   let html = view(p5, a, true);
-  assert.ok(html.includes('<p class="oc-cue">Drag the floor to reach dots near the edge.</p>'), 'dots of the walk are beyond reach');
+  assert.ok(!html.includes('oc-cue') && html.includes('oc-box'), 'dots of the walk are beyond reach, but the move boxes reach them, so no line');
   assert.ok(reach(drawnAt(p5, 1, d6)) && !reach(drawnAt(p5, 1, d4)) && !reach(drawnAt(p5, 1, d2)), 'only the last light dot within reach');
   const hinted = {...a, hintLevel: 2};
   html = view(p5, hinted, true);
@@ -381,6 +416,7 @@ test('the second hint level brings the next dot to tap within reach, and a line 
   a = play(p4, freshAttempt(p4), ...walkOn(0, 'LLSLLS'), ...walkOn(1, 'SSSSSS'));
   mech.reset(p4);
   mech.ui(p4, {claim: 1});
+  assert.ok(view(p4, a, true).includes('<p class="oc-cue">Drag the floor to reach dots near the edge.</p>'), 'the halfway dot is beyond reach');
   view(p4, {...a, hintLevel: 2}, true);
   assert.ok(Math.hypot(...drawnAt(p4, 1, halfwayState('oct', 'SSSSSS'))) < 1e-9, 'the halfway dot slides to the middle');
   // No line when every dot of the walk can be tapped.
@@ -409,6 +445,71 @@ test('after Undo of a right Can’t, the next right Can’t brings its dot to th
   assert.ok(Math.hypot(...drawnAt(p2, 1, half)) > 0.1, 'the view has moved away from the dot');
   a = play(p2, a, {type: 'claim', floor: 1, cert: half});
   assert.equal(ringAt(view(p2, a, true)), '-11 0', 'in the middle again');
+});
+
+test('a narrow panel: a finished floor’s tab is checked, and a button goes to the floor still to do', () => {
+  const p2 = byNumber(2), p1 = byNumber(1);
+  let a = play(p2, freshAttempt(p2), ...walkOn(0, 'LLLL'));
+  let html = view(p2, a);
+  assert.match(html, /class="secondary oc-tab oc-tab-done"[^>]*aria-pressed="true"><span aria-hidden="true">✓ <\/span>Squares<span class="sr-only">, done<\/span><\/button>/, 'the squares tab is checked');
+  assert.match(html, /class="secondary oc-tab"[^>]*>Octagons<\/button>/, 'the octagons tab is not');
+  const floors = html.split('<div class="oc-wrap').slice(1);
+  assert.match(floors[0], /<button type="button" class="primary oc-next" data-action="mechanic-ui" data-ui='\{"tab":1\}' data-focus="oc-board-1">Octagons →<\/button>/, 'where the move buttons were, a button to the octagons');
+  assert.doesNotMatch(floors[1], /oc-next/);
+  mech.ui(p2, {tab: 1});
+  html = view(p2, a, true);
+  assert.match(html, /oc-wrap oct oc-live oc-on/, 'it shows the octagon floor');
+  // A right Can't finishes a floor too; with both done, no button.
+  a = play(p2, a, ...walkOn(1, 'LLLL'), {type: 'claim', floor: 1, cert: halfwayState('oct', 'LLLL')});
+  html = view(p2, a);
+  assert.equal((html.match(/oc-tab-done/g) || []).length, 2);
+  assert.doesNotMatch(html, /oc-next/, 'nothing left to do');
+  // Octagons first: the button goes to the squares.
+  const b = play(p2, freshAttempt(p2), ...walkOn(1, 'LLLL'), {type: 'claim', floor: 1, cert: halfwayState('oct', 'LLLL')});
+  assert.match(view(p2, b).split('<div class="oc-wrap')[2], /data-ui='\{"tab":0\}'[^>]*>Squares →/);
+  // One floor: no tabs and no button.
+  const c = play(p1, freshAttempt(p1), ...walkOn(0, 'LLLLLLLL'));
+  assert.doesNotMatch(view(p1, c), /oc-tabs|oc-next/);
+});
+
+test('odd goals: after Can’t the move boxes are buttons for the walk’s dots, marked with the dots on the floor', () => {
+  const p10 = byNumber(10), walk = 'LLLLLLLLLLLLL';
+  let a = play(p10, freshAttempt(p10), ...walkOn(0, walk));
+  let html = view(p10, a);
+  assert.match(html, /<div class="oc-record" aria-hidden="true">/, 'before Can’t the boxes are a record');
+  assert.doesNotMatch(html, /oc-box/);
+  mech.reset(p10);
+  mech.ui(p10, {claim: 0});
+  html = view(p10, a, true);
+  const boxes = [...html.matchAll(/<button type="button" class="oc-box[^"]*" data-cert="([^"]*)"[^>]*aria-label="After move (\d+)"[^>]*?( disabled)?>/g)];
+  const dots = trace('oct', walk).dots;
+  assert.equal(boxes.length, 13, 'a box for each move');
+  boxes.forEach((m, k) => {
+    assert.equal(m[1], dots[k + 1], `box ${k + 1} is the dot after ${k + 1} moves`);
+    assert.equal(Boolean(m[3]), dots[k + 1] === dots[0], `box ${k + 1} is off only where the walk is home`);
+  });
+  assert.ok(boxes[7][3], 'eight lefts brought the robot home');
+  assert.doesNotMatch(html, /oc-cue/, 'no drag line: the boxes reach every dot');
+  // A box and a dot on the floor make the same mark.
+  mech.ui(p10, {marks: [dots[2]]});
+  html = view(p10, a, true);
+  assert.equal((html.match(/class="oc-box oc-marked"/g) || []).length, 2, 'boxes 2 and 10 are the same dot');
+  assert.match(html, /class="oc-target oc-marked"/, 'and the dot on the floor is marked');
+  // At the second hint level the boxes still to mark are outlined.
+  html = view(p10, {...a, hintLevel: 2}, true);
+  assert.equal((html.match(/class="oc-box hinted"/g) || []).length, 3, 'boxes 4, 6 and 12 (the dot after 4 again)');
+  // Marking the rest by boxes makes the claim.
+  const want = evenDots('oct', walk);
+  a = play(p10, a, {type: 'claim', floor: 0, cert: want});
+  assert.ok(isSolved(p10, a.board));
+  // Even goals keep the record and the drag line.
+  const p4 = byNumber(4);
+  const b = play(p4, freshAttempt(p4), ...walkOn(0, 'LLSLLS'), ...walkOn(1, 'SSSSSS'));
+  mech.reset(p4);
+  mech.ui(p4, {claim: 1});
+  html = view(p4, b, true);
+  assert.doesNotMatch(html, /oc-box/);
+  assert.match(html, /<p class="oc-cue">/);
 });
 
 test('rendering: copy, budgets, record, tabs, focus targets and scoped styles', async () => {

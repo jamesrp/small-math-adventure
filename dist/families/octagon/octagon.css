@@ -11,10 +11,17 @@
 [data-mechanic-wire="octagon"] .oc-tabs{display:none;gap:.4rem}
 [data-mechanic-wire="octagon"] .oc-tab{min-height:40px;padding:6px 14px}
 [data-mechanic-wire="octagon"] .oc-tab[aria-pressed="true"],[data-mechanic-wire="octagon"] .oc-cant[aria-pressed="true"]{background:#e9eddc;border-color:var(--b-pine,#31533e);box-shadow:inset 0 0 0 1.5px var(--b-pine,#31533e);color:var(--b-ink,#294439)}
+/* A finished floor's tab, and the button to the floor still to do (narrow
+   panels only: side by side, both floors are in view). */
+[data-mechanic-wire="octagon"] .oc-tab.oc-tab-done{background:var(--b-pine,#31533e);border-color:var(--b-pine,#31533e);color:#fffced}
+[data-mechanic-wire="octagon"] .oc-tab.oc-tab-done[aria-pressed="true"]{box-shadow:inset 0 0 0 2px #fffced,0 0 0 1.5px var(--b-pine,#31533e)}
+[data-mechanic-wire="octagon"] .oc-controls.oc-next-row{display:none}
+[data-mechanic-wire="octagon"] .oc-next{min-height:48px;padding:6px 20px}
 @container (max-width:600px){
   [data-mechanic-wire="octagon"] .oc-tabs{display:flex}
   [data-mechanic-wire="octagon"].two .oc-floors{grid-template-columns:minmax(0,380px)}
   [data-mechanic-wire="octagon"].two .oc-wrap.oc-off{display:none}
+  [data-mechanic-wire="octagon"].two .oc-controls.oc-next-row{display:flex}
 }
 
 /* The board. */
@@ -57,6 +64,13 @@
 [data-mechanic-wire="octagon"] .oc-record,[data-mechanic-wire="octagon"] .oc-budget{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;max-width:100%}
 [data-mechanic-wire="octagon"] .oc-record i{display:grid;place-items:center;width:18px;height:24px;border:1.5px solid #c6d1c9;border-radius:5px;font-style:normal;font-weight:800;font-size:.95rem;color:var(--b-ink,#294439);background:#fff}
 [data-mechanic-wire="octagon"] .oc-record i.on{border-color:var(--b-leaf,#86a68c);background:#eef5ea}
+/* On an odd goal after Can't, the move boxes are buttons for the walk's dots:
+   seven to a row, 44 px tall, marked ochre like the dots on the floor. */
+[data-mechanic-wire="octagon"] .oc-boxes{display:grid;grid-template-columns:repeat(7,minmax(0,44px));gap:4px;justify-content:center;width:100%;max-width:332px}
+[data-mechanic-wire="octagon"] .oc-box{min-height:44px;min-width:0;padding:0;border:2px solid var(--b-leaf,#86a68c);border-radius:8px;background:#eef5ea;color:var(--b-ink,#294439);font-size:1.15rem;font-weight:800;line-height:1}
+[data-mechanic-wire="octagon"] .oc-box.oc-marked{background:var(--b-ochre,#b38840);border-color:var(--b-ochre,#b38840);color:#fff}
+[data-mechanic-wire="octagon"] .oc-box.hinted{outline-width:3px;outline-offset:-6px}
+[data-mechanic-wire="octagon"] .oc-box:disabled{border-color:#c6d1c9;color:#9aa69e;opacity:1}
 [data-mechanic-wire="octagon"] .oc-budget i{display:grid;place-items:center;width:14px;height:22px;font-style:normal;font-weight:800;font-size:.9rem;color:var(--b-ink,#294439)}
 [data-mechanic-wire="octagon"] .oc-budget i.used{opacity:.22}
 [data-mechanic-wire="octagon"] .oc-controls{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem}

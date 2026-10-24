@@ -178,6 +178,17 @@ try {
   await show(0);
   await moves(0, 'LLLL');
   assert.equal(await told(0).count(), 0);
+  // A finished floor's tab is checked; in a narrow panel a button where the
+  // move buttons were goes to the floor still to do.
+  assert.equal(await page.locator('.oc-tab.oc-tab-done').count(), 1, 'the squares tab is marked done');
+  assert.equal(await page.locator('.oc-tab').nth(0).getAttribute('class'), 'secondary oc-tab oc-tab-done');
+  if (phone) {
+    assert.equal(await floor(0).locator('.oc-next').innerText(), 'Octagons →');
+    await floor(0).locator('.oc-next').click();
+    assert.equal(await floor(1).isVisible(), true, 'it shows the octagon floor');
+    assert.equal(await floor(0).isVisible(), false);
+    await shot('p2-next');
+  } else assert.equal(await page.locator('.oc-next').isVisible(), false, 'side by side, no button');
   await show(1);
   await moves(1, 'LLLS');
   await cant(1).click();
@@ -239,9 +250,17 @@ try {
   assert.equal(await floor(0).locator('.oc-dark').count(), 1, 'the colouring is drawn');
   assert.equal(await floor(0).locator('.oc-ring').count(), 1, 'with the tapped dots ringed');
   await show(1); await moves(1, 'LLLLLLL'); await cant(1).click();
-  list = await targets(1, await lightDots('oct', 'LLLLLLL'));
-  assert.equal(list.filter(t => t.right).length, 3);
-  for (const t of list.filter(u => u.right)) await tapAt(t.x, t.y);
+  // The move boxes are buttons for the walk's dots: boxes 2, 4 and 6.
+  const boxes = floor(1).locator('.oc-box');
+  assert.equal(await boxes.count(), 7, 'a box for each move');
+  assert.equal(await floor(1).locator('.oc-cue').count(), 0, 'no drag line on an odd goal');
+  for (const b of await boxes.evaluateAll(es => es.map(e => e.getBoundingClientRect()))) assert.ok(b.width >= 40 && b.height >= 44, `boxes are big enough to tap (${Math.round(b.width)} × ${Math.round(b.height)})`);
+  await shot('p5-boxes');
+  await boxes.nth(1).click();
+  assert.equal(await floor(1).locator('.oc-box.oc-marked').count(), 1, 'a tapped box is marked');
+  assert.equal(await floor(1).locator('.oc-target.oc-marked').count(), 1, 'and so is its dot on the floor');
+  await boxes.nth(3).click(); await boxes.nth(5).click();
+  assert.deepEqual((await board(P5)).floors[1].cert, await lightDots('oct', 'LLLLLLL'), 'the boxes make the claim');
   await done(); await shot('p5-colouring');
 
   // Puzzle 10: thirteen straight moves leave the light dots beyond reach; at
@@ -250,7 +269,11 @@ try {
   await open(P10);
   await moves(0, 'S'.repeat(13));
   await cant(0).click();
+  assert.equal(await floor(0).locator('.oc-box').count(), 13, 'thirteen boxes');
+  assert.equal(new Set(await floor(0).locator('.oc-box').evaluateAll(es => es.map(e => Math.round(e.getBoundingClientRect().top)))).size, 2, 'in two rows');
+  await fit('puzzle 10 boxes');
   await page.locator('[data-action="hint"]').click(); await page.locator('[data-action="hint"]').click();
+  assert.equal(await floor(0).locator('.oc-box.hinted').count(), 6, 'the second hint level outlines the boxes to tap');
   const light10 = await lightDots('oct', 'S'.repeat(13));
   assert.equal(light10.length, 6);
   for (let k = 0; k < 8 && (await board(P10)).floors[0].cert === null; k++) {
@@ -267,6 +290,10 @@ try {
   await open(P8);
   await show(1);
   assert.equal(await floor(1).getByRole('button', {name: 'Turn right', exact: true}).isDisabled(), true, 'no right turns');
+  await moves(1, 'LLLLLLLL');
+  assert.equal(await cant(1).isDisabled(), true, 'a fence round one flower leaves left turns over: Can’t stays off');
+  await page.locator('[data-action="restart"]').click();
+  await show(1);
   await moves(1, 'SLLLLLLSLLLLL');
   assert.equal(await floor(1).getByRole('button', {name: 'Turn left', exact: true}).isDisabled(), true, 'the left turns are used up');
   assert.ok(await focusIsGood(), 'focus moves off a button that is now disabled to the board');

@@ -204,6 +204,13 @@ export function spent(kind, q, walk) {
   if (q.maxLeft !== null && q.maxLeft !== undefined && lefts(walk) >= q.maxLeft && walk.length) return true;
   return walk.length > 0 && !TURNS.some(m => canGo(kind, q, walk, m));
 }
+// A try Can't may follow: a finished one, and under a left-turn budget one
+// that has used every left turn (the ↰ chips are gone). A fence round one
+// flower, or one that is stuck, leaves turns over and says nothing about the
+// budget, so it doesn't open Can't; on both floors alike, so this tells
+// nothing about which floor has a fence.
+const budgeted = q => q.mode === 'fence' && Number.isInteger(q.maxLeft);
+export const tried = (kind, q, walk) => budgeted(q) ? walk.length > 0 && lefts(walk) >= q.maxLeft : spent(kind, q, walk);
 
 // --- Drawing geometry (floating point, for the picture only) -----------------
 // Octagons: Möbius maps of the unit disk, z → (a z + b) / (b̄ z + ā), stored as
@@ -386,8 +393,8 @@ function solved(p, b) {
   if (playing(q) || !valid(p, b)) return false;
   return b.floors.every((f, i) => settled(q.floors[i].kind, q, f));
 }
-// Can't opens on a finished try with no refusal standing.
-export const canClaim = (kind, q, f) => !settled(kind, q, f) && f.told === null && spent(kind, q, f.walk);
+// Can't opens on a try (see tried) with no refusal standing.
+export const canClaim = (kind, q, f) => !settled(kind, q, f) && f.told === null && tried(kind, q, f.walk);
 function move(p, b, action) {
   const q = p.parameters;
   if (!valid(p, b) || solved(p, b) || !object(action)) return null;
@@ -459,6 +466,23 @@ function nextTry(kind, q, spec, w, avoid) {
   if (avoid && avoid.startsWith(w)) moves = [...moves.filter(m => m !== avoid[w.length]), ...moves.filter(m => m === avoid[w.length])];
   return moves[0];
 }
+// Under a left-turn budget Can't waits for the left turns to be used up: the
+// authored try while the walk is on it, else the first move of a walk that
+// turns left whenever that doesn't close it, if that walk uses them up. When
+// it doesn't, the hint takes a move back; the walk it would have made from
+// there runs through the walk just taken back only if it also fails, so the
+// hints never undo and redo the same move.
+function spendTry(kind, q, spec, w) {
+  if (spec.attempt.startsWith(w) && spec.attempt.length > w.length) return spec.attempt[w.length];
+  let x = w, first;
+  while (lefts(x) < q.maxLeft) {
+    const m = TURNS.find(t => canGo(kind, q, x, t) && !fenceEnded(kind, x + t));
+    if (!m) return undefined;
+    first ??= m;
+    x += m;
+  }
+  return first;
+}
 // A wrong walk is never a 'deadend' hint: the app shows a dead end's text
 // unasked, and on a floor with an answer that would say which floors have one.
 // The hints take moves back instead.
@@ -472,6 +496,10 @@ function floorHint(p, b, i) {
     const next = spec.solutions.find(s => s.length > w.length && s.startsWith(w));
     if (next) return go(next[w.length]);
     return back(q.mode === 'home' ? 'This walk can’t come home in time. Take back the last move.' : 'This fence can’t work. Take back the last move.');
+  }
+  if (budgeted(q) && !tried(kind, q, w)) {
+    const m = spendTry(kind, q, spec, w);
+    return m ? go(m) : back('Take back the last move, then use up the left turns.');
   }
   if (!spent(kind, q, w)) {
     const m = nextTry(kind, q, spec, w, f.told ? f.told.walk : null);
@@ -828,7 +856,17 @@ function floorPanel(p, a, i, h, live) {
   const label = `${kind === 'oct' ? 'Octagon' : 'Square'} floor${walk.length ? `. Moves: ${turnWords(walk)}` : ''}${atHome(kind, walk) && walk.length ? '. Home, facing the same way' : ''}${claiming ? `. Tap the ${tapKind(q) === 'dot' ? 'dot' : 'dots'}` : ''}`;
   const svg = `<svg class="oc-board ${kind}" viewBox="-104 -104 208 208" tabindex="0" role="group" data-floor="${i}" data-focus="oc-board-${i}" aria-label="${esc(label)}">${floorInner(p, a, i, view, {claiming, hint: hh})}</svg>`;
   let record = '';
-  if (q.mode === 'home') record = `<div class="oc-record" aria-hidden="true">${Array.from({length: q.moves}, (_, k) => `<i class="${k < walk.length ? 'on' : ''}">${k < walk.length ? GLYPH[walk[k]] : ''}</i>`).join('')}</div>`;
+  // On an odd goal, while Can't waits for taps, each move box is a button for
+  // the dot the walk reached after that move: the same marks as the dots on
+  // the floor, without hunting for dots near the rim. A box whose dot is
+  // home is off, as home is on the floor.
+  if (claiming && tapKind(q) === 'dots') {
+    const marks = new Set(s.marks), want = new Set(hm && hm.type === 'claim' && Array.isArray(hm.cert) ? hm.cert : []);
+    record = `<div class="oc-record oc-boxes" role="group" aria-label="Moves">${[...walk].map((m, k) => {
+      const d = T.dots[k + 1], on = marks.has(d);
+      return `<button type="button" class="oc-box${on ? ' oc-marked' : ''}${want.has(d) && !on ? ' hinted' : ''}" data-cert="${d}" data-focus="oc-box-${i}-${k}" aria-label="After move ${k + 1}" aria-pressed="${on}"${d === T.dots[0] ? ' disabled' : ''}>${GLYPH[m]}</button>`;
+    }).join('')}</div>`;
+  } else if (q.mode === 'home') record = `<div class="oc-record" aria-hidden="true">${Array.from({length: q.moves}, (_, k) => `<i class="${k < walk.length ? 'on' : ''}">${k < walk.length ? GLYPH[walk[k]] : ''}</i>`).join('')}</div>`;
   if (q.mode === 'fence' && Number.isInteger(q.maxLeft)) record = `<div class="oc-budget" role="img" aria-label="Left turns allowed: ${q.maxLeft}. Used: ${lefts(walk)}.">${Array.from({length: q.maxLeft}, (_, k) => `<i class="${k < lefts(walk) ? 'used' : ''}">↰</i>`).join('')}</div>`;
   let controls = '';
   if (!done) {
@@ -841,12 +879,22 @@ function floorPanel(p, a, i, h, live) {
         ? `<button type="button" class="secondary oc-cant${marked ? ' hinted' : ''}" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'claim', floor: i}))}" data-focus="oc-board-${i}" ${can ? '' : 'disabled'}>Can’t</button>`
         : `<button type="button" class="secondary oc-cant${marked ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({claim: claiming ? null : i})}' data-focus="oc-board-${i}" aria-pressed="${claiming}" ${can ? '' : 'disabled'}>Can’t</button>`;
     }
-    controls = `<div class="oc-controls">${go}${extra}</div>`;
+    // While the move boxes are buttons, the move buttons (all off: the walk
+    // is finished) are left out, so the two rows of arrows aren't confused.
+    controls = `<div class="oc-controls">${claiming && tapKind(q) === 'dots' ? '' : go}${extra}</div>`;
+  } else if (f) {
+    // A narrow panel shows one floor at a time: where the move buttons were,
+    // a button goes to a floor still to do. Pressed, not automatic, so the
+    // finished walk or a right Can't's drawing stays until the child moves on.
+    const j = q.floors.findIndex((x, k) => k !== i && !settled(x.kind, q, a.board.floors[k]));
+    if (j >= 0) controls = `<div class="oc-controls oc-next-row"><button type="button" class="primary oc-next" data-action="mechanic-ui" data-ui='${JSON.stringify({tab: j})}' data-focus="oc-board-${j}">${NAME[q.floors[j].kind]} →</button></div>`;
   }
   // A refusal is shown on the walk it is about; saved, it stays through Undo
   // and Restart and shows again when that walk is finished again.
   const told = f && f.told && f.walk === f.told.walk ? REFUSAL[f.told.say === 'way' ? 'way' : tapKind(q)] : '';
-  const cue = claiming ? `<p class="oc-cue"${walkBeyond(p, a, i, view) ? '' : ' hidden'}>${CUE}</p>` : '';
+  // The move boxes reach every dot of an odd goal, so the drag line is only
+  // for the one dot of an even goal.
+  const cue = claiming && tapKind(q) === 'dot' ? `<p class="oc-cue"${walkBeyond(p, a, i, view) ? '' : ' hidden'}>${CUE}</p>` : '';
   const cls = ['oc-wrap', kind, i === live ? 'oc-live' : '', i === s.tab ? 'oc-on' : 'oc-off', done ? 'oc-done' : '', claiming ? 'oc-claiming' : ''].filter(Boolean).join(' ');
   return `<div class="${cls}" data-floor="${i}">${svg}${record}${controls}${told ? `<p class="oc-told">${told}</p>` : ''}${cue}</div>`;
 }
@@ -855,7 +903,10 @@ function render(p, a) {
   if (!(s.tab < n)) s.tab = 0;
   if (!(s.live < n)) s.live = 0;
   const h = !done && !playing(q) && a.hintLevel >= 2 ? hint(p, b) : null;
-  const tabs = n > 1 ? `<div class="oc-tabs" role="group" aria-label="Floor">${q.floors.map((f, i) => `<button type="button" class="secondary oc-tab${h && h.floor === i && s.tab !== i ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({tab: i})}' data-focus="oc-tab-${i}" aria-pressed="${s.tab === i}">${NAME[f.kind]}</button>`).join('')}</div>` : '';
+  // A finished floor's tab is filled pine with a check, so a narrow panel
+  // shows which floor is still to do.
+  const fin = i => !playing(q) && settled(q.floors[i].kind, q, b.floors[i]);
+  const tabs = n > 1 ? `<div class="oc-tabs" role="group" aria-label="Floor">${q.floors.map((f, i) => `<button type="button" class="secondary oc-tab${fin(i) ? ' oc-tab-done' : ''}${h && h.floor === i && s.tab !== i ? ' hinted' : ''}" data-action="mechanic-ui" data-ui='${JSON.stringify({tab: i})}' data-focus="oc-tab-${i}" aria-pressed="${s.tab === i}">${fin(i) ? '<span aria-hidden="true">✓ </span>' : ''}${NAME[f.kind]}${fin(i) ? '<span class="sr-only">, done</span>' : ''}</button>`).join('')}</div>` : '';
   const floors = q.floors.map((_, i) => floorPanel(p, a, i, h, s.live)).join('');
   const status = playing(q) ? '' : q.floors.map((f, i) => {
     const x = b.floors[i];
@@ -880,6 +931,10 @@ function tapTarget(p, api, i, cert) {
 }
 function wire(root, p, api) {
   const q = p.parameters;
+  root.querySelectorAll('.oc-box').forEach(box => box.addEventListener('click', () => {
+    const i = Number(box.closest('[data-floor]').dataset.floor);
+    if (claimingOn(p, api.attempt(), i)) tapTarget(p, api, i, box.dataset.cert);
+  }));
   root.querySelectorAll('svg.oc-board').forEach(svg => {
     const i = Number(svg.dataset.floor), kind = q.floors[i].kind;
     const toDisk = e => { const r = svg.getBoundingClientRect(); return [((e.clientX - r.left) / r.width * 208 - 104) / S, -((e.clientY - r.top) / r.height * 208 - 104) / S]; };

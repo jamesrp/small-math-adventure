@@ -13,6 +13,12 @@
 .ends-slots{display:inline-flex;gap:6px;flex-wrap:wrap;justify-content:center}
 .ends-slots i{width:18px;height:18px;border-radius:50%;border:2px dashed #9aa88f;box-sizing:border-box}
 .ends-slots i.ends-used{border:3px solid #6f8a76;background:var(--b-ink,#294439)}
+/* A tap on an open dot with every slot used: the slots pulse ochre. */
+.ends-slots.ends-pulse{animation:ends-pulse .65s ease-out}
+.ends-slots.ends-pulse i{animation:ends-pulse-slot .65s ease-out}
+@keyframes ends-pulse{35%{transform:scale(1.18)}}
+@keyframes ends-pulse-slot{0%,70%{border-color:var(--b-ochre,#b38840);box-shadow:0 0 0 3px rgba(179,136,64,.45)}}
+@media (prefers-reduced-motion:reduce){.ends-slots.ends-pulse{animation:none}}
 
 /* The board. */
 .ends-stage{position:relative;width:100%;max-width:520px}
@@ -28,9 +34,10 @@
 .ends-road.trap{stroke:#a7a497;stroke-dasharray:4 4}
 .ends-dot{outline:none;stroke:none}
 .ends-dot[role="button"]{cursor:pointer}
+.ends-dot.off{cursor:default}
 .ends-hit{fill:transparent;stroke:none}
 .ends-pip{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:2px;vector-effect:non-scaling-stroke}
-.ends-dot[role="button"]:hover .ends-pip{fill:#f1ead1}
+.ends-dot[role="button"]:not(.off):hover .ends-pip{fill:#f1ead1}
 .ends-stone{fill:var(--b-ink,#294439);stroke:var(--b-ink,#294439);stroke-width:1.5px;vector-effect:non-scaling-stroke}
 .ends-stone-ring{fill:none;stroke:#6f8a76;stroke-width:2px;vector-effect:non-scaling-stroke}
 .ends-dot.trap .ends-pip{fill:#dedbd0;stroke:#7c7a70;stroke-dasharray:3 2.5}

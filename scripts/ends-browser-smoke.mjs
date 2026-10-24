@@ -98,10 +98,26 @@ try {
   await taps('0,0');
   await button('Check').click();
   assert.equal(await told(), '1 forever piece.', 'the other rail goes round one block');
-  await taps('3,0 0,1');
+  // Dots and rails at least 44 px apart (7 columns on a phone, not 9).
+  const [x00, y00] = await center(dot('0,0')), [x10] = await center(dot('1,0')), [, y01] = await center(dot('0,1'));
+  assert.ok(x10 - x00 >= 44 && y01 - y00 >= 44, `ladder dots ${Math.round(x10 - x00)} px apart, rails ${Math.round(y01 - y00)} px`);
+  await taps('3,0');
   assert.deepEqual((await board(D)).blocks, ['0,0', '3,0'], 'two blocks fill the slots');
-  assert.match(await page.locator('.feedback').innerText(), /not allowed/, 'a third block is refused');
-  await page.locator('[data-action="undo"]').click();
+  // With the slots full an open dot is not a control: a tap on it changes
+  // nothing, says nothing and pulses the slots.
+  assert.match(await dot('0,1').getAttribute('class'), /\boff\b/, 'an open dot is off');
+  assert.doesNotMatch(await dot('3,0').getAttribute('class'), /\boff\b/, 'a blocked dot is not');
+  await taps('0,1');
+  assert.deepEqual((await board(D)).blocks, ['0,0', '3,0'], 'a third block is not placed');
+  assert.equal((await page.locator('.feedback').innerText().catch(() => '')).trim(), '', 'and no refusal is shown');
+  assert.match(await page.locator('.ends-slots').getAttribute('class'), /ends-pulse/, 'the slots pulse');
+  await page.locator('.ends-dot[tabindex="0"]').focus();
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset?.dot), '3,0', 'the keyboard’s dot stays on the last block');
+  await page.keyboard.press('ArrowDown');
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset?.dot), '3,1', 'the keyboard walks onto an open dot');
+  await page.keyboard.press('Enter');
+  assert.deepEqual((await board(D)).blocks, ['0,0', '3,0'], 'Enter on an open dot does nothing either');
+  await taps('3,0');
   await taps('0,1');
   await button('Check').click();
   await done();

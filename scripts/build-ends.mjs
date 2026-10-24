@@ -8,12 +8,17 @@ import assert from 'node:assert/strict';
 import {counts, meets, impossible, endsOf, flatHas, keyOf, xyOf, sortDots, shiftOf, treeNeighbours, treePieces} from '../dist/families/ends/ends.js';
 
 const ALL = [null, null];
+// `narrow` changes the view on a phone (up to 560 px wide): 7 columns of the
+// line, ladder and strip instead of 9, and 6 of the T instead of 8, so dots
+// and rails are about 46 px apart on a 390 px phone rather than 36. The T
+// keeps a column and a row of paper above and to the right of its dots for
+// the button back to the start.
 export const MAPS = {
-  line: {kind: 'flat', name: 'Line', bands: [{x: ALL, y: [0, 0]}], view: {w: 9, h: 3, cx: 0, cy: -0.4}, pan: 'x', start: [0, 0]},
-  ladder: {kind: 'flat', name: 'Ladder', bands: [{x: ALL, y: [0, 1]}], view: {w: 9, h: 3.6, cx: 0, cy: 0.2}, pan: 'x', start: [0, 0]},
-  strip: {kind: 'flat', name: 'Strip of three rows', bands: [{x: ALL, y: [0, 2]}], view: {w: 9, h: 4.6, cx: 0, cy: 0.7}, pan: 'x', start: [0, 1]},
+  line: {kind: 'flat', name: 'Line', bands: [{x: ALL, y: [0, 0]}], view: {w: 9, h: 3, cx: 0, cy: -0.4}, narrow: {w: 7}, pan: 'x', start: [0, 0]},
+  ladder: {kind: 'flat', name: 'Ladder', bands: [{x: ALL, y: [0, 1]}], view: {w: 9, h: 3.6, cx: 0, cy: 0.2}, narrow: {w: 7}, pan: 'x', start: [0, 0]},
+  strip: {kind: 'flat', name: 'Strip of three rows', bands: [{x: ALL, y: [0, 2]}], view: {w: 9, h: 4.6, cx: 0, cy: 0.7}, narrow: {w: 7}, pan: 'x', start: [0, 1]},
   grid: {kind: 'flat', name: 'Grid', bands: [{x: ALL, y: ALL}], view: {w: 7, h: 7, cx: 0, cy: 0}, pan: 'xy', start: [0, 0]},
-  tee: {kind: 'flat', name: 'T of three ladders', bands: [{x: ALL, y: [0, 1]}, {x: [0, 1], y: [2, null]}], view: {w: 8, h: 7.4, cx: 0.5, cy: 2.3, minY: 2.3}, pan: 'xy', start: [0, 1]},
+  tee: {kind: 'flat', name: 'T of three ladders', bands: [{x: ALL, y: [0, 1]}, {x: [0, 1], y: [2, null]}], view: {w: 8, h: 7.4, cx: 0.5, cy: 2.3, minY: 2.3}, narrow: {w: 6, h: 6.6, cy: 2.1, minY: 2.1}, pan: 'xy', start: [0, 1]},
   tree: {kind: 'tree', name: 'Tree'}
 };
 // Windows searched for solutions: [x0, x1, y0, y1].

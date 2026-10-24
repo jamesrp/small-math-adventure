@@ -293,6 +293,10 @@ function followHints(p, a, label, limit = 400) {
   return steps;
 }
 const sameSet = (a, b, label) => assert.deepEqual([...a].sort(), [...b].sort(), label);
+// Tries that use up the left turns of a floor that has fences, without
+// fencing the flowers, for the claim checks (on squares, 23 moves is the
+// fewest that turn left eleven times without closing).
+const SPENDING = {'octagon-08 sq': 'LLLSLSLSSLSSSSLSSLSLSLL', 'octagon-09 oct': 'LLLLLLLSLLLLLSLLLLLSLL'};
 
 export async function validateOctagon() {
   const started = performance.now();
@@ -397,9 +401,21 @@ export async function validateOctagon() {
     // or says there is a way; a refusal stands until a different walk is
     // finished, through Undo-like steps and Restart.
     const tap = q.mode === 'home' ? (q.moves % 2 ? 'dots' : 'dot') : null, wrongText = new Set();
+    const budget = q.mode === 'fence' && Number.isInteger(q.maxLeft);
     for (const [i, spec] of q.floors.entries()) {
       const kind = spec.kind, label = `${p.id} ${kind}`, n = q.mode === 'home' ? q.moves : FENCE_CAP;
-      const tryWalk = spec.solutions.length ? 'S'.repeat(n) : spec.attempt;
+      // Under a left-turn budget Can't opens only once a try has used up the
+      // left turns: a finished try with turns over (a fence round one flower,
+      // a straight walk to the cap) leaves it shut, on every floor.
+      if (budget) {
+        for (const w of ['S'.repeat(FENCE_CAP), kind === 'oct' ? 'LLLLLLLL' : 'LLLL']) {
+          let x = freshAttempt(p);
+          for (const t of w) x = play(p, x, {type: 'go', floor: i, turn: t});
+          refuse(p, x, {type: 'claim', floor: i}, 'Can’t after a try with left turns over');
+        }
+      }
+      const tryWalk = spec.solutions.length ? (budget ? SPENDING[label] : 'S'.repeat(n)) : spec.attempt;
+      if (budget) assert.ok(lefts(tryWalk) === q.maxLeft && !goalMet(kind, q, tryWalk), `${label}: the try uses up the left turns and fails`);
       let a = freshAttempt(p);
       for (const x of tryWalk) a = play(p, a, {type: 'go', floor: i, turn: x});
       const w = a.board.floors[i].walk, seen = dotsOfWalk(O, kind, w), targets = tap ? claimTargets(p, a, i) : [];
@@ -419,8 +435,11 @@ export async function validateOctagon() {
         assert.deepEqual(new Set(right.map(c => dotOfWord(O, kind, c))), want, `${label}: the walk’s dots of home’s colour`);
         assert.equal(right.length, want.size);
         const inView = right.filter(c => targets.includes(c)).length, ways = binomial(targets.length, right.length);
-        report.randomTaps[label] = `${right.length} dots to tap; ${inView === right.length ? `1 random choice in ${ways}` : `${inView} of them in the first view`}`;
-        assert.ok(ways >= 8, `${label}: a random choice of dots rarely makes the certificate`);
+        // The move boxes reach every dot of the walk: a random choice among
+        // the walk's dots other than home.
+        const boxWays = binomial(new Set(seen.slice(1).filter(d => d !== seen[0])).size, right.length);
+        report.randomTaps[label] = `${right.length} dots to tap; ${inView === right.length ? `1 random choice in ${ways}` : `${inView} of them in the first view`}; by the move boxes 1 in ${boxWays}`;
+        assert.ok(ways >= 8 && boxWays >= 8, `${label}: a random choice of dots rarely makes the certificate`);
       }
       if (tap) {
         const wrong = tap === 'dot' ? targets.find(c => c !== right) : [targets.find(c => !right.includes(c)), ...right.slice(1)];

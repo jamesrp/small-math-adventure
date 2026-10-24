@@ -997,7 +997,7 @@
    "objective": "Come home facing the same way in exactly 7 moves on each floor, or press Can’t where no walk can.",
    "visibleObjective": "Home in exactly 7 moves, facing the same way.",
    "instruction": "Come home facing the same way in exactly 7 moves on each floor, or press Can’t where no walk can.",
-   "controls": "A move turns at a dot (left, straight on or right) and then walks one road to the next dot; the robot never turns round. Home facing the same way means back on the yellow ring, pointing like the faint arrow. Tap ↰, ↑ or ↱, or a road ahead of the robot. Drag a floor to look round it. After a try, if no walk can do it, press Can’t and tap the dots that show why.",
+   "controls": "A move turns at a dot (left, straight on or right) and then walks one road to the next dot; the robot never turns round. Home facing the same way means back on the yellow ring, pointing like the faint arrow. Tap ↰, ↑ or ↱, or a road ahead of the robot. Drag a floor to look round it. After a try, if no walk can do it, press Can’t and tap the dots that show why, on the floor or in the move boxes.",
    "rules": [
     "Each move turns left, goes straight on or turns right at a dot, then walks one road. The robot never turns round.",
     "On the octagon floor every room has eight corners, all right angles, and four rooms meet at every dot. The floor slides so the robot stays in the middle; rooms near the rim are drawn smaller but are all the same size.",
@@ -1014,7 +1014,7 @@
    "parent": {
     "notice": "Whether your child notices that this one fails on both floors, unlike four and six.",
     "prompt": "If every road joins a light dot to a dark one, what colour is the robot on after one move? After two? After seven?",
-    "explanation": "Colour the dots so every road joins a light dot to a dark one; both floors can be coloured like a chessboard. Home is light, and every move walks one road, so the colour changes at every move. After seven moves the robot is on a dark dot, never home. After Can’t the child taps the dots of the walk that share home’s colour, the ones it reached after two, four and six moves (other than home), and the app then draws the whole colouring. Those dots show the colours alternating along the walk, which puts the seventh dot on the other colour.",
+    "explanation": "Colour the dots so every road joins a light dot to a dark one; both floors can be coloured like a chessboard. Home is light, and every move walks one road, so the colour changes at every move. After seven moves the robot is on a dark dot, never home. After Can’t the child taps the dots of the walk that share home’s colour, the ones it reached after two, four and six moves (other than home), on the floor or by the move boxes after those moves, and the app then draws the whole colouring. Those dots show the colours alternating along the walk, which puts the seventh dot on the other colour.",
     "extension": "Does the colouring also rule out 13 moves? (Yes: Puzzle 10.)",
     "connection": "Both floors are bipartite graphs, because every room has an even number of sides.",
     "sourceIds": [
@@ -1028,12 +1028,12 @@
      {
       "kind": "sq",
       "count": 0,
-      "cant": "the walk’s dots of home’s colour, then the colouring"
+      "cant": "the walk’s dots of home’s colour, on the floor or by the move boxes, then the colouring"
      },
      {
       "kind": "oct",
       "count": 0,
-      "cant": "the walk’s dots of home’s colour, then the colouring"
+      "cant": "the walk’s dots of home’s colour, on the floor or by the move boxes, then the colouring"
      }
     ]
    },
@@ -1692,14 +1692,14 @@
    "objective": "Fence in the flowers with no right turns and at most 11 left turns on each floor, or press Can’t where no fence can.",
    "visibleObjective": "Fence in the flowers with no right turns.",
    "instruction": "Fence in the flowers with no right turns and at most 11 left turns on each floor, or press Can’t where no fence can.",
-   "controls": "A move turns at a dot (left, straight on or right) and then walks one road to the next dot; the robot never turns round. Home facing the same way means back on the yellow ring, pointing like the faint arrow. A fence is a walk that comes home facing the same way and never uses a dot twice; the rooms it goes round are fenced in. Tap ↰, ↑ or ↱, or a road ahead of the robot. Drag a floor to look round it. After a try, if no fence can do it, press Can’t.",
+   "controls": "A move turns at a dot (left, straight on or right) and then walks one road to the next dot; the robot never turns round. Home facing the same way means back on the yellow ring, pointing like the faint arrow. A fence is a walk that comes home facing the same way and never uses a dot twice; the rooms it goes round are fenced in. Tap ↰, ↑ or ↱, or a road ahead of the robot. Drag a floor to look round it. Once the left turns are used up, if no fence can do it, press Can’t.",
    "rules": [
     "Each move turns left, goes straight on or turns right at a dot, then walks one road. The robot never turns round.",
     "On the octagon floor every room has eight corners, all right angles, and four rooms meet at every dot. The floor slides so the robot stays in the middle; rooms near the rim are drawn smaller but are all the same size.",
     "A fence comes home facing the same way and never uses a dot twice. The flowers must be inside it.",
     "No right turns.",
     "At most 11 left turns: each one uses a ↰.",
-    "Can’t works once a try is finished. After a wrong tap or “There is a way.”, it waits for a different finished try."
+    "Can’t works once a try has used up the left turns. After “There is a way.”, it waits for a different try."
    ],
    "idea": "Two octagons need 12 left turns at least; two squares need only 4.",
    "prerequisites": "Tell left from right and plan a walk that must not cross itself. A grown-up can read the goal.",
@@ -1711,7 +1711,7 @@
    "parent": {
     "notice": "Whether your child uses Puzzle 3’s count to predict that the octagons will run out of left turns.",
     "prompt": "Where are the corners the fence doesn’t turn at?",
-    "explanation": "On squares every rectangle round the flowers takes 4 lefts, well inside the budget (455 fences). On octagons no fence has 11 or fewer: the tightest one, round just the two flowers, turns left at 16 − 4 = 12 corners, losing the 4 at the ends of the shared wall. With no right turns, a fence round more rooms has more lefts still (4 + 4n round n rooms). That is a fact about every fence at once, not about one walk, so Can’t is pressed alone, and the app draws the tightest fence and its 12 corners. The app checks every walk of up to 30 moves with at most 11 lefts.",
+    "explanation": "On squares every rectangle round the flowers takes 4 lefts, well inside the budget (455 fences). On octagons no fence has 11 or fewer: the tightest one, round just the two flowers, turns left at 16 − 4 = 12 corners, losing the 4 at the ends of the shared wall. With no right turns, a fence round more rooms has more lefts still (4 + 4n round n rooms). That is a fact about every fence at once, not about one walk, so Can’t is pressed alone, once a try has used up the 11 left turns (a fence round one flower, or a stuck walk, leaves turns over and doesn’t open it), and the app draws the tightest fence and its 12 corners. The app checks every walk of up to 30 moves with at most 11 lefts.",
     "extension": "How many left turns does a fence round three octagons in a row need? (16.)",
     "connection": "Gauss–Bonnet: left minus right turns is 4 + 4n round n octagons and 4 round any number of squares.",
     "sourceIds": [
@@ -1731,7 +1731,7 @@
      {
       "kind": "oct",
       "count": 0,
-      "cant": "pressed alone; the tightest fence and its 12 corners are drawn"
+      "cant": "pressed alone once the left turns are used up; the tightest fence and its 12 corners are drawn"
      }
     ]
    },
@@ -1769,13 +1769,13 @@
    "objective": "Fence in the flowers with at most 19 left turns on this floor, or press Can’t where no fence can.",
    "visibleObjective": "Fence in the flowers.",
    "instruction": "Fence in the flowers with at most 19 left turns on this floor, or press Can’t where no fence can.",
-   "controls": "A move turns at a dot (left, straight on or right) and then walks one road to the next dot; the robot never turns round. Home facing the same way means back on the yellow ring, pointing like the faint arrow. A fence is a walk that comes home facing the same way and never uses a dot twice; the rooms it goes round are fenced in. Tap ↰, ↑ or ↱, or a road ahead of the robot. Drag a floor to look round it. After a try, if no fence can do it, press Can’t.",
+   "controls": "A move turns at a dot (left, straight on or right) and then walks one road to the next dot; the robot never turns round. Home facing the same way means back on the yellow ring, pointing like the faint arrow. A fence is a walk that comes home facing the same way and never uses a dot twice; the rooms it goes round are fenced in. Tap ↰, ↑ or ↱, or a road ahead of the robot. Drag a floor to look round it. Once the left turns are used up, if no fence can do it, press Can’t.",
    "rules": [
     "Each move turns left, goes straight on or turns right at a dot, then walks one road. The robot never turns round.",
     "On the octagon floor every room has eight corners, all right angles, and four rooms meet at every dot. The floor slides so the robot stays in the middle; rooms near the rim are drawn smaller but are all the same size.",
     "A fence comes home facing the same way and never uses a dot twice. The flowers must be inside it.",
     "At most 19 left turns: each one uses a ↰.",
-    "Can’t works once a try is finished. After a wrong tap or “There is a way.”, it waits for a different finished try."
+    "Can’t works once a try has used up the left turns. After “There is a way.”, it waits for a different try."
    ],
    "idea": "With a right turn allowed, three rooms round the corner dot are enough: 17 lefts and 1 right.",
    "prerequisites": "Tell left from right and plan a walk that must not cross itself. A grown-up can read the goal.",
@@ -1832,7 +1832,7 @@
    "objective": "Come home facing the same way in exactly 13 moves on this floor, or press Can’t where no walk can.",
    "visibleObjective": "Home in exactly 13 moves, facing the same way.",
    "instruction": "Come home facing the same way in exactly 13 moves on this floor, or press Can’t where no walk can.",
-   "controls": "A move turns at a dot (left, straight on or right) and then walks one road to the next dot; the robot never turns round. Home facing the same way means back on the yellow ring, pointing like the faint arrow. Tap ↰, ↑ or ↱, or a road ahead of the robot. Drag a floor to look round it. After a try, if no walk can do it, press Can’t and tap the dots that show why.",
+   "controls": "A move turns at a dot (left, straight on or right) and then walks one road to the next dot; the robot never turns round. Home facing the same way means back on the yellow ring, pointing like the faint arrow. Tap ↰, ↑ or ↱, or a road ahead of the robot. Drag a floor to look round it. After a try, if no walk can do it, press Can’t and tap the dots that show why, on the floor or in the move boxes.",
    "rules": [
     "Each move turns left, goes straight on or turns right at a dot, then walks one road. The robot never turns round.",
     "On the octagon floor every room has eight corners, all right angles, and four rooms meet at every dot. The floor slides so the robot stays in the middle; rooms near the rim are drawn smaller but are all the same size.",
@@ -1849,7 +1849,7 @@
    "parent": {
     "notice": "Whether your child reaches for Puzzle 5’s colouring rather than trying many walks.",
     "prompt": "Is there any odd number of moves that works?",
-    "explanation": "Every move changes the colour of the robot’s dot, so after thirteen moves it is on a dark dot and home is light. None of the 1,594,323 walks of thirteen moves comes home. After Can’t the child taps the walk’s dots of home’s colour (those reached after an even number of moves, other than home), and the app draws the colouring.",
+    "explanation": "Every move changes the colour of the robot’s dot, so after thirteen moves it is on a dark dot and home is light. None of the 1,594,323 walks of thirteen moves comes home. After Can’t the child taps the walk’s dots of home’s colour (those reached after an even number of moves, other than home), on the floor or by the move boxes after those moves, and the app draws the colouring.",
     "extension": "On the octagon floor, which even numbers of moves can come home? (8 and every even number from 14 on; not 2, 4, 6, 10 or 12.)",
     "connection": "The floor is bipartite because every room has eight sides, an even number.",
     "sourceIds": [
@@ -1863,7 +1863,7 @@
      {
       "kind": "oct",
       "count": 0,
-      "cant": "the walk’s dots of home’s colour, then the colouring"
+      "cant": "the walk’s dots of home’s colour, on the floor or by the move boxes, then the colouring"
      }
     ]
    },
