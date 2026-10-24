@@ -1,7 +1,7 @@
 // Synthetic garden fixture supplements the shipped-pack completion check.
 import assert from 'node:assert/strict';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
-import {freshAttempt,move,isSolved,nextHint} from '../dist/engine.js';
+import {freshAttempt,move,isSolved,nextHint,tilePlacements} from '../dist/engine.js';
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 const browser=await chromium.launch({headless:true,...(process.env.BROWSER_EXECUTABLE?{executablePath:process.env.BROWSER_EXECUTABLE}:{})});
 const pack=JSON.parse(await readFile(new URL('../dist/puzzles.json',import.meta.url),'utf8'));
@@ -106,6 +106,23 @@ try{
  await page.screenshot({path:new URL('../test-results/l-tile-phone.png',import.meta.url).pathname,fullPage:true});
  await checkShape(dominoGraze,[0,1],[0,4]);
  await page.screenshot({path:new URL('../test-results/domino-phone.png',import.meta.url).pathname,fullPage:true});
+ // Claims audit: a garden that can't be finished is said under the board only
+ // once no tile fits anywhere; before that it waits behind Hint.
+ {
+  const p=pack.puzzles.find(q=>q.id==='tile-k1-12'),open=b=>{const o=new Set(b.flat());return tilePlacements(p).filter(t=>t.every(c=>!o.has(c)));};
+  let a=freshAttempt(p);const first=tilePlacements(p).find(t=>nextHint(p,move(p,a,t)).type==='deadend'),plan=[first];a=move(p,a,first);
+  while(open(a.board).length){const t=open(a.board)[0];plan.push(t);a=move(p,a,t);}
+  assert.ok(!isSolved(p,a.board)&&plan.length>=2,'tile-k1-12: an unfinishable start with tiles still to place');
+  await reset(p);
+  for(const [i,piece] of plan.entries()){
+   for(const n of piece)await cell(n).click();
+   assert.equal((await attempt(p.id)).board.length,i+1);
+   assert.equal(await page.locator('.feedback').innerText(),i<plan.length-1?'':'This leaves an unfillable gap. Undo or lift a tile.',`tile-k1-12: line after ${i+1} tiles`);
+  }
+  await page.screenshot({path:new URL('../test-results/tile-stuck-phone.png',import.meta.url).pathname,fullPage:true});
+  await action('undo').click();assert.equal(await page.locator('.feedback').innerText(),'','a tile still fits after Undo: quiet again');
+  await action('hint').click();assert.match(await page.locator('.hint-card').innerText(),/This cannot be completed/,'Hint says it');
+ }
  for(const puzzle of [l,dominoGraze]){
   await page.setViewportSize({width:390,height:500});await reset(puzzle);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollHeight>innerHeight),true,'short viewport can scroll');

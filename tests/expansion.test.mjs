@@ -87,6 +87,45 @@ test('selecting the active palette does not create an undo step; malformed color
  const p=puzzles.find(p=>p.id==='color-01'),a=freshAttempt(p);assert.equal(move(p,a,{type:'palette',color:1}),a);
  assert.equal(move(p,a,{vertex:'A',color:true}),null);assert.equal(move(p,a,{vertex:'A',color:null}),null);
 });
+test('Check again on the balance answer already given changes nothing and is not refused',()=>{
+ const p=puzzles.find(p=>p.id==='weigh-01'),a=freshAttempt(p,()=>0),coin=p.parameters.coins.find(c=>c!==a.board.secret[0]);
+ const answered=move(p,a,{type:'answer',coin,deviation:a.board.secret[1]});assert.ok(answered);assert.equal(isSolved(p,answered.board),false);
+ assert.equal(move(p,answered,{type:'answer',coin,deviation:a.board.secret[1]}),answered,'the same answer again');
+ assert.notEqual(move(p,answered,{type:'answer',coin:a.board.secret[0],deviation:a.board.secret[1]}),answered,'another answer is a move');
+});
+test('a lantern tapped with the colour it already has stays as it is, with no undo step and no refusal',()=>{
+ for(const p of puzzles.filter(p=>p.mechanic==='color')){const v=p.parameters.vertices[0],a=move(p,freshAttempt(p),{vertex:v});assert.ok(a,p.id);assert.equal(move(p,a,{vertex:v}),a,`${p.id}: same colour again`);assert.equal(move(p,a,{vertex:v,color:a.board.colors[0]}),a);}
+});
+// The feedback line under the board, which shows a dead end unasked unless it is quiet.
+const feedbackOf=(p,a)=>(playView(p,a,{pack,selected:null,message:''}).match(/<div class="feedback[^"]*"[^>]*>([\s\S]*?)<\/div>/)||[])[1]||'';
+test('base dead ends wait behind Hint while a budget remains: Lantern Wires, the Symbol Orchard and the Odd-pebble Balance',()=>{
+ // Lantern Wires: a wasted press with presses left is told only behind Hint; with none left, the line says what is wrong.
+ const t=puzzles.find(p=>p.id==='toggle-03'),edges=t.parameters.edges.map((_,edge)=>edge);
+ const wasted=edges.map(edge=>move(t,freshAttempt(t),{edge})).find(a=>nextHint(t,a).type==='deadend');
+ assert.equal(feedbackOf(t,wasted),'','no line while presses remain');
+ assert.match(playView(t,{...wasted,hintLevel:1},{pack,selected:null,message:''}),/This picture needs 2 more presses, but only 1 press remains\./);
+ let spent=wasted;while(spent.board.presses.length<t.parameters.press_budget)spent=move(t,spent,{edge:edges.find(edge=>!isSolved(t,move(t,spent,{edge}).board))});
+ assert.equal(feedbackOf(t,spent),'The lanterns don’t match the goal card. Undo.');
+ // Symbol Orchard: a repeat is said once (on the board), and an unfinishable board with no repeat says nothing unasked.
+ const l=puzzles.find(p=>p.id==='latin-06');
+ const repeat=move(l,freshAttempt(l),{type:'set',cell:0,value:3}),html=playView(l,repeat,{pack,selected:null,message:''});
+ assert.equal((html.match(/repeats/g)||[]).length,1,'the repeat line shows once');
+ assert.equal(feedbackOf(l,repeat),'');
+ const dead=move(l,freshAttempt(l),{type:'set',cell:0,value:1});assert.equal(nextHint(l,dead).type,'deadend');assert.equal(feedbackOf(l,dead),'');
+ assert.match(playView(l,{...dead,hintLevel:1},{pack,selected:null,message:''}),/cannot lead to a complete orchard/);
+ // Odd-pebble Balance: no line judges the weighings unasked, and none says the observations single out one pebble.
+ for(const p of puzzles.filter(p=>p.mechanic==='weigh'))for(const secret of [0,0.5,0.99]){
+  let a=freshAttempt(p,()=>secret);
+  for(let i=0;i<p.parameters.weighing_budget;i++){
+   const coins=[...p.parameters.coins,...p.parameters.known_genuine],n=Math.min(i+1,Math.floor(coins.length/2));
+   const left=coins.slice(0,n),right=coins.slice(n,2*n),next=move(p,a,{type:'weigh',left,right});if(!next)break;a=next;
+   const h=nextHint(p,a),line=feedbackOf(p,a),html=playView(p,a,{pack,selected:null,message:''});
+   if(h.type==='deadend')assert.equal(h.quiet,true,`${p.id}: quiet`);
+   assert.equal(line,'',`${p.id}: no unasked line after a weighing`);
+   assert.doesNotMatch(html,/single out|\b1 possibilities\b/,`${p.id}`);
+  }
+ }
+});
 test('offline precache includes all ten-family modules and styles',async()=>{
  const sw=await readFile(new URL('../dist/sw.js',import.meta.url),'utf8');const assets=JSON.parse(sw.match(/const ASSETS=(\[[^;]+\]);/)[1]);
  for(const asset of ['expansion.js','expansion-controls.js','expansion.css',...['motion','networks','deduction','measurement'].flatMap(group=>[group+'.js',group+'.css'])])assert.ok(assets.includes('./'+asset),asset);

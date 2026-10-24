@@ -17,6 +17,31 @@ test('accept alternate tilings, reject wrapping/overlap/corners without mutation
 test('current-position hints remain legal after every single legal starting move',()=>{
  for(const p of puzzles.filter(p=>['tile','swap'].includes(p.mechanic))){const pairs=p.mechanic==='tile'?tilePlacements(p):p.edges;for(const pair of pairs){let a=move(p,freshAttempt(p),pair),hint=nextHint(p,a);if(hint.type==='deadend'){assert.equal(solveTiles(p,a.board),null);const recovered=undoToSolvable(p,a);assert.ok(solveTiles(p,recovered.board));}else if(hint.type==='move'){const path=p.mechanic==='tile'?solveTiles(p,a.board):solveSwaps(p,a.board);for(const pair of path){a=move(p,a,pair);assert.ok(a);}assert.ok(isSolved(p,a.board));}}}
 });
+// A garden that can't be finished is told under the board only once no tile
+// fits anywhere; before that it waits behind Hint, or the line would judge
+// each placement (most first placements in some gardens).
+test('tile dead ends are quiet while a tile still fits, and said once the garden is stuck',async()=>{
+ const {playView}=await import('../dist/ui.js'),pack={puzzles,sources:[]};
+ const feedback=(p,a)=>(playView(p,a,{pack,selected:null,message:'',tileSelection:[]}).match(/<div class="feedback[^"]*"[^>]*>([\s\S]*?)<\/div>/)||[])[1]||'';
+ const fits=(p,b)=>{const o=new Set(b.flat());return tilePlacements(p).some(t=>t.every(c=>!o.has(c)));};
+ let quiet=0,stuck=0;
+ for(const p of puzzles.filter(p=>p.mechanic==='tile')){
+  for(const pair of tilePlacements(p)){
+   let a=move(p,freshAttempt(p),pair);
+   // Place the first open tile until none fits.
+   for(;;){
+    const h=nextHint(p,a);
+    if(h.type==='deadend'){
+     const open=fits(p,a.board);assert.equal(Boolean(h.quiet),open,`${p.id} ${JSON.stringify(a.board)}`);
+     assert.equal(feedback(p,a),open?'':'This leaves an unfillable gap. Undo or lift a tile.');
+     if(open)quiet++;else stuck++;
+    }else assert.equal(feedback(p,a),'');
+    const o=new Set(a.board.flat()),next=tilePlacements(p).find(t=>t.every(c=>!o.has(c)));if(!next)break;a=move(p,a,next);
+   }
+  }
+ }
+ assert.ok(quiet>100&&stuck>100,`${quiet} quiet, ${stuck} stuck`);
+});
 test('one Undo press passes over steps drawn the same as the screen before it',()=>{
  const p=puzzles.find(p=>p.mechanic==='tile'&&p.solution.length>=3);let a=freshAttempt(p);for(const pair of p.solution.slice(0,3))a=move(p,a,pair);
  assert.equal(undoPress(p,a).board.length,2,'without a drawing, one step');

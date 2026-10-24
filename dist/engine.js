@@ -33,6 +33,12 @@ export function tilePlacements(puzzle) {
   }
   return placements;
 }
+// Whether some tile still fits the garden's empty patches.
+export function tileFits(puzzle, board) {
+  if (!Array.isArray(board)) return false;
+  const occupied = new Set(board.flat());
+  return tilePlacements(puzzle).some(piece => piece.every(c => !occupied.has(c)));
+}
 export function freshAttempt(puzzle, random = Math.random) {
   return { revision: puzzle.revision || 1, board: isExpansion(puzzle) ? mechanicFor(puzzle).fresh(puzzle, random) : puzzle.mechanic === 'tile' ? [] : [...puzzle.start], history: [], moves: 0, hintLevel: 0, helpUsed: false, completed: false, lastPlayed: Date.now() };
 }
@@ -116,7 +122,10 @@ export function nextHint(puzzle, attempt) {
   if (isSolved(puzzle, attempt.board)) return { type: 'done' };
   if (isExpansion(puzzle)) return mechanicFor(puzzle).hint(puzzle, attempt.board);
   const path = puzzle.mechanic === 'tile' ? solveTiles(puzzle, attempt.board) : solveSwaps(puzzle, attempt.board);
-  if (!path) return { type: 'deadend', text: 'The remaining cells cannot be covered. Lift a tile or undo.' };
+  // A garden that can't be finished is told unasked only once no tile fits
+  // anywhere; while one still fits it waits behind Hint (quiet), or the line
+  // would judge each placement and trial with Undo would find the few good starts.
+  if (!path) return { type: 'deadend', text: 'The remaining cells cannot be covered. Lift a tile or undo.', ...(puzzle.mechanic === 'tile' && tileFits(puzzle, attempt.board) ? { quiet: true } : {}) };
   return { type: 'move', pair: path[0], remaining: path.length };
 }
 export function move(puzzle, attempt, pair, random = Math.random) {

@@ -67,9 +67,13 @@ const latin = {
     if (!latinValid(p, board)) return { type: 'deadend', text: 'This board cannot be read. Restart the orchard.' };
     if (this.solved(p, board)) return { type: 'done' };
     const n = p.parameters.order, conflicts = latinConflicts(n, board.cells);
-    if (conflicts.size) return { type: 'deadend', text: 'A symbol repeats in a row or column. Clear a marked entry, or undo your last trial.' };
+    // Both dead ends are told only behind Hint (quiet). A repeat is already
+    // said on the board, by its outlined squares and one line; and saying
+    // unasked that entries with no repeat can't be finished would be the
+    // deduction itself, so it waits until the child asks or a repeat shows.
+    if (conflicts.size) return { type: 'deadend', quiet: true, text: 'A symbol repeats in a row or column. Clear a marked entry, or undo your last trial.' };
     const answer = completeLatin(p, board.cells);
-    if (!answer) return { type: 'deadend', text: 'These entries cannot lead to a complete orchard, even though no symbol repeats yet. Undo a trial or clear an entry.' };
+    if (!answer) return { type: 'deadend', quiet: true, text: 'These entries cannot lead to a complete orchard, even though no symbol repeats yet. Undo a trial or clear an entry.' };
     const empty = board.cells.flatMap((value, cell) => value ? [] : [cell]);
     let cell = empty.find(at => latinOptions(n, board.cells, at).length === 1), reason = 'Its row and column rule out every other symbol.';
     if (cell === undefined) {

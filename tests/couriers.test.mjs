@@ -154,6 +154,9 @@ test('Can’t comes after a launch, and its claim on the corner map is judged wh
   assert.equal(billiard.move(p, fresh(p), { type: 'cant' }), null, 'no Can’t on a fresh board');
   let b = play(p, fresh(p), [{ type: 'launch', room: [2, 3] }, { type: 'cant' }]);
   assert.deepEqual(b.cert, []);
+  // Can't opens the map and closes it again in the same place, so it carries
+  // data-toggle: a quick double tap doesn't close the map it just opened.
+  for (const board of [play(p, fresh(p), [{ type: 'launch', room: [2, 3] }]), b]) assert.match(billiard.render(p, { board }), /<button[^>]*data-toggle="cr-cant"[^>]*>Can’t<\/button>/);
   // Taps toggle without a verdict; nothing is tinted or judged until That's all.
   b = play(p, b, [{ type: 'tap', at: [1, 4] }, { type: 'tap', at: [2, 3] }]);
   assert.equal(b.told, null);
@@ -251,7 +254,13 @@ test('find every: Keep without a verdict, That’s all judges the shelf, refusal
   assert.equal(billiard.move(p, back, { type: 'done' }), null);
   const off = billiard.move(p, play(p, b, [{ type: 'keep', room: [1, 1] }]), { type: 'done' });
   assert.deepEqual(off.told, { code: 'off', at: [1, 1] });
-  assert.match(billiard.render(p, { board: off }), /This one doesn’t bounce once\./);
+  // The refusal names the kind of fault, not the room: nothing on the shelf is
+  // ringed, so That's all can't be used to empty a shelf of every room.
+  const offHtml = billiard.render(p, { board: off });
+  assert.match(offHtml, /A kept room doesn’t bounce once\./);
+  assert.doesNotMatch(offHtml, /refused/, 'no pin is ringed');
+  assert.equal(billiard.move(p, off, { type: 'done' }), null, 'the refused shelf stays refused until it changes');
+  assert.match(offHtml, /<button[^>]*&quot;done&quot;[^>]*disabled>That’s all<\/button>/, 'That’s all is off on the refused shelf');
   // The pins are drawn over the corner handle: keeping the current room, and
   // its Undo, visibly change the board, not only the Keep button.
   const launched = play(p, fresh(p), [{ type: 'launch', room: [2, 1] }]);

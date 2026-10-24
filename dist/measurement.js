@@ -212,8 +212,9 @@ function balanceFeedback(p, board) {
     if (!solvedWeigh(p, board)) return 'That answer does not fit the observations. Check the notebook and choose again.';
     return '';
   }
-  if (remaining.length === 1) return 'Your observations single out one possibility. Choose the pebble and submit your answer.';
-  if (!budget) return `${remaining.length} possibilities still fit and no weighings remain. Undo a weighing or start again.`;
+  // When the observations single out one possibility, saying so unasked would
+  // tell the child they know enough before they say so; Hint names it.
+  if (!budget && remaining.length > 1) return `${remaining.length} possibilities still fit and no weighings remain. Undo a weighing or start again.`;
   return '';
 }
 
@@ -257,7 +258,10 @@ const weigh = {
     if (action.type === 'answer') {
       const deviation = p.parameters.odd_kind === 'heavy' && action.deviation === undefined ? 1 : integer(action.deviation);
       const answer = {coin:action.coin, deviation}, next = {...board, answer};
-      return validWeigh(p, next) && (!board.answer || board.answer.coin !== answer.coin || board.answer.deviation !== deviation) ? next : null;
+      if (!validWeigh(p, next)) return null;
+      // Check again on the answer already given (a second press, or a double
+      // tap) changes nothing: it is not a refusal.
+      return board.answer && board.answer.coin === answer.coin && board.answer.deviation === deviation ? board : next;
     }
     return null;
   },
@@ -269,7 +273,10 @@ const weigh = {
     let mask = 0;
     model.hypotheses.forEach((hypothesis, i) => { if (possible.includes(hypothesis)) mask |= 1 << i; });
     const option = findWeighing(model, mask, budget);
-    if (!option) return {type:'deadend', text:budget ? `These observations leave no guaranteed plan within the ${budget} remaining ${budget === 1 ? 'weighing' : 'weighings'}. Undo a weighing or start again.` : 'More than one possibility still fits. Undo a weighing or start again.'};
+    // Told only behind Hint (quiet): while weighings remain, the line would
+    // judge the experiment's design, which is the puzzle; once they are spent,
+    // the board's own line already says what is wrong.
+    if (!option) return {type:'deadend', quiet:true, text:budget ? `These observations leave no guaranteed plan within the ${budget} remaining ${budget === 1 ? 'weighing' : 'weighings'}. Undo a weighing or start again.` : 'More than one possibility still fits. Undo a weighing or start again.'};
     return {type:'move', action:{type:'weigh', left:[...option.left], right:[...option.right]}, text:`Weigh ${option.left.join(', ')} on the left against ${option.right.join(', ')} on the right. Every possible outcome leaves a way to finish within your budget.`, remaining:budget};
   },
   // A drawn balance shows which pebbles sit on each pan and how the last

@@ -100,7 +100,6 @@
 [data-mechanic-wire="billiard"] .cr-hinted{fill:none;stroke:var(--cr-ochre);stroke-width:3;stroke-dasharray:3 4}
 [data-mechanic-wire="billiard"] .cr-pins{pointer-events:none}
 [data-mechanic-wire="billiard"] .cr-pin{fill:var(--cr-pine);stroke:#fffdf5;stroke-width:2.5}
-[data-mechanic-wire="billiard"] .cr-pin.refused{fill:var(--cr-bad)}
 [data-mechanic-wire="billiard"] .cr-twice line{stroke:var(--cr-pine);stroke-width:2;stroke-dasharray:5 5}
 [data-mechanic-wire="billiard"] .cr-mark{stroke:var(--cr-ink);stroke-width:1.4}
 [data-mechanic-wire="billiard"] .cr-mark.k-home{fill:#fffdf5;stroke-width:2.2}

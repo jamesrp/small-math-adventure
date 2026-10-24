@@ -482,7 +482,7 @@ function roomBoard(p, b, v, attempt) {
   const arrow = `<g class="cr-arrow"><line x1="${X(0)}" y1="${Y(0)}" x2="${num(X(0) + arrowLen * run / norm)}" y2="${num(Y(0) - arrowLen * rise / norm)}"/><path d="M${num(X(0) + (arrowLen + 9) * run / norm)} ${num(Y(0) - (arrowLen + 9) * rise / norm)}L${num(X(0) + arrowLen * run / norm - 6 * rise / norm)} ${num(Y(0) - arrowLen * rise / norm - 6 * run / norm)}L${num(X(0) + arrowLen * run / norm + 6 * rise / norm)} ${num(Y(0) - arrowLen * rise / norm + 6 * run / norm)}Z"/></g>`;
   // The shelf's pins are drawn over the corner handle, so keeping the current
   // room (or its Undo) visibly changes the board.
-  const pins = q.mode === 'every' ? `<g class="cr-pins" aria-hidden="true">${b.kept.map(r => `<rect class="cr-pin${b.told?.code === 'off' && same(b.told.at, r) ? ' refused' : ''}" x="${X(r[0]) - 7}" y="${Y(r[1]) - 7}" width="14" height="14" rx="3"/>`).join('')}</g>` : '';
+  const pins = q.mode === 'every' ? `<g class="cr-pins" aria-hidden="true">${b.kept.map(r => `<rect class="cr-pin" x="${X(r[0]) - 7}" y="${Y(r[1]) - 7}" width="14" height="14" rx="3"/>`).join('')}</g>` : '';
   // One bounce: one side twice the other, the two lines through the shelf.
   const proof = q.mode === 'every' && b.done && q.bounces === 1 ? `<g class="cr-twice"><line x1="${X(0)}" y1="${Y(0)}" x2="${X(Math.min(W, H / 2))}" y2="${Y(Math.min(H, 2 * W))}"/><line x1="${X(0)}" y1="${Y(0)}" x2="${X(Math.min(W, 2 * H))}" y2="${Y(Math.min(H, W / 2))}"/></g>` : '';
   const hinted = attempt.hintLevel >= 2 && !b.done ? hint(p, b) : null;
@@ -607,7 +607,10 @@ function told(q, b) {
     if (t.code === 'goal') return `That corner folds to the ${legendCorner(foldCorner(...t.pair[0]))}.`;
     return 'That isn’t on the way there.';
   }
-  if (q.mode === 'every') return b.told ? (b.told.code === 'off' ? `This one doesn’t bounce ${q.bounces === 1 ? 'once' : `${q.bounces} times`}.` : 'There is another.') : '';
+  // A refused shelf names only the kind of fault, never which room: ringing
+  // the wrong room let That's all, taking the ringed room off and That's all
+  // again empty a shelf of every room without a launch.
+  if (q.mode === 'every') return b.told ? (b.told.code === 'off' ? `A kept room doesn’t bounce ${q.bounces === 1 ? 'once' : `${q.bounces} times`}.` : 'There is another.') : '';
   if (q.mode === 'cross' && b.tap && !b.done) {
     const [i, j] = b.tap;
     return i * q.width !== j * q.height ? 'The line doesn’t go there.' : 'It stops before that.';
@@ -631,7 +634,7 @@ function render(p, attempt) {
     if (q.mode === 'shape') {
       const cantOn = b.room !== null && !b.done && (!b.way || mapOpen);
       const thatsAll = mapOpen && !halfMode(q) ? button('That’s all', { type: 'done' }, 'secondary', `data-focus="cr-at-${mapCursor(q, v, b.cert).join('-')}"${b.cert.length && !(b.told && same(b.told.sel, b.cert)) && !b.done && !b.way ? '' : ' disabled'}`) : '';
-      controls = `${mapOpen ? '' : launch}${button('Can’t', { type: 'cant' }, 'secondary', `aria-pressed="${mapOpen}" data-focus="${mapOpen ? 'cr-corner' : `cr-at-${mapCursor(q, v, []).join('-')}`}"${cantOn ? '' : ' disabled'}`)}${thatsAll}`;
+      controls = `${mapOpen ? '' : launch}${button('Can’t', { type: 'cant' }, 'secondary', `aria-pressed="${mapOpen}" data-toggle="cr-cant" data-focus="${mapOpen ? 'cr-corner' : `cr-at-${mapCursor(q, v, []).join('-')}`}"${cantOn ? '' : ' disabled'}`)}${thatsAll}`;
     } else {
       const kept = b.kept.some(r => same(r, v.room)), allowed = b.kept.length && !b.refused.includes(shelfKey(b.kept)) && !b.done;
       controls = `${launch}${button('Keep', { type: 'keep', room: v.room }, 'secondary', `aria-pressed="${kept}" data-focus="cr-keep"${b.done ? ' disabled' : ''}`)}${button('That’s all', { type: 'done' }, 'secondary', `data-focus="cr-corner"${allowed ? '' : ' disabled'}`)}`;

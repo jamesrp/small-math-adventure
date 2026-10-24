@@ -150,8 +150,11 @@ try {
   await open('billiard-17');
   assert.equal(await button('Can’t').isDisabled(), true, 'Can’t needs a launch first');
   await button('Launch').click();
-  await button('Can’t').click();
+  // A quick double tap on Can't (the second press on the redrawn button)
+  // leaves the map open: Can't carries data-toggle.
+  await page.evaluate(() => { const cant = () => [...document.querySelectorAll('.cr-controls button')].find(b => b.textContent === 'Can’t'); cant().click(); cant().click(); });
   await page.locator('svg[data-cr-map]').waitFor();
+  assert.deepEqual((await board('billiard-17')).cert, [], 'the double tap opened the map once and left it open');
   await boardFits('billiard-17 map');
   // A tap between two dots, nearer (1,4) than (1,3), goes to (1,4).
   const [ax, ay] = await dotCentre('1,4'), [bx, by] = await dotCentre('1,3');
@@ -211,6 +214,16 @@ try {
   assert.equal(await status(), 'There is another.');
   assert.equal(await button('That’s all').isDisabled(), true);
   await shot('15-shelf');
+  // A wrong room on the shelf: the refusal names the kind of fault, rings no
+  // pin, and That's all stays off until the shelf changes.
+  await keep(1, 1);
+  await button('That’s all').click();
+  assert.equal(await status(), 'A kept room doesn’t bounce once.');
+  assert.equal(await page.locator('.cr-pin.refused').count(), 0, 'no pin is ringed');
+  assert.equal(await button('That’s all').isDisabled(), true, 'That’s all waits for a change');
+  await shot('15-wrong-room');
+  await keep(1, 1);
+  assert.equal(await button('That’s all').isDisabled(), true, 'the shelf refused before is still refused');
   await keep(3, 6);
   await button('That’s all').click();
   await solved();

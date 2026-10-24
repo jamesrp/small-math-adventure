@@ -11,7 +11,7 @@ const numberInput = value => (typeof value === 'number' || typeof value === 'str
 const range = (min, max) => Array.from({ length: max - min + 1 }, (_, i) => min + i);
 const gcd = (a, b) => b ? gcd(b, a % b) : a;
 const lcm = (a, b) => a / gcd(a, b) * b;
-const plural = (n, word) => `${n} ${word}${n === 1 ? '' : word === 'press' ? 'es' : 's'}`;
+const plural = (n, word) => `${n} ${word}${n === 1 ? '' : word.endsWith('ss') ? 'es' : 's'}`;
 
 export function toggleState(p, presses) {
   const { vertices, edges, initial_on } = p.parameters;
@@ -110,7 +110,13 @@ const toggle = {
     if (!validToggle(p, board)) return { type: 'deadend', text: 'Start again to restore the lantern wires.' };
     if (solvedToggle(p, board)) return { type: 'done' };
     const route = toggleRoute(p, board), left = p.parameters.press_budget == null ? Infinity : p.parameters.press_budget - board.presses.length;
-    if (!route || route.length > left) return { type: 'deadend', text: `This picture needs ${route ? plural(route.length, 'more press') : 'a new start'}, but only ${plural(left, 'press')} remain. Undo a press or start again.` };
+    // With a budget of the fewest presses every wasted press is a dead end at
+    // once. While presses are left it is told only behind Hint (quiet), or the
+    // line would judge each press and blind presses with Undo would solve;
+    // once the budget is spent, the line says what is wrong.
+    if (!route || route.length > left) return left > 0
+      ? { type: 'deadend', quiet: true, text: `This picture needs ${route ? plural(route.length, 'more press') : 'a new start'}, but only ${plural(left, 'press')} ${left === 1 ? 'remains' : 'remain'}. Undo a press or start again.` }
+      : { type: 'deadend', text: 'The lanterns don’t match the goal card. Undo.' };
     const edge = route[0];
     return { type: 'move', action: { edge }, remaining: route.length, text: `Press wire ${p.parameters.edges[edge].join('–')}. A route from this picture takes ${plural(route.length, 'press')}.` };
   },

@@ -107,7 +107,9 @@ function moveColor(p,b,action){
   if(!validColor(p,b)||!object(action))return null;
   if(action.type==='palette'){const c=integer(action.color);return Number.isInteger(c)&&c>=1&&c<=p.parameters.palette_size?(c===b.selectedColor?b:{...b,selectedColor:c}):null;}
   const i=p.parameters.vertices.indexOf(action.vertex),color=action.color===undefined?b.selectedColor:integer(action.color);
-  if(i<0||!Number.isInteger(color)||color<0||color>p.parameters.palette_size||b.colors[i]===color)return null;
+  if(i<0||!Number.isInteger(color)||color<0||color>p.parameters.palette_size)return null;
+  // A lantern that already has the chosen colour stays as it is: a tap that does nothing, not a refusal.
+  if(b.colors[i]===color)return b;
   const colors=[...b.colors];colors[i]=color;return {...b,colors};
 }
 function hintColor(p,b){

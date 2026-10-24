@@ -114,6 +114,34 @@ test('lantern hints solve or explain every reachable budgeted state', () => {
   }
 });
 
+// The budget is the fewest presses, so a wasted press is a dead end at once:
+// told only behind Hint (quiet) while presses are left, said once they are spent.
+test('lantern dead ends are quiet while presses remain and speak when the budget is spent', () => {
+  const handler = motionMechanics.toggle;
+  for (const p of puzzles.filter(p => p.mechanic === 'toggle' && p.parameters.press_budget != null)) {
+    let states = [initial(p)];
+    for (let depth = 0; depth <= p.parameters.press_budget; depth++) {
+      const nextStates = new Map();
+      for (const board of states) {
+        const hint = handler.hint(p, board), left = p.parameters.press_budget - board.presses.length;
+        if (hint.type === 'deadend') {
+          assert.equal(Boolean(hint.quiet), left > 0, `${p.id} ${board.presses}: quiet while presses remain`);
+          if (!left) assert.equal(hint.text, 'The lanterns don’t match the goal card. Undo.');
+          assert.doesNotMatch(hint.text, /presss|\b1 press remain\b|\b1 presses\b/);
+        }
+        for (let edge = 0; edge < p.parameters.edges.length; edge++) { const next = handler.move(p, board, { edge }); if (next) nextStates.set(next.presses.join(','), next); }
+      }
+      states = [...nextStates.values()];
+      if (states.length > 4000) states = states.slice(0, 4000);
+    }
+  }
+  const p = puzzle('toggle-03');
+  const wasted = handler.move(p, initial(p), { edge: p.parameters.edges.findIndex((_, edge) => handler.hint(p, handler.move(p, initial(p), { edge })).type === 'deadend') });
+  const hint = handler.hint(p, wasted);
+  assert.equal(hint.quiet, true);
+  assert.match(hint.text, /^This picture needs \d+ more press(es)?, but only \d+ (press remains|presses remain)\. Undo a press or start again\.$/);
+});
+
 test('clock counts require the first positive simultaneous hit, including proper orbits and wraps', () => {
   const handler = motionMechanics.clock;
   for (const p of puzzles.filter(p => p.mechanic === 'clock' && p.parameters.mode !== 'choose_jump')) {
