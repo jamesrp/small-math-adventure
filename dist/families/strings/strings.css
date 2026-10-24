@@ -20,7 +20,7 @@
 [data-mechanic-wire="strings"] .st-rim{fill:var(--st-paper);stroke:var(--st-ink);stroke-width:.9}
 [data-mechanic-wire="strings"] .st-dot{cursor:pointer}
 [data-mechanic-wire="strings"] .st-circle:not(.mode-dots) .st-dot{cursor:default}
-[data-mechanic-wire="strings"] .st-dot .st-ring{fill:transparent;stroke:none}
+[data-mechanic-wire="strings"] .st-dot .st-ring,[data-mechanic-wire="strings"] .st-dot .st-dot-hit{fill:transparent;stroke:none}
 [data-mechanic-wire="strings"] .st-dot .st-disc{fill:var(--st-paper);stroke:var(--st-ink);stroke-width:1.1}
 [data-mechanic-wire="strings"] .st-dot.mine .st-disc{fill:var(--st-sun)}
 [data-mechanic-wire="strings"] .st-dot.fixed .st-disc{fill:var(--st-pine)}
@@ -74,7 +74,7 @@
 [data-mechanic-wire="strings"] .st-over{stroke:var(--st-sun);stroke-width:2.2;stroke-linecap:round;stroke-opacity:.95}
 [data-mechanic-wire="strings"] .st-dash{stroke:var(--st-ochre);stroke-width:1.3;stroke-dasharray:2.2 1.6;stroke-linecap:round}
 [data-mechanic-wire="strings"] .st-vertex{fill:var(--st-ink)}
-[data-mechanic-wire="strings"] .st-num{font-family:var(--b-display,Georgia,serif);font-size:4.2px;fill:var(--st-muted);text-anchor:middle}
+[data-mechanic-wire="strings"] .st-num{font-family:var(--b-display,Georgia,serif);font-size:4.6px;fill:var(--st-muted);text-anchor:middle}
 [data-mechanic-wire="strings"] .st-corner{cursor:pointer}
 [data-mechanic-wire="strings"] .st-corner .st-corner-hit{fill:transparent}
 [data-mechanic-wire="strings"] .st-corner .st-corner-ring{fill:var(--st-paper);stroke:var(--st-pine);stroke-width:1}

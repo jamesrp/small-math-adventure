@@ -391,9 +391,9 @@ function figure(kind, k, colour) {
   const body = '<path class="wk-body" d="M10 59 C10 45 16 40 24 40 C32 40 38 45 38 59 Z"/>';
   const head = '<circle class="wk-head" cx="24" cy="22" r="15"/><circle class="wk-eye" cx="19" cy="25.5" r="1.7"/><circle class="wk-eye" cx="29" cy="25.5" r="1.7"/><path class="wk-smile" d="M19.5 30.5 Q24 34 28.5 30.5"/>';
   if (kind === 'cafe') {
-    return `<svg class="wk-figure" viewBox="0 0 48 60" aria-hidden="true">${body}${head}<rect class="wk-held" x="16" y="42" width="16" height="13" rx="2"/><text class="wk-held-q" x="24" y="48.8">?</text></svg>`;
+    return `<svg class="wk-figure" viewBox="0 0 48 60" aria-hidden="true">${body}${head}<rect class="wk-held" x="15" y="41.5" width="18" height="15.5" rx="2"/><text class="wk-held-q" x="24" y="49.6">?</text></svg>`;
   }
-  return `<svg class="wk-figure" viewBox="0 0 48 60" aria-hidden="true">${body}${head}<path class="${band}" d="M8.6 14 Q24 3.5 39.4 14 L39.8 24 Q24 14.5 8.2 24 Z"/><text class="wk-band-letter" x="24" y="14.6">${colour || '?'}</text></svg>`;
+  return `<svg class="wk-figure" viewBox="0 0 48 60" aria-hidden="true">${body}${head}<path class="${band}" d="M8.6 14 Q24 3.5 39.4 14 L39.8 24.5 Q24 16 8.2 24.5 Z"/><text class="wk-band-letter" x="24" y="14.8">${colour || '?'}</text></svg>`;
 }
 const chip = (reply, extra = '') => `<span class="wk-chip wk-${reply}${extra}">${SAY[reply]}</span>`;
 // A card's face: one letter per person, Y or N on a green or rose tile in the

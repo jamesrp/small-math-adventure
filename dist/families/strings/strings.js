@@ -571,6 +571,9 @@ function sidePath(n, [a, b], side) {
   do { at = at % n + 1; d += `A${R} ${R} 0 0 1 ${pt(dotAt(n, at))}`; } while (at !== to);
   return `${d}Z`;
 }
+// A dot's tap circle: past its ring, up to halfway to the next dot, so a
+// dot on a phone is a 40 px target.
+export const dotHit = n => Math.min(8.5, R * Math.sin(Math.PI / n) - .3);
 const line = ([a, b], n, cls, extra = '') => { const [x1, y1] = dotAt(n, a), [x2, y2] = dotAt(n, b); return `<line class="${cls}" x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}"${extra}/>`; };
 const stringSvg = (s, n, cls) => `<g class="st-string ${cls}">${line(s, n, 'st-edge')}${line(s, n, 'st-core')}</g>`;
 
@@ -603,7 +606,7 @@ function circleSvg(n, opts) {
     const doing = !control ? '' : pick === d ? '. Put it down' : state === 'free' ? (pick ? `. Join it to ${pick}` : '. Pick it') : state === 'mine' ? '. Take off its string' : '';
     // A dark string's dots stay in the arrow-key ring but do nothing.
     const attrs = control ? ` data-dot="${d}" role="button" tabindex="0" data-focus="st-dot-${d}"${state === 'fixed' ? ' aria-disabled="true"' : ''} aria-label="${esc(`Dot ${d}${partner}${doing}`)}"` : '';
-    return `<g class="${cls}"${attrs}><circle class="st-ring" cx="${f(x)}" cy="${f(y)}" r="5.6"/><circle class="st-disc" cx="${f(x)}" cy="${f(y)}" r="3.3"/>${small ? '' : `<text x="${f(lx)}" y="${f(ly)}">${d}</text>`}</g>`;
+    return `<g class="${cls}"${attrs}>${control ? `<circle class="st-dot-hit" cx="${f(x)}" cy="${f(y)}" r="${f(dotHit(n))}"/>` : ''}<circle class="st-ring" cx="${f(x)}" cy="${f(y)}" r="5.6"/><circle class="st-disc" cx="${f(x)}" cy="${f(y)}" r="3.3"/>${small ? '' : `<text x="${f(lx)}" y="${f(ly)}">${d}</text>`}</g>`;
   }).join('');
   const board = mode === 'regions' || mode === 'strings' ? ' tabindex="-1" data-focus="st-board"' : '';
   return `<svg class="st-circle${small ? ' st-mini' : ''} mode-${mode}" viewBox="${small ? '6 6 88 88' : '0 0 100 100'}" role="group" aria-label="${esc(label)}"${board}><circle class="st-rim" cx="${C}" cy="${C}" r="${R}"/>${shade}${regionLayer}${strings}${extra}${blockers}${attempt}${dots}</svg>`;
@@ -625,7 +628,7 @@ function pathSvg(word, {label = 'Path', steps = () => '', over = null, dashed = 
   const hw = heights(word);
   const cornerSvg = hot.map(c => {
     const [x, y] = P(c.at, hw[c.at]), label = `${c.kind === 'valley' ? 'Low corner' : 'Peak'} after step ${c.at}, height ${hw[c.at]}. Swap steps ${c.at} and ${c.at + 1}`;
-    return `<g class="st-corner ${c.kind}${hinted === c.at ? ' hinted' : ''}" data-corner="${c.at}" role="button" tabindex="0" data-focus="st-corner-${c.at}" aria-label="${esc(label)}"><circle class="st-corner-hit" cx="${f(x)}" cy="${f(y)}" r="6.5"/><circle class="st-corner-ring" cx="${f(x)}" cy="${f(y)}" r="3.6"/></g>`;
+    return `<g class="st-corner ${c.kind}${hinted === c.at ? ' hinted' : ''}" data-corner="${c.at}" role="button" tabindex="0" data-focus="st-corner-${c.at}" aria-label="${esc(label)}"><circle class="st-corner-hit" cx="${f(x)}" cy="${f(y)}" r="7"/><circle class="st-corner-ring" cx="${f(x)}" cy="${f(y)}" r="3.6"/></g>`;
   }).join('');
   const dots = heights(word).map((h, i) => `<circle class="st-vertex" cx="${f(P(i, h)[0])}" cy="${f(P(i, h)[1])}" r="1.3"/>`).join('');
   return `<svg class="st-path" viewBox="0 0 ${f(W)} ${f(H)}" role="img" aria-label="${esc(label)}">${grid.join('')}${under}${dashed ? segs(dashed, 'st-dash') : ''}${segs(word, 'st-step', steps)}${over ? segs(over, 'st-over') : ''}${dots}${nums}${cornerSvg}</svg>`.replace('role="img"', hot.length ? 'role="group"' : 'role="img"');

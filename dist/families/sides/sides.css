@@ -24,7 +24,7 @@
 /* The cup: the numbers that can be drawn. */
 .side-cup{display:flex;align-items:center;gap:.5rem;padding:.3rem .8rem .3rem .5rem;border:1.5px solid var(--b-line,#d0d6bd);border-radius:999px;background:var(--b-card,#fffdf5)}
 .side-cup-icon{width:1.9rem;height:2rem;color:#d8c9a3}
-.side-cup .side-mini .side-face{width:1.45em;height:1.6em;font-size:.85em}
+.side-cup .side-mini .side-face{width:1.45em;height:1.6em;font-size:1em}
 .side-pile{display:inline-flex;align-items:center;gap:.15rem;margin:0 .25rem;font-family:var(--b-display,Georgia,serif);font-weight:700}
 .board-panel .side-face.hinted{outline:4px dashed var(--b-ochre,#b38840);outline-offset:3px}
 /* Small chips for colours alone: bin labels, whole-card copies, the playground's piles. */
@@ -32,6 +32,8 @@
 .side-chip.under{opacity:.7;border-style:dashed}
 .side-under-word{margin-left:.35rem;font-size:.85rem;color:var(--b-muted,#5a6850)}
 .side-mini{gap:.15rem}
+/* Numbers on small sides (the cup, kept sides) read at 12 px or more on a phone. */
+:is(.side-puzzle,.side-play) .side-mini .side-face{font-size:1em}
 .case-catalog .side-mini .side-face{width:1.2em;height:1.35em;font-size:.75em}
 .case-catalog .side-mini:has(.side-card){flex-wrap:wrap;justify-content:center;max-width:100%}
 .case-catalog .side-mini .side-card.mini{padding:.1rem;gap:1px}

@@ -582,7 +582,7 @@ function sheetBoard(p, b, v, attempt) {
   const points = range(cross ? 0 : 1, L.J).flatMap(j => range(cross ? 0 : 1, L.I).map(i => [i, j])).filter(c => c[0] || c[1]).map(c => {
     const [i, j] = c, x = SX(i * q.width), y = SY(j * q.height), on = chosen && same(chosen, c);
     const refused = cross && b.tap && !b.done && same(b.tap, c);
-    return `<g class="cr-crossing${on ? ' chosen' : ''}${refused ? ' refused' : ''}${hintAt && same(hintAt, c) ? ' hinted' : ''}" data-at="${i},${j}" data-cx="${x}" data-cy="${y}" role="button" tabindex="${same(cursor, c) ? 0 : -1}" data-focus="cr-at-${i}-${j}"${over ? ' aria-disabled="true"' : ''} aria-pressed="${Boolean(on)}" aria-label="Crossing ${i} across, ${j} up"><circle class="cr-hit" cx="${x}" cy="${y}" r="${num(Math.max(8, Math.min(16, s * Math.min(q.width, q.height) / 2.2)))}"/><circle class="cr-pt" cx="${x}" cy="${y}" r="3.5"/></g>`;
+    return `<g class="cr-crossing${on ? ' chosen' : ''}${refused ? ' refused' : ''}${hintAt && same(hintAt, c) ? ' hinted' : ''}" data-at="${i},${j}" data-cx="${x}" data-cy="${y}" role="button" tabindex="${same(cursor, c) ? 0 : -1}" data-focus="cr-at-${i}-${j}"${over ? ' aria-disabled="true"' : ''} aria-pressed="${Boolean(on)}" aria-label="Crossing ${i} across, ${j} up"><circle class="cr-hit" cx="${x}" cy="${y}" r="${num(crossingHit(s * Math.min(q.width, q.height)))}"/><circle class="cr-pt" cx="${x}" cy="${y}" r="3.5"/></g>`;
   }).join('');
   const aimArrow = !cross && v.aim ? (() => { const { rise, run } = aimAt(q.width, q.height, ...v.aim), n = Math.hypot(run, rise), len = 26; return `<g class="cr-arrow"><line x1="${SX(0)}" y1="${SY(0)}" x2="${num(SX(0) + len * run / n)}" y2="${num(SY(0) - len * rise / n)}"/><circle cx="${num(SX(0) + len * run / n)}" cy="${num(SY(0) - len * rise / n)}" r="3.5"/></g>`; })() : '';
   const label = cross ? `Copies of a ${q.width} by ${q.height} room, ${L.I} across and ${L.J} up, with the ball's straight line drawn.` : `Room ${q.width} wide and ${q.height} high; goal: the ${legendCorner(target)} corner. Below, copies of the room, ${L.I} across and ${L.J} up.`;
@@ -592,6 +592,10 @@ function sheetBoard(p, b, v, attempt) {
 </svg>`;
 }
 
+// A crossing's tap circle: nearly halfway to the next crossing, up to 26
+// units (about 46 px on a phone). A tap goes to the nearest crossing anyway
+// (wireDots, data-reach); the circle shows the room that is surely its own.
+export const crossingHit = gap => Math.max(8, Math.min(26, gap / 2.1));
 const button = (label, action, cls = 'secondary', extra = '') => `<button type="button" class="${cls} expansion-action cr-button" data-action="expansion-move" data-move="${esc(JSON.stringify(action))}" ${extra}>${label}</button>`;
 
 function told(q, b) {

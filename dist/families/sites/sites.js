@@ -371,7 +371,7 @@ function sitesLayer(q, b, opt) {
   const dots = b.dots.map((d, k) => {
     const i = q.mode === 'playground' ? k : q.sites.length + k, held = opt.held && G.samePoint(opt.held, d);
     const name = nameOf(q, i), cls = q.mode === 'playground' ? `st-site c-${colorOf(q, i)}` : 'st-dot';
-    return `<g class="${cls}${held ? ' held' : ''}" data-dot="${G.keyOf(d)}" transform="translate(${at(d)})"><circle r="${q.mode === 'playground' ? 0.46 : 0.38}"/>${name ? label([0, 0], name) : ''}</g>`;
+    return `<g class="${cls}${held ? ' held' : ''}" data-dot="${G.keyOf(d)}" transform="translate(${at(d)})"><circle class="st-grab" r="${GRAB}"/><circle r="${q.mode === 'playground' ? 0.46 : 0.38}"/>${name ? label([0, 0], name) : ''}</g>`;
   });
   return `${fixed.join('')}${dots.join('')}`;
 }
@@ -494,6 +494,16 @@ const exactAt = (svg, x, y) => {
 };
 const pointAt = (svg, x, y) => { const r = exactAt(svg, x, y); return r && [Math.round(r[0]), Math.round(r[1])]; };
 const LIFT = 2;
+// A drag can start within GRAB of a dot (in half-steps: a 40 px target on a
+// phone, where a point is about 27 px from the next). A tap still goes to the
+// nearest point, so a tap beside a dot puts a new dot there and never takes
+// the old one away.
+const GRAB = 0.8;
+export function grabbed(dots, [u, v]) {
+  let best = null;
+  for (const d of dots) { const dist = Math.hypot(d[0] - u, d[1] - v); if (dist <= GRAB && (!best || dist < best.dist)) best = {d, dist}; }
+  return best?.d ?? null;
+}
 const clamp = (z, F) => [Math.max(-F, Math.min(F, z[0])), Math.max(-F, Math.min(F, z[1]))];
 function onMove(e) {
   const g = gesture;
@@ -523,7 +533,7 @@ function onEnd(e) {
   if (e.type !== 'pointerup') { g.api.ui({}); return; }
   if (g.dot && !G.samePoint(g.at, g.dot)) { g.api.apply({type: 'move', from: g.dot, to: g.at}); return; }
   if (g.moved) { if (g.dot) g.api.ui({}); return; }
-  if (g.dot) { g.api.apply({type: 'remove', at: g.dot}); return; }
+  if (g.tapDot) { g.api.apply({type: 'remove', at: g.tapDot}); return; }
   const b = g.api.attempt().board;
   if (!placeable(g.q, b, g.start)) return;
   if (b.dots.length >= budgetOf(g.q)) { const box = g.root.querySelector('.st-slots'); box?.classList.remove('full'); void box?.getBoundingClientRect(); box?.classList.add('full'); return; }
@@ -547,11 +557,12 @@ function wire(root, p, api) {
     if (e.button > 0 || !e.isPrimary || busy()) return;
     const exact = exactAt(svg, e.clientX, e.clientY);
     if (!exact) return;
-    const b = api.attempt().board, raw = labelAt(q, b, exact) || exact.map(Math.round);
-    if (!G.inFrame(raw, q.frame)) return;
-    const dot = has(b.dots, raw) ? raw : null, scale = svg.getScreenCTM?.()?.a || 20;
+    const b = api.attempt().board, label = labelAt(q, b, exact), raw = label || exact.map(Math.round);
+    const tapDot = has(b.dots, raw) ? raw : null, dot = tapDot || (label ? null : grabbed(b.dots, exact));
+    if (!G.inFrame(raw, q.frame) && !dot) return;
+    const scale = svg.getScreenCTM?.()?.a || 20;
     ui(p).keys = false;
-    gesture = {pointer: e.pointerId, svg, root, api, q, x: e.clientX, y: e.clientY, start: raw, at: raw, dot, moved: false, lift: e.pointerType === 'touch' ? LIFT * scale : 0, el: dot ? svg.querySelector(`[data-dot="${G.keyOf(dot)}"]`) : null};
+    gesture = {pointer: e.pointerId, svg, root, api, q, x: e.clientX, y: e.clientY, start: raw, at: dot || raw, dot, tapDot, moved: false, lift: e.pointerType === 'touch' ? LIFT * scale : 0, el: dot ? svg.querySelector(`[data-dot="${G.keyOf(dot)}"]`) : null};
     if (dot) { root.classList.add('dragging'); e.preventDefault(); }
   });
   // A mouse shows where a dot would go.

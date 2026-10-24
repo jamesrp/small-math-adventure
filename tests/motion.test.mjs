@@ -157,6 +157,19 @@ test('long clock periods use a compact count input while introductory charts rem
   assert.equal(handler.solved(large, handler.move(large, initial(large), {activations: '19'})), true);
 });
 
+test('several clocks draw the compact face so two fit side by side on a phone; one clock keeps the plain face', () => {
+  const handler = motionMechanics.clock;
+  for (const p of puzzles.filter(q => q.mechanic === 'clock')) {
+    const html = handler.render(p, {board: initial(p)});
+    const several = (p.parameters.clocks?.length ?? 1) > 1;
+    assert.equal(html.includes('class="clock-pictures clock-several"'), several, p.id);
+    assert.equal((html.match(/class="clock-picture clock-compact"/g) ?? []).length, several ? p.parameters.clocks.length : 0, p.id);
+    const places = [...html.matchAll(/<g class="clock-position[^"]*"><circle cx="[^"]+" cy="[^"]+" r="(\d+)"/g)].map(m => Number(m[1]));
+    assert.ok(places.length && places.every(r => r === (several ? 25 : 18)), `${p.id}: place circles`);
+    if (several) assert.match(html, /<text class="clock-center-label" x="160" y="188">/);
+  }
+});
+
 test('choose-jump ring maps taps and drags to allowed clockwise jumps', () => {
   for (const id of ['clock-04', 'clock-07']) {
     const p = puzzle(id), {positions,start,jump_min,jump_max} = p.parameters;

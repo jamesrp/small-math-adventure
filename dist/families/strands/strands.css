@@ -10,17 +10,32 @@
 [data-mechanic-wire="strands"] .st-stage{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"lift" "room";gap:.6rem;justify-items:center;align-items:center;width:100%;max-width:560px}
 [data-mechanic-wire="strands"] .st-view{width:100%;min-width:0}
 [data-mechanic-wire="strands"] .st-lift-view{grid-area:lift}
-[data-mechanic-wire="strands"] .st-room-view{grid-area:room;max-width:190px}
-/* Side by side, the cylinder keeps a column of its own, never narrower than
-   on a phone: 230 px wide (about 400 px tall) beside the unrolled view. */
+[data-mechanic-wire="strands"] .st-room-view{grid-area:room;max-width:230px}
+/* The cylinder is 230 px wide (about 400 px tall) on a phone too, so its
+   beads are 40 px targets; side by side it keeps a column of its own. */
 @container (min-width:520px){
   [data-mechanic-wire="strands"] .st-stage{grid-template-columns:minmax(190px,230px) minmax(0,1fr);grid-template-areas:"room lift";max-width:820px;gap:1.2rem}
   [data-mechanic-wire="strands"] .st-room-view{max-width:230px}
 }
 /* On a phone the unrolled view is about 13 px a column: larger crossing rings and A. */
+[data-mechanic-wire="strands"] .st-lift .st-letter{font-size:.75px}
+/* With fewer copies (puzzles 1 and 2) the unrolled view is drawn larger; on a
+   phone it is held to 168 px tall, so the cylinder below still ends on a
+   390 × 844 screen. */
 @container (max-width:519px){
+  [data-mechanic-wire="strands"] .st-stage{gap:.35rem}
+  [data-mechanic-wire="strands"] .st-lift{max-height:168px}
   [data-mechanic-wire="strands"] .st-lift .st-cross{r:.34px}
-  [data-mechanic-wire="strands"] .st-lift .st-letter{font-size:.85px}
+  [data-mechanic-wire="strands"] .st-lift .st-letter{font-size:1.05px}
+}
+/* On a touch screen the unrolled view's beads (13 to 19 px apart) are
+   pictures: beads slide in the cylinder, where they are 40 px targets, and
+   the unrolled view of an untangle puzzle lets the page scroll. A mouse
+   slides beads in either view. */
+@media (pointer:coarse){
+  [data-mechanic-wire="strands"] .st-lift .st-bead{pointer-events:none}
+  [data-mechanic-wire="strands"] .st-lift .st-bead.act{cursor:default}
+  [data-mechanic-wire="strands"] .st-lift.pb-slide:not(.design){touch-action:auto}
 }
 
 /* The boards. */

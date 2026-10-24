@@ -23,6 +23,8 @@ button.lp-clue{cursor:pointer;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
 .lp-clue b{min-width:1.1em;margin-left:5px;font:400 1.35rem/1 var(--b-display,Georgia,serif);text-align:center}
 .lp-clue .lp-dash{font-style:normal;color:var(--b-muted,#6c7a6c)}
 .lp-icon{width:34px;height:34px;display:block}
+/* A letter inside a clue icon's shape reads at 12 px or more. */
+.lp-icon .lp-letter:not(.plain){font-size:8.8px}
 .lp-clue.lit{border-color:var(--b-pine,#31533e);background:var(--b-good-soft,#e2ecd6)}
 .lp-clue.lit b{color:var(--b-pine,#31533e)}
 .lp-clue.chosen{border-color:var(--b-ochre,#b38840);box-shadow:0 0 0 3px var(--b-ochre,#b38840)}
@@ -52,7 +54,7 @@ button.lp-clue{cursor:pointer;box-shadow:0 2px 0 var(--b-line,#d0d6bd)}
 .lp-badge .lp-tag{stroke:var(--b-ink,#294439);stroke-width:1.6px;vector-effect:non-scaling-stroke;fill:var(--b-card,#fffdf5)}
 .lp-badge.l2 .lp-tag{fill:var(--b-sun,#f3d27a)}
 .lp-badge.l4 .lp-tag{fill:var(--b-leaf,#b9d39a)}
-.lp-badge text{font:400 13px var(--b-display,Georgia,serif);text-anchor:middle;fill:var(--b-ink,#294439);pointer-events:none}
+.lp-badge text{font:400 14.5px var(--b-display,Georgia,serif);text-anchor:middle;fill:var(--b-ink,#294439);pointer-events:none}
 .lp-badge[role=button]{cursor:pointer}
 .lp-badge.hinted .lp-tag,.lp-badge.refused .lp-tag{stroke:var(--b-ochre,#b38840);stroke-width:3.4px}
 .lp-face{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:1.4px;vector-effect:non-scaling-stroke}

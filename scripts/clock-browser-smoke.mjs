@@ -17,12 +17,23 @@ try {
   await page.locator('#profile-form button[type=submit]').click();
   await open('clock-01');
   assert.equal(await page.locator('.bell-number').count(), 10, 'introductory counts retain tap choices');
+  if (phone) {
+    const widths = await page.locator('.bell-number').evaluateAll(els => els.map(el => el.getBoundingClientRect().width));
+    assert.ok(Math.min(...widths) >= 44, `bell numbers are 44 px wide on a phone, in rows of five (${Math.round(Math.min(...widths))})`);
+  }
   await page.locator('[name="activations"][value="3"]').check();
   await ring();
   await page.locator('#completion-heading').waitFor();
 
   await open('clock-12');
   const count = page.getByRole('spinbutton', {name: 'Bells', exact: true});
+  // Three clocks: two side by side on a phone, numbers at least 12 px, Ring on the screen.
+  const clocks = await page.locator('.clock-picture').evaluateAll(els => els.map(el => el.getBoundingClientRect().top));
+  assert.equal(clocks.length, 3);
+  if (phone) assert.equal(clocks[0], clocks[1], 'the first two clocks share a row on a phone');
+  const smallest = await page.locator('.clock-compact .clock-position text, .clock-compact .clock-center-label').evaluateAll(els => Math.min(...els.map(el => parseFloat(getComputedStyle(el).fontSize) * el.getScreenCTM().a)));
+  assert.ok(smallest >= 12, `clock numbers are ${smallest.toFixed(1)} px`);
+  if (phone) assert.ok(await page.getByRole('button', {name: 'Ring', exact: true}).evaluate(el => el.getBoundingClientRect().bottom <= innerHeight), 'Ring is on the phone screen without scrolling');
   assert.equal(await page.locator('.bell-number').count(), 0, 'a sixty-button bank becomes one input');
   assert.equal(await count.getAttribute('max'), '60');
   assert.equal(await count.inputValue(), '');

@@ -475,3 +475,12 @@ test('undo through the engine carries refusals; a refused claim is not lost', ()
   assert.ok(move(p, carried, { type: 'tap', at: [3, 7] }));
   assert.ok(roomsFor(p.parameters).length === 0);
 });
+
+import { crossingHit } from '../dist/couriers.js';
+test('crossing tap circles stop short of halfway to the next crossing, from 8 to 26 units', () => {
+  for (const gap of [10, 16.8, 20, 40, 54.6, 80, 200]) {
+    const r = crossingHit(gap);
+    assert.ok(r >= 8 && r <= 26, `gap ${gap}`);
+    if (gap >= 16.8) assert.ok(2 * r < gap, `gap ${gap}: circles apart`);
+  }
+});

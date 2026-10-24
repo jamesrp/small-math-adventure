@@ -19,6 +19,12 @@
 .bf-frame{display:block;width:min(100%, calc(var(--bf-w) * 92px + 60px));height:auto;overflow:visible;user-select:none;-webkit-user-select:none}
 .bf-side{flex:0 1 230px;max-width:250px}
 .bf-side .gb-board{margin:0 auto}
+/* A phone draws the graph across, under the frame (braces.js). */
+.bf-side.bf-wide{display:none}
+@media (max-width:560px){
+  .bf-side.bf-tall{display:none}
+  .bf-side.bf-wide{display:block;flex:1 1 100%;max-width:400px}
+}
 
 /* The frame. */
 .bf-cell{fill:transparent;stroke:none}
@@ -38,7 +44,7 @@
 .bf-brace.told{stroke:var(--b-bad,#a9503a);stroke-dasharray:6 5}
 .bf-pin{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:2px;vector-effect:non-scaling-stroke;pointer-events:none}
 .bf-bars,.bf-braces,.bf-pins{pointer-events:none}
-.bf-name{font-family:var(--b-display,Georgia,serif);font-size:4.4px;fill:#7d8c73;text-anchor:middle}
+.bf-name{font-family:var(--b-display,Georgia,serif);font-size:5px;fill:#7d8c73;text-anchor:middle}
 @media (prefers-reduced-motion:no-preference){.bf-frame.bf-firm{animation:bf-firm .5s ease-in-out}}
 @keyframes bf-firm{20%{transform:translateX(1.5px)}40%{transform:translateX(-1.5px)}60%{transform:translateX(1px)}80%{transform:translateX(-.5px)}}
 

@@ -83,12 +83,19 @@ try {
   await drag([1, 0], [2, 0], async finger => {
     // Mid-drag on a phone: the dot and a cross at its crossing, above the finger.
     assert.equal(await page.locator('.st-sites g.dragged .st-aim').count(), 1, 'the dragged dot shows its crossing');
-    const r = await page.locator('.st-sites g.dragged circle').boundingBox();
+    const r = await page.locator('.st-sites g.dragged circle:not(.st-grab)').boundingBox();
     assert.ok(r.y + r.height < finger[1] - 4, 'the dot is clear above the finger');
   });
   assert.deepEqual((await board(P)).dots, [H([2, 0])], 'a drag moves the dot');
   await undoButton();
   assert.deepEqual((await board(P)).dots, [H([1, 0])], 'Undo takes back the whole drag');
+  // A drag may start beside a dot (0.35 squares off, nearer the free point at 1.5); a tap there puts a new dot down.
+  await drag([1.35, 0], [2, 0]);
+  assert.deepEqual((await board(P)).dots, [H([2, 0])], 'a drag that starts beside a dot moves it');
+  await undoButton();
+  await tap([1.35, 0]);
+  assert.deepEqual((await board(P)).dots, [H([1, 0]), H([1.5, 0])], 'a tap beside a dot goes to the nearest point');
+  await undoButton();
   await drag([1, 0], [2, 0]);
   assert.equal(await cells(), 0, 'no regions before Check');
   await press('Check');

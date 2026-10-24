@@ -152,14 +152,17 @@ function solvedClock(p, board) {
 // The drawing inside one clock: its places, the jump arrow, the trail of bells
 // rung so far and the marker. Shared by the board below and the ferry's bell
 // wheels on the Lantern Road (dist/road-stage.js).
-// `big` draws larger places and numbers, for a wheel drawn small.
-export function clockFace(clock, count, total, { big = false } = {}) {
+// `big` draws larger places and numbers, for a wheel drawn small; `compact` does
+// the same for the board's clocks laid side by side, with the count and its
+// word spaced for larger type (motion.css .clock-compact).
+export function clockFace(clock, count, total, { big = false, compact = false } = {}) {
+  big ||= compact;
   const point = (position, radius = 110) => [160 + radius * Math.sin(position * 2 * Math.PI / clock.positions), 160 - radius * Math.cos(position * 2 * Math.PI / clock.positions)];
   const current = clockPlace(clock, count);
   const arrow = clockJumpArc(clock.positions, clock.start, clock.jump);
   const nodes = range(0, clock.positions - 1).map(position => {
     const [x, y] = point(position), target = clock.target === position;
-    const [starX, starY] = point(position, 138);
+    const [starX, starY] = point(position, compact ? 146 : 138);
     return `<g class="clock-position ${target ? 'clock-target' : ''}"><circle cx="${x}" cy="${y}" r="${big ? 25 : 18}"/><text x="${x}" y="${y + (big ? 9 : 5)}">${position}</text>${target ? `<text class="clock-star" x="${starX}" y="${starY + 6}">★</text>` : ''}</g>`;
   }).join('');
   const [x, y] = point(current);
@@ -167,15 +170,15 @@ export function clockFace(clock, count, total, { big = false } = {}) {
     const step = clockTrailStep(clock.positions, clock.start, clock.jump, bell, total);
     return `<path class="clock-trail" d="${step.path}"/><polygon class="clock-trail-head" points="${step.head}"/>`;
   }).join('');
-  return `<circle class="clock-ring" cx="160" cy="160" r="110"/><path class="clock-jump-arrow" d="${arrow.path}"/><polygon class="clock-jump-head" points="${arrow.head}"/>${trail}${nodes}<circle class="clock-marker" cx="${x}" cy="${y}" r="${big ? 30 : 23}"/><text class="clock-center" x="160" y="157">${count}</text><text class="clock-center-label" x="160" y="179">${count === 1 ? 'bell' : 'bells'}</text>`;
+  return `<circle class="clock-ring" cx="160" cy="160" r="110"/><path class="clock-jump-arrow" d="${arrow.path}"/><polygon class="clock-jump-head" points="${arrow.head}"/>${trail}${nodes}<circle class="clock-marker" cx="${x}" cy="${y}" r="${big ? 30 : 23}"/><text class="clock-center" x="160" y="${compact ? 154 : 157}">${count}</text><text class="clock-center-label" x="160" y="${compact ? 188 : 179}">${count === 1 ? 'bell' : 'bells'}</text>`;
 }
 export const clockPlace = (clock, count) => (clock.start + clock.jump * (count % clock.positions)) % clock.positions;
 
-function clockPicture(clock, count, label, total, control = null) {
+function clockPicture(clock, count, label, total, control = null, compact = false) {
   const arrow = clockJumpArc(clock.positions, clock.start, clock.jump), current = clockPlace(clock, count);
   const name = `${esc(label)}: ${clock.positions} places, jump ${clock.jump} clockwise from ${arrow.from} to ${arrow.to}, star ${clock.target}. Marker ${count ? 'at' : 'starts at'} ${current}.`;
   const role = control ? `role="slider" tabindex="0" data-focus="clock-jump" aria-valuemin="${control.min}" aria-valuemax="${control.max}" aria-valuenow="${clock.jump}" aria-valuetext="Jump ${clock.jump} clockwise from ${arrow.from} to ${arrow.to}"` : 'role="img"';
-  return `<figure class="clock-picture"><figcaption>${esc(label)}<span class="clock-jump-caption">Jump ${clock.jump}</span></figcaption><svg viewBox="0 0 320 320" ${role} aria-label="${name}">${clockFace(clock, count, total)}</svg></figure>`;
+  return `<figure class="clock-picture${compact ? ' clock-compact' : ''}"><figcaption>${esc(label)}<span class="clock-jump-caption">Jump ${clock.jump}</span></figcaption><svg viewBox="0 0 320 320" ${role} aria-label="${name}">${clockFace(clock, count, total, { compact })}</svg></figure>`;
 }
 
 // Small count puzzles offer tap choices, marking the numbers already rung.
@@ -226,7 +229,7 @@ const clock = {
     const count = presentation.count ?? submittedCount;
     const controls = gear ? `<input type="hidden" name="jump" value="${clocks[0].jump}">` : bellChart(p, attempt, presentation);
     const feedback = clockFeedback(p, attempt);
-    return `<div class="motion-board clock-board${gear?' clock-choose':''}"><div class="clock-pictures">${clocks.map((item, i) => clockPicture(item, count, clocks.length>1?`Clock ${i + 1} · `:'', submittedCount, gear ? { min: params.jump_min, max: params.jump_max } : null)).join('')}</div><form data-puzzle-form class="motion-form" id="bell-form">${controls}${submitButton('Ring')}</form>${feedback ? `<div class="motion-result" role="status">${feedback}</div>` : ''}</div>`;
+    return `<div class="motion-board clock-board${gear?' clock-choose':''}"><div class="clock-pictures${clocks.length > 1 ? ' clock-several' : ''}">${clocks.map((item, i) => clockPicture(item, count, clocks.length>1?`Clock ${i + 1} · `:'', submittedCount, gear ? { min: params.jump_min, max: params.jump_max } : null, clocks.length > 1)).join('')}</div><form data-puzzle-form class="motion-form" id="bell-form">${controls}${submitButton('Ring')}</form>${feedback ? `<div class="motion-result" role="status">${feedback}</div>` : ''}</div>`;
   },
   help(p, attempt) {
     const params = p.parameters, prediction = attempt.board.prediction, gear = params.mode === 'choose_jump';

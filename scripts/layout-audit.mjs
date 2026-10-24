@@ -216,7 +216,7 @@ async function audit(){
    const result={id:m.id,puzzles:m.puzzles.length,results:[],errors:[]};
    for(const vp of viewports){
     const context=await browser.newContext({viewport:{width:vp.width,height:vp.height},hasTouch:true});
-    const page=await context.newPage();page.on('pageerror',e=>result.errors.push(`${vp.name}: ${e.message}`));
+    const page=await context.newPage();page.on('pageerror',e=>result.errors.push(`${vp.name}: ${e.message}`));let cdp=null;
     try{
      await page.goto(base);await page.locator('#nickname').fill('Explorer');await page.locator('#profile-form button[type=submit]').click();await page.locator('#main').waitFor();
      for(const p of m.puzzles){
@@ -230,6 +230,10 @@ async function audit(){
        if(shotDir&&findings){
         const path=join(shotDir,m.id,`${p.id}-${vp.name}.jpg`);await mkdir(dirname(path),{recursive:true});
         await page.evaluate(mark,data);await page.screenshot({path,fullPage:true,type:'jpeg',quality:60});await page.evaluate(()=>document.querySelector('#layout-audit-marks')?.remove());
+        // A full-page screenshot drops Chromium's touch emulation, and with it
+        // (pointer:coarse) and (hover:none): turn it back on for the next
+        // puzzle (on a session kept open, since closing one clears it again).
+        cdp||=await context.newCDPSession(page);await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
         row.shot=path;
        }
        result.results.push(row);

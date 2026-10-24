@@ -86,7 +86,7 @@
 [data-mechanic-wire="tetra"] .tt-mini .tt-solid{inset:3px 4px;width:calc(100% - 8px);height:calc(100% - 6px)}
 [data-mechanic-wire="tetra"] :is(.tt-stack.chosen,.tt-stack.compared) .tt-layer:last-child .tt-mini{border:2.5px solid var(--b-pine,#31533e)}
 [data-mechanic-wire="tetra"] .tt-mini-discs circle{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:1.4px;vector-effect:non-scaling-stroke}
-[data-mechanic-wire="tetra"] .tt-mini-letters text{font:400 17px var(--b-display,Georgia,serif);fill:var(--b-ink,#294439);text-anchor:middle}
+[data-mechanic-wire="tetra"] .tt-mini-letters text{font:400 24px var(--b-display,Georgia,serif);fill:var(--b-ink,#294439);text-anchor:middle}
 [data-mechanic-wire="tetra"].solved .tt-mini{border-color:var(--b-pine,#31533e)}
 
 /* A phone: the busiest boards (every pair with a full shelf, eight models to
@@ -101,7 +101,7 @@
   [data-mechanic-wire="tetra"] .tt-bar{gap:.45rem .6rem}
   [data-mechanic-wire="tetra"] .tt-button{padding:6px 12px}
   [data-mechanic-wire="tetra"] .tt-chips{gap:.35rem}
-  [data-mechanic-wire="tetra"] .tt-chip{width:42px;height:42px;font-size:1.25rem}
+  [data-mechanic-wire="tetra"] .tt-chip{width:44px;height:44px;font-size:1.25rem}
   [data-mechanic-wire="tetra"] .tt-shelf{gap:.3rem}
   [data-mechanic-wire="tetra"] .tt-found{padding:2px 6px}
   [data-mechanic-wire="tetra"] .tt-found i{width:22px;height:22px}

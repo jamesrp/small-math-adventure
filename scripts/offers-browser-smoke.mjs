@@ -74,6 +74,12 @@ try {
   await open(P6);
   assert.equal(await page.locator('.off-switch').count(), 12);
   assert.equal(await page.locator('.off-line.shut').count(), 9, 'every line shut while every first offer is taken');
+  if (phone) {
+    // A phone keeps each second offer's switch and three cards on one line, so every switch is on the screen.
+    const lines = await page.locator('.off-line').evaluateAll(els => els.map(el => el.getBoundingClientRect().height));
+    assert.ok(Math.max(...lines) <= 46, `each line is one row on a phone (${Math.max(...lines)})`);
+    assert.ok(await page.locator('.off-switch').last().evaluate(el => el.getBoundingClientRect().bottom <= innerHeight), 'the last switch is on a 390 x 844 screen');
+  }
   assert.equal(await flipSwitch(3).isDisabled(), true);
   await tap(flipSwitch(0));
   assert.equal(await page.locator('.off-line.shut').count(), 6);
@@ -110,6 +116,7 @@ try {
   const P5 = 'offers-05';
   await open(P5);
   assert.equal(await page.locator('button.off-card').count(), 27);
+  if (phone) assert.ok(await offerCard('6-6-6').evaluate(el => el.getBoundingClientRect().bottom <= innerHeight), 'five cards to a line: all 27 on a 390 x 844 screen');
   await tap(offerCard('6-0-0'));
   await page.getByText('A and B score the same on 6 0 0.').waitFor();
   assert.equal(await offerCard('6-0-0').evaluate(e => e.classList.contains('refused')), true);

@@ -263,3 +263,23 @@ test('wasted weighings cannot unlock a lucky answer; hints report exhausted or i
   assert.match(weigh.render(p, {board}), /Undo a weighing or start again/);
   assert.equal(weigh.move(p, board, {type:'weigh', left:['H'], right:['J']}), null);
 });
+
+test('each pebble control is one row of three places, the pressed place holding the pebble', () => {
+  const p = balances.find(q => q.parameters.known_genuine.length);
+  const [first] = p.parameters.coins, normal = p.parameters.known_genuine[0];
+  let board = weigh.move(p, weigh.fresh(p), {type:'place', coin:first, pan:'left'});
+  board = weigh.move(p, board, {type:'place', coin:normal, pan:'right'});
+  const html = weigh.render(p, {board});
+  const sets = [...html.matchAll(/<fieldset class="balance-pebble[^"]*">([\s\S]*?)<\/fieldset>/g)].map(m => m[1]);
+  assert.equal(sets.length, p.parameters.coins.length + p.parameters.known_genuine.length);
+  for (const body of sets) {
+    const buttons = [...body.matchAll(/<button[^>]*aria-pressed="(true|false)"[^>]*>([\s\S]*?)<\/button>/g)];
+    assert.equal(buttons.length, 3);
+    assert.deepEqual(buttons.map(([, pressed, inner]) => pressed === 'true' === inner.includes('pebble-token')), [true, true, true], 'only the pressed place shows the token');
+  }
+  assert.match(sets[0], /aria-label="Put pebble [^"]+ on the left pan" aria-pressed="true"[^>]*><span class="pebble-token"/);
+  const normalSet = sets.find(body => body.includes('pebble-normal-label'));
+  assert.match(normalSet, new RegExp(`<legend><span class="sr-only">${normal}</span><span class="pebble-normal-label">Normal</span></legend>`));
+  assert.match(normalSet, /on the right pan" aria-pressed="true"[^>]*><span class="pebble-token pebble-normal"/);
+  assert.equal(sets.filter(body => body.startsWith('<legend class="sr-only">')).length, p.parameters.coins.length, 'ordinary pebbles name themselves only to screen readers');
+});

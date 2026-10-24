@@ -79,6 +79,12 @@
 .sb-two{display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem 1rem;width:100%}
 .sb-half{flex:1 1 300px;max-width:420px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:.4rem}
 .sb-pairs .sg-board.sb-board{max-height:42vh}
+/* On a phone the boards reach the panel's edges (wire sets --sb-bleed to the
+   panel's padding), so an 8 by 5 grid keeps squares near 40 px. */
+@media (max-width:560px){
+  .sb-puzzle .sb-stage,.sb-puzzle .sb-two{width:calc(100% + 2 * var(--sb-bleed,0px));margin-inline:calc(-1 * var(--sb-bleed,0px))}
+  .sb-puzzle .sg-board.sb-board{max-width:none}
+}
 
 .sb-puzzle.solved .sb-stage .sg-rim,.sb-pairs.solved .sb-board .sg-rim{stroke:var(--b-good,#3c7a4a)}
 

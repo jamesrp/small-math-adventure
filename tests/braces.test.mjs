@@ -122,3 +122,12 @@ test('every puzzle renders its frame, and the graph where it belongs', () => {
   assert.doesNotMatch(html, /data-bf-cell="1"/, 'a window is not a control');
   assert.match(html, /data-bf-cell="0"/);
 });
+
+test('the row-column graph is drawn twice, tall beside the frame and wide under it, and the stylesheet shows one by screen width', async () => {
+  const p = byId('braces-10'), html = playView(p, freshAttempt(p), {pack, selected: null, message: ''});
+  const tall = (html.match(/class="bf-side bf-tall"/g) || []).length, wide = (html.match(/class="bf-side bf-wide"/g) || []).length;
+  assert.ok(tall > 0 && tall === wide);
+  const css = await readFile(new URL('../dist/families/braces/braces.css', import.meta.url), 'utf8');
+  assert.match(css, /\.bf-side\.bf-wide\{display:none\}/);
+  assert.match(css, /@media \(max-width:560px\)\{\s*\.bf-side\.bf-tall\{display:none\}/);
+});

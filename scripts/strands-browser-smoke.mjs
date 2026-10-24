@@ -25,7 +25,12 @@ const page = await context.newPage(), errors = [];
 page.on('pageerror', e => errors.push(e.message));
 const base = (process.env.TEST_URL || 'http://127.0.0.1:4187').replace(/\/$/, ''), key = 'small-math-adventure:saves:v1';
 const out = new URL('../test-results/strands/', import.meta.url);
-const shot = name => page.screenshot({path: new URL(`${name}${phone ? '-phone' : ''}.png`, out).pathname, fullPage: true});
+// A full-page screenshot drops Chromium's touch emulation ((pointer:coarse)
+// then answers false): on a phone it is turned back on, on a kept session.
+const shot = async name => {
+  await page.screenshot({path: new URL(`${name}${phone ? '-phone' : ''}.png`, out).pathname, fullPage: true});
+  if (phone) { cdp ||= await context.newCDPSession(page); await cdp.send('Emulation.setTouchEmulationEnabled', {enabled: true, maxTouchPoints: 1}); }
+};
 const board = id => page.evaluate(([k, id]) => JSON.parse(localStorage.getItem(k)).profiles[0].attempts[id]?.board, [key, id]);
 const open = async id => { await page.goto(`${base}/#play/${id}`); await page.locator('.st-puzzle').waitFor(); };
 const done = () => page.locator('#completion-heading').waitFor({timeout: 5000});
@@ -84,6 +89,9 @@ try {
 
   // No crossings needs no empty certificate dialog: Done completes directly.
   await open('strands-01');
+  // On a phone the larger unrolled view of puzzle 1 is held to 168 px tall, so
+  // the cylinder below it ends on a 390 × 844 screen.
+  if (phone) assert.ok((await page.locator('.st-lift').boundingBox()).height <= 169, 'the unrolled view is at most 168 px tall on a phone');
   for (let i = 0; i < 3; i++) await button('Hint').click();
   for (let n = 0; n < 20 && !(await page.locator('.hint-card').innerText()).includes('No crossings are left. Press Done.'); n++) await button('Apply hint').click();
   assert.ok((await page.locator('.hint-card').innerText()).includes('No crossings are left. Press Done.'));
@@ -95,9 +103,9 @@ try {
   // Puzzle 4: windings 0 and 2.
   const U = 'strands-04';
   await open(U); await fit('untangle');
-  // Side by side the cylinder keeps its own column, never narrower than on a phone (190 px).
+  // The cylinder is 230 px wide on a phone too, and keeps its own column side by side.
   { const w = (await page.locator('.st-room').boundingBox()).width;
-    assert.ok(w >= (phone ? 180 : 220), `the cylinder is ${Math.round(w)} px wide`); }
+    assert.ok(w >= 220, `the cylinder is ${Math.round(w)} px wide`); }
   await shot('untangle-start');
   const text = await page.evaluate(() => { const el = document.querySelector('.st-puzzle').cloneNode(true); el.querySelectorAll('.sr-only').forEach(n => n.remove()); return el.textContent; });
   assert.ok(!/\d/.test(text), 'no number on screen: no count, no budget');
@@ -129,11 +137,21 @@ try {
   await slide([await center(roomBead(1, 4)), await roomPoint(2, 4), await roomPoint(1, 4)]);
   assert.equal((await board(U)).s[1][3], 1, 'a room slide jumps past red’s spot to the column the finger reached');
   assert.equal((await board(U)).told, null, 'a move clears the refusal');
-  // A slide in the unrolled view past a copy of red's spot, and back: blue's second bead 2 → 4 → 2.
-  await slide([await center(liftBead(1, 2)), await at('plane', 3, -2), await at('plane', 4, -2)]);
-  assert.equal((await board(U)).s[1][1], 4, 'a slide in the unrolled view');
-  await slide([await center(liftBead(1, 2)), await at('plane', 2, -2)]);
-  assert.equal((await board(U)).s[1][1], 2);
+  if (phone) {
+    // On a touch screen the unrolled view's beads are pictures (13 px apart on
+    // a phone): a slide there moves nothing, and the cylinder's beads are 40 px.
+    assert.equal(await page.evaluate(() => matchMedia('(pointer:coarse)').matches), true, 'the phone run emulates touch');
+    await slide([await at('plane', 2, -2), await at('plane', 3, -2), await at('plane', 4, -2)]);
+    assert.equal((await board(U)).s[1][1], 2, 'a touch slide in the unrolled view moves no bead');
+    const sizes = await page.locator('.st-room [data-st-bead][role="button"] .st-bead-hit').evaluateAll(els => els.map(el => el.getBoundingClientRect().width));
+    assert.ok(Math.min(...sizes) >= 40, `cylinder beads take taps 40 px across (${Math.round(Math.min(...sizes))})`);
+  } else {
+    // A slide in the unrolled view past a copy of red's spot, and back: blue's second bead 2 → 4 → 2.
+    await slide([await center(liftBead(1, 2)), await at('plane', 3, -2), await at('plane', 4, -2)]);
+    assert.equal((await board(U)).s[1][1], 4, 'a slide in the unrolled view');
+    await slide([await center(liftBead(1, 2)), await at('plane', 2, -2)]);
+    assert.equal((await board(U)).s[1][1], 2);
+  }
   // Keys on a focused bead: right, then left; up goes to the next bead.
   await roomBead(1, 1).focus(); await page.keyboard.press('ArrowRight');
   assert.equal((await board(U)).s[1][0], 0, 'an arrow key moves the focused bead');

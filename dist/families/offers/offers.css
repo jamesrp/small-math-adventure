@@ -75,4 +75,9 @@
 .off-counters i{width:14px;height:14px;border-radius:50%;background:var(--b-pine,#31533e)}
 .off-round{display:inline-flex;align-items:center;gap:.35rem;font-size:1.5rem}
 .off-t.current{min-width:2em;height:2.2em;border-width:2.5px;border-color:#8e5f1a}
-@media (max-width:420px){.off-board{gap:.5rem}.off-row{padding:.35rem .4rem}.off-card .off-t{min-width:1.2em;height:1.4em;font-size:.85rem}.board-panel .off-switch{min-width:3.6rem;padding:3px 8px}}
+@media (max-width:420px){.off-board{gap:.5rem}.off-row{padding:.35rem .4rem}.off-card .off-t{min-width:1.2em;height:1.4em;font-size:.85rem}.board-panel .off-switch{min-width:3.6rem;padding:3px 8px}
+ /* Three offers: each second offer keeps its switch and its three cards on one
+    line, so the 27 cards take about half the height of a phone screen. */
+ .off-board.n3{gap:.3rem}.off-board.n3 .off-row{gap:.15rem;padding:.2rem .35rem}.off-board.n3 .off-line{flex-wrap:nowrap;gap:.25rem;padding-left:.25rem}.off-board.n3 .off-line .off-cards{flex-wrap:nowrap;gap:.2rem;margin-left:auto}.off-board.n3 .off-card{padding:2px}.off-board.n3 .off-line .off-say{font-size:.8rem}.board-panel .off-board.n3 .off-switch{min-width:3.1rem;padding:3px 5px}
+ /* Puzzle 5's rows of nine card buttons: five to a line instead of four. */
+ .off-board.n3 .off-row>.off-cards{gap:.25rem}.board-panel .off-board.n3 button.off-card{padding:3px 2px}.off-board.n3 .off-card .off-t{min-width:1.1em}}

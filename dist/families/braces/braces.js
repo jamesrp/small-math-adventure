@@ -190,11 +190,13 @@ function frameSvg(q, b, opts) {
 // for each brace, dots tinted by piece and lit when there is one piece. The
 // links and tints show only after a push (braces.css), so the graph explains
 // what the push did rather than predicting it.
-function rowColumnGraph(q, braces) {
-  const span = Math.max(q.rows, q.cols), aspect = .85, y = (i, n) => span === 1 ? 50 : 10 + 80 * (i + (span - n) / 2) / (span - 1);
+// On a phone the graph lies across under the frame instead, rows along the
+// top and columns along the bottom, so frame and graph fit one screen.
+function rowColumnGraph(q, braces, wide = false) {
+  const span = Math.max(q.rows, q.cols), aspect = wide ? 2.3 : .85, y = (i, n) => span === 1 ? 50 : 10 + 80 * (i + (span - n) / 2) / (span - 1);
   const nodes = {};
-  for (let r = 0; r < q.rows; r++) nodes[`R${r + 1}`] = [16, y(r, q.rows)];
-  for (let c = 0; c < q.cols; c++) nodes[`C${c + 1}`] = [84, y(c, q.cols)];
+  for (let r = 0; r < q.rows; r++) nodes[`R${r + 1}`] = wide ? [y(r, q.rows), 20] : [16, y(r, q.rows)];
+  for (let c = 0; c < q.cols; c++) nodes[`C${c + 1}`] = wide ? [y(c, q.cols), 80] : [84, y(c, q.cols)];
   const g = graphOf({nodes, edges: braces.map(k => [`R${rowOf(q, k) + 1}`, `C${colOf(q, k) + 1}`]), aspect, scale: 1.25});
   const p0 = pieces(q, braces), one = p0.count === 1, size = {};
   for (const x of [...p0.row, ...p0.col]) size[x] = (size[x] || 0) + 1;
@@ -216,7 +218,8 @@ function render(p, a) {
   const push = button('Push', 'data-bf-push data-focus="bf-push"', 'bf-push', true, false);
   const words = {moves: 'It still moves.', spare: 'It holds, but this brace can go.'};
   const note = b.told ? `<p class="bf-told">${words[b.told.kind]}</p>` : '';
-  const graph = q.graph ? `<div class="bf-side" data-bf-after="${esc(`Rows and columns linked by braces: ${plural(pieces(q, b.braces).count, 'piece')}`)}">${rowColumnGraph(q, b.braces)}</div>` : '';
+  const after = esc(`Rows and columns linked by braces: ${plural(pieces(q, b.braces).count, 'piece')}`);
+  const graph = q.graph ? [false, true].map(wide => `<div class="bf-side${wide ? ' bf-wide' : ' bf-tall'}" data-bf-after="${after}">${rowColumnGraph(q, b.braces, wide)}</div>`).join('') : '';
   const status = `${plural(b.braces.length, 'brace')}.${b.told ? ` ${words[b.told.kind]}` : ''}`;
   return `<div class="bf-puzzle${q.graph ? ' with-graph' : ''}${b.told?.kind === 'moves' ? ' push-now' : ''}" data-mechanic-wire="braces"><div class="bf-bar">${beads}<span class="bf-buttons">${push}${claim}</span></div><div class="bf-boards"><div class="bf-main">${frame}</div>${graph}</div>${note}<p class="sr-only" role="status">${esc(status)}</p></div>`;
 }
@@ -240,8 +243,7 @@ function animate(root, q, braces) {
   if (firm) svg.classList.add('bf-firm');
   // The push reveals the graph's links and the pieces that turned together.
   root.classList.add('pushed');
-  const side = root.querySelector('[data-bf-after]'), board = side?.querySelector('.gb-board');
-  if (board) board.setAttribute('aria-label', side.dataset.bfAfter);
+  for (const side of root.querySelectorAll('[data-bf-after]')) side.querySelector('.gb-board')?.setAttribute('aria-label', side.dataset.bfAfter);
   const status = root.querySelector('[role=status]');
   if (status) status.textContent = firm ? 'It holds.' : 'It moves.';
   const step = now => {

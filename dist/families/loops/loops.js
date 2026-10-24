@@ -269,7 +269,7 @@ const icon = card => `<svg class="lp-icon" viewBox="-12 -12 24 24" aria-hidden="
 export function worldSvg(q, loops, look = {}) {
   const L = W.layout(q.cards, loops, look.maxWidth || 400), act = look.act;
   const box = (x, y, w, h) => `<rect class="lp-loop-line" x="${f(x)}" y="${f(y)}" width="${f(w)}" height="${f(h)}" rx="${f(Math.min(14, h / 3))}"/>`;
-  const badgeAt = (x, y, label, attrs, cls) => `<g class="lp-badge l${label}${cls}" transform="translate(${f(x)},${f(y)})" ${attrs}><circle class="lp-hit" r="15"/><circle class="lp-tag" r="10"/><text y="4.6">${label}</text></g>`;
+  const badgeAt = (x, y, label, attrs, cls) => `<g class="lp-badge l${label}${cls}" transform="translate(${f(x)},${f(y)})" ${attrs}><circle class="lp-hit" r="15"/><circle class="lp-tag" r="10"/><text y="5.1">${label}</text></g>`;
   const frame = `<g class="lp-loop lp-frame">${box(1, 1, L.width - 2, L.height - 2)}</g>`;
   const loopParts = L.loops.map(o => {
     const [label, set] = loops[o.loop], c = look.loop?.(o.loop, label, set) || {};

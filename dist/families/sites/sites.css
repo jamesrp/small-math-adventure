@@ -52,6 +52,8 @@
 [data-mechanic-wire="sites"] .st-site.c-lilac circle{fill:#c9b6e4}
 [data-mechanic-wire="sites"] .st-site.c-sand circle{fill:#e3cf9f}
 [data-mechanic-wire="sites"] .st-dot circle{fill:var(--b-ink,#294439);stroke:var(--b-card,#fffdf5);stroke-width:1.5px}
+/* The reach of a press that takes a dot (sites.js, GRAB): drawn clear. */
+[data-mechanic-wire="sites"] .st-sites g circle.st-grab{fill:transparent;stroke:none}
 [data-mechanic-wire="sites"] .st-name{font:400 .74px/1 var(--b-display,Georgia,serif);text-anchor:middle;fill:var(--b-ink,#294439);paint-order:stroke;stroke:var(--b-card,#fffdf5);stroke-width:3px;stroke-linejoin:round;pointer-events:none}
 [data-mechanic-wire="sites"] .st-name.mark{font-style:italic}
 [data-mechanic-wire="sites"] .st-sites g.held circle{stroke:var(--b-pine,#31533e);stroke-width:4px}

@@ -196,3 +196,28 @@ test('hints answer quickly', () => {
     assert.ok((performance.now() - t0) / 10 < 150, `${p.id}: a hint in under 150 ms`);
   }
 });
+
+import {nearShape, GRIP} from '../dist/families/pantograph/pantograph.js';
+test('a movable shape is taken by a press inside it or within half a step of its edge', () => {
+  const tri = [[0, 0], [2, 0], [0, 1]];
+  assert.equal(GRIP, .5);
+  assert.equal(nearShape(tri, [.5, .25], GRIP), true);
+  assert.equal(nearShape(tri, [1, -.45], GRIP), true);
+  assert.equal(nearShape(tri, [1, -.55], GRIP), false);
+  assert.equal(nearShape(tri, [-.3, -.3], GRIP), true);
+  assert.equal(nearShape(tri, [-.4, -.4], GRIP), false);
+  const p = pack.puzzles.find(q => q.parameters.movable?.stencil);
+  if (p) assert.match(view(p, freshAttempt(p)), /<g class="pg-stencil-grip movable" data-pg="stencil" role="button"[^>]*><polygon class="pg-stencil-reach"/);
+});
+
+import {nearestHandle, REACH} from '../dist/families/pantograph/pantograph.js';
+test('a drag takes the nearest of the knob and movable pins within 0.85 of a step', () => {
+  const handles = [['knob', [2, 2]], ['pin-0', [3, 2]]];
+  assert.equal(REACH, .85);
+  assert.equal(nearestHandle(handles, [2.4, 2]), 'knob');
+  assert.equal(nearestHandle(handles, [2.6, 2]), 'pin-0');
+  assert.equal(nearestHandle(handles, [2, 2.8]), 'knob');
+  assert.equal(nearestHandle(handles, [2, 2.9]), null);
+  const p = pack.puzzles.find(q => q.parameters.movable?.pins?.some(Boolean));
+  if (p) assert.match(view(p, freshAttempt(p)), /<circle class="pg-hit" cx="[^"]+" cy="[^"]+" r="8.5"\/>/);
+});

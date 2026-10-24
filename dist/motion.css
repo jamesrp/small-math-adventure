@@ -55,7 +55,20 @@
 .clock-marker { fill:none; stroke:#155f76; stroke-width:5; }
 .clock-center { text-anchor:middle; font-size:31px; font-weight:800; }
 .clock-center-label { text-anchor:middle; font-size:14px; }
-@media (max-width:440px) { .lantern-comparison { grid-template-columns:1fr; gap:.8rem; } .lantern-picture svg { max-width:300px; margin:auto; } .lantern-picture.goal-picture svg { max-width:220px; } .motion-form { align-items:stretch; } .motion-form button { flex:1 1 100%; } }
+/* Several clocks (clock-05 on) use the compact face: larger places, numbers and
+   strokes, so two clocks fit side by side on a phone with numbers of 12 px and up. */
+.clock-picture.clock-compact .clock-position text { font-size:24px; }
+.clock-picture.clock-compact .clock-position text.clock-star { font-size:24px; }
+.clock-picture.clock-compact .clock-center { font-size:36px; }
+.clock-picture.clock-compact .clock-center-label { font-size:21px; }
+.clock-picture.clock-compact .clock-jump-arrow { stroke-width:4; }
+.clock-picture.clock-compact .clock-trail { stroke-width:3; }
+@media (max-width:440px) { .lantern-comparison { grid-template-columns:1fr; gap:.8rem; } .lantern-picture svg { max-width:300px; margin:auto; } .lantern-picture.goal-picture svg { max-width:220px; } .goal-picture .lantern text { font-size:21px; } .motion-form { align-items:stretch; } .motion-form button { flex:1 1 100%; }
+  .clock-pictures.clock-several { gap:.7rem; } .clock-several .clock-picture { flex:0 1 calc(50% - .35rem); min-width:0; }
+  .clock-picture.clock-compact .clock-position text, .clock-picture.clock-compact .clock-position text.clock-star { font-size:27px; } .clock-picture.clock-compact .clock-center { font-size:42px; } .clock-picture.clock-compact .clock-center-label { font-size:26px; } }
+/* Ten bell numbers in a row are 27 px wide on a phone: rows of five instead. */
+@media (max-width:520px) { .clock-board .bell-chart { grid-template-columns:repeat(5,minmax(0,1fr)); } .clock-board .bell-number>span:first-of-type { min-height:44px; } }
+@media (max-width:440px) { .clock-board:not(.clock-choose) .clock-pictures:not(.clock-several) .clock-picture { max-width:290px; } }
 
 .motion-form label.bell-count{flex:0 1 120px;max-width:120px}
 .motion-form .bell-count input{font-family:var(--b-display,Georgia,serif);font-size:1.35rem;text-align:center}

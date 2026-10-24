@@ -289,3 +289,15 @@ test('every puzzle renders its board; one short objective at most; no count aske
     assert.ok(p.visibleObjective.length <= 60, `${p.id}: a short objective`);
   }
 });
+
+import {nearestArc} from '../dist/families/knots/knots.js';
+test('a tap goes to the nearest cord: a point drawn on an arc finds that arc among its picture', () => {
+  const shapes = knots.puzzles.flatMap(p => p.parameters.mode === 'playground' ? p.parameters.knots.map((q, k) => [`${p.id} knot ${k}`, q]) : [[p.id, p.parameters]]);
+  assert.ok(shapes.some(([id]) => id.includes('playground')), 'the playground knots are checked too');
+  for (const [id, q] of shapes) {
+    for (const [i, a] of q.arcs.entries()) {
+      const group = q.arcs.map((b, k) => k).filter(k => q.arcs[k].pic === a.pic);
+      assert.equal(nearestArc(q, group, a.d[Math.floor(a.d.length / 2)]), i, `${id}: arc ${i}`);
+    }
+  }
+});

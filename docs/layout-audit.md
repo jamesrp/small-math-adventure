@@ -58,6 +58,7 @@ Each puzzle opens at `#play/<id>` for a fresh explorer named "Explorer" on the K
 - **Edges.** The shared graph board's roads took taps on a 30 px stroke when this report was made (`.gb-hit` in `dist/graph-board.css`), so every tappable road read 30 px at its thinnest, and a short road between two dots read as the stretch the dots left uncovered. They are now 44 px, clipped where two overlap (see shared cause 3). A straight road that runs exactly across or down the screen has a zero-width box, which the audit skips.
 - **Text boxes are font boxes.** Overlap compares each label's box from ascent to descent, not its ink, so a large glyph such as Card machines' × can overlap a small number by box while the ink only touches.
 - **Targets that cannot be hit** at any probe point (covered by another element) are kept in the JSON as `covered` and listed as notes; none remained in this run. A thin ring that misses every grid point is probed along its stroke.
+- **Touch after a screenshot.** Playwright's full-page screenshot switches Chromium's touch emulation off, so until October 24 (`claude/layout-marks-ntxcu3`) puzzles measured after a screenshot at the same size were measured with `(pointer:coarse)` and `(hover:none)` false, as with a mouse. The audit now turns touch back on after each screenshot; the results below were measured before that fix.
 - **Severity is not ranked.** The ranking counts distinct problems; a module with one broken board can rank below one with several small labels. The shared causes below come first for that reason.
 
 ## Results, October 24, 2026
@@ -105,6 +106,23 @@ Boards that do not fit for their own reasons: three stacked clocks in base-clock
 - friezes 1 → 1: the board runs to the panel's border (places 41–42 px). Left: the playground's places, 36–38 px on phones.
 - robot 1 → 0: step tap circles 0.55 of a square (47 px on a 375 px phone).
 - votes 7 → 3: letter slots 44 × 40 px, voter names 12–13 px, and the line runs to the panel's edges. Left on purpose: eleven spots give columns of 31–32 px; voters stay pick-up-and-drop by column.
+
+*Fixed since (October 24, `claude/layout-marks-ntxcu3`):* 23 modules went from 58 distinct problems to 17 (before: main `e4c006a`, before the phone top bar; after: this change on `15a9e83`, with the new bar and the shared boards' hit sizes, audited with the touch fix above). Per module, before → after:
+
+- **strands** 4 → 1: the cylinder is 230 px wide on a phone too (beads 41 px); on a touch screen the unrolled view's 13 px beads are pictures and beads slide in the cylinder; the phone unrolled view is held to 168 px tall, so the board ends on a 390 × 844 screen. Left: the playground's end strip, 33 px tall between bead rows (the bar's end buttons are the large targets).
+- **radon** 4 → 2: a disc alone on its point reaches halfway to the nearest disc; phone boards reach the panel's edges; spots reach halfway to their neighbours. Left: radon-08's stacked letters (25–29 px, a tap must go to the nearer letter) and the 8-wide lattice of 06 and 10 (39 px).
+- **strings** 4 → 1: dots take taps up to halfway to the next dot; numbers 12 px. Left: puzzle 12's corners, 39 px on a 375 × 667 phone.
+- **knots** 2 → 1: tap bands 16 units wide, and the nearest cord takes a tap where bands overlap. Left: two short arcs in 10 and 12 read 22–29 px by the audit's chords; the nearest-cord rule takes taps beside them.
+- **sites** 1 → 0: a drag starts within two fifths of a square of a site; a tap still goes to the nearest point.
+- **cuts** 2 → 0: nothing changed here; the new top bar and the triangle grid's hit sizes (shared cause 3) fixed both.
+- **ends** 2 → 0: the 3 × 3 px targets were not real: aria-hidden picture dots near a tree's rim inherited the board's grab cursor (taps already go to the nearest tappable dot). They now let presses through to the board, and each tappable dot draws a clear reach circle up to halfway to its neighbours (43 px).
+- **pantograph** 2 → 0: the stencil takes a press within half a step of its outline, the knob and movable pins within 0.85 of a step (nearest wins), and the frame takes no taps.
+- **base-billiard** 2 → 1: crossings take taps nearly halfway to the next crossing, nearest crossing wins. Left: the densest sheets (06, 09, 11–12, 14) have crossings 25–31 px apart.
+- **base-toggle** 3 → 1: lantern numerals 12+ px. Left: `line.wire-hit` reads 35 px on short wires between two lamps; measured across the wire it is 44–46 px.
+- **base-clock** 6 → 0: bell numbers in five 44 px columns on a phone; two or three clocks sit two to a row, so clock-11 and 12 end with Ring on a 390 × 844 screen.
+- **base-weigh** 4 → 4: each pebble's place buttons are 44 px icons with the pebble shown in its pan (36 targets at 40 px or more), and the weighing area through Weigh fits a 390 × 844 screen. Left: the answer form below it (267 px below the screen in the 12-pebble puzzles).
+- **offers** 3 → 2: on a phone each line of the tree is one row, so every switch and card of 05–07 and 09 is on a 390 × 844 screen. Left: the Best plan row below them (75 px).
+- **knowledge** 3 → 0, **tetra** 1 → 0, **proofs** 2 → 1, **braces** 3 → 0, **bags** 2 → 1, **chips** 2 → 0, **sides** 1 → 0, **loops** 2 → 0, **aims** 2 → 0, **base-route** 1 → 0: labels at 12 px or more on a phone (knowledge's `?` 14 units, tetra's mini letters 24, flip labels 26, braces' graph drawn across under the frame on a phone, bags' case counters, chips' Sink, sides' faces, loops' badge, aims' labels, network numbers). Left: proofs' flip and sort boards (199 px) and bags 07–08 (149 px) still end below a 390 × 844 screen.
 
 ### Ranked by distinct problems
 

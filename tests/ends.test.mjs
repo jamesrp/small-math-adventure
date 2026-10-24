@@ -369,3 +369,12 @@ test('saves round-trip through storage, and forged saves are refused', () => {
   assert.equal(validBoard(n, {blocks: [], shown: 'can'}), false, '“it can be done” on the grid');
   assert.equal(validBoard(pg, {map: 'tee', blocks: [], shown: 'cant'}), false);
 });
+
+test('tree dots reach halfway to their neighbours with clear circles that never overlap', () => {
+  for (const id of ['ends-05', 'ends-12']) {
+    const p = byId(id), html = view(p, freshAttempt(p));
+    const reach = [...html.matchAll(/transform="translate\(([-\d.]+) ([-\d.]+)\)"[^>]*><circle class="ends-reach" r="([\d.]+)"/g)].map(m => m.slice(1).map(Number));
+    assert.ok(reach.length > 3, id);
+    for (let i = 0; i < reach.length; i++) for (let j = i + 1; j < reach.length; j++) assert.ok(Math.hypot(reach[i][0] - reach[j][0], reach[i][1] - reach[j][1]) + 1e-9 >= reach[i][2] + reach[j][2], `${id}: ${i} and ${j}`);
+  }
+});

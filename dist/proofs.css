@@ -55,7 +55,7 @@
 .flip-card.hinted .flip-card-bg{stroke:#c77c00;stroke-width:5;stroke-dasharray:8 5}
 .flip-card:focus{outline:none}.flip-card:focus-visible .flip-card-bg{stroke:#ac7527;stroke-width:5;stroke-dasharray:7 4}
 .flip-face{stroke:#294439;stroke-width:1.4;stroke-linejoin:round}.flip-face.top{fill:#f3e4b3}.flip-face.left{fill:#aabf9a}.flip-face.right{fill:#5f7f62}
-.flip-label{font-family:Georgia,'Times New Roman',serif;font-size:20px;fill:var(--pf-ink)}
+.flip-label{font-family:Georgia,'Times New Roman',serif;font-size:26px;fill:var(--pf-ink)}
 .flip-glyph{fill:#1f3329;opacity:.75}
 .flip-strip{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;margin:12px 0 0;color:var(--pf-muted)}
 .flip-dot{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:2px solid var(--pf-ink);font-size:11px;line-height:1;color:var(--pf-ink)}

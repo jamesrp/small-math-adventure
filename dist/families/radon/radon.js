@@ -393,8 +393,19 @@ const DISC = 3.2;
 const SPREAD = {1: [[0, 0]], 2: [[-2.75, 0], [2.75, 0]], 3: [[-2.6, 1.5], [2.6, 1.5], [0, -2.6]], 4: [[-2.5, -2.5], [2.5, -2.5], [-2.5, 2.5], [2.5, 2.5]]};
 const RADIUS = {1: DISC, 2: 2.55, 3: 2.3, 4: 2.2};
 // Tap circles: a little past the disc, but never past halfway to a disc that
-// shares the point, so a tap goes to the nearest letter.
+// shares the point, so a tap goes to the nearest letter. A disc alone on its
+// point reaches halfway to the nearest other disc, up to 0.6 of a square, so
+// it is a 40 px target on a phone wherever there is room (soloHit).
 const HIT = {1: DISC + .9, 2: 2.75, 3: 2.42, 4: 2.5};
+const SOLO_MAX = 6;
+export function soloHit(pos, l) {
+  const [x, y] = pos[l];
+  let d = Infinity;
+  for (const m of Object.keys(pos)) { const [u, v] = pos[m]; if (u !== x || v !== y) d = Math.min(d, Math.hypot(u - x, v - y) * UNIT); }
+  return Math.max(HIT[1], Math.min(SOLO_MAX, d / 2));
+}
+// A lattice point that takes taps reaches halfway to its neighbours.
+const REACH = UNIT / 2;
 // Small pictures draw each dot small, close to its exact point, so a band
 // that passes near a dot without touching it shows a gap.
 const MINI_DOT = 1.3;
@@ -457,7 +468,7 @@ function discs(q, pos, look, colours, small = false) {
     // Small pictures show the dots in their colours, without letters.
     if (small) return `<circle class="sb-dot sb-c${colours[l]}" cx="${f(x + offset[0])}" cy="${f(y + offset[1])}" r="${MINI_DOT}"/>`;
     const control = it.act ? ` role="button" tabindex="0" aria-label="${esc(it.label)}" data-sg-piece="${esc(it.piece)}" data-focus="${esc(it.focus)}"` : '';
-    return `<g class="sb-disc sb-c${colours[l]}${it.cls ? ` ${it.cls}` : ''}" transform="translate(${f(x + offset[0])},${f(y + offset[1])})"${control}>${it.act ? `<circle class="sb-hit" r="${f(HIT[spots[l].count])}"/>` : ''}<circle class="sb-face" r="${r}"/><text class="sb-letter" y="${f(r * .36)}" style="font-size:${f(r * 1.3)}px">${l}</text></g>`;
+    return `<g class="sb-disc sb-c${colours[l]}${it.cls ? ` ${it.cls}` : ''}" transform="translate(${f(x + offset[0])},${f(y + offset[1])})"${control}>${it.act ? `<circle class="sb-hit" r="${f(spots[l].count === 1 ? soloHit(pos, l) : HIT[spots[l].count])}"/>` : ''}<circle class="sb-face" r="${r}"/><text class="sb-letter" y="${f(r * .36)}" style="font-size:${f(r * 1.3)}px">${l}</text></g>`;
   }).join('');
 }
 // Tap targets on lattice points. spot(p) gives {cls, label} or null.
@@ -469,7 +480,7 @@ function spots(q, spot, k = 0) {
     if (!it) return '';
     const [x, y] = drawAt(q, p), index = indexOf(q, p), cls = it.cls || '';
     const mark = cls.includes('found') ? '<circle class="sb-found" r="3.5"/>' : cls.includes('missed') ? '<path class="sb-missed" d="M-1.5 -1.5L1.5 1.5M-1.5 1.5L1.5 -1.5"/>' : '';
-    return `<g class="sb-spot${cls ? ` ${cls}` : ''}" transform="translate(${f(x)},${f(y)})" role="button" tabindex="0" aria-label="${esc(it.label)}" data-sg-point="${index}" data-focus="sb-spot-${k}-${index}"><circle class="sb-reach" r="4.3"/>${mark}</g>`;
+    return `<g class="sb-spot${cls ? ` ${cls}` : ''}" transform="translate(${f(x)},${f(y)})" role="button" tabindex="0" aria-label="${esc(it.label)}" data-sg-point="${index}" data-focus="sb-spot-${k}-${index}"><circle class="sb-reach" r="${REACH}"/>${mark}</g>`;
   }).join('');
 }
 // A ring on a point that is not a control (a place found, once finished).
@@ -485,7 +496,7 @@ function drawBoard(q, pos, opts = {}) {
   const colours = opts.colours || (split ? coloursFor(split, pos) : neutral(pos));
   const drawn = split ? splitSvg(q, pos, orderedGroups(split, colours), picture) : {bands: "", mark: ""};
   return squareBoard(gridFor(q), {
-    cls: `sb-board ${cls}`, label, picture, pad: picture ? .35 : .5,
+    cls: `sb-board ${cls}`, label, picture, pad: picture ? .35 : .45,
     under: `${pips(q)}${drawn.bands}`,
     over: `${extra}${discs(q, pos, look, colours, picture)}${drawn.mark}${spot ? spots(q, spot, k) : ''}`
   });
@@ -631,6 +642,9 @@ export function arrowPoint(q, from, key) {
 }
 function wire(root, p, api) {
   const q = p.parameters, now = () => api.attempt().board;
+  // On a phone the boards reach the panel's edges (CSS reads --sb-bleed).
+  const panel = root.closest('.board-panel'), puzzle = root.querySelector('.sb-puzzle') || root.closest('.sb-puzzle');
+  if (panel && puzzle) puzzle.style.setProperty('--sb-bleed', `${parseFloat(getComputedStyle(panel).paddingLeft) || 0}px`);
   const keys = (el, action) => el.addEventListener('keydown', e => {
     if (!ARROWS[e.key] || e.altKey || e.ctrlKey || e.metaKey) return;
     const m = action(e.key);

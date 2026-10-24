@@ -49,6 +49,9 @@ try{
       assert.deepEqual(misses,[],`${p.id}: ${width}px wire midpoints`);
     }
     await page.setViewportSize({width:390,height:844});
+    // The goal card is drawn smaller on a phone; its lantern letters stay at least 12 px.
+    const goalLetters=await page.locator('.goal-picture .lantern text').evaluateAll(nodes=>Math.min(...nodes.map(node=>parseFloat(getComputedStyle(node).fontSize)*node.getScreenCTM().a)));
+    assert.ok(goalLetters>=12,`${p.id}: goal card letters ${goalLetters.toFixed(1)} px`);
     if(['toggle-16','toggle-25','toggle-33','toggle-42'].includes(p.id))await page.screenshot({path:new URL(`${p.id}-phone.png`,out).pathname,fullPage:true});
     // Exercise a real keyboard press, restore it, and verify persisted history.
     const trial=p.solution.minimum_presses===1?1:0;

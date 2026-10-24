@@ -774,8 +774,9 @@ function renderMerges(p, a) {
 }
 // A small picture of a card, for the row of cards.
 function mini(labels, key) {
-  const letters = labels.map((x, k) => `<text x="${SPOT[k][0]}" y="${f(SPOT[k][1] + 5.6)}">${esc(x)}</text>`).join('');
-  const discs = SPOT.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="13"/>`).join('');
+  // Letters at 24 units read at 12 px or more on a 64 px phone card.
+  const letters = labels.map((x, k) => `<text x="${SPOT[k][0]}" y="${f(SPOT[k][1] + 8)}">${esc(x)}</text>`).join('');
+  const discs = SPOT.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="15"/>`).join('');
   return `<span class="tt-mini" data-flip="${esc(key)}">${solid(`<g class="tt-mini-discs">${discs}</g><g class="tt-mini-letters">${letters}</g>`)}</span>`;
 }
 function renderSort(p, a) {

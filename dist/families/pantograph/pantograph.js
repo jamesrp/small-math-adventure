@@ -309,14 +309,14 @@ function tipsArt(q, kinds, tips, opts = {}) {
   const pen = tips.at(-1);
   art += `<g class="pg-pencil" aria-hidden="true"><circle class="pg-pencil-ring" cx="${sx(q, pen)}" cy="${sy(q, pen)}" r="3.3"/><circle class="pg-lead" cx="${sx(q, pen)}" cy="${sy(q, pen)}" r="1.7"/></g>`;
   const t = tips[0], label = opts.label ? ` role="button" tabindex="0" data-focus="pg-knob" aria-label="${esc(opts.label)}"` : '';
-  art += `<g class="pg-knob" data-pg="knob"${label}><circle class="pg-hit" cx="${sx(q, t)}" cy="${sy(q, t)}" r="7.5"/><circle class="pg-knob-disc" cx="${sx(q, t)}" cy="${sy(q, t)}" r="4.4"/><circle class="pg-knob-hub" cx="${sx(q, t)}" cy="${sy(q, t)}" r="1.4"/></g>`;
+  art += `<g class="pg-knob" data-pg="knob"${label}><circle class="pg-hit" cx="${sx(q, t)}" cy="${sy(q, t)}" r="${REACH * U}"/><circle class="pg-knob-disc" cx="${sx(q, t)}" cy="${sy(q, t)}" r="4.4"/><circle class="pg-knob-hub" cx="${sx(q, t)}" cy="${sy(q, t)}" r="1.4"/></g>`;
   return art;
 }
 // A pin: a pine head with a pale point, or with its number when there are two.
 const pinArt = (q, pin, k, opts = {}) => {
   const label = opts.label ? ` role="button" tabindex="0" data-focus="pg-pin-${k}" aria-label="${esc(opts.label)}"` : ' aria-hidden="true"';
-  const mid = opts.mark ? `<text class="pg-pin-mark" x="${sx(q, pin)}" y="${f(sy(q, pin) + 1.6)}">${opts.mark}</text>` : `<circle class="pg-pin-point" cx="${sx(q, pin)}" cy="${sy(q, pin)}" r="1.1"/>`;
-  return `<g class="pg-pin m${k}${opts.movable ? ' movable' : ''}" data-pg="pin-${k}"${label}>${opts.movable ? `<circle class="pg-hit" cx="${sx(q, pin)}" cy="${sy(q, pin)}" r="7.5"/>` : ''}<circle class="pg-pin-head" cx="${sx(q, pin)}" cy="${sy(q, pin)}" r="${opts.mark ? 3.7 : 3.4}"/>${mid}</g>`;
+  const mid = opts.mark ? `<text class="pg-pin-mark" x="${sx(q, pin)}" y="${f(sy(q, pin) + 1.8)}">${opts.mark}</text>` : `<circle class="pg-pin-point" cx="${sx(q, pin)}" cy="${sy(q, pin)}" r="1.1"/>`;
+  return `<g class="pg-pin m${k}${opts.movable ? ' movable' : ''}" data-pg="pin-${k}"${label}>${opts.movable ? `<circle class="pg-hit" cx="${sx(q, pin)}" cy="${sy(q, pin)}" r="${REACH * U}"/>` : ''}<circle class="pg-pin-head" cx="${sx(q, pin)}" cy="${sy(q, pin)}" r="${opts.mark ? 3.7 : 3.4}"/>${mid}</g>`;
 };
 const poly = (q, pts) => pts.map(p => xy(q, at4(p))).join(' ');
 const segs = (q, list, cls) => list.map(([a, b]) => `<line class="${cls}" x1="${sx(q, a)}" y1="${sy(q, a)}" x2="${sx(q, b)}" y2="${sy(q, b)}"/>`).join('');
@@ -351,7 +351,13 @@ export function boardArt(p, b, opts = {}) {
   if (q.target) under += `<polygon class="pg-target" points="${poly(q, q.target)}"/>`;
   if (q.stencil && !play) {
     const movable = q.movable?.stencil && !done;
-    under += `<polygon class="pg-stencil${movable ? ' movable' : ''}" data-pg="stencil" points="${poly(q, stencilAt(q, st.at))}"${movable ? ` role="button" tabindex="0" data-focus="pg-stencil" aria-label="Green shape. Drag it, or use the arrow keys."` : ' aria-hidden="true"'}/>`;
+    // A movable shape takes a press up to half a step outside its edge
+    // (grip), shown by a clear band round it, so a thin triangle is still a
+    // 40 px target on a phone.
+    const pts = poly(q, stencilAt(q, st.at));
+    under += movable
+      ? `<g class="pg-stencil-grip movable" data-pg="stencil" role="button" tabindex="0" data-focus="pg-stencil" aria-label="Green shape. Drag it, or use the arrow keys."><polygon class="pg-stencil-reach" points="${pts}"/><polygon class="pg-stencil movable" points="${pts}"/></g>`
+      : `<polygon class="pg-stencil" data-pg="stencil" points="${pts}" aria-hidden="true"/>`;
   }
   if (hinted?.ghost) under += `<polygon class="pg-ghost" points="${poly(q, stencilAt(q, hinted.ghost))}" aria-hidden="true"/>`;
   // Earlier sheets, faded (the last one with lines; every one in the playground).
@@ -407,6 +413,26 @@ function statusOf(p, b, st, done) {
 // Arrow keys on the knob draw a step (Shift lifts it); on a pin or the shape
 // they move it a step.
 export const LIFT = 34;
+// A press inside the movable shape, or within GRIP steps of its edge, takes it.
+export const GRIP = 0.5;
+// A drag takes the knob or a movable pin from up to REACH steps away (the
+// nearest of them, drawn as its clear hit circle); a tap still goes to the
+// nearest dot.
+export const REACH = 0.85;
+export function nearestHandle(handles, pos) {
+  let best = null;
+  for (const [what, [x, y]] of handles) { const d = Math.hypot(pos[0] - x, pos[1] - y); if (d <= REACH && (!best || d < best.d)) best = {what, d}; }
+  return best?.what ?? null;
+}
+export function nearShape(poly, pos, reach) {
+  if (inside(poly, pos)) return true;
+  const [x, y] = pos;
+  return poly.some(([ax, ay], i) => {
+    const [bx, by] = poly[(i + 1) % poly.length], vx = bx - ax, vy = by - ay, len = vx * vx + vy * vy;
+    const t = len ? Math.max(0, Math.min(1, ((x - ax) * vx + (y - ay) * vy) / len)) : 0;
+    return Math.hypot(x - ax - t * vx, y - ay - t * vy) <= reach;
+  });
+}
 // Is point p inside the polygon (lattice units)?
 function inside(poly, [x, y]) {
   let odd = false;
@@ -432,11 +458,9 @@ function wire(root, p, api) {
   // movable pin when its dot is the nearest, else the movable green shape when
   // the press is inside it, else the paper.
   const grip = (st, pos) => {
-    const near = [Math.round(pos[0]), Math.round(pos[1])];
-    if (same(near, lat(st.t))) return 'knob';
-    const k = st.pins.findIndex((pin, k) => q.movable?.pins?.[k] && same(near, lat(pin)));
-    if (k >= 0) return `pin-${k}`;
-    if (q.movable?.stencil && inside(stencilAt(q, st.at), pos)) return 'stencil';
+    const handle = nearestHandle([['knob', lat(st.t)], ...st.pins.flatMap((pin, k) => q.movable?.pins?.[k] ? [[`pin-${k}`, lat(pin)]] : [])], pos);
+    if (handle) return handle;
+    if (q.movable?.stencil && nearShape(stencilAt(q, st.at), pos, GRIP)) return 'stencil';
     return 'paper';
   };
   svg.addEventListener('pointerdown', e => {
@@ -494,11 +518,12 @@ function wire(root, p, api) {
     clear();
     if (e.type !== 'pointerup') return;
     if (d.moved && d.what !== 'paper') { if (d.action) tryApply(d.action); return; }
-    if (Math.hypot(e.clientX - d.x, e.clientY - d.y) >= 12 || d.what === 'knob') return;
-    // A tap: lift the knob to the nearest dot.
+    if (Math.hypot(e.clientX - d.x, e.clientY - d.y) >= 12) return;
+    // A tap: lift the knob to the nearest dot (a tap on the knob's own dot does nothing).
     const pos = toBoard(e);
     if (!pos) return;
     const to = [Math.round(pos[0]), Math.round(pos[1])];
+    if (d.what === 'knob' && same(to, d.handle)) return;
     if (Math.hypot(pos[0] - to[0], pos[1] - to[1]) > .6 || !latticeOnPaper(q, to)) return;
     tryApply({type: 'hop', to});
   };

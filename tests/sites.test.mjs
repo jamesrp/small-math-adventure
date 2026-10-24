@@ -304,3 +304,11 @@ test('the satchel lists Nearest dots with its playground and twelve puzzles', ()
   for (let n = 1; n <= 12; n++) assert.ok(html.includes(`data-id="sites-${String(n).padStart(2, '0')}"`));
   assert.match(html, /Nearest dots, Easy, puzzle 2, completed/);
 });
+
+import {grabbed} from '../dist/families/sites/sites.js';
+test('a drag starts within 0.8 of a half-step (two fifths of a square) of the nearest dot', () => {
+  const dots = [[0, 0], [1.5, 0]];
+  assert.deepEqual(grabbed(dots, [0.5, 0.4]), [0, 0]);
+  assert.deepEqual(grabbed(dots, [0.9, 0]), [1.5, 0]);
+  assert.equal(grabbed(dots, [0, 0.85]), null);
+});

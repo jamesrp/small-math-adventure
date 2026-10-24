@@ -25,7 +25,9 @@
 .pg-mark.in{fill:var(--b-leaf,#86a68c);stroke:var(--b-pine,#31533e);stroke-width:1.2px;vector-effect:non-scaling-stroke}
 .pg-mark.out{fill:none;stroke:var(--b-bad,#a9503a);stroke-width:1.6px;stroke-linecap:round;vector-effect:non-scaling-stroke}
 .pg-stencil{fill:var(--b-leaf,#86a68c);fill-opacity:.32;stroke:#5f8a68;stroke-width:1.8px;stroke-linejoin:round;vector-effect:non-scaling-stroke}
-.pg-stencil.movable{cursor:grab;touch-action:none}
+.pg-stencil.movable,.pg-stencil-grip{cursor:grab;touch-action:none}
+/* Half a step round a movable shape takes a press too (pantograph.js, GRIP). */
+.pg-stencil-reach{fill:transparent;stroke:transparent;stroke-width:10px;stroke-linejoin:round}
 .pg-stencil.preview{fill-opacity:.45;stroke-dasharray:4 3}
 .pg-stencil.preview.refused{fill:var(--b-bad,#a9503a);stroke:var(--b-bad,#a9503a)}
 .pg-board.drag-stencil .pg-stencil:not(.preview){fill-opacity:.12;stroke-opacity:.35}
@@ -46,13 +48,13 @@
 .pg-rod.short{stroke:#bb9256}
 .pg-frame.m1 .pg-rod{stroke:#9db6c4}
 .pg-frame.m1 .pg-rod.short{stroke:#88a5b6}
-.pg-frame{opacity:.85}
+.pg-frame{opacity:.85;pointer-events:none}
 .pg-pivot{fill:var(--b-card,#fffdf5);stroke:#8a6a3a;stroke-width:1px;vector-effect:non-scaling-stroke}
 .pg-frame.m1 .pg-pivot{stroke:#5d7c8e}
 .pg-pin-head{fill:var(--b-pine,#31533e);stroke:var(--b-card,#fffdf5);stroke-width:1px;vector-effect:non-scaling-stroke}
 .pg-pin.m1 .pg-pin-head{fill:#3f6275}
 .pg-pin-point{fill:var(--b-card,#fffdf5)}
-.pg-pin-mark{font:700 4.4px var(--b-display,Georgia,serif);fill:var(--b-on-pine,#fff8d9);text-anchor:middle}
+.pg-pin-mark{font:700 5px var(--b-display,Georgia,serif);fill:var(--b-on-pine,#fff8d9);text-anchor:middle}
 .pg-pin.movable{cursor:grab;touch-action:none}
 .pg-mid{fill:#8d978a;stroke:var(--b-card,#fffdf5);stroke-width:1px;vector-effect:non-scaling-stroke}
 .pg-pencil-ring{fill:var(--b-card,#fffdf5);stroke:var(--b-ink,#294439);stroke-width:1.3px;vector-effect:non-scaling-stroke}
@@ -63,7 +65,7 @@
 .pg-hit{fill:transparent}
 .pg-board [role="button"]:focus{outline:none}
 .pg-board [role="button"]:focus-visible .pg-knob-disc,.pg-board [role="button"]:focus-visible .pg-pin-head{stroke:var(--b-ochre,#b38840);stroke-width:3.2px}
-.pg-board .pg-stencil[role="button"]:focus-visible{stroke:var(--b-ochre,#b38840);stroke-width:3.2px}
+.pg-board .pg-stencil-grip:focus-visible .pg-stencil{stroke:var(--b-ochre,#b38840);stroke-width:3.2px}
 .pg-board.dragging .pg-machine{visibility:hidden}
 .pg-board.drag-stencil .pg-machine{visibility:visible}
 .pg-refuse{fill:none;stroke:var(--b-bad,#a9503a);stroke-width:2px;stroke-dasharray:3 2;vector-effect:non-scaling-stroke}

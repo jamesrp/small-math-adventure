@@ -358,3 +358,14 @@ test('every puzzle renders; one line of goal; nothing names the answer before th
     if (p.parameters.mode !== 'playground') assert.ok(p.visibleObjective.length < 50, p.id);
   }
 });
+
+test('dot tap circles reach as far as they can without overlapping a neighbour', () => {
+  let seen = 0;
+  for (const p of strings.puzzles) {
+    const hits = [...view(p, freshAttempt(p)).matchAll(/class="st-dot-hit" cx="([-\d.]+)" cy="([-\d.]+)" r="([\d.]+)"/g)].map(m => m.slice(1).map(Number));
+    seen += hits.length;
+    for (let i = 0; i < hits.length; i++) for (let j = i + 1; j < hits.length; j++) assert.ok(Math.hypot(hits[i][0] - hits[j][0], hits[i][1] - hits[j][1]) >= hits[i][2] + hits[j][2], `${p.id}: dot circles ${i} and ${j} overlap`);
+    assert.ok(hits.every(h => h[2] <= 8.5));
+  }
+  assert.ok(seen > 50);
+});

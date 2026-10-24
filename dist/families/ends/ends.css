@@ -33,6 +33,10 @@
 .ends-road.ends-on{stroke-width:6px}
 .ends-road.trap{stroke:#a7a497;stroke-dasharray:4 4}
 .ends-dot{outline:none;stroke:none}
+/* Dots that are pictures (too small near a tree's rim, or out of view) let a
+   press through to the board, which pans; taps find the nearest tappable dot. */
+.ends-dot[aria-hidden="true"]{pointer-events:none}
+.ends-dot .ends-reach{fill:transparent;stroke:none}
 .ends-dot[role="button"]{cursor:pointer}
 .ends-dot.off{cursor:default}
 .ends-hit{fill:transparent;stroke:none}

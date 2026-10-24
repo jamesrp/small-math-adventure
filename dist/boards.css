@@ -108,16 +108,19 @@
 .board-panel .balance-dish{fill:#e9e2c9;stroke:var(--b-ink);stroke-width:2.5}
 .board-panel .balance-stone ellipse{fill:#c9cbbd;stroke:var(--b-ink);stroke-width:2}
 .board-panel .balance-stone.is-normal ellipse{fill:var(--b-leaf)}
-.board-panel .balance-stone text{font-family:var(--b-display);font-size:12px;text-anchor:middle;fill:var(--b-ink)}
+.board-panel .balance-stone text{font-family:var(--b-display);font-size:14px;text-anchor:middle;fill:var(--b-ink)}
 .board-panel .balance-pebbles{grid-template-columns:repeat(auto-fill,minmax(144px,1fr));gap:6px;margin:8px 0}
 .board-panel .balance-pebble{border:1px solid var(--b-line);border-radius:14px;background:var(--b-paper);padding:2px 5px 4px}
 .board-panel .balance-pebble.pebble-on-left,.board-panel .balance-pebble.pebble-on-right{background:#f6edd2;border-color:#e3cf98}
 .board-panel .balance-pebble legend{display:flex;align-items:center;gap:6px;padding:0 4px}
+.board-panel .balance-pebble legend:not(.sr-only){float:left;width:100%;margin-bottom:2px}
 .board-panel .pebble-token{display:inline-grid;place-items:center;width:34px;height:30px;border-radius:50%;background:#c9cbbd;border:2px solid var(--b-ink);font-family:var(--b-display);font-weight:400;font-size:1.05rem;color:var(--b-ink)}
 .board-panel .pebble-token.pebble-normal{background:var(--b-leaf)}
 .board-panel .pebble-normal-label{font-size:.8rem;color:var(--b-muted)}
-.board-panel .pebble-places{gap:3px}
-.board-panel .pebble-places button{min-width:0;padding:6px 2px;font-size:.95rem}
+.board-panel .pebble-places{gap:3px;clear:both}
+.board-panel .pebble-places button{min-width:0;min-height:44px;padding:2px;font-size:.95rem}
+.board-panel .pebble-places button[aria-pressed="true"]{background:var(--b-card);color:var(--b-ink)}
+.board-panel .pebble-place-icon{color:var(--b-muted)}
 .board-panel .pebble-place-name{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .board-panel .balance-controls{justify-content:center}
 .board-panel .balance-history{border:1px solid var(--b-line);background:var(--b-paper)}
@@ -129,7 +132,7 @@
 .board-panel .balance-answer legend{font-size:.85rem;color:var(--b-muted);margin-bottom:4px;width:100%}
 .board-panel .answer-coin,.board-panel .answer-choice{position:relative;cursor:pointer}
 .board-panel .answer-coin input,.board-panel .answer-choice input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
-.board-panel .answer-coin .pebble-token{width:44px;height:40px}
+.board-panel .answer-coin .pebble-token{width:44px;height:44px}
 .board-panel .answer-coin input:checked+.pebble-token{background:var(--b-sun);box-shadow:0 0 0 3px #f1dca5}
 .board-panel .answer-choice span{display:inline-grid;place-items:center;min-height:44px;padding:0 14px;border-radius:11px;border:1px solid var(--b-line);background:var(--b-card);font-weight:600}
 .board-panel .answer-choice input:checked+span{background:#e9eddc;box-shadow:inset 0 0 0 1.5px var(--b-pine)}

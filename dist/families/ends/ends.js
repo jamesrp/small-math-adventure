@@ -600,16 +600,20 @@ function treeInner(p, b, view, ctx) {
     const cls = look.colour.has(u) && look.colour.has(v) && look.piece.get(u) === look.piece.get(v) ? ` ends-on ends-c${look.colour.get(u)}` : look.trapped.has(u) && look.trapped.has(v) ? ' trap' : '';
     paths += `<path class="ends-road${cls}" style="stroke-width:${f(Math.max(0.5, (cls ? 6 : 3) * mid))}px" d="${geodesic(zu, zv)}"/>`;
   }
+  for (const [d, {z}] of dots) { const k = conf(z); if (k >= TAP && ctx.active) targets.push({d, x: 100 * z[0], y: 100 * z[1], r: 16 * k}); }
+  // A tap goes to the nearest tappable dot within twice its drawn reach
+  // (dotAt); the clear reach circle shows the part of that room which is
+  // surely its own, so a dot two roads out is about 40 px on a phone.
+  const reach = new Map(targets.map(t => [t.d, Math.min(Math.max(2 * t.r, 6), ...targets.filter(u => u !== t).map(u => Math.hypot(u.x - t.x, u.y - t.y) / 2))]));
   const nodes = [...dots.entries()].sort(([, a], [, c]) => norm2(c.z) - norm2(a.z)).map(([d, {z}]) => {
     const k = conf(z), isBlocked = blocked.has(d), control = k >= TAP && ctx.active;
     if (k < 0.03 && !isBlocked) return '';
     const x = f(100 * z[0]), y = f(100 * z[1]);
-    if (control) targets.push({d, x: 100 * z[0], y: 100 * z[1], r: 16 * k});
     const cls = ['ends-dot', isBlocked ? 'blocked' : '', look.colour.has(d) ? `ends-on ends-c${look.colour.get(d)}` : '', look.trapped.has(d) ? 'trap' : '', d === ctx.hintDot ? 'hinted' : '', d === ctx.cursor && control ? 'cursor' : '', ctx.full && !isBlocked ? 'off' : ''].filter(Boolean).join(' ');
     const label = `${dotLabel(m, d)}${isBlocked ? ', blocked' : ''}${look.labels.has(d) ? `, ${look.labels.get(d)}` : ''}`;
     const role = control ? `role="button" tabindex="${d === ctx.cursor ? 0 : -1}" aria-label="${esc(label)}"${d === ctx.cursor ? ' data-focus="ends-cursor"' : ''}` : 'aria-hidden="true"';
     const mark = isBlocked ? `<circle class="ends-stone" r="${f(11 * k)}"/><circle class="ends-stone-ring" r="${f(7 * k)}"/>` : `<circle class="ends-pip" r="${f(7.5 * k)}"/>`;
-    return `<g class="${cls}" data-dot="${d}" transform="translate(${x} ${y})" ${role}>${control ? `<circle class="ends-hit" r="${f(16 * k)}"/>` : ''}${mark}</g>`;
+    return `<g class="${cls}" data-dot="${d}" transform="translate(${x} ${y})" ${role}>${control ? `<circle class="ends-reach" r="${f(reach.get(d))}"/><circle class="ends-hit" r="${f(16 * k)}"/>` : ''}${mark}</g>`;
   }).join('');
   treeTargets.set(p.id, targets);
   return `<circle class="ends-rim" r="100"/>${paths}${nodes}`;

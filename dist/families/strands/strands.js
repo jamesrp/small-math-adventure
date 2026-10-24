@@ -485,7 +485,7 @@ const copyName = k => k === 0 ? 'Red strand' : `Red copy ${word(Math.abs(k))} to
 // the portal board starts from it.
 function bead(view, key, [x, y], strand, row, opts) {
   const ctl = opts.control ? ` role="button" tabindex="0" aria-label="${esc(`${NAMES[strand]} bead ${row}`)}" data-focus="st-bead-${strand}-${row}"` : ' aria-hidden="true"';
-  return `<g class="st-bead ${COLOURS[strand]}${opts.act ? ' act' : ''}${opts.hinted ? ' hinted' : ''}" data-pb-point="${esc(key)}" data-pb-view="${view}" data-st-bead="${strand},${row}"${ctl}><circle class="st-bead-hit" cx="${f(x)}" cy="${f(y)}" r=".44"/><circle class="st-bead-dot" cx="${f(x)}" cy="${f(y)}" r=".22"/></g>`;
+  return `<g class="st-bead ${COLOURS[strand]}${opts.act ? ' act' : ''}${opts.hinted ? ' hinted' : ''}" data-pb-point="${esc(key)}" data-pb-view="${view}" data-st-bead="${strand},${row}"${ctl}><circle class="st-bead-hit" cx="${f(x)}" cy="${f(y)}" r=".5"/><circle class="st-bead-dot" cx="${f(x)}" cy="${f(y)}" r=".22"/></g>`;
 }
 
 function roomView(p, C, routes, cross, opts) {
@@ -505,7 +505,7 @@ function liftView(p, C, opts) {
   const id = `st-clip-${p.id}`, x0 = C.k0 * C.N, x1 = (C.k1 + 1) * C.N;
   const clip = `<clipPath id="${esc(id)}"><rect x="${x0}" y="${f(-C.M - .2)}" width="${x1 - x0}" height="${f(C.M + .4)}"/></clipPath>`;
   return planeBoard(C.S, {
-    cls: `st-lift ${opts.cls || ''}`, label: 'Unrolled view', key: `strands-${p.id}`, slide: Boolean(opts.slide), pad: opts.pad ?? .7,
+    cls: `st-lift ${opts.cls || ''}`, label: 'Unrolled view', key: `strands-${p.id}`, slide: Boolean(opts.slide), pad: opts.pad ?? .95,
     window: [C.k0, 0, C.k1, C.S.box[3] - 1],
     square: (s, X, Y, copy) => copy[0] === 0 ? 'first' : '',
     under: `${clip}<g clip-path="url(#${esc(id)})">${opts.under || ''}</g>${rims(C)}`, over: opts.over, top: `${opts.clipTop ? `<g clip-path="url(#${esc(id)})">${opts.clipTop}</g>` : ''}${opts.top || ''}`
@@ -524,7 +524,7 @@ function rims(C) {
     const x = C.a + k * C.N;
     out += rimMark([x, 0], k ? 'faint' : '') + rimMark([x, -C.M], 'faint');
   }
-  return out + letter([C.a, .62], 'A');
+  return out + letter([C.a, .58], 'A');
 }
 
 function render(p, a) {
@@ -630,7 +630,7 @@ function renderDesign(p, b, done, act) {
     marks = arc(lo, m, .9, 'inner') + arc(m, hi, .9, 'inner') + arc(lo, hi, 1.7, 'outer');
     b.w.forEach((w, i) => { marks += `<circle class="st-end-dot ${COLOURS[i]}${i === b.mid ? ' middle' : ''}" cx="${f(ends[i])}" cy="${f(-C.M)}" r=".22"/>`; });
   } else marks = endMarks(C, b.w, {sel, hinted, hintedB: act?.type === 'end' ? act.w : null});
-  const lift = liftView(p, C, {cls: 'design', pad: 1.6, over: over + marks, top: done ? '' : band(C, 1.2)});
+  const lift = liftView(p, C, {cls: 'design', pad: 1.6, over: over + marks, top: done ? '' : band(C, 2)});
   let bar = `<div class="st-top"><div class="st-pairs">${PAIRS.map((_, i) => pairChip(q, b.w, i)).join('')}</div></div>`;
   // Can't starts the claim; tapping a strand sends it.
   const cant = claiming ? uiButton('Back', {claim: null}, 'st-back', {toggle: 'st-claim'}) : uiButton('Can’t', {claim: JSON.stringify(b)}, 'st-claim', {disabled: !b.tried || b.told !== null, hinted: act?.type === 'cant', toggle: 'st-claim'});
@@ -651,7 +651,7 @@ function renderPlay(p, b) {
   over += endMarks(C, b.w, {sel: sel !== null && sel < 2 ? sel : null});
   routes.forEach((r, i) => { for (let j = 1; j < C.M; j++) top += bead('plane', `${r[j]},${j}`, [r[j], -j], i, j, {act: true}); });
   for (const c of cross) top += ring([c.x + c.k * C.N, -c.t]);
-  const lift = liftView(p, C, {cls: 'design play', slide: true, pad: 1.6, under, over, top: band(C, .4) + top});
+  const lift = liftView(p, C, {cls: 'design play', slide: true, pad: 2, under, over, top: band(C, .4) + top});
   const twist = k => `<button type="button" class="secondary st-button st-twist" data-action="expansion-move" data-move="${esc(JSON.stringify({type: 'twist', k}))}" data-focus="st-twist-${k}" aria-label="${k > 0 ? 'Twist right' : 'Twist left'}">${k > 0 ? '↻' : '↺'}</button>`;
   const bar = `<div class="st-bar">${endButtons(b.w, {sel: sel !== null && sel < 2 ? sel : null})}${twist(-1)}${twist(1)}</div>`;
   const status = `${crossingWords(cross.length)}. Red ends at the B ${copyWords(b.w[0])}, blue at the B ${copyWords(b.w[1])}.`;
@@ -659,7 +659,8 @@ function renderPlay(p, b) {
 }
 
 // --- Taps, slides and keys ---------------------------------------------------------
-// Beads are dragged on the portal board's slides, in either view: each point
+// Beads are dragged on the portal board's slides, in either view (on a touch
+// screen only in the cylinder: strands.css): each point
 // the finger enters moves the bead to that column (in the room, the short way
 // round in the direction the finger went), and a bead keeps its row. The
 // pointer's own targets here, the copies of red and the strip of end discs,

@@ -20,7 +20,7 @@
 [data-mechanic-wire="chips"] .chip-dots b{font-family:var(--b-display,Georgia,serif);font-weight:400;font-size:.9rem;line-height:12px}
 
 [data-mechanic-wire="chips"] .chip-sink{position:absolute;transform:translate(-50%,-50%);width:clamp(76px,25%,108px);height:clamp(58px,17%,74px);border-radius:12px;background:#e7e1cc;border:2px solid #8a9a80;display:grid;place-items:center;z-index:1}
-[data-mechanic-wire="chips"] .chip-sink-label{position:absolute;left:8px;top:4px;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--b-muted,#5a6850)}
+[data-mechanic-wire="chips"] .chip-sink-label{position:absolute;left:8px;top:4px;font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--b-muted,#5a6850)}
 [data-mechanic-wire="chips"] .chip-sink .chip-dots{margin-top:10px;width:60px}
 [data-mechanic-wire="chips"] .chip-sink .chip-count{background:#5a6850}
 

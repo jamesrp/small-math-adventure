@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
 import {playView} from '../dist/ui.js';
-import {radonMechanics, hullOf, inHull, segmentsMeet, hullsMeet, sharedPart, splitList, splitOfColours, coloursOf, meetingSplits, commonSplits, answersOf, pairPlan, arrowPoint} from '../dist/families/radon/radon.js';
+import {radonMechanics, hullOf, inHull, segmentsMeet, hullsMeet, sharedPart, splitList, splitOfColours, coloursOf, meetingSplits, commonSplits, answersOf, pairPlan, arrowPoint, soloHit} from '../dist/families/radon/radon.js';
 import {loadPack} from '../scripts/packs.mjs';
 
 const radon = JSON.parse(await readFile(new URL('../dist/families/radon/radon.json', import.meta.url), 'utf8'));
@@ -277,8 +277,13 @@ test('rendering: boards and dots, bands only after a claim, goals as chips, taps
   }
   const shared = view(byId('radon-08'), freshAttempt(byId('radon-08')));
   assert.equal((shared.match(/class="sb-hit" r="2.75"/g) || []).length, 2, 'two letters on one point: tap circles end halfway between them');
+  // A disc alone on its point reaches halfway to the nearest other disc, up to
+  // 0.6 of a square: B and D are neighbours (5 each), A and C have room (6).
   const solo = view(byId('radon-01'), freshAttempt(byId('radon-01')));
-  assert.equal((solo.match(/class="sb-hit" r="4.1"/g) || []).length, 4);
+  assert.deepEqual([...solo.matchAll(/class="sb-hit" r="([\d.]+)"/g)].map(m => Number(m[1])), [6, 5, 6, 5]);
+  assert.ok(Math.abs(soloHit({A: [0, 0], B: [0, 0.5]}, 'A') - 4.1) < 1e-9, 'never smaller than past the disc');
+  const place = view(byId('radon-02'), freshAttempt(byId('radon-02')));
+  assert.ok((place.match(/class="sb-reach" r="5"/g) || []).length > 20, 'a point that takes taps reaches halfway to its neighbours');
   const help = mech.help(byId('radon-01'));
   assert.match(help, /sb-ring/); assert.match(help, /sb-rod/); assert.match(help, /sb-shape/);
 });
