@@ -131,3 +131,4 @@ One line per item. Claim an item by changing its line to your name, branch and s
 | Road review fixes: staged boards (ferry lamps and seats, bell, boardwalk, scene height) on phones and tablets | Claude, Autonomous worksheet improvement thread | `claude/road-stages-ntxcu3` | claimed |
 | Road review fixes: Puzzles library order, Grown-ups road progress and layout, read-aloud for K–1 | Claude, Autonomous worksheet improvement thread | `claude/road-library-ntxcu3` | claimed |
 | Road review fixes: the race, stars, hints, the Ridge duel and the finale | Claude, Autonomous worksheet improvement thread | `claude/road-race-ntxcu3` | claimed |
+| Road review fixes: balance wording, candidates and Undo; proof garden checklist and paint card | Claude, Autonomous worksheet improvement thread | `claude/road-reasoning-ntxcu3` | claimed |
