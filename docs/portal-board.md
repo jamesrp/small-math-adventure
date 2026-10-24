@@ -192,6 +192,8 @@ wirePortal(root, {
 
 Taps on points and vertices are read from the pointer's press and release, because a phone browser can drop the click after a touch. The click that follows is ignored, and a click with no press before it (from assistive technology) still works. Arrow buttons answer their own clicks. Every acting point and vertex is a focusable button with an accessible name, and every view and the pad have group names.
 
+Tap sizes follow each view's rendered scale (`fitPortal`, called by `wirePortal`; the rules are in [graph-board.md](graph-board.md#tap-sizes)): a point drawn as a disc and a trip vertex get hit shapes at least 44 px across where the lattice leaves room, meeting neighbours halfway; a small square or strip inside its point gets a hit shape round it reaching into whatever room nothing else is nearer; labels under 12 px grow to 12 px, up to .6 lattice units. Squares of a full room already fill their share.
+
 ## What Weeks 64, 70 and 75 will use
 
 - **Week 64, straight paths on strange surfaces.** The family authors glued squares as specs, like the L above; a "glue the squares" puzzle can let the child choose each `right` and `up`. It needs `shoot` with `targets: [start]` to follow a sloped trip until it returns (or meets a cone corner), the pieces to draw that trip in both views, `lift` and `develop` with cuts for the unrolled view, and `abelian` to tell a torus from a surface with a cone point. Grouping corners by following edge matches, with a checked That's all, checks the child's groups against `cornerClasses`, whose angles say which point is a cone point.

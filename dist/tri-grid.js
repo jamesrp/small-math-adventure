@@ -7,6 +7,7 @@
 // (Week 1) is the first user; the Week 1 encore's block game and Week 16's
 // three-colour triangles can build on the same grid. See docs/tri-grid.md.
 import {esc} from './expansion-controls.js';
+import {fitTargets, keepFitted, controlsIn, nearestStroke} from './hit-fit.js';
 
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const integer = value => Number.isSafeInteger(value);
@@ -282,10 +283,23 @@ function pointerEnd(e) {
     if (action) p.apply(action);
   }
 }
+// Tap sizes on screen (hit-fit.js), as on the square grid: a tappable point
+// gets a hit shape at least 44 px across where there is room, an edge's
+// wide stroke leaves the point at its end its share, and a small triangle or
+// piece with no other tappable one beside it widens. Letters in points grow
+// to 12 px where they fit. Called by wireTri.
+export function fitTri(svg) {
+  keepFitted(svg, () => {
+    const discs = [...svg.querySelectorAll('.tg-point[data-tg-point]')], segments = [...svg.querySelectorAll('[data-tg-edge]')], areas = [...svg.querySelectorAll('[data-tg-cell],[data-tg-piece]')];
+    const labels = [...svg.querySelectorAll('.tg-point .tg-letter')].map(el => ({el, max: (el.parentNode.querySelector('.tg-pip')?.r.baseVal.value || 0) * 1.5 || undefined}));
+    fitTargets(svg, {discs, segments, areas, labels, mark: '.tg-pip', reach: '.tg-reach', inert: [...svg.querySelectorAll('.tg-point:not([data-tg-point])')], obstacles: controlsIn(svg, [...discs, ...segments, ...areas])});
+  });
+}
 let listening = false;
 export function wireTri(root, g, handlers, apply) {
   const svg = root.querySelector('[data-tg-board]');
   if (!svg) return;
+  fitTri(svg);
   const controls = '[data-tg-cell],[data-tg-piece],[data-tg-point],[data-tg-edge]';
   const act = control => {
     if (control.dataset.tgPoint !== undefined) return handlers.point?.(Number(control.dataset.tgPoint));
@@ -317,8 +331,9 @@ export function wireTri(root, g, handlers, apply) {
   svg.addEventListener('pointerdown', e => {
     // A second finger is ignored; a new first press replaces any press whose release was lost.
     if (e.button > 0 || !e.isPrimary) return;
-    const control = e.target.closest(controls);
+    let control = e.target.closest(controls);
     if (!control || !svg.contains(control)) return;
+    if (control.dataset.tgEdge !== undefined) control = nearestStroke(svg, control, e, 'tgEdge');
     press = {pointer: e.pointerId, x: e.clientX, y: e.clientY, act: () => act(control), apply};
     if (handlers.stroke && control.dataset.tgCell !== undefined) stroke = {pointer: e.pointerId, svg, g, cells: [Number(control.dataset.tgCell)], moved: false, handlers, apply};
   });

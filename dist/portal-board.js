@@ -12,6 +12,7 @@
 // band); the room, lattice points, steps and corners follow it, the unrolled
 // view, lifts and straight shots don't. See docs/portal-board.md.
 import {esc} from './expansion-controls.js';
+import {fitTargets, keepFitted, controlsIn} from './hit-fit.js';
 
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const integer = Number.isSafeInteger;
@@ -827,7 +828,27 @@ function pointerEnd(e) {
     if (action) p.apply(action);
   }
 }
+// Tap sizes on screen (hit-fit.js): a tappable point drawn as a disc, and a
+// trip's vertex control, get a hit shape at least 44 px across where there
+// is room, meeting every neighbouring point halfway; a small square or strip
+// gets a hit shape round it reaching into the room nothing else is nearer;
+// labels grow to 12 px where they fit. A cell of a full grid already fills
+// its share. Called by wirePortal for every view in the root.
+export function fitPortal(svg) {
+  keepFitted(svg, () => {
+    const acting = [...svg.querySelectorAll('.pb-point[role="button"]')], disc = el => el.querySelector(':scope > .pb-hit')?.tagName === 'circle';
+    const discs = [...acting.filter(disc), ...svg.querySelectorAll('.pb-vertex[data-pb-vertex]')];
+    const areas = acting.filter(el => !disc(el)).map(el => el.querySelector(':scope > .pb-hit')).filter(Boolean);
+    fitTargets(svg, {
+      discs, areas, mark: '.pb-hit,.pb-vertex-hit', reach: '.pb-hit,.pb-vertex-hit',
+      inert: [...svg.querySelectorAll('.pb-point:not([role="button"])')].filter(disc),
+      obstacles: controlsIn(svg, [...acting, ...discs]),
+      labels: [...svg.querySelectorAll('text.pb-label')].map(el => ({el, max: .6}))
+    });
+  });
+}
 export function wirePortal(root, handlers, apply) {
+  root.querySelectorAll('[data-pb-view-board]').forEach(fitPortal);
   const controls = '[data-pb-point][role="button"],[data-pb-vertex],[data-pb-dir]';
   const act = el => {
     if (el.dataset.pbVertex !== undefined) return handlers.vertex?.(Number(el.dataset.pbVertex));

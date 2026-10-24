@@ -205,7 +205,8 @@ try {
   // Puzzle 10: three squares across with D on B's top, glued there, so each
   // corner's target is about 40 px on a 375 px phone (33 px in a row of four).
   await open('glued-10'); await fit('puzzle 10'); await shot('10-start');
-  const [a00, b01, d00] = await Promise.all(['A:00', 'B:01', 'D:00'].map(k => corner(k).boundingBox()));
+  // The drawn squares, since a corner's own hit shape may reach past its square.
+  const [a00, b01, d00] = await Promise.all(['A:00', 'B:01', 'D:00'].map(k => corner(k).locator(':scope > .pb-hit').boundingBox()));
   assert.ok(Math.min(a00.width, a00.height) >= 39.5, `puzzle 10's corner targets are ${Math.round(a00.width)} px`);
   assert.ok(Math.abs(d00.y + d00.height - b01.y) < 1 && Math.abs(d00.x - b01.x) < 1, 'D is drawn on B’s top');
   await hintsFinish();

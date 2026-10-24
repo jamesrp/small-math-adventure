@@ -29,6 +29,8 @@
 .pb-label.faint{fill:#7d8a72}
 .pb-label.corner{font-size:.27px}
 .pb-hit{fill:transparent;stroke:none}
+/* A point's hit shape round its drawn disc (hit-fit.js). */
+.pb-point .hit-tap,.pb-vertex .hit-tap{fill:transparent;stroke:none}
 .pb-point.act{cursor:pointer;outline:none}
 .pb-point.act .pb-hit{fill:rgba(134,166,140,.16)}
 .pb-point.act:hover .pb-hit{fill:rgba(134,166,140,.3)}

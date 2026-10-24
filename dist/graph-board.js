@@ -6,6 +6,7 @@
 // and leaves every rule to the family. It never names a family. See
 // docs/graph-board.md.
 import {esc} from './expansion-controls.js';
+import {fitTargets, keepFitted, controlsIn} from './hit-fit.js';
 
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 export const NODE_R = 5.6;
@@ -106,13 +107,32 @@ export function graphMini(g, opts = {}) {
   return `<svg class="gb-mini ${opts.cls || ''}" viewBox="-6 -6 112 ${f(g.height + 12)}" role="img" aria-label="${esc(opts.label || 'Map')}">${lines}${dots}</svg>`;
 }
 
+// Tap sizes on screen (hit-fit.js): every tappable node gets a transparent
+// hit shape at least 44 px across where there is room, split halfway with
+// any neighbouring dot, kept off other controls on the board, and cut back
+// along a short road so the road keeps the middle of its length. Labels in
+// dots grow to 12 px where they fit. wireGraph calls this; a family that
+// wires a board itself can call it too.
+export function fitGraph(board) {
+  keepFitted(board, () => {
+    const discs = [...board.querySelectorAll('.gb-node[data-gb-node]')], segments = [...board.querySelectorAll('.gb-hit[data-gb-edge]')];
+    fitTargets(board, {
+      discs, segments, mark: '.gb-dot', reach: '.gb-reach',
+      inert: [...board.querySelectorAll('.gb-node:not([data-gb-node])')],
+      obstacles: controlsIn(board, [...discs, ...segments], '[data-gb-node],[data-gb-edge]'),
+      labels: [...board.querySelectorAll('.gb-node .gb-label')].map(el => ({el, max: NODE_R * 1.25}))
+    });
+  });
+}
+
 // Taps, keys and drag strokes. `handlers.node(id)` and `handlers.edge(i)` turn
 // a tap into a move (or null for none); with `handlers.stroke`, a press on a
 // node followed by a slide across others sends node(id) for each node entered,
-// one move at a time, so Undo takes a stroke back step by step. With
-// `handlers.nearest`, a tap where the wide hit areas of several links overlap
-// (two curved bridges between one pair of places, say) goes to the link drawn
-// nearest the finger rather than the one drawn last.
+// one move at a time, so Undo takes a stroke back step by step. A tap where
+// the wide hit areas of several links overlap (two curved bridges between
+// one pair of places, or two roads leaving a dot) goes to the link drawn
+// nearest the finger rather than the one drawn last; `handlers.nearest:
+// false` turns that off.
 function nearestEdge(board, x, y) {
   const hits = document.elementsFromPoint(x, y).filter(el => el.dataset?.gbEdge !== undefined && board.contains(el));
   if (hits.length < 2) return hits[0] || null;
@@ -145,6 +165,7 @@ let listening = false;
 export function wireGraph(root, handlers, apply) {
   const board = root.querySelector('[data-gb-board]');
   if (!board) return;
+  fitGraph(board);
   const act = control => {
     if (control.dataset.gbNode !== undefined) return handlers.node?.(control.dataset.gbNode);
     if (control.dataset.gbEdge !== undefined) return handlers.edge?.(Number(control.dataset.gbEdge));
@@ -153,7 +174,7 @@ export function wireGraph(root, handlers, apply) {
   board.addEventListener('click', e => {
     let control = e.target.closest('[data-gb-node],[data-gb-edge]');
     if (!control || !board.contains(control)) return;
-    if (handlers.nearest && control.dataset.gbEdge !== undefined && e.detail > 0) control = nearestEdge(board, e.clientX, e.clientY) || control;
+    if (handlers.nearest !== false && control.dataset.gbEdge !== undefined && e.detail > 0) control = nearestEdge(board, e.clientX, e.clientY) || control;
     if (stroke?.moved) { stroke = null; return; }
     stroke = null;
     const action = act(control);

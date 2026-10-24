@@ -46,6 +46,8 @@ Every control is focusable and answers Enter and Space. Styles live in `tri-grid
 
 `wireTri(root, g, handlers, apply)` turns taps into moves: `handlers.cell(i)`, `handlers.piece(key)` and `handlers.point(k)` each return a move or null. With `handlers.stroke`, pressing on a cell and sliding through others collects the cells whose middles the finger crossed; `handlers.preview(cells)` says `'ok'` or `'blocked'` while sliding, and `handlers.stroke(cells)` returns the move on release. A slide that never leaves its first cell is a tap. Taps are read from the pointer's press and release rather than the click, because a phone browser can drop the click after a touch; the click that follows is ignored, and a click with no press before it (as assistive technology sends) still works. `cellAt(g, x, y, core)` finds the cell under a drawing position.
 
+Tap sizes follow the board's rendered scale as on the [square grid](sq-grid.md#wiring) (`fitTri`, called by `wireTri`): grid points get hit shapes at least 44 px across where there is room, sharing the room evenly with the tappable cells and pieces round them; letters in points grow to 12 px where they fit; a mesh's edge hit lines are 44 px wide and split where two meet; an edge drawn as a filled shape counts as a cell.
+
 ## Boards of any triangles
 
 `dist/tri-mesh.js` draws boards whose triangles are not all the same: a big triangle cut into little ones of any shapes (Week 16's fan). A family gives points in triangle-edge units (y up) and triangles as triples of point numbers:

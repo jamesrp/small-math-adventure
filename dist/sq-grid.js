@@ -8,6 +8,7 @@
 // covers and Week 54's partition strips can build on the same grid. See
 // docs/sq-grid.md.
 import {esc} from './expansion-controls.js';
+import {fitTargets, keepFitted, controlsIn, nearestStroke} from './hit-fit.js';
 
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const integer = value => Number.isSafeInteger(value);
@@ -310,10 +311,22 @@ function pointerEnd(e) {
     if (action) p.apply(action);
   }
 }
+// Tap sizes on screen (hit-fit.js): a tappable grid point gets a hit shape
+// at least 44 px across where there is room, meeting its neighbours halfway
+// and leaving the middle of any tappable square round it to the square; a
+// small square or piece with no other tappable one beside it widens. Called
+// by wireSquare.
+export function fitSquare(svg) {
+  keepFitted(svg, () => {
+    const discs = [...svg.querySelectorAll('.sg-point[data-sg-point]')], segments = [...svg.querySelectorAll('[data-sg-edge]')], areas = [...svg.querySelectorAll('[data-sg-cell],[data-sg-piece]')];
+    fitTargets(svg, {discs, segments, areas, mark: '.sg-pip', reach: '.sg-reach', inert: [...svg.querySelectorAll('.sg-point:not([data-sg-point])')], obstacles: controlsIn(svg, [...discs, ...segments, ...areas])});
+  });
+}
 let listening = false;
 export function wireSquare(root, g, handlers, apply) {
   const svg = root.querySelector('[data-sg-board]');
   if (!svg) return;
+  fitSquare(svg);
   const controls = '[data-sg-cell],[data-sg-piece],[data-sg-edge],[data-sg-point]';
   const act = control => {
     if (control.dataset.sgPoint !== undefined) return handlers.point?.(Number(control.dataset.sgPoint));
@@ -345,8 +358,9 @@ export function wireSquare(root, g, handlers, apply) {
   svg.addEventListener('pointerdown', e => {
     // A second finger is ignored; a new first press replaces any press whose release was lost.
     if (e.button > 0 || !e.isPrimary) return;
-    const control = e.target.closest(controls);
+    let control = e.target.closest(controls);
     if (!control || !svg.contains(control)) return;
+    if (control.dataset.sgEdge !== undefined) control = nearestStroke(svg, control, e, 'sgEdge');
     press = {pointer: e.pointerId, x: e.clientX, y: e.clientY, act: () => act(control), apply};
     stroke = handlers.stroke && control.dataset.sgCell !== undefined ? {pointer: e.pointerId, svg, g, cells: [Number(control.dataset.sgCell)], moved: false, handlers, apply} : null;
   });

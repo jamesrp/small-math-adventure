@@ -51,6 +51,9 @@ async function slide(...ids) {
     await touch('touchMove', [x1 + (x2 - x1) * s / 8, y1 + (y2 - y1) * s / 8]);
   }
   await touch('touchEnd', points.at(-1));
+  // Headless Chromium makes no click from a tap that lands the instant a
+  // touch drag ends; a finger takes longer than this to come back.
+  await page.waitForTimeout(400);
 }
 const undoButton = () => page.locator('[data-action="undo"]').click();
 // A road that is a control now, found by its accessible name.

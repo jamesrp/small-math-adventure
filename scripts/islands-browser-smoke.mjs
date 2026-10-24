@@ -43,9 +43,10 @@ const pointOn = (i, frac) => page.evaluate(([i, frac]) => {
 const bridge = async (i, frac = .5) => tapAt(await pointOn(i, frac));
 // Points between bridges i and j (both drawn as roads), on a grid running
 // along both roads and across the gap, in whole pixels as a tap lands. For
-// each point in both tap areas: which road's tap area is on top (none, if an
-// island or its tap circle is on top or within 10 px, since a touch snaps to
-// a nearby island), and which road is nearer, by distance to the drawn road.
+// each point inside both roads' 44 px tap strokes, where no third road takes
+// the tap: which road's tap area is on top (none, if an island or its tap
+// circle is on top or within 10 px, since a touch snaps to a nearby island),
+// and which road is nearer, by distance to the drawn road.
 const scan = (i, j) => page.evaluate(([i, j]) => {
   const line = k => document.querySelector(`.isl-map .gb-edge[data-edge="${k}"] .gb-line`);
   const screen = (l, len) => { const q = l.getPointAtLength(len), pt = new DOMPoint(q.x, q.y).matrixTransform(l.getScreenCTM()); return [pt.x, pt.y]; };
@@ -57,18 +58,24 @@ const scan = (i, j) => page.evaluate(([i, j]) => {
   for (let f = 2; f <= 98; f += 2) for (let t = 5; t <= 95; t += 5) {
     const a = ti[Math.round(f * 2.4)], b = tj[Math.round(f * 2.4)], at = [Math.round(a[0] + (b[0] - a[0]) * t / 100), Math.round(a[1] + (b[1] - a[1]) * t / 100)];
     const hits = document.elementsFromPoint(...at).filter(el => el.dataset?.gbEdge !== undefined).map(el => Number(el.dataset.gbEdge));
-    if (!hits.includes(i) || !hits.includes(j)) continue;
-    const top = nodeNear(at) ? null : edgeAt(at), [di, dj] = [dist(ti, at), dist(tj, at)];
+    const [di, dj] = [dist(ti, at), dist(tj, at)];
+    if (!hits.length || di > 22 || dj > 22) continue;
+    const top = nodeNear(at) ? null : edgeAt(at);
     // Only i and j are under the finger, so the nearer of the two is the answer.
     out.push({at, top: hits.every(k => k === i || k === j) ? top : null, near: Math.abs(di - dj) < 1.5 ? null : di < dj ? i : j});
   }
   return out;
 }, [i, j]);
-// A contested point: in both tap areas and clearly nearer one road, with the
-// other road's tap area on top, so the topmost target alone would be wrong.
-// Returns the point and the nearer bridge, or null when there is none.
+// A contested point: inside both roads' tap strokes and clearly nearer one
+// road. The board splits overlapping tap areas so the nearer road's is on
+// top; every such point is checked for that. Returns one of them, nearer i
+// where there is one, with the nearer bridge, or null when there is none.
 async function contested(i, j) {
-  const found = (await scan(i, j)).find(pt => pt.near !== null && pt.top !== null && pt.top !== pt.near);
+  const points = (await scan(i, j)).filter(pt => pt.near !== null && pt.top !== null);
+  const wrong = points.find(pt => pt.top !== pt.near);
+  assert.ok(!wrong, `a tap between bridges ${i} and ${j} at ${wrong?.at} lands on the farther one`);
+  const pick = list => list[Math.floor(list.length / 2)];
+  const found = pick(points.filter(pt => pt.near === i)) || pick(points);
   return found ? {at: found.at, near: found.near} : null;
 }
 // By its whole name, case and all: "Walk" is not "No walk".
@@ -104,12 +111,12 @@ try {
   await pressedHover(button('Walk'), 'Walk');
   await island('B');
   const [ab0, ab1] = [B(T, 'A', 'B', 0), B(T, 'A', 'B', 1)], near = await contested(ab0, ab1);
-  // On a phone the two A–B tap areas overlap along the roads, and a tap where
-  // the later one lies on top goes to the nearer road. At desktop size they
-  // meet only under the islands or midway between the roads, so no tap there
-  // is contested and the middle of the road is tapped instead.
+  // On a phone the two A–B tap strokes overlap along the roads, and a tap
+  // there goes to the nearer road. At desktop size they meet only under the
+  // islands or midway between the roads, so no tap there is contested and the
+  // middle of the road is tapped instead.
   if (phone) assert.ok(near, 'the A–B bridges have a contested point on a phone');
-  if (near) assert.equal(near.near, ab0, 'the earlier bridge is the nearer one under the later tap area');
+  if (near) assert.equal(near.near, ab0, 'the contested point is nearer the first A–B bridge');
   await tapAt(near ? near.at : await pointOn(ab0, .5));
   assert.deepEqual((await board(T)).path, [ab0], near ? 'a contested tap crosses the bridge drawn nearest' : 'a tap crosses the bridge drawn under it');
   contestedTaps.push(`two and one: ${near ? 'contested tap' : 'no contested point'}`);

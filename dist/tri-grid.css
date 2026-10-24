@@ -9,12 +9,17 @@
 .tg-edge{fill:none;stroke:var(--b-ink,#294439);stroke-width:2.6px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
 .tg-piece{fill:var(--b-sky,#9cc9de);stroke:var(--b-ink,#294439);stroke-width:1.6px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
 .tg-dot{fill:var(--b-ink,#294439);pointer-events:none}
-.tg-hit{fill:transparent;cursor:pointer;outline:none}
+/* A small triangle or piece alone among tappable ones widens by a
+   transparent stroke (--hit-pad, set by hit-fit.js); focus draws its own. */
+.tg-hit{fill:transparent;cursor:pointer;outline:none;stroke:transparent;stroke-width:var(--hit-pad,0);vector-effect:non-scaling-stroke;stroke-linejoin:round}
 .tg-hit:hover{fill:rgba(41,68,57,.06)}
 .tg-hit:focus-visible{fill:rgba(179,136,64,.22);stroke:var(--b-ochre,#b38840);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}
 .tg-hit.in-stroke{fill:rgba(49,83,62,.28)}
 .tg-hit.in-stroke.blocked{fill:rgba(169,80,58,.22)}
 .tg-point .tg-reach{fill:transparent}
+/* Once fitted (hit-fit.js), a point takes taps on its own hit shape. */
+.tg-point .hit-tap{fill:transparent;stroke:none}
+.hit-fit .tg-point .tg-reach{pointer-events:none}
 .tg-point .tg-pip{fill:var(--b-ink,#294439)}
 .tg-point[role="button"]{cursor:pointer;outline:none}
 .tg-point[role="button"]:focus-visible .tg-reach{stroke:var(--b-ochre,#b38840);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-dasharray:4 3}
@@ -27,7 +32,7 @@
    controls (a wide invisible line to tap), and letters inside points. */
 .tm-cell{fill:#fbf8ec}
 .tm-line{stroke:#c9cfb5;stroke-width:1.2px;vector-effect:non-scaling-stroke;stroke-linecap:round}
-.tm-edge-hit{stroke:transparent;stroke-width:22px;vector-effect:non-scaling-stroke;stroke-linecap:round;cursor:pointer;outline:none}
+.tm-edge-hit{stroke:transparent;stroke-width:44px;vector-effect:non-scaling-stroke;stroke-linecap:round;cursor:pointer;outline:none}
 .tm-edge-hit:hover{stroke:rgba(41,68,57,.08)}
-.tm-edge-hit:focus-visible{stroke:rgba(179,136,64,.4)}
+.tm-edge-hit:focus-visible{stroke:rgba(179,136,64,.4);stroke-width:22px}
 .tg-letter{text-anchor:middle;font-weight:700;fill:var(--b-ink,#294439);pointer-events:none;font-family:inherit}
