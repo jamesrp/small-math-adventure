@@ -237,15 +237,15 @@ function gardenRender(p, attempt, ctx = {}) {
   const hinted = new Set(ctx.highlighted || []);
   const pos = cell => `grid-row:${Math.floor(cell / cols) + 1};grid-column:${cell % cols + 1}`;
   const cellsHTML = Array.from({ length: cols * rows }, (_, cell) => {
-    if (!region.has(cell)) return `<span class="pg-hole" style="${pos(cell)}" data-cell="${cell}" aria-hidden="true"></span>`;
+    if (!region.has(cell)) return `<span class="pf-hole" style="${pos(cell)}" data-cell="${cell}" aria-hidden="true"></span>`;
     const color = prove ? board.paint[cell] : 0, star = prove && stars.has(cell), isCovered = !prove && covered.has(cell);
-    const classes = ['pg-cell', color ? `c${color}` : '', star ? 'starred' : '', partners.has(cell) && !star ? 'partner' : '', isCovered ? 'covered' : '', !prove && state.sel === cell ? 'selected' : '', hinted.has(cell) ? 'hinted' : ''].filter(Boolean).join(' ');
+    const classes = ['pf-cell', color ? `c${color}` : '', star ? 'starred' : '', partners.has(cell) && !star ? 'partner' : '', isCovered ? 'covered' : '', !prove && state.sel === cell ? 'selected' : '', hinted.has(cell) ? 'hinted' : ''].filter(Boolean).join(' ');
     const label = `Row ${Math.floor(cell / cols) + 1}, column ${cell % cols + 1}${isCovered ? ', covered; tap to lift' : ''}${color ? `, ${colorName(color)}` : ''}${star ? ', starred' : ''}${partners.has(cell) && !star ? ', partner square' : ''}`;
-    return `<button type="button" class="${classes}" style="${pos(cell)}" data-cell="${cell}" data-focus="pg-cell-${cell}" aria-label="${esc(label)}" ${solved ? 'disabled' : ''}><span aria-hidden="true">${star ? '★' : color === 1 ? '●' : color === 2 ? '◆' : ''}</span></button>`;
+    return `<button type="button" class="${classes}" style="${pos(cell)}" data-cell="${cell}" data-focus="pf-cell-${cell}" aria-label="${esc(label)}" ${solved ? 'disabled' : ''}><span aria-hidden="true">${star ? '★' : color === 1 ? '●' : color === 2 ? '◆' : ''}</span></button>`;
   }).join('');
   const dominoes = prove ? '' : board.doms.map((pair, i) => {
     const first = Math.min(...pair), horizontal = Math.floor(pair[0] / cols) === Math.floor(pair[1] / cols);
-    return `<span class="pg-domino tile-color-${i % 6}" style="grid-row:${Math.floor(first / cols) + 1} / span ${horizontal ? 1 : 2};grid-column:${first % cols + 1} / span ${horizontal ? 2 : 1}" aria-hidden="true"></span>`;
+    return `<span class="pf-domino tile-color-${i % 6}" style="grid-row:${Math.floor(first / cols) + 1} / span ${horizontal ? 1 : 2};grid-column:${first % cols + 1} / span ${horizontal ? 2 : 1}" aria-hidden="true"></span>`;
   }).join('');
   const locked = Boolean(p.parameters.proveLocked);
   const modeButton = (mode, icon, label) => mode === 'prove' && locked
@@ -269,7 +269,7 @@ function gardenRender(p, attempt, ctx = {}) {
   ]);
   return `<div class="proof-puzzle proof-garden" data-mechanic-wire="proofgarden">
     <div class="proof-modes" role="group" aria-label="Mode">${modeButton('cover', '▰', 'Cover')}${modeButton('prove', '✎', 'Prove it can’t')}</div>
-    <div class="pg-board${prove ? ' proving' : ''}" style="--cols:${cols};--rows:${rows}" role="group" aria-label="Garden with ${region.size} squares">${cellsHTML}${dominoes}</div>
+    <div class="pf-board${prove ? ' proving' : ''}" style="--cols:${cols};--rows:${rows}" role="group" aria-label="Garden with ${region.size} squares">${cellsHTML}${dominoes}</div>
     ${solved ? '' : prove ? `<div class="proof-toolbox" role="group" aria-label="Proof tools">${tools.map(([tool, label, name]) => uiButton(label, { tool }, state.tool === tool, `aria-label="${name}"`)).join('')}</div>
       <div class="proof-actions">${state.tool === 1 || state.tool === 2 ? actionButton(`Fill blanks ${swatch(state.tool)}`, { type: 'fill', color: state.tool }, `aria-label="Fill blanks ${colorName(state.tool)}" ${pt.blank ? '' : 'disabled'}`) : ''}${actionButton('Clear all', { type: 'wipe' }, anyPaint || st.count ? '' : 'disabled')}</div>`
       : `<div class="proof-actions">${board.doms.length ? '' : '<span class="proof-hintline">Drag across two squares.</span>'}${actionButton('Clear', { type: 'clear' }, board.doms.length ? '' : 'disabled')}</div>`}
@@ -291,12 +291,12 @@ function tileGarden(p) {
 // pointerup that has already been handled. Keyboard clicks are never echoes.
 let lastPointerTap = null;
 function gardenWire(root, p, api) {
-  const boardEl = root.querySelector('.pg-board');
-  if (!boardEl || root.querySelector('.pg-cell:disabled')) return;
+  const boardEl = root.querySelector('.pf-board');
+  if (!boardEl || root.querySelector('.pf-cell:disabled')) return;
   const state = ui(p), region = regionOf(p), tp = tileGarden(p);
   const { extendTileStroke, startTileStroke, tapTileSelection, tileReleaseAction, tileStrokeTarget } = api.tile;
   let gesture = null;
-  const cellNode = cell => boardEl.querySelector(`.pg-cell[data-cell="${cell}"]`);
+  const cellNode = cell => boardEl.querySelector(`.pf-cell[data-cell="${cell}"]`);
   const board = () => api.attempt().board;
   const tap = cell => {
     const b = board();
@@ -330,7 +330,7 @@ function gardenWire(root, p, api) {
       node.firstElementChild.textContent = state.tool === 'star' ? (value ? '★' : '') : value === 1 ? '●' : value === 2 ? '◆' : '';
     }
   };
-  const showCover = () => boardEl.querySelectorAll('.pg-cell').forEach(node => {
+  const showCover = () => boardEl.querySelectorAll('.pf-cell').forEach(node => {
     const on = gesture?.kind === 'cover' && gesture.multi && gesture.stroke.cells.includes(Number(node.dataset.cell));
     node.classList.toggle('preview', Boolean(on && gesture.stroke.status !== 'blocked'));
     node.classList.toggle('invalid', Boolean(on && gesture.stroke.status === 'blocked'));
@@ -345,12 +345,12 @@ function gardenWire(root, p, api) {
   };
   boardEl.addEventListener('pointerdown', e => {
     if (gesture || !e.isPrimary || e.button !== 0) return;
-    const node = e.target.closest('.pg-cell');
+    const node = e.target.closest('.pf-cell');
     if (!node || !boardEl.contains(node)) return;
     e.preventDefault();
     boardEl.setPointerCapture(e.pointerId);
     const cell = Number(node.dataset.cell), b = board();
-    const rects = [...boardEl.querySelectorAll('.pg-cell,.pg-hole')].map(n => ({ cell: Number(n.dataset.cell), rect: n.getBoundingClientRect() }));
+    const rects = [...boardEl.querySelectorAll('.pf-cell,.pf-hole')].map(n => ({ cell: Number(n.dataset.cell), rect: n.getBoundingClientRect() }));
     const base = { id: e.pointerId, start: cell, boardRect: boardEl.getBoundingClientRect(), rects, startRect: node.getBoundingClientRect(), last: [e.clientX, e.clientY] };
     if (b.mode === 'cover') {
       gesture = b.doms.some(pair => pair.includes(cell)) ? { ...base, kind: 'tap' } : { ...base, kind: 'cover', stroke: startTileStroke(tp, b.doms, cell), multi: false, departed: false };
@@ -401,7 +401,7 @@ function gardenWire(root, p, api) {
   boardEl.addEventListener('lostpointercapture', e => finish(e, true));
   // Keyboard activation reaches the cell as a click with no pointer details.
   boardEl.addEventListener('click', e => {
-    const node = e.target.closest('.pg-cell');
+    const node = e.target.closest('.pf-cell');
     if (!node || e.detail !== 0) return;
     const cell = Number(node.dataset.cell);
     if (lastPointerTap && lastPointerTap.id === p.id && lastPointerTap.cell === cell && Date.now() - lastPointerTap.time < 600) return;

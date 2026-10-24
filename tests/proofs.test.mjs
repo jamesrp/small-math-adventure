@@ -200,9 +200,9 @@ test('choices that are not moves reset on Restart and when a puzzle is opened ag
   assert.doesNotMatch(view(p, a), /duel-pebble lift/);
   const g = byId('proof-garden-04');
   mechanicFor(g).ui(g, { sel: g.parameters.cells[0] });
-  assert.match(view(g, freshAttempt(g)), /pg-cell selected/);
+  assert.match(view(g, freshAttempt(g)), /pf-cell selected/);
   mechanicFor(g).reset(g);
-  assert.doesNotMatch(view(g, freshAttempt(g)), /pg-cell selected/);
+  assert.doesNotMatch(view(g, freshAttempt(g)), /pf-cell selected/);
 });
 
 test('a solved garden accepts no further moves', () => {

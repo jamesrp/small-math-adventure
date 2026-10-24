@@ -23,7 +23,7 @@ const done = () => page.locator('#completion-heading').waitFor({ timeout: 5000 }
 const fit = async label => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `${label}: no page overflow`);
 const center = async selector => { const b = await page.locator(selector).boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
 async function drag(from, to) {
-  const [x1, y1] = await center(`.pg-cell[data-cell="${from}"]`), [x2, y2] = await center(`.pg-cell[data-cell="${to}"]`);
+  const [x1, y1] = await center(`.pf-cell[data-cell="${from}"]`), [x2, y2] = await center(`.pf-cell[data-cell="${to}"]`);
   await page.mouse.move(x1, y1); await page.mouse.down(); await page.mouse.move(x2, y2, { steps: 6 }); await page.mouse.up();
 }
 const tool = name => page.locator('.proof-toolbox button', { hasText: name }).first().click();
@@ -42,16 +42,16 @@ try {
 
   // 1: one star with no partner. The Undo button works for gardens.
   await page.getByRole('button', { name: /Prove it can’t/ }).click();
-  await page.locator('.pg-cell[data-cell="0"]').click(); await done(); await shot('garden-01-proved');
+  await page.locator('.pf-cell[data-cell="0"]').click(); await done(); await shot('garden-01-proved');
   checks.push('star proof by tap');
 
   // 2: keyboard stars keep focus on the cell.
   await open('proof-garden-02');
   await page.getByRole('button', { name: /Prove it can’t/ }).click();
-  await page.locator('.pg-cell[data-cell="0"]').focus(); await page.keyboard.press('Enter');
-  assert.equal(await page.evaluate(() => document.activeElement?.dataset.focus), 'pg-cell-0', 'focus stays on the starred cell');
+  await page.locator('.pf-cell[data-cell="0"]').focus(); await page.keyboard.press('Enter');
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset.focus), 'pf-cell-0', 'focus stays on the starred cell');
   assert.deepEqual((await board('proof-garden-02')).stars, [0]);
-  await page.locator('.pg-cell[data-cell="8"]').focus(); await page.keyboard.press(' ');
+  await page.locator('.pf-cell[data-cell="8"]').focus(); await page.keyboard.press(' ');
   await done(); checks.push('star proof by keyboard');
 
   // 3: paint gold by a drag stroke and taps, then Fill blanks with green.
@@ -63,12 +63,12 @@ try {
   assert.deepEqual((await board('proof-garden-03')).paint.flatMap((c, i) => c ? [i] : []), [1, 6], 'diagonal stroke paints squares on the diagonal only');
   // A fast stroke along row 3 (two pointer events) paints every square it crosses.
   {
-    const [x1, y1] = await center('.pg-cell[data-cell="8"]'), [x2, y2] = await center('.pg-cell[data-cell="11"]');
+    const [x1, y1] = await center('.pf-cell[data-cell="8"]'), [x2, y2] = await center('.pf-cell[data-cell="11"]');
     await page.mouse.move(x1, y1); await page.mouse.down(); await page.mouse.move(x2, y2, { steps: 1 }); await page.mouse.up();
     assert.deepEqual((await board('proof-garden-03')).paint.flatMap((c, i) => c ? [i] : []), [1, 6, 8, 9, 10, 11], 'a fast stroke paints every square it crosses');
     await tool('Erase'); await drag(8, 11); await tool('Paint');
   }
-  for (const cell of gold.filter(c => ![1, 6].includes(c))) await page.locator(`.pg-cell[data-cell="${cell}"]`).click();
+  for (const cell of gold.filter(c => ![1, 6].includes(c))) await page.locator(`.pf-cell[data-cell="${cell}"]`).click();
   await page.locator('.proof-toolbox button').nth(2).click(); // green paint
   await page.getByRole('button', { name: /Fill blanks/ }).click();
   await done(); await shot('garden-03-proved');
@@ -78,7 +78,7 @@ try {
   // places nothing, as on Tile Garden boards.
   await open('proof-garden-04');
   {
-    const [x1, y1] = await center('.pg-cell[data-cell="9"]'), [x2, y2] = await center('.pg-cell[data-cell="10"]'), [x3, y3] = await center('.pg-cell[data-cell="11"]');
+    const [x1, y1] = await center('.pf-cell[data-cell="9"]'), [x2, y2] = await center('.pf-cell[data-cell="10"]'), [x3, y3] = await center('.pf-cell[data-cell="11"]');
     await page.mouse.move(x1, y1); await page.mouse.down(); await page.mouse.move(x2, y2, { steps: 4 }); await page.mouse.move(x3, y3, { steps: 4 }); await page.mouse.up();
     assert.deepEqual((await board('proof-garden-04')).doms, [], 'an overlong drag places nothing');
   }
@@ -88,20 +88,20 @@ try {
   // 5: the Checker tool is earned after garden 3.
   await open('proof-garden-05');
   await page.getByRole('button', { name: /Prove it can’t/ }).click();
-  await tool('Checker'); await page.locator('.pg-cell[data-cell="1"]').click();
+  await tool('Checker'); await page.locator('.pf-cell[data-cell="1"]').click();
   await done(); await shot('garden-05-checker'); checks.push('Checker tool after the first paint proof');
 
   // 6: a balanced garden: paint cannot prove it; stars can.
   await open('proof-garden-06');
   await page.getByRole('button', { name: /Prove it can’t/ }).click();
-  await tool('Checker'); await page.locator('.pg-cell[data-cell="1"]').click();
+  await tool('Checker'); await page.locator('.pf-cell[data-cell="1"]').click();
   assert.equal(await page.locator('#completion-heading').count(), 0, 'balanced colors do not prove anything');
-  await tool('Star'); await page.locator('.pg-cell[data-cell="1"]').click(); await page.locator('.pg-cell[data-cell="6"]').click();
+  await tool('Star'); await page.locator('.pf-cell[data-cell="1"]').click(); await page.locator('.pf-cell[data-cell="6"]').click();
   await done(); await fit('garden 6'); checks.push('stars where paint fails');
 
   // 7: tap-tap placement of the stored covering.
   await open('proof-garden-07');
-  for (const [a, b] of puzzles.find(p => p.id === 'proof-garden-07').solution) { await page.locator(`.pg-cell[data-cell="${a}"]`).click(); await page.locator(`.pg-cell[data-cell="${b}"]`).click(); }
+  for (const [a, b] of puzzles.find(p => p.id === 'proof-garden-07').solution) { await page.locator(`.pf-cell[data-cell="${a}"]`).click(); await page.locator(`.pf-cell[data-cell="${b}"]`).click(); }
   await done(); checks.push('covering by tapping pairs');
 
   // Flip map: walk 4, prove 5, numbers, trips.
