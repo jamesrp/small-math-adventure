@@ -5,12 +5,14 @@
 // cube, and Floyd–Warshall distances with the pair test everywhere); every
 // triple of homes on the full 5 × 5 grid, the tree, the cube and the ring of
 // eight; every single closure in the close puzzle; witnesses played as moves;
-// hint chains from fresh, after a wasted step, after a wrong That's all and
-// after a wrong closure; illegal moves; forged saves; the playground.
+// That's all only after a meeting and No dot works only after a closure, with
+// refusals kept through Undo; hint chains from fresh, after a wasted step,
+// after a wrong That's all and after a wrong closure; illegal moves; forged
+// saves (and saves from before the meeting rule); the playground.
 // Run: node scripts/validate-meeting.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import {freshAttempt, move, isSolved, nextHint, validBoard} from '../dist/engine.js';
+import {freshAttempt, move, isSolved, nextHint, validBoard, undoPress} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
 import {meetingDots} from '../dist/families/meeting/meeting.js';
 import {loadPack} from './packs.mjs';
@@ -159,19 +161,36 @@ export async function validateMeeting() {
         assert.deepEqual(again.board.found, a.board.found);
       }
     }
-    if (q.mode === 'every') {
-      a = play(p, a, {type: 'all'});
-      assert.ok(isSolved(p, a.board), `${p.id}: That’s all after every meeting dot`);
-      if (answers.length) {
-        const early = play(p, fresh, {type: 'all'});
-        assert.deepEqual(early.board.told, {kind: 'more'}, `${p.id}: there is another`);
-        refuse(p, early, {type: 'all'}, 'That’s all again before a new dot');
-        hintSteps += hintsSolve(p, early, 'after a wrong That’s all');
-      }
-    }
     // A meeting at a dot that is not a meeting dot (or by a long walk) keeps
     // the walkers there and names a pair; the hints still finish.
     const wrong = Object.keys(q.nodes).find(m => !answers.includes(m));
+    const meetAt = (b, m) => { const w = walksTo(m); for (const x of W) b = walkTo(p, b, x, w[x].slice(1)); return b; };
+    if (q.mode === 'every') {
+      // That's all is a claim about the child's meetings: it waits for one.
+      refuse(p, fresh, {type: 'all'}, 'That’s all before any meeting');
+      if (!answers.length) {
+        a = meetAt(fresh, wrong);
+        assert.equal(a.board.met, true, `${p.id}: a meeting that fails counts`);
+        const x = W.find(w => a.board.walks[w].length > 1), parted = play(p, a, {type: 'back', walker: x, to: a.board.walks[x].at(-2)});
+        assert.equal(parted.board.met, true, `${p.id}: the walkers part and the meeting still counts`);
+        a = parted;
+      }
+      a = play(p, a, {type: 'all'});
+      assert.ok(isSolved(p, a.board), `${p.id}: That’s all after every meeting dot`);
+      if (answers.length) {
+        const early = play(p, meetAt(fresh, wrong), {type: 'all'});
+        assert.deepEqual(early.board.told, {kind: 'more'}, `${p.id}: there is another`);
+        refuse(p, early, {type: 'all'}, 'That’s all again before a new dot');
+        const back = undoPress(p, early, x => JSON.stringify(x.board));
+        assert.deepEqual(back.board.told, {kind: 'more'}, `${p.id}: Undo keeps “there is another”`);
+        refuse(p, back, {type: 'all'}, 'That’s all after Undo before a new dot');
+        hintSteps += hintsSolve(p, early, 'after a wrong That’s all');
+      }
+      // A save from before the meeting rule has no `met` and still loads.
+      const {met, ...old} = fresh.board;
+      assert.equal(met, false, `${p.id}: a fresh board has met no one`);
+      assert.ok(validBoard(p, old), `${p.id}: a save without met loads`);
+    }
     if (wrong) {
       const w = walksTo(wrong);
       let b = fresh;
@@ -236,7 +255,7 @@ function checkWalkRefusals(p, fresh, answers, d) {
   for (const [board, why] of forged) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
   if (q.mode === 'every') {
     const notOne = ids.find(v => !answers.includes(v));
-    for (const [board, why] of [[{...B, found: [notOne]}, 'a found dot that is not a meeting dot'], ...(answers.length ? [[{...B, found: [answers[0], answers[0]]}, 'a dot found twice'], [{...B, done: true}, 'That’s all before every dot'], [{...B, found: [...answers], told: {kind: 'more'}}, '“there is another” when none is'], [{...B, found: [answers[0]], told: {kind: 'again', dot: answers[0]}, walks: {...home, A: [A, near]}}, '“found already” with a walker away']] : []), [{...B, told: {kind: 'again', dot: notOne}}, '“found already” for a dot not found'], [{...B, done: 'yes'}, 'a done flag that is not true or false']]) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
+    for (const [board, why] of [[{...B, met: 'yes'}, 'a met flag that is not true or false'], [{...B, found: [notOne]}, 'a found dot that is not a meeting dot'], ...(answers.length ? [[{...B, found: [answers[0], answers[0]]}, 'a dot found twice'], [{...B, done: true}, 'That’s all before every dot'], [{...B, found: [...answers], told: {kind: 'more'}}, '“there is another” when none is'], [{...B, found: [answers[0]], told: {kind: 'again', dot: answers[0]}, walks: {...home, A: [A, near]}}, '“found already” with a walker away']] : []), [{...B, told: {kind: 'again', dot: notOne}}, '“found already” for a dot not found'], [{...B, done: 'yes'}, 'a done flag that is not true or false']]) assert.equal(validBoard(p, board), false, `${p.id}: rejects ${why}`);
     // The walkers never rest on a meeting dot: it is kept the moment they meet.
     if (answers.length) {
       const m = answers[0], walks = Object.fromEntries(W.map(x => { const r = [q.homes[x]]; while (r.at(-1) !== m) r.push(ids.find(v => roadIndex(q, r.at(-1), v) >= 0 && d[v][m] === d[r.at(-1)][m] - 1)); return [x, r]; }));
@@ -257,11 +276,15 @@ function checkClose(p, fresh, row) {
     if (i === target) { assert.ok(isSolved(p, a.board), `${p.id}: the claim is accepted`); continue; }
     assert.equal(a.board.refused, true, `${p.id}: a wrong claim is refused`);
     refuse(p, a, {type: 'claim'}, 'the same claim twice');
-    refuse(p, a, {type: 'close', road: target}, 'a closure past the budget');
+    const back = undoPress(p, a, x => JSON.stringify(x.board));
+    assert.deepEqual(back.board, fresh.board, `${p.id}: one Undo goes back past the refusal and its closure`);
+    const moved = play(p, a, {type: 'close', road: target});
+    assert.deepEqual(moved.board, {closed: [target], claimed: false, refused: false}, `${p.id}: with the one closure used, another road takes it`);
     steps += hintsSolve(p, a, `after closing road ${i}`);
   }
-  const before = play(p, fresh, {type: 'claim'});
-  assert.equal(before.board.refused, true, `${p.id}: with every road open a dot works`);
+  // With every road open a dot works, so No dot works waits for a closure.
+  assert.ok(pairTest(q, q.homes).length > 0, `${p.id}: with every road open a dot works`);
+  refuse(p, fresh, {type: 'claim'}, 'No dot works before any closure');
   steps += hintsSolve(p, fresh, 'from fresh');
   for (const [action, why] of [[{type: 'close', road: -1}, 'an unknown road'], [{type: 'close', road: q.roads.length}, 'an unknown road'], [{type: 'close', road: '0'}, 'a road named by a string'], [{type: 'open', road: 0}, 'opening an open road'], [{type: 'step', walker: 'A', to: q.roads[0][1]}, 'walking'], [{type: 'all'}, 'That’s all']]) refuse(p, fresh, action, why);
   // A road whose closure would cut the map in two is refused (with room in

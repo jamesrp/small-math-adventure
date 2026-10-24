@@ -3,8 +3,9 @@
 // slide, Undo across a slide, choosing walkers by button and by tapping their
 // dot, Enter and arrow keys, a meeting that is too long with its dashed
 // route, a solve, the find-every puzzles with Found already, There is another
-// and That's all, closing roads with No dot works, refusals, and the
-// playground's maps and Homes. Same environment variables as the other
+// and That's all (off until the walkers have met), closing roads with No dot
+// works (off until a road is closed), a tap on another road moving the one
+// closure, Undo past a refusal, and the playground's maps and Homes. Same environment variables as the other
 // browser suites (PLAYWRIGHT_MODULE, BROWSER_EXECUTABLE, TEST_URL, TEST_PHONE=1
 // for a phone with touch). Screenshots go in test-results/meeting/.
 import assert from 'node:assert/strict';
@@ -119,10 +120,14 @@ try {
   await page.getByRole('button', {name: 'That’s all', exact: true}).click();
   await done();
 
-  // Puzzle 10: the triangle has none, so That's all is right at once.
+  // Puzzle 10: the triangle has none. That's all waits for a meeting, then is right.
   await open('meeting-10');
+  assert.equal(await page.getByRole('button', {name: 'That’s all', exact: true}).isDisabled(), true, 'That’s all waits for a meeting');
   await taps('b'); await chip('C').click(); await taps('b');
   assert.equal(await page.locator('.mt-told').innerText(), 'Too long for A and C.', 'B is off the road from A to C');
+  await taps('c');
+  assert.equal((await board('meeting-10')).met, true, 'the meeting counts after the walkers part');
+  assert.equal(await page.getByRole('button', {name: 'That’s all', exact: true}).isDisabled(), false, 'That’s all is on');
   await page.getByRole('button', {name: 'That’s all', exact: true}).click();
   await done();
 
@@ -130,20 +135,27 @@ try {
   const C = 'meeting-12';
   await open(C); await fit('close');
   const wrong = await roadOf('0 across, 0 up', '1 across, 0 up'), right = await roadOf('0 across, 1 up', '1 across, 1 up');
-  await page.getByRole('button', {name: 'No dot works', exact: true}).click();
-  assert.equal(await page.locator('.mt-told').innerText(), 'This dot still works.', 'with every road open a dot works');
-  assert.equal(await page.locator('.gb-node.found[data-node="01"]').count(), 1, 'the meeting dot is shown');
+  const claim = () => page.getByRole('button', {name: 'No dot works', exact: true});
+  assert.equal(await claim().isDisabled(), true, 'No dot works waits for a closure');
   await tap(road(wrong));
   assert.deepEqual((await board(C)).closed, [wrong], 'a tap closes a road');
   assert.equal(await page.locator('.gb-bar').count(), 1, 'a bar across it');
-  await tap(road(right));
-  assert.deepEqual((await board(C)).closed, [wrong], 'one road only');
-  assert.match(await page.locator('.feedback').innerText(), /not allowed/, 'a refusal says so');
+  await claim().click();
+  assert.equal(await page.locator('.mt-told').innerText(), 'This dot still works.', 'C still meets A and B');
+  assert.equal(await page.locator('.gb-node.found[data-node="01"]').count(), 1, 'the meeting dot is shown');
+  assert.equal(await claim().isDisabled(), true, 'the answer waits for a change');
   await shot('close-refused');
+  await undoButton();
+  assert.deepEqual(await board(C), {closed: [], claimed: false, refused: false}, 'one Undo goes back past the refusal and its closure');
   await tap(road(wrong));
+  await tap(road(right));
+  assert.deepEqual((await board(C)).closed, [right], 'with the one closure used, another road takes it');
+  assert.equal(await page.locator('.gb-bar').count(), 1, 'still one bar');
+  assert.equal(await page.locator('.feedback').count() && /not allowed/.test(await page.locator('.feedback').innerText()), false, 'no refusal');
+  await tap(road(right));
   assert.deepEqual((await board(C)).closed, [], 'a second tap opens it');
   await road(right).focus(); await page.keyboard.press('Enter');
-  await page.getByRole('button', {name: 'No dot works', exact: true}).click();
+  await claim().click();
   await done();
   await shot('close-solved');
 

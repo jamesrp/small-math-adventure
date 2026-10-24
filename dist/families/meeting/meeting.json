@@ -2469,7 +2469,7 @@
     "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
     "The dot works when all three of those routes are shortest: it is a meeting dot. It may be a home, and then that walker stays at home.",
     "If one of the routes is too long, a dashed line shows a shorter route between those two homes.",
-    "Each meeting dot found gets a ring, and the walkers go home. Press That’s all when you think none is left. It says if there is another."
+    "Each meeting dot found gets a ring, and the walkers go home. Once the walkers have met, press That’s all when you think none is left. It says if there is another."
    ],
    "idea": "On a full grid there is never a second meeting dot.",
    "prerequisites": "Keep the meeting dots already found in mind, and decide when none is left.",
@@ -2603,7 +2603,7 @@
     "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
     "The dot works when all three of those routes are shortest: it is a meeting dot. It may be a home, and then that walker stays at home.",
     "If one of the routes is too long, a dashed line shows a shorter route between those two homes.",
-    "Each meeting dot found gets a ring, and the walkers go home. Press That’s all when you think none is left. It says if there is another."
+    "Each meeting dot found gets a ring, and the walkers go home. Once the walkers have met, press That’s all when you think none is left. It says if there is another."
    ],
    "idea": "On other maps there can be more than one meeting dot.",
    "prerequisites": "Keep the meeting dots already found in mind, and decide when none is left.",
@@ -2714,7 +2714,8 @@
      "A": "a",
      "B": "b",
      "C": "c"
-    }
+    },
+    "why": "Every pair of homes is one road apart, and a route through the third dot takes two."
    },
    "objective": "Find every meeting dot: every dot where the three walkers can stand so that any two walks together make a shortest route between their homes. Press That’s all when none is left.",
    "visibleObjective": "Find every meeting dot.",
@@ -2725,7 +2726,7 @@
     "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
     "The dot works when all three of those routes are shortest: it is a meeting dot. It may be a home, and then that walker stays at home.",
     "If one of the routes is too long, a dashed line shows a shorter route between those two homes.",
-    "Each meeting dot found gets a ring, and the walkers go home. Press That’s all when you think none is left. It says if there is another."
+    "Each meeting dot found gets a ring, and the walkers go home. Once the walkers have met, press That’s all when you think none is left. It says if there is another."
    ],
    "idea": "On a triangle no dot works: each home is off the road between the other two.",
    "prerequisites": "Keep the meeting dots already found in mind, and decide when none is left.",
@@ -2849,7 +2850,8 @@
      "A": "00",
      "B": "02",
      "C": "21"
-    }
+    },
+    "why": "A and B’s only shortest route goes up the left side, so a meeting dot would be one of its three dots, and none of them works."
    },
    "objective": "Find every meeting dot: every dot where the three walkers can stand so that any two walks together make a shortest route between their homes. Press That’s all when none is left.",
    "visibleObjective": "Find every meeting dot.",
@@ -2860,7 +2862,7 @@
     "Each walker starts at its home. When all three stand on one dot, any two of their walks together make a route between their homes.",
     "The dot works when all three of those routes are shortest: it is a meeting dot. It may be a home, and then that walker stays at home.",
     "If one of the routes is too long, a dashed line shows a shorter route between those two homes.",
-    "Each meeting dot found gets a ring, and the walkers go home. Press That’s all when you think none is left. It says if there is another."
+    "Each meeting dot found gets a ring, and the walkers go home. Once the walkers have met, press That’s all when you think none is left. It says if there is another."
    ],
    "idea": "A grid with a hole in it can have no meeting dot at all.",
    "prerequisites": "Keep the meeting dots already found in mind, and decide when none is left.",
@@ -3011,11 +3013,11 @@
    "objective": "Close one road so that no dot is a meeting dot for A, B and C.",
    "visibleObjective": "Close one road so no dot works.",
    "instruction": "Close one road so that no dot is a meeting dot for A, B and C.",
-   "controls": "A meeting dot lies on a shortest route between each pair of homes. Tap a road to close it, and tap it again to open it. The slot shows how many roads may be closed. Press No dot works when you are sure. Undo takes back the last change.",
+   "controls": "A meeting dot lies on a shortest route between each pair of homes. Tap a road to close it, and tap it again to open it; tap another road to move the closure there. The slot shows how many roads may be closed. Press No dot works when you are sure. Undo takes back the last change.",
    "rules": [
     "Each road is one step. A meeting dot for A, B and C is on a shortest route between each two of them. It may be a home.",
-    "Tap a road to close it and again to open it. The map must stay in one piece.",
-    "Press No dot works when you think no dot is a meeting dot. If one still is, it appears with a shortest walk to it from each home."
+    "Tap a road to close it and again to open it, or tap another road to move the closure there. The map must stay in one piece.",
+    "With a road closed, press No dot works when you think no dot is a meeting dot. If one still is, it appears with a shortest walk to it from each home."
    ],
    "idea": "Taking away one road can leave no meeting dot.",
    "prerequisites": "Think ahead about how closing one road changes the shortest routes. A grown-up can read the goal.",
@@ -3025,7 +3027,7 @@
     "Close the road from C going left, then press No dot works."
    ],
    "parent": {
-    "notice": "Whether your child presses No dot works first, to see the meeting dot, and then closes a road its walks use.",
+    "notice": "Whether your child closes a road near the meeting dot or far from it, and whether “This dot still works.”, with its walks, leads them to a road those walks use.",
     "prompt": "Why does closing a road far from the meeting dot change nothing?",
     "explanation": "A and B are two steps apart, and their only shortest route goes up the left side, so a meeting dot must be A, B or the dot between them. With every road open, the dot between them works: C reaches it in one step. Close that road and C needs three steps to it, so A to C through it takes 4 steps instead of 2. A and B fail too (B to C through A takes 4, not 2). So no dot works. Every other single road leaves a meeting dot; the validator checks all twelve.",
     "extension": "Which other road could you close? (None on its own: with these homes, only the road from C going left works.)",

@@ -5,7 +5,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
+import {freshAttempt, move, isSolved, nextHint, validBoard, undo, undoPress} from '../dist/engine.js';
 import {playView} from '../dist/ui.js';
 import {meetingMechanics, meetingDots, distances, failing, shortestRoute, dotAction, arrowAction, stepWords, closures, connected, isWalk} from '../dist/families/meeting/meeting.js';
 import {loadPack} from '../scripts/packs.mjs';
@@ -93,24 +93,57 @@ test('find every: a meeting dot found sends the walkers home; found already; the
   a = play(p, a, {type: 'all'});
   assert.ok(isSolved(p, a.board));
   const none = byId('meeting-10');
-  assert.ok(isSolved(none, play(none, freshAttempt(none), {type: 'all'}).board), 'with no meeting dot, That’s all is right at once');
+  assert.equal(move(none, freshAttempt(none), {type: 'all'}), null, 'That’s all waits for a meeting');
+  assert.match(view(none, freshAttempt(none)), /data-focus="mt-all" disabled/, 'and is off on a fresh board');
   const tri = play(none, freshAttempt(none), ...walk('A', 'b'), ...walk('C', 'b'));
   assert.deepEqual(failing(none.parameters, none.parameters.homes, tri.board.walks), ['A', 'C'], 'B is off the road from A to C');
+  assert.equal(tri.board.met, true, 'a meeting that fails still counts as a meeting');
+  const apart = play(none, tri, {type: 'back', walker: 'C', to: 'c'});
+  assert.equal(apart.board.met, true, 'and stays counted when the walkers part');
+  assert.doesNotMatch(view(none, apart), /data-focus="mt-all" disabled/, 'That’s all is on');
+  assert.equal(meetingMechanics.meeting.carry(none, tri.board, undo(tri).board).met, true, 'Undo keeps the meeting');
+  assert.ok(isSolved(none, play(none, apart, {type: 'all'}).board), 'with no meeting dot, That’s all after a meeting is right');
+  assert.equal(nextHint(none, freshAttempt(none)).action.type, 'step', 'the hint leads to a meeting first');
+  assert.equal(nextHint(none, apart).text, 'Every pair of homes is one road apart, and a route through the third dot takes two. Press That’s all.', 'then gives the reason with the press');
+  // A save from before the meeting rule: no `met`, walkers together, loads and can claim.
+  const old = {walks: tri.board.walks, found: [], told: null, done: false};
+  assert.ok(validBoard(none, old));
+  assert.ok(isSolved(none, play(none, {...freshAttempt(none), board: old}, {type: 'all'}).board));
+});
+
+test('Undo keeps “There is another.” while nothing new is found, and goes back past it', () => {
+  const p = byId('meeting-08');
+  let a = play(p, freshAttempt(p), ...walk('A', '14 24'), ...walk('B', '31 32 33 34'), ...walk('C', '44 34'));
+  assert.equal(a.board.met, false, 'no meeting yet');
+  a = play(p, a, ...walk('A', '34'));
+  assert.equal(a.board.met, true, 'all three on (3, 4): a meeting, though it fails');
+  a = play(p, a, {type: 'back', walker: 'A', to: '24'});
+  a = play(p, a, {type: 'all'});
+  assert.deepEqual(a.board.told, {kind: 'more'});
+  const back = undoPress(p, a, x => view(p, x));
+  assert.deepEqual(back.board.told, {kind: 'more'}, 'the answer stays');
+  assert.deepEqual(back.board.walks.A, ['04', '14', '24', '34'], 'and the press takes back the step before it');
+  assert.equal(move(p, back, {type: 'all'}), null, 'That’s all still waits for a new dot');
 });
 
 test('close: a bar, the budget, no cutting the map, No dot works and its answer', () => {
   const p = byId('meeting-12'), q = p.parameters, road = (u, v) => q.roads.findIndex(r => r.join() === `${u},${v}`);
   assert.deepEqual(closures(q), [[road('01', '11')]]);
-  let a = play(p, freshAttempt(p), {type: 'claim'});
-  assert.equal(a.board.refused, true);
-  assert.match(view(p, a), /This dot still works\./);
-  assert.equal(move(p, a, {type: 'claim'}), null, 'the same claim waits for a change');
-  a = play(p, a, {type: 'close', road: road('00', '10')});
-  assert.equal(a.board.refused, false);
-  assert.equal(move(p, a, {type: 'close', road: road('01', '11')}), null, 'one road only');
+  assert.equal(move(p, freshAttempt(p), {type: 'claim'}), null, 'No dot works waits for a closure');
+  assert.match(view(p, freshAttempt(p)), /data-focus="mt-claim" disabled/);
+  let a = play(p, freshAttempt(p), {type: 'close', road: road('00', '10')});
+  assert.doesNotMatch(view(p, a), /data-focus="mt-claim" disabled/);
   a = play(p, a, {type: 'claim'});
   assert.equal(a.board.refused, true, 'C still meets them at the dot between A and B');
-  a = play(p, a, {type: 'open', road: road('00', '10')}, {type: 'close', road: road('01', '11')}, {type: 'claim'});
+  assert.match(view(p, a), /This dot still works\./);
+  assert.equal(move(p, a, {type: 'claim'}), null, 'the same claim waits for a change');
+  const back = undoPress(p, a, x => view(p, x));
+  assert.deepEqual(back.board, {closed: [], claimed: false, refused: false}, 'one Undo goes back past the refusal to the closure before it');
+  assert.equal(meetingMechanics.meeting.carry(p, a.board, undo(a).board).refused, true, 'the refusal stays while the closures are the same');
+  a = play(p, a, {type: 'close', road: road('01', '11')});
+  assert.deepEqual(a.board, {closed: [road('01', '11')], claimed: false, refused: false}, 'with the one closure used, another road takes it');
+  assert.match(view(p, a), /Road from 0 across, 0 up to 1 across, 0 up. Close it instead/);
+  a = play(p, a, {type: 'claim'});
   assert.ok(isSolved(p, a.board));
   const wide = {...p, parameters: {...q, budget: 2}};
   const cut = play(wide, freshAttempt(wide), {type: 'close', road: road('00', '10')});
@@ -130,6 +163,8 @@ test('hints: the next step toward the meeting dot, the furthest walker first, a 
   assert.equal(stepWords(p.parameters, '00', '01'), 'one step up');
   const close = byId('meeting-12');
   assert.equal(nextHint(close, freshAttempt(close)).text, 'Close the road from C going left.');
+  const wrongRoad = play(close, freshAttempt(close), {type: 'close', road: 0});
+  assert.deepEqual(nextHint(close, wrongRoad).action, {type: 'close', road: close.parameters.roads.findIndex(r => r.join() === '01,11')}, 'after a wrong closure the hint moves it');
   for (const q of meeting.puzzles.filter(x => x.band !== 'playground')) {
     let a = freshAttempt(q), n = 0;
     while (!isSolved(q, a.board) && n++ < 80) { const h = nextHint(q, a); assert.equal(h.type, 'move', `${q.id}: ${h.text}`); a = play(q, a, h.action); }

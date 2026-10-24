@@ -52,7 +52,8 @@
 .gf-map .gb-node.far .gb-reach{fill:none;stroke:var(--b-ochre,#b38840);stroke-width:4px;vector-effect:non-scaling-stroke}
 .gf-map .gb-badge circle{r:4.2px}
 .gf-map .gb-badge text{font-size:5.6px;font-weight:700;transform:translateY(.55px)}
-.gf-map .gb-node.lit:not(.home) .gb-label{font-size:5px;fill:var(--b-ink,#294439)}
+/* Each dot's steps to a home, read to check Best: 12 px or more on a phone's 6 × 6 grid. */
+.gf-map .gb-node.lit:not(.home) .gb-label{font-size:5.6px;fill:var(--b-ink,#294439)}
 @media (prefers-reduced-motion:no-preference){
   .gf-flood{animation:gf-shine .45s ease-out both}
   .gf-map .gb-node.lit .gb-dot{animation:gf-light .45s ease-out both}

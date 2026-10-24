@@ -50,17 +50,17 @@ const RULES = {
     'The dot works when all three of those routes are shortest: it is a meeting dot. It may be a home, and then that walker stays at home.',
     'If one of the routes is too long, a dashed line shows a shorter route between those two homes.'
   ],
-  every: 'Each meeting dot found gets a ring, and the walkers go home. Press That’s all when you think none is left. It says if there is another.',
+  every: 'Each meeting dot found gets a ring, and the walkers go home. Once the walkers have met, press That’s all when you think none is left. It says if there is another.',
   close: [
     'Each road is one step. A meeting dot for A, B and C is on a shortest route between each two of them. It may be a home.',
-    'Tap a road to close it and again to open it. The map must stay in one piece.',
-    'Press No dot works when you think no dot is a meeting dot. If one still is, it appears with a shortest walk to it from each home.'
+    'Tap a road to close it and again to open it, or tap another road to move the closure there. The map must stay in one piece.',
+    'With a road closed, press No dot works when you think no dot is a meeting dot. If one still is, it appears with a shortest walk to it from each home.'
   ]
 };
 const MEETING = 'A meeting dot lies on a shortest route between each pair of homes.';
 const CONTROLS = {
   walk: 'Tap A, B or C to choose a walker. Tap a dot next to it, or the road between, to take a step, or slide along the dots. Tap the dot it just left to take that step back. Arrow keys move the chosen walker too. Undo takes back the last move.',
-  close: 'Tap a road to close it, and tap it again to open it. The slot shows how many roads may be closed. Press No dot works when you are sure. Undo takes back the last change.',
+  close: 'Tap a road to close it, and tap it again to open it; tap another road to move the closure there. The slot shows how many roads may be closed. Press No dot works when you are sure. Undo takes back the last change.',
   playground: 'Choose a map. Tap A, B or C to choose a walker, then tap or slide to walk it. Press Homes, then tap a home and another dot to move it there; press Homes again to walk.'
 };
 const OBJECTIVE = {
@@ -125,11 +125,13 @@ const PUZZLES = [
     parent: {notice: 'After finding one crossroads, whether your child expects it to be the only one, as on the grid.', prompt: 'Why does the grid have one meeting dot and this map two?', explanation: 'Every pair of homes is two steps apart, through either crossroads. Each crossroads is one step from all three homes, so it is on a shortest route for every pair: both work. No home works, since a route from one home through another to the third takes four steps. On a grid the shortest routes of the three pairs share only one dot; here they can share either crossroads.', extension: 'If the road from A to the left crossroads were closed, how many meeting dots would be left? (One: the right crossroads.)', connection: 'This map, the complete bipartite graph K(2, 3), is not a median graph: its three homes have two medians.'},
     provenance: 'New, from the Week 67 review card’s fix 7: two crossroads each joined to A, B and C.'},
   {number: 10, level: 'hard', title: 'The triangle', mode: 'every', map: 'triangle', homes: 'a b c', check: {answers: [], pairs: [1, 1, 1]}, prereq: 'every',
+    why: 'Every pair of homes is one road apart, and a route through the third dot takes two.',
     idea: 'On a triangle no dot works: each home is off the road between the other two.',
     hints: ['Try each dot in turn: which pair is not on a shortest road through it?', 'Every pair of homes is one road apart. A route through the third dot takes two.', 'No dot works. Press That’s all.'],
     parent: {notice: 'Whether your child tries all three dots before pressing That’s all.', prompt: 'Every dot here is a home. Why doesn’t any home work?', explanation: 'Each pair of homes is joined by one road, its only shortest route. A meeting dot must be on all three roads, and no dot is: A is not on the road from B to C, and so on. Every dot has the same total travel from the homes, two steps, so choosing the least total travel would pick every dot; it is a different test, and here it gives no meeting dot.', extension: 'Imagine a fourth dot in the middle joined to all three corners. Does it work? (No: a route through it takes two steps, and each pair is one step apart.)', connection: 'A triangle is not a median graph, and outside median graphs a median can fail to exist.'},
     provenance: 'Week 67 Problem 3, the triangle.'},
   {number: 11, level: 'hard', title: 'A ring with a hole', mode: 'every', map: 'ring', homes: '00 02 21', check: {answers: [], pairs: [2, 3, 3]}, prereq: 'every',
+    why: 'A and B’s only shortest route goes up the left side, so a meeting dot would be one of its three dots, and none of them works.',
     idea: 'A grid with a hole in it can have no meeting dot at all.',
     hints: ['The middle of the grid is missing. Does the middle-column, middle-row rule still work?', 'A and B are two steps apart up the left side, so the meeting dot would have to be on that side.', 'No dot works. Press That’s all.'],
     parent: {notice: 'Whether your child tries the full grid’s rule, and notices that the road it needs is gone.', prompt: 'Which dot does the full grid’s rule point to, and which pair does it fail here?', explanation: 'A and B are two steps apart, and their only shortest route goes up the left side through the dot between them, so a meeting dot would be A, B or that dot. C is three steps from A and from B, round the bottom or the top. The dot between A and B is four steps from C either way round, so A to C through it takes 1 + 4 = 5 steps, not 3. A fails B and C (2 + 3 = 5, not 3), and B fails A and C the same way. No dot works. On the full 3 × 3 grid the dot between A and B would work, because C could walk straight across the middle.', extension: 'Move C to another dot of the ring in the playground of your head: can you find homes where a dot works? (Yes: with C in the bottom right corner, A’s home works.)', connection: 'A ring of eight roads is not a median graph; only the ring of four is.'},
@@ -137,13 +139,14 @@ const PUZZLES = [
   {number: 12, level: 'hard', title: 'Close a road', mode: 'close', map: 'grid3', homes: '00 02 11', budget: 1, check: {answers: ['01'], pairs: [2, 2, 2], close: [['01', '11']]}, prereq: 'close',
     idea: 'Taking away one road can leave no meeting dot.',
     hints: ['Which road do the walkers to the meeting dot need?', 'Before any road is closed, the meeting dot is the one between A and B, and C reaches it along one road.', 'Close the road from C going left, then press No dot works.'],
-    parent: {notice: 'Whether your child presses No dot works first, to see the meeting dot, and then closes a road its walks use.', prompt: 'Why does closing a road far from the meeting dot change nothing?', explanation: 'A and B are two steps apart, and their only shortest route goes up the left side, so a meeting dot must be A, B or the dot between them. With every road open, the dot between them works: C reaches it in one step. Close that road and C needs three steps to it, so A to C through it takes 4 steps instead of 2. A and B fail too (B to C through A takes 4, not 2). So no dot works. Every other single road leaves a meeting dot; the validator checks all twelve.', extension: 'Which other road could you close? (None on its own: with these homes, only the road from C going left works.)', connection: 'Deleting one edge from a median graph (here the 3 × 3 grid) can destroy its medians.'},
+    parent: {notice: 'Whether your child closes a road near the meeting dot or far from it, and whether “This dot still works.”, with its walks, leads them to a road those walks use.', prompt: 'Why does closing a road far from the meeting dot change nothing?', explanation: 'A and B are two steps apart, and their only shortest route goes up the left side, so a meeting dot must be A, B or the dot between them. With every road open, the dot between them works: C reaches it in one step. Close that road and C needs three steps to it, so A to C through it takes 4 steps instead of 2. A and B fail too (B to C through A takes 4, not 2). So no dot works. Every other single road leaves a meeting dot; the validator checks all twelve.', extension: 'Which other road could you close? (None on its own: with these homes, only the road from C going left works.)', connection: 'Deleting one edge from a median graph (here the 3 × 3 grid) can destroy its medians.'},
     provenance: 'New, the Week 67 review card’s App fit: “cut a road so no dot works”.'}
 ];
 
 const id = n => `meeting-${String(n).padStart(2, '0')}`;
 const out = PUZZLES.map(item => {
-  const q = {mode: item.mode, ...mapOnly(item.map), homes: homesOf(item.homes), ...(item.budget ? {budget: item.budget} : {})};
+  // `why` is the reason the live hint gives with That's all when no dot works.
+  const q = {mode: item.mode, ...mapOnly(item.map), homes: homesOf(item.homes), ...(item.budget ? {budget: item.budget} : {}), ...(item.why ? {why: item.why} : {})};
   const D = distances(q), pairs = PAIRS.map(([x, y]) => D[q.homes[x]][q.homes[y]]);
   assert.deepEqual(pairs, item.check.pairs, `${id(item.number)}: pair distances`);
   assert.ok(connected(q), `${id(item.number)}: the map is in one piece`);

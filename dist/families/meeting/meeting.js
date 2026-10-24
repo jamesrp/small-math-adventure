@@ -93,11 +93,14 @@ const validWalks = (q, homes, walks) => object(walks) && Object.keys(walks).sort
 const atHome = walks => WALKERS.every(x => walks[x].length === 1);
 
 // --- Boards -------------------------------------------------------------------
-// meet: {walks}                       every: {walks, found, told, done}
+// meet: {walks}                       every: {walks, found, told, done, met}
 // close: {closed, claimed, refused}   playground: {map, homes, walks, found, told}
 // `found` lists the meeting dots found, in order. `told` answers That's all
 // ({kind: 'more'}, kept until a new dot is found) or a meeting at a dot found
-// already ({kind: 'again', dot}, with the walkers sent home).
+// already ({kind: 'again', dot}, with the walkers sent home). `met` is true
+// once all three walkers have stood on one dot, working or not: That's all is
+// a claim about the child's own meetings, so it waits for one. Saves from
+// before `met` have no such field and load as they are.
 export const playMap = (q, b) => ({...q.maps[b.map], mode: 'playground', homes: b.homes});
 const mapFor = (p, b) => p.parameters.mode === 'playground' ? playMap(p.parameters, b) : p.parameters;
 const finding = q => q.mode === 'every' || q.mode === 'playground';
@@ -109,7 +112,7 @@ function fresh(p) {
     return {map, homes, walks: homeWalks(homes), found: [], told: null};
   }
   if (q.mode === 'close') return {closed: [], claimed: false, refused: false};
-  if (q.mode === 'every') return {walks: homeWalks(q.homes), found: [], told: null, done: false};
+  if (q.mode === 'every') return {walks: homeWalks(q.homes), found: [], told: null, done: false, met: false};
   return {walks: homeWalks(q.homes)};
 }
 const validHomes = (q, homes) => object(homes) && Object.keys(homes).sort().join() === 'A,B,C' && WALKERS.every(x => isId(q, homes[x])) && new Set(Object.values(homes)).size === 3;
@@ -142,10 +145,13 @@ function valid(p, b) {
   }
   if (!validWalks(q0, q0.homes, b.walks)) return false;
   if (q0.mode === 'meet') return Object.keys(b).join() === 'walks';
-  if (Object.keys(b).sort().join() !== 'done,found,told,walks' || typeof b.done !== 'boolean') return false;
+  if (!['done,found,told,walks', 'done,found,met,told,walks'].includes(Object.keys(b).sort().join()) || typeof b.done !== 'boolean' || (Object.hasOwn(b, 'met') && typeof b.met !== 'boolean')) return false;
   const answers = meetingDots(q0, q0.homes);
   return validFinding(q0, b, answers) && (!b.done || (b.found.length === answers.length && b.told === null));
 }
+// That's all waits until the walkers have met once, at any dot (or, in a
+// save from before `met`, stand together now).
+export const metOnce = b => b.met === true || b.found.length > 0 || together(b.walks) !== null;
 function solved(p, b) {
   const q = p.parameters;
   if (q.mode === 'playground' || !valid(p, b)) return false;
@@ -171,9 +177,10 @@ function walk(q, b, action) {
   }
   const walks = {...b.walks, [x]: next};
   const told = b.told?.kind === 'more' ? b.told : null;
-  if (!finding(q) || !meets(q, q.homes, walks)) return finding(q) ? {...b, walks, told} : {...b, walks};
+  const met = q.mode === 'every' && together(walks) !== null ? {met: true} : {};
+  if (!finding(q) || !meets(q, q.homes, walks)) return finding(q) ? {...b, walks, told, ...met} : {...b, walks};
   const m = together(walks), home = homeWalks(q.homes);
-  return b.found.includes(m) ? {...b, walks: home, told: {kind: 'again', dot: m}} : {...b, walks: home, found: [...b.found, m], told: null};
+  return b.found.includes(m) ? {...b, walks: home, told: {kind: 'again', dot: m}, ...met} : {...b, walks: home, found: [...b.found, m], told: null, ...met};
 }
 function move(p, b, action) {
   const q0 = p.parameters;
@@ -182,14 +189,18 @@ function move(p, b, action) {
   let next = null;
   if (q0.mode === 'close') {
     const i = action.road, ok = Number.isInteger(i) && i >= 0 && i < q.roads.length;
-    if (action.type === 'close' && ok && !b.closed.includes(i) && b.closed.length < q.budget) {
-      const closed = [...b.closed, i].sort((x, y) => x - y);
+    // With one road to close, a tap on another road moves the closure there.
+    const moving = q.budget === 1 && b.closed.length === 1;
+    if (action.type === 'close' && ok && !b.closed.includes(i) && (b.closed.length < q.budget || moving)) {
+      const closed = moving ? [i] : [...b.closed, i].sort((x, y) => x - y);
       next = connected(q, closed) ? {closed, claimed: false, refused: false} : null;
     } else if (action.type === 'open' && ok && b.closed.includes(i)) next = {closed: b.closed.filter(j => j !== i), claimed: false, refused: false};
-    // An answer to these closures waits for a change.
-    else if (action.type === 'claim' && !b.refused) next = meetingDots(q, q.homes, b.closed).length ? {...b, refused: true} : {...b, claimed: true};
+    // No dot works is a claim about the child's closures: with every road
+    // open a dot always works, so it waits for a closure, and an answer to
+    // these closures waits for a change.
+    else if (action.type === 'claim' && !b.refused && b.closed.length) next = meetingDots(q, q.homes, b.closed).length ? {...b, refused: true} : {...b, claimed: true};
   } else if (action.type === 'step' || action.type === 'back') next = walk(q, b, action);
-  else if (action.type === 'all' && q0.mode === 'every' && b.told?.kind !== 'more') {
+  else if (action.type === 'all' && q0.mode === 'every' && b.told?.kind !== 'more' && metOnce(b)) {
     next = b.found.length === meetingDots(q, q.homes).length ? {...b, told: null, done: true} : {...b, told: {kind: 'more'}};
   } else if (q0.mode === 'playground' && action.type === 'map') {
     if (typeof action.map === 'string' && Object.hasOwn(q0.maps, action.map) && action.map !== b.map) {
@@ -239,8 +250,12 @@ const nameOf = (q, id) => q.names?.[id] || q.labels?.[id] || id;
 function walkHint(p, b) {
   const q = mapFor(p, b), D = distances(q), answers = meetingDots(q, q.homes);
   const aims = q.mode === 'every' ? answers.filter(m => !b.found.includes(m)) : answers;
-  if (!aims.length) return {type: 'move', action: {type: 'all'}, text: 'Press That’s all.'};
-  const {m, back} = target(q, b, aims);
+  // With none left to find, That's all, with the reason where the puzzle has
+  // one; but first a meeting, at whichever dot is nearest, since That's all
+  // waits for one.
+  const anywhere = !aims.length && !metOnce(b);
+  if (!aims.length && !anywhere) return {type: 'move', action: {type: 'all'}, text: q.why ? `${q.why} Press That’s all.` : 'Press That’s all.'};
+  const {m, back} = target(q, b, anywhere ? idsOf(q) : aims);
   const k = back.findIndex(n => n > 0);
   if (k >= 0) {
     const x = WALKERS[k], w = b.walks[x];
@@ -251,7 +266,7 @@ function walkHint(p, b) {
   const order = WALKERS.filter(x => b.walks[x].at(-1) !== m).sort((x, y) => D[b.walks[y].at(-1)][m] - D[b.walks[x].at(-1)][m]);
   const options = order.flatMap(x => neighbours(q, b.walks[x].at(-1)).filter(v => D[v][m] === D[b.walks[x].at(-1)][m] - 1).map(to => ({x, to})));
   const clash = ({x, to}) => { const walks = {...b.walks, [x]: [...b.walks[x], to]}; const t = together(walks); return t !== null && t !== m; };
-  const choice = options.find(o => !clash(o)) || options[0];
+  const choice = (anywhere ? null : options.find(o => !clash(o))) || options[0];
   if (!choice) return {type: 'done'};
   const {x, to} = choice;
   return {type: 'move', action: {type: 'step', walker: x, to}, text: `Move ${x} ${stepWords(q, b.walks[x].at(-1), to)}.`};
@@ -281,8 +296,10 @@ function closeHint(p, b) {
   const q = p.parameters, sets = closures(q), have = new Set(b.closed);
   const best = sets.reduce((top, s) => s.filter(i => have.has(i)).length - s.length > top.filter(i => have.has(i)).length - top.length ? s : top, sets[0]);
   const extra = b.closed.find(i => !best.includes(i));
-  if (extra !== undefined) return {type: 'move', action: {type: 'open', road: extra}, text: `Open ${roadWords(q, extra)} again.`, road: extra};
   const missing = best.find(i => !have.has(i));
+  // With one road to close, closing the right one moves the closure there.
+  if (extra !== undefined && missing !== undefined && q.budget === 1) return {type: 'move', action: {type: 'close', road: missing}, text: `Close ${roadWords(q, missing)}.`, road: missing};
+  if (extra !== undefined) return {type: 'move', action: {type: 'open', road: extra}, text: `Open ${roadWords(q, extra)} again.`, road: extra};
   if (missing !== undefined) return {type: 'move', action: {type: 'close', road: missing}, text: `Close ${roadWords(q, missing)}.`, road: missing};
   return {type: 'move', action: {type: 'claim'}, text: 'Press No dot works.'};
 }
@@ -394,7 +411,7 @@ function renderWalk(p, a) {
     const homes = `<button type="button" class="secondary mt-button mt-tool" data-action="mechanic-ui" data-ui='${JSON.stringify({tool: tool === 'homes' ? 'walk' : 'homes'})}' data-focus="mt-tool" aria-pressed="${tool === 'homes'}">Homes</button>`;
     top = `${maps}<div class="mt-bar">${walkerChips(chosen, null, tool === 'homes' ? 'Homes' : 'Walkers')}${homes}</div>`;
   } else if (!done) {
-    const all = q0.mode === 'every' ? moveButton('That’s all', {type: 'all'}, 'mt-all', b.told?.kind !== 'more', act?.type === 'all') : '';
+    const all = q0.mode === 'every' ? moveButton('That’s all', {type: 'all'}, 'mt-all', b.told?.kind !== 'more' && metOnce(b), act?.type === 'all') : '';
     top = `<div class="mt-bar">${walkerChips(chosen, hintWalker, 'Walkers')}${all}</div>`;
   }
   const told = pair ? `Too long for ${pair[0]} and ${pair[1]}.` : b.told?.kind === 'more' ? 'There is another.' : b.told?.kind === 'again' ? 'Found already.' : '';
@@ -417,12 +434,12 @@ function renderClose(p, a) {
     edge: i => {
       // Every road stays a control, so a closure past the budget or one that
       // would cut the map in two is refused with a message, not ignored.
-      const shut = b.closed.includes(i), can = shut || (!full && connected(q, [...b.closed, i])), [u, v] = q.roads[i];
-      return {cls: [shut ? 'shut' : '', hinted?.road === i ? 'hinted' : ''].join(' '), bar: shut, act: !done, label: `Road from ${nameOf(q, u)} to ${nameOf(q, v)}${shut ? ', closed' : ''}${done ? '' : can ? (shut ? '. Open it' : '. Close it') : full ? '' : '. Closing it would cut the map'}`};
+      const moving = full && q.budget === 1, shut = b.closed.includes(i), can = shut || (moving ? connected(q, [i]) : !full && connected(q, [...b.closed, i])), [u, v] = q.roads[i];
+      return {cls: [shut ? 'shut' : '', hinted?.road === i ? 'hinted' : ''].join(' '), bar: shut, act: !done, label: `Road from ${nameOf(q, u)} to ${nameOf(q, v)}${shut ? ', closed' : ''}${done ? '' : can ? (shut ? '. Open it' : moving ? '. Close it instead' : '. Close it') : full && !moving ? '' : '. Closing it would cut the map'}`};
     },
     over: walks ? trails(g, q, walks) : ''
   });
-  const top = done ? '' : `<div class="mt-bar"><span class="mt-slots" role="img" aria-label="${b.closed.length} of ${q.budget} ${q.budget === 1 ? 'road' : 'roads'} closed">${Array.from({length: q.budget}, (_, k) => `<i class="${k < b.closed.length ? 'on' : ''}"></i>`).join('')}</span>${moveButton('No dot works', {type: 'claim'}, 'mt-claim', !b.refused, hinted?.action?.type === 'claim')}</div>`;
+  const top = done ? '' : `<div class="mt-bar"><span class="mt-slots" role="img" aria-label="${b.closed.length} of ${q.budget} ${q.budget === 1 ? 'road' : 'roads'} closed">${Array.from({length: q.budget}, (_, k) => `<i class="${k < b.closed.length ? 'on' : ''}"></i>`).join('')}</span>${moveButton('No dot works', {type: 'claim'}, 'mt-claim', !b.refused && b.closed.length > 0, hinted?.action?.type === 'claim')}</div>`;
   const told = b.refused ? 'This dot still works.' : '';
   const status = `${b.closed.length} of ${q.budget} closed.${told ? ` ${told} ${nameOf(q, shown)}.` : ''}${done ? ' No dot works.' : ''}`;
   return `<div class="mt-puzzle${done ? ' solved' : ''}" data-mechanic-wire="meeting">${top}${walks ? withTop(board, tokens(g, q, walks, null, null)) : board}${told ? `<p class="mt-told">${told}</p>` : ''}<p class="sr-only" role="status">${esc(status)}</p></div>`;
@@ -474,11 +491,19 @@ export const meetingMechanics = {
       if (['walk', 'homes'].includes(payload.tool)) ui(p).tool = payload.tool;
     },
     reset: p => { uiState.delete(p.id); },
-    // Undo keeps the meeting dots already found.
+    // Undo keeps the meeting dots already found, a meeting once made, and a
+    // refused claim while what it answered is unchanged: "There is another."
+    // until a new dot is found, "This dot still works." while the closures
+    // are the same. (A press of Undo then goes back past the claim to the move
+    // before it, since the screen would not change.)
     carry(p, from, to) {
-      if (!finding(p.parameters) || !object(from) || !object(to) || !Array.isArray(from.found)) return to;
-      if (p.parameters.mode === 'playground' && (from.map !== to.map || JSON.stringify(from.homes) !== JSON.stringify(to.homes))) return to;
-      return {...to, found: [...from.found], told: null, ...(p.parameters.mode === 'every' ? {done: false} : {})};
+      const q = p.parameters;
+      if (!object(from) || !object(to)) return to;
+      if (q.mode === 'close') return from.refused === true && !to.claimed && JSON.stringify(from.closed) === JSON.stringify(to.closed) ? {...to, refused: true} : to;
+      if (!finding(q) || !Array.isArray(from.found)) return to;
+      if (q.mode === 'playground' && (from.map !== to.map || JSON.stringify(from.homes) !== JSON.stringify(to.homes))) return to;
+      if (q.mode !== 'every') return {...to, found: [...from.found], told: null};
+      return {...to, found: [...from.found], told: from.told?.kind === 'more' ? {kind: 'more'} : null, done: false, ...(from.met === true || to.met === true ? {met: true} : {})};
     },
     noHint: p => p.parameters.mode === 'playground'
   }

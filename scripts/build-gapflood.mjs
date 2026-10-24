@@ -54,7 +54,7 @@ const RULES = [
   'When all three routes are drawn, tap a dot on a route to flood it: the light spreads one step at a time until it meets another route, and the number is the gap.'
 ];
 const CLAIM = {
-  reach: 'Press Can’t if no choice of shortest routes gives that gap.',
+  reach: 'When all three routes are drawn, press Can’t if no choice of shortest routes gives that gap. If one does, it says so.',
   tree: 'On a tree, Can’t needs one more tap: the dot where all three routes meet.',
   best: 'Flood the biggest gap you can make and press Best. If a bigger gap is possible, it says so.'
 };

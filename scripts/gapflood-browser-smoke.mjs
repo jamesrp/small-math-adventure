@@ -91,11 +91,12 @@ try {
   assert.deepEqual((await board(P)).routes.CA, ['22', '12', '11', '10']);
   await taps('12');
   assert.deepEqual((await board(P)).routes.CA, ['22', '12'], 'a tap on a dot of the route takes it back to there');
+  assert.equal(await press('Can’t').isDisabled(), true, 'Can’t waits for the triangle');
+  await taps('02 01 00');
+  assert.equal(await chip('CA').getAttribute('aria-pressed'), 'false', 'a finished triangle lets taps flood');
   await press('Can’t').click();
   assert.equal(await told(), 'It can be done.');
   assert.equal(await press('Can’t').isDisabled(), true, 'Can’t waits for a change');
-  await taps('02 01 00');
-  assert.equal(await chip('CA').getAttribute('aria-pressed'), 'false', 'a finished triangle lets taps flood');
   await shot('drawn');
   await taps('02');
   await done(); await fit('flooded');
@@ -107,14 +108,23 @@ try {
   const T = 'gapflood-02';
   await open(T); await fit('tree');
   assert.equal(await page.locator('.gb-node.can-go').count(), 1, 'one step offered: the routes are forced');
+  assert.equal(await press('Can’t').isDisabled(), true, 'Can’t waits for the three routes');
+  await slide('j i b c d e'); await slide('e d c g h k'); await slide('k h g c b i j');
+  assert.deepEqual(Object.values((await board(T)).routes).map(r => r.length), [6, 6, 7], 'the forced triangle');
   await press('Can’t').click();
   assert.equal(await press('Can’t').getAttribute('aria-pressed'), 'true');
   assert.equal(await told(), 'Tap where all three routes meet.');
   await taps('d');
   assert.equal((await board(T)).told, 'miss');
   assert.equal(await told(), 'The three routes don’t all meet there.');
-  assert.equal(await page.locator('#completion-heading').count(), 0, 'a wrong dot does not solve');
+  assert.equal(await press('Can’t').getAttribute('aria-pressed'), 'false', 'Can’t lets go');
+  assert.equal(await press('Can’t').isDisabled(), true, 'and waits for a route to change');
   await taps('c');
+  assert.equal(await page.locator('#completion-heading').count(), 0, 'a second tap floods, it does not claim');
+  assert.equal((await board(T)).told, 'miss', 'still waiting');
+  await chip('CA').click(); await taps('i'); await taps('j');
+  assert.equal((await board(T)).told, null, 'a route changed');
+  await press('Can’t').click(); await taps('c');
   await done();
   assert.ok(await page.locator('.gf-glow').count() > 0, 'the tripod glows');
   assert.equal(await page.locator('.gb-node.centre').count(), 1, 'its centre is ringed');
@@ -145,6 +155,8 @@ try {
 
   // Puzzle 5: the ladder. Can't is right and the columns are ringed.
   await open('gapflood-05'); await fit('ladder');
+  assert.equal(await press('Can’t').isDisabled(), true, 'Can’t waits for the triangle');
+  await slide('00 10 20 30 40 50 60 70 71'); await slide('71 61 51 41 31'); await slide('31 21 11 01 00');
   await press('Can’t').click();
   await done();
   assert.equal(await told(), 'Two routes cross every column.');

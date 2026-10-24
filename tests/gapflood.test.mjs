@@ -5,7 +5,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {freshAttempt, move, isSolved, nextHint, validBoard, undo} from '../dist/engine.js';
+import {freshAttempt, move, isSolved, nextHint, validBoard, undo, undoPress} from '../dist/engine.js';
 import {playView} from '../dist/ui.js';
 import {gapMechanics, isRoute, nextSteps, gapAt, floodOf, thinness, allRoutes, triangles, bestOf, coverOf, homeSteps, columnSides, centreOf, forcedCentre, fatDots, penOf, dotAction, roadAction, arrowAction, goodTriangles, stepWords} from '../dist/families/gapflood/gapflood.js';
 import {loadPack} from '../scripts/packs.mjs';
@@ -17,6 +17,8 @@ const mech = gapMechanics.gapflood;
 const play = (p, a, ...actions) => actions.reduce((b, action) => { const next = move(p, b, action); assert.ok(next, `${JSON.stringify(action)} is legal`); return next; }, a);
 const SIDES3 = ['AB', 'BC', 'CA'];
 const draw = (side, dots) => dots.split(' ').map(to => ({type: 'draw', side, to}));
+// Every route of a triangle, drawn dot by dot (the first shortest routes by default).
+const drawAll = (q, routes = Object.fromEntries(SIDES3.map(s => [s, allRoutes(q, s)[0]]))) => SIDES3.flatMap(s => routes[s].slice(1).map(to => ({type: 'draw', side: s, to})));
 // The chosen route is view state; each view starts from a fresh one, as opening a puzzle does.
 const view = (p, a, keep = false) => { if (!keep) mech.reset(p); return playView(p, a, {pack, selected: null, message: ''}); };
 const pen = (p, a) => { const html = playView(p, a, {pack, selected: null, message: ''}); return html.match(/gf-chip t(\w+)[^"]*" data-action="mechanic-ui" data-ui='[^']*' data-focus="[^"]*" aria-pressed="true"/)?.[1] || null; };
@@ -148,40 +150,69 @@ test('every gap 0 solves when the triangle is finished; a gap of k solves when f
   assert.equal(changed.board.flood, null, 'a change to a route clears the flood');
 });
 
-test('Can’t: refused with “It can be done.” until a route changes; right on the tree and the ladder, with certificates', () => {
+test('Can’t: off until the triangle is drawn; refused with “It can be done.” until a route changes; right on the tree and the ladder, with certificates', () => {
   const r = byId(4);
-  let a = play(r, freshAttempt(r), {type: 'cant'});
+  assert.equal(move(r, freshAttempt(r), {type: 'cant'}), null, 'Can’t waits for a triangle');
+  assert.match(view(r, freshAttempt(r)), /data-focus="gf-cant" disabled/);
+  const part = play(r, freshAttempt(r), ...draw('AB', '10 20 30 40'), ...draw('BC', '41 42 43 44'), ...draw('CA', '43 42 41 40 30 20 10'));
+  assert.equal(move(r, part, {type: 'cant'}), null, 'still waiting with one step of CA to go');
+  let a = play(r, part, ...draw('CA', '00'));
+  assert.doesNotMatch(view(r, a), /data-focus="gf-cant" disabled/, 'open on a finished triangle');
+  a = play(r, a, {type: 'flood', at: '30'}, {type: 'cant'});
   assert.equal(a.board.told, 'can');
   assert.match(view(r, a), /It can be done\./);
   assert.match(view(r, a), /data-focus="gf-cant" disabled/);
   assert.equal(move(r, a, {type: 'cant'}), null);
-  a = play(r, a, ...draw('CA', '34'));
+  assert.equal(play(r, a, {type: 'flood', at: '20'}).board.told, 'can', 'a flood is no change to the triangle');
+  const back = undoPress(r, a, x => view(r, x));
+  assert.equal(back.board.told, 'can', 'Undo keeps the answer while the routes are the same');
+  assert.equal(back.board.flood, null, 'and one press goes back past it to the flood before');
+  a = play(r, a, {type: 'cut', side: 'CA', to: '10'});
   assert.equal(a.board.told, null, 'a route changed');
 
-  const t = byId(2);
+  const t = byId(2), tq = t.parameters;
   assert.equal(move(t, freshAttempt(t), {type: 'cant'}), null, 'on a tree Can’t comes with a tap');
+  assert.equal(move(t, freshAttempt(t), {type: 'cant', at: 'c'}), null, 'and waits for the three routes');
   mech.reset(t);
-  let fresh = view(t, freshAttempt(t), true);
+  assert.match(view(t, freshAttempt(t), true), /data-ui='\{"claiming":true\}'[^>]*aria-pressed="false" disabled>Can’t/, 'off on a fresh tree');
+  const drawn = play(t, freshAttempt(t), ...drawAll(tq));
+  let fresh = view(t, drawn, true);
   assert.match(fresh, /data-ui='\{"claiming":true\}'[^>]*aria-pressed="false">Can’t/, 'Can’t is a button that waits for the tap');
   mech.ui(t, {claiming: true});
-  fresh = view(t, freshAttempt(t), true);
+  fresh = view(t, drawn, true);
   assert.match(fresh, /Tap where all three routes meet\./);
   assert.match(fresh, /aria-pressed="true">Can’t/);
   assert.match(fresh, /aria-label="[^"]*All three routes meet here" data-gb-node="b"/, 'every dot can be chosen');
-  const miss = play(t, freshAttempt(t), {type: 'cant', at: 'b'});
+  let miss = play(t, drawn, {type: 'cant', at: 'b'});
   assert.equal(miss.board.told, 'miss');
   assert.equal(isSolved(t, miss.board), false);
-  assert.match(view(t, miss, true), /The three routes don’t all meet there\./);
+  const missed = view(t, miss, true);
+  assert.match(missed, /The three routes don’t all meet there\./);
+  assert.match(missed, /aria-pressed="false" disabled>Can’t/, 'Can’t lets go and waits for a change');
+  assert.equal(move(t, miss, {type: 'cant', at: 'c'}), null, 'no second tap on the same triangle');
+  miss = play(t, miss, {type: 'flood', at: 'b'});
+  assert.equal(miss.board.told, 'miss', 'a flood is no change');
+  assert.equal(move(t, miss, {type: 'cant', at: 'c'}), null);
+  assert.equal(undoPress(t, miss, x => view(t, x, true)).board.told, 'miss', 'nor is Undo of the flood');
+  assert.deepEqual(nextHint(t, miss).action.type, 'cut', 'the hint changes a route first');
+  const ca = miss.board.routes.CA;
+  miss = play(t, miss, {type: 'cut', side: 'CA', to: ca.at(-2)}, {type: 'draw', side: 'CA', to: ca.at(-1)});
+  assert.equal(miss.board.told, null, 'a route changed');
   const right = play(t, miss, {type: 'cant', at: 'c'});
   assert.ok(isSolved(t, right.board));
   mech.ui(t, {claiming: false});
   const html = view(t, right);
-  assert.match(html, /gf-glow/, 'the tripod glows, drawn for the child when the routes were not');
+  assert.match(html, /gf-glow/, 'the tripod glows');
   assert.equal((html.match(/class="gf-trail/g) || []).length, 16, 'eight roads, each on two routes');
   assert.match(html, /class="gb-node centre"[^>]*data-node="c"/, 'and the centre the child tapped is ringed');
+  // A save from before Can't waited for the triangle still loads and draws the tripod.
+  const oldSave = {...freshAttempt(t).board, told: null, done: true};
+  assert.ok(validBoard(t, oldSave) && isSolved(t, oldSave));
+  assert.match(view(t, {...freshAttempt(t), board: oldSave}), /gf-glow/);
 
   const l = byId(5);
-  const ladder = play(l, freshAttempt(l), {type: 'cant'});
+  assert.equal(move(l, freshAttempt(l), {type: 'cant'}), null, 'the ladder’s Can’t waits for a triangle too');
+  const ladder = play(l, freshAttempt(l), ...drawAll(l.parameters), {type: 'cant'});
   assert.ok(isSolved(l, ladder.board));
   const lv = view(l, ladder);
   assert.match(lv, /Two routes cross every column\./);
@@ -197,6 +228,10 @@ test('Best: refused with “A bigger gap is possible.” until a new flood; righ
   assert.equal(a.board.told, 'bigger');
   assert.match(view(p, a), /A bigger gap is possible\./);
   assert.equal(move(p, a, {type: 'best'}), null, 'not again on the same flood');
+  const back = undoPress(p, a, x => view(p, x));
+  assert.equal(back.board.flood, null, 'Undo goes back past the refusal to before the flood');
+  assert.equal(back.board.told, null, 'where a new flood may be claimed');
+  assert.equal(mech.carry(p, a.board, undo(a).board).told, 'bigger', 'the refusal stays while the flood is the same');
   a = play(p, a, {type: 'flood', at: '03'});
   assert.equal(a.board.told, null);
   a = play(p, a, {type: 'best'});
@@ -217,11 +252,13 @@ test('hints: the authored nudge, then take back, draw, flood and claim; alone th
   assert.equal(h.action.type, 'cut');
   assert.match(h.text, /^Take CA back/);
   const tree = byId(2);
-  const th = nextHint(tree, play(tree, freshAttempt(tree), ...draw('AB', 'i')));
-  assert.equal(th.text, 'On a tree each pair of homes has only one route, and the three routes share every road. Press Can’t and tap where all three meet.', 'the reason comes with Can’t');
+  assert.equal(nextHint(tree, play(tree, freshAttempt(tree), ...draw('AB', 'i'))).action.type, 'draw', 'on the tree, the routes come first');
+  const th = nextHint(tree, play(tree, freshAttempt(tree), ...drawAll(tree.parameters)));
+  assert.equal(th.text, 'On a tree each pair of homes has only one route, and the three routes share every road. Press Can’t and tap where all three meet.', 'then the reason comes with Can’t');
   assert.deepEqual(th.action, {type: 'cant', at: 'c'});
   const ladder = byId(5);
-  assert.equal(nextHint(ladder, play(ladder, freshAttempt(ladder), ...draw('AB', '10'))).text, 'Two routes cross every column, and a column is one rung, so no gap can be 2. Press Can’t.');
+  assert.equal(nextHint(ladder, play(ladder, freshAttempt(ladder), ...draw('AB', '10'))).action.type, 'draw', 'on the ladder too');
+  assert.equal(nextHint(ladder, play(ladder, freshAttempt(ladder), ...drawAll(ladder.parameters))).text, 'Two routes cross every column, and a column is one rung, so no gap can be 2. Press Can’t.');
   const ring = byId(6);
   assert.match(nextHint(ring, freshAttempt(ring)).text, /^Draw AB to 11 o’clock\.$/);
   for (const q of gaps.puzzles) {

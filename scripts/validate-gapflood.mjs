@@ -9,12 +9,14 @@
 // of side n has gap n and nothing more for n = 1 to 7, and every gap 0 means
 // every road on two routes); the tree's centre, the one dot a Can't there
 // accepts, and the ochre rings only where the biggest gap can be made;
-// witnesses played as moves; hint chains from fresh, after a wrong route, a
-// refused Can't or Best, a tap that missed the centre, and random play;
-// illegal moves; forged saves. Run: node scripts/validate-gapflood.mjs
+// witnesses played as moves; Can't only on a finished triangle, and refused
+// claims kept until what they answered changes, through floods and Undo; hint
+// chains from fresh, after a wrong route, a refused Can't or Best, a tap that
+// missed the centre, and random play; illegal moves; forged saves.
+// Run: node scripts/validate-gapflood.mjs
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import {freshAttempt, move, isSolved, nextHint, validBoard} from '../dist/engine.js';
+import {freshAttempt, move, isSolved, nextHint, validBoard, undo, undoPress} from '../dist/engine.js';
 import {mechanicFor} from '../dist/expansion.js';
 import {bestOf, triangles as mechanicTriangles, coverOf, fatDots, forcedCentre} from '../dist/families/gapflood/gapflood.js';
 import {loadPack} from './packs.mjs';
@@ -269,20 +271,29 @@ export async function validateGapflood() {
     // The witness, played as moves.
     const sol = p.solution;
     if (sol.claim === 'cant') {
-      assert.ok(isSolved(p, play(p, fresh, cant).board), `${p.id}: Can’t is right`);
-      if (centre) {
-        refuse(p, fresh, {type: 'cant'}, 'Can’t on a tree without the tap on the centre');
-        for (const u of ids(q).filter(v => v !== centre[0])) {
-          const missed = play(p, fresh, {type: 'cant', at: u});
-          assert.equal(missed.board.told, 'miss', `${p.id}: a tap on ${u} is not the centre`);
-          assert.ok(!isSolved(p, missed.board));
-        }
-        hintSteps += hintsSolve(p, play(p, fresh, {type: 'cant', at: ids(q).find(v => v !== centre[0])}), 'after a tap that missed the centre');
-      }
-      const drawn = drawAll(p, fresh, tris[0].routes);
+      // Can't waits for the child's triangle: refused on a fresh board and
+      // with one step still to draw.
+      refuse(p, fresh, cant, 'Can’t before the triangle is drawn');
+      const drawn = drawAll(p, fresh, tris[0].routes), last = SIDES.at(-1)[0];
+      refuse(p, play(p, drawn, {type: 'cut', side: last, to: drawn.board.routes[last].at(-2)}), cant, 'Can’t with a route unfinished');
       assert.ok(!isSolved(p, drawn.board), `${p.id}: drawing alone does not solve`);
       for (const u of Object.keys(tris[0].gaps)) { const f = move(p, drawn, {type: 'flood', at: u}); if (f) assert.ok(!isSolved(p, f.board), `${p.id}: no flood reaches ${q.k}`); }
       assert.ok(isSolved(p, play(p, drawn, cant).board), `${p.id}: Can’t after drawing`);
+      if (centre) {
+        refuse(p, drawn, {type: 'cant'}, 'Can’t on a tree without the tap on the centre');
+        for (const u of ids(q).filter(v => v !== centre[0])) {
+          const missed = play(p, drawn, {type: 'cant', at: u});
+          assert.equal(missed.board.told, 'miss', `${p.id}: a tap on ${u} is not the centre`);
+          assert.ok(!isSolved(p, missed.board));
+          refuse(p, missed, cant, `a second tap after missing at ${u}, on the same triangle`);
+          const flooded = play(p, missed, {type: 'flood', at: u === tris[0].routes[0][0] ? tris[0].routes[1][0] : tris[0].routes[0][0]});
+          refuse(p, flooded, cant, 'a second tap after a flood, on the same triangle');
+          const undone = undoPress(p, flooded, x => JSON.stringify(x.board));
+          assert.equal(undone.board.told, 'miss', `${p.id}: Undo of a flood keeps the missed tap`);
+          refuse(p, undone, cant, 'a second tap after Undo, before a route changes');
+        }
+        hintSteps += hintsSolve(p, play(p, drawn, {type: 'cant', at: ids(q).find(v => v !== centre[0])}), 'after a tap that missed the centre');
+      }
     } else {
       let a = drawAll(p, fresh, SIDES.map(([s]) => sol.routes[s]));
       if (q.goal === 'zero') assert.ok(isSolved(p, a.board), `${p.id}: every gap 0 solves`);
@@ -308,14 +319,24 @@ export async function validateGapflood() {
         a = play(p, a, {type: 'best'});
         assert.equal(a.board.told, 'bigger', `${p.id}: a Best that can be beaten`);
         refuse(p, a, {type: 'best'}, 'Best twice on one flood');
+        const back = undoPress(p, a, x => JSON.stringify(x.board));
+        assert.ok(back.board.flood !== a.board.flood && back.board.told === null, `${p.id}: Undo goes back past a refused Best to before its flood`);
         hintSteps += hintsSolve(p, a, 'after a refused Best');
       } else hintSteps += hintsSolve(p, a, 'after a wrong triangle');
     }
     if (q.goal === 'reach' && !row.cant) {
-      const a = play(p, fresh, {type: 'cant'});
+      refuse(p, fresh, {type: 'cant'}, 'Can’t before the triangle is drawn');
+      const a = play(p, drawAll(p, fresh, tris[0].routes), {type: 'cant'});
       assert.equal(a.board.told, 'can', `${p.id}: Can’t is refused`);
       assert.ok(!isSolved(p, a.board));
       refuse(p, a, {type: 'cant'}, 'Can’t twice without a change');
+      assert.equal(mechanicFor(p).carry(p, a.board, undo(a).board).told, 'can', `${p.id}: Undo keeps “it can be done” while the routes are the same`);
+      const back = undoPress(p, a, x => JSON.stringify(x.board));
+      assert.ok(JSON.stringify(back.board.routes) !== JSON.stringify(a.board.routes) && back.board.told === null, `${p.id}: so one Undo goes back past it to the last step`);
+      const withFlood = play(p, play(p, drawAll(p, fresh, tris[0].routes), {type: 'flood', at: Object.keys(tris[0].gaps).find(u => tris[0].gaps[u] < q.k)}), {type: 'cant'});
+      const kept = undoPress(p, withFlood, x => JSON.stringify(x.board));
+      assert.ok(kept.board.flood === null && kept.board.told === 'can', `${p.id}: or to the flood before it, keeping the answer`);
+      refuse(p, kept, {type: 'cant'}, 'Can’t after Undo before a route changes');
       hintSteps += hintsSolve(p, a, 'after a refused Can’t');
     }
     for (let k = 0; k < 4; k++) hintSteps += hintsSolve(p, randomPlay(p, fresh, 6 + 5 * k), `after random play ${k}`);
@@ -334,6 +355,7 @@ function checkRefusals(p, fresh, tris, best) {
   if (away) refuse(p, fresh, {type: 'draw', side: 'AB', to: away}, 'a step that makes the route longer than shortest');
   if (q.goal !== 'reach') refuse(p, fresh, {type: 'cant'}, 'Can’t where there is nothing to claim');
   if (q.kind !== 'tree') refuse(p, fresh, {type: 'cant', at: A}, 'a tap with Can’t off a tree');
+  if (q.kind !== 'tree' && q.goal === 'reach') refuse(p, drawAll(p, fresh, tris[0].routes), {type: 'cant', at: A}, 'a tap with Can’t off a tree, on a drawn triangle');
   if (q.goal !== 'best') refuse(p, fresh, {type: 'best'}, 'Best outside a Best puzzle');
   else refuse(p, fresh, {type: 'best'}, 'Best before a flood');
   // On a drawn triangle: a flood off the routes, and the same flood twice.

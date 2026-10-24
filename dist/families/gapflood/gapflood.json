@@ -170,7 +170,7 @@
     "Each road is one step. Draw a shortest route between each two homes: AB, BC and CA. Only steps that keep a route shortest are allowed, and routes may share roads.",
     "A dot’s gap is the fewest steps from it to another route, along any roads. A dot on two routes has gap 0.",
     "When all three routes are drawn, tap a dot on a route to flood it: the light spreads one step at a time until it meets another route, and the number is the gap.",
-    "Press Can’t if no choice of shortest routes gives that gap."
+    "When all three routes are drawn, press Can’t if no choice of shortest routes gives that gap. If one does, it says so."
    ],
    "idea": "A route that bends away from the other two leaves a gap; the one through B leaves none.",
    "prerequisites": "Count steps along roads and see when a route could be shorter. Reading: one short goal and the letters A, B and C; a grown-up can read them and How to play.",
@@ -358,7 +358,7 @@
     "Each road is one step. Draw a shortest route between each two homes: AB, BC and CA. Only steps that keep a route shortest are allowed, and routes may share roads.",
     "A dot’s gap is the fewest steps from it to another route, along any roads. A dot on two routes has gap 0.",
     "When all three routes are drawn, tap a dot on a route to flood it: the light spreads one step at a time until it meets another route, and the number is the gap.",
-    "Press Can’t if no choice of shortest routes gives that gap.",
+    "When all three routes are drawn, press Can’t if no choice of shortest routes gives that gap. If one does, it says so.",
     "On a tree, Can’t needs one more tap: the dot where all three routes meet."
    ],
    "idea": "On a tree there is one route between two homes, and the three routes overlap as a tripod: every gap is 0.",
@@ -1082,7 +1082,7 @@
     "Each road is one step. Draw a shortest route between each two homes: AB, BC and CA. Only steps that keep a route shortest are allowed, and routes may share roads.",
     "A dot’s gap is the fewest steps from it to another route, along any roads. A dot on two routes has gap 0.",
     "When all three routes are drawn, tap a dot on a route to flood it: the light spreads one step at a time until it meets another route, and the number is the gap.",
-    "Press Can’t if no choice of shortest routes gives that gap."
+    "When all three routes are drawn, press Can’t if no choice of shortest routes gives that gap. If one does, it says so."
    ],
    "idea": "The same homes give a thin or a fat triangle: the gap depends on the routes, not only on the homes.",
    "prerequisites": "Count steps along roads and see when a route could be shorter. Reading: one short goal and the letters A, B and C; a grown-up can read them and How to play.",
@@ -1361,7 +1361,7 @@
     "Each road is one step. Draw a shortest route between each two homes: AB, BC and CA. Only steps that keep a route shortest are allowed, and routes may share roads.",
     "A dot’s gap is the fewest steps from it to another route, along any roads. A dot on two routes has gap 0.",
     "When all three routes are drawn, tap a dot on a route to flood it: the light spreads one step at a time until it meets another route, and the number is the gap.",
-    "Press Can’t if no choice of shortest routes gives that gap."
+    "When all three routes are drawn, press Can’t if no choice of shortest routes gives that gap. If one does, it says so."
    ],
    "idea": "However long the ladder, no gap reaches 2: two routes cross every column, and a column is one rung.",
    "prerequisites": "Count steps along roads and see when a route could be shorter. Reading: one short goal and the letters A, B and C; a grown-up can read them and How to play.",
